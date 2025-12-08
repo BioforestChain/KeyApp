@@ -58,9 +58,9 @@
   - button, input, dialog, sheet, toast
 - [ ] 3.4 验证组件导入正常
 
-## 4. Storybook 9.x 配置
+## 4. Storybook 10.x 配置
 
-- [ ] 4.1 安装 Storybook 9.x
+- [ ] 4.1 安装 Storybook 10.x
   ```bash
   pnpm dlx storybook@latest init
   ```

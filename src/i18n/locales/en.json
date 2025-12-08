@@ -1,0 +1,74 @@
+{
+  "common": {
+    "loading": "Loading",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyToClipboard": "Copied to clipboard",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noData": "No data",
+    "retry": "Retry",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "wallet": {
+    "myWallet": "My Wallet",
+    "address": "Address",
+    "balance": "Balance",
+    "transfer": "Transfer",
+    "receive": "Receive",
+    "notBackedUp": "Not backed up",
+    "copyAddress": "Copy address"
+  },
+  "transaction": {
+    "send": "Send",
+    "receive": "Receive",
+    "swap": "Swap",
+    "stake": "Stake",
+    "unstake": "Unstake",
+    "approve": "Approve",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "failed": "Failed",
+    "to": "To",
+    "from": "From",
+    "noTransactions": "No transactions"
+  },
+  "token": {
+    "noAssets": "No assets",
+    "addToken": "Add token"
+  },
+  "security": {
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "mnemonic": "Mnemonic",
+    "copyMnemonic": "Copy mnemonic",
+    "mnemonicCopied": "Mnemonic copied",
+    "strength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    }
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "minutesLater": "In {{count}} minutes",
+    "hoursLater": "In {{count}} hours",
+    "daysLater": "In {{count}} days"
+  },
+  "empty": {
+    "title": "No content",
+    "description": "Nothing here yet"
+  }
+}

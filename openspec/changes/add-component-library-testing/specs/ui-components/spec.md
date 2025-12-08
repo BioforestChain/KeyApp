@@ -6,7 +6,7 @@
 
 ### Requirement: Storybook 组件开发环境
 
-系统 SHALL 提供 Storybook 9.x 组件开发环境，支持移动端视口预览和交互测试。
+系统 SHALL 提供 Storybook 10.x 组件开发环境，支持移动端视口预览和交互测试。
 
 #### Scenario: 启动 Storybook
 - **WHEN** 运行 `pnpm storybook`

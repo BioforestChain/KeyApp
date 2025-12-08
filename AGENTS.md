@@ -59,13 +59,13 @@ TDD.md > PDR.md > SERVICE-SPEC.md > mpay 原始代码
 - TanStack (Router + Query + Store + Form)
 - shadcn/ui + Tailwind CSS 4.x
 - Zod 4.x + i18next
-- Storybook 9.x + Vitest 4.x
+- Storybook 10.x + Vitest 4.x
 
 ## 开发阶段
 
 ### Phase 1: 基础设施（当前）
 - [ ] 项目初始化 (Vite + React 19)
-- [ ] Storybook 9.x 组件开发环境
+- [ ] Storybook 10.x 组件开发环境
 - [ ] Vitest 4.x 测试环境
 - [ ] shadcn/ui 组件库集成
 - [ ] 基础 UI 组件开发与测试

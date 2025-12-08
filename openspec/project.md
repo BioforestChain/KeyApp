@@ -17,7 +17,7 @@ BFM Pay (KeyApp) 是一个现代化的多链钱包移动应用，是 mpay 的技
 | UI | shadcn/ui | latest |
 | 样式 | Tailwind CSS | 4.x |
 | 验证 | Zod | 4.x |
-| 组件文档 | Storybook | 9.x |
+| 组件文档 | Storybook | 10.x |
 | 单元测试 | Vitest | 4.x |
 | E2E测试 | Playwright | 1.x |
 | 国际化 | i18next | 23.x |

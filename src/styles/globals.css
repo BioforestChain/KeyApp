@@ -1,0 +1,198 @@
+@import 'tailwindcss';
+
+/* 主题配置 - Tailwind 4.x @theme 指令 */
+@theme {
+  /* 颜色系统 - OKLCH 色彩空间 */
+  --color-background: oklch(97.5% 0.01 270);
+  --color-foreground: oklch(15% 0.02 250);
+
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(15% 0.02 250);
+
+  /* 主色 - 紫色 */
+  --color-primary: oklch(65% 0.25 290);
+  --color-primary-foreground: oklch(100% 0 0);
+  --color-primary-50: oklch(97% 0.02 290);
+  --color-primary-100: oklch(94% 0.05 290);
+  --color-primary-500: oklch(65% 0.25 290);
+  --color-primary-700: oklch(55% 0.25 290);
+
+  /* 成功色 - 绿色 */
+  --color-secondary: oklch(70% 0.2 145);
+  --color-secondary-foreground: oklch(100% 0 0);
+
+  /* 错误色 - 红色 */
+  --color-destructive: oklch(60% 0.2 25);
+  --color-destructive-foreground: oklch(100% 0 0);
+
+  /* 文字层级 */
+  --color-muted: oklch(55% 0.05 290);
+  --color-muted-foreground: oklch(55% 0.05 290);
+
+  /* 边框和输入 */
+  --color-border: oklch(92% 0.02 290);
+  --color-input: oklch(92% 0.02 290);
+  --color-ring: oklch(65% 0.25 290);
+
+  /* 自定义颜色 */
+  --color-grey: oklch(97.5% 0.01 270);
+  --color-title: oklch(15% 0.02 250);
+  --color-subtext: oklch(55% 0.05 290);
+  --color-line: oklch(92% 0.02 290);
+
+  /* 链专属色 */
+  --color-chain-ethereum: oklch(55% 0.2 260);
+  --color-chain-tron: oklch(55% 0.25 25);
+  --color-chain-binance: oklch(80% 0.18 85);
+  --color-chain-bitcoin: oklch(70% 0.18 60);
+  --color-chain-bfmeta: oklch(60% 0.2 290);
+
+  /* 渐变色 */
+  --gradient-blue: linear-gradient(to bottom, oklch(85% 0.12 200), oklch(70% 0.15 220));
+  --gradient-purple: linear-gradient(to bottom, oklch(75% 0.15 290), oklch(60% 0.2 280));
+  --gradient-red: linear-gradient(to bottom, oklch(75% 0.15 10), oklch(60% 0.2 350));
+  --gradient-mint: linear-gradient(to bottom, oklch(80% 0.15 320), oklch(55% 0.25 290));
+
+  /* 容器查询断点 */
+  --container-3xs: 16rem; /* 256px - 极窄 */
+  --container-2xs: 18rem; /* 288px - 窄 */
+  --container-xs: 20rem; /* 320px - 小 */
+  --container-sm: 24rem; /* 384px - 中 */
+  --container-md: 28rem; /* 448px - 标准 */
+  --container-lg: 32rem; /* 512px - 大 */
+  --container-xl: 36rem; /* 576px - 宽 */
+
+  /* 圆角 */
+  --radius-base: 1rem;
+  --radius-sm: calc(0.5 * var(--radius-base));
+  --radius-md: calc(0.75 * var(--radius-base));
+  --radius-lg: calc(1 * var(--radius-base));
+  --radius-xl: calc(1.5 * var(--radius-base));
+  --radius-full: 9999px;
+
+  /* 字体 */
+  --font-sans: system-ui, -apple-system, sans-serif;
+
+  /* 动画 */
+  --animate-slide-in-bottom: slide-in-bottom 0.3s ease-out;
+  --animate-fade-in: fade-in 0.2s ease-out;
+}
+
+/* 深色模式 - 使用 .dark 类选择器 */
+.dark {
+  --color-background: oklch(15% 0.02 270);
+  --color-foreground: oklch(95% 0.01 250);
+
+  --color-card: oklch(20% 0.02 270);
+  --color-card-foreground: oklch(95% 0.01 250);
+
+  --color-muted: oklch(70% 0.05 290);
+  --color-muted-foreground: oklch(70% 0.05 290);
+
+  --color-border: oklch(30% 0.02 290);
+  --color-input: oklch(30% 0.02 290);
+}
+
+/* 系统深色模式偏好 */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background: oklch(15% 0.02 270);
+    --color-foreground: oklch(95% 0.01 250);
+
+    --color-card: oklch(20% 0.02 270);
+    --color-card-foreground: oklch(95% 0.01 250);
+
+    --color-muted: oklch(70% 0.05 290);
+    --color-muted-foreground: oklch(70% 0.05 290);
+
+    --color-border: oklch(30% 0.02 290);
+    --color-input: oklch(30% 0.02 290);
+  }
+}
+
+/* 自定义动画 */
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 自定义工具类 */
+@utility bg-gradient-blue {
+  background: var(--gradient-blue);
+}
+
+@utility bg-gradient-purple {
+  background: var(--gradient-purple);
+}
+
+@utility bg-gradient-red {
+  background: var(--gradient-red);
+}
+
+@utility bg-gradient-mint {
+  background: var(--gradient-mint);
+}
+
+/* 安全区域 */
+@utility safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* 基础样式 */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  @supports (corner-shape: superellipse(2)) {
+    * {
+      --radius-base: 2rem;
+    }
+    :not(.rounded-full) {
+      corner-shape: superellipse(2);
+    }
+    :where(.rounded-full):not(.aspect-square) {
+      corner-shape: superellipse(1.1);
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* RTL 支持 */
+  [dir='rtl'] {
+    /* RTL 时自动镜像部分图标 */
+    --direction-multiplier: -1;
+  }
+
+  [dir='ltr'] {
+    --direction-multiplier: 1;
+  }
+}
+
+/* RTL 工具类 */
+@utility flip-rtl {
+  [dir='rtl'] & {
+    transform: scaleX(-1);
+  }
+}

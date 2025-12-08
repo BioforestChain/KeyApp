@@ -13,7 +13,7 @@ BFM Pay 需要建立坚实的技术基础设施，确保组件开发的可视化
    - TypeScript 严格模式配置
    - ESLint + Prettier 代码规范
 
-2. **Storybook 9.x 组件开发环境**
+2. **Storybook 10.x 组件开发环境**
    - 移动端视口配置 (375x812, 390x844, 414x896)
    - 交互测试 (play function)
    - Tailwind CSS 4.x 集成

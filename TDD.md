@@ -76,7 +76,7 @@ mpay/src/
 | UI组件 | shadcn/ui | latest | 可定制的组件库 |
 | 样式 | Tailwind CSS | 4.x | CSS-first 配置 |
 | 验证 | Zod | 4.x | 类型安全验证 |
-| 组件文档 | Storybook | 9.x | 组件开发与文档 |
+| 组件文档 | Storybook | 10.x | 组件开发与文档，集成 Vitest |
 | 测试 | Vitest | 4.x | 快速单元测试 |
 | E2E测试 | Playwright | 1.x | 端到端测试 |
 | 区块链 | viem / tronweb / bitcoinjs-lib | - | 多链支持 |
@@ -110,7 +110,7 @@ mpay/src/
 
 ```
 keyapp/
-├── .storybook/                 # Storybook 9 配置
+├── .storybook/                 # Storybook 10 配置
 │   ├── main.ts
 │   ├── preview.tsx
 │   └── vitest.setup.ts
@@ -1279,9 +1279,92 @@ export const Resizable: Story = {
 | `@lg` | < 512px | 小平板/折叠屏展开 |
 | `@xl` | > 576px | 平板横屏，多列布局 |
 
+### 7.5 组件编码规范
+
+#### 7.5.1 正方形元素使用 aspect-square
+
+所有需要 1:1 比例的元素（如图标、头像、徽章）必须使用 `aspect-square` 而非同时指定 `w-X h-X`：
+
+```tsx
+// ✅ 正确：使用 aspect-square
+<div className="w-10 aspect-square rounded-full" />
+<svg className="w-5 aspect-square" />
+
+// ❌ 错误：同时指定宽高
+<div className="w-10 h-10 rounded-full" />
+<svg className="w-5 h-5" />
+```
+
+**原因**：
+- 统一维护：只需修改宽度，高度自动跟随
+- 响应式友好：容器查询下更易适配
+- 代码一致性：减少心智负担
+
+**例外情况**：
+- 非正方形元素（如拖动条 `w-10 h-1`）
+- Skeleton 骨架屏占位符（需要明确尺寸）
+
+#### 7.5.2 基础组件统一原则
+
+所有涉及以下数据类型的显示，必须使用对应的基础组件：
+
+| 数据类型 | 基础组件 | 位置 |
+|---------|---------|------|
+| 地址 | `AddressDisplay` | `@/components/wallet` |
+| 金额 | `AmountDisplay` / `AmountWithFiat` | `@/components/common` |
+| 时间 | `TimeDisplay` | `@/components/common` |
+
+```tsx
+// ✅ 正确：使用基础组件
+<AddressDisplay address={wallet.address} />
+<AmountDisplay value={100} symbol="USDT" sign="always" color="auto" />
+<TimeDisplay value={timestamp} format="relative" />
+
+// ❌ 错误：内联格式化
+<span>{address.slice(0, 6)}...{address.slice(-4)}</span>
+<span>{amount.toFixed(2)} USDT</span>
+<span>{formatTime(timestamp)}</span>
+```
+
+#### 7.5.3 图标 padding 规范
+
+带图标的按钮使用 `has-[svg]:ps-*` 自动调整左侧内边距：
+
+```tsx
+// ✅ 正确：条件 padding
+<button className="px-4 has-[svg]:ps-3">
+  <Icon />
+  <span>按钮文字</span>
+</button>
+
+// ❌ 错误：固定 padding
+<button className="ps-3 pe-4">
+  <Icon />
+  <span>按钮文字</span>
+</button>
+```
+
+#### 7.5.4 表单间距规范
+
+| 元素关系 | 间距类 | 说明 |
+|---------|-------|------|
+| label → input | `space-y-2` | 8px 垂直间距 |
+| input → error | `-mt-0.5` | 6px 间距（负边距补偿） |
+| field → field | `space-y-4` | 16px 垂直间距 |
+
+```tsx
+<div className="space-y-4">
+  <div className="space-y-2">
+    <Label>用户名</Label>
+    <Input />
+    {error && <p className="-mt-0.5 text-destructive">{error}</p>}
+  </div>
+</div>
+```
+
 ---
 
-## 8. Storybook 9.x 配置
+## 8. Storybook 10.x 配置
 
 ### 8.1 主配置
 
@@ -3338,5 +3421,5 @@ export function initPlaocRouterIntegration(): void {
 ---
 
 *文档版本: 7.0*
-*技术栈: React 19 + Vite 7 + TanStack + shadcn/ui + Tailwind 4 + Zod 4 + i18next + DWEB/Plaoc + Storybook 9 + Vitest 4*
+*技术栈: React 19 + Vite 7 + TanStack + shadcn/ui + Tailwind 4 + Zod 4 + i18next + DWEB/Plaoc + Storybook 10 + Vitest 4*
 *配套文档: PDR.md (产品需求) / SERVICE-SPEC.md (服务接口规范)*
