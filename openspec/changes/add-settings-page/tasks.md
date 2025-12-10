@@ -2,19 +2,19 @@
 
 ## T008: Settings Page Foundation
 
-### Status: proposed
+### Status: in_progress
 
 ### Tasks
 
 #### T008.1: SettingsPage Layout
-- [ ] Create `src/pages/settings/index.tsx` with section structure
-- [ ] Create `SettingsItem` component with icon, label, value, chevron
-- [ ] Create `SettingsSection` component for grouping
-- [ ] Add TanStack Router route configuration
-- [ ] Write tests (~8 tests)
-- [ ] Write Storybook story
+- [x] Create `src/pages/settings/index.tsx` with section structure
+- [x] Create `SettingsItem` component with icon, label, value, chevron
+- [x] Create `SettingsSection` component for grouping
+- [x] Add TanStack Router route configuration
+- [x] Write tests (19 tests)
+- [x] Write Storybook story
 
-**Acceptance**: Settings page renders with proper sections, navigation works
+**Acceptance**: Settings page renders with proper sections, navigation works ✅
 
 ---
 

@@ -17,6 +17,7 @@ const WalletDetailPage = lazy(() => import('@/pages/wallet/detail').then((m) => 
 const TokenDetailPage = lazy(() => import('@/pages/token/detail').then((m) => ({ default: m.TokenDetailPage })))
 const SendPage = lazy(() => import('@/pages/send').then((m) => ({ default: m.SendPage })))
 const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default: m.ReceivePage })))
+const SettingsPage = lazy(() => import('@/pages/settings').then((m) => ({ default: m.SettingsPage })))
 
 // Onboarding pages
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
@@ -103,6 +104,13 @@ const receiveRoute = createRoute({
   component: withSuspense(ReceivePage),
 })
 
+// 设置路由
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  component: withSuspense(SettingsPage),
+})
+
 // Onboarding 路由
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -136,6 +144,7 @@ const routeTree = rootRoute.addChildren([
   tokenRoute,
   sendRoute,
   receiveRoute,
+  settingsRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

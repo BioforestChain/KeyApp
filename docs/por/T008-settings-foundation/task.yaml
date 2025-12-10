@@ -1,0 +1,31 @@
+id: T008
+name: Settings Page Foundation
+goal: Implement settings page with language, security, and preference sections per PDR Epic 6/9/10.1
+status: active
+steps:
+  - id: S1
+    name: SettingsPage layout
+    done: Settings page with sections, SettingsItem/Section components, route config
+    status: complete
+    outputs:
+      - {path: 'src/pages/settings/index.tsx', note: 'Main settings page'}
+      - {path: 'src/pages/settings/settings-item.tsx', note: 'Reusable item component'}
+      - {path: 'src/pages/settings/settings-section.tsx', note: 'Section grouping'}
+      - {path: 'src/pages/settings/index.test.tsx', note: '19 tests pass'}
+      - {path: 'src/pages/settings/index.stories.tsx', note: 'Storybook stories'}
+  - id: S2
+    name: LanguageSelector
+    done: Language selection with i18next integration, persistence
+    status: pending
+  - id: S3
+    name: ViewMnemonicFlow
+    done: View mnemonic after password verification with auto-hide
+    status: pending
+  - id: S4
+    name: ChangePasswordFlow
+    done: Password change form with validation
+    status: pending
+  - id: S5
+    name: CurrencySelector
+    done: Currency selection with persistence
+    status: pending
