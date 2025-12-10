@@ -1,0 +1,110 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TransferConfirmSheet } from './transfer-confirm-sheet';
+
+const defaultProps = {
+  open: true,
+  onClose: vi.fn(),
+  onConfirm: vi.fn(),
+  amount: '1.5',
+  symbol: 'ETH',
+  toAddress: '0x1234567890abcdef1234567890abcdef12345678',
+  feeAmount: 0.002,
+  feeSymbol: 'ETH',
+};
+
+describe('TransferConfirmSheet', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders transfer amount and symbol', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+    expect(screen.getByText('1.5 ETH')).toBeInTheDocument();
+  });
+
+  it('renders fiat value when provided', () => {
+    render(<TransferConfirmSheet {...defaultProps} fiatValue="3000" />);
+    expect(screen.getByText('≈ $3000')).toBeInTheDocument();
+  });
+
+  it('renders truncated address by default', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+    expect(screen.getByText('0x12345678...345678')).toBeInTheDocument();
+  });
+
+  it('expands address on click', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+
+    fireEvent.click(screen.getByText('0x12345678...345678'));
+
+    expect(screen.getByText(defaultProps.toAddress)).toBeInTheDocument();
+  });
+
+  it('calls onClose when cancel button is clicked', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+
+    fireEvent.click(screen.getByText('取消'));
+
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('calls onConfirm when confirm button is clicked', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '确认转账' }));
+
+    expect(defaultProps.onConfirm).toHaveBeenCalled();
+  });
+
+  it('shows confirming state', () => {
+    render(<TransferConfirmSheet {...defaultProps} isConfirming />);
+    expect(screen.getByText('确认中...')).toBeInTheDocument();
+    expect(screen.getByText('确认中...')).toBeDisabled();
+  });
+
+  it('disables confirm when fee is loading', () => {
+    render(<TransferConfirmSheet {...defaultProps} feeLoading />);
+    expect(screen.getByRole('button', { name: '确认转账' })).toBeDisabled();
+  });
+
+  it('renders fee display', () => {
+    render(<TransferConfirmSheet {...defaultProps} feeFiatValue={5} />);
+    expect(screen.getByText(/0\.002 ETH/)).toBeInTheDocument();
+    expect(screen.getByText(/≈ \$5\.00/)).toBeInTheDocument();
+  });
+
+  it('does not render when not open', () => {
+    render(<TransferConfirmSheet {...defaultProps} open={false} />);
+    expect(screen.queryByText('确认转账')).not.toBeInTheDocument();
+  });
+
+  it('calls onClose when backdrop is clicked', () => {
+    render(<TransferConfirmSheet {...defaultProps} />);
+
+    // The backdrop has aria-hidden="true", but clicking it should trigger close
+    const backdrop = document.querySelector('[aria-hidden="true"]');
+    if (backdrop) {
+      fireEvent.click(backdrop);
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    }
+  });
+
+  it('shows copy feedback when address is copied', async () => {
+    // Mock clipboard
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    render(<TransferConfirmSheet {...defaultProps} />);
+
+    const copyButton = screen.getByLabelText('复制地址');
+    fireEvent.click(copyButton);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('已复制')).toBeInTheDocument();
+    });
+  });
+});

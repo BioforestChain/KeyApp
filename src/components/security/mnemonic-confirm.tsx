@@ -1,0 +1,173 @@
+import { useState, useCallback, useMemo } from 'react';
+import { cn } from '@/lib/utils';
+import { RotateCcw, Check, X } from 'lucide-react';
+
+interface MnemonicConfirmProps {
+  /** Original mnemonic words in correct order */
+  words: string[];
+  /** Callback when words are correctly confirmed */
+  onComplete: () => void;
+  /** Callback when words are reset */
+  onReset?: () => void;
+  /** Additional class names */
+  className?: string;
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Mnemonic confirmation component for backup verification
+ */
+export function MnemonicConfirm({ words, onComplete, onReset, className }: MnemonicConfirmProps) {
+  const [shuffledWords] = useState(() => shuffleArray(words.map((w, i) => ({ word: w, originalIndex: i }))));
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [showError, setShowError] = useState(false);
+
+  const selectedWords = useMemo(
+    () => selectedIndices.map((i) => shuffledWords[i].word),
+    [selectedIndices, shuffledWords],
+  );
+
+  const isComplete = selectedIndices.length === words.length;
+  const isCorrect = useMemo(
+    () => selectedWords.every((w, i) => w === words[i]),
+    [selectedWords, words],
+  );
+
+  const handleWordClick = useCallback(
+    (shuffledIndex: number) => {
+      if (selectedIndices.includes(shuffledIndex)) {
+        return;
+      }
+
+      setShowError(false);
+      const newSelected = [...selectedIndices, shuffledIndex];
+      setSelectedIndices(newSelected);
+
+      // Check if complete
+      if (newSelected.length === words.length) {
+        const newSelectedWords = newSelected.map((i) => shuffledWords[i].word);
+        const correct = newSelectedWords.every((w, i) => w === words[i]);
+        if (correct) {
+          onComplete();
+        } else {
+          setShowError(true);
+        }
+      }
+    },
+    [selectedIndices, words, shuffledWords, onComplete],
+  );
+
+  const handleReset = useCallback(() => {
+    setSelectedIndices([]);
+    setShowError(false);
+    onReset?.();
+  }, [onReset]);
+
+  const handleRemoveLast = useCallback(() => {
+    setSelectedIndices((prev) => prev.slice(0, -1));
+    setShowError(false);
+  }, []);
+
+  return (
+    <div className={cn('space-y-6', className)}>
+      {/* Selected words (answer area) */}
+      <div className="rounded-xl border border-border bg-muted/30 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            已选择 {selectedIndices.length}/{words.length}
+          </span>
+          {selectedIndices.length > 0 && (
+            <button
+              type="button"
+              onClick={handleRemoveLast}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              撤销
+            </button>
+          )}
+        </div>
+        <div className="flex min-h-24 flex-wrap gap-2">
+          {selectedWords.map((word, index) => (
+            <span
+              key={index}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium',
+                showError && index === selectedIndices.length - 1
+                  ? 'border-destructive bg-destructive/10 text-destructive'
+                  : 'border-border bg-background',
+              )}
+            >
+              <span className="text-xs text-muted-foreground">{index + 1}</span>
+              {word}
+            </span>
+          ))}
+          {selectedIndices.length === 0 && (
+            <p className="py-4 text-center text-sm text-muted-foreground w-full">
+              按正确顺序点击下方助记词
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Error message */}
+      {showError && (
+        <div className="flex items-center gap-2 text-sm text-destructive">
+          <X className="size-4" />
+          <span>助记词顺序错误，请重试</span>
+        </div>
+      )}
+
+      {/* Success message */}
+      {isComplete && isCorrect && (
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <Check className="size-4" />
+          <span>助记词验证成功</span>
+        </div>
+      )}
+
+      {/* Word pool */}
+      <div className="flex flex-wrap gap-2">
+        {shuffledWords.map((item, shuffledIndex) => {
+          const isSelected = selectedIndices.includes(shuffledIndex);
+          return (
+            <button
+              key={shuffledIndex}
+              type="button"
+              onClick={() => handleWordClick(shuffledIndex)}
+              disabled={isSelected || (isComplete && isCorrect)}
+              className={cn(
+                'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
+                isSelected
+                  ? 'border-transparent bg-muted text-muted-foreground opacity-50'
+                  : 'border-border bg-background hover:border-primary hover:bg-primary/5',
+                'disabled:cursor-not-allowed',
+              )}
+            >
+              {item.word}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Reset button */}
+      {(selectedIndices.length > 0 || showError) && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="flex w-full items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <RotateCcw className="size-4" />
+          重新选择
+        </button>
+      )}
+    </div>
+  );
+}
