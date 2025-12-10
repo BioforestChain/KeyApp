@@ -1,0 +1,17 @@
+id: T009
+name: Transaction History
+goal: Implement transaction history page with filtering per PDR Epic 5
+status: active
+steps:
+  - id: S1
+    name: useTransactionHistory Hook
+    done: Hook with mock data and filtering logic
+    status: pending
+  - id: S2
+    name: TransactionHistoryPage
+    done: History page with filters, pull-to-refresh
+    status: pending
+  - id: S3
+    name: TransactionDetailPage
+    done: Transaction detail view with status timeline
+    status: pending
