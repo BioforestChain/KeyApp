@@ -2,7 +2,7 @@
 
 ## T008: Settings Page Foundation
 
-### Status: in_progress
+### Status: complete
 
 ### Tasks
 
@@ -44,27 +44,27 @@
 ---
 
 #### T008.4: ChangePasswordFlow
-- [ ] Create `src/pages/settings/change-password.tsx`
-- [ ] Form with current/new/confirm password fields
-- [ ] Validate current password against stored
-- [ ] Password strength indicator
-- [ ] Update password in secure storage
-- [ ] Write tests (~10 tests): validation, errors, success
-- [ ] Write Storybook story
+- [x] Create `src/pages/settings/change-password.tsx`
+- [x] Form with current/new/confirm password fields
+- [x] Validate current password against stored
+- [x] Password strength indicator
+- [x] Update password in secure storage
+- [x] Write tests (14 tests): validation, errors, success
+- [x] Write Storybook story
 
-**Acceptance**: Password changes successfully with proper validation
+**Acceptance**: Password changes successfully with proper validation ✅
 
 ---
 
 #### T008.5: CurrencySelector
-- [ ] Create `src/pages/settings/currency.tsx` or sheet component
-- [ ] Create preferences store with `currency` state
-- [ ] Update asset displays to use selected currency
-- [ ] Persist selection
-- [ ] Write tests (~6 tests): selection, persist, display
-- [ ] Write Storybook story
+- [x] Create `src/pages/settings/currency.tsx` or sheet component
+- [x] Create preferences store with `currency` state (already exists)
+- [x] Update asset displays to use selected currency
+- [x] Persist selection
+- [x] Write tests (10 tests): selection, persist, display
+- [x] Write Storybook story
 
-**Acceptance**: Currency selection persists and affects asset value display
+**Acceptance**: Currency selection persists and affects asset value display ✅
 
 ---
 

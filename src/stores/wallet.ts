@@ -199,6 +199,17 @@ export const walletActions = {
     })
   },
 
+  /** 更新钱包加密助记词（密码修改时使用） */
+  updateWalletEncryptedMnemonic: (walletId: string, encryptedMnemonic: EncryptedData) => {
+    walletStore.setState((state) => {
+      const wallets = state.wallets.map((w) =>
+        w.id === walletId ? { ...w, encryptedMnemonic } : w
+      )
+      persistWallets(wallets, state.currentWalletId)
+      return { ...state, wallets }
+    })
+  },
+
   /** 清除所有数据 */
   clearAll: () => {
     localStorage.removeItem('bfm_wallets')
