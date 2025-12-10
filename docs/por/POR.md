@@ -10,7 +10,7 @@
 - Phase 2 Wallet Onboarding - TanStack Router flows - PeerA (upcoming)
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 690 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 702 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -35,6 +35,8 @@
 - Phase 2 Wallet Onboarding: **COMPLETE** ✅ (create + recover + backup)
 - T005 Asset Display: **complete** (committed 64fa10f, archived)
 - T006 Send Flow: **complete** (committed 234135d, archived)
+- T007 Receive Flow Tests: **complete** (committed 8fb44b8, archived)
+- Phase 3 Transfer: **COMPLETE** ✅ (asset + send + receive)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -48,6 +50,7 @@
 - 2025-12-10 20:55 | PeerB | T004 committed (77564e2), archived | 620 tests, 51 new | Phase 2 Onboarding COMPLETE
 - 2025-12-10 21:19 | PeerB | T005 committed (64fa10f), archived | 650 tests, 30 new | Asset display complete
 - 2025-12-11 00:56 | PeerB | T006 committed (234135d), archived | 690 tests, 40 new | Send flow complete
+- 2025-12-11 01:06 | PeerB | T007 committed (8fb44b8), archived | 702 tests, 12 new | Phase 3 Transfer COMPLETE
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
