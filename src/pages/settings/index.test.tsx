@@ -23,6 +23,17 @@ vi.mock('@/stores', () => ({
       { chain: 'bitcoin', address: 'bc1abc' },
     ],
   }),
+  useLanguage: () => 'zh-CN',
+  useCurrency: () => 'USD',
+  languages: {
+    'zh-CN': { name: '简体中文', dir: 'ltr' },
+    en: { name: 'English', dir: 'ltr' },
+    ar: { name: 'العربية', dir: 'rtl' },
+  },
+  currencies: {
+    USD: { symbol: '$', name: 'US Dollar' },
+    CNY: { symbol: '¥', name: 'Chinese Yuan' },
+  },
 }))
 
 // Test wrapper

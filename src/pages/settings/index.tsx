@@ -11,7 +11,7 @@ import {
   Info,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { useCurrentWallet } from '@/stores'
+import { useCurrentWallet, useLanguage, useCurrency, languages, currencies } from '@/stores'
 import { SettingsItem } from './settings-item'
 import { SettingsSection } from './settings-section'
 
@@ -37,10 +37,8 @@ const CURRENCY_NAMES: Record<string, string> = {
 export function SettingsPage() {
   const navigate = useNavigate()
   const currentWallet = useCurrentWallet()
-
-  // TODO: 从 preferences store 获取
-  const currentLanguage = 'zh-CN'
-  const currentCurrency = 'USD'
+  const currentLanguage = useLanguage()
+  const currentCurrency = useCurrency()
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
