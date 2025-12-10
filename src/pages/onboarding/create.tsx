@@ -1,65 +1,99 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { PageHeader } from '@/components/layout/page-header';
+import { useState, useCallback } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { PageHeader } from '@/components/layout/page-header'
 import {
   CreateWalletForm,
   type CreateWalletFormData,
   type MnemonicOptions,
-} from '@/components/onboarding/create-wallet-form';
-import { MnemonicOptionsSheet } from '@/components/onboarding/mnemonic-options-sheet';
-import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success';
-import { generateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestMultiChainKeys } from '@/lib/crypto';
-import type { BioforestChainType } from '@/lib/crypto';
-import { walletActions } from '@/stores';
+} from '@/components/onboarding/create-wallet-form'
+import { MnemonicOptionsSheet } from '@/components/onboarding/mnemonic-options-sheet'
+import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success'
+import { BackupTipsSheet } from '@/components/onboarding/backup-tips-sheet'
+import { MnemonicDisplay } from '@/components/security/mnemonic-display'
+import { MnemonicConfirmBackup } from '@/components/onboarding/mnemonic-confirm-backup'
+import { useMnemonicVerification } from '@/hooks/use-mnemonic-verification'
+import {
+  generateMnemonic,
+  encrypt,
+  deriveMultiChainKeys,
+  deriveBioforestMultiChainKeys,
+} from '@/lib/crypto'
+import type { BioforestChainType } from '@/lib/crypto'
+import { walletActions } from '@/stores'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
 
-type Step = 'form' | 'success';
+type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-confirm' | 'backup-complete'
 
 /**
  * Onboarding create wallet page
- * Implements the create-flow slice of wallet onboarding per openspec/changes/add-wallet-create-flow
+ * Implements the create-flow and backup-verification per openspec changes
  */
 export function OnboardingCreatePage() {
-  const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('form');
+  const navigate = useNavigate()
+  const [step, setStep] = useState<Step>('form')
   const [mnemonicOptions, setMnemonicOptions] = useState<MnemonicOptions>({
     language: 'english',
     length: 12,
-  });
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createdWalletName, setCreatedWalletName] = useState('');
+  })
+  const [showOptionsSheet, setShowOptionsSheet] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [createdWalletName, setCreatedWalletName] = useState('')
+  const [generatedMnemonic, setGeneratedMnemonic] = useState<string[]>([])
+  const [showBackupTips, setShowBackupTips] = useState(false)
+
+  // Verification hook for backup confirmation
+  const verification = useMnemonicVerification(generatedMnemonic)
 
   const handleBack = useCallback(() => {
-    if (step === 'success') {
-      // Can't go back from success
-      return;
+    switch (step) {
+      case 'form':
+        navigate({ to: '/' })
+        break
+      case 'success':
+        // Can't go back from success
+        break
+      case 'backup-tips':
+        setShowBackupTips(false)
+        break
+      case 'backup-display':
+        setStep('success')
+        setShowBackupTips(true)
+        break
+      case 'backup-confirm':
+        setStep('backup-display')
+        verification.reset()
+        break
+      case 'backup-complete':
+        // Can't go back from complete
+        break
     }
-    navigate({ to: '/' });
-  }, [step, navigate]);
+  }, [step, navigate, verification])
 
   const handleSubmit = useCallback(
     async (data: CreateWalletFormData) => {
-      if (isSubmitting) return;
-      setIsSubmitting(true);
+      if (isSubmitting) return
+      setIsSubmitting(true)
 
       try {
         // Generate mnemonic based on options
-        // Note: generateMnemonic currently only supports 12-word English
-        // TODO: Support language and length options when bip39 lib is extended
-        const mnemonic = generateMnemonic();
-        const mnemonicStr = mnemonic.join(' ');
+        const mnemonic = generateMnemonic()
+        const mnemonicStr = mnemonic.join(' ')
+
+        // Store mnemonic for backup verification
+        setGeneratedMnemonic(mnemonic)
 
         // Encrypt mnemonic with password
-        const encryptedMnemonic = await encrypt(mnemonicStr, data.password);
+        const encryptedMnemonic = await encrypt(mnemonicStr, data.password)
 
         // Derive external chain addresses (BIP44)
-        const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
+        const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
 
         // Derive BioForest chain addresses (Ed25519)
-        const bioforestChains: BioforestChainType[] = ['bfmeta', 'pmchain', 'ccchain'];
-        const bioforestKeys = deriveBioforestMultiChainKeys(mnemonicStr, bioforestChains);
+        const bioforestChains: BioforestChainType[] = ['bfmeta', 'pmchain', 'ccchain']
+        const bioforestKeys = deriveBioforestMultiChainKeys(mnemonicStr, bioforestChains)
 
-        const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!;
+        const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!
 
         // Combine all chain addresses
         const chainAddresses = [
@@ -73,44 +107,60 @@ export function OnboardingCreatePage() {
             address: key.address,
             tokens: [],
           })),
-        ];
+        ]
 
-        // Create wallet with skipBackup=true (per spec)
+        // Create wallet with skipBackup=true (can be changed after verification)
         walletActions.createWallet({
           name: data.name,
           address: ethKey.address,
           chain: 'ethereum',
           chainAddresses,
           encryptedMnemonic,
-          // Note: skipBackup would be stored in wallet settings
-        });
+        })
 
-        // Store password hint if provided
-        // TODO: Store tip in wallet settings when settings system is implemented
-
-        setCreatedWalletName(data.name);
-        setStep('success');
+        setCreatedWalletName(data.name)
+        setStep('success')
       } catch (error) {
-        console.error('创建钱包失败:', error);
+        console.error('创建钱包失败:', error)
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     },
     [isSubmitting],
-  );
+  )
 
-  const handleBackup = useCallback(() => {
-    // Navigate to backup flow
-    // TODO: Implement backup route when add-wallet-backup-and-biometrics change is implemented
-    navigate({ to: '/' });
-  }, [navigate]);
+  const handleStartBackup = useCallback(() => {
+    setShowBackupTips(true)
+  }, [])
+
+  const handleBackupTipsProceed = useCallback(() => {
+    setShowBackupTips(false)
+    setStep('backup-display')
+  }, [])
+
+  const handleBackupTipsSkip = useCallback(() => {
+    setShowBackupTips(false)
+    // Stay on success, user chose to skip
+  }, [])
+
+  const handleDisplayConfirm = useCallback(() => {
+    verification.reset() // Generate fresh verification challenge
+    setStep('backup-confirm')
+  }, [verification])
+
+  const handleVerificationComplete = useCallback(() => {
+    setStep('backup-complete')
+    // TODO: Update wallet skipBackup=false when settings system is implemented
+  }, [])
 
   const handleEnterWallet = useCallback(() => {
-    navigate({ to: '/' });
-  }, [navigate]);
+    navigate({ to: '/' })
+  }, [navigate])
 
+  // Render based on current step
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Form step */}
       {step === 'form' && (
         <>
           <PageHeader title="创建钱包" onBack={handleBack} />
@@ -132,14 +182,94 @@ export function OnboardingCreatePage() {
         </>
       )}
 
+      {/* Success step */}
       {step === 'success' && (
-        <CreateWalletSuccess
-          walletName={createdWalletName}
-          skipBackup={true}
-          onBackup={handleBackup}
-          onEnterWallet={handleEnterWallet}
-        />
+        <>
+          <CreateWalletSuccess
+            walletName={createdWalletName}
+            skipBackup={true}
+            onBackup={handleStartBackup}
+            onEnterWallet={handleEnterWallet}
+          />
+          <BackupTipsSheet
+            open={showBackupTips}
+            onClose={() => setShowBackupTips(false)}
+            onProceed={handleBackupTipsProceed}
+            onSkip={handleBackupTipsSkip}
+          />
+        </>
+      )}
+
+      {/* Backup display step */}
+      {step === 'backup-display' && (
+        <>
+          <PageHeader title="备份助记词" onBack={handleBack} />
+          <div className="flex flex-1 flex-col p-4">
+            <div className="mb-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                请按顺序抄写以下助记词，并妥善保管
+              </p>
+            </div>
+
+            <div className="flex-1">
+              <MnemonicDisplay words={generatedMnemonic} />
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <Button onClick={handleDisplayConfirm} className="w-full" size="lg">
+                我已抄写完成
+                <ArrowRight className="ml-2 size-4" />
+              </Button>
+              <Button
+                onClick={handleBack}
+                variant="ghost"
+                className="w-full text-muted-foreground"
+              >
+                <ArrowLeft className="mr-2 size-4" />
+                返回
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Backup confirm step */}
+      {step === 'backup-confirm' && (
+        <>
+          <PageHeader title="验证助记词" onBack={handleBack} />
+          <div className="flex-1 p-4">
+            <MnemonicConfirmBackup
+              slots={verification.state.slots}
+              candidates={verification.state.candidates}
+              usedWords={verification.state.usedWords}
+              nextEmptySlotIndex={verification.nextEmptySlotIndex}
+              isComplete={verification.state.isComplete}
+              onSelectWord={verification.selectWord}
+              onDeselectSlot={verification.deselectSlot}
+              onComplete={handleVerificationComplete}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Backup complete step */}
+      {step === 'backup-complete' && (
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-8">
+          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <CheckCircle className="size-10 text-green-600 dark:text-green-400" />
+          </div>
+
+          <h1 className="mb-2 text-2xl font-bold">备份完成！</h1>
+          <p className="mb-8 text-center text-muted-foreground">
+            您已成功备份助记词，请妥善保管
+          </p>
+
+          <Button onClick={handleEnterWallet} size="lg" className="w-full max-w-xs">
+            进入钱包
+            <ArrowRight className="ml-2 size-4" />
+          </Button>
+        </div>
       )}
     </div>
-  );
+  )
 }
