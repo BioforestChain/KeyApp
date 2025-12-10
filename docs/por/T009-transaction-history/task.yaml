@@ -6,7 +6,10 @@ steps:
   - id: S1
     name: useTransactionHistory Hook
     done: Hook with mock data and filtering logic
-    status: pending
+    status: complete
+    outputs:
+      - {path: 'src/hooks/use-transaction-history.ts', note: 'Hook implementation'}
+      - {path: 'src/hooks/use-transaction-history.test.ts', note: '13 tests'}
   - id: S2
     name: TransactionHistoryPage
     done: History page with filters, pull-to-refresh

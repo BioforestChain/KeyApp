@@ -10,9 +10,10 @@
 - Phase 2 Wallet Onboarding - TanStack Router flows - PeerA ✅
 - Phase 3 Transfer Functionality - asset display, send, receive - PeerA ✅
 - Phase 4 Settings & Preferences - src/pages/settings/ - PeerA ✅
+- Phase 5 Transaction History - src/pages/history/ - PeerA (active)
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 775 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 788 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -41,6 +42,7 @@
 - Phase 3 Transfer: **COMPLETE** ✅ (asset + send + receive)
 - T008 Settings Foundation: **complete** (committed 018bd05, archived)
 - Phase 4 Settings: **COMPLETE** ✅ (layout + language + mnemonic + password + currency)
+- T009 Transaction History: **in_progress** (T009.1 hook complete, committed 57a50a0)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -60,6 +62,7 @@
 - 2025-12-11 01:42 | PeerB | T008.2 committed (37f3760) | 738 tests, 17 new | LanguageSelector + preferencesStore
 - 2025-12-11 05:38 | PeerB | T008.3 committed (3ffa68b) | 751 tests, 13 new | ViewMnemonicFlow with 30s auto-hide
 - 2025-12-11 05:50 | PeerB | T008.4-T008.5 committed (018bd05) | 775 tests, 24 new | Phase 4 Settings COMPLETE
+- 2025-12-11 06:04 | PeerB | T009.1 committed (57a50a0) | 788 tests, 13 new | useTransactionHistory hook
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
