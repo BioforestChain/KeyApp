@@ -26,7 +26,11 @@ steps:
   - id: S3
     name: ViewMnemonicFlow
     done: View mnemonic after password verification with auto-hide
-    status: pending
+    status: complete
+    outputs:
+      - {path: 'src/pages/settings/view-mnemonic.tsx', note: 'Mnemonic viewer with security'}
+      - {path: 'src/pages/settings/view-mnemonic.test.tsx', note: '13 tests pass'}
+      - {path: 'src/pages/settings/view-mnemonic.stories.tsx', note: 'Storybook story'}
   - id: S4
     name: ChangePasswordFlow
     done: Password change form with validation

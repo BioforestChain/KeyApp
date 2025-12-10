@@ -31,15 +31,15 @@
 ---
 
 #### T008.3: ViewMnemonicFlow
-- [ ] Create `src/pages/settings/view-mnemonic.tsx`
-- [ ] Integrate PasswordConfirmSheet for verification
-- [ ] Display mnemonic in 4x3 word grid
-- [ ] Implement 30-second auto-blur timeout
-- [ ] Implement blur on page leave (visibility API)
-- [ ] Write tests (~12 tests): verify flow, display, timeout, security
-- [ ] Write Storybook story
+- [x] Create `src/pages/settings/view-mnemonic.tsx`
+- [x] Integrate PasswordConfirmSheet for verification
+- [x] Display mnemonic in 4x3 word grid
+- [x] Implement 30-second auto-blur timeout
+- [x] Implement blur on page leave (visibility API)
+- [x] Write tests (13 tests): verify flow, display, timeout, security
+- [x] Write Storybook story
 
-**Acceptance**: Mnemonic displays after password, auto-hides, never exposed insecurely
+**Acceptance**: Mnemonic displays after password, auto-hides, never exposed insecurely ✅
 
 ---
 
