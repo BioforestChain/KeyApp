@@ -19,6 +19,7 @@ const SendPage = lazy(() => import('@/pages/send').then((m) => ({ default: m.Sen
 const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default: m.ReceivePage })))
 const SettingsPage = lazy(() => import('@/pages/settings').then((m) => ({ default: m.SettingsPage })))
 const LanguagePage = lazy(() => import('@/pages/settings/language').then((m) => ({ default: m.LanguagePage })))
+const ViewMnemonicPage = lazy(() => import('@/pages/settings/view-mnemonic').then((m) => ({ default: m.ViewMnemonicPage })))
 
 // Onboarding pages
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
@@ -118,6 +119,12 @@ const settingsLanguageRoute = createRoute({
   component: withSuspense(LanguagePage),
 })
 
+const settingsMnemonicRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings/mnemonic',
+  component: withSuspense(ViewMnemonicPage),
+})
+
 // Onboarding 路由
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -153,6 +160,7 @@ const routeTree = rootRoute.addChildren([
   receiveRoute,
   settingsRoute,
   settingsLanguageRoute,
+  settingsMnemonicRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下
