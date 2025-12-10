@@ -1,15 +1,18 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { AddressInput } from '@/components/transfer/address-input'
 import { AmountInput } from '@/components/transfer/amount-input'
 import { GradientButton } from '@/components/common/gradient-button'
 import { Alert } from '@/components/common/alert'
 import { ChainIcon } from '@/components/wallet/chain-icon'
+import { TransferConfirmSheet } from '@/components/transfer/transfer-confirm-sheet'
+import { SendResult } from '@/components/transfer/send-result'
 import { useCamera, useToast, useHaptics } from '@/services'
+import { useSend } from '@/hooks/use-send'
+import { useAssets } from '@/hooks/use-assets'
+import { formatAssetAmount } from '@/types/asset'
 import { ArrowRight } from 'lucide-react'
 import {
-  useCurrentChainAddress,
   useSelectedChain,
   type ChainType,
 } from '@/stores'
@@ -27,19 +30,30 @@ export function SendPage() {
   const camera = useCamera()
   const toast = useToast()
   const haptics = useHaptics()
-  
-  const chainAddress = useCurrentChainAddress()
+
   const selectedChain = useSelectedChain()
-  const [toAddress, setToAddress] = useState('')
-  const [amount, setAmount] = useState('')
-  const [isSending, setIsSending] = useState(false)
+  const { allAssets } = useAssets()
 
-  // TODO: 从实际余额获取
-  const balance = '1,234.56'
-  const symbol = 'USDT'
+  // Get first asset as default (in real app, would be from route params or selection)
+  const defaultAsset = allAssets[0]
 
-  const isValid = toAddress.length > 10 && parseFloat(amount) > 0
-  const hasInsufficientBalance = parseFloat(amount) > parseFloat(balance.replace(',', ''))
+  const {
+    state,
+    setToAddress,
+    setAmount,
+    setAsset,
+    goToConfirm,
+    goBack,
+    submit,
+    reset,
+    canProceed,
+  } = useSend({ initialAsset: defaultAsset })
+
+  // Derive formatted values
+  const balance = state.asset
+    ? formatAssetAmount(state.asset.amount, state.asset.decimals)
+    : '0'
+  const symbol = state.asset?.assetType ?? 'TOKEN'
 
   const handleScan = async () => {
     try {
@@ -51,50 +65,71 @@ export function SendPage() {
           return
         }
       }
-      
+
       const result = await camera.scanQRCode()
       if (result.content) {
         setToAddress(result.content)
         await haptics.impact('success')
         toast.show('扫描成功')
       }
-    } catch (error) {
+    } catch {
       toast.show({ message: '扫描失败，请手动输入', position: 'center' })
     }
   }
 
-  const handleSend = async () => {
-    if (isSending || !isValid) return
-    setIsSending(true)
-
-    try {
-      // TODO: 实现真实发送逻辑
-      console.log('Send:', { 
-        from: chainAddress?.address,
-        to: toAddress, 
-        amount,
-        chain: selectedChain,
-      })
-      
-      await haptics.impact('success')
-      toast.show('交易已提交')
-      
-      // 模拟发送延迟
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      navigate({ to: '/' })
-    } catch (error) {
-      console.error('发送失败:', error)
-      await haptics.impact('error')
-      toast.show({ message: '发送失败，请重试', position: 'center' })
-      setIsSending(false)
+  const handleProceed = () => {
+    if (goToConfirm()) {
+      haptics.impact('light')
     }
+  }
+
+  const handleConfirm = async () => {
+    await haptics.impact('medium')
+    await submit()
+  }
+
+  const handleDone = () => {
+    if (state.resultStatus === 'success') {
+      haptics.impact('success')
+    }
+    navigate({ to: '/' })
+  }
+
+  const handleRetry = () => {
+    reset()
+  }
+
+  const handleViewExplorer = () => {
+    // TODO: Open block explorer with txHash
+    if (state.txHash) {
+      toast.show('区块浏览器功能待实现')
+    }
+  }
+
+  // Result step
+  if (state.step === 'result' || state.step === 'sending') {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <PageHeader title="发送结果" />
+        <SendResult
+          status={state.step === 'sending' ? 'pending' : (state.resultStatus ?? 'pending')}
+          amount={state.amount}
+          symbol={symbol}
+          toAddress={state.toAddress}
+          txHash={state.txHash ?? undefined}
+          errorMessage={state.errorMessage ?? undefined}
+          onDone={handleDone}
+          onRetry={state.resultStatus === 'failed' ? handleRetry : undefined}
+          onViewExplorer={state.resultStatus === 'success' ? handleViewExplorer : undefined}
+        />
+      </div>
+    )
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader 
-        title="发送" 
+      <PageHeader
+        title="发送"
         onBack={() => navigate({ to: '/' })}
       />
 
@@ -108,47 +143,57 @@ export function SendPage() {
         {/* 地址输入 */}
         <AddressInput
           label="收款地址"
-          value={toAddress}
+          value={state.toAddress}
           onChange={setToAddress}
           placeholder={`输入 ${CHAIN_NAMES[selectedChain]} 地址`}
           onScan={handleScan}
+          error={state.addressError ?? undefined}
         />
 
         {/* 金额输入 */}
         <AmountInput
           label="金额"
-          value={amount}
+          value={state.amount}
           onChange={setAmount}
           balance={balance}
           symbol={symbol}
-          fiatValue={amount ? `$${parseFloat(amount).toFixed(2)}` : undefined}
+          max={balance}
+          error={state.amountError ?? undefined}
+          fiatValue={state.amount ? `${parseFloat(state.amount).toFixed(2)}` : undefined}
         />
-
-        {/* 余额不足警告 */}
-        {hasInsufficientBalance && (
-          <Alert variant="error">
-            余额不足，当前可用余额为 {balance} {symbol}
-          </Alert>
-        )}
 
         {/* 网络提示 */}
         <Alert variant="info">
           请确保收款地址为 {CHAIN_NAMES[selectedChain]} 网络地址，发送到错误网络将无法找回
         </Alert>
 
-        {/* 发送按钮 */}
+        {/* 继续按钮 */}
         <div className="pt-4">
           <GradientButton
             variant="mint"
             className="w-full"
-            disabled={!isValid || hasInsufficientBalance || isSending}
-            onClick={handleSend}
+            disabled={!canProceed}
+            onClick={handleProceed}
           >
-            {isSending ? '发送中...' : '确认发送'}
-            {!isSending && <ArrowRight className="ml-2 size-4" />}
+            继续
+            <ArrowRight className="ml-2 size-4" />
           </GradientButton>
         </div>
       </div>
+
+      {/* 确认弹窗 */}
+      <TransferConfirmSheet
+        open={state.step === 'confirm'}
+        onClose={goBack}
+        onConfirm={handleConfirm}
+        amount={state.amount}
+        symbol={symbol}
+        toAddress={state.toAddress}
+        feeAmount={state.feeAmount}
+        feeSymbol={state.feeSymbol}
+        feeLoading={state.feeLoading}
+        isConfirming={state.isSubmitting}
+      />
     </div>
   )
 }

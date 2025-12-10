@@ -10,7 +10,7 @@
 - Phase 2 Wallet Onboarding - TanStack Router flows - PeerA (upcoming)
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 620 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 650 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -33,7 +33,8 @@
 - T003 Wallet Recover Flow: **complete** (committed 07cbf06, archived)
 - T004 Wallet Backup Verification: **complete** (committed 77564e2, archived)
 - Phase 2 Wallet Onboarding: **COMPLETE** ✅ (create + recover + backup)
-- T005 Asset Display: **active** (spec validated, dispatched to PeerA)
+- T005 Asset Display: **complete** (committed 64fa10f, archived)
+- T006 Send Flow: **active** (spec validated, dispatched to PeerA)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -45,6 +46,7 @@
 - 2025-12-10 20:34 | PeerB | T003 committed (07cbf06), archived | 569 tests, 65 new for recover flow
 - 2025-12-10 20:37 | PeerB | T004 change scaffolded (add-wallet-backup-verification) | biometrics deferred to Phase 3
 - 2025-12-10 20:55 | PeerB | T004 committed (77564e2), archived | 620 tests, 51 new | Phase 2 Onboarding COMPLETE
+- 2025-12-10 21:19 | PeerB | T005 committed (64fa10f), archived | 650 tests, 30 new | Asset display complete
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
