@@ -1,0 +1,68 @@
+# Tasks: Wallet Management
+
+## T010: Wallet Management
+
+### Status: pending
+
+### Tasks
+
+#### T010.1: WalletListPage
+- [x] Create `src/pages/wallet/list.tsx`
+- [x] Display all wallets with balance preview
+- [x] Implement wallet switching
+- [x] Add route `/wallet/list`
+- [x] Write tests (~8 tests)
+- [x] Write Storybook story
+
+**Acceptance**: Can view and switch between wallets ✅
+
+---
+
+#### T010.2: WalletEditSheet
+- [x] Create `src/components/wallet/wallet-edit-sheet.tsx`
+- [x] Implement rename functionality
+- [x] Implement delete with password confirmation
+- [x] Write tests (~8 tests)
+- [x] Write Storybook story
+
+**Acceptance**: Can rename and delete wallets ✅
+
+---
+
+#### T010.3: AddressBookStore
+- [ ] Create `src/stores/address-book.ts`
+- [ ] Define Contact type
+- [ ] Implement CRUD operations
+- [ ] Persist to localStorage
+- [ ] Write tests (~6 tests)
+
+**Acceptance**: Address book data persists correctly
+
+---
+
+#### T010.4: AddressBookPage
+- [ ] Create `src/pages/address-book/index.tsx`
+- [ ] List contacts with search
+- [ ] Add/edit/delete contacts via sheet
+- [ ] Add route `/address-book`
+- [ ] Write tests (~8 tests)
+- [ ] Write Storybook story
+
+**Acceptance**: Can manage address book
+
+---
+
+## Dependencies
+
+- walletStore (exists)
+- PasswordConfirmSheet (exists)
+
+## Estimated Test Count
+
+| Task | Tests |
+|------|-------|
+| T010.1 WalletListPage | ~8 |
+| T010.2 WalletEditSheet | ~8 |
+| T010.3 AddressBookStore | ~6 |
+| T010.4 AddressBookPage | ~8 |
+| **Total** | **~30** |

@@ -14,6 +14,7 @@ const HomePage = lazy(() => import('@/pages/home').then((m) => ({ default: m.Hom
 const WalletCreatePage = lazy(() => import('@/pages/wallet/create').then((m) => ({ default: m.WalletCreatePage })))
 const WalletImportPage = lazy(() => import('@/pages/wallet/import').then((m) => ({ default: m.WalletImportPage })))
 const WalletDetailPage = lazy(() => import('@/pages/wallet/detail').then((m) => ({ default: m.WalletDetailPage })))
+const WalletListPage = lazy(() => import('@/pages/wallet/list').then((m) => ({ default: m.WalletListPage })))
 const TokenDetailPage = lazy(() => import('@/pages/token/detail').then((m) => ({ default: m.TokenDetailPage })))
 const SendPage = lazy(() => import('@/pages/send').then((m) => ({ default: m.SendPage })))
 const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default: m.ReceivePage })))
@@ -89,6 +90,12 @@ const walletDetailRoute = createRoute({
   getParentRoute: () => walletRoute,
   path: '/$walletId',
   component: withSuspense(WalletDetailPage),
+})
+
+const walletListRoute = createRoute({
+  getParentRoute: () => walletRoute,
+  path: '/list',
+  component: withSuspense(WalletListPage),
 })
 
 // 代币路由
@@ -181,6 +188,7 @@ const routeTree = rootRoute.addChildren([
     walletCreateRoute,
     walletImportRoute,
     walletDetailRoute,
+    walletListRoute,
   ]),
   onboardingRoute.addChildren([
     onboardingCreateRoute,
