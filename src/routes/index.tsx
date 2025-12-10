@@ -18,6 +18,9 @@ const TokenDetailPage = lazy(() => import('@/pages/token/detail').then((m) => ({
 const SendPage = lazy(() => import('@/pages/send').then((m) => ({ default: m.SendPage })))
 const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default: m.ReceivePage })))
 
+// Onboarding pages
+const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -99,6 +102,18 @@ const receiveRoute = createRoute({
   component: withSuspense(ReceivePage),
 })
 
+// Onboarding 路由
+const onboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/onboarding',
+})
+
+const onboardingCreateRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: '/create',
+  component: withSuspense(OnboardingCreatePage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -106,6 +121,9 @@ const routeTree = rootRoute.addChildren([
     walletCreateRoute,
     walletImportRoute,
     walletDetailRoute,
+  ]),
+  onboardingRoute.addChildren([
+    onboardingCreateRoute,
   ]),
   tokenRoute,
   sendRoute,
