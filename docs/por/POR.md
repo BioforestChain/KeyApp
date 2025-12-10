@@ -17,9 +17,9 @@
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
-- Now (<= 2 weeks): Wallet management, address book
-- Next (<= 6 weeks): Advanced features, notifications
-- Later (> 6 weeks): Staking, DWEB/Plaoc integration, biometric auth
+- Now (<= 2 weeks): Notifications, token price display
+- Next (<= 6 weeks): Staking (Epic 5), DWEB/Plaoc integration (Epic 8)
+- Later (> 6 weeks): Biometric auth, multi-language enhancement
 
 ## Decision & Pivot Log (recent 5)
 - 2025-12-10 | T001 complete | 8 core components delivered with 90 new tests | 453 total tests passing | archived
@@ -46,6 +46,7 @@
 - Phase 5 Transaction History: **COMPLETE** ✅ (hook + list + detail)
 - T010 Wallet Management: **complete** (committed, S1-S4 all done)
 - Phase 6 Wallet Management: **COMPLETE** ✅ (wallet list + edit + address book)
+- T011 Notification System: **pending** (scaffolded, S1-S4 pending)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -70,6 +71,7 @@
 - 2025-12-11 06:55 | PeerB | T010.1-2 committed (fa8aad1) | 828 tests, 17 new | WalletListPage + WalletEditSheet done
 - 2025-12-11 06:58 | PeerB | T010.3 committed (e22e51d) | 835 tests, 7 new | AddressBookStore with CRUD + persistence
 - 2025-12-11 07:00 | PeerB | T010.4 committed | 843 tests, 8 new | Phase 6 Wallet Management COMPLETE
+- 2025-12-11 07:05 | PeerB | T011 change scaffolded (add-notification-system) | Phase 7 Notifications start
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
