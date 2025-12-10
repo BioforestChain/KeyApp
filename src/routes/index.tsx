@@ -32,6 +32,9 @@ const TransactionDetailPage = lazy(() => import('@/pages/history/detail').then((
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
 const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').then((m) => ({ default: m.OnboardingRecoverPage })))
 
+// Address Book page
+const AddressBookPage = lazy(() => import('@/pages/address-book').then((m) => ({ default: m.AddressBookPage })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -181,6 +184,13 @@ const onboardingRecoverRoute = createRoute({
   component: withSuspense(OnboardingRecoverPage),
 })
 
+// Address Book 路由
+const addressBookRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/address-book',
+  component: withSuspense(AddressBookPage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -204,6 +214,7 @@ const routeTree = rootRoute.addChildren([
   settingsCurrencyRoute,
   historyRoute,
   transactionDetailRoute,
+  addressBookRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

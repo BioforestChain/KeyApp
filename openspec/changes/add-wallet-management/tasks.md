@@ -2,7 +2,7 @@
 
 ## T010: Wallet Management
 
-### Status: in_progress (T010.1-2 done, T010.3-4 pending)
+### Status: in_progress (T010.1-3 done, T010.4 pending)
 
 ### Tasks
 
@@ -41,14 +41,14 @@
 ---
 
 #### T010.4: AddressBookPage
-- [ ] Create `src/pages/address-book/index.tsx`
-- [ ] List contacts with search
-- [ ] Add/edit/delete contacts via sheet
-- [ ] Add route `/address-book`
-- [ ] Write tests (~8 tests)
-- [ ] Write Storybook story
+- [x] Create `src/pages/address-book/index.tsx`
+- [x] List contacts with search
+- [x] Add/edit/delete contacts via sheet
+- [x] Add route `/address-book`
+- [x] Write tests (~8 tests)
+- [x] Write Storybook story
 
-**Acceptance**: Can manage address book
+**Acceptance**: Can manage address book ✅
 
 ---
 

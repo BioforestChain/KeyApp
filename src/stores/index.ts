@@ -2,6 +2,10 @@
 export { walletStore, walletActions, walletSelectors } from './wallet'
 export type { Wallet, Token, ChainType, ChainAddress, WalletState } from './wallet'
 
+// Address Book Store
+export { addressBookStore, addressBookActions, addressBookSelectors } from './address-book'
+export type { Contact, AddressBookState } from './address-book'
+
 // Preferences Store
 export {
   preferencesStore,
