@@ -1,6 +1,24 @@
 import { cn } from '@/lib/utils';
 
-export type ChainType = 'ethereum' | 'tron' | 'bsc' | 'bitcoin' | 'bfmeta' | 'btgmeta' | 'ethmeta' | 'ccc';
+// 支持的链类型 - 与 stores/wallet.ts 中的 ChainType 对应
+export type ChainType = 
+  // 外部链 (BIP44)
+  | 'ethereum' 
+  | 'tron' 
+  | 'bitcoin' 
+  | 'binance'
+  | 'bsc' // binance alias
+  // BioForest 链 (Ed25519)  
+  | 'bfmeta'
+  | 'ccchain'
+  | 'pmchain'
+  | 'bfchainv2'
+  | 'btgmeta'
+  | 'biwmeta'
+  | 'ethmeta'
+  | 'malibu'
+  // Legacy aliases
+  | 'ccc';
 
 interface ChainIconProps {
   chain: ChainType;
@@ -9,25 +27,43 @@ interface ChainIconProps {
 }
 
 const chainColors: Record<ChainType, string> = {
+  // 外部链
   ethereum: 'bg-chain-ethereum',
   tron: 'bg-chain-tron',
-  bsc: 'bg-chain-binance',
   bitcoin: 'bg-chain-bitcoin',
+  binance: 'bg-chain-binance',
+  bsc: 'bg-chain-binance',
+  // BioForest 链
   bfmeta: 'bg-chain-bfmeta',
-  btgmeta: 'bg-chain-bfmeta',
-  ethmeta: 'bg-chain-ethereum',
-  ccc: 'bg-chain-bfmeta',
+  ccchain: 'bg-emerald-500',
+  pmchain: 'bg-violet-500',
+  bfchainv2: 'bg-chain-bfmeta',
+  btgmeta: 'bg-amber-500',
+  biwmeta: 'bg-cyan-500',
+  ethmeta: 'bg-indigo-500',
+  malibu: 'bg-pink-500',
+  // Legacy
+  ccc: 'bg-emerald-500',
 };
 
 const chainLabels: Record<ChainType, string> = {
+  // 外部链
   ethereum: 'ETH',
   tron: 'TRX',
-  bsc: 'BNB',
   bitcoin: 'BTC',
-  bfmeta: 'BFM',
-  btgmeta: 'BTGM',
-  ethmeta: 'ETHM',
-  ccc: 'CCC',
+  binance: 'BNB',
+  bsc: 'BNB',
+  // BioForest 链
+  bfmeta: 'BFT',
+  ccchain: 'CC',
+  pmchain: 'PM',
+  bfchainv2: 'BFT',
+  btgmeta: 'BTG',
+  biwmeta: 'BIW',
+  ethmeta: 'ETM',
+  malibu: 'MLB',
+  // Legacy
+  ccc: 'CC',
 };
 
 const sizeClasses = {

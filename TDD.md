@@ -1362,6 +1362,93 @@ export const Resizable: Story = {
 </div>
 ```
 
+#### 7.5.5 页面复用基础组件
+
+页面开发必须优先使用基础组件库中的组件，避免在页面中内联实现相同功能：
+
+| UI 模式 | 基础组件 | 位置 |
+|---------|---------|------|
+| 圆形图标背景 | `IconCircle` | `@/components/common` |
+| 表单字段包装 | `FormField` | `@/components/common` |
+| 提示/警告信息 | `Alert` | `@/components/common` |
+| 多步骤指示器 | `StepIndicator` | `@/components/common` |
+| 简化进度条 | `ProgressSteps` | `@/components/common` |
+| 二维码显示 | `QRCode` / `AddressQRCode` | `@/components/common` |
+
+```tsx
+// ✅ 正确：使用基础组件
+import { IconCircle, FormField, Alert, ProgressSteps } from '@/components/common'
+
+<IconCircle icon={ShieldCheck} variant="primary" size="lg" />
+
+<FormField label="密码" error={error} required>
+  <PasswordInput value={password} onChange={...} />
+</FormField>
+
+<Alert variant="warning">
+  助记词是恢复钱包的唯一方式
+</Alert>
+
+<ProgressSteps total={3} current={2} />
+
+// ❌ 错误：内联实现
+<div className="mx-auto size-16 rounded-full bg-primary/10">
+  <ShieldCheck className="size-8 text-primary" />
+</div>
+
+<div className="space-y-2">
+  <label className="text-sm font-medium">密码</label>
+  <PasswordInput ... />
+  {error && <p className="text-xs text-destructive">{error}</p>}
+</div>
+
+<div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+  <p className="text-sm text-destructive">⚠️ 警告信息</p>
+</div>
+```
+
+**基础组件优势**：
+- 统一样式和行为
+- 内置无障碍支持
+- 类型安全的 Props
+- 易于全局调整
+
+#### 7.5.6 品牌字体系统
+
+使用 DM 系列字体（Google Fonts / Fontsource 本地化）确保跨平台一致性：
+
+| 字体 | CSS 类 | 用途 |
+|------|--------|------|
+| DM Sans | `font-sans` | UI 文本、按钮、标签（默认） |
+| DM Mono | `font-mono` | 地址、金额、代码 |
+| DM Serif Display | `font-serif` | 协议、提示、正式内容 |
+
+```tsx
+// UI 文本（默认使用 DM Sans）
+<p className="text-lg font-medium">账户余额</p>
+
+// 地址和数字（等宽字体）
+<span className="font-mono">0x71C7...976F</span>
+<span className="font-mono tabular-nums">1,234.56 USDT</span>
+
+// 正式内容（衬线字体）
+<div className="font-serif prose">
+  <h3>用户协议</h3>
+  <p>在使用本服务前，请仔细阅读以下条款...</p>
+</div>
+
+// 提示信息（衬线 + 斜体）
+<p className="font-serif italic text-muted-foreground">
+  助记词是恢复钱包的唯一方式，请妥善保管。
+</p>
+```
+
+**DM Serif Text vs Display 的区别**：
+- **DM Serif Text**：为小尺寸正文优化，x-height 更高
+- **DM Serif Display**：为大尺寸标题优化，对比度更强
+
+本项目选用 Display 版本，因为协议/提示通常是较大字号的独立区块。
+
 ---
 
 ## 8. Storybook 10.x 配置
@@ -3301,7 +3388,191 @@ export function initPlaocRouterIntegration(): void {
 
 ---
 
-## 14. 脚本命令
+## 14. 密钥派生与加密
+
+### 14.1 双轨密钥派生体系
+
+BFM Pay 支持两种不同的密钥派生方式，分别服务于不同的区块链生态：
+
+| 特性 | BIP39/BIP44 (外部链) | BioForestChain (内部链) |
+|-----|---------------------|------------------------|
+| 输入 | 12/24 词 BIP39 助记词 | **任意字符串** |
+| 种子生成 | PBKDF2 (2048轮) | SHA256 (单次) |
+| 椭圆曲线 | secp256k1 | **Ed25519** |
+| 派生路径 | BIP44 (m/44'/coin'/0'/0/x) | 无派生路径 |
+| 支持链 | Ethereum, Bitcoin, Tron | BFMeta, CCChain, PMChain 等 |
+
+### 14.2 BIP39/BIP44 派生 (外部链)
+
+用于主流区块链，遵循行业标准：
+
+```typescript
+import { deriveKey, deriveMultiChainKeys } from '@/lib/crypto'
+
+// 单链派生
+const ethKey = deriveKey(mnemonic, 'ethereum', 0)
+// { privateKey, publicKey, address, path: "m/44'/60'/0'/0/0", chain: 'ethereum' }
+
+// 多链批量派生
+const keys = deriveMultiChainKeys(mnemonic, ['ethereum', 'bitcoin', 'tron'])
+```
+
+**支持的链与 BIP44 路径:**
+
+| 链 | Coin Type | 路径示例 | 地址格式 |
+|---|-----------|---------|---------|
+| Ethereum | 60 | m/44'/60'/0'/0/0 | 0x... (EIP-55 checksum) |
+| Bitcoin | 0 | m/44'/0'/0'/0/0 | 1... / 3... (P2PKH/P2SH) |
+| Tron | 195 | m/44'/195'/0'/0/0 | T... (Base58Check) |
+
+### 14.3 BioForestChain 派生 (内部链)
+
+BioForestChain 生态使用独特的密钥派生方式，**允许任意字符串作为密钥种子**：
+
+```typescript
+import { 
+  deriveBioforestKey, 
+  deriveBioforestMultiChainKeys,
+  createBioforestKeypair,
+  isBioforestChain 
+} from '@/lib/crypto'
+
+// 从任意字符串派生（可以是助记词、密码、或任何文本）
+const bfmetaKey = deriveBioforestKey('my secret phrase', 'bfmeta')
+// { privateKey, publicKey, address: 'c...', chain: 'bfmeta' }
+
+// 多链派生（所有 BioForest 链共享同一密钥对）
+const keys = deriveBioforestMultiChainKeys('my secret', ['bfmeta', 'pmchain', 'ccchain'])
+
+// 底层 API
+const keypair = createBioforestKeypair('any string')
+// { secretKey: Uint8Array(64), publicKey: Uint8Array(32) }
+```
+
+**算法详解:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    BioForest 密钥派生                        │
+├─────────────────────────────────────────────────────────────┤
+│  Input: 任意字符串 (UTF-8)                                   │
+│    ↓                                                        │
+│  SHA256(input) → 32字节 seed                                │
+│    ↓                                                        │
+│  Ed25519.getPublicKey(seed) → 32字节 publicKey              │
+│    ↓                                                        │
+│  secretKey = seed || publicKey (64字节)                     │
+├─────────────────────────────────────────────────────────────┤
+│                    地址生成                                  │
+├─────────────────────────────────────────────────────────────┤
+│  publicKey                                                  │
+│    ↓                                                        │
+│  SHA256(publicKey) → 32字节                                 │
+│    ↓                                                        │
+│  RIPEMD160(sha256Result) → 20字节                           │
+│    ↓                                                        │
+│  Base58Encode(ripemd160Result) → 地址主体                   │
+│    ↓                                                        │
+│  prefix + base58Address → 最终地址 (如 "c3nqGnt...")        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**支持的 BioForest 链:**
+
+| 链 | 前缀 | 精度 | 符号 | 说明 |
+|---|------|------|------|------|
+| bfmeta | c | 8 | BFT | BFMeta 主链 |
+| pmchain | c | 8 | PM | PMChain |
+| ccchain | c | 8 | CC | CCChain |
+| bfchainv2 | c | 8 | BFT | BFChain V2 |
+| btgmeta | c | 8 | BTG | BTGMeta |
+| biwmeta | c | 8 | BIW | BIWMeta |
+| ethmeta | c | 8 | ETM | ETHMeta |
+| malibu | c | 8 | MLB | Malibu |
+
+### 14.4 签名与验证
+
+**BioForest 链签名:**
+
+```typescript
+import { signMessage, verifySignature, createBioforestKeypair } from '@/lib/crypto'
+
+const keypair = createBioforestKeypair('my secret')
+
+// 签名消息
+const signature = signMessage('Hello BioForest', keypair.secretKey)
+// Uint8Array(64) - Ed25519 签名
+
+// 验证签名
+const isValid = verifySignature('Hello BioForest', signature, keypair.publicKey)
+// true
+```
+
+### 14.5 加密存储
+
+钱包密钥使用 AES-256-GCM 加密后存储：
+
+```typescript
+import { encrypt, decrypt, storeMnemonic, retrieveMnemonic } from '@/lib/crypto'
+
+// 底层加密 API
+const encrypted = await encrypt('sensitive data', 'user password')
+// { ciphertext, iv, salt, tag }
+
+const decrypted = await decrypt(encrypted, 'user password')
+// 'sensitive data'
+
+// 高级 API（自动处理 DWEB 生物识别）
+await storeMnemonic('my mnemonic phrase', 'password123')
+const mnemonic = await retrieveMnemonic('password123')
+```
+
+**加密参数:**
+- 算法: AES-256-GCM
+- 密钥派生: PBKDF2 (100,000 轮)
+- Salt: 32字节随机
+- IV: 12字节随机
+
+### 14.6 判断链类型
+
+```typescript
+import { isBioforestChain } from '@/lib/crypto'
+
+isBioforestChain('bfmeta')    // true
+isBioforestChain('ethereum')  // false
+isBioforestChain('bitcoin')   // false
+
+// 在钱包创建流程中使用
+function deriveAddress(secret: string, chain: string) {
+  if (isBioforestChain(chain)) {
+    return deriveBioforestKey(secret, chain)
+  } else {
+    // 需要验证 secret 是有效的 BIP39 助记词
+    return deriveKey(secret, chain as DeriveChainType)
+  }
+}
+```
+
+### 14.7 mpay 原始实现参考
+
+BioForest 密钥派生的原始实现位于：
+
+| 功能 | mpay 路径 |
+|-----|----------|
+| 密钥派生 | `@bfmeta/sign-util` (内部包) |
+| 链服务基类 | `libs/wallet-base/services/wallet/chain-base/bioforest-chain.base.ts` |
+| 链服务调用 | `libs/wallet-base/services/wallet/chain/chain.service.ts` |
+
+核心方法:
+```typescript
+// mpay 中的调用方式
+const { secretKey, publicKey } = await chainApiService.createKeypair(mnemonic)
+const address = await chainApiService.getAddressByPublicKeyBuffer(publicKey)
+```
+
+---
+
+## 15. 脚本命令
 
 ```json
 {

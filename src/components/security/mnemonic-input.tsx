@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface MnemonicInputProps {
@@ -16,6 +16,12 @@ export function MnemonicInput({
 }: MnemonicInputProps) {
   const [words, setWords] = useState<string[]>(Array(wordCount).fill(''))
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
+
+  // 当 wordCount 变化时重置 words 数组
+  useEffect(() => {
+    setWords(Array(wordCount).fill(''))
+    onChange?.(Array(wordCount).fill(''), false)
+  }, [wordCount]) // 故意不包含 onChange 以避免无限循环
 
   const handleWordChange = useCallback((index: number, value: string) => {
     const trimmedValue = value.trim().toLowerCase()

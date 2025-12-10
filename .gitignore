@@ -41,3 +41,11 @@ migrations.json
 # System Files
 .DS_Store
 Thumbs.db
+
+# Playwright
+/e2e/test-results/
+/e2e/report/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# 注意: e2e/__screenshots__/ 基线截图需要提交到 git

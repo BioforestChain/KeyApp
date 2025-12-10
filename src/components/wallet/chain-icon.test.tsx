@@ -27,8 +27,16 @@ describe('ChainIcon', () => {
   })
 
   it('renders all supported chains', () => {
-    const chains = ['ethereum', 'tron', 'bsc', 'bitcoin', 'bfmeta'] as const
-    const labels = { ethereum: 'ETH', tron: 'TRX', bsc: 'BNB', bitcoin: 'BTC', bfmeta: 'BFM' }
+    const chains = ['ethereum', 'tron', 'bsc', 'bitcoin', 'bfmeta', 'ccchain', 'pmchain'] as const
+    const labels: Record<string, string> = { 
+      ethereum: 'ETH', 
+      tron: 'TRX', 
+      bsc: 'BNB', 
+      bitcoin: 'BTC', 
+      bfmeta: 'BFT',
+      ccchain: 'CC',
+      pmchain: 'PM',
+    }
     chains.forEach((chain) => {
       const { unmount } = render(<ChainIcon chain={chain} />)
       expect(screen.getByLabelText(labels[chain])).toBeInTheDocument()

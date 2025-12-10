@@ -2148,5 +2148,295 @@ src/services/
 
 ---
 
-*文档版本: 2.0 (强类型安全版)*
+## 12. Platform Services（平台服务层）
+
+### 12.1 概述
+
+Platform Services 是与运行平台相关的服务，提供设备能力抽象，支持 Web 和 DWEB 两种运行环境。
+
+**设计目标：**
+- **编译时实现选择**：通过 Vite alias 实现完美 tree-shaking
+- **统一 API**：上层代码无需关心运行环境
+- **Mock 支持**：开发和测试时可使用 Mock 实现
+
+### 12.2 服务列表
+
+| 服务 | 说明 | Web 实现 | DWEB 实现 |
+|-----|------|---------|----------|
+| BiometricService | 生物识别认证 | WebAuthn API | @plaoc/plugins biometricsPlugin |
+| SecureStorageService | 安全存储 | localStorage + AES | @plaoc/plugins keyValuePlugin |
+| ClipboardService | 剪贴板操作 | Clipboard API | @plaoc/plugins clipboardPlugin |
+| ToastService | 轻提示 | DOM 注入 | @plaoc/plugins toastPlugin |
+| CameraService | 相机/扫码 | MediaDevices API | @plaoc/plugins barcodeScannerPlugin |
+| HapticsService | 触觉反馈 | Vibration API | @plaoc/plugins hapticsPlugin |
+
+### 12.3 目标架构（每服务独立文件夹）
+
+```
+src/services/
+├── biometric/
+│   ├── index.ts          # 统一导出 + ServiceProvider
+│   ├── types.ts          # 接口定义
+│   ├── web.ts            # Web 实现
+│   ├── dweb.ts           # DWEB 实现
+│   └── mock.ts           # Mock 实现
+│
+├── storage/
+│   ├── index.ts
+│   ├── types.ts
+│   ├── web.ts
+│   ├── dweb.ts
+│   └── mock.ts
+│
+├── clipboard/
+│   ├── index.ts
+│   ├── types.ts
+│   ├── web.ts
+│   ├── dweb.ts
+│   └── mock.ts
+│
+├── toast/
+│   ├── index.ts
+│   ├── types.ts
+│   ├── web.ts
+│   ├── dweb.ts
+│   └── mock.ts
+│
+├── camera/
+│   ├── index.ts
+│   ├── types.ts
+│   ├── web.ts
+│   ├── dweb.ts
+│   └── mock.ts
+│
+├── haptics/
+│   ├── index.ts
+│   ├── types.ts
+│   ├── web.ts
+│   ├── dweb.ts
+│   └── mock.ts
+│
+└── index.ts              # 统一导出所有服务
+```
+
+### 12.4 接口定义示例
+
+```typescript
+// src/services/biometric/types.ts
+
+export interface BiometricOptions {
+  reason?: string
+  fallbackToPassword?: boolean
+}
+
+export interface BiometricResult {
+  success: boolean
+  error?: string
+}
+
+export interface IBiometricService {
+  /** 检查是否可用 */
+  isAvailable(): Promise<boolean>
+  
+  /** 执行认证 */
+  authenticate(options?: BiometricOptions): Promise<BiometricResult>
+}
+```
+
+```typescript
+// src/services/clipboard/types.ts
+
+export interface IClipboardService {
+  /** 写入文本 */
+  writeText(text: string): Promise<void>
+  
+  /** 读取文本 */
+  readText(): Promise<string>
+}
+```
+
+```typescript
+// src/services/toast/types.ts
+
+export type ToastType = 'success' | 'error' | 'warning' | 'info'
+
+export interface ToastOptions {
+  message: string
+  type?: ToastType
+  duration?: number
+}
+
+export interface IToastService {
+  /** 显示 toast */
+  show(options: ToastOptions): void
+  
+  /** 快捷方法 */
+  success(message: string): void
+  error(message: string): void
+  warning(message: string): void
+  info(message: string): void
+}
+```
+
+### 12.5 编译时实现选择
+
+**Vite 配置：**
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  resolve: {
+    alias: {
+      // 根据 SERVICE_IMPL 环境变量选择实现
+      '#biometric-impl': `./src/services/biometric/${process.env.SERVICE_IMPL || 'web'}.ts`,
+      '#storage-impl': `./src/services/storage/${process.env.SERVICE_IMPL || 'web'}.ts`,
+      '#clipboard-impl': `./src/services/clipboard/${process.env.SERVICE_IMPL || 'web'}.ts`,
+      '#toast-impl': `./src/services/toast/${process.env.SERVICE_IMPL || 'web'}.ts`,
+      '#camera-impl': `./src/services/camera/${process.env.SERVICE_IMPL || 'web'}.ts`,
+      '#haptics-impl': `./src/services/haptics/${process.env.SERVICE_IMPL || 'web'}.ts`,
+    }
+  }
+})
+```
+
+**服务入口文件：**
+
+```typescript
+// src/services/biometric/index.ts
+import type { IBiometricService } from './types'
+import { BiometricService } from '#biometric-impl'
+
+export type { IBiometricService, BiometricOptions, BiometricResult } from './types'
+export { BiometricService }
+
+// 创建单例
+export const biometricService: IBiometricService = new BiometricService()
+```
+
+**构建脚本：**
+
+```json
+{
+  "scripts": {
+    "dev": "SERVICE_IMPL=web vite",
+    "dev:mock": "SERVICE_IMPL=mock vite",
+    "build:web": "SERVICE_IMPL=web vite build",
+    "build:dweb": "SERVICE_IMPL=dweb vite build"
+  }
+}
+```
+
+### 12.6 React Hooks
+
+```typescript
+// src/services/hooks.ts
+import { biometricService } from './biometric'
+import { clipboardService } from './clipboard'
+import { toastService } from './toast'
+import { hapticsService } from './haptics'
+
+export function useBiometric() {
+  return biometricService
+}
+
+export function useClipboard() {
+  return clipboardService
+}
+
+export function useToast() {
+  return toastService
+}
+
+export function useHaptics() {
+  return hapticsService
+}
+```
+
+**使用示例：**
+
+```typescript
+function WalletAddress({ address }: { address: string }) {
+  const clipboard = useClipboard()
+  const toast = useToast()
+  const haptics = useHaptics()
+  
+  const handleCopy = async () => {
+    await clipboard.writeText(address)
+    await haptics.impact('light')
+    toast.success('地址已复制')
+  }
+  
+  return (
+    <button onClick={handleCopy}>
+      {address}
+    </button>
+  )
+}
+```
+
+### 12.7 Mock 实现（测试用）
+
+```typescript
+// src/services/biometric/mock.ts
+import type { IBiometricService, BiometricOptions, BiometricResult } from './types'
+
+// 通过 window 暴露控制接口，供 E2E 测试使用
+declare global {
+  interface Window {
+    __MOCK_BIOMETRIC__?: {
+      available: boolean
+      shouldSucceed: boolean
+    }
+  }
+}
+
+export class BiometricService implements IBiometricService {
+  async isAvailable(): Promise<boolean> {
+    return window.__MOCK_BIOMETRIC__?.available ?? true
+  }
+  
+  async authenticate(options?: BiometricOptions): Promise<BiometricResult> {
+    const shouldSucceed = window.__MOCK_BIOMETRIC__?.shouldSucceed ?? true
+    return {
+      success: shouldSucceed,
+      error: shouldSucceed ? undefined : 'Mock authentication failed'
+    }
+  }
+}
+```
+
+### 12.8 E2E 测试集成
+
+```typescript
+// e2e/services.spec.ts
+import { test, expect } from '@playwright/test'
+
+test('biometric authentication', async ({ page }) => {
+  // 配置 mock
+  await page.evaluate(() => {
+    window.__MOCK_BIOMETRIC__ = { available: true, shouldSucceed: true }
+  })
+  
+  // 触发认证
+  await page.click('[data-testid="biometric-auth-button"]')
+  
+  // 验证结果
+  await expect(page.locator('[data-testid="auth-success"]')).toBeVisible()
+})
+
+test('clipboard copy', async ({ page }) => {
+  await page.click('[data-testid="copy-address-button"]')
+  
+  // 验证 toast 提示
+  await expect(page.locator('.toast-success')).toContainText('已复制')
+  
+  // 验证剪贴板内容（通过 mock）
+  const clipboardContent = await page.evaluate(() => window.__CLIPBOARD__)
+  expect(clipboardContent).toBe('0x...')
+})
+```
+
+---
+
+*文档版本: 3.0 (强类型安全版 + Platform Services)*
 *配套文档: PDR.md (产品需求) / TDD.md (技术设计)*

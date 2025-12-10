@@ -1,7 +1,18 @@
 @import 'tailwindcss';
 
+/* 本地字体 - DM 系列 (Fontsource) */
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource/dm-mono/400.css';
+@import '@fontsource/dm-mono/500.css';
+@import '@fontsource/dm-serif-display/400.css';
+@import '@fontsource/dm-serif-display/400-italic.css';
+
 /* 主题配置 - Tailwind 4.x @theme 指令 */
 @theme {
+  /* 字体系统 - DM 品牌字体 */
+  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --font-serif: 'DM Serif Display', ui-serif, Georgia, serif;
   /* 颜色系统 - OKLCH 色彩空间 */
   --color-background: oklch(97.5% 0.01 270);
   --color-foreground: oklch(15% 0.02 250);

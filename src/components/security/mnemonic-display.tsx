@@ -29,7 +29,7 @@ export function MnemonicDisplay({
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div data-testid="mnemonic-display" className={cn('space-y-3', className)}>
       <div className="grid grid-cols-3 gap-2 @xs:grid-cols-4 @md:gap-3">
         {words.map((word, index) => (
           <div
