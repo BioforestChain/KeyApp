@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TransactionList } from './transaction-list'
@@ -10,7 +10,10 @@ function renderWithProvider(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
 }
 
-const now = Date.now()
+// Use fixed date to avoid timezone/midnight flakiness
+// Set to noon on a specific date so "today" and "yesterday" are stable
+const FIXED_NOW = new Date('2025-06-15T12:00:00Z').getTime()
+
 const mockTransactions: TransactionInfo[] = [
   {
     id: '1',
@@ -19,7 +22,7 @@ const mockTransactions: TransactionInfo[] = [
     amount: '100',
     symbol: 'USDT',
     address: '0x1234567890abcdef1234567890abcdef12345678',
-    timestamp: new Date(now - 3600000),
+    timestamp: new Date(FIXED_NOW - 3600000), // 1 hour ago = today
   },
   {
     id: '2',
@@ -28,11 +31,21 @@ const mockTransactions: TransactionInfo[] = [
     amount: '0.5',
     symbol: 'ETH',
     address: '0xabcdef1234567890',
-    timestamp: new Date(now - 86400000 - 3600000),
+    timestamp: new Date(FIXED_NOW - 86400000 - 3600000), // 25 hours ago = yesterday
   },
 ]
 
 describe('TransactionList', () => {
+  beforeEach(() => {
+    // Mock Date.now() to return fixed time for consistent "today"/"yesterday" grouping
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(FIXED_NOW))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders all transactions', () => {
     renderWithProvider(<TransactionList transactions={mockTransactions} />)
     expect(screen.getByText('发送')).toBeInTheDocument()
@@ -78,14 +91,16 @@ describe('TransactionList', () => {
   })
 
   it('calls onTransactionClick when transaction is clicked', async () => {
+    // Use real timers for userEvent interaction
+    vi.useRealTimers()
     const handleClick = vi.fn()
     renderWithProvider(
-      <TransactionList 
-        transactions={mockTransactions} 
-        onTransactionClick={handleClick} 
+      <TransactionList
+        transactions={mockTransactions}
+        onTransactionClick={handleClick}
       />
     )
-    
+
     await userEvent.click(screen.getByText('发送').closest('[role="button"]')!)
     expect(handleClick).toHaveBeenCalledWith(mockTransactions[0])
   })
