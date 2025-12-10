@@ -10,15 +10,15 @@
 - Phase 2 Wallet Onboarding - TanStack Router flows - PeerA ✅
 - Phase 3 Transfer Functionality - asset display, send, receive - PeerA ✅
 - Phase 4 Settings & Preferences - src/pages/settings/ - PeerA ✅
-- Phase 5 Transaction History - src/pages/history/ - PeerA (active)
+- Phase 5 Transaction History - src/pages/history/ - PeerA ✅
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 788 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 810 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
-- Now (<= 2 weeks): Transaction history, wallet management
-- Next (<= 6 weeks): Address book, advanced features
+- Now (<= 2 weeks): Wallet management, address book
+- Next (<= 6 weeks): Advanced features, notifications
 - Later (> 6 weeks): Staking, DWEB/Plaoc integration, biometric auth
 
 ## Decision & Pivot Log (recent 5)
@@ -42,7 +42,8 @@
 - Phase 3 Transfer: **COMPLETE** ✅ (asset + send + receive)
 - T008 Settings Foundation: **complete** (committed 018bd05, archived)
 - Phase 4 Settings: **COMPLETE** ✅ (layout + language + mnemonic + password + currency)
-- T009 Transaction History: **in_progress** (T009.1 hook complete, committed 57a50a0)
+- T009 Transaction History: **complete** (committed 9606b7a, archived)
+- Phase 5 Transaction History: **COMPLETE** ✅ (hook + list + detail)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -63,6 +64,7 @@
 - 2025-12-11 05:38 | PeerB | T008.3 committed (3ffa68b) | 751 tests, 13 new | ViewMnemonicFlow with 30s auto-hide
 - 2025-12-11 05:50 | PeerB | T008.4-T008.5 committed (018bd05) | 775 tests, 24 new | Phase 4 Settings COMPLETE
 - 2025-12-11 06:04 | PeerB | T009.1 committed (57a50a0) | 788 tests, 13 new | useTransactionHistory hook
+- 2025-12-11 06:16 | PeerB | T009.2-3 committed (9606b7a) | 810 tests, 22 new | Phase 5 Transaction History COMPLETE
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
