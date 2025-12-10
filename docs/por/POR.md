@@ -33,6 +33,7 @@
 - T003 Wallet Recover Flow: **complete** (committed 07cbf06, archived)
 - T004 Wallet Backup Verification: **complete** (committed 77564e2, archived)
 - Phase 2 Wallet Onboarding: **COMPLETE** ✅ (create + recover + backup)
+- T005 Asset Display: **active** (spec validated, dispatched to PeerA)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
