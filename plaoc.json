@@ -1,0 +1,41 @@
+{
+  "defaultConfig": {
+    "lang": "zh-hans"
+  },
+  "usePublicUrl": false,
+  "redirect": [
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "/"
+      },
+      "to": {
+        "url": "/index.html",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}assets/*"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "/*"
+      },
+      "to": {
+        "url": "/index.html",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    }
+  ]
+}

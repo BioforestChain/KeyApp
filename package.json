@@ -1,14 +1,16 @@
 {
   "name": "keyapp",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:mock": "SERVICE_IMPL=mock vite --port 5174",
-    "build": "tsc -b && vite build",
-    "build:web": "SERVICE_IMPL=web tsc -b && vite build",
-    "build:dweb": "SERVICE_IMPL=dweb tsc -b && vite build",
+    "build": "vite build",
+    "build:web": "SERVICE_IMPL=web vite build",
+    "build:dweb": "SERVICE_IMPL=dweb vite build",
+    "build:all": "bun scripts/build.ts all",
+    "build:release": "bun scripts/build.ts all --skip-test",
     "clean": "bun scripts/clean.ts",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -24,7 +26,11 @@
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:update": "playwright test --update-snapshots",
-    "e2e:report": "playwright show-report e2e/report"
+    "e2e:report": "playwright show-report e2e/report",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "gen:stable": "bun scripts/gen-stable.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.2.8",
@@ -53,18 +59,21 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@inquirer/prompts": "^8.0.2",
     "@playwright/test": "^1.57.0",
     "@storybook/addon-docs": "^10.1.4",
     "@storybook/addon-vitest": "^10.1.4",
     "@storybook/react": "^10.1.4",
     "@storybook/react-vite": "^10.1.4",
     "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/ai": "^0.0.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/semver": "^7.7.1",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/browser": "^4.0.15",
     "@vitest/browser-playwright": "^4.0.15",
@@ -74,10 +83,12 @@
     "playwright": "^1.57.0",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "semver": "^7.7.3",
     "storybook": "^10.1.4",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.7",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.15"
   }
 }

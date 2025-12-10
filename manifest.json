@@ -1,0 +1,21 @@
+{
+  "id": "bfmpay.bfmeta.com.dweb",
+  "name": "BFM Pay",
+  "short_name": "BFM Pay",
+  "description": "BFM Pay - 多链钱包应用",
+  "logo": "https://source.dwebdapp.com/dweb-browser-apps/dweb-app-assets/bfmpay/logo.png",
+  "change_log": "初始版本",
+  "icons": [
+    {
+      "src": "https://source.dwebdapp.com/dweb-browser-apps/dweb-app-assets/bfmpay/logo.png",
+      "purpose": "maskable"
+    }
+  ],
+  "images": [],
+  "languages": ["中文", "English"],
+  "author": ["@bfmeta.info"],
+  "version": "0.1.0",
+  "categories": ["application", "wallet"],
+  "home": "bfmpay.bfmeta.info",
+  "homepage_url": "bfmpay.bfmeta.info"
+}

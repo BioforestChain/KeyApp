@@ -3,6 +3,7 @@ import {
   createRouter,
   createRootRoute,
   createRoute,
+  createHashHistory,
   Outlet,
 } from '@tanstack/react-router'
 import { AppLayout } from '@/components/layout/app-layout'
@@ -111,9 +112,13 @@ const routeTree = rootRoute.addChildren([
   receiveRoute,
 ])
 
+// 使用 hash history，支持部署在任意子路径下
+const hashHistory = createHashHistory()
+
 // 创建路由器
 export const router = createRouter({
   routeTree,
+  history: hashHistory,
   defaultPreload: 'intent',
 })
 

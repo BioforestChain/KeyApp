@@ -11,7 +11,15 @@ import { resolve } from 'node:path'
  */
 const SERVICE_IMPL = process.env.SERVICE_IMPL ?? 'web'
 
+/**
+ * Base URL 配置
+ * - 使用 './' 允许部署在任意子路径下
+ * - 例如: https://example.com/ 或 https://example.com/app/
+ */
+const BASE_URL = process.env.VITE_BASE_URL ?? './'
+
 export default defineConfig({
+  base: BASE_URL,
   plugins: [
     react(),
     tailwindcss(),
@@ -39,5 +47,17 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['buffer'],
+  },
+  build: {
+    // 确保资源路径使用相对路径
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        // 使用 hash 命名避免缓存问题
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+    },
   },
 })

@@ -2,9 +2,19 @@
 
 # compiled output
 /dist
+/dists
+/dist-web
+/dist-dweb
 /tmp
 /out-tsc
-/docs
+/release
+/gh-pages
+
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
+docs/public/webapp
+docs/public/webapp-beta
 
 # dependencies
 node_modules
