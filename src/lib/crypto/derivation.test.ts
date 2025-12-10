@@ -2,11 +2,16 @@ import { describe, it, expect } from 'vitest'
 import {
   deriveKey,
   deriveMultiChainKeys,
+  deriveBitcoinKey,
+  deriveAllBitcoinKeys,
+  deriveAllAddresses,
   deriveHDKey,
   getBIP44Path,
+  getBIPPath,
   toChecksumAddress,
   isValidAddress,
   type ChainType,
+  type BitcoinPurpose,
 } from './derivation'
 
 // 测试助记词（标准 BIP39 测试向量）
@@ -136,9 +141,107 @@ describe('derivation', () => {
       expect(isValidAddress('invalid', 'bitcoin')).toBe(false)
     })
 
+    it('validates Bitcoin SegWit addresses', () => {
+      // Native SegWit (bc1q...)
+      expect(isValidAddress('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', 'bitcoin')).toBe(true)
+      // Taproot (bc1p...)
+      expect(isValidAddress('bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr', 'bitcoin')).toBe(true)
+    })
+
     it('validates Tron addresses', () => {
       expect(isValidAddress('TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW', 'tron')).toBe(true)
       expect(isValidAddress('invalid', 'tron')).toBe(false)
+    })
+  })
+
+  describe('getBIPPath', () => {
+    it('generates path with custom purpose', () => {
+      expect(getBIPPath(44, 0, 0, 0, 0)).toBe("m/44'/0'/0'/0/0")
+      expect(getBIPPath(49, 0, 0, 0, 0)).toBe("m/49'/0'/0'/0/0")
+      expect(getBIPPath(84, 0, 0, 0, 0)).toBe("m/84'/0'/0'/0/0")
+      expect(getBIPPath(86, 0, 0, 0, 0)).toBe("m/86'/0'/0'/0/0")
+    })
+  })
+
+  describe('deriveBitcoinKey', () => {
+    it('derives Legacy P2PKH address (purpose 44)', () => {
+      const key = deriveBitcoinKey(TEST_MNEMONIC, 44)
+      expect(key.chain).toBe('bitcoin')
+      expect(key.purpose).toBe(44)
+      expect(key.path).toBe("m/44'/0'/0'/0/0")
+      expect(key.address).toMatch(/^1[a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+    })
+
+    it('derives Nested SegWit P2SH-P2WPKH address (purpose 49)', () => {
+      const key = deriveBitcoinKey(TEST_MNEMONIC, 49)
+      expect(key.chain).toBe('bitcoin')
+      expect(key.purpose).toBe(49)
+      expect(key.path).toBe("m/49'/0'/0'/0/0")
+      expect(key.address).toMatch(/^3[a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+    })
+
+    it('derives Native SegWit P2WPKH address (purpose 84)', () => {
+      const key = deriveBitcoinKey(TEST_MNEMONIC, 84)
+      expect(key.chain).toBe('bitcoin')
+      expect(key.purpose).toBe(84)
+      expect(key.path).toBe("m/84'/0'/0'/0/0")
+      expect(key.address).toMatch(/^bc1q[a-z0-9]{38,}$/)
+    })
+
+    it('derives Taproot P2TR address (purpose 86)', () => {
+      const key = deriveBitcoinKey(TEST_MNEMONIC, 86)
+      expect(key.chain).toBe('bitcoin')
+      expect(key.purpose).toBe(86)
+      expect(key.path).toBe("m/86'/0'/0'/0/0")
+      expect(key.address).toMatch(/^bc1p[a-z0-9]{58}$/)
+    })
+
+    it('derives different addresses for different purposes', () => {
+      const key44 = deriveBitcoinKey(TEST_MNEMONIC, 44)
+      const key49 = deriveBitcoinKey(TEST_MNEMONIC, 49)
+      const key84 = deriveBitcoinKey(TEST_MNEMONIC, 84)
+      const key86 = deriveBitcoinKey(TEST_MNEMONIC, 86)
+
+      const addresses = [key44.address, key49.address, key84.address, key86.address]
+      const uniqueAddresses = new Set(addresses)
+      expect(uniqueAddresses.size).toBe(4)
+    })
+  })
+
+  describe('deriveAllBitcoinKeys', () => {
+    it('derives keys for all 4 purposes', () => {
+      const keys = deriveAllBitcoinKeys(TEST_MNEMONIC)
+      expect(keys).toHaveLength(4)
+      expect(keys.map(k => k.purpose)).toEqual([44, 49, 84, 86])
+    })
+
+    it('all keys have unique addresses', () => {
+      const keys = deriveAllBitcoinKeys(TEST_MNEMONIC)
+      const addresses = keys.map(k => k.address)
+      const uniqueAddresses = new Set(addresses)
+      expect(uniqueAddresses.size).toBe(4)
+    })
+  })
+
+  describe('deriveAllAddresses', () => {
+    it('derives addresses for all chains and Bitcoin purposes', () => {
+      const keys = deriveAllAddresses(TEST_MNEMONIC)
+
+      // ETH + BFMeta + Tron + 4 Bitcoin purposes = 7
+      expect(keys).toHaveLength(7)
+
+      const chains = keys.map(k => k.chain)
+      expect(chains).toContain('ethereum')
+      expect(chains).toContain('bfmeta')
+      expect(chains).toContain('tron')
+      expect(chains.filter(c => c === 'bitcoin')).toHaveLength(4)
+    })
+
+    it('all addresses are unique', () => {
+      const keys = deriveAllAddresses(TEST_MNEMONIC)
+      const addresses = keys.map(k => k.address)
+      const uniqueAddresses = new Set(addresses)
+      expect(uniqueAddresses.size).toBe(7)
     })
   })
 })

@@ -9,6 +9,7 @@
 /out-tsc
 /release
 /gh-pages
+/storybook-static
 
 # VitePress
 docs/.vitepress/dist
@@ -59,3 +60,5 @@ Thumbs.db
 /blob-report/
 /playwright/.cache/
 # 注意: e2e/__screenshots__/ 基线截图需要提交到 git
+# Ignore CCCC runtime domain (Ephemeral mode)
+/.cccc/**

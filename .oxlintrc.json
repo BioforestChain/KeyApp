@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "perf": "warn",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "warn",
+
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-key": "error",
+    "react/no-direct-mutation-state": "error",
+    "react/no-unescaped-entities": "warn",
+    "react/self-closing-comp": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/jsx-curly-brace-presence": "warn",
+    "react/no-array-index-key": "warn",
+
+    "typescript/no-explicit-any": "error",
+    "typescript/prefer-ts-expect-error": "warn",
+    "typescript/no-non-null-assertion": "warn",
+
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/anchor-is-valid": "warn",
+
+    "unicorn/no-null": "off",
+    "unicorn/prefer-query-selector": "off",
+    "unicorn/require-module-specifiers": "off"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "dist-*",
+    "dists",
+    "gh-pages",
+    "release",
+    "docs/.vitepress/cache",
+    "docs/.vitepress/dist",
+    "coverage",
+    "*.config.js",
+    "*.config.ts",
+    "storybook-static",
+    "e2e/test-results",
+    "e2e/report"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

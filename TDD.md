@@ -3592,7 +3592,7 @@ const address = await chainApiService.getAddressByPublicKeyBuffer(publicKey)
     "storybook:build": "storybook build",
     "storybook:test": "test-storybook",
     
-    "lint": "eslint src --ext ts,tsx",
+    "lint": "oxlint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write src",
     

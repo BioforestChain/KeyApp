@@ -26,7 +26,7 @@ BFM Pay (KeyApp) 是一个现代化的多链钱包移动应用，是 mpay 的技
 
 ### Code Style
 - TypeScript 严格模式 (`strict: true`)
-- ESLint + Prettier 格式化
+- Oxlint + Prettier 格式化
 - 函数组件 + Hooks，禁止 Class 组件
 - 命名规范：
   - 组件: PascalCase (`WalletCard.tsx`)

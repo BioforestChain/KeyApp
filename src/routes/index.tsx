@@ -20,6 +20,7 @@ const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default:
 
 // Onboarding pages
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
+const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').then((m) => ({ default: m.OnboardingRecoverPage })))
 
 // 加载中占位
 function PageLoading() {
@@ -114,6 +115,12 @@ const onboardingCreateRoute = createRoute({
   component: withSuspense(OnboardingCreatePage),
 })
 
+const onboardingRecoverRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: '/recover',
+  component: withSuspense(OnboardingRecoverPage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -124,6 +131,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   onboardingRoute.addChildren([
     onboardingCreateRoute,
+    onboardingRecoverRoute,
   ]),
   tokenRoute,
   sendRoute,

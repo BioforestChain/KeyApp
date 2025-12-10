@@ -10,7 +10,7 @@
 - Phase 2 Wallet Onboarding - TanStack Router flows - PeerA (upcoming)
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 453 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 504 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -29,8 +29,9 @@
 > Task definitions: docs/por/T###-slug/task.yaml
 
 - T001 Core Interaction Components: **complete** (archived)
-- T002 Wallet Create Flow: **complete** (51 tests, ready for review/commit)
-- Onboarding split: (1) add-wallet-create-flow ✅, (2) add-wallet-recover-duplicate-guards, (3) add-wallet-backup-and-biometrics
+- T002 Wallet Create Flow: **complete** (committed 5cdad62, archived)
+- Onboarding split: (1) add-wallet-create-flow ✅, (2) add-wallet-recover-duplicate-guards ⏳, (3) add-wallet-backup-and-biometrics
+- T003 Wallet Recover Flow: **active** (spec validated, PeerA implementing)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -38,6 +39,7 @@
 ## Maintenance & Change Log (append-only, one line each)
 - 2025-12-10 19:15 | PeerA | Initial POR update after T001 completion | 453 tests, 8 components archived
 - 2025-12-10 19:33 | PeerA | T002 complete | 504 tests, 51 new for onboarding create flow
+- 2025-12-10 20:04 | PeerB | T002 committed (5cdad62), archived; T003 change scaffolded | spec validated
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
