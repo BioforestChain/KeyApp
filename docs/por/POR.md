@@ -7,16 +7,18 @@
 
 ## Deliverables (top-level)
 - Phase 1.5 Core Interaction Components - src/components/{token,transaction,wallet,transfer,security}/ - PeerA ✅
-- Phase 2 Wallet Onboarding - TanStack Router flows - PeerA (upcoming)
+- Phase 2 Wallet Onboarding - TanStack Router flows - PeerA ✅
+- Phase 3 Transfer Functionality - asset display, send, receive - PeerA ✅
+- Phase 4 Settings & Preferences - src/pages/settings/ - PeerA (active)
 
 ## Bets & Assumptions
 - Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 702 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
-- Now (<= 2 weeks): Wallet onboarding flows - create/recover/backup with TanStack Router; 3-change split in progress
-- Next (<= 6 weeks): Asset display, transfer functionality, transaction history
-- Later (> 6 weeks): Staking, DWEB/Plaoc integration, multi-language support
+- Now (<= 2 weeks): Phase 4 Settings - language, security, preferences (T008)
+- Next (<= 6 weeks): Transaction history, wallet management, address book
+- Later (> 6 weeks): Staking, DWEB/Plaoc integration, biometric auth
 
 ## Decision & Pivot Log (recent 5)
 - 2025-12-10 | T001 complete | 8 core components delivered with 90 new tests | 453 total tests passing | archived
@@ -37,6 +39,7 @@
 - T006 Send Flow: **complete** (committed 234135d, archived)
 - T007 Receive Flow Tests: **complete** (committed 8fb44b8, archived)
 - Phase 3 Transfer: **COMPLETE** ✅ (asset + send + receive)
+- T008 Settings Foundation: **proposed** (add-settings-page change scaffolded)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -51,6 +54,7 @@
 - 2025-12-10 21:19 | PeerB | T005 committed (64fa10f), archived | 650 tests, 30 new | Asset display complete
 - 2025-12-11 00:56 | PeerB | T006 committed (234135d), archived | 690 tests, 40 new | Send flow complete
 - 2025-12-11 01:06 | PeerB | T007 committed (8fb44b8), archived | 702 tests, 12 new | Phase 3 Transfer COMPLETE
+- 2025-12-11 01:25 | PeerB | T008 change scaffolded (add-settings-page) | Phase 4 Settings & Preferences start
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 
