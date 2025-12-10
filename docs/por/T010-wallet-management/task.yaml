@@ -1,7 +1,7 @@
 id: T010
 name: Wallet Management
 goal: Implement wallet list, switching, rename/delete, and address book per PDR Epic 10.2
-status: pending
+status: active
 steps:
   - id: S1
     name: WalletListPage
@@ -14,7 +14,12 @@ steps:
   - id: S3
     name: AddressBookStore
     done: Contact CRUD with persistence
-    status: pending
+    status: done
+    outputs:
+      - path: src/stores/address-book.ts
+        note: TanStack Store with localStorage persistence
+      - path: src/stores/address-book.test.ts
+        note: 7 tests for CRUD and persistence
   - id: S4
     name: AddressBookPage
     done: Address book UI with search

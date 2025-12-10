@@ -13,7 +13,7 @@
 - Phase 5 Transaction History - src/pages/history/ - PeerA ✅
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 810 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 835 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -44,6 +44,7 @@
 - Phase 4 Settings: **COMPLETE** ✅ (layout + language + mnemonic + password + currency)
 - T009 Transaction History: **complete** (committed 9606b7a, archived)
 - Phase 5 Transaction History: **COMPLETE** ✅ (hook + list + detail)
+- T010 Wallet Management: **in_progress** (S1-S2 committed fa8aad1, S3-S4 pending)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -65,6 +66,7 @@
 - 2025-12-11 05:50 | PeerB | T008.4-T008.5 committed (018bd05) | 775 tests, 24 new | Phase 4 Settings COMPLETE
 - 2025-12-11 06:04 | PeerB | T009.1 committed (57a50a0) | 788 tests, 13 new | useTransactionHistory hook
 - 2025-12-11 06:16 | PeerB | T009.2-3 committed (9606b7a) | 810 tests, 22 new | Phase 5 Transaction History COMPLETE
+- 2025-12-11 06:55 | PeerB | T010.1-2 committed (fa8aad1) | 828 tests, 17 new | WalletListPage + WalletEditSheet done
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 

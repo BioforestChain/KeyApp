@@ -2,7 +2,7 @@
 
 ## T010: Wallet Management
 
-### Status: pending
+### Status: in_progress (T010.1-2 done, T010.3-4 pending)
 
 ### Tasks
 
@@ -30,13 +30,13 @@
 ---
 
 #### T010.3: AddressBookStore
-- [ ] Create `src/stores/address-book.ts`
-- [ ] Define Contact type
-- [ ] Implement CRUD operations
-- [ ] Persist to localStorage
-- [ ] Write tests (~6 tests)
+- [x] Create `src/stores/address-book.ts`
+- [x] Define Contact type
+- [x] Implement CRUD operations
+- [x] Persist to localStorage
+- [x] Write tests (~6 tests)
 
-**Acceptance**: Address book data persists correctly
+**Acceptance**: Address book data persists correctly ✅
 
 ---
 
