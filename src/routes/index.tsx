@@ -23,6 +23,10 @@ const ViewMnemonicPage = lazy(() => import('@/pages/settings/view-mnemonic').the
 const ChangePasswordPage = lazy(() => import('@/pages/settings/change-password').then((m) => ({ default: m.ChangePasswordPage })))
 const CurrencyPage = lazy(() => import('@/pages/settings/currency').then((m) => ({ default: m.CurrencyPage })))
 
+// History pages
+const TransactionHistoryPage = lazy(() => import('@/pages/history').then((m) => ({ default: m.TransactionHistoryPage })))
+const TransactionDetailPage = lazy(() => import('@/pages/history/detail').then((m) => ({ default: m.TransactionDetailPage })))
+
 // Onboarding pages
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
 const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').then((m) => ({ default: m.OnboardingRecoverPage })))
@@ -139,6 +143,19 @@ const settingsCurrencyRoute = createRoute({
   component: withSuspense(CurrencyPage),
 })
 
+// History 路由
+const historyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/history',
+  component: withSuspense(TransactionHistoryPage),
+})
+
+const transactionDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/transaction/$txId',
+  component: withSuspense(TransactionDetailPage),
+})
+
 // Onboarding 路由
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -177,6 +194,8 @@ const routeTree = rootRoute.addChildren([
   settingsMnemonicRoute,
   settingsPasswordRoute,
   settingsCurrencyRoute,
+  historyRoute,
+  transactionDetailRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

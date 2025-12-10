@@ -2,47 +2,47 @@
 
 ## T009: Transaction History
 
-### Status: in_progress
+### Status: complete
 
 ### Tasks
 
 #### T009.1: useTransactionHistory Hook
-- [ ] Create `src/hooks/use-transaction-history.ts`
-- [ ] Define Transaction type with full details
-- [ ] Implement mock data generator
-- [ ] Add filter logic (chain, time period)
-- [ ] Write tests (~8 tests)
+- [x] Create `src/hooks/use-transaction-history.ts`
+- [x] Define Transaction type with full details
+- [x] Implement mock data generator
+- [x] Add filter logic (chain, time period)
+- [x] Write tests (13 tests)
 
-**Acceptance**: Hook returns filtered mock transactions
+**Acceptance**: Hook returns filtered mock transactions ✅
 
 ---
 
 #### T009.2: TransactionHistoryPage
-- [ ] Create `src/pages/history/index.tsx`
-- [ ] Integrate useTransactionHistory hook
-- [ ] Add filter bar (chain selector, time period)
-- [ ] Use existing TransactionList component
-- [ ] Add pull-to-refresh
-- [ ] Handle empty state
-- [ ] Add route `/history`
-- [ ] Write tests (~10 tests)
-- [ ] Write Storybook story
+- [x] Create `src/pages/history/index.tsx`
+- [x] Integrate useTransactionHistory hook
+- [x] Add filter bar (chain selector, time period)
+- [x] Use existing TransactionList component
+- [x] Add pull-to-refresh
+- [x] Handle empty state
+- [x] Add route `/history`
+- [x] Write tests (9 tests)
+- [x] Write Storybook story
 
-**Acceptance**: Page displays filtered transaction list with all interactions
+**Acceptance**: Page displays filtered transaction list with all interactions ✅
 
 ---
 
 #### T009.3: TransactionDetailPage
-- [ ] Create `src/pages/history/[txId].tsx`
-- [ ] Display full transaction details
-- [ ] Show status timeline
-- [ ] Copy transaction hash button
-- [ ] View on explorer link (mock)
-- [ ] Add route `/transaction/:txId`
-- [ ] Write tests (~8 tests)
-- [ ] Write Storybook story
+- [x] Create `src/pages/history/detail.tsx`
+- [x] Display full transaction details
+- [x] Show status timeline
+- [x] Copy transaction hash button
+- [x] View on explorer link (mock)
+- [x] Add route `/transaction/:txId`
+- [x] Write tests (13 tests)
+- [x] Write Storybook story
 
-**Acceptance**: Detail page shows complete transaction information
+**Acceptance**: Detail page shows complete transaction information ✅
 
 ---
 
