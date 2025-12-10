@@ -12,7 +12,7 @@
 - Phase 4 Settings & Preferences - src/pages/settings/ - PeerA (active)
 
 ## Bets & Assumptions
-- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 721 tests passing | Window: ongoing
+- Bet 1: Component-first approach enables faster iteration | Probe: `pnpm test --run` | Evidence: 738 tests passing | Window: ongoing
 - Bet 2: TanStack ecosystem provides type-safe routing and state | Probe: integration tests | Evidence: pending | Window: Phase 2
 
 ## Roadmap (Now/Next/Later)
@@ -39,7 +39,7 @@
 - T006 Send Flow: **complete** (committed 234135d, archived)
 - T007 Receive Flow Tests: **complete** (committed 8fb44b8, archived)
 - Phase 3 Transfer: **COMPLETE** ✅ (asset + send + receive)
-- T008 Settings Foundation: **in_progress** (T008.1 complete, committed 7d43836)
+- T008 Settings Foundation: **in_progress** (T008.1-T008.2 complete, committed 37f3760)
 
 ## Operating Principles (short)
 - Falsify before expand; one decidable next step; stop with pride when wrong; Done = evidence.
@@ -56,6 +56,7 @@
 - 2025-12-11 01:06 | PeerB | T007 committed (8fb44b8), archived | 702 tests, 12 new | Phase 3 Transfer COMPLETE
 - 2025-12-11 01:25 | PeerB | T008 change scaffolded (add-settings-page) | Phase 4 Settings & Preferences start
 - 2025-12-11 01:35 | PeerB | T008.1 committed (7d43836) | 721 tests, 19 new | SettingsPage layout complete
+- 2025-12-11 01:42 | PeerB | T008.2 committed (37f3760) | 738 tests, 17 new | LanguageSelector + preferencesStore
 
 <!-- Generated on 2025-12-10T10:02:26+00:00 by por_manager.ensure_por 0.1.1 ; template_sha1=7342dc47bce1342e40656c7ab0c32577632e15a2 -->
 

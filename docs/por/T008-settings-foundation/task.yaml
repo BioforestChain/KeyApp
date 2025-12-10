@@ -16,7 +16,13 @@ steps:
   - id: S2
     name: LanguageSelector
     done: Language selection with i18next integration, persistence
-    status: pending
+    status: complete
+    outputs:
+      - {path: 'src/pages/settings/language.tsx', note: 'Language selection page'}
+      - {path: 'src/pages/settings/language.test.tsx', note: '8 tests pass'}
+      - {path: 'src/pages/settings/language.stories.tsx', note: 'Storybook story'}
+      - {path: 'src/stores/preferences.ts', note: 'Preferences store with persistence'}
+      - {path: 'src/stores/preferences.test.ts', note: '9 tests pass'}
   - id: S3
     name: ViewMnemonicFlow
     done: View mnemonic after password verification with auto-hide

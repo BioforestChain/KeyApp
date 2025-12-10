@@ -19,14 +19,14 @@
 ---
 
 #### T008.2: LanguageSelector
-- [ ] Create `src/pages/settings/language.tsx` or sheet component
-- [ ] Integrate with i18next `changeLanguage()`
-- [ ] Persist selection to localStorage/TanStack Store
-- [ ] Display language names in native script
-- [ ] Write tests (~10 tests): selection, persist, i18n switch
-- [ ] Write Storybook story
+- [x] Create `src/pages/settings/language.tsx` or sheet component
+- [x] Integrate with i18next `changeLanguage()`
+- [x] Persist selection to localStorage/TanStack Store
+- [x] Display language names in native script
+- [x] Write tests (8 tests): selection, persist, i18n switch
+- [x] Write Storybook story
 
-**Acceptance**: Language changes apply immediately, persist across sessions
+**Acceptance**: Language changes apply immediately, persist across sessions ✅
 
 ---
 
