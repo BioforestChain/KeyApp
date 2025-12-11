@@ -25,5 +25,14 @@
   "noTransactions": "暂无交易记录",
   "insufficientBalance": "余额不足",
   "invalidAmount": "金额无效",
-  "firstTimeGuide": "欢迎使用质押功能！在这里您可以在外链和内链之间转换代币。"
+  "firstTimeGuide": "欢迎使用质押功能！在这里您可以在外链和内链之间转换代币。",
+  "totalMinted": "{{asset}} 总铸造量",
+  "totalCirculation": "{{asset}} 流通量",
+  "totalBurned": "{{asset}} 总赎回量",
+  "totalStaked": "{{asset}} 总质押量",
+  "searchPlaceholder": "代币名称或合约地址",
+  "allNetworks": "全部网络",
+  "selectNetwork": "选择网络",
+  "noResults": "未找到结果",
+  "loading": "加载中"
 }

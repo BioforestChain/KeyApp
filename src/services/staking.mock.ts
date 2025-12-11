@@ -76,6 +76,12 @@ export const mockStakingOverview: StakingOverviewItem[] = [
     stakedFiat: '$1,234.56',
     availableChains: ['ETH', 'BSC'],
     logoUrl: '/tokens/bfm.svg',
+    totalMinted: '1250000',
+    totalCirculation: '980000',
+    totalBurned: '270000',
+    totalStaked: '1250000',
+    externalChain: 'BSC',
+    externalAssetType: 'BFM',
   },
   {
     chain: 'BFMeta',
@@ -84,6 +90,12 @@ export const mockStakingOverview: StakingOverviewItem[] = [
     stakedFiat: '$5,000.00',
     availableChains: ['ETH', 'BSC', 'TRON'],
     logoUrl: '/tokens/usdt.svg',
+    totalMinted: '8500000',
+    totalCirculation: '7200000',
+    totalBurned: '1300000',
+    totalStaked: '8500000',
+    externalChain: 'ETH',
+    externalAssetType: 'USDT',
   },
   {
     chain: 'BFChain',
@@ -92,6 +104,12 @@ export const mockStakingOverview: StakingOverviewItem[] = [
     stakedFiat: '$625.00',
     availableChains: ['BSC'],
     logoUrl: '/tokens/bfc.svg',
+    totalMinted: '450000',
+    totalCirculation: '380000',
+    totalBurned: '70000',
+    totalStaked: '450000',
+    externalChain: 'BSC',
+    externalAssetType: 'BFC',
   },
 ]
 

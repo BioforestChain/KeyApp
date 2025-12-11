@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { useRouter } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { cn } from '@/lib/utils'
+import { StakingOverviewPanel, MintForm, BurnForm } from './components'
+import type { StakingOverviewItem } from '@/types/staking'
 
 type StakingTab = 'overview' | 'mint' | 'burn'
 
@@ -22,6 +24,12 @@ export function StakingPage() {
     { id: 'mint', label: t('mint') },
     { id: 'burn', label: t('burn') },
   ]
+
+  /** Handle mint button click - switch to mint tab */
+  const handleMint = (_item: StakingOverviewItem) => {
+    setActiveTab('mint')
+    // TODO: Pre-fill mint form with selected asset
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -47,21 +55,10 @@ export function StakingPage() {
 
       {/* Tab Content */}
       <div className="flex-1 p-4">
-        {activeTab === 'overview' && <StakingOverviewPanel />}
+        {activeTab === 'overview' && <StakingOverviewPanel onMint={handleMint} />}
         {activeTab === 'mint' && <StakingMintPanel />}
         {activeTab === 'burn' && <StakingBurnPanel />}
       </div>
-    </div>
-  )
-}
-
-/** Overview panel - shows staked assets */
-function StakingOverviewPanel() {
-  const { t } = useTranslation('staking')
-
-  return (
-    <div className="space-y-4">
-      <p className="text-center text-muted-foreground">{t('noStakedAssets')}</p>
     </div>
   )
 }
@@ -70,10 +67,15 @@ function StakingOverviewPanel() {
 function StakingMintPanel() {
   const { t } = useTranslation('staking')
 
+  const handleSuccess = (txId: string) => {
+    // TODO: Navigate to transaction detail or show success toast
+    console.log('Mint transaction submitted:', txId)
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">{t('mintDescription')}</p>
-      {/* MintForm will be added here */}
+      <MintForm onSuccess={handleSuccess} />
     </div>
   )
 }
@@ -82,10 +84,15 @@ function StakingMintPanel() {
 function StakingBurnPanel() {
   const { t } = useTranslation('staking')
 
+  const handleSuccess = (txId: string) => {
+    // TODO: Navigate to transaction detail or show success toast
+    console.log('Burn transaction submitted:', txId)
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">{t('burnDescription')}</p>
-      {/* BurnForm will be added here */}
+      <BurnForm onSuccess={handleSuccess} />
     </div>
   )
 }

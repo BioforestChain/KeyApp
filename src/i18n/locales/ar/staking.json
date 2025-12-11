@@ -25,5 +25,14 @@
   "noTransactions": "لا يوجد سجل معاملات",
   "insufficientBalance": "رصيد غير كافٍ",
   "invalidAmount": "مبلغ غير صالح",
-  "firstTimeGuide": "مرحبًا بك في التخزين! هنا يمكنك تحويل الرموز بين السلاسل الخارجية والداخلية."
+  "firstTimeGuide": "مرحبًا بك في التخزين! هنا يمكنك تحويل الرموز بين السلاسل الخارجية والداخلية.",
+  "totalMinted": "إجمالي {{asset}} المسكوكة",
+  "totalCirculation": "{{asset}} المتداولة",
+  "totalBurned": "إجمالي {{asset}} المستردة",
+  "totalStaked": "إجمالي {{asset}} المخزنة",
+  "searchPlaceholder": "اسم الرمز أو العقد",
+  "allNetworks": "جميع الشبكات",
+  "selectNetwork": "اختر الشبكة",
+  "noResults": "لم يتم العثور على نتائج",
+  "loading": "جاري التحميل"
 }

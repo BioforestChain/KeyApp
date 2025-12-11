@@ -138,6 +138,18 @@ export interface StakingOverviewItem {
   availableChains: ExternalChain[]
   /** Logo URL */
   logoUrl?: string
+  /** Total amount minted (pool stat) */
+  totalMinted: string
+  /** Total amount in circulation (pool stat) */
+  totalCirculation: string
+  /** Total amount burned/redeemed (pool stat) */
+  totalBurned: string
+  /** Total amount staked on external chain (pool stat) */
+  totalStaked: string
+  /** External chain name */
+  externalChain: ExternalChain
+  /** External asset type */
+  externalAssetType: string
 }
 
 /** Staking state */

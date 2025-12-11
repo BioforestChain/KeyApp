@@ -25,5 +25,14 @@
   "noTransactions": "No transaction history",
   "insufficientBalance": "Insufficient balance",
   "invalidAmount": "Invalid amount",
-  "firstTimeGuide": "Welcome to Staking! Here you can convert tokens between external and internal chains."
+  "firstTimeGuide": "Welcome to Staking! Here you can convert tokens between external and internal chains.",
+  "totalMinted": "Total {{asset}} minted",
+  "totalCirculation": "{{asset}} circulation",
+  "totalBurned": "Total {{asset}} redeemed",
+  "totalStaked": "Total {{asset}} staked",
+  "searchPlaceholder": "Token name or contract",
+  "allNetworks": "All Networks",
+  "selectNetwork": "Select Network",
+  "noResults": "No results found",
+  "loading": "Loading"
 }

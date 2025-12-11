@@ -25,5 +25,14 @@
   "noTransactions": "暫無交易記錄",
   "insufficientBalance": "餘額不足",
   "invalidAmount": "金額無效",
-  "firstTimeGuide": "歡迎使用質押功能！在這裡您可以在外鏈和內鏈之間轉換代幣。"
+  "firstTimeGuide": "歡迎使用質押功能！在這裡您可以在外鏈和內鏈之間轉換代幣。",
+  "totalMinted": "{{asset}} 總鑄造量",
+  "totalCirculation": "{{asset}} 流通量",
+  "totalBurned": "{{asset}} 總贖回量",
+  "totalStaked": "{{asset}} 總質押量",
+  "searchPlaceholder": "代幣名稱或合約地址",
+  "allNetworks": "全部網絡",
+  "selectNetwork": "選擇網絡",
+  "noResults": "未找到結果",
+  "loading": "載入中"
 }
