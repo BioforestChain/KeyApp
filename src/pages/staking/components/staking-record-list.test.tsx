@@ -180,8 +180,9 @@ describe('StakingRecordList', () => {
       btn.classList.contains('bg-card')
     )
 
-    if (recordButtons.length > 0) {
-      fireEvent.click(recordButtons[0])
+    const firstRecord = recordButtons[0]
+    if (firstRecord) {
+      fireEvent.click(firstRecord)
       expect(onRecordClick).toHaveBeenCalled()
     }
   })
