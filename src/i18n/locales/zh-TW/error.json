@@ -1,0 +1,14 @@
+{
+  "copyFailed": "複製失敗",
+  "errorParsingImage": "圖片分析錯誤",
+  "fail": "失敗",
+  "failed": "失敗",
+  "incorrectOrderPleaseTryAgain": "順序不正確，請重試！",
+  "informationVerificationFailed": "信息驗證失敗",
+  "insufficientFunds": "餘額不足",
+  "privatekeyInputError": "密鑰輸入錯誤",
+  "qrCodeNotFound": "未找到二維碼",
+  "saveFailed": "保存失敗",
+  "scanErrorFromImage": "掃描圖片失敗",
+  "shareFailed": "分享失敗"
+}

@@ -1,0 +1,18 @@
+{
+  "afterAuthorizationTheApplicationWillBotainTheFollowingPermissions": "授權后，應用將獲得如下權限",
+  "allowAuthorizedAddressesToRequestSignatures": "允許授權地址請求簽名",
+  "authorize": "授權",
+  "authorizedWallet": "已授權錢包",
+  "bioforestChainTransactionTypeCreateDappId": "創建DAPP ID",
+  "bioforestChainTransactionTypeDappIdPayment": "DAPP ID付費",
+  "doYouWantToOpenThePermissionCenterToSetTheCameraPermission": "打開權限中心，設置相機訪問權限？",
+  "doYouWantToOpenThePermissionCenterToSetTheFileSystemPermission": "打開權限中心，設置文件管理權限？",
+  "messageSignature": "簽名信息",
+  "requestSignature": "請求簽名",
+  "selectAuthorizedNetwork": "選擇授權網絡",
+  "selectAuthorizedWallet": "選擇授權錢包",
+  "signatureAddress": "簽名地址",
+  "signatureConfirmed": "簽名確認",
+  "signatureSuccessfully": "簽名成功",
+  "signatureType": "簽名類型"
+}

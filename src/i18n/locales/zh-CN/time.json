@@ -1,0 +1,9 @@
+{
+  "daysAgo": "{{count}} 天前",
+  "daysLater": "{{count}} 天后",
+  "hoursAgo": "{{count}} 小时前",
+  "hoursLater": "{{count}} 小时后",
+  "justNow": "刚刚",
+  "minutesAgo": "{{count}} 分钟前",
+  "minutesLater": "{{count}} 分钟后"
+}

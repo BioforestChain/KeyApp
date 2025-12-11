@@ -1,0 +1,18 @@
+{
+  "afterAuthorizationTheApplicationWillBotainTheFollowingPermissions": "After authorization, the application will obtain the following permissions",
+  "allowAuthorizedAddressesToRequestSignatures": "Allow authorized addresses to request signatures",
+  "authorize": "Authorize",
+  "authorizedWallet": "Authorized Wallet",
+  "bioforestChainTransactionTypeCreateDappId": "Create DAPP ID",
+  "bioforestChainTransactionTypeDappIdPayment": "DAPP ID Payment",
+  "doYouWantToOpenThePermissionCenterToSetTheCameraPermission": "Do you want to open the permission center to set the camera permission?",
+  "doYouWantToOpenThePermissionCenterToSetTheFileSystemPermission": "Do you want to open the permission center to set the file system permission?",
+  "messageSignature": "Message Signature",
+  "requestSignature": "Request Signature",
+  "selectAuthorizedNetwork": "Select Authorized Network",
+  "selectAuthorizedWallet": "Select Authorized Wallet",
+  "signatureAddress": "Signature address",
+  "signatureConfirmed": "Signature Confirmed",
+  "signatureSuccessfully": "Signature successfully",
+  "signatureType": "Signature type"
+}

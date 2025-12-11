@@ -1,23 +1,33 @@
 import { describe, it, expect } from 'vitest'
-import { languages, getLanguageDirection, isRTL, defaultLanguage } from './index'
+import { languages, getLanguageDirection, isRTL, defaultLanguage, namespaces, defaultNS } from './index'
 
-// Import locale files for validation
-import en from './locales/en.json'
-import zhCN from './locales/zh-CN.json'
-import ar from './locales/ar.json'
+// Import namespace files for validation
+import enCommon from './locales/en/common.json'
+import enWallet from './locales/en/wallet.json'
+import enTransaction from './locales/en/transaction.json'
+import enSecurity from './locales/en/security.json'
+import enStaking from './locales/en/staking.json'
+import enDweb from './locales/en/dweb.json'
 
-// Helper to get all keys from nested object
-function getAllKeys(obj: Record<string, unknown>, prefix = ''): string[] {
-  const keys: string[] = []
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key
+import zhCNCommon from './locales/zh-CN/common.json'
+import zhCNWallet from './locales/zh-CN/wallet.json'
+import zhCNTransaction from './locales/zh-CN/transaction.json'
+import zhCNSecurity from './locales/zh-CN/security.json'
+
+import arCommon from './locales/ar/common.json'
+import arWallet from './locales/ar/wallet.json'
+
+// Helper to count keys in a namespace object
+function countKeys(obj: Record<string, unknown>): number {
+  let count = 0
+  for (const value of Object.values(obj)) {
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      keys.push(...getAllKeys(value as Record<string, unknown>, fullKey))
+      count += countKeys(value as Record<string, unknown>)
     } else {
-      keys.push(fullKey)
+      count += 1
     }
   }
-  return keys.sort()
+  return count
 }
 
 describe('i18n', () => {
@@ -26,6 +36,10 @@ describe('i18n', () => {
       expect(languages['zh-CN']).toBeDefined()
       expect(languages['en']).toBeDefined()
       expect(languages['ar']).toBeDefined()
+    })
+
+    it('has Traditional Chinese', () => {
+      expect(languages['zh-TW']).toBeDefined()
     })
 
     it('Chinese and English are LTR', () => {
@@ -72,80 +86,76 @@ describe('i18n', () => {
     })
   })
 
-  describe('locale completeness (T014)', () => {
-    const enKeys = getAllKeys(en)
-    const zhCNKeys = getAllKeys(zhCN)
-    const arKeys = getAllKeys(ar)
-
-    it('en.json has sufficient keys for app coverage', () => {
-      // Minimum expected keys after mpay extraction
-      expect(enKeys.length).toBeGreaterThan(500)
-    })
-
-    it('zh-CN.json has sufficient keys for app coverage', () => {
-      expect(zhCNKeys.length).toBeGreaterThan(500)
-    })
-
-    it('all locales have required common namespace keys', () => {
-      const requiredCommonKeys = [
-        'common.confirm',
-        'common.cancel',
-        'common.back',
-        'common.copy',
-        'common.loading',
-      ]
-
-      for (const key of requiredCommonKeys) {
-        expect(enKeys).toContain(key)
-        expect(zhCNKeys).toContain(key)
+  describe('namespaces', () => {
+    it('has all expected namespaces', () => {
+      const expected = ['common', 'wallet', 'transaction', 'security', 'staking', 'dweb', 'error', 'settings', 'token', 'time', 'empty']
+      for (const ns of expected) {
+        expect(namespaces).toContain(ns)
       }
     })
 
-    it('all locales have required wallet namespace keys', () => {
-      const requiredWalletKeys = [
-        'wallet.createWallet',
-        'wallet.importWallet',
-        'wallet.manageWallet',
-      ]
+    it('defaultNS is common', () => {
+      expect(defaultNS).toBe('common')
+    })
+  })
 
-      for (const key of requiredWalletKeys) {
-        expect(enKeys).toContain(key)
-        expect(zhCNKeys).toContain(key)
+  describe('locale completeness (T014.5)', () => {
+    it('en common namespace has sufficient keys', () => {
+      const keyCount = countKeys(enCommon)
+      expect(keyCount).toBeGreaterThan(150)
+    })
+
+    it('zh-CN common namespace has sufficient keys', () => {
+      const keyCount = countKeys(zhCNCommon)
+      expect(keyCount).toBeGreaterThan(150)
+    })
+
+    it('all locales have required common keys', () => {
+      const requiredKeys = ['confirm', 'cancel', 'back', 'copy', 'loading']
+      for (const key of requiredKeys) {
+        expect(enCommon).toHaveProperty(key)
+        expect(zhCNCommon).toHaveProperty(key)
       }
     })
 
-    it('all locales have required transaction namespace keys', () => {
-      const requiredTxKeys = [
-        'transaction.transfer',
-        'transaction.receive',
-      ]
-
-      for (const key of requiredTxKeys) {
-        expect(enKeys).toContain(key)
-        expect(zhCNKeys).toContain(key)
+    it('all locales have required wallet keys', () => {
+      const requiredKeys = ['createWallet', 'importWallet', 'manageWallet']
+      for (const key of requiredKeys) {
+        expect(enWallet).toHaveProperty(key)
+        expect(zhCNWallet).toHaveProperty(key)
       }
     })
 
-    it('all locales have required security namespace keys', () => {
-      const requiredSecurityKeys = [
-        'security.verifyPassword',
-        'security.backupMnemonic',
-      ]
+    it('all locales have required transaction keys', () => {
+      const requiredKeys = ['transfer', 'receive']
+      for (const key of requiredKeys) {
+        expect(enTransaction).toHaveProperty(key)
+        expect(zhCNTransaction).toHaveProperty(key)
+      }
+    })
 
-      for (const key of requiredSecurityKeys) {
-        expect(enKeys).toContain(key)
-        expect(zhCNKeys).toContain(key)
+    it('all locales have required security keys', () => {
+      const requiredKeys = ['verifyPassword', 'backupMnemonic']
+      for (const key of requiredKeys) {
+        expect(enSecurity).toHaveProperty(key)
+        expect(zhCNSecurity).toHaveProperty(key)
       }
     })
 
     it('staking namespace is prepared for Epic 5', () => {
-      const stakingKeys = enKeys.filter((k) => k.startsWith('staking.'))
-      expect(stakingKeys.length).toBeGreaterThan(20)
+      const keyCount = countKeys(enStaking)
+      expect(keyCount).toBeGreaterThan(20)
     })
 
     it('dweb namespace is prepared for Epic 8', () => {
-      const dwebKeys = enKeys.filter((k) => k.startsWith('dweb.'))
-      expect(dwebKeys.length).toBeGreaterThan(10)
+      const keyCount = countKeys(enDweb)
+      expect(keyCount).toBeGreaterThan(10)
+    })
+
+    it('Arabic placeholders have same structure as English', () => {
+      // ar should have same keys as en (placeholders copied from en)
+      expect(Object.keys(arCommon).length).toBe(Object.keys(enCommon).length)
+      expect(Object.keys(arWallet).length).toBe(Object.keys(enWallet).length)
     })
   })
 })

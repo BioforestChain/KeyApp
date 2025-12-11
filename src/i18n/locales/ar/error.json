@@ -1,0 +1,14 @@
+{
+  "copyFailed": "Copy failed",
+  "errorParsingImage": "Error parsing image",
+  "fail": "fail",
+  "failed": "Failed",
+  "incorrectOrderPleaseTryAgain": "Incorrect order, please try again!",
+  "informationVerificationFailed": "Information verification failed",
+  "insufficientFunds": "insufficient funds",
+  "privatekeyInputError": "PrivateKey input error",
+  "qrCodeNotFound": "QR code not found",
+  "saveFailed": "Save Failed",
+  "scanErrorFromImage": "Scan error from image",
+  "shareFailed": "Sharing Failed"
+}
