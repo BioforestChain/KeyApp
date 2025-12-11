@@ -71,4 +71,51 @@ describe('AssetItem', () => {
     )
     expect(container.firstChild).toHaveClass('custom-class')
   })
+
+  describe('price display', () => {
+    const assetWithPrice: AssetInfo = {
+      assetType: 'ETH',
+      name: 'Ethereum',
+      amount: '1000000000000000000', // 1 ETH
+      decimals: 18,
+      priceUsd: 2500,
+      priceChange24h: 2.3,
+    }
+
+    it('displays fiat value when priceUsd is provided', () => {
+      render(<AssetItem asset={assetWithPrice} />)
+      expect(screen.getByText('$2,500.00')).toBeInTheDocument()
+    })
+
+    it('displays positive price change with green color', () => {
+      render(<AssetItem asset={assetWithPrice} />)
+      const changeElement = screen.getByText('+2.30%')
+      expect(changeElement).toBeInTheDocument()
+      expect(changeElement).toHaveClass('text-green-600')
+    })
+
+    it('displays negative price change with red color', () => {
+      const assetWithNegativeChange: AssetInfo = {
+        ...assetWithPrice,
+        priceChange24h: -3.5,
+      }
+      render(<AssetItem asset={assetWithNegativeChange} />)
+      const changeElement = screen.getByText('-3.50%')
+      expect(changeElement).toBeInTheDocument()
+      expect(changeElement).toHaveClass('text-red-600')
+    })
+
+    it('does not display price info when priceUsd is undefined', () => {
+      render(<AssetItem asset={mockAsset} />)
+      expect(screen.queryByText(/\$/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/%/)).not.toBeInTheDocument()
+    })
+
+    it('respects currency prop for formatting', () => {
+      render(<AssetItem asset={assetWithPrice} currency="CNY" />)
+      // CNY uses ¥ symbol
+      const fiatText = screen.getByText(/2,500/)
+      expect(fiatText).toBeInTheDocument()
+    })
+  })
 })
