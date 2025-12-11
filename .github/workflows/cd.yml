@@ -167,9 +167,24 @@ jobs:
           echo "=== webapp-beta directory ==="
           ls -la docs/public/webapp-beta/ | head -5
 
+      # ===== 构建 Storybook =====
+      - name: Build Storybook
+        run: pnpm build-storybook
+
+      - name: Prepare Storybook for VitePress
+        run: |
+          mkdir -p docs/public/storybook
+          cp -r storybook-static/* docs/public/storybook/
+          echo "Storybook copied to docs/public/storybook/"
+
       # ===== 构建 VitePress 站点 =====
+      # Base path: 仓库变量 VITEPRESS_BASE，默认使用 /{repo_name}/
       - name: Build VitePress site
-        run: pnpm docs:build
+        env:
+          VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+        run: |
+          echo "Building with VITEPRESS_BASE=$VITEPRESS_BASE"
+          pnpm docs:build
 
       # ===== 准备 GitHub Pages =====
       - name: Prepare GitHub Pages
