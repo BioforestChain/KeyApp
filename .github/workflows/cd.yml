@@ -28,8 +28,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10'
 
 jobs:
   # ==================== 构建 ====================
@@ -43,7 +43,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 需要完整历史来下载 release
+          fetch-depth: 0 # 需要完整历史来下载 release
 
       - name: Determine channel
         id: channel
