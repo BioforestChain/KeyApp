@@ -43,11 +43,10 @@ async function deriveKey(
   )
 
   // 使用 PBKDF2 派生 AES 密钥
-  // 注意：直接传 Uint8Array，避免 .buffer 在不同 Node.js 版本的兼容问题
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: salt as BufferSource,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },
@@ -113,11 +112,10 @@ export async function decrypt(
 
   try {
     // AES-GCM 解密
-    // 注意：直接传 Uint8Array，避免 .buffer 在不同 Node.js 版本的兼容问题
     const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as BufferSource },
       key,
-      ciphertext
+      ciphertext as BufferSource
     )
 
     const decoder = new TextDecoder()
