@@ -35,6 +35,9 @@ const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').th
 // Address Book page
 const AddressBookPage = lazy(() => import('@/pages/address-book').then((m) => ({ default: m.AddressBookPage })))
 
+// Notifications page
+const NotificationCenterPage = lazy(() => import('@/pages/notifications').then((m) => ({ default: m.NotificationCenterPage })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -191,6 +194,13 @@ const addressBookRoute = createRoute({
   component: withSuspense(AddressBookPage),
 })
 
+// Notifications 路由
+const notificationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/notifications',
+  component: withSuspense(NotificationCenterPage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -215,6 +225,7 @@ const routeTree = rootRoute.addChildren([
   historyRoute,
   transactionDetailRoute,
   addressBookRoute,
+  notificationsRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

@@ -2,7 +2,7 @@
 
 ## T011: Notification System
 
-### Status: in progress (T011.1, T011.2 complete; starting T011.3)
+### Status: COMPLETE ✅ (T011.1-T011.4 all done, 41 tests)
 
 ### Tasks
 
@@ -31,30 +31,30 @@
 
 ---
 
-#### T011.3: NotificationCenter
-- [ ] Create `src/pages/notifications/index.tsx`
-- [ ] List notifications with grouping by date
-- [ ] Empty state when no notifications
-- [ ] Mark as read on tap
-- [ ] Clear all button in header
-- [ ] Add route `/notifications`
-- [ ] Write tests (~8 tests)
-- [ ] Write Storybook story
+#### T011.3: NotificationCenter ✅
+- [x] Create `src/pages/notifications/index.tsx`
+- [x] List notifications with grouping by date
+- [x] Empty state when no notifications
+- [x] Mark as read on tap
+- [x] Clear all button in header
+- [x] Add route `/notifications`
+- [x] Write tests (~8 tests) → 13 tests
+- [x] Write Storybook story
 
-**Acceptance**: Can view and manage all notifications
+**Acceptance**: ✅ Can view and manage all notifications
 
 ---
 
-#### T011.4: TransactionNotification
-- [ ] Create `src/components/notification/transaction-toast.tsx`
-- [ ] Toast states: pending, confirmed, failed
-- [ ] Icon and color per state
-- [ ] Auto-dismiss after 5s (configurable)
-- [ ] Tap to view transaction detail
-- [ ] Write tests (~6 tests)
-- [ ] Write Storybook story
+#### T011.4: TransactionNotification ✅
+- [x] Create `src/components/notification/transaction-toast.tsx`
+- [x] Toast states: pending, confirmed, failed
+- [x] Icon and color per state
+- [x] Auto-dismiss after 5s (configurable)
+- [x] Tap to view transaction detail
+- [x] Write tests (~6 tests) → 12 tests
+- [x] Write Storybook story
 
-**Acceptance**: Transaction status visible as toast during send flow
+**Acceptance**: ✅ Transaction status visible as toast during send flow
 
 ---
 

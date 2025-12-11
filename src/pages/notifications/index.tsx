@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import {
   notificationStore,
   notificationActions,
-  notificationSelectors,
   type Notification,
   type NotificationType,
 } from '@/stores/notification'

@@ -113,9 +113,15 @@ export const AllRead: Story = {
 export const ManyNotifications: Story = {
   decorators: [
     (Story) => {
+      const getType = (i: number): 'transaction' | 'security' | 'system' => {
+        const mod = i % 3
+        if (mod === 0) return 'transaction'
+        if (mod === 1) return 'security'
+        return 'system'
+      }
       const notifications: Notification[] = Array.from({ length: 20 }, (_, i) => ({
         id: `n${i}`,
-        type: (['transaction', 'security', 'system'] as const)[i % 3],
+        type: getType(i),
         title: `通知 ${i + 1}`,
         message: `这是第 ${i + 1} 条通知的详细内容`,
         timestamp: Date.now() - i * 3600000, // Each 1 hour apart
