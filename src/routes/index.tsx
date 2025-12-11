@@ -67,7 +67,7 @@ function withSuspense(Component: React.LazyExoticComponent<React.ComponentType>)
   }
 }
 
-// Root Route
+// Root Route with AppLayout (main routes)
 const rootRoute = createRootRoute({
   component: () => (
     <AppLayout>
