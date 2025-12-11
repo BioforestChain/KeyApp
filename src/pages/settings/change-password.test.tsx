@@ -114,9 +114,10 @@ describe('ChangePasswordPage', () => {
     it('keeps submit disabled when passwords do not match', async () => {
       renderWithProviders(<ChangePasswordPage />)
 
-      await userEvent.type(screen.getByPlaceholderText('请输入当前密码'), 'currentpwd')
-      await userEvent.type(screen.getByPlaceholderText(/请输入新密码/), 'newpassword123')
-      await userEvent.type(screen.getByPlaceholderText('请再次输入新密码'), 'differentpwd')
+      const user = userEvent.setup({ delay: null })
+      await user.type(screen.getByPlaceholderText('请输入当前密码'), 'currentpwd')
+      await user.type(screen.getByPlaceholderText(/请输入新密码/), 'newpassword123')
+      await user.type(screen.getByPlaceholderText('请再次输入新密码'), 'differentpwd')
 
       const button = screen.getByRole('button', { name: '确认修改' })
       expect(button).toBeDisabled()
