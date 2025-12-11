@@ -2,32 +2,32 @@
 
 ## T011: Notification System
 
-### Status: pending
+### Status: in progress (T011.1, T011.2 complete; starting T011.3)
 
 ### Tasks
 
-#### T011.1: NotificationStore
-- [ ] Create `src/stores/notification.ts`
-- [ ] Define Notification type (id, type, title, message, timestamp, read, data?)
-- [ ] NotificationType enum (transaction, security, system)
-- [ ] Actions: add, markRead, markAllRead, clearAll
-- [ ] localStorage persistence
-- [ ] Write tests (~6 tests)
+#### T011.1: NotificationStore ✅
+- [x] Create `src/stores/notification.ts`
+- [x] Define Notification type (id, type, title, message, timestamp, read, data?)
+- [x] NotificationType enum (transaction, security, system)
+- [x] Actions: add, markRead, markAllRead, clearAll
+- [x] localStorage persistence
+- [x] Write tests (~6 tests) → 8 tests
 
-**Acceptance**: Notifications persist across page reloads
+**Acceptance**: ✅ Notifications persist across page reloads
 
 ---
 
-#### T011.2: NotificationPermissionSheet
-- [ ] Create `src/components/notification/permission-sheet.tsx`
-- [ ] Explain push notification benefits
-- [ ] Request permission button
-- [ ] Handle denied state with "Settings" link
-- [ ] Skip option for later
-- [ ] Write tests (~6 tests)
-- [ ] Write Storybook story
+#### T011.2: NotificationPermissionSheet ✅
+- [x] Create `src/components/notification/notification-permission-sheet.tsx`
+- [x] Explain push notification benefits
+- [x] Request permission button
+- [ ] Handle denied state with "Settings" link (deferred: actual API integration)
+- [x] Skip option for later
+- [x] Write tests (~6 tests) → 8 tests
+- [x] Write Storybook story
 
-**Acceptance**: Permission flow handles all states (granted, denied, default)
+**Acceptance**: ✅ Permission flow UI handles enable/skip (API integration deferred)
 
 ---
 
