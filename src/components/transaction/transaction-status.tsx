@@ -8,13 +8,13 @@ interface TransactionStatusProps {
   /** Transaction status */
   status: TransactionStatusType;
   /** Show text label */
-  showLabel?: boolean;
+  showLabel?: boolean | undefined;
   /** Custom label text */
-  label?: string;
+  label?: string | undefined;
   /** Size variant */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | undefined;
   /** Additional class names */
-  className?: string;
+  className?: string | undefined;
 }
 
 interface StatusConfig {

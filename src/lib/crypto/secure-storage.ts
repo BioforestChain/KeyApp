@@ -10,34 +10,34 @@ import { encrypt, decrypt, type EncryptedData } from './encryption'
 // ==================== 类型定义 ====================
 
 export interface BiometricOptions {
-  title?: string
-  subtitle?: string
-  negativeButtonText?: string
-  maxAttempts?: number
+  title?: string | undefined
+  subtitle?: string | undefined
+  negativeButtonText?: string | undefined
+  maxAttempts?: number | undefined
 }
 
 export interface BiometricResult {
   success: boolean
-  code?: number
-  errorDetail?: string
+  code?: number | undefined
+  errorDetail?: string | undefined
 }
 
 export interface SecureStorageOptions {
   /** 使用密码加密（Web 模式） */
-  password?: string
+  password?: string | undefined
   /** 使用生物识别（DWEB 模式） */
-  useBiometric?: boolean
+  useBiometric?: boolean | undefined
   /** 生物识别选项 */
-  biometricOptions?: BiometricOptions
+  biometricOptions?: BiometricOptions | undefined
 }
 
 export interface StoredData {
   /** 存储类型 */
   type: 'web-encrypted' | 'dweb-biometric'
   /** 加密数据（Web 模式） */
-  encrypted?: EncryptedData
+  encrypted?: EncryptedData | undefined
   /** 原始数据（DWEB 模式，由系统保护） */
-  data?: string
+  data?: string | undefined
 }
 
 // ==================== 环境检测 ====================
@@ -86,7 +86,7 @@ export const BiometricAuth = {
   },
 
   /** 验证生物识别 */
-  async authenticate(options: BiometricOptions = {}): Promise<BiometricResult> {
+  async authenticate(_options: BiometricOptions = {}): Promise<BiometricResult> {
     const plugin = await getDwebBiometric()
     if (!plugin) {
       return { success: false, code: -1, errorDetail: '生物识别不可用' }

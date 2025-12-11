@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { deriveAllAddresses, type DerivedKey } from '@/lib/crypto/derivation'
 import { validateMnemonic } from '@/lib/crypto/mnemonic'
 

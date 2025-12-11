@@ -1,25 +1,25 @@
 import { QRCodeSVG } from 'qrcode.react'
 import { cn } from '@/lib/utils'
 
-interface QRCodeProps {
+export interface QRCodeProps {
   /** 要编码的内容 */
   value: string
   /** 尺寸 (px) */
-  size?: number
+  size?: number | undefined
   /** 背景色 */
-  bgColor?: string
+  bgColor?: string | undefined
   /** 前景色 */
-  fgColor?: string
+  fgColor?: string | undefined
   /** 容错级别 */
-  level?: 'L' | 'M' | 'Q' | 'H'
+  level?: 'L' | 'M' | 'Q' | 'H' | undefined
   /** 是否包含边距 */
-  includeMargin?: boolean
+  includeMargin?: boolean | undefined
   /** 中心 Logo URL */
-  logoUrl?: string
+  logoUrl?: string | undefined
   /** Logo 尺寸 */
-  logoSize?: number
+  logoSize?: number | undefined
   /** 自定义类名 */
-  className?: string
+  className?: string | undefined
 }
 
 export function QRCode({
@@ -69,11 +69,11 @@ export function QRCode({
 }
 
 /** 地址二维码 - 带链标识 */
-interface AddressQRCodeProps {
+export interface AddressQRCodeProps {
   address: string
-  chain?: string
-  size?: number
-  className?: string
+  chain?: string | undefined
+  size?: number | undefined
+  className?: string | undefined
 }
 
 export function AddressQRCode({

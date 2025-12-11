@@ -11,7 +11,7 @@ import {
   Info,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { useCurrentWallet, useLanguage, useCurrency, languages, currencies } from '@/stores'
+import { useCurrentWallet, useLanguage, useCurrency } from '@/stores'
 import { SettingsItem } from './settings-item'
 import { SettingsSection } from './settings-section'
 

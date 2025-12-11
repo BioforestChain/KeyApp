@@ -8,6 +8,18 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.stories.{ts,tsx}',
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        'src/main.tsx',
+        'src/vite-env.d.ts',
+      ],
+    },
     projects: [
       // 单元测试项目
       {
@@ -18,18 +30,6 @@ export default defineConfig({
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],
           include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-          coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
-            include: ['src/**/*.{ts,tsx}'],
-            exclude: [
-              'src/**/*.stories.{ts,tsx}',
-              'src/**/*.test.{ts,tsx}',
-              'src/test/**',
-              'src/main.tsx',
-              'src/vite-env.d.ts',
-            ],
-          },
         },
       },
       // Storybook 组件测试项目
@@ -58,21 +58,6 @@ export default defineConfig({
             instances: [{ browser: 'chromium' }],
           },
           setupFiles: ['./.storybook/vitest.setup.ts'],
-          // 禁用 watch 模式
-          watch: false,
-          // Browser 模式需要 istanbul provider
-          coverage: {
-            provider: 'istanbul',
-            reporter: ['text', 'json', 'html'],
-            include: ['src/**/*.{ts,tsx}'],
-            exclude: [
-              'src/**/*.stories.{ts,tsx}',
-              'src/**/*.test.{ts,tsx}',
-              'src/test/**',
-              'src/main.tsx',
-              'src/vite-env.d.ts',
-            ],
-          },
         },
       },
     ],

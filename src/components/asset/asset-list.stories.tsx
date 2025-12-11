@@ -70,7 +70,7 @@ export const Loading: Story = {
 
 export const SingleAsset: Story = {
   args: {
-    assets: [mockAssets[0]],
+    assets: [mockAssets[0]!],
   },
 }
 

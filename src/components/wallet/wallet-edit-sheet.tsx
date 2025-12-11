@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet'
 import { walletActions, type Wallet } from '@/stores'
 import { verifyPassword } from '@/lib/crypto'
-import { Pencil, Trash2, AlertTriangle } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface WalletEditSheetProps {
   /** The wallet to edit */
@@ -211,17 +211,7 @@ export function WalletEditSheet({
         onClose={handleBackToMenu}
         onVerify={handleVerifyAndDelete}
         title="删除钱包"
-        description={
-          <>
-            <span className="flex items-center justify-center gap-2 text-destructive mb-2">
-              <AlertTriangle className="size-5" />
-              <span className="font-medium">此操作无法撤销</span>
-            </span>
-            <span className="block">
-              请输入密码以确认删除钱包 &ldquo;{wallet.name}&rdquo;
-            </span>
-          </>
-        }
+        description={`⚠️ 此操作无法撤销\n\n请输入密码以确认删除钱包 "${wallet.name}"`}
         error={passwordError}
         isVerifying={isVerifying}
       />

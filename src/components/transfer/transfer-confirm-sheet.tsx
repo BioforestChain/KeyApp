@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 
-interface TransferConfirmSheetProps {
+export interface TransferConfirmSheetProps {
   /** Whether the sheet is open */
   open: boolean;
   /** Close callback */
@@ -16,7 +16,7 @@ interface TransferConfirmSheetProps {
   /** Token symbol */
   symbol: string;
   /** Fiat equivalent */
-  fiatValue?: string;
+  fiatValue?: string | undefined;
   /** Recipient address */
   toAddress: string;
   /** Fee amount in native token */
@@ -24,15 +24,15 @@ interface TransferConfirmSheetProps {
   /** Fee token symbol */
   feeSymbol: string;
   /** Fee fiat value */
-  feeFiatValue?: string | number;
+  feeFiatValue?: string | number | undefined;
   /** Fee loading state */
-  feeLoading?: boolean;
+  feeLoading?: boolean | undefined;
   /** High fee threshold */
-  highFeeThreshold?: number;
+  highFeeThreshold?: number | undefined;
   /** Confirming state */
-  isConfirming?: boolean;
+  isConfirming?: boolean | undefined;
   /** Additional class name */
-  className?: string;
+  className?: string | undefined;
 }
 
 function truncateAddress(address: string): string {
@@ -124,9 +124,9 @@ export function TransferConfirmSheet({
             <FeeDisplay
               amount={feeAmount}
               symbol={feeSymbol}
-              fiatValue={feeFiatValue}
-              isLoading={feeLoading}
-              highFeeThreshold={highFeeThreshold}
+              {...(feeFiatValue !== undefined && { fiatValue: feeFiatValue })}
+              {...(feeLoading !== undefined && { isLoading: feeLoading })}
+              {...(highFeeThreshold !== undefined && { highFeeThreshold })}
             />
           </div>
         </div>

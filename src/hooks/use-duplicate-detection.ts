@@ -1,11 +1,8 @@
 import { useState, useCallback } from 'react'
 import { generateAllAddresses, getAddressSet } from './use-multi-chain-address-generation'
-import type { DerivedKey } from '@/lib/crypto/derivation'
 import type {
   DuplicateCheckResult,
   IWalletQuery,
-  WalletAddressInfo,
-  MainWalletInfo,
 } from '@/services/wallet/types'
 
 export interface DuplicateDetectionResult {

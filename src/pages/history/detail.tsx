@@ -84,7 +84,7 @@ export function TransactionDetailPage() {
   if (!currentWallet) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="交易详情" showBack onBack={handleBack} />
+        <PageHeader title="交易详情" onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -96,7 +96,7 @@ export function TransactionDetailPage() {
   if (!transaction) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="交易详情" showBack onBack={handleBack} />
+        <PageHeader title="交易详情" onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">交易不存在或已过期</p>
         </div>
@@ -112,7 +112,7 @@ export function TransactionDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="交易详情" showBack onBack={handleBack} />
+      <PageHeader title="交易详情" onBack={handleBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 状态头 */}
@@ -169,7 +169,7 @@ export function TransactionDetailPage() {
             <span className="text-sm text-muted-foreground">交易时间</span>
             <TimeDisplay
               value={transaction.timestamp}
-              format="full"
+              format="datetime"
               className="text-sm"
             />
           </div>
@@ -189,9 +189,9 @@ export function TransactionDetailPage() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-muted-foreground">手续费</span>
                 <FeeDisplay
-                  fee={transaction.fee}
+                  amount={transaction.fee}
                   symbol={transaction.feeSymbol || transaction.symbol}
-                  size="sm"
+                  className="text-sm"
                 />
               </div>
             </>

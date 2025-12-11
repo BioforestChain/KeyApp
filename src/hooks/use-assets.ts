@@ -75,7 +75,7 @@ const MOCK_ASSETS: ChainAssets[] = [
 
 interface UseAssetsOptions {
   /** Use mock data (default: true for development) */
-  useMock?: boolean
+  useMock?: boolean | undefined
 }
 
 interface UseAssetsReturn {

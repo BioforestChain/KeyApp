@@ -20,10 +20,12 @@ vi.mock('@/components/layout/page-header', () => ({
 
 const mockNavigate = vi.fn()
 
-const createMockWallet = (id: string, name: string, isActive: boolean = false): Wallet => ({
+const createMockWallet = (id: string, name: string, _isActive: boolean = false): Wallet => ({
   id,
   name,
   address: `0x${id}abc123def456`,
+  chain: 'ethereum',
+  tokens: [],
   encryptedMnemonic: {
     ciphertext: 'test',
     iv: 'test',
@@ -32,11 +34,11 @@ const createMockWallet = (id: string, name: string, isActive: boolean = false): 
   },
   chainAddresses: [
     {
-      chainId: 'eth-mainnet',
+      chain: 'ethereum',
       address: `0x${id}abc123def456`,
       tokens: [
-        { symbol: 'ETH', balance: '1.5', fiatValue: 3000, decimals: 18, contractAddress: null },
-        { symbol: 'USDT', balance: '500', fiatValue: 500, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7' },
+        { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '1.5', fiatValue: 3000, change24h: 2.5, decimals: 18, contractAddress: '', chain: 'ethereum' },
+        { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500', fiatValue: 500, change24h: 0.1, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', chain: 'ethereum' },
       ],
     },
   ],
@@ -50,6 +52,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [],
       currentWalletId: null,
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
   })
@@ -70,6 +74,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -87,6 +93,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -103,6 +111,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -112,7 +122,7 @@ describe('WalletListPage', () => {
 
     // Click on the second wallet's avatar (first letter button)
     const walletAvatars = screen.getAllByRole('button', { name: /^[A-Z]$/i })
-    fireEvent.click(walletAvatars[1]) // Click second wallet avatar
+    fireEvent.click(walletAvatars[1]!) // Click second wallet avatar
 
     expect(setCurrentWalletSpy).toHaveBeenCalledWith('2')
   })
@@ -123,6 +133,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -139,6 +151,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [],
       currentWalletId: null,
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -147,7 +161,7 @@ describe('WalletListPage', () => {
     // Click create button in empty state (text button, not icon button)
     const createButtons = screen.getAllByRole('button', { name: '创建钱包' })
     // The second one is the text button in empty state
-    fireEvent.click(createButtons[1])
+    fireEvent.click(createButtons[1]!)
 
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/onboarding/create' })
   })
@@ -159,6 +173,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 
@@ -174,6 +190,8 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet],
       currentWalletId: '1',
+      selectedChain: 'ethereum',
+      isLoading: false,
       isInitialized: true,
     })
 

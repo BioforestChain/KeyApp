@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useDuplicateDetection, checkDuplicates } from './use-duplicate-detection'
 import type { IWalletQuery, WalletAddressInfo, MainWalletInfo } from '@/services/wallet/types'
@@ -18,22 +18,6 @@ const TEST_MNEMONIC = [
   'abandon',
   'abandon',
   'about',
-]
-
-// Different mnemonic for "existing" wallet tests
-const EXISTING_MNEMONIC = [
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'zoo',
-  'wrong',
 ]
 
 // Create mock wallet query
@@ -68,10 +52,8 @@ describe('useDuplicateDetection', () => {
     const query = createMockWalletQuery()
     const { result } = renderHook(() => useDuplicateDetection(query))
 
-    let checkResult: Awaited<ReturnType<typeof result.current.check>>
-
     await act(async () => {
-      checkResult = await result.current.check(TEST_MNEMONIC)
+      await result.current.check(TEST_MNEMONIC)
     })
 
     expect(result.current.result.isDuplicate).toBe(false)

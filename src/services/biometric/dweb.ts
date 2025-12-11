@@ -1,23 +1,29 @@
 /**
  * DWEB 平台生物识别服务实现
  * 使用 @plaoc/plugins biometricsPlugin
+ *
+ * 注意：options 参数在 @plaoc/plugins 中不被使用
+ * biometricsPlugin 仅需要调用后返回验证结果，不支持自定义参数
  */
 
 import { biometricsPlugin } from '@plaoc/plugins'
 import type {
   IBiometricService,
   BiometricAvailability,
-  BiometricVerifyOptions,
   BiometricVerifyResult,
 } from './types'
+
+// Biometrics status code mappings to success/failure
+const BIOMETRIC_SUCCESS = 0
 
 export class BiometricService implements IBiometricService {
   async isAvailable(): Promise<BiometricAvailability> {
     try {
-      const result = await biometricsPlugin.checkBiometrics()
+      const result = await biometricsPlugin.check()
+      const isAvailable = result === BIOMETRIC_SUCCESS
       return {
-        isAvailable: result.isAvailable,
-        biometricType: result.biometricType ?? 'none',
+        isAvailable,
+        biometricType: isAvailable ? 'fingerprint' : 'none',
       }
     } catch (error) {
       return {
@@ -28,23 +34,17 @@ export class BiometricService implements IBiometricService {
     }
   }
 
-  async verify(options?: BiometricVerifyOptions): Promise<BiometricVerifyResult> {
+  async verify(): Promise<BiometricVerifyResult> {
     try {
-      const result = await biometricsPlugin.biometricAuth({
-        title: options?.title ?? '身份验证',
-        subtitle: options?.description,
-        negativeButtonText: options?.cancelText ?? '取消',
-        maxAttempts: options?.maxAttempts ?? 3,
-      })
+      const result = await biometricsPlugin.biometrics()
+      // BaseResult returns { success: boolean; message: string }
       return {
-        success: result.isSuccess,
-        errorCode: result.errorCode,
-        errorMessage: result.errorMessage,
+        success: result.success,
+        errorMessage: result.success ? undefined : result.message,
       }
     } catch (error) {
       return {
         success: false,
-        errorCode: -999,
         errorMessage: String(error),
       }
     }

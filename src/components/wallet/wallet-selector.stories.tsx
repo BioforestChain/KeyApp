@@ -54,7 +54,7 @@ export const Default: Story = {
 
 export const SingleWallet: Story = {
   args: {
-    wallets: [mockWallets[0]],
+    wallets: [mockWallets[0]!],
     selectedId: 'wallet-1',
   },
 };

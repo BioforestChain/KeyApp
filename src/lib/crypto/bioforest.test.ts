@@ -220,18 +220,18 @@ describe('BioForest Crypto', () => {
   describe('deriveBioforestMultiChainKeys', () => {
     it('should derive keys for multiple chains', () => {
       const results = deriveBioforestMultiChainKeys('test', ['bfmeta', 'pmchain', 'ccchain'])
-      
+
       expect(results).toHaveLength(3)
-      expect(results[0].chain).toBe('bfmeta')
-      expect(results[1].chain).toBe('pmchain')
-      expect(results[2].chain).toBe('ccchain')
+      expect(results[0]!.chain).toBe('bfmeta')
+      expect(results[1]!.chain).toBe('pmchain')
+      expect(results[2]!.chain).toBe('ccchain')
     })
 
     it('should use same keypair for all chains', () => {
       const results = deriveBioforestMultiChainKeys('test', ['bfmeta', 'pmchain'])
-      
-      expect(results[0].publicKey).toBe(results[1].publicKey)
-      expect(results[0].privateKey).toBe(results[1].privateKey)
+
+      expect(results[0]!.publicKey).toBe(results[1]!.publicKey)
+      expect(results[0]!.privateKey).toBe(results[1]!.privateKey)
     })
 
     it('should use default chains when not specified', () => {

@@ -41,7 +41,8 @@ describe('AddressBookStore', () => {
 
       const parsed = JSON.parse(stored!) as Contact[]
       expect(parsed).toHaveLength(1)
-      expect(parsed[0].name).toBe('Bob')
+      // Safe: length is already checked
+      expect(parsed[0]!.name).toBe('Bob')
     })
   })
 
@@ -103,7 +104,8 @@ describe('AddressBookStore', () => {
 
       const state = addressBookStore.state
       expect(state.contacts).toHaveLength(1)
-      expect(state.contacts[0].name).toBe('Alice')
+      // Safe: length is already checked
+      expect(state.contacts[0]!.name).toBe('Alice')
       expect(state.isInitialized).toBe(true)
     })
   })
@@ -138,7 +140,8 @@ describe('AddressBookStore', () => {
       // Search by address
       const byAddress = addressBookSelectors.searchContacts(state, '2222')
       expect(byAddress).toHaveLength(1)
-      expect(byAddress[0].name).toBe('Bob')
+      // Safe: length is already checked
+      expect(byAddress[0]!.name).toBe('Bob')
     })
   })
 })

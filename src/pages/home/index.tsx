@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { TokenList } from '@/components/token/token-list'
 import { GradientButton } from '@/components/common/gradient-button'
+import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { ChainIcon } from '@/components/wallet/chain-icon'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
@@ -50,7 +51,6 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 }
 
 export function HomePage() {
-  const navigate = useNavigate()
   const clipboard = useClipboard()
   const toast = useToast()
   const haptics = useHaptics()
@@ -146,7 +146,7 @@ export function HomePage() {
             </GradientButton>
           </Link>
           <Link to="/receive" className="flex-1">
-            <GradientButton variant="coral" className="w-full" size="sm">
+            <GradientButton variant="red" className="w-full" size="sm">
               <QrCode className="mr-1.5 size-4" />
               收款
             </GradientButton>
@@ -159,16 +159,17 @@ export function HomePage() {
         <h2 className="mb-4 text-lg font-semibold">资产</h2>
         <TokenList
           tokens={tokens.map((t) => ({
-            id: t.id,
             symbol: t.symbol,
             name: t.name,
+            chain: selectedChain,
             balance: t.balance,
-            fiatValue: t.fiatValue,
+            fiatValue: t.fiatValue ? String(t.fiatValue) : undefined,
             change24h: t.change24h,
             icon: t.icon,
           }))}
           onTokenClick={(token) => {
-            navigate({ to: '/token/$tokenId', params: { tokenId: token.id } })
+            // TODO: Implement token detail page route once available
+            console.log('Token clicked:', token.symbol)
           }}
           emptyTitle="暂无资产"
           emptyDescription={`${CHAIN_NAMES[selectedChain]} 链上暂无代币`}
@@ -178,7 +179,7 @@ export function HomePage() {
       {/* 链选择底部弹窗 */}
       <BottomSheet
         open={chainSheetOpen}
-        onOpenChange={setChainSheetOpen}
+        onClose={() => setChainSheetOpen(false)}
         title="选择网络"
       >
         <div data-testid="chain-sheet" className="space-y-2 p-4">
@@ -231,10 +232,10 @@ function NoWalletView() {
             创建新钱包
           </GradientButton>
         </Link>
-        <Link to="/wallet/import">
-          <GradientButton variant="outline" className="w-full">
+        <Link to="/wallet/import" className="w-full">
+          <Button variant="outline" className="w-full">
             导入已有钱包
-          </GradientButton>
+          </Button>
         </Link>
       </div>
     </div>

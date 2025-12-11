@@ -2,7 +2,7 @@ import { useParams, useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { AddressDisplay } from '@/components/wallet/address-display'
 import { ChainIcon } from '@/components/wallet/chain-icon'
-import { GradientButton } from '@/components/common/gradient-button'
+import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/common/alert'
 import { useBiometric, useToast, useHaptics } from '@/services'
 import { 
@@ -19,6 +19,13 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   tron: 'Tron',
   binance: 'BSC',
   bfmeta: 'BFMeta',
+  ccchain: 'CCChain',
+  pmchain: 'PMChain',
+  bfchainv2: 'BFChain V2',
+  btgmeta: 'BTGMeta',
+  biwmeta: 'BIWMeta',
+  ethmeta: 'ETHMeta',
+  malibu: 'Malibu',
 }
 
 export function WalletDetailPage() {
@@ -112,9 +119,8 @@ export function WalletDetailPage() {
               <ChainIcon chain={chainAddr.chain} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{CHAIN_NAMES[chainAddr.chain]}</p>
-                <AddressDisplay 
-                  address={chainAddr.address} 
-                  truncate 
+                <AddressDisplay
+                  address={chainAddr.address}
                   copyable
                   className="text-xs"
                 />
@@ -125,7 +131,7 @@ export function WalletDetailPage() {
 
         {/* 操作按钮 */}
         <div className="space-y-3 pt-4">
-          <GradientButton
+          <Button
             variant="outline"
             className="w-full justify-start"
             onClick={() => {
@@ -134,25 +140,25 @@ export function WalletDetailPage() {
           >
             <Edit3 className="mr-3 size-4" />
             编辑钱包名称
-          </GradientButton>
+          </Button>
 
-          <GradientButton
+          <Button
             variant="outline"
             className="w-full justify-start"
             onClick={handleExportMnemonic}
           >
             <KeyRound className="mr-3 size-4" />
             导出助记词
-          </GradientButton>
+          </Button>
 
-          <GradientButton
+          <Button
             variant="outline"
             className="w-full justify-start text-destructive hover:bg-destructive/10"
             onClick={handleDeleteWallet}
           >
             <Trash2 className="mr-3 size-4" />
             删除钱包
-          </GradientButton>
+          </Button>
         </div>
 
         {/* 安全提示 */}

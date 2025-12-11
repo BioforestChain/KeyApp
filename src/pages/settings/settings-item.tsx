@@ -4,21 +4,21 @@ import { cn } from '@/lib/utils'
 
 export interface SettingsItemProps {
   /** 左侧图标 */
-  icon?: ReactNode
+  icon?: ReactNode | undefined
   /** 主标签 */
   label: string
   /** 右侧显示值 */
-  value?: string
+  value?: string | undefined
   /** 是否显示箭头（导航类项目） */
-  showChevron?: boolean
+  showChevron?: boolean | undefined
   /** 是否禁用 */
-  disabled?: boolean
+  disabled?: boolean | undefined
   /** 点击回调 */
-  onClick?: () => void
+  onClick?: (() => void) | undefined
   /** 自定义右侧内容 */
-  trailing?: ReactNode
+  trailing?: ReactNode | undefined
   /** 额外 className */
-  className?: string
+  className?: string | undefined
 }
 
 export function SettingsItem({

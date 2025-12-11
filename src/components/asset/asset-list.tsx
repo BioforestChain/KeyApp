@@ -3,15 +3,15 @@ import { AssetItem } from './asset-item'
 import type { AssetInfo } from '@/types/asset'
 import { Coins } from 'lucide-react'
 
-interface AssetListProps {
+export interface AssetListProps {
   /** List of assets to display */
   assets: AssetInfo[]
   /** Click handler for asset item */
-  onAssetClick?: (asset: AssetInfo) => void
+  onAssetClick?: ((asset: AssetInfo) => void) | undefined
   /** Loading state */
-  isLoading?: boolean
+  isLoading?: boolean | undefined
   /** Additional class name */
-  className?: string
+  className?: string | undefined
 }
 
 /**

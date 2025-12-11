@@ -5,23 +5,23 @@ type AmountColor = 'auto' | 'default' | 'positive' | 'negative'
 
 interface AmountDisplayProps {
   value: string | number
-  symbol?: string
-  decimals?: number
+  symbol?: string | undefined
+  decimals?: number | undefined
   /** 是否显示正负号 */
-  sign?: AmountSign
+  sign?: AmountSign | undefined
   /** 颜色模式：auto 根据正负自动，default 不变色 */
-  color?: AmountColor
+  color?: AmountColor | undefined
   /** 是否使用紧凑模式（1K, 1M） */
-  compact?: boolean
+  compact?: boolean | undefined
   /** 隐藏金额（隐私模式） */
-  hidden?: boolean
+  hidden?: boolean | undefined
   /** 尺寸 */
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | undefined
   /** 字重 */
-  weight?: 'normal' | 'medium' | 'semibold' | 'bold'
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold' | undefined
   /** 是否等宽字体 */
-  mono?: boolean
-  className?: string
+  mono?: boolean | undefined
+  className?: string | undefined
 }
 
 // 格式化数字
@@ -139,11 +139,11 @@ export function AmountDisplay({
 
 // 带法币价值的复合显示
 interface AmountWithFiatProps extends AmountDisplayProps {
-  fiatValue?: string | number
-  fiatSymbol?: string
-  fiatDecimals?: number
+  fiatValue?: string | number | undefined
+  fiatSymbol?: string | undefined
+  fiatDecimals?: number | undefined
   /** 布局方向 */
-  layout?: 'vertical' | 'horizontal'
+  layout?: 'vertical' | 'horizontal' | undefined
 }
 
 export function AmountWithFiat({

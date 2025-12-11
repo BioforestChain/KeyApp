@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { AddressBookPage } from './index'
-import { addressBookStore, addressBookActions, walletStore } from '@/stores'
+import { addressBookActions, walletStore } from '@/stores'
 import { withRouter, withI18n } from '@/test/storybook-decorators'
 
 const meta: Meta<typeof AddressBookPage> = {
@@ -73,11 +73,12 @@ export const ManyContacts: Story = {
     (Story) => {
       resetStores()
       for (let i = 1; i <= 10; i++) {
-        addressBookActions.addContact({
+        const contact = {
           name: `联系人 ${i}`,
           address: `0x${i.toString().padStart(40, '0')}`,
-          memo: i % 3 === 0 ? '有备注' : undefined,
-        })
+          ...(i % 3 === 0 ? { memo: '有备注' } : {}),
+        }
+        addressBookActions.addContact(contact)
       }
       return <Story />
     },

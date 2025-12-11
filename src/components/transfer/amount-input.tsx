@@ -2,17 +2,17 @@ import { useState, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface AmountInputProps {
-  value?: string
-  onChange?: (value: string) => void
-  symbol?: string
-  balance?: string
-  fiatValue?: string
-  fiatSymbol?: string
-  max?: string
-  error?: string
-  label?: string
-  className?: string
-  disabled?: boolean
+  value?: string | undefined
+  onChange?: ((value: string) => void) | undefined
+  symbol?: string | undefined
+  balance?: string | undefined
+  fiatValue?: string | undefined
+  fiatSymbol?: string | undefined
+  max?: string | undefined
+  error?: string | undefined
+  label?: string | undefined
+  className?: string | undefined
+  disabled?: boolean | undefined
 }
 
 function formatInputValue(value: string): string {

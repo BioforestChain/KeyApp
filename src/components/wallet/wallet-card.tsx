@@ -6,17 +6,17 @@ export interface WalletInfo {
   name: string
   address: string
   balance: string
-  fiatValue?: string
-  chainName?: string
-  isBackedUp?: boolean
+  fiatValue?: string | undefined
+  chainName?: string | undefined
+  isBackedUp?: boolean | undefined
 }
 
-interface WalletCardProps {
+export interface WalletCardProps {
   wallet: WalletInfo
-  onCopyAddress?: () => void
-  onTransfer?: () => void
-  onReceive?: () => void
-  className?: string
+  onCopyAddress?: (() => void) | undefined
+  onTransfer?: (() => void) | undefined
+  onReceive?: (() => void) | undefined
+  className?: string | undefined
 }
 
 export function WalletCard({
@@ -67,9 +67,9 @@ export function WalletCard({
 
         {/* Address */}
         <div className="flex items-center justify-between">
-          <AddressDisplay 
+          <AddressDisplay
             address={wallet.address}
-            onCopy={onCopyAddress}
+            {...(onCopyAddress && { onCopy: onCopyAddress })}
             className="text-white/80 hover:text-white [&_svg]:text-white/60"
           />
         </div>

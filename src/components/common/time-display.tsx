@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 
 type TimeFormat = 'relative' | 'date' | 'datetime' | 'time'
 
@@ -90,8 +91,8 @@ export function TimeDisplay({
 
 // 相对时间格式化（支持 i18n）
 function formatRelativeTime(
-  date: Date, 
-  t: (key: string, options?: Record<string, unknown>) => string
+  date: Date,
+  t: TFunction
 ): string {
   const now = new Date()
   const diff = now.getTime() - date.getTime()

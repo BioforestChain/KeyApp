@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { AlertCircle, Check } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { PasswordInput, type PasswordStrength } from '@/components/security/password-input'
+import { PasswordInput } from '@/components/security/password-input'
 import { useCurrentWallet, walletActions } from '@/stores'
 import { decrypt, encrypt, type EncryptedData } from '@/lib/crypto'
 import { cn } from '@/lib/utils'
@@ -18,7 +18,6 @@ export function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [newPasswordStrength, setNewPasswordStrength] = useState<PasswordStrength>('weak')
 
   // UI 状态
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -89,7 +88,7 @@ export function ChangePasswordPage() {
   if (!currentWallet) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="修改密码" showBack onBack={handleBack} />
+        <PageHeader title="修改密码" onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -119,7 +118,7 @@ export function ChangePasswordPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="修改密码" showBack onBack={handleBack} />
+      <PageHeader title="修改密码" onBack={handleBack} />
 
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 p-4">
         {/* 当前密码 */}
@@ -141,7 +140,6 @@ export function ChangePasswordPage() {
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder={`请输入新密码（至少 ${MIN_PASSWORD_LENGTH} 位）`}
             showStrength
-            onStrengthChange={setNewPasswordStrength}
             disabled={isSubmitting}
           />
         </div>

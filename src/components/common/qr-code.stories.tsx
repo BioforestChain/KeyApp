@@ -79,14 +79,6 @@ export const HighErrorCorrection: Story = {
 }
 
 // AddressQRCode Stories
-const addressMeta: Meta<typeof AddressQRCode> = {
-  title: 'Common/AddressQRCode',
-  component: AddressQRCode,
-  parameters: {
-    layout: 'centered',
-  },
-}
-
 export const AddressQRCodeStory: StoryObj<typeof AddressQRCode> = {
   render: () => (
     <div className="flex gap-6">

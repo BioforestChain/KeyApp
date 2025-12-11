@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useStore } from '@tanstack/react-store'
 import { Plus, Check, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { walletStore, walletActions, walletSelectors, type Wallet } from '@/stores'
+import { walletStore, walletActions, type Wallet } from '@/stores'
 import { cn } from '@/lib/utils'
 
 export function WalletListPage() {
@@ -35,9 +35,8 @@ export function WalletListPage() {
     <div className="flex min-h-screen flex-col bg-muted/30">
       <PageHeader
         title="钱包管理"
-        showBack
         onBack={handleBack}
-        trailing={
+        rightAction={
           <button
             onClick={handleCreateWallet}
             className={cn(
@@ -49,7 +48,7 @@ export function WalletListPage() {
             <Plus className="size-5" />
           </button>
         }
-      />
+        />
 
       <div className="flex-1 p-4">
         {wallets.length === 0 ? (

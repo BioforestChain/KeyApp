@@ -30,7 +30,7 @@ export function CurrencyPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="计价货币" showBack onBack={() => navigate({ to: '/settings' })} />
+      <PageHeader title="计价货币" onBack={() => navigate({ to: '/settings' })} />
 
       <div className="flex-1 p-4">
         <div className="overflow-hidden rounded-xl bg-card shadow-sm">

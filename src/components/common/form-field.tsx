@@ -1,19 +1,19 @@
 import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 
-interface FormFieldProps {
+export interface FormFieldProps {
   /** 字段标签 */
-  label?: string
+  label?: string | undefined
   /** 帮助文本 */
-  hint?: string
+  hint?: string | undefined
   /** 错误信息 */
-  error?: string
+  error?: string | undefined
   /** 是否必填 */
-  required?: boolean
+  required?: boolean | undefined
   /** 子元素 (input, select 等) */
   children: ReactNode
   /** 自定义类名 */
-  className?: string
+  className?: string | undefined
 }
 
 export function FormField({

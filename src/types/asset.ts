@@ -12,11 +12,11 @@ export interface AssetInfo {
   /** Decimal places for formatting */
   decimals: number
   /** Token icon URL (optional, fallback to letter) */
-  logoUrl?: string
+  logoUrl?: string | undefined
   /** Smart contract address (for ERC20 tokens) */
-  contractAddress?: string
+  contractAddress?: string | undefined
   /** Display name (optional, defaults to assetType) */
-  name?: string
+  name?: string | undefined
 }
 
 /** Chain with its assets */

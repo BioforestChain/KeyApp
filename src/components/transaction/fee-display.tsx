@@ -8,15 +8,15 @@ interface FeeDisplayProps {
   /** Native token symbol (e.g., ETH, TRX) */
   symbol: string;
   /** Optional fiat equivalent value */
-  fiatValue?: string | number;
+  fiatValue?: string | number | undefined;
   /** Fiat currency symbol */
-  fiatSymbol?: string;
+  fiatSymbol?: string | undefined;
   /** Whether fee is being calculated */
-  isLoading?: boolean;
+  isLoading?: boolean | undefined;
   /** Threshold for high fee warning (in fiat) */
-  highFeeThreshold?: number;
+  highFeeThreshold?: number | undefined;
   /** Additional class names */
-  className?: string;
+  className?: string | undefined;
 }
 
 function formatFee(value: string | number, decimals: number = 6): string {

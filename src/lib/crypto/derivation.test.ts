@@ -10,8 +10,6 @@ import {
   getBIPPath,
   toChecksumAddress,
   isValidAddress,
-  type ChainType,
-  type BitcoinPurpose,
 } from './derivation'
 
 // 测试助记词（标准 BIP39 测试向量）
@@ -96,11 +94,11 @@ describe('derivation', () => {
   describe('deriveMultiChainKeys', () => {
     it('derives keys for multiple chains', () => {
       const keys = deriveMultiChainKeys(TEST_MNEMONIC, ['ethereum', 'bitcoin', 'tron'])
-      
+
       expect(keys).toHaveLength(3)
-      expect(keys[0].chain).toBe('ethereum')
-      expect(keys[1].chain).toBe('bitcoin')
-      expect(keys[2].chain).toBe('tron')
+      expect(keys[0]!.chain).toBe('ethereum')
+      expect(keys[1]!.chain).toBe('bitcoin')
+      expect(keys[2]!.chain).toBe('tron')
     })
 
     it('derives keys for default chains', () => {

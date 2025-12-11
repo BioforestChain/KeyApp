@@ -6,6 +6,7 @@ import { AddressQRCode } from '@/components/common/qr-code'
 import { Alert } from '@/components/common/alert'
 import { ChainIcon } from '@/components/wallet/chain-icon'
 import { GradientButton } from '@/components/common/gradient-button'
+import { Button } from '@/components/ui/button'
 import { useClipboard, useToast, useHaptics } from '@/services'
 import { Copy, Share2, Check } from 'lucide-react'
 import {
@@ -20,6 +21,13 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   tron: 'Tron',
   binance: 'BSC',
   bfmeta: 'BFMeta',
+  ccchain: 'CCChain',
+  pmchain: 'PMChain',
+  bfchainv2: 'BFChain V2',
+  btgmeta: 'BTGMeta',
+  biwmeta: 'BIWMeta',
+  ethmeta: 'ETHMeta',
+  malibu: 'Malibu',
 }
 
 export function ReceivePage() {
@@ -96,7 +104,7 @@ export function ReceivePage() {
 
         {/* 操作按钮 */}
         <div className="flex gap-3 pt-4">
-          <GradientButton
+          <Button
             variant="outline"
             className="flex-1"
             onClick={handleCopy}
@@ -112,7 +120,7 @@ export function ReceivePage() {
                 复制地址
               </>
             )}
-          </GradientButton>
+          </Button>
           <GradientButton
             variant="mint"
             className="flex-1"

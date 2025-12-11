@@ -8,7 +8,9 @@ export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
   const result = [...arr]
   for (let i = result.length - 1; i > 0; i--) {
     const randomIndex = Math.floor(Math.random() * (i + 1))
-    ;[result[randomIndex], result[i]] = [result[i], result[randomIndex]]
+    const temp = result[randomIndex]
+    result[randomIndex] = result[i]!
+    result[i] = temp!
   }
   return result
 }
@@ -81,7 +83,7 @@ export function useMnemonicVerification(
     const positions = selectRandomIndices(VERIFICATION_WORD_COUNT, mnemonic.length)
     const slots: VerificationSlot[] = positions.map((position) => ({
       position,
-      expectedWord: mnemonic[position],
+      expectedWord: mnemonic[position]!,
       selectedWord: null,
       isCorrect: null,
     }))
@@ -110,7 +112,7 @@ export function useMnemonicVerification(
 
       setState((prev) => {
         const newSlots = [...prev.slots]
-        const slot = newSlots[nextEmptySlotIndex]
+        const slot = newSlots[nextEmptySlotIndex]!
         const isCorrect = word === slot.expectedWord
 
         newSlots[nextEmptySlotIndex] = {

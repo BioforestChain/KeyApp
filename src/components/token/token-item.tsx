@@ -6,17 +6,17 @@ export interface TokenInfo {
   symbol: string
   name: string
   balance: string
-  fiatValue?: string
+  fiatValue?: string | undefined
   chain: ChainType
-  icon?: string
-  change24h?: number
+  icon?: string | undefined
+  change24h?: number | undefined
 }
 
 interface TokenItemProps {
   token: TokenInfo
-  onClick?: () => void
-  showChange?: boolean
-  className?: string
+  onClick?: (() => void) | undefined
+  showChange?: boolean | undefined
+  className?: string | undefined
 }
 
 export function TokenItem({ token, onClick, showChange = false, className }: TokenItemProps) {

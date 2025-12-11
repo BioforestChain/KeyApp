@@ -56,7 +56,7 @@ export function TransactionHistoryPage() {
   if (!currentWallet) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="交易记录" showBack onBack={() => navigate({ to: '/' })} />
+        <PageHeader title="交易记录" onBack={() => navigate({ to: '/' })} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -68,9 +68,8 @@ export function TransactionHistoryPage() {
     <div className="flex min-h-screen flex-col bg-muted/30">
       <PageHeader
         title="交易记录"
-        showBack
         onBack={() => navigate({ to: '/' })}
-        trailing={
+        rightAction={
           <button
             onClick={refresh}
             disabled={isLoading}

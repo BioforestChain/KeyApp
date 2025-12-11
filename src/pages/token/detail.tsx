@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { BalanceDisplay } from '@/components/token/balance-display'
 import { TransactionList } from '@/components/transaction/transaction-list'
@@ -9,8 +9,8 @@ import { ArrowUp, ArrowDown } from 'lucide-react'
 const mockToken = {
   symbol: 'USDT',
   name: 'Tether USD',
-  balance: '1,234.56',
-  fiatValue: 1234.56,
+  balance: 1234.56,
+  fiatValue: '1234.56',
   change24h: 0.01,
 }
 
@@ -36,7 +36,6 @@ const mockTransactions = [
 ]
 
 export function TokenDetailPage() {
-  const { tokenId } = useParams({ from: '/token/$tokenId' })
   const navigate = useNavigate()
 
   return (
@@ -50,7 +49,7 @@ export function TokenDetailPage() {
         {/* 余额显示 */}
         <div className="text-center">
           <BalanceDisplay
-            balance={mockToken.balance}
+            value={mockToken.balance}
             symbol={mockToken.symbol}
             fiatValue={mockToken.fiatValue}
             size="lg"

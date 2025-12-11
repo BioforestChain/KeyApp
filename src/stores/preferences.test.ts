@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { preferencesStore, preferencesActions } from './preferences'
 
 // Mock i18n
@@ -69,7 +69,8 @@ describe('preferencesStore', () => {
     it('persists to localStorage', () => {
       preferencesActions.setLanguage('en')
       expect(localStorageMock.setItem).toHaveBeenCalled()
-      const savedValue = localStorageMock.setItem.mock.calls[0][1]
+      // Safe: setItem was just called, mock.calls[0] exists
+      const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).language).toBe('en')
     })
   })
@@ -83,7 +84,8 @@ describe('preferencesStore', () => {
     it('persists to localStorage', () => {
       preferencesActions.setCurrency('EUR')
       expect(localStorageMock.setItem).toHaveBeenCalled()
-      const savedValue = localStorageMock.setItem.mock.calls[0][1]
+      // Safe: setItem was just called, mock.calls[0] exists
+      const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).currency).toBe('EUR')
     })
   })
@@ -97,7 +99,8 @@ describe('preferencesStore', () => {
     it('persists to localStorage', () => {
       preferencesActions.setTheme('light')
       expect(localStorageMock.setItem).toHaveBeenCalled()
-      const savedValue = localStorageMock.setItem.mock.calls[0][1]
+      // Safe: setItem was just called, mock.calls[0] exists
+      const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).theme).toBe('light')
     })
   })

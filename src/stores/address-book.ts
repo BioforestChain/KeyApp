@@ -72,7 +72,7 @@ export const addressBookActions = {
   },
 
   /** 添加联系人 */
-  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => {
+  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & { chain?: ChainType | undefined; memo?: string | undefined }) => {
     const now = Date.now()
     const newContact: Contact = {
       ...contact,
@@ -91,7 +91,7 @@ export const addressBookActions = {
   },
 
   /** 更新联系人 */
-  updateContact: (id: string, updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>>) => {
+  updateContact: (id: string, updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>> & { memo?: string | undefined; chain?: ChainType | undefined }) => {
     addressBookStore.setState((state) => {
       const contacts = state.contacts.map((c) =>
         c.id === id

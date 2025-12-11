@@ -1,15 +1,15 @@
 import { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
-interface TokenIconProps {
+export interface TokenIconProps {
   /** Token symbol for fallback display */
   symbol: string;
   /** Token image URL */
-  imageUrl?: string | null;
+  imageUrl?: string | null | undefined;
   /** Icon size variant */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | undefined;
   /** Additional class names */
-  className?: string;
+  className?: string | undefined;
 }
 
 const sizeClasses = {

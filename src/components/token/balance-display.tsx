@@ -3,13 +3,13 @@ import { AmountWithFiat, formatAmount } from '../common/amount-display'
 
 interface BalanceDisplayProps {
   value: string | number
-  symbol?: string
-  decimals?: number
-  fiatValue?: string
-  fiatSymbol?: string
-  hidden?: boolean
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  symbol?: string | undefined
+  decimals?: number | undefined
+  fiatValue?: string | undefined
+  fiatSymbol?: string | undefined
+  hidden?: boolean | undefined
+  size?: 'sm' | 'md' | 'lg' | undefined
+  className?: string | undefined
 }
 
 const sizeMap = {
@@ -33,24 +33,33 @@ export function BalanceDisplay({
   className,
 }: BalanceDisplayProps) {
   const sizeConfig = sizeMap[size]
-  
-  return (
-    <AmountWithFiat
-      value={value}
-      symbol={symbol}
-      decimals={decimals}
-      fiatValue={fiatValue}
-      fiatSymbol={fiatSymbol}
-      hidden={hidden}
-      size={sizeConfig.size}
-      weight="semibold"
-      className={cn(
-        size === 'md' && '@xs:text-lg',
-        size === 'lg' && '@xs:text-2xl',
-        className
-      )}
-    />
-  )
+
+  // Build props conditionally to avoid passing undefined for optional properties
+  const baseProps = {
+    value,
+    decimals,
+    fiatSymbol,
+    hidden,
+    size: sizeConfig.size,
+    weight: 'semibold' as const,
+    className: cn(
+      size === 'md' && '@xs:text-lg',
+      size === 'lg' && '@xs:text-2xl',
+      className
+    ),
+  }
+
+  // Only add optional props if they have values
+  if (symbol !== undefined && fiatValue !== undefined) {
+    return <AmountWithFiat {...baseProps} symbol={symbol} fiatValue={fiatValue} />
+  }
+  if (symbol !== undefined) {
+    return <AmountWithFiat {...baseProps} symbol={symbol} />
+  }
+  if (fiatValue !== undefined) {
+    return <AmountWithFiat {...baseProps} fiatValue={fiatValue} />
+  }
+  return <AmountWithFiat {...baseProps} />
 }
 
 // 保持向后兼容

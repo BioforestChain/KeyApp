@@ -96,7 +96,7 @@ export function ViewMnemonicPage() {
   if (!currentWallet) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="查看助记词" showBack onBack={handleBack} />
+        <PageHeader title="查看助记词" onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -106,7 +106,7 @@ export function ViewMnemonicPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="查看助记词" showBack onBack={handleBack} />
+      <PageHeader title="查看助记词" onBack={handleBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 安全警告 */}

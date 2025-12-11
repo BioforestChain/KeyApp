@@ -49,8 +49,8 @@ describe('useTransactionHistory', () => {
       const { transactions } = result.current
 
       for (let i = 1; i < transactions.length; i++) {
-        const prevTime = new Date(transactions[i - 1].timestamp).getTime()
-        const currTime = new Date(transactions[i].timestamp).getTime()
+        const prevTime = new Date(transactions[i - 1]!.timestamp).getTime()
+        const currTime = new Date(transactions[i]!.timestamp).getTime()
         expect(prevTime).toBeGreaterThanOrEqual(currTime)
       }
     })

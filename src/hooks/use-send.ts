@@ -40,9 +40,9 @@ export interface SendState {
 
 interface UseSendOptions {
   /** Initial asset */
-  initialAsset?: AssetInfo
+  initialAsset?: AssetInfo | undefined
   /** Mock mode (default: true) */
-  useMock?: boolean
+  useMock?: boolean | undefined
 }
 
 interface UseSendReturn {

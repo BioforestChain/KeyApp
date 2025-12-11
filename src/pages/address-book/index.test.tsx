@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { AddressBookPage } from './index'
-import { addressBookStore, addressBookActions, walletStore, type Contact } from '@/stores'
+import { addressBookActions, walletStore, type Contact } from '@/stores'
 
 // Mock dependencies
 vi.mock('@tanstack/react-router', () => ({
@@ -41,14 +41,6 @@ vi.mock('@/components/security/password-confirm-sheet', () => ({
 }))
 
 const mockNavigate = vi.fn()
-
-const createMockContact = (id: string, name: string, address: string): Contact => ({
-  id,
-  name,
-  address,
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-})
 
 describe('AddressBookPage', () => {
   beforeEach(() => {
@@ -112,7 +104,7 @@ describe('AddressBookPage', () => {
 
     // Click the text button in empty state (not the icon button in header)
     const addButtons = screen.getAllByRole('button', { name: '添加联系人' })
-    fireEvent.click(addButtons[1]) // Second button is the text button
+    fireEvent.click(addButtons[1]!) // Second button is the text button
 
     expect(screen.getByTestId('contact-edit-sheet')).toBeInTheDocument()
   })

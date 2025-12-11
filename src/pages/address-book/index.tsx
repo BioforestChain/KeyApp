@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useStore } from '@tanstack/react-store'
-import { Plus, Search, User, Trash2, MoreVertical } from 'lucide-react'
+import { Plus, Search, User, MoreVertical } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { ContactEditSheet } from '@/components/address-book/contact-edit-sheet'
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet'
@@ -109,9 +109,8 @@ export function AddressBookPage() {
     <div className="flex min-h-screen flex-col bg-muted/30">
       <PageHeader
         title="通讯录"
-        showBack
         onBack={handleBack}
-        trailing={
+        rightAction={
           <button
             onClick={handleOpenAdd}
             className={cn(

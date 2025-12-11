@@ -16,9 +16,10 @@ export type BiometricType = 'fingerprint' | 'face' | 'iris' | 'none'
 /** 生物识别可用性结果 */
 export interface BiometricAvailability {
   isAvailable: boolean
-  biometricType?: BiometricType
-  /** 错误信息 */
-  error?: string
+  /** 可用的生物识别类型 */
+  biometricType: BiometricType
+  /** 错误信息（仅在检查过程中出错时存在） */
+  error?: string | undefined
 }
 
 /** 生物识别验证选项 */
@@ -38,10 +39,8 @@ export interface BiometricVerifyOptions {
 /** 生物识别验证结果 */
 export interface BiometricVerifyResult {
   success: boolean
-  /** 错误码 */
-  errorCode?: number
-  /** 错误详情 */
-  errorMessage?: string
+  /** 错误详情（仅在验证失败时存在） */
+  errorMessage?: string | undefined
 }
 
 /** 生物识别服务接口 */

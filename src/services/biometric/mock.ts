@@ -34,7 +34,6 @@ export class BiometricService implements IBiometricService {
     const shouldSucceed = window.__MOCK_BIOMETRIC__?.shouldSucceed ?? true
     return {
       success: shouldSucceed,
-      errorCode: shouldSucceed ? undefined : -1,
       errorMessage: shouldSucceed ? undefined : 'Mock authentication failed',
     }
   }

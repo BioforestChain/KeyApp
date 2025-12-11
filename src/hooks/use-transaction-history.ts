@@ -4,8 +4,8 @@ import type { TransactionInfo, TransactionType, TransactionStatus } from '@/comp
 
 /** 交易历史过滤器 */
 export interface TransactionFilter {
-  chain?: ChainType | 'all'
-  period?: '7d' | '30d' | '90d' | 'all'
+  chain?: ChainType | 'all' | undefined
+  period?: '7d' | '30d' | '90d' | 'all' | undefined
 }
 
 /** 扩展的交易信息（包含链类型） */
@@ -58,18 +58,24 @@ function generateMockTransactions(count: number = 20): TransactionRecord[] {
     bitcoin: ['BTC'],
     binance: ['BNB', 'BUSD'],
     bfmeta: ['BFM'],
-    bfchain: ['BFC'],
+    bfchainv2: ['BFC'],
+    ccchain: ['CC'],
+    pmchain: ['PM'],
+    btgmeta: ['BTG'],
+    biwmeta: ['BIW'],
+    ethmeta: ['ETHM'],
+    malibu: ['MAL'],
   }
 
   const now = Date.now()
   const transactions: TransactionRecord[] = []
 
   for (let i = 0; i < count; i++) {
-    const chain = chains[Math.floor(Math.random() * chains.length)]
+    const chain = chains[Math.floor(Math.random() * chains.length)]!
     const chainSymbols = symbols[chain] || ['TOKEN']
-    const type = types[Math.floor(Math.random() * types.length)]
-    const status = statuses[Math.floor(Math.random() * statuses.length)]
-    const symbol = chainSymbols[Math.floor(Math.random() * chainSymbols.length)]
+    const type = types[Math.floor(Math.random() * types.length)]!
+    const status = statuses[Math.floor(Math.random() * statuses.length)]!
+    const symbol = chainSymbols[Math.floor(Math.random() * chainSymbols.length)]!
 
     // 随机时间（过去90天内）
     const daysAgo = Math.floor(Math.random() * 90)
@@ -89,7 +95,7 @@ function generateMockTransactions(count: number = 20): TransactionRecord[] {
       feeSymbol: chain === 'ethereum' ? 'ETH' : chain === 'tron' ? 'TRX' : symbol,
       blockNumber: status === 'confirmed' ? Math.floor(Math.random() * 1000000) + 18000000 : undefined,
       confirmations: status === 'confirmed' ? Math.floor(Math.random() * 100) + 1 : 0,
-    })
+    } as TransactionRecord)
   }
 
   // 按时间排序（最新的在前）
@@ -116,7 +122,7 @@ function filterByChain(transactions: TransactionRecord[], chain: ChainType | 'al
 }
 
 /** 交易历史 Hook */
-export function useTransactionHistory(walletId?: string): UseTransactionHistoryResult {
+export function useTransactionHistory(_walletId?: string): UseTransactionHistoryResult {
   const [allTransactions] = useState<TransactionRecord[]>(() => generateMockTransactions(30))
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>()

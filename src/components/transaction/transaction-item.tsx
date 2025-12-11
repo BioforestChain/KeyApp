@@ -22,13 +22,13 @@ export interface TransactionInfo {
   symbol: string
   address: string
   timestamp: Date | string
-  hash?: string
+  hash?: string | undefined
 }
 
 interface TransactionItemProps {
   transaction: TransactionInfo
-  onClick?: () => void
-  className?: string
+  onClick?: (() => void) | undefined
+  className?: string | undefined
 }
 
 const typeConfig: Record<TransactionType, { label: string; Icon: LucideIcon; color: string }> = {

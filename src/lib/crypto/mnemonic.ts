@@ -35,14 +35,14 @@ export async function mnemonicToSeed(
  * 获取 BIP39 单词表（用于自动补全）
  */
 export function getWordList(): string[] {
-  return bip39.wordlists.english
+  return bip39.wordlists.english!
 }
 
 /**
  * 检查单词是否在 BIP39 单词表中
  */
 export function isValidWord(word: string): boolean {
-  return bip39.wordlists.english.includes(word.toLowerCase())
+  return bip39.wordlists.english!.includes(word.toLowerCase())
 }
 
 /**
@@ -51,7 +51,7 @@ export function isValidWord(word: string): boolean {
 export function searchWords(prefix: string, limit = 5): string[] {
   if (!prefix) return []
   const lowerPrefix = prefix.toLowerCase()
-  return bip39.wordlists.english
+  return bip39.wordlists.english!
     .filter((word) => word.startsWith(lowerPrefix))
     .slice(0, limit)
 }

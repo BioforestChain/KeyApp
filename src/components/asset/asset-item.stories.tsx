@@ -68,7 +68,6 @@ export const Bitcoin: Story = {
 
 export const NoClick: Story = {
   args: {
-    onClick: undefined,
     showChevron: false,
   },
 }

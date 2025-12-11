@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
-interface BottomSheetProps {
+export interface BottomSheetProps {
   open: boolean
   onClose: () => void
-  title?: string
-  height?: 'auto' | 'half' | 'full'
+  title?: string | undefined
+  height?: 'auto' | 'half' | 'full' | undefined
   children: React.ReactNode
-  className?: string
+  className?: string | undefined
 }
 
 const heightClasses = {

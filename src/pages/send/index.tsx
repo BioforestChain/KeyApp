@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { AddressInput } from '@/components/transfer/address-input'
 import { AmountInput } from '@/components/transfer/amount-input'
@@ -23,6 +23,13 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   tron: 'Tron',
   binance: 'BSC',
   bfmeta: 'BFMeta',
+  ccchain: 'CCChain',
+  pmchain: 'PMChain',
+  bfchainv2: 'BFChain V2',
+  btgmeta: 'BTGMeta',
+  biwmeta: 'BIWMeta',
+  ethmeta: 'ETHMeta',
+  malibu: 'Malibu',
 }
 
 export function SendPage() {
@@ -41,7 +48,6 @@ export function SendPage() {
     state,
     setToAddress,
     setAmount,
-    setAsset,
     goToConfirm,
     goBack,
     submit,

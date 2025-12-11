@@ -3,15 +3,15 @@ import { TokenIcon } from '@/components/token/token-icon'
 import { formatAssetAmount, type AssetInfo } from '@/types/asset'
 import { ChevronRight } from 'lucide-react'
 
-interface AssetItemProps {
+export interface AssetItemProps {
   /** Asset information */
   asset: AssetInfo
   /** Click handler */
-  onClick?: () => void
+  onClick?: (() => void) | undefined
   /** Show navigation chevron */
-  showChevron?: boolean
+  showChevron?: boolean | undefined
   /** Additional class name */
-  className?: string
+  className?: string | undefined
 }
 
 /**

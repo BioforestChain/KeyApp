@@ -28,7 +28,7 @@ export function LanguagePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="语言" showBack onBack={() => navigate({ to: '/settings' })} />
+      <PageHeader title="语言" onBack={() => navigate({ to: '/settings' })} />
 
       <div className="flex-1 p-4">
         <div className="overflow-hidden rounded-xl bg-card shadow-sm">

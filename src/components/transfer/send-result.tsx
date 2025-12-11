@@ -10,7 +10,7 @@ interface SendResultProps {
   /** Result status: 'success', 'failed', or 'pending' */
   status: SendResultStatus
   /** Transaction hash for explorer link */
-  txHash?: string
+  txHash?: string | undefined
   /** Amount transferred */
   amount: string
   /** Token symbol */
@@ -18,15 +18,15 @@ interface SendResultProps {
   /** Recipient address */
   toAddress: string
   /** Error message if failed */
-  errorMessage?: string
+  errorMessage?: string | undefined
   /** Callback to view transaction in explorer */
-  onViewExplorer?: () => void
+  onViewExplorer?: (() => void) | undefined
   /** Callback to return home */
-  onDone?: () => void
+  onDone?: (() => void) | undefined
   /** Callback to retry transfer (only shown on failure) */
-  onRetry?: () => void
+  onRetry?: (() => void) | undefined
   /** Additional class name */
-  className?: string
+  className?: string | undefined
 }
 
 function truncateHash(hash: string): string {

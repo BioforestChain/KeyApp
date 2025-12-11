@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import {
   useMnemonicVerification,
@@ -117,32 +117,32 @@ describe('useMnemonicVerification', () => {
   describe('selectWord', () => {
     it('fills the next empty slot', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
       const wordToSelect = firstSlot.expectedWord
 
       act(() => {
         result.current.selectWord(wordToSelect)
       })
 
-      expect(result.current.state.slots[0].selectedWord).toBe(wordToSelect)
+      expect(result.current.state.slots[0]!.selectedWord).toBe(wordToSelect)
     })
 
     it('marks correct selection as correct', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
       const correctWord = firstSlot.expectedWord
 
       act(() => {
         result.current.selectWord(correctWord)
       })
 
-      expect(result.current.state.slots[0].isCorrect).toBe(true)
+      expect(result.current.state.slots[0]!.isCorrect).toBe(true)
       expect(result.current.state.correctCount).toBe(1)
     })
 
     it('marks incorrect selection as incorrect', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
       // Find a word that is NOT the expected word
       const wrongWord = testMnemonic.find((w) => w !== firstSlot.expectedWord)!
 
@@ -150,13 +150,13 @@ describe('useMnemonicVerification', () => {
         result.current.selectWord(wrongWord)
       })
 
-      expect(result.current.state.slots[0].isCorrect).toBe(false)
+      expect(result.current.state.slots[0]!.isCorrect).toBe(false)
       expect(result.current.state.correctCount).toBe(0)
     })
 
     it('adds selected word to usedWords', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
 
       act(() => {
         result.current.selectWord(firstSlot.expectedWord)
@@ -167,7 +167,7 @@ describe('useMnemonicVerification', () => {
 
     it('prevents selecting already used word', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
 
       act(() => {
         result.current.selectWord(firstSlot.expectedWord)
@@ -186,7 +186,7 @@ describe('useMnemonicVerification', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
 
       act(() => {
-        result.current.selectWord(testMnemonic[0])
+        result.current.selectWord(testMnemonic[0]!)
       })
 
       expect(result.current.nextEmptySlotIndex).toBe(1)
@@ -215,13 +215,13 @@ describe('useMnemonicVerification', () => {
 
       // Select 3 correct and 1 wrong
       act(() => {
-        result.current.selectWord(slots[0].expectedWord)
-        result.current.selectWord(slots[1].expectedWord)
-        result.current.selectWord(slots[2].expectedWord)
+        result.current.selectWord(slots[0]!.expectedWord)
+        result.current.selectWord(slots[1]!.expectedWord)
+        result.current.selectWord(slots[2]!.expectedWord)
         // Find wrong word for slot 3
         const wrongWord = testMnemonic.find(
           (w) =>
-            w !== slots[3].expectedWord &&
+            w !== slots[3]!.expectedWord &&
             !result.current.state.usedWords.has(w),
         )!
         result.current.selectWord(wrongWord)
@@ -234,7 +234,7 @@ describe('useMnemonicVerification', () => {
   describe('deselectSlot', () => {
     it('clears selected word from slot', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
 
       act(() => {
         result.current.selectWord(firstSlot.expectedWord)
@@ -244,13 +244,13 @@ describe('useMnemonicVerification', () => {
         result.current.deselectSlot(0)
       })
 
-      expect(result.current.state.slots[0].selectedWord).toBeNull()
-      expect(result.current.state.slots[0].isCorrect).toBeNull()
+      expect(result.current.state.slots[0]!.selectedWord).toBeNull()
+      expect(result.current.state.slots[0]!.isCorrect).toBeNull()
     })
 
     it('removes word from usedWords', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
 
       act(() => {
         result.current.selectWord(firstSlot.expectedWord)
@@ -265,7 +265,7 @@ describe('useMnemonicVerification', () => {
 
     it('allows reselecting after deselect', () => {
       const { result } = renderHook(() => useMnemonicVerification(testMnemonic))
-      const firstSlot = result.current.state.slots[0]
+      const firstSlot = result.current.state.slots[0]!
 
       // Select, deselect, reselect
       act(() => {
@@ -278,7 +278,7 @@ describe('useMnemonicVerification', () => {
         result.current.selectWord(firstSlot.expectedWord)
       })
 
-      expect(result.current.state.slots[0].selectedWord).toBe(firstSlot.expectedWord)
+      expect(result.current.state.slots[0]!.selectedWord).toBe(firstSlot.expectedWord)
     })
 
     it('sets isComplete to false when deselecting', () => {
@@ -331,7 +331,7 @@ describe('useMnemonicVerification', () => {
 
       // Make some selections
       act(() => {
-        result.current.selectWord(testMnemonic[0])
+        result.current.selectWord(testMnemonic[0]!)
       })
 
       act(() => {

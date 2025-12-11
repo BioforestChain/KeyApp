@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils'
 import { ScanLine, ClipboardPaste } from 'lucide-react'
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
-  value?: string
-  onChange?: (value: string) => void
-  onScan?: () => void
-  onPaste?: () => void
-  error?: string
-  label?: string
+  value?: string | undefined
+  onChange?: ((value: string) => void) | undefined
+  onScan?: (() => void) | undefined
+  onPaste?: (() => void) | undefined
+  error?: string | undefined
+  label?: string | undefined
 }
 
 function isValidAddress(address: string): boolean {

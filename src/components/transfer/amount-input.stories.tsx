@@ -63,18 +63,22 @@ export const Controlled: Story = {
     const balance = '1000'
     const rate = 1 // USDT to USD
     const fiatValue = value ? (parseFloat(value) * rate).toFixed(2) : undefined
-    
+
+    const inputProps: Record<string, unknown> = {
+      label: '转账金额',
+      symbol: 'USDT',
+      value,
+      onChange: setValue,
+      balance,
+      max: balance,
+    }
+    if (fiatValue !== undefined) {
+      inputProps.fiatValue = fiatValue
+    }
+
     return (
       <div className="space-y-4">
-        <AmountInput
-          label="转账金额"
-          symbol="USDT"
-          value={value}
-          onChange={setValue}
-          balance={balance}
-          max={balance}
-          fiatValue={fiatValue}
-        />
+        <AmountInput {...inputProps} />
         <p className="text-sm text-muted">
           输入值: {value || '(空)'}
         </p>
@@ -117,19 +121,24 @@ export const TransferForm: Story = {
     const balance = '1000'
     const numAmount = parseFloat(amount) || 0
     const isValid = numAmount > 0 && numAmount <= parseFloat(balance)
-    
+    const fiatValue = amount ? (parseFloat(amount) || 0).toFixed(2) : undefined
+
+    const formInputProps: Record<string, unknown> = {
+      label: '转账金额',
+      symbol: 'USDT',
+      value: amount,
+      onChange: setAmount,
+      balance,
+      max: balance,
+    }
+    if (fiatValue !== undefined) {
+      formInputProps.fiatValue = fiatValue
+    }
+
     return (
       <div className="space-y-6 p-4">
         <h3 className="font-medium text-lg">转账 USDT</h3>
-        <AmountInput
-          label="转账金额"
-          symbol="USDT"
-          value={amount}
-          onChange={setAmount}
-          balance={balance}
-          max={balance}
-          fiatValue={amount ? (parseFloat(amount) || 0).toFixed(2) : undefined}
-        />
+        <AmountInput {...formInputProps} />
         <div className="flex gap-2 text-sm">
           {['100', '500', '1000'].map((val) => (
             <button

@@ -4,9 +4,9 @@ import { Copy, Check } from 'lucide-react'
 
 interface AddressDisplayProps {
   address: string
-  copyable?: boolean
-  className?: string
-  onCopy?: () => void
+  copyable?: boolean | undefined
+  className?: string | undefined
+  onCopy?: (() => void) | undefined
 }
 
 // 使用 canvas 测量文字宽度（不触发回流）

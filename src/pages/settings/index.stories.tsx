@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { SettingsItem } from './settings-item'
 import { SettingsSection } from './settings-section'
 import { SettingsPage } from './index'
-import { Wallet, Globe, Lock, Eye } from 'lucide-react'
+import { Globe, Lock, Eye } from 'lucide-react'
 
 // SettingsItem stories
 const itemMeta = {

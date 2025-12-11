@@ -13,7 +13,7 @@ interface MnemonicOptionsSheetProps {
   /** Current selected options */
   value: MnemonicOptions;
   /** Additional class name */
-  className?: string;
+  className?: string | undefined;
 }
 
 const LANGUAGE_OPTIONS: { value: MnemonicLanguage; label: string }[] = [

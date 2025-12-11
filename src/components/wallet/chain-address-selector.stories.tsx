@@ -60,7 +60,7 @@ export const Default: Story = {
 
 export const SingleChain: Story = {
   args: {
-    chains: [mockChains[0]],
+    chains: [mockChains[0]!],
   },
 };
 
@@ -89,14 +89,17 @@ export const EmptyChain: Story = {
 export const Interactive: Story = {
   render: () => {
     const [selection, setSelection] = useState<{ chain: string; address: string } | null>(null);
+
+    const chainAddressProps = {
+      chains: mockChains,
+      onSelect: (chain: string, address: string) => setSelection({ chain, address }),
+      ...(selection?.chain && { selectedChain: selection.chain as ChainData['chain'] }),
+      ...(selection?.address && { selectedAddress: selection.address }),
+    }
+
     return (
       <div className="space-y-4">
-        <ChainAddressSelector
-          chains={mockChains}
-          selectedChain={selection?.chain as ChainData['chain']}
-          selectedAddress={selection?.address}
-          onSelect={(chain, address) => setSelection({ chain, address })}
-        />
+        <ChainAddressSelector {...chainAddressProps} />
         {selection && (
           <div className="rounded-lg bg-muted p-3 text-sm">
             <p>

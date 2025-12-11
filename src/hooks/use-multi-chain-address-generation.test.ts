@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
 import {
   useMultiChainAddressGeneration,
   generateAllAddresses,
@@ -34,10 +34,8 @@ describe('useMultiChainAddressGeneration', () => {
   it('generates addresses for all chains', async () => {
     const { result } = renderHook(() => useMultiChainAddressGeneration())
 
-    let addresses: Awaited<ReturnType<typeof result.current.generate>>
-
     await act(async () => {
-      addresses = await result.current.generate(TEST_MNEMONIC)
+      await result.current.generate(TEST_MNEMONIC)
     })
 
     // ETH + BFMeta + Tron + 4 Bitcoin purposes = 7

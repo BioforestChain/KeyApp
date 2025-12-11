@@ -4,19 +4,19 @@ import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { addressBookActions, type Contact, type ChainType } from '@/stores'
 import { User, Wallet, FileText } from 'lucide-react'
 
-interface ContactEditSheetProps {
+export interface ContactEditSheetProps {
   /** Contact to edit (null for new contact) */
-  contact?: Contact | null
+  contact?: Contact | null | undefined
   /** Whether the sheet is open */
   open: boolean
   /** Close callback */
   onClose: () => void
   /** Success callback */
-  onSuccess?: () => void
+  onSuccess?: (() => void) | undefined
   /** Default chain for new contacts */
-  defaultChain?: ChainType
+  defaultChain?: ChainType | undefined
   /** Additional class name */
-  className?: string
+  className?: string | undefined
 }
 
 /**
@@ -55,6 +55,7 @@ export function ContactEditSheet({
   const handleSave = useCallback(() => {
     const trimmedName = name.trim()
     const trimmedAddress = address.trim()
+    const trimmedMemo = memo.trim()
 
     if (!trimmedName || !trimmedAddress) return
 
@@ -62,14 +63,14 @@ export function ContactEditSheet({
       addressBookActions.updateContact(contact.id, {
         name: trimmedName,
         address: trimmedAddress,
-        memo: memo.trim() || undefined,
+        ...(trimmedMemo && { memo: trimmedMemo }),
       })
     } else {
       addressBookActions.addContact({
         name: trimmedName,
         address: trimmedAddress,
-        memo: memo.trim() || undefined,
         chain: defaultChain,
+        ...(trimmedMemo && { memo: trimmedMemo }),
       })
     }
 

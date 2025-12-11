@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { PasswordInput } from './password-input';
 import { Fingerprint, AlertCircle } from 'lucide-react';
 
-interface PasswordConfirmSheetProps {
+export interface PasswordConfirmSheetProps {
   /** Whether the sheet is open */
   open: boolean;
   /** Close callback */
@@ -12,19 +12,19 @@ interface PasswordConfirmSheetProps {
   /** Verify callback with password */
   onVerify: (password: string) => void;
   /** Title text */
-  title?: string;
+  title?: string | undefined;
   /** Description text */
-  description?: string;
+  description?: string | undefined;
   /** Error message to display */
-  error?: string;
+  error?: string | undefined;
   /** Whether biometric is available */
-  biometricAvailable?: boolean;
+  biometricAvailable?: boolean | undefined;
   /** Biometric auth callback */
-  onBiometric?: () => void;
+  onBiometric?: (() => void) | undefined;
   /** Whether verification is in progress */
-  isVerifying?: boolean;
+  isVerifying?: boolean | undefined;
   /** Additional class name */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

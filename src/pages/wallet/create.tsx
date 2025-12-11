@@ -69,13 +69,16 @@ export function WalletCreatePage() {
       
       // 派生外部链地址 (BIP44)
       const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
-      
+
       // 派生 BioForest 链地址 (Ed25519) - 使用相同的助记词字符串
       const bioforestChains: BioforestChainType[] = ['bfmeta', 'pmchain', 'ccchain']
       const bioforestKeys = deriveBioforestMultiChainKeys(mnemonicStr, bioforestChains)
-      
-      const ethKey = externalKeys.find(k => k.chain === 'ethereum')!
-      
+
+      const ethKey = externalKeys.find(k => k.chain === 'ethereum')
+      if (!ethKey) {
+        throw new Error('Failed to derive ethereum key')
+      }
+
       // 合并所有链地址
       const chainAddresses = [
         ...externalKeys.map(key => ({
@@ -285,17 +288,20 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
 
   const [answers, setAnswers] = useState<Record<number, string>>({})
 
-  const isValid = selectedIndices.every(
-    (idx) => answers[idx]?.toLowerCase() === mnemonic[idx].toLowerCase()
-  )
+  const isValid = selectedIndices.every((idx) => {
+    const word = mnemonic[idx]
+    const answer = answers[idx]
+    return word && answer && answer.toLowerCase() === word.toLowerCase()
+  })
 
   const handleInputChange = (index: number, value: string) => {
     setAnswers((prev) => ({ ...prev, [index]: value }))
   }
 
   const getFieldError = (index: number) => {
+    const word = mnemonic[index]
     const answer = answers[index]
-    if (answer && answer.toLowerCase() !== mnemonic[index].toLowerCase()) {
+    if (answer && word && answer.toLowerCase() !== word.toLowerCase()) {
       return '单词不正确'
     }
     return undefined

@@ -29,24 +29,24 @@ export interface CreateWalletFormData {
 
 /** Validation errors */
 export interface CreateWalletFormErrors {
-  name?: string;
-  password?: string;
-  confirmPassword?: string;
-  tip?: string;
-  agreement?: string;
+  name?: string | undefined;
+  password?: string | undefined;
+  confirmPassword?: string | undefined;
+  tip?: string | undefined;
+  agreement?: string | undefined;
 }
 
 interface CreateWalletFormProps {
   /** Form submit callback */
   onSubmit: (data: CreateWalletFormData) => void;
   /** Open mnemonic options callback */
-  onOpenMnemonicOptions?: () => void;
+  onOpenMnemonicOptions?: (() => void) | undefined;
   /** Current mnemonic options */
-  mnemonicOptions?: MnemonicOptions;
+  mnemonicOptions?: MnemonicOptions | undefined;
   /** Whether form is submitting */
-  isSubmitting?: boolean;
+  isSubmitting?: boolean | undefined;
   /** Additional class name */
-  className?: string;
+  className?: string | undefined;
 }
 
 const DEFAULT_MNEMONIC_OPTIONS: MnemonicOptions = {

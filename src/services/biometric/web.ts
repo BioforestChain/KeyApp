@@ -31,7 +31,6 @@ export class BiometricService implements IBiometricService {
     console.warn('Biometric not available in web, falling back to password')
     return {
       success: false,
-      errorCode: -1,
       errorMessage: 'Biometric authentication not available in web browser',
     }
   }

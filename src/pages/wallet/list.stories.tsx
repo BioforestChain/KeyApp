@@ -19,6 +19,8 @@ const createMockWallet = (id: string, name: string): Wallet => ({
   id,
   name,
   address: `0x${id.padStart(40, '0')}`,
+  chain: 'ethereum',
+  tokens: [],
   encryptedMnemonic: {
     ciphertext: 'test',
     iv: 'test',
@@ -27,18 +29,18 @@ const createMockWallet = (id: string, name: string): Wallet => ({
   },
   chainAddresses: [
     {
-      chainId: 'eth-mainnet',
+      chain: 'ethereum',
       address: `0x${id.padStart(40, '0')}`,
       tokens: [
-        { symbol: 'ETH', balance: '1.5', fiatValue: 3000, decimals: 18, contractAddress: null },
-        { symbol: 'USDT', balance: '500', fiatValue: 500, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7' },
+        { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '1.5', fiatValue: 3000, change24h: 2.5, decimals: 18, contractAddress: '', chain: 'ethereum' },
+        { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500', fiatValue: 500, change24h: 0.1, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', chain: 'ethereum' },
       ],
     },
     {
-      chainId: 'bsc-mainnet',
+      chain: 'binance',
       address: `0x${id.padStart(40, '0')}`,
       tokens: [
-        { symbol: 'BNB', balance: '2.0', fiatValue: 600, decimals: 18, contractAddress: null },
+        { id: 'bnb', symbol: 'BNB', name: 'Binance Coin', balance: '2.0', fiatValue: 600, change24h: 1.8, decimals: 18, contractAddress: '', chain: 'binance' },
       ],
     },
   ],
@@ -54,6 +56,8 @@ export const Empty: Story = {
       walletStore.setState({
         wallets: [],
         currentWalletId: null,
+        selectedChain: 'ethereum',
+        isLoading: false,
         isInitialized: true,
       })
       return <Story />
@@ -71,6 +75,8 @@ export const SingleWallet: Story = {
       walletStore.setState({
         wallets: [wallet],
         currentWalletId: '1',
+        selectedChain: 'ethereum',
+        isLoading: false,
         isInitialized: true,
       })
       return <Story />
@@ -92,6 +98,8 @@ export const MultipleWallets: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '1',
+        selectedChain: 'ethereum',
+        isLoading: false,
         isInitialized: true,
       })
       return <Story />
@@ -113,6 +121,8 @@ export const SecondWalletActive: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '2',
+        selectedChain: 'ethereum',
+        isLoading: false,
         isInitialized: true,
       })
       return <Story />
@@ -133,6 +143,8 @@ export const LongWalletNames: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '1',
+        selectedChain: 'ethereum',
+        isLoading: false,
         isInitialized: true,
       })
       return <Story />

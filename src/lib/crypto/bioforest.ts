@@ -95,11 +95,11 @@ const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvw
  */
 export function base58Encode(bytes: Uint8Array): string {
   const digits: number[] = [0]
-  
+
   for (const byte of bytes) {
     let carry = byte
     for (let i = 0; i < digits.length; i++) {
-      carry += digits[i] << 8
+      carry += digits[i]! << 8
       digits[i] = carry % 58
       carry = Math.floor(carry / 58)
     }
@@ -108,19 +108,19 @@ export function base58Encode(bytes: Uint8Array): string {
       carry = Math.floor(carry / 58)
     }
   }
-  
+
   // 处理前导零
   let result = ''
   for (const byte of bytes) {
-    if (byte === 0) result += BASE58_ALPHABET[0]
+    if (byte === 0) result += BASE58_ALPHABET[0]!
     else break
   }
-  
+
   // 反转并转换
   for (let i = digits.length - 1; i >= 0; i--) {
-    result += BASE58_ALPHABET[digits[i]]
+    result += BASE58_ALPHABET[digits[i]!]
   }
-  
+
   return result
 }
 
@@ -129,14 +129,14 @@ export function base58Encode(bytes: Uint8Array): string {
  */
 export function base58Decode(str: string): Uint8Array {
   const bytes: number[] = [0]
-  
+
   for (const char of str) {
     const value = BASE58_ALPHABET.indexOf(char)
     if (value === -1) throw new Error(`Invalid Base58 character: ${char}`)
-    
+
     let carry = value
     for (let i = 0; i < bytes.length; i++) {
-      carry += bytes[i] * 58
+      carry += bytes[i]! * 58
       bytes[i] = carry & 0xff
       carry >>= 8
     }
@@ -145,13 +145,13 @@ export function base58Decode(str: string): Uint8Array {
       carry >>= 8
     }
   }
-  
+
   // 处理前导 '1'
   for (const char of str) {
     if (char === BASE58_ALPHABET[0]) bytes.push(0)
     else break
   }
-  
+
   return new Uint8Array(bytes.reverse())
 }
 

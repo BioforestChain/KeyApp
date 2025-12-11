@@ -17,7 +17,12 @@ function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i];
+    const swapItem = shuffled[j];
+    if (temp !== undefined && swapItem !== undefined) {
+      shuffled[i] = swapItem;
+      shuffled[j] = temp;
+    }
   }
   return shuffled;
 }
@@ -31,7 +36,13 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
   const [showError, setShowError] = useState(false);
 
   const selectedWords = useMemo(
-    () => selectedIndices.map((i) => shuffledWords[i].word),
+    () => selectedIndices.map((i) => {
+      const item = shuffledWords[i];
+      if (!item) {
+        throw new Error(`Invalid shuffled word index: ${i}`);
+      }
+      return item.word;
+    }),
     [selectedIndices, shuffledWords],
   );
 
@@ -53,7 +64,13 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
 
       // Check if complete
       if (newSelected.length === words.length) {
-        const newSelectedWords = newSelected.map((i) => shuffledWords[i].word);
+        const newSelectedWords = newSelected.map((i) => {
+          const item = shuffledWords[i];
+          if (!item) {
+            throw new Error(`Invalid shuffled word index: ${i}`);
+          }
+          return item.word;
+        });
         const correct = newSelectedWords.every((w, i) => w === words[i]);
         if (correct) {
           onComplete();

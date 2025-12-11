@@ -106,11 +106,11 @@ export function privateKeyToEthereumAddress(privateKey: Uint8Array): string {
   // 从私钥生成未压缩公钥（不带前缀 04）
   const uncompressedPubKey = secp256k1.getPublicKey(privateKey, false)
   const pubKeyWithoutPrefix = uncompressedPubKey.slice(1) // 去掉 04 前缀
-  
+
   // Keccak256 哈希，取后 20 字节
   const hash = keccak_256(pubKeyWithoutPrefix)
-  const address = hash.slice(-20)
-  
+  const address = hash.slice(-20) as Uint8Array
+
   return '0x' + bytesToHex(address)
 }
 
@@ -122,16 +122,16 @@ export function toChecksumAddress(address: string): string {
   // 将字符串转换为 Uint8Array
   const encoder = new TextEncoder()
   const hash = bytesToHex(keccak_256(encoder.encode(addr)))
-  
+
   let checksumAddress = '0x'
   for (let i = 0; i < addr.length; i++) {
-    if (parseInt(hash[i], 16) >= 8) {
-      checksumAddress += addr[i].toUpperCase()
+    if (parseInt(hash[i]!, 16) >= 8) {
+      checksumAddress += addr[i]!.toUpperCase()
     } else {
-      checksumAddress += addr[i]
+      checksumAddress += addr[i]!
     }
   }
-  
+
   return checksumAddress
 }
 
@@ -222,11 +222,9 @@ export function publicKeyToTaprootAddress(
   // Apply taproot tweak (BIP341)
   // tweakedPubKey = pubKey + hash_tag("TapTweak", pubKey) * G
   // For simplicity, we use the key-path-only approach without script tree
-  const tagHash = sha256(new TextEncoder().encode('TapTweak'))
-  const tweakHash = sha256(new Uint8Array([...tagHash, ...tagHash, ...xOnlyPubKey]))
-
-  // The actual tweak computation requires elliptic curve operations
-  // For address generation purpose, we use x-only pubkey directly
+  // TODO: Full taproot implementation requires computing the tweak:
+  // const tagHash = sha256(new TextEncoder().encode('TapTweak'))
+  // const tweakHash = sha256(new Uint8Array([...tagHash, ...tagHash, ...xOnlyPubKey]))
   // This is a simplified version - full implementation needs secp256k1 point operations
 
   // Bech32m encode with witness version 1
@@ -266,7 +264,7 @@ function base58Encode(bytes: Uint8Array): string {
   for (const byte of bytes) {
     let carry = byte
     for (let i = 0; i < digits.length; i++) {
-      carry += digits[i] << 8
+      carry += digits[i]! << 8
       digits[i] = carry % 58
       carry = (carry / 58) | 0
     }
@@ -279,13 +277,13 @@ function base58Encode(bytes: Uint8Array): string {
   // 处理前导零
   let result = ''
   for (const byte of bytes) {
-    if (byte === 0) result += BASE58_ALPHABET[0]
+    if (byte === 0) result += BASE58_ALPHABET[0]!
     else break
   }
 
   // 反转并转换
   for (let i = digits.length - 1; i >= 0; i--) {
-    result += BASE58_ALPHABET[digits[i]]
+    result += BASE58_ALPHABET[digits[i]!]
   }
 
   return result
@@ -304,7 +302,7 @@ function bech32Polymod(values: number[]): number {
     chk = ((chk & 0x1ffffff) << 5) ^ v
     for (let i = 0; i < 5; i++) {
       if ((top >> i) & 1) {
-        chk ^= BECH32_GENERATOR[i]
+        chk ^= BECH32_GENERATOR[i]!
       }
     }
   }
