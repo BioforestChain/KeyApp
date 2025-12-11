@@ -57,6 +57,10 @@
   --color-chain-binance: oklch(80% 0.18 85);
   --color-chain-bitcoin: oklch(70% 0.18 60);
   --color-chain-bfmeta: oklch(60% 0.2 290);
+  --color-chain-bfchain: oklch(75% 0.15 195);
+  --color-chain-ccchain: oklch(70% 0.25 320);
+  --color-chain-pmchain: oklch(55% 0.2 280);
+  --color-chain-ethmeta: oklch(55% 0.3 265);
 
   /* 渐变色 */
   --gradient-blue: linear-gradient(to bottom, oklch(85% 0.12 200), oklch(70% 0.15 220));
