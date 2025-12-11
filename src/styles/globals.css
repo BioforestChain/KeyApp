@@ -140,6 +140,24 @@
   }
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 2rem));
+  }
+}
+
+/* Marquee animation utilities */
+@utility animate-marquee {
+  animation: marquee var(--marquee-duration, 5s) linear infinite;
+}
+
+@utility animate-paused {
+  animation-play-state: paused;
+}
+
 /* 自定义工具类 */
 @utility bg-gradient-blue {
   background: var(--gradient-blue);

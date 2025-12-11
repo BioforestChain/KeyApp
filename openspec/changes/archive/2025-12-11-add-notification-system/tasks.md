@@ -1,0 +1,76 @@
+# Tasks: Notification System
+
+## T011: Notification System
+
+### Status: COMPLETE ✅ (T011.1-T011.4 all done, 41 tests)
+
+### Tasks
+
+#### T011.1: NotificationStore ✅
+- [x] Create `src/stores/notification.ts`
+- [x] Define Notification type (id, type, title, message, timestamp, read, data?)
+- [x] NotificationType enum (transaction, security, system)
+- [x] Actions: add, markRead, markAllRead, clearAll
+- [x] localStorage persistence
+- [x] Write tests (~6 tests) → 8 tests
+
+**Acceptance**: ✅ Notifications persist across page reloads
+
+---
+
+#### T011.2: NotificationPermissionSheet ✅
+- [x] Create `src/components/notification/notification-permission-sheet.tsx`
+- [x] Explain push notification benefits
+- [x] Request permission button
+- [ ] Handle denied state with "Settings" link (deferred: actual API integration)
+- [x] Skip option for later
+- [x] Write tests (~6 tests) → 8 tests
+- [x] Write Storybook story
+
+**Acceptance**: ✅ Permission flow UI handles enable/skip (API integration deferred)
+
+---
+
+#### T011.3: NotificationCenter ✅
+- [x] Create `src/pages/notifications/index.tsx`
+- [x] List notifications with grouping by date
+- [x] Empty state when no notifications
+- [x] Mark as read on tap
+- [x] Clear all button in header
+- [x] Add route `/notifications`
+- [x] Write tests (~8 tests) → 13 tests
+- [x] Write Storybook story
+
+**Acceptance**: ✅ Can view and manage all notifications
+
+---
+
+#### T011.4: TransactionNotification ✅
+- [x] Create `src/components/notification/transaction-toast.tsx`
+- [x] Toast states: pending, confirmed, failed
+- [x] Icon and color per state
+- [x] Auto-dismiss after 5s (configurable)
+- [x] Tap to view transaction detail
+- [x] Write tests (~6 tests) → 12 tests
+- [x] Write Storybook story
+
+**Acceptance**: ✅ Transaction status visible as toast during send flow
+
+---
+
+## Dependencies
+
+- TanStack Store (exists)
+- BottomSheet (exists)
+- PageHeader (exists)
+- useToast hook (may need to create)
+
+## Estimated Test Count
+
+| Task | Tests |
+|------|-------|
+| T011.1 NotificationStore | ~6 |
+| T011.2 NotificationPermissionSheet | ~6 |
+| T011.3 NotificationCenter | ~8 |
+| T011.4 TransactionNotification | ~6 |
+| **Total** | **~26** |
