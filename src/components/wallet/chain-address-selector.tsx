@@ -7,9 +7,9 @@ export interface ChainAddress {
   /** Address string */
   address: string;
   /** Balance display string */
-  balance?: string;
+  balance?: string | undefined;
   /** Whether this is the default address */
-  isDefault?: boolean;
+  isDefault?: boolean | undefined;
 }
 
 export interface ChainData {
@@ -25,13 +25,13 @@ interface ChainAddressSelectorProps {
   /** List of chains with addresses */
   chains: ChainData[];
   /** Selected chain type */
-  selectedChain?: ChainType;
+  selectedChain?: ChainType | undefined;
   /** Selected address */
-  selectedAddress?: string;
+  selectedAddress?: string | undefined;
   /** Callback when address is selected */
-  onSelect?: (chain: ChainType, address: string) => void;
+  onSelect?: ((chain: ChainType, address: string) => void) | undefined;
   /** Additional class names */
-  className?: string;
+  className?: string | undefined;
 }
 
 function truncateAddress(address: string): string {
@@ -52,14 +52,14 @@ function ChainItem({ chain, isSelected, onSelect }: ChainItemProps) {
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors',
-        'hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'hover:bg-muted/50 focus-visible:ring-ring focus:outline-none focus-visible:ring-2',
         isSelected && 'bg-muted',
       )}
       aria-selected={isSelected}
       role="option"
     >
       <ChainIcon chain={chain.chain} size="sm" />
-      <span className={cn('text-sm', isSelected && 'font-medium')}>{chain.name}</span>
+      <span className={cn('truncate text-sm', isSelected && 'font-medium')}>{chain.name}</span>
     </button>
   );
 }
@@ -77,7 +77,7 @@ function AddressItem({ address, isSelected, onSelect }: AddressItemProps) {
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors',
-        'hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'hover:bg-muted/50 focus-visible:ring-ring focus:outline-none focus-visible:ring-2',
         isSelected && 'bg-primary/10',
       )}
       aria-selected={isSelected}
@@ -87,16 +87,12 @@ function AddressItem({ address, isSelected, onSelect }: AddressItemProps) {
         <div className="flex items-center gap-2">
           <span className="truncate font-mono text-sm">{truncateAddress(address.address)}</span>
           {address.isDefault && (
-            <span className="shrink-0 rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
-              默认
-            </span>
+            <span className="bg-muted text-muted-foreground shrink-0 rounded px-1 py-0.5 text-[10px]">默认</span>
           )}
         </div>
-        {address.balance && (
-          <p className="text-xs text-muted-foreground">{address.balance}</p>
-        )}
+        {address.balance && <p className="text-muted-foreground text-xs">{address.balance}</p>}
       </div>
-      {isSelected && <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />}
+      {isSelected && <Check className="text-primary size-4 shrink-0" aria-hidden="true" />}
     </button>
   );
 }
@@ -111,14 +107,9 @@ export function ChainAddressSelector({
   onSelect,
   className,
 }: ChainAddressSelectorProps) {
-  const [activeChain, setActiveChain] = useState<ChainType>(
-    selectedChain ?? chains[0]?.chain ?? 'ethereum',
-  );
+  const [activeChain, setActiveChain] = useState<ChainType>(selectedChain ?? chains[0]?.chain ?? 'ethereum');
 
-  const activeChainData = useMemo(
-    () => chains.find((c) => c.chain === activeChain),
-    [chains, activeChain],
-  );
+  const activeChainData = useMemo(() => chains.find((c) => c.chain === activeChain), [chains, activeChain]);
 
   const handleChainSelect = useCallback((chain: ChainType) => {
     setActiveChain(chain);
@@ -133,17 +124,17 @@ export function ChainAddressSelector({
 
   if (chains.length === 0) {
     return (
-      <div className={cn('py-8 text-center text-muted-foreground', className)}>
+      <div className={cn('text-muted-foreground py-8 text-center', className)}>
         <p>暂无可用链</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('flex min-h-48 overflow-hidden rounded-lg border border-border', className)}>
+    <div className={cn('border-border flex min-h-48 overflow-hidden rounded-lg border', className)}>
       {/* Chain list (left) */}
       <div
-        className="w-28 shrink-0 space-y-0.5 overflow-y-auto border-r border-border bg-muted/30 p-2"
+        className="border-border bg-muted/30 w-28 shrink-0 space-y-0.5 overflow-y-auto border-r p-2"
         role="listbox"
         aria-label="Select chain"
       >
@@ -158,15 +149,9 @@ export function ChainAddressSelector({
       </div>
 
       {/* Address list (right) */}
-      <div
-        className="min-w-0 flex-1 space-y-0.5 overflow-y-auto p-2"
-        role="listbox"
-        aria-label="Select address"
-      >
+      <div className="min-w-0 flex-1 space-y-0.5 overflow-y-auto p-2" role="listbox" aria-label="Select address">
         {activeChainData?.addresses.length === 0 && (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            该链暂无地址
-          </div>
+          <div className="text-muted-foreground py-6 text-center text-sm">该链暂无地址</div>
         )}
         {activeChainData?.addresses.map((addr) => (
           <AddressItem

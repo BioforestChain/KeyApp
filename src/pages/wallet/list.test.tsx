@@ -9,11 +9,11 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('@/components/layout/page-header', () => ({
-  PageHeader: ({ title, onBack, trailing }: { title: string; onBack?: () => void; trailing?: React.ReactNode }) => (
+  PageHeader: ({ title, onBack, rightAction }: { title: string; onBack?: () => void; rightAction?: React.ReactNode }) => (
     <div data-testid="page-header">
       <span>{title}</span>
       {onBack && <button onClick={onBack} data-testid="back-button">返回</button>}
-      {trailing}
+      {rightAction}
     </div>
   ),
 }))

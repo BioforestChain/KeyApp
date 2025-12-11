@@ -178,8 +178,8 @@ describe('WalletEditSheet', () => {
 
     fireEvent.click(screen.getByText('删除钱包'))
 
-    expect(screen.getByText('删除钱包')).toBeInTheDocument()
-    expect(screen.getByText('此操作无法撤销')).toBeInTheDocument()
+    // PasswordConfirmSheet shows title "删除钱包" and description with "此操作无法撤销"
+    expect(screen.getByText(/此操作无法撤销/)).toBeInTheDocument()
     expect(screen.getByPlaceholderText('请输入密码')).toBeInTheDocument()
   })
 

@@ -1,14 +1,14 @@
 import { cn } from '@/lib/utils';
 
 // 支持的链类型 - 与 stores/wallet.ts 中的 ChainType 对应
-export type ChainType = 
+export type ChainType =
   // 外部链 (BIP44)
-  | 'ethereum' 
-  | 'tron' 
-  | 'bitcoin' 
+  | 'ethereum'
+  | 'tron'
+  | 'bitcoin'
   | 'binance'
   | 'bsc' // binance alias
-  // BioForest 链 (Ed25519)  
+  // BioForest 链 (Ed25519)
   | 'bfmeta'
   | 'ccchain'
   | 'pmchain'
@@ -76,7 +76,7 @@ export function ChainIcon({ chain, size = 'md', className }: ChainIconProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full font-bold text-white',
+        'flex shrink-0 items-center justify-center rounded-full font-bold text-white',
         chainColors[chain],
         sizeClasses[size],
         className,
