@@ -38,6 +38,9 @@ const AddressBookPage = lazy(() => import('@/pages/address-book').then((m) => ({
 // Notifications page
 const NotificationCenterPage = lazy(() => import('@/pages/notifications').then((m) => ({ default: m.NotificationCenterPage })))
 
+// Staking pages
+const StakingPage = lazy(() => import('@/pages/staking').then((m) => ({ default: m.StakingPage })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -201,6 +204,13 @@ const notificationsRoute = createRoute({
   component: withSuspense(NotificationCenterPage),
 })
 
+// Staking 路由
+const stakingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/staking',
+  component: withSuspense(StakingPage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -226,6 +236,7 @@ const routeTree = rootRoute.addChildren([
   transactionDetailRoute,
   addressBookRoute,
   notificationsRoute,
+  stakingRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下
