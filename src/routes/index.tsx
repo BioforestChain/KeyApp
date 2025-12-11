@@ -44,6 +44,9 @@ const StakingPage = lazy(() => import('@/pages/staking').then((m) => ({ default:
 // Scanner page
 const ScannerPage = lazy(() => import('@/pages/scanner').then((m) => ({ default: m.ScannerPage })))
 
+// Guide pages
+const WelcomeScreen = lazy(() => import('@/pages/guide/WelcomeScreen').then((m) => ({ default: m.WelcomeScreen })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -226,6 +229,13 @@ const scannerRoute = createRoute({
   component: withSuspense(ScannerPage),
 })
 
+// Guide 路由
+const welcomeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/welcome',
+  component: withSuspense(WelcomeScreen),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -253,6 +263,7 @@ const routeTree = rootRoute.addChildren([
   notificationsRoute,
   stakingRoute,
   scannerRoute,
+  welcomeRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

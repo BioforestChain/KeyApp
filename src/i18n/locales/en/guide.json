@@ -1,0 +1,23 @@
+{
+  "welcome": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "haveWallet": "I have a wallet",
+    "goToSlide": "Go to slide {{number}}",
+    "slides": {
+      "transfer": {
+        "title": "Easy Transfer",
+        "description": "Anytime, anywhere. Manage your digital assets with ease."
+      },
+      "multichain": {
+        "title": "Multi-Chain Support",
+        "description": "Support for multiple blockchains. Possess unlimited possibilities."
+      },
+      "security": {
+        "title": "Comprehensive Security",
+        "description": "Advanced encryption technology keeps your digital wealth secure."
+      }
+    }
+  }
+}

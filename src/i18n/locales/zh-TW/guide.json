@@ -1,0 +1,23 @@
+{
+  "welcome": {
+    "skip": "跳過",
+    "next": "下一步",
+    "getStarted": "開始使用",
+    "haveWallet": "我有錢包",
+    "goToSlide": "跳轉到第 {{number}} 頁",
+    "slides": {
+      "transfer": {
+        "title": "便捷轉帳",
+        "description": "隨時隨地，輕鬆管理您的數位資產。"
+      },
+      "multichain": {
+        "title": "多鏈支持",
+        "description": "支持多條區塊鏈，擁有無限可能。"
+      },
+      "security": {
+        "title": "全面安全",
+        "description": "先進的加密技術，讓您的數位財富更加安全。"
+      }
+    }
+  }
+}
