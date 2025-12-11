@@ -61,7 +61,7 @@ export function TokenDetailPage() {
           <GradientButton
             variant="mint"
             className="flex-1"
-            onClick={() => navigate({ to: '/send' })}
+            onClick={() => navigate({ to: '/send', search: { address: undefined, chain: undefined, amount: undefined } })}
           >
             <ArrowUp className="mr-2 size-4" />
             发送

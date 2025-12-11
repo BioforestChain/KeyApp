@@ -1,0 +1,15 @@
+{
+  "title": "مسح",
+  "initializing": "جارٍ تهيئة الكاميرا...",
+  "requestingPermission": "جارٍ طلب إذن الكاميرا...",
+  "scanPrompt": "قم بمحاذاة رمز QR داخل الإطار",
+  "permissionDenied": "تم رفض إذن الكاميرا",
+  "error": "حدث خطأ في الكاميرا",
+  "retry": "إعادة المحاولة",
+  "gallery": "المعرض",
+  "flashOn": "الفلاش مفعل",
+  "flashOff": "الفلاش معطل",
+  "scanSuccess": "تم مسح رمز QR",
+  "noQrFound": "لم يتم العثور على رمز QR",
+  "invalidQr": "رمز QR غير صالح"
+}

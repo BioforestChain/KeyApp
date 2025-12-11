@@ -41,6 +41,9 @@ const NotificationCenterPage = lazy(() => import('@/pages/notifications').then((
 // Staking pages
 const StakingPage = lazy(() => import('@/pages/staking').then((m) => ({ default: m.StakingPage })))
 
+// Scanner page
+const ScannerPage = lazy(() => import('@/pages/scanner').then((m) => ({ default: m.ScannerPage })))
+
 // 加载中占位
 function PageLoading() {
   return (
@@ -114,11 +117,16 @@ const tokenRoute = createRoute({
   component: withSuspense(TokenDetailPage),
 })
 
-// 转账路由
+// 转账路由 - 支持从扫码器预填地址
 const sendRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/send',
   component: withSuspense(SendPage),
+  validateSearch: (search: Record<string, unknown>) => ({
+    address: typeof search.address === 'string' ? search.address : undefined,
+    chain: typeof search.chain === 'string' ? search.chain : undefined,
+    amount: typeof search.amount === 'string' ? search.amount : undefined,
+  }),
 })
 
 // 收款路由
@@ -211,6 +219,13 @@ const stakingRoute = createRoute({
   component: withSuspense(StakingPage),
 })
 
+// Scanner 路由
+const scannerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/scanner',
+  component: withSuspense(ScannerPage),
+})
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -237,6 +252,7 @@ const routeTree = rootRoute.addChildren([
   addressBookRoute,
   notificationsRoute,
   stakingRoute,
+  scannerRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

@@ -1,0 +1,15 @@
+{
+  "title": "Scan",
+  "initializing": "Initializing camera...",
+  "requestingPermission": "Requesting camera permission...",
+  "scanPrompt": "Align QR code within frame",
+  "permissionDenied": "Camera permission denied",
+  "error": "Camera error occurred",
+  "retry": "Retry",
+  "gallery": "Gallery",
+  "flashOn": "Flash on",
+  "flashOff": "Flash off",
+  "scanSuccess": "QR code scanned",
+  "noQrFound": "No QR code found",
+  "invalidQr": "Invalid QR code"
+}

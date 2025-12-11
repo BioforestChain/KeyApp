@@ -1,4 +1,5 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { PageHeader } from '@/components/layout/page-header'
 import { AddressInput } from '@/components/transfer/address-input'
 import { AmountInput } from '@/components/transfer/amount-input'
@@ -38,6 +39,9 @@ export function SendPage() {
   const toast = useToast()
   const haptics = useHaptics()
 
+  // Read search params for pre-fill from scanner
+  const { address: initialAddress, amount: initialAmount } = useSearch({ strict: false })
+
   const selectedChain = useSelectedChain()
   const { allAssets } = useAssets()
 
@@ -54,6 +58,16 @@ export function SendPage() {
     reset,
     canProceed,
   } = useSend({ initialAsset: defaultAsset })
+
+  // Pre-fill from search params (scanner integration)
+  useEffect(() => {
+    if (initialAddress && !state.toAddress) {
+      setToAddress(initialAddress)
+    }
+    if (initialAmount && !state.amount) {
+      setAmount(initialAmount)
+    }
+  }, [initialAddress, initialAmount, state.toAddress, state.amount, setToAddress, setAmount])
 
   // Derive formatted values
   const balance = state.asset

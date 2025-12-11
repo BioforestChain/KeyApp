@@ -14,6 +14,7 @@ import {
   Copy,
   ChevronDown,
   Check,
+  ScanLine,
 } from 'lucide-react'
 
 /** 截断地址显示 */
@@ -139,7 +140,7 @@ export function HomePage() {
 
         {/* 操作按钮 - mpay 三按钮布局 */}
         <div className="flex gap-3">
-          <Link to="/send" className="flex-1">
+          <Link to="/send" search={{ address: undefined, chain: undefined, amount: undefined }} className="flex-1">
             <GradientButton variant="blue" className="w-full" size="sm">
               <Send className="mr-1.5 size-4" />
               转账
@@ -175,6 +176,15 @@ export function HomePage() {
           emptyDescription={`${CHAIN_NAMES[selectedChain]} 链上暂无代币`}
         />
       </div>
+
+      {/* Scanner FAB */}
+      <Link
+        to="/scanner"
+        className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
+        aria-label="扫一扫"
+      >
+        <ScanLine className="size-6 text-primary-foreground" />
+      </Link>
 
       {/* 链选择底部弹窗 */}
       <BottomSheet

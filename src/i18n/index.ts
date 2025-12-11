@@ -13,6 +13,7 @@ import enSettings from './locales/en/settings.json'
 import enToken from './locales/en/token.json'
 import enTime from './locales/en/time.json'
 import enEmpty from './locales/en/empty.json'
+import enScanner from './locales/en/scanner.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -26,6 +27,7 @@ import zhCNSettings from './locales/zh-CN/settings.json'
 import zhCNToken from './locales/zh-CN/token.json'
 import zhCNTime from './locales/zh-CN/time.json'
 import zhCNEmpty from './locales/zh-CN/empty.json'
+import zhCNScanner from './locales/zh-CN/scanner.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -39,6 +41,7 @@ import zhTWSettings from './locales/zh-TW/settings.json'
 import zhTWToken from './locales/zh-TW/token.json'
 import zhTWTime from './locales/zh-TW/time.json'
 import zhTWEmpty from './locales/zh-TW/empty.json'
+import zhTWScanner from './locales/zh-TW/scanner.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -52,6 +55,7 @@ import arSettings from './locales/ar/settings.json'
 import arToken from './locales/ar/token.json'
 import arTime from './locales/ar/time.json'
 import arEmpty from './locales/ar/empty.json'
+import arScanner from './locales/ar/scanner.json'
 
 // 语言配置
 export const languages = {
@@ -78,6 +82,7 @@ export const namespaces = [
   'token',
   'time',
   'empty',
+  'scanner',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -108,6 +113,7 @@ i18n.use(initReactI18next).init({
       token: enToken,
       time: enTime,
       empty: enEmpty,
+      scanner: enScanner,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -121,6 +127,7 @@ i18n.use(initReactI18next).init({
       token: zhCNToken,
       time: zhCNTime,
       empty: zhCNEmpty,
+      scanner: zhCNScanner,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -134,6 +141,7 @@ i18n.use(initReactI18next).init({
       token: zhTWToken,
       time: zhTWTime,
       empty: zhTWEmpty,
+      scanner: zhTWScanner,
     },
     ar: {
       common: arCommon,
@@ -147,6 +155,7 @@ i18n.use(initReactI18next).init({
       token: arToken,
       time: arTime,
       empty: arEmpty,
+      scanner: arScanner,
     },
   },
   lng: defaultLanguage,

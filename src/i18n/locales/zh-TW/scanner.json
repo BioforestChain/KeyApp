@@ -1,0 +1,15 @@
+{
+  "title": "掃一掃",
+  "initializing": "正在初始化相機...",
+  "requestingPermission": "正在請求相機權限...",
+  "scanPrompt": "將二維碼對準框內",
+  "permissionDenied": "相機權限被拒絕",
+  "error": "相機發生錯誤",
+  "retry": "重試",
+  "gallery": "相簿",
+  "flashOn": "閃光燈開啟",
+  "flashOff": "閃光燈關閉",
+  "scanSuccess": "二維碼已掃描",
+  "noQrFound": "未找到二維碼",
+  "invalidQr": "無效的二維碼"
+}

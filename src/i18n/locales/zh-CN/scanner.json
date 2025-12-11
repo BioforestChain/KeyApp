@@ -1,0 +1,15 @@
+{
+  "title": "扫一扫",
+  "initializing": "正在初始化相机...",
+  "requestingPermission": "正在请求相机权限...",
+  "scanPrompt": "将二维码对准框内",
+  "permissionDenied": "相机权限被拒绝",
+  "error": "相机发生错误",
+  "retry": "重试",
+  "gallery": "相册",
+  "flashOn": "闪光灯开启",
+  "flashOff": "闪光灯关闭",
+  "scanSuccess": "二维码已扫描",
+  "noQrFound": "未找到二维码",
+  "invalidQr": "无效的二维码"
+}
