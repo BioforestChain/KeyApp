@@ -48,6 +48,9 @@ export function WelcomeScreen() {
     },
   ]
 
+  const currentSlideData = slides[currentSlide]
+  if (!currentSlideData) return null
+
   const handleGetStarted = useCallback(() => {
     markWelcomeSeen()
     navigate({ to: '/wallet/create' })
@@ -83,13 +86,13 @@ export function WelcomeScreen() {
       {/* Slide content */}
       <div className="flex flex-1 flex-col items-center justify-center px-8">
         <div className="mb-8 flex size-32 items-center justify-center rounded-full bg-primary/10">
-          {slides[currentSlide].icon}
+          {currentSlideData.icon}
         </div>
         <h1 className="mb-4 text-center text-2xl font-bold">
-          {t(slides[currentSlide].titleKey)}
+          {t(currentSlideData.titleKey)}
         </h1>
         <p className="mb-8 max-w-sm text-center text-muted-foreground">
-          {t(slides[currentSlide].descriptionKey)}
+          {t(currentSlideData.descriptionKey)}
         </p>
 
         {/* Dots indicator */}

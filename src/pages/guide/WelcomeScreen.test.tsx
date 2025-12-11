@@ -102,7 +102,8 @@ describe('WelcomeScreen', () => {
     it('clicking dot navigates to that slide', () => {
       render(<WelcomeScreen />)
       const dots = screen.getAllByRole('button', { name: /Go to slide/i })
-      fireEvent.click(dots[2]) // Third dot
+      const thirdDot = dots[2]
+      if (thirdDot) fireEvent.click(thirdDot) // Third dot
       expect(screen.getByText('Comprehensive Security')).toBeInTheDocument()
     })
 
