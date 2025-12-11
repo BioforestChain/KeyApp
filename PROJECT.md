@@ -32,6 +32,11 @@ pnpm typecheck        # TypeScript check
 pnpm build            # Production build
 ```
 
+/b 你是PeerB ，你现在需要继续引导 PeerA完成我们的工作。接下来的主要工作就是确保mpay的用户能平滑地升级迁移到我们的新版App上。
+接下来的任务主要是两点：
+1. 继续把用户故事实现，并确保有配套的e2e测试和截图
+2. 完善我们的配色、国际化，确保应用达到产品级可用性
+
 ## 职责
 
 1. PeerB主要负责编写计划与规范、代码审查、响应用户提出的问题和需求（包括收集并处理github-issues）

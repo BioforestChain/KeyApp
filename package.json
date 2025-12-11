@@ -31,7 +31,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "gen:stable": "bun scripts/gen-stable.ts"
+    "gen:stable": "bun scripts/gen-stable.ts",
+    "i18n:extract": "bun scripts/i18n-extract.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.2.8",
