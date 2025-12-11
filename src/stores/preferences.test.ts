@@ -13,6 +13,14 @@ vi.mock('@/i18n', () => ({
     ar: { name: 'العربية', dir: 'rtl' },
   },
   defaultLanguage: 'zh-CN',
+  getLanguageDirection: (lang: string) => {
+    const dirs: Record<string, 'ltr' | 'rtl'> = {
+      'zh-CN': 'ltr',
+      en: 'ltr',
+      ar: 'rtl',
+    }
+    return dirs[lang] ?? 'ltr'
+  },
 }))
 
 // Mock localStorage
@@ -72,6 +80,16 @@ describe('preferencesStore', () => {
       // Safe: setItem was just called, mock.calls[0] exists
       const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).language).toBe('en')
+    })
+
+    it('sets document direction to RTL for Arabic', () => {
+      preferencesActions.setLanguage('ar')
+      expect(document.documentElement.dir).toBe('rtl')
+    })
+
+    it('sets document direction to LTR for English', () => {
+      preferencesActions.setLanguage('en')
+      expect(document.documentElement.dir).toBe('ltr')
     })
   })
 

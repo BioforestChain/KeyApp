@@ -57,6 +57,37 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        // 手动分块，减少主 chunk 体积
+        manualChunks(id) {
+          // React 核心
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor'
+          }
+          // TanStack
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'tanstack'
+          }
+          // Radix UI
+          if (id.includes('node_modules/@radix-ui/')) {
+            return 'radix'
+          }
+          // 动画
+          if (id.includes('node_modules/motion/') || id.includes('node_modules/framer-motion/')) {
+            return 'motion'
+          }
+          // i18n
+          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
+            return 'i18n'
+          }
+          // 加密库 - 最大的依赖
+          if (id.includes('node_modules/@noble/') || id.includes('node_modules/@scure/')) {
+            return 'crypto'
+          }
+          // BioForest 链库
+          if (id.includes('node_modules/@bnqkl/')) {
+            return 'bioforest'
+          }
+        },
       },
     },
   },

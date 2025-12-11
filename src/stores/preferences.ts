@@ -1,7 +1,7 @@
 import { Store } from '@tanstack/react-store'
 import { useStore } from '@tanstack/react-store'
 import i18n from '@/i18n'
-import { type LanguageCode, languages, defaultLanguage } from '@/i18n'
+import { type LanguageCode, languages, defaultLanguage, getLanguageDirection } from '@/i18n'
 
 // Storage key
 const PREFERENCES_KEY = 'bfmpay_preferences'
@@ -62,6 +62,8 @@ export const preferencesActions = {
   setLanguage(lang: LanguageCode): void {
     // Update i18n
     i18n.changeLanguage(lang)
+    // Update document direction for RTL support
+    document.documentElement.dir = getLanguageDirection(lang)
     // Update store
     preferencesStore.setState((state) => {
       const newState = { ...state, language: lang }
@@ -86,12 +88,14 @@ export const preferencesActions = {
     })
   },
 
-  /** 初始化 - 同步 i18n 语言 */
+  /** 初始化 - 同步 i18n 语言和文字方向 */
   initialize(): void {
     const state = preferencesStore.state
     if (state.language !== i18n.language) {
       i18n.changeLanguage(state.language)
     }
+    // Set document direction for RTL support
+    document.documentElement.dir = getLanguageDirection(state.language)
   },
 }
 
