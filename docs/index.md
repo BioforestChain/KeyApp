@@ -31,6 +31,7 @@ features:
     title: 组件库
     details: 使用 Storybook 构建的现代化 React 组件库
     link: ./storybook/
+    target: _self
 ---
 
 ## 快速开始
