@@ -4,6 +4,7 @@
   "mint": "铸造",
   "burn": "销毁",
   "history": "历史",
+  "refresh": "刷新",
   "stakedAmount": "已质押金额",
   "availableBalance": "可用余额",
   "selectChain": "选择链",

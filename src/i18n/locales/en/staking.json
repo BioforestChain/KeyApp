@@ -4,6 +4,7 @@
   "mint": "Mint",
   "burn": "Burn",
   "history": "History",
+  "refresh": "Refresh",
   "stakedAmount": "Staked Amount",
   "availableBalance": "Available Balance",
   "selectChain": "Select Chain",

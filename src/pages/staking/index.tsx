@@ -1,6 +1,6 @@
 /**
  * Staking Page - Main entry point
- * Provides tab navigation between Overview, Mint, and Burn
+ * Provides tab navigation between Overview, Mint, Burn, and History
  */
 
 import { useState } from 'react'
@@ -8,10 +8,10 @@ import { useTranslation } from 'react-i18next'
 import { useRouter } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { cn } from '@/lib/utils'
-import { StakingOverviewPanel, MintForm, BurnForm } from './components'
+import { StakingOverviewPanel, MintForm, BurnForm, StakingRecordList } from './components'
 import type { StakingOverviewItem } from '@/types/staking'
 
-type StakingTab = 'overview' | 'mint' | 'burn'
+type StakingTab = 'overview' | 'mint' | 'burn' | 'history'
 
 /** Staking page with tab navigation */
 export function StakingPage() {
@@ -23,6 +23,7 @@ export function StakingPage() {
     { id: 'overview', label: t('overview') },
     { id: 'mint', label: t('mint') },
     { id: 'burn', label: t('burn') },
+    { id: 'history', label: t('history') },
   ]
 
   /** Handle mint button click - switch to mint tab */
@@ -58,6 +59,7 @@ export function StakingPage() {
         {activeTab === 'overview' && <StakingOverviewPanel onMint={handleMint} />}
         {activeTab === 'mint' && <StakingMintPanel />}
         {activeTab === 'burn' && <StakingBurnPanel />}
+        {activeTab === 'history' && <StakingRecordList />}
       </div>
     </div>
   )

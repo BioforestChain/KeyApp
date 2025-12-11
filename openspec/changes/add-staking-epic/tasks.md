@@ -25,7 +25,7 @@
 - [ ] 4.5 Write Storybook stories + unit tests
 
 ## Phase 5: History & Polish
-- [ ] 5.1 Create StakingRecordList component
+- [x] 5.1 Create StakingRecordList component
 - [ ] 5.2 Implement transaction filtering
 - [ ] 5.3 Add E2E tests for staking flows
 - [ ] 5.4 Update E2E baselines
