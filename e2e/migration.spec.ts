@@ -199,9 +199,8 @@ test.describe('mpay 迁移流程', () => {
     expect(migrationStatus).toBe('skipped')
   })
 
-  // Note: Password verification test is skipped pending investigation of AES decryption validation
-  // The current implementation seems to accept any password - this needs review in migration-service.ts
-  test.skip('密码错误重试', async ({ page }) => {
+  // Note: Password verification test was skipped pending AES decryption validation fix - now enabled
+  test('密码错误重试', async ({ page }) => {
     // Seed mpay data
     await seedMpayData(page, TEST_PASSWORD)
     await page.reload()
