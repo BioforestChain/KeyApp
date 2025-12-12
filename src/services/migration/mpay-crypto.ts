@@ -7,6 +7,8 @@
  * 此模块提供 mpay 数据解密能力
  */
 
+import { validateMnemonic } from '@/lib/crypto/mnemonic'
+
 /**
  * SHA256 哈希
  */
@@ -98,8 +100,8 @@ export async function verifyMpayPassword(
 ): Promise<boolean> {
   try {
     const decrypted = await decryptMpayData(password, encryptedBase64)
-    // 简单验证解密结果是否像助记词（包含空格分隔的单词）
-    return decrypted.includes(' ') || decrypted.length > 0
+    const words = decrypted.trim().split(/\s+/)
+    return validateMnemonic(words)
   } catch {
     return false
   }

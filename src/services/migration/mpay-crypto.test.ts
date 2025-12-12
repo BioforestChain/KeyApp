@@ -112,17 +112,30 @@ describe('mpay-crypto', () => {
   describe('verifyMpayPassword', () => {
     it('should return true for correct password', async () => {
       const password = 'testpassword'
+      const mnemonic =
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+      const encrypted = await encryptWithMpayFormat(password, mnemonic)
+      const isValid = await verifyMpayPassword(password, encrypted)
+
+      expect(isValid).toBe(true)
+    })
+
+    it('should return false for wrong password', async () => {
+      const correctPassword = 'testpassword'
+      const wrongPassword = 'wrongpassword'
       const mnemonic = 'abandon ability able about above absent'
 
-      const encrypted = await encryptWithMpayFormat(password, mnemonic)
-      const isValid = await verifyMpayPassword(password, encrypted)
+      const encrypted = await encryptWithMpayFormat(correctPassword, mnemonic)
+      const isValid = await verifyMpayPassword(wrongPassword, encrypted)
 
-      expect(isValid).toBe(true)
+      expect(isValid).toBe(false)
     })
 
-    it('should return true for mnemonic with spaces', async () => {
+    it('should return true for valid 12-word mnemonic', async () => {
       const password = 'test'
-      const mnemonic = 'word1 word2 word3'
+      const mnemonic =
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
       const encrypted = await encryptWithMpayFormat(password, mnemonic)
       const isValid = await verifyMpayPassword(password, encrypted)
@@ -130,14 +143,14 @@ describe('mpay-crypto', () => {
       expect(isValid).toBe(true)
     })
 
-    it('should return true for non-empty result', async () => {
+    it('should return false for non-mnemonic plaintext', async () => {
       const password = 'test'
       const plaintext = 'singleword'
 
       const encrypted = await encryptWithMpayFormat(password, plaintext)
       const isValid = await verifyMpayPassword(password, encrypted)
 
-      expect(isValid).toBe(true)
+      expect(isValid).toBe(false)
     })
 
     it('should handle invalid base64 gracefully', async () => {
