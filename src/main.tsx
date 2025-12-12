@@ -6,6 +6,7 @@ import { I18nextProvider } from 'react-i18next'
 import i18n from './i18n'
 import { router } from './routes'
 import { ServiceProvider } from './services'
+import { MigrationProvider } from './contexts/MigrationContext'
 import './styles/globals.css'
 
 const rootElement = document.getElementById('root')
@@ -14,9 +15,11 @@ if (!rootElement) throw new Error('Root element not found')
 createRoot(rootElement).render(
   <StrictMode>
     <ServiceProvider>
-      <I18nextProvider i18n={i18n}>
-        <RouterProvider router={router} />
-      </I18nextProvider>
+      <MigrationProvider>
+        <I18nextProvider i18n={i18n}>
+          <RouterProvider router={router} />
+        </I18nextProvider>
+      </MigrationProvider>
     </ServiceProvider>
   </StrictMode>,
 )

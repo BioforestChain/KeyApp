@@ -1,0 +1,50 @@
+{
+  "title": "Wallet Migration",
+  "noDataFound": "No mpay wallet data detected",
+  "goBack": "Go Back",
+  "startMigration": "Start Migration",
+  "skipMigration": "Skip, create new wallet",
+  "detected": {
+    "title": "mpay Wallet Detected",
+    "description": "Found {{count}} wallet(s) that can be migrated to KeyApp"
+  },
+  "password": {
+    "title": "Verify mpay Password",
+    "description": "Enter your mpay wallet password to continue migration",
+    "placeholder": "Enter password",
+    "required": "Please enter password",
+    "incorrect": "Incorrect password, {{count}} retries remaining",
+    "lastRetry": "Warning: This is your last retry attempt",
+    "verify": "Verify Password",
+    "verifying": "Verifying...",
+    "skip": "Skip, create new wallet"
+  },
+  "progress": {
+    "title": {
+      "migrating": "Migrating...",
+      "complete": "Migration Complete"
+    },
+    "detecting": "Detecting data...",
+    "verifying": "Verifying password...",
+    "reading": "Reading wallet data...",
+    "transforming": "Converting data format...",
+    "importing": "Importing wallets...",
+    "complete": "Migration complete",
+    "currentWallet": "Current: {{name}}",
+    "walletCount": "{{processed}} / {{total}} wallets"
+  },
+  "complete": {
+    "success": {
+      "title": "Migration Successful",
+      "description": "Successfully imported {{count}} wallet(s)",
+      "skipped": "{{count}} address(es) skipped due to unsupported chain type"
+    },
+    "error": {
+      "title": "Migration Failed",
+      "description": "An error occurred during migration, please retry"
+    },
+    "goHome": "Enter Wallet",
+    "skip": "Skip, create new wallet",
+    "retry": "Retry"
+  }
+}

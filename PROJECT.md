@@ -18,7 +18,7 @@ BFM Pay 是 mpay 的技术重构版本，目标是构建一个现代化的多链
 
 | Path       | Description                           |
 | ---------- | ------------------------------------- |
-| `../mpay/` | Original mpay codebase - 原始实现参考 |
+| `../legacy-apps/apps/mpay/` | Original mpay codebase - 原始实现参考 |
 | `src/`     | Current implementation - 当前代码实现 |
 
 ## Quick Commands

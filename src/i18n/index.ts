@@ -15,6 +15,7 @@ import enTime from './locales/en/time.json'
 import enEmpty from './locales/en/empty.json'
 import enScanner from './locales/en/scanner.json'
 import enGuide from './locales/en/guide.json'
+import enMigration from './locales/en/migration.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -30,6 +31,7 @@ import zhCNTime from './locales/zh-CN/time.json'
 import zhCNEmpty from './locales/zh-CN/empty.json'
 import zhCNScanner from './locales/zh-CN/scanner.json'
 import zhCNGuide from './locales/zh-CN/guide.json'
+import zhCNMigration from './locales/zh-CN/migration.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -45,6 +47,7 @@ import zhTWTime from './locales/zh-TW/time.json'
 import zhTWEmpty from './locales/zh-TW/empty.json'
 import zhTWScanner from './locales/zh-TW/scanner.json'
 import zhTWGuide from './locales/zh-TW/guide.json'
+import zhTWMigration from './locales/zh-TW/migration.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -60,6 +63,7 @@ import arTime from './locales/ar/time.json'
 import arEmpty from './locales/ar/empty.json'
 import arScanner from './locales/ar/scanner.json'
 import arGuide from './locales/ar/guide.json'
+import arMigration from './locales/ar/migration.json'
 
 // 语言配置
 export const languages = {
@@ -88,6 +92,7 @@ export const namespaces = [
   'empty',
   'scanner',
   'guide',
+  'migration',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -120,6 +125,7 @@ i18n.use(initReactI18next).init({
       empty: enEmpty,
       scanner: enScanner,
       guide: enGuide,
+      migration: enMigration,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -135,6 +141,7 @@ i18n.use(initReactI18next).init({
       empty: zhCNEmpty,
       scanner: zhCNScanner,
       guide: zhCNGuide,
+      migration: zhCNMigration,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -150,6 +157,7 @@ i18n.use(initReactI18next).init({
       empty: zhTWEmpty,
       scanner: zhTWScanner,
       guide: zhTWGuide,
+      migration: zhTWMigration,
     },
     ar: {
       common: arCommon,
@@ -165,6 +173,7 @@ i18n.use(initReactI18next).init({
       empty: arEmpty,
       scanner: arScanner,
       guide: arGuide,
+      migration: arMigration,
     },
   },
   lng: defaultLanguage,

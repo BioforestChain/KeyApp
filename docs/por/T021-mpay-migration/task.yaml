@@ -1,0 +1,47 @@
+id: T021
+name: mpay Data Migration
+goal: Detect and migrate existing mpay wallet data to KeyApp on first launch
+status: complete
+openspec: add-mpay-migration
+steps:
+  - id: S1
+    name: Migration Detection
+    done: useMpayDetection hook, MigrationContext, onboarding trigger, migrate route
+    status: complete
+  - id: S2
+    name: Migration Service
+    done: mpay-crypto, mpay-transformer, migration-service orchestrator
+    status: complete
+  - id: S3
+    name: Migration UI
+    done: MigrationDetectedSheet, PasswordStep, ProgressStep, CompleteStep, MigrationPage wired up
+    status: complete
+  - id: S4
+    name: Unit Tests
+    done: Tests for reader, transformer, crypto, service orchestrator (80 tests total)
+    status: complete
+    outputs:
+      - path: src/services/migration/mpay-reader.test.ts
+        note: 15 tests - IndexedDB detection, wallet/address reading
+      - path: src/services/migration/mpay-transformer.test.ts
+        note: 23 tests - wallet transformation, chain mapping
+      - path: src/services/migration/mpay-crypto.test.ts
+        note: 10 tests - AES-CTR decryption, password verification
+      - path: src/services/migration/migration-service.test.ts
+        note: 32 tests - service orchestration, status management, error handling
+  - id: S5
+    name: E2E Tests
+    done: Full migration flow E2E with screenshots
+    status: complete
+    outputs:
+      - path: e2e/migration.spec.ts
+        note: 6 pass, 2 skipped (password retry deferred)
+      - path: e2e/__screenshots__/*/migration-*.png
+        note: 8 screenshot baselines
+  - id: S6
+    name: i18n Files
+    done: migration.json for en/zh-CN/zh-TW/ar locales
+    status: complete
+    outputs:
+      - path: src/i18n/locales/*/migration.json
+        note: 4 locale files with ~50 keys each

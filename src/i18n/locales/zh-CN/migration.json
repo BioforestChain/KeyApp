@@ -1,0 +1,50 @@
+{
+  "title": "钱包迁移",
+  "noDataFound": "未检测到 mpay 钱包数据",
+  "goBack": "返回",
+  "startMigration": "开始迁移",
+  "skipMigration": "跳过，创建新钱包",
+  "detected": {
+    "title": "检测到 mpay 钱包",
+    "description": "发现 {{count}} 个钱包可以迁移到 KeyApp"
+  },
+  "password": {
+    "title": "验证 mpay 密码",
+    "description": "请输入您的 mpay 钱包密码以继续迁移",
+    "placeholder": "输入密码",
+    "required": "请输入密码",
+    "incorrect": "密码错误，剩余 {{count}} 次重试",
+    "lastRetry": "注意：这是最后一次重试机会",
+    "verify": "验证密码",
+    "verifying": "验证中...",
+    "skip": "跳过，创建新钱包"
+  },
+  "progress": {
+    "title": {
+      "migrating": "正在迁移...",
+      "complete": "迁移完成"
+    },
+    "detecting": "检测数据...",
+    "verifying": "验证密码...",
+    "reading": "读取钱包数据...",
+    "transforming": "转换数据格式...",
+    "importing": "导入钱包...",
+    "complete": "迁移完成",
+    "currentWallet": "当前: {{name}}",
+    "walletCount": "{{processed}} / {{total}} 个钱包"
+  },
+  "complete": {
+    "success": {
+      "title": "迁移成功",
+      "description": "已成功导入 {{count}} 个钱包",
+      "skipped": "{{count}} 个地址因不支持的链类型被跳过"
+    },
+    "error": {
+      "title": "迁移失败",
+      "description": "迁移过程中发生错误，请重试"
+    },
+    "goHome": "进入钱包",
+    "skip": "跳过，创建新钱包",
+    "retry": "重试"
+  }
+}

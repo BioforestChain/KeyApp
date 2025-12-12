@@ -1,0 +1,50 @@
+{
+  "title": "نقل المحفظة",
+  "noDataFound": "لم يتم اكتشاف بيانات محفظة mpay",
+  "goBack": "رجوع",
+  "startMigration": "بدء النقل",
+  "skipMigration": "تخطي، إنشاء محفظة جديدة",
+  "detected": {
+    "title": "تم اكتشاف محفظة mpay",
+    "description": "تم العثور على {{count}} محفظة يمكن نقلها إلى KeyApp"
+  },
+  "password": {
+    "title": "التحقق من كلمة مرور mpay",
+    "description": "أدخل كلمة مرور محفظة mpay للمتابعة في النقل",
+    "placeholder": "أدخل كلمة المرور",
+    "required": "الرجاء إدخال كلمة المرور",
+    "incorrect": "كلمة المرور غير صحيحة، {{count}} محاولات متبقية",
+    "lastRetry": "تحذير: هذه آخر محاولة لك",
+    "verify": "التحقق من كلمة المرور",
+    "verifying": "جاري التحقق...",
+    "skip": "تخطي، إنشاء محفظة جديدة"
+  },
+  "progress": {
+    "title": {
+      "migrating": "جاري النقل...",
+      "complete": "اكتمل النقل"
+    },
+    "detecting": "اكتشاف البيانات...",
+    "verifying": "التحقق من كلمة المرور...",
+    "reading": "قراءة بيانات المحفظة...",
+    "transforming": "تحويل تنسيق البيانات...",
+    "importing": "استيراد المحافظ...",
+    "complete": "اكتمل النقل",
+    "currentWallet": "الحالي: {{name}}",
+    "walletCount": "{{processed}} / {{total}} محفظة"
+  },
+  "complete": {
+    "success": {
+      "title": "تم النقل بنجاح",
+      "description": "تم استيراد {{count}} محفظة بنجاح",
+      "skipped": "تم تخطي {{count}} عنوان بسبب نوع سلسلة غير مدعوم"
+    },
+    "error": {
+      "title": "فشل النقل",
+      "description": "حدث خطأ أثناء النقل، يرجى إعادة المحاولة"
+    },
+    "goHome": "دخول المحفظة",
+    "skip": "تخطي، إنشاء محفظة جديدة",
+    "retry": "إعادة المحاولة"
+  }
+}

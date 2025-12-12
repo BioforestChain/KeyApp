@@ -31,6 +31,7 @@ const TransactionDetailPage = lazy(() => import('@/pages/history/detail').then((
 // Onboarding pages
 const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
 const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').then((m) => ({ default: m.OnboardingRecoverPage })))
+const MigrationPage = lazy(() => import('@/pages/onboarding/migrate').then((m) => ({ default: m.MigrationPage })))
 
 // Address Book page
 const AddressBookPage = lazy(() => import('@/pages/address-book').then((m) => ({ default: m.AddressBookPage })))
@@ -201,6 +202,12 @@ const onboardingRecoverRoute = createRoute({
   component: withSuspense(OnboardingRecoverPage),
 })
 
+const onboardingMigrateRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: '/migrate',
+  component: withSuspense(MigrationPage),
+})
+
 // Address Book 路由
 const addressBookRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -248,6 +255,7 @@ const routeTree = rootRoute.addChildren([
   onboardingRoute.addChildren([
     onboardingCreateRoute,
     onboardingRecoverRoute,
+    onboardingMigrateRoute,
   ]),
   tokenRoute,
   sendRoute,
