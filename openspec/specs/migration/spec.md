@@ -1,7 +1,8 @@
-# Spec: Migration - Address Book Extension
+# migration Specification
 
-## MODIFIED Requirements
-
+## Purpose
+TBD - created by archiving change add-mpay-address-book-migration. Update Purpose after archive.
+## Requirements
 ### Requirement: mpay Data Detection
 The system SHALL automatically detect existing mpay wallet data and address book contacts on first launch.
 
@@ -26,8 +27,6 @@ The system SHALL automatically detect existing mpay wallet data and address book
 - **WHEN** KeyApp launches
 - **AND** `migration_status` is `completed` or `skipped`
 - **THEN** the system SHALL NOT display the migration prompt
-
-## ADDED Requirements
 
 ### Requirement: Address Book Migration
 The system SHALL migrate mpay address book contacts to KeyApp format.
@@ -62,3 +61,4 @@ The system SHALL display progress during address book migration.
 - **WHEN** migration completes successfully
 - **AND** contacts were migrated
 - **THEN** the system SHALL display success message including contact count
+
