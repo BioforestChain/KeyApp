@@ -14,9 +14,9 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: './e2e/test-results',
   
-  // 移除操作系统后缀，使用统一的基线截图
+  // 统一的基线截图，包含项目名称以区分不同视口
   // {testDir} = e2e, {testFileDir} = 相对路径, {testFileName} = 文件名
-  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{arg}{ext}',
+  snapshotPathTemplate: '{snapshotDir}/{projectName}/{arg}{ext}',
   snapshotDir: './e2e/__screenshots__',
   
   fullyParallel: true,
