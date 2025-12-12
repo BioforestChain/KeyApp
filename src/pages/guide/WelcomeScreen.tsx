@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, Send, Link2, Shield } from 'lucide-react'
+import { ArrowRight, Send, Link2, Shield, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useMigrationOptional } from '@/contexts/MigrationContext'
 
 const WELCOME_SHOWN_KEY = 'keyapp_welcome_shown'
 
@@ -29,6 +30,7 @@ export function WelcomeScreen() {
   const { t } = useTranslation('guide')
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const migration = useMigrationOptional()
 
   const slides: WelcomeSlide[] = [
     {
@@ -61,6 +63,11 @@ export function WelcomeScreen() {
     navigate({ to: '/wallet/import' })
   }, [navigate])
 
+  const handleMigrate = useCallback(() => {
+    markWelcomeSeen()
+    navigate({ to: '/onboarding/migrate' })
+  }, [navigate])
+
   const handleSkip = useCallback(() => {
     markWelcomeSeen()
     navigate({ to: '/' })
@@ -73,6 +80,7 @@ export function WelcomeScreen() {
   }, [currentSlide, slides.length])
 
   const isLastSlide = currentSlide === slides.length - 1
+  const shouldShowMigration = migration?.shouldPromptMigration
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -115,7 +123,19 @@ export function WelcomeScreen() {
       <div className="p-6">
         {isLastSlide ? (
           <div className="flex flex-col gap-3">
-            <Button onClick={handleGetStarted} className="w-full" size="lg">
+            {/* Migration button - shown when mpay data detected */}
+            {shouldShowMigration && (
+              <Button onClick={handleMigrate} className="w-full" size="lg" variant="default">
+                <Download className="mr-2 size-4" />
+                {t('welcome.migrateFromMpay', { defaultValue: '从 mpay 迁移钱包' })}
+              </Button>
+            )}
+            <Button
+              onClick={handleGetStarted}
+              className="w-full"
+              size="lg"
+              variant={shouldShowMigration ? 'outline' : 'default'}
+            >
               {t('welcome.getStarted')}
             </Button>
             <Button
