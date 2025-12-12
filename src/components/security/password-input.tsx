@@ -1,5 +1,6 @@
 import { useState, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -35,6 +36,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const [visible, setVisible] = useState(false)
     const [strength, setStrength] = useState<PasswordStrength>('weak')
     const [hasValue, setHasValue] = useState(!!value)
+    const { t } = useTranslation()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value
@@ -71,7 +73,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onClick={() => setVisible(!visible)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
             tabIndex={-1}
-            aria-label={visible ? '隐藏密码' : '显示密码'}
+            aria-label={visible ? t('a11y.hidePassword') : t('a11y.showPassword')}
           >
             {visible ? (
               <EyeOff className="size-5" />
@@ -82,18 +84,19 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         </div>
 
         {showStrength && hasValue && (
-          <div className="space-y-1">
-            <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-              <div 
+          <div className="space-y-1" aria-live="polite" aria-atomic="true">
+            <div className="h-1 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={strength === 'weak' ? 33 : strength === 'medium' ? 66 : 100} aria-valuemin={0} aria-valuemax={100}>
+              <div
                 className={cn('h-full transition-all duration-300', config.color, config.width)}
               />
             </div>
             <p className="text-xs text-muted">
-              密码强度：<span className={cn(
+              <span className="sr-only">{t('a11y.passwordStrength', { strength: config.label })}</span>
+              <span aria-hidden="true">密码强度：<span className={cn(
                 strength === 'weak' && 'text-destructive',
                 strength === 'medium' && 'text-yellow-500',
                 strength === 'strong' && 'text-secondary',
-              )}>{config.label}</span>
+              )}>{config.label}</span></span>
             </p>
           </div>
         )}

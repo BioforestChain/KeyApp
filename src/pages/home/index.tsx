@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { TokenList } from '@/components/token/token-list'
 import { GradientButton } from '@/components/common/gradient-button'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,8 @@ export function HomePage() {
   const clipboard = useClipboard()
   const toast = useToast()
   const haptics = useHaptics()
-  
+  const { t } = useTranslation()
+
   const isInitialized = useWalletInitialized()
   const hasWallet = useHasWallet()
   const currentWallet = useCurrentWallet()
@@ -109,6 +111,7 @@ export function HomePage() {
           data-testid="chain-selector"
           onClick={() => setChainSheetOpen(true)}
           className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
+          aria-label={t('a11y.chainSelector')}
         >
           <ChainIcon chain={selectedChain} size="sm" />
           <span>{CHAIN_NAMES[selectedChain]}</span>
@@ -127,7 +130,7 @@ export function HomePage() {
             <button
               onClick={handleCopyAddress}
               className="rounded p-1 hover:bg-white/10"
-              aria-label="复制地址"
+              aria-label={t('a11y.copyAddress')}
             >
               {copied ? (
                 <Check className="size-4 text-green-300" />
@@ -181,7 +184,7 @@ export function HomePage() {
       <Link
         to="/scanner"
         className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
-        aria-label="扫一扫"
+        aria-label={t('a11y.scan')}
       >
         <ScanLine className="size-6 text-primary-foreground" />
       </Link>

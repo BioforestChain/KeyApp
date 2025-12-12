@@ -6,6 +6,8 @@ export interface TabItem {
   icon: React.ReactNode
   activeIcon?: React.ReactNode
   badge?: number | string
+  /** Accessible label for screen readers (should be localized) */
+  ariaLabel?: string
 }
 
 interface TabBarProps {
@@ -36,6 +38,7 @@ export function TabBar({ items, activeId, onTabChange, className }: TabBarProps)
                 isActive ? 'text-primary' : 'text-muted hover:text-foreground'
               )}
               aria-current={isActive ? 'page' : undefined}
+              aria-label={item.ariaLabel || item.label}
             >
               <span className="relative">
                 {isActive && item.activeIcon ? item.activeIcon : item.icon}

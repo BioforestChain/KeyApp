@@ -1,5 +1,6 @@
-import { useState, forwardRef } from 'react'
+import { useState, forwardRef, useId } from 'react'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { ScanLine, ClipboardPaste } from 'lucide-react'
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -25,9 +26,12 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
   ({ value = '', onChange, onScan, onPaste, error, label, className, ...props }, ref) => {
     const [focused, setFocused] = useState(false)
     const [internalValue, setInternalValue] = useState(value)
-    
+    const { t } = useTranslation()
+    const errorId = useId()
+
     const currentValue = value || internalValue
     const isValid = isValidAddress(currentValue)
+    const hasError = !!(error || (!isValid && currentValue))
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value.trim()
@@ -56,7 +60,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
           className={cn(
             'relative flex items-center gap-1 rounded-xl border bg-background p-2 transition-colors @xs:gap-2 @xs:p-3',
             focused ? 'border-primary ring-2 ring-primary/20' : 'border-input',
-            (error || (!isValid && currentValue)) && 'border-destructive ring-2 ring-destructive/20'
+            hasError && 'border-destructive ring-2 ring-destructive/20'
           )}
         >
           <input
@@ -72,6 +76,8 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             autoCapitalize="off"
             autoCorrect="off"
             spellCheck={false}
+            aria-invalid={hasError}
+            aria-describedby={hasError ? errorId : undefined}
             {...props}
           />
           
@@ -81,7 +87,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                 type="button"
                 onClick={onScan}
                 className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-muted/50 transition-colors @xs:p-2"
-                aria-label="扫描二维码"
+                aria-label={t('a11y.scanQrCode')}
               >
                 <ScanLine className="size-5" />
               </button>
@@ -90,17 +96,24 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
               type="button"
               onClick={handlePaste}
               className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-muted/50 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:text-primary @xs:hover:text-primary/80 @xs:hover:bg-transparent"
-              aria-label="粘贴"
+              aria-label={t('a11y.paste')}
             >
               <ClipboardPaste className="size-5 @xs:hidden" />
               <span className="hidden @xs:inline">粘贴</span>
             </button>
           </div>
         </div>
-        
-        {(error || (!isValid && currentValue)) && (
-          <p className="-mt-0.5 text-xs text-destructive">
-            {error || '无效的地址格式'}
+
+        {/* Error message with aria-live for screen readers */}
+        {hasError && (
+          <p
+            id={errorId}
+            className="-mt-0.5 text-xs text-destructive"
+            role="alert"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {error || t('a11y.invalidAddress')}
           </p>
         )}
       </div>

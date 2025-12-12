@@ -14,6 +14,28 @@ testI18n.use(initReactI18next).init({
   resources: {
     'zh-CN': {
       translation: {
+        a11y: {
+          skipToMain: '跳转到主要内容',
+          tabHome: '首页',
+          tabTransfer: '转账',
+          tabWallet: '钱包',
+          tabSettings: '设置',
+          tabHistory: '交易记录',
+          scan: '扫描二维码',
+          scanQrCode: '扫描二维码',
+          chainSelector: '选择区块链网络',
+          copyAddress: '复制地址',
+          paste: '粘贴',
+          refresh: '刷新',
+          selectChain: '选择链',
+          selectPeriod: '选择时间段',
+          tokenDetails: '查看 {{token}} 详情',
+          showPassword: '显示密码',
+          hidePassword: '隐藏密码',
+          passwordStrength: '密码强度：{{strength}}',
+          closeDialog: '关闭弹窗',
+          invalidAddress: '无效的地址格式',
+        },
         common: {
           loading: '加载中',
           copy: '复制',

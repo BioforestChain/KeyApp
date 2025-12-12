@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { ChainIcon, type ChainType } from '../wallet/chain-icon'
 import { AmountDisplay } from '../common'
 
@@ -21,6 +22,7 @@ interface TokenItemProps {
 
 export function TokenItem({ token, onClick, showChange = false, className }: TokenItemProps) {
   const isClickable = !!onClick
+  const { t } = useTranslation()
 
   return (
     <div
@@ -28,6 +30,7 @@ export function TokenItem({ token, onClick, showChange = false, className }: Tok
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={isClickable ? (e) => e.key === 'Enter' && onClick?.() : undefined}
+      aria-label={isClickable ? t('a11y.tokenDetails', { token: token.symbol }) : undefined}
       className={cn(
         'flex items-center gap-3 p-3 rounded-xl transition-colors @container',
         isClickable && 'cursor-pointer hover:bg-muted/50 active:bg-muted',

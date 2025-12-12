@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { RefreshCw, Filter } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { TransactionList } from '@/components/transaction/transaction-list'
@@ -29,6 +30,7 @@ const PERIOD_OPTIONS: { value: TransactionFilter['period']; label: string }[] = 
 export function TransactionHistoryPage() {
   const navigate = useNavigate()
   const currentWallet = useCurrentWallet()
+  const { t } = useTranslation()
   const {
     transactions,
     isLoading,
@@ -78,7 +80,7 @@ export function TransactionHistoryPage() {
               'hover:bg-muted active:bg-muted/80',
               isLoading && 'animate-spin'
             )}
-            aria-label="刷新"
+            aria-label={t('a11y.refresh')}
           >
             <RefreshCw className="size-5" />
           </button>
@@ -98,7 +100,7 @@ export function TransactionHistoryPage() {
               'rounded-lg border bg-background px-3 py-1.5 text-sm',
               'focus:outline-none focus:ring-2 focus:ring-primary/20'
             )}
-            aria-label="选择链"
+            aria-label={t('a11y.selectChain')}
           >
             {CHAIN_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -115,7 +117,7 @@ export function TransactionHistoryPage() {
               'rounded-lg border bg-background px-3 py-1.5 text-sm',
               'focus:outline-none focus:ring-2 focus:ring-primary/20'
             )}
-            aria-label="选择时间段"
+            aria-label={t('a11y.selectPeriod')}
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

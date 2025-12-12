@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PasswordInput, calculateStrength } from './password-input'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+}
 
 describe('calculateStrength', () => {
   it('returns weak for empty password', () => {
@@ -27,37 +32,37 @@ describe('calculateStrength', () => {
 
 describe('PasswordInput', () => {
   it('renders password input', () => {
-    render(<PasswordInput placeholder="Enter password" />)
+    renderWithProviders(<PasswordInput placeholder="Enter password" />)
     expect(screen.getByPlaceholderText('Enter password')).toHaveAttribute('type', 'password')
   })
 
   it('toggles password visibility', async () => {
-    render(<PasswordInput placeholder="Enter password" />)
+    renderWithProviders(<PasswordInput placeholder="Enter password" />)
     const input = screen.getByPlaceholderText('Enter password')
     const toggleButton = screen.getByRole('button', { name: '显示密码' })
-    
+
     expect(input).toHaveAttribute('type', 'password')
-    
+
     await userEvent.click(toggleButton)
     expect(input).toHaveAttribute('type', 'text')
     expect(screen.getByRole('button', { name: '隐藏密码' })).toBeInTheDocument()
-    
+
     await userEvent.click(screen.getByRole('button', { name: '隐藏密码' }))
     expect(input).toHaveAttribute('type', 'password')
   })
 
   it('shows strength indicator when enabled', async () => {
-    render(<PasswordInput showStrength />)
+    renderWithProviders(<PasswordInput showStrength />)
     const input = document.querySelector('input')!
-    
+
     await userEvent.type(input, 'test')
     expect(screen.getByText('密码强度：')).toBeInTheDocument()
   })
 
   it('calls onChange handler', async () => {
     const handleChange = vi.fn()
-    render(<PasswordInput onChange={handleChange} />)
-    
+    renderWithProviders(<PasswordInput onChange={handleChange} />)
+
     const input = document.querySelector('input')!
     await userEvent.type(input, 'test')
     expect(handleChange).toHaveBeenCalled()
@@ -65,20 +70,20 @@ describe('PasswordInput', () => {
 
   it('calls onStrengthChange when strength changes', async () => {
     const handleStrengthChange = vi.fn()
-    render(<PasswordInput showStrength onStrengthChange={handleStrengthChange} />)
-    
+    renderWithProviders(<PasswordInput showStrength onStrengthChange={handleStrengthChange} />)
+
     const input = document.querySelector('input')!
     await userEvent.type(input, 'MyP@ssw0rd!')
     expect(handleStrengthChange).toHaveBeenCalled()
   })
 
   it('is disabled when disabled prop is true', () => {
-    render(<PasswordInput disabled />)
+    renderWithProviders(<PasswordInput disabled />)
     expect(document.querySelector('input')).toBeDisabled()
   })
 
   it('applies custom className', () => {
-    render(<PasswordInput className="custom-class" />)
+    renderWithProviders(<PasswordInput className="custom-class" />)
     expect(document.querySelector('input')).toHaveClass('custom-class')
   })
 })
