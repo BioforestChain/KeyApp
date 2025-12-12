@@ -71,6 +71,45 @@ export const addressBookActions = {
     }
   },
 
+  /**
+   * 批量导入联系人（按 chain+address 去重）
+   *
+   * - 单次 setState + 单次 localStorage.setItem 持久化（避免 N 次 addContact）
+   * - 返回本次新增的联系人数量
+   */
+  importContacts: (contacts: Contact[]) => {
+    if (contacts.length === 0) return 0
+
+    let importedCount = 0
+
+    addressBookStore.setState((state) => {
+      const existing = state.contacts
+      const existingKeys = new Set(
+        existing.map((c) => `${c.chain ?? ''}|${c.address}`)
+      )
+
+      const newContacts = contacts.filter((c) => {
+        const key = `${c.chain ?? ''}|${c.address}`
+        if (existingKeys.has(key)) return false
+        existingKeys.add(key)
+        return true
+      })
+
+      importedCount = newContacts.length
+
+      if (newContacts.length === 0) {
+        return state
+      }
+
+      const merged = [...existing, ...newContacts]
+      persistContacts(merged)
+
+      return { ...state, contacts: merged }
+    })
+
+    return importedCount
+  },
+
   /** 添加联系人 */
   addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & { chain?: ChainType | undefined; memo?: string | undefined }) => {
     const now = Date.now()

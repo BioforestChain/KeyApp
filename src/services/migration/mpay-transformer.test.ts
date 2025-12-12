@@ -10,11 +10,14 @@ import {
   mapChainName,
   transformChainAddress,
   transformAsset,
+  transformAddressBookEntry,
+  determineChainFromList,
 } from './mpay-transformer'
 import type {
   MpayMainWallet,
   MpayChainAddressInfo,
   MpayAddressAsset,
+  MpayAddressBookEntry,
 } from './types'
 
 // Mock mpay-crypto 模块
@@ -204,6 +207,154 @@ describe('mpay-transformer', () => {
       expect(chainAddr?.tokens).toHaveLength(2)
       expect(chainAddr?.tokens[0]?.symbol).toBe('ETH')
       expect(chainAddr?.tokens[1]?.symbol).toBe('USDT')
+    })
+  })
+
+  describe('determineChainFromList', () => {
+    it('should return undefined for undefined chainList', () => {
+      expect(determineChainFromList(undefined)).toBeUndefined()
+    })
+
+    it('should return undefined for empty chainList', () => {
+      expect(determineChainFromList([])).toBeUndefined()
+    })
+
+    it('should return first mappable chain', () => {
+      expect(determineChainFromList(['BFMeta', 'Ethereum'])).toBe('bfmeta')
+    })
+
+    it('should skip unmappable chains and return first mappable', () => {
+      expect(determineChainFromList(['UnknownChain', 'Ethereum', 'BFMeta'])).toBe('ethereum')
+    })
+
+    it('should return undefined if all chains are unmappable', () => {
+      expect(determineChainFromList(['UnknownChain1', 'UnknownChain2'])).toBeUndefined()
+    })
+
+    it('should handle single mappable chain', () => {
+      expect(determineChainFromList(['Tron'])).toBe('tron')
+    })
+  })
+
+  describe('transformAddressBookEntry', () => {
+    it('should transform basic address book entry', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-1',
+        name: 'Alice',
+        address: 'bfm123456',
+        chainList: ['BFMeta'],
+        remarks: 'My friend',
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.id).toBe('addr-book-1')
+      expect(contact.name).toBe('Alice')
+      expect(contact.address).toBe('bfm123456')
+      expect(contact.chain).toBe('bfmeta')
+      expect(contact.memo).toBe('My friend')
+      expect(contact.createdAt).toBeTypeOf('number')
+      expect(contact.updatedAt).toBeTypeOf('number')
+    })
+
+    it('should handle entry without chainList', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-2',
+        name: 'Bob',
+        address: '0xabc123',
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.id).toBe('addr-book-2')
+      expect(contact.name).toBe('Bob')
+      expect(contact.address).toBe('0xabc123')
+      expect(contact.chain).toBeUndefined()
+      expect(contact.memo).toBeUndefined()
+    })
+
+    it('should handle entry with empty chainList', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-3',
+        name: 'Charlie',
+        address: 'tron123',
+        chainList: [],
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.chain).toBeUndefined()
+    })
+
+    it('should select first mappable chain from multi-chain entry', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-4',
+        name: 'MultiChain Contact',
+        address: '0xmulti',
+        chainList: ['Ethereum', 'BFMeta', 'Tron'],
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      // First mappable chain should be selected
+      expect(contact.chain).toBe('ethereum')
+    })
+
+    it('should skip unmappable chains and use first mappable', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-5',
+        name: 'Unknown First',
+        address: '0xunknown',
+        chainList: ['UnknownChain', 'OtherUnknown', 'BFMeta'],
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.chain).toBe('bfmeta')
+    })
+
+    it('should return undefined chain when all chains are unmappable', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-6',
+        name: 'All Unknown',
+        address: '0xallunknown',
+        chainList: ['UnknownChain1', 'UnknownChain2'],
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.chain).toBeUndefined()
+    })
+
+    it('should handle entry without remarks', () => {
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-7',
+        name: 'No Remarks',
+        address: 'bfm789',
+        chainList: ['BFMeta'],
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      expect(contact.memo).toBeUndefined()
+    })
+
+    it('should set createdAt and updatedAt to current timestamp', () => {
+      const before = Date.now()
+
+      const entry: MpayAddressBookEntry = {
+        addressBookId: 'addr-book-8',
+        name: 'Timestamp Test',
+        address: 'test123',
+      }
+
+      const contact = transformAddressBookEntry(entry)
+
+      const after = Date.now()
+
+      expect(contact.createdAt).toBeGreaterThanOrEqual(before)
+      expect(contact.createdAt).toBeLessThanOrEqual(after)
+      expect(contact.updatedAt).toBe(contact.createdAt)
     })
   })
 

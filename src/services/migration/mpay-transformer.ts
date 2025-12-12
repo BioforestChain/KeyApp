@@ -11,7 +11,9 @@ import type {
   MpayMainWallet,
   MpayChainAddressInfo,
   MpayAddressAsset,
+  MpayAddressBookEntry,
 } from './types'
+import type { Contact } from '@/stores/address-book'
 import { decryptMpayData } from './mpay-crypto'
 
 /**
@@ -77,6 +79,55 @@ function transformChainAddress(
     address: mpayAddress.address,
     tokens: mpayAddress.assets.map((asset) => transformAsset(asset, chain)),
   }
+}
+
+/**
+ * 从链列表中确定第一个可映射的链
+ *
+ * @param chainList mpay 地址簿条目的链列表
+ * @returns 第一个可映射的 ChainType，如果没有可映射的链则返回 undefined
+ */
+function determineChainFromList(chainList?: string[]): ChainType | undefined {
+  if (!chainList || chainList.length === 0) {
+    return undefined
+  }
+
+  for (const mpayChain of chainList) {
+    const chain = mapChainName(mpayChain)
+    if (chain) {
+      return chain
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * 转换 mpay 地址簿条目为 KeyApp Contact
+ *
+ * @param entry mpay 地址簿条目
+ * @returns KeyApp 联系人
+ */
+export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact {
+  const now = Date.now()
+
+  const contact: Contact = {
+    id: entry.addressBookId,
+    name: entry.name,
+    address: entry.address,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  const chain = determineChainFromList(entry.chainList)
+  if (chain) {
+    contact.chain = chain
+  }
+  if (entry.remarks) {
+    contact.memo = entry.remarks
+  }
+
+  return contact
 }
 
 /**
@@ -190,4 +241,4 @@ export async function transformMpayData(
   }
 }
 
-export { mapChainName, transformChainAddress, transformAsset }
+export { mapChainName, transformChainAddress, transformAsset, determineChainFromList }

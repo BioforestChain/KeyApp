@@ -25,6 +25,8 @@ export interface MpayDetectionResult {
   addressCount: number
   /** 是否有设置数据 */
   hasSettings: boolean
+  /** 地址簿联系人数量 */
+  addressBookCount: number
 }
 
 /** mpay 钱包应用设置 (localStorage) */
@@ -110,7 +112,14 @@ export interface MpayChainAddressInfo {
 /** 迁移进度回调 */
 export interface MigrationProgress {
   /** 当前步骤 */
-  step: 'detecting' | 'verifying' | 'reading' | 'transforming' | 'importing' | 'complete'
+  step:
+    | 'detecting'
+    | 'verifying'
+    | 'reading'
+    | 'transforming'
+    | 'importing'
+    | 'importing_contacts'
+    | 'complete'
   /** 进度百分比 0-100 */
   percent: number
   /** 当前处理的钱包名称 */
@@ -133,4 +142,22 @@ export interface IMigrationService {
   skip(): Promise<void>
   /** 获取迁移状态 */
   getStatus(): MigrationStatus
+}
+
+/** mpay 地址簿条目 (IndexedDB chainAddressBook-idb) */
+export interface MpayAddressBookEntry {
+  /** 地址簿 ID */
+  addressBookId: string
+  /** 联系人名称 */
+  name: string
+  /** 地址 */
+  address: string
+  /** 支持的链列表 */
+  chainList?: string[]
+  /** 备注 */
+  remarks?: string
+  /** 图标名称 */
+  iconName?: string
+  /** 符号 */
+  symbol?: string
 }

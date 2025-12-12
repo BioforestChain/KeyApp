@@ -12,6 +12,7 @@ vi.mock('./mpay-reader', () => ({
   detectMpayData: vi.fn(),
   readMpayWallets: vi.fn(),
   readMpayAddresses: vi.fn(),
+  readMpayAddressBook: vi.fn(),
 }))
 
 vi.mock('./mpay-crypto', () => ({
@@ -20,6 +21,7 @@ vi.mock('./mpay-crypto', () => ({
 
 vi.mock('./mpay-transformer', () => ({
   transformMpayData: vi.fn(),
+  transformAddressBookEntry: vi.fn(),
 }))
 
 vi.mock('@/stores/wallet', () => ({
@@ -28,12 +30,19 @@ vi.mock('@/stores/wallet', () => ({
   },
 }))
 
+vi.mock('@/stores/address-book', () => ({
+  addressBookActions: {
+    importContacts: vi.fn(),
+  },
+}))
+
 // Import after mocks
 import { migrationService } from './migration-service'
-import { detectMpayData, readMpayWallets, readMpayAddresses } from './mpay-reader'
+import { detectMpayData, readMpayWallets, readMpayAddresses, readMpayAddressBook } from './mpay-reader'
 import { verifyMpayPassword } from './mpay-crypto'
-import { transformMpayData } from './mpay-transformer'
+import { transformMpayData, transformAddressBookEntry } from './mpay-transformer'
 import { walletActions } from '@/stores/wallet'
+import { addressBookActions } from '@/stores/address-book'
 import type { MpayDetectionResult, MpayMainWallet, MpayChainAddressInfo, MigrationProgress } from './types'
 import type { TransformResult } from './mpay-transformer'
 import type { Wallet } from '@/stores/wallet'
@@ -47,6 +56,7 @@ describe('migration-service', () => {
     walletCount: 2,
     addressCount: 4,
     hasSettings: true,
+    addressBookCount: 0,
   }
 
   const mockWallet: MpayMainWallet = {
@@ -134,6 +144,7 @@ describe('migration-service', () => {
         walletCount: 0,
         addressCount: 0,
         hasSettings: false,
+        addressBookCount: 0,
       }
       vi.mocked(detectMpayData).mockResolvedValue(noDataResult)
 
@@ -262,8 +273,16 @@ describe('migration-service', () => {
       vi.mocked(detectMpayData).mockResolvedValue(mockDetectionResult)
       vi.mocked(readMpayWallets).mockResolvedValue([mockWallet])
       vi.mocked(readMpayAddresses).mockResolvedValue([mockAddress])
+      vi.mocked(readMpayAddressBook).mockResolvedValue([])
       vi.mocked(verifyMpayPassword).mockResolvedValue(true)
       vi.mocked(transformMpayData).mockResolvedValue(mockTransformResult)
+      vi.mocked(transformAddressBookEntry).mockImplementation((entry) => ({
+        id: entry.addressBookId,
+        name: entry.name,
+        address: entry.address,
+        createdAt: 1,
+        updatedAt: 1,
+      }))
     })
 
     it('should complete happy path: call all steps in order and set status=completed', async () => {
@@ -274,8 +293,10 @@ describe('migration-service', () => {
       expect(verifyMpayPassword).toHaveBeenCalled()
       expect(readMpayWallets).toHaveBeenCalled()
       expect(readMpayAddresses).toHaveBeenCalled()
+      expect(readMpayAddressBook).toHaveBeenCalled()
       expect(transformMpayData).toHaveBeenCalledWith([mockWallet], [mockAddress], 'correctPassword')
       expect(walletActions.importWallet).toHaveBeenCalled()
+      expect(addressBookActions.importContacts).toHaveBeenCalled()
 
       // Verify final status
       expect(migrationService.getStatus()).toBe('completed')
@@ -288,6 +309,7 @@ describe('migration-service', () => {
         walletCount: 0,
         addressCount: 0,
         hasSettings: false,
+        addressBookCount: 0,
       })
 
       await expect(migrationService.migrate('password')).rejects.toThrow('No mpay data found')
@@ -327,6 +349,7 @@ describe('migration-service', () => {
       expect(steps).toContain('reading')
       expect(steps).toContain('transforming')
       expect(steps).toContain('importing')
+      expect(steps).toContain('importing_contacts')
       expect(steps).toContain('complete')
 
       // Verify percent values are increasing

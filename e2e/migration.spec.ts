@@ -10,6 +10,30 @@ const TEST_PASSWORD = 'test-password'
 const TEST_MNEMONIC =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
+// Test address book entries for migration
+const TEST_ADDRESS_BOOK_ENTRIES = [
+  {
+    addressBookId: 'contact-1',
+    name: 'Alice',
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+    chainList: ['Ethereum'],
+    remarks: 'My friend Alice',
+  },
+  {
+    addressBookId: 'contact-2',
+    name: 'Bob',
+    address: 'bfm9876543210fedcba9876543210fedcba987654',
+    chainList: ['BFMeta'],
+    remarks: 'Business partner',
+  },
+  {
+    addressBookId: 'contact-3',
+    name: 'Charlie',
+    address: 'TRX12345678901234567890123456789012',
+    chainList: ['Tron'],
+  },
+]
+
 /**
  * 种子 mpay 数据到 IndexedDB
  * 使用 WebCrypto 加密助记词，模拟真实的 mpay 数据格式
@@ -86,6 +110,47 @@ async function seedMpayData(page: import('@playwright/test').Page, password: str
     // Clear KeyApp migration status to trigger detection
     localStorage.removeItem('keyapp_migration_status')
   }, password)
+}
+
+/**
+ * 种子 mpay 地址簿数据到 IndexedDB (chainAddressBook-idb)
+ */
+async function seedMpayAddressBook(
+  page: import('@playwright/test').Page,
+  entries: typeof TEST_ADDRESS_BOOK_ENTRIES
+) {
+  await page.evaluate(async (addressBookEntries) => {
+    // Delete existing address book database first
+    await new Promise<void>((resolve) => {
+      const deleteReq = indexedDB.deleteDatabase('chainAddressBook-idb')
+      deleteReq.onsuccess = () => resolve()
+      deleteReq.onerror = () => resolve()
+      deleteReq.onblocked = () => resolve()
+    })
+
+    // Open IndexedDB and seed address book data
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = indexedDB.open('chainAddressBook-idb', 1)
+      req.onupgradeneeded = (event) => {
+        const database = (event.target as IDBOpenDBRequest).result
+        if (!database.objectStoreNames.contains('addressBook')) {
+          database.createObjectStore('addressBook', { keyPath: 'addressBookId' })
+        }
+      }
+      req.onsuccess = () => resolve(req.result)
+      req.onerror = () => reject(req.error)
+    })
+
+    const tx = db.transaction(['addressBook'], 'readwrite')
+    const store = tx.objectStore('addressBook')
+    for (const entry of addressBookEntries) {
+      store.put(entry)
+    }
+    await new Promise((r) => {
+      tx.oncomplete = r
+    })
+    db.close()
+  }, entries)
 }
 
 /**
@@ -242,5 +307,87 @@ test.describe('mpay 迁移流程', () => {
 
     // Should show no data found message
     await expect(page.getByText('未检测到 mpay 钱包数据')).toBeVisible({ timeout: 10000 })
+  })
+
+  test('完整迁移流程 - 包含地址簿', async ({ page }) => {
+    // Seed mpay wallet data
+    await seedMpayData(page, TEST_PASSWORD)
+
+    // Seed mpay address book data
+    await seedMpayAddressBook(page, TEST_ADDRESS_BOOK_ENTRIES)
+
+    await page.reload() // Trigger MigrationContext re-detection
+
+    // Navigate to migration page
+    await page.goto('/#/onboarding/migrate')
+    await page.waitForLoadState('networkidle')
+
+    // Step 1: Detected step - verify address book count is shown
+    await expect(page.getByTestId('migration-detected-step')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText('检测到 mpay 钱包')).toBeVisible()
+
+    // Click start migration
+    await page.getByTestId('migration-start-btn').click()
+
+    // Step 2: Password step
+    await expect(page.getByTestId('migration-password-input')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('migration-password-input').fill(TEST_PASSWORD)
+    await page.getByTestId('migration-password-submit').click()
+
+    // Wait for migration to complete
+    await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('迁移成功')).toBeVisible()
+
+    // Verify localStorage has migrated wallet
+    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
+    expect(walletData).not.toBeNull()
+    const parsedWallets = JSON.parse(walletData!)
+    expect(parsedWallets.wallets.length).toBeGreaterThan(0)
+
+    // Verify address book data was migrated to localStorage
+    const addressBookData = await page.evaluate(() => localStorage.getItem('bfm_address_book'))
+    expect(addressBookData).not.toBeNull()
+
+    const parsedAddressBook = JSON.parse(addressBookData!) as Array<{
+      id: string
+      name: string
+      address: string
+      chain?: string
+      memo?: string
+    }>
+
+    // Should have all 3 contacts imported
+    expect(parsedAddressBook.length).toBe(3)
+
+    // Verify Alice (Ethereum contact)
+    const alice = parsedAddressBook.find((c) => c.name === 'Alice')
+    expect(alice).toBeDefined()
+    expect(alice!.address).toBe('0x1234567890abcdef1234567890abcdef12345678')
+    expect(alice!.chain).toBe('ethereum')
+    expect(alice!.memo).toBe('My friend Alice')
+
+    // Verify Bob (BFMeta contact)
+    const bob = parsedAddressBook.find((c) => c.name === 'Bob')
+    expect(bob).toBeDefined()
+    expect(bob!.address).toBe('bfm9876543210fedcba9876543210fedcba987654')
+    expect(bob!.chain).toBe('bfmeta')
+    expect(bob!.memo).toBe('Business partner')
+
+    // Verify Charlie (Tron contact - no memo)
+    const charlie = parsedAddressBook.find((c) => c.name === 'Charlie')
+    expect(charlie).toBeDefined()
+    expect(charlie!.address).toBe('TRX12345678901234567890123456789012')
+    expect(charlie!.chain).toBe('tron')
+    expect(charlie!.memo).toBeUndefined()
+
+    // Verify migration status
+    const migrationStatus = await page.evaluate(() =>
+      localStorage.getItem('keyapp_migration_status')
+    )
+    expect(migrationStatus).toBe('completed')
+
+    // Click go home
+    await page.getByTestId('migration-go-home-btn').click()
+    await page.waitForURL(/\/#?\/?$/)
   })
 })

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   addressBookStore,
   addressBookActions,
@@ -79,6 +79,89 @@ describe('AddressBookStore', () => {
       addressBookActions.deleteContact(contact.id)
 
       expect(addressBookStore.state.contacts).toHaveLength(0)
+    })
+  })
+
+  describe('importContacts', () => {
+    it('imports new contacts with dedup by (chain,address) and persists once', () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+
+      const existing: Contact = {
+        id: 'existing-1',
+        name: 'Existing',
+        address: '0x1111',
+        chain: 'ethereum',
+        createdAt: 1,
+        updatedAt: 1,
+      }
+
+      const importedA: Contact = {
+        id: 'import-1',
+        name: 'Alice',
+        address: '0x2222',
+        chain: 'ethereum',
+        createdAt: 2,
+        updatedAt: 2,
+      }
+
+      const importedADupeSameKey: Contact = {
+        ...importedA,
+        id: 'import-1-dupe',
+      }
+
+      const importedSameAddressDifferentChain: Contact = {
+        id: 'import-2',
+        name: 'Alice (BFMeta)',
+        address: '0x2222',
+        chain: 'bfmeta',
+        createdAt: 3,
+        updatedAt: 3,
+      }
+
+      // seed existing
+      const seedCount = addressBookActions.importContacts([existing])
+      expect(seedCount).toBe(1)
+      setItemSpy.mockClear()
+
+      const added = addressBookActions.importContacts([
+        importedA,
+        importedADupeSameKey,
+        importedSameAddressDifferentChain,
+        existing, // duplicate with existing
+      ])
+
+      expect(added).toBe(2)
+      expect(addressBookStore.state.contacts).toHaveLength(3)
+      expect(setItemSpy).toHaveBeenCalledTimes(1)
+
+      const stored = localStorage.getItem('bfm_address_book')
+      expect(stored).not.toBeNull()
+      const parsed = JSON.parse(stored!) as Contact[]
+      expect(parsed).toHaveLength(3)
+    })
+
+    it('returns 0 and does not persist when there are no new contacts', () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+
+      const existing: Contact = {
+        id: 'existing-1',
+        name: 'Existing',
+        address: '0x1111',
+        chain: 'ethereum',
+        createdAt: 1,
+        updatedAt: 1,
+      }
+
+      addressBookActions.importContacts([existing])
+      setItemSpy.mockClear()
+
+      const added = addressBookActions.importContacts([
+        { ...existing, id: 'existing-1-again' },
+      ])
+
+      expect(added).toBe(0)
+      expect(setItemSpy).not.toHaveBeenCalled()
+      expect(addressBookStore.state.contacts).toHaveLength(1)
     })
   })
 

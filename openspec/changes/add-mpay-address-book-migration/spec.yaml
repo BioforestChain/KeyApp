@@ -1,0 +1,22 @@
+name: add-mpay-address-book-migration
+goal: Preserve user address book contacts during mpay to KeyApp upgrade
+status: active
+scope:
+  - src/services/migration/mpay-reader.ts (add chainAddressBook-idb reader)
+  - src/services/migration/migrator.ts (integrate address book migration)
+  - src/stores/address-book.ts (target store)
+acceptance:
+  - chainAddressBook-idb contacts migrated to KeyApp address book
+  - Unit test for address book data extraction
+  - E2E test verifying upgrade preserves contacts
+data_mapping:
+  # mpay $ADDRESS_BOOK_V2 -> KeyApp Contact
+  addressBookId: id
+  name: name
+  address: address
+  chainList: (omit - chain=undefined)
+  remarks: memo
+  iconName: (drop)
+  symbol: (drop)
+  createdAt: Date.now()
+  updatedAt: Date.now()

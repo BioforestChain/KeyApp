@@ -11,10 +11,12 @@ import {
   readMpayWallets,
   readMpayAddresses,
   readMpaySettings,
+  readMpayAddressBook,
   MPAY_IDB_NAME,
+  MPAY_ADDRESS_BOOK_IDB,
   MPAY_SETTINGS_KEY,
 } from './mpay-reader'
-import type { MpayMainWallet, MpayChainAddressInfo } from './types'
+import type { MpayMainWallet, MpayChainAddressInfo, MpayAddressBookEntry } from './types'
 
 // 辅助函数：创建 mpay IndexedDB
 async function createMpayDatabase(
@@ -78,6 +80,55 @@ async function deleteMpayDatabase(): Promise<void> {
   })
 }
 
+// 辅助函数：创建地址簿数据库
+async function createAddressBookDatabase(
+  entries: MpayAddressBookEntry[]
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(MPAY_ADDRESS_BOOK_IDB, 1)
+
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains('addressBook')) {
+        db.createObjectStore('addressBook', { keyPath: 'addressBookId' })
+      }
+    }
+
+    request.onsuccess = () => {
+      const db = request.result
+
+      const transaction = db.transaction(['addressBook'], 'readwrite')
+      const store = transaction.objectStore('addressBook')
+
+      for (const entry of entries) {
+        store.add(entry)
+      }
+
+      transaction.oncomplete = () => {
+        db.close()
+        resolve()
+      }
+
+      transaction.onerror = () => {
+        db.close()
+        reject(transaction.error)
+      }
+    }
+
+    request.onerror = () => reject(request.error)
+  })
+}
+
+// 辅助函数：删除地址簿数据库
+async function deleteAddressBookDatabase(): Promise<void> {
+  return new Promise((resolve) => {
+    const request = indexedDB.deleteDatabase(MPAY_ADDRESS_BOOK_IDB)
+    request.onsuccess = () => resolve()
+    request.onerror = () => resolve()
+    request.onblocked = () => resolve()
+  })
+}
+
 describe('mpay-reader', () => {
   const mockWallet: MpayMainWallet = {
     mainWalletId: 'wallet-1',
@@ -108,11 +159,13 @@ describe('mpay-reader', () => {
   beforeEach(async () => {
     // 清理数据库和 localStorage
     await deleteMpayDatabase()
+    await deleteAddressBookDatabase()
     localStorage.clear()
   })
 
   afterEach(async () => {
     await deleteMpayDatabase()
+    await deleteAddressBookDatabase()
     localStorage.clear()
   })
 
@@ -124,6 +177,7 @@ describe('mpay-reader', () => {
       expect(result.walletCount).toBe(0)
       expect(result.addressCount).toBe(0)
       expect(result.hasSettings).toBe(false)
+      expect(result.addressBookCount).toBe(0)
     })
 
     it('should detect data when wallets exist', async () => {
@@ -134,6 +188,7 @@ describe('mpay-reader', () => {
       expect(result.hasData).toBe(true)
       expect(result.walletCount).toBe(1)
       expect(result.addressCount).toBe(1)
+      expect(result.addressBookCount).toBe(0)
     })
 
     it('should detect multiple wallets and addresses', async () => {
@@ -175,6 +230,19 @@ describe('mpay-reader', () => {
       const result = await detectMpayData()
 
       expect(result.hasSettings).toBe(false)
+    })
+
+    it('should detect address book entries', async () => {
+      const addressBookEntries: MpayAddressBookEntry[] = [
+        { addressBookId: 'ab1', name: 'Alice', address: '0x123' },
+        { addressBookId: 'ab2', name: 'Bob', address: '0x456' },
+      ]
+      await createMpayDatabase([mockWallet], [])
+      await createAddressBookDatabase(addressBookEntries)
+
+      const result = await detectMpayData()
+
+      expect(result.addressBookCount).toBe(2)
     })
   })
 
@@ -282,6 +350,72 @@ describe('mpay-reader', () => {
       const settings = readMpaySettings()
 
       expect(settings).toBeNull()
+    })
+  })
+
+  describe('readMpayAddressBook', () => {
+    it('should return empty array when database does not exist', async () => {
+      const entries = await readMpayAddressBook()
+
+      expect(entries).toEqual([])
+    })
+
+    it('should read single address book entry', async () => {
+      const mockEntry: MpayAddressBookEntry = {
+        addressBookId: 'ab1',
+        name: 'Alice',
+        address: '0x123',
+        chainList: ['ETH', 'BFMeta'],
+        remarks: 'Friend',
+      }
+      await createAddressBookDatabase([mockEntry])
+
+      const entries = await readMpayAddressBook()
+
+      expect(entries).toHaveLength(1)
+      expect(entries[0]?.name).toBe('Alice')
+      expect(entries[0]?.address).toBe('0x123')
+      expect(entries[0]?.chainList).toEqual(['ETH', 'BFMeta'])
+      expect(entries[0]?.remarks).toBe('Friend')
+    })
+
+    it('should read multiple address book entries', async () => {
+      const mockEntries: MpayAddressBookEntry[] = [
+        { addressBookId: 'ab1', name: 'Alice', address: '0x123' },
+        { addressBookId: 'ab2', name: 'Bob', address: '0x456', symbol: 'ETH' },
+        { addressBookId: 'ab3', name: 'Charlie', address: 'bfm789', iconName: 'icon1' },
+      ]
+      await createAddressBookDatabase(mockEntries)
+
+      const entries = await readMpayAddressBook()
+
+      expect(entries).toHaveLength(3)
+    })
+
+    it('should handle all optional fields', async () => {
+      const mockEntry: MpayAddressBookEntry = {
+        addressBookId: 'ab1',
+        name: 'Full Contact',
+        address: '0xfull',
+        chainList: ['ETH', 'BTC'],
+        remarks: 'Important contact',
+        iconName: 'custom-icon',
+        symbol: 'ETH',
+      }
+      await createAddressBookDatabase([mockEntry])
+
+      const entries = await readMpayAddressBook()
+
+      expect(entries).toHaveLength(1)
+      expect(entries[0]).toMatchObject({
+        addressBookId: 'ab1',
+        name: 'Full Contact',
+        address: '0xfull',
+        chainList: ['ETH', 'BTC'],
+        remarks: 'Important contact',
+        iconName: 'custom-icon',
+        symbol: 'ETH',
+      })
     })
   })
 })

@@ -18,6 +18,7 @@ const STEP_LABELS: Record<MigrationProgress['step'], string> = {
   reading: 'progress.reading',
   transforming: 'progress.transforming',
   importing: 'progress.importing',
+  importing_contacts: 'progress.importing_contacts',
   complete: 'progress.complete',
 }
 
@@ -27,6 +28,7 @@ const STEP_DEFAULTS: Record<MigrationProgress['step'], string> = {
   reading: '读取钱包数据...',
   transforming: '转换数据格式...',
   importing: '导入钱包...',
+  importing_contacts: '导入联系人...',
   complete: '迁移完成',
 }
 

@@ -35,7 +35,7 @@ steps:
     status: complete
     outputs:
       - path: e2e/migration.spec.ts
-        note: 6 pass, 2 skipped (password retry deferred)
+        note: 4 tests active (migration flow, skip migration, password retry, no-data detection)
       - path: e2e/__screenshots__/*/migration-*.png
         note: 8 screenshot baselines
   - id: S6

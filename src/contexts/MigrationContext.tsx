@@ -97,6 +97,7 @@ export function MigrationProvider({ children }: MigrationProviderProps) {
         walletCount: 0,
         addressCount: 0,
         hasSettings: false,
+        addressBookCount: 0,
       })
     } finally {
       setIsDetecting(false)

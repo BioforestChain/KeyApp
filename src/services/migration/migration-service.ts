@@ -14,10 +14,16 @@ import {
   detectMpayData,
   readMpayWallets,
   readMpayAddresses,
+  readMpayAddressBook,
 } from './mpay-reader'
 import { verifyMpayPassword } from './mpay-crypto'
-import { transformMpayData, type TransformResult } from './mpay-transformer'
+import {
+  transformMpayData,
+  transformAddressBookEntry,
+  type TransformResult,
+} from './mpay-transformer'
 import { walletActions } from '@/stores/wallet'
+import { addressBookActions } from '@/stores/address-book'
 
 const MIGRATION_STATUS_KEY = 'keyapp_migration_status'
 
@@ -166,7 +172,17 @@ class MigrationServiceImpl implements IMigrationService {
         })
       })
 
-      // Step 6: 完成
+      // Step 6: 导入地址簿联系人
+      onProgress?.({
+        step: 'importing_contacts',
+        percent: 96,
+      })
+
+      const addressBookEntries = await readMpayAddressBook()
+      const contacts = addressBookEntries.map(transformAddressBookEntry)
+      addressBookActions.importContacts(contacts)
+
+      // Step 7: 完成
       onProgress?.({
         step: 'complete',
         percent: 100,
