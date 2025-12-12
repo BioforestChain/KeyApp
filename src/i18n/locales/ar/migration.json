@@ -1,5 +1,12 @@
 {
   "title": "نقل المحفظة",
+  "welcome_title": "مرحبًا بك في BFM Pay!",
+  "welcome_subtitle": "迁移完成",
+  "whats_new": "ما الجديد",
+  "whats_new_title": "ما الجديد في BFM Pay",
+  "feature_modern_ui": "واجهة محسّنة وتجربة أكثر سلاسة",
+  "feature_security": "أمان أقوى لأصولك",
+  "feature_multichain": "دعم أفضل لعدة سلاسل",
   "noDataFound": "لم يتم اكتشاف بيانات محفظة mpay",
   "goBack": "رجوع",
   "startMigration": "بدء النقل",

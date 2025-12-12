@@ -1,5 +1,12 @@
 {
   "title": "钱包迁移",
+  "welcome_title": "欢迎使用 BFM Pay！",
+  "welcome_subtitle": "迁移完成",
+  "whats_new": "看看有哪些新变化",
+  "whats_new_title": "BFM Pay 的新变化",
+  "feature_modern_ui": "更现代的界面与更流畅的体验",
+  "feature_security": "更强的安全防护，守护资产",
+  "feature_multichain": "更完善的多链支持",
   "noDataFound": "未检测到 mpay 钱包数据",
   "goBack": "返回",
   "startMigration": "开始迁移",

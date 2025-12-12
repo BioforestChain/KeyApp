@@ -1,5 +1,12 @@
 {
   "title": "錢包遷移",
+  "welcome_title": "歡迎使用 BFM Pay！",
+  "welcome_subtitle": "遷移完成",
+  "whats_new": "看看有哪些新變化",
+  "whats_new_title": "BFM Pay 的新變化",
+  "feature_modern_ui": "更現代的介面與更流暢的體驗",
+  "feature_security": "更強的安全防護，守護資產",
+  "feature_multichain": "更完善的多鏈支援",
   "noDataFound": "未檢測到 mpay 錢包數據",
   "goBack": "返回",
   "startMigration": "開始遷移",

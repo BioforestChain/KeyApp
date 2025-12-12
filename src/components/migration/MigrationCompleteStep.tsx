@@ -2,9 +2,11 @@
  * 迁移完成步骤
  */
 
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { WhatsNewSheet } from './WhatsNewSheet'
 
 interface MigrationCompleteStepProps {
   /** 是否成功 */
@@ -30,6 +32,7 @@ export function MigrationCompleteStep({
   onRetry,
 }: MigrationCompleteStepProps) {
   const { t } = useTranslation('migration')
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
 
   return (
     <div
@@ -51,12 +54,13 @@ export function MigrationCompleteStep({
       <div className="space-y-2 text-center">
         <h2 className="text-xl font-semibold">
           {success
-            ? t('complete.success.title', { defaultValue: '迁移成功' })
+            ? t('welcome_title')
             : t('complete.error.title', { defaultValue: '迁移失败' })}
         </h2>
 
         {success ? (
           <>
+            <p className="text-sm text-muted-foreground">{t('welcome_subtitle')}</p>
             <p className="text-muted-foreground">
               {t('complete.success.description', {
                 defaultValue: '已成功导入 {{count}} 个钱包',
@@ -91,6 +95,16 @@ export function MigrationCompleteStep({
             ? t('complete.goHome', { defaultValue: '进入钱包' })
             : t('complete.skip', { defaultValue: '跳过，创建新钱包' })}
         </Button>
+        {success && (
+          <Button
+            variant="outline"
+            onClick={() => setWhatsNewOpen(true)}
+            size="lg"
+            data-testid="migration-whats-new-btn"
+          >
+            {t('whats_new')}
+          </Button>
+        )}
         {!success && onRetry && (
           <Button
             variant="outline"
@@ -102,6 +116,8 @@ export function MigrationCompleteStep({
           </Button>
         )}
       </div>
+
+      <WhatsNewSheet open={whatsNewOpen} onOpenChange={setWhatsNewOpen} />
     </div>
   )
 }

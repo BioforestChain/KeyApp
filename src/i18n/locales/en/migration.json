@@ -1,5 +1,12 @@
 {
   "title": "Wallet Migration",
+  "welcome_title": "Welcome to BFM Pay!",
+  "welcome_subtitle": "迁移完成",
+  "whats_new": "What's New",
+  "whats_new_title": "What's New in BFM Pay",
+  "feature_modern_ui": "Improved UI and smoother experience",
+  "feature_security": "Enhanced security for your assets",
+  "feature_multichain": "Better multi-chain support",
   "noDataFound": "No mpay wallet data detected",
   "goBack": "Go Back",
   "startMigration": "Start Migration",
