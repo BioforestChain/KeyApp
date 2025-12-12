@@ -105,7 +105,7 @@ test.describe('HapticsService', () => {
 test.describe('BiometricService', () => {
   test('验证成功 - 显示功能提示', async ({ page }) => {
     await setupTestWallet(page);
-    await page.goto('/wallet/test-wallet-1');
+    await page.goto('/#/wallet/test-wallet-1');
 
     // 等待页面加载
     const exportBtn = page.locator('button:has-text("导出助记词")');
@@ -131,7 +131,7 @@ test.describe('BiometricService', () => {
 
   test('验证失败 - 显示失败提示', async ({ page }) => {
     await setupTestWallet(page);
-    await page.goto('/wallet/test-wallet-1');
+    await page.goto('/#/wallet/test-wallet-1');
 
     const exportBtn = page.locator('button:has-text("导出助记词")');
     await exportBtn.waitFor({ state: 'visible', timeout: 10000 });
@@ -155,7 +155,7 @@ test.describe('BiometricService', () => {
 
   test('不可用时跳过验证', async ({ page }) => {
     await setupTestWallet(page);
-    await page.goto('/wallet/test-wallet-1');
+    await page.goto('/#/wallet/test-wallet-1');
 
     const exportBtn = page.locator('button:has-text("导出助记词")');
     await exportBtn.waitFor({ state: 'visible', timeout: 10000 });

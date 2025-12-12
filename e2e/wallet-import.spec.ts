@@ -32,7 +32,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('12 词助记词导入成功', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 默认应该是 12 词模式
@@ -58,7 +58,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await completeBtn.click()
 
     // 验证跳转到首页
-    await page.waitForURL('/')
+    await page.waitForURL(/\/#?\/?$/)
     await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 
     // 验证钱包已创建
@@ -80,7 +80,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('24 词助记词导入成功', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 切换到 24 词模式
@@ -105,7 +105,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
     // 完成导入
     await page.click('button:has-text("完成导入")')
-    await page.waitForURL('/')
+    await page.waitForURL(/\/#?\/?$/)
 
     // 验证钱包已创建
     const walletData = await page.evaluate(() => {
@@ -116,7 +116,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('导入钱包派生多链地址', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 填写助记词
@@ -129,7 +129,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("完成导入")')
 
-    await page.waitForURL('/')
+    await page.waitForURL(/\/#?\/?$/)
 
     // 验证多链地址派生
     const walletData = await page.evaluate(() => {
@@ -157,7 +157,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('无效助记词显示错误', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 填写无效助记词
@@ -175,7 +175,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('部分填写助记词禁用下一步', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 只填写部分单词
@@ -193,7 +193,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('粘贴助记词功能', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 在第一个输入框粘贴完整助记词
@@ -212,7 +212,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('清除按钮功能', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 填写一些单词
@@ -236,7 +236,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('切换词数后显示正确数量的输入框', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 默认 12 词
@@ -259,7 +259,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('导入密码强度验证', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 填写助记词
@@ -283,7 +283,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
   })
 
   test('导入后返回首页显示钱包', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 快速完成导入流程
@@ -295,7 +295,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.click('button:has-text("完成导入")')
 
     // 等待跳转到首页
-    await page.waitForURL('/')
+    await page.waitForURL(/\/#?\/?$/)
     await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 
     // 验证钱包名称显示

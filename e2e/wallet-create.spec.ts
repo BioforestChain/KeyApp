@@ -58,7 +58,7 @@ test.describe('钱包创建流程 - 截图测试', () => {
   })
 
   test('密码验证 - 错误状态', async ({ page }) => {
-    await page.goto('/wallet/create')
+    await page.goto('/#/wallet/create')
     await page.waitForLoadState('networkidle')
 
     // 输入不匹配的密码
@@ -146,7 +146,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await completeBtn.click()
 
     // 6. 验证跳转到首页且钱包已创建
-    await page.waitForURL('/')
+    await page.waitForURL('**/#/')
     await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 
     // 验证 localStorage 中有钱包数据
@@ -163,7 +163,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
   test('创建钱包派生多链地址', async ({ page }) => {
     // 快速创建钱包流程
-    await page.goto('/wallet/create')
+    await page.goto('/#/wallet/create')
     await page.waitForSelector('text=设置密码')
 
     // 密码步骤
@@ -202,7 +202,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     }
 
     await page.click('button:has-text("完成创建")')
-    await page.waitForURL('/')
+    await page.waitForURL('**/#/')
 
     // 验证多链地址派生
     const walletData = await page.evaluate(() => {
@@ -230,7 +230,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
   })
 
   test('密码强度不足时禁用下一步', async ({ page }) => {
-    await page.goto('/wallet/create')
+    await page.goto('/#/wallet/create')
     await page.waitForSelector('text=设置密码')
 
     const nextBtn = page.locator('button:has-text("下一步")')
@@ -255,7 +255,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
   })
 
   test('密码不匹配时禁用下一步', async ({ page }) => {
-    await page.goto('/wallet/create')
+    await page.goto('/#/wallet/create')
     await page.waitForSelector('text=设置密码')
 
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
@@ -270,7 +270,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
   test('助记词验证错误时禁用完成按钮', async ({ page }) => {
     // 快速到达验证步骤
-    await page.goto('/wallet/create')
+    await page.goto('/#/wallet/create')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("下一步")')
@@ -302,7 +302,7 @@ test.describe('钱包导入流程 - 截图测试', () => {
   })
 
   test('导入页面截图', async ({ page }) => {
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveScreenshot('import-01-mnemonic-input.png')
 

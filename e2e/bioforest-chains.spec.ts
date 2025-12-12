@@ -201,7 +201,7 @@ test.describe('BioForest 链地址派生', () => {
     await page.reload()
 
     // 导入钱包
-    await page.goto('/wallet/import')
+    await page.goto('/#/wallet/import')
     await page.waitForSelector('text=输入助记词')
 
     // 填写助记词
@@ -217,7 +217,7 @@ test.describe('BioForest 链地址派生', () => {
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("完成导入")')
 
-    await page.waitForURL('/')
+    await page.waitForURL('**/#/')
     await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 
     // 验证 BioForest 地址派生
