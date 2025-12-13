@@ -57,3 +57,17 @@ export {
 // 保留旧的 context 导出，便于渐进式迁移
 export { ServiceProvider, useServices } from './context'
 export type { IServices, Platform } from './types'
+
+// ==================== Authorize (DWEB/Plaoc) ====================
+// Interface stub - implementation blocked pending DWEB runtime
+export type {
+  AddressAuthType,
+  AddressAuthRequest,
+  AddressAuthResponse,
+  SignatureType,
+  TransferPayload,
+  MessagePayload,
+  SignatureRequest,
+  PlaocAdapter,
+} from './authorize'
+export { createPlaocAdapter, isPlaocAvailable } from './authorize'
