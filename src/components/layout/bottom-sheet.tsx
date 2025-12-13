@@ -80,10 +80,10 @@ export function BottomSheet({
     // Focus trap: keep focus within the sheet
     if (e.key === 'Tab' && sheetRef.current) {
       const focusableElements = sheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-      const firstFocusable = focusableElements[0]
-      const lastFocusable = focusableElements[focusableElements.length - 1]
-
       if (focusableElements.length === 0) return
+
+      const firstFocusable = focusableElements[0]!
+      const lastFocusable = focusableElements[focusableElements.length - 1]!
 
       if (e.shiftKey) {
         // Shift + Tab: if on first element, go to last
