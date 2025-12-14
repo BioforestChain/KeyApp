@@ -118,14 +118,15 @@ export class AddressAuthService {
    * Respond with approved addresses and cleanup eventId.
    */
   async approve(addresses: AddressAuthResponse[]): Promise<void> {
-    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, { addresses })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, addresses)
   }
 
   /**
    * Respond with an error and cleanup eventId.
    */
   async reject(error: AddressAuthError): Promise<void> {
-    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, { error })
+    void error
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, null)
   }
 
   private async respondOnce(path: string, data: unknown): Promise<void> {

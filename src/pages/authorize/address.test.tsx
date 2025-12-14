@@ -114,9 +114,7 @@ describe('AddressAuthPage', () => {
     expect(respondSpy).toHaveBeenCalledWith(
       'test-event',
       WALLET_PLAOC_PATH.authorizeAddress,
-      expect.objectContaining({
-        addresses: expect.any(Array),
-      })
+      expect.any(Array)
     )
     expect(removeSpy).toHaveBeenCalledWith('test-event')
     expect(router.state.location.pathname).toBe('/')
@@ -156,13 +154,11 @@ describe('AddressAuthPage', () => {
       expect(respondSpy).toHaveBeenCalledWith(
         'test-event',
         WALLET_PLAOC_PATH.authorizeAddress,
-        expect.objectContaining({
-          addresses: expect.arrayContaining([
-            expect.objectContaining({
-              signMessage: expect.stringMatching(/^0x[0-9a-f]{128}$/),
-            }),
-          ]),
-        })
+        expect.arrayContaining([
+          expect.objectContaining({
+            signMessage: expect.stringMatching(/^0x[0-9a-f]{128}$/),
+          }),
+        ])
       )
     })
 
@@ -193,7 +189,7 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
-    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
+    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, null)
     expect(removeSpy).toHaveBeenCalledWith('test-event')
     expect(router.state.location.pathname).toBe('/')
   })
@@ -230,7 +226,7 @@ describe('AddressAuthPage', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, { error: 'timeout' })
+    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, null)
     expect(removeSpy).toHaveBeenCalledWith('test-event')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })

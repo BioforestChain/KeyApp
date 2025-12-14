@@ -24,14 +24,15 @@ export class SignatureAuthService {
    * Respond with a signature and cleanup eventId.
    */
   async approve(signature: string): Promise<void> {
-    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, { signature })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, signature)
   }
 
   /**
    * Respond with an error and cleanup eventId.
    */
   async reject(error: SignatureAuthError): Promise<void> {
-    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, { error })
+    void error
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, null)
   }
 
   /**

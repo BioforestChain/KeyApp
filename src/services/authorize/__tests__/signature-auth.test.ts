@@ -38,13 +38,13 @@ describe('SignatureAuthService', () => {
     await service.approve('0xsig2')
 
     expect(respondWith).toHaveBeenCalledTimes(1)
-    expect(respondWith).toHaveBeenCalledWith('evt-1', WALLET_PLAOC_PATH.authorizeSignature, { signature: '0xsig' })
+    expect(respondWith).toHaveBeenCalledWith('evt-1', WALLET_PLAOC_PATH.authorizeSignature, '0xsig')
 
     expect(removeEventId).toHaveBeenCalledTimes(1)
     expect(removeEventId).toHaveBeenCalledWith('evt-1')
   })
 
-  it('reject is single-use and sends error payload', async () => {
+  it('reject is single-use and sends null payload', async () => {
     const respondWith = vi.fn<IPlaocAdapter['respondWith']>().mockResolvedValue(undefined)
     const removeEventId = vi.fn<IPlaocAdapter['removeEventId']>().mockResolvedValue(undefined)
 
@@ -58,7 +58,7 @@ describe('SignatureAuthService', () => {
     const service = new SignatureAuthService(adapter, 'evt-2')
     await service.reject('insufficient_balance')
 
-    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeSignature, { error: 'insufficient_balance' })
+    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeSignature, null)
     expect(removeEventId).toHaveBeenCalledWith('evt-2')
   })
 

@@ -22,6 +22,7 @@ describe('T022 DWEB runtime contract fixtures', () => {
 
     it.todo('response: wire envelope shape confirmed (e.g. JSON { data: ... } + content-type/status)')
     it.todo('response: payload shape confirmed (mpay expects AddressInfo[] | null, not {addresses})')
+    it.todo('response: reject/timeout/cancel is null payload (no {error} wrapper)')
     it.todo('response: AddressInfo item fields confirmed (name/address/chainName/publicKey/magic/signMessage?/main?)')
 
     it.todo('lifecycle: removeEventId required/idempotent; timeout/cancel/disconnect semantics confirmed')
@@ -36,6 +37,7 @@ describe('T022 DWEB runtime contract fixtures', () => {
 
     it.todo('response: wire envelope shape confirmed (e.g. JSON { data: ... } + content-type/status)')
     it.todo('response: payload shape confirmed (mpay expects ResultArray | null, not {signature})')
+    it.todo('response: reject/timeout/cancel is null payload (no {error} wrapper)')
     it.todo('response: per-item error compatibility confirmed (null or { error: true, message })')
 
     it.todo('compat: assetTypeBalance fast-path confirmed in/out of scope for KeyApp Phase B')

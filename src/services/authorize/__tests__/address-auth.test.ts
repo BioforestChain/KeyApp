@@ -148,13 +148,13 @@ describe('AddressAuthService', () => {
     await service.approve([])
 
     expect(respondWith).toHaveBeenCalledTimes(1)
-    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeAddress, { addresses: [] })
+    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeAddress, [])
 
     expect(removeEventId).toHaveBeenCalledTimes(1)
     expect(removeEventId).toHaveBeenCalledWith('evt-2')
   })
 
-  it('reject is single-use and sends error payload', async () => {
+  it('reject is single-use and sends null payload', async () => {
     const respondWith = vi.fn<IPlaocAdapter['respondWith']>().mockResolvedValue(undefined)
     const removeEventId = vi.fn<IPlaocAdapter['removeEventId']>().mockResolvedValue(undefined)
 
@@ -168,7 +168,7 @@ describe('AddressAuthService', () => {
     const service = new AddressAuthService(adapter, 'evt-3')
     await service.reject('rejected')
 
-    expect(respondWith).toHaveBeenCalledWith('evt-3', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
+    expect(respondWith).toHaveBeenCalledWith('evt-3', WALLET_PLAOC_PATH.authorizeAddress, null)
     expect(removeEventId).toHaveBeenCalledWith('evt-3')
   })
 

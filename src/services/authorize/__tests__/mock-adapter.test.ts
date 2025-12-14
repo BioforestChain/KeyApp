@@ -33,18 +33,19 @@ describe('Mock PlaocAdapter', () => {
     const adapter = new PlaocAdapter()
     const consoleSpy = vi.spyOn(console, 'log')
 
-    await adapter.respondWith('event-1', WALLET_PLAOC_PATH.authorizeAddress, { success: true })
+    const payload = [{ name: 'Wallet 1', address: '0x1' }]
+    await adapter.respondWith('event-1', WALLET_PLAOC_PATH.authorizeAddress, payload)
 
     expect(consoleSpy).toHaveBeenCalledWith('[MockPlaocAdapter] respondWith:', {
       eventId: 'event-1',
       path: WALLET_PLAOC_PATH.authorizeAddress,
-      data: { success: true },
+      data: payload,
     })
 
     expect(adapter._getLastWireResponse()).toEqual({
       eventId: 'event-1',
       path: WALLET_PLAOC_PATH.authorizeAddress,
-      body: { data: { success: true } },
+      body: { data: payload },
     })
   })
 

@@ -136,7 +136,7 @@ describe('authorize integration (mock-first)', () => {
     expect(respondSpy).toHaveBeenCalledWith(
       'evt-addr',
       WALLET_PLAOC_PATH.authorizeAddress,
-      expect.objectContaining({ addresses: expect.any(Array) })
+      expect.any(Array)
     )
     expect(removeSpy).toHaveBeenCalledWith('evt-addr')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
@@ -174,9 +174,7 @@ describe('authorize integration (mock-first)', () => {
       expect(respondSpy).toHaveBeenCalledWith(
         'sufficient-balance',
         WALLET_PLAOC_PATH.authorizeSignature,
-        expect.objectContaining({
-          signature: expect.stringMatching(/^0x[0-9a-f]{128}$/),
-        })
+        expect.stringMatching(/^0x[0-9a-f]{128}$/)
       )
     })
     expect(removeSpy).toHaveBeenCalledWith('sufficient-balance')
@@ -203,7 +201,7 @@ describe('authorize integration (mock-first)', () => {
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
-    expect(respondSpy).toHaveBeenCalledWith('evt-reject', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
+    expect(respondSpy).toHaveBeenCalledWith('evt-reject', WALLET_PLAOC_PATH.authorizeAddress, null)
     expect(removeSpy).toHaveBeenCalledWith('evt-reject')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -237,7 +235,7 @@ describe('authorize integration (mock-first)', () => {
     handler()
 
     await waitFor(() => {
-      expect(respondSpy).toHaveBeenCalledWith('evt-timeout', WALLET_PLAOC_PATH.authorizeAddress, { error: 'timeout' })
+      expect(respondSpy).toHaveBeenCalledWith('evt-timeout', WALLET_PLAOC_PATH.authorizeAddress, null)
     })
     expect(removeSpy).toHaveBeenCalledWith('evt-timeout')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
