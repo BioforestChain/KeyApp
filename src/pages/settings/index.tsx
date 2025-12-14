@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Wallet,
   BookUser,
@@ -37,13 +38,14 @@ const CURRENCY_NAMES: Record<string, string> = {
 
 export function SettingsPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const currentWallet = useCurrentWallet()
   const currentLanguage = useLanguage()
   const currentCurrency = useCurrency()
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="我的" />
+      <PageHeader title={t('a11y.tabSettings')} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 钱包信息头 */}

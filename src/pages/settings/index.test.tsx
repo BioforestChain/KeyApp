@@ -113,7 +113,7 @@ describe('SettingsPage', () => {
 
   it('renders page header', () => {
     renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('我的')).toBeInTheDocument()
+    expect(screen.getByText('设置')).toBeInTheDocument()
   })
 
   it('displays wallet info card', () => {
