@@ -112,6 +112,7 @@ The legacy mpay implementation strongly suggests Candidate B is real in practice
 
 - Wallet listens via `dwebServiceWorker.addEventListener('fetch', ...)` and generates an internal `eventId` like `eventId:${Date.now()}` to correlate UI with the captured fetch event.
 - `getCallerAppInfo(eventId)` reads `event.getRemoteManifest()`.
+- Code-level hint (`@plaoc/plugins`): `getRemoteManifest()` derives the caller mmid from `event.request.headers.get("X-External-Dweb-Host")` and queries `dns.std.dweb /query?mmid=...` to return the caller manifest. This implies authorize requests must carry `X-External-Dweb-Host` (or equivalent) for app-info display to work.
 - `respondWith(eventId, pathname, payload)` serializes JSON `{ "data": payload }` with `application/json` and **consumes** the cached fetch event (deletes `eventId` from the internal map before responding), making subsequent cleanup safe.
 - `removeEventId(eventId)` responds with JSON `{ "data": null }` only when the event is still present (so calling `removeEventId` after a successful `respondWith` becomes a no-op in practice).
 - For signature requests, mpay `externalFetch` uses `dwebServiceWorker.fetch(url.href, { method: "POST", body: signaturedata })` where `signaturedata = JSON.stringify(search)` (query-based `signaturedata` is commented out in that code path). This implies KeyApp should support **POST body first, query fallback** for maximum compatibility.

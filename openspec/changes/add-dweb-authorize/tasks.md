@@ -18,6 +18,7 @@
     - Candidate A: mpay-style `plaoc.initAppPlaocEventListener((eventId, url, event) => ...)`
     - Candidate B: `@plaoc/plugins` `dwebServiceWorker.addEventListener('fetch', (event) => ...)` (request/response IPC)
   - [ ] P2.2 App info contract: `getCallerAppInfo(eventId)` return shape + error semantics
+    - Evidence (deps): `event.getRemoteManifest()` may rely on `event.request.headers.get("X-External-Dweb-Host")` (caller mmid) to query `dns.std.dweb /query?mmid=...`; confirm header presence/guarantee and failure behavior when missing.
   - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage + getMain semantics/safety)
   - [ ] P2.4 Signature request payload schema (confirm single vs batch)
     - mpay accepts `signaturedata` as JSON stringified array (batch-capable); confirm runtime expectation for KeyApp
