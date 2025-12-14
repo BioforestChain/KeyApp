@@ -1,9 +1,9 @@
 {
-  "daysAgo": "{{count}} days ago",
-  "daysLater": "In {{count}} days",
-  "hoursAgo": "{{count}} hours ago",
-  "hoursLater": "In {{count}} hours",
-  "justNow": "Just now",
-  "minutesAgo": "{{count}} minutes ago",
-  "minutesLater": "In {{count}} minutes"
+  "daysAgo": "منذ {{count}} يوم",
+  "daysLater": "بعد {{count}} يوم",
+  "hoursAgo": "منذ {{count}} ساعة",
+  "hoursLater": "بعد {{count}} ساعة",
+  "justNow": "الآن",
+  "minutesAgo": "منذ {{count}} دقيقة",
+  "minutesLater": "بعد {{count}} دقيقة"
 }
