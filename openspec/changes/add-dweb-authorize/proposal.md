@@ -112,6 +112,9 @@ The legacy mpay implementation strongly suggests Candidate B is real in practice
 
 - Wallet listens via `dwebServiceWorker.addEventListener('fetch', ...)` and generates an internal `eventId` like `eventId:${Date.now()}` to correlate UI with the captured fetch event.
 - `getCallerAppInfo(eventId)` reads `event.getRemoteManifest()`.
+- **Request handoff to UI**: wallet-side listener owns the only reliable copy of request details (URL/query/body). KeyApp Phase B must define how those request details reach the UI route:
+  - Address params can be passed via router `search` (small and debuggable)
+  - Signature payload (`signaturedata`) SHOULD NOT be put in URL; it should be read from POST body and cached by `eventId` for the signature page to load
 - Code-level hint (`@plaoc/plugins`): `getRemoteManifest()` derives the caller mmid from `event.request.headers.get("X-External-Dweb-Host")` and queries `dns.std.dweb /query?mmid=...` to return the caller manifest. This implies authorize requests must carry `X-External-Dweb-Host` (or equivalent) for app-info display to work.
 - `respondWith(eventId, pathname, payload)` serializes JSON `{ "data": payload }` with `application/json` and **consumes** the cached fetch event (deletes `eventId` from the internal map before responding), making subsequent cleanup safe.
 - `removeEventId(eventId)` responds with JSON `{ "data": null }` only when the event is still present (so calling `removeEventId` after a successful `respondWith` becomes a no-op in practice).

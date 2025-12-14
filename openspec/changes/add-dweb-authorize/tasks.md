@@ -17,6 +17,9 @@
   - [ ] P2.1 Entry point + params schema (confirm which surface is real)
     - Candidate A: mpay-style `plaoc.initAppPlaocEventListener((eventId, url, event) => ...)`
     - Candidate B: `@plaoc/plugins` `dwebServiceWorker.addEventListener('fetch', (event) => ...)` (request/response IPC)
+    - Confirm how **request details** are delivered to UI:
+      - Address request params (type/chainName/signMessage/getMain): query vs body vs cached-only
+      - Signature request payload (`signaturedata`): URL vs POST body; whether wallet must cache parsed request for UI (recommended)
   - [ ] P2.2 App info contract: `getCallerAppInfo(eventId)` return shape + error semantics
     - Evidence (deps): `event.getRemoteManifest()` may rely on `event.request.headers.get("X-External-Dweb-Host")` (caller mmid) to query `dns.std.dweb /query?mmid=...`; confirm header presence/guarantee and failure behavior when missing.
   - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage + getMain semantics/safety)
@@ -125,6 +128,10 @@ These tasks require real DWEB/Plaoc runtime and cannot proceed until P0-P2 are r
 
 - [ ] B1. Real `isPlaocAvailable()` implementation (from 1.4)
 - [ ] B2. Real IPC adapter replacing mock (dweb.ts)
+  - Must include ingress capture + request handoff to UI (not only respond/cleanup):
+    - `dwebServiceWorker(fetch)` listener captures `ServiceWorkerFetchEvent`
+    - wallet generates `eventId` and stores event in Map for lifecycle
+    - UI can retrieve request details via route-search and/or adapter APIs
 - [ ] B3. Test with real DWEB runtime (from 9.5)
 - [ ] B4. Deep linking from external DWEB apps (from 4.4)
 - [ ] B5. Production deployment validation
