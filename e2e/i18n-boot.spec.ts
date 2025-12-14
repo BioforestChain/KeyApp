@@ -14,10 +14,20 @@ test.describe('i18n boot', () => {
       .poll(async () => await page.evaluate(() => document.documentElement.dir))
       .toBe('rtl')
 
-    await expect(page.getByRole('button', { name: 'الرئيسية' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'تحويل' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'المحفظة' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'الإعدادات' })).toBeVisible()
+    const homeTab = page.getByRole('button', { name: 'الرئيسية' })
+    const transferTab = page.getByRole('button', { name: 'تحويل' })
+    const walletTab = page.getByRole('button', { name: 'المحفظة' })
+    const settingsTab = page.getByRole('button', { name: 'الإعدادات' })
+
+    await expect(homeTab).toBeVisible()
+    await expect(transferTab).toBeVisible()
+    await expect(walletTab).toBeVisible()
+    await expect(settingsTab).toBeVisible()
+
+    // Ensure the *visible* labels are localized (not only aria-label / accessible name).
+    await expect(homeTab).toContainText('الرئيسية')
+    await expect(transferTab).toContainText('تحويل')
+    await expect(walletTab).toContainText('المحفظة')
+    await expect(settingsTab).toContainText('الإعدادات')
   })
 })
-
