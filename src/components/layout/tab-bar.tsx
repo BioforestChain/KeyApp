@@ -35,7 +35,9 @@ export function TabBar({ items, activeId, onTabChange, className }: TabBarProps)
               onClick={() => onTabChange(item.id)}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors relative',
-                isActive ? 'text-primary' : 'text-muted hover:text-foreground'
+                isActive
+                  ? 'text-primary'
+                  : 'text-foreground/60 hover:text-foreground/80 dark:text-foreground/70 dark:hover:text-foreground/90'
               )}
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.ariaLabel || item.label}
