@@ -225,6 +225,38 @@ interface CallerAppInfo {
 
 **Rationale**: Better UX than failing after password entry.
 
+## Phase B First-Batch Change Points
+
+**Status**: TBD - pending runtime samples
+
+These change points are confirmed for Phase B implementation but await runtime validation before coding begins.
+
+### 1. `getMain` Behavior (Address UI)
+
+When `getMain=true` in request params, UI should return only the main/default address.
+
+- **Context**: Address authorization can request either all addresses or just the primary one
+- **Behavior**: If `getMain=true`, UI displays single-address selection mode and returns only the main wallet address
+- **Reference**: mpay `tabs.component.ts` address handling logic
+
+### 2. `signaturedata` Dual-Source Read (Signature)
+
+Pattern: body-first + query fallback.
+
+- **Context**: Signature payloads can arrive via POST body or query parameter
+- **Behavior**: Adapter must check `event.request.text()` first (body), then fallback to query param `signaturedata`
+- **Rationale**: Maximum compatibility with different caller implementations
+- **Reference**: mpay `tabs.component.ts` signature handling (receiver reads query first, body fallback)
+
+### 3. Normalization Boundary Confirmed
+
+Service layer returns raw `array | null`, adapter wraps in `{ data: <payload> }` for wire format.
+
+- **Service output**: Raw `AddressInfo[]` or `ResultArray` (no wrapper object)
+- **Adapter responsibility**: Wraps service output to `{ "data": <payload> }` for IPC response
+- **Error case**: Service returns `null`, adapter sends `{ "data": null }`
+- **Status**: LOCKED for Phase B - this boundary will not change
+
 ## Impact
 
 - **Affected specs**: `authorize` (new)
