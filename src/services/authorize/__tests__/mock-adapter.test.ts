@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PlaocAdapter } from '../mock'
+import { WALLET_PLAOC_PATH } from '../paths'
 
 describe('Mock PlaocAdapter', () => {
   it('should return default mock caller info', async () => {
@@ -32,11 +33,11 @@ describe('Mock PlaocAdapter', () => {
     const adapter = new PlaocAdapter()
     const consoleSpy = vi.spyOn(console, 'log')
 
-    await adapter.respondWith('event-1', '/auth/address', { success: true })
+    await adapter.respondWith('event-1', WALLET_PLAOC_PATH.authorizeAddress, { success: true })
 
     expect(consoleSpy).toHaveBeenCalledWith('[MockPlaocAdapter] respondWith:', {
       eventId: 'event-1',
-      path: '/auth/address',
+      path: WALLET_PLAOC_PATH.authorizeAddress,
       data: { success: true },
     })
   })
@@ -65,4 +66,3 @@ describe('Mock PlaocAdapter', () => {
     expect(adapter.isAvailable()).toBe(true)
   })
 })
-

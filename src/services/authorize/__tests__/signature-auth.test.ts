@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SignatureAuthService } from '../signature-auth'
+import { WALLET_PLAOC_PATH } from '../paths'
 import type { IPlaocAdapter } from '../types'
 import type { MessagePayload } from '../types'
 import type { TransferPayload } from '../types'
@@ -37,7 +38,7 @@ describe('SignatureAuthService', () => {
     await service.approve('0xsig2')
 
     expect(respondWith).toHaveBeenCalledTimes(1)
-    expect(respondWith).toHaveBeenCalledWith('evt-1', '/auth/signature', { signature: '0xsig' })
+    expect(respondWith).toHaveBeenCalledWith('evt-1', WALLET_PLAOC_PATH.authorizeSignature, { signature: '0xsig' })
 
     expect(removeEventId).toHaveBeenCalledTimes(1)
     expect(removeEventId).toHaveBeenCalledWith('evt-1')
@@ -57,7 +58,7 @@ describe('SignatureAuthService', () => {
     const service = new SignatureAuthService(adapter, 'evt-2')
     await service.reject('insufficient_balance')
 
-    expect(respondWith).toHaveBeenCalledWith('evt-2', '/auth/signature', { error: 'insufficient_balance' })
+    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeSignature, { error: 'insufficient_balance' })
     expect(removeEventId).toHaveBeenCalledWith('evt-2')
   })
 

@@ -14,6 +14,7 @@ import { TestI18nProvider } from '@/test/i18n-mock'
 import { AddressAuthPage } from '@/pages/authorize/address'
 import { SignatureAuthPage } from '@/pages/authorize/signature'
 import { plaocAdapter } from '@/services/authorize'
+import { WALLET_PLAOC_PATH } from '@/services/authorize/paths'
 import { walletActions } from '@/stores'
 import { encrypt } from '@/lib/crypto'
 
@@ -123,7 +124,7 @@ describe('authorize integration (mock-first)', () => {
 
     expect(respondSpy).toHaveBeenCalledWith(
       'evt-addr',
-      '/auth/address',
+      WALLET_PLAOC_PATH.authorizeAddress,
       expect.objectContaining({ addresses: expect.any(Array) })
     )
     expect(removeSpy).toHaveBeenCalledWith('evt-addr')
@@ -159,7 +160,7 @@ describe('authorize integration (mock-first)', () => {
     await waitFor(() => {
       expect(respondSpy).toHaveBeenCalledWith(
         'sufficient-balance',
-        '/auth/signature',
+        WALLET_PLAOC_PATH.authorizeSignature,
         expect.objectContaining({
           signature: expect.stringMatching(/^0x[0-9a-f]{128}$/),
         })
@@ -187,7 +188,7 @@ describe('authorize integration (mock-first)', () => {
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
-    expect(respondSpy).toHaveBeenCalledWith('evt-reject', '/auth/address', { error: 'rejected' })
+    expect(respondSpy).toHaveBeenCalledWith('evt-reject', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
     expect(removeSpy).toHaveBeenCalledWith('evt-reject')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -219,7 +220,7 @@ describe('authorize integration (mock-first)', () => {
     handler()
 
     await waitFor(() => {
-      expect(respondSpy).toHaveBeenCalledWith('evt-timeout', '/auth/address', { error: 'timeout' })
+      expect(respondSpy).toHaveBeenCalledWith('evt-timeout', WALLET_PLAOC_PATH.authorizeAddress, { error: 'timeout' })
     })
     expect(removeSpy).toHaveBeenCalledWith('evt-timeout')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
@@ -236,4 +237,3 @@ describe('authorize integration (mock-first)', () => {
     expect(backButtons.length).toBeGreaterThan(0)
   })
 })
-

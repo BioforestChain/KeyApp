@@ -18,7 +18,7 @@
   - [ ] P2.2 App info contract: `getCallerAppInfo(eventId)` return shape + error semantics
   - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage)
   - [ ] P2.4 Signature request payload schema (type/message|transfer|destory + payload fields)
-  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads
+  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm whether runtime expects mpay `$WALLET_PLAOC_PATH` like `/wallet/authorize/*`)
   - [ ] P2.6 Cleanup semantics: `removeEventId(eventId)` idempotency + required call order
   - [ ] P2.7 Timeout/cancel semantics (deadline, user cancel, runtime disconnect, retry/replay guard)
 

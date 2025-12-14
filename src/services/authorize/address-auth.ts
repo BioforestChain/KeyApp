@@ -1,5 +1,6 @@
 import type { AddressAuthResponse, IPlaocAdapter } from './types'
 import type { Wallet } from '@/stores'
+import { WALLET_PLAOC_PATH } from './paths'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToHex } from '@noble/hashes/utils.js'
 import {
@@ -117,14 +118,14 @@ export class AddressAuthService {
    * Respond with approved addresses and cleanup eventId.
    */
   async approve(addresses: AddressAuthResponse[]): Promise<void> {
-    await this.respondOnce('/auth/address', { addresses })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, { addresses })
   }
 
   /**
    * Respond with an error and cleanup eventId.
    */
   async reject(error: AddressAuthError): Promise<void> {
-    await this.respondOnce('/auth/address', { error })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeAddress, { error })
   }
 
   private async respondOnce(path: string, data: unknown): Promise<void> {

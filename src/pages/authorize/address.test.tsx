@@ -12,6 +12,7 @@ import {
 import { TestI18nProvider } from '@/test/i18n-mock'
 import { AddressAuthPage } from './address'
 import { plaocAdapter } from '@/services/authorize'
+import { WALLET_PLAOC_PATH } from '@/services/authorize/paths'
 import { walletActions } from '@/stores'
 import { encrypt } from '@/lib/crypto'
 
@@ -112,7 +113,7 @@ describe('AddressAuthPage', () => {
 
     expect(respondSpy).toHaveBeenCalledWith(
       'test-event',
-      '/auth/address',
+      WALLET_PLAOC_PATH.authorizeAddress,
       expect.objectContaining({
         addresses: expect.any(Array),
       })
@@ -154,7 +155,7 @@ describe('AddressAuthPage', () => {
     await waitFor(() => {
       expect(respondSpy).toHaveBeenCalledWith(
         'test-event',
-        '/auth/address',
+        WALLET_PLAOC_PATH.authorizeAddress,
         expect.objectContaining({
           addresses: expect.arrayContaining([
             expect.objectContaining({
@@ -192,7 +193,7 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
-    expect(respondSpy).toHaveBeenCalledWith('test-event', '/auth/address', { error: 'rejected' })
+    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
     expect(removeSpy).toHaveBeenCalledWith('test-event')
     expect(router.state.location.pathname).toBe('/')
   })
@@ -229,7 +230,7 @@ describe('AddressAuthPage', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(respondSpy).toHaveBeenCalledWith('test-event', '/auth/address', { error: 'timeout' })
+    expect(respondSpy).toHaveBeenCalledWith('test-event', WALLET_PLAOC_PATH.authorizeAddress, { error: 'timeout' })
     expect(removeSpy).toHaveBeenCalledWith('test-event')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })

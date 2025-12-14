@@ -128,8 +128,8 @@ interface CallerAppInfo {
 
 | Path | Success Data | Error Data |
 |------|--------------|------------|
-| `/auth/address` | `{ addresses: AddressInfo[] }` | `{ error: 'rejected' \| 'timeout' }` |
-| `/auth/signature` | `{ signature: string, txHash?: string }` | `{ error: 'rejected' \| 'timeout' \| 'insufficient_balance' }` |
+| `/wallet/authorize/address` | `{ addresses: AddressInfo[] }` | `{ error: 'rejected' \| 'timeout' }` |
+| `/wallet/authorize/signature` | `{ signature: string, txHash?: string }` | `{ error: 'rejected' \| 'timeout' \| 'insufficient_balance' }` |
 
 ### Error Codes
 

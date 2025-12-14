@@ -1,5 +1,6 @@
 import type { IPlaocAdapter } from './types'
 import type { DestroyPayload, MessagePayload, TransferPayload } from './types'
+import { WALLET_PLAOC_PATH } from './paths'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToHex } from '@noble/hashes/utils.js'
 import { createBioforestKeypair, decrypt, isBioforestChain, signMessage, verifyPassword, type EncryptedData } from '@/lib/crypto'
@@ -23,14 +24,14 @@ export class SignatureAuthService {
    * Respond with a signature and cleanup eventId.
    */
   async approve(signature: string): Promise<void> {
-    await this.respondOnce('/auth/signature', { signature })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, { signature })
   }
 
   /**
    * Respond with an error and cleanup eventId.
    */
   async reject(error: SignatureAuthError): Promise<void> {
-    await this.respondOnce('/auth/signature', { error })
+    await this.respondOnce(WALLET_PLAOC_PATH.authorizeSignature, { error })
   }
 
   /**

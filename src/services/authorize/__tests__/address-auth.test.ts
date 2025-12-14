@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AddressAuthService } from '../address-auth'
+import { WALLET_PLAOC_PATH } from '../paths'
 import type { IPlaocAdapter } from '../types'
 import type { Wallet } from '@/stores'
 import type { EncryptedData } from '@/lib/crypto'
@@ -147,7 +148,7 @@ describe('AddressAuthService', () => {
     await service.approve([])
 
     expect(respondWith).toHaveBeenCalledTimes(1)
-    expect(respondWith).toHaveBeenCalledWith('evt-2', '/auth/address', { addresses: [] })
+    expect(respondWith).toHaveBeenCalledWith('evt-2', WALLET_PLAOC_PATH.authorizeAddress, { addresses: [] })
 
     expect(removeEventId).toHaveBeenCalledTimes(1)
     expect(removeEventId).toHaveBeenCalledWith('evt-2')
@@ -167,7 +168,7 @@ describe('AddressAuthService', () => {
     const service = new AddressAuthService(adapter, 'evt-3')
     await service.reject('rejected')
 
-    expect(respondWith).toHaveBeenCalledWith('evt-3', '/auth/address', { error: 'rejected' })
+    expect(respondWith).toHaveBeenCalledWith('evt-3', WALLET_PLAOC_PATH.authorizeAddress, { error: 'rejected' })
     expect(removeEventId).toHaveBeenCalledWith('evt-3')
   })
 

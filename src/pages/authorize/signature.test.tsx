@@ -12,6 +12,7 @@ import {
 import { TestI18nProvider } from '@/test/i18n-mock'
 import { SignatureAuthPage } from './signature'
 import { plaocAdapter } from '@/services/authorize'
+import { WALLET_PLAOC_PATH } from '@/services/authorize/paths'
 import { walletActions } from '@/stores'
 import * as crypto from '@/lib/crypto'
 
@@ -103,7 +104,7 @@ describe('SignatureAuthPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
-    expect(respondSpy).toHaveBeenCalledWith('insufficient-balance', '/auth/signature', { error: 'insufficient_balance' })
+    expect(respondSpy).toHaveBeenCalledWith('insufficient-balance', WALLET_PLAOC_PATH.authorizeSignature, { error: 'insufficient_balance' })
     expect(removeSpy).toHaveBeenCalledWith('insufficient-balance')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -145,7 +146,7 @@ describe('SignatureAuthPage', () => {
     await waitFor(() => {
       expect(respondSpy).toHaveBeenCalledWith(
         'sufficient-balance',
-        '/auth/signature',
+        WALLET_PLAOC_PATH.authorizeSignature,
         expect.objectContaining({
           signature: expect.stringMatching(/^0x[0-9a-f]{128}$/),
         })
