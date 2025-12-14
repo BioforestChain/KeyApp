@@ -14,11 +14,14 @@
 - [ ] P0. DWEB/Plaoc runtime becomes available for testing
 - [ ] P1. Runtime detection API confirmed (`isPlaocAvailable()`)
 - [ ] P2. IPC contract checklist confirmed with real runtime (events + payload schemas + semantics)
-  - [ ] P2.1 Deep-link entry + params schema (eventId + route + search params)
+  - [ ] P2.1 Entry point + params schema (confirm which surface is real)
+    - Candidate A: mpay-style `plaoc.initAppPlaocEventListener((eventId, url, event) => ...)`
+    - Candidate B: `@plaoc/plugins` `dwebServiceWorker.addEventListener('fetch', (event) => ...)` (request/response IPC)
   - [ ] P2.2 App info contract: `getCallerAppInfo(eventId)` return shape + error semantics
   - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage)
-  - [ ] P2.4 Signature request payload schema (type/message|transfer|destory + payload fields)
-  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm whether runtime expects mpay `$WALLET_PLAOC_PATH` like `/wallet/authorize/*`)
+  - [ ] P2.4 Signature request payload schema (confirm single vs batch)
+    - mpay accepts `signaturedata` as JSON stringified array (batch-capable); confirm runtime expectation for KeyApp
+  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm envelope vs raw array compatibility with mpay)
   - [ ] P2.6 Cleanup semantics: `removeEventId(eventId)` idempotency + required call order
   - [ ] P2.7 Timeout/cancel semantics (deadline, user cancel, runtime disconnect, retry/replay guard)
 
