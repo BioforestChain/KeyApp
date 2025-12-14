@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
@@ -22,6 +22,220 @@ import { useToast } from '@/services'
 import { walletStore, walletSelectors } from '@/stores'
 
 const REQUEST_TIMEOUT_MS = 5 * 60 * 1000
+
+type ParsedSignatureItem =
+  | { type: 'message'; payload: MessagePayload }
+  | { type: 'transfer'; payload: TransferPayload }
+  | { type: 'destory'; payload: DestroyPayload }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function readOptionalStringLike(obj: Record<string, unknown>, key: string): string | undefined {
+  const v = obj[key]
+  if (typeof v === 'string') return v
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v)
+  return undefined
+}
+
+function readRequiredStringLike(
+  obj: Record<string, unknown>,
+  key: string,
+  label: string
+): { ok: true; value: string } | { ok: false; error: string } {
+  const value = readOptionalStringLike(obj, key)?.trim()
+  if (!value) return { ok: false, error: `signaturedata 缺少字段：${label}` }
+  return { ok: true, value }
+}
+
+function readFirstStringLike(
+  obj: Record<string, unknown>,
+  keys: Array<{ key: string; label: string }>
+): { ok: true; value: string } | { ok: false; error: string } {
+  for (const k of keys) {
+    const value = readOptionalStringLike(obj, k.key)?.trim()
+    if (value) return { ok: true, value }
+  }
+  return { ok: false, error: `signaturedata 缺少字段：${keys.map((k) => k.label).join(' / ')}` }
+}
+
+function parseSignatureType(rawType: unknown): { ok: true; value: ParsedSignatureItem['type'] } | { ok: false; error: string } {
+  if (typeof rawType === 'string') {
+    const v = rawType.trim().toLowerCase()
+    if (v === 'message') return { ok: true, value: 'message' }
+    if (v === 'transfer') return { ok: true, value: 'transfer' }
+    if (v === 'destroy' || v === 'destory') return { ok: true, value: 'destory' }
+    return { ok: false, error: `不支持的签名类型：${rawType}` }
+  }
+
+  if (typeof rawType === 'number' && Number.isInteger(rawType)) {
+    // mpay legacy enum: message=0, transfer=1, ..., destory=7
+    if (rawType === 0) return { ok: true, value: 'message' }
+    if (rawType === 1) return { ok: true, value: 'transfer' }
+    if (rawType === 7) return { ok: true, value: 'destory' }
+    return { ok: false, error: `不支持的签名类型：${rawType}` }
+  }
+
+  return { ok: false, error: 'signaturedata.type 必须是字符串或数字' }
+}
+
+function parseSignaturedataParam(signaturedata: string | undefined): { ok: true; item: ParsedSignatureItem } | { ok: false; error: string } {
+  if (signaturedata === undefined || signaturedata.trim() === '') {
+    return { ok: false, error: '缺少 signaturedata 参数' }
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(signaturedata)
+  } catch {
+    return { ok: false, error: 'signaturedata 不是合法的 JSON' }
+  }
+
+  if (!Array.isArray(parsed)) {
+    return { ok: false, error: 'signaturedata 必须是 JSON 数组' }
+  }
+
+  if (parsed.length === 0) {
+    return { ok: false, error: 'signaturedata 不能为空数组' }
+  }
+
+  const first = parsed[0]
+  if (!isRecord(first)) {
+    return { ok: false, error: 'signaturedata[0] 必须是对象' }
+  }
+
+  const typeRes = parseSignatureType(first.type)
+  if (!typeRes.ok) return typeRes
+
+  const chainNameRes = readFirstStringLike(first, [
+    { key: 'chainName', label: 'chainName' },
+    { key: 'chain', label: 'chain' },
+  ])
+  if (!chainNameRes.ok) return chainNameRes
+  const chainName = chainNameRes.value
+
+  if (typeRes.value === 'message') {
+    const senderRes = readFirstStringLike(first, [
+      { key: 'senderAddress', label: 'senderAddress' },
+      { key: 'from', label: 'from' },
+    ])
+    if (!senderRes.ok) return senderRes
+
+    const messageRes = readRequiredStringLike(first, 'message', 'message')
+    if (!messageRes.ok) return messageRes
+
+    return {
+      ok: true,
+      item: {
+        type: 'message',
+        payload: {
+          chainName,
+          senderAddress: senderRes.value,
+          message: messageRes.value,
+        },
+      },
+    }
+  }
+
+  if (typeRes.value === 'transfer') {
+    const senderRes = readFirstStringLike(first, [
+      { key: 'senderAddress', label: 'senderAddress' },
+      { key: 'from', label: 'from' },
+    ])
+    if (!senderRes.ok) return senderRes
+
+    const receiveRes = readFirstStringLike(first, [
+      { key: 'receiveAddress', label: 'receiveAddress' },
+      { key: 'to', label: 'to' },
+    ])
+    if (!receiveRes.ok) return receiveRes
+
+    const amountRes = readFirstStringLike(first, [
+      { key: 'balance', label: 'balance' },
+      { key: 'amount', label: 'amount' },
+    ])
+    if (!amountRes.ok) return amountRes
+
+    const fee = readOptionalStringLike(first, 'fee')?.trim()
+    const assetType = readOptionalStringLike(first, 'assetType')?.trim()
+
+    let contractInfo: TransferPayload['contractInfo'] | undefined
+    const rawContractInfo = first.contractInfo
+    if (isRecord(rawContractInfo)) {
+      const ciAssetType = readOptionalStringLike(rawContractInfo, 'assetType')?.trim()
+      const ciDecimalsRaw = rawContractInfo.decimals
+      const ciContractAddress = readOptionalStringLike(rawContractInfo, 'contractAddress')?.trim()
+      const ciDecimals =
+        typeof ciDecimalsRaw === 'number' && Number.isFinite(ciDecimalsRaw)
+          ? ciDecimalsRaw
+          : typeof ciDecimalsRaw === 'string' && ciDecimalsRaw.trim() !== ''
+            ? Number(ciDecimalsRaw)
+            : undefined
+
+      if (ciAssetType && ciContractAddress && typeof ciDecimals === 'number' && Number.isFinite(ciDecimals)) {
+        contractInfo = {
+          assetType: ciAssetType,
+          contractAddress: ciContractAddress,
+          decimals: ciDecimals,
+        }
+      }
+    }
+
+    return {
+      ok: true,
+      item: {
+        type: 'transfer',
+        payload: {
+          chainName,
+          senderAddress: senderRes.value,
+          receiveAddress: receiveRes.value,
+          balance: amountRes.value,
+          ...(fee ? { fee } : {}),
+          ...(assetType ? { assetType } : {}),
+          ...(contractInfo ? { contractInfo } : {}),
+        },
+      },
+    }
+  }
+
+  {
+    const senderRes = readFirstStringLike(first, [
+      { key: 'senderAddress', label: 'senderAddress' },
+      { key: 'from', label: 'from' },
+    ])
+    if (!senderRes.ok) return senderRes
+
+    const amountRes = readFirstStringLike(first, [
+      { key: 'destoryAmount', label: 'destoryAmount' },
+      { key: 'amount', label: 'amount' },
+    ])
+    if (!amountRes.ok) return amountRes
+
+    const destoryAddress =
+      readOptionalStringLike(first, 'destoryAddress')?.trim() ??
+      readOptionalStringLike(first, 'to')?.trim() ??
+      senderRes.value
+
+    const fee = readOptionalStringLike(first, 'fee')?.trim()
+    const assetType = readOptionalStringLike(first, 'assetType')?.trim()
+
+    return {
+      ok: true,
+      item: {
+        type: 'destory',
+        payload: {
+          chainName,
+          senderAddress: senderRes.value,
+          destoryAddress,
+          destoryAmount: amountRes.value,
+          ...(fee ? { fee } : {}),
+          ...(assetType ? { assetType } : {}),
+        },
+      },
+    }
+  }
+}
 
 /**
  * Type guard for TransferPayload
@@ -65,14 +279,11 @@ function isDestroyPayload(payload: unknown): payload is DestroyPayload {
 /**
  * Format token symbol from asset type or chain name
  */
-function getTokenSymbol(payload: TransferPayload): string {
-  if (payload.contractInfo?.assetType) {
-    return payload.contractInfo.assetType.toUpperCase()
-  }
-  if (payload.assetType) {
-    return payload.assetType.toUpperCase()
-  }
-  // Default to chain native token
+function getTokenSymbol(payload: { contractInfo?: { assetType: string }; assetType?: string; chainName?: string }): string {
+  if (payload.contractInfo?.assetType) return payload.contractInfo.assetType.toUpperCase()
+  if (payload.assetType) return payload.assetType.toUpperCase()
+
+  // Default to chain native token (best-effort).
   const chainSymbols: Record<string, string> = {
     ethereum: 'ETH',
     bitcoin: 'BTC',
@@ -108,6 +319,7 @@ export function SignatureAuthPage() {
   const toast = useToast()
 
   const { id: eventId } = useParams({ from: '/authorize/signature/$id' })
+  const { signaturedata } = useSearch({ from: '/authorize/signature/$id' })
 
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet)
 
@@ -127,30 +339,26 @@ export function SignatureAuthPage() {
     async function run() {
       setLoadError(null)
       try {
+        const parsed = parseSignaturedataParam(signaturedata)
+        if (!parsed.ok) {
+          setLoadError(parsed.error)
+          return
+        }
+
         const info = await plaocAdapter.getCallerAppInfo(eventId)
         if (cancelled) return
         setAppInfo(info)
 
-        // In a real implementation, we would get the signature request from the event
-        // For now, we'll use a mock request based on the eventId
-        // This would normally come from plaocAdapter.getSignatureRequest(eventId)
-        const isInsufficient = eventId.toLowerCase().includes('insufficient')
-        const transferPayload = {
-          chainName: 'ethereum',
-          senderAddress: currentWallet?.address ?? '0x1234567890abcdef1234567890abcdef12345678',
-          receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-          balance: isInsufficient ? '1.5' : '0.5',
-          fee: '0.002',
-        } satisfies TransferPayload
-        const mockRequest: SignatureRequest = {
+        const req: SignatureRequest = {
           eventId,
-          type: 'transfer',
-          payload: transferPayload,
+          type: parsed.item.type,
+          payload: parsed.item.payload,
           appName: info.appName,
           appHome: info.origin,
           appLogo: info.appIcon,
         }
-        setSignatureRequest(mockRequest)
+
+        setSignatureRequest(req)
       } catch {
         if (cancelled) return
         setLoadError(tAuthorize('error.authFailed'))
@@ -161,7 +369,7 @@ export function SignatureAuthPage() {
     return () => {
       cancelled = true
     }
-  }, [eventId, tAuthorize, currentWallet?.address])
+  }, [eventId, signaturedata, tAuthorize])
 
   // Timeout handler
   useEffect(() => {
@@ -204,24 +412,32 @@ export function SignatureAuthPage() {
 
   // Check balance for transfer
   const balanceCheck = useMemo(() => {
-    if (!transferPayload || !currentWallet) {
-      return { sufficient: true, required: '0' }
-    }
+    if (!currentWallet) return { sufficient: true, required: '0', walletBalance: '0' }
 
-    // Find the relevant chain address balance
+    const spend =
+      transferPayload
+        ? { chainName: transferPayload.chainName, amount: transferPayload.balance, fee: transferPayload.fee }
+        : destroyPayload
+          ? { chainName: destroyPayload.chainName, amount: destroyPayload.destoryAmount, fee: destroyPayload.fee }
+          : null
+
+    if (!spend) return { sufficient: true, required: '0', walletBalance: '0' }
+
     const chainAddress = currentWallet.chainAddresses.find(
-      (ca) => ca.chain.toLowerCase() === transferPayload.chainName?.toLowerCase()
+      (ca) => ca.chain.toLowerCase() === spend.chainName?.toLowerCase()
     )
 
     // For now, use a mock balance - in real implementation, this would come from the wallet
     const walletBalance = chainAddress ? '1.0' : '0'
-    return checkBalance(walletBalance, transferPayload.balance, transferPayload.fee)
-  }, [transferPayload, currentWallet])
+    const result = checkBalance(walletBalance, spend.amount, spend.fee)
+    return { ...result, walletBalance }
+  }, [currentWallet, destroyPayload, transferPayload])
 
   const tokenSymbol = useMemo(() => {
-    if (!transferPayload) return 'TOKEN'
-    return getTokenSymbol(transferPayload)
-  }, [transferPayload])
+    if (transferPayload) return getTokenSymbol(transferPayload)
+    if (destroyPayload) return getTokenSymbol(destroyPayload)
+    return 'TOKEN'
+  }, [destroyPayload, transferPayload])
 
   const handleBack = useCallback(() => {
     navigate({ to: '/' })
@@ -322,9 +538,12 @@ export function SignatureAuthPage() {
   }
 
   // Determine page title based on request type
-  const pageTitle = signatureRequest?.type === 'message'
-    ? tAuthorize('signature.type.message')
-    : tAuthorize('title.signature')
+  const pageTitle =
+    signatureRequest?.type === 'message'
+      ? tAuthorize('signature.type.message')
+      : signatureRequest?.type === 'destory'
+        ? tAuthorize('signature.type.destroy')
+        : tAuthorize('title.signature')
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
@@ -350,7 +569,7 @@ export function SignatureAuthPage() {
 
             {!balanceCheck.sufficient && (
               <BalanceWarning
-                balance="1.0"
+                balance={balanceCheck.walletBalance}
                 required={balanceCheck.required}
                 symbol={tokenSymbol}
               />
@@ -372,6 +591,27 @@ export function SignatureAuthPage() {
               {messagePayload.message}
             </div>
           </div>
+        )}
+
+        {/* Destroy type display */}
+        {destroyPayload && (
+          <>
+            <TransactionDetails
+              from={destroyPayload.senderAddress}
+              to={destroyPayload.destoryAddress}
+              amount={`${destroyPayload.destoryAmount} ${tokenSymbol}`}
+              {...(destroyPayload.fee ? { fee: `${destroyPayload.fee} ${tokenSymbol}` } : {})}
+              chainId={destroyPayload.chainName}
+            />
+
+            {!balanceCheck.sufficient && (
+              <BalanceWarning
+                balance={balanceCheck.walletBalance}
+                required={balanceCheck.required}
+                symbol={tokenSymbol}
+              />
+            )}
+          </>
         )}
 
         {/* Signature type badge */}

@@ -71,6 +71,7 @@
 ## 4. Router Integration
 
 - [x] 4.1 Add `/authorize/address/:id` route
+  - [x] 4.1.2 Implement `getMain` handling: password required + `main` in response (mpay compat)
 - [x] 4.2 Add `/authorize/signature/:id` route
 - [x] 4.3 Register DWEB IPC event listeners on app mount
 - [x] 4.4 Handle deep linking from external DWEB apps

@@ -41,7 +41,12 @@ export function createAuthorizeRoutes({
       type: parseAddressAuthType(search.type) ?? 'main',
       chainName: typeof search.chainName === 'string' ? search.chainName : undefined,
       signMessage: typeof search.signMessage === 'string' ? search.signMessage : undefined,
-      getMain: typeof search.getMain === 'string' ? search.getMain : undefined,
+      getMain:
+        typeof search.getMain === 'string'
+          ? search.getMain
+          : typeof search.getMain === 'boolean'
+            ? String(search.getMain)
+            : undefined,
     }),
   })
 
@@ -50,7 +55,12 @@ export function createAuthorizeRoutes({
     path: '/signature/$id',
     component: withSuspense(SignatureAuthPage),
     validateSearch: (search: Record<string, unknown>) => ({
-      signaturedata: typeof search.signaturedata === 'string' ? search.signaturedata : undefined,
+      signaturedata:
+        typeof search.signaturedata === 'string'
+          ? search.signaturedata
+          : search.signaturedata !== null && typeof search.signaturedata === 'object'
+            ? JSON.stringify(search.signaturedata)
+            : undefined,
     }),
   })
 

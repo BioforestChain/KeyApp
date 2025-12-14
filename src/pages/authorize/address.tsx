@@ -74,6 +74,11 @@ function buildChainData(wallets: Wallet[], currentWalletId: string | null): Chai
   }))
 }
 
+function parseGetMainFlag(getMain: string | undefined): boolean {
+  const v = getMain?.trim().toLowerCase()
+  return v === 'true' || v === '1'
+}
+
 export function AddressAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
@@ -81,7 +86,7 @@ export function AddressAuthPage() {
   const toast = useToast()
 
   const { id: eventId } = useParams({ from: '/authorize/address/$id' })
-  const { type, chainName, signMessage } = useSearch({ from: '/authorize/address/$id' })
+  const { type, chainName, signMessage, getMain } = useSearch({ from: '/authorize/address/$id' })
 
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
   const wallets = useStore(walletStore, (s) => s.wallets)
@@ -118,14 +123,17 @@ export function AddressAuthPage() {
     () => {
       const permissions = ['viewAddress', 'viewPublicKey']
       if (signMessage?.trim()) permissions.push('signMessage')
+      if (parseGetMainFlag(getMain)) permissions.push('getMain')
       return permissions
     },
-    [signMessage]
+    [getMain, signMessage]
   )
 
   const authService = useMemo(() => new AddressAuthService(plaocAdapter, eventId), [eventId])
 
   const needsSignMessage = useMemo(() => Boolean(signMessage?.trim()), [signMessage])
+  const needsMainPhrase = useMemo(() => parseGetMainFlag(getMain), [getMain])
+  const needsPasswordConfirm = needsSignMessage || needsMainPhrase
 
   // Load app info
   useEffect(() => {
@@ -204,7 +212,7 @@ export function AddressAuthPage() {
 
   const handleApprove = useCallback(async () => {
     if (!canApprove || isSubmitting) return
-    if (needsSignMessage) {
+    if (needsPasswordConfirm) {
       setShowPasswordSheet(true)
       setPasswordError(undefined)
       return
@@ -235,7 +243,7 @@ export function AddressAuthPage() {
     canApprove,
     isSubmitting,
     navigate,
-    needsSignMessage,
+    needsPasswordConfirm,
     selectedChain,
     selectedWallet,
     selectedWalletIds,
@@ -245,26 +253,35 @@ export function AddressAuthPage() {
 
   const handlePasswordVerify = useCallback(
     async (password: string) => {
-      if (!needsSignMessage) return
+      if (!needsPasswordConfirm) return
       if (isSubmitting) return
       setIsSubmitting(true)
 
       try {
-        const message = signMessage?.trim()
-        if (!message) return
+        const message = signMessage?.trim() ?? ''
 
         let addresses: AddressAuthResponse[] = []
+        let scopeWallets: Wallet[] = []
 
         if (type === 'main') {
           if (!selectedWallet) return
-          addresses = await authService.handleMainAddressesSigned(selectedWallet, { signMessage: message, password })
+          addresses = authService.handleMainAddresses(selectedWallet)
+          scopeWallets = [selectedWallet]
         } else if (type === 'network') {
           if (!selectedChain) return
-          addresses = await authService.handleNetworkAddressesSigned(wallets, selectedChain, { signMessage: message, password })
+          addresses = authService.handleNetworkAddresses(wallets, selectedChain)
+          scopeWallets = wallets
         } else {
           const allowedWallets = wallets.filter((w) => selectedWalletIds.has(w.id))
-          addresses = await authService.handleAllAddressesSigned(allowedWallets, { signMessage: message, password })
+          addresses = authService.handleAllAddresses(allowedWallets)
+          scopeWallets = allowedWallets
         }
+
+        addresses = await authService.applySensitiveOptions(addresses, scopeWallets, {
+          password,
+          signMessage: message,
+          getMain: needsMainPhrase,
+        })
 
         await authService.approve(addresses)
         setShowPasswordSheet(false)
@@ -279,7 +296,8 @@ export function AddressAuthPage() {
       authService,
       isSubmitting,
       navigate,
-      needsSignMessage,
+      needsMainPhrase,
+      needsPasswordConfirm,
       selectedChain,
       selectedWallet,
       selectedWalletIds,
@@ -449,9 +467,15 @@ export function AddressAuthPage() {
         onClose={handlePasswordClose}
         onVerify={handlePasswordVerify}
         title={tAuthorize('button.confirm')}
-        description={tAuthorize('signature.confirmDescription', {
-          defaultValue: 'Enter your password to sign this message',
-        })}
+        description={
+          needsMainPhrase
+            ? tAuthorize('address.confirmDescription', {
+                defaultValue: 'Enter your password to continue',
+              })
+            : tAuthorize('signature.confirmDescription', {
+                defaultValue: 'Enter your password to sign this message',
+              })
+        }
         error={passwordError}
         isVerifying={isSubmitting}
       />

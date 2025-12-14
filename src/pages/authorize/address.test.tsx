@@ -40,6 +40,12 @@ function renderWithRouter(initialEntry: string) {
       type: search.type === 'main' || search.type === 'network' || search.type === 'all' ? search.type : 'main',
       chainName: typeof search.chainName === 'string' ? search.chainName : undefined,
       signMessage: typeof search.signMessage === 'string' ? search.signMessage : undefined,
+      getMain:
+        typeof search.getMain === 'string'
+          ? search.getMain
+          : typeof search.getMain === 'boolean'
+            ? String(search.getMain)
+            : undefined,
     }),
   })
 
@@ -157,6 +163,52 @@ describe('AddressAuthPage', () => {
         expect.arrayContaining([
           expect.objectContaining({
             signMessage: expect.stringMatching(/^0x[0-9a-f]{128}$/),
+          }),
+        ])
+      )
+    })
+
+    expect(removeSpy).toHaveBeenCalledWith('test-event')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  it('requires password and returns main when getMain=true is requested', async () => {
+    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+      appId: 'com.example.app',
+      appName: 'Example DApp',
+      appIcon: '',
+      origin: 'https://example.app',
+    })
+
+    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
+    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+
+    const encryptedMnemonic = await encrypt('mnemonic', 'pw')
+
+    walletActions.createWallet({
+      name: 'Wallet 1',
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      chain: 'ethereum',
+      encryptedMnemonic,
+      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+    })
+
+    const { router } = renderWithRouter('/authorize/address/test-event?type=main&getMain=true')
+
+    await screen.findByText('Example DApp')
+    await userEvent.click(screen.getByRole('button', { name: '同意' }))
+
+    await screen.findByPlaceholderText('请输入密码')
+    await userEvent.type(screen.getByPlaceholderText('请输入密码'), 'pw')
+    await userEvent.click(screen.getByRole('button', { name: '确认' }))
+
+    await waitFor(() => {
+      expect(respondSpy).toHaveBeenCalledWith(
+        'test-event',
+        WALLET_PLAOC_PATH.authorizeAddress,
+        expect.arrayContaining([
+          expect.objectContaining({
+            main: 'mnemonic',
           }),
         ])
       )

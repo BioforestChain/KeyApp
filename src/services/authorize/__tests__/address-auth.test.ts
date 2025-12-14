@@ -265,4 +265,41 @@ describe('AddressAuthService', () => {
       'Invalid password'
     )
   })
+
+  it('applySensitiveOptions populates main when getMain=true (without signMessage)', async () => {
+    vi.mocked(crypto.decrypt).mockResolvedValue('import phrase')
+
+    const adapter: IPlaocAdapter = {
+      getCallerAppInfo: vi.fn(),
+      respondWith: vi.fn(),
+      removeEventId: vi.fn(),
+      isAvailable: vi.fn(),
+    }
+
+    const encryptedMnemonic: EncryptedData = {
+      ciphertext: 'x',
+      salt: 'y',
+      iv: 'z',
+      iterations: 100000,
+    }
+
+    const wallet = createWallet({
+      id: 'w-main',
+      encryptedMnemonic,
+      chainAddresses: [{ chain: 'ethereum', address: '0x111', tokens: [] }],
+    })
+
+    const service = new AddressAuthService(adapter, 'evt-main')
+    const responses = service.handleMainAddresses(wallet)
+    const secured = await service.applySensitiveOptions(responses, [wallet], {
+      password: 'pwd',
+      getMain: true,
+    })
+
+    expect(secured).toHaveLength(1)
+    expect(secured[0]?.main).toBe('import phrase')
+    expect(secured[0]?.signMessage).toBe('')
+    expect(crypto.decrypt).toHaveBeenCalledWith(encryptedMnemonic, 'pwd')
+    expect(crypto.verifyPassword).not.toHaveBeenCalled()
+  })
 })

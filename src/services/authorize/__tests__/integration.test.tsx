@@ -158,7 +158,19 @@ describe('authorize integration (mock-first)', () => {
       })
     })
 
-    window.location.hash = '#/authorize/signature?eventId=sufficient-balance'
+    const signaturedata = encodeURIComponent(
+      JSON.stringify([
+        {
+          type: 'transfer',
+          chainName: 'ethereum',
+          senderAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+          balance: '0.5',
+          fee: '0.002',
+        },
+      ])
+    )
+    window.location.hash = `#/authorize/signature?eventId=sufficient-balance&signaturedata=${signaturedata}`
     const { router } = renderAuthorizeApp()
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()

@@ -17,8 +17,11 @@
     "permissions": {
       "viewAddress": "View your wallet addresses",
       "viewPublicKey": "View your public keys",
-      "signMessage": "Sign a verification message"
+      "signMessage": "Sign a verification message",
+      "getMain": "View your wallet import phrase (main)"
     }
+    ,
+    "confirmDescription": "Enter your password to continue"
   },
   "signature": {
     "reviewTransaction": "Review this transaction",

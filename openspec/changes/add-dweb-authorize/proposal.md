@@ -231,13 +231,18 @@ interface CallerAppInfo {
 
 These change points are confirmed for Phase B implementation but await runtime validation before coding begins.
 
-### 1. `getMain` Behavior (Address UI)
+### 1. `getMain` Behavior (Address UI) - IMPLEMENTED
 
-When `getMain=true` in request params, UI should return only the main/default address.
+When `getMain=true` in request params, UI returns the wallet's import phrase/mnemonic in the `main` field.
 
-- **Context**: Address authorization can request either all addresses or just the primary one
-- **Behavior**: If `getMain=true`, UI displays single-address selection mode and returns only the main wallet address
-- **Reference**: mpay `tabs.component.ts` address handling logic
+- **Context**: Address authorization can request the wallet's sensitive import phrase for caller-side operations
+- **Behavior**:
+  - If `getMain=true` or `getMain=1`, password confirmation is **required** even if `signMessage` is empty
+  - Response includes `main` field containing the decrypted mnemonic/import phrase
+  - Permission list shows "getMain" permission to user
+- **Security**: Password confirmation mandatory; `main` only included when explicitly requested
+- **Implementation**: `src/pages/authorize/address.tsx` + `src/services/authorize/address-auth.ts`
+- **Reference**: mpay `address.component.ts` line 257: `main: this._getMain ? mainInfo?.importPhrase : undefined`
 
 ### 2. `signaturedata` Dual-Source Read (Signature)
 

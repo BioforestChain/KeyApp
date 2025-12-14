@@ -44,6 +44,14 @@ function renderWithRouter(initialEntry: string) {
     getParentRoute: () => authorizeRoute,
     path: '/signature/$id',
     component: SignatureAuthPage,
+    validateSearch: (search: Record<string, unknown>) => ({
+      signaturedata:
+        typeof search.signaturedata === 'string'
+          ? search.signaturedata
+          : search.signaturedata !== null && typeof search.signaturedata === 'object'
+            ? JSON.stringify(search.signaturedata)
+            : undefined,
+    }),
   })
 
   const routeTree = rootRoute.addChildren([indexRoute, authorizeRoute.addChildren([signatureRoute])])
@@ -96,7 +104,18 @@ describe('SignatureAuthPage', () => {
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
 
-    const { router } = renderWithRouter('/authorize/signature/insufficient-balance')
+    const signaturedata = encodeURIComponent(
+      JSON.stringify([{
+        type: 'transfer',
+        chainName: 'ethereum',
+        senderAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+        balance: '1.5',
+        fee: '0.002',
+      }])
+    )
+
+    const { router } = renderWithRouter(`/authorize/signature/insufficient-balance?signaturedata=${signaturedata}`)
 
     await screen.findByText('Example DApp')
 
@@ -130,7 +149,18 @@ describe('SignatureAuthPage', () => {
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
 
-    const { router } = renderWithRouter('/authorize/signature/sufficient-balance')
+    const signaturedata = encodeURIComponent(
+      JSON.stringify([{
+        type: 'transfer',
+        chainName: 'ethereum',
+        senderAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+        balance: '0.5',
+        fee: '0.002',
+      }])
+    )
+
+    const { router } = renderWithRouter(`/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
 
     await screen.findByText('Example DApp')
 
@@ -152,6 +182,52 @@ describe('SignatureAuthPage', () => {
     })
 
     expect(removeSpy).toHaveBeenCalledWith('sufficient-balance')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  it('shows error when signaturedata is invalid JSON', async () => {
+    const { router } = renderWithRouter('/authorize/signature/e1?signaturedata=not-json')
+
+    expect(await screen.findByText('signaturedata 不是合法的 JSON')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('返回'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  it('shows error when signaturedata is empty array', async () => {
+    const signaturedata = encodeURIComponent(JSON.stringify([]))
+    const { router } = renderWithRouter(`/authorize/signature/e1?signaturedata=${signaturedata}`)
+
+    expect(await screen.findByText('signaturedata 不能为空数组')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('返回'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  it('uses signaturedata[0] when signaturedata contains multiple requests', async () => {
+    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+      appId: 'com.example.app',
+      appName: 'Example DApp',
+      appIcon: '',
+      origin: 'https://example.app',
+    })
+
+    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
+    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+
+    const signaturedata = encodeURIComponent(
+      JSON.stringify([
+        { type: 'message', chainName: 'ethereum', senderAddress: '0x1', message: 'message-a' },
+        { type: 'message', chainName: 'ethereum', senderAddress: '0x1', message: 'message-b' },
+      ])
+    )
+    const { router } = renderWithRouter(`/authorize/signature/e1?signaturedata=${signaturedata}`)
+
+    expect(await screen.findByText('message-a')).toBeInTheDocument()
+    expect(screen.queryByText('message-b')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
+
+    expect(respondSpy).toHaveBeenCalledWith('e1', WALLET_PLAOC_PATH.authorizeSignature, null)
+    expect(removeSpy).toHaveBeenCalledWith('e1')
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 })

@@ -13,9 +13,23 @@ import {
 
 type AddressAuthError = 'rejected' | 'timeout'
 
-type AddressAuthSignOptions = Readonly<{
-  signMessage: string
+export type AddressAuthSensitiveOptions = Readonly<{
+  /**
+   * User password used to unlock sensitive operations (signing / main phrase).
+   */
   password: string
+  /**
+   * Optional message to sign for each address.
+   *
+   * If empty/undefined, no signatures will be produced.
+   */
+  signMessage?: string | undefined
+  /**
+   * Whether to include wallet import phrase/mnemonic in response.
+   *
+   * Security: only enable when explicitly requested (getMain=true) and after password confirmation.
+   */
+  getMain?: boolean | undefined
 }>
 
 /**
@@ -74,9 +88,13 @@ export class AddressAuthService {
    *
    * NOTE: For non-bioforest chains this returns deterministic mock signatures.
    */
-  async handleMainAddressesSigned(wallet: Wallet, options: AddressAuthSignOptions): Promise<AddressAuthResponse[]> {
+  async handleMainAddressesSigned(wallet: Wallet, options: Readonly<{ signMessage: string; password: string }>): Promise<AddressAuthResponse[]> {
     const responses = this.handleMainAddresses(wallet)
-    return await this.signAddressResponses(responses, [wallet], options)
+    return await this.applySensitiveOptions(responses, [wallet], {
+      password: options.password,
+      signMessage: options.signMessage,
+      getMain: false,
+    })
   }
 
   /**
@@ -95,9 +113,13 @@ export class AddressAuthService {
    *
    * NOTE: For non-bioforest chains this returns deterministic mock signatures.
    */
-  async handleAllAddressesSigned(wallets: Wallet[], options: AddressAuthSignOptions): Promise<AddressAuthResponse[]> {
+  async handleAllAddressesSigned(wallets: Wallet[], options: Readonly<{ signMessage: string; password: string }>): Promise<AddressAuthResponse[]> {
     const responses = this.handleAllAddresses(wallets)
-    return await this.signAddressResponses(responses, wallets, options)
+    return await this.applySensitiveOptions(responses, wallets, {
+      password: options.password,
+      signMessage: options.signMessage,
+      getMain: false,
+    })
   }
 
   /**
@@ -108,10 +130,28 @@ export class AddressAuthService {
   async handleNetworkAddressesSigned(
     wallets: Wallet[],
     chainName: string,
-    options: AddressAuthSignOptions
+    options: Readonly<{ signMessage: string; password: string }>
   ): Promise<AddressAuthResponse[]> {
     const responses = this.handleNetworkAddresses(wallets, chainName)
-    return await this.signAddressResponses(responses, wallets, options)
+    return await this.applySensitiveOptions(responses, wallets, {
+      password: options.password,
+      signMessage: options.signMessage,
+      getMain: false,
+    })
+  }
+
+  /**
+   * Apply password-protected fields on pre-built responses.
+   *
+   * This is used by UI to support legacy mpay behaviors like `getMain=true` which
+   * requires password confirmation even when `signMessage` is empty.
+   */
+  async applySensitiveOptions(
+    responses: AddressAuthResponse[],
+    wallets: Wallet[],
+    options: AddressAuthSensitiveOptions
+  ): Promise<AddressAuthResponse[]> {
+    return await this.applyPasswordProtectedFields(responses, wallets, options)
   }
 
   /**
@@ -139,19 +179,21 @@ export class AddressAuthService {
     }
   }
 
-  private async signAddressResponses(
+  private async applyPasswordProtectedFields(
     responses: AddressAuthResponse[],
     wallets: Wallet[],
-    options: AddressAuthSignOptions
+    options: AddressAuthSensitiveOptions
   ): Promise<AddressAuthResponse[]> {
-    const message = options.signMessage.trim()
-    if (!message) return responses
+    const message = options.signMessage?.trim() ?? ''
+    const shouldSign = Boolean(message)
+    const shouldIncludeMain = Boolean(options.getMain)
+    if (!shouldSign && !shouldIncludeMain) return responses
 
     const walletsById = new Map<string, Wallet>()
     for (const wallet of wallets) walletsById.set(wallet.id, wallet)
 
-    const verifiedPasswordWalletIds = new Set<string>()
     const decryptedSecretByWalletId = new Map<string, string>()
+    const verifiedPasswordWalletIds = new Set<string>()
 
     for (const response of responses) {
       const walletId = this.getWalletIdFromMagic(response.magic)
@@ -160,6 +202,21 @@ export class AddressAuthService {
       if (!wallet || !encryptedSecret) throw new Error('Missing secret')
 
       const chainName = response.chainName.trim().toLowerCase()
+      if (shouldIncludeMain) {
+        let secret = decryptedSecretByWalletId.get(walletId)
+        if (!secret) {
+          try {
+            secret = await decrypt(encryptedSecret, options.password)
+          } catch {
+            throw new Error('Invalid password')
+          }
+          decryptedSecretByWalletId.set(walletId, secret)
+        }
+        response.main = secret
+      }
+
+      if (!shouldSign) continue
+
       if (isBioforestChain(chainName)) {
         let secret = decryptedSecretByWalletId.get(walletId)
         if (!secret) {
@@ -179,9 +236,14 @@ export class AddressAuthService {
       }
 
       if (!verifiedPasswordWalletIds.has(walletId)) {
-        const ok = await verifyPassword(encryptedSecret, options.password)
-        if (!ok) throw new Error('Invalid password')
-        verifiedPasswordWalletIds.add(walletId)
+        // If we already decrypted the secret (for getMain), password is verified for this wallet.
+        if (decryptedSecretByWalletId.has(walletId)) {
+          verifiedPasswordWalletIds.add(walletId)
+        } else {
+          const ok = await verifyPassword(encryptedSecret, options.password)
+          if (!ok) throw new Error('Invalid password')
+          verifiedPasswordWalletIds.add(walletId)
+        }
       }
 
       response.signMessage = this.createDeterministicMockSignature({
