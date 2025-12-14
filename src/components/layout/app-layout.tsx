@@ -33,14 +33,19 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   const isInitialized = useWalletInitialized()
   const { t } = useTranslation()
 
-  // Build tabs with localized aria-labels
+  const tabHome = t('a11y.tabHome')
+  const tabTransfer = t('a11y.tabTransfer')
+  const tabWallet = t('a11y.tabWallet')
+  const tabSettings = t('a11y.tabSettings')
+
+  // Build tabs with localized labels
   const tabs: TabItem[] = [
-    { id: 'home', label: '首页', icon: <Home className="size-5" />, ariaLabel: t('a11y.tabHome') },
-    { id: 'transfer', label: '转账', icon: <ArrowLeftRight className="size-5" />, ariaLabel: t('a11y.tabTransfer') },
-    { id: 'wallet', label: '钱包', icon: <Wallet className="size-5" />, ariaLabel: t('a11y.tabWallet') },
-    { id: 'settings', label: '设置', icon: <Settings className="size-5" />, ariaLabel: t('a11y.tabSettings') },
+    { id: 'home', label: tabHome, icon: <Home className="size-5" />, ariaLabel: tabHome },
+    { id: 'transfer', label: tabTransfer, icon: <ArrowLeftRight className="size-5" />, ariaLabel: tabTransfer },
+    { id: 'wallet', label: tabWallet, icon: <Wallet className="size-5" />, ariaLabel: tabWallet },
+    { id: 'settings', label: tabSettings, icon: <Settings className="size-5" />, ariaLabel: tabSettings },
   ]
-  
+
   // 应用启动时初始化钱包 store
   useEffect(() => {
     if (!isInitialized) {
@@ -62,7 +67,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   useEffect(() => {
     return installAuthorizeDeepLinkListener(router)
   }, [router])
-  
+
   // 判断是否显示 TabBar（某些页面不需要）
   const hideTabBar = ['/wallet/create', '/wallet/import', '/authorize', '/onboarding'].some((p) =>
     pathname.startsWith(p)
