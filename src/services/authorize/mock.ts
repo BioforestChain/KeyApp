@@ -40,6 +40,7 @@ export class PlaocAdapter implements IPlaocAdapter {
   }
 
   async removeEventId(eventId: string): Promise<void> {
+    if (!this.mockEvents.has(eventId)) return
     console.log('[MockPlaocAdapter] removeEventId:', eventId)
     this.lastWireRemoval = { eventId, body: { data: null } }
     this.mockEvents.delete(eventId)
