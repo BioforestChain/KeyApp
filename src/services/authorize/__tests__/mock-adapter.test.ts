@@ -40,6 +40,12 @@ describe('Mock PlaocAdapter', () => {
       path: WALLET_PLAOC_PATH.authorizeAddress,
       data: { success: true },
     })
+
+    expect(adapter._getLastWireResponse()).toEqual({
+      eventId: 'event-1',
+      path: WALLET_PLAOC_PATH.authorizeAddress,
+      body: { data: { success: true } },
+    })
   })
 
   it('should remove registered events', async () => {
@@ -59,6 +65,16 @@ describe('Mock PlaocAdapter', () => {
 
     info = await adapter.getCallerAppInfo('temp-event')
     expect(info.appId).toBe('mock.dapp.local')
+  })
+
+  it('removeEventId should record wire envelope {data:null}', async () => {
+    const adapter = new PlaocAdapter()
+    await adapter.removeEventId('evt-removed')
+
+    expect(adapter._getLastWireRemoval()).toEqual({
+      eventId: 'evt-removed',
+      body: { data: null },
+    })
   })
 
   it('should always report available in mock mode', () => {
