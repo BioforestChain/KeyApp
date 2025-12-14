@@ -14,29 +14,31 @@ const AUTO_HIDE_TIMEOUT = 30_000
 export function ViewMnemonicPage() {
   const navigate = useNavigate()
   const currentWallet = useCurrentWallet()
+  const keyType = currentWallet?.keyType ?? 'mnemonic'
+  const isArbitrary = keyType === 'arbitrary'
 
   // 状态
   const [showPasswordSheet, setShowPasswordSheet] = useState(true)
   const [passwordError, setPasswordError] = useState<string>()
   const [isVerifying, setIsVerifying] = useState(false)
-  const [mnemonic, setMnemonic] = useState<string[]>([])
+  const [secret, setSecret] = useState('')
   const [isHidden, setIsHidden] = useState(true)
 
   // 自动隐藏计时器
   useEffect(() => {
-    if (mnemonic.length > 0 && !isHidden) {
+    if (secret.length > 0 && !isHidden) {
       const timer = setTimeout(() => {
         setIsHidden(true)
       }, AUTO_HIDE_TIMEOUT)
 
       return () => clearTimeout(timer)
     }
-  }, [mnemonic.length, isHidden])
+  }, [secret.length, isHidden])
 
   // 页面离开/后台时隐藏助记词
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && mnemonic.length > 0) {
+      if (document.hidden && secret.length > 0) {
         setIsHidden(true)
       }
     }
@@ -45,7 +47,7 @@ export function ViewMnemonicPage() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [mnemonic.length])
+  }, [secret.length])
 
   // 验证密码并解密助记词
   const handleVerifyPassword = useCallback(
@@ -63,8 +65,7 @@ export function ViewMnemonicPage() {
           currentWallet.encryptedMnemonic as EncryptedData,
           password
         )
-        const words = decrypted.split(' ')
-        setMnemonic(words)
+        setSecret(decrypted)
         setIsHidden(false)
         setShowPasswordSheet(false)
       } catch {
@@ -96,7 +97,7 @@ export function ViewMnemonicPage() {
   if (!currentWallet) {
     return (
       <div className="flex min-h-screen flex-col bg-muted/30">
-        <PageHeader title="查看助记词" onBack={handleBack} />
+        <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -104,9 +105,16 @@ export function ViewMnemonicPage() {
     )
   }
 
+  const mnemonicWords = isArbitrary
+    ? []
+    : secret
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title="查看助记词" onBack={handleBack} />
+      <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={handleBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 安全警告 */}
@@ -117,17 +125,17 @@ export function ViewMnemonicPage() {
               安全提示
             </p>
             <p className="text-muted-foreground">
-              请确保周围无人窥视。助记词是恢复钱包的唯一凭证，一旦泄露，资产将面临风险。
+              请确保周围无人窥视。{isArbitrary ? '密钥' : '助记词'}一旦泄露，资产将面临风险。
             </p>
           </div>
         </div>
 
         {/* 助记词显示区域 */}
-        {mnemonic.length > 0 && (
+        {secret.length > 0 && (
           <div className="space-y-4 rounded-xl bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
-                {mnemonic.length} 位助记词
+                {isArbitrary ? `${secret.length} 字符` : `${mnemonicWords.length} 位助记词`}
               </span>
               <button
                 onClick={toggleVisibility}
@@ -150,7 +158,21 @@ export function ViewMnemonicPage() {
               </button>
             </div>
 
-            <MnemonicDisplay words={mnemonic} hidden={isHidden} />
+            {isArbitrary ? (
+              <textarea
+                value={secret}
+                readOnly
+                rows={4}
+                data-testid="secret-textarea"
+                className={cn(
+                  'w-full resize-none rounded-lg border bg-background px-3 py-3 text-sm font-mono',
+                  'focus:outline-none',
+                  isHidden ? '[-webkit-text-security:disc]' : '[-webkit-text-security:none]',
+                )}
+              />
+            ) : (
+              <MnemonicDisplay words={mnemonicWords} hidden={isHidden} />
+            )}
 
             {!isHidden && (
               <p className="text-center text-xs text-muted-foreground">
@@ -167,7 +189,7 @@ export function ViewMnemonicPage() {
         onClose={handleCancelVerify}
         onVerify={handleVerifyPassword}
         title="验证密码"
-        description="请输入钱包密码以查看助记词"
+        description={isArbitrary ? '请输入钱包密码以查看密钥' : '请输入钱包密码以查看助记词'}
         error={passwordError}
         isVerifying={isVerifying}
       />

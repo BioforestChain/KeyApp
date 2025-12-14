@@ -1,7 +1,7 @@
 import { Store } from '@tanstack/react-store'
 import { useStore } from '@tanstack/react-store'
-import i18n from '@/i18n'
-import { type LanguageCode, languages, defaultLanguage, getLanguageDirection } from '@/i18n'
+import i18n from '@/i18n/index'
+import { type LanguageCode, languages, defaultLanguage, getLanguageDirection } from '@/i18n/index'
 
 // Storage key
 const PREFERENCES_KEY = 'bfmpay_preferences'

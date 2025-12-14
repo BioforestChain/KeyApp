@@ -6,10 +6,15 @@ import {
   privateKeyToBioforestAddress,
   isValidBioforestAddress,
   deriveBioforestKey,
+  deriveBioforestKeyFromChainConfig,
+  deriveBioforestAddresses,
+  deriveBioforestAddressesFromChainConfigs,
   deriveBioforestMultiChainKeys,
   isBioforestChain,
+  isBioforestChainConfig,
   getBioforestChains,
   getBioforestChainConfig,
+  toBioforestChainConfig,
   base58Encode,
   base58Decode,
   signMessage,
@@ -17,6 +22,7 @@ import {
   BIOFOREST_CHAINS,
   type BioforestChainType,
 } from './bioforest'
+import type { ChainConfig } from '@/services/chain-config'
 
 // Helper function for tests
 function bytesToHex(bytes: Uint8Array): string {
@@ -214,6 +220,101 @@ describe('BioForest Crypto', () => {
     it('should throw for unsupported chain', () => {
       expect(() => deriveBioforestKey('test', 'invalid' as BioforestChainType))
         .toThrow('Unsupported BioForest chain')
+    })
+  })
+
+  describe('chain-config adapters', () => {
+    it('should detect bioforest configs and derive keys from chain-config', () => {
+      const bioforestConfig: ChainConfig = {
+        id: 'bfmeta',
+        version: '1.0',
+        type: 'bioforest',
+        name: 'BFMeta',
+        symbol: 'BFT',
+        decimals: 8,
+        prefix: 'c',
+        enabled: true,
+        source: 'manual',
+      }
+
+      expect(isBioforestChainConfig(bioforestConfig)).toBe(true)
+      expect(toBioforestChainConfig(bioforestConfig).prefix).toBe('c')
+
+      const derived = deriveBioforestKeyFromChainConfig('test', bioforestConfig)
+      expect(derived.chain).toBe('bfmeta')
+      expect(derived.address.startsWith('c')).toBe(true)
+    })
+
+    it('should support custom bioforest chain ids from chain-config', () => {
+      const customConfig: ChainConfig = {
+        id: 'custom-bioforest',
+        version: '1.0',
+        type: 'bioforest',
+        name: 'Custom BioForest',
+        symbol: 'CBF',
+        decimals: 8,
+        prefix: 'c',
+        enabled: true,
+        source: 'manual',
+      }
+
+      expect(isBioforestChainConfig(customConfig)).toBe(true)
+
+      const derived = deriveBioforestKeyFromChainConfig('test', customConfig)
+      expect(derived.chain).toBe('custom-bioforest')
+      expect(derived.address.startsWith('c')).toBe(true)
+
+      const addresses = deriveBioforestAddressesFromChainConfigs('test', [customConfig])
+      expect(addresses).toEqual([{ chainId: 'custom-bioforest', address: derived.address }])
+    })
+
+    it('should reject non-bioforest configs', () => {
+      const evmConfig: ChainConfig = {
+        id: 'eth',
+        version: '1.0',
+        type: 'evm',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+        rpcUrl: 'https://example.invalid',
+        enabled: true,
+        source: 'default',
+      }
+
+      expect(isBioforestChainConfig(evmConfig)).toBe(false)
+      expect(() => deriveBioforestKeyFromChainConfig('test', evmConfig)).toThrow('Unsupported BioForest chain')
+    })
+  })
+
+  describe('deriveBioforestAddresses', () => {
+    it('falls back to built-in chains when chain configs are not provided', () => {
+      const addresses = deriveBioforestAddresses('test')
+      expect(addresses.length).toBe(getBioforestChains().length)
+      expect(addresses.some((item) => item.chainId === 'bfmeta')).toBe(true)
+    })
+
+    it('does not fallback when an empty chain-config set is provided', () => {
+      const addresses = deriveBioforestAddresses('test', [])
+      expect(addresses).toEqual([])
+    })
+
+    it('derives from provided chain-config list', () => {
+      const customConfig: ChainConfig = {
+        id: 'custom-bioforest',
+        version: '1.0',
+        type: 'bioforest',
+        name: 'Custom BioForest',
+        symbol: 'CBF',
+        decimals: 8,
+        prefix: 'c',
+        enabled: true,
+        source: 'manual',
+      }
+
+      const derived = deriveBioforestKeyFromChainConfig('test', customConfig)
+      expect(deriveBioforestAddresses('test', [customConfig])).toEqual([
+        { chainId: 'custom-bioforest', address: derived.address },
+      ])
     })
   })
 

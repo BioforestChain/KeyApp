@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { useRouter, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { TabBar, type TabItem } from './tab-bar'
 import { Home, Wallet, Settings, ArrowLeftRight } from 'lucide-react'
-import { walletActions, useWalletInitialized } from '@/stores'
+import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores'
+import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -28,7 +29,7 @@ const routeToTab: Record<string, string> = {
 
 export function AppLayout({ children, className }: AppLayoutProps) {
   const router = useRouter()
-  const pathname = router.state.location.pathname
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isInitialized = useWalletInitialized()
   const { t } = useTranslation()
 
@@ -46,9 +47,24 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       walletActions.initialize()
     }
   }, [isInitialized])
+
+  // 应用启动时初始化 chain-config（用于后续页面/业务读取 enabled chains）
+  useEffect(() => {
+    void chainConfigActions.initialize()
+  }, [])
+
+  // 应用启动时初始化 preferences（同步 i18n 语言与 RTL）
+  useEffect(() => {
+    preferencesActions.initialize()
+  }, [])
+
+  // Authorize deep-link support (mpay legacy schema) - mock-first, no real IPC required.
+  useEffect(() => {
+    return installAuthorizeDeepLinkListener(router)
+  }, [router])
   
   // 判断是否显示 TabBar（某些页面不需要）
-  const hideTabBar = ['/wallet/create', '/wallet/import'].some((p) =>
+  const hideTabBar = ['/wallet/create', '/wallet/import', '/authorize', '/onboarding'].some((p) =>
     pathname.startsWith(p)
   )
 
@@ -75,7 +91,14 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       </a>
 
       {/* 主内容区域 */}
-      <main id="main-content" className="flex-1 overflow-auto pb-safe" tabIndex={-1}>
+      <main
+        id="main-content"
+        className={cn(
+          'flex-1 overflow-auto',
+          hideTabBar ? 'pb-safe' : 'pb-[calc(env(safe-area-inset-bottom)+3.5rem)]'
+        )}
+        tabIndex={-1}
+      >
         {children}
       </main>
 

@@ -1,4 +1,40 @@
 {
   "language": "語言",
-  "settings": "設置中"
+  "settings": "設置中",
+  "chainConfig": {
+    "title": "鏈配置",
+    "subscription": {
+      "title": "訂閱 URL",
+      "description": "輸入 <code>default</code> 使用內建鏈配置。",
+      "refreshAriaLabel": "刷新訂閱",
+      "save": "儲存",
+      "placeholder": "default 或 https://example.com/chains.json",
+      "lastUpdated": "最近更新：{{value}}"
+    },
+    "manual": {
+      "title": "手動新增",
+      "description": "貼上 JSON（單一物件或陣列），點擊新增。",
+      "add": "新增",
+      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+    },
+    "list": {
+      "title": "鏈清單",
+      "description": "啟用後會在錢包/資產相關流程中可用。",
+      "empty": "暫無鏈配置"
+    },
+    "source": {
+      "default": "預設",
+      "subscription": "訂閱",
+      "manual": "手動"
+    },
+    "warning": {
+      "incompatibleMajor": "版本不相容：{{version}}（支援 ≤ {{supportedMajor}}.x）"
+    },
+    "toast": {
+      "subscriptionSaved": "已儲存訂閱 URL",
+      "subscriptionRefreshed": "訂閱已更新",
+      "manualAdded": "已新增鏈配置"
+    },
+    "hint": "提示：訂閱配置會快取到本機，切換 URL 會清空舊快取以避免混淆。"
+  }
 }

@@ -10,6 +10,10 @@ export interface AssetListProps {
   onAssetClick?: ((asset: AssetInfo) => void) | undefined
   /** Loading state */
   isLoading?: boolean | undefined
+  /** Currency code for fiat display (default: USD) */
+  currency?: string | undefined
+  /** Exchange rate from USD to target currency (1 USD = rate target currency) */
+  exchangeRate?: number | undefined
   /** Additional class name */
   className?: string | undefined
 }
@@ -21,6 +25,8 @@ export function AssetList({
   assets,
   onAssetClick,
   isLoading = false,
+  currency = 'USD',
+  exchangeRate,
   className,
 }: AssetListProps) {
   // Loading skeleton
@@ -62,6 +68,8 @@ export function AssetList({
         <AssetItem
           key={`${asset.assetType}-${asset.contractAddress || 'native'}`}
           asset={asset}
+          currency={currency}
+          exchangeRate={exchangeRate}
           onClick={onAssetClick ? () => onAssetClick(asset) : undefined}
         />
       ))}

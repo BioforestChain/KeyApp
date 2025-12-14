@@ -12,13 +12,13 @@
 
 ### Step 1: Identify Gap
 
-对比 `../mpay/` 与当前实现，识别功能差距：
+对比 `../legacy-apps/apps/mpay/` 与当前实现，识别功能差距：
 
 ```bash
 # 检查 mpay 的核心功能模块
-ls ../mpay/src/pages/      # mpay 页面列表
-ls ../mpay/src/components/ # mpay 组件列表
-ls ../mpay/src/services/   # mpay 服务列表
+ls ../legacy-apps/apps/mpay/src/pages/      # mpay 页面列表
+ls ../legacy-apps/apps/mpay/src/components/ # mpay 组件列表
+ls ../legacy-apps/apps/mpay/src/services/   # mpay 服务列表
 ```
 
 **输出**: 未迁移的功能列表
@@ -88,7 +88,7 @@ Peer 互相监督以下 AI 幻觉问题：
 
 ## Reference
 
-- **mpay 原始代码**: `../mpay/`
+- **mpay 原始代码**: `../legacy-apps/apps/mpay/`
 - **技术设计**: `TDD.md`
 - **服务规范**: `SERVICE-SPEC.md`
 - **变更管理**: `openspec/AGENTS.md`

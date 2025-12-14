@@ -201,6 +201,14 @@ test.describe('设置页面', () => {
     await expect(page).toHaveScreenshot('settings-main.png')
   })
 
+  test('链配置截图', async ({ page }) => {
+    await setupTestWallet(page)
+    await page.goto('/#/settings/chains')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page).toHaveScreenshot('settings-chains.png')
+  })
+
   test('语言设置截图', async ({ page }) => {
     await setupTestWallet(page)
     await page.goto('/#/settings/language')

@@ -1,0 +1,22 @@
+{
+  "exchange": {
+    "loading": "正在加载汇率...",
+    "error": "汇率加载失败",
+    "lastUpdated": "汇率更新于 {{time}}",
+    "unavailable": "汇率暂不可用"
+  },
+  "currency": {
+    "USD": "美元",
+    "CNY": "人民币",
+    "EUR": "欧元",
+    "JPY": "日元",
+    "KRW": "韩元"
+  },
+  "symbol": {
+    "USD": "$",
+    "CNY": "\u00a5",
+    "EUR": "\u20ac",
+    "JPY": "\u00a5",
+    "KRW": "\u20a9"
+  }
+}

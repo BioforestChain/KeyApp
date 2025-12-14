@@ -85,6 +85,29 @@ export const TokenList: Story = {
   ),
 }
 
+export const MultiCurrency: Story = {
+  render: () => (
+    <div className="space-y-2">
+      <p className="text-xs text-muted">
+        使用顶部工具栏的 <span className="font-medium">Currency</span> 切换 USD/CNY/EUR/JPY/KRW，查看汇率换算展示。
+      </p>
+      <div className="space-y-1">
+        <TokenItem token={mockUSDT} onClick={() => {}} showChange />
+        <TokenItem token={mockETH} onClick={() => {}} showChange />
+        <TokenItem token={mockTRX} onClick={() => {}} showChange />
+        <TokenItem token={mockBTC} onClick={() => {}} showChange />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: '用于验证多货币显示：切换 Currency 后应看到 ≈ 符号后的法币数值与符号随之变化。',
+      },
+    },
+  },
+}
+
 export const Responsive: Story = {
   args: {
     token: mockUSDT,

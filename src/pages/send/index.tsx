@@ -43,6 +43,7 @@ export function SendPage() {
   const { address: initialAddress, amount: initialAmount } = useSearch({ strict: false })
 
   const selectedChain = useSelectedChain()
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain
   const { allAssets } = useAssets()
 
   // Get first asset as default (in real app, would be from route params or selection)
@@ -157,7 +158,7 @@ export function SendPage() {
         {/* 当前链信息 */}
         <div className="flex items-center justify-center gap-2 rounded-lg bg-muted/50 py-2">
           <ChainIcon chain={selectedChain} size="sm" />
-          <span className="text-sm font-medium">{CHAIN_NAMES[selectedChain]}</span>
+          <span className="text-sm font-medium">{selectedChainName}</span>
         </div>
 
         {/* 地址输入 */}
@@ -165,7 +166,7 @@ export function SendPage() {
           label="收款地址"
           value={state.toAddress}
           onChange={setToAddress}
-          placeholder={`输入 ${CHAIN_NAMES[selectedChain]} 地址`}
+          placeholder={`输入 ${selectedChainName} 地址`}
           onScan={handleScan}
           error={state.addressError ?? undefined}
         />
@@ -184,7 +185,7 @@ export function SendPage() {
 
         {/* 网络提示 */}
         <Alert variant="info">
-          请确保收款地址为 {CHAIN_NAMES[selectedChain]} 网络地址，发送到错误网络将无法找回
+          请确保收款地址为 {selectedChainName} 网络地址，发送到错误网络将无法找回
         </Alert>
 
         {/* 继续按钮 */}

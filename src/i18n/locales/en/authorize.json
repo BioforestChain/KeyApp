@@ -1,0 +1,57 @@
+{
+  "title": {
+    "address": "Address Authorization",
+    "signature": "Transaction Authorization"
+  },
+  "app": {
+    "requesting": "{{appName}} is requesting access",
+    "from": "From: {{appHome}}"
+  },
+  "address": {
+    "shareWith": "Share addresses with this app?",
+    "scope": {
+      "main": "Current wallet only",
+      "network": "All {{chainName}} addresses",
+      "all": "All wallets"
+    },
+    "permissions": {
+      "viewAddress": "View your wallet addresses",
+      "viewPublicKey": "View your public keys",
+      "signMessage": "Sign a verification message"
+    }
+  },
+  "signature": {
+    "reviewTransaction": "Review this transaction",
+    "messageToSign": "Message to Sign",
+    "confirmDescription": "Enter your password to sign this transaction",
+    "type": {
+      "message": "Message Signing",
+      "transfer": "Token Transfer",
+      "destroy": "Asset Destruction"
+    },
+    "details": {
+      "from": "From",
+      "to": "To",
+      "amount": "Amount",
+      "fee": "Network Fee",
+      "total": "Total"
+    },
+    "balanceWarning": {
+      "need": "Need: {{amount}} {{symbol}}",
+      "have": "Have: {{amount}} {{symbol}}"
+    }
+  },
+  "button": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "confirm": "Confirm with Password",
+    "sign": "Sign"
+  },
+  "error": {
+    "insufficientBalance": "Insufficient balance for this transaction",
+    "unknownChain": "Unsupported blockchain",
+    "authFailed": "Authorization failed",
+    "passwordIncorrect": "Incorrect password",
+    "timeout": "Request timed out"
+  }
+}

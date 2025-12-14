@@ -19,6 +19,22 @@ export {
 } from './preferences'
 export type { PreferencesState, CurrencyCode, LanguageCode } from './preferences'
 
+// Chain Config Store
+export {
+  chainConfigStore,
+  chainConfigActions,
+  chainConfigSelectors,
+  useChainConfigState,
+  useChainConfigs,
+  useEnabledChains,
+  useEnabledBioforestChainConfigs,
+  useChainConfigSubscription,
+  useChainConfigWarnings,
+  useChainConfigLoading,
+  useChainConfigError,
+} from './chain-config'
+export type { ChainConfigState } from './chain-config'
+
 // Hooks
 export {
   useWalletState,

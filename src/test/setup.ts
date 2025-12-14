@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Mock ResizeObserver for tests
 class ResizeObserverMock {
@@ -9,6 +12,30 @@ class ResizeObserverMock {
   disconnect = vi.fn()
 }
 global.ResizeObserver = ResizeObserverMock
+
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+const defaultChainsJsonText = readFileSync(
+  path.resolve(dirname, '../../public/configs/default-chains.json'),
+  'utf8'
+)
+const realFetch: typeof fetch | undefined = typeof fetch === 'undefined' ? undefined : fetch.bind(globalThis)
+
+globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+
+  if (url.includes('/configs/default-chains.json')) {
+    return new Response(defaultChainsJsonText, {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  if (!realFetch) {
+    throw new Error('fetch is not available in this environment')
+  }
+
+  return realFetch(input, init)
+}) satisfies typeof fetch
 
 afterEach(() => {
   cleanup()

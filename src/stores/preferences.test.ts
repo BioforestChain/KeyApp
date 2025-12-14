@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { preferencesStore, preferencesActions } from './preferences'
+import i18n from '@/i18n/index'
 
 // Mock i18n
-vi.mock('@/i18n', () => ({
+vi.mock('@/i18n/index', () => ({
   default: {
     changeLanguage: vi.fn(),
     language: 'zh-CN',
@@ -120,6 +121,34 @@ describe('preferencesStore', () => {
       // Safe: setItem was just called, mock.calls[0] exists
       const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).theme).toBe('light')
+    })
+  })
+
+  describe('initialize', () => {
+    it('syncs i18n language + document direction from store state', () => {
+      preferencesStore.setState(() => ({
+        language: 'ar',
+        currency: 'USD',
+        theme: 'system',
+      }))
+
+      preferencesActions.initialize()
+
+      expect(vi.mocked(i18n.changeLanguage)).toHaveBeenCalledWith('ar')
+      expect(document.documentElement.dir).toBe('rtl')
+    })
+
+    it('does not change language when already synced', () => {
+      preferencesStore.setState(() => ({
+        language: 'zh-CN',
+        currency: 'USD',
+        theme: 'system',
+      }))
+
+      preferencesActions.initialize()
+
+      expect(vi.mocked(i18n.changeLanguage)).not.toHaveBeenCalled()
+      expect(document.documentElement.dir).toBe('ltr')
     })
   })
 })

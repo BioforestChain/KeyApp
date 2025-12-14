@@ -1,0 +1,23 @@
+{
+  "keyType": {
+    "title": "選擇金鑰類型",
+    "mnemonic": "標準助記詞（BIP39）",
+    "mnemonicDesc": "12-24 個單詞恢復短語",
+    "arbitrary": "任意金鑰",
+    "arbitraryDesc": "任意文字作為錢包金鑰（僅 BioforestChain）"
+  },
+  "arbitraryKey": {
+    "placeholder": "請輸入您的金鑰...",
+    "hint": "可輸入任意文字：口令、密碼或自訂字串",
+    "required": "請輸入您的金鑰"
+  },
+  "securityWarning": {
+    "title": "安全警告",
+    "message": "使用任意金鑰可能比標準助記詞更不安全。請確保金鑰足夠複雜並妥善備份。",
+    "acknowledge": "我已了解風險"
+  },
+  "addressPreview": {
+    "title": "地址預覽",
+    "subtitle": "以下地址將根據您的金鑰生成"
+  }
+}

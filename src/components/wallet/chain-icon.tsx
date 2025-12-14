@@ -1,24 +1,7 @@
 import { cn } from '@/lib/utils';
 
-// 支持的链类型 - 与 stores/wallet.ts 中的 ChainType 对应
-export type ChainType =
-  // 外部链 (BIP44)
-  | 'ethereum'
-  | 'tron'
-  | 'bitcoin'
-  | 'binance'
-  | 'bsc' // binance alias
-  // BioForest 链 (Ed25519)
-  | 'bfmeta'
-  | 'ccchain'
-  | 'pmchain'
-  | 'bfchainv2'
-  | 'btgmeta'
-  | 'biwmeta'
-  | 'ethmeta'
-  | 'malibu'
-  // Legacy aliases
-  | 'ccc';
+// 链 id 来自 chain-config（可扩展）；这里提供已知链的样式映射，未知链走 fallback。
+export type ChainType = string;
 
 interface ChainIconProps {
   chain: ChainType;
@@ -26,7 +9,7 @@ interface ChainIconProps {
   className?: string;
 }
 
-const chainColors: Record<ChainType, string> = {
+const chainColors: Record<string, string> = {
   // 外部链
   ethereum: 'bg-chain-ethereum',
   tron: 'bg-chain-tron',
@@ -46,7 +29,7 @@ const chainColors: Record<ChainType, string> = {
   ccc: 'bg-emerald-500',
 };
 
-const chainLabels: Record<ChainType, string> = {
+const chainLabels: Record<string, string> = {
   // 外部链
   ethereum: 'ETH',
   tron: 'TRX',
@@ -72,24 +55,34 @@ const sizeClasses = {
   lg: 'w-10 aspect-square text-sm',
 };
 
+function toFallbackLabel(chain: string): string {
+  const trimmed = chain.trim();
+  if (trimmed === '') return '—';
+  return trimmed.slice(0, 4).toUpperCase();
+}
+
 export function ChainIcon({ chain, size = 'md', className }: ChainIconProps) {
+  const label = chainLabels[chain] ?? toFallbackLabel(chain);
+  const isKnown = chain in chainLabels;
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-full font-bold text-white',
-        chainColors[chain],
+        'flex shrink-0 items-center justify-center rounded-full font-bold',
+        chainColors[chain] ?? 'bg-muted',
+        isKnown ? 'text-white' : 'text-muted-foreground',
         sizeClasses[size],
         className,
       )}
-      title={chainLabels[chain]}
-      aria-label={chainLabels[chain]}
+      title={label}
+      aria-label={label}
     >
-      {chainLabels[chain].charAt(0)}
+      {label.charAt(0)}
     </div>
   );
 }
 
 export function ChainBadge({ chain, className }: { chain: ChainType; className?: string }) {
+  const label = chainLabels[chain] ?? chain
   return (
     <span
       className={cn(
@@ -99,7 +92,7 @@ export function ChainBadge({ chain, className }: { chain: ChainType; className?:
       )}
     >
       <ChainIcon chain={chain} size="sm" className="size-4 text-[8px]" />
-      {chainLabels[chain]}
+      {label}
     </span>
   );
 }

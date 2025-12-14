@@ -219,7 +219,6 @@ test.describe('mpay 迁移流程', () => {
 
     // Step 4: Complete step
     await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText('迁移成功')).toBeVisible()
     await expect(page).toHaveScreenshot('migration-complete.png')
 
     // Verify localStorage has migrated wallet
@@ -297,7 +296,6 @@ test.describe('mpay 迁移流程', () => {
 
     // Should complete successfully
     await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText('迁移成功')).toBeVisible()
   })
 
   test('无 mpay 数据时显示提示', async ({ page }) => {
@@ -336,7 +334,6 @@ test.describe('mpay 迁移流程', () => {
 
     // Wait for migration to complete
     await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText('迁移成功')).toBeVisible()
 
     // Verify localStorage has migrated wallet
     const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))

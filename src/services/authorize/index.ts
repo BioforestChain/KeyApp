@@ -1,23 +1,29 @@
 /**
  * DWEB Authorization Services
  *
- * This module provides interfaces and utilities for DWEB/Plaoc authorization.
- * Implementation blocked pending DWEB runtime availability.
- *
  * @module services/authorize
  */
 
-export {
-  // Types
-  type AddressAuthType,
-  type AddressAuthRequest,
-  type AddressAuthResponse,
-  type SignatureType,
-  type TransferPayload,
-  type MessagePayload,
-  type SignatureRequest,
-  type PlaocAdapter,
-  // Functions
-  createPlaocAdapter,
-  isPlaocAvailable,
-} from './plaoc-adapter'
+export type {
+  IPlaocAdapter,
+  CallerAppInfo,
+  AddressAuthType,
+  AddressAuthRequest,
+  AddressAuthResponse,
+  SignatureType,
+  TransferPayload,
+  MessagePayload,
+  DestroyPayload,
+  SignatureRequest,
+} from './types'
+
+export { AddressAuthService } from './address-auth'
+export { SignatureAuthService, type SignatureAuthError } from './signature-auth'
+
+// High-level adapter interface (import directly from './plaoc-adapter' if needed)
+export { createPlaocAdapter, isPlaocAvailable } from './plaoc-adapter'
+
+// Low-level IPC adapter (compile-time switched via #authorize-impl alias)
+import { PlaocAdapter } from '#authorize-impl'
+export { PlaocAdapter }
+export const plaocAdapter = new PlaocAdapter()

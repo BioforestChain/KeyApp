@@ -3604,6 +3604,88 @@ const address = await chainApiService.getAddressByPublicKeyBuffer(publicKey)
 
 ---
 
+## 16. 多链配置（Chain Config Management）
+
+> **Acceptance #4**：链配置必须可订阅、可手动添加、可启用/禁用，并驱动钱包/资产相关流程（不再硬编码链白名单）。
+
+### 16.1 数据来源与合并
+
+- 默认配置：`public/configs/default-chains.json`
+- 订阅配置：Settings → Chains 填入 URL，点击“刷新订阅”拉取（带 ETag 缓存），结果持久化到 IndexedDB
+- 手动配置：Settings → Chains 粘贴 JSON（单对象或数组），点击“添加”，结果持久化到 IndexedDB
+- 合并优先级：`manual > subscription > default`（按 `id` 覆盖）
+- 启用状态：`enabledMap (id -> boolean)` 独立存储；`enabled=false` 的链不会进入 `getEnabledChains()`
+- 版本兼容：`version` 为 `major.minor`；当前所有 `type` 仅支持 `major <= 1`，不兼容会被标记为 warning 且不会被启用
+
+### 16.2 JSON 格式（Power Users）
+
+输入可以是单个对象或数组，字段如下：
+
+- `id`: 必须匹配 `/^[a-z0-9-]+$/`（建议全小写 + `-`，避免使用 `:` 等字符）
+- `version`: `"major.minor"`（例如 `"1.0"`）
+- `type`: `"bioforest" | "evm" | "bip39" | "custom"`（订阅 JSON 中的未知 `type` 会被归一化为 `custom`）
+- `name`: 显示名称
+- `symbol`: 代币符号
+- `decimals`: 精度（0–18）
+- 可选字段：
+  - `prefix`：BioForest 地址前缀（默认 `c`）
+  - `rpcUrl`：EVM RPC URL
+  - `explorerUrl`：浏览器 URL
+  - `icon`：图标（URL 或标识）
+
+示例（单条）：
+
+```json
+{
+  "id": "bf-demo",
+  "version": "1.0",
+  "type": "bioforest",
+  "name": "BF Demo",
+  "symbol": "BFD",
+  "decimals": 8,
+  "prefix": "c"
+}
+```
+
+示例（多条）：
+
+```json
+[
+  {
+    "id": "bf-sub",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "BF Sub",
+    "symbol": "BFS",
+    "decimals": 8,
+    "prefix": "c"
+  },
+  {
+    "id": "eth-mainnet",
+    "version": "1.0",
+    "type": "evm",
+    "name": "Ethereum",
+    "symbol": "ETH",
+    "decimals": 18,
+    "rpcUrl": "https://rpc.ankr.com/eth"
+  }
+]
+```
+
+### 16.3 关键实现位置（KeyApp）
+
+- Schema：`src/services/chain-config/schema.ts`
+- Service：`src/services/chain-config/index.ts`（initialize/merge/addManual/setSubscriptionUrl/refreshSubscription）
+- Store：`src/stores/chain-config.ts`
+- Settings UI：`src/pages/settings/chain-config.tsx`
+
+### 16.4 钱包派生与 `type=bioforest`
+
+- `type === "bioforest"` 的链配置会参与 BioForest 地址派生（Ed25519），并支持自定义 `id`（只要满足 `id` 正则）。
+- 钱包 create/import 使用 `chainConfigSelectors.getEnabledBioforestChainConfigs()`，为每个启用的 bioforest config 派生 `{ chainId, address }`。
+
+---
+
 ## 附录 A：mpay 关键文件参考索引
 
 > **使用说明**: 开发特定功能前，先阅读对应的 mpay 文件以理解业务逻辑。

@@ -9,13 +9,12 @@ import { ProgressSteps } from '@/components/common/step-indicator'
 import { MnemonicInput } from '@/components/security/mnemonic-input'
 import { PasswordInput } from '@/components/security/password-input'
 import { ShieldCheck, ArrowRight, FileKey } from 'lucide-react'
-import { walletActions } from '@/stores'
+import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores'
 import { 
   validateMnemonic, 
   encrypt, 
   deriveMultiChainKeys,
-  deriveBioforestMultiChainKeys,
-  type BioforestChainType,
+  deriveBioforestAddresses,
 } from '@/lib/crypto'
 
 type Step = 'mnemonic' | 'password'
@@ -24,6 +23,8 @@ const STEPS: Step[] = ['mnemonic', 'password']
 
 export function WalletImportPage() {
   const navigate = useNavigate()
+  const chainConfigSnapshot = useChainConfigState().snapshot
+  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs()
   const [step, setStep] = useState<Step>('mnemonic')
   const [mnemonic, setMnemonic] = useState<string[]>([])
   const [mnemonicError, setMnemonicError] = useState<string | null>(null)
@@ -75,8 +76,14 @@ export function WalletImportPage() {
       const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
       
       // 派生 BioForest 链地址 (Ed25519) - 使用相同的助记词字符串
-      const bioforestChains: BioforestChainType[] = ['bfmeta', 'pmchain', 'ccchain']
-      const bioforestKeys = deriveBioforestMultiChainKeys(mnemonicStr, bioforestChains)
+      const bioforestChainAddresses = deriveBioforestAddresses(
+        mnemonicStr,
+        chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
+      ).map((item) => ({
+        chain: item.chainId,
+        address: item.address,
+        tokens: [],
+      }))
       
       const ethKey = externalKeys.find(k => k.chain === 'ethereum')!
       
@@ -87,15 +94,12 @@ export function WalletImportPage() {
           address: key.address,
           tokens: [],
         })),
-        ...bioforestKeys.map(key => ({
-          chain: key.chain,
-          address: key.address,
-          tokens: [],
-        })),
+        ...bioforestChainAddresses,
       ]
 
       walletActions.importWallet({
         name: '导入钱包',
+        keyType: 'mnemonic',
         address: ethKey.address,
         chain: 'ethereum',
         chainAddresses,

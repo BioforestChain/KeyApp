@@ -1,0 +1,23 @@
+{
+  "keyType": {
+    "title": "选择密钥类型",
+    "mnemonic": "标准助记词（BIP39）",
+    "mnemonicDesc": "12-24 个单词恢复短语",
+    "arbitrary": "任意密钥",
+    "arbitraryDesc": "任意文本作为钱包密钥（仅 BioforestChain）"
+  },
+  "arbitraryKey": {
+    "placeholder": "请输入您的密钥...",
+    "hint": "可输入任意文本：口令、密码或自定义字符串",
+    "required": "请输入您的密钥"
+  },
+  "securityWarning": {
+    "title": "安全警告",
+    "message": "使用任意密钥可能比标准助记词更不安全。请确保密钥足够复杂并妥善备份。",
+    "acknowledge": "我已了解风险"
+  },
+  "addressPreview": {
+    "title": "地址预览",
+    "subtitle": "以下地址将根据您的密钥生成"
+  }
+}

@@ -18,7 +18,21 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path aliases (keep in sync with tsconfig.app.json) */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "#biometric-impl": ["./src/services/biometric/web.ts"],
+      "#clipboard-impl": ["./src/services/clipboard/web.ts"],
+      "#toast-impl": ["./src/services/toast/web.ts"],
+      "#haptics-impl": ["./src/services/haptics/web.ts"],
+      "#storage-impl": ["./src/services/storage/web.ts"],
+      "#camera-impl": ["./src/services/camera/web.ts"],
+      "#authorize-impl": ["./src/services/authorize/web.ts"],
+      "#currency-exchange-impl": ["./src/services/currency-exchange/web.ts"]
+    }
   },
   "include": ["vite.config.ts", "vitest.config.ts", ".storybook/**/*"]
 }

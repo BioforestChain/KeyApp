@@ -1,0 +1,10 @@
+[
+  { "id": "bfmeta", "version": "1.0", "type": "bioforest", "name": "BFMeta", "symbol": "BFT", "prefix": "c", "decimals": 8 },
+  { "id": "ccchain", "version": "1.0", "type": "bioforest", "name": "CCChain", "symbol": "CC", "prefix": "c", "decimals": 8 },
+  { "id": "pmchain", "version": "1.0", "type": "bioforest", "name": "PMChain", "symbol": "PM", "prefix": "c", "decimals": 8 },
+  { "id": "bfchainv2", "version": "1.0", "type": "bioforest", "name": "BFChain V2", "symbol": "BFT", "prefix": "c", "decimals": 8 },
+  { "id": "btgmeta", "version": "1.0", "type": "bioforest", "name": "BTGMeta", "symbol": "BTG", "prefix": "c", "decimals": 8 },
+  { "id": "biwmeta", "version": "1.0", "type": "bioforest", "name": "BIWMeta", "symbol": "BIW", "prefix": "c", "decimals": 8 },
+  { "id": "ethmeta", "version": "1.0", "type": "bioforest", "name": "ETHMeta", "symbol": "ETM", "prefix": "c", "decimals": 8 },
+  { "id": "malibu", "version": "1.0", "type": "bioforest", "name": "Malibu", "symbol": "MLB", "prefix": "c", "decimals": 8 }
+]

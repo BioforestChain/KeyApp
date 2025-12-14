@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Unit tests expect platform services to run in mock mode by default.
+process.env.SERVICE_IMPL ??= 'mock'
+
 export default defineConfig({
   test: {
     coverage: {

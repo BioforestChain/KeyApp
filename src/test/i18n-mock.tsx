@@ -2,6 +2,9 @@ import type { ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import zhCNSettings from '@/i18n/locales/zh-CN/settings.json'
+import zhCNCommon from '@/i18n/locales/zh-CN/common.json'
+import zhCNOnboarding from '@/i18n/locales/zh-CN/onboarding.json'
 
 // 创建测试用的 i18n 实例
 const testI18n = i18n.createInstance()
@@ -9,7 +12,7 @@ const testI18n = i18n.createInstance()
 testI18n.use(initReactI18next).init({
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
-  ns: ['translation'],
+  ns: ['translation', 'authorize', 'common', 'settings', 'onboarding'],
   defaultNS: 'translation',
   resources: {
     'zh-CN': {
@@ -69,6 +72,50 @@ testI18n.use(initReactI18next).init({
           description: '这里空空如也',
         },
       },
+      common: zhCNCommon,
+      authorize: {
+        title: {
+          address: '地址授权',
+          signature: '交易授权',
+        },
+        address: {
+          shareWith: '是否与该应用共享地址？',
+          scope: {
+            main: '仅当前钱包',
+            network: '所有 {{chainName}} 地址',
+            all: '所有钱包',
+          },
+          permissions: {
+            viewAddress: '查看你的钱包地址',
+            viewPublicKey: '查看你的公钥',
+            signMessage: '签名验证消息',
+          },
+        },
+        signature: {
+          reviewTransaction: '请确认该交易',
+          messageToSign: '待签名消息',
+          confirmDescription: '请输入密码进行签名',
+          type: {
+            message: '消息签名',
+            transfer: '代币转账',
+            destroy: '资产销毁',
+          },
+        },
+        button: {
+          approve: '同意',
+          reject: '拒绝',
+          confirm: '输入密码确认',
+        },
+        error: {
+          authFailed: '授权失败',
+          unknownChain: '不支持的区块链',
+          timeout: '请求已超时',
+          insufficientBalance: '余额不足，无法完成此交易',
+          passwordIncorrect: '密码错误',
+        },
+      },
+      settings: zhCNSettings,
+      onboarding: zhCNOnboarding,
     },
   },
   interpolation: {

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { formatAssetAmount, formatFiatValue, formatPriceChange } from './asset'
+import {
+  formatAssetAmount,
+  formatFiatValue,
+  formatPriceChange,
+  convertFiat,
+} from './asset'
 
 describe('formatAssetAmount', () => {
   it('formats zero amount', () => {
@@ -98,5 +103,80 @@ describe('formatPriceChange', () => {
 
   it('returns empty string for undefined', () => {
     expect(formatPriceChange(undefined)).toBe('')
+  })
+})
+
+describe('convertFiat', () => {
+  it('converts USD to target currency using rate', () => {
+    // 1 USD = 7.2 CNY
+    expect(convertFiat(100, 7.2)).toBe(720)
+    expect(convertFiat(1, 7.2)).toBe(7.2)
+  })
+
+  it('handles rate of 1 (same currency)', () => {
+    expect(convertFiat(100, 1)).toBe(100)
+  })
+
+  it('handles rates less than 1', () => {
+    // 1 USD = 0.92 EUR
+    expect(convertFiat(100, 0.92)).toBeCloseTo(92, 2)
+  })
+
+  it('handles zero amount', () => {
+    expect(convertFiat(0, 7.2)).toBe(0)
+  })
+})
+
+describe('formatFiatValue with exchange rate', () => {
+  it('applies exchange rate when currency is not USD', () => {
+    // 1 ETH at $2500, convert to CNY at rate 7.2
+    // Expected: 2500 * 7.2 = 18000 CNY
+    const result = formatFiatValue('1000000000000000000', 18, 2500, {
+      currency: 'CNY',
+      exchangeRate: 7.2,
+    })
+    expect(result).toContain('18,000.00')
+  })
+
+  it('ignores exchange rate when currency is USD', () => {
+    // Even with exchange rate provided, USD should not be converted
+    const result = formatFiatValue('1000000000000000000', 18, 2500, {
+      currency: 'USD',
+      exchangeRate: 7.2,
+    })
+    expect(result).toBe('$2,500.00')
+  })
+
+  it('works without exchange rate (legacy behavior)', () => {
+    // Without exchange rate, just formats the USD value with target currency symbol
+    const result = formatFiatValue('1000000000000000000', 18, 2500, {
+      currency: 'CNY',
+    })
+    expect(result).toContain('2,500.00')
+  })
+
+  it('supports legacy string parameter', () => {
+    // Legacy call with string currency parameter
+    const result = formatFiatValue('1000000000000000000', 18, 2500, 'USD')
+    expect(result).toBe('$2,500.00')
+  })
+
+  it('uses custom locale when provided', () => {
+    const result = formatFiatValue('1000000000000000000', 18, 2500, {
+      currency: 'EUR',
+      exchangeRate: 0.92,
+      locale: 'en-US',
+    })
+    // Using en-US locale for EUR should give different format
+    expect(result).toContain('2,300.00')
+  })
+
+  it('formats zero with target currency symbol', () => {
+    const result = formatFiatValue('0', 18, 2500, {
+      currency: 'CNY',
+      exchangeRate: 7.2,
+    })
+    // Should show CNY formatted zero, not USD
+    expect(result).toContain('0.00')
   })
 })

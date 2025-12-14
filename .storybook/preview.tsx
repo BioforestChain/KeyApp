@@ -3,6 +3,7 @@ import type { DecoratorFunction } from 'storybook/internal/types'
 import { useEffect } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import i18n, { languages, getLanguageDirection, type LanguageCode } from '../src/i18n'
+import { currencies, preferencesActions, preferencesStore, type CurrencyCode } from '../src/stores/preferences'
 import '../src/styles/globals.css'
 
 const mobileViewports = {
@@ -41,6 +42,15 @@ const containerSizes = {
   tablet: { name: 'Tablet (600px)', width: 600 },
 }
 
+const supportedCurrencyCodes: CurrencyCode[] = ['USD', 'CNY', 'EUR', 'JPY', 'KRW']
+
+function isCurrencyCode(value: unknown): value is CurrencyCode {
+  return (
+    typeof value === 'string' &&
+    (value === 'USD' || value === 'CNY' || value === 'EUR' || value === 'JPY' || value === 'KRW')
+  )
+}
+
 const preview: Preview = {
   parameters: {
     viewport: {
@@ -68,6 +78,19 @@ const preview: Preview = {
           value: code,
           title: `${config.name} (${config.dir.toUpperCase()})`,
           right: config.dir === 'rtl' ? '←' : '→',
+        })),
+        dynamicTitle: true,
+      },
+    },
+    currency: {
+      name: 'Currency',
+      description: 'Fiat display currency (default USD)',
+      defaultValue: 'USD',
+      toolbar: {
+        icon: 'creditcard',
+        items: supportedCurrencyCodes.map((code) => ({
+          value: code,
+          title: `${currencies[code].symbol} ${code}`,
         })),
         dynamicTitle: true,
       },
@@ -103,6 +126,7 @@ const preview: Preview = {
     // i18n + Theme + Direction decorator
     ((Story, context) => {
       const locale = (context.globals['locale'] || 'zh-CN') as LanguageCode
+      const currency = isCurrencyCode(context.globals['currency']) ? context.globals['currency'] : 'USD'
       const theme = context.globals['theme'] || 'light'
       const direction = getLanguageDirection(locale)
 
@@ -122,7 +146,12 @@ const preview: Preview = {
         } else {
           document.documentElement.classList.remove('dark')
         }
-      }, [locale, theme, direction])
+
+        // 同步法币偏好（用于 TokenItem 汇率展示）
+        if (preferencesStore.state.currency !== currency) {
+          preferencesActions.setCurrency(currency)
+        }
+      }, [locale, currency, theme, direction])
 
       return (
         <I18nextProvider i18n={i18n}>

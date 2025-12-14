@@ -94,10 +94,10 @@ test.describe('Scanner 集成', () => {
     await createTestWallet(page)
 
     // 现在应该在首页并能看到 FAB
-    await expect(page.getByLabel('扫一扫')).toBeVisible()
+    await expect(page.getByLabel('扫描二维码')).toBeVisible()
 
     // 点击 FAB
-    await page.getByLabel('扫一扫').click()
+    await page.getByLabel('扫描二维码').click()
 
     // 应该导航到扫描页
     await expect(page).toHaveURL('/#/scanner')

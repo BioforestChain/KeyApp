@@ -1,4 +1,40 @@
 {
   "language": "language",
-  "settings": "Settings"
+  "settings": "Settings",
+  "chainConfig": {
+    "title": "Chain Config",
+    "subscription": {
+      "title": "Subscription URL",
+      "description": "Enter <code>default</code> to use the built-in chain configuration.",
+      "refreshAriaLabel": "Refresh subscription",
+      "save": "Save",
+      "placeholder": "default or https://example.com/chains.json",
+      "lastUpdated": "Last updated: {{value}}"
+    },
+    "manual": {
+      "title": "Add Manually",
+      "description": "Paste JSON (an object or an array), then tap Add.",
+      "add": "Add",
+      "placeholder": "e.g. {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+    },
+    "list": {
+      "title": "Chain List",
+      "description": "Enabled chains are available in wallet/asset flows.",
+      "empty": "No chain configs yet."
+    },
+    "source": {
+      "default": "Default",
+      "subscription": "Subscription",
+      "manual": "Manual"
+    },
+    "warning": {
+      "incompatibleMajor": "Incompatible version: {{version}} (supports ≤ {{supportedMajor}}.x)"
+    },
+    "toast": {
+      "subscriptionSaved": "Subscription URL saved",
+      "subscriptionRefreshed": "Subscription refreshed",
+      "manualAdded": "Chain config added"
+    },
+    "hint": "Hint: Subscription configs are cached locally. Changing the URL clears the old cache to avoid confusion."
+  }
 }

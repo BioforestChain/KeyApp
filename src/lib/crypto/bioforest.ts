@@ -13,6 +13,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { ripemd160 } from '@noble/hashes/legacy.js'
+import type { ChainConfig } from '@/services/chain-config'
 
 // ==================== 工具函数 ====================
 
@@ -84,6 +85,77 @@ export const BIOFOREST_CHAINS: Record<BioforestChainType, BioforestChainConfig> 
   biwmeta: { prefix: 'c', decimals: 8, symbol: 'BIW', name: 'BIWMeta' },
   ethmeta: { prefix: 'c', decimals: 8, symbol: 'ETM', name: 'ETHMeta' },
   malibu: { prefix: 'c', decimals: 8, symbol: 'MLB', name: 'Malibu' },
+}
+
+export function isBioforestChainConfig(
+  config: ChainConfig,
+): config is ChainConfig & { type: 'bioforest' } {
+  return config.type === 'bioforest'
+}
+
+export function toBioforestChainConfig(config: ChainConfig): BioforestChainConfig {
+  if (!isBioforestChainConfig(config)) {
+    throw new Error(`Not a supported BioForest chain config: ${config.id}`)
+  }
+
+  const fallbackPrefix = isBioforestChain(config.id) ? BIOFOREST_CHAINS[config.id].prefix : 'c'
+  return {
+    prefix: config.prefix ?? fallbackPrefix,
+    decimals: config.decimals,
+    symbol: config.symbol,
+    name: config.name,
+  }
+}
+
+export type BioforestDerivedKeyFromChainConfig = Omit<BioforestDerivedKey, 'chain'> & { chain: string }
+
+export function deriveBioforestKeyFromChainConfig(secret: string, config: ChainConfig): BioforestDerivedKeyFromChainConfig {
+  if (!isBioforestChainConfig(config)) {
+    throw new Error(`Unsupported BioForest chain: ${config.id}`)
+  }
+
+  const chainConfig = toBioforestChainConfig(config)
+  const keypair = createBioforestKeypair(secret)
+  const address = publicKeyToBioforestAddress(keypair.publicKey, chainConfig.prefix)
+
+  return {
+    privateKey: bytesToHex(keypair.secretKey),
+    publicKey: bytesToHex(keypair.publicKey),
+    address,
+    chain: config.id,
+  }
+}
+
+export function deriveBioforestAddressesFromChainConfigs(
+  secret: string,
+  configs: readonly ChainConfig[],
+): Array<{ chainId: string; address: string }> {
+  const keypair = createBioforestKeypair(secret)
+
+  return configs.filter(isBioforestChainConfig).map((config) => ({
+    chainId: config.id,
+    address: publicKeyToBioforestAddress(keypair.publicKey, config.prefix ?? 'c'),
+  }))
+}
+
+/**
+ * Derive Bioforest addresses from an enabled chain-config set (preferred),
+ * with a backward-compatible fallback to built-in Bioforest chain definitions.
+ *
+ * Note: Passing an empty array means "no enabled bioforest chains" and MUST NOT fallback.
+ */
+export function deriveBioforestAddresses(
+  secret: string,
+  chainConfigs?: readonly ChainConfig[] | null,
+): Array<{ chainId: string; address: string }> {
+  if (chainConfigs === undefined || chainConfigs === null) {
+    return deriveBioforestMultiChainKeys(secret, getBioforestChains()).map((key) => ({
+      chainId: key.chain,
+      address: key.address,
+    }))
+  }
+
+  return deriveBioforestAddressesFromChainConfigs(secret, chainConfigs)
 }
 
 // ==================== Base58 编码 ====================

@@ -79,7 +79,29 @@ export const currencyConfigs: Record<string, CurrencyConfig> = {
 }
 
 /**
+ * Convert USD amount to target currency
+ * @param usdAmount - Amount in USD
+ * @param rate - Exchange rate (1 USD = rate target currency)
+ * @returns Converted amount in target currency
+ */
+export function convertFiat(usdAmount: number, rate: number): number {
+  return usdAmount * rate
+}
+
+/** Options for formatFiatValue function */
+export interface FormatFiatOptions {
+  /** Target currency code (default: 'USD') */
+  currency?: string
+  /** Exchange rate from USD to target currency (1 USD = rate target currency) */
+  exchangeRate?: number
+  /** Locale for number formatting (defaults to currency's locale) */
+  locale?: string
+}
+
+/**
  * Calculate and format fiat value from asset amount and price
+ *
+ * Overload 1: Legacy signature (backward compatible)
  * @param amount Raw amount string (in smallest unit)
  * @param decimals Token decimal places
  * @param priceUsd Price per token in USD
@@ -90,19 +112,66 @@ export function formatFiatValue(
   amount: string,
   decimals: number,
   priceUsd: number,
-  currency: string = 'USD'
+  currency?: string
+): string
+/**
+ * Overload 2: Extended signature with options object
+ * @param amount Raw amount string (in smallest unit)
+ * @param decimals Token decimal places
+ * @param priceUsd Price per token in USD
+ * @param options Formatting options including currency and exchange rate
+ * @returns Formatted fiat value string
+ */
+export function formatFiatValue(
+  amount: string,
+  decimals: number,
+  priceUsd: number,
+  options?: FormatFiatOptions
+): string
+export function formatFiatValue(
+  amount: string,
+  decimals: number,
+  priceUsd: number,
+  currencyOrOptions?: string | FormatFiatOptions
 ): string {
-  if (!amount || amount === '0' || !priceUsd) return '$0.00'
+  // Parse options - support both legacy string and new options object
+  const options: FormatFiatOptions =
+    typeof currencyOrOptions === 'string'
+      ? { currency: currencyOrOptions }
+      : currencyOrOptions ?? {}
+
+  const { currency = 'USD', exchangeRate, locale } = options
+
+  // Get currency config with fallback to USD
+  const config: CurrencyConfig = currencyConfigs[currency] ?? {
+    code: 'USD',
+    locale: 'en-US',
+  }
+
+  // Use provided locale or default to currency's locale
+  const formatLocale = locale ?? config.locale
+
+  // Handle zero/empty values - format with target currency
+  if (!amount || amount === '0' || !priceUsd) {
+    return new Intl.NumberFormat(formatLocale, {
+      style: 'currency',
+      currency: config.code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0)
+  }
 
   // Convert to number for calculation
   const value = Number(amount) / 10 ** decimals
-  const fiatValue = value * priceUsd
+  let fiatValue = value * priceUsd
 
-  // Get currency config with fallback to USD
-  const config: CurrencyConfig = currencyConfigs[currency] ?? { code: 'USD', locale: 'en-US' }
+  // Apply exchange rate if provided and currency is not USD
+  if (exchangeRate !== undefined && currency !== 'USD') {
+    fiatValue = convertFiat(fiatValue, exchangeRate)
+  }
 
   // Format with Intl.NumberFormat
-  return new Intl.NumberFormat(config.locale, {
+  return new Intl.NumberFormat(formatLocale, {
     style: 'currency',
     currency: config.code,
     minimumFractionDigits: 2,

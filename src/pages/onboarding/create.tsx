@@ -16,10 +16,9 @@ import {
   generateMnemonic,
   encrypt,
   deriveMultiChainKeys,
-  deriveBioforestMultiChainKeys,
+  deriveBioforestAddresses,
 } from '@/lib/crypto'
-import type { BioforestChainType } from '@/lib/crypto'
-import { walletActions } from '@/stores'
+import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
 
@@ -31,6 +30,8 @@ type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-conf
  */
 export function OnboardingCreatePage() {
   const navigate = useNavigate()
+  const chainConfigSnapshot = useChainConfigState().snapshot
+  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs()
   const [step, setStep] = useState<Step>('form')
   const [mnemonicOptions, setMnemonicOptions] = useState<MnemonicOptions>({
     language: 'english',
@@ -90,8 +91,14 @@ export function OnboardingCreatePage() {
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
 
         // Derive BioForest chain addresses (Ed25519)
-        const bioforestChains: BioforestChainType[] = ['bfmeta', 'pmchain', 'ccchain']
-        const bioforestKeys = deriveBioforestMultiChainKeys(mnemonicStr, bioforestChains)
+        const bioforestChainAddresses = deriveBioforestAddresses(
+          mnemonicStr,
+          chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
+        ).map((item) => ({
+          chain: item.chainId,
+          address: item.address,
+          tokens: [],
+        }))
 
         const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!
 
@@ -102,16 +109,13 @@ export function OnboardingCreatePage() {
             address: key.address,
             tokens: [],
           })),
-          ...bioforestKeys.map((key) => ({
-            chain: key.chain,
-            address: key.address,
-            tokens: [],
-          })),
+          ...bioforestChainAddresses,
         ]
 
         // Create wallet with skipBackup=true (can be changed after verification)
         walletActions.createWallet({
           name: data.name,
+          keyType: 'mnemonic',
           address: ethKey.address,
           chain: 'ethereum',
           chainAddresses,
@@ -126,7 +130,7 @@ export function OnboardingCreatePage() {
         setIsSubmitting(false)
       }
     },
-    [isSubmitting],
+    [chainConfigSnapshot, enabledBioforestChainConfigs, isSubmitting],
   )
 
   const handleStartBackup = useCallback(() => {

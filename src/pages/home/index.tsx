@@ -62,6 +62,7 @@ export function HomePage() {
   const hasWallet = useHasWallet()
   const currentWallet = useCurrentWallet()
   const selectedChain = useSelectedChain()
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain
   const chainAddress = useCurrentChainAddress()
   const tokens = useCurrentChainTokens()
   const availableChains = useAvailableChains()
@@ -114,7 +115,7 @@ export function HomePage() {
           aria-label={t('a11y.chainSelector')}
         >
           <ChainIcon chain={selectedChain} size="sm" />
-          <span>{CHAIN_NAMES[selectedChain]}</span>
+          <span>{selectedChainName}</span>
           <ChevronDown className="size-4" />
         </button>
 
@@ -176,14 +177,14 @@ export function HomePage() {
             console.log('Token clicked:', token.symbol)
           }}
           emptyTitle="暂无资产"
-          emptyDescription={`${CHAIN_NAMES[selectedChain]} 链上暂无代币`}
+          emptyDescription={`${selectedChainName} 链上暂无代币`}
         />
       </div>
 
       {/* Scanner FAB */}
       <Link
         to="/scanner"
-        className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-[60] flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t('a11y.scan')}
       >
         <ScanLine className="size-6 text-primary-foreground" />
@@ -212,7 +213,7 @@ export function HomePage() {
               >
                 <ChainIcon chain={chain} size="md" />
                 <div className="flex-1 text-left">
-                  <div className="font-medium">{CHAIN_NAMES[chain]}</div>
+                  <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
                   <div className="font-mono text-xs text-muted-foreground">
                     {chainAddr?.address ? truncateAddress(chainAddr.address, 10, 8) : '---'}
                   </div>

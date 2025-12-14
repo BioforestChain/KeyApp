@@ -1,4 +1,40 @@
 {
   "language": "language",
-  "settings": "Settings"
+  "settings": "Settings",
+  "chainConfig": {
+    "title": "تهيئة السلاسل",
+    "subscription": {
+      "title": "رابط الاشتراك",
+      "description": "أدخل <code>default</code> لاستخدام تهيئة السلاسل المضمنة.",
+      "refreshAriaLabel": "تحديث الاشتراك",
+      "save": "حفظ",
+      "placeholder": "default أو https://example.com/chains.json",
+      "lastUpdated": "آخر تحديث: {{value}}"
+    },
+    "manual": {
+      "title": "إضافة يدويًا",
+      "description": "الصق JSON (كائن واحد أو مصفوفة)، ثم اضغط على إضافة.",
+      "add": "إضافة",
+      "placeholder": "مثال: {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+    },
+    "list": {
+      "title": "قائمة السلاسل",
+      "description": "تتوفر السلاسل المفعّلة في تدفقات المحفظة/الأصول.",
+      "empty": "لا توجد تهيئات سلاسل."
+    },
+    "source": {
+      "default": "افتراضي",
+      "subscription": "اشتراك",
+      "manual": "يدوي"
+    },
+    "warning": {
+      "incompatibleMajor": "إصدار غير متوافق: {{version}} (يدعم ≤ {{supportedMajor}}.x)"
+    },
+    "toast": {
+      "subscriptionSaved": "تم حفظ رابط الاشتراك",
+      "subscriptionRefreshed": "تم تحديث الاشتراك",
+      "manualAdded": "تمت إضافة تهيئة السلسلة"
+    },
+    "hint": "تلميح: يتم تخزين تهيئة الاشتراك مؤقتًا محليًا. تغيير الرابط يمسح ذاكرة التخزين المؤقت القديمة لتجنب الالتباس."
+  }
 }

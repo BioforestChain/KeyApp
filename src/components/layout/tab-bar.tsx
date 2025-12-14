@@ -21,7 +21,7 @@ export function TabBar({ items, activeId, onTabChange, className }: TabBarProps)
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border safe-area-inset-bottom',
+        'fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border safe-area-inset-bottom',
         className
       )}
     >

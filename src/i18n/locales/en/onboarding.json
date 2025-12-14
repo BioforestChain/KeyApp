@@ -1,0 +1,23 @@
+{
+  "keyType": {
+    "title": "Select Key Type",
+    "mnemonic": "Standard Mnemonic (BIP39)",
+    "mnemonicDesc": "12-24 word recovery phrase",
+    "arbitrary": "Arbitrary Key",
+    "arbitraryDesc": "Any text as wallet secret (BioforestChain only)"
+  },
+  "arbitraryKey": {
+    "placeholder": "Enter your secret key...",
+    "hint": "This can be any text: passphrase, password, or custom string",
+    "required": "Please enter your secret key."
+  },
+  "securityWarning": {
+    "title": "Security Warning",
+    "message": "Arbitrary keys may have lower security than standard mnemonics. Make sure your secret has sufficient entropy and is backed up safely.",
+    "acknowledge": "I understand the risks"
+  },
+  "addressPreview": {
+    "title": "Your Addresses",
+    "subtitle": "These addresses will be generated from your secret"
+  }
+}

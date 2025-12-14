@@ -124,6 +124,22 @@ export interface IHapticsService {
   vibrate(duration?: number): Promise<void>
 }
 
+/** 汇率响应数据 */
+export interface ExchangeRateResponse {
+  /** 基准货币 */
+  base: string
+  /** 汇率日期 */
+  date: string
+  /** 目标货币汇率映射 */
+  rates: Record<string, number>
+}
+
+/** 货币兑换服务接口 */
+export interface ICurrencyExchangeService {
+  /** 获取汇率 */
+  getExchangeRates(baseCurrency: string, targetCurrencies: string[]): Promise<ExchangeRateResponse>
+}
+
 /** 所有服务的聚合接口 */
 export interface IServices {
   biometric: IBiometricService
@@ -132,4 +148,5 @@ export interface IServices {
   toast: IToastService
   camera: ICameraService
   haptics: IHapticsService
+  currencyExchange: ICurrencyExchangeService
 }

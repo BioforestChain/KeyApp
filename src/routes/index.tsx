@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-router'
 import { AppLayout } from '@/components/layout/app-layout'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { createAuthorizeRoutes } from './authorize'
 
 // 懒加载页面组件
 const HomePage = lazy(() => import('@/pages/home').then((m) => ({ default: m.HomePage })))
@@ -23,6 +24,7 @@ const LanguagePage = lazy(() => import('@/pages/settings/language').then((m) => 
 const ViewMnemonicPage = lazy(() => import('@/pages/settings/view-mnemonic').then((m) => ({ default: m.ViewMnemonicPage })))
 const ChangePasswordPage = lazy(() => import('@/pages/settings/change-password').then((m) => ({ default: m.ChangePasswordPage })))
 const CurrencyPage = lazy(() => import('@/pages/settings/currency').then((m) => ({ default: m.CurrencyPage })))
+const ChainConfigPage = lazy(() => import('@/pages/settings/chain-config').then((m) => ({ default: m.ChainConfigPage })))
 
 // History pages
 const TransactionHistoryPage = lazy(() => import('@/pages/history').then((m) => ({ default: m.TransactionHistoryPage })))
@@ -171,6 +173,12 @@ const settingsCurrencyRoute = createRoute({
   component: withSuspense(CurrencyPage),
 })
 
+const settingsChainsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings/chains',
+  component: withSuspense(ChainConfigPage),
+})
+
 // History 路由
 const historyRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -243,6 +251,9 @@ const welcomeRoute = createRoute({
   component: withSuspense(WelcomeScreen),
 })
 
+// Authorize routes (DWEB/Plaoc)
+const { authorizeRoute } = createAuthorizeRoutes({ rootRoute, withSuspense })
+
 // 路由树
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -265,6 +276,7 @@ const routeTree = rootRoute.addChildren([
   settingsMnemonicRoute,
   settingsPasswordRoute,
   settingsCurrencyRoute,
+  settingsChainsRoute,
   historyRoute,
   transactionDetailRoute,
   addressBookRoute,
@@ -272,6 +284,7 @@ const routeTree = rootRoute.addChildren([
   stakingRoute,
   scannerRoute,
   welcomeRoute,
+  authorizeRoute,
 ])
 
 // 使用 hash history，支持部署在任意子路径下

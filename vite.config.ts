@@ -36,7 +36,9 @@ export default defineConfig({
       '#haptics-impl': resolve(__dirname, `./src/services/haptics/${SERVICE_IMPL}.ts`),
       '#storage-impl': resolve(__dirname, `./src/services/storage/${SERVICE_IMPL}.ts`),
       '#camera-impl': resolve(__dirname, `./src/services/camera/${SERVICE_IMPL}.ts`),
-      
+      '#authorize-impl': resolve(__dirname, `./src/services/authorize/${SERVICE_IMPL}.ts`),
+      '#currency-exchange-impl': resolve(__dirname, `./src/services/currency-exchange/${SERVICE_IMPL === 'dweb' ? 'web' : SERVICE_IMPL}.ts`),
+
       // Node.js polyfills
       buffer: 'buffer/',
     },

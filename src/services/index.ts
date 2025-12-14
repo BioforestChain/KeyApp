@@ -71,3 +71,11 @@ export type {
   PlaocAdapter,
 } from './authorize'
 export { createPlaocAdapter, isPlaocAvailable } from './authorize'
+
+// ==================== Currency Exchange ====================
+export type {
+  ICurrencyExchangeService,
+  ExchangeRateResponse,
+  FrankfurterApiResponse,
+} from './currency-exchange'
+export { CurrencyExchangeService, currencyExchangeService } from './currency-exchange'

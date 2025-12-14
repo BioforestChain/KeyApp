@@ -33,7 +33,9 @@
       "#toast-impl": ["./src/services/toast/web.ts"],
       "#haptics-impl": ["./src/services/haptics/web.ts"],
       "#storage-impl": ["./src/services/storage/web.ts"],
-      "#camera-impl": ["./src/services/camera/web.ts"]
+      "#camera-impl": ["./src/services/camera/web.ts"],
+      "#authorize-impl": ["./src/services/authorize/web.ts"],
+      "#currency-exchange-impl": ["./src/services/currency-exchange/web.ts"]
     }
   },
   "include": ["src"]

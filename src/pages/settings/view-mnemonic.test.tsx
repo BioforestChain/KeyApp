@@ -17,9 +17,21 @@ vi.mock('@/lib/crypto', () => ({
 }))
 
 // Mock wallet store
-const mockWallet = {
+const mockWallet: {
+  id: string
+  name: string
+  keyType?: 'mnemonic' | 'arbitrary'
+  encryptedMnemonic: {
+    ciphertext: string
+    salt: string
+    iv: string
+    iterations: number
+  }
+  chainAddresses: unknown[]
+} = {
   id: 'wallet-1',
   name: 'My Wallet',
+  keyType: 'mnemonic',
   encryptedMnemonic: {
     ciphertext: 'encrypted',
     salt: 'salt',
@@ -185,6 +197,26 @@ describe('ViewMnemonicPage', () => {
       await waitFor(() => {
         expect(screen.getByTestId('mnemonic-display')).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('Arbitrary Key Wallet', () => {
+    it('renders secret textarea instead of mnemonic grid', async () => {
+      mockCurrentWallet = { ...mockWallet, keyType: 'arbitrary' }
+      mockDecrypt.mockResolvedValueOnce('my secret\nline2')
+
+      renderWithProviders(<ViewMnemonicPage />)
+
+      const input = screen.getByPlaceholderText('请输入密码')
+      await userEvent.type(input, 'correctpassword')
+      await userEvent.click(screen.getByRole('button', { name: '确认' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('查看密钥')).toBeInTheDocument()
+      })
+
+      expect(screen.queryByTestId('mnemonic-display')).not.toBeInTheDocument()
+      expect(screen.getByTestId('secret-textarea')).toHaveValue('my secret\nline2')
     })
   })
 })

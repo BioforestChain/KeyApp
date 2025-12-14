@@ -162,6 +162,24 @@ test.describe('钱包创建流程 - 功能测试', () => {
   })
 
   test('创建钱包派生多链地址', async ({ page }) => {
+    // 先手动添加一个新的 BioForest 链配置，验证 chain-config 能驱动地址派生
+    await page.goto('/#/settings/chains')
+    await page.waitForSelector('text=手动添加')
+
+    const manualConfig = JSON.stringify({
+      id: 'bf-demo',
+      version: '1.0',
+      type: 'bioforest',
+      name: 'BF Demo',
+      symbol: 'BFD',
+      decimals: 8,
+      prefix: 'c',
+    })
+
+    await page.fill('textarea[placeholder^="例如："]', manualConfig)
+    await page.click('button:has-text("添加")')
+    await expect(page.getByText('BF Demo', { exact: true })).toBeVisible()
+
     // 快速创建钱包流程
     await page.goto('/#/wallet/create')
     await page.waitForSelector('text=设置密码')
@@ -220,7 +238,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     }
 
     // 验证 BioForest 链地址 (Ed25519)
-    const bioforestChains = ['bfmeta', 'pmchain', 'ccchain']
+    const bioforestChains = ['bfmeta', 'pmchain', 'ccchain', 'bf-demo']
     for (const chain of bioforestChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()

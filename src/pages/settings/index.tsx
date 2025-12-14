@@ -8,6 +8,7 @@ import {
   Globe,
   DollarSign,
   Palette,
+  Network,
   Info,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
@@ -115,6 +116,12 @@ export function SettingsPage() {
             label="货币单位"
             value={CURRENCY_NAMES[currentCurrency]}
             onClick={() => navigate({ to: '/settings/currency' })}
+          />
+          <div className="mx-4 h-px bg-border" />
+          <SettingsItem
+            icon={<Network className="size-4" />}
+            label="链配置"
+            onClick={() => navigate({ to: '/settings/chains' })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem

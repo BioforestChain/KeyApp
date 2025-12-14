@@ -8,7 +8,7 @@ import {
   createMemoryHistory,
   Outlet,
 } from '@tanstack/react-router'
-import i18n from '@/i18n'
+import i18n from '@/i18n/index'
 
 /**
  * Storybook Router Decorator

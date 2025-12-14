@@ -1,0 +1,22 @@
+{
+  "exchange": {
+    "loading": "Loading exchange rates...",
+    "error": "Failed to load exchange rates",
+    "lastUpdated": "Rates updated {{time}}",
+    "unavailable": "Exchange rates unavailable"
+  },
+  "currency": {
+    "USD": "US Dollar",
+    "CNY": "Chinese Yuan",
+    "EUR": "Euro",
+    "JPY": "Japanese Yen",
+    "KRW": "South Korean Won"
+  },
+  "symbol": {
+    "USD": "$",
+    "CNY": "\u00a5",
+    "EUR": "\u20ac",
+    "JPY": "\u00a5",
+    "KRW": "\u20a9"
+  }
+}

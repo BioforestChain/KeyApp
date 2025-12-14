@@ -38,6 +38,7 @@ export function ReceivePage() {
   
   const chainAddress = useCurrentChainAddress()
   const selectedChain = useSelectedChain()
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain
   const [copied, setCopied] = useState(false)
 
   const address = chainAddress?.address || ''
@@ -77,7 +78,7 @@ export function ReceivePage() {
         {/* 链信息 */}
         <div className="flex items-center justify-center gap-2 text-muted-foreground">
           <ChainIcon chain={selectedChain} size="sm" />
-          <span className="text-sm">{CHAIN_NAMES[selectedChain]}</span>
+          <span className="text-sm">{selectedChainName}</span>
         </div>
 
         {/* 二维码区域 */}
@@ -133,7 +134,7 @@ export function ReceivePage() {
 
         {/* 提示 */}
         <Alert variant="info">
-          仅支持 {CHAIN_NAMES[selectedChain]} 网络资产转入，其他网络资产转入将无法找回
+          仅支持 {selectedChainName} 网络资产转入，其他网络资产转入将无法找回
         </Alert>
       </div>
     </div>

@@ -9,8 +9,8 @@ export type ExternalChainType = 'ethereum' | 'tron' | 'bitcoin' | 'binance'
 // BioForest 链 (Ed25519)
 export type { BioforestChainType }
 
-// 所有支持的链
-export type ChainType = ExternalChainType | BioforestChainType
+// 所有链（来自 chain-config，可扩展）
+export type ChainType = string
 
 export interface Token {
   id: string
@@ -37,6 +37,12 @@ export interface ChainAddress {
 export interface Wallet {
   id: string
   name: string
+  /**
+   * Wallet secret type.
+   * - `mnemonic`: BIP39 mnemonic (default for legacy wallets)
+   * - `arbitrary`: arbitrary secret string (BioforestChain only)
+   */
+  keyType?: 'mnemonic' | 'arbitrary'
   /** 主地址（默认显示的地址，通常是以太坊） */
   address: string
   /** 主链类型 */
@@ -82,9 +88,14 @@ export const walletActions = {
       const stored = localStorage.getItem('bfm_wallets')
       if (stored) {
         const data = JSON.parse(stored) as { wallets: Wallet[]; currentWalletId: string | null }
+        // Backward compatible: legacy wallets may not have keyType
+        const wallets = data.wallets.map((wallet) => ({
+          ...wallet,
+          keyType: wallet.keyType ?? 'mnemonic',
+        }))
         walletStore.setState((state) => ({
           ...state,
-          wallets: data.wallets,
+          wallets,
           currentWalletId: data.currentWalletId,
           isInitialized: true,
           isLoading: false,
@@ -112,6 +123,7 @@ export const walletActions = {
       ...wallet,
       id: crypto.randomUUID(),
       createdAt: Date.now(),
+      keyType: wallet.keyType ?? 'mnemonic',
       chainAddresses: wallet.chainAddresses || [
         { chain: wallet.chain, address: wallet.address, tokens: [] }
       ],

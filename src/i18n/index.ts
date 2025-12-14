@@ -16,6 +16,9 @@ import enEmpty from './locales/en/empty.json'
 import enScanner from './locales/en/scanner.json'
 import enGuide from './locales/en/guide.json'
 import enMigration from './locales/en/migration.json'
+import enAuthorize from './locales/en/authorize.json'
+import enCurrency from './locales/en/currency.json'
+import enOnboarding from './locales/en/onboarding.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -32,6 +35,9 @@ import zhCNEmpty from './locales/zh-CN/empty.json'
 import zhCNScanner from './locales/zh-CN/scanner.json'
 import zhCNGuide from './locales/zh-CN/guide.json'
 import zhCNMigration from './locales/zh-CN/migration.json'
+import zhCNAuthorize from './locales/zh-CN/authorize.json'
+import zhCNCurrency from './locales/zh-CN/currency.json'
+import zhCNOnboarding from './locales/zh-CN/onboarding.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -48,6 +54,9 @@ import zhTWEmpty from './locales/zh-TW/empty.json'
 import zhTWScanner from './locales/zh-TW/scanner.json'
 import zhTWGuide from './locales/zh-TW/guide.json'
 import zhTWMigration from './locales/zh-TW/migration.json'
+import zhTWAuthorize from './locales/zh-TW/authorize.json'
+import zhTWCurrency from './locales/zh-TW/currency.json'
+import zhTWOnboarding from './locales/zh-TW/onboarding.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -64,6 +73,9 @@ import arEmpty from './locales/ar/empty.json'
 import arScanner from './locales/ar/scanner.json'
 import arGuide from './locales/ar/guide.json'
 import arMigration from './locales/ar/migration.json'
+import arAuthorize from './locales/ar/authorize.json'
+import arCurrency from './locales/ar/currency.json'
+import arOnboarding from './locales/ar/onboarding.json'
 
 // 语言配置
 export const languages = {
@@ -92,7 +104,10 @@ export const namespaces = [
   'empty',
   'scanner',
   'guide',
+  'onboarding',
   'migration',
+  'authorize',
+  'currency',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -125,7 +140,10 @@ i18n.use(initReactI18next).init({
       empty: enEmpty,
       scanner: enScanner,
       guide: enGuide,
+      onboarding: enOnboarding,
       migration: enMigration,
+      authorize: enAuthorize,
+      currency: enCurrency,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -141,7 +159,10 @@ i18n.use(initReactI18next).init({
       empty: zhCNEmpty,
       scanner: zhCNScanner,
       guide: zhCNGuide,
+      onboarding: zhCNOnboarding,
       migration: zhCNMigration,
+      authorize: zhCNAuthorize,
+      currency: zhCNCurrency,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -157,7 +178,10 @@ i18n.use(initReactI18next).init({
       empty: zhTWEmpty,
       scanner: zhTWScanner,
       guide: zhTWGuide,
+      onboarding: zhTWOnboarding,
       migration: zhTWMigration,
+      authorize: zhTWAuthorize,
+      currency: zhTWCurrency,
     },
     ar: {
       common: arCommon,
@@ -173,7 +197,10 @@ i18n.use(initReactI18next).init({
       empty: arEmpty,
       scanner: arScanner,
       guide: arGuide,
+      onboarding: arOnboarding,
       migration: arMigration,
+      authorize: arAuthorize,
+      currency: arCurrency,
     },
   },
   lng: defaultLanguage,

@@ -2,6 +2,16 @@ import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { ChainIcon, type ChainType } from '../wallet/chain-icon'
 import { AmountDisplay } from '../common'
+import { currencies, useCurrency } from '@/stores'
+import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate'
+
+function parseFiatNumber(input: string): number | null {
+  const normalized = input.replaceAll(',', '').trim()
+  if (normalized.length === 0) return null
+
+  const value = Number(normalized)
+  return Number.isFinite(value) ? value : null
+}
 
 export interface TokenInfo {
   symbol: string
@@ -23,6 +33,29 @@ interface TokenItemProps {
 export function TokenItem({ token, onClick, showChange = false, className }: TokenItemProps) {
   const isClickable = !!onClick
   const { t } = useTranslation()
+  const currency = useCurrency()
+
+  const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD'
+  const { data: exchangeRateData, isLoading: exchangeRateLoading, error: exchangeRateError } =
+    useExchangeRate('USD', shouldFetchRate ? [currency] : [])
+  const exchangeRate = shouldFetchRate ? getExchangeRate(exchangeRateData, currency) : undefined
+
+  const usdFiatValue = token.fiatValue !== undefined ? parseFiatNumber(token.fiatValue) : null
+  const normalizedFiatValue =
+    token.fiatValue !== undefined ? (usdFiatValue !== null ? String(usdFiatValue) : token.fiatValue) : undefined
+
+  const canConvert = currency !== 'USD' && exchangeRate !== undefined && usdFiatValue !== null
+  const fiatSymbol = canConvert ? currencies[currency].symbol : currencies.USD.symbol
+  const displayFiatValue = canConvert && usdFiatValue !== null ? String(usdFiatValue * exchangeRate) : normalizedFiatValue
+
+  const exchangeStatusMessage =
+    shouldFetchRate && !canConvert
+      ? exchangeRateError
+        ? t('currency:exchange.error')
+        : exchangeRateLoading
+          ? t('currency:exchange.loading')
+          : t('currency:exchange.unavailable')
+      : null
 
   return (
     <div
@@ -78,9 +111,9 @@ export function TokenItem({ token, onClick, showChange = false, className }: Tok
           size="sm"
           className="@xs:text-base"
         />
-        {token.fiatValue && (
-          <p className="text-xs text-muted @xs:text-sm">
-            ≈ $<AmountDisplay value={token.fiatValue} size="xs" className="inline" />
+        {displayFiatValue && (
+          <p className="text-xs text-muted @xs:text-sm" title={exchangeStatusMessage ?? undefined}>
+            ≈ {fiatSymbol}<AmountDisplay value={displayFiatValue} size="xs" className="inline" />
             {showChange && token.change24h !== undefined && (
               <AmountDisplay
                 value={token.change24h}

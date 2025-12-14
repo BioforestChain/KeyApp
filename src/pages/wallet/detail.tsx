@@ -118,7 +118,7 @@ export function WalletDetailPage() {
             >
               <ChainIcon chain={chainAddr.chain} size="md" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{CHAIN_NAMES[chainAddr.chain]}</p>
+                <p className="text-sm font-medium">{CHAIN_NAMES[chainAddr.chain] ?? chainAddr.chain}</p>
                 <AddressDisplay
                   address={chainAddr.address}
                   copyable

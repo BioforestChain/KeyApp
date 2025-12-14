@@ -8,6 +8,7 @@ import { clipboardService } from './clipboard'
 import { toastService } from './toast'
 import { cameraService } from './camera'
 import { hapticsService } from './haptics'
+import { currencyExchangeService } from './currency-exchange'
 
 /**
  * Service 层架构 - 已迁移到独立文件夹
@@ -37,6 +38,7 @@ function getDefaultServices(): IServices {
     toast: toastService,
     camera: cameraService,
     haptics: hapticsService,
+    currencyExchange: currencyExchangeService,
   }
 }
 

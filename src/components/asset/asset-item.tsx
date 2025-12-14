@@ -17,6 +17,8 @@ export interface AssetItemProps {
   showChevron?: boolean | undefined
   /** Currency code for fiat display (default: USD) */
   currency?: string | undefined
+  /** Exchange rate from USD to target currency (1 USD = rate target currency) */
+  exchangeRate?: number | undefined
   /** Additional class name */
   className?: string | undefined
 }
@@ -30,15 +32,20 @@ export function AssetItem({
   onClick,
   showChevron = true,
   currency = 'USD',
+  exchangeRate,
   className,
 }: AssetItemProps) {
   const formattedAmount = formatAssetAmount(asset.amount, asset.decimals)
   const displayName = asset.name || asset.assetType
 
   // Calculate fiat value if price is available
+  // Use exchange rate for conversion when currency is not USD
   const fiatValue =
     asset.priceUsd !== undefined
-      ? formatFiatValue(asset.amount, asset.decimals, asset.priceUsd, currency)
+      ? formatFiatValue(asset.amount, asset.decimals, asset.priceUsd, {
+          currency,
+          ...(exchangeRate !== undefined ? { exchangeRate } : {}),
+        })
       : null
 
   // Format 24h change
