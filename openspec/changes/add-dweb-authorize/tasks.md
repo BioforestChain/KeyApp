@@ -25,6 +25,7 @@
     - Confirm batch result semantics (index-aligned array; items may be `null` or `{ error: true, message: ... }`)
   - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm wire envelope like JSON `{ data: ... }` + raw array compatibility with mpay)
   - [ ] P2.6 Cleanup semantics: `removeEventId(eventId)` idempotency + required call order
+    - Evidence (legacy): mpay consumes the cached fetch event inside `respondWith` (deletes `eventId` from the internal map before responding), so a later `removeEventId(eventId)` becomes a safe no-op (and does not overwrite the successful response).
   - [ ] P2.7 Timeout/cancel semantics (deadline, user cancel, runtime disconnect, retry/replay guard)
 
 ### Non-Blocking (Mock-First)
