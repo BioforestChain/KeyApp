@@ -47,7 +47,7 @@ export function SettingsItem({
       )}
     >
       {icon && (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
           {icon}
         </span>
       )}

@@ -51,7 +51,7 @@ describe('SettingsItem', () => {
     render(
       <SettingsItem
         label="钱包"
-        icon={<Wallet data-testid="wallet-icon" className="size-4" />}
+        icon={<Wallet data-testid="wallet-icon" size={20} />}
       />
     )
     expect(screen.getByTestId('wallet-icon')).toBeInTheDocument()

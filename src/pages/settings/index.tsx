@@ -6,7 +6,7 @@ import {
   Lock,
   Eye,
   KeyRound,
-  Globe,
+  Languages,
   DollarSign,
   Palette,
   Network,
@@ -66,13 +66,13 @@ export function SettingsPage() {
         {/* 钱包管理 */}
         <SettingsSection title="钱包管理">
           <SettingsItem
-            icon={<Wallet className="size-4" />}
+            icon={<Wallet size={20} />}
             label="钱包管理"
             onClick={() => navigate({ to: '/wallet/$walletId', params: { walletId: currentWallet?.id ?? '' } })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<BookUser className="size-4" />}
+            icon={<BookUser size={20} />}
             label="地址簿"
             onClick={() => {
               // TODO: 导航到地址簿页面
@@ -83,7 +83,7 @@ export function SettingsPage() {
         {/* 安全 */}
         <SettingsSection title="安全">
           <SettingsItem
-            icon={<Lock className="size-4" />}
+            icon={<Lock size={20} />}
             label="应用锁"
             value="未设置"
             onClick={() => {
@@ -92,13 +92,13 @@ export function SettingsPage() {
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<Eye className="size-4" />}
+            icon={<Eye size={20} />}
             label="查看助记词"
             onClick={() => navigate({ to: '/settings/mnemonic' })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<KeyRound className="size-4" />}
+            icon={<KeyRound size={20} />}
             label="修改密码"
             onClick={() => navigate({ to: '/settings/password' })}
           />
@@ -107,27 +107,27 @@ export function SettingsPage() {
         {/* 偏好设置 */}
         <SettingsSection title="偏好设置">
           <SettingsItem
-            icon={<Globe className="size-4" />}
+            icon={<Languages size={20} />}
             label="语言"
             value={LANGUAGE_NAMES[currentLanguage]}
             onClick={() => navigate({ to: '/settings/language' })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<DollarSign className="size-4" />}
+            icon={<DollarSign size={20} />}
             label="货币单位"
             value={CURRENCY_NAMES[currentCurrency]}
             onClick={() => navigate({ to: '/settings/currency' })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<Network className="size-4" />}
+            icon={<Network size={20} />}
             label="链配置"
             onClick={() => navigate({ to: '/settings/chains' })}
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
-            icon={<Palette className="size-4" />}
+            icon={<Palette size={20} />}
             label="外观"
             value="跟随系统"
             onClick={() => {
@@ -139,7 +139,7 @@ export function SettingsPage() {
         {/* 关于 */}
         <SettingsSection title="关于">
           <SettingsItem
-            icon={<Info className="size-4" />}
+            icon={<Info size={20} />}
             label="关于 BFM Pay"
             value="v1.0.0"
             onClick={() => {
