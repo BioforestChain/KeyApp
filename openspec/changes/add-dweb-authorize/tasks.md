@@ -21,6 +21,7 @@
   - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage + getMain semantics/safety)
   - [ ] P2.4 Signature request payload schema (confirm single vs batch)
     - mpay accepts `signaturedata` as JSON stringified array (batch-capable); confirm runtime expectation for KeyApp
+    - Evidence (legacy): mpay `externalFetch` sends `signaturedata` primarily via **POST body** (query-based `signaturedata` is commented out); KeyApp Phase B should implement **body first + query fallback** to maximize compatibility.
     - Confirm batch result semantics (index-aligned array; items may be `null` or `{ error: true, message: ... }`)
   - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm wire envelope like JSON `{ data: ... }` + raw array compatibility with mpay)
   - [ ] P2.6 Cleanup semantics: `removeEventId(eventId)` idempotency + required call order

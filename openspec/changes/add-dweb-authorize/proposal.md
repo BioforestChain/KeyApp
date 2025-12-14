@@ -114,6 +114,7 @@ The legacy mpay implementation strongly suggests Candidate B is real in practice
 - `getCallerAppInfo(eventId)` reads `event.getRemoteManifest()`.
 - `respondWith(eventId, pathname, payload)` serializes JSON `{ "data": payload }` with `application/json`.
 - `removeEventId(eventId)` responds with JSON `{ "data": null }`.
+- For signature requests, mpay `externalFetch` uses `dwebServiceWorker.fetch(url.href, { method: "POST", body: signaturedata })` where `signaturedata = JSON.stringify(search)` (query-based `signaturedata` is commented out in that code path). This implies KeyApp should support **POST body first, query fallback** for maximum compatibility.
 
 ### Event ID Format
 
