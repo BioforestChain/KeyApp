@@ -114,11 +114,18 @@ The legacy mpay implementation strongly suggests Candidate B is real in practice
 - `getCallerAppInfo(eventId)` reads `event.getRemoteManifest()`.
 - **Request handoff to UI**: wallet-side listener owns the only reliable copy of request details (URL/query/body). KeyApp Phase B must define how those request details reach the UI route:
   - Address params can be passed via router `search` (small and debuggable)
-  - Signature payload (`signaturedata`) SHOULD NOT be put in URL; it should be read from POST body and cached by `eventId` for the signature page to load
+  - Signature payload (`signaturedata`) SHOULD NOT be put in URL by KeyApp; it should be parsed from the incoming request (query first, body fallback) and cached by `eventId` for the signature page to load
+
+**Request Handoff Decision (2025-12-14 PeerA)**:
+- **Hybrid approach chosen**:
+  - **Address authorization**: params (`type`, `chainName`, `signMessage`, `getMain`) passed via router search params. Small, debuggable, URL-safe.
+  - **Signature authorization**: payload cached in adapter by `eventId`. UI retrieves via `adapter.getSignatureRequest(eventId)`. Large JSON payloads not suitable for URL.
+- **Rationale**: Matches mpay patterns; separation of concerns (small params in URL, large payloads in adapter cache); debuggable for Address flow.
+- **Implementation requirement**: Adapter must expose `getSignatureRequest(eventId): SignatureRequestItem[]` for UI to retrieve cached payload.
 - Code-level hint (`@plaoc/plugins`): `getRemoteManifest()` derives the caller mmid from `event.request.headers.get("X-External-Dweb-Host")` and queries `dns.std.dweb /query?mmid=...` to return the caller manifest. This implies authorize requests must carry `X-External-Dweb-Host` (or equivalent) for app-info display to work.
 - `respondWith(eventId, pathname, payload)` serializes JSON `{ "data": payload }` with `application/json` and **consumes** the cached fetch event (deletes `eventId` from the internal map before responding), making subsequent cleanup safe.
 - `removeEventId(eventId)` responds with JSON `{ "data": null }` only when the event is still present (so calling `removeEventId` after a successful `respondWith` becomes a no-op in practice).
-- For signature requests, mpay `externalFetch` uses `dwebServiceWorker.fetch(url.href, { method: "POST", body: signaturedata })` where `signaturedata = JSON.stringify(search)` (query-based `signaturedata` is commented out in that code path). This implies KeyApp should support **POST body first, query fallback** for maximum compatibility.
+- For signature requests, mpay wallet-side receiver reads `signaturedata` from query first, then falls back to `event.request.text()` (POST body). Meanwhile, mpay `externalFetch` uses `dwebServiceWorker.fetch(url.href, { method: "POST", body: signaturedata })` where `signaturedata = JSON.stringify(search)` (query-based `signaturedata` is commented out in that code path). This implies KeyApp should support **query first + body fallback** for maximum compatibility.
 
 ### Event ID Format
 
@@ -149,13 +156,19 @@ interface CallerAppInfo {
 
 | Path | Success Data | Error Data |
 |------|--------------|------------|
-| `/wallet/authorize/address` | `{ addresses: AddressInfo[] }` | `{ error: 'rejected' \| 'timeout' }` |
-| `/wallet/authorize/signature` | `{ signature: string, txHash?: string }` | `{ error: 'rejected' \| 'timeout' \| 'insufficient_balance' }` |
+| `/wallet/authorize/address` | `AddressInfo[]` (raw array) | `null` |
+| `/wallet/authorize/signature` | `ResultArray` (index-aligned) | `null` |
 
-**Compatibility note (mpay)**:
-- mpay wire response uses JSON `{ "data": <payload> }` with `application/json` (and `removeEventId` responds `{ "data": null }`).
-- mpay may send/expect raw array payloads (e.g. address returns `addressList` array; signature returns a result array aligned by request index).
-- Phase B MUST confirm with runtime samples whether KeyApp should normalize these shapes at the adapter boundary (recommended for smooth mpay migration).
+**Normalization Decision (2025-12-14 PeerA)**:
+- **Option A chosen**: Service layer aligns directly to mpay payload shapes.
+- Service returns raw `AddressInfo[]` / `ResultArray` (not wrapped in `{ addresses }` or `{ signature }`).
+- Adapter handles **only** the wire envelope: wraps to `{ "data": <payload> }` on send.
+- Error responses use `null` (adapter sends `{ "data": null }`), matching mpay `removeEventId` semantics.
+- **Rationale**: Keeps adapter as pure transport layer; contract tests assert service output matches mpay wire expectations directly.
+
+**Wire format (mpay-compatible)**:
+- Success: JSON `{ "data": <payload> }` with `Content-Type: application/json`
+- Reject/Timeout/Cancel: JSON `{ "data": null }` (same as `removeEventId` response)
 
 ### Error Codes
 

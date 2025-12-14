@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   RouterProvider,
@@ -91,14 +91,23 @@ function assertTimeoutHandler(handler: unknown): asserts handler is () => void {
 }
 
 describe('authorize integration (mock-first)', () => {
-  beforeEach(() => {
-    walletActions.clearAll()
+  beforeEach(async () => {
+    await act(() => {
+      walletActions.clearAll()
+    })
     window.location.hash = ''
+    // Allow React state to settle after cleanup
+    await waitFor(() => {})
   })
 
-  afterEach(() => {
-    walletActions.clearAll()
+  afterEach(async () => {
+    await act(() => {
+      walletActions.clearAll()
+    })
     window.location.hash = ''
+    // Allow React state to settle after cleanup
+    await waitFor(() => {})
+    vi.clearAllMocks()
     vi.restoreAllMocks()
     vi.useRealTimers()
   })
@@ -108,11 +117,13 @@ describe('authorize integration (mock-first)', () => {
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
-    walletActions.createWallet({
-      name: 'Wallet 1',
-      address: '0x1234567890abcdef1234567890abcdef12345678',
-      chain: 'ethereum',
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+    await act(() => {
+      walletActions.createWallet({
+        name: 'Wallet 1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chain: 'ethereum',
+        chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      })
     })
 
     window.location.hash = '#/authorize/address?eventId=evt-addr&type=main'
@@ -137,12 +148,14 @@ describe('authorize integration (mock-first)', () => {
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
-    walletActions.createWallet({
-      name: 'Wallet 1',
-      address: '0x1234567890abcdef1234567890abcdef12345678',
-      chain: 'ethereum',
-      encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+    await act(() => {
+      walletActions.createWallet({
+        name: 'Wallet 1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chain: 'ethereum',
+        encryptedMnemonic,
+        chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      })
     })
 
     window.location.hash = '#/authorize/signature?eventId=sufficient-balance'
@@ -175,11 +188,13 @@ describe('authorize integration (mock-first)', () => {
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
-    walletActions.createWallet({
-      name: 'Wallet 1',
-      address: '0x1234567890abcdef1234567890abcdef12345678',
-      chain: 'ethereum',
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+    await act(() => {
+      walletActions.createWallet({
+        name: 'Wallet 1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chain: 'ethereum',
+        chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      })
     })
 
     window.location.hash = '#/authorize/address?eventId=evt-reject&type=main'
@@ -200,11 +215,13 @@ describe('authorize integration (mock-first)', () => {
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
-    walletActions.createWallet({
-      name: 'Wallet 1',
-      address: '0x1234567890abcdef1234567890abcdef12345678',
-      chain: 'ethereum',
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+    await act(() => {
+      walletActions.createWallet({
+        name: 'Wallet 1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chain: 'ethereum',
+        chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      })
     })
 
     window.location.hash = '#/authorize/address?eventId=evt-timeout&type=main'
