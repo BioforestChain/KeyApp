@@ -18,10 +18,11 @@
     - Candidate A: mpay-style `plaoc.initAppPlaocEventListener((eventId, url, event) => ...)`
     - Candidate B: `@plaoc/plugins` `dwebServiceWorker.addEventListener('fetch', (event) => ...)` (request/response IPC)
   - [ ] P2.2 App info contract: `getCallerAppInfo(eventId)` return shape + error semantics
-  - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage)
+  - [ ] P2.3 Address request payload schema (type/main|network|all + chainName + optional signMessage + getMain semantics/safety)
   - [ ] P2.4 Signature request payload schema (confirm single vs batch)
     - mpay accepts `signaturedata` as JSON stringified array (batch-capable); confirm runtime expectation for KeyApp
-  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm envelope vs raw array compatibility with mpay)
+    - Confirm batch result semantics (index-aligned array; items may be `null` or `{ error: true, message: ... }`)
+  - [ ] P2.5 Response schema: `respondWith(eventId, path, data)` meaning of `path` + success/error payloads (confirm wire envelope like JSON `{ data: ... }` + raw array compatibility with mpay)
   - [ ] P2.6 Cleanup semantics: `removeEventId(eventId)` idempotency + required call order
   - [ ] P2.7 Timeout/cancel semantics (deadline, user cancel, runtime disconnect, retry/replay guard)
 
