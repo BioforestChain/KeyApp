@@ -142,3 +142,4 @@ TDD.md > PDR.md > SERVICE-SPEC.md > mpay 原始代码
 - 所有业务逻辑必须有单元测试
 - 使用 TypeScript 严格模式
 - 遵循 TDD.md 中的代码规范
+- POR/TUI 本地工具解析 `docs/por/T*/task.yaml` 需要 `python -m pip install --user pyyaml`
