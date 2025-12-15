@@ -1,16 +1,16 @@
 # design-system Specification
 
 ## Purpose
-TBD - created by archiving change add-theme-audit. Update Purpose after archive.
+Define the KeyApp design tokens (colors, typography, spacing) used across the app so visual-regression checks and future UI work have a single, explicit source of truth.
 ## Requirements
 ### Requirement: Visual Brand Consistency
 
-系统 SHALL 与 mpay 品牌视觉保持一致。
+系统 SHALL 使用一致的 KeyApp（Bioforest）品牌视觉，并保持关键 UI 的可读性与一致性。
 
 #### Scenario: 颜色一致性
-- **GIVEN** mpay 品牌颜色定义
+- **GIVEN** KeyApp 设计系统颜色定义
 - **WHEN** 用户查看 KeyApp 界面
-- **THEN** 主色调 (purple OKLCH 65% 0.25 290) 与 mpay 一致
+- **THEN** 主色调 (Bioforest green OKLCH 60% 0.13 163) 与当前实现一致
 - **AND** 链颜色 (ETH blue, TRX red, BNB yellow, BTC orange) 正确
 
 #### Scenario: 字体层次
@@ -30,4 +30,3 @@ TBD - created by archiving change add-theme-audit. Update Purpose after archive.
 - **WHEN** 组件渲染
 - **THEN** 使用 4px 基础单位间距
 - **AND** 卡片/容器间距符合规范
-

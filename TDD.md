@@ -928,102 +928,28 @@ Tailwind 4.x 采用 CSS-first 配置方式，不再需要 `tailwind.config.js`�
 ```css
 /* src/styles/globals.css */
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* 主题配置 - Tailwind 4.x @theme 指令 */
-@theme {
-  /* 颜色系统 */
-  --color-background: oklch(97.5% 0.01 270);
-  --color-foreground: oklch(15% 0.02 250);
-  
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(15% 0.02 250);
-  
-  /* 主色 - 紫色 */
-  --color-primary: oklch(65% 0.25 290);
-  --color-primary-foreground: oklch(100% 0 0);
-  --color-primary-50: oklch(97% 0.02 290);
-  --color-primary-100: oklch(94% 0.05 290);
-  --color-primary-500: oklch(65% 0.25 290);
-  --color-primary-700: oklch(55% 0.25 290);
-  
-  /* 成功色 - 绿色 */
-  --color-secondary: oklch(70% 0.2 145);
-  --color-secondary-foreground: oklch(100% 0 0);
-  
-  /* 错误色 - 红色 */
-  --color-destructive: oklch(60% 0.2 25);
-  --color-destructive-foreground: oklch(100% 0 0);
-  
-  /* 文字层级 */
-  --color-muted: oklch(55% 0.05 290);
-  --color-muted-foreground: oklch(55% 0.05 290);
-  
-  /* 边框和输入 */
-  --color-border: oklch(92% 0.02 290);
-  --color-input: oklch(92% 0.02 290);
-  --color-ring: oklch(65% 0.25 290);
-  
-  /* 自定义颜色 */
-  --color-grey: oklch(97.5% 0.01 270);
-  --color-title: oklch(15% 0.02 250);
-  --color-subtext: oklch(55% 0.05 290);
-  --color-line: oklch(92% 0.02 290);
-  
-  /* 链专属色 */
-  --color-chain-ethereum: oklch(55% 0.2 260);
-  --color-chain-tron: oklch(55% 0.25 25);
-  --color-chain-binance: oklch(80% 0.18 85);
-  --color-chain-bitcoin: oklch(70% 0.18 60);
-  --color-chain-bfmeta: oklch(60% 0.2 290);
-  
-  /* 渐变色 */
-  --gradient-blue: linear-gradient(to bottom, oklch(85% 0.12 200), oklch(70% 0.15 220));
-  --gradient-purple: linear-gradient(to bottom, oklch(75% 0.15 290), oklch(60% 0.2 280));
-  --gradient-red: linear-gradient(to bottom, oklch(75% 0.15 10), oklch(60% 0.2 350));
-  --gradient-mint: linear-gradient(to bottom, oklch(80% 0.15 320), oklch(55% 0.25 290));
-  
-  /* 圆角 */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-full: 9999px;
-  
-  /* 字体 */
-  --font-sans: system-ui, -apple-system, sans-serif;
-  
-  /* 动画 */
-  --animate-slide-in-bottom: slide-in-bottom 0.3s ease-out;
-  --animate-fade-in: fade-in 0.2s ease-out;
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* 主色 - Bioforest green */
+  --primary: oklch(0.6 0.13 163);
+  --primary-foreground: oklch(0.98 0.02 166);
 }
 
-/* 自定义动画 */
-@keyframes slide-in-bottom {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+.dark {
+  --primary: oklch(0.7 0.15 162);
+  --primary-foreground: oklch(0.26 0.05 173);
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 }
 
-/* 自定义工具类 */
-@utility bg-gradient-blue {
-  background: var(--gradient-blue);
-}
-
-@utility bg-gradient-purple {
-  background: var(--gradient-purple);
-}
-
-@utility bg-gradient-red {
-  background: var(--gradient-red);
-}
-
-@utility bg-gradient-mint {
-  background: var(--gradient-mint);
-}
+/* 其他 tokens 见 globals.css */
 ```
 
 ```typescript
