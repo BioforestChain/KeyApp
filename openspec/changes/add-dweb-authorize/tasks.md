@@ -128,11 +128,11 @@
 These tasks require real DWEB/Plaoc runtime and cannot proceed until P0-P2 are resolved:
 
 - [ ] B1. Real `isPlaocAvailable()` implementation (from 1.4)
-- [ ] B2. Real IPC adapter replacing mock (dweb.ts)
-  - Must include ingress capture + request handoff to UI (not only respond/cleanup):
-    - `dwebServiceWorker(fetch)` listener captures `ServiceWorkerFetchEvent`
-    - wallet generates `eventId` and stores event in Map for lifecycle
-    - UI can retrieve request details via route-search and/or adapter APIs
+- [~] B2. Real IPC adapter replacing mock (dweb.ts) — **IMPLEMENTED, awaiting sample validation**
+  - ✅ `dwebServiceWorker(fetch)` listener captures `ServiceWorkerFetchEvent` (commit b3d4bb7)
+  - ✅ wallet generates `eventId` and stores event in Map for lifecycle
+  - ✅ UI retrieves request details via route-search + adapter APIs
+  - ⏸️ Blocked: S4.2.1 runtime samples needed to validate contract tests (commit 105fe81 scaffolds fixtures)
 - [ ] B3. Test with real DWEB runtime (from 9.5)
 - [ ] B4. Deep linking from external DWEB apps (from 4.4)
 - [ ] B5. Production deployment validation

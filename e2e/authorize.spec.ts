@@ -14,7 +14,7 @@ const TEST_WALLET_DATA = {
       address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
       chain: 'ethereum',
       chainAddresses: [
-        { chain: 'ethereum', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', tokens: [] },
+        { chain: 'ethereum', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', tokens: [{ id: 'ETH', symbol: 'ETH', balance: '10.0', decimals: 18 }] },
         { chain: 'bfmeta', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', tokens: [] },
       ],
       encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test', iterations: 100000 },
@@ -37,6 +37,28 @@ const TEST_WALLET_DATA = {
   ],
   currentWalletId: 'test-wallet-1',
   selectedChain: 'ethereum',
+}
+
+// signaturedata fixtures for E2E tests
+const SIGNATURE_DATA = {
+  transfer: JSON.stringify([{
+    type: 1,
+    chainName: 'ethereum',
+    senderAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+    balance: '0.5',
+    fee: '0.002',
+    assetType: 'ETH',
+  }]),
+  insufficientBalance: JSON.stringify([{
+    type: 1,
+    chainName: 'ethereum',
+    senderAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    receiveAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+    balance: '999999',
+    fee: '0.002',
+    assetType: 'ETH',
+  }]),
 }
 
 async function setupTestWallet(page: import('@playwright/test').Page) {
@@ -78,14 +100,16 @@ test.describe('DWEB 授权 - 截图测试', () => {
   })
 
   test('签名授权页面（transfer）', async ({ page }) => {
-    await page.goto('/#/authorize/signature/sufficient-balance')
+    const signaturedata = encodeURIComponent(SIGNATURE_DATA.transfer)
+    await page.goto(`/#/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
     await page.waitForSelector('text=Mock DApp')
     await page.waitForSelector('text=请确认该交易')
     await expect(page).toHaveScreenshot('authorize-signature-transfer.png')
   })
 
   test('密码确认弹窗', async ({ page }) => {
-    await page.goto('/#/authorize/signature/sufficient-balance')
+    const signaturedata = encodeURIComponent(SIGNATURE_DATA.transfer)
+    await page.goto(`/#/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
     await page.waitForSelector('text=Mock DApp')
 
     await page.click('button:has-text("输入密码确认")')
@@ -95,7 +119,8 @@ test.describe('DWEB 授权 - 截图测试', () => {
   })
 
   test('错误状态：余额不足', async ({ page }) => {
-    await page.goto('/#/authorize/signature/insufficient-balance')
+    const signaturedata = encodeURIComponent(SIGNATURE_DATA.insufficientBalance)
+    await page.goto(`/#/authorize/signature/insufficient-balance?signaturedata=${signaturedata}`)
     await page.waitForSelector('text=Mock DApp')
     await page.waitForSelector('text=余额不足')
 
