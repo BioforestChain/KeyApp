@@ -1,12 +1,20 @@
 # Tasks: Add DWEB Authorize Feature
 
-**Status**: HOLD (Partial) - Mock implementation proceeds; real runtime integration blocked
+**Status**: COMPLETE (Mock Runtime) - Phase A done; Phase B (real runtime) deferred to hardening pass
 
-> **HOLD Semantics Clarified (2025-12-13)**:
-> - ✅ **CAN PROCEED**: UI components, mock adapter, Storybook, unit tests, E2E screenshots
-> - ⏸️ **BLOCKED**: Real IPC integration, runtime detection, production deployment
+> **Completion Status (2025-12-15)**:
+> - ✅ **Phase A COMPLETE**: UI components, mock adapter, services, unit tests (50), E2E tests (12)
+> - ✅ **Phase B IMPLEMENTED**: dweb.ts real adapter (260 lines) + contract fixtures
+> - ⏸️ **Phase B UNVALIDATED**: Awaits real runtime samples for contract validation
 >
-> This allows development progress while awaiting DWEB/Plaoc runtime availability.
+> **Phase B Entry Conditions** (for future hardening):
+> 1. Obtain 3 real IPC samples from DWEB runtime owner (Address success, Signature success, Timeout/Cancel)
+> 2. Update `src/services/authorize/__tests__/contract.test.ts` fixtures with real samples
+> 3. Run `pnpm test --run src/services/authorize/__tests__/contract.test.ts` to validate
+> 4. Run E2E in real dweb-browser environment
+>
+> **Owner**: Runtime validation owned by whoever obtains DWEB runtime access
+> **Acceptance**: All contract.test.ts assertions pass with real runtime samples
 
 ## Prerequisites
 
