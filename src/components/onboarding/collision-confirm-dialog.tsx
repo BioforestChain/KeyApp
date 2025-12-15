@@ -1,18 +1,18 @@
-import { cn } from '@/lib/utils'
-import { AlertTriangle, ArrowRight, Wallet } from 'lucide-react'
-import type { DuplicateCheckResult } from '@/services/wallet/types'
+import { cn } from '@/lib/utils';
+import { AlertTriangle, ArrowRight, Wallet } from 'lucide-react';
+import type { DuplicateCheckResult } from '@/services/wallet/types';
 
 interface CollisionConfirmDialogProps {
   /** Duplicate check result */
-  result: DuplicateCheckResult
+  result: DuplicateCheckResult;
   /** Confirm replacement callback */
-  onConfirm: () => void
+  onConfirm: () => void;
   /** Cancel callback */
-  onCancel: () => void
+  onCancel: () => void;
   /** Whether action is in progress */
-  isLoading?: boolean
+  isLoading?: boolean;
   /** Additional class name */
-  className?: string
+  className?: string;
 }
 
 /**
@@ -27,18 +27,13 @@ export function CollisionConfirmDialog({
   className,
 }: CollisionConfirmDialogProps) {
   if (!result.isDuplicate || result.type !== 'privateKey' || !result.matchedWallet) {
-    return null
+    return null;
   }
 
-  const { matchedWallet } = result
+  const { matchedWallet } = result;
 
   return (
-    <div
-      className={cn(
-        'rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4',
-        className,
-      )}
-    >
+    <div className={cn('rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4', className)}>
       {/* Warning header */}
       <div className="flex items-start gap-3">
         <div className="rounded-full bg-yellow-500/20 p-2">
@@ -46,45 +41,37 @@ export function CollisionConfirmDialog({
         </div>
         <div className="flex-1">
           <h3 className="font-medium text-yellow-700">检测到地址冲突</h3>
-          <p className="mt-1 text-sm text-yellow-600/80">
-            即将导入的助记词包含已存在的钱包地址
-          </p>
+          <p className="mt-1 text-sm text-yellow-600/80">即将导入的助记词包含已存在的钱包地址</p>
         </div>
       </div>
 
       {/* Collision details */}
-      <div className="mt-4 rounded-lg bg-background/50 p-3">
+      <div className="bg-background/50 mt-4 rounded-lg p-3">
         <div className="flex items-center gap-3">
           {/* Existing wallet */}
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <Wallet className="size-4 text-muted-foreground" />
+              <Wallet className="text-muted-foreground size-4" />
               <span className="text-sm font-medium">{matchedWallet.name}</span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              私钥导入的钱包
-            </p>
+            <p className="text-muted-foreground mt-1 text-xs">私钥导入的钱包</p>
           </div>
 
-          <ArrowRight className="size-4 text-muted-foreground" />
+          <ArrowRight className="text-muted-foreground size-4" />
 
           {/* New wallet */}
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <Wallet className="size-4 text-primary" />
+              <Wallet className="text-primary size-4" />
               <span className="text-sm font-medium">新钱包</span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              助记词恢复
-            </p>
+            <p className="text-muted-foreground mt-1 text-xs">助记词恢复</p>
           </div>
         </div>
 
         {/* Matched address */}
-        <div className="mt-3 rounded border border-dashed border-muted-foreground/30 px-2 py-1.5">
-          <p className="truncate font-mono text-xs text-muted-foreground">
-            {matchedWallet.matchedAddress}
-          </p>
+        <div className="border-muted-foreground/30 mt-3 rounded border border-dashed px-2 py-1.5">
+          <p className="text-muted-foreground truncate font-mono text-xs">{matchedWallet.matchedAddress}</p>
         </div>
       </div>
 
@@ -100,8 +87,8 @@ export function CollisionConfirmDialog({
           onClick={onCancel}
           disabled={isLoading}
           className={cn(
-            'flex-1 rounded-lg border border-input px-4 py-2.5 text-sm font-medium',
-            'transition-colors hover:bg-muted/50',
+            'border-input flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium',
+            'hover:bg-muted/50 transition-colors',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
@@ -120,5 +107,5 @@ export function CollisionConfirmDialog({
         </button>
       </div>
     </div>
-  )
+  );
 }

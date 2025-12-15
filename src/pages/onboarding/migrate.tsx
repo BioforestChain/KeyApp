@@ -4,92 +4,85 @@
  * 完整迁移流程: 检测 → 密码验证 → 进度 → 完成
  */
 
-import { useState, useCallback } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Download, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useMigration } from '@/contexts/MigrationContext'
-import { MigrationPasswordStep } from '@/components/migration/MigrationPasswordStep'
-import { MigrationProgressStep } from '@/components/migration/MigrationProgressStep'
-import { MigrationCompleteStep } from '@/components/migration/MigrationCompleteStep'
-import { migrationService } from '@/services/migration/migration-service'
-import type { MigrationProgress } from '@/services/migration/types'
+import { useState, useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Download, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useMigration } from '@/contexts/MigrationContext';
+import { MigrationPasswordStep } from '@/components/migration/MigrationPasswordStep';
+import { MigrationProgressStep } from '@/components/migration/MigrationProgressStep';
+import { MigrationCompleteStep } from '@/components/migration/MigrationCompleteStep';
+import { migrationService } from '@/services/migration/migration-service';
+import type { MigrationProgress } from '@/services/migration/types';
 
-type MigrationStep = 'detected' | 'password' | 'progress' | 'complete'
+type MigrationStep = 'detected' | 'password' | 'progress' | 'complete';
 
 interface MigrationResult {
-  success: boolean
-  walletCount: number
-  skippedCount: number
-  errorMessage?: string
+  success: boolean;
+  walletCount: number;
+  skippedCount: number;
+  errorMessage?: string;
 }
 
 export function MigrationPage() {
-  const { t } = useTranslation('migration')
-  const navigate = useNavigate()
-  const {
-    detection,
-    isDetecting,
-    setProgress,
-    completeMigration,
-    skipMigration,
-    failMigration,
-  } = useMigration()
+  const { t } = useTranslation('migration');
+  const navigate = useNavigate();
+  const { detection, isDetecting, setProgress, completeMigration, skipMigration, failMigration } = useMigration();
 
   // 当前步骤
-  const [step, setStep] = useState<MigrationStep>('detected')
+  const [step, setStep] = useState<MigrationStep>('detected');
   // 密码验证状态
-  const [isVerifying, setIsVerifying] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false);
   // 当前进度
   const [progress, setLocalProgress] = useState<MigrationProgress>({
     step: 'detecting',
     percent: 0,
-  })
+  });
   // 迁移结果
   const [result, setResult] = useState<MigrationResult>({
     success: false,
     walletCount: 0,
     skippedCount: 0,
-  })
+  });
 
   const handleBack = useCallback(() => {
-    navigate({ to: '/welcome' })
-  }, [navigate])
+    navigate({ to: '/welcome' });
+  }, [navigate]);
 
   const handleSkip = useCallback(() => {
-    skipMigration()
-    navigate({ to: '/wallet/create' })
-  }, [navigate, skipMigration])
+    skipMigration();
+    navigate({ to: '/wallet/create' });
+  }, [navigate, skipMigration]);
 
   const handleStartMigration = useCallback(() => {
-    setStep('password')
-  }, [])
+    setStep('password');
+  }, []);
 
   const handleVerifyPassword = useCallback(
     async (password: string): Promise<boolean> => {
-      setIsVerifying(true)
+      setIsVerifying(true);
       try {
-        const isValid = await migrationService.verifyPassword(password)
+        const isValid = await migrationService.verifyPassword(password);
         if (isValid) {
           // 密码验证通过，开始迁移
-          setStep('progress')
+          setStep('progress');
 
           // 执行迁移
           try {
             await migrationService.migrate(password, (prog) => {
-              setLocalProgress(prog)
-              setProgress(prog)
-            })
+              setLocalProgress(prog);
+              setProgress(prog);
+            });
 
             // 迁移成功
             setResult({
               success: true,
               walletCount: detection?.walletCount ?? 0,
               skippedCount: 0, // TODO: 从 transform result 获取实际跳过数
-            })
-            completeMigration()
-            setStep('complete')
+            });
+            completeMigration();
+            setStep('complete');
           } catch (error) {
             // 迁移失败
             setResult({
@@ -97,37 +90,37 @@ export function MigrationPage() {
               walletCount: 0,
               skippedCount: 0,
               errorMessage: error instanceof Error ? error.message : String(error),
-            })
-            failMigration()
-            setStep('complete')
+            });
+            failMigration();
+            setStep('complete');
           }
         }
-        return isValid
+        return isValid;
       } finally {
-        setIsVerifying(false)
+        setIsVerifying(false);
       }
     },
-    [detection?.walletCount, setProgress, completeMigration, failMigration]
-  )
+    [detection?.walletCount, setProgress, completeMigration, failMigration],
+  );
 
   const handleGoHome = useCallback(() => {
-    navigate({ to: '/' })
-  }, [navigate])
+    navigate({ to: '/' });
+  }, [navigate]);
 
   const handleRetry = useCallback(() => {
     // 重试：回到密码步骤
-    setStep('password')
+    setStep('password');
     setResult({
       success: false,
       walletCount: 0,
       skippedCount: 0,
-    })
-  }, [])
+    });
+  }, []);
 
   // 如果没有检测到 mpay 数据，显示提示
   if (!isDetecting && !detection?.hasData) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="bg-background flex min-h-screen flex-col">
         <div className="flex items-center gap-2 p-4">
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="size-5" />
@@ -136,16 +129,16 @@ export function MigrationPage() {
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center px-8">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
-            <AlertCircle className="size-8 text-muted-foreground" />
+          <div className="bg-muted mb-4 flex size-16 items-center justify-center rounded-full">
+            <AlertCircle className="text-muted-foreground size-8" />
           </div>
-          <p className="mb-8 text-center text-muted-foreground">
+          <p className="text-muted-foreground mb-8 text-center">
             {t('noDataFound', { defaultValue: '未检测到 mpay 钱包数据' })}
           </p>
           <Button onClick={handleBack}>{t('goBack', { defaultValue: '返回' })}</Button>
         </div>
       </div>
-    )
+    );
   }
 
   // 渲染当前步骤
@@ -153,17 +146,12 @@ export function MigrationPage() {
     switch (step) {
       case 'detected':
         return (
-          <div
-            className="flex flex-1 flex-col items-center justify-center px-8"
-            data-testid="migration-detected-step"
-          >
-            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-              <Download className="size-8 text-primary" />
+          <div className="flex flex-1 flex-col items-center justify-center px-8" data-testid="migration-detected-step">
+            <div className="bg-primary/10 mb-4 flex size-16 items-center justify-center rounded-full">
+              <Download className="text-primary size-8" />
             </div>
-            <h2 className="mb-2 text-xl font-semibold">
-              {t('detected.title', { defaultValue: '检测到 mpay 钱包' })}
-            </h2>
-            <p className="mb-8 text-center text-muted-foreground">
+            <h2 className="mb-2 text-xl font-semibold">{t('detected.title', { defaultValue: '检测到 mpay 钱包' })}</h2>
+            <p className="text-muted-foreground mb-8 text-center">
               {t('detected.description', {
                 defaultValue: '发现 {{count}} 个钱包可以迁移到 KeyApp',
                 count: detection?.walletCount ?? 0,
@@ -171,12 +159,7 @@ export function MigrationPage() {
             </p>
 
             <div className="w-full max-w-sm space-y-3">
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={handleStartMigration}
-                data-testid="migration-start-btn"
-              >
+              <Button className="w-full" size="lg" onClick={handleStartMigration} data-testid="migration-start-btn">
                 {t('startMigration', { defaultValue: '开始迁移' })}
               </Button>
               <Button
@@ -190,7 +173,7 @@ export function MigrationPage() {
               </Button>
             </div>
           </div>
-        )
+        );
 
       case 'password':
         return (
@@ -200,10 +183,10 @@ export function MigrationPage() {
             remainingRetries={migrationService.getRemainingRetries()}
             isVerifying={isVerifying}
           />
-        )
+        );
 
       case 'progress':
-        return <MigrationProgressStep progress={progress} />
+        return <MigrationProgressStep progress={progress} />;
 
       case 'complete':
         return (
@@ -215,15 +198,15 @@ export function MigrationPage() {
             onGoHome={handleGoHome}
             onRetry={handleRetry}
           />
-        )
+        );
     }
-  }
+  };
 
   // 是否显示返回按钮（进度中不显示）
-  const showBackButton = step !== 'progress'
+  const showBackButton = step !== 'progress';
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="bg-background flex min-h-screen flex-col">
       {showBackButton && (
         <div className="flex items-center gap-2 p-4">
           <Button variant="ghost" size="icon" onClick={handleBack}>
@@ -235,7 +218,7 @@ export function MigrationPage() {
 
       {renderStep()}
     </div>
-  )
+  );
 }
 
-export default MigrationPage
+export default MigrationPage;

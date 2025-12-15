@@ -1,25 +1,20 @@
-import { Sparkles, ShieldCheck, Layers3 } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sparkles, ShieldCheck, Layers3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export interface WhatsNewSheetProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function WhatsNewSheet({ open, onOpenChange }: WhatsNewSheetProps) {
-  const { t } = useTranslation('migration')
+  const { t } = useTranslation('migration');
 
   const features = [
     { key: 'feature_modern_ui', Icon: Sparkles },
     { key: 'feature_security', Icon: ShieldCheck },
     { key: 'feature_multichain', Icon: Layers3 },
-  ] as const
+  ] as const;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -32,7 +27,7 @@ export function WhatsNewSheet({ open, onOpenChange }: WhatsNewSheetProps) {
           <ul className="space-y-3">
             {features.map(({ key, Icon }) => (
               <li key={key} className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-muted">
+                <div className="bg-muted mt-0.5 flex size-8 items-center justify-center rounded-md">
                   <Icon className="size-4" />
                 </div>
                 <p className="text-sm leading-6">{t(key)}</p>
@@ -42,6 +37,5 @@ export function WhatsNewSheet({ open, onOpenChange }: WhatsNewSheetProps) {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
-

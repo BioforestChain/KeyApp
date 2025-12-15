@@ -1,22 +1,22 @@
-import { useState, useCallback, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { BottomSheet } from '@/components/layout/bottom-sheet'
-import { addressBookActions, type Contact, type ChainType } from '@/stores'
-import { User, Wallet, FileText } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { BottomSheet } from '@/components/layout/bottom-sheet';
+import { addressBookActions, type Contact, type ChainType } from '@/stores';
+import { IconUser as User, IconWallet as Wallet, IconFileText as FileText } from '@tabler/icons-react';
 
 export interface ContactEditSheetProps {
   /** Contact to edit (null for new contact) */
-  contact?: Contact | null | undefined
+  contact?: Contact | null | undefined;
   /** Whether the sheet is open */
-  open: boolean
+  open: boolean;
   /** Close callback */
-  onClose: () => void
+  onClose: () => void;
   /** Success callback */
-  onSuccess?: (() => void) | undefined
+  onSuccess?: (() => void) | undefined;
   /** Default chain for new contacts */
-  defaultChain?: ChainType | undefined
+  defaultChain?: ChainType | undefined;
   /** Additional class name */
-  className?: string | undefined
+  className?: string | undefined;
 }
 
 /**
@@ -30,55 +30,55 @@ export function ContactEditSheet({
   defaultChain = 'ethereum',
   className,
 }: ContactEditSheetProps) {
-  const [name, setName] = useState('')
-  const [address, setAddress] = useState('')
-  const [memo, setMemo] = useState('')
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [memo, setMemo] = useState('');
 
-  const isEditing = !!contact
+  const isEditing = !!contact;
 
   // Reset form when contact changes or sheet opens
   useEffect(() => {
     if (open) {
-      setName(contact?.name || '')
-      setAddress(contact?.address || '')
-      setMemo(contact?.memo || '')
+      setName(contact?.name || '');
+      setAddress(contact?.address || '');
+      setMemo(contact?.memo || '');
     }
-  }, [open, contact])
+  }, [open, contact]);
 
   const handleClose = useCallback(() => {
-    setName('')
-    setAddress('')
-    setMemo('')
-    onClose()
-  }, [onClose])
+    setName('');
+    setAddress('');
+    setMemo('');
+    onClose();
+  }, [onClose]);
 
   const handleSave = useCallback(() => {
-    const trimmedName = name.trim()
-    const trimmedAddress = address.trim()
-    const trimmedMemo = memo.trim()
+    const trimmedName = name.trim();
+    const trimmedAddress = address.trim();
+    const trimmedMemo = memo.trim();
 
-    if (!trimmedName || !trimmedAddress) return
+    if (!trimmedName || !trimmedAddress) return;
 
     if (isEditing && contact) {
       addressBookActions.updateContact(contact.id, {
         name: trimmedName,
         address: trimmedAddress,
         ...(trimmedMemo && { memo: trimmedMemo }),
-      })
+      });
     } else {
       addressBookActions.addContact({
         name: trimmedName,
         address: trimmedAddress,
         chain: defaultChain,
         ...(trimmedMemo && { memo: trimmedMemo }),
-      })
+      });
     }
 
-    onSuccess?.()
-    handleClose()
-  }, [name, address, memo, isEditing, contact, defaultChain, onSuccess, handleClose])
+    onSuccess?.();
+    handleClose();
+  }, [name, address, memo, isEditing, contact, defaultChain, onSuccess, handleClose]);
 
-  const canSave = name.trim().length > 0 && address.trim().length > 0
+  const canSave = name.trim().length > 0 && address.trim().length > 0;
 
   return (
     <BottomSheet
@@ -87,7 +87,7 @@ export function ContactEditSheet({
       title={isEditing ? '编辑联系人' : '添加联系人'}
       className={className}
     >
-      <div className="p-4 space-y-4">
+      <div className="space-y-4 p-4">
         {/* 名称输入 */}
         <div className="space-y-2">
           <label htmlFor="contact-name" className="flex items-center gap-2 text-sm font-medium">
@@ -103,8 +103,8 @@ export function ContactEditSheet({
             maxLength={20}
             autoFocus
             className={cn(
-              'w-full rounded-xl border border-border bg-background px-4 py-3',
-              'focus:outline-none focus:ring-2 focus:ring-primary'
+              'border-border bg-background w-full rounded-xl border px-4 py-3',
+              'focus:ring-primary focus:ring-2 focus:outline-none',
             )}
           />
         </div>
@@ -122,8 +122,8 @@ export function ContactEditSheet({
             onChange={(e) => setAddress(e.target.value)}
             placeholder="请输入钱包地址"
             className={cn(
-              'w-full rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm',
-              'focus:outline-none focus:ring-2 focus:ring-primary'
+              'border-border bg-background w-full rounded-xl border px-4 py-3 font-mono text-sm',
+              'focus:ring-primary focus:ring-2 focus:outline-none',
             )}
           />
         </div>
@@ -142,8 +142,8 @@ export function ContactEditSheet({
             maxLength={100}
             rows={2}
             className={cn(
-              'w-full rounded-xl border border-border bg-background px-4 py-3 resize-none',
-              'focus:outline-none focus:ring-2 focus:ring-primary'
+              'border-border bg-background w-full resize-none rounded-xl border px-4 py-3',
+              'focus:ring-primary focus:ring-2 focus:outline-none',
             )}
           />
         </div>
@@ -156,19 +156,19 @@ export function ContactEditSheet({
             className={cn(
               'w-full rounded-full py-3 font-medium text-white transition-colors',
               'bg-primary hover:bg-primary/90',
-              'disabled:cursor-not-allowed disabled:opacity-50'
+              'disabled:cursor-not-allowed disabled:opacity-50',
             )}
           >
             {isEditing ? '保存' : '添加'}
           </button>
           <button
             onClick={handleClose}
-            className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground w-full py-2 text-center text-sm"
           >
             取消
           </button>
         </div>
       </div>
     </BottomSheet>
-  )
+  );
 }

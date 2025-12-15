@@ -142,3 +142,22 @@ storybook有一些类型错误，但是 `pnpm typecheck` 检查不到
 我们需要一种新的溢出滚动显示的组件，参考这个代码：`/Users/kzf/Dev/GitHub/jixoai-labs/openspecui/packages/web/src/components/path-marquee.tsx`。
 请你参考这个代码，做成一个叫做 MarqueeText 的组件。这种组件可以用来渲染一些非常关键的不可省略的文本，比如 ChainName。实现这个组件之后，请将它用在该用的地方：完善我们的基础组件库。
 完成后请你整理这次提案的相关代码并提交
+
+---
+
+TASK：实现shadcnui的升级
+
+我升级了shadcnui，参考项目：/Users/kzf/Dev/bioforestChain/t/start-app
+
+我需要你继续帮我升级：
+
+1. 图标替换成 tabler ，我已经替换了少部分，你参考这继续完成剩下所有的替换，完成后移除lucide
+2. 使用shadcnui的基础组件（`src/components/ui`）作为我们所有组件的基础（包括`src/components/common`组件）的基础
+3. 完成 2 后，确定 baseui 完全替代 radix-ui 后，彻底移除 radix-ui
+4. 阅读参考项目的代码，将它好的部分继续迁移到我们项目中。
+5. 重新评估所有e2e的截图，注意现在很多e2e的截图不是移动端的尺寸，我们有限考虑移动端的场景。
+6. 不断精进调整样式，直到可访问性最佳
+7. 更新我们的代码以外的文件，确定shadcnui的升级彻底完成
+8. 然后继续朝着我们的**短期核心目标**前进
+   1. 特别关注目前主页底部4个tab的作用是什么？
+   2. bioChain生态的用户能否用这个钱包完成基础的使用？

@@ -1,34 +1,29 @@
-import { Eye, EyeOff, RotateCcw } from 'lucide-react'
-import { useId, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Eye, EyeOff, RotateCcw } from 'lucide-react';
+import { useId, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ArbitraryKeyInputProps {
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
-  className?: string
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  className?: string;
 }
 
-export function ArbitraryKeyInput({
-  value,
-  onChange,
-  disabled = false,
-  className,
-}: ArbitraryKeyInputProps) {
-  const { t } = useTranslation(['onboarding', 'common'])
-  const [isHidden, setIsHidden] = useState(true)
-  const textareaId = useId()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+export function ArbitraryKeyInput({ value, onChange, disabled = false, className }: ArbitraryKeyInputProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
+  const [isHidden, setIsHidden] = useState(true);
+  const textareaId = useId();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const toggleLabel = useMemo(
     () => (isHidden ? t('common:a11y.showPassword') : t('common:a11y.hidePassword')),
     [isHidden, t],
-  )
+  );
 
-  const canReset = value.trim() !== '' && !disabled
+  const canReset = value.trim() !== '' && !disabled;
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -37,7 +32,7 @@ export function ArbitraryKeyInput({
           {t('onboarding:keyType.arbitrary')}
         </label>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{value.length}</span>
+          <span className="text-muted-foreground text-xs">{value.length}</span>
           <Button
             type="button"
             variant="ghost"
@@ -53,8 +48,8 @@ export function ArbitraryKeyInput({
             variant="ghost"
             size="icon-sm"
             onClick={() => {
-              onChange('')
-              textareaRef.current?.focus()
+              onChange('');
+              textareaRef.current?.focus();
             }}
             disabled={!canReset}
             aria-label={t('common:reset')}
@@ -73,9 +68,9 @@ export function ArbitraryKeyInput({
         disabled={disabled}
         rows={4}
         className={cn(
-          'w-full resize-none rounded-lg border bg-background px-3 py-3 text-sm',
+          'bg-background w-full resize-none rounded-lg border px-3 py-3 text-sm',
           'placeholder:text-muted-foreground',
-          'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          'focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-none',
           'disabled:cursor-not-allowed disabled:opacity-50',
           isHidden ? '[-webkit-text-security:disc]' : '[-webkit-text-security:none]',
         )}
@@ -85,7 +80,7 @@ export function ArbitraryKeyInput({
         spellCheck={false}
       />
 
-      <div className="text-xs text-muted-foreground">{t('onboarding:arbitraryKey.hint')}</div>
+      <div className="text-muted-foreground text-xs">{t('onboarding:arbitraryKey.hint')}</div>
     </div>
-  )
+  );
 }

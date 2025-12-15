@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { SettingsItem } from './settings-item'
-import { SettingsSection } from './settings-section'
-import { SettingsPage } from './index'
-import { Languages, Lock, Eye } from 'lucide-react'
+import type { Meta, StoryObj } from '@storybook/react';
+import { SettingsItem } from './settings-item';
+import { SettingsSection } from './settings-section';
+import { SettingsPage } from './index';
+import { Languages, Lock, Eye } from 'lucide-react';
 
 // SettingsItem stories
 const itemMeta = {
@@ -13,15 +13,15 @@ const itemMeta = {
   },
   decorators: [
     (Story) => (
-      <div className="max-w-md bg-card rounded-xl">
+      <div className="bg-card max-w-md rounded-xl">
         <Story />
       </div>
     ),
   ],
-} satisfies Meta<typeof SettingsItem>
+} satisfies Meta<typeof SettingsItem>;
 
-export default itemMeta
-type ItemStory = StoryObj<typeof itemMeta>
+export default itemMeta;
+type ItemStory = StoryObj<typeof itemMeta>;
 
 export const Default: ItemStory = {
   args: {
@@ -30,7 +30,7 @@ export const Default: ItemStory = {
     icon: <Languages size={20} />,
     onClick: () => console.log('clicked'),
   },
-}
+};
 
 export const WithoutValue: ItemStory = {
   args: {
@@ -38,7 +38,7 @@ export const WithoutValue: ItemStory = {
     icon: <Eye size={20} />,
     onClick: () => console.log('clicked'),
   },
-}
+};
 
 export const Disabled: ItemStory = {
   args: {
@@ -47,7 +47,7 @@ export const Disabled: ItemStory = {
     icon: <Lock size={20} />,
     disabled: true,
   },
-}
+};
 
 export const NoChevron: ItemStory = {
   args: {
@@ -55,38 +55,29 @@ export const NoChevron: ItemStory = {
     value: 'v1.0.0',
     showChevron: false,
   },
-}
+};
 
 // SettingsSection stories
 export const Section: StoryObj<typeof SettingsSection> = {
   render: () => (
-    <div className="max-w-md p-4 bg-muted/30">
+    <div className="bg-muted/30 max-w-md p-4">
       <SettingsSection title="安全">
-        <SettingsItem
-          icon={<Lock size={20} />}
-          label="应用锁"
-          value="已开启"
-          onClick={() => {}}
-        />
-        <div className="mx-4 h-px bg-border" />
-        <SettingsItem
-          icon={<Eye size={20} />}
-          label="查看助记词"
-          onClick={() => {}}
-        />
+        <SettingsItem icon={<Lock size={20} />} label="应用锁" value="已开启" onClick={() => {}} />
+        <div className="bg-border mx-4 h-px" />
+        <SettingsItem icon={<Eye size={20} />} label="查看助记词" onClick={() => {}} />
       </SettingsSection>
     </div>
   ),
-}
+};
 
 // SettingsPage story
 export const Page: StoryObj<typeof SettingsPage> = {
   render: () => (
-    <div className="max-w-md mx-auto min-h-screen bg-background">
+    <div className="bg-background mx-auto min-h-screen max-w-md">
       <SettingsPage />
     </div>
   ),
   parameters: {
     layout: 'fullscreen',
   },
-}
+};

@@ -57,8 +57,7 @@ export function FeeDisplay({
     );
   }
 
-  const fiatNum =
-    fiatValue !== undefined ? (typeof fiatValue === 'string' ? parseFloat(fiatValue) : fiatValue) : null;
+  const fiatNum = fiatValue !== undefined ? (typeof fiatValue === 'string' ? parseFloat(fiatValue) : fiatValue) : null;
   const isHighFee = fiatNum !== null && highFeeThreshold !== undefined && fiatNum >= highFeeThreshold;
 
   return (
@@ -67,12 +66,10 @@ export function FeeDisplay({
         <span className="font-mono text-sm" aria-label={`Fee: ${formatFee(amount)} ${symbol}`}>
           {formatFee(amount)} {symbol}
         </span>
-        {isHighFee && (
-          <AlertTriangle className="size-4 text-warning" aria-label="High fee warning" />
-        )}
+        {isHighFee && <AlertTriangle className="text-warning size-4" aria-label="High fee warning" />}
       </div>
       {fiatNum !== null && (
-        <p className={cn('text-xs text-muted-foreground', isHighFee && 'text-warning')}>
+        <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>
           ≈ {fiatSymbol}
           {formatFiat(fiatNum)}
         </p>

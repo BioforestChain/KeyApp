@@ -1,163 +1,156 @@
-import { useState, useCallback } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
-import { PageHeader } from '@/components/layout/page-header'
-import {
-  RecoverWalletForm,
-  type RecoverWalletFormData,
-} from '@/components/onboarding/recover-wallet-form'
-import { KeyTypeSelector, type WalletKeyType } from '@/components/onboarding/key-type-selector'
-import { ArbitraryKeyInput } from '@/components/onboarding/arbitrary-key-input'
-import { SecurityWarningDialog } from '@/components/onboarding/security-warning-dialog'
-import { ChainAddressPreview, type DerivedAddress } from '@/components/onboarding/chain-address-preview'
-import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog'
-import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success'
-import { PasswordInput } from '@/components/security/password-input'
-import { Button } from '@/components/ui/button'
-import { useDuplicateDetection } from '@/hooks/use-duplicate-detection'
-import {
-  encrypt,
-  deriveMultiChainKeys,
-  deriveBioforestAddresses,
-} from '@/lib/crypto'
-import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores'
-import type { IWalletQuery } from '@/services/wallet/types'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { useState, useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import { PageHeader } from '@/components/layout/page-header';
+import { RecoverWalletForm, type RecoverWalletFormData } from '@/components/onboarding/recover-wallet-form';
+import { KeyTypeSelector, type WalletKeyType } from '@/components/onboarding/key-type-selector';
+import { ArbitraryKeyInput } from '@/components/onboarding/arbitrary-key-input';
+import { SecurityWarningDialog } from '@/components/onboarding/security-warning-dialog';
+import { ChainAddressPreview, type DerivedAddress } from '@/components/onboarding/chain-address-preview';
+import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog';
+import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success';
+import { PasswordInput } from '@/components/security/password-input';
+import { Button } from '@/components/ui/button';
+import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
+import { encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import type { IWalletQuery } from '@/services/wallet/types';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
-type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'password' | 'collision' | 'success'
+type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'password' | 'collision' | 'success';
 
 // Mock wallet query for now - will be replaced with real implementation
 const mockWalletQuery: IWalletQuery = {
   getAllAddresses: async () => [],
   getAllMainWallets: async () => [],
   findWalletByAddress: async () => null,
-}
+};
 
 /**
  * Onboarding recover wallet page
  * Implements wallet recovery with duplicate detection per openspec/changes/add-wallet-recover-duplicate-guards
  */
 export function OnboardingRecoverPage() {
-  const navigate = useNavigate()
-  const { t } = useTranslation(['onboarding', 'common'])
-  const chainConfigSnapshot = useChainConfigState().snapshot
-  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs()
-  const [step, setStep] = useState<Step>('keyType')
-  const [keyType, setKeyType] = useState<WalletKeyType>('mnemonic')
-  const [showSecurityWarning, setShowSecurityWarning] = useState(false)
-  const [securityAcknowledged, setSecurityAcknowledged] = useState(false)
-  const [mnemonic, setMnemonic] = useState<string[]>([])
-  const [arbitrarySecret, setArbitrarySecret] = useState('')
-  const [arbitraryError, setArbitraryError] = useState<string | null>(null)
-  const [arbitraryDerivedAddresses, setArbitraryDerivedAddresses] = useState<DerivedAddress[]>([])
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [recoveredWalletName, setRecoveredWalletName] = useState('')
+  const navigate = useNavigate();
+  const { t } = useTranslation(['onboarding', 'common']);
+  const chainConfigSnapshot = useChainConfigState().snapshot;
+  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
+  const [step, setStep] = useState<Step>('keyType');
+  const [keyType, setKeyType] = useState<WalletKeyType>('mnemonic');
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+  const [securityAcknowledged, setSecurityAcknowledged] = useState(false);
+  const [mnemonic, setMnemonic] = useState<string[]>([]);
+  const [arbitrarySecret, setArbitrarySecret] = useState('');
+  const [arbitraryError, setArbitraryError] = useState<string | null>(null);
+  const [arbitraryDerivedAddresses, setArbitraryDerivedAddresses] = useState<DerivedAddress[]>([]);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recoveredWalletName, setRecoveredWalletName] = useState('');
 
   // Duplicate detection hook
-  const duplicateDetection = useDuplicateDetection(mockWalletQuery)
+  const duplicateDetection = useDuplicateDetection(mockWalletQuery);
 
   const handleBack = useCallback(() => {
     switch (step) {
       case 'keyType':
-        navigate({ to: '/' })
-        break
+        navigate({ to: '/' });
+        break;
       case 'mnemonic':
       case 'arbitrary':
-        setStep('keyType')
-        duplicateDetection.reset()
-        break
+        setStep('keyType');
+        duplicateDetection.reset();
+        break;
       case 'collision':
-        setStep('mnemonic')
-        duplicateDetection.reset()
-        break
+        setStep('mnemonic');
+        duplicateDetection.reset();
+        break;
       case 'password':
-        setPassword('')
-        setConfirmPassword('')
-        setPasswordError(null)
-        setStep(keyType === 'arbitrary' ? 'arbitrary' : 'mnemonic')
-        break
+        setPassword('');
+        setConfirmPassword('');
+        setPasswordError(null);
+        setStep(keyType === 'arbitrary' ? 'arbitrary' : 'mnemonic');
+        break;
       case 'success':
         // Can't go back from success
-        break
+        break;
     }
-  }, [step, navigate, duplicateDetection, keyType])
+  }, [step, navigate, duplicateDetection, keyType]);
 
   const goToPasswordStep = useCallback(() => {
-    setPassword('')
-    setConfirmPassword('')
-    setPasswordError(null)
-    setStep('password')
-  }, [])
+    setPassword('');
+    setConfirmPassword('');
+    setPasswordError(null);
+    setStep('password');
+  }, []);
 
   const handleKeyTypeContinue = useCallback(() => {
     if (keyType === 'mnemonic') {
-      setStep('mnemonic')
-      return
+      setStep('mnemonic');
+      return;
     }
 
     if (securityAcknowledged) {
-      setStep('arbitrary')
-      return
+      setStep('arbitrary');
+      return;
     }
 
-    setShowSecurityWarning(true)
-  }, [keyType, securityAcknowledged])
+    setShowSecurityWarning(true);
+  }, [keyType, securityAcknowledged]);
 
   const handleMnemonicSubmit = useCallback(
     async (data: RecoverWalletFormData) => {
-      setMnemonic(data.mnemonic)
+      setMnemonic(data.mnemonic);
 
       // Check for duplicates
-      const result = await duplicateDetection.check(data.mnemonic)
+      const result = await duplicateDetection.check(data.mnemonic);
 
       if (result.isDuplicate) {
         if (result.type === 'address') {
           // Simple duplicate - show error toast
           // Toast: "该助记词已导入"
-          console.log('Duplicate detected:', result.matchedWallet?.name)
-          return
+          console.log('Duplicate detected:', result.matchedWallet?.name);
+          return;
         } else if (result.type === 'privateKey') {
           // Private key collision - show confirmation dialog
-          setStep('collision')
-          return
+          setStep('collision');
+          return;
         }
       }
 
       // No duplicate - proceed to password setup
-      goToPasswordStep()
+      goToPasswordStep();
     },
     [duplicateDetection, goToPasswordStep],
-  )
+  );
 
   const handleCollisionConfirm = useCallback(async () => {
     // User confirmed replacement - proceed with wallet creation
     // TODO: Delete the old private key wallet first
-    goToPasswordStep()
-  }, [goToPasswordStep])
+    goToPasswordStep();
+  }, [goToPasswordStep]);
 
   const handleCollisionCancel = useCallback(() => {
-    setStep('mnemonic')
-    duplicateDetection.reset()
-  }, [duplicateDetection])
+    setStep('mnemonic');
+    duplicateDetection.reset();
+  }, [duplicateDetection]);
 
   const createWallet = useCallback(
     async (words: string[], walletPassword: string) => {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
 
       try {
-        const mnemonicStr = words.join(' ')
+        const mnemonicStr = words.join(' ');
 
         // Generate wallet name (auto-increment pattern)
         // TODO: Use wallet storage service for actual name generation
-        const walletName = `钱包 ${Date.now() % 1000}`
+        const walletName = `钱包 ${Date.now() % 1000}`;
 
-        const encryptedMnemonic = await encrypt(mnemonicStr, walletPassword)
+        const encryptedMnemonic = await encrypt(mnemonicStr, walletPassword);
 
         // Derive external chain addresses (BIP44)
-        const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
+        const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
         // Derive BioForest chain addresses (Ed25519)
         const bioforestChainAddresses = deriveBioforestAddresses(
@@ -167,9 +160,9 @@ export function OnboardingRecoverPage() {
           chain: item.chainId,
           address: item.address,
           tokens: [],
-        }))
+        }));
 
-        const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!
+        const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!;
 
         // Combine all chain addresses
         const chainAddresses = [
@@ -179,7 +172,7 @@ export function OnboardingRecoverPage() {
             tokens: [],
           })),
           ...bioforestChainAddresses,
-        ]
+        ];
 
         // Create wallet with skipBackup=true (recovery doesn't need backup prompt)
         walletActions.createWallet({
@@ -189,105 +182,100 @@ export function OnboardingRecoverPage() {
           chain: 'ethereum',
           chainAddresses,
           encryptedMnemonic,
-        })
+        });
 
-        setRecoveredWalletName(walletName)
-        setStep('success')
+        setRecoveredWalletName(walletName);
+        setStep('success');
       } catch (error) {
-        console.error('恢复钱包失败:', error)
+        console.error('恢复钱包失败:', error);
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [chainConfigSnapshot, enabledBioforestChainConfigs],
-  )
+  );
 
-  const createArbitraryWallet = useCallback(async (walletPassword: string) => {
-    const secret = arbitrarySecret.trim()
-    if (!secret) return
-    if (arbitraryDerivedAddresses.length === 0) return
+  const createArbitraryWallet = useCallback(
+    async (walletPassword: string) => {
+      const secret = arbitrarySecret.trim();
+      if (!secret) return;
+      if (arbitraryDerivedAddresses.length === 0) return;
 
-    setIsSubmitting(true)
-    try {
-      const walletName = `钱包 ${Date.now() % 1000}`
+      setIsSubmitting(true);
+      try {
+        const walletName = `钱包 ${Date.now() % 1000}`;
 
-      const encryptedMnemonic = await encrypt(secret, walletPassword)
+        const encryptedMnemonic = await encrypt(secret, walletPassword);
 
-      const chainAddresses = arbitraryDerivedAddresses.map((item) => ({
-        chain: item.chainId,
-        address: item.address,
-        tokens: [],
-      }))
+        const chainAddresses = arbitraryDerivedAddresses.map((item) => ({
+          chain: item.chainId,
+          address: item.address,
+          tokens: [],
+        }));
 
-      const primary = chainAddresses[0]
-      if (!primary) throw new Error('No enabled bioforest chains')
+        const primary = chainAddresses[0];
+        if (!primary) throw new Error('No enabled bioforest chains');
 
-      walletActions.createWallet({
-        name: walletName,
-        keyType: 'arbitrary',
-        address: primary.address,
-        chain: primary.chain,
-        chainAddresses,
-        encryptedMnemonic,
-      })
+        walletActions.createWallet({
+          name: walletName,
+          keyType: 'arbitrary',
+          address: primary.address,
+          chain: primary.chain,
+          chainAddresses,
+          encryptedMnemonic,
+        });
 
-      setRecoveredWalletName(walletName)
-      setStep('success')
-    } catch (error) {
-      console.error('导入密钥钱包失败:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [arbitraryDerivedAddresses, arbitrarySecret])
+        setRecoveredWalletName(walletName);
+        setStep('success');
+      } catch (error) {
+        console.error('导入密钥钱包失败:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [arbitraryDerivedAddresses, arbitrarySecret],
+  );
 
   const handlePasswordContinue = useCallback(async () => {
-    if (isSubmitting) return
+    if (isSubmitting) return;
 
-    setPasswordError(null)
+    setPasswordError(null);
 
     if (password.length < 8) {
-      setPasswordError('密码至少 8 位字符')
-      return
+      setPasswordError('密码至少 8 位字符');
+      return;
     }
 
     if (/\s/.test(password)) {
-      setPasswordError('密码不能包含空格')
-      return
+      setPasswordError('密码不能包含空格');
+      return;
     }
 
     if (confirmPassword !== password) {
-      setPasswordError('两次输入的密码不一致')
-      return
+      setPasswordError('两次输入的密码不一致');
+      return;
     }
 
     if (keyType === 'arbitrary') {
-      await createArbitraryWallet(password)
-      return
+      await createArbitraryWallet(password);
+      return;
     }
 
     if (mnemonic.length === 0) {
-      setPasswordError('助记词数据不完整')
-      return
+      setPasswordError('助记词数据不完整');
+      return;
     }
 
-    await createWallet(mnemonic, password)
-  }, [
-    confirmPassword,
-    createArbitraryWallet,
-    createWallet,
-    isSubmitting,
-    keyType,
-    mnemonic,
-    password,
-  ])
+    await createWallet(mnemonic, password);
+  }, [confirmPassword, createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, password]);
 
   const handleBackup = useCallback(() => {
-    navigate({ to: '/' })
-  }, [navigate])
+    navigate({ to: '/' });
+  }, [navigate]);
 
   const handleEnterWallet = useCallback(() => {
-    navigate({ to: '/' })
-  }, [navigate])
+    navigate({ to: '/' });
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -298,10 +286,10 @@ export function OnboardingRecoverPage() {
             <KeyTypeSelector
               value={keyType}
               onChange={(next) => {
-                setKeyType(next)
+                setKeyType(next);
                 if (next === 'mnemonic') {
-                  setArbitrarySecret('')
-                  setArbitraryDerivedAddresses([])
+                  setArbitrarySecret('');
+                  setArbitraryDerivedAddresses([]);
                 }
               }}
             />
@@ -316,10 +304,7 @@ export function OnboardingRecoverPage() {
         <>
           <PageHeader title="恢复钱包" onBack={handleBack} />
           <div className="flex-1 p-4">
-            <RecoverWalletForm
-              onSubmit={handleMnemonicSubmit}
-              isSubmitting={duplicateDetection.isChecking}
-            />
+            <RecoverWalletForm onSubmit={handleMnemonicSubmit} isSubmitting={duplicateDetection.isChecking} />
           </div>
         </>
       )}
@@ -331,13 +316,13 @@ export function OnboardingRecoverPage() {
             <ArbitraryKeyInput
               value={arbitrarySecret}
               onChange={(next) => {
-                setArbitraryError(null)
-                setArbitrarySecret(next)
+                setArbitraryError(null);
+                setArbitrarySecret(next);
               }}
               disabled={isSubmitting}
             />
             {arbitraryError && (
-              <div className="flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg px-3 py-2 text-sm">
                 <AlertCircle className="mt-0.5 size-4 shrink-0" />
                 <span>{arbitraryError}</span>
               </div>
@@ -350,17 +335,14 @@ export function OnboardingRecoverPage() {
             <Button
               type="button"
               className="w-full"
-              disabled={
-                isSubmitting ||
-                (arbitrarySecret.trim() !== '' && arbitraryDerivedAddresses.length === 0)
-              }
+              disabled={isSubmitting || (arbitrarySecret.trim() !== '' && arbitraryDerivedAddresses.length === 0)}
               onClick={() => {
                 if (!arbitrarySecret.trim()) {
-                  setArbitraryError(t('onboarding:arbitraryKey.required'))
-                  return
+                  setArbitraryError(t('onboarding:arbitraryKey.required'));
+                  return;
                 }
 
-                goToPasswordStep()
+                goToPasswordStep();
               }}
             >
               {isSubmitting && <Loader2 className="size-4 animate-spin" />}
@@ -389,7 +371,7 @@ export function OnboardingRecoverPage() {
           <PageHeader title="设置密码" onBack={handleBack} />
           <div className="flex-1 p-4">
             <div className="space-y-5">
-              <div className="space-y-1 text-sm text-muted-foreground">
+              <div className="text-muted-foreground space-y-1 text-sm">
                 <p>密码用于加密您的钱包密钥，请牢记。</p>
                 <p>至少 8 位字符，不能包含空格。</p>
               </div>
@@ -417,7 +399,7 @@ export function OnboardingRecoverPage() {
                 </div>
 
                 {passwordError && (
-                  <div className="flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  <div className="bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg px-3 py-2 text-sm">
                     <AlertCircle className="mt-0.5 size-4 shrink-0" />
                     <span>{passwordError}</span>
                   </div>
@@ -429,7 +411,7 @@ export function OnboardingRecoverPage() {
                 className="w-full"
                 disabled={isSubmitting}
                 onClick={() => {
-                  void handlePasswordContinue()
+                  void handlePasswordContinue();
                 }}
               >
                 {isSubmitting && <Loader2 className="size-4 animate-spin" />}
@@ -453,13 +435,13 @@ export function OnboardingRecoverPage() {
         open={showSecurityWarning}
         onOpenChange={setShowSecurityWarning}
         onConfirm={() => {
-          setSecurityAcknowledged(true)
-          setStep('arbitrary')
+          setSecurityAcknowledged(true);
+          setStep('arbitrary');
         }}
         onCancel={() => {
-          setKeyType('mnemonic')
+          setKeyType('mnemonic');
         }}
       />
     </div>
-  )
+  );
 }

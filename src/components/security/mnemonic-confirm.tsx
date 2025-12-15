@@ -36,21 +36,19 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
   const [showError, setShowError] = useState(false);
 
   const selectedWords = useMemo(
-    () => selectedIndices.map((i) => {
-      const item = shuffledWords[i];
-      if (!item) {
-        throw new Error(`Invalid shuffled word index: ${i}`);
-      }
-      return item.word;
-    }),
+    () =>
+      selectedIndices.map((i) => {
+        const item = shuffledWords[i];
+        if (!item) {
+          throw new Error(`Invalid shuffled word index: ${i}`);
+        }
+        return item.word;
+      }),
     [selectedIndices, shuffledWords],
   );
 
   const isComplete = selectedIndices.length === words.length;
-  const isCorrect = useMemo(
-    () => selectedWords.every((w, i) => w === words[i]),
-    [selectedWords, words],
-  );
+  const isCorrect = useMemo(() => selectedWords.every((w, i) => w === words[i]), [selectedWords, words]);
 
   const handleWordClick = useCallback(
     (shuffledIndex: number) => {
@@ -96,16 +94,16 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
   return (
     <div className={cn('space-y-6', className)}>
       {/* Selected words (answer area) */}
-      <div className="rounded-xl border border-border bg-muted/30 p-4">
+      <div className="border-border bg-muted/30 rounded-xl border p-4">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             已选择 {selectedIndices.length}/{words.length}
           </span>
           {selectedIndices.length > 0 && (
             <button
               type="button"
               onClick={handleRemoveLast}
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground text-sm"
             >
               撤销
             </button>
@@ -122,21 +120,19 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
                   : 'border-border bg-background',
               )}
             >
-              <span className="text-xs text-muted-foreground">{index + 1}</span>
+              <span className="text-muted-foreground text-xs">{index + 1}</span>
               {word}
             </span>
           ))}
           {selectedIndices.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground w-full">
-              按正确顺序点击下方助记词
-            </p>
+            <p className="text-muted-foreground w-full py-4 text-center text-sm">按正确顺序点击下方助记词</p>
           )}
         </div>
       </div>
 
       {/* Error message */}
       {showError && (
-        <div className="flex items-center gap-2 text-sm text-destructive">
+        <div className="text-destructive flex items-center gap-2 text-sm">
           <X className="size-4" />
           <span>助记词顺序错误，请重试</span>
         </div>
@@ -163,7 +159,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
               className={cn(
                 'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
                 isSelected
-                  ? 'border-transparent bg-muted text-muted-foreground opacity-50'
+                  ? 'bg-muted text-muted-foreground border-transparent opacity-50'
                   : 'border-border bg-background hover:border-primary hover:bg-primary/5',
                 'disabled:cursor-not-allowed',
               )}
@@ -179,7 +175,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
         <button
           type="button"
           onClick={handleReset}
-          className="flex w-full items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-2 py-2 text-sm"
         >
           <RotateCcw className="size-4" />
           重新选择

@@ -1,80 +1,75 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { PageHeader } from '@/components/layout/page-header'
-import { GradientButton } from '@/components/common/gradient-button'
-import { IconCircle } from '@/components/common/icon-circle'
-import { FormField } from '@/components/common/form-field'
-import { Alert } from '@/components/common/alert'
-import { ProgressSteps } from '@/components/common/step-indicator'
-import { MnemonicInput } from '@/components/security/mnemonic-input'
-import { PasswordInput } from '@/components/security/password-input'
-import { ShieldCheck, ArrowRight, FileKey } from 'lucide-react'
-import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores'
-import { 
-  validateMnemonic, 
-  encrypt, 
-  deriveMultiChainKeys,
-  deriveBioforestAddresses,
-} from '@/lib/crypto'
+import { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { PageHeader } from '@/components/layout/page-header';
+import { GradientButton } from '@/components/common/gradient-button';
+import { IconCircle } from '@/components/common/icon-circle';
+import { FormField } from '@/components/common/form-field';
+import { Alert } from '@/components/common/alert';
+import { ProgressSteps } from '@/components/common/step-indicator';
+import { MnemonicInput } from '@/components/security/mnemonic-input';
+import { PasswordInput } from '@/components/security/password-input';
+import { ShieldCheck, ArrowRight, FileKey } from 'lucide-react';
+import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import { validateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 
-type Step = 'mnemonic' | 'password'
+type Step = 'mnemonic' | 'password';
 
-const STEPS: Step[] = ['mnemonic', 'password']
+const STEPS: Step[] = ['mnemonic', 'password'];
 
 export function WalletImportPage() {
-  const navigate = useNavigate()
-  const chainConfigSnapshot = useChainConfigState().snapshot
-  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs()
-  const [step, setStep] = useState<Step>('mnemonic')
-  const [mnemonic, setMnemonic] = useState<string[]>([])
-  const [mnemonicError, setMnemonicError] = useState<string | null>(null)
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [wordCount, setWordCount] = useState<12 | 24>(12)
+  const navigate = useNavigate();
+  const chainConfigSnapshot = useChainConfigState().snapshot;
+  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
+  const [step, setStep] = useState<Step>('mnemonic');
+  const [mnemonic, setMnemonic] = useState<string[]>([]);
+  const [mnemonicError, setMnemonicError] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [wordCount, setWordCount] = useState<12 | 24>(12);
 
-  const currentStepIndex = STEPS.indexOf(step) + 1
+  const currentStepIndex = STEPS.indexOf(step) + 1;
 
   const handleBack = () => {
     if (step === 'password') {
-      setStep('mnemonic')
+      setStep('mnemonic');
     } else {
-      navigate({ to: '/' })
+      navigate({ to: '/' });
     }
-  }
+  };
 
   const handleMnemonicComplete = (words: string[]) => {
-    setMnemonic(words)
-    setMnemonicError(null)
-  }
+    setMnemonic(words);
+    setMnemonicError(null);
+  };
 
   const handleMnemonicContinue = () => {
     if (mnemonic.length !== wordCount || mnemonic.some((w) => !w)) {
-      setMnemonicError('请填写所有单词')
-      return
+      setMnemonicError('请填写所有单词');
+      return;
     }
-    
-    if (!validateMnemonic(mnemonic)) {
-      setMnemonicError('助记词无效，请检查拼写')
-      return
-    }
-    
-    setMnemonicError(null)
-    setStep('password')
-  }
 
-  const [isImporting, setIsImporting] = useState(false)
+    if (!validateMnemonic(mnemonic)) {
+      setMnemonicError('助记词无效，请检查拼写');
+      return;
+    }
+
+    setMnemonicError(null);
+    setStep('password');
+  };
+
+  const [isImporting, setIsImporting] = useState(false);
 
   const handleComplete = async () => {
-    if (isImporting) return
-    setIsImporting(true)
+    if (isImporting) return;
+    setIsImporting(true);
 
     try {
-      const mnemonicStr = mnemonic.join(' ')
-      const encryptedMnemonic = await encrypt(mnemonicStr, password)
-      
+      const mnemonicStr = mnemonic.join(' ');
+      const encryptedMnemonic = await encrypt(mnemonicStr, password);
+
       // 派生外部链地址 (BIP44)
-      const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0)
-      
+      const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
+
       // 派生 BioForest 链地址 (Ed25519) - 使用相同的助记词字符串
       const bioforestChainAddresses = deriveBioforestAddresses(
         mnemonicStr,
@@ -83,19 +78,19 @@ export function WalletImportPage() {
         chain: item.chainId,
         address: item.address,
         tokens: [],
-      }))
-      
-      const ethKey = externalKeys.find(k => k.chain === 'ethereum')!
-      
+      }));
+
+      const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!;
+
       // 合并所有链地址
       const chainAddresses = [
-        ...externalKeys.map(key => ({
+        ...externalKeys.map((key) => ({
           chain: key.chain as 'ethereum' | 'bitcoin' | 'tron',
           address: key.address,
           tokens: [],
         })),
         ...bioforestChainAddresses,
-      ]
+      ];
 
       walletActions.importWallet({
         name: '导入钱包',
@@ -104,17 +99,17 @@ export function WalletImportPage() {
         chain: 'ethereum',
         chainAddresses,
         encryptedMnemonic,
-      })
-      
-      navigate({ to: '/' })
-    } catch (error) {
-      console.error('导入钱包失败:', error)
-      setIsImporting(false)
-    }
-  }
+      });
 
-  const isPasswordValid = password.length >= 8 && password === confirmPassword
-  const passwordMismatch = confirmPassword && password !== confirmPassword
+      navigate({ to: '/' });
+    } catch (error) {
+      console.error('导入钱包失败:', error);
+      setIsImporting(false);
+    }
+  };
+
+  const isPasswordValid = password.length >= 8 && password === confirmPassword;
+  const passwordMismatch = confirmPassword && password !== confirmPassword;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -131,9 +126,7 @@ export function WalletImportPage() {
             <div className="text-center">
               <IconCircle icon={FileKey} variant="primary" size="lg" className="mx-auto mb-4" />
               <h2 className="text-xl font-bold">输入助记词</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                请按顺序输入您的助记词
-              </p>
+              <p className="text-muted-foreground mt-2 text-sm">请按顺序输入您的助记词</p>
             </div>
 
             {/* 助记词数量选择 */}
@@ -162,15 +155,9 @@ export function WalletImportPage() {
               </button>
             </div>
 
-            <MnemonicInput
-              key={wordCount}
-              wordCount={wordCount}
-              onComplete={handleMnemonicComplete}
-            />
+            <MnemonicInput key={wordCount} wordCount={wordCount} onComplete={handleMnemonicComplete} />
 
-            {mnemonicError && (
-              <Alert variant="error">{mnemonicError}</Alert>
-            )}
+            {mnemonicError && <Alert variant="error">{mnemonicError}</Alert>}
 
             <GradientButton
               variant="mint"
@@ -189,9 +176,7 @@ export function WalletImportPage() {
             <div className="text-center">
               <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
               <h2 className="text-xl font-bold">设置密码</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                密码用于加密您的钱包
-              </p>
+              <p className="text-muted-foreground mt-2 text-sm">密码用于加密您的钱包</p>
             </div>
 
             <div className="space-y-4">
@@ -204,10 +189,7 @@ export function WalletImportPage() {
                 />
               </FormField>
 
-              <FormField 
-                label="确认密码" 
-                error={passwordMismatch ? '两次密码不一致' : undefined}
-              >
+              <FormField label="确认密码" error={passwordMismatch ? '两次密码不一致' : undefined}>
                 <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -216,17 +198,12 @@ export function WalletImportPage() {
               </FormField>
             </div>
 
-            <GradientButton
-              variant="mint"
-              className="w-full"
-              disabled={!isPasswordValid}
-              onClick={handleComplete}
-            >
+            <GradientButton variant="mint" className="w-full" disabled={!isPasswordValid} onClick={handleComplete}>
               完成导入
             </GradientButton>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

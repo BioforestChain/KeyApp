@@ -2,14 +2,14 @@
  * 迁移进度步骤
  */
 
-import { useTranslation } from 'react-i18next'
-import { Loader2, CheckCircle2 } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
-import type { MigrationProgress } from '@/services/migration/types'
+import { useTranslation } from 'react-i18next';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import type { MigrationProgress } from '@/services/migration/types';
 
 interface MigrationProgressStepProps {
   /** 当前进度 */
-  progress: MigrationProgress
+  progress: MigrationProgress;
 }
 
 const STEP_LABELS: Record<MigrationProgress['step'], string> = {
@@ -20,7 +20,7 @@ const STEP_LABELS: Record<MigrationProgress['step'], string> = {
   importing: 'progress.importing',
   importing_contacts: 'progress.importing_contacts',
   complete: 'progress.complete',
-}
+};
 
 const STEP_DEFAULTS: Record<MigrationProgress['step'], string> = {
   detecting: '检测数据...',
@@ -30,24 +30,24 @@ const STEP_DEFAULTS: Record<MigrationProgress['step'], string> = {
   importing: '导入钱包...',
   importing_contacts: '导入联系人...',
   complete: '迁移完成',
-}
+};
 
 export function MigrationProgressStep({ progress }: MigrationProgressStepProps) {
-  const { t } = useTranslation('migration')
+  const { t } = useTranslation('migration');
 
   const stepLabel = t(STEP_LABELS[progress.step], {
     defaultValue: STEP_DEFAULTS[progress.step],
-  })
+  });
 
-  const isComplete = progress.step === 'complete'
+  const isComplete = progress.step === 'complete';
 
   return (
     <div className="flex flex-col items-center gap-6 p-6" data-testid="migration-progress-step">
-      <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
+      <div className="bg-primary/10 flex size-16 items-center justify-center rounded-full">
         {isComplete ? (
-          <CheckCircle2 className="size-8 text-primary" />
+          <CheckCircle2 className="text-primary size-8" />
         ) : (
-          <Loader2 className="size-8 animate-spin text-primary" />
+          <Loader2 className="text-primary size-8 animate-spin" />
         )}
       </div>
 
@@ -58,10 +58,10 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
             : t('progress.title.migrating', { defaultValue: '正在迁移...' })}
         </h2>
 
-        <p className="text-sm text-muted-foreground">{stepLabel}</p>
+        <p className="text-muted-foreground text-sm">{stepLabel}</p>
 
         {progress.currentWallet && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {t('progress.currentWallet', {
               defaultValue: '当前: {{name}}',
               name: progress.currentWallet,
@@ -70,7 +70,7 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
         )}
 
         {progress.totalWallets !== undefined && progress.processedWallets !== undefined && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {t('progress.walletCount', {
               defaultValue: '{{processed}} / {{total}} 个钱包',
               processed: progress.processedWallets,
@@ -81,8 +81,8 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
 
         <Progress value={progress.percent} className="h-2" data-testid="migration-progress-bar" />
 
-        <p className="text-xs text-muted-foreground">{progress.percent}%</p>
+        <p className="text-muted-foreground text-xs">{progress.percent}%</p>
       </div>
     </div>
-  )
+  );
 }

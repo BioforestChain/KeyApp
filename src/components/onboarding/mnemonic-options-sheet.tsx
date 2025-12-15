@@ -27,13 +27,7 @@ const LENGTH_OPTIONS: MnemonicLength[] = [12, 15, 18, 21, 24, 36];
 /**
  * Bottom sheet for selecting mnemonic language and length options
  */
-export function MnemonicOptionsSheet({
-  open,
-  onClose,
-  onConfirm,
-  value,
-  className,
-}: MnemonicOptionsSheetProps) {
+export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, className }: MnemonicOptionsSheetProps) {
   const handleLanguageSelect = (language: MnemonicLanguage) => {
     onConfirm({ ...value, language });
   };
@@ -47,7 +41,7 @@ export function MnemonicOptionsSheet({
       <div className="space-y-6 p-4">
         {/* Language selection */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">语言</h3>
+          <h3 className="text-muted-foreground text-sm font-medium">语言</h3>
           <div className="space-y-1" role="radiogroup" aria-label="选择助记词语言">
             {LANGUAGE_OPTIONS.map((option) => (
               <button
@@ -58,14 +52,12 @@ export function MnemonicOptionsSheet({
                 onClick={() => handleLanguageSelect(option.value)}
                 className={cn(
                   'flex w-full items-center justify-between rounded-lg px-4 py-3',
-                  'transition-colors hover:bg-muted/50',
+                  'hover:bg-muted/50 transition-colors',
                   value.language === option.value && 'bg-muted',
                 )}
               >
                 <span className="text-sm">{option.label}</span>
-                {value.language === option.value && (
-                  <Check className="size-5 text-primary" />
-                )}
+                {value.language === option.value && <Check className="text-primary size-5" />}
               </button>
             ))}
           </div>
@@ -73,12 +65,8 @@ export function MnemonicOptionsSheet({
 
         {/* Length selection */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">词数</h3>
-          <div
-            className="grid grid-cols-3 gap-2"
-            role="radiogroup"
-            aria-label="选择助记词词数"
-          >
+          <h3 className="text-muted-foreground text-sm font-medium">词数</h3>
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="选择助记词词数">
             {LENGTH_OPTIONS.map((length) => (
               <button
                 key={length}
@@ -89,9 +77,7 @@ export function MnemonicOptionsSheet({
                 className={cn(
                   'flex items-center justify-center rounded-lg py-3 text-sm font-medium',
                   'transition-colors',
-                  value.length === length
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-muted/80',
+                  value.length === length ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80',
                 )}
               >
                 {length} 词

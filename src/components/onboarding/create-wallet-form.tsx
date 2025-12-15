@@ -181,7 +181,7 @@ export function CreateWalletForm({
           disabled={isSubmitting}
           aria-invalid={!!showError('name')}
         />
-        <div className="text-right text-xs text-muted-foreground">{name.length}/12</div>
+        <div className="text-muted-foreground text-right text-xs">{name.length}/12</div>
       </FormField>
 
       {/* Password */}
@@ -230,15 +230,15 @@ export function CreateWalletForm({
           onClick={onOpenMnemonicOptions}
           disabled={isSubmitting}
           className={cn(
-            'flex w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-3',
-            'transition-colors hover:bg-muted/50',
+            'border-input bg-background flex w-full items-center justify-between rounded-lg border px-3 py-3',
+            'hover:bg-muted/50 transition-colors',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
           <span className="text-sm">
             {LANGUAGE_LABELS[mnemonicOptions.language]} · {mnemonicOptions.length} 词
           </span>
-          <ChevronRight className="size-5 text-muted-foreground" />
+          <ChevronRight className="text-muted-foreground size-5" />
         </button>
       </div>
 
@@ -255,15 +255,15 @@ export function CreateWalletForm({
           />
           <div
             className={cn(
-              'flex size-5 items-center justify-center rounded border border-input',
-              'transition-colors peer-checked:border-primary peer-checked:bg-primary',
-              'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
+              'border-input flex size-5 items-center justify-center rounded border',
+              'peer-checked:border-primary peer-checked:bg-primary transition-colors',
+              'peer-focus-visible:ring-ring peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
             )}
           >
-            {agreement && <Check className="size-3.5 text-primary-foreground" />}
+            {agreement && <Check className="text-primary-foreground size-3.5" />}
           </div>
         </div>
-        <span className="text-sm leading-relaxed text-muted-foreground">
+        <span className="text-muted-foreground text-sm leading-relaxed">
           我已阅读并同意
           <a href="/agreement" className="text-primary hover:underline">
             《用户协议》
@@ -275,7 +275,7 @@ export function CreateWalletForm({
         </span>
       </label>
       {showError('agreement') && (
-        <p id="agreement-error" className="-mt-4 text-xs text-destructive">
+        <p id="agreement-error" className="text-destructive -mt-4 text-xs">
           {showError('agreement')}
         </p>
       )}

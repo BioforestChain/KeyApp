@@ -2,22 +2,22 @@
  * 迁移密码输入步骤
  */
 
-import { useState, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
+import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface MigrationPasswordStepProps {
   /** 验证密码 */
-  onVerify: (password: string) => Promise<boolean>
+  onVerify: (password: string) => Promise<boolean>;
   /** 跳过迁移 */
-  onSkip: () => void
+  onSkip: () => void;
   /** 剩余重试次数 */
-  remainingRetries: number
+  remainingRetries: number;
   /** 是否正在验证 */
-  isVerifying?: boolean
+  isVerifying?: boolean;
 }
 
 export function MigrationPasswordStep({
@@ -26,49 +26,47 @@ export function MigrationPasswordStep({
   remainingRetries,
   isVerifying = false,
 }: MigrationPasswordStepProps) {
-  const { t } = useTranslation('migration')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslation('migration');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleVerify = useCallback(async () => {
     if (!password.trim()) {
-      setError(t('password.required', { defaultValue: '请输入密码' }))
-      return
+      setError(t('password.required', { defaultValue: '请输入密码' }));
+      return;
     }
 
-    setError(null)
-    const isValid = await onVerify(password)
+    setError(null);
+    const isValid = await onVerify(password);
 
     if (!isValid) {
       setError(
         t('password.incorrect', {
           defaultValue: '密码错误，剩余 {{count}} 次重试',
           count: remainingRetries - 1,
-        })
-      )
-      setPassword('')
+        }),
+      );
+      setPassword('');
     }
-  }, [password, onVerify, remainingRetries, t])
+  }, [password, onVerify, remainingRetries, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' && !isVerifying) {
-        handleVerify()
+        handleVerify();
       }
     },
-    [handleVerify, isVerifying]
-  )
+    [handleVerify, isVerifying],
+  );
 
-  const showRetryWarning = remainingRetries <= 1
+  const showRetryWarning = remainingRetries <= 1;
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold">
-          {t('password.title', { defaultValue: '验证 mpay 密码' })}
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h2 className="text-xl font-semibold">{t('password.title', { defaultValue: '验证 mpay 密码' })}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">
           {t('password.description', {
             defaultValue: '请输入您的 mpay 钱包密码以继续迁移',
           })}
@@ -91,7 +89,7 @@ export function MigrationPasswordStep({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
             tabIndex={-1}
           >
             {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -99,7 +97,7 @@ export function MigrationPasswordStep({
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 text-sm text-destructive">
+          <div className="text-destructive flex items-center gap-2 text-sm">
             <AlertCircle className="size-4" />
             <span>{error}</span>
           </div>
@@ -128,16 +126,10 @@ export function MigrationPasswordStep({
             ? t('password.verifying', { defaultValue: '验证中...' })
             : t('password.verify', { defaultValue: '验证密码' })}
         </Button>
-        <Button
-          variant="outline"
-          onClick={onSkip}
-          disabled={isVerifying}
-          size="lg"
-          data-testid="migration-skip-btn"
-        >
+        <Button variant="outline" onClick={onSkip} disabled={isVerifying} size="lg" data-testid="migration-skip-btn">
           {t('password.skip', { defaultValue: '跳过，创建新钱包' })}
         </Button>
       </div>
     </div>
-  )
+  );
 }

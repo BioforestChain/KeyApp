@@ -1,17 +1,17 @@
-import * as Dialog from '@radix-ui/react-dialog'
-import { AlertTriangle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import * as Dialog from '@radix-ui/react-dialog';
+import { AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface SecurityWarningDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
-  onCancel?: () => void
-  className?: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  onCancel?: () => void;
+  className?: string;
 }
 
 export function SecurityWarningDialog({
@@ -21,23 +21,23 @@ export function SecurityWarningDialog({
   onCancel,
   className,
 }: SecurityWarningDialogProps) {
-  const { t } = useTranslation(['onboarding', 'common'])
-  const [acknowledged, setAcknowledged] = useState(false)
+  const { t } = useTranslation(['onboarding', 'common']);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
-    if (open) setAcknowledged(false)
-  }, [open])
+    if (open) setAcknowledged(false);
+  }, [open]);
 
   const handleCancel = () => {
-    onCancel?.()
-    onOpenChange(false)
-  }
+    onCancel?.();
+    onOpenChange(false);
+  };
 
   const handleConfirm = () => {
-    if (!acknowledged) return
-    onConfirm()
-    onOpenChange(false)
-  }
+    if (!acknowledged) return;
+    onConfirm();
+    onOpenChange(false);
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -45,7 +45,7 @@ export function SecurityWarningDialog({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-background p-5 shadow-lg',
+            'bg-background fixed top-1/2 left-1/2 z-50 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl p-5 shadow-lg',
             'focus:outline-none',
             className,
           )}
@@ -55,10 +55,8 @@ export function SecurityWarningDialog({
               <AlertTriangle className="size-5 text-amber-600" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <Dialog.Title className="text-base font-semibold">
-                {t('onboarding:securityWarning.title')}
-              </Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-muted-foreground">
+              <Dialog.Title className="text-base font-semibold">{t('onboarding:securityWarning.title')}</Dialog.Title>
+              <Dialog.Description className="text-muted-foreground mt-1 text-sm">
                 {t('onboarding:securityWarning.message')}
               </Dialog.Description>
             </div>
@@ -85,6 +83,5 @@ export function SecurityWarningDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }
-

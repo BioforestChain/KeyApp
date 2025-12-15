@@ -24,8 +24,8 @@
  *   stable: 部署到 /webapp/，通过 pnpm gen:stable 手动触发
  */
 
-import { execSync, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, cpSync, statSync } from 'node:fs'
+import { execSync } from 'node:child_process'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, cpSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createWriteStream } from 'node:fs'
 

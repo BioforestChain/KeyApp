@@ -84,19 +84,19 @@ export function TransferConfirmSheet({
           <p className="text-3xl font-bold">
             {amount} {symbol}
           </p>
-          {fiatValue && <p className="mt-1 text-muted-foreground">≈ ${fiatValue}</p>}
+          {fiatValue && <p className="text-muted-foreground mt-1">≈ ${fiatValue}</p>}
         </div>
 
         {/* Details */}
-        <div className="space-y-4 rounded-xl bg-muted/30 p-4">
+        <div className="bg-muted/30 space-y-4 rounded-xl p-4">
           {/* Recipient */}
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">收款地址</p>
+            <p className="text-muted-foreground text-sm">收款地址</p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleAddress}
-                className="flex min-w-0 flex-1 items-center gap-1 text-left font-mono text-sm hover:text-primary"
+                className="hover:text-primary flex min-w-0 flex-1 items-center gap-1 text-left font-mono text-sm"
               >
                 <span className={cn('min-w-0', showFullAddress ? 'break-all' : 'truncate')}>
                   {showFullAddress ? toAddress : truncateAddress(toAddress)}
@@ -110,7 +110,7 @@ export function TransferConfirmSheet({
               <button
                 type="button"
                 onClick={handleCopyAddress}
-                className="shrink-0 p-1 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground shrink-0 p-1"
                 aria-label={copied ? '已复制' : '复制地址'}
               >
                 {copied ? <Check className="size-4 text-green-500" /> : <Copy className="size-4" />}
@@ -120,7 +120,7 @@ export function TransferConfirmSheet({
 
           {/* Fee */}
           <div className="flex items-start justify-between">
-            <p className="text-sm text-muted-foreground">网络费用</p>
+            <p className="text-muted-foreground text-sm">网络费用</p>
             <FeeDisplay
               amount={feeAmount}
               symbol={feeSymbol}
@@ -136,7 +136,7 @@ export function TransferConfirmSheet({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-full border border-border py-3 font-medium transition-colors hover:bg-muted"
+            className="border-border hover:bg-muted flex-1 rounded-full border py-3 font-medium transition-colors"
             disabled={isConfirming}
           >
             取消

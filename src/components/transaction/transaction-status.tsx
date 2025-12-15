@@ -60,13 +60,7 @@ const sizeClasses = {
 /**
  * Transaction status badge with icon and optional label
  */
-export function TransactionStatus({
-  status,
-  showLabel = true,
-  label,
-  size = 'md',
-  className,
-}: TransactionStatusProps) {
+export function TransactionStatus({ status, showLabel = true, label, size = 'md', className }: TransactionStatusProps) {
   const config = statusConfigs[status];
   const sizes = sizeClasses[size];
   const Icon = config.icon;
@@ -103,10 +97,5 @@ export function TransactionStatusIcon({
   const sizes = sizeClasses[size];
   const Icon = config.icon;
 
-  return (
-    <Icon
-      className={cn(sizes.icon, config.colorClass, className)}
-      aria-label={config.label}
-    />
-  );
+  return <Icon className={cn(sizes.icon, config.colorClass, className)} aria-label={config.label} />;
 }

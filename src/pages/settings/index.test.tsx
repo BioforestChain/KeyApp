@@ -1,17 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { SettingsItem } from './settings-item'
-import { SettingsSection } from './settings-section'
-import { SettingsPage } from './index'
-import { TestI18nProvider } from '@/test/i18n-mock'
-import { Wallet } from 'lucide-react'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { SettingsItem } from './settings-item';
+import { SettingsSection } from './settings-section';
+import { SettingsPage } from './index';
+import { TestI18nProvider } from '@/test/i18n-mock';
+import { Wallet } from 'lucide-react';
 
 // Mock router
-const mockNavigate = vi.fn()
+const mockNavigate = vi.fn();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
-}))
+}));
 
 // Mock wallet store
 vi.mock('@/stores', () => ({
@@ -34,156 +34,151 @@ vi.mock('@/stores', () => ({
     USD: { symbol: '$', name: 'US Dollar' },
     CNY: { symbol: '¥', name: 'Chinese Yuan' },
   },
-}))
+}));
 
 // Test wrapper
 function renderWithProviders(ui: React.ReactElement) {
-  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>);
 }
 
 describe('SettingsItem', () => {
   it('renders label', () => {
-    render(<SettingsItem label="语言" />)
-    expect(screen.getByText('语言')).toBeInTheDocument()
-  })
+    render(<SettingsItem label="语言" />);
+    expect(screen.getByText('语言')).toBeInTheDocument();
+  });
 
   it('renders icon when provided', () => {
-    render(
-      <SettingsItem
-        label="钱包"
-        icon={<Wallet data-testid="wallet-icon" size={20} />}
-      />
-    )
-    expect(screen.getByTestId('wallet-icon')).toBeInTheDocument()
-  })
+    render(<SettingsItem label="钱包" icon={<Wallet data-testid="wallet-icon" size={20} />} />);
+    expect(screen.getByTestId('wallet-icon')).toBeInTheDocument();
+  });
 
   it('renders value when provided', () => {
-    render(<SettingsItem label="语言" value="简体中文" />)
-    expect(screen.getByText('简体中文')).toBeInTheDocument()
-  })
+    render(<SettingsItem label="语言" value="简体中文" />);
+    expect(screen.getByText('简体中文')).toBeInTheDocument();
+  });
 
   it('renders chevron when clickable', () => {
-    render(<SettingsItem label="语言" onClick={() => {}} />)
+    render(<SettingsItem label="语言" onClick={() => {}} />);
     // ChevronRight is rendered as an SVG
-    const button = screen.getByRole('button')
-    expect(button.querySelector('svg')).toBeInTheDocument()
-  })
+    const button = screen.getByRole('button');
+    expect(button.querySelector('svg')).toBeInTheDocument();
+  });
 
   it('handles click', async () => {
-    const handleClick = vi.fn()
-    render(<SettingsItem label="语言" onClick={handleClick} />)
+    const handleClick = vi.fn();
+    render(<SettingsItem label="语言" onClick={handleClick} />);
 
-    await userEvent.click(screen.getByRole('button'))
-    expect(handleClick).toHaveBeenCalledTimes(1)
-  })
+    await userEvent.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
 
   it('disables click when disabled', async () => {
-    const handleClick = vi.fn()
-    render(<SettingsItem label="语言" onClick={handleClick} disabled />)
+    const handleClick = vi.fn();
+    render(<SettingsItem label="语言" onClick={handleClick} disabled />);
 
-    await userEvent.click(screen.getByRole('button'))
-    expect(handleClick).not.toHaveBeenCalled()
-  })
-})
+    await userEvent.click(screen.getByRole('button'));
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+});
 
 describe('SettingsSection', () => {
   it('renders title', () => {
     render(
       <SettingsSection title="安全">
         <div>Content</div>
-      </SettingsSection>
-    )
-    expect(screen.getByText('安全')).toBeInTheDocument()
-  })
+      </SettingsSection>,
+    );
+    expect(screen.getByText('安全')).toBeInTheDocument();
+  });
 
   it('renders children', () => {
     render(
       <SettingsSection title="安全">
         <div data-testid="child">Content</div>
-      </SettingsSection>
-    )
-    expect(screen.getByTestId('child')).toBeInTheDocument()
-  })
-})
+      </SettingsSection>,
+    );
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+});
 
 describe('SettingsPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('renders page header', () => {
-    renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('设置')).toBeInTheDocument()
-  })
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByText('设置')).toBeInTheDocument();
+  });
 
   it('displays wallet info card', () => {
-    renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('My Wallet')).toBeInTheDocument()
-    expect(screen.getByText('2 个链地址')).toBeInTheDocument()
-  })
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByText('My Wallet')).toBeInTheDocument();
+    expect(screen.getByText('2 个链地址')).toBeInTheDocument();
+  });
 
   it('displays wallet avatar with first letter', () => {
-    renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('M')).toBeInTheDocument() // First letter of "My Wallet"
-  })
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByText('M')).toBeInTheDocument(); // First letter of "My Wallet"
+  });
 
   it('renders all settings sections', () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
     // Section titles are rendered as h3 elements
-    const sectionTitles = screen.getAllByRole('heading', { level: 3 })
-    const titles = sectionTitles.map((el) => el.textContent)
+    const sectionTitles = screen.getAllByRole('heading', { level: 3 });
+    const titles = sectionTitles.map((el) => el.textContent);
 
-    expect(titles).toContain('钱包管理')
-    expect(titles).toContain('安全')
-    expect(titles).toContain('偏好设置')
-    expect(titles).toContain('关于')
-  })
+    expect(titles).toContain('钱包管理');
+    expect(titles).toContain('安全');
+    expect(titles).toContain('偏好设置');
+    expect(titles).toContain('关于');
+  });
 
   it('renders security settings items', () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
-    expect(screen.getByText('应用锁')).toBeInTheDocument()
-    expect(screen.getByText('查看助记词')).toBeInTheDocument()
-    expect(screen.getByText('修改密码')).toBeInTheDocument()
-  })
+    expect(screen.getByText('应用锁')).toBeInTheDocument();
+    expect(screen.getByText('查看助记词')).toBeInTheDocument();
+    expect(screen.getByText('修改密码')).toBeInTheDocument();
+  });
 
   it('renders preference settings items', () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
-    expect(screen.getByText('语言')).toBeInTheDocument()
-    expect(screen.getByText('货币单位')).toBeInTheDocument()
-    expect(screen.getByText('外观')).toBeInTheDocument()
-  })
+    expect(screen.getByText('语言')).toBeInTheDocument();
+    expect(screen.getByText('货币单位')).toBeInTheDocument();
+    expect(screen.getByText('外观')).toBeInTheDocument();
+  });
 
   it('shows current language value', () => {
-    renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('简体中文')).toBeInTheDocument()
-  })
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByText('简体中文')).toBeInTheDocument();
+  });
 
   it('shows current currency value', () => {
-    renderWithProviders(<SettingsPage />)
-    expect(screen.getByText('USD ($)')).toBeInTheDocument()
-  })
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByText('USD ($)')).toBeInTheDocument();
+  });
 
   it('navigates to mnemonic page when clicking view mnemonic', async () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
-    await userEvent.click(screen.getByText('查看助记词'))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/mnemonic' })
-  })
+    await userEvent.click(screen.getByText('查看助记词'));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/mnemonic' });
+  });
 
   it('navigates to password page when clicking change password', async () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
-    await userEvent.click(screen.getByText('修改密码'))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/password' })
-  })
+    await userEvent.click(screen.getByText('修改密码'));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/password' });
+  });
 
   it('navigates to language page when clicking language', async () => {
-    renderWithProviders(<SettingsPage />)
+    renderWithProviders(<SettingsPage />);
 
-    await userEvent.click(screen.getByText('语言'))
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/language' })
-  })
-})
+    await userEvent.click(screen.getByText('语言'));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/language' });
+  });
+});

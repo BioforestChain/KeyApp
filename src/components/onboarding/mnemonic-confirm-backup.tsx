@@ -1,28 +1,28 @@
-import { useMemo } from 'react'
-import { Check, X, HelpCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import type { VerificationSlot } from '@/hooks/use-mnemonic-verification'
+import { useMemo } from 'react';
+import { Check, X, HelpCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import type { VerificationSlot } from '@/hooks/use-mnemonic-verification';
 
 interface MnemonicConfirmBackupProps {
   /** Verification slots with positions to fill */
-  slots: VerificationSlot[]
+  slots: VerificationSlot[];
   /** Shuffled candidate words */
-  candidates: string[]
+  candidates: string[];
   /** Words that have been used */
-  usedWords: Set<string>
+  usedWords: Set<string>;
   /** Index of next slot to fill (-1 if all filled) */
-  nextEmptySlotIndex: number
+  nextEmptySlotIndex: number;
   /** Whether all slots are correctly filled */
-  isComplete: boolean
+  isComplete: boolean;
   /** Callback when user selects a word */
-  onSelectWord: (word: string) => void
+  onSelectWord: (word: string) => void;
   /** Callback when user clicks a slot to deselect */
-  onDeselectSlot: (index: number) => void
+  onDeselectSlot: (index: number) => void;
   /** Callback when verification is complete */
-  onComplete: () => void
+  onComplete: () => void;
   /** Additional class name */
-  className?: string
+  className?: string;
 }
 
 /**
@@ -42,21 +42,19 @@ export function MnemonicConfirmBackup({
 }: MnemonicConfirmBackupProps) {
   // Group candidates into rows of 3
   const candidateRows = useMemo(() => {
-    const rows: string[][] = []
+    const rows: string[][] = [];
     for (let i = 0; i < candidates.length; i += 3) {
-      rows.push(candidates.slice(i, i + 3))
+      rows.push(candidates.slice(i, i + 3));
     }
-    return rows
-  }, [candidates])
+    return rows;
+  }, [candidates]);
 
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Header */}
       <div className="mb-6 text-center">
         <h2 className="text-xl font-bold">确认助记词</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          请按顺序选择正确的助记词
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">请按顺序选择正确的助记词</p>
       </div>
 
       {/* Verification slots */}
@@ -69,14 +67,14 @@ export function MnemonicConfirmBackup({
               slot.selectedWord === null && index === nextEmptySlotIndex
                 ? 'border-primary bg-primary/5'
                 : slot.selectedWord === null
-                  ? 'border-dashed border-muted-foreground/30 bg-muted/30'
+                  ? 'border-muted-foreground/30 bg-muted/30 border-dashed'
                   : slot.isCorrect
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                     : 'border-red-500 bg-red-50 dark:bg-red-900/20',
             )}
             onClick={() => {
               if (slot.selectedWord !== null && slot.isCorrect === false) {
-                onDeselectSlot(index)
+                onDeselectSlot(index);
               }
             }}
             role={slot.isCorrect === false ? 'button' : undefined}
@@ -102,9 +100,7 @@ export function MnemonicConfirmBackup({
                 <span
                   className={cn(
                     'font-medium',
-                    slot.isCorrect
-                      ? 'text-green-700 dark:text-green-300'
-                      : 'text-red-700 dark:text-red-300',
+                    slot.isCorrect ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300',
                   )}
                 >
                   {slot.selectedWord}
@@ -119,7 +115,7 @@ export function MnemonicConfirmBackup({
             {/* Status icon */}
             <div className="shrink-0">
               {slot.selectedWord === null ? (
-                <HelpCircle className="size-5 text-muted-foreground/50" />
+                <HelpCircle className="text-muted-foreground/50 size-5" />
               ) : slot.isCorrect ? (
                 <Check className="size-5 text-green-500" />
               ) : (
@@ -132,14 +128,12 @@ export function MnemonicConfirmBackup({
 
       {/* Candidate words grid */}
       <div className="mb-6">
-        <p className="mb-3 text-center text-sm text-muted-foreground">
-          从下方选择单词
-        </p>
+        <p className="text-muted-foreground mb-3 text-center text-sm">从下方选择单词</p>
         <div className="space-y-2">
           {candidateRows.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-3 gap-2">
               {row.map((word) => {
-                const isUsed = usedWords.has(word)
+                const isUsed = usedWords.has(word);
                 return (
                   <button
                     key={word}
@@ -149,13 +143,13 @@ export function MnemonicConfirmBackup({
                     className={cn(
                       'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                       isUsed
-                        ? 'cursor-not-allowed border-transparent bg-muted/50 text-muted-foreground/50'
+                        ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed border-transparent'
                         : 'border-border bg-background hover:border-primary hover:bg-primary/5',
                     )}
                   >
                     {word}
                   </button>
-                )
+                );
               })}
             </div>
           ))}
@@ -165,28 +159,19 @@ export function MnemonicConfirmBackup({
       {/* Complete message */}
       {isComplete && (
         <div className="mb-4 rounded-xl bg-green-50 p-4 text-center dark:bg-green-900/20">
-          <p className="font-medium text-green-700 dark:text-green-300">
-            验证成功！助记词已确认备份
-          </p>
+          <p className="font-medium text-green-700 dark:text-green-300">验证成功！助记词已确认备份</p>
         </div>
       )}
 
       {/* Action button */}
-      <Button
-        onClick={onComplete}
-        disabled={!isComplete}
-        size="lg"
-        className="w-full"
-      >
+      <Button onClick={onComplete} disabled={!isComplete} size="lg" className="w-full">
         {isComplete ? '完成备份' : '请完成验证'}
       </Button>
 
       {/* Hint for wrong selections */}
       {slots.some((s) => s.isCorrect === false) && (
-        <p className="mt-3 text-center text-sm text-muted-foreground">
-          点击红色选项可重新选择
-        </p>
+        <p className="text-muted-foreground mt-3 text-center text-sm">点击红色选项可重新选择</p>
       )}
     </div>
-  )
+  );
 }

@@ -33,8 +33,8 @@ export function CreateWalletSuccess({
 
       {/* Success message */}
       <h1 className="mb-2 text-2xl font-bold">钱包创建成功！</h1>
-      <p className="mb-8 text-center text-muted-foreground">
-        您的钱包 <span className="font-medium text-foreground">{walletName}</span> 已创建完成
+      <p className="text-muted-foreground mb-8 text-center">
+        您的钱包 <span className="text-foreground font-medium">{walletName}</span> 已创建完成
       </p>
 
       {/* Backup reminder */}
@@ -74,8 +74,8 @@ export function CreateWalletSuccess({
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors',
             skipBackup && onBackup
-              ? 'border border-border text-foreground hover:bg-muted'
-              : 'bg-primary text-white hover:bg-primary/90',
+              ? 'border-border text-foreground hover:bg-muted border'
+              : 'bg-primary hover:bg-primary/90 text-white',
           )}
         >
           <span>{skipBackup && onBackup ? '稍后备份' : '进入钱包'}</span>
@@ -85,9 +85,7 @@ export function CreateWalletSuccess({
 
       {/* Skip backup note */}
       {skipBackup && onBackup && (
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          您可以稍后在设置中备份助记词
-        </p>
+        <p className="text-muted-foreground mt-4 text-center text-xs">您可以稍后在设置中备份助记词</p>
       )}
     </div>
   );

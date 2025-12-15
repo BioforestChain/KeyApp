@@ -1,68 +1,68 @@
-import { useState, forwardRef } from 'react'
-import { cn } from '@/lib/utils'
-import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff } from 'lucide-react'
+import { useState, forwardRef } from 'react';
+import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  showStrength?: boolean
-  onStrengthChange?: (strength: PasswordStrength) => void
+  showStrength?: boolean;
+  onStrengthChange?: (strength: PasswordStrength) => void;
 }
 
-export type PasswordStrength = 'weak' | 'medium' | 'strong'
+export type PasswordStrength = 'weak' | 'medium' | 'strong';
 
 function calculateStrength(password: string): PasswordStrength {
-  if (!password || password.length < 6) return 'weak'
-  
-  let score = 0
-  if (password.length >= 8) score++
-  if (password.length >= 12) score++
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++
-  if (/\d/.test(password)) score++
-  if (/[^a-zA-Z0-9]/.test(password)) score++
-  
-  if (score >= 4) return 'strong'
-  if (score >= 2) return 'medium'
-  return 'weak'
+  if (!password || password.length < 6) return 'weak';
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+  if (score >= 4) return 'strong';
+  if (score >= 2) return 'medium';
+  return 'weak';
 }
 
 const strengthConfig = {
   weak: { label: '弱', color: 'bg-destructive', width: 'w-1/3' },
   medium: { label: '中', color: 'bg-yellow-500', width: 'w-2/3' },
   strong: { label: '强', color: 'bg-secondary', width: 'w-full' },
-}
+};
 
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, showStrength = false, onStrengthChange, onChange, value, ...props }, ref) => {
-    const [visible, setVisible] = useState(false)
-    const [strength, setStrength] = useState<PasswordStrength>('weak')
-    const [hasValue, setHasValue] = useState(!!value)
-    const { t } = useTranslation()
+    const [visible, setVisible] = useState(false);
+    const [strength, setStrength] = useState<PasswordStrength>('weak');
+    const [hasValue, setHasValue] = useState(!!value);
+    const { t } = useTranslation();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value
-      setHasValue(!!inputValue)
+      const inputValue = e.target.value;
+      setHasValue(!!inputValue);
       if (showStrength) {
-        const newStrength = calculateStrength(inputValue)
-        setStrength(newStrength)
-        onStrengthChange?.(newStrength)
+        const newStrength = calculateStrength(inputValue);
+        setStrength(newStrength);
+        onStrengthChange?.(newStrength);
       }
-      onChange?.(e)
-    }
+      onChange?.(e);
+    };
 
-    const config = strengthConfig[strength]
+    const config = strengthConfig[strength];
 
     return (
-      <div className="space-y-2 @container">
+      <div className="@container space-y-2">
         <div className="relative">
           <input
             ref={ref}
             type={visible ? 'text' : 'password'}
             className={cn(
-              'flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 pr-10 text-base',
+              'border-input bg-background flex h-11 w-full rounded-lg border px-3 py-2 pr-10 text-base',
               'ring-offset-background placeholder:text-muted-foreground',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              className
+              className,
             )}
             value={value}
             onChange={handleChange}
@@ -71,39 +71,46 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           <button
             type="button"
             onClick={() => setVisible(!visible)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+            className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
             tabIndex={-1}
             aria-label={visible ? t('a11y.hidePassword') : t('a11y.showPassword')}
           >
-            {visible ? (
-              <EyeOff className="size-5" />
-            ) : (
-              <Eye className="size-5" />
-            )}
+            {visible ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
           </button>
         </div>
 
         {showStrength && hasValue && (
           <div className="space-y-1" aria-live="polite" aria-atomic="true">
-            <div className="h-1 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={strength === 'weak' ? 33 : strength === 'medium' ? 66 : 100} aria-valuemin={0} aria-valuemax={100}>
-              <div
-                className={cn('h-full transition-all duration-300', config.color, config.width)}
-              />
+            <div
+              className="bg-muted h-1 w-full overflow-hidden rounded-full"
+              role="progressbar"
+              aria-valuenow={strength === 'weak' ? 33 : strength === 'medium' ? 66 : 100}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div className={cn('h-full transition-all duration-300', config.color, config.width)} />
             </div>
-            <p className="text-xs text-muted">
+            <p className="text-muted text-xs">
               <span className="sr-only">{t('a11y.passwordStrength', { strength: config.label })}</span>
-              <span aria-hidden="true">密码强度：<span className={cn(
-                strength === 'weak' && 'text-destructive',
-                strength === 'medium' && 'text-yellow-500',
-                strength === 'strong' && 'text-secondary',
-              )}>{config.label}</span></span>
+              <span aria-hidden="true">
+                密码强度：
+                <span
+                  className={cn(
+                    strength === 'weak' && 'text-destructive',
+                    strength === 'medium' && 'text-yellow-500',
+                    strength === 'strong' && 'text-secondary',
+                  )}
+                >
+                  {config.label}
+                </span>
+              </span>
             </p>
           </div>
         )}
       </div>
-    )
-  }
-)
-PasswordInput.displayName = 'PasswordInput'
+    );
+  },
+);
+PasswordInput.displayName = 'PasswordInput';
 
-export { PasswordInput, calculateStrength }
+export { PasswordInput, calculateStrength };

@@ -1,32 +1,27 @@
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Copy, Check } from 'lucide-react'
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Copy, Check } from 'lucide-react';
 
 interface MnemonicDisplayProps {
-  words: string[]
-  hidden?: boolean
-  onCopy?: () => void
-  className?: string
+  words: string[];
+  hidden?: boolean;
+  onCopy?: () => void;
+  className?: string;
 }
 
-export function MnemonicDisplay({
-  words,
-  hidden = false,
-  onCopy,
-  className,
-}: MnemonicDisplayProps) {
-  const [copied, setCopied] = useState(false)
+export function MnemonicDisplay({ words, hidden = false, onCopy, className }: MnemonicDisplayProps) {
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(words.join(' '))
-      setCopied(true)
-      onCopy?.()
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(words.join(' '));
+      setCopied(true);
+      onCopy?.();
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy mnemonic')
+      console.error('Failed to copy mnemonic');
     }
-  }
+  };
 
   return (
     <div data-testid="mnemonic-display" className={cn('space-y-3', className)}>
@@ -35,14 +30,11 @@ export function MnemonicDisplay({
           <div
             key={index}
             className={cn(
-              'flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-2 py-1.5 @xs:px-3 @xs:py-2',
+              'border-border bg-muted/30 flex items-center gap-1.5 rounded-lg border px-2 py-1.5 @xs:px-3 @xs:py-2',
             )}
           >
-            <span className="text-xs text-muted w-4 shrink-0">{index + 1}</span>
-            <span className={cn(
-              'text-sm font-medium truncate',
-              hidden && 'blur-sm select-none'
-            )}>
+            <span className="text-muted w-4 shrink-0 text-xs">{index + 1}</span>
+            <span className={cn('truncate text-sm font-medium', hidden && 'blur-sm select-none')}>
               {hidden ? '••••••' : word}
             </span>
           </div>
@@ -54,9 +46,9 @@ export function MnemonicDisplay({
         onClick={handleCopy}
         disabled={hidden}
         className={cn(
-          'flex items-center justify-center gap-1.5 w-full py-2 text-sm font-medium',
+          'flex w-full items-center justify-center gap-1.5 py-2 text-sm font-medium',
           'text-primary hover:text-primary/80 transition-colors',
-          'disabled:opacity-50 disabled:cursor-not-allowed'
+          'disabled:cursor-not-allowed disabled:opacity-50',
         )}
       >
         {copied ? (
@@ -72,5 +64,5 @@ export function MnemonicDisplay({
         )}
       </button>
     </div>
-  )
+  );
 }

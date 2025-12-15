@@ -1,43 +1,30 @@
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import { AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 
 export interface BalanceWarningProps {
   /** Current balance (formatted string) */
-  balance: string
+  balance: string;
   /** Required amount for transaction + fee (formatted string) */
-  required: string
+  required: string;
   /** Token symbol */
-  symbol: string
+  symbol: string;
   /** Additional class name */
-  className?: string
+  className?: string;
 }
 
 /**
  * Warning component displayed when balance is insufficient for a transaction
  */
-export function BalanceWarning({
-  balance,
-  required,
-  symbol,
-  className,
-}: BalanceWarningProps) {
-  const { t } = useTranslation('authorize')
+export function BalanceWarning({ balance, required, symbol, className }: BalanceWarningProps) {
+  const { t } = useTranslation('authorize');
 
   return (
-    <div
-      role="alert"
-      className={cn(
-        'flex items-start gap-3 rounded-xl bg-warning/10 p-4',
-        className
-      )}
-    >
-      <AlertTriangle className="size-5 shrink-0 text-warning" aria-hidden="true" />
+    <div role="alert" className={cn('bg-warning/10 flex items-start gap-3 rounded-xl p-4', className)}>
+      <AlertTriangle className="text-warning size-5 shrink-0" aria-hidden="true" />
       <div className="space-y-1">
-        <p className="text-sm font-medium text-warning">
-          {t('error.insufficientBalance')}
-        </p>
-        <div className="space-y-0.5 text-sm text-muted-foreground">
+        <p className="text-warning text-sm font-medium">{t('error.insufficientBalance')}</p>
+        <div className="text-muted-foreground space-y-0.5 text-sm">
           <p>
             {t('signature.balanceWarning.need', {
               amount: required,
@@ -55,5 +42,5 @@ export function BalanceWarning({
         </div>
       </div>
     </div>
-  )
+  );
 }

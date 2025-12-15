@@ -1,22 +1,22 @@
-import { Check } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
-export type WalletKeyType = 'mnemonic' | 'arbitrary'
+export type WalletKeyType = 'mnemonic' | 'arbitrary';
 
 interface KeyTypeSelectorProps {
-  value: WalletKeyType
-  onChange: (value: WalletKeyType) => void
-  disabled?: boolean
-  className?: string
+  value: WalletKeyType;
+  onChange: (value: WalletKeyType) => void;
+  disabled?: boolean;
+  className?: string;
 }
 
 const OPTIONS: Array<{
-  value: WalletKeyType
-  titleKey: string
-  descKey: string
-  tags: string[]
+  value: WalletKeyType;
+  titleKey: string;
+  descKey: string;
+  tags: string[];
 }> = [
   {
     value: 'mnemonic',
@@ -30,15 +30,10 @@ const OPTIONS: Array<{
     descKey: 'keyType.arbitraryDesc',
     tags: ['Bioforest'],
   },
-]
+];
 
-export function KeyTypeSelector({
-  value,
-  onChange,
-  disabled = false,
-  className,
-}: KeyTypeSelectorProps) {
-  const { t } = useTranslation(['onboarding', 'common'])
+export function KeyTypeSelector({ value, onChange, disabled = false, className }: KeyTypeSelectorProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -46,7 +41,7 @@ export function KeyTypeSelector({
 
       <div role="radiogroup" aria-label={t('onboarding:keyType.title')} className="grid gap-3">
         {OPTIONS.map((option) => {
-          const isSelected = value === option.value
+          const isSelected = value === option.value;
           return (
             <button
               key={option.value}
@@ -57,7 +52,7 @@ export function KeyTypeSelector({
               onClick={() => onChange(option.value)}
               className={cn(
                 'w-full rounded-xl border p-4 text-start transition-colors',
-                'hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                'hover:bg-muted/30 focus-visible:ring-ring focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 disabled && 'cursor-not-allowed opacity-60 hover:bg-transparent',
                 isSelected && 'border-primary/50 bg-primary/5',
               )}
@@ -65,9 +60,7 @@ export function KeyTypeSelector({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">{t(`onboarding:${option.titleKey}`)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {t(`onboarding:${option.descKey}`)}
-                  </div>
+                  <div className="text-muted-foreground mt-1 text-xs">{t(`onboarding:${option.descKey}`)}</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {option.tags.map((tag) => (
                       <span
@@ -86,7 +79,7 @@ export function KeyTypeSelector({
 
                 <div
                   className={cn(
-                    'mt-0.5 flex size-5 items-center justify-center rounded border border-input',
+                    'border-input mt-0.5 flex size-5 items-center justify-center rounded border',
                     'transition-colors',
                     isSelected && 'border-primary bg-primary text-primary-foreground',
                   )}
@@ -96,10 +89,9 @@ export function KeyTypeSelector({
                 </div>
               </div>
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
-

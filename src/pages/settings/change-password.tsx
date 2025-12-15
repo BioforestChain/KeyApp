@@ -1,123 +1,110 @@
-import { useState, useCallback } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { AlertCircle, Check } from 'lucide-react'
-import { PageHeader } from '@/components/layout/page-header'
-import { PasswordInput } from '@/components/security/password-input'
-import { useCurrentWallet, walletActions } from '@/stores'
-import { decrypt, encrypt, type EncryptedData } from '@/lib/crypto'
-import { cn } from '@/lib/utils'
+import { useState, useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { AlertCircle, Check } from 'lucide-react';
+import { PageHeader } from '@/components/layout/page-header';
+import { PasswordInput } from '@/components/security/password-input';
+import { useCurrentWallet, walletActions } from '@/stores';
+import { decrypt, encrypt, type EncryptedData } from '@/lib/crypto';
+import { cn } from '@/lib/utils';
 
 /** 最小密码长度 */
-const MIN_PASSWORD_LENGTH = 8
+const MIN_PASSWORD_LENGTH = 8;
 
 export function ChangePasswordPage() {
-  const navigate = useNavigate()
-  const currentWallet = useCurrentWallet()
+  const navigate = useNavigate();
+  const currentWallet = useCurrentWallet();
 
   // 表单状态
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // UI 状态
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string>()
-  const [success, setSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string>();
+  const [success, setSuccess] = useState(false);
 
   // 验证
-  const currentPasswordValid = currentPassword.length > 0
-  const newPasswordValid = newPassword.length >= MIN_PASSWORD_LENGTH
-  const confirmPasswordValid = confirmPassword === newPassword && confirmPassword.length > 0
-  const canSubmit =
-    currentPasswordValid &&
-    newPasswordValid &&
-    confirmPasswordValid &&
-    !isSubmitting &&
-    !success
+  const currentPasswordValid = currentPassword.length > 0;
+  const newPasswordValid = newPassword.length >= MIN_PASSWORD_LENGTH;
+  const confirmPasswordValid = confirmPassword === newPassword && confirmPassword.length > 0;
+  const canSubmit = currentPasswordValid && newPasswordValid && confirmPasswordValid && !isSubmitting && !success;
 
   // 提交处理
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
+      e.preventDefault();
 
       if (!currentWallet?.encryptedMnemonic) {
-        setError('钱包数据不完整')
-        return
+        setError('钱包数据不完整');
+        return;
       }
 
-      setIsSubmitting(true)
-      setError(undefined)
+      setIsSubmitting(true);
+      setError(undefined);
 
       try {
         // 1. 验证当前密码（解密助记词）
-        const mnemonic = await decrypt(
-          currentWallet.encryptedMnemonic as EncryptedData,
-          currentPassword
-        )
+        const mnemonic = await decrypt(currentWallet.encryptedMnemonic as EncryptedData, currentPassword);
 
         // 2. 用新密码重新加密
-        const newEncryptedMnemonic = await encrypt(mnemonic, newPassword)
+        const newEncryptedMnemonic = await encrypt(mnemonic, newPassword);
 
         // 3. 更新钱包
-        walletActions.updateWalletEncryptedMnemonic(
-          currentWallet.id,
-          newEncryptedMnemonic
-        )
+        walletActions.updateWalletEncryptedMnemonic(currentWallet.id, newEncryptedMnemonic);
 
-        setSuccess(true)
+        setSuccess(true);
 
         // 2秒后返回设置页
         setTimeout(() => {
-          navigate({ to: '/settings' })
-        }, 2000)
+          navigate({ to: '/settings' });
+        }, 2000);
       } catch {
-        setError('当前密码不正确')
+        setError('当前密码不正确');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
-    [currentWallet, currentPassword, newPassword, navigate]
-  )
+    [currentWallet, currentPassword, newPassword, navigate],
+  );
 
   // 返回设置页
   const handleBack = () => {
-    navigate({ to: '/settings' })
-  }
+    navigate({ to: '/settings' });
+  };
 
   // 无钱包时显示提示
   if (!currentWallet) {
     return (
-      <div className="flex min-h-screen flex-col bg-muted/30">
+      <div className="bg-muted/30 flex min-h-screen flex-col">
         <PageHeader title="修改密码" onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
       </div>
-    )
+    );
   }
 
   // 成功状态
   if (success) {
     return (
-      <div className="flex min-h-screen flex-col bg-muted/30">
+      <div className="bg-muted/30 flex min-h-screen flex-col">
         <PageHeader title="修改密码" />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
-          <div className="flex size-16 items-center justify-center rounded-full bg-secondary/10">
-            <Check className="size-8 text-secondary" />
+          <div className="bg-secondary/10 flex size-16 items-center justify-center rounded-full">
+            <Check className="text-secondary size-8" />
           </div>
           <div className="text-center">
             <h2 className="text-lg font-semibold">密码修改成功</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              正在返回设置页面...
-            </p>
+            <p className="text-muted-foreground mt-1 text-sm">正在返回设置页面...</p>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader title="修改密码" onBack={handleBack} />
 
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 p-4">
@@ -153,14 +140,12 @@ export function ChangePasswordPage() {
             placeholder="请再次输入新密码"
             disabled={isSubmitting}
           />
-          {confirmPassword && !confirmPasswordValid && (
-            <p className="text-sm text-destructive">两次输入的密码不一致</p>
-          )}
+          {confirmPassword && !confirmPasswordValid && <p className="text-destructive text-sm">两次输入的密码不一致</p>}
         </div>
 
         {/* 错误提示 */}
         {error && (
-          <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg p-3 text-sm">
             <AlertCircle className="size-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -173,12 +158,12 @@ export function ChangePasswordPage() {
           className={cn(
             'w-full rounded-full py-3 font-medium text-white transition-colors',
             'bg-primary hover:bg-primary/90',
-            'disabled:cursor-not-allowed disabled:opacity-50'
+            'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
           {isSubmitting ? '修改中...' : '确认修改'}
         </button>
       </form>
     </div>
-  )
+  );
 }

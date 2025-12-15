@@ -64,7 +64,7 @@ export function PasswordConfirmSheet({
   return (
     <BottomSheet open={open} onClose={handleClose} title={title} className={className}>
       <form onSubmit={handleSubmit} className="space-y-6 p-4">
-        {description && <p className="text-center text-muted-foreground">{description}</p>}
+        {description && <p className="text-muted-foreground text-center">{description}</p>}
 
         {/* Password input */}
         <div className="space-y-2">
@@ -77,7 +77,7 @@ export function PasswordConfirmSheet({
             aria-describedby={error ? 'password-error' : undefined}
           />
           {error && (
-            <div id="password-error" className="flex items-center gap-1.5 text-sm text-destructive">
+            <div id="password-error" className="text-destructive flex items-center gap-1.5 text-sm">
               <AlertCircle className="size-4" />
               <span>{error}</span>
             </div>
@@ -104,7 +104,7 @@ export function PasswordConfirmSheet({
               onClick={onBiometric}
               disabled={isVerifying}
               className={cn(
-                'flex w-full items-center justify-center gap-2 rounded-full border border-border py-3 font-medium transition-colors',
+                'border-border flex w-full items-center justify-center gap-2 rounded-full border py-3 font-medium transition-colors',
                 'hover:bg-muted',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
@@ -118,7 +118,7 @@ export function PasswordConfirmSheet({
             type="button"
             onClick={handleClose}
             disabled={isVerifying}
-            className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground w-full py-2 text-center text-sm"
           >
             取消
           </button>

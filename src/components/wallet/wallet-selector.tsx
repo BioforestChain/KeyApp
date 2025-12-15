@@ -33,14 +33,14 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors',
-        'hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'hover:bg-muted/50 focus-visible:ring-ring focus:outline-none focus-visible:ring-2',
         isSelected && 'bg-muted',
       )}
       aria-selected={isSelected}
       role="option"
     >
       {/* Avatar */}
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+      <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full font-bold">
         {wallet.name.charAt(0).toUpperCase()}
       </div>
 
@@ -49,12 +49,12 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
         <div className="flex items-center gap-2">
           <span className="truncate font-medium">{wallet.name}</span>
           {!wallet.isBackedUp && (
-            <span className="shrink-0 rounded-full bg-warning/20 px-1.5 py-0.5 text-[10px] font-medium text-warning">
+            <span className="bg-warning/20 text-warning shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
               未备份
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <span className="font-mono">{truncateAddress(wallet.address)}</span>
           <span>•</span>
           <span className="truncate">{wallet.balance}</span>
@@ -62,7 +62,7 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
       </div>
 
       {/* Selection indicator */}
-      {isSelected && <Check className="size-5 shrink-0 text-primary" aria-hidden="true" />}
+      {isSelected && <Check className="text-primary size-5 shrink-0" aria-hidden="true" />}
     </button>
   );
 }
@@ -70,13 +70,7 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
 /**
  * Wallet selector component for switching between multiple wallets
  */
-export function WalletSelector({
-  wallets,
-  selectedId,
-  onSelect,
-  onClose,
-  className,
-}: WalletSelectorProps) {
+export function WalletSelector({ wallets, selectedId, onSelect, onClose, className }: WalletSelectorProps) {
   const handleSelect = (wallet: WalletInfo) => {
     onSelect?.(wallet);
     onClose?.();
@@ -84,7 +78,7 @@ export function WalletSelector({
 
   if (wallets.length === 0) {
     return (
-      <div className={cn('py-8 text-center text-muted-foreground', className)}>
+      <div className={cn('text-muted-foreground py-8 text-center', className)}>
         <p>暂无钱包</p>
         <p className="mt-1 text-sm">请先创建或导入钱包</p>
       </div>

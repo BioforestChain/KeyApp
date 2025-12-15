@@ -63,3 +63,6 @@ Thumbs.db
 # 注意: e2e/__screenshots__/ 基线截图需要提交到 git
 # Ignore CCCC runtime domain (Ephemeral mode)
 /.cccc/**
+
+# User scratch files
+PROMPT.md

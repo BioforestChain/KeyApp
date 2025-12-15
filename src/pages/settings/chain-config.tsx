@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { Trans, useTranslation } from 'react-i18next'
-import { AlertTriangle, Check, Plus, RefreshCw } from 'lucide-react'
-import { PageHeader } from '@/components/layout/page-header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/services'
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { Trans, useTranslation } from 'react-i18next';
+import { AlertTriangle, Check, Plus, RefreshCw } from 'lucide-react';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/services';
 import {
   chainConfigActions,
   useChainConfigs,
@@ -13,117 +13,117 @@ import {
   useChainConfigLoading,
   useChainConfigSubscription,
   useChainConfigWarnings,
-} from '@/stores'
-import { cn } from '@/lib/utils'
-import type { ChainConfigSource, ChainConfigWarning } from '@/services/chain-config'
+} from '@/stores';
+import { cn } from '@/lib/utils';
+import type { ChainConfigSource, ChainConfigWarning } from '@/services/chain-config';
 
 function getSourceLabel(t: (key: string) => string, source: ChainConfigSource): string {
   switch (source) {
     case 'default':
-      return t('chainConfig.source.default')
+      return t('chainConfig.source.default');
     case 'subscription':
-      return t('chainConfig.source.subscription')
+      return t('chainConfig.source.subscription');
     case 'manual':
-      return t('chainConfig.source.manual')
+      return t('chainConfig.source.manual');
   }
 }
 
 function getSourceBadgeClass(source: ChainConfigSource): string {
   switch (source) {
     case 'default':
-      return 'bg-muted text-muted-foreground'
+      return 'bg-muted text-muted-foreground';
     case 'subscription':
-      return 'bg-blue-500/10 text-blue-600'
+      return 'bg-blue-500/10 text-blue-600';
     case 'manual':
-      return 'bg-amber-500/10 text-amber-700'
+      return 'bg-amber-500/10 text-amber-700';
   }
 }
 
 function indexWarnings(warnings: readonly ChainConfigWarning[]): Map<string, ChainConfigWarning> {
-  const map = new Map<string, ChainConfigWarning>()
-  for (const warning of warnings) map.set(warning.id, warning)
-  return map
+  const map = new Map<string, ChainConfigWarning>();
+  for (const warning of warnings) map.set(warning.id, warning);
+  return map;
 }
 
 export function ChainConfigPage() {
-  const navigate = useNavigate()
-  const { t } = useTranslation('settings')
-  const toast = useToast()
+  const navigate = useNavigate();
+  const { t } = useTranslation('settings');
+  const toast = useToast();
 
-  const configs = useChainConfigs()
-  const subscription = useChainConfigSubscription()
-  const warnings = useChainConfigWarnings()
-  const isLoading = useChainConfigLoading()
-  const error = useChainConfigError()
+  const configs = useChainConfigs();
+  const subscription = useChainConfigSubscription();
+  const warnings = useChainConfigWarnings();
+  const isLoading = useChainConfigLoading();
+  const error = useChainConfigError();
 
-  const warningById = useMemo(() => indexWarnings(warnings), [warnings])
+  const warningById = useMemo(() => indexWarnings(warnings), [warnings]);
 
-  const [subscriptionUrl, setSubscriptionUrl] = useState<string>('default')
-  const [manualJson, setManualJson] = useState<string>('')
+  const [subscriptionUrl, setSubscriptionUrl] = useState<string>('default');
+  const [manualJson, setManualJson] = useState<string>('');
 
-  const pendingToastRef = useRef<null | 'subscriptionSaved' | 'subscriptionRefreshed' | 'manualAdded'>(null)
-  const wasLoadingRef = useRef(false)
-
-  useEffect(() => {
-    void chainConfigActions.initialize()
-  }, [])
+  const pendingToastRef = useRef<null | 'subscriptionSaved' | 'subscriptionRefreshed' | 'manualAdded'>(null);
+  const wasLoadingRef = useRef(false);
 
   useEffect(() => {
-    if (subscription?.url) setSubscriptionUrl(subscription.url)
-  }, [subscription?.url])
+    void chainConfigActions.initialize();
+  }, []);
 
   useEffect(() => {
-    const wasLoading = wasLoadingRef.current
-    wasLoadingRef.current = isLoading
+    if (subscription?.url) setSubscriptionUrl(subscription.url);
+  }, [subscription?.url]);
 
-    if (!wasLoading || isLoading) return
+  useEffect(() => {
+    const wasLoading = wasLoadingRef.current;
+    wasLoadingRef.current = isLoading;
 
-    const pending = pendingToastRef.current
-    if (!pending) return
+    if (!wasLoading || isLoading) return;
 
-    pendingToastRef.current = null
+    const pending = pendingToastRef.current;
+    if (!pending) return;
+
+    pendingToastRef.current = null;
 
     if (error) {
-      void toast.show(error)
-      return
+      void toast.show(error);
+      return;
     }
 
-    void toast.show(t(`chainConfig.toast.${pending}`))
-    if (pending === 'manualAdded') setManualJson('')
-  }, [error, isLoading, t, toast])
+    void toast.show(t(`chainConfig.toast.${pending}`));
+    if (pending === 'manualAdded') setManualJson('');
+  }, [error, isLoading, t, toast]);
 
   const handleSaveSubscription = async () => {
-    pendingToastRef.current = 'subscriptionSaved'
-    await chainConfigActions.setSubscriptionUrl(subscriptionUrl)
-  }
+    pendingToastRef.current = 'subscriptionSaved';
+    await chainConfigActions.setSubscriptionUrl(subscriptionUrl);
+  };
 
   const handleRefreshSubscription = async () => {
-    pendingToastRef.current = 'subscriptionRefreshed'
-    await chainConfigActions.refreshSubscription()
-  }
+    pendingToastRef.current = 'subscriptionRefreshed';
+    await chainConfigActions.refreshSubscription();
+  };
 
   const handleAddManual = async () => {
-    pendingToastRef.current = 'manualAdded'
-    await chainConfigActions.addManualConfig(manualJson)
-  }
+    pendingToastRef.current = 'manualAdded';
+    await chainConfigActions.addManualConfig(manualJson);
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader title={t('chainConfig.title')} onBack={() => navigate({ to: '/settings' })} />
 
       <div className="flex-1 space-y-4 p-4">
         {error && (
-          <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-xl border px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
-        <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+        <div className="bg-card overflow-hidden rounded-xl shadow-sm">
           <div className="space-y-3 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-medium">{t('chainConfig.subscription.title')}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   <Trans
                     ns="settings"
                     i18nKey="chainConfig.subscription.description"
@@ -159,23 +159,26 @@ export function ChainConfigPage() {
             />
 
             {subscription?.lastUpdated && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 {t('chainConfig.subscription.lastUpdated', { value: subscription.lastUpdated })}
               </div>
             )}
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+        <div className="bg-card overflow-hidden rounded-xl shadow-sm">
           <div className="space-y-3 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-medium">{t('chainConfig.manual.title')}</div>
-                <div className="text-xs text-muted-foreground">
-                  {t('chainConfig.manual.description')}
-                </div>
+                <div className="text-muted-foreground text-xs">{t('chainConfig.manual.description')}</div>
               </div>
-              <Button type="button" variant="outline" onClick={handleAddManual} disabled={isLoading || manualJson.trim() === ''}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddManual}
+                disabled={isLoading || manualJson.trim() === ''}
+              >
                 <Plus className="size-4" />
                 {t('chainConfig.manual.add')}
               </Button>
@@ -188,9 +191,9 @@ export function ChainConfigPage() {
               rows={5}
               disabled={isLoading}
               className={cn(
-                'w-full resize-none rounded-lg border bg-background px-3 py-3 text-sm',
+                'bg-background w-full resize-none rounded-lg border px-3 py-3 text-sm',
                 'placeholder:text-muted-foreground',
-                'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                'focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-none',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
               autoCapitalize="off"
@@ -200,35 +203,33 @@ export function ChainConfigPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+        <div className="bg-card overflow-hidden rounded-xl shadow-sm">
           <div className="px-4 py-3">
             <div className="text-sm font-medium">{t('chainConfig.list.title')}</div>
-            <div className="text-xs text-muted-foreground">{t('chainConfig.list.description')}</div>
+            <div className="text-muted-foreground text-xs">{t('chainConfig.list.description')}</div>
           </div>
 
-          <div className="h-px bg-border" />
+          <div className="bg-border h-px" />
 
           <div>
             {configs.map((config, index) => {
-              const warning = warningById.get(config.id)
-              const disabledByWarning = warning?.kind === 'incompatible_major'
-              const sourceLabel = getSourceLabel(t, config.source)
+              const warning = warningById.get(config.id);
+              const disabledByWarning = warning?.kind === 'incompatible_major';
+              const sourceLabel = getSourceLabel(t, config.source);
 
               return (
                 <div key={config.id}>
-                  {index > 0 && <div className="mx-4 h-px bg-border" />}
+                  {index > 0 && <div className="bg-border mx-4 h-px" />}
                   <div className="px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium">
-                            {config.name}
-                          </span>
+                          <span className="truncate text-sm font-medium">{config.name}</span>
                           <span className={cn('rounded px-2 py-0.5 text-xs', getSourceBadgeClass(config.source))}>
                             {sourceLabel}
                           </span>
                         </div>
-                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                           <span className="font-mono">{config.id}</span>
                           <span>v{config.version}</span>
                           <span>{config.type}</span>
@@ -247,46 +248,47 @@ export function ChainConfigPage() {
                         )}
                       </div>
 
-                      <label className={cn('flex cursor-pointer items-start gap-2', disabledByWarning && 'cursor-not-allowed opacity-60')}>
+                      <label
+                        className={cn(
+                          'flex cursor-pointer items-start gap-2',
+                          disabledByWarning && 'cursor-not-allowed opacity-60',
+                        )}
+                      >
                         <div className="relative mt-0.5">
                           <input
                             type="checkbox"
                             checked={config.enabled}
                             onChange={(e) => {
-                              void chainConfigActions.setChainEnabled(config.id, e.target.checked)
+                              void chainConfigActions.setChainEnabled(config.id, e.target.checked);
                             }}
                             disabled={isLoading || disabledByWarning}
                             className="peer sr-only"
                           />
                           <div
                             className={cn(
-                              'flex size-5 items-center justify-center rounded border border-input',
-                              'transition-colors peer-checked:border-primary peer-checked:bg-primary',
-                              'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
+                              'border-input flex size-5 items-center justify-center rounded border',
+                              'peer-checked:border-primary peer-checked:bg-primary transition-colors',
+                              'peer-focus-visible:ring-ring peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
                             )}
                           >
-                            {config.enabled && <Check className="size-3.5 text-primary-foreground" />}
+                            {config.enabled && <Check className="text-primary-foreground size-3.5" />}
                           </div>
                         </div>
                       </label>
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
 
             {configs.length === 0 && (
-              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                {t('chainConfig.list.empty')}
-              </div>
+              <div className="text-muted-foreground px-4 py-8 text-center text-sm">{t('chainConfig.list.empty')}</div>
             )}
           </div>
         </div>
 
-        <div className="px-1 text-xs text-muted-foreground">
-          {t('chainConfig.hint')}
-        </div>
+        <div className="text-muted-foreground px-1 text-xs">{t('chainConfig.hint')}</div>
       </div>
     </div>
-  )
+  );
 }

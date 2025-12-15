@@ -1,42 +1,42 @@
-import { cn } from '@/lib/utils'
-import { IconCircle } from '@/components/common/icon-circle'
-import { TransactionStatus } from '@/components/transaction/transaction-status'
-import { Check, X, ExternalLink, Copy, ArrowLeft } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { cn } from '@/lib/utils';
+import { IconCircle } from '@/components/common/icon-circle';
+import { TransactionStatus } from '@/components/transaction/transaction-status';
+import { Check, X, ExternalLink, Copy, ArrowLeft } from 'lucide-react';
+import { useState, useCallback } from 'react';
 
-type SendResultStatus = 'success' | 'failed' | 'pending'
+type SendResultStatus = 'success' | 'failed' | 'pending';
 
 interface SendResultProps {
   /** Result status: 'success', 'failed', or 'pending' */
-  status: SendResultStatus
+  status: SendResultStatus;
   /** Transaction hash for explorer link */
-  txHash?: string | undefined
+  txHash?: string | undefined;
   /** Amount transferred */
-  amount: string
+  amount: string;
   /** Token symbol */
-  symbol: string
+  symbol: string;
   /** Recipient address */
-  toAddress: string
+  toAddress: string;
   /** Error message if failed */
-  errorMessage?: string | undefined
+  errorMessage?: string | undefined;
   /** Callback to view transaction in explorer */
-  onViewExplorer?: (() => void) | undefined
+  onViewExplorer?: (() => void) | undefined;
   /** Callback to return home */
-  onDone?: (() => void) | undefined
+  onDone?: (() => void) | undefined;
   /** Callback to retry transfer (only shown on failure) */
-  onRetry?: (() => void) | undefined
+  onRetry?: (() => void) | undefined;
   /** Additional class name */
-  className?: string | undefined
+  className?: string | undefined;
 }
 
 function truncateHash(hash: string): string {
-  if (hash.length <= 20) return hash
-  return `${hash.slice(0, 10)}...${hash.slice(-8)}`
+  if (hash.length <= 20) return hash;
+  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
 }
 
 function truncateAddress(address: string): string {
-  if (address.length <= 16) return address
-  return `${address.slice(0, 8)}...${address.slice(-6)}`
+  if (address.length <= 16) return address;
+  return `${address.slice(0, 8)}...${address.slice(-6)}`;
 }
 
 /**
@@ -54,46 +54,34 @@ export function SendResult({
   onRetry,
   className,
 }: SendResultProps) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   const handleCopyHash = useCallback(async () => {
-    if (!txHash) return
+    if (!txHash) return;
     try {
-      await navigator.clipboard.writeText(txHash)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(txHash);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy hash')
+      console.error('Failed to copy hash');
     }
-  }, [txHash])
+  }, [txHash]);
 
-  const isSuccess = status === 'success'
-  const isFailed = status === 'failed'
-  const isPending = status === 'pending'
+  const isSuccess = status === 'success';
+  const isFailed = status === 'failed';
+  const isPending = status === 'pending';
 
   return (
     <div className={cn('flex min-h-[400px] flex-col items-center justify-center px-6 py-8', className)}>
       {/* Status Icon */}
       <div className="mb-6">
         {isSuccess && (
-          <IconCircle
-            icon={Check}
-            size="lg"
-            variant="success"
-            className="size-20 animate-in zoom-in duration-300"
-          />
+          <IconCircle icon={Check} size="lg" variant="success" className="animate-in zoom-in size-20 duration-300" />
         )}
         {isFailed && (
-          <IconCircle
-            icon={X}
-            size="lg"
-            variant="error"
-            className="size-20 animate-in zoom-in duration-300"
-          />
+          <IconCircle icon={X} size="lg" variant="error" className="animate-in zoom-in size-20 duration-300" />
         )}
-        {isPending && (
-          <div className="size-20 animate-pulse rounded-full bg-muted" />
-        )}
+        {isPending && <div className="bg-muted size-20 animate-pulse rounded-full" />}
       </div>
 
       {/* Status Title */}
@@ -109,32 +97,26 @@ export function SendResult({
       </p>
 
       {/* Recipient */}
-      <p className="mb-6 text-sm text-muted-foreground">
-        发送至 {truncateAddress(toAddress)}
-      </p>
+      <p className="text-muted-foreground mb-6 text-sm">发送至 {truncateAddress(toAddress)}</p>
 
       {/* Error Message */}
       {isFailed && errorMessage && (
-        <div className="mb-6 w-full max-w-sm rounded-lg bg-destructive/10 p-3 text-center text-sm text-destructive">
+        <div className="bg-destructive/10 text-destructive mb-6 w-full max-w-sm rounded-lg p-3 text-center text-sm">
           {errorMessage}
         </div>
       )}
 
       {/* Transaction Hash */}
       {txHash && isSuccess && (
-        <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
           <span>交易哈希:</span>
-          <button
-            type="button"
-            onClick={handleCopyHash}
-            className="font-mono hover:text-foreground"
-          >
+          <button type="button" onClick={handleCopyHash} className="hover:text-foreground font-mono">
             {truncateHash(txHash)}
           </button>
           {copied ? (
             <Check className="size-4 text-green-500" />
           ) : (
-            <Copy className="size-4 cursor-pointer hover:text-foreground" onClick={handleCopyHash} />
+            <Copy className="hover:text-foreground size-4 cursor-pointer" onClick={handleCopyHash} />
           )}
         </div>
       )}
@@ -146,7 +128,7 @@ export function SendResult({
           <button
             type="button"
             onClick={onViewExplorer}
-            className="flex items-center justify-center gap-2 rounded-full border border-border py-3 font-medium transition-colors hover:bg-muted"
+            className="border-border hover:bg-muted flex items-center justify-center gap-2 rounded-full border py-3 font-medium transition-colors"
           >
             <ExternalLink className="size-4" />
             在浏览器中查看
@@ -158,7 +140,7 @@ export function SendResult({
           <button
             type="button"
             onClick={onRetry}
-            className="rounded-full bg-primary py-3 font-medium text-white transition-colors hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 rounded-full py-3 font-medium text-white transition-colors"
           >
             重试
           </button>
@@ -171,8 +153,8 @@ export function SendResult({
           className={cn(
             'flex items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors',
             isSuccess || isPending
-              ? 'bg-primary text-white hover:bg-primary/90'
-              : 'border border-border hover:bg-muted'
+              ? 'bg-primary hover:bg-primary/90 text-white'
+              : 'border-border hover:bg-muted border',
           )}
         >
           {isFailed ? (
@@ -193,5 +175,5 @@ export function SendResult({
         </div>
       )}
     </div>
-  )
+  );
 }

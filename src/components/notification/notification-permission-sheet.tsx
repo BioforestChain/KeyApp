@@ -1,26 +1,19 @@
-import { Bell, BellRing, Zap, Shield } from 'lucide-react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Bell, BellRing, Zap, Shield } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export interface NotificationPermissionSheetProps {
   /** Whether the sheet is open */
-  open: boolean
+  open: boolean;
   /** Callback when sheet is closed */
-  onClose: () => void
+  onClose: () => void;
   /** Callback when user enables notifications */
-  onEnable: () => void
+  onEnable: () => void;
   /** Callback when user skips/declines */
-  onSkip: () => void
+  onSkip: () => void;
   /** Additional class name */
-  className?: string
+  className?: string;
 }
 
 const benefits = [
@@ -39,7 +32,7 @@ const benefits = [
     title: '安全提醒',
     description: '账户安全相关的重要通知不会错过',
   },
-]
+];
 
 /**
  * Sheet for requesting notification permission
@@ -54,34 +47,24 @@ export function NotificationPermissionSheet({
 }: NotificationPermissionSheetProps) {
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent
-        side="bottom"
-        className={cn('max-h-[85vh] overflow-y-auto rounded-t-3xl', className)}
-      >
+      <SheetContent side="bottom" className={cn('max-h-[85vh] overflow-y-auto rounded-t-3xl', className)}>
         <SheetHeader className="text-center">
-          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-            <Bell className="size-8 text-primary" />
+          <div className="bg-primary/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full">
+            <Bell className="text-primary size-8" />
           </div>
           <SheetTitle className="text-xl">开启通知</SheetTitle>
-          <SheetDescription>
-            接收交易状态更新和重要安全提醒
-          </SheetDescription>
+          <SheetDescription>接收交易状态更新和重要安全提醒</SheetDescription>
         </SheetHeader>
 
         <div className="my-6 space-y-4">
           {benefits.map((benefit, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-3 rounded-xl bg-muted/50 p-4"
-            >
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background">
-                <benefit.icon className="size-5 text-muted-foreground" />
+            <div key={index} className="bg-muted/50 flex items-start gap-3 rounded-xl p-4">
+              <div className="bg-background flex size-10 shrink-0 items-center justify-center rounded-full">
+                <benefit.icon className="text-muted-foreground size-5" />
               </div>
               <div>
                 <p className="font-medium">{benefit.title}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {benefit.description}
-                </p>
+                <p className="text-muted-foreground mt-0.5 text-sm">{benefit.description}</p>
               </div>
             </div>
           ))}
@@ -91,15 +74,11 @@ export function NotificationPermissionSheet({
           <Button onClick={onEnable} className="w-full" size="lg">
             开启通知
           </Button>
-          <Button
-            onClick={onSkip}
-            variant="ghost"
-            className="w-full text-muted-foreground"
-          >
+          <Button onClick={onSkip} variant="ghost" className="text-muted-foreground w-full">
             暂不开启
           </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
