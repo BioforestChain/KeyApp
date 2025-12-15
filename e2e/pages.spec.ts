@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 /**
  * 页面截图 E2E 测试
@@ -31,8 +31,14 @@ const TEST_WALLET_DATA = {
   selectedChain: 'ethereum',
 }
 
+async function waitForAppReady(page: Page) {
+  // Some routes are lazy-loaded; when the bundle is cached, `networkidle` can fire before
+  // Suspense resolves. Waiting for the global loading spinner to disappear makes screenshots stable.
+  await page.locator('svg[aria-label="加载中"]').waitFor({ state: 'hidden', timeout: 10_000 })
+}
+
 // 辅助函数：在页面加载前注入钱包数据
-async function setupTestWallet(page: import('@playwright/test').Page) {
+async function setupTestWallet(page: Page) {
   // 先访问页面设置 localStorage
   await page.goto('/')
   await page.evaluate((data) => {
@@ -47,6 +53,7 @@ async function setupTestWallet(page: import('@playwright/test').Page) {
 test.describe('首页', () => {
   test('有钱包状态 - 截图', async ({ page }) => {
     await setupTestWallet(page)
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('home-with-wallet.png', {
       mask: [page.locator('[data-testid="address-display"]')],
@@ -95,6 +102,7 @@ test.describe('收款页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/receive')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
     
     await expect(page).toHaveScreenshot('receive-page.png', {
       // QR 码内容会变化，使用 mask
@@ -108,6 +116,7 @@ test.describe('发送页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/send')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('send-empty.png')
   })
@@ -175,6 +184,7 @@ test.describe('代币详情页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/token/usdt')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
     
     await expect(page).toHaveScreenshot('token-detail.png')
   })
@@ -185,6 +195,7 @@ test.describe('钱包详情页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/wallet/test-wallet-1')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('wallet-detail.png', {
       mask: [page.locator('[data-testid="address-display"]')],
@@ -197,6 +208,7 @@ test.describe('设置页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/settings')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-main.png')
   })
@@ -205,6 +217,7 @@ test.describe('设置页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/settings/chains')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-chains.png')
   })
@@ -213,6 +226,7 @@ test.describe('设置页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/settings/language')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-language.png')
   })
@@ -221,6 +235,7 @@ test.describe('设置页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/settings/currency')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-currency.png')
   })
@@ -231,6 +246,7 @@ test.describe('交易历史页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/history')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('history-empty.png')
   })
@@ -241,6 +257,7 @@ test.describe('通知页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/notifications')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('notifications-empty.png')
   })
@@ -251,6 +268,7 @@ test.describe('地址簿页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/address-book')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('address-book-empty.png')
   })
@@ -261,6 +279,7 @@ test.describe('钱包列表页面', () => {
     await setupTestWallet(page)
     await page.goto('/#/wallet/list')
     await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('wallet-list.png', {
       mask: [page.locator('[data-testid="address-display"]')],
