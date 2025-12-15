@@ -1,89 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { WALLET_PLAOC_PATH } from '../paths'
-
-type CapturedResponse = Readonly<{
-  bodyText: string
-  init: ResponseInit | undefined
-}>
-
-function makeFetchEvent({
-  url,
-  body,
-  manifest,
-}: {
-  url: string
-  body?: string
-  manifest?: Readonly<{
-    mmid: `${string}.dweb` | string
-    name: string
-    icons?: Array<{ src: string }>
-    homepage_url?: string
-  }>
-}) {
-  const request = new Request(url, body !== undefined ? { method: 'POST', body } : undefined)
-  const captured: CapturedResponse[] = []
-
-  const event = {
-    request,
-    async respondWith(bodyInit?: BodyInit | null, init?: ResponseInit) {
-      const bodyText = await new Response(bodyInit ?? null).text()
-      captured.push({ bodyText, init })
-    },
-    async getRemoteManifest() {
-      return (
-        manifest ?? {
-          mmid: 'example.dweb',
-          name: 'Example DApp',
-          icons: [{ src: '/icon.png' }],
-          homepage_url: 'https://example.invalid',
-        }
-      )
-    },
-  }
-
-  return {
-    event,
-    getLastResponse: () => captured[captured.length - 1],
-    getAllResponses: () => captured,
-  }
-}
-
-function parseHashParams(hash: string): URLSearchParams {
-  const idx = hash.indexOf('?')
-  if (idx === -1) return new URLSearchParams()
-  return new URLSearchParams(hash.slice(idx + 1))
-}
-
-function assertNonNull<T>(value: T | null | undefined, message = 'Expected value to be defined'): asserts value is T {
-  if (value === null || value === undefined) throw new Error(message)
-}
-
-async function flushAsync(): Promise<void> {
-  await new Promise((r) => setTimeout(r, 0))
-}
-
-async function setup() {
-  vi.resetModules()
-  window.location.hash = ''
-
-  let fetchListener: ((event: unknown) => void) | null = null
-  const addEventListener = vi.fn((type: string, listener: (event: unknown) => void) => {
-    if (type === 'fetch') fetchListener = listener
-  })
-
-  vi.doMock('@plaoc/plugins', () => ({
-    dwebServiceWorker: { addEventListener },
-  }))
-
-  const mod = await import('../dweb')
-  const adapter = new mod.PlaocAdapter()
-
-  return {
-    adapter,
-    addEventListener,
-    getFetchListener: () => fetchListener,
-  }
-}
+import {
+  assertNonNull,
+  flushAsync,
+  makeFetchEvent,
+  parseHashParams,
+  setupDwebAdapter,
+} from './dweb-harness'
 
 describe('authorize dweb adapter', () => {
   beforeEach(() => {
@@ -96,13 +19,13 @@ describe('authorize dweb adapter', () => {
   })
 
   it('registers dwebServiceWorker fetch listener', async () => {
-    const { addEventListener, getFetchListener } = await setup()
+    const { addEventListener, getFetchListener } = await setupDwebAdapter()
     expect(addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function))
     assertNonNull(getFetchListener())
   })
 
   it('routes /wallet/authorize/address to authorize address flow', async () => {
-    const { adapter, getFetchListener } = await setup()
+    const { adapter, getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -138,7 +61,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('routes /wallet/authorize/signature to signature flow (signaturedata from query)', async () => {
-    const { getFetchListener } = await setup()
+    const { getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -166,7 +89,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('routes /wallet/authorize/signature to signature flow (signaturedata from body)', async () => {
-    const { getFetchListener } = await setup()
+    const { getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -196,7 +119,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('wraps respondWith payload as JSON { data }', async () => {
-    const { adapter, getFetchListener } = await setup()
+    const { adapter, getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -221,7 +144,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('responds cancel/reject as JSON { data: null } via removeEventId', async () => {
-    const { adapter, getFetchListener } = await setup()
+    const { adapter, getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -243,7 +166,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('does not overwrite successful respondWith on subsequent removeEventId', async () => {
-    const { adapter, getFetchListener } = await setup()
+    const { adapter, getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 
@@ -266,7 +189,7 @@ describe('authorize dweb adapter', () => {
   })
 
   it('fast-path: assetTypeBalance skips UI and responds immediately', async () => {
-    const { getFetchListener } = await setup()
+    const { getFetchListener } = await setupDwebAdapter()
     const listener = getFetchListener()
     assertNonNull(listener)
 

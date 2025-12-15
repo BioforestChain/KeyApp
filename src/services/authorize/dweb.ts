@@ -218,12 +218,13 @@ export class PlaocAdapter implements IPlaocAdapter {
     if (!event) throw new Error('Unknown eventId')
 
     const manifest = await event.getRemoteManifest()
+    const appName = manifest.name ?? ''
     const appIcon = manifest.icons?.[0]?.src ?? ''
     const origin = manifest.homepage_url ?? ''
 
     return {
       appId: manifest.mmid,
-      appName: manifest.name,
+      appName,
       appIcon,
       origin,
     }
