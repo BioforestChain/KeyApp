@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import { IconAlertTriangle as AlertTriangle, IconArrowRight as ArrowRight, IconWallet as Wallet } from '@tabler/icons-react';
+import {
+  IconAlertTriangle as AlertTriangle,
+  IconChevronRight as ArrowRight,
+  IconWallet as Wallet,
+} from '@tabler/icons-react';
 import type { DuplicateCheckResult } from '@/services/wallet/types';
 
 interface CollisionConfirmDialogProps {

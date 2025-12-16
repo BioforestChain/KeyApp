@@ -33,7 +33,7 @@ export function MnemonicDisplay({ words, hidden = false, onCopy, className }: Mn
               'border-border bg-muted/30 flex items-center gap-1.5 rounded-lg border px-2 py-1.5 @xs:px-3 @xs:py-2',
             )}
           >
-            <span className="text-muted w-4 shrink-0 text-xs">{index + 1}</span>
+            <span className="text-muted-foreground w-4 shrink-0 text-xs">{index + 1}</span>
             <span className={cn('truncate text-sm font-medium', hidden && 'blur-sm select-none')}>
               {hidden ? '••••••' : word}
             </span>

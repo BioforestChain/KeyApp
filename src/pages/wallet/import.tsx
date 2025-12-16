@@ -10,7 +10,7 @@ import { MnemonicInput } from '@/components/security/mnemonic-input';
 import { PasswordInput } from '@/components/security/password-input';
 import {
   IconShieldCheck as ShieldCheck,
-  IconArrowRight as ArrowRight,
+  IconChevronRight as ArrowRight,
   IconSquareKey as FileKey,
 } from '@tabler/icons-react';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';

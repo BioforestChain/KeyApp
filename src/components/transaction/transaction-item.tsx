@@ -37,7 +37,7 @@ const typeConfig: Record<TransactionType, { label: string; Icon: Icon; color: st
   swap: { label: '兑换', Icon: ArrowLeftRight, color: 'text-primary' },
   stake: { label: '质押', Icon: Lock, color: 'text-primary' },
   unstake: { label: '解押', Icon: Unlock, color: 'text-primary' },
-  approve: { label: '授权', Icon: Check, color: 'text-muted' },
+  approve: { label: '授权', Icon: Check, color: 'text-muted-foreground' },
 };
 
 const statusConfig: Record<TransactionStatus, { label: string; color: string }> = {
@@ -84,7 +84,7 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
           <span className="text-sm font-medium @xs:text-base">{type.label}</span>
           {transaction.status !== 'confirmed' && <span className={cn('text-xs', status.color)}>{status.label}</span>}
         </div>
-        <p className="text-muted flex items-center gap-1 text-xs @xs:text-sm">
+        <p className="text-muted-foreground flex items-center gap-1 text-xs @xs:text-sm">
           <span className="shrink-0">{transaction.type === 'send' ? '至' : '从'}</span>
           <AddressDisplay address={transaction.address} copyable={false} className="min-w-0 flex-1" />
         </p>
@@ -101,7 +101,7 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
           size="sm"
           className="@xs:text-base"
         />
-        <TimeDisplay value={transaction.timestamp} className="text-muted block text-xs" />
+        <TimeDisplay value={transaction.timestamp} className="text-muted-foreground block text-xs" />
       </div>
     </div>
   );

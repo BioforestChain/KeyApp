@@ -17,7 +17,7 @@ import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } f
 import { Button } from '@/components/ui/button';
 import {
   IconArrowLeft as ArrowLeft,
-  IconArrowRight as ArrowRight,
+  IconChevronRight as ArrowRight,
   IconCircleCheck as CheckCircle,
 } from '@tabler/icons-react';
 

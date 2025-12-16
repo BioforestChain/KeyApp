@@ -14,7 +14,7 @@ import {
   IconShieldCheck as ShieldCheck,
   IconEye as Eye,
   IconEyeOff as EyeOff,
-  IconArrowRight as ArrowRight,
+  IconChevronRight as ArrowRight,
   IconCircleKey as KeyRound,
   IconCircleCheck as CheckCircle,
 } from '@tabler/icons-react';

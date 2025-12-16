@@ -178,7 +178,7 @@ export function HomePage() {
       {/* Scanner FAB */}
       <Link
         to="/scanner"
-        className="bg-primary fixed right-6 bottom-6 z-[60] flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="bg-primary fixed right-6 bottom-[calc(var(--safe-area-inset-bottom)+1.5rem)] z-60 flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t('a11y.scan')}
       >
         <ScanLine className="text-primary-foreground size-6" />

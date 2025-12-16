@@ -222,7 +222,7 @@ export function TransactionDetailPage() {
         {transaction.hash && (
           <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
             <h3 className="text-muted-foreground text-sm font-medium">交易哈希</h3>
-            <p className="text-muted font-mono text-xs break-all">{transaction.hash}</p>
+            <p className="text-muted-foreground font-mono text-xs break-all">{transaction.hash}</p>
 
             <div className="flex gap-2">
               <button

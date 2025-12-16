@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconArrowRight as ArrowRight,
+  IconChevronRight as ArrowRight,
   IconSend as Send,
   IconLink as Link2,
   IconShield as Shield,

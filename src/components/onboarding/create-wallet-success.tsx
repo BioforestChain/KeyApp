@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import {
   IconCircleCheck as CheckCircle,
-  IconArrowRight as ArrowRight,
+  IconChevronRight as ArrowRight,
   IconShield as Shield,
 } from '@tabler/icons-react';
 

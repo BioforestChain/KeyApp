@@ -3,7 +3,12 @@ import { useRouter, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TabBar, type TabItem } from './tab-bar';
-import { IconHome as Home, IconWallet as Wallet, IconSettings as Settings, IconArrowLeftRight as ArrowLeftRight } from '@tabler/icons-react';
+import {
+  IconHome as Home,
+  IconWallet as Wallet,
+  IconSettings as Settings,
+  IconArrowLeftRight as ArrowLeftRight,
+} from '@tabler/icons-react';
 import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores';
 import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link';
 
@@ -97,8 +102,15 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* 主内容区域 */}
       <main
         id="main-content"
-        className={cn('flex-1 overflow-auto', hideTabBar ? 'pb-safe' : 'pb-[calc(env(safe-area-inset-bottom)+3.5rem)]')}
+        className={cn('flex-1 *:h-screen *:overflow-auto *:pb-(--safe-area-inset-bottom)')}
         tabIndex={-1}
+        style={
+          {
+            '--safe-area-inset-bottom': hideTabBar
+              ? 'env(safe-area-inset-bottom)'
+              : 'calc(env(safe-area-inset-bottom) + 3.5rem)',
+          } as any
+        }
       >
         {children}
       </main>

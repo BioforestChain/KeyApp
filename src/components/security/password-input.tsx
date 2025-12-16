@@ -71,7 +71,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           <button
             type="button"
             onClick={() => setVisible(!visible)}
-            className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
             tabIndex={-1}
             aria-label={visible ? t('a11y.hidePassword') : t('a11y.showPassword')}
           >
@@ -90,7 +90,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             >
               <div className={cn('h-full transition-all duration-300', config.color, config.width)} />
             </div>
-            <p className="text-muted text-xs">
+            <p className="text-muted-foreground text-xs">
               <span className="sr-only">{t('a11y.passwordStrength', { strength: config.label })}</span>
               <span aria-hidden="true">
                 密码强度：

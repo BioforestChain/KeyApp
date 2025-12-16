@@ -69,7 +69,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             onChange={handleChange}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            className="placeholder:text-muted min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+            className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
             placeholder="输入或粘贴地址"
             autoComplete="off"
             autoCapitalize="off"
@@ -85,7 +85,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
               <button
                 type="button"
                 onClick={onScan}
-                className="text-muted hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
                 aria-label={t('a11y.scanQrCode')}
               >
                 <ScanLine className="size-5" />
@@ -94,7 +94,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             <button
               type="button"
               onClick={handlePaste}
-              className="text-muted hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
               aria-label={t('a11y.paste')}
             >
               <ClipboardPaste className="size-5 @xs:hidden" />
