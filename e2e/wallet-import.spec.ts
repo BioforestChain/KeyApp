@@ -151,8 +151,8 @@ test.describe('钱包导入流程 - 功能测试', () => {
     for (const chain of bioforestChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
-      // BioForest 地址以 'c' 开头
-      expect(chainAddr.address.startsWith('c')).toBe(true)
+      // BioForest 地址以 'b' 开头（生产默认 bnid）
+      expect(chainAddr.address.startsWith('b')).toBe(true)
     }
   })
 

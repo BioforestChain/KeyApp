@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * BioForest 链 E2E 测试
  *
  * 测试 BioForest 链（BFMeta, PMChain, CCChain）的特定功能
- * - 地址格式验证 ('c' 前缀)
+ * - 地址格式验证（生产默认 'b' 前缀）
  * - 链切换
  * - 地址复制
  */
@@ -21,9 +21,9 @@ const TEST_WALLET_WITH_BIOFOREST = {
         { chain: 'ethereum', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', tokens: [] },
         { chain: 'bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', tokens: [] },
         { chain: 'tron', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW', tokens: [] },
-        { chain: 'bfmeta', address: 'cKe7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5', tokens: [] },
-        { chain: 'pmchain', address: 'cKe7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5', tokens: [] },
-        { chain: 'ccchain', address: 'cKe7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5', tokens: [] },
+        { chain: 'bfmeta', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', tokens: [] },
+        { chain: 'pmchain', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', tokens: [] },
+        { chain: 'ccchain', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', tokens: [] },
       ],
       encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test' },
       createdAt: Date.now(),
@@ -63,9 +63,9 @@ test.describe('BioForest 链功能', () => {
     // 验证链选择器显示 BFMeta
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('BFMeta')
 
-    // 验证地址以 'c' 开头
+    // 验证地址以 'b' 开头（生产默认 bnid）
     const addressText = await page.locator('.font-mono').first().textContent()
-    expect(addressText?.startsWith('c')).toBe(true)
+    expect(addressText?.startsWith('b')).toBe(true)
   })
 
   test('切换到 PMChain 链显示正确地址', async ({ page }) => {
@@ -79,7 +79,7 @@ test.describe('BioForest 链功能', () => {
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('PMChain')
 
     const addressText = await page.locator('.font-mono').first().textContent()
-    expect(addressText?.startsWith('c')).toBe(true)
+    expect(addressText?.startsWith('b')).toBe(true)
   })
 
   test('切换到 CCChain 链显示正确地址', async ({ page }) => {
@@ -93,7 +93,7 @@ test.describe('BioForest 链功能', () => {
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('CCChain')
 
     const addressText = await page.locator('.font-mono').first().textContent()
-    expect(addressText?.startsWith('c')).toBe(true)
+    expect(addressText?.startsWith('b')).toBe(true)
   })
 
   test('BioForest 地址复制功能', async ({ page }) => {
@@ -114,10 +114,10 @@ test.describe('BioForest 链功能', () => {
     await page.click('button[aria-label="复制地址"]')
     await page.waitForTimeout(100)
 
-    // 验证剪贴板内容以 'c' 开头
+    // 验证剪贴板内容以 'b' 开头（生产默认 bnid）
     const clipboardContent = await page.evaluate(() => window.__CLIPBOARD__)
     expect(typeof clipboardContent).toBe('string')
-    expect(clipboardContent.startsWith('c')).toBe(true)
+    expect(clipboardContent.startsWith('b')).toBe(true)
   })
 
   test('链切换后发送页面显示正确链信息', async ({ page }) => {
@@ -150,10 +150,8 @@ test.describe('BioForest 链功能', () => {
     await page.click('text=收款')
     await page.waitForURL('**/receive')
 
-    // 验证显示的地址以 'c' 开头
-    const addressElement = page.locator('.font-mono').first()
-    const addressText = await addressElement.textContent()
-    expect(addressText?.includes('c')).toBe(true)
+    // 验证显示的地址以 'b' 开头（生产默认 bnid）
+    await expect(page.getByRole('button', { name: /^复制\s*b[1-9A-HJ-NP-Za-km-z]+$/ })).toBeVisible()
   })
 
   test('所有 BioForest 链共用相同地址', async ({ page }) => {
@@ -232,8 +230,8 @@ test.describe('BioForest 链地址派生', () => {
     for (const chain of bioforestChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
-      // BioForest 地址以 'c' 开头
-      expect(chainAddr.address.startsWith('c')).toBe(true)
+      // BioForest 地址以 'b' 开头（生产默认 bnid）
+      expect(chainAddr.address.startsWith('b')).toBe(true)
       // 地址长度合理
       expect(chainAddr.address.length).toBeGreaterThan(20)
       expect(chainAddr.address.length).toBeLessThan(50)
