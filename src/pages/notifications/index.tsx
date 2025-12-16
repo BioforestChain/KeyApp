@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Bell, Check, Trash2 } from 'lucide-react';
+import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2 } from '@tabler/icons-react';
 import { useStore } from '@tanstack/react-store';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';

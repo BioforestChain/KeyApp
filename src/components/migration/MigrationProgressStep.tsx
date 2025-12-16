@@ -3,7 +3,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { IconLoader2 as Loader2, IconCircleCheck as CheckCircle2 } from '@tabler/icons-react';
 import { Progress } from '@/components/ui/progress';
 import type { MigrationProgress } from '@/services/migration/types';
 

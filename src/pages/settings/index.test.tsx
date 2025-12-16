@@ -5,7 +5,7 @@ import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
 import { SettingsPage } from './index';
 import { TestI18nProvider } from '@/test/i18n-mock';
-import { Wallet } from 'lucide-react';
+import { IconWallet as Wallet } from '@tabler/icons-react';
 
 // Mock router
 const mockNavigate = vi.fn();

@@ -3,7 +3,7 @@ import { useRouter, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TabBar, type TabItem } from './tab-bar';
-import { Home, Wallet, Settings, ArrowLeftRight } from 'lucide-react';
+import { IconHome as Home, IconWallet as Wallet, IconSettings as Settings, IconArrowLeftRight as ArrowLeftRight } from '@tabler/icons-react';
 import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores';
 import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link';
 

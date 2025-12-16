@@ -1,7 +1,7 @@
 import { useState, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff } from 'lucide-react';
+import { IconEye as Eye, IconEyeOff as EyeOff } from '@tabler/icons-react';
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   showStrength?: boolean;

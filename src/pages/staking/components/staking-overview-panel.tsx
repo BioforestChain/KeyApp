@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter } from 'lucide-react';
+import { IconSearch as Search, IconFilter as Filter } from '@tabler/icons-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';

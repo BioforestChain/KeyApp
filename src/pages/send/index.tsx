@@ -12,7 +12,7 @@ import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { useAssets } from '@/hooks/use-assets';
 import { formatAssetAmount } from '@/types/asset';
-import { ArrowRight } from 'lucide-react';
+import { IconArrowRight as ArrowRight } from '@tabler/icons-react';
 import { useSelectedChain, type ChainType } from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {

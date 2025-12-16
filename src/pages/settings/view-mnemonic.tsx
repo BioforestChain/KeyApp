@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';

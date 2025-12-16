@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { AlertTriangle } from 'lucide-react';
+import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

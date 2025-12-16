@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Copy, Check } from 'lucide-react';
+import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 
 interface MnemonicDisplayProps {
   words: string[];

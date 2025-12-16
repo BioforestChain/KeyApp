@@ -2,7 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Camera, X, Image as ImageIcon, Flashlight } from 'lucide-react';
+import {
+  IconCamera as Camera,
+  IconX as X,
+  IconAperture as ImageIcon,
+  IconBulb as Flashlight,
+} from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { useCamera } from '@/services/hooks';
 import { scanQRFromVideo, scanQRFromFile, parseQRContent, type ParsedQRContent } from '@/lib/qr-parser';

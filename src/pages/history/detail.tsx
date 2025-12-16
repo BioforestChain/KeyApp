@@ -1,6 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Copy, ExternalLink, Check, Clock, XCircle } from 'lucide-react';
+import {
+  IconCopy as Copy,
+  IconExternalLink as ExternalLink,
+  IconCheck as Check,
+  IconClock as Clock,
+  IconCircleX as XCircle,
+} from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '@/components/common';

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { IconCircle } from './icon-circle';
-import { ShieldCheck, Wallet, Settings } from 'lucide-react';
+import { IconShieldCheck as ShieldCheck, IconWallet as Wallet, IconSettings as Settings } from '@tabler/icons-react';
 
 describe('IconCircle', () => {
   it('renders with icon', () => {

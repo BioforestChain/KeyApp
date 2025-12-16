@@ -1,7 +1,7 @@
 import { useState, forwardRef, useId } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { ScanLine, ClipboardPaste } from 'lucide-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste } from '@tabler/icons-react';
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Check, Copy } from 'lucide-react';
+import { IconCheck as Check, IconCopy as Copy } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 export interface MarqueeTextProps extends React.HTMLAttributes<HTMLDivElement> {

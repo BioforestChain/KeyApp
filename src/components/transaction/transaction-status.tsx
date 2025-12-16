@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
-import { Check, X, Clock, Ban } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { IconCheck as Check, IconX as X, IconClock as Clock, IconBan as Ban } from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 
 export type TransactionStatusType = 'success' | 'failed' | 'pending' | 'cancelled';
 
@@ -18,7 +18,7 @@ interface TransactionStatusProps {
 }
 
 interface StatusConfig {
-  icon: LucideIcon;
+  icon: Icon;
   label: string;
   colorClass: string;
   bgClass: string;

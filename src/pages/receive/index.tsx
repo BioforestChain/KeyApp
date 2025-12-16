@@ -8,7 +8,7 @@ import { ChainIcon } from '@/components/wallet/chain-icon';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Button } from '@/components/ui/button';
 import { useClipboard, useToast, useHaptics } from '@/services';
-import { Copy, Share2, Check } from 'lucide-react';
+import { IconCopy as Copy, IconShare2 as Share2, IconCheck as Check } from '@tabler/icons-react';
 import { useCurrentChainAddress, useSelectedChain, type ChainType } from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {

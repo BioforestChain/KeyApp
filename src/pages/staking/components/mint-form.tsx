@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ChevronRight } from 'lucide-react';
+import { IconArrowDown as ArrowDown, IconChevronRight as ChevronRight } from '@tabler/icons-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';

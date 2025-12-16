@@ -1,8 +1,15 @@
 import { cn } from '@/lib/utils';
 import { AddressDisplay } from '../wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '../common';
-import { ArrowUp, ArrowDown, ArrowLeftRight, Lock, Unlock, Check } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import {
+  IconArrowUp as ArrowUp,
+  IconArrowDown as ArrowDown,
+  IconArrowLeftRight as ArrowLeftRight,
+  IconLock as Lock,
+  IconLockOpen2 as Unlock,
+  IconCheck as Check,
+} from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 
 export type TransactionType = 'send' | 'receive' | 'swap' | 'stake' | 'unstake' | 'approve';
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
@@ -24,7 +31,7 @@ interface TransactionItemProps {
   className?: string | undefined;
 }
 
-const typeConfig: Record<TransactionType, { label: string; Icon: LucideIcon; color: string }> = {
+const typeConfig: Record<TransactionType, { label: string; Icon: Icon; color: string }> = {
   send: { label: '发送', Icon: ArrowUp, color: 'text-destructive' },
   receive: { label: '接收', Icon: ArrowDown, color: 'text-secondary' },
   swap: { label: '兑换', Icon: ArrowLeftRight, color: 'text-primary' },

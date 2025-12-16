@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import {
+  IconX as X,
+  IconCircleCheck as CheckCircle2,
+  IconCircleX as XCircle,
+  IconLoader2 as Loader2,
+} from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import type { NotificationStatus } from '@/stores/notification';
 

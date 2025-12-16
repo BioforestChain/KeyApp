@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Filter } from 'lucide-react';
+import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
 import { useTransactionHistory, type TransactionFilter } from '@/hooks/use-transaction-history';

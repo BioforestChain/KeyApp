@@ -1,5 +1,10 @@
 import { cn } from '@/lib/utils';
-import { AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import {
+  IconAlertCircle as AlertCircle,
+  IconCircleCheck as CheckCircle,
+  IconInfoCircle as Info,
+  IconAlertTriangle as AlertTriangle,
+} from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 
 type AlertVariant = 'info' | 'success' | 'warning' | 'error';
@@ -14,15 +19,15 @@ interface AlertProps {
 const variantConfig = {
   info: {
     icon: Info,
-    styles: 'bg-blue-500/10 text-blue-700 dark:text-blue-300',
+    styles: 'bg-info/10 text-info',
   },
   success: {
     icon: CheckCircle,
-    styles: 'bg-green-500/10 text-green-700 dark:text-green-300',
+    styles: 'bg-success/10 text-success',
   },
   warning: {
     icon: AlertTriangle,
-    styles: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
+    styles: 'bg-warning/10 text-warning',
   },
   error: {
     icon: AlertCircle,

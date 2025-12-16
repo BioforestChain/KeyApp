@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { IconChevronRight as ChevronRight } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 export interface SettingsItemProps {

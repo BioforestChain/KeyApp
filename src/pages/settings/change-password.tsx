@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { AlertCircle, Check } from 'lucide-react';
+import { IconAlertCircle as AlertCircle, IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { PasswordInput } from '@/components/security/password-input';
 import { useCurrentWallet, walletActions } from '@/stores';

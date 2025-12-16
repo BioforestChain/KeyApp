@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/common/skeleton';
-import { AlertTriangle } from 'lucide-react';
+import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 
 interface FeeDisplayProps {
   /** Fee amount in native token */

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { IconCircle } from '@/components/common/icon-circle';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
-import { Check, X, ExternalLink, Copy, ArrowLeft } from 'lucide-react';
+import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconCopy as Copy, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
 
 type SendResultStatus = 'success' | 'failed' | 'pending';

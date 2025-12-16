@@ -1,11 +1,11 @@
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react';
+import type { Icon } from '@tabler/icons-react';
 
 type IconCircleVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 type IconCircleSize = 'sm' | 'md' | 'lg';
 
 interface IconCircleProps {
-  icon: LucideIcon;
+  icon: Icon;
   variant?: IconCircleVariant;
   size?: IconCircleSize;
   className?: string;

@@ -4,7 +4,11 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import {
+  IconCircleCheck as CheckCircle2,
+  IconCircleX as XCircle,
+  IconAlertTriangle as AlertTriangle,
+} from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { WhatsNewSheet } from './WhatsNewSheet';
 
