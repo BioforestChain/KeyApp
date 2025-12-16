@@ -242,8 +242,9 @@ test.describe('钱包创建流程 - 功能测试', () => {
     for (const chain of bioforestChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
-      // BioForest 地址以 'c' 开头
-      expect(chainAddr.address.startsWith('c')).toBe(true)
+      const expectedPrefix = chain === 'bf-demo' ? 'c' : 'b'
+      // BioForest 地址以 chain-config 的 prefix 开头（默认生产链是 'b'，手动添加可用 'c'）
+      expect(chainAddr.address.startsWith(expectedPrefix)).toBe(true)
     }
   })
 
