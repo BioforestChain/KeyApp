@@ -168,6 +168,13 @@ describe('SettingsPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings/mnemonic' });
   });
 
+  it('navigates to address book page when clicking address book', async () => {
+    renderWithProviders(<SettingsPage />);
+
+    await userEvent.click(screen.getByText('地址簿'));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/address-book' });
+  });
+
   it('navigates to password page when clicking change password', async () => {
     renderWithProviders(<SettingsPage />);
 
