@@ -74,9 +74,7 @@ export function SettingsPage() {
           <SettingsItem
             icon={<BookUser size={20} />}
             label="地址簿"
-            onClick={() => {
-              // TODO: 导航到地址簿页面
-            }}
+            onClick={() => navigate({ to: '/address-book' })}
           />
         </SettingsSection>
 
@@ -85,10 +83,8 @@ export function SettingsPage() {
           <SettingsItem
             icon={<Lock size={20} />}
             label="应用锁"
-            value="未设置"
-            onClick={() => {
-              // TODO: T008.x - 应用锁设置
-            }}
+            value="暂不支持"
+            disabled
           />
           <div className="mx-4 h-px bg-border" />
           <SettingsItem
