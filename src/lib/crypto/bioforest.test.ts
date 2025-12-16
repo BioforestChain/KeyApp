@@ -17,6 +17,9 @@ import {
   toBioforestChainConfig,
   base58Encode,
   base58Decode,
+  base58CheckEncode,
+  base58CheckDecode,
+  base58CheckDecodeUnsafe,
   signMessage,
   verifySignature,
   BIOFOREST_CHAINS,
@@ -127,20 +130,37 @@ describe('BioForest Crypto', () => {
     })
   })
 
+  describe('Base58Check', () => {
+    it('should encode and decode with checksum', () => {
+      const payload = new Uint8Array([1, 2, 3, 4, 5])
+      const encoded = base58CheckEncode(payload)
+      expect(base58CheckDecode(encoded)).toEqual(payload)
+      expect(base58CheckDecodeUnsafe(encoded)).toEqual(payload)
+    })
+
+    it('should validate a known walletapi address tail', () => {
+      const address = 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11'
+      const payload = base58CheckDecode(address.slice(1))
+      expect(payload.length).toBe(20)
+      expect(isValidBioforestAddress(address)).toBe(true)
+    })
+  })
+
   describe('publicKeyToBioforestAddress', () => {
     it('should generate address with default prefix', () => {
       const keypair = createBioforestKeypair('test')
       const address = publicKeyToBioforestAddress(keypair.publicKey)
       
-      expect(address).toMatch(/^c[1-9A-HJ-NP-Za-km-z]+$/)
+      expect(address).toMatch(/^b[1-9A-HJ-NP-Za-km-z]+$/)
       expect(address.length).toBeGreaterThan(20)
     })
 
     it('should generate address with custom prefix', () => {
       const keypair = createBioforestKeypair('test')
-      const address = publicKeyToBioforestAddress(keypair.publicKey, 'b')
+      const address = publicKeyToBioforestAddress(keypair.publicKey, 'c')
       
-      expect(address.startsWith('b')).toBe(true)
+      expect(address.startsWith('c')).toBe(true)
+      expect(isValidBioforestAddress(address)).toBe(true)
     })
 
     it('should generate deterministic addresses', () => {
@@ -175,16 +195,29 @@ describe('BioForest Crypto', () => {
 
     it('should validate with chain type', () => {
       const keypair = createBioforestKeypair('test')
-      const address = publicKeyToBioforestAddress(keypair.publicKey, 'c')
+      const address = publicKeyToBioforestAddress(keypair.publicKey, 'b')
       
       expect(isValidBioforestAddress(address, 'bfmeta')).toBe(true)
     })
 
     it('should reject wrong prefix for chain', () => {
       const keypair = createBioforestKeypair('test')
-      const address = publicKeyToBioforestAddress(keypair.publicKey, 'b')
+      const address = publicKeyToBioforestAddress(keypair.publicKey, 'c')
       
       expect(isValidBioforestAddress(address, 'bfmeta')).toBe(false)
+    })
+
+    it('should accept legacy c+base58(hash160) addresses for display/import', () => {
+      const keypair = createBioforestKeypair('test')
+      const walletApiAddress = publicKeyToBioforestAddress(keypair.publicKey, 'b')
+      const payload = base58CheckDecode(walletApiAddress.slice(1))
+      const legacy = 'c' + base58Encode(payload)
+
+      expect(isValidBioforestAddress(legacy)).toBe(true)
+      expect(isValidBioforestAddress(legacy, 'bfmeta')).toBe(false)
+
+      const legacyB = 'b' + base58Encode(payload)
+      expect(isValidBioforestAddress(legacyB)).toBe(false)
     })
 
     it('should reject invalid addresses', () => {
@@ -200,7 +233,7 @@ describe('BioForest Crypto', () => {
       const result = deriveBioforestKey('test', 'bfmeta')
       
       expect(result.chain).toBe('bfmeta')
-      expect(result.address.startsWith('c')).toBe(true)
+      expect(result.address.startsWith('b')).toBe(true)
       expect(result.privateKey).toHaveLength(128) // 64 bytes hex
       expect(result.publicKey).toHaveLength(64) // 32 bytes hex
     })
@@ -372,9 +405,9 @@ describe('BioForest Crypto', () => {
     it('should return config for valid chain', () => {
       const config = getBioforestChainConfig('bfmeta')
       
-      expect(config.prefix).toBe('c')
+      expect(config.prefix).toBe('b')
       expect(config.decimals).toBe(8)
-      expect(config.symbol).toBe('BFT')
+      expect(config.symbol).toBe('BFM')
       expect(config.name).toBe('BFMeta')
     })
 
@@ -436,10 +469,11 @@ describe('BioForest Crypto', () => {
       expect(address.startsWith('c')).toBe(true)
       expect(isValidBioforestAddress(address)).toBe(true)
       
-      // 输出用于与 mpay 对比
-      console.log('Secret "123" derived values:')
-      console.log('  Public Key:', bytesToHex(keypair.publicKey))
-      console.log('  Address:', address)
+      // 与 mpay README 样例输出一致（用于回归验证）
+      expect(bytesToHex(keypair.publicKey)).toBe(
+        'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd'
+      )
+      expect(address).toBe('cKFyTV2yNmCxdsnoLSbT25zKTYVa4kHv1e')
     })
   })
 })

@@ -5,7 +5,7 @@
  * - 任意字符串作为密钥种子（不限于助记词）
  * - SHA256 哈希生成 32 字节 seed
  * - Ed25519 曲线生成密钥对
- * - SHA256 → RIPEMD160 → Base58 生成地址
+ * - SHA256 → RIPEMD160 → Base58Check(hash160) → bnid 前缀字符（b/c）
  * 
  * 支持的链：BFMeta, CCChain, PMChain, BFChainV2, BTGMeta, BIWMeta, ETHMeta, Malibu
  */
@@ -77,14 +77,14 @@ export interface BioforestChainConfig {
 // ==================== 链配置 ====================
 
 export const BIOFOREST_CHAINS: Record<BioforestChainType, BioforestChainConfig> = {
-  bfmeta: { prefix: 'c', decimals: 8, symbol: 'BFT', name: 'BFMeta' },
-  ccchain: { prefix: 'c', decimals: 8, symbol: 'CC', name: 'CCChain' },
-  pmchain: { prefix: 'c', decimals: 8, symbol: 'PM', name: 'PMChain' },
-  bfchainv2: { prefix: 'c', decimals: 8, symbol: 'BFT', name: 'BFChain V2' },
-  btgmeta: { prefix: 'c', decimals: 8, symbol: 'BTG', name: 'BTGMeta' },
-  biwmeta: { prefix: 'c', decimals: 8, symbol: 'BIW', name: 'BIWMeta' },
-  ethmeta: { prefix: 'c', decimals: 8, symbol: 'ETM', name: 'ETHMeta' },
-  malibu: { prefix: 'c', decimals: 8, symbol: 'MLB', name: 'Malibu' },
+  bfmeta: { prefix: 'b', decimals: 8, symbol: 'BFM', name: 'BFMeta' },
+  ccchain: { prefix: 'b', decimals: 8, symbol: 'CCC', name: 'CCChain' },
+  pmchain: { prefix: 'b', decimals: 8, symbol: 'PMC', name: 'PMChain' },
+  bfchainv2: { prefix: 'b', decimals: 8, symbol: 'BFT', name: 'BFChain V2' },
+  btgmeta: { prefix: 'b', decimals: 8, symbol: 'BTGM', name: 'BTGMeta' },
+  biwmeta: { prefix: 'b', decimals: 8, symbol: 'BIW', name: 'BIWMeta' },
+  ethmeta: { prefix: 'b', decimals: 8, symbol: 'ETHM', name: 'ETHMeta' },
+  malibu: { prefix: 'b', decimals: 8, symbol: 'MLB', name: 'Malibu' },
 }
 
 export function isBioforestChainConfig(
@@ -98,7 +98,7 @@ export function toBioforestChainConfig(config: ChainConfig): BioforestChainConfi
     throw new Error(`Not a supported BioForest chain config: ${config.id}`)
   }
 
-  const fallbackPrefix = isBioforestChain(config.id) ? BIOFOREST_CHAINS[config.id].prefix : 'c'
+  const fallbackPrefix = isBioforestChain(config.id) ? BIOFOREST_CHAINS[config.id].prefix : 'b'
   return {
     prefix: config.prefix ?? fallbackPrefix,
     decimals: config.decimals,
@@ -134,7 +134,7 @@ export function deriveBioforestAddressesFromChainConfigs(
 
   return configs.filter(isBioforestChainConfig).map((config) => ({
     chainId: config.id,
-    address: publicKeyToBioforestAddress(keypair.publicKey, config.prefix ?? 'c'),
+    address: publicKeyToBioforestAddress(keypair.publicKey, config.prefix ?? 'b'),
   }))
 }
 
@@ -227,6 +227,52 @@ export function base58Decode(str: string): Uint8Array {
   return new Uint8Array(bytes.reverse())
 }
 
+// ==================== Base58Check 编码 ====================
+
+/**
+ * Base58Check 编码：payload + 4 字节校验和（double-SHA256）
+ */
+export function base58CheckEncode(payload: Uint8Array): string {
+  const checksum = sha256(sha256(payload)).slice(0, 4)
+  const full = new Uint8Array(payload.length + checksum.length)
+  full.set(payload, 0)
+  full.set(checksum, payload.length)
+  return base58Encode(full)
+}
+
+/**
+ * Base58Check 解码（不抛错）：校验和通过则返回 payload，否则返回 undefined
+ */
+export function base58CheckDecodeUnsafe(str: string): Uint8Array | undefined {
+  let decoded: Uint8Array
+  try {
+    decoded = base58Decode(str)
+  } catch {
+    return undefined
+  }
+
+  if (decoded.length < 5) return undefined
+
+  const payload = decoded.slice(0, -4)
+  const checksum = decoded.slice(-4)
+  const expected = sha256(sha256(payload)).slice(0, 4)
+
+  for (let i = 0; i < 4; i++) {
+    if (checksum[i] !== expected[i]) return undefined
+  }
+
+  return payload
+}
+
+/**
+ * Base58Check 解码（严格）：校验和失败会抛错
+ */
+export function base58CheckDecode(str: string): Uint8Array {
+  const payload = base58CheckDecodeUnsafe(str)
+  if (!payload) throw new Error('Invalid checksum')
+  return payload
+}
+
 // ==================== 核心密钥派生 ====================
 
 /**
@@ -288,27 +334,18 @@ export function keypairFromSecretKey(secretKeyHex: string): BioforestKeypair {
 /**
  * 从公钥生成 BioForest 地址
  * 
- * 算法: publicKey → SHA256 → RIPEMD160 → Base58 → prefix + address
+ * 算法: publicKey → SHA256 → RIPEMD160 → Base58Check(hash160) → prefix + address
  * 
  * @param publicKey 32 字节公钥
- * @param prefix 地址前缀（默认 'c'）
+ * @param prefix 地址前缀（默认 'b'，即生产 walletapi bnid）
  * @returns BioForest 地址
  */
 export function publicKeyToBioforestAddress(
   publicKey: Uint8Array,
-  prefix = 'c'
+  prefix = 'b'
 ): string {
-  // SHA256 哈希
-  const sha256Hash = sha256(publicKey)
-  
-  // RIPEMD160 哈希
-  const ripemd160Hash = ripemd160(sha256Hash)
-  
-  // Base58 编码
-  const base58Address = base58Encode(ripemd160Hash)
-  
-  // 添加前缀
-  return prefix + base58Address
+  const hash160 = ripemd160(sha256(publicKey))
+  return prefix + base58CheckEncode(hash160)
 }
 
 /**
@@ -316,7 +353,7 @@ export function publicKeyToBioforestAddress(
  */
 export function privateKeyToBioforestAddress(
   privateKey: Uint8Array,
-  prefix = 'c'
+  prefix = 'b'
 ): string {
   const publicKey = ed25519.getPublicKey(privateKey.slice(0, 32))
   return publicKeyToBioforestAddress(publicKey, prefix)
@@ -341,12 +378,19 @@ export function isValidBioforestAddress(
     const config = BIOFOREST_CHAINS[chain]
     if (prefix !== config.prefix) return false
   }
-  
-  // 尝试 Base58 解码
+
+  const tail = address.slice(1)
+  const payload = base58CheckDecodeUnsafe(tail)
+  if (payload) {
+    // hash160 payload length
+    return payload.length === 20
+  }
+
+  // Legacy: `c + base58(hash160)` (no checksum) — keep display/import compatibility.
+  if (prefix !== 'c') return false
+
   try {
-    const decoded = base58Decode(address.slice(1))
-    // RIPEMD160 输出是 20 字节
-    return decoded.length === 20
+    return base58Decode(tail).length === 20
   } catch {
     return false
   }
