@@ -6,6 +6,29 @@
 
 **迁移 mpay 核心功能** → 通过分层+测试+多AI监督实现全自动开发
 
+1. 可以输入任意的密钥来创建bioforestChain生态的钱包：bioforestChain密钥的特殊之处在于它可以是任意字符串，而不是非得是助记词，因此需要一个textarea或者类似textarea的组件可以进行自由输入
+2. 可以进行bioforestChain生态的转账
+3. 可以进行bioforestChain生态的交易查询
+4. bioforestChain生态有多条链，可以通过设置自由配置
+   - 需要内置一些现有的几条链的配置，参考mpay，默认配置存储在一个json文件中
+   - 设置页面可以配置订阅url，默认是“默认”，也就是本地这个json文件
+   - json文件可以下载到多条链，所以我们还需要在这个设置页面提供一个“启用禁用”的功能
+   - 还能绕过订阅，手动进行补充：最简单的方式就是手动输入json格式的配置，然后点击“添加”按钮，如果json配置是一个数组，那么就是多条数据、如果是一个obj，那么就是单条数据
+   - 单条数据要考虑“版本号（x.y）”+“type”，版本号是为了支持架构更新（通过不同的X-service），type是为了在一个版本中支持多种变体，如果代码更新补充了某种变体，那么小版本y就+1
+5. 在设置页面，切换语言的功能要能正常
+6. 钱包管理的一整个用户故事要完整闭环，所有涉及到bioforestChain的功能，都要正确移植到我们的service生态
+7. 我们的国际国家货币的service的封装也要完成
+   - 默认的provider：Frankfurter（推荐，无需密钥）
+     1. 实时/最新汇率：https://api.frankfurter.app/latest
+     2. 查询特定货币（例如获取欧元兑美元、英镑的汇率）：https://api.frankfurter.app/latest?from=EUR&to=USD,GBP
+     3. 默认使用美元，不论用户界面使用什么语言
+8. 确保底部的tabs正常吗？会遮挡界面吗？视觉颜色正常吗？文字是否可见，暗色模式呢？
+9. 确保与dweb相关的功能也完全迁移了，可以做到完全兼容mpay
+10. 正确的可访问性：
+    1. 背景和文字颜色没有导致低可读性。
+    2. 可以正确切换多国语言
+    3. 统一的色彩语言表达
+
 ## Periodic Check: mpay Feature Gap Analysis
 
 每个检查周期执行以下闭环：
@@ -38,13 +61,14 @@ ls ../legacy-apps/apps/mpay/src/services/   # mpay 服务列表
 
 在开发过程中，验证分层原则是否被遵守：
 
-| Layer | Verification | Command |
-|-------|-------------|---------|
-| **Components** | 每个组件有 Storybook story | `ls src/components/**/*.stories.tsx` |
-| **Services** | 每个服务有单元测试 | `pnpm test --run` |
-| **Pages** | 每个页面有 E2E 测试 | `pnpm e2e` |
+| Layer          | Verification                                  | Command                              |
+| -------------- | --------------------------------------------- | ------------------------------------ |
+| **Components** | 每个组件有 Storybook story                    | `ls src/components/**/*.stories.tsx` |
+| **Services**   | 每个服务有单元测试                            | `pnpm test --run`                    |
+| **Pages**      | 每个页面有 E2E 测试，并且有移动设备尺寸的截图 | `pnpm e2e`                           |
 
 **核心原则**:
+
 - Page 开发者**必须使用**已有 Components，不能重新发明
 - 发现 BUG 时，先定位到具体 Layer，在该 Layer 修复并补充测试
 
@@ -61,12 +85,12 @@ pnpm typecheck && pnpm lint && pnpm test --run
 
 Peer 互相监督以下 AI 幻觉问题：
 
-| Anti-Pattern | Symptom | Correction |
-|--------------|---------|------------|
-| **重新发明组件** | Page 中内联定义本应复用的 UI | 检查 `src/components/` 是否已有，没有则先创建组件 |
-| **钻牛角尖** | 花大量时间修复边缘 case，忘了主线功能 | 回顾 OpenSpec proposal，聚焦核心需求 |
-| **绕过指标** | 修改测试让它通过，而不是修复代码 | 检查测试变更是否合理，而非删除/跳过测试 |
-| **信息丢失** | 压缩上下文后忘了之前的决策 | 检查 OpenSpec tasks.md 是否同步更新 |
+| Anti-Pattern     | Symptom                               | Correction                                        |
+| ---------------- | ------------------------------------- | ------------------------------------------------- |
+| **重新发明组件** | Page 中内联定义本应复用的 UI          | 检查 `src/components/` 是否已有，没有则先创建组件 |
+| **钻牛角尖**     | 花大量时间修复边缘 case，忘了主线功能 | 回顾 OpenSpec proposal，聚焦核心需求              |
+| **绕过指标**     | 修改测试让它通过，而不是修复代码      | 检查测试变更是否合理，而非删除/跳过测试           |
+| **信息丢失**     | 压缩上下文后忘了之前的决策            | 检查 OpenSpec tasks.md 是否同步更新               |
 
 ## Handoff Protocol
 
@@ -78,6 +102,7 @@ Peer 互相监督以下 AI 幻觉问题：
 **mpay Feature Being Migrated**: [具体功能名]
 **OpenSpec Change**: [change name]
 **Layer Progress**:
+
 - [ ] Components: [完成/进行中/未开始]
 - [ ] Services: [完成/进行中/未开始]
 - [ ] Pages: [完成/进行中/未开始]
