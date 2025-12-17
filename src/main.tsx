@@ -7,10 +7,13 @@ import i18n from './i18n'
 import { router } from './routes'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
+import { preferencesActions } from './stores/preferences'
 import './styles/globals.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
+
+preferencesActions.initialize()
 
 createRoot(rootElement).render(
   <StrictMode>
