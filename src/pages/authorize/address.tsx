@@ -82,7 +82,7 @@ function parseGetMainFlag(getMain: string | undefined): boolean {
 export function AddressAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
-  const { navigate } = useNavigation()
+  const { navigate, goBack } = useNavigation()
   const toast = useToast()
 
   const { id: eventId, type, chainName, signMessage, getMain } = useActivityParams<{
@@ -201,8 +201,8 @@ export function AddressAuthPage() {
   }, [chains, selectedChain, selectedWallet, selectedWalletIds.size, type, wallets.length])
 
   const handleBack = useCallback(() => {
-    navigate({ to: '/' })
-  }, [navigate])
+    goBack()
+  }, [goBack])
 
   const handleReject = useCallback(async () => {
     if (isSubmitting) return

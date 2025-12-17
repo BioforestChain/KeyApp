@@ -28,7 +28,7 @@ const PERIOD_OPTIONS: { value: TransactionFilter['period']; label: string }[] = 
 ];
 
 export function TransactionHistoryPage() {
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const { t } = useTranslation();
   const { transactions, isLoading, filter, setFilter, refresh } = useTransactionHistory(currentWallet?.id);
@@ -61,7 +61,7 @@ export function TransactionHistoryPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="交易记录" onBack={() => navigate({ to: '/' })} />
+        <PageHeader title="交易记录" onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -73,7 +73,7 @@ export function TransactionHistoryPage() {
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
         title="交易记录"
-        onBack={() => navigate({ to: '/' })}
+        onBack={goBack}
         rightAction={
           <button
             onClick={refresh}

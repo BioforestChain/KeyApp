@@ -36,11 +36,11 @@ const mockTransactions = [
 ];
 
 export function TokenDetailPage() {
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={mockToken.symbol} onBack={() => navigate({ to: '/' })} />
+      <PageHeader title={mockToken.symbol} onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* 余额显示 */}

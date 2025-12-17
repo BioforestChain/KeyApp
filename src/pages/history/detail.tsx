@@ -50,7 +50,7 @@ const EXPLORER_URLS: Record<string, string> = {
 };
 
 export function TransactionDetailPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
   const { transactions } = useTransactionHistory(currentWallet?.id);
@@ -83,8 +83,8 @@ export function TransactionDetailPage() {
 
   // 返回
   const handleBack = useCallback(() => {
-    navigate({ to: '/history' });
-  }, [navigate]);
+    goBack();
+  }, [goBack]);
 
   // 无钱包
   if (!currentWallet) {

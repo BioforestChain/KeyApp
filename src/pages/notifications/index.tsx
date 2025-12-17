@@ -147,7 +147,7 @@ function GroupedNotificationList({
 
 /** 通知中心页面 */
 export function NotificationCenterPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const state = useStore(notificationStore);
 
   // 初始化加载
@@ -177,7 +177,7 @@ export function NotificationCenterPage() {
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
         title="通知中心"
-        onBack={() => navigate({ to: '/' })}
+        onBack={goBack}
         rightAction={
           state.unreadCount > 0 ? (
             <button

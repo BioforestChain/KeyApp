@@ -7,7 +7,7 @@ import { walletStore, walletActions, type Wallet } from '@/stores';
 import { cn } from '@/lib/utils';
 
 export function WalletListPage() {
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
   const wallets = useStore(walletStore, (s) => s.wallets);
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId);
 
@@ -31,8 +31,8 @@ export function WalletListPage() {
 
   // 返回
   const handleBack = useCallback(() => {
-    navigate({ to: '/' });
-  }, [navigate]);
+    goBack();
+  }, [goBack]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">

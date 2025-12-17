@@ -315,7 +315,7 @@ function checkBalance(
 export function SignatureAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
-  const { navigate } = useNavigation()
+  const { navigate, goBack } = useNavigation()
   const toast = useToast()
 
   const { id: eventId, signaturedata } = useActivityParams<{
@@ -442,8 +442,8 @@ export function SignatureAuthPage() {
   }, [destroyPayload, transferPayload])
 
   const handleBack = useCallback(() => {
-    navigate({ to: '/' })
-  }, [navigate])
+    goBack()
+  }, [goBack])
 
   const handleReject = useCallback(async () => {
     if (isSubmitting) return

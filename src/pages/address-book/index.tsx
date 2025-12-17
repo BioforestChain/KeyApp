@@ -22,7 +22,7 @@ import { verifyPassword } from '@/lib/crypto';
 import { cn } from '@/lib/utils';
 
 export function AddressBookPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const contacts = useStore(addressBookStore, (s) => s.contacts);
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
 
@@ -41,8 +41,8 @@ export function AddressBookPage() {
 
   // 返回
   const handleBack = useCallback(() => {
-    navigate({ to: '/' });
-  }, [navigate]);
+    goBack();
+  }, [goBack]);
 
   // 打开添加联系人
   const handleOpenAdd = useCallback(() => {

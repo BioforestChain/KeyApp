@@ -27,7 +27,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
@@ -65,7 +65,7 @@ export function ReceivePage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="收款" onBack={() => navigate({ to: '/' })} />
+      <PageHeader title="收款" onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* 链信息 */}

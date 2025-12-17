@@ -31,7 +31,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function SendPage() {
-  const { navigate } = useNavigation();
+  const { goBack: navGoBack } = useNavigation();
   const camera = useCamera();
   const toast = useToast();
   const haptics = useHaptics();
@@ -104,7 +104,7 @@ export function SendPage() {
     if (state.resultStatus === 'success') {
       haptics.impact('success');
     }
-    navigate({ to: '/' });
+    navGoBack();
   };
 
   const handleRetry = () => {
@@ -140,7 +140,7 @@ export function SendPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="发送" onBack={() => navigate({ to: '/' })} />
+      <PageHeader title="发送" onBack={navGoBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* 当前链信息 */}
