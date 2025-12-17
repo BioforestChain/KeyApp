@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import 'fake-indexeddb/auto'
 
 import { resetChainConfigStorageForTests } from '@/services/chain-config/storage'
@@ -45,11 +45,32 @@ describe('chain-config store', () => {
 
   it('sets subscription url and surfaces invalid url errors', async () => {
     await chainConfigActions.initialize()
-    await chainConfigActions.setSubscriptionUrl('https://example.com/chains.json')
+
+    const subscriptionUrl = 'https://example.com/chains.json'
+    const baseFetch = fetch.bind(globalThis)
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input, init) => {
+      const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      if (requestUrl === subscriptionUrl) {
+        return new Response(
+          JSON.stringify([
+            { id: 'remote-one', version: '1.0', type: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
+          ]),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json', ETag: '"etag-1"' },
+          },
+        )
+      }
+      return baseFetch(input, init)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await chainConfigActions.setSubscriptionUrl(subscriptionUrl)
 
     const state1 = chainConfigStore.state
-    expect(chainConfigSelectors.getSubscription(state1)?.url).toBe('https://example.com/chains.json')
+    expect(chainConfigSelectors.getSubscription(state1)?.url).toBe(subscriptionUrl)
     expect(state1.error).toBeNull()
+    expect(chainConfigSelectors.getConfigs(state1).some((c) => c.id === 'remote-one' && c.source === 'subscription')).toBe(true)
 
     await chainConfigActions.setSubscriptionUrl('not-a-url')
     const state2 = chainConfigStore.state

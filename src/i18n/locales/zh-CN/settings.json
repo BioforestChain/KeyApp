@@ -16,7 +16,13 @@
       "title": "手动添加",
       "description": "粘贴 JSON（单个对象或数组），点击添加。",
       "add": "添加",
-      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "duplicate": {
+        "title": "链 ID 已存在",
+        "description": "以下链 ID 已存在，是否替换？",
+        "replace": "替换",
+        "cancel": "取消"
+      }
     },
     "list": {
       "title": "链列表",

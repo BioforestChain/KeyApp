@@ -72,7 +72,6 @@ test.describe('Chain-config subscription', () => {
     await page.click('button:has-text("保存")')
 
     const refreshButton = page.locator('button[aria-label="刷新订阅"]')
-    await refreshButton.click()
     await expect(page.getByText('BF Sub', { exact: true })).toBeVisible()
 
     const row = page.locator('div.px-4.py-3', { hasText: 'bf-sub' })
@@ -122,4 +121,3 @@ test.describe('Chain-config subscription', () => {
     expect(derived?.address.startsWith('c')).toBe(true)
   })
 })
-
