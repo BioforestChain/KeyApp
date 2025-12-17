@@ -27,7 +27,7 @@ vi.mock('@/stackflow', () => ({
 
 function parseHash(hash: string): { path: string; params: Record<string, string> } {
   const cleanHash = hash.replace(/^#/, '')
-  const [path, search] = cleanHash.split('?')
+  const [path = '', search] = cleanHash.split('?')
   const params: Record<string, string> = {}
   if (search) {
     for (const pair of search.split('&')) {

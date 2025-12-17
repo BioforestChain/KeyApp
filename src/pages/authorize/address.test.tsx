@@ -29,7 +29,7 @@ function parseSearchParams(url: string): Record<string, string> {
 }
 
 function renderWithParams(initialEntry: string) {
-  const [path] = initialEntry.split('?')
+  const [path = ''] = initialEntry.split('?')
   const searchParams = parseSearchParams(initialEntry)
   
   // Extract id from path like /authorize/address/test-event

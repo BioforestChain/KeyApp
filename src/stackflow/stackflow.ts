@@ -11,6 +11,11 @@ import { WalletImportActivity } from "./activities/WalletImportActivity";
 import { SendActivity } from "./activities/SendActivity";
 import { ReceiveActivity } from "./activities/ReceiveActivity";
 import { SettingsActivity } from "./activities/SettingsActivity";
+import { SettingsLanguageActivity } from "./activities/SettingsLanguageActivity";
+import { SettingsCurrencyActivity } from "./activities/SettingsCurrencyActivity";
+import { SettingsChainsActivity } from "./activities/SettingsChainsActivity";
+import { SettingsMnemonicActivity } from "./activities/SettingsMnemonicActivity";
+import { SettingsPasswordActivity } from "./activities/SettingsPasswordActivity";
 import { HistoryActivity } from "./activities/HistoryActivity";
 import { TransactionDetailActivity } from "./activities/TransactionDetailActivity";
 import { ScannerActivity } from "./activities/ScannerActivity";
@@ -41,6 +46,11 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         SendActivity: "/send",
         ReceiveActivity: "/receive",
         SettingsActivity: "/settings",
+        SettingsLanguageActivity: "/settings/language",
+        SettingsCurrencyActivity: "/settings/currency",
+        SettingsChainsActivity: "/settings/chains",
+        SettingsMnemonicActivity: "/settings/mnemonic",
+        SettingsPasswordActivity: "/settings/password",
         HistoryActivity: "/history",
         TransactionDetailActivity: "/transaction/:txId",
         ScannerActivity: "/scanner",
@@ -67,6 +77,11 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     SendActivity,
     ReceiveActivity,
     SettingsActivity,
+    SettingsLanguageActivity,
+    SettingsCurrencyActivity,
+    SettingsChainsActivity,
+    SettingsMnemonicActivity,
+    SettingsPasswordActivity,
     HistoryActivity,
     TransactionDetailActivity,
     ScannerActivity,

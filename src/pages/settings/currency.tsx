@@ -14,18 +14,17 @@ const CURRENCY_DISPLAY: Record<CurrencyCode, string> = {
 };
 
 export function CurrencyPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const currentCurrency = useCurrency();
 
   const handleSelect = (currency: CurrencyCode) => {
     preferencesActions.setCurrency(currency);
-    // 返回设置页
-    navigate({ to: '/settings' });
+    goBack();
   };
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="计价货币" onBack={() => navigate({ to: '/settings' })} />
+      <PageHeader title="计价货币" onBack={goBack} />
 
       <div className="flex-1 p-4">
         <div className="bg-card overflow-hidden rounded-xl shadow-sm">

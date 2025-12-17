@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useRouter, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -9,8 +8,6 @@ import {
   IconSettings as Settings,
   IconArrowLeftRight as ArrowLeftRight,
 } from '@tabler/icons-react';
-import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores';
-import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link';
 import type { CSSProperties } from 'react';
 
 interface AppLayoutProps {
@@ -36,7 +33,6 @@ const routeToTab: Record<string, string> = {
 export function AppLayout({ children, className }: AppLayoutProps) {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isInitialized = useWalletInitialized();
   const { t } = useTranslation();
 
   const tabHome = t('a11y.tabHome');
@@ -51,28 +47,6 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     { id: 'wallet', label: tabWallet, icon: <Wallet className="size-5" />, ariaLabel: tabWallet },
     { id: 'settings', label: tabSettings, icon: <Settings className="size-5" />, ariaLabel: tabSettings },
   ];
-
-  // 应用启动时初始化钱包 store
-  useEffect(() => {
-    if (!isInitialized) {
-      walletActions.initialize();
-    }
-  }, [isInitialized]);
-
-  // 应用启动时初始化 chain-config（用于后续页面/业务读取 enabled chains）
-  useEffect(() => {
-    void chainConfigActions.initialize();
-  }, []);
-
-  // 应用启动时初始化 preferences（同步 i18n 语言与 RTL）
-  useEffect(() => {
-    preferencesActions.initialize();
-  }, []);
-
-  // Authorize deep-link support (mpay legacy schema) - mock-first, no real IPC required.
-  useEffect(() => {
-    return installAuthorizeDeepLinkListener(router);
-  }, [router]);
 
   // 判断是否显示 TabBar（某些页面不需要）
   const hideTabBar = ['/wallet/create', '/wallet/import', '/authorize', '/onboarding'].some((p) =>

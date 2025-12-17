@@ -5,9 +5,9 @@ import { CurrencyPage } from './currency'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
 // Mock stackflow
-const mockNavigate = vi.fn()
+const mockGoBack = vi.fn()
 vi.mock('@/stackflow', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useNavigation: () => ({ navigate: vi.fn(), goBack: mockGoBack }),
   useActivityParams: () => ({}),
 }))
 
@@ -95,7 +95,7 @@ describe('CurrencyPage', () => {
 
     await userEvent.click(screen.getByText('Euro'))
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings' })
+    expect(mockGoBack).toHaveBeenCalledTimes(1)
   })
 
   it('shows helper text', () => {

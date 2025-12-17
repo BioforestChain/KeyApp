@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 const AUTO_HIDE_TIMEOUT = 30_000;
 
 export function ViewMnemonicPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const keyType = currentWallet?.keyType ?? 'mnemonic';
   const isArbitrary = keyType === 'arbitrary';
@@ -79,22 +79,17 @@ export function ViewMnemonicPage() {
     setIsHidden((prev) => !prev);
   };
 
-  // 返回设置页
-  const handleBack = () => {
-    navigate({ to: '/settings' });
-  };
-
   // 取消验证时返回
   const handleCancelVerify = () => {
     setShowPasswordSheet(false);
-    handleBack();
+    goBack();
   };
 
   // 无钱包时显示提示
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={handleBack} />
+        <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -106,7 +101,7 @@ export function ViewMnemonicPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={handleBack} />
+      <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={goBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 安全警告 */}

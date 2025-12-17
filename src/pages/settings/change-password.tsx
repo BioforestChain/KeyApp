@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 const MIN_PASSWORD_LENGTH = 8;
 
 export function ChangePasswordPage() {
-  const { navigate } = useNavigation();
+  const { goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
 
   // 表单状态
@@ -57,7 +57,7 @@ export function ChangePasswordPage() {
 
         // 2秒后返回设置页
         setTimeout(() => {
-          navigate({ to: '/settings' });
+          goBack();
         }, 2000);
       } catch {
         setError('当前密码不正确');
@@ -65,19 +65,14 @@ export function ChangePasswordPage() {
         setIsSubmitting(false);
       }
     },
-    [currentWallet, currentPassword, newPassword, navigate],
+    [currentWallet, currentPassword, newPassword, goBack],
   );
-
-  // 返回设置页
-  const handleBack = () => {
-    navigate({ to: '/settings' });
-  };
 
   // 无钱包时显示提示
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="修改密码" onBack={handleBack} />
+        <PageHeader title="修改密码" onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -105,7 +100,7 @@ export function ChangePasswordPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="修改密码" onBack={handleBack} />
+      <PageHeader title="修改密码" onBack={goBack} />
 
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 p-4">
         {/* 当前密码 */}

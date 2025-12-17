@@ -15,11 +15,11 @@ export function SettingsTab() {
 
   const settingItems = [
     { icon: IconWallet, label: "钱包管理", action: () => push("WalletListActivity", {}) },
-    { icon: IconLanguage, label: "语言设置", action: () => push("SettingsActivity", { section: "language" }) },
-    { icon: IconCurrencyDollar, label: "货币单位", action: () => push("SettingsActivity", { section: "currency" }) },
-    { icon: IconLink, label: "链配置", action: () => push("SettingsActivity", { section: "chains" }) },
-    { icon: IconLock, label: "安全设置", action: () => push("SettingsActivity", { section: "security" }) },
-    { icon: IconBell, label: "通知设置", action: () => {} },
+    { icon: IconLanguage, label: "语言设置", action: () => push("SettingsLanguageActivity", {}) },
+    { icon: IconCurrencyDollar, label: "货币单位", action: () => push("SettingsCurrencyActivity", {}) },
+    { icon: IconLink, label: "链配置", action: () => push("SettingsChainsActivity", {}) },
+    { icon: IconLock, label: "安全设置", action: () => push("SettingsActivity", {}) },
+    { icon: IconBell, label: "通知设置", action: () => push("NotificationsActivity", {}) },
   ];
 
   return (
