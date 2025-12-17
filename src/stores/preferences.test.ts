@@ -43,8 +43,55 @@ const localStorageMock = (() => {
 
 Object.defineProperty(global, 'localStorage', { value: localStorageMock })
 
+function mockMatchMedia(initialMatches: boolean) {
+  const listeners = new Set<(event: MediaQueryListEvent) => void>()
+
+  const mql = {
+    matches: initialMatches,
+    media: '(prefers-color-scheme: dark)',
+    onchange: null,
+    addEventListener: (type: string, listener: (event: MediaQueryListEvent) => void) => {
+      if (type === 'change') listeners.add(listener)
+    },
+    removeEventListener: (type: string, listener: (event: MediaQueryListEvent) => void) => {
+      if (type === 'change') listeners.delete(listener)
+    },
+    addListener: (listener: (event: MediaQueryListEvent) => void) => {
+      listeners.add(listener)
+    },
+    removeListener: (listener: (event: MediaQueryListEvent) => void) => {
+      listeners.delete(listener)
+    },
+    dispatchEvent: () => true,
+  }
+
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: vi.fn(() => mql as unknown as MediaQueryList),
+  })
+
+  return {
+    setMatches(next: boolean) {
+      mql.matches = next
+      const event = { matches: next } as MediaQueryListEvent
+      for (const listener of listeners) listener(event)
+    },
+  }
+}
+
 describe('preferencesStore', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    vi.unstubAllGlobals()
+    localStorageMock.clear()
+    document.documentElement.classList.remove('dark')
+    // Ensure any previous system-theme listener is detached (initialize() handles cleanup).
+    preferencesStore.setState(() => ({
+      language: 'zh-CN',
+      currency: 'USD',
+      theme: 'light',
+    }))
+    preferencesActions.initialize()
     vi.clearAllMocks()
     localStorageMock.clear()
     // Reset store state
@@ -122,6 +169,14 @@ describe('preferencesStore', () => {
       const savedValue = localStorageMock.setItem.mock.calls[0]![1]
       expect(JSON.parse(savedValue).theme).toBe('light')
     })
+
+    it('syncs document dark class', () => {
+      preferencesActions.setTheme('dark')
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+
+      preferencesActions.setTheme('light')
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
+    })
   })
 
   describe('initialize', () => {
@@ -149,6 +204,22 @@ describe('preferencesStore', () => {
 
       expect(vi.mocked(i18n.changeLanguage)).not.toHaveBeenCalled()
       expect(document.documentElement.dir).toBe('ltr')
+    })
+
+    it('applies system theme and tracks prefers-color-scheme changes', () => {
+      const media = mockMatchMedia(true)
+
+      preferencesStore.setState(() => ({
+        language: 'zh-CN',
+        currency: 'USD',
+        theme: 'system',
+      }))
+
+      preferencesActions.initialize()
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+
+      media.setMatches(false)
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
     })
   })
 })

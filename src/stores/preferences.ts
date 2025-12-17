@@ -6,6 +6,9 @@ import { type LanguageCode, languages, defaultLanguage, getLanguageDirection } f
 // Storage key
 const PREFERENCES_KEY = 'bfmpay_preferences'
 
+type ThemePreference = 'light' | 'dark' | 'system'
+type ResolvedTheme = Exclude<ThemePreference, 'system'>
+
 // Currency types
 export type CurrencyCode = 'USD' | 'CNY' | 'EUR' | 'JPY' | 'KRW'
 
@@ -21,7 +24,7 @@ export const currencies: Record<CurrencyCode, { symbol: string; name: string }> 
 export interface PreferencesState {
   language: LanguageCode
   currency: CurrencyCode
-  theme: 'light' | 'dark' | 'system'
+  theme: ThemePreference
 }
 
 // Default state
@@ -29,6 +32,68 @@ const defaultState: PreferencesState = {
   language: defaultLanguage,
   currency: 'USD',
   theme: 'system',
+}
+
+let systemThemeMediaQuery: MediaQueryList | null = null
+let systemThemeListener: ((event: MediaQueryListEvent) => void) | null = null
+
+function getSystemThemeMediaQuery(): MediaQueryList | null {
+  if (typeof window === 'undefined') return null
+  if (typeof window.matchMedia !== 'function') return null
+  return window.matchMedia('(prefers-color-scheme: dark)')
+}
+
+function resolveTheme(theme: ThemePreference): ResolvedTheme {
+  if (theme === 'dark' || theme === 'light') return theme
+  const mediaQuery = getSystemThemeMediaQuery()
+  return mediaQuery?.matches ? 'dark' : 'light'
+}
+
+function applyThemeToDocument(theme: ThemePreference): void {
+  if (typeof document === 'undefined') return
+  const resolved = resolveTheme(theme)
+  document.documentElement.classList.toggle('dark', resolved === 'dark')
+}
+
+function stopSystemThemeSync(): void {
+  if (!systemThemeMediaQuery || !systemThemeListener) return
+
+  if (typeof systemThemeMediaQuery.removeEventListener === 'function') {
+    systemThemeMediaQuery.removeEventListener('change', systemThemeListener)
+  } else if (typeof systemThemeMediaQuery.removeListener === 'function') {
+    systemThemeMediaQuery.removeListener(systemThemeListener)
+  }
+
+  systemThemeMediaQuery = null
+  systemThemeListener = null
+}
+
+function startSystemThemeSync(): void {
+  const mediaQuery = getSystemThemeMediaQuery()
+  if (!mediaQuery) return
+
+  // Ensure idempotency: don't attach multiple listeners.
+  if (systemThemeMediaQuery === mediaQuery && systemThemeListener) return
+
+  stopSystemThemeSync()
+  systemThemeMediaQuery = mediaQuery
+  systemThemeListener = (event) => {
+    if (preferencesStore.state.theme !== 'system') return
+    if (typeof document === 'undefined') return
+    document.documentElement.classList.toggle('dark', event.matches)
+  }
+
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', systemThemeListener)
+  } else if (typeof mediaQuery.addListener === 'function') {
+    mediaQuery.addListener(systemThemeListener)
+  }
+}
+
+function syncTheme(theme: ThemePreference): void {
+  applyThemeToDocument(theme)
+  if (theme === 'system') startSystemThemeSync()
+  else stopSystemThemeSync()
 }
 
 // Load from localStorage
@@ -86,6 +151,7 @@ export const preferencesActions = {
       saveToStorage(newState)
       return newState
     })
+    syncTheme(theme)
   },
 
   /** 初始化 - 同步 i18n 语言和文字方向 */
@@ -96,6 +162,7 @@ export const preferencesActions = {
     }
     // Set document direction for RTL support
     document.documentElement.dir = getLanguageDirection(state.language)
+    syncTheme(state.theme)
   },
 }
 
