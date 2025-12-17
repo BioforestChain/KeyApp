@@ -4,7 +4,7 @@ import { OnboardingCreatePage } from "@/pages/onboarding/create";
 
 export const OnboardingCreateActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "创建钱包" }}>
+    <AppScreen >
       <OnboardingCreatePage />
     </AppScreen>
   );

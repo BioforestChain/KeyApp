@@ -4,7 +4,7 @@ import { ScannerPage } from "@/pages/scanner";
 
 export const ScannerActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "扫描", border: false }}>
+    <AppScreen >
       <ScannerPage />
     </AppScreen>
   );

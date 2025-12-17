@@ -4,7 +4,7 @@ import { ReceivePage } from "@/pages/receive";
 
 export const ReceiveActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "收款" }}>
+    <AppScreen >
       <ReceivePage />
     </AppScreen>
   );

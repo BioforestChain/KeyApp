@@ -4,7 +4,7 @@ import { NotificationCenterPage } from "@/pages/notifications";
 
 export const NotificationsActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "通知" }}>
+    <AppScreen >
       <NotificationCenterPage />
     </AppScreen>
   );

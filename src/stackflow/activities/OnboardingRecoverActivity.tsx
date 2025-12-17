@@ -4,7 +4,7 @@ import { OnboardingRecoverPage } from "@/pages/onboarding/recover";
 
 export const OnboardingRecoverActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "恢复钱包" }}>
+    <AppScreen >
       <OnboardingRecoverPage />
     </AppScreen>
   );

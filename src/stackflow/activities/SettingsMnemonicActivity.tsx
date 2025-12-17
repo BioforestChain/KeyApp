@@ -1,11 +1,12 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { StakingPage } from "@/pages/staking";
+import { ViewMnemonicPage } from "@/pages/settings/view-mnemonic";
 
-export const StakingActivity: ActivityComponentType = () => {
+export const SettingsMnemonicActivity: ActivityComponentType = () => {
   return (
     <AppScreen >
-      <StakingPage />
+      <ViewMnemonicPage />
     </AppScreen>
   );
 };
+

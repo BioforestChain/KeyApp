@@ -1,11 +1,12 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { StakingPage } from "@/pages/staking";
+import { LanguagePage } from "@/pages/settings/language";
 
-export const StakingActivity: ActivityComponentType = () => {
+export const SettingsLanguageActivity: ActivityComponentType = () => {
   return (
     <AppScreen >
-      <StakingPage />
+      <LanguagePage />
     </AppScreen>
   );
 };
+

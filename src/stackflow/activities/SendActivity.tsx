@@ -11,7 +11,7 @@ type SendParams = {
 
 export const SendActivity: ActivityComponentType<SendParams> = ({ params }) => {
   return (
-    <AppScreen appBar={{ title: "转账" }}>
+    <AppScreen>
       <ActivityParamsProvider params={params}>
         <SendPage />
       </ActivityParamsProvider>

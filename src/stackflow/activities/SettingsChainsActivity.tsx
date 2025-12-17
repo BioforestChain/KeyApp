@@ -1,11 +1,12 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { StakingPage } from "@/pages/staking";
+import { ChainConfigPage } from "@/pages/settings/chain-config";
 
-export const StakingActivity: ActivityComponentType = () => {
+export const SettingsChainsActivity: ActivityComponentType = () => {
   return (
     <AppScreen >
-      <StakingPage />
+      <ChainConfigPage />
     </AppScreen>
   );
 };
+

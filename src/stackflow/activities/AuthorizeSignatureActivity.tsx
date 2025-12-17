@@ -12,7 +12,7 @@ export const AuthorizeSignatureActivity: ActivityComponentType<AuthorizeSignatur
   params,
 }) => {
   return (
-    <AppScreen appBar={{ title: "签名授权" }}>
+    <AppScreen >
       <ActivityParamsProvider params={params}>
         <SignatureAuthPage />
       </ActivityParamsProvider>

@@ -4,7 +4,7 @@ import { WalletListPage } from "@/pages/wallet/list";
 
 export const WalletListActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "钱包列表" }}>
+    <AppScreen >
       <WalletListPage />
     </AppScreen>
   );

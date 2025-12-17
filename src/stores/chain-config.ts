@@ -45,6 +45,9 @@ async function runAndUpdate(action: () => Promise<ChainConfigSnapshot>): Promise
 
 export const chainConfigActions = {
   initialize: async (): Promise<void> => {
+    const currentState = chainConfigStore.state
+    if (currentState.isLoading || currentState.snapshot) return
+
     await runAndUpdate(async () => initializeService())
   },
 

@@ -81,6 +81,9 @@ export const walletStore = new Store<WalletState>(initialState)
 export const walletActions = {
   /** 初始化钱包（从存储加载） */
   initialize: async () => {
+    const currentState = walletStore.state
+    if (currentState.isInitialized || currentState.isLoading) return
+
     walletStore.setState((state) => ({ ...state, isLoading: true }))
     
     try {

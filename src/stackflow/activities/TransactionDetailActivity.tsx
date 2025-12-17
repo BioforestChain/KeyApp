@@ -9,7 +9,7 @@ type TransactionDetailParams = {
 
 export const TransactionDetailActivity: ActivityComponentType<TransactionDetailParams> = ({ params }) => {
   return (
-    <AppScreen appBar={{ title: "交易详情" }}>
+    <AppScreen >
       <ActivityParamsProvider params={params}>
         <TransactionDetailPage />
       </ActivityParamsProvider>

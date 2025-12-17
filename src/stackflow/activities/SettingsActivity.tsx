@@ -8,7 +8,7 @@ type SettingsParams = {
 
 export const SettingsActivity: ActivityComponentType<SettingsParams> = () => {
   return (
-    <AppScreen appBar={{ title: "设置" }}>
+    <AppScreen >
       <SettingsPage />
     </AppScreen>
   );

@@ -4,7 +4,7 @@ import { TransactionHistoryPage } from "@/pages/history";
 
 export const HistoryActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "交易历史" }}>
+    <AppScreen >
       <TransactionHistoryPage />
     </AppScreen>
   );

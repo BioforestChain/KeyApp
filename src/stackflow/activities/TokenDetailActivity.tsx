@@ -9,7 +9,7 @@ type TokenDetailParams = {
 
 export const TokenDetailActivity: ActivityComponentType<TokenDetailParams> = ({ params }) => {
   return (
-    <AppScreen appBar={{ title: "代币详情" }}>
+    <AppScreen >
       <ActivityParamsProvider params={params}>
         <TokenDetailPage />
       </ActivityParamsProvider>

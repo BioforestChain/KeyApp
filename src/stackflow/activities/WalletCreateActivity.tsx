@@ -4,7 +4,7 @@ import { WalletCreatePage } from "@/pages/wallet/create";
 
 export const WalletCreateActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "创建钱包" }}>
+    <AppScreen >
       <WalletCreatePage />
     </AppScreen>
   );

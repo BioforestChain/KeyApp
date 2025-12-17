@@ -10,7 +10,7 @@ type WalletDetailParams = {
 
 export const WalletDetailActivity: ActivityComponentType<WalletDetailParams> = ({ params }) => {
   return (
-    <AppScreen appBar={{ title: params.walletName || "钱包详情" }}>
+    <AppScreen>
       <ActivityParamsProvider params={params}>
         <WalletDetailPage />
       </ActivityParamsProvider>

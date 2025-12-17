@@ -4,7 +4,7 @@ import { AddressBookPage } from "@/pages/address-book";
 
 export const AddressBookActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "地址簿" }}>
+    <AppScreen >
       <AddressBookPage />
     </AppScreen>
   );

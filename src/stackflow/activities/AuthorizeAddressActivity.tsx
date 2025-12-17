@@ -15,7 +15,7 @@ export const AuthorizeAddressActivity: ActivityComponentType<AuthorizeAddressPar
   params,
 }) => {
   return (
-    <AppScreen appBar={{ title: "地址授权" }}>
+    <AppScreen >
       <ActivityParamsProvider params={params}>
         <AddressAuthPage />
       </ActivityParamsProvider>

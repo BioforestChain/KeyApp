@@ -4,7 +4,7 @@ import { WelcomeScreen } from "@/pages/guide/WelcomeScreen";
 
 export const WelcomeActivity: ActivityComponentType = () => {
   return (
-    <AppScreen appBar={{ title: "欢迎", border: false }}>
+    <AppScreen >
       <WelcomeScreen />
     </AppScreen>
   );
