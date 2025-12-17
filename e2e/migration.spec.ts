@@ -173,10 +173,16 @@ async function clearAllData(page: import('@playwright/test').Page) {
 
 test.describe('mpay 迁移流程', () => {
   test.beforeEach(async ({ page }) => {
-    // 先清除所有数据
-    await page.goto('/')
-    await clearAllData(page)
-    await page.reload()
+    // 先清除所有数据 - 使用 addInitScript 确保在页面加载前执行
+    await page.addInitScript(async () => {
+      localStorage.clear()
+      const databases = await indexedDB.databases()
+      for (const db of databases) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name)
+        }
+      }
+    })
   })
 
   test('完整迁移流程 - 成功', async ({ page }) => {

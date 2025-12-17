@@ -2,13 +2,11 @@ import { expect, test } from '@playwright/test'
 
 test.describe('i18n boot', () => {
   test('applies persisted RTL language on reload', async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem('bfmpay_preferences', JSON.stringify({ language: 'ar' }))
     })
-    await page.reload()
-
     await page.goto('/#/settings')
+    await page.waitForLoadState('networkidle')
 
     await expect
       .poll(async () => await page.evaluate(() => document.documentElement.dir))
@@ -32,13 +30,11 @@ test.describe('i18n boot', () => {
   })
 
   test('applies persisted EN language on reload', async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem('bfmpay_preferences', JSON.stringify({ language: 'en' }))
     })
-    await page.reload()
-
     await page.goto('/#/settings')
+    await page.waitForLoadState('networkidle')
 
     await expect
       .poll(async () => await page.evaluate(() => document.documentElement.dir))

@@ -28,18 +28,14 @@ const TEST_WALLET_DATA = {
 };
 
 // 设置测试钱包
-async function setupTestWallet(page: import('@playwright/test').Page) {
-  // 先设置 localStorage
-  await page.goto('/');
-  await page.evaluate((data) => {
+async function setupTestWallet(page: import('@playwright/test').Page, targetUrl: string = '/') {
+  await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data));
   }, TEST_WALLET_DATA);
 
-  // 刷新页面并等待 store 加载
-  await page.reload();
-
-  // 等待首页钱包卡片加载（说明 store 已初始化）
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 });
+  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`;
+  await page.goto(hashUrl);
+  await page.waitForLoadState('networkidle');
 }
 
 test.describe('ClipboardService', () => {
