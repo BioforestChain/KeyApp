@@ -3,6 +3,9 @@
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/figtree';
 
+/* Stackflow Navigation */
+@import '@stackflow/plugin-basic-ui/index.css';
+
 /* 本地字体 - DM 系列 (Fontsource) */
 @import '@fontsource-variable/dm-sans';
 @import '@fontsource/dm-mono/400.css';

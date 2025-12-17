@@ -1,13 +1,12 @@
 import './polyfills'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { RouterProvider } from '@tanstack/react-router'
 import { I18nextProvider } from 'react-i18next'
 import i18n from './i18n'
-import { router } from './routes'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { preferencesActions } from './stores/preferences'
+import { StackflowApp } from './StackflowApp'
 import './styles/globals.css'
 
 const rootElement = document.getElementById('root')
@@ -20,7 +19,7 @@ createRoot(rootElement).render(
     <ServiceProvider>
       <MigrationProvider>
         <I18nextProvider i18n={i18n}>
-          <RouterProvider router={router} />
+          <StackflowApp />
         </I18nextProvider>
       </MigrationProvider>
     </ServiceProvider>
