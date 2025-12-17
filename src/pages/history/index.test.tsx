@@ -4,10 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { TransactionHistoryPage } from './index'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-// Mock router
+// Mock stackflow
 const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+const mockGoBack = vi.fn()
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock wallet store
@@ -132,8 +134,7 @@ describe('TransactionHistoryPage', () => {
       }
 
       expect(mockNavigate).toHaveBeenCalledWith({
-        to: '/transaction/$txId',
-        params: { txId: 'tx-1' },
+        to: '/transaction/tx-1',
       })
     })
 
@@ -143,7 +144,7 @@ describe('TransactionHistoryPage', () => {
       const backButton = screen.getByRole('button', { name: /返回/i })
       await userEvent.click(backButton)
 
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
+      expect(mockGoBack).toHaveBeenCalled()
     })
   })
 })

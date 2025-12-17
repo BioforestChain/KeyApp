@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import {
   CreateWalletForm,
@@ -28,7 +28,7 @@ type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-conf
  * Implements the create-flow and backup-verification per openspec changes
  */
 export function OnboardingCreatePage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('form');

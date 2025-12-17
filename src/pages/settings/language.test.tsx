@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { LanguagePage } from './language'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-// Mock router
-const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+// Mock stackflow
+const mockGoBack = vi.fn()
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: vi.fn(), goBack: mockGoBack }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock preferences store
@@ -73,7 +74,7 @@ describe('LanguagePage', () => {
 
     await userEvent.click(screen.getByText('English'))
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings' })
+    expect(mockGoBack).toHaveBeenCalledTimes(1)
   })
 
   it('shows helper text', () => {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2 } from '@tabler/icons-react';
 import { useStore } from '@tanstack/react-store';
 import { PageHeader } from '@/components/layout/page-header';
@@ -147,7 +147,7 @@ function GroupedNotificationList({
 
 /** 通知中心页面 */
 export function NotificationCenterPage() {
-  const navigate = useNavigate();
+  const { goBack } = useNavigation();
   const state = useStore(notificationStore);
 
   // 初始化加载
@@ -177,7 +177,7 @@ export function NotificationCenterPage() {
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
         title="通知中心"
-        onBack={() => navigate({ to: '/' })}
+        onBack={goBack}
         rightAction={
           state.unreadCount > 0 ? (
             <button

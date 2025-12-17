@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { ChainIcon } from '@/components/wallet/chain-icon';
@@ -29,8 +29,8 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function WalletDetailPage() {
-  const { walletId } = useParams({ from: '/wallet/$walletId' });
-  const navigate = useNavigate();
+  const { walletId } = useActivityParams<{ walletId: string }>();
+  const { goBack } = useNavigation();
   const biometric = useBiometric();
   const toast = useToast();
   const haptics = useHaptics();
@@ -68,13 +68,13 @@ export function WalletDetailPage() {
     walletActions.deleteWallet(walletId);
     await haptics.impact('warning');
     toast.show('钱包已删除');
-    navigate({ to: '/' });
+    goBack();
   };
 
   if (!wallet) {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title="钱包详情" onBack={() => navigate({ to: '/' })} />
+        <PageHeader title="钱包详情" onBack={goBack} />
         <div className="flex-1 p-4">
           <Alert variant="error">钱包不存在</Alert>
         </div>
@@ -84,7 +84,7 @@ export function WalletDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={wallet.name} onBack={() => navigate({ to: '/' })} />
+      <PageHeader title={wallet.name} onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* 钱包信息 */}

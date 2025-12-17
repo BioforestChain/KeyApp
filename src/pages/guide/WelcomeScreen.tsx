@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import {
   IconChevronRight as ArrowRight,
@@ -34,7 +34,7 @@ interface WelcomeSlide {
 
 export function WelcomeScreen() {
   const { t } = useTranslation('guide');
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const migration = useMigrationOptional();
 

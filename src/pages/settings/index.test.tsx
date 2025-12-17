@@ -7,10 +7,11 @@ import { SettingsPage } from './index';
 import { TestI18nProvider } from '@/test/i18n-mock';
 import { IconWallet as Wallet } from '@tabler/icons-react';
 
-// Mock router
+// Mock stackflow
 const mockNavigate = vi.fn();
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }));
 
 // Mock wallet store

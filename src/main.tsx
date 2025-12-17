@@ -1,28 +1,15 @@
 import './polyfills'
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { RouterProvider } from '@tanstack/react-router'
-import { I18nextProvider } from 'react-i18next'
-import i18n from './i18n'
-import { router } from './routes'
-import { ServiceProvider } from './services'
-import { MigrationProvider } from './contexts/MigrationContext'
-import { preferencesActions } from './stores/preferences'
-import './styles/globals.css'
+import { startServiceMain } from './service-main'
+import { startFrontendMain } from './frontend-main'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
 
-preferencesActions.initialize()
+const stopServiceMain = startServiceMain()
+startFrontendMain(rootElement)
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <ServiceProvider>
-      <MigrationProvider>
-        <I18nextProvider i18n={i18n}>
-          <RouterProvider router={router} />
-        </I18nextProvider>
-      </MigrationProvider>
-    </ServiceProvider>
-  </StrictMode>,
-)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    stopServiceMain()
+  })
+}

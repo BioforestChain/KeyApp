@@ -23,7 +23,7 @@
     1. 背景和文字颜色没有导致低可读性。
     2. 可以正确切换多国语言
     3. 统一的色彩语言表达
-    
+
 <!-- OPENSPEC:START -->
 
 # OpenSpec Instructions
@@ -56,12 +56,12 @@ BFM Pay 是一个现代化的多链钱包移动应用，是 mpay 的技术重构
 
 ## 核心文档（按优先级）
 
-| 文档 | 路径 | 用途 |
-|-----|------|------|
-| 产品需求 | `PDR.md` | 理解"做什么"和"为什么" - 用户故事、流程 |
-| 技术设计 | `TDD.md` | 理解"怎么做" - 技术栈、架构、代码示例 |
-| 服务接口 | `SERVICE-SPEC.md` | 链服务适配器接口规范 |
-| 原始代码 | `/Users/kzf/Dev/bioforestChain/legacy-apps/apps/mpay/` | 参考实现细节 |
+| 文档     | 路径                                                   | 用途                                    |
+| -------- | ------------------------------------------------------ | --------------------------------------- |
+| 产品需求 | `PDR.md`                                               | 理解"做什么"和"为什么" - 用户故事、流程 |
+| 技术设计 | `TDD.md`                                               | 理解"怎么做" - 技术栈、架构、代码示例   |
+| 服务接口 | `SERVICE-SPEC.md`                                      | 链服务适配器接口规范                    |
+| 原始代码 | `/Users/kzf/Dev/bioforestChain/legacy-apps/apps/mpay/` | 参考实现细节                            |
 
 ## 开发原则
 
@@ -90,6 +90,7 @@ TDD.md > PDR.md > SERVICE-SPEC.md > mpay 原始代码
 ## 开发阶段
 
 ### Phase 1: 基础设施（当前）
+
 - [ ] 项目初始化 (Vite + React 19)
 - [ ] Storybook 10.x 组件开发环境
 - [ ] Vitest 4.x 测试环境
@@ -97,48 +98,55 @@ TDD.md > PDR.md > SERVICE-SPEC.md > mpay 原始代码
 - [ ] 基础 UI 组件开发与测试
 
 ### Phase 2: 核心功能
+
 - [ ] TanStack Router 路由系统
 - [ ] TanStack Store 状态管理
 - [ ] 钱包创建/导入功能
 - [ ] 资产展示功能
 
 ### Phase 3: 交易功能
+
 - [ ] 转账功能
 - [ ] 收款功能
 - [ ] 交易历史
 
 ### Phase 4: 高级功能
+
 - [ ] 质押功能
 - [ ] DWEB/Plaoc 集成
 - [ ] 多语言支持
 
 ## 工作流程
 
-1. **开始新功能前**
+1. **创建新分支**
+   - 基于git-worktree功能在独立的文件夹里面展开工作
+2. **开始新功能前**
    - 阅读 `openspec/` 下的相关 spec
    - 检查 `openspec/changes/` 是否有进行中的变更
    - 创建 change proposal（如适用）
 
-2. **开发时**
+3. **开发时**
    - 先写 Storybook story
    - 再写 Vitest 测试
    - 最后实现组件
+   - 确定所有测试都通过了,必要时需要更新e2e截图(必须查看截图内容确保符合预期)
 
-3. **完成后**
+4. **完成后**
    - 确保所有测试通过
    - 更新 tasks.md 状态
    - 运行 `openspec validate --strict`
+   - 基于rebase合并到到main分支
 
 ## mpay 关键文件速查
 
 详见 `TDD.md` 附录 A，常用参考：
 
-| 功能 | mpay 路径 |
-|-----|----------|
-| 首页 | `pages/home/home.component.ts` |
-| 转账 | `pages/mnemonic/pages/home-transfer/` |
-| DWEB 授权 | `pages/authorize/pages/signature/` |
-| 钱包存储 | `services/expansion-tools/wallet-data-stroage.ts` |
+| 功能      | mpay 路径                                         |
+| --------- | ------------------------------------------------- |
+| 首页      | `pages/home/home.component.ts`                    |
+| 转账      | `pages/mnemonic/pages/home-transfer/`             |
+| DWEB 授权 | `pages/authorize/pages/signature/`                |
+| 钱包存储  | `services/expansion-tools/wallet-data-stroage.ts` |
 
 ## 注意事项
 

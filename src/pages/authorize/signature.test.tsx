@@ -1,14 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  RouterProvider,
-  createRouter,
-  createRootRoute,
-  createRoute,
-  createMemoryHistory,
-  Outlet,
-} from '@tanstack/react-router'
 import { TestI18nProvider } from '@/test/i18n-mock'
 import { SignatureAuthPage } from './signature'
 import { plaocAdapter } from '@/services/authorize'
@@ -24,57 +16,51 @@ vi.mock('@/lib/crypto', async () => {
   }
 })
 
-function renderWithRouter(initialEntry: string) {
-  const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-  })
+// Mock stackflow
+const mockNavigate = vi.fn()
+let mockActivityParams: Record<string, unknown> = {}
 
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: () => <div>Home</div>,
-  })
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => mockActivityParams,
+}))
 
-  const authorizeRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/authorize',
-  })
+function parseSearchParams(url: string): Record<string, string> {
+  const [, search] = url.split('?')
+  if (!search) return {}
+  const params: Record<string, string> = {}
+  for (const pair of search.split('&')) {
+    const [key, value] = pair.split('=')
+    if (key) params[key] = decodeURIComponent(value || '')
+  }
+  return params
+}
 
-  const signatureRoute = createRoute({
-    getParentRoute: () => authorizeRoute,
-    path: '/signature/$id',
-    component: SignatureAuthPage,
-    validateSearch: (search: Record<string, unknown>) => ({
-      signaturedata:
-        typeof search.signaturedata === 'string'
-          ? search.signaturedata
-          : search.signaturedata !== null && typeof search.signaturedata === 'object'
-            ? JSON.stringify(search.signaturedata)
-            : undefined,
-    }),
-  })
+function renderWithParams(initialEntry: string) {
+  const [path = ''] = initialEntry.split('?')
+  const searchParams = parseSearchParams(initialEntry)
+  
+  // Extract id from path like /authorize/signature/test-event
+  const pathMatch = path.match(/\/authorize\/signature\/([^/]+)/)
+  const id = pathMatch?.[1] || ''
+  
+  mockActivityParams = {
+    id,
+    signaturedata: searchParams.signaturedata,
+  }
 
-  const routeTree = rootRoute.addChildren([indexRoute, authorizeRoute.addChildren([signatureRoute])])
-
-  const history = createMemoryHistory({ initialEntries: [initialEntry] })
-
-  const router = createRouter({
-    routeTree,
-    history,
-  })
-
-  const result = render(
+  return render(
     <TestI18nProvider>
-      <RouterProvider router={router} />
+      <SignatureAuthPage />
     </TestI18nProvider>
   )
-
-  return { router, ...result }
 }
 
 describe('SignatureAuthPage', () => {
   beforeEach(() => {
     walletActions.clearAll()
+    mockNavigate.mockClear()
+    mockActivityParams = {}
   })
 
   afterEach(() => {
@@ -115,7 +101,7 @@ describe('SignatureAuthPage', () => {
       }])
     )
 
-    const { router } = renderWithRouter(`/authorize/signature/insufficient-balance?signaturedata=${signaturedata}`)
+    renderWithParams(`/authorize/signature/insufficient-balance?signaturedata=${signaturedata}`)
 
     await screen.findByText('Example DApp')
 
@@ -125,7 +111,7 @@ describe('SignatureAuthPage', () => {
 
     expect(respondSpy).toHaveBeenCalledWith('insufficient-balance', WALLET_PLAOC_PATH.authorizeSignature, null)
     expect(removeSpy).toHaveBeenCalledWith('insufficient-balance')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('verifies password before signing when balance is sufficient', async () => {
@@ -160,7 +146,7 @@ describe('SignatureAuthPage', () => {
       }])
     )
 
-    const { router } = renderWithRouter(`/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
+    renderWithParams(`/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
 
     await screen.findByText('Example DApp')
 
@@ -182,24 +168,24 @@ describe('SignatureAuthPage', () => {
     })
 
     expect(removeSpy).toHaveBeenCalledWith('sufficient-balance')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('shows error when signaturedata is invalid JSON', async () => {
-    const { router } = renderWithRouter('/authorize/signature/e1?signaturedata=not-json')
+    renderWithParams('/authorize/signature/e1?signaturedata=not-json')
 
     expect(await screen.findByText('signaturedata 不是合法的 JSON')).toBeInTheDocument()
     await userEvent.click(screen.getByText('返回'))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
   it('shows error when signaturedata is empty array', async () => {
     const signaturedata = encodeURIComponent(JSON.stringify([]))
-    const { router } = renderWithRouter(`/authorize/signature/e1?signaturedata=${signaturedata}`)
+    renderWithParams(`/authorize/signature/e1?signaturedata=${signaturedata}`)
 
     expect(await screen.findByText('signaturedata 不能为空数组')).toBeInTheDocument()
     await userEvent.click(screen.getByText('返回'))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
   it('uses signaturedata[0] when signaturedata contains multiple requests', async () => {
@@ -219,7 +205,7 @@ describe('SignatureAuthPage', () => {
         { type: 'message', chainName: 'ethereum', senderAddress: '0x1', message: 'message-b' },
       ])
     )
-    const { router } = renderWithRouter(`/authorize/signature/e1?signaturedata=${signaturedata}`)
+    renderWithParams(`/authorize/signature/e1?signaturedata=${signaturedata}`)
 
     expect(await screen.findByText('message-a')).toBeInTheDocument()
     expect(screen.queryByText('message-b')).not.toBeInTheDocument()
@@ -228,6 +214,6 @@ describe('SignatureAuthPage', () => {
 
     expect(respondSpy).toHaveBeenCalledWith('e1', WALLET_PLAOC_PATH.authorizeSignature, null)
     expect(removeSpy).toHaveBeenCalledWith('e1')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 })

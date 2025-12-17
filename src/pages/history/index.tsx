@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -28,7 +28,7 @@ const PERIOD_OPTIONS: { value: TransactionFilter['period']; label: string }[] = 
 ];
 
 export function TransactionHistoryPage() {
-  const navigate = useNavigate();
+  const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const { t } = useTranslation();
   const { transactions, isLoading, filter, setFilter, refresh } = useTransactionHistory(currentWallet?.id);
@@ -36,7 +36,7 @@ export function TransactionHistoryPage() {
   // 处理交易点击 - 导航到详情页
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
-      navigate({ to: '/transaction/$txId', params: { txId: tx.id } });
+      navigate({ to: `/transaction/${tx.id}` });
     },
     [navigate],
   );
@@ -61,7 +61,7 @@ export function TransactionHistoryPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="交易记录" onBack={() => navigate({ to: '/' })} />
+        <PageHeader title="交易记录" onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">请先创建或导入钱包</p>
         </div>
@@ -73,7 +73,7 @@ export function TransactionHistoryPage() {
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
         title="交易记录"
-        onBack={() => navigate({ to: '/' })}
+        onBack={goBack}
         rightAction={
           <button
             onClick={refresh}

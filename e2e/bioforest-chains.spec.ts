@@ -34,19 +34,19 @@ const TEST_WALLET_WITH_BIOFOREST = {
   selectedChain: 'ethereum',
 }
 
-async function setupBioforestWallet(page: import('@playwright/test').Page) {
-  await page.goto('/')
-  await page.evaluate((data) => {
+async function setupBioforestWallet(page: import('@playwright/test').Page, targetUrl: string = '/') {
+  await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data))
   }, TEST_WALLET_WITH_BIOFOREST)
-  await page.reload()
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+  
+  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`
+  await page.goto(hashUrl)
+  await page.waitForLoadState('networkidle')
 }
 
 test.describe('BioForest 链功能', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('切换到 BFMeta 链显示正确地址', async ({ page }) => {
@@ -129,9 +129,9 @@ test.describe('BioForest 链功能', () => {
     await page.click('text=BFMeta')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
-    // 导航到发送页面
+    // 导航到发送页面 (Stackflow hash 路由)
     await page.click('text=转账')
-    await page.waitForURL('**/send')
+    await page.waitForSelector('h1:has-text("发送")')
 
     // 验证显示 BFMeta 链信息（使用更精确的选择器避免匹配提示文本）
     await expect(page.locator('.text-sm.font-medium:has-text("BFMeta")')).toBeVisible()
@@ -146,9 +146,9 @@ test.describe('BioForest 链功能', () => {
     await page.click('text=BFMeta')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
-    // 导航到收款页面
+    // 导航到收款页面 (Stackflow hash 路由)
     await page.click('text=收款')
-    await page.waitForURL('**/receive')
+    await page.waitForSelector('h1:has-text("收款")')
 
     // 验证显示的地址以 'b' 开头（生产默认 bnid）
     await expect(page.getByRole('button', { name: /^复制\s*b[1-9A-HJ-NP-Za-km-z]+$/ })).toBeVisible()
@@ -194,12 +194,13 @@ test.describe('BioForest 链地址派生', () => {
     'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
   test('导入钱包后 BioForest 地址格式正确', async ({ page }) => {
+    // 清除数据并从首页导航
+    await page.addInitScript(() => localStorage.clear())
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    await page.waitForLoadState('networkidle')
 
-    // 导入钱包
-    await page.goto('/#/wallet/import')
+    // 点击导入钱包按钮 (Stackflow 需要从首页导航)
+    await page.click('text=导入已有钱包')
     await page.waitForSelector('text=输入助记词')
 
     // 填写助记词
@@ -215,8 +216,8 @@ test.describe('BioForest 链地址派生', () => {
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("完成导入")')
 
-    await page.waitForURL('**/#/')
-    await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+    await page.waitForURL(/.*#\/$/)
+    await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
     // 验证 BioForest 地址派生
     const walletData = await page.evaluate(() => {

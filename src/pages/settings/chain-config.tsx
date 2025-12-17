@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle as AlertTriangle,
@@ -79,7 +79,7 @@ function indexWarnings(warnings: readonly ChainConfigWarning[]): Map<string, Cha
 }
 
 export function ChainConfigPage() {
-  const navigate = useNavigate();
+  const { goBack } = useNavigation();
   const { t } = useTranslation('settings');
   const toast = useToast();
 
@@ -175,7 +175,7 @@ export function ChainConfigPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title={t('chainConfig.title')} onBack={() => navigate({ to: '/settings' })} />
+      <PageHeader title={t('chainConfig.title')} onBack={goBack} />
 
       <div className="flex-1 space-y-4 p-4">
         <AlertDialog

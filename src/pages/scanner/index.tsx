@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +26,7 @@ const SCAN_INTERVAL = 150;
 
 export function ScannerPage({ onScan, className }: ScannerPageProps) {
   const { t } = useTranslation('scanner');
-  const navigate = useNavigate();
+  const { navigate, goBack } = useNavigation();
   const cameraService = useCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -156,8 +156,8 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
   // Handle back navigation
   const handleBack = useCallback(() => {
     stopCamera();
-    navigate({ to: '/' });
-  }, [stopCamera, navigate]);
+    goBack();
+  }, [stopCamera, goBack]);
 
   // Handle gallery import
   const handleGalleryImport = useCallback(() => {

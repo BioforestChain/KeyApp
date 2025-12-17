@@ -19,6 +19,24 @@ export interface RouterLike {
   navigate: (opts: { to: string; search?: Record<string, unknown> }) => void
 }
 
+function buildTypedAuthorizeHash(parsed: AuthorizeDeepLink): string {
+  if (parsed.kind === 'address') {
+    const searchParams = new URLSearchParams()
+    searchParams.set('type', parsed.type)
+    if (parsed.chainName !== undefined) searchParams.set('chainName', parsed.chainName)
+    if (parsed.signMessage !== undefined) searchParams.set('signMessage', parsed.signMessage)
+    if (parsed.getMain !== undefined) searchParams.set('getMain', parsed.getMain)
+
+    const qs = searchParams.toString()
+    return `#/authorize/address/${encodeURIComponent(parsed.eventId)}${qs ? `?${qs}` : ''}`
+  }
+
+  const searchParams = new URLSearchParams()
+  if (parsed.signaturedata !== undefined) searchParams.set('signaturedata', parsed.signaturedata)
+  const qs = searchParams.toString()
+  return `#/authorize/signature/${encodeURIComponent(parsed.eventId)}${qs ? `?${qs}` : ''}`
+}
+
 function parseAddressAuthType(value: string | null): AddressAuthType | null {
   if (value === 'main' || value === 'network' || value === 'all') return value
   return null
@@ -123,6 +141,32 @@ export function installAuthorizeDeepLinkListener(router: RouterLike): () => void
 
   // Initial pass (app cold start with deep link).
   onHashChange()
+
+  window.addEventListener('hashchange', onHashChange)
+  return () => {
+    window.removeEventListener('hashchange', onHashChange)
+  }
+}
+
+export function rewriteLegacyAuthorizeHashInPlace(hash: string = window.location.hash): boolean {
+  const parsed = parseLegacyAuthorizeHash(hash)
+  if (!parsed) return false
+
+  const nextHash = buildTypedAuthorizeHash(parsed)
+  if (nextHash === window.location.hash) return false
+
+  const { pathname, search } = window.location
+  window.history.replaceState(window.history.state, '', `${pathname}${search}${nextHash}`)
+  return true
+}
+
+export function installLegacyAuthorizeHashRewriter(options: { reloadOnRewrite: boolean }): () => void {
+  const onHashChange = () => {
+    const rewritten = rewriteLegacyAuthorizeHashInPlace(window.location.hash)
+    if (rewritten && options.reloadOnRewrite) {
+      window.location.reload()
+    }
+  }
 
   window.addEventListener('hashchange', onHashChange)
   return () => {

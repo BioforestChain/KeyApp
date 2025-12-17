@@ -28,22 +28,21 @@ const TEST_WALLET_DATA = {
 }
 
 // 辅助函数：设置测试钱包并设置英文语言
-async function setupTestWallet(page: import('@playwright/test').Page) {
-  await page.goto('/')
-  await page.evaluate((data) => {
+async function setupTestWallet(page: import('@playwright/test').Page, targetUrl: string = '/') {
+  await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data))
     // 设置英文语言以确保测试一致性
     localStorage.setItem('bfm_preferences', JSON.stringify({ language: 'en', currency: 'USD' }))
   }, TEST_WALLET_DATA)
-  await page.reload()
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+  
+  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`
+  await page.goto(hashUrl)
+  await page.waitForLoadState('networkidle')
 }
 
 test.describe('质押页面 - 截图测试', () => {
   test('质押概览页面截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 等待页面标题加载
     await page.waitForSelector('h1', { timeout: 10000 })
@@ -52,9 +51,7 @@ test.describe('质押页面 - 截图测试', () => {
   })
 
   test('质押 Mint 页面截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 点击第二个标签（Mint）
     const tabs = page.locator('.border-b button')
@@ -67,9 +64,7 @@ test.describe('质押页面 - 截图测试', () => {
   })
 
   test('质押 Burn 页面截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 点击第三个标签（Burn）
     const tabs = page.locator('.border-b button')
@@ -82,9 +77,7 @@ test.describe('质押页面 - 截图测试', () => {
   })
 
   test('质押历史页面截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 点击第四个标签（History）
     const tabs = page.locator('.border-b button')
@@ -99,9 +92,7 @@ test.describe('质押页面 - 截图测试', () => {
 
 test.describe('质押页面 - 功能测试', () => {
   test('标签切换功能', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     const tabs = page.locator('.border-b button')
 
@@ -126,9 +117,7 @@ test.describe('质押页面 - 功能测试', () => {
   })
 
   test('Mint 表单 - 金额输入', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 切换到 Mint 标签
     const tabs = page.locator('.border-b button')
@@ -150,9 +139,7 @@ test.describe('质押页面 - 功能测试', () => {
   })
 
   test('Mint 表单 - 余额不足验证', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/staking')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/staking')
 
     // 切换到 Mint 标签
     const tabs = page.locator('.border-b button')

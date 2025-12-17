@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { ViewMnemonicPage } from './view-mnemonic'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-// Mock router
-const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+// Mock stackflow
+const mockGoBack = vi.fn()
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: vi.fn(), goBack: mockGoBack }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock crypto decrypt
@@ -124,7 +125,7 @@ describe('ViewMnemonicPage', () => {
 
       await userEvent.click(screen.getByText('取消'))
 
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/settings' })
+      expect(mockGoBack).toHaveBeenCalledTimes(1)
     })
   })
 

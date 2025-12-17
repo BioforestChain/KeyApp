@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRouter } from '@tanstack/react-router'
+import { useNavigation } from '@/stackflow'
 import { PageHeader } from '@/components/layout/page-header'
 import { cn } from '@/lib/utils'
 import { StakingOverviewPanel, MintForm, BurnForm, StakingRecordList } from './components'
@@ -16,7 +16,7 @@ type StakingTab = 'overview' | 'mint' | 'burn' | 'history'
 /** Staking page with tab navigation */
 export function StakingPage() {
   const { t } = useTranslation('staking')
-  const router = useRouter()
+  const { goBack } = useNavigation()
   const [activeTab, setActiveTab] = useState<StakingTab>('overview')
 
   const tabs: { id: StakingTab; label: string }[] = [
@@ -34,7 +34,7 @@ export function StakingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <PageHeader title={t('title')} onBack={() => router.history.back()} />
+      <PageHeader title={t('title')} onBack={goBack} />
 
       {/* Tab Navigation */}
       <div className="flex border-b border-border px-4">

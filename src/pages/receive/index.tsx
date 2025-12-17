@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AddressQRCode } from '@/components/common/qr-code';
@@ -27,7 +27,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
-  const navigate = useNavigate();
+  const { goBack } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
@@ -65,7 +65,7 @@ export function ReceivePage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="收款" onBack={() => navigate({ to: '/' })} />
+      <PageHeader title="收款" onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* 链信息 */}

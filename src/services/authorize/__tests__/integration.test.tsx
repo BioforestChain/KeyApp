@@ -1,15 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  RouterProvider,
-  createRouter,
-  createRootRoute,
-  createRoute,
-  createMemoryHistory,
-  Outlet,
-} from '@tanstack/react-router'
-import { AppLayout } from '@/components/layout/app-layout'
 import { TestI18nProvider } from '@/test/i18n-mock'
 import { AddressAuthPage } from '@/pages/authorize/address'
 import { SignatureAuthPage } from '@/pages/authorize/signature'
@@ -25,65 +16,57 @@ const EXAMPLE_APP = {
   origin: 'https://example.app',
 } as const
 
-function renderAuthorizeApp(initialEntry = '/') {
-  const rootRoute = createRootRoute({
-    component: () => (
-      <AppLayout>
-        <Outlet />
-      </AppLayout>
-    ),
-  })
+// Mock stackflow
+const mockNavigate = vi.fn()
+let mockActivityParams: Record<string, unknown> = {}
 
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: () => <div>Home</div>,
-  })
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => mockActivityParams,
+}))
 
-  const authorizeRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/authorize',
-  })
+function parseHash(hash: string): { path: string; params: Record<string, string> } {
+  const cleanHash = hash.replace(/^#/, '')
+  const [path = '', search] = cleanHash.split('?')
+  const params: Record<string, string> = {}
+  if (search) {
+    for (const pair of search.split('&')) {
+      const [key, value] = pair.split('=')
+      if (key) params[key] = decodeURIComponent(value || '')
+    }
+  }
+  return { path, params }
+}
 
-  const authorizeAddressRoute = createRoute({
-    getParentRoute: () => authorizeRoute,
-    path: '/address/$id',
-    component: AddressAuthPage,
-    validateSearch: (search: Record<string, unknown>) => ({
-      type:
-        search.type === 'main' || search.type === 'network' || search.type === 'all'
-          ? search.type
-          : 'main',
-      chainName: typeof search.chainName === 'string' ? search.chainName : undefined,
-      signMessage: typeof search.signMessage === 'string' ? search.signMessage : undefined,
-      getMain: typeof search.getMain === 'string' ? search.getMain : undefined,
-    }),
-  })
-
-  const authorizeSignatureRoute = createRoute({
-    getParentRoute: () => authorizeRoute,
-    path: '/signature/$id',
-    component: SignatureAuthPage,
-    validateSearch: (search: Record<string, unknown>) => ({
-      signaturedata: typeof search.signaturedata === 'string' ? search.signaturedata : undefined,
-    }),
-  })
-
-  const routeTree = rootRoute.addChildren([
-    indexRoute,
-    authorizeRoute.addChildren([authorizeAddressRoute, authorizeSignatureRoute]),
-  ])
-
-  const history = createMemoryHistory({ initialEntries: [initialEntry] })
-  const router = createRouter({ routeTree, history })
-
-  const result = render(
-    <TestI18nProvider>
-      <RouterProvider router={router} />
-    </TestI18nProvider>
-  )
-
-  return { router, ...result }
+function renderAuthorizeApp(hash: string) {
+  const { path, params } = parseHash(hash)
+  
+  if (path.includes('/authorize/address')) {
+    mockActivityParams = {
+      id: params.eventId || '',
+      type: params.type || 'main',
+      chainName: params.chainName,
+      signMessage: params.signMessage,
+      getMain: params.getMain,
+    }
+    return render(
+      <TestI18nProvider>
+        <AddressAuthPage />
+      </TestI18nProvider>
+    )
+  } else if (path.includes('/authorize/signature')) {
+    mockActivityParams = {
+      id: params.eventId || '',
+      signaturedata: params.signaturedata,
+    }
+    return render(
+      <TestI18nProvider>
+        <SignatureAuthPage />
+      </TestI18nProvider>
+    )
+  }
+  
+  return render(<div>Unknown route</div>)
 }
 
 function assertTimeoutHandler(handler: unknown): asserts handler is () => void {
@@ -95,8 +78,9 @@ describe('authorize integration (mock-first)', () => {
     await act(() => {
       walletActions.clearAll()
     })
+    mockNavigate.mockClear()
+    mockActivityParams = {}
     window.location.hash = ''
-    // Allow React state to settle after cleanup
     await waitFor(() => {})
   })
 
@@ -105,7 +89,6 @@ describe('authorize integration (mock-first)', () => {
       walletActions.clearAll()
     })
     window.location.hash = ''
-    // Allow React state to settle after cleanup
     await waitFor(() => {})
     vi.clearAllMocks()
     vi.restoreAllMocks()
@@ -126,8 +109,7 @@ describe('authorize integration (mock-first)', () => {
       })
     })
 
-    window.location.hash = '#/authorize/address?eventId=evt-addr&type=main'
-    const { router } = renderAuthorizeApp()
+    renderAuthorizeApp('#/authorize/address?eventId=evt-addr&type=main')
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
 
@@ -139,7 +121,7 @@ describe('authorize integration (mock-first)', () => {
       expect.any(Array)
     )
     expect(removeSpy).toHaveBeenCalledWith('evt-addr')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('deep-links legacy signature authorize and signs after password confirmation', async () => {
@@ -170,8 +152,7 @@ describe('authorize integration (mock-first)', () => {
         },
       ])
     )
-    window.location.hash = `#/authorize/signature?eventId=sufficient-balance&signaturedata=${signaturedata}`
-    const { router } = renderAuthorizeApp()
+    renderAuthorizeApp(`#/authorize/signature?eventId=sufficient-balance&signaturedata=${signaturedata}`)
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
 
@@ -190,7 +171,7 @@ describe('authorize integration (mock-first)', () => {
       )
     })
     expect(removeSpy).toHaveBeenCalledWith('sufficient-balance')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('responds rejected when user rejects address authorize', async () => {
@@ -207,15 +188,14 @@ describe('authorize integration (mock-first)', () => {
       })
     })
 
-    window.location.hash = '#/authorize/address?eventId=evt-reject&type=main'
-    const { router } = renderAuthorizeApp()
+    renderAuthorizeApp('#/authorize/address?eventId=evt-reject&type=main')
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
     expect(respondSpy).toHaveBeenCalledWith('evt-reject', WALLET_PLAOC_PATH.authorizeAddress, null)
     expect(removeSpy).toHaveBeenCalledWith('evt-reject')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('responds timeout when request exceeds deadline', async () => {
@@ -234,8 +214,7 @@ describe('authorize integration (mock-first)', () => {
       })
     })
 
-    window.location.hash = '#/authorize/address?eventId=evt-timeout&type=main'
-    const { router } = renderAuthorizeApp()
+    renderAuthorizeApp('#/authorize/address?eventId=evt-timeout&type=main')
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
 
@@ -250,14 +229,13 @@ describe('authorize integration (mock-first)', () => {
       expect(respondSpy).toHaveBeenCalledWith('evt-timeout', WALLET_PLAOC_PATH.authorizeAddress, null)
     })
     expect(removeSpy).toHaveBeenCalledWith('evt-timeout')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
   it('shows error state on invalid authorize request', async () => {
     vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockRejectedValue(new Error('invalid_event'))
 
-    window.location.hash = '#/authorize/address?eventId=evt-invalid&type=main'
-    renderAuthorizeApp()
+    renderAuthorizeApp('#/authorize/address?eventId=evt-invalid&type=main')
 
     expect(await screen.findByText('授权失败')).toBeInTheDocument()
     const backButtons = screen.getAllByRole('button', { name: '返回' })

@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useLanguage, preferencesActions, languages, type LanguageCode } from '@/stores';
@@ -13,18 +13,17 @@ const LANGUAGE_DISPLAY: Record<LanguageCode, string> = {
 };
 
 export function LanguagePage() {
-  const navigate = useNavigate();
+  const { goBack } = useNavigation();
   const currentLanguage = useLanguage();
 
   const handleSelect = (lang: LanguageCode) => {
     preferencesActions.setLanguage(lang);
-    // 返回设置页
-    navigate({ to: '/settings' });
+    goBack();
   };
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="语言" onBack={() => navigate({ to: '/settings' })} />
+      <PageHeader title="语言" onBack={goBack} />
 
       <div className="flex-1 p-4">
         <div className="bg-card overflow-hidden rounded-xl shadow-sm">
