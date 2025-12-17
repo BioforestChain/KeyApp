@@ -61,19 +61,17 @@ const SIGNATURE_DATA = {
   }]),
 }
 
-async function setupTestWallet(page: import('@playwright/test').Page) {
-  await page.goto('/')
-  await page.evaluate((data) => {
+async function injectTestWallet(page: import('@playwright/test').Page) {
+  // Use addInitScript to inject localStorage BEFORE the page loads.
+  await page.addInitScript((data) => {
     localStorage.clear()
     localStorage.setItem('bfm_wallets', JSON.stringify(data))
   }, TEST_WALLET_DATA)
-  await page.reload()
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 }
 
 test.describe('DWEB 授权 - 截图测试', () => {
   test.beforeEach(async ({ page }) => {
-    await setupTestWallet(page)
+    await injectTestWallet(page)
   })
 
   test('地址授权页面', async ({ page }) => {

@@ -26,9 +26,7 @@ async function fillMnemonic(page: import('@playwright/test').Page, words: string
 
 test.describe('钱包导入流程 - 功能测试', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('12 词助记词导入成功', async ({ page }) => {

@@ -29,8 +29,7 @@ const TEST_MNEMONIC_12 =
 const TEST_MNEMONIC_12_WORDS = TEST_MNEMONIC_12.split(' ')
 
 async function resetLocalState(page: import('@playwright/test').Page) {
-  await page.goto('/')
-  await page.evaluate(async () => {
+  await page.addInitScript(async () => {
     localStorage.clear()
     await new Promise<void>((resolve) => {
       const request = indexedDB.deleteDatabase('bfm_chain_config')
@@ -39,7 +38,6 @@ async function resetLocalState(page: import('@playwright/test').Page) {
       request.onblocked = () => resolve()
     })
   })
-  await page.reload()
 }
 
 async function fillMnemonic(page: import('@playwright/test').Page, words: readonly string[]) {

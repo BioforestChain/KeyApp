@@ -38,16 +38,17 @@ async function waitForAppReady(page: Page) {
 }
 
 // 辅助函数：在页面加载前注入钱包数据
-async function setupTestWallet(page: Page) {
-  // 先访问页面设置 localStorage
-  await page.goto('/')
-  await page.evaluate((data) => {
+async function setupTestWallet(page: Page, targetUrl: string = '/') {
+  // Use addInitScript to inject localStorage BEFORE the page loads.
+  // This ensures Stackflow reads wallet data on initial activity construction.
+  await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data))
   }, TEST_WALLET_DATA)
-  // 刷新页面让 store 读取数据
-  await page.reload()
-  // 等待钱包卡片加载
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+  
+  // Navigate directly to target URL with hash routing
+  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`
+  await page.goto(hashUrl)
+  await page.waitForLoadState('networkidle')
 }
 
 test.describe('首页', () => {
@@ -99,9 +100,7 @@ test.describe('首页', () => {
 
 test.describe('收款页面', () => {
   test('收款页面截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/receive')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/receive')
     await waitForAppReady(page)
     
     await expect(page).toHaveScreenshot('receive-page.png', {
@@ -113,18 +112,19 @@ test.describe('收款页面', () => {
 
 test.describe('发送页面', () => {
   test('发送页面 - 空状态', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/send')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/send')
     await waitForAppReady(page)
+    // Verify we are on the Send page (PageHeader title)
+    await expect(page.locator('h1:has-text("发送")')).toBeVisible({ timeout: 10000 })
 
     await expect(page).toHaveScreenshot('send-empty.png')
   })
 
   test('发送页面 - 填写表单', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/send')
-    await page.waitForSelector('text=发送')
+    await setupTestWallet(page, '/send')
+    await waitForAppReady(page)
+    // Verify we are on the Send page (PageHeader title)
+    await expect(page.locator('h1:has-text("发送")')).toBeVisible({ timeout: 10000 })
 
     // 使用 placeholder 属性选择器（SendPage 使用动态 placeholder）
     const addressInput = page.locator('input[placeholder*="地址"]')
@@ -181,9 +181,7 @@ test.describe('发送页面', () => {
 
 test.describe('代币详情页面', () => {
   test('代币详情截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/token/usdt')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/token/usdt')
     await waitForAppReady(page)
     
     await expect(page).toHaveScreenshot('token-detail.png')
@@ -192,9 +190,7 @@ test.describe('代币详情页面', () => {
 
 test.describe('钱包详情页面', () => {
   test('钱包详情截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/wallet/test-wallet-1')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/wallet/test-wallet-1')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('wallet-detail.png', {
@@ -205,36 +201,28 @@ test.describe('钱包详情页面', () => {
 
 test.describe('设置页面', () => {
   test('设置主页截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/settings')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/settings')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-main.png')
   })
 
   test('链配置截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/settings/chains')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/settings/chains')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-chains.png')
   })
 
   test('语言设置截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/settings/language')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/settings/language')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-language.png')
   })
 
   test('货币设置截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/settings/currency')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/settings/currency')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('settings-currency.png')
@@ -243,9 +231,7 @@ test.describe('设置页面', () => {
 
 test.describe('交易历史页面', () => {
   test('历史页面截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/history')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/history')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('history-empty.png')
@@ -254,9 +240,7 @@ test.describe('交易历史页面', () => {
 
 test.describe('通知页面', () => {
   test('通知中心截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/notifications')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/notifications')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('notifications-empty.png')
@@ -265,9 +249,7 @@ test.describe('通知页面', () => {
 
 test.describe('地址簿页面', () => {
   test('地址簿截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/address-book')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/address-book')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('address-book-empty.png')
@@ -276,9 +258,7 @@ test.describe('地址簿页面', () => {
 
 test.describe('钱包列表页面', () => {
   test('钱包列表截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await page.goto('/#/wallet/list')
-    await page.waitForLoadState('networkidle')
+    await setupTestWallet(page, '/wallet/list')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('wallet-list.png', {

@@ -21,8 +21,7 @@ const MANUAL_CHAIN = {
 }
 
 async function resetLocalState(page: Page) {
-  await page.goto('/')
-  await page.evaluate(async () => {
+  await page.addInitScript(async () => {
     localStorage.clear()
     await new Promise<void>((resolve) => {
       const request = indexedDB.deleteDatabase('bfm_chain_config')
@@ -31,7 +30,6 @@ async function resetLocalState(page: Page) {
       request.onblocked = () => resolve()
     })
   })
-  await page.reload()
 }
 
 async function addManualBioforestChain(page: Page) {

@@ -34,19 +34,19 @@ const TEST_WALLET_WITH_BIOFOREST = {
   selectedChain: 'ethereum',
 }
 
-async function setupBioforestWallet(page: import('@playwright/test').Page) {
-  await page.goto('/')
-  await page.evaluate((data) => {
+async function setupBioforestWallet(page: import('@playwright/test').Page, targetUrl: string = '/') {
+  await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data))
   }, TEST_WALLET_WITH_BIOFOREST)
-  await page.reload()
-  await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+  
+  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`
+  await page.goto(hashUrl)
+  await page.waitForLoadState('networkidle')
 }
 
 test.describe('BioForest 链功能', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('切换到 BFMeta 链显示正确地址', async ({ page }) => {

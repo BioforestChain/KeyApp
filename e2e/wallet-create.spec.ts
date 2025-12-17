@@ -11,9 +11,7 @@ import { test, expect } from '@playwright/test'
 test.describe('钱包创建流程 - 截图测试', () => {
   test.beforeEach(async ({ page }) => {
     // 清除本地存储，确保干净状态
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('完整创建流程 - 截图对比', async ({ page }) => {
@@ -73,9 +71,7 @@ test.describe('钱包创建流程 - 截图测试', () => {
 
 test.describe('钱包创建流程 - 功能测试', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('完整创建流程 - 验证钱包已创建', async ({ page }) => {
@@ -315,9 +311,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
 test.describe('钱包导入流程 - 截图测试', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    await page.addInitScript(() => localStorage.clear())
   })
 
   test('导入页面截图', async ({ page }) => {
