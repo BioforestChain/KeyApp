@@ -91,7 +91,10 @@ test.describe('Chain-config subscription', () => {
     await expect(page.getByText('BF Sub', { exact: true })).toBeVisible()
 
     // Import wallet should derive the subscription bioforest chain address
-    await page.goto('/#/wallet/import')
+    // Stackflow 需要从首页导航
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.click('text=导入已有钱包')
     await page.waitForSelector('text=输入助记词')
 
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
@@ -102,7 +105,7 @@ test.describe('Chain-config subscription', () => {
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("完成导入")')
 
-    await page.waitForURL(/\/#?\/?$/)
+    await page.waitForURL(/.*#\/$/)
 
     const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
     expect(walletData).not.toBeNull()

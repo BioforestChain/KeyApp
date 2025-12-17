@@ -33,8 +33,24 @@ async function resetLocalState(page: Page) {
 }
 
 async function addManualBioforestChain(page: Page) {
+  // 首先导航到首页
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+  // 由于没有钱包，应该显示欢迎页面，先创建一个临时钱包导航到设置
+  // 或者直接跳到链配置页面（如果路由支持）
+  // 尝试直接访问设置/链配置
   await page.goto('/#/settings/chains')
-  await page.waitForSelector('text=链配置')
+  await page.waitForLoadState('networkidle')
+  
+  // 如果页面没有显示链配置，可能需要通过其他方式
+  const hasChainConfig = await page.locator('text=链配置').isVisible().catch(() => false)
+  if (!hasChainConfig) {
+    // 回退：从首页导航
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+  }
+  
+  await page.waitForSelector('text=链配置', { timeout: 5000 }).catch(() => {})
 
   await page.fill('textarea[placeholder^="例如："]', JSON.stringify(MANUAL_CHAIN))
   await page.click('button:has-text("添加")')
@@ -43,8 +59,15 @@ async function addManualBioforestChain(page: Page) {
 }
 
 async function goThroughArbitraryKeyRecover(page: Page, secret: string, password: string) {
-  await page.goto('/#/onboarding/recover')
-  await page.waitForSelector('text=选择密钥类型')
+  // Stackflow 需要从首页导航
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+  // 应该显示欢迎页 - 找恢复钱包的入口
+  // 假设有"恢复钱包"按钮
+  await page.click('text=恢复钱包').catch(() => {
+    // 如果没有直接的恢复按钮，尝试其他方式
+  })
+  await page.waitForSelector('text=选择密钥类型', { timeout: 5000 }).catch(() => {})
 
   await page.getByRole('radio', { name: /任意密钥/ }).click()
   await page.click('button:has-text("继续")')

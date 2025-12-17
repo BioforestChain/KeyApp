@@ -22,8 +22,7 @@ test.describe('钱包创建流程 - 截图测试', () => {
 
     // 2. 点击创建钱包
     await page.click('text=创建新钱包')
-    await page.waitForURL('**/wallet/create')
-    // 等待密码设置页面内容加载
+    // Stackflow 使用 hash 路由，等待密码页面加载即可
     await page.waitForSelector('text=设置密码')
     await expect(page).toHaveScreenshot('02-create-password-step.png')
 
@@ -79,9 +78,8 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.click('text=创建新钱包')
-    await page.waitForURL('**/wallet/create')
 
-    // 2. 填写密码步骤
+    // 2. 填写密码步骤 (Stackflow hash 路由，直接等待内容)
     await page.waitForSelector('text=设置密码')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
@@ -142,8 +140,9 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await completeBtn.click()
 
     // 6. 验证跳转到首页且钱包已创建
-    await page.waitForURL('**/#/')
-    await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+    await page.waitForURL(/.*#\/$/)
+    // HomeTab 的 chain-selector 可见
+    await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
     // 验证 localStorage 中有钱包数据
     const walletData = await page.evaluate(() => {
@@ -176,8 +175,10 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.click('button:has-text("添加")')
     await expect(page.getByText('BF Demo', { exact: true })).toBeVisible()
 
-    // 快速创建钱包流程
-    await page.goto('/#/wallet/create')
+    // 快速创建钱包流程 - Stackflow 需要从首页导航
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.click('text=创建新钱包')
     await page.waitForSelector('text=设置密码')
 
     // 密码步骤
@@ -216,7 +217,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     }
 
     await page.click('button:has-text("完成创建")')
-    await page.waitForURL('**/#/')
+    await page.waitForURL(/.*#\/$/)
 
     // 验证多链地址派生
     const walletData = await page.evaluate(() => {

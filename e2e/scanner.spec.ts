@@ -99,7 +99,7 @@ test.describe('Scanner 集成', () => {
     // 点击 FAB
     await page.getByLabel('扫描二维码').click()
 
-    // 应该导航到扫描页
-    await expect(page).toHaveURL('/#/scanner')
+    // 应该导航到扫描页 (Stackflow 可能添加尾部斜杠)
+    await expect(page).toHaveURL(/.*#\/scanner\/?$/)
   })
 })

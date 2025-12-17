@@ -55,9 +55,9 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await expect(completeBtn).toBeEnabled()
     await completeBtn.click()
 
-    // 验证跳转到首页
-    await page.waitForURL(/\/#?\/?$/)
-    await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+    // 验证跳转到首页 (Stackflow hash 路由: /#/)
+    await page.waitForURL(/.*#\/$/)
+    await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
     // 验证钱包已创建
     const walletData = await page.evaluate(() => {
@@ -103,7 +103,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
     // 完成导入
     await page.click('button:has-text("完成导入")')
-    await page.waitForURL(/\/#?\/?$/)
+    await page.waitForURL(/.*#\/$/)
 
     // 验证钱包已创建
     const walletData = await page.evaluate(() => {
@@ -127,7 +127,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
     await page.click('button:has-text("完成导入")')
 
-    await page.waitForURL(/\/#?\/?$/)
+    await page.waitForURL(/.*#\/$/)
 
     // 验证多链地址派生
     const walletData = await page.evaluate(() => {
@@ -293,11 +293,11 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.click('button:has-text("完成导入")')
 
     // 等待跳转到首页
-    await page.waitForURL(/\/#?\/?$/)
-    await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
+    await page.waitForURL(/.*#\/$/)
+    await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
-    // 验证钱包名称显示
-    await expect(page.locator('text=导入钱包')).toBeVisible()
+    // 验证钱包名称显示 (HomeTab 上的标题)
+    await expect(page.locator('h1:has-text("导入钱包")').first()).toBeVisible()
 
     // 验证可以切换链
     await page.click('[data-testid="chain-selector"]')
