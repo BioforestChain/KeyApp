@@ -4,38 +4,50 @@ import type { DefaultTheme } from 'vitepress'
 
 type SidebarItem = DefaultTheme.SidebarItem
 
-interface DirMeta {
+interface FileMeta {
   order: number
   name: string
+  isDir: boolean
   collapsed?: boolean
 }
 
 /**
- * 从目录名解析排序和显示名称
+ * 从文件/目录名解析排序和显示名称
  * 例如: "01-产品篇" -> { order: 1, name: "产品篇" }
- * 例如: "附录" -> { order: 999, name: "附录" }
+ * 例如: "Button.md" -> { order: 500, name: "Button" }
  */
-function parseDirName(dirName: string): DirMeta {
-  const match = dirName.match(/^(\d+)-(.+)$/)
+function parseFileName(fileName: string, isDir: boolean): FileMeta {
+  // 移除 .md 扩展名
+  const baseName = fileName.replace(/\.md$/, '')
+  
+  const match = baseName.match(/^(\d+)-(.+)$/)
   if (match) {
     return {
       order: parseInt(match[1], 10),
       name: match[2],
+      isDir,
     }
   }
+  
   // 特殊处理：附录放最后
-  if (dirName === '附录') {
-    return { order: 999, name: '附录', collapsed: true }
+  if (baseName === '附录') {
+    return { order: 999, name: '附录', isDir, collapsed: true }
   }
-  return { order: 500, name: dirName }
+  
+  // index 文件不单独显示
+  if (baseName === 'index') {
+    return { order: -1, name: '', isDir: false }
+  }
+  
+  return { order: 500, name: baseName, isDir }
 }
 
 /**
- * 读取目录下的 index.md 获取标题
+ * 读取 markdown 文件获取标题
  */
-function getTitle(indexPath: string, fallback: string): string {
+function getTitle(filePath: string, fallback: string): string {
   try {
-    const content = fs.readFileSync(indexPath, 'utf-8')
+    const content = fs.readFileSync(filePath, 'utf-8')
     const match = content.match(/^#\s+(.+)$/m)
     if (match) {
       return match[1].trim()
@@ -56,7 +68,6 @@ function scanDirectory(
 ): SidebarItem[] {
   const items: Array<SidebarItem & { _order: number }> = []
 
-  // 读取目录内容
   let entries: fs.Dirent[]
   try {
     entries = fs.readdirSync(dirPath, { withFileTypes: true })
@@ -64,43 +75,54 @@ function scanDirectory(
     return []
   }
 
-  // 过滤出子目录
-  const subDirs = entries.filter(
-    (e) => e.isDirectory() && !e.name.startsWith('.')
-  )
-
-  for (const subDir of subDirs) {
-    const subDirPath = path.join(dirPath, subDir.name)
-    const subUrlBase = `${urlBase}${subDir.name}/`
-    const indexPath = path.join(subDirPath, 'index.md')
-    const meta = parseDirName(subDir.name)
-
-    // 检查是否有 index.md
-    const hasIndex = fs.existsSync(indexPath)
-    if (!hasIndex) continue
-
-    // 获取标题
-    const title = getTitle(indexPath, meta.name)
-
-    // 递归扫描子目录
-    const children = scanDirectory(subDirPath, subUrlBase, depth + 1)
-
-    const item: SidebarItem & { _order: number } = {
-      _order: meta.order,
-      text: title,
-      link: subUrlBase,
-    }
-
-    if (children.length > 0) {
-      item.items = children
-      // 第一层（篇）：前3个展开，其余折叠
-      // 第二层（章）：都不需要 collapsed
-      if (depth === 0) {
-        item.collapsed = meta.collapsed ?? meta.order > 3
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) continue
+    
+    const entryPath = path.join(dirPath, entry.name)
+    const meta = parseFileName(entry.name, entry.isDirectory())
+    
+    // 跳过 index 文件（由父目录处理）
+    if (meta.order === -1) continue
+    
+    if (entry.isDirectory()) {
+      const subUrlBase = `${urlBase}${entry.name}/`
+      const indexPath = path.join(entryPath, 'index.md')
+      
+      // 检查是否有 index.md
+      const hasIndex = fs.existsSync(indexPath)
+      if (!hasIndex) continue
+      
+      const title = getTitle(indexPath, meta.name)
+      const children = scanDirectory(entryPath, subUrlBase, depth + 1)
+      
+      const item: SidebarItem & { _order: number } = {
+        _order: meta.order,
+        text: title,
+        link: subUrlBase,
       }
+      
+      if (children.length > 0) {
+        item.items = children
+        // 深度 0（篇）：前3个展开，其余折叠
+        // 深度 1+（章/节）：默认展开
+        if (depth === 0) {
+          item.collapsed = meta.collapsed ?? meta.order > 3
+        }
+      }
+      
+      items.push(item)
+      
+    } else if (entry.name.endsWith('.md')) {
+      // 单独的 markdown 文件
+      const title = getTitle(entryPath, meta.name)
+      const link = `${urlBase}${entry.name.replace(/\.md$/, '')}`
+      
+      items.push({
+        _order: meta.order,
+        text: title,
+        link,
+      })
     }
-
-    items.push(item)
   }
 
   // 按 order 排序
@@ -117,10 +139,7 @@ export function generateWhiteBookSidebar(): SidebarItem[] {
   const whiteBookDir = path.resolve(__dirname, '../white-book')
   const indexPath = path.join(whiteBookDir, 'index.md')
 
-  // 获取根标题
   const rootTitle = getTitle(indexPath, '软件开发说明书')
-
-  // 扫描子目录
   const items = scanDirectory(whiteBookDir, '/white-book/', 0)
 
   return [
