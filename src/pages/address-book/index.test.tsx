@@ -5,7 +5,7 @@ import { addressBookActions, walletStore, type Contact } from '@/stores'
 
 // Mock dependencies
 vi.mock('@/stackflow', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useActivityParams: () => ({}),
 }))
 
@@ -42,6 +42,7 @@ vi.mock('@/components/security/password-confirm-sheet', () => ({
 }))
 
 const mockNavigate = vi.fn()
+const mockGoBack = vi.fn()
 
 describe('AddressBookPage', () => {
   beforeEach(() => {
@@ -148,6 +149,6 @@ describe('AddressBookPage', () => {
     const backButton = screen.getByTestId('back-button')
     fireEvent.click(backButton)
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
+    expect(mockGoBack).toHaveBeenCalled()
   })
 })

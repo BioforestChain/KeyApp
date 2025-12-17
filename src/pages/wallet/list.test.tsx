@@ -4,8 +4,9 @@ import { WalletListPage } from './list'
 import { walletStore, walletActions, type Wallet } from '@/stores'
 
 // Mock dependencies
+const mockGoBack = vi.fn()
 vi.mock('@/stackflow', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useActivityParams: () => ({}),
 }))
 
@@ -208,6 +209,6 @@ describe('WalletListPage', () => {
     const backButton = screen.getByTestId('back-button')
     fireEvent.click(backButton)
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
+    expect(mockGoBack).toHaveBeenCalled()
   })
 })

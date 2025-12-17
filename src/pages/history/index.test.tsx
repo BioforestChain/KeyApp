@@ -6,8 +6,9 @@ import { TestI18nProvider } from '@/test/i18n-mock'
 
 // Mock stackflow
 const mockNavigate = vi.fn()
+const mockGoBack = vi.fn()
 vi.mock('@/stackflow', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useActivityParams: () => ({}),
 }))
 
@@ -143,7 +144,7 @@ describe('TransactionHistoryPage', () => {
       const backButton = screen.getByRole('button', { name: /返回/i })
       await userEvent.click(backButton)
 
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
+      expect(mockGoBack).toHaveBeenCalled()
     })
   })
 })
