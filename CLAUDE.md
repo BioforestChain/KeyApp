@@ -131,20 +131,24 @@ TDD.md > PDR.md > SERVICE-SPEC.md > mpay 原始代码
 
 ## 工作流程
 
-1. **开始新功能前**
+1. **创建新分支**
+   - 基于git-worktree功能在独立的文件夹里面展开工作
+2. **开始新功能前**
    - 阅读 `openspec/` 下的相关 spec
    - 检查 `openspec/changes/` 是否有进行中的变更
    - 创建 change proposal（如适用）
 
-2. **开发时**
+3. **开发时**
    - 先写 Storybook story
    - 再写 Vitest 测试
    - 最后实现组件
+   - 确定所有测试都通过了,必要时需要更新e2e截图(必须查看截图内容确保符合预期)
 
-3. **完成后**
+4. **完成后**
    - 确保所有测试通过
    - 更新 tasks.md 状态
    - 运行 `openspec validate --strict`
+   - 基于rebase合并到到main分支
 
 ## mpay 关键文件速查
 

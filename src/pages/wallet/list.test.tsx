@@ -4,8 +4,9 @@ import { WalletListPage } from './list'
 import { walletStore, walletActions, type Wallet } from '@/stores'
 
 // Mock dependencies
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 vi.mock('@/components/layout/page-header', () => ({
@@ -144,7 +145,7 @@ describe('WalletListPage', () => {
     const detailButton = screen.getByRole('button', { name: '查看详情' })
     fireEvent.click(detailButton)
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/wallet/$walletId', params: { walletId: '1' } })
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/wallet/1' })
   })
 
   it('navigates to create wallet page from empty state', () => {

@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { ChainIcon } from '@/components/wallet/chain-icon';
@@ -29,8 +29,8 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function WalletDetailPage() {
-  const { walletId } = useParams({ from: '/wallet/$walletId' });
-  const navigate = useNavigate();
+  const { walletId } = useActivityParams<{ walletId: string }>();
+  const { navigate } = useNavigation();
   const biometric = useBiometric();
   const toast = useToast();
   const haptics = useHaptics();

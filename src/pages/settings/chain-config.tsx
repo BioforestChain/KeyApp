@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle as AlertTriangle,
@@ -79,7 +79,7 @@ function indexWarnings(warnings: readonly ChainConfigWarning[]): Map<string, Cha
 }
 
 export function ChainConfigPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const { t } = useTranslation('settings');
   const toast = useToast();
 

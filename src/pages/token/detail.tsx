@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { BalanceDisplay } from '@/components/token/balance-display';
 import { TransactionList } from '@/components/transaction/transaction-list';
@@ -36,7 +36,7 @@ const mockTransactions = [
 ];
 
 export function TokenDetailPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -43,13 +43,10 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  useRouter: () => ({
-    history: {
-      back: vi.fn(),
-    },
-  }),
+// Mock Stackflow
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: vi.fn(), goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock staking service

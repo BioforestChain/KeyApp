@@ -1,5 +1,5 @@
-import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
 import { AmountInput } from '@/components/transfer/amount-input';
@@ -31,13 +31,16 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function SendPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const camera = useCamera();
   const toast = useToast();
   const haptics = useHaptics();
 
-  // Read search params for pre-fill from scanner
-  const { address: initialAddress, amount: initialAmount } = useSearch({ strict: false });
+  // Read params for pre-fill from scanner
+  const { address: initialAddress, amount: initialAmount } = useActivityParams<{
+    address?: string;
+    amount?: string;
+  }>();
 
   const selectedChain = useSelectedChain();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;

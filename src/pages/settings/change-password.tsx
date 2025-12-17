@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconAlertCircle as AlertCircle, IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { PasswordInput } from '@/components/security/password-input';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 const MIN_PASSWORD_LENGTH = 8;
 
 export function ChangePasswordPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const currentWallet = useCurrentWallet();
 
   // 表单状态

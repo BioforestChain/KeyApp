@@ -4,8 +4,9 @@ import { AddressBookPage } from './index'
 import { addressBookActions, walletStore, type Contact } from '@/stores'
 
 // Mock dependencies
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 vi.mock('@/components/layout/page-header', () => ({

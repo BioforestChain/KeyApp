@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 const AUTO_HIDE_TIMEOUT = 30_000;
 
 export function ViewMnemonicPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const currentWallet = useCurrentWallet();
   const keyType = currentWallet?.keyType ?? 'mnemonic';
   const isArbitrary = keyType === 'arbitrary';

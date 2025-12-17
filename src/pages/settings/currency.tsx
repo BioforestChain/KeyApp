@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrency, preferencesActions, currencies, type CurrencyCode } from '@/stores';
@@ -14,7 +14,7 @@ const CURRENCY_DISPLAY: Record<CurrencyCode, string> = {
 };
 
 export function CurrencyPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const currentCurrency = useCurrency();
 
   const handleSelect = (currency: CurrencyCode) => {

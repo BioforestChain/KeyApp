@@ -3,10 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { WelcomeScreen, hasSeenWelcome, markWelcomeSeen, resetWelcome } from './WelcomeScreen'
 
-// Mock useNavigate
+// Mock stackflow
 const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock i18n

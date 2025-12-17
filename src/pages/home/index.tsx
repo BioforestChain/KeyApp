@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@/stackflow';
 import { TokenList } from '@/components/token/token-list';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function HomePage() {
+  const { navigate } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
@@ -138,18 +139,18 @@ export function HomePage() {
 
         {/* 操作按钮 - mpay 三按钮布局 */}
         <div className="flex gap-3">
-          <Link to="/send" search={{ address: undefined, chain: undefined, amount: undefined }} className="flex-1">
-            <GradientButton variant="blue" className="w-full" size="sm">
+          <div className="flex-1">
+            <GradientButton variant="blue" className="w-full" size="sm" onClick={() => navigate({ to: '/send' })}>
               <Send className="mr-1.5 size-4" />
               转账
             </GradientButton>
-          </Link>
-          <Link to="/receive" className="flex-1">
-            <GradientButton variant="red" className="w-full" size="sm">
+          </div>
+          <div className="flex-1">
+            <GradientButton variant="red" className="w-full" size="sm" onClick={() => navigate({ to: '/receive' })}>
               <QrCode className="mr-1.5 size-4" />
               收款
             </GradientButton>
-          </Link>
+          </div>
         </div>
       </div>
 
@@ -176,13 +177,13 @@ export function HomePage() {
       </div>
 
       {/* Scanner FAB */}
-      <Link
-        to="/scanner"
+      <button
+        onClick={() => navigate({ to: '/scanner' })}
         className="bg-primary fixed right-6 bottom-[calc(var(--safe-area-inset-bottom)+1.5rem)] z-60 flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t('a11y.scan')}
       >
         <ScanLine className="text-primary-foreground size-6" />
-      </Link>
+      </button>
 
       {/* 链选择底部弹窗 */}
       <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title="选择网络">
@@ -215,6 +216,8 @@ export function HomePage() {
 }
 
 function NoWalletView() {
+  const { navigate } = useNavigation();
+  
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
       <div className="bg-primary/10 rounded-full p-6">
@@ -225,16 +228,12 @@ function NoWalletView() {
         <p className="text-muted-foreground mt-2">创建或导入钱包开始使用</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
-        <Link to="/wallet/create">
-          <GradientButton variant="mint" className="w-full">
-            创建新钱包
-          </GradientButton>
-        </Link>
-        <Link to="/wallet/import" className="w-full">
-          <Button variant="outline" className="w-full">
-            导入已有钱包
-          </Button>
-        </Link>
+        <GradientButton variant="mint" className="w-full" onClick={() => navigate({ to: '/wallet/create' })}>
+          创建新钱包
+        </GradientButton>
+        <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/wallet/import' })}>
+          导入已有钱包
+        </Button>
       </div>
     </div>
   );

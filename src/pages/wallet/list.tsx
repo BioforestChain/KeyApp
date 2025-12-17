@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useStore } from '@tanstack/react-store';
 import { IconPlus as Plus, IconCheck as Check, IconChevronRight as ChevronRight } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -7,7 +7,7 @@ import { walletStore, walletActions, type Wallet } from '@/stores';
 import { cn } from '@/lib/utils';
 
 export function WalletListPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const wallets = useStore(walletStore, (s) => s.wallets);
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId);
 
@@ -19,7 +19,7 @@ export function WalletListPage() {
   // 进入钱包详情
   const handleWalletDetail = useCallback(
     (walletId: string) => {
-      navigate({ to: '/wallet/$walletId', params: { walletId } });
+      navigate({ to: `/wallet/${walletId}` });
     },
     [navigate],
   );

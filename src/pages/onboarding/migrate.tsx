@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { IconArrowLeft as ArrowLeft, IconDownload as Download, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ interface MigrationResult {
 
 export function MigrationPage() {
   const { t } = useTranslation('migration');
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const { detection, isDetecting, setProgress, completeMigration, skipMigration, failMigration } = useMigration();
 
   // 当前步骤

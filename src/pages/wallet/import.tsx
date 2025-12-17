@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { GradientButton } from '@/components/common/gradient-button';
 import { IconCircle } from '@/components/common/icon-circle';
@@ -21,7 +21,7 @@ type Step = 'mnemonic' | 'password';
 const STEPS: Step[] = ['mnemonic', 'password'];
 
 export function WalletImportPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('mnemonic');

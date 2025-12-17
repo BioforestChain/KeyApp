@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigation, useActivityParams } from '@/stackflow';
 import {
   IconCopy as Copy,
   IconExternalLink as ExternalLink,
@@ -50,8 +50,8 @@ const EXPLORER_URLS: Record<string, string> = {
 };
 
 export function TransactionDetailPage() {
-  const navigate = useNavigate();
-  const { txId } = useParams({ from: '/transaction/$txId' });
+  const { navigate } = useNavigation();
+  const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
   const { transactions } = useTransactionHistory(currentWallet?.id);
 

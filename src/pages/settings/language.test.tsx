@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { LanguagePage } from './language'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-// Mock router
+// Mock stackflow
 const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock preferences store

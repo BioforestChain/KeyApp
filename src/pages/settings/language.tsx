@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useLanguage, preferencesActions, languages, type LanguageCode } from '@/stores';
@@ -13,7 +13,7 @@ const LANGUAGE_DISPLAY: Record<LanguageCode, string> = {
 };
 
 export function LanguagePage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const currentLanguage = useLanguage();
 
   const handleSelect = (lang: LanguageCode) => {

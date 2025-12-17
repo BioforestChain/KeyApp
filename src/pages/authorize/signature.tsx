@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useNavigation, useActivityParams } from '@/stackflow'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
@@ -315,11 +315,13 @@ function checkBalance(
 export function SignatureAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
-  const navigate = useNavigate()
+  const { navigate } = useNavigation()
   const toast = useToast()
 
-  const { id: eventId } = useParams({ from: '/authorize/signature/$id' })
-  const { signaturedata } = useSearch({ from: '/authorize/signature/$id' })
+  const { id: eventId, signaturedata } = useActivityParams<{
+    id: string
+    signaturedata?: string
+  }>()
 
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet)
 

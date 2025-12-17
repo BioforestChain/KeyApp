@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AddressQRCode } from '@/components/common/qr-code';
@@ -27,7 +27,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();

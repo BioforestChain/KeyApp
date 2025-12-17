@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import {
   IconWallet as Wallet,
@@ -37,7 +37,7 @@ const CURRENCY_NAMES: Record<string, string> = {
 };
 
 export function SettingsPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const { t } = useTranslation();
   const currentWallet = useCurrentWallet();
   const currentLanguage = useLanguage();
@@ -66,7 +66,7 @@ export function SettingsPage() {
           <SettingsItem
             icon={<Wallet size={20} />}
             label="钱包管理"
-            onClick={() => navigate({ to: '/wallet/$walletId', params: { walletId: currentWallet?.id ?? '' } })}
+            onClick={() => navigate({ to: `/wallet/${currentWallet?.id ?? ''}` })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem

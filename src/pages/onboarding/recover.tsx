@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/page-header';
 import { RecoverWalletForm, type RecoverWalletFormData } from '@/components/onboarding/recover-wallet-form';
@@ -31,7 +31,7 @@ const mockWalletQuery: IWalletQuery = {
  * Implements wallet recovery with duplicate detection per openspec/changes/add-wallet-recover-duplicate-guards
  */
 export function OnboardingRecoverPage() {
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
   const { t } = useTranslation(['onboarding', 'common']);
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();

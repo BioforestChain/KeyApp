@@ -4,9 +4,10 @@ import userEvent from '@testing-library/user-event'
 import { ReceivePage } from './index'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
+// Mock Stackflow
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: vi.fn(), goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 // Mock services

@@ -7,8 +7,9 @@ import { TestI18nProvider } from '@/test/i18n-mock'
 
 // Mock router
 const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@/stackflow', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: vi.fn() }),
+  useActivityParams: () => ({}),
 }))
 
 // Test notifications

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useNavigation, useActivityParams } from '@/stackflow'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
@@ -82,11 +82,16 @@ function parseGetMainFlag(getMain: string | undefined): boolean {
 export function AddressAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
-  const navigate = useNavigate()
+  const { navigate } = useNavigation()
   const toast = useToast()
 
-  const { id: eventId } = useParams({ from: '/authorize/address/$id' })
-  const { type, chainName, signMessage, getMain } = useSearch({ from: '/authorize/address/$id' })
+  const { id: eventId, type, chainName, signMessage, getMain } = useActivityParams<{
+    id: string
+    type?: string
+    chainName?: string
+    signMessage?: string
+    getMain?: string
+  }>()
 
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
   const wallets = useStore(walletStore, (s) => s.wallets)
