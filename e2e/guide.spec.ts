@@ -78,7 +78,7 @@ test.describe('Guide 页面', () => {
     await getStartedButton.click({ force: true })
 
     // 应该导航到创建钱包页
-    await expect(page).toHaveURL('/#/wallet/create')
+    await expect(page).toHaveURL(/\/#\/wallet\/create\/?/)
   })
 
   test('我有钱包按钮导航到导入钱包页', async ({ page }) => {
@@ -112,6 +112,6 @@ test.describe('Guide 页面', () => {
     })
 
     // 应该导航到导入钱包页
-    await expect(page).toHaveURL('/#/wallet/import')
+    await expect(page).toHaveURL(/\/#\/wallet\/import\/?/)
   })
 })

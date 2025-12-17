@@ -55,6 +55,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         WelcomeActivity: "/welcome",
       },
       fallbackActivity: () => "MainTabsActivity",
+      useHash: true,
     }),
   ],
   activities: {
