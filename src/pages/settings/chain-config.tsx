@@ -10,6 +10,16 @@ import {
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/services';
 import {
   chainConfigActions,
@@ -21,6 +31,24 @@ import {
 } from '@/stores';
 import { cn } from '@/lib/utils';
 import type { ChainConfigSource, ChainConfigWarning } from '@/services/chain-config';
+
+function getIdFromUnknownConfig(input: unknown): string | null {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) return null;
+  const id = (input as Record<string, unknown>).id;
+  return typeof id === 'string' && id.trim() !== '' ? id : null;
+}
+
+function getManualConfigIds(input: string): string[] {
+  try {
+    const json: unknown = JSON.parse(input) as unknown;
+    const ids = Array.isArray(json)
+      ? json.map(getIdFromUnknownConfig)
+      : [getIdFromUnknownConfig(json)];
+    return Array.from(new Set(ids.filter((id): id is string => typeof id === 'string')));
+  } catch {
+    return [];
+  }
+}
 
 function getSourceLabel(t: (key: string) => string, source: ChainConfigSource): string {
   switch (source) {
@@ -66,7 +94,11 @@ export function ChainConfigPage() {
   const [subscriptionUrl, setSubscriptionUrl] = useState<string>('default');
   const [manualJson, setManualJson] = useState<string>('');
 
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateIds, setDuplicateIds] = useState<string[]>([]);
+
   const pendingToastRef = useRef<null | 'subscriptionSaved' | 'subscriptionRefreshed' | 'manualAdded'>(null);
+  const pendingManualJsonRef = useRef<string | null>(null);
   const wasLoadingRef = useRef(false);
 
   useEffect(() => {
@@ -108,8 +140,37 @@ export function ChainConfigPage() {
   };
 
   const handleAddManual = async () => {
+    const ids = getManualConfigIds(manualJson);
+    const existing = new Set(configs.map((config) => config.id));
+    const duplicates = ids.filter((id) => existing.has(id));
+
+    if (duplicates.length > 0) {
+      pendingManualJsonRef.current = manualJson;
+      setDuplicateIds(duplicates);
+      setDuplicateDialogOpen(true);
+      return;
+    }
+
     pendingToastRef.current = 'manualAdded';
     await chainConfigActions.addManualConfig(manualJson);
+  };
+
+  const handleDuplicateCancel = () => {
+    pendingManualJsonRef.current = null;
+    setDuplicateIds([]);
+    setDuplicateDialogOpen(false);
+  };
+
+  const handleDuplicateReplace = async () => {
+    const pendingJson = pendingManualJsonRef.current;
+    pendingManualJsonRef.current = null;
+    setDuplicateIds([]);
+    setDuplicateDialogOpen(false);
+
+    if (!pendingJson) return;
+
+    pendingToastRef.current = 'manualAdded';
+    await chainConfigActions.addManualConfig(pendingJson);
   };
 
   return (
@@ -117,6 +178,32 @@ export function ChainConfigPage() {
       <PageHeader title={t('chainConfig.title')} onBack={() => navigate({ to: '/settings' })} />
 
       <div className="flex-1 space-y-4 p-4">
+        <AlertDialog
+          open={duplicateDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) handleDuplicateCancel();
+            else setDuplicateDialogOpen(open);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('chainConfig.manual.duplicate.title')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('chainConfig.manual.duplicate.description')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="bg-muted/50 text-muted-foreground rounded-lg px-3 py-2 text-xs font-mono break-all">
+              {duplicateIds.join(', ')}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleDuplicateCancel}>
+                {t('chainConfig.manual.duplicate.cancel')}
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleDuplicateReplace} disabled={isLoading}>
+                {t('chainConfig.manual.duplicate.replace')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {error && (
           <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-xl border px-4 py-3 text-sm">
             {error}

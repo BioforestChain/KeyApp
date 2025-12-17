@@ -114,6 +114,35 @@ describe('ChainConfigPage', () => {
     expect(mockAddManualConfig).toHaveBeenCalledTimes(1)
   })
 
+  it('warns when manual config id already exists and allows replace/cancel', async () => {
+    renderWithProviders(<ChainConfigPage />)
+
+    const textarea = screen.getByPlaceholderText(
+      '例如：{"id":"mychain","version":"1.0","type":"custom","name":"MyChain","symbol":"MC","decimals":8}'
+    )
+
+    const duplicateJson =
+      '{"id":"bfmeta","version":"1.0","type":"bioforest","name":"BFMeta Override","symbol":"BFT","decimals":8,"prefix":"c"}'
+    fireEvent.change(textarea, {
+      target: { value: duplicateJson },
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: '添加' }))
+    expect(mockAddManualConfig).not.toHaveBeenCalled()
+
+    expect(screen.getByText('链 ID 已存在')).toBeInTheDocument()
+    expect(screen.getByText('以下链 ID 已存在，是否替换？')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: '取消' }))
+    expect(mockAddManualConfig).not.toHaveBeenCalled()
+
+    // Re-open dialog and confirm replace
+    await userEvent.click(screen.getByRole('button', { name: '添加' }))
+    await userEvent.click(screen.getByRole('button', { name: '替换' }))
+
+    await waitFor(() => expect(mockAddManualConfig).toHaveBeenCalledWith(duplicateJson))
+  })
+
   it('displays error message', () => {
     mockError = 'Boom'
     renderWithProviders(<ChainConfigPage />)

@@ -15,7 +15,13 @@
       "title": "Add Manually",
       "description": "Paste JSON (an object or an array), then tap Add.",
       "add": "Add",
-      "placeholder": "e.g. {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+      "placeholder": "e.g. {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "duplicate": {
+        "title": "Duplicate chain IDs",
+        "description": "These chain IDs already exist. Do you want to replace them?",
+        "replace": "Replace",
+        "cancel": "Cancel"
+      }
     },
     "list": {
       "title": "Chain List",

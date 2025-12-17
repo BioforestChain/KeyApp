@@ -49,7 +49,23 @@ export const chainConfigActions = {
   },
 
   setSubscriptionUrl: async (url: string): Promise<void> => {
-    await runAndUpdate(async () => setSubscriptionUrl(url))
+    chainConfigStore.setState((state) => ({ ...state, isLoading: true, error: null }))
+
+    try {
+      const snapshot = await setSubscriptionUrl(url)
+      const nextUrl = snapshot.subscription?.url ?? 'default'
+
+      if (nextUrl === 'default') {
+        chainConfigStore.setState((state) => ({ ...state, snapshot, isLoading: false, error: null }))
+        return
+      }
+
+      const { result, snapshot: refreshedSnapshot } = await refreshSubscription()
+      const error = result.status === 'error' ? result.error : null
+      chainConfigStore.setState((state) => ({ ...state, snapshot: refreshedSnapshot, isLoading: false, error }))
+    } catch (error) {
+      chainConfigStore.setState((state) => ({ ...state, isLoading: false, error: toErrorMessage(error) }))
+    }
   },
 
   refreshSubscription: async (): Promise<void> => {

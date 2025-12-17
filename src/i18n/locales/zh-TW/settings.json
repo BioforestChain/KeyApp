@@ -15,7 +15,13 @@
       "title": "手動新增",
       "description": "貼上 JSON（單一物件或陣列），點擊新增。",
       "add": "新增",
-      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "duplicate": {
+        "title": "鏈 ID 已存在",
+        "description": "以下鏈 ID 已存在，是否取代？",
+        "replace": "取代",
+        "cancel": "取消"
+      }
     },
     "list": {
       "title": "鏈清單",

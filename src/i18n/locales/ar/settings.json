@@ -15,7 +15,13 @@
       "title": "إضافة يدويًا",
       "description": "الصق JSON (كائن واحد أو مصفوفة)، ثم اضغط على إضافة.",
       "add": "إضافة",
-      "placeholder": "مثال: {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}"
+      "placeholder": "مثال: {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "duplicate": {
+        "title": "معرّفات سلاسل مكررة",
+        "description": "هذه المعرّفات موجودة بالفعل. هل تريد استبدالها؟",
+        "replace": "استبدال",
+        "cancel": "إلغاء"
+      }
     },
     "list": {
       "title": "قائمة السلاسل",
