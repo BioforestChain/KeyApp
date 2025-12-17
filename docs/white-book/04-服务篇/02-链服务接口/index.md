@@ -1,440 +1,441 @@
 # 第十二章：链服务接口
 
-> 定义与区块链交互的标准接口
+> 定义与区块链交互的标准接口规范
 
 ---
 
-## 12.1 接口概览
+## 12.1 接口总览
+
+### 服务分类
 
 | 服务 | 职责 | 必需性 |
 |-----|------|-------|
-| IIdentityService | 地址派生、签名 | 核心 |
-| IAssetService | 资产查询 | 核心 |
-| ITransactionService | 交易构建与广播 | 核心 |
-| IChainService | 链信息查询 | 核心 |
-| IStakingService | 质押操作 | 可选 |
-| INFTService | NFT 查询 | 可选 |
-| IDeFiService | DeFi 操作 | 可选 |
+| IIdentityService | 地址派生、消息签名 | MUST |
+| IAssetService | 资产余额查询 | MUST |
+| ITransactionService | 交易构建、签名、广播 | MUST |
+| IChainService | 链信息查询 | MUST |
+| IStakingService | 质押操作 | MAY |
+| INFTService | NFT 资产查询 | MAY |
+
+### 接口设计原则
+
+1. **异步优先**：所有涉及网络/计算的方法 **MUST** 返回 Promise
+2. **错误明确**：失败时 **MUST** 抛出带有错误码的异常
+3. **可取消**：长时间操作 **SHOULD** 支持 AbortSignal
+4. **类型安全**：参数和返回值 **MUST** 有明确类型定义
 
 ---
 
 ## 12.2 IIdentityService (身份服务)
 
+### 职责
+
+管理用户身份，包括地址派生和消息签名。
+
 ### 接口定义
 
-```typescript
-// src/services/modules/identity.ts
-
-interface DeriveAddressParams {
-  seed: Uint8Array        // 助记词种子
-  path?: string           // 派生路径
-  index?: number          // 地址索引
-}
-
-interface DerivedAddress {
-  address: Address
-  publicKey: Hex
-  path: string
-}
-
-interface SignMessageParams {
-  message: string | Uint8Array
-  signer: Address
-}
-
-export interface IIdentityService {
-  // 派生地址
-  deriveAddress(params: DeriveAddressParams): Promise<DerivedAddress>
+```
+IIdentityService {
+  // 从种子派生地址
+  deriveAddress(seed: bytes, index?: number): Address
   
-  // 批量派生
-  deriveAddresses(params: DeriveAddressParams, count: number): Promise<DerivedAddress[]>
+  // 批量派生地址
+  deriveAddresses(seed: bytes, startIndex: number, count: number): Address[]
   
   // 验证地址格式
   isValidAddress(address: string): boolean
   
-  // 规范化地址
+  // 规范化地址（如 EVM 的 checksum）
   normalizeAddress(address: string): Address
   
   // 签名消息
-  signMessage(params: SignMessageParams): Promise<Hex>
+  signMessage(message: string | bytes, privateKey: bytes): Signature
   
-  // 验证签名
-  verifyMessage(params: SignMessageParams & { signature: Hex }): Promise<boolean>
+  // 验证消息签名
+  verifyMessage(message: string | bytes, signature: Signature, address: Address): boolean
 }
 ```
 
-### 实现示例 (EVM)
+### 派生路径规范
 
-```typescript
-// src/services/adapters/evm/services/identity.ts
-import { mnemonicToAccount } from 'viem/accounts'
-import { isAddress, getAddress } from 'viem'
+| 链类型 | 派生路径 | 说明 |
+|-------|---------|------|
+| EVM 兼容 | m/44'/60'/0'/0/{index} | BIP44 标准 |
+| Bitcoin | m/44'/0'/0'/0/{index} | BIP44 标准 |
+| BFM 链 | m/44'/9999'/0'/0/{index} | 自定义 coin type |
 
-export class EvmIdentityService implements IIdentityService {
-  async deriveAddress({ seed, path, index = 0 }: DeriveAddressParams) {
-    const derivationPath = path ?? `m/44'/60'/0'/0/${index}`
-    const account = mnemonicToAccount(seed, { path: derivationPath })
-    
-    return {
-      address: Address(account.address),
-      publicKey: account.publicKey,
-      path: derivationPath,
-    }
-  }
-  
-  async deriveAddresses(params: DeriveAddressParams, count: number) {
-    const addresses: DerivedAddress[] = []
-    for (let i = 0; i < count; i++) {
-      addresses.push(await this.deriveAddress({ ...params, index: i }))
-    }
-    return addresses
-  }
-  
-  isValidAddress(address: string): boolean {
-    return isAddress(address)
-  }
-  
-  normalizeAddress(address: string): Address {
-    return Address(getAddress(address))  // checksum 格式
-  }
-  
-  async signMessage({ message, signer }: SignMessageParams) {
-    // 实现签名逻辑
-  }
-  
-  async verifyMessage(params: SignMessageParams & { signature: Hex }) {
-    // 实现验证逻辑
-  }
-}
-```
+### 错误码
+
+| 错误码 | 说明 |
+|-------|------|
+| INVALID_SEED | 种子格式无效 |
+| INVALID_ADDRESS | 地址格式无效 |
+| SIGNATURE_FAILED | 签名失败 |
+| VERIFICATION_FAILED | 签名验证失败 |
 
 ---
 
 ## 12.3 IAssetService (资产服务)
 
+### 职责
+
+查询用户资产余额和代币信息。
+
 ### 接口定义
 
-```typescript
-// src/services/modules/asset.ts
+```
+IAssetService {
+  // 获取原生代币余额
+  getNativeBalance(address: Address): Balance
+  
+  // 获取代币余额
+  getTokenBalance(address: Address, tokenAddress: Address): Balance
+  
+  // 获取所有代币余额
+  getTokenBalances(address: Address): Balance[]
+  
+  // 获取代币元数据
+  getTokenMetadata(tokenAddress: Address): TokenMetadata
+  
+  // 订阅余额变化
+  subscribeBalance(address: Address, callback: (balance: Balance) => void): Unsubscribe
+}
+```
 
-interface BalanceQuery {
+### 数据结构
+
+```
+Balance {
+  raw: bigint           // 原始值（最小单位）
+  formatted: string     // 格式化值（人类可读）
+  symbol: string        // 代币符号
+  decimals: number      // 小数位数
+}
+
+TokenMetadata {
   address: Address
-}
-
-interface TokenBalanceQuery extends BalanceQuery {
-  tokenAddresses?: Address[]  // 不传则返回所有持有代币
-}
-
-interface AssetBalance {
-  token: TokenMetadata
-  balance: bigint
-  formatted: string
-}
-
-interface TokenMetadata {
-  chainId: ChainId
-  address: Address | null  // null = 原生代币
   name: string
   symbol: string
   decimals: number
   logoUri?: string
-}
-
-export interface IAssetService {
-  // 获取原生代币余额
-  getNativeBalance(query: BalanceQuery): Promise<AssetBalance>
-  
-  // 获取代币余额列表
-  getTokenBalances(query: TokenBalanceQuery): Promise<AssetBalance[]>
-  
-  // 获取代币元数据
-  getTokenMetadata(tokenAddress: Address): Promise<TokenMetadata>
-  
-  // 搜索代币
-  searchTokens(query: string, limit?: number): Promise<TokenMetadata[]>
+  standard: 'native' | 'ERC20' | 'TRC20' | 'BFM-TOKEN'
 }
 ```
 
-### 实现示例 (EVM)
+### 错误码
 
-```typescript
-// src/services/adapters/evm/services/asset.ts
-import { formatUnits } from 'viem'
-
-export class EvmAssetService implements IAssetService {
-  constructor(private client: PublicClient, private chainId: ChainId) {}
-  
-  async getNativeBalance({ address }: BalanceQuery): Promise<AssetBalance> {
-    const balance = await this.client.getBalance({ address })
-    
-    return {
-      token: {
-        chainId: this.chainId,
-        address: null,
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-      },
-      balance,
-      formatted: formatUnits(balance, 18),
-    }
-  }
-  
-  async getTokenBalances({ address, tokenAddresses }: TokenBalanceQuery) {
-    // 使用 multicall 批量查询 ERC20 余额
-    const balances = await this.client.multicall({
-      contracts: tokenAddresses.map(token => ({
-        address: token,
-        abi: erc20Abi,
-        functionName: 'balanceOf',
-        args: [address],
-      })),
-    })
-    
-    // 组装返回结果
-    return balances.map((result, index) => ({
-      token: /* 代币元数据 */,
-      balance: result.result as bigint,
-      formatted: formatUnits(result.result as bigint, decimals),
-    }))
-  }
-  
-  async getTokenMetadata(tokenAddress: Address): Promise<TokenMetadata> {
-    const [name, symbol, decimals] = await this.client.multicall({
-      contracts: [
-        { address: tokenAddress, abi: erc20Abi, functionName: 'name' },
-        { address: tokenAddress, abi: erc20Abi, functionName: 'symbol' },
-        { address: tokenAddress, abi: erc20Abi, functionName: 'decimals' },
-      ],
-    })
-    
-    return {
-      chainId: this.chainId,
-      address: tokenAddress,
-      name: name.result as string,
-      symbol: symbol.result as string,
-      decimals: decimals.result as number,
-    }
-  }
-  
-  async searchTokens(query: string, limit = 10) {
-    // 从代币列表中搜索
-  }
-}
-```
+| 错误码 | 说明 |
+|-------|------|
+| ADDRESS_NOT_FOUND | 地址不存在 |
+| TOKEN_NOT_FOUND | 代币不存在 |
+| NETWORK_ERROR | 网络请求失败 |
 
 ---
 
 ## 12.4 ITransactionService (交易服务)
 
+### 职责
+
+构建、签名、广播交易，查询交易状态。
+
 ### 接口定义
 
-```typescript
-// src/services/modules/transaction.ts
-
-interface TransactionRequest {
-  chainId: ChainId
-  from: Address
-  to: Address | null
-  value: bigint
-  data?: Hex
-}
-
-interface BuiltTransaction {
-  unsigned: Hex
-  estimatedFee: FeeModel
-}
-
-interface SignedTransaction {
-  chainId: ChainId
-  raw: Hex
-  hash: TransactionHash
-}
-
-interface TransactionReceipt {
-  chainId: ChainId
-  hash: TransactionHash
-  status: 'success' | 'failed'
-  blockNumber: bigint
-  gasUsed: bigint
-}
-
-export interface ITransactionService {
-  // 构建交易
-  buildTransaction(params: {
-    request: TransactionRequest
-    fee?: FeeModel
-  }): Promise<BuiltTransaction>
+```
+ITransactionService {
+  // 估算交易费用
+  estimateFee(params: TransferParams): FeeEstimate
+  
+  // 构建未签名交易
+  buildTransaction(params: TransferParams): UnsignedTransaction
   
   // 签名交易
-  signTransaction(unsigned: Hex, signer: Address): Promise<SignedTransaction>
+  signTransaction(unsignedTx: UnsignedTransaction, privateKey: bytes): SignedTransaction
   
   // 广播交易
-  broadcastTransaction(signed: SignedTransaction): Promise<TransactionHash>
+  broadcastTransaction(signedTx: SignedTransaction): TransactionHash
   
-  // 获取交易状态
-  getTransactionStatus(hash: TransactionHash): Promise<TransactionStatus>
+  // 查询交易状态
+  getTransactionStatus(hash: TransactionHash): TransactionStatus
   
-  // 获取交易回执
-  getTransactionReceipt(hash: TransactionHash): Promise<TransactionReceipt | null>
+  // 查询交易详情
+  getTransaction(hash: TransactionHash): Transaction
   
-  // 等待交易确认
-  waitForTransaction(hash: TransactionHash, confirmations?: number): Promise<TransactionReceipt>
+  // 查询交易历史
+  getTransactionHistory(address: Address, options?: PaginationOptions): Transaction[]
+  
+  // 订阅交易状态
+  subscribeTransaction(hash: TransactionHash, callback: (status: TransactionStatus) => void): Unsubscribe
 }
 ```
 
-### Fee 模型
+### 数据结构
 
-```typescript
-// src/services/types/fee.ts
-
-// EIP-1559 费用
-interface EIP1559Fee {
-  type: 'eip1559'
-  maxFeePerGas: bigint
-  maxPriorityFeePerGas: bigint
-  gasLimit: bigint
-}
-
-// Legacy 费用
-interface LegacyFee {
-  type: 'legacy'
-  gasPrice: bigint
-  gasLimit: bigint
-}
-
-// Tron 资源费用
-interface TronResourceFee {
-  type: 'tron-resource'
-  bandwidth: number
-  energy: number
-  trxBurn: bigint
-}
-
-// 固定费用
-interface FixedFee {
-  type: 'fixed'
+```
+TransferParams {
+  from: Address
+  to: Address
   amount: bigint
+  tokenAddress?: Address    // 原生代币时为空
+  memo?: string
+  gasLimit?: bigint
+  gasPrice?: bigint
 }
 
-type FeeModel = EIP1559Fee | LegacyFee | TronResourceFee | FixedFee
+FeeEstimate {
+  slow: Fee                 // 慢速（低费用）
+  standard: Fee             // 标准
+  fast: Fee                 // 快速（高费用）
+}
+
+Fee {
+  amount: bigint
+  formatted: string
+  estimatedTime: number     // 预估确认时间（秒）
+}
+
+TransactionStatus {
+  status: 'pending' | 'confirming' | 'confirmed' | 'failed'
+  confirmations: number
+  requiredConfirmations: number
+}
+
+Transaction {
+  hash: TransactionHash
+  from: Address
+  to: Address
+  amount: bigint
+  fee: bigint
+  status: TransactionStatus
+  timestamp: number
+  blockNumber?: bigint
+  memo?: string
+}
 ```
+
+### 交易流程状态机
+
+```
+          buildTransaction
+                │
+                ▼
+        ┌───────────────┐
+        │   Unsigned    │
+        └───────┬───────┘
+                │ signTransaction
+                ▼
+        ┌───────────────┐
+        │    Signed     │
+        └───────┬───────┘
+                │ broadcastTransaction
+                ▼
+        ┌───────────────┐
+        │    Pending    │
+        └───────┬───────┘
+                │
+        ┌───────┴───────┐
+        ▼               ▼
+   ┌─────────┐    ┌─────────┐
+   │Confirming│   │  Failed │
+   └────┬────┘    └─────────┘
+        │
+        ▼
+   ┌─────────┐
+   │Confirmed│
+   └─────────┘
+```
+
+### 错误码
+
+| 错误码 | 说明 |
+|-------|------|
+| INSUFFICIENT_BALANCE | 余额不足 |
+| INSUFFICIENT_FEE | 手续费不足 |
+| INVALID_RECIPIENT | 收款地址无效 |
+| NONCE_TOO_LOW | Nonce 过低（交易已存在） |
+| TRANSACTION_REJECTED | 交易被拒绝 |
+| TRANSACTION_TIMEOUT | 交易超时 |
 
 ---
 
-## 12.5 IStakingService (质押服务)
+## 12.5 IChainService (链信息服务)
+
+### 职责
+
+查询链的基本信息和状态。
 
 ### 接口定义
 
-```typescript
-// src/services/modules/staking.ts
+```
+IChainService {
+  // 获取链信息
+  getChainInfo(): ChainInfo
+  
+  // 获取当前区块高度
+  getBlockHeight(): bigint
+  
+  // 获取 Gas 价格
+  getGasPrice(): GasPrice
+  
+  // 检查节点健康状态
+  healthCheck(): HealthStatus
+}
+```
 
-interface StakingInfo {
-  stakedAmount: bigint
-  pendingRewards: bigint
-  unbondingAmount: bigint
-  unbondingEndTime?: number
+### 数据结构
+
+```
+ChainInfo {
+  chainId: string
+  name: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  blockTime: number         // 平均出块时间（秒）
+  confirmations: number     // 建议确认数
 }
 
-export interface IStakingService {
+GasPrice {
+  slow: bigint
+  standard: bigint
+  fast: bigint
+  baseFee?: bigint          // EIP-1559 链
+}
+
+HealthStatus {
+  isHealthy: boolean
+  latency: number           // 响应延迟（ms）
+  blockHeight: bigint
+  lastUpdated: number
+}
+```
+
+---
+
+## 12.6 IStakingService (质押服务) [可选]
+
+### 职责
+
+管理代币质押操作。
+
+### 接口定义
+
+```
+IStakingService {
   // 获取质押信息
-  getStakingInfo(address: Address): Promise<StakingInfo>
+  getStakingInfo(address: Address): StakingInfo
   
-  // 获取最小质押额
-  getMinimumStake(): Promise<bigint>
-  
-  // 获取解锁期
-  getUnbondingPeriod(): Promise<number>
+  // 获取可用验证者
+  getValidators(): Validator[]
   
   // 质押
-  stake(amount: bigint, from: Address): Promise<TransactionHash>
+  stake(params: StakeParams): UnsignedTransaction
   
   // 解除质押
-  unstake(amount: bigint, from: Address): Promise<TransactionHash>
+  unstake(params: UnstakeParams): UnsignedTransaction
   
   // 领取奖励
-  claimRewards(from: Address): Promise<TransactionHash>
+  claimRewards(address: Address): UnsignedTransaction
+  
+  // 重新委托
+  redelegate(params: RedelegateParams): UnsignedTransaction
+}
+```
+
+### 数据结构
+
+```
+StakingInfo {
+  stakedAmount: bigint
+  rewards: bigint
+  unbonding: UnbondingEntry[]
+  delegations: Delegation[]
+}
+
+Validator {
+  address: Address
+  name: string
+  commission: number        // 0-1
+  votingPower: bigint
+  status: 'active' | 'inactive' | 'jailed'
+}
+
+Delegation {
+  validator: Address
+  amount: bigint
+  rewards: bigint
+}
+
+UnbondingEntry {
+  amount: bigint
+  completionTime: number
 }
 ```
 
 ---
 
-## 12.6 各链服务支持矩阵
+## 12.7 事件订阅规范
 
-| 服务 | Ethereum | Tron | BFMeta | Bitcoin |
-|-----|----------|------|--------|---------|
-| identity | ✅ | ✅ | ✅ | ✅ |
-| asset | ✅ | ✅ | ✅ | ✅ |
-| transaction | ✅ | ✅ | ✅ | ✅ |
-| chain | ✅ | ✅ | ✅ | ✅ |
-| staking | ❌ | ✅ | ✅ | ❌ |
-| nft | ✅ | ✅ | ❌ | ❌ |
-| defi | ✅ | ✅ | ❌ | ❌ |
+### 订阅模式
+
+所有 `subscribe*` 方法 **MUST** 遵循以下规范：
+
+1. 返回 `Unsubscribe` 函数用于取消订阅
+2. 立即调用一次 callback 返回当前状态
+3. 状态变化时调用 callback
+4. 网络错误时通过 callback 第二个参数传递错误
+
+```
+type Unsubscribe = () => void
+
+type SubscribeCallback<T> = (data: T, error?: Error) => void
+```
+
+### 重连策略
+
+| 场景 | 策略 |
+|-----|------|
+| 网络断开 | 指数退避重连（1s, 2s, 4s, 8s, max 30s） |
+| 服务端错误 | 延迟 5s 后重试 |
+| 认证失败 | 不重试，通知上层 |
 
 ---
 
-## 12.7 与 TanStack Query 集成
+## 12.8 错误处理规范
 
-### Query 定义
+### 错误结构
 
-```typescript
-// src/features/wallet/queries.ts
-import { queryOptions } from '@tanstack/react-query'
-import { adapterRegistry } from '@/services/registry'
-
-export const assetQueries = {
-  nativeBalance: (chainId: ChainId, address: Address) =>
-    queryOptions({
-      queryKey: ['asset', 'native', chainId, address],
-      queryFn: async () => {
-        const service = adapterRegistry.getServiceOrThrow(chainId, 'asset')
-        return service.getNativeBalance({ address })
-      },
-      staleTime: 30_000,
-    }),
-  
-  tokenBalances: (chainId: ChainId, address: Address) =>
-    queryOptions({
-      queryKey: ['asset', 'tokens', chainId, address],
-      queryFn: async () => {
-        const service = adapterRegistry.getServiceOrThrow(chainId, 'asset')
-        return service.getTokenBalances({ address })
-      },
-      staleTime: 30_000,
-    }),
+```
+ChainServiceError {
+  code: string              // 机器可读错误码
+  message: string           // 人类可读错误信息
+  details?: object          // 额外错误详情
+  cause?: Error             // 原始错误
 }
 ```
 
-### 在组件中使用
+### 错误分类
 
-```typescript
-function BalanceCard({ chainId, address }) {
-  const { data: balance, isLoading } = useQuery(
-    assetQueries.nativeBalance(chainId, address)
-  )
-  
-  if (isLoading) return <Skeleton />
-  
-  return (
-    <div>
-      <span>{balance.formatted}</span>
-      <span>{balance.token.symbol}</span>
-    </div>
-  )
-}
-```
+| 类别 | 前缀 | 处理策略 |
+|-----|------|---------|
+| 网络错误 | NETWORK_ | 可重试 |
+| 验证错误 | VALIDATION_ | 不可重试，需用户修改输入 |
+| 业务错误 | BUSINESS_ | 根据具体情况 |
+| 系统错误 | SYSTEM_ | 记录日志，提示用户联系支持 |
 
 ---
 
 ## 本章小结
 
-- 核心服务：Identity、Asset、Transaction、Chain
-- 可选服务：Staking、NFT、DeFi
-- 每条链实现自己支持的服务
-- 通过 TanStack Query 集成到 UI 层
+- 定义了 6 个核心服务接口
+- IIdentityService、IAssetService、ITransactionService、IChainService 为必需
+- IStakingService、INFTService 为可选扩展
+- 所有接口异步、类型安全、错误码明确
+- 订阅接口遵循统一的取消和重连规范
 
 ---
 
 ## 下一章
 
-继续阅读 [第十三章：平台服务](../03-平台服务/)，了解平台能力抽象。
+继续阅读 [第十三章：平台服务](../03-平台服务/)。

@@ -1,387 +1,297 @@
-# 第十七章：组件开发规范
+# 第十七章：交互规范
 
-> 定义 Storybook 驱动的组件开发流程
-
----
-
-## 17.1 开发流程
-
-### Story First 开发
-
-```
-1. 定义接口 (Props)
-        ↓
-2. 编写 Story
-        ↓
-3. 在 Storybook 中开发
-        ↓
-4. 编写测试
-        ↓
-5. 集成到页面
-```
-
-### 优势
-
-- 组件独立开发，不依赖页面环境
-- 即时预览所有状态
-- 自动生成文档
-- 便于测试和评审
+> 定义组件的交互行为、动效和可访问性规范
 
 ---
 
-## 17.2 Story 编写规范
+## 17.1 触摸交互规范
 
-### 基本结构
+### 触摸目标
 
-```typescript
-// src/components/wallet/wallet-card.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react'
-import { WalletCard } from './wallet-card'
-
-const meta = {
-  title: 'Wallet/WalletCard',
-  component: WalletCard,
-  parameters: {
-    layout: 'padded',
-  },
-  tags: ['autodocs'],
-} satisfies Meta<typeof WalletCard>
-
-export default meta
-type Story = StoryObj<typeof meta>
-
-// 默认状态
-export const Default: Story = {
-  args: {
-    wallet: mockWallet,
-    chainAddress: mockChainAddress,
-  },
-}
-
-// 未备份状态
-export const NotBackedUp: Story = {
-  args: {
-    ...Default.args,
-    wallet: { ...mockWallet, isBackedUp: false },
-  },
-}
-
-// 加载状态
-export const Loading: Story = {
-  args: {
-    wallet: null,
-    isLoading: true,
-  },
-}
-```
-
-### 命名规范
-
-| 规则 | 示例 |
+| 规范 | 要求 |
 |-----|------|
-| 文件名 | `组件名.stories.tsx` |
-| Meta title | `分类/组件名` |
-| Story 名 | PascalCase，描述状态 |
+| 最小尺寸 | 44 × 44 px（iOS）/ 48 × 48 dp（Android） |
+| 间距 | 相邻可触摸元素间距 ≥ 8 px |
+| 热区扩展 | 视觉元素小于最小尺寸时，扩展触摸热区 |
 
-### 分类建议
+### 触摸反馈
+
+| 事件 | 反馈 | 时机 |
+|-----|------|-----|
+| touch start | 视觉变化（透明度/缩放/颜色） | 立即 |
+| touch end | 恢复原状 | 立即 |
+| long press | 振动 + 上下文菜单 | 500ms 后 |
+
+**按压态规范**：
 
 ```
-UI/                  # 基础 UI 组件
-├── Button
-├── Input
-├── Card
+Button：
+  - 背景色变深 10% 或
+  - 透明度降至 0.7 或
+  - 缩放至 0.98
 
-Common/              # 通用业务组件
-├── AddressDisplay
-├── AmountDisplay
-
-Wallet/              # 钱包组件
-├── WalletCard
-├── ChainSelector
-
-Transfer/            # 转账组件
-├── TransferForm
-├── FeeSelector
-```
-
----
-
-## 17.3 交互测试
-
-### 使用 play 函数
-
-```typescript
-import { within, userEvent, expect } from '@storybook/test'
-
-export const ToggleVisibility: Story = {
-  args: {
-    placeholder: '输入密码',
-    showToggle: true,
-  },
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement)
-    const input = canvas.getByPlaceholderText('输入密码')
-    const toggleButton = canvas.getByRole('button')
-    
-    await step('输入密码', async () => {
-      await userEvent.type(input, 'secret123')
-      await expect(input).toHaveAttribute('type', 'password')
-    })
-    
-    await step('显示密码', async () => {
-      await userEvent.click(toggleButton)
-      await expect(input).toHaveAttribute('type', 'text')
-    })
-    
-    await step('隐藏密码', async () => {
-      await userEvent.click(toggleButton)
-      await expect(input).toHaveAttribute('type', 'password')
-    })
-  },
-}
-```
-
-### 表单交互测试
-
-```typescript
-export const FormValidation: Story = {
-  args: {},
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    
-    // 提交空表单
-    const submitButton = canvas.getByRole('button', { name: /提交/ })
-    await userEvent.click(submitButton)
-    
-    // 验证错误提示
-    await expect(canvas.getByText('请输入地址')).toBeVisible()
-    
-    // 填写表单
-    const addressInput = canvas.getByLabelText('收款地址')
-    await userEvent.type(addressInput, '0x1234567890abcdef...')
-    
-    // 错误消失
-    await expect(canvas.queryByText('请输入地址')).not.toBeInTheDocument()
-  },
-}
+Card (pressable)：
+  - 缩放至 0.98 或
+  - 阴影增强
 ```
 
 ---
 
-## 17.4 参数控制
+## 17.2 手势规范
 
-### Args 定义
+### 滑动手势
 
-```typescript
-const meta = {
-  title: 'UI/Button',
-  component: Button,
-  argTypes: {
-    variant: {
-      control: 'select',
-      options: ['default', 'destructive', 'outline', 'ghost'],
-    },
-    size: {
-      control: 'radio',
-      options: ['sm', 'md', 'lg'],
-    },
-    disabled: {
-      control: 'boolean',
-    },
-    onClick: {
-      action: 'clicked',
-    },
-  },
-} satisfies Meta<typeof Button>
+| 手势 | 方向 | 应用场景 |
+|-----|------|---------|
+| 滑动 | 水平 | 列表项滑动删除/操作 |
+| 滑动 | 垂直 | 页面滚动、Sheet 关闭 |
+| 下拉 | 垂直向下 | 刷新内容 |
+
+**Sheet 关闭手势**：
+
+```
+下滑距离 < 30% 高度 → 弹回打开状态
+下滑距离 ≥ 30% 高度 → 关闭 Sheet
+下滑速度 > 阈值 → 无论距离，直接关闭
 ```
 
-### Decorators
+### 缩放/旋转
 
-```typescript
-const meta = {
-  decorators: [
-    // 添加容器
-    (Story) => (
-      <div className="p-4 max-w-md">
-        <Story />
-      </div>
-    ),
-    // 提供 Context
-    (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
-}
-```
+- **MAY** 图片查看器支持双指缩放
+- **MUST NOT** 在普通页面拦截系统缩放
 
 ---
 
-## 17.5 文档生成
+## 17.3 动效规范
 
-### JSDoc 注释
+### 时间曲线
 
-```typescript
-interface ButtonProps {
-  /**
-   * 按钮变体
-   * @default 'default'
-   */
-  variant?: 'default' | 'destructive' | 'outline' | 'ghost'
-  
-  /**
-   * 按钮尺寸
-   * @default 'md'
-   */
-  size?: 'sm' | 'md' | 'lg'
-  
-  /**
-   * 是否禁用
-   */
-  disabled?: boolean
-  
-  /**
-   * 点击事件处理
-   */
-  onClick?: () => void
-}
+| 动效类型 | 持续时间 | 缓动函数 |
+|---------|---------|---------|
+| 微交互（按钮反馈） | 100-150ms | ease-out |
+| 页面切换 | 250-350ms | ease-in-out |
+| Sheet 展开/收起 | 300-400ms | spring (damping: 0.8) |
+| 加载骨架闪烁 | 1500ms | linear (循环) |
+
+### 页面转场
+
+**Push 进入**：
+```
+新页面：从右侧 100% 滑入，透明度 1
+旧页面：向左偏移 30%，透明度降至 0.3
 ```
 
-### MDX 文档
-
-```mdx
-{/* src/components/wallet/wallet-card.mdx */}
-import { Meta, Canvas, Controls } from '@storybook/blocks'
-import * as WalletCardStories from './wallet-card.stories'
-
-<Meta of={WalletCardStories} />
-
-# WalletCard
-
-钱包卡片组件，用于展示钱包信息和快捷操作。
-
-## 使用示例
-
-<Canvas of={WalletCardStories.Default} />
-
-## Props
-
-<Controls />
-
-## 变体
-
-### 未备份状态
-
-当钱包未备份时，显示警告标签。
-
-<Canvas of={WalletCardStories.NotBackedUp} />
+**Pop 返回**：
 ```
+当前页面：向右滑出 100%，透明度 1
+上一页面：从左侧 30% 偏移恢复，透明度恢复至 1
+```
+
+### 减少动效模式
+
+- **MUST** 检测系统"减少动效"设置
+- **MUST** 减少动效模式下：
+  - 禁用弹簧动画
+  - 使用淡入淡出替代滑动
+  - 缩短动画时间至最小
 
 ---
 
-## 17.6 视口测试
+## 17.4 加载状态规范
 
-### 移动端视口
+### 骨架屏
 
-```typescript
-// .storybook/preview.tsx
-const viewports = {
-  iPhone14: {
-    name: 'iPhone 14',
-    styles: { width: '390px', height: '844px' },
-  },
-  iPhone14ProMax: {
-    name: 'iPhone 14 Pro Max',
-    styles: { width: '430px', height: '932px' },
-  },
-  pixel7: {
-    name: 'Pixel 7',
-    styles: { width: '412px', height: '915px' },
-  },
-}
+| 适用场景 | 形态 |
+|---------|------|
+| 文本 | 圆角矩形，高度与文字行高一致 |
+| 头像 | 圆形 |
+| 卡片 | 与实际卡片尺寸一致的圆角矩形 |
+| 列表 | 重复 3-5 个骨架项 |
 
-const preview: Preview = {
-  parameters: {
-    viewport: {
-      viewports,
-      defaultViewport: 'iPhone14',
-    },
-  },
-}
+**动画**：
+- 渐变色从左向右扫过
+- 周期：1.5-2s
+- 不透明度：0.1 → 0.3 → 0.1
+
+### 加载指示器
+
+| 类型 | 适用场景 |
+|-----|---------|
+| Spinner | 按钮内、小区域加载 |
+| Skeleton | 页面/组件首次加载 |
+| Progress | 已知进度的操作 |
+
+### 空状态
+
+**结构**：
+```
+┌─────────────────────────────────┐
+│          [插图/图标]             │
+│                                 │
+│         主标题                   │
+│         副标题（可选）           │
+│                                 │
+│         [操作按钮]               │
+└─────────────────────────────────┘
 ```
 
-### 容器尺寸测试
-
-```typescript
-export const ResponsiveTest: Story = {
-  decorators: [
-    (Story, context) => {
-      const width = context.args.containerWidth || 360
-      return (
-        <div
-          style={{ width, resize: 'horizontal', overflow: 'auto' }}
-          className="border border-dashed p-2"
-        >
-          <Story />
-        </div>
-      )
-    },
-  ],
-  args: {
-    containerWidth: 360,
-  },
-}
-```
+**文案规范**：
+- 主标题：描述当前状态（如"暂无交易记录"）
+- 副标题：说明原因或引导操作（如"完成首笔转账后将在此显示"）
 
 ---
 
-## 17.7 与 Vitest 集成
+## 17.5 错误状态规范
 
-### 运行 Story 测试
+### 网络错误
 
-```bash
-# 运行所有 Story 测试
-pnpm test:storybook
-
-# 运行特定组件
-pnpm test:storybook -- --grep "WalletCard"
+```
+┌─────────────────────────────────┐
+│         [断网图标]               │
+│                                 │
+│         网络连接失败             │
+│         请检查网络设置           │
+│                                 │
+│         [重试]                   │
+└─────────────────────────────────┘
 ```
 
-### 配置
+### 服务器错误
 
-```typescript
-// vitest.config.ts
-{
-  plugins: [
-    storybookTest({
-      configDir: '.storybook',
-      storybookScript: 'pnpm storybook --ci',
-    }),
-  ],
-  test: {
-    name: 'storybook',
-    browser: {
-      enabled: true,
-      provider: playwright(),
-      headless: true,
-    },
-  },
-}
 ```
+┌─────────────────────────────────┐
+│         [错误图标]               │
+│                                 │
+│         服务暂时不可用           │
+│         请稍后再试               │
+│                                 │
+│         [重试]                   │
+└─────────────────────────────────┘
+```
+
+### 操作失败
+
+使用 Toast 或 Alert：
+- **Toast**：轻量提示，3-5 秒自动消失
+- **Alert**：需要用户确认的重要错误
+
+---
+
+## 17.6 反馈规范
+
+### Toast 消息
+
+| 类型 | 图标 | 持续时间 |
+|-----|------|---------|
+| success | ✓ | 2s |
+| error | ✗ | 3s |
+| warning | ⚠ | 3s |
+| info | ℹ | 2s |
+
+**位置**：屏幕顶部或底部居中
+
+**行为**：
+- 可堆叠显示
+- 向上/向下滑动可提前关闭
+- 同时最多显示 3 个
+
+### 振动反馈
+
+| 场景 | 振动类型 |
+|-----|---------|
+| 按钮点击 | 轻触（light） |
+| 操作成功 | 成功（success） |
+| 操作失败 | 错误（error） |
+| 危险操作确认 | 警告（warning） |
+
+**规范**：
+- **MUST** 检测系统振动设置
+- **MUST NOT** 在静音模式下振动（除非用户明确开启）
+
+---
+
+## 17.7 可访问性规范
+
+### 语义结构
+
+| 元素 | 语义角色 |
+|-----|---------|
+| 导航栏 | role="navigation" |
+| 主内容 | role="main" |
+| 对话框 | role="dialog" |
+| 列表 | role="list" + role="listitem" |
+| 按钮 | role="button" |
+
+### 焦点管理
+
+**焦点顺序**：
+- **MUST** 遵循视觉阅读顺序（从上到下，从左到右）
+- **MUST** 可通过键盘 Tab 遍历所有可交互元素
+
+**焦点陷阱**：
+- **MUST** 模态对话框内焦点循环
+- **MUST** 关闭对话框时焦点返回触发元素
+
+### 屏幕阅读器
+
+**必需的 accessible name**：
+- 所有按钮
+- 所有输入框
+- 所有图标按钮（使用 aria-label）
+
+**动态内容**：
+- 使用 aria-live 通知重要变化
+- polite：非紧急更新
+- assertive：错误信息
+
+### 对比度
+
+| 元素 | 最小对比度 |
+|-----|-----------|
+| 正文文本 | 4.5:1 |
+| 大文本（≥18px） | 3:1 |
+| 图标 | 3:1 |
+| 禁用状态 | 无要求 |
+
+---
+
+## 17.8 响应式规范
+
+### 断点
+
+| 断点 | 宽度范围 | 典型设备 |
+|-----|---------|---------|
+| xs | < 360px | 小屏手机 |
+| sm | 360-428px | 普通手机（设计基准） |
+| md | 428-768px | 大屏手机/小平板 |
+| lg | ≥ 768px | 平板（可选支持） |
+
+### 适配策略
+
+**文字**：
+- 使用相对单位（rem/em）
+- 标题：1.25-1.5rem
+- 正文：1rem
+- 辅助文字：0.875rem
+
+**布局**：
+- 使用弹性布局（flexbox）
+- 卡片网格：1 列（sm） / 2 列（md+）
+- 水平间距：16-24px
+- 垂直间距：8-16px
 
 ---
 
 ## 本章小结
 
-- Story First 开发流程
-- 使用 play 函数进行交互测试
-- 通过 argTypes 控制参数
-- JSDoc + MDX 生成文档
-- 与 Vitest 集成运行测试
+- 触摸目标最小 44×44px，有明确触摸反馈
+- 手势行为遵循平台规范
+- 动效时间和曲线有统一标准
+- 加载、空、错误状态都有规范模板
+- 可访问性是必需项，不是可选项
 
 ---
 
 ## 下一篇
 
-完成组件篇后，继续阅读 [第六篇：安全篇](../../06-安全篇/)，了解安全设计。
+完成组件篇后，继续阅读 [第六篇：安全篇](../../06-安全篇/)。

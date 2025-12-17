@@ -1,361 +1,313 @@
-# 第十六章：表单系统
+# 第十六章：表单规范
 
-> 定义 TanStack Form 的使用方案
-
----
-
-## 16.1 概述
-
-BFM Pay 使用 TanStack Form 处理表单，配合 Zod 进行验证。
-
-### 为什么选择 TanStack Form
-
-| 特性 | TanStack Form | React Hook Form |
-|-----|--------------|-----------------|
-| 类型安全 | ✅ 完整 | ⚠️ 需要额外配置 |
-| 验证器适配 | ✅ 多种适配器 | ⚠️ 需要 resolver |
-| 异步验证 | ✅ 原生支持 | ⚠️ 需要配置 |
-| 与 TanStack 生态 | ✅ 统一 API | ❌ 独立 API |
+> 定义表单的状态管理、验证和反馈规范
 
 ---
 
-## 16.2 基础用法
+## 16.1 表单状态机
 
-### 创建表单
+### 整体状态
 
-```typescript
-// src/features/transfer/transfer-form.tsx
-import { useForm } from '@tanstack/react-form'
-import { zodValidator } from '@tanstack/zod-form-adapter'
-import { z } from 'zod'
-
-const transferSchema = z.object({
-  toAddress: z.string().min(1, '请输入收款地址'),
-  amount: z.string().min(1, '请输入金额'),
-  memo: z.string().max(24, '备注最多24字符').optional(),
-})
-
-export function TransferForm() {
-  const form = useForm({
-    defaultValues: {
-      toAddress: '',
-      amount: '',
-      memo: '',
-    },
-    validatorAdapter: zodValidator(),
-    validators: {
-      onChange: transferSchema,
-    },
-    onSubmit: async ({ value }) => {
-      await transfer(value)
-    },
-  })
-  
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        form.handleSubmit()
-      }}
-    >
-      {/* 表单字段 */}
-    </form>
-  )
-}
+```
+                          ┌─────────────┐
+                          │   Pristine  │  ← 初始状态，未修改
+                          └──────┬──────┘
+                                 │ 用户输入
+                                 ▼
+                          ┌─────────────┐
+          ┌──────────────►│    Dirty    │  ← 已修改
+          │               └──────┬──────┘
+          │                      │ 失去焦点或提交
+          │                      ▼
+          │               ┌─────────────┐
+          │  修改   ┌─────│  Validating │  ← 验证中
+          │         │     └──────┬──────┘
+          │         │            │
+          │         │     ┌──────┴──────┐
+          │         │     ▼             ▼
+          │         │ ┌───────┐    ┌─────────┐
+          │         │ │ Valid │    │ Invalid │
+          │         │ └───┬───┘    └────┬────┘
+          │         │     │             │
+          │         │     │ 提交        │ 修改
+          │         │     ▼             │
+          │         │ ┌───────────┐     │
+          │         │ │Submitting │     │
+          │         │ └─────┬─────┘     │
+          │         │       │           │
+          │         │ ┌─────┴─────┐     │
+          │         │ ▼           ▼     │
+          │         │ Success   Error   │
+          │         │   │         │     │
+          └─────────┴───┴─────────┴─────┘
 ```
 
-### 字段渲染
+### 字段级状态
 
-```typescript
-<form.Field name="toAddress">
-  {(field) => (
-    <div className="space-y-2">
-      <Label htmlFor={field.name}>收款地址</Label>
-      <Input
-        id={field.name}
-        value={field.state.value}
-        onChange={(e) => field.handleChange(e.target.value)}
-        onBlur={field.handleBlur}
-        placeholder="输入或粘贴地址"
-      />
-      {field.state.meta.errors.length > 0 && (
-        <p className="text-sm text-destructive">
-          {field.state.meta.errors.join(', ')}
-        </p>
-      )}
-    </div>
-  )}
-</form.Field>
-```
+每个表单字段 **MUST** 维护以下状态：
+
+| 状态 | 类型 | 说明 |
+|-----|------|------|
+| value | any | 当前值 |
+| touched | boolean | 是否被触摸过（获得过焦点） |
+| dirty | boolean | 值是否被修改过 |
+| validating | boolean | 是否正在验证 |
+| errors | string[] | 验证错误列表 |
 
 ---
 
-## 16.3 异步验证
+## 16.2 验证规范
 
-### 地址格式验证
+### 验证时机
 
-```typescript
-<form.Field
-  name="toAddress"
-  validators={{
-    // 同步验证：非空
-    onChange: z.string().min(1, '请输入地址'),
-    
-    // 异步验证：地址格式
-    onChangeAsync: async ({ value }) => {
-      if (!value) return undefined
-      
-      const isValid = await chainService.isValidAddress(value, chainId)
-      return isValid ? undefined : '地址格式不正确'
-    },
-    onChangeAsyncDebounceMs: 500,
-  }}
->
-  {(field) => (
-    <div className="space-y-2">
-      <Input
-        value={field.state.value}
-        onChange={(e) => field.handleChange(e.target.value)}
-      />
-      {field.state.meta.isValidating && (
-        <p className="text-sm text-muted-foreground">验证中...</p>
-      )}
-      {field.state.meta.errors.length > 0 && (
-        <p className="text-sm text-destructive">
-          {field.state.meta.errors[0]}
-        </p>
-      )}
-    </div>
-  )}
-</form.Field>
+| 时机 | 触发条件 | 适用场景 |
+|-----|---------|---------|
+| onChange | 值变化时 | 即时反馈的字段 |
+| onBlur | 失去焦点时 | 大多数字段的默认行为 |
+| onSubmit | 提交时 | 最终校验 |
+
+**默认策略**：
+
+1. **首次验证**：onBlur（用户离开字段时）
+2. **后续验证**：onChange（已有错误时即时更新）
+3. **最终验证**：onSubmit（提交前完整校验）
+
+### 验证类型
+
+#### 同步验证
+
+立即返回结果，用于：
+- 必填检查
+- 格式检查（邮箱、数字等）
+- 长度限制
+- 正则匹配
+
+#### 异步验证
+
+需要网络请求，用于：
+- 地址格式验证（调用链服务）
+- 余额检查
+- 重复检查
+
+**异步验证规范**：
+
+1. **MUST** 显示验证中状态
+2. **MUST** 支持防抖（建议 300-500ms）
+3. **MUST** 取消过期请求
+4. **SHOULD** 验证中禁用提交按钮
+
+---
+
+## 16.3 核心表单规范
+
+### 16.3.1 转账表单
+
+**字段定义**：
+
+| 字段 | 类型 | 必填 | 验证规则 |
+|-----|------|-----|---------|
+| toAddress | string | Y | 非空 + 地址格式（异步） |
+| amount | string | Y | 非空 + 正数 + 余额检查（异步） |
+| memo | string | N | 最大 24 字符 |
+
+**状态机**：
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    TransferForm                          │
+├─────────────────────────────────────────────────────────┤
+│  State                                                   │
+│  ├─ step: 'input' | 'confirm' | 'result'                │
+│  ├─ toAddress: { value, errors, validating }            │
+│  ├─ amount: { value, errors, validating }               │
+│  └─ memo: { value, errors }                             │
+├─────────────────────────────────────────────────────────┤
+│  Transitions                                             │
+│  ├─ input → confirm : 所有字段 valid                    │
+│  ├─ confirm → input : 用户返回编辑                      │
+│  ├─ confirm → result : 提交成功或失败                   │
+│  └─ result → input : 用户重新发起                       │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### 余额验证
+**验证流程**：
 
-```typescript
-<form.Field
-  name="amount"
-  validators={{
-    onChange: z.string().min(1, '请输入金额'),
-    onChangeAsync: async ({ value }) => {
-      const amount = parseFloat(value)
-      if (isNaN(amount) || amount <= 0) {
-        return '请输入有效金额'
-      }
-      
-      const balance = await getBalance(address, chainId)
-      if (amount > parseFloat(balance.formatted)) {
-        return '余额不足'
-      }
-      
-      return undefined
-    },
-    onChangeAsyncDebounceMs: 300,
-  }}
->
-  {(field) => (/* ... */)}
-</form.Field>
+```
+用户输入地址
+      │
+      ▼
+同步验证：非空
+      │
+      ├─ 失败 → 显示"请输入收款地址"
+      │
+      ▼
+异步验证（500ms 防抖）：调用 isValidAddress(address, chainId)
+      │
+      ├─ 验证中 → 显示加载指示器
+      │
+      ├─ 失败 → 显示"地址格式不正确"
+      │
+      ▼
+验证通过 → 清除错误
 ```
 
 ---
 
-## 16.4 表单状态订阅
+### 16.3.2 创建钱包表单
+
+**多步骤流程**：
+
+```
+Step 1: 设置密码
+    │
+    ▼
+Step 2: 展示助记词
+    │
+    ▼
+Step 3: 验证助记词
+    │
+    ▼
+Complete: 创建成功
+```
+
+**Step 1 字段**：
+
+| 字段 | 验证规则 |
+|-----|---------|
+| password | 非空 + 最少 8 字符 + 含数字和字母 |
+| confirmPassword | 与 password 一致 |
+
+**Step 3 验证**：
+
+随机选择 3 个位置，用户输入对应单词：
+
+```
+请输入第 3 个单词：[输入框]
+请输入第 7 个单词：[输入框]
+请输入第 11 个单词：[输入框]
+```
+
+验证规则：输入值 **MUST** 与对应位置的单词完全匹配
+
+---
+
+### 16.3.3 导入钱包表单
+
+**字段定义**：
+
+| 字段 | 类型 | 验证规则 |
+|-----|------|---------|
+| secretInput | string | 非空 |
+| secretType | enum | 自动检测：mnemonic / privateKey / arbitrary |
+| password | string | 同创建钱包密码规则 |
+
+**secretType 检测规则**：
+
+```
+输入内容
+    │
+    ├─ 12/15/18/21/24 个空格分隔的单词 → mnemonic
+    │
+    ├─ 0x 开头 + 64 个十六进制字符 → privateKey
+    │
+    ├─ 64 个十六进制字符 → privateKey
+    │
+    └─ 其他 → arbitrary（BFM 特殊密钥）
+```
+
+**BFM 任意密钥说明**：
+
+BFM 链支持任意字符串作为密钥，不限于标准助记词格式。
+- **MUST** 使用多行文本输入框
+- **SHOULD** 提示用户这是 BFM 特有功能
+
+---
+
+## 16.4 错误反馈规范
+
+### 错误显示位置
+
+```
+┌─────────────────────────────────┐
+│ 标签名                     [必填] │
+├─────────────────────────────────┤
+│ [输入框]                         │  ← 输入区域
+├─────────────────────────────────┤
+│ ⚠ 错误信息                       │  ← 紧邻输入框下方
+└─────────────────────────────────┘
+```
+
+### 错误样式
+
+| 元素 | 正常状态 | 错误状态 |
+|-----|---------|---------|
+| 输入框边框 | 中性色 | 红色（destructive） |
+| 错误文本 | 隐藏 | 红色小字 |
+| 标签 | 中性色 | 红色（可选） |
+
+### 错误信息文案规范
+
+| 类型 | 格式 | 示例 |
+|-----|------|------|
+| 必填 | 请输入{字段名} | 请输入收款地址 |
+| 格式 | {字段名}格式不正确 | 地址格式不正确 |
+| 范围 | {字段名}必须在 X 到 Y 之间 | 金额必须大于 0 |
+| 异步 | {具体原因} | 余额不足 |
+
+---
+
+## 16.5 表单提交规范
 
 ### 提交按钮状态
 
-```typescript
-<form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]}>
-  {([canSubmit, isSubmitting]) => (
-    <Button type="submit" disabled={!canSubmit || isSubmitting}>
-      {isSubmitting ? '发送中...' : '确认发送'}
-    </Button>
-  )}
-</form.Subscribe>
-```
+| 状态 | 条件 | 按钮显示 |
+|-----|------|---------|
+| disabled | 有必填字段为空 或 有验证错误 | 禁用态 |
+| enabled | 所有字段 valid | 正常态 |
+| loading | 正在提交 | 加载态 + "提交中..." |
 
-### 表单级错误
+### 提交结果处理
 
-```typescript
-<form.Subscribe selector={(s) => s.errors}>
-  {(errors) => (
-    errors.length > 0 && (
-      <Alert variant="destructive">
-        {errors.join(', ')}
-      </Alert>
-    )
-  )}
-</form.Subscribe>
-```
+**成功**：
+1. 显示成功反馈（Toast 或 页面）
+2. 清空表单 或 导航到结果页
+
+**失败**：
+1. 显示错误信息（具体原因）
+2. 保留表单数据
+3. 提供重试选项
 
 ---
 
-## 16.5 复杂表单场景
+## 16.6 表单可访问性
 
-### 多步骤表单
+### 标签关联
 
-```typescript
-// 钱包创建表单
-export function CreateWalletForm() {
-  const [step, setStep] = useState<'password' | 'mnemonic' | 'verify'>('password')
-  
-  const form = useForm({
-    defaultValues: {
-      password: '',
-      confirmPassword: '',
-      mnemonic: [] as string[],
-      verifyWords: {} as Record<number, string>,
-    },
-    onSubmit: async ({ value }) => {
-      await createWallet(value)
-    },
-  })
-  
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>
-      {step === 'password' && (
-        <PasswordStep form={form} onNext={() => setStep('mnemonic')} />
-      )}
-      {step === 'mnemonic' && (
-        <MnemonicStep form={form} onNext={() => setStep('verify')} onBack={() => setStep('password')} />
-      )}
-      {step === 'verify' && (
-        <VerifyStep form={form} onBack={() => setStep('mnemonic')} />
-      )}
-    </form>
-  )
-}
-```
+- **MUST** 每个输入框有关联的 label
+- **MUST** 使用 for/id 或嵌套关联
 
-### 动态字段
+### 错误通知
 
-```typescript
-// 助记词输入
-<form.Field name="mnemonic" mode="array">
-  {(field) => (
-    <div className="grid grid-cols-3 gap-2">
-      {field.state.value.map((_, index) => (
-        <form.Field key={index} name={`mnemonic[${index}]`}>
-          {(wordField) => (
-            <Input
-              value={wordField.state.value}
-              onChange={(e) => wordField.handleChange(e.target.value)}
-              placeholder={`${index + 1}`}
-            />
-          )}
-        </form.Field>
-      ))}
-    </div>
-  )}
-</form.Field>
-```
+- **MUST** 错误信息通过 aria-describedby 关联到输入框
+- **SHOULD** 使用 aria-live 通知屏幕阅读器
 
----
+### 焦点管理
 
-## 16.6 表单组件封装
-
-### FormField 组件
-
-```typescript
-// src/components/common/form-field.tsx
-interface FormFieldProps {
-  label: string
-  error?: string
-  required?: boolean
-  children: React.ReactNode
-}
-
-export function FormField({ label, error, required, children }: FormFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label>
-        {label}
-        {required && <span className="text-destructive ml-1">*</span>}
-      </Label>
-      {children}
-      {error && (
-        <p className="text-sm text-destructive -mt-0.5">{error}</p>
-      )}
-    </div>
-  )
-}
-```
-
-### 使用封装组件
-
-```typescript
-<form.Field name="toAddress">
-  {(field) => (
-    <FormField
-      label="收款地址"
-      error={field.state.meta.errors[0]}
-      required
-    >
-      <Input
-        value={field.state.value}
-        onChange={(e) => field.handleChange(e.target.value)}
-        onBlur={field.handleBlur}
-      />
-    </FormField>
-  )}
-</form.Field>
-```
-
----
-
-## 16.7 与 Mutation 集成
-
-```typescript
-export function TransferForm() {
-  const transfer = useTransfer()
-  
-  const form = useForm({
-    defaultValues: { toAddress: '', amount: '' },
-    onSubmit: async ({ value }) => {
-      await transfer.mutateAsync({
-        to: value.toAddress,
-        amount: value.amount,
-        chain: currentChain,
-      })
-    },
-  })
-  
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>
-      {/* 字段 */}
-      
-      {transfer.isError && (
-        <Alert variant="destructive">
-          {transfer.error.message}
-        </Alert>
-      )}
-      
-      <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]}>
-        {([canSubmit, isSubmitting]) => (
-          <Button
-            type="submit"
-            disabled={!canSubmit || isSubmitting || transfer.isPending}
-          >
-            {transfer.isPending ? '发送中...' : '确认发送'}
-          </Button>
-        )}
-      </form.Subscribe>
-    </form>
-  )
-}
-```
+- **MUST** 验证失败时焦点移至第一个错误字段
+- **MUST** 多步骤表单切换时焦点移至新步骤第一个输入
 
 ---
 
 ## 本章小结
 
-- TanStack Form 提供类型安全的表单管理
-- 支持同步和异步验证
-- 多步骤表单使用状态控制步骤
-- 封装 FormField 组件统一样式
-- 与 TanStack Query Mutation 配合处理提交
+- 表单有完整的状态机定义
+- 验证分同步/异步，遵循防抖策略
+- 核心表单（转账、创建钱包、导入钱包）有详细规范
+- 错误反馈遵循一致的位置和样式规范
+- 提交按钮状态与表单状态联动
 
 ---
 
 ## 下一章
 
-继续阅读 [第十七章：组件开发规范](../03-组件开发规范/)，了解 Storybook 驱动的开发流程。
+继续阅读 [第十七章：交互规范](../03-组件开发规范/)。
