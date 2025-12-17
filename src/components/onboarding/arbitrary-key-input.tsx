@@ -1,4 +1,4 @@
-import { Eye, EyeOff, RotateCcw } from 'lucide-react';
+import { IconEye as Eye, IconEyeOff as EyeOff, IconRotateClockwise as RotateCcw } from '@tabler/icons-react';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

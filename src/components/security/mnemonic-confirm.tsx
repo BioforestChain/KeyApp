@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { RotateCcw, Check, X } from 'lucide-react';
+import { IconRotateClockwise as RotateCcw, IconCheck as Check, IconX as X } from '@tabler/icons-react';
 
 interface MnemonicConfirmProps {
   /** Original mnemonic words in correct order */

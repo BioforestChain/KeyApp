@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { validateMnemonic, isValidWord } from '@/lib/crypto/mnemonic';
-import { Check, AlertCircle, Loader2 } from 'lucide-react';
+import { IconCheck as Check, IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
 
 /** Valid mnemonic word counts */
 export type MnemonicWordCount = 12 | 15 | 18 | 21 | 24 | 36;

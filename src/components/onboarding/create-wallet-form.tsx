@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/security/password-input';
 import { FormField } from '@/components/common/form-field';
-import { ChevronRight, Check } from 'lucide-react';
+import { IconChevronRight as ChevronRight, IconCheck as Check } from '@tabler/icons-react';
 
 /** Mnemonic language options */
 export type MnemonicLanguage = 'english' | 'zh-Hans' | 'zh-Hant';

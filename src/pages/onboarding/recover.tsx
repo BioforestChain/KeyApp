@@ -15,7 +15,7 @@ import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
 
 type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'password' | 'collision' | 'success';
 

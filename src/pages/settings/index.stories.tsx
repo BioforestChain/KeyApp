@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
 import { SettingsPage } from './index';
-import { Languages, Lock, Eye } from 'lucide-react';
+import { IconLanguage as Languages, IconLock as Lock, IconEye as Eye } from '@tabler/icons-react';
 
 // SettingsItem stories
 const itemMeta = {

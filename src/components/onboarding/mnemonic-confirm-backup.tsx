@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Check, X, HelpCircle } from 'lucide-react';
+import { IconCheck as Check, IconX as X, IconHelpCircle as HelpCircle } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { VerificationSlot } from '@/hooks/use-mnemonic-verification';

@@ -4,7 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';

@@ -4,7 +4,14 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownRight, ArrowUpRight, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import {
+  IconArrowDownRight as ArrowDownRight,
+  IconArrowUpRight as ArrowUpRight,
+  IconClock as Clock,
+  IconCircleCheck as CheckCircle,
+  IconCircleX as XCircle,
+  IconLoader2 as Loader2,
+} from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';

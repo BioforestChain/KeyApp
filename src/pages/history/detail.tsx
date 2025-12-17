@@ -1,6 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Copy, ExternalLink, Check, Clock, XCircle } from 'lucide-react';
+import {
+  IconCopy as Copy,
+  IconExternalLink as ExternalLink,
+  IconCheck as Check,
+  IconClock as Clock,
+  IconCircleX as XCircle,
+} from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '@/components/common';
@@ -216,7 +222,7 @@ export function TransactionDetailPage() {
         {transaction.hash && (
           <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
             <h3 className="text-muted-foreground text-sm font-medium">交易哈希</h3>
-            <p className="text-muted font-mono text-xs break-all">{transaction.hash}</p>
+            <p className="text-muted-foreground font-mono text-xs break-all">{transaction.hash}</p>
 
             <div className="flex gap-2">
               <button

@@ -15,7 +15,11 @@ import { useMnemonicVerification } from '@/hooks/use-mnemonic-verification';
 import { generateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconChevronRight as ArrowRight,
+  IconCircleCheck as CheckCircle,
+} from '@tabler/icons-react';
 
 type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-confirm' | 'backup-complete';
 

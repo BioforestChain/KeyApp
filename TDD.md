@@ -1122,7 +1122,7 @@ export function WalletCard({ wallet }: WalletCardProps) {
             {wallet.name}
           </h3>
           {/* 宽容器时显示完整地址 */}
-          <p className="text-xs text-muted @md:text-sm">
+          <p className="text-xs text-muted-@md:text-sm">
             <span className="@md:hidden">{shortenAddress(wallet.address)}</span>
             <span className="hidden @md:inline">{wallet.address}</span>
           </p>
@@ -1133,7 +1133,7 @@ export function WalletCard({ wallet }: WalletCardProps) {
           <p className="text-sm @xs:text-base @md:text-lg font-bold">
             {formatBalance(wallet.balance)}
           </p>
-          <p className="hidden @md:block text-xs text-muted">
+          <p className="hidden @md:block text-xs text-muted-foreground">
             ≈ ${wallet.fiatValue}
           </p>
         </div>
@@ -3100,7 +3100,7 @@ export function AuthorizeCard({
         />
         <div>
           <h3 className="font-medium">{appInfo.name}</h3>
-          <p className="text-sm text-muted">{appInfo.home}</p>
+          <p className="text-sm text-muted-foreground">{appInfo.home}</p>
         </div>
       </div>
 

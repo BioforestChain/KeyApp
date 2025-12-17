@@ -1,27 +1,27 @@
-import { useEffect, useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
-import { TokenList } from '@/components/token/token-list'
-import { GradientButton } from '@/components/common/gradient-button'
-import { Button } from '@/components/ui/button'
-import { LoadingSpinner } from '@/components/common/loading-spinner'
-import { ChainIcon } from '@/components/wallet/chain-icon'
-import { BottomSheet } from '@/components/layout/bottom-sheet'
-import { useClipboard, useToast, useHaptics } from '@/services'
+import { useEffect, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import { TokenList } from '@/components/token/token-list';
+import { GradientButton } from '@/components/common/gradient-button';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { ChainIcon } from '@/components/wallet/chain-icon';
+import { BottomSheet } from '@/components/layout/bottom-sheet';
+import { useClipboard, useToast, useHaptics } from '@/services';
 import {
-  Plus,
-  Send,
-  QrCode,
-  Copy,
-  ChevronDown,
-  Check,
-  ScanLine,
-} from 'lucide-react'
+  IconPlus as Plus,
+  IconSend as Send,
+  IconQrcode as QrCode,
+  IconCopy as Copy,
+  IconChevronDown as ChevronDown,
+  IconCheck as Check,
+  IconLineScan as ScanLine,
+} from '@tabler/icons-react';
 
 /** 截断地址显示 */
 function truncateAddress(address: string, startChars = 6, endChars = 4): string {
-  if (address.length <= startChars + endChars + 3) return address
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
+  if (address.length <= startChars + endChars + 3) return address;
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
 }
 import {
   useCurrentWallet,
@@ -33,7 +33,7 @@ import {
   useWalletInitialized,
   walletActions,
   type ChainType,
-} from '@/stores'
+} from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
   // 外部链
@@ -50,63 +50,63 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   biwmeta: 'BIWMeta',
   ethmeta: 'ETHMeta',
   malibu: 'Malibu',
-}
+};
 
 export function HomePage() {
-  const clipboard = useClipboard()
-  const toast = useToast()
-  const haptics = useHaptics()
-  const { t } = useTranslation()
+  const clipboard = useClipboard();
+  const toast = useToast();
+  const haptics = useHaptics();
+  const { t } = useTranslation();
 
-  const isInitialized = useWalletInitialized()
-  const hasWallet = useHasWallet()
-  const currentWallet = useCurrentWallet()
-  const selectedChain = useSelectedChain()
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain
-  const chainAddress = useCurrentChainAddress()
-  const tokens = useCurrentChainTokens()
-  const availableChains = useAvailableChains()
-  
-  const [chainSheetOpen, setChainSheetOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const isInitialized = useWalletInitialized();
+  const hasWallet = useHasWallet();
+  const currentWallet = useCurrentWallet();
+  const selectedChain = useSelectedChain();
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const chainAddress = useCurrentChainAddress();
+  const tokens = useCurrentChainTokens();
+  const availableChains = useAvailableChains();
+
+  const [chainSheetOpen, setChainSheetOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) {
-      walletActions.initialize()
+      walletActions.initialize();
     }
-  }, [isInitialized])
+  }, [isInitialized]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {
-      await clipboard.write(chainAddress.address)
-      await haptics.impact('light')
-      setCopied(true)
-      toast.show('地址已复制')
-      setTimeout(() => setCopied(false), 2000)
+      await clipboard.write(chainAddress.address);
+      await haptics.impact('light');
+      setCopied(true);
+      toast.show('地址已复制');
+      setTimeout(() => setCopied(false), 2000);
     }
-  }
+  };
 
   const handleSelectChain = (chain: ChainType) => {
-    walletActions.setSelectedChain(chain)
-    setChainSheetOpen(false)
-  }
+    walletActions.setSelectedChain(chain);
+    setChainSheetOpen(false);
+  };
 
   if (!isInitialized) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
-    )
+    );
   }
 
   if (!hasWallet || !currentWallet) {
-    return <NoWalletView />
+    return <NoWalletView />;
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="bg-muted/30 flex min-h-screen flex-col">
       {/* 钱包卡片 - mpay 风格 */}
-      <div className="bg-gradient-to-br from-primary to-primary/80 p-5 pb-8">
+      <div className="from-primary to-primary/80 bg-gradient-to-br p-5 pb-8">
         {/* 链选择器 */}
         <button
           data-testid="chain-selector"
@@ -121,9 +121,7 @@ export function HomePage() {
 
         {/* 钱包名和地址 */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-white">
-            {currentWallet.name}
-          </h1>
+          <h1 className="text-xl font-semibold text-white">{currentWallet.name}</h1>
           <div className="mt-2 flex items-center gap-2">
             <span className="font-mono text-sm text-white/70">
               {chainAddress?.address ? truncateAddress(chainAddress.address) : '---'}
@@ -133,11 +131,7 @@ export function HomePage() {
               className="rounded p-1 hover:bg-white/10"
               aria-label={t('a11y.copyAddress')}
             >
-              {copied ? (
-                <Check className="size-4 text-green-300" />
-              ) : (
-                <Copy className="size-4 text-white/70" />
-              )}
+              {copied ? <Check className="size-4 text-green-300" /> : <Copy className="size-4 text-white/70" />}
             </button>
           </div>
         </div>
@@ -160,7 +154,7 @@ export function HomePage() {
       </div>
 
       {/* 资产列表 */}
-      <div className="-mt-4 flex-1 rounded-t-3xl bg-background p-5">
+      <div className="bg-background -mt-4 flex-1 rounded-t-3xl p-5">
         <h2 className="mb-4 text-lg font-semibold">资产</h2>
         <TokenList
           tokens={tokens.map((t) => ({
@@ -174,7 +168,7 @@ export function HomePage() {
           }))}
           onTokenClick={(token) => {
             // TODO: Implement token detail page route once available
-            console.log('Token clicked:', token.symbol)
+            console.log('Token clicked:', token.symbol);
           }}
           emptyTitle="暂无资产"
           emptyDescription={`${selectedChainName} 链上暂无代币`}
@@ -184,61 +178,51 @@ export function HomePage() {
       {/* Scanner FAB */}
       <Link
         to="/scanner"
-        className="fixed bottom-6 right-6 z-[60] flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="bg-primary fixed right-6 bottom-[calc(var(--safe-area-inset-bottom)+1.5rem)] z-60 flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t('a11y.scan')}
       >
-        <ScanLine className="size-6 text-primary-foreground" />
+        <ScanLine className="text-primary-foreground size-6" />
       </Link>
 
       {/* 链选择底部弹窗 */}
-      <BottomSheet
-        open={chainSheetOpen}
-        onClose={() => setChainSheetOpen(false)}
-        title="选择网络"
-      >
+      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title="选择网络">
         <div data-testid="chain-sheet" className="space-y-2 p-4">
           {availableChains.map((chain) => {
-            const chainAddr = currentWallet.chainAddresses.find(
-              (ca) => ca.chain === chain
-            )
+            const chainAddr = currentWallet.chainAddresses.find((ca) => ca.chain === chain);
             return (
               <button
                 key={chain}
                 onClick={() => handleSelectChain(chain)}
                 className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${
-                  chain === selectedChain
-                    ? 'bg-primary/10 ring-1 ring-primary'
-                    : 'bg-muted/50 hover:bg-muted'
+                  chain === selectedChain ? 'bg-primary/10 ring-primary ring-1' : 'bg-muted/50 hover:bg-muted'
                 }`}
               >
                 <ChainIcon chain={chain} size="md" />
                 <div className="flex-1 text-left">
                   <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
-                  <div className="font-mono text-xs text-muted-foreground">
+                  <div className="text-muted-foreground font-mono text-xs">
                     {chainAddr?.address ? truncateAddress(chainAddr.address, 10, 8) : '---'}
                   </div>
                 </div>
-                {chain === selectedChain && (
-                  <Check className="size-5 text-primary" />
-                )}
+                {chain === selectedChain && <Check className="text-primary size-5" />}
               </button>
-            )
+            );
           })}
         </div>
       </BottomSheet>
     </div>
-  )
+  );
 }
 
 function NoWalletView() {
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
-      <div className="rounded-full bg-primary/10 p-6">
-        <Plus className="size-12 text-primary" />
+      <div className="bg-primary/10 rounded-full p-6">
+        <Plus className="text-primary size-12" />
       </div>
       <div>
         <h1 className="text-2xl font-bold">欢迎使用 BFM Pay</h1>
-        <p className="mt-2 text-muted-foreground">创建或导入钱包开始使用</p>
+        <p className="text-muted-foreground mt-2">创建或导入钱包开始使用</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
         <Link to="/wallet/create">
@@ -253,5 +237,5 @@ function NoWalletView() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

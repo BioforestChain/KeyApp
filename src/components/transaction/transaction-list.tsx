@@ -1,44 +1,44 @@
-import { cn } from '@/lib/utils'
-import { TransactionItem, type TransactionInfo } from './transaction-item'
-import { EmptyState } from '../common/empty-state'
-import { SkeletonList } from '../common/skeleton'
+import { cn } from '@/lib/utils';
+import { TransactionItem, type TransactionInfo } from './transaction-item';
+import { EmptyState } from '../common/empty-state';
+import { SkeletonList } from '../common/skeleton';
 
 interface TransactionListProps {
-  transactions: TransactionInfo[]
-  loading?: boolean | undefined
-  onTransactionClick?: ((transaction: TransactionInfo) => void) | undefined
-  emptyTitle?: string | undefined
-  emptyDescription?: string | undefined
-  emptyAction?: React.ReactNode | undefined
-  className?: string | undefined
+  transactions: TransactionInfo[];
+  loading?: boolean | undefined;
+  onTransactionClick?: ((transaction: TransactionInfo) => void) | undefined;
+  emptyTitle?: string | undefined;
+  emptyDescription?: string | undefined;
+  emptyAction?: React.ReactNode | undefined;
+  className?: string | undefined;
 }
 
 function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionInfo[]> {
-  const groups = new Map<string, TransactionInfo[]>()
-  const now = new Date()
-  const today = now.toDateString()
-  const yesterday = new Date(now.getTime() - 86400000).toDateString()
+  const groups = new Map<string, TransactionInfo[]>();
+  const now = new Date();
+  const today = now.toDateString();
+  const yesterday = new Date(now.getTime() - 86400000).toDateString();
 
   transactions.forEach((tx) => {
-    const date = typeof tx.timestamp === 'string' ? new Date(tx.timestamp) : tx.timestamp
-    const dateStr = date.toDateString()
-    
-    let key: string
+    const date = typeof tx.timestamp === 'string' ? new Date(tx.timestamp) : tx.timestamp;
+    const dateStr = date.toDateString();
+
+    let key: string;
     if (dateStr === today) {
-      key = '今天'
+      key = '今天';
     } else if (dateStr === yesterday) {
-      key = '昨天'
+      key = '昨天';
     } else {
-      key = date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })
+      key = date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
     }
 
     if (!groups.has(key)) {
-      groups.set(key, [])
+      groups.set(key, []);
     }
-    groups.get(key)!.push(tx)
-  })
+    groups.get(key)!.push(tx);
+  });
 
-  return groups
+  return groups;
 }
 
 export function TransactionList({
@@ -51,7 +51,7 @@ export function TransactionList({
   className,
 }: TransactionListProps) {
   if (loading) {
-    return <SkeletonList count={5} {...(className && { className })} />
+    return <SkeletonList count={5} {...(className && { className })} />;
   }
 
   if (transactions.length === 0) {
@@ -62,21 +62,25 @@ export function TransactionList({
         {...(emptyAction && { action: emptyAction })}
         icon={
           <svg className="size-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
         }
         {...(className && { className })}
       />
-    )
+    );
   }
 
-  const grouped = groupByDate(transactions)
+  const grouped = groupByDate(transactions);
 
   return (
     <div className={cn('space-y-4', className)}>
       {Array.from(grouped.entries()).map(([date, txs]) => (
         <div key={date}>
-          <h3 className="text-xs font-medium text-muted px-3 mb-1">{date}</h3>
+          <h3 className="text-muted-foreground mb-1 px-3 text-xs font-medium">{date}</h3>
           <div className="space-y-1">
             {txs.map((tx) => (
               <TransactionItem
@@ -89,5 +93,5 @@ export function TransactionList({
         </div>
       ))}
     </div>
-  )
+  );
 }

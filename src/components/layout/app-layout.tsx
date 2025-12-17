@@ -3,9 +3,15 @@ import { useRouter, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TabBar, type TabItem } from './tab-bar';
-import { Home, Wallet, Settings, ArrowLeftRight } from 'lucide-react';
+import {
+  IconHome as Home,
+  IconWallet as Wallet,
+  IconSettings as Settings,
+  IconArrowLeftRight as ArrowLeftRight,
+} from '@tabler/icons-react';
 import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores';
 import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link';
+import type { CSSProperties } from 'react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -84,6 +90,12 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     }
   };
 
+  const mainStyle: CSSProperties & { ['--safe-area-inset-bottom']: string } = {
+    '--safe-area-inset-bottom': hideTabBar
+      ? 'env(safe-area-inset-bottom)'
+      : 'calc(env(safe-area-inset-bottom) + 3.5rem)',
+  };
+
   return (
     <div className={cn('bg-background flex min-h-screen flex-col', className)}>
       {/* Skip link for keyboard navigation - S4 a11y */}
@@ -97,8 +109,9 @@ export function AppLayout({ children, className }: AppLayoutProps) {
       {/* 主内容区域 */}
       <main
         id="main-content"
-        className={cn('flex-1 overflow-auto', hideTabBar ? 'pb-safe' : 'pb-[calc(env(safe-area-inset-bottom)+3.5rem)]')}
+        className={cn('flex-1 *:h-screen *:overflow-auto *:pb-(--safe-area-inset-bottom)')}
         tabIndex={-1}
+        style={mainStyle}
       >
         {children}
       </main>

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
-import { Check } from 'lucide-react';
+import { IconCheck as Check } from '@tabler/icons-react';
 import type { MnemonicLanguage, MnemonicLength, MnemonicOptions } from './create-wallet-form';
 
 interface MnemonicOptionsSheetProps {

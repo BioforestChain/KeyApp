@@ -1,4 +1,8 @@
-import { Sparkles, ShieldCheck, Layers3 } from 'lucide-react';
+import {
+  IconSparkles as Sparkles,
+  IconShieldCheck as ShieldCheck,
+  IconStackMiddle as Layers3,
+} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 

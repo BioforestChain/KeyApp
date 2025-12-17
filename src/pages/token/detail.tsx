@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { BalanceDisplay } from '@/components/token/balance-display';
 import { TransactionList } from '@/components/transaction/transaction-list';
 import { GradientButton } from '@/components/common/gradient-button';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { IconArrowUp as ArrowUp, IconArrowDown as ArrowDown } from '@tabler/icons-react';
 
 // 临时模拟数据
 const mockToken = {

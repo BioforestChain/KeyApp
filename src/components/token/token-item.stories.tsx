@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { TokenItem, type TokenInfo } from './token-item'
+import type { Meta, StoryObj } from '@storybook/react';
+import { TokenItem, type TokenInfo } from './token-item';
 
 const meta: Meta<typeof TokenItem> = {
   title: 'Token/TokenItem',
   component: TokenItem,
   tags: ['autodocs'],
-}
+};
 
-export default meta
-type Story = StoryObj<typeof TokenItem>
+export default meta;
+type Story = StoryObj<typeof TokenItem>;
 
 const mockUSDT: TokenInfo = {
   symbol: 'USDT',
@@ -17,7 +17,7 @@ const mockUSDT: TokenInfo = {
   fiatValue: '1,234.56',
   chain: 'ethereum',
   change24h: 0.05,
-}
+};
 
 const mockETH: TokenInfo = {
   symbol: 'ETH',
@@ -26,7 +26,7 @@ const mockETH: TokenInfo = {
   fiatValue: '4,500.00',
   chain: 'ethereum',
   change24h: -2.3,
-}
+};
 
 const mockTRX: TokenInfo = {
   symbol: 'TRX',
@@ -35,7 +35,7 @@ const mockTRX: TokenInfo = {
   fiatValue: '800.00',
   chain: 'tron',
   change24h: 5.2,
-}
+};
 
 const mockBTC: TokenInfo = {
   symbol: 'BTC',
@@ -44,14 +44,14 @@ const mockBTC: TokenInfo = {
   fiatValue: '2,500.00',
   chain: 'bitcoin',
   change24h: 1.8,
-}
+};
 
 export const Default: Story = {
   args: {
     token: mockUSDT,
     onClick: () => alert('Clicked USDT'),
   },
-}
+};
 
 export const WithChange: Story = {
   args: {
@@ -59,20 +59,20 @@ export const WithChange: Story = {
     showChange: true,
     onClick: () => alert('Clicked ETH'),
   },
-}
+};
 
 export const NegativeChange: Story = {
   args: {
     token: { ...mockETH, change24h: -5.5 },
     showChange: true,
   },
-}
+};
 
 export const NotClickable: Story = {
   args: {
     token: mockTRX,
   },
-}
+};
 
 export const TokenList: Story = {
   render: () => (
@@ -83,12 +83,12 @@ export const TokenList: Story = {
       <TokenItem token={mockBTC} onClick={() => {}} showChange />
     </div>
   ),
-}
+};
 
 export const MultiCurrency: Story = {
   render: () => (
     <div className="space-y-2">
-      <p className="text-xs text-muted">
+      <p className="text-muted-foreground text-xs">
         使用顶部工具栏的 <span className="font-medium">Currency</span> 切换 USD/CNY/EUR/JPY/KRW，查看汇率换算展示。
       </p>
       <div className="space-y-1">
@@ -106,7 +106,7 @@ export const MultiCurrency: Story = {
       },
     },
   },
-}
+};
 
 export const Responsive: Story = {
   args: {
@@ -121,4 +121,4 @@ export const Responsive: Story = {
       },
     },
   },
-}
+};

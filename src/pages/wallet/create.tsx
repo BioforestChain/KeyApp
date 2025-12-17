@@ -10,7 +10,14 @@ import { MnemonicDisplay } from '@/components/security/mnemonic-display';
 import { PasswordInput } from '@/components/security/password-input';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { ShieldCheck, Eye, EyeOff, ArrowRight, KeyRound, CheckCircle } from 'lucide-react';
+import {
+  IconShieldCheck as ShieldCheck,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconChevronRight as ArrowRight,
+  IconCircleKey as KeyRound,
+  IconCircleCheck as CheckCircle,
+} from '@tabler/icons-react';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import { generateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 

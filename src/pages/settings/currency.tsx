@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { Check } from 'lucide-react';
+import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrency, preferencesActions, currencies, type CurrencyCode } from '@/stores';
 import { cn } from '@/lib/utils';

@@ -1,6 +1,6 @@
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Copy, Check } from 'lucide-react';
+import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 
 interface AddressDisplayProps {
   address: string;
@@ -158,7 +158,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
       {copied ? (
         <Check className="text-secondary size-4 shrink-0" aria-hidden="true" />
       ) : (
-        <Copy className="text-muted size-4 shrink-0" aria-hidden="true" />
+        <Copy className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
       )}
       <span role="status" aria-live="polite" className="sr-only">
         {copied ? '已复制到剪贴板' : ''}

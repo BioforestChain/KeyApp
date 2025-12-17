@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Trans, useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, Plus, RefreshCw } from 'lucide-react';
+import {
+  IconAlertTriangle as AlertTriangle,
+  IconCheck as Check,
+  IconPlus as Plus,
+  IconRefresh as RefreshCw,
+} from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

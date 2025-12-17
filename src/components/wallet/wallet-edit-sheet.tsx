@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
 import { walletActions, type Wallet } from '@/stores';
 import { verifyPassword } from '@/lib/crypto';
-import { Pencil, Trash2 } from 'lucide-react';
+import { IconPencil as Pencil, IconTrash as Trash2 } from '@tabler/icons-react';
 
 interface WalletEditSheetProps {
   /** The wallet to edit */

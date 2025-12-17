@@ -12,7 +12,7 @@ import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { useAssets } from '@/hooks/use-assets';
 import { formatAssetAmount } from '@/types/asset';
-import { ArrowRight } from 'lucide-react';
+import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
 import { useSelectedChain, type ChainType } from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
@@ -175,7 +175,7 @@ export function SendPage() {
         <div className="pt-4">
           <GradientButton variant="mint" className="w-full" disabled={!canProceed} onClick={handleProceed}>
             继续
-            <ArrowRight className="ml-2 size-4" />
+            <ArrowRight className="-mr-4 ml-2 size-4" />
           </GradientButton>
         </div>
       </div>

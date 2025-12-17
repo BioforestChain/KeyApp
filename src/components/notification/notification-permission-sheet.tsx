@@ -1,4 +1,9 @@
-import { Bell, BellRing, Zap, Shield } from 'lucide-react';
+import {
+  IconBell as Bell,
+  IconBellRinging as BellRing,
+  IconBolt as Zap,
+  IconShield as Shield,
+} from '@tabler/icons-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

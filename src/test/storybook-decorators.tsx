@@ -15,8 +15,9 @@ import i18n from '@/i18n/index'
  * 为 Stories 提供 TanStack Router 上下文
  *
  * @param initialPath - 初始路由路径，默认为 '/'
+ * @param extraRoutes - 额外需要匹配的路由路径（用于 useParams/useMatch 等）
  */
-export function withRouter(initialPath: string = '/'): Decorator {
+export function withRouter(initialPath: string = '/', extraRoutes: string[] = []): Decorator {
   return (Story) => {
     // 创建简单的路由配置，Story 在 root route 的 Outlet 中渲染
     const rootRoute = createRootRoute({
@@ -28,12 +29,15 @@ export function withRouter(initialPath: string = '/'): Decorator {
       ),
     })
 
-    const indexRoute = createRoute({
-      getParentRoute: () => rootRoute,
-      path: '/',
-    })
+    const routePaths = Array.from(new Set(['/', ...extraRoutes]))
+    const routes = routePaths.map((path) =>
+      createRoute({
+        getParentRoute: () => rootRoute,
+        path,
+      }),
+    )
 
-    const routeTree = rootRoute.addChildren([indexRoute])
+    const routeTree = rootRoute.addChildren(routes)
 
     // 使用 memory history 避免影响浏览器 URL
     const memoryHistory = createMemoryHistory({

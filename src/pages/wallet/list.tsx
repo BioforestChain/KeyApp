@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
-import { Plus, Check, ChevronRight } from 'lucide-react';
+import { IconPlus as Plus, IconCheck as Check, IconChevronRight as ChevronRight } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { walletStore, walletActions, type Wallet } from '@/stores';
 import { cn } from '@/lib/utils';

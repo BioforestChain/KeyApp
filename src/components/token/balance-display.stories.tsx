@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { BalanceDisplay } from './balance-display'
+import type { Meta, StoryObj } from '@storybook/react';
+import { BalanceDisplay } from './balance-display';
 
 const meta: Meta<typeof BalanceDisplay> = {
   title: 'Token/BalanceDisplay',
@@ -14,10 +14,10 @@ const meta: Meta<typeof BalanceDisplay> = {
       control: 'boolean',
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof BalanceDisplay>
+export default meta;
+type Story = StoryObj<typeof BalanceDisplay>;
 
 export const Default: Story = {
   args: {
@@ -25,7 +25,7 @@ export const Default: Story = {
     symbol: 'USDT',
     fiatValue: '1234.56',
   },
-}
+};
 
 export const LargeNumber: Story = {
   args: {
@@ -33,7 +33,7 @@ export const LargeNumber: Story = {
     symbol: 'TRX',
     fiatValue: '98765.43',
   },
-}
+};
 
 export const SmallNumber: Story = {
   args: {
@@ -41,7 +41,7 @@ export const SmallNumber: Story = {
     symbol: 'BTC',
     fiatValue: '0.62',
   },
-}
+};
 
 export const Hidden: Story = {
   args: {
@@ -50,33 +50,33 @@ export const Hidden: Story = {
     fiatValue: '1234.56',
     hidden: true,
   },
-}
+};
 
 export const AllSizes: Story = {
   render: () => (
     <div className="space-y-6">
       <div>
-        <p className="text-xs text-muted mb-1">Small</p>
+        <p className="text-muted-foreground mb-1 text-xs">Small</p>
         <BalanceDisplay value="1234.56" symbol="USDT" fiatValue="1234.56" size="sm" />
       </div>
       <div>
-        <p className="text-xs text-muted mb-1">Medium</p>
+        <p className="text-muted-foreground mb-1 text-xs">Medium</p>
         <BalanceDisplay value="1234.56" symbol="USDT" fiatValue="1234.56" size="md" />
       </div>
       <div>
-        <p className="text-xs text-muted mb-1">Large</p>
+        <p className="text-muted-foreground mb-1 text-xs">Large</p>
         <BalanceDisplay value="1234.56" symbol="USDT" fiatValue="1234.56" size="lg" />
       </div>
     </div>
   ),
-}
+};
 
 export const WithoutFiat: Story = {
   args: {
     value: '100',
     symbol: 'BFM',
   },
-}
+};
 
 export const DifferentCurrencies: Story = {
   render: () => (
@@ -86,4 +86,4 @@ export const DifferentCurrencies: Story = {
       <BalanceDisplay value="0.05" symbol="BTC" fiatValue="2500" fiatSymbol="€" />
     </div>
   ),
-}
+};

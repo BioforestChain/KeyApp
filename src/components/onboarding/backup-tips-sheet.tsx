@@ -1,4 +1,4 @@
-import { Shield, AlertTriangle, Eye, Ban } from 'lucide-react';
+import { IconShield as Shield, IconAlertTriangle as AlertTriangle, IconEye as Eye, IconBan as Ban } from '@tabler/icons-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

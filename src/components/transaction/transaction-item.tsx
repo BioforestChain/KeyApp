@@ -1,8 +1,15 @@
 import { cn } from '@/lib/utils';
 import { AddressDisplay } from '../wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '../common';
-import { ArrowUp, ArrowDown, ArrowLeftRight, Lock, Unlock, Check } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import {
+  IconArrowUp as ArrowUp,
+  IconArrowDown as ArrowDown,
+  IconArrowLeftRight as ArrowLeftRight,
+  IconLock as Lock,
+  IconLockOpen2 as Unlock,
+  IconCheck as Check,
+} from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 
 export type TransactionType = 'send' | 'receive' | 'swap' | 'stake' | 'unstake' | 'approve';
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
@@ -24,13 +31,13 @@ interface TransactionItemProps {
   className?: string | undefined;
 }
 
-const typeConfig: Record<TransactionType, { label: string; Icon: LucideIcon; color: string }> = {
+const typeConfig: Record<TransactionType, { label: string; Icon: Icon; color: string }> = {
   send: { label: '发送', Icon: ArrowUp, color: 'text-destructive' },
   receive: { label: '接收', Icon: ArrowDown, color: 'text-secondary' },
   swap: { label: '兑换', Icon: ArrowLeftRight, color: 'text-primary' },
   stake: { label: '质押', Icon: Lock, color: 'text-primary' },
   unstake: { label: '解押', Icon: Unlock, color: 'text-primary' },
-  approve: { label: '授权', Icon: Check, color: 'text-muted' },
+  approve: { label: '授权', Icon: Check, color: 'text-muted-foreground' },
 };
 
 const statusConfig: Record<TransactionStatus, { label: string; color: string }> = {
@@ -77,7 +84,7 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
           <span className="text-sm font-medium @xs:text-base">{type.label}</span>
           {transaction.status !== 'confirmed' && <span className={cn('text-xs', status.color)}>{status.label}</span>}
         </div>
-        <p className="text-muted flex items-center gap-1 text-xs @xs:text-sm">
+        <p className="text-muted-foreground flex items-center gap-1 text-xs @xs:text-sm">
           <span className="shrink-0">{transaction.type === 'send' ? '至' : '从'}</span>
           <AddressDisplay address={transaction.address} copyable={false} className="min-w-0 flex-1" />
         </p>
@@ -94,7 +101,7 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
           size="sm"
           className="@xs:text-base"
         />
-        <TimeDisplay value={transaction.timestamp} className="text-muted block text-xs" />
+        <TimeDisplay value={transaction.timestamp} className="text-muted-foreground block text-xs" />
       </div>
     </div>
   );

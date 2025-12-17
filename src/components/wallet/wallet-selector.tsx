@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import { IconCheck as Check } from '@tabler/icons-react';
 import type { WalletInfo } from './wallet-card';
 
 interface WalletSelectorProps {

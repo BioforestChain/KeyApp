@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import { CheckCircle, ArrowRight, Shield } from 'lucide-react';
+import {
+  IconCircleCheck as CheckCircle,
+  IconChevronRight as ArrowRight,
+  IconShield as Shield,
+} from '@tabler/icons-react';
 
 interface CreateWalletSuccessProps {
   /** Wallet name */

@@ -8,7 +8,11 @@ import { Alert } from '@/components/common/alert';
 import { ProgressSteps } from '@/components/common/step-indicator';
 import { MnemonicInput } from '@/components/security/mnemonic-input';
 import { PasswordInput } from '@/components/security/password-input';
-import { ShieldCheck, ArrowRight, FileKey } from 'lucide-react';
+import {
+  IconShieldCheck as ShieldCheck,
+  IconChevronRight as ArrowRight,
+  IconSquareKey as FileKey,
+} from '@tabler/icons-react';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import { validateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 

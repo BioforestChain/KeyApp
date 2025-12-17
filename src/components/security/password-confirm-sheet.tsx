@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { PasswordInput } from './password-input';
-import { Fingerprint, AlertCircle } from 'lucide-react';
+import { IconFingerprint as Fingerprint, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
 
 export interface PasswordConfirmSheetProps {
   /** Whether the sheet is open */

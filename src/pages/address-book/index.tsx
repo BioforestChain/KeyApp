@@ -1,7 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
-import { Plus, Search, User, MoreVertical } from 'lucide-react';
+import {
+  IconPlus as Plus,
+  IconSearch as Search,
+  IconUser as User,
+  IconArrowsVertical as MoreVertical,
+} from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { ContactEditSheet } from '@/components/address-book/contact-edit-sheet';
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';

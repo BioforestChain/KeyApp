@@ -42,15 +42,15 @@ export const AllSizes: Story = {
     <div className="flex items-center gap-4">
       <div className="flex flex-col items-center gap-1">
         <TokenIcon symbol="BTC" size="sm" />
-        <span className="text-xs text-muted">sm</span>
+        <span className="text-muted-foreground text-xs">sm</span>
       </div>
       <div className="flex flex-col items-center gap-1">
         <TokenIcon symbol="BTC" size="md" />
-        <span className="text-xs text-muted">md</span>
+        <span className="text-muted-foreground text-xs">md</span>
       </div>
       <div className="flex flex-col items-center gap-1">
         <TokenIcon symbol="BTC" size="lg" />
-        <span className="text-xs text-muted">lg</span>
+        <span className="text-muted-foreground text-xs">lg</span>
       </div>
     </div>
   ),
@@ -62,7 +62,7 @@ export const FallbackVariants: Story = {
       {['BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP', 'DOGE'].map((symbol) => (
         <div key={symbol} className="flex flex-col items-center gap-1">
           <TokenIcon symbol={symbol} size="lg" />
-          <span className="text-xs text-muted">{symbol}</span>
+          <span className="text-muted-foreground text-xs">{symbol}</span>
         </div>
       ))}
     </div>
@@ -81,23 +81,19 @@ export const ImageLoadFailure: Story = {
 export const InContext: Story = {
   render: () => (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 rounded-lg bg-card p-3">
-        <TokenIcon
-          symbol="BTC"
-          imageUrl="https://cryptologos.cc/logos/bitcoin-btc-logo.png"
-          size="lg"
-        />
+      <div className="bg-card flex items-center gap-3 rounded-lg p-3">
+        <TokenIcon symbol="BTC" imageUrl="https://cryptologos.cc/logos/bitcoin-btc-logo.png" size="lg" />
         <div className="flex-1">
           <p className="font-medium">Bitcoin</p>
-          <p className="text-sm text-muted">BTC</p>
+          <p className="text-muted-foreground text-sm">BTC</p>
         </div>
         <span className="font-semibold">0.5 BTC</span>
       </div>
-      <div className="flex items-center gap-3 rounded-lg bg-card p-3">
+      <div className="bg-card flex items-center gap-3 rounded-lg p-3">
         <TokenIcon symbol="USDT" size="lg" />
         <div className="flex-1">
           <p className="font-medium">Tether USD</p>
-          <p className="text-sm text-muted">USDT</p>
+          <p className="text-muted-foreground text-sm">USDT</p>
         </div>
         <span className="font-semibold">1,000 USDT</span>
       </div>

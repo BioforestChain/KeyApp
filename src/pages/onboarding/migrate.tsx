@@ -7,7 +7,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Download, AlertCircle } from 'lucide-react';
+import { IconArrowLeft as ArrowLeft, IconDownload as Download, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { useMigration } from '@/contexts/MigrationContext';
 import { MigrationPasswordStep } from '@/components/migration/MigrationPasswordStep';

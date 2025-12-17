@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { GradientButton } from './gradient-button'
+import type { Meta, StoryObj } from '@storybook/react';
+import { GradientButton } from './gradient-button';
 
 const meta: Meta<typeof GradientButton> = {
   title: 'Common/GradientButton',
@@ -24,16 +24,16 @@ const meta: Meta<typeof GradientButton> = {
       control: 'boolean',
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof GradientButton>
+export default meta;
+type Story = StoryObj<typeof GradientButton>;
 
 export const Default: Story = {
   args: {
     children: '确认转账',
   },
-}
+};
 
 export const AllVariants: Story = {
   render: () => (
@@ -44,43 +44,43 @@ export const AllVariants: Story = {
       <GradientButton variant="mint">Mint</GradientButton>
     </div>
   ),
-}
+};
 
 export const AllSizes: Story = {
   render: () => (
-    <div className="flex flex-col gap-4 items-start">
+    <div className="flex flex-col items-start gap-4">
       <GradientButton size="sm">Small</GradientButton>
       <GradientButton size="md">Medium (默认)</GradientButton>
       <GradientButton size="lg">Large</GradientButton>
     </div>
   ),
-}
+};
 
 export const Loading: Story = {
   args: {
     children: '处理中...',
     loading: true,
   },
-}
+};
 
 export const Disabled: Story = {
   args: {
     children: '不可用',
     disabled: true,
   },
-}
+};
 
 export const FullWidth: Story = {
   args: {
     children: '全宽按钮',
     fullWidth: true,
   },
-}
+};
 
 export const ResponsiveContainer: Story = {
   render: () => (
     <div className="space-y-4">
-      <p className="text-sm text-muted">拖拽容器边缘或使用工具栏切换容器尺寸，观察按钮响应式变化</p>
+      <p className="text-muted-foreground text-sm">拖拽容器边缘或使用工具栏切换容器尺寸，观察按钮响应式变化</p>
       <GradientButton fullWidth>响应式按钮</GradientButton>
     </div>
   ),
@@ -91,4 +91,4 @@ export const ResponsiveContainer: Story = {
       },
     },
   },
-}
+};
