@@ -1,496 +1,303 @@
-# 第十章：状态管理
+# 状态管理
 
-> 定义 TanStack Store/Query 使用方案
+> 定义应用状态管理架构规范
 
 ---
 
-## 10.1 状态分类
+## 状态分类
 
 ### 三类状态
 
-| 类型 | 特点 | 工具 | 示例 |
-|-----|------|------|------|
-| 客户端状态 | 本地、持久化 | TanStack Store | 钱包列表、用户偏好 |
-| 服务端状态 | 远程、缓存 | TanStack Query | 余额、交易历史 |
-| 表单状态 | 临时、可重置 | TanStack Form | 转账表单、创建钱包 |
+| 类型 | 特点 | 来源 | 持久化 | 示例 |
+|-----|------|------|--------|------|
+| 客户端状态 | 本地产生 | 用户操作 | 是 | 钱包列表、偏好设置 |
+| 服务端状态 | 远程获取 | API/链 | 缓存 | 余额、交易历史 |
+| 临时状态 | 短期存在 | 交互 | 否 | 表单数据、UI 状态 |
 
-### 状态层次图
+### 状态层次
 
 ```
 ┌──────────────────────────────────────────┐
-│              TanStack Form               │
-│          (表单级，组件内生命周期)          │
+│            Temporary State               │
+│         (表单级，组件生命周期内)            │
 ├──────────────────────────────────────────┤
-│              TanStack Query              │
-│         (应用级，自动缓存和同步)           │
+│            Server State                  │
+│          (应用级，自动缓存同步)             │
 ├──────────────────────────────────────────┤
-│              TanStack Store              │
-│          (应用级，持久化到本地)            │
+│            Client State                  │
+│          (应用级，持久化到本地)             │
 └──────────────────────────────────────────┘
 ```
 
 ---
 
-## 10.2 TanStack Store (客户端状态)
+## 客户端状态规范
 
-### 创建 Store
+### Store 定义
 
-```typescript
-// src/stores/wallet.ts
-import { Store } from '@tanstack/store'
+每个 Store MUST 包含：
 
-// 状态类型定义
-interface WalletState {
-  wallets: Wallet[]
-  currentWalletId: string | null
-  selectedChain: ChainId | null
-}
-
-// 初始状态
-const initialState: WalletState = {
-  wallets: [],
-  currentWalletId: null,
-  selectedChain: null,
-}
-
-// 从 localStorage 恢复
-function loadState(): Partial<WalletState> {
-  try {
-    const saved = localStorage.getItem('bfm_wallets')
-    return saved ? JSON.parse(saved) : {}
-  } catch {
-    return {}
-  }
-}
-
-// 创建 Store
-export const walletStore = new Store<WalletState>({
-  ...initialState,
-  ...loadState(),
-})
-
-// 持久化订阅
-walletStore.subscribe(() => {
-  localStorage.setItem('bfm_wallets', JSON.stringify(walletStore.state))
-})
 ```
-
-### 定义 Actions
-
-```typescript
-// src/stores/wallet.ts (续)
-export const walletActions = {
-  // 添加钱包
-  addWallet: (wallet: Wallet) => {
-    walletStore.setState((prev) => ({
-      ...prev,
-      wallets: [...prev.wallets, wallet],
-      currentWalletId: wallet.id,
-    }))
-  },
+Store<T> {
+  // 状态
+  state: T
   
-  // 切换当前钱包
-  setCurrentWallet: (walletId: string) => {
-    walletStore.setState((prev) => ({
-      ...prev,
-      currentWalletId: walletId,
-    }))
-  },
+  // 读取
+  getState(): T
+  subscribe(listener: (state: T) => void): Unsubscribe
   
-  // 切换链
-  setSelectedChain: (chain: ChainId) => {
-    walletStore.setState((prev) => ({
-      ...prev,
-      selectedChain: chain,
-    }))
-  },
-  
-  // 删除钱包
-  removeWallet: (walletId: string) => {
-    walletStore.setState((prev) => {
-      const wallets = prev.wallets.filter((w) => w.id !== walletId)
-      return {
-        ...prev,
-        wallets,
-        currentWalletId: wallets[0]?.id ?? null,
-      }
-    })
-  },
+  // 更新
+  setState(updater: (prev: T) => T): void
 }
 ```
 
-### 在组件中使用
+### 钱包状态 (WalletStore)
 
-```typescript
-import { useStore } from '@tanstack/react-store'
-import { walletStore, walletActions } from '@/stores/wallet'
+| 字段 | 类型 | 持久化 | 说明 |
+|-----|------|--------|------|
+| wallets | Wallet[] | 是 | 钱包列表 |
+| currentWalletId | string | 是 | 当前钱包 ID |
+| selectedChain | ChainId | 是 | 当前选中链 |
 
-function WalletSelector() {
-  // 细粒度订阅（只在 wallets 变化时重渲染）
-  const wallets = useStore(walletStore, (s) => s.wallets)
-  const currentId = useStore(walletStore, (s) => s.currentWalletId)
-  
-  return (
-    <select
-      value={currentId ?? ''}
-      onChange={(e) => walletActions.setCurrentWallet(e.target.value)}
-    >
-      {wallets.map((w) => (
-        <option key={w.id} value={w.id}>{w.name}</option>
-      ))}
-    </select>
-  )
-}
-```
+### 偏好状态 (PreferencesStore)
+
+| 字段 | 类型 | 持久化 | 说明 |
+|-----|------|--------|------|
+| language | LanguageCode | 是 | 界面语言 |
+| currency | CurrencyCode | 是 | 显示货币 |
+| theme | 'light' \| 'dark' \| 'system' | 是 | 主题模式 |
+| biometricEnabled | boolean | 是 | 生物识别开关 |
+
+### UI 状态 (UIStore)
+
+| 字段 | 类型 | 持久化 | 说明 |
+|-----|------|--------|------|
+| activeSheet | SheetType | 否 | 当前弹窗 |
+| toastQueue | Toast[] | 否 | Toast 队列 |
+| isLoading | boolean | 否 | 全局加载状态 |
 
 ---
 
-## 10.3 TanStack Query (服务端状态)
+## 服务端状态规范
 
-### Query Client 配置
+### 缓存策略
 
-```typescript
-// src/lib/query-client.ts
-import { QueryClient } from '@tanstack/react-query'
+| 数据类型 | 缓存时长 | 刷新策略 |
+|---------|---------|---------|
+| 余额 | 30 秒 | 自动轮询 60s |
+| 交易历史 | 1 分钟 | 新交易时刷新 |
+| Token 元数据 | 1 小时 | 按需刷新 |
+| 汇率 | 5 分钟 | 自动轮询 |
+| 链配置 | 24 小时 | 手动刷新 |
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60,        // 1 分钟内不重新请求
-      gcTime: 1000 * 60 * 5,       // 5 分钟后清理缓存
-      retry: 2,                    // 失败重试 2 次
-      refetchOnWindowFocus: false, // 切换窗口不刷新
-      refetchOnReconnect: true,    // 网络恢复时刷新
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-})
+### 查询键规范
+
+查询键 MUST 遵循以下命名规则：
+
+```
+[domain, action, ...params]
+
+示例：
+['wallet', 'balances', address, chainId]
+['transaction', 'history', address]
+['token', 'metadata', tokenId]
+['exchange', 'rates', baseCurrency]
 ```
 
-### 定义 Query Keys
+### 查询状态
 
-```typescript
-// src/features/wallet/queries.ts
-export const walletKeys = {
-  all: ['wallets'] as const,
-  lists: () => [...walletKeys.all, 'list'] as const,
-  detail: (id: string) => [...walletKeys.all, 'detail', id] as const,
-  balances: (address: string, chain: string) =>
-    [...walletKeys.all, 'balances', address, chain] as const,
-}
-```
-
-### 定义 Query Options
-
-```typescript
-// src/features/wallet/queries.ts
-import { queryOptions } from '@tanstack/react-query'
-
-export const walletQueries = {
-  // 获取余额
-  balances: (address: string, chain: string) =>
-    queryOptions({
-      queryKey: walletKeys.balances(address, chain),
-      queryFn: () => chainService.getBalances(address, chain),
-      staleTime: 30_000,  // 30 秒
-      refetchInterval: 60_000,  // 每分钟刷新
-    }),
-  
-  // 获取交易历史
-  history: (address: string) =>
-    queryOptions({
-      queryKey: ['transactions', address],
-      queryFn: () => chainService.getTransactions(address),
-      staleTime: 60_000,
-    }),
-}
-```
-
-### 在组件中使用
-
-```typescript
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { walletQueries } from '@/features/wallet/queries'
-
-// 普通查询
-function BalanceDisplay({ address, chain }) {
-  const { data, isLoading, error, refetch } = useQuery(
-    walletQueries.balances(address, chain)
-  )
-  
-  if (isLoading) return <Skeleton />
-  if (error) return <ErrorState onRetry={refetch} />
-  
-  return <AmountDisplay value={data.balance} />
-}
-
-// Suspense 查询
-function BalanceDisplaySuspense({ address, chain }) {
-  const { data } = useSuspenseQuery(
-    walletQueries.balances(address, chain)
-  )
-  
-  return <AmountDisplay value={data.balance} />
-}
-```
-
----
-
-## 10.4 Mutations (写入操作)
-
-### 定义 Mutation
-
-```typescript
-// src/features/transfer/mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-
-export function useTransfer() {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (params: TransferParams) => {
-      // 1. 构建交易
-      const tx = await chainService.buildTransaction(params)
-      // 2. 签名
-      const signed = await chainService.signTransaction(tx)
-      // 3. 广播
-      return chainService.broadcastTransaction(signed)
-    },
-    
-    // 成功后刷新余额
-    onSuccess: (_, params) => {
-      queryClient.invalidateQueries({
-        queryKey: walletKeys.balances(params.from, params.chain),
-      })
-    },
-    
-    // 错误处理
-    onError: (error) => {
-      toast.error(error.message)
-    },
-  })
-}
-```
-
-### 使用 Mutation
-
-```typescript
-function TransferForm() {
-  const transfer = useTransfer()
-  
-  const handleSubmit = async (data: FormData) => {
-    await transfer.mutateAsync({
-      from: data.from,
-      to: data.to,
-      amount: data.amount,
-      chain: data.chain,
-    })
-  }
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* 表单字段 */}
-      <Button
-        type="submit"
-        disabled={transfer.isPending}
-      >
-        {transfer.isPending ? '发送中...' : '发送'}
-      </Button>
-    </form>
-  )
-}
-```
-
----
-
-## 10.5 状态持久化
-
-### Store 持久化策略
-
-```typescript
-// src/stores/wallet.ts
-const STORAGE_KEY = 'bfm_wallets'
-
-// 加载
-function loadState(): Partial<WalletState> {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return {}
-    
-    const parsed = JSON.parse(saved)
-    // 版本迁移检查
-    return migrateState(parsed)
-  } catch {
-    return {}
-  }
-}
-
-// 保存
-walletStore.subscribe(() => {
-  const state = walletStore.state
-  // 只持久化必要字段
-  const persisted = {
-    wallets: state.wallets,
-    currentWalletId: state.currentWalletId,
-    selectedChain: state.selectedChain,
-    _version: 1,  // 版本号，用于迁移
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
-})
-```
-
-### Query 缓存持久化
-
-```typescript
-// 可选：使用 persistQueryClient 持久化查询缓存
-import { persistQueryClient } from '@tanstack/react-query-persist-client'
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-  key: 'bfm_query_cache',
-})
-
-persistQueryClient({
-  queryClient,
-  persister,
-  maxAge: 1000 * 60 * 60 * 24, // 24 小时
-})
-```
-
----
-
-## 10.6 派生状态
-
-### 计算属性
-
-```typescript
-// src/stores/derived.ts
-import { walletStore } from './wallet'
-
-// 当前钱包
-export function getCurrentWallet() {
-  const { wallets, currentWalletId } = walletStore.state
-  return wallets.find((w) => w.id === currentWalletId) ?? null
-}
-
-// 当前地址
-export function getCurrentAddress() {
-  const wallet = getCurrentWallet()
-  const { selectedChain } = walletStore.state
-  if (!wallet || !selectedChain) return null
-  
-  return wallet.chainAddresses.find(
-    (a) => a.chain === selectedChain
-  )?.address ?? null
-}
-
-// 作为 Hook 使用
-export function useCurrentWallet() {
-  const wallets = useStore(walletStore, (s) => s.wallets)
-  const currentId = useStore(walletStore, (s) => s.currentWalletId)
-  
-  return useMemo(
-    () => wallets.find((w) => w.id === currentId) ?? null,
-    [wallets, currentId]
-  )
-}
-```
-
----
-
-## 10.7 状态调试
-
-### React Query DevTools
-
-```typescript
-// src/main.tsx
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <StackflowApp />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  )
-}
-```
-
-### Store 调试
-
-```typescript
-// 开发环境日志
-if (import.meta.env.DEV) {
-  walletStore.subscribe(() => {
-    console.log('[WalletStore]', walletStore.state)
-  })
-}
-```
-
----
-
-## 10.8 最佳实践
-
-### 1. 选择正确的状态类型
-
-| 问题 | 选择 |
+| 状态 | 说明 |
 |-----|------|
-| 需要从服务器获取？ | TanStack Query |
-| 需要持久化到本地？ | TanStack Store |
-| 只在表单生命周期内？ | TanStack Form |
-| 只在组件内使用？ | useState |
+| idle | 未开始 |
+| loading | 加载中（首次） |
+| success | 成功 |
+| error | 失败 |
+| fetching | 后台刷新中 |
 
-### 2. 细粒度订阅
+---
 
-```typescript
-// ✅ 好：只订阅需要的字段
-const wallets = useStore(walletStore, (s) => s.wallets)
+## 状态操作规范
 
-// ❌ 差：订阅整个 store
-const state = useStore(walletStore, (s) => s)
+### Action 定义
+
+每个状态域 SHOULD 定义对应的 Actions：
+
 ```
-
-### 3. 合理设置缓存时间
-
-```typescript
-// 频繁变化的数据：短缓存
-balances: queryOptions({
-  staleTime: 30_000,  // 30 秒
-  refetchInterval: 60_000,
-})
-
-// 不常变化的数据：长缓存
-tokenMetadata: queryOptions({
-  staleTime: 1000 * 60 * 60,  // 1 小时
-})
-```
-
-### 4. 统一的 Key 管理
-
-```typescript
-// 所有 Query Key 集中定义
-export const queryKeys = {
-  wallet: walletKeys,
-  token: tokenKeys,
-  transaction: transactionKeys,
+WalletActions {
+  addWallet(wallet: Wallet): void
+  removeWallet(walletId: string): void
+  updateWallet(walletId: string, updates: Partial<Wallet>): void
+  setCurrentWallet(walletId: string): void
+  setSelectedChain(chain: ChainId): void
 }
 ```
+
+### Mutation 规范
+
+服务端状态变更 MUST 通过 Mutation：
+
+```
+Mutation<TParams, TResult> {
+  // 执行变更
+  mutate(params: TParams): Promise<TResult>
+  
+  // 状态
+  isPending: boolean
+  isSuccess: boolean
+  isError: boolean
+  error: Error | null
+  
+  // 回调
+  onSuccess?: (result: TResult) => void
+  onError?: (error: Error) => void
+  onSettled?: () => void
+}
+```
+
+### 缓存失效
+
+变更成功后 MUST 使相关缓存失效：
+
+| 操作 | 失效的缓存 |
+|-----|-----------|
+| 转账 | 发送方余额、接收方余额、交易历史 |
+| 创建钱包 | 钱包列表 |
+| 质押/解质押 | 余额、质押状态 |
+
+---
+
+## 状态持久化规范
+
+### 存储键命名
+
+```
+bfm_{domain}_{version}
+
+示例：
+bfm_wallets_v1
+bfm_preferences_v1
+bfm_cache_v1
+```
+
+### 持久化策略
+
+| 状态 | 存储位置 | 加密 |
+|-----|---------|------|
+| 钱包列表 | 安全存储 | 是 |
+| 用户偏好 | 本地存储 | 否 |
+| 查询缓存 | 本地存储 | 否 |
+
+### 版本迁移
+
+- **MUST** 在存储数据中包含版本号
+- **MUST** 支持旧版本数据迁移
+- **SHOULD** 在迁移失败时保留原数据
+
+```
+迁移流程：
+读取存储数据
+    │
+    ▼
+检查版本号
+    │
+    ├── 当前版本 ──► 直接使用
+    │
+    └── 旧版本 ──► 执行迁移
+                    │
+                    ├── 成功 ──► 保存新版本
+                    │
+                    └── 失败 ──► 使用默认值 + 报告错误
+```
+
+---
+
+## 状态订阅规范
+
+### 细粒度订阅
+
+- **MUST** 只订阅组件需要的状态片段
+- **MUST NOT** 订阅整个 Store 状态
+- **SHOULD** 使用选择器（Selector）提取状态
+
+### 选择器规范
+
+```
+Selector<TState, TResult> = (state: TState) => TResult
+
+示例：
+// ✓ 好：细粒度选择
+const currentWallet = useSelector(state => state.wallets.find(
+  w => w.id === state.currentWalletId
+))
+
+// ✗ 差：订阅全部状态
+const allState = useSelector(state => state)
+```
+
+### 派生状态
+
+派生状态 SHOULD 通过选择器计算：
+
+| 派生状态 | 依赖 | 计算 |
+|---------|------|------|
+| 当前钱包 | wallets, currentWalletId | wallets.find(w => w.id === currentWalletId) |
+| 当前地址 | currentWallet, selectedChain | currentWallet.addresses[selectedChain] |
+| 总资产 | balances, exchangeRates | sum(balances * rates) |
+
+---
+
+## 乐观更新规范
+
+### 适用场景
+
+| 操作 | 乐观更新 | 原因 |
+|-----|---------|------|
+| 切换钱包 | 是 | 本地操作，必定成功 |
+| 修改昵称 | 是 | 失败概率低 |
+| 转账 | 否 | 需等待链上确认 |
+| 删除钱包 | 否 | 不可逆操作 |
+
+### 乐观更新流程
+
+```
+用户操作
+    │
+    ▼
+立即更新 UI（乐观）
+    │
+    ▼
+发送请求
+    │
+    ├── 成功 ──► 保持状态
+    │
+    └── 失败 ──► 回滚状态 + 显示错误
+```
+
+---
+
+## 错误处理规范
+
+### 查询错误
+
+- **MUST** 显示错误状态
+- **MUST** 提供重试机制
+- **SHOULD** 显示缓存数据（如有）
+- **SHOULD** 自动重试网络错误
+
+### 变更错误
+
+- **MUST** 显示错误消息
+- **MUST** 回滚乐观更新
+- **SHOULD** 保留用户输入
+- **MAY** 提供错误详情查看
 
 ---
 
 ## 本章小结
 
-- 三类状态分别使用 Store、Query、Form 管理
-- Store 用于本地持久化状态
-- Query 用于服务端数据缓存
-- 细粒度订阅避免不必要的重渲染
-- 合理配置缓存策略提升性能
-
----
-
-## 下一篇
-
-完成架构篇后，继续阅读 [第四篇：服务篇](../../04-服务篇/)，了解服务层设计。
+- 状态分为客户端、服务端、临时三类
+- 客户端状态需持久化到本地
+- 服务端状态需合理配置缓存
+- 细粒度订阅避免过度渲染
+- 支持乐观更新提升体验
+- 版本迁移确保数据兼容

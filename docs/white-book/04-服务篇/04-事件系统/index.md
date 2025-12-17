@@ -1,452 +1,287 @@
-# 第十四章：事件系统
+# 事件系统
 
 > 定义数据变化的订阅机制
 
 ---
 
-## 14.1 设计目标
+## 设计目标
 
-在钱包应用中，需要实时响应以下变化：
+钱包应用需要实时响应以下变化：
 
-- **余额变化**：收到转账、交易确认
-- **交易状态变化**：pending → confirmed / failed
-- **新区块**：链上新区块产生
+- **余额变化** - 收到转账、交易确认
+- **交易状态变化** - pending → confirmed / failed
+- **新区块** - 链上新区块产生
+- **汇率变化** - 法币汇率更新
 
 ### 设计原则
 
-- **类型安全**：事件类型和数据类型严格对应
-- **统一接口**：所有事件源使用相同的订阅 API
-- **资源管理**：自动清理订阅，防止内存泄漏
+- **类型安全** - 事件类型和数据类型严格对应
+- **统一接口** - 所有事件源使用相同的订阅 API
+- **资源管理** - 自动清理订阅，防止内存泄漏
 
 ---
 
-## 14.2 Subscribable 接口
+## Subscribable 接口
 
-### 核心定义
+### 核心接口
 
-```typescript
-// src/services/events/types.ts
-
-export interface Subscription {
+```
+Subscription {
   unsubscribe(): void
   readonly closed: boolean
 }
 
-export interface SubscribeObserver<T> {
+Observer<T> {
   next: (value: T) => void
   error?: (error: Error) => void
   complete?: () => void
 }
 
-export interface Subscribable<T> {
-  subscribe(observer: SubscribeObserver<T>): Subscription
+Subscribable<T> {
+  subscribe(observer: Observer<T>): Subscription
   getCurrentValue?(): T | undefined
 }
 ```
 
-### 创建工具函数
+### 规范要求
 
-```typescript
-// src/services/events/create-subscribable.ts
-
-export function createSubscribable<T>(
-  setup: (emit: (value: T) => void) => () => void
-): Subscribable<T> {
-  return {
-    subscribe(observer) {
-      let closed = false
-      
-      const cleanup = setup((value) => {
-        if (!closed) {
-          observer.next(value)
-        }
-      })
-      
-      return {
-        get closed() {
-          return closed
-        },
-        unsubscribe() {
-          if (!closed) {
-            closed = true
-            cleanup()
-          }
-        },
-      }
-    },
-  }
-}
-```
+- **MUST** 实现 subscribe 方法返回 Subscription
+- **MUST** 调用 unsubscribe 后停止推送事件
+- **SHOULD** 实现 getCurrentValue 获取当前值
+- **SHOULD** 在错误时调用 observer.error
 
 ---
 
-## 14.3 事件类型定义
+## 事件类型定义
 
-### 余额变化事件
+### BalanceChangeEvent 余额变化
 
-```typescript
-// src/services/events/definitions.ts
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| chainId | ChainId | 链标识 |
+| address | Address | 账户地址 |
+| tokenAddress | Address \| null | 代币地址（null=原生币） |
+| newBalance | AssetBalance | 新余额 |
+| previousBalance | AssetBalance | 旧余额（可选） |
+| reason | string | 变化原因 |
 
-export interface BalanceChangeEvent {
-  readonly chainId: ChainId
-  readonly address: Address
-  readonly tokenAddress: Address | null  // null = 原生代币
-  readonly newBalance: AssetBalance
-  readonly previousBalance?: AssetBalance
-  readonly reason: 'transfer-in' | 'transfer-out' | 'refresh'
-}
-```
+### TransactionStatusEvent 交易状态
 
-### 交易状态事件
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| chainId | ChainId | 链标识 |
+| hash | TxHash | 交易哈希 |
+| status | Status | pending/confirmed/failed/dropped |
+| confirmations | number | 确认数 |
+| receipt | TxReceipt | 交易回执（可选） |
 
-```typescript
-export interface TransactionStatusEvent {
-  readonly chainId: ChainId
-  readonly hash: TransactionHash
-  readonly status: 'pending' | 'confirmed' | 'failed' | 'dropped'
-  readonly confirmations?: number
-  readonly receipt?: TransactionReceipt
-}
-```
+### NewBlockEvent 新区块
 
-### 新区块事件
-
-```typescript
-export interface NewBlockEvent {
-  readonly chainId: ChainId
-  readonly blockNumber: bigint
-  readonly blockHash: string
-  readonly timestamp: number
-}
-```
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| chainId | ChainId | 链标识 |
+| blockNumber | bigint | 区块高度 |
+| blockHash | string | 区块哈希 |
+| timestamp | number | 时间戳 |
 
 ---
 
-## 14.4 订阅服务接口
+## 订阅服务接口
 
-### 资产订阅服务
+### IAssetSubscription 资产订阅
 
-```typescript
-// src/services/modules/asset-subscription.ts
-
-export interface IAssetSubscription {
-  // 订阅原生代币余额变化
+```
+IAssetSubscription {
+  // 订阅原生代币余额
   subscribeNativeBalance(query: {
     address: Address
   }): Subscribable<AssetBalance>
   
-  // 订阅代币余额变化
+  // 订阅代币余额
   subscribeTokenBalance(query: {
     address: Address
     tokenAddress: Address
   }): Subscribable<AssetBalance>
+  
+  // 订阅所有资产变化
+  subscribeAllAssets(query: {
+    address: Address
+  }): Subscribable<AssetBalance[]>
 }
 ```
 
-### 交易订阅服务
+### ITransactionSubscription 交易订阅
 
-```typescript
-// src/services/modules/transaction-subscription.ts
-
-export interface ITransactionSubscription {
-  // 订阅交易状态
+```
+ITransactionSubscription {
+  // 订阅单笔交易状态
   subscribeTransactionStatus(
-    hash: TransactionHash
+    hash: TxHash
   ): Subscribable<TransactionStatusEvent>
+  
+  // 订阅地址相关交易
+  subscribeAddressTransactions(
+    address: Address
+  ): Subscribable<Transaction>
 }
 ```
 
-### 区块订阅服务
+### IBlockSubscription 区块订阅
 
-```typescript
-// src/services/modules/block-subscription.ts
-
-export interface IBlockSubscription {
+```
+IBlockSubscription {
   // 订阅新区块
   subscribeNewBlocks(): Subscribable<NewBlockEvent>
+  
+  // 获取当前区块高度
+  getCurrentBlockNumber(): Promise<bigint>
 }
 ```
 
 ---
 
-## 14.5 EVM 实现示例
+## 实现策略
 
-### WebSocket 余额订阅
+### WebSocket 订阅
 
-```typescript
-// src/services/adapters/evm/services/asset-subscription.ts
-import { createSubscribable } from '@/services/events'
+| 事件类型 | WebSocket 消息 | 适用链 |
+|---------|---------------|-------|
+| 余额变化 | pendingTransactions, newBlocks | EVM |
+| 交易状态 | transactionReceipt | EVM |
+| 新区块 | newHeads | EVM |
 
-export class EvmAssetSubscription implements IAssetSubscription {
-  constructor(private wsClient: WebSocketClient) {}
-  
-  subscribeNativeBalance({ address }: { address: Address }) {
-    return createSubscribable<AssetBalance>((emit) => {
-      // 订阅 pending 交易
-      const unsubPending = this.wsClient.subscribe(
-        'pendingTransactions',
-        { address },
-        async () => {
-          // 重新获取余额
-          const balance = await this.getBalance(address)
-          emit(balance)
-        }
-      )
-      
-      // 订阅新区块（确认交易）
-      const unsubBlock = this.wsClient.subscribe(
-        'newBlocks',
-        {},
-        async () => {
-          const balance = await this.getBalance(address)
-          emit(balance)
-        }
-      )
-      
-      // 返回清理函数
-      return () => {
-        unsubPending()
-        unsubBlock()
-      }
-    })
-  }
-  
-  subscribeTokenBalance({ address, tokenAddress }) {
-    return createSubscribable<AssetBalance>((emit) => {
-      // 订阅 ERC20 Transfer 事件
-      const unwatch = this.wsClient.watchContractEvent({
-        address: tokenAddress,
-        abi: erc20Abi,
-        eventName: 'Transfer',
-        args: { from: address },
-        onLogs: async () => {
-          const balance = await this.getTokenBalance(address, tokenAddress)
-          emit(balance)
-        },
-      })
-      
-      return () => unwatch()
-    })
-  }
-}
-```
+### 轮询订阅
 
-### 交易状态订阅
+当 WebSocket 不可用时的降级策略：
 
-```typescript
-// src/services/adapters/evm/services/transaction-subscription.ts
+| 事件类型 | 轮询间隔 | 接口 |
+|---------|---------|------|
+| 余额变化 | 30s | getBalance |
+| 交易状态 | 5s | getTransactionReceipt |
+| 新区块 | 15s | getBlockNumber |
 
-export class EvmTransactionSubscription implements ITransactionSubscription {
-  constructor(private client: PublicClient) {}
-  
-  subscribeTransactionStatus(hash: TransactionHash) {
-    return createSubscribable<TransactionStatusEvent>((emit) => {
-      let polling = true
-      
-      const poll = async () => {
-        while (polling) {
-          try {
-            const receipt = await this.client.getTransactionReceipt({ hash })
-            
-            if (receipt) {
-              emit({
-                chainId: this.chainId,
-                hash,
-                status: receipt.status === 'success' ? 'confirmed' : 'failed',
-                receipt,
-              })
-              polling = false
-              return
-            }
-          } catch {
-            // 继续轮询
-          }
-          
-          await new Promise(r => setTimeout(r, 3000))
-        }
-      }
-      
-      // 先发送 pending 状态
-      emit({
-        chainId: this.chainId,
-        hash,
-        status: 'pending',
-      })
-      
-      poll()
-      
-      return () => {
-        polling = false
-      }
-    })
-  }
-}
-```
+### 混合策略
+
+- **MUST** 优先使用 WebSocket 获取实时数据
+- **MUST** WebSocket 断开时自动降级到轮询
+- **SHOULD** WebSocket 重连后恢复实时订阅
+- **SHOULD** 合并相同查询避免重复请求
 
 ---
 
-## 14.6 React Hooks 集成
+## UI 集成规范
 
 ### useSubscription Hook
 
-```typescript
-// src/hooks/use-subscription.ts
-import { useEffect, useState, useRef } from 'react'
-import type { Subscribable } from '@/services/events/types'
-
-export function useSubscription<T>(
+```
+useSubscription<T>(
   subscribable: Subscribable<T> | null,
   initialValue: T
-): T {
-  const [value, setValue] = useState<T>(initialValue)
-  const subscribableRef = useRef(subscribable)
-  
-  useEffect(() => {
-    if (!subscribable) return
-    
-    // 如果有初始值，先获取
-    if (subscribable.getCurrentValue) {
-      const current = subscribable.getCurrentValue()
-      if (current !== undefined) {
-        setValue(current)
-      }
-    }
-    
-    // 订阅
-    const subscription = subscribable.subscribe({
-      next: setValue,
-      error: (error) => console.error('Subscription error:', error),
-    })
-    
-    return () => subscription.unsubscribe()
-  }, [subscribable])
-  
-  return value
-}
+): T
 ```
 
-### 使用示例
+**行为规范：**
 
-```typescript
-function LiveBalance({ address, chainId }: Props) {
-  const assetSubscription = useService('assetSubscription')
-  
-  const subscribable = useMemo(() => {
-    if (!assetSubscription) return null
-    return assetSubscription.subscribeNativeBalance({ address })
-  }, [assetSubscription, address])
-  
-  const balance = useSubscription(subscribable, null)
-  
-  if (!balance) return <Skeleton />
-  
-  return (
-    <div>
-      <span>{balance.formatted}</span>
-      <span>{balance.token.symbol}</span>
-    </div>
-  )
-}
+- **MUST** 在组件卸载时自动取消订阅
+- **MUST** subscribable 变化时重新订阅
+- **SHOULD** 支持初始值设置
+- **SHOULD** 处理订阅错误
+
+### 使用模式
+
 ```
-
-### 交易状态订阅
-
-```typescript
-function TransactionStatus({ hash }: { hash: TransactionHash }) {
-  const txSubscription = useService('transactionSubscription')
-  
-  const subscribable = useMemo(() => {
-    if (!txSubscription) return null
-    return txSubscription.subscribeTransactionStatus(hash)
-  }, [txSubscription, hash])
-  
-  const status = useSubscription(subscribable, { status: 'pending' })
-  
-  return (
-    <div className={cn(
-      status.status === 'confirmed' && 'text-green-500',
-      status.status === 'failed' && 'text-red-500',
-    )}>
-      {status.status === 'pending' && '确认中...'}
-      {status.status === 'confirmed' && '已确认'}
-      {status.status === 'failed' && '失败'}
-    </div>
-  )
-}
+组件挂载
+    │
+    ▼
+创建 Subscribable（使用 useMemo）
+    │
+    ▼
+调用 useSubscription
+    │
+    ├── 获取初始值
+    │
+    └── 订阅变化
+         │
+         ▼
+    收到新值 → 触发重渲染
+         │
+         ▼
+组件卸载 → 自动取消订阅
 ```
 
 ---
 
-## 14.7 与 TanStack Query 结合
+## 与状态缓存结合
 
-### 订阅驱动的缓存更新
+### 订阅驱动缓存更新
 
-```typescript
-// src/features/wallet/use-live-balance.ts
-import { useQueryClient } from '@tanstack/react-query'
+```
+订阅事件
+    │
+    ▼
+收到新数据
+    │
+    ▼
+更新状态缓存（Query Cache）
+    │
+    ▼
+依赖该缓存的组件自动更新
+```
 
-export function useLiveBalanceUpdater(chainId: ChainId, address: Address) {
-  const queryClient = useQueryClient()
-  const assetSubscription = useService('assetSubscription')
-  
-  useEffect(() => {
-    if (!assetSubscription) return
-    
-    const subscription = assetSubscription
-      .subscribeNativeBalance({ address })
-      .subscribe({
-        next: (balance) => {
-          // 更新 Query 缓存
-          queryClient.setQueryData(
-            ['asset', 'native', chainId, address],
-            balance
-          )
-        },
-      })
-    
-    return () => subscription.unsubscribe()
-  }, [assetSubscription, chainId, address, queryClient])
-}
+### 缓存键映射
+
+| 事件类型 | 缓存键 |
+|---------|-------|
+| 原生余额 | ['asset', 'native', chainId, address] |
+| 代币余额 | ['asset', 'token', chainId, address, tokenAddress] |
+| 交易状态 | ['transaction', 'status', hash] |
+
+---
+
+## 资源管理规范
+
+### 订阅生命周期
+
+- **MUST** 组件卸载时取消所有订阅
+- **MUST** 重复订阅相同数据时复用连接
+- **SHOULD** 无订阅者时释放 WebSocket 连接
+- **MAY** 实现订阅引用计数
+
+### 错误处理
+
+| 错误类型 | 处理方式 |
+|---------|---------|
+| 连接断开 | 自动重连 + 降级轮询 |
+| 订阅失败 | 调用 observer.error |
+| 数据解析错误 | 记录日志 + 跳过 |
+
+### 重连策略
+
+```
+连接断开
+    │
+    ▼
+等待 1s
+    │
+    ▼
+尝试重连
+    │
+    ├── 成功 ──► 恢复订阅
+    │
+    └── 失败 ──► 等待 2s ──► 重试（指数退避）
+                              │
+                              └── 最大 30s
 ```
 
 ---
 
-## 14.8 最佳实践
+## 最佳实践
 
-### 1. 始终清理订阅
-
-```typescript
-// ✅ 在 useEffect 清理函数中取消订阅
-useEffect(() => {
-  const sub = subscribable.subscribe({ next: setValue })
-  return () => sub.unsubscribe()
-}, [subscribable])
-```
-
-### 2. 避免频繁创建订阅
-
-```typescript
-// ✅ 使用 useMemo 缓存 subscribable
-const subscribable = useMemo(
-  () => service.subscribeBalance({ address }),
-  [service, address]
-)
-
-// ❌ 每次渲染都创建新订阅
-const subscribable = service.subscribeBalance({ address })
-```
-
-### 3. 处理错误
-
-```typescript
-const subscription = subscribable.subscribe({
-  next: setValue,
-  error: (error) => {
-    console.error('Subscription error:', error)
-    // 可以设置错误状态或重试
-  },
-})
-```
+1. **缓存 Subscribable** - 使用 useMemo 避免重复创建
+2. **清理订阅** - 使用 useEffect 清理函数
+3. **处理错误** - 提供 error 回调处理异常
+4. **合并请求** - 相同数据使用单个订阅
+5. **降级策略** - 准备轮询作为后备方案
 
 ---
 
@@ -454,11 +289,6 @@ const subscription = subscribable.subscribe({
 
 - Subscribable 提供统一的订阅接口
 - 支持余额、交易状态、新区块等事件
-- useSubscription Hook 简化 React 集成
-- 可与 TanStack Query 缓存结合使用
-
----
-
-## 下一篇
-
-完成服务篇后，继续阅读 [第五篇：组件篇](../../05-组件篇/)，了解 UI 组件体系。
+- 优先 WebSocket，降级轮询
+- 与状态缓存结合实现自动更新
+- 完善的资源管理防止内存泄漏

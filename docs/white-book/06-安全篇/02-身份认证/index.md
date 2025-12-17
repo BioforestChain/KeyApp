@@ -1,397 +1,266 @@
-# 第十九章：身份认证
+# 身份认证
 
-> 定义用户身份验证机制
-
----
-
-## 19.1 认证方式
-
-| 方式 | 场景 | 安全级别 |
-|-----|------|---------|
-| 密码 | 首次解锁、敏感操作 | 高 |
-| 指纹/面容 | 日常解锁、快捷支付 | 高 |
-| PIN 码 | 快速解锁（可选） | 中 |
+> 定义用户身份验证机制规范
 
 ---
 
-## 19.2 应用锁
+## 认证方式
 
-### 状态管理
+| 方式 | 场景 | 安全级别 | 便捷性 |
+|-----|------|---------|-------|
+| 密码 | 首次解锁、敏感操作 | 高 | 低 |
+| 生物识别 | 日常解锁、快捷支付 | 高 | 高 |
+| PIN 码 | 快速解锁（可选） | 中 | 高 |
 
-```typescript
-// src/stores/auth.ts
-interface AuthState {
-  isLocked: boolean
-  isPasswordLockEnabled: boolean
-  isBiometricEnabled: boolean
-  lastUnlockTime: number | null
-  autoLockTimeout: number  // 分钟
-}
+---
 
-export const authStore = new Store<AuthState>({
-  isLocked: true,
-  isPasswordLockEnabled: false,
-  isBiometricEnabled: false,
-  lastUnlockTime: null,
-  autoLockTimeout: 5,
-})
+## 应用锁规范
 
-export const authActions = {
-  lock: () => {
-    authStore.setState((s) => ({ ...s, isLocked: true }))
-  },
-  
-  unlock: () => {
-    authStore.setState((s) => ({
-      ...s,
-      isLocked: false,
-      lastUnlockTime: Date.now(),
-    }))
-  },
-  
-  enablePasswordLock: () => {
-    authStore.setState((s) => ({ ...s, isPasswordLockEnabled: true }))
-  },
-  
-  enableBiometric: () => {
-    authStore.setState((s) => ({ ...s, isBiometricEnabled: true }))
-  },
-}
-```
+### 锁定状态
+
+| 状态 | 说明 |
+|-----|------|
+| locked | 已锁定，需要认证 |
+| unlocked | 已解锁，可正常使用 |
+
+### 状态数据
+
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| isLocked | boolean | 当前锁定状态 |
+| isPasswordLockEnabled | boolean | 是否启用密码锁 |
+| isBiometricEnabled | boolean | 是否启用生物识别 |
+| lastUnlockTime | timestamp | 上次解锁时间 |
+| autoLockTimeout | number | 自动锁定时间（分钟） |
 
 ### 解锁流程
 
-```typescript
-// src/features/auth/use-unlock.ts
-export function useUnlock() {
-  const biometric = useBiometric()
-  const { isPasswordLockEnabled, isBiometricEnabled } = useStore(authStore)
-  
-  const unlockWithPassword = async (password: string): Promise<boolean> => {
-    // 验证密码（尝试解密助记词）
-    try {
-      const wallet = getCurrentWallet()
-      await decryptMnemonic(wallet.encryptedMnemonic, password)
-      authActions.unlock()
-      return true
-    } catch {
-      return false
-    }
-  }
-  
-  const unlockWithBiometric = async (): Promise<boolean> => {
-    if (!isBiometricEnabled) return false
-    
-    const result = await biometric.authenticate({
-      reason: '解锁钱包',
-    })
-    
-    if (result.success) {
-      authActions.unlock()
-      return true
-    }
-    
-    return false
-  }
-  
-  return {
-    unlockWithPassword,
-    unlockWithBiometric,
-    canUseBiometric: isBiometricEnabled,
-  }
-}
+```
+用户打开应用
+    │
+    ▼
+检查是否启用锁定
+    │
+    ├── 未启用 ──► 直接进入
+    │
+    └── 已启用
+         │
+         ▼
+    检查生物识别是否可用
+         │
+         ├── 可用 ──► 提示指纹/面容解锁
+         │            │
+         │            ├── 成功 ──► 解锁
+         │            │
+         │            └── 失败 ──► 回退密码
+         │
+         └── 不可用 ──► 显示密码输入
+                        │
+                        ├── 正确 ──► 解锁
+                        │
+                        └── 错误 ──► 显示错误 + 重试
 ```
 
 ---
 
-## 19.3 自动锁定
+## 自动锁定规范
 
-### 监听用户活动
+### 触发条件
 
-```typescript
-// src/features/auth/auto-lock.ts
-export function useAutoLock() {
-  const { autoLockTimeout, isLocked } = useStore(authStore)
-  
-  useEffect(() => {
-    if (isLocked) return
-    
-    let timer: NodeJS.Timeout
-    
-    const resetTimer = () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        authActions.lock()
-      }, autoLockTimeout * 60 * 1000)
-    }
-    
-    // 监听用户活动
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
-    events.forEach((event) => {
-      document.addEventListener(event, resetTimer)
-    })
-    
-    resetTimer()
-    
-    return () => {
-      clearTimeout(timer)
-      events.forEach((event) => {
-        document.removeEventListener(event, resetTimer)
-      })
-    }
-  }, [autoLockTimeout, isLocked])
-}
-```
+| 条件 | 说明 | 可配置 |
+|-----|------|-------|
+| 超时无操作 | 设定时间内无用户活动 | 是 |
+| 应用切后台 | 应用进入后台 | 是 |
+| 屏幕锁定 | 设备屏幕锁定 | 否 |
 
-### 页面可见性锁定
+### 超时选项
 
-```typescript
-// 切换到后台时锁定
-useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      // 可选：立即锁定或等待一段时间
-      setTimeout(() => {
-        if (document.hidden) {
-          authActions.lock()
-        }
-      }, 30000)  // 30 秒后锁定
-    }
-  }
-  
-  document.addEventListener('visibilitychange', handleVisibilityChange)
-  return () => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }
-}, [])
-```
+| 选项 | 默认 |
+|-----|------|
+| 1 分钟 | |
+| 5 分钟 | ✓ |
+| 15 分钟 | |
+| 30 分钟 | |
+| 从不 | |
+
+### 活动监听
+
+以下用户活动 SHOULD 重置超时计时器：
+
+- 触摸/点击事件
+- 滚动事件
+- 键盘输入
+- 导航操作
 
 ---
 
-## 19.4 指纹支付
+## 生物识别认证规范
+
+### 支持类型
+
+| 类型 | 平台 |
+|-----|------|
+| 指纹 (Touch ID) | iOS, Android |
+| 面容 (Face ID) | iOS |
+| 指纹 (Fingerprint) | Android |
 
 ### 启用流程
 
 ```
-用户进入设置
-      ↓
-开启"指纹支付"
-      ↓
-验证钱包密码
-      ↓
-验证指纹
-      ↓
-保存设置
+用户进入安全设置
+    │
+    ▼
+开启"生物识别解锁"
+    │
+    ▼
+验证钱包密码 ← 确保用户是钱包所有者
+    │
+    ├── 密码错误 ──► 显示错误
+    │
+    └── 密码正确
+         │
+         ▼
+    检查设备生物识别可用性
+         │
+         ├── 不可用 ──► 显示提示
+         │
+         └── 可用
+              │
+              ▼
+         验证生物识别
+              │
+              ├── 成功 ──► 启用功能
+              │
+              └── 失败 ──► 显示错误
 ```
 
-### 实现
+### 认证要求
 
-```typescript
-// src/features/auth/biometric-pay.ts
-export function useBiometricPay() {
-  const biometric = useBiometric()
-  const { isBiometricEnabled } = useStore(authStore)
-  
-  const enableBiometricPay = async (password: string): Promise<boolean> => {
-    // 1. 验证密码
-    const isValid = await verifyPassword(password)
-    if (!isValid) return false
-    
-    // 2. 检查生物识别可用性
-    const available = await biometric.isAvailable()
-    if (!available) return false
-    
-    // 3. 验证指纹
-    const result = await biometric.authenticate({
-      reason: '验证指纹以启用指纹支付',
-    })
-    
-    if (result.success) {
-      authActions.enableBiometric()
-      return true
-    }
-    
-    return false
-  }
-  
-  const authenticateForPay = async (): Promise<boolean> => {
-    if (!isBiometricEnabled) return false
-    
-    const result = await biometric.authenticate({
-      reason: '确认交易',
-      fallbackToPassword: true,
-    })
-    
-    return result.success
-  }
-  
-  return {
-    enableBiometricPay,
-    authenticateForPay,
-    isBiometricEnabled,
-  }
-}
-```
+- **MUST** 启用前验证钱包密码
+- **MUST** 检查设备是否支持生物识别
+- **MUST** 提供回退到密码的选项
+- **SHOULD** 显示生物识别类型名称
+- **SHOULD** 记录启用状态到安全存储
 
 ---
 
-## 19.5 转账确认
+## 转账确认规范
+
+### 确认层级
+
+| 操作 | 认证要求 |
+|-----|---------|
+| 查看余额 | 无需认证 |
+| 查看地址 | 无需认证 |
+| 小额转账 | 生物识别 |
+| 大额转账 | 密码 |
+| 查看助记词 | 密码 |
+| 删除钱包 | 密码 |
 
 ### 确认流程
 
-```typescript
-// src/features/transfer/use-transfer-confirm.ts
-export function useTransferConfirm() {
-  const { isBiometricEnabled } = useStore(authStore)
-  const biometricPay = useBiometricPay()
-  
-  const confirmTransfer = async (
-    transfer: TransferParams,
-    onPasswordRequired: () => Promise<string | null>
-  ): Promise<boolean> => {
-    // 1. 尝试指纹验证
-    if (isBiometricEnabled) {
-      const success = await biometricPay.authenticateForPay()
-      if (success) return true
-    }
-    
-    // 2. 回退到密码验证
-    const password = await onPasswordRequired()
-    if (!password) return false
-    
-    // 3. 验证密码
-    return verifyPassword(password)
-  }
-  
-  return { confirmTransfer }
-}
+```
+用户发起转账
+    │
+    ▼
+判断金额级别
+    │
+    ├── 大额（>阈值）──► 强制密码验证
+    │
+    └── 小额
+         │
+         ▼
+    检查生物识别是否启用
+         │
+         ├── 已启用 ──► 生物识别验证
+         │            │
+         │            ├── 成功 ──► 执行转账
+         │            │
+         │            └── 失败 ──► 回退密码
+         │
+         └── 未启用 ──► 密码验证
 ```
 
-### UI 组件
+### 大额阈值配置
 
-```typescript
-// src/components/security/password-confirm-sheet.tsx
-interface PasswordConfirmSheetProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: (password: string) => void
-  title?: string
-}
-
-export function PasswordConfirmSheet({
-  open,
-  onOpenChange,
-  onConfirm,
-  title = '请输入密码',
-}: PasswordConfirmSheetProps) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  
-  const handleConfirm = async () => {
-    const isValid = await verifyPassword(password)
-    if (isValid) {
-      onConfirm(password)
-      setPassword('')
-      setError('')
-    } else {
-      setError('密码错误')
-    }
-  }
-  
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-        </SheetHeader>
-        
-        <div className="py-4 space-y-4">
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="请输入密码"
-          />
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          
-          <Button onClick={handleConfirm} className="w-full">
-            确认
-          </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
-}
-```
+- **SHOULD** 支持用户自定义阈值
+- **SHOULD** 按币种设置不同阈值
+- **MAY** 提供建议阈值
 
 ---
 
-## 19.6 安全设置页面
+## 密码验证规范
 
-```typescript
-// src/pages/settings/security.tsx
-export function SecuritySettingsPage() {
-  const { isPasswordLockEnabled, isBiometricEnabled, autoLockTimeout } = useStore(authStore)
-  const biometric = useBiometric()
-  const [biometricAvailable, setBiometricAvailable] = useState(false)
-  
-  useEffect(() => {
-    biometric.isAvailable().then(setBiometricAvailable)
-  }, [])
-  
-  return (
-    <div className="space-y-6">
-      <SettingItem
-        label="密码锁"
-        description="每次打开 App 需要输入密码"
-      >
-        <Switch
-          checked={isPasswordLockEnabled}
-          onCheckedChange={handlePasswordLockChange}
-        />
-      </SettingItem>
-      
-      {biometricAvailable && (
-        <SettingItem
-          label="指纹/面容解锁"
-          description="使用生物识别解锁 App"
-          disabled={!isPasswordLockEnabled}
-        >
-          <Switch
-            checked={isBiometricEnabled}
-            onCheckedChange={handleBiometricChange}
-            disabled={!isPasswordLockEnabled}
-          />
-        </SettingItem>
-      )}
-      
-      <SettingItem
-        label="自动锁定"
-        description="无操作后自动锁定"
-      >
-        <Select value={autoLockTimeout} onValueChange={handleTimeoutChange}>
-          <SelectItem value={1}>1 分钟</SelectItem>
-          <SelectItem value={5}>5 分钟</SelectItem>
-          <SelectItem value={15}>15 分钟</SelectItem>
-          <SelectItem value={30}>30 分钟</SelectItem>
-        </Select>
-      </SettingItem>
-    </div>
-  )
-}
+### 验证方式
+
+通过尝试解密钱包助记词验证密码：
+
 ```
+用户输入密码
+    │
+    ▼
+使用密码派生解密密钥
+    │
+    ▼
+尝试解密助记词
+    │
+    ├── 解密失败 ──► 密码错误
+    │
+    └── 解密成功 ──► 密码正确
+```
+
+### 安全要求
+
+- **MUST** 使用 AES-GCM 的认证标签验证
+- **MUST NOT** 存储密码哈希值
+- **MUST NOT** 在日志中记录密码
+- **SHOULD** 限制连续错误次数
+
+---
+
+## 安全设置页面规范
+
+### 设置项
+
+| 设置 | 类型 | 依赖 |
+|-----|------|------|
+| 密码锁 | 开关 | - |
+| 生物识别解锁 | 开关 | 密码锁已启用 |
+| 自动锁定时间 | 选择 | 密码锁已启用 |
+| 后台锁定 | 开关 | 密码锁已启用 |
+| 修改密码 | 按钮 | - |
+
+### 依赖关系
+
+- 生物识别解锁 **MUST** 在密码锁启用后才能开启
+- 关闭密码锁 **MUST** 同时关闭生物识别
+- 自动锁定时间 **SHOULD** 在密码锁关闭时禁用
+
+---
+
+## 错误处理规范
+
+### 认证错误
+
+| 错误类型 | 处理方式 |
+|---------|---------|
+| 密码错误 | 显示错误提示 + 清空输入 |
+| 生物识别取消 | 显示密码输入 |
+| 生物识别失败 | 提示重试或使用密码 |
+| 生物识别锁定 | 强制使用密码 |
+
+### 错误次数限制
+
+- **SHOULD** 连续错误后增加延迟
+- **SHOULD** 错误次数过多时临时锁定
+- **MAY** 支持错误通知（邮件/推送）
 
 ---
 
 ## 本章小结
 
 - 支持密码和生物识别两种认证方式
-- 自动锁定保护用户资产
-- 指纹支付提升转账体验
-- 分层安全：日常操作用指纹，敏感操作要密码
-
----
-
-## 下一章
-
-继续阅读 [第二十章：DWEB 授权](../03-DWEB授权/)，了解 DApp 授权流程。
+- 自动锁定保护用户资产安全
+- 生物识别提升日常使用便捷性
+- 分层安全：日常操作用生物识别，敏感操作要密码
+- 完善的错误处理和回退机制

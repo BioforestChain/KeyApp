@@ -1,430 +1,290 @@
-# 第九章：导航系统
+# 导航系统
 
-> 定义 Stackflow 导航配置
-
----
-
-## 9.1 Stackflow 概述
-
-### 什么是 Stackflow
-
-Stackflow 是一个为移动优先应用设计的栈式导航库，提供：
-- 原生 App 般的页面过渡动画
-- 手势返回支持
-- Activity 模式的参数传递
-- URL 同步 (可选)
-
-### 核心概念
-
-| 概念 | 说明 |
-|-----|------|
-| Activity | 一个页面/屏幕，可以接收参数 |
-| Stack | 页面栈，管理导航历史 |
-| Plugin | 扩展功能（如 URL 同步） |
+> 定义栈式导航架构规范
 
 ---
 
-## 9.2 基础配置
+## 导航模式
 
-### stackflow.ts
+### 栈式导航
 
-```typescript
-// src/stackflow/stackflow.ts
-import { stackflow } from '@stackflow/react'
-import { basicRendererPlugin } from '@stackflow/plugin-renderer-basic'
-import { basicUIPlugin } from '@stackflow/plugin-basic-ui'
-import { historySyncPlugin } from '@stackflow/plugin-history-sync'
+BFM Pay 采用栈式导航模式，提供原生 App 般的用户体验。
 
-// Activity 导入
-import { MainTabsActivity } from './activities/MainTabsActivity'
-import { WalletDetailActivity } from './activities/WalletDetailActivity'
-import { SendActivity } from './activities/SendActivity'
-import { ReceiveActivity } from './activities/ReceiveActivity'
-// ... 更多 Activity
-
-export const { Stack, useFlow, activities } = stackflow({
-  // 过渡动画时长
-  transitionDuration: 270,
-  
-  // 插件
-  plugins: [
-    basicRendererPlugin(),
-    basicUIPlugin({ theme: 'cupertino' }),
-    historySyncPlugin({
-      routes: {
-        // Activity 与 URL 映射
-        MainTabsActivity: '/',
-        WalletDetailActivity: '/wallet/:walletId',
-        SendActivity: '/send',
-        ReceiveActivity: '/receive',
-        TokenDetailActivity: '/token/:tokenId',
-        SettingsActivity: '/settings',
-        SettingsLanguageActivity: '/settings/language',
-        SettingsCurrencyActivity: '/settings/currency',
-        SettingsChainsActivity: '/settings/chains',
-        WalletCreateActivity: '/wallet/create',
-        WalletImportActivity: '/wallet/import',
-        AuthorizeAddressActivity: '/authorize/address/:eventId',
-        AuthorizeSignatureActivity: '/authorize/signature/:eventId',
-      },
-      fallbackActivity: () => 'MainTabsActivity',
-      // 使用 hash 路由（兼容静态部署）
-      useHash: true,
-    }),
-  ],
-  
-  // Activity 注册
-  activities: {
-    MainTabsActivity,
-    WalletDetailActivity,
-    SendActivity,
-    ReceiveActivity,
-    TokenDetailActivity,
-    SettingsActivity,
-    SettingsLanguageActivity,
-    SettingsCurrencyActivity,
-    SettingsChainsActivity,
-    WalletCreateActivity,
-    WalletImportActivity,
-    AuthorizeAddressActivity,
-    AuthorizeSignatureActivity,
-  },
-  
-  // 初始 Activity
-  initialActivity: () => 'MainTabsActivity',
-})
+```
+┌─────────────────────────────────────┐
+│            Navigation Stack          │
+├─────────────────────────────────────┤
+│  [4] 交易详情页                       │ ← 栈顶（当前页面）
+│  [3] 发送确认页                       │
+│  [2] 发送页                          │
+│  [1] 钱包详情页                       │
+│  [0] 首页 (Tab)                      │ ← 栈底
+└─────────────────────────────────────┘
 ```
 
----
+### 导航类型
 
-## 9.3 Activity 定义
-
-### Activity 结构
-
-```typescript
-// src/stackflow/activities/WalletDetailActivity.tsx
-import type { ActivityComponentType } from '@stackflow/react'
-import { AppScreen } from '@stackflow/plugin-basic-ui'
-import { WalletDetailPage } from '@/pages/wallet/detail'
-
-// 定义参数类型
-type WalletDetailParams = {
-  walletId: string
-}
-
-// Activity 组件
-export const WalletDetailActivity: ActivityComponentType<WalletDetailParams> = ({
-  params,
-}) => {
-  return (
-    <AppScreen
-      appBar={{
-        title: '钱包详情',
-        backButton: { render: () => <BackButton /> },
-      }}
-    >
-      <WalletDetailPage walletId={params.walletId} />
-    </AppScreen>
-  )
-}
-
-// 设置 Activity 名称（用于调试）
-WalletDetailActivity.displayName = 'WalletDetailActivity'
-```
-
-### Tab Activity
-
-```typescript
-// src/stackflow/activities/MainTabsActivity.tsx
-import type { ActivityComponentType } from '@stackflow/react'
-import { AppScreen } from '@stackflow/plugin-basic-ui'
-import { TabBar } from '../components/TabBar'
-import { HomePage } from '@/pages/home'
-import { HistoryPage } from '@/pages/history'
-import { SettingsPage } from '@/pages/settings'
-
-type TabType = 'home' | 'history' | 'settings'
-
-export const MainTabsActivity: ActivityComponentType = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('home')
-  
-  return (
-    <AppScreen appBar={null}>
-      <div className="flex-1 overflow-auto">
-        {activeTab === 'home' && <HomePage />}
-        {activeTab === 'history' && <HistoryPage />}
-        {activeTab === 'settings' && <SettingsPage />}
-      </div>
-      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-    </AppScreen>
-  )
-}
-```
+| 操作 | 说明 | 动画方向 |
+|-----|------|---------|
+| Push | 压入新页面到栈顶 | 从右进入 |
+| Pop | 弹出栈顶页面 | 向右退出 |
+| Replace | 替换栈顶页面 | 淡入淡出 |
+| Reset | 重置导航栈 | 无动画 |
 
 ---
 
-## 9.4 导航 Hooks
+## 页面（Screen）规范
 
-### useFlow
+### Screen 定义
 
-```typescript
-// 原生 Stackflow 导航
-import { useFlow } from '@/stackflow'
+每个 Screen MUST 包含：
 
-function MyComponent() {
-  const { push, pop, replace } = useFlow()
-  
-  // Push 新页面
-  const goToWallet = () => {
-    push('WalletDetailActivity', { walletId: '123' })
-  }
-  
-  // 返回上一页
-  const goBack = () => {
-    pop()
-  }
-  
-  // 替换当前页面
-  const replaceTo = () => {
-    replace('SendActivity', {})
+| 属性 | 类型 | 必填 | 说明 |
+|-----|------|------|------|
+| name | string | 是 | 唯一标识符 |
+| path | string | 是 | URL 路径模式 |
+| params | ParamSchema | 否 | 参数定义 |
+| component | Component | 是 | 渲染组件 |
+| options | ScreenOptions | 否 | 页面配置 |
+
+### Screen 参数
+
+```
+ParamSchema = {
+  [paramName: string]: {
+    type: 'string' | 'number' | 'boolean'
+    required: boolean
+    default?: any
   }
 }
 ```
 
-### useNavigation (兼容层)
+### Screen 配置
 
-为了便于从 TanStack Router 迁移，提供兼容 API：
+```
+ScreenOptions = {
+  title: string | null        // 页面标题
+  headerVisible: boolean      // 是否显示头部
+  gestureEnabled: boolean     // 是否启用手势返回
+  animation: AnimationType    // 过渡动画类型
+}
+```
 
-```typescript
-// src/stackflow/hooks/use-navigation.ts
-import { useFlow } from '../stackflow'
+---
 
-export function useNavigation() {
-  const { push, pop, replace } = useFlow()
+## Screen 列表
+
+### Tab 页面
+
+| Screen | 路径 | 说明 |
+|--------|------|------|
+| MainTabs | / | Tab 容器页 |
+| HomeTab | /home | 首页 Tab |
+| HistoryTab | /history | 历史 Tab |
+| SettingsTab | /settings | 设置 Tab |
+
+### 钱包相关
+
+| Screen | 路径 | 参数 | 说明 |
+|--------|------|------|------|
+| WalletCreate | /wallet/create | - | 创建钱包 |
+| WalletImport | /wallet/import | - | 导入钱包 |
+| WalletDetail | /wallet/:id | id: string | 钱包详情 |
+| WalletBackup | /wallet/:id/backup | id: string | 备份钱包 |
+
+### 交易相关
+
+| Screen | 路径 | 参数 | 说明 |
+|--------|------|------|------|
+| Send | /send | token?: string | 发送页 |
+| SendConfirm | /send/confirm | tx: TxData | 发送确认 |
+| Receive | /receive | - | 收款页 |
+| TxDetail | /tx/:hash | hash: string | 交易详情 |
+
+### 设置相关
+
+| Screen | 路径 | 说明 |
+|--------|------|------|
+| SettingsLanguage | /settings/language | 语言设置 |
+| SettingsCurrency | /settings/currency | 货币设置 |
+| SettingsChains | /settings/chains | 链配置 |
+| SettingsPassword | /settings/password | 修改密码 |
+| SettingsMnemonic | /settings/mnemonic | 查看助记词 |
+
+### DWEB 授权
+
+| Screen | 路径 | 参数 | 说明 |
+|--------|------|------|------|
+| AuthorizeAddress | /authorize/address/:eventId | eventId: string | 地址授权 |
+| AuthorizeSignature | /authorize/signature/:eventId | eventId: string | 签名授权 |
+
+---
+
+## 导航接口规范
+
+### INavigator
+
+```
+INavigator {
+  // 导航操作
+  push(screen: string, params?: object): void
+  pop(): void
+  replace(screen: string, params?: object): void
+  reset(screens: ScreenConfig[]): void
   
-  return {
-    navigate: ({ to, search, replace: shouldReplace }) => {
-      // 根据 path 映射到 Activity
-      const activity = pathToActivity(to)
-      const params = search ?? {}
-      
-      if (shouldReplace) {
-        replace(activity, params)
-      } else {
-        push(activity, params)
-      }
-    },
-    goBack: () => pop(),
-  }
-}
-```
-
-### useActivityParams
-
-```typescript
-// src/stackflow/hooks/use-activity-params.ts
-import { useActivityParams as useStackflowParams } from '@stackflow/react'
-
-export function useActivityParams<T>(): T {
-  return useStackflowParams() as T
-}
-
-// 使用
-function WalletDetailPage() {
-  const { walletId } = useActivityParams<{ walletId: string }>()
-  // ...
-}
-```
-
----
-
-## 9.5 页面组件组织
-
-### Activity vs Page 分离
-
-```
-src/
-├── stackflow/
-│   └── activities/
-│       └── WalletDetailActivity.tsx    # Activity 包装
-│
-└── pages/
-    └── wallet/
-        └── detail/
-            └── index.tsx               # 页面组件
-```
-
-**Activity 职责**：
-- 定义 AppScreen 配置（标题、返回按钮）
-- 接收参数，传递给 Page
-- 处理导航相关逻辑
-
-**Page 职责**：
-- 渲染页面内容
-- 处理业务逻辑
-- 可独立测试
-
-### 示例
-
-```typescript
-// Activity - 只负责包装
-export const WalletDetailActivity: ActivityComponentType<Params> = ({ params }) => (
-  <AppScreen appBar={{ title: '钱包详情' }}>
-    <WalletDetailPage walletId={params.walletId} />
-  </AppScreen>
-)
-
-// Page - 负责内容
-export function WalletDetailPage({ walletId }: Props) {
-  const { data: wallet } = useWallet(walletId)
+  // 状态查询
+  canGoBack(): boolean
+  getCurrentScreen(): ScreenInfo
+  getNavigationState(): NavigationState
   
-  return (
-    <div>
-      <WalletCard wallet={wallet} />
-      <AddressList addresses={wallet.addresses} />
-    </div>
-  )
+  // 事件监听
+  addListener(event: NavigationEvent, callback: Function): Unsubscribe
 }
 ```
 
----
+### NavigationEvent
 
-## 9.6 URL 同步
-
-### Hash 路由
-
-使用 hash 路由以兼容静态部署（GitHub Pages 等）：
-
-```typescript
-historySyncPlugin({
-  useHash: true,  // ← 启用 hash 路由
-  routes: { ... },
-})
-```
-
-URL 格式：
-```
-https://example.com/#/wallet/123
-https://example.com/#/send
-https://example.com/#/settings/language
-```
-
-### 路由参数
-
-```typescript
-// 定义
-routes: {
-  WalletDetailActivity: '/wallet/:walletId',
-  TokenDetailActivity: '/token/:tokenId',
-  AuthorizeAddressActivity: '/authorize/address/:eventId',
-}
-
-// URL 示例
-/#/wallet/abc123          → { walletId: 'abc123' }
-/#/token/usdt             → { tokenId: 'usdt' }
-/#/authorize/address/evt1 → { eventId: 'evt1' }
-```
-
-### Query 参数
-
-```typescript
-// 通过 search 传递额外参数
-push('AuthorizeSignatureActivity', {
-  eventId: 'evt1',
-  signaturedata: '...',  // 会编码到 URL search
-})
-
-// URL: /#/authorize/signature/evt1?signaturedata=...
-```
+| 事件 | 触发时机 |
+|-----|---------|
+| beforeNavigate | 导航开始前 |
+| afterNavigate | 导航完成后 |
+| focus | 页面获得焦点 |
+| blur | 页面失去焦点 |
 
 ---
 
-## 9.7 过渡动画
+## Tab 导航规范
 
-### 内置动画
+### Tab 配置
 
-Stackflow 提供两种主题：
-- `cupertino`：iOS 风格（从右滑入）
-- `android`：Android 风格（从底部滑入）
+| 属性 | 类型 | 说明 |
+|-----|------|------|
+| key | string | Tab 唯一标识 |
+| label | string | Tab 显示文本 |
+| icon | Icon | Tab 图标 |
+| screen | string | 对应 Screen |
+| badge | number | 角标数字 |
 
-```typescript
-basicUIPlugin({ theme: 'cupertino' })
+### Tab 列表
+
+| Tab | 图标 | Screen | 说明 |
+|-----|------|--------|------|
+| home | Wallet | HomeTab | 首页/钱包 |
+| history | History | HistoryTab | 交易历史 |
+| settings | Settings | SettingsTab | 设置 |
+
+### Tab 行为规范
+
+- **MUST** 点击当前 Tab 滚动到顶部
+- **MUST** 记住每个 Tab 的滚动位置
+- **SHOULD** 支持 Tab 切换动画
+- **MAY** 支持 Tab 长按快捷操作
+
+---
+
+## URL 同步规范
+
+### 路由模式
+
+- **MUST** 支持 Hash 路由模式（兼容静态部署）
+- **SHOULD** 支持 History 路由模式（可选）
+
+### URL 格式
+
 ```
+Hash 模式：https://example.com/#/wallet/abc123
+History 模式：https://example.com/wallet/abc123
+```
+
+### 参数编码
+
+- **MUST** 路径参数使用 URL 安全字符
+- **MUST** 复杂参数使用 URL Search 编码
+- **SHOULD** 敏感参数加密后传递
+
+---
+
+## 过渡动画规范
+
+### 动画类型
+
+| 类型 | 说明 | 使用场景 |
+|-----|------|---------|
+| slideRight | 从右滑入 | 进入新页面 |
+| slideLeft | 从左滑入 | 返回上一页 |
+| slideUp | 从下滑入 | 弹出层/Sheet |
+| fade | 淡入淡出 | 替换页面 |
+| none | 无动画 | 快速切换 |
+
+### 动画参数
+
+| 参数 | 建议值 | 说明 |
+|-----|--------|------|
+| duration | 250-300ms | 动画时长 |
+| easing | ease-out | 缓动函数 |
+| delay | 0ms | 延迟时间 |
+
+---
+
+## 手势导航规范
 
 ### 手势返回
 
-在移动端自动启用，用户可以从屏幕左边缘向右滑动返回。
+- **MUST** 支持从屏幕左边缘向右滑动返回
+- **MUST** 滑动距离 > 屏幕 1/3 时触发返回
+- **SHOULD** 显示返回预览效果
+- **MAY** 支持自定义触发阈值
 
-### 自定义动画
+### 禁用场景
 
-```typescript
-// 自定义过渡动画
-transitionDuration: 270,  // 动画时长 (ms)
-```
+以下页面 SHOULD 禁用手势返回：
+
+- 支付确认页（防止误操作）
+- 密码输入页（防止泄露）
+- 重要表单页（防止数据丢失）
 
 ---
 
-## 9.8 最佳实践
+## 深度链接规范
 
-### 1. Activity 命名规范
+### 支持的 Scheme
+
+| Scheme | 说明 |
+|--------|------|
+| bfmpay:// | 应用内链接 |
+| https://pay.bfm.network | Web 链接 |
+
+### 链接格式
 
 ```
-{功能名}Activity
-
-示例：
-- WalletDetailActivity
-- SendActivity
-- SettingsLanguageActivity
+bfmpay://send?to=ADDRESS&amount=100
+bfmpay://wallet/WALLET_ID
+bfmpay://authorize/address/EVENT_ID
 ```
 
-### 2. 参数类型定义
+### 处理流程
 
-```typescript
-// 始终定义参数类型
-type SendParams = {
-  tokenId?: string
-  toAddress?: string
-  amount?: string
-}
-
-export const SendActivity: ActivityComponentType<SendParams> = ({ params }) => {
-  // ...
-}
 ```
-
-### 3. 导航封装
-
-```typescript
-// 封装常用导航操作
-export function useWalletNavigation() {
-  const { push } = useFlow()
-  
-  return {
-    goToWallet: (walletId: string) => {
-      push('WalletDetailActivity', { walletId })
-    },
-    goToSend: (tokenId?: string) => {
-      push('SendActivity', { tokenId })
-    },
-    goToReceive: () => {
-      push('ReceiveActivity', {})
-    },
-  }
-}
+接收深度链接
+    │
+    ▼
+解析 scheme 和 path
+    │
+    ▼
+验证参数合法性
+    │
+    ├── 无效 ──► 显示错误
+    │
+    └── 有效 ──► 导航到对应页面
 ```
 
 ---
 
 ## 本章小结
 
-- Stackflow 提供栈式导航，适合移动优先应用
-- Activity 定义页面入口，Page 定义页面内容
-- historySyncPlugin 实现 URL 同步
-- 使用 hash 路由兼容静态部署
-- 手势返回和过渡动画提升用户体验
-
----
-
-## 下一章
-
-继续阅读 [第十章：状态管理](../04-状态管理/)，了解 TanStack Store/Query 使用。
+- 栈式导航提供原生 App 体验
+- Screen 统一定义页面和参数
+- Tab 导航管理主要功能入口
+- URL 同步支持页面分享和书签
+- 手势导航增强操作体验
+- 深度链接支持外部唤起

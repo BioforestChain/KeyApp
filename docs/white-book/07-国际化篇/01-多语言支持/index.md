@@ -1,193 +1,237 @@
-# 第二十一章：多语言支持
+# 多语言支持
 
-> i18next 配置、语言检测、RTL 布局
-
----
-
-## 21.1 i18next 配置
-
-```typescript
-// src/i18n/index.ts
-import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
-
-export const supportedLanguages = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'ar'] as const
-export type SupportedLanguage = (typeof supportedLanguages)[number]
-export const rtlLanguages: SupportedLanguage[] = ['ar']
-
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,  // 内联资源
-    ns: ['common', 'wallet', 'transfer', 'settings'],
-    defaultNS: 'common',
-    fallbackLng: 'en',
-    supportedLngs: supportedLanguages,
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18n-language',
-    },
-    interpolation: { escapeValue: false },
-    react: { useSuspense: true },
-  })
-
-export default i18n
-export const isRTL = (lang: string) => rtlLanguages.includes(lang as SupportedLanguage)
-```
+> 定义国际化架构规范
 
 ---
 
-## 21.2 翻译资源
+## 支持的语言
 
-```typescript
-// src/i18n/resources.ts
-export const resources = {
-  'zh-CN': {
-    common: {
-      confirm: '确认',
-      cancel: '取消',
-      back: '返回',
-      next: '下一步',
-      copy: '复制',
-      copied: '已复制！',
-    },
-    wallet: {
-      createWallet: '创建钱包',
-      importWallet: '导入钱包',
-      backup: '备份',
-      noBackup: '未备份',
-    },
-  },
-  en: {
-    common: {
-      confirm: 'Confirm',
-      cancel: 'Cancel',
-      back: 'Back',
-      next: 'Next',
-      copy: 'Copy',
-      copied: 'Copied!',
-    },
-    wallet: {
-      createWallet: 'Create Wallet',
-      importWallet: 'Import Wallet',
-      backup: 'Backup',
-      noBackup: 'Not backed up',
-    },
-  },
-  // ... 其他语言
-} as const
-```
+| 语言代码 | 语言名称 | 书写方向 |
+|---------|---------|---------|
+| zh-CN | 简体中文 | LTR |
+| zh-TW | 繁體中文 | LTR |
+| en | English | LTR |
+| ja | 日本語 | LTR |
+| ko | 한국어 | LTR |
+| ar | العربية | RTL |
 
 ---
 
-## 21.3 组件中使用
+## 语言检测规范
 
-```typescript
-import { useTranslation } from 'react-i18next'
+### 检测顺序
 
-function WalletCard() {
-  const { t } = useTranslation('wallet')
-  
-  return (
-    <div>
-      <h2>{t('createWallet')}</h2>
-      <Button>{t('common:confirm')}</Button>
-    </div>
-  )
-}
+1. **本地存储** - 用户上次选择的语言
+2. **浏览器语言** - navigator.language
+3. **系统语言** - 操作系统语言设置
+4. **默认语言** - 英语 (en)
+
+### 语言匹配规则
+
+- **MUST** 精确匹配优先（zh-CN → zh-CN）
+- **SHOULD** 支持语言族匹配（zh-HK → zh-TW）
+- **MUST** 无匹配时使用默认语言
+
+### 语言族映射
+
+| 请求语言 | 匹配结果 |
+|---------|---------|
+| zh-CN | zh-CN |
+| zh-TW | zh-TW |
+| zh-HK | zh-TW |
+| zh | zh-CN |
+| en-US | en |
+| en-GB | en |
+
+---
+
+## 翻译资源规范
+
+### 命名空间划分
+
+| 命名空间 | 用途 |
+|---------|------|
+| common | 通用词汇（确认、取消、返回等） |
+| wallet | 钱包相关 |
+| transfer | 转账相关 |
+| settings | 设置相关 |
+| error | 错误消息 |
+| auth | 认证相关 |
+
+### 翻译键命名规范
+
+- **MUST** 使用小驼峰命名
+- **MUST** 语义化命名
+- **SHOULD** 按功能模块组织
+- **SHOULD** 避免超过 3 层嵌套
+
+```
+示例：
+✓ createWallet
+✓ balance.available
+✓ error.networkTimeout
+✗ btn_create_wallet
+✗ a.b.c.d.e.f
 ```
 
-### 带参数的翻译
+### 翻译文本规范
 
-```json
-{ "available": "可用: {{amount}} {{symbol}}" }
+- **MUST** 避免拼接翻译（使用插值）
+- **MUST** 考虑不同语言的语序差异
+- **SHOULD** 为变量提供语义化的占位符名
+- **SHOULD** 添加翻译备注说明上下文
+
 ```
-
-```typescript
-t('available', { amount: '100', symbol: 'ETH' })
-// → "可用: 100 ETH"
+✓ "available": "可用: {{amount}} {{symbol}}"
+✗ "available": "可用: " + amount + " " + symbol
 ```
 
 ---
 
-## 21.4 RTL 支持
+## 插值规范
 
-```typescript
-// src/components/providers/direction-provider.tsx
-export function DirectionProvider({ children }: { children: React.ReactNode }) {
-  const { i18n } = useTranslation()
-  const isRTL = rtlLanguages.includes(i18n.language as SupportedLanguage)
-  
-  useEffect(() => {
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr'
-    document.documentElement.lang = i18n.language
-  }, [isRTL, i18n.language])
-  
-  return <>{children}</>
-}
+### 基本插值
+
+```
+翻译文本: "余额: {{amount}}"
+调用方式: t('balance', { amount: '100' })
+结果: "余额: 100"
 ```
 
-### RTL CSS
+### 复数处理
 
-```css
-/* 使用逻辑属性 */
-.card {
-  padding-inline-start: 1rem;  /* 替代 padding-left */
-  margin-inline-end: 0.5rem;   /* 替代 margin-right */
-}
+```
+翻译文本:
+  "items_zero": "无项目"
+  "items_one": "1 个项目"
+  "items_other": "{{count}} 个项目"
 
-/* RTL 翻转图标 */
-[dir="rtl"] .rtl-flip {
-  transform: scaleX(-1);
-}
+调用方式: t('items', { count: 5 })
+```
+
+### 日期时间格式
+
+| 格式 | zh-CN | en |
+|-----|-------|-----|
+| 短日期 | 2024/01/15 | 01/15/2024 |
+| 长日期 | 2024年1月15日 | January 15, 2024 |
+| 时间 | 14:30 | 2:30 PM |
+
+---
+
+## RTL 布局规范
+
+### CSS 逻辑属性
+
+| 物理属性 | 逻辑属性 |
+|---------|---------|
+| padding-left | padding-inline-start |
+| padding-right | padding-inline-end |
+| margin-left | margin-inline-start |
+| margin-right | margin-inline-end |
+| left | inset-inline-start |
+| right | inset-inline-end |
+| text-align: left | text-align: start |
+| text-align: right | text-align: end |
+
+### RTL 规范要求
+
+- **MUST** 使用 CSS 逻辑属性
+- **MUST** 设置 `dir` 属性（html 或容器）
+- **MUST** 设置 `lang` 属性
+- **SHOULD** 翻转方向性图标（箭头等）
+- **MUST NOT** 翻转非方向性图标（品牌 logo）
+
+### 需要翻转的元素
+
+| 元素 | 翻转 | 说明 |
+|-----|------|------|
+| 返回箭头 | 是 | 方向性 |
+| 前进箭头 | 是 | 方向性 |
+| 列表顺序 | 是 | 起始位置变化 |
+| 进度条方向 | 是 | 从右到左 |
+| 品牌 Logo | 否 | 固定资产 |
+| 电话号码 | 否 | 数字方向不变 |
+
+---
+
+## 语言切换规范
+
+### 切换流程
+
+```
+用户进入语言设置
+    │
+    ▼
+显示语言列表（当前语言高亮）
+    │
+    ▼
+用户选择新语言
+    │
+    ▼
+保存到本地存储
+    │
+    ▼
+更新应用语言
+    │
+    ▼
+刷新界面文本
+    │
+    ▼
+更新 HTML dir 和 lang 属性
+```
+
+### 切换要求
+
+- **MUST** 立即生效（无需重启）
+- **MUST** 持久化到本地存储
+- **MUST** 更新所有可见文本
+- **SHOULD** 显示本地语言名称（非翻译名）
+
+### 语言列表显示
+
+每种语言 SHOULD 使用其本地名称显示：
+
+```
+简体中文
+繁體中文
+English
+日本語
+한국어
+العربية
 ```
 
 ---
 
-## 21.5 语言切换
+## 开发规范
 
-```typescript
-// src/pages/settings/language.tsx
-const languages = [
-  { code: 'zh-CN', name: '简体中文' },
-  { code: 'zh-TW', name: '繁體中文' },
-  { code: 'en', name: 'English' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' },
-  { code: 'ar', name: 'العربية' },
-]
+### 添加新翻译
 
-export function LanguageSettingsPage() {
-  const { i18n } = useTranslation()
-  
-  return (
-    <div className="space-y-2">
-      {languages.map(({ code, name }) => (
-        <button
-          key={code}
-          onClick={() => i18n.changeLanguage(code)}
-          className={cn(
-            'w-full p-4 text-left rounded-lg',
-            i18n.language === code && 'bg-primary/10'
-          )}
-        >
-          {name}
-          {i18n.language === code && <IconCheck />}
-        </button>
-      ))}
-    </div>
-  )
-}
-```
+1. 在所有语言文件中添加新键
+2. 确保键名一致
+3. 添加必要的复数形式
+4. 测试所有语言显示
+
+### 翻译缺失处理
+
+- **MUST** 有回退语言机制
+- **SHOULD** 开发环境显示缺失键警告
+- **SHOULD** 生产环境显示回退语言文本
+- **MAY** 上报缺失翻译
+
+### 测试规范
+
+- **MUST** 测试所有支持语言的界面
+- **MUST** 测试 RTL 布局正确性
+- **SHOULD** 测试长文本不溢出
+- **SHOULD** 测试占位符替换正确
 
 ---
 
 ## 本章小结
 
-- i18next 提供完整的国际化方案
 - 支持 6 种语言，包括 RTL 阿拉伯语
-- 使用逻辑属性支持 RTL 布局
+- 自动语言检测，支持用户手动切换
+- 使用 CSS 逻辑属性支持双向布局
+- 统一的翻译资源管理和命名规范
 - 语言切换即时生效
