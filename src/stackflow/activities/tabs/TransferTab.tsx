@@ -1,13 +1,19 @@
+import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 import { IconSend } from "@tabler/icons-react";
 
 export function TransferTab() {
   const { push } = useFlow();
+  const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex min-h-screen flex-col bg-muted/30">
+      <PageHeader title={t("a11y.tabTransfer")} />
+
+      <div className="flex flex-col gap-4 p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">快速转账</CardTitle>
@@ -66,6 +72,7 @@ export function TransferTab() {
           ))}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

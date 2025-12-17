@@ -1,11 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 import { IconPlus, IconWallet, IconChevronRight } from "@tabler/icons-react";
 import { useCurrentWallet } from "@/stores";
 
 export function WalletTab() {
   const { push } = useFlow();
+  const { t } = useTranslation();
   const currentWallet = useCurrentWallet();
 
   const wallets = currentWallet
@@ -23,17 +26,20 @@ export function WalletTab() {
     : [];
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <Button
-        variant="outline"
-        className="w-full gap-2"
-        onClick={() => push("WalletCreateActivity", {})}
-      >
-        <IconPlus className="size-4" />
-        添加钱包
-      </Button>
+    <div className="flex min-h-screen flex-col bg-muted/30">
+      <PageHeader title={t("a11y.tabWallet")} />
 
-      <div className="space-y-3">
+      <div className="flex flex-col gap-4 p-4">
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          onClick={() => push("WalletCreateActivity", {})}
+        >
+          <IconPlus className="size-4" />
+          添加钱包
+        </Button>
+
+        <div className="space-y-3">
         {wallets.map((wallet) => (
           <Card
             key={wallet.id}
@@ -60,13 +66,14 @@ export function WalletTab() {
           </Card>
         ))}
 
-        {wallets.length === 0 && (
-          <div className="py-12 text-center">
-            <IconWallet className="mx-auto size-12 text-muted-foreground/50" />
-            <p className="mt-4 text-muted-foreground">暂无钱包</p>
-            <p className="text-sm text-muted-foreground">点击上方按钮创建或导入钱包</p>
-          </div>
-        )}
+          {wallets.length === 0 && (
+            <div className="py-12 text-center">
+              <IconWallet className="mx-auto size-12 text-muted-foreground/50" />
+              <p className="mt-4 text-muted-foreground">暂无钱包</p>
+              <p className="text-sm text-muted-foreground">点击上方按钮创建或导入钱包</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
