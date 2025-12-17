@@ -21,7 +21,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
   --primary: oklch(0.59 0.26 323);
-  --primary-foreground: oklch(0.98 0.02 320);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
@@ -56,7 +56,7 @@
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.67 0.26 322);
-  --primary-foreground: oklch(0.98 0.02 320);
+  --primary-foreground: oklch(0.141 0.005 285.823);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
@@ -132,19 +132,19 @@
   --font-serif: 'DM Serif Display', ui-serif, Georgia, serif;
 
   /* 成功色 - 绿色 */
-  --color-success: oklch(70% 0.2 145);
+  --color-success: oklch(50% 0.2 145);
   --color-success-foreground: oklch(100% 0 0);
 
   /* 信息色 - 蓝色 */
-  --color-info: oklch(70% 0.16 239);
+  --color-info: oklch(50% 0.16 239);
   --color-info-foreground: oklch(100% 0 0);
 
   /* 警告色 - 橙色 */
-  --color-warning: oklch(77% 0.17 64.05);
+  --color-warning: oklch(54% 0.17 64.05);
   --color-warning-foreground: oklch(100% 0 0);
 
   /* 错误色 - 红色 */
-  --color-destructive: oklch(60% 0.2 25);
+  --color-destructive: oklch(55% 0.2 25);
   --color-destructive-foreground: oklch(100% 0 0);
 
   /* 链专属色 */

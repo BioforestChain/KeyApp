@@ -25,7 +25,7 @@ describe('Alert', () => {
 
   it('applies info variant by default', () => {
     const { container } = render(<Alert>Info alert</Alert>)
-    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-blue-500/10')
+    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-info/10')
   })
 
   it('applies error variant styles', () => {
@@ -35,12 +35,12 @@ describe('Alert', () => {
 
   it('applies success variant styles', () => {
     const { container } = render(<Alert variant="success">Success alert</Alert>)
-    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-green-500/10')
+    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-success/10')
   })
 
   it('applies warning variant styles', () => {
     const { container } = render(<Alert variant="warning">Warning alert</Alert>)
-    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-yellow-500/10')
+    expect(container.querySelector('[role="alert"]')).toHaveClass('bg-warning/10')
   })
 
   it('applies custom className', () => {

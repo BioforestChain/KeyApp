@@ -6,6 +6,7 @@
 /dist-web
 /dist-dweb
 /tmp
+/.tmp
 /out-tsc
 /release
 /gh-pages

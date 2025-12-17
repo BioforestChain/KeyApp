@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react';
 import { chainConfigActions, preferencesActions, walletActions, useWalletInitialized } from '@/stores';
 import { installAuthorizeDeepLinkListener } from '@/services/authorize/deep-link';
+import type { CSSProperties } from 'react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -89,6 +90,12 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     }
   };
 
+  const mainStyle: CSSProperties & { ['--safe-area-inset-bottom']: string } = {
+    '--safe-area-inset-bottom': hideTabBar
+      ? 'env(safe-area-inset-bottom)'
+      : 'calc(env(safe-area-inset-bottom) + 3.5rem)',
+  };
+
   return (
     <div className={cn('bg-background flex min-h-screen flex-col', className)}>
       {/* Skip link for keyboard navigation - S4 a11y */}
@@ -104,13 +111,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
         id="main-content"
         className={cn('flex-1 *:h-screen *:overflow-auto *:pb-(--safe-area-inset-bottom)')}
         tabIndex={-1}
-        style={
-          {
-            '--safe-area-inset-bottom': hideTabBar
-              ? 'env(safe-area-inset-bottom)'
-              : 'calc(env(safe-area-inset-bottom) + 3.5rem)',
-          } as any
-        }
+        style={mainStyle}
       >
         {children}
       </main>

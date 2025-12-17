@@ -118,7 +118,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
                 <button
                   type="button"
                   onClick={handleMax}
-                  className="text-primary bg-primary/10 hover:bg-primary/20 rounded-md px-2 py-1 text-xs font-medium transition-colors"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-2 py-1 text-xs font-medium transition-colors"
                 >
                   MAX
                 </button>

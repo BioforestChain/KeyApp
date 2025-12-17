@@ -42,7 +42,7 @@ export function SettingsItem({
         'bg-background flex w-full items-center gap-3 rounded-xl px-4 py-3.5',
         'transition-colors',
         onClick && !disabled && 'hover:bg-muted/50 active:bg-muted',
-        disabled && 'cursor-not-allowed opacity-50',
+        disabled && 'cursor-not-allowed',
         className,
       )}
     >
@@ -51,7 +51,7 @@ export function SettingsItem({
           {icon}
         </span>
       )}
-      <span className="flex-1 text-left text-sm font-medium">{label}</span>
+      <span className={cn('flex-1 text-left text-sm font-medium', disabled && 'text-muted-foreground')}>{label}</span>
       {trailing ?? (
         <>
           {value && <span className="text-muted-foreground text-sm">{value}</span>}
