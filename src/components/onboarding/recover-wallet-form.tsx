@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { validateMnemonic, isValidWord } from '@/lib/crypto/mnemonic';
 import { IconCheck as Check, IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
@@ -89,6 +90,7 @@ export function validateMnemonicInput(input: string): MnemonicValidationResult {
  * Provides textarea input with real-time BIP39 validation
  */
 export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }: RecoverWalletFormProps) {
+  const { t } = useTranslation('onboarding');
   const [input, setInput] = useState('');
   const [validation, setValidation] = useState<MnemonicValidationResult>({
     isValid: false,
@@ -140,44 +142,44 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
     const { isValid, wordCount, expectedWordCount, invalidWords } = validation;
 
     if (wordCount === 0) {
-      return { type: 'hint' as const, text: '请输入助记词，用空格分隔' };
+      return { type: 'hint' as const, text: t('recover.form.hint') };
     }
 
     if (invalidWords.length > 0) {
       const first = invalidWords[0];
       return {
         type: 'error' as const,
-        text: `"${first}" 不是有效的 BIP39 单词`,
+        text: t('recover.form.invalidWord', { word: first }),
       };
     }
 
     if (!VALID_WORD_COUNTS.includes(wordCount as MnemonicWordCount)) {
       return {
         type: 'warning' as const,
-        text: `已输入 ${wordCount} 个单词，需要 ${expectedWordCount} 个`,
+        text: t('recover.form.wordCountHint', { current: wordCount, expected: expectedWordCount }),
       };
     }
 
     if (isValid) {
       return {
         type: 'success' as const,
-        text: '助记词格式正确，符合 BIP39 标准',
+        text: t('recover.form.validMnemonic'),
       };
     }
 
     return {
       type: 'error' as const,
-      text: '助记词校验失败，请检查单词顺序',
+      text: t('recover.form.checksumFailed'),
     };
-  }, [validation]);
+  }, [validation, t]);
 
   return (
     <form onSubmit={handleSubmit} className={cn('space-y-4', className)}>
       {/* Input header */}
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">输入助记词</label>
+        <label className="text-sm font-medium">{t('recover.form.enterMnemonic')}</label>
         <span className="text-muted-foreground text-xs">
-          {validation.wordCount > 0 && `${validation.wordCount} 个单词`}
+          {validation.wordCount > 0 && t('recover.form.wordCount', { count: validation.wordCount })}
         </span>
       </div>
 
@@ -189,7 +191,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
             handleInputChange(e);
             handleTextareaResize(e);
           }}
-          placeholder="请输入您的助记词，用空格分隔..."
+          placeholder={t('recover.form.placeholder')}
           disabled={isSubmitting}
           rows={4}
           className={cn(
@@ -213,7 +215,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
             onClick={handleClear}
             className="text-muted-foreground hover:text-foreground absolute top-2 right-2 text-xs"
           >
-            清除
+            {t('recover.form.clear')}
           </button>
         )}
       </div>
@@ -236,7 +238,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
 
       {/* Security notice */}
       <div className="bg-muted/30 text-muted-foreground rounded-lg px-3 py-2 text-xs">
-        <p>请确保在安全的环境中输入助记词。助记词将用于恢复您的所有链上资产。</p>
+        <p>{t('recover.form.securityNotice')}</p>
       </div>
 
       {/* Submit button */}
@@ -250,7 +252,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
         )}
       >
         {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-        {isSubmitting ? '验证中...' : '继续'}
+        {isSubmitting ? t('recover.form.verifying') : t('recover.form.continue')}
       </button>
     </form>
   );

@@ -98,6 +98,8 @@
     "pending": "处理中",
     "failed": "失败"
   },
+  "toAddress": "至",
+  "fromAddress": "从",
   "aboutFee": "关于网络费用",
   "amount": "数量",
   "amountShouldBe_{min}-{max}-{assettype}": "数量应在 - 之间",

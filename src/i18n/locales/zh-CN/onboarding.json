@@ -136,6 +136,20 @@
       "noSpaces": "密码不能包含空格",
       "mismatch": "两次输入的密码不一致",
       "mnemonicIncomplete": "助记词数据不完整"
+    },
+    "form": {
+      "enterMnemonic": "输入助记词",
+      "wordCount": "{{count}} 个单词",
+      "placeholder": "请输入您的助记词，用空格分隔...",
+      "clear": "清除",
+      "hint": "请输入助记词，用空格分隔",
+      "invalidWord": "\"{{word}}\" 不是有效的 BIP39 单词",
+      "wordCountHint": "已输入 {{current}} 个单词，需要 {{expected}} 个",
+      "validMnemonic": "助记词格式正确，符合 BIP39 标准",
+      "checksumFailed": "助记词校验失败，请检查单词顺序",
+      "securityNotice": "请确保在安全的环境中输入助记词。助记词将用于恢复您的所有链上资产。",
+      "verifying": "验证中...",
+      "continue": "继续"
     }
   },
   "keyType": {

@@ -186,6 +186,8 @@
     "failed": "Failed",
     "pending": "Pending"
   },
+  "toAddress": "To",
+  "fromAddress": "From",
   "swap": "Swap",
   "theCurrentAddressDoesNotHave_{assettype}AssetsAndCannotBeTransferred": "The current address does not have assets and cannot be transferred.",
   "theFrozenAddressCannotBeTransferred": "The frozen address cannot be transferred",

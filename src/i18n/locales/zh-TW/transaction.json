@@ -182,6 +182,8 @@
     "failed": "失敗",
     "pending": "處理中"
   },
+  "toAddress": "至",
+  "fromAddress": "從",
   "swap": "[MISSING:zh-TW] 兑换",
   "theCurrentAddressDoesNotHave_{assettype}AssetsAndCannotBeTransferred": "當前地址未擁有 資產，無法進行轉賬.",
   "theFrozenAddressCannotBeTransferred": "該地址已凍結，無法發起交易",

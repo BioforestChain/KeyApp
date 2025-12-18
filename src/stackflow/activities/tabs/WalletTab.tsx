@@ -36,7 +36,7 @@ export function WalletTab() {
           onClick={() => push("WalletCreateActivity", {})}
         >
           <IconPlus className="size-4" />
-          添加钱包
+          {t('wallet:add')}
         </Button>
 
         <div className="space-y-3">
@@ -69,8 +69,8 @@ export function WalletTab() {
           {wallets.length === 0 && (
             <div className="py-12 text-center">
               <IconWallet className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-4 text-muted-foreground">暂无钱包</p>
-              <p className="text-sm text-muted-foreground">点击上方按钮创建或导入钱包</p>
+              <p className="mt-4 text-muted-foreground">{t('wallet:empty')}</p>
+              <p className="text-sm text-muted-foreground">{t('wallet:emptyHint')}</p>
             </div>
           )}
         </div>

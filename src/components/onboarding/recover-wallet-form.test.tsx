@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecoverWalletForm, validateMnemonicInput } from './recover-wallet-form'
+import { TestI18nProvider } from '@/test/i18n-test-utils'
 
 // Test mnemonic (from BIP39 test vectors - never use in production)
 const VALID_12_WORD_MNEMONIC =
@@ -93,15 +94,19 @@ describe('validateMnemonicInput', () => {
 describe('RecoverWalletForm', () => {
   const user = userEvent.setup()
 
+  const renderWithI18n = (ui: React.ReactElement) => {
+    return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+  }
+
   it('renders empty form initially', () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     expect(screen.getByPlaceholderText(/请输入您的助记词/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '继续' })).toBeDisabled()
   })
 
   it('shows word count as user types', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, 'abandon abandon abandon')
@@ -112,7 +117,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('enables submit button with valid mnemonic', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, VALID_12_WORD_MNEMONIC)
@@ -124,7 +129,7 @@ describe('RecoverWalletForm', () => {
 
   it('calls onSubmit with mnemonic data', async () => {
     const handleSubmit = vi.fn()
-    render(<RecoverWalletForm onSubmit={handleSubmit} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={handleSubmit} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, VALID_12_WORD_MNEMONIC)
@@ -142,7 +147,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('shows error for invalid words', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, 'abandon invalidword123 abandon')
@@ -153,7 +158,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('shows warning for incomplete word count', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, 'abandon abandon abandon abandon abandon') // 5 words
@@ -164,7 +169,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('shows success message for valid mnemonic', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, VALID_12_WORD_MNEMONIC)
@@ -175,7 +180,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('clears input when clear button clicked', async () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/) as HTMLTextAreaElement
     await user.type(textarea, 'abandon abandon')
@@ -187,7 +192,7 @@ describe('RecoverWalletForm', () => {
   })
 
   it('disables form when isSubmitting', () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} isSubmitting />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} isSubmitting />)
 
     expect(screen.getByPlaceholderText(/请输入您的助记词/)).toBeDisabled()
     expect(screen.getByRole('button', { name: '验证中...' })).toBeDisabled()
@@ -195,7 +200,7 @@ describe('RecoverWalletForm', () => {
 
   it('handles paste of full mnemonic', async () => {
     const handleSubmit = vi.fn()
-    render(<RecoverWalletForm onSubmit={handleSubmit} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={handleSubmit} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
 
@@ -210,7 +215,7 @@ describe('RecoverWalletForm', () => {
 
   it('prevents form submission with invalid mnemonic', async () => {
     const handleSubmit = vi.fn()
-    render(<RecoverWalletForm onSubmit={handleSubmit} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={handleSubmit} />)
 
     const textarea = screen.getByPlaceholderText(/请输入您的助记词/)
     await user.type(textarea, 'invalid mnemonic')
@@ -222,13 +227,13 @@ describe('RecoverWalletForm', () => {
   })
 
   it('shows security notice', () => {
-    render(<RecoverWalletForm onSubmit={vi.fn()} />)
+    renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} />)
 
     expect(screen.getByText(/请确保在安全的环境中输入助记词/)).toBeInTheDocument()
   })
 
   it('applies custom className', () => {
-    const { container } = render(<RecoverWalletForm onSubmit={vi.fn()} className="custom-class" />)
+    const { container } = renderWithI18n(<RecoverWalletForm onSubmit={vi.fn()} className="custom-class" />)
 
     expect(container.querySelector('form')).toHaveClass('custom-class')
   })

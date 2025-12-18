@@ -30,6 +30,17 @@
     "title": "语言",
     "hint": "选择界面语言后，应用将立即切换到所选语言。"
   },
+  "currency": {
+    "title": "计价货币",
+    "hint": "选择计价货币后，资产价值将以所选货币显示。",
+    "names": {
+      "USD": "美元",
+      "CNY": "人民币",
+      "EUR": "欧元",
+      "JPY": "日元",
+      "KRW": "韩元"
+    }
+  },
   "viewMnemonic": {
     "titleMnemonic": "查看助记词",
     "titleKey": "查看密钥",

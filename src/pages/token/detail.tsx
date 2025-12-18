@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { BalanceDisplay } from '@/components/token/balance-display';
@@ -36,6 +37,7 @@ const mockTransactions = [
 ];
 
 export function TokenDetailPage() {
+  const { t } = useTranslation('token');
   const { navigate, goBack } = useNavigation();
 
   return (
@@ -53,7 +55,7 @@ export function TokenDetailPage() {
           />
         </div>
 
-        {/* 操作按钮 */}
+        {/* Action buttons */}
         <div className="flex gap-3">
           <GradientButton
             variant="mint"
@@ -63,21 +65,21 @@ export function TokenDetailPage() {
             }
           >
             <ArrowUp className="mr-2 size-4" />
-            发送
+            {t('detail.send')}
           </GradientButton>
           <GradientButton variant="blue" className="flex-1" onClick={() => navigate({ to: '/receive' })}>
             <ArrowDown className="mr-2 size-4" />
-            接收
+            {t('detail.receive')}
           </GradientButton>
         </div>
 
-        {/* 交易历史 */}
+        {/* Transaction history */}
         <div>
-          <h3 className="mb-3 text-lg font-semibold">交易历史</h3>
+          <h3 className="mb-3 text-lg font-semibold">{t('detail.transactionHistory')}</h3>
           <TransactionList
             transactions={mockTransactions}
-            emptyTitle="暂无交易"
-            emptyDescription="该代币还没有交易记录"
+            emptyTitle={t('detail.noTransactions')}
+            emptyDescription={t('detail.noTransactionsDesc')}
           />
         </div>
       </div>

@@ -30,6 +30,17 @@
     "title": "Language",
     "hint": "After selecting the interface language, the app will switch to the selected language immediately."
   },
+  "currency": {
+    "title": "Currency",
+    "hint": "After selecting the currency, asset values will be displayed in the selected currency.",
+    "names": {
+      "USD": "US Dollar",
+      "CNY": "Chinese Yuan",
+      "EUR": "Euro",
+      "JPY": "Japanese Yen",
+      "KRW": "Korean Won"
+    }
+  },
   "viewMnemonic": {
     "titleMnemonic": "View Mnemonic",
     "titleKey": "View Key",

@@ -327,7 +327,7 @@ export function AddressAuthPage() {
             <p className="text-sm text-destructive">{tAuthorize('error.unknownChain')}</p>
             <div className="mt-4">
               <Button onClick={() => navigate({ to: '/' })} className="w-full">
-                {tCommon('back', { defaultValue: 'Back' })}
+                {tCommon('back')}
               </Button>
             </div>
           </div>
@@ -345,7 +345,7 @@ export function AddressAuthPage() {
             <p className="text-sm text-destructive">{loadError}</p>
             <div className="mt-4">
               <Button onClick={() => navigate({ to: '/' })} className="w-full">
-                {tCommon('back', { defaultValue: 'Back' })}
+                {tCommon('back')}
               </Button>
             </div>
           </div>
@@ -474,12 +474,8 @@ export function AddressAuthPage() {
         title={tAuthorize('button.confirm')}
         description={
           needsMainPhrase
-            ? tAuthorize('address.confirmDescription', {
-                defaultValue: 'Enter your password to continue',
-              })
-            : tAuthorize('signature.confirmDescription', {
-                defaultValue: 'Enter your password to sign this message',
-              })
+            ? tAuthorize('address.confirmDescription')
+            : tAuthorize('signature.confirmDescription')
         }
         error={passwordError}
         isVerifying={isSubmitting}

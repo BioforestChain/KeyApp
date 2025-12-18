@@ -1,4 +1,7 @@
 {
+  "add": "إضافة محفظة",
+  "empty": "لا توجد محافظ بعد",
+  "emptyHint": "انقر على الزر أعلاه لإنشاء أو استيراد محفظة",
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "Obtaining the address password is equivalent to owning the wallet asset",
   "1AllWalletDataInTheOriginal_{appName}": "1. All wallet data in the original will be retained and the data will be organized. The rules are as follows:",
   "addBitcoinAddress": "Add Bitcoin address",
