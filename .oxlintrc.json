@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+  "jsPlugins": ["eslint-plugin-i18next"],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -35,7 +36,23 @@
 
     "unicorn/no-null": "off",
     "unicorn/prefer-query-selector": "off",
-    "unicorn/require-module-specifiers": "off"
+    "unicorn/require-module-specifiers": "off",
+
+    "i18next/no-literal-string": ["warn", {
+      "mode": "jsx-only",
+      "jsx-components": {
+        "exclude": ["Trans", "Icon"]
+      },
+      "jsx-attributes": {
+        "exclude": ["className", "styleName", "type", "key", "id", "name", "data-testid", "data-test", "to", "href", "src", "alt"]
+      },
+      "callees": {
+        "exclude": ["t", "i18n.t", "console.*", "require", "import", "Error", "TypeError", "new Error", "new TypeError"]
+      },
+      "words": {
+        "exclude": ["[A-Z_-]+", "[0-9]+", "\\s*"]
+      }
+    }]
   },
   "env": {
     "browser": true,
@@ -56,7 +73,13 @@
     "*.config.ts",
     "storybook-static",
     "e2e/test-results",
-    "e2e/report"
+    "e2e/report",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.stories.tsx",
+    "**/*.stories.ts",
+    "src/test/**",
+    "scripts/**"
   ],
   "settings": {
     "react": {
