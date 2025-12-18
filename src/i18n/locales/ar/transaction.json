@@ -10,6 +10,17 @@
     "yesterday": "أمس",
     "daysAgo": "منذ {{days}} أيام"
   },
+  "receivePage": {
+    "title": "استلام",
+    "scanQrCode": "امسح رمز QR للتحويل إلى هذا العنوان",
+    "receiveAddress": "عنوان الاستلام",
+    "copied": "تم النسخ",
+    "copyAddress": "نسخ العنوان",
+    "share": "مشاركة",
+    "shareTitle": "عنوان استلام BFM Pay",
+    "addressCopied": "تم نسخ العنوان",
+    "networkWarning": "يمكن تحويل أصول شبكة {{chain}} فقط، لا يمكن استرداد الأصول من الشبكات الأخرى"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

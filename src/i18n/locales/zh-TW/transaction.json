@@ -10,6 +10,17 @@
     "yesterday": "昨天",
     "daysAgo": "{{days}}天前"
   },
+  "receivePage": {
+    "title": "收款",
+    "scanQrCode": "掃描二維碼向此地址轉賬",
+    "receiveAddress": "收款地址",
+    "copied": "已複製",
+    "copyAddress": "複製地址",
+    "share": "分享",
+    "shareTitle": "BFM Pay 收款地址",
+    "addressCopied": "地址已複製",
+    "networkWarning": "僅支援 {{chain}} 網絡資產轉入，其他網絡資產轉入將無法找回"
+  },
   "aboutFee": "關於網絡費用",
   "amount": "數量",
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",

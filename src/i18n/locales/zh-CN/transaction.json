@@ -10,6 +10,17 @@
     "yesterday": "昨天",
     "daysAgo": "{{days}}天前"
   },
+  "receivePage": {
+    "title": "收款",
+    "scanQrCode": "扫描二维码向此地址转账",
+    "receiveAddress": "收款地址",
+    "copied": "已复制",
+    "copyAddress": "复制地址",
+    "share": "分享",
+    "shareTitle": "BFM Pay 收款地址",
+    "addressCopied": "地址已复制",
+    "networkWarning": "仅支持 {{chain}} 网络资产转入，其他网络资产转入将无法找回"
+  },
   "history": {
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",

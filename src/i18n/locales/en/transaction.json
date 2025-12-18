@@ -10,6 +10,17 @@
     "yesterday": "Yesterday",
     "daysAgo": "{{days}} days ago"
   },
+  "receivePage": {
+    "title": "Receive",
+    "scanQrCode": "Scan QR code to transfer to this address",
+    "receiveAddress": "Receive Address",
+    "copied": "Copied",
+    "copyAddress": "Copy Address",
+    "share": "Share",
+    "shareTitle": "BFM Pay Receive Address",
+    "addressCopied": "Address copied",
+    "networkWarning": "Only {{chain}} network assets can be transferred in, assets from other networks cannot be recovered"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",
