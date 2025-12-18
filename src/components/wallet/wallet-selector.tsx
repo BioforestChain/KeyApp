@@ -25,9 +25,10 @@ interface WalletItemProps {
   wallet: WalletInfo;
   isSelected: boolean;
   onSelect: () => void;
+  notBackedUpLabel: string;
 }
 
-function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
+function WalletItem({ wallet, isSelected, onSelect, notBackedUpLabel }: WalletItemProps) {
   return (
     <button
       type="button"
@@ -51,7 +52,7 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
           <span className="truncate font-medium">{wallet.name}</span>
           {!wallet.isBackedUp && (
             <span className="bg-warning/20 text-warning shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-              未备份
+              {notBackedUpLabel}
             </span>
           )}
         </div>
@@ -82,8 +83,8 @@ export function WalletSelector({ wallets, selectedId, onSelect, onClose, classNa
   if (wallets.length === 0) {
     return (
       <div className={cn('text-muted-foreground py-8 text-center', className)}>
-        <p>暂无钱包</p>
-        <p className="mt-1 text-sm">请先创建或导入钱包</p>
+        <p>{t('wallet:empty')}</p>
+        <p className="mt-1 text-sm">{t('wallet:emptyHint')}</p>
       </div>
     );
   }
@@ -96,6 +97,7 @@ export function WalletSelector({ wallets, selectedId, onSelect, onClose, classNa
           wallet={wallet}
           isSelected={wallet.id === selectedId}
           onSelect={() => handleSelect(wallet)}
+          notBackedUpLabel={t('wallet:notBackedUp')}
         />
       ))}
     </div>
