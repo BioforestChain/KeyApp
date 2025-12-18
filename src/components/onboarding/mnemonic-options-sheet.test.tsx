@@ -23,7 +23,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('renders title and sections', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -38,7 +38,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('renders all language options', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -53,7 +53,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('renders all length options', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -71,7 +71,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('shows selected language with check mark', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -85,7 +85,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('shows selected length highlighted', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -99,7 +99,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('calls onConfirm with new language when language is selected', async () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -117,7 +117,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('calls onConfirm with new length when length is selected', async () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -135,7 +135,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('calls onClose when confirm button is clicked', async () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -150,7 +150,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('preserves existing values when selecting new language', async () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -168,7 +168,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('preserves existing values when selecting new length', async () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={true}
         onClose={mockOnClose}
@@ -186,7 +186,7 @@ describe('MnemonicOptionsSheet', () => {
   });
 
   it('does not render when closed', () => {
-    render(
+    renderWithProviders(
       <MnemonicOptionsSheet
         open={false}
         onClose={mockOnClose}

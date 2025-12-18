@@ -26,6 +26,10 @@
     "light": "浅色模式",
     "dark": "深色模式"
   },
+  "languagePage": {
+    "title": "语言",
+    "hint": "选择界面语言后，应用将立即切换到所选语言。"
+  },
   "chainAddressCount": "{{count}} 个链地址",
   "notSupported": "暂不支持",
   "chainConfig": {

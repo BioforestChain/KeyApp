@@ -26,6 +26,10 @@
     "light": "الوضع الفاتح",
     "dark": "الوضع الداكن"
   },
+  "languagePage": {
+    "title": "اللغة",
+    "hint": "بعد اختيار لغة الواجهة، سيتحول التطبيق فوراً إلى اللغة المحددة."
+  },
   "chainAddressCount": "{{count}} عناوين سلاسل",
   "notSupported": "غير مدعوم",
   "chainConfig": {

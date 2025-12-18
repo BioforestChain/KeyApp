@@ -26,6 +26,10 @@
     "light": "Light Mode",
     "dark": "Dark Mode"
   },
+  "languagePage": {
+    "title": "Language",
+    "hint": "After selecting the interface language, the app will switch to the selected language immediately."
+  },
   "chainAddressCount": "{{count}} chain addresses",
   "notSupported": "Not supported",
   "chainConfig": {
