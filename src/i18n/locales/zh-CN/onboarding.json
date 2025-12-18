@@ -68,6 +68,27 @@
       "confirm": "确定"
     }
   },
+  "import": {
+    "title": "导入钱包",
+    "enterMnemonic": "输入助记词",
+    "enterMnemonicDesc": "请按顺序输入您的助记词",
+    "words12": "12 个单词",
+    "words24": "24 个单词",
+    "fillAllWords": "请填写所有单词",
+    "invalidMnemonic": "助记词无效，请检查拼写",
+    "setPassword": "设置密码",
+    "setPasswordDesc": "密码用于加密您的钱包",
+    "passwordLabel": "密码",
+    "passwordHint": "至少 8 位字符",
+    "passwordPlaceholder": "输入密码",
+    "confirmPasswordLabel": "确认密码",
+    "confirmPasswordPlaceholder": "再次输入密码",
+    "passwordMismatch": "两次密码不一致",
+    "nextStep": "下一步",
+    "complete": "完成导入",
+    "defaultWalletName": "导入钱包",
+    "importFailed": "导入钱包失败"
+  },
   "recover": {
     "title": "恢复钱包",
     "addressConflict": "地址冲突",

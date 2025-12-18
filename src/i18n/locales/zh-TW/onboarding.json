@@ -68,6 +68,27 @@
       "confirm": "確定"
     }
   },
+  "import": {
+    "title": "匯入錢包",
+    "enterMnemonic": "輸入助記詞",
+    "enterMnemonicDesc": "請按順序輸入您的助記詞",
+    "words12": "12 個單詞",
+    "words24": "24 個單詞",
+    "fillAllWords": "請填寫所有單詞",
+    "invalidMnemonic": "助記詞無效，請檢查拼寫",
+    "setPassword": "設定密碼",
+    "setPasswordDesc": "密碼用於加密您的錢包",
+    "passwordLabel": "密碼",
+    "passwordHint": "至少 8 位字元",
+    "passwordPlaceholder": "輸入密碼",
+    "confirmPasswordLabel": "確認密碼",
+    "confirmPasswordPlaceholder": "再次輸入密碼",
+    "passwordMismatch": "兩次密碼不一致",
+    "nextStep": "下一步",
+    "complete": "完成匯入",
+    "defaultWalletName": "匯入錢包",
+    "importFailed": "匯入錢包失敗"
+  },
   "recover": {
     "title": "恢復錢包",
     "addressConflict": "地址衝突",

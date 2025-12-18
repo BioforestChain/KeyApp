@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { GradientButton } from '@/components/common/gradient-button';
@@ -21,6 +22,7 @@ type Step = 'mnemonic' | 'password';
 const STEPS: Step[] = ['mnemonic', 'password'];
 
 export function WalletImportPage() {
+  const { t } = useTranslation('onboarding');
   const { navigate } = useNavigation();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
@@ -48,12 +50,12 @@ export function WalletImportPage() {
 
   const handleMnemonicContinue = () => {
     if (mnemonic.length !== wordCount || mnemonic.some((w) => !w)) {
-      setMnemonicError('请填写所有单词');
+      setMnemonicError(t('import.fillAllWords'));
       return;
     }
 
     if (!validateMnemonic(mnemonic)) {
-      setMnemonicError('助记词无效，请检查拼写');
+      setMnemonicError(t('import.invalidMnemonic'));
       return;
     }
 
@@ -97,7 +99,7 @@ export function WalletImportPage() {
       ];
 
       walletActions.importWallet({
-        name: '导入钱包',
+        name: t('import.defaultWalletName'),
         keyType: 'mnemonic',
         address: ethKey.address,
         chain: 'ethereum',
@@ -107,7 +109,7 @@ export function WalletImportPage() {
 
       navigate({ to: '/' });
     } catch (error) {
-      console.error('导入钱包失败:', error);
+      console.error(t('import.importFailed'), error);
       setIsImporting(false);
     }
   };
@@ -117,7 +119,7 @@ export function WalletImportPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="导入钱包" onBack={handleBack} />
+      <PageHeader title={t('import.title')} onBack={handleBack} />
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
@@ -129,8 +131,8 @@ export function WalletImportPage() {
           <div className="space-y-6">
             <div className="text-center">
               <IconCircle icon={FileKey} variant="primary" size="lg" className="mx-auto mb-4" />
-              <h2 className="text-xl font-bold">输入助记词</h2>
-              <p className="text-muted-foreground mt-2 text-sm">请按顺序输入您的助记词</p>
+              <h2 className="text-xl font-bold">{t('import.enterMnemonic')}</h2>
+              <p className="text-muted-foreground mt-2 text-sm">{t('import.enterMnemonicDesc')}</p>
             </div>
 
             {/* 助记词数量选择 */}
@@ -144,7 +146,7 @@ export function WalletImportPage() {
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                12 个单词
+                {t('import.words12')}
               </button>
               <button
                 type="button"
@@ -155,7 +157,7 @@ export function WalletImportPage() {
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                24 个单词
+                {t('import.words24')}
               </button>
             </div>
 
@@ -169,7 +171,7 @@ export function WalletImportPage() {
               disabled={mnemonic.length !== wordCount || mnemonic.some((w) => !w)}
               onClick={handleMnemonicContinue}
             >
-              下一步
+              {t('import.nextStep')}
               <ArrowRight className="ml-2 size-4" />
             </GradientButton>
           </div>
@@ -179,31 +181,31 @@ export function WalletImportPage() {
           <div className="space-y-6">
             <div className="text-center">
               <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
-              <h2 className="text-xl font-bold">设置密码</h2>
-              <p className="text-muted-foreground mt-2 text-sm">密码用于加密您的钱包</p>
+              <h2 className="text-xl font-bold">{t('import.setPassword')}</h2>
+              <p className="text-muted-foreground mt-2 text-sm">{t('import.setPasswordDesc')}</p>
             </div>
 
             <div className="space-y-4">
-              <FormField label="密码" hint="至少 8 位字符">
+              <FormField label={t('import.passwordLabel')} hint={t('import.passwordHint')}>
                 <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="输入密码"
+                  placeholder={t('import.passwordPlaceholder')}
                   showStrength
                 />
               </FormField>
 
-              <FormField label="确认密码" error={passwordMismatch ? '两次密码不一致' : undefined}>
+              <FormField label={t('import.confirmPasswordLabel')} error={passwordMismatch ? t('import.passwordMismatch') : undefined}>
                 <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次输入密码"
+                  placeholder={t('import.confirmPasswordPlaceholder')}
                 />
               </FormField>
             </div>
 
             <GradientButton variant="mint" className="w-full" disabled={!isPasswordValid} onClick={handleComplete}>
-              完成导入
+              {t('import.complete')}
             </GradientButton>
           </div>
         )}

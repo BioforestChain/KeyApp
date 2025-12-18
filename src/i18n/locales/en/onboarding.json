@@ -68,6 +68,27 @@
       "confirm": "Confirm"
     }
   },
+  "import": {
+    "title": "Import Wallet",
+    "enterMnemonic": "Enter Mnemonic",
+    "enterMnemonicDesc": "Please enter your mnemonic in order",
+    "words12": "12 words",
+    "words24": "24 words",
+    "fillAllWords": "Please fill in all words",
+    "invalidMnemonic": "Invalid mnemonic, please check spelling",
+    "setPassword": "Set Password",
+    "setPasswordDesc": "Password is used to encrypt your wallet",
+    "passwordLabel": "Password",
+    "passwordHint": "At least 8 characters",
+    "passwordPlaceholder": "Enter password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "passwordMismatch": "Passwords do not match",
+    "nextStep": "Next",
+    "complete": "Complete Import",
+    "defaultWalletName": "Imported Wallet",
+    "importFailed": "Failed to import wallet"
+  },
   "recover": {
     "title": "Recover Wallet",
     "addressConflict": "Address Conflict",

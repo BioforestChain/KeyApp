@@ -68,6 +68,27 @@
       "confirm": "تأكيد"
     }
   },
+  "import": {
+    "title": "استيراد المحفظة",
+    "enterMnemonic": "أدخل العبارة السرية",
+    "enterMnemonicDesc": "الرجاء إدخال العبارة السرية بالترتيب",
+    "words12": "12 كلمة",
+    "words24": "24 كلمة",
+    "fillAllWords": "الرجاء ملء جميع الكلمات",
+    "invalidMnemonic": "العبارة السرية غير صالحة، يرجى التحقق من الإملاء",
+    "setPassword": "تعيين كلمة المرور",
+    "setPasswordDesc": "تُستخدم كلمة المرور لتشفير محفظتك",
+    "passwordLabel": "كلمة المرور",
+    "passwordHint": "8 أحرف على الأقل",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "confirmPasswordLabel": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "أدخل كلمة المرور مرة أخرى",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين",
+    "nextStep": "التالي",
+    "complete": "إكمال الاستيراد",
+    "defaultWalletName": "محفظة مستوردة",
+    "importFailed": "فشل استيراد المحفظة"
+  },
   "recover": {
     "title": "استعادة المحفظة",
     "addressConflict": "تعارض العنوان",
