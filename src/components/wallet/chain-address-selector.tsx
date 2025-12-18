@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { ChainIcon, type ChainType } from './chain-icon';
@@ -70,7 +71,7 @@ interface AddressItemProps {
   onSelect: () => void;
 }
 
-function AddressItem({ address, isSelected, onSelect }: AddressItemProps) {
+function AddressItem({ address, isSelected, onSelect, defaultLabel }: AddressItemProps & { defaultLabel: string }) {
   return (
     <button
       type="button"
@@ -87,7 +88,7 @@ function AddressItem({ address, isSelected, onSelect }: AddressItemProps) {
         <div className="flex items-center gap-2">
           <span className="truncate font-mono text-sm">{truncateAddress(address.address)}</span>
           {address.isDefault && (
-            <span className="bg-muted text-muted-foreground shrink-0 rounded px-1 py-0.5 text-[10px]">默认</span>
+            <span className="bg-muted text-muted-foreground shrink-0 rounded px-1 py-0.5 text-[10px]">{defaultLabel}</span>
           )}
         </div>
         {address.balance && <p className="text-muted-foreground text-xs">{address.balance}</p>}
@@ -107,6 +108,7 @@ export function ChainAddressSelector({
   onSelect,
   className,
 }: ChainAddressSelectorProps) {
+  const { t } = useTranslation('wallet');
   const [activeChain, setActiveChain] = useState<ChainType>(selectedChain ?? chains[0]?.chain ?? 'ethereum');
 
   const activeChainData = useMemo(() => chains.find((c) => c.chain === activeChain), [chains, activeChain]);
@@ -125,7 +127,7 @@ export function ChainAddressSelector({
   if (chains.length === 0) {
     return (
       <div className={cn('text-muted-foreground py-8 text-center', className)}>
-        <p>暂无可用链</p>
+        <p>{t('chainSelector.noChains')}</p>
       </div>
     );
   }
@@ -136,7 +138,7 @@ export function ChainAddressSelector({
       <div
         className="border-border bg-muted/30 w-28 shrink-0 space-y-0.5 overflow-y-auto border-r p-2"
         role="listbox"
-        aria-label="Select chain"
+        aria-label={t('chainSelector.selectChain')}
       >
         {chains.map((chain) => (
           <ChainItem
@@ -149,9 +151,9 @@ export function ChainAddressSelector({
       </div>
 
       {/* Address list (right) */}
-      <div className="min-w-0 flex-1 space-y-0.5 overflow-y-auto p-2" role="listbox" aria-label="Select address">
+      <div className="min-w-0 flex-1 space-y-0.5 overflow-y-auto p-2" role="listbox" aria-label={t('chainSelector.selectAddress')}>
         {activeChainData?.addresses.length === 0 && (
-          <div className="text-muted-foreground py-6 text-center text-sm">该链暂无地址</div>
+          <div className="text-muted-foreground py-6 text-center text-sm">{t('chainSelector.noAddresses')}</div>
         )}
         {activeChainData?.addresses.map((addr) => (
           <AddressItem
@@ -159,6 +161,7 @@ export function ChainAddressSelector({
             address={addr}
             isSelected={addr.address === selectedAddress}
             onSelect={() => handleAddressSelect(addr.address)}
+            defaultLabel={t('chainSelector.default')}
           />
         ))}
       </div>

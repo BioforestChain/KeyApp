@@ -74,6 +74,13 @@
     "title": "إدارة المحافظ",
     "viewDetail": "عرض التفاصيل"
   },
+  "chainSelector": {
+    "default": "افتراضي",
+    "noChains": "لا توجد سلاسل متاحة",
+    "selectChain": "اختر السلسلة",
+    "selectAddress": "اختر العنوان",
+    "noAddresses": "لا توجد عناوين في هذه السلسلة"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",

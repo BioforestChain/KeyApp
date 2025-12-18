@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChainAddressSelector, type ChainData } from './chain-address-selector';
+import { TestI18nProvider } from '@/test/i18n-mock';
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>);
+}
 
 const mockChains: ChainData[] = [
   {
@@ -27,25 +32,25 @@ const mockChains: ChainData[] = [
 
 describe('ChainAddressSelector', () => {
   it('renders empty state when no chains', () => {
-    render(<ChainAddressSelector chains={[]} />);
+    renderWithProviders(<ChainAddressSelector chains={[]} />);
     expect(screen.getByText('暂无可用链')).toBeInTheDocument();
   });
 
   it('renders chain list', () => {
-    render(<ChainAddressSelector chains={mockChains} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} />);
     expect(screen.getByText('Ethereum')).toBeInTheDocument();
     expect(screen.getByText('Tron')).toBeInTheDocument();
     expect(screen.getByText('BSC')).toBeInTheDocument();
   });
 
   it('shows addresses for first chain by default', () => {
-    render(<ChainAddressSelector chains={mockChains} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} />);
     expect(screen.getByText('0x123456...345678')).toBeInTheDocument();
     expect(screen.getByText('1.5 ETH')).toBeInTheDocument();
   });
 
   it('switches addresses when chain is selected', () => {
-    render(<ChainAddressSelector chains={mockChains} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} />);
 
     fireEvent.click(screen.getByText('Tron'));
 
@@ -54,7 +59,7 @@ describe('ChainAddressSelector', () => {
   });
 
   it('shows empty state for chain with no addresses', () => {
-    render(<ChainAddressSelector chains={mockChains} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} />);
 
     fireEvent.click(screen.getByText('BSC'));
 
@@ -63,7 +68,7 @@ describe('ChainAddressSelector', () => {
 
   it('calls onSelect when address is clicked', () => {
     const onSelect = vi.fn();
-    render(<ChainAddressSelector chains={mockChains} onSelect={onSelect} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} onSelect={onSelect} />);
 
     fireEvent.click(screen.getByText('0x123456...345678'));
 
@@ -72,7 +77,7 @@ describe('ChainAddressSelector', () => {
 
   it('calls onSelect with correct chain after switching', () => {
     const onSelect = vi.fn();
-    render(<ChainAddressSelector chains={mockChains} onSelect={onSelect} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} onSelect={onSelect} />);
 
     fireEvent.click(screen.getByText('Tron'));
     fireEvent.click(screen.getByText('TAbcdefg...123456'));
@@ -81,7 +86,7 @@ describe('ChainAddressSelector', () => {
   });
 
   it('highlights selected chain', () => {
-    render(<ChainAddressSelector chains={mockChains} selectedChain="tron" />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} selectedChain="tron" />);
     const tronItem = screen.getByRole('option', { name: /Tron/i });
     expect(tronItem).toHaveAttribute('aria-selected', 'true');
   });
@@ -98,7 +103,7 @@ describe('ChainAddressSelector', () => {
   });
 
   it('shows default badge for default address', () => {
-    render(<ChainAddressSelector chains={mockChains} />);
+    renderWithProviders(<ChainAddressSelector chains={mockChains} />);
     expect(screen.getByText('默认')).toBeInTheDocument();
   });
 

@@ -74,6 +74,13 @@
     "title": "錢包管理",
     "viewDetail": "查看詳情"
   },
+  "chainSelector": {
+    "default": "預設",
+    "noChains": "暫無可用鏈",
+    "selectChain": "選擇鏈",
+    "selectAddress": "選擇地址",
+    "noAddresses": "該鏈暫無地址"
+  },
   "manageIdentityWallet": "管理身份錢包",
   "manageIdentityWallets": "管理身份錢包",
   "manageWallet": "管理錢包",

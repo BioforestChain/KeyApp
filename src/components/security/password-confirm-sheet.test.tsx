@@ -106,7 +106,7 @@ describe('PasswordConfirmSheet', () => {
   });
 
   it('clears password on close', () => {
-    const { rerender } = renderWithProviders(<PasswordConfirmSheet {...defaultProps} />);
+    renderWithProviders(<PasswordConfirmSheet {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('请输入密码');
     fireEvent.change(input, { target: { value: 'password' } });

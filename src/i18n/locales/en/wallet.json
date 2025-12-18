@@ -74,6 +74,13 @@
     "title": "Wallet Management",
     "viewDetail": "View details"
   },
+  "chainSelector": {
+    "default": "Default",
+    "noChains": "No chains available",
+    "selectChain": "Select chain",
+    "selectAddress": "Select address",
+    "noAddresses": "No addresses on this chain"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",
