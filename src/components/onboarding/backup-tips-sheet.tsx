@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { IconShield as Shield, IconAlertTriangle as AlertTriangle, IconEye as Eye, IconBan as Ban } from '@tabler/icons-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -16,28 +17,18 @@ interface BackupTipsSheetProps {
   className?: string;
 }
 
-const tips = [
-  {
-    icon: Eye,
-    title: '确保周围无人',
-    description: '请在私密环境下查看助记词，防止他人窥视',
-  },
-  {
-    icon: Ban,
-    title: '禁止截图或拍照',
-    description: '不要以任何电子形式保存助记词，建议手写记录',
-  },
-  {
-    icon: AlertTriangle,
-    title: '妥善保管',
-    description: '将助记词保存在安全的地方，丢失将无法找回资产',
-  },
-];
+const TIPS = [
+  { key: 'privacy', icon: Eye },
+  { key: 'noScreenshot', icon: Ban },
+  { key: 'safekeeping', icon: AlertTriangle },
+] as const;
 
 /**
  * Sheet showing backup tips before mnemonic display
  */
 export function BackupTipsSheet({ open, onClose, onProceed, onSkip, className }: BackupTipsSheetProps) {
+  const { t } = useTranslation('security');
+
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent side="bottom" className={cn('max-h-[85vh] overflow-y-auto rounded-t-3xl', className)}>
@@ -45,19 +36,19 @@ export function BackupTipsSheet({ open, onClose, onProceed, onSkip, className }:
           <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
             <Shield className="size-8 text-yellow-600 dark:text-yellow-400" />
           </div>
-          <SheetTitle className="text-xl">备份助记词</SheetTitle>
-          <SheetDescription>助记词是恢复钱包的唯一方式，请务必妥善保管</SheetDescription>
+          <SheetTitle className="text-xl">{t('backupTips.title')}</SheetTitle>
+          <SheetDescription>{t('backupTips.description')}</SheetDescription>
         </SheetHeader>
 
         <div className="my-6 space-y-4">
-          {tips.map((tip, index) => (
-            <div key={index} className="bg-muted/50 flex items-start gap-3 rounded-xl p-4">
+          {TIPS.map(({ key, icon: Icon }) => (
+            <div key={key} className="bg-muted/50 flex items-start gap-3 rounded-xl p-4">
               <div className="bg-background flex size-10 shrink-0 items-center justify-center rounded-full">
-                <tip.icon className="text-muted-foreground size-5" />
+                <Icon className="text-muted-foreground size-5" />
               </div>
               <div>
-                <p className="font-medium">{tip.title}</p>
-                <p className="text-muted-foreground mt-0.5 text-sm">{tip.description}</p>
+                <p className="font-medium">{t(`backupTips.tips.${key}.title`)}</p>
+                <p className="text-muted-foreground mt-0.5 text-sm">{t(`backupTips.tips.${key}.description`)}</p>
               </div>
             </div>
           ))}
@@ -65,10 +56,10 @@ export function BackupTipsSheet({ open, onClose, onProceed, onSkip, className }:
 
         <SheetFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={onProceed} className="w-full" size="lg">
-            我已了解，开始备份
+            {t('backupTips.proceed')}
           </Button>
           <Button onClick={onSkip} variant="ghost" className="text-muted-foreground w-full">
-            稍后备份
+            {t('backupTips.skip')}
           </Button>
         </SheetFooter>
       </SheetContent>

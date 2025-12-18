@@ -1,4 +1,24 @@
 {
+  "backupTips": {
+    "title": "備份助記詞",
+    "description": "助記詞是恢復錢包的唯一方式，請務必妥善保管",
+    "tips": {
+      "privacy": {
+        "title": "確保周圍無人",
+        "description": "請在私密環境下查看助記詞，防止他人窺視"
+      },
+      "noScreenshot": {
+        "title": "禁止截圖或拍照",
+        "description": "不要以任何電子形式保存助記詞，建議手寫記錄"
+      },
+      "safekeeping": {
+        "title": "妥善保管",
+        "description": "將助記詞保存在安全的地方，丟失將無法找回資產"
+      }
+    },
+    "proceed": "我已了解，開始備份",
+    "skip": "稍後備份"
+  },
   "passwordConfirm": {
     "defaultTitle": "驗證密碼",
     "placeholder": "請輸入密碼",

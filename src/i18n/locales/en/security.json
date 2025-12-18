@@ -1,4 +1,24 @@
 {
+  "backupTips": {
+    "title": "Backup Mnemonic",
+    "description": "Mnemonic is the only way to recover your wallet, please keep it safe",
+    "tips": {
+      "privacy": {
+        "title": "Ensure Privacy",
+        "description": "View mnemonic in a private environment to prevent others from peeking"
+      },
+      "noScreenshot": {
+        "title": "No Screenshots",
+        "description": "Do not save mnemonic electronically, write it down instead"
+      },
+      "safekeeping": {
+        "title": "Safe Storage",
+        "description": "Keep mnemonic in a safe place, loss will result in unrecoverable assets"
+      }
+    },
+    "proceed": "I Understand, Start Backup",
+    "skip": "Backup Later"
+  },
   "passwordConfirm": {
     "defaultTitle": "Verify Password",
     "placeholder": "Enter password",
