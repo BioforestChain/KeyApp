@@ -271,5 +271,17 @@
   "{{item}}Words": "個字",
   "{{length}}Words": "個字",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressBook": {
+    "title": "通訊錄",
+    "searchPlaceholder": "搜索聯繫人",
+    "noContacts": "還沒有聯繫人",
+    "noResults": "沒有找到聯繫人",
+    "edit": "編輯",
+    "delete": "刪除",
+    "deleteTitle": "刪除聯繫人",
+    "deleteConfirm": "確定要刪除聯繫人 \"{{name}}\" 嗎？",
+    "passwordError": "密碼錯誤",
+    "verifyFailed": "驗證失敗"
+  }
 }

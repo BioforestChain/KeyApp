@@ -91,11 +91,11 @@ export function AddressBookPage() {
         try {
           const isValid = await verifyPassword(currentWallet.encryptedMnemonic, password);
           if (!isValid) {
-            setDeleteError('密码错误');
+            setDeleteError(t('addressBook.passwordError'));
             return;
           }
         } catch {
-          setDeleteError('验证失败');
+          setDeleteError(t('addressBook.verifyFailed'));
           return;
         } finally {
           setIsDeleting(false);
@@ -112,7 +112,7 @@ export function AddressBookPage() {
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
-        title="通讯录"
+        title={t('addressBook.title')}
         onBack={handleBack}
         rightAction={
           <button
@@ -133,7 +133,7 @@ export function AddressBookPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索联系人"
+            placeholder={t('addressBook.searchPlaceholder')}
             className={cn(
               'border-border bg-background w-full rounded-xl border py-2.5 pr-4 pl-10',
               'focus:ring-primary focus:ring-2 focus:outline-none',
@@ -147,7 +147,7 @@ export function AddressBookPage() {
         {filteredContacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <User className="text-muted-foreground/50 size-12" />
-            <p className="text-muted-foreground">{searchQuery ? '没有找到联系人' : '还没有联系人'}</p>
+            <p className="text-muted-foreground">{searchQuery ? t('addressBook.noResults') : t('addressBook.noContacts')}</p>
             {!searchQuery && (
               <button
                 onClick={handleOpenAdd}
@@ -156,7 +156,7 @@ export function AddressBookPage() {
                   'hover:bg-primary/90 active:bg-primary/80',
                 )}
               >
-                添加联系人
+                {t('contact.addTitle')}
               </button>
             )}
           </div>
@@ -180,13 +180,13 @@ export function AddressBookPage() {
       {/* 编辑联系人弹窗 */}
       <ContactEditSheet contact={editingContact} open={!!editingContact} onClose={handleCloseEdit} />
 
-      {/* 删除确认弹窗 */}
+      {/* Delete confirmation sheet */}
       <PasswordConfirmSheet
         open={!!deletingContact}
         onClose={handleCancelDelete}
         onVerify={handleConfirmDelete}
-        title="删除联系人"
-        description={`确定要删除联系人 "${deletingContact?.name}" 吗？`}
+        title={t('addressBook.deleteTitle')}
+        description={t('addressBook.deleteConfirm', { name: deletingContact?.name })}
         error={deleteError}
         isVerifying={isDeleting}
       />
@@ -242,7 +242,7 @@ function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
                   }}
                   className="hover:bg-muted w-full px-4 py-2 text-left text-sm transition-colors"
                 >
-                  编辑
+                  {t('addressBook.edit')}
                 </button>
                 <button
                   onClick={() => {
@@ -251,7 +251,7 @@ function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
                   }}
                   className="text-destructive hover:bg-destructive/10 w-full px-4 py-2 text-left text-sm transition-colors"
                 >
-                  删除
+                  {t('addressBook.delete')}
                 </button>
               </div>
             </>

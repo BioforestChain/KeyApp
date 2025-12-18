@@ -276,5 +276,17 @@
   "{{item}}Words": "words",
   "{{length}}Words": "words",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressBook": {
+    "title": "Address Book",
+    "searchPlaceholder": "Search contacts",
+    "noContacts": "No contacts yet",
+    "noResults": "No contacts found",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete Contact",
+    "deleteConfirm": "Are you sure you want to delete contact \"{{name}}\"?",
+    "passwordError": "Incorrect password",
+    "verifyFailed": "Verification failed"
+  }
 }

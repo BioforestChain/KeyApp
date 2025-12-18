@@ -271,5 +271,17 @@
   "{{item}}Words": "个字",
   "{{length}}Words": "个字",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressBook": {
+    "title": "通讯录",
+    "searchPlaceholder": "搜索联系人",
+    "noContacts": "还没有联系人",
+    "noResults": "没有找到联系人",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleteTitle": "删除联系人",
+    "deleteConfirm": "确定要删除联系人 \"{{name}}\" 吗？",
+    "passwordError": "密码错误",
+    "verifyFailed": "验证失败"
+  }
 }
