@@ -1,3 +1,4 @@
+import { useTranslation, Trans } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   IconCircleCheck as CheckCircle,
@@ -28,6 +29,8 @@ export function CreateWalletSuccess({
   skipBackup = true,
   className,
 }: CreateWalletSuccessProps) {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className={cn('flex flex-col items-center px-6 py-8', className)}>
       {/* Success icon */}
@@ -36,9 +39,14 @@ export function CreateWalletSuccess({
       </div>
 
       {/* Success message */}
-      <h1 className="mb-2 text-2xl font-bold">钱包创建成功！</h1>
+      <h1 className="mb-2 text-2xl font-bold">{t('create.success.title')}</h1>
       <p className="text-muted-foreground mb-8 text-center">
-        您的钱包 <span className="text-foreground font-medium">{walletName}</span> 已创建完成
+        <Trans
+          i18nKey="create.success.description"
+          ns="onboarding"
+          values={{ name: walletName }}
+          components={{ bold: <span className="text-foreground font-medium" /> }}
+        />
       </p>
 
       {/* Backup reminder */}
@@ -47,9 +55,9 @@ export function CreateWalletSuccess({
           <div className="flex items-start gap-3">
             <Shield className="mt-0.5 size-5 shrink-0 text-yellow-600 dark:text-yellow-400" />
             <div>
-              <p className="font-medium text-yellow-800 dark:text-yellow-200">安全提醒</p>
+              <p className="font-medium text-yellow-800 dark:text-yellow-200">{t('create.success.securityReminder')}</p>
               <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                请尽快备份助记词，这是恢复钱包的唯一方式。丢失助记词将无法找回您的资产。
+                {t('create.success.securityReminderDesc')}
               </p>
             </div>
           </div>
@@ -68,7 +76,7 @@ export function CreateWalletSuccess({
             )}
           >
             <Shield className="size-5" />
-            <span>立即备份助记词</span>
+            <span>{t('create.success.backupNow')}</span>
           </button>
         )}
 
@@ -82,14 +90,14 @@ export function CreateWalletSuccess({
               : 'bg-primary hover:bg-primary/90 text-white',
           )}
         >
-          <span>{skipBackup && onBackup ? '稍后备份' : '进入钱包'}</span>
+          <span>{skipBackup && onBackup ? t('create.success.backupLater') : t('create.success.enterWallet')}</span>
           <ArrowRight className="size-5" />
         </button>
       </div>
 
       {/* Skip backup note */}
       {skipBackup && onBackup && (
-        <p className="text-muted-foreground mt-4 text-center text-xs">您可以稍后在设置中备份助记词</p>
+        <p className="text-muted-foreground mt-4 text-center text-xs">{t('create.success.backupNote')}</p>
       )}
     </div>
   );

@@ -66,6 +66,27 @@
       "selectWordCount": "Select mnemonic word count",
       "words": "words",
       "confirm": "Confirm"
+    },
+    "success": {
+      "title": "Wallet Created!",
+      "description": "Your wallet <bold>{{name}}</bold> has been created",
+      "securityReminder": "Security Reminder",
+      "securityReminderDesc": "Please backup your mnemonic as soon as possible. It is the only way to recover your wallet. Lost mnemonic means lost assets.",
+      "backupNow": "Backup Mnemonic Now",
+      "backupLater": "Backup Later",
+      "enterWallet": "Enter Wallet",
+      "backupNote": "You can backup mnemonic later in settings"
+    },
+    "confirm": {
+      "title": "Confirm Mnemonic",
+      "description": "Please select the correct mnemonic in order",
+      "selectWord": "Select word #{{position}}",
+      "selectFromBelow": "Select from below",
+      "verifySuccess": "Verification successful! Mnemonic backup confirmed",
+      "completeBackup": "Complete Backup",
+      "pleaseComplete": "Please complete verification",
+      "clickToReselect": "Click red items to reselect",
+      "clearAll": "Clear All"
     }
   },
   "import": {

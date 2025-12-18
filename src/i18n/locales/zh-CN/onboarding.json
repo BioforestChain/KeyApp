@@ -66,6 +66,27 @@
       "selectWordCount": "选择助记词词数",
       "words": "词",
       "confirm": "确定"
+    },
+    "success": {
+      "title": "钱包创建成功！",
+      "description": "您的钱包 <bold>{{name}}</bold> 已创建完成",
+      "securityReminder": "安全提醒",
+      "securityReminderDesc": "请尽快备份助记词，这是恢复钱包的唯一方式。丢失助记词将无法找回您的资产。",
+      "backupNow": "立即备份助记词",
+      "backupLater": "稍后备份",
+      "enterWallet": "进入钱包",
+      "backupNote": "您可以稍后在设置中备份助记词"
+    },
+    "confirm": {
+      "title": "确认助记词",
+      "description": "请按顺序选择正确的助记词",
+      "selectWord": "请选择第 {{position}} 个单词",
+      "selectFromBelow": "从下方选择单词",
+      "verifySuccess": "验证成功！助记词已确认备份",
+      "completeBackup": "完成备份",
+      "pleaseComplete": "请完成验证",
+      "clickToReselect": "点击红色选项可重新选择",
+      "clearAll": "清空"
     }
   },
   "import": {

@@ -52,7 +52,10 @@
           "inputMode", "autoComplete", "autoFocus", "autoCapitalize", "spellCheck",
           "enterKeyHint", "pattern", "min", "max", "step", "accept",
           "xmlns", "viewBox", "fill", "stroke", "d", "cx", "cy", "r", "x", "y", "width", "height",
-          "strokeWidth", "strokeLinecap", "strokeLinejoin", "transform", "clipPath", "mask"
+          "strokeWidth", "strokeLinecap", "strokeLinejoin", "transform", "clipPath", "mask",
+          "side", "position", "chain", "status", "mode", "format", "locale", "currency",
+          "defaultValue", "value", "checked", "selected", "disabled", "required", "readOnly",
+          "tabIndex", "htmlFor", "form", "formAction", "formMethod", "formTarget"
         ]
       },
       "callees": {
@@ -71,7 +74,32 @@
         ]
       },
       "words": {
-        "exclude": ["[A-Z_-]+", "[0-9.]+", "^\\s*$", "^[a-z]+$"]
+        "exclude": [
+          "[A-Z_-]+",
+          "[0-9.]+",
+          "^\\s*$",
+          "^[a-z]+$",
+          "^[a-zA-Z]+\\.[a-zA-Z]+",
+          "^https?://",
+          "^mailto:",
+          "^tel:",
+          "^#[a-fA-F0-9]+$",
+          "^rgb",
+          "^hsl",
+          "^en-US$",
+          "^zh-CN$",
+          "^zh-TW$",
+          "^ar$",
+          "^default$",
+          "^ethereum$",
+          "^bitcoin$",
+          "^tron$",
+          "^bfmeta$",
+          "Alice",
+          "Bob",
+          "Carol",
+          "Dave"
+        ]
       }
     }]
   },

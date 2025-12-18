@@ -66,6 +66,27 @@
       "selectWordCount": "選擇助記詞詞數",
       "words": "詞",
       "confirm": "確定"
+    },
+    "success": {
+      "title": "錢包建立成功！",
+      "description": "您的錢包 <bold>{{name}}</bold> 已建立完成",
+      "securityReminder": "安全提醒",
+      "securityReminderDesc": "請盡快備份助記詞，這是恢復錢包的唯一方式。丟失助記詞將無法找回您的資產。",
+      "backupNow": "立即備份助記詞",
+      "backupLater": "稍後備份",
+      "enterWallet": "進入錢包",
+      "backupNote": "您可以稍後在設定中備份助記詞"
+    },
+    "confirm": {
+      "title": "確認助記詞",
+      "description": "請按順序選擇正確的助記詞",
+      "selectWord": "請選擇第 {{position}} 個單詞",
+      "selectFromBelow": "從下方選擇單詞",
+      "verifySuccess": "驗證成功！助記詞已確認備份",
+      "completeBackup": "完成備份",
+      "pleaseComplete": "請完成驗證",
+      "clickToReselect": "點擊紅色選項可重新選擇",
+      "clearAll": "清空"
     }
   },
   "import": {
