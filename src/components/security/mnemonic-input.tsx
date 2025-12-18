@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface MnemonicInputProps {
@@ -9,6 +10,7 @@ interface MnemonicInputProps {
 }
 
 export function MnemonicInput({ wordCount = 12, onComplete, onChange, className }: MnemonicInputProps) {
+  const { t } = useTranslation('security');
   const [words, setWords] = useState<string[]>(Array(wordCount).fill(''));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
@@ -79,11 +81,11 @@ export function MnemonicInput({ wordCount = 12, onComplete, onChange, className 
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground text-sm">
-          已输入 {filledCount}/{wordCount} 个单词
+          {t('mnemonicInput.entered', { filled: filledCount, total: wordCount })}
         </span>
         {filledCount > 0 && (
           <button type="button" onClick={clearAll} className="text-primary hover:text-primary/80 text-sm">
-            清除
+            {t('mnemonicInput.clear')}
           </button>
         )}
       </div>

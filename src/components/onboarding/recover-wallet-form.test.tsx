@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecoverWalletForm, validateMnemonicInput } from './recover-wallet-form'
-import { TestI18nProvider } from '@/test/i18n-test-utils'
+import { TestI18nProvider } from '@/test/i18n-mock'
 
 // Test mnemonic (from BIP39 test vectors - never use in production)
 const VALID_12_WORD_MNEMONIC =

@@ -36,6 +36,15 @@
     "reset": "重新选择",
     "clearAll": "清空"
   },
+  "mnemonicInput": {
+    "entered": "已输入 {{filled}}/{{total}} 个单词",
+    "clear": "清除"
+  },
+  "mnemonicDisplay": {
+    "hidden": "••••••",
+    "copied": "已复制",
+    "copy": "复制助记词"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2.原身份钱包密码将作为所有钱包的密码，用于转账/备份助记词等验证。",
   "addressPassword": "地址密码",
   "applicationLock": "应用锁",
