@@ -1,4 +1,15 @@
 {
+  "transfer": {
+    "quickTransfer": "تحويل سريع",
+    "quickTransferDesc": "اختر جهة اتصال حديثة أو أدخل عنوانًا جديدًا",
+    "recentContacts": "جهات الاتصال الأخيرة",
+    "newTransfer": "تحويل جديد",
+    "transferHistory": "سجل التحويلات",
+    "transferTo": "تحويل إلى {{name}}",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "daysAgo": "منذ {{days}} أيام"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

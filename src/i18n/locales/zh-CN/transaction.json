@@ -1,4 +1,15 @@
 {
+  "transfer": {
+    "quickTransfer": "快速转账",
+    "quickTransferDesc": "选择最近联系人或输入新地址",
+    "recentContacts": "最近联系人",
+    "newTransfer": "新建转账",
+    "transferHistory": "转账记录",
+    "transferTo": "转账给 {{name}}",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{{days}}天前"
+  },
   "history": {
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",

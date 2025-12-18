@@ -1,4 +1,15 @@
 {
+  "transfer": {
+    "quickTransfer": "Quick Transfer",
+    "quickTransferDesc": "Select recent contact or enter new address",
+    "recentContacts": "Recent Contacts",
+    "newTransfer": "New Transfer",
+    "transferHistory": "Transfer History",
+    "transferTo": "Transfer to {{name}}",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{days}} days ago"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

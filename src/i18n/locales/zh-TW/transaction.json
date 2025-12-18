@@ -1,4 +1,15 @@
 {
+  "transfer": {
+    "quickTransfer": "快速轉賬",
+    "quickTransferDesc": "選擇最近聯繫人或輸入新地址",
+    "recentContacts": "最近聯繫人",
+    "newTransfer": "新建轉賬",
+    "transferHistory": "轉賬記錄",
+    "transferTo": "轉賬給 {{name}}",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{{days}}天前"
+  },
   "aboutFee": "關於網絡費用",
   "amount": "數量",
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",
