@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
@@ -31,6 +32,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function SendPage() {
+  const { t } = useTranslation('transaction');
   const { goBack: navGoBack } = useNavigation();
   const camera = useCamera();
   const toast = useToast();
@@ -73,7 +75,7 @@ export function SendPage() {
       if (!hasPermission) {
         const granted = await camera.requestPermission();
         if (!granted) {
-          toast.show({ message: '需要相机权限才能扫描', position: 'center' });
+          toast.show({ message: t('sendPage.cameraPermissionRequired'), position: 'center' });
           return;
         }
       }
@@ -82,10 +84,10 @@ export function SendPage() {
       if (result.content) {
         setToAddress(result.content);
         await haptics.impact('success');
-        toast.show('扫描成功');
+        toast.show(t('sendPage.scanSuccess'));
       }
     } catch {
-      toast.show({ message: '扫描失败，请手动输入', position: 'center' });
+      toast.show({ message: t('sendPage.scanFailed'), position: 'center' });
     }
   };
 
@@ -114,7 +116,7 @@ export function SendPage() {
   const handleViewExplorer = () => {
     // TODO: Open block explorer with txHash
     if (state.txHash) {
-      toast.show('区块浏览器功能待实现');
+      toast.show(t('sendPage.explorerNotImplemented'));
     }
   };
 
@@ -122,7 +124,7 @@ export function SendPage() {
   if (state.step === 'result' || state.step === 'sending') {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title="发送结果" />
+        <PageHeader title={t('sendPage.resultTitle')} />
         <SendResult
           status={state.step === 'sending' ? 'pending' : (state.resultStatus ?? 'pending')}
           amount={state.amount}
@@ -140,28 +142,28 @@ export function SendPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="发送" onBack={navGoBack} />
+      <PageHeader title={t('sendPage.title')} onBack={navGoBack} />
 
       <div className="flex-1 space-y-6 p-4">
-        {/* 当前链信息 */}
+        {/* Current chain info */}
         <div className="bg-muted/50 flex items-center justify-center gap-2 rounded-lg py-2">
           <ChainIcon chain={selectedChain} size="sm" />
           <span className="text-sm font-medium">{selectedChainName}</span>
         </div>
 
-        {/* 地址输入 */}
+        {/* Address input */}
         <AddressInput
-          label="收款地址"
+          label={t('sendPage.toAddressLabel')}
           value={state.toAddress}
           onChange={setToAddress}
-          placeholder={`输入 ${selectedChainName} 地址`}
+          placeholder={t('sendPage.toAddressPlaceholder', { chain: selectedChainName })}
           onScan={handleScan}
           error={state.addressError ?? undefined}
         />
 
-        {/* 金额输入 */}
+        {/* Amount input */}
         <AmountInput
-          label="金额"
+          label={t('sendPage.amountLabel')}
           value={state.amount}
           onChange={setAmount}
           balance={balance}
@@ -171,13 +173,13 @@ export function SendPage() {
           fiatValue={state.amount ? `${parseFloat(state.amount).toFixed(2)}` : undefined}
         />
 
-        {/* 网络提示 */}
-        <Alert variant="info">请确保收款地址为 {selectedChainName} 网络地址，发送到错误网络将无法找回</Alert>
+        {/* Network warning */}
+        <Alert variant="info">{t('sendPage.networkWarning', { chain: selectedChainName })}</Alert>
 
-        {/* 继续按钮 */}
+        {/* Continue button */}
         <div className="pt-4">
           <GradientButton variant="mint" className="w-full" disabled={!canProceed} onClick={handleProceed}>
-            继续
+            {t('sendPage.continue')}
             <ArrowRight className="-mr-4 ml-2 size-4" />
           </GradientButton>
         </div>

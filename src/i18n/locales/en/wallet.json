@@ -97,6 +97,21 @@
     "passwordError": "Incorrect password",
     "verifyFailed": "Verification failed"
   },
+  "detail": {
+    "title": "Wallet Details",
+    "notFound": "Wallet not found",
+    "createdAt": "Created on {{date}}",
+    "chainAddresses": "Chain Addresses",
+    "editName": "Edit Wallet Name",
+    "exportMnemonic": "Export Mnemonic",
+    "deleteWallet": "Delete Wallet",
+    "exportDeveloping": "Mnemonic export feature in development",
+    "walletDeleted": "Wallet deleted",
+    "verifyToExport": "Verify identity to export mnemonic",
+    "verifyToDelete": "Verify identity to delete wallet",
+    "verifyFailed": "Verification failed",
+    "securityWarning": "Exporting mnemonic requires password verification. Please ensure you are in a secure environment"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",

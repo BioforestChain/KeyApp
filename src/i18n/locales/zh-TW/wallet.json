@@ -97,6 +97,21 @@
     "passwordError": "密碼錯誤",
     "verifyFailed": "驗證失敗"
   },
+  "detail": {
+    "title": "錢包詳情",
+    "notFound": "錢包不存在",
+    "createdAt": "建立於 {{date}}",
+    "chainAddresses": "鏈地址",
+    "editName": "編輯錢包名稱",
+    "exportMnemonic": "匯出助記詞",
+    "deleteWallet": "刪除錢包",
+    "exportDeveloping": "助記詞匯出功能開發中",
+    "walletDeleted": "錢包已刪除",
+    "verifyToExport": "驗證身份以匯出助記詞",
+    "verifyToDelete": "驗證身份以刪除錢包",
+    "verifyFailed": "驗證失敗",
+    "securityWarning": "匯出助記詞需要驗證密碼，請確保在安全環境下操作"
+  },
   "manageIdentityWallet": "管理身份錢包",
   "manageIdentityWallets": "管理身份錢包",
   "manageWallet": "管理錢包",

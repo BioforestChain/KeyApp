@@ -42,6 +42,19 @@
     "confirming": "确认中...",
     "confirm": "确认转账"
   },
+  "sendPage": {
+    "title": "发送",
+    "resultTitle": "发送结果",
+    "toAddressLabel": "收款地址",
+    "toAddressPlaceholder": "输入 {{chain}} 地址",
+    "amountLabel": "金额",
+    "networkWarning": "请确保收款地址为 {{chain}} 网络地址，发送到错误网络将无法找回",
+    "continue": "继续",
+    "cameraPermissionRequired": "需要相机权限才能扫描",
+    "scanSuccess": "扫描成功",
+    "scanFailed": "扫描失败，请手动输入",
+    "explorerNotImplemented": "区块浏览器功能待实现"
+  },
   "history": {
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",

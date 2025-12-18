@@ -42,6 +42,19 @@
     "confirming": "確認中...",
     "confirm": "確認轉賬"
   },
+  "sendPage": {
+    "title": "發送",
+    "resultTitle": "發送結果",
+    "toAddressLabel": "收款地址",
+    "toAddressPlaceholder": "輸入 {{chain}} 地址",
+    "amountLabel": "金額",
+    "networkWarning": "請確保收款地址為 {{chain}} 網絡地址，發送到錯誤網絡將無法找回",
+    "continue": "繼續",
+    "cameraPermissionRequired": "需要相機權限才能掃描",
+    "scanSuccess": "掃描成功",
+    "scanFailed": "掃描失敗，請手動輸入",
+    "explorerNotImplemented": "區塊瀏覽器功能待實現"
+  },
   "aboutFee": "關於網絡費用",
   "amount": "數量",
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",

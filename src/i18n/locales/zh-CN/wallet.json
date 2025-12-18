@@ -30,6 +30,21 @@
     "passwordError": "密码错误",
     "verifyFailed": "验证失败"
   },
+  "detail": {
+    "title": "钱包详情",
+    "notFound": "钱包不存在",
+    "createdAt": "创建于 {{date}}",
+    "chainAddresses": "链地址",
+    "editName": "编辑钱包名称",
+    "exportMnemonic": "导出助记词",
+    "deleteWallet": "删除钱包",
+    "exportDeveloping": "助记词导出功能开发中",
+    "walletDeleted": "钱包已删除",
+    "verifyToExport": "验证身份以导出助记词",
+    "verifyToDelete": "验证身份以删除钱包",
+    "verifyFailed": "验证失败",
+    "securityWarning": "导出助记词需要验证密码，请确保在安全环境下操作"
+  },
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "获得地址密码等同于拥有钱包资产所有权",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原中的钱包数据将全部保留，并进行数据整理，规则如下：",
   "addBitcoinAddress": "添加 Bitcoin 地址",

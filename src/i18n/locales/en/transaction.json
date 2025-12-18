@@ -42,6 +42,19 @@
     "confirming": "Confirming...",
     "confirm": "Confirm Transfer"
   },
+  "sendPage": {
+    "title": "Send",
+    "resultTitle": "Send Result",
+    "toAddressLabel": "Recipient Address",
+    "toAddressPlaceholder": "Enter {{chain}} address",
+    "amountLabel": "Amount",
+    "networkWarning": "Please ensure the recipient address is a {{chain}} network address. Sending to the wrong network cannot be recovered",
+    "continue": "Continue",
+    "cameraPermissionRequired": "Camera permission required for scanning",
+    "scanSuccess": "Scan successful",
+    "scanFailed": "Scan failed, please enter manually",
+    "explorerNotImplemented": "Block explorer feature coming soon"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

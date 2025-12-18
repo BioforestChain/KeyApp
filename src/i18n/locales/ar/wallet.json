@@ -97,6 +97,21 @@
     "passwordError": "كلمة المرور غير صحيحة",
     "verifyFailed": "فشل التحقق"
   },
+  "detail": {
+    "title": "تفاصيل المحفظة",
+    "notFound": "المحفظة غير موجودة",
+    "createdAt": "أُنشئت في {{date}}",
+    "chainAddresses": "عناوين السلاسل",
+    "editName": "تعديل اسم المحفظة",
+    "exportMnemonic": "تصدير العبارة السرية",
+    "deleteWallet": "حذف المحفظة",
+    "exportDeveloping": "ميزة تصدير العبارة السرية قيد التطوير",
+    "walletDeleted": "تم حذف المحفظة",
+    "verifyToExport": "تحقق من الهوية لتصدير العبارة السرية",
+    "verifyToDelete": "تحقق من الهوية لحذف المحفظة",
+    "verifyFailed": "فشل التحقق",
+    "securityWarning": "يتطلب تصدير العبارة السرية التحقق من كلمة المرور. يرجى التأكد من أنك في بيئة آمنة"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",

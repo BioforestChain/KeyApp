@@ -42,6 +42,19 @@
     "confirming": "جاري التأكيد...",
     "confirm": "تأكيد التحويل"
   },
+  "sendPage": {
+    "title": "إرسال",
+    "resultTitle": "نتيجة الإرسال",
+    "toAddressLabel": "عنوان المستلم",
+    "toAddressPlaceholder": "أدخل عنوان {{chain}}",
+    "amountLabel": "المبلغ",
+    "networkWarning": "يرجى التأكد من أن عنوان المستلم هو عنوان شبكة {{chain}}. لا يمكن استرداد المرسل إلى الشبكة الخاطئة",
+    "continue": "متابعة",
+    "cameraPermissionRequired": "مطلوب إذن الكاميرا للمسح",
+    "scanSuccess": "تم المسح بنجاح",
+    "scanFailed": "فشل المسح، يرجى الإدخال يدويًا",
+    "explorerNotImplemented": "ميزة مستكشف البلوك قادمة قريبًا"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

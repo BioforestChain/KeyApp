@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
@@ -29,6 +30,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function WalletDetailPage() {
+  const { t } = useTranslation('wallet');
   const { walletId } = useActivityParams<{ walletId: string }>();
   const { goBack } = useNavigation();
   const biometric = useBiometric();
@@ -42,41 +44,41 @@ export function WalletDetailPage() {
     const { isAvailable } = await biometric.isAvailable();
 
     if (isAvailable) {
-      const result = await biometric.verify({ title: '验证身份以导出助记词' });
+      const result = await biometric.verify({ title: t('detail.verifyToExport') });
       if (!result.success) {
-        toast.show({ message: '验证失败', position: 'center' });
+        toast.show({ message: t('detail.verifyFailed'), position: 'center' });
         return;
       }
     }
 
     await haptics.impact('success');
-    toast.show('助记词导出功能开发中');
-    // TODO: 实现助记词导出
+    toast.show(t('detail.exportDeveloping'));
+    // TODO: Implement mnemonic export
   };
 
   const handleDeleteWallet = async () => {
     const { isAvailable } = await biometric.isAvailable();
 
     if (isAvailable) {
-      const result = await biometric.verify({ title: '验证身份以删除钱包' });
+      const result = await biometric.verify({ title: t('detail.verifyToDelete') });
       if (!result.success) {
-        toast.show({ message: '验证失败', position: 'center' });
+        toast.show({ message: t('detail.verifyFailed'), position: 'center' });
         return;
       }
     }
 
     walletActions.deleteWallet(walletId);
     await haptics.impact('warning');
-    toast.show('钱包已删除');
+    toast.show(t('detail.walletDeleted'));
     goBack();
   };
 
   if (!wallet) {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title="钱包详情" onBack={goBack} />
+        <PageHeader title={t('detail.title')} onBack={goBack} />
         <div className="flex-1 p-4">
-          <Alert variant="error">钱包不存在</Alert>
+          <Alert variant="error">{t('detail.notFound')}</Alert>
         </div>
       </div>
     );
@@ -87,7 +89,7 @@ export function WalletDetailPage() {
       <PageHeader title={wallet.name} onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
-        {/* 钱包信息 */}
+        {/* Wallet info */}
         <div className="bg-card rounded-2xl p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-3">
             <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
@@ -95,14 +97,14 @@ export function WalletDetailPage() {
             </div>
             <div>
               <h2 className="font-semibold">{wallet.name}</h2>
-              <p className="text-muted-foreground text-sm">创建于 {new Date(wallet.createdAt).toLocaleDateString()}</p>
+              <p className="text-muted-foreground text-sm">{t('detail.createdAt', { date: new Date(wallet.createdAt).toLocaleDateString() })}</p>
             </div>
           </div>
         </div>
 
-        {/* 多链地址 */}
+        {/* Chain addresses */}
         <div className="space-y-3">
-          <h3 className="text-muted-foreground text-sm font-medium">链地址</h3>
+          <h3 className="text-muted-foreground text-sm font-medium">{t('detail.chainAddresses')}</h3>
           {wallet.chainAddresses.map((chainAddr) => (
             <div key={chainAddr.chain} className="bg-card flex items-center gap-3 rounded-xl p-4">
               <ChainIcon chain={chainAddr.chain} size="md" />
@@ -114,22 +116,22 @@ export function WalletDetailPage() {
           ))}
         </div>
 
-        {/* 操作按钮 */}
+        {/* Action buttons */}
         <div className="space-y-3 pt-4">
           <Button
             variant="outline"
             className="w-full justify-start"
             onClick={() => {
-              // TODO: 编辑钱包名称
+              // TODO: Edit wallet name
             }}
           >
             <Edit3 className="mr-3 size-4" />
-            编辑钱包名称
+            {t('detail.editName')}
           </Button>
 
           <Button variant="outline" className="w-full justify-start" onClick={handleExportMnemonic}>
             <KeyRound className="mr-3 size-4" />
-            导出助记词
+            {t('detail.exportMnemonic')}
           </Button>
 
           <Button
@@ -138,12 +140,12 @@ export function WalletDetailPage() {
             onClick={handleDeleteWallet}
           >
             <Trash2 className="mr-3 size-4" />
-            删除钱包
+            {t('detail.deleteWallet')}
           </Button>
         </div>
 
-        {/* 安全提示 */}
-        <Alert variant="warning">导出助记词需要验证密码，请确保在安全环境下操作</Alert>
+        {/* Security warning */}
+        <Alert variant="warning">{t('detail.securityWarning')}</Alert>
       </div>
     </div>
   );
