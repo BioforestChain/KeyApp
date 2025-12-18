@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitepress'
 import { webappLoaderPlugin } from './plugins/webapp-loader'
+import { generateWhiteBookSidebar } from './sidebar-white-book'
 
 const GITHUB_OWNER = 'BioforestChain'
 const GITHUB_REPO = 'KeyApp'
+
+// 自动生成白皮书侧边栏
+const whiteBookSidebar = generateWhiteBookSidebar()
 
 /**
  * Base URL 配置
@@ -33,12 +37,14 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '下载', link: '/download' },
+      { text: '开发说明书', link: '/white-book/' },
       { text: 'Storybook', link: './storybook/' },
       { text: '贡献指南', link: '/contributing' },
       { text: '更新日志', link: '/changelog' },
     ],
 
     sidebar: {
+      '/white-book/': whiteBookSidebar,
       '/': [
         {
           text: '开始使用',
@@ -52,6 +58,7 @@ export default defineConfig({
           text: '开发者',
           items: [
             { text: '贡献指南', link: '/contributing' },
+            { text: '软件开发说明书', link: '/white-book/' },
           ],
         },
       ],
