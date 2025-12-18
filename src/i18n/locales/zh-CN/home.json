@@ -1,0 +1,17 @@
+{
+  "welcome": {
+    "title": "欢迎使用 BFM Pay",
+    "subtitle": "创建或导入钱包开始使用",
+    "createWallet": "创建新钱包",
+    "importWallet": "导入已有钱包"
+  },
+  "wallet": {
+    "send": "转账",
+    "receive": "收款",
+    "assets": "资产",
+    "noAssets": "暂无资产",
+    "noAssetsOnChain": "{{chain}} 链上暂无代币",
+    "selectNetwork": "选择网络",
+    "addressCopied": "地址已复制"
+  }
+}

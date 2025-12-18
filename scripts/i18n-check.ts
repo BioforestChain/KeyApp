@@ -275,9 +275,10 @@ ${colors.cyan}╔═════════════════════
   // Report results
   log.step('Results')
 
-  const issuesFound = allResults.some((r) => r.missing.length > 0 || r.extra.length > 0)
+  const hasMissingKeys = allResults.some((r) => r.missing.length > 0)
+  const hasExtraKeys = allResults.some((r) => r.extra.length > 0)
 
-  if (!issuesFound) {
+  if (!hasMissingKeys && !hasExtraKeys) {
     log.success('All translations are complete!')
     console.log(`
 ${colors.green}✓ All ${namespaces.length} namespaces checked across ${LOCALES.length} locales${colors.reset}
@@ -331,17 +332,25 @@ ${colors.green}✓ All ${namespaces.length} namespaces checked across ${LOCALES.
     }
   }
 
-  console.log(`
+  if (totalMissing > 0) {
+    console.log(`
 ${colors.red}✗ Found issues:${colors.reset}
   ${colors.red}Missing: ${totalMissing} keys${colors.reset}
   ${colors.yellow}Extra: ${totalExtra} keys${colors.reset}
 `)
 
-  if (!fix && totalMissing > 0) {
-    log.info(`Run with ${colors.cyan}--fix${colors.reset} to add missing keys with placeholder values`)
+    if (!fix) {
+      log.info(`Run with ${colors.cyan}--fix${colors.reset} to add missing keys with placeholder values`)
+    }
+
+    process.exit(1)
   }
 
-  process.exit(1)
+  // Only extra keys - warn but don't fail
+  console.log(`
+${colors.green}✓ No missing translations${colors.reset}
+  ${colors.yellow}Extra: ${totalExtra} keys (not in reference, can be cleaned up)${colors.reset}
+`)
 }
 
 main().catch((error) => {

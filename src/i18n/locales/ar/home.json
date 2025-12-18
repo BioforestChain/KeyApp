@@ -1,0 +1,17 @@
+{
+  "welcome": {
+    "title": "مرحبًا بك في BFM Pay",
+    "subtitle": "إنشاء أو استيراد محفظة للبدء",
+    "createWallet": "إنشاء محفظة جديدة",
+    "importWallet": "استيراد محفظة موجودة"
+  },
+  "wallet": {
+    "send": "إرسال",
+    "receive": "استلام",
+    "assets": "الأصول",
+    "noAssets": "لا توجد أصول",
+    "noAssetsOnChain": "لا توجد رموز على {{chain}}",
+    "selectNetwork": "اختر الشبكة",
+    "addressCopied": "تم نسخ العنوان"
+  }
+}

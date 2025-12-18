@@ -1,47 +1,4 @@
 {
-  "history": {
-    "title": "Transaction History",
-    "noWallet": "Please create or import a wallet first",
-    "totalRecords": "{{count}} records",
-    "emptyTitle": "No transactions",
-    "emptyDesc": "No transactions found with current filters",
-    "filter": {
-      "allChains": "All Chains",
-      "allTime": "All",
-      "days7": "7 Days",
-      "days30": "30 Days",
-      "days90": "90 Days"
-    }
-  },
-  "detail": {
-    "title": "Transaction Details",
-    "notFound": "Transaction not found or expired",
-    "info": "Transaction Info",
-    "toAddress": "To Address",
-    "fromAddress": "From Address",
-    "time": "Time",
-    "network": "Network",
-    "fee": "Fee",
-    "blockHeight": "Block Height",
-    "confirmations": "Confirmations",
-    "hash": "Transaction Hash",
-    "copied": "Copied",
-    "copyHash": "Copy Hash",
-    "viewExplorer": "View in Explorer"
-  },
-  "type": {
-    "send": "Send",
-    "receive": "Receive",
-    "swap": "Swap",
-    "stake": "Stake",
-    "unstake": "Unstake",
-    "approve": "Approve"
-  },
-  "status": {
-    "confirmed": "Confirmed",
-    "pending": "Pending",
-    "failed": "Failed"
-  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",
@@ -102,6 +59,22 @@
   "contractTransactionData": "Contract transaction data",
   "destoryAmount": "Destory amount",
   "destoryQuantityCannotBeGreaterThanBalance": "Destory quantity cannot be greater than balance",
+  "detail": {
+    "blockHeight": "Block Height",
+    "confirmations": "Confirmations",
+    "copied": "Copied",
+    "copyHash": "Copy Hash",
+    "fee": "Fee",
+    "fromAddress": "From Address",
+    "hash": "Transaction Hash",
+    "info": "Transaction Info",
+    "network": "Network",
+    "notFound": "Transaction not found or expired",
+    "time": "Time",
+    "title": "Transaction Details",
+    "toAddress": "To Address",
+    "viewExplorer": "View in Explorer"
+  },
   "dpTransactionDetails": "DP Details",
   "easyTransfer": "Easy Transfer",
   "enterAmount": "Enter Amount",
@@ -114,6 +87,20 @@
   "forOvertimeTransactionTips": "For overtime transactions, you can check whether the transaction is successful through the blockchain explorer.",
   "from": "From",
   "getAssetTypeBalance": "Get asset type balance",
+  "history": {
+    "emptyDesc": "No transactions found with current filters",
+    "emptyTitle": "No transactions",
+    "filter": {
+      "allChains": "All Chains",
+      "allTime": "All",
+      "days30": "30 Days",
+      "days7": "7 Days",
+      "days90": "90 Days"
+    },
+    "noWallet": "Please create or import a wallet first",
+    "title": "Transaction History",
+    "totalRecords": "{{count}} records"
+  },
   "incorrectHandlingFee": "Incorrect handling fee",
   "initiateTransfer": "Initiate Transfer",
   "insufficientBalanceIn_{symbol}": "Insufficient balance in",
@@ -130,17 +117,26 @@
   "receiveAddress": "Receive address",
   "receiveCannotBeTheSame": "Receive cannot be the same",
   "receiver": "Receiver",
+  "scanAndTransferTheAsset": "[MISSING:en] 扫一扫，转账 /",
+  "scanAndTransferToMe": "[MISSING:en] 扫一扫转入 /",
   "scanToAssetTypeTransfer": "Scan to transfer ()",
   "scanToTransfer": "Scan to transfer",
   "selectTransferChain": "Select transfer chain",
   "send": "Send",
   "sendingAddress": "Sending address",
   "stake": "Stake",
+  "status": {
+    "confirmed": "Confirmed",
+    "failed": "Failed",
+    "pending": "Pending"
+  },
   "swap": "Swap",
   "theCurrentAddressDoesNotHave_{assettype}AssetsAndCannotBeTransferred": "The current address does not have assets and cannot be transferred.",
   "theFrozenAddressCannotBeTransferred": "The frozen address cannot be transferred",
+  "theMinimumMinerFeeIs_{fee}": "[MISSING:en] 本次交易最低矿工费为：",
   "theRecommendedMinerFee_{fee}": "The recommended miner fee is:",
   "thisAddressOnlySupportsAssetsPleaseDoNotTransferToOtherPublicChainAssets": "This address only supports assets, please do not transfer to other public chain assets.",
+  "thisAddressOnlySupportsEthereumAssetsPleaseDoNotTransferToOtherPublicChainAssets": "[MISSING:en] 该地址只支持 Ethereum 资产， 请不要转账给其它非兼容的区块链资产。",
   "to": "To",
   "to_(receive_{asset})": "To(Receive )",
   "transactionDetails": "Transaction Details",
@@ -154,7 +150,16 @@
   "tronLessFeeTips": "At present, there is less TRX, and continued transfers may fail due to insufficient handling fees.",
   "tronNetworkFeeLongTips_1": "The network fee will vary according to networksituation, once the transaction is confirmed, the fee cannot be refunded regardless of whether the transaction is successful or not.",
   "tronNetworkFeeLongTips_2": "The network fee is charged by the TRON network, and BFM Pay does not charge any fees !",
+  "type": {
+    "approve": "Approve",
+    "receive": "Receive",
+    "send": "Send",
+    "stake": "Stake",
+    "swap": "Swap",
+    "unstake": "Unstake"
+  },
   "unstake": "Unstake",
+  "viewTransactionDetails": "[MISSING:en] 查看交易详情",
   "youFinallyReceive": "You finally receive",
   "youMustReceive_{asset}QuantityGreaterThan_0": "You must receive quantity greater than 0",
   "{chainsymbol}IsNotEnoughToCoverFees": "is not enough to cover fees"

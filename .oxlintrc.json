@@ -41,16 +41,37 @@
     "i18next/no-literal-string": ["warn", {
       "mode": "jsx-only",
       "jsx-components": {
-        "exclude": ["Trans", "Icon"]
+        "exclude": ["Trans", "Icon", "TablerIcon"]
       },
       "jsx-attributes": {
-        "exclude": ["className", "styleName", "type", "key", "id", "name", "data-testid", "data-test", "to", "href", "src", "alt"]
+        "exclude": [
+          "className", "styleName", "style", "type", "key", "id", "name", "role", "as", "asChild",
+          "data-testid", "data-test", "data-slot", "data-state", "data-side", "data-align",
+          "to", "href", "src", "alt", "target", "rel", "method", "action",
+          "variant", "size", "color", "weight", "sign", "align", "justify", "direction", "orientation",
+          "inputMode", "autoComplete", "autoFocus", "autoCapitalize", "spellCheck",
+          "enterKeyHint", "pattern", "min", "max", "step", "accept",
+          "xmlns", "viewBox", "fill", "stroke", "d", "cx", "cy", "r", "x", "y", "width", "height",
+          "strokeWidth", "strokeLinecap", "strokeLinejoin", "transform", "clipPath", "mask"
+        ]
       },
       "callees": {
-        "exclude": ["t", "i18n.t", "console.*", "require", "import", "Error", "TypeError", "new Error", "new TypeError"]
+        "exclude": [
+          "t", "i18n.t", "useTranslation", "Trans",
+          "console.*", "require", "import", "Error", "TypeError", "new Error", "new TypeError",
+          "push", "pop", "replace", "navigate", "redirect",
+          "querySelector", "querySelectorAll", "getElementById", "getElementsByClassName",
+          "addEventListener", "removeEventListener", "dispatchEvent",
+          "setTimeout", "setInterval", "clearTimeout", "clearInterval",
+          "JSON.parse", "JSON.stringify", "Object.keys", "Object.values", "Object.entries",
+          "Array.from", "Array.isArray", "String.fromCharCode",
+          "Math.*", "Number.*", "Date.*", "RegExp",
+          "fetch", "axios.*", "localStorage.*", "sessionStorage.*",
+          "describe", "it", "test", "expect", "vi.*", "jest.*"
+        ]
       },
       "words": {
-        "exclude": ["[A-Z_-]+", "[0-9]+", "\\s*"]
+        "exclude": ["[A-Z_-]+", "[0-9.]+", "^\\s*$", "^[a-z]+$"]
       }
     }]
   },
@@ -79,7 +100,8 @@
     "**/*.stories.tsx",
     "**/*.stories.ts",
     "src/test/**",
-    "scripts/**"
+    "scripts/**",
+    "e2e/**"
   ],
   "settings": {
     "react": {

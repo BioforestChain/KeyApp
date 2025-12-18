@@ -20,6 +20,7 @@ import enAuthorize from './locales/en/authorize.json'
 import enCurrency from './locales/en/currency.json'
 import enOnboarding from './locales/en/onboarding.json'
 import enNotification from './locales/en/notification.json'
+import enHome from './locales/en/home.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -40,6 +41,7 @@ import zhCNAuthorize from './locales/zh-CN/authorize.json'
 import zhCNCurrency from './locales/zh-CN/currency.json'
 import zhCNOnboarding from './locales/zh-CN/onboarding.json'
 import zhCNNotification from './locales/zh-CN/notification.json'
+import zhCNHome from './locales/zh-CN/home.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -60,6 +62,7 @@ import zhTWAuthorize from './locales/zh-TW/authorize.json'
 import zhTWCurrency from './locales/zh-TW/currency.json'
 import zhTWOnboarding from './locales/zh-TW/onboarding.json'
 import zhTWNotification from './locales/zh-TW/notification.json'
+import zhTWHome from './locales/zh-TW/home.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -80,6 +83,7 @@ import arAuthorize from './locales/ar/authorize.json'
 import arCurrency from './locales/ar/currency.json'
 import arOnboarding from './locales/ar/onboarding.json'
 import arNotification from './locales/ar/notification.json'
+import arHome from './locales/ar/home.json'
 
 // 语言配置
 export const languages = {
@@ -113,6 +117,7 @@ export const namespaces = [
   'authorize',
   'currency',
   'notification',
+  'home',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -150,6 +155,7 @@ i18n.use(initReactI18next).init({
       authorize: enAuthorize,
       currency: enCurrency,
       notification: enNotification,
+      home: enHome,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -170,6 +176,7 @@ i18n.use(initReactI18next).init({
       authorize: zhCNAuthorize,
       currency: zhCNCurrency,
       notification: zhCNNotification,
+      home: zhCNHome,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -190,6 +197,7 @@ i18n.use(initReactI18next).init({
       authorize: zhTWAuthorize,
       currency: zhTWCurrency,
       notification: zhTWNotification,
+      home: zhTWHome,
     },
     ar: {
       common: arCommon,
@@ -210,6 +218,7 @@ i18n.use(initReactI18next).init({
       authorize: arAuthorize,
       currency: arCurrency,
       notification: arNotification,
+      home: arHome,
     },
   },
   lng: defaultLanguage,
