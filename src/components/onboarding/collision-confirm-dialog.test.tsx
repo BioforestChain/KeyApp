@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { TestI18nProvider } from '@/test/i18n-mock'
 import { CollisionConfirmDialog } from './collision-confirm-dialog'
 import type { DuplicateCheckResult } from '@/services/wallet/types'
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockPrivateKeyCollision: DuplicateCheckResult = {
   isDuplicate: true,
@@ -35,7 +38,7 @@ describe('CollisionConfirmDialog', () => {
   const user = userEvent.setup()
 
   it('renders collision warning for private key collision', () => {
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}
@@ -49,7 +52,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('shows matched address', () => {
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}
@@ -65,7 +68,7 @@ describe('CollisionConfirmDialog', () => {
   it('calls onConfirm when confirm button clicked', async () => {
     const handleConfirm = vi.fn()
 
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={handleConfirm}
@@ -81,7 +84,7 @@ describe('CollisionConfirmDialog', () => {
   it('calls onCancel when cancel button clicked', async () => {
     const handleCancel = vi.fn()
 
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}
@@ -95,7 +98,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('shows loading state', () => {
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}
@@ -109,7 +112,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('renders nothing for non-privateKey collision type', () => {
-    const { container } = render(
+    const { container } = renderWithI18n(
       <CollisionConfirmDialog
         result={mockAddressCollision}
         onConfirm={vi.fn()}
@@ -121,7 +124,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('renders nothing when no collision', () => {
-    const { container } = render(
+    const { container } = renderWithI18n(
       <CollisionConfirmDialog
         result={mockNoCollision}
         onConfirm={vi.fn()}
@@ -133,7 +136,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('includes wallet name in warning message', () => {
-    render(
+    renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}
@@ -145,7 +148,7 @@ describe('CollisionConfirmDialog', () => {
   })
 
   it('applies custom className', () => {
-    const { container } = render(
+    const { container } = renderWithI18n(
       <CollisionConfirmDialog
         result={mockPrivateKeyCollision}
         onConfirm={vi.fn()}

@@ -87,6 +87,17 @@
       "pleaseComplete": "请完成验证",
       "clickToReselect": "点击红色选项可重新选择",
       "clearAll": "清空"
+    },
+    "collision": {
+      "title": "检测到地址冲突",
+      "description": "即将导入的助记词包含已存在的钱包地址",
+      "privateKeyWallet": "私钥导入的钱包",
+      "newWallet": "新钱包",
+      "mnemonicRecover": "助记词恢复",
+      "warning": "确认后，<bold>「{{name}}」</bold> 将被删除，新的助记词钱包将包含所有相关地址。",
+      "cancel": "取消",
+      "processing": "处理中...",
+      "confirmReplace": "确认替换"
     }
   },
   "import": {

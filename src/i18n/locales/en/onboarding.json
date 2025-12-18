@@ -87,6 +87,17 @@
       "pleaseComplete": "Please complete verification",
       "clickToReselect": "Click red items to reselect",
       "clearAll": "Clear All"
+    },
+    "collision": {
+      "title": "Address Collision Detected",
+      "description": "The mnemonic to import contains an existing wallet address",
+      "privateKeyWallet": "Private key imported wallet",
+      "newWallet": "New Wallet",
+      "mnemonicRecover": "Mnemonic recovery",
+      "warning": "After confirmation, <bold>\"{{name}}\"</bold> will be deleted, and the new mnemonic wallet will contain all related addresses.",
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "confirmReplace": "Confirm Replace"
     }
   },
   "import": {

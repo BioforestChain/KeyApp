@@ -1,3 +1,4 @@
+import { useTranslation, Trans } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   IconAlertTriangle as AlertTriangle,
@@ -30,6 +31,8 @@ export function CollisionConfirmDialog({
   isLoading = false,
   className,
 }: CollisionConfirmDialogProps) {
+  const { t } = useTranslation('onboarding');
+
   if (!result.isDuplicate || result.type !== 'privateKey' || !result.matchedWallet) {
     return null;
   }
@@ -44,8 +47,8 @@ export function CollisionConfirmDialog({
           <AlertTriangle className="size-5 text-yellow-600" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium text-yellow-700">检测到地址冲突</h3>
-          <p className="mt-1 text-sm text-yellow-600/80">即将导入的助记词包含已存在的钱包地址</p>
+          <h3 className="font-medium text-yellow-700">{t('create.collision.title')}</h3>
+          <p className="mt-1 text-sm text-yellow-600/80">{t('create.collision.description')}</p>
         </div>
       </div>
 
@@ -58,7 +61,7 @@ export function CollisionConfirmDialog({
               <Wallet className="text-muted-foreground size-4" />
               <span className="text-sm font-medium">{matchedWallet.name}</span>
             </div>
-            <p className="text-muted-foreground mt-1 text-xs">私钥导入的钱包</p>
+            <p className="text-muted-foreground mt-1 text-xs">{t('create.collision.privateKeyWallet')}</p>
           </div>
 
           <ArrowRight className="text-muted-foreground size-4" />
@@ -67,9 +70,9 @@ export function CollisionConfirmDialog({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <Wallet className="text-primary size-4" />
-              <span className="text-sm font-medium">新钱包</span>
+              <span className="text-sm font-medium">{t('create.collision.newWallet')}</span>
             </div>
-            <p className="text-muted-foreground mt-1 text-xs">助记词恢复</p>
+            <p className="text-muted-foreground mt-1 text-xs">{t('create.collision.mnemonicRecover')}</p>
           </div>
         </div>
 
@@ -81,8 +84,12 @@ export function CollisionConfirmDialog({
 
       {/* Warning message */}
       <p className="mt-3 text-sm text-yellow-600/80">
-        确认后，<span className="font-medium">「{matchedWallet.name}」</span> 将被删除，
-        新的助记词钱包将包含所有相关地址。
+        <Trans
+          i18nKey="create.collision.warning"
+          ns="onboarding"
+          values={{ name: matchedWallet.name }}
+          components={{ bold: <span className="font-medium" /> }}
+        />
       </p>
 
       {/* Actions */}
@@ -96,7 +103,7 @@ export function CollisionConfirmDialog({
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
-          取消
+          {t('create.collision.cancel')}
         </button>
         <button
           onClick={onConfirm}
@@ -107,7 +114,7 @@ export function CollisionConfirmDialog({
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
-          {isLoading ? '处理中...' : '确认替换'}
+          {isLoading ? t('create.collision.processing') : t('create.collision.confirmReplace')}
         </button>
       </div>
     </div>
