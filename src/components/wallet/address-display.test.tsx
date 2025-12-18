@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AddressDisplay } from './address-display'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockAddress = '0x1234567890abcdef1234567890abcdef12345678'
 
@@ -31,13 +34,13 @@ describe('AddressDisplay', () => {
   })
 
   it('renders address text', () => {
-    render(<AddressDisplay address={mockAddress} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} />)
     // 初始状态显示完整地址（因为没有实际宽度限制）
     expect(screen.getByText(mockAddress)).toBeInTheDocument()
   })
 
   it('copies address to clipboard when clicked', async () => {
-    render(<AddressDisplay address={mockAddress} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} />)
     
     await userEvent.click(screen.getByRole('button'))
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockAddress)
@@ -45,14 +48,14 @@ describe('AddressDisplay', () => {
 
   it('calls onCopy callback when address is copied', async () => {
     const handleCopy = vi.fn()
-    render(<AddressDisplay address={mockAddress} onCopy={handleCopy} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} onCopy={handleCopy} />)
     
     await userEvent.click(screen.getByRole('button'))
     expect(handleCopy).toHaveBeenCalled()
   })
 
   it('updates aria-label after copying', async () => {
-    render(<AddressDisplay address={mockAddress} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} />)
     
     const button = screen.getByRole('button')
     expect(button).toHaveAttribute('aria-label', `复制 ${mockAddress}`)
@@ -62,23 +65,23 @@ describe('AddressDisplay', () => {
   })
 
   it('renders as span when not copyable', () => {
-    render(<AddressDisplay address={mockAddress} copyable={false} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} copyable={false} />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('displays short address without truncation', () => {
     const shortAddress = '0x12345'
-    render(<AddressDisplay address={shortAddress} copyable={false} />)
+    renderWithI18n(<AddressDisplay address={shortAddress} copyable={false} />)
     expect(screen.getByText(shortAddress)).toBeInTheDocument()
   })
 
   it('has truncate class for overflow handling', () => {
-    const { container } = render(<AddressDisplay address={mockAddress} />)
+    const { container } = renderWithI18n(<AddressDisplay address={mockAddress} />)
     expect(container.querySelector('.truncate')).toBeInTheDocument()
   })
 
   it('announces copy status to screen readers', async () => {
-    render(<AddressDisplay address={mockAddress} />)
+    renderWithI18n(<AddressDisplay address={mockAddress} />)
     
     const statusRegion = screen.getByRole('status')
     expect(statusRegion).toHaveTextContent('')
@@ -88,7 +91,7 @@ describe('AddressDisplay', () => {
   })
 
   it('has proper accessibility attributes', () => {
-    const { container } = render(<AddressDisplay address={mockAddress} />)
+    const { container } = renderWithI18n(<AddressDisplay address={mockAddress} />)
     
     // 视觉文本对屏幕阅读器隐藏（避免重复朗读）
     expect(container.querySelector('[aria-hidden="true"]')).toBeInTheDocument()

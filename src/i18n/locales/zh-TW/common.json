@@ -6,6 +6,8 @@
   "noAssets": "暫無資產",
   "balance": "餘額",
   "exceedsBalance": "超出可用餘額",
+  "copiedToClipboard": "已複製到剪貼簿",
+  "passwordStrength": "密碼強度",
   "a11y": {
     "chainSelector": "選擇區塊鏈網絡",
     "closeDialog": "關閉彈窗",

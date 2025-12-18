@@ -6,6 +6,8 @@
   "noAssets": "暂无资产",
   "balance": "余额",
   "exceedsBalance": "超出可用余额",
+  "copiedToClipboard": "已复制到剪贴板",
+  "passwordStrength": "密码强度",
   "a11y": {
     "skipToMain": "跳转到主要内容",
     "tabHome": "首页",

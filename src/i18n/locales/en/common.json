@@ -6,6 +6,8 @@
   "noAssets": "No assets",
   "balance": "Balance",
   "exceedsBalance": "Exceeds available balance",
+  "copiedToClipboard": "Copied to clipboard",
+  "passwordStrength": "Password strength",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "Select blockchain network",

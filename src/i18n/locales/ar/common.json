@@ -6,6 +6,8 @@
   "noAssets": "لا توجد أصول",
   "balance": "الرصيد",
   "exceedsBalance": "يتجاوز الرصيد المتاح",
+  "copiedToClipboard": "تم النسخ إلى الحافظة",
+  "passwordStrength": "قوة كلمة المرور",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "اختر شبكة البلوكتشين",
