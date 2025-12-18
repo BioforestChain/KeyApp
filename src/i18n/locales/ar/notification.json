@@ -1,0 +1,21 @@
+{
+  "title": "مركز الإشعارات",
+  "markAllRead": "تحديد الكل كمقروء",
+  "unreadCount": "{{count}} غير مقروء",
+  "noUnread": "لا توجد إشعارات غير مقروءة",
+  "clear": "مسح",
+  "delete": "حذف",
+  "unread": "غير مقروء",
+  "empty": {
+    "title": "لا توجد إشعارات",
+    "desc": "ستظهر جميع إشعاراتك هنا"
+  },
+  "time": {
+    "justNow": "الآن",
+    "minutesAgo": "منذ {{count}} دقيقة",
+    "hoursAgo": "منذ {{count}} ساعة",
+    "daysAgo": "منذ {{count}} يوم",
+    "today": "اليوم",
+    "yesterday": "أمس"
+  }
+}

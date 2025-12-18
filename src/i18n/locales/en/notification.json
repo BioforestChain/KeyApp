@@ -1,0 +1,21 @@
+{
+  "title": "Notifications",
+  "markAllRead": "Mark all read",
+  "unreadCount": "{{count}} unread",
+  "noUnread": "No unread notifications",
+  "clear": "Clear",
+  "delete": "Delete",
+  "unread": "Unread",
+  "empty": {
+    "title": "No notifications",
+    "desc": "All your notifications will appear here"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  }
+}

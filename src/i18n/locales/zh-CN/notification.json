@@ -1,0 +1,21 @@
+{
+  "title": "通知中心",
+  "markAllRead": "全部已读",
+  "unreadCount": "{{count}} 条未读",
+  "noUnread": "没有未读通知",
+  "clear": "清空",
+  "delete": "删除",
+  "unread": "未读",
+  "empty": {
+    "title": "暂无通知",
+    "desc": "您的所有通知都会显示在这里"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "daysAgo": "{{count}}天前",
+    "today": "今天",
+    "yesterday": "昨天"
+  }
+}

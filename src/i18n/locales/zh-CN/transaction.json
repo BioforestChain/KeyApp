@@ -1,4 +1,47 @@
 {
+  "history": {
+    "title": "交易记录",
+    "noWallet": "请先创建或导入钱包",
+    "totalRecords": "共 {{count}} 条记录",
+    "emptyTitle": "暂无交易记录",
+    "emptyDesc": "当前筛选条件下没有交易记录",
+    "filter": {
+      "allChains": "全部链",
+      "allTime": "全部",
+      "days7": "7天",
+      "days30": "30天",
+      "days90": "90天"
+    }
+  },
+  "detail": {
+    "title": "交易详情",
+    "notFound": "交易不存在或已过期",
+    "info": "交易信息",
+    "toAddress": "收款地址",
+    "fromAddress": "发送地址",
+    "time": "交易时间",
+    "network": "网络",
+    "fee": "手续费",
+    "blockHeight": "区块高度",
+    "confirmations": "确认数",
+    "hash": "交易哈希",
+    "copied": "已复制",
+    "copyHash": "复制哈希",
+    "viewExplorer": "区块浏览器"
+  },
+  "type": {
+    "send": "发送",
+    "receive": "接收",
+    "swap": "兑换",
+    "stake": "质押",
+    "unstake": "解押",
+    "approve": "授权"
+  },
+  "status": {
+    "confirmed": "已确认",
+    "pending": "处理中",
+    "failed": "失败"
+  },
   "aboutFee": "关于网络费用",
   "amount": "数量",
   "amountShouldBe_{min}-{max}-{assettype}": "数量应在 - 之间",

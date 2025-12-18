@@ -1,4 +1,47 @@
 {
+  "history": {
+    "title": "سجل المعاملات",
+    "noWallet": "يرجى إنشاء أو استيراد محفظة أولاً",
+    "totalRecords": "{{count}} سجل",
+    "emptyTitle": "لا توجد معاملات",
+    "emptyDesc": "لم يتم العثور على معاملات بالفلاتر الحالية",
+    "filter": {
+      "allChains": "جميع السلاسل",
+      "allTime": "الكل",
+      "days7": "7 أيام",
+      "days30": "30 يومًا",
+      "days90": "90 يومًا"
+    }
+  },
+  "detail": {
+    "title": "تفاصيل المعاملة",
+    "notFound": "المعاملة غير موجودة أو منتهية الصلاحية",
+    "info": "معلومات المعاملة",
+    "toAddress": "عنوان المستلم",
+    "fromAddress": "عنوان المرسل",
+    "time": "الوقت",
+    "network": "الشبكة",
+    "fee": "الرسوم",
+    "blockHeight": "ارتفاع الكتلة",
+    "confirmations": "التأكيدات",
+    "hash": "هاش المعاملة",
+    "copied": "تم النسخ",
+    "copyHash": "نسخ الهاش",
+    "viewExplorer": "عرض في المستكشف"
+  },
+  "type": {
+    "send": "إرسال",
+    "receive": "استلام",
+    "swap": "تبديل",
+    "stake": "تخزين",
+    "unstake": "إلغاء التخزين",
+    "approve": "موافقة"
+  },
+  "status": {
+    "confirmed": "مؤكد",
+    "pending": "قيد الانتظار",
+    "failed": "فشل"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
   IconCopy as Copy,
@@ -17,28 +18,11 @@ import { useCurrentWallet } from '@/stores';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
-/** 交易类型标签映射 */
-const TYPE_LABELS: Record<string, string> = {
-  send: '发送',
-  receive: '接收',
-  swap: '兑换',
-  stake: '质押',
-  unstake: '解押',
-  approve: '授权',
-};
-
 /** 状态映射 (TransactionInfo.status -> TransactionStatusType) */
 const STATUS_MAP: Record<string, 'success' | 'failed' | 'pending'> = {
   confirmed: 'success',
   pending: 'pending',
   failed: 'failed',
-};
-
-/** 状态标签 */
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: '已确认',
-  pending: '处理中',
-  failed: '失败',
 };
 
 /** 链浏览器 URL 映射 */
@@ -50,6 +34,7 @@ const EXPLORER_URLS: Record<string, string> = {
 };
 
 export function TransactionDetailPage() {
+  const { t } = useTranslation('transaction');
   const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
@@ -90,9 +75,9 @@ export function TransactionDetailPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="交易详情" onBack={handleBack} />
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">请先创建或导入钱包</p>
+          <p className="text-muted-foreground">{t('history.noWallet')}</p>
         </div>
       </div>
     );
@@ -102,9 +87,9 @@ export function TransactionDetailPage() {
   if (!transaction) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="交易详情" onBack={handleBack} />
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">交易不存在或已过期</p>
+          <p className="text-muted-foreground">{t('detail.notFound')}</p>
         </div>
       </div>
     );
@@ -118,7 +103,7 @@ export function TransactionDetailPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="交易详情" onBack={handleBack} />
+      <PageHeader title={t('detail.title')} onBack={handleBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 状态头 */}
@@ -135,7 +120,7 @@ export function TransactionDetailPage() {
           </div>
 
           <div className="text-center">
-            <p className="text-muted-foreground text-sm">{TYPE_LABELS[transaction.type] || transaction.type}</p>
+            <p className="text-muted-foreground text-sm">{t(`type.${transaction.type}`, { defaultValue: transaction.type })}</p>
             <AmountDisplay
               value={transaction.type === 'send' ? -Math.abs(parseFloat(transaction.amount)) : transaction.amount}
               symbol={transaction.symbol}
@@ -148,18 +133,18 @@ export function TransactionDetailPage() {
 
           <TransactionStatusBadge
             status={STATUS_MAP[transaction.status] || 'pending'}
-            label={STATUS_LABELS[transaction.status]}
+            label={t(`status.${transaction.status}`)}
           />
         </div>
 
         {/* 详细信息 */}
         <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
-          <h3 className="text-muted-foreground text-sm font-medium">交易信息</h3>
+          <h3 className="text-muted-foreground text-sm font-medium">{t('detail.info')}</h3>
 
           {/* 地址 */}
           <div className="flex items-center justify-between py-2">
             <span className="text-muted-foreground text-sm">
-              {transaction.type === 'send' ? '收款地址' : '发送地址'}
+              {transaction.type === 'send' ? t('detail.toAddress') : t('detail.fromAddress')}
             </span>
             <AddressDisplay address={transaction.address} copyable className="text-sm" />
           </div>
@@ -168,7 +153,7 @@ export function TransactionDetailPage() {
 
           {/* 时间 */}
           <div className="flex items-center justify-between py-2">
-            <span className="text-muted-foreground text-sm">交易时间</span>
+            <span className="text-muted-foreground text-sm">{t('detail.time')}</span>
             <TimeDisplay value={transaction.timestamp} format="datetime" className="text-sm" />
           </div>
 
@@ -176,7 +161,7 @@ export function TransactionDetailPage() {
 
           {/* 链 */}
           <div className="flex items-center justify-between py-2">
-            <span className="text-muted-foreground text-sm">网络</span>
+            <span className="text-muted-foreground text-sm">{t('detail.network')}</span>
             <span className="text-sm font-medium capitalize">{transaction.chain}</span>
           </div>
 
@@ -185,7 +170,7 @@ export function TransactionDetailPage() {
             <>
               <div className="bg-border h-px" />
               <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground text-sm">手续费</span>
+                <span className="text-muted-foreground text-sm">{t('detail.fee')}</span>
                 <FeeDisplay
                   amount={transaction.fee}
                   symbol={transaction.feeSymbol || transaction.symbol}
@@ -200,7 +185,7 @@ export function TransactionDetailPage() {
             <>
               <div className="bg-border h-px" />
               <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground text-sm">区块高度</span>
+                <span className="text-muted-foreground text-sm">{t('detail.blockHeight')}</span>
                 <span className="text-sm font-medium">{transaction.blockNumber.toLocaleString()}</span>
               </div>
             </>
@@ -211,7 +196,7 @@ export function TransactionDetailPage() {
             <>
               <div className="bg-border h-px" />
               <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground text-sm">确认数</span>
+                <span className="text-muted-foreground text-sm">{t('detail.confirmations')}</span>
                 <span className="text-sm font-medium">{transaction.confirmations}</span>
               </div>
             </>
@@ -221,7 +206,7 @@ export function TransactionDetailPage() {
         {/* 交易哈希 */}
         {transaction.hash && (
           <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
-            <h3 className="text-muted-foreground text-sm font-medium">交易哈希</h3>
+            <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
             <p className="text-muted-foreground font-mono text-xs break-all">{transaction.hash}</p>
 
             <div className="flex gap-2">
@@ -236,12 +221,12 @@ export function TransactionDetailPage() {
                 {copied ? (
                   <>
                     <Check className="text-secondary size-4" />
-                    <span className="text-sm">已复制</span>
+                    <span className="text-sm">{t('detail.copied')}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="size-4" />
-                    <span className="text-sm">复制哈希</span>
+                    <span className="text-sm">{t('detail.copyHash')}</span>
                   </>
                 )}
               </button>
@@ -255,7 +240,7 @@ export function TransactionDetailPage() {
                 )}
               >
                 <ExternalLink className="size-4" />
-                <span className="text-sm">区块浏览器</span>
+                <span className="text-sm">{t('detail.viewExplorer')}</span>
               </button>
             </div>
           </div>
