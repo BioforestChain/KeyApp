@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/common/skeleton';
 import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
@@ -48,9 +49,11 @@ export function FeeDisplay({
   highFeeThreshold,
   className,
 }: FeeDisplayProps) {
+  const { t } = useTranslation('common');
+
   if (isLoading) {
     return (
-      <div className={cn('space-y-1', className)} aria-busy="true" aria-label="Loading fee">
+      <div className={cn('space-y-1', className)} aria-busy="true" aria-label={t('a11y.loadingFee')}>
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-3 w-16" />
       </div>
@@ -66,7 +69,7 @@ export function FeeDisplay({
         <span className="font-mono text-sm" aria-label={`Fee: ${formatFee(amount)} ${symbol}`}>
           {formatFee(amount)} {symbol}
         </span>
-        {isHighFee && <AlertTriangle className="text-warning size-4" aria-label="High fee warning" />}
+        {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
       </div>
       {fiatNum !== null && (
         <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>

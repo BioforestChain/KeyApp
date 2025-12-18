@@ -93,7 +93,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             <p className="text-muted-foreground text-xs">
               <span className="sr-only">{t('a11y.passwordStrength', { strength: config.label })}</span>
               <span aria-hidden="true">
-                密码强度：
+                {t('common:passwordStrength')}：
                 <span
                   className={cn(
                     strength === 'weak' && 'text-destructive',

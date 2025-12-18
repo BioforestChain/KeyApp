@@ -1,4 +1,13 @@
 {
+  "transfer": "转账",
+  "receive": "收款",
+  "paste": "粘贴",
+  "addressPlaceholder": "输入或粘贴地址",
+  "noAssets": "暂无资产",
+  "balance": "余额",
+  "exceedsBalance": "超出可用余额",
+  "copiedToClipboard": "已复制到剪贴板",
+  "passwordStrength": "密码强度",
   "a11y": {
     "skipToMain": "跳转到主要内容",
     "tabHome": "首页",
@@ -19,7 +28,33 @@
     "hidePassword": "隐藏密码",
     "passwordStrength": "密码强度：{{strength}}",
     "closeDialog": "关闭弹窗",
-    "invalidAddress": "无效的地址格式"
+    "invalidAddress": "无效的地址格式",
+    "back": "返回",
+    "close": "关闭",
+    "loading": "加载中",
+    "addContact": "添加联系人",
+    "moreActions": "更多操作",
+    "notification": "通知",
+    "loadingFee": "正在加载手续费",
+    "highFeeWarning": "高手续费警告",
+    "appInfo": "应用信息",
+    "unknownApp": "未知应用",
+    "permissions": "权限列表",
+    "transactionDetails": "交易详情",
+    "selectWallet": "选择钱包"
+  },
+  "contact": {
+    "addTitle": "添加联系人",
+    "editTitle": "编辑联系人",
+    "name": "名称",
+    "namePlaceholder": "请输入联系人名称",
+    "address": "地址",
+    "addressPlaceholder": "请输入钱包地址",
+    "memoOptional": "备注（可选）",
+    "memoPlaceholder": "添加备注信息",
+    "add": "添加",
+    "save": "保存",
+    "cancel": "取消"
   },
   "acceptExchange": "接收交换",
   "account": "用户",
@@ -245,5 +280,17 @@
   "{{item}}Words": "个字",
   "{{length}}Words": "个字",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressBook": {
+    "title": "通讯录",
+    "searchPlaceholder": "搜索联系人",
+    "noContacts": "还没有联系人",
+    "noResults": "没有找到联系人",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleteTitle": "删除联系人",
+    "deleteConfirm": "确定要删除联系人 \"{{name}}\" 吗？",
+    "passwordError": "密码错误",
+    "verifyFailed": "验证失败"
+  }
 }

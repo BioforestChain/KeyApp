@@ -1,19 +1,12 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrency, preferencesActions, currencies, type CurrencyCode } from '@/stores';
 import { cn } from '@/lib/utils';
 
-/** 货币显示名称映射 */
-const CURRENCY_DISPLAY: Record<CurrencyCode, string> = {
-  USD: 'US Dollar',
-  CNY: '人民币',
-  EUR: 'Euro',
-  JPY: '日本円',
-  KRW: '한국 원',
-};
-
 export function CurrencyPage() {
+  const { t } = useTranslation('settings');
   const { goBack } = useNavigation();
   const currentCurrency = useCurrency();
 
@@ -24,7 +17,7 @@ export function CurrencyPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="计价货币" onBack={goBack} />
+      <PageHeader title={t('currency.title')} onBack={goBack} />
 
       <div className="flex-1 p-4">
         <div className="bg-card overflow-hidden rounded-xl shadow-sm">
@@ -41,8 +34,7 @@ export function CurrencyPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-muted-foreground text-base font-semibold">{currencies[code].symbol}</span>
-                  <span className="text-sm font-medium">{CURRENCY_DISPLAY[code]}</span>
-                  <span className="text-muted-foreground text-xs">({code})</span>
+                  <span className="text-sm font-medium">{t(`currency.names.${code}`)}</span>
                 </div>
                 {code === currentCurrency && <Check className="text-primary size-5" />}
               </button>
@@ -50,7 +42,7 @@ export function CurrencyPage() {
           ))}
         </div>
 
-        <p className="text-muted-foreground mt-4 px-1 text-xs">选择计价货币后，资产价值将以所选货币显示。</p>
+        <p className="text-muted-foreground mt-4 px-1 text-xs">{t('currency.hint')}</p>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/security/password-input';
@@ -60,47 +61,49 @@ const LANGUAGE_LABELS: Record<MnemonicLanguage, string> = {
   'zh-Hant': '中文（繁體）',
 };
 
+type TFunction = (key: string) => string;
+
 /**
  * Validates the create wallet form data
  */
-export function validateCreateWalletForm(data: Partial<CreateWalletFormData>): CreateWalletFormErrors {
+export function validateCreateWalletForm(data: Partial<CreateWalletFormData>, t: TFunction): CreateWalletFormErrors {
   const errors: CreateWalletFormErrors = {};
 
   // Name validation: required, max 12 chars
   const trimmedName = data.name?.trim() ?? '';
   if (!trimmedName) {
-    errors.name = '请输入钱包名称';
+    errors.name = t('onboarding:create.form.walletNameRequired');
   } else if (trimmedName.length > 12) {
-    errors.name = '钱包名称不能超过12个字符';
+    errors.name = t('onboarding:create.form.walletNameTooLong');
   }
 
   // Password validation: 8-30 chars, no whitespace
   const password = data.password ?? '';
   if (!password) {
-    errors.password = '请输入密码';
+    errors.password = t('onboarding:create.form.passwordRequired');
   } else if (password.length < 8) {
-    errors.password = '密码至少8个字符';
+    errors.password = t('onboarding:create.form.passwordTooShort');
   } else if (password.length > 30) {
-    errors.password = '密码不能超过30个字符';
+    errors.password = t('onboarding:create.form.passwordTooLong');
   } else if (/\s/.test(password)) {
-    errors.password = '密码不能包含空格';
+    errors.password = t('onboarding:create.form.passwordNoSpaces');
   }
 
   // Confirm password validation
   if (!data.confirmPassword) {
-    errors.confirmPassword = '请确认密码';
+    errors.confirmPassword = t('onboarding:create.form.confirmPasswordRequired');
   } else if (data.confirmPassword !== data.password) {
-    errors.confirmPassword = '两次输入的密码不一致';
+    errors.confirmPassword = t('onboarding:create.form.confirmPasswordMismatch');
   }
 
   // Tip validation: max 50 chars (optional)
   if (data.tip && data.tip.length > 50) {
-    errors.tip = '密码提示不能超过50个字符';
+    errors.tip = t('onboarding:create.form.passwordTipTooLong');
   }
 
   // Agreement validation
   if (!data.agreement) {
-    errors.agreement = '请阅读并同意用户协议';
+    errors.agreement = t('onboarding:create.form.agreementRequired');
   }
 
   return errors;
@@ -116,6 +119,7 @@ export function CreateWalletForm({
   isSubmitting = false,
   className,
 }: CreateWalletFormProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -141,7 +145,7 @@ export function CreateWalletForm({
         mnemonicOptions,
       };
 
-      const validationErrors = validateCreateWalletForm(formData);
+      const validationErrors = validateCreateWalletForm(formData, t);
       setErrors(validationErrors);
 
       // Mark all fields as touched
@@ -151,7 +155,7 @@ export function CreateWalletForm({
         onSubmit(formData);
       }
     },
-    [name, password, confirmPassword, tip, agreement, mnemonicOptions, onSubmit],
+    [name, password, confirmPassword, tip, agreement, mnemonicOptions, onSubmit, t],
   );
 
   const showError = (field: keyof CreateWalletFormErrors) => {
@@ -170,13 +174,13 @@ export function CreateWalletForm({
   return (
     <form onSubmit={handleSubmit} className={cn('space-y-6', className)}>
       {/* Wallet name */}
-      <FormField label="钱包名称" required error={showError('name')}>
+      <FormField label={t('onboarding:create.form.walletName')} required error={showError('name')}>
         <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={() => handleBlur('name')}
-          placeholder="请输入钱包名称"
+          placeholder={t('onboarding:create.form.walletNamePlaceholder')}
           maxLength={12}
           disabled={isSubmitting}
           aria-invalid={!!showError('name')}
@@ -185,12 +189,12 @@ export function CreateWalletForm({
       </FormField>
 
       {/* Password */}
-      <FormField label="密码" required error={showError('password')}>
+      <FormField label={t('onboarding:create.passwordLabel')} required error={showError('password')}>
         <PasswordInput
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={() => handleBlur('password')}
-          placeholder="8-30个字符，不能包含空格"
+          placeholder={t('onboarding:create.form.passwordPlaceholder')}
           showStrength
           disabled={isSubmitting}
           aria-invalid={!!showError('password')}
@@ -198,25 +202,25 @@ export function CreateWalletForm({
       </FormField>
 
       {/* Confirm password */}
-      <FormField label="确认密码" required error={showError('confirmPassword')}>
+      <FormField label={t('onboarding:create.confirmPasswordLabel')} required error={showError('confirmPassword')}>
         <PasswordInput
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           onBlur={() => handleBlur('confirmPassword')}
-          placeholder="请再次输入密码"
+          placeholder={t('onboarding:create.form.confirmPasswordPlaceholder')}
           disabled={isSubmitting}
           aria-invalid={!!showError('confirmPassword')}
         />
       </FormField>
 
       {/* Password tip */}
-      <FormField label="密码提示" hint="可选，用于帮助您记住密码" error={showError('tip')}>
+      <FormField label={t('onboarding:create.form.passwordTip')} hint={t('onboarding:create.form.passwordTipHint')} error={showError('tip')}>
         <Input
           type="text"
           value={tip}
           onChange={(e) => setTip(e.target.value)}
           onBlur={() => handleBlur('tip')}
-          placeholder="可选"
+          placeholder={t('onboarding:create.form.passwordTipPlaceholder')}
           maxLength={50}
           disabled={isSubmitting}
         />
@@ -224,7 +228,7 @@ export function CreateWalletForm({
 
       {/* Mnemonic options selector */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">助记词设置</label>
+        <label className="text-sm font-medium">{t('onboarding:create.form.mnemonicSettings')}</label>
         <button
           type="button"
           onClick={onOpenMnemonicOptions}
@@ -236,7 +240,7 @@ export function CreateWalletForm({
           )}
         >
           <span className="text-sm">
-            {LANGUAGE_LABELS[mnemonicOptions.language]} · {mnemonicOptions.length} 词
+            {LANGUAGE_LABELS[mnemonicOptions.language]} · {mnemonicOptions.length} {t('onboarding:create.form.mnemonicWords')}
           </span>
           <ChevronRight className="text-muted-foreground size-5" />
         </button>
@@ -264,13 +268,13 @@ export function CreateWalletForm({
           </div>
         </div>
         <span className="text-muted-foreground text-sm leading-relaxed">
-          我已阅读并同意
+          {t('onboarding:create.form.agreementPrefix')}
           <a href="/agreement" className="text-primary hover:underline">
-            《用户协议》
+            {t('onboarding:create.form.userAgreement')}
           </a>
-          和
+          {t('onboarding:create.form.and')}
           <a href="/privacy" className="text-primary hover:underline">
-            《隐私政策》
+            {t('onboarding:create.form.privacyPolicy')}
           </a>
         </span>
       </label>
@@ -290,7 +294,7 @@ export function CreateWalletForm({
           'disabled:cursor-not-allowed disabled:opacity-50',
         )}
       >
-        {isSubmitting ? '创建中...' : '创建钱包'}
+        {isSubmitting ? t('onboarding:create.form.creating') : t('onboarding:create.form.createWallet')}
       </button>
     </form>
   );

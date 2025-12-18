@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
@@ -25,6 +26,7 @@ type Mode = 'menu' | 'rename' | 'delete-confirm';
  * Sheet for editing wallet (rename/delete)
  */
 export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }: WalletEditSheetProps) {
+  const { t } = useTranslation('wallet');
   const [mode, setMode] = useState<Mode>('menu');
   const [newName, setNewName] = useState(wallet.name);
   const [passwordError, setPasswordError] = useState<string>();
@@ -79,7 +81,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
         // 验证密码
         const isValid = await verifyPassword(wallet.encryptedMnemonic, password);
         if (!isValid) {
-          setPasswordError('密码错误');
+          setPasswordError(t('editSheet.passwordError'));
           return;
         }
         // 密码正确，删除钱包
@@ -87,7 +89,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
         onSuccess?.();
         handleClose();
       } catch {
-        setPasswordError('验证失败');
+        setPasswordError(t('editSheet.verifyFailed'));
       } finally {
         setIsVerifying(false);
       }
@@ -109,7 +111,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
       <BottomSheet
         open={open && mode !== 'delete-confirm'}
         onClose={handleClose}
-        title={mode === 'rename' ? '重命名钱包' : '钱包设置'}
+        title={mode === 'rename' ? t('editSheet.renameTitle') : t('editSheet.title')}
         className={className}
       >
         {mode === 'menu' && (
@@ -126,8 +128,8 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
                 <Pencil className="text-primary size-5" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium">重命名</p>
-                <p className="text-muted-foreground text-sm">修改钱包名称</p>
+                <p className="font-medium">{t('editSheet.rename')}</p>
+                <p className="text-muted-foreground text-sm">{t('editSheet.renameDesc')}</p>
               </div>
             </button>
 
@@ -143,8 +145,8 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
                 <Trash2 className="text-destructive size-5" />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-destructive font-medium">删除钱包</p>
-                <p className="text-muted-foreground text-sm">此操作无法撤销</p>
+                <p className="text-destructive font-medium">{t('editSheet.delete')}</p>
+                <p className="text-muted-foreground text-sm">{t('editSheet.deleteDesc')}</p>
               </div>
             </button>
           </div>
@@ -155,14 +157,14 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
             {/* 名称输入 */}
             <div className="space-y-2">
               <label htmlFor="wallet-name" className="text-sm font-medium">
-                钱包名称
+                {t('editSheet.walletName')}
               </label>
               <input
                 id="wallet-name"
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="请输入钱包名称"
+                placeholder={t('editSheet.walletNamePlaceholder')}
                 maxLength={20}
                 autoFocus
                 className={cn(
@@ -184,13 +186,13 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
                   'disabled:cursor-not-allowed disabled:opacity-50',
                 )}
               >
-                保存
+                {t('editSheet.save')}
               </button>
               <button
                 onClick={handleBackToMenu}
                 className="text-muted-foreground hover:text-foreground w-full py-2 text-center text-sm"
               >
-                取消
+                {t('editSheet.cancel')}
               </button>
             </div>
           </div>
@@ -202,8 +204,8 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
         open={open && mode === 'delete-confirm'}
         onClose={handleBackToMenu}
         onVerify={handleVerifyAndDelete}
-        title="删除钱包"
-        description={`⚠️ 此操作无法撤销\n\n请输入密码以确认删除钱包 "${wallet.name}"`}
+        title={t('editSheet.deleteTitle')}
+        description={t('editSheet.deleteWarning', { name: wallet.name })}
         error={passwordError}
         isVerifying={isVerifying}
       />

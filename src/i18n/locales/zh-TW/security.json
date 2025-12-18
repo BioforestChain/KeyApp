@@ -1,4 +1,41 @@
 {
+  "backupTips": {
+    "title": "備份助記詞",
+    "description": "助記詞是恢復錢包的唯一方式，請務必妥善保管",
+    "tips": {
+      "privacy": {
+        "title": "確保周圍無人",
+        "description": "請在私密環境下查看助記詞，防止他人窺視"
+      },
+      "noScreenshot": {
+        "title": "禁止截圖或拍照",
+        "description": "不要以任何電子形式保存助記詞，建議手寫記錄"
+      },
+      "safekeeping": {
+        "title": "妥善保管",
+        "description": "將助記詞保存在安全的地方，丟失將無法找回資產"
+      }
+    },
+    "proceed": "我已了解，開始備份",
+    "skip": "稍後備份"
+  },
+  "passwordConfirm": {
+    "defaultTitle": "驗證密碼",
+    "placeholder": "請輸入密碼",
+    "verifying": "驗證中...",
+    "confirm": "確認",
+    "biometric": "使用生物辨識",
+    "cancel": "取消"
+  },
+  "mnemonicConfirm": {
+    "selected": "已選擇 {{current}}/{{total}}",
+    "undo": "撤銷",
+    "hint": "按正確順序點擊下方助記詞",
+    "error": "助記詞順序錯誤，請重試",
+    "success": "助記詞驗證成功",
+    "reset": "重新選擇",
+    "clearAll": "清空"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. 原身份錢包密碼將作為所有錢包的密碼，用於轉賬/備份助記詞等驗證。",
   "addressPassword": "地址密碼",
   "applicationLock": "應用鎖",
@@ -22,6 +59,7 @@
   "confirmToTurnOffFingerprintPayment": "確定關閉指紋支付？",
   "confirmToTurnOffPassewordLock": "確定要關閉密碼鎖嗎？",
   "copyAddressPassword": "複製地址密碼",
+  "copyMnemonic": "[MISSING:zh-TW] 复制助记词",
   "copyTheMnemonice": "複製助記詞",
   "currentPassword": "當前密碼",
   "doNotDiscloseOrShareTheMnemonicPhraseWithOthers": "請勿向他人公開或分享助記詞。",
@@ -44,6 +82,7 @@
   "fingerprintVerificationFailed": "指紋驗證失敗",
   "forgotPasswordGoToReset": "忘記密碼，去重置",
   "giveUpBackup": "放棄備份",
+  "hidePassword": "[MISSING:zh-TW] 隐藏密码",
   "identifyWalletPassword": "密碼鎖",
   "identityWalletPassword": "身份錢包密碼验证",
   "identityWalletPasswordVerification": "身份錢包密碼验证",
@@ -51,6 +90,7 @@
   "ifYouLoseYourMnemonicPhraseYourAssetsAreLostForever": "如果丟失了助記詞，您的資產將永遠丟失。",
   "importTheAccountWithTheMnemonic": "使用助記詞來導入錢包",
   "importWalletByCreatingMnemonic": "使用新助記詞來導入錢包",
+  "inTheNextStepYouCanSeeTheMnemonicWordsUsed": "[MISSING:zh-TW] 接下来，您将会看到由12个字组成的助记词",
   "inTheNextStepYouCanSeeTheMnemonicWordsUsedToRestoreTheWalletInOrderToEnsureTheSecurityOfTheWalletPleaseBeSureToCompleteTheBackupOfTheMnemonicPhraseAsSoonAsPossible": "在下一步中，您可看到用於恢復錢包的助記詞（12個單詞）。為了保障錢包安全，請務必儘快完成助記詞備份。",
   "loginWithFingerprintVerification": "使用指紋驗證登錄",
   "loginWithIdentityWalletPassword": "使用錢包密碼登錄",
@@ -58,9 +98,11 @@
   "mnemonic": "助記詞",
   "mnemonicBackupTips": "mnemonic-backup-tips",
   "mnemonicConfirmBackup": "mnemonic-confirm-backup",
+  "mnemonicCopied": "[MISSING:zh-TW] 助记词已复制",
   "mnemonicCreateWallet": "創建錢包",
   "mnemonicImport": "助記詞導入",
   "mnemonicInpitErrorPleaseReEnter": "助記詞輸入錯誤，請重新輸入",
+  "mnemonicPhraseAsSoonAsPossible": "[MISSING:zh-TW] mnemonic phrase as soon as possible.",
   "mnemonicPrivateKey": "助記詞/私鑰",
   "mnemonic_/AddressPassword": "助記詞/地址密碼",
   "newPassword": "新密碼",
@@ -95,7 +137,13 @@
   "selectNumberOfMnemonics": "選擇助記詞數量",
   "setTransactionPassword": "設置交易密碼",
   "setWalletPassword": "設置錢包密碼",
+  "showPassword": "[MISSING:zh-TW] 显示密码",
   "skipBackup": "跳過備份",
+  "strength": {
+    "medium": "[MISSING:zh-TW] 中等",
+    "strong": "[MISSING:zh-TW] 强",
+    "weak": "[MISSING:zh-TW] 弱"
+  },
   "supportForMultipleBlockchainspossessUnlimitedPossibilities": "支持多種區塊鏈 &lt;br /&gt; 擁有無限可能",
   "supportsTheImportOfBip39MnemonicPhrasesAndPasswordsOfBioforestChain": "支持 BIP39 助記詞與生物鏈密碼導入",
   "systemFingerprintingHasBeenDisabled": "系統指紋已被禁止",
@@ -116,6 +164,7 @@
   "verifyPassword": "驗證密碼",
   "walletPassword": "錢包密碼",
   "walletPasswordVerification": "錢包密碼驗證",
+  "walletPleaseBeSureToCompleteTheBackupOfThe": "[MISSING:zh-TW] wallet, please be sure to complete the backup of the",
   "whenTurnesOnYouCanUseYourFingerprintInsteadOfPassword": "開啟後，將启用指紋鎖",
   "youNeedToVerifyTheTransactionPasswordOfBeforeYouCanInitiateATransaction": "請驗證 交易密碼",
   "youNeedToVerifyTheTransactionPasswordOfBfchainBeforeYouCanInitiateATransaction": "請驗證 BFChain 交易密碼來發起轉帳",

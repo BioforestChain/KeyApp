@@ -1,4 +1,5 @@
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 
@@ -67,6 +68,7 @@ function truncateAddress(address: string, maxWidth: number, font: string): strin
 }
 
 export function AddressDisplay({ address, copyable = true, className, onCopy }: AddressDisplayProps) {
+  const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [displayText, setDisplayText] = useState<string | null>(null);
   const containerRef = useRef<HTMLElement>(null);
@@ -161,7 +163,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
         <Copy className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
       )}
       <span role="status" aria-live="polite" className="sr-only">
-        {copied ? '已复制到剪贴板' : ''}
+        {copied ? t('copiedToClipboard') : ''}
       </span>
     </button>
   );

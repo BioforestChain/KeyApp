@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+  "jsPlugins": ["eslint-plugin-i18next"],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -35,7 +36,115 @@
 
     "unicorn/no-null": "off",
     "unicorn/prefer-query-selector": "off",
-    "unicorn/require-module-specifiers": "off"
+    "unicorn/require-module-specifiers": "off",
+
+    "i18next/no-literal-string": ["warn", {
+      "mode": "jsx-only",
+      "jsx-components": {
+        "exclude": ["Trans", "Icon", "TablerIcon"]
+      },
+      "jsx-attributes": {
+        "exclude": [
+          "className", "styleName", "style", "type", "key", "id", "name", "role", "as", "asChild",
+          "data-testid", "data-test", "data-slot", "data-state", "data-side", "data-align",
+          "to", "href", "src", "alt", "target", "rel", "method", "action",
+          "variant", "size", "color", "weight", "sign", "align", "justify", "direction", "orientation",
+          "inputMode", "autoComplete", "autoFocus", "autoCapitalize", "spellCheck",
+          "enterKeyHint", "pattern", "min", "max", "step", "accept",
+          "xmlns", "viewBox", "fill", "stroke", "d", "cx", "cy", "r", "x", "y", "width", "height",
+          "strokeWidth", "strokeLinecap", "strokeLinejoin", "transform", "clipPath", "mask",
+          "side", "position", "chain", "status", "mode", "format", "locale", "currency",
+          "defaultValue", "value", "checked", "selected", "disabled", "required", "readOnly",
+          "tabIndex", "htmlFor", "form", "formAction", "formMethod", "formTarget"
+        ]
+      },
+      "callees": {
+        "exclude": [
+          "t", "i18n.t", "useTranslation", "Trans", "tCommon", "tAuthorize",
+          "console.*", "require", "import", "Error", "TypeError", "new Error", "new TypeError",
+          "push", "pop", "replace", "navigate", "redirect",
+          "querySelector", "querySelectorAll", "getElementById", "getElementsByClassName",
+          "addEventListener", "removeEventListener", "dispatchEvent",
+          "setTimeout", "setInterval", "clearTimeout", "clearInterval",
+          "JSON.parse", "JSON.stringify", "Object.keys", "Object.values", "Object.entries",
+          "Array.from", "Array.isArray", "String.fromCharCode",
+          "Math.*", "Number.*", "Date.*", "RegExp",
+          "fetch", "axios.*", "localStorage.*", "sessionStorage.*",
+          "describe", "it", "test", "expect", "vi.*", "jest.*",
+          "showError", "handleBlur", "join"
+        ]
+      },
+      "words": {
+        "exclude": [
+          "[A-Z_-]+",
+          "[0-9.]+",
+          "^\\s*$",
+          "^[a-z]+$",
+          "^[a-zA-Z]+\\.[a-zA-Z]+",
+          "^https?://",
+          "^mailto:",
+          "^tel:",
+          "^#[a-fA-F0-9]+$",
+          "^rgb",
+          "^hsl",
+          "^en-US$",
+          "^zh-CN$",
+          "^zh-TW$",
+          "^ar$",
+          "^default$",
+          "^ethereum$",
+          "^bitcoin$",
+          "^tron$",
+          "^bfmeta$",
+          "Alice",
+          "Bob",
+          "Carol",
+          "Dave",
+          "^✓$",
+          "^→",
+          "→",
+          "^←",
+          "^↓",
+          "^↑",
+          "^≈",
+          "≈ \\$",
+          "^\\?$",
+          "^-$",
+          "^\\*$",
+          "^•$",
+          "^%$",
+          "^—$",
+          "^·$",
+          "^/\\d+$",
+          "^\\d{1,2}:\\d{2}$",
+          "^\\$",
+          "•+",
+          "BFM Pay",
+          "Ethereum",
+          "Bitcoin",
+          "BNB Chain",
+          "Tron",
+          "BFMeta",
+          "BFChain",
+          "CCChain",
+          "PMChain",
+          "BSC",
+          "ETH",
+          "USDT",
+          "BFM",
+          "BFC",
+          "Close",
+          "^99\\+$",
+          "Copied",
+          "Copy to clipboard",
+          "password-error",
+          "^：$",
+          "^:$",
+          "^daysAgo$",
+          "^yesterday$"
+        ]
+      }
+    }]
   },
   "env": {
     "browser": true,
@@ -56,7 +165,14 @@
     "*.config.ts",
     "storybook-static",
     "e2e/test-results",
-    "e2e/report"
+    "e2e/report",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.stories.tsx",
+    "**/*.stories.ts",
+    "src/test/**",
+    "scripts/**",
+    "e2e/**"
   ],
   "settings": {
     "react": {

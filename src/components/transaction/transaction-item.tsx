@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { AddressDisplay } from '../wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '../common';
@@ -31,26 +32,27 @@ interface TransactionItemProps {
   className?: string | undefined;
 }
 
-const typeConfig: Record<TransactionType, { label: string; Icon: Icon; color: string }> = {
-  send: { label: '发送', Icon: ArrowUp, color: 'text-destructive' },
-  receive: { label: '接收', Icon: ArrowDown, color: 'text-secondary' },
-  swap: { label: '兑换', Icon: ArrowLeftRight, color: 'text-primary' },
-  stake: { label: '质押', Icon: Lock, color: 'text-primary' },
-  unstake: { label: '解押', Icon: Unlock, color: 'text-primary' },
-  approve: { label: '授权', Icon: Check, color: 'text-muted-foreground' },
+const typeIcons: Record<TransactionType, { Icon: Icon; color: string }> = {
+  send: { Icon: ArrowUp, color: 'text-destructive' },
+  receive: { Icon: ArrowDown, color: 'text-secondary' },
+  swap: { Icon: ArrowLeftRight, color: 'text-primary' },
+  stake: { Icon: Lock, color: 'text-primary' },
+  unstake: { Icon: Unlock, color: 'text-primary' },
+  approve: { Icon: Check, color: 'text-muted-foreground' },
 };
 
-const statusConfig: Record<TransactionStatus, { label: string; color: string }> = {
-  pending: { label: '处理中', color: 'text-yellow-500' },
-  confirmed: { label: '已确认', color: 'text-secondary' },
-  failed: { label: '失败', color: 'text-destructive' },
+const statusColors: Record<TransactionStatus, string> = {
+  pending: 'text-yellow-500',
+  confirmed: 'text-secondary',
+  failed: 'text-destructive',
 };
 
 export function TransactionItem({ transaction, onClick, className }: TransactionItemProps) {
-  const type = typeConfig[transaction.type];
-  const status = statusConfig[transaction.status];
+  const { t } = useTranslation('transaction');
+  const typeIcon = typeIcons[transaction.type];
+  const statusColor = statusColors[transaction.status];
   const isClickable = !!onClick;
-  const Icon = type.Icon;
+  const Icon = typeIcon.Icon;
 
   return (
     <div
@@ -75,17 +77,17 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
           transaction.type === 'approve' && 'bg-muted',
         )}
       >
-        <Icon className={cn('size-5 @xs:size-6', type.color)} />
+        <Icon className={cn('size-5 @xs:size-6', typeIcon.color)} />
       </div>
 
       {/* Transaction Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium @xs:text-base">{type.label}</span>
-          {transaction.status !== 'confirmed' && <span className={cn('text-xs', status.color)}>{status.label}</span>}
+          <span className="text-sm font-medium @xs:text-base">{t(`type.${transaction.type}`)}</span>
+          {transaction.status !== 'confirmed' && <span className={cn('text-xs', statusColor)}>{t(`status.${transaction.status}`)}</span>}
         </div>
         <p className="text-muted-foreground flex items-center gap-1 text-xs @xs:text-sm">
-          <span className="shrink-0">{transaction.type === 'send' ? '至' : '从'}</span>
+          <span className="shrink-0">{transaction.type === 'send' ? t('toAddress') : t('fromAddress')}</span>
           <AddressDisplay address={transaction.address} copyable={false} className="min-w-0 flex-1" />
         </p>
       </div>

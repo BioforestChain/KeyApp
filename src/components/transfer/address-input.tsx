@@ -70,7 +70,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
-            placeholder="输入或粘贴地址"
+            placeholder={t('common:addressPlaceholder')}
             autoComplete="off"
             autoCapitalize="off"
             autoCorrect="off"
@@ -98,7 +98,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
               aria-label={t('a11y.paste')}
             >
               <ClipboardPaste className="size-5 @xs:hidden" />
-              <span className="hidden @xs:inline">粘贴</span>
+              <span className="hidden @xs:inline">{t('common:paste')}</span>
             </button>
           </div>
         </div>

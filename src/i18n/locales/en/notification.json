@@ -1,4 +1,24 @@
 {
+  "permission": {
+    "title": "Enable Notifications",
+    "description": "Receive transaction status updates and important security alerts",
+    "enable": "Enable Notifications",
+    "skip": "Not Now",
+    "benefits": {
+      "transaction": {
+        "title": "Transaction Status",
+        "description": "Get real-time notifications for transfers and transaction confirmations"
+      },
+      "instant": {
+        "title": "Instant Alerts",
+        "description": "Be the first to know when payments arrive and transactions complete"
+      },
+      "security": {
+        "title": "Security Alerts",
+        "description": "Never miss important account security notifications"
+      }
+    }
+  },
   "title": "Notifications",
   "markAllRead": "Mark all read",
   "unreadCount": "{{count}} unread",

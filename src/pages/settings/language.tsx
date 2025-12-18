@@ -1,4 +1,5 @@
 import { useNavigation } from '@/stackflow';
+import { useTranslation } from 'react-i18next';
 import { IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useLanguage, preferencesActions, languages, type LanguageCode } from '@/stores';
@@ -14,6 +15,7 @@ const LANGUAGE_DISPLAY: Record<LanguageCode, string> = {
 
 export function LanguagePage() {
   const { goBack } = useNavigation();
+  const { t } = useTranslation('settings');
   const currentLanguage = useLanguage();
 
   const handleSelect = (lang: LanguageCode) => {
@@ -23,7 +25,7 @@ export function LanguagePage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="语言" onBack={goBack} />
+      <PageHeader title={t('languagePage.title')} onBack={goBack} />
 
       <div className="flex-1 p-4">
         <div className="bg-card overflow-hidden rounded-xl shadow-sm">
@@ -45,7 +47,7 @@ export function LanguagePage() {
           ))}
         </div>
 
-        <p className="text-muted-foreground mt-4 px-1 text-xs">选择界面语言后，应用将立即切换到所选语言。</p>
+        <p className="text-muted-foreground mt-4 px-1 text-xs">{t('languagePage.hint')}</p>
       </div>
     </div>
   );

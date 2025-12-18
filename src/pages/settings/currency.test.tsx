@@ -50,11 +50,12 @@ describe('CurrencyPage', () => {
   it('displays all available currencies', () => {
     renderWithProviders(<CurrencyPage />)
 
-    expect(screen.getByText('US Dollar')).toBeInTheDocument()
+    // Currency names from i18n settings.currency.names
+    expect(screen.getByText('美元')).toBeInTheDocument()
     expect(screen.getByText('人民币')).toBeInTheDocument()
-    expect(screen.getByText('Euro')).toBeInTheDocument()
-    expect(screen.getByText('日本円')).toBeInTheDocument()
-    expect(screen.getByText('한국 원')).toBeInTheDocument()
+    expect(screen.getByText('欧元')).toBeInTheDocument()
+    expect(screen.getByText('日元')).toBeInTheDocument()
+    expect(screen.getByText('韩元')).toBeInTheDocument()
   })
 
   it('shows currency symbols', () => {
@@ -66,19 +67,11 @@ describe('CurrencyPage', () => {
     expect(screen.getByText('₩')).toBeInTheDocument()
   })
 
-  it('shows currency codes', () => {
-    renderWithProviders(<CurrencyPage />)
-
-    expect(screen.getByText('(USD)')).toBeInTheDocument()
-    expect(screen.getByText('(CNY)')).toBeInTheDocument()
-    expect(screen.getByText('(EUR)')).toBeInTheDocument()
-  })
-
   it('shows checkmark for current currency', () => {
     renderWithProviders(<CurrencyPage />)
 
     // The current currency button should have a check mark (SVG)
-    const usdButton = screen.getByText('US Dollar').closest('button')
+    const usdButton = screen.getByText('美元').closest('button')
     expect(usdButton?.querySelector('svg')).toBeInTheDocument()
   })
 
@@ -93,7 +86,7 @@ describe('CurrencyPage', () => {
   it('navigates back to settings after selection', async () => {
     renderWithProviders(<CurrencyPage />)
 
-    await userEvent.click(screen.getByText('Euro'))
+    await userEvent.click(screen.getByText('欧元'))
 
     expect(mockGoBack).toHaveBeenCalledTimes(1)
   })
@@ -109,7 +102,7 @@ describe('CurrencyPage', () => {
   it('applies selection styling to current currency', () => {
     renderWithProviders(<CurrencyPage />)
 
-    const usdButton = screen.getByText('US Dollar').closest('button')
+    const usdButton = screen.getByText('美元').closest('button')
     expect(usdButton).toHaveClass('bg-primary/5')
   })
 

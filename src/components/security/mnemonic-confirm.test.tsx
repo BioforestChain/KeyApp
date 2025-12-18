@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { TestI18nProvider } from '@/test/i18n-mock';
 import { MnemonicConfirm } from './mnemonic-confirm';
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>);
 
 const testWords = ['apple', 'banana', 'cherry', 'date', 'elder', 'fig'];
 
@@ -10,7 +13,7 @@ describe('MnemonicConfirm', () => {
   });
 
   it('renders shuffled word buttons', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     testWords.forEach((word) => {
       expect(screen.getByRole('button', { name: word })).toBeInTheDocument();
@@ -18,17 +21,17 @@ describe('MnemonicConfirm', () => {
   });
 
   it('shows initial instruction', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
     expect(screen.getByText('按正确顺序点击下方助记词')).toBeInTheDocument();
   });
 
   it('shows progress count', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
     expect(screen.getByText(`已选择 0/${testWords.length}`)).toBeInTheDocument();
   });
 
   it('adds word to selection when clicked', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'apple' }));
 
@@ -36,7 +39,7 @@ describe('MnemonicConfirm', () => {
   });
 
   it('disables word after selection', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     const appleButton = screen.getByRole('button', { name: 'apple' });
     fireEvent.click(appleButton);
@@ -46,7 +49,7 @@ describe('MnemonicConfirm', () => {
 
   it('calls onComplete when correct order is selected', () => {
     const onComplete = vi.fn();
-    render(<MnemonicConfirm words={testWords} onComplete={onComplete} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={onComplete} />);
 
     // Select in correct order
     testWords.forEach((word) => {
@@ -57,7 +60,7 @@ describe('MnemonicConfirm', () => {
   });
 
   it('shows error when incorrect order is selected', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     // Select first word correctly, then wrong ones
     fireEvent.click(screen.getByRole('button', { name: 'apple' }));
@@ -71,7 +74,7 @@ describe('MnemonicConfirm', () => {
   });
 
   it('shows success message on correct completion', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     testWords.forEach((word) => {
       fireEvent.click(screen.getByRole('button', { name: word }));
@@ -82,7 +85,7 @@ describe('MnemonicConfirm', () => {
 
   it('resets selection when reset button is clicked', () => {
     const onReset = vi.fn();
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} onReset={onReset} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} onReset={onReset} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'apple' }));
     fireEvent.click(screen.getByText('重新选择'));
@@ -92,7 +95,7 @@ describe('MnemonicConfirm', () => {
   });
 
   it('removes last word when undo is clicked', () => {
-    render(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'apple' }));
     fireEvent.click(screen.getByRole('button', { name: 'banana' }));
@@ -113,7 +116,7 @@ describe('MnemonicConfirm', () => {
 
   it('does not call onComplete when incorrect', () => {
     const onComplete = vi.fn();
-    render(<MnemonicConfirm words={testWords} onComplete={onComplete} />);
+    renderWithI18n(<MnemonicConfirm words={testWords} onComplete={onComplete} />);
 
     // Wrong order
     fireEvent.click(screen.getByRole('button', { name: 'banana' }));

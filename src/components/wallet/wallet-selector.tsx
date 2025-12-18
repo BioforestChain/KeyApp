@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
 import type { WalletInfo } from './wallet-card';
@@ -24,9 +25,10 @@ interface WalletItemProps {
   wallet: WalletInfo;
   isSelected: boolean;
   onSelect: () => void;
+  notBackedUpLabel: string;
 }
 
-function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
+function WalletItem({ wallet, isSelected, onSelect, notBackedUpLabel }: WalletItemProps) {
   return (
     <button
       type="button"
@@ -50,7 +52,7 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
           <span className="truncate font-medium">{wallet.name}</span>
           {!wallet.isBackedUp && (
             <span className="bg-warning/20 text-warning shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-              未备份
+              {notBackedUpLabel}
             </span>
           )}
         </div>
@@ -71,6 +73,8 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
  * Wallet selector component for switching between multiple wallets
  */
 export function WalletSelector({ wallets, selectedId, onSelect, onClose, className }: WalletSelectorProps) {
+  const { t } = useTranslation('common');
+
   const handleSelect = (wallet: WalletInfo) => {
     onSelect?.(wallet);
     onClose?.();
@@ -79,20 +83,21 @@ export function WalletSelector({ wallets, selectedId, onSelect, onClose, classNa
   if (wallets.length === 0) {
     return (
       <div className={cn('text-muted-foreground py-8 text-center', className)}>
-        <p>暂无钱包</p>
-        <p className="mt-1 text-sm">请先创建或导入钱包</p>
+        <p>{t('wallet:empty')}</p>
+        <p className="mt-1 text-sm">{t('wallet:emptyHint')}</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('space-y-1', className)} role="listbox" aria-label="Select wallet">
+    <div className={cn('space-y-1', className)} role="listbox" aria-label={t('a11y.selectWallet')}>
       {wallets.map((wallet) => (
         <WalletItem
           key={wallet.id}
           wallet={wallet}
           isSelected={wallet.id === selectedId}
           onSelect={() => handleSelect(wallet)}
+          notBackedUpLabel={t('wallet:notBackedUp')}
         />
       ))}
     </div>

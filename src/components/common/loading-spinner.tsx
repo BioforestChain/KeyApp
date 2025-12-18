@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 interface LoadingSpinnerProps {
@@ -13,13 +14,15 @@ const sizeClasses = {
 }
 
 export function LoadingSpinner({ className, size = 'md', fullScreen = false }: LoadingSpinnerProps) {
+  const { t } = useTranslation('common')
+
   const spinner = (
     <svg
       className={cn('animate-spin text-primary', sizeClasses[size], className)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      aria-label="加载中"
+      aria-label={t('a11y.loading')}
     >
       <circle
         className="opacity-25"

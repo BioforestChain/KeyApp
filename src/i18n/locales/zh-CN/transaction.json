@@ -1,4 +1,60 @@
 {
+  "transfer": {
+    "quickTransfer": "快速转账",
+    "quickTransferDesc": "选择最近联系人或输入新地址",
+    "recentContacts": "最近联系人",
+    "newTransfer": "新建转账",
+    "transferHistory": "转账记录",
+    "transferTo": "转账给 {{name}}",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{{days}}天前"
+  },
+  "receivePage": {
+    "title": "收款",
+    "scanQrCode": "扫描二维码向此地址转账",
+    "receiveAddress": "收款地址",
+    "copied": "已复制",
+    "copyAddress": "复制地址",
+    "share": "分享",
+    "shareTitle": "BFM Pay 收款地址",
+    "addressCopied": "地址已复制",
+    "networkWarning": "仅支持 {{chain}} 网络资产转入，其他网络资产转入将无法找回"
+  },
+  "sendResult": {
+    "success": "转账成功",
+    "failed": "转账失败",
+    "pending": "处理中...",
+    "sentTo": "发送至 {{address}}",
+    "txHash": "交易哈希:",
+    "viewInBrowser": "在浏览器中查看",
+    "retry": "重试",
+    "done": "完成",
+    "back": "返回"
+  },
+  "confirmSheet": {
+    "title": "确认转账",
+    "toAddress": "收款地址",
+    "copied": "已复制",
+    "copyAddress": "复制地址",
+    "networkFee": "网络费用",
+    "cancel": "取消",
+    "confirming": "确认中...",
+    "confirm": "确认转账"
+  },
+  "sendPage": {
+    "title": "发送",
+    "resultTitle": "发送结果",
+    "toAddressLabel": "收款地址",
+    "toAddressPlaceholder": "输入 {{chain}} 地址",
+    "amountLabel": "金额",
+    "networkWarning": "请确保收款地址为 {{chain}} 网络地址，发送到错误网络将无法找回",
+    "continue": "继续",
+    "cameraPermissionRequired": "需要相机权限才能扫描",
+    "scanSuccess": "扫描成功",
+    "scanFailed": "扫描失败，请手动输入",
+    "explorerNotImplemented": "区块浏览器功能待实现"
+  },
   "history": {
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",
@@ -42,6 +98,8 @@
     "pending": "处理中",
     "failed": "失败"
   },
+  "toAddress": "至",
+  "fromAddress": "从",
   "aboutFee": "关于网络费用",
   "amount": "数量",
   "amountShouldBe_{min}-{max}-{assettype}": "数量应在 - 之间",

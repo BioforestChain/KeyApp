@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCircle } from '@/components/common/icon-circle';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
@@ -54,6 +55,7 @@ export function SendResult({
   onRetry,
   className,
 }: SendResultProps) {
+  const { t } = useTranslation('transaction');
   const [copied, setCopied] = useState(false);
 
   const handleCopyHash = useCallback(async () => {
@@ -86,9 +88,9 @@ export function SendResult({
 
       {/* Status Title */}
       <h2 className="mb-2 text-xl font-semibold">
-        {isSuccess && '转账成功'}
-        {isFailed && '转账失败'}
-        {isPending && '处理中...'}
+        {isSuccess && t('sendResult.success')}
+        {isFailed && t('sendResult.failed')}
+        {isPending && t('sendResult.pending')}
       </h2>
 
       {/* Amount */}
@@ -97,7 +99,7 @@ export function SendResult({
       </p>
 
       {/* Recipient */}
-      <p className="text-muted-foreground mb-6 text-sm">发送至 {truncateAddress(toAddress)}</p>
+      <p className="text-muted-foreground mb-6 text-sm">{t('sendResult.sentTo', { address: truncateAddress(toAddress) })}</p>
 
       {/* Error Message */}
       {isFailed && errorMessage && (
@@ -109,7 +111,7 @@ export function SendResult({
       {/* Transaction Hash */}
       {txHash && isSuccess && (
         <div className="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
-          <span>交易哈希:</span>
+          <span>{t('sendResult.txHash')}</span>
           <button type="button" onClick={handleCopyHash} className="hover:text-foreground font-mono">
             {truncateHash(txHash)}
           </button>
@@ -131,7 +133,7 @@ export function SendResult({
             className="border-border hover:bg-muted flex items-center justify-center gap-2 rounded-full border py-3 font-medium transition-colors"
           >
             <ExternalLink className="size-4" />
-            在浏览器中查看
+            {t('sendResult.viewInBrowser')}
           </button>
         )}
 
@@ -142,7 +144,7 @@ export function SendResult({
             onClick={onRetry}
             className="bg-primary hover:bg-primary/90 rounded-full py-3 font-medium text-white transition-colors"
           >
-            重试
+            {t('sendResult.retry')}
           </button>
         )}
 
@@ -160,10 +162,10 @@ export function SendResult({
           {isFailed ? (
             <>
               <ArrowLeft className="size-4" />
-              返回
+              {t('sendResult.back')}
             </>
           ) : (
-            '完成'
+            t('sendResult.done')
           )}
         </button>
       </div>

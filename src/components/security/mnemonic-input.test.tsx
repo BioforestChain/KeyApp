@@ -2,26 +2,29 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MnemonicInput } from './mnemonic-input'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 describe('MnemonicInput', () => {
   it('renders correct number of inputs for 12 words', () => {
-    render(<MnemonicInput wordCount={12} />)
+    renderWithI18n(<MnemonicInput wordCount={12} />)
     expect(screen.getAllByRole('textbox')).toHaveLength(12)
   })
 
   it('renders correct number of inputs for 24 words', () => {
-    render(<MnemonicInput wordCount={24} />)
+    renderWithI18n(<MnemonicInput wordCount={24} />)
     expect(screen.getAllByRole('textbox')).toHaveLength(24)
   })
 
   it('shows word indices', () => {
-    render(<MnemonicInput wordCount={12} />)
+    renderWithI18n(<MnemonicInput wordCount={12} />)
     expect(screen.getByText('1')).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
   })
 
   it('updates filled count as user types', async () => {
-    render(<MnemonicInput wordCount={12} />)
+    renderWithI18n(<MnemonicInput wordCount={12} />)
     
     expect(screen.getByText('已输入 0/12 个单词')).toBeInTheDocument()
     
@@ -33,7 +36,7 @@ describe('MnemonicInput', () => {
 
   it('calls onChange when words change', async () => {
     const handleChange = vi.fn()
-    render(<MnemonicInput wordCount={12} onChange={handleChange} />)
+    renderWithI18n(<MnemonicInput wordCount={12} onChange={handleChange} />)
     
     const inputs = screen.getAllByRole('textbox')
     await userEvent.type(inputs[0]!, 'abandon')
@@ -47,7 +50,7 @@ describe('MnemonicInput', () => {
 
   it('calls onComplete when all words filled', async () => {
     const handleComplete = vi.fn()
-    render(<MnemonicInput wordCount={12} onComplete={handleComplete} />)
+    renderWithI18n(<MnemonicInput wordCount={12} onComplete={handleComplete} />)
     
     const inputs = screen.getAllByRole('textbox')
     for (let i = 0; i < 12; i++) {
@@ -59,7 +62,7 @@ describe('MnemonicInput', () => {
 
   it('handles paste of multiple words', async () => {
     const handleChange = vi.fn()
-    render(<MnemonicInput wordCount={12} onChange={handleChange} />)
+    renderWithI18n(<MnemonicInput wordCount={12} onChange={handleChange} />)
     
     const inputs = screen.getAllByRole('textbox')
     const pasteText = 'abandon ability able about above absent'
@@ -71,7 +74,7 @@ describe('MnemonicInput', () => {
   })
 
   it('shows clear button when words are entered', async () => {
-    render(<MnemonicInput wordCount={12} />)
+    renderWithI18n(<MnemonicInput wordCount={12} />)
     
     expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument()
     
@@ -82,7 +85,7 @@ describe('MnemonicInput', () => {
   })
 
   it('clears all words when clear button clicked', async () => {
-    render(<MnemonicInput wordCount={12} />)
+    renderWithI18n(<MnemonicInput wordCount={12} />)
     
     const inputs = screen.getAllByRole('textbox')
     await userEvent.type(inputs[0]!, 'test')

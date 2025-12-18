@@ -82,7 +82,7 @@ export function HomePage() {
       await clipboard.write(chainAddress.address);
       await haptics.impact('light');
       setCopied(true);
-      toast.show('地址已复制');
+      toast.show(t('home:wallet.addressCopied'));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -142,13 +142,13 @@ export function HomePage() {
           <div className="flex-1">
             <GradientButton variant="blue" className="w-full" size="sm" onClick={() => navigate({ to: '/send' })}>
               <Send className="mr-1.5 size-4" />
-              转账
+              {t('home:wallet.send')}
             </GradientButton>
           </div>
           <div className="flex-1">
             <GradientButton variant="red" className="w-full" size="sm" onClick={() => navigate({ to: '/receive' })}>
               <QrCode className="mr-1.5 size-4" />
-              收款
+              {t('home:wallet.receive')}
             </GradientButton>
           </div>
         </div>
@@ -156,23 +156,23 @@ export function HomePage() {
 
       {/* 资产列表 */}
       <div className="bg-background -mt-4 flex-1 rounded-t-3xl p-5">
-        <h2 className="mb-4 text-lg font-semibold">资产</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('home:wallet.assets')}</h2>
         <TokenList
-          tokens={tokens.map((t) => ({
-            symbol: t.symbol,
-            name: t.name,
+          tokens={tokens.map((token) => ({
+            symbol: token.symbol,
+            name: token.name,
             chain: selectedChain,
-            balance: t.balance,
-            fiatValue: t.fiatValue ? String(t.fiatValue) : undefined,
-            change24h: t.change24h,
-            icon: t.icon,
+            balance: token.balance,
+            fiatValue: token.fiatValue ? String(token.fiatValue) : undefined,
+            change24h: token.change24h,
+            icon: token.icon,
           }))}
           onTokenClick={(token) => {
             // TODO: Implement token detail page route once available
             console.log('Token clicked:', token.symbol);
           }}
-          emptyTitle="暂无资产"
-          emptyDescription={`${selectedChainName} 链上暂无代币`}
+          emptyTitle={t('home:wallet.noAssets')}
+          emptyDescription={t('home:wallet.noAssetsOnChain', { chain: selectedChainName })}
         />
       </div>
 
@@ -186,7 +186,7 @@ export function HomePage() {
       </button>
 
       {/* 链选择底部弹窗 */}
-      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title="选择网络">
+      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title={t('home:wallet.selectNetwork')}>
         <div data-testid="chain-sheet" className="space-y-2 p-4">
           {availableChains.map((chain) => {
             const chainAddr = currentWallet.chainAddresses.find((ca) => ca.chain === chain);
@@ -217,6 +217,7 @@ export function HomePage() {
 
 function NoWalletView() {
   const { navigate } = useNavigation();
+  const { t } = useTranslation();
   
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
@@ -224,15 +225,15 @@ function NoWalletView() {
         <Plus className="text-primary size-12" />
       </div>
       <div>
-        <h1 className="text-2xl font-bold">欢迎使用 BFM Pay</h1>
-        <p className="text-muted-foreground mt-2">创建或导入钱包开始使用</p>
+        <h1 className="text-2xl font-bold">{t('home:welcome.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('home:welcome.subtitle')}</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
         <GradientButton variant="mint" className="w-full" onClick={() => navigate({ to: '/wallet/create' })}>
-          创建新钱包
+          {t('home:welcome.createWallet')}
         </GradientButton>
         <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/wallet/import' })}>
-          导入已有钱包
+          {t('home:welcome.importWallet')}
         </Button>
       </div>
     </div>

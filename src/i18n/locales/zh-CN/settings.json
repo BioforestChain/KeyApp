@@ -26,6 +26,56 @@
     "light": "浅色模式",
     "dark": "深色模式"
   },
+  "languagePage": {
+    "title": "语言",
+    "hint": "选择界面语言后，应用将立即切换到所选语言。"
+  },
+  "currency": {
+    "title": "计价货币",
+    "hint": "选择计价货币后，资产价值将以所选货币显示。",
+    "names": {
+      "USD": "美元",
+      "CNY": "人民币",
+      "EUR": "欧元",
+      "JPY": "日元",
+      "KRW": "韩元"
+    }
+  },
+  "viewMnemonic": {
+    "titleMnemonic": "查看助记词",
+    "titleKey": "查看密钥",
+    "noWallet": "请先创建或导入钱包",
+    "walletIncomplete": "钱包数据不完整",
+    "passwordError": "密码错误",
+    "securityTip": "安全提示",
+    "securityWarningMnemonic": "请确保周围无人窥视。助记词一旦泄露，资产将面临风险。",
+    "securityWarningKey": "请确保周围无人窥视。密钥一旦泄露，资产将面临风险。",
+    "charCount": "{{count}} 字符",
+    "wordCount": "{{count}} 位助记词",
+    "show": "显示",
+    "hide": "隐藏",
+    "autoHideNote": "30秒后将自动隐藏",
+    "verifyTitle": "验证密码",
+    "verifyDescMnemonic": "请输入钱包密码以查看助记词",
+    "verifyDescKey": "请输入钱包密码以查看密钥"
+  },
+  "changePassword": {
+    "title": "修改密码",
+    "noWallet": "请先创建或导入钱包",
+    "walletIncomplete": "钱包数据不完整",
+    "success": "密码修改成功",
+    "returning": "正在返回设置页面...",
+    "currentPassword": "当前密码",
+    "currentPasswordPlaceholder": "请输入当前密码",
+    "currentPasswordError": "当前密码不正确",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码（至少 {{min}} 位）",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请再次输入新密码",
+    "passwordMismatch": "两次输入的密码不一致",
+    "submitting": "修改中...",
+    "submit": "确认修改"
+  },
   "chainAddressCount": "{{count}} 个链地址",
   "notSupported": "暂不支持",
   "chainConfig": {

@@ -1,61 +1,66 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FeeDisplay } from './fee-display';
+import { TestI18nProvider } from '@/test/i18n-mock';
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>);
+}
 
 describe('FeeDisplay', () => {
   it('renders fee amount and symbol', () => {
-    render(<FeeDisplay amount={0.001} symbol="ETH" />);
+    renderWithProviders(<FeeDisplay amount={0.001} symbol="ETH" />);
     expect(screen.getByText(/0\.001 ETH/)).toBeInTheDocument();
   });
 
   it('formats small amounts correctly', () => {
-    render(<FeeDisplay amount={0.0000001} symbol="ETH" />);
+    renderWithProviders(<FeeDisplay amount={0.0000001} symbol="ETH" />);
     expect(screen.getByText(/< 0\.000001 ETH/)).toBeInTheDocument();
   });
 
   it('renders fiat equivalent when provided', () => {
-    render(<FeeDisplay amount={0.01} symbol="ETH" fiatValue={25.5} />);
+    renderWithProviders(<FeeDisplay amount={0.01} symbol="ETH" fiatValue={25.5} />);
     expect(screen.getByText(/≈ \$25\.50/)).toBeInTheDocument();
   });
 
   it('uses custom fiat symbol', () => {
-    render(<FeeDisplay amount={0.01} symbol="ETH" fiatValue={100} fiatSymbol="€" />);
+    renderWithProviders(<FeeDisplay amount={0.01} symbol="ETH" fiatValue={100} fiatSymbol="€" />);
     expect(screen.getByText(/≈ €100\.00/)).toBeInTheDocument();
   });
 
   it('shows loading skeleton when isLoading is true', () => {
-    render(<FeeDisplay amount={0} symbol="ETH" isLoading />);
-    expect(screen.getByLabelText('Loading fee')).toBeInTheDocument();
-    expect(screen.getByLabelText('Loading fee')).toHaveAttribute('aria-busy', 'true');
+    renderWithProviders(<FeeDisplay amount={0} symbol="ETH" isLoading />);
+    expect(screen.getByLabelText('正在加载手续费')).toBeInTheDocument();
+    expect(screen.getByLabelText('正在加载手续费')).toHaveAttribute('aria-busy', 'true');
   });
 
   it('shows high fee warning when threshold exceeded', () => {
-    render(<FeeDisplay amount={0.1} symbol="ETH" fiatValue={50} highFeeThreshold={10} />);
-    expect(screen.getByLabelText('High fee warning')).toBeInTheDocument();
+    renderWithProviders(<FeeDisplay amount={0.1} symbol="ETH" fiatValue={50} highFeeThreshold={10} />);
+    expect(screen.getByLabelText('高手续费警告')).toBeInTheDocument();
   });
 
   it('does not show warning when below threshold', () => {
-    render(<FeeDisplay amount={0.001} symbol="ETH" fiatValue={2} highFeeThreshold={10} />);
-    expect(screen.queryByLabelText('High fee warning')).not.toBeInTheDocument();
+    renderWithProviders(<FeeDisplay amount={0.001} symbol="ETH" fiatValue={2} highFeeThreshold={10} />);
+    expect(screen.queryByLabelText('高手续费警告')).not.toBeInTheDocument();
   });
 
   it('handles string amounts', () => {
-    render(<FeeDisplay amount="0.005" symbol="BNB" />);
+    renderWithProviders(<FeeDisplay amount="0.005" symbol="BNB" />);
     expect(screen.getByText(/0\.005 BNB/)).toBeInTheDocument();
   });
 
   it('handles zero amount', () => {
-    render(<FeeDisplay amount={0} symbol="ETH" />);
+    renderWithProviders(<FeeDisplay amount={0} symbol="ETH" />);
     expect(screen.getByText(/0 ETH/)).toBeInTheDocument();
   });
 
   it('applies custom className', () => {
-    const { container } = render(<FeeDisplay amount={0.01} symbol="ETH" className="custom-class" />);
+    const { container } = renderWithProviders(<FeeDisplay amount={0.01} symbol="ETH" className="custom-class" />);
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
   it('formats large fiat values with commas', () => {
-    render(<FeeDisplay amount={1} symbol="ETH" fiatValue={1234.56} />);
+    renderWithProviders(<FeeDisplay amount={1} symbol="ETH" fiatValue={1234.56} />);
     expect(screen.getByText(/≈ \$1,234\.56/)).toBeInTheDocument();
   });
 });

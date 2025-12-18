@@ -530,7 +530,7 @@ export function SignatureAuthPage() {
             <p className="text-sm text-destructive">{loadError}</p>
             <div className="mt-4">
               <Button onClick={() => navigate({ to: '/' })} className="w-full">
-                {tCommon('back', { defaultValue: 'Back' })}
+                {tCommon('back')}
               </Button>
             </div>
           </div>
@@ -583,7 +583,7 @@ export function SignatureAuthPage() {
         {messagePayload && (
           <div className="rounded-xl bg-card p-4 shadow-sm">
             <div className="text-sm text-muted-foreground mb-2">
-              {tAuthorize('signature.messageToSign', { defaultValue: 'Message to Sign' })}
+              {tAuthorize('signature.messageToSign')}
             </div>
             <div className={cn(
               'rounded-lg bg-muted/50 p-3',
@@ -657,9 +657,7 @@ export function SignatureAuthPage() {
         onClose={handlePasswordClose}
         onVerify={handlePasswordVerify}
         title={tAuthorize('button.confirm')}
-        description={tAuthorize('signature.confirmDescription', {
-          defaultValue: 'Enter your password to sign this transaction',
-        })}
+        description={tAuthorize('signature.confirmDescription')}
         error={passwordError}
         isVerifying={isSubmitting}
       />

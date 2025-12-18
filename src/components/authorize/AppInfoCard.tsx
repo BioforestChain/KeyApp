@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CallerAppInfo } from '@/services/authorize';
 import { cn } from '@/lib/utils';
 import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
@@ -21,13 +22,14 @@ function isUnknownOrigin(origin: string): boolean {
 }
 
 export function AppInfoCard({ appInfo, className }: AppInfoCardProps) {
+  const { t } = useTranslation('common');
   const [imageFailed, setImageFailed] = useState(false);
 
   const isUnknown = useMemo(() => isUnknownOrigin(appInfo.origin), [appInfo.origin]);
   const showImage = !imageFailed && appInfo.appIcon.trim().length > 0;
 
   return (
-    <section className={cn('bg-card rounded-xl p-4 shadow-sm', className)} aria-label="App info">
+    <section className={cn('bg-card rounded-xl p-4 shadow-sm', className)} aria-label={t('a11y.appInfo')}>
       <div className="flex items-center gap-3">
         <div className="bg-muted relative size-12 shrink-0 overflow-hidden rounded-xl">
           {showImage ? (
@@ -50,7 +52,7 @@ export function AppInfoCard({ appInfo, className }: AppInfoCardProps) {
             {isUnknown && (
               <span
                 className="bg-warning/15 text-warning inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
-                aria-label="Unknown app"
+                aria-label={t('a11y.unknownApp')}
               >
                 <AlertTriangle className="size-3" />
                 Unknown

@@ -1,4 +1,8 @@
 {
+  "add": "添加钱包",
+  "empty": "暂无钱包",
+  "emptyHint": "点击上方按钮创建或导入钱包",
+  "notBackedUp": "未备份",
   "list": {
     "title": "钱包管理",
     "empty": "还没有钱包",
@@ -6,6 +10,44 @@
     "current": "当前",
     "chainAddresses": "{{count}} 个链地址",
     "viewDetail": "查看详情"
+  },
+  "chainSelector": {
+    "default": "默认",
+    "noChains": "暂无可用链",
+    "selectChain": "选择链",
+    "selectAddress": "选择地址",
+    "noAddresses": "该链暂无地址"
+  },
+  "editSheet": {
+    "title": "钱包设置",
+    "renameTitle": "重命名钱包",
+    "rename": "重命名",
+    "renameDesc": "修改钱包名称",
+    "delete": "删除钱包",
+    "deleteDesc": "此操作无法撤销",
+    "walletName": "钱包名称",
+    "walletNamePlaceholder": "请输入钱包名称",
+    "save": "保存",
+    "cancel": "取消",
+    "deleteTitle": "删除钱包",
+    "deleteWarning": "⚠️ 此操作无法撤销\n\n请输入密码以确认删除钱包 \"{{name}}\"",
+    "passwordError": "密码错误",
+    "verifyFailed": "验证失败"
+  },
+  "detail": {
+    "title": "钱包详情",
+    "notFound": "钱包不存在",
+    "createdAt": "创建于 {{date}}",
+    "chainAddresses": "链地址",
+    "editName": "编辑钱包名称",
+    "exportMnemonic": "导出助记词",
+    "deleteWallet": "删除钱包",
+    "exportDeveloping": "助记词导出功能开发中",
+    "walletDeleted": "钱包已删除",
+    "verifyToExport": "验证身份以导出助记词",
+    "verifyToDelete": "验证身份以删除钱包",
+    "verifyFailed": "验证失败",
+    "securityWarning": "导出助记词需要验证密码，请确保在安全环境下操作"
   },
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "获得地址密码等同于拥有钱包资产所有权",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原中的钱包数据将全部保留，并进行数据整理，规则如下：",

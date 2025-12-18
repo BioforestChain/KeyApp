@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { IconCheck as Check } from '@tabler/icons-react';
@@ -28,6 +29,8 @@ const LENGTH_OPTIONS: MnemonicLength[] = [12, 15, 18, 21, 24, 36];
  * Bottom sheet for selecting mnemonic language and length options
  */
 export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, className }: MnemonicOptionsSheetProps) {
+  const { t } = useTranslation('onboarding');
+
   const handleLanguageSelect = (language: MnemonicLanguage) => {
     onConfirm({ ...value, language });
   };
@@ -37,12 +40,12 @@ export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, classNam
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="助记词设置" className={className}>
+    <BottomSheet open={open} onClose={onClose} title={t('create.mnemonicOptions.title')} className={className}>
       <div className="space-y-6 p-4">
         {/* Language selection */}
         <div className="space-y-3">
-          <h3 className="text-muted-foreground text-sm font-medium">语言</h3>
-          <div className="space-y-1" role="radiogroup" aria-label="选择助记词语言">
+          <h3 className="text-muted-foreground text-sm font-medium">{t('create.mnemonicOptions.language')}</h3>
+          <div className="space-y-1" role="radiogroup" aria-label={t('create.mnemonicOptions.selectLanguage')}>
             {LANGUAGE_OPTIONS.map((option) => (
               <button
                 key={option.value}
@@ -65,8 +68,8 @@ export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, classNam
 
         {/* Length selection */}
         <div className="space-y-3">
-          <h3 className="text-muted-foreground text-sm font-medium">词数</h3>
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="选择助记词词数">
+          <h3 className="text-muted-foreground text-sm font-medium">{t('create.mnemonicOptions.wordCount')}</h3>
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('create.mnemonicOptions.selectWordCount')}>
             {LENGTH_OPTIONS.map((length) => (
               <button
                 key={length}
@@ -80,7 +83,7 @@ export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, classNam
                   value.length === length ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80',
                 )}
               >
-                {length} 词
+                {length} {t('create.mnemonicOptions.words')}
               </button>
             ))}
           </div>
@@ -95,7 +98,7 @@ export function MnemonicOptionsSheet({ open, onClose, onConfirm, value, classNam
             'bg-primary hover:bg-primary/90',
           )}
         >
-          确定
+          {t('create.mnemonicOptions.confirm')}
         </button>
       </div>
     </BottomSheet>

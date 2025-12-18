@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconCheck as Check, IconX as X, IconHelpCircle as HelpCircle } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,8 @@ export function MnemonicConfirmBackup({
   onComplete,
   className,
 }: MnemonicConfirmBackupProps) {
+  const { t } = useTranslation('onboarding');
+
   // Group candidates into rows of 3
   const candidateRows = useMemo(() => {
     const rows: string[][] = [];
@@ -53,8 +56,8 @@ export function MnemonicConfirmBackup({
     <div className={cn('flex flex-col', className)}>
       {/* Header */}
       <div className="mb-6 text-center">
-        <h2 className="text-xl font-bold">确认助记词</h2>
-        <p className="text-muted-foreground mt-2 text-sm">请按顺序选择正确的助记词</p>
+        <h2 className="text-xl font-bold">{t('create.confirm.title')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('create.confirm.description')}</p>
       </div>
 
       {/* Verification slots */}
@@ -107,7 +110,7 @@ export function MnemonicConfirmBackup({
                 </span>
               ) : (
                 <span className="text-muted-foreground">
-                  {index === nextEmptySlotIndex ? '请选择第 ' + (slot.position + 1) + ' 个单词' : '等待选择...'}
+                  {index === nextEmptySlotIndex ? t('create.confirm.selectWord', { position: slot.position + 1 }) : '...'}
                 </span>
               )}
             </div>
@@ -128,7 +131,7 @@ export function MnemonicConfirmBackup({
 
       {/* Candidate words grid */}
       <div className="mb-6">
-        <p className="text-muted-foreground mb-3 text-center text-sm">从下方选择单词</p>
+        <p className="text-muted-foreground mb-3 text-center text-sm">{t('create.confirm.selectFromBelow')}</p>
         <div className="space-y-2">
           {candidateRows.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-3 gap-2">
@@ -159,18 +162,18 @@ export function MnemonicConfirmBackup({
       {/* Complete message */}
       {isComplete && (
         <div className="mb-4 rounded-xl bg-green-50 p-4 text-center dark:bg-green-900/20">
-          <p className="font-medium text-green-700 dark:text-green-300">验证成功！助记词已确认备份</p>
+          <p className="font-medium text-green-700 dark:text-green-300">{t('create.confirm.verifySuccess')}</p>
         </div>
       )}
 
       {/* Action button */}
       <Button onClick={onComplete} disabled={!isComplete} size="lg" className="w-full">
-        {isComplete ? '完成备份' : '请完成验证'}
+        {isComplete ? t('create.confirm.completeBackup') : t('create.confirm.pleaseComplete')}
       </Button>
 
       {/* Hint for wrong selections */}
       {slots.some((s) => s.isCorrect === false) && (
-        <p className="text-muted-foreground mt-3 text-center text-sm">点击红色选项可重新选择</p>
+        <p className="text-muted-foreground mt-3 text-center text-sm">{t('create.confirm.clickToReselect')}</p>
       )}
     </div>
   );

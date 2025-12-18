@@ -104,7 +104,7 @@ describe('TransactionDetails', () => {
       />
     )
 
-    expect(screen.getByRole('region', { name: 'Transaction details' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '交易详情' })).toBeInTheDocument()
   })
 
   it('applies custom className', () => {

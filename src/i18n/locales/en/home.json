@@ -1,0 +1,17 @@
+{
+  "welcome": {
+    "title": "Welcome to BFM Pay",
+    "subtitle": "Create or import a wallet to get started",
+    "createWallet": "Create New Wallet",
+    "importWallet": "Import Existing Wallet"
+  },
+  "wallet": {
+    "send": "Send",
+    "receive": "Receive",
+    "assets": "Assets",
+    "noAssets": "No Assets",
+    "noAssetsOnChain": "No tokens on {{chain}}",
+    "selectNetwork": "Select Network",
+    "addressCopied": "Address copied"
+  }
+}

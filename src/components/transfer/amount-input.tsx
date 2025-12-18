@@ -1,4 +1,5 @@
 import { useState, forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface AmountInputProps {
@@ -50,6 +51,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslation('common');
     const [focused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(value);
 
@@ -81,7 +83,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             <label className="block text-sm font-medium">{label}</label>
             {balance && (
               <span className="text-muted-foreground text-xs">
-                余额: {balance} {symbol}
+                {t('balance')}: {balance} {symbol}
               </span>
             )}
           </div>
@@ -135,7 +137,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
           )}
         </div>
 
-        {(error || isOverMax) && <p className="text-destructive -mt-0.5 text-xs">{error || '超出可用余额'}</p>}
+        {(error || isOverMax) && <p className="text-destructive -mt-0.5 text-xs">{error || t('exceedsBalance')}</p>}
       </div>
     );
   },

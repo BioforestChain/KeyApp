@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
@@ -27,6 +28,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
+  const { t } = useTranslation('transaction');
   const { goBack } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
@@ -44,7 +46,7 @@ export function ReceivePage() {
       await clipboard.write(address);
       await haptics.impact('light');
       setCopied(true);
-      toast.show('地址已复制');
+      toast.show(t('receivePage.addressCopied'));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -53,64 +55,64 @@ export function ReceivePage() {
     if (navigator.share && address) {
       try {
         await navigator.share({
-          title: 'BFM Pay 收款地址',
+          title: t('receivePage.shareTitle'),
           text: address,
         });
         await haptics.impact('success');
       } catch {
-        // 用户取消分享
+        // User cancelled share
       }
     }
   };
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="收款" onBack={goBack} />
+      <PageHeader title={t('receivePage.title')} onBack={goBack} />
 
       <div className="flex-1 space-y-6 p-4">
-        {/* 链信息 */}
+        {/* Chain info */}
         <div className="text-muted-foreground flex items-center justify-center gap-2">
           <ChainIcon chain={selectedChain} size="sm" />
           <span className="text-sm">{selectedChainName}</span>
         </div>
 
-        {/* 二维码区域 */}
+        {/* QR code area */}
         <div className="bg-card flex flex-col items-center gap-4 rounded-2xl p-6 shadow-sm">
           <AddressQRCode address={address} chain={selectedChain} size={200} />
-          <p className="text-muted-foreground text-center text-sm">扫描二维码向此地址转账</p>
+          <p className="text-muted-foreground text-center text-sm">{t('receivePage.scanQrCode')}</p>
         </div>
 
-        {/* 地址显示 */}
+        {/* Address display */}
         <div className="space-y-2">
-          <label className="text-muted-foreground text-sm font-medium">收款地址</label>
+          <label className="text-muted-foreground text-sm font-medium">{t('receivePage.receiveAddress')}</label>
           <div className="border-border bg-card rounded-xl border p-4">
             <AddressDisplay address={address} copyable />
           </div>
         </div>
 
-        {/* 操作按钮 */}
+        {/* Action buttons */}
         <div className="flex gap-3 pt-4">
           <Button variant="outline" className="flex-1" onClick={handleCopy}>
             {copied ? (
               <>
                 <Check className="mr-2 size-4" />
-                已复制
+                {t('receivePage.copied')}
               </>
             ) : (
               <>
                 <Copy className="mr-2 size-4" />
-                复制地址
+                {t('receivePage.copyAddress')}
               </>
             )}
           </Button>
           <GradientButton variant="mint" className="flex-1" onClick={handleShare}>
             <Share2 className="mr-2 size-4" />
-            分享
+            {t('receivePage.share')}
           </GradientButton>
         </div>
 
-        {/* 提示 */}
-        <Alert variant="info">仅支持 {selectedChainName} 网络资产转入，其他网络资产转入将无法找回</Alert>
+        {/* Warning */}
+        <Alert variant="info">{t('receivePage.networkWarning', { chain: selectedChainName })}</Alert>
       </div>
     </div>
   );

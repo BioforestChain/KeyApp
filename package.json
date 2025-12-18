@@ -32,7 +32,9 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "gen:stable": "bun scripts/gen-stable.ts",
-    "i18n:extract": "bun scripts/i18n-extract.ts"
+    "i18n:extract": "bun scripts/i18n-extract.ts",
+    "i18n:check": "bun scripts/i18n-check.ts",
+    "i18n:validate": "bun scripts/i18n-validate.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -93,6 +95,7 @@
     "@vitest/browser-playwright": "^4.0.15",
     "@vitest/coverage-istanbul": "^4.0.15",
     "@vitest/coverage-v8": "^4.0.15",
+    "eslint-plugin-i18next": "^6.1.3",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^27.2.0",
     "oxlint": "^1.32.0",

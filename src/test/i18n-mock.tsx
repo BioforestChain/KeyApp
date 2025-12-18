@@ -8,6 +8,7 @@ import zhCNOnboarding from '@/i18n/locales/zh-CN/onboarding.json'
 import zhCNTransaction from '@/i18n/locales/zh-CN/transaction.json'
 import zhCNNotification from '@/i18n/locales/zh-CN/notification.json'
 import zhCNWallet from '@/i18n/locales/zh-CN/wallet.json'
+import zhCNSecurity from '@/i18n/locales/zh-CN/security.json'
 
 // 创建测试用的 i18n 实例
 const testI18n = i18n.createInstance()
@@ -15,7 +16,7 @@ const testI18n = i18n.createInstance()
 testI18n.use(initReactI18next).init({
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
-  ns: ['translation', 'authorize', 'common', 'settings', 'onboarding', 'transaction', 'notification', 'wallet'],
+  ns: ['translation', 'authorize', 'common', 'settings', 'onboarding', 'transaction', 'notification', 'wallet', 'security'],
   defaultNS: 'translation',
   resources: {
     'zh-CN': {
@@ -122,6 +123,7 @@ testI18n.use(initReactI18next).init({
       transaction: zhCNTransaction,
       notification: zhCNNotification,
       wallet: zhCNWallet,
+      security: zhCNSecurity,
     },
   },
   interpolation: {

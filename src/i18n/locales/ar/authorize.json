@@ -19,9 +19,9 @@
       "viewPublicKey": "View your public keys",
       "signMessage": "Sign a verification message",
       "getMain": "View your wallet import phrase (main)"
-    }
-    ,
-    "confirmDescription": "Enter your password to continue"
+    },
+    "confirmDescription": "Enter your password to continue",
+    "noWallets": "لا توجد محافظ"
   },
   "signature": {
     "reviewTransaction": "Review this transaction",

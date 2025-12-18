@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { GradientButton } from '@/components/common/gradient-button';
@@ -27,6 +28,7 @@ const STEPS: Step[] = ['password', 'mnemonic', 'verify'];
 
 export function WalletCreatePage() {
   const { navigate, goBack } = useNavigation();
+  const { t } = useTranslation();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('password');
@@ -99,7 +101,7 @@ export function WalletCreatePage() {
       ];
 
       walletActions.createWallet({
-        name: '主钱包',
+        name: t('onboarding:create.defaultWalletName'),
         keyType: 'mnemonic',
         address: ethKey.address,
         chain: 'ethereum',
@@ -109,14 +111,14 @@ export function WalletCreatePage() {
 
       navigate({ to: '/' });
     } catch (error) {
-      console.error('创建钱包失败:', error);
+      console.error(t('onboarding:create.createFailed'), error);
       setIsCreating(false);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="创建钱包" onBack={handleBack} />
+      <PageHeader title={t('onboarding:create.title')} onBack={handleBack} />
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
@@ -166,6 +168,7 @@ function PasswordStep({
   onConfirmPasswordChange,
   onSubmit,
 }: PasswordStepProps) {
+  const { t } = useTranslation();
   const isValid = password.length >= 8 && password === confirmPassword;
   const passwordMismatch = confirmPassword && password !== confirmPassword;
 
@@ -173,31 +176,31 @@ function PasswordStep({
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">设置密码</h2>
-        <p className="text-muted-foreground mt-2 text-sm">密码用于加密您的钱包，请牢记</p>
+        <h2 className="text-xl font-bold">{t('onboarding:create.setPassword')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.passwordDesc')}</p>
       </div>
 
       <div className="space-y-4">
-        <FormField label="密码" hint="至少 8 位字符">
+        <FormField label={t('onboarding:create.passwordLabel')} hint={t('onboarding:create.passwordHint')}>
           <PasswordInput
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder="输入密码"
+            placeholder={t('onboarding:create.passwordPlaceholder')}
             showStrength
           />
         </FormField>
 
-        <FormField label="确认密码" error={passwordMismatch ? '两次密码不一致' : undefined}>
+        <FormField label={t('onboarding:create.confirmPasswordLabel')} error={passwordMismatch ? t('onboarding:create.passwordMismatch') : undefined}>
           <PasswordInput
             value={confirmPassword}
             onChange={(e) => onConfirmPasswordChange(e.target.value)}
-            placeholder="再次输入密码"
+            placeholder={t('onboarding:create.confirmPasswordPlaceholder')}
           />
         </FormField>
       </div>
 
       <GradientButton variant="mint" className="w-full" disabled={!isValid} onClick={onSubmit}>
-        下一步
+        {t('onboarding:create.nextStep')}
         <ArrowRight className="ml-2 size-4" />
       </GradientButton>
     </div>
@@ -214,24 +217,25 @@ interface MnemonicStepProps {
 }
 
 function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onContinue }: MnemonicStepProps) {
+  const { t } = useTranslation();
   const canContinue = copied || !hidden;
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={KeyRound} variant="warning" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">备份助记词</h2>
-        <p className="text-muted-foreground mt-2 text-sm">请按顺序抄写助记词，并妥善保管</p>
+        <h2 className="text-xl font-bold">{t('onboarding:create.backupMnemonic')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.backupHint')}</p>
       </div>
 
-      <Alert variant="warning">助记词是恢复钱包的唯一方式，丢失后无法找回。请勿截图或在线存储。</Alert>
+      <Alert variant="warning">{t('onboarding:create.mnemonicWarning')}</Alert>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">助记词</span>
+          <span className="text-sm font-medium">{t('onboarding:create.mnemonicTitle')}</span>
           <button type="button" onClick={onToggleHidden} className="text-primary flex items-center gap-1 text-sm">
             {hidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-            {hidden ? '显示' : '隐藏'}
+            {hidden ? t('onboarding:create.mnemonicShow') : t('onboarding:create.mnemonicHide')}
           </button>
         </div>
 
@@ -239,7 +243,7 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
       </div>
 
       <GradientButton variant="mint" className="w-full" disabled={!canContinue} onClick={onContinue}>
-        {canContinue ? '我已备份' : '请先查看并复制助记词'}
+        {canContinue ? t('onboarding:create.mnemonicBackedUp') : t('onboarding:create.mnemonicViewFirst')}
         {canContinue && <ArrowRight className="ml-2 size-4" />}
       </GradientButton>
     </div>
@@ -252,6 +256,7 @@ interface VerifyStepProps {
 }
 
 function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
+  const { t } = useTranslation();
   const [selectedIndices] = useState<number[]>(() => {
     const indices = Array.from({ length: mnemonic.length }, (_, i) => i);
     const shuffled = indices.sort(() => Math.random() - 0.5);
@@ -274,7 +279,7 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
     const word = mnemonic[index];
     const answer = answers[index];
     if (answer && word && answer.toLowerCase() !== word.toLowerCase()) {
-      return '单词不正确';
+      return t('onboarding:create.wordIncorrect');
     }
     return undefined;
   };
@@ -283,18 +288,18 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">验证助记词</h2>
-        <p className="text-muted-foreground mt-2 text-sm">请输入以下位置的助记词</p>
+        <h2 className="text-xl font-bold">{t('onboarding:create.verifyTitle')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.verifyDesc')}</p>
       </div>
 
       <div className="space-y-4">
         {selectedIndices.map((index) => (
-          <FormField key={index} label={`第 ${index + 1} 个单词`} error={getFieldError(index)}>
+          <FormField key={index} label={t('onboarding:create.wordN', { n: index + 1 })} error={getFieldError(index)}>
             <Input
               value={answers[index] || ''}
               onChange={(e) => handleInputChange(index, e.target.value)}
               className={cn(getFieldError(index) && 'border-destructive focus-visible:ring-destructive')}
-              placeholder={`输入第 ${index + 1} 个单词`}
+              placeholder={t('onboarding:create.wordNPlaceholder', { n: index + 1 })}
               autoCapitalize="off"
               autoCorrect="off"
             />
@@ -303,7 +308,7 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
       </div>
 
       <GradientButton variant="mint" className="w-full" disabled={!isValid} onClick={onComplete}>
-        完成创建
+        {t('onboarding:create.complete')}
       </GradientButton>
     </div>
   );

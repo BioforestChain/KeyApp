@@ -52,6 +52,7 @@ export function TransactionDetails({
   className,
 }: TransactionDetailsProps) {
   const { t } = useTranslation('authorize')
+  const { t: tCommon } = useTranslation('common')
 
   const chainType = useMemo(
     () => (chainId ? CHAIN_TYPE_MAP[chainId.toLowerCase()] : undefined),
@@ -61,7 +62,7 @@ export function TransactionDetails({
   return (
     <section
       className={cn('rounded-xl bg-card p-4 shadow-sm', className)}
-      aria-label="Transaction details"
+      aria-label={tCommon('a11y.transactionDetails')}
     >
       <div className="space-y-3">
         {/* Chain indicator */}
