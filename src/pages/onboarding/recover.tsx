@@ -32,7 +32,7 @@ const mockWalletQuery: IWalletQuery = {
  */
 export function OnboardingRecoverPage() {
   const { navigate } = useNavigation();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding', 'common', 'wallet']);
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('keyType');
@@ -203,7 +203,7 @@ export function OnboardingRecoverPage() {
 
       setIsSubmitting(true);
       try {
-        const walletName = `钱包 ${Date.now() % 1000}`;
+        const walletName = `${t('wallet:wallet')} ${Date.now() % 1000}`;
 
         const encryptedMnemonic = await encrypt(secret, walletPassword);
 
@@ -242,17 +242,17 @@ export function OnboardingRecoverPage() {
     setPasswordError(null);
 
     if (password.length < 8) {
-      setPasswordError('密码至少 8 位字符');
+      setPasswordError(t('onboarding:recover.errors.minLength'));
       return;
     }
 
     if (/\s/.test(password)) {
-      setPasswordError('密码不能包含空格');
+      setPasswordError(t('onboarding:recover.errors.noSpaces'));
       return;
     }
 
     if (confirmPassword !== password) {
-      setPasswordError('两次输入的密码不一致');
+      setPasswordError(t('onboarding:recover.errors.mismatch'));
       return;
     }
 
@@ -262,7 +262,7 @@ export function OnboardingRecoverPage() {
     }
 
     if (mnemonic.length === 0) {
-      setPasswordError('助记词数据不完整');
+      setPasswordError(t('onboarding:recover.errors.mnemonicIncomplete'));
       return;
     }
 
@@ -302,7 +302,7 @@ export function OnboardingRecoverPage() {
 
       {step === 'mnemonic' && (
         <>
-          <PageHeader title="恢复钱包" onBack={handleBack} />
+          <PageHeader title={t('onboarding:recover.title')} onBack={handleBack} />
           <div className="flex-1 p-4">
             <RecoverWalletForm onSubmit={handleMnemonicSubmit} isSubmitting={duplicateDetection.isChecking} />
           </div>
@@ -354,7 +354,7 @@ export function OnboardingRecoverPage() {
 
       {step === 'collision' && (
         <>
-          <PageHeader title="地址冲突" onBack={handleBack} />
+          <PageHeader title={t('onboarding:recover.addressConflict')} onBack={handleBack} />
           <div className="flex-1 p-4">
             <CollisionConfirmDialog
               result={duplicateDetection.result}
@@ -368,32 +368,32 @@ export function OnboardingRecoverPage() {
 
       {step === 'password' && (
         <>
-          <PageHeader title="设置密码" onBack={handleBack} />
+          <PageHeader title={t('onboarding:recover.setPassword')} onBack={handleBack} />
           <div className="flex-1 p-4">
             <div className="space-y-5">
               <div className="text-muted-foreground space-y-1 text-sm">
-                <p>密码用于加密您的钱包密钥，请牢记。</p>
-                <p>至少 8 位字符，不能包含空格。</p>
+                <p>{t('onboarding:recover.passwordHint')}</p>
+                <p>{t('onboarding:recover.passwordRule')}</p>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">密码</label>
+                  <label className="text-sm font-medium">{t('onboarding:recover.password')}</label>
                   <PasswordInput
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="请输入密码"
+                    placeholder={t('onboarding:recover.passwordPlaceholder')}
                     showStrength
                     disabled={isSubmitting}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">确认密码</label>
+                  <label className="text-sm font-medium">{t('onboarding:recover.confirmPassword')}</label>
                   <PasswordInput
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="请再次输入密码"
+                    placeholder={t('onboarding:recover.confirmPlaceholder')}
                     disabled={isSubmitting}
                   />
                 </div>
