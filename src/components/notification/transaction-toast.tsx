@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import {
   IconX as X,
   IconCircleCheck as CheckCircle2,
@@ -70,6 +71,7 @@ export function TransactionToast({
   onClose,
   onClick,
 }: TransactionToastProps) {
+  const { t } = useTranslation('common');
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -120,7 +122,7 @@ export function TransactionToast({
           handleClose();
         }}
         className="shrink-0 rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/5"
-        aria-label="关闭"
+        aria-label={t('a11y.close')}
       >
         <X className="size-4" />
       </button>
@@ -144,12 +146,14 @@ const positionStyles: Record<ToastContainerProps['position'] & string, string> =
 };
 
 export function ToastContainer({ toasts, onClose, onClick, position = 'top-right' }: ToastContainerProps) {
+  const { t } = useTranslation('common');
+
   if (typeof document === 'undefined') return null;
 
   return createPortal(
     <div
       className={cn('pointer-events-none fixed z-50 flex flex-col gap-2', positionStyles[position])}
-      aria-label="通知"
+      aria-label={t('a11y.notification')}
     >
       {toasts.map((toast) => (
         <TransactionToast key={toast.id} {...toast} onClose={onClose} onClick={onClick ?? undefined} />

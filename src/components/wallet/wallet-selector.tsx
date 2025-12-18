@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
 import type { WalletInfo } from './wallet-card';
@@ -71,6 +72,8 @@ function WalletItem({ wallet, isSelected, onSelect }: WalletItemProps) {
  * Wallet selector component for switching between multiple wallets
  */
 export function WalletSelector({ wallets, selectedId, onSelect, onClose, className }: WalletSelectorProps) {
+  const { t } = useTranslation('common');
+
   const handleSelect = (wallet: WalletInfo) => {
     onSelect?.(wallet);
     onClose?.();
@@ -86,7 +89,7 @@ export function WalletSelector({ wallets, selectedId, onSelect, onClose, classNa
   }
 
   return (
-    <div className={cn('space-y-1', className)} role="listbox" aria-label="Select wallet">
+    <div className={cn('space-y-1', className)} role="listbox" aria-label={t('a11y.selectWallet')}>
       {wallets.map((wallet) => (
         <WalletItem
           key={wallet.id}

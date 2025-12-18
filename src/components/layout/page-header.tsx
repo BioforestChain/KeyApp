@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
@@ -10,6 +11,8 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, onBack, rightAction, transparent = false, className, children }: PageHeaderProps) {
+  const { t } = useTranslation('common');
+
   return (
     <header
       className={cn(
@@ -26,7 +29,7 @@ export function PageHeader({ title, onBack, rightAction, transparent = false, cl
             type="button"
             onClick={onBack}
             className="hover:bg-muted/50 -ml-2 flex aspect-square w-9 items-center justify-center rounded-full transition-colors"
-            aria-label="返回"
+            aria-label={t('a11y.back')}
           >
             <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

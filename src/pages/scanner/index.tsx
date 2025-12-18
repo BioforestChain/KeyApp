@@ -26,6 +26,7 @@ const SCAN_INTERVAL = 150;
 
 export function ScannerPage({ onScan, className }: ScannerPageProps) {
   const { t } = useTranslation('scanner');
+  const { t: tCommon } = useTranslation('common');
   const { navigate, goBack } = useNavigation();
   const cameraService = useCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -202,7 +203,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
     <div className={cn('relative flex h-screen flex-col bg-black', className)}>
       {/* Header */}
       <div className="absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4">
-        <Button variant="ghost" size="icon" onClick={handleBack} className="text-white" aria-label="返回">
+        <Button variant="ghost" size="icon" onClick={handleBack} className="text-white" aria-label={tCommon('a11y.back')}>
           <X className="size-6" />
         </Button>
         <h1 className="text-lg font-medium text-white">{t('title')}</h1>

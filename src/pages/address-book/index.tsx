@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { useStore } from '@tanstack/react-store';
 import {
@@ -22,6 +23,7 @@ import { verifyPassword } from '@/lib/crypto';
 import { cn } from '@/lib/utils';
 
 export function AddressBookPage() {
+  const { t } = useTranslation('common');
   const { goBack } = useNavigation();
   const contacts = useStore(addressBookStore, (s) => s.contacts);
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
@@ -116,7 +118,7 @@ export function AddressBookPage() {
           <button
             onClick={handleOpenAdd}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
-            aria-label="添加联系人"
+            aria-label={t('a11y.addContact')}
           >
             <Plus className="size-5" />
           </button>
@@ -199,6 +201,7 @@ interface ContactListItemProps {
 }
 
 function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
+  const { t } = useTranslation('common');
   const [showActions, setShowActions] = useState(false);
 
   return (
@@ -221,7 +224,7 @@ function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
           <button
             onClick={() => setShowActions(!showActions)}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
-            aria-label="更多操作"
+            aria-label={t('a11y.moreActions')}
           >
             <MoreVertical className="text-muted-foreground size-4" />
           </button>

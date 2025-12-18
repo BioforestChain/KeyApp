@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { AppInfoCard } from './AppInfoCard'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+}
 
 describe('AppInfoCard', () => {
   it('renders app name and origin', () => {
-    render(
+    renderWithProviders(
       <AppInfoCard
         appInfo={{
           appId: 'com.example.app',
@@ -20,7 +25,7 @@ describe('AppInfoCard', () => {
   })
 
   it('shows unknown warning for non-https origin', () => {
-    render(
+    renderWithProviders(
       <AppInfoCard
         appInfo={{
           appId: 'mock.dapp.local',
@@ -31,7 +36,7 @@ describe('AppInfoCard', () => {
       />
     )
 
-    expect(screen.getByLabelText('Unknown app')).toBeInTheDocument()
+    expect(screen.getByLabelText('未知应用')).toBeInTheDocument()
   })
 })
 

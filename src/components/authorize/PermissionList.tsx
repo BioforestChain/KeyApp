@@ -15,6 +15,7 @@ function toAuthorizePermissionKey(permission: string): string {
 
 export function PermissionList({ permissions, className }: PermissionListProps) {
   const { t } = useTranslation('authorize');
+  const { t: tCommon } = useTranslation('common');
 
   const items = useMemo(() => {
     return permissions.map((p) => ({
@@ -28,7 +29,7 @@ export function PermissionList({ permissions, className }: PermissionListProps) 
   }
 
   return (
-    <section className={cn('bg-card rounded-xl p-4 shadow-sm', className)} aria-label="Permissions">
+    <section className={cn('bg-card rounded-xl p-4 shadow-sm', className)} aria-label={tCommon('a11y.permissions')}>
       <ul className="space-y-2">
         {items.map((it) => (
           <li key={it.id} className="flex items-start gap-2">

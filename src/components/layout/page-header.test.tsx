@@ -2,26 +2,31 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PageHeader } from './page-header'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+}
 
 describe('PageHeader', () => {
   it('renders title', () => {
-    render(<PageHeader title="转账" />)
+    renderWithProviders(<PageHeader title="转账" />)
     expect(screen.getByRole('heading', { name: '转账' })).toBeInTheDocument()
   })
 
   it('renders back button when onBack is provided', () => {
-    render(<PageHeader title="转账" onBack={() => {}} />)
+    renderWithProviders(<PageHeader title="转账" onBack={() => {}} />)
     expect(screen.getByRole('button', { name: '返回' })).toBeInTheDocument()
   })
 
   it('does not render back button when onBack is not provided', () => {
-    render(<PageHeader title="首页" />)
+    renderWithProviders(<PageHeader title="首页" />)
     expect(screen.queryByRole('button', { name: '返回' })).not.toBeInTheDocument()
   })
 
   it('calls onBack when back button is clicked', async () => {
     const handleBack = vi.fn()
-    render(<PageHeader title="转账" onBack={handleBack} />)
+    renderWithProviders(<PageHeader title="转账" onBack={handleBack} />)
     
     await userEvent.click(screen.getByRole('button', { name: '返回' }))
     expect(handleBack).toHaveBeenCalledTimes(1)
@@ -38,7 +43,7 @@ describe('PageHeader', () => {
   })
 
   it('applies transparent class when transparent is true', () => {
-    const { container } = render(<PageHeader title="详情" transparent />)
+    const { container } = renderWithProviders(<PageHeader title="详情" transparent />)
     expect(container.querySelector('header')).toHaveClass('bg-transparent')
   })
 

@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TransactionToast, ToastContainer } from './transaction-toast'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+}
 
 describe('TransactionToast', () => {
   beforeEach(() => {
@@ -22,13 +27,13 @@ describe('TransactionToast', () => {
   describe('Rendering', () => {
     it('renders with title', () => {
       vi.useRealTimers() // Use real timers for render tests
-      render(<TransactionToast {...defaultProps} />)
+      renderWithProviders(<TransactionToast {...defaultProps} />)
       expect(screen.getByText('交易成功')).toBeInTheDocument()
     })
 
     it('renders with message', () => {
       vi.useRealTimers()
-      render(<TransactionToast {...defaultProps} message="您的转账已确认" />)
+      renderWithProviders(<TransactionToast {...defaultProps} message="您的转账已确认" />)
       expect(screen.getByText('您的转账已确认')).toBeInTheDocument()
     })
 
@@ -45,7 +50,7 @@ describe('TransactionToast', () => {
 
     it('renders pending status with spinner', () => {
       vi.useRealTimers()
-      render(<TransactionToast {...defaultProps} status="pending" title="交易处理中" />)
+      renderWithProviders(<TransactionToast {...defaultProps} status="pending" title="交易处理中" />)
       expect(screen.getByText('交易处理中')).toBeInTheDocument()
       // Spinner has animate-spin class
       const alert = screen.getByRole('alert')
@@ -54,13 +59,13 @@ describe('TransactionToast', () => {
 
     it('renders success status', () => {
       vi.useRealTimers()
-      render(<TransactionToast {...defaultProps} status="success" />)
+      renderWithProviders(<TransactionToast {...defaultProps} status="success" />)
       expect(screen.getByRole('alert')).toHaveClass('bg-green-50')
     })
 
     it('renders failed status', () => {
       vi.useRealTimers()
-      render(<TransactionToast {...defaultProps} status="failed" title="交易失败" />)
+      renderWithProviders(<TransactionToast {...defaultProps} status="failed" title="交易失败" />)
       expect(screen.getByText('交易失败')).toBeInTheDocument()
       expect(screen.getByRole('alert')).toHaveClass('bg-red-50')
     })
@@ -70,7 +75,7 @@ describe('TransactionToast', () => {
     it('calls onClose when close button clicked', async () => {
       vi.useRealTimers()
       const onClose = vi.fn()
-      render(<TransactionToast {...defaultProps} onClose={onClose} duration={0} />)
+      renderWithProviders(<TransactionToast {...defaultProps} onClose={onClose} duration={0} />)
 
       const closeButton = screen.getByLabelText('关闭')
       await userEvent.click(closeButton)
@@ -83,7 +88,7 @@ describe('TransactionToast', () => {
     it('calls onClick when toast clicked', async () => {
       vi.useRealTimers()
       const onClick = vi.fn()
-      render(<TransactionToast {...defaultProps} onClick={onClick} duration={0} />)
+      renderWithProviders(<TransactionToast {...defaultProps} onClick={onClick} duration={0} />)
 
       const alert = screen.getByRole('alert')
       await userEvent.click(alert)
@@ -93,7 +98,7 @@ describe('TransactionToast', () => {
 
     it('auto-closes after duration for success/failed', () => {
       const onClose = vi.fn()
-      render(<TransactionToast {...defaultProps} status="success" onClose={onClose} duration={3000} />)
+      renderWithProviders(<TransactionToast {...defaultProps} status="success" onClose={onClose} duration={3000} />)
 
       expect(onClose).not.toHaveBeenCalled()
 
@@ -111,7 +116,7 @@ describe('TransactionToast', () => {
 
     it('does NOT auto-close for pending status', () => {
       const onClose = vi.fn()
-      render(<TransactionToast {...defaultProps} status="pending" onClose={onClose} duration={3000} />)
+      renderWithProviders(<TransactionToast {...defaultProps} status="pending" onClose={onClose} duration={3000} />)
 
       act(() => {
         vi.advanceTimersByTime(5000)
@@ -131,7 +136,7 @@ describe('ToastContainer', () => {
       { id: '3', status: 'failed' as const, title: 'Toast 3' },
     ]
 
-    render(<ToastContainer toasts={toasts} onClose={vi.fn()} />)
+    renderWithProviders(<ToastContainer toasts={toasts} onClose={vi.fn()} />)
 
     expect(screen.getByText('Toast 1')).toBeInTheDocument()
     expect(screen.getByText('Toast 2')).toBeInTheDocument()
@@ -142,7 +147,7 @@ describe('ToastContainer', () => {
     vi.useRealTimers()
     const toasts = [{ id: '1', status: 'success' as const, title: 'Toast 1' }]
 
-    render(<ToastContainer toasts={toasts} onClose={vi.fn()} position="bottom-center" />)
+    renderWithProviders(<ToastContainer toasts={toasts} onClose={vi.fn()} position="bottom-center" />)
 
     const container = screen.getByLabelText('通知')
     expect(container).toHaveClass('bottom-4')
