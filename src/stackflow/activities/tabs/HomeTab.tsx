@@ -54,7 +54,7 @@ export function HomeTab() {
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['home', 'common']);
 
   const isInitialized = useWalletInitialized();
   const hasWallet = useHasWallet();
@@ -79,7 +79,7 @@ export function HomeTab() {
       await clipboard.write(chainAddress.address);
       await haptics.impact("light");
       setCopied(true);
-      toast.show("地址已复制");
+      toast.show(t('home:wallet.addressCopied'));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -147,7 +147,7 @@ export function HomeTab() {
             onClick={() => push("SendActivity", {})}
           >
             <IconSend className="mr-1.5 size-4" />
-            转账
+            {t('home:wallet.send')}
           </GradientButton>
           <GradientButton
             variant="red"
@@ -156,29 +156,29 @@ export function HomeTab() {
             onClick={() => push("ReceiveActivity", {})}
           >
             <IconQrcode className="mr-1.5 size-4" />
-            收款
+            {t('home:wallet.receive')}
           </GradientButton>
         </div>
       </div>
 
       {/* Asset List */}
       <div className="-mt-4 flex-1 rounded-t-3xl bg-background p-5">
-        <h2 className="mb-4 text-lg font-semibold">资产</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('home:wallet.assets')}</h2>
         <TokenList
-          tokens={tokens.map((t) => ({
-            symbol: t.symbol,
-            name: t.name,
+          tokens={tokens.map((tk) => ({
+            symbol: tk.symbol,
+            name: tk.name,
             chain: selectedChain,
-            balance: t.balance,
-            fiatValue: t.fiatValue ? String(t.fiatValue) : undefined,
-            change24h: t.change24h,
-            icon: t.icon,
+            balance: tk.balance,
+            fiatValue: tk.fiatValue ? String(tk.fiatValue) : undefined,
+            change24h: tk.change24h,
+            icon: tk.icon,
           }))}
           onTokenClick={(token) => {
             console.log("Token clicked:", token.symbol);
           }}
-          emptyTitle="暂无资产"
-          emptyDescription={`${selectedChainName} 链上暂无代币`}
+          emptyTitle={t('home:wallet.noAssets')}
+          emptyDescription={t('home:wallet.noAssetsOnChain', { chain: selectedChainName })}
         />
       </div>
 
@@ -192,7 +192,7 @@ export function HomeTab() {
       </button>
 
       {/* Chain Selection Sheet */}
-      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title="选择网络">
+      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title={t('home:wallet.selectNetwork')}>
         <div data-testid="chain-sheet" className="space-y-2 p-4">
           {availableChains.map((chain) => {
             const chainAddr = currentWallet.chainAddresses.find((ca) => ca.chain === chain);
@@ -225,6 +225,7 @@ export function HomeTab() {
 
 function NoWalletView() {
   const { push } = useFlow();
+  const { t } = useTranslation('home');
 
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
@@ -232,8 +233,8 @@ function NoWalletView() {
         <IconChevronRight className="size-12 text-primary" />
       </div>
       <div>
-        <h1 className="text-2xl font-bold">欢迎使用 BFM Pay</h1>
-        <p className="mt-2 text-muted-foreground">创建或导入钱包开始使用</p>
+        <h1 className="text-2xl font-bold">{t('welcome.title')}</h1>
+        <p className="mt-2 text-muted-foreground">{t('welcome.subtitle')}</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
         <GradientButton
@@ -241,14 +242,14 @@ function NoWalletView() {
           className="w-full"
           onClick={() => push("WalletCreateActivity", {})}
         >
-          创建新钱包
+          {t('welcome.createWallet')}
         </GradientButton>
         <Button
           variant="outline"
           className="w-full"
           onClick={() => push("WalletImportActivity", {})}
         >
-          导入已有钱包
+          {t('welcome.importWallet')}
         </Button>
       </div>
     </div>
