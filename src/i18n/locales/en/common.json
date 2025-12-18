@@ -3,6 +3,9 @@
   "receive": "Receive",
   "paste": "Paste",
   "addressPlaceholder": "Enter or paste address",
+  "noAssets": "No assets",
+  "balance": "Balance",
+  "exceedsBalance": "Exceeds available balance",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "Select blockchain network",

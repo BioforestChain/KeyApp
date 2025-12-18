@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { AssetItem } from './asset-item';
 import type { AssetInfo } from '@/types/asset';
@@ -29,6 +30,7 @@ export function AssetList({
   exchangeRate,
   className,
 }: AssetListProps) {
+  const { t } = useTranslation('common');
   // Loading skeleton
   if (isLoading) {
     return (
@@ -54,7 +56,7 @@ export function AssetList({
         <div className="bg-muted mb-4 flex size-16 items-center justify-center rounded-full">
           <Coins className="text-muted-foreground size-8" />
         </div>
-        <p className="text-muted-foreground">暂无资产</p>
+        <p className="text-muted-foreground">{t('noAssets')}</p>
       </div>
     );
   }

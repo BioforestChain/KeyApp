@@ -3,6 +3,9 @@
   "receive": "استلام",
   "paste": "لصق",
   "addressPlaceholder": "أدخل أو الصق العنوان",
+  "noAssets": "لا توجد أصول",
+  "balance": "الرصيد",
+  "exceedsBalance": "يتجاوز الرصيد المتاح",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "اختر شبكة البلوكتشين",

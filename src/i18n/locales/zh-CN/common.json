@@ -3,6 +3,9 @@
   "receive": "收款",
   "paste": "粘贴",
   "addressPlaceholder": "输入或粘贴地址",
+  "noAssets": "暂无资产",
+  "balance": "余额",
+  "exceedsBalance": "超出可用余额",
   "a11y": {
     "skipToMain": "跳转到主要内容",
     "tabHome": "首页",
