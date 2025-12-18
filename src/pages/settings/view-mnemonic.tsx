@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -12,6 +13,7 @@ import { cn } from '@/lib/utils';
 const AUTO_HIDE_TIMEOUT = 30_000;
 
 export function ViewMnemonicPage() {
+  const { t } = useTranslation('settings');
   const { goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const keyType = currentWallet?.keyType ?? 'mnemonic';
@@ -53,7 +55,7 @@ export function ViewMnemonicPage() {
   const handleVerifyPassword = useCallback(
     async (password: string) => {
       if (!currentWallet?.encryptedMnemonic) {
-        setPasswordError('钱包数据不完整');
+        setPasswordError(t('viewMnemonic.walletIncomplete'));
         return;
       }
 
@@ -66,7 +68,7 @@ export function ViewMnemonicPage() {
         setIsHidden(false);
         setShowPasswordSheet(false);
       } catch {
-        setPasswordError('密码错误');
+        setPasswordError(t('viewMnemonic.passwordError'));
       } finally {
         setIsVerifying(false);
       }
@@ -89,9 +91,9 @@ export function ViewMnemonicPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={goBack} />
+        <PageHeader title={isArbitrary ? t('viewMnemonic.titleKey') : t('viewMnemonic.titleMnemonic')} onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">请先创建或导入钱包</p>
+          <p className="text-muted-foreground">{t('viewMnemonic.noWallet')}</p>
         </div>
       </div>
     );
@@ -101,16 +103,16 @@ export function ViewMnemonicPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title={isArbitrary ? '查看密钥' : '查看助记词'} onBack={goBack} />
+      <PageHeader title={isArbitrary ? t('viewMnemonic.titleKey') : t('viewMnemonic.titleMnemonic')} onBack={goBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 安全警告 */}
         <div className="flex gap-3 rounded-xl bg-amber-500/10 p-4">
           <AlertTriangle className="size-5 shrink-0 text-amber-500" />
           <div className="space-y-1 text-sm">
-            <p className="font-medium text-amber-700 dark:text-amber-400">安全提示</p>
+            <p className="font-medium text-amber-700 dark:text-amber-400">{t('viewMnemonic.securityTip')}</p>
             <p className="text-muted-foreground">
-              请确保周围无人窥视。{isArbitrary ? '密钥' : '助记词'}一旦泄露，资产将面临风险。
+              {isArbitrary ? t('viewMnemonic.securityWarningKey') : t('viewMnemonic.securityWarningMnemonic')}
             </p>
           </div>
         </div>
@@ -120,7 +122,7 @@ export function ViewMnemonicPage() {
           <div className="bg-card space-y-4 rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
-                {isArbitrary ? `${secret.length} 字符` : `${mnemonicWords.length} 位助记词`}
+                {isArbitrary ? t('viewMnemonic.charCount', { count: secret.length }) : t('viewMnemonic.wordCount', { count: mnemonicWords.length })}
               </span>
               <button
                 onClick={toggleVisibility}
@@ -132,12 +134,12 @@ export function ViewMnemonicPage() {
                 {isHidden ? (
                   <>
                     <Eye className="size-3.5" />
-                    显示
+                    {t('viewMnemonic.show')}
                   </>
                 ) : (
                   <>
                     <EyeOff className="size-3.5" />
-                    隐藏
+                    {t('viewMnemonic.hide')}
                   </>
                 )}
               </button>
@@ -159,7 +161,7 @@ export function ViewMnemonicPage() {
               <MnemonicDisplay words={mnemonicWords} hidden={isHidden} />
             )}
 
-            {!isHidden && <p className="text-muted-foreground text-center text-xs">30秒后将自动隐藏</p>}
+            {!isHidden && <p className="text-muted-foreground text-center text-xs">{t('viewMnemonic.autoHideNote')}</p>}
           </div>
         )}
       </div>
@@ -169,8 +171,8 @@ export function ViewMnemonicPage() {
         open={showPasswordSheet}
         onClose={handleCancelVerify}
         onVerify={handleVerifyPassword}
-        title="验证密码"
-        description={isArbitrary ? '请输入钱包密码以查看密钥' : '请输入钱包密码以查看助记词'}
+        title={t('viewMnemonic.verifyTitle')}
+        description={isArbitrary ? t('viewMnemonic.verifyDescKey') : t('viewMnemonic.verifyDescMnemonic')}
         error={passwordError}
         isVerifying={isVerifying}
       />

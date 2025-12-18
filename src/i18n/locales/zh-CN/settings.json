@@ -30,6 +30,24 @@
     "title": "语言",
     "hint": "选择界面语言后，应用将立即切换到所选语言。"
   },
+  "viewMnemonic": {
+    "titleMnemonic": "查看助记词",
+    "titleKey": "查看密钥",
+    "noWallet": "请先创建或导入钱包",
+    "walletIncomplete": "钱包数据不完整",
+    "passwordError": "密码错误",
+    "securityTip": "安全提示",
+    "securityWarningMnemonic": "请确保周围无人窥视。助记词一旦泄露，资产将面临风险。",
+    "securityWarningKey": "请确保周围无人窥视。密钥一旦泄露，资产将面临风险。",
+    "charCount": "{{count}} 字符",
+    "wordCount": "{{count}} 位助记词",
+    "show": "显示",
+    "hide": "隐藏",
+    "autoHideNote": "30秒后将自动隐藏",
+    "verifyTitle": "验证密码",
+    "verifyDescMnemonic": "请输入钱包密码以查看助记词",
+    "verifyDescKey": "请输入钱包密码以查看密钥"
+  },
   "changePassword": {
     "title": "修改密码",
     "noWallet": "请先创建或导入钱包",

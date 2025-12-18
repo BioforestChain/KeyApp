@@ -30,6 +30,24 @@
     "title": "Language",
     "hint": "After selecting the interface language, the app will switch to the selected language immediately."
   },
+  "viewMnemonic": {
+    "titleMnemonic": "View Mnemonic",
+    "titleKey": "View Key",
+    "noWallet": "Please create or import a wallet first",
+    "walletIncomplete": "Wallet data is incomplete",
+    "passwordError": "Incorrect password",
+    "securityTip": "Security Tip",
+    "securityWarningMnemonic": "Make sure no one is watching. Your assets are at risk if the mnemonic is exposed.",
+    "securityWarningKey": "Make sure no one is watching. Your assets are at risk if the key is exposed.",
+    "charCount": "{{count}} characters",
+    "wordCount": "{{count}}-word mnemonic",
+    "show": "Show",
+    "hide": "Hide",
+    "autoHideNote": "Will auto-hide in 30 seconds",
+    "verifyTitle": "Verify Password",
+    "verifyDescMnemonic": "Enter wallet password to view mnemonic",
+    "verifyDescKey": "Enter wallet password to view key"
+  },
   "changePassword": {
     "title": "Change Password",
     "noWallet": "Please create or import a wallet first",
