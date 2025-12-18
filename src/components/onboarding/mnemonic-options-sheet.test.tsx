@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MnemonicOptionsSheet } from './mnemonic-options-sheet';
 import type { MnemonicOptions } from './create-wallet-form';
+import { TestI18nProvider } from '@/test/i18n-mock';
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>);
+}
 
 describe('MnemonicOptionsSheet', () => {
   const mockOnClose = vi.fn();

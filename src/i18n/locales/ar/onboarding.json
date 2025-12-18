@@ -57,6 +57,15 @@
       "agreementRequired": "يرجى قراءة والموافقة على اتفاقية المستخدم",
       "creating": "جاري الإنشاء...",
       "createWallet": "إنشاء المحفظة"
+    },
+    "mnemonicOptions": {
+      "title": "إعدادات العبارة السرية",
+      "language": "اللغة",
+      "selectLanguage": "اختر لغة العبارة السرية",
+      "wordCount": "عدد الكلمات",
+      "selectWordCount": "اختر عدد كلمات العبارة السرية",
+      "words": "كلمة",
+      "confirm": "تأكيد"
     }
   },
   "recover": {

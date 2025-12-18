@@ -57,6 +57,15 @@
       "agreementRequired": "請閱讀並同意用戶協議",
       "creating": "建立中...",
       "createWallet": "建立錢包"
+    },
+    "mnemonicOptions": {
+      "title": "助記詞設定",
+      "language": "語言",
+      "selectLanguage": "選擇助記詞語言",
+      "wordCount": "詞數",
+      "selectWordCount": "選擇助記詞詞數",
+      "words": "詞",
+      "confirm": "確定"
     }
   },
   "recover": {

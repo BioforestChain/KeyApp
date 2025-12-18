@@ -57,6 +57,15 @@
       "agreementRequired": "Please read and agree to the user agreement",
       "creating": "Creating...",
       "createWallet": "Create Wallet"
+    },
+    "mnemonicOptions": {
+      "title": "Mnemonic Settings",
+      "language": "Language",
+      "selectLanguage": "Select mnemonic language",
+      "wordCount": "Word Count",
+      "selectWordCount": "Select mnemonic word count",
+      "words": "words",
+      "confirm": "Confirm"
     }
   },
   "recover": {
