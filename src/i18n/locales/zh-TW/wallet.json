@@ -81,6 +81,22 @@
     "selectAddress": "選擇地址",
     "noAddresses": "該鏈暫無地址"
   },
+  "editSheet": {
+    "title": "錢包設定",
+    "renameTitle": "重命名錢包",
+    "rename": "重命名",
+    "renameDesc": "修改錢包名稱",
+    "delete": "刪除錢包",
+    "deleteDesc": "此操作無法撤銷",
+    "walletName": "錢包名稱",
+    "walletNamePlaceholder": "請輸入錢包名稱",
+    "save": "儲存",
+    "cancel": "取消",
+    "deleteTitle": "刪除錢包",
+    "deleteWarning": "⚠️ 此操作無法撤銷\n\n請輸入密碼以確認刪除錢包 \"{{name}}\"",
+    "passwordError": "密碼錯誤",
+    "verifyFailed": "驗證失敗"
+  },
   "manageIdentityWallet": "管理身份錢包",
   "manageIdentityWallets": "管理身份錢包",
   "manageWallet": "管理錢包",

@@ -81,6 +81,22 @@
     "selectAddress": "اختر العنوان",
     "noAddresses": "لا توجد عناوين في هذه السلسلة"
   },
+  "editSheet": {
+    "title": "إعدادات المحفظة",
+    "renameTitle": "إعادة تسمية المحفظة",
+    "rename": "إعادة تسمية",
+    "renameDesc": "تغيير اسم المحفظة",
+    "delete": "حذف المحفظة",
+    "deleteDesc": "لا يمكن التراجع عن هذا الإجراء",
+    "walletName": "اسم المحفظة",
+    "walletNamePlaceholder": "أدخل اسم المحفظة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "deleteTitle": "حذف المحفظة",
+    "deleteWarning": "⚠️ لا يمكن التراجع عن هذا الإجراء\n\nأدخل كلمة المرور لتأكيد حذف المحفظة \"{{name}}\"",
+    "passwordError": "كلمة المرور غير صحيحة",
+    "verifyFailed": "فشل التحقق"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",

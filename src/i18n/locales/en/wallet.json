@@ -81,6 +81,22 @@
     "selectAddress": "Select address",
     "noAddresses": "No addresses on this chain"
   },
+  "editSheet": {
+    "title": "Wallet Settings",
+    "renameTitle": "Rename Wallet",
+    "rename": "Rename",
+    "renameDesc": "Change wallet name",
+    "delete": "Delete Wallet",
+    "deleteDesc": "This action cannot be undone",
+    "walletName": "Wallet Name",
+    "walletNamePlaceholder": "Enter wallet name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Wallet",
+    "deleteWarning": "⚠️ This action cannot be undone\n\nEnter password to confirm deleting wallet \"{{name}}\"",
+    "passwordError": "Incorrect password",
+    "verifyFailed": "Verification failed"
+  },
   "manageIdentityWallet": "Manage Identity Wallet",
   "manageIdentityWallets": "Manage Identity Wallets",
   "manageWallet": "Manage Wallet",

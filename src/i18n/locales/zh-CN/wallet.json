@@ -14,6 +14,22 @@
     "selectAddress": "选择地址",
     "noAddresses": "该链暂无地址"
   },
+  "editSheet": {
+    "title": "钱包设置",
+    "renameTitle": "重命名钱包",
+    "rename": "重命名",
+    "renameDesc": "修改钱包名称",
+    "delete": "删除钱包",
+    "deleteDesc": "此操作无法撤销",
+    "walletName": "钱包名称",
+    "walletNamePlaceholder": "请输入钱包名称",
+    "save": "保存",
+    "cancel": "取消",
+    "deleteTitle": "删除钱包",
+    "deleteWarning": "⚠️ 此操作无法撤销\n\n请输入密码以确认删除钱包 \"{{name}}\"",
+    "passwordError": "密码错误",
+    "verifyFailed": "验证失败"
+  },
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "获得地址密码等同于拥有钱包资产所有权",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原中的钱包数据将全部保留，并进行数据整理，规则如下：",
   "addBitcoinAddress": "添加 Bitcoin 地址",
