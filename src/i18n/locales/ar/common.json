@@ -35,6 +35,19 @@
     "transactionDetails": "تفاصيل المعاملة",
     "selectWallet": "اختر المحفظة"
   },
+  "contact": {
+    "addTitle": "إضافة جهة اتصال",
+    "editTitle": "تعديل جهة اتصال",
+    "name": "الاسم",
+    "namePlaceholder": "أدخل اسم جهة الاتصال",
+    "address": "العنوان",
+    "addressPlaceholder": "أدخل عنوان المحفظة",
+    "memoOptional": "ملاحظة (اختياري)",
+    "memoPlaceholder": "أضف ملاحظة",
+    "add": "إضافة",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
   "acceptExchange": "Accept exchange",
   "account": "[MISSING:ar] 用户",
   "accountFromMime": "[MISSING:ar] account from mime",

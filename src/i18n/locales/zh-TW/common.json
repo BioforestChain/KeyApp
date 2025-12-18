@@ -34,6 +34,19 @@
     "transactionDetails": "交易詳情",
     "selectWallet": "選擇錢包"
   },
+  "contact": {
+    "addTitle": "新增聯絡人",
+    "editTitle": "編輯聯絡人",
+    "name": "名稱",
+    "namePlaceholder": "請輸入聯絡人名稱",
+    "address": "地址",
+    "addressPlaceholder": "請輸入錢包地址",
+    "memoOptional": "備註（選填）",
+    "memoPlaceholder": "新增備註",
+    "add": "新增",
+    "save": "儲存",
+    "cancel": "取消"
+  },
   "acceptExchange": "接受交換",
   "account": "賬戶",
   "accountFromMime": "account from mime",

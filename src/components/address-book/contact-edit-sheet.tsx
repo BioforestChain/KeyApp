@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { addressBookActions, type Contact, type ChainType } from '@/stores';
@@ -30,6 +31,7 @@ export function ContactEditSheet({
   defaultChain = 'ethereum',
   className,
 }: ContactEditSheetProps) {
+  const { t } = useTranslation('common');
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [memo, setMemo] = useState('');
@@ -84,7 +86,7 @@ export function ContactEditSheet({
     <BottomSheet
       open={open}
       onClose={handleClose}
-      title={isEditing ? '编辑联系人' : '添加联系人'}
+      title={isEditing ? t('contact.editTitle') : t('contact.addTitle')}
       className={className}
     >
       <div className="space-y-4 p-4">
@@ -92,14 +94,14 @@ export function ContactEditSheet({
         <div className="space-y-2">
           <label htmlFor="contact-name" className="flex items-center gap-2 text-sm font-medium">
             <User className="size-4" />
-            名称
+            {t('contact.name')}
           </label>
           <input
             id="contact-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="请输入联系人名称"
+            placeholder={t('contact.namePlaceholder')}
             maxLength={20}
             autoFocus
             className={cn(
@@ -113,14 +115,14 @@ export function ContactEditSheet({
         <div className="space-y-2">
           <label htmlFor="contact-address" className="flex items-center gap-2 text-sm font-medium">
             <Wallet className="size-4" />
-            地址
+            {t('contact.address')}
           </label>
           <input
             id="contact-address"
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="请输入钱包地址"
+            placeholder={t('contact.addressPlaceholder')}
             className={cn(
               'border-border bg-background w-full rounded-xl border px-4 py-3 font-mono text-sm',
               'focus:ring-primary focus:ring-2 focus:outline-none',
@@ -132,13 +134,13 @@ export function ContactEditSheet({
         <div className="space-y-2">
           <label htmlFor="contact-memo" className="flex items-center gap-2 text-sm font-medium">
             <FileText className="size-4" />
-            备注（可选）
+            {t('contact.memoOptional')}
           </label>
           <textarea
             id="contact-memo"
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="添加备注信息"
+            placeholder={t('contact.memoPlaceholder')}
             maxLength={100}
             rows={2}
             className={cn(
@@ -159,13 +161,13 @@ export function ContactEditSheet({
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
           >
-            {isEditing ? '保存' : '添加'}
+            {isEditing ? t('contact.save') : t('contact.add')}
           </button>
           <button
             onClick={handleClose}
             className="text-muted-foreground hover:text-foreground w-full py-2 text-center text-sm"
           >
-            取消
+            {t('contact.cancel')}
           </button>
         </div>
       </div>

@@ -35,6 +35,19 @@
     "transactionDetails": "Transaction details",
     "selectWallet": "Select wallet"
   },
+  "contact": {
+    "addTitle": "Add Contact",
+    "editTitle": "Edit Contact",
+    "name": "Name",
+    "namePlaceholder": "Enter contact name",
+    "address": "Address",
+    "addressPlaceholder": "Enter wallet address",
+    "memoOptional": "Memo (optional)",
+    "memoPlaceholder": "Add memo",
+    "add": "Add",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
   "acceptExchange": "Accept exchange",
   "account": "[MISSING:en] 用户",
   "accountFromMime": "[MISSING:en] account from mime",

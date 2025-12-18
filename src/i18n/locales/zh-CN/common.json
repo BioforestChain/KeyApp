@@ -34,6 +34,19 @@
     "transactionDetails": "交易详情",
     "selectWallet": "选择钱包"
   },
+  "contact": {
+    "addTitle": "添加联系人",
+    "editTitle": "编辑联系人",
+    "name": "名称",
+    "namePlaceholder": "请输入联系人名称",
+    "address": "地址",
+    "addressPlaceholder": "请输入钱包地址",
+    "memoOptional": "备注（可选）",
+    "memoPlaceholder": "添加备注信息",
+    "add": "添加",
+    "save": "保存",
+    "cancel": "取消"
+  },
   "acceptExchange": "接收交换",
   "account": "用户",
   "accountFromMime": "account from mime",
