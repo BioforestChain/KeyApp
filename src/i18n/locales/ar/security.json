@@ -1,4 +1,12 @@
 {
+  "passwordConfirm": {
+    "defaultTitle": "تحقق من كلمة المرور",
+    "placeholder": "أدخل كلمة المرور",
+    "verifying": "جاري التحقق...",
+    "confirm": "تأكيد",
+    "biometric": "استخدام البصمة",
+    "cancel": "إلغاء"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. The original identity wallet password will be used as the password for all wallets and used for verification such as transfer/backup mnemonic phrases.",
   "addressPassword": "Address Password",
   "applicationLock": "Application lock",

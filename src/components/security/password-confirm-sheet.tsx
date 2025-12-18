@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { PasswordInput } from './password-input';
@@ -34,7 +35,7 @@ export function PasswordConfirmSheet({
   open,
   onClose,
   onVerify,
-  title = '验证密码',
+  title,
   description,
   error,
   biometricAvailable,
@@ -42,7 +43,9 @@ export function PasswordConfirmSheet({
   isVerifying,
   className,
 }: PasswordConfirmSheetProps) {
+  const { t } = useTranslation('security');
   const [password, setPassword] = useState('');
+  const displayTitle = title ?? t('passwordConfirm.defaultTitle');
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -62,7 +65,7 @@ export function PasswordConfirmSheet({
   const canSubmit = password.trim().length > 0 && !isVerifying;
 
   return (
-    <BottomSheet open={open} onClose={handleClose} title={title} className={className}>
+    <BottomSheet open={open} onClose={handleClose} title={displayTitle} className={className}>
       <form onSubmit={handleSubmit} className="space-y-6 p-4">
         {description && <p className="text-muted-foreground text-center">{description}</p>}
 
@@ -71,7 +74,7 @@ export function PasswordConfirmSheet({
           <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="请输入密码"
+            placeholder={t('passwordConfirm.placeholder')}
             autoFocus
             disabled={isVerifying}
             aria-describedby={error ? 'password-error' : undefined}
@@ -95,7 +98,7 @@ export function PasswordConfirmSheet({
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
           >
-            {isVerifying ? '验证中...' : '确认'}
+            {isVerifying ? t('passwordConfirm.verifying') : t('passwordConfirm.confirm')}
           </button>
 
           {biometricAvailable && onBiometric && (
@@ -110,7 +113,7 @@ export function PasswordConfirmSheet({
               )}
             >
               <Fingerprint className="size-5" />
-              <span>使用生物识别</span>
+              <span>{t('passwordConfirm.biometric')}</span>
             </button>
           )}
 
@@ -120,7 +123,7 @@ export function PasswordConfirmSheet({
             disabled={isVerifying}
             className="text-muted-foreground hover:text-foreground w-full py-2 text-center text-sm"
           >
-            取消
+            {t('passwordConfirm.cancel')}
           </button>
         </div>
       </form>

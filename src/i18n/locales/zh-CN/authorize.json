@@ -19,9 +19,9 @@
       "viewPublicKey": "查看你的公钥",
       "signMessage": "签名验证消息",
       "getMain": "查看你的钱包导入密语（主密钥）"
-    }
-    ,
-    "confirmDescription": "请输入密码以继续"
+    },
+    "confirmDescription": "请输入密码以继续",
+    "noWallets": "暂无钱包"
   },
   "signature": {
     "reviewTransaction": "请确认该交易",

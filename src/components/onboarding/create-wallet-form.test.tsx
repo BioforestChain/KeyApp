@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateWalletForm, validateCreateWalletForm } from './create-wallet-form';
+import { TestI18nProvider } from '@/test/i18n-mock';
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>);
+}
 
 describe('CreateWalletForm', () => {
   const mockOnSubmit = vi.fn();
@@ -12,7 +17,7 @@ describe('CreateWalletForm', () => {
   });
 
   it('renders all form fields', () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
     expect(screen.getByText('钱包名称')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('请输入钱包名称')).toBeInTheDocument();
@@ -24,7 +29,7 @@ describe('CreateWalletForm', () => {
   });
 
   it('shows mnemonic options button with default values', () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
     expect(screen.getByText('English · 12 词')).toBeInTheDocument();
   });
@@ -50,7 +55,7 @@ describe('CreateWalletForm', () => {
   });
 
   it('shows name character counter', async () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
     const nameInput = screen.getByPlaceholderText('请输入钱包名称');
     await userEvent.type(nameInput, '测试钱包');
@@ -59,14 +64,14 @@ describe('CreateWalletForm', () => {
   });
 
   it('disables submit button when form is invalid', () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
     const submitButton = screen.getByRole('button', { name: '创建钱包' });
     expect(submitButton).toBeDisabled();
   });
 
   it('enables submit button when form is valid', async () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
     const user = userEvent.setup();
 
@@ -107,14 +112,14 @@ describe('CreateWalletForm', () => {
   });
 
   it('shows submitting state', () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
 
     expect(screen.getByRole('button', { name: '创建中...' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '创建中...' })).toBeDisabled();
   });
 
   it('disables all inputs when submitting', () => {
-    render(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
+    renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
 
     expect(screen.getByPlaceholderText('请输入钱包名称')).toBeDisabled();
     expect(screen.getByPlaceholderText('8-30个字符，不能包含空格')).toBeDisabled();
@@ -123,89 +128,91 @@ describe('CreateWalletForm', () => {
 });
 
 describe('validateCreateWalletForm', () => {
+  const mockT = (key: string) => key;
+
   it('returns error for empty name', () => {
-    const errors = validateCreateWalletForm({ name: '' });
-    expect(errors.name).toBe('请输入钱包名称');
+    const errors = validateCreateWalletForm({ name: '' }, mockT);
+    expect(errors.name).toBe('onboarding:create.form.walletNameRequired');
   });
 
   it('returns error for name with only spaces', () => {
-    const errors = validateCreateWalletForm({ name: '   ' });
-    expect(errors.name).toBe('请输入钱包名称');
+    const errors = validateCreateWalletForm({ name: '   ' }, mockT);
+    expect(errors.name).toBe('onboarding:create.form.walletNameRequired');
   });
 
   it('returns error for name exceeding 12 chars', () => {
-    const errors = validateCreateWalletForm({ name: '这是一个很长的钱包名称超过十二个字符' });
-    expect(errors.name).toBe('钱包名称不能超过12个字符');
+    const errors = validateCreateWalletForm({ name: '这是一个很长的钱包名称超过十二个字符' }, mockT);
+    expect(errors.name).toBe('onboarding:create.form.walletNameTooLong');
   });
 
   it('returns no error for valid name', () => {
-    const errors = validateCreateWalletForm({ name: '我的钱包' });
+    const errors = validateCreateWalletForm({ name: '我的钱包' }, mockT);
     expect(errors.name).toBeUndefined();
   });
 
   it('returns error for empty password', () => {
-    const errors = validateCreateWalletForm({ password: '' });
-    expect(errors.password).toBe('请输入密码');
+    const errors = validateCreateWalletForm({ password: '' }, mockT);
+    expect(errors.password).toBe('onboarding:create.form.passwordRequired');
   });
 
   it('returns error for password less than 8 chars', () => {
-    const errors = validateCreateWalletForm({ password: 'short' });
-    expect(errors.password).toBe('密码至少8个字符');
+    const errors = validateCreateWalletForm({ password: 'short' }, mockT);
+    expect(errors.password).toBe('onboarding:create.form.passwordTooShort');
   });
 
   it('returns error for password more than 30 chars', () => {
-    const errors = validateCreateWalletForm({ password: 'a'.repeat(31) });
-    expect(errors.password).toBe('密码不能超过30个字符');
+    const errors = validateCreateWalletForm({ password: 'a'.repeat(31) }, mockT);
+    expect(errors.password).toBe('onboarding:create.form.passwordTooLong');
   });
 
   it('returns error for password with whitespace', () => {
-    const errors = validateCreateWalletForm({ password: 'pass word123' });
-    expect(errors.password).toBe('密码不能包含空格');
+    const errors = validateCreateWalletForm({ password: 'pass word123' }, mockT);
+    expect(errors.password).toBe('onboarding:create.form.passwordNoSpaces');
   });
 
   it('returns no error for valid password', () => {
-    const errors = validateCreateWalletForm({ password: 'validpassword123' });
+    const errors = validateCreateWalletForm({ password: 'validpassword123' }, mockT);
     expect(errors.password).toBeUndefined();
   });
 
   it('returns error for empty confirm password', () => {
-    const errors = validateCreateWalletForm({ password: 'password123', confirmPassword: '' });
-    expect(errors.confirmPassword).toBe('请确认密码');
+    const errors = validateCreateWalletForm({ password: 'password123', confirmPassword: '' }, mockT);
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordRequired');
   });
 
   it('returns error for mismatched passwords', () => {
     const errors = validateCreateWalletForm({
       password: 'password123',
       confirmPassword: 'password456',
-    });
-    expect(errors.confirmPassword).toBe('两次输入的密码不一致');
+    }, mockT);
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordMismatch');
   });
 
   it('returns no error for matching passwords', () => {
     const errors = validateCreateWalletForm({
       password: 'password123',
       confirmPassword: 'password123',
-    });
+    }, mockT);
     expect(errors.confirmPassword).toBeUndefined();
   });
 
   it('returns error for tip exceeding 50 chars', () => {
-    const errors = validateCreateWalletForm({ tip: 'a'.repeat(51) });
-    expect(errors.tip).toBe('密码提示不能超过50个字符');
+    const errors = validateCreateWalletForm({ tip: 'a'.repeat(51) }, mockT);
+    expect(errors.tip).toBe('onboarding:create.form.passwordTipTooLong');
   });
 
   it('returns no error for empty tip', () => {
-    const errors = validateCreateWalletForm({ tip: '' });
+    const errors = validateCreateWalletForm({ tip: '' }, mockT);
     expect(errors.tip).toBeUndefined();
   });
 
   it('returns error for unchecked agreement', () => {
-    const errors = validateCreateWalletForm({ agreement: false });
-    expect(errors.agreement).toBe('请阅读并同意用户协议');
+    const errors = validateCreateWalletForm({ agreement: false }, mockT);
+    expect(errors.agreement).toBe('onboarding:create.form.agreementRequired');
   });
 
   it('returns no error for checked agreement', () => {
-    const errors = validateCreateWalletForm({ agreement: true });
+    const errors = validateCreateWalletForm({ agreement: true }, mockT);
     expect(errors.agreement).toBeUndefined();
   });
 
@@ -215,7 +222,7 @@ describe('validateCreateWalletForm', () => {
       password: 'short',
       confirmPassword: 'different',
       agreement: false,
-    });
+    }, mockT);
 
     expect(errors.name).toBeDefined();
     expect(errors.password).toBeDefined();
@@ -230,7 +237,7 @@ describe('validateCreateWalletForm', () => {
       confirmPassword: 'password123',
       tip: '',
       agreement: true,
-    });
+    }, mockT);
 
     expect(Object.keys(errors)).toHaveLength(0);
   });

@@ -402,7 +402,7 @@ export function AddressAuthPage() {
 
           {type === 'all' && (
             <div className="space-y-2">
-              {wallets.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">暂无钱包</div>}
+              {wallets.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">{tAuthorize('address.noWallets')}</div>}
               {wallets.map((w) => {
                 const checked = selectedWalletIds.has(w.id)
                 return (

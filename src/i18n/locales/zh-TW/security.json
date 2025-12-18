@@ -1,4 +1,12 @@
 {
+  "passwordConfirm": {
+    "defaultTitle": "驗證密碼",
+    "placeholder": "請輸入密碼",
+    "verifying": "驗證中...",
+    "confirm": "確認",
+    "biometric": "使用生物辨識",
+    "cancel": "取消"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. 原身份錢包密碼將作為所有錢包的密碼，用於轉賬/備份助記詞等驗證。",
   "addressPassword": "地址密碼",
   "applicationLock": "應用鎖",
