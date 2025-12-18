@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TestI18nProvider } from '@/test/i18n-mock';
 import { TransferConfirmSheet } from './transfer-confirm-sheet';
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>);
 
 const defaultProps = {
   open: true,
@@ -19,22 +22,22 @@ describe('TransferConfirmSheet', () => {
   });
 
   it('renders transfer amount and symbol', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
     expect(screen.getByText('1.5 ETH')).toBeInTheDocument();
   });
 
   it('renders fiat value when provided', () => {
-    render(<TransferConfirmSheet {...defaultProps} fiatValue="3000" />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} fiatValue="3000" />);
     expect(screen.getByText('≈ $3000')).toBeInTheDocument();
   });
 
   it('renders truncated address by default', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
     expect(screen.getByText('0x12345678...345678')).toBeInTheDocument();
   });
 
   it('expands address on click', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
     fireEvent.click(screen.getByText('0x12345678...345678'));
 
@@ -42,7 +45,7 @@ describe('TransferConfirmSheet', () => {
   });
 
   it('calls onClose when cancel button is clicked', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
     fireEvent.click(screen.getByText('取消'));
 
@@ -50,7 +53,7 @@ describe('TransferConfirmSheet', () => {
   });
 
   it('calls onConfirm when confirm button is clicked', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: '确认转账' }));
 
@@ -58,29 +61,29 @@ describe('TransferConfirmSheet', () => {
   });
 
   it('shows confirming state', () => {
-    render(<TransferConfirmSheet {...defaultProps} isConfirming />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} isConfirming />);
     expect(screen.getByText('确认中...')).toBeInTheDocument();
     expect(screen.getByText('确认中...')).toBeDisabled();
   });
 
   it('disables confirm when fee is loading', () => {
-    render(<TransferConfirmSheet {...defaultProps} feeLoading />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} feeLoading />);
     expect(screen.getByRole('button', { name: '确认转账' })).toBeDisabled();
   });
 
   it('renders fee display', () => {
-    render(<TransferConfirmSheet {...defaultProps} feeFiatValue={5} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} feeFiatValue={5} />);
     expect(screen.getByText(/0\.002 ETH/)).toBeInTheDocument();
     expect(screen.getByText(/≈ \$5\.00/)).toBeInTheDocument();
   });
 
   it('does not render when not open', () => {
-    render(<TransferConfirmSheet {...defaultProps} open={false} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} open={false} />);
     expect(screen.queryByText('确认转账')).not.toBeInTheDocument();
   });
 
   it('calls onClose when backdrop is clicked', () => {
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
     // The backdrop has aria-hidden="true", but clicking it should trigger close
     const backdrop = document.querySelector('[aria-hidden="true"]');
@@ -98,7 +101,7 @@ describe('TransferConfirmSheet', () => {
       },
     });
 
-    render(<TransferConfirmSheet {...defaultProps} />);
+    renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
     const copyButton = screen.getByLabelText('复制地址');
     fireEvent.click(copyButton);

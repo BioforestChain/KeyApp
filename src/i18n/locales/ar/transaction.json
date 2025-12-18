@@ -21,6 +21,27 @@
     "addressCopied": "تم نسخ العنوان",
     "networkWarning": "يمكن تحويل أصول شبكة {{chain}} فقط، لا يمكن استرداد الأصول من الشبكات الأخرى"
   },
+  "sendResult": {
+    "success": "تم التحويل بنجاح",
+    "failed": "فشل التحويل",
+    "pending": "جاري المعالجة...",
+    "sentTo": "أُرسل إلى {{address}}",
+    "txHash": "هاش المعاملة:",
+    "viewInBrowser": "عرض في المتصفح",
+    "retry": "إعادة المحاولة",
+    "done": "تم",
+    "back": "رجوع"
+  },
+  "confirmSheet": {
+    "title": "تأكيد التحويل",
+    "toAddress": "عنوان المستلم",
+    "copied": "تم النسخ",
+    "copyAddress": "نسخ العنوان",
+    "networkFee": "رسوم الشبكة",
+    "cancel": "إلغاء",
+    "confirming": "جاري التأكيد...",
+    "confirm": "تأكيد التحويل"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

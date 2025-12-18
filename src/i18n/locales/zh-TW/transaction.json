@@ -21,6 +21,27 @@
     "addressCopied": "地址已複製",
     "networkWarning": "僅支援 {{chain}} 網絡資產轉入，其他網絡資產轉入將無法找回"
   },
+  "sendResult": {
+    "success": "轉賬成功",
+    "failed": "轉賬失敗",
+    "pending": "處理中...",
+    "sentTo": "發送至 {{address}}",
+    "txHash": "交易哈希:",
+    "viewInBrowser": "在瀏覽器中查看",
+    "retry": "重試",
+    "done": "完成",
+    "back": "返回"
+  },
+  "confirmSheet": {
+    "title": "確認轉賬",
+    "toAddress": "收款地址",
+    "copied": "已複製",
+    "copyAddress": "複製地址",
+    "networkFee": "網絡費用",
+    "cancel": "取消",
+    "confirming": "確認中...",
+    "confirm": "確認轉賬"
+  },
   "aboutFee": "關於網絡費用",
   "amount": "數量",
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",

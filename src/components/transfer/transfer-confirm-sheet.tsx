@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { FeeDisplay } from '@/components/transaction/fee-display';
@@ -59,6 +60,7 @@ export function TransferConfirmSheet({
   isConfirming,
   className,
 }: TransferConfirmSheetProps) {
+  const { t } = useTranslation('transaction');
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -77,7 +79,7 @@ export function TransferConfirmSheet({
   }, []);
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="确认转账" className={className}>
+    <BottomSheet open={open} onClose={onClose} title={t('confirmSheet.title')} className={className}>
       <div className="space-y-6 p-4">
         {/* Amount */}
         <div className="text-center">
@@ -91,7 +93,7 @@ export function TransferConfirmSheet({
         <div className="bg-muted/30 space-y-4 rounded-xl p-4">
           {/* Recipient */}
           <div className="space-y-1">
-            <p className="text-muted-foreground text-sm">收款地址</p>
+            <p className="text-muted-foreground text-sm">{t('confirmSheet.toAddress')}</p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -111,7 +113,7 @@ export function TransferConfirmSheet({
                 type="button"
                 onClick={handleCopyAddress}
                 className="text-muted-foreground hover:text-foreground shrink-0 p-1"
-                aria-label={copied ? '已复制' : '复制地址'}
+                aria-label={copied ? t('confirmSheet.copied') : t('confirmSheet.copyAddress')}
               >
                 {copied ? <Check className="size-4 text-green-500" /> : <Copy className="size-4" />}
               </button>
@@ -120,7 +122,7 @@ export function TransferConfirmSheet({
 
           {/* Fee */}
           <div className="flex items-start justify-between">
-            <p className="text-muted-foreground text-sm">网络费用</p>
+            <p className="text-muted-foreground text-sm">{t('confirmSheet.networkFee')}</p>
             <FeeDisplay
               amount={feeAmount}
               symbol={feeSymbol}
@@ -139,7 +141,7 @@ export function TransferConfirmSheet({
             className="border-border hover:bg-muted flex-1 rounded-full border py-3 font-medium transition-colors"
             disabled={isConfirming}
           >
-            取消
+            {t('confirmSheet.cancel')}
           </button>
           <button
             type="button"
@@ -151,7 +153,7 @@ export function TransferConfirmSheet({
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
           >
-            {isConfirming ? '确认中...' : '确认转账'}
+            {isConfirming ? t('confirmSheet.confirming') : t('confirmSheet.confirm')}
           </button>
         </div>
       </div>

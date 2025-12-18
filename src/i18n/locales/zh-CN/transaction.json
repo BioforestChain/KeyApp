@@ -21,6 +21,27 @@
     "addressCopied": "地址已复制",
     "networkWarning": "仅支持 {{chain}} 网络资产转入，其他网络资产转入将无法找回"
   },
+  "sendResult": {
+    "success": "转账成功",
+    "failed": "转账失败",
+    "pending": "处理中...",
+    "sentTo": "发送至 {{address}}",
+    "txHash": "交易哈希:",
+    "viewInBrowser": "在浏览器中查看",
+    "retry": "重试",
+    "done": "完成",
+    "back": "返回"
+  },
+  "confirmSheet": {
+    "title": "确认转账",
+    "toAddress": "收款地址",
+    "copied": "已复制",
+    "copyAddress": "复制地址",
+    "networkFee": "网络费用",
+    "cancel": "取消",
+    "confirming": "确认中...",
+    "confirm": "确认转账"
+  },
   "history": {
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",

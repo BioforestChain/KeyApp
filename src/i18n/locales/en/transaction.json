@@ -21,6 +21,27 @@
     "addressCopied": "Address copied",
     "networkWarning": "Only {{chain}} network assets can be transferred in, assets from other networks cannot be recovered"
   },
+  "sendResult": {
+    "success": "Transfer Successful",
+    "failed": "Transfer Failed",
+    "pending": "Processing...",
+    "sentTo": "Sent to {{address}}",
+    "txHash": "Transaction Hash:",
+    "viewInBrowser": "View in Browser",
+    "retry": "Retry",
+    "done": "Done",
+    "back": "Back"
+  },
+  "confirmSheet": {
+    "title": "Confirm Transfer",
+    "toAddress": "Recipient Address",
+    "copied": "Copied",
+    "copyAddress": "Copy Address",
+    "networkFee": "Network Fee",
+    "cancel": "Cancel",
+    "confirming": "Confirming...",
+    "confirm": "Confirm Transfer"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",
