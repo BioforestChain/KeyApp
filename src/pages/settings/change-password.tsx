@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { IconAlertCircle as AlertCircle, IconCheck as Check } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 const MIN_PASSWORD_LENGTH = 8;
 
 export function ChangePasswordPage() {
+  const { t } = useTranslation('settings');
   const { goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
 
@@ -36,7 +38,7 @@ export function ChangePasswordPage() {
       e.preventDefault();
 
       if (!currentWallet?.encryptedMnemonic) {
-        setError('钱包数据不完整');
+        setError(t('changePassword.walletIncomplete'));
         return;
       }
 
@@ -60,7 +62,7 @@ export function ChangePasswordPage() {
           goBack();
         }, 2000);
       } catch {
-        setError('当前密码不正确');
+        setError(t('changePassword.currentPasswordError'));
       } finally {
         setIsSubmitting(false);
       }
@@ -72,9 +74,9 @@ export function ChangePasswordPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="修改密码" onBack={goBack} />
+        <PageHeader title={t('changePassword.title')} onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">请先创建或导入钱包</p>
+          <p className="text-muted-foreground">{t('changePassword.noWallet')}</p>
         </div>
       </div>
     );
@@ -84,14 +86,14 @@ export function ChangePasswordPage() {
   if (success) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="修改密码" />
+        <PageHeader title={t('changePassword.title')} />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
           <div className="bg-secondary/10 flex size-16 items-center justify-center rounded-full">
             <Check className="text-secondary size-8" />
           </div>
           <div className="text-center">
-            <h2 className="text-lg font-semibold">密码修改成功</h2>
-            <p className="text-muted-foreground mt-1 text-sm">正在返回设置页面...</p>
+            <h2 className="text-lg font-semibold">{t('changePassword.success')}</h2>
+            <p className="text-muted-foreground mt-1 text-sm">{t('changePassword.returning')}</p>
           </div>
         </div>
       </div>
@@ -100,27 +102,27 @@ export function ChangePasswordPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title="修改密码" onBack={goBack} />
+      <PageHeader title={t('changePassword.title')} onBack={goBack} />
 
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 p-4">
         {/* 当前密码 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">当前密码</label>
+          <label className="text-sm font-medium">{t('changePassword.currentPassword')}</label>
           <PasswordInput
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="请输入当前密码"
+            placeholder={t('changePassword.currentPasswordPlaceholder')}
             disabled={isSubmitting}
           />
         </div>
 
         {/* 新密码 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">新密码</label>
+          <label className="text-sm font-medium">{t('changePassword.newPassword')}</label>
           <PasswordInput
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder={`请输入新密码（至少 ${MIN_PASSWORD_LENGTH} 位）`}
+            placeholder={t('changePassword.newPasswordPlaceholder', { min: MIN_PASSWORD_LENGTH })}
             showStrength
             disabled={isSubmitting}
           />
@@ -128,14 +130,14 @@ export function ChangePasswordPage() {
 
         {/* 确认新密码 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">确认新密码</label>
+          <label className="text-sm font-medium">{t('changePassword.confirmPassword')}</label>
           <PasswordInput
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="请再次输入新密码"
+            placeholder={t('changePassword.confirmPasswordPlaceholder')}
             disabled={isSubmitting}
           />
-          {confirmPassword && !confirmPasswordValid && <p className="text-destructive text-sm">两次输入的密码不一致</p>}
+          {confirmPassword && !confirmPasswordValid && <p className="text-destructive text-sm">{t('changePassword.passwordMismatch')}</p>}
         </div>
 
         {/* 错误提示 */}
@@ -156,7 +158,7 @@ export function ChangePasswordPage() {
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
-          {isSubmitting ? '修改中...' : '确认修改'}
+          {isSubmitting ? t('changePassword.submitting') : t('changePassword.submit')}
         </button>
       </form>
     </div>

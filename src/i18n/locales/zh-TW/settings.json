@@ -30,6 +30,23 @@
     "title": "語言",
     "hint": "選擇介面語言後，應用程式將立即切換到所選語言。"
   },
+  "changePassword": {
+    "title": "修改密碼",
+    "noWallet": "請先建立或匯入錢包",
+    "walletIncomplete": "錢包資料不完整",
+    "success": "密碼修改成功",
+    "returning": "正在返回設定頁面...",
+    "currentPassword": "目前密碼",
+    "currentPasswordPlaceholder": "請輸入目前密碼",
+    "currentPasswordError": "目前密碼不正確",
+    "newPassword": "新密碼",
+    "newPasswordPlaceholder": "請輸入新密碼（至少 {{min}} 位）",
+    "confirmPassword": "確認新密碼",
+    "confirmPasswordPlaceholder": "請再次輸入新密碼",
+    "passwordMismatch": "兩次輸入的密碼不一致",
+    "submitting": "修改中...",
+    "submit": "確認修改"
+  },
   "chainAddressCount": "{{count}} 個鏈地址",
   "notSupported": "暫不支援",
   "chainConfig": {

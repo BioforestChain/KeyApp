@@ -30,6 +30,23 @@
     "title": "Language",
     "hint": "After selecting the interface language, the app will switch to the selected language immediately."
   },
+  "changePassword": {
+    "title": "Change Password",
+    "noWallet": "Please create or import a wallet first",
+    "walletIncomplete": "Wallet data is incomplete",
+    "success": "Password changed successfully",
+    "returning": "Returning to settings...",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "currentPasswordError": "Current password is incorrect",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password (at least {{min}} characters)",
+    "confirmPassword": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Enter new password again",
+    "passwordMismatch": "Passwords do not match",
+    "submitting": "Changing...",
+    "submit": "Confirm Change"
+  },
   "chainAddressCount": "{{count}} chain addresses",
   "notSupported": "Not supported",
   "chainConfig": {
