@@ -1,7 +1,33 @@
 {
   "language": "语言",
   "settings": "设置",
-  "settingsWorks": "settings works!",
+  "title": "设置",
+  "sections": {
+    "walletManagement": "钱包管理",
+    "security": "安全",
+    "preferences": "偏好设置",
+    "about": "关于"
+  },
+  "items": {
+    "walletManagement": "钱包管理",
+    "addressBook": "地址簿",
+    "appLock": "应用锁",
+    "viewMnemonic": "查看助记词",
+    "changePassword": "修改密码",
+    "language": "语言",
+    "currency": "货币单位",
+    "chainConfig": "链配置",
+    "appearance": "外观",
+    "aboutApp": "关于 BFM Pay"
+  },
+  "appearance": {
+    "title": "外观设置",
+    "system": "跟随系统",
+    "light": "浅色模式",
+    "dark": "深色模式"
+  },
+  "chainAddressCount": "{{count}} 个链地址",
+  "notSupported": "暂不支持",
   "chainConfig": {
     "title": "链配置",
     "subscription": {

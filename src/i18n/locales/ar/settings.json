@@ -1,6 +1,33 @@
 {
-  "language": "language",
-  "settings": "Settings",
+  "language": "اللغة",
+  "settings": "الإعدادات",
+  "title": "الإعدادات",
+  "sections": {
+    "walletManagement": "إدارة المحفظة",
+    "security": "الأمان",
+    "preferences": "التفضيلات",
+    "about": "حول"
+  },
+  "items": {
+    "walletManagement": "إدارة المحفظة",
+    "addressBook": "دفتر العناوين",
+    "appLock": "قفل التطبيق",
+    "viewMnemonic": "عرض العبارة السرية",
+    "changePassword": "تغيير كلمة المرور",
+    "language": "اللغة",
+    "currency": "العملة",
+    "chainConfig": "تهيئة السلاسل",
+    "appearance": "المظهر",
+    "aboutApp": "حول BFM Pay"
+  },
+  "appearance": {
+    "title": "المظهر",
+    "system": "اتباع النظام",
+    "light": "الوضع الفاتح",
+    "dark": "الوضع الداكن"
+  },
+  "chainAddressCount": "{{count}} عناوين سلاسل",
+  "notSupported": "غير مدعوم",
   "chainConfig": {
     "title": "تهيئة السلاسل",
     "subscription": {

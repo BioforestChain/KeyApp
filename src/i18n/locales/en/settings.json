@@ -1,6 +1,33 @@
 {
-  "language": "language",
+  "language": "Language",
   "settings": "Settings",
+  "title": "Settings",
+  "sections": {
+    "walletManagement": "Wallet Management",
+    "security": "Security",
+    "preferences": "Preferences",
+    "about": "About"
+  },
+  "items": {
+    "walletManagement": "Wallet Management",
+    "addressBook": "Address Book",
+    "appLock": "App Lock",
+    "viewMnemonic": "View Mnemonic",
+    "changePassword": "Change Password",
+    "language": "Language",
+    "currency": "Currency",
+    "chainConfig": "Chain Config",
+    "appearance": "Appearance",
+    "aboutApp": "About BFM Pay"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "system": "Follow System",
+    "light": "Light Mode",
+    "dark": "Dark Mode"
+  },
+  "chainAddressCount": "{{count}} chain addresses",
+  "notSupported": "Not supported",
   "chainConfig": {
     "title": "Chain Config",
     "subscription": {

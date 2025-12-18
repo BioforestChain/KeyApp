@@ -1,4 +1,31 @@
 {
+  "create": {
+    "title": "إنشاء محفظة",
+    "backupMnemonic": "نسخ احتياطي للعبارة السرية",
+    "verifyMnemonic": "التحقق من العبارة السرية",
+    "backupHint": "يرجى كتابة الكلمات التالية بالترتيب والاحتفاظ بها في مكان آمن",
+    "confirmWritten": "لقد كتبتها",
+    "backupComplete": "اكتمل النسخ الاحتياطي!",
+    "backupSuccessDesc": "لقد قمت بنسخ العبارة السرية احتياطيًا بنجاح. يرجى الاحتفاظ بها في مكان آمن.",
+    "enterWallet": "دخول المحفظة"
+  },
+  "recover": {
+    "title": "استعادة المحفظة",
+    "addressConflict": "تعارض العنوان",
+    "setPassword": "تعيين كلمة المرور",
+    "passwordHint": "تُستخدم كلمة المرور لتشفير مفاتيح محفظتك. يرجى تذكرها.",
+    "passwordRule": "8 أحرف على الأقل، بدون مسافات.",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "confirmPlaceholder": "أدخل كلمة المرور مرة أخرى",
+    "errors": {
+      "minLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "noSpaces": "لا يمكن أن تحتوي كلمة المرور على مسافات",
+      "mismatch": "كلمات المرور غير متطابقة",
+      "mnemonicIncomplete": "بيانات العبارة السرية غير مكتملة"
+    }
+  },
   "keyType": {
     "title": "Select Key Type",
     "mnemonic": "Standard Mnemonic (BIP39)",

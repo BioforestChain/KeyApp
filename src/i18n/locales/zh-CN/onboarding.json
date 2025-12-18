@@ -1,4 +1,31 @@
 {
+  "create": {
+    "title": "创建钱包",
+    "backupMnemonic": "备份助记词",
+    "verifyMnemonic": "验证助记词",
+    "backupHint": "请按顺序抄写以下助记词，并妥善保管",
+    "confirmWritten": "我已抄写完成",
+    "backupComplete": "备份完成！",
+    "backupSuccessDesc": "您已成功备份助记词，请妥善保管",
+    "enterWallet": "进入钱包"
+  },
+  "recover": {
+    "title": "恢复钱包",
+    "addressConflict": "地址冲突",
+    "setPassword": "设置密码",
+    "passwordHint": "密码用于加密您的钱包密钥，请牢记。",
+    "passwordRule": "至少 8 位字符，不能包含空格。",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "passwordPlaceholder": "请输入密码",
+    "confirmPlaceholder": "请再次输入密码",
+    "errors": {
+      "minLength": "密码至少 8 位字符",
+      "noSpaces": "密码不能包含空格",
+      "mismatch": "两次输入的密码不一致",
+      "mnemonicIncomplete": "助记词数据不完整"
+    }
+  },
   "keyType": {
     "title": "选择密钥类型",
     "mnemonic": "标准助记词（BIP39）",

@@ -1,4 +1,31 @@
 {
+  "create": {
+    "title": "Create Wallet",
+    "backupMnemonic": "Backup Mnemonic",
+    "verifyMnemonic": "Verify Mnemonic",
+    "backupHint": "Please write down the following mnemonic words in order and keep them safe",
+    "confirmWritten": "I have written it down",
+    "backupComplete": "Backup Complete!",
+    "backupSuccessDesc": "You have successfully backed up your mnemonic. Please keep it safe.",
+    "enterWallet": "Enter Wallet"
+  },
+  "recover": {
+    "title": "Recover Wallet",
+    "addressConflict": "Address Conflict",
+    "setPassword": "Set Password",
+    "passwordHint": "Password is used to encrypt your wallet keys. Please remember it.",
+    "passwordRule": "At least 8 characters, no spaces allowed.",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "passwordPlaceholder": "Enter password",
+    "confirmPlaceholder": "Enter password again",
+    "errors": {
+      "minLength": "Password must be at least 8 characters",
+      "noSpaces": "Password cannot contain spaces",
+      "mismatch": "Passwords do not match",
+      "mnemonicIncomplete": "Mnemonic data is incomplete"
+    }
+  },
   "keyType": {
     "title": "Select Key Type",
     "mnemonic": "Standard Mnemonic (BIP39)",

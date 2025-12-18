@@ -1,4 +1,31 @@
 {
+  "create": {
+    "title": "建立錢包",
+    "backupMnemonic": "備份助記詞",
+    "verifyMnemonic": "驗證助記詞",
+    "backupHint": "請按順序抄寫以下助記詞，並妥善保管",
+    "confirmWritten": "我已抄寫完成",
+    "backupComplete": "備份完成！",
+    "backupSuccessDesc": "您已成功備份助記詞，請妥善保管",
+    "enterWallet": "進入錢包"
+  },
+  "recover": {
+    "title": "恢復錢包",
+    "addressConflict": "地址衝突",
+    "setPassword": "設定密碼",
+    "passwordHint": "密碼用於加密您的錢包金鑰，請牢記。",
+    "passwordRule": "至少 8 位字元，不能包含空格。",
+    "password": "密碼",
+    "confirmPassword": "確認密碼",
+    "passwordPlaceholder": "請輸入密碼",
+    "confirmPlaceholder": "請再次輸入密碼",
+    "errors": {
+      "minLength": "密碼至少 8 位字元",
+      "noSpaces": "密碼不能包含空格",
+      "mismatch": "兩次輸入的密碼不一致",
+      "mnemonicIncomplete": "助記詞資料不完整"
+    }
+  },
   "keyType": {
     "title": "選擇金鑰類型",
     "mnemonic": "標準助記詞（BIP39）",
