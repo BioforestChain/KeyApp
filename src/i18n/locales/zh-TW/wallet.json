@@ -1,4 +1,12 @@
 {
+  "list": {
+    "title": "錢包管理",
+    "empty": "還沒有錢包",
+    "create": "建立錢包",
+    "current": "目前",
+    "chainAddresses": "{{count}} 個鏈地址",
+    "viewDetail": "查看詳情"
+  },
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "獲得地址密碼等同於擁有錢包資產所有權",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原 中的錢包資料將全部保留，並進行資料整理，規則如下：",
   "addBitcoinAddress": "添加 Bitcoin 地址",
