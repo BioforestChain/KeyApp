@@ -1,4 +1,47 @@
 {
+  "history": {
+    "title": "Transaction History",
+    "noWallet": "Please create or import a wallet first",
+    "totalRecords": "{{count}} records",
+    "emptyTitle": "No transactions",
+    "emptyDesc": "No transactions found with current filters",
+    "filter": {
+      "allChains": "All Chains",
+      "allTime": "All",
+      "days7": "7 Days",
+      "days30": "30 Days",
+      "days90": "90 Days"
+    }
+  },
+  "detail": {
+    "title": "Transaction Details",
+    "notFound": "Transaction not found or expired",
+    "info": "Transaction Info",
+    "toAddress": "To Address",
+    "fromAddress": "From Address",
+    "time": "Time",
+    "network": "Network",
+    "fee": "Fee",
+    "blockHeight": "Block Height",
+    "confirmations": "Confirmations",
+    "hash": "Transaction Hash",
+    "copied": "Copied",
+    "copyHash": "Copy Hash",
+    "viewExplorer": "View in Explorer"
+  },
+  "type": {
+    "send": "Send",
+    "receive": "Receive",
+    "swap": "Swap",
+    "stake": "Stake",
+    "unstake": "Unstake",
+    "approve": "Approve"
+  },
+  "status": {
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "failed": "Failed"
+  },
   "aboutFee": "About Fee",
   "amount": "Amount",
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",

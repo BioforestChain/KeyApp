@@ -10,27 +10,27 @@ import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
 
-/** 链选项 */
-const CHAIN_OPTIONS: { value: ChainType | 'all'; label: string }[] = [
-  { value: 'all', label: '全部链' },
+/** Chain options - labels will be translated */
+const CHAIN_OPTIONS: { value: ChainType | 'all'; labelKey?: string; label?: string }[] = [
+  { value: 'all', labelKey: 'transaction:history.filter.allChains' },
   { value: 'ethereum', label: 'Ethereum' },
   { value: 'tron', label: 'Tron' },
   { value: 'bitcoin', label: 'Bitcoin' },
   { value: 'binance', label: 'BNB Chain' },
 ];
 
-/** 时间段选项 */
-const PERIOD_OPTIONS: { value: TransactionFilter['period']; label: string }[] = [
-  { value: 'all', label: '全部' },
-  { value: '7d', label: '7天' },
-  { value: '30d', label: '30天' },
-  { value: '90d', label: '90天' },
+/** Period options - labels will be translated */
+const PERIOD_OPTIONS: { value: TransactionFilter['period']; labelKey: string }[] = [
+  { value: 'all', labelKey: 'transaction:history.filter.allTime' },
+  { value: '7d', labelKey: 'transaction:history.filter.days7' },
+  { value: '30d', labelKey: 'transaction:history.filter.days30' },
+  { value: '90d', labelKey: 'transaction:history.filter.days90' },
 ];
 
 export function TransactionHistoryPage() {
   const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['transaction', 'common']);
   const { transactions, isLoading, filter, setFilter, refresh } = useTransactionHistory(currentWallet?.id);
 
   // 处理交易点击 - 导航到详情页
@@ -61,9 +61,9 @@ export function TransactionHistoryPage() {
   if (!currentWallet) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title="交易记录" onBack={goBack} />
+        <PageHeader title={t('transaction:history.title')} onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">请先创建或导入钱包</p>
+          <p className="text-muted-foreground">{t('transaction:history.noWallet')}</p>
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ export function TransactionHistoryPage() {
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
-        title="交易记录"
+        title={t('transaction:history.title')}
         onBack={goBack}
         rightAction={
           <button
@@ -83,7 +83,7 @@ export function TransactionHistoryPage() {
               'hover:bg-muted active:bg-muted/80',
               isLoading && 'animate-spin',
             )}
-            aria-label={t('a11y.refresh')}
+            aria-label={t('common:a11y.refresh')}
           >
             <RefreshCw className="size-5" />
           </button>
@@ -103,11 +103,11 @@ export function TransactionHistoryPage() {
               'bg-background rounded-lg border px-3 py-1.5 text-sm',
               'focus:ring-primary/20 focus:ring-2 focus:outline-none',
             )}
-            aria-label={t('a11y.selectChain')}
+            aria-label={t('common:a11y.selectChain')}
           >
             {CHAIN_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {option.labelKey ? t(option.labelKey) : option.label}
               </option>
             ))}
           </select>
@@ -120,18 +120,20 @@ export function TransactionHistoryPage() {
               'bg-background rounded-lg border px-3 py-1.5 text-sm',
               'focus:ring-primary/20 focus:ring-2 focus:outline-none',
             )}
-            aria-label={t('a11y.selectPeriod')}
+            aria-label={t('common:a11y.selectPeriod')}
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </option>
             ))}
           </select>
         </div>
 
         {/* 结果统计 */}
-        <p className="text-muted-foreground mt-2 text-xs">共 {transactions.length} 条记录</p>
+        <p className="text-muted-foreground mt-2 text-xs">
+          {t('transaction:history.totalRecords', { count: transactions.length })}
+        </p>
       </div>
 
       {/* 交易列表 */}
@@ -140,8 +142,8 @@ export function TransactionHistoryPage() {
           transactions={transactions}
           loading={isLoading}
           onTransactionClick={handleTransactionClick}
-          emptyTitle="暂无交易记录"
-          emptyDescription="当前筛选条件下没有交易记录"
+          emptyTitle={t('transaction:history.emptyTitle')}
+          emptyDescription={t('transaction:history.emptyDesc')}
         />
       </div>
     </div>

@@ -19,6 +19,7 @@ import enMigration from './locales/en/migration.json'
 import enAuthorize from './locales/en/authorize.json'
 import enCurrency from './locales/en/currency.json'
 import enOnboarding from './locales/en/onboarding.json'
+import enNotification from './locales/en/notification.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -38,6 +39,7 @@ import zhCNMigration from './locales/zh-CN/migration.json'
 import zhCNAuthorize from './locales/zh-CN/authorize.json'
 import zhCNCurrency from './locales/zh-CN/currency.json'
 import zhCNOnboarding from './locales/zh-CN/onboarding.json'
+import zhCNNotification from './locales/zh-CN/notification.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -57,6 +59,7 @@ import zhTWMigration from './locales/zh-TW/migration.json'
 import zhTWAuthorize from './locales/zh-TW/authorize.json'
 import zhTWCurrency from './locales/zh-TW/currency.json'
 import zhTWOnboarding from './locales/zh-TW/onboarding.json'
+import zhTWNotification from './locales/zh-TW/notification.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -76,6 +79,7 @@ import arMigration from './locales/ar/migration.json'
 import arAuthorize from './locales/ar/authorize.json'
 import arCurrency from './locales/ar/currency.json'
 import arOnboarding from './locales/ar/onboarding.json'
+import arNotification from './locales/ar/notification.json'
 
 // 语言配置
 export const languages = {
@@ -108,6 +112,7 @@ export const namespaces = [
   'migration',
   'authorize',
   'currency',
+  'notification',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -144,6 +149,7 @@ i18n.use(initReactI18next).init({
       migration: enMigration,
       authorize: enAuthorize,
       currency: enCurrency,
+      notification: enNotification,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -163,6 +169,7 @@ i18n.use(initReactI18next).init({
       migration: zhCNMigration,
       authorize: zhCNAuthorize,
       currency: zhCNCurrency,
+      notification: zhCNNotification,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -182,6 +189,7 @@ i18n.use(initReactI18next).init({
       migration: zhTWMigration,
       authorize: zhTWAuthorize,
       currency: zhTWCurrency,
+      notification: zhTWNotification,
     },
     ar: {
       common: arCommon,
@@ -201,6 +209,7 @@ i18n.use(initReactI18next).init({
       migration: arMigration,
       authorize: arAuthorize,
       currency: arCurrency,
+      notification: arNotification,
     },
   },
   lng: defaultLanguage,

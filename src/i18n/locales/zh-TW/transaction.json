@@ -1,4 +1,47 @@
 {
+  "history": {
+    "title": "交易記錄",
+    "noWallet": "請先建立或匯入錢包",
+    "totalRecords": "共 {{count}} 筆記錄",
+    "emptyTitle": "暫無交易記錄",
+    "emptyDesc": "目前篩選條件下沒有交易記錄",
+    "filter": {
+      "allChains": "全部鏈",
+      "allTime": "全部",
+      "days7": "7天",
+      "days30": "30天",
+      "days90": "90天"
+    }
+  },
+  "detail": {
+    "title": "交易詳情",
+    "notFound": "交易不存在或已過期",
+    "info": "交易資訊",
+    "toAddress": "收款地址",
+    "fromAddress": "發送地址",
+    "time": "交易時間",
+    "network": "網路",
+    "fee": "手續費",
+    "blockHeight": "區塊高度",
+    "confirmations": "確認數",
+    "hash": "交易哈希",
+    "copied": "已複製",
+    "copyHash": "複製哈希",
+    "viewExplorer": "區塊瀏覽器"
+  },
+  "type": {
+    "send": "發送",
+    "receive": "接收",
+    "swap": "兌換",
+    "stake": "質押",
+    "unstake": "解押",
+    "approve": "授權"
+  },
+  "status": {
+    "confirmed": "已確認",
+    "pending": "處理中",
+    "failed": "失敗"
+  },
   "aboutFee": "關於網絡費用",
   "amount": "數量",
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",

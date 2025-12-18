@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import {
@@ -28,6 +29,7 @@ type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-conf
  * Implements the create-flow and backup-verification per openspec changes
  */
 export function OnboardingCreatePage() {
+  const { t } = useTranslation(['onboarding', 'common']);
   const { navigate } = useNavigation();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
@@ -166,7 +168,7 @@ export function OnboardingCreatePage() {
       {/* Form step */}
       {step === 'form' && (
         <>
-          <PageHeader title="创建钱包" onBack={handleBack} />
+          <PageHeader title={t('onboarding:create.title')} onBack={handleBack} />
           <div className="flex-1 p-4">
             <CreateWalletForm
               onSubmit={handleSubmit}
@@ -206,10 +208,10 @@ export function OnboardingCreatePage() {
       {/* Backup display step */}
       {step === 'backup-display' && (
         <>
-          <PageHeader title="备份助记词" onBack={handleBack} />
+          <PageHeader title={t('onboarding:create.backupMnemonic')} onBack={handleBack} />
           <div className="flex flex-1 flex-col p-4">
             <div className="mb-6 text-center">
-              <p className="text-muted-foreground text-sm">请按顺序抄写以下助记词，并妥善保管</p>
+              <p className="text-muted-foreground text-sm">{t('onboarding:create.backupHint')}</p>
             </div>
 
             <div className="flex-1">
@@ -218,12 +220,12 @@ export function OnboardingCreatePage() {
 
             <div className="mt-6 space-y-3">
               <Button onClick={handleDisplayConfirm} className="w-full" size="lg">
-                我已抄写完成
+                {t('onboarding:create.confirmWritten')}
                 <ArrowRight className="ml-2 size-4" />
               </Button>
               <Button onClick={handleBack} variant="ghost" className="text-muted-foreground w-full">
                 <ArrowLeft className="mr-2 size-4" />
-                返回
+                {t('common:back')}
               </Button>
             </div>
           </div>
@@ -233,7 +235,7 @@ export function OnboardingCreatePage() {
       {/* Backup confirm step */}
       {step === 'backup-confirm' && (
         <>
-          <PageHeader title="验证助记词" onBack={handleBack} />
+          <PageHeader title={t('onboarding:create.verifyMnemonic')} onBack={handleBack} />
           <div className="flex-1 p-4">
             <MnemonicConfirmBackup
               slots={verification.state.slots}
@@ -256,11 +258,11 @@ export function OnboardingCreatePage() {
             <CheckCircle className="size-10 text-green-600 dark:text-green-400" />
           </div>
 
-          <h1 className="mb-2 text-2xl font-bold">备份完成！</h1>
-          <p className="text-muted-foreground mb-8 text-center">您已成功备份助记词，请妥善保管</p>
+          <h1 className="mb-2 text-2xl font-bold">{t('onboarding:create.backupComplete')}</h1>
+          <p className="text-muted-foreground mb-8 text-center">{t('onboarding:create.backupSuccessDesc')}</p>
 
           <Button onClick={handleEnterWallet} size="lg" className="w-full max-w-xs">
-            进入钱包
+            {t('onboarding:create.enterWallet')}
             <ArrowRight className="ml-2 size-4" />
           </Button>
         </div>

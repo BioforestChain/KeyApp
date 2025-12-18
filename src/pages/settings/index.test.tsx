@@ -26,6 +26,7 @@ vi.mock('@/stores', () => ({
   }),
   useLanguage: () => 'zh-CN',
   useCurrency: () => 'USD',
+  useTheme: () => 'system',
   languages: {
     'zh-CN': { name: '简体中文', dir: 'ltr' },
     en: { name: 'English', dir: 'ltr' },

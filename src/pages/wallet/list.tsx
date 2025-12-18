@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { useStore } from '@tanstack/react-store';
 import { IconPlus as Plus, IconCheck as Check, IconChevronRight as ChevronRight } from '@tabler/icons-react';
@@ -7,6 +8,7 @@ import { walletStore, walletActions, type Wallet } from '@/stores';
 import { cn } from '@/lib/utils';
 
 export function WalletListPage() {
+  const { t } = useTranslation('wallet');
   const { navigate, goBack } = useNavigation();
   const wallets = useStore(walletStore, (s) => s.wallets);
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId);
@@ -37,13 +39,13 @@ export function WalletListPage() {
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
-        title="钱包管理"
+        title={t('list.title')}
         onBack={handleBack}
         rightAction={
           <button
             onClick={handleCreateWallet}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
-            aria-label="创建钱包"
+            aria-label={t('list.create')}
           >
             <Plus className="size-5" />
           </button>
@@ -53,7 +55,7 @@ export function WalletListPage() {
       <div className="flex-1 p-4">
         {wallets.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted-foreground">还没有钱包</p>
+            <p className="text-muted-foreground">{t('list.empty')}</p>
             <button
               onClick={handleCreateWallet}
               className={cn(
@@ -61,7 +63,7 @@ export function WalletListPage() {
                 'hover:bg-primary/90 active:bg-primary/80',
               )}
             >
-              创建钱包
+              {t('list.create')}
             </button>
           </div>
         ) : (
@@ -73,6 +75,7 @@ export function WalletListPage() {
                 isActive={wallet.id === currentWalletId}
                 onSelect={() => handleSelectWallet(wallet.id)}
                 onDetail={() => handleWalletDetail(wallet.id)}
+                t={t}
               />
             ))}
           </div>
@@ -87,9 +90,11 @@ interface WalletListItemProps {
   isActive: boolean;
   onSelect: () => void;
   onDetail: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: (key: string, options?: any) => string;
 }
 
-function WalletListItem({ wallet, isActive, onSelect, onDetail }: WalletListItemProps) {
+function WalletListItem({ wallet, isActive, onSelect, onDetail, t }: WalletListItemProps) {
   // 计算总余额
   const totalBalance = wallet.chainAddresses.reduce(
     (sum, ca) => sum + ca.tokens.reduce((s, t) => s + t.fiatValue, 0),
@@ -117,11 +122,13 @@ function WalletListItem({ wallet, isActive, onSelect, onDetail }: WalletListItem
             {isActive && (
               <span className="text-primary flex items-center gap-1 text-xs">
                 <Check className="size-3" />
-                当前
+                {t('list.current')}
               </span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm">{wallet.chainAddresses.length} 个链地址</p>
+          <p className="text-muted-foreground text-sm">
+            {t('list.chainAddresses', { count: wallet.chainAddresses.length })}
+          </p>
         </div>
 
         {/* 余额和详情 */}
@@ -134,7 +141,7 @@ function WalletListItem({ wallet, isActive, onSelect, onDetail }: WalletListItem
           <button
             onClick={onDetail}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
-            aria-label="查看详情"
+            aria-label={t('list.viewDetail')}
           >
             <ChevronRight className="text-muted-foreground size-5" />
           </button>

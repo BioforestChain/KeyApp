@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,9 +14,10 @@ import {
   IconInfoCircle as Info,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { useCurrentWallet, useLanguage, useCurrency } from '@/stores';
+import { useCurrentWallet, useLanguage, useCurrency, useTheme } from '@/stores';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
+import { AppearanceSheet } from '@/components/settings/appearance-sheet';
 
 /** 支持的语言显示名称映射 */
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -38,14 +40,20 @@ const CURRENCY_NAMES: Record<string, string> = {
 
 export function SettingsPage() {
   const { navigate } = useNavigation();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['settings', 'common']);
   const currentWallet = useCurrentWallet();
   const currentLanguage = useLanguage();
   const currentCurrency = useCurrency();
+  const currentTheme = useTheme();
+  const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
+
+  const getThemeDisplayName = () => {
+    return t(`settings:appearance.${currentTheme}`);
+  };
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title={t('a11y.tabSettings')} />
+      <PageHeader title={t('common:a11y.tabSettings')} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 钱包信息头 */}
@@ -56,80 +64,85 @@ export function SettingsPage() {
             </div>
             <div className="flex-1">
               <h2 className="font-semibold">{currentWallet.name}</h2>
-              <p className="text-muted-foreground text-sm">{currentWallet.chainAddresses.length} 个链地址</p>
+              <p className="text-muted-foreground text-sm">
+                {t('settings:chainAddressCount', { count: currentWallet.chainAddresses.length })}
+              </p>
             </div>
           </div>
         )}
 
         {/* 钱包管理 */}
-        <SettingsSection title="钱包管理">
+        <SettingsSection title={t('settings:sections.walletManagement')}>
           <SettingsItem
             icon={<Wallet size={20} />}
-            label="钱包管理"
+            label={t('settings:items.walletManagement')}
             onClick={() => navigate({ to: `/wallet/${currentWallet?.id ?? ''}` })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<BookUser size={20} />}
-            label="地址簿"
+            label={t('settings:items.addressBook')}
             onClick={() => navigate({ to: '/address-book' })}
           />
         </SettingsSection>
 
         {/* 安全 */}
-        <SettingsSection title="安全">
-          <SettingsItem icon={<Lock size={20} />} label="应用锁" value="暂不支持" disabled />
+        <SettingsSection title={t('settings:sections.security')}>
+          <SettingsItem
+            icon={<Lock size={20} />}
+            label={t('settings:items.appLock')}
+            value={t('settings:notSupported')}
+            disabled
+          />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<Eye size={20} />}
-            label="查看助记词"
+            label={t('settings:items.viewMnemonic')}
             onClick={() => navigate({ to: '/settings/mnemonic' })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<KeyRound size={20} />}
-            label="修改密码"
+            label={t('settings:items.changePassword')}
             onClick={() => navigate({ to: '/settings/password' })}
           />
         </SettingsSection>
 
         {/* 偏好设置 */}
-        <SettingsSection title="偏好设置">
+        <SettingsSection title={t('settings:sections.preferences')}>
           <SettingsItem
             icon={<Languages size={20} />}
-            label="语言"
+            label={t('settings:items.language')}
             value={LANGUAGE_NAMES[currentLanguage]}
             onClick={() => navigate({ to: '/settings/language' })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<DollarSign size={20} />}
-            label="货币单位"
+            label={t('settings:items.currency')}
             value={CURRENCY_NAMES[currentCurrency]}
             onClick={() => navigate({ to: '/settings/currency' })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<Network size={20} />}
-            label="链配置"
+            label={t('settings:items.chainConfig')}
             onClick={() => navigate({ to: '/settings/chains' })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<Palette size={20} />}
-            label="外观"
-            value="跟随系统"
-            onClick={() => {
-              // TODO: 主题切换
-            }}
+            label={t('settings:items.appearance')}
+            value={getThemeDisplayName()}
+            onClick={() => setAppearanceSheetOpen(true)}
           />
         </SettingsSection>
 
         {/* 关于 */}
-        <SettingsSection title="关于">
+        <SettingsSection title={t('settings:sections.about')}>
           <SettingsItem
             icon={<Info size={20} />}
-            label="关于 BFM Pay"
+            label={t('settings:items.aboutApp')}
             value="v1.0.0"
             onClick={() => {
               // TODO: 关于页面
@@ -137,6 +150,11 @@ export function SettingsPage() {
           />
         </SettingsSection>
       </div>
+
+      <AppearanceSheet
+        open={appearanceSheetOpen}
+        onOpenChange={setAppearanceSheetOpen}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2 } from '@tabler/icons-react';
 import { useStore } from '@tanstack/react-store';
@@ -11,6 +12,7 @@ import {
   type NotificationType,
 } from '@/stores/notification';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/stores';
 
 /** 通知类型图标和样式 */
 const typeStyles: Record<NotificationType, { icon: string; bg: string }> = {
@@ -20,18 +22,26 @@ const typeStyles: Record<NotificationType, { icon: string; bg: string }> = {
 };
 
 /** 格式化相对时间 */
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
+function useFormatRelativeTime() {
+  const { t } = useTranslation('notification');
+  const language = useLanguage();
 
-  if (minutes < 1) return '刚刚';
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days < 7) return `${days}天前`;
-  return new Date(timestamp).toLocaleDateString('zh-CN');
+  return useCallback(
+    (timestamp: number): string => {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (minutes < 1) return t('time.justNow');
+      if (minutes < 60) return t('time.minutesAgo', { count: minutes });
+      if (hours < 24) return t('time.hoursAgo', { count: hours });
+      if (days < 7) return t('time.daysAgo', { count: days });
+      return new Date(timestamp).toLocaleDateString(language);
+    },
+    [t, language],
+  );
 }
 
 /** 通知项组件 */
@@ -39,10 +49,14 @@ function NotificationItem({
   notification,
   onRead,
   onRemove,
+  formatRelativeTime,
+  t,
 }: {
   notification: Notification;
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  formatRelativeTime: (timestamp: number) => string;
+  t: (key: string) => string;
 }) {
   const style = typeStyles[notification.type];
 
@@ -73,7 +87,7 @@ function NotificationItem({
         <p className={cn('mt-1 text-sm', notification.read ? 'text-muted-foreground' : 'text-foreground/80')}>
           {notification.message}
         </p>
-        {!notification.read && <div className="bg-primary mt-2 flex size-2 rounded-full" aria-label="未读" />}
+        {!notification.read && <div className="bg-primary mt-2 flex size-2 rounded-full" aria-label={t('unread')} />}
       </div>
 
       <button
@@ -82,7 +96,7 @@ function NotificationItem({
           onRemove(notification.id);
         }}
         className="text-muted-foreground hover:text-destructive shrink-0 p-1"
-        aria-label="删除"
+        aria-label={t('delete')}
       >
         <Trash2 className="size-4" />
       </button>
@@ -95,27 +109,33 @@ function GroupedNotificationList({
   notifications,
   onRead,
   onRemove,
+  formatRelativeTime,
+  t,
+  language,
 }: {
   notifications: Notification[];
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  formatRelativeTime: (timestamp: number) => string;
+  t: (key: string) => string;
+  language: string;
 }) {
   const grouped = useMemo(() => {
     const map = new Map<string, Notification[]>();
-    const today = new Date().toLocaleDateString('zh-CN');
-    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('zh-CN');
+    const today = new Date().toLocaleDateString(language);
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString(language);
 
     for (const n of notifications) {
-      const date = new Date(n.timestamp).toLocaleDateString('zh-CN');
+      const date = new Date(n.timestamp).toLocaleDateString(language);
       let label = date;
-      if (date === today) label = '今天';
-      else if (date === yesterday) label = '昨天';
+      if (date === today) label = t('time.today');
+      else if (date === yesterday) label = t('time.yesterday');
 
       const existing = map.get(label) || [];
       map.set(label, [...existing, n]);
     }
     return map;
-  }, [notifications]);
+  }, [notifications, language, t]);
 
   if (notifications.length === 0) {
     return (
@@ -123,8 +143,8 @@ function GroupedNotificationList({
         <div className="bg-muted mb-4 flex size-16 items-center justify-center rounded-full">
           <Bell className="text-muted-foreground size-8" />
         </div>
-        <h3 className="text-lg font-medium">暂无通知</h3>
-        <p className="text-muted-foreground mt-1 text-sm">您的所有通知都会显示在这里</p>
+        <h3 className="text-lg font-medium">{t('empty.title')}</h3>
+        <p className="text-muted-foreground mt-1 text-sm">{t('empty.desc')}</p>
       </div>
     );
   }
@@ -136,7 +156,14 @@ function GroupedNotificationList({
           <h3 className="text-muted-foreground mb-2 text-sm font-medium">{date}</h3>
           <div className="space-y-2">
             {items.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={onRead} onRemove={onRemove} />
+              <NotificationItem
+                key={n.id}
+                notification={n}
+                onRead={onRead}
+                onRemove={onRemove}
+                formatRelativeTime={formatRelativeTime}
+                t={t}
+              />
             ))}
           </div>
         </div>
@@ -147,6 +174,9 @@ function GroupedNotificationList({
 
 /** 通知中心页面 */
 export function NotificationCenterPage() {
+  const { t } = useTranslation('notification');
+  const language = useLanguage();
+  const formatRelativeTime = useFormatRelativeTime();
   const { goBack } = useNavigation();
   const state = useStore(notificationStore);
 
@@ -176,17 +206,17 @@ export function NotificationCenterPage() {
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader
-        title="通知中心"
+        title={t('title')}
         onBack={goBack}
         rightAction={
           state.unreadCount > 0 ? (
             <button
               onClick={handleMarkAllRead}
               className="text-primary hover:bg-primary/10 flex items-center gap-1 rounded-full px-3 py-1.5 text-sm"
-              aria-label="全部已读"
+              aria-label={t('markAllRead')}
             >
               <Check className="size-4" />
-              全部已读
+              {t('markAllRead')}
             </button>
           ) : undefined
         }
@@ -196,18 +226,12 @@ export function NotificationCenterPage() {
       <div className="bg-card border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">
-            {state.unreadCount > 0 ? (
-              <>
-                <span className="text-foreground font-medium">{state.unreadCount}</span> 条未读
-              </>
-            ) : (
-              '没有未读通知'
-            )}
+            {state.unreadCount > 0 ? t('unreadCount', { count: state.unreadCount }) : t('noUnread')}
           </p>
           {state.notifications.length > 0 && (
             <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-destructive">
               <Trash2 className="mr-1 size-4" />
-              清空
+              {t('clear')}
             </Button>
           )}
         </div>
@@ -215,7 +239,14 @@ export function NotificationCenterPage() {
 
       {/* 通知列表 */}
       <div className="flex-1 p-4">
-        <GroupedNotificationList notifications={state.notifications} onRead={handleRead} onRemove={handleRemove} />
+        <GroupedNotificationList
+          notifications={state.notifications}
+          onRead={handleRead}
+          onRemove={handleRemove}
+          formatRelativeTime={formatRelativeTime}
+          t={t}
+          language={language}
+        />
       </div>
     </div>
   );

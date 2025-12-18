@@ -1,6 +1,33 @@
 {
   "language": "語言",
-  "settings": "設置中",
+  "settings": "設定",
+  "title": "設定",
+  "sections": {
+    "walletManagement": "錢包管理",
+    "security": "安全",
+    "preferences": "偏好設定",
+    "about": "關於"
+  },
+  "items": {
+    "walletManagement": "錢包管理",
+    "addressBook": "通訊錄",
+    "appLock": "應用程式鎖定",
+    "viewMnemonic": "查看助記詞",
+    "changePassword": "修改密碼",
+    "language": "語言",
+    "currency": "貨幣單位",
+    "chainConfig": "鏈配置",
+    "appearance": "外觀",
+    "aboutApp": "關於 BFM Pay"
+  },
+  "appearance": {
+    "title": "外觀設定",
+    "system": "跟隨系統",
+    "light": "淺色模式",
+    "dark": "深色模式"
+  },
+  "chainAddressCount": "{{count}} 個鏈地址",
+  "notSupported": "暫不支援",
   "chainConfig": {
     "title": "鏈配置",
     "subscription": {
