@@ -99,8 +99,7 @@ describe('NotificationCenterPage', () => {
 
     it('shows unread count', () => {
       renderWithProviders(<NotificationCenterPage />)
-      expect(screen.getByText('2')).toBeInTheDocument()
-      expect(screen.getByText('条未读')).toBeInTheDocument()
+      expect(screen.getByText('2 条未读')).toBeInTheDocument()
     })
 
     it('shows mark all read button when unread exists', () => {
