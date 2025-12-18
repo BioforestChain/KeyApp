@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { AddressDisplay } from './address-display'
 
@@ -26,6 +27,7 @@ export function WalletCard({
   onReceive,
   className,
 }: WalletCardProps) {
+  const { t } = useTranslation('wallet')
   return (
     <div className={cn('@container', className)}>
       <div
@@ -52,7 +54,7 @@ export function WalletCard({
           
           {wallet.isBackedUp === false && (
             <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-              未备份
+              {t('notBackedUp')}
             </span>
           )}
         </div>
@@ -83,7 +85,7 @@ export function WalletCard({
                 onClick={onTransfer}
                 className="flex-1 py-2 px-4 bg-white/20 rounded-full text-sm font-medium hover:bg-white/30 transition-colors @xs:py-2.5 @xs:text-base"
               >
-                转账
+                {t('common:transfer')}
               </button>
             )}
             {onReceive && (
@@ -92,7 +94,7 @@ export function WalletCard({
                 onClick={onReceive}
                 className="flex-1 py-2 px-4 bg-white/20 rounded-full text-sm font-medium hover:bg-white/30 transition-colors @xs:py-2.5 @xs:text-base"
               >
-                收款
+                {t('common:receive')}
               </button>
             )}
           </div>

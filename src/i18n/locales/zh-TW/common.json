@@ -1,4 +1,6 @@
 {
+  "transfer": "轉帳",
+  "receive": "收款",
   "a11y": {
     "chainSelector": "選擇區塊鏈網絡",
     "closeDialog": "關閉彈窗",

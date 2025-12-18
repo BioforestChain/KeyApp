@@ -1,4 +1,6 @@
 {
+  "transfer": "转账",
+  "receive": "收款",
   "a11y": {
     "skipToMain": "跳转到主要内容",
     "tabHome": "首页",

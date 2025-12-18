@@ -1,4 +1,6 @@
 {
+  "transfer": "Transfer",
+  "receive": "Receive",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "Select blockchain network",

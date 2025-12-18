@@ -60,7 +60,7 @@
       },
       "callees": {
         "exclude": [
-          "t", "i18n.t", "useTranslation", "Trans",
+          "t", "i18n.t", "useTranslation", "Trans", "tCommon", "tAuthorize",
           "console.*", "require", "import", "Error", "TypeError", "new Error", "new TypeError",
           "push", "pop", "replace", "navigate", "redirect",
           "querySelector", "querySelectorAll", "getElementById", "getElementsByClassName",
@@ -70,7 +70,8 @@
           "Array.from", "Array.isArray", "String.fromCharCode",
           "Math.*", "Number.*", "Date.*", "RegExp",
           "fetch", "axios.*", "localStorage.*", "sessionStorage.*",
-          "describe", "it", "test", "expect", "vi.*", "jest.*"
+          "describe", "it", "test", "expect", "vi.*", "jest.*",
+          "showError", "handleBlur", "join"
         ]
       },
       "words": {
