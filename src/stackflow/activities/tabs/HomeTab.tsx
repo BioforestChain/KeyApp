@@ -127,7 +127,7 @@ export function HomeTab() {
             <button
               onClick={handleCopyAddress}
               className="rounded p-1 hover:bg-white/10"
-              aria-label={t("a11y.copyAddress")}
+              aria-label={t("common:a11y.copyAddress")}
             >
               {copied ? (
                 <IconCheck className="size-4 text-green-300" />
