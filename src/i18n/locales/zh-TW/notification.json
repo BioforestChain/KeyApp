@@ -1,4 +1,24 @@
 {
+  "permission": {
+    "title": "開啟通知",
+    "description": "接收交易狀態更新和重要安全提醒",
+    "enable": "開啟通知",
+    "skip": "暫不開啟",
+    "benefits": {
+      "transaction": {
+        "title": "交易狀態",
+        "description": "即時收到轉帳和交易確認的通知"
+      },
+      "instant": {
+        "title": "即時提醒",
+        "description": "收款到帳、交易完成時第一時間知曉"
+      },
+      "security": {
+        "title": "安全提醒",
+        "description": "帳戶安全相關的重要通知不會錯過"
+      }
+    }
+  },
   "title": "通知中心",
   "markAllRead": "全部已讀",
   "unreadCount": "{{count}} 條未讀",

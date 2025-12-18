@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { NotificationPermissionSheet } from './notification-permission-sheet'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+}
 
 describe('NotificationPermissionSheet', () => {
   const defaultProps = {
@@ -15,26 +20,26 @@ describe('NotificationPermissionSheet', () => {
   })
 
   it('renders when open', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     // Title and button both have "开启通知"
     expect(screen.getAllByText('开启通知')).toHaveLength(2)
   })
 
   it('does not render content when closed', () => {
-    render(<NotificationPermissionSheet {...defaultProps} open={false} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} open={false} />)
     expect(screen.queryByText('开启通知')).not.toBeInTheDocument()
   })
 
   it('displays notification benefits', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     expect(screen.getByText('交易状态')).toBeInTheDocument()
     expect(screen.getByText('即时提醒')).toBeInTheDocument()
     expect(screen.getByText('安全提醒')).toBeInTheDocument()
   })
 
   it('displays descriptions for each benefit', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     expect(
       screen.getByText(/实时收到转账和交易确认的通知/),
     ).toBeInTheDocument()
@@ -47,7 +52,7 @@ describe('NotificationPermissionSheet', () => {
   })
 
   it('calls onEnable when clicking enable button', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     // Find the button by its text (not the title which also says "开启通知")
     const buttons = screen.getAllByText('开启通知')
     // The button is the one inside the footer
@@ -60,18 +65,18 @@ describe('NotificationPermissionSheet', () => {
   })
 
   it('calls onSkip when clicking skip button', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     fireEvent.click(screen.getByText('暂不开启'))
     expect(defaultProps.onSkip).toHaveBeenCalledTimes(1)
   })
 
   it('shows bell icon in header', () => {
-    render(<NotificationPermissionSheet {...defaultProps} />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} />)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('applies custom className', () => {
-    render(<NotificationPermissionSheet {...defaultProps} className="custom-class" />)
+    renderWithProviders(<NotificationPermissionSheet {...defaultProps} className="custom-class" />)
     const dialog = screen.getByRole('dialog')
     expect(dialog).toBeInTheDocument()
   })
