@@ -1,6 +1,8 @@
 {
   "transfer": "Transfer",
   "receive": "Receive",
+  "paste": "Paste",
+  "addressPlaceholder": "Enter or paste address",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "Select blockchain network",

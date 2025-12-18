@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 
@@ -10,6 +11,7 @@ interface MnemonicDisplayProps {
 }
 
 export function MnemonicDisplay({ words, hidden = false, onCopy, className }: MnemonicDisplayProps) {
+  const { t } = useTranslation('security');
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -35,7 +37,7 @@ export function MnemonicDisplay({ words, hidden = false, onCopy, className }: Mn
           >
             <span className="text-muted-foreground w-4 shrink-0 text-xs">{index + 1}</span>
             <span className={cn('truncate text-sm font-medium', hidden && 'blur-sm select-none')}>
-              {hidden ? '••••••' : word}
+              {hidden ? t('mnemonicDisplay.hidden') : word}
             </span>
           </div>
         ))}
@@ -54,12 +56,12 @@ export function MnemonicDisplay({ words, hidden = false, onCopy, className }: Mn
         {copied ? (
           <>
             <Check className="size-4" />
-            已复制
+            {t('mnemonicDisplay.copied')}
           </>
         ) : (
           <>
             <Copy className="size-4" />
-            复制助记词
+            {t('mnemonicDisplay.copy')}
           </>
         )}
       </button>

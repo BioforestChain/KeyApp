@@ -1,6 +1,8 @@
 {
   "transfer": "تحويل",
   "receive": "استلام",
+  "paste": "لصق",
+  "addressPlaceholder": "أدخل أو الصق العنوان",
   "0.00": "0.00",
   "a11y": {
     "chainSelector": "اختر شبكة البلوكتشين",

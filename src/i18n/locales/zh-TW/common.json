@@ -1,6 +1,8 @@
 {
   "transfer": "轉帳",
   "receive": "收款",
+  "paste": "貼上",
+  "addressPlaceholder": "輸入或貼上地址",
   "a11y": {
     "chainSelector": "選擇區塊鏈網絡",
     "closeDialog": "關閉彈窗",

@@ -2,12 +2,15 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MnemonicDisplay } from './mnemonic-display'
+import { TestI18nProvider } from '@/test/i18n-mock'
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockWords = ['abandon', 'ability', 'able', 'about', 'above', 'absent']
 
 describe('MnemonicDisplay', () => {
   it('renders all words with indices', () => {
-    render(<MnemonicDisplay words={mockWords} />)
+    renderWithI18n(<MnemonicDisplay words={mockWords} />)
     
     mockWords.forEach((word, index) => {
       expect(screen.getByText(word)).toBeInTheDocument()
@@ -16,7 +19,7 @@ describe('MnemonicDisplay', () => {
   })
 
   it('hides words when hidden is true', () => {
-    render(<MnemonicDisplay words={mockWords} hidden />)
+    renderWithI18n(<MnemonicDisplay words={mockWords} hidden />)
     
     mockWords.forEach((word) => {
       expect(screen.queryByText(word)).not.toBeInTheDocument()
@@ -31,7 +34,7 @@ describe('MnemonicDisplay', () => {
     })
 
     const handleCopy = vi.fn()
-    render(<MnemonicDisplay words={mockWords} onCopy={handleCopy} />)
+    renderWithI18n(<MnemonicDisplay words={mockWords} onCopy={handleCopy} />)
     
     await userEvent.click(screen.getByRole('button', { name: /复制助记词/ }))
     
@@ -44,19 +47,19 @@ describe('MnemonicDisplay', () => {
       clipboard: { writeText: vi.fn() },
     })
 
-    render(<MnemonicDisplay words={mockWords} />)
+    renderWithI18n(<MnemonicDisplay words={mockWords} />)
     
     await userEvent.click(screen.getByRole('button', { name: /复制助记词/ }))
     expect(screen.getByText('已复制')).toBeInTheDocument()
   })
 
   it('disables copy button when hidden', () => {
-    render(<MnemonicDisplay words={mockWords} hidden />)
+    renderWithI18n(<MnemonicDisplay words={mockWords} hidden />)
     expect(screen.getByRole('button', { name: /复制助记词/ })).toBeDisabled()
   })
 
   it('applies blur effect when hidden', () => {
-    const { container } = render(<MnemonicDisplay words={mockWords} hidden />)
+    const { container } = renderWithI18n(<MnemonicDisplay words={mockWords} hidden />)
     const hiddenTexts = container.querySelectorAll('.blur-sm')
     expect(hiddenTexts.length).toBe(mockWords.length)
   })
