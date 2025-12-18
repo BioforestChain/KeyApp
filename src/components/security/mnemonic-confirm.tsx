@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconRotateClockwise as RotateCcw, IconCheck as Check, IconX as X } from '@tabler/icons-react';
 
@@ -31,6 +32,7 @@ function shuffleArray<T>(array: T[]): T[] {
  * Mnemonic confirmation component for backup verification
  */
 export function MnemonicConfirm({ words, onComplete, onReset, className }: MnemonicConfirmProps) {
+  const { t } = useTranslation('security');
   const [shuffledWords] = useState(() => shuffleArray(words.map((w, i) => ({ word: w, originalIndex: i }))));
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [showError, setShowError] = useState(false);
@@ -97,7 +99,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
       <div className="border-border bg-muted/30 rounded-xl border p-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-muted-foreground text-sm">
-            已选择 {selectedIndices.length}/{words.length}
+            {t('mnemonicConfirm.selected', { current: selectedIndices.length, total: words.length })}
           </span>
           {selectedIndices.length > 0 && (
             <button
@@ -105,7 +107,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
               onClick={handleRemoveLast}
               className="text-muted-foreground hover:text-foreground text-sm"
             >
-              撤销
+              {t('mnemonicConfirm.undo')}
             </button>
           )}
         </div>
@@ -125,7 +127,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
             </span>
           ))}
           {selectedIndices.length === 0 && (
-            <p className="text-muted-foreground w-full py-4 text-center text-sm">按正确顺序点击下方助记词</p>
+            <p className="text-muted-foreground w-full py-4 text-center text-sm">{t('mnemonicConfirm.hint')}</p>
           )}
         </div>
       </div>
@@ -134,7 +136,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
       {showError && (
         <div className="text-destructive flex items-center gap-2 text-sm">
           <X className="size-4" />
-          <span>助记词顺序错误，请重试</span>
+          <span>{t('mnemonicConfirm.error')}</span>
         </div>
       )}
 
@@ -142,7 +144,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
       {isComplete && isCorrect && (
         <div className="flex items-center gap-2 text-sm text-green-600">
           <Check className="size-4" />
-          <span>助记词验证成功</span>
+          <span>{t('mnemonicConfirm.success')}</span>
         </div>
       )}
 
@@ -178,7 +180,7 @@ export function MnemonicConfirm({ words, onComplete, onReset, className }: Mnemo
           className="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-2 py-2 text-sm"
         >
           <RotateCcw className="size-4" />
-          重新选择
+          {t('mnemonicConfirm.reset')}
         </button>
       )}
     </div>

@@ -27,6 +27,15 @@
     "biometric": "使用生物辨識",
     "cancel": "取消"
   },
+  "mnemonicConfirm": {
+    "selected": "已選擇 {{current}}/{{total}}",
+    "undo": "撤銷",
+    "hint": "按正確順序點擊下方助記詞",
+    "error": "助記詞順序錯誤，請重試",
+    "success": "助記詞驗證成功",
+    "reset": "重新選擇",
+    "clearAll": "清空"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. 原身份錢包密碼將作為所有錢包的密碼，用於轉賬/備份助記詞等驗證。",
   "addressPassword": "地址密碼",
   "applicationLock": "應用鎖",

@@ -27,6 +27,15 @@
     "biometric": "استخدام البصمة",
     "cancel": "إلغاء"
   },
+  "mnemonicConfirm": {
+    "selected": "محدد {{current}}/{{total}}",
+    "undo": "تراجع",
+    "hint": "انقر على الكلمات أدناه بالترتيب الصحيح",
+    "error": "ترتيب العبارة السرية غير صحيح، يرجى المحاولة مرة أخرى",
+    "success": "تم التحقق من العبارة السرية بنجاح",
+    "reset": "إعادة تعيين",
+    "clearAll": "مسح الكل"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. The original identity wallet password will be used as the password for all wallets and used for verification such as transfer/backup mnemonic phrases.",
   "addressPassword": "Address Password",
   "applicationLock": "Application lock",

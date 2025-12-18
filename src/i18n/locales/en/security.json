@@ -27,6 +27,15 @@
     "biometric": "Use Biometrics",
     "cancel": "Cancel"
   },
+  "mnemonicConfirm": {
+    "selected": "Selected {{current}}/{{total}}",
+    "undo": "Undo",
+    "hint": "Click words below in correct order",
+    "error": "Mnemonic order incorrect, please try again",
+    "success": "Mnemonic verified successfully",
+    "reset": "Reset",
+    "clearAll": "Clear All"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. The original identity wallet password will be used as the password for all wallets and used for verification such as transfer/backup mnemonic phrases.",
   "addressPassword": "Address Password",
   "applicationLock": "Application lock",

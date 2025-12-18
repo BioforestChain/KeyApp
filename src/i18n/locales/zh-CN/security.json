@@ -27,6 +27,15 @@
     "biometric": "使用生物识别",
     "cancel": "取消"
   },
+  "mnemonicConfirm": {
+    "selected": "已选择 {{current}}/{{total}}",
+    "undo": "撤销",
+    "hint": "按正确顺序点击下方助记词",
+    "error": "助记词顺序错误，请重试",
+    "success": "助记词验证成功",
+    "reset": "重新选择",
+    "clearAll": "清空"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2.原身份钱包密码将作为所有钱包的密码，用于转账/备份助记词等验证。",
   "addressPassword": "地址密码",
   "applicationLock": "应用锁",
