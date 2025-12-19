@@ -1,4 +1,4 @@
-# BFM Pay (KeyApp) - CCCC Pair Project Context
+# BFM Pay (KeyApp) - Project Context
 
 ## Overview
 
@@ -8,11 +8,24 @@ BFM Pay 是 mpay 的技术重构版本，目标是构建一个现代化的多链
 
 | Document             | Description                                              |
 | -------------------- | -------------------------------------------------------- |
-| `TDD.md`             | Technical Design Document - 架构设计、技术选型、实现方案 |
-| `PDR.md`             | Product Requirements Document - 产品需求、功能规格       |
-| `SERVICE-SPEC.md`    | Service Interface Specification - 服务接口定义           |
+| `docs/white-book/`   | 软件开发说明书（白皮书）- 完整技术文档                    |
 | `CLAUDE.md`          | AI Assistant Instructions - 项目级 AI 指导               |
 | `openspec/AGENTS.md` | OpenSpec Workflow Guide - 变更管理流程                   |
+
+### 白皮书结构
+
+| 章节 | 内容 |
+|-----|------|
+| `01-产品篇` | 产品愿景、用户画像、用户故事 |
+| `02-设计篇` | 交互设计、视觉设计、设计原则 |
+| `03-架构篇` | 技术选型、系统架构、导航系统、状态管理 |
+| `04-服务篇` | 服务架构、链服务接口、平台服务 |
+| `05-组件篇` | 基础组件、通用组件、钱包组件、布局组件 |
+| `06-安全篇` | 密钥管理、身份认证、DWEB授权 |
+| `07-国际化篇` | 多语言支持、本地化规范 |
+| `08-测试篇` | 测试策略、Vitest/Playwright配置 |
+| `09-部署篇` | 构建配置、发布流程、数据迁移 |
+| `附录` | 术语表、链网络列表、mpay迁移指南、API参考 |
 
 ## Reference Code
 
@@ -30,6 +43,33 @@ pnpm test             # Unit tests
 pnpm lint             # Oxlint check
 pnpm typecheck        # TypeScript check
 pnpm build            # Production build
+```
+
+## 开发工作流
+
+**重要：任何开发任务开始前，必须按以下顺序执行：**
+
+1. **更新白皮书** - 如果需要新增功能或修改现有设计，先更新 `docs/white-book/` 对应章节
+2. **创建 openspec change** - 基于白皮书内容，创建具体的变更提案
+3. **创建 Git Worktree** - 在 `.git-worktree/` 下创建独立工作目录
+4. **开始编码** - 在 worktree 中根据 openspec 的 tasks.md 执行开发
+
+### Git Worktree 命令
+
+```bash
+# 创建 worktree
+git worktree add .git-worktree/<feature-name> -b <branch-name>
+
+# 进入开发
+cd .git-worktree/<feature-name>
+pnpm install
+
+# 完成后合并
+cd ../..
+git merge --no-ff <branch-name>
+
+# 清理
+git worktree remove .git-worktree/<feature-name>
 ```
 
 ## 职责
