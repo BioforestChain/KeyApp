@@ -161,3 +161,29 @@ TASK：实现shadcnui的升级
 8. 然后继续朝着我们的**短期核心目标**前进
    1. 特别关注目前主页底部4个tab的作用是什么？
    2. bioChain生态的用户能否用这个钱包完成基础的使用？
+
+---
+
+对于多语言的测试,我建议使用通用脚本来实现,这样能一劳永逸地可靠地分析出是否存在未翻译的内容,对此你有什么建议吗?先和我讨论
+
+---
+
+所有的页面,都需要以一种规范的方式引入 safe-area, 包括 top/left/right/bottom
+目前看来, 我们基于PageHeader解决 safe-area-top 的问题,但远远不够.
+safe-area不单单是浏览器的`env(safe-area-inset-<pos>)`这么简单, 还有考虑页面嵌套组件注入等因素带来的影响.
+
+---
+
+git-worktree: 更新我们的 AGENTS.md/CLAUDE.md/PROJECT.md/FOREMAN_TASK.md ,因为我们有了白皮书,可以完全替代 TDD.md/PDR.md/SERVICE-SPEC.md 这些旧版文件了.
+
+1. 我需要你阅读旧版文件后,确定白皮书已经可以完全替代这些旧文件,并且更新.
+2. 然后删除旧版文件
+3. 更新AGENTS.md/CLAUDE.md/PROJECT.md/FOREMAN_TASK.md,确保新的文档指向我们的白皮书
+4. 开发任何任务之前, 都需要首先更新白皮书, 然后再去撰写openspec展开具体工作
+
+---
+
+git-worktree: 我们 pr15 虽然解决了i18n的问题,但是我还是发现很多地方存在一些异常,比如:
+1. 你可以搜索“a11y.tabTransfer”,这个页面好像用了错误的写法
+2. 还有文件 `src/stackflow/components/TabBar.tsx`,这个tab页面是不是通过配置逃过的制裁?
+3. 还有你可以检查`pnpm i18n:check`发现仍然存在很多问题

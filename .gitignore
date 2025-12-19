@@ -68,3 +68,6 @@ Thumbs.db
 
 # User scratch files
 PROMPT.md
+
+# Git-Worktree
+.git-worktree
