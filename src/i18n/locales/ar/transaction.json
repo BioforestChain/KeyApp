@@ -201,7 +201,7 @@
   "transactionHash": "Transaction Hash",
   "transactionHistory": "Transaction history",
   "transactionSentSuccessfully": "Transaction sent successfully",
-  "transfer": "Transfer",
+  "transferAction": "Transfer",
   "transferAmount": "Transfer amount",
   "transferQuantityCannotBeGreaterThanBalance": "Transfer quantity cannot be greater than balance",
   "transferring": "Transferring",

@@ -205,7 +205,7 @@
   "transactionHash": "交易哈希",
   "transactionHistory": "交易历史",
   "transactionSentSuccessfully": "交易已发送",
-  "transfer": "转账",
+  "transferAction": "转账",
   "transferAmount": "转账金额",
   "transferQuantityCannotBeGreaterThanBalance": "转移数量不能大于余额",
   "transferring": "转移中",
