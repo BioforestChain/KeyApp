@@ -1,41 +1,4 @@
 {
-  "backupTips": {
-    "title": "備份助記詞",
-    "description": "助記詞是恢復錢包的唯一方式，請務必妥善保管",
-    "tips": {
-      "privacy": {
-        "title": "確保周圍無人",
-        "description": "請在私密環境下查看助記詞，防止他人窺視"
-      },
-      "noScreenshot": {
-        "title": "禁止截圖或拍照",
-        "description": "不要以任何電子形式保存助記詞，建議手寫記錄"
-      },
-      "safekeeping": {
-        "title": "妥善保管",
-        "description": "將助記詞保存在安全的地方，丟失將無法找回資產"
-      }
-    },
-    "proceed": "我已了解，開始備份",
-    "skip": "稍後備份"
-  },
-  "passwordConfirm": {
-    "defaultTitle": "驗證密碼",
-    "placeholder": "請輸入密碼",
-    "verifying": "驗證中...",
-    "confirm": "確認",
-    "biometric": "使用生物辨識",
-    "cancel": "取消"
-  },
-  "mnemonicConfirm": {
-    "selected": "已選擇 {{current}}/{{total}}",
-    "undo": "撤銷",
-    "hint": "按正確順序點擊下方助記詞",
-    "error": "助記詞順序錯誤，請重試",
-    "success": "助記詞驗證成功",
-    "reset": "重新選擇",
-    "clearAll": "清空"
-  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. 原身份錢包密碼將作為所有錢包的密碼，用於轉賬/備份助記詞等驗證。",
   "addressPassword": "地址密碼",
   "applicationLock": "應用鎖",
@@ -44,6 +7,26 @@
   "backupMnemonic": "備份助記詞",
   "backupNow": "前往備份",
   "backupPrivateKey": "備份私鑰",
+  "backupTips": {
+    "description": "助記詞是恢復錢包的唯一方式，請務必妥善保管",
+    "proceed": "我已了解，開始備份",
+    "skip": "稍後備份",
+    "tips": {
+      "noScreenshot": {
+        "description": "不要以任何電子形式保存助記詞，建議手寫記錄",
+        "title": "禁止截圖或拍照"
+      },
+      "privacy": {
+        "description": "請在私密環境下查看助記詞，防止他人窺視",
+        "title": "確保周圍無人"
+      },
+      "safekeeping": {
+        "description": "將助記詞保存在安全的地方，丟失將無法找回資產",
+        "title": "妥善保管"
+      }
+    },
+    "title": "備份助記詞"
+  },
   "backupYourMnemonicNow": "立即備份助記詞",
   "beSureToKeepTheAddressPasswordInASafePlace": "請務必將地址密碼保存至安全的地方。",
   "bioforestChainTransactionPassword": "生物鏈交易密碼",
@@ -97,11 +80,29 @@
   "loginWithPassword": "密碼登錄",
   "mnemonic": "助記詞",
   "mnemonicBackupTips": "mnemonic-backup-tips",
+  "mnemonicConfirm": {
+    "clearAll": "清空",
+    "error": "助記詞順序錯誤，請重試",
+    "hint": "按正確順序點擊下方助記詞",
+    "reset": "重新選擇",
+    "selected": "已選擇 {{current}}/{{total}}",
+    "success": "助記詞驗證成功",
+    "undo": "撤銷"
+  },
   "mnemonicConfirmBackup": "mnemonic-confirm-backup",
   "mnemonicCopied": "[MISSING:zh-TW] 助记词已复制",
   "mnemonicCreateWallet": "創建錢包",
+  "mnemonicDisplay": {
+    "copied": "已複製",
+    "copy": "複製助記詞",
+    "hidden": "••••••"
+  },
   "mnemonicImport": "助記詞導入",
   "mnemonicInpitErrorPleaseReEnter": "助記詞輸入錯誤，請重新輸入",
+  "mnemonicInput": {
+    "clear": "清除",
+    "entered": "已輸入 {{filled}}/{{total}} 個單詞"
+  },
   "mnemonicPhraseAsSoonAsPossible": "[MISSING:zh-TW] mnemonic phrase as soon as possible.",
   "mnemonicPrivateKey": "助記詞/私鑰",
   "mnemonic_/AddressPassword": "助記詞/地址密碼",
@@ -111,6 +112,14 @@
   "onceThePasswordIsLostItCannotBeRetrieved": "一旦密碼丟失，無法找回！",
   "password": "密碼",
   "passwordCannotBeTheSame": "密碼不能相同",
+  "passwordConfirm": {
+    "biometric": "使用生物辨識",
+    "cancel": "取消",
+    "confirm": "確認",
+    "defaultTitle": "驗證密碼",
+    "placeholder": "請輸入密碼",
+    "verifying": "驗證中..."
+  },
   "passwordError": "密碼錯誤",
   "passwordHint": "密碼提示",
   "passwordHintOptional": "密碼提示（可選）",
