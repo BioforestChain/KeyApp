@@ -1,41 +1,4 @@
 {
-  "backupTips": {
-    "title": "نسخ العبارة السرية احتياطياً",
-    "description": "العبارة السرية هي الطريقة الوحيدة لاستعادة محفظتك، يرجى الحفاظ عليها بأمان",
-    "tips": {
-      "privacy": {
-        "title": "تأكد من الخصوصية",
-        "description": "اعرض العبارة السرية في بيئة خاصة لمنع الآخرين من رؤيتها"
-      },
-      "noScreenshot": {
-        "title": "لا لقطات شاشة",
-        "description": "لا تحفظ العبارة السرية إلكترونياً، اكتبها بدلاً من ذلك"
-      },
-      "safekeeping": {
-        "title": "تخزين آمن",
-        "description": "احتفظ بالعبارة السرية في مكان آمن، فقدانها سيؤدي إلى فقدان الأصول"
-      }
-    },
-    "proceed": "فهمت، ابدأ النسخ الاحتياطي",
-    "skip": "النسخ الاحتياطي لاحقاً"
-  },
-  "passwordConfirm": {
-    "defaultTitle": "تحقق من كلمة المرور",
-    "placeholder": "أدخل كلمة المرور",
-    "verifying": "جاري التحقق...",
-    "confirm": "تأكيد",
-    "biometric": "استخدام البصمة",
-    "cancel": "إلغاء"
-  },
-  "mnemonicConfirm": {
-    "selected": "محدد {{current}}/{{total}}",
-    "undo": "تراجع",
-    "hint": "انقر على الكلمات أدناه بالترتيب الصحيح",
-    "error": "ترتيب العبارة السرية غير صحيح، يرجى المحاولة مرة أخرى",
-    "success": "تم التحقق من العبارة السرية بنجاح",
-    "reset": "إعادة تعيين",
-    "clearAll": "مسح الكل"
-  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. The original identity wallet password will be used as the password for all wallets and used for verification such as transfer/backup mnemonic phrases.",
   "addressPassword": "Address Password",
   "applicationLock": "Application lock",
@@ -44,6 +7,26 @@
   "backupMnemonic": "Backup mnemonic",
   "backupNow": "Backup Now",
   "backupPrivateKey": "Backup Private Key",
+  "backupTips": {
+    "description": "العبارة السرية هي الطريقة الوحيدة لاستعادة محفظتك، يرجى الحفاظ عليها بأمان",
+    "proceed": "فهمت، ابدأ النسخ الاحتياطي",
+    "skip": "النسخ الاحتياطي لاحقاً",
+    "tips": {
+      "noScreenshot": {
+        "description": "لا تحفظ العبارة السرية إلكترونياً، اكتبها بدلاً من ذلك",
+        "title": "لا لقطات شاشة"
+      },
+      "privacy": {
+        "description": "اعرض العبارة السرية في بيئة خاصة لمنع الآخرين من رؤيتها",
+        "title": "تأكد من الخصوصية"
+      },
+      "safekeeping": {
+        "description": "احتفظ بالعبارة السرية في مكان آمن، فقدانها سيؤدي إلى فقدان الأصول",
+        "title": "تخزين آمن"
+      }
+    },
+    "title": "نسخ العبارة السرية احتياطياً"
+  },
   "backupYourMnemonicNow": "Backup Your Mnemonic Now",
   "beSureToKeepTheAddressPasswordInASafePlace": "Be sure to keep the address password in a safe place.",
   "bioforestChainTransactionPassword": "Bioforest Chain transaction password",
@@ -97,11 +80,29 @@
   "loginWithPassword": "Login with password",
   "mnemonic": "Mnemonic",
   "mnemonicBackupTips": "[MISSING:ar] mnemonic-backup-tips",
+  "mnemonicConfirm": {
+    "clearAll": "مسح الكل",
+    "error": "ترتيب العبارة السرية غير صحيح، يرجى المحاولة مرة أخرى",
+    "hint": "انقر على الكلمات أدناه بالترتيب الصحيح",
+    "reset": "إعادة تعيين",
+    "selected": "محدد {{current}}/{{total}}",
+    "success": "تم التحقق من العبارة السرية بنجاح",
+    "undo": "تراجع"
+  },
   "mnemonicConfirmBackup": "[MISSING:ar] mnemonic-confirm-backup",
   "mnemonicCopied": "Mnemonic copied",
   "mnemonicCreateWallet": "Mnemonic create wallet",
+  "mnemonicDisplay": {
+    "copied": "تم النسخ",
+    "copy": "نسخ العبارة السرية",
+    "hidden": "••••••"
+  },
   "mnemonicImport": "Mnemonic import",
   "mnemonicInpitErrorPleaseReEnter": "Mnemonic input error, please re-enter",
+  "mnemonicInput": {
+    "clear": "مسح",
+    "entered": "تم إدخال {{filled}}/{{total}} كلمات"
+  },
   "mnemonicPhraseAsSoonAsPossible": "[MISSING:ar] mnemonic phrase as soon as possible.",
   "mnemonicPrivateKey": "Mnemonic/private key",
   "mnemonic_/AddressPassword": "Mnemonic / Address Password",
@@ -111,6 +112,14 @@
   "onceThePasswordIsLostItCannotBeRetrieved": "Once the password is lost, it cannot be retrieved!",
   "password": "Password",
   "passwordCannotBeTheSame": "password cannot be the same",
+  "passwordConfirm": {
+    "biometric": "استخدام البصمة",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "defaultTitle": "تحقق من كلمة المرور",
+    "placeholder": "أدخل كلمة المرور",
+    "verifying": "جاري التحقق..."
+  },
   "passwordError": "[MISSING:ar] 密码错误",
   "passwordHint": "Password Hint",
   "passwordHintOptional": "Password Hint (optional)",

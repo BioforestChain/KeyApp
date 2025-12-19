@@ -6,20 +6,21 @@ import {
   IconSettings,
   type Icon,
 } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 
 export type TabId = "home" | "wallet" | "transfer" | "settings";
 
 interface Tab {
   id: TabId;
-  label: string;
+  labelKey: string;
   icon: Icon;
 }
 
-const tabs: Tab[] = [
-  { id: "home", label: "首页", icon: IconHome },
-  { id: "wallet", label: "钱包", icon: IconWallet },
-  { id: "transfer", label: "转账", icon: IconArrowsExchange },
-  { id: "settings", label: "设置", icon: IconSettings },
+const tabConfigs: Tab[] = [
+  { id: "home", labelKey: "a11y.tabHome", icon: IconHome },
+  { id: "wallet", labelKey: "a11y.tabWallet", icon: IconWallet },
+  { id: "transfer", labelKey: "a11y.tabTransfer", icon: IconArrowsExchange },
+  { id: "settings", labelKey: "a11y.tabSettings", icon: IconSettings },
 ];
 
 interface TabBarProps {
@@ -28,12 +29,15 @@ interface TabBarProps {
 }
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex max-w-md">
-        {tabs.map((tab) => {
+        {tabConfigs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const label = t(tab.labelKey);
           return (
             <button
               key={tab.id}
@@ -42,9 +46,11 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
                 "flex flex-1 flex-col items-center gap-1 py-2 transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
+              aria-label={label}
+              aria-current={isActive ? "page" : undefined}
             >
               <Icon className={cn("size-5", isActive && "text-primary")} stroke={1.5} />
-              <span className="text-xs font-medium">{tab.label}</span>
+              <span className="text-xs font-medium">{label}</span>
             </button>
           );
         })}
@@ -55,4 +61,4 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   );
 }
 
-export { tabs };
+export { tabConfigs as tabs };
