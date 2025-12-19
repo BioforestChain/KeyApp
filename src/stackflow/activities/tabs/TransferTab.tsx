@@ -11,7 +11,7 @@ export function TransferTab() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title={t("a11y.tabTransfer")} />
+      <PageHeader title={t("common:a11y.tabTransfer")} />
 
       <div className="flex flex-col gap-4 p-4">
       <Card>

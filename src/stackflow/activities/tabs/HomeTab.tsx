@@ -110,7 +110,7 @@ export function HomeTab() {
           data-testid="chain-selector"
           onClick={() => setChainSheetOpen(true)}
           className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
-          aria-label={t("a11y.chainSelector")}
+          aria-label={t("common:a11y.chainSelector")}
         >
           <ChainIcon chain={selectedChain} size="sm" />
           <span>{selectedChainName}</span>
@@ -186,7 +186,7 @@ export function HomeTab() {
       <button
         onClick={() => push("ScannerActivity", {})}
         className="fixed right-6 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-60 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
-        aria-label={t("a11y.scan")}
+        aria-label={t("common:a11y.scan")}
       >
         <IconLineScan className="size-6 text-primary-foreground" />
       </button>
