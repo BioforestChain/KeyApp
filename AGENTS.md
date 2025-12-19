@@ -152,22 +152,35 @@ BFM Pay 是一个现代化的多链钱包移动应用，是 mpay 的技术重构
 
 ### 0. Git Worktree 工作环境（重要）
 
-**所有编码工作必须在 `.git-worktree/` 目录下的独立 worktree 中进行：**
+**所有编码工作必须在 `.git-worktree/` 目录下的独立 worktree 中进行。** 主目录始终保持在 main 分支上，保持干净。
+
+**完整工作流程示例：**
 
 ```bash
-# 创建新的 worktree（以功能名命名）
+# 1. 在主目录创建 worktree（以功能名命名分支）
+cd /path/to/KeyApp
 git worktree add .git-worktree/<feature-name> -b <branch-name>
 
-# 进入 worktree 目录进行开发
+# 2. 进入 worktree 目录进行开发
 cd .git-worktree/<feature-name>
-pnpm install  # 安装依赖
+pnpm install  # 首次需要安装依赖
 
-# 开发完成后，回到主目录合并
+# 3. 开发完成后，在 worktree 中提交代码
+git add -A
+git commit -m "feat/fix: 描述"
+
+# 4. 推送分支并创建 PR（使用 gh 命令）
+git push -u origin <branch-name>
+gh pr create --title "PR 标题" --body "PR 描述" --base main
+
+# 5. 合并 PR 到 main（CI 检查通过后）
+gh pr merge --squash --delete-branch
+
+# 6. 回到主目录，更新 main 分支
 cd ../..  # 回到项目根目录
-git checkout main
-git merge --no-ff <branch-name>
+git pull origin main
 
-# 清理 worktree
+# 7. 清理 worktree
 git worktree remove .git-worktree/<feature-name>
 ```
 
@@ -175,6 +188,13 @@ git worktree remove .git-worktree/<feature-name>
 - 隔离开发环境，避免相互干扰
 - 可同时进行多个功能开发
 - 主目录保持干净，便于代码审查
+- main 分支受保护，必须通过 PR 合并
+
+**注意事项**：
+- 主目录（项目根目录）始终保持在 main 分支，不要在主目录直接修改代码
+- 所有开发工作都在 `.git-worktree/` 子目录中进行
+- 使用 `gh` CLI 工具来创建和合并 PR
+- PR 合并后记得清理对应的 worktree
 
 ### 1. 开始新功能前
    - 先更新 `docs/white-book/` 相关章节（如需要）
@@ -190,11 +210,16 @@ git worktree remove .git-worktree/<feature-name>
    - 确定所有测试都通过了,必要时需要更新e2e截图(必须查看截图内容确保符合预期)
 
 ### 3. 完成后
-   - 确保所有测试通过
+   - 确保所有测试通过（`pnpm test`）
+   - 确保类型检查通过（`pnpm typecheck`）
    - 更新 tasks.md 状态
-   - 运行 `openspec validate --strict`
-   - 基于rebase合并到main分支
-   - 清理 worktree
+   - 在 worktree 中提交代码
+   - 推送分支：`git push -u origin <branch-name>`
+   - 创建 PR：`gh pr create --title "标题" --body "描述" --base main`
+   - 等待 CI 检查通过
+   - 合并 PR：`gh pr merge --squash --delete-branch`
+   - 回到主目录更新 main：`cd ../.. && git pull origin main`
+   - 清理 worktree：`git worktree remove .git-worktree/<feature-name>`
 
 ## mpay 关键文件速查
 
