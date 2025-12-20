@@ -27,6 +27,7 @@ vi.mock('./mpay-transformer', () => ({
 vi.mock('@/stores/wallet', () => ({
   walletActions: {
     importWallet: vi.fn(),
+    initialize: vi.fn().mockResolvedValue(undefined),
   },
 }))
 
@@ -36,13 +37,20 @@ vi.mock('@/stores/address-book', () => ({
   },
 }))
 
+vi.mock('@/services/wallet-storage', () => ({
+  walletStorageService: {
+    saveWallet: vi.fn().mockResolvedValue(undefined),
+    saveChainAddress: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
 // Import after mocks
 import { migrationService } from './migration-service'
 import { detectMpayData, readMpayWallets, readMpayAddresses, readMpayAddressBook } from './mpay-reader'
 import { verifyMpayPassword } from './mpay-crypto'
 import { transformMpayData, transformAddressBookEntry } from './mpay-transformer'
-import { walletActions } from '@/stores/wallet'
 import { addressBookActions } from '@/stores/address-book'
+import { walletStorageService } from '@/services/wallet-storage'
 import type { MpayDetectionResult, MpayMainWallet, MpayChainAddressInfo, MigrationProgress } from './types'
 import type { TransformResult } from './mpay-transformer'
 import type { Wallet } from '@/stores/wallet'
@@ -295,7 +303,7 @@ describe('migration-service', () => {
       expect(readMpayAddresses).toHaveBeenCalled()
       expect(readMpayAddressBook).toHaveBeenCalled()
       expect(transformMpayData).toHaveBeenCalledWith([mockWallet], [mockAddress], 'correctPassword')
-      expect(walletActions.importWallet).toHaveBeenCalled()
+      expect(walletStorageService.saveWallet).toHaveBeenCalled()
       expect(addressBookActions.importContacts).toHaveBeenCalled()
 
       // Verify final status
@@ -360,7 +368,7 @@ describe('migration-service', () => {
       expect((completeCall?.[0] as MigrationProgress).percent).toBe(100)
     })
 
-    it('should call walletActions.importWallet for each transformed wallet', async () => {
+    it('should call walletStorageService.saveWallet for each transformed wallet', async () => {
       const multipleWallets: Wallet[] = [
         { ...mockTransformedWallet, id: 'wallet-1', name: 'Wallet 1' },
         { ...mockTransformedWallet, id: 'wallet-2', name: 'Wallet 2' },
@@ -374,16 +382,16 @@ describe('migration-service', () => {
 
       await migrationService.migrate('password')
 
-      expect(walletActions.importWallet).toHaveBeenCalledTimes(3)
+      expect(walletStorageService.saveWallet).toHaveBeenCalledTimes(3)
 
-      // Verify each wallet was imported with correct data
-      expect(walletActions.importWallet).toHaveBeenCalledWith(
+      // Verify each wallet was saved with correct data
+      expect(walletStorageService.saveWallet).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Wallet 1' })
       )
-      expect(walletActions.importWallet).toHaveBeenCalledWith(
+      expect(walletStorageService.saveWallet).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Wallet 2' })
       )
-      expect(walletActions.importWallet).toHaveBeenCalledWith(
+      expect(walletStorageService.saveWallet).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Wallet 3' })
       )
     })
@@ -391,30 +399,23 @@ describe('migration-service', () => {
     it('should pass wallet data with encryptedMnemonic when present', async () => {
       await migrationService.migrate('password')
 
-      expect(walletActions.importWallet).toHaveBeenCalledWith(
+      expect(walletStorageService.saveWallet).toHaveBeenCalledWith(
         expect.objectContaining({
           name: mockTransformedWallet.name,
-          address: mockTransformedWallet.address,
-          chain: mockTransformedWallet.chain,
-          chainAddresses: mockTransformedWallet.chainAddresses,
+          primaryAddress: mockTransformedWallet.address,
+          primaryChain: mockTransformedWallet.chain,
           encryptedMnemonic: mockTransformedWallet.encryptedMnemonic,
         })
       )
     })
 
-    it('should pass wallet data without encryptedMnemonic when not present', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { encryptedMnemonic: _, ...walletWithoutMnemonic } = mockTransformedWallet
-
-      vi.mocked(transformMpayData).mockResolvedValue({
-        ...mockTransformResult,
-        wallets: [walletWithoutMnemonic as Wallet],
-      })
-
+    it('should save wallet and chain addresses separately', async () => {
       await migrationService.migrate('password')
 
-      const importCall = vi.mocked(walletActions.importWallet).mock.calls[0]?.[0]
-      expect(importCall).not.toHaveProperty('encryptedMnemonic')
+      // Verify wallet was saved
+      expect(walletStorageService.saveWallet).toHaveBeenCalled()
+      // Verify chain addresses were saved
+      expect(walletStorageService.saveChainAddress).toHaveBeenCalled()
     })
 
     it('should set status to in_progress during migration', async () => {

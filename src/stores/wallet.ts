@@ -379,6 +379,51 @@ export const walletActions = {
     await walletStorageService.clearAll()
     walletStore.setState(() => initialState)
   },
+
+  // ==================== 测试辅助方法 ====================
+
+  /**
+   * 测试专用：直接添加钱包到 store（不经过 IndexedDB）
+   * @internal 仅用于测试
+   */
+  _testAddWallet: (
+    wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens'> & { 
+      id?: string
+      createdAt?: number
+      chainAddresses?: ChainAddress[]
+    }
+  ): Wallet => {
+    const newWallet: Wallet = {
+      id: wallet.id ?? crypto.randomUUID(),
+      name: wallet.name,
+      keyType: wallet.keyType ?? 'mnemonic',
+      address: wallet.address,
+      chain: wallet.chain,
+      createdAt: wallet.createdAt ?? Date.now(),
+      chainAddresses: wallet.chainAddresses ?? [
+        { chain: wallet.chain, address: wallet.address, tokens: [] }
+      ],
+      tokens: [],
+      ...(wallet.encryptedMnemonic ? { encryptedMnemonic: wallet.encryptedMnemonic } : {}),
+    }
+
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: [...state.wallets, newWallet],
+      currentWalletId: state.currentWalletId ?? newWallet.id,
+      isInitialized: true,
+    }))
+
+    return newWallet
+  },
+
+  /**
+   * 测试专用：重置 store 状态
+   * @internal 仅用于测试
+   */
+  _testReset: (): void => {
+    walletStore.setState(() => initialState)
+  },
 }
 
 // Selectors (派生状态)

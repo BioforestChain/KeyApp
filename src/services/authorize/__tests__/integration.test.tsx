@@ -76,7 +76,7 @@ function assertTimeoutHandler(handler: unknown): asserts handler is () => void {
 describe('authorize integration (mock-first)', () => {
   beforeEach(async () => {
     await act(() => {
-      walletActions.clearAll()
+      walletActions._testReset()
     })
     mockNavigate.mockClear()
     mockActivityParams = {}
@@ -86,7 +86,7 @@ describe('authorize integration (mock-first)', () => {
 
   afterEach(async () => {
     await act(() => {
-      walletActions.clearAll()
+      walletActions._testReset()
     })
     window.location.hash = ''
     await waitFor(() => {})
@@ -101,7 +101,7 @@ describe('authorize integration (mock-first)', () => {
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
     await act(() => {
-      walletActions.createWallet({
+      walletActions._testAddWallet({
         name: 'Wallet 1',
         address: '0x1234567890abcdef1234567890abcdef12345678',
         chain: 'ethereum',
@@ -131,7 +131,7 @@ describe('authorize integration (mock-first)', () => {
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
     await act(() => {
-      walletActions.createWallet({
+      walletActions._testAddWallet({
         name: 'Wallet 1',
         address: '0x1234567890abcdef1234567890abcdef12345678',
         chain: 'ethereum',
@@ -180,7 +180,7 @@ describe('authorize integration (mock-first)', () => {
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
     await act(() => {
-      walletActions.createWallet({
+      walletActions._testAddWallet({
         name: 'Wallet 1',
         address: '0x1234567890abcdef1234567890abcdef12345678',
         chain: 'ethereum',
@@ -206,7 +206,7 @@ describe('authorize integration (mock-first)', () => {
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
     await act(() => {
-      walletActions.createWallet({
+      walletActions._testAddWallet({
         name: 'Wallet 1',
         address: '0x1234567890abcdef1234567890abcdef12345678',
         chain: 'ethereum',

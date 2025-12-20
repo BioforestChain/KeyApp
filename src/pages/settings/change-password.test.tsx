@@ -11,14 +11,6 @@ vi.mock('@/stackflow', () => ({
   useActivityParams: () => ({}),
 }))
 
-// Mock crypto
-const mockDecrypt = vi.fn()
-const mockEncrypt = vi.fn()
-vi.mock('@/lib/crypto', () => ({
-  decrypt: (data: unknown, password: string) => mockDecrypt(data, password),
-  encrypt: (plaintext: string, password: string) => mockEncrypt(plaintext, password),
-}))
-
 // Mock wallet store
 const mockWallet = {
   id: 'wallet-1',
@@ -50,8 +42,8 @@ describe('ChangePasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockCurrentWallet = mockWallet
-    mockDecrypt.mockResolvedValue('word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12')
-    mockEncrypt.mockResolvedValue({ ciphertext: 'new-encrypted', salt: 'new-salt', iv: 'new-iv' })
+    // Mock successful password update by default
+    mockUpdateWalletEncryptedMnemonic.mockResolvedValue(undefined)
   })
 
   describe('Initial State', () => {
@@ -127,7 +119,7 @@ describe('ChangePasswordPage', () => {
 
   describe('Password Change Flow', () => {
     it('shows error when current password is wrong', async () => {
-      mockDecrypt.mockRejectedValueOnce(new Error('decrypt failed'))
+      mockUpdateWalletEncryptedMnemonic.mockRejectedValueOnce(new Error('decrypt failed'))
       renderWithProviders(<ChangePasswordPage />)
 
       await userEvent.type(screen.getByPlaceholderText('请输入当前密码'), 'wrongpassword')
@@ -140,36 +132,7 @@ describe('ChangePasswordPage', () => {
       })
     })
 
-    it('decrypts mnemonic with current password', async () => {
-      renderWithProviders(<ChangePasswordPage />)
-
-      await userEvent.type(screen.getByPlaceholderText('请输入当前密码'), 'currentpwd')
-      await userEvent.type(screen.getByPlaceholderText(/请输入新密码/), 'newpassword123')
-      await userEvent.type(screen.getByPlaceholderText('请再次输入新密码'), 'newpassword123')
-      await userEvent.click(screen.getByRole('button', { name: '确认修改' }))
-
-      await waitFor(() => {
-        expect(mockDecrypt).toHaveBeenCalledWith(mockWallet.encryptedMnemonic, 'currentpwd')
-      })
-    })
-
-    it('encrypts mnemonic with new password', async () => {
-      renderWithProviders(<ChangePasswordPage />)
-
-      await userEvent.type(screen.getByPlaceholderText('请输入当前密码'), 'currentpwd')
-      await userEvent.type(screen.getByPlaceholderText(/请输入新密码/), 'newpassword123')
-      await userEvent.type(screen.getByPlaceholderText('请再次输入新密码'), 'newpassword123')
-      await userEvent.click(screen.getByRole('button', { name: '确认修改' }))
-
-      await waitFor(() => {
-        expect(mockEncrypt).toHaveBeenCalledWith(
-          'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12',
-          'newpassword123'
-        )
-      })
-    })
-
-    it('updates wallet encrypted mnemonic on success', async () => {
+    it('calls updateWalletEncryptedMnemonic with correct parameters', async () => {
       renderWithProviders(<ChangePasswordPage />)
 
       await userEvent.type(screen.getByPlaceholderText('请输入当前密码'), 'currentpwd')
@@ -180,7 +143,8 @@ describe('ChangePasswordPage', () => {
       await waitFor(() => {
         expect(mockUpdateWalletEncryptedMnemonic).toHaveBeenCalledWith(
           'wallet-1',
-          { ciphertext: 'new-encrypted', salt: 'new-salt', iv: 'new-iv' }
+          'currentpwd',
+          'newpassword123'
         )
       })
     })

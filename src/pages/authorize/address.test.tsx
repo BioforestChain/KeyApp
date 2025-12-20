@@ -75,13 +75,13 @@ function renderWithParams(initialEntry: string) {
 
 describe('AddressAuthPage', () => {
   beforeEach(() => {
-    walletActions.clearAll()
+    walletActions._testReset()
     mockNavigate.mockClear()
     mockActivityParams = {}
   })
 
   afterEach(() => {
-    walletActions.clearAll()
+    walletActions._testReset()
     vi.restoreAllMocks()
     vi.useRealTimers()
   })
@@ -111,7 +111,7 @@ describe('AddressAuthPage', () => {
     const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
     const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
@@ -147,7 +147,7 @@ describe('AddressAuthPage', () => {
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
@@ -193,7 +193,7 @@ describe('AddressAuthPage', () => {
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
@@ -237,7 +237,7 @@ describe('AddressAuthPage', () => {
     const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
     const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
@@ -267,7 +267,7 @@ describe('AddressAuthPage', () => {
     const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
     const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
