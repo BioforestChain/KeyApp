@@ -1,17 +1,17 @@
 /**
- * DWEB 平台剪贴板服务实现
+ * 剪贴板服务 - DWEB 平台实现
  */
 
 import { clipboardPlugin } from '@plaoc/plugins'
-import type { IClipboardService } from './types'
+import { clipboardServiceMeta } from './types'
 
-export class ClipboardService implements IClipboardService {
-  async write(text: string): Promise<void> {
+export const clipboardService = clipboardServiceMeta.impl({
+  async write({ text }) {
     await clipboardPlugin.write({ string: text })
-  }
+  },
 
-  async read(): Promise<string> {
+  async read() {
     const result = await clipboardPlugin.read()
     return result.value ?? ''
-  }
-}
+  },
+})

@@ -1,13 +1,15 @@
 /**
- * Web 平台触觉反馈服务实现
+ * 触觉反馈服务 - Web 平台实现
  */
 
-import type { IHapticsService, HapticType } from './types'
+import { hapticsServiceMeta, type HapticType } from './types'
 
-export class HapticsService implements IHapticsService {
-  async impact(type?: HapticType): Promise<void> {
+type NonNullableHapticType = NonNullable<HapticType>
+
+export const hapticsService = hapticsServiceMeta.impl({
+  async impact(type) {
     if ('vibrate' in navigator) {
-      const patterns: Record<HapticType, number | number[]> = {
+      const patterns: Record<NonNullableHapticType, number | number[]> = {
         light: 10,
         medium: 20,
         heavy: 30,
@@ -17,11 +19,11 @@ export class HapticsService implements IHapticsService {
       }
       navigator.vibrate(patterns[type ?? 'medium'])
     }
-  }
+  },
 
-  async vibrate(duration = 100): Promise<void> {
+  async vibrate(duration) {
     if ('vibrate' in navigator) {
-      navigator.vibrate(duration)
+      navigator.vibrate(duration ?? 100)
     }
-  }
-}
+  },
+})

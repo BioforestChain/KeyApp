@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { mockStakingService } from '@/services/staking.mock';
+import { stakingService } from '@/services/staking';
 import type { StakingTransaction, StakingTxType, StakingTxStatus } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -139,7 +139,7 @@ export function StakingRecordList({ filterType = 'all', onRecordClick, className
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
-    mockStakingService.getTransactions().then((data) => {
+    stakingService.getTransactions().then((data: StakingTransaction[]) => {
       if (mounted) {
         setRecords(data);
         setIsLoading(false);
@@ -166,7 +166,7 @@ export function StakingRecordList({ filterType = 'all', onRecordClick, className
   // Handle refresh
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
-    mockStakingService.getTransactions().then((data) => {
+    stakingService.getTransactions().then((data: StakingTransaction[]) => {
       setRecords(data);
       setIsLoading(false);
     });

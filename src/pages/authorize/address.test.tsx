@@ -3,10 +3,32 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TestI18nProvider } from '@/test/i18n-mock'
 import { AddressAuthPage } from './address'
-import { plaocAdapter } from '@/services/authorize'
 import { WALLET_PLAOC_PATH } from '@/services/authorize/paths'
 import { walletActions } from '@/stores'
 import { encrypt } from '@/lib/crypto'
+
+// Mock plaoc adapter
+const { mockPlaocAdapter } = vi.hoisted(() => ({
+  mockPlaocAdapter: {
+    getCallerAppInfo: vi.fn().mockResolvedValue({
+      appId: 'com.example.app',
+      appName: 'Example DApp',
+      appIcon: '',
+      origin: 'https://example.app',
+    }),
+    respondWith: vi.fn().mockResolvedValue(undefined),
+    removeEventId: vi.fn().mockResolvedValue(undefined),
+    isAvailable: vi.fn().mockReturnValue(true),
+  },
+}))
+
+vi.mock('@/services/authorize', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/services/authorize')>()
+  return {
+    ...original,
+    plaocAdapter: mockPlaocAdapter,
+  }
+})
 
 // Mock stackflow
 const mockNavigate = vi.fn()
@@ -65,7 +87,7 @@ describe('AddressAuthPage', () => {
   })
 
   it('renders app info', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
@@ -79,15 +101,15 @@ describe('AddressAuthPage', () => {
   })
 
   it('handles approve flow', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
       origin: 'https://example.app',
     })
 
-    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
-    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+    const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
+    const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
     walletActions.createWallet({
       name: 'Wallet 1',
@@ -113,15 +135,15 @@ describe('AddressAuthPage', () => {
   })
 
   it('requires password and signs when signMessage is requested', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
       origin: 'https://example.app',
     })
 
-    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
-    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+    const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
+    const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
 
@@ -159,15 +181,15 @@ describe('AddressAuthPage', () => {
   })
 
   it('requires password and returns main when getMain=true is requested', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
       origin: 'https://example.app',
     })
 
-    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
-    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+    const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
+    const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
     const encryptedMnemonic = await encrypt('mnemonic', 'pw')
 
@@ -205,15 +227,15 @@ describe('AddressAuthPage', () => {
   })
 
   it('handles reject flow', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
       origin: 'https://example.app',
     })
 
-    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
-    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+    const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
+    const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
     walletActions.createWallet({
       name: 'Wallet 1',
@@ -235,15 +257,15 @@ describe('AddressAuthPage', () => {
   it('handles timeout', async () => {
     const setTimeoutSpy = vi.spyOn(window, 'setTimeout')
 
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue({
+    mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
       appName: 'Example DApp',
       appIcon: '',
       origin: 'https://example.app',
     })
 
-    const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
-    const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
+    const respondSpy = mockPlaocAdapter.respondWith.mockResolvedValue(undefined)
+    const removeSpy = mockPlaocAdapter.removeEventId.mockResolvedValue(undefined)
 
     walletActions.createWallet({
       name: 'Wallet 1',
@@ -270,7 +292,7 @@ describe('AddressAuthPage', () => {
   })
 
   it('handles invalid eventId', async () => {
-    vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockRejectedValue(new Error('invalid_event'))
+    mockPlaocAdapter.getCallerAppInfo.mockRejectedValue(new Error('invalid_event'))
 
     renderWithParams('/authorize/address/bad-event?type=main')
 

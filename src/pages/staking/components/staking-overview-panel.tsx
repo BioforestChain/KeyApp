@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { StakingPoolCard } from './staking-pool-card';
-import { mockStakingService } from '@/services/staking.mock';
+import { stakingService } from '@/services/staking';
 import type { StakingOverviewItem, ExternalChain, InternalChain } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +43,7 @@ export function StakingOverviewPanel({ onMint, className }: StakingOverviewPanel
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
-    mockStakingService.getOverview().then((data) => {
+    stakingService.getOverview().then((data: StakingOverviewItem[]) => {
       if (mounted) {
         setPools(data);
         setIsLoading(false);

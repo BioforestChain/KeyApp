@@ -1,11 +1,11 @@
 /**
- * Web 平台剪贴板服务实现
+ * 剪贴板服务 - Web 平台实现
  */
 
-import type { IClipboardService } from './types'
+import { clipboardServiceMeta } from './types'
 
-export class ClipboardService implements IClipboardService {
-  async write(text: string): Promise<void> {
+export const clipboardService = clipboardServiceMeta.impl({
+  async write({ text }) {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(text)
     } else {
@@ -19,12 +19,12 @@ export class ClipboardService implements IClipboardService {
       document.execCommand('copy')
       document.body.removeChild(textarea)
     }
-  }
+  },
 
-  async read(): Promise<string> {
+  async read() {
     if (navigator.clipboard) {
       return navigator.clipboard.readText()
     }
     return ''
-  }
-}
+  },
+})

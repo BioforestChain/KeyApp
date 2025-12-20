@@ -2,6 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MarqueeText } from './marquee-text'
 
+// Mock clipboard service
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
 // Mock ResizeObserver
 class MockResizeObserver {
   callback: ResizeObserverCallback
@@ -54,10 +66,7 @@ describe('MarqueeText', () => {
   })
 
   it('copies text to clipboard when copy button clicked', async () => {
-    const mockWriteText = vi.fn().mockResolvedValue(undefined)
-    Object.assign(navigator, {
-      clipboard: { writeText: mockWriteText },
-    })
+    mockClipboardWrite.mockClear()
 
     const onCopy = vi.fn()
     render(
@@ -69,16 +78,13 @@ describe('MarqueeText', () => {
     fireEvent.click(screen.getByRole('button', { name: /copy to clipboard/i }))
 
     await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalledWith('Copy me')
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: 'Copy me' })
     })
     expect(onCopy).toHaveBeenCalled()
   })
 
   it('shows copied state after copying', async () => {
-    const mockWriteText = vi.fn().mockResolvedValue(undefined)
-    Object.assign(navigator, {
-      clipboard: { writeText: mockWriteText },
-    })
+    mockClipboardWrite.mockClear()
 
     render(<MarqueeText copyable>Copy me</MarqueeText>)
 
@@ -90,10 +96,7 @@ describe('MarqueeText', () => {
   })
 
   it('handles clipboard API failure gracefully', async () => {
-    const mockWriteText = vi.fn().mockRejectedValue(new Error('Clipboard error'))
-    Object.assign(navigator, {
-      clipboard: { writeText: mockWriteText },
-    })
+    mockClipboardWrite.mockRejectedValueOnce(new Error('Clipboard error'))
 
     render(<MarqueeText copyable>Copy me</MarqueeText>)
 
@@ -101,7 +104,7 @@ describe('MarqueeText', () => {
     fireEvent.click(screen.getByRole('button', { name: /copy to clipboard/i }))
 
     await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalled()
+      expect(mockClipboardWrite).toHaveBeenCalled()
     })
   })
 

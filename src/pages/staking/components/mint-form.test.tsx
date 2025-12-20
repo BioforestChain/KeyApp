@@ -30,8 +30,8 @@ vi.mock('react-i18next', () => ({
 }))
 
 // Mock staking service
-vi.mock('@/services/staking.mock', () => ({
-  mockStakingService: {
+vi.mock('@/services/staking', () => ({
+  stakingService: {
     getRechargeConfig: vi.fn().mockResolvedValue({
       bfmeta: {
         BFM: {

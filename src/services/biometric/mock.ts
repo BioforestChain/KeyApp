@@ -1,40 +1,38 @@
 /**
- * Mock 生物识别服务实现
- * 用于开发和 E2E 测试
+ * 生物识别服务 - Mock 实现
  */
 
-import type {
-  IBiometricService,
-  BiometricAvailability,
-  BiometricVerifyOptions,
-  BiometricVerifyResult,
-} from './types'
+import { biometricServiceMeta, type BiometricType } from './types'
 
-// 通过 window 暴露控制接口，供 E2E 测试使用
-declare global {
-  interface Window {
-    __MOCK_BIOMETRIC__?: {
-      available: boolean
-      biometricType: 'fingerprint' | 'face' | 'iris' | 'none'
-      shouldSucceed: boolean
-    }
-  }
-}
+/** Mock 状态 */
+let mockAvailable = true
+let mockBiometricType: BiometricType = 'fingerprint'
+let mockShouldSucceed = true
 
-export class BiometricService implements IBiometricService {
-  async isAvailable(): Promise<BiometricAvailability> {
-    const config = window.__MOCK_BIOMETRIC__
+export const biometricService = biometricServiceMeta.impl({
+  async isAvailable() {
     return {
-      isAvailable: config?.available ?? true,
-      biometricType: config?.biometricType ?? 'fingerprint',
+      isAvailable: mockAvailable,
+      biometricType: mockBiometricType,
     }
-  }
+  },
 
-  async verify(_options?: BiometricVerifyOptions): Promise<BiometricVerifyResult> {
-    const shouldSucceed = window.__MOCK_BIOMETRIC__?.shouldSucceed ?? true
+  async verify(_options) {
     return {
-      success: shouldSucceed,
-      errorMessage: shouldSucceed ? undefined : 'Mock authentication failed',
+      success: mockShouldSucceed,
+      errorMessage: mockShouldSucceed ? undefined : 'Mock authentication failed',
     }
-  }
+  },
+})
+
+/** Mock 控制器 */
+export const biometricMockController = {
+  setAvailable: (available: boolean) => { mockAvailable = available },
+  setBiometricType: (type: BiometricType) => { mockBiometricType = type },
+  setShouldSucceed: (succeed: boolean) => { mockShouldSucceed = succeed },
+  reset: () => {
+    mockAvailable = true
+    mockBiometricType = 'fingerprint'
+    mockShouldSucceed = true
+  },
 }

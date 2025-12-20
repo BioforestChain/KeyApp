@@ -24,8 +24,8 @@ vi.mock('react-i18next', () => ({
 }))
 
 // Mock staking service
-vi.mock('@/services/staking.mock', () => ({
-  mockStakingService: {
+vi.mock('@/services/staking', () => ({
+  stakingService: {
     getTransactions: vi.fn().mockResolvedValue([
       {
         id: 'tx-001',
@@ -157,8 +157,8 @@ describe('StakingRecordList', () => {
   })
 
   it('shows empty state when no transactions', async () => {
-    const { mockStakingService } = await import('@/services/staking.mock')
-    vi.mocked(mockStakingService.getTransactions).mockResolvedValueOnce([])
+    const { stakingService } = await import('@/services/staking')
+    vi.mocked(stakingService.getTransactions).mockResolvedValueOnce([])
 
     render(<StakingRecordList />)
 
@@ -188,7 +188,7 @@ describe('StakingRecordList', () => {
   })
 
   it('refreshes data when clicking refresh button', async () => {
-    const { mockStakingService } = await import('@/services/staking.mock')
+    const { stakingService } = await import('@/services/staking')
 
     render(<StakingRecordList />)
 
@@ -197,13 +197,13 @@ describe('StakingRecordList', () => {
     })
 
     // Clear mock calls from initial load
-    vi.mocked(mockStakingService.getTransactions).mockClear()
+    vi.mocked(stakingService.getTransactions).mockClear()
 
     // Click refresh
     fireEvent.click(screen.getByText('Refresh'))
 
     await waitFor(() => {
-      expect(mockStakingService.getTransactions).toHaveBeenCalled()
+      expect(stakingService.getTransactions).toHaveBeenCalled()
     })
   })
 })

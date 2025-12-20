@@ -97,7 +97,7 @@ export function useExchangeRate(
       setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
       try {
-        const data = await currencyExchangeService.getExchangeRates(normalizedBase, normalizedTargets)
+        const data = await currencyExchangeService.getExchangeRates({ baseCurrency: normalizedBase, targetCurrencies: normalizedTargets })
         exchangeRateCache.set(key, { data, updatedAt: now })
         setState({ data, isLoading: false, error: null, updatedAt: now })
       } catch (error) {

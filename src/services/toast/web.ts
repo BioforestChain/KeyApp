@@ -1,12 +1,12 @@
 /**
- * Web 平台 Toast 服务实现
+ * Toast 服务 - Web 平台实现
  */
 
-import type { IToastService, ToastOptions } from './types'
+import { toastServiceMeta } from './types'
 
-export class ToastService implements IToastService {
-  async show(options: ToastOptions | string): Promise<void> {
-    const { message, duration = 2000, position = 'bottom' } = 
+export const toastService = toastServiceMeta.impl({
+  async show(options) {
+    const { message, duration = 2000, position = 'bottom' } =
       typeof options === 'string' ? { message: options } : options
 
     const toast = document.createElement('div')
@@ -27,12 +27,12 @@ export class ToastService implements IToastService {
       ${position === 'center' ? 'top: 50%; transform: translate(-50%, -50%);' : ''}
       ${position === 'bottom' ? 'bottom: 100px;' : ''}
     `
-    
+
     document.body.appendChild(toast)
-    
+
     setTimeout(() => {
       toast.style.opacity = '0'
       setTimeout(() => toast.remove(), 300)
     }, duration)
-  }
-}
+  },
+})

@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event'
 import { AddressInput, isValidAddress } from './address-input'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
+// Mock clipboard service
+const { mockClipboardRead } = vi.hoisted(() => ({
+  mockClipboardRead: vi.fn().mockResolvedValue(''),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: vi.fn().mockResolvedValue(undefined),
+    read: mockClipboardRead,
+  },
+}))
+
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
 }
@@ -68,16 +80,13 @@ describe('AddressInput', () => {
   })
 
   it('pastes from clipboard when paste button clicked', async () => {
-    const mockClipboard = vi.fn().mockResolvedValue('0xtest123')
-    Object.assign(navigator, {
-      clipboard: { readText: mockClipboard },
-    })
+    mockClipboardRead.mockResolvedValue('0xtest123')
 
     const handleChange = vi.fn()
     renderWithProviders(<AddressInput onChange={handleChange} />)
 
     await userEvent.click(screen.getByRole('button', { name: '粘贴' }))
-    expect(mockClipboard).toHaveBeenCalled()
+    expect(mockClipboardRead).toHaveBeenCalled()
     expect(handleChange).toHaveBeenCalledWith('0xtest123')
   })
 

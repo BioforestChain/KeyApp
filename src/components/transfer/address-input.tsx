@@ -2,6 +2,7 @@ import { useState, forwardRef, useId } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste } from '@tabler/icons-react';
+import { clipboardService } from '@/services/clipboard';
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;
@@ -42,7 +43,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
 
     const handlePaste = async () => {
       try {
-        const text = await navigator.clipboard.readText();
+        const text = await clipboardService.read();
         const trimmed = text.trim();
         setInternalValue(trimmed);
         onChange?.(trimmed);

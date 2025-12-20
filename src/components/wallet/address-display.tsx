@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
+import { clipboardService } from '@/services/clipboard';
 
 interface AddressDisplayProps {
   address: string;
@@ -105,7 +106,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(address);
+      await clipboardService.write({ text: address });
       setCopied(true);
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);

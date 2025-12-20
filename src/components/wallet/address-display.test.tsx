@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event'
 import { AddressDisplay } from './address-display'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
+// Mock clipboardService
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockAddress = '0x1234567890abcdef1234567890abcdef12345678'
@@ -26,11 +38,7 @@ global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
 
 describe('AddressDisplay', () => {
   beforeEach(() => {
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-    })
+    mockClipboardWrite.mockClear()
   })
 
   it('renders address text', () => {
@@ -43,7 +51,7 @@ describe('AddressDisplay', () => {
     renderWithI18n(<AddressDisplay address={mockAddress} />)
     
     await userEvent.click(screen.getByRole('button'))
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockAddress)
+    expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockAddress })
   })
 
   it('calls onCopy callback when address is copied', async () => {

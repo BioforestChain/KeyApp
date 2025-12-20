@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { mockStakingService } from '@/services/staking.mock';
+import { stakingService } from '@/services/staking';
 import type { ExternalChain, InternalChain, RechargeConfig, BurnRequest } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -99,7 +99,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
   // Load recharge config
   useEffect(() => {
     let mounted = true;
-    mockStakingService.getRechargeConfig().then((data) => {
+    stakingService.getRechargeConfig().then((data: RechargeConfig) => {
       if (mounted) {
         setConfig(data);
         setIsLoading(false);
@@ -199,7 +199,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
         targetChain: targetChain as ExternalChain,
         targetAsset: sourceAsset, // Same asset type for 1:1 burn
       };
-      const tx = await mockStakingService.submitBurn(request);
+      const tx = await stakingService.submitBurn(request);
       onSuccess?.(tx.id);
     } finally {
       setIsSubmitting(false);

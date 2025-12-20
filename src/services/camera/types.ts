@@ -1,19 +1,34 @@
 /**
- * 相机服务类型定义
+ * 相机服务 - 类型定义
  */
 
-export interface ScanResult {
-  /** 扫描内容 */
-  content: string
-  /** 格式类型 */
-  format?: string
-}
+import { z } from 'zod'
+import { defineServiceMeta } from '@/lib/service-meta'
 
-export interface ICameraService {
-  /** 扫描二维码 */
-  scanQRCode(): Promise<ScanResult>
-  /** 检查相机权限 */
-  checkPermission(): Promise<boolean>
-  /** 请求相机权限 */
-  requestPermission(): Promise<boolean>
-}
+const ScanResultSchema = z.object({
+  content: z.string(),
+  format: z.string().optional(),
+})
+
+export const cameraServiceMeta = defineServiceMeta('camera', (s) =>
+  s
+    .description('相机服务 - 扫描二维码')
+    .api('scanQRCode', {
+      description: '扫描二维码',
+      input: z.void(),
+      output: ScanResultSchema,
+    })
+    .api('checkPermission', {
+      description: '检查相机权限',
+      input: z.void(),
+      output: z.boolean(),
+    })
+    .api('requestPermission', {
+      description: '请求相机权限',
+      input: z.void(),
+      output: z.boolean(),
+    })
+)
+
+export type ICameraService = typeof cameraServiceMeta.Type
+export type ScanResult = z.infer<typeof ScanResultSchema>

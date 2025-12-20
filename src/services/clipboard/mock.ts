@@ -1,21 +1,25 @@
 /**
- * Mock 剪贴板服务实现
+ * 剪贴板服务 - Mock 实现
  */
 
-import type { IClipboardService } from './types'
+import { clipboardServiceMeta } from './types'
 
-declare global {
-  interface Window {
-    __CLIPBOARD__?: string
-  }
-}
+/** Mock 存储 */
+let mockClipboard = ''
 
-export class ClipboardService implements IClipboardService {
-  async write(text: string): Promise<void> {
-    window.__CLIPBOARD__ = text
-  }
+export const clipboardService = clipboardServiceMeta.impl({
+  async write({ text }) {
+    mockClipboard = text
+  },
 
-  async read(): Promise<string> {
-    return window.__CLIPBOARD__ ?? ''
-  }
+  async read() {
+    return mockClipboard
+  },
+})
+
+/** Mock 控制器 (测试/调试用) */
+export const clipboardMockController = {
+  getContent: () => mockClipboard,
+  setContent: (text: string) => { mockClipboard = text },
+  clear: () => { mockClipboard = '' },
 }

@@ -184,6 +184,86 @@ git-worktree: 更新我们的 AGENTS.md/CLAUDE.md/PROJECT.md/FOREMAN_TASK.md ,�
 ---
 
 git-worktree: 我们 pr15 虽然解决了i18n的问题,但是我还是发现很多地方存在一些异常,比如:
+
 1. 你可以搜索“a11y.tabTransfer”,这个页面好像用了错误的写法
 2. 还有文件 `src/stackflow/components/TabBar.tsx`,这个tab页面是不是通过配置逃过的制裁?
 3. 还有你可以检查`pnpm i18n:check`发现仍然存在很多问题
+
+---
+
+有些页面存在“假数据”, 对于假数据,除非我们主动使用mokeService,否则不应该使用.
+mockService可以提供一整套的本地service, 提供各种mock数据, 用于开发和测试.我们甚至需要为mockService提供一些工具:包括接口+GUI
+请你首先调查一下假数据的问题,做出统一的修复,并且在我们的白皮书中更新规范,确保后续的工作能遵循这个规范不要犯错.
+然后我们考虑一下mockService, 它是我们进行调试的一个重要入口, 这个系统对外的任何操作, 都可以在这个mockService上捕获然后返回.
+
+---
+
+我来规范一下mock Service的“统一GUI”.
+
+1. 使用一种统一的`export const mockMeta = defineMockMeta(...)`的方式进行导出
+   - 这里要充分利用zod-v4来进行各种类型约束与编程, 目的是基于这些元信息来自动展示表单GUI
+2. 统一GUI可以实时显示出各种mockService的请求调用
+3. 统一GUI会提供一种“Debug工具栏”,如果打开,配合过滤器,可以实现拦截某个函数/请求,然后可以修改它的input或者output
+
+---
+
+我有更好的方案, 我们的services 中,其实都有一个 types.ts 的定义文件,它其实可以和我们的mockMeta进行融合.
+我的意思是,我们的所有service定义,都可以完全重构:
+
+1. 我们首先需要在types中完成对service的完整定义
+
+```ts
+export const xxxServiceMete = defineServiceMeta((s) =>
+  s
+    .method({ name: '', description: '', args: z.array([z.object({})]), output: z.object({}), async: false }) //
+    .getset({ name: '', description: '', type: z.object({}), output: z.object({}) })
+    .api({ name: '', description: '', input: z.object({}), output: z.object({}) }) // 一种类似method的“异步函数”
+    .stream({ name: '', description: '', input: z.object({}), yield: z.object({}), return: z.object({}) }) // 一种可以订阅的事件流,可以理解成异步迭代器
+    .build(),
+);
+```
+
+2. 基于这份定义,我们再去实现 dweb/web/mock 三种平台
+
+```ts
+export const xxxService = xxxServiceMete.impl({
+  // 根据类型推断,在这里完成所有的定义,这样可以确保三个平台始终一致被types约束
+});
+```
+
+3. 再次基础上,再去实现我们的 mock,只需要从 xxxServiceMete 入手,我们引入一种“中间件”的设计模式:
+
+```ts
+xxxServiceMete.use((req, next) => {
+  // service req: call/get/set/subscript/stream 等等
+  return next();
+});
+```
+
+---
+
+我看你开发dweb的service很多时候用了TODO,其实dweb是web是web的超集,因此绝大部分时候都和web公用service.
+相反的是,dweb平台有一些额外的的能力是web平台没有的. 那些才是web需要去模拟或者TODO的.
+
+---
+
+1. 你的界面结构设计理论上可以, 但是要考虑移动端, 响应式成 上下排列.
+2. 拦截规则和我想的差不多,但是你这个“触发时机”我不是很理解,对于调用者来说好像没什么差别, 这里的关键是“动作类型”, 这里我的想法是“多选”,主要分为3类: 整体控制(延迟或者暂停)、输入控制(篡改值、固定值)、输出控制(篡改值、固定值、异常).
+3. 拦截规则的动作类型,底层其实是一种“自定义编程”, 所以理论上能切换到一种“code”面板,看到“多选”后的代码. 但是目前我们不实现“自定义”代码,只是让用户看到生成的代码是什么
+4. 你考虑了 object 生成表单,这个可以用在输入值和输出值的篡改; 同时你也要知道非 object也能生成这个表单,还有这个表单的复杂点在于“Array”类型, 还有一些特定的构造函数的值. 不论如何,在表单和代码面板一样重要,因为表单只能解决简单需求,复杂需求使用代码面板会更好
+
+---
+
+关于表单生成规则,你只考虑了大部分情况, 但是要考虑特殊情况,比如自定义构造函数: z.instanceof(MyCtor) ,这种情况也需要做一定的适配,因为这种构造函数我们是大概率不知道参数类型是什么,所以需要提供一个代码面板来支持编辑.还有非json类型的,比如 z.function ,需要传递回调函数.
+这些复杂情况可能需要考虑将原始的输入作为一个“引用”. 我们在做篡改的时候,更多时候是在原本引用值的基础上做修改.
+你再考虑一下UI要怎么设计
+
+---
+
+我的考虑是, 我们需要更加紧凑且简单的方式. 还记得chrome开发者工具的面板吗? 它提供了一种基于代码的断点,在断点上可以注入表达式.我们的输入控制和输出控制,本质上也算是一种“固定位置的断点”
+
+---
+
+我们现在需要逐步清理界面上的假数据, 开发真实的Service, 使得我们的项目向正式可用正式上线更进一步.
+绝大部分工作从mpay项目搬迁代码即可.
+我需要你查看我们的项目代码, 列出一份代办清单.

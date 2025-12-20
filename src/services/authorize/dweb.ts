@@ -259,3 +259,5 @@ export class PlaocAdapter implements IPlaocAdapter {
     return typeof globalThis === 'object' && globalThis !== null && 'plaoc' in globalThis
   }
 }
+
+export const plaocAdapter = new PlaocAdapter()

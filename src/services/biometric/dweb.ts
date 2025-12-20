@@ -1,43 +1,34 @@
 /**
- * DWEB 平台生物识别服务实现
+ * 生物识别服务 - DWEB 平台实现
  * 使用 @plaoc/plugins biometricsPlugin
- *
- * 注意：options 参数在 @plaoc/plugins 中不被使用
- * biometricsPlugin 仅需要调用后返回验证结果，不支持自定义参数
  */
 
 import { biometricsPlugin } from '@plaoc/plugins'
-import type {
-  IBiometricService,
-  BiometricAvailability,
-  BiometricVerifyResult,
-} from './types'
+import { biometricServiceMeta } from './types'
 
-// Biometrics status code mappings to success/failure
 const BIOMETRIC_SUCCESS = 0
 
-export class BiometricService implements IBiometricService {
-  async isAvailable(): Promise<BiometricAvailability> {
+export const biometricService = biometricServiceMeta.impl({
+  async isAvailable() {
     try {
       const result = await biometricsPlugin.check()
       const isAvailable = result === BIOMETRIC_SUCCESS
       return {
         isAvailable,
         biometricType: isAvailable ? 'fingerprint' : 'none',
-      }
+      } as const
     } catch (error) {
       return {
         isAvailable: false,
         biometricType: 'none',
         error: String(error),
-      }
+      } as const
     }
-  }
+  },
 
-  async verify(): Promise<BiometricVerifyResult> {
+  async verify(_options) {
     try {
       const result = await biometricsPlugin.biometrics()
-      // BaseResult returns { success: boolean; message: string }
       return {
         success: result.success,
         errorMessage: result.success ? undefined : result.message,
@@ -48,5 +39,5 @@ export class BiometricService implements IBiometricService {
         errorMessage: String(error),
       }
     }
-  }
-}
+  },
+})

@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event'
 import { MnemonicDisplay } from './mnemonic-display'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
+// Mock clipboard service
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockWords = ['abandon', 'ability', 'able', 'about', 'above', 'absent']
@@ -28,24 +40,19 @@ describe('MnemonicDisplay', () => {
   })
 
   it('copies mnemonic to clipboard', async () => {
-    const mockClipboard = vi.fn()
-    Object.assign(navigator, {
-      clipboard: { writeText: mockClipboard },
-    })
+    mockClipboardWrite.mockClear()
 
     const handleCopy = vi.fn()
     renderWithI18n(<MnemonicDisplay words={mockWords} onCopy={handleCopy} />)
     
     await userEvent.click(screen.getByRole('button', { name: /复制助记词/ }))
     
-    expect(mockClipboard).toHaveBeenCalledWith(mockWords.join(' '))
+    expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockWords.join(' ') })
     expect(handleCopy).toHaveBeenCalled()
   })
 
   it('shows copied state after clicking copy', async () => {
-    Object.assign(navigator, {
-      clipboard: { writeText: vi.fn() },
-    })
+    mockClipboardWrite.mockClear()
 
     renderWithI18n(<MnemonicDisplay words={mockWords} />)
     

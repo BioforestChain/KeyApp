@@ -50,8 +50,8 @@ vi.mock('@/stackflow', () => ({
 }))
 
 // Mock staking service
-vi.mock('@/services/staking.mock', () => ({
-  mockStakingService: {
+vi.mock('@/services/staking', () => ({
+  stakingService: {
     getOverview: vi.fn().mockResolvedValue([
       {
         chain: 'BFMeta',

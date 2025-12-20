@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
+import { clipboardService } from '@/services/clipboard';
 
 interface MnemonicDisplayProps {
   words: string[];
@@ -16,7 +17,7 @@ export function MnemonicDisplay({ words, hidden = false, onCopy, className }: Mn
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(words.join(' '));
+      await clipboardService.write({ text: words.join(' ') });
       setCopied(true);
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);

@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { CurrencyExchangeService } from '../mock'
+import { currencyExchangeService } from '../mock'
 
-describe('CurrencyExchangeService (mock)', () => {
+describe('currencyExchangeService (mock)', () => {
   it('returns rates for requested targets', async () => {
-    const service = new CurrencyExchangeService()
-    const result = await service.getExchangeRates('USD', ['CNY', 'EUR'])
+    const result = await currencyExchangeService.getExchangeRates({
+      baseCurrency: 'USD',
+      targetCurrencies: ['CNY', 'EUR'],
+    })
 
     expect(result.base).toBe('USD')
     expect(result.rates.CNY).toBeTypeOf('number')
@@ -13,8 +15,10 @@ describe('CurrencyExchangeService (mock)', () => {
   })
 
   it('returns empty rates for unsupported base currency', async () => {
-    const service = new CurrencyExchangeService()
-    const result = await service.getExchangeRates('UNKNOWN', ['USD', 'CNY'])
+    const result = await currencyExchangeService.getExchangeRates({
+      baseCurrency: 'UNKNOWN',
+      targetCurrencies: ['USD', 'CNY'],
+    })
 
     expect(result.base).toBe('UNKNOWN')
     expect(Object.keys(result.rates)).toHaveLength(0)

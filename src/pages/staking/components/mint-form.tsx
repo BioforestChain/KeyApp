@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { mockStakingService } from '@/services/staking.mock';
+import { stakingService } from '@/services/staking';
 import type { ExternalChain, InternalChain, RechargeConfig, MintRequest } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -90,7 +90,7 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
   // Load recharge config
   useEffect(() => {
     let mounted = true;
-    mockStakingService.getRechargeConfig().then((data) => {
+    stakingService.getRechargeConfig().then((data: RechargeConfig) => {
       if (mounted) {
         setConfig(data);
         setIsLoading(false);
@@ -174,7 +174,7 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
         targetChain: targetChain as InternalChain,
         targetAsset,
       };
-      const tx = await mockStakingService.submitMint(request);
+      const tx = await stakingService.submitMint(request);
       onSuccess?.(tx.id);
     } finally {
       setIsSubmitting(false);
