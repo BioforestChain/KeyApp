@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * 钱包创建 E2E 测试
@@ -144,16 +145,10 @@ test.describe('钱包创建流程 - 功能测试', () => {
     // HomeTab 的 chain-selector 可见
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
-    // 验证 localStorage 中有钱包数据
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    expect(walletData).not.toBeNull()
-
-    const parsed = JSON.parse(walletData!)
-    expect(parsed.wallets).toHaveLength(1)
-    expect(parsed.wallets[0].name).toBe('主钱包')
-    expect(parsed.currentWalletId).toBe(parsed.wallets[0].id)
+    // 验证 IndexedDB 中有钱包数据
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets).toHaveLength(1)
+    expect(wallets[0].name).toBe('主钱包')
   })
 
   test('创建钱包派生多链地址', async ({ page }) => {
@@ -219,12 +214,9 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.click('button:has-text("完成创建")')
     await page.waitForURL(/.*#\/$/)
 
-    // 验证多链地址派生
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    const parsed = JSON.parse(walletData!)
-    const wallet = parsed.wallets[0]
+    // 验证多链地址派生 (从 IndexedDB 读取)
+    const wallets = await getWalletDataFromIndexedDB(page)
+    const wallet = wallets[0]
 
     // 验证外部链地址 (BIP44)
     const externalChains = ['ethereum', 'bitcoin', 'tron']

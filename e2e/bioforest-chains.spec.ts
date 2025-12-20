@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * BioForest 链 E2E 测试
@@ -219,12 +220,9 @@ test.describe('BioForest 链地址派生', () => {
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
-    // 验证 BioForest 地址派生
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    const parsed = JSON.parse(walletData!)
-    const wallet = parsed.wallets[0]
+    // 验证 BioForest 地址派生 (从 IndexedDB 读取)
+    const wallets = await getWalletDataFromIndexedDB(page)
+    const wallet = wallets[0]
 
     // 验证 BioForest 链地址
     const bioforestChains = ['bfmeta', 'pmchain', 'ccchain']
