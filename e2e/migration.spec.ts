@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * mpay 迁移流程 E2E 测试
@@ -230,11 +231,9 @@ test.describe.skip('mpay 迁移流程', () => {
     await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
     await expect(page).toHaveScreenshot('migration-complete.png')
 
-    // Verify localStorage has migrated wallet
-    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
-    expect(walletData).not.toBeNull()
-    const parsed = JSON.parse(walletData!)
-    expect(parsed.wallets.length).toBeGreaterThan(0)
+    // Verify IndexedDB has migrated wallet
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets.length).toBeGreaterThan(0)
 
     // Verify migration status
     const migrationStatus = await page.evaluate(() =>
@@ -344,11 +343,9 @@ test.describe.skip('mpay 迁移流程', () => {
     // Wait for migration to complete
     await expect(page.getByTestId('migration-complete-step')).toBeVisible({ timeout: 15000 })
 
-    // Verify localStorage has migrated wallet
-    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
-    expect(walletData).not.toBeNull()
-    const parsedWallets = JSON.parse(walletData!)
-    expect(parsedWallets.wallets.length).toBeGreaterThan(0)
+    // Verify IndexedDB has migrated wallet
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets.length).toBeGreaterThan(0)
 
     // Verify address book data was migrated to localStorage
     const addressBookData = await page.evaluate(() => localStorage.getItem('bfm_address_book'))

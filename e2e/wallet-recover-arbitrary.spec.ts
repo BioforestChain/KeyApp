@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * Arbitrary-key wallet recovery E2E
@@ -107,18 +108,14 @@ test.describe.skip('Wallet recover (arbitrary key)', () => {
   test('single-line secret creates wallet and contains manual bioforest chain address', async ({ page }) => {
     await goThroughArbitraryKeyRecover(page, 'my arbitrary secret', 'Test1234!')
 
-    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
-    expect(walletData).not.toBeNull()
+    const wallets = await getWalletDataFromIndexedDB(page) as Array<{
+      keyType?: string
+      encryptedMnemonic?: unknown
+      chainAddresses?: Array<{ chain: string; address: string }>
+    }>
+    expect(wallets.length).toBeGreaterThan(0)
 
-    const parsed: {
-      wallets: Array<{
-        keyType?: string
-        encryptedMnemonic?: unknown
-        chainAddresses?: Array<{ chain: string; address: string }>
-      }>
-    } = JSON.parse(walletData!)
-
-    const wallet = parsed.wallets.find((w) => w.keyType === 'arbitrary')
+    const wallet = wallets.find((w) => w.keyType === 'arbitrary')
     expect(wallet).toBeDefined()
     expect(wallet?.encryptedMnemonic).toBeDefined()
 
@@ -130,17 +127,13 @@ test.describe.skip('Wallet recover (arbitrary key)', () => {
   test('multi-line secret creates wallet and contains manual bioforest chain address', async ({ page }) => {
     await goThroughArbitraryKeyRecover(page, 'line1\nline2\nline3', 'Test1234!')
 
-    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
-    expect(walletData).not.toBeNull()
+    const wallets = await getWalletDataFromIndexedDB(page) as Array<{
+      keyType?: string
+      chainAddresses?: Array<{ chain: string; address: string }>
+    }>
+    expect(wallets.length).toBeGreaterThan(0)
 
-    const parsed: {
-      wallets: Array<{
-        keyType?: string
-        chainAddresses?: Array<{ chain: string; address: string }>
-      }>
-    } = JSON.parse(walletData!)
-
-    const wallet = parsed.wallets.find((w) => w.keyType === 'arbitrary')
+    const wallet = wallets.find((w) => w.keyType === 'arbitrary')
     expect(wallet).toBeDefined()
 
     const derived = wallet?.chainAddresses?.find((ca) => ca.chain === MANUAL_CHAIN.id)
