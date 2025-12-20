@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import type { ChainConfig } from '@/services/chain-config'
-import { createBioforestKeypair, publicKeyToBioforestAddress } from '@/lib/crypto'
+import { createBioforestKeypair, publicKeyToBioforestAddress, verifySignature, hexToBytes } from '@/lib/crypto'
 import { BioforestAdapter, createBioforestAdapter } from '../bioforest'
 import { getAdapterRegistry, resetAdapterRegistry, setupAdapters } from '../index'
 
@@ -148,5 +148,108 @@ describe('AdapterRegistry', () => {
 
     registry.disposeAll()
     expect(registry.listAdapters()).toHaveLength(0)
+  })
+})
+
+describe('BioforestTransactionService', () => {
+  const adapter = new BioforestAdapter(mockBfmetaConfig)
+  const recipientKeypair = createBioforestKeypair('recipient-secret')
+  const recipientAddress = publicKeyToBioforestAddress(recipientKeypair.publicKey, 'b')
+
+  describe('estimateFee', () => {
+    it('returns three fee tiers', async () => {
+      const fees = await adapter.transaction.estimateFee({
+        from: validAddress,
+        to: recipientAddress,
+        amount: 1000000n,
+      })
+
+      expect(fees.slow).toBeDefined()
+      expect(fees.standard).toBeDefined()
+      expect(fees.fast).toBeDefined()
+      expect(fees.slow.estimatedTime).toBeGreaterThan(fees.fast.estimatedTime)
+    })
+  })
+
+  describe('buildTransaction', () => {
+    it('builds unsigned transaction with required fields', async () => {
+      const tx = await adapter.transaction.buildTransaction({
+        from: validAddress,
+        to: recipientAddress,
+        amount: 1000000n,
+        memo: 'test transfer',
+      })
+
+      expect(tx.chainId).toBe('bfmeta')
+      expect(tx.data).toBeDefined()
+      const data = tx.data as Record<string, unknown>
+      expect(data.type).toBe('transfer')
+      expect(data.from).toBe(validAddress)
+      expect(data.to).toBe(recipientAddress)
+      expect(data.amount).toBe('1000000')
+      expect(data.memo).toBe('test transfer')
+    })
+  })
+
+  describe('signTransaction', () => {
+    it('signs transaction with valid signature', async () => {
+      const tx = await adapter.transaction.buildTransaction({
+        from: validAddress,
+        to: recipientAddress,
+        amount: 1000000n,
+      })
+
+      const signedTx = await adapter.transaction.signTransaction(tx, testKeypair.secretKey)
+
+      expect(signedTx.signature).toBeDefined()
+      expect(signedTx.signature.length).toBe(128) // 64 bytes as hex
+      expect(signedTx.chainId).toBe('bfmeta')
+    })
+
+    it('produces valid Ed25519 signature', async () => {
+      const tx = await adapter.transaction.buildTransaction({
+        from: validAddress,
+        to: recipientAddress,
+        amount: 1000000n,
+      })
+
+      const signedTx = await adapter.transaction.signTransaction(tx, testKeypair.secretKey)
+      const txData = tx.data as Record<string, unknown>
+
+      // Reconstruct the signed message
+      const signableData = JSON.stringify({
+        type: txData.type,
+        from: txData.from,
+        to: txData.to,
+        amount: txData.amount,
+        assetType: txData.assetType,
+        fee: txData.fee,
+        timestamp: txData.timestamp,
+        memo: txData.memo ?? '',
+      })
+
+      // Verify signature
+      const signatureBytes = hexToBytes(signedTx.signature)
+      const isValid = verifySignature(signableData, signatureBytes, testKeypair.publicKey)
+      expect(isValid).toBe(true)
+    })
+  })
+
+  describe('asset service', () => {
+    it('returns mock balance when no RPC configured', async () => {
+      const balance = await adapter.asset.getNativeBalance(validAddress)
+
+      expect(balance.raw).toBe(0n)
+      expect(balance.symbol).toBe('BFM')
+      expect(balance.decimals).toBe(8)
+    })
+  })
+
+  describe('transaction history', () => {
+    it('returns empty array when no RPC configured', async () => {
+      const history = await adapter.transaction.getTransactionHistory(validAddress)
+
+      expect(history).toEqual([])
+    })
   })
 })
