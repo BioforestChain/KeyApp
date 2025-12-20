@@ -20,7 +20,7 @@ import {
   IconCircleCheck as CheckCircle,
 } from '@tabler/icons-react';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
-import { generateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { generateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 
 type Step = 'password' | 'mnemonic' | 'verify';
 
@@ -70,7 +70,6 @@ export function WalletCreatePage() {
 
     try {
       const mnemonicStr = mnemonic.join(' ');
-      const encryptedMnemonic = await encrypt(mnemonicStr, password);
 
       // 派生外部链地址 (BIP44)
       const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
@@ -100,14 +99,17 @@ export function WalletCreatePage() {
         ...bioforestChainAddresses,
       ];
 
-      walletActions.createWallet({
-        name: t('onboarding:create.defaultWalletName'),
-        keyType: 'mnemonic',
-        address: ethKey.address,
-        chain: 'ethereum',
-        chainAddresses,
-        encryptedMnemonic,
-      });
+      await walletActions.createWallet(
+        {
+          name: t('onboarding:create.defaultWalletName'),
+          keyType: 'mnemonic',
+          address: ethKey.address,
+          chain: 'ethereum',
+          chainAddresses,
+        },
+        mnemonicStr,
+        password
+      );
 
       navigate({ to: '/' });
     } catch (error) {

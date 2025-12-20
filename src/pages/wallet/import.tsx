@@ -15,7 +15,7 @@ import {
   IconSquareKey as FileKey,
 } from '@tabler/icons-react';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
-import { validateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { validateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 
 type Step = 'mnemonic' | 'password';
 
@@ -71,7 +71,6 @@ export function WalletImportPage() {
 
     try {
       const mnemonicStr = mnemonic.join(' ');
-      const encryptedMnemonic = await encrypt(mnemonicStr, password);
 
       // 派生外部链地址 (BIP44)
       const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
@@ -98,14 +97,17 @@ export function WalletImportPage() {
         ...bioforestChainAddresses,
       ];
 
-      walletActions.importWallet({
-        name: t('import.defaultWalletName'),
-        keyType: 'mnemonic',
-        address: ethKey.address,
-        chain: 'ethereum',
-        chainAddresses,
-        encryptedMnemonic,
-      });
+      await walletActions.importWallet(
+        {
+          name: t('import.defaultWalletName'),
+          keyType: 'mnemonic',
+          address: ethKey.address,
+          chain: 'ethereum',
+          chainAddresses,
+        },
+        mnemonicStr,
+        password
+      );
 
       navigate({ to: '/' });
     } catch (error) {

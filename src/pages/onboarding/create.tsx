@@ -13,7 +13,7 @@ import { BackupTipsSheet } from '@/components/onboarding/backup-tips-sheet';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
 import { MnemonicConfirmBackup } from '@/components/onboarding/mnemonic-confirm-backup';
 import { useMnemonicVerification } from '@/hooks/use-mnemonic-verification';
-import { generateMnemonic, encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { generateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import { Button } from '@/components/ui/button';
 import {
@@ -85,9 +85,6 @@ export function OnboardingCreatePage() {
         // Store mnemonic for backup verification
         setGeneratedMnemonic(mnemonic);
 
-        // Encrypt mnemonic with password
-        const encryptedMnemonic = await encrypt(mnemonicStr, data.password);
-
         // Derive external chain addresses (BIP44)
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
@@ -113,15 +110,18 @@ export function OnboardingCreatePage() {
           ...bioforestChainAddresses,
         ];
 
-        // Create wallet with skipBackup=true (can be changed after verification)
-        walletActions.createWallet({
-          name: data.name,
-          keyType: 'mnemonic',
-          address: ethKey.address,
-          chain: 'ethereum',
-          chainAddresses,
-          encryptedMnemonic,
-        });
+        // Create wallet (encryption handled by walletActions)
+        await walletActions.createWallet(
+          {
+            name: data.name,
+            keyType: 'mnemonic',
+            address: ethKey.address,
+            chain: 'ethereum',
+            chainAddresses,
+          },
+          mnemonicStr,
+          data.password
+        );
 
         setCreatedWalletName(data.name);
         setStep('success');

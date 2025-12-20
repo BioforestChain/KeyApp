@@ -12,7 +12,7 @@ import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-succe
 import { PasswordInput } from '@/components/security/password-input';
 import { Button } from '@/components/ui/button';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
-import { encrypt, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
@@ -147,8 +147,6 @@ export function OnboardingRecoverPage() {
         // TODO: Use wallet storage service for actual name generation
         const walletName = `钱包 ${Date.now() % 1000}`;
 
-        const encryptedMnemonic = await encrypt(mnemonicStr, walletPassword);
-
         // Derive external chain addresses (BIP44)
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
@@ -175,14 +173,17 @@ export function OnboardingRecoverPage() {
         ];
 
         // Create wallet with skipBackup=true (recovery doesn't need backup prompt)
-        walletActions.createWallet({
-          name: walletName,
-          keyType: 'mnemonic',
-          address: ethKey.address,
-          chain: 'ethereum',
-          chainAddresses,
-          encryptedMnemonic,
-        });
+        await walletActions.createWallet(
+          {
+            name: walletName,
+            keyType: 'mnemonic',
+            address: ethKey.address,
+            chain: 'ethereum',
+            chainAddresses,
+          },
+          mnemonicStr,
+          walletPassword
+        );
 
         setRecoveredWalletName(walletName);
         setStep('success');
@@ -205,8 +206,6 @@ export function OnboardingRecoverPage() {
       try {
         const walletName = `${t('wallet:wallet')} ${Date.now() % 1000}`;
 
-        const encryptedMnemonic = await encrypt(secret, walletPassword);
-
         const chainAddresses = arbitraryDerivedAddresses.map((item) => ({
           chain: item.chainId,
           address: item.address,
@@ -216,14 +215,17 @@ export function OnboardingRecoverPage() {
         const primary = chainAddresses[0];
         if (!primary) throw new Error('No enabled bioforest chains');
 
-        walletActions.createWallet({
-          name: walletName,
-          keyType: 'arbitrary',
-          address: primary.address,
-          chain: primary.chain,
-          chainAddresses,
-          encryptedMnemonic,
-        });
+        await walletActions.createWallet(
+          {
+            name: walletName,
+            keyType: 'arbitrary',
+            address: primary.address,
+            chain: primary.chain,
+            chainAddresses,
+          },
+          secret,
+          walletPassword
+        );
 
         setRecoveredWalletName(walletName);
         setStep('success');

@@ -24,6 +24,7 @@ import {
 } from './mpay-transformer'
 import { walletActions } from '@/stores/wallet'
 import { addressBookActions } from '@/stores/address-book'
+import { walletStorageService, type WalletInfo, type ChainAddressInfo } from '@/services/wallet-storage'
 
 const MIGRATION_STATUS_KEY = 'keyapp_migration_status'
 
@@ -210,22 +211,49 @@ class MigrationServiceImpl implements IMigrationService {
 
       onProgress(i, total, wallet.name)
 
-      // 使用 walletActions.importWallet 导入
-      // 只有当 encryptedMnemonic 存在时才传入
-      const walletData: Parameters<typeof walletActions.importWallet>[0] = {
+      // 使用 walletStorageService 直接导入已加密的数据
+      const walletId = wallet.id || crypto.randomUUID()
+      const now = Date.now()
+
+      const walletInfo: WalletInfo = {
+        id: walletId,
         name: wallet.name,
-        address: wallet.address,
-        chain: wallet.chain,
-        chainAddresses: wallet.chainAddresses,
+        keyType: 'mnemonic',
+        primaryChain: wallet.chain,
+        primaryAddress: wallet.address,
+        isBackedUp: false,
+        createdAt: wallet.createdAt || now,
+        updatedAt: now,
+        encryptedMnemonic: wallet.encryptedMnemonic,
       }
-      if (wallet.encryptedMnemonic) {
-        walletData.encryptedMnemonic = wallet.encryptedMnemonic
+
+      await walletStorageService.saveWallet(walletInfo)
+
+      // 保存链地址
+      for (const ca of wallet.chainAddresses) {
+        const chainAddr: ChainAddressInfo = {
+          addressKey: `${walletId}:${ca.chain}`,
+          walletId,
+          chain: ca.chain,
+          address: ca.address,
+          assets: ca.tokens?.map((t) => ({
+            assetType: t.symbol,
+            symbol: t.symbol,
+            decimals: t.decimals || 8,
+            balance: t.balance || '0',
+          })) ?? [],
+          isCustomAssets: false,
+          isFrozen: false,
+        }
+        await walletStorageService.saveChainAddress(chainAddr)
       }
-      walletActions.importWallet(walletData)
 
       // 小延迟确保 UI 更新
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
+
+    // 重新初始化 walletStore 以加载迁移的数据
+    await walletActions.initialize()
 
     onProgress(total, total, '')
   }
