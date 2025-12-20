@@ -43,7 +43,7 @@ export function ReceivePage() {
 
   const handleCopy = async () => {
     if (address) {
-      await clipboard.write(address);
+      await clipboard.write({ text: address });
       await haptics.impact('light');
       setCopied(true);
       toast.show(t('receivePage.addressCopied'));

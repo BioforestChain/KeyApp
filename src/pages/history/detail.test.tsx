@@ -55,13 +55,17 @@ vi.mock('@/hooks/use-transaction-history', () => ({
   }),
 }))
 
-// Mock clipboard
-const mockWriteText = vi.fn()
-Object.assign(navigator, {
-  clipboard: {
-    writeText: mockWriteText,
+// Mock clipboard service
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
   },
-})
+}))
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
@@ -72,7 +76,7 @@ describe('TransactionDetailPage', () => {
     vi.clearAllMocks()
     mockCurrentWallet = mockWallet
     mockTxId = 'tx-1'
-    mockWriteText.mockResolvedValue(undefined)
+    mockClipboardWrite.mockResolvedValue(undefined)
   })
 
   describe('Initial State', () => {
@@ -138,7 +142,7 @@ describe('TransactionDetailPage', () => {
       const copyButton = screen.getByText('复制哈希')
       await userEvent.click(copyButton)
 
-      expect(mockWriteText).toHaveBeenCalledWith(mockTransaction.hash)
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockTransaction.hash })
     })
 
     it('shows copied state after clicking', async () => {

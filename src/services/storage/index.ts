@@ -1,10 +1,9 @@
 /**
  * 安全存储服务
+ *
+ * 通过 Vite alias 在编译时选择实现
  */
 
 export type { ISecureStorageService } from './types'
-
-import { SecureStorageService } from '#storage-impl'
-export { SecureStorageService }
-
-export const secureStorageService = new SecureStorageService()
+export { secureStorageServiceMeta } from './types'
+export { secureStorageService } from '#storage-impl'

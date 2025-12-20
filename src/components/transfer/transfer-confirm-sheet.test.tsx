@@ -3,6 +3,18 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TestI18nProvider } from '@/test/i18n-mock';
 import { TransferConfirmSheet } from './transfer-confirm-sheet';
 
+// Mock clipboard service
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>);
 
 const defaultProps = {
@@ -94,12 +106,7 @@ describe('TransferConfirmSheet', () => {
   });
 
   it('shows copy feedback when address is copied', async () => {
-    // Mock clipboard
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-    });
+    mockClipboardWrite.mockClear();
 
     renderWithI18n(<TransferConfirmSheet {...defaultProps} />);
 
@@ -109,5 +116,6 @@ describe('TransferConfirmSheet', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('已复制')).toBeInTheDocument();
     });
+    expect(mockClipboardWrite).toHaveBeenCalledWith({ text: defaultProps.toAddress });
   });
 });

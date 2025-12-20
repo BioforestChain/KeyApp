@@ -22,3 +22,4 @@ export class PlaocAdapter implements IPlaocAdapter {
   }
 }
 
+export const plaocAdapter = new PlaocAdapter()

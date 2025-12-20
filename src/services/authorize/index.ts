@@ -16,6 +16,7 @@ export type {
   DestroyPayload,
   SignatureRequest,
 } from './types'
+export { plaocAdapterMeta } from './types'
 
 export { AddressAuthService } from './address-auth'
 export { SignatureAuthService, type SignatureAuthError } from './signature-auth'
@@ -24,6 +25,4 @@ export { SignatureAuthService, type SignatureAuthError } from './signature-auth'
 export { createPlaocAdapter, isPlaocAvailable } from './plaoc-adapter'
 
 // Low-level IPC adapter (compile-time switched via #authorize-impl alias)
-import { PlaocAdapter } from '#authorize-impl'
-export { PlaocAdapter }
-export const plaocAdapter = new PlaocAdapter()
+export { plaocAdapter } from '#authorize-impl'

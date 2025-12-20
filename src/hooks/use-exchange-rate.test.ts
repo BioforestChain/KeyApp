@@ -1,12 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { currencyExchangeService } from '@/services'
 import { clearExchangeRateCache, getExchangeRate, useExchangeRate } from './use-exchange-rate'
+
+// Mock currency exchange service
+const { mockGetExchangeRates } = vi.hoisted(() => ({
+  mockGetExchangeRates: vi.fn().mockResolvedValue({
+    base: 'USD',
+    date: '2025-01-01',
+    rates: { CNY: 7.24, EUR: 0.95 },
+  }),
+}))
+
+vi.mock('@/services/currency-exchange', () => ({
+  currencyExchangeService: {
+    getExchangeRates: mockGetExchangeRates,
+  },
+}))
 
 describe('useExchangeRate', () => {
   beforeEach(() => {
     clearExchangeRateCache()
-    vi.restoreAllMocks()
+    mockGetExchangeRates.mockClear()
+    mockGetExchangeRates.mockResolvedValue({
+      base: 'USD',
+      date: '2025-01-01',
+      rates: { CNY: 7.24, EUR: 0.95 },
+    })
   })
 
   it('starts in loading state when targets are provided', () => {
@@ -27,8 +46,6 @@ describe('useExchangeRate', () => {
   })
 
   it('uses cache on subsequent calls', async () => {
-    const spy = vi.spyOn(currencyExchangeService, 'getExchangeRates')
-
     const { result: r1, unmount } = renderHook(() => useExchangeRate('USD', ['CNY']))
     await waitFor(() => expect(r1.current.isLoading).toBe(false))
     unmount()
@@ -36,11 +53,11 @@ describe('useExchangeRate', () => {
     const { result: r2 } = renderHook(() => useExchangeRate('USD', ['CNY']))
     await waitFor(() => expect(r2.current.isLoading).toBe(false))
 
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(mockGetExchangeRates).toHaveBeenCalledTimes(1)
   })
 
   it('handles service errors', async () => {
-    vi.spyOn(currencyExchangeService, 'getExchangeRates').mockRejectedValueOnce(new Error('boom'))
+    mockGetExchangeRates.mockRejectedValueOnce(new Error('boom'))
 
     const { result } = renderHook(() => useExchangeRate('USD', ['CNY']))
 

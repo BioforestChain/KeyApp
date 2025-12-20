@@ -137,7 +137,7 @@ export interface StakingOverviewItem {
   /** Available external chains for unstaking */
   availableChains: ExternalChain[]
   /** Logo URL */
-  logoUrl?: string
+  logoUrl?: string | undefined
   /** Total amount minted (pool stat) */
   totalMinted: string
   /** Total amount in circulation (pool stat) */

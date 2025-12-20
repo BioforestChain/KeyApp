@@ -1,29 +1,21 @@
 /**
- * Mock Toast 服务实现
+ * Toast 服务 - Mock 实现
  */
 
-import type { IToastService, ToastOptions } from './types'
+import { toastServiceMeta } from './types'
 
-declare global {
-  interface Window {
-    __TOAST_HISTORY__?: Array<ToastOptions & { timestamp: number }>
-  }
-}
+const toastHistory: Array<{ message: string; timestamp: number }> = []
 
-export class ToastService implements IToastService {
-  async show(options: ToastOptions | string): Promise<void> {
-    const opts = typeof options === 'string' ? { message: options } : options
-    
-    if (!window.__TOAST_HISTORY__) {
-      window.__TOAST_HISTORY__ = []
-    }
-    
-    window.__TOAST_HISTORY__.push({
-      ...opts,
-      timestamp: Date.now(),
-    })
+export const toastService = toastServiceMeta.impl({
+  async show(options) {
+    const message = typeof options === 'string' ? options : options.message
+    toastHistory.push({ message, timestamp: Date.now() })
+    console.log('[Toast]', message)
+  },
+})
 
-    // 同时在控制台输出，便于调试
-    console.log('[Toast]', opts.message)
-  }
+/** Mock 控制器 */
+export const toastMockController = {
+  getHistory: () => [...toastHistory],
+  clear: () => { toastHistory.length = 0 },
 }

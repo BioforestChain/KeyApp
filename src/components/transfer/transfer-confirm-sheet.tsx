@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { IconChevronDown as ChevronDown, IconChevronUp as ChevronUp, IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
+import { clipboardService } from '@/services/clipboard';
 
 export interface TransferConfirmSheetProps {
   /** Whether the sheet is open */
@@ -66,7 +67,7 @@ export function TransferConfirmSheet({
 
   const handleCopyAddress = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(toAddress);
+      await clipboardService.write({ text: toAddress });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

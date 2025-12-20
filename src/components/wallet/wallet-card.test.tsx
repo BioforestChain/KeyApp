@@ -4,14 +4,15 @@ import userEvent from '@testing-library/user-event'
 import { WalletCard, type WalletInfo } from './wallet-card'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
-const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
-
-// Mock clipboard API
-Object.assign(navigator, {
-  clipboard: {
-    writeText: vi.fn().mockResolvedValue(undefined),
+// Mock clipboard service
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: vi.fn().mockResolvedValue(undefined),
+    read: vi.fn().mockResolvedValue(''),
   },
-})
+}))
+
+const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
 
 const mockWallet: WalletInfo = {
   id: '1',

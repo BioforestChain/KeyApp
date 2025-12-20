@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { IconCheck as Check, IconCopy as Copy } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import { clipboardService } from '@/services/clipboard';
 
 export interface MarqueeTextProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Text content to display */
@@ -60,7 +61,7 @@ function MarqueeText({ children, copyable = false, duration, onCopy, className, 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(children);
+      await clipboardService.write({ text: children });
       setIsCopied(true);
       onCopy?.();
       setTimeout(() => setIsCopied(false), 2000);

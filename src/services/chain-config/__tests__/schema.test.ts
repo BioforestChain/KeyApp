@@ -36,28 +36,40 @@ describe('ChainConfigSchema', () => {
 })
 
 describe('default-chains.json', () => {
-  it('parses and contains 8 default chains', async () => {
+  it('parses and contains all default chains', async () => {
     const filePath = path.join(process.cwd(), 'public/configs/default-chains.json')
     const raw = await fs.readFile(filePath, 'utf8')
 
     const parsedJson: unknown = JSON.parse(raw)
     const chains = ChainConfigListSchema.parse(parsedJson)
 
-    expect(chains).toHaveLength(8)
+    // 8 bioforest + 4 external (ethereum, binance, tron, bitcoin)
+    expect(chains).toHaveLength(12)
 
     const ids = chains.map(c => c.id).sort()
-    expect(ids).toEqual(
-      [
-        'bfchainv2',
-        'bfmeta',
-        'biwmeta',
-        'btgmeta',
-        'ccchain',
-        'ethmeta',
-        'malibu',
-        'pmchain',
-      ].sort()
-    )
+    expect(ids).toEqual([
+      'bfchainv2',
+      'bfmeta',
+      'binance',
+      'bitcoin',
+      'biwmeta',
+      'btgmeta',
+      'ccchain',
+      'ethereum',
+      'ethmeta',
+      'malibu',
+      'pmchain',
+      'tron',
+    ])
+
+    // Verify chain types
+    const bioforestChains = chains.filter(c => c.type === 'bioforest')
+    const evmChains = chains.filter(c => c.type === 'evm')
+    const bip39Chains = chains.filter(c => c.type === 'bip39')
+
+    expect(bioforestChains).toHaveLength(8)
+    expect(evmChains).toHaveLength(2)
+    expect(bip39Chains).toHaveLength(2)
   })
 })
 

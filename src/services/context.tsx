@@ -36,7 +36,7 @@ function getDefaultServices(): IServices {
     secureStorage: secureStorageService,
     clipboard: clipboardService,
     toast: toastService,
-    camera: cameraService,
+    camera: cameraService as unknown as IServices['camera'],
     haptics: hapticsService,
     currencyExchange: currencyExchangeService,
   }

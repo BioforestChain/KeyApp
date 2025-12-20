@@ -1,10 +1,9 @@
 /**
  * DWEB/Plaoc Authorization Types
- *
- * This module hosts all shared types for the authorize service.
- *
- * @module services/authorize/types
  */
+
+import { z } from 'zod'
+import { defineServiceMeta } from '@/lib/service-meta'
 
 // ============================================================================
 // Address Authorization Types
@@ -162,9 +161,6 @@ export interface CallerAppInfo {
 
 /**
  * Plaoc IPC adapter interface (low-level)
- *
- * This interface represents the platform IPC boundary; implementations are
- * selected at compile-time via Vite alias `#authorize-impl`.
  */
 export interface IPlaocAdapter {
   getCallerAppInfo(eventId: string): Promise<CallerAppInfo>
@@ -172,3 +168,20 @@ export interface IPlaocAdapter {
   removeEventId(eventId: string): Promise<void>
   isAvailable(): boolean
 }
+
+// ==================== Service Meta ====================
+
+const CallerAppInfoSchema = z.object({
+  appId: z.string(),
+  appName: z.string(),
+  appIcon: z.string(),
+  origin: z.string(),
+})
+
+export const plaocAdapterMeta = defineServiceMeta('authorize', (s) =>
+  s.description('授权适配器')
+    .api('getCallerAppInfo', z.object({ eventId: z.string() }), CallerAppInfoSchema)
+    .api('respondWith', z.object({ eventId: z.string(), path: z.string(), data: z.unknown() }), z.void())
+    .api('removeEventId', z.object({ eventId: z.string() }), z.void())
+    .method('isAvailable', z.void(), z.boolean()),
+)

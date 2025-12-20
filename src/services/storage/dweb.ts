@@ -1,39 +1,36 @@
 /**
- * DWEB 平台安全存储服务实现
- * 使用 keychainPlugin 进行安全存储
+ * 安全存储服务 - DWEB 平台实现
  */
 
 import { keychainPlugin } from '@plaoc/plugins'
-import type { ISecureStorageService } from './types'
+import { secureStorageServiceMeta } from './types'
 
-// 文本编解码器
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 
-export class SecureStorageService implements ISecureStorageService {
-  async set(key: string, value: string): Promise<void> {
+export const secureStorageService = secureStorageServiceMeta.impl({
+  async set({ key, value }) {
     await keychainPlugin.set(key, textEncoder.encode(value))
-  }
+  },
 
-  async get(key: string): Promise<string | null> {
+  async get({ key }) {
     const result = await keychainPlugin.get(key)
     if (!result) return null
     return textDecoder.decode(result)
-  }
+  },
 
-  async remove(key: string): Promise<void> {
+  async remove({ key }) {
     await keychainPlugin.delete(key)
-  }
+  },
 
-  async has(key: string): Promise<boolean> {
+  async has({ key }) {
     return await keychainPlugin.has(key)
-  }
+  },
 
-  async clear(): Promise<void> {
-    // keychainPlugin 没有 clear 方法，需要逐个删除
+  async clear() {
     const keys = await keychainPlugin.keys()
-    for (const key of keys) {
-      await keychainPlugin.delete(key)
+    for (const k of keys) {
+      await keychainPlugin.delete(k)
     }
-  }
-}
+  },
+})

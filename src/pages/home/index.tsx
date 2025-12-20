@@ -79,7 +79,7 @@ export function HomePage() {
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {
-      await clipboard.write(chainAddress.address);
+      await clipboard.write({ text: chainAddress.address });
       await haptics.impact('light');
       setCopied(true);
       toast.show(t('home:wallet.addressCopied'));

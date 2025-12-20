@@ -86,6 +86,9 @@ importers:
       i18next:
         specifier: ^25.7.1
         version: 25.7.1(typescript@5.9.3)
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
       jsqr:
         specifier: ^1.4.0
         version: 1.4.0
@@ -101,6 +104,9 @@ importers:
       react-i18next:
         specifier: ^16.4.0
         version: 16.4.0(i18next@25.7.1(typescript@5.9.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+      react-inspector:
+        specifier: ^9.0.0
+        version: 9.0.0(react@19.2.1)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -2963,6 +2969,9 @@ packages:
     resolution: {integrity: sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==}
     engines: {node: '>=0.10.0'}
 
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -3732,6 +3741,11 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  react-inspector@9.0.0:
+    resolution: {integrity: sha512-w/VJucSeHxlwRa2nfM2k7YhpT1r5EtlDOClSR+L7DyQP91QMdfFEDXDs9bPYN4kzP7umFtom7L0b2GGjph4Kow==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -7313,6 +7327,8 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  idb@8.0.3: {}
+
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
@@ -7955,6 +7971,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.1(react@19.2.1)
       typescript: 5.9.3
+
+  react-inspector@9.0.0(react@19.2.1):
+    dependencies:
+      react: 19.2.1
 
   react-is@17.0.2: {}
 

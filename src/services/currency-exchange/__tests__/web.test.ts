@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { CurrencyExchangeService } from '../web'
+import { currencyExchangeService } from '../web'
 
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
-describe('CurrencyExchangeService (web)', () => {
+describe('currencyExchangeService (web)', () => {
   it('calls Frankfurter API and maps response', async () => {
     const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async () => {
       return new Response(
@@ -17,13 +17,15 @@ describe('CurrencyExchangeService (web)', () => {
           date: '2025-01-01',
           rates: { CNY: 7.24, EUR: 0.95 },
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       )
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const service = new CurrencyExchangeService()
-    const result = await service.getExchangeRates('USD', ['CNY', 'EUR'])
+    const result = await currencyExchangeService.getExchangeRates({
+      baseCurrency: 'USD',
+      targetCurrencies: ['CNY', 'EUR'],
+    })
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
@@ -45,10 +47,8 @@ describe('CurrencyExchangeService (web)', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const service = new CurrencyExchangeService()
-
-    await expect(service.getExchangeRates('USD', ['CNY'])).rejects.toThrow(
-      'Frankfurter API error: 500 Boom'
-    )
+    await expect(
+      currencyExchangeService.getExchangeRates({ baseCurrency: 'USD', targetCurrencies: ['CNY'] }),
+    ).rejects.toThrow('Frankfurter API error: 500')
   })
 })

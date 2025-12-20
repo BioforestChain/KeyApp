@@ -5,7 +5,6 @@ import { IconAlertCircle as AlertCircle, IconCheck as Check } from '@tabler/icon
 import { PageHeader } from '@/components/layout/page-header';
 import { PasswordInput } from '@/components/security/password-input';
 import { useCurrentWallet, walletActions } from '@/stores';
-import { decrypt, encrypt, type EncryptedData } from '@/lib/crypto';
 import { cn } from '@/lib/utils';
 
 /** 最小密码长度 */
@@ -46,14 +45,12 @@ export function ChangePasswordPage() {
       setError(undefined);
 
       try {
-        // 1. 验证当前密码（解密助记词）
-        const mnemonic = await decrypt(currentWallet.encryptedMnemonic as EncryptedData, currentPassword);
-
-        // 2. 用新密码重新加密
-        const newEncryptedMnemonic = await encrypt(mnemonic, newPassword);
-
-        // 3. 更新钱包
-        walletActions.updateWalletEncryptedMnemonic(currentWallet.id, newEncryptedMnemonic);
+        // 使用 walletStorageService 更新加密（验证旧密码 + 重新加密）
+        await walletActions.updateWalletEncryptedMnemonic(
+          currentWallet.id,
+          currentPassword,
+          newPassword
+        );
 
         setSuccess(true);
 

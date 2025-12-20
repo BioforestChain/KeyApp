@@ -4,16 +4,22 @@ import userEvent from '@testing-library/user-event'
 import { SendResult } from './send-result'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
+// Mock clipboard service
+const { mockClipboardWrite } = vi.hoisted(() => ({
+  mockClipboardWrite: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/services/clipboard', () => ({
+  clipboardService: {
+    write: mockClipboardWrite,
+    read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
 // 包装组件以提供 i18n
 function renderWithProvider(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
 }
-
-// Mock clipboard API
-const mockClipboard = {
-  writeText: vi.fn().mockResolvedValue(undefined),
-}
-Object.assign(navigator, { clipboard: mockClipboard })
 
 describe('SendResult', () => {
   beforeEach(() => {
@@ -56,13 +62,14 @@ describe('SendResult', () => {
     })
 
     it('copies hash to clipboard', async () => {
+      mockClipboardWrite.mockClear()
       const txHash = '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
       renderWithProvider(<SendResult {...defaultProps} txHash={txHash} />)
 
       const hashButton = screen.getByText(/0xabcdef12.*67890/)
       await userEvent.click(hashButton)
 
-      expect(mockClipboard.writeText).toHaveBeenCalledWith(txHash)
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: txHash })
     })
 
     it('shows view explorer button when callback provided', () => {

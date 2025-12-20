@@ -58,13 +58,13 @@ function renderWithParams(initialEntry: string) {
 
 describe('SignatureAuthPage', () => {
   beforeEach(() => {
-    walletActions.clearAll()
+    walletActions._testReset()
     mockNavigate.mockClear()
     mockActivityParams = {}
   })
 
   afterEach(() => {
-    walletActions.clearAll()
+    walletActions._testReset()
     vi.restoreAllMocks()
     vi.useRealTimers()
   })
@@ -82,7 +82,7 @@ describe('SignatureAuthPage', () => {
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
@@ -127,7 +127,7 @@ describe('SignatureAuthPage', () => {
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()
     const removeSpy = vi.spyOn(plaocAdapter, 'removeEventId').mockResolvedValue()
 
-    walletActions.createWallet({
+    walletActions._testAddWallet({
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',

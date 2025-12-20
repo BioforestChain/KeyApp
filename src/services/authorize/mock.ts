@@ -1,3 +1,7 @@
+/**
+ * Authorize 服务 - Mock 实现
+ */
+
 import type { CallerAppInfo, IPlaocAdapter } from './types'
 
 type WireEnvelope<T> = Readonly<{ data: T }>
@@ -12,6 +16,8 @@ export type MockPlaocWireRemoval = Readonly<{
   eventId: string
   body: WireEnvelope<null>
 }>
+
+// ==================== PlaocAdapter 类实现 ====================
 
 export class PlaocAdapter implements IPlaocAdapter {
   private mockEvents = new Map<string, CallerAppInfo>()
@@ -50,6 +56,7 @@ export class PlaocAdapter implements IPlaocAdapter {
     return true
   }
 
+  // Mock 控制方法
   _registerMockEvent(eventId: string, info: CallerAppInfo): void {
     this.mockEvents.set(eventId, info)
   }
@@ -62,3 +69,5 @@ export class PlaocAdapter implements IPlaocAdapter {
     return this.lastWireRemoval
   }
 }
+
+export const plaocAdapter = new PlaocAdapter()

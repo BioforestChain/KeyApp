@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'node:path'
+import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 
 /**
  * 服务实现选择（编译时）
@@ -23,6 +24,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    mockDevToolsPlugin(),
   ],
   resolve: {
     alias: {
@@ -38,6 +40,8 @@ export default defineConfig({
       '#camera-impl': resolve(__dirname, `./src/services/camera/${SERVICE_IMPL}.ts`),
       '#authorize-impl': resolve(__dirname, `./src/services/authorize/${SERVICE_IMPL}.ts`),
       '#currency-exchange-impl': resolve(__dirname, `./src/services/currency-exchange/${SERVICE_IMPL === 'dweb' ? 'web' : SERVICE_IMPL}.ts`),
+      '#staking-impl': resolve(__dirname, `./src/services/staking/${SERVICE_IMPL}.ts`),
+      '#transaction-impl': resolve(__dirname, `./src/services/transaction/${SERVICE_IMPL}.ts`),
 
       // Node.js polyfills
       buffer: 'buffer/',
@@ -46,6 +50,8 @@ export default defineConfig({
   define: {
     // 全局 Buffer 支持
     'global': 'globalThis',
+    // Mock 模式标识（用于条件加载 MockDevTools）
+    '__MOCK_MODE__': JSON.stringify(SERVICE_IMPL === 'mock'),
   },
   optimizeDeps: {
     include: ['buffer'],

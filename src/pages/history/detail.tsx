@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
@@ -16,7 +16,7 @@ import { FeeDisplay } from '@/components/transaction/fee-display';
 import { useTransactionHistory, type TransactionRecord } from '@/hooks/use-transaction-history';
 import { useCurrentWallet } from '@/stores';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { clipboardService } from '@/services/clipboard';
 
 /** 状态映射 (TransactionInfo.status -> TransactionStatusType) */
 const STATUS_MAP: Record<string, 'success' | 'failed' | 'pending'> = {
@@ -50,7 +50,7 @@ export function TransactionDetailPage() {
   // 复制交易哈希
   const handleCopyHash = useCallback(async () => {
     if (transaction?.hash) {
-      await navigator.clipboard.writeText(transaction.hash);
+      await clipboardService.write({ text: transaction.hash });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

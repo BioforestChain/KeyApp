@@ -1,40 +1,35 @@
 /**
- * Mock 安全存储服务实现
+ * 安全存储服务 - Mock 实现
  */
 
-import type { ISecureStorageService } from './types'
+import { secureStorageServiceMeta } from './types'
 
-declare global {
-  interface Window {
-    __MOCK_STORAGE__?: Map<string, string>
-  }
-}
+const storage = new Map<string, string>()
 
-function getStorage(): Map<string, string> {
-  if (!window.__MOCK_STORAGE__) {
-    window.__MOCK_STORAGE__ = new Map()
-  }
-  return window.__MOCK_STORAGE__
-}
+export const secureStorageService = secureStorageServiceMeta.impl({
+  async set({ key, value }) {
+    storage.set(key, value)
+  },
 
-export class SecureStorageService implements ISecureStorageService {
-  async set(key: string, value: string): Promise<void> {
-    getStorage().set(key, value)
-  }
+  async get({ key }) {
+    return storage.get(key) ?? null
+  },
 
-  async get(key: string): Promise<string | null> {
-    return getStorage().get(key) ?? null
-  }
+  async remove({ key }) {
+    storage.delete(key)
+  },
 
-  async remove(key: string): Promise<void> {
-    getStorage().delete(key)
-  }
+  async has({ key }) {
+    return storage.has(key)
+  },
 
-  async has(key: string): Promise<boolean> {
-    return getStorage().has(key)
-  }
+  async clear() {
+    storage.clear()
+  },
+})
 
-  async clear(): Promise<void> {
-    getStorage().clear()
-  }
+/** Mock 控制器 */
+export const storageMockController = {
+  getAll: () => Object.fromEntries(storage),
+  clear: () => storage.clear(),
 }

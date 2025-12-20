@@ -59,14 +59,14 @@ export interface SecureStorageItem {
 
 /** 安全存储服务接口 */
 export interface ISecureStorageService {
-  /** 存储数据（使用生物识别保护） */
-  set(key: string, value: string): Promise<void>
-  /** 获取数据（需要生物识别验证） */
-  get(key: string): Promise<string | null>
+  /** 存储数据 */
+  set(input: { key: string; value: string }): Promise<void>
+  /** 获取数据 */
+  get(input: { key: string }): Promise<string | null>
   /** 删除数据 */
-  remove(key: string): Promise<void>
+  remove(input: { key: string }): Promise<void>
   /** 检查是否存在 */
-  has(key: string): Promise<boolean>
+  has(input: { key: string }): Promise<boolean>
   /** 清空所有数据 */
   clear(): Promise<void>
 }
@@ -74,7 +74,7 @@ export interface ISecureStorageService {
 /** 剪贴板服务接口 */
 export interface IClipboardService {
   /** 写入文本 */
-  write(text: string): Promise<void>
+  write(input: { text: string }): Promise<void>
   /** 读取文本 */
   read(): Promise<string>
 }
@@ -97,19 +97,14 @@ export interface IToastService {
 
 /** 相机扫描结果 */
 export interface ScanResult {
-  /** 扫描内容 */
   content: string
-  /** 格式类型 */
   format?: string
 }
 
 /** 相机服务接口 */
 export interface ICameraService {
-  /** 扫描二维码 */
   scanQRCode(): Promise<ScanResult>
-  /** 检查相机权限 */
   checkPermission(): Promise<boolean>
-  /** 请求相机权限 */
   requestPermission(): Promise<boolean>
 }
 
@@ -136,8 +131,7 @@ export interface ExchangeRateResponse {
 
 /** 货币兑换服务接口 */
 export interface ICurrencyExchangeService {
-  /** 获取汇率 */
-  getExchangeRates(baseCurrency: string, targetCurrencies: string[]): Promise<ExchangeRateResponse>
+  getExchangeRates(input: { baseCurrency: string; targetCurrencies: string[] }): Promise<ExchangeRateResponse>
 }
 
 /** 所有服务的聚合接口 */

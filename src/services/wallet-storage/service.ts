@@ -1,0 +1,568 @@
+import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
+import { encrypt, decrypt } from '@/lib/crypto'
+import {
+  type WalleterInfo,
+  type WalletInfo,
+  type ChainAddressInfo,
+  type AddressBookEntry,
+  type StorageMetadata,
+  type AssetInfo,
+  WALLET_STORAGE_VERSION,
+  WalletStorageError,
+  WalletStorageErrorCode,
+} from './types'
+
+const DB_NAME = 'bfm-wallet-db'
+const DB_VERSION = 1
+
+interface WalletDBSchema extends DBSchema {
+  metadata: {
+    key: string
+    value: StorageMetadata
+  }
+  walleter: {
+    key: string
+    value: WalleterInfo
+  }
+  wallets: {
+    key: string
+    value: WalletInfo
+    indexes: { 'by-chain': string }
+  }
+  chainAddresses: {
+    key: string
+    value: ChainAddressInfo
+    indexes: { 'by-wallet': string; 'by-chain': string }
+  }
+  addressBook: {
+    key: string
+    value: AddressBookEntry
+    indexes: { 'by-chain': string }
+  }
+}
+
+/** 钱包存储服务 */
+export class WalletStorageService {
+  private db: IDBPDatabase<WalletDBSchema> | null = null
+  private initialized = false
+
+  /** 初始化存储服务 */
+  async initialize(): Promise<void> {
+    if (this.initialized) return
+
+    this.db = await openDB<WalletDBSchema>(DB_NAME, DB_VERSION, {
+      upgrade(db, oldVersion, _newVersion, transaction) {
+        // metadata store
+        let metadataStore: ReturnType<typeof db.createObjectStore<'metadata'>> | undefined
+        if (!db.objectStoreNames.contains('metadata')) {
+          metadataStore = db.createObjectStore('metadata')
+        }
+
+        // walleter store
+        if (!db.objectStoreNames.contains('walleter')) {
+          db.createObjectStore('walleter')
+        }
+
+        // wallets store
+        if (!db.objectStoreNames.contains('wallets')) {
+          const walletStore = db.createObjectStore('wallets', { keyPath: 'id' })
+          walletStore.createIndex('by-chain', 'primaryChain')
+        }
+
+        // chainAddresses store
+        if (!db.objectStoreNames.contains('chainAddresses')) {
+          const addressStore = db.createObjectStore('chainAddresses', {
+            keyPath: 'addressKey',
+          })
+          addressStore.createIndex('by-wallet', 'walletId')
+          addressStore.createIndex('by-chain', 'chain')
+        }
+
+        // addressBook store
+        if (!db.objectStoreNames.contains('addressBook')) {
+          const bookStore = db.createObjectStore('addressBook', { keyPath: 'id' })
+          bookStore.createIndex('by-chain', 'chain')
+        }
+
+        // Initialize metadata on first creation
+        if (oldVersion === 0 && metadataStore) {
+          metadataStore.put(
+            {
+              version: WALLET_STORAGE_VERSION,
+              createdAt: Date.now(),
+            },
+            'main'
+          )
+        } else if (oldVersion === 0) {
+          transaction.objectStore('metadata').put(
+            {
+              version: WALLET_STORAGE_VERSION,
+              createdAt: Date.now(),
+            },
+            'main'
+          )
+        }
+      },
+    })
+
+    // Set initialized before migrations so getMetadata works
+    this.initialized = true
+
+    // Run migrations if needed
+    await this.runMigrations()
+  }
+
+  /** 检查是否已初始化 */
+  isInitialized(): boolean {
+    return this.initialized
+  }
+
+  private ensureInitialized(): void {
+    if (!this.initialized || !this.db) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.NOT_INITIALIZED,
+        'Storage service not initialized. Call initialize() first.'
+      )
+    }
+  }
+
+  // ==================== 元数据 ====================
+
+  /** 获取存储元数据 */
+  async getMetadata(): Promise<StorageMetadata | null> {
+    this.ensureInitialized()
+    return (await this.db!.get('metadata', 'main')) ?? null
+  }
+
+  // ==================== 钱包用户 ====================
+
+  /** 保存钱包用户信息 */
+  async saveWalleterInfo(info: WalleterInfo): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.put('walleter', info, 'main')
+  }
+
+  /** 获取钱包用户信息 */
+  async getWalleterInfo(): Promise<WalleterInfo | null> {
+    this.ensureInitialized()
+    return (await this.db!.get('walleter', 'main')) ?? null
+  }
+
+  // ==================== 钱包管理 ====================
+
+  /** 创建钱包（同时存储加密助记词） */
+  async createWallet(
+    wallet: Omit<WalletInfo, 'encryptedMnemonic'>,
+    mnemonic: string,
+    password: string
+  ): Promise<WalletInfo> {
+    this.ensureInitialized()
+
+    try {
+      const encryptedMnemonic = await encrypt(mnemonic, password)
+      const walletWithMnemonic: WalletInfo = {
+        ...wallet,
+        encryptedMnemonic,
+      }
+
+      await this.db!.put('wallets', walletWithMnemonic)
+      return walletWithMnemonic
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Failed to encrypt mnemonic',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  /** 保存钱包（无加密，用于导入已有加密数据） */
+  async saveWallet(wallet: WalletInfo): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.put('wallets', wallet)
+  }
+
+  /** 获取钱包信息 */
+  async getWallet(walletId: string): Promise<WalletInfo | null> {
+    this.ensureInitialized()
+    return (await this.db!.get('wallets', walletId)) ?? null
+  }
+
+  /** 获取所有钱包 */
+  async getAllWallets(): Promise<WalletInfo[]> {
+    this.ensureInitialized()
+    return this.db!.getAll('wallets')
+  }
+
+  /** 更新钱包信息 */
+  async updateWallet(
+    walletId: string,
+    updates: Partial<Omit<WalletInfo, 'id'>>
+  ): Promise<void> {
+    this.ensureInitialized()
+
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
+    await this.db!.put('wallets', {
+      ...wallet,
+      ...updates,
+      updatedAt: Date.now(),
+    })
+  }
+
+  /** 删除钱包 */
+  async deleteWallet(walletId: string): Promise<void> {
+    this.ensureInitialized()
+
+    // Delete wallet
+    await this.db!.delete('wallets', walletId)
+
+    // Delete associated chain addresses
+    const addresses = await this.getWalletChainAddresses(walletId)
+    const tx = this.db!.transaction('chainAddresses', 'readwrite')
+    await Promise.all(addresses.map((addr) => tx.store.delete(addr.addressKey)))
+    await tx.done
+  }
+
+  // ==================== 助记词/私钥 ====================
+
+  /** 获取解密的助记词 */
+  async getMnemonic(walletId: string, password: string): Promise<string> {
+    this.ensureInitialized()
+
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
+    if (!wallet.encryptedMnemonic) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'No encrypted mnemonic found for this wallet'
+      )
+    }
+
+    try {
+      return await decrypt(wallet.encryptedMnemonic, password)
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'Failed to decrypt mnemonic. Wrong password or corrupted data.',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  /** 更新助记词加密（密码变更时） */
+  async updateMnemonicEncryption(
+    walletId: string,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    this.ensureInitialized()
+
+    // Decrypt with old password
+    const mnemonic = await this.getMnemonic(walletId, oldPassword)
+
+    // Re-encrypt with new password
+    try {
+      const encryptedMnemonic = await encrypt(mnemonic, newPassword)
+      await this.updateWallet(walletId, { encryptedMnemonic })
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Failed to re-encrypt mnemonic',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  /** 存储私钥 */
+  async savePrivateKey(
+    addressKey: string,
+    privateKey: string,
+    password: string
+  ): Promise<void> {
+    this.ensureInitialized()
+
+    const address = await this.getChainAddress(addressKey)
+    if (!address) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ADDRESS_NOT_FOUND,
+        `Chain address not found: ${addressKey}`
+      )
+    }
+
+    try {
+      const encryptedPrivateKey = await encrypt(privateKey, password)
+      await this.db!.put('chainAddresses', {
+        ...address,
+        encryptedPrivateKey,
+      })
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Failed to encrypt private key',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  /** 获取解密的私钥 */
+  async getPrivateKey(addressKey: string, password: string): Promise<string> {
+    this.ensureInitialized()
+
+    const address = await this.getChainAddress(addressKey)
+    if (!address) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ADDRESS_NOT_FOUND,
+        `Chain address not found: ${addressKey}`
+      )
+    }
+
+    if (!address.encryptedPrivateKey) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'No encrypted private key found for this address'
+      )
+    }
+
+    try {
+      return await decrypt(address.encryptedPrivateKey, password)
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'Failed to decrypt private key. Wrong password or corrupted data.',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  // ==================== 链地址 ====================
+
+  /** 保存链地址信息 */
+  async saveChainAddress(info: ChainAddressInfo): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.put('chainAddresses', info)
+  }
+
+  /** 获取链地址信息 */
+  async getChainAddress(addressKey: string): Promise<ChainAddressInfo | null> {
+    this.ensureInitialized()
+    return (await this.db!.get('chainAddresses', addressKey)) ?? null
+  }
+
+  /** 获取钱包的所有链地址 */
+  async getWalletChainAddresses(walletId: string): Promise<ChainAddressInfo[]> {
+    this.ensureInitialized()
+    return this.db!.getAllFromIndex('chainAddresses', 'by-wallet', walletId)
+  }
+
+  /** 获取链的所有地址 */
+  async getChainAddresses(chain: string): Promise<ChainAddressInfo[]> {
+    this.ensureInitialized()
+    return this.db!.getAllFromIndex('chainAddresses', 'by-chain', chain)
+  }
+
+  /** 更新资产信息 */
+  async updateAssets(addressKey: string, assets: AssetInfo[]): Promise<void> {
+    this.ensureInitialized()
+
+    const address = await this.getChainAddress(addressKey)
+    if (!address) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ADDRESS_NOT_FOUND,
+        `Chain address not found: ${addressKey}`
+      )
+    }
+
+    await this.db!.put('chainAddresses', {
+      ...address,
+      assets,
+      isCustomAssets: true,
+    })
+  }
+
+  /** 删除链地址 */
+  async deleteChainAddress(addressKey: string): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.delete('chainAddresses', addressKey)
+  }
+
+  // ==================== 地址簿 ====================
+
+  /** 保存地址簿条目 */
+  async saveAddressBookEntry(entry: AddressBookEntry): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.put('addressBook', entry)
+  }
+
+  /** 获取地址簿条目 */
+  async getAddressBookEntry(id: string): Promise<AddressBookEntry | null> {
+    this.ensureInitialized()
+    return (await this.db!.get('addressBook', id)) ?? null
+  }
+
+  /** 获取所有地址簿条目 */
+  async getAllAddressBookEntries(): Promise<AddressBookEntry[]> {
+    this.ensureInitialized()
+    return this.db!.getAll('addressBook')
+  }
+
+  /** 获取链的地址簿条目 */
+  async getChainAddressBookEntries(chain: string): Promise<AddressBookEntry[]> {
+    this.ensureInitialized()
+    return this.db!.getAllFromIndex('addressBook', 'by-chain', chain)
+  }
+
+  /** 删除地址簿条目 */
+  async deleteAddressBookEntry(id: string): Promise<void> {
+    this.ensureInitialized()
+    await this.db!.delete('addressBook', id)
+  }
+
+  // ==================== 数据管理 ====================
+
+  /** 清除所有数据 */
+  async clearAll(): Promise<void> {
+    this.ensureInitialized()
+
+    const tx = this.db!.transaction(
+      ['walleter', 'wallets', 'chainAddresses', 'addressBook'],
+      'readwrite'
+    )
+
+    await Promise.all([
+      tx.objectStore('walleter').clear(),
+      tx.objectStore('wallets').clear(),
+      tx.objectStore('chainAddresses').clear(),
+      tx.objectStore('addressBook').clear(),
+    ])
+
+    await tx.done
+  }
+
+  /** 关闭数据库连接 */
+  close(): void {
+    if (this.db) {
+      this.db.close()
+      this.db = null
+      this.initialized = false
+    }
+  }
+
+  // ==================== 数据迁移 ====================
+
+  private async runMigrations(): Promise<void> {
+    const metadata = await this.getMetadata()
+    if (!metadata) return
+
+    // Future migrations will be added here
+    // if (metadata.version < 2) { ... }
+  }
+
+  /** 从 localStorage 迁移旧数据 */
+  async migrateFromLocalStorage(): Promise<boolean> {
+    this.ensureInitialized()
+
+    const oldData = localStorage.getItem('bfm_wallets')
+    if (!oldData) return false
+
+    try {
+      const { wallets, currentWalletId } = JSON.parse(oldData) as {
+        wallets: Array<{
+          id: string
+          name: string
+          keyType?: string
+          address: string
+          chain: string
+          encryptedMnemonic?: unknown
+          createdAt: number
+          chainAddresses?: Array<{
+            chain: string
+            address: string
+            tokens?: unknown[]
+          }>
+        }>
+        currentWalletId: string | null
+      }
+
+      // Migrate wallets
+      for (const oldWallet of wallets) {
+        const newWallet: WalletInfo = {
+          id: oldWallet.id,
+          name: oldWallet.name,
+          keyType: (oldWallet.keyType as 'mnemonic' | 'arbitrary') || 'mnemonic',
+          primaryChain: oldWallet.chain,
+          primaryAddress: oldWallet.address,
+          encryptedMnemonic: oldWallet.encryptedMnemonic as WalletInfo['encryptedMnemonic'],
+          isBackedUp: false,
+          createdAt: oldWallet.createdAt,
+          updatedAt: Date.now(),
+        }
+        await this.saveWallet(newWallet)
+
+        // Migrate chain addresses
+        if (oldWallet.chainAddresses) {
+          for (const oldAddr of oldWallet.chainAddresses) {
+            const addressKey = `${oldWallet.id}:${oldAddr.chain}`
+            const newAddr: ChainAddressInfo = {
+              addressKey,
+              walletId: oldWallet.id,
+              chain: oldAddr.chain,
+              address: oldAddr.address,
+              assets: [],
+              isCustomAssets: false,
+              isFrozen: false,
+            }
+            await this.saveChainAddress(newAddr)
+          }
+        }
+      }
+
+      // Update walleter info
+      const existingWalleter = await this.getWalleterInfo()
+      if (!existingWalleter) {
+        await this.saveWalleterInfo({
+          name: 'User',
+          activeWalletId: currentWalletId,
+          biometricEnabled: false,
+          passwordLockEnabled: false,
+          agreementAccepted: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      } else if (currentWalletId) {
+        await this.saveWalleterInfo({
+          ...existingWalleter,
+          activeWalletId: currentWalletId,
+          updatedAt: Date.now(),
+        })
+      }
+
+      // Remove old data after successful migration
+      localStorage.removeItem('bfm_wallets')
+
+      return true
+    } catch (err) {
+      console.error('Failed to migrate from localStorage:', err)
+      throw new WalletStorageError(
+        WalletStorageErrorCode.MIGRATION_FAILED,
+        'Failed to migrate data from localStorage',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+}
+
+/** 单例实例 */
+export const walletStorageService = new WalletStorageService()

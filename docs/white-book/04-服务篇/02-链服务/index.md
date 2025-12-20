@@ -21,6 +21,12 @@
 | [IStakingService](./IStakingService) | 质押操作 | MAY |
 | INFTService | NFT 资产查询 | MAY |
 
+## 实现规范
+
+| 文档 | 说明 |
+|-----|------|
+| [实现规范](./实现规范/) | 各链适配器的具体实现要求（BioForest/EVM/Tron/Bitcoin） |
+
 ---
 
 ## 接口设计原则

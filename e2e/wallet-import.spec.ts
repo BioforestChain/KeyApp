@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * 钱包导入 E2E 测试
@@ -59,18 +60,13 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
-    // 验证钱包已创建
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    expect(walletData).not.toBeNull()
-
-    const parsed = JSON.parse(walletData!)
-    expect(parsed.wallets).toHaveLength(1)
-    expect(parsed.wallets[0].name).toBe('导入钱包')
+    // 验证钱包已创建 (从 IndexedDB 读取)
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets).toHaveLength(1)
+    expect(wallets[0].name).toBe('导入钱包')
 
     // 验证地址派生正确 (BIP39 测试向量已知地址)
-    const wallet = parsed.wallets[0]
+    const wallet = wallets[0]
     const ethAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === 'ethereum')
     expect(ethAddr).toBeDefined()
     // "abandon" x11 + "about" 的已知以太坊地址
@@ -105,12 +101,9 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await page.click('button:has-text("完成导入")')
     await page.waitForURL(/.*#\/$/)
 
-    // 验证钱包已创建
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    const parsed = JSON.parse(walletData!)
-    expect(parsed.wallets).toHaveLength(1)
+    // 验证钱包已创建 (从 IndexedDB 读取)
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets).toHaveLength(1)
   })
 
   test('导入钱包派生多链地址', async ({ page }) => {
@@ -129,12 +122,9 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
     await page.waitForURL(/.*#\/$/)
 
-    // 验证多链地址派生
-    const walletData = await page.evaluate(() => {
-      return localStorage.getItem('bfm_wallets')
-    })
-    const parsed = JSON.parse(walletData!)
-    const wallet = parsed.wallets[0]
+    // 验证多链地址派生 (从 IndexedDB 读取)
+    const wallets = await getWalletDataFromIndexedDB(page)
+    const wallet = wallets[0]
 
     // 验证外部链地址 (BIP44)
     const externalChains = ['ethereum', 'bitcoin', 'tron']

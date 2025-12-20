@@ -59,6 +59,8 @@ export {
   verifySignature,
   base58Encode,
   base58Decode,
+  bytesToHex,
+  hexToBytes,
   BIOFOREST_CHAINS,
   type BioforestChainType,
   type BioforestKeypair,

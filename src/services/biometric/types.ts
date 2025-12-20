@@ -1,49 +1,58 @@
 /**
- * 生物识别服务类型定义
- */
-
-/** 生物识别类型 */
-export type BiometricType = 'fingerprint' | 'face' | 'iris' | 'none'
-
-/** 生物识别可用性结果 */
-export interface BiometricAvailability {
-  isAvailable: boolean
-  /** 可用的生物识别类型 */
-  biometricType: BiometricType
-  /** 错误信息（仅在检查过程中出错时存在） */
-  error?: string | undefined
-}
-
-/**
- * 生物识别验证选项
+ * 生物识别服务 - 类型定义
  *
- * 注意：@plaoc/plugins biometricsPlugin 不支持自定义参数
- * 此接口保留用于未来扩展或其他实现（Web/Mock）
+ * 使用 Schema-first 模式定义服务元信息
  */
-export interface BiometricVerifyOptions {
-  /** 提示标题 */
-  title?: string | undefined
-  /** 提示描述 */
-  description?: string | undefined
-  /** 取消按钮文字 */
-  cancelText?: string | undefined
-  /** 最大尝试次数 */
-  maxAttempts?: number | undefined
-  /** 失败后是否允许使用密码 */
-  fallbackToPassword?: boolean | undefined
-}
 
-/** 生物识别验证结果 */
-export interface BiometricVerifyResult {
-  success: boolean
-  /** 错误信息（仅在验证失败时存在） */
-  errorMessage?: string | undefined
-}
+import { z } from 'zod'
+import { defineServiceMeta } from '@/lib/service-meta'
 
-/** 生物识别服务接口 */
-export interface IBiometricService {
-  /** 检查生物识别是否可用 */
-  isAvailable(): Promise<BiometricAvailability>
-  /** 验证生物识别 */
-  verify(options?: BiometricVerifyOptions | undefined): Promise<BiometricVerifyResult>
-}
+/** 生物识别类型 Schema */
+const BiometricTypeSchema = z.enum(['fingerprint', 'face', 'iris', 'none'])
+
+/** 生物识别可用性结果 Schema */
+const BiometricAvailabilitySchema = z.object({
+  isAvailable: z.boolean(),
+  biometricType: BiometricTypeSchema,
+  error: z.string().optional(),
+})
+
+/** 生物识别验证选项 Schema */
+const BiometricVerifyOptionsSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  cancelText: z.string().optional(),
+  maxAttempts: z.number().optional(),
+  fallbackToPassword: z.boolean().optional(),
+}).optional()
+
+/** 生物识别验证结果 Schema */
+const BiometricVerifyResultSchema = z.object({
+  success: z.boolean(),
+  errorMessage: z.string().optional(),
+})
+
+/** 服务元信息定义 */
+export const biometricServiceMeta = defineServiceMeta('biometric', (s) =>
+  s
+    .description('生物识别服务 - 指纹/面容验证')
+    .api('isAvailable', {
+      description: '检查生物识别是否可用',
+      input: z.void(),
+      output: BiometricAvailabilitySchema,
+    })
+    .api('verify', {
+      description: '验证生物识别',
+      input: BiometricVerifyOptionsSchema,
+      output: BiometricVerifyResultSchema,
+    })
+)
+
+/** 服务类型 */
+export type IBiometricService = typeof biometricServiceMeta.Type
+
+/** 导出 Schema 推导的类型 */
+export type BiometricType = z.infer<typeof BiometricTypeSchema>
+export type BiometricAvailability = z.infer<typeof BiometricAvailabilitySchema>
+export type BiometricVerifyOptions = z.infer<typeof BiometricVerifyOptionsSchema>
+export type BiometricVerifyResult = z.infer<typeof BiometricVerifyResultSchema>

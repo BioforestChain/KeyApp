@@ -84,7 +84,7 @@ describe('ReceivePage', () => {
 
       await userEvent.click(screen.getByText('复制地址'))
 
-      expect(mockClipboardWrite).toHaveBeenCalledWith(mockAddress)
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockAddress })
       expect(mockHapticsImpact).toHaveBeenCalledWith('light')
       expect(mockToastShow).toHaveBeenCalledWith('地址已复制')
     })

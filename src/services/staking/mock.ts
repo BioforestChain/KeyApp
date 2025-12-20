@@ -1,19 +1,18 @@
 /**
- * Mock Staking Service
- * Provides test data for staking UI development
+ * Staking 服务 - Mock 实现
  */
 
+import { stakingServiceMeta, type IStakingMockController } from './types'
 import type {
   RechargeConfig,
   StakingTransaction,
   StakingOverviewItem,
-  MintRequest,
-  BurnRequest,
   LogoUrlMap,
 } from '@/types/staking'
 
-/** Mock recharge configuration */
-export const mockRechargeConfig: RechargeConfig = {
+// ==================== Mock 数据 ====================
+
+const initialRechargeConfig: RechargeConfig = {
   bfmeta: {
     BFM: {
       assetType: 'BFM',
@@ -44,31 +43,15 @@ export const mockRechargeConfig: RechargeConfig = {
   },
 }
 
-/** Mock logo URLs */
-export const mockLogoUrls: LogoUrlMap = {
-  BFMeta: {
-    BFM: '/tokens/bfm.svg',
-    USDT: '/tokens/usdt.svg',
-  },
-  BFChain: {
-    BFC: '/tokens/bfc.svg',
-  },
-  BSC: {
-    BFM: '/tokens/bfm.svg',
-    USDT: '/tokens/usdt.svg',
-    BFC: '/tokens/bfc.svg',
-  },
-  ETH: {
-    BFM: '/tokens/bfm.svg',
-    USDT: '/tokens/usdt.svg',
-  },
-  TRON: {
-    USDT: '/tokens/usdt.svg',
-  },
+const initialLogoUrls: LogoUrlMap = {
+  BFMeta: { BFM: '/tokens/bfm.svg', USDT: '/tokens/usdt.svg' },
+  BFChain: { BFC: '/tokens/bfc.svg' },
+  BSC: { BFM: '/tokens/bfm.svg', USDT: '/tokens/usdt.svg', BFC: '/tokens/bfc.svg' },
+  ETH: { BFM: '/tokens/bfm.svg', USDT: '/tokens/usdt.svg' },
+  TRON: { USDT: '/tokens/usdt.svg' },
 }
 
-/** Mock staking overview */
-export const mockStakingOverview: StakingOverviewItem[] = [
+const initialOverview: StakingOverviewItem[] = [
   {
     chain: 'BFMeta',
     assetType: 'BFM',
@@ -113,8 +96,7 @@ export const mockStakingOverview: StakingOverviewItem[] = [
   },
 ]
 
-/** Mock transaction history */
-export const mockTransactions: StakingTransaction[] = [
+const initialTransactions: StakingTransaction[] = [
   {
     id: 'tx-001',
     type: 'mint',
@@ -142,61 +124,61 @@ export const mockTransactions: StakingTransaction[] = [
     createdAt: Date.now() - 3600000,
     updatedAt: Date.now() - 1800000,
   },
-  {
-    id: 'tx-003',
-    type: 'mint',
-    sourceChain: 'TRON',
-    sourceAsset: 'USDT',
-    sourceAmount: '2000000000',
-    targetChain: 'BFMeta',
-    targetAsset: 'USDT',
-    targetAmount: '2000000000',
-    status: 'pending',
-    createdAt: Date.now() - 600000,
-    updatedAt: Date.now() - 600000,
-  },
 ]
 
-/** Simulated network delay */
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+// ==================== Mock 状态 ====================
 
-/**
- * Mock Staking Service
- */
-export const mockStakingService = {
-  /** Get recharge configuration */
-  async getRechargeConfig(): Promise<RechargeConfig> {
-    await delay(200)
-    return mockRechargeConfig
+let rechargeConfig = { ...initialRechargeConfig }
+let logoUrls = { ...initialLogoUrls }
+let overview = [...initialOverview]
+let transactions = [...initialTransactions]
+let delayMs = 200
+let simulatedError: Error | null = null
+
+async function delay(): Promise<void> {
+  if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs))
+}
+
+function checkError(): void {
+  if (simulatedError) throw simulatedError
+}
+
+// ==================== Service Implementation ====================
+
+export const stakingService = stakingServiceMeta.impl({
+  async getRechargeConfig() {
+    await delay()
+    checkError()
+    return rechargeConfig
   },
 
-  /** Get logo URLs */
-  async getLogoUrls(): Promise<LogoUrlMap> {
-    await delay(100)
-    return mockLogoUrls
+  async getLogoUrls() {
+    await delay()
+    checkError()
+    return logoUrls
   },
 
-  /** Get staking overview */
-  async getOverview(): Promise<StakingOverviewItem[]> {
-    await delay(300)
-    return mockStakingOverview
+  async getOverview() {
+    await delay()
+    checkError()
+    return overview
   },
 
-  /** Get transaction history */
-  async getTransactions(): Promise<StakingTransaction[]> {
-    await delay(200)
-    return [...mockTransactions].sort((a, b) => b.createdAt - a.createdAt)
+  async getTransactions() {
+    await delay()
+    checkError()
+    return [...transactions].sort((a, b) => b.createdAt - a.createdAt)
   },
 
-  /** Get transaction by ID */
-  async getTransaction(id: string): Promise<StakingTransaction | null> {
-    await delay(100)
-    return mockTransactions.find((tx) => tx.id === id) ?? null
+  async getTransaction({ id }) {
+    await delay()
+    checkError()
+    return transactions.find((tx) => tx.id === id) ?? null
   },
 
-  /** Submit mint (stake) request */
-  async submitMint(request: MintRequest): Promise<StakingTransaction> {
-    await delay(500)
+  async submitMint(request) {
+    await delay()
+    checkError()
     const tx: StakingTransaction = {
       id: `tx-${Date.now()}`,
       type: 'mint',
@@ -210,13 +192,13 @@ export const mockStakingService = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
-    mockTransactions.unshift(tx)
+    transactions.unshift(tx)
     return tx
   },
 
-  /** Submit burn (unstake) request */
-  async submitBurn(request: BurnRequest): Promise<StakingTransaction> {
-    await delay(500)
+  async submitBurn(request) {
+    await delay()
+    checkError()
     const tx: StakingTransaction = {
       id: `tx-${Date.now()}`,
       type: 'burn',
@@ -230,9 +212,28 @@ export const mockStakingService = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
-    mockTransactions.unshift(tx)
+    transactions.unshift(tx)
     return tx
   },
-}
+})
 
-export type StakingService = typeof mockStakingService
+// ==================== Mock Controller ====================
+
+export const stakingMockController: IStakingMockController = {
+  _resetData() {
+    rechargeConfig = { ...initialRechargeConfig }
+    logoUrls = { ...initialLogoUrls }
+    overview = [...initialOverview]
+    transactions = [...initialTransactions]
+    simulatedError = null
+  },
+  _setOverview(data) {
+    overview = [...data]
+  },
+  _setDelay(ms) {
+    delayMs = ms
+  },
+  _simulateError(error) {
+    simulatedError = error
+  },
+}

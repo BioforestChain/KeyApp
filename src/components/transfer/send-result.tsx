@@ -4,6 +4,7 @@ import { IconCircle } from '@/components/common/icon-circle';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
 import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconCopy as Copy, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
+import { clipboardService } from '@/services/clipboard';
 
 type SendResultStatus = 'success' | 'failed' | 'pending';
 
@@ -61,7 +62,7 @@ export function SendResult({
   const handleCopyHash = useCallback(async () => {
     if (!txHash) return;
     try {
-      await navigator.clipboard.writeText(txHash);
+      await clipboardService.write({ text: txHash });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

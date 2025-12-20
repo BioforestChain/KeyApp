@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { I18nextProvider } from 'react-i18next'
 import i18n from './i18n'
@@ -7,6 +7,24 @@ import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
 import './styles/globals.css'
 
+// Mock 模式下注册全局中间件
+if (__MOCK_MODE__) {
+  import('./lib/service-meta').then(({ ServiceMeta, loggingMiddleware, breakpointMiddleware, settingsMiddleware }) => {
+    // 执行顺序: loggingMiddleware → settingsMiddleware → breakpointMiddleware → 实现
+    // - loggingMiddleware: 记录完整耗时（包括设置延迟和断点延迟）
+    // - settingsMiddleware: 应用全局延迟和错误设置
+    // - breakpointMiddleware: 断点暂停
+    ServiceMeta.useGlobal(loggingMiddleware)
+    ServiceMeta.useGlobal(settingsMiddleware)
+    ServiceMeta.useGlobal(breakpointMiddleware)
+  })
+}
+
+// 懒加载 MockDevTools（仅在 mock 模式下加载）
+const MockDevTools = __MOCK_MODE__
+  ? lazy(() => import('./services/mock-devtools').then((m) => ({ default: m.MockDevTools })))
+  : null
+
 export function startFrontendMain(rootElement: HTMLElement): void {
   createRoot(rootElement).render(
     <StrictMode>
@@ -14,6 +32,12 @@ export function startFrontendMain(rootElement: HTMLElement): void {
         <MigrationProvider>
           <I18nextProvider i18n={i18n}>
             <StackflowApp />
+            {/* Mock DevTools - 仅在 mock 模式下显示 */}
+            {MockDevTools && (
+              <Suspense fallback={null}>
+                <MockDevTools />
+              </Suspense>
+            )}
           </I18nextProvider>
         </MigrationProvider>
       </ServiceProvider>

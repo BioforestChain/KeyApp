@@ -1,6 +1,11 @@
 import { Store } from '@tanstack/react-store'
 import type { EncryptedData } from '@/lib/crypto'
 import { type BioforestChainType } from '@/lib/crypto'
+import {
+  walletStorageService,
+  type WalletInfo,
+  type ChainAddressInfo,
+} from '@/services/wallet-storage'
 
 // 类型定义
 // 外部链 (BIP44)
@@ -77,9 +82,55 @@ const initialState: WalletState = {
 // 创建 Store
 export const walletStore = new Store<WalletState>(initialState)
 
+// Helper: 将 WalletStorageService 数据转换为 UI Wallet
+function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]): Wallet {
+  // Map keyType (service may have 'privateKey' which we treat as 'arbitrary')
+  const keyType: 'mnemonic' | 'arbitrary' = 
+    info.keyType === 'mnemonic' ? 'mnemonic' : 'arbitrary'
+
+  const wallet: Wallet = {
+    id: info.id,
+    name: info.name,
+    keyType,
+    address: info.primaryAddress,
+    chain: info.primaryChain,
+    createdAt: info.createdAt,
+    chainAddresses: chainAddresses.map((ca): ChainAddress => ({
+      chain: ca.chain,
+      address: ca.address,
+      tokens: ca.assets.map((asset): Token => {
+        const token: Token = {
+          id: `${ca.chain}:${asset.assetType}`,
+          symbol: asset.symbol,
+          name: asset.symbol,
+          balance: asset.balance,
+          fiatValue: 0, // TODO: 从汇率服务获取
+          change24h: 0,
+          decimals: asset.decimals,
+          chain: ca.chain,
+        }
+        if (asset.contractAddress) {
+          token.contractAddress = asset.contractAddress
+        }
+        if (asset.logoUrl) {
+          token.icon = asset.logoUrl
+        }
+        return token
+      }),
+    })),
+    tokens: [], // deprecated
+  }
+  
+  if (info.encryptedMnemonic) {
+    wallet.encryptedMnemonic = info.encryptedMnemonic
+  }
+  
+  return wallet
+}
+
 // Actions
 export const walletActions = {
-  /** 初始化钱包（从存储加载） */
+  /** 初始化钱包（从 IndexedDB 加载） */
   initialize: async () => {
     const currentState = walletStore.state
     if (currentState.isInitialized || currentState.isLoading) return
@@ -87,29 +138,33 @@ export const walletActions = {
     walletStore.setState((state) => ({ ...state, isLoading: true }))
     
     try {
-      // TODO: 从 localStorage/IndexedDB 加载钱包数据
-      const stored = localStorage.getItem('bfm_wallets')
-      if (stored) {
-        const data = JSON.parse(stored) as { wallets: Wallet[]; currentWalletId: string | null }
-        // Backward compatible: legacy wallets may not have keyType
-        const wallets = data.wallets.map((wallet) => ({
-          ...wallet,
-          keyType: wallet.keyType ?? 'mnemonic',
-        }))
-        walletStore.setState((state) => ({
-          ...state,
-          wallets,
-          currentWalletId: data.currentWalletId,
-          isInitialized: true,
-          isLoading: false,
-        }))
-      } else {
-        walletStore.setState((state) => ({
-          ...state,
-          isInitialized: true,
-          isLoading: false,
-        }))
-      }
+      // 初始化 WalletStorageService
+      await walletStorageService.initialize()
+      
+      // 尝试从 localStorage 迁移旧数据
+      await walletStorageService.migrateFromLocalStorage()
+      
+      // 从 IndexedDB 加载钱包
+      const [walleterInfo, storedWallets] = await Promise.all([
+        walletStorageService.getWalleterInfo(),
+        walletStorageService.getAllWallets(),
+      ])
+
+      // 转换为 UI 状态
+      const wallets: Wallet[] = await Promise.all(
+        storedWallets.map(async (w) => {
+          const chainAddresses = await walletStorageService.getWalletChainAddresses(w.id)
+          return walletInfoToWallet(w, chainAddresses)
+        })
+      )
+
+      walletStore.setState((state) => ({
+        ...state,
+        wallets,
+        currentWalletId: walleterInfo?.activeWalletId ?? wallets[0]?.id ?? null,
+        isInitialized: true,
+        isLoading: false,
+      }))
     } catch (error) {
       console.error('Failed to initialize wallets:', error)
       walletStore.setState((state) => ({
@@ -121,49 +176,96 @@ export const walletActions = {
   },
 
   /** 创建新钱包 */
-  createWallet: (wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens' | 'chainAddresses'> & { chainAddresses?: ChainAddress[] }) => {
-    const newWallet: Wallet = {
-      ...wallet,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
+  createWallet: async (
+    wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens' | 'chainAddresses'> & { chainAddresses?: ChainAddress[] },
+    mnemonic: string,
+    password: string
+  ): Promise<Wallet> => {
+    const walletId = crypto.randomUUID()
+    const now = Date.now()
+
+    // 保存到 IndexedDB
+    const walletInfo: Omit<WalletInfo, 'encryptedMnemonic'> = {
+      id: walletId,
+      name: wallet.name,
       keyType: wallet.keyType ?? 'mnemonic',
-      chainAddresses: wallet.chainAddresses || [
-        { chain: wallet.chain, address: wallet.address, tokens: [] }
-      ],
-      tokens: [],
+      primaryChain: wallet.chain,
+      primaryAddress: wallet.address,
+      isBackedUp: false,
+      createdAt: now,
+      updatedAt: now,
     }
 
-    walletStore.setState((state) => {
-      const wallets = [...state.wallets, newWallet]
-      const currentWalletId = state.currentWalletId || newWallet.id
-      
-      // 持久化
-      persistWallets(wallets, currentWalletId)
-      
-      return {
-        ...state,
-        wallets,
-        currentWalletId,
-      }
+    const savedWalletInfo = await walletStorageService.createWallet(walletInfo, mnemonic, password)
+
+    // 保存链地址
+    const chainAddresses = wallet.chainAddresses || [
+      { chain: wallet.chain, address: wallet.address, tokens: [] }
+    ]
+    
+    for (const ca of chainAddresses) {
+      await walletStorageService.saveChainAddress({
+        addressKey: `${walletId}:${ca.chain}`,
+        walletId,
+        chain: ca.chain,
+        address: ca.address,
+        assets: [],
+        isCustomAssets: false,
+        isFrozen: false,
+      })
+    }
+
+    // 更新 walleter info
+    const walleterInfo = await walletStorageService.getWalleterInfo()
+    await walletStorageService.saveWalleterInfo({
+      name: walleterInfo?.name ?? 'User',
+      activeWalletId: walletId,
+      biometricEnabled: walleterInfo?.biometricEnabled ?? false,
+      passwordLockEnabled: walleterInfo?.passwordLockEnabled ?? false,
+      agreementAccepted: true,
+      createdAt: walleterInfo?.createdAt ?? now,
+      updatedAt: now,
     })
+
+    const newWallet: Wallet = {
+      id: walletId,
+      name: wallet.name,
+      keyType: wallet.keyType ?? 'mnemonic',
+      address: wallet.address,
+      chain: wallet.chain,
+      createdAt: now,
+      chainAddresses,
+      tokens: [],
+      ...(savedWalletInfo.encryptedMnemonic ? { encryptedMnemonic: savedWalletInfo.encryptedMnemonic } : {}),
+    }
+
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: [...state.wallets, newWallet],
+      currentWalletId: walletId,
+    }))
 
     return newWallet
   },
 
   /** 导入钱包 */
-  importWallet: (wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens' | 'chainAddresses'> & { chainAddresses?: ChainAddress[] }) => {
-    return walletActions.createWallet(wallet)
+  importWallet: async (
+    wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens' | 'chainAddresses'> & { chainAddresses?: ChainAddress[] },
+    mnemonic: string,
+    password: string
+  ): Promise<Wallet> => {
+    return walletActions.createWallet(wallet, mnemonic, password)
   },
 
   /** 删除钱包 */
-  deleteWallet: (walletId: string) => {
+  deleteWallet: async (walletId: string): Promise<void> => {
+    await walletStorageService.deleteWallet(walletId)
+    
     walletStore.setState((state) => {
       const wallets = state.wallets.filter((w) => w.id !== walletId)
       const currentWalletId = state.currentWalletId === walletId
-        ? wallets[0]?.id || null
+        ? wallets[0]?.id ?? null
         : state.currentWalletId
-      
-      persistWallets(wallets, currentWalletId)
       
       return {
         ...state,
@@ -174,14 +276,20 @@ export const walletActions = {
   },
 
   /** 切换当前钱包 */
-  setCurrentWallet: (walletId: string) => {
-    walletStore.setState((state) => {
-      persistWallets(state.wallets, walletId)
-      return {
-        ...state,
-        currentWalletId: walletId,
-      }
-    })
+  setCurrentWallet: async (walletId: string): Promise<void> => {
+    const walleterInfo = await walletStorageService.getWalleterInfo()
+    if (walleterInfo) {
+      await walletStorageService.saveWalleterInfo({
+        ...walleterInfo,
+        activeWalletId: walletId,
+        updatedAt: Date.now(),
+      })
+    }
+    
+    walletStore.setState((state) => ({
+      ...state,
+      currentWalletId: walletId,
+    }))
   },
 
   /** 切换当前链 */
@@ -193,55 +301,129 @@ export const walletActions = {
   },
 
   /** 更新钱包名称 */
-  updateWalletName: (walletId: string, name: string) => {
-    walletStore.setState((state) => {
-      const wallets = state.wallets.map((w) =>
+  updateWalletName: async (walletId: string, name: string): Promise<void> => {
+    await walletStorageService.updateWallet(walletId, { name })
+    
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: state.wallets.map((w) =>
         w.id === walletId ? { ...w, name } : w
-      )
-      persistWallets(wallets, state.currentWalletId)
-      return { ...state, wallets }
-    })
+      ),
+    }))
   },
 
-  /** 更新代币余额 */
-  updateTokens: (walletId: string, tokens: Token[]) => {
-    walletStore.setState((state) => {
-      const wallets = state.wallets.map((w) =>
-        w.id === walletId ? { ...w, tokens } : w
-      )
-      persistWallets(wallets, state.currentWalletId)
-      return { ...state, wallets }
-    })
+  /** 更新链地址资产（用于余额更新） */
+  updateChainAssets: async (
+    walletId: string,
+    chain: ChainType,
+    tokens: Token[]
+  ): Promise<void> => {
+    const addressKey = `${walletId}:${chain}`
+    
+    // 更新 IndexedDB
+    await walletStorageService.updateAssets(
+      addressKey,
+      tokens.map((t) => ({
+        assetType: t.symbol,
+        symbol: t.symbol,
+        decimals: t.decimals,
+        balance: t.balance,
+        contractAddress: t.contractAddress,
+        logoUrl: t.icon,
+      }))
+    )
+    
+    // 更新 store
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: state.wallets.map((w) => {
+        if (w.id !== walletId) return w
+        return {
+          ...w,
+          chainAddresses: w.chainAddresses.map((ca) =>
+            ca.chain === chain ? { ...ca, tokens } : ca
+          ),
+        }
+      }),
+    }))
   },
 
   /** 更新钱包加密助记词（密码修改时使用） */
-  updateWalletEncryptedMnemonic: (walletId: string, encryptedMnemonic: EncryptedData) => {
-    walletStore.setState((state) => {
-      const wallets = state.wallets.map((w) =>
-        w.id === walletId ? { ...w, encryptedMnemonic } : w
-      )
-      persistWallets(wallets, state.currentWalletId)
-      return { ...state, wallets }
-    })
+  updateWalletEncryptedMnemonic: async (
+    walletId: string,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> => {
+    await walletStorageService.updateMnemonicEncryption(walletId, oldPassword, newPassword)
+    
+    // 重新加载钱包以获取新的加密数据
+    const updatedWallet = await walletStorageService.getWallet(walletId)
+    if (updatedWallet?.encryptedMnemonic) {
+      const encryptedMnemonic = updatedWallet.encryptedMnemonic
+      walletStore.setState((state) => ({
+        ...state,
+        wallets: state.wallets.map((w) =>
+          w.id === walletId ? { ...w, encryptedMnemonic } : w
+        ),
+      }))
+    }
+  },
+
+  /** 获取解密的助记词 */
+  getMnemonic: async (walletId: string, password: string): Promise<string> => {
+    return walletStorageService.getMnemonic(walletId, password)
   },
 
   /** 清除所有数据 */
-  clearAll: () => {
-    localStorage.removeItem('bfm_wallets')
+  clearAll: async (): Promise<void> => {
+    await walletStorageService.clearAll()
     walletStore.setState(() => initialState)
   },
-}
 
-// 持久化辅助函数
-function persistWallets(wallets: Wallet[], currentWalletId: string | null) {
-  try {
-    localStorage.setItem(
-      'bfm_wallets',
-      JSON.stringify({ wallets, currentWalletId })
-    )
-  } catch (error) {
-    console.error('Failed to persist wallets:', error)
-  }
+  // ==================== 测试辅助方法 ====================
+
+  /**
+   * 测试专用：直接添加钱包到 store（不经过 IndexedDB）
+   * @internal 仅用于测试
+   */
+  _testAddWallet: (
+    wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens'> & { 
+      id?: string
+      createdAt?: number
+      chainAddresses?: ChainAddress[]
+    }
+  ): Wallet => {
+    const newWallet: Wallet = {
+      id: wallet.id ?? crypto.randomUUID(),
+      name: wallet.name,
+      keyType: wallet.keyType ?? 'mnemonic',
+      address: wallet.address,
+      chain: wallet.chain,
+      createdAt: wallet.createdAt ?? Date.now(),
+      chainAddresses: wallet.chainAddresses ?? [
+        { chain: wallet.chain, address: wallet.address, tokens: [] }
+      ],
+      tokens: [],
+      ...(wallet.encryptedMnemonic ? { encryptedMnemonic: wallet.encryptedMnemonic } : {}),
+    }
+
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: [...state.wallets, newWallet],
+      currentWalletId: state.currentWalletId ?? newWallet.id,
+      isInitialized: true,
+    }))
+
+    return newWallet
+  },
+
+  /**
+   * 测试专用：重置 store 状态
+   * @internal 仅用于测试
+   */
+  _testReset: (): void => {
+    walletStore.setState(() => initialState)
+  },
 }
 
 // Selectors (派生状态)

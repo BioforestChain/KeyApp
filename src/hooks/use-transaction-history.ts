@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { ChainType } from '@/stores'
-import type { TransactionInfo, TransactionType, TransactionStatus } from '@/components/transaction/transaction-item'
+import type { TransactionInfo } from '@/components/transaction/transaction-item'
+import { transactionService, type TransactionRecord as ServiceTransactionRecord, type TransactionFilter as ServiceFilter } from '@/services/transaction'
 
 /** 交易历史过滤器 */
 export interface TransactionFilter {
@@ -8,13 +9,13 @@ export interface TransactionFilter {
   period?: '7d' | '30d' | '90d' | 'all' | undefined
 }
 
-/** 扩展的交易信息（包含链类型） */
+/** 扩展的交易信息（包含链类型）- 保持与组件兼容 */
 export interface TransactionRecord extends TransactionInfo {
   chain: ChainType
-  fee?: string
-  feeSymbol?: string
-  blockNumber?: number
-  confirmations?: number
+  fee: string | undefined
+  feeSymbol: string | undefined
+  blockNumber: number | undefined
+  confirmations: number | undefined
 }
 
 /** Hook 返回类型 */
@@ -27,137 +28,68 @@ export interface UseTransactionHistoryResult {
   refresh: () => Promise<void>
 }
 
-/** 生成随机地址 */
-function randomAddress(): string {
-  const chars = '0123456789abcdef'
-  let addr = '0x'
-  for (let i = 0; i < 40; i++) {
-    addr += chars[Math.floor(Math.random() * chars.length)]
+/** 将 Service 记录转换为组件兼容格式 */
+function convertToComponentFormat(record: ServiceTransactionRecord): TransactionRecord {
+  return {
+    id: record.id,
+    type: record.type,
+    status: record.status,
+    amount: record.amount,
+    symbol: record.symbol,
+    address: record.address,
+    timestamp: record.timestamp,
+    hash: record.hash,
+    chain: record.chain,
+    fee: record.fee,
+    feeSymbol: record.feeSymbol,
+    blockNumber: record.blockNumber,
+    confirmations: record.confirmations,
   }
-  return addr
-}
-
-/** 生成随机交易哈希 */
-function randomHash(): string {
-  const chars = '0123456789abcdef'
-  let hash = '0x'
-  for (let i = 0; i < 64; i++) {
-    hash += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return hash
-}
-
-/** 生成 mock 交易数据 */
-function generateMockTransactions(count: number = 20): TransactionRecord[] {
-  const types: TransactionType[] = ['send', 'receive', 'swap', 'stake', 'unstake']
-  const statuses: TransactionStatus[] = ['confirmed', 'confirmed', 'confirmed', 'pending', 'failed']
-  const chains: ChainType[] = ['ethereum', 'tron', 'bitcoin', 'binance']
-  const symbols: Record<ChainType, string[]> = {
-    ethereum: ['ETH', 'USDT', 'USDC'],
-    tron: ['TRX', 'USDT'],
-    bitcoin: ['BTC'],
-    binance: ['BNB', 'BUSD'],
-    bfmeta: ['BFM'],
-    bfchainv2: ['BFC'],
-    ccchain: ['CC'],
-    pmchain: ['PM'],
-    btgmeta: ['BTG'],
-    biwmeta: ['BIW'],
-    ethmeta: ['ETHM'],
-    malibu: ['MAL'],
-  }
-
-  const now = Date.now()
-  const transactions: TransactionRecord[] = []
-
-  for (let i = 0; i < count; i++) {
-    const chain = chains[Math.floor(Math.random() * chains.length)]!
-    const chainSymbols = symbols[chain] || ['TOKEN']
-    const type = types[Math.floor(Math.random() * types.length)]!
-    const status = statuses[Math.floor(Math.random() * statuses.length)]!
-    const symbol = chainSymbols[Math.floor(Math.random() * chainSymbols.length)]!
-
-    // 随机时间（过去90天内）
-    const daysAgo = Math.floor(Math.random() * 90)
-    const timestamp = new Date(now - daysAgo * 24 * 60 * 60 * 1000)
-
-    transactions.push({
-      id: `tx-${i}-${Date.now()}`,
-      type,
-      status,
-      amount: (Math.random() * 100).toFixed(type === 'swap' ? 2 : 4),
-      symbol,
-      address: randomAddress(),
-      timestamp,
-      hash: randomHash(),
-      chain,
-      fee: (Math.random() * 0.01).toFixed(6),
-      feeSymbol: chain === 'ethereum' ? 'ETH' : chain === 'tron' ? 'TRX' : symbol,
-      blockNumber: status === 'confirmed' ? Math.floor(Math.random() * 1000000) + 18000000 : undefined,
-      confirmations: status === 'confirmed' ? Math.floor(Math.random() * 100) + 1 : 0,
-    } as TransactionRecord)
-  }
-
-  // 按时间排序（最新的在前）
-  return transactions.sort((a, b) =>
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  )
-}
-
-/** 根据时间段过滤 */
-function filterByPeriod(transactions: TransactionRecord[], period: string): TransactionRecord[] {
-  if (period === 'all') return transactions
-
-  const now = Date.now()
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90
-  const cutoff = now - days * 24 * 60 * 60 * 1000
-
-  return transactions.filter(tx => new Date(tx.timestamp).getTime() >= cutoff)
-}
-
-/** 根据链过滤 */
-function filterByChain(transactions: TransactionRecord[], chain: ChainType | 'all'): TransactionRecord[] {
-  if (chain === 'all') return transactions
-  return transactions.filter(tx => tx.chain === chain)
 }
 
 /** 交易历史 Hook */
-export function useTransactionHistory(_walletId?: string): UseTransactionHistoryResult {
-  const [allTransactions] = useState<TransactionRecord[]>(() => generateMockTransactions(30))
-  const [isLoading, setIsLoading] = useState(false)
+export function useTransactionHistory(walletId?: string): UseTransactionHistoryResult {
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>()
   const [filter, setFilter] = useState<TransactionFilter>({ chain: 'all', period: 'all' })
 
-  // 过滤后的交易列表
-  const transactions = useMemo(() => {
-    let result = allTransactions
-
-    if (filter.chain && filter.chain !== 'all') {
-      result = filterByChain(result, filter.chain)
+  // 获取交易历史
+  const fetchTransactions = useCallback(async () => {
+    if (!walletId) {
+      setTransactions([])
+      setIsLoading(false)
+      return
     }
 
-    if (filter.period && filter.period !== 'all') {
-      result = filterByPeriod(result, filter.period)
-    }
-
-    return result
-  }, [allTransactions, filter])
-
-  // 刷新（模拟加载）
-  const refresh = useCallback(async () => {
     setIsLoading(true)
     setError(undefined)
 
     try {
-      // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      // TODO: 实际实现时从链上获取数据
+      const serviceFilter: ServiceFilter = {
+        chain: filter.chain ?? 'all',
+        period: filter.period ?? 'all',
+        type: undefined,
+        status: undefined,
+      }
+      const records = await transactionService.getHistory({ walletId, filter: serviceFilter })
+      setTransactions(records.map(convertToComponentFormat))
     } catch (e) {
-      setError('加载交易历史失败')
+      setError(e instanceof Error ? e.message : '加载交易历史失败')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [walletId, filter])
+
+  // 初始加载和过滤器变化时重新获取
+  useEffect(() => {
+    void fetchTransactions()
+  }, [fetchTransactions])
+
+  // 刷新
+  const refresh = useCallback(async () => {
+    await fetchTransactions()
+  }, [fetchTransactions])
 
   return {
     transactions,

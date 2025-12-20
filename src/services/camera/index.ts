@@ -1,10 +1,9 @@
 /**
  * 相机服务
+ *
+ * 通过 Vite alias 在编译时选择实现
  */
 
 export type { ScanResult, ICameraService } from './types'
-
-import { CameraService } from '#camera-impl'
-export { CameraService }
-
-export const cameraService = new CameraService()
+export { cameraServiceMeta } from './types'
+export { cameraService } from '#camera-impl'

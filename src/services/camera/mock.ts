@@ -1,32 +1,32 @@
 /**
- * Mock 相机服务实现
+ * 相机服务 - Mock 实现
  */
 
-import type { ICameraService, ScanResult } from './types'
+import { cameraServiceMeta, type ScanResult } from './types'
 
-declare global {
-  interface Window {
-    __MOCK_CAMERA__?: {
-      permission: boolean
-      scanResult?: ScanResult
-    }
-  }
-}
+let mockScanResult: ScanResult = { content: 'mock-qr-content', format: 'QR_CODE' }
+let mockPermission = true
 
-export class CameraService implements ICameraService {
-  async scanQRCode(): Promise<ScanResult> {
-    const result = window.__MOCK_CAMERA__?.scanResult
-    if (result) {
-      return result
-    }
-    return { content: 'mock-qr-content', format: 'QR_CODE' }
-  }
+export const cameraService = cameraServiceMeta.impl({
+  async scanQRCode() {
+    return mockScanResult
+  },
 
-  async checkPermission(): Promise<boolean> {
-    return window.__MOCK_CAMERA__?.permission ?? true
-  }
+  async checkPermission() {
+    return mockPermission
+  },
 
-  async requestPermission(): Promise<boolean> {
-    return window.__MOCK_CAMERA__?.permission ?? true
-  }
+  async requestPermission() {
+    return mockPermission
+  },
+})
+
+/** Mock 控制器 */
+export const cameraMockController = {
+  setScanResult: (result: ScanResult) => { mockScanResult = result },
+  setPermission: (permission: boolean) => { mockPermission = permission },
+  reset: () => {
+    mockScanResult = { content: 'mock-qr-content', format: 'QR_CODE' }
+    mockPermission = true
+  },
 }

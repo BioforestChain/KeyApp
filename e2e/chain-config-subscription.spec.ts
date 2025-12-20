@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
  * Chain-config subscription E2E
@@ -109,17 +110,13 @@ test.describe.skip('Chain-config subscription', () => {
 
     await page.waitForURL(/.*#\/$/)
 
-    const walletData = await page.evaluate(() => localStorage.getItem('bfm_wallets'))
-    expect(walletData).not.toBeNull()
+    const wallets = await getWalletDataFromIndexedDB(page)
+    expect(wallets).toHaveLength(1)
 
-    const parsed: {
-      wallets: Array<{ chainAddresses: Array<{ chain: string; address: string }> }>
-    } = JSON.parse(walletData!)
-
-    const wallet = parsed.wallets[0]
+    const wallet = wallets[0]
     expect(wallet).toBeDefined()
 
-    const derived = wallet.chainAddresses.find((ca) => ca.chain === 'bf-sub')
+    const derived = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === 'bf-sub')
     expect(derived).toBeDefined()
     expect(derived?.address.startsWith('c')).toBe(true)
   })
