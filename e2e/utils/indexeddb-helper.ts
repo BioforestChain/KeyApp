@@ -6,7 +6,7 @@ import { Page } from '@playwright/test'
 export async function getWalletsFromIndexedDB(page: Page) {
   return await page.evaluate(async () => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('keyapp-wallet-storage', 1)
+      const request = indexedDB.open('bfm-wallet-db', 1)
       request.onerror = () => reject(request.error)
       request.onsuccess = () => {
         const db = request.result
@@ -30,12 +30,12 @@ export async function getWalletsFromIndexedDB(page: Page) {
 export async function getChainAddressesFromIndexedDB(page: Page, walletId?: string) {
   return await page.evaluate(async (wId) => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('keyapp-wallet-storage', 1)
+      const request = indexedDB.open('bfm-wallet-db', 1)
       request.onerror = () => reject(request.error)
       request.onsuccess = () => {
         const db = request.result
-        const tx = db.transaction('chain_addresses', 'readonly')
-        const store = tx.objectStore('chain_addresses')
+        const tx = db.transaction('chainAddresses', 'readonly')
+        const store = tx.objectStore('chainAddresses')
         
         if (wId) {
           const index = store.index('by-wallet')
