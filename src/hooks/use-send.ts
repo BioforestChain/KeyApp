@@ -1,136 +1,33 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import type { AssetInfo } from '@/types/asset'
-import { isValidAddress } from '@/components/transfer/address-input'
-
-/** Send flow step */
-export type SendStep = 'input' | 'confirm' | 'sending' | 'result'
-
-/** Send result status */
-export type SendResultStatus = 'success' | 'failed' | 'pending'
-
-/** Send flow state */
-export interface SendState {
-  /** Current step */
-  step: SendStep
-  /** Selected asset to send */
-  asset: AssetInfo | null
-  /** Recipient address */
-  toAddress: string
-  /** Amount to send (user-friendly format) */
-  amount: string
-  /** Address validation error */
-  addressError: string | null
-  /** Amount validation error */
-  amountError: string | null
-  /** Estimated fee amount */
-  feeAmount: string
-  /** Fee token symbol */
-  feeSymbol: string
-  /** Fee loading state */
-  feeLoading: boolean
-  /** Is submitting transaction */
-  isSubmitting: boolean
-  /** Result status */
-  resultStatus: SendResultStatus | null
-  /** Transaction hash */
-  txHash: string | null
-  /** Error message */
-  errorMessage: string | null
-}
-
-interface UseSendOptions {
-  /** Initial asset */
-  initialAsset?: AssetInfo | undefined
-  /** Mock mode (default: true) */
-  useMock?: boolean | undefined
-}
-
-interface UseSendReturn {
-  /** Current state */
-  state: SendState
-  /** Set recipient address */
-  setToAddress: (address: string) => void
-  /** Set amount */
-  setAmount: (amount: string) => void
-  /** Set asset */
-  setAsset: (asset: AssetInfo) => void
-  /** Validate and go to confirm */
-  goToConfirm: () => boolean
-  /** Go back to input */
-  goBack: () => void
-  /** Submit transaction */
-  submit: () => Promise<void>
-  /** Reset to initial state */
-  reset: () => void
-  /** Check if can proceed to confirm */
-  canProceed: boolean
-}
-
-/** Mock fee estimation */
-const MOCK_FEES: Record<string, { amount: string; symbol: string }> = {
-  ETH: { amount: '0.002', symbol: 'ETH' },
-  USDT: { amount: '0.003', symbol: 'ETH' },
-  USDC: { amount: '0.003', symbol: 'ETH' },
-  BTC: { amount: '0.0001', symbol: 'BTC' },
-  TRX: { amount: '1', symbol: 'TRX' },
-  BFM: { amount: '0.1', symbol: 'BFM' },
-}
-
-const initialState: SendState = {
-  step: 'input',
-  asset: null,
-  toAddress: '',
-  amount: '',
-  addressError: null,
-  amountError: null,
-  feeAmount: '0',
-  feeSymbol: '',
-  feeLoading: false,
-  isSubmitting: false,
-  resultStatus: null,
-  txHash: null,
-  errorMessage: null,
-}
+import { initialState, MOCK_FEES } from './use-send.constants'
+import type { SendState, UseSendOptions, UseSendReturn } from './use-send.types'
+import { parseAmountToBigInt } from './use-send.utils'
+import { fetchBioforestBalance, fetchBioforestFee, submitBioforestTransfer } from './use-send.bioforest'
+import { adjustAmountForFee, canProceedToConfirm, validateAddressInput, validateAmountInput } from './use-send.logic'
+import { submitMockTransfer } from './use-send.mock'
 
 /**
  * Hook for managing send flow state
  */
 export function useSend(options: UseSendOptions = {}): UseSendReturn {
-  const { initialAsset, useMock = true } = options
+  const { initialAsset, useMock = true, walletId, fromAddress, chainConfig } = options
 
   const [state, setState] = useState<SendState>({
     ...initialState,
     asset: initialAsset ?? null,
   })
 
+  const isBioforestChain = chainConfig?.type === 'bioforest'
+
   // Validate address
   const validateAddress = useCallback((address: string): string | null => {
-    if (!address.trim()) {
-      return '请输入收款地址'
-    }
-    if (!isValidAddress(address)) {
-      return '无效的地址格式'
-    }
-    return null
-  }, [])
+    return validateAddressInput(address, isBioforestChain)
+  }, [isBioforestChain])
 
   // Validate amount
   const validateAmount = useCallback((amount: string, asset: AssetInfo | null): string | null => {
-    if (!amount.trim()) {
-      return '请输入金额'
-    }
-    const numAmount = parseFloat(amount)
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return '请输入有效金额'
-    }
-    if (asset) {
-      // Calculate max balance from string amount
-      const maxBalance = parseFloat(asset.amount) / Math.pow(10, asset.decimals)
-      if (numAmount > maxBalance) {
-        return '余额不足'
-      }
-    }
-    return null
+    return validateAmountInput(amount, asset)
   }, [])
 
   // Set recipient address
@@ -159,34 +56,80 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       feeLoading: true,
     }))
 
-    // Mock fee estimation delay
-    setTimeout(() => {
-      const fee = MOCK_FEES[asset.assetType] ?? { amount: '0.001', symbol: asset.assetType }
-      setState((prev) => ({
-        ...prev,
-        feeAmount: fee.amount,
-        feeSymbol: fee.symbol,
-        feeLoading: false,
-      }))
-    }, 300)
-  }, [])
+    if (useMock || !isBioforestChain || !chainConfig || !fromAddress) {
+      // Mock fee estimation delay
+      setTimeout(() => {
+        const fee = MOCK_FEES[asset.assetType] ?? { amount: '0.001', symbol: asset.assetType }
+        const feeRaw = parseAmountToBigInt(fee.amount, asset.decimals) ?? 0n
+        setState((prev) => ({
+          ...prev,
+          feeAmount: fee.amount,
+          feeAmountRaw: feeRaw.toString(),
+          feeSymbol: fee.symbol,
+          feeLoading: false,
+        }))
+      }, 300)
+      return
+    }
+
+    void (async () => {
+      try {
+        const feeEstimate = await fetchBioforestFee(chainConfig, fromAddress)
+        setState((prev) => ({
+          ...prev,
+          feeAmount: feeEstimate.formatted,
+          feeAmountRaw: feeEstimate.raw,
+          feeSymbol: feeEstimate.symbol,
+          feeLoading: false,
+        }))
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          feeLoading: false,
+          errorMessage: error instanceof Error ? error.message : '获取手续费失败',
+        }))
+      }
+    })()
+  }, [chainConfig, fromAddress, isBioforestChain, useMock])
+
+  useEffect(() => {
+    if (useMock || !isBioforestChain || !chainConfig || !fromAddress) return
+
+    let cancelled = false
+
+    void (async () => {
+      try {
+        const balanceAsset = await fetchBioforestBalance(chainConfig, fromAddress)
+        if (cancelled) return
+
+        setState((prev) => ({
+          ...prev,
+          asset: balanceAsset,
+        }))
+      } catch {
+        if (cancelled) return
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [chainConfig, fromAddress, isBioforestChain, useMock])
 
   // Check if can proceed
   const canProceed = useMemo(() => {
-    const { toAddress, amount, asset } = state
-    return (
-      toAddress.trim() !== '' &&
-      amount.trim() !== '' &&
-      asset !== null &&
-      isValidAddress(toAddress) &&
-      parseFloat(amount) > 0
-    )
-  }, [state])
+    return canProceedToConfirm({
+      toAddress: state.toAddress,
+      amount: state.amount,
+      asset: state.asset,
+      isBioforestChain,
+    })
+  }, [isBioforestChain, state.amount, state.asset, state.toAddress])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
     const addressError = validateAddress(state.toAddress)
-    const amountError = validateAmount(state.amount, state.asset)
+    const amountError = state.asset ? validateAmount(state.amount, state.asset) : '请选择资产'
 
     if (addressError || amountError) {
       setState((prev) => ({
@@ -197,6 +140,23 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return false
     }
 
+    if (state.asset) {
+      const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmountRaw)
+      if (adjustResult.status === 'error') {
+        setState((prev) => ({
+          ...prev,
+          amountError: adjustResult.message,
+        }))
+        return false
+      }
+      if (adjustResult.adjustedAmount) {
+        setState((prev) => ({
+          ...prev,
+          amount: adjustResult.adjustedAmount,
+        }))
+      }
+    }
+
     setState((prev) => ({
       ...prev,
       step: 'confirm',
@@ -204,7 +164,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amountError: null,
     }))
     return true
-  }, [state.toAddress, state.amount, state.asset, validateAddress, validateAmount])
+  }, [state.toAddress, state.amount, state.asset, state.feeAmountRaw, validateAddress, validateAmount])
 
   // Go back to input
   const goBack = useCallback(() => {
@@ -215,48 +175,96 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   }, [])
 
   // Submit transaction
-  const submit = useCallback(async () => {
-    setState((prev) => ({
-      ...prev,
-      step: 'sending',
-      isSubmitting: true,
-    }))
+  const submit = useCallback(async (password: string) => {
+    if (useMock) {
+      const result = await submitMockTransfer(setState)
+      return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
+    }
 
-    try {
-      if (useMock) {
-        // Mock transaction submission
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-
-        // Random success/failure for testing
-        const isSuccess = Math.random() > 0.2 // 80% success rate
-
-        if (isSuccess) {
-          setState((prev) => ({
-            ...prev,
-            step: 'result',
-            isSubmitting: false,
-            resultStatus: 'success',
-            txHash: `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}`,
-            errorMessage: null,
-          }))
-        } else {
-          throw new Error('交易失败，请稍后重试')
-        }
-      } else {
-        // TODO: Implement real transaction submission
-        throw new Error('Real API not implemented')
-      }
-    } catch (error) {
+    if (!chainConfig || chainConfig.type !== 'bioforest') {
       setState((prev) => ({
         ...prev,
         step: 'result',
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: error instanceof Error ? error.message : '未知错误',
+        errorMessage: '当前链暂不支持真实转账',
       }))
+      return { status: 'error' as const }
     }
-  }, [useMock])
+
+    if (!walletId || !fromAddress || !state.asset) {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: '钱包信息不完整',
+      }))
+      return { status: 'error' as const }
+    }
+
+    const addressError = validateAddress(state.toAddress)
+    const amountError = validateAmount(state.amount, state.asset)
+    if (addressError || amountError) {
+      setState((prev) => ({
+        ...prev,
+        addressError,
+        amountError,
+      }))
+      return { status: 'error' as const }
+    }
+
+    setState((prev) => ({
+      ...prev,
+      step: 'sending',
+      isSubmitting: true,
+      errorMessage: null,
+    }))
+
+    const result = await submitBioforestTransfer({
+      chainConfig,
+      walletId,
+      password,
+      fromAddress,
+      toAddress: state.toAddress,
+      amount: state.amount,
+      decimals: state.asset.decimals,
+    })
+
+    if (result.status === 'password') {
+      setState((prev) => ({
+        ...prev,
+        step: 'confirm',
+        isSubmitting: false,
+      }))
+      return { status: 'password' as const }
+    }
+
+    if (result.status === 'error') {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: result.message,
+      }))
+      return { status: 'error' as const }
+    }
+
+    setState((prev) => ({
+      ...prev,
+      step: 'result',
+      isSubmitting: false,
+      resultStatus: 'success',
+      txHash: result.txHash,
+      errorMessage: null,
+    }))
+
+    return { status: 'ok' as const }
+  }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
   // Reset to initial state
   const reset = useCallback(() => {
