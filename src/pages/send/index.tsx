@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
@@ -9,12 +9,19 @@ import { Alert } from '@/components/common/alert';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { TransferConfirmSheet } from '@/components/transfer/transfer-confirm-sheet';
 import { SendResult } from '@/components/transfer/send-result';
+import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
 import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
-import { useAssets } from '@/hooks/use-assets';
 import { formatAssetAmount } from '@/types/asset';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
-import { useSelectedChain, type ChainType } from '@/stores';
+import {
+  useChainConfigState,
+  chainConfigSelectors,
+  useCurrentChainAddress,
+  useCurrentWallet,
+  useSelectedChain,
+  type ChainType,
+} from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
   ethereum: 'Ethereum',
@@ -32,7 +39,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function SendPage() {
-  const { t } = useTranslation('transaction');
+  const { t } = useTranslation(['transaction', 'common', 'security']);
   const { goBack: navGoBack } = useNavigation();
   const camera = useCamera();
   const toast = useToast();
@@ -45,15 +52,37 @@ export function SendPage() {
   }>();
 
   const selectedChain = useSelectedChain();
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const { allAssets } = useAssets();
+  const currentWallet = useCurrentWallet();
+  const currentChainAddress = useCurrentChainAddress();
+  const chainConfigState = useChainConfigState();
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
+    : null;
+  const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
 
-  // Get first asset as default (in real app, would be from route params or selection)
-  const defaultAsset = allAssets[0];
+  const defaultAsset = useMemo(() => {
+    if (!chainConfig) return null;
+    const nativeBalance = currentChainAddress?.tokens.find((token) => token.symbol === chainConfig.symbol);
+    return {
+      assetType: chainConfig.symbol,
+      name: chainConfig.name,
+      amount: nativeBalance?.balance ?? '0',
+      decimals: chainConfig.decimals,
+    };
+  }, [chainConfig, currentChainAddress?.tokens]);
 
-  const { state, setToAddress, setAmount, goToConfirm, goBack, submit, reset, canProceed } = useSend({
-    initialAsset: defaultAsset,
+  const { state, setToAddress, setAmount, setAsset, goToConfirm, goBack, submit, reset, canProceed } = useSend({
+    initialAsset: defaultAsset ?? undefined,
+    useMock: false,
+    walletId: currentWallet?.id,
+    fromAddress: currentChainAddress?.address,
+    chainConfig,
   });
+
+  useEffect(() => {
+    if (!defaultAsset) return;
+    setAsset(defaultAsset);
+  }, [defaultAsset, setAsset]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
@@ -97,9 +126,34 @@ export function SendPage() {
     }
   };
 
+  const [passwordError, setPasswordError] = useState<string | undefined>();
+  const [showPasswordSheet, setShowPasswordSheet] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
   const handleConfirm = async () => {
     await haptics.impact('medium');
-    await submit();
+    setPasswordError(undefined);
+    setShowPasswordSheet(true);
+  };
+
+  const handleVerifyPassword = async (password: string) => {
+    setIsVerifying(true);
+    setPasswordError(undefined);
+    const result = await submit(password);
+    setIsVerifying(false);
+
+    if (result.status === 'password') {
+      setPasswordError(t('common:passwordError'));
+      return;
+    }
+
+    setShowPasswordSheet(false);
+  };
+
+  const handleClosePasswordSheet = () => {
+    if (isVerifying) return;
+    setPasswordError(undefined);
+    setShowPasswordSheet(false);
   };
 
   const handleDone = () => {
@@ -119,6 +173,17 @@ export function SendPage() {
       toast.show(t('sendPage.explorerNotImplemented'));
     }
   };
+
+  if (!currentWallet || !currentChainAddress) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <PageHeader title={t('sendPage.title')} onBack={navGoBack} />
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground">{t('history.noWallet')}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Result step
   if (state.step === 'result' || state.step === 'sending') {
@@ -197,6 +262,15 @@ export function SendPage() {
         feeSymbol={state.feeSymbol}
         feeLoading={state.feeLoading}
         isConfirming={state.isSubmitting}
+      />
+
+      <PasswordConfirmSheet
+        open={showPasswordSheet}
+        onClose={handleClosePasswordSheet}
+        onVerify={handleVerifyPassword}
+        title={t('security:passwordConfirm.defaultTitle')}
+        error={passwordError}
+        isVerifying={isVerifying}
       />
     </div>
   );
