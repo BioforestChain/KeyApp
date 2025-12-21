@@ -9,8 +9,9 @@ import { createBioforestAdapter, type Transaction as ChainTransaction } from '@/
 import { formatAssetAmount } from '@/types/asset'
 
 const recordCache = new Map<string, TransactionRecord>()
+type TransactionFilterInput = Partial<TransactionFilter> | undefined
 
-async function fetchHistory(walletId: string, filter?: TransactionFilter | undefined): Promise<TransactionRecord[]> {
+async function fetchHistory(walletId: string, filter?: TransactionFilterInput): Promise<TransactionRecord[]> {
   await walletStorageService.initialize()
 
   const snapshot = await initializeChainConfigs()

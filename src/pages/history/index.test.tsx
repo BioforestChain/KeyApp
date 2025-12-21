@@ -21,9 +21,35 @@ const mockWallet = {
 
 let mockCurrentWallet: typeof mockWallet | null = mockWallet
 
-vi.mock('@/stores', () => ({
-  useCurrentWallet: () => mockCurrentWallet,
-}))
+vi.mock('@/stores', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/stores')>()
+  return {
+    ...actual,
+    useCurrentWallet: () => mockCurrentWallet,
+    useEnabledChains: () => [
+      {
+        id: 'ethereum',
+        version: '1.0',
+        type: 'evm',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+        enabled: true,
+        source: 'default',
+      },
+      {
+        id: 'tron',
+        version: '1.0',
+        type: 'bip39',
+        name: 'Tron',
+        symbol: 'TRX',
+        decimals: 6,
+        enabled: true,
+        source: 'default',
+      },
+    ],
+  }
+})
 
 // Mock transaction history hook
 const mockTransactions = [
