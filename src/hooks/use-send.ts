@@ -152,7 +152,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       if (adjustResult.adjustedAmount !== undefined) {
         setState((prev) => ({
           ...prev,
-          amount: adjustResult.adjustedAmount,
+          amount: adjustResult.adjustedAmount ?? prev.amount,
         }))
       }
     }
