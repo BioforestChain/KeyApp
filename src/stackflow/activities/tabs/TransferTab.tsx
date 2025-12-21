@@ -1,13 +1,43 @@
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "@tanstack/react-store";
 import { useFlow } from "../../stackflow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
+import { TransactionItem } from "@/components/transaction/transaction-item";
+import { useTransactionHistory } from "@/hooks/use-transaction-history";
+import { addressBookActions, addressBookStore, useCurrentWallet, useSelectedChain } from "@/stores";
 import { IconSend } from "@tabler/icons-react";
 
 export function TransferTab() {
   const { push } = useFlow();
   const { t } = useTranslation(['transaction', 'common']);
+  const currentWallet = useCurrentWallet();
+  const selectedChain = useSelectedChain();
+  const addressBookState = useStore(addressBookStore);
+  const contacts = addressBookState.contacts;
+  const { transactions, isLoading } = useTransactionHistory(currentWallet?.id);
+
+  useEffect(() => {
+    if (!addressBookState.isInitialized) {
+      addressBookActions.initialize();
+    }
+  }, [addressBookState.isInitialized]);
+
+  const recentContacts = useMemo(() => {
+    const filtered = selectedChain
+      ? contacts.filter((contact) => !contact.chain || contact.chain === selectedChain)
+      : contacts;
+    return filtered.slice(0, 4);
+  }, [contacts, selectedChain]);
+
+  const recentTransactions = useMemo(() => {
+    const filtered = selectedChain
+      ? transactions.filter((tx) => tx.chain === selectedChain)
+      : transactions;
+    return filtered.slice(0, 3);
+  }, [transactions, selectedChain]);
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
@@ -24,18 +54,22 @@ export function TransferTab() {
           <div>
             <p className="mb-2 text-sm font-medium text-muted-foreground">{t('transaction:transfer.recentContacts')}</p>
             <div className="flex gap-4 overflow-x-auto pb-2">
-              {["Alice", "Bob", "Carol", "Dave"].map((name) => (
-                <button
-                  key={name}
-                  className="flex flex-col items-center gap-1"
-                  onClick={() => push("SendActivity", {})}
-                >
-                  <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                    {name[0]}
-                  </div>
-                  <span className="text-xs">{name}</span>
-                </button>
-              ))}
+              {recentContacts.length > 0 ? (
+                recentContacts.map((contact) => (
+                  <button
+                    key={contact.id}
+                    className="flex flex-col items-center gap-1"
+                    onClick={() => push("SendActivity", { address: contact.address })}
+                  >
+                    <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                      {contact.name[0] ?? "?"}
+                    </div>
+                    <span className="text-xs">{contact.name}</span>
+                  </button>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-sm">{t('common:addressBook.noContacts')}</p>
+              )}
             </div>
           </div>
 
@@ -52,28 +86,31 @@ export function TransferTab() {
           <CardTitle className="text-base">{t('transaction:transfer.transferHistory')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {[
-            { to: "Alice", amount: "-500.00", timeKey: "today", time: "14:30" },
-            { to: "Bob", amount: "-200.00", timeKey: "yesterday", time: "09:15" },
-            { to: "Carol", amount: "-1,000.00", timeKey: "daysAgo", days: 3 },
-          ].map((tx, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-orange-100 font-semibold text-orange-600">
-                  {tx.to[0]}
-                </div>
-                <div>
-                  <p className="font-medium">{t('transaction:transfer.transferTo', { name: tx.to })}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {tx.timeKey === 'daysAgo' 
-                      ? t(`transaction:transfer.${tx.timeKey}`, { days: tx.days })
-                      : `${t(`transaction:transfer.${tx.timeKey}`)} ${tx.time}`}
-                  </p>
-                </div>
-              </div>
-              <span className="font-semibold text-orange-600">{tx.amount}</span>
-            </div>
+          {!currentWallet && (
+            <p className="text-muted-foreground text-sm">{t('transaction:history.noWallet')}</p>
+          )}
+          {currentWallet && isLoading && (
+            <p className="text-muted-foreground text-sm">{t('common:loading')}</p>
+          )}
+          {currentWallet && !isLoading && recentTransactions.length === 0 && (
+            <p className="text-muted-foreground text-sm">{t('transaction:history.emptyTitle')}</p>
+          )}
+          {recentTransactions.map((tx) => (
+            <TransactionItem
+              key={tx.id}
+              transaction={tx}
+              onClick={() => push("TransactionDetailActivity", { txId: tx.id })}
+            />
           ))}
+          {currentWallet && recentTransactions.length > 0 && (
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => push("HistoryActivity", {})}
+            >
+              {t('common:showMore')}
+            </Button>
+          )}
         </CardContent>
       </Card>
       </div>

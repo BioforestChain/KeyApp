@@ -5,19 +5,10 @@ import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-re
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
 import { useTransactionHistory, type TransactionFilter } from '@/hooks/use-transaction-history';
-import { useCurrentWallet } from '@/stores';
+import { useCurrentWallet, useEnabledChains } from '@/stores';
 import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
-
-/** Chain options - labels will be translated */
-const CHAIN_OPTIONS: { value: ChainType | 'all'; labelKey?: string; label?: string }[] = [
-  { value: 'all', labelKey: 'transaction:history.filter.allChains' },
-  { value: 'ethereum', label: 'Ethereum' },
-  { value: 'tron', label: 'Tron' },
-  { value: 'bitcoin', label: 'Bitcoin' },
-  { value: 'binance', label: 'BNB Chain' },
-];
 
 /** Period options - labels will be translated */
 const PERIOD_OPTIONS: { value: TransactionFilter['period']; labelKey: string }[] = [
@@ -30,8 +21,16 @@ const PERIOD_OPTIONS: { value: TransactionFilter['period']; labelKey: string }[]
 export function TransactionHistoryPage() {
   const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
+  const enabledChains = useEnabledChains();
   const { t } = useTranslation(['transaction', 'common']);
   const { transactions, isLoading, filter, setFilter, refresh } = useTransactionHistory(currentWallet?.id);
+  const chainOptions: { value: ChainType | 'all'; labelKey?: string; label?: string }[] = [
+    { value: 'all', labelKey: 'transaction:history.filter.allChains' },
+    ...enabledChains.map((chain) => ({
+      value: chain.id,
+      label: chain.name,
+    })),
+  ];
 
   // 处理交易点击 - 导航到详情页
   const handleTransactionClick = useCallback(
@@ -105,7 +104,7 @@ export function TransactionHistoryPage() {
             )}
             aria-label={t('common:a11y.selectChain')}
           >
-            {CHAIN_OPTIONS.map((option) => (
+            {chainOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.labelKey ? t(option.labelKey) : option.label}
               </option>
