@@ -14,7 +14,7 @@ import { AmountDisplay, TimeDisplay } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { useTransactionHistory, type TransactionRecord } from '@/hooks/use-transaction-history';
-import { useCurrentWallet } from '@/stores';
+import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
 
@@ -38,6 +38,7 @@ export function TransactionDetailPage() {
   const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
+  const chainConfigState = useChainConfigState();
   const { transactions } = useTransactionHistory(currentWallet?.id);
 
   const [copied, setCopied] = useState(false);
@@ -59,12 +60,13 @@ export function TransactionDetailPage() {
   // 在浏览器中查看
   const handleViewExplorer = useCallback(() => {
     if (transaction?.hash && transaction?.chain) {
-      const baseUrl = EXPLORER_URLS[transaction.chain];
+      const config = chainConfigSelectors.getChainById(chainConfigState, transaction.chain);
+      const baseUrl = config?.explorerUrl ?? EXPLORER_URLS[transaction.chain];
       if (baseUrl) {
         window.open(baseUrl + transaction.hash, '_blank');
       }
     }
-  }, [transaction]);
+  }, [chainConfigState, transaction]);
 
   // 返回
   const handleBack = useCallback(() => {
