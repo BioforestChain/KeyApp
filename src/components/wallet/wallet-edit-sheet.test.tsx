@@ -125,7 +125,7 @@ describe('WalletEditSheet', () => {
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     expect(updateWalletNameSpy).toHaveBeenCalledWith('1', 'New Name')
-    expect(mockOnSuccess).toHaveBeenCalled()
+    expect(mockOnSuccess).toHaveBeenCalledWith('rename')
     expect(mockOnClose).toHaveBeenCalled()
   })
 
@@ -211,7 +211,7 @@ describe('WalletEditSheet', () => {
       expect(deleteWalletSpy).toHaveBeenCalledWith('1')
     })
 
-    expect(mockOnSuccess).toHaveBeenCalled()
+    expect(mockOnSuccess).toHaveBeenCalledWith('delete')
   })
 
   it('shows error on wrong password', async () => {

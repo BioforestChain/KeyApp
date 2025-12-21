@@ -16,7 +16,7 @@ export function generateMnemonic(strength: MnemonicStrength = 128): string[] {
  */
 export function validateMnemonic(words: string[]): boolean {
   const mnemonic = words.join(' ').toLowerCase().trim()
-  return bip39.validateMnemonic(mnemonic)
+  return getAllWordLists().some((list) => bip39.validateMnemonic(mnemonic, list))
 }
 
 /**
@@ -42,7 +42,8 @@ export function getWordList(): string[] {
  * 检查单词是否在 BIP39 单词表中
  */
 export function isValidWord(word: string): boolean {
-  return bip39.wordlists.english!.includes(word.toLowerCase())
+  const normalized = word.toLowerCase()
+  return getAllWordLists().some((list) => list.includes(normalized))
 }
 
 /**
@@ -54,4 +55,10 @@ export function searchWords(prefix: string, limit = 5): string[] {
   return bip39.wordlists.english!
     .filter((word) => word.startsWith(lowerPrefix))
     .slice(0, limit)
+}
+
+function getAllWordLists(): string[][] {
+  return Object.values(bip39.wordlists).filter(
+    (list): list is string[] => Array.isArray(list),
+  )
 }

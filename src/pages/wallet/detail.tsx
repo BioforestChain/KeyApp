@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
@@ -5,7 +6,8 @@ import { AddressDisplay } from '@/components/wallet/address-display';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/common/alert';
-import { useBiometric, useToast, useHaptics } from '@/services';
+import { WalletEditSheet } from '@/components/wallet/wallet-edit-sheet';
+import { useToast, useHaptics } from '@/services';
 import {
   IconCircleKey as KeyRound,
   IconTrash as Trash2,
@@ -32,46 +34,47 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 export function WalletDetailPage() {
   const { t } = useTranslation('wallet');
   const { walletId } = useActivityParams<{ walletId: string }>();
-  const { goBack } = useNavigation();
-  const biometric = useBiometric();
+  const { goBack, navigate } = useNavigation();
   const toast = useToast();
   const haptics = useHaptics();
 
   const wallets = useWallets();
   const wallet = wallets.find((w) => w.id === walletId);
 
-  const handleExportMnemonic = async () => {
-    const { isAvailable } = await biometric.isAvailable();
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [editSheetMode, setEditSheetMode] = useState<'menu' | 'rename' | 'delete-confirm'>('menu');
 
-    if (isAvailable) {
-      const result = await biometric.verify({ title: t('detail.verifyToExport') });
-      if (!result.success) {
-        toast.show({ message: t('detail.verifyFailed'), position: 'center' });
-        return;
-      }
-    }
+  const handleExportMnemonic = useCallback(async () => {
+    if (!wallet) return;
 
     await haptics.impact('success');
-    toast.show(t('detail.exportDeveloping'));
-    // TODO: Implement mnemonic export
-  };
+    await walletActions.setCurrentWallet(wallet.id);
+    navigate({ to: '/settings/mnemonic' });
+  }, [haptics, navigate, wallet]);
 
-  const handleDeleteWallet = async () => {
-    const { isAvailable } = await biometric.isAvailable();
+  const handleOpenEdit = useCallback(() => {
+    setEditSheetMode('rename');
+    setEditSheetOpen(true);
+  }, []);
 
-    if (isAvailable) {
-      const result = await biometric.verify({ title: t('detail.verifyToDelete') });
-      if (!result.success) {
-        toast.show({ message: t('detail.verifyFailed'), position: 'center' });
+  const handleOpenDelete = useCallback(() => {
+    setEditSheetMode('delete-confirm');
+    setEditSheetOpen(true);
+  }, []);
+
+  const handleEditSuccess = useCallback(
+    async (action: 'rename' | 'delete') => {
+      if (action === 'delete') {
+        await haptics.impact('warning');
+        toast.show(t('detail.walletDeleted'));
+        goBack();
         return;
       }
-    }
-
-    walletActions.deleteWallet(walletId);
-    await haptics.impact('warning');
-    toast.show(t('detail.walletDeleted'));
-    goBack();
-  };
+      await haptics.impact('success');
+      setEditSheetOpen(false);
+    },
+    [goBack, haptics, toast, t],
+  );
 
   if (!wallet) {
     return (
@@ -121,9 +124,7 @@ export function WalletDetailPage() {
           <Button
             variant="outline"
             className="w-full justify-start"
-            onClick={() => {
-              // TODO: Edit wallet name
-            }}
+            onClick={handleOpenEdit}
           >
             <Edit3 className="mr-3 size-4" />
             {t('detail.editName')}
@@ -137,7 +138,7 @@ export function WalletDetailPage() {
           <Button
             variant="outline"
             className="text-destructive hover:bg-destructive/10 w-full justify-start"
-            onClick={handleDeleteWallet}
+            onClick={handleOpenDelete}
           >
             <Trash2 className="mr-3 size-4" />
             {t('detail.deleteWallet')}
@@ -147,6 +148,14 @@ export function WalletDetailPage() {
         {/* Security warning */}
         <Alert variant="warning">{t('detail.securityWarning')}</Alert>
       </div>
+
+      <WalletEditSheet
+        wallet={wallet}
+        open={editSheetOpen}
+        onClose={() => setEditSheetOpen(false)}
+        onSuccess={handleEditSuccess}
+        initialMode={editSheetMode}
+      />
     </div>
   );
 }
