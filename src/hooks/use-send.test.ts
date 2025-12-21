@@ -260,7 +260,7 @@ describe('useSend', () => {
 
       // Start submit
       act(() => {
-        result.current.submit()
+        result.current.submit('password')
       })
 
       expect(result.current.state.step).toBe('sending')
