@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
@@ -15,7 +15,9 @@ interface WalletEditSheetProps {
   /** Close callback */
   onClose: () => void;
   /** Success callback after rename/delete */
-  onSuccess?: () => void;
+  onSuccess?: (action: 'rename' | 'delete') => void;
+  /** Initial mode when opening */
+  initialMode?: Mode;
   /** Additional class name */
   className?: string;
 }
@@ -25,12 +27,21 @@ type Mode = 'menu' | 'rename' | 'delete-confirm';
 /**
  * Sheet for editing wallet (rename/delete)
  */
-export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }: WalletEditSheetProps) {
+export function WalletEditSheet({ wallet, open, onClose, onSuccess, initialMode, className }: WalletEditSheetProps) {
   const { t } = useTranslation('wallet');
   const [mode, setMode] = useState<Mode>('menu');
   const [newName, setNewName] = useState(wallet.name);
   const [passwordError, setPasswordError] = useState<string>();
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Sync initial mode when opening
+  useEffect(() => {
+    if (!open) return;
+    setMode(initialMode ?? 'menu');
+    setNewName(wallet.name);
+    setPasswordError(undefined);
+    setIsVerifying(false);
+  }, [initialMode, open, wallet.name]);
 
   // 重置状态
   const handleClose = useCallback(() => {
@@ -53,7 +64,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
     if (!trimmedName) return;
 
     walletActions.updateWalletName(wallet.id, trimmedName);
-    onSuccess?.();
+    onSuccess?.('rename');
     handleClose();
   }, [wallet.id, newName, onSuccess, handleClose]);
 
@@ -69,7 +80,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
       if (!wallet.encryptedMnemonic) {
         // 没有加密数据，直接删除
         walletActions.deleteWallet(wallet.id);
-        onSuccess?.();
+        onSuccess?.('delete');
         handleClose();
         return;
       }
@@ -86,7 +97,7 @@ export function WalletEditSheet({ wallet, open, onClose, onSuccess, className }:
         }
         // 密码正确，删除钱包
         walletActions.deleteWallet(wallet.id);
-        onSuccess?.();
+        onSuccess?.('delete');
         handleClose();
       } catch {
         setPasswordError(t('editSheet.verifyFailed'));
