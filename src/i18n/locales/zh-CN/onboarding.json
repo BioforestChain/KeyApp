@@ -119,7 +119,12 @@
     "nextStep": "下一步",
     "complete": "完成导入",
     "defaultWalletName": "导入钱包",
-    "importFailed": "导入钱包失败"
+    "importFailed": "导入钱包失败",
+    "success": {
+      "title": "导入成功",
+      "description": "钱包 <bold>{{name}}</bold> 已成功导入",
+      "enterWallet": "进入钱包"
+    }
   },
   "recover": {
     "title": "恢复钱包",

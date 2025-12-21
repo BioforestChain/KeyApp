@@ -1,3 +1,20 @@
+<coding_guidelines>
+
+## ⚠️ 必读：开始开发前
+
+**在进行任何 UI 开发前，请先阅读白皮书必读章节：**
+
+```bash
+cat docs/white-book/00-必读/index.md
+```
+
+这个文件包含了避免常见错误的关键指引，特别是关于：
+- Stackflow 导航系统的正确使用
+- 弹出层（Sheet/Modal）的正确实现方式
+- 为什么不能使用 Radix Dialog 或 `position: fixed`
+
+---
+
 **短期核心目标：参考mpay代码，实现bioforestChain生态的基础功能：**
 这是验收标准：
 
@@ -240,3 +257,4 @@ git worktree remove .git-worktree/<feature-name>
 - 所有业务逻辑必须有单元测试
 - 使用 TypeScript 严格模式
 - 遵循白皮书中的代码规范
+</coding_guidelines>

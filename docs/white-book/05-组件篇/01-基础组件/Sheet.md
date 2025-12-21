@@ -176,3 +176,63 @@ snapPoints: [0.25, 0.5, 0.9]
 | 选择列表 | 可滚动内容，选中后自动关闭 |
 | 详情展示 | 多吸附点，可展开查看更多 |
 | 表单输入 | 键盘弹出时自动调整高度 |
+
+---
+
+## 技术实现
+
+### 必须 (MUST)
+
+1. **使用 Stackflow 的 BottomSheet 组件作为底层实现**
+
+   ```tsx
+   import { BottomSheet } from "@stackflow/plugin-basic-ui";
+   ```
+
+2. 这确保 Sheet 与 Stackflow Activity 系统正确集成，避免页面动画冲突
+
+3. **禁止**使用自定义 `position: fixed` 实现，会导致：
+   - 与 Stackflow 页面转场动画冲突
+   - 背景页面"运动"问题
+   - 滚动锁定与 Activity 生命周期不同步
+
+### 封装规范
+
+项目的 `BottomSheet` 组件（`src/components/layout/bottom-sheet.tsx`）应：
+
+1. 内部使用 `@stackflow/plugin-basic-ui` 的 `BottomSheet`
+2. 对外暴露符合本规范的 API
+3. 添加项目特定的样式和行为扩展
+
+```tsx
+// 正确的实现方式
+import { BottomSheet as StackflowBottomSheet } from "@stackflow/plugin-basic-ui";
+
+export function BottomSheet({ open, onClose, children, ...props }) {
+  if (!open) return null;
+  
+  return (
+    <StackflowBottomSheet>
+      {/* 自定义样式和内容 */}
+      {children}
+    </StackflowBottomSheet>
+  );
+}
+```
+
+---
+
+## Roadmap / 待办事项
+
+| 优先级 | 事项 | 状态 | 说明 |
+|--------|------|------|------|
+| P1 | 统一 safe-area-inset-bottom 处理 | 待处理 | 确保所有 Sheet Activity 在 iOS 设备上正确处理底部安全区域 |
+| P2 | Sheet 手势下滑关闭 | 待评估 | Stackflow BottomSheet 是否原生支持，或需要额外实现 |
+| P2 | Sheet 多吸附点支持 | 待评估 | 评估是否需要支持多个高度吸附点 |
+
+---
+
+## 参考文档
+
+- **Stackflow 官方文档（LLM 友好版）**: https://stackflow.so/llms-full.txt
+- **`@stackflow/plugin-basic-ui` API**: 包含 `AppScreen`、`BottomSheet`、`Modal` 三种 Activity 容器组件

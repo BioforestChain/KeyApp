@@ -28,6 +28,7 @@ import { AddressBookActivity } from "./activities/AddressBookActivity";
 import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
+import { ChainSelectorSheetActivity, WalletRenameSheetActivity, WalletDeleteSheetActivity, PasswordConfirmSheetActivity, MnemonicOptionsSheetActivity, ContactEditSheetActivity, WalletAddSheetActivity, SecurityWarningSheetActivity } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -63,6 +64,14 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         NotificationsActivity: "/notifications",
         StakingActivity: "/staking",
         WelcomeActivity: "/welcome",
+        ChainSelectorSheetActivity: "/sheet/chain-selector",
+        WalletRenameSheetActivity: "/sheet/wallet-rename/:walletId",
+        WalletDeleteSheetActivity: "/sheet/wallet-delete/:walletId",
+        PasswordConfirmSheetActivity: "/sheet/password-confirm",
+        MnemonicOptionsSheetActivity: "/sheet/mnemonic-options",
+        ContactEditSheetActivity: "/sheet/contact-edit",
+        WalletAddSheetActivity: "/sheet/wallet-add",
+        SecurityWarningSheetActivity: "/sheet/security-warning",
       },
       fallbackActivity: () => "MainTabsActivity",
       useHash: true,
@@ -94,6 +103,14 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     NotificationsActivity,
     StakingActivity,
     WelcomeActivity,
+    ChainSelectorSheetActivity,
+    WalletRenameSheetActivity,
+    WalletDeleteSheetActivity,
+    PasswordConfirmSheetActivity,
+    MnemonicOptionsSheetActivity,
+    ContactEditSheetActivity,
+    WalletAddSheetActivity,
+    SecurityWarningSheetActivity,
   },
   initialActivity: () => "MainTabsActivity",
 });

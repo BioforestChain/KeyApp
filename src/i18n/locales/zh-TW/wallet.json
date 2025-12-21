@@ -1,5 +1,7 @@
 {
   "add": "添加錢包",
+  "createDesc": "生成新的助記詞創建錢包",
+  "importDesc": "使用助記詞或密鑰導入已有錢包",
   "empty": "暫無錢包",
   "emptyHint": "點擊上方按鈕創建或匯入錢包",
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "獲得地址密碼等同於擁有錢包資產所有權",

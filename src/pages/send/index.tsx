@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useActivityParams } from '@/stackflow';
+import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
+import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
 import { AmountInput } from '@/components/transfer/amount-input';
@@ -9,7 +10,6 @@ import { Alert } from '@/components/common/alert';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { TransferConfirmSheet } from '@/components/transfer/transfer-confirm-sheet';
 import { SendResult } from '@/components/transfer/send-result';
-import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
 import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { formatAssetAmount } from '@/types/asset';
@@ -41,9 +41,11 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 export function SendPage() {
   const { t } = useTranslation(['transaction', 'common', 'security']);
   const { goBack: navGoBack } = useNavigation();
+  const { push } = useFlow();
   const camera = useCamera();
   const toast = useToast();
   const haptics = useHaptics();
+  const isPasswordSheetOpen = useRef(false);
 
   // Read params for pre-fill from scanner
   const { address: initialAddress, amount: initialAmount } = useActivityParams<{
@@ -126,34 +128,24 @@ export function SendPage() {
     }
   };
 
-  const [passwordError, setPasswordError] = useState<string | undefined>();
-  const [showPasswordSheet, setShowPasswordSheet] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-
   const handleConfirm = async () => {
+    if (isPasswordSheetOpen.current) return;
+    isPasswordSheetOpen.current = true;
+
     await haptics.impact('medium');
-    setPasswordError(undefined);
-    setShowPasswordSheet(true);
-  };
 
-  const handleVerifyPassword = async (password: string) => {
-    setIsVerifying(true);
-    setPasswordError(undefined);
-    const result = await submit(password);
-    setIsVerifying(false);
+    setPasswordConfirmCallback(async (password: string) => {
+      const result = await submit(password);
+      if (result.status === 'password') {
+        return false;
+      }
+      isPasswordSheetOpen.current = false;
+      return true;
+    });
 
-    if (result.status === 'password') {
-      setPasswordError(t('common:passwordError'));
-      return;
-    }
-
-    setShowPasswordSheet(false);
-  };
-
-  const handleClosePasswordSheet = () => {
-    if (isVerifying) return;
-    setPasswordError(undefined);
-    setShowPasswordSheet(false);
+    push("PasswordConfirmSheetActivity", {
+      title: t('security:passwordConfirm.defaultTitle'),
+    });
   };
 
   const handleDone = () => {
@@ -262,15 +254,6 @@ export function SendPage() {
         feeSymbol={state.feeSymbol}
         feeLoading={state.feeLoading}
         isConfirming={state.isSubmitting}
-      />
-
-      <PasswordConfirmSheet
-        open={showPasswordSheet}
-        onClose={handleClosePasswordSheet}
-        onVerify={handleVerifyPassword}
-        title={t('security:passwordConfirm.defaultTitle')}
-        error={passwordError}
-        isVerifying={isVerifying}
       />
     </div>
   );
