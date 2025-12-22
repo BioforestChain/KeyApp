@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
-import { useTransactionHistory, type TransactionFilter } from '@/hooks/use-transaction-history';
+import { useTransactionHistoryQuery, type TransactionFilter } from '@/queries';
 import { useCurrentWallet, useEnabledChains } from '@/stores';
 import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
@@ -23,7 +23,8 @@ export function TransactionHistoryPage() {
   const currentWallet = useCurrentWallet();
   const enabledChains = useEnabledChains();
   const { t } = useTranslation(['transaction', 'common']);
-  const { transactions, isLoading, filter, setFilter, refresh } = useTransactionHistory(currentWallet?.id);
+  // 使用 TanStack Query 管理交易历史
+  const { transactions, isLoading, isFetching, filter, setFilter, refresh } = useTransactionHistoryQuery(currentWallet?.id);
   const chainOptions: { value: ChainType | 'all'; labelKey?: string; label?: string }[] = [
     { value: 'all', labelKey: 'transaction:history.filter.allChains' },
     ...enabledChains.map((chain) => ({
@@ -76,11 +77,11 @@ export function TransactionHistoryPage() {
         rightAction={
           <button
             onClick={refresh}
-            disabled={isLoading}
+            disabled={isFetching}
             className={cn(
               'rounded-full p-2 transition-colors',
               'hover:bg-muted active:bg-muted/80',
-              isLoading && 'animate-spin',
+              isFetching && 'animate-spin',
             )}
             aria-label={t('common:a11y.refresh')}
           >

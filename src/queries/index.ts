@@ -13,3 +13,11 @@ export {
   useRefreshBalance,
   balanceQueryKeys,
 } from './use-balance-query'
+
+export {
+  useTransactionHistoryQuery,
+  useRefreshTransactionHistory,
+  transactionHistoryKeys,
+  type TransactionFilter,
+  type TransactionRecord,
+} from './use-transaction-history-query'

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TransactionHistoryPage } from './index'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
@@ -78,10 +79,11 @@ const mockTransactions = [
 ]
 
 const mockSetFilter = vi.fn()
-vi.mock('@/hooks/use-transaction-history', () => ({
-  useTransactionHistory: () => ({
+vi.mock('@/queries', () => ({
+  useTransactionHistoryQuery: () => ({
     transactions: mockTransactions,
     isLoading: false,
+    isFetching: false,
     error: undefined,
     filter: { chain: 'all', period: 'all' },
     setFilter: mockSetFilter,
@@ -90,7 +92,16 @@ vi.mock('@/hooks/use-transaction-history', () => ({
 }))
 
 function renderWithProviders(ui: React.ReactElement) {
-  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <TestI18nProvider>{ui}</TestI18nProvider>
+    </QueryClientProvider>
+  )
 }
 
 describe('TransactionHistoryPage', () => {

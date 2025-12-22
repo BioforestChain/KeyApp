@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 import { TransactionItem } from "@/components/transaction/transaction-item";
-import { useTransactionHistory } from "@/hooks/use-transaction-history";
+import { useTransactionHistoryQuery } from "@/queries";
 import { addressBookActions, addressBookStore, useCurrentWallet, useSelectedChain } from "@/stores";
 import { IconSend } from "@tabler/icons-react";
 
@@ -17,7 +17,10 @@ export function TransferTab() {
   const selectedChain = useSelectedChain();
   const addressBookState = useStore(addressBookStore);
   const contacts = addressBookState.contacts;
-  const { transactions, isLoading } = useTransactionHistory(currentWallet?.id);
+  // 使用 TanStack Query 管理交易历史
+  // - 30s staleTime: Tab 切换不会重复请求
+  // - 共享缓存: 多个组件使用同一数据
+  const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
   useEffect(() => {
     if (!addressBookState.isInitialized) {
