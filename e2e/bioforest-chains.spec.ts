@@ -139,11 +139,12 @@ test.describe('BioForest 链功能', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForSelector('[data-testid="send-button"]', { state: 'visible' })
     await page.click('[data-testid="send-button"]')
-    // 等待发送页面加载（增加超时以应对 CI 环境）
-    await page.waitForSelector('[data-testid="page-title"]', { timeout: 30000 })
-
+    // 等待 URL 变化并页面加载完成
+    await page.waitForURL(/.*#\/send\/?/, { timeout: 30000 })
+    await page.waitForLoadState('networkidle')
+    
     // 验证页面正确加载
-    await expect(page.locator('[data-testid="page-title"]')).toBeVisible()
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible({ timeout: 10000 })
   })
 
   test('链切换后收款页面显示正确地址', async ({ page }) => {
