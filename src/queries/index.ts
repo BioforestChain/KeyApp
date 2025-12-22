@@ -13,3 +13,10 @@ export {
   useRefreshBalance,
   balanceQueryKeys,
 } from './use-balance-query'
+
+export {
+  usePriceQuery,
+  getPrice,
+  priceQueryKeys,
+  type PriceData,
+} from './use-price-query'
