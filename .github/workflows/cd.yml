@@ -42,6 +42,14 @@ jobs:
       channel: ${{ steps.channel.outputs.channel }}
 
     steps:
+      - name: Setup GNU tar (required for actions/upload-pages-artifact)
+        run: |
+          # macOS uses BSD tar by default, but upload-pages-artifact requires GNU tar (gtar)
+          if ! command -v gtar &> /dev/null; then
+            brew install gnu-tar
+          fi
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> $GITHUB_PATH
+
       - name: Git checkout
         run: |
           if [ ! -d ".git" ]; then
