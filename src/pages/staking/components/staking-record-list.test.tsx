@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { Amount } from '@/types/amount'
 import { StakingRecordList } from './staking-record-list'
 
 // Mock react-i18next
@@ -23,44 +24,49 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+// Create mock data with Amount objects
+const createMockTransactions = () => [
+  {
+    id: 'tx-001',
+    type: 'mint' as const,
+    sourceChain: 'BSC',
+    sourceAsset: 'USDT',
+    sourceAmount: Amount.fromRaw('1000000000000000000000', 18, 'USDT'),
+    targetChain: 'BFMeta',
+    targetAsset: 'USDT',
+    targetAmount: Amount.fromRaw('1000000000000000000000', 18, 'USDT'),
+    status: 'confirmed' as const,
+    txHash: '0x1234',
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 86400000 + 300000,
+  },
+  {
+    id: 'tx-002',
+    type: 'burn' as const,
+    sourceChain: 'BFMeta',
+    sourceAsset: 'BFM',
+    sourceAmount: Amount.fromRaw('500000000000000000000', 18, 'BFM'),
+    targetChain: 'ETH',
+    targetAsset: 'BFM',
+    targetAmount: Amount.fromRaw('500000000000000000000', 18, 'BFM'),
+    status: 'pending' as const,
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+  },
+]
+
 // Mock staking service
 vi.mock('@/services/staking', () => ({
   stakingService: {
-    getTransactions: vi.fn().mockResolvedValue([
-      {
-        id: 'tx-001',
-        type: 'mint',
-        sourceChain: 'BSC',
-        sourceAsset: 'USDT',
-        sourceAmount: '1000000000000000000000',
-        targetChain: 'BFMeta',
-        targetAsset: 'USDT',
-        targetAmount: '1000000000000000000000',
-        status: 'confirmed',
-        txHash: '0x1234',
-        createdAt: Date.now() - 86400000,
-        updatedAt: Date.now() - 86400000 + 300000,
-      },
-      {
-        id: 'tx-002',
-        type: 'burn',
-        sourceChain: 'BFMeta',
-        sourceAsset: 'BFM',
-        sourceAmount: '500000000000000000000',
-        targetChain: 'ETH',
-        targetAsset: 'BFM',
-        targetAmount: '500000000000000000000',
-        status: 'pending',
-        createdAt: Date.now() - 3600000,
-        updatedAt: Date.now() - 1800000,
-      },
-    ]),
+    getTransactions: vi.fn(),
   },
 }))
 
 describe('StakingRecordList', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    const { stakingService } = await import('@/services/staking')
+    vi.mocked(stakingService.getTransactions).mockResolvedValue(createMockTransactions())
   })
 
   it('renders loading state initially', () => {
