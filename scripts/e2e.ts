@@ -77,15 +77,60 @@ function main() {
   }
 
   // 分离 spec 名称和 playwright 参数
+  // 使用 -- 分隔符或识别带值的参数
   const specNames: string[] = []
   const playwrightArgs: string[] = []
 
-  for (const arg of args) {
+  // 需要参数值的 playwright 选项
+  const argsWithValue = new Set([
+    '--project',
+    '-p',
+    '--grep',
+    '-g',
+    '--config',
+    '-c',
+    '--workers',
+    '-j',
+    '--timeout',
+    '--retries',
+    '--reporter',
+    '--output',
+    '--trace',
+    '--shard',
+    '--global-timeout',
+    '--browser',
+  ])
+
+  let i = 0
+  let foundSeparator = false
+
+  while (i < args.length) {
+    const arg = args[i]
+
+    // -- 后面的都是 playwright 参数
+    if (arg === '--') {
+      foundSeparator = true
+      i++
+      continue
+    }
+
+    if (foundSeparator) {
+      playwrightArgs.push(arg)
+      i++
+      continue
+    }
+
     if (arg.startsWith('-')) {
       playwrightArgs.push(arg)
+      // 如果是需要值的参数，把下一个参数也加入
+      if (argsWithValue.has(arg) && i + 1 < args.length && !args[i + 1].startsWith('-')) {
+        i++
+        playwrightArgs.push(args[i])
+      }
     } else {
       specNames.push(arg)
     }
+    i++
   }
 
   // 如果没有传递 spec 名称，显示用法
