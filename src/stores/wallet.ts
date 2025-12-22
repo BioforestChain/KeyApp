@@ -439,7 +439,11 @@ export const walletActions = {
       const adapter = registry.getAdapter(chain)
       
       if (!adapter) {
-        console.warn(`[refreshBalance] No adapter for chain: ${chain}`)
+        // This is expected during initialization or for unsupported chains
+        // Only log in development to avoid console noise
+        if (import.meta.env.DEV) {
+          console.debug(`[refreshBalance] Skipping chain without adapter: ${chain}`)
+        }
         return
       }
 

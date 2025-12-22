@@ -1,6 +1,7 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { ActivityParamsProvider } from "../hooks";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 import { SendPage } from "@/pages/send";
 
 type SendParams = {
@@ -13,7 +14,9 @@ export const SendActivity: ActivityComponentType<SendParams> = ({ params }) => {
   return (
     <AppScreen>
       <ActivityParamsProvider params={params}>
-        <SendPage />
+        <ErrorBoundary>
+          <SendPage />
+        </ErrorBoundary>
       </ActivityParamsProvider>
     </AppScreen>
   );
