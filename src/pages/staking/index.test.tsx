@@ -57,7 +57,7 @@ const createMockOverview = () => [
     assetType: 'BFM',
     stakedAmount: Amount.fromFormatted('10000', 18, 'BFM'),
     stakedFiat: '$1,234.56',
-    availableChains: ['ETH', 'BSC'] as const,
+    availableChains: ['ETH', 'BSC'] as ('ETH' | 'BSC' | 'TRON')[],
     totalMinted: Amount.fromRaw('1250000000000000000000000', 18, 'BFM'),
     totalCirculation: Amount.fromRaw('980000000000000000000000', 18, 'BFM'),
     totalBurned: Amount.fromRaw('270000000000000000000000', 18, 'BFM'),
