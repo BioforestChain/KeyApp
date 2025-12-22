@@ -65,6 +65,7 @@
     "@stackflow/plugin-renderer-basic": "^1.1.13",
     "@stackflow/react": "^1.11.1",
     "@tabler/icons-react": "^3.36.0",
+    "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-router": "^1.140.0",
     "@tanstack/react-store": "^0.8.0",
     "bip39": "^3.1.0",
