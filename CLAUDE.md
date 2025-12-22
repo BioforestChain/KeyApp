@@ -4,13 +4,13 @@
 
 ```bash
 # 1. 获取索引（最佳实践 + 知识地图）
-bun scripts/agent-readme.ts
+pnpm agent
 
 # 2. 查看当前任务
-bun scripts/agent-readme.ts --roadmap current
+pnpm agent --roadmap current
 
 # 3. 查阅白皮书必读章节
-bun scripts/agent-readme.ts --chapter 00-必读
+pnpm agent --chapter 00-必读
 ```
 
 完整工作流和命令速查见 [AGENTS.md](./AGENTS.md)

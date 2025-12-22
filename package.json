@@ -41,7 +41,7 @@
     "i18n:check": "turbo run i18n:run --",
     "i18n:run": "bun scripts/i18n-check.ts",
     "i18n:validate": "bun scripts/i18n-validate.ts",
-    "agent": "bun scripts/agent-readme.ts",
+    "agent": "bun scripts/agent/cli.ts",
     "check": "turbo run typecheck:run test:run i18n:run"
   },
   "dependencies": {
