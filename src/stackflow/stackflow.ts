@@ -28,7 +28,7 @@ import { AddressBookActivity } from "./activities/AddressBookActivity";
 import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
-import { ChainSelectorSheetActivity, WalletRenameSheetActivity, WalletDeleteSheetActivity, PasswordConfirmSheetActivity, MnemonicOptionsSheetActivity, ContactEditSheetActivity, WalletAddSheetActivity, SecurityWarningSheetActivity } from "./activities/sheets";
+import { ChainSelectorSheetActivity, WalletRenameSheetActivity, WalletDeleteSheetActivity, PasswordConfirmSheetActivity, MnemonicOptionsSheetActivity, ContactEditSheetActivity, WalletAddSheetActivity, SecurityWarningSheetActivity, TransferConfirmSheetActivity } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -72,6 +72,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         ContactEditSheetActivity: "/sheet/contact-edit",
         WalletAddSheetActivity: "/sheet/wallet-add",
         SecurityWarningSheetActivity: "/sheet/security-warning",
+        TransferConfirmSheetActivity: "/sheet/transfer-confirm",
       },
       fallbackActivity: () => "MainTabsActivity",
       useHash: true,
@@ -111,6 +112,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     ContactEditSheetActivity,
     WalletAddSheetActivity,
     SecurityWarningSheetActivity,
+    TransferConfirmSheetActivity,
   },
   // Note: Don't set initialActivity when using historySyncPlugin
   // The plugin will determine the initial activity based on the URL

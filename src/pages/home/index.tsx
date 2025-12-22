@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
 import { TokenList } from '@/components/token/token-list';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ChainIcon } from '@/components/wallet/chain-icon';
-import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useClipboard, useToast, useHaptics } from '@/services';
 import {
   IconPlus as Plus,
@@ -28,7 +27,6 @@ import {
   useSelectedChain,
   useCurrentChainAddress,
   useCurrentChainTokens,
-  useAvailableChains,
   useHasWallet,
   useWalletInitialized,
   walletActions,
@@ -54,6 +52,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 
 export function HomePage() {
   const { navigate } = useNavigation();
+  const { push } = useFlow();
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
@@ -66,9 +65,7 @@ export function HomePage() {
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const chainAddress = useCurrentChainAddress();
   const tokens = useCurrentChainTokens();
-  const availableChains = useAvailableChains();
 
-  const [chainSheetOpen, setChainSheetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -87,9 +84,8 @@ export function HomePage() {
     }
   };
 
-  const handleSelectChain = (chain: ChainType) => {
-    walletActions.setSelectedChain(chain);
-    setChainSheetOpen(false);
+  const handleOpenChainSelector = () => {
+    push('ChainSelectorSheetActivity', {});
   };
 
   if (!isInitialized) {
@@ -111,7 +107,7 @@ export function HomePage() {
         {/* 链选择器 */}
         <button
           data-testid="chain-selector"
-          onClick={() => setChainSheetOpen(true)}
+          onClick={handleOpenChainSelector}
           className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
           aria-label={t('a11y.chainSelector')}
         >
@@ -184,33 +180,6 @@ export function HomePage() {
       >
         <ScanLine className="text-primary-foreground size-6" />
       </button>
-
-      {/* 链选择底部弹窗 */}
-      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title={t('home:wallet.selectNetwork')}>
-        <div data-testid="chain-sheet" className="space-y-2 p-4">
-          {availableChains.map((chain) => {
-            const chainAddr = currentWallet.chainAddresses.find((ca) => ca.chain === chain);
-            return (
-              <button
-                key={chain}
-                onClick={() => handleSelectChain(chain)}
-                className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${
-                  chain === selectedChain ? 'bg-primary/10 ring-primary ring-1' : 'bg-muted/50 hover:bg-muted'
-                }`}
-              >
-                <ChainIcon chain={chain} size="md" />
-                <div className="flex-1 text-left">
-                  <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
-                  <div className="text-muted-foreground font-mono text-xs">
-                    {chainAddr?.address ? truncateAddress(chainAddr.address, 10, 8) : '---'}
-                  </div>
-                </div>
-                {chain === selectedChain && <Check className="text-primary size-5" />}
-              </button>
-            );
-          })}
-        </div>
-      </BottomSheet>
     </div>
   );
 }

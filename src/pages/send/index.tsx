@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
+import { setPasswordConfirmCallback, setTransferConfirmCallback } from '@/stackflow/activities/sheets';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
 import { AmountInput } from '@/components/transfer/amount-input';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Alert } from '@/components/common/alert';
 import { ChainIcon } from '@/components/wallet/chain-icon';
-import { TransferConfirmSheet } from '@/components/transfer/transfer-confirm-sheet';
 import { SendResult } from '@/components/transfer/send-result';
 import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
@@ -127,28 +126,39 @@ export function SendPage() {
   };
 
   const handleProceed = () => {
-    if (goToConfirm()) {
-      haptics.impact('light');
-    }
-  };
+    if (!goToConfirm()) return;
 
-  const handleConfirm = async () => {
-    if (isPasswordSheetOpen.current) return;
-    isPasswordSheetOpen.current = true;
+    haptics.impact('light');
 
-    await haptics.impact('medium');
+    // Set up callback chain: TransferConfirm -> PasswordConfirm -> Submit
+    setTransferConfirmCallback(async () => {
+      if (isPasswordSheetOpen.current) return;
+      isPasswordSheetOpen.current = true;
 
-    setPasswordConfirmCallback(async (password: string) => {
-      const result = await submit(password);
-      if (result.status === 'password') {
-        return false;
-      }
-      isPasswordSheetOpen.current = false;
-      return true;
+      await haptics.impact('medium');
+
+      setPasswordConfirmCallback(async (password: string) => {
+        const result = await submit(password);
+        if (result.status === 'password') {
+          return false;
+        }
+        isPasswordSheetOpen.current = false;
+        goBack(); // Close transfer confirm sheet after successful submission
+        return true;
+      });
+
+      push('PasswordConfirmSheetActivity', {
+        title: t('security:passwordConfirm.defaultTitle'),
+      });
     });
 
-    push("PasswordConfirmSheetActivity", {
-      title: t('security:passwordConfirm.defaultTitle'),
+    push('TransferConfirmSheetActivity', {
+      amount: state.amount?.toFormatted() ?? '0',
+      symbol,
+      toAddress: state.toAddress,
+      feeAmount: state.feeAmount?.toFormatted() ?? '0',
+      feeSymbol: state.feeSymbol,
+      feeLoading: state.feeLoading ? 'true' : 'false',
     });
   };
 
@@ -244,20 +254,6 @@ export function SendPage() {
           </GradientButton>
         </div>
       </div>
-
-      {/* 确认弹窗 */}
-      <TransferConfirmSheet
-        open={state.step === 'confirm'}
-        onClose={goBack}
-        onConfirm={handleConfirm}
-        amount={state.amount?.toFormatted() ?? '0'}
-        symbol={symbol}
-        toAddress={state.toAddress}
-        feeAmount={state.feeAmount?.toFormatted() ?? '0'}
-        feeSymbol={state.feeSymbol}
-        feeLoading={state.feeLoading}
-        isConfirming={state.isSubmitting}
-      />
     </div>
   );
 }

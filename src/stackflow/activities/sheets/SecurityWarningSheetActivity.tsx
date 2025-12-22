@@ -1,5 +1,5 @@
 import type { ActivityComponentType } from "@stackflow/react";
-import { Modal } from "@stackflow/plugin-basic-ui";
+import { Modal } from "@/components/layout/bottom-sheet";
 import { IconAlertTriangle as AlertTriangle } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { walletActions, useWallets } from "@/stores";

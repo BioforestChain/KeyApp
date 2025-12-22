@@ -1,5 +1,5 @@
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { IconCheck } from "@tabler/icons-react";
 import { ChainIcon } from "@/components/wallet/chain-icon";

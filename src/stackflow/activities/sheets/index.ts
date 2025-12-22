@@ -6,3 +6,4 @@ export { MnemonicOptionsSheetActivity, setMnemonicOptionsCallback } from "./Mnem
 export { ContactEditSheetActivity } from "./ContactEditSheetActivity";
 export { WalletAddSheetActivity } from "./WalletAddSheetActivity";
 export { SecurityWarningSheetActivity, setSecurityWarningConfirmCallback } from "./SecurityWarningSheetActivity";
+export { TransferConfirmSheetActivity, setTransferConfirmCallback } from "./TransferConfirmSheetActivity";
