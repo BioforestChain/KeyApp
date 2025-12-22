@@ -228,19 +228,21 @@ export function ChainConfigPage() {
                   type="button"
                   variant="outline"
                   size="icon"
+                  data-testid="refresh-subscription-button"
                   onClick={handleRefreshSubscription}
                   disabled={isLoading}
                   aria-label={t('chainConfig.subscription.refreshAriaLabel')}
                 >
                   <RefreshCw className={cn('size-4', isLoading && 'animate-spin')} />
                 </Button>
-                <Button type="button" onClick={handleSaveSubscription} disabled={isLoading}>
+                <Button type="button" data-testid="save-subscription-button" onClick={handleSaveSubscription} disabled={isLoading}>
                   {t('chainConfig.subscription.save')}
                 </Button>
               </div>
             </div>
 
             <Input
+              data-testid="subscription-url-input"
               value={subscriptionUrl}
               onChange={(e) => setSubscriptionUrl(e.target.value)}
               placeholder={t('chainConfig.subscription.placeholder')}

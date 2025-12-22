@@ -66,14 +66,14 @@ test.describe.skip('Chain-config subscription', () => {
     })
 
     await page.goto('/#/settings/chains')
-    await page.waitForSelector('text=链配置')
+    await page.waitForSelector('[data-testid="page-title"]')
 
-    const subscriptionInput = page.locator('input[placeholder*="example.com/chains.json"]')
+    const subscriptionInput = page.locator('[data-testid="subscription-url-input"]')
     await subscriptionInput.fill(SUBSCRIPTION_URL)
-    await page.click('button:has-text("保存")')
+    await page.click('[data-testid="save-subscription-button"]')
 
-    const refreshButton = page.locator('button[aria-label="刷新订阅"]')
-    await expect(page.getByText('BF Sub', { exact: true })).toBeVisible()
+    const refreshButton = page.locator('[data-testid="refresh-subscription-button"]')
+    await expect(page.locator('[data-testid="chain-item-bf-sub"]')).toBeVisible()
 
     const row = page.locator('div.px-4.py-3', { hasText: 'bf-sub' })
     const checkbox = row.locator('input[type="checkbox"]')
@@ -91,22 +91,22 @@ test.describe.skip('Chain-config subscription', () => {
       await route.fulfill({ status: 500, body: 'oops' })
     })
     await refreshButton.click()
-    await expect(page.getByText('BF Sub', { exact: true })).toBeVisible()
+    await expect(page.locator('[data-testid="chain-item-bf-sub"]')).toBeVisible()
 
     // Import wallet should derive the subscription bioforest chain address
     // Stackflow 需要从首页导航
     await page.goto('/')
     await page.waitForLoadState('networkidle')
-    await page.click('text=导入已有钱包')
-    await page.waitForSelector('text=输入助记词')
+    await page.click('[data-testid="import-wallet-button"]')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
-    await page.click('button:has-text("下一步")')
+    await page.click('[data-testid="continue-button"]')
 
-    await page.waitForSelector('text=设置密码')
+    await page.waitForSelector('[data-testid="password-step"]')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("完成导入")')
+    await page.click('[data-testid="complete-button"]')
 
     await page.waitForURL(/.*#\/$/)
 

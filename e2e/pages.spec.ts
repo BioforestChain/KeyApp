@@ -84,7 +84,7 @@ test.describe('首页', () => {
     await page.waitForSelector('[data-testid="chain-sheet"]')
 
     // 选择 BFMeta 链
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
 
     // 等待弹窗关闭
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
@@ -115,7 +115,7 @@ test.describe('发送页面', () => {
     await setupTestWallet(page, '/send')
     await waitForAppReady(page)
     // Verify we are on the Send page (PageHeader title)
-    await expect(page.locator('h1:has-text("发送")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible({ timeout: 10000 })
 
     await expect(page).toHaveScreenshot('send-empty.png')
   })
@@ -124,7 +124,7 @@ test.describe('发送页面', () => {
     await setupTestWallet(page, '/send')
     await waitForAppReady(page)
     // Verify we are on the Send page (PageHeader title)
-    await expect(page.locator('h1:has-text("发送")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible({ timeout: 10000 })
 
     // 使用 placeholder 属性选择器（SendPage 使用动态 placeholder）
     const addressInput = page.locator('input[placeholder*="地址"]')
@@ -140,7 +140,7 @@ test.describe('发送页面', () => {
     // TODO: Fix button locator - "确认发送" button text may have changed
     await setupTestWallet(page)
     await page.goto('/#/send')
-    await page.waitForSelector('text=发送')
+    await page.waitForSelector('[data-testid="page-title"]')
 
     const addressInput = page.locator('input[placeholder*="地址"]')
     const amountInput = page.locator('input[placeholder="0"]')
@@ -149,7 +149,7 @@ test.describe('发送页面', () => {
     await amountInput.fill('999999')
 
     // 验证余额不足警告显示
-    await expect(page.locator('text=余额不足')).toBeVisible()
+    await expect(page.locator('[data-testid="amount-error"]')).toBeVisible()
     await expect(page).toHaveScreenshot('send-insufficient-balance.png')
   })
 
@@ -157,13 +157,13 @@ test.describe('发送页面', () => {
     // TODO: Fix button locator - "确认发送" button text may have changed
     await setupTestWallet(page)
     await page.goto('/#/send')
-    await page.waitForSelector('text=发送')
+    await page.waitForSelector('[data-testid="page-title"]')
 
     const addressInput = page.locator('input[placeholder*="地址"]')
     const amountInput = page.locator('input[placeholder="0"]')
 
     // 验证确认按钮初始禁用
-    const sendBtn = page.locator('button:has-text("确认发送")')
+    const sendBtn = page.locator('[data-testid="send-continue-button"]')
     await expect(sendBtn).toBeDisabled()
 
     // 填写地址
@@ -174,8 +174,8 @@ test.describe('发送页面', () => {
     await amountInput.fill('10')
     await expect(sendBtn).toBeEnabled() // 现在应该启用
 
-    // 验证当前链信息显示（使用精确选择器避免匹配提示文本）
-    await expect(page.locator('.text-sm.font-medium:has-text("Ethereum")')).toBeVisible()
+    // 验证当前链信息显示
+    await expect(page.locator('[data-testid="chain-info"]')).toBeVisible()
   })
 })
 
