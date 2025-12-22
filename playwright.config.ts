@@ -25,7 +25,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   
   reporter: [
-    ['html', { outputFolder: './e2e/report' }],
+    ['html', { outputFolder: './e2e/report', open: 'never' }],
     ['list'],
   ],
   
