@@ -13,6 +13,8 @@ jobs:
     if: vars.USE_SELF_HOSTED == 'true'
     runs-on: self-hosted
     timeout-minutes: 15
+    env:
+      TURBO_CACHE_DIR: ~/.turbo-cache
     steps:
       - name: Git checkout
         run: |
