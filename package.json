@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "vite",
     "dev:mock": "SERVICE_IMPL=mock vite --port 5174",
@@ -23,7 +24,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "typecheck": "tsc --build --noEmit",
-    "e2e": "playwright test",
+    "e2e": "bun scripts/e2e.ts",
+    "e2e:all": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:update": "playwright test --update-snapshots",
@@ -35,7 +37,12 @@
     "i18n:extract": "bun scripts/i18n-extract.ts",
     "i18n:check": "bun scripts/i18n-check.ts",
     "i18n:validate": "bun scripts/i18n-validate.ts",
-    "agent": "bun scripts/agent-readme.ts"
+    "agent": "bun scripts/agent-readme.ts",
+    "turbo:test": "turbo run test",
+    "turbo:typecheck": "turbo run typecheck",
+    "turbo:i18n": "turbo run i18n:check",
+    "turbo:e2e": "turbo run e2e:all",
+    "turbo:check": "turbo run typecheck test i18n:check"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -111,6 +118,7 @@
     "shadcn": "^3.6.1",
     "storybook": "^10.1.4",
     "tailwindcss": "^4.0.0",
+    "turbo": "^2.7.1",
     "typescript": "~5.9.3",
     "vite": "^7.2.7",
     "vitepress": "^1.6.4",

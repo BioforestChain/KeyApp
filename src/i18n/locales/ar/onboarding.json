@@ -126,6 +126,11 @@
     "passwordPlaceholder": "أدخل كلمة المرور",
     "setPassword": "تعيين كلمة المرور",
     "setPasswordDesc": "تُستخدم كلمة المرور لتشفير محفظتك",
+    "success": {
+      "description": "[MISSING:ar] 钱包 <bold>{{name}}</bold> 已成功导入",
+      "enterWallet": "[MISSING:ar] 进入钱包",
+      "title": "[MISSING:ar] 导入成功"
+    },
     "title": "استيراد المحفظة",
     "words12": "12 كلمة",
     "words24": "24 كلمة"

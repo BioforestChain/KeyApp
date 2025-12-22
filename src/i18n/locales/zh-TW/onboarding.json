@@ -126,6 +126,11 @@
     "passwordPlaceholder": "輸入密碼",
     "setPassword": "設定密碼",
     "setPasswordDesc": "密碼用於加密您的錢包",
+    "success": {
+      "description": "[MISSING:zh-TW] 钱包 <bold>{{name}}</bold> 已成功导入",
+      "enterWallet": "[MISSING:zh-TW] 进入钱包",
+      "title": "[MISSING:zh-TW] 导入成功"
+    },
     "title": "匯入錢包",
     "words12": "12 個單詞",
     "words24": "24 個單詞"

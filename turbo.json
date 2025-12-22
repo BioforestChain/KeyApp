@@ -1,0 +1,47 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "typecheck": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json"],
+      "outputs": [],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
+      "outputs": ["coverage/**"],
+      "cache": true
+    },
+    "i18n:check": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/i18n/**/*.json", "scripts/i18n-check.ts"],
+      "outputs": [],
+      "cache": true
+    },
+    "e2e:all": {
+      "dependsOn": [],
+      "inputs": ["src/**", "e2e/**", "playwright.config.ts"],
+      "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": true
+    },
+    "build": {
+      "dependsOn": ["typecheck"],
+      "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
+      "outputs": ["dist/**"],
+      "cache": true
+    },
+    "build:web": {
+      "dependsOn": ["typecheck"],
+      "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
+      "outputs": ["dist-web/**"],
+      "cache": true
+    },
+    "build:dweb": {
+      "dependsOn": ["typecheck"],
+      "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
+      "outputs": ["dist-dweb/**"],
+      "cache": true
+    }
+  }
+}

@@ -6,7 +6,6 @@ on:
 
 env:
   NODE_VERSION: '24'
-  PNPM_VERSION: '10'
 
 jobs:
   # ==================== 变更检测 ====================
@@ -45,8 +44,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -70,8 +67,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -85,6 +80,32 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+  # ==================== i18n 检查 ====================
+  i18n:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check i18n keys
+        run: pnpm i18n:check
+
   # ==================== 构建检查 ====================
   build:
     runs-on: ubuntu-latest
@@ -95,8 +116,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -120,10 +139,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -150,12 +170,12 @@ jobs:
         run: pnpm exec playwright install-deps chromium
 
       - name: E2E smoke (Mobile Chrome)
-        run: pnpm e2e e2e/bioforest-chains.spec.ts --project "Mobile Chrome"
+        run: pnpm e2e bioforest-chains --project "Mobile Chrome"
 
   # ==================== 最终状态检查 ====================
   checks:
     runs-on: ubuntu-latest
-    needs: [typecheck, test, build, e2e]
+    needs: [typecheck, test, i18n, build, e2e]
     if: always()
     steps:
       - name: Check results
@@ -166,6 +186,10 @@ jobs:
           fi
           if [[ "${{ needs.test.result }}" == "failure" ]]; then
             echo "Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.i18n.result }}" == "failure" ]]; then
+            echo "i18n check failed"
             exit 1
           fi
           if [[ "${{ needs.build.result }}" == "failure" ]]; then
