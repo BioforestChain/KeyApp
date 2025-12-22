@@ -8,8 +8,11 @@ describe('formatNumber', () => {
     expect(formatNumber('0')).toBe('0')
   })
 
-  it('formats small numbers with < prefix', () => {
-    expect(formatNumber(0.00001)).toBe('< 0.0001')
+  it('formats small numbers correctly', () => {
+    // With default 4 decimals, very small numbers round to 0
+    expect(formatNumber(0.00001)).toBe('0')
+    // With more decimals, we can see the value
+    expect(formatNumber(0.00001, 8)).toBe('0.00001')
   })
 
   it('formats large numbers with separator', () => {

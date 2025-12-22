@@ -235,7 +235,7 @@ export function SendPage() {
 
         {/* Continue button */}
         <div className="pt-4">
-          <GradientButton variant="mint" className="w-full" disabled={!canProceed} onClick={handleProceed}>
+          <GradientButton variant="mint" className="w-full" data-testid="send-continue-button" disabled={!canProceed} onClick={handleProceed}>
             {t('sendPage.continue')}
             <ArrowRight className="-mr-4 ml-2 size-4" />
           </GradientButton>

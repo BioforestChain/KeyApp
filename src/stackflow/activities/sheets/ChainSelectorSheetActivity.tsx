@@ -58,6 +58,7 @@ export const ChainSelectorSheetActivity: ActivityComponentType = () => {
             return (
               <button
                 key={chain}
+                data-testid={`chain-option-${chain}`}
                 onClick={() => handleSelectChain(chain)}
                 className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${
                   chain === selectedChain

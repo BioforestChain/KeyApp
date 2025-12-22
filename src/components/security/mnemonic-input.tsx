@@ -80,11 +80,11 @@ export function MnemonicInput({ wordCount = 12, onComplete, onChange, className 
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center justify-between">
-        <span className="text-muted-foreground text-sm">
+        <span data-testid="word-count-display" className="text-muted-foreground text-sm">
           {t('mnemonicInput.entered', { filled: filledCount, total: wordCount })}
         </span>
         {filledCount > 0 && (
-          <button type="button" onClick={clearAll} className="text-primary hover:text-primary/80 text-sm">
+          <button type="button" data-testid="clear-mnemonic-button" onClick={clearAll} className="text-primary hover:text-primary/80 text-sm">
             {t('mnemonicInput.clear')}
           </button>
         )}

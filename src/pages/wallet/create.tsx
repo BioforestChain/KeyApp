@@ -129,27 +129,35 @@ export function WalletCreatePage() {
 
       <div className="flex-1 p-4">
         {step === 'password' && (
-          <PasswordStep
-            password={password}
-            confirmPassword={confirmPassword}
-            onPasswordChange={setPassword}
-            onConfirmPasswordChange={setConfirmPassword}
-            onSubmit={handlePasswordSubmit}
-          />
+          <div data-testid="password-step">
+            <PasswordStep
+              password={password}
+              confirmPassword={confirmPassword}
+              onPasswordChange={setPassword}
+              onConfirmPasswordChange={setConfirmPassword}
+              onSubmit={handlePasswordSubmit}
+            />
+          </div>
         )}
 
         {step === 'mnemonic' && (
-          <MnemonicStep
-            mnemonic={mnemonic}
-            hidden={mnemonicHidden}
-            copied={mnemonicCopied}
-            onToggleHidden={() => setMnemonicHidden(!mnemonicHidden)}
-            onCopy={() => setMnemonicCopied(true)}
-            onContinue={handleMnemonicContinue}
-          />
+          <div data-testid="mnemonic-step">
+            <MnemonicStep
+              mnemonic={mnemonic}
+              hidden={mnemonicHidden}
+              copied={mnemonicCopied}
+              onToggleHidden={() => setMnemonicHidden(!mnemonicHidden)}
+              onCopy={() => setMnemonicCopied(true)}
+              onContinue={handleMnemonicContinue}
+            />
+          </div>
         )}
 
-        {step === 'verify' && <VerifyStep mnemonic={mnemonic} onComplete={handleComplete} />}
+        {step === 'verify' && (
+          <div data-testid="verify-step">
+            <VerifyStep mnemonic={mnemonic} onComplete={handleComplete} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -201,7 +209,7 @@ function PasswordStep({
         </FormField>
       </div>
 
-      <GradientButton variant="mint" className="w-full" disabled={!isValid} onClick={onSubmit}>
+      <GradientButton variant="mint" className="w-full" data-testid="next-step-button" disabled={!isValid} onClick={onSubmit}>
         {t('onboarding:create.nextStep')}
         <ArrowRight className="ml-2 size-4" />
       </GradientButton>
@@ -235,7 +243,7 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">{t('onboarding:create.mnemonicTitle')}</span>
-          <button type="button" onClick={onToggleHidden} className="text-primary flex items-center gap-1 text-sm">
+          <button type="button" data-testid="toggle-mnemonic-button" onClick={onToggleHidden} className="text-primary flex items-center gap-1 text-sm">
             {hidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
             {hidden ? t('onboarding:create.mnemonicShow') : t('onboarding:create.mnemonicHide')}
           </button>
@@ -244,7 +252,7 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
         <MnemonicDisplay words={mnemonic} hidden={hidden} onCopy={onCopy} />
       </div>
 
-      <GradientButton variant="mint" className="w-full" disabled={!canContinue} onClick={onContinue}>
+      <GradientButton variant="mint" className="w-full" data-testid="mnemonic-backed-up-button" disabled={!canContinue} onClick={onContinue}>
         {canContinue ? t('onboarding:create.mnemonicBackedUp') : t('onboarding:create.mnemonicViewFirst')}
         {canContinue && <ArrowRight className="ml-2 size-4" />}
       </GradientButton>
@@ -298,6 +306,7 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
         {selectedIndices.map((index) => (
           <FormField key={index} label={t('onboarding:create.wordN', { n: index + 1 })} error={getFieldError(index)}>
             <Input
+              data-testid={`verify-word-input-${index}`}
               value={answers[index] || ''}
               onChange={(e) => handleInputChange(index, e.target.value)}
               className={cn(getFieldError(index) && 'border-destructive focus-visible:ring-destructive')}
@@ -309,7 +318,7 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
         ))}
       </div>
 
-      <GradientButton variant="mint" className="w-full" disabled={!isValid} onClick={onComplete}>
+      <GradientButton variant="mint" className="w-full" data-testid="complete-button" disabled={!isValid} onClick={onComplete}>
         {t('onboarding:create.complete')}
       </GradientButton>
     </div>

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { ChainIcon, type ChainType } from '../wallet/chain-icon';
-import { AmountDisplay } from '../common';
+import { AmountDisplay, AnimatedAmount } from '../common';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
 
@@ -17,6 +17,8 @@ export interface TokenInfo {
   symbol: string;
   name: string;
   balance: string;
+  /** Token decimals (default: 8 for bioforest chains) */
+  decimals?: number | undefined;
   fiatValue?: string | undefined;
   chain: ChainType;
   icon?: string | undefined;
@@ -27,10 +29,12 @@ interface TokenItemProps {
   token: TokenInfo;
   onClick?: (() => void) | undefined;
   showChange?: boolean | undefined;
+  /** Whether balance is loading (shows animation) */
+  loading?: boolean | undefined;
   className?: string | undefined;
 }
 
-export function TokenItem({ token, onClick, showChange = false, className }: TokenItemProps) {
+export function TokenItem({ token, onClick, showChange = false, loading = false, className }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -111,8 +115,14 @@ export function TokenItem({ token, onClick, showChange = false, className }: Tok
 
       {/* Balance */}
       <div className="shrink-0 text-right">
-        <AmountDisplay value={token.balance} weight="semibold" size="sm" className="@xs:text-base" />
-        {displayFiatValue && (
+        <AnimatedAmount
+          value={token.balance}
+          loading={loading}
+          decimals={token.decimals ?? 8}
+          fixedDecimals
+          className="text-sm @xs:text-base"
+        />
+        {displayFiatValue && !loading && (
           <p className="text-muted-foreground text-xs @xs:text-sm" title={exchangeStatusMessage ?? undefined}>
             ≈ {fiatSymbol}
             <AmountDisplay value={displayFiatValue} size="xs" className="inline" />
@@ -120,6 +130,11 @@ export function TokenItem({ token, onClick, showChange = false, className }: Tok
               <AmountDisplay value={token.change24h} sign="always" color="auto" size="xs" className="ml-1 inline" />
             )}
             {showChange && token.change24h !== undefined && '%'}
+          </p>
+        )}
+        {loading && (
+          <p className="text-muted-foreground animate-pulse text-xs @xs:text-sm">
+            ≈ --
           </p>
         )}
       </div>

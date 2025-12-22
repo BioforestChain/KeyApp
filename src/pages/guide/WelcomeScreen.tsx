@@ -92,7 +92,7 @@ export function WelcomeScreen() {
     <div className="bg-background flex min-h-screen flex-col">
       {/* Skip button */}
       <div className="flex justify-end p-4">
-        <Button variant="ghost" size="sm" onClick={handleSkip}>
+        <Button variant="ghost" size="sm" data-testid="skip-button" onClick={handleSkip}>
           {t('welcome.skip')}
         </Button>
       </div>
@@ -110,6 +110,7 @@ export function WelcomeScreen() {
           {slides.map((_, index) => (
             <button
               key={index}
+              data-testid={`slide-dot-${index}`}
               onClick={() => setCurrentSlide(index)}
               className={cn(
                 'size-2 rounded-full transition-colors',
@@ -127,12 +128,13 @@ export function WelcomeScreen() {
           <div className="flex flex-col gap-3">
             {/* Migration button - shown when mpay data detected */}
             {shouldShowMigration && (
-              <Button onClick={handleMigrate} className="w-full" size="lg" variant="default">
+              <Button data-testid="migrate-button" onClick={handleMigrate} className="w-full" size="lg" variant="default">
                 <Download className="mr-2 size-4" />
                 {t('welcome.migrateFromMpay', { defaultValue: '从 mpay 迁移钱包' })}
               </Button>
             )}
             <Button
+              data-testid="get-started-button"
               onClick={handleGetStarted}
               className="w-full"
               size="lg"
@@ -140,12 +142,12 @@ export function WelcomeScreen() {
             >
               {t('welcome.getStarted')}
             </Button>
-            <Button onClick={handleHaveWallet} variant="outline" className="w-full" size="lg">
+            <Button data-testid="have-wallet-button" onClick={handleHaveWallet} variant="outline" className="w-full" size="lg">
               {t('welcome.haveWallet')}
             </Button>
           </div>
         ) : (
-          <Button onClick={handleNext} className="w-full" size="lg">
+          <Button data-testid="next-button" onClick={handleNext} className="w-full" size="lg">
             {t('welcome.next')}
             <ArrowRight className="ml-2 size-4" />
           </Button>

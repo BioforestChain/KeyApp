@@ -131,7 +131,7 @@ export function WalletImportPage() {
 
       <div className="flex-1 p-4">
         {step === 'mnemonic' && (
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="mnemonic-step">
             <div className="text-center">
               <IconCircle icon={FileKey} variant="primary" size="lg" className="mx-auto mb-4" />
               <h2 className="text-xl font-bold">{t('import.enterMnemonic')}</h2>
@@ -142,6 +142,7 @@ export function WalletImportPage() {
             <div className="flex justify-center gap-2">
               <button
                 type="button"
+                data-testid="word-count-12"
                 onClick={() => setWordCount(12)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   wordCount === 12
@@ -153,6 +154,7 @@ export function WalletImportPage() {
               </button>
               <button
                 type="button"
+                data-testid="word-count-24"
                 onClick={() => setWordCount(24)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   wordCount === 24
@@ -171,6 +173,7 @@ export function WalletImportPage() {
             <GradientButton
               variant="mint"
               className="w-full"
+              data-testid="continue-button"
               disabled={mnemonic.length !== wordCount || mnemonic.some((w) => !w)}
               onClick={handleMnemonicContinue}
             >
@@ -181,7 +184,7 @@ export function WalletImportPage() {
         )}
 
         {step === 'password' && (
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="password-step">
             <div className="text-center">
               <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
               <h2 className="text-xl font-bold">{t('import.setPassword')}</h2>
@@ -207,7 +210,7 @@ export function WalletImportPage() {
               </FormField>
             </div>
 
-            <GradientButton variant="mint" className="w-full" disabled={!isPasswordValid} onClick={handleComplete}>
+            <GradientButton variant="mint" className="w-full" data-testid="complete-button" disabled={!isPasswordValid} onClick={handleComplete}>
               {t('import.complete')}
             </GradientButton>
           </div>

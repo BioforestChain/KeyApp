@@ -85,6 +85,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             {onScan && (
               <button
                 type="button"
+                data-testid="scan-address-button"
                 onClick={onScan}
                 className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
                 aria-label={t('a11y.scanQrCode')}

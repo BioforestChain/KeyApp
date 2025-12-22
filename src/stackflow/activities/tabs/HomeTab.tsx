@@ -63,12 +63,31 @@ export function HomeTab() {
   const tokens = useCurrentChainTokens();
 
   const [copied, setCopied] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) {
       walletActions.initialize();
     }
   }, [isInitialized]);
+
+  // Refresh balance when wallet or chain changes
+  useEffect(() => {
+    if (!currentWallet || !selectedChain) return;
+
+    const refreshBalance = async () => {
+      setIsRefreshing(true);
+      try {
+        await walletActions.refreshBalance(currentWallet.id, selectedChain);
+      } catch (error) {
+        console.error('Failed to refresh balance:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    void refreshBalance();
+  }, [currentWallet?.id, selectedChain]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {
@@ -114,7 +133,7 @@ export function HomeTab() {
 
         {/* Wallet Name and Address */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-white">{currentWallet.name}</h1>
+          <h1 data-testid="wallet-name" className="text-xl font-semibold text-white">{currentWallet.name}</h1>
           <div className="mt-2 flex items-center gap-2">
             <span className="font-mono text-sm text-white/70">
               {chainAddress?.address ? truncateAddress(chainAddress.address) : "---"}
@@ -167,10 +186,12 @@ export function HomeTab() {
             name: tk.name,
             chain: selectedChain,
             balance: tk.balance,
+            decimals: tk.decimals,
             fiatValue: tk.fiatValue ? String(tk.fiatValue) : undefined,
             change24h: tk.change24h,
             icon: tk.icon,
           }))}
+          refreshing={isRefreshing}
           onTokenClick={(token) => {
             console.log("Token clicked:", token.symbol);
           }}
@@ -181,6 +202,7 @@ export function HomeTab() {
 
       {/* Scanner FAB */}
       <button
+        data-testid="scan-fab"
         onClick={() => push("ScannerActivity", {})}
         className="fixed right-6 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-60 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t("common:a11y.scan")}
@@ -208,6 +230,7 @@ function NoWalletView() {
         <GradientButton
           variant="mint"
           className="w-full"
+          data-testid="create-wallet-button"
           onClick={() => push("WalletCreateActivity", {})}
         >
           {t('welcome.createWallet')}
@@ -215,6 +238,7 @@ function NoWalletView() {
         <Button
           variant="outline"
           className="w-full"
+          data-testid="import-wallet-button"
           onClick={() => push("OnboardingRecoverActivity", {})}
         >
           {t('welcome.importWallet')}

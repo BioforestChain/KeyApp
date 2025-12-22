@@ -38,6 +38,7 @@ describe('AddressBookPage', () => {
       currentWalletId: null,
       isInitialized: true,
       isLoading: false,
+      chainPreferences: {},
       selectedChain: 'ethereum',
     })
   })

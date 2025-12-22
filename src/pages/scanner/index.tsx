@@ -203,10 +203,10 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
     <div className={cn('relative flex h-screen flex-col bg-black', className)}>
       {/* Header */}
       <div className="absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4">
-        <Button variant="ghost" size="icon" onClick={handleBack} className="text-white" aria-label={tCommon('a11y.back')}>
+        <Button variant="ghost" size="icon" data-testid="back-button" onClick={handleBack} className="text-white" aria-label={tCommon('a11y.back')}>
           <X className="size-6" />
         </Button>
-        <h1 className="text-lg font-medium text-white">{t('title')}</h1>
+        <h1 data-testid="page-title" className="text-lg font-medium text-white">{t('title')}</h1>
         <Button
           variant="ghost"
           size="icon"
@@ -271,7 +271,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
           {state === 'denied' && (
             <div className="space-y-2">
               <p className="text-red-400">{t('permissionDenied')}</p>
-              <Button variant="outline" onClick={initCamera}>
+              <Button variant="outline" data-testid="retry-button" onClick={initCamera}>
                 {t('retry')}
               </Button>
             </div>
@@ -279,7 +279,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
           {state === 'error' && (
             <div className="space-y-2">
               <p className="text-red-400">{error || t('error')}</p>
-              <Button variant="outline" onClick={initCamera}>
+              <Button variant="outline" data-testid="retry-button" onClick={initCamera}>
                 {t('retry')}
               </Button>
             </div>
@@ -292,6 +292,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
         <Button
           variant="ghost"
           size="lg"
+          data-testid="gallery-button"
           onClick={handleGalleryImport}
           className="flex flex-col items-center text-white"
         >

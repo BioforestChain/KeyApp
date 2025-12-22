@@ -56,7 +56,8 @@ export const Empty: Story = {
       walletStore.setState({
         wallets: [],
         currentWalletId: null,
-        selectedChain: 'ethereum',
+        chainPreferences: {},
+      selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -75,7 +76,8 @@ export const SingleWallet: Story = {
       walletStore.setState({
         wallets: [wallet],
         currentWalletId: '1',
-        selectedChain: 'ethereum',
+        chainPreferences: {},
+      selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -98,7 +100,8 @@ export const MultipleWallets: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '1',
-        selectedChain: 'ethereum',
+        chainPreferences: {},
+      selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -121,7 +124,8 @@ export const SecondWalletActive: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '2',
-        selectedChain: 'ethereum',
+        chainPreferences: {},
+      selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -143,7 +147,8 @@ export const LongWalletNames: Story = {
       walletStore.setState({
         wallets,
         currentWalletId: '1',
-        selectedChain: 'ethereum',
+        chainPreferences: {},
+      selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
