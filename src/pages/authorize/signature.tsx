@@ -491,7 +491,7 @@ export function SignatureAuthPage() {
       }
     })
 
-    push("PasswordConfirmSheetActivity", {
+    push("PasswordConfirmJob", {
       title: tAuthorize('button.confirm'),
     })
   }, [authService, balanceCheck.sufficient, currentWallet?.encryptedMnemonic, destroyPayload, isSubmitting, messagePayload, navigate, push, signatureRequest, tAuthorize, transferPayload])

@@ -68,7 +68,7 @@ export function ViewMnemonicPage() {
     });
 
     // 打开密码验证 Sheet
-    push("PasswordConfirmSheetActivity", {
+    push("PasswordConfirmJob", {
       title: t('viewMnemonic.verifyTitle'),
       description: isArbitrary ? t('viewMnemonic.verifyDescKey') : t('viewMnemonic.verifyDescMnemonic'),
     });

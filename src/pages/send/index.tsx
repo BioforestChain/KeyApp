@@ -147,12 +147,12 @@ export function SendPage() {
         return true;
       });
 
-      push('PasswordConfirmSheetActivity', {
+      push('PasswordConfirmJob', {
         title: t('security:passwordConfirm.defaultTitle'),
       });
     });
 
-    push('TransferConfirmSheetActivity', {
+    push('TransferConfirmJob', {
       amount: state.amount?.toFormatted() ?? '0',
       symbol,
       toAddress: state.toAddress,

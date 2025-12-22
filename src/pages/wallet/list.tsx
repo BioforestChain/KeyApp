@@ -29,7 +29,7 @@ export function WalletListPage() {
 
   // 添加钱包（打开选择 Sheet）
   const handleAddWallet = useCallback(() => {
-    push("WalletAddSheetActivity", {});
+    push("WalletAddJob", {});
   }, [push]);
 
   // 返回

@@ -31,16 +31,16 @@ function clearPasswordConfirmCallback() {
   pendingBiometricCallback = null;
 }
 
-type PasswordConfirmSheetParams = {
+type PasswordConfirmJobParams = {
   title?: string;
   description?: string;
   biometricAvailable?: string; // "true" or "false" as URL params are strings
 };
 
-function PasswordConfirmSheetContent() {
+function PasswordConfirmJobContent() {
   const { t } = useTranslation("security");
   const { pop } = useFlow();
-  const { title, description, biometricAvailable } = useActivityParams<PasswordConfirmSheetParams>();
+  const { title, description, biometricAvailable } = useActivityParams<PasswordConfirmJobParams>();
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -181,10 +181,10 @@ function PasswordConfirmSheetContent() {
   );
 }
 
-export const PasswordConfirmSheetActivity: ActivityComponentType<PasswordConfirmSheetParams> = ({ params }) => {
+export const PasswordConfirmJob: ActivityComponentType<PasswordConfirmJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <PasswordConfirmSheetContent />
+      <PasswordConfirmJobContent />
     </ActivityParamsProvider>
   );
 };

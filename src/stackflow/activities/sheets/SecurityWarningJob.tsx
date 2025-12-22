@@ -12,7 +12,7 @@ export function setSecurityWarningConfirmCallback(cb: () => void) {
   onConfirmCallback = cb;
 }
 
-export const SecurityWarningSheetActivity: ActivityComponentType = () => {
+export const SecurityWarningJob: ActivityComponentType = () => {
   const { t } = useTranslation(["onboarding", "common"]);
   const { pop } = useFlow();
   const [acknowledged, setAcknowledged] = useState(false);

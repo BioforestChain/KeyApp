@@ -10,4 +10,5 @@
  *
  * 如需内联确认弹窗，请使用 @/components/ui/alert-dialog
  */
-export { Modal, ModalProps } from './bottom-sheet';
+export { Modal } from './bottom-sheet';
+export type { ModalProps } from './bottom-sheet';

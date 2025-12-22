@@ -100,7 +100,7 @@ export function OnboardingRecoverPage() {
       setSecurityAcknowledged(true);
       setStep('arbitrary');
     });
-    push('SecurityWarningSheetActivity', {});
+    push('SecurityWarningJob', {});
   }, [keyType, securityAcknowledged, push]);
 
   const handleMnemonicSubmit = useCallback(

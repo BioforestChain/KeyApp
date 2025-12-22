@@ -50,12 +50,12 @@ export function WalletDetailPage() {
 
   const handleOpenEdit = useCallback(() => {
     if (!wallet) return;
-    push("WalletRenameSheetActivity", { walletId: wallet.id });
+    push("WalletRenameJob", { walletId: wallet.id });
   }, [push, wallet]);
 
   const handleOpenDelete = useCallback(() => {
     if (!wallet) return;
-    push("WalletDeleteSheetActivity", { walletId: wallet.id });
+    push("WalletDeleteJob", { walletId: wallet.id });
   }, [push, wallet]);
 
   if (!wallet) {

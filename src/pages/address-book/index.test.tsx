@@ -94,7 +94,7 @@ describe('AddressBookPage', () => {
     const addButtons = screen.getAllByRole('button', { name: '添加联系人' })
     fireEvent.click(addButtons[1]!) // Second button is the text button
 
-    expect(mockPush).toHaveBeenCalledWith('ContactEditSheetActivity', {})
+    expect(mockPush).toHaveBeenCalledWith('ContactEditJob', {})
   })
 
   it('opens edit contact sheet when edit is clicked', () => {
@@ -110,7 +110,7 @@ describe('AddressBookPage', () => {
     const editButton = screen.getByText('编辑')
     fireEvent.click(editButton)
 
-    expect(mockPush).toHaveBeenCalledWith('ContactEditSheetActivity', { contactId: contact.id })
+    expect(mockPush).toHaveBeenCalledWith('ContactEditJob', { contactId: contact.id })
   })
 
   it('deletes contact directly when no wallet exists', () => {

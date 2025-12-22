@@ -19,7 +19,7 @@ function clearTransferConfirmCallback() {
   pendingCallback = null;
 }
 
-type TransferConfirmSheetParams = {
+type TransferConfirmJobParams = {
   amount: string;
   symbol: string;
   fiatValue?: string;
@@ -35,10 +35,10 @@ function truncateAddress(address: string): string {
   return `${address.slice(0, 10)}...${address.slice(-6)}`;
 }
 
-function TransferConfirmSheetContent() {
+function TransferConfirmJobContent() {
   const { t } = useTranslation('transaction');
   const { pop } = useFlow();
-  const params = useActivityParams<TransferConfirmSheetParams>();
+  const params = useActivityParams<TransferConfirmJobParams>();
 
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -165,10 +165,10 @@ function TransferConfirmSheetContent() {
   );
 }
 
-export const TransferConfirmSheetActivity: ActivityComponentType<TransferConfirmSheetParams> = ({ params }) => {
+export const TransferConfirmJob: ActivityComponentType<TransferConfirmJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <TransferConfirmSheetContent />
+      <TransferConfirmJobContent />
     </ActivityParamsProvider>
   );
 };

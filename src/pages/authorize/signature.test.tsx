@@ -121,7 +121,7 @@ describe('SignatureAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmSheetActivity
+  // Note: Password verification is now handled by PasswordConfirmJob
   it.skip('verifies password before signing when balance is sufficient', async () => {
     vi.mocked(crypto.verifyPassword).mockResolvedValue(true)
 

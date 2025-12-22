@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useFlow } from "../../stackflow";
 import { useNavigation } from "../../hooks/use-navigation";
 
-export const WalletAddSheetActivity: ActivityComponentType = () => {
+export const WalletAddJob: ActivityComponentType = () => {
   const { t } = useTranslation(["wallet", "home"]);
   const { pop } = useFlow();
   const { navigate } = useNavigation();

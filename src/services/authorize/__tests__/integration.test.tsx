@@ -131,7 +131,7 @@ describe('authorize integration (mock-first)', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmSheetActivity
+  // Note: Password verification is now handled by PasswordConfirmJob
   it.skip('deep-links legacy signature authorize and signs after password confirmation', async () => {
     vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue(EXAMPLE_APP)
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()

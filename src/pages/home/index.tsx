@@ -85,7 +85,7 @@ export function HomePage() {
   };
 
   const handleOpenChainSelector = () => {
-    push('ChainSelectorSheetActivity', {});
+    push('ChainSelectorJob', {});
   };
 
   if (!isInitialized) {

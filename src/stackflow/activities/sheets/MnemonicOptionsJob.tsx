@@ -26,7 +26,7 @@ function clearMnemonicOptionsCallback() {
   pendingCallback = null;
 }
 
-type MnemonicOptionsSheetParams = {
+type MnemonicOptionsJobParams = {
   language?: string;
   length?: string;
 };
@@ -39,10 +39,10 @@ const LANGUAGE_OPTIONS: { value: MnemonicLanguage; label: string }[] = [
 
 const LENGTH_OPTIONS: MnemonicLength[] = [12, 15, 18, 21, 24, 36];
 
-function MnemonicOptionsSheetContent() {
+function MnemonicOptionsJobContent() {
   const { t } = useTranslation("onboarding");
   const { pop } = useFlow();
-  const { language: initialLanguage, length: initialLength } = useActivityParams<MnemonicOptionsSheetParams>();
+  const { language: initialLanguage, length: initialLength } = useActivityParams<MnemonicOptionsJobParams>();
 
   const [options, setOptions] = useState<MnemonicOptions>({
     language: (initialLanguage as MnemonicLanguage) || "english",
@@ -147,10 +147,10 @@ function MnemonicOptionsSheetContent() {
   );
 }
 
-export const MnemonicOptionsSheetActivity: ActivityComponentType<MnemonicOptionsSheetParams> = ({ params }) => {
+export const MnemonicOptionsJob: ActivityComponentType<MnemonicOptionsJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <MnemonicOptionsSheetContent />
+      <MnemonicOptionsJobContent />
     </ActivityParamsProvider>
   );
 };

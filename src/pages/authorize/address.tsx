@@ -254,7 +254,7 @@ export function AddressAuthPage() {
         }
       })
 
-      push("PasswordConfirmSheetActivity", {
+      push("PasswordConfirmJob", {
         title: tAuthorize('passwordConfirm.title'),
       })
       return
