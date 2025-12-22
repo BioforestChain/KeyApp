@@ -139,6 +139,7 @@ export function HomeTab() {
             variant="blue"
             className="flex-1"
             size="sm"
+            data-testid="send-button"
             onClick={() => push("SendActivity", {})}
           >
             <IconSend className="mr-1.5 size-4" />
@@ -147,6 +148,7 @@ export function HomeTab() {
           <GradientButton
             variant="red"
             className="flex-1"
+            data-testid="receive-button"
             size="sm"
             onClick={() => push("ReceiveActivity", {})}
           >
