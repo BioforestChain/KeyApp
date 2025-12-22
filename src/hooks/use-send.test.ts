@@ -29,7 +29,7 @@ describe('useSend', () => {
     it('starts with empty values', () => {
       const { result } = renderHook(() => useSend())
       expect(result.current.state.toAddress).toBe('')
-      expect(result.current.state.amount).toBe('')
+      expect(result.current.state.amount).toBeNull()
       expect(result.current.state.asset).toBeNull()
     })
 
@@ -66,11 +66,12 @@ describe('useSend', () => {
 
   describe('setAmount', () => {
     it('updates amount', () => {
-      const { result } = renderHook(() => useSend())
+      const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('1.5', 18, 'ETH')
       act(() => {
-        result.current.setAmount('1.5')
+        result.current.setAmount(amount)
       })
-      expect(result.current.state.amount).toBe('1.5')
+      expect(result.current.state.amount?.toFormatted()).toBe('1.5')
     })
 
     it('clears amount error on change', () => {
@@ -83,8 +84,9 @@ describe('useSend', () => {
       expect(result.current.state.amountError).not.toBeNull()
 
       // Now set amount
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       act(() => {
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
       })
       expect(result.current.state.amountError).toBeNull()
     })
@@ -115,8 +117,9 @@ describe('useSend', () => {
   describe('canProceed', () => {
     it('returns false when address is empty', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('1', 18, 'ETH')
       act(() => {
-        result.current.setAmount('1')
+        result.current.setAmount(amount)
       })
       expect(result.current.canProceed).toBe(false)
     })
@@ -131,18 +134,20 @@ describe('useSend', () => {
 
     it('returns false when asset is null', () => {
       const { result } = renderHook(() => useSend())
+      const amount = Amount.fromFormatted('1', 18, 'ETH')
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('1')
+        result.current.setAmount(amount)
       })
       expect(result.current.canProceed).toBe(false)
     })
 
     it('returns true when all fields are valid', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
       })
       expect(result.current.canProceed).toBe(true)
     })
@@ -151,8 +156,9 @@ describe('useSend', () => {
   describe('goToConfirm', () => {
     it('returns false and sets error for empty address', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('1', 18, 'ETH')
       act(() => {
-        result.current.setAmount('1')
+        result.current.setAmount(amount)
       })
 
       let success: boolean
@@ -167,9 +173,10 @@ describe('useSend', () => {
 
     it('returns false and sets error for invalid address', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('1', 18, 'ETH')
       act(() => {
         result.current.setToAddress('invalid')
-        result.current.setAmount('1')
+        result.current.setAmount(amount)
       })
 
       let success: boolean
@@ -198,9 +205,10 @@ describe('useSend', () => {
 
     it('returns false for insufficient balance', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('10', 18, 'ETH') // More than 1 ETH balance
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('10') // More than 1 ETH balance
+        result.current.setAmount(amount)
       })
 
       let success: boolean
@@ -214,9 +222,10 @@ describe('useSend', () => {
 
     it('returns true and goes to confirm for valid input', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
       })
 
       let success: boolean
@@ -232,10 +241,11 @@ describe('useSend', () => {
   describe('goBack', () => {
     it('returns to input step', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       // Go to confirm first
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
       })
       act(() => {
         result.current.goToConfirm()
@@ -254,9 +264,10 @@ describe('useSend', () => {
       vi.useRealTimers() // Need real timers for async
 
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
         result.current.goToConfirm()
       })
 
@@ -281,9 +292,10 @@ describe('useSend', () => {
   describe('reset', () => {
     it('resets to initial state', () => {
       const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+      const amount = Amount.fromFormatted('0.5', 18, 'ETH')
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
-        result.current.setAmount('0.5')
+        result.current.setAmount(amount)
         result.current.goToConfirm()
       })
 
@@ -293,7 +305,7 @@ describe('useSend', () => {
 
       expect(result.current.state.step).toBe('input')
       expect(result.current.state.toAddress).toBe('')
-      expect(result.current.state.amount).toBe('')
+      expect(result.current.state.amount).toBeNull()
       expect(result.current.state.asset).toEqual(mockAsset) // Keeps initial asset
     })
   })

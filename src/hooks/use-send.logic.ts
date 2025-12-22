@@ -15,61 +15,54 @@ export function validateAddressInput(address: string, isBioforestChain: boolean)
   return null
 }
 
-export function validateAmountInput(amount: string, asset: AssetInfo | null): string | null {
-  if (!amount.trim()) return '请输入金额'
+export function validateAmountInput(amount: Amount | null, asset: AssetInfo | null): string | null {
+  if (!amount) return '请输入金额'
   if (!asset) return null
 
-  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
-  if (!inputAmount || !inputAmount.isPositive()) return '请输入有效金额'
-
-  if (inputAmount.gt(asset.amount)) return '余额不足'
+  if (!amount.isPositive()) return '请输入有效金额'
+  if (amount.gt(asset.amount)) return '余额不足'
 
   return null
 }
 
 export function canProceedToConfirm(options: {
   toAddress: string
-  amount: string
+  amount: Amount | null
   asset: AssetInfo | null
   isBioforestChain: boolean
 }): boolean {
   const { toAddress, amount, asset, isBioforestChain } = options
-  if (!asset) return false
-
-  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
-  if (!inputAmount) return false
+  if (!asset || !amount) return false
 
   return (
     toAddress.trim() !== '' &&
-    amount.trim() !== '' &&
     isValidRecipientAddress(toAddress, isBioforestChain) &&
-    inputAmount.isPositive() &&
-    inputAmount.lte(asset.amount)
+    amount.isPositive() &&
+    amount.lte(asset.amount)
   )
 }
 
 export type FeeAdjustResult =
-  | { status: 'ok'; adjustedAmount?: string }
+  | { status: 'ok'; adjustedAmount?: Amount }
   | { status: 'error'; message: string }
 
 export function adjustAmountForFee(
-  amount: string,
+  amount: Amount | null,
   asset: AssetInfo,
   fee: Amount
 ): FeeAdjustResult {
-  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
-  if (!inputAmount) return { status: 'error', message: '请输入有效金额' }
+  if (!amount) return { status: 'error', message: '请输入有效金额' }
 
   const balance = asset.amount
 
-  if (inputAmount.add(fee).lte(balance)) return { status: 'ok' }
-  if (!inputAmount.eq(balance)) return { status: 'error', message: '余额不足' }
+  if (amount.add(fee).lte(balance)) return { status: 'ok' }
+  if (!amount.eq(balance)) return { status: 'error', message: '余额不足' }
 
   const maxSendable = balance.sub(fee)
   if (!maxSendable.isPositive()) return { status: 'error', message: '余额不足' }
 
   return {
     status: 'ok',
-    adjustedAmount: maxSendable.toFormatted(),
+    adjustedAmount: maxSendable,
   }
 }

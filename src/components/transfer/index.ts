@@ -1,2 +1,2 @@
 export { AddressInput, isValidAddress } from './address-input'
-export { AmountInput, formatInputValue } from './amount-input'
+export { AmountInput, sanitizeInput, limitDecimals } from './amount-input'
