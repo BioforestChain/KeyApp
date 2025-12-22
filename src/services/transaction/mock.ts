@@ -2,6 +2,7 @@
  * Transaction 服务 - Mock 实现
  */
 
+import { Amount } from '@/types/amount'
 import { transactionServiceMeta, type ITransactionMockController, type TransactionRecord, type TransactionFilter, type TransactionType, type TransactionStatus } from './types'
 import type { ChainType } from '@/stores'
 
@@ -19,6 +20,12 @@ function randomHash(): string {
   let hash = '0x'
   for (let i = 0; i < 64; i++) hash += chars[Math.floor(Math.random() * chars.length)]
   return hash
+}
+
+// Decimals for different tokens
+const TOKEN_DECIMALS: Record<string, number> = {
+  ETH: 18, USDT: 6, USDC: 6, TRX: 6, BTC: 8, BNB: 18, BUSD: 18, BFM: 8,
+  BFC: 8, CC: 8, PM: 8, BTG: 8, BIW: 8, ETHM: 18, MAL: 8, TOKEN: 18,
 }
 
 function generateInitialTransactions(count: number = 30): TransactionRecord[] {
@@ -49,22 +56,30 @@ function generateInitialTransactions(count: number = 30): TransactionRecord[] {
     const type = types[Math.floor(Math.random() * types.length)]!
     const status = statuses[Math.floor(Math.random() * statuses.length)]!
     const symbol = chainSymbols[Math.floor(Math.random() * chainSymbols.length)]!
+    const decimals = TOKEN_DECIMALS[symbol] ?? 18
+    const feeSymbol = chain === 'ethereum' ? 'ETH' : chain === 'tron' ? 'TRX' : symbol
+    const feeDecimals = TOKEN_DECIMALS[feeSymbol] ?? 18
 
     const daysAgo = Math.floor(Math.random() * 90)
     const timestamp = new Date(now - daysAgo * 24 * 60 * 60 * 1000)
+
+    const amountStr = (Math.random() * 100).toFixed(type === 'swap' ? 2 : 4)
+    const feeStr = (Math.random() * 0.01).toFixed(6)
 
     transactions.push({
       id: `tx-${i}-${Date.now()}`,
       type,
       status,
-      amount: (Math.random() * 100).toFixed(type === 'swap' ? 2 : 4),
+      amount: Amount.fromFormatted(amountStr, decimals, symbol),
       symbol,
+      decimals,
       address: randomAddress(),
       timestamp,
       hash: randomHash(),
       chain,
-      fee: (Math.random() * 0.01).toFixed(6),
-      feeSymbol: chain === 'ethereum' ? 'ETH' : chain === 'tron' ? 'TRX' : symbol,
+      fee: Amount.fromFormatted(feeStr, feeDecimals, feeSymbol),
+      feeSymbol,
+      feeDecimals,
       blockNumber: status === 'confirmed' ? Math.floor(Math.random() * 1000000) + 18000000 : undefined,
       confirmations: status === 'confirmed' ? Math.floor(Math.random() * 100) + 1 : 0,
     })

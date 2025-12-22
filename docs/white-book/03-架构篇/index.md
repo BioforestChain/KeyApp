@@ -53,6 +53,16 @@
 - 服务端状态：TanStack Query
 - 状态持久化策略
 
+### [第十四章：Amount 类型系统](./08-Amount类型系统/)
+
+定义类型安全的货币金额处理方案。
+
+**要点**：
+- Amount 不可变类型，携带 decimals 和 symbol 元数据
+- 工厂方法：fromRaw()、fromFormatted()、zero()
+- 精确算术操作，避免 JavaScript 浮点数精度问题
+- 序列化/反序列化支持
+
 ---
 
 ## 本篇来源

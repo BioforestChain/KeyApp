@@ -455,10 +455,10 @@ export const walletActions = {
         id: `${chain}:${b.symbol}`,
         symbol: b.symbol,
         name: b.symbol,
-        balance: b.formatted,
+        balance: b.amount.toFormatted(),
         fiatValue: 0, // TODO: 对接汇率服务
         change24h: 0,
-        decimals: b.decimals,
+        decimals: b.amount.decimals,
         chain,
       }))
 

@@ -3,12 +3,14 @@
  * Based on mpay $AddressAssetsTypeV2 pattern
  */
 
+import { Amount } from './amount'
+
 /** Single asset/token information */
 export interface AssetInfo {
   /** Token identifier (ETH, USDT, BFM, etc.) */
   assetType: string
-  /** Balance as string for decimal precision */
-  amount: string
+  /** Balance as Amount object */
+  amount: Amount
   /** Decimal places for formatting */
   decimals: number
   /** Token icon URL (optional, fallback to letter) */
@@ -41,26 +43,6 @@ export interface AssetState {
   isLoading: boolean
   /** Error message */
   error: string | null
-}
-
-/** Format raw amount with decimals */
-export function formatAssetAmount(amount: string, decimals: number): string {
-  if (!amount || amount === '0') return '0'
-
-  const value = BigInt(amount)
-  const divisor = BigInt(10 ** decimals)
-  const integerPart = value / divisor
-  const fractionalPart = value % divisor
-
-  if (fractionalPart === 0n) {
-    return integerPart.toString()
-  }
-
-  const fractionalStr = fractionalPart.toString().padStart(decimals, '0')
-  // Trim trailing zeros
-  const trimmed = fractionalStr.replace(/0+$/, '')
-
-  return `${integerPart}.${trimmed}`
 }
 
 /** Currency configuration for fiat formatting */
@@ -100,59 +82,43 @@ export interface FormatFiatOptions {
 
 /**
  * Calculate and format fiat value from asset amount and price
- *
- * Overload 1: Legacy signature (backward compatible)
- * @param amount Raw amount string (in smallest unit)
- * @param decimals Token decimal places
+ * @param amount Amount object or raw string
+ * @param decimals Token decimal places (only used if amount is string)
  * @param priceUsd Price per token in USD
- * @param currency Target currency code (default: USD)
+ * @param options Formatting options
  * @returns Formatted fiat value string (e.g., "$1,234.56")
  */
 export function formatFiatValue(
-  amount: string,
+  amount: Amount | string,
   decimals: number,
   priceUsd: number,
-  currency?: string
-): string
-/**
- * Overload 2: Extended signature with options object
- * @param amount Raw amount string (in smallest unit)
- * @param decimals Token decimal places
- * @param priceUsd Price per token in USD
- * @param options Formatting options including currency and exchange rate
- * @returns Formatted fiat value string
- */
-export function formatFiatValue(
-  amount: string,
-  decimals: number,
-  priceUsd: number,
-  options?: FormatFiatOptions
-): string
-export function formatFiatValue(
-  amount: string,
-  decimals: number,
-  priceUsd: number,
-  currencyOrOptions?: string | FormatFiatOptions
+  options?: FormatFiatOptions | string
 ): string {
-  // Parse options - support both legacy string and new options object
-  const options: FormatFiatOptions =
-    typeof currencyOrOptions === 'string'
-      ? { currency: currencyOrOptions }
-      : currencyOrOptions ?? {}
+  const opts: FormatFiatOptions =
+    typeof options === 'string' ? { currency: options } : options ?? {}
 
-  const { currency = 'USD', exchangeRate, locale } = options
+  const { currency = 'USD', exchangeRate, locale } = opts
 
-  // Get currency config with fallback to USD
   const config: CurrencyConfig = currencyConfigs[currency] ?? {
     code: 'USD',
     locale: 'en-US',
   }
 
-  // Use provided locale or default to currency's locale
   const formatLocale = locale ?? config.locale
 
-  // Handle zero/empty values - format with target currency
-  if (!amount || amount === '0' || !priceUsd) {
+  // Convert Amount or string to number
+  let value: number
+  if (amount instanceof Amount) {
+    value = amount.toNumber()
+  } else {
+    if (!amount || amount === '0') {
+      value = 0
+    } else {
+      value = Number(amount) / 10 ** decimals
+    }
+  }
+
+  if (value === 0 || !priceUsd) {
     return new Intl.NumberFormat(formatLocale, {
       style: 'currency',
       currency: config.code,
@@ -161,16 +127,12 @@ export function formatFiatValue(
     }).format(0)
   }
 
-  // Convert to number for calculation
-  const value = Number(amount) / 10 ** decimals
   let fiatValue = value * priceUsd
 
-  // Apply exchange rate if provided and currency is not USD
   if (exchangeRate !== undefined && currency !== 'USD') {
     fiatValue = convertFiat(fiatValue, exchangeRate)
   }
 
-  // Format with Intl.NumberFormat
   return new Intl.NumberFormat(formatLocale, {
     style: 'currency',
     currency: config.code,
@@ -188,4 +150,29 @@ export function formatPriceChange(change: number | undefined): string {
   if (change === undefined || change === null) return ''
   const sign = change >= 0 ? '+' : ''
   return `${sign}${change.toFixed(2)}%`
+}
+
+/**
+ * Create AssetInfo from raw data (e.g., from API)
+ */
+export function createAssetInfo(data: {
+  assetType: string
+  amount: string // raw or formatted string
+  decimals: number
+  logoUrl?: string
+  contractAddress?: string
+  name?: string
+  priceUsd?: number
+  priceChange24h?: number
+}): AssetInfo {
+  return {
+    assetType: data.assetType,
+    amount: Amount.parse(data.amount, data.decimals, data.assetType),
+    decimals: data.decimals,
+    logoUrl: data.logoUrl,
+    contractAddress: data.contractAddress,
+    name: data.name,
+    priceUsd: data.priceUsd,
+    priceChange24h: data.priceChange24h,
+  }
 }

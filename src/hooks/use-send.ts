@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import type { AssetInfo } from '@/types/asset'
+import { Amount } from '@/types/amount'
 import { initialState, MOCK_FEES } from './use-send.constants'
 import type { SendState, UseSendOptions, UseSendReturn } from './use-send.types'
-import { parseAmountToBigInt } from './use-send.utils'
 import { fetchBioforestBalance, fetchBioforestFee, submitBioforestTransfer } from './use-send.bioforest'
 import { adjustAmountForFee, canProceedToConfirm, validateAddressInput, validateAmountInput } from './use-send.logic'
 import { submitMockTransfer } from './use-send.mock'
@@ -60,11 +60,10 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       // Mock fee estimation delay
       setTimeout(() => {
         const fee = MOCK_FEES[asset.assetType] ?? { amount: '0.001', symbol: asset.assetType }
-        const feeRaw = parseAmountToBigInt(fee.amount, asset.decimals) ?? 0n
+        const feeAmount = Amount.fromFormatted(fee.amount, asset.decimals, fee.symbol)
         setState((prev) => ({
           ...prev,
-          feeAmount: fee.amount,
-          feeAmountRaw: feeRaw.toString(),
+          feeAmount: feeAmount,
           feeSymbol: fee.symbol,
           feeLoading: false,
         }))
@@ -77,8 +76,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         const feeEstimate = await fetchBioforestFee(chainConfig, fromAddress)
         setState((prev) => ({
           ...prev,
-          feeAmount: feeEstimate.formatted,
-          feeAmountRaw: feeEstimate.raw,
+          feeAmount: feeEstimate.amount,
           feeSymbol: feeEstimate.symbol,
           feeLoading: false,
         }))
@@ -140,8 +138,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return false
     }
 
-    if (state.asset) {
-      const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmountRaw)
+    if (state.asset && state.feeAmount) {
+      const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmount)
       if (adjustResult.status === 'error') {
         setState((prev) => ({
           ...prev,
@@ -164,7 +162,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amountError: null,
     }))
     return true
-  }, [state.toAddress, state.amount, state.asset, state.feeAmountRaw, validateAddress, validateAmount])
+  }, [state.toAddress, state.amount, state.asset, state.feeAmount, validateAddress, validateAmount])
 
   // Go back to input
   const goBack = useCallback(() => {
@@ -223,14 +221,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
+    // Convert formatted amount string to Amount object
+    const sendAmount = Amount.fromFormatted(state.amount, state.asset.decimals, state.asset.assetType)
+
     const result = await submitBioforestTransfer({
       chainConfig,
       walletId,
       password,
       fromAddress,
       toAddress: state.toAddress,
-      amount: state.amount,
-      decimals: state.asset.decimals,
+      amount: sendAmount,
     })
 
     if (result.status === 'password') {

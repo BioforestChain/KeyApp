@@ -5,6 +5,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import type { IAssetService, Address, Balance, TokenMetadata } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 
@@ -57,10 +58,8 @@ export class BioforestAssetService implements IAssetService {
     if (native) return native
 
     return {
-      raw: 0n,
-      formatted: '0',
+      amount: Amount.zero(this.config.decimals, this.config.symbol),
       symbol: this.config.symbol,
-      decimals: this.config.decimals,
     }
   }
 
@@ -73,10 +72,8 @@ export class BioforestAssetService implements IAssetService {
     if (token) return token
 
     return {
-      raw: 0n,
-      formatted: '0',
+      amount: Amount.zero(this.config.decimals, assetType),
       symbol: assetType,
-      decimals: this.config.decimals,
     }
   }
 
@@ -85,10 +82,8 @@ export class BioforestAssetService implements IAssetService {
       // No RPC URL configured, return empty balance
       return [
         {
-          raw: 0n,
-          formatted: '0',
+          amount: Amount.zero(this.config.decimals, this.config.symbol),
           symbol: this.config.symbol,
-          decimals: this.config.decimals,
         },
       ]
     }
@@ -117,10 +112,8 @@ export class BioforestAssetService implements IAssetService {
         // API returned success=false or no result, return empty
         return [
           {
-            raw: 0n,
-            formatted: '0',
+            amount: Amount.zero(this.config.decimals, this.config.symbol),
             symbol: this.config.symbol,
-            decimals: this.config.decimals,
           },
         ]
       }
@@ -137,15 +130,13 @@ export class BioforestAssetService implements IAssetService {
           const asset = magicAssets[assetType]
           if (!asset) continue
 
-          const raw = BigInt(asset.assetNumber)
           // BioForest chains use fixed 8 decimals
           const decimals = this.config.decimals
+          const amount = Amount.fromRaw(asset.assetNumber, decimals, asset.assetType)
 
           balances.push({
-            raw,
-            formatted: this.formatAmount(raw, decimals),
+            amount,
             symbol: asset.assetType,
-            decimals,
           })
         }
       }
@@ -154,10 +145,8 @@ export class BioforestAssetService implements IAssetService {
       if (balances.length === 0) {
         return [
           {
-            raw: 0n,
-            formatted: '0',
+            amount: Amount.zero(this.config.decimals, this.config.symbol),
             symbol: this.config.symbol,
-            decimals: this.config.decimals,
           },
         ]
       }
@@ -182,15 +171,5 @@ export class BioforestAssetService implements IAssetService {
       symbol: tokenAddress,
       decimals: this.config.decimals,
     }
-  }
-
-  private formatAmount(raw: bigint, decimals: number): string {
-    const divisor = BigInt(10 ** decimals)
-    const integerPart = raw / divisor
-    const fractionalPart = raw % divisor
-
-    // 始终显示完整的小数位（如 0.00000000）
-    const fractionalStr = fractionalPart.toString().padStart(decimals, '0')
-    return `${integerPart}.${fractionalStr}`
   }
 }

@@ -2,11 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { fn } from '@storybook/test'
 import { AssetItem } from './asset-item'
 import type { AssetInfo } from '@/types/asset'
+import { Amount } from '@/types/amount'
 
 const mockAsset: AssetInfo = {
   assetType: 'ETH',
   name: 'Ethereum',
-  amount: '1500000000000000000', // 1.5 ETH
+  amount: Amount.fromRaw('1500000000000000000', 18, 'ETH'), // 1.5 ETH
   decimals: 18,
 }
 
@@ -80,7 +81,7 @@ export const USDT: Story = {
     asset: {
       assetType: 'USDT',
       name: 'Tether USD',
-      amount: '100000000', // 100 USDT
+      amount: Amount.fromRaw('100000000', 6, 'USDT'), // 100 USDT
       decimals: 6,
       contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
       priceUsd: 1,
@@ -94,7 +95,7 @@ export const Bitcoin: Story = {
     asset: {
       assetType: 'BTC',
       name: 'Bitcoin',
-      amount: '50000000', // 0.5 BTC
+      amount: Amount.fromRaw('50000000', 8, 'BTC'), // 0.5 BTC
       decimals: 8,
       priceUsd: 45000,
       priceChange24h: -1.5,
@@ -112,7 +113,7 @@ export const SmallAmount: Story = {
   args: {
     asset: {
       ...mockAsset,
-      amount: '1000000000000000', // 0.001 ETH
+      amount: Amount.fromRaw('1000000000000000', 18, 'ETH'), // 0.001 ETH
       priceUsd: 2500,
       priceChange24h: 2.3,
     },

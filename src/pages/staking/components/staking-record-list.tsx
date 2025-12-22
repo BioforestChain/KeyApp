@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { stakingService } from '@/services/staking';
+import type { Amount } from '@/types/amount';
 import type { StakingTransaction, StakingTxType, StakingTxStatus } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -68,8 +69,8 @@ function formatTime(timestamp: number): string {
 }
 
 /** Format amount with decimals */
-function formatAmount(raw: string, decimals = 18): string {
-  const num = parseFloat(raw) / Math.pow(10, decimals);
+function formatAmount(amount: Amount): string {
+  const num = amount.toNumber();
   if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
   return num.toFixed(4);

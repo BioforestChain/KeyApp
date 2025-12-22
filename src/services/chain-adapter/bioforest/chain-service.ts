@@ -3,6 +3,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import type { BioforestBlockInfo, BioforestFeeInfo } from './types'
@@ -63,13 +64,15 @@ export class BioforestChainService implements IChainService {
   }
 
   async getGasPrice(): Promise<GasPrice> {
+    const { decimals, symbol } = this.config
+
     if (!this.baseUrl) {
       // Return default fees
-      const defaultFee = BigInt(10000000) // 0.1 in 8 decimals
+      const defaultFee = Amount.fromRaw('10000000', decimals, symbol) // 0.1 in 8 decimals
       return {
         slow: defaultFee,
         standard: defaultFee,
-        fast: defaultFee * 2n,
+        fast: defaultFee.mul(2),
         lastUpdated: Date.now(),
       }
     }
@@ -88,23 +91,23 @@ export class BioforestChainService implements IChainService {
       }
 
       const data = (await response.json()) as { data: BioforestFeeInfo }
-      const minFee = BigInt(data.data.minFee)
-      const avgFee = BigInt(data.data.avgFee)
+      const minFee = Amount.fromRaw(data.data.minFee, decimals, symbol)
+      const avgFee = Amount.fromRaw(data.data.avgFee, decimals, symbol)
 
       return {
         slow: minFee,
-        standard: avgFee > minFee ? avgFee : minFee,
-        fast: avgFee * 2n > minFee ? avgFee * 2n : minFee * 2n,
+        standard: avgFee.gt(minFee) ? avgFee : minFee,
+        fast: avgFee.mul(2).gt(minFee) ? avgFee.mul(2) : minFee.mul(2),
         lastUpdated: Date.now(),
       }
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
       // Return default on error
-      const defaultFee = BigInt(10000000)
+      const defaultFee = Amount.fromRaw('10000000', decimals, symbol)
       return {
         slow: defaultFee,
         standard: defaultFee,
-        fast: defaultFee * 2n,
+        fast: defaultFee.mul(2),
         lastUpdated: Date.now(),
       }
     }

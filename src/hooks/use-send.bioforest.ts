@@ -1,13 +1,12 @@
 import type { AssetInfo } from '@/types/asset'
 import type { ChainConfig } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
 import { createBioforestAdapter } from '@/services/chain-adapter'
 import { deriveBioforestKeyFromChainConfig, hexToBytes } from '@/lib/crypto'
-import { parseAmountToBigInt } from './use-send.utils'
 
 export interface BioforestFeeResult {
-  formatted: string
-  raw: string
+  amount: Amount
   symbol: string
 }
 
@@ -16,12 +15,11 @@ export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: s
   const feeEstimate = await adapter.transaction.estimateFee({
     from: fromAddress,
     to: fromAddress,
-    amount: 0n,
+    amount: Amount.zero(chainConfig.decimals, chainConfig.symbol),
   })
 
   return {
-    formatted: feeEstimate.standard.formatted,
-    raw: feeEstimate.standard.amount.toString(),
+    amount: feeEstimate.standard.amount,
     symbol: chainConfig.symbol,
   }
 }
@@ -33,8 +31,8 @@ export async function fetchBioforestBalance(chainConfig: ChainConfig, fromAddres
   return {
     assetType: balance.symbol,
     name: chainConfig.name,
-    amount: balance.raw.toString(),
-    decimals: balance.decimals,
+    amount: balance.amount,
+    decimals: balance.amount.decimals,
   }
 }
 
@@ -49,8 +47,7 @@ export interface SubmitBioforestParams {
   password: string
   fromAddress: string
   toAddress: string
-  amount: string
-  decimals: number
+  amount: Amount
 }
 
 export async function submitBioforestTransfer({
@@ -60,7 +57,6 @@ export async function submitBioforestTransfer({
   fromAddress,
   toAddress,
   amount,
-  decimals,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
   let secret: string
   try {
@@ -80,8 +76,7 @@ export async function submitBioforestTransfer({
     return { status: 'error', message: '签名地址不匹配' }
   }
 
-  const rawAmount = parseAmountToBigInt(amount, decimals)
-  if (rawAmount === null || rawAmount <= 0n) {
+  if (!amount.isPositive()) {
     return { status: 'error', message: '请输入有效金额' }
   }
 
@@ -90,7 +85,7 @@ export async function submitBioforestTransfer({
     const unsignedTx = await adapter.transaction.buildTransaction({
       from: fromAddress,
       to: toAddress,
-      amount: rawAmount,
+      amount,
     })
     const signedTx = await adapter.transaction.signTransaction(unsignedTx, hexToBytes(derived.privateKey))
     const txHash = await adapter.transaction.broadcastTransaction(signedTx)

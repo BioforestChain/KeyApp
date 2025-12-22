@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { ChainType } from '@/stores'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
+import type { Amount } from '@/types/amount'
 import {
   transactionService,
   type TransactionRecord as ServiceTransactionRecord,
@@ -17,7 +18,7 @@ export interface TransactionFilter {
 /** 扩展的交易信息（包含链类型）- 保持与组件兼容 */
 export interface TransactionRecord extends TransactionInfo {
   chain: ChainType
-  fee: string | undefined
+  fee: Amount | undefined
   feeSymbol: string | undefined
   blockNumber: number | undefined
   confirmations: number | undefined

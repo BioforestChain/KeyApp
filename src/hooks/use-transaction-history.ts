@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { ChainType } from '@/stores'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
+import { Amount } from '@/types/amount'
 import { transactionService, type TransactionRecord as ServiceTransactionRecord, type TransactionFilter as ServiceFilter } from '@/services/transaction'
 
 /** 交易历史过滤器 */
@@ -12,7 +13,7 @@ export interface TransactionFilter {
 /** 扩展的交易信息（包含链类型）- 保持与组件兼容 */
 export interface TransactionRecord extends TransactionInfo {
   chain: ChainType
-  fee: string | undefined
+  fee: Amount | undefined
   feeSymbol: string | undefined
   blockNumber: number | undefined
   confirmations: number | undefined
@@ -72,8 +73,9 @@ export function useTransactionHistory(walletId?: string): UseTransactionHistoryR
         type: undefined,
         status: undefined,
       }
-      const records = await transactionService.getHistory({ walletId, filter: serviceFilter })
-      setTransactions(records.map(convertToComponentFormat))
+      const rawRecords = await transactionService.getHistory({ walletId, filter: serviceFilter })
+      // Records from service already have Amount objects
+      setTransactions(rawRecords.map(convertToComponentFormat))
     } catch (e) {
       setError(e instanceof Error ? e.message : '加载交易历史失败')
     } finally {

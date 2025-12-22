@@ -5,6 +5,7 @@ import { BalanceDisplay } from '@/components/token/balance-display';
 import { TransactionList } from '@/components/transaction/transaction-list';
 import { GradientButton } from '@/components/common/gradient-button';
 import { IconArrowUp as ArrowUp, IconArrowDown as ArrowDown } from '@tabler/icons-react';
+import { Amount } from '@/types/amount';
 
 // 临时模拟数据
 const mockToken = {
@@ -20,7 +21,7 @@ const mockTransactions = [
     id: '1',
     type: 'send' as const,
     status: 'confirmed' as const,
-    amount: '100',
+    amount: Amount.fromFormatted('100', 6, 'USDT'),
     symbol: 'USDT',
     address: '0xabcd...1234',
     timestamp: new Date(Date.now() - 3600000),
@@ -29,7 +30,7 @@ const mockTransactions = [
     id: '2',
     type: 'receive' as const,
     status: 'confirmed' as const,
-    amount: '500',
+    amount: Amount.fromFormatted('500', 6, 'USDT'),
     symbol: 'USDT',
     address: '0x1234...abcd',
     timestamp: new Date(Date.now() - 86400000),

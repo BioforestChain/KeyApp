@@ -1,5 +1,5 @@
 import type { AssetInfo } from '@/types/asset'
-import { Amount, amountFromAsset } from '@/types/amount'
+import { Amount } from '@/types/amount'
 import { isValidBioforestAddress } from '@/lib/crypto'
 import { isValidAddress } from '@/components/transfer/address-input'
 
@@ -22,8 +22,7 @@ export function validateAmountInput(amount: string, asset: AssetInfo | null): st
   const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
   if (!inputAmount || !inputAmount.isPositive()) return '请输入有效金额'
 
-  const balance = amountFromAsset(asset)
-  if (inputAmount.gt(balance)) return '余额不足'
+  if (inputAmount.gt(asset.amount)) return '余额不足'
 
   return null
 }
@@ -40,14 +39,12 @@ export function canProceedToConfirm(options: {
   const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
   if (!inputAmount) return false
 
-  const balance = amountFromAsset(asset)
-
   return (
     toAddress.trim() !== '' &&
     amount.trim() !== '' &&
     isValidRecipientAddress(toAddress, isBioforestChain) &&
     inputAmount.isPositive() &&
-    inputAmount.lte(balance)
+    inputAmount.lte(asset.amount)
   )
 }
 
@@ -58,13 +55,12 @@ export type FeeAdjustResult =
 export function adjustAmountForFee(
   amount: string,
   asset: AssetInfo,
-  feeAmountRaw: string
+  fee: Amount
 ): FeeAdjustResult {
   const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
   if (!inputAmount) return { status: 'error', message: '请输入有效金额' }
 
-  const balance = amountFromAsset(asset)
-  const fee = Amount.fromRaw(feeAmountRaw || '0', asset.decimals)
+  const balance = asset.amount
 
   if (inputAmount.add(fee).lte(balance)) return { status: 'ok' }
   if (!inputAmount.eq(balance)) return { status: 'error', message: '余额不足' }

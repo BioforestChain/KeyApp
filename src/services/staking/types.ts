@@ -4,6 +4,7 @@
 
 import { z } from 'zod'
 import { defineServiceMeta } from '@/lib/service-meta'
+import { Amount } from '@/types/amount'
 import type {
   RechargeConfig,
   StakingTransaction,
@@ -14,6 +15,9 @@ import type {
 } from '@/types/staking'
 
 // ==================== Zod Schemas ====================
+
+// Custom Amount schema for Zod validation
+const AmountSchema = z.custom<Amount>((val) => val instanceof Amount)
 
 const RechargeConfigSchema = z.record(z.string(), z.record(z.string(), z.object({
   assetType: z.string(),
@@ -30,14 +34,14 @@ const LogoUrlMapSchema = z.record(z.string(), z.record(z.string(), z.string()))
 const StakingOverviewItemSchema = z.object({
   chain: z.enum(['BFMeta', 'BFChain', 'CCChain', 'PMChain']),
   assetType: z.string(),
-  stakedAmount: z.string(),
+  stakedAmount: AmountSchema,
   stakedFiat: z.string(),
   availableChains: z.array(z.enum(['ETH', 'BSC', 'TRON'])),
   logoUrl: z.string().optional(),
-  totalMinted: z.string(),
-  totalCirculation: z.string(),
-  totalBurned: z.string(),
-  totalStaked: z.string(),
+  totalMinted: AmountSchema,
+  totalCirculation: AmountSchema,
+  totalBurned: AmountSchema,
+  totalStaked: AmountSchema,
   externalChain: z.enum(['ETH', 'BSC', 'TRON']),
   externalAssetType: z.string(),
 })
@@ -47,10 +51,10 @@ const StakingTransactionSchema = z.object({
   type: z.enum(['mint', 'burn']),
   sourceChain: z.string(),
   sourceAsset: z.string(),
-  sourceAmount: z.string(),
+  sourceAmount: AmountSchema,
   targetChain: z.string(),
   targetAsset: z.string(),
-  targetAmount: z.string(),
+  targetAmount: AmountSchema,
   status: z.enum(['pending', 'confirming', 'confirmed', 'failed']),
   txHash: z.string().optional(),
   createdAt: z.number(),
@@ -61,7 +65,7 @@ const StakingTransactionSchema = z.object({
 const MintRequestSchema = z.object({
   sourceChain: z.enum(['ETH', 'BSC', 'TRON']),
   sourceAsset: z.string(),
-  amount: z.string(),
+  amount: AmountSchema,
   targetChain: z.enum(['BFMeta', 'BFChain', 'CCChain', 'PMChain']),
   targetAsset: z.string(),
 })
@@ -69,7 +73,7 @@ const MintRequestSchema = z.object({
 const BurnRequestSchema = z.object({
   sourceChain: z.enum(['BFMeta', 'BFChain', 'CCChain', 'PMChain']),
   sourceAsset: z.string(),
-  amount: z.string(),
+  amount: AmountSchema,
   targetChain: z.enum(['ETH', 'BSC', 'TRON']),
   targetAsset: z.string(),
 })

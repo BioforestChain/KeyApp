@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import type { AssetInfo, ChainAssets, AssetState } from '@/types/asset'
+import { Amount } from '@/types/amount'
 
 /** Mock assets for development */
 const MOCK_ASSETS: ChainAssets[] = [
@@ -10,14 +11,14 @@ const MOCK_ASSETS: ChainAssets[] = [
       {
         assetType: 'ETH',
         name: 'Ethereum',
-        amount: '1500000000000000000', // 1.5 ETH
+        amount: Amount.fromRaw('1500000000000000000', 18, 'ETH'), // 1.5 ETH
         decimals: 18,
         logoUrl: undefined,
       },
       {
         assetType: 'USDT',
         name: 'Tether USD',
-        amount: '100000000', // 100 USDT
+        amount: Amount.fromRaw('100000000', 6, 'USDT'), // 100 USDT
         decimals: 6,
         contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
         logoUrl: undefined,
@@ -25,7 +26,7 @@ const MOCK_ASSETS: ChainAssets[] = [
       {
         assetType: 'USDC',
         name: 'USD Coin',
-        amount: '50000000', // 50 USDC
+        amount: Amount.fromRaw('50000000', 6, 'USDC'), // 50 USDC
         decimals: 6,
         contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         logoUrl: undefined,
@@ -39,7 +40,7 @@ const MOCK_ASSETS: ChainAssets[] = [
       {
         assetType: 'BTC',
         name: 'Bitcoin',
-        amount: '50000000', // 0.5 BTC
+        amount: Amount.fromRaw('50000000', 8, 'BTC'), // 0.5 BTC
         decimals: 8,
         logoUrl: undefined,
       },
@@ -52,7 +53,7 @@ const MOCK_ASSETS: ChainAssets[] = [
       {
         assetType: 'TRX',
         name: 'TRON',
-        amount: '10000000000', // 10000 TRX
+        amount: Amount.fromRaw('10000000000', 6, 'TRX'), // 10000 TRX
         decimals: 6,
         logoUrl: undefined,
       },
@@ -65,7 +66,7 @@ const MOCK_ASSETS: ChainAssets[] = [
       {
         assetType: 'BFM',
         name: 'BioForest Meta',
-        amount: '500000000000', // 5000 BFM
+        amount: Amount.fromRaw('500000000000', 8, 'BFM'), // 5000 BFM
         decimals: 8,
         logoUrl: undefined,
       },

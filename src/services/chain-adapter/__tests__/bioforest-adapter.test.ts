@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import type { ChainConfig } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import { createBioforestKeypair, publicKeyToBioforestAddress, verifySignature, hexToBytes } from '@/lib/crypto'
 import { BioforestAdapter, createBioforestAdapter } from '../bioforest'
 import { getAdapterRegistry, resetAdapterRegistry, setupAdapters } from '../index'
@@ -161,7 +162,7 @@ describe('BioforestTransactionService', () => {
       const fees = await adapter.transaction.estimateFee({
         from: validAddress,
         to: recipientAddress,
-        amount: 1000000n,
+        amount: Amount.fromRaw('1000000', 8, 'BFM'),
       })
 
       expect(fees.slow).toBeDefined()
@@ -176,7 +177,7 @@ describe('BioforestTransactionService', () => {
       const tx = await adapter.transaction.buildTransaction({
         from: validAddress,
         to: recipientAddress,
-        amount: 1000000n,
+        amount: Amount.fromRaw('1000000', 8, 'BFM'),
         memo: 'test transfer',
       })
 
@@ -196,7 +197,7 @@ describe('BioforestTransactionService', () => {
       const tx = await adapter.transaction.buildTransaction({
         from: validAddress,
         to: recipientAddress,
-        amount: 1000000n,
+        amount: Amount.fromRaw('1000000', 8, 'BFM'),
       })
 
       const signedTx = await adapter.transaction.signTransaction(tx, testKeypair.secretKey)
@@ -210,7 +211,7 @@ describe('BioforestTransactionService', () => {
       const tx = await adapter.transaction.buildTransaction({
         from: validAddress,
         to: recipientAddress,
-        amount: 1000000n,
+        amount: Amount.fromRaw('1000000', 8, 'BFM'),
       })
 
       const signedTx = await adapter.transaction.signTransaction(tx, testKeypair.secretKey)
@@ -239,9 +240,9 @@ describe('BioforestTransactionService', () => {
     it('returns mock balance when no RPC configured', async () => {
       const balance = await adapter.asset.getNativeBalance(validAddress)
 
-      expect(balance.raw).toBe(0n)
+      expect(balance.amount.isZero()).toBe(true)
       expect(balance.symbol).toBe('BFM')
-      expect(balance.decimals).toBe(8)
+      expect(balance.amount.decimals).toBe(8)
     })
   })
 

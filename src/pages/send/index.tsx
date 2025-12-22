@@ -12,7 +12,7 @@ import { TransferConfirmSheet } from '@/components/transfer/transfer-confirm-she
 import { SendResult } from '@/components/transfer/send-result';
 import { useCamera, useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
-import { formatAssetAmount } from '@/types/asset';
+import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
 import {
   useChainConfigState,
@@ -65,10 +65,11 @@ export function SendPage() {
   const defaultAsset = useMemo(() => {
     if (!chainConfig) return null;
     const nativeBalance = currentChainAddress?.tokens.find((token) => token.symbol === chainConfig.symbol);
+    const balanceFormatted = nativeBalance?.balance ?? '0';
     return {
       assetType: chainConfig.symbol,
       name: chainConfig.name,
-      amount: nativeBalance?.balance ?? '0',
+      amount: Amount.fromFormatted(balanceFormatted, chainConfig.decimals, chainConfig.symbol),
       decimals: chainConfig.decimals,
     };
   }, [chainConfig, currentChainAddress?.tokens]);
@@ -97,7 +98,7 @@ export function SendPage() {
   }, [initialAddress, initialAmount, state.toAddress, state.amount, setToAddress, setAmount]);
 
   // Derive formatted values
-  const balance = state.asset ? formatAssetAmount(state.asset.amount, state.asset.decimals) : '0';
+  const balance = state.asset ? state.asset.amount.toFormatted() : '0';
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
   const handleScan = async () => {
@@ -250,7 +251,7 @@ export function SendPage() {
         amount={state.amount}
         symbol={symbol}
         toAddress={state.toAddress}
-        feeAmount={state.feeAmount}
+        feeAmount={state.feeAmount?.toFormatted() ?? '0'}
         feeSymbol={state.feeSymbol}
         feeLoading={state.feeLoading}
         isConfirming={state.isSubmitting}

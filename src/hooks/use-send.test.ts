@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useSend } from './use-send'
+import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
 
 const mockAsset: AssetInfo = {
   assetType: 'ETH',
   name: 'Ethereum',
-  amount: '1000000000000000000', // 1 ETH
+  amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'), // 1 ETH
   decimals: 18,
 }
 
@@ -105,7 +106,8 @@ describe('useSend', () => {
       })
 
       expect(result.current.state.feeLoading).toBe(false)
-      expect(result.current.state.feeAmount).toBe('0.002')
+      expect(result.current.state.feeAmount).not.toBeNull()
+      expect(result.current.state.feeAmount?.toFormatted()).toBe('0.002')
       expect(result.current.state.feeSymbol).toBe('ETH')
     })
   })

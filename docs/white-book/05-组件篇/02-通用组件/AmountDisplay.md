@@ -10,6 +10,7 @@
 
 ### 核心特性
 
+- **Amount 类型支持**: 直接接收 `Amount` 对象，自动提取元数据
 - **数字动画**: 数值变化时逐位平滑过渡动画
 - **加载状态**: 显示 "0" 配合呼吸动画，数据到达后平滑过渡到真实值
 - **完整可访问性**: 屏幕阅读器正确读取数值
@@ -17,13 +18,35 @@
 
 ---
 
+## 与 Amount 类型集成
+
+推荐使用 `Amount` 对象作为 value 属性，组件会自动提取 decimals 和 symbol：
+
+```tsx
+import { Amount } from '@/types/amount'
+import { AmountDisplay } from '@/components/amount-display'
+
+const balance = Amount.fromRaw('1500000000000000000', 18, 'ETH')
+
+// 使用 Amount 对象（推荐）
+<AmountDisplay value={balance} />
+// 自动显示: 1.5 ETH
+
+// 也支持直接使用 number
+<AmountDisplay value={balance.toNumber()} symbol="ETH" />
+```
+
+更多关于 Amount 类型的信息，请参阅 [Amount 类型系统](../../03-架构篇/08-Amount类型系统/index.md)。
+
+---
+
 ## 属性规范
 
 | 属性 | 类型 | 必需 | 默认值 | 说明 |
 |-----|------|-----|-------|------|
-| value | number \| bigint \| string | Y | - | 金额值 |
-| symbol | string | N | - | 货币符号 |
-| decimals | number | N | 8 | 小数位数 |
+| value | number \| bigint \| string \| Amount | Y | - | 金额值（推荐使用 Amount） |
+| symbol | string | N | - | 货币符号（使用 Amount 时自动提取） |
+| decimals | number | N | 8 | 小数位数（使用 Amount 时自动提取） |
 | sign | enum | N | 'never' | 符号显示模式 |
 | color | enum | N | 'default' | 颜色模式 |
 | size | enum | N | 'md' | 尺寸 |
