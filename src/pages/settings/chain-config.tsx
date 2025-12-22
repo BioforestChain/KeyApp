@@ -258,7 +258,7 @@ export function ChainConfigPage() {
           </div>
         </div>
 
-        <div className="bg-card overflow-hidden rounded-xl shadow-sm">
+        <div className="bg-card overflow-hidden rounded-xl shadow-sm" data-testid="manual-add-section">
           <div className="space-y-3 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -268,6 +268,7 @@ export function ChainConfigPage() {
               <Button
                 type="button"
                 variant="outline"
+                data-testid="add-chain-button"
                 onClick={handleAddManual}
                 disabled={isLoading || manualJson.trim() === ''}
               >
@@ -277,6 +278,7 @@ export function ChainConfigPage() {
             </div>
 
             <textarea
+              data-testid="manual-config-textarea"
               value={manualJson}
               onChange={(e) => setManualJson(e.target.value)}
               placeholder={t('chainConfig.manual.placeholder')}
@@ -310,7 +312,7 @@ export function ChainConfigPage() {
               const sourceLabel = getSourceLabel(t, config.source);
 
               return (
-                <div key={config.id}>
+                <div key={config.id} data-testid={`chain-item-${config.id}`}>
                   {index > 0 && <div className="bg-border mx-4 h-px" />}
                   <div className="px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
