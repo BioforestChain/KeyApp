@@ -8,7 +8,7 @@ env:
   NODE_VERSION: '24'
 
 jobs:
-  # ==================== Self-hosted 快速路径 (无 action 下载) ====================
+  # ==================== Self-hosted 快速链路 ====================
   ci-fast:
     if: vars.USE_SELF_HOSTED == 'true'
     runs-on: self-hosted
@@ -56,7 +56,14 @@ jobs:
           
           echo "All checks passed!"
 
-  # ==================== GitHub-hosted 标准路径 ====================
+  checks-fast:
+    if: vars.USE_SELF_HOSTED == 'true'
+    needs: ci-fast
+    runs-on: self-hosted
+    steps:
+      - run: echo "CI fast passed"
+
+  # ==================== GitHub-hosted 标准链路 ====================
   ci-standard:
     if: vars.USE_SELF_HOSTED != 'true'
     runs-on: ubuntu-latest
@@ -109,26 +116,24 @@ jobs:
             pnpm turbo run typecheck:run build i18n:run test:run
           fi
 
-  # ==================== 状态汇总 (分支保护需要) ====================
-  # checks 直接在对应 runner 上运行，无需中间层
+  checks-standard:
+    if: vars.USE_SELF_HOSTED != 'true'
+    needs: ci-standard
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI standard passed"
+
+  # ==================== 聚合 Job（满足分支保护） ====================
   checks:
-    runs-on: ${{ vars.USE_SELF_HOSTED == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-    needs: [ci-fast, ci-standard]
     if: always()
+    needs: [checks-fast, checks-standard]
+    runs-on: ubuntu-latest
     steps:
       - name: Check results
         run: |
-          FAST="${{ needs.ci-fast.result }}"
-          STD="${{ needs.ci-standard.result }}"
-          
-          if [[ "$FAST" == "failure" ]] || [[ "$STD" == "failure" ]]; then
-            echo "CI failed!"
-            exit 1
-          fi
-          
-          if [[ "$FAST" == "success" ]] || [[ "$STD" == "success" ]]; then
-            echo "All checks passed!"
+          if [ "${{ needs.checks-fast.result }}" == "success" ] || [ "${{ needs.checks-standard.result }}" == "success" ]; then
+            echo "CI passed via $( [ '${{ needs.checks-fast.result }}' == 'success' ] && echo 'fast path' || echo 'standard path' )"
             exit 0
           fi
-          
-          echo "CI completed"
+          echo "CI failed: fast=${{ needs.checks-fast.result }}, standard=${{ needs.checks-standard.result }}"
+          exit 1
