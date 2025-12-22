@@ -32,8 +32,149 @@ env:
   PNPM_VERSION: '10'
 
 jobs:
-  # ==================== 构建 ====================
-  build:
+  # ==================== Self-hosted 快速构建 (无 action 下载) ====================
+  build-fast:
+    if: vars.USE_SELF_HOSTED == 'true'
+    runs-on: self-hosted
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      channel: ${{ steps.channel.outputs.channel }}
+
+    steps:
+      - name: Git checkout
+        run: |
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/${{ github.repository }}.git .
+          fi
+          git fetch origin ${{ github.sha }} --depth=1 --tags
+          git checkout ${{ github.sha }}
+
+      - name: Determine channel
+        id: channel
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "channel=stable" >> $GITHUB_OUTPUT
+            echo "Channel: stable (tag trigger)"
+          elif [[ "${{ github.event.inputs.channel }}" == "stable" ]]; then
+            echo "channel=stable" >> $GITHUB_OUTPUT
+            echo "Channel: stable (manual trigger)"
+          else
+            echo "channel=beta" >> $GITHUB_OUTPUT
+            echo "Channel: beta"
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Install & Build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ steps.channel.outputs.channel }}
+          VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+        run: |
+          pnpm install --frozen-lockfile
+          
+          # 类型检查和测试
+          pnpm turbo run typecheck:run test:run
+          
+          # 构建 Web 和 DWEB 版本
+          SERVICE_IMPL=web pnpm build
+          mv dist dist-web
+          
+          SERVICE_IMPL=dweb pnpm build
+          mv dist dist-dweb
+          
+          # Plaoc bundle
+          if command -v plaoc &> /dev/null; then
+            plaoc bundle ./dist-dweb -c ./ -o ./dists
+          else
+            mkdir -p dists
+            cp -r dist-dweb/* dists/
+          fi
+          
+          # 准备 webapp 目录
+          mkdir -p docs/public/webapp docs/public/webapp-beta
+          if [[ "$CHANNEL" == "stable" ]]; then
+            cp -r dist-web/* docs/public/webapp/
+            if gh release download --pattern 'bfmpay-web-beta.zip' --dir /tmp -R ${{ github.repository }} 2>/dev/null; then
+              unzip -q /tmp/bfmpay-web-beta.zip -d docs/public/webapp-beta/
+            else
+              cp -r dist-web/* docs/public/webapp-beta/
+            fi
+          else
+            cp -r dist-web/* docs/public/webapp-beta/
+            if gh release download --pattern 'bfmpay-web.zip' --dir /tmp -R ${{ github.repository }} 2>/dev/null; then
+              unzip -q /tmp/bfmpay-web.zip -d docs/public/webapp/
+            else
+              cp -r dist-web/* docs/public/webapp/
+            fi
+          fi
+          
+          # 构建 Storybook
+          pnpm build-storybook
+          mkdir -p docs/public/storybook
+          cp -r storybook-static/* docs/public/storybook/
+          
+          # 构建 VitePress
+          pnpm docs:build
+          
+          # 准备 GitHub Pages
+          mkdir -p gh-pages
+          cp -r docs/.vitepress/dist/* gh-pages/
+          touch gh-pages/.nojekyll
+
+      - name: Create release artifacts
+        env:
+          CHANNEL: ${{ steps.channel.outputs.channel }}
+        run: |
+          mkdir -p release
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          if [[ "$CHANNEL" == "stable" ]]; then
+            cd dist-web && zip -r ../release/bfmpay-web.zip . && cd ..
+            cp release/bfmpay-web.zip "release/bfmpay-web-${VERSION}.zip"
+            if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+              cd dists && zip -r ../release/bfmpay-dweb.zip . && cd ..
+            else
+              cd dist-dweb && zip -r ../release/bfmpay-dweb.zip . && cd ..
+            fi
+            cp release/bfmpay-dweb.zip "release/bfmpay-dweb-${VERSION}.zip"
+          else
+            cd dist-web && zip -r ../release/bfmpay-web-beta.zip . && cd ..
+            cp release/bfmpay-web-beta.zip "release/bfmpay-web-${VERSION}-beta.zip"
+            if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+              cd dists && zip -r ../release/bfmpay-dweb-beta.zip . && cd ..
+            else
+              cd dist-dweb && zip -r ../release/bfmpay-dweb-beta.zip . && cd ..
+            fi
+            cp release/bfmpay-dweb-beta.zip "release/bfmpay-dweb-${VERSION}-beta.zip"
+          fi
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gh-pages
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.channel.outputs.channel }}-${{ steps.version.outputs.version }}
+          path: release/
+          retention-days: 30
+
+  # ==================== GitHub-hosted 标准构建 ====================
+  build-standard:
+    if: vars.USE_SELF_HOSTED != 'true'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -248,8 +389,23 @@ jobs:
           retention-days: 30
 
   # ==================== 部署到 GitHub Pages ====================
-  deploy-pages:
-    needs: build
+  deploy-pages-fast:
+    if: vars.USE_SELF_HOSTED == 'true'
+    needs: build-fast
+    runs-on: self-hosted
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-pages-standard:
+    if: vars.USE_SELF_HOSTED != 'true'
+    needs: build-standard
     runs-on: ubuntu-latest
 
     environment:
@@ -262,28 +418,29 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # ==================== 创建 Release ====================
-  create-release:
-    needs: build
-    runs-on: ubuntu-latest
+  create-release-fast:
+    if: vars.USE_SELF_HOSTED == 'true'
+    needs: build-fast
+    runs-on: self-hosted
 
     steps:
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
-          name: release-${{ needs.build.outputs.channel }}-${{ needs.build.outputs.version }}
+          name: release-${{ needs.build-fast.outputs.channel }}-${{ needs.build-fast.outputs.version }}
           path: release/
 
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.build.outputs.channel == 'stable' && format('v{0}', needs.build.outputs.version) || 'beta' }}
-          name: ${{ needs.build.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build.outputs.version) || 'BFM Pay Beta' }}
+          tag_name: ${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'beta' }}
+          name: ${{ needs.build-fast.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build-fast.outputs.version) || 'BFM Pay Beta' }}
           body: |
-            ## BFM Pay ${{ needs.build.outputs.channel == 'stable' && format('v{0}', needs.build.outputs.version) || 'Beta' }}
+            ## BFM Pay ${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'Beta' }}
 
             ### 下载
-            - **Web 版本**: `bfmpay-web${{ needs.build.outputs.channel == 'beta' && '-beta' || '' }}.zip`
-            - **DWEB 版本**: `bfmpay-dweb${{ needs.build.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+            - **Web 版本**: `bfmpay-web${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+            - **DWEB 版本**: `bfmpay-dweb${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip`
 
             ### 在线访问
             - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
@@ -293,10 +450,50 @@ jobs:
             ### DWEB 安装
             在 DWEB 浏览器中打开以下链接安装：
             ```
-            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build.outputs.channel == 'stable' && format('v{0}', needs.build.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build.outputs.channel == 'beta' && '-beta' || '' }}.zip
+            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip
             ```
           files: |
             release/*
           draft: false
-          prerelease: ${{ needs.build.outputs.channel == 'beta' }}
-          generate_release_notes: ${{ needs.build.outputs.channel == 'stable' }}
+          prerelease: ${{ needs.build-fast.outputs.channel == 'beta' }}
+          generate_release_notes: ${{ needs.build-fast.outputs.channel == 'stable' }}
+
+  create-release-standard:
+    if: vars.USE_SELF_HOSTED != 'true'
+    needs: build-standard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-${{ needs.build-standard.outputs.channel }}-${{ needs.build-standard.outputs.version }}
+          path: release/
+
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}
+          name: ${{ needs.build-standard.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build-standard.outputs.version) || 'BFM Pay Beta' }}
+          body: |
+            ## BFM Pay ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'Beta' }}
+
+            ### 下载
+            - **Web 版本**: `bfmpay-web${{ needs.build-standard.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+            - **DWEB 版本**: `bfmpay-dweb${{ needs.build-standard.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+
+            ### 在线访问
+            - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
+            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-beta/
+            - 文档首页: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+
+            ### DWEB 安装
+            在 DWEB 浏览器中打开以下链接安装：
+            ```
+            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build-standard.outputs.channel == 'beta' && '-beta' || '' }}.zip
+            ```
+          files: |
+            release/*
+          draft: false
+          prerelease: ${{ needs.build-standard.outputs.channel == 'beta' }}
+          generate_release_notes: ${{ needs.build-standard.outputs.channel == 'stable' }}
