@@ -16,8 +16,8 @@
  */
 
 import { readdirSync } from 'node:fs'
-import { join, resolve, basename } from 'node:path'
-import { execSync } from 'node:child_process'
+import { join, resolve } from 'node:path'
+import { spawnSync } from 'node:child_process'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const E2E_DIR = join(ROOT, 'e2e')
@@ -70,10 +70,12 @@ function main() {
   // 如果有 --all 参数，运行所有测试
   if (args.includes('--all')) {
     const otherArgs = args.filter((a) => a !== '--all')
-    const cmd = ['playwright', 'test', ...otherArgs].join(' ')
     console.log(`${colors.cyan}运行所有 E2E 测试...${colors.reset}\n`)
-    execSync(cmd, { stdio: 'inherit', cwd: ROOT })
-    return
+    const result = spawnSync('playwright', ['test', ...otherArgs], {
+      stdio: 'inherit',
+      cwd: ROOT,
+    })
+    process.exit(result.status ?? 1)
   }
 
   // 分离 spec 名称和 playwright 参数
@@ -153,10 +155,13 @@ function main() {
 
   // 构建 playwright 命令
   const specFiles = specNames.map((s) => `e2e/${s}.spec.ts`)
-  const cmd = ['playwright', 'test', ...specFiles, ...playwrightArgs].join(' ')
 
   console.log(`${colors.cyan}运行 E2E 测试: ${specNames.join(', ')}${colors.reset}\n`)
-  execSync(cmd, { stdio: 'inherit', cwd: ROOT })
+  const result = spawnSync('playwright', ['test', ...specFiles, ...playwrightArgs], {
+    stdio: 'inherit',
+    cwd: ROOT,
+  })
+  process.exit(result.status ?? 1)
 }
 
 main()
