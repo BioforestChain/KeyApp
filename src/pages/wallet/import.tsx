@@ -142,6 +142,7 @@ export function WalletImportPage() {
             <div className="flex justify-center gap-2">
               <button
                 type="button"
+                data-testid="word-count-12"
                 onClick={() => setWordCount(12)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   wordCount === 12
@@ -153,6 +154,7 @@ export function WalletImportPage() {
               </button>
               <button
                 type="button"
+                data-testid="word-count-24"
                 onClick={() => setWordCount(24)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   wordCount === 24

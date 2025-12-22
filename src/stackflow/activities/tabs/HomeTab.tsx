@@ -133,7 +133,7 @@ export function HomeTab() {
 
         {/* Wallet Name and Address */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-white">{currentWallet.name}</h1>
+          <h1 data-testid="wallet-name" className="text-xl font-semibold text-white">{currentWallet.name}</h1>
           <div className="mt-2 flex items-center gap-2">
             <span className="font-mono text-sm text-white/70">
               {chainAddress?.address ? truncateAddress(chainAddress.address) : "---"}

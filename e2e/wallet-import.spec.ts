@@ -32,7 +32,7 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('12 词助记词导入成功', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 默认应该是 12 词模式
     const wordInputs = page.locator('[data-word-index]')
@@ -42,17 +42,17 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
 
     // 点击下一步
-    const nextBtn = page.locator('button:has-text("下一步")')
+    const nextBtn = page.locator('[data-testid="continue-button"]')
     await expect(nextBtn).toBeEnabled()
     await nextBtn.click()
 
     // 密码步骤
-    await page.waitForSelector('text=设置密码')
+    await page.waitForSelector('[data-testid="password-step"]')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
 
     // 完成导入
-    const completeBtn = page.locator('button:has-text("完成导入")')
+    const completeBtn = page.locator('[data-testid="complete-button"]')
     await expect(completeBtn).toBeEnabled()
     await completeBtn.click()
 
@@ -75,10 +75,10 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('24 词助记词导入成功', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 切换到 24 词模式
-    await page.click('text=24 个单词')
+    await page.click('[data-testid="word-count-24"]')
 
     // 应该显示 24 个输入框
     const wordInputs = page.locator('[data-word-index]')
@@ -88,17 +88,17 @@ test.describe('钱包导入流程 - 功能测试', () => {
     await fillMnemonic(page, TEST_MNEMONIC_24_WORDS)
 
     // 点击下一步
-    const nextBtn = page.locator('button:has-text("下一步")')
+    const nextBtn = page.locator('[data-testid="continue-button"]')
     await expect(nextBtn).toBeEnabled()
     await nextBtn.click()
 
     // 密码步骤
-    await page.waitForSelector('text=设置密码')
+    await page.waitForSelector('[data-testid="password-step"]')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
 
     // 完成导入
-    await page.click('button:has-text("完成导入")')
+    await page.click('[data-testid="complete-button"]')
     await page.waitForURL(/.*#\/$/)
 
     // 验证钱包已创建 (从 IndexedDB 读取)
@@ -108,17 +108,17 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('导入钱包派生多链地址', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 填写助记词
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
-    await page.click('button:has-text("下一步")')
+    await page.click('[data-testid="continue-button"]')
 
     // 密码步骤
-    await page.waitForSelector('text=设置密码')
+    await page.waitForSelector('[data-testid="password-step"]')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("完成导入")')
+    await page.click('[data-testid="complete-button"]')
 
     await page.waitForURL(/.*#\/$/)
 
@@ -146,25 +146,25 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('无效助记词显示错误', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 填写无效助记词
     const invalidWords = Array(12).fill('invalid')
     await fillMnemonic(page, invalidWords)
 
     // 点击下一步
-    await page.click('button:has-text("下一步")')
+    await page.click('[data-testid="continue-button"]')
 
-    // 应该显示错误提示
-    await expect(page.locator('text=助记词无效')).toBeVisible()
+    // 应该显示错误提示 (Alert 组件)
+    await expect(page.locator('[data-testid="mnemonic-step"] [role="alert"]')).toBeVisible()
 
     // 不应该跳转到密码步骤
-    await expect(page.locator('text=设置密码')).not.toBeVisible()
+    await expect(page.locator('[data-testid="password-step"]')).not.toBeVisible()
   })
 
   test('部分填写助记词禁用下一步', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 只填写部分单词
     for (let i = 0; i < 6; i++) {
@@ -173,16 +173,16 @@ test.describe('钱包导入流程 - 功能测试', () => {
     }
 
     // 下一步按钮应该禁用
-    const nextBtn = page.locator('button:has-text("下一步")')
+    const nextBtn = page.locator('[data-testid="continue-button"]')
     await expect(nextBtn).toBeDisabled()
 
     // 验证显示已输入数量
-    await expect(page.locator('text=已输入 6/12 个单词')).toBeVisible()
+    await expect(page.locator('[data-testid="word-count-display"]')).toContainText('6/12')
   })
 
   test('粘贴助记词功能', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 在第一个输入框粘贴完整助记词
     const firstInput = page.locator('[data-word-index="0"]')
@@ -195,19 +195,19 @@ test.describe('钱包导入流程 - 功能测试', () => {
     }
 
     // 下一步按钮应该启用
-    const nextBtn = page.locator('button:has-text("下一步")')
+    const nextBtn = page.locator('[data-testid="continue-button"]')
     await expect(nextBtn).toBeEnabled()
   })
 
   test('清除按钮功能', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 填写一些单词
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS.slice(0, 6))
 
     // 验证清除按钮存在
-    const clearBtn = page.locator('button:has-text("清除")')
+    const clearBtn = page.locator('[data-testid="clear-mnemonic-button"]')
     await expect(clearBtn).toBeVisible()
 
     // 点击清除
@@ -220,26 +220,26 @@ test.describe('钱包导入流程 - 功能测试', () => {
     }
 
     // 显示已输入 0/12
-    await expect(page.locator('text=已输入 0/12 个单词')).toBeVisible()
+    await expect(page.locator('[data-testid="word-count-display"]')).toContainText('0/12')
   })
 
   test('切换词数后显示正确数量的输入框', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 默认 12 词
     let wordInputs = page.locator('[data-word-index]')
     await expect(wordInputs).toHaveCount(12)
 
     // 切换到 24 词
-    await page.click('text=24 个单词')
+    await page.click('[data-testid="word-count-24"]')
 
     // 应该显示 24 个输入框
     wordInputs = page.locator('[data-word-index]')
     await expect(wordInputs).toHaveCount(24)
 
     // 切换回 12 词
-    await page.click('text=12 个单词')
+    await page.click('[data-testid="word-count-12"]')
 
     // 应该显示 12 个输入框
     wordInputs = page.locator('[data-word-index]')
@@ -248,16 +248,16 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('导入密码强度验证', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 填写助记词
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
-    await page.click('button:has-text("下一步")')
+    await page.click('[data-testid="continue-button"]')
 
     // 密码步骤
-    await page.waitForSelector('text=设置密码')
+    await page.waitForSelector('[data-testid="password-step"]')
 
-    const completeBtn = page.locator('button:has-text("完成导入")')
+    const completeBtn = page.locator('[data-testid="complete-button"]')
 
     // 短密码 - 禁用
     await page.fill('input[placeholder="输入密码"]', '123')
@@ -272,22 +272,22 @@ test.describe('钱包导入流程 - 功能测试', () => {
 
   test('导入后返回首页显示钱包', async ({ page }) => {
     await page.goto('/#/wallet/import')
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 快速完成导入流程
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
-    await page.click('button:has-text("下一步")')
-    await page.waitForSelector('text=设置密码')
+    await page.click('[data-testid="continue-button"]')
+    await page.waitForSelector('[data-testid="password-step"]')
     await page.fill('input[placeholder="输入密码"]', 'Test1234!')
     await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("完成导入")')
+    await page.click('[data-testid="complete-button"]')
 
     // 等待跳转到首页
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
     // 验证钱包名称显示 (HomeTab 上的标题)
-    await expect(page.locator('h1:has-text("导入钱包")').first()).toBeVisible()
+    await expect(page.locator('[data-testid="wallet-name"]').first()).toBeVisible()
 
     // 验证可以切换链
     await page.click('[data-testid="chain-selector"]')
