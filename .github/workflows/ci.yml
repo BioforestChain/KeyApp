@@ -88,6 +88,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -136,6 +139,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -164,7 +170,7 @@ jobs:
         run: pnpm exec playwright install-deps chromium
 
       - name: E2E smoke (Mobile Chrome)
-        run: pnpm e2e e2e/bioforest-chains.spec.ts --project "Mobile Chrome"
+        run: pnpm e2e bioforest-chains --project "Mobile Chrome"
 
   # ==================== 最终状态检查 ====================
   checks:
