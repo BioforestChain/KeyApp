@@ -1,8 +1,10 @@
+import Big from 'big.js'
+
 /**
  * Amount - 不可变的金额类型
  *
  * 设计原则：
- * 1. 内部始终使用 bigint 存储原始值（最小单位）
+ * 1. 内部使用 Big.js 进行精确计算
  * 2. 不可变 - 所有操作返回新实例
  * 3. 类型安全 - 通过静态工厂方法创建，防止混淆 raw/formatted
  * 4. 自文档化 - 方法名清晰表达意图
@@ -26,12 +28,12 @@
  * ```
  */
 export class Amount {
-  private readonly _raw: bigint
+  private readonly _value: Big // 存储原始单位的值
   private readonly _decimals: number
   private readonly _symbol: string | undefined
 
-  private constructor(raw: bigint, decimals: number, symbol: string | undefined) {
-    this._raw = raw
+  private constructor(value: Big, decimals: number, symbol: string | undefined) {
+    this._value = value
     this._decimals = decimals
     this._symbol = symbol
   }
@@ -42,8 +44,8 @@ export class Amount {
    * 从原始值创建（最小单位，如 wei、lamports、satoshi）
    * 用于：链上返回的余额、交易金额等
    */
-  static fromRaw(raw: bigint | string, decimals: number, symbol?: string): Amount {
-    const value = typeof raw === 'string' ? BigInt(raw) : raw
+  static fromRaw(raw: bigint | string | number, decimals: number, symbol?: string): Amount {
+    const value = new Big(raw.toString())
     return new Amount(value, decimals, symbol)
   }
 
@@ -53,11 +55,11 @@ export class Amount {
    * @throws 如果输入格式无效
    */
   static fromFormatted(formatted: string, decimals: number, symbol?: string): Amount {
-    const raw = Amount.parseFormatted(formatted, decimals)
-    if (raw === null) {
+    const result = Amount.tryFromFormatted(formatted, decimals, symbol)
+    if (result === null) {
       throw new Error(`Invalid amount format: "${formatted}"`)
     }
-    return new Amount(raw, decimals, symbol)
+    return result
   }
 
   /**
@@ -65,16 +67,30 @@ export class Amount {
    * 用于：用户输入验证
    */
   static tryFromFormatted(formatted: string, decimals: number, symbol?: string): Amount | null {
-    const raw = Amount.parseFormatted(formatted, decimals)
-    if (raw === null) return null
-    return new Amount(raw, decimals, symbol)
+    const input = formatted.trim()
+    if (!input) return null
+    if (!/^-?\d*\.?\d*$/.test(input)) return null
+    if (input === '.' || input === '-' || input === '-.') return null
+
+    try {
+      const parsed = new Big(input)
+      const multiplier = new Big(10).pow(decimals)
+      const raw = parsed.times(multiplier)
+      // 检查是否有超出精度的小数
+      if (!raw.round(0, Big.roundDown).eq(raw)) {
+        return null // 超出精度
+      }
+      return new Amount(raw.round(0, Big.roundDown), decimals, symbol)
+    } catch {
+      return null
+    }
   }
 
   /**
    * 创建零值
    */
   static zero(decimals: number, symbol?: string): Amount {
-    return new Amount(0n, decimals, symbol)
+    return new Amount(new Big(0), decimals, symbol)
   }
 
   /**
@@ -89,11 +105,18 @@ export class Amount {
     return Amount.fromRaw(value, decimals, symbol)
   }
 
+  /**
+   * 从 JSON 反序列化
+   */
+  static fromJSON(json: AmountJSON): Amount {
+    return Amount.fromRaw(json.raw, json.decimals, json.symbol)
+  }
+
   // ==================== Getters ====================
 
   /** 原始值（bigint） */
   get raw(): bigint {
-    return this._raw
+    return BigInt(this._value.toFixed(0))
   }
 
   /** 精度（小数位数） */
@@ -110,32 +133,52 @@ export class Amount {
 
   /** 转为原始值字符串 */
   toRawString(): string {
-    return this._raw.toString()
+    return this._value.toFixed(0)
   }
 
   /** 转为格式化显示（人类可读） */
   toFormatted(options?: { trimTrailingZeros?: boolean }): string {
     const { trimTrailingZeros = true } = options ?? {}
 
-    if (this._raw === 0n) return '0'
+    if (this._value.eq(0)) return '0'
 
-    const divisor = 10n ** BigInt(this._decimals)
-    const integerPart = this._raw / divisor
-    const fractionalPart = this._raw % divisor
+    const divisor = new Big(10).pow(this._decimals)
+    const formatted = this._value.div(divisor)
 
-    if (fractionalPart === 0n) {
-      return integerPart.toString()
+    if (trimTrailingZeros) {
+      // 使用 Big.js 的 toFixed 然后去掉尾部零
+      const fixed = formatted.toFixed(this._decimals)
+      return fixed.replace(/\.?0+$/, '')
+    } else {
+      return formatted.toFixed(this._decimals)
     }
+  }
 
-    const fractionalStr = fractionalPart.toString().padStart(this._decimals, '0')
-    const trimmed = trimTrailingZeros ? fractionalStr.replace(/0+$/, '') : fractionalStr
+  /**
+   * 转为带千分位的显示字符串
+   */
+  toDisplayString(options?: {
+    locale?: string
+    maximumFractionDigits?: number
+    minimumFractionDigits?: number
+  }): string {
+    const {
+      locale = 'en-US',
+      maximumFractionDigits = this._decimals,
+      minimumFractionDigits = 0,
+    } = options ?? {}
 
-    return `${integerPart}.${trimmed}`
+    const num = this.toNumber()
+    return new Intl.NumberFormat(locale, {
+      maximumFractionDigits,
+      minimumFractionDigits,
+    }).format(num)
   }
 
   /** 转为 number（可能丢失精度，仅用于显示） */
   toNumber(): number {
-    return Number(this._raw) / 10 ** this._decimals
+    const divisor = new Big(10).pow(this._decimals)
+    return this._value.div(divisor).toNumber()
   }
 
   /** 返回带符号的格式化字符串 */
@@ -144,51 +187,60 @@ export class Amount {
     return this._symbol ? `${formatted} ${this._symbol}` : formatted
   }
 
+  /** 序列化为 JSON */
+  toJSON(): AmountJSON {
+    return {
+      raw: this.toRawString(),
+      decimals: this._decimals,
+      ...(this._symbol !== undefined && { symbol: this._symbol }),
+    }
+  }
+
   // ==================== 比较方法 ====================
 
   /** 是否为零 */
   isZero(): boolean {
-    return this._raw === 0n
+    return this._value.eq(0)
   }
 
   /** 是否为正数 */
   isPositive(): boolean {
-    return this._raw > 0n
+    return this._value.gt(0)
   }
 
   /** 是否为负数 */
   isNegative(): boolean {
-    return this._raw < 0n
+    return this._value.lt(0)
   }
 
   /** 大于 */
   gt(other: Amount): boolean {
     this.assertSameDecimals(other)
-    return this._raw > other._raw
+    return this._value.gt(other._value)
   }
 
   /** 大于等于 */
   gte(other: Amount): boolean {
     this.assertSameDecimals(other)
-    return this._raw >= other._raw
+    return this._value.gte(other._value)
   }
 
   /** 小于 */
   lt(other: Amount): boolean {
     this.assertSameDecimals(other)
-    return this._raw < other._raw
+    return this._value.lt(other._value)
   }
 
   /** 小于等于 */
   lte(other: Amount): boolean {
     this.assertSameDecimals(other)
-    return this._raw <= other._raw
+    return this._value.lte(other._value)
   }
 
   /** 等于 */
   eq(other: Amount): boolean {
     this.assertSameDecimals(other)
-    return this._raw === other._raw
+    return this._value.eq(other._value)
   }
 
   // ==================== 算术方法 ====================
@@ -196,58 +248,104 @@ export class Amount {
   /** 加法 */
   add(other: Amount): Amount {
     this.assertSameDecimals(other)
-    return new Amount(this._raw + other._raw, this._decimals, this._symbol)
+    return new Amount(this._value.plus(other._value), this._decimals, this._symbol)
   }
 
   /** 减法 */
   sub(other: Amount): Amount {
     this.assertSameDecimals(other)
-    return new Amount(this._raw - other._raw, this._decimals, this._symbol)
+    return new Amount(this._value.minus(other._value), this._decimals, this._symbol)
   }
 
   /** 乘法（用于计算百分比等） */
-  mul(factor: number | bigint): Amount {
-    if (typeof factor === 'bigint') {
-      return new Amount(this._raw * factor, this._decimals, this._symbol)
-    }
-    // 对于 number，先放大再缩小以保持精度
-    const scaleFactor = 1_000_000_000n // 9 位精度
-    const scaled = BigInt(Math.round(factor * Number(scaleFactor)))
-    return new Amount((this._raw * scaled) / scaleFactor, this._decimals, this._symbol)
+  mul(factor: number | bigint | string | Big): Amount {
+    const bigFactor = factor instanceof Big ? factor : new Big(factor.toString())
+    return new Amount(this._value.times(bigFactor).round(0, Big.roundDown), this._decimals, this._symbol)
   }
 
   /** 除法（向下取整） */
-  div(divisor: number | bigint): Amount {
-    if (typeof divisor === 'bigint') {
-      return new Amount(this._raw / divisor, this._decimals, this._symbol)
-    }
-    const scaleFactor = 1_000_000_000n
-    const scaled = BigInt(Math.round(divisor * Number(scaleFactor)))
-    return new Amount((this._raw * scaleFactor) / scaled, this._decimals, this._symbol)
+  div(divisor: number | bigint | string | Big): Amount {
+    const bigDivisor = divisor instanceof Big ? divisor : new Big(divisor.toString())
+    return new Amount(this._value.div(bigDivisor).round(0, Big.roundDown), this._decimals, this._symbol)
+  }
+
+  /** 取余 */
+  mod(divisor: number | bigint | string | Big): Amount {
+    const bigDivisor = divisor instanceof Big ? divisor : new Big(divisor.toString())
+    return new Amount(this._value.mod(bigDivisor), this._decimals, this._symbol)
+  }
+
+  /** 绝对值 */
+  abs(): Amount {
+    return new Amount(this._value.abs(), this._decimals, this._symbol)
+  }
+
+  /** 取反 */
+  neg(): Amount {
+    return new Amount(this._value.neg(), this._decimals, this._symbol)
   }
 
   /** 取最小值 */
   min(other: Amount): Amount {
     this.assertSameDecimals(other)
-    return this._raw <= other._raw ? this : other
+    return this._value.lte(other._value) ? this : other
   }
 
   /** 取最大值 */
   max(other: Amount): Amount {
     this.assertSameDecimals(other)
-    return this._raw >= other._raw ? this : other
+    return this._value.gte(other._value) ? this : other
+  }
+
+  /**
+   * 按百分比计算
+   * @param percent 百分比值（如 5 表示 5%）
+   */
+  percent(percent: number): Amount {
+    return this.mul(percent).div(100)
+  }
+
+  // ==================== 精度转换 ====================
+
+  /**
+   * 转换到不同精度
+   * @param newDecimals 新的精度
+   */
+  toDecimals(newDecimals: number): Amount {
+    if (newDecimals === this._decimals) return this
+    
+    const diff = newDecimals - this._decimals
+    if (diff > 0) {
+      // 增加精度，乘以 10^diff
+      const multiplier = new Big(10).pow(diff)
+      return new Amount(this._value.times(multiplier), newDecimals, this._symbol)
+    } else {
+      // 减少精度，除以 10^|diff|（向下取整）
+      const divisor = new Big(10).pow(-diff)
+      return new Amount(this._value.div(divisor).round(0, Big.roundDown), newDecimals, this._symbol)
+    }
   }
 
   // ==================== 工具方法 ====================
 
   /** 创建具有相同精度和符号的新实例 */
-  withRaw(raw: bigint): Amount {
-    return new Amount(raw, this._decimals, this._symbol)
+  withRaw(raw: bigint | string): Amount {
+    return Amount.fromRaw(raw, this._decimals, this._symbol)
   }
 
   /** 创建具有不同符号的副本 */
   withSymbol(symbol: string): Amount {
-    return new Amount(this._raw, this._decimals, symbol)
+    return new Amount(this._value, this._decimals, symbol)
+  }
+
+  /** 创建具有不同精度的副本（重新计算 raw 值） */
+  withDecimals(decimals: number): Amount {
+    return this.toDecimals(decimals)
+  }
+
+  /** 从资产信息创建新 Amount（继承 decimals 和 symbol） */
+  withAsset(asset: { decimals: number; assetType?: string }): Amount {
+    return this.toDecimals(asset.decimals).withSymbol(asset.assetType ?? this._symbol ?? '')
   }
 
   /** 验证精度是否相同 */
@@ -259,30 +357,15 @@ export class Amount {
       )
     }
   }
+}
 
-  // ==================== 私有辅助方法 ====================
+// ==================== 类型定义 ====================
 
-  /** 解析格式化字符串为 bigint */
-  private static parseFormatted(value: string, decimals: number): bigint | null {
-    const input = value.trim()
-    if (!input) return null
-
-    const parts = input.split('.')
-    if (parts.length > 2) return null
-
-    const wholeRaw = parts[0] ?? ''
-    const fractionRaw = parts[1] ?? ''
-    const whole = wholeRaw === '' ? '0' : wholeRaw
-
-    if (!/^[0-9]+$/.test(whole)) return null
-    if (fractionRaw && !/^[0-9]+$/.test(fractionRaw)) return null
-    if (fractionRaw.length > decimals) return null
-
-    const fraction = fractionRaw.padEnd(decimals, '0')
-    const combined = `${whole}${fraction}`.replace(/^0+/, '') || '0'
-
-    return BigInt(combined)
-  }
+/** Amount 的 JSON 表示 */
+export interface AmountJSON {
+  raw: string
+  decimals: number
+  symbol?: string
 }
 
 // ==================== 辅助函数 ====================
@@ -297,4 +380,23 @@ export function amountFromAsset(asset: {
   assetType?: string
 }): Amount {
   return Amount.parse(asset.amount, asset.decimals, asset.assetType)
+}
+
+/**
+ * 类型守卫：检查是否为 Amount 实例
+ */
+export function isAmount(value: unknown): value is Amount {
+  return value instanceof Amount
+}
+
+/**
+ * 安全转换：如果已经是 Amount 则返回，否则解析
+ */
+export function toAmount(
+  value: Amount | string,
+  decimals: number,
+  symbol?: string
+): Amount {
+  if (isAmount(value)) return value
+  return Amount.parse(value, decimals, symbol)
 }
