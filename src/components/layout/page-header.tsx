@@ -28,6 +28,7 @@ export function PageHeader({ title, onBack, rightAction, transparent = false, cl
           <button
             type="button"
             onClick={onBack}
+            data-testid="back-button"
             className="hover:bg-muted/50 -ml-2 flex aspect-square w-9 items-center justify-center rounded-full transition-colors"
             aria-label={t('a11y.back')}
           >
@@ -39,7 +40,7 @@ export function PageHeader({ title, onBack, rightAction, transparent = false, cl
       </div>
 
       {title && (
-        <h1 className="absolute left-1/2 max-w-[50%] -translate-x-1/2 truncate text-base font-semibold">{title}</h1>
+        <h1 data-testid="page-title" className="absolute left-1/2 max-w-[50%] -translate-x-1/2 truncate text-base font-semibold">{title}</h1>
       )}
 
       {children && !title && <div className="absolute left-1/2 -translate-x-1/2">{children}</div>}

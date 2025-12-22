@@ -230,6 +230,7 @@ function NoWalletView() {
         <GradientButton
           variant="mint"
           className="w-full"
+          data-testid="create-wallet-button"
           onClick={() => push("WalletCreateActivity", {})}
         >
           {t('welcome.createWallet')}
@@ -237,6 +238,7 @@ function NoWalletView() {
         <Button
           variant="outline"
           className="w-full"
+          data-testid="import-wallet-button"
           onClick={() => push("OnboardingRecoverActivity", {})}
         >
           {t('welcome.importWallet')}

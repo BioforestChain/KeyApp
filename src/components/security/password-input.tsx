@@ -6,6 +6,7 @@ import { IconEye as Eye, IconEyeOff as EyeOff } from '@tabler/icons-react';
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   showStrength?: boolean;
   onStrengthChange?: (strength: PasswordStrength) => void;
+  'data-testid'?: string;
 }
 
 export type PasswordStrength = 'weak' | 'medium' | 'strong';
@@ -32,7 +33,7 @@ const strengthConfig = {
 };
 
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, showStrength = false, onStrengthChange, onChange, value, ...props }, ref) => {
+  ({ className, showStrength = false, onStrengthChange, onChange, value, 'data-testid': testId, ...props }, ref) => {
     const [visible, setVisible] = useState(false);
     const [strength, setStrength] = useState<PasswordStrength>('weak');
     const [hasValue, setHasValue] = useState(!!value);
@@ -52,7 +53,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const config = strengthConfig[strength];
 
     return (
-      <div className="@container space-y-2">
+      <div className="@container space-y-2" data-testid={testId}>
         <div className="relative">
           <input
             ref={ref}

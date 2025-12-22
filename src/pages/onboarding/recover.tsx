@@ -286,7 +286,7 @@ export function OnboardingRecoverPage() {
       {step === 'keyType' && (
         <>
           <PageHeader title={t('onboarding:keyType.title')} onBack={handleBack} />
-          <div className="flex-1 space-y-6 p-4">
+          <div data-testid="key-type-step" className="flex-1 space-y-6 p-4">
             <KeyTypeSelector
               value={keyType}
               onChange={(next) => {
@@ -297,7 +297,7 @@ export function OnboardingRecoverPage() {
                 }
               }}
             />
-            <Button type="button" onClick={handleKeyTypeContinue} className="w-full">
+            <Button type="button" data-testid="continue-button" onClick={handleKeyTypeContinue} className="w-full">
               {t('common:continue')}
             </Button>
           </div>
@@ -307,7 +307,7 @@ export function OnboardingRecoverPage() {
       {step === 'mnemonic' && (
         <>
           <PageHeader title={t('onboarding:recover.title')} onBack={handleBack} />
-          <div className="flex-1 p-4">
+          <div data-testid="mnemonic-step" className="flex-1 p-4">
             <RecoverWalletForm onSubmit={handleMnemonicSubmit} isSubmitting={duplicateDetection.isChecking} />
           </div>
         </>
@@ -373,7 +373,7 @@ export function OnboardingRecoverPage() {
       {step === 'password' && (
         <>
           <PageHeader title={t('onboarding:recover.setPassword')} onBack={handleBack} />
-          <div className="flex-1 p-4">
+          <div data-testid="password-step" className="flex-1 p-4">
             <div className="space-y-5">
               <div className="text-muted-foreground space-y-1 text-sm">
                 <p>{t('onboarding:recover.passwordHint')}</p>
@@ -384,6 +384,7 @@ export function OnboardingRecoverPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('onboarding:recover.password')}</label>
                   <PasswordInput
+                    data-testid="password-input"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t('onboarding:recover.passwordPlaceholder')}
@@ -395,6 +396,7 @@ export function OnboardingRecoverPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('onboarding:recover.confirmPassword')}</label>
                   <PasswordInput
+                    data-testid="confirm-password-input"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={t('onboarding:recover.confirmPlaceholder')}
@@ -412,6 +414,7 @@ export function OnboardingRecoverPage() {
 
               <Button
                 type="button"
+                data-testid="continue-button"
                 className="w-full"
                 disabled={isSubmitting}
                 onClick={() => {

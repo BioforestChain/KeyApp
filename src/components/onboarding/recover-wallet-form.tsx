@@ -195,6 +195,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
         )}
       >
         <InputGroupTextarea
+          data-testid="mnemonic-textarea"
           value={input}
           onChange={(e) => {
             handleInputChange(e);
@@ -246,6 +247,7 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
       {/* Submit button */}
       <button
         type="submit"
+        data-testid="continue-button"
         disabled={!validation.isValid || isSubmitting}
         className={cn(
           'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium text-white transition-colors',

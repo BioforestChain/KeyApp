@@ -49,6 +49,7 @@ export function KeyTypeSelector({ value, onChange, disabled = false, className }
               role="radio"
               aria-checked={isSelected}
               disabled={disabled}
+              data-testid={`key-type-option-${option.value}`}
               onClick={() => onChange(option.value)}
               className={cn(
                 'w-full rounded-xl border p-4 text-start transition-colors',
