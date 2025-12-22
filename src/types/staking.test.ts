@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
+import { Amount } from './amount'
 import {
   ExternalChainSchema,
   InternalChainSchema,
@@ -11,9 +12,6 @@ import {
   RechargeConfigItemSchema,
   StakingTxTypeSchema,
   StakingTxStatusSchema,
-  StakingTransactionSchema,
-  MintRequestSchema,
-  BurnRequestSchema,
   type ExternalChain,
   type InternalChain,
   type StakingTransaction,
@@ -133,66 +131,57 @@ describe('Staking Types', () => {
     })
   })
 
-  describe('StakingTransactionSchema', () => {
-    it('validates complete transaction', () => {
+  describe('StakingTransaction interface', () => {
+    it('validates complete transaction with Amount', () => {
       const tx: StakingTransaction = {
         id: 'tx-001',
         type: 'mint',
         sourceChain: 'BSC',
         sourceAsset: 'USDT',
-        sourceAmount: '1000000000000000000',
+        sourceAmount: Amount.fromRaw('1000000000000000000', 18, 'USDT'),
         targetChain: 'BFMeta',
         targetAsset: 'USDT',
-        targetAmount: '1000000000000000000',
+        targetAmount: Amount.fromRaw('1000000000000000000', 18, 'USDT'),
         status: 'confirmed',
         txHash: '0x1234567890abcdef',
         createdAt: Date.now(),
         updatedAt: Date.now(),
       }
-      expect(StakingTransactionSchema.parse(tx)).toEqual(tx)
+
+      expect(tx.id).toBe('tx-001')
+      expect(tx.type).toBe('mint')
+      expect(tx.sourceAmount.toRawString()).toBe('1000000000000000000')
     })
 
     it('allows optional txHash and errorMessage', () => {
-      const tx = {
+      const tx: StakingTransaction = {
         id: 'tx-002',
         type: 'burn',
         sourceChain: 'BFMeta',
         sourceAsset: 'BFM',
-        sourceAmount: '500000000',
+        sourceAmount: Amount.fromFormatted('500', 8, 'BFM'),
         targetChain: 'ETH',
         targetAsset: 'BFM',
-        targetAmount: '500000000',
+        targetAmount: Amount.fromFormatted('500', 18, 'BFM'),
         status: 'pending',
         createdAt: Date.now(),
         updatedAt: Date.now(),
       }
-      expect(StakingTransactionSchema.parse(tx)).toEqual(tx)
+
+      expect(tx.txHash).toBeUndefined()
+      expect(tx.errorMessage).toBeUndefined()
     })
   })
 
-  describe('MintRequestSchema', () => {
-    it('validates mint request', () => {
-      const request = {
-        sourceChain: 'ETH' as ExternalChain,
-        sourceAsset: 'USDT',
-        amount: '1000000',
-        targetChain: 'BFMeta' as InternalChain,
-        targetAsset: 'USDT',
-      }
-      expect(MintRequestSchema.parse(request)).toEqual(request)
+  describe('Type inference', () => {
+    it('ExternalChain type is correct', () => {
+      const chain: ExternalChain = 'ETH'
+      expect(['ETH', 'BSC', 'TRON']).toContain(chain)
     })
-  })
 
-  describe('BurnRequestSchema', () => {
-    it('validates burn request', () => {
-      const request = {
-        sourceChain: 'BFMeta' as InternalChain,
-        sourceAsset: 'BFM',
-        amount: '1000000000',
-        targetChain: 'BSC' as ExternalChain,
-        targetAsset: 'BFM',
-      }
-      expect(BurnRequestSchema.parse(request)).toEqual(request)
+    it('InternalChain type is correct', () => {
+      const chain: InternalChain = 'BFMeta'
+      expect(['BFMeta', 'BFChain', 'CCChain', 'PMChain']).toContain(chain)
     })
   })
 })

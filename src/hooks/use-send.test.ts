@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useSend } from './use-send'
+import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
 
 const mockAsset: AssetInfo = {
   assetType: 'ETH',
   name: 'Ethereum',
-  amount: '1000000000000000000', // 1 ETH
+  amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'), // 1 ETH
   decimals: 18,
 }
 

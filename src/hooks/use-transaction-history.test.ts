@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTransactionHistory } from './use-transaction-history'
+import { Amount } from '@/types/amount'
 import type { TransactionRecord as ServiceTransactionRecord } from '@/services/transaction'
 
 // Mock transaction data
@@ -9,14 +10,16 @@ const mockTransactions: ServiceTransactionRecord[] = [
     id: 'tx-1',
     type: 'send',
     status: 'confirmed',
-    amount: '1.5',
+    amount: Amount.fromFormatted('1.5', 18, 'ETH'),
     symbol: 'ETH',
+    decimals: 18,
     address: '0x1234567890abcdef1234567890abcdef12345678',
     timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
     hash: '0xhash1',
     chain: 'ethereum',
-    fee: '0.001',
+    fee: Amount.fromFormatted('0.001', 18, 'ETH'),
     feeSymbol: 'ETH',
+    feeDecimals: 18,
     blockNumber: 18000000,
     confirmations: 10,
   },
@@ -24,14 +27,16 @@ const mockTransactions: ServiceTransactionRecord[] = [
     id: 'tx-2',
     type: 'receive',
     status: 'confirmed',
-    amount: '100',
+    amount: Amount.fromFormatted('100', 6, 'USDT'),
     symbol: 'USDT',
+    decimals: 6,
     address: '0xabcdef1234567890abcdef1234567890abcdef12',
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     hash: '0xhash2',
     chain: 'ethereum',
-    fee: '0.002',
+    fee: Amount.fromFormatted('0.002', 18, 'ETH'),
     feeSymbol: 'ETH',
+    feeDecimals: 18,
     blockNumber: 17999000,
     confirmations: 50,
   },
@@ -39,14 +44,16 @@ const mockTransactions: ServiceTransactionRecord[] = [
     id: 'tx-3',
     type: 'send',
     status: 'pending',
-    amount: '50',
+    amount: Amount.fromFormatted('50', 6, 'TRX'),
     symbol: 'TRX',
+    decimals: 6,
     address: 'TXYZ1234567890',
     timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000), // 40 days ago
     hash: '0xhash3',
     chain: 'tron',
-    fee: '1',
+    fee: Amount.fromFormatted('1', 6, 'TRX'),
     feeSymbol: 'TRX',
+    feeDecimals: 6,
     blockNumber: undefined,
     confirmations: 0,
   },

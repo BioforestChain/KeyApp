@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TransactionItem, type TransactionInfo } from './transaction-item'
+import { Amount } from '@/types/amount'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
 // 包装组件以提供 i18n
@@ -13,7 +14,7 @@ const mockTransaction: TransactionInfo = {
   id: '1',
   type: 'send',
   status: 'confirmed',
-  amount: '100',
+  amount: Amount.fromFormatted('100', 6, 'USDT'),
   symbol: 'USDT',
   address: '0x1234567890abcdef1234567890abcdef12345678',
   timestamp: new Date(),

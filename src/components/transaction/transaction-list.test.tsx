@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TransactionList } from './transaction-list'
 import type { TransactionInfo } from './transaction-item'
+import { Amount } from '@/types/amount'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
 // 包装组件以提供 i18n
@@ -19,7 +20,7 @@ const mockTransactions: TransactionInfo[] = [
     id: '1',
     type: 'send',
     status: 'confirmed',
-    amount: '100',
+    amount: Amount.fromFormatted('100', 6, 'USDT'),
     symbol: 'USDT',
     address: '0x1234567890abcdef1234567890abcdef12345678',
     timestamp: new Date(FIXED_NOW - 3600000), // 1 hour ago = today
@@ -28,7 +29,7 @@ const mockTransactions: TransactionInfo[] = [
     id: '2',
     type: 'receive',
     status: 'confirmed',
-    amount: '0.5',
+    amount: Amount.fromFormatted('0.5', 18, 'ETH'),
     symbol: 'ETH',
     address: '0xabcdef1234567890',
     timestamp: new Date(FIXED_NOW - 86400000 - 3600000), // 25 hours ago = yesterday
