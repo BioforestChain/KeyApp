@@ -13,3 +13,9 @@ export {
   useRefreshBalance,
   balanceQueryKeys,
 } from './use-balance-query'
+
+export {
+  useExchangeRateQuery,
+  getExchangeRate,
+  exchangeRateQueryKeys,
+} from './use-exchange-rate-query'
