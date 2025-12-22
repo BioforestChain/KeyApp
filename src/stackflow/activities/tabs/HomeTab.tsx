@@ -63,12 +63,31 @@ export function HomeTab() {
   const tokens = useCurrentChainTokens();
 
   const [copied, setCopied] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) {
       walletActions.initialize();
     }
   }, [isInitialized]);
+
+  // Refresh balance when wallet or chain changes
+  useEffect(() => {
+    if (!currentWallet || !selectedChain) return;
+
+    const refreshBalance = async () => {
+      setIsRefreshing(true);
+      try {
+        await walletActions.refreshBalance(currentWallet.id, selectedChain);
+      } catch (error) {
+        console.error('Failed to refresh balance:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    void refreshBalance();
+  }, [currentWallet?.id, selectedChain]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {
@@ -167,10 +186,12 @@ export function HomeTab() {
             name: tk.name,
             chain: selectedChain,
             balance: tk.balance,
+            decimals: tk.decimals,
             fiatValue: tk.fiatValue ? String(tk.fiatValue) : undefined,
             change24h: tk.change24h,
             icon: tk.icon,
           }))}
+          refreshing={isRefreshing}
           onTokenClick={(token) => {
             console.log("Token clicked:", token.symbol);
           }}

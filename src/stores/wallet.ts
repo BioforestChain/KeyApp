@@ -66,8 +66,35 @@ export interface WalletState {
   currentWalletId: string | null
   /** 当前选中的链 */
   selectedChain: ChainType
+  /** 每个钱包的链偏好设置 (walletId -> chainId) */
+  chainPreferences: Record<string, ChainType>
   isLoading: boolean
   isInitialized: boolean
+}
+
+// localStorage key for chain preferences
+const CHAIN_PREFERENCES_KEY = 'wallet_chain_preferences'
+
+// Helper: Load chain preferences from localStorage
+function loadChainPreferences(): Record<string, ChainType> {
+  try {
+    const stored = localStorage.getItem(CHAIN_PREFERENCES_KEY)
+    if (stored) {
+      return JSON.parse(stored) as Record<string, ChainType>
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return {}
+}
+
+// Helper: Save chain preferences to localStorage
+function saveChainPreferences(preferences: Record<string, ChainType>): void {
+  try {
+    localStorage.setItem(CHAIN_PREFERENCES_KEY, JSON.stringify(preferences))
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 // 初始状态
@@ -75,6 +102,7 @@ const initialState: WalletState = {
   wallets: [],
   currentWalletId: null,
   selectedChain: 'ethereum',
+  chainPreferences: {},
   isLoading: false,
   isInitialized: false,
 }
@@ -158,10 +186,22 @@ export const walletActions = {
         })
       )
 
+      // 加载链偏好设置
+      const chainPreferences = loadChainPreferences()
+      const currentWalletId = walleterInfo?.activeWalletId ?? wallets[0]?.id ?? null
+      
+      // 获取当前钱包的偏好链，或使用钱包的主链，或默认
+      const currentWallet = wallets.find(w => w.id === currentWalletId)
+      const preferredChain = currentWalletId 
+        ? (chainPreferences[currentWalletId] ?? currentWallet?.chain ?? 'bfmeta')
+        : 'bfmeta'
+
       walletStore.setState((state) => ({
         ...state,
         wallets,
-        currentWalletId: walleterInfo?.activeWalletId ?? wallets[0]?.id ?? null,
+        currentWalletId,
+        selectedChain: preferredChain,
+        chainPreferences,
         isInitialized: true,
         isLoading: false,
       }))
@@ -267,10 +307,22 @@ export const walletActions = {
         ? wallets[0]?.id ?? null
         : state.currentWalletId
       
+      // 删除该钱包的链偏好
+      const { [walletId]: _, ...remainingPreferences } = state.chainPreferences
+      saveChainPreferences(remainingPreferences)
+      
+      // 如果切换到新钱包，使用其偏好链
+      const newWallet = wallets.find(w => w.id === currentWalletId)
+      const selectedChain = currentWalletId
+        ? (remainingPreferences[currentWalletId] ?? newWallet?.chain ?? 'bfmeta')
+        : state.selectedChain
+      
       return {
         ...state,
         wallets,
         currentWalletId,
+        selectedChain,
+        chainPreferences: remainingPreferences,
       }
     })
   },
@@ -286,18 +338,41 @@ export const walletActions = {
       })
     }
     
-    walletStore.setState((state) => ({
-      ...state,
-      currentWalletId: walletId,
-    }))
+    walletStore.setState((state) => {
+      // 获取目标钱包的偏好链
+      const targetWallet = state.wallets.find(w => w.id === walletId)
+      const preferredChain = state.chainPreferences[walletId] ?? targetWallet?.chain ?? 'bfmeta'
+      
+      return {
+        ...state,
+        currentWalletId: walletId,
+        selectedChain: preferredChain,
+      }
+    })
   },
 
   /** 切换当前链 */
   setSelectedChain: (chain: ChainType) => {
-    walletStore.setState((state) => ({
-      ...state,
-      selectedChain: chain,
-    }))
+    walletStore.setState((state) => {
+      const { currentWalletId, chainPreferences } = state
+      
+      // 保存当前钱包的链偏好
+      if (currentWalletId) {
+        const newPreferences = { ...chainPreferences, [currentWalletId]: chain }
+        saveChainPreferences(newPreferences)
+        
+        return {
+          ...state,
+          selectedChain: chain,
+          chainPreferences: newPreferences,
+        }
+      }
+      
+      return {
+        ...state,
+        selectedChain: chain,
+      }
+    })
   },
 
   /** 更新钱包名称 */
@@ -346,6 +421,62 @@ export const walletActions = {
         }
       }),
     }))
+  },
+
+  /** 刷新钱包余额（从链上获取） */
+  refreshBalance: async (walletId: string, chain: ChainType): Promise<void> => {
+    const state = walletStore.state
+    const wallet = state.wallets.find((w) => w.id === walletId)
+    if (!wallet) return
+
+    const chainAddress = wallet.chainAddresses.find((ca) => ca.chain === chain)
+    if (!chainAddress) return
+
+    try {
+      // 动态导入避免循环依赖
+      const { getAdapterRegistry } = await import('@/services/chain-adapter')
+      const registry = getAdapterRegistry()
+      const adapter = registry.getAdapter(chain)
+      
+      if (!adapter) {
+        console.warn(`[refreshBalance] No adapter for chain: ${chain}`)
+        return
+      }
+
+      // 获取余额
+      const balances = await adapter.asset.getTokenBalances(chainAddress.address)
+      
+      // 转换为 Token 格式
+      const tokens: Token[] = balances.map((b) => ({
+        id: `${chain}:${b.symbol}`,
+        symbol: b.symbol,
+        name: b.symbol,
+        balance: b.formatted,
+        fiatValue: 0, // TODO: 对接汇率服务
+        change24h: 0,
+        decimals: b.decimals,
+        chain,
+      }))
+
+      // 更新 store
+      await walletActions.updateChainAssets(walletId, chain, tokens)
+    } catch (error) {
+      console.error(`[refreshBalance] Failed to refresh balance for ${chain}:`, error)
+    }
+  },
+
+  /** 刷新当前钱包所有链的余额 */
+  refreshAllBalances: async (): Promise<void> => {
+    const state = walletStore.state
+    const wallet = walletSelectors.getCurrentWallet(state)
+    if (!wallet) return
+
+    // 并行刷新所有链的余额
+    await Promise.all(
+      wallet.chainAddresses.map((ca) => 
+        walletActions.refreshBalance(wallet.id, ca.chain)
+      )
+    )
   },
 
   /** 更新钱包加密助记词（密码修改时使用） */
