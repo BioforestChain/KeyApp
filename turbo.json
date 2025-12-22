@@ -21,7 +21,14 @@
     },
     "e2e:run": {
       "dependsOn": [],
-      "inputs": ["src/**", "e2e/**", "playwright.config.ts"],
+      "inputs": [
+        "src/**",
+        "e2e/**/*.ts",
+        "e2e/__screenshots__/**",
+        "playwright.config.ts",
+        "!e2e/test-results/**",
+        "!e2e/report/**"
+      ],
       "outputs": ["e2e/report/**", "e2e/test-results/**"],
       "cache": true
     },
