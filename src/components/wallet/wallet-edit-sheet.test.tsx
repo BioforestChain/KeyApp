@@ -46,6 +46,7 @@ describe('WalletEditSheet', () => {
       currentWalletId: '1',
       isInitialized: true,
       isLoading: false,
+      chainPreferences: {},
       selectedChain: 'ethereum',
     })
   })

@@ -56,6 +56,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [],
       currentWalletId: null,
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -78,6 +79,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -97,6 +99,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -115,6 +118,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1, wallet2],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -137,6 +141,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet1],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -155,6 +160,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [],
       currentWalletId: null,
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -176,6 +182,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,
@@ -193,6 +200,7 @@ describe('WalletListPage', () => {
     walletStore.setState({
       wallets: [wallet],
       currentWalletId: '1',
+      chainPreferences: {},
       selectedChain: 'ethereum',
       isLoading: false,
       isInitialized: true,

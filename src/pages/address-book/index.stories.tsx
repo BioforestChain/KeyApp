@@ -22,7 +22,8 @@ const resetStores = () => {
     currentWalletId: null,
     isInitialized: true,
     isLoading: false,
-    selectedChain: 'ethereum',
+    chainPreferences: {},
+      selectedChain: 'ethereum',
   })
 }
 
