@@ -310,12 +310,8 @@ test.describe('钱包导入流程 - 截图测试', () => {
   test('导入页面截图', async ({ page }) => {
     await page.goto('/#/wallet/import')
     await page.waitForLoadState('networkidle')
-    await page.waitForSelector('[data-testid="key-type-step"]')
-    await expect(page).toHaveScreenshot('import-01-key-type.png')
-
-    // 选择助记词类型
-    await page.click('[data-testid="key-type-option-mnemonic"]')
+    // WalletImportPage 直接显示助记词输入步骤
     await page.waitForSelector('[data-testid="mnemonic-step"]')
-    await expect(page).toHaveScreenshot('import-02-mnemonic-input.png')
+    await expect(page).toHaveScreenshot('import-01-mnemonic-input.png')
   })
 })

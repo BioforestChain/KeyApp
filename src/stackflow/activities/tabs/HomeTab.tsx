@@ -169,7 +169,6 @@ export function HomeTab() {
             className="flex-1"
             data-testid="receive-button"
             size="sm"
-            data-testid="receive-button"
             onClick={() => push("ReceiveActivity", {})}
           >
             <IconQrcode className="mr-1.5 size-4" />
