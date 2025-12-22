@@ -130,13 +130,17 @@ test.describe('BioForest 链功能', () => {
     await page.waitForSelector('[data-testid="chain-sheet"]')
     await page.click('text=BFMeta')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
-
+    
+    // 等待链选择器显示 BFMeta，确保切换完成
+    await expect(page.locator('[data-testid="chain-selector"]')).toContainText('BFMeta')
+    
     // 导航到发送页面 (Stackflow hash 路由)
-    // 使用 data-testid 更可靠地定位发送按钮
+    // 等待发送按钮可交互（网络空闲后）
+    await page.waitForLoadState('networkidle')
     await page.waitForSelector('[data-testid="send-button"]', { state: 'visible' })
     await page.click('[data-testid="send-button"]')
     // 等待发送页面加载（增加超时以应对 CI 环境）
-    await page.waitForSelector('h1:has-text("发送")', { timeout: 15000 })
+    await page.waitForSelector('h1:has-text("发送")', { timeout: 30000 })
 
     // 验证显示 BFMeta 链信息（使用更精确的选择器避免匹配提示文本）
     await expect(page.locator('.text-sm.font-medium:has-text("BFMeta")')).toBeVisible()
