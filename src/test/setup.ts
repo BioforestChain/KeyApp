@@ -5,6 +5,14 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// Mock @number-flow/react for tests (doesn't work in JSDOM)
+vi.mock('@number-flow/react', () => ({
+  default: ({ value, format }: { value: number; format?: Intl.NumberFormatOptions }) => {
+    const formatted = value.toLocaleString('en-US', format)
+    return formatted
+  },
+}))
+
 // Mock ResizeObserver for tests
 class ResizeObserverMock {
   observe = vi.fn()
