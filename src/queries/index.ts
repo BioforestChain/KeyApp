@@ -21,3 +21,16 @@ export {
   type TransactionFilter,
   type TransactionRecord,
 } from './use-transaction-history-query'
+
+export {
+  usePriceQuery,
+  getPrice,
+  priceQueryKeys,
+  type PriceData,
+} from './use-price-query'
+
+export {
+  useExchangeRateQuery,
+  getExchangeRate,
+  exchangeRateQueryKeys,
+} from './use-exchange-rate-query'
