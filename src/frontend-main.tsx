@@ -1,7 +1,9 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
 import i18n from './i18n'
+import { queryClient } from './lib/query-client'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
@@ -28,19 +30,21 @@ const MockDevTools = __MOCK_MODE__
 export function startFrontendMain(rootElement: HTMLElement): void {
   createRoot(rootElement).render(
     <StrictMode>
-      <ServiceProvider>
-        <MigrationProvider>
-          <I18nextProvider i18n={i18n}>
-            <StackflowApp />
-            {/* Mock DevTools - 仅在 mock 模式下显示 */}
-            {MockDevTools && (
-              <Suspense fallback={null}>
-                <MockDevTools />
-              </Suspense>
-            )}
-          </I18nextProvider>
-        </MigrationProvider>
-      </ServiceProvider>
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider>
+          <MigrationProvider>
+            <I18nextProvider i18n={i18n}>
+              <StackflowApp />
+              {/* Mock DevTools - 仅在 mock 模式下显示 */}
+              {MockDevTools && (
+                <Suspense fallback={null}>
+                  <MockDevTools />
+                </Suspense>
+              )}
+            </I18nextProvider>
+          </MigrationProvider>
+        </ServiceProvider>
+      </QueryClientProvider>
     </StrictMode>,
   )
 }

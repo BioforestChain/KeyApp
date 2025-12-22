@@ -7,6 +7,7 @@ import { GradientButton } from "@/components/common/gradient-button";
 import { ChainIcon } from "@/components/wallet/chain-icon";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { useClipboard, useToast, useHaptics } from "@/services";
+import { useBalanceQuery } from "@/queries";
 import {
   IconSend,
   IconQrcode,
@@ -63,31 +64,18 @@ export function HomeTab() {
   const tokens = useCurrentChainTokens();
 
   const [copied, setCopied] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // 使用 TanStack Query 管理余额数据
+  // - 30s staleTime: Tab 切换不会重复请求
+  // - 60s 轮询: 自动刷新余额
+  // - 共享缓存: 多个组件使用同一 key 时共享数据
+  const { isFetching: isRefreshing } = useBalanceQuery(currentWallet?.id, selectedChain);
 
   useEffect(() => {
     if (!isInitialized) {
       walletActions.initialize();
     }
   }, [isInitialized]);
-
-  // Refresh balance when wallet or chain changes
-  useEffect(() => {
-    if (!currentWallet || !selectedChain) return;
-
-    const refreshBalance = async () => {
-      setIsRefreshing(true);
-      try {
-        await walletActions.refreshBalance(currentWallet.id, selectedChain);
-      } catch (error) {
-        console.error('Failed to refresh balance:', error);
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
-
-    void refreshBalance();
-  }, [currentWallet?.id, selectedChain]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {
