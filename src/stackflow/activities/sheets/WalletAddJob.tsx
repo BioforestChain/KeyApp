@@ -1,12 +1,12 @@
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { IconPlus, IconDownload } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useFlow } from "../../stackflow";
 import { useNavigation } from "../../hooks/use-navigation";
 
-export const WalletAddSheetActivity: ActivityComponentType = () => {
+export const WalletAddJob: ActivityComponentType = () => {
   const { t } = useTranslation(["wallet", "home"]);
   const { pop } = useFlow();
   const { navigate } = useNavigation();

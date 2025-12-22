@@ -141,7 +141,7 @@ describe('AddressAuthPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
-  // Note: Password verification is now handled by PasswordConfirmSheetActivity
+  // Note: Password verification is now handled by PasswordConfirmJob
   // This test is skipped as it depends on inline password input
   it.skip('requires password and signs when signMessage is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
@@ -189,7 +189,7 @@ describe('AddressAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmSheetActivity
+  // Note: Password verification is now handled by PasswordConfirmJob
   it.skip('requires password and returns main when getMain=true is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',

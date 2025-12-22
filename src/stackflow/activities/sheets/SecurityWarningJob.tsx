@@ -1,5 +1,5 @@
 import type { ActivityComponentType } from "@stackflow/react";
-import { Modal } from "@stackflow/plugin-basic-ui";
+import { Modal } from "@/components/layout/bottom-sheet";
 import { IconAlertTriangle as AlertTriangle } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,7 @@ export function setSecurityWarningConfirmCallback(cb: () => void) {
   onConfirmCallback = cb;
 }
 
-export const SecurityWarningSheetActivity: ActivityComponentType = () => {
+export const SecurityWarningJob: ActivityComponentType = () => {
   const { t } = useTranslation(["onboarding", "common"]);
   const { pop } = useFlow();
   const [acknowledged, setAcknowledged] = useState(false);

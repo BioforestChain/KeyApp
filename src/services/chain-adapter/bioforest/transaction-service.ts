@@ -259,30 +259,32 @@ export class BioforestTransactionService implements ITransactionService {
 
   async getTransactionHistory(address: Address, limit = 20): Promise<Transaction[]> {
     if (!this.baseUrl) {
+      console.warn('[TransactionService] No baseUrl configured for chain:', this.config.id)
       return []
     }
 
+    const url = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`
+
     try {
-      const response = await fetch(
-        `${this.baseUrl}/wallet/${this.config.id}/transactions/query`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address,
-            pageSize: limit,
-            page: 1,
-          }),
-        },
-      )
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address,
+          pageSize: limit,
+          page: 1,
+        }),
+      })
 
       if (!response.ok) {
+        console.warn('[TransactionService] API error:', response.status, response.statusText, 'for', url)
         return []
       }
 
       const result = (await response.json()) as {
-        data: {
-          transactions: Array<{
+        success?: boolean
+        data?: {
+          transactions?: Array<{
             signature: string
             senderId: string
             recipientId: string
@@ -292,11 +294,28 @@ export class BioforestTransactionService implements ITransactionService {
             height?: number
           }>
         }
+        // Alternative response format - transactions at root level
+        transactions?: Array<{
+          signature: string
+          senderId: string
+          recipientId: string
+          amount: string
+          fee: string
+          timestamp: number
+          height?: number
+        }>
+      }
+
+      // Handle different API response formats
+      const transactions = result.data?.transactions ?? result.transactions ?? []
+
+      if (transactions.length === 0) {
+        console.debug('[TransactionService] No transactions found for', address, 'on', this.config.id)
       }
 
       const { decimals, symbol } = this.config
 
-      return result.data.transactions.map((tx) => ({
+      return transactions.map((tx) => ({
         hash: tx.signature,
         from: tx.senderId,
         to: tx.recipientId,
@@ -311,7 +330,8 @@ export class BioforestTransactionService implements ITransactionService {
         blockNumber: tx.height ? BigInt(tx.height) : undefined,
         type: 'transfer' as const,
       }))
-    } catch {
+    } catch (error) {
+      console.error('[TransactionService] Failed to fetch history:', error)
       return []
     }
   }

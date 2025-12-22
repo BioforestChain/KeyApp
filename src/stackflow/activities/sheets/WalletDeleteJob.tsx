@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PasswordInput } from "@/components/security/password-input";
@@ -11,15 +11,15 @@ import { useFlow } from "../../stackflow";
 import { useNavigation } from "../../hooks/use-navigation";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
-type WalletDeleteSheetParams = {
+type WalletDeleteJobParams = {
   walletId: string;
 };
 
-function WalletDeleteSheetContent() {
+function WalletDeleteJobContent() {
   const { t } = useTranslation("wallet");
   const { pop } = useFlow();
   const { navigate } = useNavigation();
-  const { walletId } = useActivityParams<WalletDeleteSheetParams>();
+  const { walletId } = useActivityParams<WalletDeleteJobParams>();
 
   const wallets = useWallets();
   const wallet = wallets.find((w) => w.id === walletId);
@@ -124,10 +124,10 @@ function WalletDeleteSheetContent() {
   );
 }
 
-export const WalletDeleteSheetActivity: ActivityComponentType<WalletDeleteSheetParams> = ({ params }) => {
+export const WalletDeleteJob: ActivityComponentType<WalletDeleteJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <WalletDeleteSheetContent />
+      <WalletDeleteJobContent />
     </ActivityParamsProvider>
   );
 };

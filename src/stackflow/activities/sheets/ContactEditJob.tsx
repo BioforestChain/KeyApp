@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
@@ -9,15 +9,15 @@ import { IconUser as User, IconWallet as Wallet, IconFileText as FileText } from
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
-type ContactEditSheetParams = {
+type ContactEditJobParams = {
   contactId?: string;
   defaultChain?: string;
 };
 
-function ContactEditSheetContent() {
+function ContactEditJobContent() {
   const { t } = useTranslation("common");
   const { pop } = useFlow();
-  const { contactId, defaultChain } = useActivityParams<ContactEditSheetParams>();
+  const { contactId, defaultChain } = useActivityParams<ContactEditJobParams>();
 
   const contacts = useStore(addressBookStore, (s) => s.contacts);
   const contact = contactId ? contacts.find((c) => c.id === contactId) : null;
@@ -168,10 +168,10 @@ function ContactEditSheetContent() {
   );
 }
 
-export const ContactEditSheetActivity: ActivityComponentType<ContactEditSheetParams> = ({ params }) => {
+export const ContactEditJob: ActivityComponentType<ContactEditJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <ContactEditSheetContent />
+      <ContactEditJobContent />
     </ActivityParamsProvider>
   );
 };

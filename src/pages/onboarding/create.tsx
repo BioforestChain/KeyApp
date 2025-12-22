@@ -178,7 +178,7 @@ export function OnboardingCreatePage() {
                 setMnemonicOptionsCallback((options) => {
                   setMnemonicOptions(options);
                 });
-                push("MnemonicOptionsSheetActivity", {
+                push("MnemonicOptionsJob", {
                   language: mnemonicOptions.language,
                   length: String(mnemonicOptions.length),
                 });

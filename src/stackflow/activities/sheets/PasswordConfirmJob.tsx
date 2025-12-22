@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PasswordInput } from "@/components/security/password-input";
@@ -31,16 +31,16 @@ function clearPasswordConfirmCallback() {
   pendingBiometricCallback = null;
 }
 
-type PasswordConfirmSheetParams = {
+type PasswordConfirmJobParams = {
   title?: string;
   description?: string;
   biometricAvailable?: string; // "true" or "false" as URL params are strings
 };
 
-function PasswordConfirmSheetContent() {
+function PasswordConfirmJobContent() {
   const { t } = useTranslation("security");
   const { pop } = useFlow();
-  const { title, description, biometricAvailable } = useActivityParams<PasswordConfirmSheetParams>();
+  const { title, description, biometricAvailable } = useActivityParams<PasswordConfirmJobParams>();
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -181,10 +181,10 @@ function PasswordConfirmSheetContent() {
   );
 }
 
-export const PasswordConfirmSheetActivity: ActivityComponentType<PasswordConfirmSheetParams> = ({ params }) => {
+export const PasswordConfirmJob: ActivityComponentType<PasswordConfirmJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <PasswordConfirmSheetContent />
+      <PasswordConfirmJobContent />
     </ActivityParamsProvider>
   );
 };

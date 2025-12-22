@@ -1,5 +1,5 @@
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { IconCheck } from "@tabler/icons-react";
 import { ChainIcon } from "@/components/wallet/chain-icon";
@@ -26,7 +26,7 @@ function truncateAddress(address: string, startChars = 10, endChars = 8): string
   return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
 }
 
-export const ChainSelectorSheetActivity: ActivityComponentType = () => {
+export const ChainSelectorJob: ActivityComponentType = () => {
   const { t } = useTranslation(["home", "common"]);
   const { pop } = useFlow();
   const currentWallet = useCurrentWallet();

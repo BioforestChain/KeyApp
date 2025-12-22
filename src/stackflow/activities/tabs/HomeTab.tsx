@@ -88,7 +88,7 @@ export function HomeTab() {
   };
 
   const handleOpenChainSelector = () => {
-    push("ChainSelectorSheetActivity", {});
+    push("ChainSelectorJob", {});
   };
 
   if (!isInitialized) {

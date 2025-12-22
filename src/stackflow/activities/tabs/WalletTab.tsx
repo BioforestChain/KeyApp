@@ -103,7 +103,7 @@ export function WalletTab() {
           <Button
             variant="outline"
             className="w-full gap-2"
-            onClick={() => push("WalletAddSheetActivity", {})}
+            onClick={() => push("WalletAddJob", {})}
           >
             <IconPlus className="size-4" />
             {t('wallet:add')}

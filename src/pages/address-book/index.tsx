@@ -44,12 +44,12 @@ export function AddressBookPage() {
 
   // 打开添加联系人
   const handleOpenAdd = useCallback(() => {
-    push("ContactEditSheetActivity", {});
+    push("ContactEditJob", {});
   }, [push]);
 
   // 打开编辑联系人
   const handleOpenEdit = useCallback((contact: Contact) => {
-    push("ContactEditSheetActivity", { contactId: contact.id });
+    push("ContactEditJob", { contactId: contact.id });
   }, [push]);
 
   // 开始删除联系人
@@ -73,7 +73,7 @@ export function AddressBookPage() {
         }
       });
 
-      push("PasswordConfirmSheetActivity", {
+      push("PasswordConfirmJob", {
         title: t('addressBook.deleteTitle'),
         description: t('addressBook.deleteConfirm', { name: contact.name }),
       });

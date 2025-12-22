@@ -1,20 +1,20 @@
 import { useState, useCallback, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
-import { BottomSheet } from "@stackflow/plugin-basic-ui";
+import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { walletActions, useWallets } from "@/stores";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
-type WalletRenameSheetParams = {
+type WalletRenameJobParams = {
   walletId: string;
 };
 
-function WalletRenameSheetContent() {
+function WalletRenameJobContent() {
   const { t } = useTranslation("wallet");
   const { pop } = useFlow();
-  const { walletId } = useActivityParams<WalletRenameSheetParams>();
+  const { walletId } = useActivityParams<WalletRenameJobParams>();
 
   const wallets = useWallets();
   const wallet = wallets.find((w) => w.id === walletId);
@@ -104,10 +104,10 @@ function WalletRenameSheetContent() {
   );
 }
 
-export const WalletRenameSheetActivity: ActivityComponentType<WalletRenameSheetParams> = ({ params }) => {
+export const WalletRenameJob: ActivityComponentType<WalletRenameJobParams> = ({ params }) => {
   return (
     <ActivityParamsProvider params={params}>
-      <WalletRenameSheetContent />
+      <WalletRenameJobContent />
     </ActivityParamsProvider>
   );
 };

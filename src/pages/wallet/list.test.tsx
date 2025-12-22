@@ -172,7 +172,7 @@ describe('WalletListPage', () => {
     const addButtons = screen.getAllByRole('button', { name: '添加钱包' })
     fireEvent.click(addButtons[1]!) // Second button is in empty state
 
-    expect(mockPush).toHaveBeenCalledWith('WalletAddSheetActivity', {})
+    expect(mockPush).toHaveBeenCalledWith('WalletAddJob', {})
   })
 
   it('calculates total balance correctly', () => {
