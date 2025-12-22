@@ -1,19 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "typecheck": {
+    "typecheck:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json"],
       "outputs": [],
       "cache": true
     },
-    "test": {
+    "test:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
       "outputs": ["coverage/**"],
       "cache": true
     },
-    "i18n:check": {
+    "i18n:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/i18n/**/*.json", "scripts/i18n-check.ts"],
       "outputs": [],
@@ -26,19 +26,19 @@
       "cache": true
     },
     "build": {
-      "dependsOn": ["typecheck"],
+      "dependsOn": ["typecheck:run"],
       "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
       "outputs": ["dist/**"],
       "cache": true
     },
     "build:web": {
-      "dependsOn": ["typecheck"],
+      "dependsOn": ["typecheck:run"],
       "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
       "outputs": ["dist-web/**"],
       "cache": true
     },
     "build:dweb": {
-      "dependsOn": ["typecheck"],
+      "dependsOn": ["typecheck:run"],
       "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],
       "outputs": ["dist-dweb/**"],
       "cache": true
