@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
-      docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,10 +30,6 @@ jobs:
               - 'vitest.config.ts'
               - 'playwright.config.ts'
               - 'tsconfig*.json'
-            docs:
-              - 'docs/**'
-              - '*.md'
-              - '.github/**'
 
   # ==================== 检测 self-hosted runner 可用性 ====================
   check-runner:
@@ -47,131 +42,126 @@ jobs:
       - id: check
         run: echo "available=true" >> $GITHUB_OUTPUT
 
-  # ==================== 快速检查 (合并 typecheck + build + i18n) ====================
-  quick-checks:
-    needs: check-runner
-    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      # GitHub-hosted: 需要安装环境
-      - name: Setup Bun
-        if: needs.check-runner.outputs.available != 'true'
-        uses: oven-sh/setup-bun@v2
-      - name: Setup pnpm
-        if: needs.check-runner.outputs.available != 'true'
-        uses: pnpm/action-setup@v4
-      - name: Setup Node.js
-        if: needs.check-runner.outputs.available != 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      # 通用步骤
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Type check
-        run: pnpm typecheck
-      - name: Build
-        run: pnpm build
-      - name: Check i18n keys
-        run: pnpm i18n:check
-
-  # ==================== 单元测试 (独立运行，耗时长) ====================
-  test:
-    needs: check-runner
-    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup pnpm
-        if: needs.check-runner.outputs.available != 'true'
-        uses: pnpm/action-setup@v4
-      - name: Setup Node.js
-        if: needs.check-runner.outputs.available != 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Unit tests
-        run: pnpm test
-
-  # ==================== E2E 测试（仅代码变更时运行） ====================
-  e2e:
+  # ==================== Self-hosted 快速路径 (无 action 下载) ====================
+  ci-fast:
     needs: [changes, check-runner]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+    if: needs.check-runner.outputs.available == 'true'
+    runs-on: self-hosted
     timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Git checkout
+        run: |
+          if [ ! -d ".git" ]; then
+            git clone --depth=1 https://github.com/${{ github.repository }}.git .
+          fi
+          git fetch origin ${{ github.event.pull_request.head.sha || github.sha }} --depth=1
+          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run all checks (turbo parallel)
+        run: |
+          # 运行所有检查，输出到日志文件
+          set +e
+          pnpm turbo run typecheck:run build i18n:run test:run 2>&1 | tee turbo-output.log
+          TURBO_EXIT=$?
+          set -e
+          
+          # 如果失败，打印详细错误
+          if [ $TURBO_EXIT -ne 0 ]; then
+            echo ""
+            echo "========== TURBO FAILED =========="
+            echo "Exit code: $TURBO_EXIT"
+            echo ""
+            echo "========== ERROR DETAILS =========="
+            # 提取错误信息
+            grep -A 50 "error\|Error\|ERROR\|failed\|Failed\|FAILED" turbo-output.log || cat turbo-output.log
+            exit $TURBO_EXIT
+          fi
+          
+          echo "All checks passed!"
+
+      - name: Run E2E (if code changed)
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          set +e
+          pnpm e2e bioforest-chains --project "Mobile Chrome" 2>&1 | tee e2e-output.log
+          E2E_EXIT=$?
+          set -e
+          
+          if [ $E2E_EXIT -ne 0 ]; then
+            echo ""
+            echo "========== E2E FAILED =========="
+            cat e2e-output.log
+            exit $E2E_EXIT
+          fi
+
+  # ==================== GitHub-hosted 标准路径 (Fallback) ====================
+  ci-standard:
+    needs: [changes, check-runner]
+    if: needs.check-runner.outputs.available != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Bun
-        if: needs.check-runner.outputs.available != 'true'
-        uses: oven-sh/setup-bun@v2
-      - name: Setup pnpm
-        if: needs.check-runner.outputs.available != 'true'
-        uses: pnpm/action-setup@v4
-      - name: Setup Node.js
-        if: needs.check-runner.outputs.available != 'true'
-        uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      # GitHub-hosted: 需要安装 Playwright
+      - name: Run all checks
+        run: pnpm turbo run typecheck:run build i18n:run test:run
       - name: Cache Playwright browsers
-        if: needs.check-runner.outputs.available != 'true'
+        if: needs.changes.outputs.code == 'true'
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install Playwright browsers
-        if: needs.check-runner.outputs.available != 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Install Playwright
+        if: needs.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Install Playwright deps (if cached)
-        if: needs.check-runner.outputs.available != 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+      - name: Install Playwright deps
+        if: needs.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
-      # E2E 测试
-      - name: E2E smoke (Mobile Chrome)
+      - name: E2E tests
+        if: needs.changes.outputs.code == 'true'
         run: pnpm e2e bioforest-chains --project "Mobile Chrome"
 
   # ==================== 最终状态检查 ====================
   checks:
     runs-on: ubuntu-latest
-    needs: [check-runner, quick-checks, test, e2e]
+    needs: [check-runner, ci-fast, ci-standard]
     if: always()
     steps:
-      - name: Report runner status
-        run: |
-          if [[ "${{ needs.check-runner.outputs.available }}" == "true" ]]; then
-            echo "🚀 Using self-hosted runner (M1 Mac) - fast mode"
-          else
-            echo "☁️ Using GitHub-hosted runner (ubuntu-latest)"
-          fi
       - name: Check results
         run: |
-          if [[ "${{ needs.quick-checks.result }}" == "failure" ]]; then
-            echo "Quick checks (typecheck/build/i18n) failed"
+          echo "Runner mode: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted (fast)' || 'github-hosted (standard)' }}"
+          
+          # ci-fast 或 ci-standard 其中一个会运行
+          FAST="${{ needs.ci-fast.result }}"
+          STD="${{ needs.ci-standard.result }}"
+          
+          if [[ "$FAST" == "failure" ]] || [[ "$STD" == "failure" ]]; then
+            echo "CI failed!"
             exit 1
           fi
-          if [[ "${{ needs.test.result }}" == "failure" ]]; then
-            echo "Tests failed"
+          
+          if [[ "$FAST" == "success" ]] || [[ "$STD" == "success" ]]; then
+            echo "All checks passed!"
+            exit 0
+          fi
+          
+          # 两个都被跳过的情况不应该发生
+          if [[ "$FAST" == "skipped" ]] && [[ "$STD" == "skipped" ]]; then
+            echo "Error: Both CI jobs were skipped"
             exit 1
           fi
-          if [[ "${{ needs.e2e.result }}" == "failure" ]]; then
-            echo "E2E failed"
-            exit 1
-          fi
-          echo "All checks passed!"
+          
+          echo "CI completed"
