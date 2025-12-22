@@ -122,3 +122,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "CI standard passed"
+
+  # ==================== 聚合 Job（满足分支保护） ====================
+  checks:
+    if: always()
+    needs: [checks-fast, checks-standard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.checks-fast.result }}" == "success" ] || [ "${{ needs.checks-standard.result }}" == "success" ]; then
+            echo "CI passed via $( [ '${{ needs.checks-fast.result }}' == 'success' ] && echo 'fast path' || echo 'standard path' )"
+            exit 0
+          fi
+          echo "CI failed: fast=${{ needs.checks-fast.result }}, standard=${{ needs.checks-standard.result }}"
+          exit 1
