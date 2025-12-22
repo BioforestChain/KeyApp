@@ -8,44 +8,9 @@ env:
   NODE_VERSION: '24'
 
 jobs:
-  # ==================== 变更检测 ====================
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      code: ${{ steps.filter.outputs.code }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            code:
-              - 'src/**'
-              - 'e2e/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'vite.config.ts'
-              - 'vitest.config.ts'
-              - 'playwright.config.ts'
-              - 'tsconfig*.json'
-
-  # ==================== 检测 self-hosted runner 可用性 ====================
-  check-runner:
-    runs-on: self-hosted
-    timeout-minutes: 1
-    continue-on-error: true
-    outputs:
-      available: ${{ steps.check.outputs.available }}
-    steps:
-      - id: check
-        run: echo "available=true" >> $GITHUB_OUTPUT
-
   # ==================== Self-hosted 快速路径 (无 action 下载) ====================
   ci-fast:
-    needs: [changes, check-runner]
-    if: needs.check-runner.outputs.available == 'true'
+    if: vars.USE_SELF_HOSTED == 'true'
     runs-on: self-hosted
     timeout-minutes: 15
     steps:
@@ -57,94 +22,101 @@ jobs:
           git fetch origin ${{ github.event.pull_request.head.sha || github.sha }} --depth=1
           git checkout ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run all checks (turbo parallel)
+      - name: Detect changes
+        id: changes
         run: |
-          # 运行所有检查，输出到日志文件
+          CODE_CHANGED=$(git diff --name-only origin/${{ github.base_ref || 'main' }}...HEAD | grep -E '^src/|^e2e/' || true)
+          if [ -n "$CODE_CHANGED" ]; then
+            echo "code=true" >> $GITHUB_OUTPUT
+          else
+            echo "code=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install & Run
+        run: |
+          pnpm install --frozen-lockfile
+          
+          if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
+            TASKS="typecheck:run build i18n:run test:run e2e:ci"
+          else
+            TASKS="typecheck:run build i18n:run test:run"
+          fi
+          
           set +e
-          pnpm turbo run typecheck:run build i18n:run test:run 2>&1 | tee turbo-output.log
+          pnpm turbo run $TASKS 2>&1 | tee turbo-output.log
           TURBO_EXIT=$?
           set -e
           
-          # 如果失败，打印详细错误
           if [ $TURBO_EXIT -ne 0 ]; then
             echo ""
             echo "========== TURBO FAILED =========="
-            echo "Exit code: $TURBO_EXIT"
-            echo ""
-            echo "========== ERROR DETAILS =========="
-            # 提取错误信息
             grep -A 50 "error\|Error\|ERROR\|failed\|Failed\|FAILED" turbo-output.log || cat turbo-output.log
             exit $TURBO_EXIT
           fi
           
           echo "All checks passed!"
 
-      - name: Run E2E (if code changed)
-        if: needs.changes.outputs.code == 'true'
-        run: |
-          set +e
-          pnpm e2e bioforest-chains --project "Mobile Chrome" 2>&1 | tee e2e-output.log
-          E2E_EXIT=$?
-          set -e
-          
-          if [ $E2E_EXIT -ne 0 ]; then
-            echo ""
-            echo "========== E2E FAILED =========="
-            cat e2e-output.log
-            exit $E2E_EXIT
-          fi
-
-  # ==================== GitHub-hosted 标准路径 (Fallback) ====================
+  # ==================== GitHub-hosted 标准路径 ====================
   ci-standard:
-    needs: [changes, check-runner]
-    if: needs.check-runner.outputs.available != 'true'
+    if: vars.USE_SELF_HOSTED != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'e2e/**'
+
       - uses: oven-sh/setup-bun@v2
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run all checks
-        run: pnpm turbo run typecheck:run build i18n:run test:run
+
       - name: Cache Playwright browsers
-        if: needs.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install Playwright
-        if: needs.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Install Playwright deps
-        if: needs.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
-      - name: E2E tests
-        if: needs.changes.outputs.code == 'true'
-        run: pnpm e2e bioforest-chains --project "Mobile Chrome"
 
-  # ==================== 最终状态检查 ====================
+      - name: Install Playwright
+        if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright deps
+        if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Run all checks
+        run: |
+          if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
+            pnpm turbo run typecheck:run build i18n:run test:run e2e:ci
+          else
+            pnpm turbo run typecheck:run build i18n:run test:run
+          fi
+
+  # ==================== 状态汇总 (分支保护需要) ====================
   checks:
     runs-on: ubuntu-latest
-    needs: [check-runner, ci-fast, ci-standard]
+    needs: [ci-fast, ci-standard]
     if: always()
     steps:
       - name: Check results
         run: |
-          echo "Runner mode: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted (fast)' || 'github-hosted (standard)' }}"
-          
-          # ci-fast 或 ci-standard 其中一个会运行
           FAST="${{ needs.ci-fast.result }}"
           STD="${{ needs.ci-standard.result }}"
           
@@ -158,7 +130,6 @@ jobs:
             exit 0
           fi
           
-          # 两个都被跳过的情况不应该发生
           if [[ "$FAST" == "skipped" ]] && [[ "$STD" == "skipped" ]]; then
             echo "Error: Both CI jobs were skipped"
             exit 1

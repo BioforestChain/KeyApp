@@ -32,6 +32,19 @@
       "outputs": ["e2e/report/**", "e2e/test-results/**"],
       "cache": true
     },
+    "e2e:ci": {
+      "dependsOn": [],
+      "inputs": [
+        "src/**",
+        "e2e/**/*.ts",
+        "e2e/__screenshots__/**",
+        "playwright.config.ts",
+        "!e2e/test-results/**",
+        "!e2e/report/**"
+      ],
+      "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": true
+    },
     "build": {
       "dependsOn": ["typecheck:run"],
       "inputs": ["src/**", "index.html", "vite.config.ts", "tsconfig*.json"],

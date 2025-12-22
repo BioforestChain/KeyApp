@@ -14,9 +14,24 @@ set -e
 
 NUM_RUNNERS=${1:-4}
 GITHUB_TOKEN=${2:-}
-REPO=${GITHUB_REPOSITORY:-"BioforestChain/KeyApp"}
 RUNNER_VERSION="2.321.0"  # https://github.com/actions/runner/releases
 RUNNER_BASE_DIR="$HOME/actions-runners"
+
+# 从 git remote 获取仓库信息（支持 fork）
+get_repo_from_git() {
+    local remote_url=$(git remote get-url origin 2>/dev/null)
+    if [ -n "$remote_url" ]; then
+        # 支持 https://github.com/owner/repo.git 和 git@github.com:owner/repo.git
+        echo "$remote_url" | sed -E 's#.*github.com[:/]([^/]+/[^/]+?)(\.git)?$#\1#' | sed 's/\.git$//'
+    fi
+}
+
+REPO=${GITHUB_REPOSITORY:-$(get_repo_from_git)}
+if [ -z "$REPO" ]; then
+    echo "错误: 无法获取仓库信息"
+    echo "请在 git 仓库目录中运行，或设置 GITHUB_REPOSITORY 环境变量"
+    exit 1
+fi
 
 echo "=========================================="
 echo "  GitHub Actions Self-hosted Runner 配置"
@@ -128,35 +143,63 @@ done
 echo "生成管理脚本..."
 
 # start-all.sh
-cat > "$RUNNER_BASE_DIR/start-all.sh" << 'SCRIPT'
+cat > "$RUNNER_BASE_DIR/start-all.sh" << SCRIPT
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="\$(cd "\$(dirname "\$0")" && pwd)"
+REPO="$REPO"
 
 echo "启动所有 runners..."
-for dir in "$SCRIPT_DIR"/runner-*; do
-    if [ -d "$dir" ] && [ -f "$dir/run.sh" ]; then
-        NAME=$(basename "$dir")
-        if pgrep -f "$dir/bin/Runner.Listener" > /dev/null; then
-            echo "  $NAME: 已在运行"
+for dir in "\$SCRIPT_DIR"/runner-*; do
+    if [ -d "\$dir" ] && [ -f "\$dir/run.sh" ]; then
+        NAME=\$(basename "\$dir")
+        if pgrep -f "\$dir/bin/Runner.Listener" > /dev/null; then
+            echo "  \$NAME: 已在运行"
         else
-            echo "  $NAME: 启动中..."
-            cd "$dir"
+            echo "  \$NAME: 启动中..."
+            cd "\$dir"
             nohup ./run.sh > runner.log 2>&1 &
-            echo "  $NAME: PID $!"
+            echo "  \$NAME: PID \$!"
         fi
     fi
 done
+
+# 设置 GitHub 变量启用 self-hosted
 echo ""
-echo "查看日志: tail -f $SCRIPT_DIR/runner-*/runner.log"
+echo "设置 USE_SELF_HOSTED=true..."
+if command -v gh &> /dev/null && gh auth status &> /dev/null; then
+    gh variable set USE_SELF_HOSTED --body "true" --repo "\$REPO" 2>/dev/null && \
+        echo "  ✓ CI 已切换到 self-hosted 模式" || \
+        echo "  △ 无法设置变量，请手动设置"
+else
+    echo "  △ gh CLI 未登录，请手动设置 USE_SELF_HOSTED=true"
+fi
+
+echo ""
+echo "查看日志: tail -f \$SCRIPT_DIR/runner-*/runner.log"
 SCRIPT
 chmod +x "$RUNNER_BASE_DIR/start-all.sh"
 
 # stop-all.sh
-cat > "$RUNNER_BASE_DIR/stop-all.sh" << 'SCRIPT'
+cat > "$RUNNER_BASE_DIR/stop-all.sh" << SCRIPT
 #!/bin/bash
+REPO="$REPO"
+
 echo "停止所有 runners..."
 pkill -f "Runner.Listener" 2>/dev/null || true
 pkill -f "Runner.Worker" 2>/dev/null || true
+
+# 设置 GitHub 变量禁用 self-hosted
+echo ""
+echo "设置 USE_SELF_HOSTED=false..."
+if command -v gh &> /dev/null && gh auth status &> /dev/null; then
+    gh variable set USE_SELF_HOSTED --body "false" --repo "\$REPO" 2>/dev/null && \
+        echo "  ✓ CI 已切换到 github-hosted 模式" || \
+        echo "  △ 无法设置变量，请手动设置"
+else
+    echo "  △ gh CLI 未登录，请手动设置 USE_SELF_HOSTED=false"
+fi
+
+echo ""
 echo "完成"
 SCRIPT
 chmod +x "$RUNNER_BASE_DIR/stop-all.sh"

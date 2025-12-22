@@ -29,6 +29,7 @@
     "e2e": "bun scripts/e2e.ts",
     "e2e:all": "turbo run e2e:run --",
     "e2e:run": "playwright test",
+    "e2e:ci": "playwright test bioforest-chains --project 'Mobile Chrome'",
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:update": "playwright test --update-snapshots",
