@@ -134,16 +134,13 @@ test.describe('BioForest 链功能', () => {
     // 等待链选择器显示 BFMeta，确保切换完成
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('BFMeta')
     
-    // 导航到发送页面 (Stackflow hash 路由)
-    // 等待发送按钮可交互（网络空闲后）
-    await page.waitForLoadState('networkidle')
-    await page.waitForSelector('[data-testid="send-button"]', { state: 'visible' })
+    // 点击发送按钮并等待发送页面加载
     await page.click('[data-testid="send-button"]')
-    // 等待 URL 变化并页面加载完成
-    await page.waitForURL(/.*#\/send\/?/, { timeout: 30000 })
     
-    // 验证发送页面正确加载 - 检查发送页面特有的继续按钮
-    await expect(page.locator('[data-testid="send-continue-button"]')).toBeVisible({ timeout: 15000 })
+    // 验证发送页面正确加载 - 检查页面标题
+    // 使用 page-title 因为无论钱包状态如何都会显示
+    await page.waitForSelector('[data-testid="page-title"]', { timeout: 30000 })
+    await expect(page).toHaveURL(/.*#\/send\/?/)
   })
 
   test('链切换后收款页面显示正确地址', async ({ page }) => {
