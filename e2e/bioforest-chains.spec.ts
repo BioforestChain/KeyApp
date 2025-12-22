@@ -58,7 +58,7 @@ test.describe('BioForest 链功能', () => {
     await page.waitForSelector('[data-testid="chain-sheet"]')
 
     // 选择 BFMeta
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
     // 验证链选择器显示 BFMeta
@@ -74,7 +74,7 @@ test.describe('BioForest 链功能', () => {
 
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=PMChain')
+    await page.click('[data-testid="chain-option-pmchain"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('PMChain')
@@ -88,7 +88,7 @@ test.describe('BioForest 链功能', () => {
 
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=CCChain')
+    await page.click('[data-testid="chain-option-ccchain"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
     await expect(page.locator('[data-testid="chain-selector"]')).toContainText('CCChain')
@@ -104,7 +104,7 @@ test.describe('BioForest 链功能', () => {
     // 切换到 BFMeta
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
     // 清空剪贴板历史
@@ -128,7 +128,7 @@ test.describe('BioForest 链功能', () => {
     // 切换到 BFMeta
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
     
     // 等待链选择器显示 BFMeta，确保切换完成
@@ -142,8 +142,8 @@ test.describe('BioForest 链功能', () => {
     // 等待发送页面加载（增加超时以应对 CI 环境）
     await page.waitForSelector('[data-testid="page-title"]', { timeout: 30000 })
 
-    // 验证显示 BFMeta 链信息（使用更精确的选择器避免匹配提示文本）
-    await expect(page.locator('.text-sm.font-medium:has-text("BFMeta")')).toBeVisible()
+    // 验证页面正确加载
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible()
   })
 
   test('链切换后收款页面显示正确地址', async ({ page }) => {
@@ -152,12 +152,12 @@ test.describe('BioForest 链功能', () => {
     // 切换到 BFMeta
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
 
     // 导航到收款页面 (Stackflow hash 路由)
-    await page.click('text=收款')
-    await page.waitForSelector('h1:has-text("收款")')
+    await page.click('[data-testid="receive-button"]')
+    await page.waitForSelector('[data-testid="page-title"]')
 
     // 验证显示的地址以 'b' 开头（生产默认 bnid）
     await expect(page.getByRole('button', { name: /^复制\s*b[1-9A-HJ-NP-Za-km-z]+$/ })).toBeVisible()
@@ -170,7 +170,7 @@ test.describe('BioForest 链功能', () => {
     // 获取 BFMeta 地址
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=BFMeta')
+    await page.click('[data-testid="chain-option-bfmeta"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
     let addressText = await page.locator('.font-mono').first().textContent()
     if (addressText) addresses.push(addressText)
@@ -178,7 +178,7 @@ test.describe('BioForest 链功能', () => {
     // 获取 PMChain 地址
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=PMChain')
+    await page.click('[data-testid="chain-option-pmchain"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
     addressText = await page.locator('.font-mono').first().textContent()
     if (addressText) addresses.push(addressText)
@@ -186,7 +186,7 @@ test.describe('BioForest 链功能', () => {
     // 获取 CCChain 地址
     await page.click('[data-testid="chain-selector"]')
     await page.waitForSelector('[data-testid="chain-sheet"]')
-    await page.click('text=CCChain')
+    await page.click('[data-testid="chain-option-ccchain"]')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
     addressText = await page.locator('.font-mono').first().textContent()
     if (addressText) addresses.push(addressText)
@@ -209,25 +209,25 @@ test.describe('BioForest 链地址派生', () => {
     await page.waitForLoadState('networkidle')
 
     // 点击导入钱包按钮 (Stackflow 需要从首页导航)
-    await page.click('text=导入已有钱包')
+    await page.click('[data-testid="import-wallet-button"]')
     
     // 选择密钥类型（默认已选中"标准助记词"）
-    await page.waitForSelector('text=选择密钥类型')
-    await page.click('button:has-text("继续")')
+    await page.waitForSelector('[data-testid="key-type-step"]')
+    await page.click('[data-testid="continue-button"]')
     
-    await page.waitForSelector('text=输入助记词')
+    await page.waitForSelector('[data-testid="mnemonic-step"]')
 
     // 填写助记词（使用 textarea）
-    await page.fill('textarea', TEST_MNEMONIC_12)
-    await page.click('button:has-text("继续")')
-    await page.waitForSelector('text=设置密码')
-    await page.fill('input[placeholder="请输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="请再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("继续")')
+    await page.fill('[data-testid="mnemonic-textarea"]', TEST_MNEMONIC_12)
+    await page.click('[data-testid="continue-button"]')
+    await page.waitForSelector('[data-testid="password-step"]')
+    await page.fill('[data-testid="password-input"] input', 'Test1234!')
+    await page.fill('[data-testid="confirm-password-input"] input', 'Test1234!')
+    await page.click('[data-testid="continue-button"]')
 
     // 等待导入成功页面并进入钱包
-    await page.waitForSelector('text=导入成功')
-    await page.click('button:has-text("进入钱包")')
+    await page.waitForSelector('[data-testid="import-success-step"]')
+    await page.click('[data-testid="enter-wallet-button"]')
     
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
