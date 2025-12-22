@@ -1,28 +1,51 @@
-**短期核心目标：参考mpay代码，实现bioforestChain生态的基础功能：**
-这是验收标准：
+# KeyApp AI 开发入口
 
-1. 可以输入任意的密钥来创建bioforestChain生态的钱包：bioforestChain密钥的特殊之处在于它可以是任意字符串，而不是非得是助记词，因此需要一个textarea或者类似textarea的组件可以进行自由输入
-2. 可以进行bioforestChain生态的转账
-3. 可以进行bioforestChain生态的交易查询
-4. bioforestChain生态有多条链，可以通过设置自由配置
-   - 需要内置一些现有的几条链的配置，参考mpay，默认配置存储在一个json文件中
-   - 设置页面可以配置订阅url，默认是"默认"，也就是本地这个json文件
-   - json文件可以下载到多条链，所以我们还需要在这个设置页面提供一个"启用禁用"的功能
-   - 还能绕过订阅，手动进行补充：最简单的方式就是手动输入json格式的配置，然后点击"添加"按钮，如果json配置是一个数组，那么就是多条数据、如果是一个obj，那么就是单条数据
-   - 单条数据要考虑"版本号（x.y）"+"type"，版本号是为了支持架构更新（通过不同的X-service），type是为了在一个版本中支持多种变体，如果代码更新补充了某种变体，那么小版本y就+1
-5. 在设置页面，切换语言的功能要能正常
-6. 钱包管理的一整个用户故事要完整闭环，所有涉及到bioforestChain的功能，都要正确移植到我们的service生态
-7. 我们的国际国家货币的service的封装也要完成
-   - 默认的provider：Frankfurter（推荐，无需密钥）
-     1. 实时/最新汇率：https://api.frankfurter.app/latest
-     2. 查询特定货币（例如获取欧元兑美元、英镑的汇率）：https://api.frankfurter.app/latest?from=EUR&to=USD,GBP
-     3. 默认使用美元，不论用户界面使用什么语言
-8. 确保底部的tabs正常吗？会遮挡界面吗？视觉颜色正常吗？文字是否可见，暗色模式呢？
-9. 确保与dweb相关的功能也完全迁移了，可以做到完全兼容mpay
-10. 正确的可访问性：
-    1. 背景和文字颜色没有导致低可读性。
-    2. 可以正确切换多国语言
-    3. 统一的色彩语言表达
+## AI 开发工作流
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         开发闭环                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  1. 获取全部     pnpm agent                                          │
+│       ↓         (规则 + 知识地图 + 当前任务列表)                       │
+│  2. 领取任务     pnpm agent --claim 28                               │
+│       ↓         (自动分配 + 显示 worktree 命令)                       │
+│  3. 创建分支     git worktree add .git-worktree/issue-28 ...         │
+│       ↓                                                              │
+│  4. 开发代码     (参考白皮书: pnpm agent --chapter <路径>)             │
+│       ↓                                                              │
+│  5. 提交 PR      gh pr create --body "Closes #28"                    │
+│       ↓         (PR 自动关联 Issue)                                   │
+│  6. 合并后       Issue 自动关闭，Project 状态更新                      │
+│                                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│  发现新问题?     pnpm agent --create "问题描述" --category bug        │
+│                 (自动设置 roadmap 版本)                               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## 命令速查
+
+```bash
+pnpm agent                              # 规则 + 知识地图 + 当前任务
+pnpm agent --claim 28                   # 领取任务
+pnpm agent --create "标题" --roadmap v1  # 创建任务（自动设置版本）
+pnpm agent --chapter 03-架构篇/03-导航系统  # 查阅白皮书
+pnpm agent --stats                      # 查看进度统计
+```
+
+## Roadmap
+
+GitHub Project：https://github.com/orgs/BioforestChain/projects/5
+
+| 版本 | 说明 |
+|-----|------|
+| **V1** | 当前核心目标（bioforestChain 生态基础功能） |
+| V2/V3 | 后续版本 |
+| DRAFT | 草案/探索/待定 |
+
+别名：`CURRENT` -> V1, `NEXT` -> V2
 
 <!-- OPENSPEC:START -->
 
@@ -61,21 +84,6 @@ BFM Pay 是一个现代化的多链钱包移动应用，是 mpay 的技术重构
 | **白皮书** | `docs/white-book/`                                   | 完整技术文档，涵盖产品、设计、架构、服务、组件、安全、测试、部署 |
 | 原始代码 | `/Users/kzf/Dev/bioforestChain/legacy-apps/apps/mpay/` | 参考实现细节                            |
 
-### 白皮书章节速查
-
-| 需求类型 | 参考章节 |
-|---------|---------|
-| 产品需求、用户故事 | `docs/white-book/01-产品篇/` |
-| 交互设计、视觉规范 | `docs/white-book/02-设计篇/` |
-| 技术架构、状态管理 | `docs/white-book/03-架构篇/` |
-| 服务接口规范 | `docs/white-book/04-服务篇/` |
-| 组件规范 | `docs/white-book/05-组件篇/` |
-| 安全规范 | `docs/white-book/06-安全篇/` |
-| 国际化 | `docs/white-book/07-国际化篇/` |
-| 测试策略 | `docs/white-book/08-测试篇/` |
-| 部署发布 | `docs/white-book/09-部署篇/` |
-| mpay迁移指南 | `docs/white-book/附录/C-mpay迁移指南/` |
-
 ## 开发原则
 
 ### 1. 文档优先级
@@ -107,46 +115,6 @@ BFM Pay 是一个现代化的多链钱包移动应用，是 mpay 的技术重构
 - shadcn/ui + Tailwind CSS 4.x
 - Zod 4.x + i18next
 - Storybook 10.x + Vitest 4.x
-
-## 开发阶段
-
-### Phase 1: 基础设施 ✅ 已完成
-
-- [x] 项目初始化 (Vite + React 19)
-- [x] Storybook 10.x 组件开发环境
-- [x] Vitest 4.x 测试环境
-- [x] shadcn/ui 组件库集成
-- [x] 基础 UI 组件开发与测试 (363 tests passing)
-
-### Phase 1.5: 核心交互组件（当前）
-
-**活跃 Change**: `add-core-interaction-components`
-
-- [ ] WalletSelector 钱包选择器
-- [ ] ChainAddressSelector 链地址选择器
-- [ ] TransferConfirmSheet 转账确认弹窗
-- [ ] PasswordConfirmSheet 密码确认弹窗
-- [ ] MnemonicConfirm 助记词确认
-- [ ] TransactionStatus, FeeDisplay, TokenIcon
-
-### Phase 2: 核心功能
-
-- [ ] Stackflow 导航系统
-- [ ] TanStack Store 状态管理
-- [ ] 钱包创建/导入功能
-- [ ] 资产展示功能
-
-### Phase 3: 交易功能
-
-- [ ] 转账功能
-- [ ] 收款功能
-- [ ] 交易历史
-
-### Phase 4: 高级功能
-
-- [ ] 质押功能
-- [ ] DWEB/Plaoc 集成
-- [ ] 多语言支持
 
 ## 工作流程
 
@@ -220,17 +188,6 @@ git worktree remove .git-worktree/<feature-name>
    - 合并 PR：`gh pr merge --squash --delete-branch`
    - 回到主目录更新 main：`cd ../.. && git pull origin main`
    - 清理 worktree：`git worktree remove .git-worktree/<feature-name>`
-
-## mpay 关键文件速查
-
-详见 `docs/white-book/附录/C-mpay迁移指南/`，常用参考：
-
-| 功能      | mpay 路径                                         |
-| --------- | ------------------------------------------------- |
-| 首页      | `pages/home/home.component.ts`                    |
-| 转账      | `pages/mnemonic/pages/home-transfer/`             |
-| DWEB 授权 | `pages/authorize/pages/signature/`                |
-| 钱包存储  | `services/expansion-tools/wallet-data-stroage.ts` |
 
 ## 注意事项
 

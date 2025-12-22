@@ -71,3 +71,6 @@ PROMPT.md
 
 # Git-Worktree
 .git-worktree
+
+# Turborepo
+.turbo

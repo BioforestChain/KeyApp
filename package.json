@@ -34,7 +34,8 @@
     "gen:stable": "bun scripts/gen-stable.ts",
     "i18n:extract": "bun scripts/i18n-extract.ts",
     "i18n:check": "bun scripts/i18n-check.ts",
-    "i18n:validate": "bun scripts/i18n-validate.ts"
+    "i18n:validate": "bun scripts/i18n-validate.ts",
+    "agent": "bun scripts/agent-readme.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
