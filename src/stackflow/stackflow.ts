@@ -112,7 +112,9 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     WalletAddSheetActivity,
     SecurityWarningSheetActivity,
   },
-  initialActivity: () => "MainTabsActivity",
+  // Note: Don't set initialActivity when using historySyncPlugin
+  // The plugin will determine the initial activity based on the URL
+  // and use fallbackActivity when no route matches
 });
 
 export type ActivityName = keyof typeof activities;
