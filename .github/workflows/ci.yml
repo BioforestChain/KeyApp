@@ -16,6 +16,8 @@ jobs:
       docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -34,166 +36,138 @@ jobs:
               - '*.md'
               - '.github/**'
 
-  # ==================== 类型检查 ====================
-  typecheck:
-    runs-on: ubuntu-latest
+  # ==================== 检测 self-hosted runner 可用性 ====================
+  check-runner:
+    runs-on: self-hosted
+    timeout-minutes: 1
+    continue-on-error: true
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - id: check
+        run: echo "available=true" >> $GITHUB_OUTPUT
+
+  # ==================== 快速检查 (合并 typecheck + build + i18n) ====================
+  quick-checks:
+    needs: check-runner
+    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 1
+      # GitHub-hosted: 需要安装环境
+      - name: Setup Bun
+        if: needs.check-runner.outputs.available != 'true'
+        uses: oven-sh/setup-bun@v2
       - name: Setup pnpm
+        if: needs.check-runner.outputs.available != 'true'
         uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
+        if: needs.check-runner.outputs.available != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
+      # 通用步骤
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Type check
         run: pnpm typecheck
-
-  # ==================== 单元测试 ====================
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Unit tests
-        run: pnpm test
-
-  # ==================== i18n 检查 ====================
-  i18n:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
+      - name: Build
+        run: pnpm build
       - name: Check i18n keys
         run: pnpm i18n:check
 
-  # ==================== 构建检查 ====================
-  build:
-    runs-on: ubuntu-latest
+  # ==================== 单元测试 (独立运行，耗时长) ====================
+  test:
+    needs: check-runner
+    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 1
       - name: Setup pnpm
+        if: needs.check-runner.outputs.available != 'true'
         uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
+        if: needs.check-runner.outputs.available != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
+      - name: Unit tests
+        run: pnpm test
 
   # ==================== E2E 测试（仅代码变更时运行） ====================
   e2e:
-    needs: changes
+    needs: [changes, check-runner]
     if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.check-runner.outputs.available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 1
       - name: Setup Bun
+        if: needs.check-runner.outputs.available != 'true'
         uses: oven-sh/setup-bun@v2
-
       - name: Setup pnpm
+        if: needs.check-runner.outputs.available != 'true'
         uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
+        if: needs.check-runner.outputs.available != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
+      # GitHub-hosted: 需要安装 Playwright
       - name: Cache Playwright browsers
+        if: needs.check-runner.outputs.available != 'true'
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: needs.check-runner.outputs.available != 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
-
       - name: Install Playwright deps (if cached)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        if: needs.check-runner.outputs.available != 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
-
+      # E2E 测试
       - name: E2E smoke (Mobile Chrome)
         run: pnpm e2e bioforest-chains --project "Mobile Chrome"
 
   # ==================== 最终状态检查 ====================
   checks:
     runs-on: ubuntu-latest
-    needs: [typecheck, test, i18n, build, e2e]
+    needs: [check-runner, quick-checks, test, e2e]
     if: always()
     steps:
+      - name: Report runner status
+        run: |
+          if [[ "${{ needs.check-runner.outputs.available }}" == "true" ]]; then
+            echo "🚀 Using self-hosted runner (M1 Mac) - fast mode"
+          else
+            echo "☁️ Using GitHub-hosted runner (ubuntu-latest)"
+          fi
       - name: Check results
         run: |
-          if [[ "${{ needs.typecheck.result }}" == "failure" ]]; then
-            echo "Typecheck failed"
+          if [[ "${{ needs.quick-checks.result }}" == "failure" ]]; then
+            echo "Quick checks (typecheck/build/i18n) failed"
             exit 1
           fi
           if [[ "${{ needs.test.result }}" == "failure" ]]; then
             echo "Tests failed"
-            exit 1
-          fi
-          if [[ "${{ needs.i18n.result }}" == "failure" ]]; then
-            echo "i18n check failed"
-            exit 1
-          fi
-          if [[ "${{ needs.build.result }}" == "failure" ]]; then
-            echo "Build failed"
             exit 1
           fi
           if [[ "${{ needs.e2e.result }}" == "failure" ]]; then
