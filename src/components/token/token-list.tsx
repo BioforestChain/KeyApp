@@ -5,7 +5,10 @@ import { SkeletonList } from '../common/skeleton'
 
 interface TokenListProps {
   tokens: TokenInfo[]
+  /** Show skeleton loading state (no tokens yet) */
   loading?: boolean | undefined
+  /** Show balance refresh animation (tokens exist but refreshing) */
+  refreshing?: boolean | undefined
   showChange?: boolean | undefined
   onTokenClick?: ((token: TokenInfo) => void) | undefined
   emptyTitle?: string | undefined
@@ -17,6 +20,7 @@ interface TokenListProps {
 export function TokenList({
   tokens,
   loading = false,
+  refreshing = false,
   showChange = false,
   onTokenClick,
   emptyTitle = '暂无资产',
@@ -51,6 +55,7 @@ export function TokenList({
           key={`${token.chain}-${token.symbol}`}
           token={token}
           showChange={showChange}
+          loading={refreshing}
           {...(onTokenClick && { onClick: () => onTokenClick(token) })}
         />
       ))}
