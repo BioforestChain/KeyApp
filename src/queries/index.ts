@@ -34,3 +34,11 @@ export {
   getExchangeRate,
   exchangeRateQueryKeys,
 } from './use-exchange-rate-query'
+
+export {
+  useStakingOverviewQuery,
+  useStakingTransactionsQuery,
+  useStakingTransactionQuery,
+  useRefreshStaking,
+  stakingQueryKeys,
+} from './use-staking-query'
