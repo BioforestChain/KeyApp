@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import { Amount } from '@/types/amount'
 import { TransactionItem, type TransactionInfo } from './transaction-item'
 
 const meta: Meta<typeof TransactionItem> = {
@@ -14,7 +15,7 @@ const mockSend: TransactionInfo = {
   id: '1',
   type: 'send',
   status: 'confirmed',
-  amount: '100',
+  amount: Amount.fromFormatted('100', 6, 'USDT'),
   symbol: 'USDT',
   address: '0x1234567890abcdef1234567890abcdef12345678',
   timestamp: new Date(Date.now() - 3600000),
@@ -24,7 +25,7 @@ const mockReceive: TransactionInfo = {
   id: '2',
   type: 'receive',
   status: 'confirmed',
-  amount: '0.5',
+  amount: Amount.fromFormatted('0.5', 18, 'ETH'),
   symbol: 'ETH',
   address: 'TRX9876543210fedcba9876543210fedcba',
   timestamp: new Date(Date.now() - 86400000),
@@ -34,7 +35,7 @@ const mockPending: TransactionInfo = {
   id: '3',
   type: 'send',
   status: 'pending',
-  amount: '50',
+  amount: Amount.fromFormatted('50', 6, 'USDT'),
   symbol: 'USDT',
   address: '0xabcdef1234567890abcdef1234567890abcdef12',
   timestamp: new Date(),
@@ -44,7 +45,7 @@ const mockFailed: TransactionInfo = {
   id: '4',
   type: 'send',
   status: 'failed',
-  amount: '200',
+  amount: Amount.fromFormatted('200', 6, 'TRX'),
   symbol: 'TRX',
   address: 'TRX1111222233334444555566667777888899',
   timestamp: new Date(Date.now() - 7200000),
@@ -84,7 +85,7 @@ export const Swap: Story = {
       id: '5',
       type: 'swap',
       status: 'confirmed',
-      amount: '100',
+      amount: Amount.fromFormatted('100', 6, 'USDT'),
       symbol: 'USDT → ETH',
       address: '0xdex1234567890',
       timestamp: new Date(Date.now() - 1800000),
@@ -105,7 +106,7 @@ export const AllTypes: Story = {
           id: '5',
           type: 'stake',
           status: 'confirmed',
-          amount: '1000',
+          amount: Amount.fromFormatted('1000', 8, 'BFM'),
           symbol: 'BFM',
           address: '质押合约',
           timestamp: new Date(Date.now() - 172800000),

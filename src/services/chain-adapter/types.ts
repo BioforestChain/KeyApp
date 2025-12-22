@@ -3,6 +3,7 @@
  */
 
 import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 
 // ==================== 基础类型 ====================
 
@@ -13,10 +14,8 @@ export type Signature = string
 // ==================== 余额 ====================
 
 export interface Balance {
-  raw: bigint
-  formatted: string
+  amount: Amount
   symbol: string
-  decimals: number
 }
 
 // ==================== 代币 ====================
@@ -38,8 +37,7 @@ export interface FeeEstimate {
 }
 
 export interface Fee {
-  amount: bigint
-  formatted: string
+  amount: Amount
   estimatedTime: number // seconds
 }
 
@@ -48,7 +46,7 @@ export interface Fee {
 export interface TransferParams {
   from: Address
   to: Address
-  amount: bigint
+  amount: Amount
   tokenAddress?: Address
   memo?: string
 }
@@ -77,8 +75,8 @@ export interface Transaction {
   hash: TransactionHash
   from: Address
   to: Address
-  amount: bigint
-  fee: bigint
+  amount: Amount
+  fee: Amount
   status: TransactionStatus
   timestamp: number
   blockNumber?: bigint | undefined
@@ -101,10 +99,10 @@ export interface ChainInfo {
 }
 
 export interface GasPrice {
-  slow: bigint
-  standard: bigint
-  fast: bigint
-  baseFee?: bigint
+  slow: Amount
+  standard: Amount
+  fast: Amount
+  baseFee?: Amount | undefined
   lastUpdated: number
 }
 

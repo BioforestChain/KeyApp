@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod'
+import { Amount } from './amount'
 
 /** Supported external chains for staking */
 export const ExternalChainSchema = z.enum(['ETH', 'BSC', 'TRON'])
@@ -64,65 +65,62 @@ export const StakingTxStatusSchema = z.enum(['pending', 'confirming', 'confirmed
 export type StakingTxStatus = z.infer<typeof StakingTxStatusSchema>
 
 /** Staking transaction record */
-export const StakingTransactionSchema = z.object({
+export interface StakingTransaction {
   /** Unique transaction ID */
-  id: z.string(),
+  id: string
   /** Transaction type (mint/burn) */
-  type: StakingTxTypeSchema,
+  type: StakingTxType
   /** Source chain */
-  sourceChain: z.string(),
+  sourceChain: string
   /** Source asset type */
-  sourceAsset: z.string(),
-  /** Source amount (raw, in smallest unit) */
-  sourceAmount: z.string(),
+  sourceAsset: string
+  /** Source amount */
+  sourceAmount: Amount
   /** Target chain */
-  targetChain: z.string(),
+  targetChain: string
   /** Target asset type */
-  targetAsset: z.string(),
-  /** Target amount (raw, in smallest unit) */
-  targetAmount: z.string(),
+  targetAsset: string
+  /** Target amount */
+  targetAmount: Amount
   /** Transaction status */
-  status: StakingTxStatusSchema,
+  status: StakingTxStatus
   /** Transaction hash (on-chain) */
-  txHash: z.string().optional(),
+  txHash?: string | undefined
   /** Creation timestamp */
-  createdAt: z.number(),
+  createdAt: number
   /** Last update timestamp */
-  updatedAt: z.number(),
+  updatedAt: number
   /** Error message if failed */
-  errorMessage: z.string().optional(),
-})
-export type StakingTransaction = z.infer<typeof StakingTransactionSchema>
+  errorMessage?: string | undefined
+}
 
 /** Mint (stake) request */
-export const MintRequestSchema = z.object({
+export interface MintRequest {
   /** Source external chain */
-  sourceChain: ExternalChainSchema,
+  sourceChain: ExternalChain
   /** Source asset type */
-  sourceAsset: z.string(),
-  /** Amount to mint (raw, in smallest unit) */
-  amount: z.string(),
+  sourceAsset: string
+  /** Amount to mint */
+  amount: Amount
   /** Target internal chain */
-  targetChain: InternalChainSchema,
+  targetChain: InternalChain
   /** Target asset type */
-  targetAsset: z.string(),
-})
-export type MintRequest = z.infer<typeof MintRequestSchema>
+  targetAsset: string
+}
 
 /** Burn (unstake) request */
-export const BurnRequestSchema = z.object({
+export interface BurnRequest {
   /** Source internal chain */
-  sourceChain: InternalChainSchema,
+  sourceChain: InternalChain
   /** Source asset type */
-  sourceAsset: z.string(),
-  /** Amount to burn (raw, in smallest unit) */
-  amount: z.string(),
+  sourceAsset: string
+  /** Amount to burn */
+  amount: Amount
   /** Target external chain */
-  targetChain: ExternalChainSchema,
+  targetChain: ExternalChain
   /** Target asset type */
-  targetAsset: z.string(),
-})
-export type BurnRequest = z.infer<typeof BurnRequestSchema>
+  targetAsset: string
+}
 
 /** Staking overview item */
 export interface StakingOverviewItem {
@@ -130,22 +128,22 @@ export interface StakingOverviewItem {
   chain: InternalChain
   /** Asset type */
   assetType: string
-  /** Staked amount (formatted) */
-  stakedAmount: string
-  /** Staked amount in fiat */
+  /** Staked amount */
+  stakedAmount: Amount
+  /** Staked amount in fiat (formatted string for display) */
   stakedFiat: string
   /** Available external chains for unstaking */
   availableChains: ExternalChain[]
   /** Logo URL */
   logoUrl?: string | undefined
   /** Total amount minted (pool stat) */
-  totalMinted: string
+  totalMinted: Amount
   /** Total amount in circulation (pool stat) */
-  totalCirculation: string
+  totalCirculation: Amount
   /** Total amount burned/redeemed (pool stat) */
-  totalBurned: string
+  totalBurned: Amount
   /** Total amount staked on external chain (pool stat) */
-  totalStaked: string
+  totalStaked: Amount
   /** External chain name */
   externalChain: ExternalChain
   /** External asset type */

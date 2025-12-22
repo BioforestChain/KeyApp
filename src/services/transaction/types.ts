@@ -4,7 +4,11 @@
 
 import { z } from 'zod'
 import { defineServiceMeta } from '@/lib/service-meta'
+import { Amount } from '@/types/amount'
 import type { ChainType } from '@/stores'
+
+// Custom Amount schema for Zod validation
+const AmountSchema = z.custom<Amount>((val) => val instanceof Amount)
 
 /** 交易类型 */
 export type TransactionType = 'send' | 'receive' | 'swap' | 'stake' | 'unstake'
@@ -17,14 +21,16 @@ export interface TransactionRecord {
   id: string
   type: TransactionType
   status: TransactionStatus
-  amount: string
+  amount: Amount
   symbol: string
+  decimals: number
   address: string
   timestamp: Date
   hash?: string | undefined
   chain: ChainType
-  fee?: string | undefined
+  fee?: Amount | undefined
   feeSymbol?: string | undefined
+  feeDecimals?: number | undefined
   blockNumber?: number | undefined
   confirmations?: number | undefined
 }
@@ -37,20 +43,22 @@ export interface TransactionFilter {
   status: TransactionStatus | 'all' | undefined
 }
 
-// ==================== Zod Schemas ====================
+// ==================== Zod Schemas (for API validation) ====================
 
 const TransactionRecordSchema = z.object({
   id: z.string(),
   type: z.enum(['send', 'receive', 'swap', 'stake', 'unstake']),
   status: z.enum(['pending', 'confirmed', 'failed']),
-  amount: z.string(),
+  amount: AmountSchema,
   symbol: z.string(),
+  decimals: z.number(),
   address: z.string(),
   timestamp: z.date(),
   hash: z.string().optional(),
   chain: z.string(),
-  fee: z.string().optional(),
+  fee: AmountSchema.optional(),
   feeSymbol: z.string().optional(),
+  feeDecimals: z.number().optional(),
   blockNumber: z.number().optional(),
   confirmations: z.number().optional(),
 })

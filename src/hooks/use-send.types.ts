@@ -1,4 +1,5 @@
 import type { AssetInfo } from '@/types/asset'
+import type { Amount } from '@/types/amount'
 import type { ChainConfig } from '@/services/chain-config'
 
 /** Send flow step */
@@ -22,9 +23,7 @@ export interface SendState {
   /** Amount validation error */
   amountError: string | null
   /** Estimated fee amount */
-  feeAmount: string
-  /** Estimated fee amount (raw smallest unit) */
-  feeAmountRaw: string
+  feeAmount: Amount | null
   /** Fee token symbol */
   feeSymbol: string
   /** Fee loading state */

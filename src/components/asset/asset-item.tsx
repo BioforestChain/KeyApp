@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { TokenIcon } from '@/components/token/token-icon';
-import { formatAssetAmount, formatFiatValue, formatPriceChange, type AssetInfo } from '@/types/asset';
+import { formatFiatValue, formatPriceChange, type AssetInfo } from '@/types/asset';
 import { IconChevronRight as ChevronRight } from '@tabler/icons-react';
 
 export interface AssetItemProps {
@@ -30,11 +30,10 @@ export function AssetItem({
   exchangeRate,
   className,
 }: AssetItemProps) {
-  const formattedAmount = formatAssetAmount(asset.amount, asset.decimals);
+  const formattedAmount = asset.amount.toFormatted();
   const displayName = asset.name || asset.assetType;
 
   // Calculate fiat value if price is available
-  // Use exchange rate for conversion when currency is not USD
   const fiatValue =
     asset.priceUsd !== undefined
       ? formatFiatValue(asset.amount, asset.decimals, asset.priceUsd, {

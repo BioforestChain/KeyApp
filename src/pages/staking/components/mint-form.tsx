@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { TokenIcon } from '@/components/token/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { stakingService } from '@/services/staking';
+import { Amount } from '@/types/amount';
 import type { ExternalChain, InternalChain, RechargeConfig, MintRequest } from '@/types/staking';
 import { cn } from '@/lib/utils';
 
@@ -167,10 +168,11 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
 
     setIsSubmitting(true);
     try {
+      const cleanAmount = amount.replace(/,/g, '');
       const request: MintRequest = {
         sourceChain,
         sourceAsset,
-        amount: amount.replace(/,/g, ''),
+        amount: Amount.fromFormatted(cleanAmount, 18, sourceAsset),
         targetChain: targetChain as InternalChain,
         targetAsset,
       };

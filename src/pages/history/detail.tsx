@@ -124,7 +124,7 @@ export function TransactionDetailPage() {
           <div className="text-center">
             <p className="text-muted-foreground text-sm">{t(`type.${transaction.type}`, { defaultValue: transaction.type })}</p>
             <AmountDisplay
-              value={transaction.type === 'send' ? -Math.abs(parseFloat(transaction.amount)) : transaction.amount}
+              value={transaction.type === 'send' ? -Math.abs(transaction.amount.toNumber()) : transaction.amount.toNumber()}
               symbol={transaction.symbol}
               sign="always"
               color="auto"
@@ -174,7 +174,7 @@ export function TransactionDetailPage() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-muted-foreground text-sm">{t('detail.fee')}</span>
                 <FeeDisplay
-                  amount={transaction.fee}
+                  amount={transaction.fee.toNumber()}
                   symbol={transaction.feeSymbol || transaction.symbol}
                   className="text-sm"
                 />

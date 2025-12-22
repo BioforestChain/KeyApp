@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { AssetList } from './asset-list'
 import type { AssetInfo } from '@/types/asset'
+import { Amount } from '@/types/amount'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
@@ -11,20 +12,20 @@ describe('AssetList', () => {
     {
       assetType: 'ETH',
       name: 'Ethereum',
-      amount: '1500000000000000000',
+      amount: Amount.fromRaw('1500000000000000000', 18, 'ETH'),
       decimals: 18,
     },
     {
       assetType: 'USDT',
       name: 'Tether USD',
-      amount: '100000000',
+      amount: Amount.fromRaw('100000000', 6, 'USDT'),
       decimals: 6,
       contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     },
     {
       assetType: 'BTC',
       name: 'Bitcoin',
-      amount: '50000000',
+      amount: Amount.fromRaw('50000000', 8, 'BTC'),
       decimals: 8,
     },
   ]
@@ -79,14 +80,14 @@ describe('AssetList', () => {
       {
         assetType: 'USDT',
         name: 'Tether (ETH)',
-        amount: '100000000',
+        amount: Amount.fromRaw('100000000', 6, 'USDT'),
         decimals: 6,
         contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
       },
       {
         assetType: 'USDT',
         name: 'Tether (TRX)',
-        amount: '200000000',
+        amount: Amount.fromRaw('200000000', 6, 'USDT'),
         decimals: 6,
         contractAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
       },

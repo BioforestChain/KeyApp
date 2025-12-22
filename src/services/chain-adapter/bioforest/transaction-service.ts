@@ -6,6 +6,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import type {
   ITransactionService,
   TransferParams,
@@ -36,9 +37,8 @@ export class BioforestTransactionService implements ITransactionService {
   async estimateFee(_params: TransferParams): Promise<FeeEstimate> {
     const gasPrice = await this.chainService.getGasPrice()
 
-    const createFee = (amount: bigint, time: number): Fee => ({
+    const createFee = (amount: Amount, time: number): Fee => ({
       amount,
-      formatted: this.formatAmount(amount),
       estimatedTime: time,
     })
 
@@ -64,9 +64,9 @@ export class BioforestTransactionService implements ITransactionService {
         type: 'transfer',
         from: params.from,
         to: params.to,
-        amount: params.amount.toString(),
+        amount: params.amount.toRawString(),
         assetType: this.config.symbol,
-        fee: feeEstimate.standard.amount.toString(),
+        fee: feeEstimate.standard.amount.toRawString(),
         memo: params.memo,
         timestamp: Date.now(),
       },
@@ -235,12 +235,14 @@ export class BioforestTransactionService implements ITransactionService {
       const tx = result.data.transaction
       if (!tx) return null
 
+      const { decimals, symbol } = this.config
+
       return {
         hash: tx.signature,
         from: tx.senderId,
         to: tx.recipientId,
-        amount: BigInt(tx.amount),
-        fee: BigInt(tx.fee),
+        amount: Amount.fromRaw(tx.amount, decimals, symbol),
+        fee: Amount.fromRaw(tx.fee, decimals, symbol),
         status: {
           status: tx.height ? 'confirmed' : 'pending',
           confirmations: tx.height ? 1 : 0,
@@ -292,12 +294,14 @@ export class BioforestTransactionService implements ITransactionService {
         }
       }
 
+      const { decimals, symbol } = this.config
+
       return result.data.transactions.map((tx) => ({
         hash: tx.signature,
         from: tx.senderId,
         to: tx.recipientId,
-        amount: BigInt(tx.amount),
-        fee: BigInt(tx.fee),
+        amount: Amount.fromRaw(tx.amount, decimals, symbol),
+        fee: Amount.fromRaw(tx.fee, decimals, symbol),
         status: {
           status: tx.height ? 'confirmed' : 'pending',
           confirmations: tx.height ? 1 : 0,
@@ -310,19 +314,5 @@ export class BioforestTransactionService implements ITransactionService {
     } catch {
       return []
     }
-  }
-
-  private formatAmount(raw: bigint): string {
-    const decimals = this.config.decimals
-    const divisor = BigInt(10 ** decimals)
-    const integerPart = raw / divisor
-    const fractionalPart = raw % divisor
-
-    if (fractionalPart === 0n) {
-      return integerPart.toString()
-    }
-
-    const fractionalStr = fractionalPart.toString().padStart(decimals, '0').replace(/0+$/, '')
-    return `${integerPart}.${fractionalStr}`
   }
 }

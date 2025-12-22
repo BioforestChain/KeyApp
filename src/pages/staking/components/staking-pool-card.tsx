@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { TokenIcon } from '@/components/token/token-icon'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { Amount } from '@/types/amount'
 import type { StakingOverviewItem } from '@/types/staking'
 
 interface StakingPoolCardProps {
@@ -15,13 +16,12 @@ interface StakingPoolCardProps {
 }
 
 /** Format large numbers with decimals */
-function formatAmount(value: string, decimals = 5): string {
-  const num = parseFloat(value)
-  if (isNaN(num)) return '0.00'
+function formatAmount(value: Amount): string {
+  const num = value.toNumber()
   if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`
   if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`
   if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`
-  return num.toFixed(Math.min(decimals, 8))
+  return num.toFixed(Math.min(5, 8))
 }
 
 /** Staking pool card component */

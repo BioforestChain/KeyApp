@@ -6,7 +6,6 @@ import { transactionServiceMeta, type TransactionFilter, type TransactionRecord,
 import { walletStorageService } from '@/services/wallet-storage'
 import { initialize as initializeChainConfigs, getEnabledChains, getChainById, type ChainConfig } from '@/services/chain-config'
 import { createBioforestAdapter, type Transaction as ChainTransaction } from '@/services/chain-adapter'
-import { formatAssetAmount } from '@/types/asset'
 
 const recordCache = new Map<string, TransactionRecord>()
 type TransactionFilterInput = Partial<TransactionFilter> | undefined
@@ -65,21 +64,21 @@ function mapType(tx: ChainTransaction, address: string): TransactionType {
 
 function mapChainTransaction(tx: ChainTransaction, config: ChainConfig, address: string): TransactionRecord {
   const type = mapType(tx, address)
-  const amount = formatAssetAmount(tx.amount.toString(), config.decimals)
-  const fee = formatAssetAmount(tx.fee.toString(), config.decimals)
 
   return {
     id: `${config.id}:${tx.hash}`,
     type,
     status: mapStatus(tx.status),
-    amount,
+    amount: tx.amount,
     symbol: config.symbol,
+    decimals: config.decimals,
     address: type === 'send' ? tx.to : tx.from,
     timestamp: new Date(tx.timestamp),
     hash: tx.hash,
     chain: config.id,
-    fee,
+    fee: tx.fee,
     feeSymbol: config.symbol,
+    feeDecimals: config.decimals,
     blockNumber: tx.blockNumber ? Number(tx.blockNumber) : undefined,
     confirmations: tx.status.confirmations,
   }

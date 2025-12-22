@@ -2,31 +2,32 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { fn } from '@storybook/test'
 import { AssetList } from './asset-list'
 import type { AssetInfo } from '@/types/asset'
+import { Amount } from '@/types/amount'
 
 const mockAssets: AssetInfo[] = [
   {
     assetType: 'ETH',
     name: 'Ethereum',
-    amount: '1500000000000000000',
+    amount: Amount.fromRaw('1500000000000000000', 18, 'ETH'),
     decimals: 18,
   },
   {
     assetType: 'USDT',
     name: 'Tether USD',
-    amount: '100000000',
+    amount: Amount.fromRaw('100000000', 6, 'USDT'),
     decimals: 6,
     contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   },
   {
     assetType: 'USDC',
     name: 'USD Coin',
-    amount: '50000000',
+    amount: Amount.fromRaw('50000000', 6, 'USDC'),
     decimals: 6,
   },
   {
     assetType: 'BTC',
     name: 'Bitcoin',
-    amount: '50000000',
+    amount: Amount.fromRaw('50000000', 8, 'BTC'),
     decimals: 8,
   },
 ]
@@ -81,13 +82,13 @@ export const ManyAssets: Story = {
       {
         assetType: 'TRX',
         name: 'TRON',
-        amount: '10000000000',
+        amount: Amount.fromRaw('10000000000', 6, 'TRX'),
         decimals: 6,
       },
       {
         assetType: 'BFM',
         name: 'BioForest Meta',
-        amount: '500000000000',
+        amount: Amount.fromRaw('500000000000', 8, 'BFM'),
         decimals: 8,
       },
     ],

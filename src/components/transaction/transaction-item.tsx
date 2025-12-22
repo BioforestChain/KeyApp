@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import type { Amount } from '@/types/amount';
 import { AddressDisplay } from '../wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '../common';
 import {
@@ -19,7 +20,7 @@ export interface TransactionInfo {
   id: string;
   type: TransactionType;
   status: TransactionStatus;
-  amount: string;
+  amount: Amount;
   symbol: string;
   address: string;
   timestamp: Date | string;
@@ -53,6 +54,11 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
   const statusColor = statusColors[transaction.status];
   const isClickable = !!onClick;
   const Icon = typeIcon.Icon;
+
+  // Get the amount value for display
+  const amountValue = transaction.type === 'send'
+    ? -Math.abs(transaction.amount.toNumber())
+    : transaction.amount.toNumber();
 
   return (
     <div
@@ -95,7 +101,7 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
       {/* Amount & Time */}
       <div className="shrink-0 text-right">
         <AmountDisplay
-          value={transaction.type === 'send' ? -Math.abs(parseFloat(transaction.amount)) : transaction.amount}
+          value={amountValue}
           symbol={transaction.symbol}
           sign="always"
           color="auto"

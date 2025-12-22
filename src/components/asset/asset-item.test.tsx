@@ -2,12 +2,13 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { AssetItem } from './asset-item'
 import type { AssetInfo } from '@/types/asset'
+import { Amount } from '@/types/amount'
 
 describe('AssetItem', () => {
   const mockAsset: AssetInfo = {
     assetType: 'ETH',
     name: 'Ethereum',
-    amount: '1500000000000000000', // 1.5 ETH
+    amount: Amount.fromRaw('1500000000000000000', 18, 'ETH'), // 1.5 ETH
     decimals: 18,
     logoUrl: undefined,
   }
@@ -26,7 +27,7 @@ describe('AssetItem', () => {
   it('uses assetType as name when name is not provided', () => {
     const assetWithoutName: AssetInfo = {
       assetType: 'USDT',
-      amount: '100000000',
+      amount: Amount.fromRaw('100000000', 6, 'USDT'),
       decimals: 6,
     }
     render(<AssetItem asset={assetWithoutName} />)
@@ -76,7 +77,7 @@ describe('AssetItem', () => {
     const assetWithPrice: AssetInfo = {
       assetType: 'ETH',
       name: 'Ethereum',
-      amount: '1000000000000000000', // 1 ETH
+      amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'), // 1 ETH
       decimals: 18,
       priceUsd: 2500,
       priceChange24h: 2.3,
