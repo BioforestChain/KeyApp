@@ -203,21 +203,25 @@ test.describe('BioForest 链地址派生', () => {
 
     // 点击导入钱包按钮 (Stackflow 需要从首页导航)
     await page.click('text=导入已有钱包')
+    
+    // 选择密钥类型（默认已选中"标准助记词"）
+    await page.waitForSelector('text=选择密钥类型')
+    await page.click('button:has-text("继续")')
+    
     await page.waitForSelector('text=输入助记词')
 
-    // 填写助记词
-    const words = TEST_MNEMONIC_12.split(' ')
-    for (let i = 0; i < words.length; i++) {
-      const input = page.locator(`[data-word-index="${i}"]`)
-      await input.fill(words[i])
-    }
-
-    await page.click('button:has-text("下一步")')
+    // 填写助记词（使用 textarea）
+    await page.fill('textarea', TEST_MNEMONIC_12)
+    await page.click('button:has-text("继续")')
     await page.waitForSelector('text=设置密码')
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("完成导入")')
+    await page.fill('input[placeholder="请输入密码"]', 'Test1234!')
+    await page.fill('input[placeholder="请再次输入密码"]', 'Test1234!')
+    await page.click('button:has-text("继续")')
 
+    // 等待导入成功页面并进入钱包
+    await page.waitForSelector('text=导入成功')
+    await page.click('button:has-text("进入钱包")')
+    
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 
