@@ -46,11 +46,11 @@ ITransactionService {
 
 ### TransferParams
 
-```
+```typescript
 TransferParams {
   from: Address           // 发送方地址
   to: Address             // 接收方地址
-  amount: bigint          // 发送金额（最小单位）
+  amount: Amount          // 发送金额（使用 Amount 类型）
   tokenAddress?: Address  // 代币地址（原生代币为空）
   memo?: string           // 备注（部分链支持）
   
@@ -62,9 +62,11 @@ TransferParams {
 }
 ```
 
+> 关于 Amount 类型的详细信息，请参阅 [Amount 类型系统](../../03-架构篇/08-Amount类型系统/index.md)。
+
 ### FeeEstimate
 
-```
+```typescript
 FeeEstimate {
   slow: Fee               // 慢速（~5分钟）
   standard: Fee           // 标准（~1分钟）
@@ -72,11 +74,10 @@ FeeEstimate {
 }
 
 Fee {
-  amount: bigint          // 费用金额
-  formatted: string       // 格式化显示
+  amount: Amount          // 费用金额（使用 Amount 类型）
   estimatedTime: number   // 预估确认时间（秒）
   gasLimit: bigint
-  gasPrice: bigint
+  gasPrice: Amount
 }
 ```
 
@@ -93,13 +94,13 @@ TransactionStatus {
 
 ### Transaction
 
-```
+```typescript
 Transaction {
   hash: TransactionHash
   from: Address
   to: Address
-  amount: bigint
-  fee: bigint
+  amount: Amount          // 交易金额（使用 Amount 类型）
+  fee: Amount             // 手续费（使用 Amount 类型）
   status: TransactionStatus
   timestamp: number
   blockNumber?: bigint
