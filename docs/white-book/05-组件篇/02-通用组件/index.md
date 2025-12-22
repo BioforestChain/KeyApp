@@ -15,7 +15,8 @@
 | 组件 | 说明 | 优先级 |
 |-----|------|-------|
 | [AddressDisplay](./AddressDisplay) | 地址显示与复制 | P0 |
-| [AmountDisplay](./AmountDisplay) | 金额格式化显示 | P0 |
+| [AmountDisplay](./AmountDisplay) | 金额格式化显示（支持动画） | P0 |
+| [AnimatedNumber](./AnimatedNumber) | 数字动画显示 | P0 |
 | [TokenIcon](./TokenIcon) | 代币/链图标 | P0 |
 | [QRCode](./QRCode) | 二维码生成与显示 | P0 |
 | Countdown | 倒计时 | P1 |
