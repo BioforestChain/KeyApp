@@ -73,7 +73,7 @@ export function SendPage() {
     };
   }, [chainConfig, currentChainAddress?.tokens]);
 
-  const { state, setToAddress, setAmount, setAsset, goToConfirm, goBack, submit, reset, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, reset, canProceed } = useSend({
     initialAsset: defaultAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
@@ -143,7 +143,7 @@ export function SendPage() {
           return false;
         }
         isPasswordSheetOpen.current = false;
-        goBack(); // Close transfer confirm sheet after successful submission
+        // submit() sets state.step to 'result', Jobs will pop themselves
         return true;
       });
 

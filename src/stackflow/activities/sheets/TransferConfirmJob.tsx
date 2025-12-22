@@ -66,11 +66,12 @@ function TransferConfirmJobContent() {
 
     setIsConfirming(true);
     try {
-      await pendingCallback();
+      // Pop this Job first, then call the callback which may push another Job
+      clearTransferConfirmCallback();
       pop();
+      await pendingCallback();
     } finally {
       setIsConfirming(false);
-      clearTransferConfirmCallback();
     }
   }, [isConfirming, pop]);
 
