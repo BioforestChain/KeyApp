@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { Button } from "@/components/ui/button";
 import { TokenList } from "@/components/token/token-list";
 import { GradientButton } from "@/components/common/gradient-button";
 import { ChainIcon } from "@/components/wallet/chain-icon";
-import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import {
@@ -22,7 +21,6 @@ import {
   useSelectedChain,
   useCurrentChainAddress,
   useCurrentChainTokens,
-  useAvailableChains,
   useHasWallet,
   useWalletInitialized,
   walletActions,
@@ -63,9 +61,7 @@ export function HomeTab() {
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const chainAddress = useCurrentChainAddress();
   const tokens = useCurrentChainTokens();
-  const availableChains = useAvailableChains();
 
-  const [chainSheetOpen, setChainSheetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -84,9 +80,8 @@ export function HomeTab() {
     }
   };
 
-  const handleSelectChain = (chain: ChainType) => {
-    walletActions.setSelectedChain(chain);
-    setChainSheetOpen(false);
+  const handleOpenChainSelector = () => {
+    push("ChainSelectorSheetActivity", {});
   };
 
   if (!isInitialized) {
@@ -108,7 +103,7 @@ export function HomeTab() {
         {/* Chain Selector */}
         <button
           data-testid="chain-selector"
-          onClick={() => setChainSheetOpen(true)}
+          onClick={handleOpenChainSelector}
           className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
           aria-label={t("common:a11y.chainSelector")}
         >
@@ -144,6 +139,7 @@ export function HomeTab() {
             variant="blue"
             className="flex-1"
             size="sm"
+            data-testid="send-button"
             onClick={() => push("SendActivity", {})}
           >
             <IconSend className="mr-1.5 size-4" />
@@ -152,6 +148,7 @@ export function HomeTab() {
           <GradientButton
             variant="red"
             className="flex-1"
+            data-testid="receive-button"
             size="sm"
             onClick={() => push("ReceiveActivity", {})}
           >
@@ -190,35 +187,6 @@ export function HomeTab() {
       >
         <IconLineScan className="size-6 text-primary-foreground" />
       </button>
-
-      {/* Chain Selection Sheet */}
-      <BottomSheet open={chainSheetOpen} onClose={() => setChainSheetOpen(false)} title={t('home:wallet.selectNetwork')}>
-        <div data-testid="chain-sheet" className="space-y-2 p-4">
-          {availableChains.map((chain) => {
-            const chainAddr = currentWallet.chainAddresses.find((ca) => ca.chain === chain);
-            return (
-              <button
-                key={chain}
-                onClick={() => handleSelectChain(chain)}
-                className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${
-                  chain === selectedChain
-                    ? "bg-primary/10 ring-1 ring-primary"
-                    : "bg-muted/50 hover:bg-muted"
-                }`}
-              >
-                <ChainIcon chain={chain} size="md" />
-                <div className="flex-1 text-left">
-                  <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
-                  <div className="font-mono text-xs text-muted-foreground">
-                    {chainAddr?.address ? truncateAddress(chainAddr.address, 10, 8) : "---"}
-                  </div>
-                </div>
-                {chain === selectedChain && <IconCheck className="size-5 text-primary" />}
-              </button>
-            );
-          })}
-        </div>
-      </BottomSheet>
     </div>
   );
 }
@@ -247,7 +215,7 @@ function NoWalletView() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => push("WalletImportActivity", {})}
+          onClick={() => push("OnboardingRecoverActivity", {})}
         >
           {t('welcome.importWallet')}
         </Button>

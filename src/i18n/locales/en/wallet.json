@@ -1,5 +1,7 @@
 {
   "add": "Add Wallet",
+  "createDesc": "Generate a new mnemonic to create wallet",
+  "importDesc": "Import existing wallet with mnemonic or key",
   "empty": "No wallets yet",
   "emptyHint": "Click the button above to create or import a wallet",
   "notBackedUp": "Not Backed Up",
@@ -98,8 +100,11 @@
     "cancel": "Cancel",
     "deleteTitle": "Delete Wallet",
     "deleteWarning": "⚠️ This action cannot be undone\n\nEnter password to confirm deleting wallet \"{{name}}\"",
+    "passwordPlaceholder": "Enter wallet password",
     "passwordError": "Incorrect password",
-    "verifyFailed": "Verification failed"
+    "verifying": "Verifying...",
+    "verifyFailed": "Verification failed",
+    "confirmDelete": "Confirm Delete"
   },
   "detail": {
     "title": "Wallet Details",

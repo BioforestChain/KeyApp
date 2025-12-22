@@ -126,6 +126,11 @@
     "passwordPlaceholder": "Enter password",
     "setPassword": "Set Password",
     "setPasswordDesc": "Password is used to encrypt your wallet",
+    "success": {
+      "title": "Import Successful!",
+      "description": "Wallet <bold>{{name}}</bold> has been imported",
+      "enterWallet": "Enter Wallet"
+    },
     "title": "Import Wallet",
     "words12": "12 words",
     "words24": "24 words"

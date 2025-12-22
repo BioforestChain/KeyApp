@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
+import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
 import { useStore } from '@tanstack/react-store';
 import {
   IconPlus as Plus,
@@ -9,8 +10,6 @@ import {
   IconArrowsVertical as MoreVertical,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { ContactEditSheet } from '@/components/address-book/contact-edit-sheet';
-import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
 import {
   addressBookStore,
   addressBookActions,
@@ -25,15 +24,12 @@ import { cn } from '@/lib/utils';
 export function AddressBookPage() {
   const { t } = useTranslation('common');
   const { goBack } = useNavigation();
+  const { push } = useFlow();
   const contacts = useStore(addressBookStore, (s) => s.contacts);
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-  const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
-  const [deleteError, setDeleteError] = useState<string>();
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deletingContactRef = useRef<Contact | null>(null);
 
   // 过滤联系人
   const filteredContacts = useMemo(() => {
@@ -48,66 +44,45 @@ export function AddressBookPage() {
 
   // 打开添加联系人
   const handleOpenAdd = useCallback(() => {
-    setIsAddSheetOpen(true);
-  }, []);
-
-  // 关闭添加联系人
-  const handleCloseAdd = useCallback(() => {
-    setIsAddSheetOpen(false);
-  }, []);
+    push("ContactEditSheetActivity", {});
+  }, [push]);
 
   // 打开编辑联系人
   const handleOpenEdit = useCallback((contact: Contact) => {
-    setEditingContact(contact);
-  }, []);
-
-  // 关闭编辑联系人
-  const handleCloseEdit = useCallback(() => {
-    setEditingContact(null);
-  }, []);
+    push("ContactEditSheetActivity", { contactId: contact.id });
+  }, [push]);
 
   // 开始删除联系人
   const handleStartDelete = useCallback((contact: Contact) => {
-    setDeletingContact(contact);
-    setDeleteError(undefined);
-  }, []);
+    deletingContactRef.current = contact;
 
-  // 取消删除
-  const handleCancelDelete = useCallback(() => {
-    setDeletingContact(null);
-    setDeleteError(undefined);
-  }, []);
-
-  // 确认删除（验证密码）
-  const handleConfirmDelete = useCallback(
-    async (password: string) => {
-      if (!deletingContact) return;
-
-      // 如果有钱包，需要验证密码
-      if (currentWallet?.encryptedMnemonic) {
-        setIsDeleting(true);
-        setDeleteError(undefined);
-
+    // 如果有钱包，需要验证密码
+    if (currentWallet?.encryptedMnemonic) {
+      setPasswordConfirmCallback(async (password: string) => {
         try {
-          const isValid = await verifyPassword(currentWallet.encryptedMnemonic, password);
+          const isValid = await verifyPassword(currentWallet.encryptedMnemonic!, password);
           if (!isValid) {
-            setDeleteError(t('addressBook.passwordError'));
-            return;
+            return false;
           }
+          // 删除联系人
+          addressBookActions.deleteContact(contact.id);
+          deletingContactRef.current = null;
+          return true;
         } catch {
-          setDeleteError(t('addressBook.verifyFailed'));
-          return;
-        } finally {
-          setIsDeleting(false);
+          return false;
         }
-      }
+      });
 
-      // 删除联系人
-      addressBookActions.deleteContact(deletingContact.id);
-      setDeletingContact(null);
-    },
-    [deletingContact, currentWallet?.encryptedMnemonic],
-  );
+      push("PasswordConfirmSheetActivity", {
+        title: t('addressBook.deleteTitle'),
+        description: t('addressBook.deleteConfirm', { name: contact.name }),
+      });
+    } else {
+      // 无钱包直接删除
+      addressBookActions.deleteContact(contact.id);
+      deletingContactRef.current = null;
+    }
+  }, [currentWallet?.encryptedMnemonic, push, t]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -173,23 +148,6 @@ export function AddressBookPage() {
           </div>
         )}
       </div>
-
-      {/* 添加联系人弹窗 */}
-      <ContactEditSheet open={isAddSheetOpen} onClose={handleCloseAdd} />
-
-      {/* 编辑联系人弹窗 */}
-      <ContactEditSheet contact={editingContact} open={!!editingContact} onClose={handleCloseEdit} />
-
-      {/* Delete confirmation sheet */}
-      <PasswordConfirmSheet
-        open={!!deletingContact}
-        onClose={handleCancelDelete}
-        onVerify={handleConfirmDelete}
-        title={t('addressBook.deleteTitle')}
-        description={t('addressBook.deleteConfirm', { name: deletingContact?.name })}
-        error={deleteError}
-        isVerifying={isDeleting}
-      />
     </div>
   );
 }

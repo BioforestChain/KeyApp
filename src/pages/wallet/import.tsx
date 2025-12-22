@@ -14,7 +14,7 @@ import {
   IconChevronRight as ArrowRight,
   IconSquareKey as FileKey,
 } from '@tabler/icons-react';
-import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import { useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import { validateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 
 type Step = 'mnemonic' | 'password';
@@ -24,7 +24,6 @@ const STEPS: Step[] = ['mnemonic', 'password'];
 export function WalletImportPage() {
   const { t } = useTranslation('onboarding');
   const { navigate } = useNavigation();
-  const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('mnemonic');
   const [mnemonic, setMnemonic] = useState<string[]>([]);
@@ -76,9 +75,11 @@ export function WalletImportPage() {
       const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
       // 派生 BioForest 链地址 (Ed25519) - 使用相同的助记词字符串
+      // Use enabled configs if available, otherwise fallback to built-in chains
+      const bioforestConfigs = enabledBioforestChainConfigs.length > 0 ? enabledBioforestChainConfigs : undefined;
       const bioforestChainAddresses = deriveBioforestAddresses(
         mnemonicStr,
-        chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
+        bioforestConfigs,
       ).map((item) => ({
         chain: item.chainId,
         address: item.address,

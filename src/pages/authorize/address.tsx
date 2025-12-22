@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigation, useActivityParams } from '@/stackflow'
+import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
+import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
 import { AppInfoCard } from '@/components/authorize/AppInfoCard'
 import { PermissionList } from '@/components/authorize/PermissionList'
-import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet'
 import { Button } from '@/components/ui/button'
 import { WalletSelector } from '@/components/wallet/wallet-selector'
 import { ChainAddressSelector, type ChainData } from '@/components/wallet/chain-address-selector'
@@ -83,6 +83,7 @@ export function AddressAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
   const { navigate, goBack } = useNavigation()
+  const { push } = useFlow()
   const toast = useToast()
 
   const { id: eventId, type, chainName, signMessage, getMain } = useActivityParams<{
@@ -100,8 +101,6 @@ export function AddressAuthPage() {
   const [appInfo, setAppInfo] = useState<CallerAppInfo | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPasswordSheet, setShowPasswordSheet] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | undefined>(undefined)
 
   const walletItems = useMemo(() => toWalletSelectorItems(wallets), [wallets])
 
@@ -218,8 +217,46 @@ export function AddressAuthPage() {
   const handleApprove = useCallback(async () => {
     if (!canApprove || isSubmitting) return
     if (needsPasswordConfirm) {
-      setShowPasswordSheet(true)
-      setPasswordError(undefined)
+      setPasswordConfirmCallback(async (password: string) => {
+        setIsSubmitting(true)
+        try {
+          const message = signMessage?.trim() ?? ''
+          let addresses: AddressAuthResponse[] = []
+          let scopeWallets: Wallet[] = []
+
+          if (type === 'main') {
+            if (!selectedWallet) return false
+            addresses = authService.handleMainAddresses(selectedWallet)
+            scopeWallets = [selectedWallet]
+          } else if (type === 'network') {
+            if (!selectedChain) return false
+            addresses = authService.handleNetworkAddresses(wallets, selectedChain)
+            scopeWallets = wallets
+          } else {
+            const allowedWallets = wallets.filter((w) => selectedWalletIds.has(w.id))
+            addresses = authService.handleAllAddresses(allowedWallets)
+            scopeWallets = allowedWallets
+          }
+
+          addresses = await authService.applySensitiveOptions(addresses, scopeWallets, {
+            password,
+            signMessage: message,
+            getMain: needsMainPhrase,
+          })
+
+          await authService.approve(addresses)
+          navigate({ to: '/' })
+          return true
+        } catch {
+          return false
+        } finally {
+          setIsSubmitting(false)
+        }
+      })
+
+      push("PasswordConfirmSheetActivity", {
+        title: tAuthorize('passwordConfirm.title'),
+      })
       return
     }
     setIsSubmitting(true)
@@ -249,74 +286,16 @@ export function AddressAuthPage() {
     isSubmitting,
     navigate,
     needsPasswordConfirm,
+    needsMainPhrase,
+    push,
     selectedChain,
     selectedWallet,
     selectedWalletIds,
+    signMessage,
+    tAuthorize,
     type,
     wallets,
   ])
-
-  const handlePasswordVerify = useCallback(
-    async (password: string) => {
-      if (!needsPasswordConfirm) return
-      if (isSubmitting) return
-      setIsSubmitting(true)
-
-      try {
-        const message = signMessage?.trim() ?? ''
-
-        let addresses: AddressAuthResponse[] = []
-        let scopeWallets: Wallet[] = []
-
-        if (type === 'main') {
-          if (!selectedWallet) return
-          addresses = authService.handleMainAddresses(selectedWallet)
-          scopeWallets = [selectedWallet]
-        } else if (type === 'network') {
-          if (!selectedChain) return
-          addresses = authService.handleNetworkAddresses(wallets, selectedChain)
-          scopeWallets = wallets
-        } else {
-          const allowedWallets = wallets.filter((w) => selectedWalletIds.has(w.id))
-          addresses = authService.handleAllAddresses(allowedWallets)
-          scopeWallets = allowedWallets
-        }
-
-        addresses = await authService.applySensitiveOptions(addresses, scopeWallets, {
-          password,
-          signMessage: message,
-          getMain: needsMainPhrase,
-        })
-
-        await authService.approve(addresses)
-        setShowPasswordSheet(false)
-        navigate({ to: '/' })
-      } catch {
-        setPasswordError(tAuthorize('error.passwordIncorrect'))
-      } finally {
-        setIsSubmitting(false)
-      }
-    },
-    [
-      authService,
-      isSubmitting,
-      navigate,
-      needsMainPhrase,
-      needsPasswordConfirm,
-      selectedChain,
-      selectedWallet,
-      selectedWalletIds,
-      signMessage,
-      tAuthorize,
-      type,
-      wallets,
-    ]
-  )
-
-  const handlePasswordClose = useCallback(() => {
-    setShowPasswordSheet(false)
-    setPasswordError(undefined)
-  }, [])
 
   if (type === 'network' && chainName && !chainIconType) {
     return (
@@ -466,20 +445,6 @@ export function AddressAuthPage() {
           </Button>
         </div>
       </div>
-
-      <PasswordConfirmSheet
-        open={showPasswordSheet}
-        onClose={handlePasswordClose}
-        onVerify={handlePasswordVerify}
-        title={tAuthorize('button.confirm')}
-        description={
-          needsMainPhrase
-            ? tAuthorize('address.confirmDescription')
-            : tAuthorize('signature.confirmDescription')
-        }
-        error={passwordError}
-        isVerifying={isSubmitting}
-      />
     </div>
   )
 }

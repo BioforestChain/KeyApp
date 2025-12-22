@@ -1,13 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useActivityParams } from '@/stackflow';
+import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/common/alert';
-import { WalletEditSheet } from '@/components/wallet/wallet-edit-sheet';
-import { useToast, useHaptics } from '@/services';
+import { useHaptics } from '@/services';
 import {
   IconCircleKey as KeyRound,
   IconTrash as Trash2,
@@ -35,14 +34,11 @@ export function WalletDetailPage() {
   const { t } = useTranslation('wallet');
   const { walletId } = useActivityParams<{ walletId: string }>();
   const { goBack, navigate } = useNavigation();
-  const toast = useToast();
+  const { push } = useFlow();
   const haptics = useHaptics();
 
   const wallets = useWallets();
   const wallet = wallets.find((w) => w.id === walletId);
-
-  const [editSheetOpen, setEditSheetOpen] = useState(false);
-  const [editSheetMode, setEditSheetMode] = useState<'menu' | 'rename' | 'delete-confirm'>('menu');
 
   const handleExportMnemonic = useCallback(async () => {
     if (!wallet) return;
@@ -53,28 +49,14 @@ export function WalletDetailPage() {
   }, [haptics, navigate, wallet]);
 
   const handleOpenEdit = useCallback(() => {
-    setEditSheetMode('rename');
-    setEditSheetOpen(true);
-  }, []);
+    if (!wallet) return;
+    push("WalletRenameSheetActivity", { walletId: wallet.id });
+  }, [push, wallet]);
 
   const handleOpenDelete = useCallback(() => {
-    setEditSheetMode('delete-confirm');
-    setEditSheetOpen(true);
-  }, []);
-
-  const handleEditSuccess = useCallback(
-    async (action: 'rename' | 'delete') => {
-      if (action === 'delete') {
-        await haptics.impact('warning');
-        toast.show(t('detail.walletDeleted'));
-        goBack();
-        return;
-      }
-      await haptics.impact('success');
-      setEditSheetOpen(false);
-    },
-    [goBack, haptics, toast, t],
-  );
+    if (!wallet) return;
+    push("WalletDeleteSheetActivity", { walletId: wallet.id });
+  }, [push, wallet]);
 
   if (!wallet) {
     return (
@@ -148,14 +130,6 @@ export function WalletDetailPage() {
         {/* Security warning */}
         <Alert variant="warning">{t('detail.securityWarning')}</Alert>
       </div>
-
-      <WalletEditSheet
-        wallet={wallet}
-        open={editSheetOpen}
-        onClose={() => setEditSheetOpen(false)}
-        onSuccess={handleEditSuccess}
-        initialMode={editSheetMode}
-      />
     </div>
   );
 }

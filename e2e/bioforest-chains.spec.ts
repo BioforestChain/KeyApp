@@ -130,10 +130,17 @@ test.describe('BioForest 链功能', () => {
     await page.waitForSelector('[data-testid="chain-sheet"]')
     await page.click('text=BFMeta')
     await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
-
+    
+    // 等待链选择器显示 BFMeta，确保切换完成
+    await expect(page.locator('[data-testid="chain-selector"]')).toContainText('BFMeta')
+    
     // 导航到发送页面 (Stackflow hash 路由)
-    await page.click('text=转账')
-    await page.waitForSelector('h1:has-text("发送")')
+    // 等待发送按钮可交互（网络空闲后）
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('[data-testid="send-button"]', { state: 'visible' })
+    await page.click('[data-testid="send-button"]')
+    // 等待发送页面加载（增加超时以应对 CI 环境）
+    await page.waitForSelector('h1:has-text("发送")', { timeout: 30000 })
 
     // 验证显示 BFMeta 链信息（使用更精确的选择器避免匹配提示文本）
     await expect(page.locator('.text-sm.font-medium:has-text("BFMeta")')).toBeVisible()
@@ -203,21 +210,25 @@ test.describe('BioForest 链地址派生', () => {
 
     // 点击导入钱包按钮 (Stackflow 需要从首页导航)
     await page.click('text=导入已有钱包')
+    
+    // 选择密钥类型（默认已选中"标准助记词"）
+    await page.waitForSelector('text=选择密钥类型')
+    await page.click('button:has-text("继续")')
+    
     await page.waitForSelector('text=输入助记词')
 
-    // 填写助记词
-    const words = TEST_MNEMONIC_12.split(' ')
-    for (let i = 0; i < words.length; i++) {
-      const input = page.locator(`[data-word-index="${i}"]`)
-      await input.fill(words[i])
-    }
-
-    await page.click('button:has-text("下一步")')
+    // 填写助记词（使用 textarea）
+    await page.fill('textarea', TEST_MNEMONIC_12)
+    await page.click('button:has-text("继续")')
     await page.waitForSelector('text=设置密码')
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('button:has-text("完成导入")')
+    await page.fill('input[placeholder="请输入密码"]', 'Test1234!')
+    await page.fill('input[placeholder="请再次输入密码"]', 'Test1234!')
+    await page.click('button:has-text("继续")')
 
+    // 等待导入成功页面并进入钱包
+    await page.waitForSelector('text=导入成功')
+    await page.click('button:has-text("进入钱包")')
+    
     await page.waitForURL(/.*#\/$/)
     await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
 

@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { AddressBookPage } from './index'
-import { addressBookActions, walletStore, type Contact } from '@/stores'
+import { addressBookActions, walletStore } from '@/stores'
+
+const mockPush = vi.fn()
 
 // Mock dependencies
 vi.mock('@/stackflow', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useActivityParams: () => ({}),
+  useFlow: () => ({ push: mockPush }),
+}))
+
+vi.mock('@/stackflow/activities/sheets', () => ({
+  setPasswordConfirmCallback: vi.fn(),
 }))
 
 vi.mock('@/components/layout/page-header', () => ({
@@ -16,28 +23,6 @@ vi.mock('@/components/layout/page-header', () => ({
       {onBack && <button onClick={onBack} data-testid="back-button">返回</button>}
       {rightAction}
     </div>
-  ),
-}))
-
-vi.mock('@/components/address-book/contact-edit-sheet', () => ({
-  ContactEditSheet: ({ open, onClose, contact }: { open: boolean; onClose: () => void; contact?: Contact | null }) => (
-    open ? (
-      <div data-testid="contact-edit-sheet">
-        <span>{contact ? '编辑联系人' : '添加联系人'}</span>
-        <button onClick={onClose} data-testid="close-edit-sheet">关闭</button>
-      </div>
-    ) : null
-  ),
-}))
-
-vi.mock('@/components/security/password-confirm-sheet', () => ({
-  PasswordConfirmSheet: ({ open, onClose, onVerify }: { open: boolean; onClose: () => void; onVerify: (pw: string) => void }) => (
-    open ? (
-      <div data-testid="password-confirm-sheet">
-        <button onClick={onClose} data-testid="cancel-delete">取消</button>
-        <button onClick={() => onVerify('test')} data-testid="confirm-delete">确认删除</button>
-      </div>
-    ) : null
   ),
 }))
 
@@ -108,11 +93,11 @@ describe('AddressBookPage', () => {
     const addButtons = screen.getAllByRole('button', { name: '添加联系人' })
     fireEvent.click(addButtons[1]!) // Second button is the text button
 
-    expect(screen.getByTestId('contact-edit-sheet')).toBeInTheDocument()
+    expect(mockPush).toHaveBeenCalledWith('ContactEditSheetActivity', {})
   })
 
   it('opens edit contact sheet when edit is clicked', () => {
-    addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
+    const contact = addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
 
     render(<AddressBookPage />)
 
@@ -124,10 +109,10 @@ describe('AddressBookPage', () => {
     const editButton = screen.getByText('编辑')
     fireEvent.click(editButton)
 
-    expect(screen.getByTestId('contact-edit-sheet')).toBeInTheDocument()
+    expect(mockPush).toHaveBeenCalledWith('ContactEditSheetActivity', { contactId: contact.id })
   })
 
-  it('opens delete confirmation when delete is clicked', () => {
+  it('deletes contact directly when no wallet exists', () => {
     addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
 
     render(<AddressBookPage />)
@@ -140,7 +125,8 @@ describe('AddressBookPage', () => {
     const deleteButton = screen.getByText('删除')
     fireEvent.click(deleteButton)
 
-    expect(screen.getByTestId('password-confirm-sheet')).toBeInTheDocument()
+    // Without wallet, contact is deleted directly
+    expect(screen.queryByText('Alice')).not.toBeInTheDocument()
   })
 
   it('navigates back when back button is clicked', () => {

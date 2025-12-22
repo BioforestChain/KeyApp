@@ -5,9 +5,11 @@ import { walletStore, walletActions, type Wallet } from '@/stores'
 
 // Mock dependencies
 const mockGoBack = vi.fn()
+const mockPush = vi.fn()
 vi.mock('@/stackflow', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useActivityParams: () => ({}),
+  useFlow: () => ({ push: mockPush }),
 }))
 
 vi.mock('@/components/layout/page-header', () => ({
@@ -64,9 +66,9 @@ describe('WalletListPage', () => {
     render(<WalletListPage />)
 
     expect(screen.getByText('还没有钱包')).toBeInTheDocument()
-    // Both header and empty state have create buttons
-    const createButtons = screen.getAllByRole('button', { name: '创建钱包' })
-    expect(createButtons.length).toBe(2) // Header + empty state
+    // Both header and empty state have add buttons
+    const addButtons = screen.getAllByRole('button', { name: '添加钱包' })
+    expect(addButtons.length).toBe(2) // Header + empty state
   })
 
   it('renders wallet list when wallets exist', () => {
@@ -149,7 +151,7 @@ describe('WalletListPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/wallet/1' })
   })
 
-  it('navigates to create wallet page from empty state', () => {
+  it('opens wallet add sheet from empty state', () => {
     walletStore.setState({
       wallets: [],
       currentWalletId: null,
@@ -160,12 +162,11 @@ describe('WalletListPage', () => {
 
     render(<WalletListPage />)
 
-    // Click create button in empty state (text button, not icon button)
-    const createButtons = screen.getAllByRole('button', { name: '创建钱包' })
-    // The second one is the text button in empty state
-    fireEvent.click(createButtons[1]!)
+    // Click add button in empty state (use getAllByRole and pick the second one)
+    const addButtons = screen.getAllByRole('button', { name: '添加钱包' })
+    fireEvent.click(addButtons[1]!) // Second button is in empty state
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/onboarding/create' })
+    expect(mockPush).toHaveBeenCalledWith('WalletAddSheetActivity', {})
   })
 
   it('calculates total balance correctly', () => {

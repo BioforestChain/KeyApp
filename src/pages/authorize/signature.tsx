@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigation, useActivityParams } from '@/stackflow'
+import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
+import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
 import { AppInfoCard } from '@/components/authorize/AppInfoCard'
 import { TransactionDetails } from '@/components/authorize/TransactionDetails'
 import { BalanceWarning } from '@/components/authorize/BalanceWarning'
-import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -316,6 +316,7 @@ export function SignatureAuthPage() {
   const { t: tAuthorize } = useTranslation('authorize')
   const { t: tCommon } = useTranslation('common')
   const { navigate, goBack } = useNavigation()
+  const { push } = useFlow()
   const toast = useToast()
 
   const { id: eventId, signaturedata } = useActivityParams<{
@@ -329,8 +330,6 @@ export function SignatureAuthPage() {
   const [signatureRequest, setSignatureRequest] = useState<SignatureRequest | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPasswordSheet, setShowPasswordSheet] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | undefined>(undefined)
 
   const authService = useMemo(() => new SignatureAuthService(plaocAdapter, eventId), [eventId])
 
@@ -458,67 +457,44 @@ export function SignatureAuthPage() {
 
   const handleSign = useCallback(() => {
     if (!balanceCheck.sufficient) return
-    setShowPasswordSheet(true)
-    setPasswordError(undefined)
-  }, [balanceCheck.sufficient])
+    if (isSubmitting) return
 
-  const handlePasswordVerify = useCallback(
-    async (password: string) => {
-      if (isSubmitting) return
+    setPasswordConfirmCallback(async (password: string) => {
       setIsSubmitting(true)
 
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
-        if (!encryptedSecret) {
-          setPasswordError(tAuthorize('error.authFailed'))
-          return
-        }
-
-        if (!signatureRequest) {
-          setPasswordError(tAuthorize('error.authFailed'))
-          return
-        }
+        if (!encryptedSecret) return false
+        if (!signatureRequest) return false
 
         let signature: string
         if (signatureRequest.type === 'message') {
-          if (!messagePayload) {
-            setPasswordError(tAuthorize('error.authFailed'))
-            return
-          }
+          if (!messagePayload) return false
           signature = await authService.handleMessageSign(messagePayload, encryptedSecret, password)
         } else if (signatureRequest.type === 'transfer') {
-          if (!transferPayload) {
-            setPasswordError(tAuthorize('error.authFailed'))
-            return
-          }
+          if (!transferPayload) return false
           signature = await authService.handleTransferSign(transferPayload, encryptedSecret, password)
         } else if (signatureRequest.type === 'destory') {
-          if (!destroyPayload) {
-            setPasswordError(tAuthorize('error.authFailed'))
-            return
-          }
+          if (!destroyPayload) return false
           signature = await authService.handleDestroySign(destroyPayload, encryptedSecret, password)
         } else {
-          setPasswordError(tAuthorize('error.authFailed'))
-          return
+          return false
         }
 
         await authService.approve(signature)
-        setShowPasswordSheet(false)
         navigate({ to: '/' })
+        return true
       } catch {
-        setPasswordError(tAuthorize('error.passwordIncorrect'))
+        return false
       } finally {
         setIsSubmitting(false)
       }
-    },
-    [authService, currentWallet?.encryptedMnemonic, destroyPayload, isSubmitting, messagePayload, navigate, signatureRequest, tAuthorize, transferPayload]
-  )
+    })
 
-  const handlePasswordClose = useCallback(() => {
-    setShowPasswordSheet(false)
-    setPasswordError(undefined)
-  }, [])
+    push("PasswordConfirmSheetActivity", {
+      title: tAuthorize('button.confirm'),
+    })
+  }, [authService, balanceCheck.sufficient, currentWallet?.encryptedMnemonic, destroyPayload, isSubmitting, messagePayload, navigate, push, signatureRequest, tAuthorize, transferPayload])
 
   // Error state
   if (loadError) {
@@ -650,17 +626,6 @@ export function SignatureAuthPage() {
           </Button>
         </div>
       </div>
-
-      {/* Password confirmation sheet */}
-      <PasswordConfirmSheet
-        open={showPasswordSheet}
-        onClose={handlePasswordClose}
-        onVerify={handlePasswordVerify}
-        title={tAuthorize('button.confirm')}
-        description={tAuthorize('signature.confirmDescription')}
-        error={passwordError}
-        isVerifying={isSubmitting}
-      />
     </div>
   )
 }

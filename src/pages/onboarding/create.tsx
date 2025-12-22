@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
+import { setMnemonicOptionsCallback } from '@/stackflow/activities/sheets';
 import { PageHeader } from '@/components/layout/page-header';
 import {
   CreateWalletForm,
   type CreateWalletFormData,
   type MnemonicOptions,
 } from '@/components/onboarding/create-wallet-form';
-import { MnemonicOptionsSheet } from '@/components/onboarding/mnemonic-options-sheet';
 import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success';
 import { BackupTipsSheet } from '@/components/onboarding/backup-tips-sheet';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
@@ -31,6 +31,7 @@ type Step = 'form' | 'success' | 'backup-tips' | 'backup-display' | 'backup-conf
 export function OnboardingCreatePage() {
   const { t } = useTranslation(['onboarding', 'common']);
   const { navigate } = useNavigation();
+  const { push } = useFlow();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('form');
@@ -38,7 +39,6 @@ export function OnboardingCreatePage() {
     language: 'english',
     length: 12,
   });
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdWalletName, setCreatedWalletName] = useState('');
   const [generatedMnemonic, setGeneratedMnemonic] = useState<string[]>([]);
@@ -89,9 +89,11 @@ export function OnboardingCreatePage() {
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
         // Derive BioForest chain addresses (Ed25519)
+        // Use enabled configs if available, otherwise fallback to built-in chains
+        const bioforestConfigs = enabledBioforestChainConfigs.length > 0 ? enabledBioforestChainConfigs : undefined;
         const bioforestChainAddresses = deriveBioforestAddresses(
           mnemonicStr,
-          chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
+          bioforestConfigs,
         ).map((item) => ({
           chain: item.chainId,
           address: item.address,
@@ -172,18 +174,19 @@ export function OnboardingCreatePage() {
           <div className="flex-1 p-4">
             <CreateWalletForm
               onSubmit={handleSubmit}
-              onOpenMnemonicOptions={() => setShowOptionsSheet(true)}
+              onOpenMnemonicOptions={() => {
+                setMnemonicOptionsCallback((options) => {
+                  setMnemonicOptions(options);
+                });
+                push("MnemonicOptionsSheetActivity", {
+                  language: mnemonicOptions.language,
+                  length: String(mnemonicOptions.length),
+                });
+              }}
               mnemonicOptions={mnemonicOptions}
               isSubmitting={isSubmitting}
             />
           </div>
-
-          <MnemonicOptionsSheet
-            open={showOptionsSheet}
-            onClose={() => setShowOptionsSheet(false)}
-            onConfirm={setMnemonicOptions}
-            value={mnemonicOptions}
-          />
         </>
       )}
 

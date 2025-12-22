@@ -2,7 +2,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { validateMnemonic, isValidWord } from '@/lib/crypto/mnemonic';
-import { IconCheck as Check, IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
+import { IconCheck as Check, IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconX } from '@tabler/icons-react';
+import { InputGroup, InputGroupTextarea, InputGroupAddon, InputGroupButton } from '@/components/ui/input-group';
 
 /** Valid mnemonic word counts */
 export type MnemonicWordCount = 12 | 15 | 18 | 21 | 24 | 36;
@@ -178,14 +179,22 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
       {/* Input header */}
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">{t('recover.form.enterMnemonic')}</label>
-        <span className="text-muted-foreground text-xs">
-          {validation.wordCount > 0 && t('recover.form.wordCount', { count: validation.wordCount })}
-        </span>
+        {validation.wordCount > 0 && (
+          <span className="text-muted-foreground text-xs">
+            {t('recover.form.wordCount', { count: validation.wordCount })}
+          </span>
+        )}
       </div>
 
-      {/* Textarea */}
-      <div className="relative">
-        <textarea
+      {/* Textarea with clear button */}
+      <InputGroup
+        className={cn(
+          'h-auto',
+          validation.isValid && 'border-green-500/50',
+          statusMessage.type === 'error' && 'border-destructive/50',
+        )}
+      >
+        <InputGroupTextarea
           value={input}
           onChange={(e) => {
             handleInputChange(e);
@@ -194,31 +203,24 @@ export function RecoverWalletForm({ onSubmit, isSubmitting = false, className }:
           placeholder={t('recover.form.placeholder')}
           disabled={isSubmitting}
           rows={4}
-          className={cn(
-            'bg-background w-full resize-none rounded-lg border px-3 py-3 text-sm',
-            'placeholder:text-muted-foreground',
-            'focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-none',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            validation.isValid && 'border-green-500/50 focus:ring-green-500/50',
-            statusMessage.type === 'error' && 'border-destructive/50 focus:ring-destructive/50',
-          )}
+          className="min-h-24"
           autoComplete="off"
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
         />
-
-        {/* Clear button */}
         {input && !isSubmitting && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="text-muted-foreground hover:text-foreground absolute top-2 right-2 text-xs"
-          >
-            {t('recover.form.clear')}
-          </button>
+          <InputGroupAddon align="inline-end" className="self-start pt-2">
+            <InputGroupButton
+              size="icon-xs"
+              onClick={handleClear}
+              aria-label={t('recover.form.clear')}
+            >
+              <IconX className="size-4" />
+            </InputGroupButton>
+          </InputGroupAddon>
         )}
-      </div>
+      </InputGroup>
 
       {/* Validation status */}
       <div

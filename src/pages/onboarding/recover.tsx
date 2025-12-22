@@ -1,14 +1,14 @@
 import { useState, useCallback } from 'react';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
+import { setSecurityWarningConfirmCallback } from '@/stackflow/activities/sheets';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/page-header';
 import { RecoverWalletForm, type RecoverWalletFormData } from '@/components/onboarding/recover-wallet-form';
 import { KeyTypeSelector, type WalletKeyType } from '@/components/onboarding/key-type-selector';
 import { ArbitraryKeyInput } from '@/components/onboarding/arbitrary-key-input';
-import { SecurityWarningDialog } from '@/components/onboarding/security-warning-dialog';
 import { ChainAddressPreview, type DerivedAddress } from '@/components/onboarding/chain-address-preview';
 import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog';
-import { CreateWalletSuccess } from '@/components/onboarding/create-wallet-success';
+import { ImportWalletSuccess } from '@/components/onboarding/import-wallet-success';
 import { PasswordInput } from '@/components/security/password-input';
 import { Button } from '@/components/ui/button';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
@@ -32,12 +32,12 @@ const mockWalletQuery: IWalletQuery = {
  */
 export function OnboardingRecoverPage() {
   const { navigate } = useNavigation();
+  const { push } = useFlow();
   const { t } = useTranslation(['onboarding', 'common', 'wallet']);
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('keyType');
   const [keyType, setKeyType] = useState<WalletKeyType>('mnemonic');
-  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
   const [securityAcknowledged, setSecurityAcknowledged] = useState(false);
   const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [arbitrarySecret, setArbitrarySecret] = useState('');
@@ -96,8 +96,12 @@ export function OnboardingRecoverPage() {
       return;
     }
 
-    setShowSecurityWarning(true);
-  }, [keyType, securityAcknowledged]);
+    setSecurityWarningConfirmCallback(() => {
+      setSecurityAcknowledged(true);
+      setStep('arbitrary');
+    });
+    push('SecurityWarningSheetActivity', {});
+  }, [keyType, securityAcknowledged, push]);
 
   const handleMnemonicSubmit = useCallback(
     async (data: RecoverWalletFormData) => {
@@ -151,9 +155,11 @@ export function OnboardingRecoverPage() {
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
         // Derive BioForest chain addresses (Ed25519)
+        // Use enabled configs if available, otherwise fallback to built-in chains
+        const bioforestConfigs = enabledBioforestChainConfigs.length > 0 ? enabledBioforestChainConfigs : undefined;
         const bioforestChainAddresses = deriveBioforestAddresses(
           mnemonicStr,
-          chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
+          bioforestConfigs,
         ).map((item) => ({
           chain: item.chainId,
           address: item.address,
@@ -270,10 +276,6 @@ export function OnboardingRecoverPage() {
 
     await createWallet(mnemonic, password);
   }, [confirmPassword, createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, password]);
-
-  const handleBackup = useCallback(() => {
-    navigate({ to: '/' });
-  }, [navigate]);
 
   const handleEnterWallet = useCallback(() => {
     navigate({ to: '/' });
@@ -425,25 +427,11 @@ export function OnboardingRecoverPage() {
       )}
 
       {step === 'success' && (
-        <CreateWalletSuccess
+        <ImportWalletSuccess
           walletName={recoveredWalletName}
-          skipBackup={true}
-          onBackup={handleBackup}
           onEnterWallet={handleEnterWallet}
         />
       )}
-
-      <SecurityWarningDialog
-        open={showSecurityWarning}
-        onOpenChange={setShowSecurityWarning}
-        onConfirm={() => {
-          setSecurityAcknowledged(true);
-          setStep('arbitrary');
-        }}
-        onCancel={() => {
-          setKeyType('mnemonic');
-        }}
-      />
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
+import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
 import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
-import { PasswordConfirmSheet } from '@/components/security/password-confirm-sheet';
 import { useCurrentWallet } from '@/stores';
 import { decrypt, type EncryptedData } from '@/lib/crypto';
 import { cn } from '@/lib/utils';
@@ -15,16 +15,15 @@ const AUTO_HIDE_TIMEOUT = 30_000;
 export function ViewMnemonicPage() {
   const { t } = useTranslation('settings');
   const { goBack } = useNavigation();
+  const { push } = useFlow();
   const currentWallet = useCurrentWallet();
   const keyType = currentWallet?.keyType ?? 'mnemonic';
   const isArbitrary = keyType === 'arbitrary';
 
   // 状态
-  const [showPasswordSheet, setShowPasswordSheet] = useState(true);
-  const [passwordError, setPasswordError] = useState<string>();
-  const [isVerifying, setIsVerifying] = useState(false);
   const [secret, setSecret] = useState('');
   const [isHidden, setIsHidden] = useState(true);
+  const hasShownPasswordSheet = useRef(false);
 
   // 自动隐藏计时器
   useEffect(() => {
@@ -51,40 +50,33 @@ export function ViewMnemonicPage() {
     };
   }, [secret.length]);
 
-  // 验证密码并解密助记词
-  const handleVerifyPassword = useCallback(
-    async (password: string) => {
-      if (!currentWallet?.encryptedMnemonic) {
-        setPasswordError(t('viewMnemonic.walletIncomplete'));
-        return;
-      }
+  // 打开密码验证 Sheet
+  useEffect(() => {
+    if (hasShownPasswordSheet.current || !currentWallet?.encryptedMnemonic) return;
+    hasShownPasswordSheet.current = true;
 
-      setIsVerifying(true);
-      setPasswordError(undefined);
-
+    // 设置密码验证回调
+    setPasswordConfirmCallback(async (password: string) => {
       try {
         const decrypted = await decrypt(currentWallet.encryptedMnemonic as EncryptedData, password);
         setSecret(decrypted);
         setIsHidden(false);
-        setShowPasswordSheet(false);
+        return true;
       } catch {
-        setPasswordError(t('viewMnemonic.passwordError'));
-      } finally {
-        setIsVerifying(false);
+        return false;
       }
-    },
-    [currentWallet],
-  );
+    });
+
+    // 打开密码验证 Sheet
+    push("PasswordConfirmSheetActivity", {
+      title: t('viewMnemonic.verifyTitle'),
+      description: isArbitrary ? t('viewMnemonic.verifyDescKey') : t('viewMnemonic.verifyDescMnemonic'),
+    });
+  }, [currentWallet, push, t, isArbitrary]);
 
   // 切换显示/隐藏
   const toggleVisibility = () => {
     setIsHidden((prev) => !prev);
-  };
-
-  // 取消验证时返回
-  const handleCancelVerify = () => {
-    setShowPasswordSheet(false);
-    goBack();
   };
 
   // 无钱包时显示提示
@@ -165,17 +157,6 @@ export function ViewMnemonicPage() {
           </div>
         )}
       </div>
-
-      {/* 密码验证弹窗 */}
-      <PasswordConfirmSheet
-        open={showPasswordSheet}
-        onClose={handleCancelVerify}
-        onVerify={handleVerifyPassword}
-        title={t('viewMnemonic.verifyTitle')}
-        description={isArbitrary ? t('viewMnemonic.verifyDescKey') : t('viewMnemonic.verifyDescMnemonic')}
-        error={passwordError}
-        isVerifying={isVerifying}
-      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
 import { useStore } from '@tanstack/react-store';
 import { IconPlus as Plus, IconCheck as Check, IconChevronRight as ChevronRight } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 export function WalletListPage() {
   const { t } = useTranslation('wallet');
   const { navigate, goBack } = useNavigation();
+  const { push } = useFlow();
   const wallets = useStore(walletStore, (s) => s.wallets);
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId);
 
@@ -26,10 +27,10 @@ export function WalletListPage() {
     [navigate],
   );
 
-  // 创建新钱包
-  const handleCreateWallet = useCallback(() => {
-    navigate({ to: '/onboarding/create' });
-  }, [navigate]);
+  // 添加钱包（打开选择 Sheet）
+  const handleAddWallet = useCallback(() => {
+    push("WalletAddSheetActivity", {});
+  }, [push]);
 
   // 返回
   const handleBack = useCallback(() => {
@@ -43,9 +44,9 @@ export function WalletListPage() {
         onBack={handleBack}
         rightAction={
           <button
-            onClick={handleCreateWallet}
+            onClick={handleAddWallet}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
-            aria-label={t('list.create')}
+            aria-label={t('add')}
           >
             <Plus className="size-5" />
           </button>
@@ -57,13 +58,13 @@ export function WalletListPage() {
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <p className="text-muted-foreground">{t('list.empty')}</p>
             <button
-              onClick={handleCreateWallet}
+              onClick={handleAddWallet}
               className={cn(
                 'bg-primary rounded-full px-6 py-2.5 text-sm font-medium text-white',
                 'hover:bg-primary/90 active:bg-primary/80',
               )}
             >
-              {t('list.create')}
+              {t('add')}
             </button>
           </div>
         ) : (

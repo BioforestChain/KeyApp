@@ -1,5 +1,7 @@
 {
   "add": "إضافة محفظة",
+  "createDesc": "Generate a new mnemonic to create wallet",
+  "importDesc": "Import existing wallet with mnemonic or key",
   "empty": "لا توجد محافظ بعد",
   "emptyHint": "انقر على الزر أعلاه لإنشاء أو استيراد محفظة",
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "Obtaining the address password is equivalent to owning the wallet asset",
