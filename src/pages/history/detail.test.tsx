@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Amount } from '@/types/amount'
 import { TransactionDetailPage } from './detail'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
@@ -32,26 +33,26 @@ vi.mock('@/stores', async (importOriginal) => {
   }
 })
 
-// Mock transaction history hook
-const mockTransaction = {
+// Create mock transaction with Amount objects
+const createMockTransaction = () => ({
   id: 'tx-1',
   type: 'send' as const,
   status: 'confirmed' as const,
-  amount: '1.5',
+  amount: Amount.fromFormatted('1.5', 18, 'ETH'),
   symbol: 'ETH',
   address: '0x1234567890abcdef1234567890abcdef12345678',
   timestamp: new Date('2025-12-10T10:00:00Z'),
   hash: '0xabc123def456abc123def456abc123def456abc123def456abc123def456abc1',
   chain: 'ethereum' as const,
-  fee: '0.001',
+  fee: Amount.fromFormatted('0.001', 18, 'ETH'),
   feeSymbol: 'ETH',
   blockNumber: 18500000,
   confirmations: 50,
-}
+})
 
 vi.mock('@/hooks/use-transaction-history', () => ({
   useTransactionHistory: () => ({
-    transactions: [mockTransaction],
+    transactions: [createMockTransaction()],
     isLoading: false,
     error: undefined,
     filter: { chain: 'all', period: 'all' },
@@ -147,7 +148,7 @@ describe('TransactionDetailPage', () => {
       const copyButton = screen.getByText('复制哈希')
       await userEvent.click(copyButton)
 
-      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockTransaction.hash })
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: createMockTransaction().hash })
     })
 
     it('shows copied state after clicking', async () => {

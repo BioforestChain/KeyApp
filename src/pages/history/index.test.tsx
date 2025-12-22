@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Amount } from '@/types/amount'
 import { TransactionHistoryPage } from './index'
 import { TestI18nProvider } from '@/test/i18n-mock'
 
@@ -52,13 +53,13 @@ vi.mock('@/stores', async (importOriginal) => {
   }
 })
 
-// Mock transaction history hook
-const mockTransactions = [
+// Create mock transactions with Amount objects
+const createMockTransactions = () => [
   {
     id: 'tx-1',
     type: 'send' as const,
     status: 'confirmed' as const,
-    amount: '1.5',
+    amount: Amount.fromFormatted('1.5', 18, 'ETH'),
     symbol: 'ETH',
     address: '0x1234567890abcdef1234567890abcdef12345678',
     timestamp: new Date(),
@@ -69,7 +70,7 @@ const mockTransactions = [
     id: 'tx-2',
     type: 'receive' as const,
     status: 'confirmed' as const,
-    amount: '100',
+    amount: Amount.fromFormatted('100', 6, 'USDT'),
     symbol: 'USDT',
     address: '0xabcdef1234567890abcdef1234567890abcdef12',
     timestamp: new Date(Date.now() - 86400000), // Yesterday
@@ -81,7 +82,7 @@ const mockTransactions = [
 const mockSetFilter = vi.fn()
 vi.mock('@/queries', () => ({
   useTransactionHistoryQuery: () => ({
-    transactions: mockTransactions,
+    transactions: createMockTransactions(),
     isLoading: false,
     isFetching: false,
     error: undefined,

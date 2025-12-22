@@ -74,13 +74,8 @@ export function useTransactionHistory(walletId?: string): UseTransactionHistoryR
         status: undefined,
       }
       const rawRecords = await transactionService.getHistory({ walletId, filter: serviceFilter })
-      // Convert raw API data (string amounts) to Amount objects
-      const records: ServiceTransactionRecord[] = rawRecords.map((r) => ({
-        ...r,
-        amount: Amount.fromRaw(r.amount as unknown as string, r.decimals, r.symbol),
-        fee: r.fee ? Amount.fromRaw(r.fee as unknown as string, r.feeDecimals ?? r.decimals, r.feeSymbol) : undefined,
-      }))
-      setTransactions(records.map(convertToComponentFormat))
+      // Records from service already have Amount objects
+      setTransactions(rawRecords.map(convertToComponentFormat))
     } catch (e) {
       setError(e instanceof Error ? e.message : '加载交易历史失败')
     } finally {

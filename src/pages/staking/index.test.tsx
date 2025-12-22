@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { Amount } from '@/types/amount'
 import { StakingPage } from './index'
 
 // Mock react-i18next
@@ -49,24 +50,27 @@ vi.mock('@/stackflow', () => ({
   useActivityParams: () => ({}),
 }))
 
+// Create mock data with Amount objects
+const createMockOverview = () => [
+  {
+    chain: 'BFMeta' as const,
+    assetType: 'BFM',
+    stakedAmount: Amount.fromFormatted('10000', 18, 'BFM'),
+    stakedFiat: '$1,234.56',
+    availableChains: ['ETH', 'BSC'] as const,
+    totalMinted: Amount.fromRaw('1250000000000000000000000', 18, 'BFM'),
+    totalCirculation: Amount.fromRaw('980000000000000000000000', 18, 'BFM'),
+    totalBurned: Amount.fromRaw('270000000000000000000000', 18, 'BFM'),
+    totalStaked: Amount.fromRaw('1250000000000000000000000', 18, 'BFM'),
+    externalChain: 'BSC' as const,
+    externalAssetType: 'BFM',
+  },
+]
+
 // Mock staking service
 vi.mock('@/services/staking', () => ({
   stakingService: {
-    getOverview: vi.fn().mockResolvedValue([
-      {
-        chain: 'BFMeta',
-        assetType: 'BFM',
-        stakedAmount: '10,000.00',
-        stakedFiat: '$1,234.56',
-        availableChains: ['ETH', 'BSC'],
-        totalMinted: '1250000',
-        totalCirculation: '980000',
-        totalBurned: '270000',
-        totalStaked: '1250000',
-        externalChain: 'BSC',
-        externalAssetType: 'BFM',
-      },
-    ]),
+    getOverview: vi.fn(),
     getRechargeConfig: vi.fn().mockResolvedValue({
       bfmeta: {
         BFM: {
@@ -97,8 +101,10 @@ vi.mock('@/services/staking', () => ({
 }))
 
 describe('StakingPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    const { stakingService } = await import('@/services/staking')
+    vi.mocked(stakingService.getOverview).mockResolvedValue(createMockOverview())
   })
 
   it('renders page header with title', () => {

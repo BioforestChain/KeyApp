@@ -106,7 +106,8 @@ describe('useSend', () => {
       })
 
       expect(result.current.state.feeLoading).toBe(false)
-      expect(result.current.state.feeAmount).toBe('0.002')
+      expect(result.current.state.feeAmount).not.toBeNull()
+      expect(result.current.state.feeAmount?.toFormatted()).toBe('0.002')
       expect(result.current.state.feeSymbol).toBe('ETH')
     })
   })
