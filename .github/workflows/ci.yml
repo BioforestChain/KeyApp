@@ -110,44 +110,16 @@ jobs:
           fi
 
   # ==================== 状态汇总 (分支保护需要) ====================
-  # checks-fast 在 self-hosted 上快速汇总
-  checks-fast:
-    if: vars.USE_SELF_HOSTED == 'true'
-    runs-on: self-hosted
-    needs: [ci-fast]
-    steps:
-      - name: Check results
-        run: |
-          if [[ "${{ needs.ci-fast.result }}" == "failure" ]]; then
-            echo "CI failed!"
-            exit 1
-          fi
-          echo "All checks passed!"
-
-  # checks-standard 在 GitHub-hosted 上汇总
-  checks-standard:
-    if: vars.USE_SELF_HOSTED != 'true'
-    runs-on: ubuntu-latest
-    needs: [ci-standard]
-    steps:
-      - name: Check results
-        run: |
-          if [[ "${{ needs.ci-standard.result }}" == "failure" ]]; then
-            echo "CI failed!"
-            exit 1
-          fi
-          echo "All checks passed!"
-
-  # checks 是分支保护需要的 job，聚合 fast/standard 结果
+  # checks 直接在对应 runner 上运行，无需中间层
   checks:
-    runs-on: ubuntu-latest
-    needs: [checks-fast, checks-standard]
+    runs-on: ${{ vars.USE_SELF_HOSTED == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+    needs: [ci-fast, ci-standard]
     if: always()
     steps:
       - name: Check results
         run: |
-          FAST="${{ needs.checks-fast.result }}"
-          STD="${{ needs.checks-standard.result }}"
+          FAST="${{ needs.ci-fast.result }}"
+          STD="${{ needs.ci-standard.result }}"
           
           if [[ "$FAST" == "failure" ]] || [[ "$STD" == "failure" ]]; then
             echo "CI failed!"
