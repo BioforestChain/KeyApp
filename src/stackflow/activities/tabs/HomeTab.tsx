@@ -202,6 +202,7 @@ export function HomeTab() {
 
       {/* Scanner FAB */}
       <button
+        data-testid="scan-fab"
         onClick={() => push("ScannerActivity", {})}
         className="fixed right-6 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-60 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={t("common:a11y.scan")}

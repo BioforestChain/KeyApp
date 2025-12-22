@@ -271,7 +271,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
           {state === 'denied' && (
             <div className="space-y-2">
               <p className="text-red-400">{t('permissionDenied')}</p>
-              <Button variant="outline" onClick={initCamera}>
+              <Button variant="outline" data-testid="retry-button" onClick={initCamera}>
                 {t('retry')}
               </Button>
             </div>
@@ -279,7 +279,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
           {state === 'error' && (
             <div className="space-y-2">
               <p className="text-red-400">{error || t('error')}</p>
-              <Button variant="outline" onClick={initCamera}>
+              <Button variant="outline" data-testid="retry-button" onClick={initCamera}>
                 {t('retry')}
               </Button>
             </div>
@@ -292,6 +292,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
         <Button
           variant="ghost"
           size="lg"
+          data-testid="gallery-button"
           onClick={handleGalleryImport}
           className="flex flex-col items-center text-white"
         >
