@@ -4,11 +4,13 @@ import { AmountDisplay, AmountWithFiat, formatAmount } from './amount-display'
 
 describe('formatAmount', () => {
   it('formats zero correctly', () => {
-    expect(formatAmount(0, 4, false)).toEqual({ formatted: '0', isNegative: false, isZero: true })
+    expect(formatAmount(0, 4, false)).toEqual({ formatted: '0', isNegative: false, isZero: true, numValue: 0 })
   })
 
-  it('formats small numbers with < prefix', () => {
-    expect(formatAmount(0.00001, 4, false).formatted).toBe('< 0.0001')
+  it('formats small numbers correctly', () => {
+    // Small numbers are formatted with full precision
+    expect(formatAmount(0.00001, 4, false).formatted).toBe('0')
+    expect(formatAmount(0.00001, 8, false).formatted).toBe('0.00001')
   })
 
   it('formats negative numbers', () => {
@@ -43,7 +45,7 @@ describe('formatAmount', () => {
   })
 
   it('handles invalid input', () => {
-    expect(formatAmount('invalid', 2, false)).toEqual({ formatted: '0', isNegative: false, isZero: true })
+    expect(formatAmount('invalid', 2, false)).toEqual({ formatted: '0', isNegative: false, isZero: true, numValue: 0 })
   })
 })
 
