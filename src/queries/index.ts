@@ -42,3 +42,10 @@ export {
   useRefreshStaking,
   stakingQueryKeys,
 } from './use-staking-query'
+
+export {
+  useChainConfigsQuery,
+  useChainConfigSubscriptionQuery,
+  useRefreshChainConfig,
+  chainConfigQueryKeys,
+} from './use-chain-config-query'
