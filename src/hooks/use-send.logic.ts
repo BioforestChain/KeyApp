@@ -1,8 +1,7 @@
 import type { AssetInfo } from '@/types/asset'
-import { formatAssetAmount } from '@/types/asset'
+import { Amount, amountFromAsset } from '@/types/amount'
 import { isValidBioforestAddress } from '@/lib/crypto'
 import { isValidAddress } from '@/components/transfer/address-input'
-import { parseAmountToBigInt } from './use-send.utils'
 
 export function isValidRecipientAddress(address: string, isBioforestChain: boolean): boolean {
   if (!address.trim()) return false
@@ -19,10 +18,13 @@ export function validateAddressInput(address: string, isBioforestChain: boolean)
 export function validateAmountInput(amount: string, asset: AssetInfo | null): string | null {
   if (!amount.trim()) return '请输入金额'
   if (!asset) return null
-  const rawAmount = parseAmountToBigInt(amount, asset.decimals)
-  if (rawAmount === null || rawAmount <= 0n) return '请输入有效金额'
-  const balance = BigInt(asset.amount)
-  if (rawAmount > balance) return '余额不足'
+
+  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
+  if (!inputAmount || !inputAmount.isPositive()) return '请输入有效金额'
+
+  const balance = amountFromAsset(asset)
+  if (inputAmount.gt(balance)) return '余额不足'
+
   return null
 }
 
@@ -34,15 +36,18 @@ export function canProceedToConfirm(options: {
 }): boolean {
   const { toAddress, amount, asset, isBioforestChain } = options
   if (!asset) return false
-  const rawAmount = parseAmountToBigInt(amount, asset.decimals)
-  const balance = BigInt(asset.amount)
+
+  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
+  if (!inputAmount) return false
+
+  const balance = amountFromAsset(asset)
+
   return (
     toAddress.trim() !== '' &&
     amount.trim() !== '' &&
     isValidRecipientAddress(toAddress, isBioforestChain) &&
-    rawAmount !== null &&
-    rawAmount > 0n &&
-    rawAmount <= balance
+    inputAmount.isPositive() &&
+    inputAmount.lte(balance)
   )
 }
 
@@ -50,21 +55,25 @@ export type FeeAdjustResult =
   | { status: 'ok'; adjustedAmount?: string }
   | { status: 'error'; message: string }
 
-export function adjustAmountForFee(amount: string, asset: AssetInfo, feeAmountRaw: string): FeeAdjustResult {
-  const rawAmount = parseAmountToBigInt(amount, asset.decimals)
-  if (rawAmount === null) return { status: 'error', message: '请输入有效金额' }
+export function adjustAmountForFee(
+  amount: string,
+  asset: AssetInfo,
+  feeAmountRaw: string
+): FeeAdjustResult {
+  const inputAmount = Amount.tryFromFormatted(amount, asset.decimals)
+  if (!inputAmount) return { status: 'error', message: '请输入有效金额' }
 
-  const balance = BigInt(asset.amount)
-  const feeRaw = BigInt(feeAmountRaw || '0')
+  const balance = amountFromAsset(asset)
+  const fee = Amount.fromRaw(feeAmountRaw || '0', asset.decimals)
 
-  if (rawAmount + feeRaw <= balance) return { status: 'ok' }
-  if (rawAmount !== balance) return { status: 'error', message: '余额不足' }
+  if (inputAmount.add(fee).lte(balance)) return { status: 'ok' }
+  if (!inputAmount.eq(balance)) return { status: 'error', message: '余额不足' }
 
-  const maxSendable = balance - feeRaw
-  if (maxSendable <= 0n) return { status: 'error', message: '余额不足' }
+  const maxSendable = balance.sub(fee)
+  if (!maxSendable.isPositive()) return { status: 'error', message: '余额不足' }
 
   return {
     status: 'ok',
-    adjustedAmount: formatAssetAmount(maxSendable.toString(), asset.decimals),
+    adjustedAmount: maxSendable.toFormatted(),
   }
 }
