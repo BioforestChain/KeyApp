@@ -138,6 +138,7 @@ export function TransferConfirmSheet({
         <div className="flex gap-3">
           <button
             type="button"
+            data-testid="cancel-transfer-button"
             onClick={onClose}
             className="border-border hover:bg-muted flex-1 rounded-full border py-3 font-medium transition-colors"
             disabled={isConfirming}
@@ -146,6 +147,7 @@ export function TransferConfirmSheet({
           </button>
           <button
             type="button"
+            data-testid="confirm-transfer-button"
             onClick={onConfirm}
             disabled={isConfirming || feeLoading}
             className={cn(
