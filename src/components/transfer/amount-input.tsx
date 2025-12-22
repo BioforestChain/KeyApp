@@ -1,22 +1,36 @@
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { Amount } from '@/types/amount';
 
 interface AmountInputProps {
-  value?: string | undefined;
-  onChange?: ((value: string) => void) | undefined;
+  /** Amount value (controlled). Pass null or undefined for empty/invalid state */
+  value?: Amount | null | undefined;
+  /** Called when user input changes. Provides Amount (or null if invalid) */
+  onChange?: ((value: Amount | null) => void) | undefined;
+  /** Decimals for Amount parsing (required if balance not provided) */
+  decimals?: number | undefined;
+  /** Symbol to display (falls back to balance.symbol) */
   symbol?: string | undefined;
-  balance?: string | undefined;
+  /** Available balance as Amount */
+  balance?: Amount | undefined;
+  /** Max allowed amount (defaults to balance) */
+  max?: Amount | undefined;
+  /** Fiat value to display */
   fiatValue?: string | undefined;
+  /** Fiat symbol (default: $) */
   fiatSymbol?: string | undefined;
-  max?: string | undefined;
+  /** Error message */
   error?: string | undefined;
+  /** Label text */
   label?: string | undefined;
+  /** Additional class names */
   className?: string | undefined;
+  /** Disabled state */
   disabled?: boolean | undefined;
 }
 
-function formatInputValue(value: string): string {
+function sanitizeInput(value: string): string {
   // Remove non-numeric characters except decimal point
   let cleaned = value.replace(/[^0-9.]/g, '');
 
@@ -26,20 +40,24 @@ function formatInputValue(value: string): string {
     cleaned = parts[0] + '.' + parts.slice(1).join('');
   }
 
-  // Limit decimal places to 8
-  if (parts.length === 2 && parts[1]!.length > 8) {
-    cleaned = parts[0] + '.' + parts[1]!.slice(0, 8);
-  }
-
   return cleaned;
+}
+
+function limitDecimals(value: string, maxDecimals: number): string {
+  const parts = value.split('.');
+  if (parts.length === 2 && parts[1]!.length > maxDecimals) {
+    return parts[0] + '.' + parts[1]!.slice(0, maxDecimals);
+  }
+  return value;
 }
 
 const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
   (
     {
-      value = '',
+      value,
       onChange,
-      symbol = '',
+      decimals: propDecimals,
+      symbol: propSymbol,
       balance,
       fiatValue,
       fiatSymbol = '$',
@@ -53,28 +71,68 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
   ) => {
     const { t } = useTranslation('common');
     const [focused, setFocused] = useState(false);
-    const [internalValue, setInternalValue] = useState(value);
+    const [inputValue, setInputValue] = useState('');
 
-    const currentValue = value || internalValue;
-    const numValue = parseFloat(currentValue) || 0;
-    const numMax = max ? parseFloat(max) : Infinity;
-    const isOverMax = numValue > numMax;
+    // Derive decimals and symbol from balance or props
+    const decimals = propDecimals ?? balance?.decimals ?? 18;
+    const symbol = propSymbol ?? balance?.symbol ?? '';
+    const effectiveMax = max ?? balance;
+
+    // Sync input value when controlled value changes from parent
+    useEffect(() => {
+      if (value) {
+        const formatted = value.toFormatted();
+        // Only update if different to avoid cursor jump
+        if (formatted !== inputValue && !focused) {
+          setInputValue(formatted);
+        }
+      } else if (value === null && inputValue !== '' && !focused) {
+        // Don't clear input while user is typing
+      }
+    }, [value, focused]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Check if current value exceeds max
+    const isOverMax = value && effectiveMax ? value.gt(effectiveMax) : false;
+
+    const parseInputToAmount = useCallback((input: string): Amount | null => {
+      if (!input || input === '.' || input === '-') {
+        return null;
+      }
+      return Amount.tryFromFormatted(input, decimals, symbol || undefined);
+    }, [decimals, symbol]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const formatted = formatInputValue(e.target.value);
-      setInternalValue(formatted);
-      onChange?.(formatted);
+      const raw = e.target.value;
+      const sanitized = sanitizeInput(raw);
+      const limited = limitDecimals(sanitized, decimals);
+
+      setInputValue(limited);
+
+      const amount = parseInputToAmount(limited);
+      onChange?.(amount);
     };
 
     const handleMax = () => {
-      if (max) {
-        setInternalValue(max);
-        onChange?.(max);
-      } else if (balance) {
-        setInternalValue(balance);
-        onChange?.(balance);
+      if (effectiveMax) {
+        const formatted = effectiveMax.toFormatted();
+        setInputValue(formatted);
+        onChange?.(effectiveMax);
       }
     };
+
+    const handleBlur = () => {
+      setFocused(false);
+      // Clean up display value on blur (e.g., "1." -> "1")
+      if (value) {
+        setInputValue(value.toFormatted());
+      } else if (inputValue && !parseInputToAmount(inputValue)) {
+        // Invalid input, clear it
+        setInputValue('');
+      }
+    };
+
+    // Format balance for display
+    const balanceDisplay = balance?.toFormatted() ?? undefined;
 
     return (
       <div className={cn('@container space-y-2', className)}>
@@ -83,7 +141,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             <label className="block text-sm font-medium">{label}</label>
             {balance && (
               <span className="text-muted-foreground text-xs">
-                {t('balance')}: {balance} {symbol}
+                {t('balance')}: {balanceDisplay} {symbol}
               </span>
             )}
           </div>
@@ -102,10 +160,10 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
               ref={ref}
               type="text"
               inputMode="decimal"
-              value={currentValue}
+              value={inputValue}
               onChange={handleChange}
               onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
+              onBlur={handleBlur}
               className={cn(
                 'placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-2xl font-semibold outline-none @xs:text-3xl',
                 disabled && 'cursor-not-allowed',
@@ -116,7 +174,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             />
 
             <div className="flex items-center gap-2">
-              {(balance || max) && !disabled && (
+              {effectiveMax && !disabled && (
                 <button
                   type="button"
                   onClick={handleMax}
@@ -129,7 +187,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             </div>
           </div>
 
-          {fiatValue && currentValue && (
+          {fiatValue && inputValue && (
             <p className="text-muted-foreground mt-1 text-sm">
               ≈ {fiatSymbol}
               {fiatValue}
@@ -144,4 +202,4 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
 );
 AmountInput.displayName = 'AmountInput';
 
-export { AmountInput, formatInputValue };
+export { AmountInput, sanitizeInput, limitDecimals };

@@ -26,7 +26,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   }, [isBioforestChain])
 
   // Validate amount
-  const validateAmount = useCallback((amount: string, asset: AssetInfo | null): string | null => {
+  const validateAmount = useCallback((amount: Amount | null, asset: AssetInfo | null): string | null => {
     return validateAmountInput(amount, asset)
   }, [])
 
@@ -40,7 +40,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   }, [])
 
   // Set amount
-  const setAmount = useCallback((amount: string) => {
+  const setAmount = useCallback((amount: Amount | null) => {
     setState((prev) => ({
       ...prev,
       amount,
@@ -138,7 +138,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return false
     }
 
-    if (state.asset && state.feeAmount) {
+    if (state.asset && state.feeAmount && state.amount) {
       const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmount)
       if (adjustResult.status === 'error') {
         setState((prev) => ({
@@ -147,7 +147,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         }))
         return false
       }
-      if (adjustResult.adjustedAmount !== undefined) {
+      if (adjustResult.adjustedAmount) {
         setState((prev) => ({
           ...prev,
           amount: adjustResult.adjustedAmount ?? prev.amount,
@@ -221,8 +221,18 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    // Convert formatted amount string to Amount object
-    const sendAmount = Amount.fromFormatted(state.amount, state.asset.decimals, state.asset.assetType)
+    // Amount should never be null here (validated above)
+    if (!state.amount) {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: '无效的金额',
+      }))
+      return { status: 'error' as const }
+    }
 
     const result = await submitBioforestTransfer({
       chainConfig,
@@ -230,7 +240,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       password,
       fromAddress,
       toAddress: state.toAddress,
-      amount: sendAmount,
+      amount: state.amount,
     })
 
     if (result.status === 'password') {

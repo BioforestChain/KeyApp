@@ -92,13 +92,16 @@ export function SendPage() {
     if (initialAddress && !state.toAddress) {
       setToAddress(initialAddress);
     }
-    if (initialAmount && !state.amount) {
-      setAmount(initialAmount);
+    if (initialAmount && !state.amount && state.asset) {
+      const parsedAmount = Amount.tryFromFormatted(initialAmount, state.asset.decimals, state.asset.assetType);
+      if (parsedAmount) {
+        setAmount(parsedAmount);
+      }
     }
-  }, [initialAddress, initialAmount, state.toAddress, state.amount, setToAddress, setAmount]);
+  }, [initialAddress, initialAmount, state.toAddress, state.amount, state.asset, setToAddress, setAmount]);
 
-  // Derive formatted values
-  const balance = state.asset ? state.asset.amount.toFormatted() : '0';
+  // Derive formatted values for display
+  const balance = state.asset?.amount ?? null;
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
   const handleScan = async () => {
@@ -185,7 +188,7 @@ export function SendPage() {
         <PageHeader title={t('sendPage.resultTitle')} />
         <SendResult
           status={state.step === 'sending' ? 'pending' : (state.resultStatus ?? 'pending')}
-          amount={state.amount}
+          amount={state.amount?.toFormatted() ?? '0'}
           symbol={symbol}
           toAddress={state.toAddress}
           txHash={state.txHash ?? undefined}
@@ -222,13 +225,12 @@ export function SendPage() {
         {/* Amount input */}
         <AmountInput
           label={t('sendPage.amountLabel')}
-          value={state.amount}
+          value={state.amount ?? undefined}
           onChange={setAmount}
-          balance={balance}
+          balance={balance ?? undefined}
           symbol={symbol}
-          max={balance}
           error={state.amountError ?? undefined}
-          fiatValue={state.amount ? `${parseFloat(state.amount).toFixed(2)}` : undefined}
+          fiatValue={state.amount ? state.amount.toNumber().toFixed(2) : undefined}
         />
 
         {/* Network warning */}
@@ -248,7 +250,7 @@ export function SendPage() {
         open={state.step === 'confirm'}
         onClose={goBack}
         onConfirm={handleConfirm}
-        amount={state.amount}
+        amount={state.amount?.toFormatted() ?? '0'}
         symbol={symbol}
         toAddress={state.toAddress}
         feeAmount={state.feeAmount?.toFormatted() ?? '0'}

@@ -14,7 +14,7 @@ export const initialState: SendState = {
   step: 'input',
   asset: null,
   toAddress: '',
-  amount: '',
+  amount: null,
   addressError: null,
   amountError: null,
   feeAmount: null,

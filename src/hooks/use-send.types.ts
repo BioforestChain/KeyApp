@@ -16,8 +16,8 @@ export interface SendState {
   asset: AssetInfo | null
   /** Recipient address */
   toAddress: string
-  /** Amount to send (user-friendly format) */
-  amount: string
+  /** Amount to send (as Amount object, null if empty/invalid) */
+  amount: Amount | null
   /** Address validation error */
   addressError: string | null
   /** Amount validation error */
@@ -56,8 +56,8 @@ export interface UseSendReturn {
   state: SendState
   /** Set recipient address */
   setToAddress: (address: string) => void
-  /** Set amount */
-  setAmount: (amount: string) => void
+  /** Set amount (Amount object or null for empty/invalid) */
+  setAmount: (amount: Amount | null) => void
   /** Set asset */
   setAsset: (asset: AssetInfo) => void
   /** Validate and go to confirm */
