@@ -95,7 +95,14 @@ export class BioforestChainService implements IChainService {
 
       const json = (await response.json()) as { success: boolean; result: BioforestFeeInfo }
       if (!json.success) {
-        throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
+        // Return default fees on API error
+        const defaultFee = Amount.fromRaw('10000000', decimals, symbol)
+        return {
+          slow: defaultFee,
+          standard: defaultFee,
+          fast: defaultFee.mul(2),
+          lastUpdated: Date.now(),
+        }
       }
       const minFee = Amount.fromRaw(json.result.minFee, decimals, symbol)
       const avgFee = Amount.fromRaw(json.result.avgFee, decimals, symbol)
