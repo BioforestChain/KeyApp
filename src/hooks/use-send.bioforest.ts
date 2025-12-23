@@ -92,9 +92,22 @@ export async function submitBioforestTransfer({
 
     return { status: 'ok', txHash }
   } catch (error) {
+    console.error('[submitBioforestTransfer] Transaction failed:', error)
+
+    // Provide more detailed error message
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
+    // Check for common error patterns
+    if (errorMessage.includes('Transaction rejected') || errorMessage.includes('Broadcast failed')) {
+      return {
+        status: 'error',
+        message: `交易广播失败: ${errorMessage}。BioForest 链交易需要特定的交易格式，当前实现可能不完整。`,
+      }
+    }
+
     return {
       status: 'error',
-      message: error instanceof Error ? error.message : '未知错误',
+      message: errorMessage || '未知错误',
     }
   }
 }
