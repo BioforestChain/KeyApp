@@ -46,6 +46,10 @@
             "whetherToAllowGeneratorContinusElections": false,
             "forgeInterval": 15,
             "basicRewards": "1000000000",
+            "rewardPerBlock": {
+                "heights": [1, 1000000, 10000000],
+                "rewards": ["1000000000", "500000000", "250000000", "0"]
+            },
             "ports": {
                 "port": 22000
             },
