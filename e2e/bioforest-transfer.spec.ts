@@ -20,12 +20,20 @@ const TARGET_ADDRESS = 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j'
 const RPC_URL = 'https://walletapi.bfmeta.info'
 const CHAIN_ID = 'bfm'
 
+// API 返回格式: { success: boolean, result: T }
+interface ApiResponse<T> {
+  success: boolean
+  result: T
+}
+
 test.describe('BioForest Chain API 功能测试', () => {
   test('获取最新区块高度', async ({ request }) => {
     const response = await request.get(`${RPC_URL}/wallet/${CHAIN_ID}/lastblock`)
     expect(response.ok()).toBe(true)
     
-    const data = await response.json()
+    const json = await response.json() as ApiResponse<{ height: number; timestamp: number }>
+    expect(json.success).toBe(true)
+    const data = json.result
     expect(data).toHaveProperty('height')
     expect(data).toHaveProperty('timestamp')
     expect(typeof data.height).toBe('number')
@@ -44,7 +52,9 @@ test.describe('BioForest Chain API 功能测试', () => {
     })
     expect(response.ok()).toBe(true)
     
-    const data = await response.json()
+    const json = await response.json() as ApiResponse<{ amount: string }>
+    expect(json.success).toBe(true)
+    const data = json.result
     expect(data).toHaveProperty('amount')
     
     console.log(`Balance for ${TEST_ADDRESS}: ${data.amount}`)
@@ -58,7 +68,9 @@ test.describe('BioForest Chain API 功能测试', () => {
     })
     expect(response.ok()).toBe(true)
     
-    const data = await response.json()
+    const json = await response.json() as ApiResponse<{ address: string; secondPublicKey?: string }>
+    expect(json.success).toBe(true)
+    const data = json.result
     console.log(`Address info for ${TEST_ADDRESS}:`, JSON.stringify(data, null, 2))
     
     // 检查是否有二次签名公钥
@@ -72,8 +84,8 @@ test.describe('BioForest Chain API 功能测试', () => {
   test('查询交易历史', async ({ request }) => {
     // 首先获取最新区块高度
     const blockResponse = await request.get(`${RPC_URL}/wallet/${CHAIN_ID}/lastblock`)
-    const blockData = await blockResponse.json()
-    const maxHeight = blockData.height
+    const blockJson = await blockResponse.json() as ApiResponse<{ height: number }>
+    const maxHeight = blockJson.result.height
 
     // 查询交易
     const response = await request.post(`${RPC_URL}/wallet/${CHAIN_ID}/transactions/query`, {
@@ -87,13 +99,15 @@ test.describe('BioForest Chain API 功能测试', () => {
     })
     expect(response.ok()).toBe(true)
     
-    const data = await response.json()
+    const json = await response.json() as ApiResponse<{ trs?: Array<{ transaction: { signature: string; type: string; senderId: string; recipientId: string; fee: string; timestamp: number } }> }>
+    expect(json.success).toBe(true)
+    const data = json.result
     console.log(`Transaction history for ${TEST_ADDRESS}:`)
     console.log(`Total transactions found: ${data.trs?.length ?? 0}`)
     
     if (data.trs && data.trs.length > 0) {
       // 打印前 3 条交易
-      data.trs.slice(0, 3).forEach((item: { transaction: { signature: string; type: string; senderId: string; recipientId: string; fee: string; timestamp: number } }, i: number) => {
+      data.trs.slice(0, 3).forEach((item, i: number) => {
         const tx = item.transaction
         console.log(`  [${i + 1}] Type: ${tx.type}`)
         console.log(`      From: ${tx.senderId}`)
@@ -113,7 +127,9 @@ test.describe('BioForest Chain API 功能测试', () => {
     })
     expect(response.ok()).toBe(true)
     
-    const data = await response.json()
+    const json = await response.json() as ApiResponse<unknown[]>
+    expect(json.success).toBe(true)
+    const data = json.result
     console.log(`Pending transactions: ${Array.isArray(data) ? data.length : 0}`)
   })
 })
