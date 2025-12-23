@@ -82,7 +82,7 @@ export const TransferForm: Story = {
 };
 
 /**
- * 带联系人建议 - 输入联系人名称或地址前缀会显示建议
+ * 带联系人建议 - 聚焦即展开，显示所有联系人
  */
 export const WithContactSuggestions: Story = {
   decorators: [
@@ -118,15 +118,62 @@ export const WithContactSuggestions: Story = {
 
     return (
       <div className="space-y-6 p-4">
-        <p className="text-muted-foreground text-sm">试着输入 "Al"、"Bob" 或 "0x12" 来查看建议</p>
+        <p className="text-muted-foreground text-sm">
+          聚焦输入框即可看到所有联系人建议，输入可过滤
+        </p>
         <AddressInput
           label="收款地址"
           value={address}
           onChange={setAddress}
           onScan={() => alert('Open QR scanner')}
+          onContactPicker={() => alert('Open contact picker')}
           showSuggestions
         />
         <p className="text-muted-foreground text-sm">当前值: {address || '(空)'}</p>
+      </div>
+    );
+  },
+};
+
+/**
+ * 按链类型过滤 - 只显示指定链的地址
+ */
+export const FilterByChain: Story = {
+  decorators: [
+    (Story) => {
+      addressBookActions.clearAll();
+      addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
+          { id: '2', address: 'b7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+        ],
+      });
+      addressBookActions.addContact({
+        name: 'Bob',
+        addresses: [
+          { id: '3', address: 'c7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'ccchain', isDefault: true },
+        ],
+      });
+      return <Story />;
+    },
+  ],
+  render: () => {
+    const [address, setAddress] = useState('');
+
+    return (
+      <div className="space-y-6 p-4">
+        <p className="text-muted-foreground text-sm">
+          设置 chainType="bfmeta"，只显示 BFMeta 链的地址
+        </p>
+        <AddressInput
+          label="BFMeta 地址"
+          value={address}
+          onChange={setAddress}
+          chainType="bfmeta"
+          onContactPicker={() => alert('Open contact picker for BFMeta')}
+          showSuggestions
+        />
       </div>
     );
   },

@@ -55,7 +55,11 @@
     "memoPlaceholder": "Add memo",
     "add": "Add",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noContacts": "No contacts",
+    "viewAll": "View all contacts",
+    "selectContact": "Select Contact",
+    "selectAddress": "Select address"
   },
   "acceptExchange": "Accept exchange",
   "account": "[MISSING:en] 用户",
