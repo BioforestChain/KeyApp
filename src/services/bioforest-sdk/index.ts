@@ -35,45 +35,37 @@ import type {
 } from './types'
 
 /**
- * Create crypto helper using @bfmeta/sign-util
+ * Create crypto helper compatible with the SDK
+ * Uses Node.js crypto module for hash functions
  */
 async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> {
-  const { BFMetaSignUtil } = await import('@bfmeta/sign-util')
+  const cryptoModule = await import('crypto')
 
-  // Get the network ID from genesis block
-  const genesis = await import('./genesis-block.json')
-  const bnid = genesis.default.asset.genesisAsset.bnid
-
-  // Create hash helper function
-  const createHashHelper = (algorithm: string) => {
-    return async (data?: Uint8Array): Promise<Buffer | BFChainCore.CryptoAsyncHash> => {
-      const crypto = await import('crypto')
-      if (data) {
-        return crypto.createHash(algorithm).update(Buffer.from(data)).digest()
+  const cryptoHelper: BFChainCore.CryptoHelperInterface = {
+    async sha256(data?: Uint8Array | string): Promise<Buffer> {
+      if (!data) {
+        throw new Error('sha256 requires data argument')
       }
-      const hash = crypto.createHash(algorithm)
-      const helper: BFChainCore.CryptoAsyncHash = {
-        update(chunk: Uint8Array | string) {
-          hash.update(typeof chunk === 'string' ? chunk : Buffer.from(chunk))
-          return helper
-        },
-        digest() {
-          return Promise.resolve(hash.digest())
-        },
+      const input = typeof data === 'string' ? data : Buffer.from(data)
+      return cryptoModule.createHash('sha256').update(input).digest()
+    },
+    async md5(data?: Uint8Array | string): Promise<Buffer> {
+      if (!data) {
+        throw new Error('md5 requires data argument')
       }
-      return helper
-    }
+      const input = typeof data === 'string' ? data : Buffer.from(data)
+      return cryptoModule.createHash('md5').update(input).digest()
+    },
+    async ripemd160(data?: Uint8Array | string): Promise<Buffer> {
+      if (!data) {
+        throw new Error('ripemd160 requires data argument')
+      }
+      const input = typeof data === 'string' ? data : Buffer.from(data)
+      return cryptoModule.createHash('ripemd160').update(input).digest()
+    },
   }
 
-  // Create sign util instance with proper crypto
-  const signUtil = new BFMetaSignUtil(bnid, Buffer as never, {
-    sha256: createHashHelper('sha256'),
-    md5: createHashHelper('md5'),
-    ripemd160: createHashHelper('ripemd160'),
-  } as never)
-
-  // The signUtil itself provides crypto methods
-  return signUtil as unknown as BFChainCore.CryptoHelperInterface
+  return cryptoHelper
 }
 
 /**
@@ -135,7 +127,11 @@ export async function getLastBlock(
   if (!response.ok) {
     throw new Error(`Failed to get lastblock: ${response.status}`)
   }
-  return response.json()
+  const json = (await response.json()) as { success: boolean; result: { height: number; timestamp: number } }
+  if (!json.success) {
+    throw new Error('Failed to get lastblock')
+  }
+  return json.result
 }
 
 export interface AddressInfo {
@@ -244,7 +240,7 @@ export async function createTransferTransaction(
       applyBlockHeight,
       timestamp,
       remark: params.remark ?? {},
-      effectiveBlockHeight: applyBlockHeight + 28,
+      effectiveBlockHeight: applyBlockHeight + 100,
     },
     assetInfo,
   })
@@ -258,15 +254,34 @@ export async function broadcastTransaction(
   chainId: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<string> {
+  // Remove nonce field - successful on-chain transactions don't have it
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
+    nonce?: number
+  }
+
   const response = await fetch(`${rpcUrl}/wallet/${chainId}/transactions/broadcast`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(transaction),
+    body: JSON.stringify(txWithoutNonce),
   })
 
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { message?: string }
-    throw new Error(error.message ?? `Broadcast failed: ${response.status}`)
+  const json = (await response.json()) as {
+    success: boolean
+    result?: { success: boolean; minFee?: string; message?: string }
+    message?: string
+  }
+
+  if (!response.ok || !json.success) {
+    const errorMsg = json.message ?? json.result?.message ?? `Broadcast failed: ${response.status}`
+    throw new Error(errorMsg)
+  }
+
+  // Check if transaction was accepted
+  if (json.result && !json.result.success) {
+    const msg = json.result.message ?? 'Transaction rejected'
+    const minFee = json.result.minFee
+    throw new Error(minFee ? `${msg} (minFee: ${minFee})` : msg)
   }
 
   // Return the transaction signature as the tx hash
@@ -363,7 +378,7 @@ export async function createSignatureTransaction(
       fee,
       applyBlockHeight,
       timestamp,
-      effectiveBlockHeight: applyBlockHeight + 28,
+      effectiveBlockHeight: applyBlockHeight + 100,
     },
   )
 }
