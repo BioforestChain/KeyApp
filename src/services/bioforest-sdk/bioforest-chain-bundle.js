@@ -1,6 +1,5 @@
 // ESM wrapper for CommonJS bundle
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
-const bundle = require('./bioforest-chain-bundle.cjs')
+// Vite handles CommonJS-to-ESM conversion automatically
+import bundle from './bioforest-chain-bundle.cjs'
 export const setup = bundle.setup
 export default bundle
