@@ -250,8 +250,9 @@ describe('mpay-transformer', () => {
 
       expect(contact.id).toBe('addr-book-1')
       expect(contact.name).toBe('Alice')
-      expect(contact.address).toBe('bfm123456')
-      expect(contact.chain).toBe('bfmeta')
+      expect(contact.addresses).toHaveLength(1)
+      expect(contact.addresses[0]?.address).toBe('bfm123456')
+      expect(contact.addresses[0]?.chainType).toBe('bfmeta')
       expect(contact.memo).toBe('My friend')
       expect(contact.createdAt).toBeTypeOf('number')
       expect(contact.updatedAt).toBeTypeOf('number')
@@ -268,8 +269,8 @@ describe('mpay-transformer', () => {
 
       expect(contact.id).toBe('addr-book-2')
       expect(contact.name).toBe('Bob')
-      expect(contact.address).toBe('0xabc123')
-      expect(contact.chain).toBeUndefined()
+      expect(contact.addresses[0]?.address).toBe('0xabc123')
+      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default
       expect(contact.memo).toBeUndefined()
     })
 
@@ -283,7 +284,7 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.chain).toBeUndefined()
+      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default when no chain detected
     })
 
     it('should select first mappable chain from multi-chain entry', () => {
@@ -297,7 +298,7 @@ describe('mpay-transformer', () => {
       const contact = transformAddressBookEntry(entry)
 
       // First mappable chain should be selected
-      expect(contact.chain).toBe('ethereum')
+      expect(contact.addresses[0]?.chainType).toBe('ethereum')
     })
 
     it('should skip unmappable chains and use first mappable', () => {
@@ -310,10 +311,10 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.chain).toBe('bfmeta')
+      expect(contact.addresses[0]?.chainType).toBe('bfmeta')
     })
 
-    it('should return undefined chain when all chains are unmappable', () => {
+    it('should use ethereum as default when all chains are unmappable', () => {
       const entry: MpayAddressBookEntry = {
         addressBookId: 'addr-book-6',
         name: 'All Unknown',
@@ -323,7 +324,7 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.chain).toBeUndefined()
+      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default
     })
 
     it('should handle entry without remarks', () => {

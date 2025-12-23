@@ -287,7 +287,7 @@ describe('migration-service', () => {
       vi.mocked(transformAddressBookEntry).mockImplementation((entry) => ({
         id: entry.addressBookId,
         name: entry.name,
-        address: entry.address,
+        addresses: [{ id: 'addr-1', address: entry.address, chainType: 'ethereum' as const }],
         createdAt: 1,
         updatedAt: 1,
       }))

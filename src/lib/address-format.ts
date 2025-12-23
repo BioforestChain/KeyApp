@@ -5,7 +5,7 @@
  */
 
 import type { ChainType } from '@/stores'
-import { isValidBioforestAddress } from './crypto'
+import { isValidBioforestAddress, isBioforestChain, type BioforestChainType } from './crypto'
 
 /** Address format detection result */
 export interface AddressFormatInfo {
@@ -17,7 +17,7 @@ export interface AddressFormatInfo {
   formatDescription: string
 }
 
-/** BioForest chain prefixes */
+/** BioForest chain prefixes (values are ChainType that are also BioforestChainType) */
 const BIOFOREST_PREFIXES: Record<string, ChainType> = {
   b: 'bfmeta',
   c: 'ccchain',
@@ -27,6 +27,11 @@ const BIOFOREST_PREFIXES: Record<string, ChainType> = {
   w: 'biwmeta',
   e: 'ethmeta',
   m: 'malibu',
+}
+
+/** Type guard to check if chainType is a BioforestChainType */
+function asBioforestChain(chain: ChainType): BioforestChainType | undefined {
+  return isBioforestChain(chain) ? chain : undefined
 }
 
 /**
@@ -68,21 +73,24 @@ export function detectAddressFormat(address: string): AddressFormatInfo {
   const firstChar = trimmed[0]
   if (firstChar && firstChar in BIOFOREST_PREFIXES) {
     const chainType = BIOFOREST_PREFIXES[firstChar]
-    const isValid = isValidBioforestAddress(trimmed, chainType)
-    if (isValid) {
-      return {
-        chainType,
-        isValid: true,
-        formatDescription: `BioForest (${firstChar}...)`,
+    if (chainType) {
+      const bioforestChain = asBioforestChain(chainType)
+      const isValid = isValidBioforestAddress(trimmed, bioforestChain)
+      if (isValid) {
+        return {
+          chainType,
+          isValid: true,
+          formatDescription: `BioForest (${firstChar}...)`,
+        }
       }
     }
   }
 
   // Generic BioForest address check (any valid prefix)
   if (isValidBioforestAddress(trimmed)) {
-    const chainType = BIOFOREST_PREFIXES[firstChar] ?? null
+    const detectedChain = firstChar ? BIOFOREST_PREFIXES[firstChar] : null
     return {
-      chainType,
+      chainType: detectedChain ?? null,
       isValid: true,
       formatDescription: 'BioForest',
     }
