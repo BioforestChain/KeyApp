@@ -2,6 +2,7 @@ export { ChainSelectorJob } from "./ChainSelectorJob";
 export { WalletRenameJob } from "./WalletRenameJob";
 export { WalletDeleteJob } from "./WalletDeleteJob";
 export { PasswordConfirmJob, setPasswordConfirmCallback } from "./PasswordConfirmJob";
+export { PayPasswordConfirmJob, setPayPasswordConfirmCallback } from "./PayPasswordConfirmJob";
 export { MnemonicOptionsJob, setMnemonicOptionsCallback } from "./MnemonicOptionsJob";
 export { ContactEditJob } from "./ContactEditJob";
 export { WalletAddJob } from "./WalletAddJob";

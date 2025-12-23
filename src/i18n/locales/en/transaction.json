@@ -53,7 +53,11 @@
     "cameraPermissionRequired": "Camera permission required for scanning",
     "scanSuccess": "Scan successful",
     "scanFailed": "Scan failed, please enter manually",
-    "explorerNotImplemented": "Block explorer feature coming soon"
+    "explorerNotImplemented": "Block explorer feature coming soon",
+    "payPasswordTitle": "Pay Password Required",
+    "payPasswordDescription": "This address has a pay password set. Please enter your pay password to confirm the transfer.",
+    "payPasswordPlaceholder": "Enter pay password",
+    "payPasswordError": "Incorrect pay password"
   },
   "aboutFee": "About Fee",
   "amount": "Amount",

@@ -51,6 +51,13 @@ export interface UseSendOptions {
   chainConfig?: ChainConfig | null | undefined
 }
 
+/** Submit result type */
+export type SubmitResult =
+  | { status: 'ok' }
+  | { status: 'password' }
+  | { status: 'pay_password_required'; secondPublicKey: string }
+  | { status: 'error' }
+
 export interface UseSendReturn {
   /** Current state */
   state: SendState
@@ -65,7 +72,9 @@ export interface UseSendReturn {
   /** Go back to input */
   goBack: () => void
   /** Submit transaction */
-  submit: (password: string) => Promise<{ status: 'ok' | 'password' | 'error' }>
+  submit: (password: string) => Promise<SubmitResult>
+  /** Submit transaction with pay password */
+  submitWithPayPassword: (password: string, payPassword: string) => Promise<SubmitResult>
   /** Reset to initial state */
   reset: () => void
   /** Check if can proceed to confirm */

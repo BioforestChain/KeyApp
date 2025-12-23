@@ -53,7 +53,11 @@
     "cameraPermissionRequired": "需要相机权限才能扫描",
     "scanSuccess": "扫描成功",
     "scanFailed": "扫描失败，请手动输入",
-    "explorerNotImplemented": "区块浏览器功能待实现"
+    "explorerNotImplemented": "区块浏览器功能待实现",
+    "payPasswordTitle": "需要支付密码",
+    "payPasswordDescription": "该地址已设置支付密码，请输入支付密码确认转账。",
+    "payPasswordPlaceholder": "输入支付密码",
+    "payPasswordError": "支付密码错误"
   },
   "history": {
     "title": "交易记录",
