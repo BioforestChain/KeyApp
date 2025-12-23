@@ -6,6 +6,7 @@ export { PayPasswordConfirmJob, setPayPasswordConfirmCallback } from "./PayPassw
 export { SetPayPasswordJob, setSetPayPasswordCallback } from "./SetPayPasswordJob";
 export { MnemonicOptionsJob, setMnemonicOptionsCallback } from "./MnemonicOptionsJob";
 export { ContactEditJob } from "./ContactEditJob";
+export { ContactPickerJob } from "./ContactPickerJob";
 export { WalletAddJob } from "./WalletAddJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";

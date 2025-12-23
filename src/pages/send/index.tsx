@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
 import { setPasswordConfirmCallback, setPayPasswordConfirmCallback, setTransferConfirmCallback } from '@/stackflow/activities/sheets';
+import type { Contact, ContactAddress } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
 import { AmountInput } from '@/components/transfer/amount-input';
@@ -101,6 +102,19 @@ export function SendPage() {
       }
     }
   }, [initialAddress, initialAmount, state.toAddress, state.amount, state.asset, setToAddress, setAmount]);
+
+  // Listen for contact picker selection
+  useEffect(() => {
+    const handleContactSelect = (e: CustomEvent<{ contact: Contact; address: ContactAddress }>) => {
+      setToAddress(e.detail.address.address);
+    };
+    window.addEventListener('contact-picker-select', handleContactSelect as EventListener);
+    return () => window.removeEventListener('contact-picker-select', handleContactSelect as EventListener);
+  }, [setToAddress]);
+
+  const handleContactPicker = useCallback(() => {
+    push('ContactPickerJob', { chainType: selectedChain });
+  }, [push, selectedChain]);
 
   // Derive formatted values for display
   const balance = state.asset?.amount ?? null;
@@ -252,6 +266,8 @@ export function SendPage() {
           onChange={setToAddress}
           placeholder={t('sendPage.toAddressPlaceholder', { chain: selectedChainName })}
           onScan={handleScan}
+          onContactPicker={handleContactPicker}
+          chainType={selectedChain}
           error={state.addressError ?? undefined}
         />
 

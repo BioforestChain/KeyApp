@@ -55,7 +55,11 @@
     "memoPlaceholder": "أضف ملاحظة",
     "add": "إضافة",
     "save": "حفظ",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "noContacts": "لا توجد جهات اتصال",
+    "viewAll": "عرض جميع جهات الاتصال",
+    "selectContact": "اختر جهة اتصال",
+    "selectAddress": "اختر العنوان"
   },
   "acceptExchange": "Accept exchange",
   "account": "[MISSING:ar] 用户",

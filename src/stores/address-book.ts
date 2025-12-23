@@ -346,27 +346,55 @@ export const addressBookSelectors = {
     )
   },
 
-  /** 获取联系人建议（用于地址输入） */
+  /**
+   * 获取联系人建议（用于地址输入）
+   * @param state - 地址簿状态
+   * @param partialAddress - 部分地址（可为空，空时返回所有联系人）
+   * @param chainType - 链类型过滤（可选）
+   * @param limit - 返回数量限制（默认 5）
+   */
   suggestContacts: (
     state: AddressBookState,
     partialAddress: string,
-    chainType?: ChainType
+    chainType?: ChainType,
+    limit: number = 5
   ): ContactSuggestion[] => {
-    if (!partialAddress || partialAddress.length < 2) return []
-
-    const lowerPartial = partialAddress.toLowerCase()
     const suggestions: ContactSuggestion[] = []
+    const hasQuery = partialAddress && partialAddress.length > 0
+    const lowerPartial = hasQuery ? partialAddress.toLowerCase() : ''
 
-    for (const contact of state.contacts) {
-      // 优先匹配指定链类型的地址
+    // 按最近更新时间排序联系人
+    const sortedContacts = [...state.contacts].sort(
+      (a, b) => b.updatedAt - a.updatedAt
+    )
+
+    for (const contact of sortedContacts) {
+      // 过滤指定链类型的地址
       const relevantAddresses = chainType
         ? contact.addresses.filter((a) => a.chainType === chainType)
         : contact.addresses
 
+      if (relevantAddresses.length === 0) continue
+
+      if (!hasQuery) {
+        // 无查询：返回默认地址
+        const defaultAddr =
+          relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]
+        if (defaultAddr) {
+          suggestions.push({
+            contact,
+            matchedAddress: defaultAddr,
+            matchType: 'name',
+            score: 40, // 基础分数，靠 updatedAt 排序
+          })
+        }
+        continue
+      }
+
+      // 有查询：匹配地址和名称
       for (const addr of relevantAddresses) {
         const lowerAddr = addr.address.toLowerCase()
 
-        // 精确匹配
         if (lowerAddr === lowerPartial) {
           suggestions.push({
             contact,
@@ -374,18 +402,14 @@ export const addressBookSelectors = {
             matchType: 'exact',
             score: 100,
           })
-        }
-        // 前缀匹配
-        else if (lowerAddr.startsWith(lowerPartial)) {
+        } else if (lowerAddr.startsWith(lowerPartial)) {
           suggestions.push({
             contact,
             matchedAddress: addr,
             matchType: 'prefix',
             score: 80,
           })
-        }
-        // 包含匹配
-        else if (lowerAddr.includes(lowerPartial)) {
+        } else if (lowerAddr.includes(lowerPartial)) {
           suggestions.push({
             contact,
             matchedAddress: addr,
@@ -410,7 +434,7 @@ export const addressBookSelectors = {
       }
     }
 
-    // 去重（同一联系人只保留最高分的）
+    // 去重（同一联系人+地址只保留最高分的）
     const seen = new Map<string, ContactSuggestion>()
     for (const s of suggestions) {
       const key = `${s.contact.id}:${s.matchedAddress.id}`
@@ -420,10 +444,13 @@ export const addressBookSelectors = {
       }
     }
 
-    // 排序返回
+    // 排序：先按分数，再按最近更新时间
     return Array.from(seen.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score
+        return b.contact.updatedAt - a.contact.updatedAt
+      })
+      .slice(0, limit)
   },
 
   /** 按链类型过滤联系人 */

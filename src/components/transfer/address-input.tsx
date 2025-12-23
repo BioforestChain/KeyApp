@@ -2,7 +2,7 @@ import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } 
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUser } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUser, IconUsers } from '@tabler/icons-react';
 import { clipboardService } from '@/services/clipboard';
 import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
 
@@ -11,12 +11,16 @@ interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   onChange?: ((value: string) => void) | undefined;
   onScan?: (() => void) | undefined;
   onPaste?: (() => void) | undefined;
+  /** Callback to open contact picker */
+  onContactPicker?: (() => void) | undefined;
   error?: string | undefined;
   label?: string | undefined;
   /** Chain type to filter contact addresses */
   chainType?: ChainType | undefined;
   /** Enable contact suggestions dropdown */
   showSuggestions?: boolean | undefined;
+  /** Maximum suggestions to show (default: 5) */
+  maxSuggestions?: number | undefined;
 }
 
 function isValidAddress(address: string): boolean {
@@ -31,7 +35,7 @@ function isValidAddress(address: string): boolean {
 }
 
 const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
-  ({ value = '', onChange, onScan, onPaste, error, label, className, chainType, showSuggestions = true, ...props }, ref) => {
+  ({ value = '', onChange, onScan, onPaste, onContactPicker, error, label, className, chainType, showSuggestions = true, maxSuggestions = 5, ...props }, ref) => {
     const [focused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(value);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -48,21 +52,22 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
 
-    // Get contact suggestions based on input
+    // Get contact suggestions - now supports empty query for "focus to show all"
     const suggestions = useMemo((): ContactSuggestion[] => {
-      if (!showSuggestions || !currentValue || currentValue.length < 1) return [];
-      return addressBookSelectors.suggestContacts(addressBookState, currentValue, chainType).slice(0, 5);
-    }, [addressBookState, currentValue, chainType, showSuggestions]);
+      if (!showSuggestions) return [];
+      // Pass empty string to get all contacts when no input
+      return addressBookSelectors.suggestContacts(addressBookState, currentValue || '', chainType, maxSuggestions);
+    }, [addressBookState, currentValue, chainType, showSuggestions, maxSuggestions]);
 
-    // Show dropdown when there are suggestions and input is focused
+    // Show dropdown when focused and has contacts (even without input)
     useEffect(() => {
-      if (focused && suggestions.length > 0 && currentValue.length > 0) {
+      if (focused && showSuggestions && (suggestions.length > 0 || addressBookState.contacts.length > 0)) {
         setShowDropdown(true);
         setSelectedIndex(-1);
       } else {
         setShowDropdown(false);
       }
-    }, [focused, suggestions.length, currentValue]);
+    }, [focused, suggestions.length, addressBookState.contacts.length, showSuggestions]);
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -182,35 +187,56 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
           </div>
 
           {/* Contact suggestions dropdown */}
-          {showDropdown && suggestions.length > 0 && (
-            <ul
+          {showDropdown && (
+            <div
               id={listboxId}
-              role="listbox"
               className="bg-popover border-border absolute z-50 mt-1 w-full overflow-hidden rounded-xl border shadow-lg"
             >
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
-                  id={`suggestion-${index}`}
-                  role="option"
-                  aria-selected={index === selectedIndex}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors',
-                    index === selectedIndex ? 'bg-accent' : 'hover:bg-muted/50',
-                  )}
-                  onClick={() => handleSelectSuggestion(suggestion)}
+              {suggestions.length > 0 ? (
+                <ul role="listbox">
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
+                      id={`suggestion-${index}`}
+                      role="option"
+                      aria-selected={index === selectedIndex}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors',
+                        index === selectedIndex ? 'bg-accent' : 'hover:bg-muted/50',
+                      )}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full">
+                        <IconUser className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
+                        <p className="text-muted-foreground truncate font-mono text-xs">{suggestion.matchedAddress.address}</p>
+                      </div>
+                      <span className="text-muted-foreground shrink-0 text-xs uppercase">{suggestion.matchedAddress.chainType}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-muted-foreground px-3 py-4 text-center text-sm">
+                  {t('contact.noContacts')}
+                </div>
+              )}
+              {/* View all contacts button */}
+              {onContactPicker && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDropdown(false);
+                    onContactPicker();
+                  }}
+                  className="text-primary hover:bg-muted/50 border-border flex w-full items-center justify-center gap-2 border-t px-3 py-2.5 text-sm font-medium transition-colors"
                 >
-                  <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full">
-                    <IconUser className="size-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
-                    <p className="text-muted-foreground truncate font-mono text-xs">{suggestion.matchedAddress.address}</p>
-                  </div>
-                  <span className="text-muted-foreground shrink-0 text-xs uppercase">{suggestion.matchedAddress.chainType}</span>
-                </li>
-              ))}
-            </ul>
+                  <IconUsers className="size-4" />
+                  {t('contact.viewAll')}
+                </button>
+              )}
+            </div>
           )}
         </div>
 

@@ -54,7 +54,11 @@
     "memoPlaceholder": "新增備註",
     "add": "新增",
     "save": "儲存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "noContacts": "暫無聯絡人",
+    "viewAll": "查看全部聯絡人",
+    "selectContact": "選擇聯絡人",
+    "selectAddress": "選擇地址"
   },
   "acceptExchange": "接受交換",
   "account": "賬戶",

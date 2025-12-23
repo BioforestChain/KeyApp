@@ -54,7 +54,11 @@
     "memoPlaceholder": "添加备注信息",
     "add": "添加",
     "save": "保存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "noContacts": "暂无联系人",
+    "viewAll": "查看全部联系人",
+    "selectContact": "选择联系人",
+    "selectAddress": "选择地址"
   },
   "acceptExchange": "接收交换",
   "account": "用户",
