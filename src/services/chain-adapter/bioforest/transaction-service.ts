@@ -263,73 +263,98 @@ export class BioforestTransactionService implements ITransactionService {
       return []
     }
 
-    const url = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`
-
     try {
-      const response = await fetch(url, {
+      // First get the latest block height
+      const lastBlockUrl = `${this.baseUrl}/wallet/${this.config.id}/lastblock`
+      const blockResponse = await fetch(lastBlockUrl)
+      if (!blockResponse.ok) {
+        console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
+        return []
+      }
+      const lastBlock = (await blockResponse.json()) as { height: number; timestamp: number }
+      const maxHeight = lastBlock.height
+
+      // Query transactions using the correct API format
+      const queryUrl = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`
+      const response = await fetch(queryUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          address,
-          pageSize: limit,
+          maxHeight,
+          address, // Query all transactions for this address
           page: 1,
+          pageSize: limit,
+          sort: -1, // Newest first
         }),
       })
 
       if (!response.ok) {
-        console.warn('[TransactionService] API error:', response.status, response.statusText, 'for', url)
+        console.warn('[TransactionService] API error:', response.status, response.statusText, 'for', queryUrl)
         return []
       }
 
+      // BioForest API response format: { trs: TransactionDetail[] }
       const result = (await response.json()) as {
-        success?: boolean
-        data?: {
-          transactions?: Array<{
-            signature: string
+        trs?: Array<{
+          height: number
+          signature: string // Block signature
+          tIndex: number
+          transaction: {
+            signature: string // Transaction ID
             senderId: string
-            recipientId: string
-            amount: string
+            recipientId?: string
             fee: string
             timestamp: number
-            height?: number
-          }>
-        }
-        // Alternative response format - transactions at root level
-        transactions?: Array<{
-          signature: string
-          senderId: string
-          recipientId: string
-          amount: string
-          fee: string
-          timestamp: number
-          height?: number
+            type: string
+            asset?: {
+              transferAsset?: {
+                amount: string
+                assetType: string
+              }
+            }
+          }
         }>
       }
 
-      // Handle different API response formats
-      const transactions = result.data?.transactions ?? result.transactions ?? []
+      const transactions = result.trs ?? []
 
       if (transactions.length === 0) {
         console.debug('[TransactionService] No transactions found for', address, 'on', this.config.id)
+        return []
       }
 
       const { decimals, symbol } = this.config
 
-      return transactions.map((tx) => ({
-        hash: tx.signature,
-        from: tx.senderId,
-        to: tx.recipientId,
-        amount: Amount.fromRaw(tx.amount, decimals, symbol),
-        fee: Amount.fromRaw(tx.fee, decimals, symbol),
-        status: {
-          status: tx.height ? 'confirmed' : 'pending',
-          confirmations: tx.height ? 1 : 0,
-          requiredConfirmations: 1,
-        } as const,
-        timestamp: tx.timestamp,
-        blockNumber: tx.height ? BigInt(tx.height) : undefined,
-        type: 'transfer' as const,
-      }))
+      return transactions
+        .filter((item) => {
+          // Filter for transfer transactions
+          const txType = item.transaction.type
+          return txType.includes('AST-01') || txType.includes('AST-02') // TRANSFER_ASSET types
+        })
+        .map((item) => {
+          const tx = item.transaction
+          const transferAsset = tx.asset?.transferAsset
+
+          // Amount comes from transferAsset if available
+          const amountRaw = transferAsset?.amount ?? '0'
+          const assetSymbol = transferAsset?.assetType ?? symbol
+
+          return {
+            hash: tx.signature,
+            from: tx.senderId,
+            to: tx.recipientId ?? '',
+            amount: Amount.fromRaw(amountRaw, decimals, assetSymbol),
+            fee: Amount.fromRaw(tx.fee, decimals, symbol),
+            status: {
+              status: 'confirmed' as const,
+              confirmations: 1,
+              requiredConfirmations: 1,
+            },
+            timestamp: tx.timestamp * 1000, // Convert to milliseconds
+            blockNumber: BigInt(item.height),
+            type: 'transfer' as const,
+          }
+        })
     } catch (error) {
       console.error('[TransactionService] Failed to fetch history:', error)
       return []

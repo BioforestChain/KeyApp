@@ -11,6 +11,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@bfmeta/sign-util':
+        specifier: ^1.3.10
+        version: 1.3.10
       '@fontsource-variable/dm-sans':
         specifier: ^5.2.8
         version: 5.2.8
@@ -526,6 +529,9 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@bfmeta/sign-util@1.3.10':
+    resolution: {integrity: sha512-44EWN5lHBeCh/kjPc1BBn/E1Me3pbcq0dG8AMRSZ5NgtesZlxLeolAFUKn+ozAtGMfdazOCjDXMfZMi7UIRLYg==}
 
   '@cbor-extract/cbor-extract-darwin-arm64@2.2.0':
     resolution: {integrity: sha512-P7swiOAdF7aSi0H+tHtHtr6zrpF3aAq/W9FXx5HektRvLTM2O89xCyXF3pk7pLc7QpaY7AoaE8UowVf9QBdh3w==}
@@ -5023,6 +5029,10 @@ snapshots:
       '@types/react': 19.2.7
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@bfmeta/sign-util@1.3.10':
+    dependencies:
+      tslib: 2.8.1
 
   '@cbor-extract/cbor-extract-darwin-arm64@2.2.0':
     optional: true
