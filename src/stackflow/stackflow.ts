@@ -28,7 +28,7 @@ import { AddressBookActivity } from "./activities/AddressBookActivity";
 import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
-import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, PasswordConfirmJob, PayPasswordConfirmJob, MnemonicOptionsJob, ContactEditJob, WalletAddJob, SecurityWarningJob, TransferConfirmJob } from "./activities/sheets";
+import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, PasswordConfirmJob, PayPasswordConfirmJob, SetPayPasswordJob, MnemonicOptionsJob, ContactEditJob, WalletAddJob, SecurityWarningJob, TransferConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -69,6 +69,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         WalletDeleteJob: "/job/wallet-delete/:walletId",
         PasswordConfirmJob: "/job/password-confirm",
         PayPasswordConfirmJob: "/job/pay-password-confirm",
+        SetPayPasswordJob: "/job/set-pay-password",
         MnemonicOptionsJob: "/job/mnemonic-options",
         ContactEditJob: "/job/contact-edit",
         WalletAddJob: "/job/wallet-add",
@@ -110,6 +111,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     WalletDeleteJob,
     PasswordConfirmJob,
     PayPasswordConfirmJob,
+    SetPayPasswordJob,
     MnemonicOptionsJob,
     ContactEditJob,
     WalletAddJob,

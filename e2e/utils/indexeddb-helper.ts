@@ -1,6 +1,50 @@
 import { Page } from '@playwright/test'
 
 /**
+ * 等待应用加载完成
+ */
+export async function waitForAppReady(page: Page) {
+  await page.locator('svg[aria-label="加载中"]').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {})
+  await page.waitForLoadState('networkidle')
+}
+
+/**
+ * 设置测试钱包（使用助记词）
+ * 这会在测试开始前通过 localStorage 预设钱包数据
+ */
+export async function setupWalletWithMnemonic(page: Page, mnemonic: string, password: string = 'test-password') {
+  // 创建基础测试钱包数据（使用固定结构）
+  const testWalletData = {
+    wallets: [
+      {
+        id: 'test-wallet-bioforest',
+        name: 'BioForest 测试钱包',
+        primaryAddress: 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx',
+        primaryChain: 'bfmeta',
+        encryptedMnemonic: {
+          ciphertext: 'encrypted-' + mnemonic.replace(/\s/g, '-'),
+          iv: 'test-iv',
+          salt: 'test-salt',
+        },
+        createdAt: Date.now(),
+      },
+    ],
+    currentWalletId: 'test-wallet-bioforest',
+    selectedChain: 'bfmeta',
+  }
+
+  await page.addInitScript((data) => {
+    localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
+    localStorage.setItem('bfm_preferences', JSON.stringify({ language: 'zh-CN', currency: 'CNY' }))
+    // 存储测试密码（仅用于测试）
+    localStorage.setItem('__test_password', data.password)
+  }, { wallet: testWalletData, password })
+
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+}
+
+/**
  * E2E 测试辅助函数：从 IndexedDB 读取钱包数据
  */
 export async function getWalletsFromIndexedDB(page: Page) {
