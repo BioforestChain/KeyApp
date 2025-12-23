@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '@/stackflow';
+import { useFlow } from '@/stackflow/stackflow';
 import { useTranslation } from 'react-i18next';
 import {
   IconWallet as Wallet,
@@ -7,6 +8,7 @@ import {
   IconLock as Lock,
   IconEye as Eye,
   IconCircleKey as KeyRound,
+  IconShieldLock as ShieldLock,
   IconLanguage as Languages,
   IconCoin as DollarSign,
   IconPalette as Palette,
@@ -14,10 +16,12 @@ import {
   IconInfoCircle as Info,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { useCurrentWallet, useLanguage, useCurrency, useTheme } from '@/stores';
+import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
 import { AppearanceSheet } from '@/components/settings/appearance-sheet';
+import { hasPayPasswordSet, submitSetPayPassword, getSetPayPasswordFee } from '@/hooks/use-send.bioforest';
+import { setSetPayPasswordCallback } from '@/stackflow/activities/sheets';
 
 /** 支持的语言显示名称映射 */
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -40,15 +44,108 @@ const CURRENCY_NAMES: Record<string, string> = {
 
 export function SettingsPage() {
   const { navigate } = useNavigation();
-  const { t } = useTranslation(['settings', 'common']);
+  const { push } = useFlow();
+  const { t } = useTranslation(['settings', 'common', 'security']);
   const currentWallet = useCurrentWallet();
   const currentLanguage = useLanguage();
   const currentCurrency = useCurrency();
   const currentTheme = useTheme();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
+  const [payPasswordStatus, setPayPasswordStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>('loading');
+
+  // Check if pay password is set for BioForest chain
+  useEffect(() => {
+    async function checkPayPassword() {
+      if (!currentWallet) {
+        setPayPasswordStatus('unavailable');
+        return;
+      }
+      
+      // Find BioForest chain address
+      const bfmAddress = currentWallet.chainAddresses.find(
+        (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
+      );
+      
+      if (!bfmAddress) {
+        setPayPasswordStatus('unavailable');
+        return;
+      }
+
+      try {
+        const chainConfig = chainConfigSelectors.getChainById(chainConfigStore.state, 'bfmeta');
+        if (!chainConfig) {
+          setPayPasswordStatus('unavailable');
+          return;
+        }
+        
+        const hasPassword = await hasPayPasswordSet(chainConfig, bfmAddress.address);
+        setPayPasswordStatus(hasPassword ? 'set' : 'not_set');
+      } catch {
+        setPayPasswordStatus('unavailable');
+      }
+    }
+    
+    checkPayPassword();
+  }, [currentWallet]);
 
   const getThemeDisplayName = () => {
     return t(`settings:appearance.${currentTheme}`);
+  };
+
+  const getPayPasswordStatusText = () => {
+    switch (payPasswordStatus) {
+      case 'loading':
+        return '...';
+      case 'set':
+        return t('security:payPassword.alreadySet');
+      case 'not_set':
+        return t('security:payPassword.notSet');
+      default:
+        return t('settings:notSupported');
+    }
+  };
+
+  const handleSetPayPassword = async () => {
+    if (payPasswordStatus !== 'not_set' || !currentWallet) return;
+
+    const bfmAddress = currentWallet.chainAddresses.find(
+      (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
+    );
+    if (!bfmAddress) return;
+
+    const chainConfig = chainConfigSelectors.getChainById(chainConfigStore.state, 'bfmeta');
+    if (!chainConfig) return;
+
+    // Get fee first
+    const fee = await getSetPayPasswordFee(chainConfig);
+
+    // Set callback before pushing
+    setSetPayPasswordCallback(
+      async (newPayPassword: string, walletPassword: string) => {
+        const result = await submitSetPayPassword({
+          chainConfig,
+          walletId: currentWallet.id,
+          password: walletPassword,
+          fromAddress: bfmAddress.address,
+          newPayPassword,
+        });
+
+        if (result.status === 'ok') {
+          setPayPasswordStatus('set');
+          return { success: true, txHash: result.txHash };
+        } else if (result.status === 'password') {
+          return { success: false, error: t('security:passwordConfirm.verifying') };
+        } else if (result.status === 'already_set') {
+          setPayPasswordStatus('set');
+          return { success: false, error: t('security:payPassword.alreadySet') };
+        } else {
+          return { success: false, error: result.message };
+        }
+      },
+      fee ?? undefined
+    );
+
+    push('SetPayPasswordJob', { chainName: 'BioForest Chain' });
   };
 
   return (
@@ -105,6 +202,14 @@ export function SettingsPage() {
             icon={<KeyRound size={20} />}
             label={t('settings:items.changePassword')}
             onClick={() => navigate({ to: '/settings/password' })}
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<ShieldLock size={20} />}
+            label={t('security:payPassword.setPayPassword')}
+            value={getPayPasswordStatusText()}
+            onClick={handleSetPayPassword}
+            disabled={payPasswordStatus === 'set' || payPasswordStatus === 'unavailable'}
           />
         </SettingsSection>
 
