@@ -34,6 +34,9 @@ jobs:
 
       - name: Install & Run
         run: |
+          # Enable pipefail to capture turbo exit code through pipe
+          set -o pipefail
+          
           pnpm install --frozen-lockfile
           
           if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
@@ -42,16 +45,12 @@ jobs:
             TASKS="typecheck:run build i18n:run test:run"
           fi
           
-          set +e
-          pnpm turbo run $TASKS 2>&1 | tee turbo-output.log
-          TURBO_EXIT=$?
-          set -e
-          
-          if [ $TURBO_EXIT -ne 0 ]; then
+          # Run turbo and capture output, pipefail ensures we get turbo's exit code
+          if ! pnpm turbo run $TASKS 2>&1 | tee turbo-output.log; then
             echo ""
             echo "========== TURBO FAILED =========="
             grep -A 50 "error\|Error\|ERROR\|failed\|Failed\|FAILED" turbo-output.log || cat turbo-output.log
-            exit $TURBO_EXIT
+            exit 1
           fi
           
           echo "All checks passed!"
