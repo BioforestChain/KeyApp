@@ -13,20 +13,29 @@ export async function waitForAppReady(page: Page) {
  * 这会在测试开始前通过 localStorage 预设钱包数据
  */
 export async function setupWalletWithMnemonic(page: Page, mnemonic: string, password: string = 'test-password') {
-  // 创建基础测试钱包数据（使用固定结构）
+  // 创建基础测试钱包数据（使用 migrateFromLocalStorage 期望的格式）
   const testWalletData = {
     wallets: [
       {
         id: 'test-wallet-bioforest',
         name: 'BioForest 测试钱包',
-        primaryAddress: 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx',
-        primaryChain: 'bfmeta',
+        address: 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx', // migrateFromLocalStorage 期望 address 字段
+        chain: 'bfmeta', // migrateFromLocalStorage 期望 chain 字段
+        keyType: 'mnemonic',
         encryptedMnemonic: {
           ciphertext: 'encrypted-' + mnemonic.replace(/\s/g, '-'),
           iv: 'test-iv',
           salt: 'test-salt',
         },
         createdAt: Date.now(),
+        // chainAddresses 是必需的，用于创建链地址记录
+        chainAddresses: [
+          {
+            chain: 'bfmeta',
+            address: 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx',
+            tokens: [],
+          },
+        ],
       },
     ],
     currentWalletId: 'test-wallet-bioforest',
