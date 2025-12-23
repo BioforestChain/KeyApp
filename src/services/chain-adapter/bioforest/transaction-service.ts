@@ -20,19 +20,17 @@ import type {
   Address,
 } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
-import { BioforestChainService } from './chain-service'
+
 import { signMessage, bytesToHex } from '@/lib/crypto'
 import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly config: ChainConfig
   private readonly baseUrl: string
-  private readonly chainService: BioforestChainService
 
   constructor(config: ChainConfig) {
     this.config = config
     this.baseUrl = config.rpcUrl ?? ''
-    this.chainService = new BioforestChainService(config)
   }
 
   async estimateFee(params: TransferParams): Promise<FeeEstimate> {
