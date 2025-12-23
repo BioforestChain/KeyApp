@@ -27,6 +27,24 @@
     "biometric": "Use Biometrics",
     "cancel": "Cancel"
   },
+  "payPassword": {
+    "setTitle": "Set Pay Password",
+    "tooShort": "Pay password must be at least 6 characters",
+    "notMatch": "Passwords do not match",
+    "setFailed": "Failed to set pay password, please try again",
+    "setSuccess": "Pay Password Set Successfully",
+    "setSuccessDesc": "You will need to enter your pay password for each transfer",
+    "feeInfo": "Setting pay password requires a network fee",
+    "inputDesc": "Set a pay password to protect your transfers",
+    "inputPlaceholder": "Enter pay password",
+    "confirmDesc": "Enter pay password again to confirm",
+    "confirmPlaceholder": "Confirm pay password",
+    "walletPasswordDesc": "Enter wallet password to confirm",
+    "walletPasswordPlaceholder": "Enter wallet password",
+    "alreadySet": "Pay password is already set for this address",
+    "notSet": "Pay password not set",
+    "setPayPassword": "Set Pay Password"
+  },
   "mnemonicConfirm": {
     "selected": "Selected {{current}}/{{total}}",
     "undo": "Undo",

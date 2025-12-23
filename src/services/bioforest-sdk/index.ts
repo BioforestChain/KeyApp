@@ -306,3 +306,94 @@ export async function verifyPayPassword(
 
   return false
 }
+
+/**
+ * Get minimum fee for setting pay password
+ */
+export async function getSignatureTransactionMinFee(
+  rpcUrl: string,
+  chainId: string,
+): Promise<string> {
+  const core = await getBioforestCore()
+
+  const lastBlock = await getLastBlock(rpcUrl, chainId)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  return core.transactionController.getSignatureTransactionMinFee({
+    newPaySecret: `${Date.now()}getSignatureTransactionMinFee`,
+    applyBlockHeight,
+    timestamp,
+  })
+}
+
+export interface CreateSignatureParams {
+  rpcUrl: string
+  chainId: string
+  mainSecret: string
+  newPaySecret: string
+  fee?: string | undefined
+}
+
+/**
+ * Create a signature (pay password) transaction using the SDK
+ */
+export async function createSignatureTransaction(
+  params: CreateSignatureParams,
+): Promise<BFChainCore.TransactionJSON<BFChainCore.SignatureAssetJSON>> {
+  const core = await getBioforestCore()
+
+  const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  let fee = params.fee
+  if (!fee) {
+    fee = await core.transactionController.getSignatureTransactionMinFee({
+      newPaySecret: params.newPaySecret,
+      applyBlockHeight,
+      timestamp,
+    })
+  }
+
+  return core.transactionController.createSignatureTransactionJSON(
+    { mainSecret: params.mainSecret },
+    {
+      newPaySecret: params.newPaySecret,
+      fee,
+      applyBlockHeight,
+      timestamp,
+      effectiveBlockHeight: applyBlockHeight + 28,
+    },
+  )
+}
+
+export interface SetPayPasswordParams {
+  rpcUrl: string
+  chainId: string
+  mainSecret: string
+  newPaySecret: string
+}
+
+/**
+ * Set pay password (二次签名) for an account
+ * This creates and broadcasts a signature transaction
+ */
+export async function setPayPassword(
+  params: SetPayPasswordParams,
+): Promise<{ txHash: string; success: boolean }> {
+  const transaction = await createSignatureTransaction({
+    rpcUrl: params.rpcUrl,
+    chainId: params.chainId,
+    mainSecret: params.mainSecret,
+    newPaySecret: params.newPaySecret,
+  })
+
+  const txHash = await broadcastTransaction(
+    params.rpcUrl,
+    params.chainId,
+    transaction as unknown as BFChainCore.TransactionJSON,
+  )
+
+  return { txHash, success: true }
+}

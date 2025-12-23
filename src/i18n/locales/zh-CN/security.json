@@ -27,6 +27,24 @@
     "biometric": "使用生物识别",
     "cancel": "取消"
   },
+  "payPassword": {
+    "setTitle": "设置支付密码",
+    "tooShort": "支付密码至少6个字符",
+    "notMatch": "两次输入的密码不一致",
+    "setFailed": "设置支付密码失败，请稍后重试",
+    "setSuccess": "支付密码设置成功",
+    "setSuccessDesc": "之后每次转账都需要输入支付密码进行验证",
+    "feeInfo": "设置支付密码需要支付网络手续费",
+    "inputDesc": "请设置一个支付密码，用于保护您的转账安全",
+    "inputPlaceholder": "请输入支付密码",
+    "confirmDesc": "请再次输入支付密码以确认",
+    "confirmPlaceholder": "请再次输入支付密码",
+    "walletPasswordDesc": "请输入钱包密码以确认设置",
+    "walletPasswordPlaceholder": "请输入钱包密码",
+    "alreadySet": "该地址已设置支付密码",
+    "notSet": "未设置支付密码",
+    "setPayPassword": "设置支付密码"
+  },
   "mnemonicConfirm": {
     "selected": "已选择 {{current}}/{{total}}",
     "undo": "撤销",
