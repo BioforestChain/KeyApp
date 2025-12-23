@@ -254,10 +254,16 @@ export async function broadcastTransaction(
   chainId: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<string> {
+  // Remove nonce field - successful on-chain transactions don't have it
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
+    nonce?: number
+  }
+
   const response = await fetch(`${rpcUrl}/wallet/${chainId}/transactions/broadcast`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(transaction),
+    body: JSON.stringify(txWithoutNonce),
   })
 
   const json = (await response.json()) as {
