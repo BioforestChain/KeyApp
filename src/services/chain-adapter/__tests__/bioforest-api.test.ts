@@ -174,12 +174,13 @@ describe('BioForest API Response Parsing', () => {
         const history = await adapter.transaction.getTransactionHistory('bTest123')
 
         expect(history).toHaveLength(1)
-        expect(history[0].hash).toBe('tx-sig-1')
-        expect(history[0].from).toBe('bSender123')
-        expect(history[0].to).toBe('bRecipient456')
-        expect(history[0].amount.toRawString()).toBe('100000000')
-        expect(history[0].fee?.toRawString()).toBe('10000000')
-        expect(history[0].blockNumber).toBe(1274442n)
+        const tx = history[0]!
+        expect(tx.hash).toBe('tx-sig-1')
+        expect(tx.from).toBe('bSender123')
+        expect(tx.to).toBe('bRecipient456')
+        expect(tx.amount.toRawString()).toBe('100000000')
+        expect(tx.fee?.toRawString()).toBe('10000000')
+        expect(tx.blockNumber).toBe(1274442n)
       })
 
       it('returns empty array on success=false', async () => {
