@@ -66,11 +66,10 @@ function TransferConfirmJobContent() {
 
     setIsConfirming(true);
     try {
-      // Save callback reference before clearing
-      const callback = pendingCallback;
+      // Pop this Job first, then call the callback which may push another Job
       clearTransferConfirmCallback();
       pop();
-      await callback();
+      await pendingCallback();
     } finally {
       setIsConfirming(false);
     }
@@ -82,7 +81,7 @@ function TransferConfirmJobContent() {
   }, [pop]);
 
   return (
-    <BottomSheet>
+    <BottomSheet data-testid="transfer-confirm-sheet">
       <SheetContent title={t('confirmSheet.title')}>
         <div className="space-y-6 p-4">
           {/* Amount */}

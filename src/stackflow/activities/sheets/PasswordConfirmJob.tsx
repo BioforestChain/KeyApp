@@ -102,7 +102,7 @@ function PasswordConfirmJobContent() {
   const canSubmit = password.trim().length > 0 && !isVerifying;
 
   return (
-    <BottomSheet>
+    <BottomSheet data-testid="password-dialog">
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -137,6 +137,7 @@ function PasswordConfirmJobContent() {
           <div className="space-y-3">
             <button
               type="submit"
+              data-testid="password-confirm-button"
               disabled={!canSubmit}
               className={cn(
                 "w-full rounded-full py-3 font-medium text-white transition-colors",

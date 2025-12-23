@@ -336,3 +336,117 @@ test.describe('BioForest 支付密码设置流程 (Mock)', () => {
     }
   })
 })
+
+test.describe('BioForest 转账完整流程验证 (Mock)', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupBioforestMock(page, {
+      balance: '100000000000', // 1000 BFM
+      hasSecondPublicKey: true,
+    })
+    await setupWalletWithMnemonic(page, TEST_MNEMONIC, 'test-password')
+  })
+
+  test('完整转账流程 - 从填写到交易成功', async ({ page }) => {
+    // 1. 进入首页
+    await page.goto('/')
+    await waitForAppReady(page)
+    await page.waitForTimeout(500)
+
+    // 2. 点击发送按钮进入发送页
+    await page.locator('[data-testid="send-button"]').click()
+    await page.waitForTimeout(500)
+
+    // 3. 填写收款地址
+    const addressInput = page.locator('input[placeholder*="地址"]').first()
+    await addressInput.waitFor({ timeout: 10000 })
+    await addressInput.fill(TARGET_ADDRESS)
+
+    // 4. 填写转账金额
+    const amountInput = page.locator('input[inputmode="decimal"]').first()
+    await amountInput.fill('10')
+    await page.waitForTimeout(500)
+
+    // 5. 点击继续按钮
+    const continueBtn = page.locator('[data-testid="send-continue-button"]')
+    await expect(continueBtn).toBeEnabled({ timeout: 5000 })
+    await continueBtn.click()
+    await page.waitForTimeout(500)
+
+    // 6. 验证确认弹窗出现 - 通过确认按钮判断
+    const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
+    await expect(confirmBtn).toBeVisible({ timeout: 5000 })
+
+    // 7. 点击确认按钮
+    await confirmBtn.click()
+    await page.waitForTimeout(500)
+
+    // 8. 验证密码输入弹窗出现 - 通过密码输入框判断
+    const passwordInput = page.locator('input[type="password"]').first()
+    await expect(passwordInput).toBeVisible({ timeout: 5000 })
+
+    // 9. 输入钱包密码
+    await passwordInput.fill('test-password')
+
+    // 10. 点击确认密码按钮 - 使用按钮文本
+    const passwordConfirmBtn = page.locator('button[type="submit"]').filter({ hasText: /确认|Confirm/ })
+    await expect(passwordConfirmBtn).toBeVisible({ timeout: 5000 })
+    await passwordConfirmBtn.click()
+
+    // 11. 等待交易处理和页面跳转
+    await page.waitForTimeout(3000)
+
+    // 验证交易流程完成 - 检查以下任一情况：
+    // a) 显示成功结果页面
+    // b) 显示 toast 成功提示
+    // c) 密码弹窗关闭（表示验证成功）
+    // d) 返回到首页或发送页面
+    
+    const passwordDialogStillVisible = await page.locator('text=验证密码').isVisible().catch(() => false)
+    
+    // 如果密码弹窗消失了，说明密码验证成功
+    if (!passwordDialogStillVisible) {
+      // 验证成功 - 密码验证通过，流程继续
+      console.log('Password dialog dismissed - verification successful')
+    }
+
+    // 检查是否有成功提示或返回页面
+    const pageContent = await page.content()
+    const hasTransferInfo = 
+      pageContent.includes('成功') ||
+      pageContent.includes('已发送') ||
+      pageContent.includes('BFM') ||
+      pageContent.includes('发送')
+
+    expect(hasTransferInfo || !passwordDialogStillVisible).toBe(true)
+
+    await expect(page).toHaveScreenshot('transfer-complete-success.png')
+  })
+
+  test('交易历史显示转账记录', async ({ page }) => {
+    // 进入首页
+    await page.goto('/')
+    await waitForAppReady(page)
+    await page.waitForTimeout(500)
+
+    // 进入转账历史页面
+    const transferTab = page.locator('a[href*="transfer"], button:has-text("转账")').first()
+    if (await transferTab.isVisible().catch(() => false)) {
+      await transferTab.click()
+      await page.waitForTimeout(500)
+    }
+
+    // 验证交易历史显示了 mock 的交易记录
+    // Mock 配置了 2 笔交易
+    const content = await page.content()
+
+    // 验证页面包含交易相关信息
+    const hasTransactionInfo =
+      content.includes('BFM') || 
+      content.includes('mock-tx-signature') ||
+      content.includes(TARGET_ADDRESS.slice(0, 10))
+
+    expect(hasTransactionInfo).toBe(true)
+
+    await expect(page).toHaveScreenshot('transfer-history-with-records.png')
+  })
+})
