@@ -4,7 +4,17 @@ import {
   addressBookActions,
   addressBookSelectors,
   type Contact,
+  type ContactAddress,
 } from './address-book'
+
+/** Helper to create a contact address */
+function createAddress(address: string, chainType: string = 'ethereum'): ContactAddress {
+  return {
+    id: crypto.randomUUID(),
+    address,
+    chainType: chainType as ContactAddress['chainType'],
+  }
+}
 
 describe('AddressBookStore', () => {
   beforeEach(() => {
@@ -14,15 +24,16 @@ describe('AddressBookStore', () => {
   })
 
   describe('addContact', () => {
-    it('adds a new contact', () => {
+    it('adds a new contact with addresses', () => {
       const contact = addressBookActions.addContact({
         name: 'Alice',
-        address: '0x1234567890abcdef',
+        addresses: [createAddress('0x1234567890abcdef')],
       })
 
       expect(contact.id).toBeDefined()
       expect(contact.name).toBe('Alice')
-      expect(contact.address).toBe('0x1234567890abcdef')
+      expect(contact.addresses).toHaveLength(1)
+      expect(contact.addresses[0]?.address).toBe('0x1234567890abcdef')
       expect(contact.createdAt).toBeDefined()
 
       const state = addressBookStore.state
@@ -32,17 +43,16 @@ describe('AddressBookStore', () => {
     it('persists contacts to localStorage', () => {
       addressBookActions.addContact({
         name: 'Bob',
-        address: '0xabcdef1234567890',
-        chain: 'ethereum',
+        addresses: [createAddress('0xabcdef1234567890')],
       })
 
       const stored = localStorage.getItem('bfm_address_book')
       expect(stored).not.toBeNull()
 
-      const parsed = JSON.parse(stored!) as Contact[]
-      expect(parsed).toHaveLength(1)
-      // Safe: length is already checked
-      expect(parsed[0]!.name).toBe('Bob')
+      const parsed = JSON.parse(stored!) as { version: number; contacts: Contact[] }
+      expect(parsed.version).toBe(2)
+      expect(parsed.contacts).toHaveLength(1)
+      expect(parsed.contacts[0]!.name).toBe('Bob')
     })
   })
 
@@ -50,7 +60,7 @@ describe('AddressBookStore', () => {
     it('updates an existing contact', () => {
       const contact = addressBookActions.addContact({
         name: 'Alice',
-        address: '0x1234567890abcdef',
+        addresses: [createAddress('0x1234567890abcdef')],
       })
 
       addressBookActions.updateContact(contact.id, {
@@ -71,7 +81,7 @@ describe('AddressBookStore', () => {
     it('removes a contact', () => {
       const contact = addressBookActions.addContact({
         name: 'Alice',
-        address: '0x1234567890abcdef',
+        addresses: [createAddress('0x1234567890abcdef')],
       })
 
       expect(addressBookStore.state.contacts).toHaveLength(1)
@@ -82,15 +92,54 @@ describe('AddressBookStore', () => {
     })
   })
 
+  describe('addAddressToContact', () => {
+    it('adds an address to existing contact', () => {
+      const contact = addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [createAddress('0x1111', 'ethereum')],
+      })
+
+      addressBookActions.addAddressToContact(contact.id, {
+        address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11',
+        chainType: 'bfmeta',
+      })
+
+      const state = addressBookStore.state
+      const updated = state.contacts.find((c) => c.id === contact.id)
+
+      expect(updated?.addresses).toHaveLength(2)
+      expect(updated?.addresses[1]?.chainType).toBe('bfmeta')
+    })
+  })
+
+  describe('removeAddressFromContact', () => {
+    it('removes an address from contact', () => {
+      const addr1 = createAddress('0x1111', 'ethereum')
+      const addr2 = createAddress('0x2222', 'ethereum')
+
+      const contact = addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [addr1, addr2],
+      })
+
+      addressBookActions.removeAddressFromContact(contact.id, addr1.id)
+
+      const state = addressBookStore.state
+      const updated = state.contacts.find((c) => c.id === contact.id)
+
+      expect(updated?.addresses).toHaveLength(1)
+      expect(updated?.addresses[0]?.address).toBe('0x2222')
+    })
+  })
+
   describe('importContacts', () => {
-    it('imports new contacts with dedup by (chain,address) and persists once', () => {
+    it('imports new contacts with dedup by name', () => {
       const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
 
       const existing: Contact = {
         id: 'existing-1',
         name: 'Existing',
-        address: '0x1111',
-        chain: 'ethereum',
+        addresses: [createAddress('0x1111', 'ethereum')],
         createdAt: 1,
         updatedAt: 1,
       }
@@ -98,24 +147,15 @@ describe('AddressBookStore', () => {
       const importedA: Contact = {
         id: 'import-1',
         name: 'Alice',
-        address: '0x2222',
-        chain: 'ethereum',
+        addresses: [createAddress('0x2222', 'ethereum')],
         createdAt: 2,
         updatedAt: 2,
       }
 
-      const importedADupeSameKey: Contact = {
+      const importedADupe: Contact = {
         ...importedA,
         id: 'import-1-dupe',
-      }
-
-      const importedSameAddressDifferentChain: Contact = {
-        id: 'import-2',
-        name: 'Alice (BFMeta)',
-        address: '0x2222',
-        chain: 'bfmeta',
-        createdAt: 3,
-        updatedAt: 3,
+        name: 'Alice', // Same name - should be deduped
       }
 
       // seed existing
@@ -125,19 +165,13 @@ describe('AddressBookStore', () => {
 
       const added = addressBookActions.importContacts([
         importedA,
-        importedADupeSameKey,
-        importedSameAddressDifferentChain,
+        importedADupe,
         existing, // duplicate with existing
       ])
 
-      expect(added).toBe(2)
-      expect(addressBookStore.state.contacts).toHaveLength(3)
+      expect(added).toBe(1) // Only Alice is new
+      expect(addressBookStore.state.contacts).toHaveLength(2)
       expect(setItemSpy).toHaveBeenCalledTimes(1)
-
-      const stored = localStorage.getItem('bfm_address_book')
-      expect(stored).not.toBeNull()
-      const parsed = JSON.parse(stored!) as Contact[]
-      expect(parsed).toHaveLength(3)
     })
 
     it('returns 0 and does not persist when there are no new contacts', () => {
@@ -146,8 +180,7 @@ describe('AddressBookStore', () => {
       const existing: Contact = {
         id: 'existing-1',
         name: 'Existing',
-        address: '0x1111',
-        chain: 'ethereum',
+        addresses: [createAddress('0x1111', 'ethereum')],
         createdAt: 1,
         updatedAt: 1,
       }
@@ -166,30 +199,56 @@ describe('AddressBookStore', () => {
   })
 
   describe('initialize', () => {
-    it('loads contacts from localStorage', () => {
-      // First clear everything
+    it('loads contacts from localStorage (v2 format)', () => {
       addressBookActions.clearAll()
 
-      // Then set up mock data in localStorage
-      const mockContacts: Contact[] = [
-        {
-          id: '1',
-          name: 'Alice',
-          address: '0x1111',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        },
-      ]
-      localStorage.setItem('bfm_address_book', JSON.stringify(mockContacts))
+      const mockData = {
+        version: 2,
+        contacts: [
+          {
+            id: '1',
+            name: 'Alice',
+            addresses: [{ id: 'a1', address: '0x1111', chainType: 'ethereum' }],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      }
+      localStorage.setItem('bfm_address_book', JSON.stringify(mockData))
 
-      // Now initialize to load from storage
       addressBookActions.initialize()
 
       const state = addressBookStore.state
       expect(state.contacts).toHaveLength(1)
-      // Safe: length is already checked
       expect(state.contacts[0]!.name).toBe('Alice')
+      expect(state.contacts[0]!.addresses).toHaveLength(1)
       expect(state.isInitialized).toBe(true)
+    })
+
+    it('migrates v1 (legacy) format to v2', () => {
+      addressBookActions.clearAll()
+
+      // v1 format: array of contacts with single address
+      const legacyContacts = [
+        {
+          id: '1',
+          name: 'Alice',
+          address: '0x1111',
+          chain: 'ethereum',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ]
+      localStorage.setItem('bfm_address_book', JSON.stringify(legacyContacts))
+
+      addressBookActions.initialize()
+
+      const state = addressBookStore.state
+      expect(state.contacts).toHaveLength(1)
+      expect(state.contacts[0]!.name).toBe('Alice')
+      expect(state.contacts[0]!.addresses).toHaveLength(1)
+      expect(state.contacts[0]!.addresses[0]?.address).toBe('0x1111')
+      expect(state.contacts[0]!.addresses[0]?.chainType).toBe('ethereum')
     })
   })
 
@@ -197,22 +256,32 @@ describe('AddressBookStore', () => {
     it('getContactByAddress finds contact by address (case-insensitive)', () => {
       addressBookActions.addContact({
         name: 'Alice',
-        address: '0xABCDef1234567890',
+        addresses: [createAddress('0xABCDef1234567890')],
       })
 
       const state = addressBookStore.state
-      const found = addressBookSelectors.getContactByAddress(
+      const result = addressBookSelectors.getContactByAddress(
         state,
         '0xabcdef1234567890'
       )
 
-      expect(found?.name).toBe('Alice')
+      expect(result?.contact.name).toBe('Alice')
+      expect(result?.matchedAddress.address).toBe('0xABCDef1234567890')
     })
 
     it('searchContacts filters by name or address', () => {
-      addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
-      addressBookActions.addContact({ name: 'Bob', address: '0x2222' })
-      addressBookActions.addContact({ name: 'Charlie', address: '0xalice' })
+      addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [createAddress('0x1111')],
+      })
+      addressBookActions.addContact({
+        name: 'Bob',
+        addresses: [createAddress('0x2222')],
+      })
+      addressBookActions.addContact({
+        name: 'Charlie',
+        addresses: [createAddress('0xalice')],
+      })
 
       const state = addressBookStore.state
 
@@ -223,8 +292,54 @@ describe('AddressBookStore', () => {
       // Search by address
       const byAddress = addressBookSelectors.searchContacts(state, '2222')
       expect(byAddress).toHaveLength(1)
-      // Safe: length is already checked
       expect(byAddress[0]!.name).toBe('Bob')
+    })
+
+    it('suggestContacts returns suggestions sorted by score', () => {
+      addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          { id: '1', address: '0x1234abcd', chainType: 'ethereum' },
+          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'bfmeta' },
+        ],
+      })
+      addressBookActions.addContact({
+        name: 'Bob',
+        addresses: [{ id: '3', address: '0x1234efgh', chainType: 'ethereum' }],
+      })
+
+      const state = addressBookStore.state
+
+      // Search by address prefix
+      const suggestions = addressBookSelectors.suggestContacts(state, '0x1234')
+      expect(suggestions.length).toBeGreaterThan(0)
+      expect(suggestions[0]?.matchType).toBe('prefix')
+    })
+
+    it('getContactsByChain filters by chain type', () => {
+      addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          { id: '1', address: '0x1111', chainType: 'ethereum' },
+          { id: '2', address: 'b7ADmv...', chainType: 'bfmeta' },
+        ],
+      })
+      addressBookActions.addContact({
+        name: 'Bob',
+        addresses: [{ id: '3', address: '0x2222', chainType: 'ethereum' }],
+      })
+      addressBookActions.addContact({
+        name: 'Charlie',
+        addresses: [{ id: '4', address: 'c7ADmv...', chainType: 'ccchain' }],
+      })
+
+      const state = addressBookStore.state
+
+      const ethContacts = addressBookSelectors.getContactsByChain(state, 'ethereum')
+      expect(ethContacts).toHaveLength(2) // Alice and Bob
+
+      const bfmetaContacts = addressBookSelectors.getContactsByChain(state, 'bfmeta')
+      expect(bfmetaContacts).toHaveLength(1) // Alice only
     })
   })
 })

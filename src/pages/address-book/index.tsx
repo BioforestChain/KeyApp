@@ -173,7 +173,12 @@ function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
         {/* 信息 */}
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-medium">{contact.name}</h3>
-          <p className="text-muted-foreground truncate font-mono text-xs">{contact.address}</p>
+          {contact.addresses.length > 0 && (
+            <p className="text-muted-foreground truncate font-mono text-xs">
+              {contact.addresses[0]?.address}
+              {contact.addresses.length > 1 && ` (+${contact.addresses.length - 1})`}
+            </p>
+          )}
           {contact.memo && <p className="text-muted-foreground mt-1 truncate text-xs">{contact.memo}</p>}
         </div>
 

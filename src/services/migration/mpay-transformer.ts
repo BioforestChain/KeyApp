@@ -110,19 +110,23 @@ function determineChainFromList(chainList?: string[]): ChainType | undefined {
  */
 export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact {
   const now = Date.now()
+  const chain = determineChainFromList(entry.chainList) ?? 'ethereum'
 
   const contact: Contact = {
     id: entry.addressBookId,
     name: entry.name,
-    address: entry.address,
+    addresses: [
+      {
+        id: crypto.randomUUID(),
+        address: entry.address,
+        chainType: chain,
+        isDefault: true,
+      },
+    ],
     createdAt: now,
     updatedAt: now,
   }
 
-  const chain = determineChainFromList(entry.chainList)
-  if (chain) {
-    contact.chain = chain
-  }
   if (entry.remarks) {
     contact.memo = entry.remarks
   }

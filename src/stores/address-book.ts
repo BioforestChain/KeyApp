@@ -1,21 +1,52 @@
 import { Store } from '@tanstack/react-store'
 import { type ChainType } from './wallet'
+import { detectAddressFormat } from '@/lib/address-format'
 
-// 联系人类型
+/** 联系人地址 */
+export interface ContactAddress {
+  id: string
+  /** 地址 */
+  address: string
+  /** 链类型 */
+  chainType: ChainType
+  /** 地址标签（如"主地址"、"交易所"） */
+  label?: string | undefined
+  /** 是否默认地址 */
+  isDefault?: boolean | undefined
+}
+
+/** 联系人类型 */
 export interface Contact {
   id: string
   /** 名称 */
   name: string
-  /** 地址 */
-  address: string
-  /** 链类型（可选，用于区分不同链的地址） */
-  chain?: ChainType
+  /** 头像（可选，emoji 或图片URL） */
+  avatar?: string | undefined
+  /** 多个地址 */
+  addresses: ContactAddress[]
   /** 备注 */
-  memo?: string
+  memo?: string | undefined
   /** 创建时间 */
   createdAt: number
   /** 更新时间 */
   updatedAt: number
+}
+
+/** 旧版联系人类型（v1，单地址）用于迁移 */
+interface LegacyContact {
+  id: string
+  name: string
+  address: string
+  chain?: ChainType
+  memo?: string
+  createdAt: number
+  updatedAt: number
+}
+
+/** 存储格式 */
+interface StorageData {
+  version: number
+  contacts: Contact[]
 }
 
 export interface AddressBookState {
@@ -34,84 +65,105 @@ export const addressBookStore = new Store<AddressBookState>(initialState)
 
 // 持久化键
 const STORAGE_KEY = 'bfm_address_book'
+const CURRENT_VERSION = 2
 
-// 持久化辅助函数
+/** 检测是否为旧版数据格式 */
+function isLegacyContact(contact: unknown): contact is LegacyContact {
+  return (
+    typeof contact === 'object' &&
+    contact !== null &&
+    'address' in contact &&
+    typeof (contact as LegacyContact).address === 'string' &&
+    !('addresses' in contact)
+  )
+}
+
+/** 迁移旧版联系人到新格式 */
+function migrateLegacyContact(legacy: LegacyContact): Contact {
+  const detected = detectAddressFormat(legacy.address)
+  const chainType = legacy.chain ?? detected.chainType ?? 'ethereum'
+
+  return {
+    id: legacy.id,
+    name: legacy.name,
+    addresses: [
+      {
+        id: crypto.randomUUID(),
+        address: legacy.address,
+        chainType,
+        isDefault: true,
+      },
+    ],
+    memo: legacy.memo,
+    createdAt: legacy.createdAt,
+    updatedAt: legacy.updatedAt,
+  }
+}
+
+/** 持久化辅助函数 */
 function persistContacts(contacts: Contact[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts))
+    const data: StorageData = {
+      version: CURRENT_VERSION,
+      contacts,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch (error) {
     console.error('Failed to persist address book:', error)
   }
 }
 
+/** 加载并迁移数据 */
+function loadAndMigrateContacts(): Contact[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return []
+
+    const parsed = JSON.parse(stored)
+
+    // 检查是否为新版格式
+    if (parsed.version === CURRENT_VERSION && Array.isArray(parsed.contacts)) {
+      return parsed.contacts as Contact[]
+    }
+
+    // 旧版格式：直接是数组
+    if (Array.isArray(parsed)) {
+      const contacts = parsed.map((item: unknown) => {
+        if (isLegacyContact(item)) {
+          return migrateLegacyContact(item)
+        }
+        return item as Contact
+      })
+      // 保存迁移后的数据
+      persistContacts(contacts)
+      return contacts
+    }
+
+    return []
+  } catch (error) {
+    console.error('Failed to load address book:', error)
+    return []
+  }
+}
+
 // Actions
 export const addressBookActions = {
-  /** 初始化（从存储加载） */
+  /** 初始化（从存储加载，支持数据迁移） */
   initialize: () => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const contacts = JSON.parse(stored) as Contact[]
-        addressBookStore.setState(() => ({
-          contacts,
-          isInitialized: true,
-        }))
-      } else {
-        addressBookStore.setState((state) => ({
-          ...state,
-          isInitialized: true,
-        }))
-      }
-    } catch (error) {
-      console.error('Failed to initialize address book:', error)
-      addressBookStore.setState((state) => ({
-        ...state,
-        isInitialized: true,
-      }))
-    }
-  },
-
-  /**
-   * 批量导入联系人（按 chain+address 去重）
-   *
-   * - 单次 setState + 单次 localStorage.setItem 持久化（避免 N 次 addContact）
-   * - 返回本次新增的联系人数量
-   */
-  importContacts: (contacts: Contact[]) => {
-    if (contacts.length === 0) return 0
-
-    let importedCount = 0
-
-    addressBookStore.setState((state) => {
-      const existing = state.contacts
-      const existingKeys = new Set(
-        existing.map((c) => `${c.chain ?? ''}|${c.address}`)
-      )
-
-      const newContacts = contacts.filter((c) => {
-        const key = `${c.chain ?? ''}|${c.address}`
-        if (existingKeys.has(key)) return false
-        existingKeys.add(key)
-        return true
-      })
-
-      importedCount = newContacts.length
-
-      if (newContacts.length === 0) {
-        return state
-      }
-
-      const merged = [...existing, ...newContacts]
-      persistContacts(merged)
-
-      return { ...state, contacts: merged }
-    })
-
-    return importedCount
+    const contacts = loadAndMigrateContacts()
+    addressBookStore.setState(() => ({
+      contacts,
+      isInitialized: true,
+    }))
   },
 
   /** 添加联系人 */
-  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & { chain?: ChainType | undefined; memo?: string | undefined }) => {
+  addContact: (
+    contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & {
+      avatar?: string | undefined
+      memo?: string | undefined
+    }
+  ): Contact => {
     const now = Date.now()
     const newContact: Contact = {
       ...contact,
@@ -130,12 +182,16 @@ export const addressBookActions = {
   },
 
   /** 更新联系人 */
-  updateContact: (id: string, updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>> & { memo?: string | undefined; chain?: ChainType | undefined }) => {
+  updateContact: (
+    id: string,
+    updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>> & {
+      avatar?: string | undefined
+      memo?: string | undefined
+    }
+  ) => {
     addressBookStore.setState((state) => {
       const contacts = state.contacts.map((c) =>
-        c.id === id
-          ? { ...c, ...updates, updatedAt: Date.now() }
-          : c
+        c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c
       )
       persistContacts(contacts)
       return { ...state, contacts }
@@ -151,6 +207,101 @@ export const addressBookActions = {
     })
   },
 
+  /** 添加地址到联系人 */
+  addAddressToContact: (
+    contactId: string,
+    address: Omit<ContactAddress, 'id'> & { label?: string | undefined }
+  ) => {
+    const newAddress: ContactAddress = {
+      ...address,
+      id: crypto.randomUUID(),
+    }
+
+    addressBookStore.setState((state) => {
+      const contacts = state.contacts.map((c) => {
+        if (c.id !== contactId) return c
+        return {
+          ...c,
+          addresses: [...c.addresses, newAddress],
+          updatedAt: Date.now(),
+        }
+      })
+      persistContacts(contacts)
+      return { ...state, contacts }
+    })
+  },
+
+  /** 从联系人移除地址 */
+  removeAddressFromContact: (contactId: string, addressId: string) => {
+    addressBookStore.setState((state) => {
+      const contacts = state.contacts.map((c) => {
+        if (c.id !== contactId) return c
+        return {
+          ...c,
+          addresses: c.addresses.filter((a) => a.id !== addressId),
+          updatedAt: Date.now(),
+        }
+      })
+      persistContacts(contacts)
+      return { ...state, contacts }
+    })
+  },
+
+  /** 设置默认地址 */
+  setDefaultAddress: (contactId: string, addressId: string) => {
+    addressBookStore.setState((state) => {
+      const contacts = state.contacts.map((c) => {
+        if (c.id !== contactId) return c
+        return {
+          ...c,
+          addresses: c.addresses.map((a) => ({
+            ...a,
+            isDefault: a.id === addressId,
+          })),
+          updatedAt: Date.now(),
+        }
+      })
+      persistContacts(contacts)
+      return { ...state, contacts }
+    })
+  },
+
+  /**
+   * 批量导入联系人
+   * 返回新增的联系人数量
+   */
+  importContacts: (contacts: Contact[]): number => {
+    if (contacts.length === 0) return 0
+
+    let importedCount = 0
+
+    addressBookStore.setState((state) => {
+      const existing = state.contacts
+      // 按名称去重
+      const existingNames = new Set(existing.map((c) => c.name.toLowerCase()))
+
+      const newContacts = contacts.filter((c) => {
+        const key = c.name.toLowerCase()
+        if (existingNames.has(key)) return false
+        existingNames.add(key)
+        return true
+      })
+
+      importedCount = newContacts.length
+
+      if (newContacts.length === 0) {
+        return state
+      }
+
+      const merged = [...existing, ...newContacts]
+      persistContacts(merged)
+
+      return { ...state, contacts: merged }
+    })
+
+    return importedCount
+  },
+
   /** 清除所有联系人 */
   clearAll: () => {
     localStorage.removeItem(STORAGE_KEY)
@@ -158,13 +309,31 @@ export const addressBookActions = {
   },
 }
 
+/** 联系人建议 */
+export interface ContactSuggestion {
+  contact: Contact
+  matchedAddress: ContactAddress
+  matchType: 'exact' | 'prefix' | 'name'
+  score: number
+}
+
 // Selectors
 export const addressBookSelectors = {
   /** 根据地址查找联系人 */
-  getContactByAddress: (state: AddressBookState, address: string): Contact | undefined => {
-    return state.contacts.find(
-      (c) => c.address.toLowerCase() === address.toLowerCase()
-    )
+  getContactByAddress: (
+    state: AddressBookState,
+    address: string
+  ): { contact: Contact; matchedAddress: ContactAddress } | undefined => {
+    const lowerAddress = address.toLowerCase()
+    for (const contact of state.contacts) {
+      const matchedAddress = contact.addresses.find(
+        (a) => a.address.toLowerCase() === lowerAddress
+      )
+      if (matchedAddress) {
+        return { contact, matchedAddress }
+      }
+    }
+    return undefined
   },
 
   /** 搜索联系人（名称或地址） */
@@ -173,12 +342,103 @@ export const addressBookSelectors = {
     return state.contacts.filter(
       (c) =>
         c.name.toLowerCase().includes(lowerQuery) ||
-        c.address.toLowerCase().includes(lowerQuery)
+        c.addresses.some((a) => a.address.toLowerCase().includes(lowerQuery))
     )
   },
 
-  /** 按链类型过滤 */
+  /** 获取联系人建议（用于地址输入） */
+  suggestContacts: (
+    state: AddressBookState,
+    partialAddress: string,
+    chainType?: ChainType
+  ): ContactSuggestion[] => {
+    if (!partialAddress || partialAddress.length < 2) return []
+
+    const lowerPartial = partialAddress.toLowerCase()
+    const suggestions: ContactSuggestion[] = []
+
+    for (const contact of state.contacts) {
+      // 优先匹配指定链类型的地址
+      const relevantAddresses = chainType
+        ? contact.addresses.filter((a) => a.chainType === chainType)
+        : contact.addresses
+
+      for (const addr of relevantAddresses) {
+        const lowerAddr = addr.address.toLowerCase()
+
+        // 精确匹配
+        if (lowerAddr === lowerPartial) {
+          suggestions.push({
+            contact,
+            matchedAddress: addr,
+            matchType: 'exact',
+            score: 100,
+          })
+        }
+        // 前缀匹配
+        else if (lowerAddr.startsWith(lowerPartial)) {
+          suggestions.push({
+            contact,
+            matchedAddress: addr,
+            matchType: 'prefix',
+            score: 80,
+          })
+        }
+        // 包含匹配
+        else if (lowerAddr.includes(lowerPartial)) {
+          suggestions.push({
+            contact,
+            matchedAddress: addr,
+            matchType: 'prefix',
+            score: 50,
+          })
+        }
+      }
+
+      // 名称匹配
+      if (contact.name.toLowerCase().includes(lowerPartial)) {
+        const defaultAddr =
+          relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]
+        if (defaultAddr) {
+          suggestions.push({
+            contact,
+            matchedAddress: defaultAddr,
+            matchType: 'name',
+            score: 60,
+          })
+        }
+      }
+    }
+
+    // 去重（同一联系人只保留最高分的）
+    const seen = new Map<string, ContactSuggestion>()
+    for (const s of suggestions) {
+      const key = `${s.contact.id}:${s.matchedAddress.id}`
+      const existing = seen.get(key)
+      if (!existing || existing.score < s.score) {
+        seen.set(key, s)
+      }
+    }
+
+    // 排序返回
+    return Array.from(seen.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+  },
+
+  /** 按链类型过滤联系人 */
   getContactsByChain: (state: AddressBookState, chain: ChainType): Contact[] => {
-    return state.contacts.filter((c) => c.chain === chain)
+    return state.contacts.filter((c) =>
+      c.addresses.some((a) => a.chainType === chain)
+    )
+  },
+
+  /** 获取联系人的默认地址 */
+  getDefaultAddress: (contact: Contact, chainType?: ChainType): ContactAddress | undefined => {
+    const relevantAddresses = chainType
+      ? contact.addresses.filter((a) => a.chainType === chainType)
+      : contact.addresses
+
+    return relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]
   },
 }

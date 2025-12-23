@@ -4,7 +4,7 @@ export type { Wallet, Token, ChainType, ChainAddress, WalletState } from './wall
 
 // Address Book Store
 export { addressBookStore, addressBookActions, addressBookSelectors } from './address-book'
-export type { Contact, AddressBookState } from './address-book'
+export type { Contact, ContactAddress, ContactSuggestion, AddressBookState } from './address-book'
 
 // Preferences Store
 export {
