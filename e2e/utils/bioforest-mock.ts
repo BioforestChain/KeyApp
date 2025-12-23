@@ -8,6 +8,7 @@ interface MockConfig {
   hasSecondPublicKey?: boolean
   blockHeight?: number
   transactions?: Array<{
+    height: number
     type: string
     amount: string
     senderId: string
@@ -16,6 +17,7 @@ interface MockConfig {
     timestamp: number
     signature: string
   }>
+  onBroadcast?: (tx: unknown) => void
 }
 
 const DEFAULT_CONFIG: MockConfig = {
@@ -24,21 +26,23 @@ const DEFAULT_CONFIG: MockConfig = {
   blockHeight: 1275000,
   transactions: [
     {
-      type: 'AST-02',
+      height: 1274900,
+      type: 'BFM-AST-02',
       amount: '10000000',
       senderId: TEST_ADDRESS,
       recipientId: 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j',
       fee: '222',
-      timestamp: Date.now(),
+      timestamp: 21951000,
       signature: 'mock-tx-signature-001',
     },
     {
-      type: 'AST-02',
+      height: 1274800,
+      type: 'BFM-AST-02',
       amount: '5000000',
       senderId: 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j',
       recipientId: TEST_ADDRESS,
       fee: '222',
-      timestamp: Date.now() - 3600000,
+      timestamp: 21950000,
       signature: 'mock-tx-signature-002',
     },
   ],
@@ -129,8 +133,25 @@ export async function setupBioforestMock(page: Page, config: MockConfig = {}) {
         success: true,
         result: {
           trs: (cfg.transactions || []).map((tx) => ({
-            transaction: tx,
+            height: tx.height,
+            signature: tx.signature + '-block',
+            tIndex: 0,
+            transaction: {
+              signature: tx.signature,
+              senderId: tx.senderId,
+              recipientId: tx.recipientId,
+              fee: tx.fee,
+              timestamp: tx.timestamp,
+              type: tx.type,
+              asset: {
+                transferAsset: {
+                  amount: tx.amount,
+                  assetType: 'BFM',
+                },
+              },
+            },
           })),
+          count: (cfg.transactions || []).length,
         },
       }),
     })

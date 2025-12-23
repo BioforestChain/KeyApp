@@ -20,32 +20,66 @@ import type {
   Address,
 } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
-import { BioforestChainService } from './chain-service'
+
 import { signMessage, bytesToHex } from '@/lib/crypto'
+import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly config: ChainConfig
   private readonly baseUrl: string
-  private readonly chainService: BioforestChainService
 
   constructor(config: ChainConfig) {
     this.config = config
     this.baseUrl = config.rpcUrl ?? ''
-    this.chainService = new BioforestChainService(config)
   }
 
-  async estimateFee(_params: TransferParams): Promise<FeeEstimate> {
-    const gasPrice = await this.chainService.getGasPrice()
+  async estimateFee(params: TransferParams): Promise<FeeEstimate> {
+    const { decimals, symbol } = this.config
 
     const createFee = (amount: Amount, time: number): Fee => ({
       amount,
       estimatedTime: time,
     })
 
-    return {
-      slow: createFee(gasPrice.slow, 30),
-      standard: createFee(gasPrice.standard, 15),
-      fast: createFee(gasPrice.fast, 5),
+    try {
+      if (!this.baseUrl) {
+        throw new Error('No RPC URL configured')
+      }
+
+      // Use SDK to calculate minimum fee (same as mpay)
+      const core = await getBioforestCore()
+      const lastBlock = await getLastBlock(this.baseUrl, this.config.id)
+      
+      const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({
+        transaction: {
+          applyBlockHeight: lastBlock.height,
+          timestamp: lastBlock.timestamp,
+          remark: {},
+        },
+        assetInfo: {
+          sourceChainName: await core.getChainName(),
+          sourceChainMagic: await core.getMagic(),
+          assetType: params.amount?.symbol ?? symbol,
+          amount: params.amount?.toRawString() ?? '99999999999999999',
+        },
+      })
+
+      const minFee = Amount.fromRaw(minFeeRaw, decimals, symbol)
+      
+      return {
+        slow: createFee(minFee, 30),
+        standard: createFee(minFee, 15),
+        fast: createFee(minFee.mul(2), 5),
+      }
+    } catch (error) {
+      console.warn('[TransactionService] Failed to get min fee from SDK, using default:', error)
+      // Fallback to default - real minimum is around 500 (0.000005 BFM)
+      const defaultFee = Amount.fromRaw('1000', decimals, symbol)
+      return {
+        slow: createFee(defaultFee, 30),
+        standard: createFee(defaultFee, 15),
+        fast: createFee(defaultFee.mul(2), 5),
+      }
     }
   }
 
@@ -133,8 +167,15 @@ export class BioforestTransactionService implements ITransactionService {
         )
       }
 
-      const result = (await response.json()) as { data: { signature: string } }
-      return result.data.signature
+      const json = (await response.json()) as { success: boolean; result?: unknown; error?: { message?: string } }
+      if (!json.success) {
+        throw new ChainServiceError(
+          ChainErrorCodes.TRANSACTION_REJECTED,
+          json.error?.message ?? 'Broadcast failed',
+        )
+      }
+      // Return the signature from the signed transaction (already have it)
+      return signedTx.signature
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
       throw new ChainServiceError(
@@ -173,11 +214,12 @@ export class BioforestTransactionService implements ITransactionService {
         }
       }
 
-      const result = (await response.json()) as {
-        data: { transaction?: { height?: number } }
+      const json = (await response.json()) as {
+        success: boolean
+        result?: { trs?: Array<{ height?: number }> }
       }
 
-      if (result.data.transaction?.height) {
+      if (json.success && json.result?.trs?.[0]?.height) {
         return {
           status: 'confirmed',
           confirmations: 1,
@@ -218,38 +260,48 @@ export class BioforestTransactionService implements ITransactionService {
         return null
       }
 
-      const result = (await response.json()) as {
-        data: {
-          transaction?: {
-            signature: string
-            senderId: string
-            recipientId: string
-            amount: string
-            fee: string
-            timestamp: number
-            height?: number
-          }
+      const json = (await response.json()) as {
+        success: boolean
+        result?: {
+          trs?: Array<{
+            height: number
+            transaction: {
+              signature: string
+              senderId: string
+              recipientId?: string
+              fee: string
+              timestamp: number
+              asset?: {
+                transferAsset?: {
+                  amount: string
+                }
+              }
+            }
+          }>
         }
       }
 
-      const tx = result.data.transaction
-      if (!tx) return null
+      if (!json.success || !json.result?.trs?.[0]) return null
+      const item = json.result.trs[0]
+      const tx = item.transaction
 
       const { decimals, symbol } = this.config
+
+      const amountRaw = tx.asset?.transferAsset?.amount ?? '0'
 
       return {
         hash: tx.signature,
         from: tx.senderId,
-        to: tx.recipientId,
-        amount: Amount.fromRaw(tx.amount, decimals, symbol),
+        to: tx.recipientId ?? '',
+        amount: Amount.fromRaw(amountRaw, decimals, symbol),
         fee: Amount.fromRaw(tx.fee, decimals, symbol),
         status: {
-          status: tx.height ? 'confirmed' : 'pending',
-          confirmations: tx.height ? 1 : 0,
+          status: 'confirmed',
+          confirmations: 1,
           requiredConfirmations: 1,
         },
-        timestamp: tx.timestamp,
-        blockNumber: tx.height ? BigInt(tx.height) : undefined,
+        timestamp: tx.timestamp * 1000, // Convert to milliseconds
+        blockNumber: BigInt(item.height),
         type: 'transfer',
       }
     } catch {
@@ -271,8 +323,12 @@ export class BioforestTransactionService implements ITransactionService {
         console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
         return []
       }
-      const lastBlock = (await blockResponse.json()) as { height: number; timestamp: number }
-      const maxHeight = lastBlock.height
+      const lastBlockJson = (await blockResponse.json()) as { success: boolean; result: { height: number; timestamp: number } }
+      if (!lastBlockJson.success) {
+        console.warn('[TransactionService] lastblock API returned success=false')
+        return []
+      }
+      const maxHeight = lastBlockJson.result.height
 
       // Query transactions using the correct API format
       const queryUrl = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`
@@ -293,30 +349,39 @@ export class BioforestTransactionService implements ITransactionService {
         return []
       }
 
-      // BioForest API response format: { trs: TransactionDetail[] }
-      const result = (await response.json()) as {
-        trs?: Array<{
-          height: number
-          signature: string // Block signature
-          tIndex: number
-          transaction: {
-            signature: string // Transaction ID
-            senderId: string
-            recipientId?: string
-            fee: string
-            timestamp: number
-            type: string
-            asset?: {
-              transferAsset?: {
-                amount: string
-                assetType: string
+      // BioForest API response format: { success: boolean, result: { trs: TransactionDetail[], count: number } }
+      const json = (await response.json()) as {
+        success: boolean
+        result: {
+          trs?: Array<{
+            height: number
+            signature: string // Block signature
+            tIndex: number
+            transaction: {
+              signature: string // Transaction ID
+              senderId: string
+              recipientId?: string
+              fee: string
+              timestamp: number
+              type: string
+              asset?: {
+                transferAsset?: {
+                  amount: string
+                  assetType: string
+                }
               }
             }
-          }
-        }>
+          }>
+          count?: number
+        }
       }
 
-      const transactions = result.trs ?? []
+      if (!json.success) {
+        console.warn('[TransactionService] API returned success=false')
+        return []
+      }
+
+      const transactions = json.result?.trs ?? []
 
       if (transactions.length === 0) {
         console.debug('[TransactionService] No transactions found for', address, 'on', this.config.id)

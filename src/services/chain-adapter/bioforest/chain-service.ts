@@ -50,8 +50,11 @@ export class BioforestChainService implements IChainService {
         )
       }
 
-      const data = (await response.json()) as { data: BioforestBlockInfo }
-      return BigInt(data.data.height)
+      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
+      if (!json.success) {
+        throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
+      }
+      return BigInt(json.result.height)
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
       throw new ChainServiceError(
@@ -67,12 +70,12 @@ export class BioforestChainService implements IChainService {
     const { decimals, symbol } = this.config
 
     if (!this.baseUrl) {
-      // Return default fees
-      const defaultFee = Amount.fromRaw('10000000', decimals, symbol) // 0.1 in 8 decimals
+      // Return default fees - BioForest minimum is around 500 (0.000005 BFM)
+      const defaultFee = Amount.fromRaw('1000', decimals, symbol) // 0.00001 BFM
       return {
         slow: defaultFee,
-        standard: defaultFee,
-        fast: defaultFee.mul(2),
+        standard: defaultFee.mul(2),
+        fast: defaultFee.mul(5),
         lastUpdated: Date.now(),
       }
     }
@@ -90,9 +93,19 @@ export class BioforestChainService implements IChainService {
         )
       }
 
-      const data = (await response.json()) as { data: BioforestFeeInfo }
-      const minFee = Amount.fromRaw(data.data.minFee, decimals, symbol)
-      const avgFee = Amount.fromRaw(data.data.avgFee, decimals, symbol)
+      const json = (await response.json()) as { success: boolean; result: BioforestFeeInfo }
+      if (!json.success) {
+        // Return default fees on API error - BioForest minimum is around 500
+        const defaultFee = Amount.fromRaw('1000', decimals, symbol)
+        return {
+          slow: defaultFee,
+          standard: defaultFee.mul(2),
+          fast: defaultFee.mul(5),
+          lastUpdated: Date.now(),
+        }
+      }
+      const minFee = Amount.fromRaw(json.result.minFee, decimals, symbol)
+      const avgFee = Amount.fromRaw(json.result.avgFee, decimals, symbol)
 
       return {
         slow: minFee,
@@ -102,12 +115,12 @@ export class BioforestChainService implements IChainService {
       }
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
-      // Return default on error
-      const defaultFee = Amount.fromRaw('10000000', decimals, symbol)
+      // Return default on error - BioForest minimum is around 500
+      const defaultFee = Amount.fromRaw('1000', decimals, symbol)
       return {
         slow: defaultFee,
-        standard: defaultFee,
-        fast: defaultFee.mul(2),
+        standard: defaultFee.mul(2),
+        fast: defaultFee.mul(5),
         lastUpdated: Date.now(),
       }
     }
@@ -144,12 +157,12 @@ export class BioforestChainService implements IChainService {
         }
       }
 
-      const data = (await response.json()) as { data: BioforestBlockInfo }
+      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
 
       return {
-        isHealthy: true,
+        isHealthy: json.success,
         latency,
-        blockHeight: BigInt(data.data.height),
+        blockHeight: json.success ? BigInt(json.result.height) : 0n,
         isSyncing: false,
         lastUpdated: Date.now(),
       }
