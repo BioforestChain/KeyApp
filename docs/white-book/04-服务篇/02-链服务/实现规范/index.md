@@ -98,22 +98,78 @@ BioForest 链支持可选的交易密码机制：
 
 ### SDK 集成
 
-BioForest 链使用官方 SDK 进行交易创建和签名：
+BioForest 链使用 `@bfchain/core` SDK 进行交易创建和签名。SDK 采用源代码集成 + 延迟加载架构。
+
+#### 目录结构
 
 ```typescript
-// SDK 位置
 src/services/bioforest-sdk/
-├── index.ts                    // SDK 包装器
-├── types.d.ts                  // 类型定义
-├── bioforest-chain-bundle.js   // 预构建 SDK
-├── bioforest-chain-bundle.d.ts // 类型声明
-└── genesis-block.json          // 创世块配置
+├── index.ts              // SDK 高层 API（公开接口）
+├── types.ts              // 类型定义
+├── genesis-block.json    // 创世块配置（~544KB，延迟加载）
+└── internal/             // SDK 核心实现（从 @btgmeta-bundle 迁移）
+    ├── index.ts          // setup() 入口函数
+    ├── core/             // 核心类
+    │   ├── @type.ts
+    │   ├── const.ts
+    │   └── core.ts       // BTGMetaBundleCore 类
+    └── transaction/      // 交易控制器
+        ├── @type.ts
+        ├── index.ts
+        ├── controller-base.ts  // 基础交易控制器
+        ├── core.ts             // 核心交易逻辑
+        └── exchange.ts         // 交换交易逻辑
+```
 
-// 关键函数
-createTransferTransaction(params)  // 创建转账交易
-broadcastTransaction(rpcUrl, chainId, tx)  // 广播交易
-getAddressInfo(rpcUrl, chainId, address)   // 获取地址信息
-verifyPayPassword(secret, payPassword, secondPublicKey)  // 验证交易密码
+#### 延迟加载架构
+
+SDK 体积较大（~1MB），**MUST** 使用 `await import()` 延迟加载，避免影响首屏性能：
+
+```typescript
+// ❌ 错误：静态导入会打包进主 bundle
+import { setup } from './internal'
+
+// ✅ 正确：动态导入，按需加载
+export async function getBioforestCore(): Promise<BioforestChainBundleCore> {
+  const [{ setup }, genesis] = await Promise.all([
+    import('./internal'),
+    import('./genesis-block.json'),
+  ])
+  return setup(genesis.default, cryptoHelper, customRemark)
+}
+```
+
+#### 构建产物分析
+
+| Chunk | 大小 | 加载时机 |
+|-------|------|---------|
+| index.js | ~1.3MB | 首屏加载 |
+| bioforest-sdk-internal.js | ~983KB | 创建交易时延迟加载 |
+| genesis-block.js | ~544KB | 创建交易时延迟加载 |
+
+#### 依赖关系
+
+```
+@bfchain/core         # BioForest 链核心库（npm 包）
+├── @bfchain/util     # 工具函数
+└── buffer            # Buffer polyfill（已在 vite.config.ts 全局配置）
+```
+
+#### 关键函数
+
+```typescript
+// 高层 API（src/services/bioforest-sdk/index.ts）
+createTransferTransaction(params)   // 创建转账交易
+broadcastTransaction(rpcUrl, tx)    // 广播交易
+getAddressInfo(rpcUrl, address)     // 获取地址信息（含二次签名状态）
+verifyPayPassword(secret, pay, pk)  // 验证交易密码
+setPayPassword(params)              // 设置交易密码
+
+// 底层 API（通过 getBioforestCore() 获取）
+core.transactionController.createTransferTransactionJSON()
+core.transactionController.createSignatureTransactionJSON()
+core.transactionController.getTransferTransactionMinFee()
+core.accountBaseHelper().createSecondSecretKeypairV2()
 ```
 
 ### 交易密码流程

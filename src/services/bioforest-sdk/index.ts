@@ -2,7 +2,11 @@
  * BioForest Chain SDK Integration
  *
  * This module provides the BioForest Chain SDK for transaction creation
- * and signing. The SDK bundle is loaded dynamically at runtime.
+ * and signing. The SDK bundle and genesis blocks are loaded dynamically at runtime.
+ *
+ * Architecture:
+ * - SDK bundle: precompiled .cjs file (TODO: Issue #101 - migrate to npm @bfchain/core)
+ * - Genesis blocks: fetched from public/configs/genesis/{chainId}.json
  */
 
 // Re-export types for consumers (type-only exports)
@@ -16,16 +20,6 @@ export type {
   TransferAssetInfo,
 } from './types'
 
-// Re-export genesis block for configuration
-export { default as genesisBlock } from './genesis-block.json'
-
-/** SDK bundle instance */
-let bundleModule: BioforestChainBundle | null = null
-let bundlePromise: Promise<BioforestChainBundle> | null = null
-
-/** Core instances cache by chain magic */
-const coreCache = new Map<string, BioforestChainBundleCore>()
-
 import type {
   BioforestChainBundle,
   BioforestChainBundleCore,
@@ -34,9 +28,39 @@ import type {
   TransferAssetInfo,
 } from './types'
 
+/** Genesis block cache by chainId */
+const genesisCache = new Map<string, BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>>()
+
+/** Core instances cache by chain magic */
+const coreCache = new Map<string, BioforestChainBundleCore>()
+
+/** SDK bundle singleton */
+let bundleModule: BioforestChainBundle | null = null
+let bundlePromise: Promise<BioforestChainBundle> | null = null
+
+/**
+ * Fetch genesis block from public/configs/genesis/{chainId}.json
+ */
+async function fetchGenesisBlock(
+  chainId: string,
+): Promise<BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>> {
+  const cached = genesisCache.get(chainId)
+  if (cached) {
+    return cached
+  }
+
+  const response = await fetch(`./configs/genesis/${chainId}.json`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch genesis block for ${chainId}: ${response.status}`)
+  }
+
+  const genesis = (await response.json()) as BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
+  genesisCache.set(chainId, genesis)
+  return genesis
+}
+
 /**
  * Create crypto helper compatible with the SDK
- * Uses Node.js crypto module for hash functions
  */
 async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> {
   const cryptoModule = await import('crypto')
@@ -69,9 +93,9 @@ async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> 
 }
 
 /**
- * Load the BioForest Chain bundle dynamically
+ * Load the BioForest Chain SDK bundle dynamically
  */
-export async function loadBundle(): Promise<BioforestChainBundle> {
+async function loadBundle(): Promise<BioforestChainBundle> {
   if (bundleModule) {
     return bundleModule
   }
@@ -81,7 +105,6 @@ export async function loadBundle(): Promise<BioforestChainBundle> {
   }
 
   bundlePromise = (async () => {
-    // Dynamic import of the bundle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const module = (await import('./bioforest-chain-bundle.js')) as any
     bundleModule = { setup: module.setup }
@@ -92,11 +115,11 @@ export async function loadBundle(): Promise<BioforestChainBundle> {
 }
 
 /**
- * Get or create a BioForest core instance
+ * Get or create a BioForest core instance for a specific chain
  */
-export async function getBioforestCore(magic?: string): Promise<BioforestChainBundleCore> {
-  const genesis = await import('./genesis-block.json')
-  const chainMagic = magic ?? genesis.default.magic
+export async function getBioforestCore(chainId: string): Promise<BioforestChainBundleCore> {
+  const genesis = await fetchGenesisBlock(chainId)
+  const chainMagic = genesis.magic
 
   const cached = coreCache.get(chainMagic)
   if (cached) {
@@ -106,7 +129,7 @@ export async function getBioforestCore(magic?: string): Promise<BioforestChainBu
   const bundle = await loadBundle()
   const cryptoHelper = await createCryptoHelper()
 
-  const core = await bundle.setup(genesis.default as never, cryptoHelper, {
+  const core = await bundle.setup(genesis, cryptoHelper, {
     n: 'KeyApp',
     m: 'true',
     a: 'web',
@@ -181,7 +204,7 @@ export interface CreateTransferParams {
 export async function createTransferTransaction(
   params: CreateTransferParams,
 ): Promise<BFChainCore.TransferAssetTransactionJSON> {
-  const core = await getBioforestCore()
+  const core = await getBioforestCore(params.chainId)
 
   // Get latest block for transaction timing
   const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
@@ -212,6 +235,7 @@ export async function createTransferTransaction(
     const addressInfo = await getAddressInfo(params.rpcUrl, params.chainId, params.from)
     if (addressInfo.secondPublicKey) {
       const version = await verifyPayPassword(
+        params.chainId,
         params.mainSecret,
         params.paySecret,
         addressInfo.secondPublicKey,
@@ -254,7 +278,6 @@ export async function broadcastTransaction(
   chainId: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<string> {
-  // Remove nonce field - successful on-chain transactions don't have it
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
     nonce?: number
@@ -277,14 +300,12 @@ export async function broadcastTransaction(
     throw new Error(errorMsg)
   }
 
-  // Check if transaction was accepted
   if (json.result && !json.result.success) {
     const msg = json.result.message ?? 'Transaction rejected'
     const minFee = json.result.minFee
     throw new Error(minFee ? `${msg} (minFee: ${minFee})` : msg)
   }
 
-  // Return the transaction signature as the tx hash
   return transaction.signature
 }
 
@@ -292,11 +313,12 @@ export async function broadcastTransaction(
  * Verify pay password against stored second public key
  */
 export async function verifyPayPassword(
+  chainId: string,
   mainSecret: string,
   paySecret: string,
   secondPublicKey: string,
 ): Promise<'v2' | 'v1' | false> {
-  const core = await getBioforestCore()
+  const core = await getBioforestCore(chainId)
   const accountHelper = core.accountBaseHelper()
 
   // Try V2 first (newer algorithm)
@@ -329,7 +351,7 @@ export async function getSignatureTransactionMinFee(
   rpcUrl: string,
   chainId: string,
 ): Promise<string> {
-  const core = await getBioforestCore()
+  const core = await getBioforestCore(chainId)
 
   const lastBlock = await getLastBlock(rpcUrl, chainId)
   const applyBlockHeight = lastBlock.height
@@ -356,7 +378,7 @@ export interface CreateSignatureParams {
 export async function createSignatureTransaction(
   params: CreateSignatureParams,
 ): Promise<BFChainCore.TransactionJSON<BFChainCore.SignatureAssetJSON>> {
-  const core = await getBioforestCore()
+  const core = await getBioforestCore(params.chainId)
 
   const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
   const applyBlockHeight = lastBlock.height
@@ -392,7 +414,6 @@ export interface SetPayPasswordParams {
 
 /**
  * Set pay password (二次签名) for an account
- * This creates and broadcasts a signature transaction
  */
 export async function setPayPassword(
   params: SetPayPasswordParams,
