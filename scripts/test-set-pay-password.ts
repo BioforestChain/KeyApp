@@ -87,22 +87,41 @@ async function main() {
   console.log(JSON.stringify(transaction, null, 2).split('\n').slice(0, 20).join('\n'))
   console.log('   ...')
   
-  // Manual broadcast to see full response
+  // Broadcast via wallet API
+  console.log(`   Broadcasting to: ${RPC_URL}`)
+  
   const response = await fetch(`${RPC_URL}/wallet/${CHAIN_ID}/transactions/broadcast`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transaction),
   })
-  const result = await response.json() as { success: boolean; result?: unknown; message?: string }
-  console.log('   Broadcast response success:', result.success)
+  const result = await response.json()
+  console.log('   Full broadcast response:', JSON.stringify(result, null, 2).slice(0, 500))
   
   if (!result.success) {
-    console.log('   ❌ Broadcast failed:', result.message)
+    console.log('   ❌ Broadcast failed')
     process.exit(1)
   }
   
   console.log('   ✅ Broadcast successful!')
   console.log(`   Transaction Hash: ${transaction.signature.slice(0, 32)}...`)
+  
+  // Wait a bit then check pending
+  console.log('\n⏳ Checking pending status in 5 seconds...')
+  await new Promise(r => setTimeout(r, 5000))
+  
+  const pendingRes = await fetch(`${RPC_URL}/wallet/${CHAIN_ID}/pendingTr`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senderId: TEST_ADDRESS }),
+  })
+  const pending = await pendingRes.json() as { success: boolean; result: Array<{ state: number; failReason: string }> }
+  if (pending.result?.length > 0) {
+    console.log(`   Pending state: ${pending.result[0].state}`)
+    console.log(`   Fail reason: ${pending.result[0].failReason || '(none)'}`)
+  } else {
+    console.log('   No pending transactions (may have been processed)')
+  }
 
   // Step 5: Wait and verify
   console.log('\n⏳ Step 5: Wait for confirmation (20 seconds)...')
