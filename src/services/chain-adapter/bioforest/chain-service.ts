@@ -50,8 +50,11 @@ export class BioforestChainService implements IChainService {
         )
       }
 
-      const data = (await response.json()) as { data: BioforestBlockInfo }
-      return BigInt(data.data.height)
+      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
+      if (!json.success) {
+        throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
+      }
+      return BigInt(json.result.height)
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
       throw new ChainServiceError(
@@ -90,9 +93,12 @@ export class BioforestChainService implements IChainService {
         )
       }
 
-      const data = (await response.json()) as { data: BioforestFeeInfo }
-      const minFee = Amount.fromRaw(data.data.minFee, decimals, symbol)
-      const avgFee = Amount.fromRaw(data.data.avgFee, decimals, symbol)
+      const json = (await response.json()) as { success: boolean; result: BioforestFeeInfo }
+      if (!json.success) {
+        throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
+      }
+      const minFee = Amount.fromRaw(json.result.minFee, decimals, symbol)
+      const avgFee = Amount.fromRaw(json.result.avgFee, decimals, symbol)
 
       return {
         slow: minFee,
@@ -144,12 +150,12 @@ export class BioforestChainService implements IChainService {
         }
       }
 
-      const data = (await response.json()) as { data: BioforestBlockInfo }
+      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
 
       return {
-        isHealthy: true,
+        isHealthy: json.success,
         latency,
-        blockHeight: BigInt(data.data.height),
+        blockHeight: json.success ? BigInt(json.result.height) : 0n,
         isSyncing: false,
         lastUpdated: Date.now(),
       }

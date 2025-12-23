@@ -271,8 +271,12 @@ export class BioforestTransactionService implements ITransactionService {
         console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
         return []
       }
-      const lastBlock = (await blockResponse.json()) as { height: number; timestamp: number }
-      const maxHeight = lastBlock.height
+      const lastBlockJson = (await blockResponse.json()) as { success: boolean; result: { height: number; timestamp: number } }
+      if (!lastBlockJson.success) {
+        console.warn('[TransactionService] lastblock API returned success=false')
+        return []
+      }
+      const maxHeight = lastBlockJson.result.height
 
       // Query transactions using the correct API format
       const queryUrl = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`

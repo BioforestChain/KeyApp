@@ -267,3 +267,238 @@ xxxServiceMete.use((req, next) => {
 我们现在需要逐步清理界面上的假数据, 开发真实的Service, 使得我们的项目向正式可用正式上线更进一步.
 绝大部分工作从mpay项目搬迁代码即可.
 我需要你查看我们的项目代码, 列出一份代办清单.
+
+---
+
+1. P0 - 转账功能 (核心功能)
+   - 连接 BioforestTransactionService 到转账 UI
+   - 实现真实的余额获取和转账提交
+2. P0 - 交易历史 (核心功能)
+   - 连接 BioforestTransactionService.getTransactionHistory()
+   - 显示真实交易记录
+3. P1 - 货币汇率
+   - 完善 Frankfurter provider
+   - 在 UI 中显示法币价值
+4. P2 - UI/可访问性检查
+
+---
+
+1. 你需要充分参考mpay的代码, 我们目前还是在“搬迁”代码到新架构阶段
+2. 不要迷信新架构的代码, 有任何怀疑, 就在 `.chat/`目录下留下留言md文件,我会去查阅,但并不意味着你需要停止. 你主要的目标就是实现mpay已有的功能, 这方面不用再过问
+3. Open questions: 提案和实现通常可以一起; 主要先解决 BFM/原生币 的功能, 至于ETH等功能, 不及,但理论上应该是可以一起的, 而且这也能同时验证我们service都合理性
+
+---
+
+1. 我无法导入助记词,导致我无法测试转账
+2. 从“Wallet Management”进入钱包详情, 我点击删除钱包, BottomSheet出来了, 然而BottomSheet中存在秘密输入框,这导致页面存在严重的抖动问题. 我不知道如何解释这个问题, 那种效果类似: BottomSheet背后的页面在重新进入, BottomSheet试图和它保持一个正确的定位, 每一帧都在重新计算一个正确的位置. 我怀疑是stackflow的问题? 请检查一下
+
+等你修复了这些基本功能并合并到主分支,我再做验证（bfmeta 转账/历史/TransferTab）
+
+---
+
+1.  我还是没看到动画效果; 我是在首页这个钱包资产页面看我的数字的.
+2.  字体仍然是加粗的;
+3.  还有,既然你封装了 AnimatedNumber ,那么请你确保这个组件的可访问性,这点非常重要,现在我在可访问性面板看到的是 `image:10000.11465` 这样的效果.
+
+---
+
+梳理一下我们的工作, 然后按需多次提交, 接着开PR 合并到我们主分支.
+
+---
+
+还有你的 balanceRefreshTimes 方案, 我觉得太粗糙太简陋了, 我们的service中,没有“实时”更新的理念吗? 所有跟时间有关的service,都应该有推送更新的理念啊.
+基于这个理念,页面会按需订阅,然后你再去做轮询,或者如果第三方接口支持订阅,那么就更好了
+
+---
+
+1. 同意,先编写白皮书,记录这些规范。
+2. 然后将白皮书的roadmap独立拆分出来,在我们的AGENITS.md中将它标记成必读内容.未来我们将正式引入verssion驱动的roadmap+changelog
+3. 你刚的两个PR都没有通过检查,无法合并到main请先确保合并到main分支了再开始工作
+
+---
+
+我看到我们现在的测试,很多时候还在依赖“明文”,这在我们这套架构中是非常不规范的, 我们的项目是国际化的, 因此必须警惕直接使用“文本搜索”来寻找页面上的元素, 最好的方案就是提供 `data-testid`.
+请你先记录这个最佳实践规范到白皮书中,然后开始检查修复我们的e2e测试
+
+---
+
+我需要你编写一个 `scripts/agent-readme.ts` 脚本, 目的是为AI提供一个统一的输出所有必读项目内容.
+照理来说,我们只需要一个 AGENTS.md 或者 CLADUE.md 即可,但是我们为了避免重复编写文档的问题. 我们首先必须正确归类我们的所有资料信息, 所以有了现在的白皮书, 同时我们的白皮书目录还是动态生成的.
+所以我需要你编写这个脚本, 将我们的必读内容罗列出来, 让AI只需要执行一次这个脚本就可以一次性获得所有的资料.
+
+---
+
+开始之前,先和合并pr#38
+
+任务一:
+把现有的 `"e2e": "playwright test"` 改成 `"e2e:all": "playwright test",`.
+然后编写一个脚本: `scripts/e2e.ts`, 用来作为`e2e`的入口, 其作用是:
+
+1. 要求必须传递至少一个spec文件, 如果不传递会列出当前的可用的spec文件列表
+2. 之所以要这做, 是因为现在文件越来越多了, 我们必须考虑这些编译、测试的时间成本.
+
+任务二:
+我们的CI/CD配置需要包含i18n的检查
+
+任务三:
+我计划引入 turborepo, 以提高我们的构建和测试速度.
+请你专门开一个PR来完成这项任务: 首先让我们的 test/e2e/i18n 用上 turborepo ,看速度提升了多少.
+然后再考虑引入 build
+
+---
+
+我配置了一台 self-hosted runner. 我们的github-actions可以试着用它:`runs-on: self-hosted`, 看看整体的速度会不会有所提升
+
+---
+
+这里有些任务在我的self-host的机器上理论上是可以跳过的,比如node/pnpm等环境的安装,但是因为我们有fallback,我想做的是
+能不能针对我这台macos配置一套快速启动执行CICD的,我可以去把环境尽可能全面地准备好.我的目的是加速,然后如果这台macos下线了
+再fallback成github自己的集群,去做pnpm-setup等准备工作
+
+---
+
+还有,为什么我刚才跟你说:去github-project创建任务,然后你生成我的issues并没有关联到我们的github-project.是`pnpm agent`
+没有提供这个能力吗?还是说有提供,但是因为提示记同的问题导致你没有遵循?
+
+---
+
+警告1:
+
+```
+Stackflow - Some plugin overrides an "initialActivity" option. The "initialActivity" option you set to "MainTabsActivity" in the "stackflow" is ignored.
+```
+
+警告2:
+
+```
+[refreshBalance] No adapter for chain: bfchainv2
+```
+
+警告3:
+
+```
+An error occurred in the <SendPage> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+```
+
+---
+
+接下来修复SendPage暴露出来的错误.
+
+```
+SyntaxError: Cannot convert 102531.02649070 to a BigInt (at use-send.logic.ts:38:19)
+    at BigInt (<anonymous>)
+    at canProceedToConfirm (use-send.logic.ts:38:19)
+    at use-send.ts:121:12
+    at updateMemo (react-dom-client.development.js:8795:19)
+    at Object.useMemo (react-dom-client.development.js:26484:18)
+    at exports.useMemo (react.development.js:1251:34)
+    at useSend (use-send.ts:120:22)
+    at SendPage (index.tsx:76:104)
+    at Object.react_stack_bottom_frame (react-dom-client.development.js:25904:20)
+    at renderWithHooks (react-dom-client.development.js:7662:22)
+
+The above error occurred in the <SendPage> component.
+
+```
+
+注意,这个问题说明了一些更加深层次的问题, 我们应该如何优化我们的接口甚至是架构的设计, 才能从长期根治这个问题: 我的意思是,如果一个小白来维护这个代码, 也能发自直觉地去解决这个问题.
+我的想法是, 我们不应该直接使用 number|string 去表达我们的amount, 而应该有一种专门的构造函数 Amount, 它自带一些元数据, 例如精度, 单位等. 让我们整个项目都去依赖这个Amount对象去展开所有跟资金有关的计算与操作.
+
+---
+
+我希望的效果是更加彻底的:service接口提供的数据,只要涉及到金额都用Amount.理论上最好的效果就是amount在整个个上下文中去传递
+只有需要显示成某种格式的时候才会调用amount的format/stringify去得到string|number,否则在内存中,程序看到的应该都是amount这个对象
+
+`Amount.from` 只会发生在service内部和我们的component内部(比如amount-input返回的值就是Amount而不是string|number)
+
+请你作为一个软件工程专家, 深入理解,然后给出一份工作任务
+
+---
+
+1. 你ci里面的这个 checks, 不能和 ci-fast/ci-standard 一样,给一个 checks-fast / checks-standard 吗?
+2. 我们的cd是否也可以做和ci同样的优化?提供一个 cd-fast, 尽量充分利用我们本地的机器. 来提升速度
+
+---
+
+我试着做了bfchainv2网络的转账,发现了几个问题:
+
+1. 转账确认时弹出的BottomSheet还是“好像”不是Stackflow的BottomSheet, 我觉得核心原因是我们的通用组件库中还是有 `src/components/layout/bottom-sheet.tsx`, 倒是一些残留的旧代码还在使用. 我个人建议的解决方案是:
+   1. 将 `src/components/layout/bottom-sheet.tsx` 改成对 `@stackflow/plugin-basic-ui : BottomSheet,BottomSheetProps` 的包装导出, 好处是我们可以统一在这里做一些扩展和风格化的定制.
+   2. 将项目中所有用到`@stackflow/plugin-basic-ui : BottomSheet`的地方,全部改成丛 `src/components/layout/bottom-sheet.tsx`去导入
+   3. 将项目原本用到`src/components/layout/bottom-sheet.tsx`的地方,全部改成SheetActivity
+   4. 目前所有的 SheetActivity 全部放在`src/stackflow/activities/sheets`这个地方,这是不好的, SheetActivity应该跟随页面或者业务走:
+      1. 业务文件加使用`*Job`命名:如果多个页面共享了某个 SheetActivity ,那么说明它们有共同的业务,那么这个SheetActivity就应该跟随业务走;
+      2. 页面文件夹和页面同名,使用`*Activity`命名
+2. 同理 `src/components/ui/alert-dialog.tsx` 也是需要类似的改造:
+   1. 我们需要`src/components/layout/modal.tsx`+`src/components/layout/alert-dialog.tsx`来提供统一的弹出层和弹窗
+   2. 命名规范参考 SheetActivity
+3. 我点击确认转账后,弹出一个密码确认框, 输入密码后,点击确认, 没反应, 交易也没有发起. 理论上应该发起交易,然后弹窗显示成后续的流程,比如签名、上链、成功或者失败. 像BioChain生态还有二次密码(字符密码)输入之后才能正确签名. 但是目前这些流程都没有,说明对于mpay 的相关代码还没有正确迁移,service相关的开发也不够完善,配套的e2e测试流程也不够完整.
+4. 我的账号缺失是有交易的,但是交易列表页面却没有查询出我的交易.
+
+---
+
+我们现在的bioChain的转账一直无法正常工作, 为此我配置了一个测试账号: `.tmp/test-doc-for-bio-tran.md`
+
+你需要实现的是:
+
+1. 能查询出真正的交易往来
+2. 能配置 bioChain 专属的支付密码
+3. 能正确发起转账, 并且能正确查询出“最低手续费”
+4. 在真实网络中使用测试账号完成测试并走通所有需求后, 完善对应的mockService
+5. 在mockService基础上, 完成e2e的全流程测试(配套全流程截图). 这个非常非常重要
+
+在开始之前,你可以询问我一些问题,等确定之后,就不能再询问我,你需要一直工作到所有任务完成,并且将所有的PR合并到主分支,并且对应的issues、project-task都清理完毕.
+等到所有工作完成到可以正式上线的产品级别, 才能通知我进行验收.
+
+---
+
+我已经阅读了测试账号配置和现有代码。在开始之前,我需要确认以下几个关键问题:
+需要确认的问题
+
+1. BioForest Chain API
+   - 当前rpcUrl配置是什么?(我需要知道正确的API地址)
+   - API的交易查询格式是否有文档?(当前代码中的/wallet/{chainId}/transactions/query 是否正确)
+
+2. 支付密码功能范围
+   - "配置bioChain专属的支付密码"是指:
+     A) 只需要在转账时验证已有的支付密码
+     B) 还需要提供设置/修改支付密码的功能
+3. 最低手续费 API
+   - SDK中有 getTransferTransactionMinFee 方法,但需要确认这个返回的是真正的链上最低手续费还是固定值?
+   - 是否需要调用链上API获取实时手续费?
+4. e2e 测试方案
+   - e2e测试是使用 mock模拟还是需要连接测试网?
+   - 截图需要覆盖哪些场景?(我建议:发起转账、输入支付额密码、确认、成功/失败结果)
+5. 其他测试账号
+   - 测试账号中提到"其它测试账号:(请你自己创建)",我需要创建第二二个账号用于接收测试转账吗?
+   - 测试网上是否可以获取测试币?
+
+请确认以上问题,我将根据你的答复制定完整的实施计划关并一次性完成所有工作。
+
+---
+
+- 1.1. 你自己不是一直在用吗?就是https://walletapi.bffmeta.info,这个没错,所有bioChain都用这个 https://vwalletapi.bfmeta.info就行了
+- 1.2 你应该自己去查阅mpay的代码,那是一个正式的产品,有很多你需要的答案,问我是问不完的
+- 2. 不是钱包的密码,是bioChain自己有一个"二次签名",我们称它为支付密码,设置二次签名是需要发起一笔链上的交易才能设置可我者修改的mpay代码中应该有一些答案,或者 sign-util这个包也会有一些相关的API
+- 3. 用SDK提供的,它是根据体积和交易类型去计算的, 用户当然可以去修改成更高的
+- 4. e2e测试使用 mock 模拟,但前提是你已经走通了真实的“所有功能”,你才能写出正确的mock
+- 5. 是的你自己用我们现有的这些代码自己去创建, 然后从我给你的测试账号里面去接受转账, 转来转去来形成交易, 同时也要测试交易能否正常被订阅刷新. 你可能无法使用浏览器,但是你可以用临时的 playwright 脚本去做这些测试去做验证. 我给你的都是真实的网络真实的权益,但是并不多, 但也足够你测试数几百次了.
+
+---
+
+区块链通常情况下,底层的轮询是依靠“高度”去触发更新的, 我们目前是各个services自己去轮询. 这本身没问题, 但是会因为考虑轮询的成本,所以要控制在30s一次.
+
+我的意思是. 我们不排除个别区块链可能存在一些特殊的机制: 比如还没出块,但是返回的交易列表中可能存在一些“队列中”的数据.
+但是不论如何, 至少在 bioChain的api是很普通的,返回的就是已经上链的数据.
+
+因此我们可以对bioChain对订阅做优化:
+
+1. 我们统一轮询“lastBlock”接口,10s甚至5s一次,甚至我们可以智能一点,根据前面几个区块的出块时间, 预测出出块时间.
+   - 核心算法我已经实现在 `.tmp/yuce.ts` 中, 你需要的是将它对接到我们项目中:
+   1. 配置一套基于indexedDB的存储服务, 并运行在Worker中
+   2. 实现一套 通用的预测service
+   3. bioChain的区块Service, 内置配置一套能实现 bioChain 出块预测的虚拟数据生成器, 基于获取创世区块和最近的一个区块, 来模拟生成200条数据, 能实现对接预测service(第一次创建发现如果没有数据, 那么虚拟数据生成器工作, 然后导入这些虚拟数据)
+2. 当lastBlock的signature 发生变化(注意不是height, 考虑分叉问题可能高度没变, 但是签名是唯一的肯定会变)bioChain相关的订阅也就能去更新了:比如可以去加载最新的余额、最新的交易列表
