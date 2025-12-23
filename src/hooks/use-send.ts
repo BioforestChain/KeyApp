@@ -252,6 +252,19 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return { status: 'password' as const }
     }
 
+    if (result.status === 'password_required') {
+      // Pay password is required - for now treat as error, UI should prompt for pay password
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: '此地址已设置支付密码，需要输入支付密码才能转账',
+      }))
+      return { status: 'error' as const }
+    }
+
     if (result.status === 'error') {
       setState((prev) => ({
         ...prev,

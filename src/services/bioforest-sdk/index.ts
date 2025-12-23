@@ -1,0 +1,308 @@
+/**
+ * BioForest Chain SDK Integration
+ *
+ * This module provides the BioForest Chain SDK for transaction creation
+ * and signing. The SDK bundle is loaded dynamically at runtime.
+ */
+
+// Re-export types for consumers (type-only exports)
+export type {
+  BFChainCore,
+  BioforestChainBundle,
+  BioforestChainBundleCore,
+  BioforestChainBundleSetup,
+  Secrets,
+  TransactionBodyOptions,
+  TransferAssetInfo,
+} from './types'
+
+// Re-export genesis block for configuration
+export { default as genesisBlock } from './genesis-block.json'
+
+/** SDK bundle instance */
+let bundleModule: BioforestChainBundle | null = null
+let bundlePromise: Promise<BioforestChainBundle> | null = null
+
+/** Core instances cache by chain magic */
+const coreCache = new Map<string, BioforestChainBundleCore>()
+
+import type {
+  BioforestChainBundle,
+  BioforestChainBundleCore,
+  BFChainCore,
+  Secrets,
+  TransferAssetInfo,
+} from './types'
+
+/**
+ * Create crypto helper using @bfmeta/sign-util
+ */
+async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> {
+  const { BFMetaSignUtil } = await import('@bfmeta/sign-util')
+
+  // Get the network ID from genesis block
+  const genesis = await import('./genesis-block.json')
+  const bnid = genesis.default.asset.genesisAsset.bnid
+
+  // Create hash helper function
+  const createHashHelper = (algorithm: string) => {
+    return async (data?: Uint8Array): Promise<Buffer | BFChainCore.CryptoAsyncHash> => {
+      const crypto = await import('crypto')
+      if (data) {
+        return crypto.createHash(algorithm).update(Buffer.from(data)).digest()
+      }
+      const hash = crypto.createHash(algorithm)
+      const helper: BFChainCore.CryptoAsyncHash = {
+        update(chunk: Uint8Array | string) {
+          hash.update(typeof chunk === 'string' ? chunk : Buffer.from(chunk))
+          return helper
+        },
+        digest() {
+          return Promise.resolve(hash.digest())
+        },
+      }
+      return helper
+    }
+  }
+
+  // Create sign util instance with proper crypto
+  const signUtil = new BFMetaSignUtil(bnid, Buffer as never, {
+    sha256: createHashHelper('sha256'),
+    md5: createHashHelper('md5'),
+    ripemd160: createHashHelper('ripemd160'),
+  } as never)
+
+  // The signUtil itself provides crypto methods
+  return signUtil as unknown as BFChainCore.CryptoHelperInterface
+}
+
+/**
+ * Load the BioForest Chain bundle dynamically
+ */
+export async function loadBundle(): Promise<BioforestChainBundle> {
+  if (bundleModule) {
+    return bundleModule
+  }
+
+  if (bundlePromise) {
+    return bundlePromise
+  }
+
+  bundlePromise = (async () => {
+    // Dynamic import of the bundle
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const module = (await import('./bioforest-chain-bundle.js')) as any
+    bundleModule = { setup: module.setup }
+    return bundleModule!
+  })()
+
+  return bundlePromise
+}
+
+/**
+ * Get or create a BioForest core instance
+ */
+export async function getBioforestCore(magic?: string): Promise<BioforestChainBundleCore> {
+  const genesis = await import('./genesis-block.json')
+  const chainMagic = magic ?? genesis.default.magic
+
+  const cached = coreCache.get(chainMagic)
+  if (cached) {
+    return cached
+  }
+
+  const bundle = await loadBundle()
+  const cryptoHelper = await createCryptoHelper()
+
+  const core = await bundle.setup(genesis.default as never, cryptoHelper, {
+    n: 'KeyApp',
+    m: 'true',
+    a: 'web',
+  })
+
+  coreCache.set(chainMagic, core)
+  return core
+}
+
+/**
+ * Get the latest block info for transaction timing
+ */
+export async function getLastBlock(
+  rpcUrl: string,
+  chainId: string,
+): Promise<{ height: number; timestamp: number }> {
+  const response = await fetch(`${rpcUrl}/wallet/${chainId}/lastblock`)
+  if (!response.ok) {
+    throw new Error(`Failed to get lastblock: ${response.status}`)
+  }
+  return response.json()
+}
+
+export interface AddressInfo {
+  address: string
+  secondPublicKey?: string
+  accountStatus?: number
+}
+
+/**
+ * Get address info including second public key
+ */
+export async function getAddressInfo(
+  rpcUrl: string,
+  chainId: string,
+  address: string,
+): Promise<AddressInfo> {
+  const response = await fetch(`${rpcUrl}/wallet/${chainId}/address/info`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address }),
+  })
+
+  if (!response.ok) {
+    return { address }
+  }
+
+  const result = (await response.json()) as AddressInfo | null
+  return result ?? { address }
+}
+
+export interface CreateTransferParams {
+  rpcUrl: string
+  chainId: string
+  mainSecret: string
+  paySecret?: string | undefined
+  from: string
+  to: string
+  amount: string
+  assetType: string
+  fee?: string | undefined
+  remark?: Record<string, string> | undefined
+}
+
+/**
+ * Create a transfer transaction using the SDK
+ */
+export async function createTransferTransaction(
+  params: CreateTransferParams,
+): Promise<BFChainCore.TransferAssetTransactionJSON> {
+  const core = await getBioforestCore()
+
+  // Get latest block for transaction timing
+  const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  // Calculate fee if not provided
+  let fee = params.fee
+  if (!fee) {
+    fee = await core.transactionController.getTransferTransactionMinFee({
+      transaction: {
+        applyBlockHeight,
+        timestamp,
+        remark: params.remark ?? {},
+      },
+      assetInfo: {
+        sourceChainName: await core.getChainName(),
+        sourceChainMagic: await core.getMagic(),
+        assetType: params.assetType,
+        amount: params.amount,
+      },
+    })
+  }
+
+  // Determine pay password version if set
+  let usePaySecretV1 = false
+  if (params.paySecret) {
+    const addressInfo = await getAddressInfo(params.rpcUrl, params.chainId, params.from)
+    if (addressInfo.secondPublicKey) {
+      const version = await verifyPayPassword(
+        params.mainSecret,
+        params.paySecret,
+        addressInfo.secondPublicKey,
+      )
+      usePaySecretV1 = version === 'v1'
+    }
+  }
+
+  const secrets: Secrets = {
+    mainSecret: params.mainSecret,
+    ...(params.paySecret ? { paySecret: params.paySecret, usePaySecretV1 } : {}),
+  }
+
+  const assetInfo: TransferAssetInfo = {
+    sourceChainName: await core.getChainName(),
+    sourceChainMagic: await core.getMagic(),
+    assetType: params.assetType,
+    amount: params.amount,
+  }
+
+  return core.transactionController.createTransferTransactionJSON({
+    secrets,
+    transaction: {
+      fee,
+      recipientId: params.to,
+      applyBlockHeight,
+      timestamp,
+      remark: params.remark ?? {},
+      effectiveBlockHeight: applyBlockHeight + 28,
+    },
+    assetInfo,
+  })
+}
+
+/**
+ * Broadcast a signed transaction
+ */
+export async function broadcastTransaction(
+  rpcUrl: string,
+  chainId: string,
+  transaction: BFChainCore.TransactionJSON,
+): Promise<string> {
+  const response = await fetch(`${rpcUrl}/wallet/${chainId}/transactions/broadcast`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(transaction),
+  })
+
+  if (!response.ok) {
+    const error = (await response.json().catch(() => ({}))) as { message?: string }
+    throw new Error(error.message ?? `Broadcast failed: ${response.status}`)
+  }
+
+  // Return the transaction signature as the tx hash
+  return transaction.signature
+}
+
+/**
+ * Verify pay password against stored second public key
+ */
+export async function verifyPayPassword(
+  mainSecret: string,
+  paySecret: string,
+  secondPublicKey: string,
+): Promise<'v2' | 'v1' | false> {
+  const core = await getBioforestCore()
+  const accountHelper = core.accountBaseHelper()
+
+  // Try V2 first (newer algorithm)
+  try {
+    const keypairV2 = await accountHelper.createSecondSecretKeypairV2(mainSecret, paySecret)
+    if (keypairV2.publicKey.toString('hex') === secondPublicKey) {
+      return 'v2'
+    }
+  } catch {
+    // V2 failed
+  }
+
+  // Try V1 (legacy algorithm)
+  try {
+    const keypairV1 = await accountHelper.createSecondSecretKeypair(mainSecret, paySecret)
+    if (keypairV1.publicKey.toString('hex') === secondPublicKey) {
+      return 'v1'
+    }
+  } catch {
+    // V1 also failed
+  }
+
+  return false
+}
