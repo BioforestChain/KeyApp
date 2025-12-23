@@ -17,7 +17,7 @@ const TEST_ADDRESS = 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx'
 const TARGET_ADDRESS = 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j'
 
 // 测试 API 配置
-const RPC_URL = 'https://walletapi.bffmeta.info'
+const RPC_URL = 'https://walletapi.bfmeta.info'
 const CHAIN_ID = 'bfm'
 
 test.describe('BioForest Chain API 功能测试', () => {

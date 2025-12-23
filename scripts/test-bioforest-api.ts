@@ -10,7 +10,7 @@
  * - 计算手续费
  */
 
-const RPC_URL = 'https://walletapi.bffmeta.info'
+const RPC_URL = 'https://walletapi.bfmeta.info'
 const CHAIN_ID = 'bfm'
 const TEST_ADDRESS = 'b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx'
 
@@ -20,7 +20,8 @@ async function testGetLastBlock() {
   if (!response.ok) {
     throw new Error(`Failed: ${response.status}`)
   }
-  const data = await response.json()
+  const json = await response.json() as { success: boolean; result: { height: number; timestamp: number } }
+  const data = json.result
   console.log('最新区块高度:', data.height)
   console.log('时间戳:', data.timestamp)
   return data
@@ -40,7 +41,8 @@ async function testGetBalance() {
   if (!response.ok) {
     throw new Error(`Failed: ${response.status}`)
   }
-  const data = await response.json()
+  const json = await response.json() as { success: boolean; result: { amount: string } }
+  const data = json.result
   console.log(`地址 ${TEST_ADDRESS} 余额:`, data.amount)
   console.log('格式化余额:', (parseFloat(data.amount) / 1e8).toFixed(8), 'BFM')
   return data
@@ -57,7 +59,8 @@ async function testGetAddressInfo() {
     console.log('查询失败或地址不存在')
     return null
   }
-  const data = await response.json()
+  const json = await response.json() as { success: boolean; result: { address: string; secondPublicKey?: string } }
+  const data = json.result
   console.log('地址信息:', JSON.stringify(data, null, 2))
   if (data?.secondPublicKey) {
     console.log('✅ 该账户已设置支付密码（二次签名）')
@@ -83,13 +86,14 @@ async function testGetTransactionHistory(maxHeight: number) {
   if (!response.ok) {
     throw new Error(`Failed: ${response.status}`)
   }
-  const data = await response.json()
+  const json = await response.json() as { success: boolean; result: { trs?: Array<{ transaction: { signature: string; type: string; senderId: string; recipientId: string; fee: string; timestamp: number } }> } }
+  const data = json.result
   console.log(`找到 ${data.trs?.length ?? 0} 条交易记录`)
   
   if (data.trs && data.trs.length > 0) {
     console.log('\n最近的交易:')
-    data.trs.slice(0, 3).forEach((item: unknown, i: number) => {
-      const tx = (item as { transaction: { signature: string; type: string; senderId: string; recipientId: string; fee: string; timestamp: number } }).transaction
+    data.trs.slice(0, 3).forEach((item, i: number) => {
+      const tx = item.transaction
       console.log(`\n  [${i + 1}]`)
       console.log(`    类型: ${tx.type}`)
       console.log(`    发送方: ${tx.senderId}`)
@@ -114,7 +118,8 @@ async function testGetPendingTransactions() {
   if (!response.ok) {
     throw new Error(`Failed: ${response.status}`)
   }
-  const data = await response.json()
+  const json = await response.json() as { success: boolean; result: unknown[] }
+  const data = json.result
   console.log(`待处理交易数: ${Array.isArray(data) ? data.length : 0}`)
   return data
 }
