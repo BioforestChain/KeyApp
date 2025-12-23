@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFlow } from '@/stackflow';
 import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
@@ -25,8 +25,16 @@ export function AddressBookPage() {
   const { t } = useTranslation('common');
   const { goBack } = useNavigation();
   const { push } = useFlow();
-  const contacts = useStore(addressBookStore, (s) => s.contacts);
+  const addressBookState = useStore(addressBookStore);
+  const contacts = addressBookState.contacts;
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
+
+  // Initialize address book from storage
+  useEffect(() => {
+    if (!addressBookState.isInitialized) {
+      addressBookActions.initialize();
+    }
+  }, [addressBookState.isInitialized]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const deletingContactRef = useRef<Contact | null>(null);
