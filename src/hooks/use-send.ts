@@ -253,16 +253,13 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }
 
     if (result.status === 'password_required') {
-      // Pay password is required - for now treat as error, UI should prompt for pay password
+      // Pay password is required - return status so UI can prompt for pay password
       setState((prev) => ({
         ...prev,
-        step: 'result',
+        step: 'confirm',
         isSubmitting: false,
-        resultStatus: 'failed',
-        txHash: null,
-        errorMessage: '此地址已设置支付密码，需要输入支付密码才能转账',
       }))
-      return { status: 'error' as const }
+      return { status: 'pay_password_required' as const, secondPublicKey: result.secondPublicKey }
     }
 
     if (result.status === 'error') {
@@ -289,6 +286,89 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     return { status: 'ok' as const }
   }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
+  // Submit with pay password (for addresses with secondPublicKey)
+  const submitWithPayPassword = useCallback(async (password: string, payPassword: string) => {
+    if (!chainConfig || !walletId || !fromAddress) {
+      return { status: 'error' as const }
+    }
+
+    setState((prev) => ({
+      ...prev,
+      step: 'sending',
+      isSubmitting: true,
+      resultStatus: null,
+      txHash: null,
+      errorMessage: null,
+    }))
+
+    if (!state.amount) {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: '无效的金额',
+      }))
+      return { status: 'error' as const }
+    }
+
+    const result = await submitBioforestTransfer({
+      chainConfig,
+      walletId,
+      password,
+      fromAddress,
+      toAddress: state.toAddress,
+      amount: state.amount,
+      payPassword,
+    })
+
+    if (result.status === 'password') {
+      setState((prev) => ({
+        ...prev,
+        step: 'confirm',
+        isSubmitting: false,
+      }))
+      return { status: 'password' as const }
+    }
+
+    if (result.status === 'error') {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: result.message,
+      }))
+      return { status: 'error' as const }
+    }
+
+    // password_required should not happen when payPassword is provided
+    if (result.status === 'password_required') {
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: '支付密码验证失败',
+      }))
+      return { status: 'error' as const }
+    }
+
+    setState((prev) => ({
+      ...prev,
+      step: 'result',
+      isSubmitting: false,
+      resultStatus: 'success',
+      txHash: result.txHash,
+      errorMessage: null,
+    }))
+
+    return { status: 'ok' as const }
+  }, [chainConfig, fromAddress, state.amount, state.toAddress, walletId])
+
   // Reset to initial state
   const reset = useCallback(() => {
     setState({
@@ -305,6 +385,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     goToConfirm,
     goBack,
     submit,
+    submitWithPayPassword,
     reset,
     canProceed,
   }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setPasswordConfirmCallback, setTransferConfirmCallback } from '@/stackflow/activities/sheets';
+import { setPasswordConfirmCallback, setPayPasswordConfirmCallback, setTransferConfirmCallback } from '@/stackflow/activities/sheets';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
 import { AmountInput } from '@/components/transfer/amount-input';
@@ -73,13 +73,16 @@ export function SendPage() {
     };
   }, [chainConfig, currentChainAddress?.tokens]);
 
-  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, reset, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, submitWithPayPassword, reset, canProceed } = useSend({
     initialAsset: defaultAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
     fromAddress: currentChainAddress?.address,
     chainConfig,
   });
+
+  // Store wallet password for pay password flow
+  const walletPasswordRef = useRef<string>('');
 
   useEffect(() => {
     if (!defaultAsset) return;
@@ -138,10 +141,30 @@ export function SendPage() {
       await haptics.impact('medium');
 
       setPasswordConfirmCallback(async (password: string) => {
+        // Store password for potential pay password flow
+        walletPasswordRef.current = password;
+        
         const result = await submit(password);
         if (result.status === 'password') {
           return false;
         }
+        
+        // Handle pay password required
+        if (result.status === 'pay_password_required') {
+          // Show pay password dialog
+          setPayPasswordConfirmCallback(async (payPassword: string) => {
+            const payResult = await submitWithPayPassword(walletPasswordRef.current, payPassword);
+            if (payResult.status === 'ok') {
+              isPasswordSheetOpen.current = false;
+              return true;
+            }
+            return false;
+          });
+          
+          push('PayPasswordConfirmJob', {});
+          return true; // Close wallet password dialog
+        }
+        
         isPasswordSheetOpen.current = false;
         // submit() sets state.step to 'result', Jobs will pop themselves
         return true;
