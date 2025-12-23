@@ -96,6 +96,55 @@ BioForest 链支持可选的交易密码机制：
 - **MUST** 处理交易密码验证
 - **SHOULD** 缓存区块高度用于交易构建
 
+### SDK 集成
+
+BioForest 链使用官方 SDK 进行交易创建和签名：
+
+```typescript
+// SDK 位置
+src/services/bioforest-sdk/
+├── index.ts                    // SDK 包装器
+├── types.d.ts                  // 类型定义
+├── bioforest-chain-bundle.js   // 预构建 SDK
+├── bioforest-chain-bundle.d.ts // 类型声明
+└── genesis-block.json          // 创世块配置
+
+// 关键函数
+createTransferTransaction(params)  // 创建转账交易
+broadcastTransaction(rpcUrl, chainId, tx)  // 广播交易
+getAddressInfo(rpcUrl, chainId, address)   // 获取地址信息
+verifyPayPassword(secret, payPassword, secondPublicKey)  // 验证交易密码
+```
+
+### 交易密码流程
+
+```
+用户发起转账
+       │
+       ▼
+getAddressInfo() 检查 secondPublicKey
+       │
+       ├─ 无 secondPublicKey → 直接签名
+       │
+       └─ 有 secondPublicKey → 需要交易密码
+              │
+              ▼
+       用户输入交易密码
+              │
+              ▼
+       verifyPayPassword() 验证
+              │
+              ├─ 失败 → 提示错误
+              │
+              └─ 成功 → 使用 paySecret 签名
+                     │
+                     ▼
+              createTransferTransaction()
+                     │
+                     ▼
+              broadcastTransaction()
+```
+
 ---
 
 ## EVM 链
