@@ -53,17 +53,18 @@ async function main() {
     process.exit(0)
   }
 
-  // Step 2: Calculate fee
-  console.log('\n💰 Step 2: Calculate minimum fee')
+  // Step 2: Calculate fee (use 10x minimum to ensure acceptance)
+  console.log('\n💰 Step 2: Calculate fee')
   const minFee = await getSignatureTransactionMinFee(RPC_URL, CHAIN_ID)
-  const feeFormatted = BioForestApiClient.formatAmount(minFee)
-  console.log(`   Minimum Fee: ${feeFormatted} BFM (raw: ${minFee})`)
+  const actualFee = String(BigInt(minFee) * BigInt(100)) // 100x minimum fee
+  console.log(`   Min Fee: ${BioForestApiClient.formatAmount(minFee)} BFM (raw: ${minFee})`)
+  console.log(`   Using Fee: ${BioForestApiClient.formatAmount(actualFee)} BFM (raw: ${actualFee})`)
 
   // Check if we have enough balance
   const balanceNum = BigInt(balance.amount)
-  const feeNum = BigInt(minFee)
+  const feeNum = BigInt(actualFee)
   if (balanceNum < feeNum) {
-    console.log(`\n❌ Insufficient balance! Need at least ${feeFormatted} BFM`)
+    console.log(`\n❌ Insufficient balance! Need at least ${BioForestApiClient.formatAmount(actualFee)} BFM`)
     process.exit(1)
   }
 
@@ -74,7 +75,7 @@ async function main() {
     chainId: CHAIN_ID,
     mainSecret: TEST_MNEMONIC,
     newPaySecret: NEW_PAY_PASSWORD,
-    fee: minFee,
+    fee: actualFee,
   })
 
   console.log(`   Transaction Type: ${transaction.type}`)

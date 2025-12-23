@@ -240,7 +240,7 @@ export async function createTransferTransaction(
       applyBlockHeight,
       timestamp,
       remark: params.remark ?? {},
-      effectiveBlockHeight: applyBlockHeight + 28,
+      effectiveBlockHeight: applyBlockHeight + 100,
     },
     assetInfo,
   })
@@ -372,7 +372,7 @@ export async function createSignatureTransaction(
       fee,
       applyBlockHeight,
       timestamp,
-      effectiveBlockHeight: applyBlockHeight + 28,
+      effectiveBlockHeight: applyBlockHeight + 100,
     },
   )
 }
