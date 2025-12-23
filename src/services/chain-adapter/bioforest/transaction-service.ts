@@ -133,8 +133,15 @@ export class BioforestTransactionService implements ITransactionService {
         )
       }
 
-      const result = (await response.json()) as { data: { signature: string } }
-      return result.data.signature
+      const json = (await response.json()) as { success: boolean; result?: unknown; error?: { message?: string } }
+      if (!json.success) {
+        throw new ChainServiceError(
+          ChainErrorCodes.TRANSACTION_REJECTED,
+          json.error?.message ?? 'Broadcast failed',
+        )
+      }
+      // Return the signature from the signed transaction (already have it)
+      return signedTx.signature
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
       throw new ChainServiceError(
@@ -173,11 +180,12 @@ export class BioforestTransactionService implements ITransactionService {
         }
       }
 
-      const result = (await response.json()) as {
-        data: { transaction?: { height?: number } }
+      const json = (await response.json()) as {
+        success: boolean
+        result?: { trs?: Array<{ height?: number }> }
       }
 
-      if (result.data.transaction?.height) {
+      if (json.success && json.result?.trs?.[0]?.height) {
         return {
           status: 'confirmed',
           confirmations: 1,
@@ -218,38 +226,48 @@ export class BioforestTransactionService implements ITransactionService {
         return null
       }
 
-      const result = (await response.json()) as {
-        data: {
-          transaction?: {
-            signature: string
-            senderId: string
-            recipientId: string
-            amount: string
-            fee: string
-            timestamp: number
-            height?: number
-          }
+      const json = (await response.json()) as {
+        success: boolean
+        result?: {
+          trs?: Array<{
+            height: number
+            transaction: {
+              signature: string
+              senderId: string
+              recipientId?: string
+              fee: string
+              timestamp: number
+              asset?: {
+                transferAsset?: {
+                  amount: string
+                }
+              }
+            }
+          }>
         }
       }
 
-      const tx = result.data.transaction
-      if (!tx) return null
+      if (!json.success || !json.result?.trs?.[0]) return null
+      const item = json.result.trs[0]
+      const tx = item.transaction
 
       const { decimals, symbol } = this.config
+
+      const amountRaw = tx.asset?.transferAsset?.amount ?? '0'
 
       return {
         hash: tx.signature,
         from: tx.senderId,
-        to: tx.recipientId,
-        amount: Amount.fromRaw(tx.amount, decimals, symbol),
+        to: tx.recipientId ?? '',
+        amount: Amount.fromRaw(amountRaw, decimals, symbol),
         fee: Amount.fromRaw(tx.fee, decimals, symbol),
         status: {
-          status: tx.height ? 'confirmed' : 'pending',
-          confirmations: tx.height ? 1 : 0,
+          status: 'confirmed',
+          confirmations: 1,
           requiredConfirmations: 1,
         },
-        timestamp: tx.timestamp,
-        blockNumber: tx.height ? BigInt(tx.height) : undefined,
+        timestamp: tx.timestamp * 1000, // Convert to milliseconds
+        blockNumber: BigInt(item.height),
         type: 'transfer',
       }
     } catch {
