@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddressInput } from './address-input';
+import { addressBookActions } from '@/stores';
 
 const meta: Meta<typeof AddressInput> = {
   title: 'Transfer/AddressInput',
@@ -75,6 +76,57 @@ export const TransferForm: Story = {
         >
           下一步
         </button>
+      </div>
+    );
+  },
+};
+
+/**
+ * 带联系人建议 - 输入联系人名称或地址前缀会显示建议
+ */
+export const WithContactSuggestions: Story = {
+  decorators: [
+    (Story) => {
+      // Setup contacts for suggestions
+      addressBookActions.clearAll();
+      addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
+        ],
+        memo: '同事',
+      });
+      addressBookActions.addContact({
+        name: 'Bob',
+        addresses: [
+          { id: '2', address: '0xabcdef1234567890abcdef1234567890abcdef12', chainType: 'ethereum', isDefault: true },
+          { id: '3', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+        ],
+      });
+      addressBookActions.addContact({
+        name: 'Charlie',
+        addresses: [
+          { id: '4', address: '0x9876543210fedcba9876543210fedcba98765432', chainType: 'ethereum', isDefault: true },
+        ],
+        memo: '朋友',
+      });
+      return <Story />;
+    },
+  ],
+  render: () => {
+    const [address, setAddress] = useState('');
+
+    return (
+      <div className="space-y-6 p-4">
+        <p className="text-muted-foreground text-sm">试着输入 "Al"、"Bob" 或 "0x12" 来查看建议</p>
+        <AddressInput
+          label="收款地址"
+          value={address}
+          onChange={setAddress}
+          onScan={() => alert('Open QR scanner')}
+          showSuggestions
+        />
+        <p className="text-muted-foreground text-sm">当前值: {address || '(空)'}</p>
       </div>
     );
   },

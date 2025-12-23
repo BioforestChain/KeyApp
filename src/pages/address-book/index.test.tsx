@@ -5,6 +5,11 @@ import { addressBookActions, walletStore } from '@/stores'
 
 const mockPush = vi.fn()
 
+// Helper to create addresses
+function createAddresses(address: string, chainType = 'ethereum') {
+  return [{ id: crypto.randomUUID(), address, chainType: chainType as 'ethereum' }]
+}
+
 // Mock dependencies
 vi.mock('@/stackflow', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -53,8 +58,8 @@ describe('AddressBookPage', () => {
   })
 
   it('renders contact list when contacts exist', () => {
-    addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
-    addressBookActions.addContact({ name: 'Bob', address: '0x2222' })
+    addressBookActions.addContact({ name: 'Alice', addresses: createAddresses('0x1111') })
+    addressBookActions.addContact({ name: 'Bob', addresses: createAddresses('0x2222') })
 
     render(<AddressBookPage />)
 
@@ -64,8 +69,8 @@ describe('AddressBookPage', () => {
   })
 
   it('filters contacts by search query', () => {
-    addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
-    addressBookActions.addContact({ name: 'Bob', address: '0x2222' })
+    addressBookActions.addContact({ name: 'Alice', addresses: createAddresses('0x1111') })
+    addressBookActions.addContact({ name: 'Bob', addresses: createAddresses('0x2222') })
 
     render(<AddressBookPage />)
 
@@ -77,7 +82,7 @@ describe('AddressBookPage', () => {
   })
 
   it('shows empty search result message', () => {
-    addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
+    addressBookActions.addContact({ name: 'Alice', addresses: createAddresses('0x1111') })
 
     render(<AddressBookPage />)
 
@@ -98,7 +103,7 @@ describe('AddressBookPage', () => {
   })
 
   it('opens edit contact sheet when edit is clicked', () => {
-    const contact = addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
+    const contact = addressBookActions.addContact({ name: 'Alice', addresses: createAddresses('0x1111') })
 
     render(<AddressBookPage />)
 
@@ -114,7 +119,7 @@ describe('AddressBookPage', () => {
   })
 
   it('deletes contact directly when no wallet exists', () => {
-    addressBookActions.addContact({ name: 'Alice', address: '0x1111' })
+    addressBookActions.addContact({ name: 'Alice', addresses: createAddresses('0x1111') })
 
     render(<AddressBookPage />)
 
@@ -137,5 +142,20 @@ describe('AddressBookPage', () => {
     fireEvent.click(backButton)
 
     expect(mockGoBack).toHaveBeenCalled()
+  })
+
+  it('displays multiple addresses count', () => {
+    addressBookActions.addContact({
+      name: 'Multi',
+      addresses: [
+        { id: '1', address: '0x1111', chainType: 'ethereum' },
+        { id: '2', address: 'b7ADmv...', chainType: 'bfmeta' },
+      ],
+    })
+
+    render(<AddressBookPage />)
+
+    expect(screen.getByText('Multi')).toBeInTheDocument()
+    expect(screen.getByText(/\+1/)).toBeInTheDocument() // Shows (+1) for additional addresses
   })
 })

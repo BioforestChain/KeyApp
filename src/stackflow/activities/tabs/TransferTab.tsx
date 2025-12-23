@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PageHeader } from "@/components/layout/page-header";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { useTransactionHistoryQuery } from "@/queries";
-import { addressBookActions, addressBookStore, useCurrentWallet, useSelectedChain } from "@/stores";
+import { addressBookActions, addressBookStore, addressBookSelectors, useCurrentWallet, useSelectedChain, type Contact } from "@/stores";
 import { IconSend } from "@tabler/icons-react";
 
 export function TransferTab() {
@@ -30,10 +30,18 @@ export function TransferTab() {
 
   const recentContacts = useMemo(() => {
     const filtered = selectedChain
-      ? contacts.filter((contact) => !contact.chain || contact.chain === selectedChain)
+      ? contacts.filter((contact) => 
+          contact.addresses.some((addr) => addr.chainType === selectedChain)
+        )
       : contacts;
     return filtered.slice(0, 4);
   }, [contacts, selectedChain]);
+
+  // Helper to get primary address for a contact
+  const getPrimaryAddress = (contact: Contact): string => {
+    const addr = addressBookSelectors.getDefaultAddress(contact, selectedChain ?? undefined);
+    return addr?.address ?? contact.addresses[0]?.address ?? '';
+  };
 
   const recentTransactions = useMemo(() => {
     const filtered = selectedChain
@@ -62,7 +70,7 @@ export function TransferTab() {
                   <button
                     key={contact.id}
                     className="flex flex-col items-center gap-1"
-                    onClick={() => push("SendActivity", { address: contact.address })}
+                    onClick={() => push("SendActivity", { address: getPrimaryAddress(contact) })}
                   >
                     <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                       {contact.name[0] ?? "?"}

@@ -15,6 +15,11 @@ const meta: Meta<typeof AddressBookPage> = {
 export default meta
 type Story = StoryObj<typeof AddressBookPage>
 
+// Helper to create addresses
+function createAddresses(address: string, chainType = 'ethereum') {
+  return [{ id: crypto.randomUUID(), address, chainType: chainType as 'ethereum' }]
+}
+
 const resetStores = () => {
   addressBookActions.clearAll()
   walletStore.setState({
@@ -23,7 +28,7 @@ const resetStores = () => {
     isInitialized: true,
     isLoading: false,
     chainPreferences: {},
-      selectedChain: 'ethereum',
+    selectedChain: 'ethereum',
   })
 }
 
@@ -48,18 +53,17 @@ export const WithContacts: Story = {
       resetStores()
       addressBookActions.addContact({
         name: 'Alice',
-        address: '0x1234567890abcdef1234567890abcdef12345678',
+        addresses: createAddresses('0x1234567890abcdef1234567890abcdef12345678'),
         memo: '同事',
       })
       addressBookActions.addContact({
         name: 'Bob',
-        address: '0xabcdef1234567890abcdef1234567890abcdef12',
+        addresses: createAddresses('0xabcdef1234567890abcdef1234567890abcdef12'),
       })
       addressBookActions.addContact({
         name: 'Charlie',
-        address: '0x9876543210fedcba9876543210fedcba98765432',
+        addresses: createAddresses('0x9876543210fedcba9876543210fedcba98765432'),
         memo: '朋友',
-        chain: 'ethereum',
       })
       return <Story />
     },
@@ -74,13 +78,37 @@ export const ManyContacts: Story = {
     (Story) => {
       resetStores()
       for (let i = 1; i <= 10; i++) {
-        const contact = {
+        addressBookActions.addContact({
           name: `联系人 ${i}`,
-          address: `0x${i.toString().padStart(40, '0')}`,
+          addresses: createAddresses(`0x${i.toString().padStart(40, '0')}`),
           ...(i % 3 === 0 ? { memo: '有备注' } : {}),
-        }
-        addressBookActions.addContact(contact)
+        })
       }
+      return <Story />
+    },
+  ],
+}
+
+/**
+ * 多地址联系人
+ */
+export const MultipleAddresses: Story = {
+  decorators: [
+    (Story) => {
+      resetStores()
+      addressBookActions.addContact({
+        name: 'Multi-Chain User',
+        addresses: [
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum' },
+          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'bfmeta' },
+          { id: '3', address: 'TJYs1234567890abcdef1234567890abc', chainType: 'tron' },
+        ],
+        memo: '多链用户',
+      })
+      addressBookActions.addContact({
+        name: 'Single Address',
+        addresses: createAddresses('0xabcdef1234567890abcdef1234567890abcdef12'),
+      })
       return <Story />
     },
   ],
@@ -95,7 +123,7 @@ export const LongContent: Story = {
       resetStores()
       addressBookActions.addContact({
         name: '这是一个很长的联系人名称',
-        address: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        addresses: createAddresses('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'),
         memo: '这是一个很长的备注信息，用于测试文本截断效果',
       })
       return <Story />

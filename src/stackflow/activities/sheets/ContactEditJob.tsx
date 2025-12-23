@@ -4,7 +4,8 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
-import { addressBookStore, addressBookActions, type ChainType } from "@/stores";
+import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType } from "@/stores";
+import { detectAddressFormat } from "@/lib/address-format";
 import { IconUser as User, IconWallet as Wallet, IconFileText as FileText } from "@tabler/icons-react";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
@@ -28,13 +29,18 @@ function ContactEditJobContent() {
 
   const isEditing = !!contact;
 
+  // Get default address for editing
+  const defaultAddress = contact
+    ? addressBookSelectors.getDefaultAddress(contact, defaultChain as ChainType | undefined)
+    : undefined;
+
   useEffect(() => {
     if (contact) {
       setName(contact.name);
-      setAddress(contact.address);
-      setMemo(contact.memo || "");
+      setAddress(defaultAddress?.address ?? "");
+      setMemo(contact.memo ?? "");
     }
-  }, [contact]);
+  }, [contact, defaultAddress]);
 
   const handleSave = useCallback(() => {
     const trimmedName = name.trim();
@@ -43,23 +49,45 @@ function ContactEditJobContent() {
 
     if (!trimmedName || !trimmedAddress) return;
 
+    // Detect chain type from address format
+    const detectedFormat = detectAddressFormat(trimmedAddress);
+    const chainType = (defaultChain as ChainType) ?? detectedFormat.chainType ?? "ethereum";
+
     if (isEditing && contact) {
+      // Update contact name and memo
       addressBookActions.updateContact(contact.id, {
         name: trimmedName,
-        address: trimmedAddress,
-        ...(trimmedMemo && { memo: trimmedMemo }),
+        ...(trimmedMemo ? { memo: trimmedMemo } : {}),
       });
+
+      // Update address if changed
+      if (defaultAddress && defaultAddress.address !== trimmedAddress) {
+        // Remove old address and add new one
+        addressBookActions.removeAddressFromContact(contact.id, defaultAddress.id);
+        addressBookActions.addAddressToContact(contact.id, {
+          address: trimmedAddress,
+          chainType,
+          isDefault: true,
+        });
+      }
     } else {
+      // Add new contact with single address
       addressBookActions.addContact({
         name: trimmedName,
-        address: trimmedAddress,
-        chain: (defaultChain as ChainType) || "ethereum",
-        ...(trimmedMemo && { memo: trimmedMemo }),
+        addresses: [
+          {
+            id: crypto.randomUUID(),
+            address: trimmedAddress,
+            chainType,
+            isDefault: true,
+          },
+        ],
+        ...(trimmedMemo ? { memo: trimmedMemo } : {}),
       });
     }
 
     pop();
-  }, [name, address, memo, isEditing, contact, defaultChain, pop]);
+  }, [name, address, memo, isEditing, contact, defaultAddress, defaultChain, pop]);
 
   const canSave = name.trim().length > 0 && address.trim().length > 0;
 

@@ -247,12 +247,87 @@ test.describe('通知页面', () => {
   })
 })
 
+// 测试地址簿数据（多地址联系人）
+const TEST_CONTACTS_DATA = {
+  contacts: [
+    {
+      id: 'contact-1',
+      name: 'Alice',
+      addresses: [
+        { id: 'addr-1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
+      ],
+      memo: '同事',
+      createdAt: Date.now() - 86400000,
+      updatedAt: Date.now() - 86400000,
+    },
+    {
+      id: 'contact-2',
+      name: 'Bob',
+      addresses: [
+        { id: 'addr-2', address: '0xabcdef1234567890abcdef1234567890abcdef12', chainType: 'ethereum', isDefault: true },
+        { id: 'addr-3', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+      ],
+      createdAt: Date.now() - 172800000,
+      updatedAt: Date.now() - 172800000,
+    },
+    {
+      id: 'contact-3',
+      name: '多链用户',
+      addresses: [
+        { id: 'addr-4', address: '0x9876543210fedcba9876543210fedcba98765432', chainType: 'ethereum', isDefault: true },
+        { id: 'addr-5', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+        { id: 'addr-6', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW', chainType: 'tron' },
+      ],
+      memo: '支持多链转账',
+      createdAt: Date.now() - 259200000,
+      updatedAt: Date.now() - 259200000,
+    },
+  ],
+  isInitialized: true,
+  version: 2,
+}
+
+// 辅助函数：设置测试联系人
+async function setupTestContacts(page: Page, targetUrl: string = '/address-book') {
+  await page.addInitScript((data) => {
+    localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
+    localStorage.setItem('bfm_address_book', JSON.stringify(data.contacts))
+  }, { wallet: TEST_WALLET_DATA, contacts: TEST_CONTACTS_DATA })
+  
+  const hashUrl = `/#${targetUrl}`
+  await page.goto(hashUrl)
+  await page.waitForLoadState('networkidle')
+}
+
 test.describe('地址簿页面', () => {
   test('地址簿截图 - 空状态', async ({ page }) => {
     await setupTestWallet(page, '/address-book')
     await waitForAppReady(page)
 
     await expect(page).toHaveScreenshot('address-book-empty.png')
+  })
+
+  test('地址簿截图 - 有联系人', async ({ page }) => {
+    await setupTestContacts(page, '/address-book')
+    await waitForAppReady(page)
+    // Wait for contacts to load and render
+    await expect(page.locator('text=Alice')).toBeVisible({ timeout: 10000 })
+
+    await expect(page).toHaveScreenshot('address-book-with-contacts.png')
+  })
+
+  test('地址簿 - 多地址联系人显示', async ({ page }) => {
+    await setupTestContacts(page, '/address-book')
+    await waitForAppReady(page)
+
+    // 验证多地址联系人显示 (+N) 后缀
+    const multiAddressContact = page.locator('text=Bob')
+    await expect(multiAddressContact).toBeVisible()
+    // Bob has 2 addresses, should show (+1)
+    await expect(page.locator('text=+1')).toBeVisible()
+    
+    // 多链用户 has 3 addresses, should show (+2)
+    await expect(page.locator('text=+2')).toBeVisible()
   })
 })
 
