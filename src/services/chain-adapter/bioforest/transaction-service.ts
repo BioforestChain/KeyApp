@@ -293,30 +293,39 @@ export class BioforestTransactionService implements ITransactionService {
         return []
       }
 
-      // BioForest API response format: { trs: TransactionDetail[] }
-      const result = (await response.json()) as {
-        trs?: Array<{
-          height: number
-          signature: string // Block signature
-          tIndex: number
-          transaction: {
-            signature: string // Transaction ID
-            senderId: string
-            recipientId?: string
-            fee: string
-            timestamp: number
-            type: string
-            asset?: {
-              transferAsset?: {
-                amount: string
-                assetType: string
+      // BioForest API response format: { success: boolean, result: { trs: TransactionDetail[], count: number } }
+      const json = (await response.json()) as {
+        success: boolean
+        result: {
+          trs?: Array<{
+            height: number
+            signature: string // Block signature
+            tIndex: number
+            transaction: {
+              signature: string // Transaction ID
+              senderId: string
+              recipientId?: string
+              fee: string
+              timestamp: number
+              type: string
+              asset?: {
+                transferAsset?: {
+                  amount: string
+                  assetType: string
+                }
               }
             }
-          }
-        }>
+          }>
+          count?: number
+        }
       }
 
-      const transactions = result.trs ?? []
+      if (!json.success) {
+        console.warn('[TransactionService] API returned success=false')
+        return []
+      }
+
+      const transactions = json.result?.trs ?? []
 
       if (transactions.length === 0) {
         console.debug('[TransactionService] No transactions found for', address, 'on', this.config.id)
