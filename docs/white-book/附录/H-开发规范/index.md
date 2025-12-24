@@ -14,11 +14,10 @@
 
 ```bash
 # 1. 创建 worktree
-git worktree add .git-worktree/<feature-name> -b <branch-name>
+pnpm agent worktree create <feature-name> --branch <branch-name> --base main
 
 # 2. 进入 worktree 开发
 cd .git-worktree/<feature-name>
-pnpm install
 
 # 3. 开发完成后提交
 git add -A
@@ -36,8 +35,12 @@ cd ../..
 git pull origin main
 
 # 7. 清理 worktree
-git worktree remove .git-worktree/<feature-name>
+pnpm agent worktree delete <feature-name>
 ```
+
+> 注意：`pnpm agent worktree create` 会在仓库根目录查找 `.env.local`，缺失则直接报错并停止。
+> `pnpm agent worktree delete` 会通过 `gh` 校验 PR 合并状态，未合并需要显式 `--force`。
+> 分支命名必须以 `feat/`、`fix/`、`docs/`、`test/`、`refactor/`、`chore/`、`ci/`、`openspec/` 或 `release/` 开头。
 
 ### 为什么用 Worktree
 
@@ -76,9 +79,10 @@ Closes #28
 
 ```bash
 pnpm agent                    # 项目知识 + 当前任务
-pnpm agent --claim 28         # 领取任务
-pnpm agent --chapter <路径>   # 查阅白皮书
-pnpm agent --stats            # 进度统计
+pnpm agent claim 28           # 领取任务
+pnpm agent chapter <路径>     # 查阅白皮书
+pnpm agent stats              # 进度统计
+pnpm agent worktree list      # 查看 worktree 状态
 
 pnpm dev                      # 启动开发服务器
 pnpm test                     # 运行单元测试

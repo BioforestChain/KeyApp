@@ -79,10 +79,49 @@ AI 继续任务
 
 ```bash
 pnpm agent                    # 获取项目知识和当前任务
-pnpm agent --chapter 00-必读  # 查看必读章节
+pnpm agent roadmap current    # 查看当前 Roadmap
+pnpm agent chapter 00-必读     # 查看必读章节
 ```
 
 详细的项目信息、技术栈、开发流程请查阅白皮书。
+
+---
+
+## 开发闭环（必须遵循）
+
+```bash
+# 1) 获取索引 + Roadmap
+pnpm agent
+pnpm agent roadmap current
+
+# 2) 领取任务（Issue）
+pnpm agent claim <issue#>
+
+# 3) 创建 worktree（严格校验分支前缀与 .env.local）
+pnpm agent worktree create issue-<id> --branch feat/issue-<id> --base main
+cd .git-worktree/issue-<id>
+
+# 4) 阅读白皮书（先文档后编码）
+pnpm agent toc
+pnpm agent chapter <路径>
+
+# 5) 开发 + 测试
+pnpm dev
+pnpm test
+pnpm typecheck
+
+# 6) 提交 + 推送 + PR
+git add -A
+git commit -m "feat/fix: 描述"
+git push -u origin <branch>
+gh pr create --title "标题" --body "Closes #<issue#>" --base main
+
+# 7) 合并 + 清理
+gh pr merge --squash --delete-branch
+pnpm agent worktree delete issue-<id>
+```
+
+> 白皮书是唯一权威来源：若用户补充/纠正知识，必须先更新 `docs/white-book/` 再继续开发。
 
 <!-- OPENSPEC:START -->
 
