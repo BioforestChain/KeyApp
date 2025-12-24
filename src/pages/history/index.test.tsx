@@ -109,6 +109,7 @@ function renderWithProviders(ui: React.ReactElement) {
 
 describe('TransactionHistoryPage', () => {
   const t = (key: string, options?: Record<string, unknown>) => testI18n.t(key, options)
+  const firstChainLabel = mockEnabledChains[0]!.name
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -151,7 +152,7 @@ describe('TransactionHistoryPage', () => {
 
       const chainSelect = screen.getByLabelText(t('common:a11y.selectChain'))
       await userEvent.click(chainSelect)
-      await userEvent.click(screen.getByText(mockEnabledChains[0].name))
+      await userEvent.click(screen.getByText(firstChainLabel))
 
       expect(mockSetFilter).toHaveBeenCalledWith({ chain: 'ethereum', period: 'all' })
     })

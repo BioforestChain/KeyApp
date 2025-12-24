@@ -58,7 +58,10 @@ describe('PasswordInput', () => {
     const input = document.querySelector('input')!
 
     await userEvent.type(input, 'test')
-    expect(screen.getByText(new RegExp(testI18n.t('common:passwordStrength')))).toBeInTheDocument()
+    const strengthLabel = testI18n.t('common:passwordStrength')
+    expect(
+      screen.getByText((_content, node) => node?.textContent?.includes(strengthLabel) ?? false),
+    ).toBeInTheDocument()
   })
 
   it('calls onChange handler', async () => {
