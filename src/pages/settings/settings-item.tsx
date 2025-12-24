@@ -19,6 +19,8 @@ export interface SettingsItemProps {
   trailing?: ReactNode | undefined;
   /** 额外 className */
   className?: string | undefined;
+  /** 测试 ID */
+  testId?: string | undefined;
 }
 
 export function SettingsItem({
@@ -30,6 +32,7 @@ export function SettingsItem({
   onClick,
   trailing,
   className,
+  testId,
 }: SettingsItemProps) {
   const Component = onClick ? 'button' : 'div';
 
@@ -38,6 +41,7 @@ export function SettingsItem({
       type={onClick ? 'button' : undefined}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      data-testid={testId}
       className={cn(
         'bg-background flex w-full items-center gap-3 rounded-xl px-4 py-3.5',
         'transition-colors',

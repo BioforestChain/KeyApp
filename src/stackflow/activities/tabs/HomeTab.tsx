@@ -7,7 +7,7 @@ import { GradientButton } from "@/components/common/gradient-button";
 import { ChainIcon } from "@/components/wallet/chain-icon";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { useClipboard, useToast, useHaptics } from "@/services";
-import { useBalanceQuery } from "@/queries";
+import { useBalanceQuery, useSecurityPasswordQuery } from "@/queries";
 import {
   IconSend,
   IconQrcode,
@@ -70,6 +70,9 @@ export function HomeTab() {
   // - 60s 轮询: 自动刷新余额
   // - 共享缓存: 多个组件使用同一 key 时共享数据
   const { isFetching: isRefreshing } = useBalanceQuery(currentWallet?.id, selectedChain);
+
+  // 查询并缓存安全密码公钥（进入钱包时自动查询）
+  useSecurityPasswordQuery(selectedChain, chainAddress?.address);
 
   useEffect(() => {
     if (!isInitialized) {

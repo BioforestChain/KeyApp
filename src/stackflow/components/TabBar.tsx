@@ -42,6 +42,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
+              data-testid={`tab-${tab.id}`}
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2 transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
