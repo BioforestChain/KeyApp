@@ -22,7 +22,7 @@ describe('CreateWalletForm', () => {
     expect(screen.getByText('钱包名称')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('请输入钱包名称')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('8-30个字符，不能包含空格')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('请再次输入密码')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('请再次输入钱包锁')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('可选')).toBeInTheDocument();
     expect(screen.getByText(/用户协议/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '创建钱包' })).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('CreateWalletForm', () => {
 
     await user.type(screen.getByPlaceholderText('请输入钱包名称'), 'MyWallet');
     await user.type(screen.getByPlaceholderText('8-30个字符，不能包含空格'), 'password123');
-    await user.type(screen.getByPlaceholderText('请再次输入密码'), 'password123');
+    await user.type(screen.getByPlaceholderText('请再次输入钱包锁'), 'password123');
     await user.click(screen.getByRole('checkbox'));
 
     const submitButton = screen.getByRole('button', { name: '创建钱包' });
@@ -96,7 +96,7 @@ describe('CreateWalletForm', () => {
 
     await user.type(screen.getByPlaceholderText('请输入钱包名称'), 'MyWallet');
     await user.type(screen.getByPlaceholderText('8-30个字符，不能包含空格'), 'password123');
-    await user.type(screen.getByPlaceholderText('请再次输入密码'), 'password123');
+    await user.type(screen.getByPlaceholderText('请再次输入钱包锁'), 'password123');
     await user.type(screen.getByPlaceholderText('可选'), 'hint');
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByRole('button', { name: '创建钱包' }));
@@ -123,7 +123,7 @@ describe('CreateWalletForm', () => {
 
     expect(screen.getByPlaceholderText('请输入钱包名称')).toBeDisabled();
     expect(screen.getByPlaceholderText('8-30个字符，不能包含空格')).toBeDisabled();
-    expect(screen.getByPlaceholderText('请再次输入密码')).toBeDisabled();
+    expect(screen.getByPlaceholderText('请再次输入钱包锁')).toBeDisabled();
   });
 });
 
@@ -152,22 +152,22 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for empty password', () => {
     const errors = validateCreateWalletForm({ password: '' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordRequired');
+    expect(errors.password).toBe('onboarding:create.form.walletLockRequired');
   });
 
   it('returns error for password less than 8 chars', () => {
     const errors = validateCreateWalletForm({ password: 'short' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordTooShort');
+    expect(errors.password).toBe('onboarding:create.form.walletLockTooShort');
   });
 
   it('returns error for password more than 30 chars', () => {
     const errors = validateCreateWalletForm({ password: 'a'.repeat(31) }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordTooLong');
+    expect(errors.password).toBe('onboarding:create.form.walletLockTooLong');
   });
 
   it('returns error for password with whitespace', () => {
     const errors = validateCreateWalletForm({ password: 'pass word123' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordNoSpaces');
+    expect(errors.password).toBe('onboarding:create.form.walletLockNoSpaces');
   });
 
   it('returns no error for valid password', () => {
@@ -177,15 +177,15 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for empty confirm password', () => {
     const errors = validateCreateWalletForm({ password: 'password123', confirmPassword: '' }, mockT);
-    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordRequired');
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmWalletLockRequired');
   });
 
   it('returns error for mismatched passwords', () => {
     const errors = validateCreateWalletForm({
       password: 'password123',
       confirmPassword: 'password456',
-    }, mockT);
-    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordMismatch');
+  }, mockT);
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmWalletLockMismatch');
   });
 
   it('returns no error for matching passwords', () => {
@@ -198,7 +198,7 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for tip exceeding 50 chars', () => {
     const errors = validateCreateWalletForm({ tip: 'a'.repeat(51) }, mockT);
-    expect(errors.tip).toBe('onboarding:create.form.passwordTipTooLong');
+    expect(errors.tip).toBe('onboarding:create.form.walletLockTipTooLong');
   });
 
   it('returns no error for empty tip', () => {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PasswordInput, calculateStrength } from './password-input'
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
@@ -39,15 +39,15 @@ describe('PasswordInput', () => {
   it('toggles password visibility', async () => {
     renderWithProviders(<PasswordInput placeholder="Enter password" />)
     const input = screen.getByPlaceholderText('Enter password')
-    const toggleButton = screen.getByRole('button', { name: '显示密码' })
+    const toggleButton = screen.getByRole('button', { name: testI18n.t('a11y.showPassword') })
 
     expect(input).toHaveAttribute('type', 'password')
 
     await userEvent.click(toggleButton)
     expect(input).toHaveAttribute('type', 'text')
-    expect(screen.getByRole('button', { name: '隐藏密码' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: testI18n.t('a11y.hidePassword') })).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: '隐藏密码' }))
+    await userEvent.click(screen.getByRole('button', { name: testI18n.t('a11y.hidePassword') }))
     expect(input).toHaveAttribute('type', 'password')
   })
 
@@ -56,7 +56,7 @@ describe('PasswordInput', () => {
     const input = document.querySelector('input')!
 
     await userEvent.type(input, 'test')
-    expect(screen.getByText('密码强度：')).toBeInTheDocument()
+    expect(screen.getByText(/密码强度/)).toBeInTheDocument()
   })
 
   it('calls onChange handler', async () => {

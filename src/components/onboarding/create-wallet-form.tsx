@@ -77,23 +77,23 @@ export function validateCreateWalletForm(data: Partial<CreateWalletFormData>, t:
     errors.name = t('onboarding:create.form.walletNameTooLong');
   }
 
-  // Password validation: 8-30 chars, no whitespace
+  // Wallet lock validation: 8-30 chars, no whitespace
   const password = data.password ?? '';
   if (!password) {
-    errors.password = t('onboarding:create.form.passwordRequired');
+    errors.password = t('onboarding:create.form.walletLockRequired');
   } else if (password.length < 8) {
-    errors.password = t('onboarding:create.form.passwordTooShort');
+    errors.password = t('onboarding:create.form.walletLockTooShort');
   } else if (password.length > 30) {
-    errors.password = t('onboarding:create.form.passwordTooLong');
+    errors.password = t('onboarding:create.form.walletLockTooLong');
   } else if (/\s/.test(password)) {
-    errors.password = t('onboarding:create.form.passwordNoSpaces');
+    errors.password = t('onboarding:create.form.walletLockNoSpaces');
   }
 
-  // Confirm password validation
+  // Confirm wallet lock validation
   if (!data.confirmPassword) {
-    errors.confirmPassword = t('onboarding:create.form.confirmPasswordRequired');
+    errors.confirmPassword = t('onboarding:create.form.confirmWalletLockRequired');
   } else if (data.confirmPassword !== data.password) {
-    errors.confirmPassword = t('onboarding:create.form.confirmPasswordMismatch');
+    errors.confirmPassword = t('onboarding:create.form.confirmWalletLockMismatch');
   }
 
   // Tip validation: max 50 chars (optional)

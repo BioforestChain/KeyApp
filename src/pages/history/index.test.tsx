@@ -146,7 +146,8 @@ describe('TransactionHistoryPage', () => {
       renderWithProviders(<TransactionHistoryPage />)
 
       const chainSelect = screen.getByLabelText('选择链')
-      await userEvent.selectOptions(chainSelect, 'ethereum')
+      await userEvent.click(chainSelect)
+      await userEvent.click(screen.getByText('Ethereum'))
 
       expect(mockSetFilter).toHaveBeenCalledWith({ chain: 'ethereum', period: 'all' })
     })
@@ -155,7 +156,8 @@ describe('TransactionHistoryPage', () => {
       renderWithProviders(<TransactionHistoryPage />)
 
       const periodSelect = screen.getByLabelText('选择时间段')
-      await userEvent.selectOptions(periodSelect, '7d')
+      await userEvent.click(periodSelect)
+      await userEvent.click(screen.getByText('7天'))
 
       expect(mockSetFilter).toHaveBeenCalledWith({ chain: 'all', period: '7d' })
     })

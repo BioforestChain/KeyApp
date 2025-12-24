@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 import { ArbitraryKeyInput } from './arbitrary-key-input'
 
 function renderWithProviders(ui: React.ReactElement) {
@@ -52,10 +52,10 @@ describe('ArbitraryKeyInput', () => {
     const user = userEvent.setup()
     renderWithProviders(<ArbitraryKeyInput value="abc" onChange={vi.fn()} />)
 
-    const showBtn = screen.getByRole('button', { name: '显示密码' })
+    const showBtn = screen.getByRole('button', { name: testI18n.t('common:a11y.showPassword') })
     await user.click(showBtn)
 
-    expect(screen.getByRole('button', { name: '隐藏密码' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: testI18n.t('common:a11y.hidePassword') })).toBeInTheDocument()
   })
 
   it('shows hint when empty', () => {

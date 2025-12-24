@@ -93,7 +93,7 @@ describe('TransactionItem', () => {
 
   it('renders swap type', () => {
     renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, type: 'exchange' }} />)
-    expect(screen.getByText('兑换')).toBeInTheDocument()
+    expect(screen.getByText('权益交换')).toBeInTheDocument()
   })
 
   it('formats recent timestamp', () => {

@@ -186,7 +186,7 @@ describe('TransactionDetailPage', () => {
   describe('Explorer Link', () => {
     it('has explorer button', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('区块浏览器')).toBeInTheDocument()
+      expect(screen.getByText('分享')).toBeInTheDocument()
     })
   })
 })
