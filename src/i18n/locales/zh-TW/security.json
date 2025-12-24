@@ -118,7 +118,8 @@
     "confirm": "確認",
     "defaultTitle": "驗證密碼",
     "placeholder": "請輸入密碼",
-    "verifying": "驗證中..."
+    "verifying": "驗證中...",
+    "error": "钱包锁密码错误"
   },
   "passwordError": "密碼錯誤",
   "passwordHint": "密碼提示",
@@ -128,24 +129,6 @@
   "passwordIsNotLessThanDigits": "密碼至少8個字符",
   "passwordLock": "密碼鎖",
   "passwordsCanNotBeTheSame": "不能與舊密碼相同",
-  "payPassword": {
-    "alreadySet": "[MISSING:zh-TW] 该地址已设置支付密码",
-    "confirmDesc": "[MISSING:zh-TW] 请再次输入支付密码以确认",
-    "confirmPlaceholder": "[MISSING:zh-TW] 请再次输入支付密码",
-    "feeInfo": "[MISSING:zh-TW] 设置支付密码需要支付网络手续费",
-    "inputDesc": "[MISSING:zh-TW] 请设置一个支付密码，用于保护您的转账安全",
-    "inputPlaceholder": "[MISSING:zh-TW] 请输入支付密码",
-    "notMatch": "[MISSING:zh-TW] 两次输入的密码不一致",
-    "notSet": "[MISSING:zh-TW] 未设置支付密码",
-    "setFailed": "[MISSING:zh-TW] 设置支付密码失败，请稍后重试",
-    "setPayPassword": "[MISSING:zh-TW] 设置支付密码",
-    "setSuccess": "[MISSING:zh-TW] 支付密码设置成功",
-    "setSuccessDesc": "[MISSING:zh-TW] 之后每次转账都需要输入支付密码进行验证",
-    "setTitle": "[MISSING:zh-TW] 设置支付密码",
-    "tooShort": "[MISSING:zh-TW] 支付密码至少6个字符",
-    "walletPasswordDesc": "[MISSING:zh-TW] 请输入钱包密码以确认设置",
-    "walletPasswordPlaceholder": "[MISSING:zh-TW] 请输入钱包密码"
-  },
   "pleaseBackupYourWalletNow": "請立即備份錢包",
   "pleaseEnterPassword": "請輸入密碼",
   "pleaseEnterPlaintextMnemonic": "請輸入明文助記詞",
@@ -196,5 +179,27 @@
   "youNeedToVerifyTheTransactionPasswordOfBeforeYouCanInitiateATransaction": "請驗證 交易密碼",
   "youNeedToVerifyTheTransactionPasswordOfBfchainBeforeYouCanInitiateATransaction": "請驗證 BFChain 交易密碼來發起轉帳",
   "yourMnemonic": "您的助記詞",
-  "{chain}TradingPassword": "交易密碼"
+  "{chain}TradingPassword": "交易密碼",
+  "twoStepSecret": {
+    "alreadySet": "[MISSING:zh-TW] 该地址已设置支付密码",
+    "confirmDesc": "[MISSING:zh-TW] 请再次输入支付密码以确认",
+    "confirmPlaceholder": "[MISSING:zh-TW] 请再次输入支付密码",
+    "feeInfo": "[MISSING:zh-TW] 设置支付密码需要支付网络手续费",
+    "inputDesc": "[MISSING:zh-TW] 请设置一个支付密码，用于保护您的转账安全",
+    "inputPlaceholder": "[MISSING:zh-TW] 请输入支付密码",
+    "notMatch": "[MISSING:zh-TW] 两次输入的密码不一致",
+    "notSet": "[MISSING:zh-TW] 未设置支付密码",
+    "setFailed": "[MISSING:zh-TW] 设置支付密码失败，请稍后重试",
+    "setup": "[MISSING:zh-TW] 设置支付密码",
+    "setSuccess": "[MISSING:zh-TW] 支付密码设置成功",
+    "setSuccessDesc": "[MISSING:zh-TW] 之后每次转账都需要输入支付密码进行验证",
+    "setTitle": "[MISSING:zh-TW] 设置支付密码",
+    "tooShort": "[MISSING:zh-TW] 支付密码至少6个字符",
+    "walletLockDesc": "[MISSING:zh-TW] 请输入钱包密码以确认设置",
+    "walletLockPlaceholder": "[MISSING:zh-TW] 请输入钱包密码",
+    "lengthHint": "建议至少6位",
+    "broadcastSuccess": "广播成功",
+    "waitingConfirm": "交易已广播，正在等待上链确认...",
+    "txConfirmed": "交易已上链"
+  }
 }

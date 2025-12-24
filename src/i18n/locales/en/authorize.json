@@ -47,8 +47,7 @@
   "button": {
     "approve": "Approve",
     "reject": "Reject",
-    "confirm": "Confirm with Password",
-    "sign": "Sign"
+    "confirm": "Confirm with Password"
   },
   "error": {
     "insufficientBalance": "Insufficient balance for this transaction",
