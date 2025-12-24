@@ -142,6 +142,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             <input
               ref={ref}
               type="text"
+              data-testid="address-input"
               value={currentValue}
               onChange={handleChange}
               onFocus={() => setFocused(true)}

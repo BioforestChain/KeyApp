@@ -62,6 +62,7 @@ function TransferConfirmJobContent() {
   }, []);
 
   const handleConfirm = useCallback(async () => {
+    console.log('[TransferConfirmJob] handleConfirm called, hasCallback:', !!pendingCallback);
     if (!pendingCallback || isConfirming) return;
 
     setIsConfirming(true);
@@ -70,7 +71,9 @@ function TransferConfirmJobContent() {
       const callback = pendingCallback;
       clearTransferConfirmCallback();
       pop();
+      console.log('[TransferConfirmJob] Executing callback...');
       await callback();
+      console.log('[TransferConfirmJob] Callback executed');
     } finally {
       setIsConfirming(false);
     }

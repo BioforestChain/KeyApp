@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setPasswordConfirmCallback, setPayPasswordConfirmCallback, setTransferConfirmCallback } from '@/stackflow/activities/sheets';
+import { setTransferConfirmCallback, setTransferPasswordCallback } from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
@@ -82,9 +82,6 @@ export function SendPage() {
     chainConfig,
   });
 
-  // Store wallet password for pay password flow
-  const walletPasswordRef = useRef<string>('');
-
   useEffect(() => {
     if (!defaultAsset) return;
     setAsset(defaultAsset);
@@ -147,44 +144,51 @@ export function SendPage() {
 
     haptics.impact('light');
 
-    // Set up callback chain: TransferConfirm -> PasswordConfirm -> Submit
+    // Set up callback: TransferConfirm -> TransferPassword (合并的钱包锁+安全密码)
     setTransferConfirmCallback(async () => {
       if (isPasswordSheetOpen.current) return;
       isPasswordSheetOpen.current = true;
 
       await haptics.impact('medium');
 
-      setPasswordConfirmCallback(async (password: string) => {
-        // Store password for potential pay password flow
-        walletPasswordRef.current = password;
-        
-        const result = await submit(password);
-        if (result.status === 'password') {
-          return false;
-        }
-        
-        // Handle pay password required
-        if (result.status === 'pay_password_required') {
-          // Show pay password dialog
-          setPayPasswordConfirmCallback(async (payPassword: string) => {
-            const payResult = await submitWithPayPassword(walletPasswordRef.current, payPassword);
-            if (payResult.status === 'ok') {
-              isPasswordSheetOpen.current = false;
-              return true;
-            }
-            return false;
-          });
+      // 使用合并的密码确认组件
+      setTransferPasswordCallback(async (walletPassword: string, payPassword?: string) => {
+        // 第一次调用：只有钱包密码
+        if (!payPassword) {
+          const result = await submit(walletPassword);
           
-          push('PayPasswordConfirmJob', {});
-          return true; // Close wallet password dialog
+          if (result.status === 'password') {
+            return { status: 'password' as const };
+          }
+          
+          if (result.status === 'pay_password_required') {
+            return { status: 'pay_password_required' as const };
+          }
+          
+          if (result.status === 'ok') {
+            isPasswordSheetOpen.current = false;
+            return { status: 'ok' as const, txHash: result.txHash };
+          }
+          
+          return { status: 'error' as const, message: '转账失败' };
         }
         
-        isPasswordSheetOpen.current = false;
-        // submit() sets state.step to 'result', Jobs will pop themselves
-        return true;
+        // 第二次调用：有钱包锁密码和安全密码
+        const result = await submitWithPayPassword(walletPassword, payPassword);
+        
+        if (result.status === 'ok') {
+          isPasswordSheetOpen.current = false;
+          return { status: 'ok' as const, txHash: result.txHash };
+        }
+        
+        if (result.status === 'password') {
+          return { status: 'pay_password_invalid' as const, message: '安全密码错误' };
+        }
+        
+        return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
       });
 
-      push('PasswordConfirmJob', {
+      push('TransferPasswordJob', {
         title: t('security:passwordConfirm.defaultTitle'),
       });
     });

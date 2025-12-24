@@ -53,7 +53,7 @@ export interface UseSendOptions {
 
 /** Submit result type */
 export type SubmitResult =
-  | { status: 'ok' }
+  | { status: 'ok'; txHash?: string }
   | { status: 'password' }
   | { status: 'pay_password_required'; secondPublicKey: string }
   | { status: 'error' }

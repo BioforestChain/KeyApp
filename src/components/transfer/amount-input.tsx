@@ -160,6 +160,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
               ref={ref}
               type="text"
               inputMode="decimal"
+              data-testid="amount-input"
               value={inputValue}
               onChange={handleChange}
               onFocus={() => setFocused(true)}
