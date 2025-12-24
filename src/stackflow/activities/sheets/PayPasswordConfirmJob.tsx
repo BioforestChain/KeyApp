@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
@@ -40,26 +40,32 @@ function PayPasswordConfirmJobContent() {
   const [payPassword, setPayPassword] = useState("");
   const [error, setError] = useState<string>();
   const [isVerifying, setIsVerifying] = useState(false);
+  
+  // Capture callback on mount and keep it throughout component lifecycle
+  const callbackRef = useRef<((payPassword: string) => Promise<boolean>) | null>(null);
+  const initialized = useRef(false);
+  
+  // Only capture on first mount (survives React Strict Mode double-mount)
+  if (!initialized.current && pendingCallback) {
+    callbackRef.current = pendingCallback;
+    clearPayPasswordConfirmCallback();
+    initialized.current = true;
+  }
 
   const displayTitle = title ?? t("transaction:sendPage.payPasswordTitle");
   const displayDescription = description ?? t("transaction:sendPage.payPasswordDescription");
 
-  useEffect(() => {
-    return () => {
-      clearPayPasswordConfirmCallback();
-    };
-  }, []);
-
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!payPassword.trim() || !pendingCallback) return;
+      const callback = callbackRef.current;
+      if (!payPassword.trim() || !callback) return;
 
       setIsVerifying(true);
       setError(undefined);
 
       try {
-        const success = await pendingCallback(payPassword);
+        const success = await callback(payPassword);
         if (success) {
           pop();
         } else {
@@ -77,7 +83,7 @@ function PayPasswordConfirmJobContent() {
   const canSubmit = payPassword.trim().length > 0 && !isVerifying;
 
   return (
-    <BottomSheet>
+    <BottomSheet data-testid="pay-password-dialog">
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -103,6 +109,7 @@ function PayPasswordConfirmJobContent() {
               placeholder={t("transaction:sendPage.payPasswordPlaceholder")}
               disabled={isVerifying}
               aria-describedby={error ? "pay-password-error" : undefined}
+              data-testid="pay-password-input"
             />
             {error && (
               <div id="pay-password-error" className="flex items-center gap-1.5 text-sm text-destructive">
@@ -116,6 +123,7 @@ function PayPasswordConfirmJobContent() {
             <button
               type="submit"
               disabled={!canSubmit}
+              data-testid="pay-password-confirm-button"
               className={cn(
                 "w-full rounded-full py-3 font-medium text-white transition-colors",
                 "bg-primary hover:bg-primary/90",

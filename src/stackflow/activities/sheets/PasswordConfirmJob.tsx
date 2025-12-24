@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,7 @@ export function setPasswordConfirmCallback(
 }
 
 /**
- * Clear the callback (called on unmount)
+ * Clear the callback
  */
 function clearPasswordConfirmCallback() {
   pendingCallback = null;
@@ -45,32 +45,46 @@ function PasswordConfirmJobContent() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
   const [isVerifying, setIsVerifying] = useState(false);
+  
+  // Capture callback on mount and keep it throughout component lifecycle
+  const callbackRef = useRef<((password: string) => Promise<boolean>) | null>(null);
+  const biometricCallbackRef = useRef<(() => Promise<boolean>) | null>(null);
+  const initialized = useRef(false);
+  
+  // Only capture on first mount (survives React Strict Mode double-mount)
+  if (!initialized.current && pendingCallback) {
+    callbackRef.current = pendingCallback;
+    biometricCallbackRef.current = pendingBiometricCallback;
+    clearPasswordConfirmCallback();
+    initialized.current = true;
+  }
 
   const displayTitle = title ?? t("passwordConfirm.defaultTitle");
-  const hasBiometric = biometricAvailable === "true" && pendingBiometricCallback;
-
-  useEffect(() => {
-    return () => {
-      clearPasswordConfirmCallback();
-    };
-  }, []);
+  const hasBiometric = biometricAvailable === "true" && biometricCallbackRef.current;
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!password.trim() || !pendingCallback) return;
+      const callback = callbackRef.current;
+      if (!password.trim() || !callback) {
+        return;
+      }
 
       setIsVerifying(true);
       setError(undefined);
 
       try {
-        const success = await pendingCallback(password);
+        console.log('[PasswordConfirmJob] Calling callback...');
+        const success = await callback(password);
+        console.log('[PasswordConfirmJob] Callback returned:', success);
         if (success) {
+          console.log('[PasswordConfirmJob] Calling pop()');
           pop();
         } else {
           setError(t("passwordConfirm.error"));
         }
-      } catch {
+      } catch (err) {
+        console.error('[PasswordConfirmJob] Error:', err);
         setError(t("passwordConfirm.error"));
       } finally {
         setIsVerifying(false);
@@ -80,13 +94,14 @@ function PasswordConfirmJobContent() {
   );
 
   const handleBiometric = useCallback(async () => {
-    if (!pendingBiometricCallback) return;
+    const biometricCallback = biometricCallbackRef.current;
+    if (!biometricCallback) return;
 
     setIsVerifying(true);
     setError(undefined);
 
     try {
-      const success = await pendingBiometricCallback();
+      const success = await biometricCallback();
       if (success) {
         pop();
       } else {
@@ -125,6 +140,7 @@ function PasswordConfirmJobContent() {
               placeholder={t("passwordConfirm.placeholder")}
               disabled={isVerifying}
               aria-describedby={error ? "password-error" : undefined}
+              data-testid="wallet-password-input"
             />
             {error && (
               <div id="password-error" className="flex items-center gap-1.5 text-sm text-destructive">
