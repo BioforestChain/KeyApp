@@ -60,9 +60,10 @@ describe('PasswordInput', () => {
     await userEvent.type(input, 'test')
     const strengthLabel = testI18n.t('common:passwordStrength')
     await waitFor(() => {
-      expect(
-        screen.getByText((_content, node) => node?.textContent?.includes(strengthLabel) ?? false),
-      ).toBeInTheDocument()
+      const matches = screen.getAllByText(
+        (_content, node) => node?.textContent?.includes(strengthLabel) ?? false,
+      )
+      expect(matches.length).toBeGreaterThan(0)
     })
   })
 
