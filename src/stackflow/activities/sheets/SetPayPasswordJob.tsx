@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
@@ -7,15 +7,16 @@ import { PasswordInput } from "@/components/security/password-input";
 import {
   IconAlertCircle as AlertCircle,
   IconLock as Lock,
-  IconCheck as Check,
   IconInfoCircle as InfoCircle,
 } from "@tabler/icons-react";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 import { Amount } from "@/types/amount";
+import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-status-display";
 
 // Global callback store for setting pay password
 let pendingCallback: ((newPayPassword: string, walletPassword: string) => Promise<{ success: boolean; txHash?: string; error?: string }>) | null = null;
+let checkConfirmedCallback: (() => Promise<boolean>) | null = null;
 let feeAmount: Amount | null = null;
 let feeSymbol: string = "";
 
@@ -24,9 +25,11 @@ let feeSymbol: string = "";
  */
 export function setSetPayPasswordCallback(
   onSubmit: (newPayPassword: string, walletPassword: string) => Promise<{ success: boolean; txHash?: string; error?: string }>,
-  fee?: { amount: Amount; symbol: string }
+  fee?: { amount: Amount; symbol: string },
+  checkConfirmed?: () => Promise<boolean>
 ) {
   pendingCallback = onSubmit;
+  checkConfirmedCallback = checkConfirmed ?? null;
   if (fee) {
     feeAmount = fee.amount;
     feeSymbol = fee.symbol;
@@ -38,6 +41,7 @@ export function setSetPayPasswordCallback(
  */
 function clearSetPayPasswordCallback() {
   pendingCallback = null;
+  checkConfirmedCallback = null;
   feeAmount = null;
   feeSymbol = "";
 }
@@ -57,25 +61,39 @@ function SetPayPasswordJobContent() {
   const [step, setStep] = useState<"input" | "confirm" | "password">("input");
   const [error, setError] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [txStatus, setTxStatus] = useState<TxStatus | "idle">("idle");
+  const [txHash, setTxHash] = useState<string>();
 
+  // 在组件挂载时捕获回调，避免 React Strict Mode 问题
+  const callbackRef = useRef(pendingCallback);
+  const checkConfirmedRef = useRef(checkConfirmedCallback);
+  const feeRef = useRef({ amount: feeAmount, symbol: feeSymbol });
+  
   useEffect(() => {
+    // 只在首次挂载时捕获，避免 Strict Mode 清除问题
+    if (pendingCallback && !callbackRef.current) {
+      callbackRef.current = pendingCallback;
+      checkConfirmedRef.current = checkConfirmedCallback;
+      feeRef.current = { amount: feeAmount, symbol: feeSymbol };
+    }
     return () => {
+      // 组件真正卸载时才清除模块级变量
       clearSetPayPasswordCallback();
     };
   }, []);
 
+  // 轮询检查由 TxStatusDisplay 组件处理
+
   const handleNextStep = useCallback(() => {
     setError(undefined);
     if (step === "input") {
-      if (newPayPassword.length < 6) {
-        setError(t("security:payPassword.tooShort"));
+      if (!newPayPassword.trim()) {
         return;
       }
       setStep("confirm");
     } else if (step === "confirm") {
       if (newPayPassword !== confirmPayPassword) {
-        setError(t("security:payPassword.notMatch"));
+        setError(t("security:twoStepSecret.notMatch"));
         return;
       }
       setStep("password");
@@ -85,48 +103,56 @@ function SetPayPasswordJobContent() {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!walletPassword.trim() || !pendingCallback) return;
+      const callback = callbackRef.current;
+      if (!walletPassword.trim() || !callback) return;
 
       setIsSubmitting(true);
+      setTxStatus("broadcasting");
       setError(undefined);
 
       try {
-        const result = await pendingCallback(newPayPassword, walletPassword);
+        const result = await callback(newPayPassword, walletPassword);
         if (result.success) {
-          setSuccess(true);
-          setTimeout(() => {
-            pop();
-          }, 1500);
+          setTxHash(result.txHash);
+          setTxStatus("broadcasted");
+          // 不自动关闭，让用户看到状态
         } else {
-          setError(result.error ?? t("security:payPassword.setFailed"));
+          setTxStatus("idle");
+          setError(result.error ?? t("security:twoStepSecret.setFailed"));
         }
-      } catch (err) {
-        setError(t("security:payPassword.setFailed"));
+      } catch {
+        setTxStatus("idle");
+        setError(t("security:twoStepSecret.setFailed"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [newPayPassword, walletPassword, pop, t]
+    [newPayPassword, walletPassword, t]
   );
 
   const canSubmit = step === "password" && walletPassword.trim().length > 0 && !isSubmitting;
 
-  if (success) {
+  // 广播成功后的状态显示
+  if (txStatus !== "idle") {
     return (
       <BottomSheet>
         <div className="bg-background rounded-t-2xl">
           <div className="flex justify-center py-3">
             <div className="h-1 w-10 rounded-full bg-muted" />
           </div>
-          <div className="flex flex-col items-center justify-center gap-4 p-8">
-            <div className="flex size-16 items-center justify-center rounded-full bg-green-100 text-green-600">
-              <Check className="size-8" />
-            </div>
-            <h2 className="text-lg font-semibold">{t("security:payPassword.setSuccess")}</h2>
-            <p className="text-center text-sm text-muted-foreground">
-              {t("security:payPassword.setSuccessDesc")}
-            </p>
-          </div>
+          <TxStatusDisplay
+            status={txStatus}
+            txHash={txHash}
+            title={{
+              confirmed: t("security:twoStepSecret.txConfirmed"),
+            }}
+            description={{
+              confirmed: t("security:twoStepSecret.setSuccessDesc"),
+            }}
+            checkConfirmed={checkConfirmedRef.current ?? undefined}
+            onStatusChange={setTxStatus}
+            onDone={() => pop()}
+          />
           <div className="h-[env(safe-area-inset-bottom)]" />
         </div>
       </BottomSheet>
@@ -135,7 +161,7 @@ function SetPayPasswordJobContent() {
 
   return (
     <BottomSheet>
-      <div className="bg-background rounded-t-2xl">
+      <div className="bg-background rounded-t-2xl" data-testid="set-pay-password-dialog">
         {/* Handle */}
         <div className="flex justify-center py-3">
           <div className="h-1 w-10 rounded-full bg-muted" />
@@ -146,7 +172,7 @@ function SetPayPasswordJobContent() {
           <div className="flex items-center justify-center gap-2">
             <Lock className="size-5 text-primary" />
             <h2 className="text-center text-lg font-semibold">
-              {t("security:payPassword.setTitle")}
+              {t("security:twoStepSecret.setTitle")}
             </h2>
           </div>
           {chainName && (
@@ -159,13 +185,13 @@ function SetPayPasswordJobContent() {
         {/* Content */}
         <form onSubmit={handleSubmit} className="space-y-6 p-4">
           {/* Fee info */}
-          {feeAmount && (
+          {feeRef.current.amount && (
             <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
               <InfoCircle className="mt-0.5 size-4 text-muted-foreground shrink-0" />
               <div className="text-sm text-muted-foreground">
-                <p>{t("security:payPassword.feeInfo")}</p>
+                <p>{t("security:twoStepSecret.feeInfo")}</p>
                 <p className="mt-1 font-medium text-foreground">
-                  {feeAmount.toDisplayString()} {feeSymbol}
+                  {feeRef.current.amount.toDisplayString()} {feeRef.current.symbol}
                 </p>
               </div>
             </div>
@@ -190,13 +216,14 @@ function SetPayPasswordJobContent() {
           {step === "input" && (
             <div className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                {t("security:payPassword.inputDesc")}
+                {t("security:twoStepSecret.inputDesc")}
               </p>
               <PasswordInput
                 value={newPayPassword}
                 onChange={(e) => setNewPayPassword(e.target.value)}
-                placeholder={t("security:payPassword.inputPlaceholder")}
+                placeholder={t("security:twoStepSecret.inputPlaceholder")}
                 aria-describedby={error ? "pay-password-error" : undefined}
+                data-testid="new-pay-password-input"
               />
             </div>
           )}
@@ -204,13 +231,14 @@ function SetPayPasswordJobContent() {
           {step === "confirm" && (
             <div className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                {t("security:payPassword.confirmDesc")}
+                {t("security:twoStepSecret.confirmDesc")}
               </p>
               <PasswordInput
                 value={confirmPayPassword}
                 onChange={(e) => setConfirmPayPassword(e.target.value)}
-                placeholder={t("security:payPassword.confirmPlaceholder")}
+                placeholder={t("security:twoStepSecret.confirmPlaceholder")}
                 aria-describedby={error ? "pay-password-error" : undefined}
+                data-testid="confirm-pay-password-input"
               />
             </div>
           )}
@@ -218,14 +246,15 @@ function SetPayPasswordJobContent() {
           {step === "password" && (
             <div className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                {t("security:payPassword.walletPasswordDesc")}
+                {t("security:twoStepSecret.walletLockDesc")}
               </p>
               <PasswordInput
                 value={walletPassword}
                 onChange={(e) => setWalletPassword(e.target.value)}
-                placeholder={t("security:payPassword.walletPasswordPlaceholder")}
+                placeholder={t("security:twoStepSecret.walletLockPlaceholder")}
                 disabled={isSubmitting}
                 aria-describedby={error ? "pay-password-error" : undefined}
+                data-testid="wallet-password-input"
               />
             </div>
           )}
@@ -242,24 +271,26 @@ function SetPayPasswordJobContent() {
               <button
                 type="button"
                 onClick={handleNextStep}
+                data-testid="set-pay-password-next-button"
                 className={cn(
                   "w-full rounded-full py-3 font-medium text-white transition-colors",
                   "bg-primary hover:bg-primary/90"
                 )}
               >
-                {t("common:buttons.next")}
+                {t("common:next")}
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={!canSubmit}
+                data-testid="set-pay-password-confirm-button"
                 className={cn(
                   "w-full rounded-full py-3 font-medium text-white transition-colors",
                   "bg-primary hover:bg-primary/90",
                   "disabled:cursor-not-allowed disabled:opacity-50"
                 )}
               >
-                {isSubmitting ? t("common:buttons.processing") : t("common:buttons.confirm")}
+                {isSubmitting ? t("common:loading") : t("common:confirm")}
               </button>
             )}
 
@@ -277,9 +308,10 @@ function SetPayPasswordJobContent() {
                 }
               }}
               disabled={isSubmitting}
+              data-testid="set-pay-password-cancel-button"
               className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              {step === "input" ? t("common:buttons.cancel") : t("common:buttons.back")}
+              {step === "input" ? t("common:cancel") : t("common:back")}
             </button>
           </div>
         </form>

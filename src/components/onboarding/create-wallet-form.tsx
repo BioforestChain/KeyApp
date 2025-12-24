@@ -98,7 +98,7 @@ export function validateCreateWalletForm(data: Partial<CreateWalletFormData>, t:
 
   // Tip validation: max 50 chars (optional)
   if (data.tip && data.tip.length > 50) {
-    errors.tip = t('onboarding:create.form.passwordTipTooLong');
+    errors.tip = t('onboarding:create.form.walletLockTipTooLong');
   }
 
   // Agreement validation
@@ -189,38 +189,38 @@ export function CreateWalletForm({
       </FormField>
 
       {/* Password */}
-      <FormField label={t('onboarding:create.passwordLabel')} required error={showError('password')}>
+      <FormField label={t('onboarding:create.walletLockLabel')} required error={showError('password')}>
         <PasswordInput
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={() => handleBlur('password')}
-          placeholder={t('onboarding:create.form.passwordPlaceholder')}
+          placeholder={t('onboarding:create.form.walletLockPlaceholder')}
           showStrength
           disabled={isSubmitting}
           aria-invalid={!!showError('password')}
         />
       </FormField>
 
-      {/* Confirm password */}
-      <FormField label={t('onboarding:create.confirmPasswordLabel')} required error={showError('confirmPassword')}>
+      {/* Confirm wallet lock */}
+      <FormField label={t('onboarding:create.confirmWalletLockLabel')} required error={showError('confirmPassword')}>
         <PasswordInput
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           onBlur={() => handleBlur('confirmPassword')}
-          placeholder={t('onboarding:create.form.confirmPasswordPlaceholder')}
+          placeholder={t('onboarding:create.form.confirmWalletLockPlaceholder')}
           disabled={isSubmitting}
           aria-invalid={!!showError('confirmPassword')}
         />
       </FormField>
 
       {/* Password tip */}
-      <FormField label={t('onboarding:create.form.passwordTip')} hint={t('onboarding:create.form.passwordTipHint')} error={showError('tip')}>
+      <FormField label={t('onboarding:create.form.walletLockTip')} hint={t('onboarding:create.form.walletLockTipHint')} error={showError('tip')}>
         <Input
           type="text"
           value={tip}
           onChange={(e) => setTip(e.target.value)}
           onBlur={() => handleBlur('tip')}
-          placeholder={t('onboarding:create.form.passwordTipPlaceholder')}
+          placeholder={t('onboarding:create.form.walletLockTipPlaceholder')}
           maxLength={50}
           disabled={isSubmitting}
         />

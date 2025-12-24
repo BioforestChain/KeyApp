@@ -97,9 +97,9 @@ export function SettingsPage() {
       case 'loading':
         return '...';
       case 'set':
-        return t('security:payPassword.alreadySet');
+        return t('security:twoStepSecret.alreadySet');
       case 'not_set':
-        return t('security:payPassword.notSet');
+        return t('security:twoStepSecret.notSet');
       default:
         return t('settings:notSupported');
     }
@@ -137,12 +137,25 @@ export function SettingsPage() {
           return { success: false, error: t('security:passwordConfirm.verifying') };
         } else if (result.status === 'already_set') {
           setPayPasswordStatus('set');
-          return { success: false, error: t('security:payPassword.alreadySet') };
+          return { success: false, error: t('security:twoStepSecret.alreadySet') };
         } else {
           return { success: false, error: result.message };
         }
       },
-      fee ?? undefined
+      fee ?? undefined,
+      // checkConfirmed callback - 检查交易是否上链
+      async () => {
+        const { getAddressInfo } = await import('@/services/bioforest-sdk');
+        const apiUrl = chainConfig.api?.url;
+        const apiPath = chainConfig.api?.path ?? chainConfig.id;
+        if (!apiUrl) return false;
+        try {
+          const info = await getAddressInfo(apiUrl, apiPath, bfmAddress.address);
+          return !!info.secondPublicKey;
+        } catch {
+          return false;
+        }
+      }
     );
 
     push('SetPayPasswordJob', { chainName: 'BioForest Chain' });
@@ -206,10 +219,11 @@ export function SettingsPage() {
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<ShieldLock size={20} />}
-            label={t('security:payPassword.setPayPassword')}
+            label={t('security:twoStepSecret.setup')}
             value={getPayPasswordStatusText()}
             onClick={handleSetPayPassword}
             disabled={payPasswordStatus === 'set' || payPasswordStatus === 'unavailable'}
+            testId="set-pay-password-button"
           />
         </SettingsSection>
 

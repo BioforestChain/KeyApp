@@ -99,7 +99,7 @@ export function useNavigation() {
       return;
     }
 
-    const params = { ...resolved.params, ...options.search };
+    const params = { ...resolved.params, ...(options.search ?? {}) };
 
     if (options.replace) {
       flow.replace(resolved.activity, params, { animate: true });

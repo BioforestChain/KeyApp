@@ -186,25 +186,25 @@ function PasswordStep({
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">{t('onboarding:create.setPassword')}</h2>
-        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.passwordDesc')}</p>
+        <h2 className="text-xl font-bold">{t('onboarding:create.setWalletLock')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.walletLockDesc')}</p>
       </div>
 
       <div className="space-y-4">
-        <FormField label={t('onboarding:create.passwordLabel')} hint={t('onboarding:create.passwordHint')}>
+        <FormField label={t('onboarding:create.walletLockLabel')} hint={t('onboarding:create.walletLockHint')}>
           <PasswordInput
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder={t('onboarding:create.passwordPlaceholder')}
+            placeholder={t('onboarding:create.walletLockPlaceholder')}
             showStrength
           />
         </FormField>
 
-        <FormField label={t('onboarding:create.confirmPasswordLabel')} error={passwordMismatch ? t('onboarding:create.passwordMismatch') : undefined}>
+        <FormField label={t('onboarding:create.confirmWalletLockLabel')} error={passwordMismatch ? t('onboarding:create.walletLockMismatch') : undefined}>
           <PasswordInput
             value={confirmPassword}
             onChange={(e) => onConfirmPasswordChange(e.target.value)}
-            placeholder={t('onboarding:create.confirmPasswordPlaceholder')}
+            placeholder={t('onboarding:create.confirmWalletLockPlaceholder')}
           />
         </FormField>
       </div>

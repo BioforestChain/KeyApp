@@ -54,10 +54,10 @@
     "scanSuccess": "Scan successful",
     "scanFailed": "Scan failed, please enter manually",
     "explorerNotImplemented": "Block explorer feature coming soon",
-    "payPasswordTitle": "Pay Password Required",
-    "payPasswordDescription": "This address has a pay password set. Please enter your pay password to confirm the transfer.",
-    "payPasswordPlaceholder": "Enter pay password",
-    "payPasswordError": "Incorrect pay password"
+    "payPasswordTitle": "Security Password Required",
+    "payPasswordDescription": "This address has a security password set. Please enter your security password to confirm the transfer.",
+    "payPasswordPlaceholder": "Enter security password",
+    "payPasswordError": "Incorrect security password"
   },
   "aboutFee": "About Fee",
   "amount": "Amount",
@@ -133,7 +133,8 @@
     "time": "Time",
     "title": "Transaction Details",
     "toAddress": "To Address",
-    "viewExplorer": "View in Explorer"
+    "viewExplorer": "View in Explorer",
+    "share": "Share"
   },
   "dpTransactionDetails": "DP Details",
   "easyTransfer": "Easy Transfer",
@@ -213,16 +214,45 @@
   "tronNetworkFeeLongTips_1": "The network fee will vary according to networksituation, once the transaction is confirmed, the fee cannot be refunded regardless of whether the transaction is successful or not.",
   "tronNetworkFeeLongTips_2": "The network fee is charged by the TRON network, and BFM Pay does not charge any fees !",
   "type": {
-    "approve": "Approve",
-    "receive": "Receive",
     "send": "Send",
+    "receive": "Receive",
+    "signature": "Set Security Password",
     "stake": "Stake",
-    "swap": "Swap",
-    "unstake": "Unstake"
+    "unstake": "Unstake",
+    "destroy": "Destroy",
+    "gift": "Gift",
+    "grab": "Accept Gift",
+    "trust": "Trust",
+    "signFor": "Sign For",
+    "emigrate": "Emigrate",
+    "immigrate": "Immigrate",
+    "exchange": "Exchange",
+    "issueAsset": "Issue Asset",
+    "increaseAsset": "Increase Asset",
+    "issueEntity": "Issue Entity",
+    "destroyEntity": "Destroy Entity",
+    "locationName": "Location Name",
+    "dapp": "DApp",
+    "certificate": "Certificate",
+    "mark": "Mark",
+    "other": "Other"
   },
   "unstake": "Unstake",
   "viewTransactionDetails": "[MISSING:en] 查看交易详情",
   "youFinallyReceive": "You finally receive",
   "youMustReceive_{asset}QuantityGreaterThan_0": "You must receive quantity greater than 0",
-  "{chainsymbol}IsNotEnoughToCoverFees": "is not enough to cover fees"
+  "{chainsymbol}IsNotEnoughToCoverFees": "is not enough to cover fees",
+  "txStatus": {
+    "broadcasting": "Broadcasting",
+    "broadcasted": "Broadcast Successful",
+    "confirming": "Awaiting Confirmation",
+    "confirmed": "Transaction Confirmed",
+    "failed": "Transaction Failed",
+    "broadcastingDesc": "Broadcasting transaction to the network...",
+    "broadcastedDesc": "Transaction broadcasted, awaiting block confirmation...",
+    "confirmingDesc": "Waiting for block confirmation...",
+    "confirmedDesc": "Transaction has been confirmed on chain",
+    "failedDesc": "Transaction failed, please try again later",
+    "viewDetails": "View Details"
+  }
 }

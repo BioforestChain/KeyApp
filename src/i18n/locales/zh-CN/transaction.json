@@ -54,10 +54,10 @@
     "scanSuccess": "扫描成功",
     "scanFailed": "扫描失败，请手动输入",
     "explorerNotImplemented": "区块浏览器功能待实现",
-    "payPasswordTitle": "需要支付密码",
-    "payPasswordDescription": "该地址已设置支付密码，请输入支付密码确认转账。",
-    "payPasswordPlaceholder": "输入支付密码",
-    "payPasswordError": "支付密码错误"
+    "payPasswordTitle": "需要安全密码",
+    "payPasswordDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
+    "payPasswordPlaceholder": "输入安全密码",
+    "payPasswordError": "安全密码错误"
   },
   "history": {
     "title": "交易记录",
@@ -87,15 +87,32 @@
     "hash": "交易哈希",
     "copied": "已复制",
     "copyHash": "复制哈希",
-    "viewExplorer": "区块浏览器"
+    "viewExplorer": "区块浏览器",
+    "share": "分享"
   },
   "type": {
     "send": "发送",
     "receive": "接收",
-    "swap": "兑换",
-    "stake": "质押",
-    "unstake": "解押",
-    "approve": "授权"
+    "signature": "设置安全密码",
+    "stake": "权益质押",
+    "unstake": "解除质押",
+    "destroy": "权益销毁",
+    "gift": "发起赠送",
+    "grab": "接受赠送",
+    "trust": "发起委托",
+    "signFor": "签收委托",
+    "emigrate": "权益迁出",
+    "immigrate": "权益迁入",
+    "exchange": "权益交换",
+    "issueAsset": "创建权益",
+    "increaseAsset": "增发权益",
+    "issueEntity": "创建资产",
+    "destroyEntity": "销毁资产",
+    "locationName": "位名操作",
+    "dapp": "DApp操作",
+    "certificate": "凭证操作",
+    "mark": "数据存证",
+    "other": "其他"
   },
   "status": {
     "confirmed": "已确认",
@@ -220,5 +237,18 @@
   "viewTransactionDetails": "查看交易详情",
   "youFinallyReceive": "本次赎回你实际得到",
   "youMustReceive_{asset}QuantityGreaterThan_0": "您得到 的数量必须大于0",
-  "{chainsymbol}IsNotEnoughToCoverFees": "用于支付矿工费的 余额不足"
+  "{chainsymbol}IsNotEnoughToCoverFees": "用于支付矿工费的 余额不足",
+  "txStatus": {
+    "broadcasting": "广播中",
+    "broadcasted": "广播成功",
+    "confirming": "等待上链",
+    "confirmed": "交易已上链",
+    "failed": "交易失败",
+    "broadcastingDesc": "正在将交易广播到网络...",
+    "broadcastedDesc": "交易已广播，等待区块确认...",
+    "confirmingDesc": "正在等待区块确认...",
+    "confirmedDesc": "交易已成功上链",
+    "failedDesc": "交易处理失败，请稍后重试",
+    "viewDetails": "查看详情"
+  }
 }

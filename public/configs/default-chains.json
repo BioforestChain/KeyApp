@@ -1,14 +1,127 @@
 [
-  { "id": "bfmeta", "version": "1.0", "type": "bioforest", "name": "BFMeta", "symbol": "BFM", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info", "explorerUrl": "https://explorer.bfmeta.io" },
-  { "id": "ccchain", "version": "1.0", "type": "bioforest", "name": "CCChain", "symbol": "CCC", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "pmchain", "version": "1.0", "type": "bioforest", "name": "PMChain", "symbol": "PMC", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "bfchainv2", "version": "1.0", "type": "bioforest", "name": "BFChain V2", "symbol": "BFT", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "btgmeta", "version": "1.0", "type": "bioforest", "name": "BTGMeta", "symbol": "BTGM", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "biwmeta", "version": "1.0", "type": "bioforest", "name": "BIWMeta", "symbol": "BIW", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "ethmeta", "version": "1.0", "type": "bioforest", "name": "ETHMeta", "symbol": "ETHM", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "malibu", "version": "1.0", "type": "bioforest", "name": "Malibu", "symbol": "MLB", "prefix": "b", "decimals": 8, "rpcUrl": "https://walletapi.bfmeta.info" },
-  { "id": "ethereum", "version": "1.0", "type": "evm", "name": "Ethereum", "symbol": "ETH", "decimals": 18, "rpcUrl": "https://eth.llamarpc.com", "explorerUrl": "https://etherscan.io" },
-  { "id": "binance", "version": "1.0", "type": "evm", "name": "BNB Smart Chain", "symbol": "BNB", "decimals": 18, "rpcUrl": "https://bsc-dataseed.binance.org", "explorerUrl": "https://bscscan.com" },
-  { "id": "tron", "version": "1.0", "type": "bip39", "name": "Tron", "symbol": "TRX", "decimals": 6, "rpcUrl": "https://api.trongrid.io", "explorerUrl": "https://tronscan.org" },
-  { "id": "bitcoin", "version": "1.0", "type": "bip39", "name": "Bitcoin", "symbol": "BTC", "decimals": 8, "explorerUrl": "https://mempool.space" }
+  {
+    "id": "bfmeta",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "BFMeta",
+    "symbol": "BFM",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "bfm" },
+    "explorer": {
+      "url": "https://tracker.bfmeta.org",
+      "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
+      "queryAddress": "https://tracker.bfmeta.org/#/info/address-details/:address",
+      "queryBlock": "https://tracker.bfmeta.org/#/info/block-details/:height"
+    }
+  },
+  {
+    "id": "ccchain",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "CCChain",
+    "symbol": "CCC",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "ccc" }
+  },
+  {
+    "id": "pmchain",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "PMChain",
+    "symbol": "PMC",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "pmc" }
+  },
+  {
+    "id": "bfchainv2",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "BFChain V2",
+    "symbol": "BFT",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "bft" }
+  },
+  {
+    "id": "btgmeta",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "BTGMeta",
+    "symbol": "BTGM",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "btgm" }
+  },
+  {
+    "id": "biwmeta",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "BIWMeta",
+    "symbol": "BIW",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "biw" }
+  },
+  {
+    "id": "ethmeta",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "ETHMeta",
+    "symbol": "ETHM",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "ethm" }
+  },
+  {
+    "id": "malibu",
+    "version": "1.0",
+    "type": "bioforest",
+    "name": "Malibu",
+    "symbol": "MLB",
+    "prefix": "b",
+    "decimals": 8,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "mlb" }
+  },
+  {
+    "id": "ethereum",
+    "version": "1.0",
+    "type": "evm",
+    "name": "Ethereum",
+    "symbol": "ETH",
+    "decimals": 18,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "eth" },
+    "explorer": { "url": "https://etherscan.io" }
+  },
+  {
+    "id": "binance",
+    "version": "1.0",
+    "type": "evm",
+    "name": "BNB Smart Chain",
+    "symbol": "BNB",
+    "decimals": 18,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "bnb" },
+    "explorer": { "url": "https://bscscan.com" }
+  },
+  {
+    "id": "tron",
+    "version": "1.0",
+    "type": "bip39",
+    "name": "Tron",
+    "symbol": "TRX",
+    "decimals": 6,
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "tron" },
+    "explorer": { "url": "https://tronscan.org" }
+  },
+  {
+    "id": "bitcoin",
+    "version": "1.0",
+    "type": "bip39",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "decimals": 8,
+    "explorer": { "url": "https://mempool.space" }
+  }
 ]

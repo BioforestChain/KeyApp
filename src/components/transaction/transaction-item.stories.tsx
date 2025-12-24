@@ -83,7 +83,7 @@ export const Swap: Story = {
   args: {
     transaction: {
       id: '5',
-      type: 'swap',
+      type: 'exchange',
       status: 'confirmed',
       amount: Amount.fromFormatted('100', 6, 'USDT'),
       symbol: 'USDT → ETH',
