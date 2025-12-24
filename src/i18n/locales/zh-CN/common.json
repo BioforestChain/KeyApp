@@ -7,7 +7,7 @@
   "balance": "余额",
   "exceedsBalance": "超出可用余额",
   "copiedToClipboard": "已复制到剪贴板",
-  "passwordStrength": "密码强度",
+  "passwordStrength": "强度",
   "a11y": {
     "skipToMain": "跳转到主要内容",
     "tabHome": "首页",
@@ -24,9 +24,9 @@
     "selectChain": "选择链",
     "selectPeriod": "选择时间段",
     "tokenDetails": "查看 {{token}} 详情",
-    "showPassword": "显示密码",
-    "hidePassword": "隐藏密码",
-    "passwordStrength": "密码强度：{{strength}}",
+    "showPassword": "显示",
+    "hidePassword": "隐藏",
+    "passwordStrength": "强度：{{strength}}",
     "closeDialog": "关闭弹窗",
     "invalidAddress": "无效的地址格式",
     "back": "返回",
@@ -296,5 +296,16 @@
     "deleteConfirm": "确定要删除联系人 \"{{name}}\" 吗？",
     "passwordError": "密码错误",
     "verifyFailed": "验证失败"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前",
+    "daysAgo": "{{count}} 天前",
+    "minutesLater": "{{count}} 分钟后",
+    "hoursLater": "{{count}} 小时后",
+    "daysLater": "{{count}} 天后",
+    "today": "今天",
+    "yesterday": "昨天"
   }
 }

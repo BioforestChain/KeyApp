@@ -11,7 +11,38 @@ import type { ChainType } from '@/stores'
 const AmountSchema = z.custom<Amount>((val) => val instanceof Amount)
 
 /** 交易类型 */
-export type TransactionType = 'send' | 'receive' | 'swap' | 'stake' | 'unstake'
+export type TransactionType =
+  // 基础转账
+  | 'send'
+  | 'receive'
+  // 安全
+  | 'signature'        // BSE-01 设置安全密码
+  // 权益操作
+  | 'stake'            // AST-12 权益质押
+  | 'unstake'          // AST-13 权益解除质押
+  | 'destroy'          // AST-03 权益销毁
+  | 'gift'             // AST-04 发起权益赠送
+  | 'grab'             // AST-05 接受权益赠送
+  | 'trust'            // AST-06 发起权益委托
+  | 'signFor'          // AST-07 签收权益委托
+  | 'emigrate'         // AST-08 权益迁出
+  | 'immigrate'        // AST-09 权益迁入
+  | 'exchange'         // AST-10/11 权益交换
+  // 资产发行
+  | 'issueAsset'       // AST-00 创建权益
+  | 'increaseAsset'    // AST-01 增发权益
+  // NFT
+  | 'issueEntity'      // ETY-02 创建非同质资产
+  | 'destroyEntity'    // ETY-03 销毁非同质资产
+  // 位名
+  | 'locationName'     // LNS-00 注册/注销位名
+  // DApp
+  | 'dapp'             // WOD-00/01/02 DApp相关
+  // 凭证
+  | 'certificate'      // CRT-00/01 凭证相关
+  // 其他
+  | 'mark'             // EXT-00 数据存证
+  | 'other'            // 其他未分类
 
 /** 交易状态 */
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed'
@@ -45,9 +76,17 @@ export interface TransactionFilter {
 
 // ==================== Zod Schemas (for API validation) ====================
 
+// All transaction types for validation
+const TransactionTypeEnum = z.enum([
+  'send', 'receive', 'signature', 'stake', 'unstake', 'destroy',
+  'gift', 'grab', 'trust', 'signFor', 'emigrate', 'immigrate', 'exchange',
+  'issueAsset', 'increaseAsset', 'issueEntity', 'destroyEntity',
+  'locationName', 'dapp', 'certificate', 'mark', 'other',
+])
+
 const TransactionRecordSchema = z.object({
   id: z.string(),
-  type: z.enum(['send', 'receive', 'swap', 'stake', 'unstake']),
+  type: TransactionTypeEnum,
   status: z.enum(['pending', 'confirmed', 'failed']),
   amount: AmountSchema,
   symbol: z.string(),
@@ -66,7 +105,7 @@ const TransactionRecordSchema = z.object({
 const TransactionFilterSchema = z.object({
   chain: z.string().optional(),
   period: z.enum(['7d', '30d', '90d', 'all']).optional(),
-  type: z.enum(['send', 'receive', 'swap', 'stake', 'unstake', 'all']).optional(),
+  type: TransactionTypeEnum.or(z.literal('all')).optional(),
   status: z.enum(['pending', 'confirmed', 'failed', 'all']).optional(),
 })
 

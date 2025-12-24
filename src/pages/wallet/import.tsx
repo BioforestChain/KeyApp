@@ -187,25 +187,25 @@ export function WalletImportPage() {
           <div className="space-y-6" data-testid="password-step">
             <div className="text-center">
               <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
-              <h2 className="text-xl font-bold">{t('import.setPassword')}</h2>
-              <p className="text-muted-foreground mt-2 text-sm">{t('import.setPasswordDesc')}</p>
+              <h2 className="text-xl font-bold">{t('import.setWalletLock')}</h2>
+              <p className="text-muted-foreground mt-2 text-sm">{t('import.walletLockDesc')}</p>
             </div>
 
             <div className="space-y-4">
-              <FormField label={t('import.passwordLabel')} hint={t('import.passwordHint')}>
+              <FormField label={t('import.walletLockLabel')} hint={t('import.walletLockHint')}>
                 <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('import.passwordPlaceholder')}
+                  placeholder={t('import.walletLockPlaceholder')}
                   showStrength
                 />
               </FormField>
 
-              <FormField label={t('import.confirmPasswordLabel')} error={passwordMismatch ? t('import.passwordMismatch') : undefined}>
+              <FormField label={t('import.confirmWalletLockLabel')} error={passwordMismatch ? t('import.walletLockMismatch') : undefined}>
                 <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t('import.confirmPasswordPlaceholder')}
+                  placeholder={t('import.confirmWalletLockPlaceholder')}
                 />
               </FormField>
             </div>

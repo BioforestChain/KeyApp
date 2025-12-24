@@ -3,20 +3,76 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
   IconCopy as Copy,
-  IconExternalLink as ExternalLink,
   IconCheck as Check,
-  IconClock as Clock,
-  IconCircleX as XCircle,
+  IconShare as Share,
+  IconArrowUp,
+  IconArrowDown,
+  IconArrowsExchange,
+  IconLock,
+  IconLockOpen,
+  IconShieldLock,
+  IconFlame,
+  IconGift,
+  IconHandGrab,
+  IconUserShare,
+  IconSignature,
+  IconLogout,
+  IconLogin,
+  IconSparkles,
+  IconCoins,
+  IconDiamond,
+  IconTrash,
+  IconMapPin,
+  IconApps,
+  IconCertificate,
+  IconFileText,
+  IconDots,
 } from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
-import { useTransactionHistory, type TransactionRecord } from '@/hooks/use-transaction-history';
+import { SkeletonCard } from '@/components/common/skeleton';
+import { useTransactionHistoryQuery, type TransactionRecord } from '@/queries';
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
+import type { TransactionType } from '@/components/transaction/transaction-item';
+
+// 交易类型图标和颜色配置
+const typeConfig: Record<TransactionType, { Icon: Icon; color: string; bg: string }> = {
+  // 资产流出 - 红橙色
+  send:          { Icon: IconArrowUp,       color: 'text-tx-out', bg: 'bg-tx-out/10' },
+  destroy:       { Icon: IconFlame,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
+  emigrate:      { Icon: IconLogout,        color: 'text-tx-out', bg: 'bg-tx-out/10' },
+  destroyEntity: { Icon: IconTrash,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
+  // 资产流入 - 绿色
+  receive:       { Icon: IconArrowDown,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
+  grab:          { Icon: IconHandGrab,      color: 'text-tx-in', bg: 'bg-tx-in/10' },
+  immigrate:     { Icon: IconLogin,         color: 'text-tx-in', bg: 'bg-tx-in/10' },
+  signFor:       { Icon: IconSignature,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
+  // 交换 - 蓝色
+  exchange:      { Icon: IconArrowsExchange, color: 'text-tx-exchange', bg: 'bg-tx-exchange/10' },
+  // 质押/委托 - 紫色
+  stake:         { Icon: IconLock,          color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
+  unstake:       { Icon: IconLockOpen,      color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
+  trust:         { Icon: IconUserShare,     color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
+  // 安全 - 青色
+  signature:     { Icon: IconShieldLock,    color: 'text-tx-security', bg: 'bg-tx-security/10' },
+  // 创建/发行 - 橙色
+  gift:          { Icon: IconGift,          color: 'text-tx-create', bg: 'bg-tx-create/10' },
+  issueAsset:    { Icon: IconSparkles,      color: 'text-tx-create', bg: 'bg-tx-create/10' },
+  increaseAsset: { Icon: IconCoins,         color: 'text-tx-create', bg: 'bg-tx-create/10' },
+  issueEntity:   { Icon: IconDiamond,       color: 'text-tx-create', bg: 'bg-tx-create/10' },
+  // 系统操作 - 灰蓝色
+  locationName:  { Icon: IconMapPin,        color: 'text-tx-system', bg: 'bg-tx-system/10' },
+  dapp:          { Icon: IconApps,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
+  certificate:   { Icon: IconCertificate,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
+  mark:          { Icon: IconFileText,      color: 'text-tx-system', bg: 'bg-tx-system/10' },
+  other:         { Icon: IconDots,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
+};
 
 /** 状态映射 (TransactionInfo.status -> TransactionStatusType) */
 const STATUS_MAP: Record<string, 'success' | 'failed' | 'pending'> = {
@@ -25,21 +81,13 @@ const STATUS_MAP: Record<string, 'success' | 'failed' | 'pending'> = {
   failed: 'failed',
 };
 
-/** 链浏览器 URL 映射 */
-const EXPLORER_URLS: Record<string, string> = {
-  ethereum: 'https://etherscan.io/tx/',
-  tron: 'https://tronscan.org/#/transaction/',
-  bitcoin: 'https://blockstream.info/tx/',
-  binance: 'https://bscscan.com/tx/',
-};
-
 export function TransactionDetailPage() {
   const { t } = useTranslation('transaction');
   const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
   const chainConfigState = useChainConfigState();
-  const { transactions } = useTransactionHistory(currentWallet?.id);
+  const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
   const [copied, setCopied] = useState(false);
 
@@ -47,6 +95,19 @@ export function TransactionDetailPage() {
   const transaction = useMemo<TransactionRecord | undefined>(() => {
     return transactions.find((tx) => tx.id === txId);
   }, [transactions, txId]);
+
+  // 获取链配置（用于构建浏览器 URL）
+  const chainConfig = useMemo(() => {
+    if (!transaction?.chain) return null;
+    return chainConfigSelectors.getChainById(chainConfigState, transaction.chain);
+  }, [chainConfigState, transaction?.chain]);
+
+  // 构建交易浏览器 URL（没有配置则返回 null）
+  const explorerTxUrl = useMemo(() => {
+    const queryTx = chainConfig?.explorer?.queryTx;
+    if (!queryTx || !transaction?.hash) return null;
+    return queryTx.replace(':signature', transaction.hash);
+  }, [transaction?.hash, chainConfig?.explorer?.queryTx]);
 
   // 复制交易哈希
   const handleCopyHash = useCallback(async () => {
@@ -57,16 +118,14 @@ export function TransactionDetailPage() {
     }
   }, [transaction?.hash]);
 
-  // 在浏览器中查看
-  const handleViewExplorer = useCallback(() => {
-    if (transaction?.hash && transaction?.chain) {
-      const config = chainConfigSelectors.getChainById(chainConfigState, transaction.chain);
-      const baseUrl = config?.explorerUrl ?? EXPLORER_URLS[transaction.chain];
-      if (baseUrl) {
-        window.open(baseUrl + transaction.hash, '_blank');
-      }
-    }
-  }, [chainConfigState, transaction]);
+  // 分享（复制浏览器链接）
+  const [shared, setShared] = useState(false);
+  const handleShare = useCallback(async () => {
+    if (!explorerTxUrl) return;
+    await clipboardService.write({ text: explorerTxUrl });
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
+  }, [explorerTxUrl]);
 
   // 返回
   const handleBack = useCallback(() => {
@@ -85,6 +144,20 @@ export function TransactionDetailPage() {
     );
   }
 
+  // 加载中
+  if (isLoading) {
+    return (
+      <div className="bg-muted/30 flex min-h-screen flex-col">
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <div className="flex-1 space-y-4 p-4">
+          <SkeletonCard className="h-48" />
+          <SkeletonCard className="h-64" />
+          <SkeletonCard className="h-32" />
+        </div>
+      </div>
+    );
+  }
+
   // 交易未找到
   if (!transaction) {
     return (
@@ -97,11 +170,10 @@ export function TransactionDetailPage() {
     );
   }
 
-  const statusIcon = {
-    pending: <Clock className="size-8 text-yellow-500" />,
-    confirmed: <Check className="text-secondary size-8" />,
-    failed: <XCircle className="text-destructive size-8" />,
-  }[transaction.status];
+  // 获取交易类型配置
+  const txType = transaction.type as TransactionType;
+  const config = typeConfig[txType] || typeConfig.other;
+  const TxIcon = config.Icon;
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -110,15 +182,8 @@ export function TransactionDetailPage() {
       <div className="flex-1 space-y-4 p-4">
         {/* 状态头 */}
         <div className="bg-card flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm">
-          <div
-            className={cn(
-              'flex size-16 items-center justify-center rounded-full',
-              transaction.status === 'pending' && 'bg-yellow-500/10',
-              transaction.status === 'confirmed' && 'bg-secondary/10',
-              transaction.status === 'failed' && 'bg-destructive/10',
-            )}
-          >
-            {statusIcon}
+          <div className={cn('flex size-16 items-center justify-center rounded-full', config.bg)}>
+            <TxIcon className={cn('size-8', config.color)} />
           </div>
 
           <div className="text-center">
@@ -127,9 +192,10 @@ export function TransactionDetailPage() {
               value={transaction.type === 'send' ? -Math.abs(transaction.amount.toNumber()) : transaction.amount.toNumber()}
               symbol={transaction.symbol}
               sign="always"
-              color="auto"
-              weight="bold"
+              color="default"
+              weight="normal"
               size="xl"
+              className={config.color}
             />
           </div>
 
@@ -234,15 +300,26 @@ export function TransactionDetailPage() {
               </button>
 
               <button
-                onClick={handleViewExplorer}
+                onClick={handleShare}
+                disabled={!explorerTxUrl}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5',
                   'bg-background border transition-colors',
                   'hover:bg-muted active:bg-muted/80',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
                 )}
               >
-                <ExternalLink className="size-4" />
-                <span className="text-sm">{t('detail.viewExplorer')}</span>
+                {shared ? (
+                  <>
+                    <Check className="text-secondary size-4" />
+                    <span className="text-sm">{t('detail.copied')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Share className="size-4" />
+                    <span className="text-sm">{t('detail.share')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

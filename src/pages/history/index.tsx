@@ -1,11 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTransactionHistoryQuery, type TransactionFilter } from '@/queries';
-import { useCurrentWallet, useEnabledChains } from '@/stores';
+import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
 import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
@@ -22,6 +23,7 @@ export function TransactionHistoryPage() {
   const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const enabledChains = useEnabledChains();
+  const selectedChain = useSelectedChain();
   const { t } = useTranslation(['transaction', 'common']);
   // 使用 TanStack Query 管理交易历史
   const { transactions, isLoading, isFetching, filter, setFilter, refresh } = useTransactionHistoryQuery(currentWallet?.id);
@@ -33,9 +35,20 @@ export function TransactionHistoryPage() {
     })),
   ];
 
+  // 初始化时设置默认过滤器为当前选中的网络
+  useEffect(() => {
+    if (selectedChain && filter.chain !== selectedChain) {
+      setFilter({ ...filter, chain: selectedChain });
+    }
+  }, []);
+
   // 处理交易点击 - 导航到详情页
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
+      if (!tx.id) {
+        console.warn('[TransactionHistory] Transaction has no id:', tx);
+        return;
+      }
       navigate({ to: `/transaction/${tx.id}` });
     },
     [navigate],
@@ -96,38 +109,38 @@ export function TransactionHistoryPage() {
           <Filter className="text-muted-foreground size-4" />
 
           {/* 链选择器 */}
-          <select
+          <Select
             value={filter.chain || 'all'}
-            onChange={(e) => handleChainChange(e.target.value as ChainType | 'all')}
-            className={cn(
-              'bg-background rounded-lg border px-3 py-1.5 text-sm',
-              'focus:ring-primary/20 focus:ring-2 focus:outline-none',
-            )}
-            aria-label={t('common:a11y.selectChain')}
+            onValueChange={(value) => handleChainChange(value as ChainType | 'all')}
           >
-            {chainOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.labelKey ? t(option.labelKey) : option.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" aria-label={t('common:a11y.selectChain')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {chainOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.labelKey ? t(option.labelKey) : option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* 时间段选择器 */}
-          <select
+          <Select
             value={filter.period || 'all'}
-            onChange={(e) => handlePeriodChange(e.target.value as TransactionFilter['period'])}
-            className={cn(
-              'bg-background rounded-lg border px-3 py-1.5 text-sm',
-              'focus:ring-primary/20 focus:ring-2 focus:outline-none',
-            )}
-            aria-label={t('common:a11y.selectPeriod')}
+            onValueChange={(value) => handlePeriodChange(value as TransactionFilter['period'])}
           >
-            {PERIOD_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" aria-label={t('common:a11y.selectPeriod')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PERIOD_OPTIONS.map((option) => (
+                <SelectItem key={option.value ?? 'all'} value={option.value ?? 'all'}>
+                  {t(option.labelKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* 结果统计 */}

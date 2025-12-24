@@ -30,9 +30,10 @@ export function canProceedToConfirm(options: {
   amount: Amount | null
   asset: AssetInfo | null
   isBioforestChain: boolean
+  feeLoading?: boolean
 }): boolean {
-  const { toAddress, amount, asset, isBioforestChain } = options
-  if (!asset || !amount) return false
+  const { toAddress, amount, asset, isBioforestChain, feeLoading } = options
+  if (!asset || !amount || feeLoading) return false
 
   return (
     toAddress.trim() !== '' &&

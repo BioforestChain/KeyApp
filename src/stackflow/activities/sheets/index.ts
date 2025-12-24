@@ -10,3 +10,4 @@ export { ContactPickerJob } from "./ContactPickerJob";
 export { WalletAddJob } from "./WalletAddJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
+export { TransferPasswordJob, setTransferPasswordCallback } from "./TransferPasswordJob";

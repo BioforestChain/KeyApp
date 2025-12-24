@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TransactionItem, type TransactionInfo } from './transaction-item'
 import { Amount } from '@/types/amount'
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 
-// 包装组件以提供 i18n
+// Wrap with i18n provider
 function renderWithProvider(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
 }
@@ -21,9 +21,11 @@ const mockTransaction: TransactionInfo = {
 }
 
 describe('TransactionItem', () => {
+  const t = testI18n.t.bind(testI18n)
+
   it('renders transaction type label', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)
-    expect(screen.getByText('发送')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:type.send'))).toBeInTheDocument()
   })
 
   it('renders amount with correct sign for send', () => {
@@ -40,27 +42,27 @@ describe('TransactionItem', () => {
 
   it('shows address label', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)
-    expect(screen.getByText('至')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:toAddress'))).toBeInTheDocument()
   })
 
-  it('shows "从" for receive transactions', () => {
+  it('shows from label for receive transactions', () => {
     renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, type: 'receive' }} />)
-    expect(screen.getByText('从')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:fromAddress'))).toBeInTheDocument()
   })
 
   it('shows pending status', () => {
     renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, status: 'pending' }} />)
-    expect(screen.getByText('处理中')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:status.pending'))).toBeInTheDocument()
   })
 
   it('shows failed status', () => {
     renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, status: 'failed' }} />)
-    expect(screen.getByText('失败')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:status.failed'))).toBeInTheDocument()
   })
 
   it('does not show status for confirmed transactions', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)
-    expect(screen.queryByText('已确认')).not.toBeInTheDocument()
+    expect(screen.queryByText(t('transaction:status.confirmed'))).not.toBeInTheDocument()
   })
 
   it('calls onClick when clicked', async () => {
@@ -88,16 +90,16 @@ describe('TransactionItem', () => {
 
   it('renders receive icon', () => {
     renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, type: 'receive' }} />)
-    expect(screen.getByText('接收')).toBeInTheDocument()
+    expect(screen.getByText(t('transaction:type.receive'))).toBeInTheDocument()
   })
 
   it('renders swap type', () => {
-    renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, type: 'swap' }} />)
-    expect(screen.getByText('兑换')).toBeInTheDocument()
+    renderWithProvider(<TransactionItem transaction={{ ...mockTransaction, type: 'exchange' }} />)
+    expect(screen.getByText(t('transaction:type.exchange'))).toBeInTheDocument()
   })
 
   it('formats recent timestamp', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)
-    expect(screen.getByText('刚刚')).toBeInTheDocument()
+    expect(screen.getByText(t('time.justNow'))).toBeInTheDocument()
   })
 })

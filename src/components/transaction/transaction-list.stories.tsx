@@ -127,7 +127,7 @@ export const ManyTransactions: Story = {
       },
       {
         id: '8',
-        type: 'swap',
+        type: 'exchange',
         status: 'confirmed',
         amount: Amount.fromFormatted('500', 6, 'USDT'),
         symbol: 'USDT → ETH',

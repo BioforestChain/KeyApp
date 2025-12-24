@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Amount } from '@/types/amount'
 import { TransactionDetailPage } from './detail'
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 
 // Mock stackflow
 const mockNavigate = vi.fn()
@@ -50,10 +51,11 @@ const createMockTransaction = () => ({
   confirmations: 50,
 })
 
-vi.mock('@/hooks/use-transaction-history', () => ({
-  useTransactionHistory: () => ({
+vi.mock('@/queries', () => ({
+  useTransactionHistoryQuery: () => ({
     transactions: [createMockTransaction()],
     isLoading: false,
+    isFetching: false,
     error: undefined,
     filter: { chain: 'all', period: 'all' },
     setFilter: vi.fn(),
@@ -74,10 +76,21 @@ vi.mock('@/services/clipboard', () => ({
 }))
 
 function renderWithProviders(ui: React.ReactElement) {
-  return render(<TestI18nProvider>{ui}</TestI18nProvider>)
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <TestI18nProvider>{ui}</TestI18nProvider>
+    </QueryClientProvider>
+  )
 }
 
 describe('TransactionDetailPage', () => {
+  const t = testI18n.t.bind(testI18n)
+
   beforeEach(() => {
     vi.clearAllMocks()
     mockCurrentWallet = mockWallet
@@ -88,12 +101,12 @@ describe('TransactionDetailPage', () => {
   describe('Initial State', () => {
     it('renders page header', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('交易详情')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.title'))).toBeInTheDocument()
     })
 
     it('shows transaction type', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('发送')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:type.send'))).toBeInTheDocument()
     })
 
     it('shows transaction amount', () => {
@@ -103,24 +116,24 @@ describe('TransactionDetailPage', () => {
 
     it('shows transaction status', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('已确认')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:status.confirmed'))).toBeInTheDocument()
     })
 
     it('shows network', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('网络')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.network'))).toBeInTheDocument()
       expect(screen.getByText('ethereum')).toBeInTheDocument()
     })
 
     it('shows block number', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('区块高度')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.blockHeight'))).toBeInTheDocument()
       expect(screen.getByText('18,500,000')).toBeInTheDocument()
     })
 
     it('shows confirmations', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('确认数')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.confirmations'))).toBeInTheDocument()
       expect(screen.getByText('50')).toBeInTheDocument()
     })
   })
@@ -129,7 +142,7 @@ describe('TransactionDetailPage', () => {
     it('shows message when no wallet exists', () => {
       mockCurrentWallet = null
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('请先创建或导入钱包')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:history.noWallet'))).toBeInTheDocument()
     })
   })
 
@@ -137,7 +150,7 @@ describe('TransactionDetailPage', () => {
     it('shows message when transaction is not found', () => {
       mockTxId = 'non-existent-tx'
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('交易不存在或已过期')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.notFound'))).toBeInTheDocument()
     })
   })
 
@@ -145,7 +158,7 @@ describe('TransactionDetailPage', () => {
     it('copies hash to clipboard when button is clicked', async () => {
       renderWithProviders(<TransactionDetailPage />)
 
-      const copyButton = screen.getByText('复制哈希')
+      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
       await userEvent.click(copyButton)
 
       expect(mockClipboardWrite).toHaveBeenCalledWith({ text: createMockTransaction().hash })
@@ -154,10 +167,10 @@ describe('TransactionDetailPage', () => {
     it('shows copied state after clicking', async () => {
       renderWithProviders(<TransactionDetailPage />)
 
-      const copyButton = screen.getByText('复制哈希')
+      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
       await userEvent.click(copyButton)
 
-      expect(screen.getByText('已复制')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.copied'))).toBeInTheDocument()
     })
   })
 
@@ -165,7 +178,7 @@ describe('TransactionDetailPage', () => {
     it('navigates back when back button is clicked', async () => {
       renderWithProviders(<TransactionDetailPage />)
 
-      const backButton = screen.getByRole('button', { name: /返回/i })
+      const backButton = screen.getByRole('button', { name: t('common:a11y.back') })
       await userEvent.click(backButton)
 
       expect(mockGoBack).toHaveBeenCalled()
@@ -175,7 +188,7 @@ describe('TransactionDetailPage', () => {
   describe('Explorer Link', () => {
     it('has explorer button', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('区块浏览器')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.share'))).toBeInTheDocument()
     })
   })
 })

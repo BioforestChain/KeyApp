@@ -2,13 +2,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateWalletForm, validateCreateWalletForm } from './create-wallet-form';
-import { TestI18nProvider } from '@/test/i18n-mock';
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock';
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>);
 }
 
 describe('CreateWalletForm', () => {
+  const t = testI18n.t.bind(testI18n);
+  const nameLabel = t('onboarding:create.form.walletName');
+  const namePlaceholder = t('onboarding:create.form.walletNamePlaceholder');
+  const walletLockPlaceholder = t('onboarding:create.form.walletLockPlaceholder');
+  const confirmWalletLockPlaceholder = t('onboarding:create.form.confirmWalletLockPlaceholder');
+  const walletLockTipPlaceholder = t('onboarding:create.form.walletLockTipPlaceholder');
+  const userAgreement = t('onboarding:create.form.userAgreement');
+  const createWalletLabel = t('onboarding:create.form.createWallet');
+  const creatingLabel = t('onboarding:create.form.creating');
+  const mnemonicWords = t('onboarding:create.form.mnemonicWords');
+  const englishLabel = t('common:english');
+  const zhHansLabel = t('common:中文（简体）');
   const mockOnSubmit = vi.fn();
   const mockOnOpenMnemonicOptions = vi.fn();
 
@@ -19,19 +31,19 @@ describe('CreateWalletForm', () => {
   it('renders all form fields', () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
-    expect(screen.getByText('钱包名称')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('请输入钱包名称')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('8-30个字符，不能包含空格')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('请再次输入密码')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('可选')).toBeInTheDocument();
-    expect(screen.getByText(/用户协议/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '创建钱包' })).toBeInTheDocument();
+    expect(screen.getByText(nameLabel)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(namePlaceholder)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(walletLockPlaceholder)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(confirmWalletLockPlaceholder)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(walletLockTipPlaceholder)).toBeInTheDocument();
+    expect(screen.getByText(userAgreement)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: createWalletLabel })).toBeInTheDocument();
   });
 
   it('shows mnemonic options button with default values', () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
-    expect(screen.getByText('English · 12 词')).toBeInTheDocument();
+    expect(screen.getByText(`${englishLabel} · 12 ${mnemonicWords}`)).toBeInTheDocument();
   });
 
   it('shows custom mnemonic options', () => {
@@ -42,7 +54,7 @@ describe('CreateWalletForm', () => {
       />,
     );
 
-    expect(screen.getByText('中文（简体） · 24 词')).toBeInTheDocument();
+    expect(screen.getByText(`${zhHansLabel} · 24 ${mnemonicWords}`)).toBeInTheDocument();
   });
 
   it('calls onOpenMnemonicOptions when mnemonic button is clicked', async () => {
@@ -50,14 +62,14 @@ describe('CreateWalletForm', () => {
       <CreateWalletForm onSubmit={mockOnSubmit} onOpenMnemonicOptions={mockOnOpenMnemonicOptions} />,
     );
 
-    await userEvent.click(screen.getByText('English · 12 词'));
+    await userEvent.click(screen.getByText(`${englishLabel} · 12 ${mnemonicWords}`));
     expect(mockOnOpenMnemonicOptions).toHaveBeenCalledTimes(1);
   });
 
   it('shows name character counter', async () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
-    const nameInput = screen.getByPlaceholderText('请输入钱包名称');
+    const nameInput = screen.getByPlaceholderText(namePlaceholder);
     await userEvent.type(nameInput, '测试钱包');
 
     expect(screen.getByText('4/12')).toBeInTheDocument();
@@ -66,7 +78,7 @@ describe('CreateWalletForm', () => {
   it('disables submit button when form is invalid', () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} />);
 
-    const submitButton = screen.getByRole('button', { name: '创建钱包' });
+    const submitButton = screen.getByRole('button', { name: createWalletLabel });
     expect(submitButton).toBeDisabled();
   });
 
@@ -75,12 +87,12 @@ describe('CreateWalletForm', () => {
 
     const user = userEvent.setup();
 
-    await user.type(screen.getByPlaceholderText('请输入钱包名称'), 'MyWallet');
-    await user.type(screen.getByPlaceholderText('8-30个字符，不能包含空格'), 'password123');
-    await user.type(screen.getByPlaceholderText('请再次输入密码'), 'password123');
+    await user.type(screen.getByPlaceholderText(namePlaceholder), 'MyWallet');
+    await user.type(screen.getByPlaceholderText(walletLockPlaceholder), 'password123');
+    await user.type(screen.getByPlaceholderText(confirmWalletLockPlaceholder), 'password123');
     await user.click(screen.getByRole('checkbox'));
 
-    const submitButton = screen.getByRole('button', { name: '创建钱包' });
+    const submitButton = screen.getByRole('button', { name: createWalletLabel });
     expect(submitButton).toBeEnabled();
   });
 
@@ -94,12 +106,12 @@ describe('CreateWalletForm', () => {
 
     const user = userEvent.setup();
 
-    await user.type(screen.getByPlaceholderText('请输入钱包名称'), 'MyWallet');
-    await user.type(screen.getByPlaceholderText('8-30个字符，不能包含空格'), 'password123');
-    await user.type(screen.getByPlaceholderText('请再次输入密码'), 'password123');
-    await user.type(screen.getByPlaceholderText('可选'), 'hint');
+    await user.type(screen.getByPlaceholderText(namePlaceholder), 'MyWallet');
+    await user.type(screen.getByPlaceholderText(walletLockPlaceholder), 'password123');
+    await user.type(screen.getByPlaceholderText(confirmWalletLockPlaceholder), 'password123');
+    await user.type(screen.getByPlaceholderText(walletLockTipPlaceholder), 'hint');
     await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: '创建钱包' }));
+    await user.click(screen.getByRole('button', { name: createWalletLabel }));
 
     expect(mockOnSubmit).toHaveBeenCalledWith({
       name: 'MyWallet',
@@ -114,16 +126,16 @@ describe('CreateWalletForm', () => {
   it('shows submitting state', () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
 
-    expect(screen.getByRole('button', { name: '创建中...' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '创建中...' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: creatingLabel })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: creatingLabel })).toBeDisabled();
   });
 
   it('disables all inputs when submitting', () => {
     renderWithProviders(<CreateWalletForm onSubmit={mockOnSubmit} isSubmitting />);
 
-    expect(screen.getByPlaceholderText('请输入钱包名称')).toBeDisabled();
-    expect(screen.getByPlaceholderText('8-30个字符，不能包含空格')).toBeDisabled();
-    expect(screen.getByPlaceholderText('请再次输入密码')).toBeDisabled();
+    expect(screen.getByPlaceholderText(namePlaceholder)).toBeDisabled();
+    expect(screen.getByPlaceholderText(walletLockPlaceholder)).toBeDisabled();
+    expect(screen.getByPlaceholderText(confirmWalletLockPlaceholder)).toBeDisabled();
   });
 });
 
@@ -152,22 +164,22 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for empty password', () => {
     const errors = validateCreateWalletForm({ password: '' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordRequired');
+    expect(errors.password).toBe('onboarding:create.form.walletLockRequired');
   });
 
   it('returns error for password less than 8 chars', () => {
     const errors = validateCreateWalletForm({ password: 'short' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordTooShort');
+    expect(errors.password).toBe('onboarding:create.form.walletLockTooShort');
   });
 
   it('returns error for password more than 30 chars', () => {
     const errors = validateCreateWalletForm({ password: 'a'.repeat(31) }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordTooLong');
+    expect(errors.password).toBe('onboarding:create.form.walletLockTooLong');
   });
 
   it('returns error for password with whitespace', () => {
     const errors = validateCreateWalletForm({ password: 'pass word123' }, mockT);
-    expect(errors.password).toBe('onboarding:create.form.passwordNoSpaces');
+    expect(errors.password).toBe('onboarding:create.form.walletLockNoSpaces');
   });
 
   it('returns no error for valid password', () => {
@@ -177,15 +189,15 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for empty confirm password', () => {
     const errors = validateCreateWalletForm({ password: 'password123', confirmPassword: '' }, mockT);
-    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordRequired');
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmWalletLockRequired');
   });
 
   it('returns error for mismatched passwords', () => {
     const errors = validateCreateWalletForm({
       password: 'password123',
       confirmPassword: 'password456',
-    }, mockT);
-    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmPasswordMismatch');
+  }, mockT);
+    expect(errors.confirmPassword).toBe('onboarding:create.form.confirmWalletLockMismatch');
   });
 
   it('returns no error for matching passwords', () => {
@@ -198,7 +210,7 @@ describe('validateCreateWalletForm', () => {
 
   it('returns error for tip exceeding 50 chars', () => {
     const errors = validateCreateWalletForm({ tip: 'a'.repeat(51) }, mockT);
-    expect(errors.tip).toBe('onboarding:create.form.passwordTipTooLong');
+    expect(errors.tip).toBe('onboarding:create.form.walletLockTipTooLong');
   });
 
   it('returns no error for empty tip', () => {

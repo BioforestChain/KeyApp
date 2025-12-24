@@ -1,6 +1,10 @@
 /**
  * 链配置 Zod Schema
  *
+ * 设计原则：分离链属性与提供商配置
+ * - 链属性：id, type, name, symbol, prefix, decimals（链的固有属性）
+ * - 提供商配置：api, explorer（外部依赖，可替换）
+ *
  * 说明：
  * - `version` 使用 `major.minor`（例如 "1.0"）
  * - `type` 用于选择对应的链服务实现（bioforest/evm/bip39/custom）
@@ -17,8 +21,29 @@ export const ChainConfigTypeSchema = z.enum(['bioforest', 'evm', 'bip39', 'custo
 
 export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manual'])
 
+/** API 提供商配置（可替换的外部依赖） */
+export const ApiConfigSchema = z.object({
+  /** 提供商 base URL (e.g., https://walletapi.bfmeta.info) */
+  url: z.string().url(),
+  /** 该提供商对这条链的路径别名 (e.g., "bfm" for bfmeta) */
+  path: z.string().min(1).max(20),
+})
+
+/** 区块浏览器配置（可替换的外部依赖） */
+export const ExplorerConfigSchema = z.object({
+  /** 浏览器 URL (e.g., https://explorer.bfmeta.io) */
+  url: z.string().url(),
+  /** 交易查询 URL 模板 (e.g., https://tracker.bfmeta.org/#/info/event-details/:signature) */
+  queryTx: z.string().optional(),
+  /** 地址查询 URL 模板 (e.g., https://tracker.bfmeta.org/#/info/address-details/:address) */
+  queryAddress: z.string().optional(),
+  /** 区块查询 URL 模板 (e.g., https://tracker.bfmeta.org/#/info/block-details/:height) */
+  queryBlock: z.string().optional(),
+})
+
 export const ChainConfigSchema = z
   .object({
+    // ===== 链固有属性 =====
     id: z.string().regex(/^[a-z0-9-]+$/, 'id must match /^[a-z0-9-]+$/'),
     version: ChainConfigVersionSchema,
     type: ChainConfigTypeSchema,
@@ -27,11 +52,14 @@ export const ChainConfigSchema = z
     symbol: z.string().min(1).max(10),
     icon: z.string().min(1).optional(),
 
-    prefix: z.string().min(1).max(10).optional(),
+    prefix: z.string().min(1).max(10).optional(), // BioForest 特有
     decimals: z.number().int().min(0).max(18),
-    rpcUrl: z.string().url().optional(),
-    explorerUrl: z.string().url().optional(),
 
+    // ===== 提供商配置（外部依赖） =====
+    api: ApiConfigSchema.optional(),
+    explorer: ExplorerConfigSchema.optional(),
+
+    // ===== 运行时字段 =====
     enabled: z.boolean().default(true),
     source: ChainConfigSourceSchema.default('default'),
   })

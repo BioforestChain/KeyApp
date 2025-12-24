@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import commonjs from 'vite-plugin-commonjs'
 import { resolve } from 'node:path'
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 
@@ -22,6 +23,16 @@ const BASE_URL = process.env.VITE_BASE_URL ?? './'
 export default defineConfig({
   base: BASE_URL,
   plugins: [
+    commonjs({
+      filter(id) {
+        // Transform .cjs files to ESM
+        if (id.includes('.cjs')) {
+          console.log('[commonjs] transforming:', id)
+          return true
+        }
+        return false
+      }
+    }),
     react(),
     tailwindcss(),
     mockDevToolsPlugin(),
@@ -55,6 +66,13 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['buffer'],
+    // Force Vite to pre-bundle the CJS bundle file
+    esbuildOptions: {
+      loader: {
+        '.bundle.js': 'js',
+        '.cjs': 'js',
+      },
+    },
   },
   build: {
     // 确保资源路径使用相对路径

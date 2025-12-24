@@ -8,7 +8,6 @@
   "exceedsBalance": "Exceeds available balance",
   "copiedToClipboard": "Copied to clipboard",
   "passwordStrength": "Password strength",
-  "0.00": "0.00",
   "a11y": {
     "chainSelector": "Select blockchain network",
     "closeDialog": "Close dialog",
@@ -84,7 +83,6 @@
   "belongingAlbum": "Belonging album",
   "bgPrimary": "[MISSING:en] bg-primary",
   "bip39Index": "Index",
-  "bitcoin": "Bitcoin",
   "byContinuingToUseItYouAgreeToTheUserAgreement": "By continuing to use it, you agree to the 《User Agreement》",
   "cancel": "Cancel",
   "cardWorks": "[MISSING:en] card works!",
@@ -137,7 +135,6 @@
   "fillableMemo": "Fillable Memo",
   "finish": "[MISSING:en] 完成",
   "firstTimeToUse": "First time to use",
-  "flex": "flex",
   "freeze": "Freeze",
   "from": "From",
   "frozen": "Frozen",
@@ -159,8 +156,6 @@
   "initiateExchange": "Initiate exchange",
   "inputIsAnIllegalMenemonic": "[MISSING:en] 不是合法助记词，请重新输入",
   "loading": "Loading",
-  "m_0_0": "(m/&apos;/0&apos;/0&apos;)",
-  "m_0_0_0": "(m/&apos;/0&apos;/0&apos;/0/)",
   "makeSureNoOneElseIsAroundWhenBackingUp": "Make sure no one else is around when backing up",
   "manage": "Manage",
   "me": "Me",
@@ -301,5 +296,16 @@
     "deleteConfirm": "Are you sure you want to delete contact \"{{name}}\"?",
     "passwordError": "Incorrect password",
     "verifyFailed": "Verification failed"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} hr ago",
+    "daysAgo": "{{count}} days ago",
+    "minutesLater": "In {{count}} min",
+    "hoursLater": "In {{count}} hr",
+    "daysLater": "In {{count}} days",
+    "today": "Today",
+    "yesterday": "Yesterday"
   }
 }

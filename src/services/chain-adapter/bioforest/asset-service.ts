@@ -31,24 +31,16 @@ interface BioforestAddressAssetsResponse {
   }
 }
 
-/**
- * Chain ID to API path mapping (from mpay)
- * Most chains use their full ID as path, only BFMeta uses 'bfm'
- */
-const CHAIN_API_PATHS: Record<string, string> = {
-  bfmeta: 'bfm',
-  // All other chains use their chain ID as-is
-}
-
 export class BioforestAssetService implements IAssetService {
   private readonly config: ChainConfig
-  private readonly baseUrl: string
+  private readonly apiUrl: string
   private readonly apiPath: string
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.baseUrl = config.rpcUrl ?? ''
-    this.apiPath = CHAIN_API_PATHS[config.id] ?? config.id
+    // 使用提供商配置（外部依赖）
+    this.apiUrl = config.api?.url ?? ''
+    this.apiPath = config.api?.path ?? config.id
   }
 
   async getNativeBalance(address: Address): Promise<Balance> {
@@ -78,7 +70,7 @@ export class BioforestAssetService implements IAssetService {
   }
 
   async getTokenBalances(address: Address): Promise<Balance[]> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       // No RPC URL configured, return empty balance
       return [
         {
@@ -90,7 +82,7 @@ export class BioforestAssetService implements IAssetService {
 
     try {
       // mpay API: POST /wallet/{chainApiPath}/address/asset
-      const response = await fetch(`${this.baseUrl}/wallet/${this.apiPath}/address/asset`, {
+      const response = await fetch(`${this.apiUrl}/wallet/${this.apiPath}/address/asset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -372,34 +372,34 @@ export function OnboardingRecoverPage() {
 
       {step === 'password' && (
         <>
-          <PageHeader title={t('onboarding:recover.setPassword')} onBack={handleBack} />
+          <PageHeader title={t('onboarding:recover.setWalletLock')} onBack={handleBack} />
           <div data-testid="password-step" className="flex-1 p-4">
             <div className="space-y-5">
               <div className="text-muted-foreground space-y-1 text-sm">
-                <p>{t('onboarding:recover.passwordHint')}</p>
-                <p>{t('onboarding:recover.passwordRule')}</p>
+                <p>{t('onboarding:recover.walletLockHint')}</p>
+                <p>{t('onboarding:recover.walletLockRule')}</p>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('onboarding:recover.password')}</label>
+                  <label className="text-sm font-medium">{t('onboarding:recover.walletLock')}</label>
                   <PasswordInput
                     data-testid="password-input"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('onboarding:recover.passwordPlaceholder')}
+                    placeholder={t('onboarding:recover.walletLockPlaceholder')}
                     showStrength
                     disabled={isSubmitting}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('onboarding:recover.confirmPassword')}</label>
+                  <label className="text-sm font-medium">{t('onboarding:recover.confirmWalletLock')}</label>
                   <PasswordInput
                     data-testid="confirm-password-input"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t('onboarding:recover.confirmPlaceholder')}
+                    placeholder={t('onboarding:recover.confirmWalletLockPlaceholder')}
                     disabled={isSubmitting}
                   />
                 </div>

@@ -1,5 +1,4 @@
-// ESM wrapper for CommonJS bundle
-// Vite handles CommonJS-to-ESM conversion automatically
-import bundle from './bioforest-chain-bundle.cjs'
+// ESM bundle (converted from CJS via esbuild)
+import bundle from './bioforest-chain-bundle.esm.js'
 export const setup = bundle.setup
 export default bundle

@@ -126,8 +126,8 @@ export async function saveChainConfigs(options: {
       decimals: config.decimals,
       ...(config.icon !== undefined ? { icon: config.icon } : {}),
       ...(config.prefix !== undefined ? { prefix: config.prefix } : {}),
-      ...(config.rpcUrl !== undefined ? { rpcUrl: config.rpcUrl } : {}),
-      ...(config.explorerUrl !== undefined ? { explorerUrl: config.explorerUrl } : {}),
+      ...(config.api !== undefined ? { api: config.api } : {}),
+      ...(config.explorer !== undefined ? { explorer: config.explorer } : {}),
     }
 
     const record: ChainConfigRecord = {

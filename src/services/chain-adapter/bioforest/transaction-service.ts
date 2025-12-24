@@ -26,11 +26,14 @@ import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly config: ChainConfig
-  private readonly baseUrl: string
+  private readonly apiUrl: string
+  private readonly apiPath: string
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.baseUrl = config.rpcUrl ?? ''
+    // 使用提供商配置（外部依赖）
+    this.apiUrl = config.api?.url ?? ''
+    this.apiPath = config.api?.path ?? config.id
   }
 
   async estimateFee(params: TransferParams): Promise<FeeEstimate> {
@@ -42,13 +45,13 @@ export class BioforestTransactionService implements ITransactionService {
     })
 
     try {
-      if (!this.baseUrl) {
+      if (!this.apiUrl) {
         throw new Error('No RPC URL configured')
       }
 
       // Use SDK to calculate minimum fee (same as mpay)
       const core = await getBioforestCore(this.config.id)
-      const lastBlock = await getLastBlock(this.baseUrl, this.config.id)
+      const lastBlock = await getLastBlock(this.apiUrl, this.apiPath)
       
       const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({
         transaction: {
@@ -60,7 +63,7 @@ export class BioforestTransactionService implements ITransactionService {
           sourceChainName: await core.getChainName(),
           sourceChainMagic: await core.getMagic(),
           assetType: params.amount?.symbol ?? symbol,
-          amount: params.amount?.toRawString() ?? '99999999999999999',
+          amount: params.amount?.toRawString() ?? '0',
         },
       })
 
@@ -142,7 +145,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       throw new ChainServiceError(
         ChainErrorCodes.NETWORK_ERROR,
         'RPC URL not configured',
@@ -151,7 +154,7 @@ export class BioforestTransactionService implements ITransactionService {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/wallet/${this.config.id}/transactions/broadcast`,
+        `${this.apiUrl}/wallet/${this.apiPath}/transactions/broadcast`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -188,7 +191,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransactionStatus(hash: TransactionHash): Promise<TransactionStatus> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       return {
         status: 'pending',
         confirmations: 0,
@@ -198,7 +201,7 @@ export class BioforestTransactionService implements ITransactionService {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/wallet/${this.config.id}/transactions/query`,
+        `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -242,13 +245,13 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransaction(hash: TransactionHash): Promise<Transaction | null> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       return null
     }
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/wallet/${this.config.id}/transactions/query`,
+        `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -310,14 +313,14 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransactionHistory(address: Address, limit = 20): Promise<Transaction[]> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       console.warn('[TransactionService] No baseUrl configured for chain:', this.config.id)
       return []
     }
 
     try {
       // First get the latest block height
-      const lastBlockUrl = `${this.baseUrl}/wallet/${this.config.id}/lastblock`
+      const lastBlockUrl = `${this.apiUrl}/wallet/${this.apiPath}/lastblock`
       const blockResponse = await fetch(lastBlockUrl)
       if (!blockResponse.ok) {
         console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
@@ -331,7 +334,7 @@ export class BioforestTransactionService implements ITransactionService {
       const maxHeight = lastBlockJson.result.height
 
       // Query transactions using the correct API format
-      const queryUrl = `${this.baseUrl}/wallet/${this.config.id}/transactions/query`
+      const queryUrl = `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`
       const response = await fetch(queryUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -390,22 +393,22 @@ export class BioforestTransactionService implements ITransactionService {
 
       const { decimals, symbol } = this.config
 
+      // Show all transaction types for the address
       return transactions
-        .filter((item) => {
-          // Filter for transfer transactions
-          const txType = item.transaction.type
-          return txType.includes('AST-01') || txType.includes('AST-02') // TRANSFER_ASSET types
-        })
         .map((item) => {
           const tx = item.transaction
+          const txType = tx.type
           const transferAsset = tx.asset?.transferAsset
 
-          // Amount comes from transferAsset if available
-          const amountRaw = transferAsset?.amount ?? '0'
+          // Amount comes from transferAsset if available (for transfer types)
+          const amountRaw = transferAsset?.amount ?? tx.fee ?? '0'
           const assetSymbol = transferAsset?.assetType ?? symbol
 
+          // Use transaction signature as hash, fallback to block signature + index
+          const hash = tx.signature || `${item.signature}:${item.tIndex}`
+
           return {
-            hash: tx.signature,
+            hash,
             from: tx.senderId,
             to: tx.recipientId ?? '',
             amount: Amount.fromRaw(amountRaw, decimals, assetSymbol),
@@ -418,6 +421,7 @@ export class BioforestTransactionService implements ITransactionService {
             timestamp: tx.timestamp * 1000, // Convert to milliseconds
             blockNumber: BigInt(item.height),
             type: 'transfer' as const,
+            rawType: txType,  // Pass the original chain transaction type
           }
         })
     } catch (error) {

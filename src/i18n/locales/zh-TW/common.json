@@ -296,5 +296,16 @@
     "deleteConfirm": "確定要刪除聯繫人 \"{{name}}\" 嗎？",
     "passwordError": "密碼錯誤",
     "verifyFailed": "驗證失敗"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前",
+    "daysAgo": "{{count}} 天前",
+    "minutesLater": "{{count}} 分钟后",
+    "hoursLater": "{{count}} 小时后",
+    "daysLater": "{{count}} 天后",
+    "today": "今天",
+    "yesterday": "昨天"
   }
 }

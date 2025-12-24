@@ -10,11 +10,13 @@ import type { BioforestBlockInfo, BioforestFeeInfo } from './types'
 
 export class BioforestChainService implements IChainService {
   private readonly config: ChainConfig
-  private readonly baseUrl: string
+  private readonly apiUrl: string
+  private readonly apiPath: string
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.baseUrl = config.rpcUrl ?? ''
+    this.apiUrl = config.api?.url ?? ''
+    this.apiPath = config.api?.path ?? config.id
   }
 
   getChainInfo(): ChainInfo {
@@ -26,19 +28,19 @@ export class BioforestChainService implements IChainService {
       blockTime: 10, // BioForest ~10s block time
       confirmations: 1, // BioForest usually 1 confirmation is enough
     }
-    if (this.config.explorerUrl) {
-      info.explorerUrl = this.config.explorerUrl
+    if (this.config.explorer?.url) {
+      info.explorerUrl = this.config.explorer.url
     }
     return info
   }
 
   async getBlockHeight(): Promise<bigint> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       return 0n
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/wallet/${this.config.id}/lastblock`, {
+      const response = await fetch(`${this.apiUrl}/wallet/${this.apiPath}/lastblock`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -69,7 +71,7 @@ export class BioforestChainService implements IChainService {
   async getGasPrice(): Promise<GasPrice> {
     const { decimals, symbol } = this.config
 
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       // Return default fees - BioForest minimum is around 500 (0.000005 BFM)
       const defaultFee = Amount.fromRaw('1000', decimals, symbol) // 0.00001 BFM
       return {
@@ -81,7 +83,7 @@ export class BioforestChainService implements IChainService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/wallet/${this.config.id}/blockAveFee`, {
+      const response = await fetch(`${this.apiUrl}/wallet/${this.apiPath}/blockAveFee`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -127,7 +129,7 @@ export class BioforestChainService implements IChainService {
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    if (!this.baseUrl) {
+    if (!this.apiUrl) {
       return {
         isHealthy: false,
         latency: 0,
@@ -140,7 +142,7 @@ export class BioforestChainService implements IChainService {
     const startTime = Date.now()
 
     try {
-      const response = await fetch(`${this.baseUrl}/wallet/${this.config.id}/lastblock`, {
+      const response = await fetch(`${this.apiUrl}/wallet/${this.apiPath}/lastblock`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })

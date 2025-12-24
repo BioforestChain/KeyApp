@@ -58,15 +58,56 @@ function mapStatus(status: ChainTransaction['status']): TransactionStatus {
   return 'pending'
 }
 
-function mapType(tx: ChainTransaction, address: string): TransactionType {
+function mapType(tx: ChainTransaction, address: string, rawType?: string): TransactionType {
+  // Handle BioForest chain transaction types
+  if (rawType) {
+    // 安全
+    if (rawType.includes('BSE-01')) return 'signature'
+    // 权益操作
+    if (rawType.includes('AST-02')) return tx.from === address ? 'send' : 'receive'
+    if (rawType.includes('AST-03')) return 'destroy'
+    if (rawType.includes('AST-04')) return 'gift'
+    if (rawType.includes('AST-05')) return 'grab'
+    if (rawType.includes('AST-06')) return 'trust'
+    if (rawType.includes('AST-07')) return 'signFor'
+    if (rawType.includes('AST-08')) return 'emigrate'
+    if (rawType.includes('AST-09')) return 'immigrate'
+    if (rawType.includes('AST-10') || rawType.includes('AST-11')) return 'exchange'
+    if (rawType.includes('AST-12')) return 'stake'
+    if (rawType.includes('AST-13')) return 'unstake'
+    if (rawType.includes('AST-00')) return 'issueAsset'
+    if (rawType.includes('AST-01')) return 'increaseAsset'
+    // NFT
+    if (rawType.includes('ETY-02') || rawType.includes('ETY-04')) return 'issueEntity'
+    if (rawType.includes('ETY-03')) return 'destroyEntity'
+    if (rawType.includes('ETY-00') || rawType.includes('ETY-01')) return 'issueAsset'
+    // 任意资产
+    if (rawType.includes('ANY-00')) return tx.from === address ? 'send' : 'receive'
+    if (rawType.includes('ANY-01')) return 'gift'
+    if (rawType.includes('ANY-02')) return 'grab'
+    if (rawType.includes('ANY-03') || rawType.includes('ANY-04') ||
+        rawType.includes('ANY-05') || rawType.includes('ANY-06') ||
+        rawType.includes('ANY-07') || rawType.includes('ANY-08')) return 'exchange'
+    // 位名
+    if (rawType.includes('LNS-')) return 'locationName'
+    // DApp
+    if (rawType.includes('WOD-')) return 'dapp'
+    // 凭证
+    if (rawType.includes('CRT-')) return 'certificate'
+    // 数据存证
+    if (rawType.includes('EXT-00')) return 'mark'
+    // 其他 (MTP, PMS, MAC)
+    if (rawType.includes('MTP-') || rawType.includes('PMS-') || rawType.includes('MAC-')) return 'other'
+  }
   return tx.from === address ? 'send' : 'receive'
 }
 
 function mapChainTransaction(tx: ChainTransaction, config: ChainConfig, address: string): TransactionRecord {
-  const type = mapType(tx, address)
+  const type = mapType(tx, address, tx.rawType)
 
   return {
-    id: `${config.id}:${tx.hash}`,
+    // Use '--' as separator to avoid URL routing conflicts with ':'
+    id: `${config.id}--${tx.hash}`,
     type,
     status: mapStatus(tx.status),
     amount: tx.amount,

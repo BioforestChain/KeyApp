@@ -161,6 +161,15 @@
   --color-chain-pmchain: oklch(55% 0.2 280);
   --color-chain-ethmeta: oklch(55% 0.3 265);
 
+  /* 交易类型专属色 - 按类别归类 */
+  --color-tx-out: oklch(65% 0.22 25);            /* 红橙色 - 资产流出（发送、销毁、迁出） */
+  --color-tx-in: oklch(60% 0.18 145);            /* 绿色 - 资产流入（接收、接受赠送、迁入） */
+  --color-tx-exchange: oklch(55% 0.2 260);       /* 蓝色 - 交换、转移 */
+  --color-tx-lock: oklch(60% 0.2 290);           /* 紫色 - 质押、委托 */
+  --color-tx-security: oklch(55% 0.2 200);       /* 青色 - 安全、签名 */
+  --color-tx-create: oklch(65% 0.18 60);         /* 橙色 - 创建、发行 */
+  --color-tx-system: oklch(50% 0.08 260);        /* 灰蓝色 - 系统操作 */
+
   /* 渐变色 */
   --gradient-blue: linear-gradient(to bottom, oklch(85% 0.12 200), oklch(70% 0.15 220));
   --gradient-purple: linear-gradient(to bottom, oklch(75% 0.15 290), oklch(60% 0.2 280));

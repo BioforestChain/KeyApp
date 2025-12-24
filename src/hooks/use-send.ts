@@ -121,8 +121,9 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amount: state.amount,
       asset: state.asset,
       isBioforestChain,
+      feeLoading: state.feeLoading,
     })
-  }, [isBioforestChain, state.amount, state.asset, state.toAddress])
+  }, [isBioforestChain, state.amount, state.asset, state.toAddress, state.feeLoading])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
@@ -174,12 +175,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
+    console.log('[useSend.submit] Called with:', { useMock, chainType: chainConfig?.type, walletId, fromAddress })
+    
     if (useMock) {
+      console.log('[useSend.submit] Using mock transfer')
       const result = await submitMockTransfer(setState)
       return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
     }
 
     if (!chainConfig || chainConfig.type !== 'bioforest') {
+      console.log('[useSend.submit] Chain not supported:', chainConfig?.type)
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -283,7 +288,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const }
+    return { status: 'ok' as const, txHash: result.txHash }
   }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
   // Submit with pay password (for addresses with secondPublicKey)
@@ -352,7 +357,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: '支付密码验证失败',
+        errorMessage: '安全密码验证失败',
       }))
       return { status: 'error' as const }
     }
@@ -366,7 +371,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const }
+    return { status: 'ok' as const, txHash: result.txHash }
   }, [chainConfig, fromAddress, state.amount, state.toAddress, walletId])
 
   // Reset to initial state
