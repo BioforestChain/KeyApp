@@ -86,6 +86,7 @@ export async function checkPayPasswordRequired(
  * Verify pay password for an address
  */
 export async function verifyBioforestPayPassword(
+  chainConfig: ChainConfig,
   walletId: string,
   password: string,
   payPassword: string,
@@ -93,7 +94,7 @@ export async function verifyBioforestPayPassword(
 ): Promise<boolean> {
   try {
     const secret = await walletStorageService.getMnemonic(walletId, password)
-    const result = await verifyPayPassword(secret, payPassword, secondPublicKey)
+    const result = await verifyPayPassword(chainConfig.id, secret, payPassword, secondPublicKey)
     return result !== false
   } catch {
     return false
@@ -144,7 +145,7 @@ export async function submitBioforestTransfer({
 
     // Verify pay password if provided
     if (payPassword && addressInfo.secondPublicKey) {
-      const isValid = await verifyPayPassword(secret, payPassword, addressInfo.secondPublicKey)
+      const isValid = await verifyPayPassword(chainConfig.id, secret, payPassword, addressInfo.secondPublicKey)
       if (!isValid) {
         return { status: 'error', message: '支付密码验证失败' }
       }

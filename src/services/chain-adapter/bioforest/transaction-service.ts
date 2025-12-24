@@ -47,7 +47,7 @@ export class BioforestTransactionService implements ITransactionService {
       }
 
       // Use SDK to calculate minimum fee (same as mpay)
-      const core = await getBioforestCore()
+      const core = await getBioforestCore(this.config.id)
       const lastBlock = await getLastBlock(this.baseUrl, this.config.id)
       
       const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({

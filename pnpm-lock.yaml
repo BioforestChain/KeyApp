@@ -11,6 +11,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@bfchain/util':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@bfmeta/sign-util':
         specifier: ^1.3.10
         version: 1.3.10
@@ -529,6 +532,174 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@bfchain/util-aborter@5.0.0':
+    resolution: {integrity: sha512-w1F1aWAKwNx/hbDbkItJ6Kfov+KS5/yCHyGVeuPq6bq6fh4cn7TOBQxLTLDMfdYXwU+Ams8vkptPhxk6gPe66w==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-buffer@5.0.0':
+    resolution: {integrity: sha512-XfsEPIyZx/cHXdODiy5vbb3BuLelRAlISv0OoTWfpr1QY2KhmVhvBgX2pFvweX3JzOysf3mktw+3iSFFVskg1g==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-decorator@5.0.0':
+    resolution: {integrity: sha512-6vdVEibvxoiulNF995SW9WYmKtDcL3p6nZz2EpCK2J3Bhd8rn3qpbi/2V8rIlL0yL4YmEFHnkD2YNjpJdUnKXQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-deepcopy@5.0.0':
+    resolution: {integrity: sha512-/XYBG4nndPk+Bszemgi8As0bir6ZNs15tNK0jcGjQIxymxPSpzeCGAFG1a5/wgBSEkVjEEcUSe8TSgovShrNSw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-deepmix@5.0.0':
+    resolution: {integrity: sha512-/53TT+rmOKGnAhEM9FDWSOB0FCB5OpbZrT7jF/5R+HlwIHi+Eras8/ZRuuO8at/2a1O57zzcWoelbQP2w+ZUtQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-dep-inject@5.0.0':
+    resolution: {integrity: sha512-hK2+07fz2DVPB7lsFwnf+0TN3DF+eSJ3QcTwhDhNYPggx4RzGpzmxlJ2BJlnHdCRLTo6bJG1KmxIgdtyBbDEGw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-encoding-binary@5.0.0':
+    resolution: {integrity: sha512-i2rfq3EGUvUj8/DYAso1A9sCRuh8Xv253Uk9SoOLX1XLrW+rVwG8PW3qNMJCEMW/m8cSKCkVlboK9Nyy64WCZw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-encoding-hex@5.0.0':
+    resolution: {integrity: sha512-6bkJ61N2jLZOfbASmb4TQe9+U2APJRFMxOJJKwQVtXiMQybUkw/2euY2o4VKXsXWvacYdZhKTQgcRUO85i+tiA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-encoding-utf8@5.0.0':
+    resolution: {integrity: sha512-3HggkUnTr2QWItSUXR/DZHFJ6+wI7VpCcBDFkVuz5fhidwv3p/lNA26j4vnW/pANSm20y6IaRWbfbJb1j7I1BQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-env@5.0.0':
+    resolution: {integrity: sha512-U9S2J/F3DEp+U0T4wvQNFHVHtYAA1LyNqrtIONDi5sXIKQnAoVQ5M1Vr8HweEEERA07H9jt5Vi4ek4wOxDBn6w==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-event-base@5.0.0':
+    resolution: {integrity: sha512-cG4kqdhzwYccrYaLcr6HDBISgFBqXwiCEujvI5TcP4qSsd7XM1G31KZtMQn2ZG4ukeT6CDNNPqJNj34RKgZT8g==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-event-map-emitter@5.0.0':
+    resolution: {integrity: sha512-0zdmvv+R1oJR/eiHK2K+aLvEm65me9qsuQC/yKSLcno+KQ3XHIjxz3NfvVYI8AGneruHh0FFuhf+uIYSG1dE2w==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-event-quene-emitter@5.0.0':
+    resolution: {integrity: sha512-MK5d59Wksg28dbDmz4n4C5St9VgI4vza1iOaVUeYPtk+aYcqqtwmzleyMavMlNC+vYgPVLJGb+OVn2iFH7MJjw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-event@5.0.0':
+    resolution: {integrity: sha512-XEg2ilqy1osvU6ZMqIHmJNEHG9knk7zHedDDmGnbeRGbe7pI7Lt9uOeg1d1C20yHFHCMqlx3weXZsNIda8dXQw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-exception-error-code@5.0.0':
+    resolution: {integrity: sha512-B+9Njc3s0GQyQL4YLdZtciXWoPiBKumzdJCFyaz+98bKDG2UuDdwsxQhNJwbYrQp+01wtYqsy+2Pa4lJuK+eZg==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-exception-generator@5.0.0':
+    resolution: {integrity: sha512-UWf07tbEW1Gg18DABEiTRnMemGfi+BBUCdPI7yMnV4t1QxSYUo0iit9cQrjkmX3ndMuP+OiwU5MaZPj+Z5QIGQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-exception-logger@5.0.0':
+    resolution: {integrity: sha512-uFgnbqn1sPMTd2FvIrlSTsZEkvwdk5SL13lL+PuwiUzKfhXDnEp6JL8AWBbL56WX/RZiFfcynpuXiCg5N51etA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-exception@5.0.0':
+    resolution: {integrity: sha512-o6P3RMH5v6Pg7j5EnDmXRjd9z8wymH4axfbKcpdDeXSZWMeSTvLyPXOL349asOmD0BV7MSaTGSNFydBFj3BmjQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-array@5.0.0':
+    resolution: {integrity: sha512-TzFTrDxReWMeup7BS5kwESW3tRa7heGcg0rT1CwkNwtrkda/V29Fwa/SZ8Hkz3BsuFuhDpOukDCcm/Gw1K/5Ug==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-async-iterator@5.0.0':
+    resolution: {integrity: sha512-C+JzJOWqPceV5pcdzpvhF5FLg88WjjIuXG6eHnRPCpbumzBsqtnGUUmpk7Rx37SBxo0can1URA2gGsEJghBDNg==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-error@5.0.0':
+    resolution: {integrity: sha512-MxKGcfBhWqwc2b/hw+B6I5QGOa/aJXUY8VkKVZWv0c5kr6caBFhUyCyCYARpzUWUAD+iOVWDQjwwP5FsDJu1qA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-function@5.0.0':
+    resolution: {integrity: sha512-cMoZWIc8h01Qy/FRMnahz/vzM1BE3hV5bB5xFsbQYcT0IHrE3Pdvwz09uemW9YgcIqI0LP+8Rn3Dwqi8euspGw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-iterator-is@5.0.0':
+    resolution: {integrity: sha512-iYTmjdfvBvp4xKWstG2UvLJ3eNHkssWEklVF44mOka+EzphuCMw2f38xRBWH9vgrsq8JlpnilSV5XFez1DQjDA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-iterator@5.0.0':
+    resolution: {integrity: sha512-oQ6CAyMxXslc2Nv0Q80+Mx1ogs/sXPTs0fWnWiDbcYJcfHFLoGijJ6EBvZpbD9tzmRihWfwZwUJ6H7UK6vdYug==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-map@5.0.0':
+    resolution: {integrity: sha512-QxM8WsGVHfdDrUhbsQPU6EkjR4bg7fnHvUrJ1Lj4ASjcLZeVfnsnWsP392zCmh9Z7k0llI8L9xCbZiB9G/rFoQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-object@5.0.0':
+    resolution: {integrity: sha512-oeddkITFNC0OMGU3r9q32TY6gKBATDhwIHkJsPlvShek8QsRJRlCxjCTohOtvRUenuuGQua6TVsUXRy0F3Yhrw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-promise-is@5.0.0':
+    resolution: {integrity: sha512-eMzH0O3jDDt9l0tVmMMHgPyYnwzcKbxI7DjFaXuoz0e0bOYdlHL6Olpa479c+4c1XKPZS1JPRThir3AZLGmpIA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-promise-out@5.0.0':
+    resolution: {integrity: sha512-TKkla/FlpB94ugSlU8OCYTzsLn6nlxXay0OwV8wCtYZwUnO57dTuBJ+XnpMPknDl6JRjms97g/HXtShrb8DieQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-promise-safe@5.0.0':
+    resolution: {integrity: sha512-HE6B9qAa96VQYpNZ3d9PTmvbBf4K+v73fRkZBo6laIqf2NfEImFGiBVUcivB1MtCHCAIkK8hk0aKSaHmUNwREg==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-promise@5.0.0':
+    resolution: {integrity: sha512-00e6JLsWqgt0yovTOIR9V0tVPs2NVayQSBNhHcIQLHL70P3M/U5dqn8uwZ9fc4ZqDmpwzpuyu9zH2qVHQDKnuA==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-extends-set@5.0.0':
+    resolution: {integrity: sha512-Vx+SnWIS+2i8RGoZ83MgXODNT2sBnl40KwNNEqbWxzak88et0ucNKX6UuNygTAh8uZtOt8RhfqD8hg84NndRog==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-fast-deep-equal@5.0.0':
+    resolution: {integrity: sha512-V24oGHzYcp7SxpdFOZD7fWxnt2N46F/pdqGQ8CAr69tS5qxTRUvnNmp49JM1725WCF+pNgtVR3dtPCtoAcCU+A==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-i18n@5.0.0':
+    resolution: {integrity: sha512-uVZ2XBU9ykTJJd9ItPIx0WsGMVoYWSWnAlLp54bxxPVFklX6KKifVN4gVrRNoHLdRSL54mlXlCOJWON/Rm8lmg==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-lock-atom@5.0.0':
+    resolution: {integrity: sha512-2CviTZfsz5UGDkussZU2Yn3KQZAxtgy/mPMXx7abJbs3DpItZQiX0H4KtEaU8gdWLPYCb6JTnT4KCYqRra9bfw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-logger@5.0.0':
+    resolution: {integrity: sha512-krBmpUL5UoLEMlCMKpSK6f0kq8EajoKXTql/uIk+EstsGbK5zWCVlcSaahTMhhCXcksqO0Wz46kXciE/uxqN2w==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-ms@5.0.0':
+    resolution: {integrity: sha512-XQBXIlBd4wF9sWwooJiMNDS356meZczYhuhW+hW7xeiHrEK7KWNA8EHdUtrACXOT3hN5fj2SUfxsvQ/54qvqBw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-platform@5.0.0':
+    resolution: {integrity: sha512-/vUihXXQ+PcVUMhfJwAHV/gQAwZ5FsQagrNEPL8n3bFHVQldx1CY/4MTRY6N7lGHsHCsRyc08cs/OcgNAFNJ0w==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-reactive-array@5.0.0':
+    resolution: {integrity: sha512-UIrHkckuVoKi6Q2SnGYI6+1YWPUYo+Ro0fD0nWNVYhQvWdmloUi7ILuIcJOBvpEnHOU3jBzEyOih+ViEd2qfDg==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-reactive-stream@5.0.0':
+    resolution: {integrity: sha512-15OdCQDKl9m5Ql7eIM0nAZ5IC/rXe7MAANsJAdyhh8D3MXu4afqmKtbL6W/+oSlFNxJTxsAR6b8pFebx3BovWw==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-type-detect@5.0.0':
+    resolution: {integrity: sha512-AxKuPM6wdpLtDesafdeFLKH+/3Ma8bC25IhadpD4wByHaH1zrOsD9ZUdrJmSZ/fKKX02qckEn+B44DK7EuyhCQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util-typings@5.0.0':
+    resolution: {integrity: sha512-JHQ0fPBoOEO9klAKL8RhUA114Nofe2wTbbByixFKeiRP6K+OkE7asIBDbYzWpXuIEwuReL4yXR6HYrvWaJQBQQ==}
+    engines: {node: '>=14.19.0'}
+
+  '@bfchain/util@5.0.0':
+    resolution: {integrity: sha512-IzDl/chmbVfspUOUgwIJFCbyg8kFieB7RmaQ+sCfcSEJWkNTelfdX3ftrI0X96UEv5RtB80yrvz0EjzDQ5lk5Q==}
+    engines: {node: '>=14.19.0'}
 
   '@bfmeta/sign-util@1.3.10':
     resolution: {integrity: sha512-44EWN5lHBeCh/kjPc1BBn/E1Me3pbcq0dG8AMRSZ5NgtesZlxLeolAFUKn+ozAtGMfdazOCjDXMfZMi7UIRLYg==}
@@ -3856,6 +4027,9 @@ packages:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
 
+  reflect-metadata@0.1.14:
+    resolution: {integrity: sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==}
+
   regex-recursion@6.0.2:
     resolution: {integrity: sha512-0YCaSCq2VRIebiaUviZNs0cBz1kg5kVS2UKUfNIx8YVs1cN3AV7NTctO5FOKBA+UT2BPJIWZauYHPqJODG50cg==}
 
@@ -5029,6 +5203,220 @@ snapshots:
       '@types/react': 19.2.7
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@bfchain/util-aborter@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-extends-promise-safe': 5.0.0
+
+  '@bfchain/util-buffer@5.0.0': {}
+
+  '@bfchain/util-decorator@5.0.0':
+    dependencies:
+      '@bfchain/util-typings': 5.0.0
+      tslib: 2.8.1
+
+  '@bfchain/util-deepcopy@5.0.0':
+    dependencies:
+      '@bfchain/util-type-detect': 5.0.0
+
+  '@bfchain/util-deepmix@5.0.0': {}
+
+  '@bfchain/util-dep-inject@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-map': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+      reflect-metadata: 0.1.14
+
+  '@bfchain/util-encoding-binary@5.0.0': {}
+
+  '@bfchain/util-encoding-hex@5.0.0': {}
+
+  '@bfchain/util-encoding-utf8@5.0.0': {}
+
+  '@bfchain/util-env@5.0.0':
+    dependencies:
+      '@bfchain/util-platform': 5.0.0
+
+  '@bfchain/util-event-base@5.0.0':
+    dependencies:
+      '@bfchain/util-decorator': 5.0.0
+      '@bfchain/util-env': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-extends-function': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-event-map-emitter@5.0.0':
+    dependencies:
+      '@bfchain/util-event-base': 5.0.0
+      '@bfchain/util-extends-function': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-event-quene-emitter@5.0.0':
+    dependencies:
+      '@bfchain/util-decorator': 5.0.0
+      '@bfchain/util-env': 5.0.0
+      '@bfchain/util-event-base': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-extends-function': 5.0.0
+      '@bfchain/util-extends-iterator-is': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-event@5.0.0':
+    dependencies:
+      '@bfchain/util-event-base': 5.0.0
+      '@bfchain/util-event-map-emitter': 5.0.0
+      '@bfchain/util-event-quene-emitter': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-exception-error-code@5.0.0': {}
+
+  '@bfchain/util-exception-generator@5.0.0':
+    dependencies:
+      '@bfchain/util-exception-error-code': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-extends-object': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-exception-logger@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-object': 5.0.0
+      '@bfchain/util-logger': 5.0.0
+
+  '@bfchain/util-exception@5.0.0':
+    dependencies:
+      '@bfchain/util-dep-inject': 5.0.0
+      '@bfchain/util-exception-error-code': 5.0.0
+      '@bfchain/util-exception-generator': 5.0.0
+      '@bfchain/util-exception-logger': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-logger': 5.0.0
+      '@bfchain/util-platform': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-extends-array@5.0.0': {}
+
+  '@bfchain/util-extends-async-iterator@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-array': 5.0.0
+      '@bfchain/util-extends-promise': 5.0.0
+
+  '@bfchain/util-extends-error@5.0.0': {}
+
+  '@bfchain/util-extends-function@5.0.0': {}
+
+  '@bfchain/util-extends-iterator-is@5.0.0': {}
+
+  '@bfchain/util-extends-iterator@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-iterator-is': 5.0.0
+
+  '@bfchain/util-extends-map@5.0.0':
+    dependencies:
+      '@bfchain/util-decorator': 5.0.0
+
+  '@bfchain/util-extends-object@5.0.0': {}
+
+  '@bfchain/util-extends-promise-is@5.0.0': {}
+
+  '@bfchain/util-extends-promise-out@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-promise-is': 5.0.0
+
+  '@bfchain/util-extends-promise-safe@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-extends-promise@5.0.0':
+    dependencies:
+      '@bfchain/util-event': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-extends-promise-safe': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-extends-set@5.0.0':
+    dependencies:
+      '@bfchain/util-decorator': 5.0.0
+
+  '@bfchain/util-fast-deep-equal@5.0.0':
+    dependencies:
+      '@bfchain/util-type-detect': 5.0.0
+
+  '@bfchain/util-i18n@5.0.0':
+    dependencies:
+      '@bfchain/util-dep-inject': 5.0.0
+      '@bfchain/util-exception-error-code': 5.0.0
+
+  '@bfchain/util-lock-atom@5.0.0': {}
+
+  '@bfchain/util-logger@5.0.0':
+    dependencies:
+      '@bfchain/util-decorator': 5.0.0
+      '@bfchain/util-env': 5.0.0
+      '@bfchain/util-extends-map': 5.0.0
+      '@bfchain/util-ms': 5.0.0
+      '@bfchain/util-platform': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-ms@5.0.0': {}
+
+  '@bfchain/util-platform@5.0.0': {}
+
+  '@bfchain/util-reactive-array@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-promise-is': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-reactive-stream@5.0.0':
+    dependencies:
+      '@bfchain/util-extends-promise': 5.0.0
+      '@bfchain/util-extends-promise-is': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-typings': 5.0.0
+
+  '@bfchain/util-type-detect@5.0.0': {}
+
+  '@bfchain/util-typings@5.0.0': {}
+
+  '@bfchain/util@5.0.0':
+    dependencies:
+      '@bfchain/util-aborter': 5.0.0
+      '@bfchain/util-buffer': 5.0.0
+      '@bfchain/util-decorator': 5.0.0
+      '@bfchain/util-deepcopy': 5.0.0
+      '@bfchain/util-deepmix': 5.0.0
+      '@bfchain/util-dep-inject': 5.0.0
+      '@bfchain/util-encoding-binary': 5.0.0
+      '@bfchain/util-encoding-hex': 5.0.0
+      '@bfchain/util-encoding-utf8': 5.0.0
+      '@bfchain/util-env': 5.0.0
+      '@bfchain/util-event': 5.0.0
+      '@bfchain/util-exception': 5.0.0
+      '@bfchain/util-extends-array': 5.0.0
+      '@bfchain/util-extends-async-iterator': 5.0.0
+      '@bfchain/util-extends-error': 5.0.0
+      '@bfchain/util-extends-function': 5.0.0
+      '@bfchain/util-extends-iterator': 5.0.0
+      '@bfchain/util-extends-map': 5.0.0
+      '@bfchain/util-extends-object': 5.0.0
+      '@bfchain/util-extends-promise': 5.0.0
+      '@bfchain/util-extends-promise-out': 5.0.0
+      '@bfchain/util-extends-set': 5.0.0
+      '@bfchain/util-fast-deep-equal': 5.0.0
+      '@bfchain/util-i18n': 5.0.0
+      '@bfchain/util-lock-atom': 5.0.0
+      '@bfchain/util-logger': 5.0.0
+      '@bfchain/util-ms': 5.0.0
+      '@bfchain/util-platform': 5.0.0
+      '@bfchain/util-reactive-array': 5.0.0
+      '@bfchain/util-reactive-stream': 5.0.0
+      '@bfchain/util-type-detect': 5.0.0
+      '@bfchain/util-typings': 5.0.0
 
   '@bfmeta/sign-util@1.3.10':
     dependencies:
@@ -8147,6 +8535,8 @@ snapshots:
     dependencies:
       indent-string: 4.0.0
       strip-indent: 3.0.0
+
+  reflect-metadata@0.1.14: {}
 
   regex-recursion@6.0.2:
     dependencies:
