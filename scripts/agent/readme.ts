@@ -17,7 +17,7 @@ export function printBestPractices(): void {
 ❌ 安装新 UI 库 → ✅ shadcn/ui（已集成）
 ❌ 新建 CSS → ✅ Tailwind CSS
 
-详见: pnpm agent --chapter 00-必读
+详见: pnpm agent chapter 00-必读
 `)
 }
 
@@ -33,7 +33,7 @@ export function printKnowledgeMap(): void {
   src/components/  → UI 组件
   src/i18n/        → 国际化
 
-白皮书 (pnpm agent --chapter <路径>):
+白皮书 (pnpm agent chapter <路径>):
   03-架构篇/03-导航系统/  → 页面跳转、Tab
   04-服务篇/01-服务架构/  → 服务分层、Adapter
   05-组件篇/01-基础组件/  → Sheet、Dialog
@@ -88,12 +88,15 @@ export function printWorkflow(): void {
   console.log(`
 # 工作流
 
-pnpm agent --claim <#>        领取任务 (自动分配+worktree指引)
-pnpm agent --create "x"       创建任务 (--category bug --roadmap v1)
-pnpm agent --epic create "x"  创建 Epic (--roadmap v1)
-pnpm agent --epic list        查看所有 Epic
-pnpm agent --chapter <x>      查阅白皮书
-pnpm agent --stats            进度统计
+pnpm agent claim <#>          领取任务 (自动分配+worktree指引)
+pnpm agent create "x"         创建任务 (--category bug --roadmap v1)
+pnpm agent epic create "x"    创建 Epic (--roadmap v1)
+pnpm agent epic list          查看所有 Epic
+pnpm agent chapter <x>        查阅白皮书
+pnpm agent stats              进度统计
+pnpm agent worktree create <name> --branch <branch> [--base main]
+pnpm agent worktree list      worktree 概览
+pnpm agent worktree delete <name> [--force]
 
 PR 规则: 描述中使用 Closes #issue编号 自动关联
 `)

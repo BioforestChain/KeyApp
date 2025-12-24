@@ -122,10 +122,10 @@ export function claimIssue(issueNumber: string): void {
     )
     log.success(`已领取 Issue #${issueNumber}`)
     console.log(`\n下一步：`)
-    console.log(`  1. git worktree add .git-worktree/issue-${issueNumber} -b feat/issue-${issueNumber}`)
-    console.log(`  2. cd .git-worktree/issue-${issueNumber} && pnpm install`)
+    console.log(`  1. pnpm agent worktree create issue-${issueNumber} --branch feat/issue-${issueNumber}`)
+    console.log(`  2. cd .git-worktree/issue-${issueNumber}`)
     console.log(`  3. 开始开发...`)
-    console.log(`  4. PR 描述中使用 "Closes #${issueNumber}" 自动关联`)
+    console.log(`  4. PR 描述中使用 \"Closes #${issueNumber}\" 自动关联`)
   } catch (e) {
     log.error(`领取失败: ${e}`)
   }
@@ -183,7 +183,7 @@ export function createIssue(options: CreateIssueOptions): string | null {
     }
     
     console.log(`\n下一步：`)
-    console.log(`  pnpm agent --claim ${issueNumber}  # 领取任务`)
+    console.log(`  pnpm agent claim ${issueNumber}  # 领取任务`)
     
     return issueNumber
   } catch (e) {

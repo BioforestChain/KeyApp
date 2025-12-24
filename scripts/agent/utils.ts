@@ -2,10 +2,18 @@
  * Agent 工具共享模块
  */
 
-import { resolve } from 'node:path'
+import { resolve, sep } from 'node:path'
 
 export const ROOT = resolve(import.meta.dirname, '../..')
 export const WHITE_BOOK_DIR = resolve(ROOT, 'docs/white-book')
+export const WORKTREE_DIR = (() => {
+  const marker = `${sep}.git-worktree${sep}`
+  if (ROOT.includes(marker)) {
+    const base = ROOT.split(marker)[0]
+    return resolve(base, '.git-worktree')
+  }
+  return resolve(ROOT, '.git-worktree')
+})()
 
 export const PROJECT_NUMBER = 5
 export const PROJECT_OWNER = 'BioforestChain'

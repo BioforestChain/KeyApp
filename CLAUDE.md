@@ -7,10 +7,10 @@
 pnpm agent
 
 # 2. 查看当前任务
-pnpm agent --roadmap current
+pnpm agent roadmap current
 
 # 3. 查阅白皮书必读章节
-pnpm agent --chapter 00-必读
+pnpm agent chapter 00-必读
 ```
 
 完整工作流和命令速查见 [AGENTS.md](./AGENTS.md)
@@ -69,8 +69,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 所有编码工作必须在 `.git-worktree/` 目录下进行：
 
 ```bash
-git worktree add .git-worktree/issue-28 -b feat/issue-28
-cd .git-worktree/issue-28 && pnpm install
+pnpm agent worktree create issue-28 --branch feat/issue-28
+cd .git-worktree/issue-28
 # 开发...
 gh pr create --body "Closes #28"
 ```

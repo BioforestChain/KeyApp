@@ -79,7 +79,8 @@ AI 继续任务
 
 ```bash
 pnpm agent                    # 获取项目知识和当前任务
-pnpm agent --chapter 00-必读  # 查看必读章节
+pnpm agent roadmap current    # 查看当前 Roadmap
+pnpm agent chapter 00-必读     # 查看必读章节
 ```
 
 详细的项目信息、技术栈、开发流程请查阅白皮书。
