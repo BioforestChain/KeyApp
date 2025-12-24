@@ -21,7 +21,7 @@ const mockTransaction: TransactionInfo = {
 }
 
 describe('TransactionItem', () => {
-  const t = (key: string, options?: Record<string, unknown>) => testI18n.t(key, options)
+  const t = testI18n.t.bind(testI18n)
 
   it('renders transaction type label', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)

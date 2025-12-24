@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PasswordInput, calculateStrength } from './password-input'
 import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
@@ -59,9 +59,11 @@ describe('PasswordInput', () => {
 
     await userEvent.type(input, 'test')
     const strengthLabel = testI18n.t('common:passwordStrength')
-    expect(
-      screen.getByText((_content, node) => node?.textContent?.includes(strengthLabel) ?? false),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(
+        screen.getByText((_content, node) => node?.textContent?.includes(strengthLabel) ?? false),
+      ).toBeInTheDocument()
+    })
   })
 
   it('calls onChange handler', async () => {

@@ -9,7 +9,7 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('CreateWalletForm', () => {
-  const t = (key: string, options?: Record<string, unknown>) => testI18n.t(key, options);
+  const t = testI18n.t.bind(testI18n);
   const nameLabel = t('onboarding:create.form.walletName');
   const namePlaceholder = t('onboarding:create.form.walletNamePlaceholder');
   const walletLockPlaceholder = t('onboarding:create.form.walletLockPlaceholder');

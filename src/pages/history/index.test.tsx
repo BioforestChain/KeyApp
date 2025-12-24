@@ -108,7 +108,7 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('TransactionHistoryPage', () => {
-  const t = (key: string, options?: Record<string, unknown>) => testI18n.t(key, options)
+  const t = testI18n.t.bind(testI18n)
   const firstChainLabel = mockEnabledChains[0]!.name
 
   beforeEach(() => {
