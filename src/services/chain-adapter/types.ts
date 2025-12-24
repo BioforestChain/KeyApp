@@ -82,6 +82,7 @@ export interface Transaction {
   blockNumber?: bigint | undefined
   memo?: string | undefined
   type: TransactionType
+  rawType?: string | undefined  // Original chain-specific transaction type (e.g., 'BSE-01', 'AST-02')
 }
 
 export type TransactionType = 'transfer' | 'token-transfer' | 'contract-call' | 'stake' | 'unstake'

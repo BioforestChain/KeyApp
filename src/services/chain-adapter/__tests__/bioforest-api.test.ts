@@ -19,7 +19,7 @@ const mockConfigWithRpc: ChainConfig = {
   decimals: 8,
   enabled: true,
   source: 'default',
-  rpcUrl: 'https://walletapi.bfmeta.info',
+  api: { url: 'https://walletapi.bfmeta.info', path: 'bfm' },
 }
 
 // Helper to create mock Response
@@ -58,7 +58,7 @@ describe('BioForest API Response Parsing', () => {
 
         expect(height).toBe(1274934n)
         expect(fetchSpy).toHaveBeenCalledWith(
-          'https://walletapi.bfmeta.info/wallet/bfmeta/lastblock',
+          'https://walletapi.bfmeta.info/wallet/bfm/lastblock',
           expect.any(Object)
         )
       })

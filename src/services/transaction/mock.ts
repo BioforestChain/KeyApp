@@ -29,7 +29,7 @@ const TOKEN_DECIMALS: Record<string, number> = {
 }
 
 function generateInitialTransactions(count: number = 30): TransactionRecord[] {
-  const types: TransactionType[] = ['send', 'receive', 'swap', 'stake', 'unstake']
+  const types: TransactionType[] = ['send', 'receive', 'exchange', 'stake', 'unstake']
   const statuses: TransactionStatus[] = ['confirmed', 'confirmed', 'confirmed', 'pending', 'failed']
   const chains: ChainType[] = ['ethereum', 'tron', 'bitcoin', 'binance', 'bfmeta']
   const symbols: Record<ChainType, string[]> = {
@@ -63,7 +63,7 @@ function generateInitialTransactions(count: number = 30): TransactionRecord[] {
     const daysAgo = Math.floor(Math.random() * 90)
     const timestamp = new Date(now - daysAgo * 24 * 60 * 60 * 1000)
 
-    const amountStr = (Math.random() * 100).toFixed(type === 'swap' ? 2 : 4)
+    const amountStr = (Math.random() * 100).toFixed(type === 'exchange' ? 2 : 4)
     const feeStr = (Math.random() * 0.01).toFixed(6)
 
     transactions.push({

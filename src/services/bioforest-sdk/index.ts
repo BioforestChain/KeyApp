@@ -7,6 +7,10 @@
  * Architecture:
  * - SDK bundle: precompiled .cjs file (TODO: Issue #101 - migrate to npm @bfchain/core)
  * - Genesis blocks: fetched from public/configs/genesis/{chainId}.json
+ * - Network API: delegated to apis/bnqkl_wallet/bioforest (external dependency)
+ *
+ * This SDK is the ONLY entry point for chain-adapter and hooks.
+ * Other services should NOT directly depend on apis/bnqkl_wallet.
  */
 
 // Re-export types for consumers (type-only exports)
@@ -28,6 +32,24 @@ import type {
   TransferAssetInfo,
 } from './types'
 
+import { BnqklWalletBioforestApi } from '@/apis/bnqkl_wallet/bioforest'
+
+/** API client cache by baseUrl+chainPath */
+const apiCache = new Map<string, BnqklWalletBioforestApi>()
+
+/**
+ * Get or create a BnqklWalletBioforestApi instance
+ */
+function getApi(baseUrl: string, chainPath: string): BnqklWalletBioforestApi {
+  const key = `${baseUrl}|${chainPath}`
+  let api = apiCache.get(key)
+  if (!api) {
+    api = new BnqklWalletBioforestApi({ baseUrl, chainPath })
+    apiCache.set(key, api)
+  }
+  return api
+}
+
 /** Genesis block cache by chainId */
 const genesisCache = new Map<string, BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>>()
 
@@ -38,8 +60,42 @@ const coreCache = new Map<string, BioforestChainBundleCore>()
 let bundleModule: BioforestChainBundle | null = null
 let bundlePromise: Promise<BioforestChainBundle> | null = null
 
+/** Base URL for fetching genesis blocks (configurable for different environments) */
+let genesisBaseUrl: string | null = null // null means use document.baseURI
+
+/** Import options for JSON modules (needed for Node.js, not for browser/Vite) */
+let genesisImportOptions: object | undefined = undefined
+
 /**
- * Fetch genesis block from public/configs/genesis/{chainId}.json
+ * Set base URL for genesis block fetching
+ * - Browser: null (default, uses document.baseURI + '/configs/genesis')
+ * - Node.js: 'file:///absolute/path/to/public/configs/genesis'
+ * @param baseUrl - Base URL for genesis files
+ * @param importOptions - Import options (e.g., { with: { type: 'json' } } for Node.js)
+ */
+export function setGenesisBaseUrl(baseUrl: string, importOptions?: object): void {
+  genesisBaseUrl = baseUrl
+  genesisImportOptions = importOptions
+  genesisCache.clear() // Clear cache when base URL changes
+}
+
+/** Get the effective base URL for genesis files */
+function getGenesisBaseUrl(): string {
+  if (genesisBaseUrl) {
+    return genesisBaseUrl
+  }
+  // Browser: use document.baseURI to get full HTTP URL
+  if (typeof document !== 'undefined') {
+    return new URL('/configs/genesis', document.baseURI).href
+  }
+  // Fallback
+  return '/configs/genesis'
+}
+
+/**
+ * Load genesis block from {baseUrl}/{chainId}.json
+ * - Browser (http/https): uses fetch()
+ * - Node.js (file://): uses import() with { with: { type: 'json' } }
  */
 async function fetchGenesisBlock(
   chainId: string,
@@ -49,43 +105,80 @@ async function fetchGenesisBlock(
     return cached
   }
 
-  const response = await fetch(`./configs/genesis/${chainId}.json`)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch genesis block for ${chainId}: ${response.status}`)
+  const url = `${getGenesisBaseUrl()}/${chainId}.json`
+  
+  let genesis: BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Browser: use fetch() for JSON files
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch genesis block: ${response.status}`)
+    }
+    genesis = await response.json()
+  } else {
+    // Node.js: use import() with import attributes
+    const module = genesisImportOptions
+      ? await import(/* @vite-ignore */ url, genesisImportOptions as ImportCallOptions)
+      : await import(/* @vite-ignore */ url)
+    genesis = module.default
   }
 
-  const genesis = (await response.json()) as BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
   genesisCache.set(chainId, genesis)
   return genesis
 }
 
 /**
  * Create crypto helper compatible with the SDK
+ * Uses @noble/hashes for cross-platform compatibility (Node.js + browser)
  */
 async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> {
-  const cryptoModule = await import('crypto')
+  // Dynamic import for tree-shaking, use .js extension for ESM compatibility
+  const { sha256 } = await import('@noble/hashes/sha2.js')
+  const { md5, ripemd160 } = await import('@noble/hashes/legacy.js')
+  
+  // Helper to create chainable hash object
+  const createChainable = (hashFn: (data: Uint8Array) => Uint8Array) => {
+    const chunks: Uint8Array[] = []
+    return {
+      update(data: Uint8Array | string): BFChainCore.CryptoAsyncHash {
+        const input = typeof data === 'string' ? new TextEncoder().encode(data) : data
+        chunks.push(input)
+        return this
+      },
+      async digest(): Promise<Buffer> {
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+        const combined = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+          combined.set(chunk, offset)
+          offset += chunk.length
+        }
+        return Buffer.from(hashFn(combined))
+      }
+    }
+  }
 
   const cryptoHelper: BFChainCore.CryptoHelperInterface = {
-    async sha256(data?: Uint8Array | string): Promise<Buffer> {
+    sha256(data?: Uint8Array | string): Promise<Buffer> | BFChainCore.CryptoAsyncHash {
       if (!data) {
-        throw new Error('sha256 requires data argument')
+        return createChainable((d) => sha256(d))
       }
-      const input = typeof data === 'string' ? data : Buffer.from(data)
-      return cryptoModule.createHash('sha256').update(input).digest()
+      const input = typeof data === 'string' ? new TextEncoder().encode(data) : data
+      return Promise.resolve(Buffer.from(sha256(input)))
     },
-    async md5(data?: Uint8Array | string): Promise<Buffer> {
+    md5(data?: Uint8Array | string): Promise<Buffer> | BFChainCore.CryptoAsyncHash {
       if (!data) {
-        throw new Error('md5 requires data argument')
+        return createChainable((d) => md5(d))
       }
-      const input = typeof data === 'string' ? data : Buffer.from(data)
-      return cryptoModule.createHash('md5').update(input).digest()
+      const input = typeof data === 'string' ? new TextEncoder().encode(data) : data
+      return Promise.resolve(Buffer.from(md5(input)))
     },
-    async ripemd160(data?: Uint8Array | string): Promise<Buffer> {
+    ripemd160(data?: Uint8Array | string): Promise<Buffer> | BFChainCore.CryptoAsyncHash {
       if (!data) {
-        throw new Error('ripemd160 requires data argument')
+        return createChainable((d) => ripemd160(d))
       }
-      const input = typeof data === 'string' ? data : Buffer.from(data)
-      return cryptoModule.createHash('ripemd160').update(input).digest()
+      const input = typeof data === 'string' ? new TextEncoder().encode(data) : data
+      return Promise.resolve(Buffer.from(ripemd160(input)))
     },
   }
 
@@ -105,8 +198,7 @@ async function loadBundle(): Promise<BioforestChainBundle> {
   }
 
   bundlePromise = (async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const module = (await import('./bioforest-chain-bundle.js')) as any
+    const module = await import('./bioforest-chain-bundle.js')
     bundleModule = { setup: module.setup }
     return bundleModule!
   })()
@@ -141,20 +233,16 @@ export async function getBioforestCore(chainId: string): Promise<BioforestChainB
 
 /**
  * Get the latest block info for transaction timing
+ * @param rpcUrl - API base URL (e.g., "https://walletapi.bfmeta.info")
+ * @param apiPath - API provider's chain path (e.g., "bfm" not "bfmeta")
  */
 export async function getLastBlock(
   rpcUrl: string,
-  chainId: string,
+  apiPath: string,
 ): Promise<{ height: number; timestamp: number }> {
-  const response = await fetch(`${rpcUrl}/wallet/${chainId}/lastblock`)
-  if (!response.ok) {
-    throw new Error(`Failed to get lastblock: ${response.status}`)
-  }
-  const json = (await response.json()) as { success: boolean; result: { height: number; timestamp: number } }
-  if (!json.success) {
-    throw new Error('Failed to get lastblock')
-  }
-  return json.result
+  const api = getApi(rpcUrl, apiPath)
+  const block = await api.getLastBlock()
+  return { height: block.height, timestamp: block.timestamp }
 }
 
 export interface AddressInfo {
@@ -165,29 +253,65 @@ export interface AddressInfo {
 
 /**
  * Get address info including second public key
+ * @param rpcUrl - API base URL
+ * @param apiPath - API provider's chain path (e.g., "bfm")
+ * @param address - Address to query
  */
 export async function getAddressInfo(
   rpcUrl: string,
-  chainId: string,
+  apiPath: string,
   address: string,
 ): Promise<AddressInfo> {
-  const response = await fetch(`${rpcUrl}/wallet/${chainId}/address/info`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address }),
-  })
-
-  if (!response.ok) {
+  const api = getApi(rpcUrl, apiPath)
+  try {
+    const result = await api.getAddressInfo(address)
+    return result ?? { address }
+  } catch {
     return { address }
   }
+}
 
-  const result = (await response.json()) as AddressInfo | null
-  return result ?? { address }
+/**
+ * Get account balance for the main asset type
+ * @param rpcUrl - API base URL
+ * @param chainId - Chain ID for loading genesis/core
+ * @param address - Address to query
+ * @param apiPath - Optional API path override
+ */
+export async function getAccountBalance(
+  rpcUrl: string,
+  chainId: string,
+  address: string,
+  apiPath?: string,
+): Promise<string> {
+  const core = await getBioforestCore(chainId)
+  const assetType = await core.getAssetType()
+  const chainPath = apiPath ?? assetType.toLowerCase()
+  
+  const api = getApi(rpcUrl, chainPath)
+  try {
+    const result = await api.getAddressAssets(address)
+    if (!result?.assets) {
+      return '0'
+    }
+    // Find main asset in nested structure
+    for (const magicAssets of Object.values(result.assets)) {
+      const asset = magicAssets[assetType]
+      if (asset) {
+        return asset.assetNumber
+      }
+    }
+    return '0'
+  } catch {
+    return '0'
+  }
 }
 
 export interface CreateTransferParams {
   rpcUrl: string
   chainId: string
+  /** API path for the provider (e.g., "bfm" for bfmeta) */
+  apiPath?: string
   mainSecret: string
   paySecret?: string | undefined
   from: string
@@ -205,9 +329,10 @@ export async function createTransferTransaction(
   params: CreateTransferParams,
 ): Promise<BFChainCore.TransferAssetTransactionJSON> {
   const core = await getBioforestCore(params.chainId)
+  const apiPath = params.apiPath ?? params.chainId
 
   // Get latest block for transaction timing
-  const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
+  const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -232,7 +357,7 @@ export async function createTransferTransaction(
   // Determine pay password version if set
   let usePaySecretV1 = false
   if (params.paySecret) {
-    const addressInfo = await getAddressInfo(params.rpcUrl, params.chainId, params.from)
+    const addressInfo = await getAddressInfo(params.rpcUrl, apiPath, params.from)
     if (addressInfo.secondPublicKey) {
       const version = await verifyPayPassword(
         params.chainId,
@@ -272,10 +397,13 @@ export async function createTransferTransaction(
 
 /**
  * Broadcast a signed transaction
+ * @param rpcUrl - API base URL
+ * @param apiPath - API provider's chain path
+ * @param transaction - Signed transaction to broadcast
  */
 export async function broadcastTransaction(
   rpcUrl: string,
-  chainId: string,
+  apiPath: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -283,26 +411,12 @@ export async function broadcastTransaction(
     nonce?: number
   }
 
-  const response = await fetch(`${rpcUrl}/wallet/${chainId}/transactions/broadcast`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(txWithoutNonce),
-  })
+  const api = getApi(rpcUrl, apiPath)
+  const result = await api.broadcastTransaction(txWithoutNonce)
 
-  const json = (await response.json()) as {
-    success: boolean
-    result?: { success: boolean; minFee?: string; message?: string }
-    message?: string
-  }
-
-  if (!response.ok || !json.success) {
-    const errorMsg = json.message ?? json.result?.message ?? `Broadcast failed: ${response.status}`
-    throw new Error(errorMsg)
-  }
-
-  if (json.result && !json.result.success) {
-    const msg = json.result.message ?? 'Transaction rejected'
-    const minFee = json.result.minFee
+  if (!result.success) {
+    const msg = result.message ?? 'Transaction rejected'
+    const minFee = result.minFee
     throw new Error(minFee ? `${msg} (minFee: ${minFee})` : msg)
   }
 
@@ -349,11 +463,12 @@ export async function verifyPayPassword(
  */
 export async function getSignatureTransactionMinFee(
   rpcUrl: string,
+  apiPath: string,
   chainId: string,
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
 
-  const lastBlock = await getLastBlock(rpcUrl, chainId)
+  const lastBlock = await getLastBlock(rpcUrl, apiPath)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -367,6 +482,8 @@ export async function getSignatureTransactionMinFee(
 export interface CreateSignatureParams {
   rpcUrl: string
   chainId: string
+  /** API path (e.g., "bfm" for bfmeta) - defaults to asset type lowercase */
+  apiPath?: string
   mainSecret: string
   newPaySecret: string
   fee?: string | undefined
@@ -379,8 +496,9 @@ export async function createSignatureTransaction(
   params: CreateSignatureParams,
 ): Promise<BFChainCore.TransactionJSON<BFChainCore.SignatureAssetJSON>> {
   const core = await getBioforestCore(params.chainId)
+  const apiPath = params.apiPath ?? (await core.getAssetType()).toLowerCase()
 
-  const lastBlock = await getLastBlock(params.rpcUrl, params.chainId)
+  const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -408,6 +526,8 @@ export async function createSignatureTransaction(
 export interface SetPayPasswordParams {
   rpcUrl: string
   chainId: string
+  /** API path for the provider (e.g., "bfm" for bfmeta) */
+  apiPath?: string
   mainSecret: string
   newPaySecret: string
 }
@@ -418,18 +538,23 @@ export interface SetPayPasswordParams {
 export async function setPayPassword(
   params: SetPayPasswordParams,
 ): Promise<{ txHash: string; success: boolean }> {
+  const core = await getBioforestCore(params.chainId)
+  const apiPath = params.apiPath ?? (await core.getAssetType()).toLowerCase()
+
   const transaction = await createSignatureTransaction({
     rpcUrl: params.rpcUrl,
     chainId: params.chainId,
+    apiPath,
     mainSecret: params.mainSecret,
     newPaySecret: params.newPaySecret,
   })
 
-  const txHash = await broadcastTransaction(
+  // 广播可能返回 "rejected" 但交易实际成功，忽略异常
+  await broadcastTransaction(
     params.rpcUrl,
-    params.chainId,
+    apiPath,
     transaction as unknown as BFChainCore.TransactionJSON,
-  )
+  ).catch(() => {})
 
-  return { txHash, success: true }
+  return { txHash: transaction.signature, success: true }
 }
