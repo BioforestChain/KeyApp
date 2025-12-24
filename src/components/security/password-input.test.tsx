@@ -31,14 +31,16 @@ describe('calculateStrength', () => {
 })
 
 describe('PasswordInput', () => {
+  const placeholder = testI18n.t('security:passwordConfirm.placeholder')
+
   it('renders password input', () => {
-    renderWithProviders(<PasswordInput placeholder="Enter password" />)
-    expect(screen.getByPlaceholderText('Enter password')).toHaveAttribute('type', 'password')
+    renderWithProviders(<PasswordInput placeholder={placeholder} />)
+    expect(screen.getByPlaceholderText(placeholder)).toHaveAttribute('type', 'password')
   })
 
   it('toggles password visibility', async () => {
-    renderWithProviders(<PasswordInput placeholder="Enter password" />)
-    const input = screen.getByPlaceholderText('Enter password')
+    renderWithProviders(<PasswordInput placeholder={placeholder} />)
+    const input = screen.getByPlaceholderText(placeholder)
     const toggleButton = screen.getByRole('button', { name: testI18n.t('a11y.showPassword') })
 
     expect(input).toHaveAttribute('type', 'password')
@@ -56,7 +58,7 @@ describe('PasswordInput', () => {
     const input = document.querySelector('input')!
 
     await userEvent.type(input, 'test')
-    expect(screen.getByText(/密码强度/)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(testI18n.t('common:passwordStrength')))).toBeInTheDocument()
   })
 
   it('calls onChange handler', async () => {

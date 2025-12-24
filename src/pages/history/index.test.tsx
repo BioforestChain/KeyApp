@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Amount } from '@/types/amount'
 import { TransactionHistoryPage } from './index'
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 
 // Mock stackflow
 const mockNavigate = vi.fn()
@@ -23,33 +23,35 @@ const mockWallet = {
 
 let mockCurrentWallet: typeof mockWallet | null = mockWallet
 
+const mockEnabledChains = [
+  {
+    id: 'ethereum',
+    version: '1.0',
+    type: 'evm',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+    enabled: true,
+    source: 'default',
+  },
+  {
+    id: 'tron',
+    version: '1.0',
+    type: 'bip39',
+    name: 'Tron',
+    symbol: 'TRX',
+    decimals: 6,
+    enabled: true,
+    source: 'default',
+  },
+]
+
 vi.mock('@/stores', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/stores')>()
   return {
     ...actual,
     useCurrentWallet: () => mockCurrentWallet,
-    useEnabledChains: () => [
-      {
-        id: 'ethereum',
-        version: '1.0',
-        type: 'evm',
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-        enabled: true,
-        source: 'default',
-      },
-      {
-        id: 'tron',
-        version: '1.0',
-        type: 'bip39',
-        name: 'Tron',
-        symbol: 'TRX',
-        decimals: 6,
-        enabled: true,
-        source: 'default',
-      },
-    ],
+    useEnabledChains: () => mockEnabledChains,
   }
 })
 
@@ -106,6 +108,8 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('TransactionHistoryPage', () => {
+  const t = (key: string, options?: Record<string, unknown>) => testI18n.t(key, options)
+
   beforeEach(() => {
     vi.clearAllMocks()
     mockCurrentWallet = mockWallet
@@ -114,30 +118,30 @@ describe('TransactionHistoryPage', () => {
   describe('Initial State', () => {
     it('renders page header', () => {
       renderWithProviders(<TransactionHistoryPage />)
-      expect(screen.getByText('交易记录')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:history.title'))).toBeInTheDocument()
     })
 
     it('shows filter bar', () => {
       renderWithProviders(<TransactionHistoryPage />)
-      expect(screen.getByLabelText('选择链')).toBeInTheDocument()
-      expect(screen.getByLabelText('选择时间段')).toBeInTheDocument()
+      expect(screen.getByLabelText(t('common:a11y.selectChain'))).toBeInTheDocument()
+      expect(screen.getByLabelText(t('common:a11y.selectPeriod'))).toBeInTheDocument()
     })
 
     it('shows transaction count', () => {
       renderWithProviders(<TransactionHistoryPage />)
-      expect(screen.getByText('共 2 条记录')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:history.totalRecords', { count: 2 }))).toBeInTheDocument()
     })
 
     it('renders transactions list', () => {
       renderWithProviders(<TransactionHistoryPage />)
-      expect(screen.getByText('发送')).toBeInTheDocument()
-      expect(screen.getByText('接收')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:type.send'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:type.receive'))).toBeInTheDocument()
     })
 
     it('shows message when no wallet exists', () => {
       mockCurrentWallet = null
       renderWithProviders(<TransactionHistoryPage />)
-      expect(screen.getByText('请先创建或导入钱包')).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:history.noWallet'))).toBeInTheDocument()
     })
   })
 
@@ -145,9 +149,9 @@ describe('TransactionHistoryPage', () => {
     it('calls setFilter when chain is changed', async () => {
       renderWithProviders(<TransactionHistoryPage />)
 
-      const chainSelect = screen.getByLabelText('选择链')
+      const chainSelect = screen.getByLabelText(t('common:a11y.selectChain'))
       await userEvent.click(chainSelect)
-      await userEvent.click(screen.getByText('Ethereum'))
+      await userEvent.click(screen.getByText(mockEnabledChains[0].name))
 
       expect(mockSetFilter).toHaveBeenCalledWith({ chain: 'ethereum', period: 'all' })
     })
@@ -155,9 +159,9 @@ describe('TransactionHistoryPage', () => {
     it('calls setFilter when period is changed', async () => {
       renderWithProviders(<TransactionHistoryPage />)
 
-      const periodSelect = screen.getByLabelText('选择时间段')
+      const periodSelect = screen.getByLabelText(t('common:a11y.selectPeriod'))
       await userEvent.click(periodSelect)
-      await userEvent.click(screen.getByText('7天'))
+      await userEvent.click(screen.getByText(t('transaction:history.filter.days7')))
 
       expect(mockSetFilter).toHaveBeenCalledWith({ chain: 'all', period: '7d' })
     })
@@ -167,8 +171,8 @@ describe('TransactionHistoryPage', () => {
     it('navigates to transaction detail when transaction is clicked', async () => {
       renderWithProviders(<TransactionHistoryPage />)
 
-      // Click on the first transaction (发送)
-      const sendTx = screen.getByText('发送').closest('[role="button"]')
+      // Click on the first transaction item
+      const sendTx = screen.getByText(t('transaction:type.send')).closest('[role="button"]')
       if (sendTx) {
         await userEvent.click(sendTx)
       }
@@ -181,7 +185,7 @@ describe('TransactionHistoryPage', () => {
     it('navigates back when back button is clicked', async () => {
       renderWithProviders(<TransactionHistoryPage />)
 
-      const backButton = screen.getByRole('button', { name: /返回/i })
+      const backButton = screen.getByRole('button', { name: t('common:a11y.back') })
       await userEvent.click(backButton)
 
       expect(mockGoBack).toHaveBeenCalled()

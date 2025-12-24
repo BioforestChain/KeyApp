@@ -11,6 +11,10 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('ArbitraryKeyInput', () => {
+  const placeholder = testI18n.t('onboarding:arbitraryKey.placeholder')
+  const resetLabel = testI18n.t('common:reset')
+  const hintText = testI18n.t('onboarding:arbitraryKey.hint')
+
   it('calls onChange on input changes', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
@@ -30,7 +34,7 @@ describe('ArbitraryKeyInput', () => {
 
     renderWithProviders(<Harness />)
 
-    const textarea = screen.getByPlaceholderText('请输入您的密钥...')
+    const textarea = screen.getByPlaceholderText(placeholder)
     await user.type(textarea, 'my secret')
 
     expect(onChange).toHaveBeenCalled()
@@ -43,7 +47,7 @@ describe('ArbitraryKeyInput', () => {
     renderWithProviders(<ArbitraryKeyInput value="abc" onChange={onChange} />)
 
     const textarea = screen.getByRole('textbox')
-    await user.click(screen.getByRole('button', { name: '重置' }))
+    await user.click(screen.getByRole('button', { name: resetLabel }))
     expect(onChange).toHaveBeenCalledWith('')
     expect(textarea).toHaveFocus()
   })
@@ -60,8 +64,6 @@ describe('ArbitraryKeyInput', () => {
 
   it('shows hint when empty', () => {
     renderWithProviders(<ArbitraryKeyInput value="" onChange={vi.fn()} />)
-    expect(
-      screen.getByText('可输入任意文本：口令、密码或自定义字符串'),
-    ).toBeInTheDocument()
+    expect(screen.getByText(hintText)).toBeInTheDocument()
   })
 })
