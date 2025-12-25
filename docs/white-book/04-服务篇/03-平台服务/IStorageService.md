@@ -76,7 +76,7 @@ plaintext → AES-256-GCM 加密 → Base64 编码 → 存储
 ### 加密密钥管理
 
 ```
-用户密码
+用户图案锁
     │
     ▼ PBKDF2 (100,000 iterations)
 派生密钥 (256 bits)
@@ -120,7 +120,7 @@ AES-256-GCM 加密数据
 |-----|------|------|
 | STORAGE_FULL | 存储空间满 | 清理缓存 |
 | QUOTA_EXCEEDED | 超出配额 | 清理缓存 |
-| DECRYPT_FAILED | 解密失败 | 密码错误或数据损坏 |
+| DECRYPT_FAILED | 解密失败 | 图案错误或数据损坏 |
 | KEY_NOT_FOUND | 键不存在 | 返回 null |
 
 ---

@@ -93,14 +93,14 @@ IHapticService {
 同时显示成功动画
 ```
 
-### 2. 密码输入
+### 2. 图案锁输入
 
 ```
 用户输入每个数字
   ↓
 调用 impact('light')
   ↓
-密码错误时
+图案错误时
   ↓
 调用 notification('error')
 ```

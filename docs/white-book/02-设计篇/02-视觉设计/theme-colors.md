@@ -101,7 +101,7 @@ shadcn/ui 使用**配色对**设计，每个颜色变量都有对应的 `xxx-for
 
 ```tsx
 <p className="text-destructive">
-  密码不正确
+  图案不正确
 </p>
 ```
 

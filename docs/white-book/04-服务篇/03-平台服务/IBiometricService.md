@@ -44,7 +44,7 @@ BiometricType = 'fingerprint' | 'face' | 'iris'
 AuthOptions {
   reason: string              // 显示给用户的认证原因
   title?: string              // 弹窗标题
-  fallbackEnabled: boolean    // 是否允许回退到密码
+  fallbackEnabled: boolean    // 是否允许回退到图案锁
   timeout?: number            // 超时时间（秒），默认 30
 }
 ```
@@ -54,7 +54,7 @@ AuthOptions {
 ```
 AuthResult {
   success: boolean
-  method?: BiometricType | 'password'
+  method?: BiometricType | 'pattern'
   error?: BiometricError
 }
 
@@ -66,7 +66,7 @@ BiometricError =
   | 'USER_CANCEL'             // 用户取消
   | 'SYSTEM_CANCEL'           // 系统取消
   | 'TIMEOUT'                 // 超时
-  | 'FALLBACK'                // 用户选择密码
+  | 'FALLBACK'                // 用户选择图案锁
 ```
 
 ---
@@ -99,14 +99,14 @@ BiometricError =
 ```
 1. 检查用户是否启用了生物识别
         │
-        ├─ 否 → 显示密码输入
+        ├─ 否 → 显示图案锁
         │
         ▼ 是
 2. 自动弹出 authenticate()
         │
         ├─ 成功 → 解锁
         │
-        ├─ 用户取消 → 显示密码输入
+        ├─ 用户取消 → 显示图案锁
         │
         ▼ 错误
 3. 根据错误类型处理
@@ -121,8 +121,8 @@ BiometricError =
 | NOT_SUPPORTED | "您的设备不支持生物识别" | 隐藏选项 |
 | NOT_ENROLLED | "请先在系统设置中注册指纹/面容" | 跳转设置 |
 | LOCKOUT | "尝试次数过多，请稍后重试" | 等待解锁 |
-| LOCKOUT_PERMANENT | "生物识别已锁定，请使用密码" | 仅密码 |
-| USER_CANCEL | - | 显示密码输入 |
+| LOCKOUT_PERMANENT | "生物识别已锁定，请使用图案锁" | 仅图案锁 |
+| USER_CANCEL | - | 显示图案锁 |
 | TIMEOUT | "认证超时" | 允许重试 |
 
 ---
@@ -143,7 +143,7 @@ BiometricError =
 | 要求 | 说明 |
 |-----|------|
 | 不存储生物特征 | 仅使用系统 API |
-| 有密码回退 | 生物识别失败时可用密码 |
+| 有图案锁回退 | 生物识别失败时可用图案锁 |
 | 超时限制 | 最长等待 30 秒 |
 | 失败次数限制 | 遵循系统策略 |
 

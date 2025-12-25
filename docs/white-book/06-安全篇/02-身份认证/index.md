@@ -382,7 +382,7 @@
 import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
 
 setWalletLockConfirmCallback(async (patternKey) => {
-  const isValid = await verifyPassword(encryptedMnemonic, patternKey);
+  const isValid = await verifyPattern(encryptedMnemonic, patternKey);
   if (isValid) {
     // 执行操作
     await doSomething();

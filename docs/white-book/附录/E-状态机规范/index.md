@@ -113,7 +113,7 @@ TransferState {
 | 状态 | 说明 |
 |-----|------|
 | idle | 初始 |
-| settingPassword | 设置密码 |
+| settingPattern | 设置图案 |
 | generatingMnemonic | 生成助记词 |
 | showingMnemonic | 显示助记词 |
 | verifyingMnemonic | 验证助记词 |
@@ -131,9 +131,9 @@ TransferState {
      │ 开始创建
      ▼
 ┌──────────────┐
-│settingPassword│
+│settingPattern │
 └──────┬───────┘
-       │ 密码设置完成
+       │ 图案设置完成
        ▼
 ┌──────────────────┐
 │generatingMnemonic│

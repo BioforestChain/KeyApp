@@ -208,7 +208,7 @@ export function AuthorizeSignaturePage() {
           拒绝
         </Button>
         <Button onClick={handleSign} className="flex-1">
-          输入密码确认
+          验证钱包锁确认
         </Button>
       </div>
     </div>

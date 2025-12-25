@@ -41,7 +41,7 @@ chain-selector          // 链选择器
 send-button            // 发送按钮
 receive-button         // 收款按钮
 confirm-dialog         // 确认对话框
-password-input         // 密码输入框
+pattern-lock           // 图案锁
 mnemonic-textarea      // 助记词文本框
 wallet-card            // 钱包卡片
 token-list             // 代币列表
@@ -89,7 +89,7 @@ settings-language      // 设置页语言选项
 | 元素类型 | 命名示例 |
 |---------|---------|
 | 按钮 | `send-button`, `confirm-button`, `cancel-button` |
-| 输入框 | `password-input`, `amount-input`, `address-input` |
+| 输入框 | `pattern-lock`, `amount-input`, `address-input` |
 | 选择器 | `chain-selector`, `token-selector`, `language-selector` |
 | 开关 | `dark-mode-toggle`, `notification-toggle` |
 | 链接 | `settings-link`, `help-link` |
@@ -108,7 +108,7 @@ settings-language      // 设置页语言选项
 | 元素类型 | 命名示例 |
 |---------|---------|
 | 页面标题 | `page-title`, `section-title` |
-| Sheet/Modal | `chain-sheet`, `confirm-dialog`, `password-modal` |
+| Sheet/Modal | `chain-sheet`, `confirm-dialog`, `wallet-lock-modal` |
 | 导航 | `bottom-tabs`, `back-button`, `nav-header` |
 
 ---
@@ -222,8 +222,8 @@ await page.waitForLoadState('networkidle')
 
 ```typescript
 // 输入框使用 testid
-await page.fill('[data-testid="password-input"]', 'Test1234!')
-await page.fill('[data-testid="confirm-password-input"]', 'Test1234!')
+await page.fill('[data-testid="pattern-lock-input"]', '0,1,2,5,8')
+await page.fill('[data-testid="pattern-lock-confirm"]', '0,1,2,5,8')
 
 // 按钮点击使用 testid
 await page.click('[data-testid="submit-button"]')
@@ -261,8 +261,8 @@ await page.click('[data-testid="submit-button"]')
 | `import-wallet-button` | 导入钱包按钮 | WelcomePage.tsx |
 | `key-type-selector` | 密钥类型选择 | OnboardingRecover.tsx |
 | `mnemonic-textarea` | 助记词输入框 | MnemonicInput.tsx |
-| `password-input` | 密码输入框 | PasswordForm.tsx |
-| `confirm-password-input` | 确认密码输入框 | PasswordForm.tsx |
+| `pattern-lock` | 图案锁组件 | PatternLock.tsx |
+| `pattern-lock-confirm` | 确认图案锁 | PatternLockSetup.tsx |
 | `continue-button` | 继续按钮 | 多个页面 |
 | `success-message` | 成功提示 | ImportSuccess.tsx |
 | `enter-wallet-button` | 进入钱包按钮 | ImportSuccess.tsx |
