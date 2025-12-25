@@ -52,6 +52,8 @@ function ScannerJobContent() {
   const streamRef = useRef<MediaStream | null>(null)
   const scannerRef = useRef<QRScanner | null>(null)
   const scanningRef = useRef(false)
+  const mountedRef = useRef(false)
+  const initializingRef = useRef(false)
   
   const [cameraReady, setCameraReady] = useState(false)
   const [flashEnabled, setFlashEnabled] = useState(false)
@@ -140,10 +142,15 @@ function ScannerJobContent() {
   
   // 初始化相机
   const initCamera = useCallback(async () => {
+    // 防止重复初始化
+    if (initializingRef.current) return
+    initializingRef.current = true
+    
     // 检查是否支持 mediaDevices
     if (!navigator.mediaDevices?.getUserMedia) {
       console.error('[ScannerJob] mediaDevices not available')
       setMessage({ type: 'error', text: t('error') })
+      initializingRef.current = false
       return
     }
     
@@ -155,6 +162,7 @@ function ScannerJobContent() {
           const granted = await cameraService.requestPermission()
           if (!granted) {
             setMessage({ type: 'error', text: t('permissionDenied') })
+            initializingRef.current = false
             return
           }
         }
@@ -163,39 +171,75 @@ function ScannerJobContent() {
         console.warn('[ScannerJob] Permission check failed, trying direct access:', permErr)
       }
       
+      // 如果组件已卸载，停止
+      if (!mountedRef.current) {
+        initializingRef.current = false
+        return
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
       })
+      
+      // 再次检查组件是否已卸载
+      if (!mountedRef.current) {
+        stream.getTracks().forEach(track => track.stop())
+        initializingRef.current = false
+        return
+      }
+      
       streamRef.current = stream
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        await videoRef.current.play()
-        setCameraReady(true)
-        startScanLoop()
+        try {
+          await videoRef.current.play()
+          // 播放成功后再次检查
+          if (mountedRef.current) {
+            setCameraReady(true)
+            startScanLoop()
+          }
+        } catch (playErr) {
+          // AbortError 表示 play() 被打断，这在 StrictMode 下是正常的
+          if (playErr instanceof DOMException && playErr.name === 'AbortError') {
+            console.debug('[ScannerJob] Play interrupted, will retry on next mount')
+          } else {
+            throw playErr
+          }
+        }
       }
     } catch (err) {
       console.error('[ScannerJob] Camera error:', err)
+      if (!mountedRef.current) {
+        initializingRef.current = false
+        return
+      }
       if (err instanceof DOMException) {
         if (err.name === 'NotAllowedError') {
           setMessage({ type: 'error', text: t('permissionDenied') })
         } else if (err.name === 'NotFoundError') {
           setMessage({ type: 'error', text: t('noCameraFound', { defaultValue: t('error') }) })
+        } else if (err.name === 'AbortError') {
+          // AbortError 不显示错误，会在下次挂载时重试
         } else {
           setMessage({ type: 'error', text: t('error') })
         }
       } else {
         setMessage({ type: 'error', text: t('error') })
       }
+    } finally {
+      initializingRef.current = false
     }
   }, [cameraService, startScanLoop, t])
   
   // 初始化
   useEffect(() => {
+    mountedRef.current = true
     scannerRef.current = createQRScanner({ useWorker: true })
     initCamera()
     
     return () => {
+      mountedRef.current = false
       stopCamera()
       scannerRef.current?.destroy()
       scannerRef.current = null
