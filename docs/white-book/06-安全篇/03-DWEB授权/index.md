@@ -64,9 +64,9 @@ export function AuthorizeAddressPage() {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([])
   
   const handleAuthorize = async () => {
-    // 验证密码
-    const password = await requestPassword()
-    if (!password) return
+    // 验证钱包锁
+    const patternKey = await requestWalletLock()
+    if (!patternKey) return
     
     // 返回地址给 DApp
     await sendAddressResponse(eventId, selectedAddresses)
@@ -164,13 +164,13 @@ export function AuthorizeSignaturePage() {
   const dappInfo = useDappInfo(eventId)
   
   const handleSign = async () => {
-    // 验证密码
-    const password = await requestPassword()
-    if (!password) return
+    // 验证钱包锁
+    const patternKey = await requestWalletLock()
+    if (!patternKey) return
     
     // 解密助记词
     const wallet = getCurrentWallet()
-    const mnemonic = await decryptMnemonic(wallet.encryptedMnemonic, password)
+    const mnemonic = await decryptMnemonic(wallet.encryptedMnemonic, patternKey)
     
     // 签名每个请求
     const signatures = await Promise.all(

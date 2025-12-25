@@ -108,7 +108,7 @@ ScreenOptions = {
 | SettingsLanguage | /settings/language | 语言设置 |
 | SettingsCurrency | /settings/currency | 货币设置 |
 | SettingsChains | /settings/chains | 链配置 |
-| SettingsPassword | /settings/password | 修改密码 |
+| SettingsWalletLock | /settings/wallet-lock | 修改钱包锁 |
 | SettingsMnemonic | /settings/mnemonic | 查看助记词 |
 
 ### DWEB 授权

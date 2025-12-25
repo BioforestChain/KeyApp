@@ -184,7 +184,7 @@ interface IWalletStorageService {
   createWallet(
     wallet: WalletInfo,
     mnemonic: string,
-    password: string
+    patternKey: string  // 钱包锁图案密钥
   ): Promise<void>
   
   /** 获取钱包信息 */
@@ -202,24 +202,24 @@ interface IWalletStorageService {
   // ==================== 助记词/私钥 ====================
   
   /** 获取解密的助记词 */
-  getMnemonic(walletId: string, password: string): Promise<string>
+  getMnemonic(walletId: string, patternKey: string): Promise<string>
   
-  /** 更新助记词加密（密码变更时） */
+  /** 更新助记词加密（钱包锁变更时） */
   updateMnemonicEncryption(
     walletId: string,
-    oldPassword: string,
-    newPassword: string
+    oldPatternKey: string,
+    newPatternKey: string
   ): Promise<void>
   
   /** 存储私钥 */
   savePrivateKey(
     addressKey: string,
     privateKey: string,
-    password: string
+    patternKey: string  // 钱包锁图案密钥
   ): Promise<void>
   
   /** 获取解密的私钥 */
-  getPrivateKey(addressKey: string, password: string): Promise<string>
+  getPrivateKey(addressKey: string, patternKey: string): Promise<string>
   
   // ==================== 链地址 ====================
   

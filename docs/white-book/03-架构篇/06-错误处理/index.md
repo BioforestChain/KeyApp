@@ -55,17 +55,17 @@
 | VALID_003 | AmountTooSmall | 金额过小 | 增加金额 |
 | VALID_004 | AmountTooLarge | 金额超出限制 | 减少金额 |
 | VALID_005 | InvalidMnemonic | 助记词无效 | 检查助记词 |
-| VALID_006 | PasswordMismatch | 两次密码不一致 | 重新输入 |
-| VALID_007 | PasswordTooWeak | 密码强度不足 | 使用更强密码 |
+| VALID_006 | PatternMismatch | 两次图案不一致 | 重新绘制 |
+| VALID_007 | PatternTooSimple | 图案连接点不足 | 连接更多点 |
 | VALID_008 | InvalidQRCode | 无法识别二维码 | 重新扫描 |
 
 ### AUTH_ 认证错误
 
 | 错误码 | 名称 | 用户消息 | 恢复方式 |
 |-------|------|---------|---------|
-| AUTH_001 | WrongPassword | 密码错误 | 重新输入 |
-| AUTH_002 | BiometricFailed | 生物识别失败 | 使用密码 |
-| AUTH_003 | BiometricNotAvailable | 生物识别不可用 | 使用密码 |
+| AUTH_001 | WrongPattern | 图案错误 | 重新绘制 |
+| AUTH_002 | BiometricFailed | 生物识别失败 | 使用图案锁 |
+| AUTH_003 | BiometricNotAvailable | 生物识别不可用 | 使用图案锁 |
 | AUTH_004 | TooManyAttempts | 尝试次数过多 | 等待解锁 |
 | AUTH_005 | SessionExpired | 会话已过期 | 重新认证 |
 | AUTH_006 | AuthorizationDenied | 授权被拒绝 | 重新请求授权 |
