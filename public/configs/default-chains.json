@@ -5,7 +5,7 @@
     "type": "bioforest",
     "name": "BFMeta",
     "symbol": "BFM",
-    "icon": "/icons/chains/bfmeta.svg",
+    "icon": "/icons/bfmeta/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bfm" },
@@ -22,7 +22,7 @@
     "type": "bioforest",
     "name": "CCChain",
     "symbol": "CCC",
-    "icon": "/icons/chains/ccchain.svg",
+    "icon": "/icons/ccchain/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "ccc" }
@@ -33,7 +33,7 @@
     "type": "bioforest",
     "name": "PMChain",
     "symbol": "PMC",
-    "icon": "/icons/chains/pmchain.svg",
+    "icon": "/icons/pmchain/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "pmc" }
@@ -44,7 +44,7 @@
     "type": "bioforest",
     "name": "BFChain V2",
     "symbol": "BFT",
-    "icon": "/icons/chains/bfchainv2.svg",
+    "icon": "/icons/bfchainv2/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bft" }
@@ -55,7 +55,7 @@
     "type": "bioforest",
     "name": "BTGMeta",
     "symbol": "BTGM",
-    "icon": "/icons/chains/btgmeta.svg",
+    "icon": "/icons/btgmeta/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "btgm" }
@@ -76,7 +76,7 @@
     "type": "bioforest",
     "name": "ETHMeta",
     "symbol": "ETHM",
-    "icon": "/icons/chains/ethmeta.svg",
+    "icon": "/icons/ethmeta/chain.svg",
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "ethm" }
@@ -97,7 +97,7 @@
     "type": "evm",
     "name": "Ethereum",
     "symbol": "ETH",
-    "icon": "/icons/chains/ethereum.svg",
+    "icon": "/icons/ethereum/chain.svg",
     "decimals": 18,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "eth" },
     "explorer": { "url": "https://etherscan.io" }
@@ -108,7 +108,7 @@
     "type": "evm",
     "name": "BNB Smart Chain",
     "symbol": "BNB",
-    "icon": "/icons/chains/binance.svg",
+    "icon": "/icons/binance/chain.svg",
     "decimals": 18,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bnb" },
     "explorer": { "url": "https://bscscan.com" }
@@ -119,7 +119,7 @@
     "type": "bip39",
     "name": "Tron",
     "symbol": "TRX",
-    "icon": "/icons/chains/tron.svg",
+    "icon": "/icons/tron/chain.svg",
     "decimals": 6,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "tron" },
     "explorer": { "url": "https://tronscan.org" }
@@ -130,7 +130,7 @@
     "type": "bip39",
     "name": "Bitcoin",
     "symbol": "BTC",
-    "icon": "/icons/chains/bitcoin.svg",
+    "icon": "/icons/bitcoin/chain.svg",
     "decimals": 8,
     "explorer": { "url": "https://mempool.space" }
   }

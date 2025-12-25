@@ -640,6 +640,11 @@ queryBlock:`https://tracker.bfmeta.org/#/info/block-details/:height`
 3. “链 SVG 图标系统” ,这里要和我们的“default-chains.json”进行关联, 从这个 default-chains.json 中来提供链图标, 然后进入 到我们的 service 体系中. 一定不可以将图标和我们的 service 进行强关联耦合.
    - 请到这里文件夹`/Users/kzf/Dev/bioforestChain/legacy-apps/apps/btg-meta/src/components/icon/assets/images` 来复制图标.
    - 这些是 Token图标, 在bio生态中, chainIcon就是使用 main-token 的 icon. mainToken 就是你 配置文件中的 symbol 字段
+   1. 请你梳理这些图标的命名, 使得更好管理, 或者用文件夹进行重新归类
+   2. 我们有了chainIcon,还需要有tokenIcon或者叫做symbolIcon, 同样的逻辑进行改造:升级配置文件(不用枚举所有token的图标,只需要给一个文件夹路径即可), 升级组件, 提供`Context+Provider`
+   3. tokenIcon要有一个fallbackUrl的能力,我们默认在本地 public 文件夹中提供了一些知名的流行的token,但是也需要提供一个网络版本的链接:`"https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/{chain_short_name}/icon-{TOKEN_NAME}.png"`
+      - 这些图标是来自我们自己维护的github仓库的目录: https://github.com/BFChainMeta/fonts-cdn/tree/main/src/meta-icon
+      - 有了这个图标库+fallback机制,我们可以不更新APP的情况下,尝试从网络获取图标, 如果还是没有才进一步fallback成代码生成的样式
 
 ---
 

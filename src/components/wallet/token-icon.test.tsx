@@ -8,8 +8,12 @@ describe('TokenIcon', () => {
     expect(screen.getByLabelText('ETH')).toBeInTheDocument()
   })
 
-  it('displays first letter as fallback', () => {
-    render(<TokenIcon symbol="usdt" />)
+  it('displays first letter as fallback without chainId', () => {
+    render(
+      <TokenIconProvider>
+        <TokenIcon symbol="usdt" />
+      </TokenIconProvider>
+    )
     expect(screen.getByText('U')).toBeInTheDocument()
   })
 
@@ -27,31 +31,57 @@ describe('TokenIcon', () => {
     expect(img).toHaveAttribute('src', '/custom/eth.svg')
   })
 
-  it('uses context iconUrl when provider is present', () => {
+  it('uses local path when provider and chainId are present', () => {
     render(
-      <TokenIconProvider basePath="/icons/tokens">
-        <TokenIcon symbol="btc" />
+      <TokenIconProvider basePath="/icons">
+        <TokenIcon symbol="btc" chainId="bitcoin" />
       </TokenIconProvider>
     )
     const img = screen.getByRole('img', { name: 'BTC' })
-    expect(img).toHaveAttribute('src', '/icons/tokens/btc.svg')
+    expect(img).toHaveAttribute('src', '/icons/bitcoin/tokens/btc.svg')
   })
 
   it('prop iconUrl takes precedence over context', () => {
     render(
-      <TokenIconProvider basePath="/icons/tokens">
-        <TokenIcon symbol="eth" iconUrl="/override.svg" />
+      <TokenIconProvider basePath="/icons">
+        <TokenIcon symbol="eth" chainId="ethereum" iconUrl="/override.svg" />
       </TokenIconProvider>
     )
     const img = screen.getByRole('img', { name: 'ETH' })
     expect(img).toHaveAttribute('src', '/override.svg')
   })
+
+  it('supports chainId for local path generation', () => {
+    render(
+      <TokenIconProvider basePath="/icons">
+        <TokenIcon symbol="unknown" chainId="ethereum" />
+      </TokenIconProvider>
+    )
+    // Initial render uses local path with chainId
+    const img = screen.getByRole('img', { name: 'UNKNOWN' })
+    expect(img).toHaveAttribute('src', '/icons/ethereum/tokens/unknown.svg')
+  })
 })
 
 describe('TokenBadge', () => {
   it('renders token icon and label', () => {
-    render(<TokenBadge symbol="usdt" />)
+    render(
+      <TokenIconProvider>
+        <TokenBadge symbol="usdt" chainId="ethereum" />
+      </TokenIconProvider>
+    )
     expect(screen.getByText('USDT')).toBeInTheDocument()
     expect(screen.getByLabelText('USDT')).toBeInTheDocument()
+  })
+
+  it('supports chainId prop for icon path', () => {
+    render(
+      <TokenIconProvider basePath="/icons">
+        <TokenBadge symbol="eth" chainId="ethereum" />
+      </TokenIconProvider>
+    )
+    expect(screen.getByText('ETH')).toBeInTheDocument()
+    const img = screen.getByRole('img', { name: 'ETH' })
+    expect(img).toHaveAttribute('src', '/icons/ethereum/tokens/eth.svg')
   })
 })
