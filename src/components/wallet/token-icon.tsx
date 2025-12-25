@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, type ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -102,6 +102,12 @@ export function TokenIcon({ symbol, chainId, iconUrl, size = 'md', className }: 
   const [urlIndex, setUrlIndex] = useState(0);
   const [manualError, setManualError] = useState(false);
   const context = useTokenIconContext();
+  
+  // 当 symbol/chainId 变化时重置状态
+  useEffect(() => {
+    setUrlIndex(0);
+    setManualError(false);
+  }, [symbol, chainId]);
   
   const label = symbol.toUpperCase();
   
