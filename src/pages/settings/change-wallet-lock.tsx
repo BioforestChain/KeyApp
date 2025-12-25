@@ -63,7 +63,7 @@ export function ChangeWalletLockPage() {
 
       try {
         const currentPatternKey = patternToString(currentPattern);
-        await walletActions.updateWalletEncryptedMnemonic(
+        await walletActions.updateWalletLock(
           currentWallet.id,
           currentPatternKey,
           newPatternKey

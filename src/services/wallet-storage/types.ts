@@ -37,8 +37,10 @@ export interface WalletInfo {
   primaryChain: string
   /** 主地址 */
   primaryAddress: string
-  /** 加密的助记词 */
+  /** 加密的助记词（使用钱包锁加密） */
   encryptedMnemonic?: EncryptedData | undefined
+  /** 加密的钱包锁（使用助记词派生密钥加密） */
+  encryptedWalletLock?: EncryptedData | undefined
   /** 是否已备份 */
   isBackedUp: boolean
   /** 创建时间 */

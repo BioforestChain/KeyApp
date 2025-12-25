@@ -54,8 +54,10 @@ export interface Wallet {
   chain: ChainType
   /** 多链地址 */
   chainAddresses: ChainAddress[]
-  /** 加密后的助记词 */
+  /** 加密后的助记词（使用钱包锁加密） */
   encryptedMnemonic?: EncryptedData
+  /** 加密后的钱包锁（使用助记词派生密钥加密） */
+  encryptedWalletLock?: EncryptedData
   createdAt: number
   /** @deprecated 使用 chainAddresses[].tokens */
   tokens: Token[]
@@ -151,6 +153,9 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
   
   if (info.encryptedMnemonic) {
     wallet.encryptedMnemonic = info.encryptedMnemonic
+  }
+  if (info.encryptedWalletLock) {
+    wallet.encryptedWalletLock = info.encryptedWalletLock
   }
   
   return wallet
@@ -483,22 +488,49 @@ export const walletActions = {
     )
   },
 
-  /** 更新钱包加密助记词（密码修改时使用） */
-  updateWalletEncryptedMnemonic: async (
+  /** 更新钱包锁（使用旧钱包锁验证） */
+  updateWalletLock: async (
     walletId: string,
-    oldPassword: string,
-    newPassword: string
+    oldWalletLock: string,
+    newWalletLock: string
   ): Promise<void> => {
-    await walletStorageService.updateMnemonicEncryption(walletId, oldPassword, newPassword)
+    await walletStorageService.updateWalletLockEncryption(walletId, oldWalletLock, newWalletLock)
     
     // 重新加载钱包以获取新的加密数据
     const updatedWallet = await walletStorageService.getWallet(walletId)
-    if (updatedWallet?.encryptedMnemonic) {
-      const encryptedMnemonic = updatedWallet.encryptedMnemonic
+    if (updatedWallet?.encryptedMnemonic && updatedWallet.encryptedWalletLock) {
       walletStore.setState((state) => ({
         ...state,
         wallets: state.wallets.map((w) =>
-          w.id === walletId ? { ...w, encryptedMnemonic } : w
+          w.id === walletId ? { 
+            ...w, 
+            encryptedMnemonic: updatedWallet.encryptedMnemonic!,
+            encryptedWalletLock: updatedWallet.encryptedWalletLock!,
+          } : w
+        ),
+      }))
+    }
+  },
+
+  /** 使用助记词重置钱包锁 */
+  resetWalletLockByMnemonic: async (
+    walletId: string,
+    mnemonic: string,
+    newWalletLock: string
+  ): Promise<void> => {
+    await walletStorageService.resetWalletLockByMnemonic(walletId, mnemonic, newWalletLock)
+    
+    // 重新加载钱包以获取新的加密数据
+    const updatedWallet = await walletStorageService.getWallet(walletId)
+    if (updatedWallet?.encryptedMnemonic && updatedWallet.encryptedWalletLock) {
+      walletStore.setState((state) => ({
+        ...state,
+        wallets: state.wallets.map((w) =>
+          w.id === walletId ? { 
+            ...w, 
+            encryptedMnemonic: updatedWallet.encryptedMnemonic!,
+            encryptedWalletLock: updatedWallet.encryptedWalletLock!,
+          } : w
         ),
       }))
     }

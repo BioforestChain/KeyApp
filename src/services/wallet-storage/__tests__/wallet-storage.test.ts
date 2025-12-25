@@ -10,6 +10,9 @@ import {
   type AddressBookEntry,
 } from '../index'
 
+// 有效的 12 词 BIP39 助记词（用于测试）
+const VALID_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
 describe('WalletStorageService', () => {
   let service: WalletStorageService
 
@@ -104,17 +107,20 @@ describe('WalletStorageService', () => {
     it('creates wallet with encrypted mnemonic', async () => {
       const result = await service.createWallet(
         mockWallet,
-        'test mnemonic words',
+        VALID_MNEMONIC,
         'password123'
       )
 
       expect(result.id).toBe('wallet-1')
       expect(result.encryptedMnemonic).toBeDefined()
       expect(result.encryptedMnemonic?.ciphertext).toBeTruthy()
+      // 验证双向加密：encryptedWalletLock 也应该存在
+      expect(result.encryptedWalletLock).toBeDefined()
+      expect(result.encryptedWalletLock?.ciphertext).toBeTruthy()
     })
 
     it('retrieves created wallet', async () => {
-      await service.createWallet(mockWallet, 'test mnemonic', 'password123')
+      await service.createWallet(mockWallet, VALID_MNEMONIC, 'password123')
       const retrieved = await service.getWallet('wallet-1')
 
       expect(retrieved).toBeDefined()
@@ -127,10 +133,10 @@ describe('WalletStorageService', () => {
     })
 
     it('gets all wallets', async () => {
-      await service.createWallet(mockWallet, 'mnemonic1', 'pass1')
+      await service.createWallet(mockWallet, VALID_MNEMONIC, 'pass1')
       await service.createWallet(
         { ...mockWallet, id: 'wallet-2', name: 'Wallet 2' },
-        'mnemonic2',
+        VALID_MNEMONIC,
         'pass2'
       )
 
@@ -139,7 +145,7 @@ describe('WalletStorageService', () => {
     })
 
     it('updates wallet', async () => {
-      await service.createWallet(mockWallet, 'mnemonic', 'password')
+      await service.createWallet(mockWallet, VALID_MNEMONIC, 'password')
       await service.updateWallet('wallet-1', { name: 'Updated Name' })
 
       const updated = await service.getWallet('wallet-1')
@@ -154,7 +160,7 @@ describe('WalletStorageService', () => {
     })
 
     it('deletes wallet', async () => {
-      await service.createWallet(mockWallet, 'mnemonic', 'password')
+      await service.createWallet(mockWallet, VALID_MNEMONIC, 'password')
       await service.deleteWallet('wallet-1')
 
       const result = await service.getWallet('wallet-1')
@@ -162,7 +168,7 @@ describe('WalletStorageService', () => {
     })
 
     it('deletes associated chain addresses when deleting wallet', async () => {
-      await service.createWallet(mockWallet, 'mnemonic', 'password')
+      await service.createWallet(mockWallet, VALID_MNEMONIC, 'password')
       await service.saveChainAddress({
         addressKey: 'wallet-1:bfmeta',
         walletId: 'wallet-1',
@@ -192,18 +198,17 @@ describe('WalletStorageService', () => {
       updatedAt: Date.now(),
     }
 
-    const testMnemonic = 'abandon abandon abandon abandon abandon about'
     const password = 'securePassword123'
 
     it('retrieves decrypted mnemonic with correct password', async () => {
-      await service.createWallet(mockWallet, testMnemonic, password)
+      await service.createWallet(mockWallet, VALID_MNEMONIC, password)
 
       const decrypted = await service.getMnemonic('wallet-crypto', password)
-      expect(decrypted).toBe(testMnemonic)
+      expect(decrypted).toBe(VALID_MNEMONIC)
     })
 
     it('throws when decrypting with wrong password', async () => {
-      await service.createWallet(mockWallet, testMnemonic, password)
+      await service.createWallet(mockWallet, VALID_MNEMONIC, password)
 
       await expect(
         service.getMnemonic('wallet-crypto', 'wrongPassword')
@@ -216,21 +221,53 @@ describe('WalletStorageService', () => {
       ).rejects.toThrow(WalletStorageError)
     })
 
-    it('updates mnemonic encryption with new password', async () => {
-      await service.createWallet(mockWallet, testMnemonic, password)
+    it('updates wallet lock encryption with new wallet lock', async () => {
+      await service.createWallet(mockWallet, VALID_MNEMONIC, password)
 
-      const newPassword = 'newSecurePassword456'
-      await service.updateMnemonicEncryption(
+      const newWalletLock = 'newSecurePassword456'
+      await service.updateWalletLockEncryption(
         'wallet-crypto',
         password,
-        newPassword
+        newWalletLock
       )
 
-      const decrypted = await service.getMnemonic('wallet-crypto', newPassword)
-      expect(decrypted).toBe(testMnemonic)
+      const decrypted = await service.getMnemonic('wallet-crypto', newWalletLock)
+      expect(decrypted).toBe(VALID_MNEMONIC)
 
       await expect(
         service.getMnemonic('wallet-crypto', password)
+      ).rejects.toThrow()
+    })
+
+    it('resets wallet lock by mnemonic', async () => {
+      await service.createWallet(mockWallet, VALID_MNEMONIC, password)
+
+      const newWalletLock = 'resetPassword789'
+      await service.resetWalletLockByMnemonic(
+        'wallet-crypto',
+        VALID_MNEMONIC,
+        newWalletLock
+      )
+
+      // 新钱包锁应该可以解密助记词
+      const decrypted = await service.getMnemonic('wallet-crypto', newWalletLock)
+      expect(decrypted).toBe(VALID_MNEMONIC)
+
+      // 旧钱包锁应该失效
+      await expect(
+        service.getMnemonic('wallet-crypto', password)
+      ).rejects.toThrow()
+    })
+
+    it('throws when resetting wallet lock with invalid mnemonic', async () => {
+      await service.createWallet(mockWallet, VALID_MNEMONIC, password)
+
+      await expect(
+        service.resetWalletLockByMnemonic(
+          'wallet-crypto',
+          'invalid mnemonic phrase that does not match',
+          'newPassword'
+        )
       ).rejects.toThrow()
     })
   })
@@ -443,7 +480,7 @@ describe('WalletStorageService', () => {
           createdAt: Date.now(),
           updatedAt: Date.now(),
         },
-        'mnemonic',
+        VALID_MNEMONIC,
         'pass'
       )
 
