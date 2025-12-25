@@ -60,6 +60,20 @@ export function AddressBookPage() {
     push("ContactEditJob", { contactId: contact.id });
   }, [push]);
 
+  // 分享联系人名片
+  const handleShare = useCallback((contact: Contact) => {
+    push("ContactShareJob", {
+      name: contact.name,
+      addresses: JSON.stringify(contact.addresses.map(a => ({
+        chainType: a.chainType,
+        address: a.address,
+        label: a.label,
+      }))),
+      memo: contact.memo,
+      avatar: contact.avatar,
+    });
+  }, [push]);
+
   // 开始删除联系人
   const handleStartDelete = useCallback((contact: Contact) => {
     deletingContactRef.current = contact;
@@ -149,6 +163,7 @@ export function AddressBookPage() {
               <ContactListItem
                 key={contact.id}
                 contact={contact}
+                onShare={() => handleShare(contact)}
                 onEdit={() => handleOpenEdit(contact)}
                 onDelete={() => handleStartDelete(contact)}
               />
@@ -164,9 +179,10 @@ interface ContactListItemProps {
   contact: Contact;
   onEdit: () => void;
   onDelete: () => void;
+  onShare: () => void;
 }
 
-function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
+function ContactListItem({ contact, onEdit, onDelete, onShare }: ContactListItemProps) {
   const { t } = useTranslation('common');
   const [showActions, setShowActions] = useState(false);
 
@@ -206,6 +222,15 @@ function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
               <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
               {/* 下拉菜单 */}
               <div className="bg-popover border-border absolute top-full right-0 z-20 mt-1 w-32 rounded-lg border py-1 shadow-lg">
+                <button
+                  onClick={() => {
+                    setShowActions(false);
+                    onShare();
+                  }}
+                  className="hover:bg-muted w-full px-4 py-2 text-left text-sm transition-colors"
+                >
+                  {t('addressBook.shareContact')}
+                </button>
                 <button
                   onClick={() => {
                     setShowActions(false);

@@ -266,8 +266,8 @@ function parseContactURI(content: string): ParsedContact | null {
 export function generateContactQRContent(contact: {
   name: string
   addresses: ContactAddressInfo[]
-  memo?: string
-  avatar?: string
+  memo?: string | undefined
+  avatar?: string | undefined
 }): string {
   // 使用 JSON 格式，更灵活
   return JSON.stringify({
