@@ -244,4 +244,4 @@ function migrateV1ToV2(v1Contact: V1Contact): Contact {
 ## 相关链接
 
 - [08-钱包数据存储](../08-钱包数据存储/) - 数据存储规范
-- [ITransactionService](../02-链服务/ITransactionService/) - 交易服务
+- [ITransactionService](../02-链服务/ITransactionService.md) - 交易服务
