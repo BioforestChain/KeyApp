@@ -4,6 +4,7 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PasswordInput } from "@/components/security/password-input";
+import { PatternLock, patternToString } from "@/components/security/pattern-lock";
 import { ChainAddressDisplay } from "@/components/wallet/chain-address-display";
 import { FeeDisplay } from "@/components/transaction/fee-display";
 import {
@@ -64,7 +65,8 @@ function SetTwoStepSecretJobContent() {
 
   const [newTwoStepSecret, setNewTwoStepSecret] = useState("");
   const [confirmTwoStepSecret, setConfirmTwoStepSecret] = useState("");
-  const [walletLock, setWalletLock] = useState("");
+  const [walletLockPattern, setWalletLockPattern] = useState<number[]>([]);
+  const [patternError, setPatternError] = useState(false);
   const [step, setStep] = useState<"input" | "confirm" | "walletLock">("input");
   const [error, setError] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,37 +129,40 @@ function SetTwoStepSecretJobContent() {
     }
   }, [step, newTwoStepSecret, confirmTwoStepSecret, t]);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
+  const handlePatternComplete = useCallback(
+    async (nodes: number[]) => {
       const callback = callbackRef.current;
-      if (!walletLock.trim() || !callback) return;
+      if (nodes.length < 4 || !callback) return;
 
       setIsSubmitting(true);
       setTxStatus("broadcasting");
       setError(undefined);
+      setPatternError(false);
+
+      const walletLockKey = patternToString(nodes);
 
       try {
-        const result = await callback(newTwoStepSecret, walletLock);
+        const result = await callback(newTwoStepSecret, walletLockKey);
         if (result.success) {
           setTxHash(result.txHash);
           setTxStatus("broadcasted");
-          // 不自动关闭，让用户看到状态
         } else {
           setTxStatus("idle");
+          setPatternError(true);
+          setWalletLockPattern([]);
           setError(result.error ?? t("security:twoStepSecret.setFailed"));
         }
       } catch {
         setTxStatus("idle");
+        setPatternError(true);
+        setWalletLockPattern([]);
         setError(t("security:twoStepSecret.setFailed"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [newTwoStepSecret, walletLock, t]
+    [newTwoStepSecret, t]
   );
-
-  const canSubmit = step === "walletLock" && walletLock.trim().length > 0 && !isSubmitting;
 
   // 广播成功后的状态显示
   if (txStatus !== "idle") {
@@ -221,7 +226,7 @@ function SetTwoStepSecretJobContent() {
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="space-y-6 p-4">
+        <div className="space-y-6 p-4">
           {/* Fee info */}
           {feeRef.current.amount && (
             <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
@@ -288,13 +293,14 @@ function SetTwoStepSecretJobContent() {
               <p className="text-center text-sm text-muted-foreground">
                 {t("security:twoStepSecret.walletLockDesc")}
               </p>
-              <PasswordInput
-                value={walletLock}
-                onChange={(e) => setWalletLock(e.target.value)}
-                placeholder={t("security:twoStepSecret.walletLockPlaceholder")}
+              <PatternLock
+                value={walletLockPattern}
+                onChange={setWalletLockPattern}
+                onComplete={handlePatternComplete}
+                minPoints={4}
+                error={patternError}
                 disabled={isSubmitting}
-                aria-describedby={error ? "two-step-secret-error" : undefined}
-                data-testid="wallet-lock-input"
+                data-testid="wallet-lock-pattern"
               />
             </div>
           )}
@@ -307,7 +313,7 @@ function SetTwoStepSecretJobContent() {
           )}
 
           <div className="space-y-3">
-            {step !== "walletLock" ? (
+            {step !== "walletLock" && (
               <button
                 type="button"
                 onClick={handleNextStep}
@@ -318,19 +324,6 @@ function SetTwoStepSecretJobContent() {
                 )}
               >
                 {t("common:next")}
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!canSubmit}
-                data-testid="set-two-step-secret-confirm-button"
-                className={cn(
-                  "w-full rounded-full py-3 font-medium text-white transition-colors",
-                  "bg-primary hover:bg-primary/90",
-                  "disabled:cursor-not-allowed disabled:opacity-50"
-                )}
-              >
-                {isSubmitting ? t("common:loading") : t("common:confirm")}
               </button>
             )}
 
@@ -345,6 +338,8 @@ function SetTwoStepSecretJobContent() {
                 } else {
                   setStep("confirm");
                   setError(undefined);
+                  setPatternError(false);
+                  setWalletLockPattern([]);
                 }
               }}
               disabled={isSubmitting}
@@ -354,7 +349,7 @@ function SetTwoStepSecretJobContent() {
               {step === "input" ? t("common:cancel") : t("common:back")}
             </button>
           </div>
-        </form>
+        </div>
 
         {/* Safe area */}
         <div className="h-[env(safe-area-inset-bottom)]" />
