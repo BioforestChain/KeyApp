@@ -14,6 +14,7 @@ export const WORKTREE_DIR = (() => {
   }
   return resolve(ROOT, '.git-worktree')
 })()
+export const BEST_PRACTICES_FILE = resolve(WHITE_BOOK_DIR, '00-必读', 'best-practices.md')
 
 export const PROJECT_NUMBER = 5
 export const PROJECT_OWNER = 'BioforestChain'
