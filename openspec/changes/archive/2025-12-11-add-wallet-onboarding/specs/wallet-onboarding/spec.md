@@ -52,7 +52,7 @@
 #### Scenario: Successful mnemonic import
 - **WHEN** 助记词校验通过且无阻塞冲突
 - **THEN** 若处于“新增钱包”入口，系统跳转到创建成功页并标记 `showBackupBtn=false`
-- **ELSE** 系统跳转到设置钱包密码页（携带 `showBackupBtn=false`），再继续后续流程
+- **ELSE** 系统跳转到设置钱包锁页（携带 `showBackupBtn=false`），再继续后续流程
 
 ---
 

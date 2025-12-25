@@ -177,7 +177,7 @@ describe('SettingsPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/address-book' });
   });
 
-  it('navigates to password page when clicking change wallet lock', async () => {
+  it('navigates to wallet lock page when clicking change wallet lock', async () => {
     renderWithProviders(<SettingsPage />);
 
     await userEvent.click(screen.getByText(t('settings:items.changeWalletLock')));

@@ -184,7 +184,7 @@ async function doTransfer(page: Page, toAddress: string, amount: string, needPay
 
   await page.locator('[data-testid="confirm-transfer-button"]').click()
 
-  // 输入钱包密码
+  // 输入钱包锁
   const pwdInput = page.locator('[data-testid="wallet-password-input"]')
   await expect(pwdInput).toBeVisible({ timeout: 5000 })
   await pwdInput.fill(WALLET_PASSWORD)
@@ -305,7 +305,7 @@ describeOrSkip('BioForest 完整业务闭环测试', () => {
           await confirmPayPwdInput.fill(PAY_PASSWORD)
           await page.locator('[data-testid="set-pay-password-next-button"]').click()
           
-          // Step 3: 输入钱包密码
+          // Step 3: 输入钱包锁
           const walletPwdInput = page.locator('[data-testid="wallet-password-input"]')
           await expect(walletPwdInput).toBeVisible({ timeout: 3000 })
           await walletPwdInput.fill(WALLET_PASSWORD)

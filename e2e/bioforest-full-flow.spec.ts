@@ -11,7 +11,7 @@
  * 
  * 环境变量:
  * - E2E_TEST_MNEMONIC: 资金账号助记词
- * - E2E_TEST_PASSWORD: 钱包密码
+ * - E2E_TEST_PASSWORD: 钱包锁
  * 
  * 本地运行: 创建 .env.local 文件
  * CI 运行: 通过 GitHub Secrets 注入
@@ -274,7 +274,7 @@ async function performTransfer(
   await confirmBtn.click()
   await page.waitForTimeout(500)
 
-  // 输入钱包密码
+  // 输入钱包锁
   const passwordInput = page.locator('input[type="password"]').first()
   await expect(passwordInput).toBeVisible({ timeout: 5000 })
   await passwordInput.fill(walletPassword)
@@ -325,7 +325,7 @@ async function setPayPassword(page: Page, walletPassword: string, newPayPassword
     await page.waitForTimeout(500)
   }
 
-  // 输入钱包密码验证
+  // 输入钱包锁验证
   const walletPwdInput = page.locator('input[type="password"]').first()
   if (await walletPwdInput.isVisible({ timeout: 3000 }).catch(() => false)) {
     await walletPwdInput.fill(walletPassword)
@@ -381,7 +381,7 @@ async function changePayPassword(
     await page.waitForTimeout(500)
   }
 
-  // 输入钱包密码
+  // 输入钱包锁
   const walletPwdInput = page.locator('input[type="password"]').first()
   await walletPwdInput.fill(walletPassword)
   let confirmBtn = page.locator('button[type="submit"]').filter({ hasText: /确认|Confirm|下一步/ })
