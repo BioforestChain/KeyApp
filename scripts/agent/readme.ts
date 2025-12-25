@@ -88,6 +88,7 @@ export function printWorkflow(): void {
   console.log(`
 # 工作流
 
+pnpm agent readme             启动入口（索引 + 知识地图 + 最佳实践）
 pnpm agent claim <#>          领取任务 (自动分配+worktree指引)
 pnpm agent create "x"         创建任务 (--category bug --roadmap v1)
 pnpm agent epic create "x"    创建 Epic (--roadmap v1)

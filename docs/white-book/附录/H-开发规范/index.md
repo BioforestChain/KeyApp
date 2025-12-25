@@ -78,7 +78,7 @@ Closes #28
 ## 命令速查
 
 ```bash
-pnpm agent                    # 项目知识 + 当前任务
+pnpm agent readme             # 项目知识 + 当前任务
 pnpm agent claim 28           # 领取任务
 pnpm agent chapter <路径>     # 查阅白皮书
 pnpm agent stats              # 进度统计

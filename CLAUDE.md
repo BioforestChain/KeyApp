@@ -4,7 +4,7 @@
 
 ```bash
 # 1. 获取索引（最佳实践 + 知识地图）
-pnpm agent
+pnpm agent readme
 
 # 2. 查看当前任务
 pnpm agent roadmap current
