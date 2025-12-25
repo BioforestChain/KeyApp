@@ -35,28 +35,25 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
   const streamRef = useRef<MediaStream | null>(null);
   const scannerRef = useRef<QRScanner | null>(null);
   const scanningRef = useRef(false);
+  const lastScannedRef = useRef<string | null>(null);
+  const onScanRef = useRef(onScan);
 
   const [state, setState] = useState<ScannerState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
 
-  // 初始化 QR Scanner（使用 Web Worker）
+  // 保持 onScan 回调的最新引用
   useEffect(() => {
-    scannerRef.current = createQRScanner({ useWorker: true });
-    return () => {
-      scannerRef.current?.destroy();
-      scannerRef.current = null;
-    };
-  }, []);
+    onScanRef.current = onScan;
+  }, [onScan]);
 
-  // Handle successful scan
+  // Handle successful scan（使用 ref 避免依赖变化）
   const handleScanSuccess = useCallback(
     (content: string) => {
       // 防止重复触发
-      if (content === lastScanned) return;
+      if (content === lastScannedRef.current) return;
 
-      setLastScanned(content);
+      lastScannedRef.current = content;
       setState('success');
       scanningRef.current = false;
 
@@ -67,8 +64,8 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
 
       const parsed = parseQRContent(content);
 
-      if (onScan) {
-        onScan(content, parsed);
+      if (onScanRef.current) {
+        onScanRef.current(content, parsed);
       } else {
         // 默认行为：根据解析结果导航
         if (parsed.type === 'address' || parsed.type === 'payment') {
@@ -83,7 +80,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
         }
       }
     },
-    [lastScanned, onScan, navigate],
+    [navigate],
   );
 
   // Scan loop - 帧扫描循环（使用 Web Worker 异步扫描）
@@ -118,10 +115,22 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
     scan();
   }, [handleScanSuccess]);
 
+  // Stop camera stream
+  const stopCamera = useCallback(() => {
+    scanningRef.current = false;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
   // Check and request camera permission
   const initCamera = useCallback(async () => {
+    // 先停止现有的流
+    stopCamera();
+    
     setState('requesting');
-    setLastScanned(null);
+    lastScannedRef.current = null;
 
     try {
       const hasPermission = await cameraService.checkPermission();
@@ -152,24 +161,20 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
       setState('error');
       setError(err instanceof Error ? err.message : 'Camera initialization failed');
     }
-  }, [cameraService, startScanLoop]);
+  }, [cameraService, startScanLoop, stopCamera]);
 
-  // Stop camera stream
-  const stopCamera = useCallback(() => {
-    scanningRef.current = false;
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-  }, []);
-
-  // Initialize on mount
+  // 初始化 QR Scanner 和相机（只在挂载时执行一次）
   useEffect(() => {
+    scannerRef.current = createQRScanner({ useWorker: true });
     initCamera();
+    
     return () => {
       stopCamera();
+      scannerRef.current?.destroy();
+      scannerRef.current = null;
     };
-  }, [initCamera, stopCamera]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在挂载时执行
+  }, []);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
