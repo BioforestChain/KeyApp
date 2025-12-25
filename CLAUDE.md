@@ -81,5 +81,6 @@ gh pr create --body "Closes #28"
 - 所有业务逻辑必须有单元测试
 - 使用 TypeScript 严格模式
 - PR 描述使用 `Closes #issue编号` 自动关联任务
+- 合并前必须告知当前 worktree 路径并征求用户确认
 
 </coding_guidelines>
