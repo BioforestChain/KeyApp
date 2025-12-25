@@ -45,6 +45,7 @@ function WalletLockConfirmJobContent() {
   const [pattern, setPattern] = useState<number[]>([]);
   const [error, setError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const errorResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Capture callback on mount and keep it throughout component lifecycle
   const callbackRef = useRef<((pattern: string) => Promise<boolean>) | null>(null);
@@ -62,6 +63,23 @@ function WalletLockConfirmJobContent() {
   const displayTitle = title ?? t("patternLock.unlockTitle");
   const hasBiometric = biometricAvailable === "true" && biometricCallbackRef.current;
 
+  // 清除错误状态和定时器
+  const clearError = useCallback(() => {
+    if (errorResetTimerRef.current) {
+      clearTimeout(errorResetTimerRef.current);
+      errorResetTimerRef.current = null;
+    }
+    setError(false);
+  }, []);
+
+  // 图案变化时，如果处于错误状态则立即清除
+  const handlePatternChange = useCallback((newPattern: number[]) => {
+    if (error && newPattern.length > 0) {
+      clearError();
+    }
+    setPattern(newPattern);
+  }, [error, clearError]);
+
   const handlePatternComplete = useCallback(
     async (nodes: number[]) => {
       const callback = callbackRef.current;
@@ -70,7 +88,7 @@ function WalletLockConfirmJobContent() {
       }
 
       setIsVerifying(true);
-      setError(false);
+      clearError();
 
       try {
         const patternKey = patternToString(nodes);
@@ -80,23 +98,21 @@ function WalletLockConfirmJobContent() {
         } else {
           setError(true);
           setPattern([]);
-          // 1.5秒后自动重置错误状态，让用户重新输入
-          setTimeout(() => {
+          errorResetTimerRef.current = setTimeout(() => {
             setError(false);
           }, 1500);
         }
       } catch {
         setError(true);
         setPattern([]);
-        // 1.5秒后自动重置错误状态
-        setTimeout(() => {
+        errorResetTimerRef.current = setTimeout(() => {
           setError(false);
         }, 1500);
       } finally {
         setIsVerifying(false);
       }
     },
-    [pop]
+    [pop, clearError]
   );
 
   const handleBiometric = useCallback(async () => {
@@ -104,7 +120,7 @@ function WalletLockConfirmJobContent() {
     if (!biometricCallback) return;
 
     setIsVerifying(true);
-    setError(false);
+    clearError();
 
     try {
       const success = await biometricCallback();
@@ -112,21 +128,19 @@ function WalletLockConfirmJobContent() {
         pop();
       } else {
         setError(true);
-        // 1.5秒后自动重置错误状态
-        setTimeout(() => {
+        errorResetTimerRef.current = setTimeout(() => {
           setError(false);
         }, 1500);
       }
     } catch {
       setError(true);
-      // 1.5秒后自动重置错误状态
-      setTimeout(() => {
+      errorResetTimerRef.current = setTimeout(() => {
         setError(false);
       }, 1500);
     } finally {
       setIsVerifying(false);
     }
-  }, [pop]);
+  }, [pop, clearError]);
 
   return (
     <BottomSheet data-testid="wallet-lock-dialog">
@@ -148,7 +162,7 @@ function WalletLockConfirmJobContent() {
         <div className="px-4 pb-4">
           <PatternLock
             value={pattern}
-            onChange={setPattern}
+            onChange={handlePatternChange}
             onComplete={handlePatternComplete}
             minPoints={4}
             error={error}

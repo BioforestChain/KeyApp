@@ -68,6 +68,8 @@ export function PatternLock({
   // 保存动画开始时的节点状态（因为外部可能同时清空 value）
   const [animatingNodes, setAnimatingNodes] = useState<number[]>([]);
   const prevErrorRef = useRef(error);
+  // 用于取消动画的标志
+  const animationCancelledRef = useRef(false);
   
   const totalNodes = size * size;
 
@@ -79,10 +81,21 @@ export function PatternLock({
     }
   }, [value]);
 
+  // 取消错误动画并重置状态
+  const cancelErrorAnimation = useCallback(() => {
+    if (isErrorAnimating) {
+      animationCancelledRef.current = true;
+      setAnimatingNodes([]);
+      setIsErrorAnimating(false);
+      setErrorOpacity(1);
+    }
+  }, [isErrorAnimating]);
+
   // 启动错误淡出动画的函数
   const startErrorAnimation = useCallback((nodes: number[]) => {
     if (nodes.length === 0 || isErrorAnimating) return;
     
+    animationCancelledRef.current = false;
     setAnimatingNodes([...nodes]);
     setIsErrorAnimating(true);
     setErrorOpacity(1);
@@ -91,6 +104,9 @@ export function PatternLock({
     const fadeDuration = 800;
     
     const animate = () => {
+      // 如果动画被取消，停止继续
+      if (animationCancelledRef.current) return;
+      
       const elapsed = Date.now() - fadeStart;
       const progress = Math.min(elapsed / fadeDuration, 1);
       const opacity = 1 - progress;
@@ -163,8 +179,12 @@ export function PatternLock({
 
   // 开始绘制
   const handleStart = useCallback((clientX: number, clientY: number) => {
-    // 禁用状态或错误动画期间不允许开始新的绘制
-    if (disabled || isErrorAnimating) return;
+    if (disabled) return;
+    
+    // 如果正在错误动画中，用户开始新输入时先取消动画
+    if (isErrorAnimating) {
+      cancelErrorAnimation();
+    }
     
     const coords = getRelativeCoords(clientX, clientY);
     if (!coords) return;
@@ -177,7 +197,7 @@ export function PatternLock({
       setCurrentPoint(coords);
       onChange?.([nodeIndex]);
     }
-  }, [disabled, isErrorAnimating, getRelativeCoords, findNearestNode, onChange]);
+  }, [disabled, isErrorAnimating, cancelErrorAnimation, getRelativeCoords, findNearestNode, onChange]);
 
   // 移动中
   const handleMove = useCallback((clientX: number, clientY: number) => {

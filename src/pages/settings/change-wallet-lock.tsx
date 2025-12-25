@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { IconCheck as Check } from '@tabler/icons-react';
@@ -23,6 +23,7 @@ export function ChangeWalletLockPage() {
   const [currentPattern, setCurrentPattern] = useState<number[]>([]);
   const [verifyError, setVerifyError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const errorResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // 助记词验证相关状态
   const [mnemonicWords, setMnemonicWords] = useState<string[]>([]);
@@ -30,13 +31,30 @@ export function ChangeWalletLockPage() {
   const [mnemonicError, setMnemonicError] = useState<string | null>(null);
   const [verifiedMnemonic, setVerifiedMnemonic] = useState<string | null>(null);
 
+  // 清除错误状态和定时器
+  const clearError = useCallback(() => {
+    if (errorResetTimerRef.current) {
+      clearTimeout(errorResetTimerRef.current);
+      errorResetTimerRef.current = null;
+    }
+    setVerifyError(false);
+  }, []);
+
+  // 图案变化时，如果处于错误状态则立即清除
+  const handlePatternChange = useCallback((pattern: number[]) => {
+    if (verifyError && pattern.length > 0) {
+      clearError();
+    }
+    setCurrentPattern(pattern);
+  }, [verifyError, clearError]);
+
   // 验证当前图案
   const handleVerifyComplete = useCallback(
     async (nodes: number[]) => {
       if (!currentWallet?.encryptedMnemonic) return;
 
       setIsVerifying(true);
-      setVerifyError(false);
+      clearError();
 
       try {
         const patternKey = patternToString(nodes);
@@ -48,21 +66,21 @@ export function ChangeWalletLockPage() {
         } else {
           setVerifyError(true);
           setCurrentPattern([]);
-          setTimeout(() => {
+          errorResetTimerRef.current = setTimeout(() => {
             setVerifyError(false);
           }, 1500);
         }
       } catch {
         setVerifyError(true);
         setCurrentPattern([]);
-        setTimeout(() => {
+        errorResetTimerRef.current = setTimeout(() => {
           setVerifyError(false);
         }, 1500);
       } finally {
         setIsVerifying(false);
       }
     },
-    [currentWallet],
+    [currentWallet, clearError],
   );
 
   // 助记词输入变化
@@ -190,7 +208,7 @@ export function ChangeWalletLockPage() {
 
               <PatternLock
                 value={currentPattern}
-                onChange={setCurrentPattern}
+                onChange={handlePatternChange}
                 onComplete={handleVerifyComplete}
                 minPoints={4}
                 error={verifyError}
