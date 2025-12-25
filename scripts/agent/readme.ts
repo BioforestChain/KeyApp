@@ -4,21 +4,11 @@
 
 import { fetchRoadmap, printStats } from './roadmap'
 import { resolveRelease } from './utils'
+import { printBestPracticesContent } from './practice'
 
 export function printBestPractices(): void {
-  console.log(`
-# 最佳实践
-
-❌ Radix Dialog / position:fixed → ✅ Stackflow BottomSheet/Modal
-❌ React Router → ✅ Stackflow push/pop/replace
-❌ 复制 mpay 代码 → ✅ 理解后用 React/TS 重写
-❌ 随意创建 store → ✅ 遵循 stores/ 现有模式
-❌ 明文选择器 → ✅ data-testid
-❌ 安装新 UI 库 → ✅ shadcn/ui（已集成）
-❌ 新建 CSS → ✅ Tailwind CSS
-
-详见: pnpm agent chapter 00-必读
-`)
+  printBestPracticesContent()
+  console.log('详见: pnpm agent chapter 00-必读\n')
 }
 
 export function printKnowledgeMap(): void {
@@ -89,6 +79,7 @@ export function printWorkflow(): void {
 # 工作流
 
 pnpm agent readme             启动入口（索引 + 知识地图 + 最佳实践）
+pnpm agent practice list      最佳实践列表
 pnpm agent claim <#>          领取任务 (自动分配+worktree指引)
 pnpm agent create "x"         创建任务 (--category bug --roadmap v1)
 pnpm agent epic create "x"    创建 Epic (--roadmap v1)

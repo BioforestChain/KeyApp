@@ -26,6 +26,7 @@ pnpm agent readme
 ```
 
 `pnpm agent readme` 是白皮书导览入口，白皮书具体路径与阅读建议以该命令输出为准。
+最佳实践文件位于 `docs/white-book/00-必读/best-practices.md`，由 `pnpm agent practice` 维护。
 
 常用命令：
 
@@ -35,6 +36,10 @@ pnpm agent --help              # 查看帮助
 pnpm agent roadmap current     # 当前 Roadmap
 pnpm agent toc                 # 白皮书目录
 pnpm agent chapter <路径>       # 读取白皮书章节
+pnpm agent practice list       # 最佳实践列表
+pnpm agent practice add "<内容>"
+pnpm agent practice remove <序号|内容>
+pnpm agent practice update <序号> "<内容>"
 pnpm agent claim <issue#>       # 领取任务
 pnpm agent worktree create <name> --branch <branch> --base main
 pnpm agent worktree list

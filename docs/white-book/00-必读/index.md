@@ -10,14 +10,10 @@ AI 模型在开发移动端 Web 应用时，往往会基于通用 Web 开发经�
 
 ### 🚫 常见错误直觉
 
-| 场景 | ❌ 错误直觉 | ✅ 正确做法 |
-|------|------------|------------|
-| 弹出层/Sheet | 使用 Radix Dialog、自定义 `position: fixed` | 使用 Stackflow 的 `BottomSheet` 或 `Modal` 组件 |
-| 居中对话框 | 使用 Radix AlertDialog | 使用 Stackflow 的 `Modal` Activity |
-| 页面导航 | 使用 React Router | 使用 Stackflow 的 `push()`、`pop()` |
-| 状态管理 | 使用 Redux、Zustand 随意创建 store | 遵循 `stores/` 目录下的现有模式 |
-| 样式 | 随意使用 inline style 或新建 CSS 文件 | 使用 Tailwind CSS 类名 |
-| 组件库 | 随意安装 Ant Design、Material UI | 使用 shadcn/ui（已集成） |
+最佳实践已独立维护在：
+
+- `00-必读/best-practices.md`
+- `pnpm agent practice list`
 
 ### 📚 为什么会出错？
 
