@@ -3,13 +3,19 @@
   "initializing": "Initializing camera...",
   "requestingPermission": "Requesting camera permission...",
   "scanPrompt": "Align QR code within frame",
+  "scanPromptChain": "Please scan a {{chain}} address QR code",
   "permissionDenied": "Camera permission denied",
   "error": "Camera error occurred",
+  "noCameraFound": "No camera found",
   "retry": "Retry",
   "gallery": "Gallery",
   "flashOn": "Flash on",
   "flashOff": "Flash off",
   "scanSuccess": "QR code scanned",
   "noQrFound": "No QR code found",
-  "invalidQr": "Invalid QR code"
+  "invalidQr": "Invalid QR code",
+  "invalidAddress": "Invalid address",
+  "invalidEthereumAddress": "Not a valid Ethereum address",
+  "invalidBitcoinAddress": "Not a valid Bitcoin address",
+  "invalidTronAddress": "Not a valid Tron address"
 }

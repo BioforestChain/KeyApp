@@ -19,75 +19,15 @@ import {
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { useCamera } from '@/services/hooks'
-import { parseQRContent, type ParsedQRContent } from '@/lib/qr-parser'
+import { parseQRContent } from '@/lib/qr-parser'
 import { QRScanner, createQRScanner } from '@/lib/qr-scanner'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
+import { getValidatorForChain, getScannerResultCallback } from './scanner-validators'
 
-/** 验证器类型 */
-export type ScanValidator = (content: string, parsed: ParsedQRContent) => true | string
-
-/** 预设验证器 */
-export const scanValidators = {
-  ethereumAddress: (_content: string, parsed: ParsedQRContent): true | string => {
-    if (parsed.type === 'address' && parsed.chain === 'ethereum') return true
-    if (parsed.type === 'payment' && parsed.chain === 'ethereum') return true
-    if (parsed.type === 'unknown' && /^0x[a-fA-F0-9]{40}$/.test(parsed.content)) return true
-    return 'invalidEthereumAddress'
-  },
-  
-  bitcoinAddress: (_content: string, parsed: ParsedQRContent): true | string => {
-    if (parsed.type === 'address' && parsed.chain === 'bitcoin') return true
-    if (parsed.type === 'payment' && parsed.chain === 'bitcoin') return true
-    return 'invalidBitcoinAddress'
-  },
-  
-  tronAddress: (_content: string, parsed: ParsedQRContent): true | string => {
-    if (parsed.type === 'address' && parsed.chain === 'tron') return true
-    if (parsed.type === 'payment' && parsed.chain === 'tron') return true
-    if (parsed.type === 'unknown' && /^T[a-zA-HJ-NP-Z1-9]{33}$/.test(parsed.content)) return true
-    return 'invalidTronAddress'
-  },
-  
-  anyAddress: (_content: string, parsed: ParsedQRContent): true | string => {
-    if (parsed.type === 'address') return true
-    if (parsed.type === 'payment') return true
-    if (parsed.type === 'unknown' && parsed.content.length >= 26 && parsed.content.length <= 64) return true
-    return 'invalidAddress'
-  },
-  
-  any: (): true => true,
-}
-
-/** 根据链类型获取验证器 */
-export function getValidatorForChain(chainType?: string): ScanValidator {
-  switch (chainType?.toLowerCase()) {
-    case 'ethereum':
-    case 'eth':
-      return scanValidators.ethereumAddress
-    case 'bitcoin':
-    case 'btc':
-      return scanValidators.bitcoinAddress
-    case 'tron':
-    case 'trx':
-      return scanValidators.tronAddress
-    default:
-      return scanValidators.anyAddress
-  }
-}
-
-/** 扫描结果事件 */
-export interface ScannerResultEvent {
-  content: string
-  parsed: ParsedQRContent
-}
-
-/** 设置扫描结果回调 */
-let scannerResultCallback: ((result: ScannerResultEvent) => void) | null = null
-
-export function setScannerResultCallback(callback: ((result: ScannerResultEvent) => void) | null) {
-  scannerResultCallback = callback
-}
+// Re-export validators
+export { scanValidators, getValidatorForChain, setScannerResultCallback } from './scanner-validators'
+export type { ScanValidator, ScannerResultEvent } from './scanner-validators'
 
 /** Job 参数 */
 export type ScannerJobParams = {
@@ -135,11 +75,20 @@ function ScannerJobContent() {
         navigator.vibrate(100)
       }
       
-      // 触发回调
-      scannerResultCallback?.({ content, parsed })
+      // 停止扫描
+      scanningRef.current = false
       
-      // 关闭
-      setTimeout(() => pop(), 300)
+      // 保存回调引用
+      const callback = getScannerResultCallback()
+      
+      // 先关闭 sheet
+      setTimeout(() => {
+        pop()
+        // pop 完成后再触发回调
+        setTimeout(() => {
+          callback?.({ content, parsed })
+        }, 100)
+      }, 300)
     } else {
       setMessage({ type: 'error', text: t(result, { defaultValue: result }) })
       
@@ -191,14 +140,27 @@ function ScannerJobContent() {
   
   // 初始化相机
   const initCamera = useCallback(async () => {
+    // 检查是否支持 mediaDevices
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.error('[ScannerJob] mediaDevices not available')
+      setMessage({ type: 'error', text: t('error') })
+      return
+    }
+    
     try {
-      const hasPermission = await cameraService.checkPermission()
-      if (!hasPermission) {
-        const granted = await cameraService.requestPermission()
-        if (!granted) {
-          setMessage({ type: 'error', text: t('permissionDenied') })
-          return
+      // 先尝试检查权限（某些浏览器可能不支持）
+      try {
+        const hasPermission = await cameraService.checkPermission()
+        if (!hasPermission) {
+          const granted = await cameraService.requestPermission()
+          if (!granted) {
+            setMessage({ type: 'error', text: t('permissionDenied') })
+            return
+          }
         }
+      } catch (permErr) {
+        // 权限检查失败，继续尝试直接获取相机
+        console.warn('[ScannerJob] Permission check failed, trying direct access:', permErr)
       }
       
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -214,7 +176,17 @@ function ScannerJobContent() {
       }
     } catch (err) {
       console.error('[ScannerJob] Camera error:', err)
-      setMessage({ type: 'error', text: t('error') })
+      if (err instanceof DOMException) {
+        if (err.name === 'NotAllowedError') {
+          setMessage({ type: 'error', text: t('permissionDenied') })
+        } else if (err.name === 'NotFoundError') {
+          setMessage({ type: 'error', text: t('noCameraFound', { defaultValue: t('error') }) })
+        } else {
+          setMessage({ type: 'error', text: t('error') })
+        }
+      } else {
+        setMessage({ type: 'error', text: t('error') })
+      }
     }
   }, [cameraService, startScanLoop, t])
   
@@ -304,18 +276,24 @@ function ScannerJobContent() {
   
   return (
     <BottomSheet>
-      <div className="bg-background h-[85vh] rounded-t-2xl">
+      <div className="flex h-[80vh] flex-col overflow-hidden rounded-t-2xl bg-black">
+        {/* Handle */}
+        <div className="flex justify-center py-2">
+          <div className="h-1 w-10 rounded-full bg-white/30" />
+        </div>
+        
         {/* Header */}
-        <div className="absolute top-0 right-0 left-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent p-4">
+        <div className="flex items-center justify-between px-4 pb-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleClose}
             className="text-white hover:bg-white/20"
+            data-testid="scanner-close-button"
           >
             <X className="size-6" />
           </Button>
-          <h2 className="text-lg font-medium text-white">
+          <h2 className="text-lg font-medium text-white" data-testid="scanner-title">
             {title ?? t('title')}
           </h2>
           <Button
@@ -323,25 +301,35 @@ function ScannerJobContent() {
             size="icon"
             onClick={toggleFlash}
             className={cn('text-white hover:bg-white/20', flashEnabled && 'text-yellow-400')}
+            data-testid="scanner-flash-button"
           >
             <Flashlight className="size-6" />
           </Button>
         </div>
         
         {/* Camera View */}
-        <div className="relative size-full overflow-hidden rounded-t-2xl bg-black">
-          {cameraReady && (
-            <video
-              ref={videoRef}
-              className="absolute inset-0 size-full object-cover"
-              playsInline
-              muted
-            />
+        <div className="relative flex-1">
+          <video
+            ref={videoRef}
+            className={cn(
+              'absolute inset-0 size-full object-cover',
+              !cameraReady && 'hidden'
+            )}
+            playsInline
+            muted
+            data-testid="scanner-video"
+          />
+          
+          {/* Loading state */}
+          {!cameraReady && !message && (
+            <div className="flex size-full items-center justify-center">
+              <p className="text-white/60">{t('initializing')}</p>
+            </div>
           )}
           
           {/* Scan overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative size-64">
+            <div className="relative size-64" data-testid="scanner-viewfinder">
               <div className={cn(
                 'absolute top-0 left-0 size-8 border-t-4 border-l-4',
                 message?.type === 'success' ? 'border-green-500' : 'border-primary',
@@ -366,36 +354,43 @@ function ScannerJobContent() {
           </div>
           
           {/* Message area */}
-          <div className="absolute inset-x-0 bottom-32 px-4 text-center">
+          <div className="absolute inset-x-0 bottom-24 px-4 text-center">
             {message ? (
-              <div className={cn(
-                'inline-block rounded-lg px-4 py-2',
-                message.type === 'error' && 'bg-red-500/80 text-white',
-                message.type === 'success' && 'bg-green-500/80 text-white',
-                message.type === 'info' && 'bg-black/50 text-white',
-              )}>
+              <div 
+                className={cn(
+                  'inline-block rounded-lg px-4 py-2',
+                  message.type === 'error' && 'bg-red-500/80 text-white',
+                  message.type === 'success' && 'bg-green-500/80 text-white',
+                  message.type === 'info' && 'bg-black/50 text-white',
+                )}
+                data-testid="scanner-message"
+              >
                 {message.text}
               </div>
-            ) : (
-              <p className="text-white/80">
-                {hint ?? t('scanPrompt')}
+            ) : cameraReady ? (
+              <p className="text-white/80" data-testid="scanner-hint">
+                {hint ?? (chainType ? t('scanPromptChain', { chain: chainType }) : t('scanPrompt'))}
               </p>
-            )}
-          </div>
-          
-          {/* Bottom controls */}
-          <div className="absolute inset-x-0 bottom-0 flex justify-center pb-8">
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={handleGalleryImport}
-              className="flex flex-col items-center text-white hover:bg-white/20"
-            >
-              <ImageIcon className="mb-1 size-6" />
-              <span className="text-xs">{t('gallery')}</span>
-            </Button>
+            ) : null}
           </div>
         </div>
+        
+        {/* Bottom controls */}
+        <div className="flex justify-center gap-8 bg-black/50 py-6">
+          <Button
+            variant="ghost"
+            size="lg"
+            onClick={handleGalleryImport}
+            className="flex flex-col items-center text-white hover:bg-white/20"
+            data-testid="scanner-gallery-button"
+          >
+            <ImageIcon className="mb-1 size-6" />
+            <span className="text-xs">{t('gallery')}</span>
+          </Button>
+        </div>
+        
+        {/* Safe area */}
+        <div className="h-[env(safe-area-inset-bottom)] bg-black" />
       </div>
     </BottomSheet>
   )

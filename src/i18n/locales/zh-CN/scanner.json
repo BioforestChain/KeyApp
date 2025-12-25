@@ -3,13 +3,19 @@
   "initializing": "正在初始化相机...",
   "requestingPermission": "正在请求相机权限...",
   "scanPrompt": "将二维码对准框内",
+  "scanPromptChain": "请提供 {{chain}} 链的地址二维码",
   "permissionDenied": "相机权限被拒绝",
   "error": "相机发生错误",
+  "noCameraFound": "未找到相机",
   "retry": "重试",
   "gallery": "相册",
   "flashOn": "闪光灯开启",
   "flashOff": "闪光灯关闭",
   "scanSuccess": "二维码已扫描",
   "noQrFound": "未找到二维码",
-  "invalidQr": "无效的二维码"
+  "invalidQr": "无效的二维码",
+  "invalidAddress": "无效的地址",
+  "invalidEthereumAddress": "不是有效的以太坊地址",
+  "invalidBitcoinAddress": "不是有效的比特币地址",
+  "invalidTronAddress": "不是有效的波场地址"
 }

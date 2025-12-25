@@ -40,13 +40,33 @@ export interface ParsedDeepLink {
   raw: string
 }
 
+/** 联系人地址 */
+export interface ContactAddressInfo {
+  chainType: 'ethereum' | 'bitcoin' | 'tron'
+  address: string
+  label?: string | undefined
+}
+
+/** 解析后的联系人名片 */
+export interface ParsedContact {
+  type: 'contact'
+  /** 联系人名称 */
+  name: string
+  /** 地址列表 */
+  addresses: ContactAddressInfo[]
+  /** 备注 */
+  memo?: string | undefined
+  /** 头像 (emoji 或 URL) */
+  avatar?: string | undefined
+}
+
 /** 未知内容 */
 export interface ParsedUnknown {
   type: 'unknown'
   content: string
 }
 
-export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedDeepLink | ParsedUnknown
+export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedDeepLink | ParsedContact | ParsedUnknown
 
 /** 以太坊地址正则 (0x + 40 hex chars) */
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/
@@ -172,6 +192,98 @@ function parseTronURI(uri: string): ParsedAddress | ParsedPayment {
 }
 
 /**
+ * 解析联系人协议
+ * 格式: contact://<name>?eth=<address>&btc=<address>&trx=<address>&memo=<备注>&avatar=<emoji>
+ * 或 JSON 格式: {"type":"contact","name":"...","addresses":[...],"memo":"..."}
+ */
+function parseContactURI(content: string): ParsedContact | null {
+  // JSON 格式
+  if (content.startsWith('{') && content.includes('"type":"contact"')) {
+    try {
+      const data = JSON.parse(content)
+      if (data.type === 'contact' && data.name && Array.isArray(data.addresses)) {
+        return {
+          type: 'contact',
+          name: data.name,
+          addresses: data.addresses.map((a: { chainType?: string; chain?: string; address: string; label?: string }) => ({
+            chainType: a.chainType || a.chain,
+            address: a.address,
+            label: a.label,
+          })),
+          memo: data.memo,
+          avatar: data.avatar,
+        }
+      }
+    } catch {
+      // 忽略 JSON 解析错误
+    }
+    return null
+  }
+  
+  // URI 格式: contact://name?eth=...&btc=...
+  if (!content.startsWith('contact://')) return null
+  
+  const stripped = content.replace('contact://', '')
+  const queryIndex = stripped.indexOf('?')
+  const name = decodeURIComponent(queryIndex >= 0 ? stripped.slice(0, queryIndex) : stripped)
+  const query = queryIndex >= 0 ? stripped.slice(queryIndex + 1) : ''
+  
+  if (!name) return null
+  
+  const params = new URLSearchParams(query)
+  const addresses: ContactAddressInfo[] = []
+  
+  // 解析各链地址
+  const ethAddr = params.get('eth')
+  if (ethAddr && ETH_ADDRESS_REGEX.test(ethAddr)) {
+    addresses.push({ chainType: 'ethereum', address: ethAddr, label: params.get('eth_label') ?? undefined })
+  }
+  
+  const btcAddr = params.get('btc')
+  if (btcAddr && BTC_ADDRESS_REGEX.test(btcAddr)) {
+    addresses.push({ chainType: 'bitcoin', address: btcAddr, label: params.get('btc_label') ?? undefined })
+  }
+  
+  const trxAddr = params.get('trx')
+  if (trxAddr && TRON_ADDRESS_REGEX.test(trxAddr)) {
+    addresses.push({ chainType: 'tron', address: trxAddr, label: params.get('trx_label') ?? undefined })
+  }
+  
+  if (addresses.length === 0) return null
+  
+  return {
+    type: 'contact',
+    name,
+    addresses,
+    memo: params.get('memo') ? decodeURIComponent(params.get('memo')!) : undefined,
+    avatar: params.get('avatar') ? decodeURIComponent(params.get('avatar')!) : undefined,
+  }
+}
+
+/**
+ * 生成联系人二维码内容
+ */
+export function generateContactQRContent(contact: {
+  name: string
+  addresses: ContactAddressInfo[]
+  memo?: string
+  avatar?: string
+}): string {
+  // 使用 JSON 格式，更灵活
+  return JSON.stringify({
+    type: 'contact',
+    name: contact.name,
+    addresses: contact.addresses.map(a => ({
+      chainType: a.chainType,
+      address: a.address,
+      label: a.label,
+    })),
+    memo: contact.memo,
+    avatar: contact.avatar,
+  })
+}
+
+/**
  * 解析深度链接（hash 路由格式）
  * 支持格式：
  * - #/authorize/address?eventId=...&type=...
@@ -231,6 +343,18 @@ export function parseQRContent(content: string): ParsedQRContent {
 
   if (trimmed.startsWith('tron:')) {
     return parseTronURI(trimmed)
+  }
+
+  // 联系人协议
+  if (trimmed.startsWith('contact://')) {
+    const contact = parseContactURI(trimmed)
+    if (contact) return contact
+  }
+
+  // JSON 格式的联系人
+  if (trimmed.startsWith('{') && trimmed.includes('"type":"contact"')) {
+    const contact = parseContactURI(trimmed)
+    if (contact) return contact
   }
 
   // 深度链接（hash 路由格式）

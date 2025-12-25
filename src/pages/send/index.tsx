@@ -130,9 +130,7 @@ export function SendPage() {
     
     // 打开扫描器
     push('ScannerJob', {
-      chainType: selectedChain,
-      title: t('sendPage.scanAddressTitle'),
-      hint: t('sendPage.scanAddressHint', { chain: selectedChainName }),
+      chainType: selectedChainName ?? selectedChain,
     });
   }, [push, selectedChain, selectedChainName, setToAddress, haptics, toast, t]);
 
