@@ -267,6 +267,16 @@ function handleWorktree(args: string[]): void {
 function handlePractice(args: string[]): void {
   const subCommand = args[0]
 
+  if (!subCommand) {
+    listPractices()
+    return
+  }
+
+  if (subCommand === '--help' || subCommand === '-h') {
+    console.log('用法: pnpm agent practice list|add|remove|update')
+    return
+  }
+
   switch (subCommand) {
     case 'list':
       listPractices()
