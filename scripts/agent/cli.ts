@@ -46,6 +46,7 @@ AI Agent CLI
 
 Usage:
   pnpm agent readme                          # 输出索引（最佳实践 + 知识地图）
+  pnpm agent --help                          # 查看帮助
   pnpm agent roadmap [current|v1|v2|draft]   # 查看任务列表
   pnpm agent claim <issue#>                  # 领取任务（分配给自己）
   pnpm agent done <issue#>                   # 完成任务（关闭 Issue）
@@ -79,13 +80,6 @@ Examples:
   pnpm agent epic create "大功能" --roadmap v1 --issues 44,45,46
   pnpm agent worktree create issue-28 --branch feat/issue-28
 `)
-}
-
-function printEntryHint(): void {
-  console.log(`\nAI Agent CLI\n`)
-  console.log('请使用子命令启动：')
-  console.log('  pnpm agent readme')
-  console.log('  pnpm agent help\n')
 }
 
 function getFlagValue(args: string[], flag: string): string | undefined {
@@ -265,11 +259,11 @@ function main(): void {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
-    printEntryHint()
+    printHelp()
     return
   }
 
-  if (args.includes('--help') || args.includes('-h') || args[0] === 'help') {
+  if (args.includes('--help') || args.includes('-h')) {
     printHelp()
     return
   }
@@ -348,6 +342,12 @@ function main(): void {
 
     case 'worktree':
       handleWorktree(rest)
+      break
+
+    case 'help':
+      log.error('请使用 --help 查看帮助')
+      printHelp()
+      process.exit(1)
       break
 
     default:
