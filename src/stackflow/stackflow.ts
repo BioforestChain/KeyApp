@@ -28,7 +28,7 @@ import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
 import { SettingsWalletChainsActivity } from "./activities/SettingsWalletChainsActivity";
-import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob } from "./activities/sheets";
+import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -78,6 +78,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         TransferWalletLockJob: "/job/transfer-wallet-lock",
         FeeEditJob: "/job/fee-edit",
         ScannerJob: "/job/scanner",
+        ContactAddConfirmJob: "/job/contact-add-confirm",
       },
       fallbackActivity: () => "MainTabsActivity",
       useHash: true,
@@ -123,6 +124,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     TransferWalletLockJob,
     FeeEditJob,
     ScannerJob,
+    ContactAddConfirmJob,
   },
   // Note: Don't set initialActivity when using historySyncPlugin
   // The plugin will determine the initial activity based on the URL

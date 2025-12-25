@@ -300,7 +300,14 @@
     "deleteTitle": "删除联系人",
     "deleteConfirm": "确定要删除联系人 \"{{name}}\" 吗？",
     "passwordError": "密码错误",
-    "verifyFailed": "验证失败"
+    "verifyFailed": "验证失败",
+    "addContact": "添加联系人",
+    "namePlaceholder": "输入联系人名称",
+    "addresses": "地址",
+    "memo": "备注",
+    "memoPlaceholder": "添加备注（可选）",
+    "shareContact": "分享名片",
+    "scanToAdd": "扫码添加联系人"
   },
   "time": {
     "justNow": "刚刚",

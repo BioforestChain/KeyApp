@@ -13,3 +13,4 @@ export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfir
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
 export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult } from "./FeeEditJob";
 export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForChain, type ScannerJobParams, type ScannerResultEvent, type ScanValidator } from "./ScannerJob";
+export { ContactAddConfirmJob, type ContactAddConfirmJobParams } from "./ContactAddConfirmJob";

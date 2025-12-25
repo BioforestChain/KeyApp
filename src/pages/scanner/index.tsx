@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +29,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
   const { t } = useTranslation('scanner');
   const { t: tCommon } = useTranslation('common');
   const { navigate, goBack } = useNavigation();
+  const { push } = useFlow();
   const cameraService = useCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -89,6 +90,16 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
             });
             break;
           
+          case 'contact':
+            // 联系人名片：打开添加确认
+            push('ContactAddConfirmJob', {
+              name: parsed.name,
+              addresses: JSON.stringify(parsed.addresses),
+              memo: parsed.memo,
+              avatar: parsed.avatar,
+            });
+            break;
+          
           case 'unknown':
             // 未知内容：尝试作为地址处理，跳转到发送页面
             navigate({
@@ -99,7 +110,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
         }
       }
     },
-    [navigate],
+    [navigate, push],
   );
 
   // Scan loop - 帧扫描循环（使用 Web Worker 异步扫描）

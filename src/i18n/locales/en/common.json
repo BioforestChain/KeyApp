@@ -311,5 +311,35 @@
   "{{item}}Words": "words",
   "{{length}}Words": "words",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressBook": {
+    "title": "Address Book",
+    "searchPlaceholder": "Search contacts",
+    "noContacts": "No contacts yet",
+    "noResults": "No contacts found",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete Contact",
+    "deleteConfirm": "Are you sure you want to delete contact \"{{name}}\"?",
+    "passwordError": "Incorrect password",
+    "verifyFailed": "Verification failed",
+    "addContact": "Add Contact",
+    "namePlaceholder": "Enter contact name",
+    "addresses": "Addresses",
+    "memo": "Memo",
+    "memoPlaceholder": "Add memo (optional)",
+    "shareContact": "Share Contact",
+    "scanToAdd": "Scan to add contact"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} hr ago",
+    "daysAgo": "{{count}} days ago",
+    "minutesLater": "In {{count}} min",
+    "hoursLater": "In {{count}} hr",
+    "daysLater": "In {{count}} days",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  }
 }
