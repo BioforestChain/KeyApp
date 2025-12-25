@@ -12,7 +12,7 @@ import {
   RELEASE_OPTIONS,
   resolveRelease,
   log,
-} from './utils'
+} from '../utils'
 
 export interface RoadmapItem {
   id: string

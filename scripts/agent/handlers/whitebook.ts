@@ -4,7 +4,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { WHITE_BOOK_DIR, colors, log } from './utils'
+import { WHITE_BOOK_DIR, colors, log } from '../utils'
 
 export interface ChapterInfo {
   name: string

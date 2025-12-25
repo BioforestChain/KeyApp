@@ -3,7 +3,7 @@
  */
 
 import { fetchRoadmap, printStats } from './roadmap'
-import { resolveRelease } from './utils'
+import { resolveRelease } from '../utils'
 import { printBestPracticesContent } from './practice'
 
 export function printBestPractices(): void {
