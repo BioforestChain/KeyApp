@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { TokenIcon } from '@/components/token/token-icon';
+import { TokenIcon } from '@/components/wallet/token-icon';
 import { formatFiatValue, formatPriceChange, type AssetInfo } from '@/types/asset';
 import { IconChevronRight as ChevronRight } from '@tabler/icons-react';
 

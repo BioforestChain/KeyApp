@@ -59,16 +59,23 @@ const tokensByChain = [
   { symbol: 'TRX', chainId: 'tron' },
   { symbol: 'BTC', chainId: 'bitcoin' },
   { symbol: 'USDT', chainId: 'ethereum' },
-  { symbol: 'USDC', chainId: 'ethereum' },
-  { symbol: 'DAI', chainId: 'ethereum' },
   { symbol: 'USDM', chainId: 'bfmeta' },
 ];
 
 export const Default: Story = {
   args: {
-    symbol: 'ETH',
-    chainId: 'ethereum',
+    symbol: 'BFM',
+    chainId: 'bfmeta',
     size: 'md',
+  },
+};
+
+export const WithImageUrl: Story = {
+  name: 'With imageUrl (priority over chainId)',
+  args: {
+    symbol: 'BTC',
+    imageUrl: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png',
+    size: 'lg',
   },
 };
 
@@ -76,7 +83,7 @@ export const AllTokens: Story = {
   render: () => (
     <div className="flex flex-wrap gap-4">
       {tokensByChain.map(({ symbol, chainId }) => (
-        <div key={symbol} className="flex flex-col items-center gap-1">
+        <div key={`${chainId}-${symbol}`} className="flex flex-col items-center gap-1">
           <TokenIcon symbol={symbol} chainId={chainId} size="lg" />
           <span className="text-muted-foreground text-xs">{symbol}</span>
         </div>
@@ -87,7 +94,7 @@ export const AllTokens: Story = {
 
 export const AllSizes: Story = {
   render: () => (
-    <div className="flex items-center gap-4">
+    <div className="flex items-end gap-4">
       {(['xs', 'sm', 'md', 'lg'] as const).map((size) => (
         <div key={size} className="flex flex-col items-center gap-1">
           <TokenIcon symbol="BFM" chainId="bfmeta" size={size} />
@@ -102,27 +109,8 @@ export const Badges: Story = {
   render: () => (
     <div className="flex flex-wrap gap-2">
       {tokensByChain.slice(0, 8).map(({ symbol, chainId }) => (
-        <TokenBadge key={symbol} symbol={symbol} chainId={chainId} />
+        <TokenBadge key={`${chainId}-${symbol}`} symbol={symbol} chainId={chainId} />
       ))}
-    </div>
-  ),
-};
-
-export const WithCdnFallback: Story = {
-  name: 'CDN Fallback (Unknown Tokens)',
-  render: () => (
-    <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        These tokens are not in local /icons/tokens/, so they will try CDN fallback:
-      </p>
-      <div className="flex flex-wrap gap-4">
-        {['KPM', 'FTC', 'GFS', 'SNP', 'JKM'].map((symbol) => (
-          <div key={symbol} className="flex flex-col items-center gap-1">
-            <TokenIcon symbol={symbol} chainId="bfmeta" size="lg" />
-            <span className="text-muted-foreground text-xs">{symbol}</span>
-          </div>
-        ))}
-      </div>
     </div>
   ),
 };
@@ -132,7 +120,7 @@ export const FallbackOnly: Story = {
   render: () => (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
-        No local icons, no CDN fallback - shows first letter:
+        No chainId, no imageUrl - shows first letter:
       </p>
       <div className="flex flex-wrap gap-4">
         {['ABC', 'XYZ', 'TEST', 'NEW'].map((symbol) => (
@@ -150,6 +138,14 @@ export const InContext: Story = {
   render: () => (
     <div className="space-y-4">
       <div className="bg-card flex items-center gap-3 rounded-lg p-3">
+        <TokenIcon symbol="BFM" chainId="bfmeta" size="lg" />
+        <div className="flex-1">
+          <p className="font-medium">BFMeta</p>
+          <p className="text-muted-foreground text-sm">BFM</p>
+        </div>
+        <span className="font-semibold">50,000 BFM</span>
+      </div>
+      <div className="bg-card flex items-center gap-3 rounded-lg p-3">
         <TokenIcon symbol="ETH" chainId="ethereum" size="lg" />
         <div className="flex-1">
           <p className="font-medium">Ethereum</p>
@@ -158,20 +154,12 @@ export const InContext: Story = {
         <span className="font-semibold">2.5 ETH</span>
       </div>
       <div className="bg-card flex items-center gap-3 rounded-lg p-3">
-        <TokenIcon symbol="USDT" chainId="ethereum" size="lg" />
+        <TokenIcon symbol="USDT" imageUrl="https://cryptologos.cc/logos/tether-usdt-logo.png" size="lg" />
         <div className="flex-1">
           <p className="font-medium">Tether USD</p>
           <p className="text-muted-foreground text-sm">USDT</p>
         </div>
         <span className="font-semibold">1,000.00 USDT</span>
-      </div>
-      <div className="bg-card flex items-center gap-3 rounded-lg p-3">
-        <TokenIcon symbol="BFM" chainId="bfmeta" size="lg" />
-        <div className="flex-1">
-          <p className="font-medium">BFMeta</p>
-          <p className="text-muted-foreground text-sm">BFM</p>
-        </div>
-        <span className="font-semibold">50,000 BFM</span>
       </div>
     </div>
   ),

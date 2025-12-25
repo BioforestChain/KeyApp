@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { TokenIcon, TokenBadge, TokenIconProvider } from './token-icon'
 
 const mockGetTokenIconBases = (chainId: string) => {
@@ -35,7 +35,7 @@ describe('TokenIcon', () => {
         <TokenIcon symbol="eth" chainId="ethereum" size="sm" />
       </TokenIconProvider>
     )
-    expect(screen.getByLabelText('ETH')).toHaveClass('size-5')
+    expect(screen.getByLabelText('ETH')).toHaveClass('size-6')
 
     rerender(
       <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
@@ -45,24 +45,45 @@ describe('TokenIcon', () => {
     expect(screen.getByLabelText('ETH')).toHaveClass('size-10')
   })
 
-  it('uses iconUrl prop when provided', () => {
+  it('uses imageUrl prop when provided (highest priority)', () => {
     render(
       <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
-        <TokenIcon symbol="eth" iconUrl="/custom/eth.svg" />
+        <TokenIcon symbol="eth" imageUrl="/custom/eth.svg" />
       </TokenIconProvider>
     )
-    const img = screen.getByRole('img', { name: 'ETH' })
+    const img = screen.getByAltText('ETH')
     expect(img).toHaveAttribute('src', '/custom/eth.svg')
   })
 
-  it('builds local path with .svg extension', () => {
+  it('builds local path with .svg extension from provider', () => {
     render(
       <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
         <TokenIcon symbol="btc" chainId="ethereum" />
       </TokenIconProvider>
     )
-    const img = screen.getByRole('img', { name: 'BTC' })
+    const img = screen.getByAltText('BTC')
     expect(img).toHaveAttribute('src', '/icons/ethereum/tokens/btc.svg')
+  })
+
+  it('falls back to letter when imageUrl fails', () => {
+    render(
+      <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
+        <TokenIcon symbol="ETH" imageUrl="https://broken.url/eth.png" />
+      </TokenIconProvider>
+    )
+    const img = screen.getByAltText('ETH')
+    fireEvent.error(img)
+    expect(screen.getByText('E')).toBeInTheDocument()
+  })
+
+  it('works without provider (letter fallback)', () => {
+    render(<TokenIcon symbol="BTC" />)
+    expect(screen.getByText('B')).toBeInTheDocument()
+  })
+
+  it('capitalizes fallback letter', () => {
+    render(<TokenIcon symbol="btc" />)
+    expect(screen.getByText('B')).toBeInTheDocument()
   })
 })
 

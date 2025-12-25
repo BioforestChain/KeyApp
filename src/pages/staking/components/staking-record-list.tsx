@@ -13,7 +13,7 @@ import {
   IconLoader2 as Loader2,
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
-import { TokenIcon } from '@/components/token/token-icon';
+import { TokenIcon } from '@/components/wallet/token-icon';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { stakingService } from '@/services/staking';
 import type { Amount } from '@/types/amount';
