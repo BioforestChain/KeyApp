@@ -55,17 +55,17 @@
 | VALID_003 | AmountTooSmall | 金额过小 | 增加金额 |
 | VALID_004 | AmountTooLarge | 金额超出限制 | 减少金额 |
 | VALID_005 | InvalidMnemonic | 助记词无效 | 检查助记词 |
-| VALID_006 | PasswordMismatch | 两次密码不一致 | 重新输入 |
-| VALID_007 | PasswordTooWeak | 密码强度不足 | 使用更强密码 |
+| VALID_006 | PatternMismatch | 两次图案不一致 | 重新绘制 |
+| VALID_007 | PatternTooSimple | 图案连接点不足 | 连接更多点 |
 | VALID_008 | InvalidQRCode | 无法识别二维码 | 重新扫描 |
 
 ### AUTH_ 认证错误
 
 | 错误码 | 名称 | 用户消息 | 恢复方式 |
 |-------|------|---------|---------|
-| AUTH_001 | WrongPassword | 密码错误 | 重新输入 |
-| AUTH_002 | BiometricFailed | 生物识别失败 | 使用密码 |
-| AUTH_003 | BiometricNotAvailable | 生物识别不可用 | 使用密码 |
+| AUTH_001 | WrongPattern | 图案错误 | 重新绘制 |
+| AUTH_002 | BiometricFailed | 生物识别失败 | 使用图案锁 |
+| AUTH_003 | BiometricNotAvailable | 生物识别不可用 | 使用图案锁 |
 | AUTH_004 | TooManyAttempts | 尝试次数过多 | 等待解锁 |
 | AUTH_005 | SessionExpired | 会话已过期 | 重新认证 |
 | AUTH_006 | AuthorizationDenied | 授权被拒绝 | 重新请求授权 |
@@ -76,7 +76,7 @@
 |-------|------|---------|---------|
 | STORE_001 | StorageFull | 存储空间不足 | 清理空间 |
 | STORE_002 | DataCorrupted | 数据已损坏 | 重新导入钱包 |
-| STORE_003 | DecryptionFailed | 解密失败 | 检查密码 |
+| STORE_003 | DecryptionFailed | 解密失败 | 检查图案 |
 | STORE_004 | WalletNotFound | 钱包不存在 | 创建或导入 |
 | STORE_005 | MigrationFailed | 数据迁移失败 | 联系支持 |
 
@@ -199,7 +199,7 @@ RetryConfig {
 |-----|---------|
 | 主节点不可用 | 切换备用节点 |
 | 实时数据不可用 | 显示缓存数据 |
-| 生物识别失败 | 回退密码认证 |
+| 生物识别失败 | 回退图案锁认证 |
 | WebSocket 断开 | 降级轮询 |
 
 ### 用户干预
@@ -209,7 +209,7 @@ RetryConfig {
 | 情况 | 用户操作 |
 |-----|---------|
 | 余额不足 | 充值 |
-| 密码错误 | 重新输入 |
+| 图案错误 | 重新绘制 |
 | 授权被拒 | 重新授权 |
 | 数据损坏 | 重新导入钱包 |
 
@@ -330,7 +330,7 @@ ErrorLog {
 **MUST NOT** 记录以下信息：
 - 助记词
 - 私钥
-- 密码
+- 图案锁
 - 完整地址（仅记录前 6 + 后 4 位）
 
 ---
@@ -374,7 +374,7 @@ ErrorReport {
 | 网络断开 | 显示离线提示 |
 | 请求超时 | 自动重试 |
 | 余额不足 | 禁用发送 + 提示 |
-| 密码错误 | 显示错误 + 清空 |
+| 图案错误 | 显示错误动画 + 清空 |
 | 节点不可用 | 自动切换 |
 
 ### 错误恢复测试

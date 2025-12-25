@@ -54,8 +54,10 @@ export interface Wallet {
   chain: ChainType
   /** 多链地址 */
   chainAddresses: ChainAddress[]
-  /** 加密后的助记词 */
+  /** 加密后的助记词（使用钱包锁加密） */
   encryptedMnemonic?: EncryptedData
+  /** 加密后的钱包锁（使用助记词派生密钥加密） */
+  encryptedWalletLock?: EncryptedData
   createdAt: number
   /** @deprecated 使用 chainAddresses[].tokens */
   tokens: Token[]
@@ -151,6 +153,9 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
   
   if (info.encryptedMnemonic) {
     wallet.encryptedMnemonic = info.encryptedMnemonic
+  }
+  if (info.encryptedWalletLock) {
+    wallet.encryptedWalletLock = info.encryptedWalletLock
   }
   
   return wallet
@@ -261,7 +266,7 @@ export const walletActions = {
       name: walleterInfo?.name ?? 'User',
       activeWalletId: walletId,
       biometricEnabled: walleterInfo?.biometricEnabled ?? false,
-      passwordLockEnabled: walleterInfo?.passwordLockEnabled ?? false,
+      walletLockEnabled: walleterInfo?.walletLockEnabled ?? false,
       agreementAccepted: true,
       createdAt: walleterInfo?.createdAt ?? now,
       updatedAt: now,
@@ -483,22 +488,57 @@ export const walletActions = {
     )
   },
 
-  /** 更新钱包加密助记词（密码修改时使用） */
-  updateWalletEncryptedMnemonic: async (
+  /** 更新钱包锁（使用旧钱包锁验证） */
+  updateWalletLock: async (
     walletId: string,
-    oldPassword: string,
-    newPassword: string
+    oldWalletLock: string,
+    newWalletLock: string
   ): Promise<void> => {
-    await walletStorageService.updateMnemonicEncryption(walletId, oldPassword, newPassword)
+    await walletStorageService.updateWalletLockEncryption(walletId, oldWalletLock, newWalletLock)
     
     // 重新加载钱包以获取新的加密数据
     const updatedWallet = await walletStorageService.getWallet(walletId)
-    if (updatedWallet?.encryptedMnemonic) {
-      const encryptedMnemonic = updatedWallet.encryptedMnemonic
+    if (updatedWallet?.encryptedMnemonic && updatedWallet.encryptedWalletLock) {
       walletStore.setState((state) => ({
         ...state,
         wallets: state.wallets.map((w) =>
-          w.id === walletId ? { ...w, encryptedMnemonic } : w
+          w.id === walletId ? { 
+            ...w, 
+            encryptedMnemonic: updatedWallet.encryptedMnemonic!,
+            encryptedWalletLock: updatedWallet.encryptedWalletLock!,
+          } : w
+        ),
+      }))
+    }
+  },
+
+  /** 验证助记词是否正确（不修改数据） */
+  verifyMnemonic: async (
+    walletId: string,
+    mnemonic: string
+  ): Promise<boolean> => {
+    return walletStorageService.verifyMnemonic(walletId, mnemonic)
+  },
+
+  /** 使用助记词重置钱包锁 */
+  resetWalletLockByMnemonic: async (
+    walletId: string,
+    mnemonic: string,
+    newWalletLock: string
+  ): Promise<void> => {
+    await walletStorageService.resetWalletLockByMnemonic(walletId, mnemonic, newWalletLock)
+    
+    // 重新加载钱包以获取新的加密数据
+    const updatedWallet = await walletStorageService.getWallet(walletId)
+    if (updatedWallet?.encryptedMnemonic && updatedWallet.encryptedWalletLock) {
+      walletStore.setState((state) => ({
+        ...state,
+        wallets: state.wallets.map((w) =>
+          w.id === walletId ? { 
+            ...w, 
+            encryptedMnemonic: updatedWallet.encryptedMnemonic!,
+            encryptedWalletLock: updatedWallet.encryptedWalletLock!,
+          } : w
         ),
       }))
     }
@@ -507,6 +547,92 @@ export const walletActions = {
   /** 获取解密的助记词 */
   getMnemonic: async (walletId: string, password: string): Promise<string> => {
     return walletStorageService.getMnemonic(walletId, password)
+  },
+
+  /** 更新钱包链地址（添加/移除链） */
+  updateWalletChainAddresses: async (
+    walletId: string,
+    newChainIds: string[],
+    password: string,
+    chainConfigs: import('@/services/chain-config').ChainConfig[]
+  ): Promise<void> => {
+    const state = walletStore.state
+    const wallet = state.wallets.find((w) => w.id === walletId)
+    if (!wallet) throw new Error('Wallet not found')
+
+    // 先验证密码（无论是否有变化，都需要验证）
+    const mnemonic = await walletStorageService.getMnemonic(walletId, password)
+
+    // 获取现有链ID
+    const existingChainIds = new Set(wallet.chainAddresses.map((ca) => ca.chain))
+    const newChainIdSet = new Set(newChainIds)
+
+    // 计算需要添加和移除的链
+    const chainsToAdd = newChainIds.filter((id) => !existingChainIds.has(id))
+    const chainsToRemove = [...existingChainIds].filter((id) => !newChainIdSet.has(id))
+
+    // 如果没有变化，直接返回
+    if (chainsToAdd.length === 0 && chainsToRemove.length === 0) {
+      return
+    }
+
+    // 如果有需要添加的链，派生地址
+    let newAddresses: Array<{ chain: string; address: string }> = []
+    if (chainsToAdd.length > 0) {
+      
+      // 动态导入避免循环依赖
+      const { deriveBioforestAddresses } = await import('@/lib/crypto')
+      
+      // 派生所有 bioforest 链的地址
+      const bioforestAddresses = deriveBioforestAddresses(mnemonic, chainConfigs)
+      const addressMap = new Map(bioforestAddresses.map((a) => [a.chainId, a.address]))
+      
+      newAddresses = chainsToAdd
+        .map((chainId) => {
+          const address = addressMap.get(chainId)
+          if (!address) return null
+          return { chain: chainId, address }
+        })
+        .filter((a): a is { chain: string; address: string } => a !== null)
+    }
+
+    // 更新 IndexedDB - 添加新链地址
+    for (const addr of newAddresses) {
+      await walletStorageService.saveChainAddress({
+        addressKey: `${walletId}:${addr.chain}`,
+        walletId,
+        chain: addr.chain,
+        address: addr.address,
+        assets: [],
+        isCustomAssets: false,
+        isFrozen: false,
+      })
+    }
+
+    // 更新 IndexedDB - 移除链地址
+    for (const chainId of chainsToRemove) {
+      await walletStorageService.deleteChainAddress(`${walletId}:${chainId}`)
+    }
+
+    // 构建新的链地址列表
+    const updatedChainAddresses: ChainAddress[] = [
+      // 保留未移除的现有链地址
+      ...wallet.chainAddresses.filter((ca) => !chainsToRemove.includes(ca.chain)),
+      // 添加新链地址
+      ...newAddresses.map((addr) => ({
+        chain: addr.chain,
+        address: addr.address,
+        tokens: [],
+      })),
+    ]
+
+    // 更新 store
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: state.wallets.map((w) =>
+        w.id === walletId ? { ...w, chainAddresses: updatedChainAddresses } : w
+      ),
+    }))
   },
 
   /** 清除所有数据 */

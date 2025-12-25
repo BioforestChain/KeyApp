@@ -1,5 +1,13 @@
 {
   "add": "Add Wallet",
+  "chains": {
+    "title": "Manage Wallet Networks",
+    "verifyTitle": "Verify Wallet Lock",
+    "verifyDesc": "Draw your wallet lock pattern to confirm changes",
+    "saving": "Saving...",
+    "success": "Network settings updated",
+    "noWallet": "Please create or import a wallet first"
+  },
   "createDesc": "Generate a new mnemonic to create wallet",
   "importDesc": "Import existing wallet with mnemonic or key",
   "empty": "No wallets yet",
@@ -99,9 +107,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "deleteTitle": "Delete Wallet",
-    "deleteWarning": "⚠️ This action cannot be undone\n\nEnter password to confirm deleting wallet \"{{name}}\"",
-    "passwordPlaceholder": "Enter wallet password",
-    "passwordError": "Incorrect password",
+    "deleteWarning": "⚠️ This action cannot be undone\n\nDraw pattern to confirm deleting wallet \"{{name}}\"",
+    "patternError": "Incorrect pattern",
     "verifying": "Verifying...",
     "verifyFailed": "Verification failed",
     "confirmDelete": "Confirm Delete"

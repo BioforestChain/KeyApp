@@ -45,6 +45,7 @@
   "sendPage": {
     "title": "发送",
     "resultTitle": "发送结果",
+    "from": "发送地址",
     "toAddressLabel": "收款地址",
     "toAddressPlaceholder": "输入 {{chain}} 地址",
     "amountLabel": "金额",
@@ -54,10 +55,10 @@
     "scanSuccess": "扫描成功",
     "scanFailed": "扫描失败，请手动输入",
     "explorerNotImplemented": "区块浏览器功能待实现",
-    "payPasswordTitle": "需要安全密码",
-    "payPasswordDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
-    "payPasswordPlaceholder": "输入安全密码",
-    "payPasswordError": "安全密码错误"
+    "twoStepSecretTitle": "需要安全密码",
+    "twoStepSecretDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
+    "twoStepSecretPlaceholder": "输入安全密码",
+    "twoStepSecretError": "安全密码错误"
   },
   "history": {
     "title": "交易记录",
@@ -238,6 +239,17 @@
   "youFinallyReceive": "本次赎回你实际得到",
   "youMustReceive_{asset}QuantityGreaterThan_0": "您得到 的数量必须大于0",
   "{chainsymbol}IsNotEnoughToCoverFees": "用于支付矿工费的 余额不足",
+  "feeEdit": {
+    "title": "编辑网络手续费",
+    "currentFee": "当前手续费",
+    "minFee": "最低手续费",
+    "customFee": "自定义手续费",
+    "presetMin": "最低",
+    "presetRecommend": "推荐",
+    "presetFast": "快速",
+    "invalidFee": "请输入有效的手续费",
+    "belowMinFee": "手续费不能低于最低手续费 {{minFee}} {{symbol}}"
+  },
   "txStatus": {
     "broadcasting": "广播中",
     "broadcasted": "广播成功",

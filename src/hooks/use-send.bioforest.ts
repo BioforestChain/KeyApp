@@ -7,8 +7,8 @@ import {
   createTransferTransaction,
   broadcastTransaction,
   getAddressInfo,
-  verifyPayPassword,
-  setPayPassword,
+  verifyTwoStepSecret,
+  setTwoStepSecret,
   getSignatureTransactionMinFee,
 } from '@/services/bioforest-sdk'
 
@@ -57,13 +57,13 @@ export interface SubmitBioforestParams {
   fromAddress: string
   toAddress: string
   amount: Amount
-  payPassword?: string
+  twoStepSecret?: string
 }
 
 /**
  * Check if address has pay password set
  */
-export async function checkPayPasswordRequired(
+export async function checkTwoStepSecretRequired(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<{ required: boolean; secondPublicKey?: string }> {
@@ -88,16 +88,16 @@ export async function checkPayPasswordRequired(
 /**
  * Verify pay password for an address
  */
-export async function verifyBioforestPayPassword(
+export async function verifyBioforestTwoStepSecret(
   chainConfig: ChainConfig,
   walletId: string,
   password: string,
-  payPassword: string,
+  twoStepSecret: string,
   secondPublicKey: string,
 ): Promise<boolean> {
   try {
     const secret = await walletStorageService.getMnemonic(walletId, password)
-    const result = await verifyPayPassword(chainConfig.id, secret, payPassword, secondPublicKey)
+    const result = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, secondPublicKey)
     return result !== false
   } catch {
     return false
@@ -111,7 +111,7 @@ export async function submitBioforestTransfer({
   fromAddress,
   toAddress,
   amount,
-  payPassword,
+  twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
   // Get mnemonic from wallet storage
   let secret: string
@@ -144,7 +144,7 @@ export async function submitBioforestTransfer({
     const addressInfo = await getAddressInfo(apiUrl, apiPath, fromAddress)
     console.log('[submitBioforestTransfer] Address info:', { hasSecondPubKey: !!addressInfo.secondPublicKey })
     
-    if (addressInfo.secondPublicKey && !payPassword) {
+    if (addressInfo.secondPublicKey && !twoStepSecret) {
       console.log('[submitBioforestTransfer] Pay password required')
       return {
         status: 'password_required',
@@ -153,9 +153,9 @@ export async function submitBioforestTransfer({
     }
 
     // Verify pay password if provided
-    if (payPassword && addressInfo.secondPublicKey) {
+    if (twoStepSecret && addressInfo.secondPublicKey) {
       console.log('[submitBioforestTransfer] Verifying pay password...')
-      const isValid = await verifyPayPassword(chainConfig.id, secret, payPassword, addressInfo.secondPublicKey)
+      const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
       console.log('[submitBioforestTransfer] Pay password verification result:', isValid)
       if (!isValid) {
         return { status: 'error', message: '安全密码验证失败' }
@@ -169,7 +169,7 @@ export async function submitBioforestTransfer({
       chainId: chainConfig.id,
       apiPath,
       mainSecret: secret,
-      paySecret: payPassword,
+      paySecret: twoStepSecret,
       from: fromAddress,
       to: toAddress,
       amount: amount.toRawString(),
@@ -207,30 +207,30 @@ export async function submitBioforestTransfer({
   }
 }
 
-export type SetPayPasswordResult =
+export type SetTwoStepSecretResult =
   | { status: 'ok'; txHash: string }
   | { status: 'password' }
   | { status: 'already_set' }
   | { status: 'error'; message: string }
 
-export interface SetPayPasswordParams {
+export interface SetTwoStepSecretParams {
   chainConfig: ChainConfig
   walletId: string
   password: string
   fromAddress: string
-  newPayPassword: string
+  newTwoStepSecret: string
 }
 
 /**
  * Set pay password (二次签名) for an account
  */
-export async function submitSetPayPassword({
+export async function submitSetTwoStepSecret({
   chainConfig,
   walletId,
   password,
   fromAddress,
-  newPayPassword,
-}: SetPayPasswordParams): Promise<SetPayPasswordResult> {
+  newTwoStepSecret,
+}: SetTwoStepSecretParams): Promise<SetTwoStepSecretResult> {
   // Get mnemonic from wallet storage
   let secret: string
   try {
@@ -259,19 +259,19 @@ export async function submitSetPayPassword({
     }
 
     // Set pay password
-    console.log('[submitSetPayPassword] Creating signature transaction...')
-    const result = await setPayPassword({
+    console.log('[submitSetTwoStepSecret] Creating signature transaction...')
+    const result = await setTwoStepSecret({
       rpcUrl: apiUrl,
       chainId: chainConfig.id,
       apiPath,
       mainSecret: secret,
-      newPaySecret: newPayPassword,
+      newPaySecret: newTwoStepSecret,
     })
 
-    console.log('[submitSetPayPassword] Pay password set successfully:', result.txHash)
+    console.log('[submitSetTwoStepSecret] Pay password set successfully:', result.txHash)
     return { status: 'ok', txHash: result.txHash }
   } catch (error) {
-    console.error('[submitSetPayPassword] Failed to set pay password:', error)
+    console.error('[submitSetTwoStepSecret] Failed to set pay password:', error)
 
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -289,7 +289,7 @@ export async function submitSetPayPassword({
 /**
  * Get the minimum fee for setting pay password
  */
-export async function getSetPayPasswordFee(
+export async function getSetTwoStepSecretFee(
   chainConfig: ChainConfig,
 ): Promise<{ amount: Amount; symbol: string } | null> {
   const apiUrl = chainConfig.api?.url
@@ -305,7 +305,7 @@ export async function getSetPayPasswordFee(
       symbol: chainConfig.symbol,
     }
   } catch (error) {
-    console.error('[getSetPayPasswordFee] Failed to get fee:', error)
+    console.error('[getSetTwoStepSecretFee] Failed to get fee:', error)
     return null
   }
 }
@@ -313,7 +313,7 @@ export async function getSetPayPasswordFee(
 /**
  * Check if address has pay password set
  */
-export async function hasPayPasswordSet(
+export async function hasTwoStepSecretSet(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<boolean> {

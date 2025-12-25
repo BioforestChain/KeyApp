@@ -177,5 +177,13 @@
     "acknowledge": "I understand the risks",
     "message": "Arbitrary keys may have lower security than standard mnemonics. Make sure your secret has sufficient entropy and is backed up safely.",
     "title": "Security Warning"
+  },
+  "chainSelector": {
+    "title": "Select Blockchain Networks",
+    "subtitle": "Choose which blockchain networks to enable",
+    "searchPlaceholder": "Search chain name or symbol",
+    "noResults": "No chains found",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All"
   }
 }

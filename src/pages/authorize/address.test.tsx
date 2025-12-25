@@ -43,7 +43,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 function parseSearchParams(url: string): Record<string, string> {
@@ -141,7 +141,7 @@ describe('AddressAuthPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   // This test is skipped as it depends on inline password input
   it.skip('requires password and signs when signMessage is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
@@ -169,8 +169,8 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '同意' }))
 
-    await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(screen.getByPlaceholderText('请输入密码'), 'pw')
+    await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(screen.getByTestId('pattern-lock-input'), '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {
@@ -189,7 +189,7 @@ describe('AddressAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   it.skip('requires password and returns main when getMain=true is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',
@@ -216,8 +216,8 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '同意' }))
 
-    await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(screen.getByPlaceholderText('请输入密码'), 'pw')
+    await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(screen.getByTestId('pattern-lock-input'), '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {

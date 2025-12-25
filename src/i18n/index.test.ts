@@ -135,7 +135,7 @@ describe('i18n', () => {
     })
 
     it('all locales have required security keys', () => {
-      const requiredKeys = ['verifyPassword', 'backupMnemonic']
+      const requiredKeys = ['patternLock', 'walletLock', 'backupMnemonic']
       for (const key of requiredKeys) {
         expect(enSecurity).toHaveProperty(key)
         expect(zhCNSecurity).toHaveProperty(key)

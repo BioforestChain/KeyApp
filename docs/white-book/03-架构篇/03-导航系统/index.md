@@ -108,7 +108,7 @@ ScreenOptions = {
 | SettingsLanguage | /settings/language | 语言设置 |
 | SettingsCurrency | /settings/currency | 货币设置 |
 | SettingsChains | /settings/chains | 链配置 |
-| SettingsPassword | /settings/password | 修改密码 |
+| SettingsWalletLock | /settings/wallet-lock | 修改钱包锁 |
 | SettingsMnemonic | /settings/mnemonic | 查看助记词 |
 
 ### DWEB 授权
@@ -240,7 +240,7 @@ History 模式：https://example.com/wallet/abc123
 以下页面 SHOULD 禁用手势返回：
 
 - 支付确认页（防止误操作）
-- 密码输入页（防止泄露）
+- 图案锁页面（防止泄露）
 - 重要表单页（防止数据丢失）
 
 ---

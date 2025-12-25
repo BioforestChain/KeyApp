@@ -111,7 +111,8 @@ describe('TransactionDetailPage', () => {
 
     it('shows transaction amount', () => {
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText('ETH')).toBeInTheDocument()
+      // 页面上有多个 ETH 元素（金额和手续费）
+      expect(screen.getAllByText('ETH').length).toBeGreaterThan(0)
     })
 
     it('shows transaction status', () => {

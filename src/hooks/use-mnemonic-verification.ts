@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 
 /**
  * Fisher-Yates shuffle algorithm
@@ -80,6 +80,17 @@ export function useMnemonicVerification(
 ): UseMnemonicVerificationReturn {
   // Generate initial verification state
   const generateState = useCallback((): MnemonicVerificationState => {
+    // Handle empty or insufficient mnemonic
+    if (mnemonic.length < VERIFICATION_WORD_COUNT) {
+      return {
+        slots: [],
+        candidates: [],
+        usedWords: new Set(),
+        isComplete: false,
+        correctCount: 0,
+      }
+    }
+
     const positions = selectRandomIndices(VERIFICATION_WORD_COUNT, mnemonic.length)
     const slots: VerificationSlot[] = positions.map((position) => ({
       position,
@@ -98,6 +109,13 @@ export function useMnemonicVerification(
   }, [mnemonic])
 
   const [state, setState] = useState<MnemonicVerificationState>(generateState)
+
+  // Regenerate state when mnemonic changes (e.g., from empty to populated)
+  useEffect(() => {
+    if (mnemonic.length >= VERIFICATION_WORD_COUNT && state.slots.length === 0) {
+      setState(generateState())
+    }
+  }, [mnemonic.length, state.slots.length, generateState])
 
   // Find next empty slot
   const nextEmptySlotIndex = useMemo(() => {

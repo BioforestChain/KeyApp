@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setTransferConfirmCallback, setTransferPasswordCallback } from '@/stackflow/activities/sheets';
+import { setTransferConfirmCallback, setTransferWalletLockCallback } from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
@@ -45,7 +45,7 @@ export function SendPage() {
   const camera = useCamera();
   const toast = useToast();
   const haptics = useHaptics();
-  const isPasswordSheetOpen = useRef(false);
+  const isWalletLockSheetOpen = useRef(false);
 
   // Read params for pre-fill from scanner
   const { address: initialAddress, amount: initialAmount } = useActivityParams<{
@@ -74,7 +74,7 @@ export function SendPage() {
     };
   }, [chainConfig, currentChainAddress?.tokens]);
 
-  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, submitWithPayPassword, reset, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
     initialAsset: defaultAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
@@ -144,52 +144,52 @@ export function SendPage() {
 
     haptics.impact('light');
 
-    // Set up callback: TransferConfirm -> TransferPassword (合并的钱包锁+安全密码)
+    // Set up callback: TransferConfirm -> TransferWalletLock (合并的钱包锁+二次签名)
     setTransferConfirmCallback(async () => {
-      if (isPasswordSheetOpen.current) return;
-      isPasswordSheetOpen.current = true;
+      if (isWalletLockSheetOpen.current) return;
+      isWalletLockSheetOpen.current = true;
 
       await haptics.impact('medium');
 
-      // 使用合并的密码确认组件
-      setTransferPasswordCallback(async (walletPassword: string, payPassword?: string) => {
-        // 第一次调用：只有钱包密码
-        if (!payPassword) {
-          const result = await submit(walletPassword);
+      // 使用合并的钱包锁确认组件
+      setTransferWalletLockCallback(async (walletLockKey: string, twoStepSecret?: string) => {
+        // 第一次调用：只有钱包锁
+        if (!twoStepSecret) {
+          const result = await submit(walletLockKey);
           
           if (result.status === 'password') {
-            return { status: 'password' as const };
+            return { status: 'wallet_lock_invalid' as const };
           }
           
-          if (result.status === 'pay_password_required') {
-            return { status: 'pay_password_required' as const };
+          if (result.status === 'two_step_secret_required') {
+            return { status: 'two_step_secret_required' as const };
           }
           
           if (result.status === 'ok') {
-            isPasswordSheetOpen.current = false;
+            isWalletLockSheetOpen.current = false;
             return { status: 'ok' as const, txHash: result.txHash };
           }
           
           return { status: 'error' as const, message: '转账失败' };
         }
         
-        // 第二次调用：有钱包锁密码和安全密码
-        const result = await submitWithPayPassword(walletPassword, payPassword);
+        // 第二次调用：有钱包锁和二次签名
+        const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret);
         
         if (result.status === 'ok') {
-          isPasswordSheetOpen.current = false;
+          isWalletLockSheetOpen.current = false;
           return { status: 'ok' as const, txHash: result.txHash };
         }
         
         if (result.status === 'password') {
-          return { status: 'pay_password_invalid' as const, message: '安全密码错误' };
+          return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
         }
         
         return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
       });
 
-      push('TransferPasswordJob', {
-        title: t('security:passwordConfirm.defaultTitle'),
+      push('TransferWalletLockJob', {
+        title: t('security:walletLock.verifyTitle'),
       });
     });
 
@@ -257,10 +257,20 @@ export function SendPage() {
       <PageHeader title={t('sendPage.title')} onBack={navGoBack} />
 
       <div className="flex-1 space-y-6 p-4">
-        {/* Current chain info */}
-        <div className="bg-muted/50 flex items-center justify-center gap-2 rounded-lg py-2">
-          <ChainIcon chain={selectedChain} size="sm" />
-          <span className="text-sm font-medium">{selectedChainName}</span>
+        {/* Current chain info & sender address */}
+        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <ChainIcon chain={selectedChain} size="sm" />
+            <span className="text-sm font-medium">{selectedChainName}</span>
+          </div>
+          {currentChainAddress?.address && (
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <span>{t('sendPage.from')}:</span>
+              <span className="font-mono">
+                {currentChainAddress.address.slice(0, 8)}...{currentChainAddress.address.slice(-6)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Address input */}

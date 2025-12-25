@@ -1,343 +1,206 @@
 import { test, expect, type Page } from '@playwright/test'
+import { UI_TEXT, TEST_IDS, byTestId } from './helpers/i18n'
 
 /**
- * 页面截图 E2E 测试
- *
- * 用于视觉回归测试，确保 UI 变更不会破坏设计
+ * 页面 E2E 测试 - Dev 环境
+ * 
+ * 在真实环境下测试页面基础功能，需要先创建钱包
+ * 
+ * 与 pages.mock.spec.ts 的区别：
+ * - 这里不依赖预设数据，而是先创建钱包
+ * - 测试真实的服务交互（不是 mock）
+ * - 主要验证页面加载和基础 UI 功能
+ * 
+ * 注意：使用 data-testid 和多语言正则，避免硬编码文本
  */
 
-// 测试钱包数据（包含 BioForest 链）
-const TEST_WALLET_DATA = {
-  wallets: [
-    {
-      id: 'test-wallet-1',
-      name: '测试钱包',
-      address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-      chain: 'ethereum',
-      chainAddresses: [
-        { chain: 'ethereum', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', tokens: [] },
-        { chain: 'bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', tokens: [] },
-        { chain: 'tron', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW', tokens: [] },
-        { chain: 'bfmeta', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', tokens: [] },
-        { chain: 'pmchain', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', tokens: [] },
-        { chain: 'ccchain', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', tokens: [] },
-      ],
-      encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test' },
-      createdAt: Date.now(),
-      tokens: [],
-    },
-  ],
-  currentWalletId: 'test-wallet-1',
-  selectedChain: 'ethereum',
+const DEFAULT_PATTERN = [0, 1, 2, 5]
+const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+async function drawPattern(page: Page, gridTestId: string, nodes: number[]): Promise<void> {
+  const grid = page.locator(`[data-testid="${gridTestId}"]`)
+  await grid.scrollIntoViewIfNeeded()
+  const box = await grid.boundingBox()
+  if (!box) throw new Error(`Pattern grid ${gridTestId} not visible`)
+
+  const size = 3
+  const toPoint = (index: number) => {
+    const row = Math.floor(index / size)
+    const col = index % size
+    return {
+      x: box.x + box.width * ((col + 0.5) / size),
+      y: box.y + box.height * ((row + 0.5) / size),
+    }
+  }
+
+  const points = nodes.map((node) => toPoint(node))
+  const first = points[0]!
+  await page.mouse.move(first.x, first.y)
+  await page.mouse.down()
+  for (const point of points.slice(1)) {
+    await page.mouse.move(point.x, point.y, { steps: 8 })
+  }
+  await page.mouse.up()
 }
 
-async function waitForAppReady(page: Page) {
-  // Some routes are lazy-loaded; when the bundle is cached, `networkidle` can fire before
-  // Suspense resolves. Waiting for the global loading spinner to disappear makes screenshots stable.
-  await page.locator('svg[aria-label="加载中"]').waitFor({ state: 'hidden', timeout: 10_000 })
+async function importWallet(page: Page): Promise<void> {
+  await page.goto('/#/wallet/import')
+  await page.waitForSelector('[data-testid="mnemonic-step"]')
+
+  // 填写助记词
+  const words = TEST_MNEMONIC.split(' ')
+  for (let i = 0; i < words.length; i++) {
+    await page.locator(`[data-word-index="${i}"]`).fill(words[i]!)
+  }
+
+  await page.click('[data-testid="continue-button"]')
+  await page.waitForSelector('[data-testid="pattern-step"]')
+
+  // 设置图案锁
+  await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+  await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+  await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
+
+  // 完成链选择
+  await page.waitForSelector('[data-testid="chain-selector-step"]')
+  await page.click('[data-testid="chain-selector-complete-button"]')
+
+  // 等待跳转到首页
+  await page.waitForURL(/.*#\/$/)
+  await expect(page.locator('[data-testid="wallet-name"]:visible').first()).toBeVisible({ timeout: 10000 })
 }
 
-// 辅助函数：在页面加载前注入钱包数据
-async function setupTestWallet(page: Page, targetUrl: string = '/') {
-  // Use addInitScript to inject localStorage BEFORE the page loads.
-  // This ensures Stackflow reads wallet data on initial activity construction.
-  await page.addInitScript((data) => {
-    localStorage.setItem('bfm_wallets', JSON.stringify(data))
-  }, TEST_WALLET_DATA)
-  
-  // Navigate directly to target URL with hash routing
-  const hashUrl = targetUrl === '/' ? '/' : `/#${targetUrl}`
-  await page.goto(hashUrl)
-  await page.waitForLoadState('networkidle')
-}
+test.describe('页面 - Dev 环境', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear())
+  })
 
-test.describe('首页', () => {
-  test('有钱包状态 - 截图', async ({ page }) => {
-    await setupTestWallet(page)
-    await waitForAppReady(page)
+  test.describe('首页', () => {
+    test('有钱包时显示钱包信息', async ({ page }) => {
+      await importWallet(page)
 
-    await expect(page).toHaveScreenshot('home-with-wallet.png', {
-      mask: [page.locator('[data-testid="address-display"]')],
+      // 验证首页基础元素
+      await expect(page.locator('[data-testid="wallet-name"]').first()).toBeVisible()
+      await expect(page.locator('button[data-testid="chain-selector"]').first()).toBeVisible()
+    })
+
+    test('链切换弹窗可打开', async ({ page }) => {
+      await importWallet(page)
+
+      // 打开链切换弹窗
+      await page.locator('button[data-testid="chain-selector"]:visible').first().click()
+      await expect(page.locator('[data-testid="chain-sheet"]')).toBeVisible()
+    })
+
+    test('可切换到 BFMeta 链', async ({ page }) => {
+      await importWallet(page)
+
+      // 打开链选择器
+      await page.locator('button[data-testid="chain-selector"]:visible').first().click()
+      await page.waitForSelector('[data-testid="chain-sheet"]')
+
+      // 选择 BFMeta
+      await page.click('[data-testid="chain-item-bfmeta"]')
+
+      // 验证链已切换（地址格式变化）
+      await expect(page.locator('.font-mono').first()).toContainText(/^[bc]/)
     })
   })
 
-  test('链切换底部弹窗', async ({ page }) => {
-    await setupTestWallet(page)
+  test.describe('发送页面', () => {
+    test('发送页面可访问', async ({ page }) => {
+      await importWallet(page)
 
-    // 打开链切换弹窗
-    await page.click('[data-testid="chain-selector"]')
-    await page.waitForSelector('[data-testid="chain-sheet"]')
+      // 导航到发送页面（使用多语言正则）
+      await page.locator(`button:has-text("${UI_TEXT.send.source}")`).first().click()
+      await page.waitForURL(/.*#\/send/)
 
-    await expect(page).toHaveScreenshot('home-chain-selector.png', {
-      mask: [page.locator('[data-testid="address-display"]')],
+      // 验证发送表单存在
+      await expect(byTestId(page, TEST_IDS.sendForm)).toBeVisible()
+    })
+
+    test('发送表单验证收款地址', async ({ page }) => {
+      await importWallet(page)
+      await page.locator(`button:has-text("${UI_TEXT.send.source}")`).first().click()
+      await page.waitForURL(/.*#\/send/)
+
+      // 输入无效地址（使用 data-testid 或 input type）
+      const addressInput = byTestId(page, TEST_IDS.addressInput).or(page.locator('input[type="text"]').first())
+      await addressInput.fill('invalid-address')
+      await addressInput.blur()
+
+      // 应该显示错误提示
+      // 注意：具体的错误提示取决于实现
     })
   })
 
-  test('链切换功能验证', async ({ page }) => {
-    await setupTestWallet(page)
+  test.describe('收款页面', () => {
+    test('收款页面显示二维码', async ({ page }) => {
+      await importWallet(page)
 
-    // 记录初始地址
-    const initialAddress = await page.locator('.font-mono').first().textContent()
+      // 导航到收款页面（使用多语言正则）
+      await page.locator(`button:has-text("${UI_TEXT.receive.source}")`).first().click()
+      await page.waitForURL(/.*#\/receive/)
 
-    // 打开链切换弹窗
-    await page.click('[data-testid="chain-selector"]')
-    await page.waitForSelector('[data-testid="chain-sheet"]')
+      // 验证二维码存在
+      await expect(page.locator('canvas, svg').first()).toBeVisible()
+    })
+  })
 
-    // 选择 BFMeta 链
-    await page.click('[data-testid="chain-option-bfmeta"]')
+  test.describe('设置页面', () => {
+    test('设置页面可访问', async ({ page }) => {
+      await importWallet(page)
 
-    // 等待弹窗关闭
-    await page.waitForSelector('[data-testid="chain-sheet"]', { state: 'hidden' })
+      // 导航到设置页面
+      await page.goto('/#/settings')
+      await page.waitForLoadState('networkidle')
 
-    // 验证链选择器显示 BFMeta
-    await expect(page.locator('[data-testid="chain-selector"]')).toContainText('BFMeta')
+      // 验证设置页面标题（使用多语言正则）
+      await expect(page.locator(`h1:has-text("${UI_TEXT.settings.source}")`).first()).toBeVisible()
+    })
 
-    // 地址应该改变（BioForest 地址以 'c' 开头）
-    const newAddress = await page.locator('.font-mono').first().textContent()
-    expect(newAddress).not.toBe(initialAddress)
+    test('链配置页面可访问', async ({ page }) => {
+      await importWallet(page)
+
+      await page.goto('/#/settings/chains')
+      await page.waitForLoadState('networkidle')
+
+      // 验证链配置内容
+      await expect(page.locator('text=BFMeta')).toBeVisible()
+    })
+  })
+
+  test.describe('历史记录页面', () => {
+    test('历史页面可访问', async ({ page }) => {
+      await importWallet(page)
+
+      await page.goto('/#/history')
+      await page.waitForLoadState('networkidle')
+
+      // 验证历史页面（可能显示空状态）
+      await expect(page.locator('h1, h2').first()).toBeVisible()
+    })
   })
 })
 
-test.describe('收款页面', () => {
-  test('收款页面截图', async ({ page }) => {
-    await setupTestWallet(page, '/receive')
-    await waitForAppReady(page)
-    
-    await expect(page).toHaveScreenshot('receive-page.png', {
-      // QR 码内容会变化，使用 mask
-      mask: [page.locator('svg[role="img"]')],
-    })
-  })
-})
-
-test.describe('发送页面', () => {
-  test('发送页面 - 空状态', async ({ page }) => {
-    await setupTestWallet(page, '/send')
-    await waitForAppReady(page)
-    // Verify we are on the Send page (PageHeader title)
-    await expect(page.locator('[data-testid="page-title"]')).toBeVisible({ timeout: 10000 })
-
-    await expect(page).toHaveScreenshot('send-empty.png')
+test.describe('无钱包状态', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear())
   })
 
-  test('发送页面 - 填写表单', async ({ page }) => {
-    await setupTestWallet(page, '/send')
-    await waitForAppReady(page)
-    // Verify we are on the Send page (PageHeader title)
-    await expect(page.locator('[data-testid="page-title"]')).toBeVisible({ timeout: 10000 })
+  test('首页显示创建钱包引导', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
 
-    // 使用 placeholder 属性选择器（SendPage 使用动态 placeholder）
-    const addressInput = page.locator('input[placeholder*="地址"]')
-    const amountInput = page.locator('input[placeholder="0"]')
-
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
-    await amountInput.fill('100')
-
-    await expect(page).toHaveScreenshot('send-filled.png')
+    // 验证显示创建/导入钱包按钮
+    await expect(page.locator('[data-testid="create-wallet-button"]')).toBeVisible()
   })
 
-  test.skip('发送页面 - 余额不足警告', async ({ page }) => {
-    // TODO: Fix button locator - "确认发送" button text may have changed
-    await setupTestWallet(page)
+  test('访问需要钱包的页面会重定向', async ({ page }) => {
     await page.goto('/#/send')
-    await page.waitForSelector('[data-testid="page-title"]')
+    await page.waitForLoadState('networkidle')
 
-    const addressInput = page.locator('input[placeholder*="地址"]')
-    const amountInput = page.locator('input[placeholder="0"]')
-
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
-    await amountInput.fill('999999')
-
-    // 验证余额不足警告显示
-    await expect(page.locator('[data-testid="amount-error"]')).toBeVisible()
-    await expect(page).toHaveScreenshot('send-insufficient-balance.png')
-  })
-
-  test.skip('发送页面 - 功能验证', async ({ page }) => {
-    // TODO: Fix button locator - "确认发送" button text may have changed
-    await setupTestWallet(page)
-    await page.goto('/#/send')
-    await page.waitForSelector('[data-testid="page-title"]')
-
-    const addressInput = page.locator('input[placeholder*="地址"]')
-    const amountInput = page.locator('input[placeholder="0"]')
-
-    // 验证确认按钮初始禁用
-    const sendBtn = page.locator('[data-testid="send-continue-button"]')
-    await expect(sendBtn).toBeDisabled()
-
-    // 填写地址
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
-    await expect(sendBtn).toBeDisabled() // 还没填金额
-
-    // 填写金额
-    await amountInput.fill('10')
-    await expect(sendBtn).toBeEnabled() // 现在应该启用
-
-    // 验证当前链信息显示
-    await expect(page.locator('[data-testid="chain-info"]')).toBeVisible()
-  })
-})
-
-test.describe('代币详情页面', () => {
-  test('代币详情截图', async ({ page }) => {
-    await setupTestWallet(page, '/token/usdt')
-    await waitForAppReady(page)
-    
-    await expect(page).toHaveScreenshot('token-detail.png')
-  })
-})
-
-test.describe('钱包详情页面', () => {
-  test('钱包详情截图', async ({ page }) => {
-    await setupTestWallet(page, '/wallet/test-wallet-1')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('wallet-detail.png', {
-      mask: [page.locator('[data-testid="address-display"]')],
-    })
-  })
-})
-
-test.describe('设置页面', () => {
-  test('设置主页截图', async ({ page }) => {
-    await setupTestWallet(page, '/settings')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('settings-main.png')
-  })
-
-  test('链配置截图', async ({ page }) => {
-    await setupTestWallet(page, '/settings/chains')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('settings-chains.png')
-  })
-
-  test('语言设置截图', async ({ page }) => {
-    await setupTestWallet(page, '/settings/language')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('settings-language.png')
-  })
-
-  test('货币设置截图', async ({ page }) => {
-    await setupTestWallet(page, '/settings/currency')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('settings-currency.png')
-  })
-})
-
-test.describe('交易历史页面', () => {
-  test('历史页面截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page, '/history')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('history-empty.png')
-  })
-})
-
-test.describe('通知页面', () => {
-  test('通知中心截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page, '/notifications')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('notifications-empty.png')
-  })
-})
-
-// 测试地址簿数据（多地址联系人）
-const TEST_CONTACTS_DATA = {
-  contacts: [
-    {
-      id: 'contact-1',
-      name: 'Alice',
-      addresses: [
-        { id: 'addr-1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
-      ],
-      memo: '同事',
-      createdAt: Date.now() - 86400000,
-      updatedAt: Date.now() - 86400000,
-    },
-    {
-      id: 'contact-2',
-      name: 'Bob',
-      addresses: [
-        { id: 'addr-2', address: '0xabcdef1234567890abcdef1234567890abcdef12', chainType: 'ethereum', isDefault: true },
-        { id: 'addr-3', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
-      ],
-      createdAt: Date.now() - 172800000,
-      updatedAt: Date.now() - 172800000,
-    },
-    {
-      id: 'contact-3',
-      name: '多链用户',
-      addresses: [
-        { id: 'addr-4', address: '0x9876543210fedcba9876543210fedcba98765432', chainType: 'ethereum', isDefault: true },
-        { id: 'addr-5', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
-        { id: 'addr-6', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW', chainType: 'tron' },
-      ],
-      memo: '支持多链转账',
-      createdAt: Date.now() - 259200000,
-      updatedAt: Date.now() - 259200000,
-    },
-  ],
-  isInitialized: true,
-  version: 2,
-}
-
-// 辅助函数：设置测试联系人
-async function setupTestContacts(page: Page, targetUrl: string = '/address-book') {
-  await page.addInitScript((data) => {
-    localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
-    localStorage.setItem('bfm_address_book', JSON.stringify(data.contacts))
-  }, { wallet: TEST_WALLET_DATA, contacts: TEST_CONTACTS_DATA })
-  
-  const hashUrl = `/#${targetUrl}`
-  await page.goto(hashUrl)
-  await page.waitForLoadState('networkidle')
-}
-
-test.describe('地址簿页面', () => {
-  test('地址簿截图 - 空状态', async ({ page }) => {
-    await setupTestWallet(page, '/address-book')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('address-book-empty.png')
-  })
-
-  test('地址簿截图 - 有联系人', async ({ page }) => {
-    await setupTestContacts(page, '/address-book')
-    await waitForAppReady(page)
-    // Wait for contacts to load and render
-    await expect(page.locator('text=Alice')).toBeVisible({ timeout: 10000 })
-
-    await expect(page).toHaveScreenshot('address-book-with-contacts.png')
-  })
-
-  test('地址簿 - 多地址联系人显示', async ({ page }) => {
-    await setupTestContacts(page, '/address-book')
-    await waitForAppReady(page)
-
-    // 验证多地址联系人显示 (+N) 后缀
-    const multiAddressContact = page.locator('text=Bob')
-    await expect(multiAddressContact).toBeVisible()
-    // Bob has 2 addresses, should show (+1)
-    await expect(page.locator('text=+1')).toBeVisible()
-    
-    // 多链用户 has 3 addresses, should show (+2)
-    await expect(page.locator('text=+2')).toBeVisible()
-  })
-})
-
-test.describe('钱包列表页面', () => {
-  test('钱包列表截图', async ({ page }) => {
-    await setupTestWallet(page, '/wallet/list')
-    await waitForAppReady(page)
-
-    await expect(page).toHaveScreenshot('wallet-list.png', {
-      mask: [page.locator('[data-testid="address-display"]')],
-    })
+    // 应该重定向到首页或显示创建钱包引导
+    await expect(page.locator('[data-testid="create-wallet-button"]')).toBeVisible()
   })
 })

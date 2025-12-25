@@ -264,7 +264,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         step: 'confirm',
         isSubmitting: false,
       }))
-      return { status: 'pay_password_required' as const, secondPublicKey: result.secondPublicKey }
+      return { status: 'two_step_secret_required' as const, secondPublicKey: result.secondPublicKey }
     }
 
     if (result.status === 'error') {
@@ -292,7 +292,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
   // Submit with pay password (for addresses with secondPublicKey)
-  const submitWithPayPassword = useCallback(async (password: string, payPassword: string) => {
+  const submitWithTwoStepSecret = useCallback(async (password: string, twoStepSecret: string) => {
     if (!chainConfig || !walletId || !fromAddress) {
       return { status: 'error' as const }
     }
@@ -325,7 +325,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
-      payPassword,
+      twoStepSecret,
     })
 
     if (result.status === 'password') {
@@ -349,7 +349,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return { status: 'error' as const }
     }
 
-    // password_required should not happen when payPassword is provided
+    // password_required should not happen when twoStepSecret is provided
     if (result.status === 'password_required') {
       setState((prev) => ({
         ...prev,
@@ -390,7 +390,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     goToConfirm,
     goBack,
     submit,
-    submitWithPayPassword,
+    submitWithTwoStepSecret,
     reset,
     canProceed,
   }

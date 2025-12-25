@@ -15,10 +15,10 @@ describe('ChainIcon', () => {
 
   it('applies correct size class', () => {
     const { rerender } = render(<ChainIcon chain="ethereum" size="sm" />)
-    expect(screen.getByLabelText('ETH')).toHaveClass('w-6', 'aspect-square')
+    expect(screen.getByLabelText('ETH')).toHaveClass('size-5')
 
     rerender(<ChainIcon chain="ethereum" size="lg" />)
-    expect(screen.getByLabelText('ETH')).toHaveClass('w-10', 'aspect-square')
+    expect(screen.getByLabelText('ETH')).toHaveClass('size-10')
   })
 
   it('applies chain-specific color', () => {
@@ -33,9 +33,9 @@ describe('ChainIcon', () => {
       tron: 'TRX',
       bsc: 'BNB',
       bitcoin: 'BTC',
-      bfmeta: 'BFT',
-      ccchain: 'CC',
-      pmchain: 'PM',
+      bfmeta: 'BFM',
+      ccchain: 'CCC',
+      pmchain: 'PMC',
     } as const
     chains.forEach((chain) => {
       const { unmount } = render(<ChainIcon chain={chain} />)

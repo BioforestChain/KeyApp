@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') })
 
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC ?? ''
-const WALLET_PASSWORD = 'e2e-test-password'
+const WALLET_PATTERN = '0,1,2,5,8' // 钱包锁图案：L形
 
 const describeOrSkip = FUND_MNEMONIC ? test.describe : test.describe.skip
 
@@ -52,13 +52,13 @@ describeOrSkip('BioForest UI 流程', () => {
     await page.locator('[data-testid="continue-button"]').click()
     console.log('  - 输入助记词')
 
-    await page.locator('[data-testid="password-input"]').fill(WALLET_PASSWORD)
-    const confirmInput = page.locator('[data-testid="confirm-password-input"]')
+    await page.locator('[data-testid="pattern-lock-input"]').fill(WALLET_PATTERN)
+    const confirmInput = page.locator('[data-testid="pattern-lock-confirm"]')
     if (await confirmInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmInput.fill(WALLET_PASSWORD)
+      await confirmInput.fill(WALLET_PATTERN)
     }
     await page.locator('[data-testid="continue-button"]').click()
-    console.log('  - 设置密码')
+    console.log('  - 设置钱包锁')
 
     await page.locator('[data-testid="enter-wallet-button"]').click()
     await page.waitForLoadState('networkidle')

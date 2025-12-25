@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { encrypt, decrypt } from '@/lib/crypto'
+import { encrypt, decrypt, encryptWithRawKey, decryptWithRawKey, deriveEncryptionKeyFromMnemonic } from '@/lib/crypto'
 import {
   type WalleterInfo,
   type WalletInfo,
@@ -150,27 +150,34 @@ export class WalletStorageService {
 
   // ==================== 钱包管理 ====================
 
-  /** 创建钱包（同时存储加密助记词） */
+  /** 创建钱包（同时存储双向加密数据） */
   async createWallet(
-    wallet: Omit<WalletInfo, 'encryptedMnemonic'>,
+    wallet: Omit<WalletInfo, 'encryptedMnemonic' | 'encryptedWalletLock'>,
     mnemonic: string,
-    password: string
+    walletLock: string
   ): Promise<WalletInfo> {
     this.ensureInitialized()
 
     try {
-      const encryptedMnemonic = await encrypt(mnemonic, password)
-      const walletWithMnemonic: WalletInfo = {
+      // 双向加密：
+      // 1. 使用钱包锁加密助记词
+      const encryptedMnemonic = await encrypt(mnemonic, walletLock)
+      // 2. 使用助记词派生密钥加密钱包锁
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      const encryptedWalletLock = await encryptWithRawKey(walletLock, mnemonicKey)
+      
+      const walletWithEncryption: WalletInfo = {
         ...wallet,
         encryptedMnemonic,
+        encryptedWalletLock,
       }
 
-      await this.db!.put('wallets', walletWithMnemonic)
-      return walletWithMnemonic
+      await this.db!.put('wallets', walletWithEncryption)
+      return walletWithEncryption
     } catch (err) {
       throw new WalletStorageError(
         WalletStorageErrorCode.ENCRYPTION_FAILED,
-        'Failed to encrypt mnemonic',
+        'Failed to encrypt wallet data',
         err instanceof Error ? err : undefined
       )
     }
@@ -262,25 +269,114 @@ export class WalletStorageService {
     }
   }
 
-  /** 更新助记词加密（密码变更时） */
-  async updateMnemonicEncryption(
+  /** 更新钱包锁加密（钱包锁变更时） */
+  async updateWalletLockEncryption(
     walletId: string,
-    oldPassword: string,
-    newPassword: string
+    oldWalletLock: string,
+    newWalletLock: string
   ): Promise<void> {
     this.ensureInitialized()
 
-    // Decrypt with old password
-    const mnemonic = await this.getMnemonic(walletId, oldPassword)
+    // 用旧钱包锁解密助记词
+    const mnemonic = await this.getMnemonic(walletId, oldWalletLock)
 
-    // Re-encrypt with new password
+    // 重新双向加密
     try {
-      const encryptedMnemonic = await encrypt(mnemonic, newPassword)
-      await this.updateWallet(walletId, { encryptedMnemonic })
+      // 1. 使用新钱包锁加密助记词
+      const encryptedMnemonic = await encrypt(mnemonic, newWalletLock)
+      // 2. 使用助记词派生密钥加密新钱包锁
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, mnemonicKey)
+      
+      await this.updateWallet(walletId, { encryptedMnemonic, encryptedWalletLock })
     } catch (err) {
       throw new WalletStorageError(
         WalletStorageErrorCode.ENCRYPTION_FAILED,
-        'Failed to re-encrypt mnemonic',
+        'Failed to re-encrypt wallet data',
+        err instanceof Error ? err : undefined
+      )
+    }
+  }
+
+  /** 验证助记词是否正确（不修改数据） */
+  async verifyMnemonic(
+    walletId: string,
+    mnemonic: string
+  ): Promise<boolean> {
+    this.ensureInitialized()
+
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
+    if (!wallet.encryptedWalletLock) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'No encrypted wallet lock found for this wallet'
+      )
+    }
+
+    // 验证助记词：尝试用助记词派生密钥解密钱包锁
+    try {
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      await decryptWithRawKey(wallet.encryptedWalletLock, mnemonicKey)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /** 使用助记词重置钱包锁 */
+  async resetWalletLockByMnemonic(
+    walletId: string,
+    mnemonic: string,
+    newWalletLock: string
+  ): Promise<void> {
+    this.ensureInitialized()
+
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
+    if (!wallet.encryptedWalletLock) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'No encrypted wallet lock found for this wallet'
+      )
+    }
+
+    // 验证助记词：尝试用助记词派生密钥解密钱包锁
+    try {
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      await decryptWithRawKey(wallet.encryptedWalletLock, mnemonicKey)
+    } catch {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.INVALID_PASSWORD,
+        'Invalid mnemonic: failed to decrypt wallet lock'
+      )
+    }
+
+    // 助记词验证通过，重新双向加密
+    try {
+      // 1. 使用新钱包锁加密助记词
+      const encryptedMnemonic = await encrypt(mnemonic, newWalletLock)
+      // 2. 使用助记词派生密钥加密新钱包锁
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, mnemonicKey)
+      
+      await this.updateWallet(walletId, { encryptedMnemonic, encryptedWalletLock })
+    } catch (err) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Failed to re-encrypt wallet data',
         err instanceof Error ? err : undefined
       )
     }
@@ -536,7 +632,7 @@ export class WalletStorageService {
           name: 'User',
           activeWalletId: currentWalletId,
           biometricEnabled: false,
-          passwordLockEnabled: false,
+          walletLockEnabled: false,
           agreementAccepted: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),

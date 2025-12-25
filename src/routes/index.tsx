@@ -13,7 +13,6 @@ import { createAuthorizeRoutes } from './authorize'
 // 懒加载页面组件
 const HomePage = lazy(() => import('@/pages/home').then((m) => ({ default: m.HomePage })))
 const WalletCreatePage = lazy(() => import('@/pages/wallet/create').then((m) => ({ default: m.WalletCreatePage })))
-const WalletImportPage = lazy(() => import('@/pages/wallet/import').then((m) => ({ default: m.WalletImportPage })))
 const WalletDetailPage = lazy(() => import('@/pages/wallet/detail').then((m) => ({ default: m.WalletDetailPage })))
 const WalletListPage = lazy(() => import('@/pages/wallet/list').then((m) => ({ default: m.WalletListPage })))
 const TokenDetailPage = lazy(() => import('@/pages/token/detail').then((m) => ({ default: m.TokenDetailPage })))
@@ -22,7 +21,8 @@ const ReceivePage = lazy(() => import('@/pages/receive').then((m) => ({ default:
 const SettingsPage = lazy(() => import('@/pages/settings').then((m) => ({ default: m.SettingsPage })))
 const LanguagePage = lazy(() => import('@/pages/settings/language').then((m) => ({ default: m.LanguagePage })))
 const ViewMnemonicPage = lazy(() => import('@/pages/settings/view-mnemonic').then((m) => ({ default: m.ViewMnemonicPage })))
-const ChangePasswordPage = lazy(() => import('@/pages/settings/change-password').then((m) => ({ default: m.ChangePasswordPage })))
+const ChangeWalletLockPage = lazy(() => import('@/pages/settings/change-wallet-lock').then((m) => ({ default: m.ChangeWalletLockPage })))
+const WalletChainsPage = lazy(() => import('@/pages/settings/wallet-chains').then((m) => ({ default: m.WalletChainsPage })))
 const CurrencyPage = lazy(() => import('@/pages/settings/currency').then((m) => ({ default: m.CurrencyPage })))
 const ChainConfigPage = lazy(() => import('@/pages/settings/chain-config').then((m) => ({ default: m.ChainConfigPage })))
 
@@ -31,7 +31,6 @@ const TransactionHistoryPage = lazy(() => import('@/pages/history').then((m) => 
 const TransactionDetailPage = lazy(() => import('@/pages/history/detail').then((m) => ({ default: m.TransactionDetailPage })))
 
 // Onboarding pages
-const OnboardingCreatePage = lazy(() => import('@/pages/onboarding/create').then((m) => ({ default: m.OnboardingCreatePage })))
 const OnboardingRecoverPage = lazy(() => import('@/pages/onboarding/recover').then((m) => ({ default: m.OnboardingRecoverPage })))
 const MigrationPage = lazy(() => import('@/pages/onboarding/migrate').then((m) => ({ default: m.MigrationPage })))
 
@@ -98,12 +97,6 @@ const walletCreateRoute = createRoute({
   component: withSuspense(WalletCreatePage),
 })
 
-const walletImportRoute = createRoute({
-  getParentRoute: () => walletRoute,
-  path: '/import',
-  component: withSuspense(WalletImportPage),
-})
-
 const walletDetailRoute = createRoute({
   getParentRoute: () => walletRoute,
   path: '/$walletId',
@@ -161,10 +154,16 @@ const settingsMnemonicRoute = createRoute({
   component: withSuspense(ViewMnemonicPage),
 })
 
-const settingsPasswordRoute = createRoute({
+const settingsWalletLockRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/settings/password',
-  component: withSuspense(ChangePasswordPage),
+  path: '/settings/wallet-lock',
+  component: withSuspense(ChangeWalletLockPage),
+})
+
+const settingsWalletChainsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings/wallet-chains',
+  component: withSuspense(WalletChainsPage),
 })
 
 const settingsCurrencyRoute = createRoute({
@@ -196,12 +195,6 @@ const transactionDetailRoute = createRoute({
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
-})
-
-const onboardingCreateRoute = createRoute({
-  getParentRoute: () => onboardingRoute,
-  path: '/create',
-  component: withSuspense(OnboardingCreatePage),
 })
 
 const onboardingRecoverRoute = createRoute({
@@ -259,12 +252,10 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   walletRoute.addChildren([
     walletCreateRoute,
-    walletImportRoute,
     walletDetailRoute,
     walletListRoute,
   ]),
   onboardingRoute.addChildren([
-    onboardingCreateRoute,
     onboardingRecoverRoute,
     onboardingMigrateRoute,
   ]),
@@ -274,7 +265,8 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
   settingsLanguageRoute,
   settingsMnemonicRoute,
-  settingsPasswordRoute,
+  settingsWalletLockRoute,
+  settingsWalletChainsRoute,
   settingsCurrencyRoute,
   settingsChainsRoute,
   historyRoute,

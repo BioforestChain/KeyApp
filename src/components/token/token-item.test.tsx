@@ -71,7 +71,7 @@ describe('TokenItem', () => {
   it('shows positive change with correct color', () => {
     render(<TokenItem token={mockToken} showChange />)
     const changeText = screen.getByText('+2.5')
-    expect(changeText).toHaveClass('text-secondary')
+    expect(changeText).toHaveClass('text-green-500')
   })
 
   it('does not show change when showChange is false', () => {

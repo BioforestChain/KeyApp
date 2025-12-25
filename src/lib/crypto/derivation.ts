@@ -529,6 +529,24 @@ export function deriveAllAddresses(
 }
 
 /**
+ * 从助记词派生用于加密钱包锁的密钥
+ * 使用特殊路径 m/44'/9999'/0'/1/0 以避免与正常地址派生冲突
+ * 返回 32 字节的私钥作为加密密钥
+ */
+export function deriveEncryptionKeyFromMnemonic(mnemonic: string): Uint8Array {
+  const hdKey = deriveHDKey(mnemonic)
+  // 使用特殊路径：change=1 用于加密密钥派生，区别于正常的 change=0
+  const path = "m/44'/9999'/0'/1/0"
+  const childKey = deriveChildKey(hdKey, path)
+  
+  if (!childKey.privateKey) {
+    throw new Error('密钥派生失败')
+  }
+  
+  return childKey.privateKey
+}
+
+/**
  * 验证地址格式
  */
 export function isValidAddress(address: string, chain: ChainType): boolean {

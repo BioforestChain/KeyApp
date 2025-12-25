@@ -23,7 +23,7 @@
  * const balance = await client.getBalance('bXXX...', 'BFM')
  *
  * // Check pay password status
- * const hasPayPassword = await client.hasPayPassword('bXXX...')
+ * const hasTwoStepSecret = await client.hasTwoStepSecret('bXXX...')
  *
  * // Get transaction history
  * const history = await client.getTransactionHistory('bXXX...')

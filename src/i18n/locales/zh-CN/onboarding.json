@@ -177,5 +177,13 @@
   "addressPreview": {
     "title": "地址预览",
     "subtitle": "以下地址将根据您的密钥生成"
+  },
+  "chainSelector": {
+    "title": "选择区块链网络",
+    "subtitle": "选择您要启用的区块链网络",
+    "searchPlaceholder": "搜索链名称或符号",
+    "noResults": "未找到匹配的链",
+    "selectAll": "全选",
+    "deselectAll": "取消全选"
   }
 }

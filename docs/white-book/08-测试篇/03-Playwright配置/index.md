@@ -61,9 +61,9 @@ test('创建钱包流程', async ({ page }) => {
   await page.goto('/')
   await page.click('text=创建新钱包')
   
-  // 设置密码
-  await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-  await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
+  // 设置钱包锁（E2E 测试中使用模拟图案）
+  await page.fill('[data-testid="pattern-lock-input"]', '0,1,2,5,8')
+  await page.fill('[data-testid="pattern-lock-confirm"]', '0,1,2,5,8')
   await page.click('text=下一步')
   
   // 备份助记词

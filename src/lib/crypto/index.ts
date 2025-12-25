@@ -12,6 +12,8 @@ export {
   encrypt,
   decrypt,
   verifyPassword,
+  encryptWithRawKey,
+  decryptWithRawKey,
   type EncryptedData,
 } from './encryption'
 
@@ -34,6 +36,7 @@ export {
   getBIP44Path,
   toChecksumAddress,
   isValidAddress,
+  deriveEncryptionKeyFromMnemonic,
   type DerivedKey,
   type ChainType as DeriveChainType,
 } from './derivation'

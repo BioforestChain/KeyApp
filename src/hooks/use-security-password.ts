@@ -10,7 +10,7 @@ import {
   securityPasswordActions,
   securityPasswordSelectors,
 } from '@/stores/security-password'
-import { getAddressInfo, verifyPayPassword } from '@/services/bioforest-sdk'
+import { getAddressInfo, verifyTwoStepSecret } from '@/services/bioforest-sdk'
 import type { ChainConfig } from '@/services/chain-config'
 
 interface UseSecurityPasswordOptions {
@@ -118,7 +118,7 @@ export function useSecurityPassword({
     if (!chainConfig || !publicKey) return false
 
     try {
-      const result = await verifyPayPassword(chainConfig.id, mainSecret, paySecret, publicKey)
+      const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
       return result !== false
     } catch {
       return false
@@ -173,7 +173,7 @@ export function useSecurityPasswordValidation({
     setIsValidating(true)
     const timer = setTimeout(async () => {
       try {
-        const result = await verifyPayPassword(chainConfig.id, mainSecret, paySecret, publicKey)
+        const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
         setIsValid(result !== false)
       } catch {
         setIsValid(false)

@@ -52,16 +52,16 @@
 interface WalleterInfo {
   /** 钱包使用者名称 */
   name: string
-  /** 密码哈希（用于验证） */
-  passwordHash: string
-  /** 密码提示 */
-  passwordTips?: string
+  /** 图案哈希（用于验证） */
+  patternHash: string
+  /** 图案提示 */
+  patternTips?: string
   /** 当前激活的钱包ID */
   activeWalletId: string
   /** 是否启用生物识别 */
   biometricEnabled: boolean
-  /** 是否启用密码锁 */
-  passwordLockEnabled: boolean
+  /** 是否启用钱包锁 */
+  walletLockEnabled: boolean
   /** 用户协议已阅读 */
   agreementAccepted: boolean
   /** 创建时间 */
@@ -184,7 +184,7 @@ interface IWalletStorageService {
   createWallet(
     wallet: WalletInfo,
     mnemonic: string,
-    password: string
+    patternKey: string  // 钱包锁图案密钥
   ): Promise<void>
   
   /** 获取钱包信息 */
@@ -202,24 +202,24 @@ interface IWalletStorageService {
   // ==================== 助记词/私钥 ====================
   
   /** 获取解密的助记词 */
-  getMnemonic(walletId: string, password: string): Promise<string>
+  getMnemonic(walletId: string, patternKey: string): Promise<string>
   
-  /** 更新助记词加密（密码变更时） */
+  /** 更新助记词加密（钱包锁变更时） */
   updateMnemonicEncryption(
     walletId: string,
-    oldPassword: string,
-    newPassword: string
+    oldPatternKey: string,
+    newPatternKey: string
   ): Promise<void>
   
   /** 存储私钥 */
   savePrivateKey(
     addressKey: string,
     privateKey: string,
-    password: string
+    patternKey: string  // 钱包锁图案密钥
   ): Promise<void>
   
   /** 获取解密的私钥 */
-  getPrivateKey(addressKey: string, password: string): Promise<string>
+  getPrivateKey(addressKey: string, patternKey: string): Promise<string>
   
   // ==================== 链地址 ====================
   
@@ -253,11 +253,11 @@ interface IWalletStorageService {
 
 1. **助记词加密**
    - 使用 AES-256-GCM
-   - 密钥由用户密码通过 PBKDF2 派生
+   - 密钥由用户图案通过 PBKDF2 派生
    - 每次加密使用随机 IV
 
-2. **密码验证**
-   - 存储密码哈希而非明文
+2. **图案验证**
+   - 存储图案哈希而非明文
    - 使用 PBKDF2 + 随机盐
 
 3. **内存安全**
@@ -325,7 +325,7 @@ async function migrateFromLocalStorage(): Promise<void> {
 |--------|------|----------|
 | STORAGE_NOT_INITIALIZED | 存储未初始化 | 调用 initialize() |
 | WALLET_NOT_FOUND | 钱包不存在 | 检查钱包ID |
-| DECRYPTION_FAILED | 解密失败 | 密码错误或数据损坏 |
+| DECRYPTION_FAILED | 解密失败 | 图案错误或数据损坏 |
 | STORAGE_FULL | 存储空间满 | 清理缓存数据 |
 | MIGRATION_FAILED | 迁移失败 | 保留原数据，记录错误 |
 
@@ -334,7 +334,7 @@ async function migrateFromLocalStorage(): Promise<void> {
 ## 测试要点
 
 1. **加密正确性**：加密后能正确解密
-2. **密码验证**：错误密码应抛出异常
+2. **图案验证**：错误图案应抛出异常
 3. **数据持久化**：重启后数据保持
 4. **迁移测试**：旧数据能正确迁移
 5. **并发安全**：多个操作不冲突

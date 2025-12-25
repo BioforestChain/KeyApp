@@ -140,6 +140,78 @@ export async function verifyPassword(
   }
 }
 
+/**
+ * 使用原始密钥加密（不使用 PBKDF2）
+ * 用于从助记词派生的密钥直接加密
+ */
+export async function encryptWithRawKey(
+  plaintext: string,
+  rawKey: Uint8Array
+): Promise<EncryptedData> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(plaintext)
+
+  // 生成随机 iv（不需要 salt，因为密钥已经是完整的）
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
+
+  // 导入原始密钥
+  const key = await crypto.subtle.importKey(
+    'raw',
+    rawKey.buffer.slice(rawKey.byteOffset, rawKey.byteOffset + rawKey.byteLength) as ArrayBuffer,
+    { name: 'AES-GCM', length: KEY_LENGTH },
+    false,
+    ['encrypt']
+  )
+
+  // AES-GCM 加密
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv as BufferSource },
+    key,
+    data as BufferSource
+  )
+
+  return {
+    ciphertext: arrayBufferToBase64(ciphertext),
+    salt: '', // 不需要 salt
+    iv: arrayBufferToBase64(iv),
+    iterations: 0, // 标记为使用原始密钥
+  }
+}
+
+/**
+ * 使用原始密钥解密
+ */
+export async function decryptWithRawKey(
+  encrypted: EncryptedData,
+  rawKey: Uint8Array
+): Promise<string> {
+  const iv = base64ToUint8Array(encrypted.iv)
+  const ciphertext = base64ToUint8Array(encrypted.ciphertext)
+
+  // 导入原始密钥
+  const key = await crypto.subtle.importKey(
+    'raw',
+    rawKey.buffer.slice(rawKey.byteOffset, rawKey.byteOffset + rawKey.byteLength) as ArrayBuffer,
+    { name: 'AES-GCM', length: KEY_LENGTH },
+    false,
+    ['decrypt']
+  )
+
+  try {
+    // AES-GCM 解密
+    const plaintext = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv as BufferSource },
+      key,
+      ciphertext as BufferSource
+    )
+
+    const decoder = new TextDecoder()
+    return decoder.decode(plaintext)
+  } catch {
+    throw new Error('解密失败：密钥错误或数据损坏')
+  }
+}
+
 // 工具函数：ArrayBuffer 转 Base64
 function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)

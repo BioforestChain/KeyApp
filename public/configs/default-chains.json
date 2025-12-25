@@ -5,6 +5,12 @@
     "type": "bioforest",
     "name": "BFMeta",
     "symbol": "BFM",
+    "icon": "/icons/bfmeta/chain.svg",
+    "tokenIconBase": [
+      "/icons/bfmeta/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bfm" },
@@ -21,6 +27,12 @@
     "type": "bioforest",
     "name": "CCChain",
     "symbol": "CCC",
+    "icon": "/icons/ccchain/chain.svg",
+    "tokenIconBase": [
+      "/icons/ccchain/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "ccc" }
@@ -31,6 +43,12 @@
     "type": "bioforest",
     "name": "PMChain",
     "symbol": "PMC",
+    "icon": "/icons/pmchain/chain.svg",
+    "tokenIconBase": [
+      "/icons/pmchain/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "pmc" }
@@ -41,6 +59,12 @@
     "type": "bioforest",
     "name": "BFChain V2",
     "symbol": "BFT",
+    "icon": "/icons/bfchainv2/chain.svg",
+    "tokenIconBase": [
+      "/icons/bfchainv2/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bft" }
@@ -51,6 +75,12 @@
     "type": "bioforest",
     "name": "BTGMeta",
     "symbol": "BTGM",
+    "icon": "/icons/btgmeta/chain.svg",
+    "tokenIconBase": [
+      "/icons/btgmeta/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "btgm" }
@@ -61,6 +91,10 @@
     "type": "bioforest",
     "name": "BIWMeta",
     "symbol": "BIW",
+    "tokenIconBase": [
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "biw" }
@@ -71,6 +105,12 @@
     "type": "bioforest",
     "name": "ETHMeta",
     "symbol": "ETHM",
+    "icon": "/icons/ethmeta/chain.svg",
+    "tokenIconBase": [
+      "/icons/ethmeta/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "ethm" }
@@ -81,6 +121,10 @@
     "type": "bioforest",
     "name": "Malibu",
     "symbol": "MLB",
+    "tokenIconBase": [
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/mlb",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/mlb"
+    ],
     "prefix": "b",
     "decimals": 8,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "mlb" }
@@ -91,6 +135,12 @@
     "type": "evm",
     "name": "Ethereum",
     "symbol": "ETH",
+    "icon": "/icons/ethereum/chain.svg",
+    "tokenIconBase": [
+      "/icons/ethereum/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth"
+    ],
     "decimals": 18,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "eth" },
     "explorer": { "url": "https://etherscan.io" }
@@ -101,6 +151,12 @@
     "type": "evm",
     "name": "BNB Smart Chain",
     "symbol": "BNB",
+    "icon": "/icons/binance/chain.svg",
+    "tokenIconBase": [
+      "/icons/binance/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc"
+    ],
     "decimals": 18,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "bnb" },
     "explorer": { "url": "https://bscscan.com" }
@@ -111,6 +167,12 @@
     "type": "bip39",
     "name": "Tron",
     "symbol": "TRX",
+    "icon": "/icons/tron/chain.svg",
+    "tokenIconBase": [
+      "/icons/tron/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron"
+    ],
     "decimals": 6,
     "api": { "url": "https://walletapi.bfmeta.info", "path": "tron" },
     "explorer": { "url": "https://tronscan.org" }
@@ -121,6 +183,12 @@
     "type": "bip39",
     "name": "Bitcoin",
     "symbol": "BTC",
+    "icon": "/icons/bitcoin/chain.svg",
+    "tokenIconBase": [
+      "/icons/bitcoin/tokens",
+      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm",
+      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm"
+    ],
     "decimals": 8,
     "explorer": { "url": "https://mempool.space" }
   }

@@ -66,7 +66,7 @@ export function WelcomeScreen() {
 
   const handleHaveWallet = useCallback(() => {
     markWelcomeSeen();
-    navigate({ to: '/wallet/import' });
+    navigate({ to: '/onboarding/recover' });
   }, [navigate]);
 
   const handleMigrate = useCallback(() => {

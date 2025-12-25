@@ -17,7 +17,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC ?? '';
 const FUND_ADDRESS = process.env.E2E_TEST_ADDRESS ?? '';
-const WALLET_PASSWORD = 'e2e-test-password';
+const WALLET_PATTERN = '0,1,2,5,8'; // 钱包锁图案：L形
 const PAY_PASSWORD = 'pay-pwd-123';
 const API_BASE = 'https://walletapi.bfmeta.info';
 const CHAIN_PATH = 'bfm';
@@ -145,10 +145,10 @@ describeOrSkip('BioForest 支付密码测试', () => {
     await page.locator('[data-testid="continue-button"]').click();
     await page.locator('[data-testid="mnemonic-textarea"]').fill(tempMnemonic);
     await page.locator('[data-testid="continue-button"]').click();
-    await page.locator('[data-testid="password-input"]').fill(WALLET_PASSWORD);
-    const confirmInput = page.locator('[data-testid="confirm-password-input"]');
+    await page.locator('[data-testid="pattern-lock-input"]').fill(WALLET_PATTERN);
+    const confirmInput = page.locator('[data-testid="pattern-lock-confirm"]');
     if (await confirmInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmInput.fill(WALLET_PASSWORD);
+      await confirmInput.fill(WALLET_PATTERN);
     }
     await page.locator('[data-testid="continue-button"]').click();
     await page.locator('[data-testid="enter-wallet-button"]').click();
@@ -204,12 +204,12 @@ describeOrSkip('BioForest 支付密码测试', () => {
     await page.locator('[data-testid="set-pay-password-next-button"]').click();
     console.log('   Step 2: 确认密码');
 
-    // Step 3: 输入钱包密码
-    const walletPwdInput = page.locator('[data-testid="wallet-password-input"]');
-    await expect(walletPwdInput).toBeVisible({ timeout: 5000 });
-    await walletPwdInput.fill(WALLET_PASSWORD);
+    // Step 3: 验证钱包锁
+    const walletPatternInput = page.locator('[data-testid="wallet-pattern-input"]');
+    await expect(walletPatternInput).toBeVisible({ timeout: 5000 });
+    await walletPatternInput.fill(WALLET_PATTERN);
     await page.locator('[data-testid="set-pay-password-confirm-button"]').click();
-    console.log('   Step 3: 提交钱包密码');
+    console.log('   Step 3: 验证钱包锁');
 
     // 等待上链并验证
     console.log('   等待上链...');
@@ -273,14 +273,14 @@ describeOrSkip('BioForest 支付密码测试', () => {
       await confirmButton.click();
       console.log('   确认转账');
       
-      // 等待密码弹窗
-      const walletPwdInput = page.locator('[data-testid="wallet-password-input"]');
-      await expect(walletPwdInput).toBeVisible({ timeout: 5000 });
+      // 等待钱包锁验证弹窗
+      const walletPatternInput = page.locator('[data-testid="wallet-pattern-input"]');
+      await expect(walletPatternInput).toBeVisible({ timeout: 5000 });
       
-      // 输入钱包密码并提交
-      await walletPwdInput.fill(WALLET_PASSWORD);
-      await page.locator('[data-testid="password-confirm-button"]').click();
-      console.log('   提交钱包密码');
+      // 验证钱包锁并提交
+      await walletPatternInput.fill(WALLET_PATTERN);
+      await page.locator('[data-testid="wallet-lock-confirm-button"]').click();
+      console.log('   验证钱包锁');
       
       // 等待切换到支付密码步骤
       const payPwdInput = page.locator('[data-testid="pay-password-input"]');
@@ -288,7 +288,7 @@ describeOrSkip('BioForest 支付密码测试', () => {
       
       // 输入支付密码并提交
       await payPwdInput.fill(PAY_PASSWORD);
-      await page.locator('[data-testid="password-confirm-button"]').click();
+      await page.locator('[data-testid="pay-password-confirm-button"]').click();
       console.log('   提交支付密码');
       
       // 等待交易结果（成功或失败）

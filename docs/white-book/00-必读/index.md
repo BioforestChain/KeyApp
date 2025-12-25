@@ -127,16 +127,16 @@ A: 你可能使用了 Radix Dialog 或自定义 `position: fixed`。这会与 St
 
 ### Q: 如何传递数据给 Sheet 并获取返回值？
 
-A: 使用全局回调模式。参考 `PasswordConfirmSheetActivity` 的实现：
+A: 使用全局回调模式。参考 `WalletLockConfirmJob` 的实现：
 
 ```tsx
 // 设置回调
-setPasswordConfirmCallback((password) => {
-  // 处理返回的密码
+setWalletLockConfirmCallback((patternKey) => {
+  // 处理返回的图案密钥
 });
 
 // 打开 Sheet
-push("PasswordConfirmSheetActivity", {});
+push("WalletLockConfirmJob", {});
 ```
 
 ### Q: 什么时候用 BottomSheet，什么时候用 Modal？

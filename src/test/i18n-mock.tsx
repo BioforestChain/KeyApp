@@ -98,7 +98,7 @@ testI18n.use(initReactI18next).init({
         signature: {
           reviewTransaction: '请确认该交易',
           messageToSign: '待签名消息',
-          confirmDescription: '请输入密码进行签名',
+          confirmDescription: '请绘制图案进行签名',
           type: {
             message: '消息签名',
             transfer: '代币转账',
@@ -108,7 +108,7 @@ testI18n.use(initReactI18next).init({
         button: {
           approve: '同意',
           reject: '拒绝',
-          confirm: '输入密码确认',
+          confirm: '绘制图案确认',
         },
         error: {
           authFailed: '授权失败',

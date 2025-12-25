@@ -11,7 +11,7 @@
  * 
  * 环境变量:
  * - E2E_TEST_MNEMONIC: 资金账号助记词
- * - E2E_TEST_PASSWORD: 钱包密码
+ * - E2E_TEST_PASSWORD: 钱包锁
  * 
  * 本地运行: 创建 .env.local 文件
  * CI 运行: 通过 GitHub Secrets 注入
@@ -21,6 +21,7 @@ import { test, expect, Page } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { UI_TEXT } from './helpers/i18n'
 
 // ESM 兼容的 __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -57,7 +58,7 @@ loadEnvFile()
 
 // 资金账号配置
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC
-const WALLET_PASSWORD = process.env.E2E_TEST_PASSWORD || 'e2e-test-password'
+const WALLET_PATTERN = process.env.E2E_WALLET_PATTERN || '0,1,2,5,8' // 钱包锁图案：L形
 
 // 测试金额配置
 const TRANSFER_AMOUNT = '0.001' // 转给测试账号的金额
@@ -95,9 +96,9 @@ async function waitForAppReady(page: Page) {
 
 /**
  * 导入钱包
- * 流程: Welcome → keyType → mnemonic → password → success → Home
+ * 流程: Welcome → keyType → mnemonic → patternLock → success → Home
  */
-async function importWallet(page: Page, mnemonic: string, password: string) {
+async function importWallet(page: Page, mnemonic: string, pattern: string) {
   await page.goto('/')
   await waitForAppReady(page)
 
@@ -118,11 +119,11 @@ async function importWallet(page: Page, mnemonic: string, password: string) {
   // 点击继续
   await page.getByTestId('continue-button').click()
 
-  // Step 4: password step - 设置密码
-  await page.getByTestId('password-step').waitFor({ timeout: 10000 })
+  // Step 4: pattern lock step - 设置钱包锁
+  await page.getByTestId('pattern-lock-step').waitFor({ timeout: 10000 })
   // data-testid 在容器上，input 在内部
-  await page.getByTestId('password-input').locator('input').fill(password)
-  await page.getByTestId('confirm-password-input').locator('input').fill(password)
+  await page.getByTestId('pattern-lock-input').locator('input').fill(pattern)
+  await page.getByTestId('pattern-lock-confirm').locator('input').fill(pattern)
   await page.waitForTimeout(300)
   // 点击继续完成创建
   await page.getByTestId('continue-button').click()
@@ -243,11 +244,11 @@ async function performTransfer(
   page: Page, 
   toAddress: string, 
   amount: string, 
-  walletPassword: string,
+  walletPattern: string,
   payPassword?: string
 ): Promise<boolean> {
   // 进入发送页面
-  const sendBtn = page.locator('[data-testid="send-button"]').or(page.locator('button:has-text("发送")')).first()
+  const sendBtn = page.locator(`[data-testid="send-button"], button:has-text("${UI_TEXT.send.source}")`).first()
   await sendBtn.click()
   await page.waitForTimeout(500)
 
@@ -262,25 +263,25 @@ async function performTransfer(
   await page.waitForTimeout(500)
 
   // 点击继续
-  const continueBtn = page.locator('[data-testid="send-continue-button"]').or(page.locator('button:has-text("继续")')).first()
+  const continueBtn = page.locator(`[data-testid="send-continue-button"], button:has-text("${UI_TEXT.continue.source}")`).first()
   await expect(continueBtn).toBeEnabled({ timeout: 5000 })
   await continueBtn.click()
   await page.waitForTimeout(500)
 
   // 点击确认转账
-  const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]').or(page.locator('button:has-text("确认")').first())
+  const confirmBtn = page.locator(`[data-testid="confirm-transfer-button"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await expect(confirmBtn).toBeVisible({ timeout: 5000 })
   await confirmBtn.click()
   await page.waitForTimeout(500)
 
-  // 输入钱包密码
-  const passwordInput = page.locator('input[type="password"]').first()
-  await expect(passwordInput).toBeVisible({ timeout: 5000 })
-  await passwordInput.fill(walletPassword)
+  // 验证钱包锁
+  const patternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]').first()
+  await expect(patternInput).toBeVisible({ timeout: 5000 })
+  await patternInput.fill(walletPattern)
 
-  // 点击密码确认
-  const passwordConfirmBtn = page.locator('button[type="submit"]').filter({ hasText: /确认|Confirm/ })
-  await passwordConfirmBtn.click()
+  // 点击钱包锁确认
+  const patternConfirmBtn = page.locator('[data-testid="wallet-lock-confirm-button"], button[type="submit"]').filter({ hasText: /确认|Confirm/ }).first()
+  await patternConfirmBtn.click()
   await page.waitForTimeout(1000)
 
   // 如果需要二次密码（支付密码）
@@ -305,30 +306,30 @@ async function performTransfer(
 /**
  * 设置支付密码（二次密码）
  */
-async function setPayPassword(page: Page, walletPassword: string, newPayPassword: string): Promise<boolean> {
-  // 进入设置页面
-  await page.locator('text=设置').first().click()
+async function setPayPassword(page: Page, walletPattern: string, newPayPassword: string): Promise<boolean> {
+  // 进入设置页面（使用多语言正则）
+  await page.locator(`text=${UI_TEXT.settings.source}`).first().click()
   await page.waitForTimeout(500)
 
-  // 找到安全设置或支付密码入口
-  const securityEntry = page.locator('text=安全').or(page.locator('text=支付密码')).first()
+  // 找到安全设置入口（使用 data-testid 或 URL）
+  const securityEntry = page.locator('[data-testid="security-settings"], a[href*="security"]').first()
   if (await securityEntry.isVisible({ timeout: 3000 }).catch(() => false)) {
     await securityEntry.click()
     await page.waitForTimeout(500)
   }
 
-  // 点击设置支付密码
-  const setPayPwdBtn = page.locator('text=设置支付密码').or(page.locator('text=设置二次密码')).first()
+  // 点击设置支付密码（使用 data-testid）
+  const setPayPwdBtn = page.locator('[data-testid="set-pay-password-button"]').first()
   if (await setPayPwdBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await setPayPwdBtn.click()
     await page.waitForTimeout(500)
   }
 
-  // 输入钱包密码验证
-  const walletPwdInput = page.locator('input[type="password"]').first()
-  if (await walletPwdInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await walletPwdInput.fill(walletPassword)
-    const confirmBtn = page.locator('button[type="submit"]').filter({ hasText: /确认|Confirm|下一步/ })
+  // 验证钱包锁
+  const walletPatternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]').first()
+  if (await walletPatternInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await walletPatternInput.fill(walletPattern)
+    const confirmBtn = page.locator('[data-testid="wallet-lock-confirm-button"], button[type="submit"]').filter({ hasText: /确认|Confirm|下一步/ }).first()
     await confirmBtn.click()
     await page.waitForTimeout(500)
   }
@@ -346,7 +347,7 @@ async function setPayPassword(page: Page, walletPassword: string, newPayPassword
   }
 
   // 提交
-  const submitBtn = page.locator('button[type="submit"]').or(page.locator('button:has-text("确认")')).first()
+  const submitBtn = page.locator(`button[type="submit"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await submitBtn.click()
   await page.waitForTimeout(3000)
 
@@ -360,30 +361,30 @@ async function setPayPassword(page: Page, walletPassword: string, newPayPassword
  */
 async function changePayPassword(
   page: Page, 
-  walletPassword: string, 
+  walletPattern: string, 
   oldPayPassword: string, 
   newPayPassword: string
 ): Promise<boolean> {
-  // 进入设置 -> 安全 -> 修改支付密码
-  await page.locator('text=设置').first().click()
+  // 进入设置 -> 安全 -> 修改支付密码（使用多语言正则）
+  await page.locator(`text=${UI_TEXT.settings.source}`).first().click()
   await page.waitForTimeout(500)
 
-  const securityEntry = page.locator('text=安全').or(page.locator('text=支付密码')).first()
+  const securityEntry = page.locator('[data-testid="security-settings"], a[href*="security"]').first()
   if (await securityEntry.isVisible({ timeout: 3000 }).catch(() => false)) {
     await securityEntry.click()
     await page.waitForTimeout(500)
   }
 
-  const changePwdBtn = page.locator('text=修改支付密码').or(page.locator('text=修改二次密码')).first()
+  const changePwdBtn = page.locator('[data-testid="change-pay-password-button"]').first()
   if (await changePwdBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await changePwdBtn.click()
     await page.waitForTimeout(500)
   }
 
-  // 输入钱包密码
-  const walletPwdInput = page.locator('input[type="password"]').first()
-  await walletPwdInput.fill(walletPassword)
-  let confirmBtn = page.locator('button[type="submit"]').filter({ hasText: /确认|Confirm|下一步/ })
+  // 验证钱包锁
+  const walletPatternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]').first()
+  await walletPatternInput.fill(walletPattern)
+  let confirmBtn = page.locator('[data-testid="wallet-lock-confirm-button"], button[type="submit"]').filter({ hasText: /确认|Confirm|下一步/ }).first()
   await confirmBtn.click()
   await page.waitForTimeout(500)
 
@@ -404,7 +405,7 @@ async function changePayPassword(
   }
 
   // 提交
-  const submitBtn = page.locator('button[type="submit"]').or(page.locator('button:has-text("确认")')).first()
+  const submitBtn = page.locator(`button[type="submit"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await submitBtn.click()
   await page.waitForTimeout(3000)
 
@@ -456,7 +457,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
   test.describe.serial('完整测试流程', () => {
     
     test('1. 获取资金账号地址', async ({ page }) => {
-      await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+      await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
       
       // 获取资金账号地址
       fundAddress = await getWalletAddress(page)
@@ -477,7 +478,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
       
       // 使用新的测试助记词创建账号
       testMnemonic = generateTestMnemonic()
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
       // 获取测试账号地址
       testAddress = await getWalletAddress(page)
@@ -495,10 +496,10 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
     test.skip('3. 从资金账号转账到测试账号', async ({ page }) => {
       // 切换回资金账号
       await clearAppData(page)
-      await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+      await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
       
       // 执行转账
-      const success = await performTransfer(page, testAddress, TRANSFER_AMOUNT, WALLET_PASSWORD)
+      const success = await performTransfer(page, testAddress, TRANSFER_AMOUNT, WALLET_PATTERN)
       
       expect(success).toBe(true)
       console.log(`✅ 已转账 ${TRANSFER_AMOUNT} BFM 到测试账号`)
@@ -509,7 +510,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
     test.skip('4. 验证测试账号收到资金', async ({ page }) => {
       // 切换到测试账号
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
       // 等待交易确认
       await page.waitForTimeout(5000)
@@ -527,9 +528,9 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
     test.skip('5. 设置支付密码（二次密码）', async ({ page }) => {
       // 确保在测试账号
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
-      const success = await setPayPassword(page, WALLET_PASSWORD, payPassword1)
+      const success = await setPayPassword(page, WALLET_PATTERN, payPassword1)
       
       expect(success).toBe(true)
       console.log(`✅ 支付密码已设置: ${payPassword1}`)
@@ -540,14 +541,14 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
     test.skip('6. 使用支付密码进行转账', async ({ page }) => {
       // 确保在测试账号
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
       // 转一小笔回资金账号
       const success = await performTransfer(
         page, 
         fundAddress, 
         SMALL_AMOUNT, 
-        WALLET_PASSWORD, 
+        WALLET_PATTERN, 
         payPassword1  // 需要支付密码
       )
       
@@ -559,9 +560,9 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
 
     test.skip('7. 修改支付密码', async ({ page }) => {
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
-      const success = await changePayPassword(page, WALLET_PASSWORD, payPassword1, payPassword2)
+      const success = await changePayPassword(page, WALLET_PATTERN, payPassword1, payPassword2)
       
       expect(success).toBe(true)
       console.log(`✅ 支付密码已修改: ${payPassword1} -> ${payPassword2}`)
@@ -571,13 +572,13 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
 
     test.skip('8. 使用新支付密码进行转账', async ({ page }) => {
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
       const success = await performTransfer(
         page, 
         fundAddress, 
         SMALL_AMOUNT, 
-        WALLET_PASSWORD, 
+        WALLET_PATTERN, 
         payPassword2  // 使用新支付密码
       )
       
@@ -589,7 +590,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
 
     test.skip('9. 将剩余资金全部转回资金账号', async ({ page }) => {
       await clearAppData(page)
-      await importWallet(page, testMnemonic, WALLET_PASSWORD)
+      await importWallet(page, testMnemonic, WALLET_PATTERN)
       
       // 获取当前余额
       const balance = await getBalance(page)
@@ -603,7 +604,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
           page, 
           fundAddress, 
           transferAmount, 
-          WALLET_PASSWORD, 
+          WALLET_PATTERN, 
           payPassword2
         )
         
@@ -617,7 +618,7 @@ describeOrSkip('BioForest 完整 E2E 测试流程', () => {
     test.skip('10. 验证资金已回收', async ({ page }) => {
       // 切换回资金账号
       await clearAppData(page)
-      await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+      await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
       
       await page.waitForTimeout(3000)
       
@@ -641,10 +642,10 @@ describeOrSkip('BioForest 独立功能测试', () => {
   test.setTimeout(120000)
 
   test('交易历史加载', async ({ page }) => {
-    await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+    await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
     
     // 进入转账历史
-    const transferTab = page.locator('a[href*="transfer"]').or(page.locator('text=转账')).first()
+    const transferTab = page.locator(`a[href*="transfer"], button:has-text("${UI_TEXT.send.source}")`).first()
     if (await transferTab.isVisible({ timeout: 3000 }).catch(() => false)) {
       await transferTab.click()
       await page.waitForTimeout(2000)
@@ -658,7 +659,7 @@ describeOrSkip('BioForest 独立功能测试', () => {
   })
 
   test('余额显示正确', async ({ page }) => {
-    await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+    await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
     
     const balance = await getBalance(page)
     expect(parseFloat(balance)).toBeGreaterThanOrEqual(0)
@@ -667,7 +668,7 @@ describeOrSkip('BioForest 独立功能测试', () => {
   })
 
   test('地址格式正确', async ({ page }) => {
-    await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
+    await importWallet(page, FUND_MNEMONIC!, WALLET_PATTERN)
     
     const address = await getWalletAddress(page)
     expect(address).toMatch(/^b[a-zA-Z0-9]{20,}$/)

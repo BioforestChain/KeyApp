@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/common/skeleton';
-import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
+import { AmountDisplay, formatAmount } from '@/components/common/amount-display';
+import { IconAlertTriangle as AlertTriangle, IconPencil as Pencil } from '@tabler/icons-react';
 
 interface FeeDisplayProps {
   /** Fee amount in native token */
@@ -16,29 +17,29 @@ interface FeeDisplayProps {
   isLoading?: boolean | undefined;
   /** Threshold for high fee warning (in fiat) */
   highFeeThreshold?: number | undefined;
+  /** Whether the fee is editable */
+  editable?: boolean | undefined;
+  /** Callback when edit button is clicked */
+  onEdit?: (() => void) | undefined;
   /** Additional class names */
   className?: string | undefined;
 }
 
-function formatFee(value: string | number, decimals: number = 6): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0';
-  if (num === 0) return '0';
-  if (num < 0.000001) return '< 0.000001';
-  return num.toFixed(decimals).replace(/\.?0+$/, '');
-}
-
-function formatFiat(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0.00';
-  return num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 /**
  * Fee display component showing transaction fees with optional fiat equivalent
+ * Uses AmountDisplay for consistent amount formatting
+ * 
+ * @example
+ * // Basic usage
+ * <FeeDisplay amount="0.001" symbol="ETH" />
+ * 
+ * // Editable fee
+ * <FeeDisplay 
+ *   amount={fee} 
+ *   symbol="BFM" 
+ *   editable 
+ *   onEdit={() => push('FeeEditJob', {})} 
+ * />
  */
 export function FeeDisplay({
   amount,
@@ -47,6 +48,8 @@ export function FeeDisplay({
   fiatSymbol = '$',
   isLoading = false,
   highFeeThreshold,
+  editable = false,
+  onEdit,
   className,
 }: FeeDisplayProps) {
   const { t } = useTranslation('common');
@@ -62,21 +65,52 @@ export function FeeDisplay({
 
   const fiatNum = fiatValue !== undefined ? (typeof fiatValue === 'string' ? parseFloat(fiatValue) : fiatValue) : null;
   const isHighFee = fiatNum !== null && highFeeThreshold !== undefined && fiatNum >= highFeeThreshold;
+  const fiatFormatted = fiatNum !== null ? formatAmount(fiatNum, 2, false).formatted : null;
+
+  const content = (
+    <>
+      <div className="flex items-center gap-1.5">
+        <AmountDisplay
+          value={amount}
+          symbol={symbol}
+          size="sm"
+          decimals={8}
+          animated={false}
+        />
+        {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
+        {editable && (
+          <Pencil className="size-3.5 text-muted-foreground" aria-hidden="true" />
+        )}
+      </div>
+      {fiatFormatted !== null && (
+        <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>
+          ≈ {fiatSymbol}
+          {fiatFormatted}
+        </p>
+      )}
+    </>
+  );
+
+  if (editable && onEdit) {
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        className={cn(
+          'space-y-0.5 text-right transition-colors',
+          'hover:text-primary focus-visible:ring-ring rounded focus:outline-none focus-visible:ring-2',
+          className
+        )}
+        aria-label={t('a11y.editFee')}
+      >
+        {content}
+      </button>
+    );
+  }
 
   return (
     <div className={cn('space-y-0.5', className)}>
-      <div className="flex items-center gap-1.5">
-        <span className="font-mono text-sm" aria-label={`Fee: ${formatFee(amount)} ${symbol}`}>
-          {formatFee(amount)} {symbol}
-        </span>
-        {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
-      </div>
-      {fiatNum !== null && (
-        <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>
-          ≈ {fiatSymbol}
-          {formatFiat(fiatNum)}
-        </p>
-      )}
+      {content}
     </div>
   );
 }

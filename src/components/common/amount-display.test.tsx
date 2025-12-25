@@ -84,7 +84,7 @@ describe('AmountDisplay', () => {
 
   it('applies positive color when color=auto', () => {
     render(<AmountDisplay value={100} color="auto" />)
-    expect(screen.getByText('100')).toHaveClass('text-secondary')
+    expect(screen.getByText('100')).toHaveClass('text-green-500')
   })
 
   it('applies negative color when color=auto', () => {

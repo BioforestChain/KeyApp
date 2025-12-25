@@ -194,7 +194,7 @@ export class BioForestApiClient {
    * Check if an account has pay password (second signature) set
    * @param address - Account address
    */
-  async hasPayPassword(address: string): Promise<boolean> {
+  async hasTwoStepSecret(address: string): Promise<boolean> {
     const info = await this.getAddressInfo(address)
     return info.secondPublicKey !== null && info.secondPublicKey !== ''
   }

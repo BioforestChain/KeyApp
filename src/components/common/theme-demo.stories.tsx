@@ -119,7 +119,7 @@ export const SecurityLabels: Story = {
                     ? 'bg-destructive/20 text-destructive'
                     : level === 'medium'
                       ? 'bg-yellow-500/20 text-yellow-600'
-                      : 'bg-secondary/20 text-secondary'
+                      : 'bg-green-500/20 text-green-500'
                 }`}
               >
                 {t(`security.strength.${level}`)}

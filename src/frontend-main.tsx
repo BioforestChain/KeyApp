@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from 'react'
+import { StrictMode, lazy, Suspense, useCallback } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
@@ -7,6 +7,8 @@ import { queryClient } from './lib/query-client'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
+import { ChainIconProvider, TokenIconProvider } from './components/wallet'
+import { useChainConfigs } from './stores/chain-config'
 import './styles/globals.css'
 
 // Mock 模式下注册全局中间件
@@ -27,6 +29,28 @@ const MockDevTools = __MOCK_MODE__
   ? lazy(() => import('./services/mock-devtools').then((m) => ({ default: m.MockDevTools })))
   : null
 
+function IconProvidersWrapper({ children }: { children: React.ReactNode }) {
+  const configs = useChainConfigs()
+  
+  const getIconUrl = useCallback(
+    (chainId: string) => configs.find((c) => c.id === chainId)?.icon,
+    [configs],
+  )
+
+  const getTokenIconBases = useCallback(
+    (chainId: string) => configs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
+    [configs],
+  )
+
+  return (
+    <ChainIconProvider getIconUrl={getIconUrl}>
+      <TokenIconProvider getTokenIconBases={getTokenIconBases}>
+        {children}
+      </TokenIconProvider>
+    </ChainIconProvider>
+  )
+}
+
 export function startFrontendMain(rootElement: HTMLElement): void {
   createRoot(rootElement).render(
     <StrictMode>
@@ -34,7 +58,9 @@ export function startFrontendMain(rootElement: HTMLElement): void {
         <ServiceProvider>
           <MigrationProvider>
             <I18nextProvider i18n={i18n}>
-              <StackflowApp />
+              <IconProvidersWrapper>
+                <StackflowApp />
+              </IconProvidersWrapper>
               {/* Mock DevTools - 仅在 mock 模式下显示 */}
               {MockDevTools && (
                 <Suspense fallback={null}>

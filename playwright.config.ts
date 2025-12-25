@@ -1,3 +1,16 @@
+/**
+ * Playwright 配置 - 默认使用 Dev 环境
+ * 
+ * 测试分类：
+ * - *.spec.ts: 在 dev 环境运行（真实服务，不含预设数据）
+ * - *.mock.spec.ts: 在 mock 环境运行（使用 playwright.mock.config.ts）
+ * 
+ * 运行命令：
+ * - pnpm e2e              # 运行 dev 环境测试
+ * - pnpm e2e:mock         # 运行 mock 环境测试
+ * - pnpm e2e:real         # 运行真实转账测试（需要资金账户）
+ */
+
 import { defineConfig, devices } from '@playwright/test'
 
 // 绕过本地代理
@@ -14,10 +27,12 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: './e2e/test-results',
   
-  // 统一的基线截图，包含项目名称以区分不同视口
-  // {testDir} = e2e, {testFileDir} = 相对路径, {testFileName} = 文件名
-  snapshotPathTemplate: '{snapshotDir}/{projectName}/{arg}{ext}',
-  snapshotDir: './e2e/__screenshots__',
+  // 排除 mock 测试（它们使用单独的配置）
+  testIgnore: ['**/*.mock.spec.ts'],
+  
+  // 按测试名归类截图：e2e/__screenshots__/{projectName}/{testFileName 去掉后缀}/{arg}.png
+  // 使用 {testFileName} 模板变量，Playwright 会自动替换
+  snapshotPathTemplate: 'e2e/__screenshots__/{projectName}/{testFileName}/{arg}{ext}',
   
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -30,7 +45,7 @@ export default defineConfig({
   ],
   
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -38,33 +53,35 @@ export default defineConfig({
   // 截图对比配置
   expect: {
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.02,  // 允许 2% 像素差异（跨平台字体渲染）
-      threshold: 0.3,           // 30% 颜色阈值
+      maxDiffPixelRatio: 0.02,
+      threshold: 0.3,
     },
   },
 
   projects: [
-    // 移动端视口 (主要测试目标)
+    // 语言通过 TEST_LOCALE 环境变量控制，默认英文
+    // 运行 pnpm e2e:i18n 测试中文环境
     {
       name: 'Mobile Chrome',
       use: {
         ...devices['Pixel 5'],
+        locale: process.env.TEST_LOCALE || 'en-US',
       },
     },
-    // 桌面视口 (可选)
     {
       name: 'Desktop Chrome',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
+        locale: process.env.TEST_LOCALE || 'en-US',
       },
     },
   ],
 
-  // 自动启动开发服务器（使用 Mock 服务，端口 5174 避免与普通 dev 冲突）
+  // 使用标准 dev 服务器（端口 5173）
   webServer: {
-    command: 'pnpm dev:mock',
-    url: 'http://localhost:5174',
+    command: 'pnpm dev',
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

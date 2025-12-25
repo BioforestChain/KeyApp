@@ -15,7 +15,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') })
 
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC ?? ''
 const FUND_ADDRESS = process.env.E2E_TEST_ADDRESS ?? ''
-const WALLET_PASSWORD = 'e2e-test-password'
+const WALLET_PATTERN = '0,1,2,5,8' // 钱包锁图案：L形
 const API_BASE = 'https://walletapi.bfmeta.info'
 const CHAIN_PATH = 'bfm'
 const CHAIN_MAGIC = 'nxOGQ'
@@ -125,10 +125,10 @@ describeOrSkip('BioForest 转账测试', () => {
     await page.locator('[data-testid="continue-button"]').click()
     await page.locator('[data-testid="mnemonic-textarea"]').fill(FUND_MNEMONIC)
     await page.locator('[data-testid="continue-button"]').click()
-    await page.locator('[data-testid="password-input"]').fill(WALLET_PASSWORD)
-    const confirmInput = page.locator('[data-testid="confirm-password-input"]')
+    await page.locator('[data-testid="pattern-lock-input"]').fill(WALLET_PATTERN)
+    const confirmInput = page.locator('[data-testid="pattern-lock-confirm"]')
     if (await confirmInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmInput.fill(WALLET_PASSWORD)
+      await confirmInput.fill(WALLET_PATTERN)
     }
     await page.locator('[data-testid="continue-button"]').click()
     await page.locator('[data-testid="enter-wallet-button"]').click()
@@ -171,13 +171,13 @@ describeOrSkip('BioForest 转账测试', () => {
     await confirmBtn.click()
     console.log('   ✅ 点击确认')
 
-    // 8. 输入密码
-    console.log('8. 输入密码...')
-    const pwdInput = page.locator('[data-testid="wallet-password-input"]')
+    // 8. 验证钱包锁
+    console.log('8. 验证钱包锁...')
+    const pwdInput = page.locator('[data-testid="wallet-pattern-input"]')
     await expect(pwdInput).toBeVisible({ timeout: 5000 })
-    await pwdInput.fill(WALLET_PASSWORD)
-    await page.locator('[data-testid="password-confirm-button"]').click()
-    console.log('   ✅ 密码提交')
+    await pwdInput.fill(WALLET_PATTERN)
+    await page.locator('[data-testid="wallet-lock-confirm-button"]').click()
+    console.log('   ✅ 钱包锁验证')
 
     // 9. 等待结果
     console.log('9. 等待交易处理...')

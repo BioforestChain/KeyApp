@@ -82,9 +82,9 @@ transfer_confirm_success
 
 | 事件名 | 触发时机 | 参数 |
 |-------|---------|------|
-| auth_password_attempt | 密码验证尝试 | - |
-| auth_password_success | 密码验证成功 | - |
-| auth_password_fail | 密码验证失败 | attempt_count |
+| auth_pattern_attempt | 图案验证尝试 | - |
+| auth_pattern_success | 图案验证成功 | - |
+| auth_pattern_fail | 图案验证失败 | attempt_count |
 | auth_biometric_attempt | 生物识别尝试 | type |
 | auth_biometric_success | 生物识别成功 | type |
 | auth_biometric_fail | 生物识别失败 | type, reason |

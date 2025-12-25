@@ -1,5 +1,13 @@
 {
   "add": "添加钱包",
+  "chains": {
+    "title": "管理钱包网络",
+    "verifyTitle": "验证钱包锁",
+    "verifyDesc": "请绘制钱包锁图案以确认更改",
+    "saving": "保存中...",
+    "success": "网络设置已更新",
+    "noWallet": "请先创建或导入钱包"
+  },
   "createDesc": "生成新的助记词创建钱包",
   "importDesc": "使用助记词或密钥导入已有钱包",
   "empty": "暂无钱包",
@@ -32,9 +40,8 @@
     "save": "保存",
     "cancel": "取消",
     "deleteTitle": "删除钱包",
-    "deleteWarning": "⚠️ 此操作无法撤销\n\n请输入密码以确认删除钱包 \"{{name}}\"",
-    "passwordPlaceholder": "请输入钱包密码",
-    "passwordError": "密码错误",
+    "deleteWarning": "⚠️ 此操作无法撤销\n\n请绘制图案以确认删除钱包 \"{{name}}\"",
+    "patternError": "图案错误",
     "verifying": "验证中...",
     "verifyFailed": "验证失败",
     "confirmDelete": "确认删除"
@@ -52,7 +59,7 @@
     "verifyToExport": "验证身份以导出助记词",
     "verifyToDelete": "验证身份以删除钱包",
     "verifyFailed": "验证失败",
-    "securityWarning": "导出助记词需要验证密码，请确保在安全环境下操作"
+    "securityWarning": "导出助记词需要验证钱包锁，请确保在安全环境下操作"
   },
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "获得地址密码等同于拥有钱包资产所有权",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原中的钱包数据将全部保留，并进行数据整理，规则如下：",

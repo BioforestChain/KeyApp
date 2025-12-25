@@ -3,7 +3,7 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { TokenIcon } from '@/components/token/token-icon'
+import { TokenIcon } from '@/components/wallet/token-icon'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Amount } from '@/types/amount'

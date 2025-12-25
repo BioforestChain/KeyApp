@@ -513,7 +513,7 @@ The above error occurred in the <SendPage> component.
 
 ---
 
-1. `pnpm agent` 的多种功能,需要通过“子命令”的方式来开启
+1. `pnpm agent` 的多种功能,需要改进成通过“子命令”的方式来开启
 2. 新增一个子命令`worktree`:
    1. create:就是到.git-worktree创建工作空间, 这里创建出来后,要顺便执行依赖安装,还有把我们的`.env.local`文件复制到新工作空间中
    2. delete:就是删除.git-worktree创建出来的某个工作空间中, 删除之前要使用gh命令检查一下分支是否有对应的pr,pr有没有合并. 如果检查有问题应该停止, 除非`--force`
@@ -592,7 +592,7 @@ bioChain的钱包的安全密码是这样的工作的:
 
 ---
 
-为了进一步区分,我希望把“钱包锁”改成是一个九宫格的连线输入而不是密码框输入,这样就不会出现“请输入钱包锁”这种文字了,而是“请设置钱包锁”.
+把“钱包锁”改成是一个九宫格的连线输入而不是密码框输入,这样就不会出现“请输入钱包锁”这种文字了,而是“请设置钱包锁”.
 要求至少连接4个点. 请你做这个组件的时候,尽量做好可访问性的支持,它本质其实就是一堆 checkbox, 只不过被渲染成九宫格,然后用滑动手势的方式来勾选这些checkbox. 当然我只是跟你解释这个可访问性的本质是什么.
 具体的开发请你根据最好的使用提体验来做.
 这个改动可能会比较大.
@@ -605,3 +605,52 @@ bioChain的钱包的安全密码是这样的工作的:
 queryTx:`https://tracker.bfmeta.org/#/info/event-details/:signature`
 queryAddress:`https://tracker.bfmeta.org/#/info/address-details/:address`
 queryBlock:`https://tracker.bfmeta.org/#/info/block-details/:height`
+
+---
+
+需要完善我们的测试, 并发对中文英文两种同时进行测试, 从而避免AI开发的时候可能会忘记最佳实践, 直接在测试中使用了当前的语言环境去写测试.
+使用双语测试可以有效检测出这类问题.
+
+---
+
+1. 导入钱包页面也要有 钱包锁的流程,目前没有
+2. 导入钱包页面的返回不是返回,而是直接导航到首页,请你检查一下是否还有其它类似的问题, 统一修复
+3. 目前设置页没有对应的的“启用网络”的功能,应该在钱包管理下面加一个 管理页面的入口吧
+
+---
+
+1. `Unknown route: /settings/wallet-chains` 说明你自己e2e测试都没通过.
+2. 这个问题仍然没有修复:“使用WalletLock做验证的时候: 第一次输入错误的手势, 此时应该显示红色错误信息,然后过一会儿重置状态,让用户重新输入.”
+
+---
+
+1. send页面,要能显示当前账户的地址(发送者地址)
+2. 钱包锁的修改要支持两种方案: 一种就是现在这种输入旧版密码, 一种是直接输入助记词
+
+---
+
+1. 点击网络手续费,都应该要能进行修改, 比如字符的确认面板, 或者设置安全密码的面板 ,都会展示“最低网络手续费”.
+2. “设置安全密码的面板”中,会有一行小字:“BioForest Chain” ,这里应该换成“链”的图标+“地址”
+3. mpay中有一整套关于链的图标,我们需要一整套统一的方案来渲染它
+
+---
+
+1. FeeEdit 功能建议使用Modal(stackflow 的 Modal ), 我们需要提供一种 PromptModal/FormModal(基于Modal,提供数据回传能力) 来支持这种能力
+2. 我们的AddressDisplay组件是否支持chainName/chainIcon? 可以考虑优化AddressDisplay,或者在AddressDisplay的基础上封装出一种新的 复合组件
+3. “链 SVG 图标系统” ,这里要和我们的“default-chains.json”进行关联, 从这个 default-chains.json 中来提供链图标, 然后进入 到我们的 service 体系中. 一定不可以将图标和我们的 service 进行强关联耦合.
+   - 请到这里文件夹`/Users/kzf/Dev/bioforestChain/legacy-apps/apps/btg-meta/src/components/icon/assets/images` 来复制图标.
+   - 这些是 Token图标, 在bio生态中, chainIcon就是使用 main-token 的 icon. mainToken 就是你 配置文件中的 symbol 字段
+   1. 请你梳理这些图标的命名, 使得更好管理, 或者用文件夹进行重新归类
+   2. 我们有了chainIcon,还需要有tokenIcon或者叫做symbolIcon, 同样的逻辑进行改造:升级配置文件(不用枚举所有token的图标,只需要给一个文件夹路径即可), 升级组件, 提供`Context+Provider`
+   3. tokenIcon要有一个fallbackUrl的能力,我们默认在本地 public 文件夹中提供了一些知名的流行的token,但是也需要提供一个网络版本的链接:`"https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/{chain_short_name}/icon-{TOKEN_NAME}.png"`
+      - 这些图标是来自我们自己维护的github仓库的目录: https://github.com/BFChainMeta/fonts-cdn/tree/main/src/meta-icon
+      - 有了这个图标库+fallback机制,我们可以不更新APP的情况下,尝试从网络获取图标, 如果还是没有才进一步fallback成代码生成的样式
+
+---
+
+我发现有一些情况下, i18n的key会指向一个不存在的key,导致界面渲染出非正常文本.
+目前的`i18n:check`检查不出这种问题, 有什么建议吗?
+
+---
+
+使用 yargs 统一重构 `pnpm agent`和子命令

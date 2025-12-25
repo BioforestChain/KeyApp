@@ -18,7 +18,7 @@ vi.mock('@/stackflow', () => ({
 }))
 
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 vi.mock('@/components/layout/page-header', () => ({

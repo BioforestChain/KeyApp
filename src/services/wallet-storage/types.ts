@@ -12,8 +12,8 @@ export interface WalleterInfo {
   activeWalletId: string | null
   /** 是否启用生物识别 */
   biometricEnabled: boolean
-  /** 是否启用密码锁 */
-  passwordLockEnabled: boolean
+  /** 是否启用钱包锁 */
+  walletLockEnabled: boolean
   /** 用户协议已阅读 */
   agreementAccepted: boolean
   /** 创建时间 */
@@ -37,8 +37,10 @@ export interface WalletInfo {
   primaryChain: string
   /** 主地址 */
   primaryAddress: string
-  /** 加密的助记词 */
+  /** 加密的助记词（使用钱包锁加密） */
   encryptedMnemonic?: EncryptedData | undefined
+  /** 加密的钱包锁（使用助记词派生密钥加密） */
+  encryptedWalletLock?: EncryptedData | undefined
   /** 是否已备份 */
   isBackedUp: boolean
   /** 创建时间 */

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFlow } from '@/stackflow';
-import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
+import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
 import { useStore } from '@tanstack/react-store';
 import {
   IconPlus as Plus,
@@ -66,7 +66,7 @@ export function AddressBookPage() {
 
     // 如果有钱包，需要验证密码
     if (currentWallet?.encryptedMnemonic) {
-      setPasswordConfirmCallback(async (password: string) => {
+      setWalletLockConfirmCallback(async (password: string) => {
         try {
           const isValid = await verifyPassword(currentWallet.encryptedMnemonic!, password);
           if (!isValid) {
@@ -81,7 +81,7 @@ export function AddressBookPage() {
         }
       });
 
-      push("PasswordConfirmJob", {
+      push("WalletLockConfirmJob", {
         title: t('addressBook.deleteTitle'),
         description: t('addressBook.deleteConfirm', { name: contact.name }),
       });

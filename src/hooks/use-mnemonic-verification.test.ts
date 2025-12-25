@@ -70,6 +70,19 @@ describe('selectRandomIndices', () => {
 })
 
 describe('useMnemonicVerification', () => {
+  it('handles empty mnemonic without throwing', () => {
+    const { result } = renderHook(() => useMnemonicVerification([]))
+    expect(result.current.state.slots).toHaveLength(0)
+    expect(result.current.state.candidates).toHaveLength(0)
+    expect(result.current.state.isComplete).toBe(false)
+  })
+
+  it('handles mnemonic with fewer than 4 words without throwing', () => {
+    const { result } = renderHook(() => useMnemonicVerification(['word1', 'word2', 'word3']))
+    expect(result.current.state.slots).toHaveLength(0)
+    expect(result.current.state.candidates).toHaveLength(0)
+  })
+
   const testMnemonic = [
     'abandon',
     'ability',

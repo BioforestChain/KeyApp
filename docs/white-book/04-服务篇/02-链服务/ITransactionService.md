@@ -162,7 +162,7 @@ TransactionType = 'transfer' | 'token-transfer' | 'contract-call' | 'stake' | 'u
 4. buildTransaction() 构建交易
         │
         ▼
-5. 用户输入密码解锁私钥
+5. 用户绘制图案解锁私钥
         │
         ▼
 6. signTransaction() 签名

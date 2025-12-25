@@ -56,9 +56,9 @@ export const Disabled: Story = {
 export const WithLabel: Story = {
   render: () => (
     <div className="space-y-2">
-      <label className="text-sm font-medium">钱包密码</label>
+      <label className="text-sm font-medium">安全密码</label>
       <PasswordInput placeholder="6-20位，需包含字母和数字" showStrength />
-      <p className="text-muted-foreground text-xs">密码用于加密您的钱包，请牢记</p>
+      <p className="text-muted-foreground text-xs">安全密码用于链上转账验证，请牢记</p>
     </div>
   ),
 };
@@ -84,7 +84,7 @@ export const ConfirmPassword: Story = {
           <label className="text-sm font-medium">确认密码</label>
           <PasswordInput placeholder="请再次输入密码" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           {confirm && !isMatch && <p className="text-destructive text-xs">两次输入的密码不一致</p>}
-          {isMatch && <p className="text-secondary text-xs">密码匹配</p>}
+          {isMatch && <p className="text-green-500 text-xs">密码匹配</p>}
         </div>
       </div>
     );

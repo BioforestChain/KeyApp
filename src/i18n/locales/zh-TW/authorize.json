@@ -20,13 +20,13 @@
       "signMessage": "簽名驗證訊息",
       "getMain": "查看你的錢包匯入密語（主密鑰）"
     },
-    "confirmDescription": "請輸入密碼以繼續",
+    "confirmDescription": "請繪製圖案以繼續",
     "noWallets": "暫無錢包"
   },
   "signature": {
     "reviewTransaction": "請確認此交易",
     "messageToSign": "待簽名訊息",
-    "confirmDescription": "請輸入密碼進行簽名",
+    "confirmDescription": "請繪製圖案進行簽名",
     "type": {
       "message": "訊息簽名",
       "transfer": "代幣轉帳",
@@ -47,13 +47,13 @@
   "button": {
     "approve": "同意",
     "reject": "拒絕",
-    "confirm": "輸入密碼確認"
+    "confirm": "繪製圖案確認"
   },
   "error": {
     "insufficientBalance": "餘額不足，無法完成此交易",
     "unknownChain": "不支援的區塊鏈",
     "authFailed": "授權失敗",
-    "passwordIncorrect": "密碼錯誤",
+    "patternIncorrect": "圖案錯誤",
     "timeout": "請求已逾時"
   }
 }

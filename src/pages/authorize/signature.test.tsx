@@ -29,7 +29,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 function parseSearchParams(url: string): Record<string, string> {
@@ -112,7 +112,7 @@ describe('SignatureAuthPage', () => {
 
     await screen.findByText('Example DApp')
 
-    expect(screen.getByRole('button', { name: '输入密码确认' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '绘制图案确认' })).toBeDisabled()
 
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
@@ -121,7 +121,7 @@ describe('SignatureAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   it.skip('verifies password before signing when balance is sufficient', async () => {
     vi.mocked(crypto.verifyPassword).mockResolvedValue(true)
 
@@ -158,13 +158,13 @@ describe('SignatureAuthPage', () => {
 
     await screen.findByText('Example DApp')
 
-    const confirmBtn = screen.getByRole('button', { name: '输入密码确认' })
+    const confirmBtn = screen.getByRole('button', { name: '绘制图案确认' })
     expect(confirmBtn).toBeEnabled()
 
     await userEvent.click(confirmBtn)
 
-    const pwdInput = await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(pwdInput, 'pwd')
+    const patternInput = await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(patternInput, '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {

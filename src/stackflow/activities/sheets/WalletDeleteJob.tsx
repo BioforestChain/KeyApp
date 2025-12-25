@@ -2,11 +2,9 @@ import { useState, useCallback } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import { PasswordInput } from "@/components/security/password-input";
+import { PatternLock, patternToString } from "@/components/security/pattern-lock";
 import { walletActions, useWallets } from "@/stores";
 import { verifyPassword } from "@/lib/crypto";
-import { IconAlertCircle as AlertCircle } from "@tabler/icons-react";
 import { useFlow } from "../../stackflow";
 import { useNavigation } from "../../hooks/use-navigation";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
@@ -24,38 +22,39 @@ function WalletDeleteJobContent() {
   const wallets = useWallets();
   const wallet = wallets.find((w) => w.id === walletId);
 
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string>();
+  const [pattern, setPattern] = useState<number[]>([]);
+  const [patternError, setPatternError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  const handleVerifyAndDelete = useCallback(async () => {
-    if (!wallet) return;
+  const handlePatternComplete = useCallback(async (nodes: number[]) => {
+    if (!wallet || nodes.length < 4) return;
 
     if (!wallet.encryptedMnemonic) {
       walletActions.deleteWallet(wallet.id);
-      // Navigate back to home after deletion
       navigate({ to: "/" });
       return;
     }
 
     setIsVerifying(true);
-    setPasswordError(undefined);
+    setPatternError(false);
 
     try {
-      const isValid = await verifyPassword(wallet.encryptedMnemonic, password);
+      const patternKey = patternToString(nodes);
+      const isValid = await verifyPassword(wallet.encryptedMnemonic, patternKey);
       if (!isValid) {
-        setPasswordError(t("editSheet.passwordError"));
+        setPatternError(true);
+        setPattern([]);
         return;
       }
       walletActions.deleteWallet(wallet.id);
-      // Navigate back to home after deletion
       navigate({ to: "/" });
     } catch {
-      setPasswordError(t("editSheet.verifyFailed"));
+      setPatternError(true);
+      setPattern([]);
     } finally {
       setIsVerifying(false);
     }
-  }, [wallet, password, navigate, t]);
+  }, [wallet, navigate]);
 
   if (!wallet) {
     return null;
@@ -80,33 +79,16 @@ function WalletDeleteJobContent() {
             {t("editSheet.deleteWarning", { name: wallet.name })}
           </p>
 
-          <div className="space-y-2">
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("editSheet.passwordPlaceholder")}
-              disabled={isVerifying}
-            />
-            {passwordError && (
-              <div className="flex items-center gap-1.5 text-sm text-destructive">
-                <AlertCircle className="size-4" />
-                <span>{passwordError}</span>
-              </div>
-            )}
-          </div>
+          <PatternLock
+            value={pattern}
+            onChange={setPattern}
+            onComplete={handlePatternComplete}
+            minPoints={4}
+            error={patternError}
+            disabled={isVerifying}
+          />
 
           <div className="space-y-3">
-            <button
-              onClick={handleVerifyAndDelete}
-              disabled={!password.trim() || isVerifying}
-              className={cn(
-                "w-full rounded-full py-3 font-medium text-white transition-colors",
-                "bg-destructive hover:bg-destructive/90",
-                "disabled:cursor-not-allowed disabled:opacity-50"
-              )}
-            >
-              {isVerifying ? t("editSheet.verifying") : t("editSheet.confirmDelete")}
-            </button>
             <button
               onClick={() => pop()}
               disabled={isVerifying}

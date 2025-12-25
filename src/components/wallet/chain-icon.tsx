@@ -1,22 +1,66 @@
+import { useState, createContext, useContext, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-// 链 id 来自 chain-config（可扩展）；这里提供已知链的样式映射，未知链走 fallback。
 export type ChainType = string;
 
+/**
+ * ChainIcon Context - 提供 chainId -> iconUrl 的映射
+ */
+interface ChainIconContextValue {
+  getIconUrl: (chainId: string) => string | undefined;
+}
+
+const ChainIconContext = createContext<ChainIconContextValue | null>(null);
+
+interface ChainIconProviderProps {
+  /** 获取链图标 URL 的函数 */
+  getIconUrl: (chainId: string) => string | undefined;
+  children: ReactNode;
+}
+
+/**
+ * ChainIcon Provider
+ * 
+ * 在应用根部注入，提供 chainId -> iconUrl 的自动解析
+ * 
+ * @example
+ * const { configs } = useChainConfig();
+ * 
+ * <ChainIconProvider getIconUrl={(id) => configs.find(c => c.id === id)?.icon}>
+ *   <App />
+ * </ChainIconProvider>
+ */
+export function ChainIconProvider({ getIconUrl, children }: ChainIconProviderProps) {
+  return (
+    <ChainIconContext.Provider value={{ getIconUrl }}>
+      {children}
+    </ChainIconContext.Provider>
+  );
+}
+
+function useChainIconContext() {
+  return useContext(ChainIconContext);
+}
+
 interface ChainIconProps {
-  chain: ChainType;
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
+  /** 链 ID，用于 fallback 显示和从 context 获取 iconUrl */
+  chainId?: ChainType | undefined;
+  /** 图标 URL（优先使用，覆盖 context） */
+  iconUrl?: string | undefined;
+  /** 链符号，用于 fallback 显示 */
+  symbol?: string | undefined;
+  size?: 'sm' | 'md' | 'lg' | undefined;
+  className?: string | undefined;
+  /** @deprecated 使用 chainId 代替 */
+  chain?: ChainType | undefined;
 }
 
 const chainColors: Record<string, string> = {
-  // 外部链
   ethereum: 'bg-chain-ethereum',
   tron: 'bg-chain-tron',
   bitcoin: 'bg-chain-bitcoin',
   binance: 'bg-chain-binance',
   bsc: 'bg-chain-binance',
-  // BioForest 链
   bfmeta: 'bg-chain-bfmeta',
   ccchain: 'bg-emerald-500',
   pmchain: 'bg-violet-500',
@@ -25,52 +69,95 @@ const chainColors: Record<string, string> = {
   biwmeta: 'bg-cyan-500',
   ethmeta: 'bg-indigo-500',
   malibu: 'bg-pink-500',
-  // Legacy
   ccc: 'bg-emerald-500',
 };
 
 const chainLabels: Record<string, string> = {
-  // 外部链
   ethereum: 'ETH',
   tron: 'TRX',
   bitcoin: 'BTC',
   binance: 'BNB',
   bsc: 'BNB',
-  // BioForest 链
-  bfmeta: 'BFT',
-  ccchain: 'CC',
-  pmchain: 'PM',
+  bfmeta: 'BFM',
+  ccchain: 'CCC',
+  pmchain: 'PMC',
   bfchainv2: 'BFT',
-  btgmeta: 'BTG',
+  btgmeta: 'BTGM',
   biwmeta: 'BIW',
-  ethmeta: 'ETM',
+  ethmeta: 'ETHM',
   malibu: 'MLB',
-  // Legacy
-  ccc: 'CC',
+  ccc: 'CCC',
 };
 
 const sizeClasses = {
-  sm: 'w-6 aspect-square text-[10px]',
-  md: 'w-8 aspect-square text-xs',
-  lg: 'w-10 aspect-square text-sm',
+  sm: 'size-5',
+  md: 'size-8',
+  lg: 'size-10',
 };
 
-function toFallbackLabel(chain: string): string {
-  const trimmed = chain.trim();
-  if (trimmed === '') return '—';
-  return trimmed.slice(0, 4).toUpperCase();
+const textSizeClasses = {
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+};
+
+function toFallbackLabel(chainId?: string, symbol?: string): string {
+  if (symbol) return symbol.slice(0, 4).toUpperCase();
+  if (chainId) {
+    const label = chainLabels[chainId];
+    if (label) return label;
+    return chainId.slice(0, 4).toUpperCase();
+  }
+  return '?';
 }
 
-export function ChainIcon({ chain, size = 'md', className }: ChainIconProps) {
-  const label = chainLabels[chain] ?? toFallbackLabel(chain);
-  const isKnown = chain in chainLabels;
+/**
+ * 链图标组件
+ * 
+ * 优先级：iconUrl prop > context > 首字母 + 背景色
+ * 
+ * @example
+ * // 自动从 context 获取图标
+ * <ChainIcon chainId="ethereum" />
+ * 
+ * // 手动指定图标 URL（覆盖 context）
+ * <ChainIcon chainId="ethereum" iconUrl="/custom-icon.svg" />
+ */
+export function ChainIcon({ chainId, iconUrl, symbol, size = 'md', className, chain }: ChainIconProps) {
+  const [imgError, setImgError] = useState(false);
+  const context = useChainIconContext();
+  
+  // 兼容旧的 chain prop
+  const resolvedChainId = chainId ?? chain;
+  const label = toFallbackLabel(resolvedChainId, symbol);
+  
+  // 解析图标 URL
+  const resolvedIconUrl = iconUrl ?? (resolvedChainId ? context?.getIconUrl(resolvedChainId) : undefined);
+  
+  // 有图标 URL 且未加载失败时，使用图片
+  if (resolvedIconUrl && !imgError) {
+    return (
+      <img
+        src={resolvedIconUrl}
+        alt={label}
+        className={cn('shrink-0 rounded-full object-cover', sizeClasses[size], className)}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  
+  // Fallback: 首字母 + 背景色
+  const bgColor = resolvedChainId ? chainColors[resolvedChainId] : undefined;
+  const isKnown = resolvedChainId ? resolvedChainId in chainColors : false;
+  
   return (
     <div
       className={cn(
         'flex shrink-0 items-center justify-center rounded-full font-bold',
-        chainColors[chain] ?? 'bg-muted',
+        bgColor ?? 'bg-muted',
         isKnown ? 'text-white' : 'text-muted-foreground',
         sizeClasses[size],
+        textSizeClasses[size],
         className,
       )}
       title={label}
@@ -81,8 +168,18 @@ export function ChainIcon({ chain, size = 'md', className }: ChainIconProps) {
   );
 }
 
-export function ChainBadge({ chain, className }: { chain: ChainType; className?: string }) {
-  const label = chainLabels[chain] ?? chain
+interface ChainBadgeProps {
+  chainId?: ChainType | undefined;
+  iconUrl?: string | undefined;
+  symbol?: string | undefined;
+  className?: string | undefined;
+  /** @deprecated 使用 chainId 代替 */
+  chain?: ChainType | undefined;
+}
+
+export function ChainBadge({ chainId, iconUrl, symbol, className, chain }: ChainBadgeProps) {
+  const resolvedChainId = chainId ?? chain ?? '';
+  const label = symbol ?? chainLabels[resolvedChainId] ?? resolvedChainId;
   return (
     <span
       className={cn(
@@ -91,7 +188,7 @@ export function ChainBadge({ chain, className }: { chain: ChainType; className?:
         className,
       )}
     >
-      <ChainIcon chain={chain} size="sm" className="size-4 text-[8px]" />
+      <ChainIcon chainId={resolvedChainId} iconUrl={iconUrl} symbol={symbol} size="sm" className="size-4" />
       {label}
     </span>
   );

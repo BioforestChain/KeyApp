@@ -14,7 +14,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 // Mock crypto decrypt
@@ -69,7 +69,7 @@ describe('ViewMnemonicPage', () => {
     it('opens password confirmation activity on load', async () => {
       renderWithProviders(<ViewMnemonicPage />)
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('PasswordConfirmJob', expect.any(Object))
+        expect(mockPush).toHaveBeenCalledWith('WalletLockConfirmJob', expect.any(Object))
       })
     })
 
@@ -92,5 +92,5 @@ describe('ViewMnemonicPage', () => {
 
   // Note: Password verification and mnemonic display tests are skipped
   // because they depend on inline PasswordConfirmSheet which has been
-  // migrated to PasswordConfirmJob
+  // migrated to WalletLockConfirmJob
 })
