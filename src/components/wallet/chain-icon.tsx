@@ -24,14 +24,9 @@ interface ChainIconProviderProps {
  * 在应用根部注入，提供 chainId -> iconUrl 的自动解析
  * 
  * @example
- * // 使用 chain-config service
  * const { configs } = useChainConfig();
- * const iconMap = useMemo(() => 
- *   Object.fromEntries(configs.map(c => [c.id, c.icon])), 
- *   [configs]
- * );
  * 
- * <ChainIconProvider getIconUrl={(id) => iconMap[id]}>
+ * <ChainIconProvider getIconUrl={(id) => configs.find(c => c.id === id)?.icon}>
  *   <App />
  * </ChainIconProvider>
  */
@@ -119,10 +114,10 @@ function toFallbackLabel(chainId?: string, symbol?: string): string {
 /**
  * 链图标组件
  * 
- * 优先级：iconUrl prop > context > fallback（首字母 + 背景色）
+ * 优先级：iconUrl prop > context > 首字母 + 背景色
  * 
  * @example
- * // 自动从 context 获取图标（需要 ChainIconProvider）
+ * // 自动从 context 获取图标
  * <ChainIcon chainId="ethereum" />
  * 
  * // 手动指定图标 URL（覆盖 context）
@@ -136,7 +131,7 @@ export function ChainIcon({ chainId, iconUrl, symbol, size = 'md', className, ch
   const resolvedChainId = chainId ?? chain;
   const label = toFallbackLabel(resolvedChainId, symbol);
   
-  // 解析图标 URL：prop 优先，否则从 context 获取
+  // 解析图标 URL
   const resolvedIconUrl = iconUrl ?? (resolvedChainId ? context?.getIconUrl(resolvedChainId) : undefined);
   
   // 有图标 URL 且未加载失败时，使用图片

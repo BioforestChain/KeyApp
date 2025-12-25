@@ -1,13 +1,29 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { TokenIcon, TokenBadge, TokenIconProvider } from './token-icon';
 
+const mockGetTokenIconBases = (chainId: string) => {
+  const bases: Record<string, string[]> = {
+    bfmeta: ['/icons/bfmeta/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm'],
+    ccchain: ['/icons/ccchain/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc'],
+    pmchain: ['/icons/pmchain/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc'],
+    bfchainv2: ['/icons/bfchainv2/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2'],
+    btgmeta: ['/icons/btgmeta/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm'],
+    ethmeta: ['/icons/ethmeta/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm'],
+    ethereum: ['/icons/ethereum/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth'],
+    binance: ['/icons/binance/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc'],
+    tron: ['/icons/tron/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron'],
+    bitcoin: ['/icons/bitcoin/tokens', 'https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm'],
+  };
+  return bases[chainId] ?? [];
+};
+
 const meta: Meta<typeof TokenIcon> = {
   title: 'Wallet/TokenIcon',
   component: TokenIcon,
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <TokenIconProvider>
+      <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
         <Story />
       </TokenIconProvider>
     ),

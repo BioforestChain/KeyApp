@@ -29,7 +29,7 @@ const MockDevTools = __MOCK_MODE__
   ? lazy(() => import('./services/mock-devtools').then((m) => ({ default: m.MockDevTools })))
   : null
 
-function ChainIconProviderWrapper({ children }: { children: React.ReactNode }) {
+function IconProvidersWrapper({ children }: { children: React.ReactNode }) {
   const configs = useChainConfigs()
   
   const getIconUrl = useCallback(
@@ -37,7 +37,18 @@ function ChainIconProviderWrapper({ children }: { children: React.ReactNode }) {
     [configs],
   )
 
-  return <ChainIconProvider getIconUrl={getIconUrl}>{children}</ChainIconProvider>
+  const getTokenIconBases = useCallback(
+    (chainId: string) => configs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
+    [configs],
+  )
+
+  return (
+    <ChainIconProvider getIconUrl={getIconUrl}>
+      <TokenIconProvider getTokenIconBases={getTokenIconBases}>
+        {children}
+      </TokenIconProvider>
+    </ChainIconProvider>
+  )
 }
 
 export function startFrontendMain(rootElement: HTMLElement): void {
@@ -47,11 +58,9 @@ export function startFrontendMain(rootElement: HTMLElement): void {
         <ServiceProvider>
           <MigrationProvider>
             <I18nextProvider i18n={i18n}>
-              <ChainIconProviderWrapper>
-                <TokenIconProvider>
-                  <StackflowApp />
-                </TokenIconProvider>
-              </ChainIconProviderWrapper>
+              <IconProvidersWrapper>
+                <StackflowApp />
+              </IconProvidersWrapper>
               {/* Mock DevTools - 仅在 mock 模式下显示 */}
               {MockDevTools && (
                 <Suspense fallback={null}>
