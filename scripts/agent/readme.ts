@@ -100,6 +100,7 @@ pnpm agent worktree list      worktree 概览
 pnpm agent worktree delete <name> [--force]
 
 PR 规则: 描述中使用 Closes #issue编号 自动关联
+合并门禁: 合并前必须告知当前 worktree 路径并征求用户确认
 `)
 }
 

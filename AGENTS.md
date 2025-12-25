@@ -132,6 +132,10 @@ gh pr merge <pr#> --squash --delete-branch
 pnpm agent worktree delete <name>
 ```
 
+合并门禁（必须执行）：  
+- **在合并之前必须询问用户**，并明确告知当前工作目录（worktree 路径）。  
+- 用户 review 确认后才允许执行合并。  
+
 ---
 
 ## 重要提醒
