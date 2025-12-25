@@ -266,7 +266,7 @@ export const walletActions = {
       name: walleterInfo?.name ?? 'User',
       activeWalletId: walletId,
       biometricEnabled: walleterInfo?.biometricEnabled ?? false,
-      passwordLockEnabled: walleterInfo?.passwordLockEnabled ?? false,
+      walletLockEnabled: walleterInfo?.walletLockEnabled ?? false,
       agreementAccepted: true,
       createdAt: walleterInfo?.createdAt ?? now,
       updatedAt: now,

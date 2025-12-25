@@ -60,8 +60,8 @@ interface WalleterInfo {
   activeWalletId: string
   /** 是否启用生物识别 */
   biometricEnabled: boolean
-  /** 是否启用密码锁 */
-  passwordLockEnabled: boolean
+  /** 是否启用钱包锁 */
+  walletLockEnabled: boolean
   /** 用户协议已阅读 */
   agreementAccepted: boolean
   /** 创建时间 */

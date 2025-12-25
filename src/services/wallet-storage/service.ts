@@ -632,7 +632,7 @@ export class WalletStorageService {
           name: 'User',
           activeWalletId: currentWalletId,
           biometricEnabled: false,
-          passwordLockEnabled: false,
+          walletLockEnabled: false,
           agreementAccepted: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),

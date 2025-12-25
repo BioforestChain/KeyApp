@@ -29,20 +29,24 @@ describe('TokenIcon', () => {
     expect(screen.getByText('U')).toBeInTheDocument()
   })
 
-  it('applies correct size class', () => {
+  it('applies correct size class with aspect-square', () => {
     const { rerender } = render(
       <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
         <TokenIcon symbol="eth" chainId="ethereum" size="sm" />
       </TokenIconProvider>
     )
-    expect(screen.getByLabelText('ETH')).toHaveClass('size-6')
+    const smIcon = screen.getByLabelText('ETH')
+    expect(smIcon).toHaveClass('aspect-square')
+    expect(smIcon).toHaveClass('w-6')
 
     rerender(
       <TokenIconProvider getTokenIconBases={mockGetTokenIconBases}>
         <TokenIcon symbol="eth" chainId="ethereum" size="lg" />
       </TokenIconProvider>
     )
-    expect(screen.getByLabelText('ETH')).toHaveClass('size-10')
+    const lgIcon = screen.getByLabelText('ETH')
+    expect(lgIcon).toHaveClass('aspect-square')
+    expect(lgIcon).toHaveClass('w-10')
   })
 
   it('uses imageUrl prop when provided (highest priority)', () => {

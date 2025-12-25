@@ -57,8 +57,8 @@
     "hide": "Hide",
     "autoHideNote": "Will auto-hide in 30 seconds",
     "verifyTitle": "Verify Password",
-    "verifyDescMnemonic": "Enter wallet password to view mnemonic",
-    "verifyDescKey": "Enter wallet password to view key"
+    "verifyDescMnemonic": "Draw wallet lock pattern to view mnemonic",
+    "verifyDescKey": "Draw wallet lock pattern to view key"
   },
   "changeWalletLock": {
     "title": "Change Wallet Lock",

@@ -37,8 +37,8 @@ export interface MpayWalletAppSettings {
   passwordTips?: string
   /** 最后使用的地址信息 */
   lastWalletActivate?: MpayChainAddressInfo
-  /** 密码锁 */
-  passwordLock?: boolean
+  /** 钱包锁 */
+  walletLock?: boolean
   /** 指纹锁 */
   fingerprintLock?: boolean
   /** 指纹支付 */
