@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { ChainIcon, type ChainType } from '../wallet/chain-icon';
+import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
@@ -80,25 +80,12 @@ export function TokenItem({ token, onClick, showChange = false, loading = false,
     >
       {/* Token Icon */}
       <div className="relative">
-        {token.icon ? (
-          <img
-            src={token.icon}
-            alt={token.symbol}
-            className="aspect-square w-10 rounded-full @xs:w-12"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div
-          className={cn(
-            'bg-gradient-purple flex aspect-square w-10 items-center justify-center rounded-full font-bold text-white @xs:w-12',
-            token.icon && 'hidden',
-          )}
-        >
-          {token.symbol.charAt(0)}
-        </div>
+        <TokenIcon
+          symbol={token.symbol}
+          chainId={token.chain}
+          imageUrl={token.icon}
+          size="lg"
+        />
         {/* Chain badge */}
         <ChainIcon
           chain={token.chain}
