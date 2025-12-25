@@ -4,15 +4,17 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PasswordInput } from "@/components/security/password-input";
+import { ChainAddressDisplay } from "@/components/wallet/chain-address-display";
+import { FeeDisplay } from "@/components/transaction/fee-display";
 import {
   IconAlertCircle as AlertCircle,
   IconLock as Lock,
-  IconInfoCircle as InfoCircle,
 } from "@tabler/icons-react";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 import { Amount } from "@/types/amount";
 import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-status-display";
+import { setFeeEditCallback } from "./FeeEditJob";
 
 // Global callback store for setting two-step secret
 let pendingCallback: ((newTwoStepSecret: string, walletLock: string) => Promise<{ success: boolean; txHash?: string; error?: string }>) | null = null;
@@ -47,13 +49,18 @@ function clearSetTwoStepSecretCallback() {
 }
 
 type SetTwoStepSecretJobParams = {
+  chainId?: string;
+  chainIcon?: string;
+  chainSymbol?: string;
+  address?: string;
+  /** @deprecated 使用 chainId + address 代替 */
   chainName?: string;
 };
 
 function SetTwoStepSecretJobContent() {
   const { t } = useTranslation(["security", "transaction", "common"]);
-  const { pop } = useFlow();
-  const { chainName } = useActivityParams<SetTwoStepSecretJobParams>();
+  const { pop, push } = useFlow();
+  const { chainId, chainIcon, chainSymbol, address, chainName } = useActivityParams<SetTwoStepSecretJobParams>();
 
   const [newTwoStepSecret, setNewTwoStepSecret] = useState("");
   const [confirmTwoStepSecret, setConfirmTwoStepSecret] = useState("");
@@ -63,11 +70,15 @@ function SetTwoStepSecretJobContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txStatus, setTxStatus] = useState<TxStatus | "idle">("idle");
   const [txHash, setTxHash] = useState<string>();
+  const [customFee, setCustomFee] = useState<string | null>(null);
 
   // 在组件挂载时捕获回调，避免 React Strict Mode 问题
   const callbackRef = useRef(pendingCallback);
   const checkConfirmedRef = useRef(checkConfirmedCallback);
   const feeRef = useRef({ amount: feeAmount, symbol: feeSymbol });
+  
+  // 当前显示的手续费
+  const displayFee = customFee ?? feeRef.current.amount?.toDisplayString() ?? "0";
   
   useEffect(() => {
     // 只在首次挂载时捕获，避免 Strict Mode 清除问题
@@ -83,6 +94,22 @@ function SetTwoStepSecretJobContent() {
   }, []);
 
   // 轮询检查由 TxStatusDisplay 组件处理
+
+  // 编辑手续费
+  const handleEditFee = useCallback(() => {
+    const minFee = feeRef.current.amount?.toDisplayString() ?? "0";
+    setFeeEditCallback(
+      {
+        currentFee: displayFee,
+        minFee,
+        symbol: feeRef.current.symbol,
+      },
+      (result) => {
+        setCustomFee(result.fee);
+      }
+    );
+    push("FeeEditJob", {});
+  }, [displayFee, push]);
 
   const handleNextStep = useCallback(() => {
     setError(undefined);
@@ -175,25 +202,38 @@ function SetTwoStepSecretJobContent() {
               {t("security:twoStepSecret.setTitle")}
             </h2>
           </div>
-          {chainName && (
+          {/* 链地址显示（新版）或链名称显示（兼容旧版） */}
+          {chainId && address ? (
+            <div className="mt-2 flex justify-center">
+              <ChainAddressDisplay
+                chainId={chainId}
+                chainIcon={chainIcon}
+                chainSymbol={chainSymbol}
+                address={address}
+                size="sm"
+              />
+            </div>
+          ) : chainName ? (
             <p className="mt-1 text-center text-sm text-muted-foreground">
               {chainName}
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="space-y-6 p-4">
           {/* Fee info */}
           {feeRef.current.amount && (
-            <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
-              <InfoCircle className="mt-0.5 size-4 text-muted-foreground shrink-0" />
-              <div className="text-sm text-muted-foreground">
-                <p>{t("security:twoStepSecret.feeInfo")}</p>
-                <p className="mt-1 font-medium text-foreground">
-                  {feeRef.current.amount.toDisplayString()} {feeRef.current.symbol}
-                </p>
-              </div>
+            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+              <span className="text-sm text-muted-foreground">
+                {t("security:twoStepSecret.feeInfo")}
+              </span>
+              <FeeDisplay
+                amount={displayFee}
+                symbol={feeRef.current.symbol}
+                editable
+                onEdit={handleEditFee}
+              />
             </div>
           )}
 

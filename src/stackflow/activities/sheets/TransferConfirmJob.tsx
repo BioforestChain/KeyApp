@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ActivityComponentType } from '@stackflow/react';
 import { BottomSheet, SheetContent } from '@/components/layout/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -8,15 +8,29 @@ import { clipboardService } from '@/services/clipboard';
 import { IconChevronDown as ChevronDown, IconChevronUp as ChevronUp, IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
+import { setFeeEditCallback } from './FeeEditJob';
 
-let pendingCallback: (() => Promise<void>) | null = null;
+interface TransferConfirmConfig {
+  onConfirm: () => Promise<void>;
+  minFee?: string | undefined;
+  onFeeChange?: ((newFee: string) => void) | undefined;
+}
 
-export function setTransferConfirmCallback(onConfirm: () => Promise<void>) {
-  pendingCallback = onConfirm;
+let pendingConfig: TransferConfirmConfig | null = null;
+
+export function setTransferConfirmCallback(
+  onConfirm: () => Promise<void>,
+  options?: { minFee?: string; onFeeChange?: (newFee: string) => void }
+) {
+  pendingConfig = {
+    onConfirm,
+    minFee: options?.minFee,
+    onFeeChange: options?.onFeeChange,
+  };
 }
 
 function clearTransferConfirmCallback() {
-  pendingCallback = null;
+  pendingConfig = null;
 }
 
 type TransferConfirmJobParams = {
@@ -37,15 +51,34 @@ function truncateAddress(address: string): string {
 
 function TransferConfirmJobContent() {
   const { t } = useTranslation('transaction');
-  const { pop } = useFlow();
+  const { pop, push } = useFlow();
   const params = useActivityParams<TransferConfirmJobParams>();
 
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [customFee, setCustomFee] = useState<string | null>(null);
+
+  // 捕获配置
+  const configRef = useRef(pendingConfig);
+  const initialized = useRef(false);
+  
+  if (!initialized.current && pendingConfig) {
+    configRef.current = pendingConfig;
+    clearTransferConfirmCallback();
+    initialized.current = true;
+  }
+
+  useEffect(() => {
+    return () => {
+      clearTransferConfirmCallback();
+    };
+  }, []);
 
   const feeLoading = params.feeLoading === 'true';
   const feeFiatValue = params.feeFiatValue ? parseFloat(params.feeFiatValue) : undefined;
+  const displayFee = customFee ?? params.feeAmount;
+  const canEditFee = !!configRef.current?.onFeeChange;
 
   const handleCopyAddress = useCallback(async () => {
     try {
@@ -61,18 +94,34 @@ function TransferConfirmJobContent() {
     setShowFullAddress((prev) => !prev);
   }, []);
 
+  const handleEditFee = useCallback(() => {
+    const config = configRef.current;
+    if (!config?.onFeeChange) return;
+    
+    setFeeEditCallback(
+      {
+        currentFee: displayFee,
+        minFee: config.minFee ?? params.feeAmount,
+        symbol: params.feeSymbol,
+      },
+      (result) => {
+        setCustomFee(result.fee);
+        config.onFeeChange?.(result.fee);
+      }
+    );
+    push('FeeEditJob', {});
+  }, [displayFee, params.feeAmount, params.feeSymbol, push]);
+
   const handleConfirm = useCallback(async () => {
-    console.log('[TransferConfirmJob] handleConfirm called, hasCallback:', !!pendingCallback);
-    if (!pendingCallback || isConfirming) return;
+    const config = configRef.current;
+    console.log('[TransferConfirmJob] handleConfirm called, hasCallback:', !!config?.onConfirm);
+    if (!config?.onConfirm || isConfirming) return;
 
     setIsConfirming(true);
     try {
-      // IMPORTANT: Save callback reference before clearing, otherwise it becomes null
-      const callback = pendingCallback;
-      clearTransferConfirmCallback();
       pop();
       console.log('[TransferConfirmJob] Executing callback...');
-      await callback();
+      await config.onConfirm();
       console.log('[TransferConfirmJob] Callback executed');
     } finally {
       setIsConfirming(false);
@@ -80,7 +129,6 @@ function TransferConfirmJobContent() {
   }, [isConfirming, pop]);
 
   const handleClose = useCallback(() => {
-    clearTransferConfirmCallback();
     pop();
   }, [pop]);
 
@@ -131,10 +179,12 @@ function TransferConfirmJobContent() {
             <div className="flex items-start justify-between">
               <p className="text-muted-foreground text-sm">{t('confirmSheet.networkFee')}</p>
               <FeeDisplay
-                amount={params.feeAmount}
+                amount={displayFee}
                 symbol={params.feeSymbol}
                 {...(feeFiatValue !== undefined && { fiatValue: feeFiatValue })}
                 isLoading={feeLoading}
+                editable={canEditFee}
+                onEdit={handleEditFee}
               />
             </div>
           </div>

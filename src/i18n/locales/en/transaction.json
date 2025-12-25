@@ -239,6 +239,17 @@
   "youFinallyReceive": "You finally receive",
   "youMustReceive_{asset}QuantityGreaterThan_0": "You must receive quantity greater than 0",
   "{chainsymbol}IsNotEnoughToCoverFees": "is not enough to cover fees",
+  "feeEdit": {
+    "title": "Edit Network Fee",
+    "currentFee": "Current Fee",
+    "minFee": "Minimum Fee",
+    "customFee": "Custom Fee",
+    "presetMin": "Minimum",
+    "presetRecommend": "Recommended",
+    "presetFast": "Fast",
+    "invalidFee": "Please enter a valid fee",
+    "belowMinFee": "Fee cannot be lower than minimum fee {{minFee}} {{symbol}}"
+  },
   "txStatus": {
     "broadcasting": "Broadcasting",
     "broadcasted": "Broadcast Successful",

@@ -11,3 +11,4 @@ export { WalletAddJob } from "./WalletAddJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
+export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult } from "./FeeEditJob";

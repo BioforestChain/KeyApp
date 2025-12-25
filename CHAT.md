@@ -635,8 +635,14 @@ queryBlock:`https://tracker.bfmeta.org/#/info/block-details/:height`
 
 ---
 
+1. FeeEdit 功能建议使用Modal, 我们需要提供一种 PromptModal/FormModal(基于Modal,提供数据回传能力) 来支持这种能力
+2. 我们的AddressDisplay组件是否支持chainName/chainIcon? 可以考虑优化AddressDisplay,或者在AddressDisplay的基础上封装出一种新的 复合组件
+3. 方案A
+
+---
+
 我发现有一些情况下, i18n的key会指向一个不存在的key,导致界面渲染出非正常文本.
-目前的`i18n:check`检查不出这种问题, 对此你有什么建议吗?
+目前的`i18n:check`检查不出这种问题, 有什么建议吗?
 
 ---
 

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/common/skeleton';
 import { AmountDisplay, formatAmount } from '@/components/common/amount-display';
-import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
+import { IconAlertTriangle as AlertTriangle, IconPencil as Pencil } from '@tabler/icons-react';
 
 interface FeeDisplayProps {
   /** Fee amount in native token */
@@ -17,6 +17,10 @@ interface FeeDisplayProps {
   isLoading?: boolean | undefined;
   /** Threshold for high fee warning (in fiat) */
   highFeeThreshold?: number | undefined;
+  /** Whether the fee is editable */
+  editable?: boolean | undefined;
+  /** Callback when edit button is clicked */
+  onEdit?: (() => void) | undefined;
   /** Additional class names */
   className?: string | undefined;
 }
@@ -24,6 +28,18 @@ interface FeeDisplayProps {
 /**
  * Fee display component showing transaction fees with optional fiat equivalent
  * Uses AmountDisplay for consistent amount formatting
+ * 
+ * @example
+ * // Basic usage
+ * <FeeDisplay amount="0.001" symbol="ETH" />
+ * 
+ * // Editable fee
+ * <FeeDisplay 
+ *   amount={fee} 
+ *   symbol="BFM" 
+ *   editable 
+ *   onEdit={() => push('FeeEditJob', {})} 
+ * />
  */
 export function FeeDisplay({
   amount,
@@ -32,6 +48,8 @@ export function FeeDisplay({
   fiatSymbol = '$',
   isLoading = false,
   highFeeThreshold,
+  editable = false,
+  onEdit,
   className,
 }: FeeDisplayProps) {
   const { t } = useTranslation('common');
@@ -49,8 +67,8 @@ export function FeeDisplay({
   const isHighFee = fiatNum !== null && highFeeThreshold !== undefined && fiatNum >= highFeeThreshold;
   const fiatFormatted = fiatNum !== null ? formatAmount(fiatNum, 2, false).formatted : null;
 
-  return (
-    <div className={cn('space-y-0.5', className)}>
+  const content = (
+    <>
       <div className="flex items-center gap-1.5">
         <AmountDisplay
           value={amount}
@@ -60,6 +78,9 @@ export function FeeDisplay({
           animated={false}
         />
         {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
+        {editable && (
+          <Pencil className="size-3.5 text-muted-foreground" aria-hidden="true" />
+        )}
       </div>
       {fiatFormatted !== null && (
         <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>
@@ -67,6 +88,29 @@ export function FeeDisplay({
           {fiatFormatted}
         </p>
       )}
+    </>
+  );
+
+  if (editable && onEdit) {
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        className={cn(
+          'space-y-0.5 text-right transition-colors',
+          'hover:text-primary focus-visible:ring-ring rounded focus:outline-none focus-visible:ring-2',
+          className
+        )}
+        aria-label={t('a11y.editFee')}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={cn('space-y-0.5', className)}>
+      {content}
     </div>
   );
 }
