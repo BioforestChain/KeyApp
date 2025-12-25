@@ -31,6 +31,7 @@ pnpm agent readme
 
 ```bash
 pnpm agent readme              # 启动入口（索引 + 知识地图 + 最佳实践）
+pnpm agent --help              # 查看帮助
 pnpm agent roadmap current     # 当前 Roadmap
 pnpm agent toc                 # 白皮书目录
 pnpm agent chapter <路径>       # 读取白皮书章节
