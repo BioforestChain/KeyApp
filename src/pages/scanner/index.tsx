@@ -68,15 +68,34 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
         onScanRef.current(content, parsed);
       } else {
         // 默认行为：根据解析结果导航
-        if (parsed.type === 'address' || parsed.type === 'payment') {
-          navigate({
-            to: '/send',
-            search: {
-              address: parsed.address,
-              chain: parsed.chain,
-              amount: parsed.type === 'payment' ? parsed.amount : undefined,
-            },
-          });
+        switch (parsed.type) {
+          case 'address':
+          case 'payment':
+            navigate({
+              to: '/send',
+              search: {
+                address: parsed.address,
+                chain: parsed.chain,
+                amount: parsed.type === 'payment' ? parsed.amount : undefined,
+              },
+            });
+            break;
+          
+          case 'deeplink':
+            // 深度链接：直接导航到目标路径
+            navigate({
+              to: parsed.path,
+              search: parsed.params,
+            });
+            break;
+          
+          case 'unknown':
+            // 未知内容：尝试作为地址处理，跳转到发送页面
+            navigate({
+              to: '/send',
+              search: { address: parsed.content },
+            });
+            break;
         }
       }
     },

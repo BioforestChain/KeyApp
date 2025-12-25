@@ -1,7 +1,7 @@
 import jsQR from 'jsqr'
 
 /** QR 内容类型 */
-export type QRContentType = 'address' | 'payment' | 'unknown'
+export type QRContentType = 'address' | 'payment' | 'deeplink' | 'unknown'
 
 /** 解析后的地址信息 */
 export interface ParsedAddress {
@@ -29,13 +29,24 @@ export interface ParsedPayment {
   chainId?: number | undefined
 }
 
+/** 解析后的深度链接 */
+export interface ParsedDeepLink {
+  type: 'deeplink'
+  /** 路由路径 */
+  path: string
+  /** 查询参数 */
+  params: Record<string, string>
+  /** 原始内容 */
+  raw: string
+}
+
 /** 未知内容 */
 export interface ParsedUnknown {
   type: 'unknown'
   content: string
 }
 
-export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedUnknown
+export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedDeepLink | ParsedUnknown
 
 /** 以太坊地址正则 (0x + 40 hex chars) */
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/
@@ -161,6 +172,49 @@ function parseTronURI(uri: string): ParsedAddress | ParsedPayment {
 }
 
 /**
+ * 解析深度链接（hash 路由格式）
+ * 支持格式：
+ * - #/authorize/address?eventId=...&type=...
+ * - #/authorize/signature?eventId=...
+ * - #/send?address=...
+ * - 完整 URL 带 hash: https://app.example.com/#/authorize/address?...
+ */
+function parseDeepLink(content: string): ParsedDeepLink | null {
+  let hashPart = content
+  
+  // 如果是完整 URL，提取 hash 部分
+  if (content.startsWith('http://') || content.startsWith('https://')) {
+    const hashIndex = content.indexOf('#')
+    if (hashIndex === -1) return null
+    hashPart = content.slice(hashIndex)
+  }
+  
+  // 必须以 #/ 开头
+  if (!hashPart.startsWith('#/')) return null
+  
+  const inner = hashPart.slice(1) // 去掉 #
+  const queryIndex = inner.indexOf('?')
+  const path = queryIndex >= 0 ? inner.slice(0, queryIndex) : inner
+  const queryString = queryIndex >= 0 ? inner.slice(queryIndex + 1) : ''
+  
+  // 解析查询参数
+  const params: Record<string, string> = {}
+  if (queryString) {
+    const searchParams = new URLSearchParams(queryString)
+    for (const [key, value] of searchParams) {
+      params[key] = value
+    }
+  }
+  
+  return {
+    type: 'deeplink',
+    path,
+    params,
+    raw: content,
+  }
+}
+
+/**
  * 解析 QR 码内容
  */
 export function parseQRContent(content: string): ParsedQRContent {
@@ -177,6 +231,12 @@ export function parseQRContent(content: string): ParsedQRContent {
 
   if (trimmed.startsWith('tron:')) {
     return parseTronURI(trimmed)
+  }
+
+  // 深度链接（hash 路由格式）
+  if (trimmed.startsWith('#/') || (trimmed.startsWith('http') && trimmed.includes('#/'))) {
+    const deepLink = parseDeepLink(trimmed)
+    if (deepLink) return deepLink
   }
 
   // 纯地址字符串
