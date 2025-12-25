@@ -512,6 +512,14 @@ export const walletActions = {
     }
   },
 
+  /** 验证助记词是否正确（不修改数据） */
+  verifyMnemonic: async (
+    walletId: string,
+    mnemonic: string
+  ): Promise<boolean> => {
+    return walletStorageService.verifyMnemonic(walletId, mnemonic)
+  },
+
   /** 使用助记词重置钱包锁 */
   resetWalletLockByMnemonic: async (
     walletId: string,

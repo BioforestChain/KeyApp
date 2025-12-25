@@ -298,6 +298,38 @@ export class WalletStorageService {
     }
   }
 
+  /** 验证助记词是否正确（不修改数据） */
+  async verifyMnemonic(
+    walletId: string,
+    mnemonic: string
+  ): Promise<boolean> {
+    this.ensureInitialized()
+
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
+    if (!wallet.encryptedWalletLock) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.DECRYPTION_FAILED,
+        'No encrypted wallet lock found for this wallet'
+      )
+    }
+
+    // 验证助记词：尝试用助记词派生密钥解密钱包锁
+    try {
+      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
+      await decryptWithRawKey(wallet.encryptedWalletLock, mnemonicKey)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   /** 使用助记词重置钱包锁 */
   async resetWalletLockByMnemonic(
     walletId: string,

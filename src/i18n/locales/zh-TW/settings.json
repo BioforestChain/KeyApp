@@ -67,7 +67,15 @@
     "success": "錢包鎖修改成功",
     "returning": "正在返回設定頁面...",
     "verifyTitle": "驗證目前圖案",
-    "verifyDesc": "請繪製目前錢包鎖圖案以繼續"
+    "verifyDesc": "請繪製目前錢包鎖圖案以繼續",
+    "forgotPattern": "忘記圖案？使用助記詞重設",
+    "mnemonicVerifyTitle": "使用助記詞驗證",
+    "mnemonicVerifyDesc": "輸入建立錢包時備份的助記詞",
+    "verifyMnemonic": "驗證助記詞",
+    "verifying": "驗證中...",
+    "usePattern": "返回使用圖案驗證",
+    "invalidMnemonic": "助記詞格式無效",
+    "mnemonicVerifyFailed": "助記詞驗證失敗，請檢查是否正確"
   },
   "chainAddressCount": "{{count}} 個鏈地址",
   "notSupported": "暫不支援",

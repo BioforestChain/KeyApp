@@ -67,7 +67,15 @@
     "success": "Wallet lock changed successfully",
     "returning": "Returning to settings...",
     "verifyTitle": "Verify Current Pattern",
-    "verifyDesc": "Draw your current wallet lock pattern to continue"
+    "verifyDesc": "Draw your current wallet lock pattern to continue",
+    "forgotPattern": "Forgot pattern? Reset with mnemonic",
+    "mnemonicVerifyTitle": "Verify with Mnemonic",
+    "mnemonicVerifyDesc": "Enter the mnemonic you backed up when creating the wallet",
+    "verifyMnemonic": "Verify Mnemonic",
+    "verifying": "Verifying...",
+    "usePattern": "Back to pattern verification",
+    "invalidMnemonic": "Invalid mnemonic format",
+    "mnemonicVerifyFailed": "Mnemonic verification failed, please check if it's correct"
   },
   "chainAddressCount": "{{count}} chain addresses",
   "notSupported": "Not supported",
