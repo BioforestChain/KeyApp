@@ -1,7 +1,7 @@
 /**
  * mpay 迁移页面
  *
- * 完整迁移流程: 检测 → 密码验证 → 进度 → 完成
+ * 完整迁移流程: 检测 → 图案验证 → 进度 → 完成
  */
 
 import { useState, useCallback } from 'react';
@@ -10,13 +10,13 @@ import { useTranslation } from 'react-i18next';
 import { IconArrowLeft as ArrowLeft, IconDownload as Download, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { useMigration } from '@/contexts/MigrationContext';
-import { MigrationPasswordStep } from '@/components/migration/MigrationPasswordStep';
+import { PatternLock, patternToString } from '@/components/security/pattern-lock';
 import { MigrationProgressStep } from '@/components/migration/MigrationProgressStep';
 import { MigrationCompleteStep } from '@/components/migration/MigrationCompleteStep';
 import { migrationService } from '@/services/migration/migration-service';
 import type { MigrationProgress } from '@/services/migration/types';
 
-type MigrationStep = 'detected' | 'password' | 'progress' | 'complete';
+type MigrationStep = 'detected' | 'pattern' | 'progress' | 'complete';
 
 interface MigrationResult {
   success: boolean;
@@ -32,7 +32,9 @@ export function MigrationPage() {
 
   // 当前步骤
   const [step, setStep] = useState<MigrationStep>('detected');
-  // 密码验证状态
+  // 图案验证状态
+  const [pattern, setPattern] = useState<number[]>([]);
+  const [patternError, setPatternError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   // 当前进度
   const [progress, setLocalProgress] = useState<MigrationProgress>({
@@ -56,21 +58,26 @@ export function MigrationPage() {
   }, [navigate, skipMigration]);
 
   const handleStartMigration = useCallback(() => {
-    setStep('password');
+    setStep('pattern');
   }, []);
 
-  const handleVerifyPassword = useCallback(
-    async (password: string): Promise<boolean> => {
+  const handlePatternComplete = useCallback(
+    async (nodes: number[]) => {
+      if (nodes.length < 4) return;
+
       setIsVerifying(true);
+      setPatternError(false);
+      const patternKey = patternToString(nodes);
+
       try {
-        const isValid = await migrationService.verifyPassword(password);
+        const isValid = await migrationService.verifyPassword(patternKey);
         if (isValid) {
-          // 密码验证通过，开始迁移
+          // 图案验证通过，开始迁移
           setStep('progress');
 
           // 执行迁移
           try {
-            await migrationService.migrate(password, (prog) => {
+            await migrationService.migrate(patternKey, (prog) => {
               setLocalProgress(prog);
               setProgress(prog);
             });
@@ -79,7 +86,7 @@ export function MigrationPage() {
             setResult({
               success: true,
               walletCount: detection?.walletCount ?? 0,
-              skippedCount: 0, // TODO: 从 transform result 获取实际跳过数
+              skippedCount: 0,
             });
             completeMigration();
             setStep('complete');
@@ -94,8 +101,13 @@ export function MigrationPage() {
             failMigration();
             setStep('complete');
           }
+        } else {
+          setPatternError(true);
+          setPattern([]);
         }
-        return isValid;
+      } catch {
+        setPatternError(true);
+        setPattern([]);
       } finally {
         setIsVerifying(false);
       }
@@ -108,8 +120,10 @@ export function MigrationPage() {
   }, [navigate]);
 
   const handleRetry = useCallback(() => {
-    // 重试：回到密码步骤
-    setStep('password');
+    // 重试：回到图案验证步骤
+    setStep('pattern');
+    setPattern([]);
+    setPatternError(false);
     setResult({
       success: false,
       walletCount: 0,
@@ -175,14 +189,32 @@ export function MigrationPage() {
           </div>
         );
 
-      case 'password':
+      case 'pattern':
         return (
-          <MigrationPasswordStep
-            onVerify={handleVerifyPassword}
-            onSkip={handleSkip}
-            remainingRetries={migrationService.getRemainingRetries()}
-            isVerifying={isVerifying}
-          />
+          <div className="flex flex-1 flex-col items-center justify-center px-8" data-testid="migration-pattern-step">
+            <h2 className="mb-2 text-xl font-semibold">{t('pattern.title', { defaultValue: '验证钱包锁' })}</h2>
+            <p className="text-muted-foreground mb-8 text-center">
+              {t('pattern.description', { defaultValue: '请绘制钱包锁图案以继续迁移' })}
+            </p>
+            <PatternLock
+              value={pattern}
+              onChange={setPattern}
+              onComplete={handlePatternComplete}
+              minPoints={4}
+              error={patternError}
+              disabled={isVerifying}
+              data-testid="migration-pattern-lock"
+            />
+            <Button
+              variant="outline"
+              className="mt-8"
+              onClick={handleSkip}
+              disabled={isVerifying}
+              data-testid="migration-skip-btn"
+            >
+              {t('skipMigration', { defaultValue: '跳过，创建新钱包' })}
+            </Button>
+          </div>
         );
 
       case 'progress':
