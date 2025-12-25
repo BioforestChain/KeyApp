@@ -166,8 +166,10 @@ export function PatternLock({
   }, []);
 
   // 查找最近的节点
-  const findNearestNode = useCallback((x: number, y: number): number | null => {
-    const threshold = 100 / size / 2; // 半个格子的距离
+  // isMoving: 移动过程中使用更小的触发半径，减少误触
+  const findNearestNode = useCallback((x: number, y: number, isMoving = false): number | null => {
+    // 开始触发时使用较大半径（半个格子），移动中使用较小半径（1/3 格子）
+    const threshold = isMoving ? 100 / size / 3 : 100 / size / 2;
     for (const node of nodePositions) {
       const distance = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
       if (distance < threshold) {
@@ -208,7 +210,8 @@ export function PatternLock({
 
     setCurrentPoint(coords);
 
-    const nodeIndex = findNearestNode(coords.x, coords.y);
+    // 移动过程中使用更小的触发半径，减少误触
+    const nodeIndex = findNearestNode(coords.x, coords.y, true);
     if (nodeIndex !== null && !selectedNodes.includes(nodeIndex)) {
       const newNodes = [...selectedNodes, nodeIndex];
       setSelectedNodes(newNodes);

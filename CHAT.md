@@ -635,8 +635,9 @@ queryBlock:`https://tracker.bfmeta.org/#/info/block-details/:height`
 
 ---
 
+我发现有一些情况下, i18n的key会指向一个不存在的key,导致界面渲染出非正常文本.
+目前的`i18n:check`检查不出这种问题, 对此你有什么建议吗?
 
-我发现有一些情况下, i18n的key会指向一个不存在的key,然而我们目前的`i18n:check`检查不出这种问题, 对此你有什么建议吗?
+---
 
-----
 使用 yargs 统一重构 `pnpm agent`和子命令
