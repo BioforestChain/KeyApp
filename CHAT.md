@@ -635,9 +635,11 @@ queryBlock:`https://tracker.bfmeta.org/#/info/block-details/:height`
 
 ---
 
-1. FeeEdit 功能建议使用Modal, 我们需要提供一种 PromptModal/FormModal(基于Modal,提供数据回传能力) 来支持这种能力
+1. FeeEdit 功能建议使用Modal(stackflow 的 Modal ), 我们需要提供一种 PromptModal/FormModal(基于Modal,提供数据回传能力) 来支持这种能力
 2. 我们的AddressDisplay组件是否支持chainName/chainIcon? 可以考虑优化AddressDisplay,或者在AddressDisplay的基础上封装出一种新的 复合组件
-3. 方案A
+3. “链 SVG 图标系统” ,这里要和我们的“default-chains.json”进行关联, 从这个 default-chains.json 中来提供链图标, 然后进入 到我们的 service 体系中. 一定不可以将图标和我们的 service 进行强关联耦合.
+   - 请到这里文件夹`/Users/kzf/Dev/bioforestChain/legacy-apps/apps/btg-meta/src/components/icon/assets/images` 来复制图标.
+   - 这些是 Token图标, 在bio生态中, chainIcon就是使用 main-token 的 icon. mainToken 就是你 配置文件中的 symbol 字段
 
 ---
 

@@ -7,7 +7,7 @@ import { queryClient } from './lib/query-client'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
-import { ChainIconProvider } from './components/wallet'
+import { ChainIconProvider, TokenIconProvider } from './components/wallet'
 import { useChainConfigs } from './stores/chain-config'
 import './styles/globals.css'
 
@@ -48,7 +48,9 @@ export function startFrontendMain(rootElement: HTMLElement): void {
           <MigrationProvider>
             <I18nextProvider i18n={i18n}>
               <ChainIconProviderWrapper>
-                <StackflowApp />
+                <TokenIconProvider>
+                  <StackflowApp />
+                </TokenIconProvider>
               </ChainIconProviderWrapper>
               {/* Mock DevTools - 仅在 mock 模式下显示 */}
               {MockDevTools && (
