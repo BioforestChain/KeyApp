@@ -159,7 +159,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
         </span>
       </span>
       {copied ? (
-        <Check className="text-secondary size-4 shrink-0" aria-hidden="true" />
+        <Check className="text-green-500 size-4 shrink-0" aria-hidden="true" />
       ) : (
         <Copy className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
       )}

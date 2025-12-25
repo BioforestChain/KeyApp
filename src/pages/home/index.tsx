@@ -201,7 +201,7 @@ function NoWalletView() {
         <GradientButton variant="mint" className="w-full" onClick={() => navigate({ to: '/wallet/create' })}>
           {t('home:welcome.createWallet')}
         </GradientButton>
-        <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/wallet/import' })}>
+        <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/onboarding/recover' })}>
           {t('home:welcome.importWallet')}
         </Button>
       </div>

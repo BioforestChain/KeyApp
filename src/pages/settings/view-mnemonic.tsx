@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFlow } from '@/stackflow';
-import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets';
+import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
 import { IconEye as Eye, IconEyeOff as EyeOff, IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
@@ -56,7 +56,7 @@ export function ViewMnemonicPage() {
     hasShownPasswordSheet.current = true;
 
     // 设置密码验证回调
-    setPasswordConfirmCallback(async (password: string) => {
+    setWalletLockConfirmCallback(async (password: string) => {
       try {
         const decrypted = await decrypt(currentWallet.encryptedMnemonic as EncryptedData, password);
         setSecret(decrypted);
@@ -68,7 +68,7 @@ export function ViewMnemonicPage() {
     });
 
     // 打开密码验证 Sheet
-    push("PasswordConfirmJob", {
+    push("WalletLockConfirmJob", {
       title: t('viewMnemonic.verifyTitle'),
       description: isArbitrary ? t('viewMnemonic.verifyDescKey') : t('viewMnemonic.verifyDescMnemonic'),
     });

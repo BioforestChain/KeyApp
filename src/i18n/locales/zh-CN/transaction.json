@@ -45,6 +45,7 @@
   "sendPage": {
     "title": "发送",
     "resultTitle": "发送结果",
+    "from": "发送地址",
     "toAddressLabel": "收款地址",
     "toAddressPlaceholder": "输入 {{chain}} 地址",
     "amountLabel": "金额",
@@ -54,10 +55,10 @@
     "scanSuccess": "扫描成功",
     "scanFailed": "扫描失败，请手动输入",
     "explorerNotImplemented": "区块浏览器功能待实现",
-    "payPasswordTitle": "需要安全密码",
-    "payPasswordDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
-    "payPasswordPlaceholder": "输入安全密码",
-    "payPasswordError": "安全密码错误"
+    "twoStepSecretTitle": "需要安全密码",
+    "twoStepSecretDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
+    "twoStepSecretPlaceholder": "输入安全密码",
+    "twoStepSecretError": "安全密码错误"
   },
   "history": {
     "title": "交易记录",

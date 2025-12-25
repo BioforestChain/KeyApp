@@ -509,6 +509,92 @@ export const walletActions = {
     return walletStorageService.getMnemonic(walletId, password)
   },
 
+  /** 更新钱包链地址（添加/移除链） */
+  updateWalletChainAddresses: async (
+    walletId: string,
+    newChainIds: string[],
+    password: string,
+    chainConfigs: import('@/services/chain-config').ChainConfig[]
+  ): Promise<void> => {
+    const state = walletStore.state
+    const wallet = state.wallets.find((w) => w.id === walletId)
+    if (!wallet) throw new Error('Wallet not found')
+
+    // 先验证密码（无论是否有变化，都需要验证）
+    const mnemonic = await walletStorageService.getMnemonic(walletId, password)
+
+    // 获取现有链ID
+    const existingChainIds = new Set(wallet.chainAddresses.map((ca) => ca.chain))
+    const newChainIdSet = new Set(newChainIds)
+
+    // 计算需要添加和移除的链
+    const chainsToAdd = newChainIds.filter((id) => !existingChainIds.has(id))
+    const chainsToRemove = [...existingChainIds].filter((id) => !newChainIdSet.has(id))
+
+    // 如果没有变化，直接返回
+    if (chainsToAdd.length === 0 && chainsToRemove.length === 0) {
+      return
+    }
+
+    // 如果有需要添加的链，派生地址
+    let newAddresses: Array<{ chain: string; address: string }> = []
+    if (chainsToAdd.length > 0) {
+      
+      // 动态导入避免循环依赖
+      const { deriveBioforestAddresses } = await import('@/lib/crypto')
+      
+      // 派生所有 bioforest 链的地址
+      const bioforestAddresses = deriveBioforestAddresses(mnemonic, chainConfigs)
+      const addressMap = new Map(bioforestAddresses.map((a) => [a.chainId, a.address]))
+      
+      newAddresses = chainsToAdd
+        .map((chainId) => {
+          const address = addressMap.get(chainId)
+          if (!address) return null
+          return { chain: chainId, address }
+        })
+        .filter((a): a is { chain: string; address: string } => a !== null)
+    }
+
+    // 更新 IndexedDB - 添加新链地址
+    for (const addr of newAddresses) {
+      await walletStorageService.saveChainAddress({
+        addressKey: `${walletId}:${addr.chain}`,
+        walletId,
+        chain: addr.chain,
+        address: addr.address,
+        assets: [],
+        isCustomAssets: false,
+        isFrozen: false,
+      })
+    }
+
+    // 更新 IndexedDB - 移除链地址
+    for (const chainId of chainsToRemove) {
+      await walletStorageService.deleteChainAddress(`${walletId}:${chainId}`)
+    }
+
+    // 构建新的链地址列表
+    const updatedChainAddresses: ChainAddress[] = [
+      // 保留未移除的现有链地址
+      ...wallet.chainAddresses.filter((ca) => !chainsToRemove.includes(ca.chain)),
+      // 添加新链地址
+      ...newAddresses.map((addr) => ({
+        chain: addr.chain,
+        address: addr.address,
+        tokens: [],
+      })),
+    ]
+
+    // 更新 store
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: state.wallets.map((w) =>
+        w.id === walletId ? { ...w, chainAddresses: updatedChainAddresses } : w
+      ),
+    }))
+  },
+
   /** 清除所有数据 */
   clearAll: async (): Promise<void> => {
     await walletStorageService.clearAll()

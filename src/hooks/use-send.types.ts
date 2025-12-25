@@ -55,7 +55,7 @@ export interface UseSendOptions {
 export type SubmitResult =
   | { status: 'ok'; txHash?: string }
   | { status: 'password' }
-  | { status: 'pay_password_required'; secondPublicKey: string }
+  | { status: 'two_step_secret_required'; secondPublicKey: string }
   | { status: 'error' }
 
 export interface UseSendReturn {
@@ -74,7 +74,7 @@ export interface UseSendReturn {
   /** Submit transaction */
   submit: (password: string) => Promise<SubmitResult>
   /** Submit transaction with pay password */
-  submitWithPayPassword: (password: string, payPassword: string) => Promise<SubmitResult>
+  submitWithTwoStepSecret: (password: string, twoStepSecret: string) => Promise<SubmitResult>
   /** Reset to initial state */
   reset: () => void
   /** Check if can proceed to confirm */

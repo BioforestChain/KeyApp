@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 
 /**
@@ -6,6 +6,47 @@ import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
  *
  * 包含视觉回归测试和功能验证测试
  */
+
+const DEFAULT_PATTERN = [0, 1, 2, 5]
+
+async function drawPattern(page: Page, gridTestId: string, nodes: number[]): Promise<void> {
+  const grid = page.locator(`[data-testid="${gridTestId}"]`)
+  await grid.scrollIntoViewIfNeeded()
+  const box = await grid.boundingBox()
+  if (!box) throw new Error(`Pattern grid ${gridTestId} not visible`)
+
+  const size = 3
+  const toPoint = (index: number) => {
+    const row = Math.floor(index / size)
+    const col = index % size
+    return {
+      x: box.x + box.width * ((col + 0.5) / size),
+      y: box.y + box.height * ((row + 0.5) / size),
+    }
+  }
+
+  const points = nodes.map((node) => toPoint(node))
+  const first = points[0]!
+  await page.mouse.move(first.x, first.y)
+  await page.mouse.down()
+  for (const point of points.slice(1)) {
+    await page.mouse.move(point.x, point.y, { steps: 8 })
+  }
+  await page.mouse.up()
+}
+
+async function fillVerifyInputs(page: Page, words: string[]): Promise<void> {
+  const inputs = page.locator('[data-verify-index]')
+  const count = await inputs.count()
+  for (let i = 0; i < count; i++) {
+    const input = inputs.nth(i)
+    const indexAttr = await input.getAttribute('data-verify-index')
+    const index = indexAttr ? Number(indexAttr) : NaN
+    if (Number.isFinite(index)) {
+      await input.fill(words[index] ?? '')
+    }
+  }
+}
 
 // ==================== 视觉回归测试 ====================
 
@@ -19,51 +60,66 @@ test.describe('钱包创建流程 - 截图测试', () => {
     // 1. 首页 - 无钱包状态
     await page.goto('/')
     await page.waitForLoadState('networkidle')
+    // 等待创建钱包按钮出现
+    await page.waitForSelector('[data-testid="create-wallet-button"]')
     await expect(page).toHaveScreenshot('01-home-empty.png')
 
     // 2. 点击创建钱包
     await page.click('[data-testid="create-wallet-button"]')
-    // Stackflow 使用 hash 路由，等待密码页面加载即可
-    await page.waitForSelector('[data-testid="password-step"]')
-    await expect(page).toHaveScreenshot('02-create-password-step.png')
+    await page.waitForSelector('[data-testid="pattern-step"]')
+    await expect(page).toHaveScreenshot('02-create-pattern-step.png')
 
-    // 3. 填写密码
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await expect(page).toHaveScreenshot('03-password-entered.png')
+    // 3. 绘制图案（进入确认）
+    await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+    await page.click('[data-testid="pattern-lock-next-button"]')
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+    await expect(page).toHaveScreenshot('03-pattern-confirm-step.png')
 
-    // 4. 填写确认密码
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await expect(page).toHaveScreenshot('04-password-confirmed.png')
-
-    // 5. 进入助记词步骤
-    await page.click('[data-testid="next-step-button"]')
+    // 4. 确认图案进入助记词步骤
+    await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
     await page.waitForSelector('[data-testid="mnemonic-step"]')
-    await expect(page).toHaveScreenshot('05-mnemonic-hidden.png')
+    await expect(page).toHaveScreenshot('04-mnemonic-hidden.png')
 
-    // 6. 显示助记词
+    // 5. 显示助记词
     await page.click('[data-testid="toggle-mnemonic-button"]')
-    await expect(page).toHaveScreenshot('06-mnemonic-visible.png', {
-      // 助记词会变化，忽略该区域
+    await expect(page).toHaveScreenshot('05-mnemonic-visible.png', {
       mask: [page.locator('[data-testid="mnemonic-display"]')],
     })
 
-    // 7. 点击"我已备份"
+    const mnemonicDisplay = page.locator('[data-testid="mnemonic-display"]')
+    const wordElements = mnemonicDisplay.locator('span.font-medium:not(.blur-sm)')
+    const words: string[] = []
+    const wordCount = await wordElements.count()
+    for (let i = 0; i < wordCount; i++) {
+      const word = await wordElements.nth(i).textContent()
+      if (word) words.push(word.trim())
+    }
+
+    // 6. 点击"我已备份"
     await page.click('[data-testid="mnemonic-backed-up-button"]')
     await page.waitForSelector('[data-testid="verify-step"]')
-    await expect(page).toHaveScreenshot('07-verify-step.png', {
-      mask: [page.locator('input')], // 输入框位置会变化
+    await expect(page).toHaveScreenshot('06-verify-step.png', {
+      mask: [page.locator('[data-testid^="verify-word-input-"]')],
     })
+
+    // 7. 完成验证并进入链选择
+    await fillVerifyInputs(page, words)
+    await page.click('[data-testid="verify-next-button"]')
+    await page.waitForSelector('[data-testid="chain-selector-step"]')
+    await expect(page).toHaveScreenshot('07-chain-selector-step.png')
   })
 
-  test('密码验证 - 错误状态', async ({ page }) => {
+  test('图案确认 - 错误状态', async ({ page }) => {
     await page.goto('/#/wallet/create')
-    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('[data-testid="pattern-step"]')
 
-    // 输入不匹配的密码
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'DifferentPassword')
+    await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+    await page.click('[data-testid="pattern-lock-next-button"]')
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
 
-    await expect(page).toHaveScreenshot('error-password-mismatch.png')
+    await drawPattern(page, 'pattern-lock-confirm-grid', [0, 3, 6, 7])
+    await page.waitForSelector('[data-testid="pattern-lock-mismatch"]')
+    await expect(page).toHaveScreenshot('error-pattern-mismatch.png')
   })
 })
 
@@ -80,32 +136,24 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.waitForLoadState('networkidle')
     await page.click('[data-testid="create-wallet-button"]')
 
-    // 2. 填写密码步骤 (Stackflow hash 路由，直接等待内容)
-    await page.waitForSelector('[data-testid="password-step"]')
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-
-    // 验证下一步按钮可点击
-    const nextBtn = page.locator('[data-testid="next-step-button"]')
-    await expect(nextBtn).toBeEnabled()
-    await nextBtn.click()
+    // 2. 图案锁设置
+    await page.waitForSelector('[data-testid="pattern-step"]')
+    await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+    await page.click('[data-testid="pattern-lock-next-button"]')
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+    await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
 
     // 3. 备份助记词步骤
     await page.waitForSelector('[data-testid="mnemonic-step"]')
-
-    // 点击显示助记词
     await page.click('[data-testid="toggle-mnemonic-button"]')
 
-    // 获取生成的助记词
     const mnemonicDisplay = page.locator('[data-testid="mnemonic-display"]')
     await expect(mnemonicDisplay).toBeVisible()
 
-    // 提取所有助记词单词
     const wordElements = mnemonicDisplay.locator('span.font-medium:not(.blur-sm)')
     const wordCount = await wordElements.count()
     expect(wordCount).toBe(12)
 
-    // 保存助记词用于验证步骤
     const words: string[] = []
     for (let i = 0; i < wordCount; i++) {
       const word = await wordElements.nth(i).textContent()
@@ -113,46 +161,39 @@ test.describe('钱包创建流程 - 功能测试', () => {
     }
     expect(words.length).toBe(12)
 
-    // 点击"我已备份"
     await page.click('[data-testid="mnemonic-backed-up-button"]')
 
     // 4. 验证助记词步骤
     await page.waitForSelector('[data-testid="verify-step"]')
+    await fillVerifyInputs(page, words)
 
-    // 找到需要验证的单词位置 - 通过 input 元素的 data-testid
-    const verifyLabels = page.locator('label:has-text("第")')
-    const labelsCount = await verifyLabels.count()
-    expect(labelsCount).toBe(3)
+    const verifyNextBtn = page.locator('[data-testid="verify-next-button"]')
+    await expect(verifyNextBtn).toBeEnabled()
+    await verifyNextBtn.click()
 
-    // 填写验证单词
-    for (let i = 0; i < labelsCount; i++) {
-      const labelText = await verifyLabels.nth(i).textContent()
-      const match = labelText?.match(/第 (\d+) 个单词/)
-      if (match) {
-        const wordIndex = parseInt(match[1]) - 1
-        const input = page.locator(`input[placeholder="输入第 ${wordIndex + 1} 个单词"]`)
-        await input.fill(words[wordIndex])
-      }
-    }
-
-    // 5. 完成创建
-    const completeBtn = page.locator('[data-testid="complete-button"]')
+    // 5. 选择链并完成创建
+    await page.waitForSelector('[data-testid="chain-selector-step"]')
+    const completeBtn = page.locator('[data-testid="chain-selector-complete-button"]')
     await expect(completeBtn).toBeEnabled()
     await completeBtn.click()
 
     // 6. 验证跳转到首页且钱包已创建
     await page.waitForURL(/.*#\/$/)
-    // HomeTab 的 chain-selector 可见
-    await page.waitForSelector('[data-testid="chain-selector"]:visible', { timeout: 10000 })
+    // 等待钱包名称显示，确认首页加载完成
+    await expect(page.locator('[data-testid="wallet-name"]:visible').first()).toBeVisible({ timeout: 10000 })
 
-    // 验证 IndexedDB 中有钱包数据
     const wallets = await getWalletDataFromIndexedDB(page)
     expect(wallets).toHaveLength(1)
     expect(wallets[0].name).toBe('主钱包')
+
+    const bioforestChains = ['bfmeta', 'pmchain', 'ccchain', 'bfchainv2', 'btgmeta', 'biwmeta', 'ethmeta', 'malibu']
+    for (const chain of bioforestChains) {
+      const chainAddr = wallets[0].chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
+      expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
+    }
   })
 
   test('创建钱包派生多链地址', async ({ page }) => {
-    // 先手动添加一个新的 BioForest 链配置，验证 chain-config 能驱动地址派生
     await page.goto('/#/settings/chains')
     await page.waitForSelector('[data-testid="manual-add-section"]')
 
@@ -170,22 +211,19 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.click('[data-testid="add-chain-button"]')
     await expect(page.locator('[data-testid="chain-item-bf-demo"]')).toBeVisible()
 
-    // 快速创建钱包流程 - Stackflow 需要从首页导航
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.click('[data-testid="create-wallet-button"]')
-    await page.waitForSelector('[data-testid="password-step"]')
+    await page.waitForSelector('[data-testid="pattern-step"]')
 
-    // 密码步骤
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('[data-testid="next-step-button"]')
+    await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+    await page.click('[data-testid="pattern-lock-next-button"]')
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+    await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
 
-    // 助记词步骤
     await page.waitForSelector('[data-testid="mnemonic-step"]')
     await page.click('[data-testid="toggle-mnemonic-button"]')
 
-    // 获取助记词
     const mnemonicDisplay = page.locator('[data-testid="mnemonic-display"]')
     const wordElements = mnemonicDisplay.locator('span.font-medium:not(.blur-sm)')
     const words: string[] = []
@@ -197,28 +235,23 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
     await page.click('[data-testid="mnemonic-backed-up-button"]')
 
-    // 验证步骤
     await page.waitForSelector('[data-testid="verify-step"]')
-    const verifyLabels = page.locator('label:has-text("第")')
-    const labelsCount = await verifyLabels.count()
-    for (let i = 0; i < labelsCount; i++) {
-      const labelText = await verifyLabels.nth(i).textContent()
-      const match = labelText?.match(/第 (\d+) 个单词/)
-      if (match) {
-        const wordIndex = parseInt(match[1]) - 1
-        const input = page.locator(`input[placeholder="输入第 ${wordIndex + 1} 个单词"]`)
-        await input.fill(words[wordIndex])
-      }
-    }
+    await fillVerifyInputs(page, words)
+    await page.click('[data-testid="verify-next-button"]')
 
-    await page.click('[data-testid="complete-button"]')
+    await page.waitForSelector('[data-testid="chain-selector-step"]')
+    await page.locator('[data-testid="chain-selector-group-toggle-evm"]').click()
+    await page.locator('[data-testid="chain-selector-chain-ethereum"]').click()
+    await page.locator('[data-testid="chain-selector-group-toggle-bip39"]').click()
+    await page.locator('[data-testid="chain-selector-chain-bitcoin"]').click()
+    await page.locator('[data-testid="chain-selector-chain-tron"]').click()
+
+    await page.click('[data-testid="chain-selector-complete-button"]')
     await page.waitForURL(/.*#\/$/)
 
-    // 验证多链地址派生 (从 IndexedDB 读取)
     const wallets = await getWalletDataFromIndexedDB(page)
     const wallet = wallets[0]
 
-    // 验证外部链地址 (BIP44)
     const externalChains = ['ethereum', 'bitcoin', 'tron']
     for (const chain of externalChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
@@ -226,77 +259,48 @@ test.describe('钱包创建流程 - 功能测试', () => {
       expect(chainAddr.address.length).toBeGreaterThan(10)
     }
 
-    // 验证 BioForest 链地址 (Ed25519)
     const bioforestChains = ['bfmeta', 'pmchain', 'ccchain', 'bf-demo']
     for (const chain of bioforestChains) {
       const chainAddr = wallet.chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
       const expectedPrefix = chain === 'bf-demo' ? 'c' : 'b'
-      // BioForest 地址以 chain-config 的 prefix 开头（默认生产链是 'b'，手动添加可用 'c'）
       expect(chainAddr.address.startsWith(expectedPrefix)).toBe(true)
     }
   })
 
-  test('密码强度不足时禁用下一步', async ({ page }) => {
+  test('少于 4 个点不会进入确认步骤', async ({ page }) => {
     await page.goto('/#/wallet/create')
-    await page.waitForSelector('[data-testid="password-step"]')
+    await page.waitForSelector('[data-testid="pattern-step"]')
 
-    const nextBtn = page.locator('[data-testid="next-step-button"]')
+    await drawPattern(page, 'pattern-lock-set-grid', [0, 1, 2])
+    await page.waitForTimeout(400)
 
-    // 空密码 - 禁用
-    await expect(nextBtn).toBeDisabled()
-
-    // 短密码 - 禁用
-    await page.fill('input[placeholder="输入密码"]', '123')
-    await page.fill('input[placeholder="再次输入密码"]', '123')
-    await expect(nextBtn).toBeDisabled()
-
-    // 7 字符 - 禁用
-    await page.fill('input[placeholder="输入密码"]', '1234567')
-    await page.fill('input[placeholder="再次输入密码"]', '1234567')
-    await expect(nextBtn).toBeDisabled()
-
-    // 8 字符 - 启用
-    await page.fill('input[placeholder="输入密码"]', '12345678')
-    await page.fill('input[placeholder="再次输入密码"]', '12345678')
-    await expect(nextBtn).toBeEnabled()
+    await expect(page.locator('[data-testid="pattern-lock-confirm-grid"]')).toHaveCount(0)
+    await expect(page.locator('[data-testid="pattern-lock-next-button"]')).toHaveCount(0)
   })
 
-  test('密码不匹配时禁用下一步', async ({ page }) => {
+  test('助记词验证错误时禁用下一步', async ({ page }) => {
     await page.goto('/#/wallet/create')
-    await page.waitForSelector('[data-testid="password-step"]')
+    await page.waitForSelector('[data-testid="pattern-step"]')
 
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'DifferentPassword')
+    await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+    await page.click('[data-testid="pattern-lock-next-button"]')
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+    await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
 
-    const nextBtn = page.locator('[data-testid="next-step-button"]')
-    await expect(nextBtn).toBeDisabled()
-
-    // 验证错误提示显示 - 通过 data-testid 确认 error 存在
-    await expect(page.locator('[data-testid="password-step"] .text-destructive')).toBeVisible()
-  })
-
-  test('助记词验证错误时禁用完成按钮', async ({ page }) => {
-    // 快速到达验证步骤
-    await page.goto('/#/wallet/create')
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-    await page.click('[data-testid="next-step-button"]')
     await page.waitForSelector('[data-testid="mnemonic-step"]')
     await page.click('[data-testid="toggle-mnemonic-button"]')
     await page.click('[data-testid="mnemonic-backed-up-button"]')
     await page.waitForSelector('[data-testid="verify-step"]')
 
-    // 输入错误的单词 - 使用 data-testid 选择器
-    const inputs = page.locator('[data-testid^="verify-word-input-"]')
+    const inputs = page.locator('[data-verify-index]')
     const inputCount = await inputs.count()
     for (let i = 0; i < inputCount; i++) {
       await inputs.nth(i).fill('wrongword')
     }
 
-    // 完成按钮应该禁用
-    const completeBtn = page.locator('[data-testid="complete-button"]')
-    await expect(completeBtn).toBeDisabled()
+    const verifyNextBtn = page.locator('[data-testid="verify-next-button"]')
+    await expect(verifyNextBtn).toBeDisabled()
   })
 })
 
@@ -308,10 +312,9 @@ test.describe('钱包导入流程 - 截图测试', () => {
   })
 
   test('导入页面截图', async ({ page }) => {
-    await page.goto('/#/wallet/import')
+    await page.goto('/#/onboarding/recover')
     await page.waitForLoadState('networkidle')
-    // WalletImportPage 直接显示助记词输入步骤
-    await page.waitForSelector('[data-testid="mnemonic-step"]')
-    await expect(page).toHaveScreenshot('import-01-mnemonic-input.png')
+    await page.waitForSelector('[data-testid="key-type-step"]')
+    await expect(page).toHaveScreenshot('recover-01-key-type.png')
   })
 })

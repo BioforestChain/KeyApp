@@ -138,7 +138,7 @@ export const PriceChange: Story = {
         <span className="text-muted-foreground">BTC:</span>
         <AmountDisplay value={45000} symbol="$" weight="semibold" />
         <AmountDisplay value={5.2} sign="always" color="auto" size="sm" />
-        <span className="text-secondary text-sm">%</span>
+        <span className="text-green-500 text-sm">%</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">ETH:</span>

@@ -92,7 +92,7 @@ const typeIcons: Record<TransactionType, { Icon: Icon; color: string; bg: string
 
 const statusColors: Record<TransactionStatus, string> = {
   pending: 'text-yellow-500',
-  confirmed: 'text-secondary',
+  confirmed: 'text-green-500',
   failed: 'text-destructive',
 };
 

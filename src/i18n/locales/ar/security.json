@@ -1,4 +1,22 @@
 {
+  "patternLock": {
+    "gridLabel": "{{size}}x{{size}} Pattern Lock",
+    "nodeLabel": "Node at row {{row}}, column {{col}}{{order, number}}",
+    "hint": "Connect at least {{min}} dots",
+    "needMore": "Connected {{current}} dots, need {{min, number}} more",
+    "error": "Pattern doesn't match, please try again",
+    "success": "Pattern correct",
+    "valid": "Connected {{count}} dots",
+    "clear": "Clear pattern",
+    "reset": "Reset",
+    "setTitle": "Set Wallet Lock",
+    "setDesc": "Draw a pattern as your wallet lock to protect your wallet",
+    "confirmTitle": "Confirm Wallet Lock",
+    "confirmDesc": "Draw the pattern again to confirm",
+    "unlockTitle": "Unlock Wallet",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "mismatch": "Patterns don't match, please try again"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. The original identity wallet password will be used as the password for all wallets and used for verification such as transfer/backup mnemonic phrases.",
   "addressPassword": "Address Password",
   "applicationLock": "Application lock",
@@ -112,14 +130,13 @@
   "onceThePasswordIsLostItCannotBeRetrieved": "Once the password is lost, it cannot be retrieved!",
   "password": "Password",
   "passwordCannotBeTheSame": "password cannot be the same",
-  "passwordConfirm": {
-    "biometric": "استخدام البصمة",
-    "cancel": "إلغاء",
-    "confirm": "تأكيد",
-    "defaultTitle": "تحقق من كلمة المرور",
-    "placeholder": "أدخل كلمة المرور",
+  "walletLock": {
+    "unlockTitle": "فتح المحفظة",
+    "unlockDesc": "ارسم نمط قفل المحفظة",
     "verifying": "جاري التحقق...",
-    "error": "Incorrect wallet lock"
+    "error": "النمط غير صحيح، حاول مرة أخرى",
+    "biometric": "استخدام البصمة",
+    "cancel": "إلغاء"
   },
   "passwordError": "[MISSING:ar] 密码错误",
   "passwordHint": "Password Hint",

@@ -42,7 +42,8 @@ jobs:
           pnpm install --frozen-lockfile
           
           if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
-            TASKS="typecheck:run build i18n:run test:run e2e:ci"
+            # 运行所有 E2E 测试：Dev + Mock + Real（真实转账）
+            TASKS="typecheck:run build i18n:run test:run e2e:ci e2e:ci:mock e2e:ci:real"
           else
             TASKS="typecheck:run build i18n:run test:run"
           fi
@@ -114,7 +115,8 @@ jobs:
           E2E_TEST_MNEMONIC: ${{ secrets.E2E_TEST_MNEMONIC }}
         run: |
           if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
-            pnpm turbo run typecheck:run build i18n:run test:run e2e:ci
+            # 运行所有 E2E 测试：Dev + Mock + Real（真实转账）
+            pnpm turbo run typecheck:run build i18n:run test:run e2e:ci e2e:ci:mock e2e:ci:real
           else
             pnpm turbo run typecheck:run build i18n:run test:run
           fi

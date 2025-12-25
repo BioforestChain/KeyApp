@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/common/skeleton';
+import { AmountDisplay, formatAmount } from '@/components/common/amount-display';
 import { IconAlertTriangle as AlertTriangle } from '@tabler/icons-react';
 
 interface FeeDisplayProps {
@@ -20,25 +21,9 @@ interface FeeDisplayProps {
   className?: string | undefined;
 }
 
-function formatFee(value: string | number, decimals: number = 6): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0';
-  if (num === 0) return '0';
-  if (num < 0.000001) return '< 0.000001';
-  return num.toFixed(decimals).replace(/\.?0+$/, '');
-}
-
-function formatFiat(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0.00';
-  return num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 /**
  * Fee display component showing transaction fees with optional fiat equivalent
+ * Uses AmountDisplay for consistent amount formatting
  */
 export function FeeDisplay({
   amount,
@@ -62,19 +47,24 @@ export function FeeDisplay({
 
   const fiatNum = fiatValue !== undefined ? (typeof fiatValue === 'string' ? parseFloat(fiatValue) : fiatValue) : null;
   const isHighFee = fiatNum !== null && highFeeThreshold !== undefined && fiatNum >= highFeeThreshold;
+  const fiatFormatted = fiatNum !== null ? formatAmount(fiatNum, 2, false).formatted : null;
 
   return (
     <div className={cn('space-y-0.5', className)}>
       <div className="flex items-center gap-1.5">
-        <span className="font-mono text-sm" aria-label={`Fee: ${formatFee(amount)} ${symbol}`}>
-          {formatFee(amount)} {symbol}
-        </span>
+        <AmountDisplay
+          value={amount}
+          symbol={symbol}
+          size="sm"
+          decimals={8}
+          animated={false}
+        />
         {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
       </div>
-      {fiatNum !== null && (
+      {fiatFormatted !== null && (
         <p className={cn('text-muted-foreground text-xs', isHighFee && 'text-warning')}>
           ≈ {fiatSymbol}
-          {formatFiat(fiatNum)}
+          {fiatFormatted}
         </p>
       )}
     </div>

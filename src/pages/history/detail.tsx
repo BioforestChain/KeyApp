@@ -288,7 +288,7 @@ export function TransactionDetailPage() {
               >
                 {copied ? (
                   <>
-                    <Check className="text-secondary size-4" />
+                    <Check className="text-green-500 size-4" />
                     <span className="text-sm">{t('detail.copied')}</span>
                   </>
                 ) : (
@@ -311,7 +311,7 @@ export function TransactionDetailPage() {
               >
                 {shared ? (
                   <>
-                    <Check className="text-secondary size-4" />
+                    <Check className="text-green-500 size-4" />
                     <span className="text-sm">{t('detail.copied')}</span>
                   </>
                 ) : (

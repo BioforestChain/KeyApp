@@ -10,10 +10,11 @@
   },
   "items": {
     "walletManagement": "Wallet Management",
+    "walletChains": "Wallet Networks",
     "addressBook": "Address Book",
     "appLock": "App Lock",
     "viewMnemonic": "View Mnemonic",
-    "changePassword": "Change Password",
+    "changeWalletLock": "Change Wallet Lock",
     "language": "Language",
     "currency": "Currency",
     "chainConfig": "Chain Config",
@@ -59,22 +60,14 @@
     "verifyDescMnemonic": "Enter wallet password to view mnemonic",
     "verifyDescKey": "Enter wallet password to view key"
   },
-  "changePassword": {
-    "title": "Change Password",
+  "changeWalletLock": {
+    "title": "Change Wallet Lock",
     "noWallet": "Please create or import a wallet first",
     "walletIncomplete": "Wallet data is incomplete",
-    "success": "Password changed successfully",
+    "success": "Wallet lock changed successfully",
     "returning": "Returning to settings...",
-    "currentPassword": "Current Password",
-    "currentPasswordPlaceholder": "Enter current password",
-    "currentPasswordError": "Current password is incorrect",
-    "newPassword": "New Password",
-    "newPasswordPlaceholder": "Enter new password (at least {{min}} characters)",
-    "confirmPassword": "Confirm New Password",
-    "confirmPasswordPlaceholder": "Enter new password again",
-    "passwordMismatch": "Passwords do not match",
-    "submitting": "Changing...",
-    "submit": "Confirm Change"
+    "verifyTitle": "Verify Current Pattern",
+    "verifyDesc": "Draw your current wallet lock pattern to continue"
   },
   "chainAddressCount": "{{count}} chain addresses",
   "notSupported": "Not supported",

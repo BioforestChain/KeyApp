@@ -29,7 +29,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 function parseSearchParams(url: string): Record<string, string> {
@@ -121,7 +121,7 @@ describe('SignatureAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   it.skip('verifies password before signing when balance is sufficient', async () => {
     vi.mocked(crypto.verifyPassword).mockResolvedValue(true)
 

@@ -359,7 +359,7 @@ export async function createTransferTransaction(
   if (params.paySecret) {
     const addressInfo = await getAddressInfo(params.rpcUrl, apiPath, params.from)
     if (addressInfo.secondPublicKey) {
-      const version = await verifyPayPassword(
+      const version = await verifyTwoStepSecret(
         params.chainId,
         params.mainSecret,
         params.paySecret,
@@ -426,7 +426,7 @@ export async function broadcastTransaction(
 /**
  * Verify pay password against stored second public key
  */
-export async function verifyPayPassword(
+export async function verifyTwoStepSecret(
   chainId: string,
   mainSecret: string,
   paySecret: string,
@@ -523,7 +523,7 @@ export async function createSignatureTransaction(
   )
 }
 
-export interface SetPayPasswordParams {
+export interface SetTwoStepSecretParams {
   rpcUrl: string
   chainId: string
   /** API path for the provider (e.g., "bfm" for bfmeta) */
@@ -535,8 +535,8 @@ export interface SetPayPasswordParams {
 /**
  * Set pay password (二次签名) for an account
  */
-export async function setPayPassword(
-  params: SetPayPasswordParams,
+export async function setTwoStepSecret(
+  params: SetTwoStepSecretParams,
 ): Promise<{ txHash: string; success: boolean }> {
   const core = await getBioforestCore(params.chainId)
   const apiPath = params.apiPath ?? (await core.getAssetType()).toLowerCase()

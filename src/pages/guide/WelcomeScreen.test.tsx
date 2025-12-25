@@ -142,7 +142,7 @@ describe('WelcomeScreen', () => {
       fireEvent.click(screen.getByRole('button', { name: /Next/i }))
       fireEvent.click(screen.getByRole('button', { name: 'I have a wallet' }))
       expect(hasSeenWelcome()).toBe(true)
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/wallet/import' })
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/onboarding/recover' })
     })
   })
 })

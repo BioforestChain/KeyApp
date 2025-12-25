@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
-import { setPasswordConfirmCallback } from '@/stackflow/activities/sheets'
+import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { PageHeader } from '@/components/layout/page-header'
@@ -459,7 +459,7 @@ export function SignatureAuthPage() {
     if (!balanceCheck.sufficient) return
     if (isSubmitting) return
 
-    setPasswordConfirmCallback(async (password: string) => {
+    setWalletLockConfirmCallback(async (password: string) => {
       setIsSubmitting(true)
 
       try {
@@ -491,7 +491,7 @@ export function SignatureAuthPage() {
       }
     })
 
-    push("PasswordConfirmJob", {
+    push("WalletLockConfirmJob", {
       title: tAuthorize('button.confirm'),
     })
   }, [authService, balanceCheck.sufficient, currentWallet?.encryptedMnemonic, destroyPayload, isSubmitting, messagePayload, navigate, push, signatureRequest, tAuthorize, transferPayload])

@@ -10,10 +10,11 @@
   },
   "items": {
     "walletManagement": "錢包管理",
+    "walletChains": "錢包網路",
     "addressBook": "通訊錄",
     "appLock": "應用程式鎖定",
     "viewMnemonic": "查看助記詞",
-    "changePassword": "修改密碼",
+    "changeWalletLock": "修改密碼",
     "language": "語言",
     "currency": "貨幣單位",
     "chainConfig": "鏈配置",
@@ -59,22 +60,14 @@
     "verifyDescMnemonic": "請輸入錢包密碼以查看助記詞",
     "verifyDescKey": "請輸入錢包密碼以查看密鑰"
   },
-  "changePassword": {
-    "title": "修改密碼",
+  "changeWalletLock": {
+    "title": "修改錢包鎖",
     "noWallet": "請先建立或匯入錢包",
     "walletIncomplete": "錢包資料不完整",
-    "success": "密碼修改成功",
+    "success": "錢包鎖修改成功",
     "returning": "正在返回設定頁面...",
-    "currentPassword": "目前密碼",
-    "currentPasswordPlaceholder": "請輸入目前密碼",
-    "currentPasswordError": "目前密碼不正確",
-    "newPassword": "新密碼",
-    "newPasswordPlaceholder": "請輸入新密碼（至少 {{min}} 位）",
-    "confirmPassword": "確認新密碼",
-    "confirmPasswordPlaceholder": "請再次輸入新密碼",
-    "passwordMismatch": "兩次輸入的密碼不一致",
-    "submitting": "修改中...",
-    "submit": "確認修改"
+    "verifyTitle": "驗證目前圖案",
+    "verifyDesc": "請繪製目前錢包鎖圖案以繼續"
   },
   "chainAddressCount": "{{count}} 個鏈地址",
   "notSupported": "暫不支援",

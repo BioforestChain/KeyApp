@@ -45,6 +45,7 @@
   "sendPage": {
     "title": "Send",
     "resultTitle": "Send Result",
+    "from": "From",
     "toAddressLabel": "Recipient Address",
     "toAddressPlaceholder": "Enter {{chain}} address",
     "amountLabel": "Amount",
@@ -54,10 +55,10 @@
     "scanSuccess": "Scan successful",
     "scanFailed": "Scan failed, please enter manually",
     "explorerNotImplemented": "Block explorer feature coming soon",
-    "payPasswordTitle": "Security Password Required",
-    "payPasswordDescription": "This address has a security password set. Please enter your security password to confirm the transfer.",
-    "payPasswordPlaceholder": "Enter security password",
-    "payPasswordError": "Incorrect security password"
+    "twoStepSecretTitle": "Security Password Required",
+    "twoStepSecretDescription": "This address has a security password set. Please enter your security password to confirm the transfer.",
+    "twoStepSecretPlaceholder": "Enter security password",
+    "twoStepSecretError": "Incorrect security password"
   },
   "aboutFee": "About Fee",
   "amount": "Amount",

@@ -11,3 +11,6 @@
 - ❌ 明文选择器 → ✅ data-testid
 - ❌ 安装新 UI 库 → ✅ shadcn/ui（已集成）
 - ❌ 新建 CSS → ✅ Tailwind CSS
+- ❌ text-secondary → ✅ text-muted-foreground 或 bg-secondary text-secondary-foreground（详见白皮书 02-设计篇/02-视觉设计/theme-colors）
+- ❌ getByText('硬编码中文') → ✅ getByText(t('i18n.key')) 或 getByTestId
+- ❌ password/Password（宽泛含义） → ✅ walletLock（钱包锁）/ twoStepSecret（安全密码）/ payPassword（支付密码）等具体命名

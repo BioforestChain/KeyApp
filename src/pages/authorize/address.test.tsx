@@ -43,7 +43,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 function parseSearchParams(url: string): Record<string, string> {
@@ -141,7 +141,7 @@ describe('AddressAuthPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   // This test is skipped as it depends on inline password input
   it.skip('requires password and signs when signMessage is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
@@ -189,7 +189,7 @@ describe('AddressAuthPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   it.skip('requires password and returns main when getMain=true is requested', async () => {
     mockPlaocAdapter.getCallerAppInfo.mockResolvedValue({
       appId: 'com.example.app',

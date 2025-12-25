@@ -13,7 +13,7 @@ export const WalletAddJob: ActivityComponentType = () => {
 
   const handleCreate = () => {
     pop();
-    navigate({ to: "/onboarding/create" });
+    navigate({ to: "/wallet/create" });
   };
 
   const handleImport = () => {

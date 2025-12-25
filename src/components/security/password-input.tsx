@@ -100,7 +100,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
                   className={cn(
                     strength === 'weak' && 'text-destructive',
                     strength === 'medium' && 'text-yellow-500',
-                    strength === 'strong' && 'text-secondary',
+                    strength === 'strong' && 'text-green-500',
                   )}
                 >
                   {config.label}

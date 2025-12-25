@@ -147,9 +147,9 @@ export function AmountDisplay({
   // 计算颜色
   let colorClass = '';
   if (color === 'auto' && !isZero) {
-    colorClass = isNegative ? 'text-destructive' : 'text-secondary';
+    colorClass = isNegative ? 'text-destructive' : 'text-green-500';
   } else if (color === 'positive') {
-    colorClass = 'text-secondary';
+    colorClass = 'text-green-500';
   } else if (color === 'negative') {
     colorClass = 'text-destructive';
   }

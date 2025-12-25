@@ -49,7 +49,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   ];
 
   // 判断是否显示 TabBar（某些页面不需要）
-  const hideTabBar = ['/wallet/create', '/wallet/import', '/authorize', '/onboarding'].some((p) =>
+  const hideTabBar = ['/wallet/create', '/authorize', '/onboarding'].some((p) =>
     pathname.startsWith(p),
   );
 

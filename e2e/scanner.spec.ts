@@ -1,20 +1,58 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+const DEFAULT_PATTERN = [0, 1, 2, 5]
+
+async function drawPattern(page: Page, gridTestId: string, nodes: number[]): Promise<void> {
+  const grid = page.locator(`[data-testid="${gridTestId}"]`)
+  await grid.scrollIntoViewIfNeeded()
+  const box = await grid.boundingBox()
+  if (!box) throw new Error(`Pattern grid ${gridTestId} not visible`)
+
+  const size = 3
+  const toPoint = (index: number) => {
+    const row = Math.floor(index / size)
+    const col = index % size
+    return {
+      x: box.x + box.width * ((col + 0.5) / size),
+      y: box.y + box.height * ((row + 0.5) / size),
+    }
+  }
+
+  const points = nodes.map((node) => toPoint(node))
+  const first = points[0]!
+  await page.mouse.move(first.x, first.y)
+  await page.mouse.down()
+  for (const point of points.slice(1)) {
+    await page.mouse.move(point.x, point.y, { steps: 8 })
+  }
+  await page.mouse.up()
+}
+
+async function fillVerifyInputs(page: Page, words: string[]): Promise<void> {
+  const inputs = page.locator('[data-verify-index]')
+  const count = await inputs.count()
+  for (let i = 0; i < count; i++) {
+    const input = inputs.nth(i)
+    const indexAttr = await input.getAttribute('data-verify-index')
+    const index = indexAttr ? Number(indexAttr) : NaN
+    if (Number.isFinite(index)) {
+      await input.fill(words[index] ?? '')
+    }
+  }
+}
 
 // Helper to create wallet for tests that require it
 async function createTestWallet(page: Page) {
   await page.goto('/#/wallet/create')
-  await page.waitForSelector('[data-testid="password-step"]')
+  await page.waitForSelector('[data-testid="pattern-step"]')
 
-  // Fill passwords
-  await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-  await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
-  await page.click('[data-testid="next-step-button"]')
+  await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+  await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
+  await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
 
-  // Backup mnemonic step
   await page.waitForSelector('[data-testid="mnemonic-step"]')
   await page.click('[data-testid="toggle-mnemonic-button"]')
 
-  // Get mnemonic words
   const mnemonicDisplay = page.locator('[data-testid="mnemonic-display"]')
   const wordElements = mnemonicDisplay.locator('span.font-medium:not(.blur-sm)')
   const wordCount = await wordElements.count()
@@ -26,23 +64,13 @@ async function createTestWallet(page: Page) {
 
   await page.click('[data-testid="mnemonic-backed-up-button"]')
 
-  // Verify mnemonic step
   await page.waitForSelector('[data-testid="verify-step"]')
-  // Use data-testid for verify inputs
-  const verifyInputs = page.locator('[data-testid^="verify-word-input-"]')
-  const inputCount = await verifyInputs.count()
+  await fillVerifyInputs(page, words)
 
-  for (let i = 0; i < inputCount; i++) {
-    const input = verifyInputs.nth(i)
-    const testId = await input.getAttribute('data-testid')
-    const indexMatch = testId?.match(/verify-word-input-(\d+)/)
-    if (indexMatch) {
-      const wordIndex = parseInt(indexMatch[1])
-      await input.fill(words[wordIndex])
-    }
-  }
+  await page.click('[data-testid="verify-next-button"]')
+  await page.waitForSelector('[data-testid="chain-selector-step"]')
+  await page.click('[data-testid="chain-selector-complete-button"]')
 
-  await page.click('[data-testid="complete-button"]')
   await page.waitForURL('/#/')
   await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 }
@@ -51,28 +79,19 @@ test.describe('Scanner 页面', () => {
   test('显示扫描界面', async ({ page }) => {
     await page.goto('/#/scanner')
 
-    // 应该显示标题
     await expect(page.locator('[data-testid="page-title"]')).toBeVisible()
-
-    // 应该显示相册按钮
     await expect(page.locator('[data-testid="gallery-button"]')).toBeVisible()
-
-    // 应该显示返回按钮
     await expect(page.locator('[data-testid="back-button"]')).toBeVisible()
   })
 
   test('权限拒绝或不支持时显示重试按钮', async ({ page }) => {
     await page.goto('/#/scanner')
 
-    // 等待错误状态（浏览器不支持 getUserMedia）
     await page.waitForTimeout(1000)
 
-    // 应该显示重试按钮
     await expect(page.locator('[data-testid="retry-button"]')).toBeVisible()
   })
 
-  // TODO: 这个测试依赖相机权限，在 E2E 环境中不稳定
-  // 已通过 FAB 导航到扫描页的测试验证了基本功能
   test.skip('返回按钮导航回首页', async ({ page }) => {
     await createTestWallet(page)
     await page.click('[data-testid="scan-fab"]')
@@ -86,21 +105,16 @@ test.describe('Scanner 集成', () => {
   test('发送页面有扫描图标', async ({ page }) => {
     await page.goto('/#/send')
 
-    // AddressInput 应该有扫描按钮
     await expect(page.locator('[data-testid="scan-address-button"]')).toBeVisible()
   })
 
   test('首页 FAB 导航到扫描页', async ({ page }) => {
-    // 需要先创建钱包才能看到 FAB
     await createTestWallet(page)
 
-    // 现在应该在首页并能看到 FAB
     await expect(page.locator('[data-testid="scan-fab"]')).toBeVisible()
 
-    // 点击 FAB
     await page.click('[data-testid="scan-fab"]')
 
-    // 应该导航到扫描页 (Stackflow 可能添加尾部斜杠)
     await expect(page).toHaveURL(/.*#\/scanner\/?$/)
   })
 })

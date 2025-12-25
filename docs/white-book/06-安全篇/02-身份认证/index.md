@@ -296,6 +296,103 @@
 
 ---
 
+## 钱包锁验证 UI 模式
+
+本应用提供两种钱包锁验证的 UI 模式，需要根据使用场景选择合适的模式：
+
+### 页面级别验证 (Full Page)
+
+**适用场景：**
+- 验证是**主要流程的一部分**，用户预期会进入一个新页面
+- 验证后有**后续操作**需要在同一页面完成
+- 需要**更多上下文信息**展示
+
+**具体场景：**
+| 页面 | 说明 |
+|-----|------|
+| 修改钱包锁 | 验证当前图案 → 设置新图案（两步流程在同一页面） |
+| 管理钱包网络 | 选择网络 → 验证图案 → 保存（多步骤流程） |
+| 查看助记词 | 验证后需要在页面内展示助记词 |
+
+**UI 特征：**
+- 全屏页面，有返回按钮
+- 可以有多个步骤
+- 支持复杂的状态展示
+
+### 底部抽屉验证 (Bottom Sheet)
+
+**适用场景：**
+- 验证是**即时确认**，用户只需要验证身份即可
+- 验证后**立即执行操作**并关闭
+- 需要**保持上下文**，不离开当前页面
+
+**具体场景：**
+| 场景 | 说明 |
+|-----|------|
+| 转账确认 | 用户在转账页面，弹出验证后执行转账 |
+| 删除钱包 | 在钱包详情页，确认删除操作 |
+| 二次签名设置 | 验证身份后立即执行链上操作 |
+
+**UI 特征：**
+- 底部弹出，支持手势关闭
+- 单一步骤，验证成功后自动关闭
+- 保持父页面可见
+
+### 选择决策树
+
+```
+需要钱包锁验证？
+    │
+    ▼
+验证后是否有后续操作？
+    │
+    ├── 是 ──► 验证后需要停留在页面操作？
+    │         │
+    │         ├── 是 ──► 使用【页面级别验证】
+    │         │
+    │         └── 否 ──► 使用【底部抽屉验证】
+    │
+    └── 否（即时确认）──► 使用【底部抽屉验证】
+```
+
+### 实现组件
+
+| 模式 | 组件 | 路径 |
+|-----|------|------|
+| 页面级别 | `PatternLock` | 直接在页面中使用 |
+| 底部抽屉 | `WalletLockConfirmJob` | `@/stackflow/activities/sheets` |
+
+### 使用示例
+
+**页面级别验证：**
+```tsx
+// 在页面组件中直接使用 PatternLock
+<PatternLock
+  value={pattern}
+  onChange={setPattern}
+  onComplete={handleVerify}
+  error={verifyError}
+/>
+```
+
+**底部抽屉验证：**
+```tsx
+// 设置回调并推送 Sheet
+import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
+
+setWalletLockConfirmCallback(async (patternKey) => {
+  const isValid = await verifyPassword(encryptedMnemonic, patternKey);
+  if (isValid) {
+    // 执行操作
+    await doSomething();
+  }
+  return isValid;
+});
+push('WalletLockConfirmJob', { title: '验证钱包锁' });
+```
+
+---
+
 ## 错误处理规范
 
 ### 认证错误

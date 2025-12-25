@@ -13,6 +13,7 @@ import {
   IconCoin as DollarSign,
   IconPalette as Palette,
   IconNetwork as Network,
+  IconLink as Link,
   IconInfoCircle as Info,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
@@ -20,8 +21,8 @@ import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore,
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
 import { AppearanceSheet } from '@/components/settings/appearance-sheet';
-import { hasPayPasswordSet, submitSetPayPassword, getSetPayPasswordFee } from '@/hooks/use-send.bioforest';
-import { setSetPayPasswordCallback } from '@/stackflow/activities/sheets';
+import { hasTwoStepSecretSet, submitSetTwoStepSecret, getSetTwoStepSecretFee } from '@/hooks/use-send.bioforest';
+import { setSetTwoStepSecretCallback } from '@/stackflow/activities/sheets';
 
 /** 支持的语言显示名称映射 */
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -51,13 +52,13 @@ export function SettingsPage() {
   const currentCurrency = useCurrency();
   const currentTheme = useTheme();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
-  const [payPasswordStatus, setPayPasswordStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>('loading');
+  const [twoStepSecretStatus, setTwoStepSecretStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>('loading');
 
   // Check if pay password is set for BioForest chain
   useEffect(() => {
-    async function checkPayPassword() {
+    async function checkTwoStepSecret() {
       if (!currentWallet) {
-        setPayPasswordStatus('unavailable');
+        setTwoStepSecretStatus('unavailable');
         return;
       }
       
@@ -67,33 +68,33 @@ export function SettingsPage() {
       );
       
       if (!bfmAddress) {
-        setPayPasswordStatus('unavailable');
+        setTwoStepSecretStatus('unavailable');
         return;
       }
 
       try {
         const chainConfig = chainConfigSelectors.getChainById(chainConfigStore.state, 'bfmeta');
         if (!chainConfig) {
-          setPayPasswordStatus('unavailable');
+          setTwoStepSecretStatus('unavailable');
           return;
         }
         
-        const hasPassword = await hasPayPasswordSet(chainConfig, bfmAddress.address);
-        setPayPasswordStatus(hasPassword ? 'set' : 'not_set');
+        const hasPassword = await hasTwoStepSecretSet(chainConfig, bfmAddress.address);
+        setTwoStepSecretStatus(hasPassword ? 'set' : 'not_set');
       } catch {
-        setPayPasswordStatus('unavailable');
+        setTwoStepSecretStatus('unavailable');
       }
     }
     
-    checkPayPassword();
+    checkTwoStepSecret();
   }, [currentWallet]);
 
   const getThemeDisplayName = () => {
     return t(`settings:appearance.${currentTheme}`);
   };
 
-  const getPayPasswordStatusText = () => {
-    switch (payPasswordStatus) {
+  const getTwoStepSecretStatusText = () => {
+    switch (twoStepSecretStatus) {
       case 'loading':
         return '...';
       case 'set':
@@ -105,8 +106,8 @@ export function SettingsPage() {
     }
   };
 
-  const handleSetPayPassword = async () => {
-    if (payPasswordStatus !== 'not_set' || !currentWallet) return;
+  const handleSetTwoStepSecret = async () => {
+    if (twoStepSecretStatus !== 'not_set' || !currentWallet) return;
 
     const bfmAddress = currentWallet.chainAddresses.find(
       (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
@@ -117,26 +118,26 @@ export function SettingsPage() {
     if (!chainConfig) return;
 
     // Get fee first
-    const fee = await getSetPayPasswordFee(chainConfig);
+    const fee = await getSetTwoStepSecretFee(chainConfig);
 
     // Set callback before pushing
-    setSetPayPasswordCallback(
-      async (newPayPassword: string, walletPassword: string) => {
-        const result = await submitSetPayPassword({
+    setSetTwoStepSecretCallback(
+      async (newTwoStepSecret: string, walletPassword: string) => {
+        const result = await submitSetTwoStepSecret({
           chainConfig,
           walletId: currentWallet.id,
           password: walletPassword,
           fromAddress: bfmAddress.address,
-          newPayPassword,
+          newTwoStepSecret,
         });
 
         if (result.status === 'ok') {
-          setPayPasswordStatus('set');
+          setTwoStepSecretStatus('set');
           return { success: true, txHash: result.txHash };
         } else if (result.status === 'password') {
           return { success: false, error: t('security:passwordConfirm.verifying') };
         } else if (result.status === 'already_set') {
-          setPayPasswordStatus('set');
+          setTwoStepSecretStatus('set');
           return { success: false, error: t('security:twoStepSecret.alreadySet') };
         } else {
           return { success: false, error: result.message };
@@ -158,7 +159,7 @@ export function SettingsPage() {
       }
     );
 
-    push('SetPayPasswordJob', { chainName: 'BioForest Chain' });
+    push('SetTwoStepSecretJob', { chainName: 'BioForest Chain' });
   };
 
   return (
@@ -190,6 +191,13 @@ export function SettingsPage() {
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
+            icon={<Link size={20} />}
+            label={t('settings:items.walletChains')}
+            onClick={() => navigate({ to: '/settings/wallet-chains' })}
+            testId="wallet-chains-button"
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
             icon={<BookUser size={20} />}
             label={t('settings:items.addressBook')}
             onClick={() => navigate({ to: '/address-book' })}
@@ -213,16 +221,16 @@ export function SettingsPage() {
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<KeyRound size={20} />}
-            label={t('settings:items.changePassword')}
-            onClick={() => navigate({ to: '/settings/password' })}
+            label={t('settings:items.changeWalletLock')}
+            onClick={() => navigate({ to: '/settings/wallet-lock' })}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<ShieldLock size={20} />}
             label={t('security:twoStepSecret.setup')}
-            value={getPayPasswordStatusText()}
-            onClick={handleSetPayPassword}
-            disabled={payPasswordStatus === 'set' || payPasswordStatus === 'unavailable'}
+            value={getTwoStepSecretStatusText()}
+            onClick={handleSetTwoStepSecret}
+            disabled={twoStepSecretStatus === 'set' || twoStepSecretStatus === 'unavailable'}
             testId="set-pay-password-button"
           />
         </SettingsSection>
@@ -244,16 +252,16 @@ export function SettingsPage() {
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
-            icon={<Network size={20} />}
-            label={t('settings:items.chainConfig')}
-            onClick={() => navigate({ to: '/settings/chains' })}
-          />
-          <div className="bg-border mx-4 h-px" />
-          <SettingsItem
             icon={<Palette size={20} />}
             label={t('settings:items.appearance')}
             value={getThemeDisplayName()}
             onClick={() => setAppearanceSheetOpen(true)}
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<Network size={20} />}
+            label={t('settings:items.chainConfig')}
+            onClick={() => navigate({ to: '/settings/chains' })}
           />
         </SettingsSection>
 

@@ -158,13 +158,16 @@
 **多步骤流程**：
 
 ```
-Step 1: 设置密码
+Step 1: 设置钱包锁（图案）
     │
     ▼
 Step 2: 展示助记词
     │
     ▼
 Step 3: 验证助记词
+    │
+    ▼
+Step 4: 选择区块链网络
     │
     ▼
 Complete: 创建成功
@@ -174,8 +177,7 @@ Complete: 创建成功
 
 | 字段 | 验证规则 |
 |-----|---------|
-| password | 非空 + 最少 8 字符 + 含数字和字母 |
-| confirmPassword | 与 password 一致 |
+| patternLock | 最少连接 4 个点 |
 
 **Step 3 验证**：
 
@@ -199,7 +201,22 @@ Complete: 创建成功
 |-----|------|---------|
 | secretInput | string | 非空 |
 | secretType | enum | 自动检测：mnemonic / privateKey / arbitrary |
-| password | string | 同创建钱包密码规则 |
+| patternLock | string | 最少连接 4 个点 |
+
+**多步骤流程**：
+
+```
+Step 1: 输入助记词
+    │
+    ▼
+Step 2: 设置钱包锁（图案）
+    │
+    ▼
+Step 3: 选择区块链网络
+    │
+    ▼
+Complete: 导入成功
+```
 
 **secretType 检测规则**：
 

@@ -21,6 +21,7 @@ import { test, expect, Page } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { UI_TEXT } from './helpers/i18n'
 
 // ESM 兼容的 __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -247,7 +248,7 @@ async function performTransfer(
   payPassword?: string
 ): Promise<boolean> {
   // 进入发送页面
-  const sendBtn = page.locator('[data-testid="send-button"]').or(page.locator('button:has-text("发送")')).first()
+  const sendBtn = page.locator(`[data-testid="send-button"], button:has-text("${UI_TEXT.send.source}")`).first()
   await sendBtn.click()
   await page.waitForTimeout(500)
 
@@ -262,13 +263,13 @@ async function performTransfer(
   await page.waitForTimeout(500)
 
   // 点击继续
-  const continueBtn = page.locator('[data-testid="send-continue-button"]').or(page.locator('button:has-text("继续")')).first()
+  const continueBtn = page.locator(`[data-testid="send-continue-button"], button:has-text("${UI_TEXT.continue.source}")`).first()
   await expect(continueBtn).toBeEnabled({ timeout: 5000 })
   await continueBtn.click()
   await page.waitForTimeout(500)
 
   // 点击确认转账
-  const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]').or(page.locator('button:has-text("确认")').first())
+  const confirmBtn = page.locator(`[data-testid="confirm-transfer-button"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await expect(confirmBtn).toBeVisible({ timeout: 5000 })
   await confirmBtn.click()
   await page.waitForTimeout(500)
@@ -306,19 +307,19 @@ async function performTransfer(
  * 设置支付密码（二次密码）
  */
 async function setPayPassword(page: Page, walletPassword: string, newPayPassword: string): Promise<boolean> {
-  // 进入设置页面
-  await page.locator('text=设置').first().click()
+  // 进入设置页面（使用多语言正则）
+  await page.locator(`text=${UI_TEXT.settings.source}`).first().click()
   await page.waitForTimeout(500)
 
-  // 找到安全设置或支付密码入口
-  const securityEntry = page.locator('text=安全').or(page.locator('text=支付密码')).first()
+  // 找到安全设置入口（使用 data-testid 或 URL）
+  const securityEntry = page.locator('[data-testid="security-settings"], a[href*="security"]').first()
   if (await securityEntry.isVisible({ timeout: 3000 }).catch(() => false)) {
     await securityEntry.click()
     await page.waitForTimeout(500)
   }
 
-  // 点击设置支付密码
-  const setPayPwdBtn = page.locator('text=设置支付密码').or(page.locator('text=设置二次密码')).first()
+  // 点击设置支付密码（使用 data-testid）
+  const setPayPwdBtn = page.locator('[data-testid="set-pay-password-button"]').first()
   if (await setPayPwdBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await setPayPwdBtn.click()
     await page.waitForTimeout(500)
@@ -346,7 +347,7 @@ async function setPayPassword(page: Page, walletPassword: string, newPayPassword
   }
 
   // 提交
-  const submitBtn = page.locator('button[type="submit"]').or(page.locator('button:has-text("确认")')).first()
+  const submitBtn = page.locator(`button[type="submit"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await submitBtn.click()
   await page.waitForTimeout(3000)
 
@@ -364,17 +365,17 @@ async function changePayPassword(
   oldPayPassword: string, 
   newPayPassword: string
 ): Promise<boolean> {
-  // 进入设置 -> 安全 -> 修改支付密码
-  await page.locator('text=设置').first().click()
+  // 进入设置 -> 安全 -> 修改支付密码（使用多语言正则）
+  await page.locator(`text=${UI_TEXT.settings.source}`).first().click()
   await page.waitForTimeout(500)
 
-  const securityEntry = page.locator('text=安全').or(page.locator('text=支付密码')).first()
+  const securityEntry = page.locator('[data-testid="security-settings"], a[href*="security"]').first()
   if (await securityEntry.isVisible({ timeout: 3000 }).catch(() => false)) {
     await securityEntry.click()
     await page.waitForTimeout(500)
   }
 
-  const changePwdBtn = page.locator('text=修改支付密码').or(page.locator('text=修改二次密码')).first()
+  const changePwdBtn = page.locator('[data-testid="change-pay-password-button"]').first()
   if (await changePwdBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await changePwdBtn.click()
     await page.waitForTimeout(500)
@@ -404,7 +405,7 @@ async function changePayPassword(
   }
 
   // 提交
-  const submitBtn = page.locator('button[type="submit"]').or(page.locator('button:has-text("确认")')).first()
+  const submitBtn = page.locator(`button[type="submit"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await submitBtn.click()
   await page.waitForTimeout(3000)
 
@@ -644,7 +645,7 @@ describeOrSkip('BioForest 独立功能测试', () => {
     await importWallet(page, FUND_MNEMONIC!, WALLET_PASSWORD)
     
     // 进入转账历史
-    const transferTab = page.locator('a[href*="transfer"]').or(page.locator('text=转账')).first()
+    const transferTab = page.locator(`a[href*="transfer"], button:has-text("${UI_TEXT.send.source}")`).first()
     if (await transferTab.isVisible({ timeout: 3000 }).catch(() => false)) {
       await transferTab.click()
       await page.waitForTimeout(2000)

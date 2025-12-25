@@ -1,5 +1,13 @@
 {
   "add": "添加钱包",
+  "chains": {
+    "title": "管理钱包网络",
+    "verifyTitle": "验证钱包锁",
+    "verifyDesc": "请绘制钱包锁图案以确认更改",
+    "saving": "保存中...",
+    "success": "网络设置已更新",
+    "noWallet": "请先创建或导入钱包"
+  },
   "createDesc": "生成新的助记词创建钱包",
   "importDesc": "使用助记词或密钥导入已有钱包",
   "empty": "暂无钱包",

@@ -174,6 +174,8 @@
   "networkNotConnected": "当前网络未连接",
   "newFinish": "完成",
   "next": "下一步",
+  "favorite": "收藏",
+  "unfavorite": "取消收藏",
   "noData": "暂无数据",
   "noPossibleUtxoObtained": "无可用utxo",
   "noResultsFound": "未找到结果",

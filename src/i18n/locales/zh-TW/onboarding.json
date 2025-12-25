@@ -177,5 +177,13 @@
     "acknowledge": "我已了解風險",
     "message": "使用任意金鑰可能比標準助記詞更不安全。請確保金鑰足夠複雜並妥善備份。",
     "title": "安全警告"
+  },
+  "chainSelector": {
+    "title": "選擇區塊鏈網路",
+    "subtitle": "選擇您要啟用的區塊鏈網路",
+    "searchPlaceholder": "搜尋鏈名稱或符號",
+    "noResults": "未找到匹配的鏈",
+    "selectAll": "全選",
+    "deselectAll": "取消全選"
   }
 }

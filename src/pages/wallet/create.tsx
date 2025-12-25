@@ -1,59 +1,70 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { GradientButton } from '@/components/common/gradient-button';
 import { IconCircle } from '@/components/common/icon-circle';
-import { FormField } from '@/components/common/form-field';
 import { Alert } from '@/components/common/alert';
 import { ProgressSteps } from '@/components/common/step-indicator';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
-import { PasswordInput } from '@/components/security/password-input';
+import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
+import { ChainSelector, getDefaultSelectedChains } from '@/components/onboarding/chain-selector';
+import { FormField } from '@/components/common/form-field';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
-  IconShieldCheck as ShieldCheck,
   IconEye as Eye,
   IconEyeOff as EyeOff,
   IconChevronRight as ArrowRight,
   IconCircleKey as KeyRound,
   IconCircleCheck as CheckCircle,
 } from '@tabler/icons-react';
-import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import { useChainConfigs, walletActions } from '@/stores';
 import { generateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import type { ChainConfig } from '@/services/chain-config';
 
-type Step = 'password' | 'mnemonic' | 'verify';
+type Step = 'pattern' | 'mnemonic' | 'verify' | 'chains';
 
-const STEPS: Step[] = ['password', 'mnemonic', 'verify'];
+const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains'];
 
 export function WalletCreatePage() {
   const { navigate, goBack } = useNavigation();
   const { t } = useTranslation();
-  const chainConfigSnapshot = useChainConfigState().snapshot;
-  const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
-  const [step, setStep] = useState<Step>('password');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const chainConfigs = useChainConfigs();
+  const [step, setStep] = useState<Step>('pattern');
+  const [patternKey, setPatternKey] = useState('');
   const [mnemonic] = useState<string[]>(generateMnemonic);
   const [mnemonicHidden, setMnemonicHidden] = useState(true);
   const [mnemonicCopied, setMnemonicCopied] = useState(false);
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const [initializedSelection, setInitializedSelection] = useState(false);
 
   const currentStepIndex = STEPS.indexOf(step) + 1;
 
+  useEffect(() => {
+    if (!initializedSelection && chainConfigs.length > 0) {
+      setSelectedChainIds(getDefaultSelectedChains(chainConfigs));
+      setInitializedSelection(true);
+    }
+  }, [chainConfigs, initializedSelection]);
+
   const handleBack = () => {
     if (step === 'mnemonic') {
-      setStep('password');
+      setStep('pattern');
+      setPatternKey('');
     } else if (step === 'verify') {
       setStep('mnemonic');
+    } else if (step === 'chains') {
+      setStep('verify');
     } else {
       goBack();
     }
   };
 
-  const handlePasswordSubmit = () => {
-    if (password.length >= 8 && password === confirmPassword) {
-      setStep('mnemonic');
-    }
+  const handlePatternComplete = (key: string) => {
+    setPatternKey(key);
+    setStep('mnemonic');
   };
 
   const handleMnemonicContinue = () => {
@@ -62,53 +73,93 @@ export function WalletCreatePage() {
     }
   };
 
+  const handleVerifyContinue = () => {
+    setStep('chains');
+  };
+
   const [isCreating, setIsCreating] = useState(false);
 
   const handleComplete = async () => {
-    if (isCreating) return;
+    if (isCreating || selectedChainIds.length === 0) return;
     setIsCreating(true);
 
     try {
       const mnemonicStr = mnemonic.join(' ');
 
-      // 派生外部链地址 (BIP44)
-      const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
+      const selectedConfigs = chainConfigs.filter((config) => selectedChainIds.includes(config.id));
+      const selectedBioforestConfigs = selectedConfigs.filter((config) => config.type === 'bioforest');
+      const selectedBip39Ids = new Set(
+        selectedConfigs.filter((config) => config.type === 'bip39').map((config) => config.id),
+      );
+      const selectedEvmConfigs = selectedConfigs.filter(
+        (config) => config.type === 'evm' || config.type === 'custom',
+      );
 
-      // 派生 BioForest 链地址 (Ed25519) - 使用相同的助记词字符串
-      const bioforestChainAddresses = deriveBioforestAddresses(
-        mnemonicStr,
-        chainConfigSnapshot ? enabledBioforestChainConfigs : undefined,
-      ).map((item) => ({
-        chain: item.chainId,
-        address: item.address,
-        tokens: [],
-      }));
+      const externalChains: Array<'ethereum' | 'bitcoin' | 'tron'> = [];
+      if (selectedEvmConfigs.length > 0) externalChains.push('ethereum');
+      if (selectedBip39Ids.has('bitcoin')) externalChains.push('bitcoin');
+      if (selectedBip39Ids.has('tron')) externalChains.push('tron');
 
+      const externalKeys = externalChains.length > 0
+        ? deriveMultiChainKeys(mnemonicStr, externalChains, 0)
+        : [];
+
+      const addressByChain = new Map<string, string>();
       const ethKey = externalKeys.find((k) => k.chain === 'ethereum');
-      if (!ethKey) {
-        throw new Error('Failed to derive ethereum key');
+      if (ethKey) {
+        if (selectedChainIds.includes('ethereum')) {
+          addressByChain.set('ethereum', ethKey.address);
+        }
+        for (const config of selectedEvmConfigs) {
+          addressByChain.set(config.id, ethKey.address);
+        }
       }
 
-      // 合并所有链地址
-      const chainAddresses = [
-        ...externalKeys.map((key) => ({
-          chain: key.chain as 'ethereum' | 'bitcoin' | 'tron',
-          address: key.address,
-          tokens: [],
-        })),
-        ...bioforestChainAddresses,
-      ];
+      const bitcoinKey = externalKeys.find((k) => k.chain === 'bitcoin');
+      if (bitcoinKey && selectedBip39Ids.has('bitcoin')) {
+        addressByChain.set('bitcoin', bitcoinKey.address);
+      }
+
+      const tronKey = externalKeys.find((k) => k.chain === 'tron');
+      if (tronKey && selectedBip39Ids.has('tron')) {
+        addressByChain.set('tron', tronKey.address);
+      }
+
+      const bioforestChainAddresses = deriveBioforestAddresses(
+        mnemonicStr,
+        selectedBioforestConfigs.length > 0 ? selectedBioforestConfigs : [],
+      );
+      for (const item of bioforestChainAddresses) {
+        addressByChain.set(item.chainId, item.address);
+      }
+
+      const chainAddresses = selectedChainIds
+        .map((chainId) => {
+          const address = addressByChain.get(chainId);
+          if (!address) return null;
+          return {
+            chain: chainId,
+            address,
+            tokens: [],
+          };
+        })
+        .filter((item): item is { chain: string; address: string; tokens: [] } => Boolean(item));
+
+      const primaryChain = chainAddresses[0];
+      if (!primaryChain) {
+        throw new Error('No chain addresses derived');
+      }
 
       await walletActions.createWallet(
         {
           name: t('onboarding:create.defaultWalletName'),
           keyType: 'mnemonic',
-          address: ethKey.address,
-          chain: 'ethereum',
+          address: primaryChain.address,
+          chain: primaryChain.chain,
           chainAddresses,
         },
         mnemonicStr,
-        password
+        patternKey
       );
 
       navigate({ to: '/' });
@@ -124,18 +175,15 @@ export function WalletCreatePage() {
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
-        <ProgressSteps total={3} current={currentStepIndex} />
+        <ProgressSteps total={4} current={currentStepIndex} />
       </div>
 
       <div className="flex-1 p-4">
-        {step === 'password' && (
-          <div data-testid="password-step">
-            <PasswordStep
-              password={password}
-              confirmPassword={confirmPassword}
-              onPasswordChange={setPassword}
-              onConfirmPasswordChange={setConfirmPassword}
-              onSubmit={handlePasswordSubmit}
+        {step === 'pattern' && (
+          <div data-testid="pattern-step">
+            <PatternLockSetup
+              onComplete={handlePatternComplete}
+              minPoints={4}
             />
           </div>
         )}
@@ -155,64 +203,24 @@ export function WalletCreatePage() {
 
         {step === 'verify' && (
           <div data-testid="verify-step">
-            <VerifyStep mnemonic={mnemonic} onComplete={handleComplete} />
+            <VerifyStep mnemonic={mnemonic} onContinue={handleVerifyContinue} />
+          </div>
+        )}
+
+        {step === 'chains' && (
+          <div data-testid="chain-selector-step">
+            <ChainSelectionStep
+              chains={chainConfigs}
+              selectedChains={selectedChainIds}
+              selectionCount={selectedChainIds.length}
+              onSelectionChange={setSelectedChainIds}
+              onComplete={handleComplete}
+              completeLabel={t('onboarding:create.complete')}
+              isSubmitting={isCreating}
+            />
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-interface PasswordStepProps {
-  password: string;
-  confirmPassword: string;
-  onPasswordChange: (value: string) => void;
-  onConfirmPasswordChange: (value: string) => void;
-  onSubmit: () => void;
-}
-
-function PasswordStep({
-  password,
-  confirmPassword,
-  onPasswordChange,
-  onConfirmPasswordChange,
-  onSubmit,
-}: PasswordStepProps) {
-  const { t } = useTranslation();
-  const isValid = password.length >= 8 && password === confirmPassword;
-  const passwordMismatch = confirmPassword && password !== confirmPassword;
-
-  return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">{t('onboarding:create.setWalletLock')}</h2>
-        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.walletLockDesc')}</p>
-      </div>
-
-      <div className="space-y-4">
-        <FormField label={t('onboarding:create.walletLockLabel')} hint={t('onboarding:create.walletLockHint')}>
-          <PasswordInput
-            value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder={t('onboarding:create.walletLockPlaceholder')}
-            showStrength
-          />
-        </FormField>
-
-        <FormField label={t('onboarding:create.confirmWalletLockLabel')} error={passwordMismatch ? t('onboarding:create.walletLockMismatch') : undefined}>
-          <PasswordInput
-            value={confirmPassword}
-            onChange={(e) => onConfirmPasswordChange(e.target.value)}
-            placeholder={t('onboarding:create.confirmWalletLockPlaceholder')}
-          />
-        </FormField>
-      </div>
-
-      <GradientButton variant="mint" className="w-full" data-testid="next-step-button" disabled={!isValid} onClick={onSubmit}>
-        {t('onboarding:create.nextStep')}
-        <ArrowRight className="ml-2 size-4" />
-      </GradientButton>
     </div>
   );
 }
@@ -262,10 +270,10 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
 
 interface VerifyStepProps {
   mnemonic: string[];
-  onComplete: () => void;
+  onContinue: () => void;
 }
 
-function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
+function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
   const { t } = useTranslation();
   const [selectedIndices] = useState<number[]>(() => {
     const indices = Array.from({ length: mnemonic.length }, (_, i) => i);
@@ -307,6 +315,7 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
           <FormField key={index} label={t('onboarding:create.wordN', { n: index + 1 })} error={getFieldError(index)}>
             <Input
               data-testid={`verify-word-input-${index}`}
+              data-verify-index={index}
               value={answers[index] || ''}
               onChange={(e) => handleInputChange(index, e.target.value)}
               className={cn(getFieldError(index) && 'border-destructive focus-visible:ring-destructive')}
@@ -318,8 +327,69 @@ function VerifyStep({ mnemonic, onComplete }: VerifyStepProps) {
         ))}
       </div>
 
-      <GradientButton variant="mint" className="w-full" data-testid="complete-button" disabled={!isValid} onClick={onComplete}>
-        {t('onboarding:create.complete')}
+      <GradientButton
+        variant="mint"
+        className="w-full"
+        data-testid="verify-next-button"
+        disabled={!isValid}
+        onClick={onContinue}
+      >
+        {t('common:next')}
+      </GradientButton>
+    </div>
+  );
+}
+
+interface ChainSelectionStepProps {
+  chains: ChainConfig[];
+  selectedChains: string[];
+  selectionCount: number;
+  isSubmitting: boolean;
+  completeLabel: string;
+  onSelectionChange: (chainIds: string[]) => void;
+  onComplete: () => void;
+}
+
+function ChainSelectionStep({
+  chains,
+  selectedChains,
+  selectionCount,
+  isSubmitting,
+  completeLabel,
+  onSelectionChange,
+  onComplete,
+}: ChainSelectionStepProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
+        <h2 className="text-xl font-bold">{t('onboarding:chainSelector.title')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:chainSelector.subtitle')}</p>
+      </div>
+
+      {chains.length === 0 ? (
+        <div className="flex justify-center py-10">
+          <LoadingSpinner />
+        </div>
+      ) : (
+        <ChainSelector
+          data-testid="chain-selector"
+          chains={chains}
+          selectedChains={selectedChains}
+          onSelectionChange={onSelectionChange}
+        />
+      )}
+
+      <GradientButton
+        variant="mint"
+        className="w-full"
+        data-testid="chain-selector-complete-button"
+        disabled={selectionCount === 0 || isSubmitting}
+        onClick={onComplete}
+      >
+        {completeLabel}
       </GradientButton>
     </div>
   );

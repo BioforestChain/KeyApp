@@ -1,4 +1,22 @@
 {
+  "patternLock": {
+    "gridLabel": "{{size}}x{{size}} 圖案鎖",
+    "nodeLabel": "第{{row}}行第{{col}}列節點{{order, number}}",
+    "hint": "請連接至少 {{min}} 個點",
+    "needMore": "已連接 {{current}} 個點，還需 {{min, number}} 個",
+    "error": "圖案不匹配，請重試",
+    "success": "圖案正確",
+    "valid": "已連接 {{count}} 個點",
+    "clear": "清除圖案",
+    "reset": "重新設定",
+    "setTitle": "設定錢包鎖",
+    "setDesc": "繪製圖案作為錢包鎖，用於保護您的錢包安全",
+    "confirmTitle": "確認錢包鎖",
+    "confirmDesc": "請再次繪製圖案以確認",
+    "unlockTitle": "解鎖錢包",
+    "unlockDesc": "請繪製錢包鎖圖案",
+    "mismatch": "兩次圖案不一致，請重新設定"
+  },
   "2TheOriginalIdentityWalletPasswordWillBeUsedAsThePasswordForAllWallet": "2. 原身份錢包密碼將作為所有錢包的密碼，用於轉賬/備份助記詞等驗證。",
   "addressPassword": "地址密碼",
   "applicationLock": "應用鎖",
@@ -112,14 +130,13 @@
   "onceThePasswordIsLostItCannotBeRetrieved": "一旦密碼丟失，無法找回！",
   "password": "密碼",
   "passwordCannotBeTheSame": "密碼不能相同",
-  "passwordConfirm": {
-    "biometric": "使用生物辨識",
-    "cancel": "取消",
-    "confirm": "確認",
-    "defaultTitle": "驗證密碼",
-    "placeholder": "請輸入密碼",
+  "walletLock": {
+    "unlockTitle": "解鎖錢包",
+    "unlockDesc": "請繪製錢包鎖圖案",
     "verifying": "驗證中...",
-    "error": "钱包锁密码错误"
+    "error": "圖案錯誤，請重試",
+    "biometric": "使用生物辨識",
+    "cancel": "取消"
   },
   "passwordError": "密碼錯誤",
   "passwordHint": "密碼提示",

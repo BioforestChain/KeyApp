@@ -9,7 +9,7 @@ import { ArbitraryKeyInput } from '@/components/onboarding/arbitrary-key-input';
 import { ChainAddressPreview, type DerivedAddress } from '@/components/onboarding/chain-address-preview';
 import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog';
 import { ImportWalletSuccess } from '@/components/onboarding/import-wallet-success';
-import { PasswordInput } from '@/components/security/password-input';
+import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
 import { Button } from '@/components/ui/button';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
@@ -17,7 +17,7 @@ import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } f
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
 
-type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'password' | 'collision' | 'success';
+type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'collision' | 'success';
 
 // Mock wallet query for now - will be replaced with real implementation
 const mockWalletQuery: IWalletQuery = {
@@ -31,7 +31,7 @@ const mockWalletQuery: IWalletQuery = {
  * Implements wallet recovery with duplicate detection per openspec/changes/add-wallet-recover-duplicate-guards
  */
 export function OnboardingRecoverPage() {
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
   const { push } = useFlow();
   const { t } = useTranslation(['onboarding', 'common', 'wallet']);
   const chainConfigSnapshot = useChainConfigState().snapshot;
@@ -43,9 +43,7 @@ export function OnboardingRecoverPage() {
   const [arbitrarySecret, setArbitrarySecret] = useState('');
   const [arbitraryError, setArbitraryError] = useState<string | null>(null);
   const [arbitraryDerivedAddresses, setArbitraryDerivedAddresses] = useState<DerivedAddress[]>([]);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recoveredWalletName, setRecoveredWalletName] = useState('');
 
@@ -55,7 +53,7 @@ export function OnboardingRecoverPage() {
   const handleBack = useCallback(() => {
     switch (step) {
       case 'keyType':
-        navigate({ to: '/' });
+        goBack();
         break;
       case 'mnemonic':
       case 'arbitrary':
@@ -66,23 +64,19 @@ export function OnboardingRecoverPage() {
         setStep('mnemonic');
         duplicateDetection.reset();
         break;
-      case 'password':
-        setPassword('');
-        setConfirmPassword('');
-        setPasswordError(null);
+      case 'pattern':
+        
         setStep(keyType === 'arbitrary' ? 'arbitrary' : 'mnemonic');
         break;
       case 'success':
         // Can't go back from success
         break;
     }
-  }, [step, navigate, duplicateDetection, keyType]);
+  }, [step, goBack, duplicateDetection, keyType]);
 
-  const goToPasswordStep = useCallback(() => {
-    setPassword('');
-    setConfirmPassword('');
-    setPasswordError(null);
-    setStep('password');
+  const goToPatternStep = useCallback(() => {
+    
+    setStep('pattern');
   }, []);
 
   const handleKeyTypeContinue = useCallback(() => {
@@ -124,16 +118,16 @@ export function OnboardingRecoverPage() {
       }
 
       // No duplicate - proceed to password setup
-      goToPasswordStep();
+      goToPatternStep();
     },
-    [duplicateDetection, goToPasswordStep],
+    [duplicateDetection, goToPatternStep],
   );
 
   const handleCollisionConfirm = useCallback(async () => {
     // User confirmed replacement - proceed with wallet creation
     // TODO: Delete the old private key wallet first
-    goToPasswordStep();
-  }, [goToPasswordStep]);
+    goToPatternStep();
+  }, [goToPatternStep]);
 
   const handleCollisionCancel = useCallback(() => {
     setStep('mnemonic');
@@ -244,38 +238,21 @@ export function OnboardingRecoverPage() {
     [arbitraryDerivedAddresses, arbitrarySecret],
   );
 
-  const handlePasswordContinue = useCallback(async () => {
+  const handlePatternComplete = useCallback(async (key: string) => {
     if (isSubmitting) return;
-
-    setPasswordError(null);
-
-    if (password.length < 8) {
-      setPasswordError(t('onboarding:recover.errors.minLength'));
-      return;
-    }
-
-    if (/\s/.test(password)) {
-      setPasswordError(t('onboarding:recover.errors.noSpaces'));
-      return;
-    }
-
-    if (confirmPassword !== password) {
-      setPasswordError(t('onboarding:recover.errors.mismatch'));
-      return;
-    }
+    
 
     if (keyType === 'arbitrary') {
-      await createArbitraryWallet(password);
+      await createArbitraryWallet(key);
       return;
     }
 
     if (mnemonic.length === 0) {
-      setPasswordError(t('onboarding:recover.errors.mnemonicIncomplete'));
       return;
     }
 
-    await createWallet(mnemonic, password);
-  }, [confirmPassword, createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, password]);
+    await createWallet(mnemonic, key);
+  }, [createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic]);
 
   const handleEnterWallet = useCallback(() => {
     navigate({ to: '/' });
@@ -346,7 +323,7 @@ export function OnboardingRecoverPage() {
                   return;
                 }
 
-                goToPasswordStep();
+                goToPatternStep();
               }}
             >
               {isSubmitting && <Loader2 className="size-4 animate-spin" />}
@@ -370,61 +347,14 @@ export function OnboardingRecoverPage() {
         </>
       )}
 
-      {step === 'password' && (
+      {step === 'pattern' && (
         <>
           <PageHeader title={t('onboarding:recover.setWalletLock')} onBack={handleBack} />
-          <div data-testid="password-step" className="flex-1 p-4">
-            <div className="space-y-5">
-              <div className="text-muted-foreground space-y-1 text-sm">
-                <p>{t('onboarding:recover.walletLockHint')}</p>
-                <p>{t('onboarding:recover.walletLockRule')}</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('onboarding:recover.walletLock')}</label>
-                  <PasswordInput
-                    data-testid="password-input"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('onboarding:recover.walletLockPlaceholder')}
-                    showStrength
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('onboarding:recover.confirmWalletLock')}</label>
-                  <PasswordInput
-                    data-testid="confirm-password-input"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t('onboarding:recover.confirmWalletLockPlaceholder')}
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                {passwordError && (
-                  <div className="bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg px-3 py-2 text-sm">
-                    <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                    <span>{passwordError}</span>
-                  </div>
-                )}
-              </div>
-
-              <Button
-                type="button"
-                data-testid="continue-button"
-                className="w-full"
-                disabled={isSubmitting}
-                onClick={() => {
-                  void handlePasswordContinue();
-                }}
-              >
-                {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-                {t('common:continue')}
-              </Button>
-            </div>
+          <div data-testid="pattern-step" className="flex-1 p-4">
+            <PatternLockSetup
+              onComplete={handlePatternComplete}
+              minPoints={4}
+            />
           </div>
         </>
       )}

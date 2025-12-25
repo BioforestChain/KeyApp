@@ -1,4 +1,22 @@
 {
+  "patternLock": {
+    "gridLabel": "{{size}}x{{size}} Pattern Lock",
+    "nodeLabel": "Node at row {{row}}, column {{col}}{{order, number}}",
+    "hint": "Connect at least {{min}} dots",
+    "needMore": "Connected {{current}} dots, need {{min, number}} more",
+    "error": "Pattern doesn't match, please try again",
+    "success": "Pattern correct",
+    "valid": "Connected {{count}} dots",
+    "clear": "Clear pattern",
+    "reset": "Reset",
+    "setTitle": "Set Wallet Lock",
+    "setDesc": "Draw a pattern as your wallet lock to protect your wallet",
+    "confirmTitle": "Confirm Wallet Lock",
+    "confirmDesc": "Draw the pattern again to confirm",
+    "unlockTitle": "Unlock Wallet",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "mismatch": "Patterns don't match, please try again"
+  },
   "backupTips": {
     "title": "Backup Mnemonic",
     "description": "Mnemonic is the only way to recover your wallet, please keep it safe",
@@ -19,12 +37,11 @@
     "proceed": "I Understand, Start Backup",
     "skip": "Backup Later"
   },
-  "passwordConfirm": {
-    "defaultTitle": "Unlock Wallet",
-    "placeholder": "Enter wallet lock",
+  "walletLock": {
+    "unlockTitle": "Unlock Wallet",
+    "unlockDesc": "Draw your wallet lock pattern",
     "verifying": "Verifying...",
-    "confirm": "Confirm",
-    "error": "Incorrect wallet lock",
+    "error": "Incorrect pattern, please try again",
     "biometric": "Use Biometrics",
     "cancel": "Cancel"
   },

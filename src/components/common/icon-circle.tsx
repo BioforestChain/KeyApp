@@ -13,7 +13,7 @@ interface IconCircleProps {
 
 const variantStyles: Record<IconCircleVariant, string> = {
   primary: 'bg-primary/10 text-primary',
-  secondary: 'bg-secondary/10 text-secondary',
+  secondary: 'bg-secondary text-secondary-foreground',
   success: 'bg-green-500/10 text-green-500',
   warning: 'bg-yellow-500/10 text-yellow-500',
   error: 'bg-destructive/10 text-destructive',

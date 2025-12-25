@@ -57,8 +57,8 @@ export const ImportFlow: Story = {
     if (step === 'success') {
       return (
         <div className="space-y-4 py-8 text-center">
-          <div className="bg-secondary/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <svg className="text-secondary h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-green-500/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+            <svg className="text-green-500 h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>

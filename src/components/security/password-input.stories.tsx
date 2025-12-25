@@ -84,7 +84,7 @@ export const ConfirmPassword: Story = {
           <label className="text-sm font-medium">确认密码</label>
           <PasswordInput placeholder="请再次输入密码" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           {confirm && !isMatch && <p className="text-destructive text-xs">两次输入的密码不一致</p>}
-          {isMatch && <p className="text-secondary text-xs">密码匹配</p>}
+          {isMatch && <p className="text-green-500 text-xs">密码匹配</p>}
         </div>
       </div>
     );

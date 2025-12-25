@@ -36,14 +36,53 @@
       "dependsOn": [],
       "inputs": [
         "src/**",
-        "e2e/**/*.ts",
+        "e2e/**/*.spec.ts",
         "e2e/__screenshots__/**",
         "playwright.config.ts",
+        "!e2e/**/*.mock.spec.ts",
         "!e2e/test-results/**",
         "!e2e/report/**"
       ],
       "outputs": ["e2e/report/**", "e2e/test-results/**"],
       "cache": true
+    },
+    "e2e:ci:mock": {
+      "dependsOn": [],
+      "inputs": [
+        "src/**",
+        "e2e/**/*.mock.spec.ts",
+        "e2e/__screenshots__/**",
+        "playwright.mock.config.ts",
+        "!e2e/test-results/**",
+        "!e2e/report/**"
+      ],
+      "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": true
+    },
+    "e2e:mock:run": {
+      "dependsOn": [],
+      "inputs": [
+        "src/**",
+        "e2e/**/*.mock.spec.ts",
+        "e2e/__screenshots__/**",
+        "playwright.mock.config.ts",
+        "!e2e/test-results/**",
+        "!e2e/report/**"
+      ],
+      "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": true
+    },
+    "e2e:ci:real": {
+      "dependsOn": [],
+      "inputs": [
+        "src/**",
+        "e2e/bioforest-real-transfer.spec.ts",
+        "playwright.real.config.ts",
+        "!e2e/test-results/**",
+        "!e2e/report/**"
+      ],
+      "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": false
     },
     "build": {
       "dependsOn": ["typecheck:run"],

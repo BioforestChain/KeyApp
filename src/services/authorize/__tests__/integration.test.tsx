@@ -29,7 +29,7 @@ vi.mock('@/stackflow', () => ({
 
 // Mock sheets to avoid stackflow initialization
 vi.mock('@/stackflow/activities/sheets', () => ({
-  setPasswordConfirmCallback: vi.fn(),
+  setWalletLockConfirmCallback: vi.fn(),
 }))
 
 function parseHash(hash: string): { path: string; params: Record<string, string> } {
@@ -131,7 +131,7 @@ describe('authorize integration (mock-first)', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/' }))
   })
 
-  // Note: Password verification is now handled by PasswordConfirmJob
+  // Note: Password verification is now handled by WalletLockConfirmJob
   it.skip('deep-links legacy signature authorize and signs after password confirmation', async () => {
     vi.spyOn(plaocAdapter, 'getCallerAppInfo').mockResolvedValue(EXAMPLE_APP)
     const respondSpy = vi.spyOn(plaocAdapter, 'respondWith').mockResolvedValue()

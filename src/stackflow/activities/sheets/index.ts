@@ -1,13 +1,13 @@
 export { ChainSelectorJob } from "./ChainSelectorJob";
 export { WalletRenameJob } from "./WalletRenameJob";
 export { WalletDeleteJob } from "./WalletDeleteJob";
-export { PasswordConfirmJob, setPasswordConfirmCallback } from "./PasswordConfirmJob";
-export { PayPasswordConfirmJob, setPayPasswordConfirmCallback } from "./PayPasswordConfirmJob";
-export { SetPayPasswordJob, setSetPayPasswordCallback } from "./SetPayPasswordJob";
+export { WalletLockConfirmJob, setWalletLockConfirmCallback } from "./WalletLockConfirmJob";
+export { TwoStepSecretConfirmJob, setTwoStepSecretConfirmCallback } from "./TwoStepSecretConfirmJob";
+export { SetTwoStepSecretJob, setSetTwoStepSecretCallback } from "./SetTwoStepSecretJob";
 export { MnemonicOptionsJob, setMnemonicOptionsCallback } from "./MnemonicOptionsJob";
 export { ContactEditJob } from "./ContactEditJob";
 export { ContactPickerJob } from "./ContactPickerJob";
 export { WalletAddJob } from "./WalletAddJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
-export { TransferPasswordJob, setTransferPasswordCallback } from "./TransferPasswordJob";
+export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
