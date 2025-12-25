@@ -19,6 +19,7 @@
  *   pnpm agent worktree create <name> --branch <branch> [--base main]
  *   pnpm agent worktree delete <name> [--force]
  *   pnpm agent worktree list
+ *   pnpm agent practice list|add|remove|update
  */
 
 import { log } from './utils'
@@ -39,6 +40,7 @@ import {
 } from './epic'
 import { printWhiteBookToc, printChapterContent } from './whitebook'
 import { createWorktree, deleteWorktree, listWorktrees } from './worktree'
+import { addPractice, listPractices, removePractice, updatePractice } from './practice'
 
 function printHelp(): void {
   console.log(`
@@ -70,6 +72,12 @@ Worktree 管理:
   pnpm agent worktree list
   分支前缀仅允许: feat/, fix/, docs/, test/, refactor/, chore/, ci/, openspec/, release/
 
+最佳实践管理:
+  pnpm agent practice list
+  pnpm agent practice add "<内容>"
+  pnpm agent practice remove <序号|内容>
+  pnpm agent practice update <序号> "<内容>"
+
 Aliases: CURRENT -> V1, NEXT -> V2
 
 Examples:
@@ -79,6 +87,7 @@ Examples:
   pnpm agent create "修复某个问题" --category bug --roadmap v1
   pnpm agent epic create "大功能" --roadmap v1 --issues 44,45,46
   pnpm agent worktree create issue-28 --branch feat/issue-28
+  pnpm agent practice list
 `)
 }
 
@@ -255,6 +264,36 @@ function handleWorktree(args: string[]): void {
   }
 }
 
+function handlePractice(args: string[]): void {
+  const subCommand = args[0]
+
+  switch (subCommand) {
+    case 'list':
+      listPractices()
+      break
+
+    case 'add':
+      addPractice(args.slice(1).join(' '))
+      break
+
+    case 'remove':
+      removePractice(args.slice(1).join(' '))
+      break
+
+    case 'update': {
+      const index = args[1]
+      const text = args.slice(2).join(' ')
+      updatePractice(index, text)
+      break
+    }
+
+    default:
+      log.error(`未知的 practice 子命令: ${subCommand}`)
+      console.log('可用命令: list, add, remove, update')
+      process.exit(1)
+  }
+}
+
 function main(): void {
   const args = process.argv.slice(2)
 
@@ -342,6 +381,10 @@ function main(): void {
 
     case 'worktree':
       handleWorktree(rest)
+      break
+
+    case 'practice':
+      handlePractice(rest)
       break
 
     case 'help':
