@@ -47,7 +47,7 @@
     "titleKey": "查看密鑰",
     "noWallet": "請先建立或匯入錢包",
     "walletIncomplete": "錢包資料不完整",
-    "passwordError": "密碼錯誤",
+    "patternError": "圖案錯誤",
     "securityTip": "安全提示",
     "securityWarningMnemonic": "請確保周圍無人窺視。助記詞一旦洩露，資產將面臨風險。",
     "securityWarningKey": "請確保周圍無人窺視。密鑰一旦洩露，資產將面臨風險。",

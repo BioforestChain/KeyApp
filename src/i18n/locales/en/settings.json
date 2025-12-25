@@ -47,7 +47,7 @@
     "titleKey": "View Key",
     "noWallet": "Please create or import a wallet first",
     "walletIncomplete": "Wallet data is incomplete",
-    "passwordError": "Incorrect password",
+    "patternError": "Incorrect pattern",
     "securityTip": "Security Tip",
     "securityWarningMnemonic": "Make sure no one is watching. Your assets are at risk if the mnemonic is exposed.",
     "securityWarningKey": "Make sure no one is watching. Your assets are at risk if the key is exposed.",
