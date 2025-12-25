@@ -103,9 +103,9 @@ test.describe.skip('Chain-config subscription', () => {
     await fillMnemonic(page, TEST_MNEMONIC_12_WORDS)
     await page.click('[data-testid="continue-button"]')
 
-    await page.waitForSelector('[data-testid="password-step"]')
-    await page.fill('input[placeholder="输入密码"]', 'Test1234!')
-    await page.fill('input[placeholder="再次输入密码"]', 'Test1234!')
+    await page.waitForSelector('[data-testid="pattern-lock-step"]')
+    await page.fill('[data-testid="pattern-lock-input"] input', '0,1,2,5,8')
+    await page.fill('[data-testid="pattern-lock-confirm"] input', '0,1,2,5,8')
     await page.click('[data-testid="complete-button"]')
 
     await page.waitForURL(/.*#\/$/)

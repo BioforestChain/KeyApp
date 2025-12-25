@@ -106,16 +106,16 @@ test.describe('DWEB 授权 - 截图测试', () => {
     await expect(page).toHaveScreenshot('authorize-signature-transfer.png')
   })
 
-  test('密码确认弹窗', async ({ page }) => {
+  test('钱包锁确认弹窗', async ({ page }) => {
     const signaturedata = encodeURIComponent(SIGNATURE_DATA.transfer)
     await page.goto(`/#/authorize/signature/sufficient-balance?signaturedata=${signaturedata}`)
     await page.waitForLoadState('networkidle')
 
     // 点击确认按钮（使用多语言正则）
-    await page.locator(`button:has-text("${UI_TEXT.enterPassword.source}")`).click()
+    await page.locator(`button:has-text("${UI_TEXT.drawPattern.source}")`).click()
     await page.waitForTimeout(500)
 
-    await expect(page).toHaveScreenshot('authorize-password-confirm.png')
+    await expect(page).toHaveScreenshot('authorize-wallet-lock-confirm.png')
   })
 
   test('错误状态：余额不足', async ({ page }) => {

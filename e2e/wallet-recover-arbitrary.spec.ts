@@ -59,7 +59,7 @@ async function addManualBioforestChain(page: Page) {
   await expect(page.getByText(MANUAL_CHAIN.name, { exact: true })).toBeVisible()
 }
 
-async function goThroughArbitraryKeyRecover(page: Page, secret: string, password: string) {
+async function goThroughArbitraryKeyRecover(page: Page, secret: string, pattern: string) {
   // Stackflow 需要从首页导航
   await page.goto('/')
   await page.waitForLoadState('networkidle')
@@ -88,10 +88,10 @@ async function goThroughArbitraryKeyRecover(page: Page, secret: string, password
   await expect(page.getByText(MANUAL_CHAIN.name, { exact: true })).toBeVisible()
 
   await page.click('button:has-text("继续")')
-  await page.waitForSelector('text=设置密码')
+  await page.waitForSelector('text=设置钱包锁')
 
-  await page.fill('input[placeholder="请输入密码"]', password)
-  await page.fill('input[placeholder="请再次输入密码"]', password)
+  await page.fill('[data-testid="pattern-lock-input"] input', pattern)
+  await page.fill('[data-testid="pattern-lock-confirm"] input', pattern)
   await page.click('button:has-text("继续")')
 
   await page.waitForSelector('text=钱包创建成功！')

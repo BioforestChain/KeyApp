@@ -218,9 +218,9 @@ test.describe('BioForest 链地址派生', () => {
     // 填写助记词（使用 textarea）
     await page.fill('[data-testid="mnemonic-textarea"]', TEST_MNEMONIC_12)
     await page.click('[data-testid="continue-button"]')
-    await page.waitForSelector('[data-testid="password-step"]')
-    await page.fill('[data-testid="password-input"] input', 'Test1234!')
-    await page.fill('[data-testid="confirm-password-input"] input', 'Test1234!')
+    await page.waitForSelector('[data-testid="pattern-lock-step"]')
+    await page.fill('[data-testid="pattern-lock-input"] input', '0,1,2,5,8')
+    await page.fill('[data-testid="pattern-lock-confirm"] input', '0,1,2,5,8')
     await page.click('[data-testid="continue-button"]')
 
     // 等待导入成功页面并进入钱包

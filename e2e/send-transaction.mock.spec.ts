@@ -328,7 +328,7 @@ test.describe('发送交易 - Job 弹窗流程', () => {
     }
   })
 
-  test('确认后显示密码输入 Job', async ({ page }) => {
+  test('确认后显示钱包锁 Job', async ({ page }) => {
     await setupTestWallet(page, '/send')
     await waitForAppReady(page)
 
@@ -352,14 +352,14 @@ test.describe('发送交易 - Job 弹窗流程', () => {
         await confirmBtn.click()
         await page.waitForTimeout(500)
         
-        // 应该显示密码输入
-        const passwordInput = page.locator('input[type="password"]')
+        // 应该显示钱包锁
+        const patternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]')
         
-        if (await passwordInput.isVisible()) {
-          console.log('PasswordConfirmJob opened successfully')
-          await expect(page).toHaveScreenshot('send-password-job.png')
+        if (await patternInput.isVisible()) {
+          console.log('WalletLockConfirmJob opened successfully')
+          await expect(page).toHaveScreenshot('send-wallet-lock-job.png')
         } else {
-          console.log('PasswordConfirmJob may not have opened')
+          console.log('WalletLockConfirmJob may not have opened')
         }
       }
     }

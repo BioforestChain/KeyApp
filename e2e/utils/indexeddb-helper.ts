@@ -12,7 +12,7 @@ export async function waitForAppReady(page: Page) {
  * 设置测试钱包（使用助记词）
  * 这会在测试开始前通过 localStorage 预设钱包数据
  */
-export async function setupWalletWithMnemonic(page: Page, mnemonic: string, password: string = 'test-password') {
+export async function setupWalletWithMnemonic(page: Page, mnemonic: string, pattern: string = '0,1,2,5,8') {
   // 创建基础测试钱包数据（使用 migrateFromLocalStorage 期望的格式）
   const testWalletData = {
     wallets: [
@@ -45,9 +45,9 @@ export async function setupWalletWithMnemonic(page: Page, mnemonic: string, pass
   await page.addInitScript((data) => {
     localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
     localStorage.setItem('bfm_preferences', JSON.stringify({ language: 'zh-CN', currency: 'CNY' }))
-    // 存储测试密码（仅用于测试）
-    localStorage.setItem('__test_password', data.password)
-  }, { wallet: testWalletData, password })
+    // 存储测试图案（仅用于测试）
+    localStorage.setItem('__test_pattern', data.pattern)
+  }, { wallet: testWalletData, pattern })
 
   await page.goto('/')
   await page.waitForLoadState('networkidle')

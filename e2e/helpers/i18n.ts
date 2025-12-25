@@ -48,11 +48,11 @@ export const UI_TEXT = {
   
   // 授权
   confirmTransaction: /确认.*交易|请确认|Confirm.*Transaction/i,
-  enterPassword: /输入密码|Enter Password/i,
+  drawPattern: /绘制图案|Draw Pattern/i,
   insufficientBalance: /余额不足|Insufficient Balance/i,
   
   // 安全
-  setPassword: /设置密码|Set Password/i,
+  setWalletLock: /设置钱包锁|Set Wallet Lock/i,
   enterPatternLock: /设置图案|Draw Pattern/i,
   confirmPattern: /确认图案|Confirm Pattern/i,
   

@@ -29,7 +29,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') })
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC ?? ''
 const FUND_ADDRESS = process.env.E2E_TEST_ADDRESS ?? ''
 
-const WALLET_PASSWORD = 'e2e-test-password'
+const WALLET_PATTERN = '0,1,2,5,8' // 钱包锁图案：L形
 const PAY_PASSWORD = 'pay-password-123'
 const FUNDING_AMOUNT = 50000 // 0.0005 BFM - 足够测试转账+设置支付密码+归还
 const MIN_FUND_BALANCE = 100000 // 0.001 BFM
@@ -148,10 +148,10 @@ async function importWallet(page: Page, mnemonic: string): Promise<void> {
     await page.locator('[data-testid="continue-button"]').click()
     await page.locator('[data-testid="mnemonic-textarea"]').fill(mnemonic)
     await page.locator('[data-testid="continue-button"]').click()
-    await page.locator('[data-testid="password-input"]').fill(WALLET_PASSWORD)
-    const confirmInput = page.locator('[data-testid="confirm-password-input"]')
+    await page.locator('[data-testid="pattern-lock-input"]').fill(WALLET_PATTERN)
+    const confirmInput = page.locator('[data-testid="pattern-lock-confirm"]')
     if (await confirmInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmInput.fill(WALLET_PASSWORD)
+      await confirmInput.fill(WALLET_PATTERN)
     }
     await page.locator('[data-testid="continue-button"]').click()
     await page.locator('[data-testid="enter-wallet-button"]').click()
@@ -184,11 +184,11 @@ async function doTransfer(page: Page, toAddress: string, amount: string, needPay
 
   await page.locator('[data-testid="confirm-transfer-button"]').click()
 
-  // 输入钱包锁
-  const pwdInput = page.locator('[data-testid="wallet-password-input"]')
-  await expect(pwdInput).toBeVisible({ timeout: 5000 })
-  await pwdInput.fill(WALLET_PASSWORD)
-  await page.locator('[data-testid="password-confirm-button"]').click()
+  // 验证钱包锁
+  const patternInput = page.locator('[data-testid="wallet-pattern-input"]')
+  await expect(patternInput).toBeVisible({ timeout: 5000 })
+  await patternInput.fill(WALLET_PATTERN)
+  await page.locator('[data-testid="wallet-lock-confirm-button"]').click()
   
   // 如果需要支付密码
   if (needPayPassword) {
@@ -196,7 +196,7 @@ async function doTransfer(page: Page, toAddress: string, amount: string, needPay
     const payPwdInput = page.locator('[data-testid="pay-password-input"]')
     if (await payPwdInput.isVisible({ timeout: 5000 }).catch(() => false)) {
       await payPwdInput.fill(PAY_PASSWORD)
-      await page.locator('[data-testid="password-confirm-button"]').click()
+      await page.locator('[data-testid="pay-password-confirm-button"]').click()
     }
   }
 
@@ -305,10 +305,10 @@ describeOrSkip('BioForest 完整业务闭环测试', () => {
           await confirmPayPwdInput.fill(PAY_PASSWORD)
           await page.locator('[data-testid="set-pay-password-next-button"]').click()
           
-          // Step 3: 输入钱包锁
-          const walletPwdInput = page.locator('[data-testid="wallet-password-input"]')
-          await expect(walletPwdInput).toBeVisible({ timeout: 3000 })
-          await walletPwdInput.fill(WALLET_PASSWORD)
+          // Step 3: 验证钱包锁
+          const walletPatternInput = page.locator('[data-testid="wallet-pattern-input"]')
+          await expect(walletPatternInput).toBeVisible({ timeout: 3000 })
+          await walletPatternInput.fill(WALLET_PATTERN)
           await page.locator('[data-testid="set-pay-password-confirm-button"]').click()
           
           console.log('⏳ 等待支付密码设置上链...')
