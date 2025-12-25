@@ -52,7 +52,7 @@ export function PatternLock({
   size = 3,
   'data-testid': testId,
 }: PatternLockProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('security');
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const baseTestId = testId ?? undefined;
@@ -390,7 +390,7 @@ export function PatternLock({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         role="group"
-        aria-label={t('security:patternLock.gridLabel', { size })}
+        aria-label={t('patternLock.gridLabel', { size })}
       >
         {/* SVG 连线层 */}
         <svg
@@ -478,7 +478,7 @@ export function PatternLock({
                   onChange={() => {}}
                   onKeyDown={(e) => handleNodeKeyDown(e, node.index)}
                   className="sr-only peer"
-                  aria-label={t('security:patternLock.nodeLabel', { 
+                  aria-label={t('patternLock.nodeLabel', { 
                     row: Math.floor(node.index / size) + 1,
                     col: (node.index % size) + 1,
                     order: isSelected ? orderIndex + 1 : undefined,
@@ -496,23 +496,23 @@ export function PatternLock({
       <div className="text-center h-5">
         {error || isErrorAnimating ? (
           <p className="text-destructive text-sm">
-            {t('security:patternLock.error')}
+            {t('patternLock.error')}
           </p>
         ) : selectedNodes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            {t('security:patternLock.hint', { min: minPoints })}
+            {t('patternLock.hint', { min: minPoints })}
           </p>
         ) : selectedNodes.length < minPoints ? (
           <p className="text-muted-foreground text-sm">
-            {t('security:patternLock.needMore', { current: selectedNodes.length, min: minPoints })}
+            {t('patternLock.needMore', { current: selectedNodes.length, min: minPoints })}
           </p>
         ) : success ? (
           <p className="text-primary text-sm font-medium">
-            {t('security:patternLock.success')}
+            {t('patternLock.success')}
           </p>
         ) : (
           <p className="text-primary text-sm">
-            {t('security:patternLock.valid', { count: selectedNodes.length })}
+            {t('patternLock.valid', { count: selectedNodes.length })}
           </p>
         )}
       </div>
@@ -526,7 +526,7 @@ export function PatternLock({
             data-testid={baseTestId ? `${baseTestId}-clear` : undefined}
             className="mx-auto block text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            {t('security:patternLock.clear')}
+            {t('patternLock.clear')}
           </button>
         )}
       </div>

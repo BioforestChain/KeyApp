@@ -55,5 +55,8 @@
     "authFailed": "授權失敗",
     "patternIncorrect": "圖案錯誤",
     "timeout": "請求已逾時"
+  },
+  "passwordConfirm": {
+    "title": "Confirm Password"
   }
 }

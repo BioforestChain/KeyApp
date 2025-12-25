@@ -14,7 +14,8 @@
     "confirmTitle": "تأكيد قفل المحفظة",
     "confirmDesc": "ارسم النمط مرة أخرى للتأكيد",
     "unlockTitle": "فتح المحفظة",
-    "unlockDesc": "ارسم نمط قفل المحفظة",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "mismatch": "الأنماط غير متطابقة، حاول مرة أخرى"
   },
   "backupTips": {
@@ -39,7 +40,8 @@
   },
   "walletLock": {
     "unlockTitle": "فتح المحفظة",
-    "unlockDesc": "ارسم نمط قفل المحفظة",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "verifying": "جاري التحقق...",
     "error": "النمط غير صحيح، حاول مرة أخرى",
     "biometric": "استخدام البصمة",

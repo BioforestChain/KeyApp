@@ -15,6 +15,7 @@
     "confirmDesc": "Draw the pattern again to confirm",
     "unlockTitle": "Unlock Wallet",
     "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "mismatch": "Patterns don't match, please try again"
   },
   "backupTips": {
@@ -40,6 +41,7 @@
   "walletLock": {
     "unlockTitle": "Unlock Wallet",
     "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "verifying": "Verifying...",
     "error": "Incorrect pattern, please try again",
     "biometric": "Use Biometrics",

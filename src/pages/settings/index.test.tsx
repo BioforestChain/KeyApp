@@ -7,7 +7,7 @@ import { SettingsPage } from './index';
 import { TestI18nProvider, testI18n } from '@/test/i18n-mock';
 import { IconWallet as Wallet } from '@tabler/icons-react';
 
-const t = testI18n.getFixedT('zh-CN');
+const t = testI18n.getFixedT('zh-CN', ['settings', 'common', 'security']);
 
 // Mock stackflow
 const mockNavigate = vi.fn();

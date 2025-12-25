@@ -5,32 +5,32 @@ import { LoadingSpinner } from './loading-spinner';
 import { EmptyState } from './empty-state';
 
 function ThemeDemoComponent() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation(['common', 'wallet', 'transaction']);
 
   return (
     <div className="bg-card space-y-6 rounded-xl p-4">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('wallet.myWallet')}</h2>
-        <p className="text-muted-foreground text-sm">{t('common.loading')}</p>
+        <h2 className="text-lg font-semibold">{t('wallet:myWallet')}</h2>
+        <p className="text-muted-foreground text-sm">{t('loading')}</p>
       </div>
 
       <div className="flex items-center gap-3">
         <LoadingSpinner size="sm" />
-        <span className="text-sm">{t('common.loading')}...</span>
+        <span className="text-sm">{t('loading')}...</span>
       </div>
 
       <div className="flex gap-2">
         <GradientButton variant="purple" size="sm">
-          {t('wallet.transfer')}
+          {t('wallet:transfer')}
         </GradientButton>
         <GradientButton variant="blue" size="sm">
-          {t('wallet.receive')}
+          {t('wallet:receive')}
         </GradientButton>
       </div>
 
       <div className="bg-background rounded-lg p-3">
-        <p className="text-sm font-medium">{t('transaction.send')}</p>
-        <p className="text-muted-foreground text-xs">{t('transaction.pending')}</p>
+        <p className="text-sm font-medium">{t('transaction:send')}</p>
+        <p className="text-muted-foreground text-xs">{t('transaction:pending')}</p>
       </div>
 
       <div className="text-muted-foreground text-xs">
@@ -72,14 +72,14 @@ export const Default: Story = {};
 
 export const WithEmptyState: Story = {
   render: () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['token', 'empty']);
     return (
       <EmptyState
-        title={t('token.noAssets')}
-        description={t('empty.description')}
+        title={t('noAssets')}
+        description={t('empty:description')}
         action={
           <GradientButton variant="purple" size="sm">
-            {t('token.addToken')}
+            {t('addToken')}
           </GradientButton>
         }
       />
@@ -89,13 +89,13 @@ export const WithEmptyState: Story = {
 
 export const TransactionStates: Story = {
   render: () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('transaction');
     return (
       <div className="space-y-3">
         {(['send', 'receive', 'swap', 'stake'] as const).map((type) => (
           <div key={type} className="bg-card flex items-center justify-between rounded-lg p-3">
-            <span className="font-medium">{t(`transaction.${type}`)}</span>
-            <span className="text-muted-foreground text-sm">{t('transaction.confirmed')}</span>
+            <span className="font-medium">{t(type)}</span>
+            <span className="text-muted-foreground text-sm">{t('confirmed')}</span>
           </div>
         ))}
       </div>
@@ -105,11 +105,11 @@ export const TransactionStates: Story = {
 
 export const SecurityLabels: Story = {
   render: () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('security');
     return (
       <div className="space-y-3">
         <div className="bg-card rounded-lg p-3">
-          <p className="font-medium">{t('security.password')}</p>
+          <p className="font-medium">{t('password')}</p>
           <div className="mt-2 flex gap-2">
             {(['weak', 'medium', 'strong'] as const).map((level) => (
               <span
@@ -122,14 +122,14 @@ export const SecurityLabels: Story = {
                       : 'bg-green-500/20 text-green-500'
                 }`}
               >
-                {t(`security.strength.${level}`)}
+                {t(`strength.${level}`)}
               </span>
             ))}
           </div>
         </div>
         <div className="bg-card rounded-lg p-3">
-          <p className="font-medium">{t('security.mnemonic')}</p>
-          <p className="text-muted-foreground mt-1 text-sm">{t('security.copyMnemonic')}</p>
+          <p className="font-medium">{t('mnemonic')}</p>
+          <p className="text-muted-foreground mt-1 text-sm">{t('copyMnemonic')}</p>
         </div>
       </div>
     );

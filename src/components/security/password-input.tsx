@@ -37,7 +37,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const [visible, setVisible] = useState(false);
     const [strength, setStrength] = useState<PasswordStrength>('weak');
     const [hasValue, setHasValue] = useState(!!value);
-    const { t } = useTranslation();
+    const { t } = useTranslation('common');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
@@ -95,7 +95,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             <p className="text-muted-foreground text-xs">
               <span className="sr-only">{t('a11y.passwordStrength', { strength: config.label })}</span>
               <span aria-hidden="true">
-                {t('common:passwordStrength')}：
+                {t('passwordStrength')}：
                 <span
                   className={cn(
                     strength === 'weak' && 'text-destructive',

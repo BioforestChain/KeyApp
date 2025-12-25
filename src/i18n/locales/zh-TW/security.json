@@ -14,7 +14,8 @@
     "confirmTitle": "確認錢包鎖",
     "confirmDesc": "請再次繪製圖案以確認",
     "unlockTitle": "解鎖錢包",
-    "unlockDesc": "請繪製錢包鎖圖案",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "mismatch": "兩次圖案不一致，請重新設定"
   },
   "backupTips": {
@@ -39,7 +40,8 @@
   },
   "walletLock": {
     "unlockTitle": "解鎖錢包",
-    "unlockDesc": "請繪製錢包鎖圖案",
+    "unlockDesc": "Draw your wallet lock pattern",
+    "verifyTitle": "Verify Wallet",
     "verifying": "驗證中...",
     "error": "圖案錯誤，請重試",
     "biometric": "使用生物辨識",

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 import {
   IconHome,
   IconWallet,
@@ -12,16 +13,9 @@ export type TabId = "home" | "wallet" | "transfer" | "settings";
 
 interface Tab {
   id: TabId;
-  labelKey: string;
+  label: string;
   icon: Icon;
 }
-
-const tabConfigs: Tab[] = [
-  { id: "home", labelKey: "a11y.tabHome", icon: IconHome },
-  { id: "wallet", labelKey: "a11y.tabWallet", icon: IconWallet },
-  { id: "transfer", labelKey: "a11y.tabTransfer", icon: IconArrowsExchange },
-  { id: "settings", labelKey: "a11y.tabSettings", icon: IconSettings },
-];
 
 interface TabBarProps {
   activeTab: TabId;
@@ -29,7 +23,14 @@ interface TabBarProps {
 }
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
+
+  const tabConfigs: Tab[] = useMemo(() => [
+    { id: "home", label: t('a11y.tabHome'), icon: IconHome },
+    { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },
+    { id: "transfer", label: t('a11y.tabTransfer'), icon: IconArrowsExchange },
+    { id: "settings", label: t('a11y.tabSettings'), icon: IconSettings },
+  ], [t]);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -37,7 +38,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
         {tabConfigs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          const label = t(tab.labelKey);
+          const label = tab.label;
           return (
             <button
               key={tab.id}
@@ -62,4 +63,4 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   );
 }
 
-export { tabConfigs as tabs };
+export const tabIds: TabId[] = ["home", "wallet", "transfer", "settings"];
