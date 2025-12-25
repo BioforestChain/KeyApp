@@ -1,12 +1,56 @@
-import { useState } from 'react';
+import { useState, createContext, useContext, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 export type ChainType = string;
 
+/**
+ * ChainIcon Context - 提供 chainId -> iconUrl 的映射
+ */
+interface ChainIconContextValue {
+  getIconUrl: (chainId: string) => string | undefined;
+}
+
+const ChainIconContext = createContext<ChainIconContextValue | null>(null);
+
+interface ChainIconProviderProps {
+  /** 获取链图标 URL 的函数 */
+  getIconUrl: (chainId: string) => string | undefined;
+  children: ReactNode;
+}
+
+/**
+ * ChainIcon Provider
+ * 
+ * 在应用根部注入，提供 chainId -> iconUrl 的自动解析
+ * 
+ * @example
+ * // 使用 chain-config service
+ * const { configs } = useChainConfig();
+ * const iconMap = useMemo(() => 
+ *   Object.fromEntries(configs.map(c => [c.id, c.icon])), 
+ *   [configs]
+ * );
+ * 
+ * <ChainIconProvider getIconUrl={(id) => iconMap[id]}>
+ *   <App />
+ * </ChainIconProvider>
+ */
+export function ChainIconProvider({ getIconUrl, children }: ChainIconProviderProps) {
+  return (
+    <ChainIconContext.Provider value={{ getIconUrl }}>
+      {children}
+    </ChainIconContext.Provider>
+  );
+}
+
+function useChainIconContext() {
+  return useContext(ChainIconContext);
+}
+
 interface ChainIconProps {
-  /** 链 ID，用于 fallback 显示 */
+  /** 链 ID，用于 fallback 显示和从 context 获取 iconUrl */
   chainId?: ChainType | undefined;
-  /** 图标 URL（优先使用） */
+  /** 图标 URL（优先使用，覆盖 context） */
   iconUrl?: string | undefined;
   /** 链符号，用于 fallback 显示 */
   symbol?: string | undefined;
@@ -75,27 +119,31 @@ function toFallbackLabel(chainId?: string, symbol?: string): string {
 /**
  * 链图标组件
  * 
- * 优先使用 iconUrl 显示 SVG 图标，fallback 到首字母 + 背景色
+ * 优先级：iconUrl prop > context > fallback（首字母 + 背景色）
  * 
  * @example
- * // 使用图标 URL（推荐，从 chain-config service 获取）
- * <ChainIcon iconUrl={chainConfig.icon} chainId={chainConfig.id} />
- * 
- * // 仅使用 chainId（fallback 模式）
+ * // 自动从 context 获取图标（需要 ChainIconProvider）
  * <ChainIcon chainId="ethereum" />
+ * 
+ * // 手动指定图标 URL（覆盖 context）
+ * <ChainIcon chainId="ethereum" iconUrl="/custom-icon.svg" />
  */
 export function ChainIcon({ chainId, iconUrl, symbol, size = 'md', className, chain }: ChainIconProps) {
   const [imgError, setImgError] = useState(false);
+  const context = useChainIconContext();
   
   // 兼容旧的 chain prop
   const resolvedChainId = chainId ?? chain;
   const label = toFallbackLabel(resolvedChainId, symbol);
   
+  // 解析图标 URL：prop 优先，否则从 context 获取
+  const resolvedIconUrl = iconUrl ?? (resolvedChainId ? context?.getIconUrl(resolvedChainId) : undefined);
+  
   // 有图标 URL 且未加载失败时，使用图片
-  if (iconUrl && !imgError) {
+  if (resolvedIconUrl && !imgError) {
     return (
       <img
-        src={iconUrl}
+        src={resolvedIconUrl}
         alt={label}
         className={cn('shrink-0 rounded-full object-cover', sizeClasses[size], className)}
         onError={() => setImgError(true)}

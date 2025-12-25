@@ -6,9 +6,9 @@ import { IconCopy as Copy, IconCheck as Check } from '@tabler/icons-react';
 import { clipboardService } from '@/services/clipboard';
 
 interface ChainAddressDisplayProps {
-  /** 链 ID */
+  /** 链 ID（用于从 ChainIconProvider 自动获取图标） */
   chainId: string;
-  /** 链图标 URL（可选，从 chain-config 获取） */
+  /** 链图标 URL（可选，覆盖 context） */
   chainIcon?: string | undefined;
   /** 链符号（可选，用于 fallback） */
   chainSymbol?: string | undefined;
@@ -36,14 +36,14 @@ function truncateAddress(address: string, size: 'sm' | 'md'): string {
  * 链地址显示组件
  * 
  * 组合显示链图标和地址，支持复制功能
+ * 图标自动从 ChainIconProvider context 获取
  * 
  * @example
- * <ChainAddressDisplay
- *   chainId={chainConfig.id}
- *   chainIcon={chainConfig.icon}
- *   address="0x1234...5678"
- *   copyable
- * />
+ * // 自动获取图标（需要 ChainIconProvider）
+ * <ChainAddressDisplay chainId="ethereum" address="0x1234...5678" />
+ * 
+ * // 手动指定图标
+ * <ChainAddressDisplay chainId="ethereum" chainIcon="/custom.svg" address="0x1234...5678" />
  */
 export function ChainAddressDisplay({
   chainId,
