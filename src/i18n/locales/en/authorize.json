@@ -55,5 +55,8 @@
     "authFailed": "Authorization failed",
     "patternIncorrect": "Incorrect pattern",
     "timeout": "Request timed out"
+  },
+  "passwordConfirm": {
+    "title": "Confirm Password"
   }
 }

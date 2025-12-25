@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PasswordInput, calculateStrength } from './password-input'
-import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
+import { TestI18nProvider } from '@/test/i18n-mock'
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
@@ -31,7 +31,7 @@ describe('calculateStrength', () => {
 })
 
 describe('PasswordInput', () => {
-  const placeholder = testI18n.t('security:passwordConfirm.placeholder')
+  const placeholder = '请输入密码'
 
   it('renders password input', () => {
     renderWithProviders(<PasswordInput placeholder={placeholder} />)
@@ -41,15 +41,15 @@ describe('PasswordInput', () => {
   it('toggles password visibility', async () => {
     renderWithProviders(<PasswordInput placeholder={placeholder} />)
     const input = screen.getByPlaceholderText(placeholder)
-    const toggleButton = screen.getByRole('button', { name: testI18n.t('a11y.showPassword') })
+    const toggleButton = screen.getByRole('button', { name: '显示' })
 
     expect(input).toHaveAttribute('type', 'password')
 
     await userEvent.click(toggleButton)
     expect(input).toHaveAttribute('type', 'text')
-    expect(screen.getByRole('button', { name: testI18n.t('a11y.hidePassword') })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '隐藏' })).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: testI18n.t('a11y.hidePassword') }))
+    await userEvent.click(screen.getByRole('button', { name: '隐藏' }))
     expect(input).toHaveAttribute('type', 'password')
   })
 
@@ -58,7 +58,7 @@ describe('PasswordInput', () => {
     const input = document.querySelector('input')!
 
     await userEvent.type(input, 'test')
-    const strengthLabel = testI18n.t('common:passwordStrength')
+    const strengthLabel = '强度'
     await waitFor(() => {
       const matches = screen.getAllByText(
         (_content, node) => node?.textContent?.includes(strengthLabel) ?? false,

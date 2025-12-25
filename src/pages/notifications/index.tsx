@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigation } from '@/stackflow';
 import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2 } from '@tabler/icons-react';
 import { useStore } from '@tanstack/react-store';
@@ -56,7 +57,7 @@ function NotificationItem({
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
   formatRelativeTime: (timestamp: number) => string;
-  t: (key: string) => string;
+  t: TFunction<'notification'>;
 }) {
   const style = typeStyles[notification.type];
 
@@ -117,7 +118,7 @@ function GroupedNotificationList({
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
   formatRelativeTime: (timestamp: number) => string;
-  t: (key: string) => string;
+  t: TFunction<'notification'>;
   language: string;
 }) {
   const grouped = useMemo(() => {

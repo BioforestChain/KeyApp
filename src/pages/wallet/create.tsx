@@ -30,7 +30,7 @@ const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains'];
 
 export function WalletCreatePage() {
   const { navigate, goBack } = useNavigation();
-  const { t } = useTranslation();
+  const { t } = useTranslation('onboarding');
   const chainConfigs = useChainConfigs();
   const [step, setStep] = useState<Step>('pattern');
   const [patternKey, setPatternKey] = useState('');
@@ -152,7 +152,7 @@ export function WalletCreatePage() {
 
       await walletActions.createWallet(
         {
-          name: t('onboarding:create.defaultWalletName'),
+          name: t('create.defaultWalletName'),
           keyType: 'mnemonic',
           address: primaryChain.address,
           chain: primaryChain.chain,
@@ -164,14 +164,14 @@ export function WalletCreatePage() {
 
       navigate({ to: '/' });
     } catch (error) {
-      console.error(t('onboarding:create.createFailed'), error);
+      console.error(t('create.createFailed'), error);
       setIsCreating(false);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={t('onboarding:create.title')} onBack={handleBack} />
+      <PageHeader title={t('create.title')} onBack={handleBack} />
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
@@ -215,7 +215,7 @@ export function WalletCreatePage() {
               selectionCount={selectedChainIds.length}
               onSelectionChange={setSelectedChainIds}
               onComplete={handleComplete}
-              completeLabel={t('onboarding:create.complete')}
+              completeLabel={t('create.complete')}
               isSubmitting={isCreating}
             />
           </div>
@@ -235,25 +235,25 @@ interface MnemonicStepProps {
 }
 
 function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onContinue }: MnemonicStepProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('onboarding');
   const canContinue = copied || !hidden;
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={KeyRound} variant="warning" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">{t('onboarding:create.backupMnemonic')}</h2>
-        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.backupHint')}</p>
+        <h2 className="text-xl font-bold">{t('create.backupMnemonic')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('create.backupHint')}</p>
       </div>
 
-      <Alert variant="warning">{t('onboarding:create.mnemonicWarning')}</Alert>
+      <Alert variant="warning">{t('create.mnemonicWarning')}</Alert>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">{t('onboarding:create.mnemonicTitle')}</span>
+          <span className="text-sm font-medium">{t('create.mnemonicTitle')}</span>
           <button type="button" data-testid="toggle-mnemonic-button" onClick={onToggleHidden} className="text-primary flex items-center gap-1 text-sm">
             {hidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-            {hidden ? t('onboarding:create.mnemonicShow') : t('onboarding:create.mnemonicHide')}
+            {hidden ? t('create.mnemonicShow') : t('create.mnemonicHide')}
           </button>
         </div>
 
@@ -261,7 +261,7 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
       </div>
 
       <GradientButton variant="mint" className="w-full" data-testid="mnemonic-backed-up-button" disabled={!canContinue} onClick={onContinue}>
-        {canContinue ? t('onboarding:create.mnemonicBackedUp') : t('onboarding:create.mnemonicViewFirst')}
+        {canContinue ? t('create.mnemonicBackedUp') : t('create.mnemonicViewFirst')}
         {canContinue && <ArrowRight className="ml-2 size-4" />}
       </GradientButton>
     </div>
@@ -274,7 +274,7 @@ interface VerifyStepProps {
 }
 
 function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['onboarding', 'common']);
   const [selectedIndices] = useState<number[]>(() => {
     const indices = Array.from({ length: mnemonic.length }, (_, i) => i);
     const shuffled = indices.sort(() => Math.random() - 0.5);
@@ -297,7 +297,7 @@ function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
     const word = mnemonic[index];
     const answer = answers[index];
     if (answer && word && answer.toLowerCase() !== word.toLowerCase()) {
-      return t('onboarding:create.wordIncorrect');
+      return t('create.wordIncorrect');
     }
     return undefined;
   };
@@ -306,20 +306,20 @@ function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">{t('onboarding:create.verifyTitle')}</h2>
-        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.verifyDesc')}</p>
+        <h2 className="text-xl font-bold">{t('create.verifyTitle')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('create.verifyDesc')}</p>
       </div>
 
       <div className="space-y-4">
         {selectedIndices.map((index) => (
-          <FormField key={index} label={t('onboarding:create.wordN', { n: index + 1 })} error={getFieldError(index)}>
+          <FormField key={index} label={t('create.wordN', { n: index + 1 })} error={getFieldError(index)}>
             <Input
               data-testid={`verify-word-input-${index}`}
               data-verify-index={index}
               value={answers[index] || ''}
               onChange={(e) => handleInputChange(index, e.target.value)}
               className={cn(getFieldError(index) && 'border-destructive focus-visible:ring-destructive')}
-              placeholder={t('onboarding:create.wordNPlaceholder', { n: index + 1 })}
+              placeholder={t('create.wordNPlaceholder', { n: index + 1 })}
               autoCapitalize="off"
               autoCorrect="off"
             />
@@ -365,8 +365,8 @@ function ChainSelectionStep({
     <div className="space-y-6">
       <div className="text-center">
         <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
-        <h2 className="text-xl font-bold">{t('onboarding:chainSelector.title')}</h2>
-        <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:chainSelector.subtitle')}</p>
+        <h2 className="text-xl font-bold">{t('chainSelector.title')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('chainSelector.subtitle')}</p>
       </div>
 
       {chains.length === 0 ? (

@@ -55,5 +55,8 @@
     "authFailed": "授权失败",
     "patternIncorrect": "图案错误",
     "timeout": "请求已超时"
+  },
+  "passwordConfirm": {
+    "title": "确认密码"
   }
 }

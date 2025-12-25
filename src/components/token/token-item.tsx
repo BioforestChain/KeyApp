@@ -36,7 +36,7 @@ interface TokenItemProps {
 
 export function TokenItem({ token, onClick, showChange = false, loading = false, className }: TokenItemProps) {
   const isClickable = !!onClick;
-  const { t } = useTranslation();
+  const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
 
   const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD';
@@ -59,10 +59,10 @@ export function TokenItem({ token, onClick, showChange = false, loading = false,
   const exchangeStatusMessage =
     shouldFetchRate && !canConvert
       ? exchangeRateError
-        ? t('currency:exchange.error')
+        ? t('exchange.error')
         : exchangeRateLoading
-          ? t('currency:exchange.loading')
-          : t('currency:exchange.unavailable')
+          ? t('exchange.loading')
+          : t('exchange.unavailable')
       : null;
 
   return (
@@ -71,7 +71,7 @@ export function TokenItem({ token, onClick, showChange = false, loading = false,
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={isClickable ? (e) => e.key === 'Enter' && onClick?.() : undefined}
-      aria-label={isClickable ? t('a11y.tokenDetails', { token: token.symbol }) : undefined}
+      aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
       className={cn(
         '@container flex items-center gap-3 rounded-xl p-3 transition-colors',
         isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer',

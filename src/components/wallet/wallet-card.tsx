@@ -27,7 +27,7 @@ export function WalletCard({
   onReceive,
   className,
 }: WalletCardProps) {
-  const { t } = useTranslation('wallet')
+  const { t } = useTranslation(['wallet', 'common'])
   return (
     <div className={cn('@container', className)}>
       <div
@@ -85,7 +85,7 @@ export function WalletCard({
                 onClick={onTransfer}
                 className="flex-1 py-2 px-4 bg-white/20 rounded-full text-sm font-medium hover:bg-white/30 transition-colors @xs:py-2.5 @xs:text-base"
               >
-                {t('common:transfer')}
+                {t('transfer')}
               </button>
             )}
             {onReceive && (
@@ -94,7 +94,7 @@ export function WalletCard({
                 onClick={onReceive}
                 className="flex-1 py-2 px-4 bg-white/20 rounded-full text-sm font-medium hover:bg-white/30 transition-colors @xs:py-2.5 @xs:text-base"
               >
-                {t('common:receive')}
+                {t('receive')}
               </button>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
@@ -11,14 +11,6 @@ import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
 
-/** Period options - labels will be translated */
-const PERIOD_OPTIONS: { value: TransactionFilter['period']; labelKey: string }[] = [
-  { value: 'all', labelKey: 'transaction:history.filter.allTime' },
-  { value: '7d', labelKey: 'transaction:history.filter.days7' },
-  { value: '30d', labelKey: 'transaction:history.filter.days30' },
-  { value: '90d', labelKey: 'transaction:history.filter.days90' },
-];
-
 export function TransactionHistoryPage() {
   const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
@@ -27,13 +19,21 @@ export function TransactionHistoryPage() {
   const { t } = useTranslation(['transaction', 'common']);
   // 使用 TanStack Query 管理交易历史
   const { transactions, isLoading, isFetching, filter, setFilter, refresh } = useTransactionHistoryQuery(currentWallet?.id);
-  const chainOptions: { value: ChainType | 'all'; labelKey?: string; label?: string }[] = [
-    { value: 'all', labelKey: 'transaction:history.filter.allChains' },
+
+  const periodOptions = useMemo(() => [
+    { value: 'all' as const, label: t('history.filter.allTime') },
+    { value: '7d' as const, label: t('history.filter.days7') },
+    { value: '30d' as const, label: t('history.filter.days30') },
+    { value: '90d' as const, label: t('history.filter.days90') },
+  ], [t]);
+
+  const chainOptions = useMemo(() => [
+    { value: 'all' as const, label: t('history.filter.allChains') },
     ...enabledChains.map((chain) => ({
       value: chain.id,
       label: chain.name,
     })),
-  ];
+  ], [t, enabledChains]);
 
   // 初始化时设置默认过滤器为当前选中的网络
   useEffect(() => {
@@ -119,7 +119,7 @@ export function TransactionHistoryPage() {
             <SelectContent>
               {chainOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.labelKey ? t(option.labelKey) : option.label}
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -134,9 +134,9 @@ export function TransactionHistoryPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {PERIOD_OPTIONS.map((option) => (
-                <SelectItem key={option.value ?? 'all'} value={option.value ?? 'all'}>
-                  {t(option.labelKey)}
+              {periodOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -50,7 +50,7 @@ function getManualConfigIds(input: string): string[] {
   }
 }
 
-function getSourceLabel(t: (key: string) => string, source: ChainConfigSource): string {
+function getSourceLabel(t: (key: string, options?: object) => string, source: ChainConfigSource): string {
   switch (source) {
     case 'default':
       return t('chainConfig.source.default');
@@ -311,7 +311,7 @@ export function ChainConfigPage() {
             {configs.map((config, index) => {
               const warning = warningById.get(config.id);
               const disabledByWarning = warning?.kind === 'incompatible_major';
-              const sourceLabel = getSourceLabel(t, config.source);
+              const sourceLabel = getSourceLabel(t as (key: string, options?: object) => string, config.source);
 
               return (
                 <div key={config.id} data-testid={`chain-item-${config.id}`}>

@@ -76,7 +76,7 @@ export function WalletListPage() {
                 isActive={wallet.id === currentWalletId}
                 onSelect={() => handleSelectWallet(wallet.id)}
                 onDetail={() => handleWalletDetail(wallet.id)}
-                t={t}
+                t={t as (key: string, options?: unknown) => string}
               />
             ))}
           </div>

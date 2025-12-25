@@ -33,13 +33,13 @@ const OPTIONS: Array<{
 ];
 
 export function KeyTypeSelector({ value, onChange, disabled = false, className }: KeyTypeSelectorProps) {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation('onboarding');
 
   return (
     <div className={cn('space-y-3', className)}>
-      <div className="text-sm font-medium">{t('onboarding:keyType.title')}</div>
+      <div className="text-sm font-medium">{t('keyType.title')}</div>
 
-      <div role="radiogroup" aria-label={t('onboarding:keyType.title')} className="grid gap-3">
+      <div role="radiogroup" aria-label={t('keyType.title')} className="grid gap-3">
         {OPTIONS.map((option) => {
           const isSelected = value === option.value;
           return (
@@ -60,8 +60,8 @@ export function KeyTypeSelector({ value, onChange, disabled = false, className }
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold">{t(`onboarding:${option.titleKey}`)}</div>
-                  <div className="text-muted-foreground mt-1 text-xs">{t(`onboarding:${option.descKey}`)}</div>
+                  <div className="text-sm font-semibold">{t(option.titleKey as 'keyType.mnemonic' | 'keyType.arbitrary')}</div>
+                  <div className="text-muted-foreground mt-1 text-xs">{t(option.descKey as 'keyType.mnemonicDesc' | 'keyType.arbitraryDesc')}</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {option.tags.map((tag) => (
                       <span

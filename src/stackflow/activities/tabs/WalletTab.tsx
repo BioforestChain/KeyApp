@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 export function WalletTab() {
   const { push } = useFlow();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['wallet', 'common']);
   const wallets = useWallets();
   const currentWallet = useCurrentWallet();
   const currentWalletId = currentWallet?.id;
@@ -25,7 +25,7 @@ export function WalletTab() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <PageHeader title={t("a11y.tabWallet")} />
+      <PageHeader title={t("common:a11y.tabWallet")} />
 
       <div className="flex-1 p-4">
         {/* Wallet List */}
@@ -78,7 +78,7 @@ export function WalletTab() {
                   type="button"
                   onClick={(e) => handleWalletSettings(e, wallet.id, wallet.name)}
                   className="shrink-0 rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  aria-label={t('wallet:detail.title')}
+                  aria-label={t('detail.title')}
                 >
                   <IconSettings className="size-5" />
                 </button>
@@ -93,8 +93,8 @@ export function WalletTab() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
               <IconWallet className="size-8 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground">{t('wallet:empty')}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t('wallet:emptyHint')}</p>
+            <p className="text-muted-foreground">{t('empty')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t('emptyHint')}</p>
           </div>
         )}
 
@@ -106,7 +106,7 @@ export function WalletTab() {
             onClick={() => push("WalletAddJob", {})}
           >
             <IconPlus className="size-4" />
-            {t('wallet:add')}
+            {t('add')}
           </Button>
         </div>
       </div>

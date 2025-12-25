@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ChangeWalletLockPage } from './change-wallet-lock'
 import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
 
-const t = testI18n.getFixedT('zh-CN')
+const t = testI18n.getFixedT('zh-CN', ['settings', 'common', 'security'])
 
 // Mock stackflow
 const mockGoBack = vi.fn()

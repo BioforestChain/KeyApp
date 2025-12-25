@@ -73,7 +73,7 @@ function WalletItem({ wallet, isSelected, onSelect, notBackedUpLabel }: WalletIt
  * Wallet selector component for switching between multiple wallets
  */
 export function WalletSelector({ wallets, selectedId, onSelect, onClose, className }: WalletSelectorProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'wallet']);
 
   const handleSelect = (wallet: WalletInfo) => {
     onSelect?.(wallet);
@@ -97,7 +97,7 @@ export function WalletSelector({ wallets, selectedId, onSelect, onClose, classNa
           wallet={wallet}
           isSelected={wallet.id === selectedId}
           onSelect={() => handleSelect(wallet)}
-          notBackedUpLabel={t('wallet:notBackedUp')}
+          notBackedUpLabel={t('notBackedUp')}
         />
       ))}
     </div>

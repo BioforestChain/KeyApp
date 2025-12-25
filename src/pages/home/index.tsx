@@ -56,7 +56,7 @@ export function HomePage() {
   const clipboard = useClipboard();
   const toast = useToast();
   const haptics = useHaptics();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['home', 'common']);
 
   const isInitialized = useWalletInitialized();
   const hasWallet = useHasWallet();
@@ -79,7 +79,7 @@ export function HomePage() {
       await clipboard.write({ text: chainAddress.address });
       await haptics.impact('light');
       setCopied(true);
-      toast.show(t('home:wallet.addressCopied'));
+      toast.show(t('wallet.addressCopied'));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -109,7 +109,7 @@ export function HomePage() {
           data-testid="chain-selector"
           onClick={handleOpenChainSelector}
           className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
-          aria-label={t('a11y.chainSelector')}
+          aria-label={t('common:a11y.chainSelector')}
         >
           <ChainIcon chain={selectedChain} size="sm" />
           <span>{selectedChainName}</span>
@@ -126,7 +126,7 @@ export function HomePage() {
             <button
               onClick={handleCopyAddress}
               className="rounded p-1 hover:bg-white/10"
-              aria-label={t('a11y.copyAddress')}
+              aria-label={t('common:a11y.copyAddress')}
             >
               {copied ? <Check className="size-4 text-green-300" /> : <Copy className="size-4 text-white/70" />}
             </button>
@@ -138,13 +138,13 @@ export function HomePage() {
           <div className="flex-1">
             <GradientButton variant="blue" className="w-full" size="sm" onClick={() => navigate({ to: '/send' })}>
               <Send className="mr-1.5 size-4" />
-              {t('home:wallet.send')}
+              {t('wallet.send')}
             </GradientButton>
           </div>
           <div className="flex-1">
             <GradientButton variant="red" className="w-full" size="sm" onClick={() => navigate({ to: '/receive' })}>
               <QrCode className="mr-1.5 size-4" />
-              {t('home:wallet.receive')}
+              {t('wallet.receive')}
             </GradientButton>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function HomePage() {
 
       {/* 资产列表 */}
       <div className="bg-background -mt-4 flex-1 rounded-t-3xl p-5">
-        <h2 className="mb-4 text-lg font-semibold">{t('home:wallet.assets')}</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('wallet.assets')}</h2>
         <TokenList
           tokens={tokens.map((token) => ({
             symbol: token.symbol,
@@ -167,8 +167,8 @@ export function HomePage() {
             // TODO: Implement token detail page route once available
             console.log('Token clicked:', token.symbol);
           }}
-          emptyTitle={t('home:wallet.noAssets')}
-          emptyDescription={t('home:wallet.noAssetsOnChain', { chain: selectedChainName })}
+          emptyTitle={t('wallet.noAssets')}
+          emptyDescription={t('wallet.noAssetsOnChain', { chain: selectedChainName })}
         />
       </div>
 
@@ -176,7 +176,7 @@ export function HomePage() {
       <button
         onClick={() => navigate({ to: '/scanner' })}
         className="bg-primary fixed right-6 bottom-[calc(var(--safe-area-inset-bottom)+1.5rem)] z-60 flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-        aria-label={t('a11y.scan')}
+        aria-label={t('common:a11y.scan')}
       >
         <ScanLine className="text-primary-foreground size-6" />
       </button>
@@ -186,7 +186,7 @@ export function HomePage() {
 
 function NoWalletView() {
   const { navigate } = useNavigation();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['home', 'common']);
   
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
@@ -194,15 +194,15 @@ function NoWalletView() {
         <Plus className="text-primary size-12" />
       </div>
       <div>
-        <h1 className="text-2xl font-bold">{t('home:welcome.title')}</h1>
-        <p className="text-muted-foreground mt-2">{t('home:welcome.subtitle')}</p>
+        <h1 className="text-2xl font-bold">{t('welcome.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('welcome.subtitle')}</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
         <GradientButton variant="mint" className="w-full" onClick={() => navigate({ to: '/wallet/create' })}>
-          {t('home:welcome.createWallet')}
+          {t('welcome.createWallet')}
         </GradientButton>
         <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/onboarding/recover' })}>
-          {t('home:welcome.importWallet')}
+          {t('welcome.importWallet')}
         </Button>
       </div>
     </div>

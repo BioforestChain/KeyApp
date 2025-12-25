@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import {
@@ -28,8 +28,8 @@ export function resetWelcome(): void {
 
 interface WelcomeSlide {
   icon: React.ReactNode;
-  titleKey: string;
-  descriptionKey: string;
+  title: string;
+  description: string;
 }
 
 export function WelcomeScreen() {
@@ -38,23 +38,23 @@ export function WelcomeScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const migration = useMigrationOptional();
 
-  const slides: WelcomeSlide[] = [
+  const slides: WelcomeSlide[] = useMemo(() => [
     {
       icon: <Send className="text-primary size-16" />,
-      titleKey: 'welcome.slides.transfer.title',
-      descriptionKey: 'welcome.slides.transfer.description',
+      title: t('welcome.slides.transfer.title'),
+      description: t('welcome.slides.transfer.description'),
     },
     {
       icon: <Link2 className="text-primary size-16" />,
-      titleKey: 'welcome.slides.multichain.title',
-      descriptionKey: 'welcome.slides.multichain.description',
+      title: t('welcome.slides.multichain.title'),
+      description: t('welcome.slides.multichain.description'),
     },
     {
       icon: <Shield className="text-primary size-16" />,
-      titleKey: 'welcome.slides.security.title',
-      descriptionKey: 'welcome.slides.security.description',
+      title: t('welcome.slides.security.title'),
+      description: t('welcome.slides.security.description'),
     },
-  ];
+  ], [t]);
 
   const currentSlideData = slides[currentSlide];
   if (!currentSlideData) return null;
@@ -102,8 +102,8 @@ export function WelcomeScreen() {
         <div className="bg-primary/10 mb-8 flex size-32 items-center justify-center rounded-full">
           {currentSlideData.icon}
         </div>
-        <h1 className="mb-4 text-center text-2xl font-bold">{t(currentSlideData.titleKey)}</h1>
-        <p className="text-muted-foreground mb-8 max-w-sm text-center">{t(currentSlideData.descriptionKey)}</p>
+        <h1 className="mb-4 text-center text-2xl font-bold">{currentSlideData.title}</h1>
+        <p className="text-muted-foreground mb-8 max-w-sm text-center">{currentSlideData.description}</p>
 
         {/* Dots indicator */}
         <div className="mb-8 flex gap-2">

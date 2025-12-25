@@ -33,7 +33,7 @@ type TwoStepSecretConfirmJobParams = {
 };
 
 function TwoStepSecretConfirmJobContent() {
-  const { t } = useTranslation(["security", "transaction"]);
+  const { t } = useTranslation(["security", "transaction", "common"]);
   const { pop } = useFlow();
   const { title, description } = useActivityParams<TwoStepSecretConfirmJobParams>();
 

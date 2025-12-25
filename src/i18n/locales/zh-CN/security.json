@@ -1,4 +1,5 @@
 {
+  "password": "密码",
   "patternLock": {
     "gridLabel": "{{size}}x{{size}} 图案锁",
     "nodeLabel": "第{{row}}行第{{col}}列节点{{order, number}}",
@@ -40,12 +41,17 @@
   "walletLock": {
     "unlockTitle": "解锁钱包",
     "unlockDesc": "请绘制钱包锁图案",
+    "verifyTitle": "验证钱包",
     "verifying": "验证中...",
     "error": "图案错误，请重试",
     "biometric": "使用生物识别",
     "cancel": "取消"
   },
+  "passwordConfirm": {
+    "verifying": "验证中..."
+  },
   "twoStepSecret": {
+    "confirmTitle": "确认安全密码",
     "setTitle": "设置安全密码",
     "tooShort": "安全密码至少6个字符",
     "lengthHint": "建议至少6位",

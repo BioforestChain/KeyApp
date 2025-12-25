@@ -41,7 +41,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
-    const { t } = useTranslation();
+    const { t } = useTranslation('common');
     const errorId = useId();
     const listboxId = useId();
 
@@ -149,7 +149,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
               onBlur={() => setTimeout(() => setFocused(false), 150)}
               onKeyDown={handleKeyDown}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
-              placeholder={t('common:addressPlaceholder')}
+              placeholder={t('addressPlaceholder')}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
@@ -182,7 +182,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                 aria-label={t('a11y.paste')}
               >
                 <ClipboardPaste className="size-5 @xs:hidden" />
-                <span className="hidden @xs:inline">{t('common:paste')}</span>
+                <span className="hidden @xs:inline">{t('paste')}</span>
               </button>
             </div>
           </div>
