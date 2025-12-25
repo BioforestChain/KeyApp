@@ -107,9 +107,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "deleteTitle": "Delete Wallet",
-    "deleteWarning": "⚠️ This action cannot be undone\n\nEnter password to confirm deleting wallet \"{{name}}\"",
-    "passwordPlaceholder": "Enter wallet password",
-    "passwordError": "Incorrect password",
+    "deleteWarning": "⚠️ This action cannot be undone\n\nDraw pattern to confirm deleting wallet \"{{name}}\"",
+    "patternError": "Incorrect pattern",
     "verifying": "Verifying...",
     "verifyFailed": "Verification failed",
     "confirmDelete": "Confirm Delete"
