@@ -20,13 +20,13 @@
       "signMessage": "Sign a verification message",
       "getMain": "View your wallet import phrase (main)"
     },
-    "confirmDescription": "Enter your password to continue",
+    "confirmDescription": "Draw your pattern to continue",
     "noWallets": "لا توجد محافظ"
   },
   "signature": {
     "reviewTransaction": "Review this transaction",
     "messageToSign": "Message to Sign",
-    "confirmDescription": "Enter your password to sign this transaction",
+    "confirmDescription": "Draw your pattern to sign this transaction",
     "type": {
       "message": "Message Signing",
       "transfer": "Token Transfer",
@@ -47,13 +47,13 @@
   "button": {
     "approve": "Approve",
     "reject": "Reject",
-    "confirm": "Confirm with Password"
+    "confirm": "Confirm with Pattern"
   },
   "error": {
     "insufficientBalance": "Insufficient balance for this transaction",
     "unknownChain": "Unsupported blockchain",
     "authFailed": "Authorization failed",
-    "passwordIncorrect": "Incorrect password",
+    "patternIncorrect": "Incorrect pattern",
     "timeout": "Request timed out"
   }
 }

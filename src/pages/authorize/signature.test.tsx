@@ -112,7 +112,7 @@ describe('SignatureAuthPage', () => {
 
     await screen.findByText('Example DApp')
 
-    expect(screen.getByRole('button', { name: '输入密码确认' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '绘制图案确认' })).toBeDisabled()
 
     await userEvent.click(screen.getByRole('button', { name: '拒绝' }))
 
@@ -158,13 +158,13 @@ describe('SignatureAuthPage', () => {
 
     await screen.findByText('Example DApp')
 
-    const confirmBtn = screen.getByRole('button', { name: '输入密码确认' })
+    const confirmBtn = screen.getByRole('button', { name: '绘制图案确认' })
     expect(confirmBtn).toBeEnabled()
 
     await userEvent.click(confirmBtn)
 
-    const pwdInput = await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(pwdInput, 'pwd')
+    const patternInput = await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(patternInput, '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {

@@ -169,8 +169,8 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '同意' }))
 
-    await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(screen.getByPlaceholderText('请输入密码'), 'pw')
+    await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(screen.getByTestId('pattern-lock-input'), '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {
@@ -216,8 +216,8 @@ describe('AddressAuthPage', () => {
     await screen.findByText('Example DApp')
     await userEvent.click(screen.getByRole('button', { name: '同意' }))
 
-    await screen.findByPlaceholderText('请输入密码')
-    await userEvent.type(screen.getByPlaceholderText('请输入密码'), 'pw')
+    await screen.findByTestId('pattern-lock-input')
+    await userEvent.type(screen.getByTestId('pattern-lock-input'), '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {

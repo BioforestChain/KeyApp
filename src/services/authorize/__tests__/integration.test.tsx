@@ -164,11 +164,11 @@ describe('authorize integration (mock-first)', () => {
 
     expect(await screen.findByText('Example DApp')).toBeInTheDocument()
 
-    const confirmBtn = await screen.findByRole('button', { name: '输入密码确认' })
+    const confirmBtn = await screen.findByRole('button', { name: '绘制图案确认' })
     expect(confirmBtn).toBeEnabled()
     await userEvent.click(confirmBtn)
 
-    await userEvent.type(await screen.findByPlaceholderText('请输入密码'), 'pw')
+    await userEvent.type(await screen.findByTestId('pattern-lock-input'), '0,1,2,5,8')
     await userEvent.click(screen.getByRole('button', { name: '确认' }))
 
     await waitFor(() => {
