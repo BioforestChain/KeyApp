@@ -32,8 +32,6 @@ const chainIcons: Record<string, string> = {
   ethmeta: '/icons/chains/ethmeta.svg',
   ccchain: '/icons/chains/ccchain.svg',
   pmchain: '/icons/chains/pmchain.svg',
-  malibu: '/icons/chains/malibu.svg',
-  biwmeta: '/icons/chains/biwmeta.svg',
   bfchainv2: '/icons/chains/bfchainv2.svg',
 };
 
