@@ -19,6 +19,7 @@
 | [AnimatedNumber](./AnimatedNumber) | 数字动画显示 | P0 |
 | [TokenIcon](./TokenIcon) | 代币/链图标 | P0 |
 | [QRCode](./QRCode) | 二维码生成与显示 | P0 |
+| [Scanner](./Scanner) | 二维码扫描与解析 | P0 |
 | Countdown | 倒计时 | P1 |
 | CopyButton | 复制按钮 | P1 |
 | EmptyState | 空状态占位 | P1 |

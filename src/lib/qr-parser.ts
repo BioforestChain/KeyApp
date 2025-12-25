@@ -201,7 +201,7 @@ function parseContactURI(content: string): ParsedContact | null {
   if (content.startsWith('{') && content.includes('"type":"contact"')) {
     try {
       const data = JSON.parse(content)
-      if (data.type === 'contact' && data.name && Array.isArray(data.addresses)) {
+      if (data.type === 'contact' && data.name && Array.isArray(data.addresses) && data.addresses.length > 0) {
         return {
           type: 'contact',
           name: data.name,

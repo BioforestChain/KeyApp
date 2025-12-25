@@ -169,4 +169,65 @@ describe('Address validation edge cases', () => {
     const parsed = parseQRContent(content)
     expect(scanValidators.ethereumAddress(content, parsed)).toBe(true)
   })
+
+  it('rejects Ethereum address with invalid characters', () => {
+    const content = '0xGGGG35Cc6634C0532925a3b844Bc9e7595f12345'
+    const parsed = parseQRContent(content)
+    expect(scanValidators.ethereumAddress(content, parsed)).toBe('invalidEthereumAddress')
+  })
+
+  it('rejects empty string', () => {
+    const content = ''
+    const parsed = parseQRContent(content)
+    expect(scanValidators.ethereumAddress(content, parsed)).toBe('invalidEthereumAddress')
+    expect(scanValidators.bitcoinAddress(content, parsed)).toBe('invalidBitcoinAddress')
+    expect(scanValidators.tronAddress(content, parsed)).toBe('invalidTronAddress')
+    expect(scanValidators.anyAddress(content, parsed)).toBe('invalidAddress')
+  })
+
+  it('rejects whitespace only', () => {
+    const content = '   '
+    const parsed = parseQRContent(content)
+    expect(scanValidators.anyAddress(content, parsed)).toBe('invalidAddress')
+  })
+
+  it('validates Tron address with exact length', () => {
+    // Tron addresses are T + 33 chars = 34 total
+    const content = 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW'
+    expect(content.length).toBe(34)
+    const parsed = parseQRContent(content)
+    expect(scanValidators.tronAddress(content, parsed)).toBe(true)
+  })
+
+  it('rejects Tron address with wrong prefix', () => {
+    const content = 'BJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW' // B instead of T
+    const parsed = parseQRContent(content)
+    expect(scanValidators.tronAddress(content, parsed)).toBe('invalidTronAddress')
+  })
+
+  it('anyAddress accepts address-like strings within length range', () => {
+    // Between 26-64 characters
+    const content26 = 'abcdefghijklmnopqrstuvwxyz' // 26 chars
+    const content64 = 'a'.repeat(64)
+    const parsed26 = parseQRContent(content26)
+    const parsed64 = parseQRContent(content64)
+    expect(scanValidators.anyAddress(content26, parsed26)).toBe(true)
+    expect(scanValidators.anyAddress(content64, parsed64)).toBe(true)
+  })
+
+  it('anyAddress rejects strings too short or too long', () => {
+    const content25 = 'a'.repeat(25) // Too short
+    const content65 = 'a'.repeat(65) // Too long
+    const parsed25 = parseQRContent(content25)
+    const parsed65 = parseQRContent(content65)
+    expect(scanValidators.anyAddress(content25, parsed25)).toBe('invalidAddress')
+    expect(scanValidators.anyAddress(content65, parsed65)).toBe('invalidAddress')
+  })
+
+  it('rejects contact type for address validators', () => {
+    const content = '{"type":"contact","name":"Test","addresses":[{"chainType":"ethereum","address":"0x742d35Cc6634C0532925a3b844Bc9e7595f12345"}]}'
+    const parsed = parseQRContent(content)
+    expect(parsed.type).toBe('contact')
+    expect(scanValidators.ethereumAddress(content, parsed)).toBe('invalidEthereumAddress')
+  })
 })
