@@ -14,3 +14,5 @@
 - ❌ text-secondary → ✅ text-muted-foreground 或 bg-secondary text-secondary-foreground（详见白皮书 02-设计篇/02-视觉设计/theme-colors）
 - ❌ getByText('硬编码中文') → ✅ getByText(t('i18n.key')) 或 getByTestId
 - ❌ password/Password（宽泛含义） → ✅ walletLock（钱包锁）/ twoStepSecret（安全密码）/ payPassword（支付密码）等具体命名
+- 圆形元素必须使用 aspect-square 标记，与 w-*/h-*/size-* 不冲突，是规范要求
+- 组件尺寸属性要考虑响应式布局，如 lg 尺寸应包含 @xs:w-12 等容器查询断点

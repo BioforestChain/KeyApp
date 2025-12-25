@@ -31,10 +31,10 @@ function useTokenIconContext() {
 }
 
 const sizeClasses = {
-  xs: 'size-4 text-[8px]',
-  sm: 'size-6 text-[10px]',
-  md: 'size-8 text-xs',
-  lg: 'size-10 text-sm',
+  xs: 'aspect-square w-4 text-[8px]',
+  sm: 'aspect-square w-6 text-[10px]',
+  md: 'aspect-square w-8 text-xs',
+  lg: 'aspect-square w-10 @xs:w-12 text-sm',
 } as const;
 
 export interface TokenIconProps {
