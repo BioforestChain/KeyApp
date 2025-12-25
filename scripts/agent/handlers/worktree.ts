@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs'
 import { basename, join, relative, resolve, sep } from 'node:path'
-import { ROOT, WORKTREE_DIR, log } from './utils'
+import { ROOT, WORKTREE_DIR, log } from '../utils'
 
 const ALLOWED_BRANCH_PREFIXES = [
   'feat/',

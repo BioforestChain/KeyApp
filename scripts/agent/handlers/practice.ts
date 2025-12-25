@@ -3,7 +3,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { BEST_PRACTICES_FILE, log } from './utils'
+import { BEST_PRACTICES_FILE, log } from '../utils'
 
 interface PracticeDocument {
   headerLines: string[]
