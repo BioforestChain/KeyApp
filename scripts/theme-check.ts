@@ -39,9 +39,19 @@ const ACCEPTABLE_CONTEXTS = [
   'bg-white/20', // Semi-transparent on gradient backgrounds
   'bg-white/10',
   'bg-white/30',
-  'text-white', // On colored backgrounds (primary, gradient, etc.)
-  'text-white/80',
+  'text-white/80', // Semi-transparent white on colored backgrounds
   'text-white/50',
+  'bg-gradient-', // Gradient backgrounds
+]
+
+// Backgrounds that allow text-white (these don't change much in dark mode)
+const ALLOWS_TEXT_WHITE = [
+  'bg-gradient-',
+  'bg-green-',
+  'bg-red-',
+  'bg-blue-',
+  'bg-orange-',
+  'bg-black',
 ]
 
 // ==================== Colors ====================
@@ -213,7 +223,88 @@ function checkMissingDarkVariant(content: string, file: string): Issue[] {
 }
 
 /**
- * Rule 4: Success/error states should use semantic colors
+ * Rule 4: bg-primary/destructive should use text-xxx-foreground, not text-white
+ * In dark mode, primary-foreground changes to dark color while text-white stays white
+ */
+function checkTextWhiteOnSemanticBg(content: string, file: string): Issue[] {
+  const issues: Issue[] = []
+  const lines = content.split('\n')
+
+  // Semantic backgrounds that need their foreground pair, not text-white
+  const semanticBgs = ['primary', 'destructive', 'secondary']
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    // Check if line has text-white
+    if (!line.includes('text-white')) continue
+    
+    // Skip if text-white is with acceptable backgrounds
+    if (ALLOWS_TEXT_WHITE.some((bg) => line.includes(bg))) continue
+
+    // Check if this line or nearby context has a semantic background
+    const context = lines.slice(Math.max(0, i - 2), Math.min(lines.length, i + 3)).join(' ')
+
+    for (const bg of semanticBgs) {
+      if (context.includes(`bg-${bg}`) && !context.includes(`text-${bg}-foreground`)) {
+        issues.push({
+          file,
+          line: i + 1,
+          column: line.indexOf('text-white') + 1,
+          rule: 'text-white-on-semantic-bg',
+          message: `'text-white' with 'bg-${bg}' - use 'text-${bg}-foreground' instead`,
+          severity: 'error',
+          suggestion: `Replace 'text-white' with 'text-${bg}-foreground' for proper dark mode support`,
+        })
+        break // Only report once per line
+      }
+    }
+  }
+
+  return issues
+}
+
+/**
+ * Rule 5: bg-muted without text color may be invisible in dark mode
+ */
+function checkBgMutedWithoutText(content: string, file: string): Issue[] {
+  const issues: Issue[] = []
+  const lines = content.split('\n')
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    // Check if line has bg-muted (not bg-muted/xx)
+    const bgMutedMatch = line.match(/\bbg-muted\b(?!\/|-)/)
+    if (!bgMutedMatch) continue
+
+    // Check if there's any text color in the same className context
+    const context = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 2)).join(' ')
+    
+    // Look for text-* colors (except text-white which would be wrong)
+    const hasTextColor = /\btext-(?:muted-foreground|foreground|primary|destructive|green-|red-|blue-|gray-|slate-|zinc-)/.test(context)
+    
+    // Also check if it's used purely as decorative/layout (no text content expected)
+    const isDecorative = /(?:size-|w-|h-)\d|aspect-square|rounded-full.*(?:p-\d|size-)/.test(context)
+    
+    if (!hasTextColor && !isDecorative) {
+      issues.push({
+        file,
+        line: i + 1,
+        column: bgMutedMatch.index! + 1,
+        rule: 'bg-muted-no-text-color',
+        message: `'bg-muted' without explicit text color - may be invisible in dark mode`,
+        severity: 'warning',
+        suggestion: `Add 'text-muted-foreground' or 'text-foreground' for text elements`,
+      })
+    }
+  }
+
+  return issues
+}
+
+/**
+ * Rule 6: Success/error states should use semantic colors
  */
 function checkSemanticColors(content: string, file: string): Issue[] {
   const issues: Issue[] = []
@@ -309,6 +400,8 @@ ${colors.cyan}╔═════════════════════
       ...checkBackgroundAsText(content, relPath),
       ...checkOrphanForeground(content, relPath),
       ...checkMissingDarkVariant(content, relPath),
+      ...checkTextWhiteOnSemanticBg(content, relPath),
+      ...checkBgMutedWithoutText(content, relPath),
       ...checkSemanticColors(content, relPath),
     ]
 

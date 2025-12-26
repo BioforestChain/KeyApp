@@ -38,7 +38,19 @@
 
 **例外**：`text-muted-foreground` 可以单独用于次要文字，不需要配套 `bg-muted`。
 
-### 3. 不要将背景色用作文字色
+### 3. 禁止 `bg-primary text-white`
+
+```tsx
+// ❌ 错误 - text-white 在暗色模式下不会变色
+<button className="bg-primary text-white">确认</button>
+
+// ✅ 正确 - text-primary-foreground 会自动适配主题
+<button className="bg-primary text-primary-foreground">确认</button>
+```
+
+**原因**：在暗色模式下，`--primary` 变亮而 `--primary-foreground` 变暗，保持对比度。`text-white` 始终是白色，在亮色的 `bg-primary` 上可能对比度不足。
+
+### 4. 不要将背景色用作文字色
 
 ```tsx
 // ❌ 错误 - secondary 是背景色
@@ -48,6 +60,20 @@
 <p className="text-muted-foreground">次要文字</p>
 // 或用于按钮
 <Button className="bg-secondary text-secondary-foreground">次要操作</Button>
+```
+
+### 5. `bg-muted` 必须指定文字颜色
+
+```tsx
+// ❌ 错误 - 没有文字颜色，可能继承错误的颜色
+<div className="bg-muted">
+  <span>这段文字可能不可见</span>
+</div>
+
+// ✅ 正确
+<div className="bg-muted text-muted-foreground">
+  <span>清晰可见</span>
+</div>
 ```
 
 ---
@@ -100,7 +126,13 @@
    </div>
    ```
 
-3. **开发工具** (`mock-devtools/`)：规则可以放宽
+3. **固定颜色背景上的白字**（如 `bg-green-500`、`bg-red-500`）：
+   ```tsx
+   // ✅ OK - 固定颜色背景
+   <div className="bg-green-500 text-white">成功</div>
+   ```
+
+4. **开发工具** (`mock-devtools/`)：规则可以放宽
 
 ---
 
@@ -117,7 +149,9 @@ pnpm theme:check
 | 规则 | 严重性 | 说明 |
 |------|--------|------|
 | `no-bg-as-text` | Error | 禁止将背景色用作文字色 |
+| `text-white-on-semantic-bg` | Error | 禁止在语义背景色上使用 text-white |
 | `orphan-foreground` | Warning | foreground 颜色应有配套背景 |
+| `bg-muted-no-text-color` | Warning | bg-muted 需要明确的文字颜色 |
 | `missing-dark-variant` | Warning | 硬编码灰色应有 dark: 变体 |
 
 ---
