@@ -99,6 +99,7 @@
     "name": "Name",
     "namePlaceholder": "Enter contact name",
     "noContacts": "No contacts",
+    "noValidAddress": "No valid address",
     "save": "Save",
     "selectAddress": "Select address",
     "selectContact": "Select Contact",

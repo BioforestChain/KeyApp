@@ -157,13 +157,18 @@ export const addressBookActions = {
     }))
   },
 
-  /** 添加联系人 */
+  /** 添加联系人（每个联系人最多 3 个地址） */
   addContact: (
     contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & {
       avatar?: string | undefined
       memo?: string | undefined
     }
   ): Contact => {
+    // 验证地址数量限制
+    if (contact.addresses.length > 3) {
+      throw new Error('Maximum 3 addresses per contact')
+    }
+
     const now = Date.now()
     const newContact: Contact = {
       ...contact,
@@ -207,7 +212,7 @@ export const addressBookActions = {
     })
   },
 
-  /** 添加地址到联系人 */
+  /** 添加地址到联系人（最多 3 个地址，超出将抛出错误） */
   addAddressToContact: (
     contactId: string,
     address: Omit<ContactAddress, 'id'> & { label?: string | undefined }
@@ -220,6 +225,10 @@ export const addressBookActions = {
     addressBookStore.setState((state) => {
       const contacts = state.contacts.map((c) => {
         if (c.id !== contactId) return c
+        // 限制每个联系人最多 3 个地址（QR 码容量限制）
+        if (c.addresses.length >= 3) {
+          throw new Error('Maximum 3 addresses per contact')
+        }
         return {
           ...c,
           addresses: [...c.addresses, newAddress],

@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 import { IconSearch, IconChevronRight } from "@tabler/icons-react";
 import { ContactAvatar } from "@/components/common/contact-avatar";
 import { generateAvatarFromAddress } from "@/lib/avatar-codec";
+import { isValidAddressForChain } from "@/lib/address-format";
 import { addressBookStore, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
 type ContactPickerJobParams = {
+  /** 当前选中的链类型，用于验证地址合法性 */
   chainType?: string;
 };
 
@@ -31,25 +33,18 @@ function ContactPickerJobContent() {
 
   const addressBookState = useStore(addressBookStore);
 
+  // 显示所有联系人（不按 chainType 过滤），但用地址合法性验证来标记可选地址
   const filteredContacts = useMemo(() => {
     let contacts = addressBookState.contacts;
 
-    // Filter by chain type if specified
-    if (chainType) {
-      contacts = addressBookSelectors.getContactsByChain(addressBookState, chainType);
-    }
-
     // Filter by search query
     if (searchQuery) {
-      contacts = addressBookSelectors.searchContacts(
-        { ...addressBookState, contacts },
-        searchQuery
-      );
+      contacts = addressBookSelectors.searchContacts(addressBookState, searchQuery);
     }
 
     // Sort by updated time (most recent first)
     return [...contacts].sort((a, b) => b.updatedAt - a.updatedAt);
-  }, [addressBookState, chainType, searchQuery]);
+  }, [addressBookState, searchQuery]);
 
   const handleSelectAddress = (contact: Contact, address: ContactAddress) => {
     // Store selected address in a way that can be retrieved by the caller
@@ -61,11 +56,18 @@ function ContactPickerJobContent() {
     pop();
   };
 
+  // 获取联系人的所有地址，并标记当前链是否可用
   const getRelevantAddresses = (contact: Contact) => {
-    if (chainType) {
-      return contact.addresses.filter((a) => a.chainType === chainType);
-    }
-    return contact.addresses;
+    return contact.addresses.map((addr) => ({
+      ...addr,
+      isValidForCurrentChain: chainType ? isValidAddressForChain(addr.address, chainType) : true,
+    }));
+  };
+
+  // 检查联系人是否有当前链的有效地址
+  const hasValidAddress = (contact: Contact) => {
+    if (!chainType) return true;
+    return contact.addresses.some((addr) => isValidAddressForChain(addr.address, chainType));
   };
 
   return (
@@ -107,18 +109,25 @@ function ContactPickerJobContent() {
             <div className="divide-border divide-y">
               {filteredContacts.map((contact) => {
                 const addresses = getRelevantAddresses(contact);
+                const validAddresses = addresses.filter((a) => a.isValidForCurrentChain);
                 const hasMultipleAddresses = addresses.length > 1;
                 const isExpanded = expandedContactId === contact.id;
+                const contactHasValidAddress = hasValidAddress(contact);
 
-                // If only one address or expanded, show all addresses
+                // If only one address, show directly
                 if (!hasMultipleAddresses) {
                   const address = addresses[0];
                   if (!address) return null;
+                  const isDisabled = !address.isValidForCurrentChain;
                   return (
                     <button
                       key={contact.id}
-                      onClick={() => handleSelectAddress(contact, address)}
-                      className="hover:bg-muted/50 flex w-full items-center gap-3 px-4 py-3 transition-colors"
+                      onClick={() => !isDisabled && handleSelectAddress(contact, address)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-4 py-3 transition-colors",
+                        isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50"
+                      )}
                     >
                       <ContactAvatar
                         src={contact.avatar || generateAvatarFromAddress(address.address)}
@@ -131,7 +140,10 @@ function ContactPickerJobContent() {
                           {truncateAddress(address.address)}
                         </p>
                       </div>
-                      <span className="text-muted-foreground text-xs uppercase">
+                      <span className={cn(
+                        "text-xs uppercase",
+                        isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                      )}>
                         {address.chainType}
                       </span>
                     </button>
@@ -143,7 +155,10 @@ function ContactPickerJobContent() {
                   <div key={contact.id}>
                     <button
                       onClick={() => setExpandedContactId(isExpanded ? null : contact.id)}
-                      className="hover:bg-muted/50 flex w-full items-center gap-3 px-4 py-3 transition-colors"
+                      className={cn(
+                        "flex w-full items-center gap-3 px-4 py-3 transition-colors",
+                        contactHasValidAddress ? "hover:bg-muted/50" : "opacity-50"
+                      )}
                     >
                       <ContactAvatar
                         src={contact.avatar || (addresses[0]?.address ? generateAvatarFromAddress(addresses[0].address) : undefined)}
@@ -153,7 +168,10 @@ function ContactPickerJobContent() {
                       <div className="min-w-0 flex-1 text-left">
                         <p className="truncate font-medium">{contact.name}</p>
                         <p className="text-muted-foreground text-xs">
-                          {addresses.length} {t("contact.selectAddress")}
+                          {validAddresses.length > 0 
+                            ? `${validAddresses.length}/${addresses.length} ${t("contact.selectAddress")}`
+                            : t("contact.noValidAddress")
+                          }
                         </p>
                       </div>
                       <IconChevronRight
@@ -165,30 +183,43 @@ function ContactPickerJobContent() {
                     </button>
                     {isExpanded && (
                       <div className="bg-muted/30 divide-border divide-y pl-14">
-                        {addresses.map((address) => (
-                          <button
-                            key={address.id}
-                            onClick={() => handleSelectAddress(contact, address)}
-                            className="hover:bg-muted/50 flex w-full items-center gap-3 px-4 py-2.5 transition-colors"
-                          >
-                            <div className="min-w-0 flex-1 text-left">
-                              <p className="text-muted-foreground truncate font-mono text-xs">
-                                {truncateAddress(address.address)}
-                              </p>
-                              {address.label && (
-                                <p className="text-muted-foreground text-xs">{address.label}</p>
+                        {addresses.map((address) => {
+                          const isDisabled = !address.isValidForCurrentChain;
+                          return (
+                            <button
+                              key={address.id}
+                              onClick={() => !isDisabled && handleSelectAddress(contact, address)}
+                              disabled={isDisabled}
+                              className={cn(
+                                "flex w-full items-center gap-3 px-4 py-2.5 transition-colors",
+                                isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50"
                               )}
-                            </div>
-                            <span className="text-muted-foreground text-xs uppercase">
-                              {address.chainType}
-                            </span>
-                            {address.isDefault && (
-                              <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">
-                                Default
+                            >
+                              <div className="min-w-0 flex-1 text-left">
+                                <p className={cn(
+                                  "truncate font-mono text-xs",
+                                  isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                                )}>
+                                  {truncateAddress(address.address)}
+                                </p>
+                                {address.label && (
+                                  <p className="text-muted-foreground text-xs">{address.label}</p>
+                                )}
+                              </div>
+                              <span className={cn(
+                                "text-xs uppercase",
+                                isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                              )}>
+                                {address.chainType}
                               </span>
-                            )}
-                          </button>
-                        ))}
+                              {address.isDefault && (
+                                <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">
+                                  Default
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

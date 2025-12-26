@@ -59,6 +59,7 @@
     "save": "保存",
     "cancel": "取消",
     "noContacts": "暂无联系人",
+    "noValidAddress": "无可用地址",
     "viewAll": "查看全部联系人",
     "selectContact": "选择联系人",
     "selectAddress": "选择地址"

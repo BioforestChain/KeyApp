@@ -110,6 +110,53 @@ describe('AddressBookStore', () => {
       expect(updated?.addresses).toHaveLength(2)
       expect(updated?.addresses[1]?.chainType).toBe('bfmeta')
     })
+
+    it('throws error when adding more than 3 addresses', () => {
+      const contact = addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          createAddress('0x1111', 'ethereum'),
+          createAddress('0x2222', 'ethereum'),
+          createAddress('0x3333', 'ethereum'),
+        ],
+      })
+
+      expect(() => {
+        addressBookActions.addAddressToContact(contact.id, {
+          address: '0x4444444444444444444444444444444444444444',
+          chainType: 'ethereum',
+        })
+      }).toThrow('Maximum 3 addresses per contact')
+    })
+  })
+
+  describe('addContact with address limit', () => {
+    it('allows up to 3 addresses', () => {
+      const contact = addressBookActions.addContact({
+        name: 'Alice',
+        addresses: [
+          createAddress('0x1111', 'ethereum'),
+          createAddress('0x2222', 'ethereum'),
+          createAddress('0x3333', 'ethereum'),
+        ],
+      })
+
+      expect(contact.addresses).toHaveLength(3)
+    })
+
+    it('throws error when creating contact with more than 3 addresses', () => {
+      expect(() => {
+        addressBookActions.addContact({
+          name: 'Alice',
+          addresses: [
+            createAddress('0x1111', 'ethereum'),
+            createAddress('0x2222', 'ethereum'),
+            createAddress('0x3333', 'ethereum'),
+            createAddress('0x4444', 'ethereum'),
+          ],
+        })
+      }).toThrow('Maximum 3 addresses per contact')
+    })
   })
 
   describe('removeAddressFromContact', () => {

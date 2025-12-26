@@ -5,6 +5,7 @@ import { useStore } from '@tanstack/react-store';
 import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
+import { isValidAddressForChain } from '@/lib/address-format';
 import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -54,10 +55,16 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
 
-    // Get contact suggestions - now supports empty query for "focus to show all"
+    // 获取联系人建议 - 显示所有联系人，用地址合法性验证标记可选地址
     const suggestions = useMemo(() => {
       if (!showSuggestions) return [];
-      return addressBookSelectors.suggestContacts(addressBookState, currentValue || '', chainType, maxSuggestions);
+      // 获取所有联系人的建议（不按 chainType 过滤）
+      const allSuggestions = addressBookSelectors.suggestContacts(addressBookState, currentValue || '', undefined, maxSuggestions);
+      // 标记每个建议的地址是否对当前链有效
+      return allSuggestions.map((s) => ({
+        ...s,
+        isValidForCurrentChain: chainType ? isValidAddressForChain(s.matchedAddress.address, chainType) : true,
+      }));
     }, [addressBookState, currentValue, chainType, showSuggestions, maxSuggestions]);
 
     // Show dropdown when focused and has contacts (even without input)
@@ -118,7 +125,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
           setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
           break;
         case 'Enter':
-          if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+          if (selectedIndex >= 0 && suggestions[selectedIndex] && suggestions[selectedIndex].isValidForCurrentChain) {
             e.preventDefault();
             handleSelectSuggestion(suggestions[selectedIndex]);
           }
@@ -196,30 +203,44 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             >
               {suggestions.length > 0 ? (
                 <ul role="listbox">
-                  {suggestions.map((suggestion, index) => (
-                    <li
-                      key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
-                      id={`suggestion-${index}`}
-                      role="option"
-                      aria-selected={index === selectedIndex}
-                      className={cn(
-                        'flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors',
-                        index === selectedIndex ? 'bg-accent' : 'hover:bg-muted/50',
-                      )}
-                      onClick={() => handleSelectSuggestion(suggestion)}
-                    >
-                      <ContactAvatar
-                        src={suggestion.contact.avatar}
-                        size={32}
-                        className="shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
-                        <p className="text-muted-foreground truncate font-mono text-xs">{suggestion.matchedAddress.address}</p>
-                      </div>
-                      <span className="text-muted-foreground shrink-0 text-xs uppercase">{suggestion.matchedAddress.chainType}</span>
-                    </li>
-                  ))}
+                  {suggestions.map((suggestion, index) => {
+                    const isDisabled = !suggestion.isValidForCurrentChain;
+                    return (
+                      <li
+                        key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
+                        id={`suggestion-${index}`}
+                        role="option"
+                        aria-selected={index === selectedIndex}
+                        aria-disabled={isDisabled}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 transition-colors',
+                          isDisabled
+                            ? 'opacity-50 cursor-not-allowed'
+                            : index === selectedIndex
+                              ? 'bg-accent cursor-pointer'
+                              : 'hover:bg-muted/50 cursor-pointer',
+                        )}
+                        onClick={() => !isDisabled && handleSelectSuggestion(suggestion)}
+                      >
+                        <ContactAvatar
+                          src={suggestion.contact.avatar}
+                          size={32}
+                          className="shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
+                          <p className={cn(
+                            "truncate font-mono text-xs",
+                            isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                          )}>{suggestion.matchedAddress.address}</p>
+                        </div>
+                        <span className={cn(
+                          "shrink-0 text-xs uppercase",
+                          isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                        )}>{suggestion.matchedAddress.chainType}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="text-muted-foreground px-3 py-4 text-center text-sm">
