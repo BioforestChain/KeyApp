@@ -119,7 +119,7 @@ export function WalletCardCarousel({
         }}
         onSlideChange={handleSlideChange}
         initialSlide={currentIndex >= 0 ? currentIndex : 0}
-        className="mx-auto h-[212px] w-[min(92vw,360px)] overflow-visible [&_.swiper-slide]:size-full [&_.swiper-slide]:rounded-2xl"
+        className="mx-auto h-[212px] w-[min(92vw,360px)] overflow-visible [&_.swiper-slide]:size-full [&_.swiper-slide]:overflow-visible! [&_.swiper-slide]:rounded-2xl"
       >
         {wallets.map((wallet) => {
           const walletChain = getWalletChain(wallet);
