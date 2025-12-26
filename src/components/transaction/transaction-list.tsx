@@ -11,6 +11,8 @@ interface TransactionListProps {
   emptyDescription?: string | undefined;
   emptyAction?: React.ReactNode | undefined;
   className?: string | undefined;
+  /** 是否显示链图标（右下角小徽章） */
+  showChainIcon?: boolean | undefined;
 }
 
 function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionInfo[]> {
@@ -49,6 +51,7 @@ export function TransactionList({
   emptyDescription = '您的交易记录将显示在这里',
   emptyAction,
   className,
+  showChainIcon = false,
 }: TransactionListProps) {
   if (loading) {
     return <SkeletonList count={5} {...(className && { className })} />;
@@ -86,6 +89,7 @@ export function TransactionList({
               <TransactionItem
                 key={tx.id}
                 transaction={tx}
+                showChainIcon={showChainIcon}
                 {...(onTransactionClick && { onClick: () => onTransactionClick(tx) })}
               />
             ))}

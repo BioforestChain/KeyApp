@@ -163,6 +163,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
           onTransactionClick={handleTransactionClick}
           emptyTitle={t('transaction:history.emptyTitle')}
           emptyDescription={t('transaction:history.emptyDesc')}
+          showChainIcon
         />
       </div>
     </div>

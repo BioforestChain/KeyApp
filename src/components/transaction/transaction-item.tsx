@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { Amount } from '@/types/amount';
+import type { ChainType } from '@/stores';
 import { AddressDisplay } from '../wallet/address-display';
+import { ChainIcon } from '../wallet/chain-icon';
 import { AmountDisplay, TimeDisplay } from '../common';
 import {
   IconArrowUp,
@@ -49,12 +51,16 @@ export interface TransactionInfo {
   address: string;
   timestamp: Date | string;
   hash?: string | undefined;
+  /** 链类型，用于显示链图标 */
+  chain?: ChainType | undefined;
 }
 
 interface TransactionItemProps {
   transaction: TransactionInfo;
   onClick?: (() => void) | undefined;
   className?: string | undefined;
+  /** 是否显示链图标（右下角小徽章） */
+  showChainIcon?: boolean | undefined;
 }
 
 // 颜色按类别归类，图标各不相同
@@ -96,7 +102,7 @@ const statusColors: Record<TransactionStatus, string> = {
   failed: 'text-destructive',
 };
 
-export function TransactionItem({ transaction, onClick, className }: TransactionItemProps) {
+export function TransactionItem({ transaction, onClick, className, showChainIcon }: TransactionItemProps) {
   const { t } = useTranslation('transaction');
   const typeIcon = typeIcons[transaction.type];
   const statusColor = statusColors[transaction.status];
@@ -120,14 +126,23 @@ export function TransactionItem({ transaction, onClick, className }: Transaction
         className,
       )}
     >
-      {/* Type Icon */}
-      <div
-        className={cn(
-          'flex size-10 items-center justify-center rounded-full @xs:size-12',
-          typeIcon.bg,
+      {/* Type Icon with optional Chain Badge */}
+      <div className="relative">
+        <div
+          className={cn(
+            'flex size-10 items-center justify-center rounded-full @xs:size-12',
+            typeIcon.bg,
+          )}
+        >
+          <Icon className={cn('size-5 @xs:size-6', typeIcon.color)} />
+        </div>
+        {showChainIcon && transaction.chain && (
+          <ChainIcon
+            chain={transaction.chain}
+            size="sm"
+            className="ring-background absolute -right-0.5 -bottom-0.5 size-4 text-[8px] ring-2"
+          />
         )}
-      >
-        <Icon className={cn('size-5 @xs:size-6', typeIcon.color)} />
       </div>
 
       {/* Transaction Info */}
