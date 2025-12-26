@@ -136,9 +136,9 @@ export function WalletTab() {
   }
 
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       {/* 钱包卡片轮播 */}
-      <div className="bg-gradient-to-b from-background to-muted/30 pt-4 pb-2">
+      <div className="pt-2 pb-1">
         <WalletCardCarousel
           wallets={wallets}
           currentWalletId={currentWalletId}
@@ -152,7 +152,7 @@ export function WalletTab() {
         />
 
         {/* 快捷操作按钮 - 颜色跟随主题 */}
-        <div className="mt-6 flex justify-center gap-8 px-6">
+        <div className="mt-2 flex justify-center gap-8 px-6">
           <button
             onClick={() => push("SendActivity", {})}
             className="quick-action-btn flex flex-col items-center gap-1.5"
@@ -194,7 +194,7 @@ export function WalletTab() {
       </div>
 
       {/* 内容区 Tab 切换 */}
-      <div className="bg-background -mt-2 flex-1 rounded-t-3xl pt-2">
+      <div className="flex-1 pt-3">
         <SwipeableContentTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}

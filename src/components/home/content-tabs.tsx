@@ -105,11 +105,11 @@ export function SwipeableContentTabs({
   return (
     <div className={cn('flex flex-col overflow-hidden', className)}>
       {/* Tab 栏 */}
-      <div className="bg-background border-b px-4 py-2">
-        <div className="bg-muted relative flex rounded-lg p-1">
-          {/* 滑动指示器 */}
+      <div className="bg-background px-4 pb-2">
+        <div className="relative flex rounded-xl bg-muted/60 p-1">
+          {/* 滑动指示器 - 跟随主题色 */}
           <div
-            className="bg-background absolute top-1 bottom-1 rounded-md shadow-sm transition-transform duration-200"
+            className="tab-indicator absolute top-1 bottom-1 rounded-lg shadow-sm transition-transform duration-200"
             style={{
               width: `calc(${100 / tabs.length}% - 4px)`,
               transform: `translateX(calc(${activeIndex * 100}% + ${activeIndex * 4}px))`,
@@ -121,9 +121,9 @@ export function SwipeableContentTabs({
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
               className={cn(
-                'relative z-10 flex flex-1 items-center justify-center gap-1.5 py-1.5 text-sm font-medium transition-colors',
+                'relative z-10 flex flex-1 items-center justify-center gap-1.5 py-2 text-sm font-medium transition-colors',
                 activeTab === tab.id
-                  ? 'text-foreground'
+                  ? 'tab-active-text'
                   : 'text-muted-foreground'
               )}
             >
@@ -154,6 +154,15 @@ export function SwipeableContentTabs({
           ))}
         </div>
       </div>
+
+      <style>{`
+        .tab-indicator {
+          background: hsl(var(--primary-hue, 280) 60% 95%);
+        }
+        .tab-active-text {
+          color: hsl(var(--primary-hue, 280) 70% 40%);
+        }
+      `}</style>
     </div>
   )
 }

@@ -75,10 +75,15 @@ export function useWalletTheme() {
     presets: WALLET_THEME_PRESETS,
     setThemeColor,
     setThemePreset,
-    /** 获取指定钱包的主题色 */
+    /** 获取指定钱包的主题色（如果没有设置，根据钱包索引生成稳定的颜色） */
     getWalletTheme: (walletId: string) => {
-      const wallet = wallets.find((w) => w.id === walletId)
-      return (wallet as { themeHue?: number } | undefined)?.themeHue ?? WALLET_THEME_PRESETS.purple
+      const walletIndex = wallets.findIndex((w) => w.id === walletId)
+      const wallet = wallets[walletIndex]
+      const storedHue = (wallet as { themeHue?: number } | undefined)?.themeHue
+      if (storedHue !== undefined) return storedHue
+      // 没有存储的主题色时，根据索引从预设中选择
+      const presetHues = Object.values(WALLET_THEME_PRESETS)
+      return presetHues[walletIndex % presetHues.length]
     },
   }
 }

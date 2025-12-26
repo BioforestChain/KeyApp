@@ -120,10 +120,11 @@ export function WalletCardCarousel({
       {wallets.length > 1 && (
         <button
           onClick={onOpenWalletList}
-          className="mx-auto mt-3 flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted"
+          className="mx-auto mt-1 flex items-center gap-1 rounded-full px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/50"
         >
           <span>{wallets.length} 个钱包</span>
-          <span className="text-[10px]">点击管理</span>
+          <span className="opacity-60">·</span>
+          <span className="text-[10px] opacity-70">点击管理</span>
         </button>
       )}
 
