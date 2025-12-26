@@ -1,11 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
-import { IconUser, IconSearch, IconChevronRight } from "@tabler/icons-react";
-import { addressBookStore, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
+import { IconSearch, IconChevronRight } from "@tabler/icons-react";
+import { ContactAvatar } from "@/components/common/contact-avatar";
+import { generateAvatarFromAddress } from "@/lib/avatar-codec";
+import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
@@ -28,6 +30,13 @@ function ContactPickerJobContent() {
   const [expandedContactId, setExpandedContactId] = useState<string | null>(null);
 
   const addressBookState = useStore(addressBookStore);
+
+  // 确保 store 已初始化
+  useEffect(() => {
+    if (!addressBookState.isInitialized) {
+      addressBookActions.initialize();
+    }
+  }, [addressBookState.isInitialized]);
 
   const filteredContacts = useMemo(() => {
     let contacts = addressBookState.contacts;
@@ -118,9 +127,11 @@ function ContactPickerJobContent() {
                       onClick={() => handleSelectAddress(contact, address)}
                       className="hover:bg-muted/50 flex w-full items-center gap-3 px-4 py-3 transition-colors"
                     >
-                      <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
-                        <IconUser className="size-5" />
-                      </div>
+                      <ContactAvatar
+                        src={contact.avatar || generateAvatarFromAddress(address.address)}
+                        size={40}
+                        className="shrink-0"
+                      />
                       <div className="min-w-0 flex-1 text-left">
                         <p className="truncate font-medium">{contact.name}</p>
                         <p className="text-muted-foreground truncate font-mono text-xs">
@@ -141,9 +152,11 @@ function ContactPickerJobContent() {
                       onClick={() => setExpandedContactId(isExpanded ? null : contact.id)}
                       className="hover:bg-muted/50 flex w-full items-center gap-3 px-4 py-3 transition-colors"
                     >
-                      <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
-                        <IconUser className="size-5" />
-                      </div>
+                      <ContactAvatar
+                        src={contact.avatar || (addresses[0]?.address ? generateAvatarFromAddress(addresses[0].address) : undefined)}
+                        size={40}
+                        className="shrink-0"
+                      />
                       <div className="min-w-0 flex-1 text-left">
                         <p className="truncate font-medium">{contact.name}</p>
                         <p className="text-muted-foreground text-xs">

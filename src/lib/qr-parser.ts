@@ -262,14 +262,13 @@ function parseContactURI(content: string): ParsedContact | null {
 
 /**
  * 生成联系人二维码内容
+ * 注意：不包含 memo（备注是私人信息，不分享）
  */
 export function generateContactQRContent(contact: {
   name: string
   addresses: ContactAddressInfo[]
-  memo?: string | undefined
   avatar?: string | undefined
 }): string {
-  // 使用 JSON 格式，更灵活
   return JSON.stringify({
     type: 'contact',
     name: contact.name,
@@ -278,7 +277,6 @@ export function generateContactQRContent(contact: {
       address: a.address,
       label: a.label,
     })),
-    memo: contact.memo,
     avatar: contact.avatar,
   })
 }

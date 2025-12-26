@@ -332,7 +332,8 @@
     "memo": "Memo",
     "memoPlaceholder": "Add memo (optional)",
     "shareContact": "Share Contact",
-    "scanToAdd": "Scan to add contact"
+    "scanToAdd": "Scan to add contact",
+    "changeAvatar": "Click to change avatar"
   },
   "time": {
     "justNow": "Just now",

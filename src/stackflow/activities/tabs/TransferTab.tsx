@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { useFlow } from "../../stackflow";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PageHeader } from "@/components/layout/page-header";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { useTransactionHistoryQuery } from "@/queries";
-import { addressBookActions, addressBookStore, addressBookSelectors, useCurrentWallet, useSelectedChain, type Contact } from "@/stores";
+import { addressBookStore, addressBookSelectors, useCurrentWallet, useSelectedChain, type Contact } from "@/stores";
 import { IconSend } from "@tabler/icons-react";
 
 export function TransferTab() {
@@ -21,12 +21,6 @@ export function TransferTab() {
   // - 30s staleTime: Tab 切换不会重复请求
   // - 共享缓存: 多个组件使用同一数据
   const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
-
-  useEffect(() => {
-    if (!addressBookState.isInitialized) {
-      addressBookActions.initialize();
-    }
-  }, [addressBookState.isInitialized]);
 
   const recentContacts = useMemo(() => {
     const filtered = selectedChain

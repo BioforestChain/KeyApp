@@ -342,7 +342,6 @@ describe('qr-parser', () => {
             { chainType: 'ethereum' as const, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' },
             { chainType: 'bitcoin' as const, address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' },
           ],
-          memo: '同事',
           avatar: '👩‍💻',
         }
         const content = generateContactQRContent(original)
@@ -351,8 +350,9 @@ describe('qr-parser', () => {
         const contact = result as ParsedContact
         expect(contact.name).toBe(original.name)
         expect(contact.addresses).toHaveLength(2)
-        expect(contact.memo).toBe(original.memo)
         expect(contact.avatar).toBe(original.avatar)
+        // memo 不应该被包含在分享内容中
+        expect(contact.memo).toBeUndefined()
       })
 
       it('handles special characters in name', () => {

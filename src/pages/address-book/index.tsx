@@ -9,6 +9,8 @@ import {
   IconUser as User,
   IconDotsVertical as MoreVertical,
 } from '@tabler/icons-react';
+import { ContactAvatar } from '@/components/common/contact-avatar';
+import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { PageHeader } from '@/components/layout/page-header';
 import {
   addressBookStore,
@@ -29,7 +31,7 @@ export function AddressBookPage() {
   const contacts = addressBookState.contacts;
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
 
-  // Initialize address book from storage
+  // 确保 store 已初始化
   useEffect(() => {
     if (!addressBookState.isInitialized) {
       addressBookActions.initialize();
@@ -203,9 +205,10 @@ function ContactListItem({ contact, onEdit, onDelete, onShare }: ContactListItem
     <div className={cn('bg-card rounded-xl p-4 shadow-sm', 'transition-colors')}>
       <div className="flex items-center gap-3">
         {/* 头像 */}
-        <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-full font-semibold">
-          {contact.name.slice(0, 1).toUpperCase()}
-        </div>
+        <ContactAvatar
+          src={contact.avatar || (contact.addresses[0]?.address ? generateAvatarFromAddress(contact.addresses[0].address) : undefined)}
+          size={40}
+        />
 
         {/* 信息 */}
         <div className="min-w-0 flex-1">

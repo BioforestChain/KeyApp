@@ -6,7 +6,9 @@ import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
 import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType } from "@/stores";
 import { detectAddressFormat } from "@/lib/address-format";
-import { IconUser as User, IconWallet as Wallet, IconFileText as FileText } from "@tabler/icons-react";
+import { IconWallet as Wallet, IconFileText as FileText, IconRefresh as Refresh } from "@tabler/icons-react";
+import { ContactAvatar } from "@/components/common/contact-avatar";
+import { generateAvatarFromAddress } from "@/lib/avatar-codec";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
@@ -26,6 +28,7 @@ function ContactEditJobContent() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [memo, setMemo] = useState("");
+  const [avatarSeed, setAvatarSeed] = useState(0);
 
   const isEditing = !!contact;
 
@@ -42,6 +45,14 @@ function ContactEditJobContent() {
     }
   }, [contact, defaultAddress]);
 
+  // 切换头像
+  const handleChangeAvatar = useCallback(() => {
+    setAvatarSeed(prev => prev + 1);
+  }, []);
+
+  // 当前头像 URL
+  const currentAvatar = contact?.avatar || (address.trim() ? generateAvatarFromAddress(address.trim(), avatarSeed) : undefined);
+
   const handleSave = useCallback(() => {
     const trimmedName = name.trim();
     const trimmedAddress = address.trim();
@@ -53,10 +64,14 @@ function ContactEditJobContent() {
     const detectedFormat = detectAddressFormat(trimmedAddress);
     const chainType = (defaultChain as ChainType) ?? detectedFormat.chainType ?? "ethereum";
 
+    // 生成最终头像
+    const finalAvatar = contact?.avatar || generateAvatarFromAddress(trimmedAddress, avatarSeed);
+
     if (isEditing && contact) {
-      // Update contact name and memo
+      // Update contact name, memo and avatar
       addressBookActions.updateContact(contact.id, {
         name: trimmedName,
+        avatar: finalAvatar,
         ...(trimmedMemo ? { memo: trimmedMemo } : {}),
       });
 
@@ -82,12 +97,13 @@ function ContactEditJobContent() {
             isDefault: true,
           },
         ],
+        avatar: finalAvatar,
         ...(trimmedMemo ? { memo: trimmedMemo } : {}),
       });
     }
 
     pop();
-  }, [name, address, memo, isEditing, contact, defaultAddress, defaultChain, pop]);
+  }, [name, address, memo, avatarSeed, isEditing, contact, defaultAddress, defaultChain, pop]);
 
   const canSave = name.trim().length > 0 && address.trim().length > 0;
 
@@ -108,12 +124,22 @@ function ContactEditJobContent() {
 
         {/* Content */}
         <div className="space-y-4 p-4">
-          {/* Name input */}
-          <div className="space-y-2">
-            <label htmlFor="contact-name" className="flex items-center gap-2 text-sm font-medium">
-              <User className="size-4" />
-              {t("contact.name")}
-            </label>
+          {/* Avatar & Name */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleChangeAvatar}
+              disabled={!address.trim() || !!contact?.avatar}
+              className="group relative shrink-0"
+              title={t("addressBook.changeAvatar")}
+            >
+              <ContactAvatar src={currentAvatar} size={56} />
+              {address.trim() && !contact?.avatar && (
+                <div className="bg-background/80 absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100">
+                  <Refresh className="text-primary size-5" />
+                </div>
+              )}
+            </button>
             <input
               id="contact-name"
               type="text"
@@ -122,7 +148,7 @@ function ContactEditJobContent() {
               placeholder={t("contact.namePlaceholder")}
               maxLength={20}
               className={cn(
-                "w-full rounded-xl border border-border bg-background px-4 py-3",
+                "flex-1 rounded-xl border border-border bg-background px-4 py-3",
                 "focus:outline-none focus:ring-2 focus:ring-primary"
               )}
             />

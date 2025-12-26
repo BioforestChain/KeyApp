@@ -1,10 +1,11 @@
 import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUser, IconUsers } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers } from '@tabler/icons-react';
+import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
-import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
+import { useContactSuggestions } from './contact-suggestion-context';
+import type { ChainType, ContactSuggestion } from '@/stores';
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;
@@ -45,29 +46,28 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const errorId = useId();
     const listboxId = useId();
 
-    // Get contacts from store
-    const addressBookState = useStore(addressBookStore);
+    // Get contacts from context (provided by AddressBookSuggestionProvider)
+    const { getSuggestions, hasContacts } = useContactSuggestions();
 
     const currentValue = value || internalValue;
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
 
     // Get contact suggestions - now supports empty query for "focus to show all"
-    const suggestions = useMemo((): ContactSuggestion[] => {
+    const suggestions = useMemo(() => {
       if (!showSuggestions) return [];
-      // Pass empty string to get all contacts when no input
-      return addressBookSelectors.suggestContacts(addressBookState, currentValue || '', chainType, maxSuggestions);
-    }, [addressBookState, currentValue, chainType, showSuggestions, maxSuggestions]);
+      return getSuggestions(currentValue || '', chainType, maxSuggestions);
+    }, [getSuggestions, currentValue, chainType, showSuggestions, maxSuggestions]);
 
     // Show dropdown when focused and has contacts (even without input)
     useEffect(() => {
-      if (focused && showSuggestions && (suggestions.length > 0 || addressBookState.contacts.length > 0)) {
+      if (focused && showSuggestions && (suggestions.length > 0 || hasContacts)) {
         setShowDropdown(true);
         setSelectedIndex(-1);
       } else {
         setShowDropdown(false);
       }
-    }, [focused, suggestions.length, addressBookState.contacts.length, showSuggestions]);
+    }, [focused, suggestions.length, hasContacts, showSuggestions]);
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -207,9 +207,11 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                       )}
                       onClick={() => handleSelectSuggestion(suggestion)}
                     >
-                      <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full">
-                        <IconUser className="size-4" />
-                      </div>
+                      <ContactAvatar
+                        src={suggestion.contact.avatar}
+                        size={32}
+                        className="shrink-0"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
                         <p className="text-muted-foreground truncate font-mono text-xs">{suggestion.matchedAddress.address}</p>

@@ -41,6 +41,9 @@ importers:
       '@fontsource/dm-serif-display':
         specifier: ^5.2.8
         version: 5.2.8
+      '@gamepark/avataaars':
+        specifier: ^3.0.0
+        version: 3.0.0(react@19.2.3)
       '@noble/curves':
         specifier: ^2.0.1
         version: 2.0.1
@@ -98,6 +101,9 @@ importers:
       '@types/yargs':
         specifier: ^17.0.35
         version: 17.0.35
+      '@zumer/snapdom':
+        specifier: ^2.0.1
+        version: 2.0.1
       big.js:
         specifier: ^7.0.1
         version: 7.0.1
@@ -122,6 +128,9 @@ importers:
       jsqr:
         specifier: ^1.4.0
         version: 1.4.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       qrcode.react:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.3)
@@ -195,6 +204,9 @@ importers:
       '@types/big.js':
         specifier: ^6.2.2
         version: 6.2.2
+      '@types/lodash':
+        specifier: ^4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.4
@@ -1344,6 +1356,11 @@ packages:
 
   '@fontsource/dm-serif-display@5.2.8':
     resolution: {integrity: sha512-GYSDSlGU6vyhv9a5MwaiVNf9HCuSVpK8hEFRyG4NNDHCDeHiX7YHDAcWsaoLKKcfXLgWG9YkBkk9T3SxM4rAjQ==}
+
+  '@gamepark/avataaars@3.0.0':
+    resolution: {integrity: sha512-MOe/jtEe2UkxQSfZ2TyqfRnihVBpGUeFwbM9aFZYVQoe5Jdw4kRx0bEKHHw2XnXaYJ2UEJOYys4iAdjBTv4tEg==}
+    peerDependencies:
+      react: '>=18'
 
   '@hono/node-server@1.19.7':
     resolution: {integrity: sha512-vUcD0uauS7EU2caukW8z5lJKtoGMokxNbJtBiwHgpqxEXokaHCBkQUmCHhjFB1VUTWdqj25QoMkMKzgjq+uhrw==}
@@ -2507,6 +2524,9 @@ packages:
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
 
+  '@types/lodash@4.17.21':
+    resolution: {integrity: sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==}
+
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
 
@@ -2784,6 +2804,9 @@ packages:
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
+
+  '@zumer/snapdom@2.0.1':
+    resolution: {integrity: sha512-78/qbYl2FTv4H6qaXcNfAujfIOSzdvs83NW63VbyC9QA3sqNPfPvhn4xYMO6Gy11hXwJUEhd0z65yKiNzDwy9w==}
 
   abitype@0.7.1:
     resolution: {integrity: sha512-VBkRHTDZf9Myaek/dO3yMmOzB/y2s3Zo6nVU7yaw1G+TvCHAjwaJzNGN9yo4K5D8bU/VZXKP1EJpRhFr862PlQ==}
@@ -7635,6 +7658,10 @@ snapshots:
 
   '@fontsource/dm-serif-display@5.2.8': {}
 
+  '@gamepark/avataaars@3.0.0(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
+
   '@hono/node-server@1.19.7(hono@4.11.1)':
     dependencies:
       hono: 4.11.1
@@ -8741,6 +8768,8 @@ snapshots:
 
   '@types/linkify-it@5.0.0': {}
 
+  '@types/lodash@4.17.21': {}
+
   '@types/markdown-it@14.1.2':
     dependencies:
       '@types/linkify-it': 5.0.0
@@ -9121,6 +9150,8 @@ snapshots:
       vue: 3.5.26(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
+
+  '@zumer/snapdom@2.0.1': {}
 
   abitype@0.7.1(typescript@5.9.3)(zod@4.2.1):
     dependencies:

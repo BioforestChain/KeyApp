@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import {
   useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
-  walletActions,
   type ChainType,
 } from "@/stores";
 
@@ -73,12 +72,6 @@ export function HomeTab() {
 
   // 查询并缓存安全密码公钥（进入钱包时自动查询）
   useSecurityPasswordQuery(selectedChain, chainAddress?.address);
-
-  useEffect(() => {
-    if (!isInitialized) {
-      walletActions.initialize();
-    }
-  }, [isInitialized]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {

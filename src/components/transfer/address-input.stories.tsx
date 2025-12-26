@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddressInput } from './address-input';
+import { AddressBookSuggestionProvider } from './contact-suggestion-context';
 import { addressBookActions } from '@/stores';
 
 const meta: Meta<typeof AddressInput> = {
@@ -110,7 +111,11 @@ export const WithContactSuggestions: Story = {
         ],
         memo: '朋友',
       });
-      return <Story />;
+      return (
+        <AddressBookSuggestionProvider>
+          <Story />
+        </AddressBookSuggestionProvider>
+      );
     },
   ],
   render: () => {
@@ -155,7 +160,11 @@ export const FilterByChain: Story = {
           { id: '3', address: 'c7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'ccchain', isDefault: true },
         ],
       });
-      return <Story />;
+      return (
+        <AddressBookSuggestionProvider>
+          <Story />
+        </AddressBookSuggestionProvider>
+      );
     },
   ],
   render: () => {

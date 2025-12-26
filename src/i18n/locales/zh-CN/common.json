@@ -310,7 +310,8 @@
     "memo": "备注",
     "memoPlaceholder": "添加备注（可选）",
     "shareContact": "分享名片",
-    "scanToAdd": "扫码添加联系人"
+    "scanToAdd": "扫码添加联系人",
+    "changeAvatar": "点击切换头像"
   },
   "time": {
     "justNow": "刚刚",

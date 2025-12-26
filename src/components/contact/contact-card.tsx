@@ -1,0 +1,65 @@
+/**
+ * ContactCard - 联系人名片卡片
+ * 用于分享和展示联系人信息
+ */
+
+import { QRCodeSVG } from 'qrcode.react';
+import { ContactAvatar } from '@/components/common/contact-avatar';
+import { generateAvatarFromAddress } from '@/lib/avatar-codec';
+import type { ContactAddressInfo } from '@/lib/qr-parser';
+
+const CHAIN_NAMES: Record<string, string> = {
+  ethereum: 'ETH',
+  bitcoin: 'BTC',
+  tron: 'TRX',
+};
+
+const CHAIN_COLORS: Record<string, string> = {
+  ethereum: '#627EEA',
+  bitcoin: '#F7931A',
+  tron: '#FF0013',
+};
+
+export interface ContactCardProps {
+  name: string;
+  avatar?: string | undefined;
+  address?: string | undefined;
+  addresses: ContactAddressInfo[];
+  qrContent: string;
+}
+
+export function ContactCard({ name, avatar, address, addresses, qrContent }: ContactCardProps) {
+  const effectiveAddress = address || addresses[0]?.address;
+  const effectiveAvatar = avatar || (effectiveAddress ? generateAvatarFromAddress(effectiveAddress) : undefined);
+  return (
+    <div className="w-[320px] overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
+      <div className="mb-6 flex items-center gap-4">
+        <ContactAvatar src={effectiveAvatar} size={64} />
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-white">{name}</h3>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {addresses.map((a) => (
+              <span
+                key={a.chainType}
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white/90"
+                style={{ backgroundColor: CHAIN_COLORS[a.chainType] || '#6B7280' }}
+              >
+                {CHAIN_NAMES[a.chainType] || a.chainType.toUpperCase()}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="rounded-2xl bg-white p-3 shadow-inner">
+          <QRCodeSVG value={qrContent} size={180} level="M" bgColor="#FFFFFF" fgColor="#1E293B" />
+        </div>
+      </div>
+
+      <div className="mt-4 text-center">
+        <p className="text-sm text-slate-400">扫码添加联系人</p>
+      </div>
+    </div>
+  );
+}
