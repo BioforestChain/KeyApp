@@ -11,7 +11,12 @@ import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
 
-export function TransactionHistoryPage() {
+interface TransactionHistoryPageProps {
+  /** 初始链过滤器，'all' 表示全部链 */
+  initialChain?: ChainType | 'all';
+}
+
+export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageProps) {
   const { navigate, goBack } = useNavigation();
   const currentWallet = useCurrentWallet();
   const enabledChains = useEnabledChains();
@@ -35,10 +40,11 @@ export function TransactionHistoryPage() {
     })),
   ], [t, enabledChains]);
 
-  // 初始化时设置默认过滤器为当前选中的网络
+  // 初始化时设置过滤器：优先使用传入的 initialChain，否则使用当前选中的网络
   useEffect(() => {
-    if (selectedChain && filter.chain !== selectedChain) {
-      setFilter({ ...filter, chain: selectedChain });
+    const targetChain = initialChain ?? selectedChain;
+    if (targetChain && filter.chain !== targetChain) {
+      setFilter({ ...filter, chain: targetChain });
     }
   }, []);
 

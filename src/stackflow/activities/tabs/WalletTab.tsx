@@ -254,7 +254,9 @@ export function WalletTab() {
                   emptyDescription={t("transaction:history.emptyDesc")}
                 />
                 <button
-                  onClick={() => push("HistoryActivity", {})}
+                  onClick={() => push("HistoryActivity", { 
+                    chain: transactions.length > 0 ? selectedChain : "all" 
+                  })}
                   className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                 >
                   {transactions.length > 0
