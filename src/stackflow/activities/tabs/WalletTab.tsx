@@ -4,7 +4,6 @@ import { useFlow } from "../../stackflow";
 import { TokenList } from "@/components/token/token-list";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
-import { WalletListSheet } from "@/components/wallet/wallet-list-sheet";
 import { SwipeableContentTabs } from "@/components/home/content-tabs";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { GradientButton } from "@/components/common/gradient-button";
@@ -64,8 +63,6 @@ export function WalletTab() {
   // 初始化钱包主题
   useWalletTheme();
 
-  // 钱包列表 Sheet 状态
-  const [walletListOpen, setWalletListOpen] = useState(false);
   // 当前内容 Tab
   const [activeTab, setActiveTab] = useState("assets");
 
@@ -111,10 +108,9 @@ export function WalletTab() {
     walletActions.setCurrentWallet(walletId);
   }, []);
 
-  // 添加钱包
-  const handleAddWallet = useCallback(() => {
-    push("WalletAddJob", {});
-    setWalletListOpen(false);
+  // 打开钱包列表
+  const handleOpenWalletList = useCallback(() => {
+    push("WalletListJob", {});
   }, [push]);
 
   // 交易点击
@@ -152,7 +148,7 @@ export function WalletTab() {
           onCopyAddress={handleCopyAddress}
           onOpenChainSelector={handleOpenChainSelector}
           onOpenSettings={handleOpenWalletSettings}
-          onOpenWalletList={() => setWalletListOpen(true)}
+          onOpenWalletList={handleOpenWalletList}
         />
 
         {/* 快捷操作按钮 */}
@@ -235,26 +231,6 @@ export function WalletTab() {
         </SwipeableContentTabs>
       </div>
 
-      {/* 钱包列表 Sheet */}
-      {walletListOpen && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setWalletListOpen(false)}
-          />
-          <div className="bg-background absolute right-0 bottom-0 left-0 max-h-[70vh] animate-slide-in-bottom rounded-t-3xl">
-            <WalletListSheet
-              wallets={wallets}
-              currentWalletId={currentWalletId}
-              onSelectWallet={(id) => {
-                handleWalletChange(id);
-                setWalletListOpen(false);
-              }}
-              onAddWallet={handleAddWallet}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

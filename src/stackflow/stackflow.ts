@@ -28,7 +28,7 @@ import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
 import { SettingsWalletChainsActivity } from "./activities/SettingsWalletChainsActivity";
-import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob } from "./activities/sheets";
+import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -73,6 +73,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         ContactEditJob: "/job/contact-edit",
         ContactPickerJob: "/job/contact-picker",
         WalletAddJob: "/job/wallet-add",
+        WalletListJob: "/job/wallet-list",
         SecurityWarningJob: "/job/security-warning",
         TransferConfirmJob: "/job/transfer-confirm",
         TransferWalletLockJob: "/job/transfer-wallet-lock",
@@ -120,6 +121,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     ContactEditJob,
     ContactPickerJob,
     WalletAddJob,
+    WalletListJob,
     SecurityWarningJob,
     TransferConfirmJob,
     TransferWalletLockJob,

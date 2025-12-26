@@ -8,6 +8,7 @@ export { MnemonicOptionsJob, setMnemonicOptionsCallback } from "./MnemonicOption
 export { ContactEditJob } from "./ContactEditJob";
 export { ContactPickerJob } from "./ContactPickerJob";
 export { WalletAddJob } from "./WalletAddJob";
+export { WalletListJob } from "./WalletListJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
