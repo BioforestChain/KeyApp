@@ -304,9 +304,16 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
 
       {/* Camera viewfinder */}
       <div className="relative flex-1">
-        {(state === 'scanning' || state === 'success') && (
-          <video ref={videoRef} className="absolute inset-0 size-full object-cover" playsInline muted />
-        )}
+        {/* Video 始终渲染，避免 srcObject 设置时元素不存在的 race condition */}
+        <video
+          ref={videoRef}
+          className={cn(
+            'absolute inset-0 size-full object-cover',
+            state !== 'scanning' && state !== 'success' && 'invisible'
+          )}
+          playsInline
+          muted
+        />
 
         {/* Scan overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
