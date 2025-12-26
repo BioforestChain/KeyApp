@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useRef, useState, useContext, createContext } from 'react'
 import { cn } from '@/lib/utils'
 import { useCardInteraction } from '@/hooks/useCardInteraction'
 import { ChainIcon } from './chain-icon'
@@ -15,6 +15,10 @@ export interface WalletCardProps {
   chain: ChainType
   chainName: string
   address?: string | undefined
+  /** 链图标 URL，用于防伪水印 */
+  chainIconUrl?: string | undefined
+  /** 防伪水印 logo 平铺尺寸，默认 32px */
+  watermarkLogoSize?: number | undefined
   onCopyAddress?: (() => void) | undefined
   onOpenChainSelector?: (() => void) | undefined
   onOpenSettings?: (() => void) | undefined
@@ -34,6 +38,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
       chain,
       chainName,
       address,
+      chainIconUrl,
+      watermarkLogoSize = 32,
       onCopyAddress,
       onOpenChainSelector,
       onOpenSettings,
@@ -60,13 +66,21 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
       setTimeout(() => setCopied(false), 2000)
     }, [onCopyAddress])
 
-    // 3D 旋转 - 默认有微弱的呼吸动画偏移
-    const baseRotateX = isActive ? pointerY * -12 : 0
-    const baseRotateY = isActive ? pointerX * 12 : 0
+    // 3D 旋转
+    const rotateX = isActive ? pointerY * -12 : 0
+    const rotateY = isActive ? pointerX * 12 : 0
 
-    // 光泽位置 - 静态时居中偏移，交互时跟随指针
-    const shineX = isActive ? 50 + pointerX * 30 : 50
-    const shineY = isActive ? 50 + pointerY * 30 : 40
+    // 聚光灯位置
+    const spotlightX = 50 + pointerX * 20
+    const spotlightY = 50 + pointerY * 20
+
+    // 折射层缩放和位移 - 跟随指针
+    const refractionScale1 = Math.min(1, 0.15 + pointerX * 0.25)
+    const refractionScale2 = Math.min(1, 0.15 + pointerX * -0.65)
+    const refractionTranslateX1 = Math.max(-10, Math.min(10, pointerX * 10))
+    const refractionTranslateY1 = Math.max(0, pointerY * -10)
+    const refractionTranslateX2 = Math.max(-10, Math.min(10, -pointerX * 10))
+    const refractionTranslateY2 = Math.min(0, pointerY * -10)
 
     return (
       <div
@@ -76,12 +90,9 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
       >
         <div
           ref={cardRef}
-          className={cn(
-            'wallet-card relative h-full w-full overflow-hidden rounded-2xl',
-            'transform-gpu touch-none select-none'
-          )}
+          className="wallet-card relative h-full w-full transform-gpu touch-none select-none overflow-hidden rounded-2xl"
           style={{
-            transform: `rotateX(${baseRotateX}deg) rotateY(${baseRotateY}deg)`,
+            transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
             transformStyle: 'preserve-3d',
             transition: isActive ? 'none' : 'transform 0.4s ease-out',
           }}
@@ -91,107 +102,112 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             className="absolute inset-0"
             style={{
               background: `linear-gradient(135deg, 
-                hsl(${themeHue} 70% 45%) 0%, 
-                hsl(${themeHue + 20} 80% 35%) 50%,
-                hsl(${themeHue + 40} 70% 25%) 100%)`,
+                hsl(${themeHue} 70% 40%) 0%, 
+                hsl(${themeHue + 20} 80% 30%) 50%,
+                hsl(${themeHue + 40} 70% 20%) 100%)`,
             }}
           />
 
-          {/* 2. 防伪水印图案 - 链Logo + 斜纹 */}
-          <div className="absolute inset-0 overflow-hidden">
-            {/* 斜纹底纹 */}
+          {/* 2. 防伪水印层 - 链Logo平铺 + 彩虹折射 */}
+          {chainIconUrl && (
             <div
-              className="absolute inset-0"
+              className="absolute inset-0 overflow-hidden rounded-2xl"
               style={{
-                backgroundImage: `repeating-linear-gradient(
-                  -45deg,
-                  transparent,
-                  transparent 8px,
-                  rgba(255,255,255,0.08) 8px,
-                  rgba(255,255,255,0.08) 9px
+                // 用链 logo 作为 mask，平铺显示
+                WebkitMaskImage: `url(${chainIconUrl})`,
+                WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+                WebkitMaskRepeat: 'repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: `url(${chainIconUrl})`,
+                maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+                maskRepeat: 'repeat',
+                maskPosition: 'center',
+                mixBlendMode: 'hard-light',
+                opacity: isActive ? 1 : 0.6,
+                transition: 'opacity 0.2s',
+              }}
+            >
+              {/* 彩虹折射层 1 - 左下角 */}
+              <div
+                className="absolute aspect-square w-[500%]"
+                style={{
+                  bottom: 0,
+                  left: 0,
+                  transformOrigin: '0 100%',
+                  background: `radial-gradient(
+                    circle at 0 100%,
+                    transparent 10%,
+                    hsl(5 100% 80%),
+                    hsl(150 100% 60%),
+                    hsl(220 90% 70%),
+                    transparent 60%
+                  )`,
+                  filter: 'saturate(2)',
+                  scale: refractionScale1,
+                  translate: `${refractionTranslateX1}% ${refractionTranslateY1}%`,
+                  opacity: isActive ? 1 : 0.3,
+                  transition: isActive ? 'none' : 'all 0.3s',
+                }}
+              />
+              {/* 彩虹折射层 2 - 右上角 */}
+              <div
+                className="absolute aspect-square w-[500%]"
+                style={{
+                  top: 0,
+                  right: 0,
+                  transformOrigin: '100% 0',
+                  background: `radial-gradient(
+                    circle at 100% 0,
+                    transparent 10%,
+                    hsl(5 100% 80%),
+                    hsl(150 100% 60%),
+                    hsl(220 90% 70%),
+                    transparent 60%
+                  )`,
+                  filter: 'saturate(2)',
+                  scale: refractionScale2,
+                  translate: `${refractionTranslateX2}% ${refractionTranslateY2}%`,
+                  opacity: isActive ? 1 : 0.3,
+                  transition: isActive ? 'none' : 'all 0.3s',
+                }}
+              />
+            </div>
+          )}
+
+          {/* 3. 边框装饰纹理 */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: `linear-gradient(135deg, 
+                rgba(255,255,255,0.15) 0%, 
+                transparent 50%, 
+                rgba(0,0,0,0.15) 100%)`,
+            }}
+          />
+
+          {/* 4. 聚光灯层 */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              mixBlendMode: 'overlay',
+              opacity: isActive ? 1 : 0.4,
+              transition: 'opacity 0.2s',
+            }}
+          >
+            <div
+              className="absolute aspect-square w-[500%]"
+              style={{
+                left: '50%',
+                top: '50%',
+                background: `radial-gradient(
+                  hsl(0 0% 100% / 0.4) 0 2%,
+                  hsl(0 0% 10% / 0.2) 20%
                 )`,
-              }}
-            />
-            {/* 细密网格 */}
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-                `,
-                backgroundSize: '20px 20px',
-              }}
-            />
-            {/* 大Logo水印 */}
-            <div
-              className="absolute -right-8 -bottom-8 size-40 opacity-[0.08]"
-              style={{
-                background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 7h-1V6a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v1H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zM8 6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1H8V6zm12 12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8z'/%3E%3Cpath d='M12 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'/%3E%3C/svg%3E") center/contain no-repeat`,
+                translate: `calc(-50% + ${spotlightX - 50}%) calc(-50% + ${spotlightY - 50}%)`,
               }}
             />
           </div>
-
-          {/* 4. 默认光泽层 - 始终显示 */}
-          <div
-            className="absolute inset-0 transition-opacity duration-300"
-            style={{
-              background: `radial-gradient(
-                ellipse 80% 50% at ${shineX}% ${shineY}%,
-                rgba(255,255,255,0.25) 0%,
-                rgba(255,255,255,0.1) 30%,
-                transparent 70%
-              )`,
-              opacity: isActive ? 1 : 0.6,
-            }}
-          />
-
-          {/* 5. 彩虹全息层 - 始终微弱显示，交互时增强 */}
-          <div
-            className="absolute inset-0 transition-opacity duration-300"
-            style={{
-              background: `
-                linear-gradient(
-                  ${125 + pointerX * 20}deg,
-                  transparent 20%,
-                  rgba(255,100,100,0.15) 35%,
-                  rgba(100,255,100,0.12) 50%,
-                  rgba(100,100,255,0.15) 65%,
-                  transparent 80%
-                )
-              `,
-              opacity: isActive ? 0.8 : 0.3,
-              mixBlendMode: 'overlay',
-            }}
-          />
-
-          {/* 6. 边缘高光 */}
-          <div
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              background: `linear-gradient(
-                135deg,
-                rgba(255,255,255,0.3) 0%,
-                transparent 50%,
-                rgba(0,0,0,0.2) 100%
-              )`,
-              opacity: 0.5,
-            }}
-          />
-
-          {/* 7. 动态聚光灯 - 交互时更明显 */}
-          <div
-            className="absolute inset-0 transition-opacity duration-200"
-            style={{
-              background: `radial-gradient(
-                circle at ${shineX}% ${shineY}%,
-                rgba(255,255,255,0.4) 0%,
-                transparent 50%
-              )`,
-              opacity: isActive ? 0.6 : 0.2,
-              mixBlendMode: 'overlay',
-            }}
-          />
 
           {/* 卡片内容 */}
           <div className="relative z-10 flex h-full flex-col justify-between p-4">
@@ -239,22 +255,18 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             </div>
           </div>
 
-          {/* 边框和阴影 */}
+          {/* 外层阴影 */}
           <div
             className="pointer-events-none absolute inset-0 rounded-2xl"
             style={{
               boxShadow: `
                 inset 0 1px 1px rgba(255,255,255,0.3),
                 inset 0 -1px 1px rgba(0,0,0,0.2),
-                0 20px 40px -15px rgba(0,0,0,0.4),
-                0 10px 20px -10px rgba(0,0,0,0.3)
+                0 20px 40px -15px rgba(0,0,0,0.4)
               `,
-              border: '1px solid rgba(255,255,255,0.15)',
             }}
           />
         </div>
-
-
       </div>
     )
   }

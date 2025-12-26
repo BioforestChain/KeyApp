@@ -16,6 +16,10 @@ interface WalletCardCarouselProps {
   currentWalletId: string | null
   selectedChain: ChainType
   chainNames: Record<string, string>
+  /** 链图标 URL 映射，用于防伪水印 */
+  chainIconUrls?: Record<string, string>
+  /** 防伪水印 logo 尺寸，默认 32px */
+  watermarkLogoSize?: number
   onWalletChange?: (walletId: string) => void
   onCopyAddress?: (address: string) => void
   onOpenChainSelector?: () => void
@@ -33,6 +37,8 @@ export function WalletCardCarousel({
   currentWalletId,
   selectedChain,
   chainNames,
+  chainIconUrls,
+  watermarkLogoSize = 32,
   onWalletChange,
   onCopyAddress,
   onOpenChainSelector,
@@ -111,6 +117,8 @@ export function WalletCardCarousel({
               chain={selectedChain}
               chainName={chainNames[selectedChain] ?? selectedChain}
               address={getWalletAddress(wallet)}
+              chainIconUrl={chainIconUrls?.[selectedChain]}
+              watermarkLogoSize={watermarkLogoSize}
               themeHue={getWalletTheme(wallet.id)}
               onCopyAddress={() => {
                 const addr = getWalletAddress(wallet)

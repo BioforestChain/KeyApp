@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { TokenList } from "@/components/token/token-list";
@@ -25,6 +25,7 @@ import {
   useHasWallet,
   useWalletInitialized,
   walletActions,
+  useChainConfigs,
   type ChainType,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
@@ -59,6 +60,18 @@ export function WalletTab() {
   const selectedChain = useSelectedChain();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const tokens = useCurrentChainTokens();
+  const chainConfigs = useChainConfigs();
+
+  // 构建 chainIconUrls 映射（用于防伪水印）
+  const chainIconUrls = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const config of chainConfigs) {
+      if (config.icon) {
+        map[config.id] = config.icon;
+      }
+    }
+    return map;
+  }, [chainConfigs]);
 
   // 初始化钱包主题
   useWalletTheme();
@@ -144,6 +157,8 @@ export function WalletTab() {
           currentWalletId={currentWalletId}
           selectedChain={selectedChain}
           chainNames={CHAIN_NAMES}
+          chainIconUrls={chainIconUrls}
+          watermarkLogoSize={32}
           onWalletChange={handleWalletChange}
           onCopyAddress={handleCopyAddress}
           onOpenChainSelector={handleOpenChainSelector}
