@@ -78,9 +78,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
           ref={cardRef}
           className={cn(
             'wallet-card relative h-full w-full overflow-hidden rounded-2xl',
-            'transform-gpu touch-none select-none',
-            'animate-card-breathe',
-            isActive && 'animation-paused'
+            'transform-gpu touch-none select-none'
           )}
           style={{
             transform: `rotateX(${baseRotateX}deg) rotateY(${baseRotateY}deg)`,
@@ -256,27 +254,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
           />
         </div>
 
-        <style>{`
-          @keyframes card-breathe {
-            0%, 100% {
-              transform: rotateX(0deg) rotateY(0deg);
-            }
-            25% {
-              transform: rotateX(1deg) rotateY(-1deg);
-            }
-            75% {
-              transform: rotateX(-1deg) rotateY(1deg);
-            }
-          }
 
-          .animate-card-breathe {
-            animation: card-breathe 6s ease-in-out infinite;
-          }
-
-          .animation-paused {
-            animation-play-state: paused !important;
-          }
-        `}</style>
       </div>
     )
   }
