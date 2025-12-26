@@ -4,46 +4,18 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useFlow } from "../../stackflow";
-import { IconAlertTriangle, IconLoader2 } from "@tabler/icons-react";
-
-async function clearAllData() {
-  // Clear localStorage
-  localStorage.clear();
-  
-  // Clear sessionStorage
-  sessionStorage.clear();
-  
-  // Clear all IndexedDB databases
-  const databases = await indexedDB.databases();
-  await Promise.all(
-    databases.map((db) => {
-      if (db.name) {
-        return new Promise<void>((resolve, reject) => {
-          const request = indexedDB.deleteDatabase(db.name!);
-          request.onsuccess = () => resolve();
-          request.onerror = () => reject(request.error);
-        });
-      }
-      return Promise.resolve();
-    })
-  );
-}
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 function ClearDataConfirmJobContent() {
   const { t } = useTranslation(["settings", "common"]);
   const { pop } = useFlow();
   const [isClearing, setIsClearing] = useState(false);
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = useCallback(() => {
     setIsClearing(true);
-    try {
-      await clearAllData();
-      // Reload the page to reset app state
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Failed to clear data:", error);
-      setIsClearing(false);
-    }
+    // Navigate to clear.html which handles cleanup in isolation
+    const baseUri = import.meta.env.BASE_URL || '/';
+    window.location.href = `${baseUri}clear.html`;
   }, []);
 
   return (
@@ -96,11 +68,7 @@ function ClearDataConfirmJobContent() {
               onClick={handleConfirm}
               disabled={isClearing}
             >
-              {isClearing ? (
-                <IconLoader2 className="size-4 animate-spin" />
-              ) : (
-                t("settings:clearData.confirm")
-              )}
+              {t("settings:clearData.confirm")}
             </Button>
           </div>
         </div>
