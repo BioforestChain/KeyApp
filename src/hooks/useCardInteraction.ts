@@ -131,12 +131,14 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
       let clientX: number, clientY: number
 
-      if ('touches' in event) {
+      if ('touches' in event && event.touches[0]) {
         clientX = event.touches[0].clientX
         clientY = event.touches[0].clientY
-      } else {
+      } else if ('clientX' in event) {
         clientX = event.clientX
         clientY = event.clientY
+      } else {
+        return
       }
 
       const x = ((clientX - rect.left) / rect.width - 0.5) * 2

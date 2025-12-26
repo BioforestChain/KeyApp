@@ -148,7 +148,7 @@ export const NoAddress: Story = {
     wallet: createMockWallet(),
     chain: 'ethereum',
     chainName: 'Ethereum',
-    address: undefined,
+    // address is intentionally omitted to test placeholder state
     themeHue: 323,
     onCopyAddress: fn(),
     onOpenChainSelector: fn(),

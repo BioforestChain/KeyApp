@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WalletSelector } from './wallet-selector';
-import type { WalletInfo } from './wallet-card';
+import type { WalletInfo } from './index';
 import { TestI18nProvider } from '@/test/i18n-mock';
 
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>);

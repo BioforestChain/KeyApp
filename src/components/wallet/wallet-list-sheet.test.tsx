@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WalletListSheet } from './wallet-list-sheet'
 import type { Wallet } from '@/stores'
@@ -140,7 +140,7 @@ describe('WalletListSheet', () => {
 
     // Click palette button to show theme picker
     const paletteButtons = screen.getAllByRole('button', { name: '更改主题色' })
-    await userEvent.click(paletteButtons[0])
+    await userEvent.click(paletteButtons.at(0)!)
 
     // Should show color options (10 presets)
     const colorButtons = screen.getAllByRole('button').filter((btn) =>

@@ -82,7 +82,7 @@ export const Default: Story = {
 
 export const SingleWallet: Story = {
   args: {
-    wallets: [mockWallets[0]],
+    wallets: mockWallets.slice(0, 1),
     currentWalletId: 'wallet1',
     selectedChain: 'ethereum',
     chainNames,

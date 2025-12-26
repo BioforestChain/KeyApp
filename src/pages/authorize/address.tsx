@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { AppInfoCard } from '@/components/authorize/AppInfoCard'
 import { PermissionList } from '@/components/authorize/PermissionList'
 import { Button } from '@/components/ui/button'
-import { WalletSelector } from '@/components/wallet/wallet-selector'
+import { WalletSelector, type WalletInfo } from '@/components/wallet'
 import { ChainAddressSelector, type ChainData } from '@/components/wallet/chain-address-selector'
 import type { ChainType as ChainIconType } from '@/components/wallet/chain-icon'
 import { cn } from '@/lib/utils'
@@ -44,7 +44,7 @@ function toChainIconType(chainName: string | undefined): ChainIconType | undefin
   return chainName
 }
 
-function toWalletSelectorItems(wallets: Wallet[]) {
+function toWalletSelectorItems(wallets: Wallet[]): WalletInfo[] {
   return wallets.map((w) => ({
     id: w.id,
     name: w.name,

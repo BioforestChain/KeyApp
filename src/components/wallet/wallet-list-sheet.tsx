@@ -14,8 +14,8 @@ interface WalletListSheetProps {
   currentWalletId: string | null
   onSelectWallet: (walletId: string) => void
   onAddWallet: () => void
-  onReorderWallets?: (walletIds: string[]) => void
-  className?: string
+  onReorderWallets?: ((walletIds: string[]) => void) | undefined
+  className?: string | undefined
 }
 
 /**
@@ -27,7 +27,7 @@ export function WalletListSheet({
   currentWalletId,
   onSelectWallet,
   onAddWallet,
-  onReorderWallets,
+  onReorderWallets: _onReorderWallets, // TODO: Implement drag-and-drop reordering
   className,
 }: WalletListSheetProps) {
   const { getWalletTheme, setThemePreset } = useWalletTheme()
@@ -172,8 +172,8 @@ export function WalletListSheet({
                                 background: `linear-gradient(135deg, 
                                   oklch(0.55 0.2 ${hue}) 0%, 
                                   oklch(0.45 0.25 ${hue + 30}) 100%)`,
-                                ringColor: `oklch(0.5 0.2 ${hue})`,
-                              }}
+                                '--tw-ring-color': `oklch(0.5 0.2 ${hue})`,
+                              } as React.CSSProperties}
                               aria-label={preset}
                             />
                           )

@@ -10,17 +10,17 @@ import {
   IconChevronDown as ChevronDown,
 } from '@tabler/icons-react'
 
-interface WalletCardProps {
+export interface WalletCardProps {
   wallet: Wallet
   chain: ChainType
   chainName: string
-  address?: string
-  onCopyAddress?: () => void
-  onOpenChainSelector?: () => void
-  onOpenSettings?: () => void
-  className?: string
+  address?: string | undefined
+  onCopyAddress?: (() => void) | undefined
+  onOpenChainSelector?: (() => void) | undefined
+  onOpenSettings?: (() => void) | undefined
+  className?: string | undefined
   /** 卡片主题色 (oklch hue) */
-  themeHue?: number
+  themeHue?: number | undefined
 }
 
 /** 截断地址显示 */

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { WalletSelector } from './wallet-selector';
-import type { WalletInfo } from './wallet-card';
+import type { WalletInfo } from './index';
 
 const meta: Meta<typeof WalletSelector> = {
   title: 'Wallet/WalletSelector',

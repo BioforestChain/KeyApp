@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WalletCard } from './wallet-card'
 import type { Wallet } from '@/stores'
@@ -68,7 +68,7 @@ describe('WalletCard (3D)', () => {
     // Get all buttons: [chain selector, settings, copy]
     const buttons = screen.getAllByRole('button')
     // The copy button is the last one (in the bottom row after address)
-    const copyButton = buttons[buttons.length - 1]
+    const copyButton = buttons.at(-1)!
 
     await userEvent.click(copyButton)
 
@@ -80,7 +80,7 @@ describe('WalletCard (3D)', () => {
     render(<WalletCard {...defaultProps} onCopyAddress={handleCopy} />)
 
     const buttons = screen.getAllByRole('button')
-    await userEvent.click(buttons[buttons.length - 1])
+    await userEvent.click(buttons.at(-1)!)
 
     // Check icon should appear
     await waitFor(() => {
@@ -106,7 +106,7 @@ describe('WalletCard (3D)', () => {
     // Settings button is in the top-right
     const buttons = screen.getAllByRole('button')
     // Second button (after chain selector) should be settings
-    await userEvent.click(buttons[1])
+    await userEvent.click(buttons.at(1)!)
 
     expect(handleOpenSettings).toHaveBeenCalledTimes(1)
   })

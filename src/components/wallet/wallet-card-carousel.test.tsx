@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WalletCardCarousel } from './wallet-card-carousel'
 import type { Wallet } from '@/stores'
@@ -103,7 +103,7 @@ describe('WalletCardCarousel', () => {
   })
 
   it('does not render wallet count for single wallet', () => {
-    render(<WalletCardCarousel {...defaultProps} wallets={[mockWallets[0]]} />)
+    render(<WalletCardCarousel {...defaultProps} wallets={[mockWallets.at(0)!]} />)
     expect(screen.queryByText(/个钱包/)).not.toBeInTheDocument()
   })
 
@@ -122,7 +122,7 @@ describe('WalletCardCarousel', () => {
     render(<WalletCardCarousel {...defaultProps} onCopyAddress={handleCopyAddress} />)
 
     const copyButtons = screen.getAllByRole('button', { name: 'Copy' })
-    await userEvent.click(copyButtons[0])
+    await userEvent.click(copyButtons.at(0)!)
 
     expect(handleCopyAddress).toHaveBeenCalledWith('0xwallet-1')
   })
@@ -159,8 +159,9 @@ describe('WalletCardCarousel', () => {
   })
 
   it('uses address from chainAddresses when available', () => {
-    const walletWithMultiChain = {
-      ...mockWallets[0],
+    const baseWallet = mockWallets.at(0)!
+    const walletWithMultiChain: Wallet = {
+      ...baseWallet,
       chainAddresses: [
         { chain: 'ethereum', address: '0xETH-ADDRESS', tokens: [] },
         { chain: 'tron', address: 'TRON-ADDRESS', tokens: [] },

@@ -109,8 +109,8 @@ export function WalletCardCarousel({
                 const addr = getWalletAddress(wallet)
                 if (addr) onCopyAddress?.(addr)
               }}
-              onOpenChainSelector={onOpenChainSelector}
-              onOpenSettings={() => onOpenSettings?.(wallet.id)}
+              onOpenChainSelector={onOpenChainSelector ?? undefined}
+              onOpenSettings={onOpenSettings ? () => onOpenSettings(wallet.id) : undefined}
             />
           </SwiperSlide>
         ))}
