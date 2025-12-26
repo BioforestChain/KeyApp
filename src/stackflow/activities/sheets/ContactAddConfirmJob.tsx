@@ -18,7 +18,8 @@ import {
 import { ContactAvatar } from '@/components/common/contact-avatar'
 import { generateAvatarFromAddress } from '@/lib/avatar-codec'
 import { cn } from '@/lib/utils'
-import { addressBookActions, type ChainType } from '@/stores'
+import { detectAddressFormat } from '@/lib/address-format'
+import { addressBookActions } from '@/stores'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 
@@ -35,15 +36,8 @@ export type ContactAddConfirmJobParams = {
 }
 
 interface AddressInfo {
-  chainType: ChainType
   address: string
   label?: string
-}
-
-const CHAIN_NAMES: Record<string, string> = {
-  ethereum: 'Ethereum',
-  bitcoin: 'Bitcoin',
-  tron: 'Tron',
 }
 
 function ContactAddConfirmJobContent() {
@@ -86,7 +80,6 @@ function ContactAddConfirmJobContent() {
         addresses: addresses.map((a, i) => ({
           id: `addr-${i}`,
           address: a.address,
-          chainType: a.chainType,
           label: a.label,
           isDefault: i === 0,
         })),
@@ -156,23 +149,28 @@ function ContactAddConfirmJobContent() {
               {t('addressBook.addresses')}
             </label>
             <div className="space-y-2">
-              {addresses.map((addr, i) => (
-                <div 
-                  key={i}
-                  className="bg-muted/50 flex items-center gap-3 rounded-lg p-3"
-                >
-                  <Wallet className="text-muted-foreground size-5 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-muted-foreground text-xs">
-                      {CHAIN_NAMES[addr.chainType] || addr.chainType}
-                      {addr.label && ` · ${addr.label}`}
-                    </div>
-                    <div className="truncate font-mono text-sm">
-                      {addr.address}
+              {addresses.map((addr, i) => {
+                const detected = detectAddressFormat(addr.address)
+                const displayLabel = addr.label || detected.chainType?.toUpperCase() || ''
+                return (
+                  <div 
+                    key={i}
+                    className="bg-muted/50 flex items-center gap-3 rounded-lg p-3"
+                  >
+                    <Wallet className="text-muted-foreground size-5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      {displayLabel && (
+                        <div className="text-muted-foreground text-xs">
+                          {displayLabel}
+                        </div>
+                      )}
+                      <div className="truncate font-mono text-sm">
+                        {addr.address}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
           

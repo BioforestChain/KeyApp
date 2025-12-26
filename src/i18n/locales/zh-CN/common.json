@@ -60,6 +60,8 @@
     "cancel": "取消",
     "noContacts": "暂无联系人",
     "noValidAddress": "无可用地址",
+    "addressLabel": "地址标签",
+    "addressLabelPlaceholder": "如：主账户、交易所",
     "viewAll": "查看全部联系人",
     "selectContact": "选择联系人",
     "selectAddress": "选择地址"

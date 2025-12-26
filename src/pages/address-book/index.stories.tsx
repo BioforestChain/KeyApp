@@ -16,8 +16,8 @@ export default meta
 type Story = StoryObj<typeof AddressBookPage>
 
 // Helper to create addresses
-function createAddresses(address: string, chainType = 'ethereum') {
-  return [{ id: crypto.randomUUID(), address, chainType: chainType as 'ethereum' }]
+function createAddresses(address: string, label = 'ETH') {
+  return [{ id: crypto.randomUUID(), address, label }]
 }
 
 const resetStores = () => {
@@ -99,9 +99,9 @@ export const MultipleAddresses: Story = {
       addressBookActions.addContact({
         name: 'Multi-Chain User',
         addresses: [
-          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum' },
-          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'bfmeta' },
-          { id: '3', address: 'TJYs1234567890abcdef1234567890abc', chainType: 'tron' },
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', label: 'ETH' },
+          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', label: 'BFMETA' },
+          { id: '3', address: 'TJYs1234567890abcdef1234567890abc', label: 'TRX' },
         ],
         memo: '多链用户',
       })

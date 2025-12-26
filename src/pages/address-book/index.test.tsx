@@ -6,8 +6,8 @@ import { addressBookActions, walletStore } from '@/stores'
 const mockPush = vi.fn()
 
 // Helper to create addresses
-function createAddresses(address: string, chainType = 'ethereum') {
-  return [{ id: crypto.randomUUID(), address, chainType: chainType as 'ethereum' }]
+function createAddresses(address: string, label = 'ETH') {
+  return [{ id: crypto.randomUUID(), address, label }]
 }
 
 // Mock dependencies
@@ -148,8 +148,8 @@ describe('AddressBookPage', () => {
     addressBookActions.addContact({
       name: 'Multi',
       addresses: [
-        { id: '1', address: '0x1111', chainType: 'ethereum' },
-        { id: '2', address: 'b7ADmv...', chainType: 'bfmeta' },
+        { id: '1', address: '0x1111', label: 'ETH' },
+        { id: '2', address: 'b7ADmv...', label: 'BFMETA' },
       ],
     })
 

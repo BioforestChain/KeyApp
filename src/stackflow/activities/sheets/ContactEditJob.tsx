@@ -5,8 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
 import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType } from "@/stores";
-import { detectAddressFormat } from "@/lib/address-format";
-import { IconWallet as Wallet, IconFileText as FileText, IconRefresh as Refresh } from "@tabler/icons-react";
+import { IconWallet as Wallet, IconFileText as FileText, IconRefresh as Refresh, IconTag as Tag } from "@tabler/icons-react";
 import { ContactAvatar } from "@/components/common/contact-avatar";
 import { generateAvatarFromAddress } from "@/lib/avatar-codec";
 import { useFlow } from "../../stackflow";
@@ -27,6 +26,7 @@ function ContactEditJobContent() {
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [addressLabel, setAddressLabel] = useState("");
   const [memo, setMemo] = useState("");
   const [avatarSeed, setAvatarSeed] = useState(0);
 
@@ -41,6 +41,7 @@ function ContactEditJobContent() {
     if (contact) {
       setName(contact.name);
       setAddress(defaultAddress?.address ?? "");
+      setAddressLabel(defaultAddress?.label ?? "");
       setMemo(contact.memo ?? "");
     }
   }, [contact, defaultAddress]);
@@ -56,13 +57,10 @@ function ContactEditJobContent() {
   const handleSave = useCallback(() => {
     const trimmedName = name.trim();
     const trimmedAddress = address.trim();
+    const trimmedLabel = addressLabel.trim();
     const trimmedMemo = memo.trim();
 
     if (!trimmedName || !trimmedAddress) return;
-
-    // Detect chain type from address format
-    const detectedFormat = detectAddressFormat(trimmedAddress);
-    const chainType = (defaultChain as ChainType) ?? detectedFormat.chainType ?? "ethereum";
 
     // 生成最终头像
     const finalAvatar = contact?.avatar || generateAvatarFromAddress(trimmedAddress, avatarSeed);
@@ -76,12 +74,12 @@ function ContactEditJobContent() {
       });
 
       // Update address if changed
-      if (defaultAddress && defaultAddress.address !== trimmedAddress) {
+      if (defaultAddress && (defaultAddress.address !== trimmedAddress || defaultAddress.label !== trimmedLabel)) {
         // Remove old address and add new one
         addressBookActions.removeAddressFromContact(contact.id, defaultAddress.id);
         addressBookActions.addAddressToContact(contact.id, {
           address: trimmedAddress,
-          chainType,
+          label: trimmedLabel || undefined,
           isDefault: true,
         });
       }
@@ -93,7 +91,7 @@ function ContactEditJobContent() {
           {
             id: crypto.randomUUID(),
             address: trimmedAddress,
-            chainType,
+            label: trimmedLabel || undefined,
             isDefault: true,
           },
         ],
@@ -103,7 +101,7 @@ function ContactEditJobContent() {
     }
 
     pop();
-  }, [name, address, memo, avatarSeed, isEditing, contact, defaultAddress, defaultChain, pop]);
+  }, [name, address, addressLabel, memo, avatarSeed, isEditing, contact, defaultAddress, pop]);
 
   const canSave = name.trim().length > 0 && address.trim().length > 0;
 
@@ -168,6 +166,26 @@ function ContactEditJobContent() {
               placeholder={t("contact.addressPlaceholder")}
               className={cn(
                 "w-full rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm",
+                "focus:outline-none focus:ring-2 focus:ring-primary"
+              )}
+            />
+          </div>
+
+          {/* Address label input */}
+          <div className="space-y-2">
+            <label htmlFor="contact-address-label" className="flex items-center gap-2 text-sm font-medium">
+              <Tag className="size-4" />
+              {t("contact.addressLabel")}
+            </label>
+            <input
+              id="contact-address-label"
+              type="text"
+              value={addressLabel}
+              onChange={(e) => setAddressLabel(e.target.value)}
+              placeholder={t("contact.addressLabelPlaceholder")}
+              maxLength={20}
+              className={cn(
+                "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm",
                 "focus:outline-none focus:ring-2 focus:ring-primary"
               )}
             />

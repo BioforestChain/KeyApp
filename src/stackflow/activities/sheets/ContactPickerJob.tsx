@@ -7,8 +7,15 @@ import { cn } from "@/lib/utils";
 import { IconSearch, IconChevronRight } from "@tabler/icons-react";
 import { ContactAvatar } from "@/components/common/contact-avatar";
 import { generateAvatarFromAddress } from "@/lib/avatar-codec";
-import { isValidAddressForChain } from "@/lib/address-format";
+import { isValidAddressForChain, detectAddressFormat } from "@/lib/address-format";
 import { addressBookStore, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
+
+/** 获取地址显示标签（优先用自定义 label，否则用检测到的链类型） */
+function getAddressDisplayLabel(address: ContactAddress): string {
+  if (address.label) return address.label;
+  const detected = detectAddressFormat(address.address);
+  return detected.chainType?.toUpperCase() || '';
+}
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
@@ -141,10 +148,10 @@ function ContactPickerJobContent() {
                         </p>
                       </div>
                       <span className={cn(
-                        "text-xs uppercase",
+                        "text-xs",
                         isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
                       )}>
-                        {address.chainType}
+                        {getAddressDisplayLabel(address)}
                       </span>
                     </button>
                   );
@@ -202,15 +209,12 @@ function ContactPickerJobContent() {
                                 )}>
                                   {truncateAddress(address.address)}
                                 </p>
-                                {address.label && (
-                                  <p className="text-muted-foreground text-xs">{address.label}</p>
-                                )}
                               </div>
                               <span className={cn(
-                                "text-xs uppercase",
+                                "text-xs",
                                 isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
                               )}>
-                                {address.chainType}
+                                {getAddressDisplayLabel(address)}
                               </span>
                               {address.isDefault && (
                                 <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">

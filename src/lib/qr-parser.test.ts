@@ -222,7 +222,8 @@ describe('qr-parser', () => {
         const contact = result as ParsedContact
         expect(contact.name).toBe('张三')
         expect(contact.addresses).toHaveLength(1)
-        expect(contact.addresses[0]?.chainType).toBe('ethereum')
+        // 旧格式的 chainType 会被用作 label
+        expect(contact.addresses[0]?.label).toBe('ethereum')
         expect(contact.addresses[0]?.address).toBe('0x742d35Cc6634C0532925a3b844Bc9e7595f12345')
       })
 
@@ -231,9 +232,9 @@ describe('qr-parser', () => {
           type: 'contact',
           name: '李四',
           addresses: [
-            { chainType: 'ethereum', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' },
-            { chainType: 'bitcoin', address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' },
-            { chainType: 'tron', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW' },
+            { label: 'ETH', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' },
+            { label: 'BTC', address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' },
+            { label: 'TRX', address: 'TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW' },
           ],
         })
         const result = parseQRContent(content)
@@ -246,7 +247,7 @@ describe('qr-parser', () => {
         const content = JSON.stringify({
           type: 'contact',
           name: '王五',
-          addresses: [{ chainType: 'ethereum', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
+          addresses: [{ label: 'ETH', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
           memo: '好友',
           avatar: '👨‍💼',
         })
@@ -291,7 +292,7 @@ describe('qr-parser', () => {
         const contact = result as ParsedContact
         expect(contact.name).toBe('张三')
         expect(contact.addresses).toHaveLength(1)
-        expect(contact.addresses[0]?.chainType).toBe('ethereum')
+        expect(contact.addresses[0]?.label).toBe('ETH')
       })
 
       it('parses contact:// URI with multiple addresses', () => {
@@ -327,7 +328,7 @@ describe('qr-parser', () => {
       it('generates valid JSON for single address', () => {
         const content = generateContactQRContent({
           name: '张三',
-          addresses: [{ chainType: 'ethereum', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
+          addresses: [{ label: 'ETH', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
         })
         const parsed = JSON.parse(content)
         expect(parsed.type).toBe('contact')
@@ -339,8 +340,8 @@ describe('qr-parser', () => {
         const original = {
           name: '李四',
           addresses: [
-            { chainType: 'ethereum' as const, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' },
-            { chainType: 'bitcoin' as const, address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' },
+            { label: 'ETH' as const, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' },
+            { label: 'BTC' as const, address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' },
           ],
           avatar: '👩‍💻',
         }
@@ -358,7 +359,7 @@ describe('qr-parser', () => {
       it('handles special characters in name', () => {
         const content = generateContactQRContent({
           name: '张三 (老板)',
-          addresses: [{ chainType: 'ethereum', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
+          addresses: [{ label: 'ETH', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345' }],
         })
         const result = parseQRContent(content)
         expect(result.type).toBe('contact')

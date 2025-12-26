@@ -5,8 +5,15 @@ import { useStore } from '@tanstack/react-store';
 import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
-import { isValidAddressForChain } from '@/lib/address-format';
-import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
+import { isValidAddressForChain, detectAddressFormat } from '@/lib/address-format';
+import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion, type ContactAddress } from '@/stores';
+
+/** 获取地址显示标签（优先用自定义 label，否则用检测到的链类型） */
+function getAddressDisplayLabel(address: ContactAddress): string {
+  if (address.label) return address.label;
+  const detected = detectAddressFormat(address.address);
+  return detected.chainType?.toUpperCase() || '';
+}
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;
@@ -58,8 +65,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     // 获取联系人建议 - 显示所有联系人，用地址合法性验证标记可选地址
     const suggestions = useMemo(() => {
       if (!showSuggestions) return [];
-      // 获取所有联系人的建议（不按 chainType 过滤）
-      const allSuggestions = addressBookSelectors.suggestContacts(addressBookState, currentValue || '', undefined, maxSuggestions);
+      const allSuggestions = addressBookSelectors.suggestContacts(addressBookState, currentValue || '', maxSuggestions);
       // 标记每个建议的地址是否对当前链有效
       return allSuggestions.map((s) => ({
         ...s,
@@ -235,9 +241,9 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                           )}>{suggestion.matchedAddress.address}</p>
                         </div>
                         <span className={cn(
-                          "shrink-0 text-xs uppercase",
+                          "shrink-0 text-xs",
                           isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
-                        )}>{suggestion.matchedAddress.chainType}</span>
+                        )}>{getAddressDisplayLabel(suggestion.matchedAddress)}</span>
                       </li>
                     );
                   })}

@@ -6,19 +6,23 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { generateAvatarFromAddress } from '@/lib/avatar-codec';
+import { detectAddressFormat } from '@/lib/address-format';
 import type { ContactAddressInfo } from '@/lib/qr-parser';
-
-const CHAIN_NAMES: Record<string, string> = {
-  ethereum: 'ETH',
-  bitcoin: 'BTC',
-  tron: 'TRX',
-};
 
 const CHAIN_COLORS: Record<string, string> = {
   ethereum: '#627EEA',
   bitcoin: '#F7931A',
   tron: '#FF0013',
 };
+
+/** 获取地址显示标签和颜色 */
+function getAddressDisplay(addr: ContactAddressInfo): { label: string; color: string } {
+  const detected = detectAddressFormat(addr.address);
+  const chainType = detected.chainType;
+  const label = addr.label || chainType?.toUpperCase() || '';
+  const color = chainType ? CHAIN_COLORS[chainType] || '#6B7280' : '#6B7280';
+  return { label, color };
+}
 
 export interface ContactCardProps {
   name: string;
@@ -38,15 +42,18 @@ export function ContactCard({ name, avatar, address, addresses, qrContent }: Con
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white">{name}</h3>
           <div className="mt-1 flex flex-wrap gap-1.5">
-            {addresses.map((a) => (
-              <span
-                key={a.chainType}
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white/90"
-                style={{ backgroundColor: CHAIN_COLORS[a.chainType] || '#6B7280' }}
-              >
-                {CHAIN_NAMES[a.chainType] || a.chainType.toUpperCase()}
-              </span>
-            ))}
+            {addresses.map((a, i) => {
+              const { label, color } = getAddressDisplay(a);
+              return (
+                <span
+                  key={i}
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white/90"
+                  style={{ backgroundColor: color }}
+                >
+                  {label}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>

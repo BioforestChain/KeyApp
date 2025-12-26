@@ -93,21 +93,21 @@ export const WithContactSuggestions: Story = {
       addressBookActions.addContact({
         name: 'Alice',
         addresses: [
-          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', label: 'ETH', isDefault: true },
         ],
         memo: '同事',
       });
       addressBookActions.addContact({
         name: 'Bob',
         addresses: [
-          { id: '2', address: '0xabcdef1234567890abcdef1234567890abcdef12', chainType: 'ethereum', isDefault: true },
-          { id: '3', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+          { id: '2', address: '0xabcdef1234567890abcdef1234567890abcdef12', label: 'ETH', isDefault: true },
+          { id: '3', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', label: 'BFMETA' },
         ],
       });
       addressBookActions.addContact({
         name: 'Charlie',
         addresses: [
-          { id: '4', address: '0x9876543210fedcba9876543210fedcba98765432', chainType: 'ethereum', isDefault: true },
+          { id: '4', address: '0x9876543210fedcba9876543210fedcba98765432', label: 'ETH', isDefault: true },
         ],
         memo: '朋友',
       });
@@ -147,14 +147,14 @@ export const FilterByChain: Story = {
       addressBookActions.addContact({
         name: 'Alice',
         addresses: [
-          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', chainType: 'ethereum', isDefault: true },
-          { id: '2', address: 'b7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', chainType: 'bfmeta' },
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', label: 'ETH', isDefault: true },
+          { id: '2', address: 'b7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', label: 'BFMETA' },
         ],
       });
       addressBookActions.addContact({
         name: 'Bob',
         addresses: [
-          { id: '3', address: 'c7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'ccchain', isDefault: true },
+          { id: '3', address: 'c7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', label: 'CCCHAIN', isDefault: true },
         ],
       });
       return <Story />;
@@ -166,7 +166,7 @@ export const FilterByChain: Story = {
     return (
       <div className="space-y-6 p-4">
         <p className="text-muted-foreground text-sm">
-          设置 chainType="bfmeta"，只显示 BFMeta 链的地址
+          设置 chainType="bfmeta"，只显示 BFMeta 链有效的地址
         </p>
         <AddressInput
           label="BFMeta 地址"

@@ -31,10 +31,10 @@ export function TransferTab() {
       .map((id) => contacts.find((c) => c.id === id))
       .filter((c): c is Contact => c !== undefined);
 
-    // 如果指定了链类型，进一步过滤
+    // 如果指定了链类型，使用 getContactsByChain 过滤（基于地址格式检测）
     const filtered = selectedChain
       ? foundContacts.filter((contact) =>
-          contact.addresses.some((addr) => addr.chainType === selectedChain)
+          addressBookSelectors.getContactsByChain({ contacts: [contact], isInitialized: true }, selectedChain).length > 0
         )
       : foundContacts;
 

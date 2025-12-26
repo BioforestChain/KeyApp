@@ -252,7 +252,7 @@ describe('mpay-transformer', () => {
       expect(contact.name).toBe('Alice')
       expect(contact.addresses).toHaveLength(1)
       expect(contact.addresses[0]?.address).toBe('bfm123456')
-      expect(contact.addresses[0]?.chainType).toBe('bfmeta')
+      expect(contact.addresses[0]?.label).toBe('BFMETA')
       expect(contact.memo).toBe('My friend')
       expect(contact.createdAt).toBeTypeOf('number')
       expect(contact.updatedAt).toBeTypeOf('number')
@@ -270,7 +270,7 @@ describe('mpay-transformer', () => {
       expect(contact.id).toBe('addr-book-2')
       expect(contact.name).toBe('Bob')
       expect(contact.addresses[0]?.address).toBe('0xabc123')
-      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default
+      expect(contact.addresses[0]?.label).toBe('ETHEREUM') // Default
       expect(contact.memo).toBeUndefined()
     })
 
@@ -284,7 +284,7 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default when no chain detected
+      expect(contact.addresses[0]?.label).toBe('ETHEREUM') // Default when no chain detected
     })
 
     it('should select first mappable chain from multi-chain entry', () => {
@@ -298,7 +298,7 @@ describe('mpay-transformer', () => {
       const contact = transformAddressBookEntry(entry)
 
       // First mappable chain should be selected
-      expect(contact.addresses[0]?.chainType).toBe('ethereum')
+      expect(contact.addresses[0]?.label).toBe('ETHEREUM')
     })
 
     it('should skip unmappable chains and use first mappable', () => {
@@ -311,7 +311,7 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.addresses[0]?.chainType).toBe('bfmeta')
+      expect(contact.addresses[0]?.label).toBe('BFMETA')
     })
 
     it('should use ethereum as default when all chains are unmappable', () => {
@@ -324,7 +324,7 @@ describe('mpay-transformer', () => {
 
       const contact = transformAddressBookEntry(entry)
 
-      expect(contact.addresses[0]?.chainType).toBe('ethereum') // Default
+      expect(contact.addresses[0]?.label).toBe('ETHEREUM') // Default
     })
 
     it('should handle entry without remarks', () => {

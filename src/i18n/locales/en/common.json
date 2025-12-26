@@ -100,6 +100,8 @@
     "namePlaceholder": "Enter contact name",
     "noContacts": "No contacts",
     "noValidAddress": "No valid address",
+    "addressLabel": "Address Label",
+    "addressLabelPlaceholder": "e.g. Main, Exchange",
     "save": "Save",
     "selectAddress": "Select address",
     "selectContact": "Select Contact",

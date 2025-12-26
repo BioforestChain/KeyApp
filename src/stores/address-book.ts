@@ -7,9 +7,7 @@ export interface ContactAddress {
   id: string
   /** 地址 */
   address: string
-  /** 链类型 */
-  chainType: ChainType
-  /** 地址标签（如"主地址"、"交易所"） */
+  /** 地址标签（如"主地址"、"交易所"），用于显示 */
   label?: string | undefined
   /** 是否默认地址 */
   isDefault?: boolean | undefined
@@ -81,7 +79,8 @@ function isLegacyContact(contact: unknown): contact is LegacyContact {
 /** 迁移旧版联系人到新格式 */
 function migrateLegacyContact(legacy: LegacyContact): Contact {
   const detected = detectAddressFormat(legacy.address)
-  const chainType = legacy.chain ?? detected.chainType ?? 'ethereum'
+  // 使用检测到的链类型作为 label
+  const label = legacy.chain ?? detected.chainType ?? undefined
 
   return {
     id: legacy.id,
@@ -90,7 +89,7 @@ function migrateLegacyContact(legacy: LegacyContact): Contact {
       {
         id: crypto.randomUUID(),
         address: legacy.address,
-        chainType,
+        label: label ? String(label).toUpperCase() : undefined,
         isDefault: true,
       },
     ],
@@ -359,13 +358,11 @@ export const addressBookSelectors = {
    * 获取联系人建议（用于地址输入）
    * @param state - 地址簿状态
    * @param partialAddress - 部分地址（可为空，空时返回所有联系人）
-   * @param chainType - 链类型过滤（可选）
    * @param limit - 返回数量限制（默认 5）
    */
   suggestContacts: (
     state: AddressBookState,
     partialAddress: string,
-    chainType?: ChainType,
     limit: number = 5
   ): ContactSuggestion[] => {
     const suggestions: ContactSuggestion[] = []
@@ -378,10 +375,7 @@ export const addressBookSelectors = {
     )
 
     for (const contact of sortedContacts) {
-      // 过滤指定链类型的地址
-      const relevantAddresses = chainType
-        ? contact.addresses.filter((a) => a.chainType === chainType)
-        : contact.addresses
+      const relevantAddresses = contact.addresses
 
       if (relevantAddresses.length === 0) continue
 
@@ -462,17 +456,17 @@ export const addressBookSelectors = {
       .slice(0, limit)
   },
 
-  /** 按链类型过滤联系人 */
+  /** 按链类型过滤联系人（使用地址格式检测） */
   getContactsByChain: (state: AddressBookState, chain: ChainType): Contact[] => {
     return state.contacts.filter((c) =>
-      c.addresses.some((a) => a.chainType === chain)
+      c.addresses.some((a) => detectAddressFormat(a.address).chainType === chain)
     )
   },
 
   /** 获取联系人的默认地址 */
   getDefaultAddress: (contact: Contact, chainType?: ChainType): ContactAddress | undefined => {
     const relevantAddresses = chainType
-      ? contact.addresses.filter((a) => a.chainType === chainType)
+      ? contact.addresses.filter((a) => detectAddressFormat(a.address).chainType === chainType)
       : contact.addresses
 
     return relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]

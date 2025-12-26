@@ -119,7 +119,7 @@ export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact 
       {
         id: crypto.randomUUID(),
         address: entry.address,
-        chainType: chain,
+        label: chain.toUpperCase(),
         isDefault: true,
       },
     ],

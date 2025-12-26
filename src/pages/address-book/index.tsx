@@ -65,7 +65,6 @@ export function AddressBookPage() {
         name: contact.name,
         addresses: JSON.stringify(
           contact.addresses.map((a) => ({
-            chainType: a.chainType,
             address: a.address,
             label: a.label,
           })),

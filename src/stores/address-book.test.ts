@@ -8,11 +8,11 @@ import {
 } from './address-book'
 
 /** Helper to create a contact address */
-function createAddress(address: string, chainType: string = 'ethereum'): ContactAddress {
+function createAddress(address: string, label?: string): ContactAddress {
   return {
     id: crypto.randomUUID(),
     address,
-    chainType: chainType as ContactAddress['chainType'],
+    label,
   }
 }
 
@@ -101,14 +101,14 @@ describe('AddressBookStore', () => {
 
       addressBookActions.addAddressToContact(contact.id, {
         address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11',
-        chainType: 'bfmeta',
+        label: 'BFMETA',
       })
 
       const state = addressBookStore.state
       const updated = state.contacts.find((c) => c.id === contact.id)
 
       expect(updated?.addresses).toHaveLength(2)
-      expect(updated?.addresses[1]?.chainType).toBe('bfmeta')
+      expect(updated?.addresses[1]?.label).toBe('BFMETA')
     })
 
     it('throws error when adding more than 3 addresses', () => {
@@ -124,7 +124,7 @@ describe('AddressBookStore', () => {
       expect(() => {
         addressBookActions.addAddressToContact(contact.id, {
           address: '0x4444444444444444444444444444444444444444',
-          chainType: 'ethereum',
+          label: 'ETH4',
         })
       }).toThrow('Maximum 3 addresses per contact')
     })
@@ -255,7 +255,7 @@ describe('AddressBookStore', () => {
           {
             id: '1',
             name: 'Alice',
-            addresses: [{ id: 'a1', address: '0x1111', chainType: 'ethereum' }],
+            addresses: [{ id: 'a1', address: '0x1111', label: 'ETH' }],
             createdAt: Date.now(),
             updatedAt: Date.now(),
           },
@@ -280,7 +280,7 @@ describe('AddressBookStore', () => {
         {
           id: '1',
           name: 'Alice',
-          address: '0x1111',
+          address: '0x1111111111111111111111111111111111111111',
           chain: 'ethereum',
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -294,8 +294,8 @@ describe('AddressBookStore', () => {
       expect(state.contacts).toHaveLength(1)
       expect(state.contacts[0]!.name).toBe('Alice')
       expect(state.contacts[0]!.addresses).toHaveLength(1)
-      expect(state.contacts[0]!.addresses[0]?.address).toBe('0x1111')
-      expect(state.contacts[0]!.addresses[0]?.chainType).toBe('ethereum')
+      expect(state.contacts[0]!.addresses[0]?.address).toBe('0x1111111111111111111111111111111111111111')
+      expect(state.contacts[0]!.addresses[0]?.label).toBe('ETHEREUM')
     })
   })
 
@@ -346,13 +346,13 @@ describe('AddressBookStore', () => {
       addressBookActions.addContact({
         name: 'Alice',
         addresses: [
-          { id: '1', address: '0x1234abcd', chainType: 'ethereum' },
-          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'bfmeta' },
+          { id: '1', address: '0x1234abcd1234abcd1234abcd1234abcd1234abcd', label: 'ETH' },
+          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', label: 'BFMETA' },
         ],
       })
       addressBookActions.addContact({
         name: 'Bob',
-        addresses: [{ id: '3', address: '0x1234efgh', chainType: 'ethereum' }],
+        addresses: [{ id: '3', address: '0x1234efgh1234efgh1234efgh1234efgh1234efgh', label: 'ETH' }],
       })
 
       const state = addressBookStore.state
@@ -366,11 +366,11 @@ describe('AddressBookStore', () => {
     it('suggestContacts returns all contacts when query is empty', () => {
       addressBookActions.addContact({
         name: 'Alice',
-        addresses: [{ id: '1', address: '0x1111', chainType: 'ethereum' }],
+        addresses: [{ id: '1', address: '0x1111111111111111111111111111111111111111', label: 'ETH' }],
       })
       addressBookActions.addContact({
         name: 'Bob',
-        addresses: [{ id: '2', address: '0x2222', chainType: 'ethereum' }],
+        addresses: [{ id: '2', address: '0x2222222222222222222222222222222222222222', label: 'ETH' }],
       })
 
       const state = addressBookStore.state
@@ -380,38 +380,12 @@ describe('AddressBookStore', () => {
       expect(suggestions).toHaveLength(2)
     })
 
-    it('suggestContacts filters by chainType when provided', () => {
-      addressBookActions.addContact({
-        name: 'Alice',
-        addresses: [
-          { id: '1', address: '0x1111', chainType: 'ethereum' },
-          { id: '2', address: 'b7ADmv...', chainType: 'bfmeta' },
-        ],
-      })
-      addressBookActions.addContact({
-        name: 'Bob',
-        addresses: [{ id: '3', address: 'c7ADmv...', chainType: 'ccchain' }],
-      })
-
-      const state = addressBookStore.state
-
-      // Filter by ethereum
-      const ethSuggestions = addressBookSelectors.suggestContacts(state, '', 'ethereum')
-      expect(ethSuggestions).toHaveLength(1)
-      expect(ethSuggestions[0]?.contact.name).toBe('Alice')
-
-      // Filter by bfmeta
-      const bfmetaSuggestions = addressBookSelectors.suggestContacts(state, '', 'bfmeta')
-      expect(bfmetaSuggestions).toHaveLength(1)
-      expect(bfmetaSuggestions[0]?.matchedAddress.chainType).toBe('bfmeta')
-    })
-
     it('suggestContacts respects limit parameter', () => {
       // Add 10 contacts
       for (let i = 0; i < 10; i++) {
         addressBookActions.addContact({
           name: `Contact ${i}`,
-          addresses: [{ id: `${i}`, address: `0x${i}000`, chainType: 'ethereum' }],
+          addresses: [{ id: `${i}`, address: `0x${i}000000000000000000000000000000000000000`, label: 'ETH' }],
         })
       }
 
@@ -422,25 +396,25 @@ describe('AddressBookStore', () => {
       expect(defaultLimit).toHaveLength(5)
 
       // Custom limit
-      const customLimit = addressBookSelectors.suggestContacts(state, '', undefined, 3)
+      const customLimit = addressBookSelectors.suggestContacts(state, '', 3)
       expect(customLimit).toHaveLength(3)
     })
 
-    it('getContactsByChain filters by chain type', () => {
+    it('getContactsByChain filters by chain type (using address format detection)', () => {
       addressBookActions.addContact({
         name: 'Alice',
         addresses: [
-          { id: '1', address: '0x1111', chainType: 'ethereum' },
-          { id: '2', address: 'b7ADmv...', chainType: 'bfmeta' },
+          { id: '1', address: '0x1111111111111111111111111111111111111111', label: 'ETH' },
+          { id: '2', address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', label: 'BFMETA' },
         ],
       })
       addressBookActions.addContact({
         name: 'Bob',
-        addresses: [{ id: '3', address: '0x2222', chainType: 'ethereum' }],
+        addresses: [{ id: '3', address: '0x2222222222222222222222222222222222222222', label: 'ETH' }],
       })
       addressBookActions.addContact({
         name: 'Charlie',
-        addresses: [{ id: '4', address: 'c7ADmv...', chainType: 'ccchain' }],
+        addresses: [{ id: '4', address: 'TJYeasypTe7UMKAMyfX4pjCuj2zPZ9Wzwj', label: 'TRX' }],
       })
 
       const state = addressBookStore.state
@@ -450,6 +424,9 @@ describe('AddressBookStore', () => {
 
       const bfmetaContacts = addressBookSelectors.getContactsByChain(state, 'bfmeta')
       expect(bfmetaContacts).toHaveLength(1) // Alice only
+
+      const tronContacts = addressBookSelectors.getContactsByChain(state, 'tron')
+      expect(tronContacts).toHaveLength(1) // Charlie only
     })
   })
 })

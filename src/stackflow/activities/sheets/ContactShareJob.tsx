@@ -28,11 +28,7 @@ export type ContactShareJobParams = {
   avatar?: string | undefined;
 };
 
-const CHAIN_NAMES: Record<string, string> = {
-  ethereum: 'ETH',
-  bitcoin: 'BTC',
-  tron: 'TRX',
-};
+
 
 function ContactShareJobContent() {
   const { t } = useTranslation('common');
@@ -90,7 +86,7 @@ function ContactShareJobContent() {
 
       await navigator.share({
         title: t('addressBook.shareContact'),
-        text: `${params.name} - ${addresses.map((a) => `${CHAIN_NAMES[a.chainType] || a.chainType}: ${a.address}`).join(', ')}`,
+        text: `${params.name} - ${addresses.map((a) => `${a.label || ''}: ${a.address}`).join(', ')}`,
         files: [file],
       });
     } catch {
