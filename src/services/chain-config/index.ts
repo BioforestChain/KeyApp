@@ -80,7 +80,8 @@ async function loadDefaultChainConfigs(): Promise<ChainConfig[]> {
       throw new Error('fetch is not available in this environment')
     }
 
-    const response = await fetch(getDefaultChainsUrl(), {
+    const jsonUrl = getDefaultChainsUrl()
+    const response = await fetch(jsonUrl, {
       method: 'GET',
       headers: { Accept: 'application/json' },
     })
@@ -90,7 +91,8 @@ async function loadDefaultChainConfigs(): Promise<ChainConfig[]> {
     }
 
     const json: unknown = await response.json()
-    const parsed = parseConfigs(json, 'default')
+    // 传入 JSON 文件 URL，用于解析相对路径
+    const parsed = parseConfigs(json, 'default', jsonUrl)
     defaultChainsCache = parsed
     return parsed
   })()
@@ -110,18 +112,56 @@ function parseJsonString(input: string): unknown {
   }
 }
 
-function parseConfigs(input: unknown, source: ChainConfigSource): ChainConfig[] {
+/**
+ * 解析相对路径为绝对 URL（相对于 JSON 文件位置）
+ */
+function resolveRelativePath(path: string, jsonFileUrl: string): string {
+  // 已经是绝对 URL，直接返回
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+  // 解析相对路径
+  return new URL(path, jsonFileUrl).toString()
+}
+
+/**
+ * 解析配置中的 icon 和 tokenIconBase 相对路径
+ */
+function resolveIconPaths(
+  config: { icon?: string | undefined; tokenIconBase?: string[] | undefined },
+  jsonFileUrl: string
+): { icon?: string; tokenIconBase?: string[] } {
+  const result: { icon?: string; tokenIconBase?: string[] } = {}
+  
+  if (config.icon !== undefined) {
+    result.icon = resolveRelativePath(config.icon, jsonFileUrl)
+  }
+  
+  if (config.tokenIconBase !== undefined) {
+    result.tokenIconBase = config.tokenIconBase.map((base) =>
+      resolveRelativePath(base, jsonFileUrl)
+    )
+  }
+  
+  return result
+}
+
+function parseConfigs(input: unknown, source: ChainConfigSource, jsonFileUrl?: string): ChainConfig[] {
   const normalized: unknown = Array.isArray(input) ? input.map(normalizeUnknownType) : normalizeUnknownType(input)
 
   const parsed = Array.isArray(normalized)
     ? ChainConfigListSchema.parse(normalized)
     : [ChainConfigSchema.parse(normalized)]
 
-  return parsed.map((config) => ({
-    ...config,
-    source,
-    enabled: true,
-  }))
+  return parsed.map((config) => {
+    const resolvedPaths = jsonFileUrl ? resolveIconPaths(config, jsonFileUrl) : {}
+    return {
+      ...config,
+      ...resolvedPaths,
+      source,
+      enabled: true,
+    }
+  })
 }
 
 function mergeBySource(options: {

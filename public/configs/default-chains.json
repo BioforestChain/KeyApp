@@ -5,9 +5,9 @@
     "type": "bioforest",
     "name": "BFMeta",
     "symbol": "BFM",
-    "icon": "/icons/bfmeta/chain.svg",
+    "icon": "../icons/bfmeta/chain.svg",
     "tokenIconBase": [
-      "/icons/bfmeta/tokens",
+      "../icons/bfmeta/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm"
     ],
@@ -27,9 +27,9 @@
     "type": "bioforest",
     "name": "CCChain",
     "symbol": "CCC",
-    "icon": "/icons/ccchain/chain.svg",
+    "icon": "../icons/ccchain/chain.svg",
     "tokenIconBase": [
-      "/icons/ccchain/tokens",
+      "../icons/ccchain/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc"
     ],
@@ -43,9 +43,9 @@
     "type": "bioforest",
     "name": "PMChain",
     "symbol": "PMC",
-    "icon": "/icons/pmchain/chain.svg",
+    "icon": "../icons/pmchain/chain.svg",
     "tokenIconBase": [
-      "/icons/pmchain/tokens",
+      "../icons/pmchain/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc"
     ],
@@ -59,9 +59,9 @@
     "type": "bioforest",
     "name": "BFChain V2",
     "symbol": "BFT",
-    "icon": "/icons/bfchainv2/chain.svg",
+    "icon": "../icons/bfchainv2/chain.svg",
     "tokenIconBase": [
-      "/icons/bfchainv2/tokens",
+      "../icons/bfchainv2/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2"
     ],
@@ -75,9 +75,9 @@
     "type": "bioforest",
     "name": "BTGMeta",
     "symbol": "BTGM",
-    "icon": "/icons/btgmeta/chain.svg",
+    "icon": "../icons/btgmeta/chain.svg",
     "tokenIconBase": [
-      "/icons/btgmeta/tokens",
+      "../icons/btgmeta/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm"
     ],
@@ -105,9 +105,9 @@
     "type": "bioforest",
     "name": "ETHMeta",
     "symbol": "ETHM",
-    "icon": "/icons/ethmeta/chain.svg",
+    "icon": "../icons/ethmeta/chain.svg",
     "tokenIconBase": [
-      "/icons/ethmeta/tokens",
+      "../icons/ethmeta/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm"
     ],
@@ -135,9 +135,9 @@
     "type": "evm",
     "name": "Ethereum",
     "symbol": "ETH",
-    "icon": "/icons/ethereum/chain.svg",
+    "icon": "../icons/ethereum/chain.svg",
     "tokenIconBase": [
-      "/icons/ethereum/tokens",
+      "../icons/ethereum/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth"
     ],
@@ -151,9 +151,9 @@
     "type": "evm",
     "name": "BNB Smart Chain",
     "symbol": "BNB",
-    "icon": "/icons/binance/chain.svg",
+    "icon": "../icons/binance/chain.svg",
     "tokenIconBase": [
-      "/icons/binance/tokens",
+      "../icons/binance/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc"
     ],
@@ -167,9 +167,9 @@
     "type": "bip39",
     "name": "Tron",
     "symbol": "TRX",
-    "icon": "/icons/tron/chain.svg",
+    "icon": "../icons/tron/chain.svg",
     "tokenIconBase": [
-      "/icons/tron/tokens",
+      "../icons/tron/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron"
     ],
@@ -183,9 +183,9 @@
     "type": "bip39",
     "name": "Bitcoin",
     "symbol": "BTC",
-    "icon": "/icons/bitcoin/chain.svg",
+    "icon": "../icons/bitcoin/chain.svg",
     "tokenIconBase": [
-      "/icons/bitcoin/tokens",
+      "../icons/bitcoin/tokens",
       "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm",
       "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm"
     ],
