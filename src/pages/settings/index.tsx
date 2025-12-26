@@ -15,7 +15,7 @@ import {
   IconNetwork as Network,
   IconLink as Link,
   IconInfoCircle as Info,
-  IconTrash as Trash,
+  IconDatabase as Database,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
@@ -276,16 +276,12 @@ export function SettingsPage() {
               // TODO: 关于页面
             }}
           />
-        </SettingsSection>
-
-        {/* 危险操作 */}
-        <SettingsSection title={t('settings:sections.danger')}>
+          <div className="bg-border mx-4 h-px" />
           <SettingsItem
-            icon={<Trash size={20} />}
-            label={t('settings:items.clearData')}
-            onClick={() => push('ClearDataConfirmJob', {})}
-            testId="clear-data-button"
-            className="text-destructive"
+            icon={<Database size={20} />}
+            label={t('settings:items.storage')}
+            onClick={() => navigate({ to: '/settings/storage' })}
+            testId="storage-button"
           />
         </SettingsSection>
       </div>

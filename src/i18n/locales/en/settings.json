@@ -6,8 +6,7 @@
     "walletManagement": "Wallet Management",
     "security": "Security",
     "preferences": "Preferences",
-    "about": "About",
-    "danger": "Danger Zone"
+    "about": "About"
   },
   "items": {
     "walletManagement": "Wallet Management",
@@ -21,7 +20,8 @@
     "chainConfig": "Chain Config",
     "appearance": "Appearance",
     "aboutApp": "About BFM Pay",
-    "clearData": "Clear App Data"
+    "clearData": "Clear App Data",
+    "storage": "Storage"
   },
   "appearance": {
     "title": "Appearance",
@@ -130,5 +130,17 @@
     "item2": "All settings will be reset to default",
     "item3": "The app will restart",
     "confirm": "Confirm Clear"
+  },
+  "storage": {
+    "title": "Storage",
+    "usage": "Storage Usage",
+    "basedOn": "Based on browser storage quota",
+    "used": "Used",
+    "total": "Total",
+    "usagePercent": "Usage",
+    "available": "Available",
+    "unavailable": "Unable to get storage info",
+    "clearTitle": "Clear Data",
+    "clearDesc": "Clear all locally stored data including wallets, settings, and cache."
   }
 }

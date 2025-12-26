@@ -28,6 +28,7 @@ import { NotificationsActivity } from "./activities/NotificationsActivity";
 import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
 import { SettingsWalletChainsActivity } from "./activities/SettingsWalletChainsActivity";
+import { SettingsStorageActivity } from "./activities/SettingsStorageActivity";
 import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
@@ -52,6 +53,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         SettingsMnemonicActivity: "/settings/mnemonic",
         SettingsWalletLockActivity: "/settings/wallet-lock",
         SettingsWalletChainsActivity: "/settings/wallet-chains",
+        SettingsStorageActivity: "/settings/storage",
         HistoryActivity: "/history",
         TransactionDetailActivity: "/transaction/:txId",
         ScannerActivity: "/scanner",
@@ -101,6 +103,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     SettingsMnemonicActivity,
     SettingsWalletLockActivity,
     SettingsWalletChainsActivity,
+    SettingsStorageActivity,
     HistoryActivity,
     TransactionDetailActivity,
     ScannerActivity,
