@@ -104,9 +104,9 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   // 缓存背景渐变样式（只依赖 themeHue）
   const bgGradient = useMemo(
     () => `linear-gradient(135deg,
-      hsl(${themeHue} 70% 40%) 0%,
-      hsl(${themeHue + 20} 80% 30%) 50%,
-      hsl(${themeHue + 40} 70% 20%) 100%)`,
+      oklch(0.50 0.20 ${themeHue}) 0%,
+      oklch(0.40 0.22 ${themeHue + 20}) 50%,
+      oklch(0.30 0.18 ${themeHue + 40}) 100%)`,
     [themeHue],
   );
 
