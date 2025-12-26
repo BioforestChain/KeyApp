@@ -1,7 +1,8 @@
 import type { Preview, ReactRenderer } from '@storybook/react-vite'
 import type { DecoratorFunction } from 'storybook/internal/types'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { I18nextProvider } from 'react-i18next'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import i18n, { languages, getLanguageDirection, type LanguageCode } from '../src/i18n'
 import { currencies, preferencesActions, preferencesStore, type CurrencyCode } from '../src/stores/preferences'
 import '../src/styles/globals.css'
@@ -123,12 +124,26 @@ const preview: Preview = {
     },
   },
   decorators: [
-    // i18n + Theme + Direction decorator
+    // i18n + Theme + Direction + QueryClient decorator
     ((Story, context) => {
       const locale = (context.globals['locale'] || 'zh-CN') as LanguageCode
       const currency = isCurrencyCode(context.globals['currency']) ? context.globals['currency'] : 'USD'
       const theme = context.globals['theme'] || 'light'
       const direction = getLanguageDirection(locale)
+
+      // Create a stable QueryClient instance for each story
+      const queryClient = useMemo(
+        () =>
+          new QueryClient({
+            defaultOptions: {
+              queries: {
+                retry: false,
+                staleTime: Infinity,
+              },
+            },
+          }),
+        []
+      )
 
       useEffect(() => {
         // 更新语言
@@ -154,9 +169,11 @@ const preview: Preview = {
       }, [locale, currency, theme, direction])
 
       return (
-        <I18nextProvider i18n={i18n}>
-          <Story />
-        </I18nextProvider>
+        <QueryClientProvider client={queryClient}>
+          <I18nextProvider i18n={i18n}>
+            <Story />
+          </I18nextProvider>
+        </QueryClientProvider>
       )
     }) as DecoratorFunction<ReactRenderer>,
 

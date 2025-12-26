@@ -7,7 +7,7 @@ import {
   IconPlus as Plus,
   IconSearch as Search,
   IconUser as User,
-  IconArrowsVertical as MoreVertical,
+  IconDotsVertical as MoreVertical,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import {
@@ -52,59 +52,70 @@ export function AddressBookPage() {
 
   // 打开添加联系人
   const handleOpenAdd = useCallback(() => {
-    push("ContactEditJob", {});
+    push('ContactEditJob', {});
   }, [push]);
 
   // 打开编辑联系人
-  const handleOpenEdit = useCallback((contact: Contact) => {
-    push("ContactEditJob", { contactId: contact.id });
-  }, [push]);
+  const handleOpenEdit = useCallback(
+    (contact: Contact) => {
+      push('ContactEditJob', { contactId: contact.id });
+    },
+    [push],
+  );
 
   // 分享联系人名片
-  const handleShare = useCallback((contact: Contact) => {
-    push("ContactShareJob", {
-      name: contact.name,
-      addresses: JSON.stringify(contact.addresses.map(a => ({
-        chainType: a.chainType,
-        address: a.address,
-        label: a.label,
-      }))),
-      memo: contact.memo,
-      avatar: contact.avatar,
-    });
-  }, [push]);
+  const handleShare = useCallback(
+    (contact: Contact) => {
+      push('ContactShareJob', {
+        name: contact.name,
+        addresses: JSON.stringify(
+          contact.addresses.map((a) => ({
+            chainType: a.chainType,
+            address: a.address,
+            label: a.label,
+          })),
+        ),
+        memo: contact.memo,
+        avatar: contact.avatar,
+      });
+    },
+    [push],
+  );
 
   // 开始删除联系人
-  const handleStartDelete = useCallback((contact: Contact) => {
-    deletingContactRef.current = contact;
+  const handleStartDelete = useCallback(
+    (contact: Contact) => {
+      deletingContactRef.current = contact;
 
-    // 如果有钱包，需要验证密码
-    if (currentWallet?.encryptedMnemonic) {
-      setWalletLockConfirmCallback(async (password: string) => {
-        try {
-          const isValid = await verifyPassword(currentWallet.encryptedMnemonic!, password);
-          if (!isValid) {
+      // 如果有钱包，需要验证密码
+      if (currentWallet?.encryptedMnemonic) {
+        setWalletLockConfirmCallback(async (password: string) => {
+          try {
+            const isValid = await verifyPassword(currentWallet.encryptedMnemonic!, password);
+            if (!isValid) {
+              return false;
+            }
+            // 删除联系人
+            addressBookActions.deleteContact(contact.id);
+            deletingContactRef.current = null;
+            return true;
+          } catch {
             return false;
           }
-          // 删除联系人
-          addressBookActions.deleteContact(contact.id);
-          deletingContactRef.current = null;
-          return true;
-        } catch {
-          return false;
-        }
-      });
+        });
 
-      push("WalletLockConfirmJob", {
-        title: t('addressBook.deleteTitle'),
-        description: t('addressBook.deleteConfirm', { name: contact.name }),
-      });
-    } else {
-      // 无钱包直接删除
-      addressBookActions.deleteContact(contact.id);
-      deletingContactRef.current = null;
-    }
-  }, [currentWallet?.encryptedMnemonic, push, t]);
+        push('WalletLockConfirmJob', {
+          title: t('addressBook.deleteTitle'),
+          description: t('addressBook.deleteConfirm', { name: contact.name }),
+        });
+      } else {
+        // 无钱包直接删除
+        addressBookActions.deleteContact(contact.id);
+        deletingContactRef.current = null;
+      }
+    },
+    [currentWallet?.encryptedMnemonic, push, t],
+  );
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -144,7 +155,9 @@ export function AddressBookPage() {
         {filteredContacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <User className="text-muted-foreground/50 size-12" />
-            <p className="text-muted-foreground">{searchQuery ? t('addressBook.noResults') : t('addressBook.noContacts')}</p>
+            <p className="text-muted-foreground">
+              {searchQuery ? t('addressBook.noResults') : t('addressBook.noContacts')}
+            </p>
             {!searchQuery && (
               <button
                 onClick={handleOpenAdd}
