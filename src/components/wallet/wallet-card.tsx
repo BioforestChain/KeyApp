@@ -11,10 +11,10 @@ if (typeof window !== 'undefined' && 'registerProperty' in CSS) {
     { name: '--tilt-intensity', syntax: '<number>', initialValue: '0' },
     { name: '--tilt-direction', syntax: '<number>', initialValue: '0' },
   ];
-  
+
   for (const prop of propsToRegister) {
     try {
-      CSS.registerProperty({ ...prop, inherits: false });
+      CSS.registerProperty({ ...prop, inherits: true });
     } catch {
       // 已注册则忽略
     }
@@ -26,7 +26,12 @@ import { useMonochromeMask } from '@/hooks/useMonochromeMask';
 import { ChainIcon } from './chain-icon';
 import { AddressDisplay } from './address-display';
 import type { Wallet, ChainType } from '@/stores';
-import { IconCopy as Copy, IconCheck as Check, IconSettings as Settings, IconChevronDown as ChevronDown } from '@tabler/icons-react';
+import {
+  IconCopy as Copy,
+  IconCheck as Check,
+  IconSettings as Settings,
+  IconChevronDown as ChevronDown,
+} from '@tabler/icons-react';
 
 export interface WalletCardProps {
   wallet: Wallet;
@@ -48,15 +53,6 @@ export interface WalletCardProps {
 
 // 静态样式常量 - 避免每次渲染创建新对象
 const TRIANGLE_MASK_SVG = `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`;
-
-
-
-const GOLD_GRADIENT = `linear-gradient(
-  135deg,
-  transparent 30%,
-  rgba(255, 215, 0, 0.6) 50%,
-  transparent 70%
-)`;
 
 export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function WalletCard(
   {
@@ -101,33 +97,35 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   }, [onCopyAddress]);
 
   // ============ 基于角度的光影算法 (GPU动画同步) ============
-  
+
   // 1. 卡片倾斜角度 (度) - 作为 CSS 变量传递，让 GPU 处理过渡
   const maxTilt = 15;
   const tiltX = isActive ? pointerY * -maxTilt : 0;
   const tiltY = isActive ? pointerX * maxTilt : 0;
-  
+
   // 2. 归一化倾斜值 (-1 到 1) - 用于 CSS calc()
   const normalizedTiltX = tiltX / maxTilt; // -1 to 1
   const normalizedTiltY = tiltY / maxTilt; // -1 to 1
-  
+
   // 3. 倾斜强度 (0 到 1) - 用于透明度等
-  const tiltIntensity = isActive ? Math.min(1, Math.sqrt(normalizedTiltX * normalizedTiltX + normalizedTiltY * normalizedTiltY)) : 0;
-  
+  const tiltIntensity = isActive
+    ? Math.min(1, Math.sqrt(normalizedTiltX * normalizedTiltX + normalizedTiltY * normalizedTiltY))
+    : 0;
+
   // 4. 倾斜方向角 (度) - 用于彩虹旋转
   const tiltDirection = Math.atan2(-normalizedTiltX, normalizedTiltY) * (180 / Math.PI);
-  
+
   // CSS 变量 - 所有光影效果都通过这些变量驱动
   // 过渡动画在 CSS 层面统一处理
   const cssVars = {
-    '--tilt-x': tiltX,           // 倾斜角度 X (度)
-    '--tilt-y': tiltY,           // 倾斜角度 Y (度)
+    '--tilt-x': tiltX, // 倾斜角度 X (度)
+    '--tilt-y': tiltY, // 倾斜角度 Y (度)
     '--tilt-nx': normalizedTiltX, // 归一化 X (-1~1)
     '--tilt-ny': normalizedTiltY, // 归一化 Y (-1~1)
     '--tilt-intensity': tiltIntensity, // 强度 (0~1)
     '--tilt-direction': tiltDirection, // 方向角 (度)
   } as React.CSSProperties;
-  
+
   // 动画配置 - 统一用于 transform 和光影
   const transitionConfig = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ease-out-back 回弹效果
 
@@ -178,7 +176,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
         {/* 1. 主背景渐变 */}
         <div className="absolute inset-0" style={{ background: bgGradient }} />
 
-        {/* 2. 防伪层1：三角纹理 (Pattern) - 全息衍射效果 */}
+        {/* 2. 防伪层1：三角纹理 (Pattern) + 双层折射 */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl"
           style={{
@@ -189,58 +187,107 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             maskSize: '24px 24px',
             maskRepeat: 'repeat',
             mixBlendMode: 'color-dodge',
-            // 透明度跟随强度，带过渡
-            opacity: `calc(0.05 + var(--tilt-intensity) * 0.2)`,
+            opacity: `calc(0.05 + var(--tilt-intensity) * 0.25)`,
             transition: isActive ? 'none' : transitionConfig,
           }}
         >
+          {/* Refraction 1: 左下角 */}
           <div
-            className="absolute"
+            className="absolute bottom-0 left-0"
             style={{
-              inset: '-50%',
-              width: '200%',
-              height: '200%',
-              // 彩虹色带随倾斜方向旋转
-              background: `linear-gradient(
-                calc(${tiltDirection + 90}deg),
-                rgba(255, 0, 0, 0.6) 10%,
-                rgba(255, 165, 0, 0.6) 20%,
-                rgba(255, 255, 0, 0.6) 30%,
-                rgba(0, 255, 0, 0.6) 40%,
-                rgba(0, 255, 255, 0.6) 50%,
-                rgba(0, 0, 255, 0.6) 60%,
-                rgba(128, 0, 255, 0.6) 70%,
-                transparent 85%
+              width: '500%',
+              aspectRatio: '1',
+              transformOrigin: '0 100%',
+              background: `radial-gradient(
+                circle at 0 100%,
+                transparent 10%,
+                hsl(5 100% 80%) 25%,
+                hsl(150 100% 60%) 40%,
+                hsl(220 90% 70%) 55%,
+                transparent 70%
               )`,
-              filter: 'blur(15px)',
-              // 视差位移 - 使用 CSS 变量
-              transform: `translate(calc(var(--tilt-ny) * -30%), calc(var(--tilt-nx) * 30%))`,
+              filter: 'saturate(2)',
+              scale: `min(1, calc(0.15 + var(--tilt-ny) * 0.25))`,
+              translate: `clamp(-10%, calc(-10% + var(--tilt-ny) * 10%), 10%) max(0%, calc(var(--tilt-nx) * -10%))`,
+              transition: isActive ? 'none' : transitionConfig,
+              willChange: 'transform',
+            }}
+          />
+          {/* Refraction 2: 右上角 */}
+          <div
+            className="absolute top-0 right-0"
+            style={{
+              width: '500%',
+              aspectRatio: '1',
+              transformOrigin: '100% 0',
+              background: `radial-gradient(
+                circle at 100% 0,
+                transparent 10%,
+                hsl(5 100% 80%) 25%,
+                hsl(150 100% 60%) 40%,
+                hsl(220 90% 70%) 55%,
+                transparent 70%
+              )`,
+              filter: 'saturate(2)',
+              scale: `min(1, calc(0.15 + var(--tilt-ny) * -0.65))`,
+              translate: `clamp(-10%, calc(10% + var(--tilt-ny) * 10%), 10%) min(0%, calc(var(--tilt-nx) * -10%))`,
               transition: isActive ? 'none' : transitionConfig,
               willChange: 'transform',
             }}
           />
         </div>
 
-        {/* 3. 防伪层2：Logo水印 (Watermark) */}
+        {/* 3. 防伪层2：Logo水印 (Watermark) + 双层折射 */}
         {logoMaskStyle && (
           <div
             className="absolute inset-0 overflow-hidden rounded-2xl"
             style={{
               ...logoMaskStyle,
-              mixBlendMode: 'overlay',
-              // 透明度：基础值 + 强度加成
+              mixBlendMode: 'hard-light',
               opacity: `calc(0.1 + var(--tilt-intensity) * 0.6)`,
               transition: isActive ? 'none' : transitionConfig,
             }}
           >
+            {/* Refraction 1: 左下角 */}
             <div
-              className="absolute"
+              className="absolute bottom-0 left-0"
               style={{
-                inset: '-50%',
-                width: '200%',
-                height: '200%',
-                background: GOLD_GRADIENT,
-                transform: `translate(calc(var(--tilt-ny) * -30%), calc(var(--tilt-nx) * 30%))`,
+                width: '500%',
+                aspectRatio: '1',
+                transformOrigin: '0 100%',
+                background: `radial-gradient(
+                  circle at 0 100%,
+                  transparent 10%,
+                  hsl(5 100% 80%),
+                  hsl(150 100% 60%),
+                  hsl(220 90% 70%),
+                  transparent 70%
+                )`,
+                filter: 'saturate(1.5)',
+                scale: `min(1, calc(0.15 + var(--tilt-ny) * 0.25))`,
+                translate: `clamp(-10%, calc(-5% + var(--tilt-ny) * 5%), 10%) max(0%, calc(var(--tilt-nx) * -10%))`,
+                transition: isActive ? 'none' : transitionConfig,
+                willChange: 'transform',
+              }}
+            />
+            {/* Refraction 2: 右上角 */}
+            <div
+              className="absolute top-0 right-0"
+              style={{
+                width: '600%',
+                aspectRatio: '1',
+                transformOrigin: '100% 0',
+                background: `radial-gradient(
+                  circle at 100% 0,
+                  transparent 10%,
+                  hsl(5 100% 80%),
+                  hsl(150 100% 60%),
+                  hsl(220 90% 70%),
+                  transparent 70%
+                )`,
+                filter: 'saturate(1.5)',
+                scale: `min(1, calc(0.15 + var(--tilt-ny) * -0.65))`,
+                translate: `clamp(-10%, calc(5% + var(--tilt-ny) * 5%), 10%) min(0%, calc(var(--tilt-nx) * -10%))`,
                 transition: isActive ? 'none' : transitionConfig,
                 willChange: 'transform',
               }}
@@ -260,7 +307,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
                 transparent 60%
               )`,
             mixBlendMode: 'overlay',
-            opacity: `calc(var(--tilt-intensity) * 0.6)`,
+            opacity: `calc(0.1 + var(--tilt-intensity) * 0.6)`,
             transition: isActive ? 'none' : transitionConfig,
           }}
         />
