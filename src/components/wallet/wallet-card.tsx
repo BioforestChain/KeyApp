@@ -1,4 +1,25 @@
 import { forwardRef, useCallback, useEffect, useRef, useState, useMemo } from 'react';
+
+// 注册 CSS 自定义属性，使其可动画
+// 只需注册一次，放在模块顶层
+if (typeof window !== 'undefined' && 'registerProperty' in CSS) {
+  const propsToRegister = [
+    { name: '--tilt-x', syntax: '<number>', initialValue: '0' },
+    { name: '--tilt-y', syntax: '<number>', initialValue: '0' },
+    { name: '--tilt-nx', syntax: '<number>', initialValue: '0' },
+    { name: '--tilt-ny', syntax: '<number>', initialValue: '0' },
+    { name: '--tilt-intensity', syntax: '<number>', initialValue: '0' },
+    { name: '--tilt-direction', syntax: '<number>', initialValue: '0' },
+  ];
+  
+  for (const prop of propsToRegister) {
+    try {
+      CSS.registerProperty({ ...prop, inherits: false });
+    } catch {
+      // 已注册则忽略
+    }
+  }
+}
 import { cn } from '@/lib/utils';
 import { useCardInteraction } from '@/hooks/useCardInteraction';
 import { useMonochromeMask } from '@/hooks/useMonochromeMask';
