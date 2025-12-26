@@ -50,7 +50,7 @@ export function ImportWalletSuccess({
           onClick={onEnterWallet}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors',
-            'bg-primary hover:bg-primary/90 text-white',
+            'bg-primary hover:bg-primary/90 text-primary-foreground',
           )}
         >
           <span>{t('import.success.enterWallet')}</span>

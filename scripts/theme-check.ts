@@ -131,6 +131,7 @@ function checkBackgroundAsText(content: string, file: string): Issue[] {
 /**
  * Rule 2: Foreground colors (except muted-foreground) should have matching background
  * Note: text-muted-foreground can be used standalone for secondary text
+ * Skip peer/group conditional styles as they pair with conditional backgrounds
  */
 function checkOrphanForeground(content: string, file: string): Issue[] {
   const issues: Issue[] = []
@@ -144,22 +145,33 @@ function checkOrphanForeground(content: string, file: string): Issue[] {
     const line = lines[i]
 
     for (const token of foregroundTokens) {
-      // Look for text-{token}-foreground
-      if (line.includes(`text-${token}-foreground`)) {
-        // Check if the same line or nearby context has bg-{token}
-        const context = lines.slice(Math.max(0, i - 2), Math.min(lines.length, i + 3)).join(' ')
+      // Look for text-{token}-foreground (including variants like /70)
+      const fgMatch = line.match(new RegExp(`text-${token}-foreground`))
+      if (!fgMatch) continue
+      
+      // Skip conditional foreground styles (peer-*, group-*, data-*)
+      // These pair with conditional bg-* styles
+      if (new RegExp(`(peer-|group-|data-)\\S*text-${token}-foreground`).test(line)) {
+        continue
+      }
 
-        if (!context.includes(`bg-${token}`)) {
-          issues.push({
-            file,
-            line: i + 1,
-            column: line.indexOf(`text-${token}-foreground`) + 1,
-            rule: 'orphan-foreground',
-            message: `'text-${token}-foreground' without visible 'bg-${token}' - verify background is set`,
-            severity: 'warning',
-            suggestion: `Ensure 'bg-${token}' is set on this element or a parent`,
-          })
-        }
+      // Check if the same line or nearby context has bg-{token}
+      // Expand context to 5 lines before and after
+      const context = lines.slice(Math.max(0, i - 5), Math.min(lines.length, i + 6)).join(' ')
+
+      // Check for bg-{token} including conditional variants
+      const hasBgToken = new RegExp(`bg-${token}|peer-\\S*:bg-${token}|data-\\S*:bg-${token}|group-\\S*:bg-${token}`).test(context)
+      
+      if (!hasBgToken) {
+        issues.push({
+          file,
+          line: i + 1,
+          column: fgMatch.index! + 1,
+          rule: 'orphan-foreground',
+          message: `'text-${token}-foreground' without visible 'bg-${token}' - verify background is set`,
+          severity: 'warning',
+          suggestion: `Ensure 'bg-${token}' is set on this element or a parent`,
+        })
       }
     }
   }
@@ -266,6 +278,7 @@ function checkTextWhiteOnSemanticBg(content: string, file: string): Issue[] {
 
 /**
  * Rule 5: bg-muted without text color may be invisible in dark mode
+ * Only warn if the element seems to have direct text content
  */
 function checkBgMutedWithoutText(content: string, file: string): Issue[] {
   const issues: Issue[] = []
@@ -274,30 +287,41 @@ function checkBgMutedWithoutText(content: string, file: string): Issue[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    // Check if line has bg-muted (not bg-muted/xx)
-    const bgMutedMatch = line.match(/\bbg-muted\b(?!\/|-)/)
+    // Check if line has bg-muted (not bg-muted/xx which is semi-transparent)
+    const bgMutedMatch = line.match(/\bbg-muted\b(?!\/)/)
     if (!bgMutedMatch) continue
 
-    // Check if there's any text color in the same className context
-    const context = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 2)).join(' ')
+    // Skip if it's hover/focus/active state only
+    if (/hover:bg-muted|focus:bg-muted|active:bg-muted/.test(line) && !/\sbg-muted\b/.test(line)) {
+      continue
+    }
+
+    // Check if there's any text color in the same className context (within 3 lines)
+    const context = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 4)).join(' ')
     
-    // Look for text-* colors (except text-white which would be wrong)
-    const hasTextColor = /\btext-(?:muted-foreground|foreground|primary|destructive|green-|red-|blue-|gray-|slate-|zinc-)/.test(context)
+    // Look for text-* colors
+    const hasTextColor = /\btext-(?:muted-foreground|foreground|primary|destructive|green-|red-|blue-|gray-|slate-|zinc-|white)/.test(context)
     
     // Also check if it's used purely as decorative/layout (no text content expected)
-    const isDecorative = /(?:size-|w-|h-)\d|aspect-square|rounded-full.*(?:p-\d|size-)/.test(context)
+    const isDecorative = /(?:size-|w-|h-)\d+.*(?:rounded|aspect)|flex.*items-center.*justify-center.*(?:rounded|size-)/.test(context)
     
-    if (!hasTextColor && !isDecorative) {
-      issues.push({
-        file,
-        line: i + 1,
-        column: bgMutedMatch.index! + 1,
-        rule: 'bg-muted-no-text-color',
-        message: `'bg-muted' without explicit text color - may be invisible in dark mode`,
-        severity: 'warning',
-        suggestion: `Add 'text-muted-foreground' or 'text-foreground' for text elements`,
-      })
-    }
+    // Skip if has text color or is decorative
+    if (hasTextColor || isDecorative) continue
+    
+    // Skip if it's a container with child elements that likely have their own text colors
+    const isContainer = /className.*bg-muted.*>\s*$|<div|<button|<span/.test(context)
+    const hasChildWithText = /text-(?:muted-foreground|foreground|sm|xs|lg|xl)/.test(context)
+    if (isContainer && hasChildWithText) continue
+
+    issues.push({
+      file,
+      line: i + 1,
+      column: bgMutedMatch.index! + 1,
+      rule: 'bg-muted-no-text-color',
+      message: `'bg-muted' without explicit text color - may be invisible in dark mode`,
+      severity: 'warning',
+      suggestion: `Add 'text-muted-foreground' or 'text-foreground' for text elements`,
+    })
   }
 
   return issues

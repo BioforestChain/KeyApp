@@ -273,7 +273,7 @@ function TransferWalletLockJobContent() {
                 data-testid="two-step-confirm-button"
                 disabled={!canSubmitTwoStepSecret}
                 className={cn(
-                  "w-full rounded-full py-3 font-medium text-white transition-colors",
+                  "w-full rounded-full py-3 font-medium text-primary-foreground transition-colors",
                   "bg-primary hover:bg-primary/90",
                   "disabled:cursor-not-allowed disabled:opacity-50"
                 )}

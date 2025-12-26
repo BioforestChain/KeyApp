@@ -71,7 +71,7 @@ export function CreateWalletSuccess({
             type="button"
             onClick={onBackup}
             className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium text-white transition-colors',
+              'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium text-primary-foreground transition-colors',
               'bg-primary hover:bg-primary/90',
             )}
           >
@@ -87,7 +87,7 @@ export function CreateWalletSuccess({
             'flex w-full items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors',
             skipBackup && onBackup
               ? 'border-border text-foreground hover:bg-muted border'
-              : 'bg-primary hover:bg-primary/90 text-white',
+              : 'bg-primary hover:bg-primary/90 text-primary-foreground',
           )}
         >
           <span>{skipBackup && onBackup ? t('create.success.backupLater') : t('create.success.enterWallet')}</span>

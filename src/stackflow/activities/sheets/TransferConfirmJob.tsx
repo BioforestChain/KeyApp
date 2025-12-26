@@ -206,7 +206,7 @@ function TransferConfirmJobContent() {
               onClick={handleConfirm}
               disabled={isConfirming || feeLoading}
               className={cn(
-                'flex-1 rounded-full py-3 font-medium text-white transition-colors',
+                'flex-1 rounded-full py-3 font-medium text-primary-foreground transition-colors',
                 'bg-primary hover:bg-primary/90',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}

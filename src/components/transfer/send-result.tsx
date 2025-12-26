@@ -143,7 +143,7 @@ export function SendResult({
           <button
             type="button"
             onClick={onRetry}
-            className="bg-primary hover:bg-primary/90 rounded-full py-3 font-medium text-white transition-colors"
+            className="bg-primary hover:bg-primary/90 rounded-full py-3 font-medium text-primary-foreground transition-colors"
           >
             {t('sendResult.retry')}
           </button>
@@ -156,7 +156,7 @@ export function SendResult({
           className={cn(
             'flex items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors',
             isSuccess || isPending
-              ? 'bg-primary hover:bg-primary/90 text-white'
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
               : 'border-border hover:bg-muted border',
           )}
         >
