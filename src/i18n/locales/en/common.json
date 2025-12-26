@@ -4,6 +4,7 @@
     "appInfo": "App info",
     "back": "Back",
     "chainSelector": "Select blockchain network",
+    "clear": "Clear",
     "close": "Close",
     "closeDialog": "Close dialog",
     "copyAddress": "Copy address",
@@ -99,6 +100,11 @@
     "name": "Name",
     "namePlaceholder": "Enter contact name",
     "noContacts": "No contacts",
+    "noValidAddress": "No valid address",
+    "addresses": "Addresses",
+    "addressLabel": "Label",
+    "addressLabelPlaceholder": "e.g. Main",
+    "addAddress": "Add Address",
     "save": "Save",
     "selectAddress": "Select address",
     "selectContact": "Select Contact",
@@ -332,7 +338,8 @@
     "memo": "Memo",
     "memoPlaceholder": "Add memo (optional)",
     "shareContact": "Share Contact",
-    "scanToAdd": "Scan to add contact"
+    "scanToAdd": "Scan to add contact",
+    "changeAvatar": "Click to change avatar"
   },
   "time": {
     "justNow": "Just now",

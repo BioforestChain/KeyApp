@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFlow } from '@/stackflow';
 import { TokenList } from '@/components/token/token-list';
@@ -29,7 +29,6 @@ import {
   useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
-  walletActions,
   type ChainType,
 } from '@/stores';
 
@@ -67,12 +66,6 @@ export function HomePage() {
   const tokens = useCurrentChainTokens();
 
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!isInitialized) {
-      walletActions.initialize();
-    }
-  }, [isInitialized]);
 
   const handleCopyAddress = async () => {
     if (chainAddress?.address) {

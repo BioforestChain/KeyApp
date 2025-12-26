@@ -2,9 +2,17 @@ import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } 
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUser, IconUsers } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX } from '@tabler/icons-react';
+import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
-import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
+import { isValidAddressForChain } from '@/lib/address-format';
+import { generateAvatarFromAddress } from '@/lib/avatar-codec';
+import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion, type ContactAddress } from '@/stores';
+
+/** 获取地址显示标签（只显示自定义 label，没有则为空） */
+function getAddressDisplayLabel(address: ContactAddress): string {
+  return address.label || '';
+}
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;
@@ -45,29 +53,40 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const errorId = useId();
     const listboxId = useId();
 
-    // Get contacts from store
+    // 直接从 addressBookStore 读取数据（单一数据源）
     const addressBookState = useStore(addressBookStore);
+    const hasContacts = addressBookState.contacts.length > 0;
 
     const currentValue = value || internalValue;
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
 
-    // Get contact suggestions - now supports empty query for "focus to show all"
-    const suggestions = useMemo((): ContactSuggestion[] => {
+    // 检测当前输入是否精确匹配某个联系人的地址
+    const matchedContact = useMemo(() => {
+      if (!currentValue) return null;
+      return addressBookSelectors.getContactByAddress(addressBookState, currentValue);
+    }, [addressBookState, currentValue]);
+
+    // 获取联系人建议 - 显示所有联系人，用地址合法性验证标记可选地址
+    const suggestions = useMemo(() => {
       if (!showSuggestions) return [];
-      // Pass empty string to get all contacts when no input
-      return addressBookSelectors.suggestContacts(addressBookState, currentValue || '', chainType, maxSuggestions);
+      const allSuggestions = addressBookSelectors.suggestContacts(addressBookState, currentValue || '', maxSuggestions);
+      // 标记每个建议的地址是否对当前链有效
+      return allSuggestions.map((s) => ({
+        ...s,
+        isValidForCurrentChain: chainType ? isValidAddressForChain(s.matchedAddress.address, chainType) : true,
+      }));
     }, [addressBookState, currentValue, chainType, showSuggestions, maxSuggestions]);
 
     // Show dropdown when focused and has contacts (even without input)
     useEffect(() => {
-      if (focused && showSuggestions && (suggestions.length > 0 || addressBookState.contacts.length > 0)) {
+      if (focused && showSuggestions && (suggestions.length > 0 || hasContacts)) {
         setShowDropdown(true);
         setSelectedIndex(-1);
       } else {
         setShowDropdown(false);
       }
-    }, [focused, suggestions.length, addressBookState.contacts.length, showSuggestions]);
+    }, [focused, suggestions.length, hasContacts, showSuggestions]);
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -104,6 +123,11 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
       setShowDropdown(false);
     }, [onChange]);
 
+    const handleClearContact = useCallback(() => {
+      setInternalValue('');
+      onChange?.('');
+    }, [onChange]);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (!showDropdown || suggestions.length === 0) return;
 
@@ -117,7 +141,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
           setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
           break;
         case 'Enter':
-          if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+          if (selectedIndex >= 0 && suggestions[selectedIndex] && suggestions[selectedIndex].isValidForCurrentChain) {
             e.preventDefault();
             handleSelectSuggestion(suggestions[selectedIndex]);
           }
@@ -134,57 +158,84 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
         <div className="relative">
           <div
             className={cn(
-              'bg-background relative flex items-center gap-1 rounded-xl border p-2 transition-colors @xs:gap-2 @xs:p-3',
+              'bg-background relative flex items-center gap-2 rounded-xl border p-2 transition-colors @xs:gap-3 @xs:p-3',
               focused ? 'border-primary ring-primary/20 ring-2' : 'border-input',
               hasError && 'border-destructive ring-destructive/20 ring-2',
             )}
           >
-            <input
-              ref={ref}
-              type="text"
-              data-testid="address-input"
-              value={currentValue}
-              onChange={handleChange}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setTimeout(() => setFocused(false), 150)}
-              onKeyDown={handleKeyDown}
-              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
-              placeholder={t('addressPlaceholder')}
-              autoComplete="off"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-invalid={hasError}
-              aria-describedby={hasError ? errorId : undefined}
-              aria-expanded={showDropdown}
-              aria-controls={showDropdown ? listboxId : undefined}
-              aria-activedescendant={selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined}
-              role="combobox"
-              {...props}
-            />
-
-            <div className="flex items-center">
-              {onScan && (
+            {/* 匹配到联系人时显示头像和信息 */}
+            {matchedContact ? (
+              <>
+                <ContactAvatar
+                  src={matchedContact.contact.avatar || generateAvatarFromAddress(matchedContact.matchedAddress.address)}
+                  size={40}
+                  className="shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{matchedContact.contact.name}</p>
+                  <p className="text-muted-foreground truncate font-mono text-xs">
+                    {matchedContact.matchedAddress.address}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  data-testid="scan-address-button"
-                  onClick={onScan}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
-                  aria-label={t('a11y.scanQrCode')}
+                  onClick={handleClearContact}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0 rounded-lg p-1.5 transition-colors"
+                  aria-label={t('a11y.clear')}
                 >
-                  <ScanLine className="size-5" />
+                  <IconX className="size-5" />
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={handlePaste}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
-                aria-label={t('a11y.paste')}
-              >
-                <ClipboardPaste className="size-5 @xs:hidden" />
-                <span className="hidden @xs:inline">{t('paste')}</span>
-              </button>
-            </div>
+              </>
+            ) : (
+              <>
+                <input
+                  ref={ref}
+                  type="text"
+                  data-testid="address-input"
+                  value={currentValue}
+                  onChange={handleChange}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setTimeout(() => setFocused(false), 150)}
+                  onKeyDown={handleKeyDown}
+                  className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+                  placeholder={t('addressPlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={hasError}
+                  aria-describedby={hasError ? errorId : undefined}
+                  aria-expanded={showDropdown}
+                  aria-controls={showDropdown ? listboxId : undefined}
+                  aria-activedescendant={selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined}
+                  role="combobox"
+                  {...props}
+                />
+
+                <div className="flex items-center">
+                  {onScan && (
+                    <button
+                      type="button"
+                      data-testid="scan-address-button"
+                      onClick={onScan}
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
+                      aria-label={t('a11y.scanQrCode')}
+                    >
+                      <ScanLine className="size-5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePaste}
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
+                    aria-label={t('a11y.paste')}
+                  >
+                    <ClipboardPaste className="size-5 @xs:hidden" />
+                    <span className="hidden @xs:inline">{t('paste')}</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Contact suggestions dropdown */}
@@ -195,28 +246,46 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             >
               {suggestions.length > 0 ? (
                 <ul role="listbox">
-                  {suggestions.map((suggestion, index) => (
-                    <li
-                      key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
-                      id={`suggestion-${index}`}
-                      role="option"
-                      aria-selected={index === selectedIndex}
-                      className={cn(
-                        'flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors',
-                        index === selectedIndex ? 'bg-accent' : 'hover:bg-muted/50',
-                      )}
-                      onClick={() => handleSelectSuggestion(suggestion)}
-                    >
-                      <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full">
-                        <IconUser className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
-                        <p className="text-muted-foreground truncate font-mono text-xs">{suggestion.matchedAddress.address}</p>
-                      </div>
-                      <span className="text-muted-foreground shrink-0 text-xs uppercase">{suggestion.matchedAddress.chainType}</span>
-                    </li>
-                  ))}
+                  {suggestions.map((suggestion, index) => {
+                    const isDisabled = !suggestion.isValidForCurrentChain;
+                    return (
+                      <li
+                        key={`${suggestion.contact.id}-${suggestion.matchedAddress.id}`}
+                        id={`suggestion-${index}`}
+                        role="option"
+                        aria-selected={index === selectedIndex}
+                        aria-disabled={isDisabled}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 transition-colors',
+                          isDisabled
+                            ? 'opacity-50 cursor-not-allowed'
+                            : index === selectedIndex
+                              ? 'bg-accent cursor-pointer'
+                              : 'hover:bg-muted/50 cursor-pointer',
+                        )}
+                        onClick={() => !isDisabled && handleSelectSuggestion(suggestion)}
+                      >
+                        <ContactAvatar
+                          src={suggestion.contact.avatar}
+                          size={32}
+                          className="shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{suggestion.contact.name}</p>
+                          <p className={cn(
+                            "truncate font-mono text-xs",
+                            isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                          )}>{suggestion.matchedAddress.address}</p>
+                        </div>
+                        {getAddressDisplayLabel(suggestion.matchedAddress) && (
+                          <span className={cn(
+                            "max-w-[4rem] shrink-0 truncate text-xs",
+                            isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                          )}>{getAddressDisplayLabel(suggestion.matchedAddress)}</span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="text-muted-foreground px-3 py-4 text-center text-sm">

@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
 import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerResultCallback } from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
+import { addressBookStore, addressBookSelectors, preferencesActions } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
-import { AddressInput } from '@/components/transfer/address-input';
+import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Alert } from '@/components/common/alert';
@@ -107,6 +108,16 @@ export function SendPage() {
     window.addEventListener('contact-picker-select', handleContactSelect as EventListener);
     return () => window.removeEventListener('contact-picker-select', handleContactSelect as EventListener);
   }, [setToAddress]);
+
+  // 转账成功后，追踪最近使用的联系人（单一数据源：只存 ID）
+  useEffect(() => {
+    if (state.resultStatus === 'success' && state.toAddress) {
+      const matched = addressBookSelectors.getContactByAddress(addressBookStore.state, state.toAddress);
+      if (matched) {
+        preferencesActions.trackRecentContact(matched.contact.id);
+      }
+    }
+  }, [state.resultStatus, state.toAddress]);
 
   const handleContactPicker = useCallback(() => {
     push('ContactPickerJob', { chainType: selectedChain });
@@ -268,7 +279,7 @@ export function SendPage() {
           )}
         </div>
 
-        {/* Address input */}
+        {/* Address input - 直接从 addressBookStore 读取（单一数据源） */}
         <AddressInput
           label={t('sendPage.toAddressLabel')}
           value={state.toAddress}

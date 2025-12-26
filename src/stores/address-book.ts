@@ -2,14 +2,12 @@ import { Store } from '@tanstack/react-store'
 import { type ChainType } from './wallet'
 import { detectAddressFormat } from '@/lib/address-format'
 
-/** 联系人地址 */
+/** 联系人地址（最多 3 个） */
 export interface ContactAddress {
   id: string
   /** 地址 */
   address: string
-  /** 链类型 */
-  chainType: ChainType
-  /** 地址标签（如"主地址"、"交易所"） */
+  /** 地址标签，最多 10 字符，用于显示 */
   label?: string | undefined
   /** 是否默认地址 */
   isDefault?: boolean | undefined
@@ -22,24 +20,13 @@ export interface Contact {
   name: string
   /** 头像（可选，emoji 或图片URL） */
   avatar?: string | undefined
-  /** 多个地址 */
+  /** 多个地址（最多 3 个） */
   addresses: ContactAddress[]
   /** 备注 */
   memo?: string | undefined
   /** 创建时间 */
   createdAt: number
   /** 更新时间 */
-  updatedAt: number
-}
-
-/** 旧版联系人类型（v1，单地址）用于迁移 */
-interface LegacyContact {
-  id: string
-  name: string
-  address: string
-  chain?: ChainType
-  memo?: string
-  createdAt: number
   updatedAt: number
 }
 
@@ -65,40 +52,7 @@ export const addressBookStore = new Store<AddressBookState>(initialState)
 
 // 持久化键
 const STORAGE_KEY = 'bfm_address_book'
-const CURRENT_VERSION = 2
-
-/** 检测是否为旧版数据格式 */
-function isLegacyContact(contact: unknown): contact is LegacyContact {
-  return (
-    typeof contact === 'object' &&
-    contact !== null &&
-    'address' in contact &&
-    typeof (contact as LegacyContact).address === 'string' &&
-    !('addresses' in contact)
-  )
-}
-
-/** 迁移旧版联系人到新格式 */
-function migrateLegacyContact(legacy: LegacyContact): Contact {
-  const detected = detectAddressFormat(legacy.address)
-  const chainType = legacy.chain ?? detected.chainType ?? 'ethereum'
-
-  return {
-    id: legacy.id,
-    name: legacy.name,
-    addresses: [
-      {
-        id: crypto.randomUUID(),
-        address: legacy.address,
-        chainType,
-        isDefault: true,
-      },
-    ],
-    memo: legacy.memo,
-    createdAt: legacy.createdAt,
-    updatedAt: legacy.updatedAt,
-  }
-}
+const CURRENT_VERSION = 3
 
 /** 持久化辅助函数 */
 function persistContacts(contacts: Contact[]) {
@@ -113,32 +67,20 @@ function persistContacts(contacts: Contact[]) {
   }
 }
 
-/** 加载并迁移数据 */
-function loadAndMigrateContacts(): Contact[] {
+/** 加载数据（不兼容旧版） */
+function loadContacts(): Contact[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) return []
 
     const parsed = JSON.parse(stored)
 
-    // 检查是否为新版格式
+    // 只加载当前版本
     if (parsed.version === CURRENT_VERSION && Array.isArray(parsed.contacts)) {
       return parsed.contacts as Contact[]
     }
 
-    // 旧版格式：直接是数组
-    if (Array.isArray(parsed)) {
-      const contacts = parsed.map((item: unknown) => {
-        if (isLegacyContact(item)) {
-          return migrateLegacyContact(item)
-        }
-        return item as Contact
-      })
-      // 保存迁移后的数据
-      persistContacts(contacts)
-      return contacts
-    }
-
+    // 其他版本直接返回空（破坏性更新）
     return []
   } catch (error) {
     console.error('Failed to load address book:', error)
@@ -148,22 +90,27 @@ function loadAndMigrateContacts(): Contact[] {
 
 // Actions
 export const addressBookActions = {
-  /** 初始化（从存储加载，支持数据迁移） */
+  /** 初始化（从存储加载） */
   initialize: () => {
-    const contacts = loadAndMigrateContacts()
+    const contacts = loadContacts()
     addressBookStore.setState(() => ({
       contacts,
       isInitialized: true,
     }))
   },
 
-  /** 添加联系人 */
+  /** 添加联系人（每个联系人最多 3 个地址） */
   addContact: (
     contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & {
       avatar?: string | undefined
       memo?: string | undefined
     }
   ): Contact => {
+    // 验证地址数量限制
+    if (contact.addresses.length > 3) {
+      throw new Error('Maximum 3 addresses per contact')
+    }
+
     const now = Date.now()
     const newContact: Contact = {
       ...contact,
@@ -207,7 +154,7 @@ export const addressBookActions = {
     })
   },
 
-  /** 添加地址到联系人 */
+  /** 添加地址到联系人（最多 3 个地址，超出将抛出错误） */
   addAddressToContact: (
     contactId: string,
     address: Omit<ContactAddress, 'id'> & { label?: string | undefined }
@@ -220,6 +167,10 @@ export const addressBookActions = {
     addressBookStore.setState((state) => {
       const contacts = state.contacts.map((c) => {
         if (c.id !== contactId) return c
+        // 限制每个联系人最多 3 个地址（QR 码容量限制）
+        if (c.addresses.length >= 3) {
+          throw new Error('Maximum 3 addresses per contact')
+        }
         return {
           ...c,
           addresses: [...c.addresses, newAddress],
@@ -350,13 +301,11 @@ export const addressBookSelectors = {
    * 获取联系人建议（用于地址输入）
    * @param state - 地址簿状态
    * @param partialAddress - 部分地址（可为空，空时返回所有联系人）
-   * @param chainType - 链类型过滤（可选）
    * @param limit - 返回数量限制（默认 5）
    */
   suggestContacts: (
     state: AddressBookState,
     partialAddress: string,
-    chainType?: ChainType,
     limit: number = 5
   ): ContactSuggestion[] => {
     const suggestions: ContactSuggestion[] = []
@@ -369,10 +318,7 @@ export const addressBookSelectors = {
     )
 
     for (const contact of sortedContacts) {
-      // 过滤指定链类型的地址
-      const relevantAddresses = chainType
-        ? contact.addresses.filter((a) => a.chainType === chainType)
-        : contact.addresses
+      const relevantAddresses = contact.addresses
 
       if (relevantAddresses.length === 0) continue
 
@@ -453,17 +399,17 @@ export const addressBookSelectors = {
       .slice(0, limit)
   },
 
-  /** 按链类型过滤联系人 */
+  /** 按链类型过滤联系人（使用地址格式检测） */
   getContactsByChain: (state: AddressBookState, chain: ChainType): Contact[] => {
     return state.contacts.filter((c) =>
-      c.addresses.some((a) => a.chainType === chain)
+      c.addresses.some((a) => detectAddressFormat(a.address).chainType === chain)
     )
   },
 
   /** 获取联系人的默认地址 */
   getDefaultAddress: (contact: Contact, chainType?: ChainType): ContactAddress | undefined => {
     const relevantAddresses = chainType
-      ? contact.addresses.filter((a) => a.chainType === chainType)
+      ? contact.addresses.filter((a) => detectAddressFormat(a.address).chainType === chainType)
       : contact.addresses
 
     return relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]

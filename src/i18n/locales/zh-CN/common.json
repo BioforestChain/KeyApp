@@ -33,6 +33,7 @@
     "invalidAddress": "无效的地址格式",
     "back": "返回",
     "close": "关闭",
+    "clear": "清除",
     "loading": "加载中",
     "addContact": "添加联系人",
     "moreActions": "更多操作",
@@ -59,6 +60,11 @@
     "save": "保存",
     "cancel": "取消",
     "noContacts": "暂无联系人",
+    "noValidAddress": "无可用地址",
+    "addresses": "地址",
+    "addressLabel": "标签",
+    "addressLabelPlaceholder": "如：主账户",
+    "addAddress": "添加地址",
     "viewAll": "查看全部联系人",
     "selectContact": "选择联系人",
     "selectAddress": "选择地址"
@@ -310,7 +316,8 @@
     "memo": "备注",
     "memoPlaceholder": "添加备注（可选）",
     "shareContact": "分享名片",
-    "scanToAdd": "扫码添加联系人"
+    "scanToAdd": "扫码添加联系人",
+    "changeAvatar": "点击切换头像"
   },
   "time": {
     "justNow": "刚刚",

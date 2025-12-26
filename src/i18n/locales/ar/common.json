@@ -4,6 +4,7 @@
     "appInfo": "معلومات التطبيق",
     "back": "رجوع",
     "chainSelector": "اختر شبكة البلوكتشين",
+    "clear": "مسح",
     "close": "إغلاق",
     "closeDialog": "إغلاق النافذة",
     "copyAddress": "نسخ العنوان",
@@ -58,7 +59,8 @@
     "memo": "ملاحظة",
     "memoPlaceholder": "أضف ملاحظة (اختياري)",
     "shareContact": "مشاركة البطاقة",
-    "scanToAdd": "امسح لإضافة جهة اتصال"
+    "scanToAdd": "امسح لإضافة جهة اتصال",
+    "changeAvatar": "انقر لتغيير الصورة"
   },
   "addressPlaceholder": "أدخل أو الصق العنوان",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "Advanced encryption technology &lt;br /&gt; Digital wealth is more secure",
@@ -106,10 +108,15 @@
     "name": "الاسم",
     "namePlaceholder": "أدخل اسم جهة الاتصال",
     "noContacts": "لا توجد جهات اتصال",
+    "noValidAddress": "لا يوجد عنوان صالح",
     "save": "حفظ",
     "selectAddress": "اختر العنوان",
     "selectContact": "اختر جهة اتصال",
-    "viewAll": "عرض جميع جهات الاتصال"
+    "viewAll": "عرض جميع جهات الاتصال",
+    "addresses": "العناوين",
+    "addressLabel": "التسمية",
+    "addressLabelPlaceholder": "مثل: الحساب الرئيسي",
+    "addAddress": "إضافة عنوان"
   },
   "continue": "Continue",
   "contractMethods": "Contract methods",

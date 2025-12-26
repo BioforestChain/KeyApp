@@ -107,7 +107,22 @@ export function isValidAddressForChain(address: string, chainType: ChainType): b
   const info = detectAddressFormat(address)
   if (!info.isValid) return false
   if (info.chainType === null) return false
-  return info.chainType === chainType
+  
+  // 完全匹配
+  if (info.chainType === chainType) return true
+  
+  // BioForest 链之间互相兼容（共享相同密钥体系）
+  if (isBioforestChain(info.chainType) && isBioforestChain(chainType)) {
+    return true
+  }
+  
+  // Ethereum 和 BSC 地址格式相同
+  if ((info.chainType === 'ethereum' || info.chainType === 'binance') && 
+      (chainType === 'ethereum' || chainType === 'binance')) {
+    return true
+  }
+  
+  return false
 }
 
 /**

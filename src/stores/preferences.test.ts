@@ -90,6 +90,7 @@ describe('preferencesStore', () => {
       language: 'zh-CN',
       currency: 'USD',
       theme: 'light',
+      recentContactIds: [],
     }))
     preferencesActions.initialize()
     vi.clearAllMocks()
@@ -99,6 +100,7 @@ describe('preferencesStore', () => {
       language: 'zh-CN',
       currency: 'USD',
       theme: 'system',
+      recentContactIds: [],
     }))
   })
 
@@ -185,6 +187,7 @@ describe('preferencesStore', () => {
         language: 'ar',
         currency: 'USD',
         theme: 'system',
+        recentContactIds: [],
       }))
 
       preferencesActions.initialize()
@@ -198,6 +201,7 @@ describe('preferencesStore', () => {
         language: 'zh-CN',
         currency: 'USD',
         theme: 'system',
+        recentContactIds: [],
       }))
 
       preferencesActions.initialize()
@@ -213,6 +217,7 @@ describe('preferencesStore', () => {
         language: 'zh-CN',
         currency: 'USD',
         theme: 'system',
+        recentContactIds: [],
       }))
 
       preferencesActions.initialize()
@@ -220,6 +225,39 @@ describe('preferencesStore', () => {
 
       media.setMatches(false)
       expect(document.documentElement.classList.contains('dark')).toBe(false)
+    })
+  })
+
+  describe('trackRecentContact', () => {
+    it('adds contact ID to the front of the list', () => {
+      preferencesActions.trackRecentContact('contact-1')
+      expect(preferencesStore.state.recentContactIds).toEqual(['contact-1'])
+
+      preferencesActions.trackRecentContact('contact-2')
+      expect(preferencesStore.state.recentContactIds).toEqual(['contact-2', 'contact-1'])
+    })
+
+    it('moves existing contact ID to the front', () => {
+      preferencesActions.trackRecentContact('contact-1')
+      preferencesActions.trackRecentContact('contact-2')
+      preferencesActions.trackRecentContact('contact-1')
+      expect(preferencesStore.state.recentContactIds).toEqual(['contact-1', 'contact-2'])
+    })
+
+    it('limits the list to 10 items', () => {
+      for (let i = 1; i <= 15; i++) {
+        preferencesActions.trackRecentContact(`contact-${i}`)
+      }
+      expect(preferencesStore.state.recentContactIds).toHaveLength(10)
+      expect(preferencesStore.state.recentContactIds[0]).toBe('contact-15')
+      expect(preferencesStore.state.recentContactIds[9]).toBe('contact-6')
+    })
+
+    it('persists to localStorage', () => {
+      preferencesActions.trackRecentContact('contact-1')
+      expect(localStorageMock.setItem).toHaveBeenCalled()
+      const savedValue = localStorageMock.setItem.mock.calls[0]![1]
+      expect(JSON.parse(savedValue).recentContactIds).toEqual(['contact-1'])
     })
   })
 })

@@ -9,6 +9,7 @@ import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
 import { ChainIconProvider, TokenIconProvider } from './components/wallet'
 import { useChainConfigs } from './stores/chain-config'
+import { AppInitializer } from './providers'
 import './styles/globals.css'
 
 // Mock 模式下注册全局中间件
@@ -57,17 +58,19 @@ export function startFrontendMain(rootElement: HTMLElement): void {
       <QueryClientProvider client={queryClient}>
         <ServiceProvider>
           <MigrationProvider>
-            <I18nextProvider i18n={i18n}>
-              <IconProvidersWrapper>
-                <StackflowApp />
-              </IconProvidersWrapper>
-              {/* Mock DevTools - 仅在 mock 模式下显示 */}
-              {MockDevTools && (
-                <Suspense fallback={null}>
-                  <MockDevTools />
-                </Suspense>
-              )}
-            </I18nextProvider>
+            <AppInitializer>
+              <I18nextProvider i18n={i18n}>
+                <IconProvidersWrapper>
+                  <StackflowApp />
+                </IconProvidersWrapper>
+                {/* Mock DevTools - 仅在 mock 模式下显示 */}
+                {MockDevTools && (
+                  <Suspense fallback={null}>
+                    <MockDevTools />
+                  </Suspense>
+                )}
+              </I18nextProvider>
+            </AppInitializer>
           </MigrationProvider>
         </ServiceProvider>
       </QueryClientProvider>

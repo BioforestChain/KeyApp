@@ -40,10 +40,10 @@ export interface ParsedDeepLink {
   raw: string
 }
 
-/** 联系人地址 */
+/** 联系人地址（QR 协议格式） */
 export interface ContactAddressInfo {
-  chainType: 'ethereum' | 'bitcoin' | 'tron'
   address: string
+  /** 地址标签（用于显示） */
   label?: string | undefined
 }
 
@@ -206,9 +206,9 @@ function parseContactURI(content: string): ParsedContact | null {
           type: 'contact',
           name: data.name,
           addresses: data.addresses.map((a: { chainType?: string; chain?: string; address: string; label?: string }) => ({
-            chainType: a.chainType || a.chain,
             address: a.address,
-            label: a.label,
+            // 优先用 label，否则用旧格式的 chainType 作为 label
+            label: a.label || a.chainType || a.chain,
           })),
           memo: data.memo,
           avatar: data.avatar,
@@ -233,20 +233,20 @@ function parseContactURI(content: string): ParsedContact | null {
   const params = new URLSearchParams(query)
   const addresses: ContactAddressInfo[] = []
   
-  // 解析各链地址
+  // 解析各链地址（用链类型作为默认 label）
   const ethAddr = params.get('eth')
   if (ethAddr && ETH_ADDRESS_REGEX.test(ethAddr)) {
-    addresses.push({ chainType: 'ethereum', address: ethAddr, label: params.get('eth_label') ?? undefined })
+    addresses.push({ address: ethAddr, label: params.get('eth_label') || 'ETH' })
   }
   
   const btcAddr = params.get('btc')
   if (btcAddr && BTC_ADDRESS_REGEX.test(btcAddr)) {
-    addresses.push({ chainType: 'bitcoin', address: btcAddr, label: params.get('btc_label') ?? undefined })
+    addresses.push({ address: btcAddr, label: params.get('btc_label') || 'BTC' })
   }
   
   const trxAddr = params.get('trx')
   if (trxAddr && TRON_ADDRESS_REGEX.test(trxAddr)) {
-    addresses.push({ chainType: 'tron', address: trxAddr, label: params.get('trx_label') ?? undefined })
+    addresses.push({ address: trxAddr, label: params.get('trx_label') || 'TRX' })
   }
   
   if (addresses.length === 0) return null
@@ -262,23 +262,20 @@ function parseContactURI(content: string): ParsedContact | null {
 
 /**
  * 生成联系人二维码内容
+ * 注意：不包含 memo（备注是私人信息，不分享）
  */
 export function generateContactQRContent(contact: {
   name: string
   addresses: ContactAddressInfo[]
-  memo?: string | undefined
   avatar?: string | undefined
 }): string {
-  // 使用 JSON 格式，更灵活
   return JSON.stringify({
     type: 'contact',
     name: contact.name,
     addresses: contact.addresses.map(a => ({
-      chainType: a.chainType,
       address: a.address,
       label: a.label,
     })),
-    memo: contact.memo,
     avatar: contact.avatar,
   })
 }
