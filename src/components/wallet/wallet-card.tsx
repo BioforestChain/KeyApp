@@ -81,14 +81,11 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
     const rotateX = isActive ? pointerY * -12 : 0
     const rotateY = isActive ? pointerX * 12 : 0
 
-    // 聚光灯位置
-    const spotlightX = 50 + pointerX * 20
-    const spotlightY = 50 + pointerY * 20
-
-    // 折射层位移 - 跟随指针平滑移动，避免截断
-    // 使用较小的移动范围，让渐变始终覆盖整个卡片
-    const refractionX = pointerX * 15 // -15% ~ 15%
-    const refractionY = pointerY * 15
+    // 全息渐变位移 - 跟随指针反向移动产生视差
+    const holoTranslateX = pointerX * -40 // px
+    const holoTranslateY = pointerY * -40
+    // 动态透明度 - 倾斜越大越亮，默认几乎不可见
+    const holoOpacity = 0.1 + Math.max(Math.abs(pointerX), Math.abs(pointerY)) * 0.9
 
     return (
       <div
@@ -117,45 +114,49 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             }}
           />
 
-          {/* 2. 防伪底纹层 - 三角形小纹理 (默认灰色) */}
+          {/* 2. 防伪层1：三角底纹 + 全息渐变 */}
           <div
             className="absolute inset-0 overflow-hidden rounded-2xl"
             style={{
-              // 三角形纹理 - 使用 CSS 生成
-              background: 'hsl(0 0% 70%)',
-              WebkitMaskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpolygon points='10,2 18,18 2,18' fill='%23000'/%3E%3C/svg%3E")`,
-              WebkitMaskSize: '12px 12px',
+              // 三角形 mask
+              WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0 L20 20 L0 20 Z' fill='black'/%3E%3C/svg%3E")`,
+              WebkitMaskSize: '10px 10px',
               WebkitMaskRepeat: 'repeat',
-              maskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpolygon points='10,2 18,18 2,18' fill='%23000'/%3E%3C/svg%3E")`,
-              maskSize: '12px 12px',
+              maskImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0 L20 20 L0 20 Z' fill='black'/%3E%3C/svg%3E")`,
+              maskSize: '10px 10px',
               maskRepeat: 'repeat',
-              mixBlendMode: 'multiply',
-              opacity: 0.3,
+              // 核心：color-dodge 让深色背景下透明，有亮光时显色
+              mixBlendMode: 'color-dodge',
+              opacity: 0.6,
+              filter: 'brightness(1.2) contrast(1.5)',
             }}
-          />
-
-          {/* 3. 防伪水印层 - 链Logo平铺 (默认灰色) */}
-          {monoMaskUrl && (
+          >
+            {/* 全息线性渐变 - 200% 大小，通过 translate 移动 */}
             <div
-              className="absolute inset-0 overflow-hidden rounded-2xl"
+              className="absolute"
               style={{
-                // 灰色/白色背景，用 logo 作为 mask
-                background: 'hsl(0 0% 100% / 0.25)',
-                WebkitMaskImage: `url(${monoMaskUrl})`,
-                WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-                WebkitMaskRepeat: 'repeat',
-                WebkitMaskPosition: 'center',
-                maskImage: `url(${monoMaskUrl})`,
-                maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-                maskRepeat: 'repeat',
-                maskPosition: 'center',
-                mixBlendMode: 'hard-light',
-                opacity: 0.8,
+                inset: '-50%',
+                width: '200%',
+                height: '200%',
+                background: `linear-gradient(
+                  115deg,
+                  transparent 20%,
+                  rgba(255, 0, 0, 0.7) 30%,
+                  rgba(255, 255, 0, 0.7) 40%,
+                  rgba(0, 255, 255, 0.7) 50%,
+                  rgba(0, 0, 255, 0.7) 60%,
+                  rgba(255, 0, 255, 0.7) 70%,
+                  transparent 80%
+                )`,
+                transform: `translate(${holoTranslateX}px, ${holoTranslateY}px)`,
+                // 默认几乎不可见，倾斜越大越亮
+                opacity: holoOpacity,
+                transition: 'opacity 0.2s',
               }}
             />
-          )}
+          </div>
 
-          {/* 4. 彩虹折射层 - 只在激活时显示 */}
+          {/* 3. 防伪层2：Logo水印 + 全息渐变 */}
           {monoMaskUrl && (
             <div
               className="absolute inset-0 overflow-hidden rounded-2xl"
@@ -168,73 +169,56 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
                 maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
                 maskRepeat: 'repeat',
                 maskPosition: 'center',
-                mixBlendMode: 'hard-light',
-                // 默认不可见，激活时显示
-                opacity: isActive ? 1 : 0,
-                transition: 'opacity 0.2s ease-out',
+                // overlay 混合模式，和三角层错开
+                mixBlendMode: 'overlay',
+                opacity: 0.6,
               }}
             >
-              {/* 彩虹渐变 */}
+              {/* 全息渐变 - 色相偏移 90deg */}
               <div
-                className="absolute inset-0"
+                className="absolute"
                 style={{
-                  background: `
-                    radial-gradient(
-                      ellipse 120% 120% at calc(30% + ${refractionX}%) calc(70% + ${refractionY}%),
-                      hsl(320 100% 70%) 0%,
-                      hsl(280 100% 60%) 20%,
-                      hsl(200 100% 60%) 40%,
-                      hsl(150 100% 50%) 60%,
-                      transparent 80%
-                    ),
-                    radial-gradient(
-                      ellipse 100% 100% at calc(70% - ${refractionX}%) calc(30% - ${refractionY}%),
-                      hsl(60 100% 70%) 0%,
-                      hsl(30 100% 60%) 25%,
-                      hsl(0 100% 60%) 50%,
-                      transparent 75%
-                    )
-                  `,
-                  filter: 'saturate(2) brightness(1.2)',
+                  inset: '-50%',
+                  width: '200%',
+                  height: '200%',
+                  background: `linear-gradient(
+                    115deg,
+                    transparent 20%,
+                    rgba(0, 255, 0, 0.7) 30%,
+                    rgba(0, 255, 255, 0.7) 40%,
+                    rgba(255, 0, 255, 0.7) 50%,
+                    rgba(255, 255, 0, 0.7) 60%,
+                    rgba(0, 255, 255, 0.7) 70%,
+                    transparent 80%
+                  )`,
+                  transform: `translate(${holoTranslateX}px, ${holoTranslateY}px)`,
+                  opacity: holoOpacity,
+                  transition: 'opacity 0.2s',
                 }}
               />
             </div>
           )}
 
-          {/* 3. 边框装饰纹理 */}
+          {/* 4. 表面高光 (Glare) - 玻璃质感 */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background: `radial-gradient(
+                circle at calc(50% + ${pointerX * 200}%) calc(50% + ${pointerY * 200}%),
+                rgba(255,255,255,0.8) 0%,
+                rgba(255,255,255,0) 30%
+              )`,
+              mixBlendMode: 'soft-light',
+            }}
+          />
+
+          {/* 5. 边框装饰 */}
           <div
             className="pointer-events-none absolute inset-0 rounded-2xl"
             style={{
               border: '1px solid rgba(255,255,255,0.2)',
-              background: `linear-gradient(135deg, 
-                rgba(255,255,255,0.15) 0%, 
-                transparent 50%, 
-                rgba(0,0,0,0.15) 100%)`,
             }}
           />
-
-          {/* 4. 聚光灯层 */}
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl"
-            style={{
-              mixBlendMode: 'overlay',
-              opacity: isActive ? 1 : 0.4,
-              transition: 'opacity 0.2s',
-            }}
-          >
-            <div
-              className="absolute aspect-square w-[500%]"
-              style={{
-                left: '50%',
-                top: '50%',
-                background: `radial-gradient(
-                  hsl(0 0% 100% / 0.4) 0 2%,
-                  hsl(0 0% 10% / 0.2) 20%
-                )`,
-                translate: `calc(-50% + ${spotlightX - 50}%) calc(-50% + ${spotlightY - 50}%)`,
-              }}
-            />
-          </div>
 
           {/* 卡片内容 */}
           <div className="relative z-10 flex h-full flex-col justify-between p-4">
