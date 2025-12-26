@@ -6,6 +6,30 @@
 /* Stackflow Navigation */
 @import '@stackflow/plugin-basic-ui/index.css';
 
+/* Override stackflow plugin colors for dark mode */
+/* The plugin uses vanilla-extract classes with hardcoded #fff backgrounds */
+/* Target stackflow screen containers (AppScreen) */
+.dark [data-stackflow-component-name='AppScreen'] {
+  --stackflow-plugin-basic-ui-background-color: var(--background);
+  --stackflow-plugin-basic-ui-app-bar-background-color: var(--background);
+  --stackflow-plugin-basic-ui-app-bar-text-color: var(--foreground);
+  --stackflow-plugin-basic-ui-app-bar-icon-color: var(--foreground);
+  --stackflow-plugin-basic-ui-app-bar-border-color: var(--border);
+  background-color: var(--background) !important;
+}
+
+/* BottomSheet - light white backdrop in dark mode */
+.dark [data-stackflow-component-name='BottomSheet'] {
+  --stackflow-plugin-basic-ui-dim-background-color: rgba(255, 255, 255, 0.15);
+  --stackflow-plugin-basic-ui-background-color: var(--background);
+}
+
+/* Modal */
+.dark [data-stackflow-component-name='Modal'] {
+  --stackflow-plugin-basic-ui-dim-background-color: rgba(255, 255, 255, 0.15);
+  --stackflow-plugin-basic-ui-background-color: var(--background);
+}
+
 /* 本地字体 - DM 系列 (Fontsource) */
 @import '@fontsource-variable/dm-sans';
 @import '@fontsource/dm-mono/400.css';

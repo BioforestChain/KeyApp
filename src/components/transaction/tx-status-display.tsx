@@ -217,7 +217,7 @@ export function TxStatusDisplay({
               onClick={onDone}
               data-testid="tx-status-done-button"
               className={cn(
-                "w-full rounded-full py-3 font-medium text-white transition-colors",
+                "w-full rounded-full py-3 font-medium text-primary-foreground transition-colors",
                 "bg-primary hover:bg-primary/90"
               )}
             >
@@ -256,7 +256,7 @@ export function TxStatusDisplay({
           onClick={onRetry}
           data-testid="tx-status-retry-button"
           className={cn(
-            "w-full max-w-xs rounded-full py-3 font-medium text-white transition-colors",
+            "w-full max-w-xs rounded-full py-3 font-medium text-primary-foreground transition-colors",
             "bg-primary hover:bg-primary/90"
           )}
         >

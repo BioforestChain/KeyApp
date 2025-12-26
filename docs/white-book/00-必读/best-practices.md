@@ -12,6 +12,9 @@
 - ❌ 安装新 UI 库 → ✅ shadcn/ui（已集成）
 - ❌ 新建 CSS → ✅ Tailwind CSS
 - ❌ text-secondary → ✅ text-muted-foreground 或 bg-secondary text-secondary-foreground（详见白皮书 02-设计篇/02-视觉设计/theme-colors）
+- ❌ bg-primary text-white → ✅ bg-primary text-primary-foreground（暗色模式下 text-white 对比度不足）
+- ❌ bg-muted 无文字色 → ✅ bg-muted text-muted-foreground（详见白皮书 02-设计篇/02-视觉设计/dark-mode）
+- ❌ bg-gray-100 无 dark: 变体 → ✅ bg-gray-100 dark:bg-gray-800 或使用 bg-muted
 - ❌ getByText('硬编码中文') → ✅ getByText(t('i18n.key')) 或 getByTestId
 - ❌ password/Password（宽泛含义） → ✅ walletLock（钱包锁）/ twoStepSecret（安全密码）/ payPassword（支付密码）等具体命名
 - 圆形元素必须使用 aspect-square 标记，与 w-*/h-*/size-* 不冲突，是规范要求

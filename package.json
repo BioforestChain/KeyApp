@@ -48,8 +48,10 @@
     "i18n:check": "turbo run i18n:run --",
     "i18n:run": "bun scripts/i18n-check.ts",
     "i18n:validate": "bun scripts/i18n-validate.ts",
+    "theme:check": "turbo run theme:run --",
+    "theme:run": "bun scripts/theme-check.ts",
     "agent": "bun scripts/agent/cli.ts",
-    "check": "turbo run typecheck:run test:run i18n:run"
+    "check": "turbo run typecheck:run test:run i18n:run theme:run"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

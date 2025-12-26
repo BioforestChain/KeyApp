@@ -38,7 +38,7 @@ export function WalletListPage() {
   }, [goBack]);
 
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="bg-background flex min-h-screen flex-col">
       <PageHeader
         title={t('list.title')}
         onBack={handleBack}
@@ -60,7 +60,7 @@ export function WalletListPage() {
             <button
               onClick={handleAddWallet}
               className={cn(
-                'bg-primary rounded-full px-6 py-2.5 text-sm font-medium text-white',
+                'bg-primary rounded-full px-6 py-2.5 text-sm font-medium text-primary-foreground',
                 'hover:bg-primary/90 active:bg-primary/80',
               )}
             >
@@ -110,7 +110,7 @@ function WalletListItem({ wallet, isActive, onSelect, onDetail, t }: WalletListI
           onClick={onSelect}
           className={cn(
             'flex size-12 items-center justify-center rounded-full text-lg font-semibold',
-            isActive ? 'bg-primary text-white' : 'bg-muted',
+            isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
           )}
         >
           {wallet.name.slice(0, 1)}

@@ -98,7 +98,7 @@ export function WalletChainsPage() {
   // 无钱包
   if (!currentWallet) {
     return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
+      <div className="bg-background flex min-h-screen flex-col">
         <PageHeader title={t('wallet:chains.title')} onBack={goBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <Alert variant="warning">{t('wallet:chains.noWallet')}</Alert>
@@ -110,7 +110,7 @@ export function WalletChainsPage() {
   // 保存中
   if (step === 'saving') {
     return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
+      <div className="bg-background flex min-h-screen flex-col">
         <PageHeader title={t('wallet:chains.title')} />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
           <LoadingSpinner size="lg" />
@@ -123,7 +123,7 @@ export function WalletChainsPage() {
   // 成功
   if (step === 'success') {
     return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
+      <div className="bg-background flex min-h-screen flex-col">
         <PageHeader title={t('wallet:chains.title')} />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
           <div className="flex size-16 items-center justify-center rounded-full bg-green-500/10">
@@ -138,7 +138,7 @@ export function WalletChainsPage() {
   // 验证钱包锁
   if (step === 'verify') {
     return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
+      <div className="bg-background flex min-h-screen flex-col">
         <PageHeader
           title={t('wallet:chains.verifyTitle')}
           onBack={() => {
@@ -169,7 +169,7 @@ export function WalletChainsPage() {
 
   // 选择链 - 复用创建钱包的样式
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="bg-background flex min-h-screen flex-col">
       <PageHeader title={t('wallet:chains.title')} onBack={goBack} />
       <div className="flex-1 space-y-6 p-4">
         <div className="text-center">

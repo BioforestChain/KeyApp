@@ -19,6 +19,12 @@
       "outputs": [],
       "cache": true
     },
+    "theme:run": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.jsx", "scripts/theme-check.ts"],
+      "outputs": [],
+      "cache": true
+    },
     "e2e:run": {
       "dependsOn": [],
       "inputs": [

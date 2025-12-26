@@ -162,7 +162,7 @@ export function AddressBookPage() {
               <button
                 onClick={handleOpenAdd}
                 className={cn(
-                  'bg-primary rounded-full px-6 py-2.5 text-sm font-medium text-white',
+                  'bg-primary rounded-full px-6 py-2.5 text-sm font-medium text-primary-foreground',
                   'hover:bg-primary/90 active:bg-primary/80',
                 )}
               >
