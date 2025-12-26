@@ -1,15 +1,15 @@
 import { useCallback, useRef, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCards, Pagination } from 'swiper/modules'
+import { EffectCards } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import { WalletCard } from './wallet-card'
 import { useWalletTheme } from '@/hooks/useWalletTheme'
 import { cn } from '@/lib/utils'
 import type { Wallet, ChainType } from '@/stores'
+import { IconWallet } from '@tabler/icons-react'
 
 import 'swiper/css'
 import 'swiper/css/effect-cards'
-import 'swiper/css/pagination'
 
 interface WalletCardCarouselProps {
   wallets: Wallet[]
@@ -75,9 +75,20 @@ export function WalletCardCarousel({
   }
 
   return (
-    <div className={cn('wallet-carousel', className)}>
+    <div className={cn('wallet-carousel relative', className)}>
+      {/* 左上角：多钱包管理入口 */}
+      {wallets.length > 1 && (
+        <button
+          onClick={onOpenWalletList}
+          className="absolute left-4 top-0 z-10 flex items-center gap-1.5 rounded-full bg-muted/80 px-3 py-1.5 text-xs font-medium text-foreground/80 backdrop-blur-sm transition-colors hover:bg-muted"
+        >
+          <IconWallet className="size-3.5" />
+          <span>{wallets.length} 个钱包</span>
+        </button>
+      )}
+
       <Swiper
-        modules={[EffectCards, Pagination]}
+        modules={[EffectCards]}
         effect="cards"
         grabCursor
         cardsEffect={{
@@ -85,10 +96,6 @@ export function WalletCardCarousel({
           perSlideRotate: 2,
           rotate: true,
           slideShadows: false,
-        }}
-        pagination={{
-          clickable: true,
-          dynamicBullets: true,
         }}
         onSwiper={(swiper) => {
           swiperRef.current = swiper
@@ -116,18 +123,6 @@ export function WalletCardCarousel({
         ))}
       </Swiper>
 
-      {/* 钱包列表展开按钮 */}
-      {wallets.length > 1 && (
-        <button
-          onClick={onOpenWalletList}
-          className="mx-auto mt-1 flex items-center gap-1 rounded-full px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/50"
-        >
-          <span>{wallets.length} 个钱包</span>
-          <span className="opacity-60">·</span>
-          <span className="text-[10px] opacity-70">点击管理</span>
-        </button>
-      )}
-
       <style>{`
         .wallet-carousel {
           width: 100%;
@@ -135,8 +130,8 @@ export function WalletCardCarousel({
         }
 
         .wallet-swiper {
-          width: min(340px, 90vw);
-          height: 200px;
+          width: min(92vw, 380px);
+          height: 220px;
           margin: 0 auto;
           overflow: visible;
         }
@@ -146,24 +141,6 @@ export function WalletCardCarousel({
           align-items: center;
           justify-content: center;
           border-radius: 1rem;
-        }
-
-        .wallet-swiper .swiper-pagination {
-          bottom: -20px;
-        }
-
-        .wallet-swiper .swiper-pagination-bullet {
-          width: 6px;
-          height: 6px;
-          background: hsl(var(--primary-hue, 280) 60% 50%);
-          opacity: 0.3;
-          transition: all 0.2s;
-        }
-
-        .wallet-swiper .swiper-pagination-bullet-active {
-          width: 20px;
-          border-radius: 3px;
-          opacity: 1;
         }
       `}</style>
     </div>

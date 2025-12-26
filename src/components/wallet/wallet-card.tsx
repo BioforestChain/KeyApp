@@ -99,27 +99,40 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             }}
           />
 
-          {/* 2. 噪点纹理 - 增加质感 */}
-          <div
-            className="absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            }}
-          />
-
-          {/* 3. 防伪水印图案 */}
-          <div
-            className="absolute inset-0 opacity-[0.06]"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(255,255,255,0.1) 10px,
-                rgba(255,255,255,0.1) 20px
-              )`,
-            }}
-          />
+          {/* 2. 防伪水印图案 - 链Logo + 斜纹 */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* 斜纹底纹 */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  -45deg,
+                  transparent,
+                  transparent 8px,
+                  rgba(255,255,255,0.08) 8px,
+                  rgba(255,255,255,0.08) 9px
+                )`,
+              }}
+            />
+            {/* 细密网格 */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+                `,
+                backgroundSize: '20px 20px',
+              }}
+            />
+            {/* 大Logo水印 */}
+            <div
+              className="absolute -right-8 -bottom-8 size-40 opacity-[0.08]"
+              style={{
+                background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 7h-1V6a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v1H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zM8 6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1H8V6zm12 12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8z'/%3E%3Cpath d='M12 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'/%3E%3C/svg%3E") center/contain no-repeat`,
+              }}
+            />
+          </div>
 
           {/* 4. 默认光泽层 - 始终显示 */}
           <div
