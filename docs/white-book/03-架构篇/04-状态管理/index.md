@@ -76,6 +76,34 @@ Store<T> {
 | toastQueue | Toast[] | 否 | Toast 队列 |
 | isLoading | boolean | 否 | 全局加载状态 |
 
+### 地址簿状态 (AddressBookStore)
+
+| 字段 | 类型 | 持久化 | 说明 |
+|-----|------|--------|------|
+| contacts | Contact[] | 是 | 联系人列表 |
+| isInitialized | boolean | 否 | 是否已初始化 |
+
+**Contact 结构：**
+
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| id | string | 唯一 ID |
+| name | string | 联系人名称 |
+| avatar | string? | 头像（avatar: 协议） |
+| addresses | ContactAddress[] | 地址列表（最多 3 个） |
+| memo | string? | 私有备注 |
+| createdAt | number | 创建时间 |
+| updatedAt | number | 更新时间 |
+
+**ContactAddress 结构：**
+
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| id | string | 唯一 ID |
+| address | string | 区块链地址 |
+| label | string? | 自定义标签（最多 10 字符） |
+| isDefault | boolean? | 是否默认地址 |
+
 ---
 
 ## 服务端状态规范

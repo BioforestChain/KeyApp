@@ -17,6 +17,7 @@
 | [AddressDisplay](./AddressDisplay) | 地址显示与复制 | P0 |
 | [AmountDisplay](./AmountDisplay) | 金额格式化显示（支持动画） | P0 |
 | [AnimatedNumber](./AnimatedNumber) | 数字动画显示 | P0 |
+| [Contact](./Contact) | 联系人头像、名片、选择器 | P0 |
 | [TokenIcon](./TokenIcon) | 代币/链图标 | P0 |
 | [QRCode](./QRCode) | 二维码生成与显示 | P0 |
 | [Scanner](./Scanner) | 二维码扫描与解析 | P0 |
