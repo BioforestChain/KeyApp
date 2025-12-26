@@ -39,6 +39,24 @@ function applyThemeColor(hue: number) {
 }
 
 /**
+ * 根据钱包ID获取主题色（统一逻辑）
+ */
+function getThemeHueForWallet(wallets: { id: string; themeHue?: number }[], walletId: string | null): number {
+  if (!walletId) return WALLET_THEME_PRESETS.purple
+  
+  const walletIndex = wallets.findIndex((w) => w.id === walletId)
+  if (walletIndex < 0) return WALLET_THEME_PRESETS.purple
+  
+  const wallet = wallets[walletIndex]
+  const storedHue = wallet?.themeHue
+  if (storedHue !== undefined) return storedHue
+  
+  // 没有存储的主题色时，根据索引从预设中选择
+  const presetHues = Object.values(WALLET_THEME_PRESETS)
+  return presetHues[walletIndex % presetHues.length]
+}
+
+/**
  * 钱包主题 Hook
  * 管理当前钱包的主题色，自动应用到全局CSS变量
  */
@@ -46,9 +64,8 @@ export function useWalletTheme() {
   const wallets = useStore(walletStore, (s) => s.wallets)
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
 
-  // 获取当前钱包的主题色
-  const currentWallet = wallets.find((w) => w.id === currentWalletId)
-  const themeHue = (currentWallet as { themeHue?: number } | undefined)?.themeHue ?? WALLET_THEME_PRESETS.purple
+  // 获取当前钱包的主题色（使用统一逻辑）
+  const themeHue = getThemeHueForWallet(wallets as { id: string; themeHue?: number }[], currentWalletId)
 
   // 应用主题色
   useEffect(() => {
@@ -76,14 +93,7 @@ export function useWalletTheme() {
     setThemeColor,
     setThemePreset,
     /** 获取指定钱包的主题色（如果没有设置，根据钱包索引生成稳定的颜色） */
-    getWalletTheme: (walletId: string) => {
-      const walletIndex = wallets.findIndex((w) => w.id === walletId)
-      const wallet = wallets[walletIndex]
-      const storedHue = (wallet as { themeHue?: number } | undefined)?.themeHue
-      if (storedHue !== undefined) return storedHue
-      // 没有存储的主题色时，根据索引从预设中选择
-      const presetHues = Object.values(WALLET_THEME_PRESETS)
-      return presetHues[walletIndex % presetHues.length]
-    },
+    getWalletTheme: (walletId: string) => 
+      getThemeHueForWallet(wallets as { id: string; themeHue?: number }[], walletId),
   }
 }
