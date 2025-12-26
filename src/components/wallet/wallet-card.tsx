@@ -28,14 +28,7 @@ export interface WalletCardProps {
 // 静态样式常量 - 避免每次渲染创建新对象
 const TRIANGLE_MASK_SVG = `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`;
 
-const REFRACTION_GRADIENT = `radial-gradient(
-  circle at 50% 50%,
-  rgba(255, 255, 255, 0) 10%,
-  rgba(255, 200, 200, 0.5) 30%,
-  rgba(0, 255, 255, 0.6) 50%,
-  rgba(255, 0, 255, 0.6) 70%,
-  rgba(255, 255, 255, 0) 90%
-)`;
+
 
 const GOLD_GRADIENT = `linear-gradient(
   135deg,
@@ -86,20 +79,47 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     setTimeout(() => setCopied(false), 2000);
   }, [onCopyAddress]);
 
-  // 3D 旋转
-  const rotateX = isActive ? pointerY * -12 : 0;
-  const rotateY = isActive ? pointerX * 12 : 0;
-
-  // 移动幅度 (hypot) - 离中心越远，防伪效果越明显
-  const hypot = Math.min(1, Math.sqrt(pointerX * pointerX + pointerY * pointerY));
-
-  // 全息渐变位移 - 跟随指针反向移动产生视差 (百分比)
-  const holoTranslateX = pointerX * -25; // %
-  const holoTranslateY = pointerY * -25;
-
-  // 各层透明度 - 参考 DEMO 调整
-  const patternOpacity = isActive ? 0.1 + hypot * 0.2 : 0.05; // 三角层：降低强度
-  const watermarkOpacity = isActive ? 0.2 + hypot * 0.8 : 0; // Logo层：提高强度
+  // ============ 基于角度的光影算法 ============
+  
+  // 1. 卡片倾斜角度 (度)
+  const maxTilt = 15; // 最大倾斜角度
+  const tiltX = isActive ? pointerY * -maxTilt : 0; // 绕X轴旋转 (前后倾斜)
+  const tiltY = isActive ? pointerX * maxTilt : 0;  // 绕Y轴旋转 (左右倾斜)
+  
+  // 2. 转换为弧度进行物理计算
+  const tiltXRad = (tiltX * Math.PI) / 180;
+  const tiltYRad = (tiltY * Math.PI) / 180;
+  
+  // 3. 总倾斜角度 (用于强度计算)
+  const totalTiltRad = Math.sqrt(tiltXRad * tiltXRad + tiltYRad * tiltYRad);
+  const totalTiltDeg = (totalTiltRad * 180) / Math.PI;
+  
+  // 4. 倾斜方向角 (用于光带旋转，0° = 右，90° = 上)
+  const tiltDirection = Math.atan2(-tiltX, tiltY) * (180 / Math.PI);
+  
+  // 5. 计算光线反射点位置 (假设光源从右上方照射) (基于入射角=反射角)
+  // 当卡片倾斜时，高光点会向倾斜的反方向移动
+  const reflectX = -Math.sin(tiltYRad) * 50; // 高光X偏移 (%)
+  const reflectY = -Math.sin(tiltXRad) * 50; // 高光Y偏移 (%)
+  
+  // 7. 菲涅尔效应：倾斜角度越大，边缘反射越强
+  // F = F0 + (1-F0) * (1-cos(θ))^5 简化版
+  const fresnelIntensity = Math.min(1, Math.pow(Math.sin(totalTiltRad), 2) * 3);
+  
+  // 8. 全息色带位移 - 基于倾斜角度和方向
+  // 模拟光栅衍射：不同角度显示不同颜色
+  const holoShift = totalTiltDeg * 2; // 色带位移量
+  const holoTranslateX = Math.sin(tiltYRad) * -30; // 视差位移 X
+  const holoTranslateY = Math.sin(tiltXRad) * -30; // 视差位移 Y
+  
+  // 9. 各层透明度 - 基于物理角度
+  const patternOpacity = isActive ? 0.08 + fresnelIntensity * 0.15 : 0.03;
+  const watermarkOpacity = isActive ? 0.15 + fresnelIntensity * 0.7 : 0;
+  const glareOpacity = fresnelIntensity * 0.8;
+  
+  // 兼容旧变量名
+  const rotateX = tiltX;
+  const rotateY = tiltY;
 
   // 缓存背景渐变样式（只依赖 themeHue）
   const bgGradient = useMemo(
@@ -144,7 +164,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
         {/* 1. 主背景渐变 */}
         <div className="absolute inset-0" style={{ background: bgGradient }} />
 
-        {/* 2. 防伪层1：三角纹理 (Pattern) */}
+        {/* 2. 防伪层1：三角纹理 (Pattern) - 全息衍射效果 */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl"
           style={{
@@ -164,8 +184,19 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
               inset: '-50%',
               width: '200%',
               height: '200%',
-              background: REFRACTION_GRADIENT,
-              filter: 'blur(20px)',
+              // 彩虹色带随倾斜方向旋转，模拟光栅衍射
+              background: `linear-gradient(
+                ${tiltDirection + 90}deg,
+                rgba(255, 0, 0, 0.6) ${10 + holoShift}%,
+                rgba(255, 165, 0, 0.6) ${20 + holoShift}%,
+                rgba(255, 255, 0, 0.6) ${30 + holoShift}%,
+                rgba(0, 255, 0, 0.6) ${40 + holoShift}%,
+                rgba(0, 255, 255, 0.6) ${50 + holoShift}%,
+                rgba(0, 0, 255, 0.6) ${60 + holoShift}%,
+                rgba(128, 0, 255, 0.6) ${70 + holoShift}%,
+                transparent ${85 + holoShift}%
+              )`,
+              filter: 'blur(15px)',
               transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
               willChange: 'transform',
             }}
@@ -196,18 +227,19 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           </div>
         )}
 
-        {/* 4. 表面高光 (Glare) */}
+        {/* 4. 表面高光 (Glare) - 基于物理反射 */}
         <div
           className="pointer-events-none absolute inset-0 rounded-2xl"
           style={{
             background: `radial-gradient(
-                circle at calc(50% + ${pointerX * 50}%) calc(50% + ${pointerY * 50}%),
-                rgba(255,255,255,0.3) 0%,
-                transparent 50%
+                ellipse 80% 60% at calc(50% + ${reflectX}%) calc(50% + ${reflectY}%),
+                rgba(255,255,255,0.4) 0%,
+                rgba(255,255,255,0.1) 30%,
+                transparent 60%
               )`,
             mixBlendMode: 'overlay',
-            opacity: hypot,
-            transition: 'opacity 0.3s',
+            opacity: glareOpacity,
+            transition: 'opacity 0.2s',
           }}
         />
 
