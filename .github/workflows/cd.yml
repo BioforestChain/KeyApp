@@ -175,12 +175,34 @@ jobs:
         with:
           path: gh-pages
 
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+      # 直接在 build job 中创建 release，避免跨 job 传递 artifact（self-hosted 下载很慢）
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: release-${{ steps.channel.outputs.channel }}-${{ steps.version.outputs.version }}
-          path: release/
-          retention-days: 30
+          tag_name: ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}
+          name: ${{ steps.channel.outputs.channel == 'stable' && format('BFM Pay v{0}', steps.version.outputs.version) || 'BFM Pay Beta' }}
+          body: |
+            ## BFM Pay ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'Beta' }}
+
+            ### 下载
+            - **Web 版本**: `bfmpay-web${{ steps.channel.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+            - **DWEB 版本**: `bfmpay-dweb${{ steps.channel.outputs.channel == 'beta' && '-beta' || '' }}.zip`
+
+            ### 在线访问
+            - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
+            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-beta/
+            - 文档首页: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+
+            ### DWEB 安装
+            在 DWEB 浏览器中打开以下链接安装：
+            ```
+            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}/bfmpay-dweb${{ steps.channel.outputs.channel == 'beta' && '-beta' || '' }}.zip
+            ```
+          files: |
+            release/*
+          draft: false
+          prerelease: ${{ steps.channel.outputs.channel == 'beta' }}
+          generate_release_notes: ${{ steps.channel.outputs.channel == 'stable' }}
 
   # ==================== GitHub-hosted 标准构建 ====================
   build-standard:
@@ -427,47 +449,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # ==================== 创建 Release ====================
-  create-release-fast:
-    if: vars.USE_SELF_HOSTED == 'true'
-    needs: build-fast
-    runs-on: self-hosted
-
-    steps:
-      - name: Download release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: release-${{ needs.build-fast.outputs.channel }}-${{ needs.build-fast.outputs.version }}
-          path: release/
-
-      - name: Create or Update Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'beta' }}
-          name: ${{ needs.build-fast.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build-fast.outputs.version) || 'BFM Pay Beta' }}
-          body: |
-            ## BFM Pay ${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'Beta' }}
-
-            ### 下载
-            - **Web 版本**: `bfmpay-web${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip`
-            - **DWEB 版本**: `bfmpay-dweb${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip`
-
-            ### 在线访问
-            - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
-            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-beta/
-            - 文档首页: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
-
-            ### DWEB 安装
-            在 DWEB 浏览器中打开以下链接安装：
-            ```
-            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-fast.outputs.channel == 'stable' && format('v{0}', needs.build-fast.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build-fast.outputs.channel == 'beta' && '-beta' || '' }}.zip
-            ```
-          files: |
-            release/*
-          draft: false
-          prerelease: ${{ needs.build-fast.outputs.channel == 'beta' }}
-          generate_release_notes: ${{ needs.build-fast.outputs.channel == 'stable' }}
-
+  # ==================== 创建 Release (GitHub-hosted) ====================
   create-release-standard:
     if: vars.USE_SELF_HOSTED != 'true'
     needs: build-standard
