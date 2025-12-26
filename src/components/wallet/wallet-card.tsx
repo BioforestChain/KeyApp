@@ -118,12 +118,12 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl"
           style={{
-            // 使用 DEMO 的 figma-texture 纹理
-            WebkitMaskImage: `url("https://assets.codepen.io/605876/figma-texture.png")`,
-            WebkitMaskSize: '60px 60px',
+            // 直角三角形纹理（直角边在横轴和纵轴，层叠成正方形效果）
+            WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`,
+            WebkitMaskSize: '8px 8px',
             WebkitMaskRepeat: 'repeat',
-            maskImage: `url("https://assets.codepen.io/605876/figma-texture.png")`,
-            maskSize: '60px 60px',
+            maskImage: `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`,
+            maskSize: '8px 8px',
             maskRepeat: 'repeat',
             mixBlendMode: 'color-dodge',
             opacity: patternOpacity,
