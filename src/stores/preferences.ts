@@ -25,6 +25,8 @@ export interface PreferencesState {
   language: LanguageCode
   currency: CurrencyCode
   theme: ThemePreference
+  /** 最近使用的联系人 ID 列表（最多 10 个，最新在前） */
+  recentContactIds: string[]
 }
 
 // Default state
@@ -32,6 +34,7 @@ const defaultState: PreferencesState = {
   language: defaultLanguage,
   currency: 'USD',
   theme: 'system',
+  recentContactIds: [],
 }
 
 let systemThemeMediaQuery: MediaQueryList | null = null
@@ -154,6 +157,22 @@ export const preferencesActions = {
     syncTheme(theme)
   },
 
+  /**
+   * 记录最近使用的联系人
+   * 将联系人 ID 移到列表最前面，保持最多 10 个
+   */
+  trackRecentContact(contactId: string): void {
+    preferencesStore.setState((state) => {
+      // 移除已存在的相同 ID
+      const filtered = state.recentContactIds.filter((id) => id !== contactId)
+      // 添加到最前面，最多保留 10 个
+      const recentContactIds = [contactId, ...filtered].slice(0, 10)
+      const newState = { ...state, recentContactIds }
+      saveToStorage(newState)
+      return newState
+    })
+  },
+
   /** 初始化 - 同步 i18n 语言和文字方向 */
   initialize(): void {
     const state = preferencesStore.state
@@ -181,6 +200,10 @@ export function useCurrency(): CurrencyCode {
 
 export function useTheme(): 'light' | 'dark' | 'system' {
   return useStore(preferencesStore, (s) => s.theme)
+}
+
+export function useRecentContactIds(): string[] {
+  return useStore(preferencesStore, (s) => s.recentContactIds)
 }
 
 // Re-export language config

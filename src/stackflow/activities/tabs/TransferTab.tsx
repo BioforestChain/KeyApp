@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { useTransactionHistoryQuery } from "@/queries";
 import { addressBookStore, addressBookSelectors, useCurrentWallet, useSelectedChain, type Contact } from "@/stores";
+import { useRecentContactIds } from "@/stores/preferences";
 import { IconSend } from "@tabler/icons-react";
 
 export function TransferTab() {
@@ -17,19 +18,28 @@ export function TransferTab() {
   const selectedChain = useSelectedChain();
   const addressBookState = useStore(addressBookStore);
   const contacts = addressBookState.contacts;
+  const recentContactIds = useRecentContactIds();
   // 使用 TanStack Query 管理交易历史
   // - 30s staleTime: Tab 切换不会重复请求
   // - 共享缓存: 多个组件使用同一数据
   const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
+  // 根据 recentContactIds 获取最近使用的联系人（单一数据源：只存 ID，显示时查找）
   const recentContacts = useMemo(() => {
+    // 根据 ID 查找联系人，过滤掉已删除的
+    const foundContacts = recentContactIds
+      .map((id) => contacts.find((c) => c.id === id))
+      .filter((c): c is Contact => c !== undefined);
+
+    // 如果指定了链类型，进一步过滤
     const filtered = selectedChain
-      ? contacts.filter((contact) => 
+      ? foundContacts.filter((contact) =>
           contact.addresses.some((addr) => addr.chainType === selectedChain)
         )
-      : contacts;
+      : foundContacts;
+
     return filtered.slice(0, 4);
-  }, [contacts, selectedChain]);
+  }, [recentContactIds, contacts, selectedChain]);
 
   // Helper to get primary address for a contact
   const getPrimaryAddress = (contact: Contact): string => {
