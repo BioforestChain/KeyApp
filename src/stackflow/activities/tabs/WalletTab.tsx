@@ -87,10 +87,15 @@ export function WalletTab() {
     selectedChain
   );
 
-  // 交易历史
-  const { transactions, isLoading: txLoading } = useTransactionHistoryQuery(
+  // 交易历史 - 按当前选中的链过滤
+  const { transactions, isLoading: txLoading, setFilter } = useTransactionHistoryQuery(
     currentWallet?.id
   );
+
+  // 当链切换时更新交易过滤器
+  useEffect(() => {
+    setFilter((prev) => ({ ...prev, chain: selectedChain }));
+  }, [selectedChain, setFilter]);
 
   // 复制地址
   const handleCopyAddress = useCallback(
