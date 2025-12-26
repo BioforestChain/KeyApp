@@ -3,13 +3,19 @@
   "initializing": "جارٍ تهيئة الكاميرا...",
   "requestingPermission": "جارٍ طلب إذن الكاميرا...",
   "scanPrompt": "قم بمحاذاة رمز QR داخل الإطار",
+  "scanPromptChain": "يرجى مسح رمز QR لعنوان {{chain}}",
   "permissionDenied": "تم رفض إذن الكاميرا",
   "error": "حدث خطأ في الكاميرا",
+  "noCameraFound": "لم يتم العثور على كاميرا",
   "retry": "إعادة المحاولة",
   "gallery": "المعرض",
   "flashOn": "الفلاش مفعل",
   "flashOff": "الفلاش معطل",
   "scanSuccess": "تم مسح رمز QR",
   "noQrFound": "لم يتم العثور على رمز QR",
-  "invalidQr": "رمز QR غير صالح"
+  "invalidQr": "رمز QR غير صالح",
+  "invalidAddress": "عنوان غير صالح",
+  "invalidEthereumAddress": "ليس عنوان إيثيريوم صالح",
+  "invalidBitcoinAddress": "ليس عنوان بيتكوين صالح",
+  "invalidTronAddress": "ليس عنوان ترون صالح"
 }
