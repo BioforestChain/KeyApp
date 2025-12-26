@@ -3,13 +3,9 @@ import { cn } from '@/lib/utils';
 import { useCardInteraction } from '@/hooks/useCardInteraction';
 import { useMonochromeMask } from '@/hooks/useMonochromeMask';
 import { ChainIcon } from './chain-icon';
+import { AddressDisplay } from './address-display';
 import type { Wallet, ChainType } from '@/stores';
-import {
-  IconCopy as Copy,
-  IconCheck as Check,
-  IconSettings as Settings,
-  IconChevronDown as ChevronDown,
-} from '@tabler/icons-react';
+import { IconCopy as Copy, IconCheck as Check, IconSettings as Settings, IconChevronDown as ChevronDown } from '@tabler/icons-react';
 
 export interface WalletCardProps {
   wallet: Wallet;
@@ -27,11 +23,6 @@ export interface WalletCardProps {
   onOpenSettings?: (() => void) | undefined;
   className?: string | undefined;
   themeHue?: number | undefined;
-}
-
-function truncateAddress(address: string, startChars = 6, endChars = 4): string {
-  if (address.length <= startChars + endChars + 3) return address;
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
 }
 
 // 静态样式常量 - 避免每次渲染创建新对象
@@ -116,7 +107,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
       hsl(${themeHue} 70% 40%) 0%,
       hsl(${themeHue + 20} 80% 30%) 50%,
       hsl(${themeHue + 40} 70% 20%) 100%)`,
-    [themeHue]
+    [themeHue],
   );
 
   // 缓存 Logo mask 样式（只依赖 monoMaskUrl 和 watermarkLogoSize）
@@ -134,7 +125,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             maskPosition: 'center',
           }
         : null,
-    [monoMaskUrl, watermarkLogoSize]
+    [monoMaskUrl, watermarkLogoSize],
   );
 
   return (
@@ -255,13 +246,15 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           </div>
 
           {/* 底部：地址 */}
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-sm text-white/80 drop-shadow">
-              {address ? truncateAddress(address) : '---'}
-            </span>
+          <div className="flex items-center gap-2">
+            <AddressDisplay
+              address={address ?? ''}
+              copyable={false}
+              className="min-w-0 flex-1 text-white/80 drop-shadow"
+            />
             <button
               onClick={handleCopy}
-              className="rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-all hover:bg-black/20 hover:text-white"
+              className="shrink-0 rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-all hover:bg-black/20 hover:text-white"
             >
               {copied ? <Check className="size-4 text-green-300" /> : <Copy className="size-4" />}
             </button>
