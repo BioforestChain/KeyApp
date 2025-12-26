@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFlow } from '@/stackflow';
 import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
@@ -30,13 +30,6 @@ export function AddressBookPage() {
   const addressBookState = useStore(addressBookStore);
   const contacts = addressBookState.contacts;
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
-
-  // 确保 store 已初始化
-  useEffect(() => {
-    if (!addressBookState.isInitialized) {
-      addressBookActions.initialize();
-    }
-  }, [addressBookState.isInitialized]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const deletingContactRef = useRef<Contact | null>(null);

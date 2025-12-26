@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { IconSearch, IconChevronRight } from "@tabler/icons-react";
 import { ContactAvatar } from "@/components/common/contact-avatar";
 import { generateAvatarFromAddress } from "@/lib/avatar-codec";
-import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
+import { addressBookStore, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
@@ -30,13 +30,6 @@ function ContactPickerJobContent() {
   const [expandedContactId, setExpandedContactId] = useState<string | null>(null);
 
   const addressBookState = useStore(addressBookStore);
-
-  // 确保 store 已初始化
-  useEffect(() => {
-    if (!addressBookState.isInitialized) {
-      addressBookActions.initialize();
-    }
-  }, [addressBookState.isInitialized]);
 
   const filteredContacts = useMemo(() => {
     let contacts = addressBookState.contacts;

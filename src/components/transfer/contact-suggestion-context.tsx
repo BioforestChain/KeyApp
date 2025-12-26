@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useStore } from '@tanstack/react-store'
-import { addressBookStore, addressBookActions, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores'
+import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores'
 
 interface ContactSuggestionContextValue {
   /** 根据查询获取建议 */
@@ -13,17 +13,10 @@ const ContactSuggestionContext = createContext<ContactSuggestionContextValue | n
 
 /**
  * 地址簿联系人建议 Provider
- * 确保 store 已初始化，并提供联系人查询能力
+ * 提供联系人查询能力（store 已由 StoreProvider 在 App 级别初始化）
  */
 export function AddressBookSuggestionProvider({ children }: { children: ReactNode }) {
   const addressBookState = useStore(addressBookStore)
-
-  // 确保 store 已初始化
-  useEffect(() => {
-    if (!addressBookState.isInitialized) {
-      addressBookActions.initialize()
-    }
-  }, [addressBookState.isInitialized])
 
   const value = useMemo<ContactSuggestionContextValue>(() => ({
     getSuggestions: (query, chainType, limit = 5) => 
