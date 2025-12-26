@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useCardInteraction } from '@/hooks/useCardInteraction';
 import { useMonochromeMask } from '@/hooks/useMonochromeMask';
@@ -33,6 +33,25 @@ function truncateAddress(address: string, startChars = 6, endChars = 4): string 
   if (address.length <= startChars + endChars + 3) return address;
   return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
 }
+
+// 静态样式常量 - 避免每次渲染创建新对象
+const TRIANGLE_MASK_SVG = `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`;
+
+const REFRACTION_GRADIENT = `radial-gradient(
+  circle at 50% 50%,
+  rgba(255, 255, 255, 0) 10%,
+  rgba(255, 200, 200, 0.5) 30%,
+  rgba(0, 255, 255, 0.6) 50%,
+  rgba(255, 0, 255, 0.6) 70%,
+  rgba(255, 255, 255, 0) 90%
+)`;
+
+const GOLD_GRADIENT = `linear-gradient(
+  135deg,
+  transparent 30%,
+  rgba(255, 215, 0, 0.6) 50%,
+  transparent 70%
+)`;
 
 export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function WalletCard(
   {
@@ -88,8 +107,35 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const holoTranslateY = pointerY * -25;
 
   // 各层透明度 - 参考 DEMO 调整
-  const patternOpacity = isActive ? 0.2 + hypot * 0.5 : 0.15; // 三角层：降低强度
+  const patternOpacity = isActive ? 0.1 + hypot * 0.2 : 0.05; // 三角层：降低强度
   const watermarkOpacity = isActive ? 0.2 + hypot * 0.8 : 0; // Logo层：提高强度
+
+  // 缓存背景渐变样式（只依赖 themeHue）
+  const bgGradient = useMemo(
+    () => `linear-gradient(135deg,
+      hsl(${themeHue} 70% 40%) 0%,
+      hsl(${themeHue + 20} 80% 30%) 50%,
+      hsl(${themeHue + 40} 70% 20%) 100%)`,
+    [themeHue]
+  );
+
+  // 缓存 Logo mask 样式（只依赖 monoMaskUrl 和 watermarkLogoSize）
+  const logoMaskStyle = useMemo(
+    () =>
+      monoMaskUrl
+        ? {
+            WebkitMaskImage: `url(${monoMaskUrl})`,
+            WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+            WebkitMaskRepeat: 'repeat' as const,
+            WebkitMaskPosition: 'center',
+            maskImage: `url(${monoMaskUrl})`,
+            maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+            maskRepeat: 'repeat' as const,
+            maskPosition: 'center',
+          }
+        : null,
+    [monoMaskUrl, watermarkLogoSize]
+  );
 
   return (
     <div ref={ref} className={cn('wallet-card-container h-full w-full', className)} style={{ perspective: '1000px' }}>
@@ -100,89 +146,60 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
           transformStyle: 'preserve-3d',
           transition: isActive ? 'none' : 'transform 0.4s ease-out',
-          isolation: 'isolate', // 确保混合模式独立于其他卡片
+          isolation: 'isolate',
+          willChange: 'transform', // 优化 3D 变换性能
         }}
       >
         {/* 1. 主背景渐变 */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(135deg,
-                hsl(${themeHue} 70% 40%) 0%,
-                hsl(${themeHue + 20} 80% 30%) 50%,
-                hsl(${themeHue + 40} 70% 20%) 100%)`,
-          }}
-        />
+        <div className="absolute inset-0" style={{ background: bgGradient }} />
 
         {/* 2. 防伪层1：三角纹理 (Pattern) */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl"
           style={{
-            // 直角三角形纹理（直角边在横轴和纵轴，层叠成正方形效果）
-            WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`,
-            WebkitMaskSize: '8px 8px',
+            WebkitMaskImage: TRIANGLE_MASK_SVG,
+            WebkitMaskSize: '24px 24px',
             WebkitMaskRepeat: 'repeat',
-            maskImage: `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`,
-            maskSize: '8px 8px',
+            maskImage: TRIANGLE_MASK_SVG,
+            maskSize: '24px 24px',
             maskRepeat: 'repeat',
             mixBlendMode: 'color-dodge',
             opacity: patternOpacity,
-            transition: 'opacity 0.3s ease',
           }}
         >
-          {/* 径向渐变光栅 + blur */}
           <div
             className="absolute"
             style={{
               inset: '-50%',
               width: '200%',
               height: '200%',
-              background: `radial-gradient(
-                  circle at 50% 50%,
-                  rgba(255, 255, 255, 0) 10%,
-                  rgba(255, 200, 200, 0.5) 30%,
-                  rgba(0, 255, 255, 0.6) 50%,
-                  rgba(255, 0, 255, 0.6) 70%,
-                  rgba(255, 255, 255, 0) 90%
-                )`,
+              background: REFRACTION_GRADIENT,
               filter: 'blur(20px)',
               transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
+              willChange: 'transform',
             }}
           />
         </div>
 
         {/* 3. 防伪层2：Logo水印 (Watermark) - 默认隐藏，动起来才显示 */}
-        {monoMaskUrl && (
+        {logoMaskStyle && (
           <div
             className="absolute inset-0 overflow-hidden rounded-2xl"
             style={{
-              WebkitMaskImage: `url(${monoMaskUrl})`,
-              WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-              WebkitMaskRepeat: 'repeat',
-              WebkitMaskPosition: 'center',
-              maskImage: `url(${monoMaskUrl})`,
-              maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-              maskRepeat: 'repeat',
-              maskPosition: 'center',
+              ...logoMaskStyle,
               mixBlendMode: 'overlay',
               opacity: watermarkOpacity,
-              transition: 'opacity 0.3s ease',
             }}
           >
-            {/* 金色渐变 */}
             <div
               className="absolute"
               style={{
                 inset: '-50%',
                 width: '200%',
                 height: '200%',
-                background: `linear-gradient(
-                    135deg,
-                    transparent 30%,
-                    rgba(255, 215, 0, 0.6) 50%,
-                    transparent 70%
-                  )`,
+                background: GOLD_GRADIENT,
                 transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
+                willChange: 'transform',
               }}
             />
           </div>
