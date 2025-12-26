@@ -41,6 +41,7 @@ export {
   useWallets,
   useCurrentWallet,
   useSelectedChain,
+  useChainPreferences,
   useCurrentChainAddress,
   useCurrentChainTokens,
   useAvailableChains,

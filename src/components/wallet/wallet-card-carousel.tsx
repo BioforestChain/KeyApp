@@ -15,14 +15,18 @@ interface WalletCardCarouselProps {
   wallets: Wallet[]
   currentWalletId: string | null
   selectedChain: ChainType
+  /** 每个钱包的链偏好 (walletId -> chainId) */
+  chainPreferences?: Record<string, ChainType>
   chainNames: Record<string, string>
   /** 链图标 URL 映射，用于防伪水印 */
   chainIconUrls?: Record<string, string>
-  /** 防伪水印 logo 尺寸，默认 32px */
+  /** 防伪水印 logo 平铺尺寸（含间距），默认 40px */
   watermarkLogoSize?: number
+  /** 防伪水印 logo 实际尺寸，默认 24px */
+  watermarkLogoActualSize?: number
   onWalletChange?: (walletId: string) => void
   onCopyAddress?: (address: string) => void
-  onOpenChainSelector?: () => void
+  onOpenChainSelector?: (walletId: string) => void
   onOpenSettings?: (walletId: string) => void
   onOpenWalletList?: () => void
   className?: string
@@ -36,9 +40,11 @@ export function WalletCardCarousel({
   wallets,
   currentWalletId,
   selectedChain,
+  chainPreferences = {},
   chainNames,
   chainIconUrls,
-  watermarkLogoSize = 32,
+  watermarkLogoSize = 40,
+  watermarkLogoActualSize = 24,
   onWalletChange,
   onCopyAddress,
   onOpenChainSelector,
@@ -70,9 +76,14 @@ export function WalletCardCarousel({
     [wallets, currentWalletId, onWalletChange]
   )
 
-  // 获取钱包在当前链上的地址
-  const getWalletAddress = (wallet: Wallet) => {
-    const chainAddr = wallet.chainAddresses.find((ca) => ca.chain === selectedChain)
+  // 获取钱包的链偏好（每个钱包可以有不同的链偏好）
+  const getWalletChain = (wallet: Wallet): ChainType => {
+    return chainPreferences[wallet.id] ?? wallet.chain ?? selectedChain
+  }
+
+  // 获取钱包在其偏好链上的地址
+  const getWalletAddress = (wallet: Wallet, chain: ChainType) => {
+    const chainAddr = wallet.chainAddresses.find((ca) => ca.chain === chain)
     return chainAddr?.address ?? wallet.address
   }
 
@@ -110,25 +121,29 @@ export function WalletCardCarousel({
         initialSlide={currentIndex >= 0 ? currentIndex : 0}
         className="wallet-swiper"
       >
-        {wallets.map((wallet) => (
-          <SwiperSlide key={wallet.id}>
-            <WalletCard
-              wallet={wallet}
-              chain={selectedChain}
-              chainName={chainNames[selectedChain] ?? selectedChain}
-              address={getWalletAddress(wallet)}
-              chainIconUrl={chainIconUrls?.[selectedChain]}
-              watermarkLogoSize={watermarkLogoSize}
-              themeHue={getWalletTheme(wallet.id)}
-              onCopyAddress={() => {
-                const addr = getWalletAddress(wallet)
-                if (addr) onCopyAddress?.(addr)
-              }}
-              onOpenChainSelector={onOpenChainSelector ?? undefined}
-              onOpenSettings={onOpenSettings ? () => onOpenSettings(wallet.id) : undefined}
-            />
-          </SwiperSlide>
-        ))}
+        {wallets.map((wallet) => {
+          const walletChain = getWalletChain(wallet)
+          const walletAddress = getWalletAddress(wallet, walletChain)
+          return (
+            <SwiperSlide key={wallet.id}>
+              <WalletCard
+                wallet={wallet}
+                chain={walletChain}
+                chainName={chainNames[walletChain] ?? walletChain}
+                address={walletAddress}
+                chainIconUrl={chainIconUrls?.[walletChain]}
+                watermarkLogoSize={watermarkLogoSize}
+                watermarkLogoActualSize={watermarkLogoActualSize}
+                themeHue={getWalletTheme(wallet.id)}
+                onCopyAddress={() => {
+                  if (walletAddress) onCopyAddress?.(walletAddress)
+                }}
+                onOpenChainSelector={onOpenChainSelector ? () => onOpenChainSelector(wallet.id) : undefined}
+                onOpenSettings={onOpenSettings ? () => onOpenSettings(wallet.id) : undefined}
+              />
+            </SwiperSlide>
+          )
+        })}
       </Swiper>
 
       <style>{`

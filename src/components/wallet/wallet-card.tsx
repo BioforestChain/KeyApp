@@ -1,6 +1,7 @@
-import { forwardRef, useCallback, useEffect, useRef, useState, useContext, createContext } from 'react'
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useCardInteraction } from '@/hooks/useCardInteraction'
+import { useMonochromeMask } from '@/hooks/useMonochromeMask'
 import { ChainIcon } from './chain-icon'
 import type { Wallet, ChainType } from '@/stores'
 import {
@@ -17,8 +18,10 @@ export interface WalletCardProps {
   address?: string | undefined
   /** 链图标 URL，用于防伪水印 */
   chainIconUrl?: string | undefined
-  /** 防伪水印 logo 平铺尺寸，默认 32px */
+  /** 防伪水印 logo 平铺尺寸（含间距），默认 40px */
   watermarkLogoSize?: number | undefined
+  /** 防伪水印 logo 实际尺寸，默认 24px（与 watermarkLogoSize 差值为间距） */
+  watermarkLogoActualSize?: number | undefined
   onCopyAddress?: (() => void) | undefined
   onOpenChainSelector?: (() => void) | undefined
   onOpenSettings?: (() => void) | undefined
@@ -39,7 +42,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
       chainName,
       address,
       chainIconUrl,
-      watermarkLogoSize = 32,
+      watermarkLogoSize = 40,
+      watermarkLogoActualSize = 24,
       onCopyAddress,
       onOpenChainSelector,
       onOpenSettings,
@@ -50,6 +54,13 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
   ) {
     const [copied, setCopied] = useState(false)
     const cardRef = useRef<HTMLDivElement>(null)
+
+    // 将链图标转为单色遮罩（黑白 -> 透明）
+    const monoMaskUrl = useMonochromeMask(chainIconUrl, {
+      size: watermarkLogoActualSize * 2, // 2x for retina
+      invert: false, // 白色区域不透明
+      contrast: 1.8,
+    })
 
     const { pointerX, pointerY, isActive, bindElement } = useCardInteraction({
       gyroStrength: 0.15,
@@ -95,6 +106,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
             transformStyle: 'preserve-3d',
             transition: isActive ? 'none' : 'transform 0.4s ease-out',
+            isolation: 'isolate', // 确保混合模式独立于其他卡片
           }}
         >
           {/* 1. 主背景渐变 */}
@@ -109,16 +121,16 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
           />
 
           {/* 2. 防伪水印层 - 链Logo平铺 + 彩虹折射 */}
-          {chainIconUrl && (
+          {monoMaskUrl && (
             <div
               className="absolute inset-0 overflow-hidden rounded-2xl"
               style={{
-                // 用链 logo 作为 mask，平铺显示
-                WebkitMaskImage: `url(${chainIconUrl})`,
+                // 用单色 logo 作为 mask，平铺显示（含间距）
+                WebkitMaskImage: `url(${monoMaskUrl})`,
                 WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
                 WebkitMaskRepeat: 'repeat',
                 WebkitMaskPosition: 'center',
-                maskImage: `url(${chainIconUrl})`,
+                maskImage: `url(${monoMaskUrl})`,
                 maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
                 maskRepeat: 'repeat',
                 maskPosition: 'center',

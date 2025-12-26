@@ -21,6 +21,7 @@ import {
   useWallets,
   useCurrentWallet,
   useSelectedChain,
+  useChainPreferences,
   useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
@@ -58,6 +59,7 @@ export function WalletTab() {
   const currentWallet = useCurrentWallet();
   const currentWalletId = currentWallet?.id ?? null;
   const selectedChain = useSelectedChain();
+  const chainPreferences = useChainPreferences();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const tokens = useCurrentChainTokens();
   const chainConfigs = useChainConfigs();
@@ -100,10 +102,14 @@ export function WalletTab() {
     [clipboard, haptics, toast, t]
   );
 
-  // 打开链选择器
-  const handleOpenChainSelector = useCallback(() => {
+  // 打开链选择器（传入钱包ID以便选择后更新该钱包的偏好）
+  const handleOpenChainSelector = useCallback((walletId: string) => {
+    // 如果不是当前钱包，先切换到该钱包
+    if (walletId !== currentWalletId) {
+      walletActions.setCurrentWallet(walletId);
+    }
     push("ChainSelectorJob", {});
-  }, [push]);
+  }, [push, currentWalletId]);
 
   // 打开钱包设置
   const handleOpenWalletSettings = useCallback(
@@ -156,9 +162,11 @@ export function WalletTab() {
           wallets={wallets}
           currentWalletId={currentWalletId}
           selectedChain={selectedChain}
+          chainPreferences={chainPreferences}
           chainNames={CHAIN_NAMES}
           chainIconUrls={chainIconUrls}
-          watermarkLogoSize={32}
+          watermarkLogoSize={40}
+          watermarkLogoActualSize={24}
           onWalletChange={handleWalletChange}
           onCopyAddress={handleCopyAddress}
           onOpenChainSelector={handleOpenChainSelector}
