@@ -81,11 +81,16 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
     const rotateX = isActive ? pointerY * -12 : 0
     const rotateY = isActive ? pointerX * 12 : 0
 
-    // 全息渐变位移 - 跟随指针反向移动产生视差
-    const holoTranslateX = pointerX * -40 // px
-    const holoTranslateY = pointerY * -40
-    // 动态透明度 - 倾斜越大越亮，默认几乎不可见
-    const holoOpacity = 0.1 + Math.max(Math.abs(pointerX), Math.abs(pointerY)) * 0.9
+    // 移动幅度 (hypot) - 离中心越远，防伪效果越明显
+    const hypot = Math.min(1, Math.sqrt(pointerX * pointerX + pointerY * pointerY))
+    
+    // 全息渐变位移 - 跟随指针反向移动产生视差 (百分比)
+    const holoTranslateX = pointerX * -25 // %
+    const holoTranslateY = pointerY * -25
+    
+    // 各层透明度
+    const patternOpacity = isActive ? 0.3 + hypot * 0.7 : 0.2 // 三角层：默认微弱可见
+    const watermarkOpacity = isActive ? hypot * 0.8 : 0 // Logo层：默认隐藏
 
     return (
       <div
@@ -114,49 +119,44 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             }}
           />
 
-          {/* 2. 防伪层1：三角底纹 + 全息渐变 */}
+          {/* 2. 防伪层1：三角纹理 (Pattern) */}
           <div
             className="absolute inset-0 overflow-hidden rounded-2xl"
             style={{
-              // 三角形 mask
+              // 三角形 mask - 60px 大小
               WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0 L20 20 L0 20 Z' fill='black'/%3E%3C/svg%3E")`,
-              WebkitMaskSize: '10px 10px',
+              WebkitMaskSize: '60px 60px',
               WebkitMaskRepeat: 'repeat',
               maskImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0 L20 20 L0 20 Z' fill='black'/%3E%3C/svg%3E")`,
-              maskSize: '10px 10px',
+              maskSize: '60px 60px',
               maskRepeat: 'repeat',
-              // 核心：color-dodge 让深色背景下透明，有亮光时显色
               mixBlendMode: 'color-dodge',
-              opacity: 0.6,
-              filter: 'brightness(1.2) contrast(1.5)',
+              opacity: patternOpacity,
+              transition: 'opacity 0.3s ease',
             }}
           >
-            {/* 全息线性渐变 - 200% 大小，通过 translate 移动 */}
+            {/* 径向渐变光栅 + blur */}
             <div
               className="absolute"
               style={{
                 inset: '-50%',
                 width: '200%',
                 height: '200%',
-                background: `linear-gradient(
-                  115deg,
-                  transparent 20%,
-                  rgba(255, 0, 0, 0.7) 30%,
-                  rgba(255, 255, 0, 0.7) 40%,
-                  rgba(0, 255, 255, 0.7) 50%,
-                  rgba(0, 0, 255, 0.7) 60%,
-                  rgba(255, 0, 255, 0.7) 70%,
-                  transparent 80%
+                background: `radial-gradient(
+                  circle at 50% 50%,
+                  rgba(255, 255, 255, 0) 10%,
+                  rgba(255, 200, 200, 0.5) 30%,
+                  rgba(0, 255, 255, 0.6) 50%,
+                  rgba(255, 0, 255, 0.6) 70%,
+                  rgba(255, 255, 255, 0) 90%
                 )`,
-                transform: `translate(${holoTranslateX}px, ${holoTranslateY}px)`,
-                // 默认几乎不可见，倾斜越大越亮
-                opacity: holoOpacity,
-                transition: 'opacity 0.2s',
+                filter: 'blur(20px)',
+                transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
               }}
             />
           </div>
 
-          {/* 3. 防伪层2：Logo水印 + 全息渐变 */}
+          {/* 3. 防伪层2：Logo水印 (Watermark) - 默认隐藏，动起来才显示 */}
           {monoMaskUrl && (
             <div
               className="absolute inset-0 overflow-hidden rounded-2xl"
@@ -169,12 +169,12 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
                 maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
                 maskRepeat: 'repeat',
                 maskPosition: 'center',
-                // overlay 混合模式，和三角层错开
                 mixBlendMode: 'overlay',
-                opacity: 0.6,
+                opacity: watermarkOpacity,
+                transition: 'opacity 0.3s ease',
               }}
             >
-              {/* 全息渐变 - 色相偏移 90deg */}
+              {/* 金色渐变 */}
               <div
                 className="absolute"
                 style={{
@@ -182,33 +182,29 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
                   width: '200%',
                   height: '200%',
                   background: `linear-gradient(
-                    115deg,
-                    transparent 20%,
-                    rgba(0, 255, 0, 0.7) 30%,
-                    rgba(0, 255, 255, 0.7) 40%,
-                    rgba(255, 0, 255, 0.7) 50%,
-                    rgba(255, 255, 0, 0.7) 60%,
-                    rgba(0, 255, 255, 0.7) 70%,
-                    transparent 80%
+                    135deg,
+                    transparent 30%,
+                    rgba(255, 215, 0, 0.6) 50%,
+                    transparent 70%
                   )`,
-                  transform: `translate(${holoTranslateX}px, ${holoTranslateY}px)`,
-                  opacity: holoOpacity,
-                  transition: 'opacity 0.2s',
+                  transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
                 }}
               />
             </div>
           )}
 
-          {/* 4. 表面高光 (Glare) - 玻璃质感 */}
+          {/* 4. 表面高光 (Glare) */}
           <div
             className="pointer-events-none absolute inset-0 rounded-2xl"
             style={{
               background: `radial-gradient(
-                circle at calc(50% + ${pointerX * 200}%) calc(50% + ${pointerY * 200}%),
-                rgba(255,255,255,0.8) 0%,
-                rgba(255,255,255,0) 30%
+                circle at calc(50% + ${pointerX * 50}%) calc(50% + ${pointerY * 50}%),
+                rgba(255,255,255,0.3) 0%,
+                transparent 50%
               )`,
-              mixBlendMode: 'soft-light',
+              mixBlendMode: 'overlay',
+              opacity: hypot,
+              transition: 'opacity 0.3s',
             }}
           />
 
