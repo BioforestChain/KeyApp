@@ -117,12 +117,30 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             }}
           />
 
-          {/* 2. 防伪水印层 - 链Logo平铺 + 彩虹折射 */}
+          {/* 2. 防伪底纹层 - 三角形小纹理 (默认灰色) */}
+          <div
+            className="absolute inset-0 overflow-hidden rounded-2xl"
+            style={{
+              // 三角形纹理 - 使用 CSS 生成
+              background: 'hsl(0 0% 70%)',
+              WebkitMaskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpolygon points='10,2 18,18 2,18' fill='%23000'/%3E%3C/svg%3E")`,
+              WebkitMaskSize: '12px 12px',
+              WebkitMaskRepeat: 'repeat',
+              maskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpolygon points='10,2 18,18 2,18' fill='%23000'/%3E%3C/svg%3E")`,
+              maskSize: '12px 12px',
+              maskRepeat: 'repeat',
+              mixBlendMode: 'multiply',
+              opacity: 0.3,
+            }}
+          />
+
+          {/* 3. 防伪水印层 - 链Logo平铺 (默认灰色) */}
           {monoMaskUrl && (
             <div
               className="absolute inset-0 overflow-hidden rounded-2xl"
               style={{
-                // 用单色 logo 作为 mask，平铺显示（含间距）
+                // 灰色/白色背景，用 logo 作为 mask
+                background: 'hsl(0 0% 100% / 0.25)',
                 WebkitMaskImage: `url(${monoMaskUrl})`,
                 WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
                 WebkitMaskRepeat: 'repeat',
@@ -132,34 +150,52 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
                 maskRepeat: 'repeat',
                 maskPosition: 'center',
                 mixBlendMode: 'hard-light',
-                opacity: isActive ? 1 : 0.6,
-                transition: 'opacity 0.2s',
+                opacity: 0.8,
+              }}
+            />
+          )}
+
+          {/* 4. 彩虹折射层 - 只在激活时显示 */}
+          {monoMaskUrl && (
+            <div
+              className="absolute inset-0 overflow-hidden rounded-2xl"
+              style={{
+                WebkitMaskImage: `url(${monoMaskUrl})`,
+                WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+                WebkitMaskRepeat: 'repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: `url(${monoMaskUrl})`,
+                maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
+                maskRepeat: 'repeat',
+                maskPosition: 'center',
+                mixBlendMode: 'hard-light',
+                // 默认不可见，激活时显示
+                opacity: isActive ? 1 : 0,
+                transition: 'opacity 0.2s ease-out',
               }}
             >
-              {/* 彩虹折射层 - 单层大渐变，跟随指针移动 */}
+              {/* 彩虹渐变 */}
               <div
                 className="absolute inset-0"
                 style={{
                   background: `
                     radial-gradient(
                       ellipse 120% 120% at calc(30% + ${refractionX}%) calc(70% + ${refractionY}%),
-                      hsl(320 100% 70% / 0.8) 0%,
-                      hsl(280 100% 60% / 0.6) 20%,
-                      hsl(200 100% 60% / 0.4) 40%,
-                      hsl(150 100% 50% / 0.3) 60%,
+                      hsl(320 100% 70%) 0%,
+                      hsl(280 100% 60%) 20%,
+                      hsl(200 100% 60%) 40%,
+                      hsl(150 100% 50%) 60%,
                       transparent 80%
                     ),
                     radial-gradient(
                       ellipse 100% 100% at calc(70% - ${refractionX}%) calc(30% - ${refractionY}%),
-                      hsl(60 100% 70% / 0.6) 0%,
-                      hsl(30 100% 60% / 0.5) 25%,
-                      hsl(0 100% 60% / 0.3) 50%,
+                      hsl(60 100% 70%) 0%,
+                      hsl(30 100% 60%) 25%,
+                      hsl(0 100% 60%) 50%,
                       transparent 75%
                     )
                   `,
-                  filter: 'saturate(1.5) brightness(1.2)',
-                  opacity: isActive ? 0.9 : 0.4,
-                  transition: isActive ? 'none' : 'opacity 0.3s',
+                  filter: 'saturate(2) brightness(1.2)',
                 }}
               />
             </div>
