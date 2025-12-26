@@ -67,6 +67,7 @@ const createMockWallet = (id: string, name: string): Wallet => ({
     },
   ],
   createdAt: Date.now(),
+  themeHue: 323,
   tokens: [],
 })
 

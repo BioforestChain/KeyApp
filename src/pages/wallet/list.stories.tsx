@@ -45,6 +45,7 @@ const createMockWallet = (id: string, name: string): Wallet => ({
     },
   ],
   createdAt: Date.now() - 86400000 * Number(id), // Days ago
+  themeHue: 323,
 })
 
 /**

@@ -10,14 +10,18 @@ import { ChainAddressPreview, type DerivedAddress } from '@/components/onboardin
 import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog';
 import { ImportWalletSuccess } from '@/components/onboarding/import-wallet-success';
 import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
+import { ThemeSelector } from '@/components/onboarding/theme-selector';
 import { Button } from '@/components/ui/button';
+import { GradientButton } from '@/components/common/gradient-button';
+import { IconCircle } from '@/components/common/icon-circle';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
-import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2 } from '@tabler/icons-react';
+import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconPalette as Palette } from '@tabler/icons-react';
 
-type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'collision' | 'success';
+type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'theme' | 'collision' | 'success';
 
 // Mock wallet query for now - will be replaced with real implementation
 const mockWalletQuery: IWalletQuery = {
@@ -46,6 +50,8 @@ export function OnboardingRecoverPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recoveredWalletName, setRecoveredWalletName] = useState('');
+  const [themeHue, setThemeHue] = useState(0);
+  const [patternKey, setPatternKey] = useState('');
 
   // Duplicate detection hook
   const duplicateDetection = useDuplicateDetection(mockWalletQuery);
@@ -65,8 +71,10 @@ export function OnboardingRecoverPage() {
         duplicateDetection.reset();
         break;
       case 'pattern':
-        
         setStep(keyType === 'arbitrary' ? 'arbitrary' : 'mnemonic');
+        break;
+      case 'theme':
+        setStep('pattern');
         break;
       case 'success':
         // Can't go back from success
@@ -75,9 +83,11 @@ export function OnboardingRecoverPage() {
   }, [step, goBack, duplicateDetection, keyType]);
 
   const goToPatternStep = useCallback(() => {
-    
+    // 设置初始 themeHue
+    const secret = keyType === 'arbitrary' ? arbitrarySecret : mnemonic.join(' ');
+    setThemeHue(deriveThemeHue(secret));
     setStep('pattern');
-  }, []);
+  }, [keyType, arbitrarySecret, mnemonic]);
 
   const handleKeyTypeContinue = useCallback(() => {
     if (keyType === 'mnemonic') {
@@ -135,21 +145,19 @@ export function OnboardingRecoverPage() {
   }, [duplicateDetection]);
 
   const createWallet = useCallback(
-    async (words: string[], walletPassword: string) => {
+    async (words: string[], walletPassword: string, hue: number) => {
       setIsSubmitting(true);
 
       try {
         const mnemonicStr = words.join(' ');
 
         // Generate wallet name (auto-increment pattern)
-        // TODO: Use wallet storage service for actual name generation
         const walletName = `钱包 ${Date.now() % 1000}`;
 
         // Derive external chain addresses (BIP44)
         const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
 
         // Derive BioForest chain addresses (Ed25519)
-        // Use enabled configs if available, otherwise fallback to built-in chains
         const bioforestConfigs = enabledBioforestChainConfigs.length > 0 ? enabledBioforestChainConfigs : undefined;
         const bioforestChainAddresses = deriveBioforestAddresses(
           mnemonicStr,
@@ -172,7 +180,6 @@ export function OnboardingRecoverPage() {
           ...bioforestChainAddresses,
         ];
 
-        // Create wallet with skipBackup=true (recovery doesn't need backup prompt)
         await walletActions.createWallet(
           {
             name: walletName,
@@ -180,9 +187,11 @@ export function OnboardingRecoverPage() {
             address: ethKey.address,
             chain: 'ethereum',
             chainAddresses,
+            themeHue: hue,
           },
           mnemonicStr,
-          walletPassword
+          walletPassword,
+          hue
         );
 
         setRecoveredWalletName(walletName);
@@ -193,11 +202,11 @@ export function OnboardingRecoverPage() {
         setIsSubmitting(false);
       }
     },
-    [chainConfigSnapshot, enabledBioforestChainConfigs],
+    [enabledBioforestChainConfigs],
   );
 
   const createArbitraryWallet = useCallback(
-    async (walletPassword: string) => {
+    async (walletPassword: string, hue: number) => {
       const secret = arbitrarySecret.trim();
       if (!secret) return;
       if (arbitraryDerivedAddresses.length === 0) return;
@@ -222,9 +231,11 @@ export function OnboardingRecoverPage() {
             address: primary.address,
             chain: primary.chain,
             chainAddresses,
+            themeHue: hue,
           },
           secret,
-          walletPassword
+          walletPassword,
+          hue
         );
 
         setRecoveredWalletName(walletName);
@@ -235,15 +246,19 @@ export function OnboardingRecoverPage() {
         setIsSubmitting(false);
       }
     },
-    [arbitraryDerivedAddresses, arbitrarySecret],
+    [arbitraryDerivedAddresses, arbitrarySecret, t],
   );
 
-  const handlePatternComplete = useCallback(async (key: string) => {
+  const handlePatternComplete = useCallback((key: string) => {
+    setPatternKey(key);
+    setStep('theme');
+  }, []);
+
+  const handleThemeComplete = useCallback(async () => {
     if (isSubmitting) return;
-    
 
     if (keyType === 'arbitrary') {
-      await createArbitraryWallet(key);
+      await createArbitraryWallet(patternKey, themeHue);
       return;
     }
 
@@ -251,8 +266,8 @@ export function OnboardingRecoverPage() {
       return;
     }
 
-    await createWallet(mnemonic, key);
-  }, [createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic]);
+    await createWallet(mnemonic, patternKey, themeHue);
+  }, [createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, patternKey, themeHue]);
 
   const handleEnterWallet = useCallback(() => {
     navigate({ to: '/' });
@@ -355,6 +370,37 @@ export function OnboardingRecoverPage() {
               onComplete={handlePatternComplete}
               minPoints={4}
             />
+          </div>
+        </>
+      )}
+
+      {step === 'theme' && (
+        <>
+          <PageHeader title={t('onboarding:create.themeTitle')} onBack={handleBack} />
+          <div data-testid="theme-step" className="flex-1 p-4">
+            <div className="space-y-6">
+              <div className="text-center">
+                <IconCircle icon={Palette} variant="primary" size="lg" className="mx-auto mb-4" />
+                <h2 className="text-xl font-bold">{t('onboarding:create.themeTitle')}</h2>
+                <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.themeSubtitle')}</p>
+              </div>
+
+              <ThemeSelector
+                secret={keyType === 'arbitrary' ? arbitrarySecret : mnemonic.join(' ')}
+                value={themeHue}
+                onChange={setThemeHue}
+              />
+
+              <GradientButton
+                variant="mint"
+                className="w-full"
+                data-testid="theme-complete-button"
+                disabled={isSubmitting}
+                onClick={handleThemeComplete}
+              >
+                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : t('onboarding:import.complete')}
+              </GradientButton>
+            </div>
           </div>
         </>
       )}

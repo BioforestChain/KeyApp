@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
 import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
 import { ChainSelector, getDefaultSelectedChains } from '@/components/onboarding/chain-selector';
+import { ThemeSelector } from '@/components/onboarding/theme-selector';
 import { FormField } from '@/components/common/form-field';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -19,14 +20,16 @@ import {
   IconChevronRight as ArrowRight,
   IconCircleKey as KeyRound,
   IconCircleCheck as CheckCircle,
+  IconPalette as Palette,
 } from '@tabler/icons-react';
 import { useChainConfigs, walletActions } from '@/stores';
 import { generateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import type { ChainConfig } from '@/services/chain-config';
 
-type Step = 'pattern' | 'mnemonic' | 'verify' | 'chains';
+type Step = 'pattern' | 'mnemonic' | 'verify' | 'chains' | 'theme';
 
-const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains'];
+const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains', 'theme'];
 
 export function WalletCreatePage() {
   const { navigate, goBack } = useNavigation();
@@ -39,6 +42,7 @@ export function WalletCreatePage() {
   const [mnemonicCopied, setMnemonicCopied] = useState(false);
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [initializedSelection, setInitializedSelection] = useState(false);
+  const [themeHue, setThemeHue] = useState(() => deriveThemeHue(mnemonic.join(' ')));
 
   const currentStepIndex = STEPS.indexOf(step) + 1;
 
@@ -57,6 +61,8 @@ export function WalletCreatePage() {
       setStep('mnemonic');
     } else if (step === 'chains') {
       setStep('verify');
+    } else if (step === 'theme') {
+      setStep('chains');
     } else {
       goBack();
     }
@@ -77,10 +83,14 @@ export function WalletCreatePage() {
     setStep('chains');
   };
 
+  const handleChainsContinue = () => {
+    setStep('theme');
+  };
+
   const [isCreating, setIsCreating] = useState(false);
 
   const handleComplete = async () => {
-    if (isCreating || selectedChainIds.length === 0) return;
+    if (isCreating) return;
     setIsCreating(true);
 
     try {
@@ -157,9 +167,11 @@ export function WalletCreatePage() {
           address: primaryChain.address,
           chain: primaryChain.chain,
           chainAddresses,
+          themeHue,
         },
         mnemonicStr,
-        patternKey
+        patternKey,
+        themeHue
       );
 
       navigate({ to: '/' });
@@ -175,7 +187,7 @@ export function WalletCreatePage() {
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
-        <ProgressSteps total={4} current={currentStepIndex} />
+        <ProgressSteps total={5} current={currentStepIndex} />
       </div>
 
       <div className="flex-1 p-4">
@@ -214,8 +226,20 @@ export function WalletCreatePage() {
               selectedChains={selectedChainIds}
               selectionCount={selectedChainIds.length}
               onSelectionChange={setSelectedChainIds}
+              onComplete={handleChainsContinue}
+              completeLabel={t('create.nextStep')}
+              isSubmitting={false}
+            />
+          </div>
+        )}
+
+        {step === 'theme' && (
+          <div data-testid="theme-step">
+            <ThemeSelectionStep
+              secret={mnemonic.join(' ')}
+              themeHue={themeHue}
+              onThemeChange={setThemeHue}
               onComplete={handleComplete}
-              completeLabel={t('create.complete')}
               isSubmitting={isCreating}
             />
           </div>
@@ -390,6 +414,50 @@ function ChainSelectionStep({
         onClick={onComplete}
       >
         {completeLabel}
+      </GradientButton>
+    </div>
+  );
+}
+
+interface ThemeSelectionStepProps {
+  secret: string;
+  themeHue: number;
+  onThemeChange: (hue: number) => void;
+  onComplete: () => void;
+  isSubmitting: boolean;
+}
+
+function ThemeSelectionStep({
+  secret,
+  themeHue,
+  onThemeChange,
+  onComplete,
+  isSubmitting,
+}: ThemeSelectionStepProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <IconCircle icon={Palette} variant="primary" size="lg" className="mx-auto mb-4" />
+        <h2 className="text-xl font-bold">{t('create.themeTitle')}</h2>
+        <p className="text-muted-foreground mt-2 text-sm">{t('create.themeSubtitle')}</p>
+      </div>
+
+      <ThemeSelector
+        secret={secret}
+        value={themeHue}
+        onChange={onThemeChange}
+      />
+
+      <GradientButton
+        variant="mint"
+        className="w-full"
+        data-testid="theme-complete-button"
+        disabled={isSubmitting}
+        onClick={onComplete}
+      >
+        {t('create.complete')}
       </GradientButton>
     </div>
   );

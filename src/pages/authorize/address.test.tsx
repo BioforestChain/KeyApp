@@ -122,6 +122,7 @@ describe('AddressAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       chainAddresses: [
         { chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] },
       ],
@@ -160,6 +161,7 @@ describe('AddressAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       encryptedMnemonic,
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
@@ -207,6 +209,7 @@ describe('AddressAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       encryptedMnemonic,
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
@@ -251,6 +254,7 @@ describe('AddressAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
 
@@ -281,6 +285,7 @@ describe('AddressAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
 

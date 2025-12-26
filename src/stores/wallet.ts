@@ -7,6 +7,19 @@ import {
   type ChainAddressInfo,
 } from '@/services/wallet-storage'
 
+/**
+ * 基于助记词/密钥稳定派生主题色 hue
+ */
+function deriveThemeHue(secret: string): number {
+  let hash = 0
+  for (let i = 0; i < secret.length; i++) {
+    const char = secret.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return Math.abs(hash) % 360
+}
+
 // 类型定义
 // 外部链 (BIP44)
 export type ExternalChainType = 'ethereum' | 'tron' | 'bitcoin' | 'binance'
@@ -59,6 +72,8 @@ export interface Wallet {
   /** 加密后的钱包锁（使用助记词派生密钥加密） */
   encryptedWalletLock?: EncryptedData
   createdAt: number
+  /** 主题色 hue (0-360) */
+  themeHue: number
   /** @deprecated 使用 chainAddresses[].tokens */
   tokens: Token[]
 }
@@ -148,6 +163,7 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
         return token
       }),
     })),
+    themeHue: (info as unknown as { themeHue: number }).themeHue,
     tokens: [], // deprecated
   }
   
@@ -224,7 +240,8 @@ export const walletActions = {
   createWallet: async (
     wallet: Omit<Wallet, 'id' | 'createdAt' | 'tokens' | 'chainAddresses'> & { chainAddresses?: ChainAddress[] },
     mnemonic: string,
-    password: string
+    password: string,
+    themeHue?: number
   ): Promise<Wallet> => {
     const walletId = crypto.randomUUID()
     const now = Date.now()
@@ -280,6 +297,7 @@ export const walletActions = {
       chain: wallet.chain,
       createdAt: now,
       chainAddresses,
+      themeHue: themeHue ?? deriveThemeHue(mnemonic),
       tokens: [],
       ...(savedWalletInfo.encryptedMnemonic ? { encryptedMnemonic: savedWalletInfo.encryptedMnemonic } : {}),
     }
@@ -664,6 +682,7 @@ export const walletActions = {
       chainAddresses: wallet.chainAddresses ?? [
         { chain: wallet.chain, address: wallet.address, tokens: [] }
       ],
+      themeHue: wallet.themeHue,
       tokens: [],
       ...(wallet.encryptedMnemonic ? { encryptedMnemonic: wallet.encryptedMnemonic } : {}),
     }

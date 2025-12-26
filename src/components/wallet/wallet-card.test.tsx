@@ -28,6 +28,7 @@ const createMockWallet = (overrides: Partial<Wallet> = {}): Wallet => ({
     },
   ],
   createdAt: Date.now(),
+  themeHue: 323,
   tokens: [],
   ...overrides,
 })

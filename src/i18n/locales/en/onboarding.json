@@ -42,6 +42,8 @@
     "createFailed": "Failed to create wallet",
     "defaultWalletName": "Main Wallet",
     "enterWallet": "Enter Wallet",
+    "themeTitle": "Choose Card Theme",
+    "themeSubtitle": "Select a theme color for your wallet card",
     "form": {
       "agreementPrefix": "I have read and agree to",
       "agreementRequired": "Please read and agree to the user agreement",

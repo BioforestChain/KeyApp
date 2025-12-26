@@ -16,6 +16,16 @@ import type {
 import type { Contact } from '@/stores/address-book'
 import { decryptMpayData } from './mpay-crypto'
 
+function deriveThemeHue(secret: string): number {
+  let hash = 0
+  for (let i = 0; i < secret.length; i++) {
+    const char = secret.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return Math.abs(hash) % 360
+}
+
 /**
  * mpay 链名到 KeyApp ChainType 的映射
  */
@@ -224,6 +234,7 @@ export async function transformMpayData(
         chainAddresses,
         encryptedMnemonic,
         createdAt: mpayWallet.createTimestamp,
+        themeHue: deriveThemeHue(mpayWallet.mainWalletId),
         tokens: [], // deprecated, use chainAddresses[].tokens
       }
 
