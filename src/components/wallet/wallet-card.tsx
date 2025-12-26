@@ -85,13 +85,10 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
     const spotlightX = 50 + pointerX * 20
     const spotlightY = 50 + pointerY * 20
 
-    // 折射层缩放和位移 - 跟随指针
-    const refractionScale1 = Math.min(1, 0.15 + pointerX * 0.25)
-    const refractionScale2 = Math.min(1, 0.15 + pointerX * -0.65)
-    const refractionTranslateX1 = Math.max(-10, Math.min(10, pointerX * 10))
-    const refractionTranslateY1 = Math.max(0, pointerY * -10)
-    const refractionTranslateX2 = Math.max(-10, Math.min(10, -pointerX * 10))
-    const refractionTranslateY2 = Math.min(0, pointerY * -10)
+    // 折射层位移 - 跟随指针平滑移动，避免截断
+    // 使用较小的移动范围，让渐变始终覆盖整个卡片
+    const refractionX = pointerX * 15 // -15% ~ 15%
+    const refractionY = pointerY * 15
 
     return (
       <div
@@ -139,48 +136,30 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
                 transition: 'opacity 0.2s',
               }}
             >
-              {/* 彩虹折射层 1 - 左下角 */}
+              {/* 彩虹折射层 - 单层大渐变，跟随指针移动 */}
               <div
-                className="absolute aspect-square w-[500%]"
+                className="absolute inset-0"
                 style={{
-                  bottom: 0,
-                  left: 0,
-                  transformOrigin: '0 100%',
-                  background: `radial-gradient(
-                    circle at 0 100%,
-                    transparent 10%,
-                    hsl(5 100% 80%),
-                    hsl(150 100% 60%),
-                    hsl(220 90% 70%),
-                    transparent 60%
-                  )`,
-                  filter: 'saturate(2)',
-                  scale: refractionScale1,
-                  translate: `${refractionTranslateX1}% ${refractionTranslateY1}%`,
-                  opacity: isActive ? 1 : 0.3,
-                  transition: isActive ? 'none' : 'all 0.3s',
-                }}
-              />
-              {/* 彩虹折射层 2 - 右上角 */}
-              <div
-                className="absolute aspect-square w-[500%]"
-                style={{
-                  top: 0,
-                  right: 0,
-                  transformOrigin: '100% 0',
-                  background: `radial-gradient(
-                    circle at 100% 0,
-                    transparent 10%,
-                    hsl(5 100% 80%),
-                    hsl(150 100% 60%),
-                    hsl(220 90% 70%),
-                    transparent 60%
-                  )`,
-                  filter: 'saturate(2)',
-                  scale: refractionScale2,
-                  translate: `${refractionTranslateX2}% ${refractionTranslateY2}%`,
-                  opacity: isActive ? 1 : 0.3,
-                  transition: isActive ? 'none' : 'all 0.3s',
+                  background: `
+                    radial-gradient(
+                      ellipse 120% 120% at calc(30% + ${refractionX}%) calc(70% + ${refractionY}%),
+                      hsl(320 100% 70% / 0.8) 0%,
+                      hsl(280 100% 60% / 0.6) 20%,
+                      hsl(200 100% 60% / 0.4) 40%,
+                      hsl(150 100% 50% / 0.3) 60%,
+                      transparent 80%
+                    ),
+                    radial-gradient(
+                      ellipse 100% 100% at calc(70% - ${refractionX}%) calc(30% - ${refractionY}%),
+                      hsl(60 100% 70% / 0.6) 0%,
+                      hsl(30 100% 60% / 0.5) 25%,
+                      hsl(0 100% 60% / 0.3) 50%,
+                      transparent 75%
+                    )
+                  `,
+                  filter: 'saturate(1.5) brightness(1.2)',
+                  opacity: isActive ? 0.9 : 0.4,
+                  transition: isActive ? 'none' : 'opacity 0.3s',
                 }}
               />
             </div>
