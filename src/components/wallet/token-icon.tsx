@@ -49,11 +49,30 @@ export interface TokenIconProps {
 }
 
 /**
+ * 检查 URL 是否是同源的（本地资源）
+ */
+function isSameOrigin(url: string): boolean {
+  // 相对路径视为同源
+  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+    return true
+  }
+  // 检查是否与当前页面同源
+  try {
+    const urlObj = new URL(url)
+    return urlObj.origin === window.location.origin
+  } catch {
+    return true // 解析失败视为相对路径
+  }
+}
+
+/**
  * 根据 base 路径和 symbol 生成图标 URL
+ * - 本地资源（同源）：使用 {symbol}.svg 格式
+ * - CDN 资源（跨域）：使用 icon-{symbol}.png 格式
  */
 function buildIconUrl(base: string, symbol: string): string {
   const lowerSymbol = symbol.toLowerCase();
-  if (base.startsWith('/') || base.startsWith('./')) {
+  if (isSameOrigin(base)) {
     return `${base}/${lowerSymbol}.svg`;
   }
   return `${base}/icon-${lowerSymbol}.png`;
