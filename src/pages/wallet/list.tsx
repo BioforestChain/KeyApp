@@ -38,7 +38,7 @@ export function WalletListPage() {
   }, [goBack]);
 
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="bg-background flex min-h-screen flex-col">
       <PageHeader
         title={t('list.title')}
         onBack={handleBack}
