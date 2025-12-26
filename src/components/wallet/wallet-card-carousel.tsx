@@ -105,7 +105,7 @@ export function WalletCardCarousel({
         className="wallet-swiper"
       >
         {wallets.map((wallet) => (
-          <SwiperSlide key={wallet.id} className="wallet-slide">
+          <SwiperSlide key={wallet.id}>
             <WalletCard
               wallet={wallet}
               chain={selectedChain}
@@ -126,20 +126,20 @@ export function WalletCardCarousel({
       <style>{`
         .wallet-carousel {
           width: 100%;
-          padding: 0.5rem 0;
+          padding-top: 2rem;
+          padding-bottom: 0.5rem;
         }
 
         .wallet-swiper {
-          width: min(92vw, 380px);
-          height: 220px;
+          width: min(92vw, 360px);
+          height: 212px;
           margin: 0 auto;
           overflow: visible;
         }
 
-        .wallet-slide {
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .wallet-swiper .swiper-slide {
+          width: 100% !important;
+          height: 100% !important;
           border-radius: 1rem;
         }
       `}</style>

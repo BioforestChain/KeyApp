@@ -51,15 +51,18 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
     let x = 0
     let y = 0
+    let active = false
 
     if (touch.active && enableTouch) {
       // 触摸优先，但仍叠加轻微重力
       x = touch.x * touchStrength + gyro.x * gyroStrength * 0.3
       y = touch.y * touchStrength + gyro.y * gyroStrength * 0.3
-    } else if (enableGyro) {
-      // 仅重力感应
+      active = true
+    } else if (enableGyro && (Math.abs(gyro.x) > 0.01 || Math.abs(gyro.y) > 0.01)) {
+      // 重力感应 - 有明显倾斜时也算激活
       x = gyro.x * gyroStrength
       y = gyro.y * gyroStrength
+      active = true
     }
 
     // 限制范围
@@ -69,7 +72,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
     setState({
       pointerX: x,
       pointerY: y,
-      isActive: touch.active,
+      isActive: active,
     })
   }, [gyroStrength, touchStrength, enableGyro, enableTouch])
 

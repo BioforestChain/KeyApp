@@ -71,13 +71,13 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
     return (
       <div
         ref={ref}
-        className={cn('wallet-card-container', className)}
+        className={cn('wallet-card-container h-full w-full', className)}
         style={{ perspective: '1000px' }}
       >
         <div
           ref={cardRef}
           className={cn(
-            'wallet-card relative aspect-[1.7/1] w-full overflow-hidden rounded-2xl',
+            'wallet-card relative h-full w-full overflow-hidden rounded-2xl',
             'transform-gpu touch-none select-none',
             'animate-card-breathe',
             isActive && 'animation-paused'
