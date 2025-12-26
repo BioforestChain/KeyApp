@@ -79,47 +79,36 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     setTimeout(() => setCopied(false), 2000);
   }, [onCopyAddress]);
 
-  // ============ 基于角度的光影算法 ============
+  // ============ 基于角度的光影算法 (GPU动画同步) ============
   
-  // 1. 卡片倾斜角度 (度)
-  const maxTilt = 15; // 最大倾斜角度
-  const tiltX = isActive ? pointerY * -maxTilt : 0; // 绕X轴旋转 (前后倾斜)
-  const tiltY = isActive ? pointerX * maxTilt : 0;  // 绕Y轴旋转 (左右倾斜)
+  // 1. 卡片倾斜角度 (度) - 作为 CSS 变量传递，让 GPU 处理过渡
+  const maxTilt = 15;
+  const tiltX = isActive ? pointerY * -maxTilt : 0;
+  const tiltY = isActive ? pointerX * maxTilt : 0;
   
-  // 2. 转换为弧度进行物理计算
-  const tiltXRad = (tiltX * Math.PI) / 180;
-  const tiltYRad = (tiltY * Math.PI) / 180;
+  // 2. 归一化倾斜值 (-1 到 1) - 用于 CSS calc()
+  const normalizedTiltX = tiltX / maxTilt; // -1 to 1
+  const normalizedTiltY = tiltY / maxTilt; // -1 to 1
   
-  // 3. 总倾斜角度 (用于强度计算)
-  const totalTiltRad = Math.sqrt(tiltXRad * tiltXRad + tiltYRad * tiltYRad);
-  const totalTiltDeg = (totalTiltRad * 180) / Math.PI;
+  // 3. 倾斜强度 (0 到 1) - 用于透明度等
+  const tiltIntensity = isActive ? Math.min(1, Math.sqrt(normalizedTiltX * normalizedTiltX + normalizedTiltY * normalizedTiltY)) : 0;
   
-  // 4. 倾斜方向角 (用于光带旋转，0° = 右，90° = 上)
-  const tiltDirection = Math.atan2(-tiltX, tiltY) * (180 / Math.PI);
+  // 4. 倾斜方向角 (度) - 用于彩虹旋转
+  const tiltDirection = Math.atan2(-normalizedTiltX, normalizedTiltY) * (180 / Math.PI);
   
-  // 5. 计算光线反射点位置 (假设光源从右上方照射) (基于入射角=反射角)
-  // 当卡片倾斜时，高光点会向倾斜的反方向移动
-  const reflectX = -Math.sin(tiltYRad) * 50; // 高光X偏移 (%)
-  const reflectY = -Math.sin(tiltXRad) * 50; // 高光Y偏移 (%)
+  // CSS 变量 - 所有光影效果都通过这些变量驱动
+  // 过渡动画在 CSS 层面统一处理
+  const cssVars = {
+    '--tilt-x': tiltX,           // 倾斜角度 X (度)
+    '--tilt-y': tiltY,           // 倾斜角度 Y (度)
+    '--tilt-nx': normalizedTiltX, // 归一化 X (-1~1)
+    '--tilt-ny': normalizedTiltY, // 归一化 Y (-1~1)
+    '--tilt-intensity': tiltIntensity, // 强度 (0~1)
+    '--tilt-direction': tiltDirection, // 方向角 (度)
+  } as React.CSSProperties;
   
-  // 7. 菲涅尔效应：倾斜角度越大，边缘反射越强
-  // F = F0 + (1-F0) * (1-cos(θ))^5 简化版
-  const fresnelIntensity = Math.min(1, Math.pow(Math.sin(totalTiltRad), 2) * 3);
-  
-  // 8. 全息色带位移 - 基于倾斜角度和方向
-  // 模拟光栅衍射：不同角度显示不同颜色
-  const holoShift = totalTiltDeg * 2; // 色带位移量
-  const holoTranslateX = Math.sin(tiltYRad) * -30; // 视差位移 X
-  const holoTranslateY = Math.sin(tiltXRad) * -30; // 视差位移 Y
-  
-  // 9. 各层透明度 - 基于物理角度
-  const patternOpacity = isActive ? 0.08 + fresnelIntensity * 0.15 : 0.03;
-  const watermarkOpacity = isActive ? 0.15 + fresnelIntensity * 0.7 : 0;
-  const glareOpacity = fresnelIntensity * 0.8;
-  
-  // 兼容旧变量名
-  const rotateX = tiltX;
-  const rotateY = tiltY;
+  // 动画配置 - 统一用于 transform 和光影
+  const transitionConfig = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ease-out-back 回弹效果
 
   // 缓存背景渐变样式（只依赖 themeHue）
   const bgGradient = useMemo(
@@ -150,15 +139,19 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
 
   return (
     <div ref={ref} className={cn('wallet-card-container h-full w-full', className)} style={{ perspective: '1000px' }}>
+      {/* 卡片主体 - CSS 变量驱动所有动画 */}
       <div
         ref={cardRef}
         className="wallet-card relative h-full w-full transform-gpu touch-none overflow-hidden rounded-2xl select-none"
         style={{
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+          ...cssVars,
+          // 3D 旋转 - 使用 CSS 变量
+          transform: `rotateX(calc(var(--tilt-x) * 1deg)) rotateY(calc(var(--tilt-y) * 1deg))`,
           transformStyle: 'preserve-3d',
-          transition: isActive ? 'none' : 'transform 0.4s ease-out',
+          // 统一过渡配置 - 激活时即时响应，松手时回弹
+          transition: isActive ? 'none' : transitionConfig,
           isolation: 'isolate',
-          willChange: 'transform', // 优化 3D 变换性能
+          willChange: 'transform, --tilt-x, --tilt-y, --tilt-intensity',
         }}
       >
         {/* 1. 主背景渐变 */}
@@ -175,7 +168,9 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             maskSize: '24px 24px',
             maskRepeat: 'repeat',
             mixBlendMode: 'color-dodge',
-            opacity: patternOpacity,
+            // 透明度跟随强度，带过渡
+            opacity: `calc(0.05 + var(--tilt-intensity) * 0.2)`,
+            transition: isActive ? 'none' : transitionConfig,
           }}
         >
           <div
@@ -184,33 +179,37 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
               inset: '-50%',
               width: '200%',
               height: '200%',
-              // 彩虹色带随倾斜方向旋转，模拟光栅衍射
+              // 彩虹色带随倾斜方向旋转
               background: `linear-gradient(
-                ${tiltDirection + 90}deg,
-                rgba(255, 0, 0, 0.6) ${10 + holoShift}%,
-                rgba(255, 165, 0, 0.6) ${20 + holoShift}%,
-                rgba(255, 255, 0, 0.6) ${30 + holoShift}%,
-                rgba(0, 255, 0, 0.6) ${40 + holoShift}%,
-                rgba(0, 255, 255, 0.6) ${50 + holoShift}%,
-                rgba(0, 0, 255, 0.6) ${60 + holoShift}%,
-                rgba(128, 0, 255, 0.6) ${70 + holoShift}%,
-                transparent ${85 + holoShift}%
+                calc(${tiltDirection + 90}deg),
+                rgba(255, 0, 0, 0.6) 10%,
+                rgba(255, 165, 0, 0.6) 20%,
+                rgba(255, 255, 0, 0.6) 30%,
+                rgba(0, 255, 0, 0.6) 40%,
+                rgba(0, 255, 255, 0.6) 50%,
+                rgba(0, 0, 255, 0.6) 60%,
+                rgba(128, 0, 255, 0.6) 70%,
+                transparent 85%
               )`,
               filter: 'blur(15px)',
-              transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
+              // 视差位移 - 使用 CSS 变量
+              transform: `translate(calc(var(--tilt-ny) * -30%), calc(var(--tilt-nx) * 30%))`,
+              transition: isActive ? 'none' : transitionConfig,
               willChange: 'transform',
             }}
           />
         </div>
 
-        {/* 3. 防伪层2：Logo水印 (Watermark) - 默认隐藏，动起来才显示 */}
+        {/* 3. 防伪层2：Logo水印 (Watermark) */}
         {logoMaskStyle && (
           <div
             className="absolute inset-0 overflow-hidden rounded-2xl"
             style={{
               ...logoMaskStyle,
               mixBlendMode: 'overlay',
-              opacity: watermarkOpacity,
+              // 透明度跟随强度
+              opacity: `calc(var(--tilt-intensity) * 0.7)`,
+              transition: isActive ? 'none' : transitionConfig,
             }}
           >
             <div
@@ -220,7 +219,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
                 width: '200%',
                 height: '200%',
                 background: GOLD_GRADIENT,
-                transform: `translate(${holoTranslateX}%, ${holoTranslateY}%)`,
+                transform: `translate(calc(var(--tilt-ny) * -30%), calc(var(--tilt-nx) * 30%))`,
+                transition: isActive ? 'none' : transitionConfig,
                 willChange: 'transform',
               }}
             />
@@ -231,15 +231,16 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
         <div
           className="pointer-events-none absolute inset-0 rounded-2xl"
           style={{
+            // 高光位置跟随倾斜反方向
             background: `radial-gradient(
-                ellipse 80% 60% at calc(50% + ${reflectX}%) calc(50% + ${reflectY}%),
+                ellipse 80% 60% at calc(50% + var(--tilt-ny) * -50%) calc(50% + var(--tilt-nx) * 50%),
                 rgba(255,255,255,0.4) 0%,
                 rgba(255,255,255,0.1) 30%,
                 transparent 60%
               )`,
             mixBlendMode: 'overlay',
-            opacity: glareOpacity,
-            transition: 'opacity 0.2s',
+            opacity: `calc(var(--tilt-intensity) * 0.6)`,
+            transition: isActive ? 'none' : transitionConfig,
           }}
         />
 
