@@ -5,7 +5,7 @@ import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerRe
 import type { Contact, ContactAddress } from '@/stores';
 import { addressBookStore, addressBookSelectors, preferencesActions } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
-import { AddressInput, AddressBookSuggestionProvider } from '@/components/transfer';
+import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Alert } from '@/components/common/alert';
@@ -279,19 +279,17 @@ export function SendPage() {
           )}
         </div>
 
-        {/* Address input */}
-        <AddressBookSuggestionProvider>
-          <AddressInput
-            label={t('sendPage.toAddressLabel')}
-            value={state.toAddress}
-            onChange={setToAddress}
-            placeholder={t('sendPage.toAddressPlaceholder', { chain: selectedChainName })}
-            onScan={handleOpenScanner}
-            onContactPicker={handleContactPicker}
-            chainType={selectedChain}
-            error={state.addressError ?? undefined}
-          />
-        </AddressBookSuggestionProvider>
+        {/* Address input - 直接从 addressBookStore 读取（单一数据源） */}
+        <AddressInput
+          label={t('sendPage.toAddressLabel')}
+          value={state.toAddress}
+          onChange={setToAddress}
+          placeholder={t('sendPage.toAddressPlaceholder', { chain: selectedChainName })}
+          onScan={handleOpenScanner}
+          onContactPicker={handleContactPicker}
+          chainType={selectedChain}
+          error={state.addressError ?? undefined}
+        />
 
         {/* Amount input */}
         <AmountInput

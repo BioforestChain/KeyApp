@@ -1,11 +1,11 @@
 import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useStore } from '@tanstack/react-store';
 import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
-import { useContactSuggestions } from './contact-suggestion-context';
-import type { ChainType, ContactSuggestion } from '@/stores';
+import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion } from '@/stores';
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value?: string | undefined;
@@ -46,8 +46,9 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const errorId = useId();
     const listboxId = useId();
 
-    // Get contacts from context (provided by AddressBookSuggestionProvider)
-    const { getSuggestions, hasContacts } = useContactSuggestions();
+    // 直接从 addressBookStore 读取数据（单一数据源）
+    const addressBookState = useStore(addressBookStore);
+    const hasContacts = addressBookState.contacts.length > 0;
 
     const currentValue = value || internalValue;
     const isValid = isValidAddress(currentValue);
@@ -56,8 +57,8 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     // Get contact suggestions - now supports empty query for "focus to show all"
     const suggestions = useMemo(() => {
       if (!showSuggestions) return [];
-      return getSuggestions(currentValue || '', chainType, maxSuggestions);
-    }, [getSuggestions, currentValue, chainType, showSuggestions, maxSuggestions]);
+      return addressBookSelectors.suggestContacts(addressBookState, currentValue || '', chainType, maxSuggestions);
+    }, [addressBookState, currentValue, chainType, showSuggestions, maxSuggestions]);
 
     // Show dropdown when focused and has contacts (even without input)
     useEffect(() => {

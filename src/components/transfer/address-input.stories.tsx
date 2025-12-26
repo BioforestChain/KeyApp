@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddressInput } from './address-input';
-import { AddressBookSuggestionProvider } from './contact-suggestion-context';
 import { addressBookActions } from '@/stores';
 
 const meta: Meta<typeof AddressInput> = {
@@ -84,6 +83,7 @@ export const TransferForm: Story = {
 
 /**
  * 带联系人建议 - 聚焦即展开，显示所有联系人
+ * AddressInput 直接从 addressBookStore 读取数据（单一数据源）
  */
 export const WithContactSuggestions: Story = {
   decorators: [
@@ -111,11 +111,7 @@ export const WithContactSuggestions: Story = {
         ],
         memo: '朋友',
       });
-      return (
-        <AddressBookSuggestionProvider>
-          <Story />
-        </AddressBookSuggestionProvider>
-      );
+      return <Story />;
     },
   ],
   render: () => {
@@ -142,6 +138,7 @@ export const WithContactSuggestions: Story = {
 
 /**
  * 按链类型过滤 - 只显示指定链的地址
+ * AddressInput 直接从 addressBookStore 读取数据（单一数据源）
  */
 export const FilterByChain: Story = {
   decorators: [
@@ -160,11 +157,7 @@ export const FilterByChain: Story = {
           { id: '3', address: 'c7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11', chainType: 'ccchain', isDefault: true },
         ],
       });
-      return (
-        <AddressBookSuggestionProvider>
-          <Story />
-        </AddressBookSuggestionProvider>
-      );
+      return <Story />;
     },
   ],
   render: () => {
