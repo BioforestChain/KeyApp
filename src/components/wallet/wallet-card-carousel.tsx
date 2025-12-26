@@ -97,7 +97,7 @@ export function WalletCardCarousel({
       {wallets.length > 1 && (
         <button
           onClick={onOpenWalletList}
-          className="absolute left-4 top-0 z-10 flex items-center gap-1.5 rounded-full bg-muted/80 px-3 py-1.5 text-xs font-medium text-foreground/80 backdrop-blur-sm transition-colors hover:bg-muted"
+          className="absolute left-4 top-0 z-10 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground backdrop-blur-sm transition-colors hover:bg-primary/90"
         >
           <IconWallet className="size-3.5" />
           <span>{wallets.length} 个钱包</span>
