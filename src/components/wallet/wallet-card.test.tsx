@@ -1,99 +1,167 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { WalletCard, type WalletInfo } from './wallet-card'
-import { TestI18nProvider } from '@/test/i18n-mock'
+import { WalletCard } from './wallet-card'
+import type { Wallet } from '@/stores'
 
-// Mock clipboard service
-vi.mock('@/services/clipboard', () => ({
-  clipboardService: {
-    write: vi.fn().mockResolvedValue(undefined),
-    read: vi.fn().mockResolvedValue(''),
-  },
+// Mock useCardInteraction hook
+vi.mock('@/hooks/useCardInteraction', () => ({
+  useCardInteraction: () => ({
+    pointerX: 0,
+    pointerY: 0,
+    isActive: false,
+    bindElement: vi.fn(),
+    style: {},
+  }),
 }))
 
-const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>)
-
-const mockWallet: WalletInfo = {
-  id: '1',
+const createMockWallet = (overrides: Partial<Wallet> = {}): Wallet => ({
+  id: 'test-wallet-1',
   name: '我的钱包',
   address: '0x1234567890abcdef1234567890abcdef12345678',
-  balance: '1,234.56 USDT',
-  fiatValue: '1,234.56',
-  chainName: 'Ethereum',
-  isBackedUp: true,
-}
+  chain: 'ethereum',
+  chainAddresses: [
+    {
+      chain: 'ethereum',
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      tokens: [],
+    },
+  ],
+  createdAt: Date.now(),
+  tokens: [],
+  ...overrides,
+})
 
-describe('WalletCard', () => {
+describe('WalletCard (3D)', () => {
+  const defaultProps = {
+    wallet: createMockWallet(),
+    chain: 'ethereum' as const,
+    chainName: 'Ethereum',
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  }
+
   it('renders wallet name', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
+    render(<WalletCard {...defaultProps} />)
     expect(screen.getByRole('heading', { name: '我的钱包' })).toBeInTheDocument()
   })
 
-  it('renders wallet balance', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
-    expect(screen.getByText('1,234.56 USDT')).toBeInTheDocument()
-  })
-
-  it('renders fiat value when provided', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
-    expect(screen.getByText('≈ $1,234.56')).toBeInTheDocument()
-  })
-
-  it('renders chain name when provided', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
+  it('renders chain name', () => {
+    render(<WalletCard {...defaultProps} />)
     expect(screen.getByText('Ethereum')).toBeInTheDocument()
   })
 
-  it('shows backup warning when isBackedUp is false', () => {
-    renderWithI18n(<WalletCard wallet={{ ...mockWallet, isBackedUp: false }} />)
-    expect(screen.getByText('未备份')).toBeInTheDocument()
+  it('renders truncated address', () => {
+    render(<WalletCard {...defaultProps} />)
+    // Address should be truncated: 0x1234...5678
+    expect(screen.getByText('0x1234...5678')).toBeInTheDocument()
   })
 
-  it('does not show backup warning when isBackedUp is true', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
-    expect(screen.queryByText('未备份')).not.toBeInTheDocument()
+  it('renders placeholder when no address', () => {
+    render(<WalletCard {...defaultProps} address={undefined} />)
+    expect(screen.getByText('---')).toBeInTheDocument()
   })
 
-  it('calls onCopyAddress when address is clicked', async () => {
+  it('calls onCopyAddress when copy button clicked', async () => {
     const handleCopy = vi.fn()
-    renderWithI18n(<WalletCard wallet={mockWallet} onCopyAddress={handleCopy} />)
-    
-    // AddressDisplay uses aria-label with full address
-    const addressButton = screen.getByRole('button', { name: /复制.*0x1234/i })
-    await userEvent.click(addressButton)
+    render(<WalletCard {...defaultProps} onCopyAddress={handleCopy} />)
+
+    // Get all buttons: [chain selector, settings, copy]
+    const buttons = screen.getAllByRole('button')
+    // The copy button is the last one (in the bottom row after address)
+    const copyButton = buttons[buttons.length - 1]
+
+    await userEvent.click(copyButton)
+
     expect(handleCopy).toHaveBeenCalledTimes(1)
   })
 
-  it('renders transfer button when onTransfer is provided', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} onTransfer={() => {}} />)
-    expect(screen.getByRole('button', { name: '转账' })).toBeInTheDocument()
+  it('shows check icon after copy', async () => {
+    const handleCopy = vi.fn()
+    render(<WalletCard {...defaultProps} onCopyAddress={handleCopy} />)
+
+    const buttons = screen.getAllByRole('button')
+    await userEvent.click(buttons[buttons.length - 1])
+
+    // Check icon should appear
+    await waitFor(() => {
+      expect(screen.getByText((_, el) => el?.classList.contains('text-green-300') ?? false)).toBeInTheDocument()
+    })
   })
 
-  it('renders receive button when onReceive is provided', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} onReceive={() => {}} />)
-    expect(screen.getByRole('button', { name: '收款' })).toBeInTheDocument()
+  it('calls onOpenChainSelector when chain button clicked', async () => {
+    const handleOpenChainSelector = vi.fn()
+    render(<WalletCard {...defaultProps} onOpenChainSelector={handleOpenChainSelector} />)
+
+    // Chain selector button contains chain name
+    const chainButton = screen.getByRole('button', { name: /Ethereum/i })
+    await userEvent.click(chainButton)
+
+    expect(handleOpenChainSelector).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onTransfer when transfer button is clicked', async () => {
-    const handleTransfer = vi.fn()
-    renderWithI18n(<WalletCard wallet={mockWallet} onTransfer={handleTransfer} />)
-    
-    await userEvent.click(screen.getByRole('button', { name: '转账' }))
-    expect(handleTransfer).toHaveBeenCalledTimes(1)
+  it('calls onOpenSettings when settings button clicked', async () => {
+    const handleOpenSettings = vi.fn()
+    render(<WalletCard {...defaultProps} onOpenSettings={handleOpenSettings} />)
+
+    // Settings button is in the top-right
+    const buttons = screen.getAllByRole('button')
+    // Second button (after chain selector) should be settings
+    await userEvent.click(buttons[1])
+
+    expect(handleOpenSettings).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onReceive when receive button is clicked', async () => {
-    const handleReceive = vi.fn()
-    renderWithI18n(<WalletCard wallet={mockWallet} onReceive={handleReceive} />)
-    
-    await userEvent.click(screen.getByRole('button', { name: '收款' }))
-    expect(handleReceive).toHaveBeenCalledTimes(1)
+  it('applies custom theme hue', () => {
+    const { container } = render(<WalletCard {...defaultProps} themeHue={200} />)
+
+    const card = container.querySelector('.wallet-card')
+    expect(card).toHaveStyle({ '--theme-hue': '200' })
   })
 
-  it('does not render action buttons when handlers are not provided', () => {
-    renderWithI18n(<WalletCard wallet={mockWallet} />)
-    expect(screen.queryByRole('button', { name: '转账' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '收款' })).not.toBeInTheDocument()
+  it('applies default theme hue when not specified', () => {
+    const { container } = render(<WalletCard {...defaultProps} />)
+
+    const card = container.querySelector('.wallet-card')
+    expect(card).toHaveStyle({ '--theme-hue': '323' })
+  })
+
+  it('renders with 3D transform styles', () => {
+    const { container } = render(<WalletCard {...defaultProps} />)
+
+    const card = container.querySelector('.wallet-card')
+    expect(card).toHaveStyle({ transformStyle: 'preserve-3d' })
+  })
+
+  it('has perspective container', () => {
+    const { container } = render(<WalletCard {...defaultProps} />)
+
+    const perspectiveContainer = container.querySelector('.perspective-\\[1000px\\]')
+    expect(perspectiveContainer).toBeInTheDocument()
+  })
+
+  it('renders different chain names', () => {
+    render(<WalletCard {...defaultProps} chain="tron" chainName="Tron" />)
+    expect(screen.getByText('Tron')).toBeInTheDocument()
+  })
+
+  it('handles long wallet names', () => {
+    const longNameWallet = createMockWallet({ name: '这是一个非常长的钱包名称用于测试' })
+    render(<WalletCard {...defaultProps} wallet={longNameWallet} />)
+
+    expect(screen.getByRole('heading', { name: '这是一个非常长的钱包名称用于测试' })).toBeInTheDocument()
+  })
+
+  it('accepts custom className', () => {
+    const { container } = render(<WalletCard {...defaultProps} className="custom-class" />)
+
+    const perspectiveContainer = container.querySelector('.custom-class')
+    expect(perspectiveContainer).toBeInTheDocument()
+  })
+
+  it('forwards ref correctly', () => {
+    const ref = vi.fn()
+    render(<WalletCard {...defaultProps} ref={ref} />)
+
+    expect(ref).toHaveBeenCalled()
   })
 })

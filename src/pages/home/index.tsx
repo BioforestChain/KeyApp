@@ -1,44 +1,41 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigation, useFlow } from '@/stackflow';
-import { TokenList } from '@/components/token/token-list';
-import { GradientButton } from '@/components/common/gradient-button';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { ChainIcon } from '@/components/wallet/chain-icon';
-import { useClipboard, useToast, useHaptics } from '@/services';
+import { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigation, useFlow } from '@/stackflow'
+import { TokenList } from '@/components/token/token-list'
+import { TransactionList } from '@/components/transaction/transaction-list'
+import { GradientButton } from '@/components/common/gradient-button'
+import { Button } from '@/components/ui/button'
+import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { WalletCardCarousel } from '@/components/wallet/wallet-card-carousel'
+import { WalletListSheet } from '@/components/wallet/wallet-list-sheet'
+import { SwipeableContentTabs } from '@/components/home/content-tabs'
+import { useWalletTheme } from '@/hooks/useWalletTheme'
+import { useClipboard, useToast, useHaptics } from '@/services'
+import { useTransactionHistoryQuery } from '@/queries'
 import {
   IconPlus as Plus,
   IconSend as Send,
   IconQrcode as QrCode,
-  IconCopy as Copy,
-  IconChevronDown as ChevronDown,
-  IconCheck as Check,
   IconLineScan as ScanLine,
-} from '@tabler/icons-react';
-
-/** 截断地址显示 */
-function truncateAddress(address: string, startChars = 6, endChars = 4): string {
-  if (address.length <= startChars + endChars + 3) return address;
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
-}
+} from '@tabler/icons-react'
 import {
   useCurrentWallet,
   useSelectedChain,
-  useCurrentChainAddress,
   useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
+  walletActions,
+  walletStore,
   type ChainType,
-} from '@/stores';
+} from '@/stores'
+import { useStore } from '@tanstack/react-store'
+import type { TransactionInfo } from '@/components/transaction/transaction-item'
 
 const CHAIN_NAMES: Record<ChainType, string> = {
-  // 外部链
   ethereum: 'Ethereum',
   bitcoin: 'Bitcoin',
   tron: 'Tron',
   binance: 'BSC',
-  // BioForest 链
   bfmeta: 'BFMeta',
   ccchain: 'CCChain',
   pmchain: 'PMChain',
@@ -47,140 +44,216 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   biwmeta: 'BIWMeta',
   ethmeta: 'ETHMeta',
   malibu: 'Malibu',
-};
+}
 
 export function HomePage() {
-  const { navigate } = useNavigation();
-  const { push } = useFlow();
-  const clipboard = useClipboard();
-  const toast = useToast();
-  const haptics = useHaptics();
-  const { t } = useTranslation(['home', 'common']);
+  const { navigate } = useNavigation()
+  const { push } = useFlow()
+  const clipboard = useClipboard()
+  const toast = useToast()
+  const haptics = useHaptics()
+  const { t } = useTranslation(['home', 'common', 'transaction'])
 
-  const isInitialized = useWalletInitialized();
-  const hasWallet = useHasWallet();
-  const currentWallet = useCurrentWallet();
-  const selectedChain = useSelectedChain();
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const chainAddress = useCurrentChainAddress();
-  const tokens = useCurrentChainTokens();
+  const isInitialized = useWalletInitialized()
+  const hasWallet = useHasWallet()
+  const currentWallet = useCurrentWallet()
+  const selectedChain = useSelectedChain()
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain
+  const tokens = useCurrentChainTokens()
+  const wallets = useStore(walletStore, (s) => s.wallets)
+  const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
 
-  const [copied, setCopied] = useState(false);
+  // 初始化钱包主题
+  useWalletTheme()
 
-  const handleCopyAddress = async () => {
-    if (chainAddress?.address) {
-      await clipboard.write({ text: chainAddress.address });
-      await haptics.impact('light');
-      setCopied(true);
-      toast.show(t('wallet.addressCopied'));
-      setTimeout(() => setCopied(false), 2000);
+  // 交易历史
+  const { transactions, isLoading: txLoading } = useTransactionHistoryQuery(currentWallet?.id)
+
+  // 钱包列表 Sheet 状态
+  const [walletListOpen, setWalletListOpen] = useState(false)
+  // 当前内容 Tab
+  const [activeTab, setActiveTab] = useState('assets')
+
+  useEffect(() => {
+    if (!isInitialized) {
+      walletActions.initialize()
     }
-  };
+  }, [isInitialized])
 
-  const handleOpenChainSelector = () => {
-    push('ChainSelectorJob', {});
-  };
+  // 复制地址
+  const handleCopyAddress = useCallback(
+    async (address: string) => {
+      await clipboard.write({ text: address })
+      await haptics.impact('light')
+      toast.show(t('wallet.addressCopied'))
+    },
+    [clipboard, haptics, toast, t]
+  )
+
+  // 打开链选择器
+  const handleOpenChainSelector = useCallback(() => {
+    push('ChainSelectorJob', {})
+  }, [push])
+
+  // 打开钱包设置
+  const handleOpenWalletSettings = useCallback(
+    (walletId: string) => {
+      navigate({ to: `/wallet/${walletId}` })
+    },
+    [navigate]
+  )
+
+  // 切换钱包
+  const handleWalletChange = useCallback((walletId: string) => {
+    walletActions.setCurrentWallet(walletId)
+  }, [])
+
+  // 添加钱包
+  const handleAddWallet = useCallback(() => {
+    push('WalletAddJob', {})
+    setWalletListOpen(false)
+  }, [push])
+
+  // 交易点击
+  const handleTransactionClick = useCallback(
+    (tx: TransactionInfo) => {
+      if (tx.id) {
+        navigate({ to: `/transaction/${tx.id}` })
+      }
+    },
+    [navigate]
+  )
 
   if (!isInitialized) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
-    );
+    )
   }
 
   if (!hasWallet || !currentWallet) {
-    return <NoWalletView />;
+    return <NoWalletView />
   }
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      {/* 钱包卡片 - mpay 风格 */}
-      <div className="from-primary to-primary/80 bg-gradient-to-br p-5 pb-8">
-        {/* 链选择器 */}
-        <button
-          data-testid="chain-selector"
-          onClick={handleOpenChainSelector}
-          className="mb-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white"
-          aria-label={t('common:a11y.chainSelector')}
-        >
-          <ChainIcon chain={selectedChain} size="sm" />
-          <span>{selectedChainName}</span>
-          <ChevronDown className="size-4" />
-        </button>
-
-        {/* 钱包名和地址 */}
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-white">{currentWallet.name}</h1>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="font-mono text-sm text-white/70">
-              {chainAddress?.address ? truncateAddress(chainAddress.address) : '---'}
-            </span>
-            <button
-              onClick={handleCopyAddress}
-              className="rounded p-1 hover:bg-white/10"
-              aria-label={t('common:a11y.copyAddress')}
-            >
-              {copied ? <Check className="size-4 text-green-300" /> : <Copy className="size-4 text-white/70" />}
-            </button>
-          </div>
-        </div>
-
-        {/* 操作按钮 - mpay 三按钮布局 */}
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <GradientButton variant="blue" className="w-full" size="sm" onClick={() => navigate({ to: '/send' })}>
-              <Send className="mr-1.5 size-4" />
-              {t('wallet.send')}
-            </GradientButton>
-          </div>
-          <div className="flex-1">
-            <GradientButton variant="red" className="w-full" size="sm" onClick={() => navigate({ to: '/receive' })}>
-              <QrCode className="mr-1.5 size-4" />
-              {t('wallet.receive')}
-            </GradientButton>
-          </div>
-        </div>
-      </div>
-
-      {/* 资产列表 */}
-      <div className="bg-background -mt-4 flex-1 rounded-t-3xl p-5">
-        <h2 className="mb-4 text-lg font-semibold">{t('wallet.assets')}</h2>
-        <TokenList
-          tokens={tokens.map((token) => ({
-            symbol: token.symbol,
-            name: token.name,
-            chain: selectedChain,
-            balance: token.balance,
-            fiatValue: token.fiatValue ? String(token.fiatValue) : undefined,
-            change24h: token.change24h,
-            icon: token.icon,
-          }))}
-          onTokenClick={(token) => {
-            // TODO: Implement token detail page route once available
-            console.log('Token clicked:', token.symbol);
-          }}
-          emptyTitle={t('wallet.noAssets')}
-          emptyDescription={t('wallet.noAssetsOnChain', { chain: selectedChainName })}
+      {/* 钱包卡片轮播 */}
+      <div className="bg-gradient-to-b from-background to-muted/30 pt-4 pb-2">
+        <WalletCardCarousel
+          wallets={wallets}
+          currentWalletId={currentWalletId}
+          selectedChain={selectedChain}
+          chainNames={CHAIN_NAMES}
+          onWalletChange={handleWalletChange}
+          onCopyAddress={handleCopyAddress}
+          onOpenChainSelector={handleOpenChainSelector}
+          onOpenSettings={handleOpenWalletSettings}
+          onOpenWalletList={() => setWalletListOpen(true)}
         />
+
+        {/* 快捷操作按钮 */}
+        <div className="mt-4 flex justify-center gap-6 px-6">
+          <button
+            onClick={() => navigate({ to: '/send' })}
+            className="flex flex-col items-center gap-1"
+          >
+            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
+              <Send className="text-primary size-5" />
+            </div>
+            <span className="text-xs">{t('wallet.send')}</span>
+          </button>
+          <button
+            onClick={() => navigate({ to: '/receive' })}
+            className="flex flex-col items-center gap-1"
+          >
+            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
+              <QrCode className="text-primary size-5" />
+            </div>
+            <span className="text-xs">{t('wallet.receive')}</span>
+          </button>
+          <button
+            onClick={() => navigate({ to: '/scanner' })}
+            className="flex flex-col items-center gap-1"
+          >
+            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
+              <ScanLine className="text-primary size-5" />
+            </div>
+            <span className="text-xs">{t('common:a11y.scan')}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Scanner FAB */}
-      <button
-        onClick={() => navigate({ to: '/scanner' })}
-        className="bg-primary fixed right-6 bottom-[calc(var(--safe-area-inset-bottom)+1.5rem)] z-60 flex size-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-        aria-label={t('common:a11y.scan')}
-      >
-        <ScanLine className="text-primary-foreground size-6" />
-      </button>
+      {/* 内容区 Tab 切换 */}
+      <div className="bg-background -mt-2 flex-1 rounded-t-3xl pt-2">
+        <SwipeableContentTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="h-full"
+        >
+          {(tab) =>
+            tab === 'assets' ? (
+              <div className="p-4">
+                <TokenList
+                  tokens={tokens.map((token) => ({
+                    symbol: token.symbol,
+                    name: token.name,
+                    chain: selectedChain,
+                    balance: token.balance,
+                    fiatValue: token.fiatValue ? String(token.fiatValue) : undefined,
+                    change24h: token.change24h,
+                    icon: token.icon,
+                  }))}
+                  onTokenClick={(token) => {
+                    console.log('Token clicked:', token.symbol)
+                  }}
+                  emptyTitle={t('wallet.noAssets')}
+                  emptyDescription={t('wallet.noAssetsOnChain', { chain: selectedChainName })}
+                />
+              </div>
+            ) : (
+              <div className="p-4">
+                <TransactionList
+                  transactions={transactions}
+                  loading={txLoading}
+                  onTransactionClick={handleTransactionClick}
+                  emptyTitle={t('transaction:history.emptyTitle')}
+                  emptyDescription={t('transaction:history.emptyDesc')}
+                />
+              </div>
+            )
+          }
+        </SwipeableContentTabs>
+      </div>
+
+      {/* 钱包列表 Sheet */}
+      {walletListOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setWalletListOpen(false)}
+          />
+          <div className="bg-background absolute right-0 bottom-0 left-0 max-h-[70vh] animate-slide-in-bottom rounded-t-3xl">
+            <WalletListSheet
+              wallets={wallets}
+              currentWalletId={currentWalletId}
+              onSelectWallet={(id) => {
+                handleWalletChange(id)
+                setWalletListOpen(false)
+              }}
+              onAddWallet={handleAddWallet}
+            />
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 }
 
 function NoWalletView() {
-  const { navigate } = useNavigation();
-  const { t } = useTranslation(['home', 'common']);
-  
+  const { navigate } = useNavigation()
+  const { t } = useTranslation(['home', 'common'])
+
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
       <div className="bg-primary/10 rounded-full p-6">
@@ -191,13 +264,21 @@ function NoWalletView() {
         <p className="text-muted-foreground mt-2">{t('welcome.subtitle')}</p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
-        <GradientButton variant="mint" className="w-full" onClick={() => navigate({ to: '/wallet/create' })}>
+        <GradientButton
+          variant="mint"
+          className="w-full"
+          onClick={() => navigate({ to: '/wallet/create' })}
+        >
           {t('welcome.createWallet')}
         </GradientButton>
-        <Button variant="outline" className="w-full" onClick={() => navigate({ to: '/onboarding/recover' })}>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => navigate({ to: '/onboarding/recover' })}
+        >
           {t('welcome.importWallet')}
         </Button>
       </div>
     </div>
-  );
+  )
 }

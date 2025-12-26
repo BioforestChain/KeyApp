@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TabBar, type TabItem } from './tab-bar';
 import {
-  IconHome as Home,
   IconWallet as Wallet,
   IconSettings as Settings,
-  IconArrowLeftRight as ArrowLeftRight,
 } from '@tabler/icons-react';
 import type { CSSProperties } from 'react';
 
@@ -16,17 +14,15 @@ interface AppLayoutProps {
 }
 
 const tabRoutes: Record<string, string> = {
-  home: '/',
-  transfer: '/send',
-  wallet: '/wallet',
+  wallet: '/',
   settings: '/settings',
 };
 
 const routeToTab: Record<string, string> = {
-  '/': 'home',
-  '/send': 'transfer',
-  '/receive': 'transfer',
-  '/wallet': 'wallet',
+  '/': 'wallet',
+  '/send': 'wallet',
+  '/receive': 'wallet',
+  '/history': 'wallet',
   '/settings': 'settings',
 };
 
@@ -35,15 +31,11 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useTranslation();
 
-  const tabHome = t('a11y.tabHome');
-  const tabTransfer = t('a11y.tabTransfer');
   const tabWallet = t('a11y.tabWallet');
   const tabSettings = t('a11y.tabSettings');
 
-  // Build tabs with localized labels
+  // Build tabs with localized labels - 简化为2个tab
   const tabs: TabItem[] = [
-    { id: 'home', label: tabHome, icon: <Home className="size-5" />, ariaLabel: tabHome },
-    { id: 'transfer', label: tabTransfer, icon: <ArrowLeftRight className="size-5" />, ariaLabel: tabTransfer },
     { id: 'wallet', label: tabWallet, icon: <Wallet className="size-5" />, ariaLabel: tabWallet },
     { id: 'settings', label: tabSettings, icon: <Settings className="size-5" />, ariaLabel: tabSettings },
   ];
@@ -55,7 +47,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
 
   // 获取当前激活的 tab
   const activeTab =
-    Object.entries(routeToTab).find(([route]) => pathname === route || pathname.startsWith(route + '/'))?.[1] || 'home';
+    Object.entries(routeToTab).find(([route]) => pathname === route || pathname.startsWith(route + '/'))?.[1] || 'wallet';
 
   const handleTabChange = (tabId: string) => {
     const route = tabRoutes[tabId];
