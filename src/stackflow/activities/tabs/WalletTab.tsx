@@ -27,7 +27,6 @@ import {
   useWalletInitialized,
   walletActions,
   useChainConfigs,
-  type ChainType,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
 

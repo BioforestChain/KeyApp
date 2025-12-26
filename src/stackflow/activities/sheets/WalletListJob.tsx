@@ -1,11 +1,11 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
-import { IconPlus, IconWallet, IconCircleCheckFilled, IconPalette } from "@tabler/icons-react";
+import { IconPlus, IconWallet, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useFlow } from "../../stackflow";
 import { useWallets, useCurrentWallet, walletActions } from "@/stores";
-import { WALLET_THEME_COLORS } from "@/hooks/useWalletTheme";
+import { WALLET_THEME_COLORS, useWalletTheme } from "@/hooks/useWalletTheme";
 
 export const WalletListJob: ActivityComponentType = () => {
   const { t } = useTranslation(["wallet", "common"]);
@@ -13,6 +13,7 @@ export const WalletListJob: ActivityComponentType = () => {
   const wallets = useWallets();
   const currentWallet = useCurrentWallet();
   const currentWalletId = currentWallet?.id;
+  const { getWalletTheme } = useWalletTheme();
 
   const handleSelectWallet = (walletId: string) => {
     walletActions.setCurrentWallet(walletId);
@@ -45,7 +46,7 @@ export const WalletListJob: ActivityComponentType = () => {
             const displayAddress = address
               ? `${address.slice(0, 6)}...${address.slice(-4)}`
               : "---";
-            const themeHue = wallet.themeHue ?? 280;
+            const themeHue = getWalletTheme(wallet.id);
             const themeColor = WALLET_THEME_COLORS.find(c => c.hue === themeHue) ?? WALLET_THEME_COLORS[0];
 
             return (

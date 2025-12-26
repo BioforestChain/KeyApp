@@ -13,7 +13,7 @@ import type { ChainType } from '@/stores';
 
 interface TransactionHistoryPageProps {
   /** 初始链过滤器，'all' 表示全部链 */
-  initialChain?: ChainType | 'all';
+  initialChain?: ChainType | 'all' | undefined;
 }
 
 export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageProps) {

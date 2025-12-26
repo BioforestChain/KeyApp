@@ -53,7 +53,7 @@ function getThemeHueForWallet(wallets: { id: string; themeHue?: number }[], wall
   
   // 没有存储的主题色时，根据索引从预设中选择
   const presetHues = Object.values(WALLET_THEME_PRESETS)
-  return presetHues[walletIndex % presetHues.length]
+  return presetHues[walletIndex % presetHues.length] ?? WALLET_THEME_PRESETS.purple
 }
 
 /**

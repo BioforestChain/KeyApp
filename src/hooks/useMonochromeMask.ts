@@ -52,15 +52,37 @@ export function useMonochromeMask(
       const imageData = ctx.getImageData(0, 0, size, size)
       const data = imageData.data
 
-      // 转换为亮度遮罩
+      // 第一遍：找到亮度范围（只考虑有 alpha 的像素）
+      let minLum = 1
+      let maxLum = 0
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i]
-        const g = data[i + 1]
-        const b = data[i + 2]
-        const a = data[i + 3]
+        const a = data[i + 3]!
+        if (a < 10) continue // 忽略几乎透明的像素
+        
+        const r = data[i]!
+        const g = data[i + 1]!
+        const b = data[i + 2]!
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        minLum = Math.min(minLum, lum)
+        maxLum = Math.max(maxLum, lum)
+      }
+      
+      // 防止除以零
+      const lumRange = maxLum - minLum
+      const hasRange = lumRange > 0.01
 
-        // 计算亮度（加权平均）
+      // 第二遍：归一化并转换为遮罩
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]!
+        const g = data[i + 1]!
+        const b = data[i + 2]!
+        const a = data[i + 3]!
+
+        // 计算亮度并归一化到 0~1
         let luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        if (hasRange) {
+          luminance = (luminance - minLum) / lumRange
+        }
 
         // 应用对比度
         luminance = ((luminance - 0.5) * contrast + 0.5)
