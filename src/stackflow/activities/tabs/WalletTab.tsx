@@ -253,14 +253,14 @@ export function WalletTab() {
                   emptyTitle={t("transaction:history.emptyTitle")}
                   emptyDescription={t("transaction:history.emptyDesc")}
                 />
-                {transactions.length > 5 && (
-                  <button
-                    onClick={() => push("HistoryActivity", {})}
-                    className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-                  >
-                    {t("transaction:history.viewAll", { count: transactions.length })}
-                  </button>
-                )}
+                <button
+                  onClick={() => push("HistoryActivity", {})}
+                  className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  {transactions.length > 0
+                    ? t("transaction:history.viewAll", { count: transactions.length })
+                    : t("transaction:history.viewAllChains")}
+                </button>
               </div>
             )
           }
