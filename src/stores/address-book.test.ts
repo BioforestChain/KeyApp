@@ -50,7 +50,7 @@ describe('AddressBookStore', () => {
       expect(stored).not.toBeNull()
 
       const parsed = JSON.parse(stored!) as { version: number; contacts: Contact[] }
-      expect(parsed.version).toBe(2)
+      expect(parsed.version).toBe(3)
       expect(parsed.contacts).toHaveLength(1)
       expect(parsed.contacts[0]!.name).toBe('Bob')
     })
@@ -246,16 +246,16 @@ describe('AddressBookStore', () => {
   })
 
   describe('initialize', () => {
-    it('loads contacts from localStorage (v2 format)', () => {
+    it('loads contacts from localStorage (v3 format)', () => {
       addressBookActions.clearAll()
 
       const mockData = {
-        version: 2,
+        version: 3,
         contacts: [
           {
             id: '1',
             name: 'Alice',
-            addresses: [{ id: 'a1', address: '0x1111', label: 'ETH' }],
+            addresses: [{ id: 'a1', address: '0x1111', label: 'Main' }],
             createdAt: Date.now(),
             updatedAt: Date.now(),
           },
@@ -272,30 +272,30 @@ describe('AddressBookStore', () => {
       expect(state.isInitialized).toBe(true)
     })
 
-    it('migrates v1 (legacy) format to v2', () => {
+    it('ignores old version data (breaking change)', () => {
       addressBookActions.clearAll()
 
-      // v1 format: array of contacts with single address
-      const legacyContacts = [
-        {
-          id: '1',
-          name: 'Alice',
-          address: '0x1111111111111111111111111111111111111111',
-          chain: 'ethereum',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        },
-      ]
-      localStorage.setItem('bfm_address_book', JSON.stringify(legacyContacts))
+      // Old v2 format should be ignored
+      const oldData = {
+        version: 2,
+        contacts: [
+          {
+            id: '1',
+            name: 'Alice',
+            addresses: [{ id: 'a1', address: '0x1111', label: 'ETH' }],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      }
+      localStorage.setItem('bfm_address_book', JSON.stringify(oldData))
 
       addressBookActions.initialize()
 
+      // Old version data is not loaded (breaking change)
       const state = addressBookStore.state
-      expect(state.contacts).toHaveLength(1)
-      expect(state.contacts[0]!.name).toBe('Alice')
-      expect(state.contacts[0]!.addresses).toHaveLength(1)
-      expect(state.contacts[0]!.addresses[0]?.address).toBe('0x1111111111111111111111111111111111111111')
-      expect(state.contacts[0]!.addresses[0]?.label).toBe('ETHEREUM')
+      expect(state.contacts).toHaveLength(0)
+      expect(state.isInitialized).toBe(true)
     })
   })
 

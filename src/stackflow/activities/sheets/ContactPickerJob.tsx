@@ -4,29 +4,25 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
 import { cn } from "@/lib/utils";
-import { IconSearch, IconChevronRight } from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import { ContactAvatar } from "@/components/common/contact-avatar";
 import { generateAvatarFromAddress } from "@/lib/avatar-codec";
-import { isValidAddressForChain, detectAddressFormat } from "@/lib/address-format";
+import { isValidAddressForChain } from "@/lib/address-format";
 import { addressBookStore, addressBookSelectors, type ChainType, type Contact, type ContactAddress } from "@/stores";
-
-/** 获取地址显示标签（优先用自定义 label，否则用检测到的链类型） */
-function getAddressDisplayLabel(address: ContactAddress): string {
-  if (address.label) return address.label;
-  const detected = detectAddressFormat(address.address);
-  return detected.chainType?.toUpperCase() || '';
-}
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
 type ContactPickerJobParams = {
-  /** 当前选中的链类型，用于验证地址合法性 */
   chainType?: string;
 };
 
 function truncateAddress(address: string, startChars = 8, endChars = 6): string {
   if (address.length <= startChars + endChars + 3) return address;
   return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+}
+
+interface AddressWithValidity extends ContactAddress {
+  isValidForCurrentChain: boolean;
 }
 
 function ContactPickerJobContent() {
@@ -36,45 +32,38 @@ function ContactPickerJobContent() {
   const chainType = chainTypeParam as ChainType | undefined;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedContactId, setExpandedContactId] = useState<string | null>(null);
 
   const addressBookState = useStore(addressBookStore);
 
-  // 显示所有联系人（不按 chainType 过滤），但用地址合法性验证来标记可选地址
-  const filteredContacts = useMemo(() => {
+  // 按联系人分组，每个联系人的地址带有效性标记
+  const contactsWithAddresses = useMemo(() => {
     let contacts = addressBookState.contacts;
 
-    // Filter by search query
     if (searchQuery) {
       contacts = addressBookSelectors.searchContacts(addressBookState, searchQuery);
     }
 
-    // Sort by updated time (most recent first)
-    return [...contacts].sort((a, b) => b.updatedAt - a.updatedAt);
-  }, [addressBookState, searchQuery]);
+    // Sort by updated time
+    contacts = [...contacts].sort((a, b) => b.updatedAt - a.updatedAt);
+
+    return contacts.map((contact) => {
+      const addresses: AddressWithValidity[] = contact.addresses.map((addr) => ({
+        ...addr,
+        isValidForCurrentChain: chainType ? isValidAddressForChain(addr.address, chainType) : true,
+      }));
+      
+      const hasValidAddress = addresses.some((a) => a.isValidForCurrentChain);
+      
+      return { contact, addresses, hasValidAddress };
+    });
+  }, [addressBookState, searchQuery, chainType]);
 
   const handleSelectAddress = (contact: Contact, address: ContactAddress) => {
-    // Store selected address in a way that can be retrieved by the caller
-    // We use a custom event since stackflow doesn't support return values directly
     const event = new CustomEvent("contact-picker-select", {
       detail: { contact, address },
     });
     window.dispatchEvent(event);
     pop();
-  };
-
-  // 获取联系人的所有地址，并标记当前链是否可用
-  const getRelevantAddresses = (contact: Contact) => {
-    return contact.addresses.map((addr) => ({
-      ...addr,
-      isValidForCurrentChain: chainType ? isValidAddressForChain(addr.address, chainType) : true,
-    }));
-  };
-
-  // 检查联系人是否有当前链的有效地址
-  const hasValidAddress = (contact: Contact) => {
-    if (!chainType) return true;
-    return contact.addresses.some((addr) => isValidAddressForChain(addr.address, chainType));
   };
 
   return (
@@ -88,7 +77,7 @@ function ContactPickerJobContent() {
         {/* Title */}
         <div className="border-border border-b px-4 pb-4">
           <h2 className="text-center text-lg font-semibold">
-            {t("contact.selectContact")}
+            {t("contact.selectAddress")}
           </h2>
         </div>
 
@@ -108,127 +97,67 @@ function ContactPickerJobContent() {
 
         {/* Contact List */}
         <div className="max-h-[50vh] overflow-y-auto">
-          {filteredContacts.length === 0 ? (
+          {contactsWithAddresses.length === 0 ? (
             <div className="text-muted-foreground py-12 text-center text-sm">
               {searchQuery ? t("addressBook.noResults") : t("contact.noContacts")}
             </div>
           ) : (
             <div className="divide-border divide-y">
-              {filteredContacts.map((contact) => {
-                const addresses = getRelevantAddresses(contact);
-                const validAddresses = addresses.filter((a) => a.isValidForCurrentChain);
-                const hasMultipleAddresses = addresses.length > 1;
-                const isExpanded = expandedContactId === contact.id;
-                const contactHasValidAddress = hasValidAddress(contact);
-
-                // If only one address, show directly
-                if (!hasMultipleAddresses) {
-                  const address = addresses[0];
-                  if (!address) return null;
-                  const isDisabled = !address.isValidForCurrentChain;
-                  return (
-                    <button
-                      key={contact.id}
-                      onClick={() => !isDisabled && handleSelectAddress(contact, address)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "flex w-full items-center gap-3 px-4 py-3 transition-colors",
-                        isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50"
-                      )}
-                    >
-                      <ContactAvatar
-                        src={contact.avatar || generateAvatarFromAddress(address.address)}
-                        size={40}
-                        className="shrink-0"
-                      />
-                      <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate font-medium">{contact.name}</p>
-                        <p className="text-muted-foreground truncate font-mono text-xs">
-                          {truncateAddress(address.address)}
-                        </p>
-                      </div>
-                      <span className={cn(
-                        "text-xs",
-                        isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
-                      )}>
-                        {getAddressDisplayLabel(address)}
-                      </span>
-                    </button>
-                  );
-                }
-
-                // Multiple addresses - show expandable
-                return (
-                  <div key={contact.id}>
-                    <button
-                      onClick={() => setExpandedContactId(isExpanded ? null : contact.id)}
-                      className={cn(
-                        "flex w-full items-center gap-3 px-4 py-3 transition-colors",
-                        contactHasValidAddress ? "hover:bg-muted/50" : "opacity-50"
-                      )}
-                    >
-                      <ContactAvatar
-                        src={contact.avatar || (addresses[0]?.address ? generateAvatarFromAddress(addresses[0].address) : undefined)}
-                        size={40}
-                        className="shrink-0"
-                      />
-                      <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate font-medium">{contact.name}</p>
-                        <p className="text-muted-foreground text-xs">
-                          {validAddresses.length > 0 
-                            ? `${validAddresses.length}/${addresses.length} ${t("contact.selectAddress")}`
-                            : t("contact.noValidAddress")
-                          }
-                        </p>
-                      </div>
-                      <IconChevronRight
-                        className={cn(
-                          "text-muted-foreground size-5 transition-transform",
-                          isExpanded && "rotate-90"
-                        )}
-                      />
-                    </button>
-                    {isExpanded && (
-                      <div className="bg-muted/30 divide-border divide-y pl-14">
-                        {addresses.map((address) => {
-                          const isDisabled = !address.isValidForCurrentChain;
-                          return (
-                            <button
-                              key={address.id}
-                              onClick={() => !isDisabled && handleSelectAddress(contact, address)}
-                              disabled={isDisabled}
-                              className={cn(
-                                "flex w-full items-center gap-3 px-4 py-2.5 transition-colors",
-                                isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50"
-                              )}
-                            >
-                              <div className="min-w-0 flex-1 text-left">
-                                <p className={cn(
-                                  "truncate font-mono text-xs",
-                                  isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
-                                )}>
-                                  {truncateAddress(address.address)}
-                                </p>
-                              </div>
+              {contactsWithAddresses.map(({ contact, addresses, hasValidAddress }) => (
+                <div key={contact.id} className={cn(!hasValidAddress && "opacity-50")}>
+                  {/* Contact header: avatar + name */}
+                  <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+                    <ContactAvatar
+                      src={contact.avatar || (addresses[0]?.address ? generateAvatarFromAddress(addresses[0].address) : undefined)}
+                      size={40}
+                      className="shrink-0"
+                    />
+                    <p className="min-w-0 flex-1 truncate font-medium">{contact.name}</p>
+                  </div>
+                  
+                  {/* Address list */}
+                  <div className="space-y-1 pb-3 pl-[56px] pr-4">
+                    {addresses.map((address) => {
+                      const isDisabled = !address.isValidForCurrentChain;
+                      const label = address.label;
+                      
+                      return (
+                        <button
+                          key={address.id}
+                          onClick={() => !isDisabled && handleSelectAddress(contact, address)}
+                          disabled={isDisabled}
+                          className={cn(
+                            "flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors",
+                            isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-muted/50 active:bg-muted"
+                          )}
+                        >
+                          <p className={cn(
+                            "min-w-0 flex-1 truncate text-left font-mono text-sm",
+                            isDisabled ? "text-muted-foreground/50" : "text-foreground"
+                          )}>
+                            {truncateAddress(address.address)}
+                          </p>
+                          <div className="flex shrink-0 items-center gap-2">
+                            {label && (
                               <span className={cn(
-                                "text-xs",
+                                "max-w-[5rem] truncate rounded-md bg-muted px-2 py-0.5 text-xs",
                                 isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
                               )}>
-                                {getAddressDisplayLabel(address)}
+                                {label}
                               </span>
-                              {address.isDefault && (
-                                <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">
-                                  Default
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                            )}
+                            {address.isDefault && (
+                              <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>

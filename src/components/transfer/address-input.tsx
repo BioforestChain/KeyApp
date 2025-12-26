@@ -2,17 +2,16 @@ import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } 
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
-import { isValidAddressForChain, detectAddressFormat } from '@/lib/address-format';
+import { isValidAddressForChain } from '@/lib/address-format';
+import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion, type ContactAddress } from '@/stores';
 
-/** 获取地址显示标签（优先用自定义 label，否则用检测到的链类型） */
+/** 获取地址显示标签（只显示自定义 label，没有则为空） */
 function getAddressDisplayLabel(address: ContactAddress): string {
-  if (address.label) return address.label;
-  const detected = detectAddressFormat(address.address);
-  return detected.chainType?.toUpperCase() || '';
+  return address.label || '';
 }
 
 interface AddressInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -61,6 +60,12 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const currentValue = value || internalValue;
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
+
+    // 检测当前输入是否精确匹配某个联系人的地址
+    const matchedContact = useMemo(() => {
+      if (!currentValue) return null;
+      return addressBookSelectors.getContactByAddress(addressBookState, currentValue);
+    }, [addressBookState, currentValue]);
 
     // 获取联系人建议 - 显示所有联系人，用地址合法性验证标记可选地址
     const suggestions = useMemo(() => {
@@ -118,6 +123,11 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
       setShowDropdown(false);
     }, [onChange]);
 
+    const handleClearContact = useCallback(() => {
+      setInternalValue('');
+      onChange?.('');
+    }, [onChange]);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (!showDropdown || suggestions.length === 0) return;
 
@@ -148,57 +158,84 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
         <div className="relative">
           <div
             className={cn(
-              'bg-background relative flex items-center gap-1 rounded-xl border p-2 transition-colors @xs:gap-2 @xs:p-3',
+              'bg-background relative flex items-center gap-2 rounded-xl border p-2 transition-colors @xs:gap-3 @xs:p-3',
               focused ? 'border-primary ring-primary/20 ring-2' : 'border-input',
               hasError && 'border-destructive ring-destructive/20 ring-2',
             )}
           >
-            <input
-              ref={ref}
-              type="text"
-              data-testid="address-input"
-              value={currentValue}
-              onChange={handleChange}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setTimeout(() => setFocused(false), 150)}
-              onKeyDown={handleKeyDown}
-              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
-              placeholder={t('addressPlaceholder')}
-              autoComplete="off"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-invalid={hasError}
-              aria-describedby={hasError ? errorId : undefined}
-              aria-expanded={showDropdown}
-              aria-controls={showDropdown ? listboxId : undefined}
-              aria-activedescendant={selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined}
-              role="combobox"
-              {...props}
-            />
-
-            <div className="flex items-center">
-              {onScan && (
+            {/* 匹配到联系人时显示头像和信息 */}
+            {matchedContact ? (
+              <>
+                <ContactAvatar
+                  src={matchedContact.contact.avatar || generateAvatarFromAddress(matchedContact.matchedAddress.address)}
+                  size={40}
+                  className="shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{matchedContact.contact.name}</p>
+                  <p className="text-muted-foreground truncate font-mono text-xs">
+                    {matchedContact.matchedAddress.address}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  data-testid="scan-address-button"
-                  onClick={onScan}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
-                  aria-label={t('a11y.scanQrCode')}
+                  onClick={handleClearContact}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0 rounded-lg p-1.5 transition-colors"
+                  aria-label={t('a11y.clear')}
                 >
-                  <ScanLine className="size-5" />
+                  <IconX className="size-5" />
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={handlePaste}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
-                aria-label={t('a11y.paste')}
-              >
-                <ClipboardPaste className="size-5 @xs:hidden" />
-                <span className="hidden @xs:inline">{t('paste')}</span>
-              </button>
-            </div>
+              </>
+            ) : (
+              <>
+                <input
+                  ref={ref}
+                  type="text"
+                  data-testid="address-input"
+                  value={currentValue}
+                  onChange={handleChange}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setTimeout(() => setFocused(false), 150)}
+                  onKeyDown={handleKeyDown}
+                  className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+                  placeholder={t('addressPlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={hasError}
+                  aria-describedby={hasError ? errorId : undefined}
+                  aria-expanded={showDropdown}
+                  aria-controls={showDropdown ? listboxId : undefined}
+                  aria-activedescendant={selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined}
+                  role="combobox"
+                  {...props}
+                />
+
+                <div className="flex items-center">
+                  {onScan && (
+                    <button
+                      type="button"
+                      data-testid="scan-address-button"
+                      onClick={onScan}
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
+                      aria-label={t('a11y.scanQrCode')}
+                    >
+                      <ScanLine className="size-5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePaste}
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
+                    aria-label={t('a11y.paste')}
+                  >
+                    <ClipboardPaste className="size-5 @xs:hidden" />
+                    <span className="hidden @xs:inline">{t('paste')}</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Contact suggestions dropdown */}
@@ -240,10 +277,12 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                             isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
                           )}>{suggestion.matchedAddress.address}</p>
                         </div>
-                        <span className={cn(
-                          "shrink-0 text-xs",
-                          isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
-                        )}>{getAddressDisplayLabel(suggestion.matchedAddress)}</span>
+                        {getAddressDisplayLabel(suggestion.matchedAddress) && (
+                          <span className={cn(
+                            "max-w-[4rem] shrink-0 truncate text-xs",
+                            isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
+                          )}>{getAddressDisplayLabel(suggestion.matchedAddress)}</span>
+                        )}
                       </li>
                     );
                   })}

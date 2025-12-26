@@ -15,13 +15,13 @@ const CHAIN_COLORS: Record<string, string> = {
   tron: '#FF0013',
 };
 
-/** 获取地址显示标签和颜色 */
-function getAddressDisplay(addr: ContactAddressInfo): { label: string; color: string } {
+/** 获取地址显示标签和颜色（只显示自定义 label） */
+function getAddressDisplay(addr: ContactAddressInfo): { label: string; color: string } | null {
+  if (!addr.label) return null;
   const detected = detectAddressFormat(addr.address);
   const chainType = detected.chainType;
-  const label = addr.label || chainType?.toUpperCase() || '';
   const color = chainType ? CHAIN_COLORS[chainType] || '#6B7280' : '#6B7280';
-  return { label, color };
+  return { label: addr.label, color };
 }
 
 export interface ContactCardProps {
@@ -43,14 +43,15 @@ export function ContactCard({ name, avatar, address, addresses, qrContent }: Con
           <h3 className="text-xl font-bold text-white">{name}</h3>
           <div className="mt-1 flex flex-wrap gap-1.5">
             {addresses.map((a, i) => {
-              const { label, color } = getAddressDisplay(a);
+              const display = getAddressDisplay(a);
+              if (!display) return null;
               return (
                 <span
                   key={i}
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white/90"
-                  style={{ backgroundColor: color }}
+                  className="inline-flex max-w-[4rem] items-center truncate rounded-full px-2 py-0.5 text-xs font-medium text-white/90"
+                  style={{ backgroundColor: display.color }}
                 >
-                  {label}
+                  {display.label}
                 </span>
               );
             })}

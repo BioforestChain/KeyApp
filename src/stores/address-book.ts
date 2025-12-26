@@ -2,12 +2,12 @@ import { Store } from '@tanstack/react-store'
 import { type ChainType } from './wallet'
 import { detectAddressFormat } from '@/lib/address-format'
 
-/** 联系人地址 */
+/** 联系人地址（最多 3 个） */
 export interface ContactAddress {
   id: string
   /** 地址 */
   address: string
-  /** 地址标签（如"主地址"、"交易所"），用于显示 */
+  /** 地址标签，最多 10 字符，用于显示 */
   label?: string | undefined
   /** 是否默认地址 */
   isDefault?: boolean | undefined
@@ -20,24 +20,13 @@ export interface Contact {
   name: string
   /** 头像（可选，emoji 或图片URL） */
   avatar?: string | undefined
-  /** 多个地址 */
+  /** 多个地址（最多 3 个） */
   addresses: ContactAddress[]
   /** 备注 */
   memo?: string | undefined
   /** 创建时间 */
   createdAt: number
   /** 更新时间 */
-  updatedAt: number
-}
-
-/** 旧版联系人类型（v1，单地址）用于迁移 */
-interface LegacyContact {
-  id: string
-  name: string
-  address: string
-  chain?: ChainType
-  memo?: string
-  createdAt: number
   updatedAt: number
 }
 
@@ -63,41 +52,7 @@ export const addressBookStore = new Store<AddressBookState>(initialState)
 
 // 持久化键
 const STORAGE_KEY = 'bfm_address_book'
-const CURRENT_VERSION = 2
-
-/** 检测是否为旧版数据格式 */
-function isLegacyContact(contact: unknown): contact is LegacyContact {
-  return (
-    typeof contact === 'object' &&
-    contact !== null &&
-    'address' in contact &&
-    typeof (contact as LegacyContact).address === 'string' &&
-    !('addresses' in contact)
-  )
-}
-
-/** 迁移旧版联系人到新格式 */
-function migrateLegacyContact(legacy: LegacyContact): Contact {
-  const detected = detectAddressFormat(legacy.address)
-  // 使用检测到的链类型作为 label
-  const label = legacy.chain ?? detected.chainType ?? undefined
-
-  return {
-    id: legacy.id,
-    name: legacy.name,
-    addresses: [
-      {
-        id: crypto.randomUUID(),
-        address: legacy.address,
-        label: label ? String(label).toUpperCase() : undefined,
-        isDefault: true,
-      },
-    ],
-    memo: legacy.memo,
-    createdAt: legacy.createdAt,
-    updatedAt: legacy.updatedAt,
-  }
-}
+const CURRENT_VERSION = 3
 
 /** 持久化辅助函数 */
 function persistContacts(contacts: Contact[]) {
@@ -112,32 +67,20 @@ function persistContacts(contacts: Contact[]) {
   }
 }
 
-/** 加载并迁移数据 */
-function loadAndMigrateContacts(): Contact[] {
+/** 加载数据（不兼容旧版） */
+function loadContacts(): Contact[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) return []
 
     const parsed = JSON.parse(stored)
 
-    // 检查是否为新版格式
+    // 只加载当前版本
     if (parsed.version === CURRENT_VERSION && Array.isArray(parsed.contacts)) {
       return parsed.contacts as Contact[]
     }
 
-    // 旧版格式：直接是数组
-    if (Array.isArray(parsed)) {
-      const contacts = parsed.map((item: unknown) => {
-        if (isLegacyContact(item)) {
-          return migrateLegacyContact(item)
-        }
-        return item as Contact
-      })
-      // 保存迁移后的数据
-      persistContacts(contacts)
-      return contacts
-    }
-
+    // 其他版本直接返回空（破坏性更新）
     return []
   } catch (error) {
     console.error('Failed to load address book:', error)
@@ -147,9 +90,9 @@ function loadAndMigrateContacts(): Contact[] {
 
 // Actions
 export const addressBookActions = {
-  /** 初始化（从存储加载，支持数据迁移） */
+  /** 初始化（从存储加载） */
   initialize: () => {
-    const contacts = loadAndMigrateContacts()
+    const contacts = loadContacts()
     addressBookStore.setState(() => ({
       contacts,
       isInitialized: true,
