@@ -4,6 +4,7 @@
     "appInfo": "應用程式資訊",
     "back": "返回",
     "chainSelector": "選擇區塊鏈網絡",
+    "clear": "清除",
     "close": "關閉",
     "closeDialog": "關閉彈窗",
     "copyAddress": "複製地址",
@@ -58,7 +59,8 @@
     "memo": "備註",
     "memoPlaceholder": "新增備註（可選）",
     "shareContact": "分享名片",
-    "scanToAdd": "掃碼新增聯繫人"
+    "scanToAdd": "掃碼新增聯繫人",
+    "changeAvatar": "點擊切換頭像"
   },
   "addressPlaceholder": "輸入或貼上地址",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "先進的加密技術 &lt;br /&gt; 數字財富更安全",
@@ -106,10 +108,15 @@
     "name": "名稱",
     "namePlaceholder": "請輸入聯絡人名稱",
     "noContacts": "暫無聯絡人",
+    "noValidAddress": "無可用地址",
     "save": "儲存",
     "selectAddress": "選擇地址",
     "selectContact": "選擇聯絡人",
-    "viewAll": "查看全部聯絡人"
+    "viewAll": "查看全部聯絡人",
+    "addresses": "地址",
+    "addressLabel": "標籤",
+    "addressLabelPlaceholder": "如：主帳戶",
+    "addAddress": "新增地址"
   },
   "continue": "繼續",
   "contractMethods": "合約方法",
