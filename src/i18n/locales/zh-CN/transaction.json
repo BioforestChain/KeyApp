@@ -69,6 +69,8 @@
     "viewAll": "查看全部 {{count}} 条记录",
     "viewAllChains": "查看全部网络交易",
     "filter": {
+      "chainLabel": "网络",
+      "periodLabel": "时间",
       "allChains": "全部链",
       "allTime": "全部",
       "days7": "7天",

@@ -111,42 +111,52 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
 
       {/* 过滤器栏 */}
       <div className="bg-card border-b px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Filter className="text-muted-foreground size-4" />
 
           {/* 链选择器 */}
-          <Select
-            value={filter.chain || 'all'}
-            onValueChange={(value) => handleChainChange(value as ChainType | 'all')}
-          >
-            <SelectTrigger size="sm" aria-label={t('common:a11y.selectChain')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {chainOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground text-xs">{t('history.filter.chainLabel')}</span>
+            <Select
+              value={filter.chain || 'all'}
+              onValueChange={(value) => handleChainChange(value as ChainType | 'all')}
+            >
+              <SelectTrigger size="sm" aria-label={t('common:a11y.selectChain')}>
+                <SelectValue placeholder={t('history.filter.allChains')}>
+                  {chainOptions.find((o) => o.value === (filter.chain || 'all'))?.label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {chainOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* 时间段选择器 */}
-          <Select
-            value={filter.period || 'all'}
-            onValueChange={(value) => handlePeriodChange(value as TransactionFilter['period'])}
-          >
-            <SelectTrigger size="sm" aria-label={t('common:a11y.selectPeriod')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {periodOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground text-xs">{t('history.filter.periodLabel')}</span>
+            <Select
+              value={filter.period || 'all'}
+              onValueChange={(value) => handlePeriodChange(value as TransactionFilter['period'])}
+            >
+              <SelectTrigger size="sm" aria-label={t('common:a11y.selectPeriod')}>
+                <SelectValue placeholder={t('history.filter.allTime')}>
+                  {periodOptions.find((o) => o.value === (filter.period || 'all'))?.label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {periodOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* 结果统计 */}

@@ -149,6 +149,8 @@
     "emptyDesc": "No transactions found with current filters",
     "emptyTitle": "No transactions",
     "filter": {
+      "chainLabel": "Chain",
+      "periodLabel": "Period",
       "allChains": "All Chains",
       "allTime": "All",
       "days30": "30 Days",

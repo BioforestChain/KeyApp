@@ -110,6 +110,8 @@
     "emptyDesc": "目前篩選條件下沒有交易記錄",
     "emptyTitle": "暫無交易記錄",
     "filter": {
+      "chainLabel": "網路",
+      "periodLabel": "時間",
       "allChains": "全部鏈",
       "allTime": "全部",
       "days30": "30天",
@@ -118,7 +120,9 @@
     },
     "noWallet": "請先建立或匯入錢包",
     "title": "交易記錄",
-    "totalRecords": "共 {{count}} 筆記錄"
+    "totalRecords": "共 {{count}} 筆記錄",
+    "viewAll": "查看全部 {{count}} 筆記錄",
+    "viewAllChains": "查看全部網路交易"
   },
   "incorrectHandlingFee": "手續費不正確",
   "initiateTransfer": "發起轉賬",

@@ -347,3 +347,17 @@
 @utility animate-scan {
   animation: scan 2s ease-in-out infinite;
 }
+
+/* 禁用长按和右键菜单（移动端 App 体验） */
+html, body {
+  -webkit-touch-callout: none; /* iOS 禁用长按弹出菜单 */
+  -webkit-user-select: none;   /* 禁用文本选择 */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* 禁用点击高亮 */
+}
+
+/* 允许输入框选择文本 */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}

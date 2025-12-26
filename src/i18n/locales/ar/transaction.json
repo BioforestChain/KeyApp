@@ -110,6 +110,8 @@
     "emptyDesc": "لم يتم العثور على معاملات بالفلاتر الحالية",
     "emptyTitle": "لا توجد معاملات",
     "filter": {
+      "chainLabel": "السلسلة",
+      "periodLabel": "الفترة",
       "allChains": "جميع السلاسل",
       "allTime": "الكل",
       "days30": "30 يومًا",
@@ -118,7 +120,9 @@
     },
     "noWallet": "يرجى إنشاء أو استيراد محفظة أولاً",
     "title": "سجل المعاملات",
-    "totalRecords": "{{count}} سجل"
+    "totalRecords": "{{count}} سجل",
+    "viewAll": "عرض جميع {{count}} سجل",
+    "viewAllChains": "عرض جميع معاملات الشبكة"
   },
   "incorrectHandlingFee": "Incorrect handling fee",
   "initiateTransfer": "Initiate Transfer",
