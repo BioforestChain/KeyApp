@@ -1,9 +1,10 @@
-import { StrictMode, lazy, Suspense, useCallback } from 'react'
+import { StrictMode, lazy, Suspense, useCallback, useMemo } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
 import i18n from './i18n'
 import { queryClient } from './lib/query-client'
+import { resolveAssetUrl } from './lib/asset-url'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
@@ -32,15 +33,24 @@ const MockDevTools = __MOCK_MODE__
 
 function IconProvidersWrapper({ children }: { children: React.ReactNode }) {
   const configs = useChainConfigs()
-  
+
+  // 预处理配置：解析所有相对路径为完整 URL
+  const resolvedConfigs = useMemo(() => {
+    return configs.map((config) => ({
+      ...config,
+      icon: config.icon ? resolveAssetUrl(config.icon) : undefined,
+      tokenIconBase: config.tokenIconBase?.map(resolveAssetUrl),
+    }))
+  }, [configs])
+
   const getIconUrl = useCallback(
-    (chainId: string) => configs.find((c) => c.id === chainId)?.icon,
-    [configs],
+    (chainId: string) => resolvedConfigs.find((c) => c.id === chainId)?.icon,
+    [resolvedConfigs],
   )
 
   const getTokenIconBases = useCallback(
-    (chainId: string) => configs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
-    [configs],
+    (chainId: string) => resolvedConfigs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
+    [resolvedConfigs],
   )
 
   return (
