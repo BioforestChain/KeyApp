@@ -178,42 +178,32 @@ export function WalletTab() {
         <div className="mt-2 flex justify-center gap-8 px-6">
           <button
             onClick={() => push("SendActivity", {})}
-            className="quick-action-btn flex flex-col items-center gap-1.5"
+            className="group flex flex-col items-center gap-1.5"
           >
-            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
               <IconSend className="size-5" />
             </div>
             <span className="text-xs font-medium">{t("home:wallet.send")}</span>
           </button>
           <button
             onClick={() => push("ReceiveActivity", {})}
-            className="quick-action-btn flex flex-col items-center gap-1.5"
+            className="group flex flex-col items-center gap-1.5"
           >
-            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
               <IconQrcode className="size-5" />
             </div>
             <span className="text-xs font-medium">{t("home:wallet.receive")}</span>
           </button>
           <button
             onClick={() => push("ScannerActivity", {})}
-            className="quick-action-btn flex flex-col items-center gap-1.5"
+            className="group flex flex-col items-center gap-1.5"
           >
-            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
               <IconLineScan className="size-5" />
             </div>
             <span className="text-xs font-medium">{t("common:a11y.scan")}</span>
           </button>
         </div>
-
-        <style>{`
-          .quick-action-icon {
-            background: hsl(var(--primary-hue, 280) 60% 95%);
-            color: hsl(var(--primary-hue, 280) 70% 45%);
-          }
-          .quick-action-btn:hover .quick-action-icon {
-            background: hsl(var(--primary-hue, 280) 60% 90%);
-          }
-        `}</style>
       </div>
 
       {/* 内容区 Tab 切换 */}

@@ -92,7 +92,7 @@ export function WalletCardCarousel({
   }
 
   return (
-    <div className={cn('relative w-full pt-8 pb-2', className)}>
+    <div className={cn('relative w-full pt-12 pb-2', className)}>
       {/* 左上角：多钱包管理入口 */}
       {wallets.length > 1 && (
         <button
