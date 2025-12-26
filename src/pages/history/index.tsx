@@ -122,7 +122,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
               onValueChange={(value) => handleChainChange(value as ChainType | 'all')}
             >
               <SelectTrigger size="sm" aria-label={t('common:a11y.selectChain')}>
-                <SelectValue placeholder={t('history.filter.allChains')}>
+                <SelectValue>
                   {chainOptions.find((o) => o.value === (filter.chain || 'all'))?.label}
                 </SelectValue>
               </SelectTrigger>
@@ -144,7 +144,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
               onValueChange={(value) => handlePeriodChange(value as TransactionFilter['period'])}
             >
               <SelectTrigger size="sm" aria-label={t('common:a11y.selectPeriod')}>
-                <SelectValue placeholder={t('history.filter.allTime')}>
+                <SelectValue>
                   {periodOptions.find((o) => o.value === (filter.period || 'all'))?.label}
                 </SelectValue>
               </SelectTrigger>
