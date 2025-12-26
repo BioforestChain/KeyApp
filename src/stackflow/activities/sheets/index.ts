@@ -12,3 +12,6 @@ export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./Securit
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
 export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult } from "./FeeEditJob";
+export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForChain, type ScannerJobParams, type ScannerResultEvent, type ScanValidator } from "./ScannerJob";
+export { ContactAddConfirmJob, type ContactAddConfirmJobParams } from "./ContactAddConfirmJob";
+export { ContactShareJob, type ContactShareJobParams } from "./ContactShareJob";

@@ -46,6 +46,13 @@ export default defineConfig({
             SSR: false,
           }),
         },
+        server: {
+          hmr: false, // 测试环境禁用热重载
+        },
+        optimizeDeps: {
+          // 预优化这些依赖，避免运行时发现导致重载
+          include: ['react-dom/client'],
+        },
         plugins: [
           storybookTest({
             configDir: path.join(dirname, '.storybook'),

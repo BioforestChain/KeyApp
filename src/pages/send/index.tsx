@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setTransferConfirmCallback, setTransferWalletLockCallback } from '@/stackflow/activities/sheets';
+import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerResultCallback } from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressInput } from '@/components/transfer/address-input';
@@ -10,7 +10,7 @@ import { GradientButton } from '@/components/common/gradient-button';
 import { Alert } from '@/components/common/alert';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { SendResult } from '@/components/transfer/send-result';
-import { useCamera, useToast, useHaptics } from '@/services';
+import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
@@ -42,7 +42,6 @@ export function SendPage() {
   const { t } = useTranslation(['transaction', 'common', 'security']);
   const { goBack: navGoBack } = useNavigation();
   const { push } = useFlow();
-  const camera = useCamera();
   const toast = useToast();
   const haptics = useHaptics();
   const isWalletLockSheetOpen = useRef(false);
@@ -117,27 +116,23 @@ export function SendPage() {
   const balance = state.asset?.amount ?? null;
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
-  const handleScan = async () => {
-    try {
-      const hasPermission = await camera.checkPermission();
-      if (!hasPermission) {
-        const granted = await camera.requestPermission();
-        if (!granted) {
-          toast.show({ message: t('sendPage.cameraPermissionRequired'), position: 'center' });
-          return;
-        }
+  const handleOpenScanner = useCallback(() => {
+    // 设置扫描结果回调
+    setScannerResultCallback(({ content, parsed }) => {
+      let address = content;
+      if (parsed.type === 'address' || parsed.type === 'payment') {
+        address = parsed.address;
       }
-
-      const result = await camera.scanQRCode();
-      if (result.content) {
-        setToAddress(result.content);
-        await haptics.impact('success');
-        toast.show(t('sendPage.scanSuccess'));
-      }
-    } catch {
-      toast.show({ message: t('sendPage.scanFailed'), position: 'center' });
-    }
-  };
+      setToAddress(address);
+      haptics.impact('success');
+      toast.show(t('sendPage.scanSuccess'));
+    });
+    
+    // 打开扫描器
+    push('ScannerJob', {
+      chainType: selectedChainName ?? selectedChain,
+    });
+  }, [push, selectedChain, selectedChainName, setToAddress, haptics, toast, t]);
 
   const handleProceed = () => {
     if (!goToConfirm()) return;
@@ -279,7 +274,7 @@ export function SendPage() {
           value={state.toAddress}
           onChange={setToAddress}
           placeholder={t('sendPage.toAddressPlaceholder', { chain: selectedChainName })}
-          onScan={handleScan}
+          onScan={handleOpenScanner}
           onContactPicker={handleContactPicker}
           chainType={selectedChain}
           error={state.addressError ?? undefined}

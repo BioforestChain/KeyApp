@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigation } from '@/stackflow';
+import { useNavigation, useFlow } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +10,8 @@ import {
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { useCamera } from '@/services/hooks';
-import { scanQRFromVideo, scanQRFromFile, parseQRContent, type ParsedQRContent } from '@/lib/qr-parser';
+import { parseQRContent, type ParsedQRContent } from '@/lib/qr-parser';
+import { QRScanner, createQRScanner } from '@/lib/qr-scanner';
 
 type ScannerState = 'idle' | 'requesting' | 'scanning' | 'denied' | 'error' | 'success';
 
@@ -28,24 +29,32 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
   const { t } = useTranslation('scanner');
   const { t: tCommon } = useTranslation('common');
   const { navigate, goBack } = useNavigation();
+  const { push } = useFlow();
   const cameraService = useCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const scannerRef = useRef<QRScanner | null>(null);
   const scanningRef = useRef(false);
+  const lastScannedRef = useRef<string | null>(null);
+  const onScanRef = useRef(onScan);
 
   const [state, setState] = useState<ScannerState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
 
-  // Handle successful scan
+  // 保持 onScan 回调的最新引用
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
+
+  // Handle successful scan（使用 ref 避免依赖变化）
   const handleScanSuccess = useCallback(
     (content: string) => {
       // 防止重复触发
-      if (content === lastScanned) return;
+      if (content === lastScannedRef.current) return;
 
-      setLastScanned(content);
+      lastScannedRef.current = content;
       setState('success');
       scanningRef.current = false;
 
@@ -56,26 +65,55 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
 
       const parsed = parseQRContent(content);
 
-      if (onScan) {
-        onScan(content, parsed);
+      if (onScanRef.current) {
+        onScanRef.current(content, parsed);
       } else {
         // 默认行为：根据解析结果导航
-        if (parsed.type === 'address' || parsed.type === 'payment') {
-          navigate({
-            to: '/send',
-            search: {
-              address: parsed.address,
-              chain: parsed.chain,
-              amount: parsed.type === 'payment' ? parsed.amount : undefined,
-            },
-          });
+        switch (parsed.type) {
+          case 'address':
+          case 'payment':
+            navigate({
+              to: '/send',
+              search: {
+                address: parsed.address,
+                chain: parsed.chain,
+                amount: parsed.type === 'payment' ? parsed.amount : undefined,
+              },
+            });
+            break;
+          
+          case 'deeplink':
+            // 深度链接：直接导航到目标路径
+            navigate({
+              to: parsed.path,
+              search: parsed.params,
+            });
+            break;
+          
+          case 'contact':
+            // 联系人名片：打开添加确认
+            push('ContactAddConfirmJob', {
+              name: parsed.name,
+              addresses: JSON.stringify(parsed.addresses),
+              memo: parsed.memo,
+              avatar: parsed.avatar,
+            });
+            break;
+          
+          case 'unknown':
+            // 未知内容：尝试作为地址处理，跳转到发送页面
+            navigate({
+              to: '/send',
+              search: { address: parsed.content },
+            });
+            break;
         }
       }
     },
-    [lastScanned, onScan, navigate],
+    [navigate, push],
   );
 
-  // Scan loop - 帧扫描循环
+  // Scan loop - 帧扫描循环（使用 Web Worker 异步扫描）
   const startScanLoop = useCallback(() => {
     if (scanningRef.current) return;
     scanningRef.current = true;
@@ -85,26 +123,44 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
       canvasRef.current = document.createElement('canvas');
     }
 
-    const scan = () => {
-      if (!scanningRef.current || !videoRef.current) return;
+    const scan = async () => {
+      if (!scanningRef.current || !videoRef.current || !scannerRef.current) return;
 
-      const result = scanQRFromVideo(videoRef.current, canvasRef.current ?? undefined);
-      if (result) {
-        handleScanSuccess(result);
-        return; // 停止扫描
+      try {
+        const result = await scannerRef.current.scanFromVideo(videoRef.current, canvasRef.current ?? undefined);
+        if (result) {
+          handleScanSuccess(result.content);
+          return; // 停止扫描
+        }
+      } catch (err) {
+        console.error('[Scanner] Scan error:', err);
       }
 
       // 继续下一帧
-      setTimeout(scan, SCAN_INTERVAL);
+      if (scanningRef.current) {
+        setTimeout(scan, SCAN_INTERVAL);
+      }
     };
 
     scan();
   }, [handleScanSuccess]);
 
+  // Stop camera stream
+  const stopCamera = useCallback(() => {
+    scanningRef.current = false;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
   // Check and request camera permission
   const initCamera = useCallback(async () => {
+    // 先停止现有的流
+    stopCamera();
+    
     setState('requesting');
-    setLastScanned(null);
+    lastScannedRef.current = null;
 
     try {
       const hasPermission = await cameraService.checkPermission();
@@ -135,24 +191,20 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
       setState('error');
       setError(err instanceof Error ? err.message : 'Camera initialization failed');
     }
-  }, [cameraService, startScanLoop]);
+  }, [cameraService, startScanLoop, stopCamera]);
 
-  // Stop camera stream
-  const stopCamera = useCallback(() => {
-    scanningRef.current = false;
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-  }, []);
-
-  // Initialize on mount
+  // 初始化 QR Scanner 和相机（只在挂载时执行一次）
   useEffect(() => {
+    scannerRef.current = createQRScanner({ useWorker: true });
     initCamera();
+    
     return () => {
       stopCamera();
+      scannerRef.current?.destroy();
+      scannerRef.current = null;
     };
-  }, [initCamera, stopCamera]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在挂载时执行
+  }, []);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -169,11 +221,43 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      const result = await scanQRFromFile(file);
-      if (result) {
-        handleScanSuccess(result);
-      } else {
-        // 无法识别 QR 码
+      try {
+        // 加载图片到 Canvas
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        
+        img.onload = async () => {
+          URL.revokeObjectURL(url);
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx || !scannerRef.current) {
+            setError(t('noQrFound'));
+            setState('error');
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          const result = await scannerRef.current.scanFromCanvas(canvas);
+          
+          if (result) {
+            handleScanSuccess(result.content);
+          } else {
+            setError(t('noQrFound'));
+            setState('error');
+          }
+        };
+        
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          setError(t('noQrFound'));
+          setState('error');
+        };
+        
+        img.src = url;
+      } catch {
         setError(t('noQrFound'));
         setState('error');
       }

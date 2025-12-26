@@ -227,6 +227,8 @@
   "resubmit": "重新提交",
   "retry": "重试",
   "save": "保存",
+  "saving": "保存中...",
+  "saved": "已保存",
   "saveQrCode": "保存二维码",
   "saveSuccessful": "保存成功",
   "scan": "扫描",
@@ -236,6 +238,7 @@
   "selectNetwork": "选择网络",
   "selectionNetwork": "选择网络",
   "share": "分享",
+  "download": "下载",
   "shareCancel": "分享取消",
   "shareCanceled": "分享取消",
   "shareSuccessful": "分享成功",
@@ -300,7 +303,14 @@
     "deleteTitle": "删除联系人",
     "deleteConfirm": "确定要删除联系人 \"{{name}}\" 吗？",
     "passwordError": "密码错误",
-    "verifyFailed": "验证失败"
+    "verifyFailed": "验证失败",
+    "addContact": "添加联系人",
+    "namePlaceholder": "输入联系人名称",
+    "addresses": "地址",
+    "memo": "备注",
+    "memoPlaceholder": "添加备注（可选）",
+    "shareContact": "分享名片",
+    "scanToAdd": "扫码添加联系人"
   },
   "time": {
     "justNow": "刚刚",

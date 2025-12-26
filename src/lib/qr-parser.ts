@@ -1,7 +1,7 @@
 import jsQR from 'jsqr'
 
 /** QR 内容类型 */
-export type QRContentType = 'address' | 'payment' | 'unknown'
+export type QRContentType = 'address' | 'payment' | 'deeplink' | 'unknown'
 
 /** 解析后的地址信息 */
 export interface ParsedAddress {
@@ -29,13 +29,44 @@ export interface ParsedPayment {
   chainId?: number | undefined
 }
 
+/** 解析后的深度链接 */
+export interface ParsedDeepLink {
+  type: 'deeplink'
+  /** 路由路径 */
+  path: string
+  /** 查询参数 */
+  params: Record<string, string>
+  /** 原始内容 */
+  raw: string
+}
+
+/** 联系人地址 */
+export interface ContactAddressInfo {
+  chainType: 'ethereum' | 'bitcoin' | 'tron'
+  address: string
+  label?: string | undefined
+}
+
+/** 解析后的联系人名片 */
+export interface ParsedContact {
+  type: 'contact'
+  /** 联系人名称 */
+  name: string
+  /** 地址列表 */
+  addresses: ContactAddressInfo[]
+  /** 备注 */
+  memo?: string | undefined
+  /** 头像 (emoji 或 URL) */
+  avatar?: string | undefined
+}
+
 /** 未知内容 */
 export interface ParsedUnknown {
   type: 'unknown'
   content: string
 }
 
-export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedUnknown
+export type ParsedQRContent = ParsedAddress | ParsedPayment | ParsedDeepLink | ParsedContact | ParsedUnknown
 
 /** 以太坊地址正则 (0x + 40 hex chars) */
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/
@@ -161,6 +192,141 @@ function parseTronURI(uri: string): ParsedAddress | ParsedPayment {
 }
 
 /**
+ * 解析联系人协议
+ * 格式: contact://<name>?eth=<address>&btc=<address>&trx=<address>&memo=<备注>&avatar=<emoji>
+ * 或 JSON 格式: {"type":"contact","name":"...","addresses":[...],"memo":"..."}
+ */
+function parseContactURI(content: string): ParsedContact | null {
+  // JSON 格式
+  if (content.startsWith('{') && content.includes('"type":"contact"')) {
+    try {
+      const data = JSON.parse(content)
+      if (data.type === 'contact' && data.name && Array.isArray(data.addresses) && data.addresses.length > 0) {
+        return {
+          type: 'contact',
+          name: data.name,
+          addresses: data.addresses.map((a: { chainType?: string; chain?: string; address: string; label?: string }) => ({
+            chainType: a.chainType || a.chain,
+            address: a.address,
+            label: a.label,
+          })),
+          memo: data.memo,
+          avatar: data.avatar,
+        }
+      }
+    } catch {
+      // 忽略 JSON 解析错误
+    }
+    return null
+  }
+  
+  // URI 格式: contact://name?eth=...&btc=...
+  if (!content.startsWith('contact://')) return null
+  
+  const stripped = content.replace('contact://', '')
+  const queryIndex = stripped.indexOf('?')
+  const name = decodeURIComponent(queryIndex >= 0 ? stripped.slice(0, queryIndex) : stripped)
+  const query = queryIndex >= 0 ? stripped.slice(queryIndex + 1) : ''
+  
+  if (!name) return null
+  
+  const params = new URLSearchParams(query)
+  const addresses: ContactAddressInfo[] = []
+  
+  // 解析各链地址
+  const ethAddr = params.get('eth')
+  if (ethAddr && ETH_ADDRESS_REGEX.test(ethAddr)) {
+    addresses.push({ chainType: 'ethereum', address: ethAddr, label: params.get('eth_label') ?? undefined })
+  }
+  
+  const btcAddr = params.get('btc')
+  if (btcAddr && BTC_ADDRESS_REGEX.test(btcAddr)) {
+    addresses.push({ chainType: 'bitcoin', address: btcAddr, label: params.get('btc_label') ?? undefined })
+  }
+  
+  const trxAddr = params.get('trx')
+  if (trxAddr && TRON_ADDRESS_REGEX.test(trxAddr)) {
+    addresses.push({ chainType: 'tron', address: trxAddr, label: params.get('trx_label') ?? undefined })
+  }
+  
+  if (addresses.length === 0) return null
+  
+  return {
+    type: 'contact',
+    name,
+    addresses,
+    memo: params.get('memo') ? decodeURIComponent(params.get('memo')!) : undefined,
+    avatar: params.get('avatar') ? decodeURIComponent(params.get('avatar')!) : undefined,
+  }
+}
+
+/**
+ * 生成联系人二维码内容
+ */
+export function generateContactQRContent(contact: {
+  name: string
+  addresses: ContactAddressInfo[]
+  memo?: string | undefined
+  avatar?: string | undefined
+}): string {
+  // 使用 JSON 格式，更灵活
+  return JSON.stringify({
+    type: 'contact',
+    name: contact.name,
+    addresses: contact.addresses.map(a => ({
+      chainType: a.chainType,
+      address: a.address,
+      label: a.label,
+    })),
+    memo: contact.memo,
+    avatar: contact.avatar,
+  })
+}
+
+/**
+ * 解析深度链接（hash 路由格式）
+ * 支持格式：
+ * - #/authorize/address?eventId=...&type=...
+ * - #/authorize/signature?eventId=...
+ * - #/send?address=...
+ * - 完整 URL 带 hash: https://app.example.com/#/authorize/address?...
+ */
+function parseDeepLink(content: string): ParsedDeepLink | null {
+  let hashPart = content
+  
+  // 如果是完整 URL，提取 hash 部分
+  if (content.startsWith('http://') || content.startsWith('https://')) {
+    const hashIndex = content.indexOf('#')
+    if (hashIndex === -1) return null
+    hashPart = content.slice(hashIndex)
+  }
+  
+  // 必须以 #/ 开头
+  if (!hashPart.startsWith('#/')) return null
+  
+  const inner = hashPart.slice(1) // 去掉 #
+  const queryIndex = inner.indexOf('?')
+  const path = queryIndex >= 0 ? inner.slice(0, queryIndex) : inner
+  const queryString = queryIndex >= 0 ? inner.slice(queryIndex + 1) : ''
+  
+  // 解析查询参数
+  const params: Record<string, string> = {}
+  if (queryString) {
+    const searchParams = new URLSearchParams(queryString)
+    for (const [key, value] of searchParams) {
+      params[key] = value
+    }
+  }
+  
+  return {
+    type: 'deeplink',
+    path,
+    params,
+    raw: content,
+  }
+}
+
+/**
  * 解析 QR 码内容
  */
 export function parseQRContent(content: string): ParsedQRContent {
@@ -177,6 +343,24 @@ export function parseQRContent(content: string): ParsedQRContent {
 
   if (trimmed.startsWith('tron:')) {
     return parseTronURI(trimmed)
+  }
+
+  // 联系人协议
+  if (trimmed.startsWith('contact://')) {
+    const contact = parseContactURI(trimmed)
+    if (contact) return contact
+  }
+
+  // JSON 格式的联系人
+  if (trimmed.startsWith('{') && trimmed.includes('"type":"contact"')) {
+    const contact = parseContactURI(trimmed)
+    if (contact) return contact
+  }
+
+  // 深度链接（hash 路由格式）
+  if (trimmed.startsWith('#/') || (trimmed.startsWith('http') && trimmed.includes('#/'))) {
+    const deepLink = parseDeepLink(trimmed)
+    if (deepLink) return deepLink
   }
 
   // 纯地址字符串
