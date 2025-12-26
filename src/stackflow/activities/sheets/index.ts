@@ -16,3 +16,4 @@ export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult 
 export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForChain, type ScannerJobParams, type ScannerResultEvent, type ScanValidator } from "./ScannerJob";
 export { ContactAddConfirmJob, type ContactAddConfirmJobParams } from "./ContactAddConfirmJob";
 export { ContactShareJob, type ContactShareJobParams } from "./ContactShareJob";
+export { ClearDataConfirmJob } from "./ClearDataConfirmJob";

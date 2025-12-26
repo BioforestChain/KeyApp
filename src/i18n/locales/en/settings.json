@@ -6,7 +6,8 @@
     "walletManagement": "Wallet Management",
     "security": "Security",
     "preferences": "Preferences",
-    "about": "About"
+    "about": "About",
+    "danger": "Danger Zone"
   },
   "items": {
     "walletManagement": "Wallet Management",
@@ -19,7 +20,8 @@
     "currency": "Currency",
     "chainConfig": "Chain Config",
     "appearance": "Appearance",
-    "aboutApp": "About BFM Pay"
+    "aboutApp": "About BFM Pay",
+    "clearData": "Clear App Data"
   },
   "appearance": {
     "title": "Appearance",
@@ -120,5 +122,13 @@
       "manualAdded": "Chain config added"
     },
     "hint": "Hint: Subscription configs are cached locally. Changing the URL clears the old cache to avoid confusion."
+  },
+  "clearData": {
+    "title": "Clear App Data",
+    "warning": "This will delete all local data including wallets, settings, and cache. This action cannot be undone!",
+    "item1": "All wallet data will be deleted",
+    "item2": "All settings will be reset to default",
+    "item3": "The app will restart",
+    "confirm": "Confirm Clear"
   }
 }
