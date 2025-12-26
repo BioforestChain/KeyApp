@@ -97,9 +97,11 @@ jobs:
           
           # 构建 Web 和 DWEB 版本
           SERVICE_IMPL=web pnpm build
+          rm -rf dist-web
           mv dist dist-web
           
           SERVICE_IMPL=dweb pnpm build
+          rm -rf dist-dweb
           mv dist dist-dweb
           
           # Plaoc bundle
