@@ -247,12 +247,20 @@ export function WalletTab() {
             ) : (
               <div className="p-4">
                 <TransactionList
-                  transactions={transactions}
+                  transactions={transactions.slice(0, 5)}
                   loading={txLoading}
                   onTransactionClick={handleTransactionClick}
                   emptyTitle={t("transaction:history.emptyTitle")}
                   emptyDescription={t("transaction:history.emptyDesc")}
                 />
+                {transactions.length > 5 && (
+                  <button
+                    onClick={() => push("HistoryActivity", {})}
+                    className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                  >
+                    {t("transaction:history.viewAll", { count: transactions.length })}
+                  </button>
+                )}
               </div>
             )
           }

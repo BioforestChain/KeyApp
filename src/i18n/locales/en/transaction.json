@@ -157,7 +157,8 @@
     },
     "noWallet": "Please create or import a wallet first",
     "title": "Transaction History",
-    "totalRecords": "{{count}} records"
+    "totalRecords": "{{count}} records",
+    "viewAll": "View all {{count}} records"
   },
   "incorrectHandlingFee": "Incorrect handling fee",
   "initiateTransfer": "Initiate Transfer",

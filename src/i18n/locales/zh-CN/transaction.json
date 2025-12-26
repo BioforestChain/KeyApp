@@ -66,6 +66,7 @@
     "totalRecords": "共 {{count}} 条记录",
     "emptyTitle": "暂无交易记录",
     "emptyDesc": "当前筛选条件下没有交易记录",
+    "viewAll": "查看全部 {{count}} 条记录",
     "filter": {
       "allChains": "全部链",
       "allTime": "全部",
