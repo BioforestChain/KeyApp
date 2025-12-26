@@ -228,8 +228,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             style={{
               ...logoMaskStyle,
               mixBlendMode: 'overlay',
-              // 透明度跟随强度
-              opacity: `calc(var(--tilt-intensity) * 0.7)`,
+              // 透明度：基础值 + 强度加成
+              opacity: `calc(0.1 + var(--tilt-intensity) * 0.6)`,
               transition: isActive ? 'none' : transitionConfig,
             }}
           >
