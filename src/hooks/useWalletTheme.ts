@@ -17,6 +17,19 @@ export const WALLET_THEME_PRESETS = {
 
 export type WalletThemePreset = keyof typeof WALLET_THEME_PRESETS
 
+/** 主题色配置（包含名称和展示色） */
+export const WALLET_THEME_COLORS = [
+  { name: '紫色', hue: 323, color: 'oklch(0.6 0.25 323)' },
+  { name: '蓝色', hue: 250, color: 'oklch(0.55 0.25 250)' },
+  { name: '青色', hue: 200, color: 'oklch(0.65 0.2 200)' },
+  { name: '绿色', hue: 145, color: 'oklch(0.6 0.2 145)' },
+  { name: '黄色', hue: 85, color: 'oklch(0.75 0.18 85)' },
+  { name: '橙色', hue: 45, color: 'oklch(0.7 0.2 45)' },
+  { name: '红色', hue: 25, color: 'oklch(0.6 0.25 25)' },
+  { name: '粉色', hue: 350, color: 'oklch(0.7 0.2 350)' },
+  { name: '洋红', hue: 310, color: 'oklch(0.6 0.25 310)' },
+] as const
+
 /**
  * 将主题色应用到 CSS 变量
  */

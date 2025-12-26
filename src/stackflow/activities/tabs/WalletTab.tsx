@@ -151,36 +151,46 @@ export function WalletTab() {
           onOpenWalletList={handleOpenWalletList}
         />
 
-        {/* 快捷操作按钮 */}
-        <div className="mt-4 flex justify-center gap-6 px-6">
+        {/* 快捷操作按钮 - 颜色跟随主题 */}
+        <div className="mt-6 flex justify-center gap-8 px-6">
           <button
             onClick={() => push("SendActivity", {})}
-            className="flex flex-col items-center gap-1"
+            className="quick-action-btn flex flex-col items-center gap-1.5"
           >
-            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
-              <IconSend className="text-primary size-5" />
+            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+              <IconSend className="size-5" />
             </div>
-            <span className="text-xs">{t("home:wallet.send")}</span>
+            <span className="text-xs font-medium">{t("home:wallet.send")}</span>
           </button>
           <button
             onClick={() => push("ReceiveActivity", {})}
-            className="flex flex-col items-center gap-1"
+            className="quick-action-btn flex flex-col items-center gap-1.5"
           >
-            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
-              <IconQrcode className="text-primary size-5" />
+            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+              <IconQrcode className="size-5" />
             </div>
-            <span className="text-xs">{t("home:wallet.receive")}</span>
+            <span className="text-xs font-medium">{t("home:wallet.receive")}</span>
           </button>
           <button
             onClick={() => push("ScannerActivity", {})}
-            className="flex flex-col items-center gap-1"
+            className="quick-action-btn flex flex-col items-center gap-1.5"
           >
-            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
-              <IconLineScan className="text-primary size-5" />
+            <div className="quick-action-icon flex size-12 items-center justify-center rounded-full transition-transform active:scale-95">
+              <IconLineScan className="size-5" />
             </div>
-            <span className="text-xs">{t("common:a11y.scan")}</span>
+            <span className="text-xs font-medium">{t("common:a11y.scan")}</span>
           </button>
         </div>
+
+        <style>{`
+          .quick-action-icon {
+            background: hsl(var(--primary-hue, 280) 60% 95%);
+            color: hsl(var(--primary-hue, 280) 70% 45%);
+          }
+          .quick-action-btn:hover .quick-action-icon {
+            background: hsl(var(--primary-hue, 280) 60% 90%);
+          }
+        `}</style>
       </div>
 
       {/* 内容区 Tab 切换 */}

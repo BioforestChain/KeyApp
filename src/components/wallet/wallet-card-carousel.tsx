@@ -130,12 +130,12 @@ export function WalletCardCarousel({
       <style>{`
         .wallet-carousel {
           width: 100%;
-          padding: 1rem 0;
+          padding: 0.5rem 0;
         }
 
         .wallet-swiper {
-          width: 280px;
-          height: 180px;
+          width: min(340px, 90vw);
+          height: 200px;
           margin: 0 auto;
           overflow: visible;
         }
@@ -148,16 +148,20 @@ export function WalletCardCarousel({
         }
 
         .wallet-swiper .swiper-pagination {
-          bottom: -24px;
+          bottom: -20px;
         }
 
         .wallet-swiper .swiper-pagination-bullet {
-          background: var(--muted-foreground);
+          width: 6px;
+          height: 6px;
+          background: hsl(var(--primary-hue, 280) 60% 50%);
           opacity: 0.3;
+          transition: all 0.2s;
         }
 
         .wallet-swiper .swiper-pagination-bullet-active {
-          background: var(--primary);
+          width: 20px;
+          border-radius: 3px;
           opacity: 1;
         }
       `}</style>

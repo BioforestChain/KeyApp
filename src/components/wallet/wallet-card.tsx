@@ -19,20 +19,14 @@ export interface WalletCardProps {
   onOpenChainSelector?: (() => void) | undefined
   onOpenSettings?: (() => void) | undefined
   className?: string | undefined
-  /** 卡片主题色 (oklch hue) */
   themeHue?: number | undefined
 }
 
-/** 截断地址显示 */
 function truncateAddress(address: string, startChars = 6, endChars = 4): string {
   if (address.length <= startChars + endChars + 3) return address
   return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
 }
 
-/**
- * 3D 钱包卡片组件
- * 支持重力感应、触摸交互、炫光防伪效果
- */
 export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
   function WalletCard(
     {
@@ -51,13 +45,11 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
     const [copied, setCopied] = useState(false)
     const cardRef = useRef<HTMLDivElement>(null)
 
-    // 卡片交互（重力+触摸）
-    const { pointerX, pointerY, isActive, bindElement, style } = useCardInteraction({
-      gyroStrength: 0.12,
+    const { pointerX, pointerY, isActive, bindElement } = useCardInteraction({
+      gyroStrength: 0.15,
       touchStrength: 0.8,
     })
 
-    // 绑定交互
     useEffect(() => {
       bindElement(cardRef.current)
     }, [bindElement])
@@ -68,121 +60,127 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
       setTimeout(() => setCopied(false), 2000)
     }, [onCopyAddress])
 
-    // 3D旋转角度
-    const rotateX = pointerY * -15
-    const rotateY = pointerX * 15
+    // 3D 旋转 - 默认有微弱的呼吸动画偏移
+    const baseRotateX = isActive ? pointerY * -12 : 0
+    const baseRotateY = isActive ? pointerX * 12 : 0
+
+    // 光泽位置 - 静态时居中偏移，交互时跟随指针
+    const shineX = isActive ? 50 + pointerX * 30 : 50
+    const shineY = isActive ? 50 + pointerY * 30 : 40
 
     return (
       <div
         ref={ref}
-        className={cn('wallet-card-container perspective-[1000px]', className)}
+        className={cn('wallet-card-container', className)}
+        style={{ perspective: '1000px' }}
       >
         <div
           ref={cardRef}
           className={cn(
-            'wallet-card relative aspect-[1.6/1] w-full rounded-2xl',
-            'transform-gpu transition-transform duration-200',
-            'touch-none select-none',
-            isActive && 'transition-none'
+            'wallet-card relative aspect-[1.7/1] w-full overflow-hidden rounded-2xl',
+            'transform-gpu touch-none select-none',
+            'animate-card-breathe',
+            isActive && 'animation-paused'
           )}
           style={{
-            ...style,
-            '--theme-hue': themeHue,
-            transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+            transform: `rotateX(${baseRotateX}deg) rotateY(${baseRotateY}deg)`,
             transformStyle: 'preserve-3d',
-          } as React.CSSProperties}
-          data-active={isActive}
+            transition: isActive ? 'none' : 'transform 0.4s ease-out',
+          }}
         >
-          {/* 卡片底层 - 渐变背景 */}
+          {/* 1. 主背景渐变 */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(135deg, 
+                hsl(${themeHue} 70% 45%) 0%, 
+                hsl(${themeHue + 20} 80% 35%) 50%,
+                hsl(${themeHue + 40} 70% 25%) 100%)`,
+            }}
+          />
+
+          {/* 2. 噪点纹理 - 增加质感 */}
+          <div
+            className="absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            }}
+          />
+
+          {/* 3. 防伪水印图案 */}
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage: `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+              )`,
+            }}
+          />
+
+          {/* 4. 默认光泽层 - 始终显示 */}
+          <div
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{
+              background: `radial-gradient(
+                ellipse 80% 50% at ${shineX}% ${shineY}%,
+                rgba(255,255,255,0.25) 0%,
+                rgba(255,255,255,0.1) 30%,
+                transparent 70%
+              )`,
+              opacity: isActive ? 1 : 0.6,
+            }}
+          />
+
+          {/* 5. 彩虹全息层 - 始终微弱显示，交互时增强 */}
+          <div
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{
+              background: `
+                linear-gradient(
+                  ${125 + pointerX * 20}deg,
+                  transparent 20%,
+                  rgba(255,100,100,0.15) 35%,
+                  rgba(100,255,100,0.12) 50%,
+                  rgba(100,100,255,0.15) 65%,
+                  transparent 80%
+                )
+              `,
+              opacity: isActive ? 0.8 : 0.3,
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          {/* 6. 边缘高光 */}
           <div
             className="absolute inset-0 rounded-2xl"
             style={{
-              background: `linear-gradient(135deg, 
-                oklch(0.45 0.2 var(--theme-hue)) 0%, 
-                oklch(0.35 0.25 calc(var(--theme-hue) + 30)) 50%,
-                oklch(0.25 0.2 calc(var(--theme-hue) + 60)) 100%)`,
+              background: `linear-gradient(
+                135deg,
+                rgba(255,255,255,0.3) 0%,
+                transparent 50%,
+                rgba(0,0,0,0.2) 100%
+              )`,
+              opacity: 0.5,
             }}
           />
 
-          {/* 防伪图案层 - 链Logo平铺 */}
+          {/* 7. 动态聚光灯 - 交互时更明显 */}
           <div
-            className="pointer-events-none absolute inset-0 rounded-2xl opacity-[0.15]"
+            className="absolute inset-0 transition-opacity duration-200"
             style={{
-              maskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E")`,
-              maskSize: '40px 40px',
-              maskRepeat: 'repeat',
-              WebkitMaskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E")`,
-              WebkitMaskSize: '40px 40px',
-              WebkitMaskRepeat: 'repeat',
-              background: 'white',
+              background: `radial-gradient(
+                circle at ${shineX}% ${shineY}%,
+                rgba(255,255,255,0.4) 0%,
+                transparent 50%
+              )`,
+              opacity: isActive ? 0.6 : 0.2,
+              mixBlendMode: 'overlay',
             }}
           />
-
-          {/* 炫光层 - 彩虹折射效果 */}
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-0 rounded-2xl',
-              'opacity-0 transition-opacity duration-200',
-              isActive && 'opacity-100'
-            )}
-            style={{ mixBlendMode: 'multiply' }}
-          >
-            {/* 左下角炫光 */}
-            <div
-              className="absolute aspect-square w-[500%] origin-[0_100%] saturate-[2]"
-              style={{
-                bottom: 0,
-                left: 0,
-                background: `radial-gradient(circle at 0 100%, 
-                  transparent 10%, 
-                  hsl(5 100% 80%), 
-                  hsl(150 100% 60%), 
-                  hsl(220 90% 70%), 
-                  transparent 60%)`,
-                scale: `${Math.min(1, 0.15 + pointerX * 0.25)}`,
-                translate: `${Math.max(-10, Math.min(10, pointerX * 10))}% ${Math.max(0, pointerY * -10)}%`,
-              }}
-            />
-            {/* 右上角炫光 */}
-            <div
-              className="absolute aspect-square w-[500%] origin-[100%_0] saturate-[2]"
-              style={{
-                top: 0,
-                right: 0,
-                background: `radial-gradient(circle at 100% 0, 
-                  transparent 10%, 
-                  hsl(5 100% 80%), 
-                  hsl(150 100% 60%), 
-                  hsl(220 90% 70%), 
-                  transparent 60%)`,
-                scale: `${Math.min(1, 0.15 + pointerX * -0.65)}`,
-                translate: `${Math.max(-10, Math.min(10, -pointerX * 10))}% ${Math.min(0, pointerY * -10)}%`,
-              }}
-            />
-          </div>
-
-          {/* 聚光灯层 */}
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-0 rounded-2xl',
-              'opacity-0 transition-opacity duration-200',
-              isActive && 'opacity-100'
-            )}
-            style={{ mixBlendMode: 'overlay' }}
-          >
-            <div
-              className="absolute aspect-square w-[500%]"
-              style={{
-                left: '50%',
-                top: '50%',
-                background: `radial-gradient(
-                  hsl(0 0% 100% / 0.35) 0 2%, 
-                  hsl(0 0% 10% / 0.15) 20%
-                )`,
-                translate: `calc(-50% + ${pointerX * 20}%) calc(-50% + ${pointerY * 20}%)`,
-              }}
-            />
-          </div>
 
           {/* 卡片内容 */}
           <div className="relative z-10 flex h-full flex-col justify-between p-4">
@@ -190,36 +188,36 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             <div className="flex items-center justify-between">
               <button
                 onClick={onOpenChainSelector}
-                className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+                className="flex items-center gap-1.5 rounded-full bg-black/20 px-2.5 py-1 text-xs text-white backdrop-blur-sm transition-colors hover:bg-black/30"
               >
                 <ChainIcon chainId={chain} size="sm" />
-                <span>{chainName}</span>
-                <ChevronDown className="size-3" />
+                <span className="font-medium">{chainName}</span>
+                <ChevronDown className="size-3 opacity-70" />
               </button>
 
               <button
                 onClick={onOpenSettings}
-                className="rounded-full p-1.5 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+                className="rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/20 hover:text-white"
               >
                 <Settings className="size-4" />
               </button>
             </div>
 
             {/* 中部：钱包名称 */}
-            <div className="flex-1 flex items-center justify-center">
-              <h2 className="text-xl font-bold text-white drop-shadow-lg">
+            <div className="flex flex-1 items-center justify-center">
+              <h2 className="text-2xl font-bold text-white drop-shadow-lg">
                 {wallet.name}
               </h2>
             </div>
 
             {/* 底部：地址 */}
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-white/70">
+              <span className="font-mono text-sm text-white/80 drop-shadow">
                 {address ? truncateAddress(address) : '---'}
               </span>
               <button
                 onClick={handleCopy}
-                className="rounded-full p-1.5 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+                className="rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-all hover:bg-black/20 hover:text-white"
               >
                 {copied ? (
                   <Check className="size-4 text-green-300" />
@@ -230,18 +228,42 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(
             </div>
           </div>
 
-          {/* 边框发光效果 */}
+          {/* 边框和阴影 */}
           <div
             className="pointer-events-none absolute inset-0 rounded-2xl"
             style={{
               boxShadow: `
-                inset 0 0 0 1px rgba(255,255,255,0.2),
-                0 25px 50px -12px rgba(0,0,0,0.5),
-                0 0 0 1px rgba(255,255,255,0.1)
+                inset 0 1px 1px rgba(255,255,255,0.3),
+                inset 0 -1px 1px rgba(0,0,0,0.2),
+                0 20px 40px -15px rgba(0,0,0,0.4),
+                0 10px 20px -10px rgba(0,0,0,0.3)
               `,
+              border: '1px solid rgba(255,255,255,0.15)',
             }}
           />
         </div>
+
+        <style>{`
+          @keyframes card-breathe {
+            0%, 100% {
+              transform: rotateX(0deg) rotateY(0deg);
+            }
+            25% {
+              transform: rotateX(1deg) rotateY(-1deg);
+            }
+            75% {
+              transform: rotateX(-1deg) rotateY(1deg);
+            }
+          }
+
+          .animate-card-breathe {
+            animation: card-breathe 6s ease-in-out infinite;
+          }
+
+          .animation-paused {
+            animation-play-state: paused !important;
+          }
+        `}</style>
       </div>
     )
   }
