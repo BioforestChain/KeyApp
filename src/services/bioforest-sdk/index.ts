@@ -67,6 +67,18 @@ let genesisBaseUrl: string | null = null // null means use document.baseURI
 let genesisImportOptions: object | undefined = undefined
 
 /**
+ * Resolve the API chain path for BioForest walletapi endpoints.
+ *
+ * Notes:
+ * - Most BioForest chains use `/{chainId}` (e.g. `/wallet/ccchain/...`).
+ * - BFMeta is the exception: production walletapi uses `/wallet/bfm/...`.
+ */
+function resolveBioforestApiPath(chainId: string, apiPath?: string): string {
+  if (apiPath) return apiPath
+  return chainId === 'bfmeta' ? 'bfm' : chainId
+}
+
+/**
  * Set base URL for genesis block fetching
  * - Browser: null (default, uses document.baseURI + '/configs/genesis')
  * - Node.js: 'file:///absolute/path/to/public/configs/genesis'
@@ -286,7 +298,7 @@ export async function getAccountBalance(
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
   const assetType = await core.getAssetType()
-  const chainPath = apiPath ?? assetType.toLowerCase()
+  const chainPath = resolveBioforestApiPath(chainId, apiPath)
   
   const api = getApi(rpcUrl, chainPath)
   try {
@@ -329,7 +341,7 @@ export async function createTransferTransaction(
   params: CreateTransferParams,
 ): Promise<BFChainCore.TransferAssetTransactionJSON> {
   const core = await getBioforestCore(params.chainId)
-  const apiPath = params.apiPath ?? params.chainId
+  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
 
   // Get latest block for transaction timing
   const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
@@ -482,7 +494,7 @@ export async function getSignatureTransactionMinFee(
 export interface CreateSignatureParams {
   rpcUrl: string
   chainId: string
-  /** API path (e.g., "bfm" for bfmeta) - defaults to asset type lowercase */
+  /** API path for the provider (e.g., "bfm" for bfmeta) */
   apiPath?: string
   mainSecret: string
   newPaySecret: string
@@ -496,7 +508,7 @@ export async function createSignatureTransaction(
   params: CreateSignatureParams,
 ): Promise<BFChainCore.TransactionJSON<BFChainCore.SignatureAssetJSON>> {
   const core = await getBioforestCore(params.chainId)
-  const apiPath = params.apiPath ?? (await core.getAssetType()).toLowerCase()
+  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
 
   const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
   const applyBlockHeight = lastBlock.height
@@ -538,8 +550,7 @@ export interface SetTwoStepSecretParams {
 export async function setTwoStepSecret(
   params: SetTwoStepSecretParams,
 ): Promise<{ txHash: string; success: boolean }> {
-  const core = await getBioforestCore(params.chainId)
-  const apiPath = params.apiPath ?? (await core.getAssetType()).toLowerCase()
+  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
 
   const transaction = await createSignatureTransaction({
     rpcUrl: params.rpcUrl,
