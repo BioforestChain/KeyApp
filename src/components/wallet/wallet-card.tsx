@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // 注册 CSS 自定义属性，使其可动画
 // 只需注册一次，放在模块顶层
@@ -25,6 +25,7 @@ import { useCardInteraction } from '@/hooks/useCardInteraction';
 import { useMonochromeMask } from '@/hooks/useMonochromeMask';
 import { ChainIcon } from './chain-icon';
 import { AddressDisplay } from './address-display';
+import { HologramCanvas } from './refraction';
 import type { Wallet, ChainType } from '@/stores';
 import {
   IconCopy as Copy,
@@ -50,19 +51,23 @@ export interface WalletCardProps {
   className?: string | undefined;
   themeHue?: number | undefined;
   /**
-   * 禁用“折射 Refraction”层（Android 部分机型/浏览器组合会出现页面闪动）。
+   * 禁用“水印 Refraction”层（Android 部分机型/浏览器组合会出现页面闪动）。
    * 默认：在 Android 浏览器上自动禁用，其它平台启用。
    */
-  disableRefraction?: boolean | undefined;
+  disableWatermarkRefraction?: boolean | undefined;
+  /**
+   * 禁用“三角纹理 Refraction”层。
+   * 默认：在 Android 浏览器上自动禁用，其它平台启用。
+   *
+   * 说明：用户反馈 Pattern 在 Android 表现正常时，可以将该值显式设为 false 以保留效果。
+   */
+  disablePatternRefraction?: boolean | undefined;
   /**
    * 是否启用陀螺仪倾斜（deviceorientation）。
    * 默认：在 Android 上关闭（降低高频重绘导致的闪动/掉帧风险）。
    */
   enableGyro?: boolean | undefined;
 }
-
-// 静态样式常量 - 避免每次渲染创建新对象
-const TRIANGLE_MASK_SVG = `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 L10 10 L10 0 Z' fill='black'/%3E%3C/svg%3E")`;
 
 export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function WalletCard(
   {
@@ -78,7 +83,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     onOpenSettings,
     className,
     themeHue = 323,
-    disableRefraction,
+    disableWatermarkRefraction,
+    disablePatternRefraction,
     enableGyro,
   },
   ref,
@@ -86,14 +92,16 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const [copied, setCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const isAndroid = useMemo(() => {
-    if (typeof navigator === 'undefined') return false;
-    return /Android/i.test(navigator.userAgent);
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
   }, []);
 
-  // Android 上：Refraction + mask + mix-blend-mode + 高频倾斜更新，容易触发浏览器合成层闪动（看起来像整页抖/闪）。
-  const disableRefractionEffective = disableRefraction ?? isAndroid;
-  const enableGyroEffective = enableGyro ?? !isAndroid;
+  const disableWatermarkRefractionEffective = disableWatermarkRefraction ?? prefersReducedMotion;
+  const disablePatternRefractionEffective = disablePatternRefraction ?? prefersReducedMotion;
+  const enableGyroEffective = enableGyro ?? !prefersReducedMotion;
+
+  const refractionMode = prefersReducedMotion ? ('static' as const) : ('dynamic' as const);
 
   // 将链图标转为单色遮罩（黑白 -> 透明）
   const monoMaskUrl = useMonochromeMask(chainIconUrl, {
@@ -103,7 +111,8 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   });
 
   const { pointerX, pointerY, isActive, bindElement } = useCardInteraction({
-    gyroStrength: 0.15,
+    // 提高重力感应对光影的影响（之前偏弱，手机端不明显）
+    gyroStrength: 0.35,
     touchStrength: 0.8,
     enableGyro: enableGyroEffective,
   });
@@ -151,33 +160,6 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   // 动画配置 - 统一用于 transform 和光影
   const transitionConfig = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ease-out-back 回弹效果
 
-  // 缓存背景渐变样式（只依赖 themeHue）
-  const bgGradient = useMemo(
-    () => `linear-gradient(135deg,
-      oklch(0.50 0.20 ${themeHue}) 0%,
-      oklch(0.40 0.22 ${themeHue + 20}) 50%,
-      oklch(0.30 0.18 ${themeHue + 40}) 100%)`,
-    [themeHue],
-  );
-
-  // 缓存 Logo mask 样式（只依赖 monoMaskUrl 和 watermarkLogoSize）
-  const logoMaskStyle = useMemo(
-    () =>
-      monoMaskUrl
-        ? {
-            WebkitMaskImage: `url(${monoMaskUrl})`,
-            WebkitMaskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-            WebkitMaskRepeat: 'repeat' as const,
-            WebkitMaskPosition: 'center',
-            maskImage: `url(${monoMaskUrl})`,
-            maskSize: `${watermarkLogoSize}px ${watermarkLogoSize}px`,
-            maskRepeat: 'repeat' as const,
-            maskPosition: 'center',
-          }
-        : null,
-    [monoMaskUrl, watermarkLogoSize],
-  );
-
   return (
     <div ref={ref} className={cn('wallet-card-container h-full w-full', className)} style={{ perspective: '1000px' }}>
       {/* 卡片主体 - CSS 变量驱动所有动画 */}
@@ -195,163 +177,18 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           willChange: 'transform, --tilt-x, --tilt-y, --tilt-intensity',
         }}
       >
-        {/* 1. 主背景渐变 */}
-        <div className="absolute inset-0" style={{ background: bgGradient }} />
-
-        {/* 2. 防伪层1：三角纹理 (Pattern) + 双层折射 */}
-        <div
-          className="absolute inset-0 overflow-hidden rounded-2xl"
-          style={{
-            WebkitMaskImage: TRIANGLE_MASK_SVG,
-            WebkitMaskSize: '24px 24px',
-            WebkitMaskRepeat: 'repeat',
-            maskImage: TRIANGLE_MASK_SVG,
-            maskSize: '24px 24px',
-            maskRepeat: 'repeat',
-            mixBlendMode: 'color-dodge',
-            opacity: `calc(0.05 + var(--tilt-intensity) * 0.25)`,
-            transition: isActive ? 'none' : transitionConfig,
-          }}
-        >
-          {!disableRefractionEffective && (
-            <>
-              {/* Refraction 1: 左下角 */}
-              <div
-                className="absolute bottom-0 left-0"
-                data-testid="wallet-card-refraction-pattern-1"
-                style={{
-                  width: '500%',
-                  aspectRatio: '1',
-                  transformOrigin: '0 100%',
-                  background: `radial-gradient(
-                    circle at 0 100%,
-                    transparent 10%,
-                    hsl(5 100% 80%) 25%,
-                    hsl(150 100% 60%) 40%,
-                    hsl(220 90% 70%) 55%,
-                    transparent 70%
-                  )`,
-                  filter: 'saturate(2)',
-                  transform: `translate(
-                    clamp(-10%, calc(-10% + var(--tilt-ny) * 10%), 10%),
-                    max(0%, calc(var(--tilt-nx) * -10%))
-                  ) scale(min(1, calc(0.15 + var(--tilt-ny) * 0.25)))`,
-                  transition: isActive ? 'none' : transitionConfig,
-                  willChange: 'transform',
-                }}
-              />
-              {/* Refraction 2: 右上角 */}
-              <div
-                className="absolute top-0 right-0"
-                data-testid="wallet-card-refraction-pattern-2"
-                style={{
-                  width: '500%',
-                  aspectRatio: '1',
-                  transformOrigin: '100% 0',
-                  background: `radial-gradient(
-                    circle at 100% 0,
-                    transparent 10%,
-                    hsl(5 100% 80%) 25%,
-                    hsl(150 100% 60%) 40%,
-                    hsl(220 90% 70%) 55%,
-                    transparent 70%
-                  )`,
-                  filter: 'saturate(2)',
-                  transform: `translate(
-                    clamp(-10%, calc(10% + var(--tilt-ny) * 10%), 10%),
-                    min(0%, calc(var(--tilt-nx) * -10%))
-                  ) scale(min(1, calc(0.15 + var(--tilt-ny) * -0.65)))`,
-                  transition: isActive ? 'none' : transitionConfig,
-                  willChange: 'transform',
-                }}
-              />
-            </>
-          )}
-        </div>
-
-        {/* 3. 防伪层2：Logo水印 (Watermark) + 双层折射 */}
-        {logoMaskStyle && (
-          <div
-            className="absolute inset-0 overflow-hidden rounded-2xl"
-            style={{
-              ...logoMaskStyle,
-              mixBlendMode: 'hard-light',
-              opacity: `calc(0.1 + var(--tilt-intensity) * 0.6)`,
-              transition: isActive ? 'none' : transitionConfig,
-            }}
-          >
-            {!disableRefractionEffective && (
-              <>
-                {/* Refraction 1: 左下角 */}
-                <div
-                  className="absolute bottom-0 left-0"
-                  data-testid="wallet-card-refraction-watermark-1"
-                  style={{
-                    width: '500%',
-                    aspectRatio: '1',
-                    transformOrigin: '0 100%',
-                    background: `radial-gradient(
-                      circle at 0 100%,
-                      transparent 10%,
-                      hsl(5 100% 80%),
-                      hsl(150 100% 60%),
-                      hsl(220 90% 70%),
-                      transparent 70%
-                    )`,
-                    filter: 'saturate(1.5)',
-                    transform: `translate(
-                      clamp(-10%, calc(-5% + var(--tilt-ny) * 5%), 10%),
-                      max(0%, calc(var(--tilt-nx) * -10%))
-                    ) scale(min(1, calc(0.15 + var(--tilt-ny) * 0.25)))`,
-                    transition: isActive ? 'none' : transitionConfig,
-                    willChange: 'transform',
-                  }}
-                />
-                {/* Refraction 2: 右上角 */}
-                <div
-                  className="absolute top-0 right-0"
-                  data-testid="wallet-card-refraction-watermark-2"
-                  style={{
-                    width: '600%',
-                    aspectRatio: '1',
-                    transformOrigin: '100% 0',
-                    background: `radial-gradient(
-                      circle at 100% 0,
-                      transparent 10%,
-                      hsl(5 100% 80%),
-                      hsl(150 100% 60%),
-                      hsl(220 90% 70%),
-                      transparent 70%
-                    )`,
-                    filter: 'saturate(1.5)',
-                    transform: `translate(
-                      clamp(-10%, calc(5% + var(--tilt-ny) * 5%), 10%),
-                      min(0%, calc(var(--tilt-nx) * -10%))
-                    ) scale(min(1, calc(0.15 + var(--tilt-ny) * -0.65)))`,
-                    transition: isActive ? 'none' : transitionConfig,
-                    willChange: 'transform',
-                  }}
-                />
-              </>
-            )}
-          </div>
-        )}
-
-        {/* 4. 表面高光 (Glare) - 基于物理反射 */}
-        <div
-          className="pointer-events-none absolute inset-0 rounded-2xl"
-          style={{
-            // 高光位置跟随倾斜反方向
-            background: `radial-gradient(
-                ellipse 80% 60% at calc(50% + var(--tilt-ny) * -50%) calc(50% + var(--tilt-nx) * 50%),
-                rgba(255,255,255,0.4) 0%,
-                rgba(255,255,255,0.1) 30%,
-                transparent 60%
-              )`,
-            mixBlendMode: 'overlay',
-            opacity: `calc(0.1 + var(--tilt-intensity) * 0.6)`,
-            transition: isActive ? 'none' : transitionConfig,
-          }}
+        {/* 1~4. 背景 + Pattern/Watermark + Spotlight 全部由 Canvas 完成（不依赖 DOM mix-blend-mode） */}
+        <HologramCanvas
+          enabledPattern={!disablePatternRefractionEffective}
+          enabledWatermark={!disableWatermarkRefractionEffective && Boolean(monoMaskUrl)}
+          mode={refractionMode}
+          pointerX={pointerX}
+          pointerY={pointerY}
+          active={isActive}
+          themeHue={themeHue}
+          watermarkMaskUrl={monoMaskUrl}
+          watermarkCellSize={watermarkLogoSize}
+          watermarkIconSize={watermarkLogoActualSize}
         />
 
         {/* 5. 边框装饰 */}

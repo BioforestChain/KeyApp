@@ -32,6 +32,13 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
     enableTouch = true,
   } = options
 
+  const applyGyroCurve = useCallback((value: number) => {
+    const abs = Math.abs(value)
+    // 让小幅度倾斜更“跟手”（小值放大，大值不变），提升手机端体感。
+    const curved = Math.pow(abs, 0.7)
+    return Math.sign(value) * curved
+  }, [])
+
   const elementRef = useRef<HTMLElement | null>(null)
   const [state, setState] = useState<CardInteractionState>({
     pointerX: 0,
@@ -49,19 +56,22 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
     const gyro = gyroRef.current
     const touch = touchRef.current
 
+    const gyroX = applyGyroCurve(gyro.x)
+    const gyroY = applyGyroCurve(gyro.y)
+
     let x = 0
     let y = 0
     let active = false
 
     if (touch.active && enableTouch) {
       // 触摸优先，但仍叠加轻微重力
-      x = touch.x * touchStrength + gyro.x * gyroStrength * 0.3
-      y = touch.y * touchStrength + gyro.y * gyroStrength * 0.3
+      x = touch.x * touchStrength + gyroX * gyroStrength * 0.3
+      y = touch.y * touchStrength + gyroY * gyroStrength * 0.3
       active = true
     } else if (enableGyro && (Math.abs(gyro.x) > 0.01 || Math.abs(gyro.y) > 0.01)) {
       // 重力感应 - 有明显倾斜时也算激活
-      x = gyro.x * gyroStrength
-      y = gyro.y * gyroStrength
+      x = gyroX * gyroStrength
+      y = gyroY * gyroStrength
       active = true
     }
 
@@ -74,7 +84,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
       pointerY: y,
       isActive: active,
     })
-  }, [gyroStrength, touchStrength, enableGyro, enableTouch])
+  }, [applyGyroCurve, gyroStrength, touchStrength, enableGyro, enableTouch])
 
   // 处理重力感应
   useEffect(() => {
