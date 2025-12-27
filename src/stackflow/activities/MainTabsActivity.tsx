@@ -3,6 +3,7 @@ import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { TabBar, type TabId } from "../components/TabBar";
 import { WalletTab } from "./tabs/WalletTab";
+import { EcosystemTab } from "./tabs/EcosystemTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 
 type MainTabsParams = {
@@ -19,6 +20,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
         {/* Content area */}
         <div className="flex-1 overflow-auto pb-20">
           {activeTab === "wallet" && <WalletTab />}
+          {activeTab === "ecosystem" && <EcosystemTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>
 

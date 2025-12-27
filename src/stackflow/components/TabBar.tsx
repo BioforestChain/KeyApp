@@ -3,12 +3,13 @@ import { useMemo } from "react";
 import {
   IconWallet,
   IconSettings,
+  IconApps,
   type Icon,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
-// 简化为2个tab：钱包（首页）和设置
-export type TabId = "wallet" | "settings";
+// 3个tab：钱包、生态、设置
+export type TabId = "wallet" | "ecosystem" | "settings";
 
 interface Tab {
   id: TabId;
@@ -26,6 +27,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
 
   const tabConfigs: Tab[] = useMemo(() => [
     { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },
+    { id: "ecosystem", label: t('a11y.tabEcosystem', '生态'), icon: IconApps },
     { id: "settings", label: t('a11y.tabSettings'), icon: IconSettings },
   ], [t]);
 
@@ -60,4 +62,4 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   );
 }
 
-export const tabIds: TabId[] = ["wallet", "settings"];
+export const tabIds: TabId[] = ["wallet", "ecosystem", "settings"];

@@ -1,0 +1,24 @@
+{
+  "title": "Ecosystem",
+  "empty": "No miniapps available",
+  "loading": "Loading...",
+  "notFound": "Miniapp not found",
+  "refresh": "Refresh",
+  "sources": {
+    "title": "Trusted Sources",
+    "add": "Add Source",
+    "remove": "Remove",
+    "empty": "No sources configured"
+  },
+  "permissions": {
+    "title": "Permission Request",
+    "grant": "Allow",
+    "deny": "Deny",
+    "bio_requestAccounts": "Access wallet addresses",
+    "bio_selectAccount": "Select account",
+    "bio_pickWallet": "Pick another wallet",
+    "bio_signMessage": "Sign message",
+    "bio_signTypedData": "Sign typed data",
+    "bio_sendTransaction": "Send transaction"
+  }
+}
