@@ -7,7 +7,16 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppById, getBridge, initBioProvider } from '@/services/ecosystem'
-import type { MiniappManifest } from '@/services/ecosystem'
+import type { MiniappManifest, BioAccount, TransferParams } from '@/services/ecosystem'
+import {
+  setAccountPicker,
+  setWalletPicker,
+  setGetAccounts,
+} from '@/services/ecosystem/handlers/wallet'
+import { setSigningDialog } from '@/services/ecosystem/handlers/signing'
+import { setTransferDialog } from '@/services/ecosystem/handlers/transfer'
+import { walletStore, walletSelectors, type ChainAddress } from '@/stores'
+import { useFlow } from '@/stackflow/stackflow'
 import { IconX, IconDots } from '@tabler/icons-react'
 
 interface MiniappPageProps {
@@ -17,6 +26,7 @@ interface MiniappPageProps {
 
 export function MiniappPage({ appId, onClose }: MiniappPageProps) {
   const { t } = useTranslation('common')
+  const { push } = useFlow()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,6 +41,105 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     }
     setApp(manifest)
   }, [appId, t])
+
+  // 账户选择器
+  const showAccountPicker = useCallback(
+    (opts?: { chain?: string }): Promise<BioAccount | null> => {
+      return new Promise((resolve) => {
+        const handleSelect = (e: Event) => {
+          const detail = (e as CustomEvent).detail
+          window.removeEventListener('account-picker-select', handleSelect)
+          window.removeEventListener('account-picker-cancel', handleCancel)
+          resolve({
+            address: detail.address,
+            chain: detail.chain,
+            name: detail.name,
+          })
+        }
+
+        const handleCancel = () => {
+          window.removeEventListener('account-picker-select', handleSelect)
+          window.removeEventListener('account-picker-cancel', handleCancel)
+          resolve(null)
+        }
+
+        window.addEventListener('account-picker-select', handleSelect)
+        window.addEventListener('account-picker-cancel', handleCancel)
+
+        const params: Record<string, string> = {}
+        if (opts?.chain) params.chain = opts.chain
+        if (app?.name) params.appName = app.name
+        push('AccountPickerJob', params)
+      })
+    },
+    [push, app?.name]
+  )
+
+  // 获取已连接账户
+  const getConnectedAccounts = useCallback((): BioAccount[] => {
+    const state = walletStore.state
+    const wallet = walletSelectors.getCurrentWallet(state)
+    if (!wallet) return []
+
+    return wallet.chainAddresses.map((ca: ChainAddress) => ({
+      address: ca.address,
+      chain: ca.chain,
+      name: wallet.name,
+    }))
+  }, [])
+
+  // 签名对话框
+  const showSigningDialog = useCallback(
+    (params: { message: string; address: string; appName: string }): Promise<string | null> => {
+      return new Promise((resolve) => {
+        const handleConfirm = (e: Event) => {
+          const detail = (e as CustomEvent).detail
+          window.removeEventListener('signing-confirm', handleConfirm)
+          if (detail.confirmed) {
+            // TODO: 实际调用签名服务
+            resolve(`0x${Array(130).fill('0').join('')}`)
+          } else {
+            resolve(null)
+          }
+        }
+
+        window.addEventListener('signing-confirm', handleConfirm)
+
+        push('SigningConfirmJob', {
+          message: params.message,
+          address: params.address,
+          appName: params.appName,
+        })
+      })
+    },
+    [push]
+  )
+
+  // 转账对话框 (暂时返回 null)
+  const showTransferDialog = useCallback(
+    (_params: TransferParams & { appName: string }): Promise<{ txHash: string } | null> => {
+      console.log('[MiniappPage] Transfer requested:', _params)
+      return Promise.resolve(null)
+    },
+    []
+  )
+
+  // 注册回调
+  useEffect(() => {
+    setAccountPicker(showAccountPicker)
+    setWalletPicker(showAccountPicker) // 复用账户选择器
+    setGetAccounts(getConnectedAccounts)
+    setSigningDialog(showSigningDialog)
+    setTransferDialog(showTransferDialog)
+
+    return () => {
+      setAccountPicker(null)
+      setWalletPicker(null)
+      setGetAccounts(null)
+      setSigningDialog(null)
+      setTransferDialog(null)
+    }
+  }, [showAccountPicker, getConnectedAccounts, showSigningDialog, showTransferDialog])
 
   useEffect(() => {
     // Initialize provider on mount

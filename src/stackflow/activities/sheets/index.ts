@@ -17,3 +17,6 @@ export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForCh
 export { ContactAddConfirmJob, type ContactAddConfirmJobParams } from "./ContactAddConfirmJob";
 export { ContactShareJob, type ContactShareJobParams } from "./ContactShareJob";
 export { ClearDataConfirmJob } from "./ClearDataConfirmJob";
+export { AccountPickerJob } from "./AccountPickerJob";
+export { SigningConfirmJob } from "./SigningConfirmJob";
+export { PermissionRequestJob } from "./PermissionRequestJob";
