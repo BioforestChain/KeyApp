@@ -241,7 +241,6 @@ function WalletConfigActivity() {
 ## 相关组件
 
 - [WalletCard](./WalletCard.md) - 钱包卡片预览
-- [ProgressSteps](../01-基础组件/ProgressSteps.md) - 进度指示器
 
 ---
 
