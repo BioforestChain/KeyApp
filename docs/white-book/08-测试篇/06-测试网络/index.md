@@ -1,31 +1,47 @@
-# 测试网络接入指南
+# 公共 RPC 与测试网络接入指南
 
-> 本文档介绍如何接入各链的公开测试网络进行开发和测试。
+> 本文档介绍如何接入公共 RPC 节点进行开发和测试。
 
 ## 概述
 
-测试网络（Testnet）是区块链主网的镜像环境，使用无价值的测试代币，适用于：
+我们使用 **PublicNode** 作为统一的公共 RPC 提供商，它提供：
 
-- 开发阶段的功能验证
-- 转账流程的端到端测试
-- 新链适配器的集成测试
-- CI/CD 自动化测试
+- **免费**：无需 API Key，无请求限制
+- **全链支持**：Ethereum、BSC、Tron、Bitcoin 等
+- **主网+测试网**：同一提供商，API 一致
 
-## 支持的测试网络
+## PublicNode 端点汇总
 
-### EVM 链
+### 主网
 
-#### Ethereum Sepolia
+| 链 | RPC 端点 | 协议 |
+|---|---------|------|
+| Ethereum | `https://ethereum-rpc.publicnode.com` | JSON-RPC |
+| BSC | `https://bsc-rpc.publicnode.com` | JSON-RPC |
+| Tron | `https://tron-rpc.publicnode.com` | Tron HTTP API |
+| Bitcoin | `https://bitcoin-rpc.publicnode.com` | Bitcoin JSON-RPC |
 
-Sepolia 是 Ethereum 官方推荐的测试网络，替代了已弃用的 Goerli。
+### 测试网
+
+| 链 | RPC 端点 | 协议 |
+|---|---------|------|
+| Ethereum Sepolia | `https://ethereum-sepolia-rpc.publicnode.com` | JSON-RPC |
+| BSC Testnet | `https://bsc-testnet-rpc.publicnode.com` | JSON-RPC |
+| Tron Nile | `https://nile.trongrid.io` | Tron HTTP API |
+| Bitcoin Signet | `https://mempool.space/signet/api` | REST API |
+
+## 测试网络详情
+
+### Ethereum Sepolia
+
+Sepolia 是 Ethereum 官方推荐的测试网络。
 
 | 配置项 | 值 |
 |-------|-----|
 | 网络名称 | Sepolia Testnet |
 | Chain ID | 11155111 |
 | 货币符号 | SepoliaETH |
-| RPC 端点 | `https://rpc.sepolia.org` |
-| 备用 RPC | `https://ethereum-sepolia-rpc.publicnode.com` |
+| RPC 端点 | `https://ethereum-sepolia-rpc.publicnode.com` |
 | 区块浏览器 | https://sepolia.etherscan.io |
 | 水龙头 | https://sepoliafaucet.com |
 
