@@ -21,6 +21,11 @@ export function useSelectedChain() {
   return useStore(walletStore, (state) => state.selectedChain)
 }
 
+/** 获取各钱包的链偏好设置 */
+export function useChainPreferences() {
+  return useStore(walletStore, (state) => state.chainPreferences)
+}
+
 /** 获取当前链的地址信息 */
 export function useCurrentChainAddress() {
   return useStore(walletStore, (state) => walletSelectors.getCurrentChainAddress(state))

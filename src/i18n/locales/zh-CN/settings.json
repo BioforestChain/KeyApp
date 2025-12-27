@@ -19,7 +19,9 @@
     "currency": "货币单位",
     "chainConfig": "链配置",
     "appearance": "外观",
-    "aboutApp": "关于 BFM Pay"
+    "aboutApp": "关于 BFM Pay",
+    "clearData": "清空应用数据",
+    "storage": "存储空间"
   },
   "appearance": {
     "title": "外观设置",
@@ -120,5 +122,25 @@
       "manualAdded": "已添加链配置"
     },
     "hint": "提示：订阅配置会被缓存到本地，切换 URL 会清空旧缓存以避免混淆。"
+  },
+  "clearData": {
+    "title": "清空应用数据",
+    "warning": "此操作将删除所有本地数据，包括钱包、设置和缓存。此操作不可撤销！",
+    "item1": "所有钱包数据将被删除",
+    "item2": "所有设置将恢复默认",
+    "item3": "应用将重新启动",
+    "confirm": "确认清空"
+  },
+  "storage": {
+    "title": "存储空间",
+    "usage": "存储使用情况",
+    "basedOn": "基于浏览器存储配额",
+    "used": "已使用",
+    "total": "总空间",
+    "usagePercent": "使用率",
+    "available": "可用空间",
+    "unavailable": "无法获取存储信息",
+    "clearTitle": "清理数据",
+    "clearDesc": "清空所有本地存储的数据，包括钱包、设置和缓存。"
   }
 }

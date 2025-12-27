@@ -15,6 +15,7 @@ import {
   IconNetwork as Network,
   IconLink as Link,
   IconInfoCircle as Info,
+  IconDatabase as Database,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
@@ -274,6 +275,13 @@ export function SettingsPage() {
             onClick={() => {
               // TODO: 关于页面
             }}
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<Database size={20} />}
+            label={t('settings:items.storage')}
+            onClick={() => navigate({ to: '/settings/storage' })}
+            testId="storage-button"
           />
         </SettingsSection>
       </div>

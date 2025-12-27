@@ -149,6 +149,8 @@
     "emptyDesc": "No transactions found with current filters",
     "emptyTitle": "No transactions",
     "filter": {
+      "chainLabel": "Chain",
+      "periodLabel": "Period",
       "allChains": "All Chains",
       "allTime": "All",
       "days30": "30 Days",
@@ -157,7 +159,9 @@
     },
     "noWallet": "Please create or import a wallet first",
     "title": "Transaction History",
-    "totalRecords": "{{count}} records"
+    "totalRecords": "{{count}} records",
+    "viewAll": "View all {{count}} records",
+    "viewAllChains": "View all chain transactions"
   },
   "incorrectHandlingFee": "Incorrect handling fee",
   "initiateTransfer": "Initiate Transfer",

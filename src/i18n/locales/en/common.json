@@ -1,6 +1,7 @@
 {
   "a11y": {
     "addContact": "Add contact",
+    "addWallet": "Add wallet",
     "appInfo": "App info",
     "back": "Back",
     "chainSelector": "Select blockchain network",

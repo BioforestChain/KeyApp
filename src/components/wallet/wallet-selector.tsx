@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
-import type { WalletInfo } from './wallet-card';
+import type { WalletInfo } from './index';
 
 interface WalletSelectorProps {
   /** List of available wallets */

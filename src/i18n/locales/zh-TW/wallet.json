@@ -2,6 +2,7 @@
   " obtainingTheAddressPassowrdIsEquivalentToOwningTheWalletAsset": "獲得地址密碼等同於擁有錢包資產所有權",
   "1AllWalletDataInTheOriginal_{appName}": "1. 原 中的錢包資料將全部保留，並進行資料整理，規則如下：",
   "add": "添加錢包",
+  "defaultName": "我的錢包",
   "chains": {
     "title": "管理錢包網路",
     "verifyTitle": "驗證錢包鎖",
@@ -68,6 +69,8 @@
     "createdAt": "建立於 {{date}}",
     "deleteWallet": "刪除錢包",
     "editName": "編輯錢包名稱",
+    "editTheme": "編輯主題色",
+    "editTitle": "編輯錢包",
     "exportDeveloping": "助記詞匯出功能開發中",
     "exportMnemonic": "匯出助記詞",
     "notFound": "錢包不存在",

@@ -1,15 +1,14 @@
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import {
-  IconHome,
   IconWallet,
-  IconArrowsExchange,
   IconSettings,
   type Icon,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
-export type TabId = "home" | "wallet" | "transfer" | "settings";
+// 简化为2个tab：钱包（首页）和设置
+export type TabId = "wallet" | "settings";
 
 interface Tab {
   id: TabId;
@@ -26,9 +25,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   const { t } = useTranslation('common');
 
   const tabConfigs: Tab[] = useMemo(() => [
-    { id: "home", label: t('a11y.tabHome'), icon: IconHome },
     { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },
-    { id: "transfer", label: t('a11y.tabTransfer'), icon: IconArrowsExchange },
     { id: "settings", label: t('a11y.tabSettings'), icon: IconSettings },
   ], [t]);
 
@@ -63,4 +60,4 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   );
 }
 
-export const tabIds: TabId[] = ["home", "wallet", "transfer", "settings"];
+export const tabIds: TabId[] = ["wallet", "settings"];

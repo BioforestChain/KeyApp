@@ -93,6 +93,7 @@ describe('SignatureAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       encryptedMnemonic: { ciphertext: 'x', salt: 'y', iv: 'z', iterations: 100000 },
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })
@@ -139,6 +140,7 @@ describe('SignatureAuthPage', () => {
       name: 'Wallet 1',
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
+      themeHue: 323,
       encryptedMnemonic: { ciphertext: 'x', salt: 'y', iv: 'z', iterations: 100000 },
       chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
     })

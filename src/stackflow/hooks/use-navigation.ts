@@ -15,6 +15,7 @@ const routeToActivityMap: Record<string, ActivityName> = {
   "/settings/mnemonic": "SettingsMnemonicActivity",
   "/settings/wallet-lock": "SettingsWalletLockActivity",
   "/settings/wallet-chains": "SettingsWalletChainsActivity",
+  "/settings/storage": "SettingsStorageActivity",
   "/history": "HistoryActivity",
   "/scanner": "ScannerActivity",
   "/onboarding/recover": "OnboardingRecoverActivity",
@@ -32,7 +33,7 @@ const dynamicRoutePatterns: Array<{
 }> = [
   {
     pattern: /^\/wallet\/([^/]+)$/,
-    activity: "WalletDetailActivity",
+    activity: "WalletConfigActivity",
     paramExtractor: (match) => ({ walletId: match[1] ?? "" }),
   },
   {

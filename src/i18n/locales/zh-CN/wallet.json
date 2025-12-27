@@ -1,5 +1,6 @@
 {
   "add": "添加钱包",
+  "defaultName": "我的钱包",
   "chains": {
     "title": "管理钱包网络",
     "verifyTitle": "验证钱包锁",
@@ -48,10 +49,12 @@
   },
   "detail": {
     "title": "钱包详情",
+    "editTitle": "编辑钱包",
     "notFound": "钱包不存在",
     "createdAt": "创建于 {{date}}",
     "chainAddresses": "链地址",
     "editName": "编辑钱包名称",
+    "editTheme": "编辑主题色",
     "exportMnemonic": "导出助记词",
     "deleteWallet": "删除钱包",
     "exportDeveloping": "助记词导出功能开发中",

@@ -42,6 +42,8 @@
     "createFailed": "Failed to create wallet",
     "defaultWalletName": "Main Wallet",
     "enterWallet": "Enter Wallet",
+    "themeTitle": "Choose Card Theme",
+    "themeSubtitle": "Select a theme color for your wallet card",
     "form": {
       "agreementPrefix": "I have read and agree to",
       "agreementRequired": "Please read and agree to the user agreement",
@@ -185,5 +187,14 @@
     "noResults": "No chains found",
     "selectAll": "Select All",
     "deselectAll": "Deselect All"
+  },
+  "theme": {
+    "walletName": "Wallet Name",
+    "previewChain": "Preview Chain",
+    "customColor": "Custom Color",
+    "presetColors": "Preset Colors",
+    "usedColor": "In Use",
+    "similarExists": "Similar color exists",
+    "auto": "Auto"
   }
 }

@@ -26,6 +26,7 @@ function createWallet(partial?: Partial<Wallet>): Wallet {
       { chain: 'bfmeta', address: 'c123', tokens: [] },
     ],
     createdAt: Date.now(),
+    themeHue: 323,
     tokens: [],
     ...partial,
   }

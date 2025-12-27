@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { MnemonicDisplay } from '@/components/security/mnemonic-display';
 import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
 import { ChainSelector, getDefaultSelectedChains } from '@/components/onboarding/chain-selector';
+import { WalletConfig } from '@/components/wallet/wallet-config';
 import { FormField } from '@/components/common/form-field';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -22,14 +23,15 @@ import {
 } from '@tabler/icons-react';
 import { useChainConfigs, walletActions } from '@/stores';
 import { generateMnemonic, deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import type { ChainConfig } from '@/services/chain-config';
 
-type Step = 'pattern' | 'mnemonic' | 'verify' | 'chains';
+type Step = 'pattern' | 'mnemonic' | 'verify' | 'chains' | 'theme';
 
-const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains'];
+const STEPS: Step[] = ['pattern', 'mnemonic', 'verify', 'chains', 'theme'];
 
 export function WalletCreatePage() {
-  const { navigate, goBack } = useNavigation();
+  const { goBack, navigate } = useNavigation();
   const { t } = useTranslation('onboarding');
   const chainConfigs = useChainConfigs();
   const [step, setStep] = useState<Step>('pattern');
@@ -39,6 +41,8 @@ export function WalletCreatePage() {
   const [mnemonicCopied, setMnemonicCopied] = useState(false);
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [initializedSelection, setInitializedSelection] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createdWalletId, setCreatedWalletId] = useState<string | null>(null);
 
   const currentStepIndex = STEPS.indexOf(step) + 1;
 
@@ -57,6 +61,8 @@ export function WalletCreatePage() {
       setStep('mnemonic');
     } else if (step === 'chains') {
       setStep('verify');
+    } else if (step === 'theme') {
+      // 不允许从 theme 返回，钱包已创建
     } else {
       goBack();
     }
@@ -77,10 +83,8 @@ export function WalletCreatePage() {
     setStep('chains');
   };
 
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleComplete = async () => {
-    if (isCreating || selectedChainIds.length === 0) return;
+  const handleChainsContinue = async () => {
+    if (isCreating) return;
     setIsCreating(true);
 
     try {
@@ -150,23 +154,34 @@ export function WalletCreatePage() {
         throw new Error('No chain addresses derived');
       }
 
-      await walletActions.createWallet(
+      const themeHue = deriveThemeHue(primaryChain.address);
+
+      const wallet = await walletActions.createWallet(
         {
           name: t('create.defaultWalletName'),
           keyType: 'mnemonic',
           address: primaryChain.address,
           chain: primaryChain.chain,
           chainAddresses,
+          themeHue,
         },
         mnemonicStr,
-        patternKey
+        patternKey,
+        themeHue
       );
 
-      navigate({ to: '/' });
+      // 保存钱包ID，进入主题编辑步骤
+      setCreatedWalletId(wallet.id);
+      setStep('theme');
     } catch (error) {
       console.error(t('create.createFailed'), error);
+    } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleEditOnlyComplete = () => {
+    navigate({ to: '/', replace: true });
   };
 
   return (
@@ -175,7 +190,7 @@ export function WalletCreatePage() {
 
       {/* 进度指示器 */}
       <div className="px-4 pt-4">
-        <ProgressSteps total={4} current={currentStepIndex} />
+        <ProgressSteps total={5} current={currentStepIndex} />
       </div>
 
       <div className="flex-1 p-4">
@@ -214,9 +229,19 @@ export function WalletCreatePage() {
               selectedChains={selectedChainIds}
               selectionCount={selectedChainIds.length}
               onSelectionChange={setSelectedChainIds}
-              onComplete={handleComplete}
-              completeLabel={t('create.complete')}
+              onComplete={handleChainsContinue}
+              completeLabel={t('create.nextStep')}
               isSubmitting={isCreating}
+            />
+          </div>
+        )}
+
+        {step === 'theme' && createdWalletId && (
+          <div data-testid="theme-step">
+            <WalletConfig
+              mode="edit-only"
+              walletId={createdWalletId}
+              onEditOnlyComplete={handleEditOnlyComplete}
             />
           </div>
         )}
@@ -394,3 +419,5 @@ function ChainSelectionStep({
     </div>
   );
 }
+
+

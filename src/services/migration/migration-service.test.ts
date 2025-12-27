@@ -100,6 +100,7 @@ describe('migration-service', () => {
         tokens: [],
       },
     ],
+    themeHue: 200,
     encryptedMnemonic: {
       ciphertext: 'encrypted',
       iv: 'iv',

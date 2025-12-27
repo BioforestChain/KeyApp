@@ -31,6 +31,8 @@
     "complete": "完成创建",
     "defaultWalletName": "主钱包",
     "createFailed": "创建钱包失败",
+    "themeTitle": "选择卡片主题",
+    "themeSubtitle": "为您的钱包卡片选择一个主题色",
     "form": {
       "walletName": "钱包名称",
       "walletNamePlaceholder": "请输入钱包名称",
@@ -185,5 +187,14 @@
     "noResults": "未找到匹配的链",
     "selectAll": "全选",
     "deselectAll": "取消全选"
+  },
+  "theme": {
+    "walletName": "钱包名称",
+    "previewChain": "预览链",
+    "customColor": "自定义颜色",
+    "presetColors": "预设颜色",
+    "usedColor": "已使用",
+    "similarExists": "已有相似颜色",
+    "auto": "自动"
   }
 }

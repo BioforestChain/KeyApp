@@ -47,6 +47,7 @@ const createMockWallet = (id: string, name: string, _isActive: boolean = false):
     },
   ],
   createdAt: Date.now(),
+  themeHue: 323,
 })
 
 describe('WalletListPage', () => {

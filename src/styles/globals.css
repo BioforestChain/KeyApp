@@ -40,14 +40,51 @@
 /* shadcnui */
 @custom-variant dark (&:is(.dark *));
 
+/* 注册 CSS 自定义属性类型 - 支持动画和继承 */
+@property --primary-hue {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 323;
+}
+
+@property --primary-saturation {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.26;
+}
+
+@property --primary-lightness {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.59;
+}
+
+@property --primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.59 0.26 323);
+}
+
+@property --primary-foreground {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(1 0 0);
+}
+
 :root {
+  /* 动态主题色 - 可被钱包主题覆盖 */
+  --primary-hue: 323;
+  --primary-saturation: 0.26;
+  --primary-lightness: 0.59;
+  
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.59 0.26 323);
+  /* primary 使用动态 hue */
+  --primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
@@ -59,16 +96,18 @@
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.83 0.13 321);
-  --chart-2: oklch(0.75 0.21 322);
-  --chart-3: oklch(0.67 0.26 322);
-  --chart-4: oklch(0.59 0.26 323);
-  --chart-5: oklch(0.52 0.23 324);
+  /* chart 颜色使用动态 hue，通过偏移产生和谐色 */
+  --chart-1: oklch(0.83 0.13 calc(var(--primary-hue) - 2));
+  --chart-2: oklch(0.75 0.21 calc(var(--primary-hue) - 1));
+  --chart-3: oklch(0.67 0.26 calc(var(--primary-hue) - 1));
+  --chart-4: oklch(0.59 0.26 var(--primary-hue));
+  --chart-5: oklch(0.52 0.23 calc(var(--primary-hue) + 1));
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.59 0.26 323);
-  --sidebar-primary-foreground: oklch(0.98 0.02 320);
+  /* sidebar-primary 使用动态 hue */
+  --sidebar-primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
+  --sidebar-primary-foreground: oklch(0.98 0.02 calc(var(--primary-hue) - 3));
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
@@ -76,13 +115,17 @@
 }
 
 .dark {
+  /* dark 模式下调整亮度 */
+  --primary-lightness: 0.67;
+  
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.67 0.26 322);
+  /* primary 继承动态 hue */
+  --primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
   --primary-foreground: oklch(0.141 0.005 285.823);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
@@ -94,15 +137,17 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.83 0.13 321);
-  --chart-2: oklch(0.75 0.21 322);
-  --chart-3: oklch(0.67 0.26 322);
-  --chart-4: oklch(0.59 0.26 323);
-  --chart-5: oklch(0.52 0.23 324);
+  /* chart 颜色继承动态 hue */
+  --chart-1: oklch(0.83 0.13 calc(var(--primary-hue) - 2));
+  --chart-2: oklch(0.75 0.21 calc(var(--primary-hue) - 1));
+  --chart-3: oklch(0.67 0.26 calc(var(--primary-hue) - 1));
+  --chart-4: oklch(0.59 0.26 var(--primary-hue));
+  --chart-5: oklch(0.52 0.23 calc(var(--primary-hue) + 1));
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.75 0.21 322);
-  --sidebar-primary-foreground: oklch(0.98 0.02 320);
+  /* sidebar-primary 继承动态 hue */
+  --sidebar-primary: oklch(0.75 0.21 var(--primary-hue));
+  --sidebar-primary-foreground: oklch(0.98 0.02 calc(var(--primary-hue) - 3));
   --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -212,6 +257,7 @@
   /* 动画 */
   --animate-slide-in-bottom: slide-in-bottom 0.3s ease-out;
   --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-rainbow-flow: rainbow-flow 3s linear infinite;
 }
 
 /* 自定义动画 */
@@ -230,6 +276,15 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes rainbow-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
   }
 }
 
@@ -332,4 +387,18 @@
 
 @utility animate-scan {
   animation: scan 2s ease-in-out infinite;
+}
+
+/* 禁用长按和右键菜单（移动端 App 体验） */
+html, body {
+  -webkit-touch-callout: none; /* iOS 禁用长按弹出菜单 */
+  -webkit-user-select: none;   /* 禁用文本选择 */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* 禁用点击高亮 */
+}
+
+/* 允许输入框选择文本 */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }

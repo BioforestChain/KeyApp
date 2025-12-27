@@ -78,6 +78,10 @@ export default defineConfig({
     // 确保资源路径使用相对路径
     assetsDir: 'assets',
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        clear: resolve(__dirname, 'clear.html'),
+      },
       output: {
         // 使用 hash 命名避免缓存问题
         entryFileNames: 'assets/[name]-[hash].js',

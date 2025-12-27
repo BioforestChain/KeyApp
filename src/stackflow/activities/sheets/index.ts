@@ -8,6 +8,7 @@ export { MnemonicOptionsJob, setMnemonicOptionsCallback } from "./MnemonicOption
 export { ContactEditJob } from "./ContactEditJob";
 export { ContactPickerJob } from "./ContactPickerJob";
 export { WalletAddJob } from "./WalletAddJob";
+export { WalletListJob } from "./WalletListJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
@@ -15,3 +16,4 @@ export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult 
 export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForChain, type ScannerJobParams, type ScannerResultEvent, type ScanValidator } from "./ScannerJob";
 export { ContactAddConfirmJob, type ContactAddConfirmJobParams } from "./ContactAddConfirmJob";
 export { ContactShareJob, type ContactShareJobParams } from "./ContactShareJob";
+export { ClearDataConfirmJob } from "./ClearDataConfirmJob";
