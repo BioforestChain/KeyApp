@@ -610,13 +610,13 @@ export const walletActions = {
     // 如果有需要添加的链，派生地址
     let newAddresses: Array<{ chain: string; address: string }> = []
     if (chainsToAdd.length > 0) {
-      
       // 动态导入避免循环依赖
-      const { deriveBioforestAddresses } = await import('@/lib/crypto')
+      const { deriveAddressesForChains } = await import('@/lib/crypto/address-derivation')
       
-      // 派生所有 bioforest 链的地址
-      const bioforestAddresses = deriveBioforestAddresses(mnemonic, chainConfigs)
-      const addressMap = new Map(bioforestAddresses.map((a) => [a.chainId, a.address]))
+      // 只派生需要添加的链
+      const chainsToDerive = chainConfigs.filter((c) => chainsToAdd.includes(c.id))
+      const derivedAddresses = deriveAddressesForChains(mnemonic, chainsToDerive)
+      const addressMap = new Map(derivedAddresses.map((a) => [a.chainId, a.address]))
       
       newAddresses = chainsToAdd
         .map((chainId) => {
