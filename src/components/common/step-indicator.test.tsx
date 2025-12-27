@@ -45,7 +45,8 @@ describe('ProgressSteps', () => {
     expect(bars[1]).toHaveClass('bg-primary')
     expect(bars[2]).toHaveClass('bg-muted')
     // 最后一步使用彩虹渐变 (inline style)，检查 style 属性包含 gradient
-    const lastBarStyle = bars[3].getAttribute('style')
+    const lastBar = bars[3]!
+    const lastBarStyle = lastBar.getAttribute('style')
     expect(lastBarStyle).toContain('linear-gradient')
   })
 
