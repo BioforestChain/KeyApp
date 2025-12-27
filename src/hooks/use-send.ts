@@ -4,6 +4,7 @@ import { Amount } from '@/types/amount'
 import { initialState, MOCK_FEES } from './use-send.constants'
 import type { SendState, UseSendOptions, UseSendReturn } from './use-send.types'
 import { fetchBioforestBalance, fetchBioforestFee, submitBioforestTransfer } from './use-send.bioforest'
+import { fetchWeb3Fee, submitWeb3Transfer, validateWeb3Address } from './use-send.web3'
 import { adjustAmountForFee, canProceedToConfirm, validateAddressInput, validateAmountInput } from './use-send.logic'
 import { submitMockTransfer } from './use-send.mock'
 
@@ -19,11 +20,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   })
 
   const isBioforestChain = chainConfig?.type === 'bioforest'
+  const isWeb3Chain = chainConfig?.type === 'evm' || chainConfig?.type === 'tron' || chainConfig?.type === 'bip39'
 
   // Validate address
   const validateAddress = useCallback((address: string): string | null => {
+    // Use chain adapter validation for Web3 chains
+    if (isWeb3Chain && chainConfig) {
+      return validateWeb3Address(chainConfig, address)
+    }
     return validateAddressInput(address, isBioforestChain)
-  }, [isBioforestChain])
+  }, [isBioforestChain, isWeb3Chain, chainConfig])
 
   // Validate amount
   const validateAmount = useCallback((amount: Amount | null, asset: AssetInfo | null): string | null => {
@@ -56,7 +62,9 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       feeLoading: true,
     }))
 
-    if (useMock || !isBioforestChain || !chainConfig || !fromAddress) {
+    const shouldUseMock = useMock || (!isBioforestChain && !isWeb3Chain) || !chainConfig || !fromAddress
+
+    if (shouldUseMock) {
       // Mock fee estimation delay
       setTimeout(() => {
         const fee = MOCK_FEES[asset.assetType] ?? { amount: '0.001', symbol: asset.assetType }
@@ -73,7 +81,11 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     void (async () => {
       try {
-        const feeEstimate = await fetchBioforestFee(chainConfig, fromAddress)
+        // Use appropriate fee fetcher based on chain type
+        const feeEstimate = isWeb3Chain
+          ? await fetchWeb3Fee(chainConfig, fromAddress)
+          : await fetchBioforestFee(chainConfig, fromAddress)
+        
         setState((prev) => ({
           ...prev,
           feeAmount: feeEstimate.amount,
@@ -88,7 +100,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         }))
       }
     })()
-  }, [chainConfig, fromAddress, isBioforestChain, useMock])
+  }, [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock])
 
   useEffect(() => {
     if (useMock || !isBioforestChain || !chainConfig || !fromAddress) return
@@ -196,17 +208,81 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return { status: 'error' as const }
     }
 
-    // Currently only bioforest is fully implemented
+    // Handle Web3 chains (EVM, Tron, Bitcoin)
+    if (chainConfig.type === 'evm' || chainConfig.type === 'tron' || chainConfig.type === 'bip39') {
+      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.type)
+      
+      if (!walletId || !fromAddress || !state.asset || !state.amount) {
+        setState((prev) => ({
+          ...prev,
+          step: 'result',
+          isSubmitting: false,
+          resultStatus: 'failed',
+          txHash: null,
+          errorMessage: '钱包信息不完整',
+        }))
+        return { status: 'error' as const }
+      }
+
+      setState((prev) => ({
+        ...prev,
+        step: 'sending',
+        isSubmitting: true,
+        errorMessage: null,
+      }))
+
+      const result = await submitWeb3Transfer({
+        chainConfig,
+        walletId,
+        password,
+        fromAddress,
+        toAddress: state.toAddress,
+        amount: state.amount,
+      })
+
+      if (result.status === 'password') {
+        setState((prev) => ({
+          ...prev,
+          step: 'confirm',
+          isSubmitting: false,
+        }))
+        return { status: 'password' as const }
+      }
+
+      if (result.status === 'error') {
+        setState((prev) => ({
+          ...prev,
+          step: 'result',
+          isSubmitting: false,
+          resultStatus: 'failed',
+          txHash: null,
+          errorMessage: result.message,
+        }))
+        return { status: 'error' as const }
+      }
+
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'success',
+        txHash: result.txHash,
+        errorMessage: null,
+      }))
+
+      return { status: 'ok' as const, txHash: result.txHash }
+    }
+
+    // Unsupported chain type
     if (chainConfig.type !== 'bioforest') {
-      console.log('[useSend.submit] Chain type not yet supported:', chainConfig.type)
-      const chainTypeName = chainConfig.type === 'evm' ? 'EVM' : chainConfig.type === 'bip39' ? 'BIP39' : chainConfig.type
+      console.log('[useSend.submit] Chain type not supported:', chainConfig.type)
       setState((prev) => ({
         ...prev,
         step: 'result',
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: `${chainTypeName} 链转账功能开发中`,
+        errorMessage: `不支持的链类型: ${chainConfig.type}`,
       }))
       return { status: 'error' as const }
     }
