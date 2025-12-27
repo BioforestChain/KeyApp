@@ -1,0 +1,6 @@
+export { Bip39Adapter, createBip39Adapter } from './adapter'
+export { Bip39IdentityService } from './identity-service'
+export { Bip39AssetService } from './asset-service'
+export { Bip39TransactionService } from './transaction-service'
+export { Bip39ChainService } from './chain-service'
+export * from './types'

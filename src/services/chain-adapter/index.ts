@@ -40,15 +40,18 @@ export { getAdapterRegistry, resetAdapterRegistry } from './registry'
 
 // Adapters
 export { BioforestAdapter, createBioforestAdapter } from './bioforest'
+export { EvmAdapter, createEvmAdapter } from './evm'
+export { Bip39Adapter, createBip39Adapter } from './bip39'
 
 // Setup function to register all adapters
 import { getAdapterRegistry } from './registry'
 import { createBioforestAdapter } from './bioforest'
+import { createEvmAdapter } from './evm'
+import { createBip39Adapter } from './bip39'
 
 export function setupAdapters(): void {
   const registry = getAdapterRegistry()
   registry.register('bioforest', createBioforestAdapter)
-  // TODO: Register other adapters
-  // registry.register('evm', createEvmAdapter)
-  // registry.register('bip39', createBip39Adapter)
+  registry.register('evm', createEvmAdapter)
+  registry.register('bip39', createBip39Adapter)
 }

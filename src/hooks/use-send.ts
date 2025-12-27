@@ -183,15 +183,30 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
     }
 
-    if (!chainConfig || chainConfig.type !== 'bioforest') {
-      console.log('[useSend.submit] Chain not supported:', chainConfig?.type)
+    if (!chainConfig) {
+      console.log('[useSend.submit] No chain config')
       setState((prev) => ({
         ...prev,
         step: 'result',
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: '当前链暂不支持真实转账',
+        errorMessage: '链配置缺失',
+      }))
+      return { status: 'error' as const }
+    }
+
+    // Currently only bioforest is fully implemented
+    if (chainConfig.type !== 'bioforest') {
+      console.log('[useSend.submit] Chain type not yet supported:', chainConfig.type)
+      const chainTypeName = chainConfig.type === 'evm' ? 'EVM' : chainConfig.type === 'bip39' ? 'BIP39' : chainConfig.type
+      setState((prev) => ({
+        ...prev,
+        step: 'result',
+        isSubmitting: false,
+        resultStatus: 'failed',
+        txHash: null,
+        errorMessage: `${chainTypeName} 链转账功能开发中`,
       }))
       return { status: 'error' as const }
     }
