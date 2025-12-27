@@ -167,9 +167,9 @@ describe('SwipeableContentTabs', () => {
       </SwipeableContentTabs>
     )
 
-    // History tab should be visually active
+    // History tab should be visually active (uses text-primary for active)
     const historyTab = screen.getByRole('button', { name: /交易/i })
-    expect(historyTab).toHaveClass('text-foreground')
+    expect(historyTab).toHaveClass('text-primary')
   })
 
   it('applies custom className', () => {
@@ -186,8 +186,8 @@ describe('SwipeableContentTabs', () => {
     const { container } = render(
       <SwipeableContentTabs>{(tab) => <div>Content: {tab}</div>}</SwipeableContentTabs>
     )
-
-    const indicator = container.querySelector('.rounded-md')
+    // Indicator uses rounded-lg class
+    const indicator = container.querySelector('.rounded-lg')
     expect(indicator).toBeInTheDocument()
   })
 })
