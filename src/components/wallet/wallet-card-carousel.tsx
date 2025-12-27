@@ -88,14 +88,16 @@ export function WalletCardCarousel({
 
   return (
     <div className={cn('relative w-full pt-12 pb-2', className)}>
-      {/* 左上角：多钱包管理入口 */}
-      <button
-        onClick={onOpenWalletList}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors"
-      >
-        <IconWallet className="size-3.5" />
-        <span>{wallets.length} 个钱包</span>
-      </button>
+      {/* 左上角：多钱包管理入口（仅多个钱包时显示） */}
+      {wallets.length > 1 && (
+        <button
+          onClick={onOpenWalletList}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors"
+        >
+          <IconWallet className="size-3.5" />
+          <span>{wallets.length} 个钱包</span>
+        </button>
+      )}
 
       {/* 右上角：添加钱包 */}
       {onAddWallet && (

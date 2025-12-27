@@ -175,6 +175,7 @@ describe('WalletCardCarousel', () => {
         {...defaultProps}
         wallets={[walletWithMultiChain]}
         selectedChain="tron"
+        chainPreferences={{ [walletWithMultiChain.id]: 'tron' }}
         onCopyAddress={handleCopy}
       />
     )
