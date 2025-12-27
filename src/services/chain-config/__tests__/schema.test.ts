@@ -64,11 +64,13 @@ describe('default-chains.json', () => {
     // Verify chain types
     const bioforestChains = chains.filter(c => c.type === 'bioforest')
     const evmChains = chains.filter(c => c.type === 'evm')
+    const tronChains = chains.filter(c => c.type === 'tron')
     const bip39Chains = chains.filter(c => c.type === 'bip39')
 
     expect(bioforestChains).toHaveLength(7)
     expect(evmChains).toHaveLength(2)
-    expect(bip39Chains).toHaveLength(2)
+    expect(tronChains).toHaveLength(1)
+    expect(bip39Chains).toHaveLength(1)
   })
 })
 

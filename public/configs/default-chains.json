@@ -158,7 +158,7 @@
   {
     "id": "tron",
     "version": "1.0",
-    "type": "bip39",
+    "type": "tron",
     "name": "Tron",
     "symbol": "TRX",
     "icon": "../icons/tron/chain.svg",

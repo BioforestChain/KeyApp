@@ -27,11 +27,12 @@ export interface ChainConfigSnapshot {
   warnings: ChainConfigWarning[]
 }
 
-const KNOWN_TYPES: ReadonlySet<string> = new Set(['bioforest', 'evm', 'bip39', 'custom'])
+const KNOWN_TYPES: ReadonlySet<string> = new Set(['bioforest', 'evm', 'tron', 'bip39', 'custom'])
 
 const SUPPORTED_MAJOR_BY_TYPE: Record<ChainConfigType, number> = {
   bioforest: 1,
   evm: 1,
+  tron: 1,
   bip39: 1,
   custom: 1,
 }
