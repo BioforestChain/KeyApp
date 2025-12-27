@@ -4,6 +4,17 @@ import userEvent from '@testing-library/user-event'
 import { WalletCard } from './wallet-card'
 import type { Wallet } from '@/stores'
 
+vi.mock('./refraction', () => ({
+  HologramCanvas: (props: { enabledPattern: boolean; enabledWatermark: boolean; mode?: string }) => (
+    <div
+      data-testid="wallet-card-hologram-canvas"
+      data-pattern-enabled={props.enabledPattern ? 'true' : 'false'}
+      data-watermark-enabled={props.enabledWatermark ? 'true' : 'false'}
+      data-mode={props.mode ?? 'dynamic'}
+    />
+  ),
+}))
+
 // Mock useCardInteraction hook
 vi.mock('@/hooks/useCardInteraction', () => ({
   useCardInteraction: () => ({
@@ -44,6 +55,23 @@ describe('WalletCard (3D)', () => {
     chain: 'ethereum' as const,
     chainName: 'Ethereum',
     address: '0x1234567890abcdef1234567890abcdef12345678',
+  }
+
+  const originalMatchMedia = window.matchMedia
+  const setReducedMotion = (matches: boolean) => {
+    Object.defineProperty(window, 'matchMedia', {
+      value: (query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)' ? matches : false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+      configurable: true,
+    })
   }
 
   const originalUserAgent = navigator.userAgent
@@ -183,25 +211,47 @@ describe('WalletCard (3D)', () => {
 
   it('renders watermark refractions on non-Android when chainIconUrl provided', () => {
     setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36')
+    setReducedMotion(false)
 
     render(<WalletCard {...defaultProps} chainIconUrl="data:image/png;base64,AA==" />)
 
-    expect(screen.getByTestId('wallet-card-refraction-watermark-1')).toBeInTheDocument()
-    expect(screen.getByTestId('wallet-card-refraction-watermark-2')).toBeInTheDocument()
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-watermark-enabled', 'true')
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-mode', 'dynamic')
 
+    Object.defineProperty(window, 'matchMedia', { value: originalMatchMedia, configurable: true })
     setUserAgent(originalUserAgent)
   })
 
-  it('disables refraction layers by default on Android to avoid flicker', () => {
-    setUserAgent('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36')
+  it('disables refraction layers when prefers-reduced-motion is enabled', () => {
+    setReducedMotion(true)
 
     render(<WalletCard {...defaultProps} chainIconUrl="data:image/png;base64,AA==" />)
 
-    expect(screen.queryByTestId('wallet-card-refraction-pattern-1')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('wallet-card-refraction-pattern-2')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('wallet-card-refraction-watermark-1')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('wallet-card-refraction-watermark-2')).not.toBeInTheDocument()
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-pattern-enabled', 'false')
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-watermark-enabled', 'false')
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-mode', 'static')
 
+    Object.defineProperty(window, 'matchMedia', { value: originalMatchMedia, configurable: true })
+    setUserAgent(originalUserAgent)
+  })
+
+  it('allows enabling pattern refraction only (Android) for fine-grained experiments', () => {
+    setUserAgent('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36')
+    setReducedMotion(false)
+
+    render(
+      <WalletCard
+        {...defaultProps}
+        chainIconUrl="data:image/png;base64,AA=="
+        disablePatternRefraction={false}
+        disableWatermarkRefraction={true}
+      />,
+    )
+
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-pattern-enabled', 'true')
+    expect(screen.getByTestId('wallet-card-hologram-canvas')).toHaveAttribute('data-watermark-enabled', 'false')
+
+    Object.defineProperty(window, 'matchMedia', { value: originalMatchMedia, configurable: true })
     setUserAgent(originalUserAgent)
   })
 })
