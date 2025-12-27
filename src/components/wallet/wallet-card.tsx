@@ -49,6 +49,16 @@ export interface WalletCardProps {
   onOpenSettings?: (() => void) | undefined;
   className?: string | undefined;
   themeHue?: number | undefined;
+  /**
+   * 禁用“折射 Refraction”层（Android 部分机型/浏览器组合会出现页面闪动）。
+   * 默认：在 Android 浏览器上自动禁用，其它平台启用。
+   */
+  disableRefraction?: boolean | undefined;
+  /**
+   * 是否启用陀螺仪倾斜（deviceorientation）。
+   * 默认：在 Android 上关闭（降低高频重绘导致的闪动/掉帧风险）。
+   */
+  enableGyro?: boolean | undefined;
 }
 
 // 静态样式常量 - 避免每次渲染创建新对象
@@ -68,11 +78,22 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     onOpenSettings,
     className,
     themeHue = 323,
+    disableRefraction,
+    enableGyro,
   },
   ref,
 ) {
   const [copied, setCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const isAndroid = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /Android/i.test(navigator.userAgent);
+  }, []);
+
+  // Android 上：Refraction + mask + mix-blend-mode + 高频倾斜更新，容易触发浏览器合成层闪动（看起来像整页抖/闪）。
+  const disableRefractionEffective = disableRefraction ?? isAndroid;
+  const enableGyroEffective = enableGyro ?? !isAndroid;
 
   // 将链图标转为单色遮罩（黑白 -> 透明）
   const monoMaskUrl = useMonochromeMask(chainIconUrl, {
@@ -84,6 +105,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const { pointerX, pointerY, isActive, bindElement } = useCardInteraction({
     gyroStrength: 0.15,
     touchStrength: 0.8,
+    enableGyro: enableGyroEffective,
   });
 
   useEffect(() => {
@@ -191,50 +213,60 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             transition: isActive ? 'none' : transitionConfig,
           }}
         >
-          {/* Refraction 1: 左下角 */}
-          <div
-            className="absolute bottom-0 left-0"
-            style={{
-              width: '500%',
-              aspectRatio: '1',
-              transformOrigin: '0 100%',
-              background: `radial-gradient(
-                circle at 0 100%,
-                transparent 10%,
-                hsl(5 100% 80%) 25%,
-                hsl(150 100% 60%) 40%,
-                hsl(220 90% 70%) 55%,
-                transparent 70%
-              )`,
-              filter: 'saturate(2)',
-              scale: `min(1, calc(0.15 + var(--tilt-ny) * 0.25))`,
-              translate: `clamp(-10%, calc(-10% + var(--tilt-ny) * 10%), 10%) max(0%, calc(var(--tilt-nx) * -10%))`,
-              transition: isActive ? 'none' : transitionConfig,
-              willChange: 'transform',
-            }}
-          />
-          {/* Refraction 2: 右上角 */}
-          <div
-            className="absolute top-0 right-0"
-            style={{
-              width: '500%',
-              aspectRatio: '1',
-              transformOrigin: '100% 0',
-              background: `radial-gradient(
-                circle at 100% 0,
-                transparent 10%,
-                hsl(5 100% 80%) 25%,
-                hsl(150 100% 60%) 40%,
-                hsl(220 90% 70%) 55%,
-                transparent 70%
-              )`,
-              filter: 'saturate(2)',
-              scale: `min(1, calc(0.15 + var(--tilt-ny) * -0.65))`,
-              translate: `clamp(-10%, calc(10% + var(--tilt-ny) * 10%), 10%) min(0%, calc(var(--tilt-nx) * -10%))`,
-              transition: isActive ? 'none' : transitionConfig,
-              willChange: 'transform',
-            }}
-          />
+          {!disableRefractionEffective && (
+            <>
+              {/* Refraction 1: 左下角 */}
+              <div
+                className="absolute bottom-0 left-0"
+                data-testid="wallet-card-refraction-pattern-1"
+                style={{
+                  width: '500%',
+                  aspectRatio: '1',
+                  transformOrigin: '0 100%',
+                  background: `radial-gradient(
+                    circle at 0 100%,
+                    transparent 10%,
+                    hsl(5 100% 80%) 25%,
+                    hsl(150 100% 60%) 40%,
+                    hsl(220 90% 70%) 55%,
+                    transparent 70%
+                  )`,
+                  filter: 'saturate(2)',
+                  transform: `translate(
+                    clamp(-10%, calc(-10% + var(--tilt-ny) * 10%), 10%),
+                    max(0%, calc(var(--tilt-nx) * -10%))
+                  ) scale(min(1, calc(0.15 + var(--tilt-ny) * 0.25)))`,
+                  transition: isActive ? 'none' : transitionConfig,
+                  willChange: 'transform',
+                }}
+              />
+              {/* Refraction 2: 右上角 */}
+              <div
+                className="absolute top-0 right-0"
+                data-testid="wallet-card-refraction-pattern-2"
+                style={{
+                  width: '500%',
+                  aspectRatio: '1',
+                  transformOrigin: '100% 0',
+                  background: `radial-gradient(
+                    circle at 100% 0,
+                    transparent 10%,
+                    hsl(5 100% 80%) 25%,
+                    hsl(150 100% 60%) 40%,
+                    hsl(220 90% 70%) 55%,
+                    transparent 70%
+                  )`,
+                  filter: 'saturate(2)',
+                  transform: `translate(
+                    clamp(-10%, calc(10% + var(--tilt-ny) * 10%), 10%),
+                    min(0%, calc(var(--tilt-nx) * -10%))
+                  ) scale(min(1, calc(0.15 + var(--tilt-ny) * -0.65)))`,
+                  transition: isActive ? 'none' : transitionConfig,
+                  willChange: 'transform',
+                }}
+              />
+            </>
+          )}
         </div>
 
         {/* 3. 防伪层2：Logo水印 (Watermark) + 双层折射 */}
@@ -248,50 +280,60 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
               transition: isActive ? 'none' : transitionConfig,
             }}
           >
-            {/* Refraction 1: 左下角 */}
-            <div
-              className="absolute bottom-0 left-0"
-              style={{
-                width: '500%',
-                aspectRatio: '1',
-                transformOrigin: '0 100%',
-                background: `radial-gradient(
-                  circle at 0 100%,
-                  transparent 10%,
-                  hsl(5 100% 80%),
-                  hsl(150 100% 60%),
-                  hsl(220 90% 70%),
-                  transparent 70%
-                )`,
-                filter: 'saturate(1.5)',
-                scale: `min(1, calc(0.15 + var(--tilt-ny) * 0.25))`,
-                translate: `clamp(-10%, calc(-5% + var(--tilt-ny) * 5%), 10%) max(0%, calc(var(--tilt-nx) * -10%))`,
-                transition: isActive ? 'none' : transitionConfig,
-                willChange: 'transform',
-              }}
-            />
-            {/* Refraction 2: 右上角 */}
-            <div
-              className="absolute top-0 right-0"
-              style={{
-                width: '600%',
-                aspectRatio: '1',
-                transformOrigin: '100% 0',
-                background: `radial-gradient(
-                  circle at 100% 0,
-                  transparent 10%,
-                  hsl(5 100% 80%),
-                  hsl(150 100% 60%),
-                  hsl(220 90% 70%),
-                  transparent 70%
-                )`,
-                filter: 'saturate(1.5)',
-                scale: `min(1, calc(0.15 + var(--tilt-ny) * -0.65))`,
-                translate: `clamp(-10%, calc(5% + var(--tilt-ny) * 5%), 10%) min(0%, calc(var(--tilt-nx) * -10%))`,
-                transition: isActive ? 'none' : transitionConfig,
-                willChange: 'transform',
-              }}
-            />
+            {!disableRefractionEffective && (
+              <>
+                {/* Refraction 1: 左下角 */}
+                <div
+                  className="absolute bottom-0 left-0"
+                  data-testid="wallet-card-refraction-watermark-1"
+                  style={{
+                    width: '500%',
+                    aspectRatio: '1',
+                    transformOrigin: '0 100%',
+                    background: `radial-gradient(
+                      circle at 0 100%,
+                      transparent 10%,
+                      hsl(5 100% 80%),
+                      hsl(150 100% 60%),
+                      hsl(220 90% 70%),
+                      transparent 70%
+                    )`,
+                    filter: 'saturate(1.5)',
+                    transform: `translate(
+                      clamp(-10%, calc(-5% + var(--tilt-ny) * 5%), 10%),
+                      max(0%, calc(var(--tilt-nx) * -10%))
+                    ) scale(min(1, calc(0.15 + var(--tilt-ny) * 0.25)))`,
+                    transition: isActive ? 'none' : transitionConfig,
+                    willChange: 'transform',
+                  }}
+                />
+                {/* Refraction 2: 右上角 */}
+                <div
+                  className="absolute top-0 right-0"
+                  data-testid="wallet-card-refraction-watermark-2"
+                  style={{
+                    width: '600%',
+                    aspectRatio: '1',
+                    transformOrigin: '100% 0',
+                    background: `radial-gradient(
+                      circle at 100% 0,
+                      transparent 10%,
+                      hsl(5 100% 80%),
+                      hsl(150 100% 60%),
+                      hsl(220 90% 70%),
+                      transparent 70%
+                    )`,
+                    filter: 'saturate(1.5)',
+                    transform: `translate(
+                      clamp(-10%, calc(5% + var(--tilt-ny) * 5%), 10%),
+                      min(0%, calc(var(--tilt-nx) * -10%))
+                    ) scale(min(1, calc(0.15 + var(--tilt-ny) * -0.65)))`,
+                    transition: isActive ? 'none' : transitionConfig,
+                    willChange: 'transform',
+                  }}
+                />
+              </>
+            )}
           </div>
         )}
 
