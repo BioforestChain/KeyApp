@@ -15,6 +15,11 @@ vi.mock('@/hooks/useCardInteraction', () => ({
   }),
 }))
 
+// Mock useMonochromeMask hook to avoid canvas/image dependency in jsdom
+vi.mock('@/hooks/useMonochromeMask', () => ({
+  useMonochromeMask: (iconUrl: string | undefined) => (iconUrl ? 'data:image/png;base64,AA==' : null),
+}))
+
 const createMockWallet = (overrides: Partial<Wallet> = {}): Wallet => ({
   id: 'test-wallet-1',
   name: '我的钱包',
@@ -39,6 +44,11 @@ describe('WalletCard (3D)', () => {
     chain: 'ethereum' as const,
     chainName: 'Ethereum',
     address: '0x1234567890abcdef1234567890abcdef12345678',
+  }
+
+  const originalUserAgent = navigator.userAgent
+  const setUserAgent = (ua: string) => {
+    Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true })
   }
 
   it('renders wallet name', () => {
@@ -169,5 +179,29 @@ describe('WalletCard (3D)', () => {
     render(<WalletCard {...defaultProps} ref={ref} />)
 
     expect(ref).toHaveBeenCalled()
+  })
+
+  it('renders watermark refractions on non-Android when chainIconUrl provided', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36')
+
+    render(<WalletCard {...defaultProps} chainIconUrl="data:image/png;base64,AA==" />)
+
+    expect(screen.getByTestId('wallet-card-refraction-watermark-1')).toBeInTheDocument()
+    expect(screen.getByTestId('wallet-card-refraction-watermark-2')).toBeInTheDocument()
+
+    setUserAgent(originalUserAgent)
+  })
+
+  it('disables refraction layers by default on Android to avoid flicker', () => {
+    setUserAgent('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36')
+
+    render(<WalletCard {...defaultProps} chainIconUrl="data:image/png;base64,AA==" />)
+
+    expect(screen.queryByTestId('wallet-card-refraction-pattern-1')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('wallet-card-refraction-pattern-2')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('wallet-card-refraction-watermark-1')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('wallet-card-refraction-watermark-2')).not.toBeInTheDocument()
+
+    setUserAgent(originalUserAgent)
   })
 })
