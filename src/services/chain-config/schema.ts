@@ -17,7 +17,7 @@ export const ChainConfigVersionSchema = z
   .string()
   .regex(/^\d+\.\d+$/, 'version must be "major.minor" (e.g. "1.0")')
 
-export const ChainConfigTypeSchema = z.enum(['bioforest', 'evm', 'bip39', 'custom'])
+export const ChainConfigTypeSchema = z.enum(['bioforest', 'evm', 'tron', 'bip39', 'custom'])
 
 export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manual'])
 
