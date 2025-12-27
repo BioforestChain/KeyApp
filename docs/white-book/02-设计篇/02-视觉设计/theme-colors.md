@@ -234,7 +234,112 @@ shadcn/ui 使用**配色对**设计，每个颜色变量都有对应的 `xxx-for
 
 ---
 
+## 钱包个性化主题色
+
+### 概述
+
+每个钱包拥有独立的主题色（色相值 0-360），用于：
+- 钱包卡片渐变背景
+- 确认/保存按钮动态颜色
+- 视觉区分多个钱包
+
+### CSS 自定义属性
+
+```css
+@property --primary-hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 323;
+}
+
+@property --primary-lightness {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.59;
+}
+
+@property --primary-saturation {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.26;
+}
+```
+
+### 动态主题色应用
+
+```tsx
+// 按钮跟随钱包主题色
+<Button
+  style={{
+    '--primary-hue': wallet.themeHue,
+    '--primary': `oklch(var(--primary-lightness) var(--primary-saturation) ${wallet.themeHue})`,
+  }}
+>
+  确认
+</Button>
+```
+
+### 色相派生算法
+
+从钱包地址稳定派生初始色相，确保跨设备一致：
+
+```typescript
+function deriveThemeHue(address: string): number {
+  let hash = 0;
+  for (let i = 0; i < address.length; i++) {
+    hash = (hash << 5) - hash + address.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return ((hash % 360) + 360) % 360;
+}
+```
+
+### 预设颜色
+
+提供 12 个预设色相，覆盖色轮主要区域：
+
+```typescript
+const WALLET_THEME_COLORS = [
+  { hue: 0, name: '红色' },
+  { hue: 30, name: '橙色' },
+  { hue: 60, name: '黄色' },
+  { hue: 90, name: '黄绿' },
+  { hue: 120, name: '绿色' },
+  { hue: 150, name: '青绿' },
+  { hue: 180, name: '青色' },
+  { hue: 210, name: '天蓝' },
+  { hue: 240, name: '蓝色' },
+  { hue: 270, name: '紫色' },
+  { hue: 300, name: '品红' },
+  { hue: 330, name: '玫红' },
+];
+```
+
+### 趋避算法
+
+为避免多钱包颜色相近，选择器会：
+1. 显示已用色相标记
+2. 降低相近颜色（距离 < 30°）的视觉权重
+
+```typescript
+function calculateAvoidanceWeight(hue: number, existingHues: number[]): number {
+  const minDistance = 30;
+  let minDist = 180;
+  
+  for (const existing of existingHues) {
+    const dist = Math.min(Math.abs(hue - existing), 360 - Math.abs(hue - existing));
+    if (dist < minDist) minDist = dist;
+  }
+  
+  return minDist < minDistance ? minDist / minDistance : 1;
+}
+```
+
+---
+
 ## 相关链接
 
 - [shadcn/ui 主题文档](https://ui.shadcn.com/docs/theming)
 - [Tailwind CSS 颜色](https://tailwindcss.com/docs/customizing-colors)
+- [WalletCard 组件](../../05-组件篇/03-钱包组件/WalletCard.md)
+- [WalletConfig 组件](../../05-组件篇/03-钱包组件/WalletConfig.md)
