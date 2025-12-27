@@ -22,6 +22,7 @@ import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconCircleCheck as CheckCircle } from '@tabler/icons-react';
+import { ProgressSteps } from '@/components/common/step-indicator';
 
 type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'chains' | 'theme' | 'collision' | 'success';
 
@@ -69,6 +70,21 @@ export function OnboardingRecoverPage() {
 
   // Duplicate detection hook
   const duplicateDetection = useDuplicateDetection(mockWalletQuery);
+
+  // 计算进度条当前步骤 (5步: keyType -> mnemonic/arbitrary -> pattern -> chains -> theme)
+  const currentStepIndex = (() => {
+    switch (step) {
+      case 'keyType': return 1;
+      case 'mnemonic':
+      case 'arbitrary': return 2;
+      case 'collision': return 2; // collision 不算独立步骤
+      case 'pattern': return 3;
+      case 'chains': return 4;
+      case 'theme': return 5;
+      case 'success': return 5;
+      default: return 1;
+    }
+  })();
 
   const handleBack = useCallback(() => {
     switch (step) {
@@ -333,6 +349,9 @@ export function OnboardingRecoverPage() {
       {step === 'keyType' && (
         <>
           <PageHeader title={t('onboarding:keyType.title')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div data-testid="key-type-step" className="flex-1 space-y-6 p-4">
             <KeyTypeSelector
               value={keyType}
@@ -354,6 +373,9 @@ export function OnboardingRecoverPage() {
       {step === 'mnemonic' && (
         <>
           <PageHeader title={t('onboarding:recover.title')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div data-testid="mnemonic-step" className="flex-1 p-4">
             <RecoverWalletForm onSubmit={handleMnemonicSubmit} isSubmitting={duplicateDetection.isChecking} />
           </div>
@@ -363,6 +385,9 @@ export function OnboardingRecoverPage() {
       {step === 'arbitrary' && (
         <>
           <PageHeader title={t('onboarding:keyType.arbitrary')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div className="flex-1 space-y-4 p-4">
             <ArbitraryKeyInput
               value={arbitrarySecret}
@@ -406,6 +431,9 @@ export function OnboardingRecoverPage() {
       {step === 'collision' && (
         <>
           <PageHeader title={t('onboarding:recover.addressConflict')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div className="flex-1 p-4">
             <CollisionConfirmDialog
               result={duplicateDetection.result}
@@ -420,6 +448,9 @@ export function OnboardingRecoverPage() {
       {step === 'pattern' && (
         <>
           <PageHeader title={t('onboarding:recover.setWalletLock')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div data-testid="pattern-step" className="flex-1 p-4">
             <PatternLockSetup
               onComplete={handlePatternComplete}
@@ -432,6 +463,9 @@ export function OnboardingRecoverPage() {
       {step === 'chains' && (
         <>
           <PageHeader title={t('onboarding:chainSelector.title')} onBack={handleBack} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div data-testid="chains-step" className="flex-1 p-4">
             <div className="space-y-6">
               <div className="text-center">
@@ -470,6 +504,9 @@ export function OnboardingRecoverPage() {
       {step === 'theme' && createdWalletId && (
         <>
           <PageHeader title={t('onboarding:create.themeTitle')} />
+          <div className="px-4 pt-4">
+            <ProgressSteps total={5} current={currentStepIndex} />
+          </div>
           <div data-testid="theme-step" className="flex-1 p-4">
             <WalletConfig
               mode="edit-only"

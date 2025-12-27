@@ -67,17 +67,19 @@ export function ProgressSteps({ total, current, className }: ProgressStepsProps)
           <div
             key={index}
             className={cn(
-              'h-1 flex-1 rounded-full transition-colors',
+              'h-1 flex-1 rounded-full transition-all',
               isLastStep && isActive && 'animate-rainbow-flow',
               !isLastStep && isActive && 'bg-primary',
-              !isActive && 'bg-muted'
+              !isLastStep && !isActive && 'bg-muted',
             )}
             style={
-              isLastStep && isActive
+              isLastStep
                 ? {
-                    background:
-                      'linear-gradient(90deg, oklch(0.7 0.2 0), oklch(0.7 0.2 72), oklch(0.7 0.2 144), oklch(0.7 0.2 216), oklch(0.7 0.2 288), oklch(0.7 0.2 360))',
-                    backgroundSize: '200% 100%',
+                    background: isActive
+                      ? 'linear-gradient(90deg, oklch(0.7 0.2 0), oklch(0.7 0.2 72), oklch(0.7 0.2 144), oklch(0.7 0.2 216), oklch(0.7 0.2 288), oklch(0.7 0.2 360))'
+                      : 'linear-gradient(90deg, oklch(0.75 0.1 0), oklch(0.75 0.1 72), oklch(0.75 0.1 144), oklch(0.75 0.1 216), oklch(0.75 0.1 288), oklch(0.75 0.1 360))',
+                    backgroundSize: isActive ? '200% 100%' : '100% 100%',
+                    opacity: isActive ? 1 : 0.6,
                   }
                 : undefined
             }

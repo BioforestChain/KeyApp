@@ -107,7 +107,9 @@
     "walletLockLabel": "密碼",
     "walletLockMismatch": "兩次密碼不一致",
     "walletLockPlaceholder": "輸入密碼",
-    "setWalletLock": "設定密碼"
+    "setWalletLock": "設定密碼",
+    "themeTitle": "選擇卡片主題",
+    "themeSubtitle": "為您的錢包卡片選擇一個主題色"
   },
   "import": {
     "complete": "完成匯入",
@@ -185,5 +187,14 @@
     "noResults": "未找到匹配的鏈",
     "selectAll": "全選",
     "deselectAll": "取消全選"
+  },
+  "theme": {
+    "walletName": "錢包名稱",
+    "previewChain": "預覽鏈",
+    "customColor": "自訂顏色",
+    "presetColors": "預設顏色",
+    "usedColor": "已使用",
+    "similarExists": "已有相似顏色",
+    "auto": "自動"
   }
 }
