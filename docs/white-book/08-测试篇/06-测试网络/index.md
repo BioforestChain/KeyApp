@@ -10,25 +10,43 @@
 - **全链支持**：Ethereum、BSC、Tron、Bitcoin 等
 - **主网+测试网**：同一提供商，API 一致
 
-## PublicNode 端点汇总
+## 公共 API 端点汇总
 
 ### 主网
 
-| 链 | RPC 端点 | 协议 |
-|---|---------|------|
-| Ethereum | `https://ethereum-rpc.publicnode.com` | JSON-RPC |
-| BSC | `https://bsc-rpc.publicnode.com` | JSON-RPC |
-| Tron | `https://tron-rpc.publicnode.com` | Tron HTTP API |
-| Bitcoin | `https://bitcoin-rpc.publicnode.com` | Bitcoin JSON-RPC |
+| 链 | RPC 端点 | 协议 | 说明 |
+|---|---------|------|------|
+| Ethereum | `https://ethereum-rpc.publicnode.com` | JSON-RPC | PublicNode |
+| BSC | `https://bsc-rpc.publicnode.com` | JSON-RPC | PublicNode |
+| Tron | `https://tron-rpc.publicnode.com` | Tron HTTP API | PublicNode |
+| Bitcoin | `https://mempool.space/api` | REST API | mempool.space |
 
 ### 测试网
 
-| 链 | RPC 端点 | 协议 |
-|---|---------|------|
-| Ethereum Sepolia | `https://ethereum-sepolia-rpc.publicnode.com` | JSON-RPC |
-| BSC Testnet | `https://bsc-testnet-rpc.publicnode.com` | JSON-RPC |
-| Tron Nile | `https://nile.trongrid.io` | Tron HTTP API |
-| Bitcoin Signet | `https://mempool.space/signet/api` | REST API |
+| 链 | RPC 端点 | 协议 | 说明 |
+|---|---------|------|------|
+| Ethereum Sepolia | `https://ethereum-sepolia-rpc.publicnode.com` | JSON-RPC | PublicNode |
+| BSC Testnet | `https://bsc-testnet-rpc.publicnode.com` | JSON-RPC | PublicNode |
+| Tron Nile | `https://nile.trongrid.io` | Tron HTTP API | TronGrid |
+| Bitcoin Testnet | `https://mempool.space/testnet/api` | REST API | mempool.space |
+| Bitcoin Signet | `https://mempool.space/signet/api` | REST API | mempool.space |
+
+### Bitcoin 为什么使用 mempool.space？
+
+PublicNode 提供标准 Bitcoin Core JSON-RPC，但存在以下限制：
+
+1. **地址查询慢**：`scantxoutset` 需要扫描整个 UTXO 集，约需 60 秒
+2. **无交易历史**：标准 RPC 不支持按地址查询交易记录
+3. **部分方法禁用**：`getaddressinfo` 等方法被限制
+
+mempool.space 提供专为钱包优化的 REST API：
+
+| 功能 | mempool.space | PublicNode |
+|------|--------------|------------|
+| 余额查询 | < 1秒 | ~60秒 |
+| UTXO 列表 | ✅ 支持 | ✅ 支持（慢）|
+| 交易历史 | ✅ 支持 | ❌ 不支持 |
+| 广播交易 | ✅ 支持 | ✅ 支持 |
 
 ## 测试网络详情
 
