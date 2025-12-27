@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import commonjs from 'vite-plugin-commonjs'
+import mkcert from 'vite-plugin-mkcert'
+import { networkInterfaces } from 'node:os'
 import { resolve } from 'node:path'
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 
@@ -20,9 +22,53 @@ const SERVICE_IMPL = process.env.SERVICE_IMPL ?? 'web'
  */
 const BASE_URL = process.env.VITE_BASE_URL ?? './'
 
+function getPreferredLanIPv4(): string | undefined {
+  const ifaces = networkInterfaces()
+  const ips: string[] = []
+
+  for (const entries of Object.values(ifaces)) {
+    for (const entry of entries ?? []) {
+      if (entry.family !== 'IPv4' || entry.internal) continue
+      const ip = entry.address
+      // Filter special/reserved ranges that confuse mobile debugging.
+      if (ip.startsWith('127.') || ip.startsWith('169.254.') || ip.startsWith('198.18.')) continue
+      if (ip === '0.0.0.0') continue
+      ips.push(ip)
+    }
+  }
+
+  const score = (ip: string) => {
+    if (ip.startsWith('192.168.')) return 3
+    if (ip.startsWith('10.')) return 2
+    if (/^172\.(1[6-9]|2\\d|3[0-1])\\./.test(ip)) return 1
+    return 0
+  }
+
+  ips.sort((a, b) => score(b) - score(a))
+  return ips[0]
+}
+
+const DEV_HOST = process.env.VITE_DEV_HOST ?? getPreferredLanIPv4()
+
 export default defineConfig({
   base: BASE_URL,
+  server: {
+    host: true,
+    // 手机上的“每隔几秒自动刷新”通常是 HMR WebSocket 连不上导致的。
+    // 明确指定 wss + 局域网 IP，避免客户端默认连到 localhost（在手机上等于连自己）。
+    hmr: DEV_HOST
+      ? {
+          protocol: 'wss',
+          host: DEV_HOST,
+        }
+      : undefined,
+  },
   plugins: [
+    mkcert({
+      // 默认 hosts 会包含 0.0.0.0 / 某些保留网段，iOS 上偶发会导致 wss 不稳定。
+      // 这里收敛到“确切可访问”的 host 列表，减少证书/SAN 干扰。
+      hosts: DEV_HOST ? ['localhost', '127.0.0.1', DEV_HOST] : undefined,
+    }),
     commonjs({
       filter(id) {
         // Transform .cjs files to ESM
