@@ -241,4 +241,3 @@ const chainIconUrls = useChainIconUrls();
 
 - [WalletConfig](./WalletConfig.md) - 钱包配置（编辑名称/主题色）
 - [AddressDisplay](../02-通用组件/AddressDisplay.md) - 地址显示与复制
-- [ChainIcon](./ChainIcon.md) - 链图标组件
