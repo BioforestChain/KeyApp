@@ -41,6 +41,13 @@ export {
   type ChainType as DeriveChainType,
 } from './derivation'
 
+// Unified address derivation for all chain types
+export {
+  deriveAddressesForChains,
+  canDeriveForChainType,
+  type DerivedAddress,
+} from './address-derivation'
+
 // BioForestChain (Ed25519-based chains)
 export {
   createBioforestKeypair,

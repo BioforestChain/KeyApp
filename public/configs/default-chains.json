@@ -35,7 +35,7 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "ccc" }
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "ccchain" }
   },
   {
     "id": "pmchain",
@@ -51,7 +51,7 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "pmc" }
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "pmchain" }
   },
   {
     "id": "bfchainv2",
@@ -67,7 +67,7 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "bft" }
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "bfchainv2" }
   },
   {
     "id": "btgmeta",
@@ -83,8 +83,9 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "btgm" }
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "btgmeta" }
   },
+
   {
     "id": "biwmeta",
     "version": "1.0",
@@ -97,7 +98,13 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "biw" }
+    "api": { "url": "https://walletapi.biw-meta.com", "path": "biwmeta" },
+    "explorer": {
+      "url": "https://tracker.biw-meta.info",
+      "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
+      "queryAddress": "https://tracker.biw-meta.info/#/info/address-details/:address",
+      "queryBlock": "https://tracker.biw-meta.info/#/info/block-details/:height"
+    }
   },
   {
     "id": "ethmeta",
@@ -113,22 +120,9 @@
     ],
     "prefix": "b",
     "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "ethm" }
+    "api": { "url": "https://walletapi.bfmeta.info", "path": "ethmeta" }
   },
-  {
-    "id": "malibu",
-    "version": "1.0",
-    "type": "bioforest",
-    "name": "Malibu",
-    "symbol": "MLB",
-    "tokenIconBase": [
-      "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/mlb",
-      "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/mlb"
-    ],
-    "prefix": "b",
-    "decimals": 8,
-    "api": { "url": "https://walletapi.bfmeta.info", "path": "mlb" }
-  },
+
   {
     "id": "ethereum",
     "version": "1.0",

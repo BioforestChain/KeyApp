@@ -65,7 +65,7 @@ export class BnqklWalletBioforestApi {
   }
 
   async getAddressAssets(address: string): Promise<AddressAssets | null> {
-    return this.client.post<AddressAssets | null>(this.path('/address/assets'), { address })
+    return this.client.post<AddressAssets | null>(this.path('/address/asset'), { address })
   }
 
   async getBlockAverageFee(): Promise<{ aveFee: string }> {

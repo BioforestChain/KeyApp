@@ -204,7 +204,7 @@ export class BioForestApiClient {
    * @param params - Query parameters
    */
   async getAccountAssets(params: AccountAssetsParams): Promise<AccountAssetsResult> {
-    return this.post<AccountAssetsResult>('/address/assets', params)
+    return this.post<AccountAssetsResult>('/address/asset', params)
   }
 
   // ============================================================

@@ -43,8 +43,8 @@ describe('default-chains.json', () => {
     const parsedJson: unknown = JSON.parse(raw)
     const chains = ChainConfigListSchema.parse(parsedJson)
 
-    // 8 bioforest + 4 external (ethereum, binance, tron, bitcoin)
-    expect(chains).toHaveLength(12)
+    // 7 bioforest + 4 external (ethereum, binance, tron, bitcoin)
+    expect(chains).toHaveLength(11)
 
     const ids = chains.map(c => c.id).sort()
     expect(ids).toEqual([
@@ -57,7 +57,6 @@ describe('default-chains.json', () => {
       'ccchain',
       'ethereum',
       'ethmeta',
-      'malibu',
       'pmchain',
       'tron',
     ])
@@ -67,7 +66,7 @@ describe('default-chains.json', () => {
     const evmChains = chains.filter(c => c.type === 'evm')
     const bip39Chains = chains.filter(c => c.type === 'bip39')
 
-    expect(bioforestChains).toHaveLength(8)
+    expect(bioforestChains).toHaveLength(7)
     expect(evmChains).toHaveLength(2)
     expect(bip39Chains).toHaveLength(2)
   })
