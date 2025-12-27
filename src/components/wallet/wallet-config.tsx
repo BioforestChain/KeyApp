@@ -6,7 +6,7 @@ import { useChainIconUrls } from '@/hooks/useChainIconUrls'
 import { WalletCard } from '@/components/wallet/wallet-card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useWallets, walletActions, type ChainType } from '@/stores'
+import { useWallets, useSelectedChain, walletActions, type ChainType } from '@/stores'
 import { useFlow } from '@/stackflow'
 import {
   IconCheck,
@@ -69,6 +69,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
   const { push } = useFlow()
   const wallets = useWallets()
   const wallet = wallets.find((w) => w.id === walletId)
+  const selectedChain = useSelectedChain()
   const chainIconUrls = useChainIconUrls()
 
   // 内部模式状态（default 和 edit 可以互相切换）
@@ -99,8 +100,11 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
     }
   }, [wallet])
 
-  // 当前显示的链（取第一个）
-  const currentChainAddr = wallet?.chainAddresses[0]
+  // 当前显示的链（使用全局选中的链）
+  const currentChainAddr = useMemo(
+    () => wallet?.chainAddresses.find((ca) => ca.chain === selectedChain) ?? wallet?.chainAddresses[0],
+    [wallet, selectedChain]
+  )
 
   // 色条拖拽处理
   const updateHueFromPosition = useCallback((clientX: number) => {
@@ -325,7 +329,12 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
               className="w-full"
               onClick={handleConfirm}
               disabled={!editName.trim()}
-              style={{ '--primary-hue': editThemeHue } as React.CSSProperties}
+              style={
+                {
+                  '--primary-hue': editThemeHue,
+                  '--primary': `oklch(var(--primary-lightness) var(--primary-saturation) ${editThemeHue})`,
+                } as React.CSSProperties
+              }
             >
               {t('common:confirm')}
             </Button>
@@ -338,7 +347,12 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
                 className="flex-1"
                 onClick={handleSave}
                 disabled={!editName.trim()}
-                style={{ '--primary-hue': editThemeHue } as React.CSSProperties}
+                style={
+                  {
+                    '--primary-hue': editThemeHue,
+                    '--primary': `oklch(var(--primary-lightness) var(--primary-saturation) ${editThemeHue})`,
+                  } as React.CSSProperties
+                }
               >
                 {t('common:save')}
               </Button>
