@@ -4,9 +4,10 @@ import { EffectCards } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { WalletCard } from './wallet-card';
 import { useWalletTheme } from '@/hooks/useWalletTheme';
+import { useChainIconUrls } from '@/hooks/useChainIconUrls';
 import { cn } from '@/lib/utils';
 import type { Wallet, ChainType } from '@/stores';
-import { IconWallet } from '@tabler/icons-react';
+import { IconWallet, IconPlus } from '@tabler/icons-react';
 
 import 'swiper/css';
 import 'swiper/css/effect-cards';
@@ -18,17 +19,12 @@ interface WalletCardCarouselProps {
   /** 每个钱包的链偏好 (walletId -> chainId) */
   chainPreferences?: Record<string, ChainType>;
   chainNames: Record<string, string>;
-  /** 链图标 URL 映射，用于防伪水印 */
-  chainIconUrls?: Record<string, string>;
-  /** 防伪水印 logo 平铺尺寸（含间距），默认 40px */
-  watermarkLogoSize?: number;
-  /** 防伪水印 logo 实际尺寸，默认 24px */
-  watermarkLogoActualSize?: number;
   onWalletChange?: (walletId: string) => void;
   onCopyAddress?: (address: string) => void;
   onOpenChainSelector?: (walletId: string) => void;
   onOpenSettings?: (walletId: string) => void;
   onOpenWalletList?: () => void;
+  onAddWallet?: () => void;
   className?: string;
 }
 
@@ -42,18 +38,17 @@ export function WalletCardCarousel({
   selectedChain,
   chainPreferences = {},
   chainNames,
-  chainIconUrls,
-  watermarkLogoSize = 40,
-  watermarkLogoActualSize = 24,
   onWalletChange,
   onCopyAddress,
   onOpenChainSelector,
   onOpenSettings,
   onOpenWalletList,
+  onAddWallet,
   className,
 }: WalletCardCarouselProps) {
   const swiperRef = useRef<SwiperType | null>(null);
   const { getWalletTheme } = useWalletTheme();
+  const chainIconUrls = useChainIconUrls();
 
   // 找到当前钱包的索引
   const currentIndex = wallets.findIndex((w) => w.id === currentWalletId);
@@ -94,13 +89,21 @@ export function WalletCardCarousel({
   return (
     <div className={cn('relative w-full pt-12 pb-2', className)}>
       {/* 左上角：多钱包管理入口 */}
-      {wallets.length > 1 && (
+      <button
+        onClick={onOpenWalletList}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors"
+      >
+        <IconWallet className="size-3.5" />
+        <span>{wallets.length} 个钱包</span>
+      </button>
+
+      {/* 右上角：添加钱包 */}
+      {onAddWallet && (
         <button
-          onClick={onOpenWalletList}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors"
+          onClick={onAddWallet}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 right-4 z-10 flex items-center justify-center rounded-full p-1.5 backdrop-blur-sm transition-colors"
         >
-          <IconWallet className="size-3.5" />
-          <span>{wallets.length} 个钱包</span>
+          <IconPlus className="size-4" />
         </button>
       )}
 
@@ -131,9 +134,9 @@ export function WalletCardCarousel({
                 chain={walletChain}
                 chainName={chainNames[walletChain] ?? walletChain}
                 address={walletAddress}
-                chainIconUrl={chainIconUrls?.[walletChain]}
-                watermarkLogoSize={watermarkLogoSize}
-                watermarkLogoActualSize={watermarkLogoActualSize}
+                chainIconUrl={chainIconUrls[walletChain]}
+                watermarkLogoSize={40}
+                watermarkLogoActualSize={24}
                 themeHue={getWalletTheme(wallet.id)}
                 onCopyAddress={() => {
                   if (walletAddress) onCopyAddress?.(walletAddress);

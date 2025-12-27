@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { TokenList } from "@/components/token/token-list";
@@ -26,7 +26,6 @@ import {
   useHasWallet,
   useWalletInitialized,
   walletActions,
-  useChainConfigs,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
 
@@ -61,18 +60,6 @@ export function WalletTab() {
   const chainPreferences = useChainPreferences();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const tokens = useCurrentChainTokens();
-  const chainConfigs = useChainConfigs();
-
-  // 构建 chainIconUrls 映射（用于防伪水印）
-  const chainIconUrls = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const config of chainConfigs) {
-      if (config.icon) {
-        map[config.id] = config.icon;
-      }
-    }
-    return map;
-  }, [chainConfigs]);
 
   // 初始化钱包主题
   useWalletTheme();
@@ -120,7 +107,7 @@ export function WalletTab() {
     (walletId: string) => {
       const wallet = wallets.find((w) => w.id === walletId);
       if (wallet) {
-        push("WalletDetailActivity", { walletId, walletName: wallet.name });
+        push("WalletConfigActivity", { walletId, walletName: wallet.name });
       }
     },
     [push, wallets]
@@ -130,6 +117,11 @@ export function WalletTab() {
   const handleWalletChange = useCallback((walletId: string) => {
     walletActions.setCurrentWallet(walletId);
   }, []);
+
+  // 添加钱包
+  const handleAddWallet = useCallback(() => {
+    push("WalletAddJob", {});
+  }, [push]);
 
   // 打开钱包列表
   const handleOpenWalletList = useCallback(() => {
@@ -168,14 +160,12 @@ export function WalletTab() {
           selectedChain={selectedChain}
           chainPreferences={chainPreferences}
           chainNames={CHAIN_NAMES}
-          chainIconUrls={chainIconUrls}
-          watermarkLogoSize={40}
-          watermarkLogoActualSize={24}
           onWalletChange={handleWalletChange}
           onCopyAddress={handleCopyAddress}
           onOpenChainSelector={handleOpenChainSelector}
           onOpenSettings={handleOpenWalletSettings}
           onOpenWalletList={handleOpenWalletList}
+          onAddWallet={handleAddWallet}
         />
 
         {/* 快捷操作按钮 - 颜色跟随主题 */}

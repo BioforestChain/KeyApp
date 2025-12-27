@@ -33,7 +33,7 @@ const dynamicRoutePatterns: Array<{
 }> = [
   {
     pattern: /^\/wallet\/([^/]+)$/,
-    activity: "WalletDetailActivity",
+    activity: "WalletConfigActivity",
     paramExtractor: (match) => ({ walletId: match[1] ?? "" }),
   },
   {

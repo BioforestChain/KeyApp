@@ -5,7 +5,7 @@ import { historySyncPlugin } from "@stackflow/plugin-history-sync";
 
 import { MainTabsActivity } from "./activities/MainTabsActivity";
 import { WalletListActivity } from "./activities/WalletListActivity";
-import { WalletDetailActivity } from "./activities/WalletDetailActivity";
+import { WalletConfigActivity } from "./activities/WalletConfigActivity";
 import { WalletCreateActivity } from "./activities/WalletCreateActivity";
 
 import { SendActivity } from "./activities/SendActivity";
@@ -42,7 +42,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
       routes: {
         MainTabsActivity: "/",
         WalletListActivity: "/wallet/list",
-        WalletDetailActivity: "/wallet/:walletId",
+        WalletConfigActivity: "/wallet/:walletId",
         WalletCreateActivity: "/wallet/create",
         SendActivity: "/send",
         ReceiveActivity: "/receive",
@@ -92,7 +92,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   activities: {
     MainTabsActivity,
     WalletListActivity,
-    WalletDetailActivity,
+    WalletConfigActivity,
     WalletCreateActivity,
     SendActivity,
     ReceiveActivity,

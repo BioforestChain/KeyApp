@@ -45,7 +45,8 @@
     "unknownApp": "未知应用",
     "permissions": "权限列表",
     "transactionDetails": "交易详情",
-    "selectWallet": "选择钱包"
+    "selectWallet": "选择钱包",
+    "addWallet": "添加钱包"
   },
   "contact": {
     "addTitle": "添加联系人",

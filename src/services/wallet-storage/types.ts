@@ -43,6 +43,8 @@ export interface WalletInfo {
   encryptedWalletLock?: EncryptedData | undefined
   /** 是否已备份 */
   isBackedUp: boolean
+  /** 主题色 hue (0-360) */
+  themeHue?: number | undefined
   /** 创建时间 */
   createdAt: number
   /** 更新时间 */

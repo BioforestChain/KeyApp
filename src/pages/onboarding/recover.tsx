@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigation, useFlow } from '@/stackflow';
 import { setSecurityWarningConfirmCallback } from '@/stackflow/activities/sheets';
 import { useTranslation } from 'react-i18next';
@@ -10,18 +10,20 @@ import { ChainAddressPreview, type DerivedAddress } from '@/components/onboardin
 import { CollisionConfirmDialog } from '@/components/onboarding/collision-confirm-dialog';
 import { ImportWalletSuccess } from '@/components/onboarding/import-wallet-success';
 import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
-import { ThemeSelector } from '@/components/onboarding/theme-selector';
+import { ChainSelector, getDefaultSelectedChains } from '@/components/onboarding/chain-selector';
+import { WalletConfig } from '@/components/wallet/wallet-config';
 import { Button } from '@/components/ui/button';
 import { GradientButton } from '@/components/common/gradient-button';
 import { IconCircle } from '@/components/common/icon-circle';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
-import { useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
-import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconPalette as Palette } from '@tabler/icons-react';
+import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconCircleCheck as CheckCircle } from '@tabler/icons-react';
 
-type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'theme' | 'collision' | 'success';
+type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'chains' | 'theme' | 'collision' | 'success';
 
 // Mock wallet query for now - will be replaced with real implementation
 const mockWalletQuery: IWalletQuery = {
@@ -38,6 +40,7 @@ export function OnboardingRecoverPage() {
   const { navigate, goBack } = useNavigation();
   const { push } = useFlow();
   const { t } = useTranslation(['onboarding', 'common', 'wallet']);
+  const chainConfigs = useChainConfigs();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
   const [step, setStep] = useState<Step>('keyType');
@@ -49,9 +52,20 @@ export function OnboardingRecoverPage() {
   const [arbitraryDerivedAddresses, setArbitraryDerivedAddresses] = useState<DerivedAddress[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recoveredWalletName, setRecoveredWalletName] = useState('');
-  const [themeHue, setThemeHue] = useState(0);
   const [patternKey, setPatternKey] = useState('');
+  const [createdWalletId, setCreatedWalletId] = useState<string | null>(null);
+  
+  // 链选择状态
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const [initializedSelection, setInitializedSelection] = useState(false);
+
+  // 初始化默认链选择
+  useEffect(() => {
+    if (!initializedSelection && chainConfigs.length > 0) {
+      setSelectedChainIds(getDefaultSelectedChains(chainConfigs));
+      setInitializedSelection(true);
+    }
+  }, [chainConfigs, initializedSelection]);
 
   // Duplicate detection hook
   const duplicateDetection = useDuplicateDetection(mockWalletQuery);
@@ -73,8 +87,11 @@ export function OnboardingRecoverPage() {
       case 'pattern':
         setStep(keyType === 'arbitrary' ? 'arbitrary' : 'mnemonic');
         break;
-      case 'theme':
+      case 'chains':
         setStep('pattern');
+        break;
+      case 'theme':
+        setStep('chains');
         break;
       case 'success':
         // Can't go back from success
@@ -83,11 +100,13 @@ export function OnboardingRecoverPage() {
   }, [step, goBack, duplicateDetection, keyType]);
 
   const goToPatternStep = useCallback(() => {
-    // 设置初始 themeHue
-    const secret = keyType === 'arbitrary' ? arbitrarySecret : mnemonic.join(' ');
-    setThemeHue(deriveThemeHue(secret));
     setStep('pattern');
-  }, [keyType, arbitrarySecret, mnemonic]);
+  }, []);
+
+  const handlePatternComplete = useCallback((key: string) => {
+    setPatternKey(key);
+    setStep('chains');
+  }, []);
 
   const handleKeyTypeContinue = useCallback(() => {
     if (keyType === 'mnemonic') {
@@ -145,47 +164,85 @@ export function OnboardingRecoverPage() {
   }, [duplicateDetection]);
 
   const createWallet = useCallback(
-    async (words: string[], walletPassword: string, hue: number) => {
+    async (words: string[], walletPassword: string) => {
       setIsSubmitting(true);
 
       try {
         const mnemonicStr = words.join(' ');
 
-        // Generate wallet name (auto-increment pattern)
-        const walletName = `钱包 ${Date.now() % 1000}`;
+        // 根据选中的链配置派生地址
+        const selectedConfigs = chainConfigs.filter((config) => selectedChainIds.includes(config.id));
+        const selectedBioforestConfigs = selectedConfigs.filter((config) => config.type === 'bioforest');
+        const selectedBip39Ids = new Set(
+          selectedConfigs.filter((config) => config.type === 'bip39').map((config) => config.id),
+        );
+        const selectedEvmConfigs = selectedConfigs.filter(
+          (config) => config.type === 'evm' || config.type === 'custom',
+        );
 
-        // Derive external chain addresses (BIP44)
-        const externalKeys = deriveMultiChainKeys(mnemonicStr, ['ethereum', 'bitcoin', 'tron'], 0);
+        const externalChains: Array<'ethereum' | 'bitcoin' | 'tron'> = [];
+        if (selectedEvmConfigs.length > 0) externalChains.push('ethereum');
+        if (selectedBip39Ids.has('bitcoin')) externalChains.push('bitcoin');
+        if (selectedBip39Ids.has('tron')) externalChains.push('tron');
 
-        // Derive BioForest chain addresses (Ed25519)
-        const bioforestConfigs = enabledBioforestChainConfigs.length > 0 ? enabledBioforestChainConfigs : undefined;
+        const externalKeys = externalChains.length > 0
+          ? deriveMultiChainKeys(mnemonicStr, externalChains, 0)
+          : [];
+
+        const addressByChain = new Map<string, string>();
+        const ethKey = externalKeys.find((k) => k.chain === 'ethereum');
+        if (ethKey) {
+          if (selectedChainIds.includes('ethereum')) {
+            addressByChain.set('ethereum', ethKey.address);
+          }
+          for (const config of selectedEvmConfigs) {
+            addressByChain.set(config.id, ethKey.address);
+          }
+        }
+
+        const bitcoinKey = externalKeys.find((k) => k.chain === 'bitcoin');
+        if (bitcoinKey && selectedBip39Ids.has('bitcoin')) {
+          addressByChain.set('bitcoin', bitcoinKey.address);
+        }
+
+        const tronKey = externalKeys.find((k) => k.chain === 'tron');
+        if (tronKey && selectedBip39Ids.has('tron')) {
+          addressByChain.set('tron', tronKey.address);
+        }
+
         const bioforestChainAddresses = deriveBioforestAddresses(
           mnemonicStr,
-          bioforestConfigs,
-        ).map((item) => ({
-          chain: item.chainId,
-          address: item.address,
-          tokens: [],
-        }));
+          selectedBioforestConfigs.length > 0 ? selectedBioforestConfigs : [],
+        );
+        for (const item of bioforestChainAddresses) {
+          addressByChain.set(item.chainId, item.address);
+        }
 
-        const ethKey = externalKeys.find((k) => k.chain === 'ethereum')!;
+        const chainAddresses = selectedChainIds
+          .map((chainId) => {
+            const address = addressByChain.get(chainId);
+            if (!address) return null;
+            return {
+              chain: chainId,
+              address,
+              tokens: [],
+            };
+          })
+          .filter((item): item is { chain: string; address: string; tokens: [] } => Boolean(item));
 
-        // Combine all chain addresses
-        const chainAddresses = [
-          ...externalKeys.map((key) => ({
-            chain: key.chain as 'ethereum' | 'bitcoin' | 'tron',
-            address: key.address,
-            tokens: [],
-          })),
-          ...bioforestChainAddresses,
-        ];
+        const primaryChain = chainAddresses[0];
+        if (!primaryChain) {
+          throw new Error('No chain addresses derived');
+        }
 
-        await walletActions.createWallet(
+        const hue = deriveThemeHue(primaryChain.address);
+
+        const wallet = await walletActions.createWallet(
           {
-            name: walletName,
+            name: t('wallet:defaultName'),
             keyType: 'mnemonic',
-            address: ethKey.address,
-            chain: 'ethereum',
+            address: primaryChain.address,
+            chain: primaryChain.chain,
             chainAddresses,
             themeHue: hue,
           },
@@ -194,26 +251,28 @@ export function OnboardingRecoverPage() {
           hue
         );
 
-        setRecoveredWalletName(walletName);
-        setStep('success');
+        setCreatedWalletId(wallet.id);
+        setStep('theme');
       } catch (error) {
         console.error('恢复钱包失败:', error);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [enabledBioforestChainConfigs],
+    [chainConfigs, selectedChainIds, t],
   );
 
   const createArbitraryWallet = useCallback(
-    async (walletPassword: string, hue: number) => {
+    async (walletPassword: string) => {
       const secret = arbitrarySecret.trim();
       if (!secret) return;
       if (arbitraryDerivedAddresses.length === 0) return;
 
       setIsSubmitting(true);
       try {
-        const walletName = `${t('wallet:wallet')} ${Date.now() % 1000}`;
+        const primary = arbitraryDerivedAddresses[0];
+        if (!primary) throw new Error('No enabled bioforest chains');
+        const hue = deriveThemeHue(primary.address);
 
         const chainAddresses = arbitraryDerivedAddresses.map((item) => ({
           chain: item.chainId,
@@ -221,15 +280,12 @@ export function OnboardingRecoverPage() {
           tokens: [],
         }));
 
-        const primary = chainAddresses[0];
-        if (!primary) throw new Error('No enabled bioforest chains');
-
-        await walletActions.createWallet(
+        const wallet = await walletActions.createWallet(
           {
-            name: walletName,
+            name: t('wallet:defaultName'),
             keyType: 'arbitrary',
             address: primary.address,
-            chain: primary.chain,
+            chain: primary.chainId,
             chainAddresses,
             themeHue: hue,
           },
@@ -238,8 +294,8 @@ export function OnboardingRecoverPage() {
           hue
         );
 
-        setRecoveredWalletName(walletName);
-        setStep('success');
+        setCreatedWalletId(wallet.id);
+        setStep('theme');
       } catch (error) {
         console.error('导入密钥钱包失败:', error);
       } finally {
@@ -249,16 +305,15 @@ export function OnboardingRecoverPage() {
     [arbitraryDerivedAddresses, arbitrarySecret, t],
   );
 
-  const handlePatternComplete = useCallback((key: string) => {
-    setPatternKey(key);
-    setStep('theme');
-  }, []);
+  const handleEditOnlyComplete = useCallback(() => {
+    navigate({ to: '/', replace: true });
+  }, [navigate]);
 
-  const handleThemeComplete = useCallback(async () => {
+  const handleChainsContinue = useCallback(async () => {
     if (isSubmitting) return;
 
     if (keyType === 'arbitrary') {
-      await createArbitraryWallet(patternKey, themeHue);
+      await createArbitraryWallet(patternKey);
       return;
     }
 
@@ -266,8 +321,8 @@ export function OnboardingRecoverPage() {
       return;
     }
 
-    await createWallet(mnemonic, patternKey, themeHue);
-  }, [createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, patternKey, themeHue]);
+    await createWallet(mnemonic, patternKey);
+  }, [createArbitraryWallet, createWallet, isSubmitting, keyType, mnemonic, patternKey]);
 
   const handleEnterWallet = useCallback(() => {
     navigate({ to: '/' });
@@ -374,40 +429,60 @@ export function OnboardingRecoverPage() {
         </>
       )}
 
-      {step === 'theme' && (
+      {step === 'chains' && (
         <>
-          <PageHeader title={t('onboarding:create.themeTitle')} onBack={handleBack} />
-          <div data-testid="theme-step" className="flex-1 p-4">
+          <PageHeader title={t('onboarding:chainSelector.title')} onBack={handleBack} />
+          <div data-testid="chains-step" className="flex-1 p-4">
             <div className="space-y-6">
               <div className="text-center">
-                <IconCircle icon={Palette} variant="primary" size="lg" className="mx-auto mb-4" />
-                <h2 className="text-xl font-bold">{t('onboarding:create.themeTitle')}</h2>
-                <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:create.themeSubtitle')}</p>
+                <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
+                <h2 className="text-xl font-bold">{t('onboarding:chainSelector.title')}</h2>
+                <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:chainSelector.subtitle')}</p>
               </div>
 
-              <ThemeSelector
-                secret={keyType === 'arbitrary' ? arbitrarySecret : mnemonic.join(' ')}
-                value={themeHue}
-                onChange={setThemeHue}
-              />
+              {chainConfigs.length === 0 ? (
+                <div className="flex justify-center py-10">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <ChainSelector
+                  data-testid="chain-selector"
+                  chains={chainConfigs}
+                  selectedChains={selectedChainIds}
+                  onSelectionChange={setSelectedChainIds}
+                />
+              )}
 
               <GradientButton
                 variant="mint"
                 className="w-full"
-                data-testid="theme-complete-button"
-                disabled={isSubmitting}
-                onClick={handleThemeComplete}
+                data-testid="chains-continue-button"
+                disabled={selectedChainIds.length === 0}
+                onClick={handleChainsContinue}
               >
-                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : t('onboarding:import.complete')}
+                {t('common:next')}
               </GradientButton>
             </div>
           </div>
         </>
       )}
 
+      {step === 'theme' && createdWalletId && (
+        <>
+          <PageHeader title={t('onboarding:create.themeTitle')} />
+          <div data-testid="theme-step" className="flex-1 p-4">
+            <WalletConfig
+              mode="edit-only"
+              walletId={createdWalletId}
+              onEditOnlyComplete={handleEditOnlyComplete}
+            />
+          </div>
+        </>
+      )}
+
       {step === 'success' && (
         <ImportWalletSuccess
-          walletName={recoveredWalletName}
+          walletName={t('wallet:defaultName')}
           onEnterWallet={handleEnterWallet}
         />
       )}

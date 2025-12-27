@@ -59,12 +59,31 @@ interface ProgressStepsProps {
 export function ProgressSteps({ total, current, className }: ProgressStepsProps) {
   return (
     <div className={cn('flex gap-1.5', className)}>
-      {Array.from({ length: total }).map((_, index) => (
-        <div
-          key={index}
-          className={cn('h-1 flex-1 rounded-full transition-colors', index < current ? 'bg-primary' : 'bg-muted')}
-        />
-      ))}
+      {Array.from({ length: total }).map((_, index) => {
+        const isLastStep = index === total - 1;
+        const isActive = index < current;
+
+        return (
+          <div
+            key={index}
+            className={cn(
+              'h-1 flex-1 rounded-full transition-colors',
+              isLastStep && isActive && 'animate-rainbow-flow',
+              !isLastStep && isActive && 'bg-primary',
+              !isActive && 'bg-muted'
+            )}
+            style={
+              isLastStep && isActive
+                ? {
+                    background:
+                      'linear-gradient(90deg, oklch(0.7 0.2 0), oklch(0.7 0.2 72), oklch(0.7 0.2 144), oklch(0.7 0.2 216), oklch(0.7 0.2 288), oklch(0.7 0.2 360))',
+                    backgroundSize: '200% 100%',
+                  }
+                : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
 }

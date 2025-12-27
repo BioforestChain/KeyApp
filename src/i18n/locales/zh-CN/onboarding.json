@@ -187,5 +187,14 @@
     "noResults": "未找到匹配的链",
     "selectAll": "全选",
     "deselectAll": "取消全选"
+  },
+  "theme": {
+    "walletName": "钱包名称",
+    "previewChain": "预览链",
+    "customColor": "自定义颜色",
+    "presetColors": "预设颜色",
+    "usedColor": "已使用",
+    "similarExists": "已有相似颜色",
+    "auto": "自动"
   }
 }

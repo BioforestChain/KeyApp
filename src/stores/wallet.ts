@@ -163,7 +163,7 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
         return token
       }),
     })),
-    themeHue: (info as unknown as { themeHue: number }).themeHue,
+    themeHue: info.themeHue ?? 0,
     tokens: [], // deprecated
   }
   
@@ -254,6 +254,7 @@ export const walletActions = {
       primaryChain: wallet.chain,
       primaryAddress: wallet.address,
       isBackedUp: false,
+      themeHue: themeHue ?? deriveThemeHue(mnemonic),
       createdAt: now,
       updatedAt: now,
     }
@@ -406,6 +407,18 @@ export const walletActions = {
       ...state,
       wallets: state.wallets.map((w) =>
         w.id === walletId ? { ...w, name } : w
+      ),
+    }))
+  },
+
+  /** 更新钱包主题色 */
+  updateWalletThemeHue: async (walletId: string, themeHue: number): Promise<void> => {
+    await walletStorageService.updateWallet(walletId, { themeHue })
+    
+    walletStore.setState((state) => ({
+      ...state,
+      wallets: state.wallets.map((w) =>
+        w.id === walletId ? { ...w, themeHue } : w
       ),
     }))
   },

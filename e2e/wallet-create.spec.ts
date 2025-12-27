@@ -107,6 +107,11 @@ test.describe('钱包创建流程 - 截图测试', () => {
     await page.click('[data-testid="verify-next-button"]')
     await page.waitForSelector('[data-testid="chain-selector-step"]')
     await expect(page).toHaveScreenshot('07-chain-selector-step.png')
+
+    // 8. 进入主题设置步骤
+    await page.click('[data-testid="chain-selector-complete-button"]')
+    await page.waitForSelector('[data-testid="theme-step"]')
+    await expect(page).toHaveScreenshot('08-theme-step.png')
   })
 
   test('图案确认 - 错误状态', async ({ page }) => {
@@ -171,13 +176,19 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await expect(verifyNextBtn).toBeEnabled()
     await verifyNextBtn.click()
 
-    // 5. 选择链并完成创建
+    // 5. 选择链并进入主题设置
     await page.waitForSelector('[data-testid="chain-selector-step"]')
-    const completeBtn = page.locator('[data-testid="chain-selector-complete-button"]')
-    await expect(completeBtn).toBeEnabled()
-    await completeBtn.click()
+    const chainNextBtn = page.locator('[data-testid="chain-selector-complete-button"]')
+    await expect(chainNextBtn).toBeEnabled()
+    await chainNextBtn.click()
 
-    // 6. 验证跳转到首页且钱包已创建
+    // 6. 主题设置步骤 - 直接完成（使用默认主题）
+    await page.waitForSelector('[data-testid="theme-step"]')
+    const themeCompleteBtn = page.locator('[data-testid="theme-complete-button"]')
+    await expect(themeCompleteBtn).toBeEnabled()
+    await themeCompleteBtn.click()
+
+    // 7. 验证跳转到首页且钱包已创建
     await page.waitForURL(/.*#\/$/)
     // 等待钱包名称显示，确认首页加载完成
     await expect(page.locator('[data-testid="wallet-name"]:visible').first()).toBeVisible({ timeout: 10000 })
@@ -247,6 +258,11 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.locator('[data-testid="chain-selector-chain-tron"]').click()
 
     await page.click('[data-testid="chain-selector-complete-button"]')
+
+    // 主题设置步骤 - 直接完成（使用默认主题）
+    await page.waitForSelector('[data-testid="theme-step"]')
+    await page.click('[data-testid="theme-complete-button"]')
+
     await page.waitForURL(/.*#\/$/)
 
     const wallets = await getWalletDataFromIndexedDB(page)
