@@ -40,6 +40,37 @@
 /* shadcnui */
 @custom-variant dark (&:is(.dark *));
 
+/* 注册 CSS 自定义属性类型 - 支持动画和继承 */
+@property --primary-hue {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 323;
+}
+
+@property --primary-saturation {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.26;
+}
+
+@property --primary-lightness {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.59;
+}
+
+@property --primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.59 0.26 323);
+}
+
+@property --primary-foreground {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(1 0 0);
+}
+
 :root {
   /* 动态主题色 - 可被钱包主题覆盖 */
   --primary-hue: 323;
