@@ -51,7 +51,12 @@
     "theme:check": "turbo run theme:run --",
     "theme:run": "bun scripts/theme-check.ts",
     "agent": "bun scripts/agent/cli.ts",
-    "check": "turbo run typecheck:run test:run i18n:run theme:run"
+    "check": "turbo run typecheck:run test:run i18n:run theme:run",
+    "sdk:build": "pnpm --filter @aspect-aspect/bio-sdk build",
+    "sdk:dev": "pnpm --filter @aspect-aspect/bio-sdk dev",
+    "miniapps:build": "pnpm --filter \"./miniapps/*\" build",
+    "miniapps:dev:teleport": "pnpm --filter @keyapp/miniapp-teleport dev",
+    "miniapps:dev:forge": "pnpm --filter @keyapp/miniapp-forge dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

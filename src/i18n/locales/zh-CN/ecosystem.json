@@ -1,0 +1,24 @@
+{
+  "title": "生态",
+  "empty": "暂无小程序",
+  "loading": "加载中...",
+  "notFound": "小程序不存在",
+  "refresh": "刷新",
+  "sources": {
+    "title": "可信源管理",
+    "add": "添加订阅",
+    "remove": "移除",
+    "empty": "暂无订阅源"
+  },
+  "permissions": {
+    "title": "权限请求",
+    "grant": "授权",
+    "deny": "拒绝",
+    "bio_requestAccounts": "访问钱包地址",
+    "bio_selectAccount": "选择账户",
+    "bio_pickWallet": "选择其他钱包",
+    "bio_signMessage": "签名消息",
+    "bio_signTypedData": "签名数据",
+    "bio_sendTransaction": "发起交易"
+  }
+}
