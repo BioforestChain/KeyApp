@@ -1,5 +1,6 @@
 {
   "add": "Add Wallet",
+  "defaultName": "My Wallet",
   "chains": {
     "title": "Manage Wallet Networks",
     "verifyTitle": "Verify Wallet Lock",
@@ -115,10 +116,12 @@
   },
   "detail": {
     "title": "Wallet Details",
+    "editTitle": "Edit Wallet",
     "notFound": "Wallet not found",
     "createdAt": "Created on {{date}}",
     "chainAddresses": "Chain Addresses",
     "editName": "Edit Wallet Name",
+    "editTheme": "Edit Theme Color",
     "exportMnemonic": "Export Mnemonic",
     "deleteWallet": "Delete Wallet",
     "exportDeveloping": "Mnemonic export feature in development",

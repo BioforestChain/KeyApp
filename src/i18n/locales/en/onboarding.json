@@ -187,5 +187,14 @@
     "noResults": "No chains found",
     "selectAll": "Select All",
     "deselectAll": "Deselect All"
+  },
+  "theme": {
+    "walletName": "Wallet Name",
+    "previewChain": "Preview Chain",
+    "customColor": "Custom Color",
+    "presetColors": "Preset Colors",
+    "usedColor": "In Use",
+    "similarExists": "Similar color exists",
+    "auto": "Auto"
   }
 }
