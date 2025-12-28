@@ -1,10 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
   <defs>
-    <linearGradient id="forge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f093fb"/>
-      <stop offset="100%" style="stop-color:#f5576c"/>
+    <linearGradient id="forge-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
+    <linearGradient id="flame-outer" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="50%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#dc2626"/>
+    </linearGradient>
+    <linearGradient id="flame-inner" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fbbf24"/>
+    </linearGradient>
+    <filter id="flame-glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <circle cx="50" cy="50" r="45" fill="url(#forge-grad)"/>
-  <path d="M50 25 L65 45 L55 45 L55 75 L45 75 L45 45 L35 45 Z" fill="white"/>
+  <!-- Background -->
+  <rect x="8" y="8" width="104" height="104" rx="24" fill="url(#forge-bg)"/>
+  <!-- Anvil base -->
+  <path d="M30 85 L90 85 L85 75 L35 75 Z" fill="#374151"/>
+  <path d="M35 75 L85 75 L80 68 L40 68 Z" fill="#4b5563"/>
+  <!-- Flame outer -->
+  <path d="M60 28 C45 45 35 55 40 70 C42 75 50 78 60 78 C70 78 78 75 80 70 C85 55 75 45 60 28 Z" fill="url(#flame-outer)" filter="url(#flame-glow)"/>
+  <!-- Flame inner -->
+  <path d="M60 40 C52 50 48 58 50 68 C51 72 55 74 60 74 C65 74 69 72 70 68 C72 58 68 50 60 40 Z" fill="url(#flame-inner)"/>
+  <!-- Hammer -->
+  <rect x="54" y="50" width="12" height="25" rx="2" fill="#1f2937"/>
+  <rect x="50" y="48" width="20" height="8" rx="2" fill="#374151"/>
+  <!-- Sparkles -->
+  <circle cx="45" cy="55" r="2" fill="#fef3c7" opacity="0.9"/>
+  <circle cx="75" cy="50" r="1.5" fill="#fef3c7" opacity="0.7"/>
+  <circle cx="50" cy="42" r="1" fill="white" opacity="0.8"/>
 </svg>

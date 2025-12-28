@@ -18,8 +18,8 @@
       "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_pickWallet", "bio_signMessage"],
       "chains": ["bfmeta", "bfchainv2", "biwmeta", "ccchain", "pmchain"],
       "screenshots": [
-        "/miniapps/teleport/screenshots/1.png",
-        "/miniapps/teleport/screenshots/2.png"
+        "/miniapps/teleport/screenshots/1.svg",
+        "/miniapps/teleport/screenshots/2.svg"
       ],
       "publishedAt": "2024-12-01",
       "updatedAt": "2024-12-28",
@@ -41,7 +41,7 @@
       "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_sendTransaction"],
       "chains": ["ethereum", "bfmeta"],
       "screenshots": [
-        "/miniapps/forge/screenshots/1.png"
+        "/miniapps/forge/screenshots/1.svg"
       ],
       "publishedAt": "2024-12-15",
       "updatedAt": "2024-12-28",
