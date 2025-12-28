@@ -79,7 +79,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     priority = 'high',
     address,
     chainIconUrl,
-    watermarkLogoSize = 48,
+    watermarkLogoSize = 60,
     watermarkLogoActualSize = 24,
     onCopyAddress,
     onOpenChainSelector,
@@ -113,6 +113,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     size: Math.round(watermarkLogoActualSize * dpr),
     invert: false, // 白色区域不透明
     contrast: 1.8,
+    targetBrightness: 0.85,
   });
 
   const { pointerX, pointerY, isActive, bindElement } = useCardInteraction({

@@ -151,8 +151,6 @@ export function WalletCardCarousel({
                 priority={getPriority(index)}
                 address={walletAddress}
                 chainIconUrl={chainIconUrls[walletChain]}
-                watermarkLogoSize={40}
-                watermarkLogoActualSize={24}
                 themeHue={getWalletTheme(wallet.id)}
                 onCopyAddress={() => {
                   if (walletAddress) onCopyAddress?.(walletAddress);

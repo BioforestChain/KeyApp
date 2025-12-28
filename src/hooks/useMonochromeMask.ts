@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
-import { createMonochromeMask, type MonochromeMaskOptions, type PipelineHook } from '@/lib/canvas'
+import { useState, useEffect, useMemo } from 'react';
+import { createMonochromeMask, type MonochromeMaskOptions, type PipelineHook } from '@/lib/canvas';
 
-export type { MonochromeMaskOptions, PipelineHook }
+export type { MonochromeMaskOptions, PipelineHook };
 
 /**
  * 将图标转换为单色遮罩（用于防伪水印）
@@ -19,55 +19,45 @@ export type { MonochromeMaskOptions, PipelineHook }
  * 4. 执行管道 hooks（可选）
  * 5. 返回 data URL
  */
-export function useMonochromeMask(
-  iconUrl: string | undefined,
-  options: MonochromeMaskOptions = {}
-): string | null {
-  const { size = 64, invert = false, contrast = 1.5, pipeline, clip, targetBrightness } = options
-  const [maskUrl, setMaskUrl] = useState<string | null>(null)
+export function useMonochromeMask(iconUrl: string | undefined, options: MonochromeMaskOptions = {}): string | null {
+  const { size = 64, invert = false, contrast = 1.5, pipeline, clip, targetBrightness } = options;
+  const [maskUrl, setMaskUrl] = useState<string | null>(null);
 
   // 稳定化 pipeline 引用（避免每次渲染都触发 effect）
-  const pipelineKey = useMemo(
-    () => (pipeline ? JSON.stringify(pipeline) : ''),
-    [pipeline]
-  )
+  const pipelineKey = useMemo(() => (pipeline ? JSON.stringify(pipeline) : ''), [pipeline]);
 
   useEffect(() => {
     if (!iconUrl) {
-      setMaskUrl(null)
-      return
+      setMaskUrl(null);
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
     // 解析 pipeline（从稳定化的 key 还原）
-    const pipelineData: PipelineHook[] | undefined = pipelineKey
-      ? JSON.parse(pipelineKey)
-      : undefined
+    const pipelineData: PipelineHook[] | undefined = pipelineKey ? JSON.parse(pipelineKey) : undefined;
 
-    const opts: MonochromeMaskOptions = { size, invert, contrast }
+    const opts: MonochromeMaskOptions = { size, invert, contrast };
     if (pipelineData) {
-      opts.pipeline = pipelineData
+      opts.pipeline = pipelineData;
     }
     if (clip) {
-      opts.clip = clip
+      opts.clip = clip;
     }
     if (targetBrightness !== undefined) {
-      opts.targetBrightness = targetBrightness
+      opts.targetBrightness = targetBrightness;
     }
 
-    createMonochromeMask(iconUrl, opts).then(
-      (url) => {
-        if (!cancelled) {
-          setMaskUrl(url)
-        }
+    createMonochromeMask(iconUrl, opts).then((url) => {
+      if (!cancelled) {
+        setMaskUrl(url);
       }
-    )
+    });
 
     return () => {
-      cancelled = true
-    }
-  }, [iconUrl, size, invert, contrast, pipelineKey, clip, targetBrightness])
+      cancelled = true;
+    };
+  }, [iconUrl, size, invert, contrast, pipelineKey, clip, targetBrightness]);
 
-  return maskUrl
+  return maskUrl;
 }
