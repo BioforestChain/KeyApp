@@ -8,7 +8,7 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconArrowRight, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
+import { IconArrowDown, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
@@ -153,26 +153,26 @@ function MiniappTransferConfirmJobContent() {
           </div>
 
           {/* From -> To */}
-          <div className="bg-muted/50 rounded-xl p-4">
+          <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+            {/* From */}
             <div className="flex items-center gap-3">
-              {/* From */}
-              <div className="min-w-0 flex-1">
-                <p className="text-muted-foreground text-xs mb-1">
-                  {t('from', '来自')}
-                </p>
-                <AddressDisplay address={from} copyable={false} className="text-sm" />
-              </div>
+              <span className="text-muted-foreground text-xs w-10 shrink-0">
+                {t('from', '来自')}
+              </span>
+              <AddressDisplay address={from} copyable className="flex-1 text-sm" />
+            </div>
 
-              {/* Arrow */}
-              <IconArrowRight className="size-5 text-muted-foreground shrink-0" />
+            {/* Arrow */}
+            <div className="flex justify-center">
+              <IconArrowDown className="size-4 text-muted-foreground" />
+            </div>
 
-              {/* To */}
-              <div className="min-w-0 flex-1">
-                <p className="text-muted-foreground text-xs mb-1 text-right">
-                  {t('to', '接收')}
-                </p>
-                <AddressDisplay address={to} copyable={false} className="text-sm" />
-              </div>
+            {/* To */}
+            <div className="flex items-center gap-3">
+              <span className="text-muted-foreground text-xs w-10 shrink-0">
+                {t('to', '接收')}
+              </span>
+              <AddressDisplay address={to} copyable className="flex-1 text-sm" />
             </div>
           </div>
 
