@@ -20,7 +20,6 @@ export interface SigningParams {
 
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
-  showAccountPicker: (opts?: { chain?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<string | null>

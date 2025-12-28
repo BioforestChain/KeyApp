@@ -57,7 +57,6 @@ export function getBridge() {
 
 /** Re-export handler setters for React integration */
 export {
-  setAccountPicker,
   setWalletPicker,
   setGetAccounts,
   setSigningDialog,

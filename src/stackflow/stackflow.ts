@@ -32,7 +32,7 @@ import { SettingsStorageActivity } from "./activities/SettingsStorageActivity";
 import { SettingsSourcesActivity } from "./activities/SettingsSourcesActivity";
 import { MiniappActivity } from "./activities/MiniappActivity";
 import { MiniappDetailActivity } from "./activities/MiniappDetailActivity";
-import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob, AccountPickerJob, SigningConfirmJob, PermissionRequestJob, MiniappTransferConfirmJob } from "./activities/sheets";
+import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob, WalletPickerJob, SigningConfirmJob, PermissionRequestJob, MiniappTransferConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -90,7 +90,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         ContactAddConfirmJob: "/job/contact-add-confirm",
         ContactShareJob: "/job/contact-share",
         ClearDataConfirmJob: "/job/clear-data-confirm",
-        AccountPickerJob: "/job/account-picker",
+        WalletPickerJob: "/job/wallet-picker",
         SigningConfirmJob: "/job/signing-confirm",
         PermissionRequestJob: "/job/permission-request",
         MiniappTransferConfirmJob: "/job/miniapp-transfer-confirm",
@@ -147,7 +147,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     ContactAddConfirmJob,
     ContactShareJob,
     ClearDataConfirmJob,
-    AccountPickerJob,
+    WalletPickerJob,
     SigningConfirmJob,
     PermissionRequestJob,
     MiniappTransferConfirmJob,

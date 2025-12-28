@@ -7,14 +7,8 @@ import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
 
 // 兼容旧 API，逐步迁移到 HandlerContext
-let _showAccountPicker: ((opts?: { chain?: string }) => Promise<BioAccount | null>) | null = null
 let _showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
 let _getConnectedAccounts: (() => BioAccount[]) | null = null
-
-/** @deprecated 使用 HandlerContext.register 替代 */
-export function setAccountPicker(picker: typeof _showAccountPicker): void {
-  _showAccountPicker = picker
-}
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setWalletPicker(picker: typeof _showWalletPicker): void {
@@ -24,12 +18,6 @@ export function setWalletPicker(picker: typeof _showWalletPicker): void {
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setGetAccounts(getter: typeof _getConnectedAccounts): void {
   _getConnectedAccounts = getter
-}
-
-/** 获取账户选择器（优先使用 context，回退到全局变量） */
-function getAccountPicker(appId: string) {
-  const callbacks = HandlerContext.get(appId)
-  return callbacks?.showAccountPicker ?? _showAccountPicker
 }
 
 /** 获取钱包选择器 */
@@ -51,17 +39,17 @@ export const handleConnect: MethodHandler = async (_params, _context) => {
 
 /** bio_requestAccounts - Request wallet connection (shows UI) */
 export const handleRequestAccounts: MethodHandler = async (_params, context) => {
-  const showAccountPicker = getAccountPicker(context.appId)
-  if (!showAccountPicker) {
-    throw Object.assign(new Error('Account picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
+  const showWalletPicker = getWalletPicker(context.appId)
+  if (!showWalletPicker) {
+    throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const account = await showAccountPicker()
-  if (!account) {
+  const wallet = await showWalletPicker()
+  if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return [account]
+  return [wallet]
 }
 
 /** bio_accounts - Get connected accounts (no UI) */
@@ -75,18 +63,18 @@ export const handleAccounts: MethodHandler = async (_params, context) => {
 
 /** bio_selectAccount - Select an account (shows picker) */
 export const handleSelectAccount: MethodHandler = async (params, context) => {
-  const showAccountPicker = getAccountPicker(context.appId)
-  if (!showAccountPicker) {
-    throw Object.assign(new Error('Account picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
+  const showWalletPicker = getWalletPicker(context.appId)
+  if (!showWalletPicker) {
+    throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
   const opts = params as { chain?: string } | undefined
-  const account = await showAccountPicker(opts)
-  if (!account) {
+  const wallet = await showWalletPicker(opts)
+  if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return account
+  return wallet
 }
 
 /** bio_pickWallet - Pick another wallet address */

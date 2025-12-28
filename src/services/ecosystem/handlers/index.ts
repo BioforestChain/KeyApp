@@ -12,7 +12,6 @@ export {
   handlePickWallet,
   handleChainId,
   handleGetBalance,
-  setAccountPicker,
   setWalletPicker,
   setGetAccounts,
 } from './wallet'

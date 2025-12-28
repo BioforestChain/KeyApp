@@ -145,9 +145,6 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold truncate">{app.name}</h2>
-              {app.verified && (
-                <IconShieldCheck className="size-5 text-green-500 shrink-0" />
-              )}
               {app.beta && (
                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs rounded">
                   Beta

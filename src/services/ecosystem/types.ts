@@ -130,8 +130,6 @@ export interface MiniappManifest {
   publishedAt?: string
   /** 更新时间 */
   updatedAt?: string
-  /** 是否经过官方验证 */
-  verified?: boolean
   /** 是否为测试版 */
   beta?: boolean
   /** 

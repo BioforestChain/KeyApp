@@ -24,7 +24,6 @@
       ],
       "publishedAt": "2024-12-01",
       "updatedAt": "2024-12-28",
-      "verified": true,
       "beta": false,
       "themeColor": "from-indigo-800 via-purple-900 to-violet-950"
     },
@@ -47,7 +46,6 @@
       ],
       "publishedAt": "2024-12-15",
       "updatedAt": "2024-12-28",
-      "verified": true,
       "beta": true,
       "themeColor": "from-red-800 via-orange-900 to-amber-950"
     }

@@ -25,7 +25,7 @@
  */
 
 import { forwardRef, useState } from 'react'
-import { IconApps, IconShieldCheck, IconSparkles } from '@tabler/icons-react'
+import { IconApps, IconSparkles } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -45,7 +45,7 @@ export type MiniappIconSize = keyof typeof MINIAPP_ICON_SIZES
 // ============================================
 // 徽章类型
 // ============================================
-export type MiniappBadge = 'verified' | 'beta' | 'new' | 'update' | 'none'
+export type MiniappBadge = 'beta' | 'new' | 'update' | 'none'
 
 // ============================================
 // Props
@@ -234,11 +234,6 @@ interface BadgeProps {
 
 function Badge({ type, size, offset }: BadgeProps) {
   const configs = {
-    verified: {
-      icon: IconShieldCheck,
-      bg: 'bg-emerald-500',
-      color: 'text-white',
-    },
     beta: {
       label: 'β',
       bg: 'bg-amber-500',

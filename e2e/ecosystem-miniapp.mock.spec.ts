@@ -262,18 +262,18 @@ test.describe('小程序详情页截图测试', () => {
   })
 })
 
-test.describe('账户选择器截图测试', () => {
+test.describe('钱包选择器截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)
   })
 
-  test('账户选择器页面', async ({ page }) => {
+  test('钱包选择器页面', async ({ page }) => {
     // 正确的路由格式
-    await page.goto('/#/job/account-picker')
+    await page.goto('/#/job/wallet-picker')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
-    await expect(page).toHaveScreenshot('03-account-picker.png')
+    await expect(page).toHaveScreenshot('03-wallet-picker.png')
   })
 })
 
@@ -407,26 +407,26 @@ const MULTI_WALLET_DATA = {
 }
 
 test.describe('多钱包场景截图测试', () => {
-  test('多钱包账户选择器', async ({ page }) => {
+  test('多钱包钱包选择器', async ({ page }) => {
     await page.addInitScript((data) => {
       localStorage.clear()
       localStorage.setItem('bfm_wallets', JSON.stringify(data))
     }, MULTI_WALLET_DATA)
 
-    await page.goto('/#/job/account-picker')
+    await page.goto('/#/job/wallet-picker')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
     await expect(page).toHaveScreenshot('08-multi-wallet-picker.png')
   })
 
-  test('按链过滤账户选择器', async ({ page }) => {
+  test('按链过滤钱包选择器', async ({ page }) => {
     await page.addInitScript((data) => {
       localStorage.clear()
       localStorage.setItem('bfm_wallets', JSON.stringify(data))
     }, MULTI_WALLET_DATA)
 
-    await page.goto('/#/job/account-picker?chain=ethereum')
+    await page.goto('/#/job/wallet-picker?chain=ethereum')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
@@ -526,13 +526,13 @@ const EMPTY_WALLET_DATA = {
 }
 
 test.describe('空状态截图测试', () => {
-  test('无钱包时的账户选择器', async ({ page }) => {
+  test('无钱包时的钱包选择器', async ({ page }) => {
     await page.addInitScript((data) => {
       localStorage.clear()
       localStorage.setItem('bfm_wallets', JSON.stringify(data))
     }, EMPTY_WALLET_DATA)
 
-    await page.goto('/#/job/account-picker')
+    await page.goto('/#/job/wallet-picker')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
@@ -632,8 +632,8 @@ test.describe('取消操作流程测试', () => {
     expect(eventDetail).toEqual({ confirmed: false })
   })
 
-  test('取消账户选择应触发事件', async ({ page }) => {
-    await page.goto('/#/job/account-picker')
+  test('取消钱包选择应触发事件', async ({ page }) => {
+    await page.goto('/#/job/wallet-picker')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
@@ -641,7 +641,7 @@ test.describe('取消操作流程测试', () => {
     const eventPromise = page.evaluate(() => {
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Timeout')), 3000)
-        window.addEventListener('account-picker-cancel', () => {
+        window.addEventListener('wallet-picker-cancel', () => {
           clearTimeout(timeout)
           resolve(true)
         }, { once: true })
@@ -662,15 +662,15 @@ test.describe('账户选择流程测试', () => {
     await injectTestData(page)
   })
 
-  test('选择账户应触发事件并返回正确数据', async ({ page }) => {
-    await page.goto('/#/job/account-picker')
+  test('选择钱包应触发事件并返回正确数据', async ({ page }) => {
+    await page.goto('/#/job/wallet-picker')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 监听事件
     const eventPromise = page.evaluate(() => {
       return new Promise((resolve) => {
-        window.addEventListener('account-picker-select', (e: Event) => {
+        window.addEventListener('wallet-picker-select', (e: Event) => {
           resolve((e as CustomEvent).detail)
         }, { once: true })
       })

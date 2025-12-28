@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next'
 import { getAppById, getBridge, initBioProvider } from '@/services/ecosystem'
 import type { MiniappManifest, BioAccount, TransferParams } from '@/services/ecosystem'
 import {
-  setAccountPicker,
   setWalletPicker,
   setGetAccounts,
 } from '@/services/ecosystem/handlers/wallet'
@@ -101,14 +100,14 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     setApp(manifest)
   }, [appId, t])
 
-  // 账户选择器
-  const showAccountPicker = useCallback(
+  // 钱包选择器
+  const showWalletPicker = useCallback(
     (opts?: { chain?: string }): Promise<BioAccount | null> => {
       return new Promise((resolve) => {
         const handleSelect = (e: Event) => {
           const detail = (e as CustomEvent).detail
-          window.removeEventListener('account-picker-select', handleSelect)
-          window.removeEventListener('account-picker-cancel', handleCancel)
+          window.removeEventListener('wallet-picker-select', handleSelect)
+          window.removeEventListener('wallet-picker-cancel', handleCancel)
           resolve({
             address: detail.address,
             chain: detail.chain,
@@ -117,19 +116,19 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         }
 
         const handleCancel = () => {
-          window.removeEventListener('account-picker-select', handleSelect)
-          window.removeEventListener('account-picker-cancel', handleCancel)
+          window.removeEventListener('wallet-picker-select', handleSelect)
+          window.removeEventListener('wallet-picker-cancel', handleCancel)
           resolve(null)
         }
 
-        window.addEventListener('account-picker-select', handleSelect)
-        window.addEventListener('account-picker-cancel', handleCancel)
+        window.addEventListener('wallet-picker-select', handleSelect)
+        window.addEventListener('wallet-picker-cancel', handleCancel)
 
         const params: Record<string, string> = {}
         if (opts?.chain) params.chain = opts.chain
         if (app?.name) params.appName = app.name
         if (app?.icon) params.appIcon = app.icon
-        push('AccountPickerJob', params)
+        push('WalletPickerJob', params)
       })
     },
     [push, app?.name, app?.icon]
@@ -244,20 +243,18 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
   // 注册回调
   useEffect(() => {
-    setAccountPicker(showAccountPicker)
-    setWalletPicker(showAccountPicker) // 复用账户选择器
+    setWalletPicker(showWalletPicker)
     setGetAccounts(getConnectedAccounts)
     setSigningDialog(showSigningDialog)
     setTransferDialog(showTransferDialog)
 
     return () => {
-      setAccountPicker(null)
       setWalletPicker(null)
       setGetAccounts(null)
       setSigningDialog(null)
       setTransferDialog(null)
     }
-  }, [showAccountPicker, getConnectedAccounts, showSigningDialog, showTransferDialog])
+  }, [showWalletPicker, getConnectedAccounts, showSigningDialog, showTransferDialog])
 
   useEffect(() => {
     // Initialize provider on mount
