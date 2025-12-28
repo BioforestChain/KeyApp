@@ -4,25 +4,44 @@
 
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
+import { HandlerContext } from './context'
 
-// These will be injected from React context/stores
-let showAccountPicker: ((opts?: { chain?: string }) => Promise<BioAccount | null>) | null = null
-let showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
-let getConnectedAccounts: (() => BioAccount[]) | null = null
+// 兼容旧 API，逐步迁移到 HandlerContext
+let _showAccountPicker: ((opts?: { chain?: string }) => Promise<BioAccount | null>) | null = null
+let _showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
+let _getConnectedAccounts: (() => BioAccount[]) | null = null
 
-/** Set the account picker callback */
-export function setAccountPicker(picker: typeof showAccountPicker): void {
-  showAccountPicker = picker
+/** @deprecated 使用 HandlerContext.register 替代 */
+export function setAccountPicker(picker: typeof _showAccountPicker): void {
+  _showAccountPicker = picker
 }
 
-/** Set the wallet picker callback */
-export function setWalletPicker(picker: typeof showWalletPicker): void {
-  showWalletPicker = picker
+/** @deprecated 使用 HandlerContext.register 替代 */
+export function setWalletPicker(picker: typeof _showWalletPicker): void {
+  _showWalletPicker = picker
 }
 
-/** Set the get accounts callback */
-export function setGetAccounts(getter: typeof getConnectedAccounts): void {
-  getConnectedAccounts = getter
+/** @deprecated 使用 HandlerContext.register 替代 */
+export function setGetAccounts(getter: typeof _getConnectedAccounts): void {
+  _getConnectedAccounts = getter
+}
+
+/** 获取账户选择器（优先使用 context，回退到全局变量） */
+function getAccountPicker(appId: string) {
+  const callbacks = HandlerContext.get(appId)
+  return callbacks?.showAccountPicker ?? _showAccountPicker
+}
+
+/** 获取钱包选择器 */
+function getWalletPicker(appId: string) {
+  const callbacks = HandlerContext.get(appId)
+  return callbacks?.showWalletPicker ?? _showWalletPicker
+}
+
+/** 获取已连接账户函数 */
+function getAccountsGetter(appId: string) {
+  const callbacks = HandlerContext.get(appId)
+  return callbacks?.getConnectedAccounts ?? _getConnectedAccounts
 }
 
 /** bio_connect - Internal handshake */
@@ -31,7 +50,8 @@ export const handleConnect: MethodHandler = async (_params, _context) => {
 }
 
 /** bio_requestAccounts - Request wallet connection (shows UI) */
-export const handleRequestAccounts: MethodHandler = async (_params, _context) => {
+export const handleRequestAccounts: MethodHandler = async (_params, context) => {
+  const showAccountPicker = getAccountPicker(context.appId)
   if (!showAccountPicker) {
     throw Object.assign(new Error('Account picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
@@ -45,7 +65,8 @@ export const handleRequestAccounts: MethodHandler = async (_params, _context) =>
 }
 
 /** bio_accounts - Get connected accounts (no UI) */
-export const handleAccounts: MethodHandler = async (_params, _context) => {
+export const handleAccounts: MethodHandler = async (_params, context) => {
+  const getConnectedAccounts = getAccountsGetter(context.appId)
   if (!getConnectedAccounts) {
     return []
   }
@@ -53,7 +74,8 @@ export const handleAccounts: MethodHandler = async (_params, _context) => {
 }
 
 /** bio_selectAccount - Select an account (shows picker) */
-export const handleSelectAccount: MethodHandler = async (params, _context) => {
+export const handleSelectAccount: MethodHandler = async (params, context) => {
+  const showAccountPicker = getAccountPicker(context.appId)
   if (!showAccountPicker) {
     throw Object.assign(new Error('Account picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
@@ -68,7 +90,8 @@ export const handleSelectAccount: MethodHandler = async (params, _context) => {
 }
 
 /** bio_pickWallet - Pick another wallet address */
-export const handlePickWallet: MethodHandler = async (params, _context) => {
+export const handlePickWallet: MethodHandler = async (params, context) => {
+  const showWalletPicker = getWalletPicker(context.appId)
   if (!showWalletPicker) {
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }

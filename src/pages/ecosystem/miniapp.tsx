@@ -89,6 +89,11 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
   }, [])
 
   // 签名对话框
+  // TODO: 集成实际签名服务，需要：
+  // 1. 根据 address 找到对应的钱包和链
+  // 2. 解锁钱包获取私钥
+  // 3. 调用 chain-adapter 的 signMessage 方法
+  // 4. 返回实际签名
   const showSigningDialog = useCallback(
     (params: { message: string; address: string; appName: string }): Promise<string | null> => {
       return new Promise((resolve) => {
@@ -96,8 +101,11 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
           const detail = (e as CustomEvent).detail
           window.removeEventListener('signing-confirm', handleConfirm)
           if (detail.confirmed) {
-            // TODO: 实际调用签名服务
-            resolve(`0x${Array(130).fill('0').join('')}`)
+            // 暂时返回模拟签名，后续需要集成实际签名服务
+            // 模拟签名格式：0x + 130 个 0
+            const mockSignature = `0x${Array(130).fill('0').join('')}`
+            console.log('[MiniappPage] Signing confirmed, returning mock signature')
+            resolve(mockSignature)
           } else {
             resolve(null)
           }
@@ -122,6 +130,27 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
       return Promise.resolve(null)
     },
     []
+  )
+
+  // 权限请求对话框
+  const requestPermission = useCallback(
+    (_appId: string, appName: string, permissions: string[]): Promise<boolean> => {
+      return new Promise((resolve) => {
+        const handleResult = (e: Event) => {
+          const detail = (e as CustomEvent).detail
+          window.removeEventListener('permission-request', handleResult)
+          resolve(detail.approved === true)
+        }
+
+        window.addEventListener('permission-request', handleResult)
+
+        push('PermissionRequestJob', {
+          appName,
+          permissions: JSON.stringify(permissions),
+        })
+      })
+    },
+    [push]
   )
 
   // 注册回调
@@ -151,13 +180,14 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
     // Attach bridge to iframe
     const bridge = getBridge()
-    bridge.attach(iframeRef.current, app.id, app.permissions ?? [])
+    bridge.setPermissionRequestCallback(requestPermission)
+    bridge.attach(iframeRef.current, app.id, app.name, app.permissions ?? [])
 
     setLoading(false)
 
     // Emit connect event
     bridge.emit('connect', { chainId: 'bfmeta' })
-  }, [app])
+  }, [app, requestPermission])
 
   useEffect(() => {
     return () => {

@@ -4,13 +4,20 @@
 
 import type { MethodHandler, TransferParams } from '../types'
 import { BioErrorCodes } from '../types'
+import { HandlerContext } from './context'
 
-// These will be injected from React context
-let showTransferDialog: ((params: TransferParams & { appName: string }) => Promise<{ txHash: string } | null>) | null = null
+// 兼容旧 API
+let _showTransferDialog: ((params: TransferParams & { appName: string }) => Promise<{ txHash: string } | null>) | null = null
 
-/** Set the transfer dialog callback */
-export function setTransferDialog(dialog: typeof showTransferDialog): void {
-  showTransferDialog = dialog
+/** @deprecated 使用 HandlerContext.register 替代 */
+export function setTransferDialog(dialog: typeof _showTransferDialog): void {
+  _showTransferDialog = dialog
+}
+
+/** 获取转账对话框 */
+function getTransferDialog(appId: string) {
+  const callbacks = HandlerContext.get(appId)
+  return callbacks?.showTransferDialog ?? _showTransferDialog
 }
 
 /** bio_sendTransaction - Send a transaction */
@@ -23,6 +30,7 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     )
   }
 
+  const showTransferDialog = getTransferDialog(context.appId)
   if (!showTransferDialog) {
     throw Object.assign(new Error('Transfer dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }

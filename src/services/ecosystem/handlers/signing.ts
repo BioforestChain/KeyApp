@@ -4,17 +4,24 @@
 
 import type { MethodHandler } from '../types'
 import { BioErrorCodes } from '../types'
+import { HandlerContext } from './context'
 
-// These will be injected from React context
-let showSigningDialog: ((params: {
+// 兼容旧 API
+let _showSigningDialog: ((params: {
   message: string
   address: string
   appName: string
 }) => Promise<string | null>) | null = null
 
-/** Set the signing dialog callback */
-export function setSigningDialog(dialog: typeof showSigningDialog): void {
-  showSigningDialog = dialog
+/** @deprecated 使用 HandlerContext.register 替代 */
+export function setSigningDialog(dialog: typeof _showSigningDialog): void {
+  _showSigningDialog = dialog
+}
+
+/** 获取签名对话框 */
+function getSigningDialog(appId: string) {
+  const callbacks = HandlerContext.get(appId)
+  return callbacks?.showSigningDialog ?? _showSigningDialog
 }
 
 /** bio_signMessage - Sign a message */
@@ -24,6 +31,7 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Missing message or address'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
+  const showSigningDialog = getSigningDialog(context.appId)
   if (!showSigningDialog) {
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
@@ -48,6 +56,7 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Missing data or address'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
+  const showSigningDialog = getSigningDialog(context.appId)
   if (!showSigningDialog) {
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }

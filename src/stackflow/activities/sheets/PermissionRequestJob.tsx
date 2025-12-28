@@ -22,8 +22,8 @@ type PermissionRequestJobParams = {
   appName: string
   /** 小程序图标 */
   appIcon?: string
-  /** 请求的权限列表 */
-  permissions: string[]
+  /** 请求的权限列表 (JSON 字符串) */
+  permissions: string
 }
 
 const PERMISSION_INFO: Record<string, { icon: typeof IconWallet; label: string; description: string }> = {
@@ -52,7 +52,16 @@ const PERMISSION_INFO: Record<string, { icon: typeof IconWallet; label: string; 
 function PermissionRequestJobContent() {
   const { t } = useTranslation('common')
   const { pop } = useFlow()
-  const { appName, appIcon, permissions } = useActivityParams<PermissionRequestJobParams>()
+  const { appName, appIcon, permissions: permissionsJson } = useActivityParams<PermissionRequestJobParams>()
+
+  // 解析权限列表
+  const permissions: string[] = (() => {
+    try {
+      return JSON.parse(permissionsJson) as string[]
+    } catch {
+      return []
+    }
+  })()
 
   const handleApprove = () => {
     const event = new CustomEvent('permission-request', {

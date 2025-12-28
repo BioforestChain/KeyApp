@@ -14,27 +14,52 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from './types'
+import {
+  hasPermission,
+  isSensitiveMethod,
+  grantPermissions as storeGrantPermissions,
+} from './permissions'
+
+/** 权限请求回调类型 */
+export type PermissionRequestCallback = (
+  appId: string,
+  appName: string,
+  permissions: string[]
+) => Promise<boolean>
 
 export class PostMessageBridge {
   private handlers = new Map<string, MethodHandler>()
   private iframe: HTMLIFrameElement | null = null
   private appId: string = ''
+  private appName: string = ''
   private origin: string = '*'
-  private permissions: string[] = []
+  private manifestPermissions: string[] = []  // manifest 声明的权限
   private messageHandler: ((event: MessageEvent) => void) | null = null
+  private permissionRequestCallback: PermissionRequestCallback | null = null
 
   /** Register a method handler */
   registerHandler(method: string, handler: MethodHandler): void {
     this.handlers.set(method, handler)
   }
 
+  /** Set permission request callback */
+  setPermissionRequestCallback(callback: PermissionRequestCallback | null): void {
+    this.permissionRequestCallback = callback
+  }
+
   /** Attach to an iframe */
-  attach(iframe: HTMLIFrameElement, appId: string, permissions: string[] = []): void {
+  attach(
+    iframe: HTMLIFrameElement,
+    appId: string,
+    appName: string,
+    manifestPermissions: string[] = []
+  ): void {
     this.detach()
 
     this.iframe = iframe
     this.appId = appId
-    this.permissions = permissions
+    this.appName = appName
+    this.manifestPermissions = manifestPermissions
 
     // Get origin from iframe src
     try {
@@ -58,7 +83,8 @@ export class PostMessageBridge {
     }
     this.iframe = null
     this.appId = ''
-    this.permissions = []
+    this.appName = ''
+    this.manifestPermissions = []
   }
 
   /** Send event to miniapp */
@@ -109,15 +135,35 @@ export class PostMessageBridge {
       return
     }
 
-    // Check permissions (skip for connect methods)
-    const skipPermissionCheck = ['bio_connect', 'bio_requestAccounts'].includes(method)
-    if (!skipPermissionCheck && !this.permissions.includes(method)) {
-      this.sendResponse(createErrorResponse(
-        id,
-        BioErrorCodes.UNAUTHORIZED,
-        `Permission denied: ${method}`
-      ))
-      return
+    // Check permissions
+    const skipPermissionCheck = ['bio_connect'].includes(method)
+    if (!skipPermissionCheck) {
+      // 1. 检查 manifest 是否声明了该权限
+      if (!this.manifestPermissions.includes(method) && method !== 'bio_requestAccounts') {
+        this.sendResponse(createErrorResponse(
+          id,
+          BioErrorCodes.UNAUTHORIZED,
+          `Permission not declared in manifest: ${method}`
+        ))
+        return
+      }
+
+      // 2. 对于敏感方法，检查用户是否已授权
+      if (isSensitiveMethod(method)) {
+        const granted = hasPermission(this.appId, method)
+        if (!granted) {
+          // 请求权限
+          const approved = await this.requestPermission([method])
+          if (!approved) {
+            this.sendResponse(createErrorResponse(
+              id,
+              BioErrorCodes.USER_REJECTED,
+              'Permission denied by user'
+            ))
+            return
+          }
+        }
+      }
     }
 
     // Execute handler
@@ -125,7 +171,7 @@ export class PostMessageBridge {
       const context: HandlerContext = {
         appId: this.appId,
         origin: this.origin,
-        permissions: this.permissions,
+        permissions: this.manifestPermissions,
       }
 
       const result = await handler(params?.[0], context)
@@ -134,6 +180,29 @@ export class PostMessageBridge {
       const message = error instanceof Error ? error.message : 'Unknown error'
       const code = (error as { code?: number }).code ?? BioErrorCodes.INTERNAL_ERROR
       this.sendResponse(createErrorResponse(id, code, message))
+    }
+  }
+
+  /** 请求用户授权权限 */
+  private async requestPermission(permissions: string[]): Promise<boolean> {
+    if (!this.permissionRequestCallback) {
+      console.warn('[BioProvider] No permission request callback set')
+      return false
+    }
+
+    try {
+      const approved = await this.permissionRequestCallback(
+        this.appId,
+        this.appName,
+        permissions
+      )
+      if (approved) {
+        storeGrantPermissions(this.appId, permissions)
+      }
+      return approved
+    } catch (error) {
+      console.error('[BioProvider] Permission request failed:', error)
+      return false
     }
   }
 

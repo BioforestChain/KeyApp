@@ -27,7 +27,7 @@ describe('PostMessageBridge', () => {
       const iframe = document.createElement('iframe')
       const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
 
-      bridge.attach(iframe, 'test-app', ['bio_requestAccounts'])
+      bridge.attach(iframe, 'test-app', 'Test App', ['bio_requestAccounts'])
 
       expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function))
 
@@ -38,7 +38,7 @@ describe('PostMessageBridge', () => {
       const iframe = document.createElement('iframe')
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
 
-      bridge.attach(iframe, 'test-app')
+      bridge.attach(iframe, 'test-app', 'Test App')
       bridge.detach()
 
       expect(removeEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function))
@@ -50,8 +50,8 @@ describe('PostMessageBridge', () => {
       const iframe1 = document.createElement('iframe')
       const iframe2 = document.createElement('iframe')
 
-      bridge.attach(iframe1, 'app-1')
-      bridge.attach(iframe2, 'app-2')
+      bridge.attach(iframe1, 'app-1', 'App 1')
+      bridge.attach(iframe2, 'app-2', 'App 2')
 
       // Should have detached iframe1 and attached iframe2
       bridge.detach()
@@ -74,7 +74,7 @@ describe('PostMessageBridge', () => {
         writable: true,
       })
 
-      bridge.attach(iframe, 'test-app')
+      bridge.attach(iframe, 'test-app', 'Test App')
       bridge.emit('accountsChanged', [{ address: '0x123', chain: 'eth' }])
 
       expect(mockPostMessage).toHaveBeenCalledWith(

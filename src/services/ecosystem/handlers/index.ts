@@ -2,6 +2,8 @@
  * Handler exports
  */
 
+export { HandlerContext, getCallbacksOrThrow, type HandlerCallbacks, type SigningParams } from './context'
+
 export {
   handleConnect,
   handleRequestAccounts,
