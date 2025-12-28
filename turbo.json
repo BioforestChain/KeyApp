@@ -13,6 +13,12 @@
       "outputs": ["coverage/**"],
       "cache": true
     },
+    "test:storybook": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
+      "outputs": [],
+      "cache": true
+    },
     "i18n:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/i18n/**/*.json", "scripts/i18n-check.ts"],
