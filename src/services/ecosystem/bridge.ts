@@ -170,6 +170,7 @@ export class PostMessageBridge {
     try {
       const context: HandlerContext = {
         appId: this.appId,
+        appName: this.appName,
         origin: this.origin,
         permissions: this.manifestPermissions,
       }

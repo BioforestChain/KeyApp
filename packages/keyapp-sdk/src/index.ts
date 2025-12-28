@@ -1,5 +1,5 @@
 /**
- * @keyapp/sdk - KeyApp 小程序 SDK
+ * @biochain/keyapp-sdk - KeyApp 小程序 SDK
  * 
  * 提供应用上下文 API（主题、语言、平台等）
  */

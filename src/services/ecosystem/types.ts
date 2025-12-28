@@ -18,6 +18,19 @@ export interface TransferParams {
   asset?: string
 }
 
+/** Unsigned transaction payload (chain-specific) */
+export interface BioUnsignedTransaction {
+  chainId: string
+  data: unknown
+}
+
+/** Signed transaction payload (chain-specific) */
+export interface BioSignedTransaction {
+  chainId: string
+  data: unknown
+  signature: string
+}
+
 /** Request message from miniapp */
 export interface BioRequestMessage {
   type: 'bio_request'
@@ -80,11 +93,29 @@ export const KNOWN_PERMISSIONS: Record<string, PermissionDefinition> = {
     description: '让您选择一个钱包',
     risk: 'low',
   },
+  bio_createTransaction: {
+    id: 'bio_createTransaction',
+    name: '创建交易',
+    description: '构造未签名交易（不做签名/不做广播）',
+    risk: 'low',
+  },
   bio_signMessage: {
     id: 'bio_signMessage',
     name: '签名消息',
     description: '使用您的私钥签名消息（需要您确认）',
     risk: 'medium',
+  },
+  bio_signTypedData: {
+    id: 'bio_signTypedData',
+    name: '签名数据',
+    description: '签名结构化数据（需要您确认）',
+    risk: 'medium',
+  },
+  bio_signTransaction: {
+    id: 'bio_signTransaction',
+    name: '签名交易',
+    description: '对未签名交易进行签名（需要您确认）',
+    risk: 'high',
   },
   bio_sendTransaction: {
     id: 'bio_sendTransaction',
@@ -132,6 +163,10 @@ export interface MiniappManifest {
   updatedAt?: string
   /** 是否为测试版 */
   beta?: boolean
+  /** 推荐分（官方评分，0-100，可选） */
+  officialScore?: number
+  /** 热门分（社区评分，0-100，可选） */
+  communityScore?: number
   /**
    * 启动屏配置
    * 如果配置了启动屏，小程序需要调用 bio.closeSplashScreen() 来关闭
@@ -179,6 +214,10 @@ export interface EcosystemSource {
   updated: string
   /** 订阅源图标 URL */
   icon?: string
+  /** 可选：远程搜索能力（固定 GET，使用 %s 替换 query） */
+  search?: {
+    urlTemplate: string
+  }
   apps: MiniappManifest[]
 }
 
@@ -187,6 +226,7 @@ export interface SourceRecord {
   url: string
   name: string
   enabled: boolean
+  lastUpdated: string
   /** 图标 URL，默认使用 https 锁图标 */
   icon?: string
   /** 是否为内置源 */
@@ -202,6 +242,7 @@ export type MethodHandler = (
 /** Handler context */
 export interface HandlerContext {
   appId: string
+  appName: string
   origin: string
   permissions: string[]
 }

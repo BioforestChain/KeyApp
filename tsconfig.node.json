@@ -34,5 +34,5 @@
       "#currency-exchange-impl": ["./src/services/currency-exchange/web.ts"]
     }
   },
-  "include": ["vite.config.ts", "vitest.config.ts", ".storybook/**/*"]
+  "include": ["vite.config.ts", "vitest.config.ts", ".storybook/**/*", "scripts/**/*"]
 }

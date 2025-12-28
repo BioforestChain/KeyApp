@@ -35,7 +35,7 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
   const signature = await showSigningDialog({
     message: opts.message,
     address: opts.address,
-    app: { name: context.appId },
+    app: { name: context.appName },
   })
 
   if (!signature) {
@@ -63,7 +63,7 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
   const signature = await showSigningDialog({
     message,
     address: opts.address,
-    app: { name: context.appId },
+    app: { name: context.appName },
   })
 
   if (!signature) {

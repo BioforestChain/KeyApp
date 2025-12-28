@@ -1,5 +1,5 @@
 {
-  "name": "@aspect-aspect/bio-sdk",
+  "name": "@biochain/bio-sdk",
   "version": "0.1.0",
   "description": "Bio Ecosystem SDK for MiniApps - window.bio provider",
   "type": "module",

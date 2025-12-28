@@ -9,6 +9,7 @@ import { ecosystemStore, ecosystemSelectors, ecosystemActions } from '@/stores/e
 export const SENSITIVE_METHODS = [
   'bio_signMessage',
   'bio_signTypedData',
+  'bio_signTransaction',
   'bio_sendTransaction',
 ] as const
 
@@ -20,6 +21,7 @@ export const ALL_PERMISSIONS = [
   'bio_pickWallet',
   'bio_chainId',
   'bio_getBalance',
+  'bio_createTransaction',
   ...SENSITIVE_METHODS,
 ] as const
 
@@ -112,6 +114,10 @@ export function getPermissionInfo(permission: string): {
       label: '查询余额',
       description: '查询账户余额',
     },
+    bio_createTransaction: {
+      label: '创建交易',
+      description: '构造未签名交易（不做签名/不做广播）',
+    },
     bio_signMessage: {
       label: '签名消息',
       description: '请求签名消息（需要您确认）',
@@ -119,6 +125,10 @@ export function getPermissionInfo(permission: string): {
     bio_signTypedData: {
       label: '签名数据',
       description: '请求签名结构化数据（需要您确认）',
+    },
+    bio_signTransaction: {
+      label: '签名交易',
+      description: '请求签名交易（需要您确认）',
     },
     bio_sendTransaction: {
       label: '发送交易',

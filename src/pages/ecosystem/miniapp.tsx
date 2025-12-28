@@ -7,13 +7,14 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppById, getBridge, initBioProvider } from '@/services/ecosystem'
-import type { MiniappManifest, BioAccount, TransferParams } from '@/services/ecosystem'
+import type { MiniappManifest, BioAccount, TransferParams, BioUnsignedTransaction, BioSignedTransaction } from '@/services/ecosystem'
 import {
   setWalletPicker,
   setGetAccounts,
 } from '@/services/ecosystem/handlers/wallet'
 import { setSigningDialog } from '@/services/ecosystem/handlers/signing'
 import { setTransferDialog } from '@/services/ecosystem/handlers/transfer'
+import { setSignTransactionDialog } from '@/services/ecosystem/handlers/transaction'
 import { walletStore, walletSelectors, type ChainAddress } from '@/stores'
 import { usePreferences } from '@/stores/preferences'
 import { getLanguageDirection } from '@/i18n/index'
@@ -221,6 +222,34 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     [push, app?.icon]
   )
 
+  // 交易签名对话框
+  const showSignTransactionDialog = useCallback(
+    (params: { from: string; chain: string; unsignedTx: BioUnsignedTransaction; app: { name: string; icon?: string } }): Promise<BioSignedTransaction | null> => {
+      return new Promise((resolve) => {
+        const handleResult = (e: Event) => {
+          const detail = (e as CustomEvent).detail as { confirmed?: boolean; signedTx?: BioSignedTransaction }
+          window.removeEventListener('miniapp-sign-transaction-confirm', handleResult)
+          if (detail.confirmed && detail.signedTx) {
+            resolve(detail.signedTx)
+          } else {
+            resolve(null)
+          }
+        }
+
+        window.addEventListener('miniapp-sign-transaction-confirm', handleResult)
+
+        push('MiniappSignTransactionJob', {
+          appName: params.app.name,
+          appIcon: params.app.icon ?? app?.icon ?? '',
+          from: params.from,
+          chain: params.chain,
+          unsignedTx: JSON.stringify(params.unsignedTx),
+        })
+      })
+    },
+    [push, app?.icon],
+  )
+
   // 权限请求对话框
   const requestPermission = useCallback(
     (_appId: string, appName: string, permissions: string[]): Promise<boolean> => {
@@ -249,14 +278,16 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     setGetAccounts(getConnectedAccounts)
     setSigningDialog(showSigningDialog)
     setTransferDialog(showTransferDialog)
+    setSignTransactionDialog(showSignTransactionDialog)
 
     return () => {
       setWalletPicker(null)
       setGetAccounts(null)
       setSigningDialog(null)
       setTransferDialog(null)
+      setSignTransactionDialog(null)
     }
-  }, [showWalletPicker, getConnectedAccounts, showSigningDialog, showTransferDialog])
+  }, [showWalletPicker, getConnectedAccounts, showSigningDialog, showTransferDialog, showSignTransactionDialog])
 
   useEffect(() => {
     // Initialize provider on mount

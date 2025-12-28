@@ -1,152 +1,131 @@
+import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+import { ecosystemStore } from '@/stores/ecosystem'
+import { resetEcosystemStorageForTests } from '../storage'
 import {
-  loadSources,
   getSources,
-  addSource,
-  removeSource,
-  toggleSource,
+  refreshSources,
   getApps,
   getAppById,
-  refreshSources,
+  searchCachedApps,
+  getFeaturedApps,
 } from '../registry'
 
-describe('Miniapp Registry', () => {
-  beforeEach(() => {
-    // Clear localStorage
+describe('Miniapp Registry (Subscription v2)', () => {
+  beforeEach(async () => {
     localStorage.clear()
-    // Reset module state by reloading sources
-    loadSources()
+    await resetEcosystemStorageForTests()
+
+    ecosystemStore.setState(() => ({
+      permissions: [],
+      sources: [
+        {
+          url: '/ecosystem.json',
+          name: 'Bio 官方生态',
+          enabled: true,
+          lastUpdated: new Date().toISOString(),
+        },
+      ],
+    }))
   })
 
   afterEach(() => {
     localStorage.clear()
+    vi.restoreAllMocks()
   })
 
-  describe('loadSources', () => {
-    it('loads default source when no stored sources', () => {
-      loadSources()
-      const sources = getSources()
-      
-      expect(sources).toHaveLength(1)
-      expect(sources[0]).toEqual({
-        url: '/ecosystem.json',
-        name: 'Bio 官方生态',
-        enabled: true,
-      })
-    })
-
-    it('loads stored sources from localStorage', () => {
-      const storedSources = [
-        { url: 'https://example.com/apps.json', name: 'Custom', enabled: true },
-      ]
-      localStorage.setItem('ecosystem_sources', JSON.stringify(storedSources))
-
-      loadSources()
-      const sources = getSources()
-
-      expect(sources).toEqual(storedSources)
-    })
+  it('reads sources from ecosystemStore', () => {
+    const sources = getSources()
+    expect(sources).toHaveLength(1)
+    expect(sources[0]?.url).toBe('/ecosystem.json')
   })
 
-  describe('addSource', () => {
-    it('adds a new source', () => {
-      addSource('https://example.com/apps.json', 'Example')
-      const sources = getSources()
+  it('fetches and caches apps from enabled sources', async () => {
+    const mockApps = [
+      {
+        id: 'xin.dweb.teleport',
+        name: 'Teleport',
+        url: '/miniapps/teleport/',
+        icon: '/miniapps/teleport/icon.svg',
+        description: 'Test',
+        version: '1.0.0',
+      },
+    ]
 
-      expect(sources).toHaveLength(2)
-      expect(sources[1]).toEqual({
-        url: 'https://example.com/apps.json',
-        name: 'Example',
-        enabled: true,
-      })
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['ETag', '"v1"']]),
+      json: () => Promise.resolve({ name: 'x', version: '1', updated: '2025-01-01', apps: mockApps }),
     })
 
-    it('does not add duplicate source', () => {
-      addSource('/ecosystem.json', 'Duplicate')
-      const sources = getSources()
+    const apps = await refreshSources()
 
-      expect(sources).toHaveLength(1)
-    })
-
-    it('persists to localStorage', () => {
-      addSource('https://new-source.com/apps.json', 'New')
-      
-      const stored = JSON.parse(localStorage.getItem('ecosystem_sources') ?? '[]')
-      expect(stored).toHaveLength(2)
-    })
+    expect(apps).toHaveLength(1)
+    expect(getApps()).toHaveLength(1)
+    expect(getAppById('xin.dweb.teleport')?.name).toBe('Teleport')
   })
 
-  describe('removeSource', () => {
-    it('removes a source by URL', () => {
-      addSource('https://to-remove.com/apps.json', 'Remove Me')
-      expect(getSources()).toHaveLength(2)
-
-      removeSource('https://to-remove.com/apps.json')
-      expect(getSources()).toHaveLength(1)
+  it('searches cached apps by keyword', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map(),
+      json: () =>
+        Promise.resolve({
+          name: 'x',
+          version: '1',
+          updated: '2025-01-01',
+          apps: [
+            { id: 'xin.dweb.teleport', name: 'Teleport', url: '/', icon: '', description: 'hello', version: '1.0.0' },
+          ],
+        }),
     })
+
+    await refreshSources()
+    const results = await searchCachedApps('tele')
+    expect(results.map((r) => r.id)).toEqual(['xin.dweb.teleport'])
   })
 
-  describe('toggleSource', () => {
-    it('toggles source enabled state', () => {
-      toggleSource('/ecosystem.json', false)
-      
-      const sources = getSources()
-      expect(sources[0]?.enabled).toBe(false)
+  it('ranks featured apps by featuredScore', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map(),
+      json: () =>
+        Promise.resolve({
+          name: 'x',
+          version: '1',
+          updated: '2025-01-01',
+          apps: [
+            {
+              id: 'xin.dweb.a',
+              name: 'A',
+              url: '/',
+              icon: '',
+              description: '',
+              version: '1.0.0',
+              officialScore: 100,
+              communityScore: 0,
+            },
+            {
+              id: 'xin.dweb.b',
+              name: 'B',
+              url: '/',
+              icon: '',
+              description: '',
+              version: '1.0.0',
+              officialScore: 0,
+              communityScore: 100,
+            },
+          ],
+        }),
     })
-  })
 
-  describe('refreshSources', () => {
-    it('fetches apps from enabled sources', async () => {
-      const mockApps = [
-        { id: 'app-1', name: 'App 1', url: '/app1/', icon: '', description: '', version: '1.0' },
-      ]
-
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ apps: mockApps }),
-      })
-
-      const apps = await refreshSources()
-
-      expect(apps).toHaveLength(1)
-      expect(apps[0]?.id).toBe('app-1')
-    })
-
-    it('skips disabled sources', async () => {
-      toggleSource('/ecosystem.json', false)
-
-      global.fetch = vi.fn()
-
-      await refreshSources()
-
-      expect(global.fetch).not.toHaveBeenCalled()
-    })
-
-    it('handles fetch errors gracefully', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
-
-      const apps = await refreshSources()
-
-      expect(apps).toEqual([])
-    })
-  })
-
-  describe('getApps / getAppById', () => {
-    it('returns cached apps', async () => {
-      const mockApps = [
-        { id: 'test-app', name: 'Test', url: '/', icon: '', description: '', version: '1.0' },
-      ]
-
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ apps: mockApps }),
-      })
-
-      await refreshSources()
-
-      expect(getApps()).toHaveLength(1)
-      expect(getAppById('test-app')?.name).toBe('Test')
-      expect(getAppById('nonexistent')).toBeUndefined()
-    })
+    await refreshSources()
+    const featured = await getFeaturedApps(1, new Date('2025-01-05T00:00:00.000Z'))
+    expect(featured).toHaveLength(1)
+    expect(featured[0]?.id).toBe('xin.dweb.b')
   })
 })

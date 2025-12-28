@@ -2,7 +2,7 @@
  * Handler exports
  */
 
-export { HandlerContext, getCallbacksOrThrow, type HandlerCallbacks, type SigningParams } from './context'
+export { HandlerContext, getCallbacksOrThrow, type HandlerCallbacks, type SigningParams, type SignTransactionParams } from './context'
 
 export {
   handleConnect,
@@ -26,3 +26,10 @@ export {
   handleSendTransaction,
   setTransferDialog,
 } from './transfer'
+
+export {
+  handleCreateTransaction,
+  handleSignTransaction,
+  setSignTransactionDialog,
+  signUnsignedTransaction,
+} from './transaction'

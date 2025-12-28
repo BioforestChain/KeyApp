@@ -1,5 +1,5 @@
 {
-  "name": "keyapp",
+  "name": "@biochain/keyapp",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -52,11 +52,11 @@
     "theme:run": "bun scripts/theme-check.ts",
     "agent": "bun scripts/agent/cli.ts",
     "check": "turbo run typecheck:run test:run i18n:run theme:run",
-    "sdk:build": "pnpm --filter @aspect-aspect/bio-sdk build",
-    "sdk:dev": "pnpm --filter @aspect-aspect/bio-sdk dev",
+    "sdk:build": "pnpm --filter @biochain/bio-sdk build",
+    "sdk:dev": "pnpm --filter @biochain/bio-sdk dev",
     "miniapps:build": "pnpm --filter \"./miniapps/*\" build",
-    "miniapps:dev:teleport": "pnpm --filter @keyapp/miniapp-teleport dev",
-    "miniapps:dev:forge": "pnpm --filter @keyapp/miniapp-forge dev"
+    "miniapps:dev:teleport": "pnpm --filter @biochain/miniapp-teleport dev",
+    "miniapps:dev:forge": "pnpm --filter @biochain/miniapp-forge dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -89,6 +89,7 @@
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-router": "^1.140.0",
     "@tanstack/react-store": "^0.8.0",
+    "@biochain/plugin-navigation-sync": "workspace:*",
     "@types/yargs": "^17.0.35",
     "@zumer/snapdom": "^2.0.1",
     "big.js": "^7.0.1",
@@ -139,6 +140,7 @@
     "@vitest/browser-playwright": "^4.0.15",
     "@vitest/coverage-istanbul": "^4.0.15",
     "@vitest/coverage-v8": "^4.0.15",
+    "detect-port": "^2.1.0",
     "dotenv": "^17.2.3",
     "eslint-plugin-i18next": "^6.1.3",
     "fake-indexeddb": "^6.2.5",

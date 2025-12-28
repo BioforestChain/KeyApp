@@ -1,5 +1,5 @@
 {
-  "name": "@keyapp/sdk",
+  "name": "@biochain/keyapp-sdk",
   "version": "0.1.0",
   "description": "KeyApp 小程序 SDK - 应用上下文 API",
   "type": "module",

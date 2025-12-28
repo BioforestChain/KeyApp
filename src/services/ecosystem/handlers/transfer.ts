@@ -40,7 +40,7 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     to: opts.to,
     amount: opts.amount,
     chain: opts.chain,
-    app: { name: context.appId },
+    app: { name: context.appName },
   }
   if (opts.asset) {
     transferParams.asset = opts.asset

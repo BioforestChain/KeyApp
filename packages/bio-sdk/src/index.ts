@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import '@aspect-aspect/bio-sdk'
+ * import '@biochain/bio-sdk'
  *
  * // Now window.bio is available
  * const accounts = await window.bio.request({ method: 'bio_requestAccounts' })

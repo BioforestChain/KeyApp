@@ -20,6 +20,9 @@ importers:
       '@bfmeta/sign-util':
         specifier: ^1.3.10
         version: 1.3.10
+      '@biochain/plugin-navigation-sync':
+        specifier: workspace:*
+        version: link:packages/plugin-navigation-sync
       '@bnqkl/server-util':
         specifier: ^1.3.4
         version: 1.3.4(reflect-metadata@0.2.2)
@@ -246,6 +249,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.0.15
         version: 4.0.16(@vitest/browser@4.0.16(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))(vitest@4.0.16))(vitest@4.0.16)
+      detect-port:
+        specifier: ^2.1.0
+        version: 2.1.0
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -312,13 +318,13 @@ importers:
 
   miniapps/forge:
     dependencies:
-      '@aspect-aspect/bio-sdk':
-        specifier: workspace:*
-        version: link:../../packages/bio-sdk
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@keyapp/sdk':
+      '@biochain/bio-sdk':
+        specifier: workspace:*
+        version: link:../../packages/bio-sdk
+      '@biochain/keyapp-sdk':
         specifier: workspace:*
         version: link:../../packages/keyapp-sdk
       class-variance-authority:
@@ -367,6 +373,9 @@ importers:
       vite:
         specifier: ^7.3.0
         version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)
+      vite-plugin-mkcert:
+        specifier: ^1.17.9
+        version: 1.17.9(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
       vite-tsconfig-paths:
         specifier: ^5.1.0
         version: 5.1.4(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
@@ -376,13 +385,13 @@ importers:
 
   miniapps/teleport:
     dependencies:
-      '@aspect-aspect/bio-sdk':
-        specifier: workspace:*
-        version: link:../../packages/bio-sdk
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@keyapp/sdk':
+      '@biochain/bio-sdk':
+        specifier: workspace:*
+        version: link:../../packages/bio-sdk
+      '@biochain/keyapp-sdk':
         specifier: workspace:*
         version: link:../../packages/keyapp-sdk
       class-variance-authority:
@@ -431,6 +440,9 @@ importers:
       vite:
         specifier: ^7.3.0
         version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)
+      vite-plugin-mkcert:
+        specifier: ^1.17.9
+        version: 1.17.9(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
       vite-tsconfig-paths:
         specifier: ^5.1.0
         version: 5.1.4(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
@@ -467,6 +479,30 @@ importers:
       vitest:
         specifier: ^4.0.0
         version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+
+  packages/plugin-navigation-sync:
+    dependencies:
+      '@stackflow/config':
+        specifier: ^1.0.1-canary.0
+        version: 1.2.2
+      '@stackflow/core':
+        specifier: ^1.1.0-canary.0
+        version: 1.3.0
+      '@stackflow/react':
+        specifier: ^1.3.2-canary.0
+        version: 1.11.1(@stackflow/config@1.2.2)(@stackflow/core@1.3.0)(@types/react@19.2.7)(react@19.2.3)
+      flatted:
+        specifier: ^3.3.1
+        version: 3.3.3
+      history:
+        specifier: ^5.3.0
+        version: 5.3.0
+      react:
+        specifier: '>=16.8.0'
+        version: 19.2.3
+      urlpattern-polyfill:
+        specifier: ^10.1.0
+        version: 10.1.0
 
 packages:
 
@@ -3089,6 +3125,10 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  address@2.0.3:
+    resolution: {integrity: sha512-XNAb/a6TCqou+TufU8/u11HCu9x1gYvOoxLwtlXgIqmkrYQADVv6ljyW2zwiPhHz9R1gItAWpuDrdJMmrOBFEA==}
+    engines: {node: '>= 16.0.0'}
+
   aes-js@3.0.0:
     resolution: {integrity: sha512-H7wUZRn8WpTq9jocdxQ2c8x2sKo9ZVmzfRE13GiNJXfp7NcKYEdvl3vspKjXox6RIG2VtaRe4JFvxG4rqp2Zuw==}
 
@@ -3729,6 +3769,11 @@ packages:
 
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
+
+  detect-port@2.1.0:
+    resolution: {integrity: sha512-epZuWb/6Q62L+nDHJc/hQAqf8pylsqgk3BpZXVBx1CDnr3nkrVNn73Uu1rXcFzkNcc+hkP3whuOg7JZYaQB65Q==}
+    engines: {node: '>= 16.0.0'}
+    hasBin: true
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -6234,6 +6279,9 @@ packages:
   url-pattern@1.0.3:
     resolution: {integrity: sha512-uQcEj/2puA4aq1R3A2+VNVBgaWYR24FdWjl7VNW83rnWftlhyzOZ/tBjezRiC2UkIzuxC8Top3IekN3vUf1WxA==}
     engines: {node: '>=0.12.0'}
+
+  urlpattern-polyfill@10.1.0:
+    resolution: {integrity: sha512-IGjKp/o0NL3Bso1PymYURCJxMPNAf/ILOpendP9f5B6e1rTJgdgiOvgfoT8VxCAdY+Wisb9uhGaJJf3yZ2V9nw==}
 
   use-callback-ref@1.3.3:
     resolution: {integrity: sha512-jQL3lRnocaFtu3V00JToYz/4QkNWswxijDaCVNZRiRTO3HQDLsdu1ZtmIUvV4yPp+rvWm5j0y0TG/S61cuijTg==}
@@ -9783,6 +9831,8 @@ snapshots:
 
   acorn@8.15.0: {}
 
+  address@2.0.3: {}
+
   aes-js@3.0.0: {}
 
   aes-js@4.0.0-beta.5: {}
@@ -10406,6 +10456,10 @@ snapshots:
   detect-libc@2.1.2: {}
 
   detect-node-es@1.1.0: {}
+
+  detect-port@2.1.0:
+    dependencies:
+      address: 2.0.3
 
   devlop@1.1.0:
     dependencies:
@@ -13016,6 +13070,8 @@ snapshots:
       requires-port: 1.0.0
 
   url-pattern@1.0.3: {}
+
+  urlpattern-polyfill@10.1.0: {}
 
   use-callback-ref@1.3.3(@types/react@19.2.7)(react@19.2.3):
     dependencies:

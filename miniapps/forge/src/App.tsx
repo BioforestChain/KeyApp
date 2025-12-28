@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import type { BioAccount } from '@aspect-aspect/bio-sdk'
+import type { BioAccount, BioUnsignedTransaction, BioSignedTransaction } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -16,10 +16,17 @@ interface Token {
 
 const TOKENS: Token[] = [
   { symbol: 'ETH', name: 'Ethereum', chain: 'ethereum' },
-  { symbol: 'BFM', name: 'BioForest', chain: 'bioforest' },
+  { symbol: 'BFM', name: 'BioForest', chain: 'bfmeta' },
   { symbol: 'USDT', name: 'Tether', chain: 'ethereum' },
   { symbol: 'BTC', name: 'Bitcoin', chain: 'bitcoin' },
 ]
+
+// 锻造合约/收款地址（Demo 用占位符）
+const FORGE_RECEIVER: Record<string, string> = {
+  ethereum: '0x000000000000000000000000000000000000dEaD',
+  bfmeta: 'b0000000000000000000000000000000000000000',
+  bitcoin: 'bc1q000000000000000000000000000000000000000',
+}
 
 // 模拟汇率
 const EXCHANGE_RATES: Record<string, number> = {
@@ -103,18 +110,31 @@ export default function App() {
     setStep('processing')
 
     try {
-      // 模拟交易签名
-      await window.bio.request({
+      // 交易流水线：createTransaction -> signTransaction（必要能力）
+      const chainId = fromToken.chain
+      const to = FORGE_RECEIVER[chainId] ?? FORGE_RECEIVER.ethereum
+
+      const unsignedTx = await window.bio.request<BioUnsignedTransaction>({
+        method: 'bio_createTransaction',
+        params: [{
+          from: account.address,
+          to,
+          amount: fromAmount,
+          chain: chainId,
+          asset: fromToken.symbol,
+        }],
+      })
+
+      const signedTx = await window.bio.request<BioSignedTransaction>({
         method: 'bio_signTransaction',
         params: [{
           from: account.address,
-          type: 'swap',
-          fromToken: fromToken.symbol,
-          toToken: toToken.symbol,
-          fromAmount,
-          toAmount,
+          chain: chainId,
+          unsignedTx,
         }],
       })
+
+      void signedTx
 
       // 模拟处理时间
       await new Promise(resolve => setTimeout(resolve, 2000))

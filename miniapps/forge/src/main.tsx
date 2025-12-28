@@ -1,5 +1,5 @@
 import './index.css'
-import '@aspect-aspect/bio-sdk'
+import '@biochain/bio-sdk'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'

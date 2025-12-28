@@ -1,0 +1,21 @@
+{
+  "id": "xin.dweb.teleport",
+  "name": "一键传送",
+  "description": "跨钱包资产转移，将资产从一个地址安全转移到另一个地址",
+  "longDescription": "一键传送是 Bio 生态的核心工具，支持在多条链之间安全转移资产。\n\n## 功能特点\n- 支持多链资产转移\n- 安全的签名机制\n- 实时交易状态追踪",
+  "icon": "icon.svg",
+  "version": "0.1.0",
+  "author": "Bio Team",
+  "website": "https://teleport.dweb.xin",
+  "category": "tools",
+  "tags": ["转账", "跨链", "资产管理"],
+  "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_pickWallet", "bio_signMessage"],
+  "chains": ["bfmeta", "bfchainv2", "biwmeta", "ccchain", "pmchain"],
+  "officialScore": 90,
+  "communityScore": 80,
+  "screenshots": ["screenshots/1.svg", "screenshots/2.svg"],
+  "publishedAt": "2024-12-01",
+  "updatedAt": "2024-12-28",
+  "beta": false,
+  "themeColor": "from-indigo-800 via-purple-900 to-violet-950"
+}

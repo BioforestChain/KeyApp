@@ -15,6 +15,8 @@ import {
   handleGetBalance,
   handleSignMessage,
   handleSignTypedData,
+  handleCreateTransaction,
+  handleSignTransaction,
   handleSendTransaction,
 } from './handlers'
 
@@ -33,6 +35,10 @@ export function initBioProvider(): void {
   bridge.registerHandler('bio_signMessage', handleSignMessage)
   bridge.registerHandler('bio_signTypedData', handleSignTypedData)
 
+  // Transaction pipeline
+  bridge.registerHandler('bio_createTransaction', handleCreateTransaction)
+  bridge.registerHandler('bio_signTransaction', handleSignTransaction)
+
   // Transfer methods
   bridge.registerHandler('bio_sendTransaction', handleSendTransaction)
 
@@ -46,6 +52,8 @@ export function initBioProvider(): void {
     'bio_getBalance',
     'bio_signMessage',
     'bio_signTypedData',
+    'bio_createTransaction',
+    'bio_signTransaction',
     'bio_sendTransaction',
   ])
 }
@@ -61,4 +69,5 @@ export {
   setGetAccounts,
   setSigningDialog,
   setTransferDialog,
+  setSignTransactionDialog,
 } from './handlers'

@@ -19,6 +19,19 @@ export interface TransferParams {
   asset?: string
 }
 
+/** Unsigned transaction payload (chain-specific) */
+export interface BioUnsignedTransaction {
+  chainId: string
+  data: unknown
+}
+
+/** Signed transaction payload (chain-specific) */
+export interface BioSignedTransaction {
+  chainId: string
+  data: unknown
+  signature: string
+}
+
 /** Provider request arguments */
 export interface RequestArguments {
   method: string
@@ -72,6 +85,12 @@ export interface BioMethods {
 
   /** Sign typed data */
   bio_signTypedData: (params: { data: object; address: string }) => Promise<string>
+
+  /** Create an unsigned transaction (no signature, no broadcast) */
+  bio_createTransaction: (params: TransferParams) => Promise<BioUnsignedTransaction>
+
+  /** Sign an unsigned transaction (requires user confirmation) */
+  bio_signTransaction: (params: { from: string; chain: string; unsignedTx: BioUnsignedTransaction }) => Promise<BioSignedTransaction>
 
   /** Send a transaction */
   bio_sendTransaction: (params: TransferParams) => Promise<{ txHash: string }>

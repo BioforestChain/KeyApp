@@ -3,7 +3,7 @@
  * 管理小程序回调的注册中心，支持多实例
  */
 
-import type { BioAccount, TransferParams } from '../types'
+import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction, TransferParams } from '../types'
 
 /** 小程序信息（用于在 Sheet 中显示） */
 export interface MiniappInfo {
@@ -18,12 +18,21 @@ export interface SigningParams {
   app: MiniappInfo
 }
 
+/** 交易签名参数 */
+export interface SignTransactionParams {
+  from: string
+  chain: string
+  unsignedTx: BioUnsignedTransaction
+  app: MiniappInfo
+}
+
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<string | null>
   showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
 }
 
 /** 回调注册表 */

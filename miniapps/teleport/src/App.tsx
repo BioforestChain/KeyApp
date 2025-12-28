@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { BioAccount } from '@aspect-aspect/bio-sdk'
+import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'

@@ -4,12 +4,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import type { ActivityComponentType } from '@stackflow/react'
+import { AppScreen } from '@stackflow/plugin-basic-ui'
 import { useTranslation } from 'react-i18next'
 import { useFlow } from '../stackflow'
 import { 
   getAppById, 
   initRegistry, 
+  refreshSources,
   addToMyApps,
+  isInMyApps,
   updateLastUsed,
   type MiniappManifest, 
   KNOWN_PERMISSIONS 
@@ -113,41 +116,71 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
   const [descExpanded, setDescExpanded] = useState(false)
+  const [installed, setInstalled] = useState(false)
 
   useEffect(() => {
-    initRegistry().then(() => {
-      const manifest = getAppById(params.appId)
+    let disposed = false
+
+    const load = async () => {
+      setLoading(true)
+
+      await initRegistry()
+      let manifest = getAppById(params.appId)
+
+      // If opened via deep-link, cache may be empty. Refresh once to ensure we can resolve the app.
+      if (!manifest) {
+        await refreshSources({ force: false })
+        manifest = getAppById(params.appId)
+      }
+
+      if (disposed) return
       setApp(manifest ?? null)
+      setInstalled(isInMyApps(params.appId))
       setLoading(false)
-    })
+    }
+
+    void load()
+
+    return () => {
+      disposed = true
+    }
   }, [params.appId])
+
+  const handleInstall = useCallback(() => {
+    if (!app) return
+    addToMyApps(app.id)
+    setInstalled(true)
+  }, [app])
 
   const handleOpen = useCallback(() => {
     if (!app) return
-    addToMyApps(app.id)
     updateLastUsed(app.id)
     push('MiniappActivity', { appId: app.id })
   }, [app, push])
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <LoadingSpinner size="lg" />
-      </div>
+      <AppScreen>
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AppScreen>
     )
   }
 
   if (!app) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
-        <p className="text-muted-foreground">应用不存在</p>
-        <button
-          onClick={() => pop()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium"
-        >
-          返回
-        </button>
-      </div>
+      <AppScreen>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
+          <p className="text-muted-foreground">应用不存在</p>
+          <button
+            onClick={() => pop()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium"
+          >
+            返回
+          </button>
+        </div>
+      </AppScreen>
     )
   }
 
@@ -158,8 +191,9 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
     : description.slice(0, 150) + '...'
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Header - 透明背景滚动效果 */}
+    <AppScreen>
+      <div className="flex min-h-screen flex-col bg-background">
+        {/* Header - 透明背景滚动效果 */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between px-4 py-3">
           <button
@@ -195,13 +229,22 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
                 {app.author ?? '未知开发者'}
               </p>
               
-              {/* 打开按钮 */}
-              <button
-                onClick={handleOpen}
-                className="mt-4 px-8 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold"
-              >
-                打开
-              </button>
+              {/* 获取/打开按钮 */}
+              {installed ? (
+                <button
+                  onClick={handleOpen}
+                  className="mt-4 px-8 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold"
+                >
+                  打开
+                </button>
+              ) : (
+                <button
+                  onClick={handleInstall}
+                  className="mt-4 px-8 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold"
+                >
+                  获取
+                </button>
+              )}
             </div>
           </div>
           
@@ -359,5 +402,6 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
         <div className="h-8" />
       </div>
     </div>
+    </AppScreen>
   )
 }

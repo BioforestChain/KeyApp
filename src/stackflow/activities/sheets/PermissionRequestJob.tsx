@@ -11,6 +11,7 @@ import {
   IconWallet,
   IconSignature,
   IconCurrencyDollar,
+  IconFileText,
   IconShieldCheck,
   IconApps,
 } from '@tabler/icons-react'
@@ -32,6 +33,11 @@ const PERMISSION_INFO: Record<string, { icon: typeof IconWallet; label: string; 
     label: '查看账户',
     description: '查看您的钱包地址',
   },
+  bio_createTransaction: {
+    icon: IconFileText,
+    label: '创建交易',
+    description: '构造未签名交易（不做签名/不做广播）',
+  },
   bio_signMessage: {
     icon: IconSignature,
     label: '签名消息',
@@ -41,6 +47,11 @@ const PERMISSION_INFO: Record<string, { icon: typeof IconWallet; label: string; 
     icon: IconSignature,
     label: '签名数据',
     description: '请求签名结构化数据（需要您确认）',
+  },
+  bio_signTransaction: {
+    icon: IconSignature,
+    label: '签名交易',
+    description: '请求签名交易（需要您确认）',
   },
   bio_sendTransaction: {
     icon: IconCurrencyDollar,
