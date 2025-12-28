@@ -16,6 +16,7 @@ import {
   IconLink as Link,
   IconInfoCircle as Info,
   IconDatabase as Database,
+  IconWorld,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
@@ -263,6 +264,12 @@ export function SettingsPage() {
             icon={<Network size={20} />}
             label={t('settings:items.chainConfig')}
             onClick={() => navigate({ to: '/settings/chains' })}
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<IconWorld size={20} />}
+            label="小程序可信源"
+            onClick={() => navigate({ to: '/settings/sources' })}
           />
         </SettingsSection>
 

@@ -20,3 +20,4 @@ export { ClearDataConfirmJob } from "./ClearDataConfirmJob";
 export { AccountPickerJob } from "./AccountPickerJob";
 export { SigningConfirmJob } from "./SigningConfirmJob";
 export { PermissionRequestJob } from "./PermissionRequestJob";
+export { MiniappTransferConfirmJob } from "./MiniappTransferConfirmJob";

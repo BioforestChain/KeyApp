@@ -123,13 +123,33 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     [push]
   )
 
-  // 转账对话框 (暂时返回 null)
+  // 转账对话框
   const showTransferDialog = useCallback(
-    (_params: TransferParams & { appName: string }): Promise<{ txHash: string } | null> => {
-      console.log('[MiniappPage] Transfer requested:', _params)
-      return Promise.resolve(null)
+    (params: TransferParams & { appName: string }): Promise<{ txHash: string } | null> => {
+      return new Promise((resolve) => {
+        const handleResult = (e: Event) => {
+          const detail = (e as CustomEvent).detail
+          window.removeEventListener('miniapp-transfer-confirm', handleResult)
+          if (detail.confirmed) {
+            resolve({ txHash: detail.txHash })
+          } else {
+            resolve(null)
+          }
+        }
+
+        window.addEventListener('miniapp-transfer-confirm', handleResult)
+
+        push('MiniappTransferConfirmJob', {
+          appName: params.appName,
+          from: params.from,
+          to: params.to,
+          amount: params.amount,
+          chain: params.chain,
+          ...(params.asset ? { asset: params.asset } : {}),
+        })
+      })
     },
-    []
+    [push]
   )
 
   // 权限请求对话框

@@ -29,8 +29,9 @@ import { StakingActivity } from "./activities/StakingActivity";
 import { WelcomeActivity } from "./activities/WelcomeActivity";
 import { SettingsWalletChainsActivity } from "./activities/SettingsWalletChainsActivity";
 import { SettingsStorageActivity } from "./activities/SettingsStorageActivity";
+import { SettingsSourcesActivity } from "./activities/SettingsSourcesActivity";
 import { MiniappActivity } from "./activities/MiniappActivity";
-import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob, AccountPickerJob, SigningConfirmJob, PermissionRequestJob } from "./activities/sheets";
+import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob, AccountPickerJob, SigningConfirmJob, PermissionRequestJob, MiniappTransferConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
   transitionDuration: 350,
@@ -66,6 +67,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         NotificationsActivity: "/notifications",
         StakingActivity: "/staking",
         WelcomeActivity: "/welcome",
+        SettingsSourcesActivity: "/settings/sources",
         MiniappActivity: "/miniapp/:appId",
         ChainSelectorJob: "/job/chain-selector",
         WalletRenameJob: "/job/wallet-rename/:walletId",
@@ -89,6 +91,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         AccountPickerJob: "/job/account-picker",
         SigningConfirmJob: "/job/signing-confirm",
         PermissionRequestJob: "/job/permission-request",
+        MiniappTransferConfirmJob: "/job/miniapp-transfer-confirm",
       },
       fallbackActivity: () => "MainTabsActivity",
       useHash: true,
@@ -120,6 +123,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     NotificationsActivity,
     StakingActivity,
     WelcomeActivity,
+    SettingsSourcesActivity,
     MiniappActivity,
     ChainSelectorJob,
     WalletRenameJob,
@@ -143,6 +147,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     AccountPickerJob,
     SigningConfirmJob,
     PermissionRequestJob,
+    MiniappTransferConfirmJob,
   },
   // Note: Don't set initialActivity when using historySyncPlugin
   // The plugin will determine the initial activity based on the URL
