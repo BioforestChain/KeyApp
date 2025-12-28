@@ -13,7 +13,7 @@ export default defineConfig({
   base: '/miniapps/forge/',
   build: {
     outDir: resolve(__dirname, '../../public/miniapps/forge'),
-    emptyOutDir: true,
+    emptyOutDir: false,  // 保留 icon.svg 和 screenshots
   },
   server: {
     port: 5181,
