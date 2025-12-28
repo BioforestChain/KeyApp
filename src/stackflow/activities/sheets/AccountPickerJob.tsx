@@ -9,7 +9,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
-import { IconWallet, IconCheck } from '@tabler/icons-react'
+import { IconWallet, IconCheck, IconApps } from '@tabler/icons-react'
 import { walletStore, walletSelectors, type Wallet, type ChainAddress } from '@/stores'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
@@ -20,6 +20,8 @@ type AccountPickerJobParams = {
   chain?: string
   /** 请求来源小程序名称 */
   appName?: string
+  /** 请求来源小程序图标 */
+  appIcon?: string
 }
 
 interface WalletWithChainAddress {
@@ -31,7 +33,7 @@ interface WalletWithChainAddress {
 function AccountPickerJobContent() {
   const { t } = useTranslation('common')
   const { pop } = useFlow()
-  const { chain, appName } = useActivityParams<AccountPickerJobParams>()
+  const { chain, appName, appIcon } = useActivityParams<AccountPickerJobParams>()
 
   const walletState = useStore(walletStore)
   const currentWallet = walletSelectors.getCurrentWallet(walletState)
@@ -78,14 +80,21 @@ function AccountPickerJobContent() {
 
         {/* Title */}
         <div className="border-border border-b px-4 pb-4">
+          {(appName || appIcon) && (
+            <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
+              {appIcon ? (
+                <img src={appIcon} alt={appName} className="size-full object-cover" />
+              ) : (
+                <IconApps className="size-8 text-primary" />
+              )}
+            </div>
+          )}
           <h2 className="text-center text-lg font-semibold">
             {t('selectAccount', '选择账户')}
           </h2>
-          {appName && (
-            <p className="text-muted-foreground mt-1 text-center text-sm">
-              {appName} {t('requestsAccess', '请求访问')}
-            </p>
-          )}
+          <p className="text-muted-foreground mt-1 text-center text-sm">
+            {appName || t('unknownDApp', '未知 DApp')} {t('requestsAccess', '请求访问')}
+          </p>
         </div>
 
         {/* Wallet List */}

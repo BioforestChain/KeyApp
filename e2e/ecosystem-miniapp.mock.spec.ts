@@ -146,7 +146,8 @@ test.describe('签名确认截图测试', () => {
     const params = new URLSearchParams({
       message: 'Hello, Bio!',
       address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
-      appName: '测试小程序',
+      appName: '一键传送',
+      appIcon: '/miniapps/teleport/icon.svg',
     })
     // 正确的路由格式
     await page.goto(`/#/job/signing-confirm?${params}`)
@@ -182,6 +183,7 @@ test.describe('转账确认截图测试', () => {
   test('转账确认对话框', async ({ page }) => {
     const params = new URLSearchParams({
       appName: '一键传送',
+      appIcon: '/miniapps/teleport/icon.svg',
       from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
       amount: '10',

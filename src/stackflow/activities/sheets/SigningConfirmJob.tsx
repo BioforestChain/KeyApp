@@ -8,7 +8,7 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconSignature, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
+import { IconAlertTriangle, IconLoader2, IconApps } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
@@ -23,6 +23,8 @@ type SigningConfirmJobParams = {
   address: string
   /** 请求来源小程序名称 */
   appName?: string
+  /** 请求来源小程序图标 */
+  appIcon?: string
   /** 链名称（用于签名） */
   chainName?: string
 }
@@ -30,7 +32,7 @@ type SigningConfirmJobParams = {
 function SigningConfirmJobContent() {
   const { t } = useTranslation('common')
   const { pop, push } = useFlow()
-  const { message, address, appName, chainName } = useActivityParams<SigningConfirmJobParams>()
+  const { message, address, appName, appIcon, chainName } = useActivityParams<SigningConfirmJobParams>()
   const currentWallet = useCurrentWallet()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -106,17 +108,19 @@ function SigningConfirmJobContent() {
 
         {/* Header */}
         <div className="border-border border-b px-4 pb-4">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-amber-100">
-            <IconSignature className="size-6 text-amber-600" />
+          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
+            {appIcon ? (
+              <img src={appIcon} alt={appName} className="size-full object-cover" />
+            ) : (
+              <IconApps className="size-8 text-primary" />
+            )}
           </div>
           <h2 className="text-center text-lg font-semibold">
             {t('signMessage', '签名请求')}
           </h2>
-          {appName && (
-            <p className="text-muted-foreground mt-1 text-center text-sm">
-              {appName}
-            </p>
-          )}
+          <p className="text-muted-foreground mt-1 text-center text-sm">
+            {appName || t('unknownDApp', '未知 DApp')}
+          </p>
         </div>
 
         {/* Content */}

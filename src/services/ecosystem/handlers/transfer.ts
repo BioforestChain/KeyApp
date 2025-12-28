@@ -4,10 +4,10 @@
 
 import type { MethodHandler, TransferParams } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext } from './context'
+import { HandlerContext, type MiniappInfo } from './context'
 
 // 兼容旧 API
-let _showTransferDialog: ((params: TransferParams & { appName: string }) => Promise<{ txHash: string } | null>) | null = null
+let _showTransferDialog: ((params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setTransferDialog(dialog: typeof _showTransferDialog): void {
@@ -35,12 +35,12 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Transfer dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const transferParams: TransferParams & { appName: string } = {
+  const transferParams: TransferParams & { app: MiniappInfo } = {
     from: opts.from,
     to: opts.to,
     amount: opts.amount,
     chain: opts.chain,
-    appName: context.appId,
+    app: { name: context.appId },
   }
   if (opts.asset) {
     transferParams.asset = opts.asset

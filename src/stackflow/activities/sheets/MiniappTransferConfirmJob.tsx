@@ -8,7 +8,7 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconArrowDown, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
+import { IconArrowDown, IconAlertTriangle, IconLoader2, IconApps } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
@@ -20,6 +20,8 @@ import { AmountDisplay } from '@/components/common/amount-display'
 type MiniappTransferConfirmJobParams = {
   /** 来源小程序名称 */
   appName: string
+  /** 来源小程序图标 */
+  appIcon?: string
   /** 发送地址 */
   from: string
   /** 接收地址 */
@@ -36,7 +38,7 @@ function MiniappTransferConfirmJobContent() {
   const { t } = useTranslation('common')
   const { pop, push } = useFlow()
   const params = useActivityParams<MiniappTransferConfirmJobParams>()
-  const { appName, from, to, amount, chain, asset } = params
+  const { appName, appIcon, from, to, amount, chain, asset } = params
   const currentWallet = useCurrentWallet()
 
   const [isConfirming, setIsConfirming] = useState(false)
@@ -131,11 +133,18 @@ function MiniappTransferConfirmJobContent() {
 
         {/* Header */}
         <div className="border-border border-b px-4 pb-4">
+          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
+            {appIcon ? (
+              <img src={appIcon} alt={appName} className="size-full object-cover" />
+            ) : (
+              <IconApps className="size-8 text-primary" />
+            )}
+          </div>
           <h2 className="text-center text-lg font-semibold">
             {t('confirmTransfer', '确认转账')}
           </h2>
           <p className="text-muted-foreground mt-1 text-center text-sm">
-            {appName} {t('requestsTransfer', '请求发送转账')}
+            {appName || t('unknownDApp', '未知 DApp')} {t('requestsTransfer', '请求发送转账')}
           </p>
         </div>
 

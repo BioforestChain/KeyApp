@@ -4,14 +4,10 @@
 
 import type { MethodHandler } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext } from './context'
+import { HandlerContext, type SigningParams } from './context'
 
 // 兼容旧 API
-let _showSigningDialog: ((params: {
-  message: string
-  address: string
-  appName: string
-}) => Promise<string | null>) | null = null
+let _showSigningDialog: ((params: SigningParams) => Promise<string | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setSigningDialog(dialog: typeof _showSigningDialog): void {
@@ -39,7 +35,7 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
   const signature = await showSigningDialog({
     message: opts.message,
     address: opts.address,
-    appName: context.appId,
+    app: { name: context.appId },
   })
 
   if (!signature) {
@@ -67,7 +63,7 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
   const signature = await showSigningDialog({
     message,
     address: opts.address,
-    appName: context.appId,
+    app: { name: context.appId },
   })
 
   if (!signature) {

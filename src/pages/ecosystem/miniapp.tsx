@@ -69,10 +69,11 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         const params: Record<string, string> = {}
         if (opts?.chain) params.chain = opts.chain
         if (app?.name) params.appName = app.name
+        if (app?.icon) params.appIcon = app.icon
         push('AccountPickerJob', params)
       })
     },
-    [push, app?.name]
+    [push, app?.name, app?.icon]
   )
 
   // 获取已连接账户
@@ -90,7 +91,7 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
   // 签名对话框 - 集成真实签名服务
   const showSigningDialog = useCallback(
-    (params: { message: string; address: string; appName: string }): Promise<string | null> => {
+    (params: { message: string; address: string; app: { name: string; icon?: string } }): Promise<string | null> => {
       return new Promise((resolve) => {
         const handleConfirm = (e: Event) => {
           const detail = (e as CustomEvent).detail
@@ -121,17 +122,18 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         push('SigningConfirmJob', {
           message: params.message,
           address: params.address,
-          appName: params.appName,
+          appName: params.app.name,
+          appIcon: params.app.icon ?? app?.icon ?? '',
           chainName,
         })
       })
     },
-    [push]
+    [push, app?.icon]
   )
 
   // 转账对话框
   const showTransferDialog = useCallback(
-    (params: TransferParams & { appName: string }): Promise<{ txHash: string } | null> => {
+    (params: TransferParams & { app: { name: string; icon?: string } }): Promise<{ txHash: string } | null> => {
       return new Promise((resolve) => {
         const handleResult = (e: Event) => {
           const detail = (e as CustomEvent).detail
@@ -146,7 +148,8 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         window.addEventListener('miniapp-transfer-confirm', handleResult)
 
         push('MiniappTransferConfirmJob', {
-          appName: params.appName,
+          appName: params.app.name,
+          appIcon: params.app.icon ?? app?.icon ?? '',
           from: params.from,
           to: params.to,
           amount: params.amount,
@@ -155,7 +158,7 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         })
       })
     },
-    [push]
+    [push, app?.icon]
   )
 
   // 权限请求对话框
@@ -172,11 +175,12 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
         push('PermissionRequestJob', {
           appName,
+          appIcon: app?.icon ?? '',
           permissions: JSON.stringify(permissions),
         })
       })
     },
-    [push]
+    [push, app?.icon]
   )
 
   // 注册回调

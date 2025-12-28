@@ -5,20 +5,26 @@
 
 import type { BioAccount, TransferParams } from '../types'
 
+/** 小程序信息（用于在 Sheet 中显示） */
+export interface MiniappInfo {
+  name: string
+  icon?: string
+}
+
 /** 签名参数 */
 export interface SigningParams {
   message: string
   address: string
-  appName: string
+  app: MiniappInfo
 }
 
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
-  showAccountPicker: (opts?: { chain?: string }) => Promise<BioAccount | null>
-  showWalletPicker: (opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>
+  showAccountPicker: (opts?: { chain?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
+  showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<string | null>
-  showTransferDialog: (params: TransferParams & { appName: string }) => Promise<{ txHash: string } | null>
+  showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
 }
 
 /** 回调注册表 */
