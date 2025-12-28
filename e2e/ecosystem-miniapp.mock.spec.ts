@@ -1,14 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { UI_TEXT, TEST_IDS, byTestId } from './helpers/i18n'
 
 /**
- * Bio 小程序生态 E2E 测试
+ * Bio 小程序生态 E2E 截图测试
  *
- * 测试用户故事：
- * 1. 用户打开生态 Tab 查看小程序列表
- * 2. 用户点击小程序进入
- * 3. 小程序请求连接钱包
- * 4. 小程序请求签名
+ * 测试用户故事并生成截图验证 UI 正确性
  */
 
 const TEST_WALLET_DATA = {
@@ -35,7 +30,6 @@ const TEST_WALLET_DATA = {
           ],
         },
       ],
-      // 使用测试用的加密助记词 (密码: 01230123)
       encryptedMnemonic: {
         ciphertext: 'bWVzc2FnZSB0ZXN0',
         iv: 'aXYtdGVzdA==',
@@ -54,11 +48,10 @@ const TEST_WALLET_DATA = {
   isInitialized: true,
 }
 
-// 订阅源数据
 const TEST_ECOSYSTEM_DATA = {
   sources: [
     {
-      url: 'http://localhost:5173/ecosystem.json',
+      url: 'https://localhost:5174/ecosystem.json',
       name: '本地测试源',
       enabled: true,
       lastUpdated: Date.now(),
@@ -75,153 +68,91 @@ async function injectTestData(page: import('@playwright/test').Page) {
   }, { wallet: TEST_WALLET_DATA, ecosystem: TEST_ECOSYSTEM_DATA })
 }
 
-test.describe('生态 Tab 基础功能', () => {
+test.describe('生态 Tab 截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)
   })
 
-  test('应该能看到生态 Tab', async ({ page }) => {
+  test('首页 - 生态 Tab 可见', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
-
-    // 等待 TabBar 加载
-    await page.waitForTimeout(500)
-
-    // 查找生态 Tab
-    const ecosystemTab = page.locator('[role="tablist"] button').filter({ hasText: /生态|Ecosystem/i })
-    await expect(ecosystemTab).toBeVisible()
+    await page.waitForTimeout(800)
+    
+    await expect(page).toHaveScreenshot('01-home-with-ecosystem-tab.png')
   })
 
-  test('点击生态 Tab 应该显示小程序列表', async ({ page }) => {
+  test('生态页面 - 小程序列表', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
-    // 点击生态 Tab
-    const ecosystemTab = page.locator('[role="tablist"] button').filter({ hasText: /生态|Ecosystem/i })
+    // 点击生态 Tab (底部导航栏中间的按钮)
+    const ecosystemTab = page.locator('text=/生态/i').first()
     await ecosystemTab.click()
-    await page.waitForTimeout(300)
-
-    // 应该显示生态页面内容
-    const ecosystemContent = page.locator('text=/小程序|MiniApps|暂无小程序|No apps/i')
-    await expect(ecosystemContent).toBeVisible()
-  })
-})
-
-test.describe('小程序加载与交互', () => {
-  test.skip('应该能打开小程序', async ({ page }) => {
-    // TODO: 需要 mock 小程序服务器
-    await injectTestData(page)
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // 点击生态 Tab
-    const ecosystemTab = page.locator('[role="tablist"] button').filter({ hasText: /生态|Ecosystem/i })
-    await ecosystemTab.click()
-    await page.waitForTimeout(300)
-
-    // 点击第一个小程序
-    const firstApp = page.locator('[data-testid="miniapp-card"]').first()
-    if (await firstApp.isVisible()) {
-      await firstApp.click()
-      await page.waitForTimeout(500)
-
-      // 应该显示小程序容器
-      const miniappContainer = page.locator('iframe')
-      await expect(miniappContainer).toBeVisible()
-    }
-  })
-})
-
-test.describe('账户选择器', () => {
-  test.beforeEach(async ({ page }) => {
-    await injectTestData(page)
-  })
-
-  test('AccountPickerJob 应该显示钱包账户', async ({ page }) => {
-    // 直接导航到 AccountPickerJob
-    await page.goto('/#/sheets/AccountPickerJob')
-    await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
-    // 应该显示账户选择器
-    const picker = page.locator('text=/选择.*账户|Select.*Account/i')
-    await expect(picker).toBeVisible()
-
-    // 应该显示钱包地址
-    const address = page.locator('text=/c7R6|0x71C7/i')
-    await expect(address).toBeVisible()
+    await expect(page).toHaveScreenshot('02-ecosystem-tab-content.png')
   })
 })
 
-test.describe('签名确认', () => {
+test.describe('账户选择器截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)
   })
 
-  test('SigningConfirmJob 应该显示签名信息', async ({ page }) => {
-    // 直接导航到 SigningConfirmJob
+  test('账户选择器页面', async ({ page }) => {
+    // 正确的路由格式
+    await page.goto('/#/job/account-picker')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('03-account-picker.png')
+  })
+})
+
+test.describe('签名确认截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('签名确认对话框', async ({ page }) => {
     const params = new URLSearchParams({
       message: 'Hello, Bio!',
       address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       appName: '测试小程序',
     })
-    await page.goto(`/#/sheets/SigningConfirmJob?${params}`)
+    // 正确的路由格式
+    await page.goto(`/#/job/signing-confirm?${params}`)
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(800)
 
-    // 应该显示签名请求标题
-    const title = page.locator('text=/签名.*请求|Sign.*Request/i')
-    await expect(title).toBeVisible()
-
-    // 应该显示消息内容
-    const message = page.locator('text=Hello, Bio!')
-    await expect(message).toBeVisible()
-
-    // 应该显示地址
-    const address = page.locator('text=/c7R6/i')
-    await expect(address).toBeVisible()
-
-    // 应该有签名和取消按钮
-    const signButton = page.locator('button').filter({ hasText: /签名|Sign/i })
-    const cancelButton = page.locator('button').filter({ hasText: /取消|Cancel/i })
-    await expect(signButton).toBeVisible()
-    await expect(cancelButton).toBeVisible()
+    await expect(page).toHaveScreenshot('04-signing-confirm.png')
   })
 
-  test('点击签名应该弹出钱包锁', async ({ page }) => {
+  test('点击签名后的钱包锁', async ({ page }) => {
     const params = new URLSearchParams({
       message: 'Test signing',
       address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       appName: '测试',
     })
-    await page.goto(`/#/sheets/SigningConfirmJob?${params}`)
+    await page.goto(`/#/job/signing-confirm?${params}`)
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
-    // 点击签名按钮
     const signButton = page.locator('button').filter({ hasText: /签名|Sign/i })
     await signButton.click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(800)
 
-    // 应该显示钱包锁输入
-    const patternLock = page.locator('[data-testid="pattern-lock-grid"], .pattern-lock')
-    // 如果没有钱包锁，可能直接显示完成（测试钱包没有设置锁）
-    const hasPatternLock = await patternLock.isVisible().catch(() => false)
-    
-    if (!hasPatternLock) {
-      // 没有钱包锁时，应该直接完成
-      console.log('No wallet lock configured, signing should complete directly')
-    }
+    await expect(page).toHaveScreenshot('05-signing-wallet-lock.png')
   })
 })
 
-test.describe('转账确认', () => {
+test.describe('转账确认截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)
   })
 
-  test('MiniappTransferConfirmJob 应该显示转账信息', async ({ page }) => {
+  test('转账确认对话框', async ({ page }) => {
     const params = new URLSearchParams({
       appName: '一键传送',
       from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
@@ -229,48 +160,163 @@ test.describe('转账确认', () => {
       amount: '10',
       chain: 'bfmeta',
     })
-    await page.goto(`/#/sheets/MiniappTransferConfirmJob?${params}`)
+    // 正确的路由格式
+    await page.goto(`/#/job/miniapp-transfer-confirm?${params}`)
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(800)
 
-    // 应该显示确认转账标题
-    const title = page.locator('text=/确认.*转账|Confirm.*Transfer/i')
-    await expect(title).toBeVisible()
-
-    // 应该显示金额
-    const amount = page.locator('text=10')
-    await expect(amount).toBeVisible()
-
-    // 应该显示发送和接收地址
-    const fromAddr = page.locator('text=/c7R6/i')
-    const toAddr = page.locator('text=/c8X7/i')
-    await expect(fromAddr).toBeVisible()
-    await expect(toAddr).toBeVisible()
-
-    // 应该有确认和取消按钮
-    const confirmButton = page.locator('button').filter({ hasText: /确认|Confirm/i })
-    const cancelButton = page.locator('button').filter({ hasText: /取消|Cancel/i })
-    await expect(confirmButton).toBeVisible()
-    await expect(cancelButton).toBeVisible()
+    await expect(page).toHaveScreenshot('06-transfer-confirm.png')
   })
 })
 
-test.describe('可信源管理', () => {
+test.describe('可信源管理截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)
   })
 
-  test('SettingsSourcesActivity 应该显示源列表', async ({ page }) => {
+  test('可信源管理页面', async ({ page }) => {
     await page.goto('/#/settings/sources')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(800)
 
-    // 应该显示可信源管理标题
-    const title = page.locator('text=/可信源|Trusted Sources/i')
-    await expect(title).toBeVisible()
+    await expect(page).toHaveScreenshot('07-trusted-sources.png')
+  })
+})
 
-    // 应该显示添加按钮
-    const addButton = page.locator('button').filter({ hasText: /添加|Add/i })
-    await expect(addButton).toBeVisible()
+// 多钱包数据
+const MULTI_WALLET_DATA = {
+  wallets: [
+    {
+      id: 'wallet-1',
+      name: '主钱包',
+      keyType: 'mnemonic',
+      address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      chain: 'bfmeta',
+      chainAddresses: [
+        { chain: 'bfmeta', address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3', tokens: [] },
+        { chain: 'ethereum', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', tokens: [] },
+      ],
+      encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test', iterations: 100000 },
+      createdAt: 1700000000000,
+      themeHue: 200,
+      tokens: [],
+    },
+    {
+      id: 'wallet-2',
+      name: '储蓄钱包',
+      keyType: 'mnemonic',
+      address: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
+      chain: 'bfmeta',
+      chainAddresses: [
+        { chain: 'bfmeta', address: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4', tokens: [] },
+      ],
+      encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test', iterations: 100000 },
+      createdAt: 1700000001000,
+      themeHue: 120,
+      tokens: [],
+    },
+    {
+      id: 'wallet-3',
+      name: 'ETH 钱包',
+      keyType: 'mnemonic',
+      address: '0xabcdef1234567890abcdef1234567890abcdef12',
+      chain: 'ethereum',
+      chainAddresses: [
+        { chain: 'ethereum', address: '0xabcdef1234567890abcdef1234567890abcdef12', tokens: [] },
+      ],
+      encryptedMnemonic: { ciphertext: 'test', iv: 'test', salt: 'test', iterations: 100000 },
+      createdAt: 1700000002000,
+      themeHue: 280,
+      tokens: [],
+    },
+  ],
+  currentWalletId: 'wallet-1',
+  selectedChain: 'bfmeta',
+  chainPreferences: {},
+  isLoading: false,
+  isInitialized: true,
+}
+
+test.describe('多钱包场景截图测试', () => {
+  test('多钱包账户选择器', async ({ page }) => {
+    await page.addInitScript((data) => {
+      localStorage.clear()
+      localStorage.setItem('bfm_wallets', JSON.stringify(data))
+    }, MULTI_WALLET_DATA)
+
+    await page.goto('/#/job/account-picker')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('08-multi-wallet-picker.png')
+  })
+
+  test('按链过滤账户选择器', async ({ page }) => {
+    await page.addInitScript((data) => {
+      localStorage.clear()
+      localStorage.setItem('bfm_wallets', JSON.stringify(data))
+    }, MULTI_WALLET_DATA)
+
+    await page.goto('/#/job/account-picker?chain=ethereum')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('09-ethereum-only-picker.png')
+  })
+})
+
+test.describe('签名消息变体截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('长消息签名', async ({ page }) => {
+    const longMessage = 'This is a very long message that needs to be signed. It contains important information about the transaction.'
+    const params = new URLSearchParams({
+      message: longMessage,
+      address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      appName: 'DeFi Protocol',
+    })
+    await page.goto(`/#/job/signing-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('10-long-message-signing.png')
+  })
+})
+
+test.describe('转账金额变体截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('大额转账', async ({ page }) => {
+    const params = new URLSearchParams({
+      appName: '交易所提现',
+      from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
+      amount: '999999.12345678',
+      chain: 'bfmeta',
+    })
+    await page.goto(`/#/job/miniapp-transfer-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('11-large-amount-transfer.png')
+  })
+
+  test('小数转账', async ({ page }) => {
+    const params = new URLSearchParams({
+      appName: 'Micropayment',
+      from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
+      amount: '0.00000001',
+      chain: 'bfmeta',
+    })
+    await page.goto(`/#/job/miniapp-transfer-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('12-small-amount-transfer.png')
   })
 })

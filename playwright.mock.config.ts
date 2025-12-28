@@ -18,13 +18,15 @@ export default defineConfig({
   
   use: {
     ...baseConfig.use,
-    baseURL: 'http://localhost:5174',
+    baseURL: 'https://localhost:5174',
+    ignoreHTTPSErrors: true,
   },
 
   // 使用 Mock 服务（端口 5174）
   webServer: {
     command: 'pnpm dev:mock',
-    url: 'http://localhost:5174',
+    url: 'https://localhost:5174',
+    ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

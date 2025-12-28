@@ -94,24 +94,27 @@ function AccountPickerJobContent() {
 
         {/* Wallet List */}
         <div className="max-h-[50vh] overflow-y-auto">
-          {walletsWithAddresses.length === 0 ? (
+          {walletsWithAddresses.filter(w => w.isAvailable).length === 0 ? (
             <div className="text-muted-foreground py-12 text-center text-sm">
-              {t('noWallets', '暂无钱包')}
+              {chain 
+                ? t('noWalletsForChain', '暂无支持 {{chain}} 的钱包', { chain })
+                : t('noWallets', '暂无钱包')}
             </div>
           ) : (
             <div className="divide-border divide-y">
-              {walletsWithAddresses.map(({ wallet, chainAddress, isAvailable }) => {
+              {walletsWithAddresses
+                .filter(({ isAvailable }) => isAvailable)
+                .map(({ wallet, chainAddress }) => {
                 const isCurrent = wallet.id === currentWallet?.id
-                const displayAddress = chainAddress?.address ?? wallet.address
+                const displayAddress = chainAddress!.address
 
                 return (
                   <button
                     key={wallet.id}
-                    onClick={() => isAvailable && chainAddress && handleSelect(wallet, chainAddress)}
-                    disabled={!isAvailable}
+                    onClick={() => chainAddress && handleSelect(wallet, chainAddress)}
                     className={cn(
                       'flex w-full items-center gap-3 px-4 py-3 transition-colors',
-                      isAvailable ? 'hover:bg-muted/50 active:bg-muted' : 'cursor-not-allowed opacity-50'
+                      'hover:bg-muted/50 active:bg-muted'
                     )}
                   >
                     {/* Avatar */}
