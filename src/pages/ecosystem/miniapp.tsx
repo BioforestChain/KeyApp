@@ -42,7 +42,9 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
+  const [splashVisible, setSplashVisible] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const splashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const preferences = usePreferences()
 
   // 构建 context 状态
@@ -261,6 +263,16 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     initBioProvider()
   }, [])
 
+  // 关闭启动屏
+  const closeSplashScreen = useCallback(() => {
+    if (splashTimeoutRef.current) {
+      clearTimeout(splashTimeoutRef.current)
+      splashTimeoutRef.current = null
+    }
+    setSplashVisible(false)
+    setLoading(false)
+  }, [])
+
   const handleIframeLoad = useCallback(() => {
     if (!iframeRef.current || !app) return
 
@@ -269,16 +281,54 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     bridge.setPermissionRequestCallback(requestPermission)
     bridge.attach(iframeRef.current, app.id, app.name, app.permissions ?? [])
 
-    setLoading(false)
+    // 检查是否有启动屏配置
+    if (app.splashScreen) {
+      // 有启动屏配置：显示启动屏，等待 closeSplashScreen 调用或超时
+      setLoading(false)
+      setSplashVisible(true)
+      
+      const timeout = app.splashScreen.timeout ?? 5000
+      splashTimeoutRef.current = setTimeout(() => {
+        console.warn('[MiniappPage] Splash screen timeout, auto-closing')
+        closeSplashScreen()
+      }, timeout)
+    } else {
+      // 无启动屏配置：直接隐藏 loading
+      setLoading(false)
+    }
 
     // Emit connect event
     bridge.emit('connect', { chainId: 'bfmeta' })
-  }, [app, requestPermission])
+  }, [app, requestPermission, closeSplashScreen])
+
+  // 监听 bio_closeSplashScreen 消息
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'bio_request' && event.data?.method === 'bio_closeSplashScreen') {
+        closeSplashScreen()
+        // 发送响应
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'bio_response',
+            id: event.data.id,
+            success: true,
+            result: undefined,
+          }, '*')
+        }
+      }
+    }
+    
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [closeSplashScreen])
 
   useEffect(() => {
     return () => {
-      // Detach bridge on unmount
+      // Cleanup on unmount
       getBridge().detach()
+      if (splashTimeoutRef.current) {
+        clearTimeout(splashTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -328,7 +378,31 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
         <div className="absolute inset-0 top-14 flex items-center justify-center bg-background z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">加载中...</p>
+            <p className="text-sm text-muted-foreground">{t('loading', '加载中...')}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Splash screen overlay */}
+      {splashVisible && app?.splashScreen && (
+        <div 
+          className="absolute inset-0 top-14 flex items-center justify-center z-10"
+          style={{ backgroundColor: app.splashScreen.backgroundColor ?? 'var(--background)' }}
+        >
+          <div className="flex flex-col items-center gap-4">
+            {/* 启动屏图标 */}
+            <div className="size-20 rounded-2xl overflow-hidden shadow-lg">
+              <img 
+                src={app.splashScreen.icon ?? app.icon} 
+                alt={app.name}
+                className="size-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+            </div>
+            {/* 加载指示器 */}
+            <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
         </div>
       )}

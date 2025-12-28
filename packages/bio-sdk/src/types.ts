@@ -81,6 +81,9 @@ export interface BioMethods {
 
   /** Get balance */
   bio_getBalance: (params: { address: string; chain: string }) => Promise<string>
+
+  /** Close splash screen (indicates app is ready) */
+  bio_closeSplashScreen: () => Promise<void>
 }
 
 /**

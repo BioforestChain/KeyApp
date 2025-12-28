@@ -132,6 +132,19 @@ export interface MiniappManifest {
   updatedAt?: string
   /** 是否为测试版 */
   beta?: boolean
+  /**
+   * 启动屏配置
+   * 如果配置了启动屏，小程序需要调用 bio.closeSplashScreen() 来关闭
+   * 如果未配置，则使用 iframe load 事件自动关闭加载状态
+   */
+  splashScreen?: {
+    /** 启动屏背景色 (CSS 颜色值) */
+    backgroundColor?: string
+    /** 启动屏图标 URL (默认使用 app.icon) */
+    icon?: string
+    /** 最大等待时间 (ms)，超时后自动关闭启动屏，默认 5000 */
+    timeout?: number
+  }
   /** 
    * 主题色 - 用于卡片背景等 
    * 格式: CSS 渐变类名 (Tailwind) 或 HEX 颜色
