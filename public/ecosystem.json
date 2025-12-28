@@ -25,9 +25,7 @@
       "updatedAt": "2024-12-28",
       "verified": true,
       "beta": false,
-      "themeColor": "from-violet-500 to-purple-600",
-      "themeColorFrom": "#8b5cf6",
-      "themeColorTo": "#7c3aed"
+      "themeColor": "from-indigo-800 via-purple-900 to-violet-950"
     },
     {
       "id": "forge",
@@ -50,9 +48,7 @@
       "updatedAt": "2024-12-28",
       "verified": true,
       "beta": true,
-      "themeColor": "from-orange-500 to-red-500",
-      "themeColorFrom": "#f97316",
-      "themeColorTo": "#ef4444"
+      "themeColor": "from-red-800 via-orange-900 to-amber-950"
     }
   ]
 }

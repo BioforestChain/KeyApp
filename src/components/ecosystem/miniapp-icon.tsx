@@ -142,9 +142,10 @@ export const MiniappIcon = forwardRef<HTMLDivElement, MiniappIconProps>(
         <div
           className={cn(
             "size-full overflow-hidden",
-            border && "ring-1 ring-black/5 dark:ring-white/10",
+            border && !glass && "ring-1 ring-black/5 dark:ring-white/10",
             shadowClass,
-            glass && "bg-white/20 backdrop-blur-md ring-white/30",
+            // 玻璃态：白色半透明背景 + 粗白边框 + 模糊
+            glass && "bg-white/25 backdrop-blur-md ring-2 ring-white/50 shadow-lg",
             !glass && !showPlaceholder && "bg-muted",
             showPlaceholder && "bg-gradient-to-br from-muted to-muted/60"
           )}
