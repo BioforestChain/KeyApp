@@ -141,15 +141,26 @@ export const MiniappIcon = forwardRef<HTMLDivElement, MiniappIconProps>(
         {/* 主图标容器 */}
         <div
           className={cn(
-            "size-full overflow-hidden",
+            "size-full overflow-hidden relative",
             border && !glass && "ring-1 ring-black/5 dark:ring-white/10",
             shadowClass,
-            // 玻璃态：白色半透明背景 + 粗白边框 + 模糊
-            glass && "bg-white/25 backdrop-blur-md ring-2 ring-white/50 shadow-lg",
+            // 玻璃态：白色半透明背景 + 模糊
+            glass && "bg-white/20 backdrop-blur-md",
             !glass && !showPlaceholder && "bg-muted",
             showPlaceholder && "bg-gradient-to-br from-muted to-muted/60"
           )}
-          style={{ borderRadius: actualRadius }}
+          style={{ 
+            borderRadius: actualRadius,
+            // 玻璃态：光照边框效果
+            ...(glass ? {
+              boxShadow: `
+                inset 0 1px 1px rgba(255,255,255,0.6),
+                inset 0 -1px 1px rgba(0,0,0,0.1),
+                0 0 0 1.5px rgba(255,255,255,0.4),
+                0 4px 12px rgba(0,0,0,0.15)
+              `
+            } : {})
+          }}
         >
           {/* 加载状态 */}
           {loading && (
@@ -173,6 +184,17 @@ export const MiniappIcon = forwardRef<HTMLDivElement, MiniappIconProps>(
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               draggable={false}
+            />
+          )}
+
+          {/* 玻璃态高光覆盖层 */}
+          {glass && (
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                borderRadius: actualRadius,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 40%, transparent 60%)',
+              }}
             />
           )}
 
