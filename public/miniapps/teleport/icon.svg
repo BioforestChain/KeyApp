@@ -16,8 +16,8 @@
       </feMerge>
     </filter>
   </defs>
-  <!-- Background -->
-  <rect x="8" y="8" width="104" height="104" rx="24" fill="url(#bg-grad)"/>
+  <!-- Background - 填满整个 viewBox -->
+  <rect width="120" height="120" fill="url(#bg-grad)"/>
   <!-- Portal ring outer -->
   <ellipse cx="60" cy="60" rx="32" ry="38" fill="none" stroke="url(#ring-grad)" stroke-width="4" opacity="0.6"/>
   <!-- Portal ring inner -->
