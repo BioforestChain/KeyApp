@@ -51,7 +51,7 @@ const TEST_WALLET_DATA = {
 const TEST_ECOSYSTEM_DATA = {
   sources: [
     {
-      url: 'https://localhost:5174/ecosystem.json',
+      url: 'https://localhost:11174/ecosystem.json',
       name: '本地测试源',
       enabled: true,
       lastUpdated: Date.now(),

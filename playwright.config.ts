@@ -9,9 +9,16 @@
  * - pnpm e2e              # 运行 dev 环境测试
  * - pnpm e2e:mock         # 运行 mock 环境测试
  * - pnpm e2e:real         # 运行真实转账测试（需要资金账户）
+ * 
+ * 端口规则: 默认端口 + 6000 避免冲突
+ * - e2e: 11173 (dev)
+ * - e2e:mock: 11174 (mock)
  */
 
 import { defineConfig, devices } from '@playwright/test'
+
+// 使用 11173 端口避免与 vite 默认端口冲突
+const DEV_PORT = 11173
 
 // 绕过本地代理
 process.env.NO_PROXY = 'localhost,127.0.0.1,::1'
@@ -45,7 +52,8 @@ export default defineConfig({
   ],
   
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `https://localhost:${DEV_PORT}`,
+    ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -78,10 +86,11 @@ export default defineConfig({
     },
   ],
 
-  // 使用标准 dev 服务器（端口 5173）
+  // 使用标准 dev 服务器（端口 11173，避免与 vite 默认 517x 冲突）
   webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:5173',
+    command: `pnpm dev --port ${DEV_PORT}`,
+    url: `https://localhost:${DEV_PORT}`,
+    ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
