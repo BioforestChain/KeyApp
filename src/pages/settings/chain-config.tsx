@@ -3,12 +3,12 @@ import { useNavigation } from '@/stackflow';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle as AlertTriangle,
-  IconCheck as Check,
   IconPlus as Plus,
   IconRefresh as RefreshCw,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
@@ -344,33 +344,14 @@ export function ChainConfigPage() {
                         )}
                       </div>
 
-                      <label
-                        className={cn(
-                          'flex cursor-pointer items-start gap-2',
-                          disabledByWarning && 'cursor-not-allowed opacity-60',
-                        )}
-                      >
-                        <div className="relative mt-0.5">
-                          <input
-                            type="checkbox"
-                            checked={config.enabled}
-                            onChange={(e) => {
-                              void chainConfigActions.setChainEnabled(config.id, e.target.checked);
-                            }}
-                            disabled={isLoading || disabledByWarning}
-                            className="peer sr-only"
-                          />
-                          <div
-                            className={cn(
-                              'border-input flex size-5 items-center justify-center rounded border',
-                              'peer-checked:border-primary peer-checked:bg-primary transition-colors',
-                              'peer-focus-visible:ring-ring peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
-                            )}
-                          >
-                            {config.enabled && <Check className="text-primary-foreground size-3.5" />}
-                          </div>
-                        </div>
-                      </label>
+                      <Checkbox
+                        checked={config.enabled}
+                        onCheckedChange={(checked) => {
+                          void chainConfigActions.setChainEnabled(config.id, checked);
+                        }}
+                        disabled={isLoading || disabledByWarning}
+                        className={cn(disabledByWarning && 'cursor-not-allowed opacity-60')}
+                      />
                     </div>
                   </div>
                 </div>

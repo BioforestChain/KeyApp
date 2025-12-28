@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AddressDisplay } from '@/components/wallet/address-display'
-import { ChainIcon } from '@/components/wallet/chain-icon'
 import { deriveBioforestAddresses } from '@/lib/crypto'
 import type { ChainConfig } from '@/services/chain-config'
 import { cn } from '@/lib/utils'
@@ -28,12 +27,6 @@ export function ChainAddressPreview({
   const { t } = useTranslation(['onboarding'])
   const [isLoading, setIsLoading] = useState(false)
   const [addresses, setAddresses] = useState<DerivedAddress[]>([])
-
-  const metaById = useMemo(() => {
-    const map = new Map<string, ChainConfig>()
-    for (const config of enabledBioforestChainConfigs ?? []) map.set(config.id, config)
-    return map
-  }, [enabledBioforestChainConfigs])
 
   useEffect(() => {
     const trimmed = secret.trim()
@@ -65,39 +58,16 @@ export function ChainAddressPreview({
       <div className="h-px bg-border" />
 
       {isLoading ? (
-        <div className="space-y-3 px-4 py-4" data-testid="address-preview-loading">
-          {Array.from({ length: 3 }).map((_, idx) => (
-            <div key={idx} className="flex items-center gap-3 animate-pulse">
-              <div className="size-8 rounded-full bg-muted" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 w-24 rounded bg-muted" />
-                <div className="h-3 w-40 rounded bg-muted" />
-              </div>
-            </div>
-          ))}
+        <div className="px-4 py-3 animate-pulse" data-testid="address-preview-loading">
+          <div className="h-4 w-48 rounded bg-muted" />
+        </div>
+      ) : addresses.length > 0 ? (
+        <div className="px-4 py-3">
+          <AddressDisplay address={addresses[0]!.address} />
         </div>
       ) : (
-        <div className="divide-y divide-border">
-          {addresses.map((item) => {
-            const meta = metaById.get(item.chainId)
-            return (
-              <div key={item.chainId} className="flex items-center gap-3 px-4 py-3">
-                <ChainIcon chain={item.chainId} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{meta?.name ?? item.chainId}</div>
-                  <div className="mt-1">
-                    <AddressDisplay address={item.address} />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-
-          {addresses.length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-              —
-            </div>
-          )}
+        <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+          —
         </div>
       )}
     </div>

@@ -44,7 +44,7 @@ describe('ChainAddressPreview', () => {
     vi.useRealTimers()
   })
 
-  it('renders enabled bioforest chains after derivation', async () => {
+  it('renders single address after derivation (all bioforest chains share same address)', async () => {
     vi.useFakeTimers()
     renderWithProviders(<ChainAddressPreview secret="abc" enabledBioforestChainConfigs={mockConfigs} />)
 
@@ -52,8 +52,11 @@ describe('ChainAddressPreview', () => {
       await vi.advanceTimersByTimeAsync(150)
     })
 
-    expect(screen.getByText('BFMeta')).toBeInTheDocument()
-    expect(screen.getByText('PMChain')).toBeInTheDocument()
+    // Should show single address, not chain names list
+    expect(screen.queryByTestId('address-preview-loading')).not.toBeInTheDocument()
+    // Address container should be present
+    const container = document.querySelector('.px-4.py-3')
+    expect(container).toBeInTheDocument()
     vi.useRealTimers()
   })
 

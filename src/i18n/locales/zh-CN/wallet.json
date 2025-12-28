@@ -48,12 +48,12 @@
     "confirmDelete": "确认删除"
   },
   "detail": {
-    "title": "钱包详情",
+    "title": "钱包设置",
     "editTitle": "编辑钱包",
     "notFound": "钱包不存在",
     "createdAt": "创建于 {{date}}",
     "chainAddresses": "链地址",
-    "editName": "编辑钱包名称",
+    "editName": "编辑钱包",
     "editTheme": "编辑主题色",
     "exportMnemonic": "导出助记词",
     "deleteWallet": "删除钱包",

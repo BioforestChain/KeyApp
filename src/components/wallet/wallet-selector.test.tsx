@@ -4,6 +4,11 @@ import { WalletSelector } from './wallet-selector';
 import type { WalletInfo } from './index';
 import { TestI18nProvider } from '@/test/i18n-mock';
 
+// Mock useMonochromeMask hook
+vi.mock('@/hooks/useMonochromeMask', () => ({
+  useMonochromeMask: () => null,
+}));
+
 const renderWithI18n = (ui: React.ReactElement) => render(<TestI18nProvider>{ui}</TestI18nProvider>);
 
 const mockWallets: WalletInfo[] = [
@@ -14,6 +19,7 @@ const mockWallets: WalletInfo[] = [
     balance: '1.5 ETH',
     fiatValue: '3000',
     isBackedUp: true,
+    themeHue: 323,
   },
   {
     id: 'wallet-2',
@@ -22,6 +28,7 @@ const mockWallets: WalletInfo[] = [
     balance: '0.5 BTC',
     fiatValue: '20000',
     isBackedUp: false,
+    themeHue: 250,
   },
   {
     id: 'wallet-3',
@@ -29,6 +36,7 @@ const mockWallets: WalletInfo[] = [
     address: 'TAbcdefghijklmnopqrstuvwxyz123456',
     balance: '10,000 TRX',
     isBackedUp: true,
+    themeHue: 145,
   },
 ];
 
@@ -95,10 +103,9 @@ describe('WalletSelector', () => {
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
-  it('displays wallet avatar with first letter', () => {
+  it('renders WalletMiniCard for each wallet', () => {
     renderWithI18n(<WalletSelector wallets={mockWallets} />);
-    expect(screen.getByText('M')).toBeInTheDocument(); // Main
-    expect(screen.getByText('S')).toBeInTheDocument(); // Savings
-    expect(screen.getByText('T')).toBeInTheDocument(); // Trading
+    const cards = screen.getAllByRole('img', { name: 'wallet card' });
+    expect(cards).toHaveLength(3);
   });
 });

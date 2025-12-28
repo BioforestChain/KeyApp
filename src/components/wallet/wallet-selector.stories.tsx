@@ -3,6 +3,15 @@ import { useState } from 'react';
 import { WalletSelector } from './wallet-selector';
 import type { WalletInfo } from './index';
 
+// 不同链的图标路径
+const CHAIN_ICONS = {
+  bfmeta: '/icons/bfmeta/chain.svg',
+  ethereum: '/icons/ethereum/chain.svg',
+  bitcoin: '/icons/bitcoin/chain.svg',
+  tron: '/icons/tron/chain.svg',
+  binance: '/icons/binance/chain.svg',
+}
+
 const meta: Meta<typeof WalletSelector> = {
   title: 'Wallet/WalletSelector',
   component: WalletSelector,
@@ -22,26 +31,32 @@ type Story = StoryObj<typeof WalletSelector>;
 const mockWallets: WalletInfo[] = [
   {
     id: 'wallet-1',
-    name: 'Main Wallet',
+    name: 'Ethereum Wallet',
     address: '0x1234567890abcdef1234567890abcdef12345678',
     balance: '1.5 ETH',
     fiatValue: '3000',
     isBackedUp: true,
+    themeHue: 220,
+    chainIconUrl: CHAIN_ICONS.ethereum,
   },
   {
     id: 'wallet-2',
-    name: 'Savings Wallet',
-    address: '0xabcdef1234567890abcdef1234567890abcdef12',
+    name: 'Bitcoin Savings',
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
     balance: '0.5 BTC',
     fiatValue: '20000',
     isBackedUp: false,
+    themeHue: 40,
+    chainIconUrl: CHAIN_ICONS.bitcoin,
   },
   {
     id: 'wallet-3',
-    name: 'Trading Account',
+    name: 'Tron Trading',
     address: 'TAbcdefghijklmnopqrstuvwxyz123456',
     balance: '10,000 TRX',
     isBackedUp: true,
+    themeHue: 0,
+    chainIconUrl: CHAIN_ICONS.tron,
   },
 ];
 

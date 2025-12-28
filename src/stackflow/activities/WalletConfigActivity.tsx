@@ -36,7 +36,7 @@ function WalletConfigContent() {
     );
   }
 
-  const title = mode === 'edit-only' ? t('detail.editTitle') : wallet.name;
+  const title = mode === 'edit-only' ? t('detail.editTitle') : t('detail.title');
 
   return (
     <div className="flex min-h-screen flex-col">

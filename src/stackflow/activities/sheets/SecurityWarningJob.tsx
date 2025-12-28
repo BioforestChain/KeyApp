@@ -4,6 +4,7 @@ import { IconAlertTriangle as AlertTriangle } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useFlow } from "../../stackflow";
 
 let onConfirmCallback: (() => void) | null = null;
@@ -50,12 +51,10 @@ export const SecurityWarningJob: ActivityComponentType = () => {
         </div>
 
         {/* Checkbox */}
-        <label className="mt-4 flex cursor-pointer items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            className="mt-1 size-4"
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm">
+          <Checkbox
             checked={acknowledged}
-            onChange={(e) => setAcknowledged(e.target.checked)}
+            onCheckedChange={setAcknowledged}
           />
           <span>{t("onboarding:securityWarning.acknowledge")}</span>
         </label>

@@ -361,25 +361,34 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
         </>
       ) : (
         /* default 模式：功能按钮 */
-        <div className="space-y-3">
-          <Button variant="outline" className="w-full justify-start" onClick={handleStartEdit}>
-            <Edit3 className="mr-3 size-4" />
-            {t('wallet:detail.editName')}
-          </Button>
-
-          <Button variant="outline" className="w-full justify-start" onClick={handleExportMnemonic}>
-            <KeyRound className="mr-3 size-4" />
-            {t('wallet:detail.exportMnemonic')}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="text-destructive hover:bg-destructive/10 w-full justify-start"
-            onClick={handleDelete}
+        <div className="flex justify-center gap-8">
+          <button
+            onClick={handleStartEdit}
+            className="group flex flex-col items-center gap-1.5"
           >
-            <Trash2 className="mr-3 size-4" />
-            {t('wallet:detail.deleteWallet')}
-          </Button>
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
+              <Edit3 className="size-5" />
+            </div>
+            <span className="text-xs font-medium">{t('wallet:detail.editName')}</span>
+          </button>
+          <button
+            onClick={handleExportMnemonic}
+            className="group flex flex-col items-center gap-1.5"
+          >
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
+              <KeyRound className="size-5" />
+            </div>
+            <span className="text-xs font-medium">{t('wallet:detail.exportMnemonic')}</span>
+          </button>
+          <button
+            onClick={handleDelete}
+            className="group flex flex-col items-center gap-1.5"
+          >
+            <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive transition-all active:scale-95 group-hover:bg-destructive/20">
+              <Trash2 className="size-5" />
+            </div>
+            <span className="text-xs font-medium text-destructive">{t('wallet:detail.deleteWallet')}</span>
+          </button>
         </div>
       )}
     </div>

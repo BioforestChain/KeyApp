@@ -547,6 +547,18 @@ export function deriveEncryptionKeyFromMnemonic(mnemonic: string): Uint8Array {
 }
 
 /**
+ * 从任意密钥字符串派生加密密钥（通用方法）
+ * 使用 SHA256 + 特殊盐值，兼容任意字符串（助记词、任意密钥等）
+ * 返回 32 字节的密钥
+ */
+export function deriveEncryptionKeyFromSecret(secret: string): Uint8Array {
+  const encoder = new TextEncoder()
+  // 使用固定盐值前缀确保密钥唯一性
+  const saltedSecret = encoder.encode(`KeyApp:EncryptionKey:${secret}`)
+  return sha256(saltedSecret)
+}
+
+/**
  * 验证地址格式
  */
 export function isValidAddress(address: string, chain: ChainType): boolean {
