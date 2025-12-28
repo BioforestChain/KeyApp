@@ -3,13 +3,17 @@
  * 用于小程序请求用户签名消息
  */
 
+import { useCallback, useState } from 'react'
 import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconSignature, IconAlertTriangle } from '@tabler/icons-react'
+import { IconSignature, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
+import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
+import { useCurrentWallet } from '@/stores'
+import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -18,6 +22,8 @@ type SigningConfirmJobParams = {
   address: string
   /** 请求来源小程序名称 */
   appName?: string
+  /** 链名称（用于签名） */
+  chainName?: string
 }
 
 function truncateAddress(address: string, startChars = 8, endChars = 6): string {
@@ -27,24 +33,69 @@ function truncateAddress(address: string, startChars = 8, endChars = 6): string 
 
 function SigningConfirmJobContent() {
   const { t } = useTranslation('common')
-  const { pop } = useFlow()
-  const { message, address, appName } = useActivityParams<SigningConfirmJobParams>()
+  const { pop, push } = useFlow()
+  const { message, address, appName, chainName } = useActivityParams<SigningConfirmJobParams>()
+  const currentWallet = useCurrentWallet()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleConfirm = () => {
-    const event = new CustomEvent('signing-confirm', {
-      detail: { confirmed: true },
+  const handleConfirm = useCallback(() => {
+    if (isSubmitting) return
+
+    // 设置钱包锁验证回调
+    setWalletLockConfirmCallback(async (password: string) => {
+      setIsSubmitting(true)
+      
+      try {
+        const encryptedSecret = currentWallet?.encryptedMnemonic
+        if (!encryptedSecret) {
+          console.error('[SigningConfirmJob] No encrypted mnemonic found')
+          return false
+        }
+
+        // 创建签名服务 (使用临时 eventId)
+        const eventId = `miniapp_sign_${Date.now()}`
+        const authService = new SignatureAuthService(plaocAdapter, eventId)
+
+        // 执行真实签名
+        const signature = await authService.handleMessageSign(
+          {
+            chainName: chainName || 'bioforest',
+            senderAddress: address,
+            message,
+          },
+          encryptedSecret,
+          password
+        )
+
+        // 发送成功事件
+        const event = new CustomEvent('signing-confirm', {
+          detail: { confirmed: true, signature },
+        })
+        window.dispatchEvent(event)
+        
+        pop()
+        return true
+      } catch (error) {
+        console.error('[SigningConfirmJob] Signing failed:', error)
+        return false
+      } finally {
+        setIsSubmitting(false)
+      }
     })
-    window.dispatchEvent(event)
-    pop()
-  }
 
-  const handleCancel = () => {
+    // 打开钱包锁验证
+    push('WalletLockConfirmJob', {
+      title: t('sign', '签名'),
+    })
+  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t])
+
+  const handleCancel = useCallback(() => {
     const event = new CustomEvent('signing-confirm', {
       detail: { confirmed: false },
     })
     window.dispatchEvent(event)
     pop()
-  }
+  }, [pop])
 
   // Check if message looks like hex data (potential risk)
   const isHexData = message.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(message)
@@ -109,18 +160,28 @@ function SigningConfirmJobContent() {
         <div className="flex gap-3 p-4">
           <button
             onClick={handleCancel}
-            className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors"
+            disabled={isSubmitting}
+            className="bg-muted hover:bg-muted/80 disabled:opacity-50 flex-1 rounded-xl py-3 font-medium transition-colors"
           >
             {t('cancel', '取消')}
           </button>
           <button
             onClick={handleConfirm}
+            disabled={isSubmitting}
             className={cn(
               'flex-1 rounded-xl py-3 font-medium transition-colors',
-              'bg-primary text-primary-foreground hover:bg-primary/90'
+              'bg-primary text-primary-foreground hover:bg-primary/90',
+              'disabled:opacity-50 flex items-center justify-center gap-2'
             )}
           >
-            {t('sign', '签名')}
+            {isSubmitting ? (
+              <>
+                <IconLoader2 className="size-4 animate-spin" />
+                {t('signing', '签名中...')}
+              </>
+            ) : (
+              t('sign', '签名')
+            )}
           </button>
         </div>
 

@@ -3,7 +3,7 @@
  * 用于小程序请求发送转账时显示
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +11,9 @@ import { cn } from '@/lib/utils'
 import { IconArrowRight, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
+import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
+import { useCurrentWallet } from '@/stores'
+import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 
 type MiniappTransferConfirmJobParams = {
   /** 来源小程序名称 */
@@ -34,36 +37,90 @@ function truncateAddress(address: string, startChars = 8, endChars = 6): string 
 
 function MiniappTransferConfirmJobContent() {
   const { t } = useTranslation('common')
-  const { pop } = useFlow()
+  const { pop, push } = useFlow()
   const params = useActivityParams<MiniappTransferConfirmJobParams>()
   const { appName, from, to, amount, chain, asset } = params
+  const currentWallet = useCurrentWallet()
 
   const [isConfirming, setIsConfirming] = useState(false)
 
-  const handleConfirm = async () => {
-    setIsConfirming(true)
-    
-    // TODO: 实际调用转账服务
-    // 模拟延迟
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    const event = new CustomEvent('miniapp-transfer-confirm', {
-      detail: {
-        confirmed: true,
-        txHash: `0x${Array(64).fill('0').join('')}`, // 模拟 txHash
-      },
-    })
-    window.dispatchEvent(event)
-    pop()
-  }
+  const handleConfirm = useCallback(() => {
+    if (isConfirming) return
 
-  const handleCancel = () => {
+    // 设置钱包锁验证回调
+    setWalletLockConfirmCallback(async (password: string) => {
+      setIsConfirming(true)
+      
+      try {
+        const encryptedSecret = currentWallet?.encryptedMnemonic
+        if (!encryptedSecret) {
+          console.error('[MiniappTransferConfirmJob] No encrypted mnemonic found')
+          return false
+        }
+
+        // 创建签名服务
+        const eventId = `miniapp_transfer_${Date.now()}`
+        const authService = new SignatureAuthService(plaocAdapter, eventId)
+
+        // 执行转账签名
+        const transferPayload: {
+          chainName: string
+          senderAddress: string
+          receiveAddress: string
+          balance: string
+          assetType?: string
+        } = {
+          chainName: chain,
+          senderAddress: from,
+          receiveAddress: to,
+          balance: amount,
+        }
+        if (asset) {
+          transferPayload.assetType = asset
+        }
+        
+        const signature = await authService.handleTransferSign(
+          transferPayload,
+          encryptedSecret,
+          password
+        )
+
+        // TODO: 广播交易到链上 (需要调用 chain adapter 的 broadcastTransaction)
+        // 目前先返回签名作为 txHash 的占位符
+        const txHash = signature
+
+        // 发送成功事件
+        const event = new CustomEvent('miniapp-transfer-confirm', {
+          detail: {
+            confirmed: true,
+            txHash,
+          },
+        })
+        window.dispatchEvent(event)
+        
+        pop()
+        return true
+      } catch (error) {
+        console.error('[MiniappTransferConfirmJob] Transfer failed:', error)
+        return false
+      } finally {
+        setIsConfirming(false)
+      }
+    })
+
+    // 打开钱包锁验证
+    push('WalletLockConfirmJob', {
+      title: t('confirmTransfer', '确认转账'),
+    })
+  }, [isConfirming, currentWallet, chain, from, to, amount, asset, pop, push, t])
+
+  const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-transfer-confirm', {
       detail: { confirmed: false },
     })
     window.dispatchEvent(event)
     pop()
-  }
+  }, [pop])
 
   const displayAsset = asset || chain.toUpperCase()
 

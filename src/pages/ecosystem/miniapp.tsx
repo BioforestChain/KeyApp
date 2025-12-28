@@ -88,24 +88,16 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
     }))
   }, [])
 
-  // 签名对话框
-  // TODO: 集成实际签名服务，需要：
-  // 1. 根据 address 找到对应的钱包和链
-  // 2. 解锁钱包获取私钥
-  // 3. 调用 chain-adapter 的 signMessage 方法
-  // 4. 返回实际签名
+  // 签名对话框 - 集成真实签名服务
   const showSigningDialog = useCallback(
     (params: { message: string; address: string; appName: string }): Promise<string | null> => {
       return new Promise((resolve) => {
         const handleConfirm = (e: Event) => {
           const detail = (e as CustomEvent).detail
           window.removeEventListener('signing-confirm', handleConfirm)
-          if (detail.confirmed) {
-            // 暂时返回模拟签名，后续需要集成实际签名服务
-            // 模拟签名格式：0x + 130 个 0
-            const mockSignature = `0x${Array(130).fill('0').join('')}`
-            console.log('[MiniappPage] Signing confirmed, returning mock signature')
-            resolve(mockSignature)
+          if (detail.confirmed && detail.signature) {
+            // 返回真实签名
+            resolve(detail.signature)
           } else {
             resolve(null)
           }
@@ -113,10 +105,24 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
         window.addEventListener('signing-confirm', handleConfirm)
 
+        // 根据 address 找到对应的链
+        const state = walletStore.state
+        const wallet = walletSelectors.getCurrentWallet(state)
+        let chainName = 'bioforest'
+        if (wallet) {
+          const chainAddr = wallet.chainAddresses.find(
+            (ca: ChainAddress) => ca.address.toLowerCase() === params.address.toLowerCase()
+          )
+          if (chainAddr) {
+            chainName = chainAddr.chain
+          }
+        }
+
         push('SigningConfirmJob', {
           message: params.message,
           address: params.address,
           appName: params.appName,
+          chainName,
         })
       })
     },
