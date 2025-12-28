@@ -1,14 +1,28 @@
+/**
+ * KeyApp 主程序全局样式
+ * 
+ * 导入共享主题 + 主程序专属样式
+ */
+
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/figtree';
 
-/* Stackflow Navigation */
+/* 共享主题 - 小程序也可以导入此文件 */
+@import './theme.css';
+
+/* 字体包 - 主程序专属 */
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource/dm-mono/400.css';
+@import '@fontsource/dm-mono/500.css';
+@import '@fontsource/dm-serif-display/400.css';
+@import '@fontsource/dm-serif-display/400-italic.css';
+
+/* Stackflow Navigation - 主程序专属 */
 @import '@stackflow/plugin-basic-ui/index.css';
 
 /* Override stackflow plugin colors for dark mode */
-/* The plugin uses vanilla-extract classes with hardcoded #fff backgrounds */
-/* Target stackflow screen containers (AppScreen) */
 .dark [data-stackflow-component-name='AppScreen'] {
   --stackflow-plugin-basic-ui-background-color: var(--background);
   --stackflow-plugin-basic-ui-app-bar-background-color: var(--background);
@@ -18,321 +32,17 @@
   background-color: var(--background) !important;
 }
 
-/* BottomSheet - light white backdrop in dark mode */
 .dark [data-stackflow-component-name='BottomSheet'] {
   --stackflow-plugin-basic-ui-dim-background-color: rgba(255, 255, 255, 0.15);
   --stackflow-plugin-basic-ui-background-color: var(--background);
 }
 
-/* Modal */
 .dark [data-stackflow-component-name='Modal'] {
   --stackflow-plugin-basic-ui-dim-background-color: rgba(255, 255, 255, 0.15);
   --stackflow-plugin-basic-ui-background-color: var(--background);
 }
 
-/* 本地字体 - DM 系列 (Fontsource) */
-@import '@fontsource-variable/dm-sans';
-@import '@fontsource/dm-mono/400.css';
-@import '@fontsource/dm-mono/500.css';
-@import '@fontsource/dm-serif-display/400.css';
-@import '@fontsource/dm-serif-display/400-italic.css';
-
-/* shadcnui */
-@custom-variant dark (&:is(.dark *));
-
-/* 注册 CSS 自定义属性类型 - 支持动画和继承 */
-@property --primary-hue {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 323;
-}
-
-@property --primary-saturation {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 0.26;
-}
-
-@property --primary-lightness {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 0.59;
-}
-
-@property --primary {
-  syntax: '<color>';
-  inherits: true;
-  initial-value: oklch(0.59 0.26 323);
-}
-
-@property --primary-foreground {
-  syntax: '<color>';
-  inherits: true;
-  initial-value: oklch(1 0 0);
-}
-
-:root {
-  /* 动态主题色 - 可被钱包主题覆盖 */
-  --primary-hue: 323;
-  --primary-saturation: 0.26;
-  --primary-lightness: 0.59;
-  
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  /* primary 使用动态 hue */
-  --primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  /* chart 颜色使用动态 hue，通过偏移产生和谐色 */
-  --chart-1: oklch(0.83 0.13 calc(var(--primary-hue) - 2));
-  --chart-2: oklch(0.75 0.21 calc(var(--primary-hue) - 1));
-  --chart-3: oklch(0.67 0.26 calc(var(--primary-hue) - 1));
-  --chart-4: oklch(0.59 0.26 var(--primary-hue));
-  --chart-5: oklch(0.52 0.23 calc(var(--primary-hue) + 1));
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  /* sidebar-primary 使用动态 hue */
-  --sidebar-primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
-  --sidebar-primary-foreground: oklch(0.98 0.02 calc(var(--primary-hue) - 3));
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-}
-
-.dark {
-  /* dark 模式下调整亮度 */
-  --primary-lightness: 0.67;
-  
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  /* primary 继承动态 hue */
-  --primary: oklch(var(--primary-lightness) var(--primary-saturation) var(--primary-hue));
-  --primary-foreground: oklch(0.141 0.005 285.823);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  /* chart 颜色继承动态 hue */
-  --chart-1: oklch(0.83 0.13 calc(var(--primary-hue) - 2));
-  --chart-2: oklch(0.75 0.21 calc(var(--primary-hue) - 1));
-  --chart-3: oklch(0.67 0.26 calc(var(--primary-hue) - 1));
-  --chart-4: oklch(0.59 0.26 var(--primary-hue));
-  --chart-5: oklch(0.52 0.23 calc(var(--primary-hue) + 1));
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  /* sidebar-primary 继承动态 hue */
-  --sidebar-primary: oklch(0.75 0.21 var(--primary-hue));
-  --sidebar-primary-foreground: oklch(0.98 0.02 calc(var(--primary-hue) - 3));
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
-}
-
-@theme inline {
-  --font-sans: 'Figtree Variable', sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-}
-
-/* 主题配置 - Tailwind 4.x @theme 指令 */
-@theme {
-  /* 字体系统 - DM 品牌字体 */
-  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'DM Mono', ui-monospace, monospace;
-  --font-serif: 'DM Serif Display', ui-serif, Georgia, serif;
-
-  /* 成功色 - 绿色 */
-  --color-success: oklch(50% 0.2 145);
-  --color-success-foreground: oklch(100% 0 0);
-
-  /* 信息色 - 蓝色 */
-  --color-info: oklch(50% 0.16 239);
-  --color-info-foreground: oklch(100% 0 0);
-
-  /* 警告色 - 橙色 */
-  --color-warning: oklch(54% 0.17 64.05);
-  --color-warning-foreground: oklch(100% 0 0);
-
-  /* 错误色 - 红色 */
-  --color-destructive: oklch(55% 0.2 25);
-  --color-destructive-foreground: oklch(100% 0 0);
-
-  /* 链专属色 */
-  --color-chain-ethereum: oklch(55% 0.2 260);
-  --color-chain-tron: oklch(55% 0.25 25);
-  --color-chain-binance: oklch(80% 0.18 85);
-  --color-chain-bitcoin: oklch(70% 0.18 60);
-  --color-chain-bfmeta: oklch(60% 0.2 290);
-  --color-chain-bfchain: oklch(75% 0.15 195);
-  --color-chain-ccchain: oklch(70% 0.25 320);
-  --color-chain-pmchain: oklch(55% 0.2 280);
-  --color-chain-ethmeta: oklch(55% 0.3 265);
-
-  /* 交易类型专属色 - 按类别归类 */
-  --color-tx-out: oklch(65% 0.22 25);            /* 红橙色 - 资产流出（发送、销毁、迁出） */
-  --color-tx-in: oklch(60% 0.18 145);            /* 绿色 - 资产流入（接收、接受赠送、迁入） */
-  --color-tx-exchange: oklch(55% 0.2 260);       /* 蓝色 - 交换、转移 */
-  --color-tx-lock: oklch(60% 0.2 290);           /* 紫色 - 质押、委托 */
-  --color-tx-security: oklch(55% 0.2 200);       /* 青色 - 安全、签名 */
-  --color-tx-create: oklch(65% 0.18 60);         /* 橙色 - 创建、发行 */
-  --color-tx-system: oklch(50% 0.08 260);        /* 灰蓝色 - 系统操作 */
-
-  /* 渐变色 */
-  --gradient-blue: linear-gradient(to bottom, oklch(85% 0.12 200), oklch(70% 0.15 220));
-  --gradient-purple: linear-gradient(to bottom, oklch(75% 0.15 290), oklch(60% 0.2 280));
-  --gradient-red: linear-gradient(to bottom, oklch(75% 0.15 10), oklch(60% 0.2 350));
-  --gradient-mint: linear-gradient(to bottom, oklch(80% 0.15 320), oklch(55% 0.25 290));
-
-  /* 容器查询断点 */
-  --container-3xs: 16rem; /* 256px - 极窄 */
-  --container-2xs: 18rem; /* 288px - 窄 */
-  --container-xs: 20rem; /* 320px - 小 */
-  --container-sm: 24rem; /* 384px - 中 */
-  --container-md: 28rem; /* 448px - 标准 */
-  --container-lg: 32rem; /* 512px - 大 */
-  --container-xl: 36rem; /* 576px - 宽 */
-
-  /* 动画 */
-  --animate-slide-in-bottom: slide-in-bottom 0.3s ease-out;
-  --animate-fade-in: fade-in 0.2s ease-out;
-  --animate-rainbow-flow: rainbow-flow 3s linear infinite;
-}
-
-/* 自定义动画 */
-@keyframes slide-in-bottom {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes rainbow-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-100% - 2rem));
-  }
-}
-
-/* Marquee animation utilities */
-@utility animate-marquee {
-  animation: marquee var(--marquee-duration, 5s) linear infinite;
-}
-
-@utility animate-paused {
-  animation-play-state: paused;
-}
-
-/* 自定义工具类 */
-@utility bg-gradient-blue {
-  background: var(--gradient-blue);
-}
-
-@utility bg-gradient-purple {
-  background: var(--gradient-purple);
-}
-
-@utility bg-gradient-red {
-  background: var(--gradient-red);
-}
-
-@utility bg-gradient-mint {
-  background: var(--gradient-mint);
-}
-
-/* 安全区域 */
-@utility safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-@utility safe-area-inset-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-/* 基础样式 */
+/* 基础样式 - 主程序专属 */
 @layer base {
   * {
     @apply border-border;
@@ -358,7 +68,6 @@
 
   /* RTL 支持 */
   [dir='rtl'] {
-    /* RTL 时自动镜像部分图标 */
     --direction-multiplier: -1;
   }
 
@@ -367,34 +76,12 @@
   }
 }
 
-/* RTL 工具类 */
-@utility flip-rtl {
-  [dir='rtl'] & {
-    transform: scaleX(-1);
-  }
-}
-
-/* Scanner animation */
-@keyframes scan {
-  0%,
-  100% {
-    top: 0.5rem;
-  }
-  50% {
-    top: calc(100% - 0.5rem);
-  }
-}
-
-@utility animate-scan {
-  animation: scan 2s ease-in-out infinite;
-}
-
 /* 禁用长按和右键菜单（移动端 App 体验） */
 html, body {
-  -webkit-touch-callout: none; /* iOS 禁用长按弹出菜单 */
-  -webkit-user-select: none;   /* 禁用文本选择 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
-  -webkit-tap-highlight-color: transparent; /* 禁用点击高亮 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 允许输入框选择文本 */

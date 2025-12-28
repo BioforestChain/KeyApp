@@ -4,7 +4,7 @@
  * Runs a miniapp in an iframe with Bio SDK integration
  */
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppById, getBridge, initBioProvider } from '@/services/ecosystem'
 import type { MiniappManifest, BioAccount, TransferParams } from '@/services/ecosystem'
@@ -16,8 +16,21 @@ import {
 import { setSigningDialog } from '@/services/ecosystem/handlers/signing'
 import { setTransferDialog } from '@/services/ecosystem/handlers/transfer'
 import { walletStore, walletSelectors, type ChainAddress } from '@/stores'
+import { usePreferences } from '@/stores/preferences'
+import { getLanguageDirection } from '@/i18n/index'
 import { useFlow } from '@/stackflow/stackflow'
 import { IconX, IconDots } from '@tabler/icons-react'
+
+// 获取解析后的主题（system -> light/dark）
+function resolveColorMode(theme: 'light' | 'dark' | 'system'): 'light' | 'dark' {
+  if (theme !== 'system') return theme
+  if (typeof window === 'undefined') return 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+// 默认主题色 hue（粉色）
+const DEFAULT_PRIMARY_HUE = 323
+const DEFAULT_PRIMARY_SATURATION = 0.26
 
 interface MiniappPageProps {
   appId: string
@@ -25,12 +38,58 @@ interface MiniappPageProps {
 }
 
 export function MiniappPage({ appId, onClose }: MiniappPageProps) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
   const { push } = useFlow()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const preferences = usePreferences()
+
+  // 构建 context 状态
+  const contextState = useMemo(() => ({
+    theme: {
+      colorMode: resolveColorMode(preferences.theme),
+      primaryHue: DEFAULT_PRIMARY_HUE,
+      primarySaturation: DEFAULT_PRIMARY_SATURATION,
+    },
+    locale: {
+      lang: preferences.language,
+      rtl: getLanguageDirection(preferences.language) === 'rtl',
+    },
+    env: {
+      platform: 'web' as const,
+      version: '1.0.0',
+      safeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 },
+    },
+    a11y: {
+      fontScale: 1.0,
+      reduceMotion: false,
+    },
+  }), [preferences.theme, preferences.language])
+
+  // 构建带 context 参数的 iframe URL
+  const iframeUrl = useMemo(() => {
+    if (!app) return ''
+    const url = new URL(app.url, window.location.origin)
+    url.searchParams.set('colorMode', contextState.theme.colorMode)
+    url.searchParams.set('primaryHue', String(contextState.theme.primaryHue))
+    url.searchParams.set('primarySaturation', String(contextState.theme.primarySaturation))
+    url.searchParams.set('lang', contextState.locale.lang)
+    url.searchParams.set('rtl', String(contextState.locale.rtl))
+    url.searchParams.set('platform', contextState.env.platform)
+    url.searchParams.set('version', contextState.env.version)
+    return url.toString()
+  }, [app, contextState])
+
+  // 当 context 变化时通知 iframe
+  useEffect(() => {
+    if (!iframeRef.current?.contentWindow) return
+    iframeRef.current.contentWindow.postMessage({
+      type: 'keyapp:context-update',
+      payload: contextState,
+    }, '*')
+  }, [contextState])
 
   useEffect(() => {
     const manifest = getAppById(appId)
@@ -278,10 +337,10 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
       )}
 
       {/* Iframe container */}
-      {app && (
+      {app && iframeUrl && (
         <iframe
           ref={iframeRef}
-          src={app.url}
+          src={iframeUrl}
           className="flex-1 w-full border-0"
           sandbox="allow-scripts allow-forms allow-same-origin"
           onLoad={handleIframeLoad}
