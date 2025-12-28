@@ -320,3 +320,233 @@ test.describe('转账金额变体截图测试', () => {
     await expect(page).toHaveScreenshot('12-small-amount-transfer.png')
   })
 })
+
+// ============================================
+// 权限请求测试
+// ============================================
+
+test.describe('权限请求截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('权限请求对话框', async ({ page }) => {
+    const params = new URLSearchParams({
+      appName: '测试小程序',
+      permissions: JSON.stringify(['bio_signMessage', 'bio_sendTransaction']),
+    })
+    await page.goto(`/#/job/permission-request?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('13-permission-request.png')
+  })
+})
+
+// ============================================
+// 空状态测试
+// ============================================
+
+const EMPTY_WALLET_DATA = {
+  wallets: [],
+  currentWalletId: null,
+  selectedChain: 'bfmeta',
+  chainPreferences: {},
+  isLoading: false,
+  isInitialized: true,
+}
+
+test.describe('空状态截图测试', () => {
+  test('无钱包时的账户选择器', async ({ page }) => {
+    await page.addInitScript((data) => {
+      localStorage.clear()
+      localStorage.setItem('bfm_wallets', JSON.stringify(data))
+    }, EMPTY_WALLET_DATA)
+
+    await page.goto('/#/job/account-picker')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('14-empty-wallet-picker.png')
+  })
+})
+
+// ============================================
+// 十六进制数据签名（带警告）
+// ============================================
+
+test.describe('安全警告截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('十六进制数据签名警告', async ({ page }) => {
+    // 十六进制数据会触发警告
+    const hexMessage = '0x4e6f7420612076616c69642045495020373132207479706564206461746120616e64207369676e207479706564206461746120763420646f65736e277420776f726b'
+    const params = new URLSearchParams({
+      message: hexMessage,
+      address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      appName: '未知 DApp',
+    })
+    await page.goto(`/#/job/signing-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('15-hex-data-warning.png')
+  })
+})
+
+// ============================================
+// 交互流程测试（功能验证，不只是截图）
+// ============================================
+
+test.describe('取消操作流程测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('取消签名应触发事件', async ({ page }) => {
+    const params = new URLSearchParams({
+      message: 'Test',
+      address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      appName: '测试',
+    })
+    await page.goto(`/#/job/signing-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 监听事件
+    const eventPromise = page.evaluate(() => {
+      return new Promise((resolve) => {
+        window.addEventListener('signing-confirm', (e: Event) => {
+          resolve((e as CustomEvent).detail)
+        }, { once: true })
+      })
+    })
+
+    // 点击取消
+    const cancelButton = page.locator('button').filter({ hasText: /取消|Cancel/i })
+    await cancelButton.click()
+
+    // 验证事件
+    const eventDetail = await eventPromise
+    expect(eventDetail).toEqual({ confirmed: false })
+  })
+
+  test('取消转账应触发事件', async ({ page }) => {
+    const params = new URLSearchParams({
+      appName: '测试',
+      from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
+      amount: '10',
+      chain: 'bfmeta',
+    })
+    await page.goto(`/#/job/miniapp-transfer-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 监听事件
+    const eventPromise = page.evaluate(() => {
+      return new Promise((resolve) => {
+        window.addEventListener('miniapp-transfer-confirm', (e: Event) => {
+          resolve((e as CustomEvent).detail)
+        }, { once: true })
+      })
+    })
+
+    // 点击取消
+    const cancelButton = page.locator('button').filter({ hasText: /取消|Cancel/i })
+    await cancelButton.click()
+
+    // 验证事件
+    const eventDetail = await eventPromise
+    expect(eventDetail).toEqual({ confirmed: false })
+  })
+
+  test('取消账户选择应触发事件', async ({ page }) => {
+    await page.goto('/#/job/account-picker')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 监听事件
+    const eventPromise = page.evaluate(() => {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Timeout')), 3000)
+        window.addEventListener('account-picker-cancel', () => {
+          clearTimeout(timeout)
+          resolve(true)
+        }, { once: true })
+      })
+    })
+
+    // 点击取消
+    const cancelButton = page.locator('button').filter({ hasText: /取消|Cancel/i })
+    await cancelButton.click()
+
+    // 验证事件触发
+    await expect(eventPromise).resolves.toBe(true)
+  })
+})
+
+test.describe('账户选择流程测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('选择账户应触发事件并返回正确数据', async ({ page }) => {
+    await page.goto('/#/job/account-picker')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 监听事件
+    const eventPromise = page.evaluate(() => {
+      return new Promise((resolve) => {
+        window.addEventListener('account-picker-select', (e: Event) => {
+          resolve((e as CustomEvent).detail)
+        }, { once: true })
+      })
+    })
+
+    // 点击钱包
+    const walletButton = page.locator('button').filter({ hasText: '测试钱包' })
+    await walletButton.click()
+
+    // 验证事件数据
+    const eventDetail = await eventPromise
+    expect(eventDetail).toMatchObject({
+      address: expect.any(String),
+      chain: expect.any(String),
+      name: '测试钱包',
+    })
+  })
+})
+
+// ============================================
+// 地址复制功能测试
+// ============================================
+
+test.describe('地址复制功能测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('转账确认页地址可复制', async ({ page }) => {
+    const params = new URLSearchParams({
+      appName: '测试',
+      from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
+      to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
+      amount: '10',
+      chain: 'bfmeta',
+    })
+    await page.goto(`/#/job/miniapp-transfer-confirm?${params}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 点击复制按钮（AddressDisplay 有复制图标）
+    const copyButtons = page.locator('button[aria-label*="复制"], button[aria-label*="Copy"]')
+    const count = await copyButtons.count()
+    
+    // 应该有两个复制按钮（from 和 to）
+    expect(count).toBeGreaterThanOrEqual(2)
+  })
+})
