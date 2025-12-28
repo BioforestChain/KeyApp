@@ -14,6 +14,7 @@ import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { useCurrentWallet } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
+import { AddressDisplay } from '@/components/wallet/address-display'
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -24,11 +25,6 @@ type SigningConfirmJobParams = {
   appName?: string
   /** 链名称（用于签名） */
   chainName?: string
-}
-
-function truncateAddress(address: string, startChars = 8, endChars = 6): string {
-  if (address.length <= startChars + endChars + 3) return address
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
 }
 
 function SigningConfirmJobContent() {
@@ -130,7 +126,7 @@ function SigningConfirmJobContent() {
             <p className="text-muted-foreground mb-1 text-xs">
               {t('signingAddress', '签名地址')}
             </p>
-            <p className="font-mono text-sm">{truncateAddress(address)}</p>
+            <AddressDisplay address={address} copyable={false} className="text-sm" />
           </div>
 
           {/* Message */}

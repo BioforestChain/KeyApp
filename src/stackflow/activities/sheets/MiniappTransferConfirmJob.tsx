@@ -14,6 +14,8 @@ import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { useCurrentWallet } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
+import { AddressDisplay } from '@/components/wallet/address-display'
+import { AmountDisplay } from '@/components/common/amount-display'
 
 type MiniappTransferConfirmJobParams = {
   /** 来源小程序名称 */
@@ -28,11 +30,6 @@ type MiniappTransferConfirmJobParams = {
   chain: string
   /** 代币 (可选) */
   asset?: string
-}
-
-function truncateAddress(address: string, startChars = 8, endChars = 6): string {
-  if (address.length <= startChars + endChars + 3) return address
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
 }
 
 function MiniappTransferConfirmJobContent() {
@@ -146,8 +143,13 @@ function MiniappTransferConfirmJobContent() {
         <div className="space-y-4 p-4">
           {/* Amount */}
           <div className="bg-muted/50 rounded-xl p-4 text-center">
-            <p className="text-3xl font-bold">{amount}</p>
-            <p className="text-muted-foreground mt-1">{displayAsset}</p>
+            <AmountDisplay 
+              value={amount} 
+              symbol={displayAsset} 
+              size="xl" 
+              weight="bold"
+              decimals={8}
+            />
           </div>
 
           {/* From -> To */}
@@ -156,20 +158,20 @@ function MiniappTransferConfirmJobContent() {
               {/* From */}
               <div className="min-w-0 flex-1">
                 <p className="text-muted-foreground text-xs mb-1">
-                  {t('from', '发送')}
+                  {t('from', '来自')}
                 </p>
-                <p className="font-mono text-sm truncate">{truncateAddress(from)}</p>
+                <AddressDisplay address={from} copyable={false} className="text-sm" />
               </div>
 
               {/* Arrow */}
               <IconArrowRight className="size-5 text-muted-foreground shrink-0" />
 
               {/* To */}
-              <div className="min-w-0 flex-1 text-right">
-                <p className="text-muted-foreground text-xs mb-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground text-xs mb-1 text-right">
                   {t('to', '接收')}
                 </p>
-                <p className="font-mono text-sm truncate">{truncateAddress(to)}</p>
+                <AddressDisplay address={to} copyable={false} className="text-sm" />
               </div>
             </div>
           </div>

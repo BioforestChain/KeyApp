@@ -13,17 +13,13 @@ import { IconWallet, IconCheck } from '@tabler/icons-react'
 import { walletStore, walletSelectors, type Wallet, type ChainAddress } from '@/stores'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
+import { AddressDisplay } from '@/components/wallet/address-display'
 
 type AccountPickerJobParams = {
   /** 限定链类型 */
   chain?: string
   /** 请求来源小程序名称 */
   appName?: string
-}
-
-function truncateAddress(address: string, startChars = 8, endChars = 6): string {
-  if (address.length <= startChars + endChars + 3) return address
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
 }
 
 interface WalletWithChainAddress {
@@ -138,9 +134,11 @@ function AccountPickerJobContent() {
                           </span>
                         )}
                       </div>
-                      <p className="text-muted-foreground truncate font-mono text-sm">
-                        {truncateAddress(displayAddress)}
-                      </p>
+                      <AddressDisplay 
+                        address={displayAddress} 
+                        copyable={false} 
+                        className="text-muted-foreground text-sm" 
+                      />
                     </div>
 
                     {/* Check icon for current */}
