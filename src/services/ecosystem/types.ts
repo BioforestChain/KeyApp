@@ -42,17 +42,98 @@ export interface BioEventMessage {
   args: unknown[]
 }
 
-/** Miniapp manifest */
-export interface MiniappManifest {
+/** Miniapp category */
+export type MiniappCategory = 
+  | 'defi'      // DeFi 应用
+  | 'nft'       // NFT 相关
+  | 'tools'     // 工具类
+  | 'games'     // 游戏
+  | 'social'    // 社交
+  | 'exchange'  // 交易所
+  | 'other'     // 其他
+
+/** Permission definition */
+export interface PermissionDefinition {
   id: string
   name: string
   description: string
+  risk: 'low' | 'medium' | 'high'
+}
+
+/** Known permissions */
+export const KNOWN_PERMISSIONS: Record<string, PermissionDefinition> = {
+  bio_requestAccounts: {
+    id: 'bio_requestAccounts',
+    name: '请求账户',
+    description: '获取您的钱包地址列表',
+    risk: 'low',
+  },
+  bio_selectAccount: {
+    id: 'bio_selectAccount',
+    name: '选择账户',
+    description: '让您选择一个账户',
+    risk: 'low',
+  },
+  bio_pickWallet: {
+    id: 'bio_pickWallet',
+    name: '选择钱包',
+    description: '让您选择一个钱包',
+    risk: 'low',
+  },
+  bio_signMessage: {
+    id: 'bio_signMessage',
+    name: '签名消息',
+    description: '使用您的私钥签名消息（需要您确认）',
+    risk: 'medium',
+  },
+  bio_sendTransaction: {
+    id: 'bio_sendTransaction',
+    name: '发送交易',
+    description: '请求发送转账（需要您确认）',
+    risk: 'high',
+  },
+}
+
+/** Miniapp manifest - 完整的小程序元数据 */
+export interface MiniappManifest {
+  /** 唯一标识符 */
+  id: string
+  /** 显示名称 */
+  name: string
+  /** 简短描述 */
+  description: string
+  /** 详细介绍 (可选，支持 Markdown) */
+  longDescription?: string
+  /** 应用图标 URL */
   icon: string
+  /** 应用入口 URL */
   url: string
+  /** 版本号 (semver) */
   version: string
+  /** 作者/开发者 */
   author?: string
+  /** 开发者网站 */
+  website?: string
+  /** 分类 */
+  category?: MiniappCategory
+  /** 标签 */
+  tags?: string[]
+  /** 请求的权限列表 */
   permissions?: string[]
+  /** 支持的链 */
   chains?: string[]
+  /** 截图 URL 列表 */
+  screenshots?: string[]
+  /** 最低钱包版本要求 */
+  minWalletVersion?: string
+  /** 发布时间 */
+  publishedAt?: string
+  /** 更新时间 */
+  updatedAt?: string
+  /** 是否经过官方验证 */
+  verified?: boolean
+  /** 是否为测试版 */
+  beta?: boolean
 }
 
 /** Ecosystem source */

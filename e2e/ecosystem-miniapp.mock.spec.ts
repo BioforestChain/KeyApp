@@ -95,6 +95,33 @@ test.describe('生态 Tab 截图测试', () => {
   })
 })
 
+test.describe('小程序详情页截图测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('小程序详情页 - 完整信息展示', async ({ page }) => {
+    await page.goto('/#/miniapp/teleport/detail')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('16-miniapp-detail.png')
+  })
+
+  test('小程序详情页 - 权限列表', async ({ page }) => {
+    await page.goto('/#/miniapp/teleport/detail')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 滚动到权限部分
+    const permissionHeader = page.locator('h3').filter({ hasText: /权限|Permissions/i })
+    await permissionHeader.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(300)
+
+    await expect(page).toHaveScreenshot('17-miniapp-detail-permissions.png')
+  })
+})
+
 test.describe('账户选择器截图测试', () => {
   test.beforeEach(async ({ page }) => {
     await injectTestData(page)

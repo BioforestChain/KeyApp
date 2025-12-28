@@ -31,6 +31,7 @@ import { SettingsWalletChainsActivity } from "./activities/SettingsWalletChainsA
 import { SettingsStorageActivity } from "./activities/SettingsStorageActivity";
 import { SettingsSourcesActivity } from "./activities/SettingsSourcesActivity";
 import { MiniappActivity } from "./activities/MiniappActivity";
+import { MiniappDetailActivity } from "./activities/MiniappDetailActivity";
 import { ChainSelectorJob, WalletRenameJob, WalletDeleteJob, WalletLockConfirmJob, TwoStepSecretConfirmJob, SetTwoStepSecretJob, MnemonicOptionsJob, ContactEditJob, ContactPickerJob, WalletAddJob, WalletListJob, SecurityWarningJob, TransferConfirmJob, TransferWalletLockJob, FeeEditJob, ScannerJob, ContactAddConfirmJob, ContactShareJob, ClearDataConfirmJob, AccountPickerJob, SigningConfirmJob, PermissionRequestJob, MiniappTransferConfirmJob } from "./activities/sheets";
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
@@ -69,6 +70,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         WelcomeActivity: "/welcome",
         SettingsSourcesActivity: "/settings/sources",
         MiniappActivity: "/miniapp/:appId",
+        MiniappDetailActivity: "/miniapp/:appId/detail",
         ChainSelectorJob: "/job/chain-selector",
         WalletRenameJob: "/job/wallet-rename/:walletId",
         WalletDeleteJob: "/job/wallet-delete/:walletId",
@@ -125,6 +127,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     WelcomeActivity,
     SettingsSourcesActivity,
     MiniappActivity,
+    MiniappDetailActivity,
     ChainSelectorJob,
     WalletRenameJob,
     WalletDeleteJob,
