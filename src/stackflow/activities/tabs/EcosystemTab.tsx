@@ -8,8 +8,7 @@ import {
   MiniappIcon, 
   MiniappIconWithLabel, 
   MiniappIconGrid,
-  SourceIcon,
-  type MiniappBadge 
+  SourceIcon
 } from '@/components/ecosystem'
 import { 
   IconSearch, IconApps, IconChevronRight, IconDownload, IconSparkles,
@@ -71,12 +70,6 @@ function getTodayDate() {
   const now = new Date()
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   return `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`
-}
-
-function getAppBadge(app: MiniappManifest): MiniappBadge {
-  if (app.verified) return 'verified'
-  if (app.beta) return 'beta'
-  return 'none'
 }
 
 // ============================================
@@ -147,7 +140,6 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove }: Con
             src={app.icon} 
             name={app.name} 
             size="md"
-            badge={getAppBadge(app)}
             shadow="sm"
           />
           <div className="flex-1 min-w-0">
@@ -416,7 +408,6 @@ function AppListItem({
           name={app.name}
           size="lg"
           customSize={64}
-          badge={getAppBadge(app)}
           shadow="sm"
         />
       </button>
