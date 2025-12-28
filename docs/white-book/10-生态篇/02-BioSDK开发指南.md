@@ -3,15 +3,15 @@
 ## 安装
 
 ```bash
-npm install @aspect-aspect/bio-sdk
+npm install @biochain/bio-sdk
 # 或
-pnpm add @aspect-aspect/bio-sdk
+pnpm add @biochain/bio-sdk
 ```
 
 ## 快速开始
 
 ```typescript
-import '@aspect-aspect/bio-sdk'
+import '@biochain/bio-sdk'
 
 // window.bio 现在可用
 async function connect() {
@@ -132,6 +132,56 @@ const result = await window.bio.request<{ txHash: string }>({
 })
 ```
 
+### 交易流水线（必须）
+
+对于更复杂的业务（例如：后端广播、合约调用、多步签名），需要将“创建交易 / 签名交易 / 广播交易”拆开：
+
+1) `bio_createTransaction`：根据参数构造 **Unsigned Transaction**
+2) `bio_signTransaction`：对 Unsigned Transaction 做签名，得到 **Signed Transaction**
+3) 广播：可由 KeyApp（`bio_sendTransaction`）或 DApp 自己/后端负责（未来可扩展 `bio_sendRawTransaction`）
+
+#### bio_createTransaction
+
+创建未签名交易（不做签名、不做广播）。
+
+```typescript
+type BioUnsignedTransaction = {
+  chain: string
+  data: unknown
+}
+
+const unsignedTx = await window.bio.request<BioUnsignedTransaction>({
+  method: 'bio_createTransaction',
+  params: [{
+    from: '0x...',
+    to: '0x...',
+    amount: '0.01',
+    chain: 'ethereum'
+  }]
+})
+```
+
+#### bio_signTransaction
+
+对未签名交易进行签名（需要用户确认 + 钱包锁验证）。
+
+```typescript
+type BioSignedTransaction = {
+  chain: string
+  raw: string // 链特定的 raw tx（例如 EVM 的 RLP hex）
+  signature?: string
+}
+
+const signedTx = await window.bio.request<BioSignedTransaction>({
+  method: 'bio_signTransaction',
+  params: [{
+    from: '0x...',
+    chain: 'ethereum',
+    unsignedTx
+  }]
+})
+```
+
 ## 事件
 
 ### accountsChanged
@@ -182,7 +232,7 @@ window.bio.on('disconnect', ({ code, message }) => {
 ## TypeScript 支持
 
 ```typescript
-import type { BioAccount, BioProvider } from '@aspect-aspect/bio-sdk'
+import type { BioAccount, BioProvider } from '@biochain/bio-sdk'
 
 declare global {
   interface Window {
