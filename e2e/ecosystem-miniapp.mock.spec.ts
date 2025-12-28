@@ -74,7 +74,7 @@ test.describe('生态 Tab 截图测试', () => {
   })
 
   test('首页 - 生态 Tab 可见', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
     
@@ -82,12 +82,12 @@ test.describe('生态 Tab 截图测试', () => {
   })
 
   test('生态页面 - 发现 Tab', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 点击生态 Tab (底部导航栏中间的按钮)
-    const ecosystemTab = page.locator('text=/生态/i').first()
+    const ecosystemTab = page.getByTestId('tab-ecosystem')
     await ecosystemTab.click()
     await page.waitForTimeout(500)
 
@@ -98,17 +98,17 @@ test.describe('生态 Tab 截图测试', () => {
     // 先添加一些"我的应用"数据
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 点击生态 Tab
-    const ecosystemTab = page.locator('text=/生态/i').first()
+    const ecosystemTab = page.getByTestId('tab-ecosystem')
     await ecosystemTab.click()
     await page.waitForTimeout(500)
 
@@ -124,17 +124,17 @@ test.describe('生态 Tab 截图测试', () => {
     // 添加"我的应用"数据
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 点击生态 Tab
-    const ecosystemTab = page.locator('text=/生态/i').first()
+    const ecosystemTab = page.getByTestId('tab-ecosystem')
     await ecosystemTab.click()
     await page.waitForTimeout(500)
 
@@ -144,7 +144,7 @@ test.describe('生态 Tab 截图测试', () => {
     await page.waitForTimeout(500)
 
     // 右键点击第一个应用图标触发 Context Menu
-    const firstAppIcon = page.locator('[data-testid="ios-app-icon-teleport"]')
+    const firstAppIcon = page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]')
     await firstAppIcon.click({ button: 'right' })
     await page.waitForTimeout(300)
 
@@ -155,22 +155,22 @@ test.describe('生态 Tab 截图测试', () => {
     // 添加"我的应用"数据
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
       ]))
     })
     
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 进入生态 - 我的
-    await page.locator('text=/生态/i').first().click()
+    await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
     await page.locator('button:has-text("我的")').click()
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 打开
-    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("打开")').click()
     await page.waitForTimeout(800)
@@ -182,22 +182,22 @@ test.describe('生态 Tab 截图测试', () => {
     // 添加"我的应用"数据
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
       ]))
     })
     
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 进入生态 - 我的
-    await page.locator('text=/生态/i').first().click()
+    await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
     await page.locator('button:has-text("我的")').click()
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 详情
-    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("详情")').click()
     await page.waitForTimeout(800)
@@ -209,23 +209,23 @@ test.describe('生态 Tab 截图测试', () => {
     // 添加"我的应用"数据
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
-    await page.goto('/')
+    await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
     // 进入生态 - 我的
-    await page.locator('text=/生态/i').first().click()
+    await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
     await page.locator('button:has-text("我的")').click()
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 移除
-    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("移除")').click()
     await page.waitForTimeout(500)
@@ -241,7 +241,7 @@ test.describe('小程序详情页截图测试', () => {
   })
 
   test('小程序详情页 - 完整信息展示', async ({ page }) => {
-    await page.goto('/#/miniapp/teleport/detail')
+    await page.goto('/#/miniapp/xin.dweb.teleport/detail')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
@@ -249,7 +249,7 @@ test.describe('小程序详情页截图测试', () => {
   })
 
   test('小程序详情页 - 权限列表', async ({ page }) => {
-    await page.goto('/#/miniapp/teleport/detail')
+    await page.goto('/#/miniapp/xin.dweb.teleport/detail')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
