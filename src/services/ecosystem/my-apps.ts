@@ -2,7 +2,7 @@
  * My Apps - 本地已安装应用管理
  */
 
-const MY_APPS_KEY = 'ecosystem:my-apps'
+const MY_APPS_KEY = 'ecosystem_my_apps'
 
 export interface MyAppRecord {
   appId: string

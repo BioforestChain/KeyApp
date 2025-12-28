@@ -253,8 +253,8 @@ test.describe('小程序详情页截图测试', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
-    // 滚动到权限部分
-    const permissionHeader = page.locator('h3').filter({ hasText: /权限|Permissions/i })
+    // 滚动到隐私/权限部分（App Store 风格使用 h2）
+    const permissionHeader = page.locator('h2').filter({ hasText: /隐私|权限|Privacy|Permissions/i })
     await permissionHeader.scrollIntoViewIfNeeded()
     await page.waitForTimeout(300)
 
