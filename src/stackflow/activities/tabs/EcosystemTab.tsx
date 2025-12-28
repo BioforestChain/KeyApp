@@ -2,7 +2,15 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFlow } from '../../stackflow'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
-import { initRegistry, getApps } from '@/services/ecosystem'
+import { 
+  initRegistry, 
+  getApps,
+  loadMyApps,
+  addToMyApps,
+  updateLastUsed,
+  removeFromMyApps,
+  type MyAppRecord,
+} from '@/services/ecosystem'
 import type { MiniappManifest } from '@/services/ecosystem'
 import { 
   MiniappIcon, 
@@ -16,52 +24,6 @@ import {
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-
-// ============================================
-// "我的应用" 存储
-// ============================================
-const MY_APPS_KEY = 'ecosystem_my_apps'
-
-interface MyAppRecord {
-  appId: string
-  installedAt: number
-  lastUsedAt: number
-}
-
-function loadMyApps(): MyAppRecord[] {
-  try {
-    const stored = localStorage.getItem(MY_APPS_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
-}
-
-function saveMyApps(apps: MyAppRecord[]): void {
-  localStorage.setItem(MY_APPS_KEY, JSON.stringify(apps))
-}
-
-function addToMyApps(appId: string): void {
-  const apps = loadMyApps()
-  if (!apps.some(a => a.appId === appId)) {
-    apps.unshift({ appId, installedAt: Date.now(), lastUsedAt: Date.now() })
-    saveMyApps(apps)
-  }
-}
-
-function updateLastUsed(appId: string): void {
-  const apps = loadMyApps()
-  const app = apps.find(a => a.appId === appId)
-  if (app) {
-    app.lastUsedAt = Date.now()
-    saveMyApps(apps)
-  }
-}
-
-function removeFromMyApps(appId: string): void {
-  const apps = loadMyApps().filter(a => a.appId !== appId)
-  saveMyApps(apps)
-}
 
 // ============================================
 // 工具函数

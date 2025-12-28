@@ -15,7 +15,7 @@ import {
   KNOWN_PERMISSIONS 
 } from '@/services/ecosystem'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
-import { MiniappIcon } from '@/components/ecosystem/MiniappIcon'
+import { MiniappIcon } from '@/components/ecosystem'
 import { 
   IconArrowLeft, 
   IconExternalLink, 
@@ -181,9 +181,11 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
           <div className="flex items-start gap-4">
             {/* 大图标 */}
             <MiniappIcon 
-              app={app} 
-              size={112}
-              className="shrink-0 shadow-lg"
+              src={app.icon}
+              name={app.name}
+              size="2xl"
+              shadow="lg"
+              className="shrink-0"
             />
 
             {/* 信息区 */}
