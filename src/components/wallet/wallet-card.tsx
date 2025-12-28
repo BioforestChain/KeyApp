@@ -79,7 +79,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     priority = 'high',
     address,
     chainIconUrl,
-    watermarkLogoSize = 40,
+    watermarkLogoSize = 48,
     watermarkLogoActualSize = 24,
     onCopyAddress,
     onOpenChainSelector,
