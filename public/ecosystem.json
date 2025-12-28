@@ -2,6 +2,7 @@
   "name": "Bio 官方生态",
   "version": "1.0.0",
   "updated": "2024-12-28",
+  "icon": "/logo.svg",
   "apps": [
     {
       "id": "teleport",

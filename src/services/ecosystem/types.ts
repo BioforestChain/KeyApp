@@ -150,12 +150,25 @@ export interface MiniappManifest {
   themeColorTo?: string
 }
 
-/** Ecosystem source */
+/** Ecosystem source - JSON 文件格式 */
 export interface EcosystemSource {
   name: string
   version: string
   updated: string
+  /** 订阅源图标 URL */
+  icon?: string
   apps: MiniappManifest[]
+}
+
+/** 订阅源记录 - 本地存储格式 */
+export interface SourceRecord {
+  url: string
+  name: string
+  enabled: boolean
+  /** 图标 URL，默认使用 https 锁图标 */
+  icon?: string
+  /** 是否为内置源 */
+  builtin?: boolean
 }
 
 /** Method handler */

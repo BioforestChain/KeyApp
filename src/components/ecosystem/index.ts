@@ -9,3 +9,8 @@ export {
   type MiniappIconWithLabelProps,
   type MiniappIconGridProps,
 } from './miniapp-icon'
+
+export {
+  SourceIcon,
+  type SourceIconProps,
+} from './source-icon'
