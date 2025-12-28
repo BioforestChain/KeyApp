@@ -1,118 +1,173 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFlow } from '../../stackflow'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { initRegistry, getApps, refreshSources } from '@/services/ecosystem'
-import type { MiniappManifest, MiniappCategory } from '@/services/ecosystem'
-import { IconSearch, IconApps, IconShieldCheck, IconFlame, IconSparkles } from '@tabler/icons-react'
+import type { MiniappManifest } from '@/services/ecosystem'
+import { IconSearch, IconApps, IconChevronRight } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
-// 分类配置
-const CATEGORIES: { id: MiniappCategory | 'all'; label: string; icon?: React.ReactNode }[] = [
-  { id: 'all', label: '全部' },
-  { id: 'defi', label: 'DeFi' },
-  { id: 'exchange', label: '交易' },
-  { id: 'tools', label: '工具' },
-  { id: 'nft', label: 'NFT' },
-  { id: 'games', label: '游戏' },
-  { id: 'social', label: '社交' },
-]
+// 获取今天日期
+function getTodayDate() {
+  const now = new Date()
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+  return `${month}月${day}日 ${weekdays[now.getDay()]}`
+}
 
-// 精选大卡片
-function FeaturedCard({ app, onOpen }: { app: MiniappManifest; onOpen: () => void }) {
+// 大型精选卡片 (App Store Today 风格)
+function FeaturedStoryCard({ 
+  app, 
+  onTap,
+  variant = 'primary'
+}: { 
+  app: MiniappManifest
+  onTap: () => void
+  variant?: 'primary' | 'secondary'
+}) {
+  const gradients = {
+    primary: 'from-violet-600 via-purple-600 to-indigo-700',
+    secondary: 'from-orange-500 via-amber-500 to-yellow-500',
+  }
+  
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-background border">
-      {/* 背景装饰 */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+    <button
+      onClick={onTap}
+      className="group relative w-full overflow-hidden rounded-2xl text-left shadow-lg active:scale-[0.98] transition-transform"
+    >
+      {/* 背景渐变 */}
+      <div className={cn(
+        "absolute inset-0 bg-gradient-to-br",
+        gradients[variant]
+      )} />
       
-      <div className="relative p-5">
-        {/* 标签 */}
-        <div className="flex items-center gap-2 mb-3">
-          <IconSparkles className="size-4 text-primary" />
-          <span className="text-xs font-medium text-primary uppercase tracking-wide">精选应用</span>
+      {/* 装饰圆形 */}
+      <div className="absolute -top-20 -right-20 size-64 rounded-full bg-white/10 blur-2xl" />
+      <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-black/10 blur-xl" />
+      
+      {/* 内容 */}
+      <div className="relative p-5 min-h-[280px] flex flex-col">
+        {/* 顶部标签 */}
+        <div className="flex items-center gap-2 text-white/80 text-xs font-medium uppercase tracking-wider mb-auto">
+          <span className="size-1.5 rounded-full bg-white/80" />
+          精选应用
         </div>
-
-        <div className="flex gap-4">
-          {/* 图标 */}
-          <div className="size-20 rounded-2xl bg-card shadow-lg flex items-center justify-center overflow-hidden shrink-0">
-            {app.icon ? (
-              <img src={app.icon} alt={app.name} className="size-full object-cover" />
-            ) : (
-              <IconApps className="size-10 text-primary" stroke={1.5} />
-            )}
-          </div>
-
-          {/* 信息 */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold">{app.name}</h2>
-              {app.verified && <IconShieldCheck className="size-5 text-green-500" />}
+        
+        {/* 底部信息 */}
+        <div className="mt-auto">
+          {/* App 图标和信息 */}
+          <div className="flex items-end gap-4">
+            <div className="size-20 rounded-[22px] bg-white/20 backdrop-blur-sm shadow-lg overflow-hidden shrink-0 ring-1 ring-white/20">
+              {app.icon ? (
+                <img src={app.icon} alt={app.name} className="size-full object-cover" />
+              ) : (
+                <div className="size-full flex items-center justify-center">
+                  <IconApps className="size-10 text-white/80" stroke={1.5} />
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-              {app.longDescription || app.description}
-            </p>
-            <Button 
-              size="sm" 
-              className="mt-3 px-6"
-              onClick={onOpen}
-            >
-              打开
-            </Button>
+            <div className="flex-1 min-w-0 pb-1">
+              <h2 className="text-2xl font-bold text-white leading-tight mb-1">
+                {app.name}
+              </h2>
+              <p className="text-sm text-white/70 line-clamp-2">
+                {app.longDescription || app.description}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   )
 }
 
-// 应用列表项（App Store 风格）
-function AppListItem({ 
+// 小型精选卡片
+function FeaturedMiniCard({ 
   app, 
-  onDetail, 
-  onOpen 
+  onTap,
+  color = 'blue'
 }: { 
   app: MiniappManifest
-  onDetail: () => void
-  onOpen: () => void
+  onTap: () => void
+  color?: 'blue' | 'green' | 'orange' | 'pink'
 }) {
+  const colors = {
+    blue: 'from-blue-500 to-cyan-400',
+    green: 'from-emerald-500 to-teal-400',
+    orange: 'from-orange-500 to-red-400',
+    pink: 'from-pink-500 to-rose-400',
+  }
+  
   return (
-    <div className="flex items-center gap-3 py-3">
-      {/* 图标 */}
-      <button onClick={onDetail} className="shrink-0">
-        <div className="size-14 rounded-xl bg-muted overflow-hidden shadow-sm">
+    <button
+      onClick={onTap}
+      className="relative w-40 shrink-0 overflow-hidden rounded-xl text-left shadow-md active:scale-[0.97] transition-transform"
+    >
+      <div className={cn("absolute inset-0 bg-gradient-to-br", colors[color])} />
+      <div className="relative p-3 h-[140px] flex flex-col">
+        <div className="size-12 rounded-xl bg-white/20 backdrop-blur-sm overflow-hidden mb-auto ring-1 ring-white/20">
           {app.icon ? (
             <img src={app.icon} alt={app.name} className="size-full object-cover" />
           ) : (
             <div className="size-full flex items-center justify-center">
-              <IconApps className="size-7 text-muted-foreground" stroke={1.5} />
+              <IconApps className="size-6 text-white/80" stroke={1.5} />
+            </div>
+          )}
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-white truncate">{app.name}</h3>
+          <p className="text-xs text-white/70 truncate">{app.description}</p>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// 应用列表项 (排行榜风格)
+function AppRankItem({ 
+  app, 
+  rank,
+  onTap,
+  onOpen
+}: { 
+  app: MiniappManifest
+  rank: number
+  onTap: () => void
+  onOpen: () => void
+}) {
+  return (
+    <div className="flex items-center gap-3 py-2">
+      {/* 排名 */}
+      <span className="w-6 text-center text-lg font-bold text-muted-foreground/60">
+        {rank}
+      </span>
+      
+      {/* 图标 */}
+      <button onClick={onTap} className="shrink-0">
+        <div className="size-16 rounded-2xl bg-muted overflow-hidden shadow-sm ring-1 ring-border/50">
+          {app.icon ? (
+            <img src={app.icon} alt={app.name} className="size-full object-cover" />
+          ) : (
+            <div className="size-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+              <IconApps className="size-8 text-muted-foreground" stroke={1.5} />
             </div>
           )}
         </div>
       </button>
 
       {/* 信息 */}
-      <button onClick={onDetail} className="flex-1 min-w-0 text-left">
-        <div className="flex items-center gap-1.5">
-          <span className="font-medium truncate">{app.name}</span>
-          {app.verified && <IconShieldCheck className="size-4 text-green-500 shrink-0" />}
-          {app.beta && (
-            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-medium rounded shrink-0">
-              Beta
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">
-          {app.description}
-        </p>
+      <button onClick={onTap} className="flex-1 min-w-0 text-left py-1">
+        <h3 className="font-semibold truncate">{app.name}</h3>
+        <p className="text-xs text-muted-foreground truncate">{app.description}</p>
       </button>
 
       {/* 获取按钮 */}
       <Button
         size="sm"
         variant="secondary"
-        className="shrink-0 rounded-full px-5 h-8 text-xs font-semibold"
+        className="shrink-0 rounded-full px-5 h-8 text-xs font-bold bg-secondary/80"
         onClick={(e) => {
           e.stopPropagation()
           onOpen()
@@ -124,37 +179,28 @@ function AppListItem({
   )
 }
 
-// 分类标签
-function CategoryTab({ 
-  category, 
-  selected, 
-  onClick 
+// 区块标题
+function SectionHeader({ 
+  title, 
+  action,
+  onAction
 }: { 
-  category: typeof CATEGORIES[0]
-  selected: boolean
-  onClick: () => void
+  title: string
+  action?: string
+  onAction?: () => void
 }) {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
-        selected 
-          ? "bg-primary text-primary-foreground" 
-          : "bg-muted hover:bg-muted/80 text-muted-foreground"
-      )}
-    >
-      {category.label}
-    </button>
-  )
-}
-
-// 区块标题
-function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
-  return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-lg font-bold">{title}</h2>
-      {action}
+      <h2 className="text-xl font-bold">{title}</h2>
+      {action && onAction && (
+        <button 
+          onClick={onAction}
+          className="flex items-center text-primary text-sm font-medium"
+        >
+          {action}
+          <IconChevronRight className="size-4" />
+        </button>
+      )}
     </div>
   )
 }
@@ -164,21 +210,13 @@ export function EcosystemTab() {
   const { push } = useFlow()
   const [apps, setApps] = useState<MiniappManifest[]>([])
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<MiniappCategory | 'all'>('all')
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     initRegistry().then(() => {
       setApps(getApps())
       setLoading(false)
     })
-  }, [])
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true)
-    await refreshSources()
-    setApps(getApps())
-    setRefreshing(false)
   }, [])
 
   const handleAppDetail = useCallback((app: MiniappManifest) => {
@@ -189,16 +227,10 @@ export function EcosystemTab() {
     push('MiniappActivity', { appId: app.id })
   }, [push])
 
-  // 过滤应用
-  const filteredApps = selectedCategory === 'all' 
-    ? apps 
-    : apps.filter(app => app.category === selectedCategory)
-
-  // 精选应用（第一个验证过的应用）
-  const featuredApp = apps.find(app => app.verified) || apps[0]
-
-  // 热门应用（非精选的前几个）
-  const hotApps = apps.filter(app => app !== featuredApp).slice(0, 5)
+  // 精选应用
+  const featuredApp = apps[0]
+  const secondaryApps = apps.slice(1, 4)
+  const rankedApps = apps
 
   if (loading) {
     return (
@@ -210,71 +242,72 @@ export function EcosystemTab() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">{t('ecosystem', '生态')}</h1>
-            <button
-              onClick={() => {/* TODO: 搜索 */}}
-              className="p-2 rounded-full hover:bg-muted transition-colors"
-              aria-label={t('search', '搜索')}
-            >
-              <IconSearch className="size-5" stroke={1.5} />
-            </button>
+      {/* Header - App Store 风格 */}
+      <header className="px-5 pt-12 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground font-medium">{getTodayDate()}</p>
+            <h1 className="text-3xl font-bold tracking-tight">发现</h1>
           </div>
-
-          {/* 分类标签 */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {CATEGORIES.map((category) => (
-              <CategoryTab
-                key={category.id}
-                category={category}
-                selected={selectedCategory === category.id}
-                onClick={() => setSelectedCategory(category.id)}
-              />
-            ))}
-          </div>
+          <button
+            onClick={() => {/* TODO: 搜索/个人资料 */}}
+            className="size-10 rounded-full bg-muted/60 flex items-center justify-center"
+            aria-label="搜索"
+          >
+            <IconSearch className="size-5" stroke={1.5} />
+          </button>
         </div>
-      </div>
+      </header>
 
       {/* Content */}
-      <div className="flex-1 px-4 pb-4">
+      <div className="flex-1 pb-8">
         {apps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <IconApps className="size-8 text-muted-foreground" stroke={1.5} />
+          <div className="flex flex-col items-center justify-center py-20 text-center px-5">
+            <div className="size-20 rounded-full bg-muted flex items-center justify-center mb-4">
+              <IconApps className="size-10 text-muted-foreground" stroke={1.5} />
             </div>
-            <p className="text-muted-foreground">{t('noApps', '暂无小程序')}</p>
+            <h2 className="text-lg font-semibold mb-1">暂无应用</h2>
+            <p className="text-muted-foreground text-sm">稍后再来看看吧</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* 精选应用 - 仅在"全部"分类显示 */}
-            {selectedCategory === 'all' && featuredApp && (
-              <section>
-                <FeaturedCard 
+          <div className="space-y-8">
+            {/* 主精选卡片 */}
+            {featuredApp && (
+              <section className="px-5">
+                <FeaturedStoryCard 
                   app={featuredApp} 
-                  onOpen={() => handleAppOpen(featuredApp)} 
+                  onTap={() => handleAppOpen(featuredApp)}
+                  variant="primary"
                 />
               </section>
             )}
 
-            {/* 热门应用 - 仅在"全部"分类显示 */}
-            {selectedCategory === 'all' && hotApps.length > 0 && (
+            {/* 横向滚动的小卡片 */}
+            {secondaryApps.length > 0 && (
               <section>
-                <SectionHeader 
-                  title="热门应用" 
-                  action={
-                    <IconFlame className="size-5 text-orange-500" />
-                  }
-                />
-                <div className="bg-card rounded-2xl border divide-y">
-                  {hotApps.map((app) => (
-                    <div key={app.id} className="px-4">
-                      <AppListItem
-                        app={app}
-                        onDetail={() => handleAppDetail(app)}
-                        onOpen={() => handleAppOpen(app)}
+                <div className="px-5 mb-3">
+                  <h2 className="text-xl font-bold">推荐</h2>
+                </div>
+                <div 
+                  ref={scrollRef}
+                  className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x snap-mandatory"
+                >
+                  {secondaryApps.map((app, i) => (
+                    <div key={app.id} className="snap-start">
+                      <FeaturedMiniCard 
+                        app={app} 
+                        onTap={() => handleAppOpen(app)}
+                        color={(['blue', 'orange', 'green', 'pink'] as const)[i % 4]}
+                      />
+                    </div>
+                  ))}
+                  {/* 填充卡片使滚动更自然 */}
+                  {apps.slice(0, 2).map((app, i) => (
+                    <div key={`extra-${app.id}`} className="snap-start">
+                      <FeaturedMiniCard 
+                        app={app} 
+                        onTap={() => handleAppOpen(app)}
+                        color={(['pink', 'green'] as const)[i % 2]}
                       />
                     </div>
                   ))}
@@ -282,47 +315,35 @@ export function EcosystemTab() {
               </section>
             )}
 
-            {/* 分类应用列表 */}
-            {selectedCategory !== 'all' && (
-              <section>
-                <SectionHeader 
-                  title={CATEGORIES.find(c => c.id === selectedCategory)?.label || '应用'} 
-                />
-                {filteredApps.length === 0 ? (
-                  <div className="py-12 text-center text-muted-foreground">
-                    该分类暂无应用
+            {/* 热门排行 */}
+            <section className="px-5">
+              <SectionHeader 
+                title="热门应用" 
+                action="查看全部"
+                onAction={() => {/* TODO */}}
+              />
+              <div className="bg-card rounded-2xl border divide-y">
+                {rankedApps.map((app, i) => (
+                  <div key={app.id} className="px-3">
+                    <AppRankItem
+                      app={app}
+                      rank={i + 1}
+                      onTap={() => handleAppDetail(app)}
+                      onOpen={() => handleAppOpen(app)}
+                    />
                   </div>
-                ) : (
-                  <div className="bg-card rounded-2xl border divide-y">
-                    {filteredApps.map((app) => (
-                      <div key={app.id} className="px-4">
-                        <AppListItem
-                          app={app}
-                          onDetail={() => handleAppDetail(app)}
-                          onOpen={() => handleAppOpen(app)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
+                ))}
+              </div>
+            </section>
 
-            {/* 全部应用 */}
-            {selectedCategory === 'all' && (
-              <section>
-                <SectionHeader title="全部应用" />
-                <div className="bg-card rounded-2xl border divide-y">
-                  {apps.map((app) => (
-                    <div key={app.id} className="px-4">
-                      <AppListItem
-                        app={app}
-                        onDetail={() => handleAppDetail(app)}
-                        onOpen={() => handleAppOpen(app)}
-                      />
-                    </div>
-                  ))}
-                </div>
+            {/* 如果有更多应用，显示第二个精选 */}
+            {apps.length > 1 && (
+              <section className="px-5">
+                <FeaturedStoryCard 
+                  app={apps[1]} 
+                  onTap={() => handleAppOpen(apps[1])}
+                  variant="secondary"
+                />
               </section>
             )}
           </div>
