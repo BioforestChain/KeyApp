@@ -119,6 +119,37 @@ test.describe('生态 Tab 截图测试', () => {
 
     await expect(page).toHaveScreenshot('02b-ecosystem-my-tab.png')
   })
+
+  test('生态页面 - 长按菜单', async ({ page }) => {
+    // 添加"我的应用"数据
+    await page.addInitScript(() => {
+      localStorage.setItem('ecosystem_my_apps', JSON.stringify([
+        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+      ]))
+    })
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 点击生态 Tab
+    const ecosystemTab = page.locator('text=/生态/i').first()
+    await ecosystemTab.click()
+    await page.waitForTimeout(500)
+
+    // 点击"我的" Tab
+    const myTab = page.locator('button:has-text("我的")')
+    await myTab.click()
+    await page.waitForTimeout(500)
+
+    // 右键点击第一个应用图标触发 Context Menu
+    const firstAppIcon = page.locator('[data-testid="ios-app-icon-teleport"]')
+    await firstAppIcon.click({ button: 'right' })
+    await page.waitForTimeout(300)
+
+    await expect(page).toHaveScreenshot('02c-ecosystem-context-menu.png')
+  })
 })
 
 test.describe('小程序详情页截图测试', () => {

@@ -240,6 +240,7 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: IOSAppIconProps) 
 
   return (
     <button
+      data-testid={`ios-app-icon-${app.id}`}
       className={cn(
         "flex flex-col items-center gap-1.5 p-2 rounded-2xl",
         "touch-manipulation select-none",
