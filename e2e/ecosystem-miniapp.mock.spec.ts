@@ -81,7 +81,7 @@ test.describe('生态 Tab 截图测试', () => {
     await expect(page).toHaveScreenshot('01-home-with-ecosystem-tab.png')
   })
 
-  test('生态页面 - 小程序列表', async ({ page }) => {
+  test('生态页面 - 发现 Tab', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
@@ -92,6 +92,32 @@ test.describe('生态 Tab 截图测试', () => {
     await page.waitForTimeout(500)
 
     await expect(page).toHaveScreenshot('02-ecosystem-tab-content.png')
+  })
+
+  test('生态页面 - 我的 Tab', async ({ page }) => {
+    // 先添加一些"我的应用"数据
+    await page.addInitScript(() => {
+      localStorage.setItem('ecosystem_my_apps', JSON.stringify([
+        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+      ]))
+    })
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 点击生态 Tab
+    const ecosystemTab = page.locator('text=/生态/i').first()
+    await ecosystemTab.click()
+    await page.waitForTimeout(500)
+
+    // 点击"我的" Tab
+    const myTab = page.locator('button:has-text("我的")')
+    await myTab.click()
+    await page.waitForTimeout(500)
+
+    await expect(page).toHaveScreenshot('02b-ecosystem-my-tab.png')
   })
 })
 
