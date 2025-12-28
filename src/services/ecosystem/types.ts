@@ -134,6 +134,20 @@ export interface MiniappManifest {
   verified?: boolean
   /** 是否为测试版 */
   beta?: boolean
+  /** 
+   * 主题色 - 用于卡片背景等 
+   * 格式: CSS 渐变类名 (Tailwind) 或 HEX 颜色
+   * 例: "from-violet-500 to-purple-600" 或 "#6366f1"
+   */
+  themeColor?: string
+  /**
+   * 主题色（起始）- HEX 格式
+   */
+  themeColorFrom?: string
+  /**
+   * 主题色（结束）- HEX 格式
+   */
+  themeColorTo?: string
 }
 
 /** Ecosystem source */

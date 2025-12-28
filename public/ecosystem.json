@@ -24,7 +24,10 @@
       "publishedAt": "2024-12-01",
       "updatedAt": "2024-12-28",
       "verified": true,
-      "beta": false
+      "beta": false,
+      "themeColor": "from-violet-500 to-purple-600",
+      "themeColorFrom": "#8b5cf6",
+      "themeColorTo": "#7c3aed"
     },
     {
       "id": "forge",
@@ -46,7 +49,10 @@
       "publishedAt": "2024-12-15",
       "updatedAt": "2024-12-28",
       "verified": true,
-      "beta": true
+      "beta": true,
+      "themeColor": "from-orange-500 to-red-500",
+      "themeColorFrom": "#f97316",
+      "themeColorTo": "#ef4444"
     }
   ]
 }

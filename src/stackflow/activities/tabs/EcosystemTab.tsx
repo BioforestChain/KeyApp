@@ -279,17 +279,12 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: IOSAppIconProps) 
 function FeaturedStoryCard({ 
   app, 
   onTap,
-  variant = 'primary'
 }: { 
   app: MiniappManifest
   onTap: () => void
-  variant?: 'primary' | 'secondary' | 'tertiary'
 }) {
-  const gradients = {
-    primary: 'from-violet-600 via-purple-600 to-indigo-700',
-    secondary: 'from-orange-500 via-amber-500 to-yellow-500',
-    tertiary: 'from-emerald-500 via-teal-500 to-cyan-500',
-  }
+  // 使用应用自己的主题色
+  const gradient = app.themeColor || 'from-violet-600 via-purple-600 to-indigo-700'
   
   return (
     <button
@@ -301,7 +296,7 @@ function FeaturedStoryCard({
         "hover:shadow-2xl hover:shadow-black/20"
       )}
     >
-      <div className={cn("absolute inset-0 bg-gradient-to-br", gradients[variant])} />
+      <div className={cn("absolute inset-0 bg-gradient-to-br", gradient)} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.3),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(0,0,0,0.2),transparent_50%)]" />
       
@@ -342,12 +337,15 @@ function FeaturedStoryCard({
 function HorizontalAppCard({ 
   app, 
   onTap,
-  color
+  fallbackColorIndex = 0
 }: { 
   app: MiniappManifest
   onTap: () => void
-  color: string
+  fallbackColorIndex?: number
 }) {
+  // 使用应用自己的主题色
+  const gradient = getAppGradient(app, fallbackColorIndex)
+  
   return (
     <button
       onClick={onTap}
@@ -357,7 +355,7 @@ function HorizontalAppCard({
         "snap-start scroll-ml-5"
       )}
     >
-      <div className={cn("absolute inset-0 bg-gradient-to-br", color)} />
+      <div className={cn("absolute inset-0 bg-gradient-to-br", gradient)} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_-10%,rgba(255,255,255,0.25),transparent_40%)]" />
       
       <div className="relative p-4 h-[160px] flex flex-col">
@@ -447,13 +445,24 @@ function AppListItem({
 // ============================================
 type TabType = 'discover' | 'mine'
 
-const CARD_COLORS = [
+// 默认渐变色（当应用没有配置 themeColor 时使用）
+const DEFAULT_GRADIENTS = [
   'from-violet-500 to-purple-600',
   'from-orange-500 to-red-500',
   'from-emerald-500 to-teal-500',
   'from-pink-500 to-rose-500',
   'from-blue-500 to-cyan-500',
 ]
+
+/** 获取应用的渐变色 */
+function getAppGradient(app: MiniappManifest, fallbackIndex: number = 0): string {
+  // 优先使用应用配置的 themeColor
+  if (app.themeColor) {
+    return app.themeColor
+  }
+  // 否则使用默认渐变色
+  return DEFAULT_GRADIENTS[fallbackIndex % DEFAULT_GRADIENTS.length]
+}
 
 export function EcosystemTab() {
   const { t } = useTranslation('common')
@@ -640,7 +649,7 @@ export function EcosystemTab() {
                         key={app.id}
                         app={app}
                         onTap={() => handleAppOpen(app)}
-                        color={CARD_COLORS[i % CARD_COLORS.length]}
+                        fallbackColorIndex={i}
                       />
                     ))}
                     {recommendedApps.length < 4 && apps.map((app, i) => (
@@ -648,7 +657,7 @@ export function EcosystemTab() {
                         key={`extra-${app.id}`}
                         app={app}
                         onTap={() => handleAppOpen(app)}
-                        color={CARD_COLORS[(i + 2) % CARD_COLORS.length]}
+                        fallbackColorIndex={i + 2}
                       />
                     ))}
                   </div>
@@ -677,7 +686,6 @@ export function EcosystemTab() {
                   <FeaturedStoryCard 
                     app={apps[1]} 
                     onTap={() => handleAppOpen(apps[1])}
-                    variant="secondary"
                   />
                 </section>
               )}
