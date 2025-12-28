@@ -148,6 +148,17 @@ export interface MiniappManifest {
    * 主题色（结束）- HEX 格式
    */
   themeColorTo?: string
+  
+  // ============================================
+  // 以下字段由 registry 在加载时自动填充
+  // ============================================
+  
+  /** 来源 URL（运行时填充） */
+  sourceUrl?: string
+  /** 来源图标（运行时填充） */
+  sourceIcon?: string
+  /** 来源名称（运行时填充） */
+  sourceName?: string
 }
 
 /** Ecosystem source - JSON 文件格式 */

@@ -129,12 +129,24 @@ async function fetchSource(url: string): Promise<EcosystemSource | null> {
 /** Refresh all sources and update cached apps */
 export async function refreshSources(): Promise<MiniappManifest[]> {
   const enabledSources = sources.filter((s) => s.enabled)
-  const results = await Promise.all(enabledSources.map((s) => fetchSource(s.url)))
+  const results = await Promise.all(
+    enabledSources.map(async (s) => {
+      const data = await fetchSource(s.url)
+      return { source: s, data }
+    })
+  )
 
   cachedApps = []
-  for (const result of results) {
-    if (result?.apps) {
-      cachedApps.push(...result.apps)
+  for (const { source, data } of results) {
+    if (data?.apps) {
+      // 为每个应用附加来源信息
+      const appsWithSource = data.apps.map((app) => ({
+        ...app,
+        sourceUrl: source.url,
+        sourceIcon: source.icon || data.icon,
+        sourceName: source.name,
+      }))
+      cachedApps.push(...appsWithSource)
     }
   }
 

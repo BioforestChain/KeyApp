@@ -8,6 +8,7 @@ import {
   MiniappIcon, 
   MiniappIconWithLabel, 
   MiniappIconGrid,
+  SourceIcon,
   type MiniappBadge 
 } from '@/components/ecosystem'
 import { 
@@ -256,14 +257,23 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: IOSAppIconProps) 
         }
       }}
     >
-      {/* 使用统一图标组件 */}
-      <MiniappIcon
-        src={app.icon}
-        name={app.name}
-        size="lg"
-        badge={getAppBadge(app)}
-        shadow="md"
-      />
+      {/* 图标容器 - 带来源标识 */}
+      <div className="relative">
+        <MiniappIcon
+          src={app.icon}
+          name={app.name}
+          size="lg"
+          shadow="md"
+        />
+        {/* 来源图标 - 右上角 */}
+        <div className="absolute -top-1 -right-1">
+          <SourceIcon 
+            src={app.sourceIcon} 
+            name={app.sourceName}
+            size="sm"
+          />
+        </div>
+      </div>
       
       {/* 应用名称 */}
       <span className="text-[11px] font-medium text-center leading-tight max-w-[70px] line-clamp-2">
