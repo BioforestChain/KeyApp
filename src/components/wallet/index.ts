@@ -13,6 +13,10 @@ export interface WalletInfo {
   fiatValue?: string | undefined
   chainName?: string | undefined
   isBackedUp?: boolean | undefined
+  /** 主题色 hue (0-360) */
+  themeHue?: number | undefined
+  /** 链图标 URL，用于彩虹水印 */
+  chainIconUrl?: string | undefined
 }
 export { AddressDisplay } from './address-display'
 export { ChainIcon, ChainBadge, ChainIconProvider, type ChainType } from './chain-icon'

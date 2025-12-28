@@ -1,11 +1,13 @@
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
-import { IconPlus, IconWallet, IconCircleCheckFilled } from "@tabler/icons-react";
+import { IconPlus, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useFlow } from "../../stackflow";
 import { useWallets, useCurrentWallet, walletActions } from "@/stores";
-import { WALLET_THEME_COLORS, useWalletTheme } from "@/hooks/useWalletTheme";
+import { useWalletTheme } from "@/hooks/useWalletTheme";
+import { useChainIconUrls } from "@/hooks/useChainIconUrls";
+import { WalletMiniCard } from "@/components/wallet/wallet-mini-card";
 
 export const WalletListJob: ActivityComponentType = () => {
   const { t } = useTranslation(["wallet", "common"]);
@@ -14,6 +16,7 @@ export const WalletListJob: ActivityComponentType = () => {
   const currentWallet = useCurrentWallet();
   const currentWalletId = currentWallet?.id;
   const { getWalletTheme } = useWalletTheme();
+  const chainIconUrls = useChainIconUrls();
 
   const handleSelectWallet = (walletId: string) => {
     walletActions.setCurrentWallet(walletId);
@@ -47,7 +50,6 @@ export const WalletListJob: ActivityComponentType = () => {
               ? `${address.slice(0, 6)}...${address.slice(-4)}`
               : "---";
             const themeHue = getWalletTheme(wallet.id);
-            const themeColor = WALLET_THEME_COLORS.find(c => c.hue === themeHue) ?? WALLET_THEME_COLORS[0];
 
             return (
               <button
@@ -61,15 +63,12 @@ export const WalletListJob: ActivityComponentType = () => {
                     : "bg-muted/50 hover:bg-muted"
                 )}
               >
-                {/* 钱包图标带主题色 */}
-                <div
-                  className="flex size-11 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    backgroundColor: `oklch(0.85 0.15 ${themeHue})`,
-                  }}
-                >
-                  <IconWallet className="size-5 text-white" />
-                </div>
+                {/* 钱包小卡片图标 */}
+                <WalletMiniCard
+                  themeHue={themeHue}
+                  size="md"
+                  watermarkIconUrl={chainIconUrls[wallet.chain]}
+                />
 
                 {/* 钱包信息 */}
                 <div className="min-w-0 flex-1 text-left">
@@ -83,13 +82,6 @@ export const WalletListJob: ActivityComponentType = () => {
                     {displayAddress}
                   </p>
                 </div>
-
-                {/* 主题色指示 */}
-                <div
-                  className="size-4 shrink-0 rounded-full"
-                  style={{ backgroundColor: themeColor?.color ?? `oklch(0.7 0.2 ${themeHue})` }}
-                  title={themeColor?.name}
-                />
               </button>
             );
           })}

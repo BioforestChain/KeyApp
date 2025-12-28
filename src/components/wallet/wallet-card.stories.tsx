@@ -3,6 +3,15 @@ import { WalletCard } from './wallet-card'
 import type { Wallet } from '@/stores'
 import { fn } from '@storybook/test'
 
+// 不同链的图标路径
+const CHAIN_ICONS = {
+  ethereum: '/icons/ethereum/chain.svg',
+  bitcoin: '/icons/bitcoin/chain.svg',
+  tron: '/icons/tron/chain.svg',
+  binance: '/icons/binance/chain.svg',
+  bfmeta: '/icons/bfmeta/chain.svg',
+}
+
 const createMockWallet = (overrides: Partial<Wallet> = {}): Wallet => ({
   id: 'wallet-1',
   name: '我的钱包',
@@ -64,6 +73,7 @@ export const Default: Story = {
     chainName: 'Ethereum',
     address: '0x1234567890abcdef1234567890abcdef12345678',
     themeHue: 323,
+    chainIconUrl: CHAIN_ICONS.ethereum,
     onCopyAddress: fn(),
     onOpenChainSelector: fn(),
     onOpenSettings: fn(),
@@ -112,6 +122,7 @@ export const TronChain: Story = {
     chainName: 'Tron',
     address: 'TAbcd1234567890abcdef1234567890abcde',
     themeHue: 0,
+    chainIconUrl: CHAIN_ICONS.tron,
     onCopyAddress: fn(),
     onOpenChainSelector: fn(),
     onOpenSettings: fn(),
@@ -125,6 +136,7 @@ export const BitcoinChain: Story = {
     chainName: 'Bitcoin',
     address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
     themeHue: 30,
+    chainIconUrl: CHAIN_ICONS.bitcoin,
     onCopyAddress: fn(),
     onOpenChainSelector: fn(),
     onOpenSettings: fn(),
@@ -168,6 +180,7 @@ export const AllThemes: Story = {
           chainName="ETH"
           address="0x1234...5678"
           themeHue={hue}
+          chainIconUrl={CHAIN_ICONS.ethereum}
         />
       ))}
     </div>

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
 import type { WalletInfo } from './index';
+import { WalletMiniCard } from './wallet-mini-card';
 
 interface WalletSelectorProps {
   /** List of available wallets */
@@ -41,10 +42,12 @@ function WalletItem({ wallet, isSelected, onSelect, notBackedUpLabel }: WalletIt
       aria-selected={isSelected}
       role="option"
     >
-      {/* Avatar */}
-      <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full font-bold">
-        {wallet.name.charAt(0).toUpperCase()}
-      </div>
+      {/* 钱包小卡片 */}
+      <WalletMiniCard
+        themeHue={wallet.themeHue ?? 323}
+        size="md"
+        watermarkIconUrl={wallet.chainIconUrl}
+      />
 
       {/* Info */}
       <div className="min-w-0 flex-1">

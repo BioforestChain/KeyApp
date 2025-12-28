@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { encrypt, decrypt, encryptWithRawKey, decryptWithRawKey, deriveEncryptionKeyFromMnemonic } from '@/lib/crypto'
+import { encrypt, decrypt, encryptWithRawKey, decryptWithRawKey, deriveEncryptionKeyFromMnemonic, deriveEncryptionKeyFromSecret } from '@/lib/crypto'
 import {
   type WalleterInfo,
   type WalletInfo,
@@ -158,13 +158,39 @@ export class WalletStorageService {
   ): Promise<WalletInfo> {
     this.ensureInitialized()
 
+    // 验证参数
+    if (!mnemonic || typeof mnemonic !== 'string') {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Invalid mnemonic: mnemonic is required'
+      )
+    }
+    if (!walletLock || typeof walletLock !== 'string') {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Invalid walletLock: wallet lock password is required'
+      )
+    }
+
+    // 检查 crypto.subtle 可用性（仅在安全上下文中可用）
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.ENCRYPTION_FAILED,
+        'Web Crypto API is not available. Please use HTTPS or localhost.'
+      )
+    }
+
     try {
       // 双向加密：
-      // 1. 使用钱包锁加密助记词
+      // 1. 使用钱包锁加密助记词/密钥
       const encryptedMnemonic = await encrypt(mnemonic, walletLock)
-      // 2. 使用助记词派生密钥加密钱包锁
-      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
-      const encryptedWalletLock = await encryptWithRawKey(walletLock, mnemonicKey)
+      // 2. 根据密钥类型选择派生方法加密钱包锁
+      // - mnemonic: 使用 BIP32 派生（兼容标准助记词）
+      // - arbitrary/privateKey: 使用 SHA256 派生（支持任意字符串）
+      const secretKey = wallet.keyType === 'mnemonic'
+        ? deriveEncryptionKeyFromMnemonic(mnemonic)
+        : deriveEncryptionKeyFromSecret(mnemonic)
+      const encryptedWalletLock = await encryptWithRawKey(walletLock, secretKey)
       
       const walletWithEncryption: WalletInfo = {
         ...wallet,
@@ -175,9 +201,10 @@ export class WalletStorageService {
       await this.db!.put('wallets', walletWithEncryption)
       return walletWithEncryption
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
       throw new WalletStorageError(
         WalletStorageErrorCode.ENCRYPTION_FAILED,
-        'Failed to encrypt wallet data',
+        `Failed to encrypt wallet data: ${message}`,
         err instanceof Error ? err : undefined
       )
     }
@@ -277,6 +304,14 @@ export class WalletStorageService {
   ): Promise<void> {
     this.ensureInitialized()
 
+    const wallet = await this.getWallet(walletId)
+    if (!wallet) {
+      throw new WalletStorageError(
+        WalletStorageErrorCode.WALLET_NOT_FOUND,
+        `Wallet not found: ${walletId}`
+      )
+    }
+
     // 用旧钱包锁解密助记词
     const mnemonic = await this.getMnemonic(walletId, oldWalletLock)
 
@@ -284,9 +319,11 @@ export class WalletStorageService {
     try {
       // 1. 使用新钱包锁加密助记词
       const encryptedMnemonic = await encrypt(mnemonic, newWalletLock)
-      // 2. 使用助记词派生密钥加密新钱包锁
-      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
-      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, mnemonicKey)
+      // 2. 根据密钥类型选择派生方法加密新钱包锁
+      const secretKey = wallet.keyType === 'mnemonic'
+        ? deriveEncryptionKeyFromMnemonic(mnemonic)
+        : deriveEncryptionKeyFromSecret(mnemonic)
+      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, secretKey)
       
       await this.updateWallet(walletId, { encryptedMnemonic, encryptedWalletLock })
     } catch (err) {
@@ -320,10 +357,12 @@ export class WalletStorageService {
       )
     }
 
-    // 验证助记词：尝试用助记词派生密钥解密钱包锁
+    // 验证助记词/密钥：尝试用派生密钥解密钱包锁
     try {
-      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
-      await decryptWithRawKey(wallet.encryptedWalletLock, mnemonicKey)
+      const secretKey = wallet.keyType === 'mnemonic'
+        ? deriveEncryptionKeyFromMnemonic(mnemonic)
+        : deriveEncryptionKeyFromSecret(mnemonic)
+      await decryptWithRawKey(wallet.encryptedWalletLock, secretKey)
       return true
     } catch {
       return false
@@ -353,24 +392,26 @@ export class WalletStorageService {
       )
     }
 
-    // 验证助记词：尝试用助记词派生密钥解密钱包锁
+    // 验证助记词/密钥：尝试用派生密钥解密钱包锁
+    const secretKey = wallet.keyType === 'mnemonic'
+      ? deriveEncryptionKeyFromMnemonic(mnemonic)
+      : deriveEncryptionKeyFromSecret(mnemonic)
+
     try {
-      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
-      await decryptWithRawKey(wallet.encryptedWalletLock, mnemonicKey)
+      await decryptWithRawKey(wallet.encryptedWalletLock, secretKey)
     } catch {
       throw new WalletStorageError(
         WalletStorageErrorCode.INVALID_PASSWORD,
-        'Invalid mnemonic: failed to decrypt wallet lock'
+        'Invalid mnemonic/secret: failed to decrypt wallet lock'
       )
     }
 
-    // 助记词验证通过，重新双向加密
+    // 验证通过，重新双向加密
     try {
-      // 1. 使用新钱包锁加密助记词
+      // 1. 使用新钱包锁加密助记词/密钥
       const encryptedMnemonic = await encrypt(mnemonic, newWalletLock)
-      // 2. 使用助记词派生密钥加密新钱包锁
-      const mnemonicKey = deriveEncryptionKeyFromMnemonic(mnemonic)
-      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, mnemonicKey)
+      // 2. 使用派生密钥加密新钱包锁
+      const encryptedWalletLock = await encryptWithRawKey(newWalletLock, secretKey)
       
       await this.updateWallet(walletId, { encryptedMnemonic, encryptedWalletLock })
     } catch (err) {

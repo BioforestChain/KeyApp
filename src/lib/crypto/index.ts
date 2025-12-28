@@ -37,6 +37,7 @@ export {
   toChecksumAddress,
   isValidAddress,
   deriveEncryptionKeyFromMnemonic,
+  deriveEncryptionKeyFromSecret,
   type DerivedKey,
   type ChainType as DeriveChainType,
 } from './derivation'
