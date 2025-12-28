@@ -5,6 +5,12 @@ import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { initRegistry, getApps } from '@/services/ecosystem'
 import type { MiniappManifest } from '@/services/ecosystem'
 import { 
+  MiniappIcon, 
+  MiniappIconWithLabel, 
+  MiniappIconGrid,
+  type MiniappBadge 
+} from '@/components/ecosystem'
+import { 
   IconSearch, IconApps, IconChevronRight, IconDownload, IconSparkles,
   IconPlayerPlay, IconInfoCircle, IconTrash, IconShare, IconHeart
 } from '@tabler/icons-react'
@@ -66,6 +72,12 @@ function getTodayDate() {
   return `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`
 }
 
+function getAppBadge(app: MiniappManifest): MiniappBadge {
+  if (app.verified) return 'verified'
+  if (app.beta) return 'beta'
+  return 'none'
+}
+
 // ============================================
 // iOS 风格 Context Menu
 // ============================================
@@ -97,16 +109,14 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onSha
     }
   }, [onClose])
 
-  // 调整菜单位置，确保不超出屏幕
   const adjustedPosition = useMemo(() => {
-    const menuWidth = 200
-    const menuHeight = 280
+    const menuWidth = 220
+    const menuHeight = 320
     const padding = 16
     
     let x = position.x - menuWidth / 2
     let y = position.y + 20
     
-    // 边界检测
     if (x < padding) x = padding
     if (x + menuWidth > window.innerWidth - padding) x = window.innerWidth - menuWidth - padding
     if (y + menuHeight > window.innerHeight - padding) y = position.y - menuHeight - 20
@@ -127,23 +137,21 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onSha
       <div
         ref={menuRef}
         className={cn(
-          "absolute w-52 bg-popover/95 backdrop-blur-xl rounded-2xl shadow-2xl",
+          "absolute w-56 bg-popover/95 backdrop-blur-xl rounded-2xl shadow-2xl",
           "border border-border/50 overflow-hidden",
           "animate-in zoom-in-95 slide-in-from-bottom-2 duration-200"
         )}
         style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
       >
-        {/* App 预览 */}
+        {/* App 预览 - 使用统一图标组件 */}
         <div className="p-4 flex items-center gap-3 border-b border-border/50">
-          <div className="size-12 rounded-[12px] bg-muted overflow-hidden shadow-sm">
-            {app.icon ? (
-              <img src={app.icon} alt={app.name} className="size-full object-cover" />
-            ) : (
-              <div className="size-full flex items-center justify-center">
-                <IconApps className="size-6 text-muted-foreground" />
-              </div>
-            )}
-          </div>
+          <MiniappIcon 
+            src={app.icon} 
+            name={app.name} 
+            size="md"
+            badge={getAppBadge(app)}
+            shadow="sm"
+          />
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-sm truncate">{app.name}</h4>
             <p className="text-xs text-muted-foreground truncate">{app.description}</p>
@@ -152,7 +160,7 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onSha
 
         {/* 菜单项 */}
         <div className="py-1">
-          {menuItems.map((item, i) => (
+          {menuItems.map((item) => (
             <button
               key={item.label}
               onClick={() => {
@@ -177,16 +185,16 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onSha
 }
 
 // ============================================
-// iOS 桌面风格图标
+// iOS 桌面风格图标（带长按手势）
 // ============================================
-interface iOSAppIconProps {
+interface IOSAppIconProps {
   app: MiniappManifest
   onTap: () => void
   onContextMenu: (position: { x: number; y: number }) => void
   isWiggling?: boolean
 }
 
-function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: iOSAppIconProps) {
+function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: IOSAppIconProps) {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const touchStartPos = useRef({ x: 0, y: 0 })
   const [isPressed, setIsPressed] = useState(false)
@@ -197,7 +205,6 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: iOSAppIconProps) 
     setIsPressed(true)
     
     longPressTimer.current = setTimeout(() => {
-      // 触发长按
       onContextMenu({ x: touch.clientX, y: touch.clientY - 60 })
       setIsPressed(false)
     }, 500)
@@ -208,7 +215,6 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: iOSAppIconProps) 
     const dx = Math.abs(touch.clientX - touchStartPos.current.x)
     const dy = Math.abs(touch.clientY - touchStartPos.current.y)
     
-    // 如果移动超过阈值，取消长按
     if (dx > 10 || dy > 10) {
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
@@ -222,7 +228,6 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: iOSAppIconProps) 
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current)
       longPressTimer.current = null
-      // 短按，触发点击
       onTap()
     }
   }
@@ -246,38 +251,22 @@ function IOSAppIcon({ app, onTap, onContextMenu, isWiggling }: iOSAppIconProps) 
       onTouchEnd={handleTouchEnd}
       onContextMenu={handleContextMenu}
       onClick={(e) => {
-        // 桌面端点击
         if (e.detail === 1 && !('ontouchstart' in window)) {
           onTap()
         }
       }}
     >
-      {/* iOS 风格图标 - 60x60 圆角 13px */}
-      <div className={cn(
-        "size-[60px] rounded-[13px] overflow-hidden",
-        "shadow-lg shadow-black/10 dark:shadow-black/30",
-        "ring-1 ring-black/5 dark:ring-white/10",
-        "bg-gradient-to-br from-muted to-muted/80"
-      )}>
-        {app.icon ? (
-          <img 
-            src={app.icon} 
-            alt={app.name} 
-            className="size-full object-cover"
-            draggable={false}
-          />
-        ) : (
-          <div className="size-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
-            <IconApps className="size-8 text-primary" stroke={1.5} />
-          </div>
-        )}
-      </div>
+      {/* 使用统一图标组件 */}
+      <MiniappIcon
+        src={app.icon}
+        name={app.name}
+        size="lg"
+        badge={getAppBadge(app)}
+        shadow="md"
+      />
       
-      {/* 应用名称 - iOS 风格 */}
-      <span className={cn(
-        "text-[11px] font-medium text-center leading-tight",
-        "max-w-[70px] line-clamp-2"
-      )}>
+      {/* 应用名称 */}
+      <span className="text-[11px] font-medium text-center leading-tight max-w-[70px] line-clamp-2">
         {app.name}
       </span>
     </button>
@@ -324,18 +313,14 @@ function FeaturedStoryCard({
         
         <div className="mt-auto">
           <div className="flex items-end gap-4 @sm:gap-5">
-            <div className={cn(
-              "size-20 @sm:size-24 rounded-[24px] bg-white/20 backdrop-blur-md",
-              "shadow-2xl overflow-hidden shrink-0 ring-1 ring-white/30"
-            )}>
-              {app.icon ? (
-                <img src={app.icon} alt={app.name} className="size-full object-cover" />
-              ) : (
-                <div className="size-full flex items-center justify-center">
-                  <IconApps className="size-10 @sm:size-12 text-white/80" stroke={1.5} />
-                </div>
-              )}
-            </div>
+            {/* 使用统一图标组件 - 玻璃态 */}
+            <MiniappIcon
+              src={app.icon}
+              name={app.name}
+              size="xl"
+              glass
+              className="@sm:!size-24 @sm:!rounded-[24px]"
+            />
             <div className="flex-1 min-w-0 pb-1">
               <h2 className="text-2xl @sm:text-3xl font-bold text-white leading-tight mb-1.5">
                 {app.name}
@@ -376,18 +361,15 @@ function HorizontalAppCard({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_-10%,rgba(255,255,255,0.25),transparent_40%)]" />
       
       <div className="relative p-4 h-[160px] flex flex-col">
-        <div className={cn(
-          "size-14 rounded-2xl bg-white/25 backdrop-blur-sm overflow-hidden",
-          "mb-auto ring-1 ring-white/30 shadow-lg"
-        )}>
-          {app.icon ? (
-            <img src={app.icon} alt={app.name} className="size-full object-cover" />
-          ) : (
-            <div className="size-full flex items-center justify-center">
-              <IconApps className="size-7 text-white/80" stroke={1.5} />
-            </div>
-          )}
-        </div>
+        {/* 使用统一图标组件 - 玻璃态 */}
+        <MiniappIcon
+          src={app.icon}
+          name={app.name}
+          size="lg"
+          customSize={56}
+          glass
+          className="mb-auto"
+        />
         <div>
           <h3 className="text-base font-bold text-white truncate">{app.name}</h3>
           <p className="text-xs text-white/70 truncate mt-0.5">{app.description}</p>
@@ -422,18 +404,15 @@ function AppListItem({
       )}
       
       <button onClick={onTap} className="shrink-0">
-        <div className={cn(
-          "size-16 rounded-2xl bg-muted overflow-hidden",
-          "shadow-sm ring-1 ring-border/30"
-        )}>
-          {app.icon ? (
-            <img src={app.icon} alt={app.name} className="size-full object-cover" />
-          ) : (
-            <div className="size-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-              <IconApps className="size-8 text-muted-foreground" stroke={1.5} />
-            </div>
-          )}
-        </div>
+        {/* 使用统一图标组件 */}
+        <MiniappIcon
+          src={app.icon}
+          name={app.name}
+          size="lg"
+          customSize={64}
+          badge={getAppBadge(app)}
+          shadow="sm"
+        />
       </button>
 
       <button onClick={onTap} className="flex-1 min-w-0 text-left">
@@ -484,13 +463,11 @@ export function EcosystemTab() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('discover')
   
-  // Context Menu 状态
   const [contextMenu, setContextMenu] = useState<{
     app: MiniappManifest
     position: { x: number; y: number }
   } | null>(null)
   
-  // 滑动相关
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
   const currentX = useRef(0)
@@ -504,9 +481,8 @@ export function EcosystemTab() {
     })
   }, [])
 
-  // 触摸滑动处理
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (contextMenu) return // 菜单打开时不处理滑动
+    if (contextMenu) return
     startX.current = e.touches[0].clientX
     currentX.current = 0
     isDragging.current = true
@@ -555,7 +531,6 @@ export function EcosystemTab() {
     }
   }, [])
 
-  // 我的应用（带完整信息）
   const myApps = useMemo(() => {
     return myAppRecords
       .map(record => ({
@@ -565,7 +540,6 @@ export function EcosystemTab() {
       .filter((item): item is MyAppRecord & { app: MiniappManifest } => !!item.app)
   }, [myAppRecords, apps])
 
-  // 精选应用
   const featuredApp = apps[0]
   const recommendedApps = apps.slice(0, 5)
 
@@ -612,11 +586,8 @@ export function EcosystemTab() {
             </button>
           ))}
           
-          {/* 滑动指示器 */}
           <div 
-            className={cn(
-              "absolute -bottom-2 h-1 bg-primary rounded-full transition-all duration-300 ease-out"
-            )}
+            className="absolute -bottom-2 h-1 bg-primary rounded-full transition-all duration-300 ease-out"
             style={{
               width: '48px',
               transform: `translateX(${activeTab === 'discover' ? '0' : 'calc(48px + 24px)'})`
@@ -732,8 +703,8 @@ export function EcosystemTab() {
             />
           ) : (
             <div className="pt-6 px-4">
-              {/* iOS 桌面网格 - 4列 */}
-              <div className="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center">
+              {/* iOS 桌面网格 - 使用 MiniappIconGrid */}
+              <MiniappIconGrid columns={4} iconSize="lg" gap="sm">
                 {myApps.map(({ app }) => (
                   <IOSAppIcon
                     key={app.id}
@@ -742,9 +713,8 @@ export function EcosystemTab() {
                     onContextMenu={(position) => setContextMenu({ app, position })}
                   />
                 ))}
-              </div>
+              </MiniappIconGrid>
 
-              {/* 提示文字 */}
               <p className="text-center text-xs text-muted-foreground mt-8">
                 长按图标查看更多选项
               </p>
@@ -766,7 +736,6 @@ export function EcosystemTab() {
         />
       )}
 
-      {/* 添加 wiggle 动画样式 */}
       <style>{`
         @keyframes wiggle {
           0%, 100% { transform: rotate(-1deg); }
