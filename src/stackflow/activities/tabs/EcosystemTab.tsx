@@ -506,9 +506,10 @@ export function EcosystemTab() {
     isDragging.current = false
     
     const threshold = 80
-    if (currentX.current > threshold && activeTab === 'discover') {
+    // 向左滑（负值）切换到右边的"我的"，向右滑（正值）切换到左边的"发现"
+    if (currentX.current < -threshold && activeTab === 'discover') {
       setActiveTab('mine')
-    } else if (currentX.current < -threshold && activeTab === 'mine') {
+    } else if (currentX.current > threshold && activeTab === 'mine') {
       setActiveTab('discover')
     }
   }, [activeTab, contextMenu])
@@ -617,7 +618,7 @@ export function EcosystemTab() {
                 <section className="px-5">
                   <FeaturedStoryCard 
                     app={featuredApp} 
-                    onTap={() => handleAppOpen(featuredApp)}
+                    onTap={() => handleAppDetail(featuredApp)}
                   />
                 </section>
               )}
@@ -631,16 +632,20 @@ export function EcosystemTab() {
                       <IconChevronRight className="size-4" />
                     </button>
                   </div>
-                  <div className={cn(
-                    "flex gap-3 overflow-x-auto px-5 pb-3",
-                    "snap-x snap-mandatory scroll-smooth",
-                    "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                  )}>
+                  <div 
+                    className={cn(
+                      "flex gap-3 overflow-x-auto px-5 pb-3",
+                      "snap-x snap-mandatory scroll-smooth",
+                      "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                    )}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                  >
                     {recommendedApps.slice(1).map((app, i) => (
                       <HorizontalAppCard
                         key={app.id}
                         app={app}
-                        onTap={() => handleAppOpen(app)}
+                        onTap={() => handleAppDetail(app)}
                         fallbackColorIndex={i}
                       />
                     ))}
@@ -648,7 +653,7 @@ export function EcosystemTab() {
                       <HorizontalAppCard
                         key={`extra-${app.id}`}
                         app={app}
-                        onTap={() => handleAppOpen(app)}
+                        onTap={() => handleAppDetail(app)}
                         fallbackColorIndex={i + 2}
                       />
                     ))}
@@ -677,7 +682,7 @@ export function EcosystemTab() {
                 <section className="px-5">
                   <FeaturedStoryCard 
                     app={apps[1]} 
-                    onTap={() => handleAppOpen(apps[1])}
+                    onTap={() => handleAppDetail(apps[1])}
                   />
                 </section>
               )}
