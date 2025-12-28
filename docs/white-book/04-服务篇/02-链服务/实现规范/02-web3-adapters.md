@@ -204,6 +204,6 @@ pnpm test -- --testPathPattern="chain-adapter"
 
 ## 相关文档
 
-- [链配置管理](../07-链配置管理/index.md)
-- [测试网络](../../08-测试篇/06-测试网络/index.md)
+- [链配置管理](../../07-链配置管理/index.md)
+- [测试网络](../../../08-测试篇/06-测试网络/index.md)
 - [ITransactionService](../ITransactionService.md)
