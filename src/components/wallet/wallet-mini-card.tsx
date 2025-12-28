@@ -74,7 +74,6 @@ export function WalletMiniCard({
     size: Math.round(iconSize * dpr),
     invert: false,
     contrast: 1.8,
-    clip: true,
     targetBrightness: 0.85,
     pipeline: RAINBOW_PIPELINE,
   })

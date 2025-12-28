@@ -21,7 +21,7 @@ export interface MonochromeMaskOptions {
   contrast?: number
   /** 管道 hooks，按顺序执行 */
   pipeline?: PipelineHook[]
-  /** 是否裁剪透明区域（先裁剪再处理） */
+  /** 是否裁剪透明区域（先裁剪再处理），默认 true */
   clip?: boolean
   /** 亮度锚定目标值 (0-1)，裁剪后调整整体亮度到此值 */
   targetBrightness?: number
@@ -356,7 +356,7 @@ export async function createMonochromeMask(
   iconUrl: string,
   options: MonochromeMaskOptions = {}
 ): Promise<string | null> {
-  const { size = 64, invert = false, contrast = 1.5, pipeline, clip, targetBrightness } = options
+  const { size = 64, invert = false, contrast = 1.5, pipeline, clip = true, targetBrightness } = options
   const cacheKey = getCacheKey(iconUrl, size, invert, contrast, pipeline, clip, targetBrightness)
 
   // 1. 检查缓存
