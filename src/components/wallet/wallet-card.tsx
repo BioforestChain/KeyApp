@@ -25,7 +25,7 @@ import { useCardInteraction } from '@/hooks/useCardInteraction';
 import { useMonochromeMask } from '@/hooks/useMonochromeMask';
 import { ChainIcon } from './chain-icon';
 import { AddressDisplay } from './address-display';
-import { HologramCanvas } from './refraction';
+import { HologramCanvas, type Priority } from './refraction';
 import type { Wallet, ChainType } from '@/stores';
 import {
   IconCopy as Copy,
@@ -38,6 +38,8 @@ export interface WalletCardProps {
   wallet: Wallet;
   chain: ChainType;
   chainName: string;
+  /** 渲染优先级，影响帧率和分辨率 */
+  priority?: Priority;
   address?: string | undefined;
   /** 链图标 URL，用于防伪水印 */
   chainIconUrl?: string | undefined;
@@ -74,6 +76,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     wallet,
     chain,
     chainName,
+    priority = 'high',
     address,
     chainIconUrl,
     watermarkLogoSize = 40,
@@ -104,8 +107,10 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const refractionMode = prefersReducedMotion ? ('static' as const) : ('dynamic' as const);
 
   // 将链图标转为单色遮罩（黑白 -> 透明）
+  // 使用 devicePixelRatio 确保高清
+  const dpr = typeof window !== 'undefined' ? Math.min(3, window.devicePixelRatio || 1) : 1;
   const monoMaskUrl = useMonochromeMask(chainIconUrl, {
-    size: watermarkLogoActualSize * 2, // 2x for retina
+    size: Math.round(watermarkLogoActualSize * dpr),
     invert: false, // 白色区域不透明
     contrast: 1.8,
   });
@@ -179,6 +184,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
       >
         {/* 1~4. 背景 + Pattern/Watermark + Spotlight 全部由 Canvas 完成（不依赖 DOM mix-blend-mode） */}
         <HologramCanvas
+          priority={priority}
           enabledPattern={!disablePatternRefractionEffective}
           enabledWatermark={!disableWatermarkRefractionEffective && Boolean(monoMaskUrl)}
           mode={refractionMode}

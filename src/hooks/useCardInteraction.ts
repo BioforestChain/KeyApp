@@ -9,6 +9,10 @@ interface CardInteractionOptions {
   enableGyro?: boolean
   /** 是否启用触摸 */
   enableTouch?: boolean
+  /** 摩擦力系统：静止检测时间 (ms)，默认 3000 */
+  idleTimeout?: number
+  /** 摩擦力系统：唤醒阈值 (pointer 变化量)，默认 0.055 ≈ 10pt 视觉移动 */
+  wakeThreshold?: number
 }
 
 interface CardInteractionState {
@@ -30,6 +34,8 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
     touchStrength = 1,
     enableGyro = true,
     enableTouch = true,
+    idleTimeout = 3000,
+    wakeThreshold = 0.055,
   } = options
 
   const applyGyroCurve = useCallback((value: number) => {
@@ -51,8 +57,14 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
   // 触摸数据
   const touchRef = useRef({ x: 0, y: 0, active: false })
 
-  // 合并重力和触摸数据
+  // 摩擦力系统状态
+  const frictionPhase = useRef<'static' | 'dynamic'>('dynamic')
+  const lastActiveTime = useRef(Date.now())
+  const lastPointer = useRef({ x: 0, y: 0 })
+
+  // 合并重力和触摸数据（含摩擦力系统）
   const updateState = useCallback(() => {
+    const now = Date.now()
     const gyro = gyroRef.current
     const touch = touchRef.current
 
@@ -79,12 +91,38 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
     x = Math.max(-1, Math.min(1, x))
     y = Math.max(-1, Math.min(1, y))
 
+    // 摩擦力系统：计算运动幅度（相对于上一个稳定位置）
+    const delta = Math.hypot(x - lastPointer.current.x, y - lastPointer.current.y)
+
+    if (frictionPhase.current === 'static') {
+      // 静止阶段：只有大幅运动或触摸才唤醒
+      if (delta > wakeThreshold || touch.active) {
+        frictionPhase.current = 'dynamic'
+        lastActiveTime.current = now
+        lastPointer.current = { x, y }
+      } else {
+        // 过滤微弱运动，保持静止（不更新 state，不更新 lastPointer）
+        return
+      }
+    } else {
+      // 动态阶段：检查是否该进入静止
+      if (delta > wakeThreshold || touch.active) {
+        lastActiveTime.current = now
+        lastPointer.current = { x, y }
+      } else if (now - lastActiveTime.current > idleTimeout) {
+        frictionPhase.current = 'static'
+        // 进入静止时：保持当前位置不变（冻结），不再更新
+        // lastPointer 也保持不变，用于检测唤醒
+        return
+      }
+    }
+
     setState({
       pointerX: x,
       pointerY: y,
       isActive: active,
     })
-  }, [applyGyroCurve, gyroStrength, touchStrength, enableGyro, enableTouch])
+  }, [applyGyroCurve, gyroStrength, touchStrength, enableGyro, enableTouch, idleTimeout, wakeThreshold])
 
   // 处理重力感应
   useEffect(() => {
