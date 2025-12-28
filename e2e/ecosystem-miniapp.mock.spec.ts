@@ -150,6 +150,89 @@ test.describe('生态 Tab 截图测试', () => {
 
     await expect(page).toHaveScreenshot('02c-ecosystem-context-menu.png')
   })
+
+  test('长按菜单 - 点击打开', async ({ page }) => {
+    // 添加"我的应用"数据
+    await page.addInitScript(() => {
+      localStorage.setItem('ecosystem_my_apps', JSON.stringify([
+        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+      ]))
+    })
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 进入生态 - 我的
+    await page.locator('text=/生态/i').first().click()
+    await page.waitForTimeout(300)
+    await page.locator('button:has-text("我的")').click()
+    await page.waitForTimeout(300)
+
+    // 右键菜单 -> 打开
+    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.waitForTimeout(200)
+    await page.locator('button:has-text("打开")').click()
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('02d-context-menu-open.png')
+  })
+
+  test('长按菜单 - 点击详情', async ({ page }) => {
+    // 添加"我的应用"数据
+    await page.addInitScript(() => {
+      localStorage.setItem('ecosystem_my_apps', JSON.stringify([
+        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+      ]))
+    })
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 进入生态 - 我的
+    await page.locator('text=/生态/i').first().click()
+    await page.waitForTimeout(300)
+    await page.locator('button:has-text("我的")').click()
+    await page.waitForTimeout(300)
+
+    // 右键菜单 -> 详情
+    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.waitForTimeout(200)
+    await page.locator('button:has-text("详情")').click()
+    await page.waitForTimeout(800)
+
+    await expect(page).toHaveScreenshot('02e-context-menu-detail.png')
+  })
+
+  test('长按菜单 - 点击移除', async ({ page }) => {
+    // 添加"我的应用"数据
+    await page.addInitScript(() => {
+      localStorage.setItem('ecosystem_my_apps', JSON.stringify([
+        { appId: 'teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+        { appId: 'forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+      ]))
+    })
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 进入生态 - 我的
+    await page.locator('text=/生态/i').first().click()
+    await page.waitForTimeout(300)
+    await page.locator('button:has-text("我的")').click()
+    await page.waitForTimeout(300)
+
+    // 右键菜单 -> 移除
+    await page.locator('[data-testid="ios-app-icon-teleport"]').click({ button: 'right' })
+    await page.waitForTimeout(200)
+    await page.locator('button:has-text("移除")').click()
+    await page.waitForTimeout(500)
+
+    // 截图显示移除后的状态（只剩一个应用）
+    await expect(page).toHaveScreenshot('02f-context-menu-remove.png')
+  })
 })
 
 test.describe('小程序详情页截图测试', () => {

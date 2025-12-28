@@ -13,7 +13,7 @@ import {
 } from '@/components/ecosystem'
 import { 
   IconSearch, IconApps, IconChevronRight, IconDownload, IconSparkles,
-  IconPlayerPlay, IconInfoCircle, IconTrash, IconShare, IconHeart
+  IconPlayerPlay, IconInfoCircle, IconTrash
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -89,10 +89,9 @@ interface ContextMenuProps {
   onOpen: () => void
   onDetail: () => void
   onRemove: () => void
-  onShare: () => void
 }
 
-function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onShare }: ContextMenuProps) {
+function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -128,8 +127,6 @@ function ContextMenu({ app, position, onClose, onOpen, onDetail, onRemove, onSha
   const menuItems = [
     { icon: IconPlayerPlay, label: '打开', action: onOpen, color: 'text-primary' },
     { icon: IconInfoCircle, label: '详情', action: onDetail, color: 'text-foreground' },
-    { icon: IconShare, label: '分享', action: onShare, color: 'text-foreground' },
-    { icon: IconHeart, label: '收藏', action: () => {}, color: 'text-foreground' },
     { icon: IconTrash, label: '移除', action: onRemove, color: 'text-destructive', destructive: true },
   ]
 
@@ -541,15 +538,8 @@ export function EcosystemTab() {
     setMyAppRecords(loadMyApps())
   }, [])
 
-  const handleShareApp = useCallback((app: MiniappManifest) => {
-    if (navigator.share) {
-      navigator.share({
-        title: app.name,
-        text: app.description,
-        url: window.location.origin + app.url,
-      })
-    }
-  }, [])
+  // TODO: 分享功能 - 需要完整实现（URL协议、二维码等）
+  // TODO: 收藏功能 - 需要完整实现
 
   const myApps = useMemo(() => {
     return myAppRecords
@@ -751,7 +741,6 @@ export function EcosystemTab() {
           onOpen={() => handleAppOpen(contextMenu.app)}
           onDetail={() => handleAppDetail(contextMenu.app)}
           onRemove={() => handleRemoveApp(contextMenu.app.id)}
-          onShare={() => handleShareApp(contextMenu.app)}
         />
       )}
 
