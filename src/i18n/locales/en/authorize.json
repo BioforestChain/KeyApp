@@ -21,7 +21,8 @@
       "getMain": "View your wallet import phrase (main)"
     },
     "confirmDescription": "Draw your pattern to continue",
-    "noWallets": "No wallets available"
+    "noWallets": "No wallets available",
+    "selectNetwork": "Select Network"
   },
   "signature": {
     "reviewTransaction": "Review this transaction",

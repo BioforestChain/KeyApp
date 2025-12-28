@@ -8,8 +8,9 @@ import { AppInfoCard } from '@/components/authorize/AppInfoCard'
 import { PermissionList } from '@/components/authorize/PermissionList'
 import { Button } from '@/components/ui/button'
 import { WalletSelector, type WalletInfo } from '@/components/wallet'
-import { ChainAddressSelector, type ChainData } from '@/components/wallet/chain-address-selector'
-import type { ChainType as ChainIconType } from '@/components/wallet/chain-icon'
+import { WalletCard } from '@/components/wallet/wallet-card'
+import { ChainIcon, type ChainType as ChainIconType } from '@/components/wallet/chain-icon'
+import { IconCheck } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import {
   AddressAuthService,
@@ -42,6 +43,12 @@ const CHAIN_NAMES: Record<string, string> = {
 function toChainIconType(chainName: string | undefined): ChainIconType | undefined {
   if (!chainName) return undefined
   return chainName
+}
+
+interface ChainData {
+  chain: ChainIconType
+  name: string
+  addresses: Array<{ address: string; isDefault: boolean }>
 }
 
 function toWalletSelectorItems(wallets: Wallet[]): WalletInfo[] {
@@ -114,6 +121,7 @@ export function AddressAuthPage() {
 
   const [selectedAddress, setSelectedAddress] = useState<string | undefined>(undefined)
   const [selectedWalletIds, setSelectedWalletIds] = useState<Set<string>>(() => new Set(wallets.map((w) => w.id)))
+  const [chainSelectorOpen, setChainSelectorOpen] = useState(false)
 
   useEffect(() => {
     setSelectedWalletId(defaultWalletId)
@@ -182,6 +190,18 @@ export function AddressAuthPage() {
   }, [selectedWalletId, wallets])
 
   const chains = useMemo(() => buildChainData(wallets, currentWalletId), [wallets, currentWalletId])
+
+  // 当前钱包可用的链列表
+  const availableChains = useMemo(() => {
+    if (!currentWallet) return []
+    return currentWallet.chainAddresses.map(ca => ca.chain as ChainIconType)
+  }, [currentWallet])
+
+  // 选中链的地址
+  const selectedChainAddress = useMemo(() => {
+    if (!currentWallet || !selectedChain) return undefined
+    return currentWallet.chainAddresses.find(ca => ca.chain === selectedChain)?.address
+  }, [currentWallet, selectedChain])
 
   useEffect(() => {
     if (type !== 'network') return
@@ -367,16 +387,17 @@ export function AddressAuthPage() {
             />
           )}
 
-          {type === 'network' && (
-            <ChainAddressSelector
-              chains={chainIconType ? chains.filter((c) => c.chain === chainIconType) : chains}
-              selectedChain={selectedChain}
-              selectedAddress={selectedAddress}
-              onSelect={(chain, address) => {
-                setSelectedChain(chain)
-                setSelectedAddress(address)
-              }}
-            />
+          {type === 'network' && currentWallet && selectedChain && (
+            <div className="aspect-[1.6/1] w-full">
+              <WalletCard
+                wallet={currentWallet}
+                chain={selectedChain}
+                chainName={CHAIN_NAMES[selectedChain] ?? selectedChain}
+                address={selectedChainAddress}
+                priority="low"
+                onOpenChainSelector={chainIconType ? undefined : () => setChainSelectorOpen(true)}
+              />
+            </div>
           )}
 
           {type === 'all' && (
@@ -445,6 +466,61 @@ export function AddressAuthPage() {
           </Button>
         </div>
       </div>
+
+      {/* 链选择器 Sheet */}
+      {chainSelectorOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/50" 
+          onClick={() => setChainSelectorOpen(false)}
+        >
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center py-3">
+              <div className="h-1 w-10 rounded-full bg-muted" />
+            </div>
+            <div className="border-b border-border px-4 pb-4">
+              <h2 className="text-center text-lg font-semibold">{tAuthorize('address.selectNetwork')}</h2>
+            </div>
+            <div className="max-h-[60vh] space-y-2 overflow-y-auto p-4">
+              {availableChains.map((chain) => {
+                const chainAddr = currentWallet?.chainAddresses.find((ca) => ca.chain === chain)
+                return (
+                  <button
+                    key={chain}
+                    onClick={() => {
+                      setSelectedChain(chain)
+                      setChainSelectorOpen(false)
+                    }}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-xl p-4 transition-colors',
+                      chain === selectedChain
+                        ? 'bg-primary/10 ring-1 ring-primary'
+                        : 'bg-muted/50 hover:bg-muted'
+                    )}
+                  >
+                    <ChainIcon chain={chain} size="md" />
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {chainAddr?.address ? truncateAddress(chainAddr.address) : '---'}
+                      </div>
+                    </div>
+                    {chain === selectedChain && <IconCheck className="size-5 text-primary" />}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="h-[env(safe-area-inset-bottom)]" />
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+function truncateAddress(address: string, startChars = 10, endChars = 8): string {
+  if (address.length <= startChars + endChars + 3) return address
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
 }
