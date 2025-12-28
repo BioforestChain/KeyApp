@@ -1,4 +1,5 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
+import type { Priority } from './refraction';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCards } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -53,6 +54,16 @@ export function WalletCardCarousel({
   // 找到当前钱包的索引
   const currentIndex = wallets.findIndex((w) => w.id === currentWalletId);
 
+  // Track active slide index for priority calculation
+  const [activeIndex, setActiveIndex] = useState(currentIndex >= 0 ? currentIndex : 0);
+
+  // Calculate card priority based on distance from active slide
+  const getPriority = (index: number): Priority => {
+    if (index === activeIndex) return 'high';
+    if (Math.abs(index - activeIndex) === 1) return 'medium';
+    return 'low';
+  };
+
   // 初始化时滑动到当前钱包
   useEffect(() => {
     if (swiperRef.current && currentIndex >= 0) {
@@ -63,6 +74,7 @@ export function WalletCardCarousel({
   // 滑动切换钱包
   const handleSlideChange = useCallback(
     (swiper: SwiperType) => {
+      setActiveIndex(swiper.activeIndex);
       const wallet = wallets[swiper.activeIndex];
       if (wallet && wallet.id !== currentWalletId) {
         onWalletChange?.(wallet.id);
@@ -121,12 +133,13 @@ export function WalletCardCarousel({
         }}
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
+          setActiveIndex(swiper.activeIndex);
         }}
         onSlideChange={handleSlideChange}
         initialSlide={currentIndex >= 0 ? currentIndex : 0}
         className="mx-auto h-[212px] w-[min(92vw,360px)] overflow-visible [&_.swiper-slide]:size-full [&_.swiper-slide]:overflow-visible! [&_.swiper-slide]:rounded-2xl"
       >
-        {wallets.map((wallet) => {
+        {wallets.map((wallet, index) => {
           const walletChain = getWalletChain(wallet);
           const walletAddress = getWalletAddress(wallet, walletChain);
           return (
@@ -135,6 +148,7 @@ export function WalletCardCarousel({
                 wallet={wallet}
                 chain={walletChain}
                 chainName={chainNames[walletChain] ?? walletChain}
+                priority={getPriority(index)}
                 address={walletAddress}
                 chainIconUrl={chainIconUrls[walletChain]}
                 watermarkLogoSize={40}
