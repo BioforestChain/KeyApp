@@ -183,6 +183,9 @@ importers:
       '@axe-core/playwright':
         specifier: ^4.11.0
         version: 4.11.0(playwright-core@1.57.0)
+      '@biochain/e2e-tools':
+        specifier: workspace:*
+        version: link:packages/e2e-tools
       '@inquirer/prompts':
         specifier: ^8.0.2
         version: 8.1.0(@types/node@24.10.4)
@@ -370,6 +373,9 @@ importers:
         specifier: ^3.4.0
         version: 3.4.0
     devDependencies:
+      '@biochain/e2e-tools':
+        specifier: workspace:*
+        version: link:../../packages/e2e-tools
       '@biochain/i18n-tools':
         specifier: workspace:*
         version: link:../../packages/i18n-tools
@@ -476,6 +482,9 @@ importers:
         specifier: ^3.4.0
         version: 3.4.0
     devDependencies:
+      '@biochain/e2e-tools':
+        specifier: workspace:*
+        version: link:../../packages/e2e-tools
       '@biochain/i18n-tools':
         specifier: workspace:*
         version: link:../../packages/i18n-tools
@@ -548,6 +557,15 @@ importers:
       vitest:
         specifier: ^4.0.0
         version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+
+  packages/e2e-tools:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
 
   packages/i18n-tools:
     devDependencies:
@@ -9978,7 +9996,7 @@ snapshots:
       '@vitest/mocker': 4.0.16(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
       playwright: 1.57.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
     transitivePeerDependencies:
       - bufferutil
       - msw

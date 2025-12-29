@@ -19,6 +19,7 @@
     "e2e:run": "bun scripts/e2e.ts",
     "e2e:update": "bun scripts/e2e.ts --update-snapshots",
     "e2e:ui": "playwright test --ui",
+    "e2e:audit": "bunx @biochain/e2e-tools audit --strict",
     "i18n:run": "bunx @biochain/i18n-tools",
     "theme:run": "bunx @biochain/theme-tools"
   },
@@ -41,6 +42,7 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@biochain/e2e-tools": "workspace:*",
     "@biochain/i18n-tools": "workspace:*",
     "@biochain/theme-tools": "workspace:*",
     "@playwright/test": "^1.49.1",

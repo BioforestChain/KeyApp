@@ -24,3 +24,4 @@
 - 跨层级绑定使用 `timeline-scope: --name` 在公共祖先上声明
 - 紧凑头部效果使用 `animation-range: 0 80px` 限制动画范围
 - ⚠️ scroll-driven animations 是渐进增强：初始状态必须是可用的（如 opacity-0），不支持时保持初始状态
+- E2E 截图变更后运行 `pnpm e2e:audit` 检查残留截图，详见白皮书 08-测试篇/03-Playwright配置/e2e-best-practices

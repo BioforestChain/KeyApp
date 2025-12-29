@@ -40,6 +40,8 @@
     "e2e:update": "playwright test --update-snapshots",
     "e2e:i18n": "TEST_LOCALE=zh-CN playwright test --project 'Mobile Chrome'",
     "e2e:report": "playwright show-report e2e/report",
+    "e2e:audit": "turbo run e2e:audit",
+    "e2e:audit:run": "bunx @biochain/e2e-tools audit --strict",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
@@ -118,6 +120,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
+    "@biochain/e2e-tools": "workspace:*",
     "@inquirer/prompts": "^8.0.2",
     "@playwright/test": "^1.57.0",
     "@storybook/addon-docs": "^10.1.4",
