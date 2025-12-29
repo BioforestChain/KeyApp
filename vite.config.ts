@@ -7,6 +7,7 @@ import { networkInterfaces } from 'node:os'
 import { resolve } from 'node:path'
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps'
+import { buildCheckPlugin } from './scripts/vite-plugin-build-check'
 
 /**
  * 服务实现选择（编译时）
@@ -84,6 +85,7 @@ export default defineConfig({
     tailwindcss(),
     mockDevToolsPlugin(),
     miniappsPlugin(),
+    buildCheckPlugin(),
   ],
   resolve: {
     alias: {
