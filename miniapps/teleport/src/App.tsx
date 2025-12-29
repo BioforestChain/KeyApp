@@ -1,18 +1,23 @@
 import { useState, useCallback } from 'react'
 import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { AuroraBackground } from './components/AuroraBackground'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { ChevronLeft, Zap, ArrowDown, Check, Coins, Leaf, DollarSign, Wallet, Loader2 } from 'lucide-react'
 
 type Step = 'connect' | 'select-asset' | 'input-amount' | 'select-target' | 'confirm' | 'success'
 
-// 模拟资产数据
 interface Asset {
   id: string
   symbol: string
   name: string
   balance: string
-  icon?: string
   chain: string
 }
 
@@ -21,6 +26,12 @@ const MOCK_ASSETS: Asset[] = [
   { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '2.5', chain: 'ethereum' },
   { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500.00', chain: 'ethereum' },
 ]
+
+const ASSET_COLORS: Record<string, string> = {
+  BFM: 'bg-emerald-600',
+  ETH: 'bg-indigo-600',
+  USDT: 'bg-teal-600',
+}
 
 export default function App() {
   const [step, setStep] = useState<Step>('connect')
@@ -36,10 +47,8 @@ export default function App() {
       setError('Bio SDK 未初始化')
       return
     }
-
     setLoading(true)
     setError(null)
-
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
@@ -70,10 +79,8 @@ export default function App() {
 
   const handleSelectTarget = useCallback(async () => {
     if (!window.bio || !sourceAccount) return
-
     setLoading(true)
     setError(null)
-
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_pickWallet',
@@ -90,12 +97,9 @@ export default function App() {
 
   const handleConfirm = useCallback(async () => {
     if (!window.bio || !sourceAccount || !selectedAsset) return
-
     setLoading(true)
     setError(null)
-
     try {
-      // 执行转账
       await window.bio.request<{ txHash: string }>({
         method: 'bio_sendTransaction',
         params: [{
@@ -106,7 +110,6 @@ export default function App() {
           asset: selectedAsset.symbol,
         }],
       })
-
       setStep('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : '转账失败')
@@ -125,281 +128,358 @@ export default function App() {
   }, [])
 
   const handleBack = () => {
-    switch (step) {
-      case 'select-asset':
-        setStep('connect')
-        break
-      case 'input-amount':
-        setStep('select-asset')
-        break
-      case 'select-target':
-        setStep('input-amount')
-        break
-      case 'confirm':
-        setStep('select-target')
-        break
+    const backMap: Record<Step, Step> = {
+      'select-asset': 'connect',
+      'input-amount': 'select-asset',
+      'select-target': 'input-amount',
+      'confirm': 'select-target',
+      'connect': 'connect',
+      'success': 'success',
     }
+    setStep(backMap[step])
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center h-14 px-4">
-          {step !== 'connect' && step !== 'success' && (
-            <button 
-              onClick={handleBack}
-              className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
+    <AuroraBackground className="min-h-screen">
+      <div className="relative z-10 w-full max-w-md mx-auto min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b border-border">
+          <div className="flex items-center h-14 px-4">
+            {!['connect', 'success'].includes(step) ? (
+              <Button variant="ghost" size="icon-sm" onClick={handleBack}>
+                <ChevronLeft className="size-5" />
+              </Button>
+            ) : <div className="w-7" />}
+            <h1 className="flex-1 text-center font-bold">一键传送</h1>
+            <div className="w-7" />
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 flex flex-col p-4">
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+              <Card className="mb-4 border-destructive/50 bg-destructive/10">
+                <CardContent className="py-3 text-destructive text-sm">
+                  {error}
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
-          <h1 className="flex-1 text-center font-semibold">一键传送</h1>
-          <div className="w-9" /> {/* Spacer */}
-        </div>
-      </header>
 
-      {/* Content */}
-      <main className="p-4">
-        {error && (
-          <div className="mb-4 bg-destructive/10 text-destructive p-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Step: Connect */}
-        {step === 'connect' && (
-          <div className="flex flex-col items-center pt-12">
-            <div className="size-24 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6">
-              <svg className="size-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold mb-2">跨钱包传送</h2>
-            <p className="text-muted-foreground text-center text-sm mb-8 max-w-xs">
-              安全地将资产从一个钱包转移到另一个钱包
-            </p>
-            <Button 
-              className="w-full max-w-xs h-12 text-base" 
-              onClick={handleConnect} 
-              disabled={loading}
-            >
-              {loading ? '连接中...' : '选择源钱包'}
-            </Button>
-          </div>
-        )}
-
-        {/* Step: Select Asset */}
-        {step === 'select-asset' && (
-          <div>
-            <div className="mb-4">
-              <AddressCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
-            </div>
-            
-            <h2 className="font-semibold mb-3">选择要传送的资产</h2>
-            <div className="space-y-2">
-              {MOCK_ASSETS.map((asset) => (
-                <button
-                  key={asset.id}
-                  onClick={() => handleSelectAsset(asset)}
-                  className="w-full flex items-center gap-3 p-4 bg-card rounded-xl border hover:border-primary/50 transition-colors text-left"
+          <AnimatePresence mode="wait">
+            {/* Connect */}
+            {step === 'connect' && (
+              <motion.div
+                key="connect"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full" />
+                  <Avatar className="relative size-24 rounded-2xl border border-white/20">
+                    <AvatarFallback className="rounded-2xl bg-white/10 backdrop-blur">
+                      <Zap className="size-12 text-white" strokeWidth={1.5} />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold">跨钱包传送</h2>
+                  <p className="text-muted-foreground text-sm">安全地将资产转移到另一个钱包</p>
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  className="w-full max-w-xs h-12"
+                  onClick={handleConnect} 
+                  disabled={loading}
                 >
-                  <div className="size-10 rounded-full bg-muted flex items-center justify-center font-semibold text-sm">
-                    {asset.symbol.slice(0, 2)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium">{asset.symbol}</div>
-                    <div className="text-xs text-muted-foreground">{asset.name}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">{asset.balance}</div>
-                    <div className="text-xs text-muted-foreground">可用</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                  {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                  {loading ? '连接中...' : '启动传送门'}
+                </Button>
+              </motion.div>
+            )}
 
-        {/* Step: Input Amount */}
-        {step === 'input-amount' && selectedAsset && (
-          <div>
-            <div className="mb-6">
-              <AddressCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
-            </div>
+            {/* Select Asset */}
+            {step === 'select-asset' && (
+              <motion.div
+                key="select-asset"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col gap-4"
+              >
+                <WalletCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
+                
+                <div className="space-y-3">
+                  <CardDescription className="px-1">选择资产</CardDescription>
+                  {MOCK_ASSETS.map((asset, i) => (
+                    <motion.div
+                      key={asset.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <Card 
+                        data-slot="card"
+                        className="cursor-pointer transition-colors hover:bg-accent"
+                        onClick={() => handleSelectAsset(asset)}
+                      >
+                        <CardContent className="py-3 flex items-center gap-3">
+                          <AssetAvatar symbol={asset.symbol} />
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base">{asset.symbol}</CardTitle>
+                            <CardDescription>{asset.name}</CardDescription>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold">{asset.balance}</div>
+                            <CardDescription>可用</CardDescription>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
-            <div className="text-center mb-6">
-              <div className="size-16 rounded-full bg-muted mx-auto flex items-center justify-center font-bold text-lg mb-3">
-                {selectedAsset.symbol.slice(0, 2)}
-              </div>
-              <div className="font-semibold">{selectedAsset.symbol}</div>
-              <div className="text-sm text-muted-foreground">可用: {selectedAsset.balance}</div>
-            </div>
+            {/* Input Amount */}
+            {step === 'input-amount' && selectedAsset && (
+              <motion.div
+                key="input-amount"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col gap-4"
+              >
+                <WalletCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
 
-            <div className="mb-6">
-              <label className="text-sm text-muted-foreground block mb-2">传送数量</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full p-4 pr-20 text-2xl font-semibold bg-muted/50 rounded-xl border-2 border-transparent focus:border-primary outline-none transition-colors"
-                />
-                <button
-                  onClick={() => setAmount(selectedAsset.balance.replace(/,/g, ''))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-medium text-primary bg-primary/10 rounded-full"
+                <Card className="flex-1">
+                  <CardContent className="h-full flex flex-col items-center justify-center gap-4 py-8">
+                    <AssetAvatar symbol={selectedAsset.symbol} size="lg" />
+                    <div className="text-center">
+                      <CardTitle>{selectedAsset.symbol}</CardTitle>
+                      <CardDescription>可用: {selectedAsset.balance}</CardDescription>
+                    </div>
+                    <div className="w-full max-w-xs relative">
+                      <Input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="text-center text-3xl font-bold h-14 border-0 border-b-2 border-primary/50 rounded-none focus-visible:ring-0 focus-visible:border-primary"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 text-xs"
+                        onClick={() => setAmount(selectedAsset.balance.replace(/,/g, ''))}
+                      >
+                        MAX
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Button className="w-full h-12" onClick={handleAmountNext} disabled={!amount || parseFloat(amount) <= 0}>
+                  下一步
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Select Target */}
+            {step === 'select-target' && (
+              <motion.div
+                key="select-target"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
+              >
+                <Card className="w-full">
+                  <CardContent className="py-4 text-center">
+                    <CardDescription className="mb-1">即将传送</CardDescription>
+                    <div className="text-2xl font-bold flex items-center justify-center gap-2">
+                      <AssetAvatar symbol={selectedAsset!.symbol} size="sm" />
+                      {amount} <span className="text-muted-foreground">{selectedAsset?.symbol}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full animate-pulse" />
+                  <Avatar className="relative size-16 bg-primary">
+                    <AvatarFallback className="bg-transparent">
+                      <ArrowDown className="size-8 text-white" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+
+                <div className="text-center space-y-2">
+                  <p className="text-muted-foreground">请选择接收资产的</p>
+                  <p className="font-semibold">目标钱包</p>
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full max-w-xs h-12" 
+                  onClick={handleSelectTarget} 
+                  disabled={loading}
                 >
-                  全部
-                </button>
-              </div>
-            </div>
+                  {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                  {loading ? '扫描中...' : '选择目标钱包'}
+                </Button>
+              </motion.div>
+            )}
 
-            <Button 
-              className="w-full h-12 text-base" 
-              onClick={handleAmountNext}
-              disabled={!amount || parseFloat(amount) <= 0}
-            >
-              下一步
-            </Button>
-          </div>
-        )}
+            {/* Confirm */}
+            {step === 'confirm' && (
+              <motion.div
+                key="confirm"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col gap-4"
+              >
+                <Card>
+                  <CardContent className="py-6 text-center space-y-4">
+                    <div>
+                      <CardDescription className="mb-1">发送</CardDescription>
+                      <div className="text-3xl font-bold flex items-center justify-center gap-2">
+                        <AssetAvatar symbol={selectedAsset!.symbol} size="sm" />
+                        {amount} <span className="text-lg text-muted-foreground">{selectedAsset?.symbol}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <Avatar className="size-10 border border-primary/30 bg-primary/10">
+                        <AvatarFallback className="bg-transparent">
+                          <ArrowDown className="size-5 text-primary" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="space-y-2">
+                      <WalletCard label="发送方" address={sourceAccount?.address} name={sourceAccount?.name} compact />
+                      <WalletCard label="接收方" address={targetAccount?.address} name={targetAccount?.name} compact highlight />
+                    </div>
+                  </CardContent>
+                </Card>
 
-        {/* Step: Select Target */}
-        {step === 'select-target' && (
-          <div className="flex flex-col items-center pt-8">
-            <div className="w-full mb-6">
-              <TransferSummaryCard
-                from={sourceAccount?.address}
-                fromName={sourceAccount?.name}
-                amount={amount}
-                symbol={selectedAsset?.symbol}
-              />
-            </div>
+                <Card>
+                  <CardContent className="py-4 space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">网络</span>
+                      <Badge variant="outline">{selectedAsset?.chain}</Badge>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">手续费</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">免费</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <svg className="size-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
-
-            <p className="text-muted-foreground text-center text-sm mb-6">
-              选择接收资产的目标钱包
-            </p>
-
-            <Button 
-              className="w-full h-12 text-base" 
-              onClick={handleSelectTarget}
-              disabled={loading}
-            >
-              {loading ? '选择中...' : '选择目标钱包'}
-            </Button>
-          </div>
-        )}
-
-        {/* Step: Confirm */}
-        {step === 'confirm' && (
-          <div>
-            <div className="bg-card rounded-2xl border p-4 mb-6">
-              <div className="text-center mb-4">
-                <div className="text-3xl font-bold">{amount}</div>
-                <div className="text-muted-foreground">{selectedAsset?.symbol}</div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">从</span>
-                  <span className="font-mono text-xs">{truncateAddress(sourceAccount?.address)}</span>
+                <div className="mt-auto pt-4">
+                  <Button className="w-full h-12" onClick={handleConfirm} disabled={loading}>
+                    {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                    {loading ? '处理中...' : '确认传送'}
+                  </Button>
                 </div>
-                <div className="flex justify-center">
-                  <svg className="size-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
+              </motion.div>
+            )}
+
+            {/* Success */}
+            {step === 'success' && (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+              >
+                <Avatar className="size-20 border border-emerald-500/30 bg-emerald-500/10">
+                  <AvatarFallback className="bg-transparent">
+                    <Check className="size-10 text-emerald-500" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-bold">传送成功</h2>
+                  <p className="text-2xl font-bold text-emerald-400">{amount} {selectedAsset?.symbol}</p>
+                  <p className="text-sm text-muted-foreground">已发送至目标钱包</p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">到</span>
-                  <span className="font-mono text-xs">{truncateAddress(targetAccount?.address)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-muted/50 rounded-xl p-3 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">网络</span>
-                <span>{selectedAsset?.chain}</span>
-              </div>
-            </div>
-
-            <Button 
-              className="w-full h-12 text-base" 
-              onClick={handleConfirm}
-              disabled={loading}
-            >
-              {loading ? '处理中...' : '确认传送'}
-            </Button>
-          </div>
-        )}
-
-        {/* Step: Success */}
-        {step === 'success' && (
-          <div className="flex flex-col items-center pt-12">
-            <div className="size-20 rounded-full bg-success/10 flex items-center justify-center mb-6">
-              <svg className="size-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold mb-2">传送成功！</h2>
-            <p className="text-muted-foreground text-center text-sm mb-2">
-              {amount} {selectedAsset?.symbol} 已发送
-            </p>
-            <p className="text-xs text-muted-foreground mb-8">
-              交易确认可能需要几分钟
-            </p>
-            <Button 
-              variant="secondary"
-              className="w-full max-w-xs h-12 text-base" 
-              onClick={handleReset}
-            >
-              完成
-            </Button>
-          </div>
-        )}
-      </main>
-    </div>
-  )
-}
-
-function AddressCard({ label, address, name }: { label: string; address?: string; name?: string }) {
-  return (
-    <div className="bg-card rounded-xl border p-3">
-      <div className="text-xs text-muted-foreground mb-1">{label}</div>
-      {name && <div className="font-medium text-sm">{name}</div>}
-      <div className="font-mono text-xs text-muted-foreground break-all">{address}</div>
-    </div>
-  )
-}
-
-function TransferSummaryCard({ 
-  from, 
-  fromName, 
-  amount, 
-  symbol 
-}: { 
-  from?: string
-  fromName?: string
-  amount: string
-  symbol?: string
-}) {
-  return (
-    <div className="bg-card rounded-xl border p-4 text-center">
-      <div className="text-xs text-muted-foreground mb-1">传送</div>
-      <div className="text-2xl font-bold">{amount} {symbol}</div>
-      <div className="text-xs text-muted-foreground mt-2">
-        从 {fromName || truncateAddress(from)}
+                <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
+                  发起新传送
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
       </div>
-    </div>
+    </AuroraBackground>
+  )
+}
+
+function WalletCard({ label, address, name, compact, highlight }: { 
+  label: string
+  address?: string
+  name?: string
+  compact?: boolean
+  highlight?: boolean
+}) {
+  if (compact) {
+    return (
+      <Card className={cn("border-0", highlight ? "bg-primary/10" : "bg-muted/50")}>
+        <CardContent className="py-2 flex items-center gap-3">
+          <Avatar className={cn("size-8", highlight ? "bg-primary/20" : "bg-muted")}>
+            <AvatarFallback className="bg-transparent">
+              <Wallet className="size-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0 text-left">
+            <CardDescription className="text-xs">{label}</CardDescription>
+            <div className="text-sm font-medium truncate">{name || truncateAddress(address)}</div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  return (
+    <Card>
+      <CardContent className="py-3 flex items-center gap-3">
+        <Avatar className="size-10 bg-primary/20">
+          <AvatarFallback className="bg-transparent">
+            <Wallet className="size-5 text-primary" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <CardDescription>{label}</CardDescription>
+          <CardTitle className="text-base truncate">{name || 'Unknown'}</CardTitle>
+          <CardDescription className="truncate">{address}</CardDescription>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AssetAvatar({ symbol, size = 'md' }: { symbol: string; size?: 'sm' | 'md' | 'lg' }) {
+  const icons: Record<string, React.ReactNode> = {
+    BFM: <Leaf />,
+    ETH: <Coins />,
+    USDT: <DollarSign />,
+  }
+  const sizeClass = size === 'lg' ? 'size-16 [&_svg]:size-8' : size === 'md' ? 'size-10 [&_svg]:size-5' : 'size-6 [&_svg]:size-3'
+  
+  return (
+    <Avatar className={cn(sizeClass, ASSET_COLORS[symbol] || 'bg-muted')}>
+      <AvatarFallback className="bg-transparent text-white">
+        {icons[symbol] || <Coins />}
+      </AvatarFallback>
+    </Avatar>
   )
 }
 

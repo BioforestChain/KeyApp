@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
+import { IOSWallpaper } from './ios-wallpaper';
 import type { MiniappManifest } from '@/services/ecosystem';
 
 // ============================================
@@ -248,52 +249,55 @@ export function MyAppsPage({ apps, onSearchClick, onAppOpen, onAppDetail, onAppR
   const pages = Math.ceil(apps.length / pageSize);
 
   return (
-    <div className="my-apps-page h-full overflow-y-auto">
-      {/* 顶部区域 - 搜索胶囊 */}
-      <div className="flex justify-center px-5 pt-14 pb-6">
-        <IOSSearchCapsule onClick={onSearchClick} />
-      </div>
+    <IOSWallpaper className="my-apps-page">
+      <div className="relative z-10 h-full overflow-y-auto">
+        {/* 顶部区域 - 搜索胶囊 */}
+        <div className="flex justify-center px-5 pt-14 pb-6">
+          <IOSSearchCapsule onClick={onSearchClick} />
+        </div>
 
-      {/* 内容区 */}
-      {apps.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="px-4 pb-8">
-          {/* iOS 桌面网格 */}
-          <div
-            className="grid justify-items-center gap-y-4"
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-          >
-            {apps.map(({ app }) => (
-              <IOSDesktopIcon
-                key={app.id}
-                app={app}
-                onTap={() => onAppOpen(app)}
-                onOpen={() => onAppOpen(app)}
-                onDetail={() => onAppDetail(app)}
-                onRemove={() => onAppRemove(app.id)}
-              />
-            ))}
-          </div>
-
-          {/* 页面指示器 */}
-          {pages > 1 && (
-            <div className="mt-6 flex justify-center gap-1.5">
-              {Array.from({ length: pages }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'size-2 rounded-full transition-colors',
-                    i === 0 ? 'bg-foreground/80' : 'bg-foreground/20',
-                  )}
+        {/* 内容区 */}
+        {apps.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="px-4 pb-8">
+            {/* iOS 桌面网格 */}
+            <div
+              className="grid justify-items-center gap-y-4"
+              style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+            >
+              {apps.map(({ app }) => (
+                <IOSDesktopIcon
+                  key={app.id}
+                  app={app}
+                  onTap={() => onAppOpen(app)}
+                  onOpen={() => onAppOpen(app)}
+                  onDetail={() => onAppDetail(app)}
+                  onRemove={() => onAppRemove(app.id)}
                 />
               ))}
             </div>
-          )}
 
+            {/* 页面指示器 */}
+            {pages > 1 && (
+              <div className="mt-6 flex justify-center gap-1.5">
+                {Array.from({ length: pages }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'size-2 rounded-full transition-colors',
+                      i === 0 ? 'bg-foreground/80' : 'bg-foreground/20',
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-        </div>
-      )}
-    </div>
+        {/* TabBar spacer */}
+        <div className="h-[var(--tab-bar-height)]" />
+      </div>
+    </IOSWallpaper>
   );
 }

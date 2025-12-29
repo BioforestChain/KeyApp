@@ -136,14 +136,14 @@ export function EcosystemTab() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="bg-background h-full">
       <Swiper
         className="h-full w-full"
         initialSlide={activeTab === 'mine' ? 1 : 0}

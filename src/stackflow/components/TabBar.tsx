@@ -40,11 +40,16 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   ], [t, ecosystemIcon]);
 
   return (
-    <div className={cn(
-      "z-50 border-t bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",
-      className
-    )}>
-      <div className="mx-auto flex max-w-md">
+    <div 
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50",
+        "border-t bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",
+        "pb-[env(safe-area-inset-bottom)]",
+        className
+      )}
+      style={{ height: 'var(--tab-bar-height)' }}
+    >
+      <div className="mx-auto flex h-[52px] max-w-md">
         {tabConfigs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -55,7 +60,7 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
               onClick={() => onTabChange(tab.id)}
               data-testid={`tab-${tab.id}`}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 transition-colors",
+                "flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
               aria-label={label}
@@ -67,8 +72,6 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
           );
         })}
       </div>
-      {/* Safe area padding for iOS */}
-      <div className="h-[env(safe-area-inset-bottom)]" />
     </div>
   );
 }

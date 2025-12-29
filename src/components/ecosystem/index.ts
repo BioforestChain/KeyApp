@@ -30,3 +30,8 @@ export {
   IOSSearchCapsule,
   type IOSSearchCapsuleProps,
 } from './ios-search-capsule'
+
+export {
+  IOSWallpaper,
+  type IOSWallpaperProps,
+} from './ios-wallpaper'

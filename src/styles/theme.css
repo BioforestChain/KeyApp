@@ -47,6 +47,9 @@
 /* ========== CSS 变量值 ========== */
 
 :root {
+  /* 布局变量 */
+  --tab-bar-height: calc(52px + env(safe-area-inset-bottom, 0px));
+
   /* 动态主题色 - 可被钱包主题覆盖 */
   --primary-hue: 323;
   --primary-saturation: 0.26;

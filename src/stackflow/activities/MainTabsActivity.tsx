@@ -15,25 +15,20 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
 
   return (
     <AppScreen>
-      {/* 外层禁止滚动，让各 Tab 内部自己管理滚动 */}
-      <div className="h-dvh overflow-hidden bg-background">
-        <div className="flex h-full flex-col">
-          {/* Content area - 使用 Activity 保持 Tab 状态 */}
-          <div className="flex-1 overflow-hidden">
-            <Activity mode={activeTab === "wallet" ? "visible" : "hidden"} className="h-full">
-              <WalletTab />
-            </Activity>
-            <Activity mode={activeTab === "ecosystem" ? "visible" : "hidden"} className="h-full">
-              <EcosystemTab />
-            </Activity>
-            <Activity mode={activeTab === "settings" ? "visible" : "hidden"} className="h-full">
-              <SettingsTab />
-            </Activity>
-          </div>
+      <div className="bg-background relative h-dvh">
+        {/* Content area - 各 Tab 内部自己管理滚动和 pb */}
+        <Activity mode={activeTab === "wallet" ? "visible" : "hidden"}>
+          <WalletTab />
+        </Activity>
+        <Activity mode={activeTab === "ecosystem" ? "visible" : "hidden"}>
+          <EcosystemTab />
+        </Activity>
+        <Activity mode={activeTab === "settings" ? "visible" : "hidden"}>
+          <SettingsTab />
+        </Activity>
 
-          {/* TabBar - 固定在底部 */}
-          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
+        {/* TabBar - 固定在底部 */}
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </AppScreen>
   );

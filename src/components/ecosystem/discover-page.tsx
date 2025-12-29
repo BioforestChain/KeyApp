@@ -205,22 +205,22 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
   return (
     <div className="discover-page h-full overflow-y-auto">
       {/* BigHeader - sticky，scroll-driven animation */}
-      <header className="discover-header bg-background/80 backdrop-blur-xl sticky top-0 z-10 px-5 pt-12 pb-4">
+      <header className="discover-header bg-background/80 sticky top-0 z-10 px-5 pt-12 pb-4 backdrop-blur-xl">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-muted-foreground text-sm font-medium">{getTodayDate()}</p>
         </div>
 
         {/* 搜索框 */}
         <div className="relative">
-          <IconSearch className="text-muted-foreground absolute left-4 top-1/2 size-5 -translate-y-1/2" stroke={1.5} />
+          <IconSearch className="text-muted-foreground absolute top-1/2 left-4 size-5 -translate-y-1/2" stroke={1.5} />
           <input
             ref={searchInputRef}
             type="text"
             placeholder="搜索应用"
             className={cn(
-              'bg-muted/60 w-full rounded-xl py-3 pl-12 pr-4',
-              'text-base placeholder:text-muted-foreground/60',
-              'focus:outline-none focus:ring-2 focus:ring-primary/30',
+              'bg-muted/60 w-full rounded-xl py-3 pr-4 pl-12',
+              'placeholder:text-muted-foreground/60 text-base',
+              'focus:ring-primary/30 focus:ring-2 focus:outline-none',
               'transition-all duration-200',
             )}
           />
@@ -228,7 +228,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
       </header>
 
       {/* 内容区 */}
-      <div className="space-y-8 pb-8">
+      <div className="space-y-8">
         {apps.length === 0 ? (
           <EmptyState message="暂无应用" />
         ) : (
@@ -256,12 +256,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
                   )}
                 >
                   {recommendedApps.map((app, i) => (
-                    <HorizontalAppCard
-                      key={app.id}
-                      app={app}
-                      onTap={() => onAppDetail(app)}
-                      fallbackColorIndex={i}
-                    />
+                    <HorizontalAppCard key={app.id} app={app} onTap={() => onAppDetail(app)} fallbackColorIndex={i} />
                   ))}
                 </div>
               </section>
@@ -291,6 +286,9 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
             )}
           </>
         )}
+
+        {/* TabBar spacer */}
+        <div className="h-[var(--tab-bar-height)]" />
       </div>
     </div>
   );

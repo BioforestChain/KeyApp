@@ -259,3 +259,158 @@ input, textarea, [contenteditable="true"] {
   opacity: 0;
   transform: scale(0.9) translateY(4px);
 }
+
+/* ============================================
+ * iOS Wallpaper 壁纸组件
+ * ============================================ */
+
+.ios-wallpaper {
+  overflow: hidden;
+}
+
+/* 深色 1: Color Dodge 高光 */
+.ios-wallpaper--color-dodge {
+  background: #0f0f1a;
+}
+.ios-wallpaper--color-dodge::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: 
+    radial-gradient(ellipse 40% 40% at 30% 30%, rgba(99, 102, 241, 0.4), transparent),
+    radial-gradient(ellipse 30% 30% at 70% 60%, rgba(236, 72, 153, 0.3), transparent);
+  mix-blend-mode: color-dodge;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.ios-wallpaper--color-dodge::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: 
+    radial-gradient(ellipse 35% 35% at 60% 20%, rgba(168, 85, 247, 0.35), transparent),
+    radial-gradient(ellipse 25% 25% at 20% 70%, rgba(59, 130, 246, 0.3), transparent);
+  mix-blend-mode: screen;
+  filter: blur(50px);
+  pointer-events: none;
+}
+/* 整点报时动画 */
+.ios-wallpaper--color-dodge.ios-wallpaper--animating::before {
+  animation: ios-wallpaper-float 5s ease-in-out infinite;
+}
+.ios-wallpaper--color-dodge.ios-wallpaper--animating::after {
+  animation: ios-wallpaper-float 6s ease-in-out infinite reverse;
+}
+
+/* 深色 2: Hard Light + 星点 */
+.ios-wallpaper--hard-light {
+  background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a15 100%);
+}
+.ios-wallpaper--hard-light .ios-wallpaper__stars {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(2px 2px at 200px 150px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 250px 90px, rgba(255,255,255,0.5), transparent);
+  background-size: 300px 200px;
+  pointer-events: none;
+}
+.ios-wallpaper--hard-light .ios-wallpaper__glow {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 60% 50% at 25% 25%, rgba(139, 92, 246, 0.6), transparent),
+    radial-gradient(ellipse 50% 40% at 75% 70%, rgba(59, 130, 246, 0.5), transparent);
+  mix-blend-mode: hard-light;
+  filter: blur(30px);
+  pointer-events: none;
+}
+.ios-wallpaper--hard-light .ios-wallpaper__highlight {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 30% 30% at 30% 30%, rgba(255, 255, 255, 0.1), transparent);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* 亮色 1: 动态彩虹 */
+.ios-wallpaper--rainbow {
+  background: #ffffff;
+}
+.ios-wallpaper--rainbow::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background: 
+    radial-gradient(ellipse 50% 50% at 15% 25%, rgba(99, 102, 241, 0.35), transparent),
+    radial-gradient(ellipse 45% 45% at 85% 15%, rgba(236, 72, 153, 0.3), transparent),
+    radial-gradient(ellipse 40% 40% at 70% 85%, rgba(34, 197, 94, 0.25), transparent);
+  mix-blend-mode: multiply;
+  filter: blur(50px);
+  pointer-events: none;
+}
+.ios-wallpaper--rainbow::after {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background: 
+    radial-gradient(ellipse 45% 45% at 30% 75%, rgba(251, 191, 36, 0.3), transparent),
+    radial-gradient(ellipse 50% 50% at 60% 40%, rgba(59, 130, 246, 0.25), transparent);
+  mix-blend-mode: multiply;
+  filter: blur(40px);
+  pointer-events: none;
+}
+/* 整点报时动画 */
+.ios-wallpaper--rainbow.ios-wallpaper--animating::before {
+  animation: ios-wallpaper-float 5s ease-in-out infinite;
+}
+.ios-wallpaper--rainbow.ios-wallpaper--animating::after {
+  animation: ios-wallpaper-float 6s ease-in-out infinite reverse;
+}
+
+/* 亮色 2: 强烈 Multiply */
+.ios-wallpaper--vivid {
+  background: linear-gradient(135deg, #fefefe 0%, #f8f8ff 100%);
+}
+.ios-wallpaper--vivid::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: 
+    radial-gradient(ellipse 60% 50% at 10% 20%, rgba(99, 102, 241, 0.45), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(236, 72, 153, 0.4), transparent 70%);
+  mix-blend-mode: multiply;
+  filter: blur(30px);
+  pointer-events: none;
+}
+.ios-wallpaper--vivid::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: 
+    radial-gradient(ellipse 55% 45% at 80% 20%, rgba(168, 85, 247, 0.35), transparent 70%),
+    radial-gradient(ellipse 45% 55% at 20% 80%, rgba(14, 165, 233, 0.3), transparent 70%);
+  mix-blend-mode: multiply;
+  filter: blur(35px);
+  pointer-events: none;
+}
+/* 整点报时动画 */
+.ios-wallpaper--vivid.ios-wallpaper--animating::before {
+  animation: ios-wallpaper-float 4.5s ease-in-out infinite;
+}
+.ios-wallpaper--vivid.ios-wallpaper--animating::after {
+  animation: ios-wallpaper-float 5.5s ease-in-out infinite reverse;
+}
+
+@keyframes ios-wallpaper-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(5%, 5%) scale(1.05); }
+  50% { transform: translate(-3%, 8%) scale(0.98); }
+  75% { transform: translate(-5%, -3%) scale(1.02); }
+}

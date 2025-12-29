@@ -64,6 +64,7 @@ export default defineConfig({
   },
   server: {
     https: true,
+    port: 5185,
     fs: {
       allow: [resolve(__dirname, '../..')],
     },

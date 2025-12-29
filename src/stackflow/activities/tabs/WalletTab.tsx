@@ -4,7 +4,7 @@ import { useFlow } from "../../stackflow";
 import { TokenList } from "@/components/token/token-list";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
-import { SwipeableContentTabs } from "@/components/home/content-tabs";
+import { SwipeableTabs } from "@/components/layout/swipeable-tabs";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { GradientButton } from "@/components/common/gradient-button";
 import { Button } from "@/components/ui/button";
@@ -140,7 +140,7 @@ export function WalletTab() {
 
   if (!isInitialized) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -151,7 +151,7 @@ export function WalletTab() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-full flex-col overflow-y-auto bg-background">
       {/* 钱包卡片轮播 */}
       <div className="pt-2 pb-1">
         <WalletCardCarousel
@@ -202,7 +202,7 @@ export function WalletTab() {
 
       {/* 内容区 Tab 切换 */}
       <div className="flex-1 pt-3">
-        <SwipeableContentTabs
+        <SwipeableTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
           className="h-full"
@@ -255,9 +255,11 @@ export function WalletTab() {
               </div>
             )
           }
-        </SwipeableContentTabs>
+        </SwipeableTabs>
       </div>
 
+      {/* TabBar spacer */}
+      <div className="shrink-0 h-[var(--tab-bar-height)]" />
     </div>
   );
 }
@@ -267,7 +269,7 @@ function NoWalletView() {
   const { t } = useTranslation("home");
 
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-6 p-6 text-center">
       <div className="bg-primary/10 rounded-full p-6">
         <IconPlus className="text-primary size-12" />
       </div>

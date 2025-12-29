@@ -165,7 +165,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="bg-muted/30 flex h-full flex-col overflow-y-auto">
       <PageHeader title={t('common:a11y.tabSettings')} />
 
       <div className="flex-1 space-y-4 p-4">
@@ -291,6 +291,9 @@ export function SettingsPage() {
             testId="storage-button"
           />
         </SettingsSection>
+
+        {/* TabBar spacer */}
+        <div className="h-[var(--tab-bar-height)]" />
       </div>
 
       <AppearanceSheet

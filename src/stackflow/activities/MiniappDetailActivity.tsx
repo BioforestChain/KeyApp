@@ -192,26 +192,31 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
 
   return (
     <AppScreen>
-      <div className="flex min-h-screen flex-col bg-background">
-        {/* Header - 透明背景滚动效果 */}
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => pop()}
-            className="p-1.5 -ml-1.5 rounded-full hover:bg-muted transition-colors"
-          >
-            <IconArrowLeft className="size-5" stroke={1.5} />
-          </button>
-          
-          <button className="p-1.5 -mr-1.5 rounded-full hover:bg-muted transition-colors">
-            <IconShare className="size-5" stroke={1.5} />
-          </button>
+      <div className="flex min-h-screen flex-col bg-background detail-scroll-container">
+        {/* Header - 滚动驱动效果：滚动后显示 app 名称 */}
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => pop()}
+              className="p-1.5 -ml-1.5 rounded-full hover:bg-muted transition-colors"
+            >
+              <IconArrowLeft className="size-5" stroke={1.5} />
+            </button>
+            
+            {/* App 名称 - 滚动后显示（渐进增强，不支持时保持隐藏） */}
+            <span className="font-semibold truncate max-w-[200px] detail-header-title">
+              {app.name}
+            </span>
+            
+            <button className="p-1.5 -mr-1.5 rounded-full hover:bg-muted transition-colors">
+              <IconShare className="size-5" stroke={1.5} />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {/* App Header - App Store 风格 */}
-        <div className="px-5 pt-4 pb-5">
+        <div className="flex-1 overflow-y-auto detail-scroller">
+          {/* App Header - App Store 风格 */}
+          <div className="px-5 pt-4 pb-5">
           <div className="flex items-start gap-4">
             {/* 大图标 */}
             <MiniappIcon 
