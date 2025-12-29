@@ -42,7 +42,7 @@ function loadState(): EcosystemState {
     permissions: [],
     sources: [
       {
-        url: '/ecosystem.json',
+        url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
         name: 'Bio 官方生态',
         lastUpdated: new Date().toISOString(),
         enabled: true,

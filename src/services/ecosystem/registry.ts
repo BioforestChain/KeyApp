@@ -12,6 +12,7 @@ import type { EcosystemSource, MiniappManifest, SourceRecord } from './types'
 import { EcosystemSearchResponseSchema, EcosystemSourceSchema } from './schema'
 import { loadSourcePayload, saveSourcePayload } from './storage'
 import { computeFeaturedScore } from './scoring'
+import { createResolver } from '@/lib/url-resolver'
 
 const REQUEST_TIMEOUT = 10_000
 
@@ -47,11 +48,25 @@ function normalizeAppFromSource(app: MiniappManifest, source: SourceRecord, payl
     return null
   }
 
+  // 创建基于 source URL 的路径解析器
+  const resolve = createResolver(source.url)
+
   return {
     ...app,
+    // 解析相对路径
+    icon: resolve(app.icon),
+    url: resolve(app.url),
+    screenshots: app.screenshots?.map(resolve),
+    splashScreen: app.splashScreen
+      ? {
+          ...app.splashScreen,
+          icon: app.splashScreen.icon ? resolve(app.splashScreen.icon) : undefined,
+        }
+      : undefined,
+    // 来源元数据
     sourceUrl: source.url,
     sourceName: source.name,
-    sourceIcon: source.icon ?? payload.icon,
+    sourceIcon: source.icon ?? (payload.icon ? resolve(payload.icon) : undefined),
   }
 }
 

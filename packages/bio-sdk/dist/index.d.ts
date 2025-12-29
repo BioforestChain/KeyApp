@@ -73,6 +73,14 @@ export declare interface BioMethods {
         data: object;
         address: string;
     }) => Promise<string>;
+    /** Create an unsigned transaction (no signature, no broadcast) */
+    bio_createTransaction: (params: TransferParams) => Promise<BioUnsignedTransaction>;
+    /** Sign an unsigned transaction (requires user confirmation) */
+    bio_signTransaction: (params: {
+        from: string;
+        chain: string;
+        unsignedTx: BioUnsignedTransaction;
+    }) => Promise<BioSignedTransaction>;
     /** Send a transaction */
     bio_sendTransaction: (params: TransferParams) => Promise<{
         txHash: string;
@@ -84,6 +92,8 @@ export declare interface BioMethods {
         address: string;
         chain: string;
     }) => Promise<string>;
+    /** Close splash screen (indicates app is ready) */
+    bio_closeSplashScreen: () => Promise<void>;
 }
 
 /**
@@ -118,6 +128,19 @@ export declare class BioProviderImpl implements BioProvider {
     on(event: string, handler: EventHandler): void;
     off(event: string, handler: EventHandler): void;
     isConnected(): boolean;
+}
+
+/** Signed transaction payload (chain-specific) */
+export declare interface BioSignedTransaction {
+    chainId: string;
+    data: unknown;
+    signature: string;
+}
+
+/** Unsigned transaction payload (chain-specific) */
+export declare interface BioUnsignedTransaction {
+    chainId: string;
+    data: unknown;
 }
 
 /** Create a provider RPC error */
