@@ -1,28 +1,41 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-import zh from './locales/zh.json'
 import en from './locales/en.json'
+import zh from './locales/zh.json'
+import zhCN from './locales/zh-CN.json'
+import zhTW from './locales/zh-TW.json'
 
-/**
- * Miniapp i18n 配置
- * 
- * Fallback 规则：
- * - zh-CN, zh-TW, zh-HK, zh-* → zh
- * - 其他语言 → en
- */
+export const languages = {
+  'zh-CN': { name: '简体中文', dir: 'ltr' as const },
+  'zh-TW': { name: '中文（繁體）', dir: 'ltr' as const },
+  'en': { name: 'English', dir: 'ltr' as const },
+} as const
+
+export type LanguageCode = keyof typeof languages
+
+export const defaultLanguage: LanguageCode = 'zh-CN'
+
+export function getLanguageDirection(lang: LanguageCode): 'ltr' | 'rtl' {
+  return languages[lang]?.dir ?? 'ltr'
+}
+
+export function isRTL(lang: LanguageCode): boolean {
+  return getLanguageDirection(lang) === 'rtl'
+}
 
 i18n.use(initReactI18next).init({
   resources: {
-    zh: { translation: zh },
-    en: { translation: en },
+    'en': { translation: en },
+    'zh': { translation: zh },
+    'zh-CN': { translation: zhCN },
+    'zh-TW': { translation: zhTW },
   },
-  lng: 'zh',
+  lng: defaultLanguage,
   fallbackLng: {
     'zh-CN': ['zh'],
     'zh-TW': ['zh'],
     'zh-HK': ['zh'],
-    'zh': ['zh'],
     'default': ['en'],
   },
   interpolation: {
