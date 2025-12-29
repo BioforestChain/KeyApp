@@ -20,10 +20,15 @@ export interface SourceRecord {
   enabled: boolean
 }
 
+/** Ecosystem 子页面类型 */
+export type EcosystemSubPage = 'discover' | 'mine'
+
 /** Ecosystem 状态 */
 export interface EcosystemState {
   permissions: PermissionRecord[]
   sources: SourceRecord[]
+  /** 当前子页面（发现/我的） */
+  activeSubPage: EcosystemSubPage
 }
 
 const STORAGE_KEY = 'ecosystem_store'
@@ -33,7 +38,19 @@ function loadState(): EcosystemState {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      return JSON.parse(stored) as EcosystemState
+      const parsed = JSON.parse(stored) as Partial<EcosystemState>
+      return {
+        permissions: parsed.permissions ?? [],
+        sources: parsed.sources ?? [
+          {
+            url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
+            name: 'Bio 官方生态',
+            lastUpdated: new Date().toISOString(),
+            enabled: true,
+          },
+        ],
+        activeSubPage: parsed.activeSubPage ?? 'discover',
+      }
     }
   } catch {
     // ignore
@@ -48,6 +65,7 @@ function loadState(): EcosystemState {
         enabled: true,
       },
     ],
+    activeSubPage: 'discover',
   }
 }
 
@@ -178,6 +196,14 @@ export const ecosystemActions = {
       sources: state.sources.map((s) =>
         s.url === url ? { ...s, lastUpdated: new Date().toISOString() } : s
       ),
+    }))
+  },
+
+  /** 设置当前子页面 */
+  setActiveSubPage: (subPage: EcosystemSubPage): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      activeSubPage: subPage,
     }))
   },
 }

@@ -4,9 +4,12 @@ import {
   IconWallet,
   IconSettings,
   IconApps,
+  IconBrandMiniprogram,
   type Icon,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "@tanstack/react-store";
+import { ecosystemStore } from "@/stores/ecosystem";
 
 // 3个tab：钱包、生态、设置
 export type TabId = "wallet" | "ecosystem" | "settings";
@@ -20,19 +23,27 @@ interface Tab {
 interface TabBarProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  className?: string;
 }
 
-export function TabBar({ activeTab, onTabChange }: TabBarProps) {
+export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const { t } = useTranslation('common');
+  const ecosystemSubPage = useStore(ecosystemStore, (s) => s.activeSubPage);
+
+  // 生态 tab 图标：发现用 IconApps，我的用 IconBrandMiniprogram
+  const ecosystemIcon = ecosystemSubPage === 'mine' ? IconBrandMiniprogram : IconApps;
 
   const tabConfigs: Tab[] = useMemo(() => [
     { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },
-    { id: "ecosystem", label: t('a11y.tabEcosystem', '生态'), icon: IconApps },
+    { id: "ecosystem", label: t('a11y.tabEcosystem', '生态'), icon: ecosystemIcon },
     { id: "settings", label: t('a11y.tabSettings'), icon: IconSettings },
-  ], [t]);
+  ], [t, ecosystemIcon]);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className={cn(
+      "z-50 border-t bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",
+      className
+    )}>
       <div className="mx-auto flex max-w-md">
         {tabConfigs.map((tab) => {
           const Icon = tab.icon;

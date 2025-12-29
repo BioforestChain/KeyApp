@@ -14,3 +14,19 @@ export {
   SourceIcon,
   type SourceIconProps,
 } from './source-icon'
+
+export {
+  DiscoverPage,
+  type DiscoverPageRef,
+  type DiscoverPageProps,
+} from './discover-page'
+
+export {
+  MyAppsPage,
+  type MyAppsPageProps,
+} from './my-apps-page'
+
+export {
+  IOSSearchCapsule,
+  type IOSSearchCapsuleProps,
+} from './ios-search-capsule'
