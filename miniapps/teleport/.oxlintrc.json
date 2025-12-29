@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+  "jsPlugins": ["eslint-plugin-i18next"],
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "perf": "warn",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "warn",
+
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-key": "error",
+    "react/no-direct-mutation-state": "error",
+    "react/no-unescaped-entities": "warn",
+    "react/self-closing-comp": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/jsx-curly-brace-presence": "warn",
+    "react/no-array-index-key": "warn",
+
+    "typescript/no-explicit-any": "error",
+    "typescript/prefer-ts-expect-error": "warn",
+    "typescript/no-non-null-assertion": "warn",
+
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/anchor-is-valid": "warn",
+
+    "unicorn/no-null": "off",
+    "unicorn/prefer-query-selector": "off",
+    "unicorn/require-module-specifiers": "off",
+
+    "i18next/no-literal-string": ["warn", {
+      "mode": "jsx-only",
+      "jsx-components": { "exclude": ["Trans", "Icon", "TablerIcon"] },
+      "jsx-attributes": {
+        "exclude": [
+          "className", "styleName", "style", "type", "key", "id", "name", "role", "as", "asChild",
+          "data-testid", "data-test", "data-slot", "data-state", "data-side", "data-align",
+          "to", "href", "src", "alt", "target", "rel", "method", "action",
+          "variant", "size", "color", "weight", "sign", "align", "justify", "direction", "orientation"
+        ]
+      },
+      "callees": {
+        "exclude": [
+          "t", "i18n.t", "useTranslation", "Trans",
+          "console.*", "require", "import", "Error", "TypeError",
+          "describe", "it", "test", "expect", "vi.*"
+        ]
+      },
+      "words": {
+        "exclude": ["[A-Z_-]+", "[0-9.]+", "^\\s*$", "^[a-z]+$", "^https?://"]
+      }
+    }]
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "*.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}

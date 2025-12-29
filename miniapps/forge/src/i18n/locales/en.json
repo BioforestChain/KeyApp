@@ -1,0 +1,47 @@
+{
+  "app": {
+    "title": "Exchange Center",
+    "subtitle": "Multi-Chain Swap",
+    "description": "Swap between different tokens safely and quickly"
+  },
+  "connect": {
+    "button": "Connect Wallet",
+    "loading": "Connecting..."
+  },
+  "swap": {
+    "pay": "Pay",
+    "receive": "Receive",
+    "balance": "Balance",
+    "rate": "Exchange Rate",
+    "button": "Swap",
+    "confirm": "Confirm Swap",
+    "processing": "Processing...",
+    "max": "Max"
+  },
+  "confirm": {
+    "title": "Confirm Swap",
+    "from": "Pay",
+    "to": "Receive",
+    "rate": "Rate",
+    "fee": "Network Fee",
+    "feeEstimate": "Estimated",
+    "button": "Confirm",
+    "cancel": "Cancel"
+  },
+  "success": {
+    "title": "Swap Successful!",
+    "message": "Your swap has been submitted",
+    "txWait": "Transaction confirmation may take a few minutes",
+    "done": "Done"
+  },
+  "error": {
+    "sdkNotInit": "Bio SDK not initialized",
+    "connectionFailed": "Connection failed",
+    "invalidAmount": "Please enter a valid amount",
+    "insufficientBalance": "Insufficient balance"
+  },
+  "token": {
+    "select": "Select Token",
+    "search": "Search tokens"
+  }
+}

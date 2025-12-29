@@ -1,0 +1,21 @@
+{
+  "id": "xin.dweb.forge",
+  "name": "锻造",
+  "description": "将 ETH 兑换为 Bio 生态 Token",
+  "longDescription": "锻造是 Bio 生态的跨链桥接工具，支持将 ETH 等主流资产兑换为 Bio 生态内的 Token。\n\n## 支持的兑换\n- ETH → BFM\n- ETH → CC\n- 更多资产对即将上线",
+  "icon": "icon.svg",
+  "version": "0.1.0",
+  "author": "Bio Team",
+  "website": "https://forge.dweb.xin",
+  "category": "exchange",
+  "tags": ["兑换", "跨链桥", "DeFi"],
+  "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_createTransaction", "bio_signTransaction"],
+  "chains": ["ethereum", "bfmeta"],
+  "officialScore": 70,
+  "communityScore": 85,
+  "screenshots": [],
+  "publishedAt": "2024-12-15",
+  "updatedAt": "2024-12-28",
+  "beta": true,
+  "themeColor": "from-red-800 via-orange-900 to-amber-950"
+}

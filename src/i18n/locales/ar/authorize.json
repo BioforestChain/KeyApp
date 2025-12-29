@@ -21,7 +21,8 @@
       "getMain": "View your wallet import phrase (main)"
     },
     "confirmDescription": "Draw your pattern to continue",
-    "noWallets": "لا توجد محافظ"
+    "noWallets": "لا توجد محافظ",
+    "selectNetwork": "اختر الشبكة"
   },
   "signature": {
     "reviewTransaction": "Review this transaction",

@@ -1,0 +1,45 @@
+{
+  "name": "@biochain/bio-sdk",
+  "version": "0.1.0",
+  "description": "Bio Ecosystem SDK for MiniApps - window.bio provider",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:storybook": "echo 'SDK has no storybook'",
+    "i18n:run": "echo 'SDK has no i18n'",
+    "theme:run": "echo 'SDK has no theme'"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.0.0"
+  },
+  "keywords": [
+    "bio",
+    "sdk",
+    "miniapp",
+    "wallet",
+    "web3"
+  ],
+  "license": "MIT"
+}

@@ -1,17 +1,17 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # compiled output
-/dist
-/dists
-/dist-web
-/dist-dweb
-/tmp
-/.tmp
-/.chat
-/out-tsc
-/release
+dist/
+dists/
+dist-web/
+dist-dweb/
+tmp/
+.tmp/
+.chat/
+out-tsc/
+release/
 /gh-pages
-/storybook-static
+storybook-static/
 /docs/por
 
 # VitePress
@@ -57,12 +57,17 @@ migrations.json
 Thumbs.db
 
 # Playwright
-/e2e/test-results/
-/e2e/report/
-/playwright-report/
+e2e/test-results/
+e2e/report/
+playwright-report/
 /blob-report/
-/playwright/.cache/
+playwright/.cache/
+# Miniapps test results
+**/test-results/
 # 注意: e2e/__screenshots__/ 基线截图需要提交到 git
+
+# Temporary demo files
+demo-*.html
 # Ignore CCCC runtime domain (Ephemeral mode)
 /.cccc/**
 

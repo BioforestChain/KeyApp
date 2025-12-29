@@ -16,6 +16,7 @@ import {
   IconLink as Link,
   IconInfoCircle as Info,
   IconDatabase as Database,
+  IconWorld,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
@@ -164,7 +165,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="bg-muted/30 flex min-h-screen flex-col">
+    <div className="bg-muted/30 flex h-full flex-col overflow-y-auto">
       <PageHeader title={t('common:a11y.tabSettings')} />
 
       <div className="flex-1 space-y-4 p-4">
@@ -264,6 +265,12 @@ export function SettingsPage() {
             label={t('settings:items.chainConfig')}
             onClick={() => navigate({ to: '/settings/chains' })}
           />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<IconWorld size={20} />}
+            label="小程序可信源"
+            onClick={() => navigate({ to: '/settings/sources' })}
+          />
         </SettingsSection>
 
         {/* 关于 */}
@@ -284,6 +291,9 @@ export function SettingsPage() {
             testId="storage-button"
           />
         </SettingsSection>
+
+        {/* TabBar spacer */}
+        <div className="h-[var(--tab-bar-height)]" />
       </div>
 
       <AppearanceSheet

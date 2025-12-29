@@ -1,6 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { addressBookActions, addressBookStore } from '@/stores'
 import { useStore } from '@tanstack/react-store'
+import { initializeThemeHue } from '@/hooks/useWalletTheme'
+
+// 立即执行：在 React 渲染之前应用缓存的主题色，避免闪烁
+initializeThemeHue()
 
 /**
  * App 级别的初始化组件

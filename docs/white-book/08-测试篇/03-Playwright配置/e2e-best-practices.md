@@ -291,3 +291,50 @@ await page.click('[data-testid="submit-button"]')
 4. 更新测试代码使用新的 testid
 5. 本地运行测试确认通过
 6. 更新 testid 文档列表
+
+---
+
+## 截图审计
+
+### 残留截图检测
+
+项目使用 `@biochain/e2e-tools` 检测残留截图（不再被测试引用的截图文件）。
+
+```bash
+# 主应用
+pnpm e2e:audit         # 检查所有项目
+pnpm e2e:audit:run     # 仅检查主应用
+
+# miniapps
+cd miniapps/forge && pnpm e2e:audit
+cd miniapps/teleport && pnpm e2e:audit
+```
+
+### 工作原理
+
+1. 扫描 `e2e/*.spec.ts` 文件
+2. 提取所有 `toHaveScreenshot('name.png')` 调用
+3. 对比 `e2e/__screenshots__/` 目录中的实际文件
+4. 报告未被引用的残留截图
+
+### 处理残留截图
+
+```bash
+# 查看残留截图
+pnpm e2e:audit:run
+
+# 自动删除残留截图
+bunx @biochain/e2e-tools audit --fix
+```
+
+### CI 集成
+
+`--strict` 模式下发现残留截图会导致 exit code 1，用于 CI 流程中阻止合并。
+
+### 常见场景
+
+| 场景 | 处理方式 |
+|------|---------|
+| 删除了测试用例 | 运行 `--fix` 删除对应截图 |
+| 重命名了截图 | 删除旧截图或更新测试代码 |
+| 截图未被引用 | 检查是否遗漏 `toHaveScreenshot` 调用 |

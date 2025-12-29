@@ -4,7 +4,39 @@
 
 ---
 
-## 23.1 测试分层
+## 23.1 测试环境的本质区别
+
+**Storybook v10 的核心价值：与 Vitest 深度融合，为组件测试提供真实浏览器环境。**
+
+| 环境 | 技术栈 | 特点 | 适用场景 |
+|-----|-------|------|---------|
+| **jsdom/happy-dom** | Vitest 单元测试 | 虚拟 DOM，快速但非真实浏览器 | 纯逻辑、算法、工具函数 |
+| **真实浏览器 (Storybook)** | Storybook + Vitest | 真实渲染、真实 CSS、真实事件 | 组件渲染、复杂交互、样式验证 |
+| **真实浏览器 (E2E)** | Playwright | 完整应用实例 | 端到端用户流程 |
+
+### 为什么需要三层测试？
+
+```
+jsdom/happy-dom 的局限性：
+- 不支持真实 CSS 计算（layout、动画）
+- 不支持某些 Web API（ResizeObserver、IntersectionObserver 需 polyfill）
+- 事件模型与真实浏览器有差异
+
+Storybook 组件测试的价值：
+- 在真实 Chromium 中渲染组件
+- 验证 CSS 样式、动画、响应式布局
+- 测试真实的用户交互（点击、输入、手势）
+- 每个 Story 自动成为冒烟测试
+
+E2E 与组件测试的区别：
+- E2E 测试完整应用流程（页面导航、状态持久化）
+- 组件测试聚焦单个组件的隔离行为
+- 组件测试更快、更稳定、更容易定位问题
+```
+
+---
+
+## 23.2 测试分层
 
 | 层级 | 工具 | 测试内容 | 运行频率 |
 |-----|------|---------|---------|
@@ -14,7 +46,7 @@
 
 ---
 
-## 23.2 测试命令
+## 23.3 测试命令
 
 ```bash
 pnpm test              # 单元测试 (*.test.ts)
@@ -25,7 +57,7 @@ pnpm test:coverage     # 单元测试 + 覆盖率报告
 
 ---
 
-## 23.3 Storybook + Vitest 集成
+## 23.4 Storybook + Vitest 集成
 
 项目使用 `@storybook/addon-vitest` 将 Stories 作为测试用例运行。
 
@@ -93,7 +125,7 @@ export const Interactive: Story = {
 
 ---
 
-## 23.4 覆盖率目标
+## 23.5 覆盖率目标
 
 | 类型 | 目标 |
 |-----|------|
@@ -104,7 +136,7 @@ export const Interactive: Story = {
 
 ---
 
-## 23.5 测试优先级
+## 23.6 测试优先级
 
 | 优先级 | 测试内容 |
 |-------|---------|
@@ -115,7 +147,7 @@ export const Interactive: Story = {
 
 ---
 
-## 23.6 测试命名规范
+## 23.7 测试命名规范
 
 ```typescript
 describe('WalletStore', () => {
@@ -129,7 +161,7 @@ describe('WalletStore', () => {
 
 ---
 
-## 23.7 CI 集成
+## 23.8 CI 集成
 
 CI 流水线运行以下测试：
 

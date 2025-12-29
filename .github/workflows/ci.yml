@@ -42,10 +42,10 @@ jobs:
           pnpm install --frozen-lockfile
           
           if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
-            # 运行所有测试：单元测试 + Storybook 组件测试 + E2E 测试 + 主题检查
-            TASKS="typecheck:run build i18n:run theme:run test:run test:storybook e2e:ci e2e:ci:mock e2e:ci:real"
+            # 运行所有测试：lint + 单元测试 + Storybook 组件测试 + E2E 测试 + 主题检查
+            TASKS="lint:run typecheck:run build i18n:run theme:run test:run test:storybook e2e:audit e2e:ci e2e:ci:mock e2e:ci:real"
           else
-            TASKS="typecheck:run build i18n:run theme:run test:run test:storybook"
+            TASKS="lint:run typecheck:run build i18n:run theme:run test:run test:storybook"
           fi
           
           # Run turbo and capture output, pipefail ensures we get turbo's exit code
@@ -115,10 +115,10 @@ jobs:
           E2E_TEST_MNEMONIC: ${{ secrets.E2E_TEST_MNEMONIC }}
         run: |
           if [ "${{ steps.changes.outputs.code }}" == "true" ]; then
-            # 运行所有测试：单元测试 + Storybook 组件测试 + E2E 测试 + 主题检查
-            pnpm turbo run typecheck:run build i18n:run theme:run test:run test:storybook e2e:ci e2e:ci:mock e2e:ci:real
+            # 运行所有测试：lint + 单元测试 + Storybook 组件测试 + E2E 测试 + 主题检查
+            pnpm turbo run lint:run typecheck:run build i18n:run theme:run test:run test:storybook e2e:audit e2e:ci e2e:ci:mock e2e:ci:real
           else
-            pnpm turbo run typecheck:run build i18n:run theme:run test:run test:storybook
+            pnpm turbo run lint:run typecheck:run build i18n:run theme:run test:run test:storybook
           fi
 
   checks-standard:

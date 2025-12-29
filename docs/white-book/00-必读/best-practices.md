@@ -19,3 +19,9 @@
 - ❌ password/Password（宽泛含义） → ✅ walletLock（钱包锁）/ twoStepSecret（安全密码）/ payPassword（支付密码）等具体命名
 - 圆形元素必须使用 aspect-square 标记，与 w-*/h-*/size-* 不冲突，是规范要求
 - 组件尺寸属性要考虑响应式布局，如 lg 尺寸应包含 @xs:w-12 等容器查询断点
+- ❌ JS scroll 事件监听 → ✅ CSS scroll-driven animations（animation-timeline: scroll()）
+- 滚动驱动动画使用 `scroll-timeline: --name block` 定义 + `animation-timeline: --name` 绑定
+- 跨层级绑定使用 `timeline-scope: --name` 在公共祖先上声明
+- 紧凑头部效果使用 `animation-range: 0 80px` 限制动画范围
+- ⚠️ scroll-driven animations 是渐进增强：初始状态必须是可用的（如 opacity-0），不支持时保持初始状态
+- E2E 截图变更后运行 `pnpm e2e:audit` 检查残留截图，详见白皮书 08-测试篇/03-Playwright配置/e2e-best-practices

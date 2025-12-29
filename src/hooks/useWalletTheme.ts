@@ -2,6 +2,8 @@ import { useCallback, useEffect } from 'react'
 import { useStore } from '@tanstack/react-store'
 import { walletStore } from '@/stores'
 
+const THEME_HUE_CACHE_KEY = 'wallet_theme_hue_cache'
+
 /** 预设主题色 (oklch hue 角度) */
 export const WALLET_THEME_PRESETS = {
   purple: 323,    // 默认紫色
@@ -54,6 +56,49 @@ function applyThemeColor(hue: number) {
 }
 
 /**
+ * 保存主题色到 localStorage 缓存
+ */
+function saveThemeHueCache(hue: number) {
+  try {
+    localStorage.setItem(THEME_HUE_CACHE_KEY, String(hue))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+/**
+ * 从 localStorage 读取缓存的主题色
+ */
+function loadThemeHueCache(): number | null {
+  try {
+    const cached = localStorage.getItem(THEME_HUE_CACHE_KEY)
+    if (cached) {
+      const hue = parseInt(cached, 10)
+      if (!isNaN(hue) && hue >= 0 && hue <= 360) {
+        return hue
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+/**
+ * 初始化主题色（应用启动时调用）
+ * 立即从缓存读取并应用，避免白屏闪烁
+ */
+export function initializeThemeHue() {
+  const cached = loadThemeHueCache()
+  if (cached !== null) {
+    applyThemeColor(cached)
+  } else {
+    // 没有缓存时使用默认紫色
+    applyThemeColor(WALLET_THEME_PRESETS.purple)
+  }
+}
+
+/**
  * 根据钱包ID获取主题色
  */
 function getThemeHueForWallet(wallets: { id: string; themeHue: number }[], walletId: string | null): number {
@@ -72,12 +117,21 @@ export function useWalletTheme() {
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
 
   // 获取当前钱包的主题色
-  const themeHue = getThemeHueForWallet(wallets as { id: string; themeHue: number }[], currentWalletId)
+  const walletThemeHue = currentWalletId 
+    ? getThemeHueForWallet(wallets as { id: string; themeHue: number }[], currentWalletId)
+    : null
 
-  // 应用主题色
+  // 实际使用的主题色：有钱包用钱包的，没有用缓存的，都没有用默认的
+  const themeHue = walletThemeHue ?? loadThemeHueCache() ?? WALLET_THEME_PRESETS.purple
+
+  // 应用主题色并缓存（只有当钱包真正加载后才缓存）
   useEffect(() => {
     applyThemeColor(themeHue)
-  }, [themeHue])
+    // 只有当从钱包获取到主题色时才保存缓存
+    if (walletThemeHue !== null) {
+      saveThemeHueCache(walletThemeHue)
+    }
+  }, [themeHue, walletThemeHue])
 
   // 设置主题色
   const setThemeColor = useCallback((walletId: string, hue: number) => {

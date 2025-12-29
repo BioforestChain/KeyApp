@@ -21,7 +21,8 @@
       "getMain": "查看你的钱包导入密语（主密钥）"
     },
     "confirmDescription": "请绘制图案以继续",
-    "noWallets": "暂无钱包"
+    "noWallets": "暂无钱包",
+    "selectNetwork": "选择网络"
   },
   "signature": {
     "reviewTransaction": "请确认该交易",

@@ -1,6 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "lint:run": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", ".oxlintrc.json"],
+      "outputs": [],
+      "cache": true
+    },
     "typecheck:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json"],
@@ -11,6 +17,12 @@
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
       "outputs": ["coverage/**"],
+      "cache": true
+    },
+    "test:storybook": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
+      "outputs": [],
       "cache": true
     },
     "i18n:run": {
@@ -36,6 +48,12 @@
         "!e2e/report/**"
       ],
       "outputs": ["e2e/report/**", "e2e/test-results/**"],
+      "cache": true
+    },
+    "e2e:audit": {
+      "dependsOn": [],
+      "inputs": ["e2e/**/*.spec.ts", "e2e/__screenshots__/**"],
+      "outputs": [],
       "cache": true
     },
     "e2e:ci": {
