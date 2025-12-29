@@ -20,31 +20,31 @@ describe('Teleport App', () => {
     render(<App />)
 
     expect(screen.getByText('一键传送')).toBeInTheDocument()
-    expect(screen.getByText('将资产从一个钱包转移到另一个钱包')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    expect(screen.getByText('跨钱包传送')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '选择源钱包' })).toBeInTheDocument()
   })
 
   it('should show loading state when connecting', async () => {
     mockBio.request.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve([]), 1000))
+      () => new Promise((resolve) => setTimeout(() => resolve({ address: '0x123', chain: 'bioforest' }), 1000))
     )
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
 
     expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
   })
 
-  it('should proceed to select-source after connecting', async () => {
-    mockBio.request.mockResolvedValue([{ address: '0x123', chain: 'bioforest' }])
+  it('should proceed to select-asset after connecting', async () => {
+    mockBio.request.mockResolvedValue({ address: '0x123', chain: 'bioforest' })
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
 
     await waitFor(() => {
-      expect(screen.getByText('选择源地址（资产转出方）')).toBeInTheDocument()
+      expect(screen.getByText('选择要传送的资产')).toBeInTheDocument()
     })
   })
 
@@ -53,7 +53,7 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
 
     await waitFor(() => {
       expect(screen.getByText('Bio SDK 未初始化')).toBeInTheDocument()
@@ -65,23 +65,24 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
 
     await waitFor(() => {
       expect(screen.getByText('Network error')).toBeInTheDocument()
     })
   })
 
-  it('should call bio_requestAccounts on connect', async () => {
-    mockBio.request.mockResolvedValue([])
+  it('should call bio_selectAccount on connect', async () => {
+    mockBio.request.mockResolvedValue({ address: '0x123', chain: 'bioforest' })
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
 
     await waitFor(() => {
       expect(mockBio.request).toHaveBeenCalledWith({
-        method: 'bio_requestAccounts',
+        method: 'bio_selectAccount',
+        params: [{}],
       })
     })
   })

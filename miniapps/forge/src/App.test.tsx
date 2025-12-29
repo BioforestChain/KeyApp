@@ -19,16 +19,9 @@ describe('Forge App', () => {
   it('should render initial connect step', () => {
     render(<App />)
 
-    expect(screen.getByText('锻造')).toBeInTheDocument()
-    expect(screen.getByText('将 ETH 转换为 Bio Token')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '选择 ETH 钱包' })).toBeInTheDocument()
-  })
-
-  it('should show exchange rate info', () => {
-    render(<App />)
-
-    expect(screen.getByText('兑换比率')).toBeInTheDocument()
-    expect(screen.getByText(/1 ETH =/)).toBeInTheDocument()
+    expect(screen.getByText('兑换中心')).toBeInTheDocument()
+    expect(screen.getByText('多链兑换')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
   })
 
   it('should show loading state when connecting', async () => {
@@ -38,22 +31,20 @@ describe('Forge App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择 ETH 钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
   })
 
-  it('should proceed to input step after selecting wallet', async () => {
+  it('should proceed to swap step after selecting wallet', async () => {
     mockBio.request.mockResolvedValue({ address: '0x123', chain: 'ethereum' })
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择 ETH 钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
-      // Check for input placeholder "0.0" and label "支付 ETH"
-      expect(screen.getByPlaceholderText('0.0')).toBeInTheDocument()
-      expect(screen.getByText('支付 ETH')).toBeInTheDocument()
+      expect(screen.getByText('支付')).toBeInTheDocument()
     })
   })
 
@@ -62,7 +53,7 @@ describe('Forge App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择 ETH 钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
       expect(screen.getByText('Bio SDK 未初始化')).toBeInTheDocument()
@@ -74,7 +65,7 @@ describe('Forge App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择 ETH 钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
       expect(screen.getByText('Connection failed')).toBeInTheDocument()
@@ -86,12 +77,12 @@ describe('Forge App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择 ETH 钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
       expect(mockBio.request).toHaveBeenCalledWith({
         method: 'bio_selectAccount',
-        params: [{ chain: 'ethereum' }],
+        params: [{}],
       })
     })
   })
