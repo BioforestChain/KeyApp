@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -25,15 +26,8 @@ const TOKEN_COLORS: Record<string, string> = {
   BFC: 'bg-blue-600',
 }
 
-const CHAIN_NAMES: Record<string, string> = {
-  ETH: 'Ethereum',
-  BSC: 'BNB Chain',
-  TRON: 'Tron',
-  bfmeta: 'BFMeta',
-  bfchain: 'BFChain',
-}
-
 export default function App() {
+  const { t } = useTranslation()
   const [step, setStep] = useState<Step>('connect')
   const [externalAccount, setExternalAccount] = useState<BioAccount | null>(null)
   const [internalAccount, setInternalAccount] = useState<BioAccount | null>(null)
@@ -48,6 +42,11 @@ export default function App() {
   
   // Forge hook
   const forgeHook = useForge()
+
+  // Helper to get chain name from translations
+  const getChainName = useCallback((chain: string) => {
+    return t(`chain.${chain}`, { defaultValue: chain })
+  }, [t])
 
   // Close splash screen
   useEffect(() => {
@@ -167,7 +166,7 @@ export default function App() {
               </Button>
             )}
             <h1 className="flex-1 text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-              锻造
+              {t('app.title')}
             </h1>
             <div className="w-7" />
           </div>
@@ -225,8 +224,8 @@ export default function App() {
                 </div>
                 
                 <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">多链熔炉</h2>
-                  <p className="text-muted-foreground text-sm">将其他链资产锻造为 Bio 生态代币</p>
+                  <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('app.description')}</p>
                 </div>
 
                 {/* Available chains preview */}
@@ -234,7 +233,7 @@ export default function App() {
                   <div className="flex gap-2">
                     {Object.keys(groupedOptions).map((chain) => (
                       <Badge key={chain} variant="outline">
-                        {CHAIN_NAMES[chain] || chain}
+                        {getChainName(chain)}
                       </Badge>
                     ))}
                   </div>
@@ -247,7 +246,7 @@ export default function App() {
                   disabled={loading || forgeOptions.length === 0}
                 >
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {loading ? '连接中...' : '连接钱包'}
+                  {loading ? t('connect.loading') : t('connect.button')}
                 </Button>
               </motion.div>
             )}
@@ -265,7 +264,7 @@ export default function App() {
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <CardDescription>支付 ({CHAIN_NAMES[selectedOption.externalChain] || selectedOption.externalChain})</CardDescription>
+                      <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
                       <CardDescription className="text-xs truncate max-w-32">
                         {externalAccount?.address?.slice(0, 8)}...
                       </CardDescription>
@@ -306,7 +305,7 @@ export default function App() {
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <CardDescription>获得 ({CHAIN_NAMES[selectedOption.internalChain] || selectedOption.internalChain})</CardDescription>
+                      <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
                       <CardDescription className="text-xs truncate max-w-32">
                         {internalAccount?.address?.slice(0, 8)}...
                       </CardDescription>
@@ -330,11 +329,11 @@ export default function App() {
                   <Card className="border-orange-500/20 bg-orange-500/5">
                     <CardContent className="py-3 space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">兑换比例</span>
+                        <span className="text-muted-foreground">{t('forge.ratio')}</span>
                         <span>1:1</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">充值地址</span>
+                        <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
                         <span className="font-mono text-xs truncate max-w-40">
                           {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
                         </span>
@@ -349,7 +348,7 @@ export default function App() {
                     onClick={handlePreview}
                     disabled={!amount || parseFloat(amount) <= 0}
                   >
-                    预览交易
+                    {t('forge.preview')}
                   </Button>
                 </div>
               </motion.div>
@@ -368,7 +367,7 @@ export default function App() {
                   <CardContent className="py-6 text-center space-y-4">
                     <div>
                       <CardDescription className="mb-1">
-                        支付 ({CHAIN_NAMES[selectedOption.externalChain] || selectedOption.externalChain})
+                        {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
                       </CardDescription>
                       <div className="text-3xl font-bold flex items-center justify-center gap-2">
                         <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
@@ -384,7 +383,7 @@ export default function App() {
                     </div>
                     <div>
                       <CardDescription className="mb-1">
-                        获得 ({CHAIN_NAMES[selectedOption.internalChain] || selectedOption.internalChain})
+                        {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
                       </CardDescription>
                       <div className="text-3xl font-bold text-orange-500 flex items-center justify-center gap-2">
                         <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
@@ -397,21 +396,21 @@ export default function App() {
                 <Card>
                   <CardContent className="py-4 space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">兑换比例</span>
+                      <span className="text-muted-foreground">{t('forge.ratio')}</span>
                       <span>1:1</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">网络</span>
+                      <span className="text-muted-foreground">{t('forge.network')}</span>
                       <div className="flex gap-2">
-                        <Badge variant="outline">{selectedOption.externalChain}</Badge>
+                        <Badge variant="outline">{getChainName(selectedOption.externalChain)}</Badge>
                         <span>→</span>
-                        <Badge variant="outline">{selectedOption.internalChain}</Badge>
+                        <Badge variant="outline">{getChainName(selectedOption.internalChain)}</Badge>
                       </div>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">充值地址</span>
+                      <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
                       <span className="font-mono text-xs truncate max-w-32">
                         {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
                       </span>
@@ -425,7 +424,7 @@ export default function App() {
                     onClick={handleConfirm}
                     disabled={loading}
                   >
-                    确认锻造
+                    {t('forge.confirm')}
                   </Button>
                 </div>
               </motion.div>
@@ -445,12 +444,12 @@ export default function App() {
                 </div>
                 <div className="text-center space-y-2">
                   <h2 className="text-xl font-bold">
-                    {forgeHook.step === 'signing_external' && '签名外链交易...'}
-                    {forgeHook.step === 'signing_internal' && '签名内链消息...'}
-                    {forgeHook.step === 'submitting' && '提交锻造请求...'}
-                    {forgeHook.step === 'idle' && '锻造中...'}
+                    {forgeHook.step === 'signing_external' && t('processing.signingExternal')}
+                    {forgeHook.step === 'signing_internal' && t('processing.signingInternal')}
+                    {forgeHook.step === 'submitting' && t('processing.submitting')}
+                    {forgeHook.step === 'idle' && t('processing.default')}
                   </h2>
-                  <p className="text-muted-foreground text-sm">请在钱包中确认操作</p>
+                  <p className="text-muted-foreground text-sm">{t('processing.hint')}</p>
                 </div>
               </motion.div>
             )}
@@ -469,18 +468,18 @@ export default function App() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">锻造完成</h2>
+                  <h2 className="text-xl font-bold">{t('success.title')}</h2>
                   <p className="text-2xl font-bold text-emerald-400">
                     {amount} {selectedOption.internalAsset}
                   </p>
                   {forgeHook.orderId && (
                     <p className="text-xs text-muted-foreground font-mono">
-                      订单: {forgeHook.orderId.slice(0, 16)}...
+                      {t('success.orderId')}: {forgeHook.orderId.slice(0, 16)}...
                     </p>
                   )}
                 </div>
                 <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
-                  继续锻造
+                  {t('forge.continue')}
                 </Button>
               </motion.div>
             )}
@@ -495,7 +494,7 @@ export default function App() {
               />
               <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl border-t border-border animate-in slide-in-from-bottom">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <CardTitle>选择锻造币种</CardTitle>
+                  <CardTitle>{t('picker.title')}</CardTitle>
                   <Button variant="ghost" size="icon-sm" onClick={() => setPickerOpen(false)}>
                     <X className="size-5" />
                   </Button>
@@ -504,7 +503,7 @@ export default function App() {
                   {Object.entries(groupedOptions).map(([chain, options]) => (
                     <div key={chain}>
                       <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                        {CHAIN_NAMES[chain] || chain}
+                        {getChainName(chain)}
                       </h3>
                       <div className="space-y-2">
                         {options.map((option) => (
@@ -525,12 +524,12 @@ export default function App() {
                                   {option.externalAsset} → {option.internalAsset}
                                 </CardTitle>
                                 <CardDescription>
-                                  {option.externalChain} → {CHAIN_NAMES[option.internalChain] || option.internalChain}
+                                  {getChainName(option.externalChain)} → {getChainName(option.internalChain)}
                                 </CardDescription>
                               </div>
                               {selectedOption?.externalAsset === option.externalAsset &&
                                selectedOption?.externalChain === option.externalChain && (
-                                <Badge>已选</Badge>
+                                <Badge>{t('picker.selected')}</Badge>
                               )}
                             </CardContent>
                           </Card>

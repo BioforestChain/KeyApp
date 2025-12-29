@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import App from './App'
 
+// Initialize i18n before tests
+import './i18n'
+
 // Mock the API module
 vi.mock('@/api', () => ({
   rechargeApi: {
