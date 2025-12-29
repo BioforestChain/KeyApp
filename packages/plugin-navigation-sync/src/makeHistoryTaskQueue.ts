@@ -1,4 +1,4 @@
-import type { HistoryQueueContextValue } from "HistoryQueueContext";
+import type { HistoryQueueContextValue } from "./HistoryQueueContext";
 import type { History } from "history";
 
 /**

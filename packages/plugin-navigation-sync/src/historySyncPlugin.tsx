@@ -245,7 +245,7 @@ export function historySyncPlugin<
           )!;
         const template = makeTemplate(targetActivityRoute, options.urlPatternOptions);
         const parsedParams =
-          template.parse<Record<string, string | undefined>>(currentPath) ?? {};
+          template.parse(currentPath) ?? {};
         const params: Record<string, string> = Object.entries(parsedParams).reduce(
           (acc, [key, value]) => {
             if (typeof value === "string") acc[key] = value;
@@ -271,7 +271,7 @@ export function historySyncPlugin<
                     activityName,
                     activityParams: {
                       ...activityParams,
-                    },
+                    } as { [key: string]: string | undefined },
                     activityContext: {
                       path: currentPath,
                       lazyActivityComponentRenderContext: {
@@ -313,12 +313,13 @@ export function historySyncPlugin<
               id: id(),
               activityId: id(),
               activityName: targetActivityRoute.activityName,
-              activityParams:
+              activityParams: (
                 makeTemplate(
                   targetActivityRoute,
                   options.urlPatternOptions,
                 ).parse(currentPath) ??
-                urlSearchParamsToMap(pathToUrl(currentPath).searchParams),
+                urlSearchParamsToMap(pathToUrl(currentPath).searchParams)
+              ) as { [key: string]: string | undefined },
               activityContext: {
                 path: currentPath,
                 lazyActivityComponentRenderContext: {

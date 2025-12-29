@@ -110,16 +110,14 @@ export function makeTemplate<T>(
         pathname + prependQuestionMarkInSearchParams(searchParams)
       );
     },
-    parse<T extends { [key: string]: string | undefined }>(
-      path: string,
-    ): T | null {
+    parse(path: string): T | null {
       const url = pathToUrl(path);
       if (onlyAsterisk) {
         const searchParams = urlSearchParamsToMap(url.searchParams);
         const params = {
           ...searchParams,
         };
-        return decode ? decode(params) : (params as T);
+        return (decode ? decode(params) : params) as T;
       }
 
       if (!urlPattern) return null;
@@ -134,12 +132,15 @@ export function makeTemplate<T>(
 
       const pathParams = match.pathname.groups as Record<string, string | undefined>;
 
-      const params = {
-        ...searchParams,
-        ...pathParams,
-      };
+      // Filter out undefined values for decode compatibility
+      const params: Record<string, string> = { ...searchParams };
+      for (const [key, value] of Object.entries(pathParams)) {
+        if (value !== undefined) {
+          params[key] = value;
+        }
+      }
 
-      return decode ? decode(params) : params;
+      return (decode ? decode(params) : params) as T;
     },
     variableCount,
   };
