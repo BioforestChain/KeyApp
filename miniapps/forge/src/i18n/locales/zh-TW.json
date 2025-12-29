@@ -1,0 +1,47 @@
+{
+  "app": {
+    "title": "兌換中心",
+    "subtitle": "多鏈兌換",
+    "description": "安全、快速地在不同代幣之間進行兌換"
+  },
+  "connect": {
+    "button": "連接錢包",
+    "loading": "連接中..."
+  },
+  "swap": {
+    "pay": "支付",
+    "receive": "獲得",
+    "balance": "餘額",
+    "rate": "兌換比率",
+    "button": "兌換",
+    "confirm": "確認兌換",
+    "processing": "處理中...",
+    "max": "全部"
+  },
+  "confirm": {
+    "title": "確認兌換",
+    "from": "支付",
+    "to": "獲得",
+    "rate": "匯率",
+    "fee": "網絡費用",
+    "feeEstimate": "預估",
+    "button": "確認",
+    "cancel": "取消"
+  },
+  "success": {
+    "title": "兌換成功！",
+    "message": "您的兌換已提交",
+    "txWait": "交易確認可能需要幾分鐘",
+    "done": "完成"
+  },
+  "error": {
+    "sdkNotInit": "Bio SDK 未初始化",
+    "connectionFailed": "連接失敗",
+    "invalidAmount": "請輸入有效金額",
+    "insufficientBalance": "餘額不足"
+  },
+  "token": {
+    "select": "選擇代幣",
+    "search": "搜索代幣"
+  }
+}
