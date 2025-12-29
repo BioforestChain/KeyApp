@@ -19,8 +19,8 @@ describe('Forge App', () => {
   it('should render initial connect step', () => {
     render(<App />)
 
-    expect(screen.getByText('兑换中心')).toBeInTheDocument()
-    expect(screen.getByText('多链兑换')).toBeInTheDocument()
+    expect(screen.getByText('多链熔炉')).toBeInTheDocument()
+    expect(screen.getByText(/将其他链资产锻造为/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
   })
 

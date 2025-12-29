@@ -21,7 +21,7 @@ describe('Teleport App', () => {
 
     expect(screen.getByText('一键传送')).toBeInTheDocument()
     expect(screen.getByText('跨钱包传送')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '选择源钱包' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '启动传送门' })).toBeInTheDocument()
   })
 
   it('should show loading state when connecting', async () => {
@@ -31,7 +31,7 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '启动传送门' }))
 
     expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
   })
@@ -41,10 +41,10 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '启动传送门' }))
 
     await waitFor(() => {
-      expect(screen.getByText('选择要传送的资产')).toBeInTheDocument()
+      expect(screen.getByText('选择资产')).toBeInTheDocument()
     })
   })
 
@@ -53,7 +53,7 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '启动传送门' }))
 
     await waitFor(() => {
       expect(screen.getByText('Bio SDK 未初始化')).toBeInTheDocument()
@@ -65,7 +65,7 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '启动传送门' }))
 
     await waitFor(() => {
       expect(screen.getByText('Network error')).toBeInTheDocument()
@@ -77,7 +77,7 @@ describe('Teleport App', () => {
 
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: '选择源钱包' }))
+    fireEvent.click(screen.getByRole('button', { name: '启动传送门' }))
 
     await waitFor(() => {
       expect(mockBio.request).toHaveBeenCalledWith({

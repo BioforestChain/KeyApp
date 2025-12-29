@@ -1,4 +1,4 @@
-export type TranslationValue = string | Record<string, TranslationValue>
+export type TranslationValue = string | { [key: string]: TranslationValue }
 export type TranslationFile = Record<string, TranslationValue>
 
 /**
