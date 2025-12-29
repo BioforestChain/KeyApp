@@ -1,0 +1,44 @@
+{
+  "name": "@biochain/create-miniapp",
+  "version": "0.1.0",
+  "description": "CLI 工具用于快速创建 Bio 生态 miniapp 项目",
+  "type": "module",
+  "bin": {
+    "create-miniapp": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "dev": "bun src/cli.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:run": "oxlint .",
+    "test": "echo 'CLI has no tests'",
+    "test:run": "echo 'CLI has no tests'",
+    "test:storybook": "echo 'CLI has no storybook'",
+    "i18n:run": "echo 'CLI has no i18n'",
+    "theme:run": "echo 'CLI has no theme'"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.5.0",
+    "chalk": "^5.4.1",
+    "execa": "^9.5.2",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/yargs": "^17.0.33",
+    "oxlint": "^1.32.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

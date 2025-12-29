@@ -10,13 +10,12 @@ const MiniappCategorySchema = z.enum([
   'other',
 ])
 
-const SplashScreenSchema = z
-  .object({
-    backgroundColor: z.string().optional(),
-    icon: z.string().optional(),
+const SplashScreenSchema = z.union([
+  z.literal(true),
+  z.object({
     timeout: z.number().int().positive().optional(),
-  })
-  .passthrough()
+  }).passthrough(),
+])
 
 export const MiniappManifestSchema = z
   .object({

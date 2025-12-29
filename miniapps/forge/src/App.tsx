@@ -61,6 +61,11 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState<'from' | 'to' | null>(null)
 
+  // 关闭启动屏
+  useEffect(() => {
+    window.bio?.request({ method: 'bio_closeSplashScreen' })
+  }, [])
+
   useEffect(() => {
     if (fromAmount && parseFloat(fromAmount) > 0) {
       const rate = EXCHANGE_RATES[`${fromToken.symbol}-${toToken.symbol}`] || 1
