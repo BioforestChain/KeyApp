@@ -316,7 +316,7 @@ export default function App() {
                   <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full animate-pulse" />
                   <Avatar className="relative size-16 bg-primary">
                     <AvatarFallback className="bg-transparent">
-                      <ArrowDown className="size-8 text-white" />
+                      <ArrowDown className="size-8 text-primary-foreground" />
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -434,7 +434,7 @@ function WalletCard({ label, address, name, compact, highlight }: {
     return (
       <Card className={cn("border-0", highlight ? "bg-primary/10" : "bg-muted/50")}>
         <CardContent className="py-2 flex items-center gap-3">
-          <Avatar className={cn("size-8", highlight ? "bg-primary/20" : "bg-muted")}>
+          <Avatar className={cn("size-8", highlight ? "bg-primary/20 text-primary-foreground" : "bg-muted text-muted-foreground")}>
             <AvatarFallback className="bg-transparent">
               <Wallet className="size-4" />
             </AvatarFallback>
