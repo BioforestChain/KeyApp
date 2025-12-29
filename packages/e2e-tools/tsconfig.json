@@ -10,8 +10,7 @@
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "types": ["bun-types"]
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
