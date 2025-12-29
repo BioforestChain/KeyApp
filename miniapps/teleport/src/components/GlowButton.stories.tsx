@@ -1,3 +1,4 @@
+/* oxlint-disable i18next/no-literal-string */
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { GlowButton } from './GlowButton'
 import { Send } from 'lucide-react'

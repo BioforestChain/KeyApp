@@ -1,0 +1,191 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  getTransmitAssetTypeList,
+  transmit,
+  getTransmitRecords,
+  getTransmitRecordDetail,
+  retryFromTxOnChain,
+  retryToTxOnChain,
+  ApiError,
+} from './client'
+
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+
+describe('Teleport API Client', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  describe('getTransmitAssetTypeList', () => {
+    it('should fetch asset type list', async () => {
+      const mockResponse = {
+        transmitSupport: {
+          ETH: {
+            ETH: {
+              enable: true,
+              assetType: 'ETH',
+              recipientAddress: '0x123',
+              targetChain: 'BFMCHAIN',
+              targetAsset: 'BFM',
+              ratio: { numerator: 1, denominator: 1 },
+            },
+          },
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      })
+
+      const result = await getTransmitAssetTypeList()
+      expect(result).toEqual(mockResponse)
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.eth-metaverse.com/payment/transmit/assetTypeList',
+        expect.objectContaining({
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
+    })
+
+    it('should throw ApiError on HTTP error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ message: 'Internal Server Error' }),
+      })
+
+      await expect(getTransmitAssetTypeList()).rejects.toThrow(ApiError)
+    })
+  })
+
+  describe('transmit', () => {
+    it('should send transmit request', async () => {
+      const mockRequest = {
+        fromTrJson: { eth: { signTransData: '0x123' } },
+        toTrInfo: {
+          chainName: 'BFMCHAIN' as const,
+          address: '0xabc',
+          assetType: 'BFM',
+        },
+      }
+
+      const mockResponse = { orderId: 'order-123' }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      })
+
+      const result = await transmit(mockRequest)
+      expect(result).toEqual(mockResponse)
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.eth-metaverse.com/payment/transmit',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockRequest),
+        })
+      )
+    })
+  })
+
+  describe('getTransmitRecords', () => {
+    it('should fetch records with pagination', async () => {
+      const mockResponse = {
+        page: 1,
+        pageSize: 10,
+        dataList: [{ orderId: '1', state: 1, orderState: 4 }],
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      })
+
+      const result = await getTransmitRecords({ page: 1, pageSize: 10 })
+      expect(result).toEqual(mockResponse)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/transmit/records?'),
+        expect.any(Object)
+      )
+    })
+
+    it('should include filter params', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ page: 1, pageSize: 10, dataList: [] }),
+      })
+
+      await getTransmitRecords({
+        page: 1,
+        pageSize: 10,
+        fromChain: 'ETH',
+        fromAddress: '0x123',
+      })
+
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('fromChain=ETH')
+      expect(url).toContain('fromAddress=0x123')
+    })
+  })
+
+  describe('getTransmitRecordDetail', () => {
+    it('should fetch record detail', async () => {
+      const mockResponse = {
+        state: 3,
+        orderState: 4,
+        swapRatio: 1,
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      })
+
+      const result = await getTransmitRecordDetail('order-123')
+      expect(result).toEqual(mockResponse)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('orderId=order-123'),
+        expect.any(Object)
+      )
+    })
+  })
+
+  describe('retryFromTxOnChain', () => {
+    it('should retry from tx', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(true),
+      })
+
+      const result = await retryFromTxOnChain('order-123')
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('retryToTxOnChain', () => {
+    it('should retry to tx', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(true),
+      })
+
+      const result = await retryToTxOnChain('order-123')
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('ApiError', () => {
+    it('should contain status and data', () => {
+      const error = new ApiError('Test error', 400, { detail: 'Bad request' })
+      expect(error.message).toBe('Test error')
+      expect(error.status).toBe(400)
+      expect(error.data).toEqual({ detail: 'Bad request' })
+    })
+  })
+})

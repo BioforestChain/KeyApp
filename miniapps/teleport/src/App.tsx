@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
-import type { BioAccount } from '@biochain/bio-sdk'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,43 +10,75 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { AuroraBackground } from './components/AuroraBackground'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, Zap, ArrowDown, Check, Coins, Leaf, DollarSign, Wallet, Loader2 } from 'lucide-react'
+import { ChevronLeft, Zap, ArrowDown, Check, Coins, Leaf, DollarSign, Wallet, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import './i18n'
+import {
+  useTransmitAssetTypeList,
+  useTransmit,
+  useTransmitRecordDetail,
+  type DisplayAsset,
+  type FromTrJson,
+  type ToTrInfo,
+  type InternalChainName,
+  type TransferAssetTransaction,
+  SWAP_ORDER_STATE_ID,
+} from './api'
 
-type Step = 'connect' | 'select-asset' | 'input-amount' | 'select-target' | 'confirm' | 'success'
+type Step = 'connect' | 'select-asset' | 'input-amount' | 'select-target' | 'confirm' | 'processing' | 'success' | 'error'
 
-interface Asset {
-  id: string
-  symbol: string
-  name: string
-  balance: string
-  chain: string
-}
-
-const MOCK_ASSETS: Asset[] = [
-  { id: 'bfm', symbol: 'BFM', name: 'BioForest', balance: '1,234.56', chain: 'bioforest' },
-  { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '2.5', chain: 'ethereum' },
-  { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500.00', chain: 'ethereum' },
-]
-
-const ASSET_COLORS: Record<string, string> = {
-  BFM: 'bg-emerald-600',
+const CHAIN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
-  USDT: 'bg-teal-600',
+  BSC: 'bg-amber-600',
+  TRON: 'bg-red-600',
+  BFMCHAIN: 'bg-emerald-600',
+  ETHMETA: 'bg-purple-600',
+  PMCHAIN: 'bg-cyan-600',
 }
 
 export default function App() {
+  const { t } = useTranslation()
   const [step, setStep] = useState<Step>('connect')
   const [sourceAccount, setSourceAccount] = useState<BioAccount | null>(null)
   const [targetAccount, setTargetAccount] = useState<BioAccount | null>(null)
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
+  const [selectedAsset, setSelectedAsset] = useState<DisplayAsset | null>(null)
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(null)
+
+  // API Hooks
+  const { data: assets, isLoading: assetsLoading, error: assetsError } = useTransmitAssetTypeList()
+  const transmitMutation = useTransmit()
+  const { data: recordDetail } = useTransmitRecordDetail(orderId || '', { enabled: !!orderId })
+
+  // 监听订单状态变化
+  useEffect(() => {
+    if (!recordDetail) return
+    
+    if (recordDetail.orderState === SWAP_ORDER_STATE_ID.SUCCESS) {
+      setStep('success')
+    } else if (
+      recordDetail.orderState === SWAP_ORDER_STATE_ID.FROM_TX_ON_CHAIN_FAIL ||
+      recordDetail.orderState === SWAP_ORDER_STATE_ID.TO_TX_ON_CHAIN_FAIL
+    ) {
+      setError(recordDetail.orderFailReason || '交易失败')
+      setStep('error')
+    }
+  }, [recordDetail])
 
   // 关闭启动屏
   useEffect(() => {
     window.bio?.request({ method: 'bio_closeSplashScreen' })
   }, [])
+
+  // 过滤可用资产（根据源账户的链）
+  const availableAssets = useMemo(() => {
+    if (!assets || !sourceAccount) return []
+    return assets.filter(asset => {
+      // 匹配链名（大小写不敏感）
+      return asset.chain.toLowerCase() === sourceAccount.chain.toLowerCase()
+    })
+  }, [assets, sourceAccount])
 
   const handleConnect = useCallback(async () => {
     if (!window.bio) {
@@ -68,8 +101,22 @@ export default function App() {
     }
   }, [])
 
-  const handleSelectAsset = (asset: Asset) => {
+  const handleSelectAsset = async (asset: DisplayAsset) => {
     setSelectedAsset(asset)
+    
+    // 获取该资产的余额
+    if (window.bio && sourceAccount) {
+      try {
+        const balance = await window.bio.request<string>({
+          method: 'bio_getBalance',
+          params: [{ address: sourceAccount.address, chain: sourceAccount.chain }],
+        })
+        setSelectedAsset({ ...asset, balance })
+      } catch {
+        // 如果获取余额失败，使用默认值
+      }
+    }
+    
     setStep('input-amount')
   }
 
@@ -89,7 +136,10 @@ export default function App() {
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_pickWallet',
-        params: [{ chain: selectedAsset?.chain, exclude: sourceAccount.address }],
+        params: [{
+          chain: selectedAsset?.targetChain,
+          exclude: sourceAccount.address,
+        }],
       })
       setTargetAccount(account)
       setStep('confirm')
@@ -101,27 +151,72 @@ export default function App() {
   }, [sourceAccount, selectedAsset])
 
   const handleConfirm = useCallback(async () => {
-    if (!window.bio || !sourceAccount || !selectedAsset) return
+    if (!window.bio || !sourceAccount || !selectedAsset || !targetAccount) return
     setLoading(true)
     setError(null)
+    
     try {
-      await window.bio.request<{ txHash: string }>({
-        method: 'bio_sendTransaction',
+      // 1. 创建未签名交易（转账到 recipientAddress）
+      const unsignedTx = await window.bio.request({
+        method: 'bio_createTransaction',
         params: [{
           from: sourceAccount.address,
-          to: targetAccount?.address,
+          to: selectedAsset.recipientAddress,
           amount: amount,
-          chain: selectedAsset.chain,
-          asset: selectedAsset.symbol,
+          chain: sourceAccount.chain,
+          asset: selectedAsset.assetType,
         }],
       })
-      setStep('success')
+
+      // 2. 签名交易
+      const signedTx = await window.bio.request<BioSignedTransaction>({
+        method: 'bio_signTransaction',
+        params: [{
+          from: sourceAccount.address,
+          chain: sourceAccount.chain,
+          unsignedTx,
+        }],
+      })
+
+      // 3. 构造 fromTrJson（根据链类型）
+      const fromTrJson: FromTrJson = {}
+      const chainLower = sourceAccount.chain.toLowerCase()
+      
+      if (chainLower === 'eth') {
+        fromTrJson.eth = { signTransData: signedTx.signature }
+      } else if (chainLower === 'bsc') {
+        fromTrJson.bsc = { signTransData: signedTx.signature }
+      } else {
+        // 内链交易
+        fromTrJson.bcf = {
+          chainName: sourceAccount.chain as InternalChainName,
+          trJson: signedTx.data as TransferAssetTransaction,
+        }
+      }
+
+      // 4. 构造 toTrInfo
+      const toTrInfo: ToTrInfo = {
+        chainName: selectedAsset.targetChain,
+        address: targetAccount.address,
+        assetType: selectedAsset.targetAsset,
+      }
+
+      // 5. 发起传送请求
+      setStep('processing')
+      const result = await transmitMutation.mutateAsync({
+        fromTrJson,
+        toTrInfo,
+      })
+
+      setOrderId(result.orderId)
+      // 状态变化由 useEffect 监听 recordDetail 来处理
     } catch (err) {
-      setError(err instanceof Error ? err.message : '转账失败')
+      setError(err instanceof Error ? err.message : '传送失败')
+      setStep('error')
     } finally {
       setLoading(false)
     }
-  }, [sourceAccount, targetAccount, selectedAsset, amount])
+  }, [sourceAccount, targetAccount, selectedAsset, amount, transmitMutation])
 
   const handleReset = useCallback(() => {
     setStep('connect')
@@ -130,6 +225,7 @@ export default function App() {
     setSelectedAsset(null)
     setAmount('')
     setError(null)
+    setOrderId(null)
   }, [])
 
   const handleBack = () => {
@@ -139,10 +235,22 @@ export default function App() {
       'select-target': 'input-amount',
       'confirm': 'select-target',
       'connect': 'connect',
+      'processing': 'processing',
       'success': 'success',
+      'error': 'confirm',
     }
     setStep(backMap[step])
+    setError(null)
   }
+
+  // 计算预期接收金额
+  const expectedReceive = useMemo(() => {
+    if (!selectedAsset || !amount) return '0'
+    const { numerator, denominator } = selectedAsset.ratio
+    const amountNum = parseFloat(amount)
+    const ratioNum = Number(numerator) / Number(denominator)
+    return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '')
+  }, [selectedAsset, amount])
 
   return (
     <AuroraBackground className="min-h-screen">
@@ -150,25 +258,26 @@ export default function App() {
         {/* Header */}
         <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b border-border">
           <div className="flex items-center h-14 px-4">
-            {!['connect', 'success'].includes(step) ? (
+            {!['connect', 'success', 'processing'].includes(step) ? (
               <Button variant="ghost" size="icon-sm" onClick={handleBack}>
                 <ChevronLeft className="size-5" />
               </Button>
             ) : <div className="w-7" />}
-            <h1 className="flex-1 text-center font-bold">一键传送</h1>
+            <h1 className="flex-1 text-center font-bold">{t('app.title')}</h1>
             <div className="w-7" />
           </div>
         </header>
 
         {/* Content */}
         <main className="flex-1 flex flex-col p-4">
-          {error && (
+          {error && step !== 'error' && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <Card className="mb-4 border-destructive/50 bg-destructive/10">
-                <CardContent className="py-3 text-destructive text-sm">
+                <CardContent className="py-3 text-destructive text-sm flex items-center gap-2">
+                  <AlertCircle className="size-4" />
                   {error}
                 </CardContent>
               </Card>
@@ -195,19 +304,23 @@ export default function App() {
                 </div>
                 
                 <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">跨钱包传送</h2>
-                  <p className="text-muted-foreground text-sm">安全地将资产转移到另一个钱包</p>
+                  <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('app.description')}</p>
                 </div>
                 
                 <Button 
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
-                  disabled={loading}
+                  disabled={loading || assetsLoading}
                 >
-                  {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {loading ? '连接中...' : '启动传送门'}
+                  {(loading || assetsLoading) && <Loader2 className="size-4 animate-spin mr-2" />}
+                  {assetsLoading ? t('connect.loadingConfig') : loading ? t('connect.loading') : t('connect.button')}
                 </Button>
+                
+                {assetsError && (
+                  <p className="text-sm text-destructive">{t('connect.configError')}</p>
+                )}
               </motion.div>
             )}
 
@@ -220,36 +333,44 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="flex-1 flex flex-col gap-4"
               >
-                <WalletCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
+                <WalletCard label={t('wallet.source')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} />
                 
                 <div className="space-y-3">
-                  <CardDescription className="px-1">选择资产</CardDescription>
-                  {MOCK_ASSETS.map((asset, i) => (
-                    <motion.div
-                      key={asset.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                    >
-                      <Card 
-                        data-slot="card"
-                        className="cursor-pointer transition-colors hover:bg-accent"
-                        onClick={() => handleSelectAsset(asset)}
+                  <CardDescription className="px-1">{t('asset.select')}</CardDescription>
+                  {availableAssets.length === 0 ? (
+                    <Card>
+                      <CardContent className="py-8 text-center text-muted-foreground">
+                        {t('asset.noAssets')}
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    availableAssets.map((asset, i) => (
+                      <motion.div
+                        key={asset.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
                       >
-                        <CardContent className="py-3 flex items-center gap-3">
-                          <AssetAvatar symbol={asset.symbol} />
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base">{asset.symbol}</CardTitle>
-                            <CardDescription>{asset.name}</CardDescription>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold">{asset.balance}</div>
-                            <CardDescription>可用</CardDescription>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+                        <Card 
+                          data-slot="card"
+                          className="cursor-pointer transition-colors hover:bg-accent"
+                          onClick={() => handleSelectAsset(asset)}
+                        >
+                          <CardContent className="py-3 flex items-center gap-3">
+                            <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-base">{asset.symbol}</CardTitle>
+                              <CardDescription>{t('asset.transfer', { from: asset.chain, to: asset.targetChain })}</CardDescription>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-semibold">{asset.balance || '-'}</div>
+                              <CardDescription>{t('asset.balance')}</CardDescription>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}
@@ -263,14 +384,14 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="flex-1 flex flex-col gap-4"
               >
-                <WalletCard label="源钱包" address={sourceAccount?.address} name={sourceAccount?.name} />
+                <WalletCard label={t('wallet.source')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} />
 
                 <Card className="flex-1">
                   <CardContent className="h-full flex flex-col items-center justify-center gap-4 py-8">
-                    <AssetAvatar symbol={selectedAsset.symbol} size="lg" />
+                    <AssetAvatar symbol={selectedAsset.symbol} chain={selectedAsset.chain} size="lg" />
                     <div className="text-center">
                       <CardTitle>{selectedAsset.symbol}</CardTitle>
-                      <CardDescription>可用: {selectedAsset.balance}</CardDescription>
+                      <CardDescription>{t('common.labelValue', { label: t('asset.balance'), value: selectedAsset.balance || '-' })}</CardDescription>
                     </div>
                     <div className="w-full max-w-xs relative">
                       <Input
@@ -280,20 +401,27 @@ export default function App() {
                         placeholder="0.00"
                         className="text-center text-3xl font-bold h-14 border-0 border-b-2 border-primary/50 rounded-none focus-visible:ring-0 focus-visible:border-primary"
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 text-xs"
-                        onClick={() => setAmount(selectedAsset.balance.replace(/,/g, ''))}
-                      >
-                        MAX
-                      </Button>
+                      {selectedAsset.balance && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 text-xs"
+                          onClick={() => setAmount(selectedAsset.balance.replace(/,/g, ''))}
+                        >
+                          MAX
+                        </Button>
+                      )}
                     </div>
+                    {amount && (
+                      <p className="text-sm text-muted-foreground">
+                        {t('common.labelValue', { label: t('amount.expected'), value: '' })}<span className="text-foreground font-medium">{expectedReceive} {selectedAsset.targetAsset}</span>
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 
                 <Button className="w-full h-12" onClick={handleAmountNext} disabled={!amount || parseFloat(amount) <= 0}>
-                  下一步
+                  {t('amount.next')}
                 </Button>
               </motion.div>
             )}
@@ -309,11 +437,14 @@ export default function App() {
               >
                 <Card className="w-full">
                   <CardContent className="py-4 text-center">
-                    <CardDescription className="mb-1">即将传送</CardDescription>
+                    <CardDescription className="mb-1">{t('target.willTransfer')}</CardDescription>
                     <div className="text-2xl font-bold flex items-center justify-center gap-2">
-                      <AssetAvatar symbol={selectedAsset?.symbol ?? ''} size="sm" />
+                      <AssetAvatar symbol={selectedAsset?.symbol ?? ''} chain={selectedAsset?.chain ?? 'ETH'} size="sm" />
                       {amount} <span className="text-muted-foreground">{selectedAsset?.symbol}</span>
                     </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {t('common.arrow')} {expectedReceive} {selectedAsset?.targetAsset}
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -327,8 +458,8 @@ export default function App() {
                 </div>
 
                 <div className="text-center space-y-2">
-                  <p className="text-muted-foreground">请选择接收资产的</p>
-                  <p className="font-semibold">目标钱包</p>
+                  <p className="text-muted-foreground">{t('target.selectOn')} <Badge variant="outline">{selectedAsset?.targetChain}</Badge> {t('target.chainTarget')}</p>
+                  <p className="font-semibold">{t('wallet.target')}</p>
                 </div>
 
                 <Button 
@@ -338,7 +469,7 @@ export default function App() {
                   disabled={loading}
                 >
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {loading ? '扫描中...' : '选择目标钱包'}
+                  {loading ? t('target.loading') : t('target.button')}
                 </Button>
               </motion.div>
             )}
@@ -355,9 +486,9 @@ export default function App() {
                 <Card>
                   <CardContent className="py-6 text-center space-y-4">
                     <div>
-                      <CardDescription className="mb-1">发送</CardDescription>
+                      <CardDescription className="mb-1">{t('confirm.send')}</CardDescription>
                       <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                        <AssetAvatar symbol={selectedAsset?.symbol ?? ''} size="sm" />
+                        <AssetAvatar symbol={selectedAsset?.symbol ?? ''} chain={selectedAsset?.chain ?? 'ETH'} size="sm" />
                         {amount} <span className="text-lg text-muted-foreground">{selectedAsset?.symbol}</span>
                       </div>
                     </div>
@@ -368,9 +499,15 @@ export default function App() {
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <div className="space-y-2">
-                      <WalletCard label="发送方" address={sourceAccount?.address} name={sourceAccount?.name} compact />
-                      <WalletCard label="接收方" address={targetAccount?.address} name={targetAccount?.name} compact highlight />
+                    <div>
+                      <CardDescription className="mb-1">{t('confirm.receive')}</CardDescription>
+                      <div className="text-2xl font-bold text-emerald-400">
+                        {expectedReceive} <span className="text-lg text-muted-foreground">{selectedAsset?.targetAsset}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 pt-2">
+                      <WalletCard label={t('wallet.sender')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} compact />
+                      <WalletCard label={t('wallet.receiver')} address={targetAccount?.address} name={targetAccount?.name} chain={selectedAsset?.targetChain} compact highlight />
                     </div>
                   </CardContent>
                 </Card>
@@ -378,13 +515,23 @@ export default function App() {
                 <Card>
                   <CardContent className="py-4 space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">网络</span>
+                      <span className="text-muted-foreground">{t('confirm.sourceChain')}</span>
                       <Badge variant="outline">{selectedAsset?.chain}</Badge>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">手续费</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">免费</Badge>
+                      <span className="text-muted-foreground">{t('confirm.targetChain')}</span>
+                      <Badge variant="outline">{selectedAsset?.targetChain}</Badge>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('confirm.ratio')}</span>
+                      <span>{`${selectedAsset?.ratio.numerator}:${selectedAsset?.ratio.denominator}`}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('confirm.fee')}</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">{t('confirm.free')}</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -392,9 +539,39 @@ export default function App() {
                 <div className="mt-auto pt-4">
                   <Button className="w-full h-12" onClick={handleConfirm} disabled={loading}>
                     {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                    {loading ? '处理中...' : '确认传送'}
+                    {loading ? t('confirm.loading') : t('confirm.button')}
                   </Button>
                 </div>
+              </motion.div>
+            )}
+
+            {/* Processing */}
+            {step === 'processing' && (
+              <motion.div
+                key="processing"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full animate-pulse" />
+                  <Avatar className="relative size-20 bg-primary/20">
+                    <AvatarFallback className="bg-transparent">
+                      <RefreshCw className="size-10 text-primary animate-spin" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-bold">{t('processing.title')}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {recordDetail?.orderState === SWAP_ORDER_STATE_ID.FROM_TX_WAIT_ON_CHAIN && t('processing.waitingFrom')}
+                    {recordDetail?.orderState === SWAP_ORDER_STATE_ID.TO_TX_WAIT_ON_CHAIN && t('processing.waitingTo')}
+                    {!recordDetail && t('processing.processing')}
+                  </p>
+                </div>
+                {orderId && (
+                  <p className="text-xs text-muted-foreground">{t('common.labelValue', { label: t('processing.orderId'), value: orderId })}</p>
+                )}
               </motion.div>
             )}
 
@@ -412,13 +589,41 @@ export default function App() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">传送成功</h2>
-                  <p className="text-2xl font-bold text-emerald-400">{amount} {selectedAsset?.symbol}</p>
-                  <p className="text-sm text-muted-foreground">已发送至目标钱包</p>
+                  <h2 className="text-xl font-bold">{t('success.title')}</h2>
+                  <p className="text-2xl font-bold text-emerald-400">{expectedReceive} {selectedAsset?.targetAsset}</p>
+                  <p className="text-sm text-muted-foreground">{t('success.sentTo')}</p>
                 </div>
                 <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
-                  发起新传送
+                  {t('success.newTransfer')}
                 </Button>
+              </motion.div>
+            )}
+
+            {/* Error */}
+            {step === 'error' && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+              >
+                <Avatar className="size-20 border border-destructive/30 bg-destructive/10">
+                  <AvatarFallback className="bg-transparent">
+                    <AlertCircle className="size-10 text-destructive" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-bold">{t('error.title')}</h2>
+                  <p className="text-sm text-muted-foreground max-w-xs">{error || t('error.unknown')}</p>
+                </div>
+                <div className="flex gap-3 w-full max-w-xs">
+                  <Button variant="outline" className="flex-1" onClick={handleReset}>
+                    {t('error.restart')}
+                  </Button>
+                  <Button className="flex-1" onClick={() => setStep('confirm')}>
+                    {t('error.retry')}
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -428,13 +633,15 @@ export default function App() {
   )
 }
 
-function WalletCard({ label, address, name, compact, highlight }: { 
+function WalletCard({ label, address, name, chain, compact, highlight }: { 
   label: string
   address?: string
   name?: string
+  chain?: string
   compact?: boolean
   highlight?: boolean
 }) {
+  const { t } = useTranslation()
   if (compact) {
     return (
       <Card className={cn("border-0", highlight ? "bg-primary/10" : "bg-muted/50")}>
@@ -445,7 +652,7 @@ function WalletCard({ label, address, name, compact, highlight }: {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 text-left">
-            <CardDescription className="text-xs">{label}</CardDescription>
+            <CardDescription className="text-xs">{label} {chain && <Badge variant="outline" className="ml-1 text-xs">{chain}</Badge>}</CardDescription>
             <div className="text-sm font-medium truncate">{name || truncateAddress(address)}</div>
           </div>
         </CardContent>
@@ -462,8 +669,8 @@ function WalletCard({ label, address, name, compact, highlight }: {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className="text-base truncate">{name || 'Unknown'}</CardTitle>
+          <CardDescription>{label} {chain && <Badge variant="outline" className="ml-1">{chain}</Badge>}</CardDescription>
+          <CardTitle className="text-base truncate">{name || t('common.unknown')}</CardTitle>
           <CardDescription className="truncate">{address}</CardDescription>
         </div>
       </CardContent>
@@ -471,7 +678,7 @@ function WalletCard({ label, address, name, compact, highlight }: {
   )
 }
 
-function AssetAvatar({ symbol, size = 'md' }: { symbol: string; size?: 'sm' | 'md' | 'lg' }) {
+function AssetAvatar({ symbol, chain, size = 'md' }: { symbol: string; chain: string; size?: 'sm' | 'md' | 'lg' }) {
   const icons: Record<string, React.ReactNode> = {
     BFM: <Leaf />,
     ETH: <Coins />,
@@ -480,7 +687,7 @@ function AssetAvatar({ symbol, size = 'md' }: { symbol: string; size?: 'sm' | 'm
   const sizeClass = size === 'lg' ? 'size-16 [&_svg]:size-8' : size === 'md' ? 'size-10 [&_svg]:size-5' : 'size-6 [&_svg]:size-3'
   
   return (
-    <Avatar className={cn(sizeClass, ASSET_COLORS[symbol] || 'bg-muted')}>
+    <Avatar className={cn(sizeClass, CHAIN_COLORS[chain] || 'bg-muted')}>
       <AvatarFallback className="bg-transparent text-white">
         {icons[symbol] || <Coins />}
       </AvatarFallback>

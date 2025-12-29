@@ -469,6 +469,12 @@ importers:
       '@biochain/keyapp-sdk':
         specifier: workspace:*
         version: link:../../packages/keyapp-sdk
+      '@bnqkl/metabox-core':
+        specifier: 0.5.2
+        version: 0.5.2
+      '@bnqkl/wallet-typings':
+        specifier: 0.23.8
+        version: 0.23.8
       '@radix-ui/react-avatar':
         specifier: ^1.1.11
         version: 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -481,6 +487,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
+      '@tanstack/react-query':
+        specifier: ^5.90.12
+        version: 5.90.12(react@19.2.3)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1202,6 +1211,9 @@ packages:
 
   '@bnqkl/json-dry-factory@1.0.0':
     resolution: {integrity: sha512-0bDlvG5M3QfbeilwbXsVGSe1TzrscOwfB+8c0itPmkpQTJYGGhOXULiMQAnm1GxdaMd9hdmmrHYus3AchWkmrg==}
+
+  '@bnqkl/metabox-core@0.5.2':
+    resolution: {integrity: sha512-BOwjQD+OeGMMC1ZfyqNdCWg+YZRlD95/NcFfo5447NOyGj8JneoRwi0G2+R2O8RyLdYixSIvTZgDJ0Yp50SmAA==}
 
   '@bnqkl/server-util@1.3.4':
     resolution: {integrity: sha512-EG4cvGcawwZaoRRHBXNwO16dz5Z4mV8vuqAdxS7kiDy8gIAYosPICJxf2wL/d8dfNXBSqrroH5peo9EZYzZB9w==}
@@ -8296,6 +8308,14 @@ snapshots:
     dependencies:
       '@deno/shim-deno': 0.16.1
 
+  '@bnqkl/metabox-core@0.5.2':
+    dependencies:
+      '@bnqkl/wallet-typings': 0.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@bnqkl/server-util@1.3.4(reflect-metadata@0.2.2)':
     dependencies:
       '@bfmeta/wallet-typings': 1.6.11
@@ -10280,7 +10300,7 @@ snapshots:
       '@vitest/browser': 4.0.16(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))(vitest@4.0.16)
       '@vitest/browser-playwright': 4.0.16(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(playwright@1.57.0)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))(vitest@4.0.16)
       '@vitest/runner': 4.0.16
-      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
     transitivePeerDependencies:
       - react
       - react-dom
@@ -10721,7 +10741,7 @@ snapshots:
       '@vitest/mocker': 4.0.16(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
       playwright: 1.57.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -10737,7 +10757,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+      vitest: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
