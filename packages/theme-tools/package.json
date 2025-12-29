@@ -15,8 +15,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "typecheck:run": "tsc --noEmit",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "echo 'Package has no tests'",
+    "test:run": "echo 'Package has no tests'",
     "test:storybook": "echo 'Package has no storybook'",
     "i18n:run": "echo 'Package has no i18n'",
     "theme:run": "echo 'Package is theme-tools itself'"
