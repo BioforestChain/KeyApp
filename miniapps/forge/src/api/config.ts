@@ -4,7 +4,7 @@
  */
 
 /** API Base URL - to be configured via environment or runtime */
-export const API_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env.VITE_COT_API_BASE_URL || 'https://api.eth-metaverse.com'
+export const API_BASE_URL = import.meta.env.VITE_COT_API_BASE_URL || 'https://api.eth-metaverse.com'
 
 /** API Endpoints */
 export const API_ENDPOINTS = {

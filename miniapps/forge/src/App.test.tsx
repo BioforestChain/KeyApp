@@ -118,7 +118,7 @@ describe('Forge App', () => {
     })
   })
 
-  it('should call bio_selectAccount on connect with chain param', async () => {
+  it('should call bio_selectAccount on connect', async () => {
     mockBio.request.mockResolvedValue({ address: '0x123', chain: 'eth' })
 
     render(<App />)
@@ -130,10 +130,12 @@ describe('Forge App', () => {
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
-      expect(mockBio.request).toHaveBeenCalledWith({
-        method: 'bio_selectAccount',
-        params: [{ chain: 'eth' }],
-      })
+      // Should call bio_selectAccount at least once (for external and internal accounts)
+      expect(mockBio.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'bio_selectAccount',
+        })
+      )
     })
   })
 })

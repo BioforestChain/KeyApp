@@ -1,47 +1,49 @@
 {
   "app": {
-    "title": "兌換中心",
-    "subtitle": "多鏈兌換",
-    "description": "安全、快速地在不同代幣之間進行兌換"
+    "title": "鍛造",
+    "subtitle": "多鏈熔爐",
+    "description": "將其他鏈資產鍛造為 Bio 生態代幣"
   },
   "connect": {
     "button": "連接錢包",
     "loading": "連接中..."
   },
-  "swap": {
+  "forge": {
     "pay": "支付",
     "receive": "獲得",
-    "balance": "餘額",
-    "rate": "兌換比率",
-    "button": "兌換",
-    "confirm": "確認兌換",
-    "processing": "處理中...",
-    "max": "全部"
+    "ratio": "兌換比例",
+    "depositAddress": "充值地址",
+    "network": "網絡",
+    "preview": "預覽交易",
+    "confirm": "確認鍛造",
+    "continue": "繼續鍛造"
   },
-  "confirm": {
-    "title": "確認兌換",
-    "from": "支付",
-    "to": "獲得",
-    "rate": "匯率",
-    "fee": "網絡費用",
-    "feeEstimate": "預估",
-    "button": "確認",
-    "cancel": "取消"
+  "processing": {
+    "signingExternal": "簽名外鏈交易...",
+    "signingInternal": "簽名內鏈消息...",
+    "submitting": "提交鍛造請求...",
+    "default": "鍛造中...",
+    "hint": "請在錢包中確認操作"
   },
   "success": {
-    "title": "兌換成功！",
-    "message": "您的兌換已提交",
-    "txWait": "交易確認可能需要幾分鐘",
-    "done": "完成"
+    "title": "鍛造完成",
+    "orderId": "訂單"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "連接失敗",
     "invalidAmount": "請輸入有效金額",
-    "insufficientBalance": "餘額不足"
+    "forgeFailed": "鍛造失敗"
   },
-  "token": {
-    "select": "選擇代幣",
-    "search": "搜索代幣"
+  "picker": {
+    "title": "選擇鍛造幣種",
+    "selected": "已選"
+  },
+  "chain": {
+    "ETH": "Ethereum",
+    "BSC": "BNB Chain",
+    "TRON": "Tron",
+    "bfmeta": "BFMeta",
+    "bfchain": "BFChain"
   }
 }

@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils'
 import { Coins, Leaf, DollarSign, X, ChevronDown, ChevronLeft, Zap, ArrowDown, Check, Loader2, AlertCircle } from 'lucide-react'
 
 import { useRechargeConfig, useForge, type ForgeOption } from '@/hooks'
-import type { ExternalChainName } from '@/api/types'
 
 type Step = 'connect' | 'swap' | 'confirm' | 'processing' | 'success'
 

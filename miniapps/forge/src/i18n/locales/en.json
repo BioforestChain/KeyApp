@@ -1,47 +1,49 @@
 {
   "app": {
-    "title": "Exchange Center",
-    "subtitle": "Multi-Chain Swap",
-    "description": "Swap between different tokens safely and quickly"
+    "title": "Forge",
+    "subtitle": "Multi-Chain Furnace",
+    "description": "Forge external chain assets into Bio ecosystem tokens"
   },
   "connect": {
     "button": "Connect Wallet",
     "loading": "Connecting..."
   },
-  "swap": {
+  "forge": {
     "pay": "Pay",
     "receive": "Receive",
-    "balance": "Balance",
-    "rate": "Exchange Rate",
-    "button": "Swap",
-    "confirm": "Confirm Swap",
-    "processing": "Processing...",
-    "max": "Max"
+    "ratio": "Exchange Ratio",
+    "depositAddress": "Deposit Address",
+    "network": "Network",
+    "preview": "Preview Transaction",
+    "confirm": "Confirm Forge",
+    "continue": "Continue Forging"
   },
-  "confirm": {
-    "title": "Confirm Swap",
-    "from": "Pay",
-    "to": "Receive",
-    "rate": "Rate",
-    "fee": "Network Fee",
-    "feeEstimate": "Estimated",
-    "button": "Confirm",
-    "cancel": "Cancel"
+  "processing": {
+    "signingExternal": "Signing external transaction...",
+    "signingInternal": "Signing internal message...",
+    "submitting": "Submitting forge request...",
+    "default": "Forging...",
+    "hint": "Please confirm in your wallet"
   },
   "success": {
-    "title": "Swap Successful!",
-    "message": "Your swap has been submitted",
-    "txWait": "Transaction confirmation may take a few minutes",
-    "done": "Done"
+    "title": "Forge Complete",
+    "orderId": "Order"
   },
   "error": {
     "sdkNotInit": "Bio SDK not initialized",
     "connectionFailed": "Connection failed",
     "invalidAmount": "Please enter a valid amount",
-    "insufficientBalance": "Insufficient balance"
+    "forgeFailed": "Forge failed"
   },
-  "token": {
-    "select": "Select Token",
-    "search": "Search tokens"
+  "picker": {
+    "title": "Select Forge Token",
+    "selected": "Selected"
+  },
+  "chain": {
+    "ETH": "Ethereum",
+    "BSC": "BNB Chain",
+    "TRON": "Tron",
+    "bfmeta": "BFMeta",
+    "bfchain": "BFChain"
   }
 }

@@ -66,7 +66,7 @@ describe('forge i18n', () => {
     })
 
     it('all locales have required keys', () => {
-      const requiredKeys = ['app', 'connect', 'swap', 'confirm', 'success', 'error', 'token']
+      const requiredKeys = ['app', 'connect', 'forge', 'processing', 'success', 'error', 'picker', 'chain']
       for (const key of requiredKeys) {
         expect(en).toHaveProperty(key)
         expect(zhCN).toHaveProperty(key)
