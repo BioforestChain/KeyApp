@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
@@ -41,6 +41,11 @@ export default function App() {
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 关闭启动屏
+  useEffect(() => {
+    window.bio?.request({ method: 'bio_closeSplashScreen' })
+  }, [])
 
   const handleConnect = useCallback(async () => {
     if (!window.bio) {

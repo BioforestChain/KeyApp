@@ -17,5 +17,7 @@
   "publishedAt": "2024-12-15",
   "updatedAt": "2024-12-28",
   "beta": true,
-  "themeColor": "from-red-800 via-orange-900 to-amber-950"
+  "themeColor": "from-red-800 via-orange-900 to-amber-950",
+  "themeColorFrom": "#991b1b",
+  "splashScreen": true
 }

@@ -171,12 +171,18 @@ export interface MiniappManifest {
    * 启动屏配置
    * 如果配置了启动屏，小程序需要调用 bio.closeSplashScreen() 来关闭
    * 如果未配置，则使用 iframe load 事件自动关闭加载状态
+   * 
+   * - 图标自动使用 manifest.icon
+   * - 背景色自动使用 manifest.themeColor
+   * 
+   * @example
+   * // 简写形式
+   * "splashScreen": true
+   * 
+   * // 自定义超时
+   * "splashScreen": { "timeout": 3000 }
    */
-  splashScreen?: {
-    /** 启动屏背景色 (CSS 颜色值) */
-    backgroundColor?: string
-    /** 启动屏图标 URL (默认使用 app.icon) */
-    icon?: string
+  splashScreen?: true | {
     /** 最大等待时间 (ms)，超时后自动关闭启动屏，默认 5000 */
     timeout?: number
   }

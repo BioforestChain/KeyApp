@@ -318,7 +318,8 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
       setLoading(false)
       setSplashVisible(true)
       
-      const timeout = app.splashScreen.timeout ?? 5000
+      // splashScreen 可以是 true 或 { timeout?: number }
+      const timeout = (typeof app.splashScreen === 'object' ? app.splashScreen.timeout : undefined) ?? 5000
       splashTimeoutRef.current = setTimeout(() => {
         console.warn('[MiniappPage] Splash screen timeout, auto-closing')
         closeSplashScreen()
@@ -418,13 +419,13 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
       {splashVisible && app?.splashScreen && (
         <div 
           className="absolute inset-0 top-14 flex items-center justify-center z-10"
-          style={{ backgroundColor: app.splashScreen.backgroundColor ?? 'var(--background)' }}
+          style={{ backgroundColor: app.themeColorFrom ?? 'var(--background)' }}
         >
           <div className="flex flex-col items-center gap-4">
-            {/* 启动屏图标 */}
+            {/* 启动屏图标 - 使用 app.icon */}
             <div className="size-20 rounded-2xl overflow-hidden shadow-lg">
               <img 
-                src={app.splashScreen.icon ?? app.icon} 
+                src={app.icon} 
                 alt={app.name}
                 className="size-full object-cover"
                 onError={(e) => {

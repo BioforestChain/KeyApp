@@ -57,12 +57,8 @@ function normalizeAppFromSource(app: MiniappManifest, source: SourceRecord, payl
     icon: resolve(app.icon),
     url: resolve(app.url),
     screenshots: app.screenshots?.map(resolve),
-    splashScreen: app.splashScreen
-      ? {
-          ...app.splashScreen,
-          icon: app.splashScreen.icon ? resolve(app.splashScreen.icon) : undefined,
-        }
-      : undefined,
+    // splashScreen 现在是 true | { timeout?: number }，不再需要解析 icon
+    splashScreen: app.splashScreen,
     // 来源元数据
     sourceUrl: source.url,
     sourceName: source.name,
