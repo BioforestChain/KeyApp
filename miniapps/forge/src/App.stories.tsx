@@ -29,13 +29,15 @@ const mockConfig = {
 // Setup mock API responses
 const setupMockApi = () => {
   window.fetch = fn().mockImplementation((url: string) => {
-    if (url.includes('getSupport')) {
+    // Match /cot/recharge/support endpoint
+    if (url.includes('/recharge/support')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ recharge: mockConfig }),
       })
     }
-    if (url.includes('rechargeV2')) {
+    // Match /cot/recharge/V2 endpoint
+    if (url.includes('/recharge/V2')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ orderId: 'mock-order-123' }),
@@ -77,18 +79,20 @@ export const ConnectStep: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for config to load
+    // Wait for config to load and connect button to become enabled
+    // The button is disabled while config is loading or when forgeOptions is empty
     await waitFor(
       () => {
-        expect(canvas.getByText('多链熔炉')).toBeInTheDocument()
+        const connectButton = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(connectButton).toBeEnabled()
       },
       { timeout: 5000 }
     )
 
-    // Should show connect button
+    // Should show title and connect button
+    expect(canvas.getByText('多链熔炉')).toBeInTheDocument()
     const connectButton = canvas.getByRole('button', { name: /连接钱包/i })
     expect(connectButton).toBeInTheDocument()
-    expect(connectButton).toBeEnabled()
   },
 }
 
@@ -125,10 +129,11 @@ export const SwapStep: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for connect button and click
+    // Wait for connect button to be enabled (config loaded)
     await waitFor(
       () => {
-        expect(canvas.getByRole('button', { name: /连接钱包/i })).toBeInTheDocument()
+        const btn = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(btn).toBeEnabled()
       },
       { timeout: 5000 }
     )
@@ -178,10 +183,11 @@ export const SwapWithAmount: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Connect wallet first
+    // Wait for connect button to be enabled (config loaded)
     await waitFor(
       () => {
-        expect(canvas.getByRole('button', { name: /连接钱包/i })).toBeInTheDocument()
+        const btn = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(btn).toBeEnabled()
       },
       { timeout: 5000 }
     )
@@ -241,10 +247,11 @@ export const TokenPicker: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Connect wallet
+    // Wait for connect button to be enabled (config loaded)
     await waitFor(
       () => {
-        expect(canvas.getByRole('button', { name: /连接钱包/i })).toBeInTheDocument()
+        const btn = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(btn).toBeEnabled()
       },
       { timeout: 5000 }
     )
@@ -307,10 +314,11 @@ export const LoadingState: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for connect button
+    // Wait for connect button to be enabled (config loaded)
     await waitFor(
       () => {
-        expect(canvas.getByRole('button', { name: /连接钱包/i })).toBeInTheDocument()
+        const btn = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(btn).toBeEnabled()
       },
       { timeout: 5000 }
     )
@@ -344,15 +352,16 @@ export const ErrorState: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for connect button
+    // Wait for connect button to be enabled (config loaded)
     await waitFor(
       () => {
-        expect(canvas.getByRole('button', { name: /连接钱包/i })).toBeInTheDocument()
+        const btn = canvas.getByRole('button', { name: /连接钱包/i })
+        expect(btn).toBeEnabled()
       },
       { timeout: 5000 }
     )
 
-    // Click connect - should show error
+    // Click connect - should show error (Bio SDK not initialized)
     await userEvent.click(canvas.getByRole('button', { name: /连接钱包/i }))
 
     await waitFor(() => {
