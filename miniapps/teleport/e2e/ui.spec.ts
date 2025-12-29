@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { UI_TEXT, TEST_IDS, byTestId } from './helpers/i18n'
+import { UI_TEXT } from './helpers/i18n'
 
 const mockBioSDK = `
   window.bio = {

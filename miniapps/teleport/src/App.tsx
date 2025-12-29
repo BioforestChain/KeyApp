@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -306,7 +306,7 @@ export default function App() {
                   <CardContent className="py-4 text-center">
                     <CardDescription className="mb-1">即将传送</CardDescription>
                     <div className="text-2xl font-bold flex items-center justify-center gap-2">
-                      <AssetAvatar symbol={selectedAsset!.symbol} size="sm" />
+                      <AssetAvatar symbol={selectedAsset?.symbol ?? ''} size="sm" />
                       {amount} <span className="text-muted-foreground">{selectedAsset?.symbol}</span>
                     </div>
                   </CardContent>
@@ -352,7 +352,7 @@ export default function App() {
                     <div>
                       <CardDescription className="mb-1">发送</CardDescription>
                       <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                        <AssetAvatar symbol={selectedAsset!.symbol} size="sm" />
+                        <AssetAvatar symbol={selectedAsset?.symbol ?? ''} size="sm" />
                         {amount} <span className="text-lg text-muted-foreground">{selectedAsset?.symbol}</span>
                       </div>
                     </div>
