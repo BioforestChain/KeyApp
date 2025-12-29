@@ -2,20 +2,21 @@
  * Vite Plugin: Miniapps
  *
  * 自动管理内置 miniapps 的开发与构建：
- * - Dev 模式：启动各 miniapp 的 vite dev server，拦截 /ecosystem.json
- * - Build 模式：构建所有 miniapps，生成静态 ecosystem.json
+ * - Dev 模式：启动各 miniapp 的 vite dev server（https + 动态端口），fetch /manifest.json 获取元数据
+ * - Build 模式：构建所有 miniapps 到 dist/miniapps/，生成 ecosystem.json
  */
 
 import { createServer, build as viteBuild, type Plugin, type ViteDevServer } from 'vite'
 import { resolve, join } from 'node:path'
-import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs'
 import detectPort from 'detect-port'
+import https from 'node:https'
 
 // ==================== Types ====================
 
 interface MiniappManifest {
   id: string
-  dirName: string  // 目录名，用于路径访问
+  dirName: string
   name: string
   description: string
   longDescription?: string
@@ -32,6 +33,8 @@ interface MiniappManifest {
   updatedAt: string
   beta: boolean
   themeColor: string
+  officialScore?: number
+  communityScore?: number
 }
 
 interface EcosystemJson {
@@ -44,6 +47,7 @@ interface EcosystemJson {
 
 interface MiniappServer {
   id: string
+  dirName: string
   port: number
   server: ViteDevServer
   baseUrl: string
@@ -71,15 +75,13 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       isBuild = config.command === 'build'
     },
 
-    async buildStart() {
-      if (isBuild) {
-        await buildAllMiniapps(root, miniappsDir)
-      }
-    },
-
     async writeBundle(options) {
       if (isBuild && options.dir) {
-        const ecosystem = generateEcosystemData(root, miniappsDir, null)
+        // 构建完成后构建 miniapps
+        await buildAllMiniapps(root, miniappsDir, options.dir)
+
+        // 生成 ecosystem.json
+        const ecosystem = generateEcosystemDataForBuild(root, miniappsDir)
         const outputPath = resolve(options.dir, 'ecosystem.json')
         writeFileSync(outputPath, JSON.stringify(ecosystem, null, 2))
         console.log(`[miniapps] Generated ${outputPath}`)
@@ -99,7 +101,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
         portAssignments.push({ manifest, port })
       }
 
-      // 并行启动所有 miniapp dev servers（使用 Vite API）
+      // 并行启动所有 miniapp dev servers
       await Promise.all(
         portAssignments.map(async ({ manifest, port }) => {
           const miniappPath = join(miniappsPath, manifest.dirName)
@@ -107,6 +109,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
           miniappServers.push({
             id: manifest.id,
+            dirName: manifest.dirName,
             port,
             server: miniappServer,
             baseUrl: `https://localhost:${port}`,
@@ -116,14 +119,45 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
         }),
       )
 
+      // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
+      const generateEcosystem = async (): Promise<EcosystemJson> => {
+        const apps = await Promise.all(
+          miniappServers.map(async (s) => {
+            try {
+              const manifest = await fetchManifest(s.port)
+              return {
+                ...manifest,
+                dirName: s.dirName,
+                icon: `${s.baseUrl}/${manifest.icon}`,
+                url: `${s.baseUrl}/`,
+                screenshots: manifest.screenshots.map((sc) => `${s.baseUrl}/${sc}`),
+              }
+            } catch (e) {
+              console.error(`[miniapps] Failed to fetch manifest for ${s.id}:`, e)
+              return null
+            }
+          }),
+        )
+
+        return {
+          name: 'Bio 官方生态',
+          version: '1.0.0',
+          updated: new Date().toISOString().split('T')[0],
+          icon: '/logo.svg',
+          apps: apps.filter((a): a is NonNullable<typeof a> => a !== null),
+        }
+      }
+
+      // 预生成 ecosystem
+      const ecosystemData = await generateEcosystem()
+      let ecosystemCache = JSON.stringify(ecosystemData, null, 2)
+
       // 拦截 /ecosystem.json 请求
       server.middlewares.use((req, res, next) => {
         if (req.url === '/ecosystem.json') {
-          const portMap = new Map(miniappServers.map((s) => [s.id, s.port]))
-          const ecosystem = generateEcosystemData(root, miniappsDir, portMap)
-
           res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify(ecosystem, null, 2))
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          res.end(ecosystemCache)
           return
         }
         next()
@@ -138,7 +172,6 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
     },
 
     async closeBundle() {
-      // Build 完成后清理
       await Promise.all(miniappServers.map((s) => s.server.close()))
     },
   }
@@ -179,6 +212,7 @@ async function createMiniappServer(id: string, root: string, port: number): Prom
     server: {
       port,
       strictPort: true,
+      https: true,
     },
     logLevel: 'warn',
   })
@@ -187,34 +221,52 @@ async function createMiniappServer(id: string, root: string, port: number): Prom
   return server
 }
 
-function generateEcosystemData(
-  root: string,
-  miniappsDir: string,
-  portMap: Map<string, number> | null,
-): EcosystemJson {
+async function fetchManifest(port: number): Promise<MiniappManifest> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(
+      `https://localhost:${port}/manifest.json`,
+      { rejectUnauthorized: false },
+      (res) => {
+        let data = ''
+        res.on('data', (chunk) => (data += chunk))
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data))
+          } catch (e) {
+            reject(e)
+          }
+        })
+      },
+    )
+    req.on('error', reject)
+  })
+}
+
+function scanScreenshots(root: string, shortId: string): string[] {
+  const e2eDir = resolve(root, 'e2e/__screenshots__/Desktop-Chrome/miniapp-ui.mock.spec.ts')
+  if (!existsSync(e2eDir)) return []
+
+  return readdirSync(e2eDir)
+    .filter((f) => f.startsWith(`${shortId}-`) && f.endsWith('.png'))
+    .slice(0, 2)
+    .map((f) => `screenshots/${f}`)
+}
+
+function generateEcosystemDataForBuild(root: string, miniappsDir: string): EcosystemJson {
   const miniappsPath = resolve(root, miniappsDir)
   const manifests = scanMiniapps(miniappsPath)
 
   const apps = manifests.map((manifest) => {
-    let url: string
-    if (portMap) {
-      // Dev 模式：使用 localhost 端口
-      const port = portMap.get(manifest.id)
-      url = port ? `https://localhost:${port}/` : `/miniapps/${manifest.dirName}/`
-    } else {
-      // Build 模式：使用相对路径
-      url = `/miniapps/${manifest.dirName}/`
-    }
+    const shortId = manifest.id.split('.').pop() || ''
+    const screenshots = scanScreenshots(root, shortId)
 
-    // 返回时移除 dirName（内部使用）
     const { dirName, ...rest } = manifest
     return {
       ...rest,
-      url,
+      dirName,
+      url: `/miniapps/${dirName}/`,
       icon: `/miniapps/${dirName}/icon.svg`,
-      screenshots: manifest.screenshots.map((s) =>
-        s.startsWith('/') ? s : `/miniapps/${dirName}/${s}`,
-      ),
+      screenshots: screenshots.map((s) => `/miniapps/${dirName}/${s}`),
     }
   })
 
@@ -227,27 +279,59 @@ function generateEcosystemData(
   }
 }
 
-async function buildAllMiniapps(root: string, miniappsDir: string): Promise<void> {
+async function buildAllMiniapps(root: string, miniappsDir: string, distDir: string): Promise<void> {
   const miniappsPath = resolve(root, miniappsDir)
   const manifests = scanMiniapps(miniappsPath)
+  const miniappsDistDir = resolve(distDir, 'miniapps')
+
+  mkdirSync(miniappsDistDir, { recursive: true })
 
   console.log(`[miniapps] Building ${manifests.length} miniapps...`)
 
-  // 并行构建所有 miniapps
-  await Promise.all(
-    manifests.map(async (manifest) => {
-      const miniappPath = join(miniappsPath, manifest.dirName)
-      console.log(`[miniapps] Building ${manifest.name} (${manifest.id})...`)
+  for (const manifest of manifests) {
+    const miniappPath = join(miniappsPath, manifest.dirName)
+    const outputDir = resolve(miniappsDistDir, manifest.dirName)
+    const shortId = manifest.id.split('.').pop() || ''
 
-      await viteBuild({
-        root: miniappPath,
-        configFile: join(miniappPath, 'vite.config.ts'),
-        logLevel: 'warn',
-      })
+    console.log(`[miniapps] Building ${manifest.name} (${manifest.id})...`)
 
-      console.log(`[miniapps] ${manifest.name} built`)
-    }),
-  )
+    await viteBuild({
+      root: miniappPath,
+      configFile: join(miniappPath, 'vite.config.ts'),
+      base: './',
+      build: {
+        outDir: outputDir,
+        emptyOutDir: true,
+      },
+      logLevel: 'warn',
+    })
+
+    // 复制 public 目录静态资源（icon 等）
+    const publicDir = join(miniappPath, 'public')
+    if (existsSync(publicDir)) {
+      cpSync(publicDir, outputDir, { recursive: true })
+    }
+
+    // 复制 e2e 截图
+    const e2eScreenshotsDir = resolve(root, 'e2e/__screenshots__/Desktop-Chrome/miniapp-ui.mock.spec.ts')
+    const screenshots = scanScreenshots(root, shortId)
+
+    if (screenshots.length > 0 && existsSync(e2eScreenshotsDir)) {
+      const screenshotsOutputDir = resolve(outputDir, 'screenshots')
+      mkdirSync(screenshotsOutputDir, { recursive: true })
+
+      for (const screenshot of screenshots) {
+        const filename = screenshot.replace('screenshots/', '')
+        const src = resolve(e2eScreenshotsDir, filename)
+        const dest = resolve(screenshotsOutputDir, filename)
+        if (existsSync(src)) {
+          cpSync(src, dest)
+        }
+      }
+    }
+
+    console.log(`[miniapps] ${manifest.name} built`)
+  }
 
   console.log(`[miniapps] All miniapps built successfully`)
 }

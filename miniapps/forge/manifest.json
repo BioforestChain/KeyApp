@@ -13,7 +13,7 @@
   "chains": ["ethereum", "bfmeta"],
   "officialScore": 70,
   "communityScore": 85,
-  "screenshots": ["screenshots/1.svg"],
+  "screenshots": [],
   "publishedAt": "2024-12-15",
   "updatedAt": "2024-12-28",
   "beta": true,

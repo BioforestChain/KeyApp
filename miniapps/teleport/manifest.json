@@ -13,7 +13,7 @@
   "chains": ["bfmeta", "bfchainv2", "biwmeta", "ccchain", "pmchain"],
   "officialScore": 90,
   "communityScore": 80,
-  "screenshots": ["screenshots/1.svg", "screenshots/2.svg"],
+  "screenshots": [],
   "publishedAt": "2024-12-01",
   "updatedAt": "2024-12-28",
   "beta": false,
