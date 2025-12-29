@@ -2,48 +2,72 @@
   "app": {
     "title": "一鍵傳送",
     "subtitle": "跨錢包傳送",
-    "description": "安全地將資產從一個錢包轉移到另一個錢包"
+    "description": "安全地將資產轉移到另一個錢包"
   },
   "connect": {
-    "button": "選擇源錢包",
-    "loading": "連接中..."
+    "button": "啟動傳送門",
+    "loading": "連接中...",
+    "loadingConfig": "載入配置中...",
+    "configError": "載入配置失敗，請刷新重試"
   },
   "asset": {
-    "select": "選擇要傳送的資產",
-    "balance": "可用"
+    "select": "選擇資產",
+    "balance": "可用",
+    "noAssets": "當前鏈暫無可傳送資產"
+  },
+  "wallet": {
+    "source": "源錢包",
+    "target": "目標錢包",
+    "sender": "發送方",
+    "receiver": "接收方"
   },
   "amount": {
     "label": "傳送數量",
     "placeholder": "0.00",
-    "max": "全部",
-    "next": "下一步"
+    "max": "MAX",
+    "next": "下一步",
+    "expected": "預計獲得"
   },
   "target": {
     "title": "選擇目標錢包",
-    "description": "選擇接收資產的目標錢包",
+    "willTransfer": "即將傳送",
+    "selectOn": "請選擇",
+    "chainTarget": "鏈上的",
     "button": "選擇目標錢包",
-    "loading": "選擇中..."
+    "loading": "掃描中..."
   },
   "confirm": {
-    "title": "確認傳送",
-    "from": "從",
-    "to": "到",
-    "amount": "傳送",
-    "network": "網絡",
+    "send": "發送",
+    "receive": "接收",
+    "sourceChain": "源鏈",
+    "targetChain": "目標鏈",
+    "ratio": "轉換比例",
+    "fee": "手續費",
+    "free": "免費",
     "button": "確認傳送",
     "loading": "處理中..."
   },
+  "processing": {
+    "title": "傳送中",
+    "waitingFrom": "等待發送方交易上鏈...",
+    "waitingTo": "等待接收方交易上鏈...",
+    "processing": "正在處理...",
+    "orderId": "訂單號"
+  },
   "success": {
-    "title": "傳送成功！",
-    "message": "已發送",
-    "txWait": "交易確認可能需要幾分鐘",
-    "done": "完成"
+    "title": "傳送成功",
+    "sentTo": "已發送至目標錢包",
+    "newTransfer": "發起新傳送"
   },
   "error": {
+    "title": "傳送失敗",
+    "unknown": "未知錯誤",
+    "restart": "重新開始",
+    "retry": "重試",
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "連接失敗",
     "selectFailed": "選擇失敗",
-    "transferFailed": "轉賬失敗",
+    "transferFailed": "傳送失敗",
     "invalidAmount": "請輸入有效金額"
   }
 }

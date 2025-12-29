@@ -2,44 +2,68 @@
   "app": {
     "title": "Teleport",
     "subtitle": "Cross-Wallet Transfer",
-    "description": "Safely transfer assets from one wallet to another"
+    "description": "Safely transfer assets to another wallet"
   },
   "connect": {
-    "button": "Select Source Wallet",
-    "loading": "Connecting..."
+    "button": "Start Teleport",
+    "loading": "Connecting...",
+    "loadingConfig": "Loading configuration...",
+    "configError": "Failed to load configuration, please refresh"
   },
   "asset": {
-    "select": "Select asset to transfer",
-    "balance": "Available"
+    "select": "Select Asset",
+    "balance": "Available",
+    "noAssets": "No assets available for transfer on this chain"
+  },
+  "wallet": {
+    "source": "Source Wallet",
+    "target": "Target Wallet",
+    "sender": "Sender",
+    "receiver": "Receiver"
   },
   "amount": {
     "label": "Transfer Amount",
     "placeholder": "0.00",
-    "max": "Max",
-    "next": "Next"
+    "max": "MAX",
+    "next": "Next",
+    "expected": "Expected to receive"
   },
   "target": {
     "title": "Select Target Wallet",
-    "description": "Choose the wallet to receive the assets",
+    "willTransfer": "Will transfer",
+    "selectOn": "Please select",
+    "chainTarget": "chain's",
     "button": "Select Target Wallet",
-    "loading": "Selecting..."
+    "loading": "Scanning..."
   },
   "confirm": {
-    "title": "Confirm Transfer",
-    "from": "From",
-    "to": "To",
-    "amount": "Transfer",
-    "network": "Network",
+    "send": "Send",
+    "receive": "Receive",
+    "sourceChain": "Source Chain",
+    "targetChain": "Target Chain",
+    "ratio": "Conversion Ratio",
+    "fee": "Fee",
+    "free": "Free",
     "button": "Confirm Transfer",
     "loading": "Processing..."
   },
+  "processing": {
+    "title": "Transferring",
+    "waitingFrom": "Waiting for sender transaction...",
+    "waitingTo": "Waiting for receiver transaction...",
+    "processing": "Processing...",
+    "orderId": "Order ID"
+  },
   "success": {
-    "title": "Transfer Successful!",
-    "message": "sent",
-    "txWait": "Transaction confirmation may take a few minutes",
-    "done": "Done"
+    "title": "Transfer Successful",
+    "sentTo": "Sent to target wallet",
+    "newTransfer": "New Transfer"
   },
   "error": {
+    "title": "Transfer Failed",
+    "unknown": "Unknown error",
+    "restart": "Start Over",
+    "retry": "Retry",
     "sdkNotInit": "Bio SDK not initialized",
     "connectionFailed": "Connection failed",
     "selectFailed": "Selection failed",
