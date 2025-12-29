@@ -1,6 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "lint:run": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", ".oxlintrc.json"],
+      "outputs": [],
+      "cache": true
+    },
     "typecheck:run": {
       "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json"],

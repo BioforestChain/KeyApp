@@ -8,6 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "oxlint .",
+    "lint:run": "oxlint .",
     "typecheck": "tsc --noEmit",
     "typecheck:run": "tsc --noEmit",
     "test": "vitest",
@@ -43,6 +45,7 @@
     "vite": "^7.3.0",
     "vite-plugin-mkcert": "^1.17.9",
     "vite-tsconfig-paths": "^5.1.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "oxlint": "^1.32.0"
   }
 }
