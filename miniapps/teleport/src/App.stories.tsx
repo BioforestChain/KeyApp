@@ -212,11 +212,11 @@ export const InputAmountStep: Story = {
       await expect(canvas.getByText('选择资产')).toBeInTheDocument()
     }, { timeout: 3000 })
     
-    // Click on ETH asset
-    const cards = canvas.getAllByRole('article')
-    if (cards.length > 0) {
-      await userEvent.click(cards[0])
-    }
+    // Click on ETH asset by finding the card-title with ETH text
+    const ethAssets = canvas.getAllByText('ETH')
+    const ethCardTitle = ethAssets.find(el => el.getAttribute('data-slot') === 'card-title')
+    const ethCard = ethCardTitle?.closest('[data-slot="card"]')
+    if (ethCard) await userEvent.click(ethCard)
     
     // Verify amount input is shown
     await waitFor(async () => {
@@ -242,8 +242,10 @@ export const SelectTargetStep: Story = {
     
     // Wait for and click asset
     await waitFor(() => expect(canvas.getByText('选择资产')).toBeInTheDocument(), { timeout: 3000 })
-    const cards = canvas.getAllByRole('article')
-    if (cards.length > 0) await userEvent.click(cards[0])
+    const ethAssets = canvas.getAllByText('ETH')
+    const ethCardTitle = ethAssets.find(el => el.getAttribute('data-slot') === 'card-title')
+    const ethCard = ethCardTitle?.closest('[data-slot="card"]')
+    if (ethCard) await userEvent.click(ethCard)
     
     // Enter amount
     await waitFor(() => expect(canvas.getByRole('spinbutton')).toBeInTheDocument(), { timeout: 3000 })
@@ -275,8 +277,10 @@ export const ConfirmStep: Story = {
     
     // Select asset
     await waitFor(() => expect(canvas.getByText('选择资产')).toBeInTheDocument(), { timeout: 3000 })
-    const cards = canvas.getAllByRole('article')
-    if (cards.length > 0) await userEvent.click(cards[0])
+    const ethAssets = canvas.getAllByText('ETH')
+    const ethCardTitle = ethAssets.find(el => el.getAttribute('data-slot') === 'card-title')
+    const ethCard = ethCardTitle?.closest('[data-slot="card"]')
+    if (ethCard) await userEvent.click(ethCard)
     
     // Enter amount
     await waitFor(() => expect(canvas.getByRole('spinbutton')).toBeInTheDocument(), { timeout: 3000 })
