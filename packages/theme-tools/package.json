@@ -1,0 +1,28 @@
+{
+  "name": "@biochain/theme-tools",
+  "version": "0.1.0",
+  "description": "主题检查工具 - 验证暗色模式最佳实践",
+  "type": "module",
+  "bin": {
+    "theme-tools": "./src/cli.ts"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:storybook": "echo 'Package has no storybook'",
+    "i18n:run": "echo 'Package has no i18n'",
+    "theme:run": "echo 'Package is theme-tools itself'"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  }
+}

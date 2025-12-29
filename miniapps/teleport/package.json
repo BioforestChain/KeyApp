@@ -14,7 +14,7 @@
     "test:run": "vitest run",
     "test:storybook": "echo 'Miniapp has no storybook'",
     "i18n:run": "bunx @biochain/i18n-tools",
-    "theme:run": "echo 'Miniapp has no theme'"
+    "theme:run": "bunx @biochain/theme-tools"
   },
   "dependencies": {
     "@biochain/bio-sdk": "workspace:*",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@biochain/i18n-tools": "workspace:*",
+    "@biochain/theme-tools": "workspace:*",
     "@tailwindcss/vite": "^4.1.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.0",
