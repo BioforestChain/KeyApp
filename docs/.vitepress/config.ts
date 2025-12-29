@@ -27,12 +27,12 @@ export default defineConfig({
   ignoreDeadLinks: [/\.\/webapp/, /\.\/webapp-beta/, /\.\/storybook/],
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/webp', href: '/logos/logo-64.webp' }],
     ['meta', { name: 'theme-color', content: '#667eea' }],
   ],
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logos/logo-256.webp',
 
     nav: [
       { text: '首页', link: '/' },

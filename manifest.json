@@ -3,11 +3,11 @@
   "name": "BFM Pay",
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
-  "logo": "https://source.dwebdapp.com/dweb-browser-apps/dweb-app-assets/bfmpay/logo.png",
+  "logo": "/logos/logo-256.webp",
   "change_log": "初始版本",
   "icons": [
     {
-      "src": "https://source.dwebdapp.com/dweb-browser-apps/dweb-app-assets/bfmpay/logo.png",
+      "src": "/logos/logo-256.webp",
       "purpose": "maskable"
     }
   ],

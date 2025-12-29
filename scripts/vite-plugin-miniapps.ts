@@ -145,7 +145,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           name: 'Bio 官方生态',
           version: '1.0.0',
           updated: new Date().toISOString().split('T')[0],
-          icon: '/logo.svg',
+          icon: '/logos/logo-256.webp',
           apps: apps.filter((a): a is NonNullable<typeof a> => a !== null),
         }
       }
@@ -277,7 +277,7 @@ function generateEcosystemDataForBuild(root: string, miniappsDir: string): Ecosy
     name: 'Bio 官方生态',
     version: '1.0.0',
     updated: new Date().toISOString().split('T')[0],
-    icon: '../logo.svg',
+    icon: '../logos/logo-256.webp',
     apps,
   }
 }
