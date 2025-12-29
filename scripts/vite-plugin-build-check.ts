@@ -51,10 +51,10 @@ export function buildCheckPlugin(options: BuildCheckOptions = {}): Plugin {
 
       console.log('\n[build-check] Verifying build output...\n')
 
-      // 1. 检查 ecosystem.json
-      const ecosystemPath = resolve(distDir, 'ecosystem.json')
+      // 1. 检查 ecosystem.json（在 miniapps/ 目录下）
+      const ecosystemPath = resolve(distDir, 'miniapps/ecosystem.json')
       if (!existsSync(ecosystemPath)) {
-        error('ecosystem.json not found')
+        error('miniapps/ecosystem.json not found')
       } else {
         try {
           const ecosystem = JSON.parse(readFileSync(ecosystemPath, 'utf-8'))

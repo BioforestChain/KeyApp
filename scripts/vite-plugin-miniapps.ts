@@ -80,9 +80,11 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
         // 构建完成后构建 miniapps
         await buildAllMiniapps(root, miniappsDir, options.dir)
 
-        // 生成 ecosystem.json
+        // 生成 ecosystem.json 到 miniapps/ 目录
         const ecosystem = generateEcosystemDataForBuild(root, miniappsDir)
-        const outputPath = resolve(options.dir, 'ecosystem.json')
+        const miniappsOutputDir = resolve(options.dir, 'miniapps')
+        mkdirSync(miniappsOutputDir, { recursive: true })
+        const outputPath = resolve(miniappsOutputDir, 'ecosystem.json')
         writeFileSync(outputPath, JSON.stringify(ecosystem, null, 2))
         console.log(`[miniapps] Generated ${outputPath}`)
       }
@@ -152,9 +154,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       const ecosystemData = await generateEcosystem()
       let ecosystemCache = JSON.stringify(ecosystemData, null, 2)
 
-      // 拦截 /ecosystem.json 请求
+      // 拦截 /miniapps/ecosystem.json 请求
       server.middlewares.use((req, res, next) => {
-        if (req.url === '/ecosystem.json') {
+        if (req.url === '/miniapps/ecosystem.json') {
           res.setHeader('Content-Type', 'application/json')
           res.setHeader('Access-Control-Allow-Origin', '*')
           res.end(ecosystemCache)
@@ -256,6 +258,7 @@ function generateEcosystemDataForBuild(root: string, miniappsDir: string): Ecosy
   const miniappsPath = resolve(root, miniappsDir)
   const manifests = scanMiniapps(miniappsPath)
 
+  // 路径使用相对于 ecosystem.json 的位置（即 miniapps/ 目录）
   const apps = manifests.map((manifest) => {
     const shortId = manifest.id.split('.').pop() || ''
     const screenshots = scanScreenshots(root, shortId)
@@ -264,9 +267,9 @@ function generateEcosystemDataForBuild(root: string, miniappsDir: string): Ecosy
     return {
       ...rest,
       dirName,
-      url: `/miniapps/${dirName}/`,
-      icon: `/miniapps/${dirName}/icon.svg`,
-      screenshots: screenshots.map((s) => `/miniapps/${dirName}/${s}`),
+      url: `./${dirName}/`,
+      icon: `./${dirName}/icon.svg`,
+      screenshots: screenshots.map((s) => `./${dirName}/${s}`),
     }
   })
 
@@ -274,7 +277,7 @@ function generateEcosystemDataForBuild(root: string, miniappsDir: string): Ecosy
     name: 'Bio 官方生态',
     version: '1.0.0',
     updated: new Date().toISOString().split('T')[0],
-    icon: '/logo.svg',
+    icon: '../logo.svg',
     apps,
   }
 }
