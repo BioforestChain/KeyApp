@@ -2,6 +2,35 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import App from './App'
 
+// Initialize i18n before tests
+import './i18n'
+
+// Mock the API module
+vi.mock('@/api', () => ({
+  rechargeApi: {
+    getSupport: vi.fn().mockResolvedValue({
+      recharge: {
+        bfmeta: {
+          BFM: {
+            enable: true,
+            chainName: 'bfmeta',
+            assetType: 'BFM',
+            applyAddress: 'b0000000000000000000000000000000000000000',
+            supportChain: {
+              ETH: {
+                enable: true,
+                assetType: 'ETH',
+                depositAddress: '0x1234567890123456789012345678901234567890',
+              },
+            },
+          },
+        },
+      },
+    }),
+    submitRecharge: vi.fn(),
+  },
+}))
+
 // Mock bio SDK
 const mockBio = {
   request: vi.fn(),
@@ -16,10 +45,12 @@ describe('Forge App', () => {
     ;(window as unknown as { bio: typeof mockBio }).bio = mockBio
   })
 
-  it('should render initial connect step', () => {
+  it('should render initial connect step after config loads', async () => {
     render(<App />)
 
-    expect(screen.getByText('多链熔炉')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('多链熔炉')).toBeInTheDocument()
+    })
     expect(screen.getByText(/将其他链资产锻造为/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
   })
@@ -31,9 +62,15 @@ describe('Forge App', () => {
 
     render(<App />)
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
-    expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
+    })
   })
 
   it('should proceed to swap step after selecting wallet', async () => {
@@ -41,10 +78,14 @@ describe('Forge App', () => {
 
     render(<App />)
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
-      expect(screen.getByText('支付')).toBeInTheDocument()
+      expect(screen.getByText(/支付/)).toBeInTheDocument()
     })
   })
 
@@ -52,6 +93,10 @@ describe('Forge App', () => {
     ;(window as unknown as { bio: undefined }).bio = undefined
 
     render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    })
 
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
@@ -65,6 +110,10 @@ describe('Forge App', () => {
 
     render(<App />)
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
@@ -73,17 +122,23 @@ describe('Forge App', () => {
   })
 
   it('should call bio_selectAccount on connect', async () => {
-    mockBio.request.mockResolvedValue({ address: '0x123', chain: 'ethereum' })
+    mockBio.request.mockResolvedValue({ address: '0x123', chain: 'eth' })
 
     render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+    })
 
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
-      expect(mockBio.request).toHaveBeenCalledWith({
-        method: 'bio_selectAccount',
-        params: [{}],
-      })
+      // Should call bio_selectAccount at least once (for external and internal accounts)
+      expect(mockBio.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'bio_selectAccount',
+        })
+      )
     })
   })
 })

@@ -1,47 +1,49 @@
 {
   "app": {
-    "title": "兑换中心",
-    "subtitle": "多链兑换",
-    "description": "安全、快速地在不同代币之间进行兑换"
+    "title": "锻造",
+    "subtitle": "多链熔炉",
+    "description": "将其他链资产锻造为 Bio 生态代币"
   },
   "connect": {
     "button": "连接钱包",
     "loading": "连接中..."
   },
-  "swap": {
+  "forge": {
     "pay": "支付",
     "receive": "获得",
-    "balance": "余额",
-    "rate": "兑换比率",
-    "button": "兑换",
-    "confirm": "确认兑换",
-    "processing": "处理中...",
-    "max": "全部"
+    "ratio": "兑换比例",
+    "depositAddress": "充值地址",
+    "network": "网络",
+    "preview": "预览交易",
+    "confirm": "确认锻造",
+    "continue": "继续锻造"
   },
-  "confirm": {
-    "title": "确认兑换",
-    "from": "支付",
-    "to": "获得",
-    "rate": "汇率",
-    "fee": "网络费用",
-    "feeEstimate": "预估",
-    "button": "确认",
-    "cancel": "取消"
+  "processing": {
+    "signingExternal": "签名外链交易...",
+    "signingInternal": "签名内链消息...",
+    "submitting": "提交锻造请求...",
+    "default": "锻造中...",
+    "hint": "请在钱包中确认操作"
   },
   "success": {
-    "title": "兑换成功！",
-    "message": "您的兑换已提交",
-    "txWait": "交易确认可能需要几分钟",
-    "done": "完成"
+    "title": "锻造完成",
+    "orderId": "订单"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "连接失败",
     "invalidAmount": "请输入有效金额",
-    "insufficientBalance": "余额不足"
+    "forgeFailed": "锻造失败"
   },
-  "token": {
-    "select": "选择代币",
-    "search": "搜索代币"
+  "picker": {
+    "title": "选择锻造币种",
+    "selected": "已选"
+  },
+  "chain": {
+    "ETH": "Ethereum",
+    "BSC": "BNB Chain",
+    "TRON": "Tron",
+    "bfmeta": "BFMeta",
+    "bfchain": "BFChain"
   }
 }

@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react'
-import type { BioAccount, BioUnsignedTransaction, BioSignedTransaction } from '@biochain/bio-sdk'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { BioAccount } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -10,71 +11,66 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { BackgroundBeams } from './components/BackgroundBeams'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Coins, Leaf, DollarSign, Bitcoin, X, ChevronDown, ArrowUpDown, ChevronLeft, Zap, ArrowDown, Check, Loader2 } from 'lucide-react'
+import { Coins, Leaf, DollarSign, X, ChevronDown, ChevronLeft, Zap, ArrowDown, Check, Loader2, AlertCircle } from 'lucide-react'
+
+import { useRechargeConfig, useForge, type ForgeOption } from '@/hooks'
 
 type Step = 'connect' | 'swap' | 'confirm' | 'processing' | 'success'
 
-interface Token {
-  symbol: string
-  name: string
-  chain: string
-  balance?: string
-}
-
-const TOKENS: Token[] = [
-  { symbol: 'ETH', name: 'Ethereum', chain: 'ethereum' },
-  { symbol: 'BFM', name: 'BioForest', chain: 'bfmeta' },
-  { symbol: 'USDT', name: 'Tether', chain: 'ethereum' },
-  { symbol: 'BTC', name: 'Bitcoin', chain: 'bitcoin' },
-]
-
-const FORGE_RECEIVER: Record<string, string> = {
-  ethereum: '0x000000000000000000000000000000000000dEaD',
-  bfmeta: 'b0000000000000000000000000000000000000000',
-  bitcoin: 'bc1q000000000000000000000000000000000000000',
-}
-
-const EXCHANGE_RATES: Record<string, number> = {
-  'ETH-BFM': 2500,
-  'BFM-ETH': 0.0004,
-  'USDT-BFM': 1,
-  'BFM-USDT': 1,
-  'BTC-BFM': 45000,
-  'BFM-BTC': 0.000022,
-}
-
 const TOKEN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
+  BSC: 'bg-yellow-600',
+  TRON: 'bg-red-600',
   BFM: 'bg-emerald-600',
   USDT: 'bg-teal-600',
-  BTC: 'bg-orange-600',
+  BFC: 'bg-blue-600',
 }
 
 export default function App() {
+  const { t } = useTranslation()
   const [step, setStep] = useState<Step>('connect')
-  const [account, setAccount] = useState<BioAccount | null>(null)
-  const [fromToken, setFromToken] = useState<Token>(TOKENS[0])
-  const [toToken, setToToken] = useState<Token>(TOKENS[1])
-  const [fromAmount, setFromAmount] = useState('')
-  const [toAmount, setToAmount] = useState('')
+  const [externalAccount, setExternalAccount] = useState<BioAccount | null>(null)
+  const [internalAccount, setInternalAccount] = useState<BioAccount | null>(null)
+  const [selectedOption, setSelectedOption] = useState<ForgeOption | null>(null)
+  const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pickerOpen, setPickerOpen] = useState<'from' | 'to' | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
-  // 关闭启动屏
+  // Fetch recharge config from backend
+  const { forgeOptions, isLoading: configLoading, error: configError } = useRechargeConfig()
+  
+  // Forge hook
+  const forgeHook = useForge()
+
+  // Helper to get chain name from translations
+  const getChainName = useCallback((chain: string) => {
+    return t(`chain.${chain}`, { defaultValue: chain })
+  }, [t])
+
+  // Close splash screen
   useEffect(() => {
     window.bio?.request({ method: 'bio_closeSplashScreen' })
   }, [])
 
+  // Auto-select first option when config loads
   useEffect(() => {
-    if (fromAmount && parseFloat(fromAmount) > 0) {
-      const rate = EXCHANGE_RATES[`${fromToken.symbol}-${toToken.symbol}`] || 1
-      const result = parseFloat(fromAmount) * rate
-      setToAmount(result.toFixed(fromToken.symbol === 'BFM' ? 8 : 2))
-    } else {
-      setToAmount('')
+    if (forgeOptions.length > 0 && !selectedOption) {
+      setSelectedOption(forgeOptions[0])
     }
-  }, [fromAmount, fromToken, toToken])
+  }, [forgeOptions, selectedOption])
+
+  // Watch forge status
+  useEffect(() => {
+    if (forgeHook.step === 'success') {
+      setStep('success')
+    } else if (forgeHook.step === 'error') {
+      setError(forgeHook.error)
+      setStep('confirm')
+    } else if (forgeHook.step !== 'idle') {
+      setStep('processing')
+    }
+  }, [forgeHook.step, forgeHook.error])
 
   const handleConnect = useCallback(async () => {
     if (!window.bio) {
@@ -84,29 +80,30 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const acc = await window.bio.request<BioAccount>({
+      // Select external chain account (for payment)
+      const extAcc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{}],
+        params: [{ chain: selectedOption?.externalChain?.toLowerCase() }],
       })
-      setAccount(acc)
-      setFromToken({ ...fromToken, balance: '2.5' })
+      setExternalAccount(extAcc)
+
+      // Select internal chain account (for receiving)
+      const intAcc = await window.bio.request<BioAccount>({
+        method: 'bio_selectAccount',
+        params: [{ chain: selectedOption?.internalChain }],
+      })
+      setInternalAccount(intAcc)
+
       setStep('swap')
     } catch (err) {
       setError(err instanceof Error ? err.message : '连接失败')
     } finally {
       setLoading(false)
     }
-  }, [fromToken])
-
-  const handleSwapTokens = () => {
-    const temp = fromToken
-    setFromToken({ ...toToken, balance: toToken.balance })
-    setToToken({ ...temp, balance: temp.balance })
-    setFromAmount(toAmount)
-  }
+  }, [selectedOption])
 
   const handlePreview = () => {
-    if (!fromAmount || parseFloat(fromAmount) <= 0) {
+    if (!amount || parseFloat(amount) <= 0) {
       setError('请输入有效金额')
       return
     }
@@ -115,47 +112,45 @@ export default function App() {
   }
 
   const handleConfirm = useCallback(async () => {
-    if (!window.bio || !account) return
-    setLoading(true)
+    if (!externalAccount || !internalAccount || !selectedOption) return
+    
     setError(null)
     setStep('processing')
-    try {
-      const chainId = fromToken.chain
-      const to = FORGE_RECEIVER[chainId] ?? FORGE_RECEIVER.ethereum
-      const unsignedTx = await window.bio.request<BioUnsignedTransaction>({
-        method: 'bio_createTransaction',
-        params: [{ from: account.address, to, amount: fromAmount, chain: chainId, asset: fromToken.symbol }],
-      })
-      const signedTx = await window.bio.request<BioSignedTransaction>({
-        method: 'bio_signTransaction',
-        params: [{ from: account.address, chain: chainId, unsignedTx }],
-      })
-      void signedTx
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      setStep('success')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '交易失败')
-      setStep('confirm')
-    } finally {
-      setLoading(false)
-    }
-  }, [account, fromToken, fromAmount])
+
+    await forgeHook.forge({
+      externalChain: selectedOption.externalChain,
+      externalAsset: selectedOption.externalAsset,
+      depositAddress: selectedOption.externalInfo.depositAddress,
+      amount,
+      externalAccount,
+      internalChain: selectedOption.internalChain,
+      internalAsset: selectedOption.internalAsset,
+      internalAccount,
+    })
+  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook])
 
   const handleReset = useCallback(() => {
     setStep('swap')
-    setFromAmount('')
-    setToAmount('')
+    setAmount('')
     setError(null)
-  }, [])
+    forgeHook.reset()
+  }, [forgeHook])
 
-  const handleSelectToken = (token: Token) => {
-    if (pickerOpen === 'from') {
-      setFromToken({ ...token, balance: token.symbol === 'ETH' ? '2.5' : '1000' })
-    } else {
-      setToToken(token)
-    }
-    setPickerOpen(null)
+  const handleSelectOption = (option: ForgeOption) => {
+    setSelectedOption(option)
+    setPickerOpen(false)
   }
+
+  // Group options by external chain for picker
+  const groupedOptions = useMemo(() => {
+    const groups: Record<string, ForgeOption[]> = {}
+    for (const opt of forgeOptions) {
+      const key = opt.externalChain
+      if (!groups[key]) groups[key] = []
+      groups[key].push(opt)
+    }
+    return groups
+  }, [forgeOptions])
 
   return (
     <div className="relative min-h-screen w-full bg-background text-foreground">
@@ -171,7 +166,7 @@ export default function App() {
               </Button>
             )}
             <h1 className="flex-1 text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-              锻造
+              {t('app.title')}
             </h1>
             <div className="w-7" />
           </div>
@@ -179,6 +174,23 @@ export default function App() {
 
         {/* Content */}
         <main className="flex-1 flex flex-col p-4">
+          {/* Loading config */}
+          {configLoading && (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {/* Config error */}
+          {configError && (
+            <Card className="mb-4 border-destructive/50 bg-destructive/10">
+              <CardContent className="py-3 flex items-center gap-2 text-destructive text-sm">
+                <AlertCircle className="size-4" />
+                {configError}
+              </CardContent>
+            </Card>
+          )}
+
           {error && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
@@ -194,7 +206,7 @@ export default function App() {
 
           <AnimatePresence mode="wait">
             {/* Connect */}
-            {step === 'connect' && (
+            {step === 'connect' && !configLoading && (
               <motion.div
                 key="connect"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -212,24 +224,35 @@ export default function App() {
                 </div>
                 
                 <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">多链熔炉</h2>
-                  <p className="text-muted-foreground text-sm">将其他链资产锻造为 BFM 代币</p>
+                  <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('app.description')}</p>
                 </div>
+
+                {/* Available chains preview */}
+                {forgeOptions.length > 0 && (
+                  <div className="flex gap-2">
+                    {Object.keys(groupedOptions).map((chain) => (
+                      <Badge key={chain} variant="outline">
+                        {getChainName(chain)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 
                 <Button 
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
-                  disabled={loading}
+                  disabled={loading || forgeOptions.length === 0}
                 >
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {loading ? '连接中...' : '连接钱包'}
+                  {loading ? t('connect.loading') : t('connect.button')}
                 </Button>
               </motion.div>
             )}
 
             {/* Swap */}
-            {step === 'swap' && (
+            {step === 'swap' && selectedOption && (
               <motion.div
                 key="swap"
                 initial={{ opacity: 0, x: 20 }}
@@ -237,12 +260,14 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="flex-1 flex flex-col gap-3"
               >
-                {/* From Card */}
+                {/* From Card (External Chain) */}
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <CardDescription>支付</CardDescription>
-                      <CardDescription>余额: {fromToken.balance || '0.00'}</CardDescription>
+                      <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
+                      <CardDescription className="text-xs truncate max-w-32">
+                        {externalAccount?.address?.slice(0, 8)}...
+                      </CardDescription>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -250,85 +275,69 @@ export default function App() {
                       <Button
                         variant="outline"
                         className="shrink-0 gap-2 h-10 px-3"
-                        onClick={() => setPickerOpen('from')}
+                        onClick={() => setPickerOpen(true)}
                       >
-                        <TokenAvatar symbol={fromToken.symbol} size="sm" />
-                        <span className="font-semibold">{fromToken.symbol}</span>
+                        <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
+                        <span className="font-semibold">{selectedOption.externalAsset}</span>
                         <ChevronDown className="size-4 text-muted-foreground" />
                       </Button>
                       <Input
                         type="number"
-                        value={fromAmount}
-                        onChange={(e) => setFromAmount(e.target.value)}
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
                         placeholder="0.00"
                         className="text-right text-2xl font-bold h-10 border-0 focus-visible:ring-0"
                       />
                     </div>
-                    {fromToken.balance && (
-                      <div className="flex gap-2">
-                        {['25%', '50%', '75%', 'MAX'].map((pct, i) => (
-                          <Button
-                            key={pct}
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 h-7 text-xs"
-                            onClick={() => {
-                              const balance = parseFloat(fromToken.balance!.replace(/,/g, ''))
-                              setFromAmount((balance * [0.25, 0.5, 0.75, 1][i]).toString())
-                            }}
-                          >
-                            {pct}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 
-                {/* Swap Button */}
+                {/* Arrow */}
                 <div className="flex justify-center -my-1.5 relative z-10">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={handleSwapTokens}
-                  >
-                    <ArrowUpDown className="size-4" />
-                  </Button>
+                  <Avatar className="size-10 border border-orange-500/30 bg-background">
+                    <AvatarFallback className="bg-orange-500/10">
+                      <ArrowDown className="size-4 text-orange-500" />
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
 
-                {/* To Card */}
+                {/* To Card (Internal Chain) */}
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <CardDescription>获得</CardDescription>
-                      <CardDescription>≈ ${toAmount ? (parseFloat(toAmount) * (toToken.symbol === 'BFM' ? 1 : 2500)).toFixed(2) : '--'}</CardDescription>
+                      <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
+                      <CardDescription className="text-xs truncate max-w-32">
+                        {internalAccount?.address?.slice(0, 8)}...
+                      </CardDescription>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        className="shrink-0 gap-2 h-10 px-3"
-                        onClick={() => setPickerOpen('to')}
-                      >
-                        <TokenAvatar symbol={toToken.symbol} size="sm" />
-                        <span className="font-semibold">{toToken.symbol}</span>
-                        <ChevronDown className="size-4 text-muted-foreground" />
-                      </Button>
+                      <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
+                        <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                        <span className="font-semibold">{selectedOption.internalAsset}</span>
+                      </div>
                       <div className="flex-1 text-right text-2xl font-bold text-muted-foreground">
-                        {toAmount || '0.00'}
+                        {amount || '0.00'}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Rate Info */}
-                {fromAmount && parseFloat(fromAmount) > 0 && (
+                {/* Rate Info - 1:1 for forge */}
+                {amount && parseFloat(amount) > 0 && (
                   <Card className="border-orange-500/20 bg-orange-500/5">
-                    <CardContent className="py-3 flex justify-between text-sm">
-                      <span className="text-muted-foreground">汇率</span>
-                      <span>1 {fromToken.symbol} ≈ {EXCHANGE_RATES[`${fromToken.symbol}-${toToken.symbol}`] || 1} {toToken.symbol}</span>
+                    <CardContent className="py-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('forge.ratio')}</span>
+                        <span>1:1</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
+                        <span className="font-mono text-xs truncate max-w-40">
+                          {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
+                        </span>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -337,16 +346,16 @@ export default function App() {
                   <Button 
                     className="w-full h-12" 
                     onClick={handlePreview}
-                    disabled={!fromAmount || parseFloat(fromAmount) <= 0}
+                    disabled={!amount || parseFloat(amount) <= 0}
                   >
-                    预览交易
+                    {t('forge.preview')}
                   </Button>
                 </div>
               </motion.div>
             )}
 
             {/* Confirm */}
-            {step === 'confirm' && (
+            {step === 'confirm' && selectedOption && (
               <motion.div
                 key="confirm"
                 initial={{ opacity: 0, x: 20 }}
@@ -357,10 +366,12 @@ export default function App() {
                 <Card>
                   <CardContent className="py-6 text-center space-y-4">
                     <div>
-                      <CardDescription className="mb-1">支付</CardDescription>
+                      <CardDescription className="mb-1">
+                        {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
+                      </CardDescription>
                       <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                        <TokenAvatar symbol={fromToken.symbol} size="sm" />
-                        {fromAmount} <span className="text-lg text-muted-foreground">{fromToken.symbol}</span>
+                        <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
+                        {amount} <span className="text-lg text-muted-foreground">{selectedOption.externalAsset}</span>
                       </div>
                     </div>
                     <div className="flex justify-center">
@@ -371,10 +382,12 @@ export default function App() {
                       </Avatar>
                     </div>
                     <div>
-                      <CardDescription className="mb-1">获得</CardDescription>
+                      <CardDescription className="mb-1">
+                        {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
+                      </CardDescription>
                       <div className="text-3xl font-bold text-orange-500 flex items-center justify-center gap-2">
-                        <TokenAvatar symbol={toToken.symbol} size="sm" />
-                        {toAmount} <span className="text-lg text-orange-500/60">{toToken.symbol}</span>
+                        <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                        {amount} <span className="text-lg text-orange-500/60">{selectedOption.internalAsset}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -383,22 +396,24 @@ export default function App() {
                 <Card>
                   <CardContent className="py-4 space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">汇率</span>
-                      <span>1 {fromToken.symbol} = {EXCHANGE_RATES[`${fromToken.symbol}-${toToken.symbol}`]} {toToken.symbol}</span>
+                      <span className="text-muted-foreground">{t('forge.ratio')}</span>
+                      <span>1:1</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">网络</span>
+                      <span className="text-muted-foreground">{t('forge.network')}</span>
                       <div className="flex gap-2">
-                        <Badge variant="outline">{fromToken.chain}</Badge>
+                        <Badge variant="outline">{getChainName(selectedOption.externalChain)}</Badge>
                         <span>→</span>
-                        <Badge variant="outline">{toToken.chain}</Badge>
+                        <Badge variant="outline">{getChainName(selectedOption.internalChain)}</Badge>
                       </div>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">预计时间</span>
-                      <span>~30s</span>
+                      <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
+                      <span className="font-mono text-xs truncate max-w-32">
+                        {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -409,7 +424,7 @@ export default function App() {
                     onClick={handleConfirm}
                     disabled={loading}
                   >
-                    确认锻造
+                    {t('forge.confirm')}
                   </Button>
                 </div>
               </motion.div>
@@ -428,14 +443,19 @@ export default function App() {
                   <div className="absolute inset-0 border-4 border-t-orange-500 rounded-full animate-spin" />
                 </div>
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">锻造中...</h2>
-                  <p className="text-muted-foreground text-sm">请稍候，正在处理交易</p>
+                  <h2 className="text-xl font-bold">
+                    {forgeHook.step === 'signing_external' && t('processing.signingExternal')}
+                    {forgeHook.step === 'signing_internal' && t('processing.signingInternal')}
+                    {forgeHook.step === 'submitting' && t('processing.submitting')}
+                    {forgeHook.step === 'idle' && t('processing.default')}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">{t('processing.hint')}</p>
                 </div>
               </motion.div>
             )}
 
             {/* Success */}
-            {step === 'success' && (
+            {step === 'success' && selectedOption && (
               <motion.div
                 key="success"
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -448,51 +468,74 @@ export default function App() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">锻造完成</h2>
-                  <p className="text-2xl font-bold text-emerald-400">{toAmount} {toToken.symbol}</p>
+                  <h2 className="text-xl font-bold">{t('success.title')}</h2>
+                  <p className="text-2xl font-bold text-emerald-400">
+                    {amount} {selectedOption.internalAsset}
+                  </p>
+                  {forgeHook.orderId && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {t('success.orderId')}: {forgeHook.orderId.slice(0, 16)}...
+                    </p>
+                  )}
                 </div>
                 <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
-                  继续锻造
+                  {t('forge.continue')}
                 </Button>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Token Picker Modal */}
-          {pickerOpen !== null && (
+          {pickerOpen && (
             <div className="fixed inset-0 z-50">
               <div 
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-                onClick={() => setPickerOpen(null)} 
+                onClick={() => setPickerOpen(false)} 
               />
               <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl border-t border-border animate-in slide-in-from-bottom">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <CardTitle>选择代币</CardTitle>
-                  <Button variant="ghost" size="icon-sm" onClick={() => setPickerOpen(null)}>
+                  <CardTitle>{t('picker.title')}</CardTitle>
+                  <Button variant="ghost" size="icon-sm" onClick={() => setPickerOpen(false)}>
                     <X className="size-5" />
                   </Button>
                 </div>
-                <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
-                  {TOKENS.filter(t => t.symbol !== (pickerOpen === 'from' ? toToken : fromToken).symbol).map((token) => (
-                    <Card 
-                      key={token.symbol} 
-                      className={cn(
-                        "cursor-pointer transition-colors hover:bg-accent",
-                        (pickerOpen === 'from' ? fromToken : toToken).symbol === token.symbol && "ring-2 ring-primary"
-                      )}
-                      onClick={() => handleSelectToken(token)}
-                    >
-                      <CardContent className="py-3 flex items-center gap-3">
-                        <TokenAvatar symbol={token.symbol} size="md" />
-                        <div className="flex-1">
-                          <CardTitle className="text-base">{token.symbol}</CardTitle>
-                          <CardDescription>{token.name}</CardDescription>
-                        </div>
-                        {(pickerOpen === 'from' ? fromToken : toToken).symbol === token.symbol && (
-                          <Badge>已选</Badge>
-                        )}
-                      </CardContent>
-                    </Card>
+                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                  {Object.entries(groupedOptions).map(([chain, options]) => (
+                    <div key={chain}>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                        {getChainName(chain)}
+                      </h3>
+                      <div className="space-y-2">
+                        {options.map((option) => (
+                          <Card 
+                            key={`${option.externalChain}-${option.externalAsset}-${option.internalAsset}`}
+                            className={cn(
+                              "cursor-pointer transition-colors hover:bg-accent",
+                              selectedOption?.externalAsset === option.externalAsset &&
+                              selectedOption?.externalChain === option.externalChain &&
+                              "ring-2 ring-primary"
+                            )}
+                            onClick={() => handleSelectOption(option)}
+                          >
+                            <CardContent className="py-3 flex items-center gap-3">
+                              <TokenAvatar symbol={option.externalAsset} size="md" />
+                              <div className="flex-1">
+                                <CardTitle className="text-base">
+                                  {option.externalAsset} → {option.internalAsset}
+                                </CardTitle>
+                                <CardDescription>
+                                  {getChainName(option.externalChain)} → {getChainName(option.internalChain)}
+                                </CardDescription>
+                              </div>
+                              {selectedOption?.externalAsset === option.externalAsset &&
+                               selectedOption?.externalChain === option.externalChain && (
+                                <Badge>{t('picker.selected')}</Badge>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -505,16 +548,19 @@ export default function App() {
 }
 
 function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
+  const iconSize = size === 'md' ? 'size-5' : 'size-4'
   const icons: Record<string, React.ReactNode> = {
-    ETH: <Coins className={size === 'md' ? 'size-5' : 'size-4'} />,
-    BFM: <Leaf className={size === 'md' ? 'size-5' : 'size-4'} />,
-    USDT: <DollarSign className={size === 'md' ? 'size-5' : 'size-4'} />,
-    BTC: <Bitcoin className={size === 'md' ? 'size-5' : 'size-4'} />,
+    ETH: <Coins className={iconSize} />,
+    BSC: <Coins className={iconSize} />,
+    TRON: <Coins className={iconSize} />,
+    BFM: <Leaf className={iconSize} />,
+    BFC: <Leaf className={iconSize} />,
+    USDT: <DollarSign className={iconSize} />,
   }
   return (
     <Avatar className={cn(size === 'md' ? 'size-10' : 'size-6', TOKEN_COLORS[symbol] || 'bg-muted')}>
       <AvatarFallback className="bg-transparent text-white">
-        {icons[symbol] || <Coins className={size === 'md' ? 'size-5' : 'size-4'} />}
+        {icons[symbol] || <Coins className={iconSize} />}
       </AvatarFallback>
     </Avatar>
   )
