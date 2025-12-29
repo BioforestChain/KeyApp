@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 import en from './locales/en.json'
+import zh from './locales/zh.json'
 import zhCN from './locales/zh-CN.json'
 import zhTW from './locales/zh-TW.json'
 
@@ -26,14 +27,15 @@ export function isRTL(lang: LanguageCode): boolean {
 i18n.use(initReactI18next).init({
   resources: {
     'en': { translation: en },
+    'zh': { translation: zh },
     'zh-CN': { translation: zhCN },
     'zh-TW': { translation: zhTW },
   },
   lng: defaultLanguage,
   fallbackLng: {
-    'zh-TW': ['zh-CN'],
-    'zh-HK': ['zh-TW', 'zh-CN'],
-    'zh': ['zh-CN'],
+    'zh-CN': ['zh'],
+    'zh-TW': ['zh'],
+    'zh-HK': ['zh'],
     'default': ['en'],
   },
   interpolation: {
