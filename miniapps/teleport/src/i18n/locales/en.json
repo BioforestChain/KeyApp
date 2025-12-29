@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "Teleport",
+    "subtitle": "Cross-Wallet Transfer",
+    "description": "Safely transfer assets from one wallet to another"
+  },
+  "connect": {
+    "button": "Select Source Wallet",
+    "loading": "Connecting..."
+  },
+  "asset": {
+    "select": "Select asset to transfer",
+    "balance": "Available"
+  },
+  "amount": {
+    "label": "Transfer Amount",
+    "placeholder": "0.00",
+    "max": "Max",
+    "next": "Next"
+  },
+  "target": {
+    "title": "Select Target Wallet",
+    "description": "Choose the wallet to receive the assets",
+    "button": "Select Target Wallet",
+    "loading": "Selecting..."
+  },
+  "confirm": {
+    "title": "Confirm Transfer",
+    "from": "From",
+    "to": "To",
+    "amount": "Transfer",
+    "network": "Network",
+    "button": "Confirm Transfer",
+    "loading": "Processing..."
+  },
+  "success": {
+    "title": "Transfer Successful!",
+    "message": "sent",
+    "txWait": "Transaction confirmation may take a few minutes",
+    "done": "Done"
+  },
+  "error": {
+    "sdkNotInit": "Bio SDK not initialized",
+    "connectionFailed": "Connection failed",
+    "selectFailed": "Selection failed",
+    "transferFailed": "Transfer failed",
+    "invalidAmount": "Please enter a valid amount"
+  }
+}

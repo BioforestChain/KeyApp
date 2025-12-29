@@ -167,5 +167,9 @@
     "overrides": {
       "tronweb": "6.1.1"
     }
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "miniapps/*"
+  ]
 }

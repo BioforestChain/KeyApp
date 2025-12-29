@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "一键传送",
+    "subtitle": "跨钱包传送",
+    "description": "安全地将资产从一个钱包转移到另一个钱包"
+  },
+  "connect": {
+    "button": "选择源钱包",
+    "loading": "连接中..."
+  },
+  "asset": {
+    "select": "选择要传送的资产",
+    "balance": "可用"
+  },
+  "amount": {
+    "label": "传送数量",
+    "placeholder": "0.00",
+    "max": "全部",
+    "next": "下一步"
+  },
+  "target": {
+    "title": "选择目标钱包",
+    "description": "选择接收资产的目标钱包",
+    "button": "选择目标钱包",
+    "loading": "选择中..."
+  },
+  "confirm": {
+    "title": "确认传送",
+    "from": "从",
+    "to": "到",
+    "amount": "传送",
+    "network": "网络",
+    "button": "确认传送",
+    "loading": "处理中..."
+  },
+  "success": {
+    "title": "传送成功！",
+    "message": "已发送",
+    "txWait": "交易确认可能需要几分钟",
+    "done": "完成"
+  },
+  "error": {
+    "sdkNotInit": "Bio SDK 未初始化",
+    "connectionFailed": "连接失败",
+    "selectFailed": "选择失败",
+    "transferFailed": "转账失败",
+    "invalidAmount": "请输入有效金额"
+  }
+}
