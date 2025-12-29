@@ -84,7 +84,7 @@ const setupMockFetch = () => {
 // Setup mock Bio SDK
 const setupMockBio = (overrides?: Partial<typeof window.bio>) => {
   window.bio = {
-    request: async ({ method, params }) => {
+    request: async ({ method, params: _params }) => {
       if (method === 'bio_closeSplashScreen') return
       if (method === 'bio_selectAccount') {
         return {

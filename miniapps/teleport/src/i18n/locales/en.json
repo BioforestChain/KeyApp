@@ -4,6 +4,11 @@
     "subtitle": "Cross-Wallet Transfer",
     "description": "Safely transfer assets to another wallet"
   },
+  "common": {
+    "unknown": "Unknown",
+    "labelValue": "{{label}}: {{value}}",
+    "arrow": "→"
+  },
   "connect": {
     "button": "Start Teleport",
     "loading": "Connecting...",
@@ -13,7 +18,8 @@
   "asset": {
     "select": "Select Asset",
     "balance": "Available",
-    "noAssets": "No assets available for transfer on this chain"
+    "noAssets": "No assets available for transfer on this chain",
+    "transfer": "{{from}} → {{to}}"
   },
   "wallet": {
     "source": "Source Wallet",

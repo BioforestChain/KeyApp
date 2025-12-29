@@ -360,7 +360,7 @@ export default function App() {
                             <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
                             <div className="flex-1 min-w-0">
                               <CardTitle className="text-base">{asset.symbol}</CardTitle>
-                              <CardDescription>{asset.chain} → {asset.targetChain}</CardDescription>
+                              <CardDescription>{t('asset.transfer', { from: asset.chain, to: asset.targetChain })}</CardDescription>
                             </div>
                             <div className="text-right">
                               <div className="font-semibold">{asset.balance || '-'}</div>
@@ -391,7 +391,7 @@ export default function App() {
                     <AssetAvatar symbol={selectedAsset.symbol} chain={selectedAsset.chain} size="lg" />
                     <div className="text-center">
                       <CardTitle>{selectedAsset.symbol}</CardTitle>
-                      <CardDescription>{t('asset.balance')}: {selectedAsset.balance || '-'}</CardDescription>
+                      <CardDescription>{t('common.labelValue', { label: t('asset.balance'), value: selectedAsset.balance || '-' })}</CardDescription>
                     </div>
                     <div className="w-full max-w-xs relative">
                       <Input
@@ -414,7 +414,7 @@ export default function App() {
                     </div>
                     {amount && (
                       <p className="text-sm text-muted-foreground">
-                        {t('amount.expected')}: <span className="text-foreground font-medium">{expectedReceive} {selectedAsset.targetAsset}</span>
+                        {t('common.labelValue', { label: t('amount.expected'), value: '' })}<span className="text-foreground font-medium">{expectedReceive} {selectedAsset.targetAsset}</span>
                       </p>
                     )}
                   </CardContent>
@@ -443,7 +443,7 @@ export default function App() {
                       {amount} <span className="text-muted-foreground">{selectedAsset?.symbol}</span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2">
-                      → {expectedReceive} {selectedAsset?.targetAsset}
+                      {t('common.arrow')} {expectedReceive} {selectedAsset?.targetAsset}
                     </p>
                   </CardContent>
                 </Card>
@@ -526,7 +526,7 @@ export default function App() {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.ratio')}</span>
-                      <span>{selectedAsset?.ratio.numerator}:{selectedAsset?.ratio.denominator}</span>
+                      <span>{`${selectedAsset?.ratio.numerator}:${selectedAsset?.ratio.denominator}`}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
@@ -570,7 +570,7 @@ export default function App() {
                   </p>
                 </div>
                 {orderId && (
-                  <p className="text-xs text-muted-foreground">{t('processing.orderId')}: {orderId}</p>
+                  <p className="text-xs text-muted-foreground">{t('common.labelValue', { label: t('processing.orderId'), value: orderId })}</p>
                 )}
               </motion.div>
             )}
@@ -641,6 +641,7 @@ function WalletCard({ label, address, name, chain, compact, highlight }: {
   compact?: boolean
   highlight?: boolean
 }) {
+  const { t } = useTranslation()
   if (compact) {
     return (
       <Card className={cn("border-0", highlight ? "bg-primary/10" : "bg-muted/50")}>
@@ -669,7 +670,7 @@ function WalletCard({ label, address, name, chain, compact, highlight }: {
         </Avatar>
         <div className="flex-1 min-w-0">
           <CardDescription>{label} {chain && <Badge variant="outline" className="ml-1">{chain}</Badge>}</CardDescription>
-          <CardTitle className="text-base truncate">{name || 'Unknown'}</CardTitle>
+          <CardTitle className="text-base truncate">{name || t('common.unknown')}</CardTitle>
           <CardDescription className="truncate">{address}</CardDescription>
         </div>
       </CardContent>

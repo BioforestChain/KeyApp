@@ -4,6 +4,11 @@
     "subtitle": "跨錢包傳送",
     "description": "安全地將資產轉移到另一個錢包"
   },
+  "common": {
+    "unknown": "未知",
+    "labelValue": "{{label}}: {{value}}",
+    "arrow": "→"
+  },
   "connect": {
     "button": "啟動傳送門",
     "loading": "連接中...",
@@ -13,7 +18,8 @@
   "asset": {
     "select": "選擇資產",
     "balance": "可用",
-    "noAssets": "當前鏈暫無可傳送資產"
+    "noAssets": "當前鏈暫無可傳送資產",
+    "transfer": "{{from}} → {{to}}"
   },
   "wallet": {
     "source": "源錢包",
