@@ -21,7 +21,17 @@ export interface SourceRecord {
 }
 
 /** Ecosystem 子页面类型 */
-export type EcosystemSubPage = 'discover' | 'mine'
+export type EcosystemSubPage = 'discover' | 'mine' | 'stack'
+
+/** 子页面索引映射 */
+export const ECOSYSTEM_SUBPAGE_INDEX: Record<EcosystemSubPage, number> = {
+  discover: 0,
+  mine: 1,
+  stack: 2,
+}
+
+/** 索引到子页面映射 */
+export const ECOSYSTEM_INDEX_SUBPAGE: EcosystemSubPage[] = ['discover', 'mine', 'stack']
 
 /** Ecosystem 状态 */
 export interface EcosystemState {

@@ -249,7 +249,7 @@ export function MyAppsPage({ apps, onSearchClick, onAppOpen, onAppDetail, onAppR
   const pages = Math.ceil(apps.length / pageSize);
 
   return (
-    <IOSWallpaper className="my-apps-page">
+    <div className="my-apps-page h-full">
       <div className="relative z-10 h-full overflow-y-auto">
         {/* 顶部区域 - 搜索胶囊 */}
         <div className="flex justify-center px-5 pt-14 pb-6">
@@ -298,6 +298,6 @@ export function MyAppsPage({ apps, onSearchClick, onAppOpen, onAppDetail, onAppR
         {/* TabBar spacer */}
         <div className="h-[var(--tab-bar-height)]" />
       </div>
-    </IOSWallpaper>
+    </div>
   );
 }

@@ -42,3 +42,8 @@ export {
   generateGlowHues,
   type MiniappSplashScreenProps,
 } from './miniapp-splash-screen'
+
+export {
+  AppStackPage,
+  type AppStackPageProps,
+} from './app-stack-page'

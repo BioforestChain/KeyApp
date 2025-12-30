@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Parallax } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
+import { useStore } from '@tanstack/react-store';
 import { useFlow } from '../../stackflow';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import {
@@ -15,11 +17,21 @@ import {
   type MyAppRecord,
 } from '@/services/ecosystem';
 import type { MiniappManifest } from '@/services/ecosystem';
-import { DiscoverPage, MyAppsPage, type DiscoverPageRef } from '@/components/ecosystem';
+import { DiscoverPage, MyAppsPage, IOSWallpaper, type DiscoverPageRef } from '@/components/ecosystem';
+import { AppStackPage } from '@/components/ecosystem/app-stack-page';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
-import { ecosystemActions } from '@/stores/ecosystem';
+import {
+  ecosystemActions,
+  ECOSYSTEM_SUBPAGE_INDEX,
+  ECOSYSTEM_INDEX_SUBPAGE,
+  type EcosystemSubPage,
+} from '@/stores/ecosystem';
+import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime';
 
 type TabType = 'discover' | 'mine';
+
+/** Parallax 视差系数 */
+const PARALLAX_OFFSET = '-38.2%';
 
 export function EcosystemTab() {
   const { push } = useFlow();
@@ -27,12 +39,21 @@ export function EcosystemTab() {
   const [myAppRecords, setMyAppRecords] = useState<MyAppRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 监听是否有运行中的应用（决定第三页是否可滑动）
+  const hasRunningApps = useStore(
+    miniappRuntimeStore,
+    miniappRuntimeSelectors.hasRunningApps
+  );
+
   // 从 localStorage 读取上次的 tab
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
+  const [activeTab, setActiveTab] = useState<EcosystemSubPage>(() => {
     try {
-      const saved = localStorage.getItem('ecosystem_active_tab');
+      const saved = localStorage.getItem('ecosystem_active_tab') as EcosystemSubPage | null;
+      // 如果保存的是 'stack' 但没有运行中的应用，回退到 'mine'
+      if (saved === 'stack') {
+        return 'mine';
+      }
       const tab = saved === 'mine' ? 'mine' : 'discover';
-      // 同步到 store
       ecosystemActions.setActiveSubPage(tab);
       return tab;
     } catch {
@@ -67,11 +88,18 @@ export function EcosystemTab() {
 
   // Swiper 事件
   const handleSlideChange = useCallback((swiper: SwiperType) => {
-    const newTab = swiper.activeIndex === 0 ? 'discover' : 'mine';
+    const newTab = ECOSYSTEM_INDEX_SUBPAGE[swiper.activeIndex] ?? 'discover';
     setActiveTab(newTab);
-    // 同步到 store（用于 TabBar 图标切换）
     ecosystemActions.setActiveSubPage(newTab);
   }, []);
+
+  // 控制第三页是否可滑动
+  const handleSlideChangeTransitionStart = useCallback((swiper: SwiperType) => {
+    // 如果没有运行中的应用，禁止滑动到第三页
+    if (!hasRunningApps && swiper.activeIndex === 2) {
+      swiper.slideTo(1, 0);
+    }
+  }, [hasRunningApps]);
 
   // 搜索胶囊点击：滑到发现页 + 聚焦搜索框
   const handleSearchClick = useCallback(() => {
@@ -146,34 +174,57 @@ export function EcosystemTab() {
     <div className="bg-background h-full">
       <Swiper
         className="h-full w-full"
-        initialSlide={activeTab === 'mine' ? 1 : 0}
+        modules={[Parallax]}
+        parallax={true}
+        initialSlide={ECOSYSTEM_SUBPAGE_INDEX[activeTab]}
         onSwiper={(swiper) => { swiperRef.current = swiper; }}
         onSlideChange={handleSlideChange}
+        onSlideChangeTransitionStart={handleSlideChangeTransitionStart}
         resistanceRatio={0.5}
+        allowSlideNext={activeTab !== 'mine' || hasRunningApps}
       >
+        {/* Parallax 共享壁纸 - 三页共享 */}
+        <div
+          className="absolute inset-0 z-0"
+          data-swiper-parallax={PARALLAX_OFFSET}
+        >
+          <IOSWallpaper className="h-full w-full" />
+        </div>
+
         {/* 发现页 - 负一屏 */}
         <SwiperSlide className="!h-full !overflow-hidden">
-          <DiscoverPage
-            ref={discoverPageRef}
-            apps={apps}
-            featuredApp={featuredApp}
-            featuredApps={featuredApps}
-            recommendedApps={recommendedApps}
-            hotApps={hotApps}
-            onAppDetail={handleAppDetail}
-            onAppOpen={handleAppOpen}
-          />
+          <div className="relative z-10 h-full">
+            <DiscoverPage
+              ref={discoverPageRef}
+              apps={apps}
+              featuredApp={featuredApp}
+              featuredApps={featuredApps}
+              recommendedApps={recommendedApps}
+              hotApps={hotApps}
+              onAppDetail={handleAppDetail}
+              onAppOpen={handleAppOpen}
+            />
+          </div>
         </SwiperSlide>
 
         {/* 我的页 - iOS 桌面 */}
         <SwiperSlide className="!h-full !overflow-hidden">
-          <MyAppsPage
-            apps={myApps.map(({ app, lastUsed }) => ({ app, lastUsed }))}
-            onSearchClick={handleSearchClick}
-            onAppOpen={handleAppOpen}
-            onAppDetail={handleAppDetail}
-            onAppRemove={handleAppRemove}
-          />
+          <div className="relative z-10 h-full">
+            <MyAppsPage
+              apps={myApps.map(({ app, lastUsed }) => ({ app, lastUsed }))}
+              onSearchClick={handleSearchClick}
+              onAppOpen={handleAppOpen}
+              onAppDetail={handleAppDetail}
+              onAppRemove={handleAppRemove}
+            />
+          </div>
+        </SwiperSlide>
+
+        {/* 应用堆栈页 - 第三页 */}
+        <SwiperSlide className="!h-full !overflow-hidden">
+          <div className="relative z-10 h-full">
+            <AppStackPage />
+          </div>
         </SwiperSlide>
       </Swiper>
     </div>
