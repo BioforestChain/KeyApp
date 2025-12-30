@@ -43,7 +43,25 @@ export function getIconFlipFrame(iconElement: HTMLElement): FlipFrame {
 }
 
 /**
- * 获取窗口目标帧（全屏）
+ * 获取 TabBar 高度
+ */
+function getTabBarHeight(): number {
+  if (typeof window === 'undefined') return 52
+  const style = getComputedStyle(document.documentElement)
+  const height = style.getPropertyValue('--tab-bar-height')
+  // 解析 calc(52px + env(...)) 的结果
+  if (!height) return 52
+  // 创建临时元素来计算实际高度
+  const temp = document.createElement('div')
+  temp.style.cssText = `position:fixed;height:var(--tab-bar-height);visibility:hidden;`
+  document.body.appendChild(temp)
+  const computed = temp.offsetHeight
+  document.body.removeChild(temp)
+  return computed || 52
+}
+
+/**
+ * 获取窗口目标帧（不覆盖底部 TabBar）
  */
 export function getWindowFlipFrame(safeAreaInsets?: {
   top: number
@@ -52,13 +70,15 @@ export function getWindowFlipFrame(safeAreaInsets?: {
   right: number
 }): FlipFrame {
   const insets = safeAreaInsets ?? { top: 0, bottom: 0, left: 0, right: 0 }
+  const tabBarHeight = getTabBarHeight()
 
   return {
     rect: DOMRect.fromRect({
       x: insets.left,
       y: insets.top,
       width: window.innerWidth - insets.left - insets.right,
-      height: window.innerHeight - insets.top - insets.bottom,
+      // 底部减去 tabbar 高度
+      height: window.innerHeight - insets.top - tabBarHeight,
     }),
     opacity: 1,
     borderRadius: 0,

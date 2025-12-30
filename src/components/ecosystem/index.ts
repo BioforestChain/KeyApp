@@ -52,3 +52,8 @@ export {
   MiniappWindow,
   type MiniappWindowProps,
 } from './miniapp-window'
+
+export {
+  MiniappCapsule,
+  type MiniappCapsuleProps,
+} from './miniapp-capsule'

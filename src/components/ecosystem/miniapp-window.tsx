@@ -19,6 +19,7 @@ import {
 } from '@/services/miniapp-runtime'
 import type { MiniappRuntimeEvent } from '@/services/miniapp-runtime'
 import { MiniappSplashScreen } from './miniapp-splash-screen'
+import { MiniappCapsule } from './miniapp-capsule'
 import styles from './miniapp-window.module.css'
 
 export interface MiniappWindowProps {
@@ -139,14 +140,15 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
         style={{ opacity: showSplash ? 0 : 1 }}
       />
 
-      {/* 临时关闭按钮（Phase 5 会替换为胶囊） */}
-      <button
-        onClick={handleClose}
-        className={styles.closeButton}
-        aria-label="关闭应用"
-      >
-        ✕
-      </button>
+      {/* 胶囊按钮 */}
+      <MiniappCapsule
+        visible={!showSplash}
+        onAction={() => {
+          // TODO: 显示更多操作菜单
+          console.log('[MiniappWindow] Action button clicked')
+        }}
+        onClose={handleClose}
+      />
     </div>
   )
 }

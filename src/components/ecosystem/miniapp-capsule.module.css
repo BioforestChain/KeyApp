@@ -1,0 +1,92 @@
+/**
+ * MiniappCapsule 胶囊按钮样式
+ * 
+ * 模拟微信小程序的胶囊按钮设计
+ */
+
+.capsule {
+  position: absolute;
+  top: max(env(safe-area-inset-top, 0px), 8px);
+  right: 8px;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 4px;
+
+  /* 胶囊外观 */
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+
+  /* 阴影 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式 */
+:global(.dark) .capsule {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  
+  color: rgba(0, 0, 0, 0.8);
+  transition: opacity 0.15s ease;
+}
+
+.button:active {
+  opacity: 0.6;
+}
+
+:global(.dark) .button {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+.divider {
+  width: 0.5px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+:global(.dark) .divider {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 关闭图标 - 圆圈包围的点 */
+.closeIcon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 外圈 */
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.closeIconInner {
+  width: 8px;
+  height: 8px;
+}
