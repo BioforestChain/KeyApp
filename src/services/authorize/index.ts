@@ -19,7 +19,7 @@ export type {
 export { plaocAdapterMeta } from './types'
 
 export { AddressAuthService } from './address-auth'
-export { SignatureAuthService, type SignatureAuthError } from './signature-auth'
+export { SignatureAuthService, type SignatureAuthError, type SignatureResult } from './signature-auth'
 
 // High-level adapter interface (import directly from './plaoc-adapter' if needed)
 export { createPlaocAdapter, isPlaocAvailable } from './plaoc-adapter'

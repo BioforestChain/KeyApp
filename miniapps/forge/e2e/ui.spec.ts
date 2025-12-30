@@ -58,7 +58,7 @@ const mockBioSDK = `
         return { data: '0xsigned-tx-data-456' }
       }
       if (method === 'bio_signMessage') {
-        return 'signature-789'
+        return { signature: 'signature-789', publicKey: 'pubkey-abc123' }
       }
       return {}
     }

@@ -4,10 +4,10 @@
 
 import type { MethodHandler } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type SigningParams } from './context'
+import { HandlerContext, type SigningParams, type SigningResult } from './context'
 
-// 兼容旧 API
-let _showSigningDialog: ((params: SigningParams) => Promise<string | null>) | null = null
+// 兼容旧 API（现在返回 SigningResult）
+let _showSigningDialog: ((params: SigningParams) => Promise<SigningResult | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setSigningDialog(dialog: typeof _showSigningDialog): void {
@@ -20,7 +20,7 @@ function getSigningDialog(appId: string) {
   return callbacks?.showSigningDialog ?? _showSigningDialog
 }
 
-/** bio_signMessage - Sign a message */
+/** bio_signMessage - Sign a message, returns { signature, publicKey } */
 export const handleSignMessage: MethodHandler = async (params, context) => {
   const opts = params as { message?: string; address?: string } | undefined
   if (!opts?.message || !opts?.address) {
@@ -32,20 +32,21 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const signature = await showSigningDialog({
+  const result = await showSigningDialog({
     message: opts.message,
     address: opts.address,
     app: { name: context.appName },
   })
 
-  if (!signature) {
+  if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return signature
+  // 返回 { signature, publicKey }，公钥为 hex 格式
+  return result
 }
 
-/** bio_signTypedData - Sign typed data */
+/** bio_signTypedData - Sign typed data, returns { signature, publicKey } */
 export const handleSignTypedData: MethodHandler = async (params, context) => {
   const opts = params as { data?: object; address?: string } | undefined
   if (!opts?.data || !opts?.address) {
@@ -60,15 +61,16 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
   // Convert typed data to readable message
   const message = JSON.stringify(opts.data, null, 2)
 
-  const signature = await showSigningDialog({
+  const result = await showSigningDialog({
     message,
     address: opts.address,
     app: { name: context.appName },
   })
 
-  if (!signature) {
+  if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return signature
+  // 返回 { signature, publicKey }，公钥为 hex 格式
+  return result
 }

@@ -54,8 +54,8 @@ function SigningConfirmJobContent() {
         const eventId = `miniapp_sign_${Date.now()}`
         const authService = new SignatureAuthService(plaocAdapter, eventId)
 
-        // 执行真实签名
-        const signature = await authService.handleMessageSign(
+        // 执行真实签名（返回 { signature, publicKey }）
+        const signResult = await authService.handleMessageSign(
           {
             chainName: chainName || 'bioforest',
             senderAddress: address,
@@ -65,9 +65,13 @@ function SigningConfirmJobContent() {
           password
         )
 
-        // 发送成功事件
+        // 发送成功事件（包含 signature 和 publicKey）
         const event = new CustomEvent('signing-confirm', {
-          detail: { confirmed: true, signature },
+          detail: { 
+            confirmed: true, 
+            signature: signResult.signature,
+            publicKey: signResult.publicKey,
+          },
         })
         window.dispatchEvent(event)
         
