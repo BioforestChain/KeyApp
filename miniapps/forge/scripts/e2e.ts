@@ -31,7 +31,11 @@ async function main() {
   // Start vite dev server
   const vite = spawn('pnpm', ['vite', '--port', String(port)], {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env },
+    env: { 
+      ...process.env,
+      // E2E 测试使用 mock API，设置一个占位 base URL
+      VITE_COT_API_BASE_URL: process.env.VITE_COT_API_BASE_URL || 'https://e2e-mock.test',
+    },
   })
   
   let serverReady = false

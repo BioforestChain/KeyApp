@@ -152,14 +152,14 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
   // 签名对话框 - 集成真实签名服务
   const showSigningDialog = useCallback(
-    (params: { message: string; address: string; app: { name: string; icon?: string } }): Promise<string | null> => {
+    (params: { message: string; address: string; app: { name: string; icon?: string } }): Promise<{ signature: string; publicKey: string } | null> => {
       return new Promise((resolve) => {
         const handleConfirm = (e: Event) => {
           const detail = (e as CustomEvent).detail
           window.removeEventListener('signing-confirm', handleConfirm)
-          if (detail.confirmed && detail.signature) {
-            // 返回真实签名
-            resolve(detail.signature)
+          if (detail.confirmed && detail.signature && detail.publicKey) {
+            // 返回签名和公钥（hex 格式）
+            resolve({ signature: detail.signature, publicKey: detail.publicKey })
           } else {
             resolve(null)
           }

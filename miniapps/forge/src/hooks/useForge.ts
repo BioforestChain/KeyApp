@@ -127,7 +127,8 @@ export function useForge() {
         timestamp: rechargeMessage.timestamp,
       })
 
-      const signature = await window.bio.request<string>({
+      // bio_signMessage 返回 { signature, publicKey }，publicKey 为 hex 格式
+      const signResult = await window.bio.request<{ signature: string; publicKey: string }>({
         method: 'bio_signMessage',
         params: [{
           message: messageToSign,
@@ -135,12 +136,10 @@ export function useForge() {
         }],
       })
 
-      // Build signature info
-      // Note: publicKey format needs to be confirmed with backend
       const signatureInfo: SignatureInfo = {
         timestamp: rechargeMessage.timestamp,
-        signature,
-        publicKey: internalAccount.address, // TODO: Get actual public key
+        signature: signResult.signature,
+        publicKey: signResult.publicKey,
       }
 
       // Step 3: Submit recharge request

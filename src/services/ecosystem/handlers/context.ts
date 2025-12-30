@@ -18,6 +18,12 @@ export interface SigningParams {
   app: MiniappInfo
 }
 
+/** 签名结果 */
+export interface SigningResult {
+  signature: string
+  publicKey: string
+}
+
 /** 交易签名参数 */
 export interface SignTransactionParams {
   from: string
@@ -30,7 +36,7 @@ export interface SignTransactionParams {
 export interface HandlerCallbacks {
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
-  showSigningDialog: (params: SigningParams) => Promise<string | null>
+  showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
   showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
 }

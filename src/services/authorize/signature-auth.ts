@@ -7,6 +7,12 @@ import { createBioforestKeypair, decrypt, isBioforestChain, signMessage, verifyP
 
 export type SignatureAuthError = 'rejected' | 'timeout' | 'insufficient_balance'
 
+/** 签名结果（包含公钥用于验签） */
+export interface SignatureResult {
+  signature: string
+  publicKey: string
+}
+
 /**
  * Signature authorization service (mock-first)
  *
@@ -39,12 +45,12 @@ export class SignatureAuthService {
    * Handle message signing (mock-first).
    *
    * - Always verifies password before proceeding.
-   * - For BioForest chains: decrypts secret and returns a real Ed25519 signature (hex).
-   * - For non-BioForest chains: returns a deterministic mock signature (hex).
+   * - For BioForest chains: decrypts secret and returns a real Ed25519 signature (hex) with public key.
+   * - For non-BioForest chains: returns a deterministic mock signature (hex) with mock public key.
    *
    * NOTE: This method does not call `approve()` automatically to keep UI control explicit.
    */
-  async handleMessageSign(payload: MessagePayload, encryptedSecret: EncryptedData, password: string): Promise<string> {
+  async handleMessageSign(payload: MessagePayload, encryptedSecret: EncryptedData, password: string): Promise<SignatureResult> {
     const chainName = payload.chainName.trim().toLowerCase()
 
     if (isBioforestChain(chainName)) {
@@ -57,7 +63,10 @@ export class SignatureAuthService {
 
       const keypair = createBioforestKeypair(secret)
       const signature = signMessage(payload.message, keypair.secretKey)
-      return `0x${bytesToHex(signature)}`
+      return {
+        signature: `0x${bytesToHex(signature)}`,
+        publicKey: bytesToHex(keypair.publicKey),
+      }
     }
 
     const ok = await verifyPassword(encryptedSecret, password)
@@ -71,7 +80,12 @@ export class SignatureAuthService {
       const sig = new Uint8Array(64)
       sig.set(partA, 0)
       sig.set(partB, 32)
-      return `0x${bytesToHex(sig)}`
+      // Mock public key for non-bioforest chains (32 bytes => 64 hex chars)
+      const mockPubKey = sha256(encoder.encode(`pubkey:${payload.senderAddress}`))
+      return {
+        signature: `0x${bytesToHex(sig)}`,
+        publicKey: bytesToHex(mockPubKey),
+      }
     }
   }
 

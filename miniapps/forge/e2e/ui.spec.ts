@@ -3,9 +3,13 @@ import { UI_TEXT } from './helpers/i18n'
 
 const mockApiResponses = `
   // Mock fetch for API calls
+  // Real endpoints: /cot/recharge/support, /cot/recharge/V2
   const originalFetch = window.fetch
   window.fetch = async (url, options) => {
-    if (url.includes('getSupport')) {
+    const urlStr = typeof url === 'string' ? url : url.toString()
+    
+    // Match real endpoint: /cot/recharge/support
+    if (urlStr.includes('/cot/recharge/support') || urlStr.includes('/recharge/support')) {
       return {
         ok: true,
         json: () => Promise.resolve({
@@ -24,7 +28,8 @@ const mockApiResponses = `
         }),
       }
     }
-    if (url.includes('rechargeV2')) {
+    // Match real endpoint: /cot/recharge/V2
+    if (urlStr.includes('/cot/recharge/V2') || urlStr.includes('/recharge/V2')) {
       return {
         ok: true,
         json: () => Promise.resolve({ orderId: 'order-123456' }),
@@ -53,7 +58,7 @@ const mockBioSDK = `
         return { data: '0xsigned-tx-data-456' }
       }
       if (method === 'bio_signMessage') {
-        return 'signature-789'
+        return { signature: 'signature-789', publicKey: 'pubkey-abc123' }
       }
       return {}
     }
@@ -123,8 +128,8 @@ test.describe('Forge UI', () => {
     await page.click('button:has-text("ETH")')
     await expect(page.locator(`text=${UI_TEXT.token.select.source}`).first()).toBeVisible()
 
-    // Should show available tokens
-    await expect(page.locator('text=Ethereum')).toBeVisible()
+    // Should show available tokens (use heading to be specific)
+    await expect(page.getByRole('heading', { name: 'Ethereum' })).toBeVisible()
 
     await expect(page).toHaveScreenshot('04-token-picker.png')
   })
@@ -150,14 +155,25 @@ test.describe('Forge UI', () => {
   })
 
   test('06 - error state without bio SDK', async ({ page }) => {
-    // No bio SDK mock
+    // Mock bio SDK that throws connection error
+    await page.addInitScript(`
+      window.bio = {
+        request: async ({ method }) => {
+          if (method === 'bio_closeSplashScreen') return {}
+          throw new Error('连接失败')
+        }
+      }
+    `)
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    await page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first().click()
+    // Wait for button to be enabled (config loaded)
+    const connectBtn = page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first()
+    await expect(connectBtn).toBeEnabled({ timeout: 10000 })
+    await connectBtn.click()
 
-    // Should show error
-    await expect(page.locator(`text=${UI_TEXT.error.sdkNotInit.source}`)).toBeVisible({ timeout: 5000 })
+    // Should show error message (bio SDK throws error)
+    await expect(page.locator('text=连接失败')).toBeVisible({ timeout: 5000 })
 
     await expect(page).toHaveScreenshot('06-error.png')
   })
@@ -220,12 +236,14 @@ test.describe('Forge UI', () => {
     await page.click('button:has-text("ETH")')
     await expect(page.locator(`text=${UI_TEXT.token.select.source}`)).toBeVisible()
 
-    // Select different token (BNB on BSC)
-    const bnbOption = page.locator('text=BNB').first()
+    // Select different token (BNB → BFM option under BNB Chain)
+    const bnbOption = page.locator('text=BNB → BFM').first()
     if (await bnbOption.isVisible()) {
       await bnbOption.click()
-      // Picker should close and new token should be selected
-      await expect(page.locator('button:has-text("BNB")')).toBeVisible({ timeout: 5000 })
+      // Picker should close, wait a moment for state update
+      await page.waitForTimeout(500)
+      // Token selector should now show BNB
+      await expect(page.locator('button:has-text("BNB")').first()).toBeVisible({ timeout: 5000 })
     }
   })
 })

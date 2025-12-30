@@ -48,7 +48,7 @@ describe('useForge', () => {
     mockBio.request
       .mockResolvedValueOnce({ txHash: 'unsigned123' }) // bio_createTransaction
       .mockResolvedValueOnce({ data: '0xsigned123' }) // bio_signTransaction
-      .mockResolvedValueOnce('signature123') // bio_signMessage
+      .mockResolvedValueOnce({ signature: 'signature123', publicKey: 'pubkey123' }) // bio_signMessage
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order123' })
 
@@ -66,7 +66,7 @@ describe('useForge', () => {
     expect(result.current.orderId).toBe('order123')
     expect(result.current.error).toBeNull()
 
-    // Verify API calls
+    // Verify API calls (3 calls: createTx, signTx, signMessage)
     expect(mockBio.request).toHaveBeenCalledTimes(3)
     expect(rechargeApi.submitRecharge).toHaveBeenCalledTimes(1)
   })
@@ -126,7 +126,7 @@ describe('useForge', () => {
     mockBio.request
       .mockResolvedValueOnce({ txHash: 'unsigned123' })
       .mockResolvedValueOnce({ data: '0xsigned123' })
-      .mockResolvedValueOnce('signature123')
+      .mockResolvedValueOnce({ signature: 'signature123', publicKey: 'pubkey123' })
 
     vi.mocked(rechargeApi.submitRecharge).mockRejectedValue(new Error('Server error'))
 
@@ -169,7 +169,7 @@ describe('useForge', () => {
     mockBio.request
       .mockResolvedValueOnce({ txHash: 'unsigned' })
       .mockResolvedValueOnce({ data: '0xsignedEthTx' })
-      .mockResolvedValueOnce('sig')
+      .mockResolvedValueOnce({ signature: 'sig', publicKey: 'pubkey' })
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
 
@@ -192,7 +192,7 @@ describe('useForge', () => {
     mockBio.request
       .mockResolvedValueOnce({ txHash: 'unsigned' })
       .mockResolvedValueOnce({ data: '0xsignedBscTx' })
-      .mockResolvedValueOnce('sig')
+      .mockResolvedValueOnce({ signature: 'sig', publicKey: 'pubkey' })
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
 

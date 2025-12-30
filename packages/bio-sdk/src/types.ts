@@ -80,11 +80,14 @@ export interface BioMethods {
   /** Pick another wallet address (shows wallet picker UI) */
   bio_pickWallet: (opts?: { chain?: string; exclude?: string }) => Promise<BioAccount>
 
-  /** Sign a message */
-  bio_signMessage: (params: { message: string; address: string }) => Promise<string>
+  /** Get public key for an address (hex encoded) */
+  bio_getPublicKey: (params: { address: string }) => Promise<string>
 
-  /** Sign typed data */
-  bio_signTypedData: (params: { data: object; address: string }) => Promise<string>
+  /** Sign a message, returns signature and public key (hex) */
+  bio_signMessage: (params: { message: string; address: string }) => Promise<{ signature: string; publicKey: string }>
+
+  /** Sign typed data, returns signature and public key (hex) */
+  bio_signTypedData: (params: { data: object; address: string }) => Promise<{ signature: string; publicKey: string }>
 
   /** Create an unsigned transaction (no signature, no broadcast) */
   bio_createTransaction: (params: TransferParams) => Promise<BioUnsignedTransaction>
