@@ -35,3 +35,10 @@ export {
   IOSWallpaper,
   type IOSWallpaperProps,
 } from './ios-wallpaper'
+
+export {
+  MiniappSplashScreen,
+  extractHue,
+  generateGlowHues,
+  type MiniappSplashScreenProps,
+} from './miniapp-splash-screen'

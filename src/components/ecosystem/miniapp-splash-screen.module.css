@@ -1,0 +1,175 @@
+/**
+ * MiniappSplashScreen 启动屏幕样式
+ * 
+ * 使用基于应用 themeColor 的光晕渲染方案
+ * 参考 ios-wallpaper--rainbow 的实现
+ */
+
+.splashScreen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 10;
+
+  /* 动画状态 */
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.splashScreen[data-visible="false"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 光晕背景层 - 使用 CSS 变量动态设置颜色 */
+.glowLayer {
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+}
+
+/* 主光晕层 - 主色 */
+.glowPrimary {
+  background: radial-gradient(
+    ellipse 50% 50% at 30% 35%,
+    oklch(0.7 0.2 var(--splash-hue-primary) / 0.4),
+    transparent 70%
+  );
+  mix-blend-mode: normal;
+  filter: blur(40px);
+}
+
+/* 次光晕层 - 邻近色1 (hue + 30) */
+.glowSecondary {
+  background: radial-gradient(
+    ellipse 45% 45% at 70% 65%,
+    oklch(0.65 0.18 var(--splash-hue-secondary) / 0.35),
+    transparent 70%
+  );
+  mix-blend-mode: normal;
+  filter: blur(50px);
+}
+
+/* 第三光晕层 - 邻近色2 (hue - 30) */
+.glowTertiary {
+  background: radial-gradient(
+    ellipse 40% 40% at 50% 20%,
+    oklch(0.75 0.15 var(--splash-hue-tertiary) / 0.3),
+    transparent 70%
+  );
+  mix-blend-mode: normal;
+  filter: blur(45px);
+}
+
+/* 深色模式调整 */
+:global(.dark) .splashScreen {
+  background: oklch(0.15 0.02 var(--splash-hue-primary));
+}
+
+:global(.dark) .glowPrimary {
+  background: radial-gradient(
+    ellipse 50% 50% at 30% 35%,
+    oklch(0.5 0.25 var(--splash-hue-primary) / 0.5),
+    transparent 70%
+  );
+  mix-blend-mode: color-dodge;
+}
+
+:global(.dark) .glowSecondary {
+  background: radial-gradient(
+    ellipse 45% 45% at 70% 65%,
+    oklch(0.45 0.22 var(--splash-hue-secondary) / 0.4),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+:global(.dark) .glowTertiary {
+  background: radial-gradient(
+    ellipse 40% 40% at 50% 20%,
+    oklch(0.55 0.18 var(--splash-hue-tertiary) / 0.35),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+/* 内容区域 */
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 应用图标 */
+.appIcon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 1.125rem; /* 22% of 80px */
+  overflow: hidden;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.appIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 加载指示器 */
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid oklch(0.8 0.1 var(--splash-hue-primary) / 0.3);
+  border-top-color: oklch(0.6 0.2 var(--splash-hue-primary));
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+:global(.dark) .spinner {
+  border-color: oklch(0.4 0.15 var(--splash-hue-primary) / 0.3);
+  border-top-color: oklch(0.7 0.2 var(--splash-hue-primary));
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 呼吸动画 - 整点报时或加载中 */
+.splashScreen[data-animating="true"] .glowPrimary {
+  animation: glowFloat 5s ease-in-out infinite;
+}
+
+.splashScreen[data-animating="true"] .glowSecondary {
+  animation: glowFloat 6s ease-in-out infinite reverse;
+}
+
+.splashScreen[data-animating="true"] .glowTertiary {
+  animation: glowFloat 4.5s ease-in-out infinite;
+  animation-delay: -1s;
+}
+
+@keyframes glowFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(5%, 5%) scale(1.05);
+  }
+  50% {
+    transform: translate(-3%, 8%) scale(0.98);
+  }
+  75% {
+    transform: translate(-5%, -3%) scale(1.02);
+  }
+}
