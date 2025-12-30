@@ -15,6 +15,7 @@ import {
   playLaunchAnimation,
   playCloseAnimation,
   closeApp,
+  activateApp,
   subscribe,
 } from '@/services/miniapp-runtime'
 import type { MiniappRuntimeEvent } from '@/services/miniapp-runtime'
@@ -67,9 +68,10 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
         case 'app:launch':
           setIsAnimating(true)
           setShowSplash(true)
-          // 播放启动动画
+          // 播放启动动画，完成后激活应用
           playLaunchAnimation(event.appId, () => {
             setIsAnimating(false)
+            activateApp(event.appId)
           })
           break
 
@@ -93,10 +95,16 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
     if (!activeApp) return
 
     setIsAnimating(true)
-    playCloseAnimation(activeApp.appId, () => {
+    const animation = playCloseAnimation(activeApp.appId, () => {
       setIsAnimating(false)
       closeApp(activeApp.appId)
     })
+    
+    // 如果动画无法播放，直接关闭
+    if (!animation) {
+      setIsAnimating(false)
+      closeApp(activeApp.appId)
+    }
   }, [activeApp])
 
   // 处理启动屏关闭
@@ -140,15 +148,17 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
         style={{ opacity: showSplash ? 0 : 1 }}
       />
 
-      {/* 胶囊按钮 */}
-      <MiniappCapsule
-        visible={!showSplash}
-        onAction={() => {
-          // TODO: 显示更多操作菜单
-          console.log('[MiniappWindow] Action button clicked')
-        }}
-        onClose={handleClose}
-      />
+      {/* 胶囊容器层 - 确保在 iframe 之上可点击 */}
+      <div className={styles.capsuleLayer}>
+        <MiniappCapsule
+          visible={true}
+          onAction={() => {
+            // TODO: 显示更多操作菜单
+            console.log('[MiniappWindow] Action button clicked')
+          }}
+          onClose={handleClose}
+        />
+      </div>
     </div>
   )
 }

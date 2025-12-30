@@ -28,6 +28,7 @@
 .iframeContainer {
   position: absolute;
   inset: 0;
+  z-index: 1;
   transition: opacity 0.2s ease-out;
 }
 
@@ -36,4 +37,16 @@
   height: 100%;
   border: none;
   background: transparent;
+}
+
+/* 胶囊容器层 - 在 iframe 之上 */
+.capsuleLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.capsuleLayer > * {
+  pointer-events: auto;
 }
