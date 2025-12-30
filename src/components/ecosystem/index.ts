@@ -57,3 +57,13 @@ export {
   MiniappCapsule,
   type MiniappCapsuleProps,
 } from './miniapp-capsule'
+
+export {
+  MiniappStackCard,
+  type MiniappStackCardProps,
+} from './miniapp-stack-card'
+
+export {
+  MiniappStackView,
+  type MiniappStackViewProps,
+} from './miniapp-stack-view'
