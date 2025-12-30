@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Parallax } from 'swiper/modules';
+import { Parallax, Controller } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import { useStore } from '@tanstack/react-store';
+import { useSwiperMember } from '@/components/common/swiper-sync-context';
 import { useFlow } from '../../stackflow';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import {
@@ -17,7 +18,7 @@ import {
   type MyAppRecord,
 } from '@/services/ecosystem';
 import type { MiniappManifest } from '@/services/ecosystem';
-import { DiscoverPage, MyAppsPage, IOSWallpaper, EcosystemTabIndicator, type DiscoverPageRef } from '@/components/ecosystem';
+import { DiscoverPage, MyAppsPage, IOSWallpaper, type DiscoverPageRef } from '@/components/ecosystem';
 import { AppStackPage } from '@/components/ecosystem/app-stack-page';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
 import {
@@ -34,10 +35,13 @@ import {
 
 /** Parallax 视差系数 */
 const PARALLAX_OFFSET = '-38.2%';
-/** 页面数量 */
-const PAGE_COUNT = 3;
+/** 最大页面数量 */
+const MAX_PAGE_COUNT = 3;
 /** Parallax 壁纸宽度：需覆盖最大偏移量 (页数-1) * |offset| */
-const PARALLAX_WIDTH = `${100 + (PAGE_COUNT - 1) * Math.abs(parseFloat(PARALLAX_OFFSET))}%`;
+const PARALLAX_WIDTH = `${100 + (MAX_PAGE_COUNT - 1) * Math.abs(parseFloat(PARALLAX_OFFSET))}%`;
+
+/** 所有页面顺序 */
+const ALL_PAGES: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
 
 export function EcosystemTab() {
   const { push } = useFlow();
@@ -45,11 +49,18 @@ export function EcosystemTab() {
   const [myAppRecords, setMyAppRecords] = useState<MyAppRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 监听是否有运行中的应用（决定第三页是否可滑动）
+  // 监听是否有运行中的应用
   const hasRunningApps = useStore(
     miniappRuntimeStore,
     miniappRuntimeSelectors.hasRunningApps
   );
+
+  // 可用页面（与 TabBar 指示器一致）
+  const availablePages = useMemo(() => 
+    hasRunningApps ? ALL_PAGES : ALL_PAGES.filter(p => p !== 'stack'),
+    [hasRunningApps]
+  );
+  const pageCount = availablePages.length;
 
   // 从 localStorage 读取上次的 tab
   const [activeTab, setActiveTab] = useState<EcosystemSubPage>(() => {
@@ -79,6 +90,20 @@ export function EcosystemTab() {
   const swiperRef = useRef<SwiperType | null>(null);
   const discoverPageRef = useRef<DiscoverPageRef>(null);
 
+  // 使用 Context + Controller 模块实现与 TabBar 指示器的双向绑定
+  const { onSwiper: syncOnSwiper, controlledSwiper } = useSwiperMember('ecosystem-main', 'ecosystem-indicator');
+
+  // 注册主 Swiper
+  const handleMainSwiper = useCallback((swiper: SwiperType) => {
+    swiperRef.current = swiper;
+    syncOnSwiper(swiper);
+  }, [syncOnSwiper]);
+
+  // 更新进度到 Store（仅用于 UI 显示）
+  const handleProgress = useCallback((_: SwiperType, progress: number) => {
+    ecosystemActions.setSwiperProgress(progress * (pageCount - 1));
+  }, [pageCount]);
+
   // 初始化数据
   useEffect(() => {
     const unsubscribe = subscribeApps((nextApps) => setApps(nextApps));
@@ -94,18 +119,12 @@ export function EcosystemTab() {
 
   // Swiper 事件
   const handleSlideChange = useCallback((swiper: SwiperType) => {
-    const newTab = ECOSYSTEM_INDEX_SUBPAGE[swiper.activeIndex] ?? 'discover';
+    const newTab = availablePages[swiper.activeIndex] ?? 'discover';
     setActiveTab(newTab);
     ecosystemActions.setActiveSubPage(newTab);
-  }, []);
+  }, [availablePages]);
 
-  // 控制第三页是否可滑动
-  const handleSlideChangeTransitionStart = useCallback((swiper: SwiperType) => {
-    // 如果没有运行中的应用，禁止滑动到第三页
-    if (!hasRunningApps && swiper.activeIndex === 2) {
-      swiper.slideTo(1, 0);
-    }
-  }, [hasRunningApps]);
+
 
   // 搜索胶囊点击：滑到发现页 + 聚焦搜索框
   const handleSearchClick = useCallback(() => {
@@ -114,12 +133,6 @@ export function EcosystemTab() {
     setTimeout(() => {
       discoverPageRef.current?.focusSearch();
     }, 300);
-  }, []);
-
-  // 指示器切换页面
-  const handleIndicatorPageChange = useCallback((page: EcosystemSubPage) => {
-    const index = ECOSYSTEM_SUBPAGE_INDEX[page];
-    swiperRef.current?.slideTo(index);
   }, []);
 
   // App 操作
@@ -139,8 +152,8 @@ export function EcosystemTab() {
       // 使用 runtime service 启动应用
       launchApp(app.id, app);
 
-      // 滑动到应用堆栈页
-      swiperRef.current?.slideTo(ECOSYSTEM_SUBPAGE_INDEX.stack);
+      // 滑动到应用堆栈页（启动后 hasRunningApps 为 true，stack 在最后一页）
+      swiperRef.current?.slideTo(2);
     },
     [],
   );
@@ -191,16 +204,16 @@ export function EcosystemTab() {
     <div className="bg-background relative h-full">
       <Swiper
         className="h-full w-full"
-        modules={[Parallax]}
+        modules={[Parallax, Controller]}
+        controller={{ control: controlledSwiper }}
         parallax={true}
-        initialSlide={ECOSYSTEM_SUBPAGE_INDEX[activeTab]}
-        onSwiper={(swiper) => { swiperRef.current = swiper; }}
+        initialSlide={availablePages.indexOf(activeTab)}
+        onSwiper={handleMainSwiper}
         onSlideChange={handleSlideChange}
-        onSlideChangeTransitionStart={handleSlideChangeTransitionStart}
+        onProgress={handleProgress}
         resistanceRatio={0.5}
-        allowSlideNext={activeTab !== 'mine' || hasRunningApps}
       >
-        {/* Parallax 共享壁纸 - 三页共享，宽度需覆盖最大偏移 */}
+        {/* Parallax 共享壁纸 */}
         <div
           className="absolute inset-y-0 left-0 z-0"
           style={{ width: PARALLAX_WIDTH }}
@@ -209,7 +222,7 @@ export function EcosystemTab() {
           <IOSWallpaper className="h-full w-full" />
         </div>
 
-        {/* 发现页 - 负一屏 */}
+        {/* 发现页 */}
         <SwiperSlide className="!h-full !overflow-hidden">
           <div className="relative z-10 h-full">
             <DiscoverPage
@@ -225,7 +238,7 @@ export function EcosystemTab() {
           </div>
         </SwiperSlide>
 
-        {/* 我的页 - iOS 桌面 */}
+        {/* 我的页 */}
         <SwiperSlide className="!h-full !overflow-hidden">
           <div className="relative z-10 h-full">
             <MyAppsPage
@@ -238,22 +251,15 @@ export function EcosystemTab() {
           </div>
         </SwiperSlide>
 
-        {/* 应用堆栈页 - 第三页 */}
-        <SwiperSlide className="!h-full !overflow-hidden">
-          <div className="relative z-10 h-full">
-            <AppStackPage />
-          </div>
-        </SwiperSlide>
+        {/* 应用堆栈页 - 仅在有运行中应用时渲染 */}
+        {hasRunningApps && (
+          <SwiperSlide className="!h-full !overflow-hidden">
+            <div className="relative z-10 h-full">
+              <AppStackPage />
+            </div>
+          </SwiperSlide>
+        )}
       </Swiper>
-
-      {/* Tab 指示器 - 固定在底部 TabBar 上方 */}
-      <div className="absolute bottom-[calc(var(--tab-bar-height)+8px)] left-1/2 -translate-x-1/2 z-20">
-        <EcosystemTabIndicator
-          activePage={activeTab}
-          onPageChange={handleIndicatorPageChange}
-          hasRunningApps={hasRunningApps}
-        />
-      </div>
     </div>
   );
 }

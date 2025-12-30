@@ -33,12 +33,19 @@ export const ECOSYSTEM_SUBPAGE_INDEX: Record<EcosystemSubPage, number> = {
 /** 索引到子页面映射 */
 export const ECOSYSTEM_INDEX_SUBPAGE: EcosystemSubPage[] = ['discover', 'mine', 'stack']
 
+/** 同步控制源 */
+export type SyncSource = 'swiper' | 'indicator' | null
+
 /** Ecosystem 状态 */
 export interface EcosystemState {
   permissions: PermissionRecord[]
   sources: SourceRecord[]
   /** 当前子页面（发现/我的） */
   activeSubPage: EcosystemSubPage
+  /** Swiper 滑动进度 (0-2 for 3 pages) */
+  swiperProgress: number
+  /** 当前同步控制源（用于双向绑定） */
+  syncSource: SyncSource
 }
 
 const STORAGE_KEY = 'ecosystem_store'
@@ -60,6 +67,8 @@ function loadState(): EcosystemState {
           },
         ],
         activeSubPage: parsed.activeSubPage ?? 'discover',
+        swiperProgress: 0,
+        syncSource: null,
       }
     }
   } catch {
@@ -76,6 +85,8 @@ function loadState(): EcosystemState {
       },
     ],
     activeSubPage: 'discover',
+    swiperProgress: 0,
+    syncSource: null,
   }
 }
 
@@ -214,6 +225,22 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       activeSubPage: subPage,
+    }))
+  },
+
+  /** 更新 Swiper 进度 */
+  setSwiperProgress: (progress: number): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      swiperProgress: progress,
+    }))
+  },
+
+  /** 设置同步控制源 */
+  setSyncSource: (source: SyncSource): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      syncSource: source,
     }))
   },
 }

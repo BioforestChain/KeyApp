@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import {
   IconWallet,
   IconSettings,
@@ -8,14 +8,131 @@ import {
   IconAppWindowFilled,
   type Icon,
 } from "@tabler/icons-react";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Controller } from 'swiper/modules';
+import 'swiper/css';
 import { useTranslation } from "react-i18next";
 import { useStore } from "@tanstack/react-store";
-import { ecosystemStore } from "@/stores/ecosystem";
+import { useSwiperMember } from "@/components/common/swiper-sync-context";
+import { ecosystemStore, type EcosystemSubPage } from "@/stores/ecosystem";
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
   openStackView,
 } from "@/services/miniapp-runtime";
+
+/** 生态页面顺序 */
+const ECOSYSTEM_PAGE_ORDER: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
+
+/** 页面图标配置 */
+const PAGE_ICONS: Record<EcosystemSubPage, Icon> = {
+  discover: IconApps,
+  mine: IconBrandMiniprogram,
+  stack: IconAppWindowFilled,
+};
+
+/** 生态页面指示器 - 使用 Controller 模块实现双向绑定 */
+function EcosystemIndicator({ 
+  hasRunningApps,
+  isActive,
+}: { 
+  hasRunningApps: boolean
+  isActive: boolean
+}) {
+  // 可用页面（与主 Swiper 一致）
+  const availablePages = hasRunningApps 
+    ? ECOSYSTEM_PAGE_ORDER 
+    : ECOSYSTEM_PAGE_ORDER.filter(p => p !== 'stack');
+  const pageCount = availablePages.length;
+  const maxIndex = pageCount - 1;
+
+  // 使用 Context + Controller 实现与主 Swiper 的双向绑定
+  const { onSwiper, controlledSwiper } = useSwiperMember('ecosystem-indicator', 'ecosystem-main');
+  
+  // Swiper 实例引用
+  const swiperRef = useRef<import('swiper').Swiper | null>(null);
+  
+  // 当 isActive 变化时更新 allowTouchMove
+  useEffect(() => {
+    if (swiperRef.current) {
+      swiperRef.current.allowTouchMove = isActive;
+    }
+  }, [isActive]);
+
+  // 本地进度（用于透明度计算）
+  const [progress, setProgress] = useState(0);
+  const indexProgress = progress * maxIndex;
+
+  // 计算图标透明度
+  const getIconOpacity = (index: number) => {
+    const distance = Math.abs(indexProgress - index);
+    return Math.max(0, 1 - distance);
+  };
+
+  return {
+    // 图标区域
+    icon: (
+      <Swiper
+        className="!w-15 !h-10 -my-2.5"
+        modules={[Controller]}
+        controller={{ control: controlledSwiper }}
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+          onSwiper(swiper);
+        }}
+        onProgress={(_, p) => setProgress(p)}
+        slidesPerView="auto"
+        centeredSlides={true}
+        spaceBetween={8}
+        allowTouchMove={isActive}
+        resistance={true}
+        resistanceRatio={0.5}
+      >
+        {availablePages.map((page, index) => {
+          const PageIcon = PAGE_ICONS[page];
+          const opacity = getIconOpacity(index);
+          return (
+            <SwiperSlide 
+              key={page} 
+              className="!w-5 !flex !items-center !justify-center cursor-pointer"
+            >
+              <PageIcon 
+                className={cn(
+                  "size-5 transition-opacity duration-100",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}
+                style={{ opacity }}
+                stroke={1.5} 
+              />
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
+    ),
+    // 标签区域（分页点）
+    label: (
+      <div className="flex items-center justify-center gap-1 h-4">
+        {availablePages.map((page, index) => {
+          const isActiveDot = Math.round(indexProgress) === index;
+          return (
+            <span
+              key={page}
+              className={cn(
+                "size-1 rounded-full transition-all duration-200",
+                isActiveDot ? "bg-primary scale-125" : "bg-muted-foreground/40"
+              )}
+            />
+          );
+        })}
+      </div>
+    ),
+  };
+}
+
+/** 使用 EcosystemIndicator hook */
+function useEcosystemIndicator(hasRunningApps: boolean, isActive: boolean) {
+  return EcosystemIndicator({ hasRunningApps, isActive });
+}
 
 // 3个tab：钱包、生态、设置
 export type TabId = "wallet" | "ecosystem" | "settings";
@@ -36,6 +153,12 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const { t } = useTranslation('common');
   const ecosystemSubPage = useStore(ecosystemStore, (s) => s.activeSubPage);
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
+  
+  // 生态 Tab 是否激活
+  const isEcosystemActive = activeTab === 'ecosystem';
+  
+  // 生态指示器（图标slider + 分页点）
+  const ecosystemIndicator = useEcosystemIndicator(hasRunningApps, isEcosystemActive);
 
   // 生态 tab 图标：
   // - 在"应用堆栈"页或有运行中应用时：IconAppWindowFilled
@@ -111,20 +234,29 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground",
-                // 如果有运行中的应用，生态按钮添加小红点指示
-                isEcosystem && hasRunningApps && "relative"
               )}
               aria-label={label}
               aria-current={isActive ? "page" : undefined}
             >
+              {/* 图标区域 */}
               <div className="relative">
-                <Icon className={cn("size-5", isActive && "text-primary")} stroke={1.5} />
-                {/* 运行中应用指示器 */}
-                {isEcosystem && hasRunningApps && (
+                {isEcosystem ? (
+                  // 生态 Tab 始终使用 Swiper 渲染，减少 DOM 抖动
+                  ecosystemIndicator.icon
+                ) : (
+                  <Icon className={cn("size-5", isActive && "text-primary")} stroke={1.5} />
+                )}
+                {/* 运行中应用指示器（红点） */}
+                {isEcosystem && hasRunningApps && !isActive && (
                   <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary" />
                 )}
               </div>
-              <span className="text-xs font-medium">{label}</span>
+              {/* 标签区域 */}
+              {isEcosystem && isActive ? (
+                ecosystemIndicator.label
+              ) : (
+                <span className="text-xs font-medium">{label}</span>
+              )}
             </button>
           );
         })}
