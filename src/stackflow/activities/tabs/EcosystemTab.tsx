@@ -34,6 +34,10 @@ import {
 
 /** Parallax 视差系数 */
 const PARALLAX_OFFSET = '-38.2%';
+/** 页面数量 */
+const PAGE_COUNT = 3;
+/** Parallax 壁纸宽度：需覆盖最大偏移量 (页数-1) * |offset| */
+const PARALLAX_WIDTH = `${100 + (PAGE_COUNT - 1) * Math.abs(parseFloat(PARALLAX_OFFSET))}%`;
 
 export function EcosystemTab() {
   const { push } = useFlow();
@@ -196,9 +200,10 @@ export function EcosystemTab() {
         resistanceRatio={0.5}
         allowSlideNext={activeTab !== 'mine' || hasRunningApps}
       >
-        {/* Parallax 共享壁纸 - 三页共享 */}
+        {/* Parallax 共享壁纸 - 三页共享，宽度需覆盖最大偏移 */}
         <div
-          className="absolute inset-0 z-0"
+          className="absolute inset-y-0 left-0 z-0"
+          style={{ width: PARALLAX_WIDTH }}
           data-swiper-parallax={PARALLAX_OFFSET}
         >
           <IOSWallpaper className="h-full w-full" />
