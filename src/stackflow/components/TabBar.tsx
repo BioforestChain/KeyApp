@@ -5,6 +5,7 @@ import {
   IconSettings,
   IconApps,
   IconBrandMiniprogram,
+  IconAppWindowFilled,
   type Icon,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
@@ -36,8 +37,19 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const ecosystemSubPage = useStore(ecosystemStore, (s) => s.activeSubPage);
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
 
-  // 生态 tab 图标：发现用 IconApps，我的用 IconBrandMiniprogram
-  const ecosystemIcon = ecosystemSubPage === 'mine' ? IconBrandMiniprogram : IconApps;
+  // 生态 tab 图标：
+  // - 在"应用堆栈"页或有运行中应用时：IconAppWindowFilled
+  // - 在"我的"页：IconBrandMiniprogram
+  // - 在"发现"页：IconApps
+  const ecosystemIcon = useMemo(() => {
+    if (ecosystemSubPage === 'stack' || hasRunningApps) {
+      return IconAppWindowFilled;
+    }
+    if (ecosystemSubPage === 'mine') {
+      return IconBrandMiniprogram;
+    }
+    return IconApps;
+  }, [ecosystemSubPage, hasRunningApps]);
 
   const tabConfigs: Tab[] = useMemo(() => [
     { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },

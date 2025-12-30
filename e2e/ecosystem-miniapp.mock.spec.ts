@@ -1,10 +1,24 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 /**
  * Bio 小程序生态 E2E 截图测试
  *
  * 测试用户故事并生成截图验证 UI 正确性
  */
+
+/**
+ * 滑动到"我的"页面 (Swiper 布局：从右向左滑动一次)
+ * 发现(0) → 我的(1) → 堆栈(2)
+ */
+async function swipeToMyAppsPage(page: Page) {
+  const viewport = page.viewportSize()!
+  // 从中右向中左滑动，距离适中，避免滑过头
+  await page.mouse.move(viewport.width * 0.7, viewport.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(viewport.width * 0.3, viewport.height / 2, { steps: 20 })
+  await page.mouse.up()
+  await page.waitForTimeout(500)
+}
 
 const TEST_WALLET_DATA = {
   wallets: [
@@ -112,9 +126,8 @@ test.describe('生态 Tab 截图测试', () => {
     await ecosystemTab.click()
     await page.waitForTimeout(500)
 
-    // 点击"我的" Tab
-    const myTab = page.locator('button:has-text("我的")')
-    await myTab.click()
+    // 滑动到"我的"页 (从右向左滑)
+    await swipeToMyAppsPage(page)
     await page.waitForTimeout(500)
 
     await expect(page).toHaveScreenshot('02b-ecosystem-my-tab.png')
@@ -138,9 +151,8 @@ test.describe('生态 Tab 截图测试', () => {
     await ecosystemTab.click()
     await page.waitForTimeout(500)
 
-    // 点击"我的" Tab
-    const myTab = page.locator('button:has-text("我的")')
-    await myTab.click()
+    // 滑动到"我的"页
+    await swipeToMyAppsPage(page)
     await page.waitForTimeout(500)
 
     // 右键点击第一个应用图标触发 Context Menu
@@ -166,7 +178,7 @@ test.describe('生态 Tab 截图测试', () => {
     // 进入生态 - 我的
     await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
-    await page.locator('button:has-text("我的")').click()
+    await swipeToMyAppsPage(page)
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 打开
@@ -193,7 +205,7 @@ test.describe('生态 Tab 截图测试', () => {
     // 进入生态 - 我的
     await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
-    await page.locator('button:has-text("我的")').click()
+    await swipeToMyAppsPage(page)
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 详情
@@ -221,7 +233,7 @@ test.describe('生态 Tab 截图测试', () => {
     // 进入生态 - 我的
     await page.getByTestId('tab-ecosystem').click()
     await page.waitForTimeout(300)
-    await page.locator('button:has-text("我的")').click()
+    await swipeToMyAppsPage(page)
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 移除

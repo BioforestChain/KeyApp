@@ -172,6 +172,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onContextMenu={handleContextMenu}
+          data-testid={`ios-app-icon-${app.id}`}
         >
           <div ref={iconRef} className="relative">
             <MiniappIcon
