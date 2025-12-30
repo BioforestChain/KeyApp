@@ -67,3 +67,8 @@ export {
   MiniappStackView,
   type MiniappStackViewProps,
 } from './miniapp-stack-view'
+
+export {
+  EcosystemTabIndicator,
+  type EcosystemTabIndicatorProps,
+} from './ecosystem-tab-indicator'

@@ -17,7 +17,7 @@ import {
   type MyAppRecord,
 } from '@/services/ecosystem';
 import type { MiniappManifest } from '@/services/ecosystem';
-import { DiscoverPage, MyAppsPage, IOSWallpaper, type DiscoverPageRef } from '@/components/ecosystem';
+import { DiscoverPage, MyAppsPage, IOSWallpaper, EcosystemTabIndicator, type DiscoverPageRef } from '@/components/ecosystem';
 import { AppStackPage } from '@/components/ecosystem/app-stack-page';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
 import {
@@ -112,6 +112,12 @@ export function EcosystemTab() {
     }, 300);
   }, []);
 
+  // 指示器切换页面
+  const handleIndicatorPageChange = useCallback((page: EcosystemSubPage) => {
+    const index = ECOSYSTEM_SUBPAGE_INDEX[page];
+    swiperRef.current?.slideTo(index);
+  }, []);
+
   // App 操作
   const handleAppDetail = useCallback(
     (app: MiniappManifest) => {
@@ -178,7 +184,7 @@ export function EcosystemTab() {
   }
 
   return (
-    <div className="bg-background h-full">
+    <div className="bg-background relative h-full">
       <Swiper
         className="h-full w-full"
         modules={[Parallax]}
@@ -234,6 +240,15 @@ export function EcosystemTab() {
           </div>
         </SwiperSlide>
       </Swiper>
+
+      {/* Tab 指示器 - 固定在底部 TabBar 上方 */}
+      <div className="absolute bottom-[calc(var(--tab-bar-height)+8px)] left-1/2 -translate-x-1/2 z-20">
+        <EcosystemTabIndicator
+          activePage={activeTab}
+          onPageChange={handleIndicatorPageChange}
+          hasRunningApps={hasRunningApps}
+        />
+      </div>
     </div>
   );
 }
