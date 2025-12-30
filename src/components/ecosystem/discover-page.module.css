@@ -1,0 +1,50 @@
+/* 注册自定义属性以支持动画插值 */
+@property --header-scroll-percent {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* 发现页滚动驱动动画 */
+.discoverPage {
+  --header-height: 120px;
+  scroll-timeline-name: --discover-scroll;
+  scroll-timeline-axis: y;
+}
+
+@keyframes header-scroll {
+  0% {
+    padding-top: 3rem;
+    padding-bottom: 1rem;
+    --header-scroll-percent: 0%;
+  }
+  100% {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    --header-scroll-percent: 60%;
+  }
+}
+
+.discoverHeader {
+  --header-scroll-percent: 0%;
+  --header-focus-percent: 0%;
+  
+  animation: header-scroll ease-out forwards;
+  animation-timeline: --discover-scroll;
+  animation-duration: 1ms;
+  animation-range: 0px calc(2 * var(--header-height));
+  
+  background: color-mix(
+    in srgb,
+    var(--background) calc(var(--header-scroll-percent) + var(--header-focus-percent)),
+    transparent
+  );
+  transition: --header-focus-percent 0.2s ease;
+}
+
+/* 渐进增强：支持 color-mix 时启用 focus-within 叠加效果 */
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .discoverHeader:focus-within {
+    --header-focus-percent: 20%;
+  }
+}

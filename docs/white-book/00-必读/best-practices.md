@@ -25,5 +25,7 @@
 - 紧凑头部效果使用 `animation-range: 0 80px` 限制动画范围
 - ⚠️ scroll-driven animations 是渐进增强：初始状态必须是可用的（如 opacity-0），不支持时保持初始状态
 - E2E 截图变更后运行 `pnpm e2e:audit` 检查残留截图，详见白皮书 08-测试篇/03-Playwright配置/e2e-best-practices
-- 组件专属样式（动画、伪元素、复杂选择器）使用 CSS Modules：`component-name.module.css` + `import styles from './xxx.module.css'`
-- CSS Modules 仅用于 Tailwind 无法表达的场景（如 @keyframes、:global()、复杂层叠），简单样式优先用 Tailwind
+- 组件专属样式使用 CSS Modules：`component-name.module.css` + `import styles from './xxx.module.css'`
+- CSS Modules 适用场景：@keyframes 动画、伪元素(::before/::after)、复杂选择器(:focus-within)、scroll-driven animations
+- CSS Modules 与 Tailwind 混用：`className={cn(styles.header, 'sticky top-0 z-10 px-5')}`
+- 优先级：CSS Modules > globals.css，组件样式应内聚到组件目录

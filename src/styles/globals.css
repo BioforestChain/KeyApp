@@ -112,29 +112,6 @@ input, textarea, [contenteditable="true"] {
   to { opacity: 1; }
 }
 
-/* 发现页滚动驱动动画（渐进增强） */
-.discover-page {
-  --header-height: 120px;
-}
-
-@keyframes discover-header-shrink {
-  0% {
-    padding-top: 3rem;
-    padding-bottom: 1rem;
-  }
-  100% {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-}
-
-.discover-header {
-  animation: discover-header-shrink ease-out forwards;
-  animation-timeline: scroll();
-  animation-duration: 1s;
-  animation-range: entry 0 exit calc(2 * var(--header-height));
-}
-
 /* 详情页滚动驱动 */
 .detail-scroll-container {
   timeline-scope: --detail-scroll;
