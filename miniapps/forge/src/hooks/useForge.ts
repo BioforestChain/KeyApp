@@ -135,12 +135,27 @@ export function useForge() {
         }],
       })
 
-      // Build signature info
-      // Note: publicKey format needs to be confirmed with backend
+      // Get public key for signature verification
+      // Note: publicKey format (hex/base58) needs to be confirmed with backend
+      let publicKey: string
+      try {
+        publicKey = await window.bio.request<string>({
+          method: 'bio_getPublicKey',
+          params: [{ address: internalAccount.address }],
+        })
+      } catch (err) {
+        // bio_getPublicKey not yet implemented - this is a known limitation
+        // Backend integration will fail until this is resolved
+        console.warn('[useForge] bio_getPublicKey failed, using address as fallback:', err)
+        // Fallback: use address (will likely fail backend verification)
+        // TODO: Remove this fallback once bio_getPublicKey is fully implemented
+        publicKey = internalAccount.address
+      }
+
       const signatureInfo: SignatureInfo = {
         timestamp: rechargeMessage.timestamp,
         signature,
-        publicKey: internalAccount.address, // TODO: Get actual public key
+        publicKey,
       }
 
       // Step 3: Submit recharge request

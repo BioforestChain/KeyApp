@@ -49,6 +49,7 @@ describe('useForge', () => {
       .mockResolvedValueOnce({ txHash: 'unsigned123' }) // bio_createTransaction
       .mockResolvedValueOnce({ data: '0xsigned123' }) // bio_signTransaction
       .mockResolvedValueOnce('signature123') // bio_signMessage
+      .mockRejectedValueOnce(new Error('UNSUPPORTED_METHOD')) // bio_getPublicKey (not implemented yet)
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order123' })
 
@@ -66,8 +67,8 @@ describe('useForge', () => {
     expect(result.current.orderId).toBe('order123')
     expect(result.current.error).toBeNull()
 
-    // Verify API calls
-    expect(mockBio.request).toHaveBeenCalledTimes(3)
+    // Verify API calls (4 calls: createTx, signTx, signMessage, getPublicKey)
+    expect(mockBio.request).toHaveBeenCalledTimes(4)
     expect(rechargeApi.submitRecharge).toHaveBeenCalledTimes(1)
   })
 
@@ -127,6 +128,7 @@ describe('useForge', () => {
       .mockResolvedValueOnce({ txHash: 'unsigned123' })
       .mockResolvedValueOnce({ data: '0xsigned123' })
       .mockResolvedValueOnce('signature123')
+      .mockRejectedValueOnce(new Error('UNSUPPORTED_METHOD')) // bio_getPublicKey
 
     vi.mocked(rechargeApi.submitRecharge).mockRejectedValue(new Error('Server error'))
 
@@ -170,6 +172,7 @@ describe('useForge', () => {
       .mockResolvedValueOnce({ txHash: 'unsigned' })
       .mockResolvedValueOnce({ data: '0xsignedEthTx' })
       .mockResolvedValueOnce('sig')
+      .mockRejectedValueOnce(new Error('UNSUPPORTED_METHOD')) // bio_getPublicKey
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
 
@@ -193,6 +196,7 @@ describe('useForge', () => {
       .mockResolvedValueOnce({ txHash: 'unsigned' })
       .mockResolvedValueOnce({ data: '0xsignedBscTx' })
       .mockResolvedValueOnce('sig')
+      .mockRejectedValueOnce(new Error('UNSUPPORTED_METHOD')) // bio_getPublicKey
 
     vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
 

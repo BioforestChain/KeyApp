@@ -1,10 +1,28 @@
 /**
  * API Configuration
- * TODO: Base URL needs to be confirmed with backend team
+ * 
+ * IMPORTANT: Base URL must be configured via VITE_COT_API_BASE_URL environment variable.
+ * The COT Recharge API host has not been confirmed - do not use a hardcoded default.
  */
 
-/** API Base URL - to be configured via environment or runtime */
-export const API_BASE_URL = import.meta.env.VITE_COT_API_BASE_URL || 'https://api.eth-metaverse.com'
+/** API Base URL - must be configured via environment variable */
+function getApiBaseUrl(): string {
+  const url = import.meta.env.VITE_COT_API_BASE_URL
+  if (!url) {
+    // Fail-fast in development to catch missing configuration early
+    if (import.meta.env.DEV) {
+      console.error(
+        '[Forge API] VITE_COT_API_BASE_URL is not configured. ' +
+        'Please set this environment variable to the COT Recharge API base URL.'
+      )
+    }
+    // Return empty string - API calls will fail with clear error
+    return ''
+  }
+  return url
+}
+
+export const API_BASE_URL = getApiBaseUrl()
 
 /** API Endpoints */
 export const API_ENDPOINTS = {

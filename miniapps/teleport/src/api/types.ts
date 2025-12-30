@@ -1,6 +1,9 @@
 /**
  * Teleport API Types
- * 基于 @bnqkl/metabox-core@0.5.2 类型定义
+ * 
+ * 类型定义参考 @bnqkl/metabox-core@0.5.2 和 @bnqkl/wallet-typings@0.23.8
+ * 注意：这些包在 package.json 中作为依赖存在，但当前未被直接 import 使用。
+ * 如果不需要运行时依赖，可以考虑移至 devDependencies 或移除。
  */
 
 // 链名类型

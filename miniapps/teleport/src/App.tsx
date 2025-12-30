@@ -179,13 +179,18 @@ export default function App() {
       })
 
       // 3. 构造 fromTrJson（根据链类型）
+      // 注意：signTransData 需要使用 signedTx.data（RLP encoded raw signed tx），
+      // 而非 signedTx.signature（仅包含 r+s，不是可广播的 rawTx）
       const fromTrJson: FromTrJson = {}
       const chainLower = sourceAccount.chain.toLowerCase()
+      const signTransData = typeof signedTx.data === 'string' 
+        ? signedTx.data 
+        : JSON.stringify(signedTx.data)
       
       if (chainLower === 'eth') {
-        fromTrJson.eth = { signTransData: signedTx.signature }
+        fromTrJson.eth = { signTransData }
       } else if (chainLower === 'bsc') {
-        fromTrJson.bsc = { signTransData: signedTx.signature }
+        fromTrJson.bsc = { signTransData }
       } else {
         // 内链交易
         fromTrJson.bcf = {

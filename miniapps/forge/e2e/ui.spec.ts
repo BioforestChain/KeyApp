@@ -3,9 +3,13 @@ import { UI_TEXT } from './helpers/i18n'
 
 const mockApiResponses = `
   // Mock fetch for API calls
+  // Real endpoints: /cot/recharge/support, /cot/recharge/V2
   const originalFetch = window.fetch
   window.fetch = async (url, options) => {
-    if (url.includes('getSupport')) {
+    const urlStr = typeof url === 'string' ? url : url.toString()
+    
+    // Match real endpoint: /cot/recharge/support
+    if (urlStr.includes('/cot/recharge/support') || urlStr.includes('/recharge/support')) {
       return {
         ok: true,
         json: () => Promise.resolve({
@@ -24,7 +28,8 @@ const mockApiResponses = `
         }),
       }
     }
-    if (url.includes('rechargeV2')) {
+    // Match real endpoint: /cot/recharge/V2
+    if (urlStr.includes('/cot/recharge/V2') || urlStr.includes('/recharge/V2')) {
       return {
         ok: true,
         json: () => Promise.resolve({ orderId: 'order-123456' }),
