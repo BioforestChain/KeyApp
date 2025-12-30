@@ -26,9 +26,11 @@ import {
   ECOSYSTEM_INDEX_SUBPAGE,
   type EcosystemSubPage,
 } from '@/stores/ecosystem';
-import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime';
-
-type TabType = 'discover' | 'mine';
+import {
+  miniappRuntimeStore,
+  miniappRuntimeSelectors,
+  launchApp,
+} from '@/services/miniapp-runtime';
 
 /** Parallax 视差系数 */
 const PARALLAX_OFFSET = '-38.2%';
@@ -123,9 +125,14 @@ export function EcosystemTab() {
       addToMyApps(app.id);
       updateLastUsed(app.id);
       setMyAppRecords(loadMyApps());
-      push('MiniappActivity', { appId: app.id });
+
+      // 使用 runtime service 启动应用
+      launchApp(app.id, app);
+
+      // 滑动到应用堆栈页
+      swiperRef.current?.slideTo(ECOSYSTEM_SUBPAGE_INDEX.stack);
     },
-    [push],
+    [],
   );
 
   const handleAppRemove = useCallback((appId: string) => {
@@ -211,7 +218,7 @@ export function EcosystemTab() {
         <SwiperSlide className="!h-full !overflow-hidden">
           <div className="relative z-10 h-full">
             <MyAppsPage
-              apps={myApps.map(({ app, lastUsed }) => ({ app, lastUsed }))}
+              apps={myApps.map(({ app, lastUsedAt }) => ({ app, lastUsed: lastUsedAt }))}
               onSearchClick={handleSearchClick}
               onAppOpen={handleAppOpen}
               onAppDetail={handleAppDetail}

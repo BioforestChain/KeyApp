@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils';
 import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
-import { IOSWallpaper } from './ios-wallpaper';
 import type { MiniappManifest } from '@/services/ecosystem';
+import { registerIconRef, unregisterIconRef } from '@/services/miniapp-runtime';
 
 // ============================================
 // iOS 桌面图标（带 Popover 菜单）
@@ -20,10 +20,21 @@ interface IOSDesktopIconProps {
 
 function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIconProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
+  // 注册图标 ref 到 runtime service（用于 FLIP 动画）
+  useEffect(() => {
+    if (iconRef.current) {
+      registerIconRef(app.id, iconRef.current);
+    }
+    return () => {
+      unregisterIconRef(app.id);
+    };
+  }, [app.id]);
 
   const showMenu = () => {
     const popover = popoverRef.current;
@@ -162,7 +173,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
           onTouchEnd={handleTouchEnd}
           onContextMenu={handleContextMenu}
         >
-          <div className="relative">
+          <div ref={iconRef} className="relative">
             <MiniappIcon
               src={app.icon}
               name={app.name}

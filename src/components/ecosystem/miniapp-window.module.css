@@ -1,0 +1,77 @@
+/**
+ * MiniappWindow 小程序窗口样式
+ */
+
+.window {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--background);
+  overflow: hidden;
+
+  /* 变换原点：居中 */
+  transform-origin: center center;
+
+  /* 默认状态 */
+  opacity: 1;
+}
+
+.window.animating {
+  /* 动画期间禁用交互 */
+  pointer-events: none;
+}
+
+.iframeContainer {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.iframeContainer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+}
+
+/* 临时关闭按钮（Phase 5 会替换为胶囊） */
+.closeButton {
+  position: absolute;
+  top: max(env(safe-area-inset-top, 0px), 12px);
+  right: 12px;
+  z-index: 10;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  
+  transition: background 0.15s ease;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.closeButton:active {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(0.95);
+}
+
+/* 深色模式 */
+:global(.dark) .closeButton {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark) .closeButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

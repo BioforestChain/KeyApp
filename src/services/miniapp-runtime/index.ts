@@ -11,7 +11,7 @@
  */
 
 import { Store } from '@tanstack/react-store'
-import type {
+export type {
   MiniappInstance,
   MiniappState,
   MiniappRuntimeState,

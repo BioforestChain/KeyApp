@@ -47,3 +47,8 @@ export {
   AppStackPage,
   type AppStackPageProps,
 } from './app-stack-page'
+
+export {
+  MiniappWindow,
+  type MiniappWindowProps,
+} from './miniapp-window'
