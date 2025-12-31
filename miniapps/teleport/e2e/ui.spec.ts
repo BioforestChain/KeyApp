@@ -305,4 +305,124 @@ test.describe('Teleport UI', () => {
 
     await expect(page).toHaveScreenshot('08-error-no-sdk.png')
   })
+
+  // ============ 边界场景测试 ============
+
+  test('09 - API failure - asset list unavailable', async ({ page }) => {
+    // Override API mock to return error for asset list
+    await page.addInitScript(`
+      const originalFetch = window.fetch
+      window.fetch = async (url, options) => {
+        const urlStr = typeof url === 'string' ? url : url.toString()
+        if (urlStr.includes('/transmit/assetTypeList')) {
+          throw new Error('Network Error')
+        }
+        return originalFetch(url, options)
+      }
+    `)
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Connect button should be visible
+    const connectBtn = page.getByRole('button', { name: UI_TEXT.connect.button })
+    await expect(connectBtn).toBeVisible({ timeout: 10000 })
+    
+    // Config error message should be visible (API failed to load)
+    await expect(page.getByText(UI_TEXT.connect.configError)).toBeVisible({ timeout: 5000 })
+  })
+
+  test('10 - user rejects wallet selection', async ({ page }) => {
+    // Mock bio SDK that rejects wallet selection
+    await page.addInitScript(`
+      window.bio = {
+        request: async ({ method }) => {
+          if (method === 'bio_closeSplashScreen') return
+          if (method === 'bio_selectAccount') {
+            throw new Error('用户取消')
+          }
+          return {}
+        },
+        on: () => {},
+        off: () => {},
+        isConnected: () => true,
+      }
+    `)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    const connectBtn = page.getByRole('button', { name: UI_TEXT.connect.button })
+    await expect(connectBtn).toBeVisible({ timeout: 10000 })
+    await connectBtn.click()
+
+    // Should show user cancelled error
+    await expect(page.getByText('用户取消')).toBeVisible({ timeout: 5000 })
+  })
+
+  test('11 - transmit API failure', async ({ page }) => {
+    // Mock API that fails on transmit
+    await page.addInitScript(`
+      const originalFetch = window.fetch
+      window.fetch = async (url, options) => {
+        const urlStr = typeof url === 'string' ? url : url.toString()
+        
+        if (urlStr.includes('/transmit/assetTypeList')) {
+          return {
+            ok: true,
+            json: () => Promise.resolve({
+              transmitSupport: {
+                ETH: {
+                  ETH: {
+                    enable: true,
+                    isAirdrop: false,
+                    assetType: 'ETH',
+                    recipientAddress: '0x1234567890abcdef1234567890abcdef12345678',
+                    targetChain: 'BFMCHAIN',
+                    targetAsset: 'BFM',
+                    ratio: { numerator: 1, denominator: 1 },
+                    transmitDate: { startDate: '2020-01-01', endDate: '2030-12-31' },
+                  },
+                },
+              },
+            }),
+          }
+        }
+        
+        // Fail on transmit POST
+        if (urlStr.includes('/transmit') && options?.method === 'POST') {
+          throw new Error('服务器错误')
+        }
+        
+        return originalFetch(url, options)
+      }
+    `)
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Navigate through flow
+    const connectBtn = page.getByRole('button', { name: UI_TEXT.connect.button })
+    await expect(connectBtn).toBeVisible({ timeout: 10000 })
+    await connectBtn.click()
+
+    // Select asset
+    await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
+    await page.getByText('ETH → BFMCHAIN').first().click()
+
+    // Fill amount
+    await expect(page.locator('input[type="number"]')).toBeVisible({ timeout: 10000 })
+    await page.fill('input[type="number"]', '100')
+    await page.getByRole('button', { name: UI_TEXT.amount.next }).click()
+
+    // Select target
+    await expect(page.getByRole('button', { name: UI_TEXT.target.button })).toBeVisible({ timeout: 5000 })
+    await page.getByRole('button', { name: UI_TEXT.target.button }).click()
+
+    // Confirm - this should fail
+    await expect(page.getByRole('button', { name: UI_TEXT.confirm.button })).toBeVisible({ timeout: 5000 })
+    await page.getByRole('button', { name: UI_TEXT.confirm.button }).click()
+
+    // Should show error (use first() to handle multiple matching elements)
+    await expect(page.getByText(/传送失败|服务器错误/).first()).toBeVisible({ timeout: 10000 })
+  })
 })

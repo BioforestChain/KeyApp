@@ -240,6 +240,7 @@ export default function App() {
                 )}
                 
                 <Button 
+                  data-testid="connect-button"
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
@@ -282,6 +283,7 @@ export default function App() {
                         <ChevronDown className="size-4 text-muted-foreground" />
                       </Button>
                       <Input
+                        data-testid="amount-input"
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -344,6 +346,7 @@ export default function App() {
 
                 <div className="mt-auto pt-4">
                   <Button 
+                    data-testid="preview-button"
                     className="w-full h-12" 
                     onClick={handlePreview}
                     disabled={!amount || parseFloat(amount) <= 0}
@@ -420,6 +423,7 @@ export default function App() {
 
                 <div className="mt-auto pt-4">
                   <Button 
+                    data-testid="confirm-button"
                     className="w-full h-12" 
                     onClick={handleConfirm}
                     disabled={loading}

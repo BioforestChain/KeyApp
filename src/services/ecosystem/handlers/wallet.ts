@@ -109,31 +109,3 @@ export const handleGetBalance: MethodHandler = async (params, _context) => {
   // TODO: Query actual balance from chain adapter
   return '0'
 }
-
-/** bio_getPublicKey - Get public key for an address */
-export const handleGetPublicKey: MethodHandler = async (params, context) => {
-  const opts = params as { address?: string } | undefined
-  if (!opts?.address) {
-    throw Object.assign(new Error('Missing address'), { code: BioErrorCodes.INVALID_PARAMS })
-  }
-
-  const getConnectedAccounts = getAccountsGetter(context.appId)
-  if (!getConnectedAccounts) {
-    throw Object.assign(new Error('Not connected'), { code: BioErrorCodes.UNAUTHORIZED })
-  }
-
-  const accounts = getConnectedAccounts()
-  const account = accounts.find(a => a.address.toLowerCase() === opts.address!.toLowerCase())
-  if (!account) {
-    throw Object.assign(new Error('Address not found in connected accounts'), { code: BioErrorCodes.UNAUTHORIZED })
-  }
-
-  // TODO: Retrieve actual public key from wallet store
-  // For BioForest chains, the public key can be derived from the mnemonic
-  // For now, this returns a placeholder - needs to be implemented with wallet integration
-  // The public key format should be confirmed with the backend (hex, base58, etc.)
-  throw Object.assign(
-    new Error('bio_getPublicKey not yet implemented - requires wallet store integration'),
-    { code: BioErrorCodes.UNSUPPORTED_METHOD }
-  )
-}

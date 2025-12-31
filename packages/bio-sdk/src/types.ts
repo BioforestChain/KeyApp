@@ -80,9 +80,6 @@ export interface BioMethods {
   /** Pick another wallet address (shows wallet picker UI) */
   bio_pickWallet: (opts?: { chain?: string; exclude?: string }) => Promise<BioAccount>
 
-  /** Get public key for an address (hex encoded) */
-  bio_getPublicKey: (params: { address: string }) => Promise<string>
-
   /** Sign a message, returns signature and public key (hex) */
   bio_signMessage: (params: { message: string; address: string }) => Promise<{ signature: string; publicKey: string }>
 

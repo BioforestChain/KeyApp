@@ -13,7 +13,6 @@ import {
   handlePickWallet,
   handleChainId,
   handleGetBalance,
-  handleGetPublicKey,
   handleSignMessage,
   handleSignTypedData,
   handleCreateTransaction,
@@ -31,7 +30,6 @@ export function initBioProvider(): void {
   bridge.registerHandler('bio_pickWallet', handlePickWallet)
   bridge.registerHandler('bio_chainId', handleChainId)
   bridge.registerHandler('bio_getBalance', handleGetBalance)
-  bridge.registerHandler('bio_getPublicKey', handleGetPublicKey)
 
   // Signing methods
   bridge.registerHandler('bio_signMessage', handleSignMessage)
@@ -52,7 +50,6 @@ export function initBioProvider(): void {
     'bio_pickWallet',
     'bio_chainId',
     'bio_getBalance',
-    'bio_getPublicKey',
     'bio_signMessage',
     'bio_signTypedData',
     'bio_createTransaction',

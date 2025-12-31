@@ -57,8 +57,10 @@ export interface TransmitAssetTypeListResponse {
 export interface ExternalFromTrJson {
   eth?: { signTransData: string }
   bsc?: { signTransData: string }
-  tron?: unknown
-  trc20?: unknown
+  /** TRON TRX 转账的签名交易数据 */
+  tron?: { signTransData: string }
+  /** TRON TRC20 代币转账的签名交易数据 */
+  trc20?: { signTransData: string }
 }
 
 // 内链发起方交易体

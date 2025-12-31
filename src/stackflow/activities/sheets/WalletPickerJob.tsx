@@ -18,6 +18,8 @@ import { MiniappIcon } from '@/components/ecosystem'
 type WalletPickerJobParams = {
   /** 限定链类型 */
   chain?: string
+  /** 排除的地址（不显示在列表中） */
+  exclude?: string
   /** 请求来源小程序名称 */
   appName?: string
   /** 请求来源小程序图标 */
@@ -27,13 +29,14 @@ type WalletPickerJobParams = {
 function WalletPickerJobContent() {
   const { t } = useTranslation('common')
   const { pop } = useFlow()
-  const { chain, appName, appIcon } = useActivityParams<WalletPickerJobParams>()
+  const { chain, exclude, appName, appIcon } = useActivityParams<WalletPickerJobParams>()
 
   const walletState = useStore(walletStore)
   const currentWallet = walletSelectors.getCurrentWallet(walletState)
 
-  // 转换钱包数据为 WalletListItem 格式
+  // 转换钱包数据为 WalletListItem 格式，并过滤排除的地址
   const walletItems = useMemo((): WalletListItem[] => {
+    const excludeLower = exclude?.toLowerCase()
     return walletState.wallets
       .map((wallet) => {
         const chainAddress = chain
@@ -41,6 +44,11 @@ function WalletPickerJobContent() {
           : wallet.chainAddresses[0]
 
         if (!chainAddress) return null
+
+        // 过滤排除的地址
+        if (excludeLower && chainAddress.address.toLowerCase() === excludeLower) {
+          return null
+        }
 
         return {
           id: wallet.id,
@@ -51,7 +59,7 @@ function WalletPickerJobContent() {
         }
       })
       .filter((item): item is WalletListItem => item !== null)
-  }, [walletState.wallets, chain])
+  }, [walletState.wallets, chain, exclude])
 
   // 保存钱包到链地址的映射
   const walletChainMap = useMemo(() => {

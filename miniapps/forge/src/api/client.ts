@@ -2,7 +2,9 @@
  * API Client
  */
 
-import { API_BASE_URL } from './config'
+import { getApiBaseUrlSafe, ApiConfigError } from './config'
+
+export { ApiConfigError }
 
 export class ApiError extends Error {
   constructor(
@@ -22,7 +24,9 @@ interface RequestOptions extends RequestInit {
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, ...init } = options
   
-  let url = `${API_BASE_URL}${endpoint}`
+  // Get base URL - will throw ApiConfigError if not configured
+  const baseUrl = getApiBaseUrlSafe()
+  let url = `${baseUrl}${endpoint}`
   
   if (params) {
     const searchParams = new URLSearchParams()

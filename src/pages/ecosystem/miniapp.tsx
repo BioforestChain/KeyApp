@@ -105,7 +105,7 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
   // 钱包选择器
   const showWalletPicker = useCallback(
-    (opts?: { chain?: string }): Promise<BioAccount | null> => {
+    (opts?: { chain?: string; exclude?: string }): Promise<BioAccount | null> => {
       return new Promise((resolve) => {
         const handleSelect = (e: Event) => {
           const detail = (e as CustomEvent).detail
@@ -129,6 +129,7 @@ export function MiniappPage({ appId, onClose }: MiniappPageProps) {
 
         const params: Record<string, string> = {}
         if (opts?.chain) params.chain = opts.chain
+        if (opts?.exclude) params.exclude = opts.exclude
         if (app?.name) params.appName = app.name
         if (app?.icon) params.appIcon = app.icon
         push('WalletPickerJob', params)
