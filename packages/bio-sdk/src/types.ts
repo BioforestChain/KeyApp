@@ -8,6 +8,8 @@ export interface BioAccount {
   address: string
   chain: string
   name?: string
+  /** Public key (hex encoded) */
+  publicKey: string
 }
 
 /** Transfer parameters */

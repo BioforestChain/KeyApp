@@ -48,6 +48,8 @@ export interface Token {
 export interface ChainAddress {
   chain: ChainType
   address: string
+  /** 公钥（hex 编码） */
+  publicKey: string
   /** 该链上的代币 */
   tokens: Token[]
 }
@@ -143,6 +145,7 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
     chainAddresses: chainAddresses.map((ca): ChainAddress => ({
       chain: ca.chain,
       address: ca.address,
+      publicKey: ca.publicKey ?? '',
       tokens: ca.assets.map((asset): Token => {
         const token: Token = {
           id: `${ca.chain}:${asset.assetType}`,
@@ -263,7 +266,7 @@ export const walletActions = {
 
     // 保存链地址
     const chainAddresses = wallet.chainAddresses || [
-      { chain: wallet.chain, address: wallet.address, tokens: [] }
+      { chain: wallet.chain, address: wallet.address, publicKey: '', tokens: [] }
     ]
     
     for (const ca of chainAddresses) {
@@ -272,6 +275,7 @@ export const walletActions = {
         walletId,
         chain: ca.chain,
         address: ca.address,
+        publicKey: ca.publicKey,
         assets: [],
         isCustomAssets: false,
         isFrozen: false,
@@ -608,7 +612,7 @@ export const walletActions = {
     }
 
     // 如果有需要添加的链，派生地址
-    let newAddresses: Array<{ chain: string; address: string }> = []
+    let newAddresses: Array<{ chain: string; address: string; publicKey: string }> = []
     if (chainsToAdd.length > 0) {
       // 动态导入避免循环依赖
       const { deriveAddressesForChains } = await import('@/lib/crypto/address-derivation')
@@ -616,15 +620,15 @@ export const walletActions = {
       // 只派生需要添加的链
       const chainsToDerive = chainConfigs.filter((c) => chainsToAdd.includes(c.id))
       const derivedAddresses = deriveAddressesForChains(mnemonic, chainsToDerive)
-      const addressMap = new Map(derivedAddresses.map((a) => [a.chainId, a.address]))
+      const addressMap = new Map(derivedAddresses.map((a) => [a.chainId, { address: a.address, publicKey: a.publicKey }]))
       
       newAddresses = chainsToAdd
         .map((chainId) => {
-          const address = addressMap.get(chainId)
-          if (!address) return null
-          return { chain: chainId, address }
+          const derived = addressMap.get(chainId)
+          if (!derived) return null
+          return { chain: chainId, address: derived.address, publicKey: derived.publicKey }
         })
-        .filter((a): a is { chain: string; address: string } => a !== null)
+        .filter((a): a is { chain: string; address: string; publicKey: string } => a !== null)
     }
 
     // 更新 IndexedDB - 添加新链地址
@@ -634,6 +638,7 @@ export const walletActions = {
         walletId,
         chain: addr.chain,
         address: addr.address,
+        publicKey: addr.publicKey,
         assets: [],
         isCustomAssets: false,
         isFrozen: false,
@@ -653,6 +658,7 @@ export const walletActions = {
       ...newAddresses.map((addr) => ({
         chain: addr.chain,
         address: addr.address,
+        publicKey: addr.publicKey,
         tokens: [],
       })),
     ]
@@ -693,7 +699,7 @@ export const walletActions = {
       chain: wallet.chain,
       createdAt: wallet.createdAt ?? Date.now(),
       chainAddresses: wallet.chainAddresses ?? [
-        { chain: wallet.chain, address: wallet.address, tokens: [] }
+        { chain: wallet.chain, address: wallet.address, publicKey: '', tokens: [] }
       ],
       themeHue: wallet.themeHue,
       tokens: [],

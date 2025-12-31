@@ -84,6 +84,7 @@ function WalletPickerJobContent() {
         address: data.chainAddress.address,
         chain: data.chainAddress.chain,
         name: data.wallet.name,
+        publicKey: data.chainAddress.publicKey,
       },
     })
     window.dispatchEvent(event)

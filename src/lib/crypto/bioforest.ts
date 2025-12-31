@@ -129,12 +129,14 @@ export function deriveBioforestKeyFromChainConfig(secret: string, config: ChainC
 export function deriveBioforestAddressesFromChainConfigs(
   secret: string,
   configs: readonly ChainConfig[],
-): Array<{ chainId: string; address: string }> {
+): Array<{ chainId: string; address: string; publicKey: string }> {
   const keypair = createBioforestKeypair(secret)
+  const publicKeyHex = bytesToHex(keypair.publicKey)
 
   return configs.filter(isBioforestChainConfig).map((config) => ({
     chainId: config.id,
     address: publicKeyToBioforestAddress(keypair.publicKey, config.prefix ?? 'b'),
+    publicKey: publicKeyHex,
   }))
 }
 

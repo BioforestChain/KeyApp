@@ -14,6 +14,8 @@ import { deriveKey, deriveBitcoinKey, type BitcoinPurpose } from './derivation'
 export interface DerivedAddress {
   chainId: string
   address: string
+  /** 公钥 (hex) */
+  publicKey: string
 }
 
 /**
@@ -47,17 +49,19 @@ export function deriveAddressesForChains(
       results.push({
         chainId: chain.id,
         address: evmKey.address,
+        publicKey: evmKey.publicKey,
       })
     }
   }
 
   // Derive BIP39 addresses (chain-specific derivation paths)
   for (const chain of bip39Chains) {
-    const address = deriveBip39Address(secret, chain)
-    if (address) {
+    const derived = deriveBip39Key(secret, chain)
+    if (derived) {
       results.push({
         chainId: chain.id,
-        address,
+        address: derived.address,
+        publicKey: derived.publicKey,
       })
     }
   }
@@ -66,18 +70,18 @@ export function deriveAddressesForChains(
 }
 
 /**
- * Derive address for a BIP39-based chain
+ * Derive key for a BIP39-based chain
  */
-function deriveBip39Address(secret: string, chain: ChainConfig): string | null {
+function deriveBip39Key(secret: string, chain: ChainConfig): { address: string; publicKey: string } | null {
   switch (chain.id) {
     case 'bitcoin': {
       // Use Native SegWit (BIP84) as default for Bitcoin
       const btcKey = deriveBitcoinKey(secret, 84 as BitcoinPurpose, 0, 0)
-      return btcKey.address
+      return { address: btcKey.address, publicKey: btcKey.publicKey }
     }
     case 'tron': {
       const tronKey = deriveKey(secret, 'tron', 0, 0)
-      return tronKey.address
+      return { address: tronKey.address, publicKey: tronKey.publicKey }
     }
     default:
       // Unknown BIP39 chain - skip
