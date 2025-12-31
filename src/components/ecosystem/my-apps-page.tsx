@@ -1,15 +1,36 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import { IconDownload, IconPlayerPlay, IconInfoCircle, IconTrash } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
 import type { MiniappManifest } from '@/services/ecosystem';
-import { registerIconRef, unregisterIconRef } from '@/services/miniapp-runtime';
+import { 
+  registerIconRef, 
+  unregisterIconRef,
+  registerIconPopoverRef,
+  unregisterIconPopoverRef,
+  registerIconHandle,
+  unregisterIconHandle,
+} from '@/services/miniapp-runtime';
+import styles from './my-apps-page.module.css';
 
 // ============================================
-// iOS 桌面图标（带 Popover 菜单）
+// iOS 桌面图标（带 Popover 菜单 + 启动动画）
 // ============================================
+
+/** Icon Popover 控制句柄 */
+export interface IOSDesktopIconHandle {
+  /** 进入启动动画模式（showPopover） */
+  enterLaunchMode: () => void;
+  /** 退出启动动画模式（hidePopover） */
+  exitLaunchMode: () => void;
+  /** 获取 popover 元素 */
+  getPopoverElement: () => HTMLElement | null;
+  /** 获取 icon 元素 */
+  getIconElement: () => HTMLElement | null;
+}
+
 interface IOSDesktopIconProps {
   app: MiniappManifest;
   onTap: () => void;
@@ -18,23 +39,50 @@ interface IOSDesktopIconProps {
   onRemove: () => void;
 }
 
-function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIconProps) {
+const IOSDesktopIcon = forwardRef<IOSDesktopIconHandle, IOSDesktopIconProps>(
+  function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }, ref) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-  // 注册图标 ref 到 runtime service（用于 FLIP 动画）
+  // 启动模式控制函数
+  const enterLaunchMode = useCallback(() => {
+    setIsLaunching(true);
+  }, []);
+
+  const exitLaunchMode = useCallback(() => {
+    setIsLaunching(false);
+  }, []);
+
+  // 暴露控制句柄给外部
+  useImperativeHandle(ref, () => ({
+    enterLaunchMode,
+    exitLaunchMode,
+    getPopoverElement: () => popoverRef.current,
+    getIconElement: () => iconRef.current,
+  }), [enterLaunchMode, exitLaunchMode]);
+
+  // 注册图标 ref 和 handle 到 runtime service
   useEffect(() => {
     if (iconRef.current) {
       registerIconRef(app.id, iconRef.current);
     }
+    if (popoverRef.current) {
+      registerIconPopoverRef(app.id, popoverRef.current);
+    }
+    // 注册 handle（用于控制启动模式）
+    registerIconHandle(app.id, { enterLaunchMode, exitLaunchMode });
+    
     return () => {
       unregisterIconRef(app.id);
+      unregisterIconPopoverRef(app.id);
+      unregisterIconHandle(app.id);
     };
-  }, [app.id]);
+  }, [app.id, enterLaunchMode, exitLaunchMode]);
 
   const showMenu = () => {
     const popover = popoverRef.current;
@@ -73,15 +121,15 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
     if (!popover) return;
     
     // 触发退出动画
-    const menu = popover.querySelector('.ios-context-menu');
-    menu?.classList.add('closing');
+    const menu = popover.querySelector(`.${styles.contextMenu}`);
+    menu?.classList.add(styles.contextMenuClosing);
     popover.style.setProperty('--backdrop-opacity', '0');
     
     // 等待动画完成后隐藏 popover
     setTimeout(() => {
       popover.hidePopover();
       setIsOpen(false);
-      menu?.classList.remove('closing');
+      menu?.classList.remove(styles.contextMenuClosing);
       popover.style.removeProperty('--backdrop-opacity');
     }, 200);
   };
@@ -143,17 +191,17 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
 
   return (
     // 占位容器（在网格中保持位置）
-    <div className="ios-icon-wrapper">
+    <div className={styles.iconWrapper}>
       {/* Popover（打开时提升到顶层） */}
       <div
         ref={popoverRef}
         popover="manual"
-        className="ios-desktop-icon"
+        className={styles.iconPopover}
       >
         {/* 点击拦截层（视觉效果由 ::backdrop 提供） */}
         {isOpen && (
           <div 
-            className="fixed inset-0 ios-backdrop-clickarea"
+            className={cn('fixed inset-0', styles.backdropClickArea)}
             style={{ zIndex: -1 }}
             onClick={hideMenu}
           />
@@ -162,6 +210,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
         {/* 图标按钮 */}
         <button
           className={cn(
+            styles.iconButton,
             'flex flex-col items-center gap-1.5 p-2',
             'touch-manipulation select-none',
             'transition-all duration-200 ease-out',
@@ -191,10 +240,10 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
           </span>
         </button>
 
-        {/* 菜单 */}
-        {isOpen && (
+        {/* 菜单（仅在非启动动画模式时显示） */}
+        {isOpen && !isLaunching && (
           <div
-            className="ios-context-menu fixed w-56"
+            className={cn(styles.contextMenu, 'fixed w-56')}
             style={{ top: menuPosition.top, left: menuPosition.left }}
           >
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-popover/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
@@ -227,7 +276,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
       </div>
     </div>
   );
-}
+});
 
 // ============================================
 // 空状态
@@ -249,13 +298,22 @@ function EmptyState() {
 // ============================================
 export interface MyAppsPageProps {
   apps: Array<{ app: MiniappManifest; lastUsed: number }>;
+  /** 是否显示搜索框（默认 true，关闭发现页时应设为 false） */
+  showSearch?: boolean;
   onSearchClick: () => void;
   onAppOpen: (app: MiniappManifest) => void;
   onAppDetail: (app: MiniappManifest) => void;
   onAppRemove: (appId: string) => void;
 }
 
-export function MyAppsPage({ apps, onSearchClick, onAppOpen, onAppDetail, onAppRemove }: MyAppsPageProps) {
+export function MyAppsPage({ 
+  apps, 
+  showSearch = true,
+  onSearchClick, 
+  onAppOpen, 
+  onAppDetail, 
+  onAppRemove,
+}: MyAppsPageProps) {
   const columns = 4;
   const pageSize = columns * 6;
   const pages = Math.ceil(apps.length / pageSize);
@@ -263,10 +321,14 @@ export function MyAppsPage({ apps, onSearchClick, onAppOpen, onAppDetail, onAppR
   return (
     <div className="my-apps-page h-full">
       <div className="relative z-10 h-full overflow-y-auto">
-        {/* 顶部区域 - 搜索胶囊 */}
-        <div className="flex justify-center px-5 pt-14 pb-6">
-          <IOSSearchCapsule onClick={onSearchClick} />
-        </div>
+        {/* 顶部区域 - 搜索胶囊（仅在有发现页时显示） */}
+        {showSearch ? (
+          <div className="flex justify-center px-5 pt-14 pb-6">
+            <IOSSearchCapsule onClick={onSearchClick} />
+          </div>
+        ) : (
+          <div className="pt-14" />
+        )}
 
         {/* 内容区 */}
         {apps.length === 0 ? (

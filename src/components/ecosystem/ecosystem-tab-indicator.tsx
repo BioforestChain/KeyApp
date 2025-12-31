@@ -1,23 +1,25 @@
 /**
  * EcosystemTabIndicator - 生态 Tab 页面指示器
  *
- * 显示当前页面的图标指示器，支持双向绑定：
- * - 滑动页面时更新图标
- * - 点击图标时切换页面
+ * 松耦合设计：
+ * - 默认从 store 读取状态（无需 props）
+ * - 支持外部控制（传入 props 覆盖）
  */
 
 import { useCallback, useMemo } from 'react'
+import { useStore } from '@tanstack/react-store'
 import { IconApps, IconBrandMiniprogram, IconStack2 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import type { EcosystemSubPage } from '@/stores/ecosystem'
+import { ecosystemStore, type EcosystemSubPage } from '@/stores/ecosystem'
+import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime'
 import styles from './ecosystem-tab-indicator.module.css'
 
 export interface EcosystemTabIndicatorProps {
-  /** 当前页面 */
-  activePage: EcosystemSubPage
-  /** 切换页面回调 */
+  /** 当前页面（可选，默认从 store 读取） */
+  activePage?: EcosystemSubPage
+  /** 切换页面回调（可选，用于外部控制） */
   onPageChange?: (page: EcosystemSubPage) => void
-  /** 是否有运行中的应用（影响 stack 页是否可用） */
+  /** 是否有运行中的应用（可选，默认从 store 读取） */
   hasRunningApps?: boolean
   /** 自定义类名 */
   className?: string
@@ -41,17 +43,24 @@ const PAGE_LABELS = {
 } as const
 
 export function EcosystemTabIndicator({
-  activePage,
+  activePage: activePageProp,
   onPageChange,
-  hasRunningApps = false,
+  hasRunningApps: hasRunningAppsProp,
   className,
 }: EcosystemTabIndicatorProps) {
+  // 从 store 读取状态（松耦合）
+  const storeActivePage = useStore(ecosystemStore, (s) => s.activeSubPage)
+  const storeHasRunningApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningApps)
+  
+  // 使用 props 覆盖 store 值（支持受控模式）
+  const activePage = activePageProp ?? storeActivePage
+  const hasRunningApps = hasRunningAppsProp ?? storeHasRunningApps
+
   // 计算可用页面
   const availablePages = useMemo(() => {
     if (hasRunningApps) {
       return PAGE_ORDER
     }
-    // 没有运行中的应用时，stack 页不可用
     return PAGE_ORDER.filter((p) => p !== 'stack')
   }, [hasRunningApps])
 

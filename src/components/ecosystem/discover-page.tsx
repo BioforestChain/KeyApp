@@ -204,7 +204,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
   }));
 
   return (
-    <div className={cn(styles.discoverPage, 'h-full overflow-y-auto')}>
+    <div className={cn(styles.discoverPage, 'scrollbar-none h-full overflow-y-auto')}>
       {/* BigHeader - sticky，scroll-driven background */}
       <header className={cn(styles.discoverHeader, 'sticky top-0 z-10 px-5 pt-12 pb-4')}>
         <div className="mb-4 flex items-center justify-between">

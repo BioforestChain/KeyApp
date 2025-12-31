@@ -72,3 +72,12 @@ export {
   EcosystemTabIndicator,
   type EcosystemTabIndicatorProps,
 } from './ecosystem-tab-indicator'
+
+export {
+  EcosystemDesktop,
+  type EcosystemDesktopProps,
+  type EcosystemDesktopConfig,
+  type EcosystemDesktopData,
+  type EcosystemDesktopCallbacks,
+  type EcosystemDesktopHandle,
+} from './ecosystem-desktop'
