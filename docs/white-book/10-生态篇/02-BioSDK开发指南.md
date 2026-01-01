@@ -74,13 +74,21 @@ const accounts = await window.bio.request<BioAccount[]>({
 
 #### bio_selectAccount
 
-显示账户选择器。
+显示账户选择器。返回的 `BioAccount` 包含公钥。
 
 ```typescript
+type BioAccount = {
+  address: string
+  chain: string
+  name?: string
+  publicKey: string  // 公钥 (hex)
+}
+
 const account = await window.bio.request<BioAccount>({
   method: 'bio_selectAccount',
   params: [{ chain: 'ethereum' }]  // 可选：限制链类型
 })
+// account.publicKey - 可用于后端验证签名
 ```
 
 #### bio_pickWallet
@@ -101,16 +109,23 @@ const target = await window.bio.request<BioAccount>({
 
 #### bio_signMessage
 
-签名消息。
+签名消息。返回签名和公钥（hex 格式）。
 
 ```typescript
-const signature = await window.bio.request<string>({
+type BioSignMessageResult = {
+  signature: string  // 签名 hex
+  publicKey: string  // 公钥 hex
+}
+
+const result = await window.bio.request<BioSignMessageResult>({
   method: 'bio_signMessage',
   params: [{
     message: 'Hello, Bio!',
     address: '...'
   }]
 })
+// result.signature - 签名数据
+// result.publicKey - 公钥（用于后端验证）
 ```
 
 ### 转账
