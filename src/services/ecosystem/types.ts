@@ -186,6 +186,13 @@ export interface MiniappManifest {
     /** 最大等待时间 (ms)，超时后自动关闭启动屏，默认 5000 */
     timeout?: number
   }
+  /**
+   * 胶囊主题（可选）
+   * - 'auto': 跟随 KeyApp 主题（默认）
+   * - 'dark': 强制深色胶囊
+   * - 'light': 强制浅色胶囊
+   */
+  capsuleTheme?: 'auto' | 'dark' | 'light'
   /** 
    * 主题色 - 用于卡片背景等 
    * 格式: CSS 渐变类名 (Tailwind) 或 HEX 颜色

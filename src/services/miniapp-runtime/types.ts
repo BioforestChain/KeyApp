@@ -7,7 +7,29 @@
 import type { MiniappManifest } from '../ecosystem/types'
 
 /** 小程序实例状态 */
-export type MiniappState = 'launching' | 'active' | 'background' | 'closing'
+export type MiniappState = 'launching' | 'splash' | 'active' | 'background' | 'closing'
+
+/** 胶囊主题 */
+export type CapsuleTheme = 'auto' | 'dark' | 'light'
+
+/**
+ * 小程序可控设置（miniapp → KeyApp）
+ * 
+ * 通过 bio.updateContext() API 动态修改
+ * 修改后会触发 app:ctx-change 事件
+ * 
+ * 注意：这与 KeyApp → miniapp 的 contextState 不同
+ * contextState 通过 postMessage 传递 theme/locale/env/a11y 给 miniapp
+ */
+export interface MiniappContext {
+  /** 
+   * 胶囊按钮主题
+   * - 'auto': 跟随 KeyApp 主题（默认）
+   * - 'dark': 强制深色胶囊（适合浅色背景 app）
+   * - 'light': 强制浅色胶囊（适合深色背景 app）
+   */
+  capsuleTheme: CapsuleTheme
+}
 
 /** 小程序实例 */
 export interface MiniappInstance {
@@ -17,6 +39,8 @@ export interface MiniappInstance {
   manifest: MiniappManifest
   /** 当前状态 */
   state: MiniappState
+  /** 运行时上下文（可动态修改） */
+  ctx: MiniappContext
   /** 启动时间 */
   launchedAt: number
   /** 最后激活时间 */
@@ -68,6 +92,7 @@ export type MiniappRuntimeEvent =
   | { type: 'app:deactivate'; appId: string }
   | { type: 'app:close'; appId: string }
   | { type: 'app:state-change'; appId: string; state: MiniappState }
+  | { type: 'app:ctx-change'; appId: string; ctx: MiniappContext }
   | { type: 'stack-view:open' }
   | { type: 'stack-view:close' }
 

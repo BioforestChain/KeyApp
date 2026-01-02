@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import styles from './miniapp-splash-screen.module.css'
 
 export interface MiniappSplashScreenProps {
+  /** 可选：用于埋点/调试/定位元素 */
+  appId?: string
   /** 应用信息 */
   app: {
     name: string
@@ -140,6 +142,7 @@ export function generateGlowHues(baseHue: number): [number, number, number] {
 }
 
 export function MiniappSplashScreen({
+  appId,
   app,
   visible,
   animating = true,
@@ -172,6 +175,7 @@ export function MiniappSplashScreen({
     <div
       className={cn(styles.splashScreen, className)}
       style={cssVars}
+      data-app-id={appId}
       data-visible={visible}
       data-animating={animating}
       data-testid="miniapp-splash-screen"

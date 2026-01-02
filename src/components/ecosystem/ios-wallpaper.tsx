@@ -18,7 +18,7 @@ function resolveIsDark(theme: 'light' | 'dark' | 'system'): boolean {
 }
 
 function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
 function getMsUntilNextHour(): number {
@@ -31,9 +31,10 @@ function getMsUntilNextHour(): number {
 export interface IOSWallpaperProps {
   className?: string;
   children?: React.ReactNode;
+  variant?: WallpaperVariant;
 }
 
-export function IOSWallpaper({ className, children }: IOSWallpaperProps) {
+export function IOSWallpaper({ className, children, variant: forcedVariant }: IOSWallpaperProps) {
   const theme = useStore(preferencesStore, (s) => s.theme);
   const isDark = resolveIsDark(theme);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -44,7 +45,7 @@ export function IOSWallpaper({ className, children }: IOSWallpaperProps) {
     light: pickRandom(lightWallpapers),
   }), []);
 
-  const variant = isDark ? selectedWallpapers.dark : selectedWallpapers.light;
+  const variant = forcedVariant ?? (isDark ? selectedWallpapers.dark : selectedWallpapers.light);
 
   // 整点报时动画
   useEffect(() => {

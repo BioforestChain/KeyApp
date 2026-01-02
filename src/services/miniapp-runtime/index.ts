@@ -19,16 +19,13 @@ export type {
   MiniappRuntimeListener,
   FlipFrames,
   AnimationConfig,
+  CapsuleTheme,
+  MiniappContext,
 } from './types'
-import { DEFAULT_ANIMATION_CONFIG } from './types'
-import {
-  computeLaunchFrames,
-  computeCloseFrames,
-  playFlipAnimation,
-  createSyncedAnimation,
-} from './flip-animator'
+import type { MiniappContext } from './types'
 import {
   createIframe,
+  mountIframeVisible,
   moveIframeToBackground,
   moveIframeToForeground,
   removeIframe,
@@ -36,6 +33,30 @@ import {
   cleanupAllIframes,
 } from './iframe-manager'
 import type { MiniappManifest } from '../ecosystem/types'
+import { getIconRef } from './runtime-refs'
+export {
+  getIconInnerRef,
+  getIconRef,
+  getSplashBgRef,
+  getSplashIconRef,
+  getStackRect,
+  getWindowInnerRef,
+  getWindowRef,
+  getStackContainerRef,
+  registerIconInnerRef,
+  registerIconRef,
+  registerSplashBgRef,
+  registerSplashIconRef,
+  registerStackContainerRef,
+  registerWindowInnerRef,
+  registerWindowRef,
+  unregisterIconRef,
+  unregisterStackContainerRef,
+  unregisterSplashBgRef,
+  unregisterSplashIconRef,
+} from './runtime-refs'
+
+// 动画实现已迁移到 motion/layoutId；旧版 FLIP/Popover 动画模块保留为备份文件（*.bak）
 
 /** 初始状态 */
 const initialState: MiniappRuntimeState = {
@@ -50,15 +71,6 @@ export const miniappRuntimeStore = new Store<MiniappRuntimeState>(initialState)
 
 /** 事件监听器 */
 const listeners = new Set<MiniappRuntimeListener>()
-
-/** 图标 ref 注册表 */
-const iconRefs = new Map<string, HTMLElement>()
-
-/** 窗口元素 ref */
-let windowRef: HTMLElement | null = null
-
-/** 动画配置 */
-let animationConfig: AnimationConfig = DEFAULT_ANIMATION_CONFIG
 
 /**
  * 发送事件
@@ -88,46 +100,31 @@ function updateAppState(appId: string, state: MiniappState): void {
 // Public API
 // ============================================
 
-/**
- * 注册图标元素引用
- */
-export function registerIconRef(appId: string, element: HTMLElement): void {
-  iconRefs.set(appId, element)
+/** 动画时间配置 */
+const ANIMATION_TIMING = {
+  /** 无 splash 时，launching -> active 的延时 */
+  launchToActive: 700,
+  /** 有 splash 时，launching -> splash 的延时 */
+  launchToSplash: 100,
+  /** splash -> active 的延时 */
+  splashToActive: 1400,
+}
+
+const launchTimeouts = new Map<string, ReturnType<typeof setTimeout>[]>()
+
+function clearLaunchTimeouts(appId: string): void {
+  const timeouts = launchTimeouts.get(appId)
+  if (!timeouts) return
+  timeouts.forEach((t) => clearTimeout(t))
+  launchTimeouts.delete(appId)
 }
 
 /**
- * 注销图标元素引用
+ * 立即结束启动阶段（用于用户跳过 splash）
  */
-export function unregisterIconRef(appId: string): void {
-  iconRefs.delete(appId)
-}
-
-/**
- * 获取图标元素引用
- */
-export function getIconRef(appId: string): HTMLElement | null {
-  return iconRefs.get(appId) ?? null
-}
-
-/**
- * 注册窗口元素引用
- */
-export function registerWindowRef(element: HTMLElement): void {
-  windowRef = element
-}
-
-/**
- * 获取窗口元素引用
- */
-export function getWindowRef(): HTMLElement | null {
-  return windowRef
-}
-
-/**
- * 设置动画配置
- */
-export function setAnimationConfig(config: Partial<AnimationConfig>): void {
-  animationConfig = { ...animationConfig, ...config }
+export function dismissSplash(appId: string): void {
+  clearLaunchTimeouts(appId)
+  activateApp(appId)
 }
 
 /**
@@ -138,6 +135,8 @@ export function launchApp(
   manifest: MiniappManifest,
   contextParams?: Record<string, string>
 ): MiniappInstance {
+  console.log('[miniapp] launchApp', { appId, url: manifest.url })
+
   const state = miniappRuntimeStore.state
   const existingApp = state.apps.get(appId)
 
@@ -147,19 +146,26 @@ export function launchApp(
     return existingApp
   }
 
+  const hasSplash = !!manifest.splashScreen
+
   // 创建新实例
   const instance: MiniappInstance = {
     appId,
     manifest,
     state: 'launching',
+    ctx: {
+      capsuleTheme: manifest.capsuleTheme ?? 'auto',
+    },
     launchedAt: Date.now(),
     lastActiveAt: Date.now(),
     iframeRef: null,
-    iconRef: iconRefs.get(appId) ?? null,
+    iconRef: getIconRef(appId),
   }
 
   // 创建 iframe
   instance.iframeRef = createIframe(appId, manifest.url, contextParams)
+  // 先挂到可见容器，确保 iframe 一定进入 DOM；MiniappWindow 会再把它移动到自己的容器
+  mountIframeVisible(instance.iframeRef)
 
   // 更新状态
   const newApps = new Map(state.apps)
@@ -172,6 +178,27 @@ export function launchApp(
   }))
 
   emit({ type: 'app:launch', appId, manifest })
+
+  // 状态机：launching -> (splash ->) active
+  if (hasSplash) {
+    const splashTimeout = setTimeout(() => {
+      updateAppState(appId, 'splash')
+    }, ANIMATION_TIMING.launchToSplash)
+
+    const activeTimeout = setTimeout(() => {
+      activateApp(appId)
+      clearLaunchTimeouts(appId)
+    }, ANIMATION_TIMING.launchToSplash + ANIMATION_TIMING.splashToActive)
+
+    launchTimeouts.set(appId, [splashTimeout, activeTimeout])
+  } else {
+    const activeTimeout = setTimeout(() => {
+      activateApp(appId)
+      clearLaunchTimeouts(appId)
+    }, ANIMATION_TIMING.launchToActive)
+
+    launchTimeouts.set(appId, [activeTimeout])
+  }
 
   return instance
 }
@@ -243,6 +270,8 @@ export function closeApp(appId: string): void {
   const app = state.apps.get(appId)
   if (!app) return
 
+  clearLaunchTimeouts(appId)
+
   // 更新状态为关闭中
   updateAppState(appId, 'closing')
 
@@ -266,91 +295,38 @@ export function closeApp(appId: string): void {
 }
 
 /**
+ * 更新应用运行时上下文
+ * 用于动态修改 capsuleTheme 等配置
+ */
+export function updateAppContext(
+  appId: string,
+  update: Partial<MiniappContext>
+): void {
+  const state = miniappRuntimeStore.state
+  const app = state.apps.get(appId)
+  if (!app) return
+
+  const newCtx = { ...app.ctx, ...update }
+
+  miniappRuntimeStore.setState((s) => {
+    const newApps = new Map(s.apps)
+    const existingApp = newApps.get(appId)
+    if (existingApp) {
+      newApps.set(appId, { ...existingApp, ctx: newCtx })
+    }
+    return { ...s, apps: newApps }
+  })
+
+  emit({ type: 'app:ctx-change', appId, ctx: newCtx })
+}
+
+/**
  * 关闭所有应用
  */
 export function closeAllApps(): void {
   const state = miniappRuntimeStore.state
   state.apps.forEach((_, appId) => closeApp(appId))
   cleanupAllIframes()
-}
-
-/**
- * 获取图标位置（用于 FLIP 动画）
- */
-export function getIconRect(appId: string): DOMRect | null {
-  const iconRef = iconRefs.get(appId)
-  return iconRef?.getBoundingClientRect() ?? null
-}
-
-/**
- * 获取窗口位置
- */
-export function getWindowRect(): DOMRect | null {
-  return windowRef?.getBoundingClientRect() ?? null
-}
-
-/**
- * 计算启动动画帧
- */
-export function computeAppLaunchFrames(appId: string): FlipFrames | null {
-  const iconRef = iconRefs.get(appId)
-  if (!iconRef) return null
-
-  return computeLaunchFrames(iconRef, animationConfig)
-}
-
-/**
- * 计算关闭动画帧
- */
-export function computeAppCloseFrames(appId: string): FlipFrames | null {
-  const iconRef = iconRefs.get(appId)
-  if (!iconRef) return null
-
-  return computeCloseFrames(iconRef, animationConfig)
-}
-
-/**
- * 播放启动动画
- */
-export function playLaunchAnimation(
-  appId: string,
-  onFinish?: () => void
-): Animation | null {
-  if (!windowRef) return null
-
-  const frames = computeAppLaunchFrames(appId)
-  if (!frames) return null
-
-  return playFlipAnimation(windowRef, frames, onFinish ? { onFinish } : undefined)
-}
-
-/**
- * 播放关闭动画
- */
-export function playCloseAnimation(
-  appId: string,
-  onFinish?: () => void
-): Animation | null {
-  if (!windowRef) return null
-
-  const frames = computeAppCloseFrames(appId)
-  if (!frames) return null
-
-  return playFlipAnimation(windowRef, frames, { reverse: true, ...(onFinish ? { onFinish } : {}) })
-}
-
-/**
- * 创建可手势控制的动画
- */
-export function createGestureControlledAnimation(
-  appId: string
-): ReturnType<typeof createSyncedAnimation> | null {
-  if (!windowRef) return null
-
-  const frames = computeAppLaunchFrames(appId)
-  if (!frames) return null
-
-  return createSyncedAnimation(windowRef, frames)
 }
 
 /**
@@ -412,4 +388,19 @@ export const miniappRuntimeSelectors = {
   isStackViewOpen: (state: MiniappRuntimeState) => state.isStackViewOpen,
   getBackgroundApps: (state: MiniappRuntimeState) =>
     Array.from(state.apps.values()).filter((app) => app.state === 'background'),
+  /** 是否显示启动 overlay（launching 或 splash 阶段） */
+  isLaunchOverlayVisible: (state: MiniappRuntimeState) => {
+    const app = state.activeAppId ? state.apps.get(state.activeAppId) : null
+    return app?.state === 'launching' || app?.state === 'splash'
+  },
+  /** 是否显示 splash 屏幕 */
+  isShowingSplash: (state: MiniappRuntimeState) => {
+    const app = state.activeAppId ? state.apps.get(state.activeAppId) : null
+    return app?.state === 'splash'
+  },
+  /** 是否正在动画中（非 active/background） */
+  isAnimating: (state: MiniappRuntimeState) => {
+    const app = state.activeAppId ? state.apps.get(state.activeAppId) : null
+    return app?.state === 'launching' || app?.state === 'splash' || app?.state === 'closing'
+  },
 }

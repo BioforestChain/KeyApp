@@ -5,9 +5,15 @@
  * 当没有激活应用时，此页禁用滑动
  */
 
+import { useCallback } from 'react'
 import { useStore } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
-import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime'
+import {
+  miniappRuntimeStore,
+  miniappRuntimeSelectors,
+  registerStackContainerRef,
+  unregisterStackContainerRef,
+} from '@/services/miniapp-runtime'
 
 export interface AppStackPageProps {
   className?: string
@@ -19,8 +25,17 @@ export function AppStackPage({ className }: AppStackPageProps) {
     miniappRuntimeSelectors.hasRunningApps
   )
 
+  const setStackContainerRef = useCallback((element: HTMLDivElement | null) => {
+    if (element) {
+      registerStackContainerRef(element)
+      return
+    }
+    unregisterStackContainerRef()
+  }, [])
+
   return (
     <div
+      ref={setStackContainerRef}
       className={cn(
         'relative h-full w-full',
         // 背景板样式 - 透明，让 Parallax 壁纸显示
