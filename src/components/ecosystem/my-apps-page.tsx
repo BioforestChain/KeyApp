@@ -7,7 +7,14 @@ import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
 import type { MiniappManifest } from '@/services/ecosystem';
-import { miniappRuntimeStore, registerIconRef, registerIconInnerRef, unregisterIconRef } from '@/services/miniapp-runtime';
+import {
+  miniappRuntimeStore,
+  registerDesktopContainerRef,
+  registerIconRef,
+  registerIconInnerRef,
+  unregisterDesktopContainerRef,
+  unregisterIconRef,
+} from '@/services/miniapp-runtime';
 import styles from './my-apps-page.module.css';
 
 // ============================================
@@ -268,7 +275,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
           onContextMenu={handleContextMenu}
           data-testid={`ios-app-icon-${app.id}`}
         >
-          <LayoutGroup>
+          <LayoutGroup inherit="id">
             <motion.div
               {...(sharedLayoutIds
                 ? { layoutId: sharedLayoutIds.container, 'data-layoutid': sharedLayoutIds.container }
@@ -377,8 +384,17 @@ export function MyAppsPage({ apps, showSearch = true, onSearchClick, onAppOpen, 
   const pageSize = columns * 6;
   const pages = Math.ceil(apps.length / pageSize);
 
+  const mineContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = mineContainerRef.current;
+    if (!el) return;
+    registerDesktopContainerRef('mine', el);
+    return () => unregisterDesktopContainerRef('mine');
+  }, []);
+
   return (
-    <div className="my-apps-page h-full">
+    <div ref={mineContainerRef} className="my-apps-page h-full">
       <div className="relative z-10 h-full overflow-y-auto">
         {/* 顶部区域 - 搜索胶囊（仅在有发现页时显示） */}
         {showSearch ? (

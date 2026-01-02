@@ -31,54 +31,38 @@ const PAGE_ICONS: Record<EcosystemSubPage, Icon> = {
   stack: IconAppWindowFilled,
 };
 
-/** 生态页面指示器 - 使用 Controller 模块实现双向绑定 */
-function EcosystemIndicator({ 
-  hasRunningApps,
-  isActive,
-}: { 
-  hasRunningApps: boolean
-  isActive: boolean
-}) {
-  // 可用页面（与主 Swiper 一致）
-  const availablePages = hasRunningApps 
-    ? ECOSYSTEM_PAGE_ORDER 
-    : ECOSYSTEM_PAGE_ORDER.filter(p => p !== 'stack');
-  const pageCount = availablePages.length;
-  const maxIndex = pageCount - 1;
+/** 生态页面指示器（真实项目使用） - 使用 Controller 模块实现双向绑定 */
+function useEcosystemIndicator(availablePages: EcosystemSubPage[], isActive: boolean) {
+  const pageCount = availablePages.length
+  const maxIndex = pageCount - 1
 
-  // 使用 Context + Controller 实现与主 Swiper 的双向绑定
-  const { onSwiper, controlledSwiper } = useSwiperMember('ecosystem-indicator', 'ecosystem-main');
-  
-  // Swiper 实例引用
-  const swiperRef = useRef<import('swiper').Swiper | null>(null);
-  
-  // 当 isActive 变化时更新 allowTouchMove
+  const { onSwiper, controlledSwiper } = useSwiperMember('ecosystem-indicator', 'ecosystem-main')
+
+  const swiperRef = useRef<import('swiper').Swiper | null>(null)
+
   useEffect(() => {
     if (swiperRef.current) {
-      swiperRef.current.allowTouchMove = isActive;
+      swiperRef.current.allowTouchMove = isActive
     }
-  }, [isActive]);
+  }, [isActive])
 
-  // 本地进度（用于透明度计算）
-  const [progress, setProgress] = useState(0);
-  const indexProgress = progress * maxIndex;
+  const [progress, setProgress] = useState(0)
+  const indexProgress = maxIndex > 0 ? progress * maxIndex : 0
 
-  // 计算图标透明度
   const getIconOpacity = (index: number) => {
-    const distance = Math.abs(indexProgress - index);
-    return Math.max(0, 1 - distance);
-  };
+    const distance = Math.abs(indexProgress - index)
+    return Math.max(0, 1 - distance)
+  }
 
   return {
-    // 图标区域
     icon: (
       <Swiper
         className="!w-15 !h-10 -my-2.5"
         modules={[Controller]}
         controller={{ control: controlledSwiper }}
         onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-          onSwiper(swiper);
+          swiperRef.current = swiper
+          onSwiper(swiper)
         }}
         onProgress={(_, p) => setProgress(p)}
         slidesPerView="auto"
@@ -89,49 +73,40 @@ function EcosystemIndicator({
         resistanceRatio={0.5}
       >
         {availablePages.map((page, index) => {
-          const PageIcon = PAGE_ICONS[page];
-          const opacity = getIconOpacity(index);
+          const PageIcon = PAGE_ICONS[page]
+          const opacity = getIconOpacity(index)
           return (
-            <SwiperSlide 
-              key={page} 
-              className="!w-5 !flex !items-center !justify-center cursor-pointer"
-            >
-              <PageIcon 
+            <SwiperSlide key={page} className="!w-5 !flex !items-center !justify-center cursor-pointer">
+              <PageIcon
                 className={cn(
-                  "size-5 transition-opacity duration-100",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  'size-5 transition-opacity duration-100',
+                  isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
                 style={{ opacity }}
-                stroke={1.5} 
+                stroke={1.5}
               />
             </SwiperSlide>
-          );
+          )
         })}
       </Swiper>
     ),
-    // 标签区域（分页点）
     label: (
       <div className="flex items-center justify-center gap-1 h-4">
         {availablePages.map((page, index) => {
-          const isActiveDot = Math.round(indexProgress) === index;
+          const isActiveDot = Math.round(indexProgress) === index
           return (
             <span
               key={page}
               className={cn(
-                "size-1 rounded-full transition-all duration-200",
-                isActiveDot ? "bg-primary scale-125" : "bg-muted-foreground/40"
+                'size-1 rounded-full transition-all duration-200',
+                isActiveDot ? 'bg-primary scale-125' : 'bg-muted-foreground/40'
               )}
             />
-          );
+          )
         })}
       </div>
     ),
-  };
-}
-
-/** 使用 EcosystemIndicator hook */
-function useEcosystemIndicator(hasRunningApps: boolean, isActive: boolean) {
-  return EcosystemIndicator({ hasRunningApps, isActive });
+  }
 }
 
 // 3个tab：钱包、生态、设置
@@ -152,13 +127,20 @@ interface TabBarProps {
 export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const { t } = useTranslation('common');
   const ecosystemSubPage = useStore(ecosystemStore, (s) => s.activeSubPage);
+  const storeAvailablePages = useStore(ecosystemStore, (s) => s.availableSubPages);
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
+  const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
   
   // 生态 Tab 是否激活
   const isEcosystemActive = activeTab === 'ecosystem';
   
   // 生态指示器（图标slider + 分页点）
-  const ecosystemIndicator = useEcosystemIndicator(hasRunningApps, isEcosystemActive);
+  const availablePages = useMemo(() => {
+    if (storeAvailablePages?.length) return storeAvailablePages;
+    return hasRunningStackApps ? ECOSYSTEM_PAGE_ORDER : ECOSYSTEM_PAGE_ORDER.filter(p => p !== 'stack');
+  }, [storeAvailablePages, hasRunningStackApps]);
+
+  const ecosystemIndicator = useEcosystemIndicator(availablePages, isEcosystemActive);
 
   // 生态 tab 图标：
   // - 在"应用堆栈"页或有运行中应用时：IconAppWindowFilled

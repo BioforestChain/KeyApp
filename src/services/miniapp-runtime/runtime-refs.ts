@@ -8,6 +8,8 @@
  * - KISS：不耦合动画实现细节
  */
 
+import type { MiniappTargetDesktop } from '../ecosystem/types'
+
 /** 图标 container ref（popover-container） */
 const iconRefs = new Map<string, HTMLElement>()
 
@@ -26,8 +28,14 @@ let windowRef: HTMLElement | null = null
 /** window inner ref（用于 cover 缩放） */
 let windowInnerRef: HTMLElement | null = null
 
-/** Stack Slide 容器 ref（window 的最终目标区域） */
-let stackContainerRef: HTMLElement | null = null
+/** Desktop slide 容器 refs（window 的最终目标区域） */
+const desktopContainerRefs = new Map<MiniappTargetDesktop, HTMLElement>()
+
+/** Desktop overlay grid host refs（MiniappWindowStack） */
+const desktopGridHostRefs = new Map<MiniappTargetDesktop, HTMLElement>()
+
+/** Desktop per-app slot refs（grid-area = appId） */
+const desktopAppSlotRefs = new Map<MiniappTargetDesktop, Map<string, HTMLElement>>()
 
 // ============================================
 // Icon
@@ -118,22 +126,120 @@ export function getWindowInnerRef(): HTMLElement | null {
 }
 
 // ============================================
-// Stack
+// Desktop Containers
+// ============================================
+
+/** 注册 Desktop Slide 容器引用（window 最终目标区域） */
+export function registerDesktopContainerRef(targetDesktop: MiniappTargetDesktop, element: HTMLElement): void {
+  desktopContainerRefs.set(targetDesktop, element)
+}
+
+/** 注销 Desktop Slide 容器引用 */
+export function unregisterDesktopContainerRef(targetDesktop: MiniappTargetDesktop): void {
+  desktopContainerRefs.delete(targetDesktop)
+}
+
+/** 获取 Desktop Slide 容器引用 */
+export function getDesktopContainerRef(targetDesktop: MiniappTargetDesktop): HTMLElement | null {
+  return desktopContainerRefs.get(targetDesktop) ?? null
+}
+
+/**
+ * 获取 Desktop Slide 容器的 bounding rect
+ *
+ * 注意：只有当对应 slide 为 active 时，这个 rect 才是最终目标位置
+ */
+export function getDesktopRect(targetDesktop: MiniappTargetDesktop): DOMRect | null {
+  const containerRef = getDesktopContainerRef(targetDesktop)
+  if (!containerRef) return null
+
+  const slideEl = containerRef.closest('.swiper-slide')
+  if (slideEl && !slideEl.classList.contains('swiper-slide-active')) {
+    return null
+  }
+
+  const rect = containerRef.getBoundingClientRect()
+  if (rect.width <= 0 || rect.height <= 0) return null
+
+  return rect
+}
+
+// ============================================
+// Desktop Grid Host (MiniappWindowStack)
+// ============================================
+
+export function registerDesktopGridHostRef(targetDesktop: MiniappTargetDesktop, element: HTMLElement): void {
+  desktopGridHostRefs.set(targetDesktop, element)
+}
+
+export function unregisterDesktopGridHostRef(targetDesktop: MiniappTargetDesktop): void {
+  desktopGridHostRefs.delete(targetDesktop)
+}
+
+export function getDesktopGridHostRef(targetDesktop: MiniappTargetDesktop): HTMLElement | null {
+  return desktopGridHostRefs.get(targetDesktop) ?? null
+}
+
+// ============================================
+// Desktop App Slots
+// ============================================
+
+export function registerDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, appId: string, element: HTMLElement): void {
+  const byApp = desktopAppSlotRefs.get(targetDesktop) ?? new Map<string, HTMLElement>()
+  byApp.set(appId, element)
+  desktopAppSlotRefs.set(targetDesktop, byApp)
+}
+
+export function unregisterDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, appId: string): void {
+  const byApp = desktopAppSlotRefs.get(targetDesktop)
+  if (!byApp) return
+  byApp.delete(appId)
+  if (byApp.size === 0) {
+    desktopAppSlotRefs.delete(targetDesktop)
+  }
+}
+
+export function getDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, appId: string): HTMLElement | null {
+  return desktopAppSlotRefs.get(targetDesktop)?.get(appId) ?? null
+}
+
+/**
+ * 获取 app slot 的 rect
+ *
+ * 注意：只有当对应 slide 为 active 时，这个 rect 才是最终目标位置
+ */
+export function getDesktopAppSlotRect(targetDesktop: MiniappTargetDesktop, appId: string): DOMRect | null {
+  const slotRef = getDesktopAppSlotRef(targetDesktop, appId)
+  if (!slotRef) return null
+
+  const slideEl = slotRef.closest('.swiper-slide')
+  if (slideEl && !slideEl.classList.contains('swiper-slide-active')) {
+    return null
+  }
+
+  const rect = slotRef.getBoundingClientRect()
+  if (rect.width <= 0 || rect.height <= 0) return null
+
+  return rect
+}
+
+// ============================================
+// Stack (compat)
 // ============================================
 
 /** 注册 Stack Slide 容器引用（window 最终目标区域） */
 export function registerStackContainerRef(element: HTMLElement): void {
-  stackContainerRef = element
+  registerDesktopContainerRef('stack', element)
 }
 
 /** 注销 Stack Slide 容器引用 */
 export function unregisterStackContainerRef(): void {
-  stackContainerRef = null
+  unregisterDesktopContainerRef('stack')
 }
 
 /** 获取 Stack Slide 容器引用 */
 export function getStackContainerRef(): HTMLElement | null {
-  return stackContainerRef
+  return getDesktopContainerRef('stack')
 }
 
 /**
@@ -142,16 +248,6 @@ export function getStackContainerRef(): HTMLElement | null {
  * 注意：只有当 stack slide 为 active 时，这个 rect 才是最终目标位置
  */
 export function getStackRect(): DOMRect | null {
-  if (!stackContainerRef) return null
-
-  const slideEl = stackContainerRef.closest('.swiper-slide')
-  if (slideEl && !slideEl.classList.contains('swiper-slide-active')) {
-    return null
-  }
-
-  const rect = stackContainerRef.getBoundingClientRect()
-  if (rect.width <= 0 || rect.height <= 0) return null
-
-  return rect
+  return getDesktopRect('stack')
 }
 

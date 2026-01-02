@@ -3,7 +3,7 @@ import type { DecoratorFunction } from 'storybook/internal/types'
 import { useEffect, useMemo } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MotionConfig } from 'motion/react'
+import { LayoutGroup, MotionConfig } from 'motion/react'
 import i18n, { languages, getLanguageDirection, type LanguageCode } from '../src/i18n'
 import { currencies, preferencesActions, preferencesStore, type CurrencyCode } from '../src/stores/preferences'
 import '../src/styles/globals.css'
@@ -138,7 +138,9 @@ const preview: Preview = {
     // Global slow-motion for animation debugging
     ((Story) => (
       <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
-        <Story />
+        <LayoutGroup id="miniapp-shared-layout">
+          <Story />
+        </LayoutGroup>
       </MotionConfig>
     )) as DecoratorFunction<ReactRenderer>,
 

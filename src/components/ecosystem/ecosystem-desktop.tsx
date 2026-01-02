@@ -4,7 +4,7 @@
  * 灵活配置的三页式桌面：发现页 | 我的页 | 应用堆栈页
  * 支持动态开关页面，壁纸宽度自适应
  */
-import { useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useCallback, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Parallax, Controller } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -13,6 +13,7 @@ import { useStore } from '@tanstack/react-store';
 import { useSwiperMember } from '@/components/common/swiper-sync-context';
 import { DiscoverPage, MyAppsPage, IOSWallpaper, type DiscoverPageRef } from '@/components/ecosystem';
 import { AppStackPage } from '@/components/ecosystem/app-stack-page';
+import { MiniappWindowStack } from '@/components/ecosystem/miniapp-window-stack';
 import { ecosystemActions, type EcosystemSubPage } from '@/stores/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime';
 import type { MiniappManifest } from '@/services/ecosystem';
@@ -95,11 +96,11 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     const discoverPageRef = useRef<DiscoverPageRef>(null);
     const currentPageRef = useRef<EcosystemSubPage>('mine');
 
-    // 监听是否有运行中的应用
-    const hasRunningApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningApps);
+    // 监听是否有运行中的应用（以及是否有 stack-target 应用）
+    const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
 
     // 计算实际显示的页面
-    const actualShowStackPage = showStackPage === 'auto' ? hasRunningApps : showStackPage;
+    const actualShowStackPage = showStackPage === 'auto' ? hasRunningStackApps : showStackPage;
 
     // 可用页面列表
     const availablePages = useMemo(() => {
@@ -126,7 +127,17 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     const handleMainSwiper = useCallback((swiper: SwiperType) => {
       swiperRef.current = swiper;
       syncOnSwiper(swiper);
-    }, [syncOnSwiper]);
+
+      const page = availablePages[swiper.activeIndex] ?? 'mine';
+      currentPageRef.current = page;
+      ecosystemActions.setActiveSubPage(page);
+      ecosystemActions.setAvailableSubPages(availablePages);
+    }, [syncOnSwiper, availablePages]);
+
+    // 当可用页面列表变化时，同步到 store，避免指示器与页面不一致
+    useEffect(() => {
+      ecosystemActions.setAvailableSubPages(availablePages);
+    }, [availablePages]);
 
     // 更新进度到 Store
     const handleProgress = useCallback((_: SwiperType, progress: number) => {
@@ -210,7 +221,7 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
 
           {/* 我的页 */}
           <SwiperSlide className="!h-full !overflow-hidden">
-            <div className="relative z-10 h-full">
+            <div className="relative z-10 h-full" data-ecosystem-subpage="mine">
               <MyAppsPage
                 apps={myApps}
                 showSearch={showDiscoverPage}
@@ -219,14 +230,16 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
                 onAppDetail={onAppDetail}
                 onAppRemove={onAppRemove}
               />
+              <MiniappWindowStack />
             </div>
           </SwiperSlide>
 
           {/* 应用堆栈页 */}
           {actualShowStackPage && (
             <SwiperSlide className="!h-full !overflow-hidden">
-              <div className="relative z-10 h-full">
+              <div className="relative z-10 h-full" data-ecosystem-subpage="stack">
                 <AppStackPage />
+                <MiniappWindowStack />
               </div>
             </SwiperSlide>
           )}

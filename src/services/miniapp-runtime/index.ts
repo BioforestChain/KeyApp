@@ -35,6 +35,11 @@ import {
 import type { MiniappManifest } from '../ecosystem/types'
 import { getIconRef } from './runtime-refs'
 export {
+  getDesktopContainerRef,
+  getDesktopAppSlotRect,
+  getDesktopAppSlotRef,
+  getDesktopRect,
+  getDesktopGridHostRef,
   getIconInnerRef,
   getIconRef,
   getSplashBgRef,
@@ -43,6 +48,9 @@ export {
   getWindowInnerRef,
   getWindowRef,
   getStackContainerRef,
+  registerDesktopAppSlotRef,
+  registerDesktopContainerRef,
+  registerDesktopGridHostRef,
   registerIconInnerRef,
   registerIconRef,
   registerSplashBgRef,
@@ -50,7 +58,10 @@ export {
   registerStackContainerRef,
   registerWindowInnerRef,
   registerWindowRef,
+  unregisterDesktopAppSlotRef,
   unregisterIconRef,
+  unregisterDesktopGridHostRef,
+  unregisterDesktopContainerRef,
   unregisterStackContainerRef,
   unregisterSplashBgRef,
   unregisterSplashIconRef,
@@ -385,6 +396,8 @@ export const miniappRuntimeSelectors = {
   getActiveApp: (state: MiniappRuntimeState) =>
     state.activeAppId ? state.apps.get(state.activeAppId) ?? null : null,
   hasRunningApps: (state: MiniappRuntimeState) => state.apps.size > 0,
+  hasRunningStackApps: (state: MiniappRuntimeState) =>
+    Array.from(state.apps.values()).some((app) => (app.manifest.targetDesktop ?? 'stack') === 'stack'),
   isStackViewOpen: (state: MiniappRuntimeState) => state.isStackViewOpen,
   getBackgroundApps: (state: MiniappRuntimeState) =>
     Array.from(state.apps.values()).filter((app) => app.state === 'background'),

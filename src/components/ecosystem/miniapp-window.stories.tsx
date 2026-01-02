@@ -10,8 +10,8 @@ import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappWindow } from './miniapp-window';
 import { EcosystemDesktop, type EcosystemDesktopHandle } from './ecosystem-desktop';
-import { EcosystemTabIndicator } from './ecosystem-tab-indicator';
 import { SwiperSyncProvider } from '@/components/common/swiper-sync-context';
+import { TabBar } from '@/stackflow/components/TabBar';
 import { launchApp, closeAllApps } from '@/services/miniapp-runtime';
 import type { MiniappManifest } from '@/services/ecosystem';
 
@@ -162,7 +162,7 @@ export const SplashScreenThemes: Story = {
 export const LaunchDemo: Story = {
   decorators: [
     (Story) => (
-      <SwiperSyncProvider groupId="ecosystem">
+      <SwiperSyncProvider>
         <div className="h-screen">
           <Story />
         </div>
@@ -185,9 +185,10 @@ export const LaunchDemo: Story = {
 
     const handleAppOpen = (app: MiniappManifest) => {
       console.log('[LaunchDemo] Opening app:', app.name);
-      // 关键：动画目标来自 stack-slide 的 rect，因此必须先切到 stack 页
-      desktopRef.current?.slideTo('stack');
-      requestAnimationFrame(() => launchApp(app.id, app));
+      // 关键：动画目标来自 targetDesktop 对应 slide 的 rect，因此必须先切到该页
+      const manifest: MiniappManifest = { ...app, targetDesktop: 'mine' };
+      desktopRef.current?.slideTo('mine');
+      requestAnimationFrame(() => launchApp(app.id, manifest));
     };
 
     return (
@@ -196,7 +197,7 @@ export const LaunchDemo: Story = {
           <EcosystemDesktop
             ref={desktopRef}
             showDiscoverPage={false}
-            showStackPage={true}
+            showStackPage="auto"
             apps={mockApps}
             myApps={myApps}
             onAppOpen={handleAppOpen}
@@ -204,17 +205,12 @@ export const LaunchDemo: Story = {
             onAppRemove={(id) => console.log('Remove:', id)}
           />
 
-          {/* 指示器 */}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10">
-            <EcosystemTabIndicator 
-              showDiscoverPage={false}
-              onPageChange={(page) => desktopRef.current?.slideTo(page)} 
-            />
-          </div>
-
           {/* 窗口层 */}
           <MiniappWindow />
         </div>
+
+        {/* 真实项目底部指示器（TabBar 内置生态 indicator） */}
+        <TabBar activeTab="ecosystem" onTabChange={() => {}} />
 
         {/* 提示 */}
         <div className="shrink-0 bg-black/90 text-white p-3 text-center text-xs">

@@ -1,5 +1,5 @@
 import { useStore } from "@tanstack/react-store";
-import { MotionConfig } from "motion/react";
+import { LayoutGroup, MotionConfig } from "motion/react";
 import { Stack } from "./stackflow";
 import { MiniappWindow, MiniappStackView } from "./components/ecosystem";
 import {
@@ -24,16 +24,18 @@ export function StackflowApp() {
 
   return (
     <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
-      <>
-        <Stack />
-        {/* 小程序窗口 - 全局 Popover 层 */}
-        <MiniappWindow />
-        {/* 层叠视图 - 多应用管理 */}
-        <MiniappStackView
-          visible={isStackViewOpen}
-          onClose={closeStackView}
-        />
-      </>
+      <LayoutGroup id="miniapp-shared-layout">
+        <>
+          <Stack />
+          {/* 小程序窗口 - 全局 Popover 层 */}
+          <MiniappWindow />
+          {/* 层叠视图 - 多应用管理 */}
+          <MiniappStackView
+            visible={isStackViewOpen}
+            onClose={closeStackView}
+          />
+        </>
+      </LayoutGroup>
     </MotionConfig>
   );
 }

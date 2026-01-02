@@ -50,6 +50,7 @@ export function EcosystemTabIndicator({
 }: EcosystemTabIndicatorProps) {
   // 从 store 读取状态（松耦合）
   const storeActivePage = useStore(ecosystemStore, (s) => s.activeSubPage)
+  const storeAvailablePages = useStore(ecosystemStore, (s) => s.availableSubPages)
   const storeHasRunningApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningApps)
   
   // 使用 props 覆盖 store 值（支持受控模式）
@@ -58,11 +59,10 @@ export function EcosystemTabIndicator({
 
   // 计算可用页面
   const availablePages = useMemo(() => {
-    if (hasRunningApps) {
-      return PAGE_ORDER
-    }
+    if (storeAvailablePages?.length) return storeAvailablePages
+    if (hasRunningApps) return PAGE_ORDER
     return PAGE_ORDER.filter((p) => p !== 'stack')
-  }, [hasRunningApps])
+  }, [storeAvailablePages, hasRunningApps])
 
   // 当前页面索引
   const activeIndex = availablePages.indexOf(activePage)

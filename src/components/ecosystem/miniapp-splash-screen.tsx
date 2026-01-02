@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import styles from './miniapp-splash-screen.module.css'
 
@@ -25,6 +26,8 @@ export interface MiniappSplashScreenProps {
   animating?: boolean
   /** 关闭回调 */
   onClose?: () => void
+  /** 可选：共享元素动画 layoutId（用于 icon <-> splash.icon） */
+  iconLayoutId?: string
   /** 自定义类名 */
   className?: string
 }
@@ -147,6 +150,7 @@ export function MiniappSplashScreen({
   visible,
   animating = true,
   onClose: _onClose,
+  iconLayoutId,
   className,
 }: MiniappSplashScreenProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -191,7 +195,10 @@ export function MiniappSplashScreen({
       {/* 内容区域 */}
       <div className={styles.content}>
         {/* 应用图标 */}
-        <div className={styles.appIcon}>
+        <motion.div
+          {...(iconLayoutId ? { layoutId: iconLayoutId, 'data-layoutid': iconLayoutId } : {})}
+          className={styles.appIcon}
+        >
           {!imageError && (
             <img
               src={app.icon}
@@ -201,7 +208,7 @@ export function MiniappSplashScreen({
               style={{ opacity: imageLoaded ? 1 : 0 }}
             />
           )}
-        </div>
+        </motion.div>
 
         {/* 加载指示器 */}
         <div className={styles.spinner} aria-hidden="true" />

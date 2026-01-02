@@ -2,11 +2,11 @@
  * MiniappWindow - 小程序窗口容器
  *
  * 作为 stack-slide 的子元素，用于显示小程序内容
- * 使用 CSS transform + fixed 定位进行启动/关闭动画
+ * 使用 portal 渲染到 slide 提供的 slot 容器中（尺寸由 desktop/slide 决定）
  * 无 Popover API 依赖
  */
 
-import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '@tanstack/react-store';
 import { cn } from '@/lib/utils';
@@ -14,17 +14,16 @@ import { motion, MotionConfig, LayoutGroup, AnimatePresence } from 'motion/react
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
-  getStackContainerRef,
   registerWindowRef,
   registerWindowInnerRef,
-  getStackRect,
+  getDesktopAppSlotRef,
+  getDesktopContainerRef,
   closeApp,
   dismissSplash,
 } from '@/services/miniapp-runtime';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappIcon } from './miniapp-icon';
-import { IOSWallpaper } from './ios-wallpaper';
 import styles from './miniapp-window.module.css';
 
 export interface MiniappWindowProps {
@@ -43,20 +42,32 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
   const showSplash = useStore(miniappRuntimeStore, miniappRuntimeSelectors.isShowingSplash);
   const isAnimating = useStore(miniappRuntimeStore, miniappRuntimeSelectors.isAnimating);
 
+  const targetDesktop = activeApp?.manifest.targetDesktop ?? 'stack';
+
   // MiniappWindow 必须渲染在 stack-slide 容器内（static 模式下参与布局）
   useEffect(() => {
-    if (!hasRunningApps) {
+    if (!hasRunningApps || !activeApp) {
       setPortalHost(null);
       return;
     }
 
+    setPortalHost(null);
+
     let rafId: number | null = null;
+    let lastHost: HTMLElement | null = null;
     const loop = () => {
-      const host = getStackContainerRef();
-      if (host) {
-        setPortalHost(host);
+      const slot = getDesktopAppSlotRef(targetDesktop, activeApp.appId);
+      if (slot) {
+        if (lastHost !== slot) setPortalHost(slot);
         return;
       }
+
+      const fallback = getDesktopContainerRef(targetDesktop);
+      if (fallback && lastHost !== fallback) {
+        lastHost = fallback;
+        setPortalHost(fallback);
+      }
+
       rafId = requestAnimationFrame(loop);
     };
 
@@ -65,7 +76,7 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [hasRunningApps]);
+  }, [hasRunningApps, targetDesktop, activeApp?.appId]);
 
   // 注册 window refs（需要等待 portalHost 就绪后 node 才会挂载到 stack 容器中）
   useEffect(() => {
@@ -108,26 +119,6 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
     dismissSplash(activeApp.appId);
   }, [activeApp]);
 
-  // 计算相对 stack 的 rect
-  const { windowRect } = useMemo(() => {
-    const stack = getStackContainerRef();
-    const stackBox = stack?.getBoundingClientRect() ?? { x: 0, y: 0, width: 0, height: 0 };
-    const stackRect = getStackRect();
-
-    const toLocal = (rect: DOMRect | { x: number; y: number; width: number; height: number }) => ({
-      x: rect.x - stackBox.x,
-      y: rect.y - stackBox.y,
-      width: rect.width,
-      height: rect.height,
-    });
-
-    const fallbackWindow = stackRect ?? { x: 16, y: 16, width: 360, height: 720 };
-
-    return {
-      windowRect: toLocal(stackRect ?? (fallbackWindow as any)),
-    };
-  }, [activeApp?.appId, hasRunningApps]);
-
   const renderLaunchOverlay = () => {
     if (!activeApp) return null;
     if (!showLaunchOverlay) return null;
@@ -142,7 +133,7 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
 
     return (
       <MotionConfig transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.85, duration: 10_000 }}>
-        <LayoutGroup>
+        <LayoutGroup inherit="id">
           <div className="pointer-events-none absolute inset-0 z-[999]" aria-label="miniapp-launch-overlay">
             <AnimatePresence mode="popLayout">
               {showLaunchOverlay && (
@@ -152,45 +143,41 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
                   data-layoutid={windowSharedLayoutId}
                   className="bg-background absolute overflow-hidden shadow-2xl"
                   style={{
-                    top: windowRect.y,
-                    left: windowRect.x,
-                    width: windowRect.width,
-                    height: windowRect.height,
+                    inset: 0,
                     borderRadius: 40,
                   }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {/* window-inner: 真正的应用内容（这里先用 icon 占位，避免 demo 文案；后续由 iframe 层接管） */}
-                  <div className="absolute inset-0">
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        layoutId={innerLayoutId}
-                        data-layoutid={innerLayoutId}
-                        className="flex items-center justify-center"
-                      >
-                        <MiniappIcon src={activeApp.manifest.icon} name={activeApp.manifest.name} size="2xl" />
-                      </motion.div>
+                  {/* window-inner: 没有 splash 时，用 icon 占位（避免与 splash.icon 重复 layoutId） */}
+                  {!showSplash && (
+                    <div className="absolute inset-0">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          layoutId={innerLayoutId}
+                          data-layoutid={innerLayoutId}
+                          className="flex items-center justify-center"
+                        >
+                          <MiniappIcon src={activeApp.manifest.icon} name={activeApp.manifest.name} size="2xl" />
+                        </motion.div>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* splashBackground: 与桌面共享同一底层组件 */}
-                  {showSplash && (
-                    <IOSWallpaper className="absolute inset-0" variant={(activeApp.manifest as any).wallpaperVariant} />
                   )}
 
-                  {/* splashIcon: shared-element 目标（icon-inner <-> splash.icon） */}
+                  {/* splash: 让 MiniappSplashScreen 持有 icon 的 layoutId，避免只能淡出 */}
                   {showSplash && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        layoutId={innerLayoutId}
-                        data-layoutid={innerLayoutId}
-                        className="flex items-center justify-center"
-                      >
-                        <MiniappIcon src={activeApp.manifest.icon} name={activeApp.manifest.name} size="2xl" />
-                      </motion.div>
-                    </div>
+                    <MiniappSplashScreen
+                      appId={activeApp.appId}
+                      app={{
+                        name: activeApp.manifest.name,
+                        icon: activeApp.manifest.icon,
+                        themeColor: activeApp.manifest.themeColorFrom ?? 280,
+                      }}
+                      visible={showSplash}
+                      iconLayoutId={innerLayoutId}
+                      onClose={handleSplashClose}
+                    />
                   )}
                 </motion.div>
               )}
@@ -208,44 +195,47 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
       data-testid="miniapp-window"
       data-app-id={activeApp?.appId}
     >
-      {renderLaunchOverlay()}
+      <div className={styles.windowInner}>
+        {renderLaunchOverlay()}
 
-      {/* 启动屏幕 */}
-      {activeApp && showSplash && (
-        <MiniappSplashScreen
-          appId={activeApp.appId}
-          app={{
-            name: activeApp.manifest.name,
-            icon: activeApp.manifest.icon,
-            themeColor: activeApp.manifest.themeColorFrom ?? 280,
-          }}
-          visible={showSplash}
-          onClose={handleSplashClose}
-        />
-      )}
-
-      {/* iframe 容器 */}
-      <div
-        ref={iframeContainerRef}
-        className={styles.iframeContainer}
-        style={{ opacity: showLaunchOverlay ? 0 : 1 }}
-      />
-
-      {/* 胶囊容器层 - 作为 window 态唯一 UI（共享元素目标） */}
-      <div className={styles.capsuleLayer} style={{ zIndex: 1000 }}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: showLaunchOverlay ? 0 : 1 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
-        >
-          <MiniappCapsule
-            visible={!showLaunchOverlay}
-            onAction={() => {
-              // TODO: 显示更多操作菜单
+        {/* 启动屏幕 */}
+        {activeApp && showSplash && !showLaunchOverlay && (
+          <MiniappSplashScreen
+            appId={activeApp.appId}
+            app={{
+              name: activeApp.manifest.name,
+              icon: activeApp.manifest.icon,
+              themeColor: activeApp.manifest.themeColorFrom ?? 280,
             }}
-            onClose={handleClose}
+            visible={showSplash}
+          iconLayoutId={`miniapp:${activeApp.appId}:inner`}
+            onClose={handleSplashClose}
           />
-        </motion.div>
+        )}
+
+        {/* iframe 容器 */}
+        <div
+          ref={iframeContainerRef}
+          className={styles.iframeContainer}
+          style={{ opacity: showLaunchOverlay ? 0 : 1 }}
+        />
+
+        {/* 胶囊容器层 - 作为 window 态唯一 UI（共享元素目标） */}
+        <div className={styles.capsuleLayer} style={{ zIndex: 1000 }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showLaunchOverlay ? 0 : 1 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <MiniappCapsule
+              visible={!showLaunchOverlay}
+              onAction={() => {
+                // TODO: 显示更多操作菜单
+              }}
+              onClose={handleClose}
+            />
+          </motion.div>
+        </div>
       </div>
     </div>
   );

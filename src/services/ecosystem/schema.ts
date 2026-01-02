@@ -19,6 +19,8 @@ const SplashScreenSchema = z.union([
 
 const CapsuleThemeSchema = z.enum(['auto', 'dark', 'light'])
 
+const TargetDesktopSchema = z.enum(['stack', 'mine'])
+
 export const MiniappManifestSchema = z
   .object({
     id: z.string(),
@@ -43,6 +45,7 @@ export const MiniappManifestSchema = z
     communityScore: z.number().min(0).max(100).optional(),
     splashScreen: SplashScreenSchema.optional(),
     capsuleTheme: CapsuleThemeSchema.optional(),
+    targetDesktop: TargetDesktopSchema.optional(),
     themeColor: z.string().optional(),
     themeColorFrom: z.string().optional(),
     themeColorTo: z.string().optional(),
