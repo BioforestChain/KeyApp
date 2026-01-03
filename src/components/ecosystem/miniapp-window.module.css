@@ -18,12 +18,31 @@
   /* 变换原点：居中 */
   transform-origin: center center;
 
-  /* 默认状态 */
-  opacity: 1;
+  /* 默认隐藏，避免 layoutId 初次挂载闪现 */
+  opacity: 0;
+}
+
+.splashIconLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.splashBgLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
 }
 
 .window.animating {
-  /* 动画期间禁用交互 */
+  /* 动画期间仅禁用 iframe 交互，保留胶囊按钮可强制关闭 */
+}
+
+.window.animating .iframeContainer {
   pointer-events: none;
 }
 
@@ -45,7 +64,8 @@
 .capsuleLayer {
   position: absolute;
   inset: 0;
-  z-index: 30;
+  /* 必须高于 splash/launch overlay，确保卡在 splash 也能关闭 */
+  z-index: 2000;
   pointer-events: none;
 }
 

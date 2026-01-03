@@ -14,6 +14,7 @@ import { Store } from '@tanstack/react-store'
 export type {
   MiniappInstance,
   MiniappState,
+  MiniappFlow,
   MiniappRuntimeState,
   MiniappRuntimeEvent,
   MiniappRuntimeListener,
@@ -22,7 +23,7 @@ export type {
   CapsuleTheme,
   MiniappContext,
 } from './types'
-import type { MiniappContext } from './types'
+import type { MiniappContext, MiniappFlow, MiniappState } from './types'
 import {
   createIframe,
   mountIframeVisible,
@@ -32,8 +33,9 @@ import {
   enforceBackgroundLimit,
   cleanupAllIframes,
 } from './iframe-manager'
-import type { MiniappManifest } from '../ecosystem/types'
-import { getIconRef } from './runtime-refs'
+import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types'
+import { toastService } from '../toast'
+import { getDesktopAppSlotRect, getIconRef } from './runtime-refs'
 export {
   getDesktopContainerRef,
   getDesktopAppSlotRect,
@@ -91,6 +93,42 @@ function emit(event: MiniappRuntimeEvent): void {
 }
 
 /**
+ * 根据状态变化推导 flow（包含方向性）
+ */
+function deriveFlow(prevState: MiniappState | null, nextState: MiniappState): MiniappFlow {
+  // 从无到有：opening
+  if (!prevState || prevState === 'preparing') {
+    if (nextState === 'launching') return 'opening'
+    if (nextState === 'splash') return 'splash'
+    if (nextState === 'active') return 'opened'
+  }
+
+  // launching -> splash
+  if (prevState === 'launching' && nextState === 'splash') return 'splash'
+
+  // launching/splash -> active
+  if ((prevState === 'launching' || prevState === 'splash') && nextState === 'active') return 'opened'
+
+  // active -> background
+  if (prevState === 'active' && nextState === 'background') return 'backgrounding'
+
+  // background -> active
+  if (prevState === 'background' && nextState === 'active') return 'foregrounding'
+
+  // any -> closing
+  if (nextState === 'closing') return 'closing'
+
+  // 兜底：根据 nextState 推导稳定态
+  if (nextState === 'preparing') return 'closed'
+  if (nextState === 'launching') return 'opening'
+  if (nextState === 'splash') return 'splash'
+  if (nextState === 'active') return 'opened'
+  if (nextState === 'background') return 'backgrounded'
+
+  return 'closed'
+}
+
+/**
  * 更新应用状态
  */
 function updateAppState(appId: string, state: MiniappState): void {
@@ -98,13 +136,49 @@ function updateAppState(appId: string, state: MiniappState): void {
     const app = s.apps.get(appId)
     if (!app) return s
 
+    const flow = deriveFlow(app.state, state)
     const newApps = new Map(s.apps)
-    newApps.set(appId, { ...app, state })
+    newApps.set(appId, { ...app, state, flow })
 
     return { ...s, apps: newApps }
   })
 
   emit({ type: 'app:state-change', appId, state })
+}
+
+/**
+ * 将方向性 flow 转为稳定态的映射
+ */
+function getSettledFlow(flow: MiniappFlow): MiniappFlow {
+  switch (flow) {
+    case 'opening':
+      return 'opened'
+    case 'backgrounding':
+      return 'backgrounded'
+    case 'foregrounding':
+      return 'opened'
+    // closing 特殊处理：app 会被移除，不需要 settle
+    // splash、opened、backgrounded、closed 已经是稳定态
+    default:
+      return flow
+  }
+}
+
+/**
+ * 将方向性 flow 转为稳定态（动画完成时由 UI 调用）
+ */
+export function settleFlow(appId: string): void {
+  miniappRuntimeStore.setState((s) => {
+    const app = s.apps.get(appId)
+    if (!app) return s
+
+    const settledFlow = getSettledFlow(app.flow)
+    if (settledFlow === app.flow) return s // 已经是稳定态
+
+    const newApps = new Map(s.apps)
+    newApps.set(appId, { ...app, flow: settledFlow })
+    return { ...s, apps: newApps }
+  })
 }
 
 // ============================================
@@ -123,11 +197,165 @@ const ANIMATION_TIMING = {
 
 const launchTimeouts = new Map<string, ReturnType<typeof setTimeout>[]>()
 
+const closeTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const CLOSE_CLEANUP_DELAY = 900
+
+const PREPARING_TIMEOUT = 2500
+
+const preparingControllers = new Map<string, { cancelled: boolean; rafId: number | null }>()
+
+function cancelPreparing(appId: string): void {
+  const controller = preparingControllers.get(appId)
+  if (!controller) return
+
+  controller.cancelled = true
+  if (controller.rafId !== null) cancelAnimationFrame(controller.rafId)
+  preparingControllers.delete(appId)
+}
+
+function isElementRectReady(el: HTMLElement | null): boolean {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
+
+function isIframeReady(iframe: HTMLIFrameElement | null): boolean {
+  return !!iframe && iframe.isConnected
+}
+
+function failPreparing(appId: string, message: string): void {
+  cancelPreparing(appId)
+
+  const app = miniappRuntimeStore.state.apps.get(appId)
+
+  if (app?.iframeRef) {
+    removeIframe(app.iframeRef)
+  }
+
+  miniappRuntimeStore.setState((s) => {
+    const newApps = new Map(s.apps)
+    newApps.delete(appId)
+
+    return {
+      ...s,
+      apps: newApps,
+      activeAppId: s.activeAppId === appId ? null : s.activeAppId,
+    }
+  })
+
+  toastService.show({ message, duration: 2000 })
+}
+
+function beginLaunchSequence(appId: string, hasSplash: boolean): void {
+  updateAppState(appId, 'launching')
+
+  clearLaunchTimeouts(appId)
+
+  if (hasSplash) {
+    const splashTimeout = setTimeout(() => {
+      const app = miniappRuntimeStore.state.apps.get(appId)
+      if (!app || app.state !== 'launching') return
+      updateAppState(appId, 'splash')
+    }, ANIMATION_TIMING.launchToSplash)
+
+    const activeTimeout = setTimeout(() => {
+      const app = miniappRuntimeStore.state.apps.get(appId)
+      if (!app || (app.state !== 'launching' && app.state !== 'splash')) return
+      activateApp(appId)
+      clearLaunchTimeouts(appId)
+    }, ANIMATION_TIMING.launchToSplash + ANIMATION_TIMING.splashToActive)
+
+    launchTimeouts.set(appId, [splashTimeout, activeTimeout])
+    return
+  }
+
+  const activeTimeout = setTimeout(() => {
+    const app = miniappRuntimeStore.state.apps.get(appId)
+    if (!app || app.state !== 'launching') return
+    activateApp(appId)
+    clearLaunchTimeouts(appId)
+  }, ANIMATION_TIMING.launchToActive)
+
+  launchTimeouts.set(appId, [activeTimeout])
+}
+
+function startPreparing(appId: string, targetDesktop: MiniappTargetDesktop, hasSplash: boolean): void {
+  cancelPreparing(appId)
+
+  const controller = { cancelled: false, rafId: null as number | null }
+  preparingControllers.set(appId, controller)
+
+  const startAt = performance.now()
+
+  const tick = () => {
+    if (controller.cancelled) return
+
+    const app = miniappRuntimeStore.state.apps.get(appId)
+    if (!app || app.state !== 'preparing') {
+      cancelPreparing(appId)
+      return
+    }
+
+    const iconReady = isElementRectReady(getIconRef(appId))
+    const slotReady = !!getDesktopAppSlotRect(targetDesktop, appId)
+    const iframeReady = isIframeReady(app.iframeRef)
+
+    if (iconReady && slotReady && iframeReady) {
+      cancelPreparing(appId)
+      beginLaunchSequence(appId, hasSplash)
+      return
+    }
+
+    if (performance.now() - startAt > PREPARING_TIMEOUT) {
+      if (!slotReady) {
+        failPreparing(appId, '启动失败：请停留在目标桌面页后重试')
+      } else if (!iconReady) {
+        failPreparing(appId, '启动失败：图标未就绪，请返回桌面重试')
+      } else {
+        failPreparing(appId, '启动失败：加载容器未就绪，请重试')
+      }
+      return
+    }
+
+    controller.rafId = requestAnimationFrame(tick)
+  }
+
+  controller.rafId = requestAnimationFrame(tick)
+}
+
 function clearLaunchTimeouts(appId: string): void {
   const timeouts = launchTimeouts.get(appId)
   if (!timeouts) return
   timeouts.forEach((t) => clearTimeout(t))
   launchTimeouts.delete(appId)
+}
+
+function clearCloseTimeout(appId: string): void {
+  const timeout = closeTimeouts.get(appId)
+  if (!timeout) return
+  clearTimeout(timeout)
+  closeTimeouts.delete(appId)
+}
+
+export function finalizeCloseApp(appId: string): void {
+  clearLaunchTimeouts(appId)
+  clearCloseTimeout(appId)
+  cancelPreparing(appId)
+
+  miniappRuntimeStore.setState((s) => {
+    const app = s.apps.get(appId)
+    if (!app) return s
+
+    const newApps = new Map(s.apps)
+    newApps.delete(appId)
+
+    return {
+      ...s,
+      apps: newApps,
+      activeAppId: s.activeAppId === appId ? null : s.activeAppId,
+    }
+  })
 }
 
 /**
@@ -163,7 +391,8 @@ export function launchApp(
   const instance: MiniappInstance = {
     appId,
     manifest,
-    state: 'launching',
+    state: 'preparing',
+    flow: 'closed',
     ctx: {
       capsuleTheme: manifest.capsuleTheme ?? 'auto',
     },
@@ -190,26 +419,9 @@ export function launchApp(
 
   emit({ type: 'app:launch', appId, manifest })
 
-  // 状态机：launching -> (splash ->) active
-  if (hasSplash) {
-    const splashTimeout = setTimeout(() => {
-      updateAppState(appId, 'splash')
-    }, ANIMATION_TIMING.launchToSplash)
-
-    const activeTimeout = setTimeout(() => {
-      activateApp(appId)
-      clearLaunchTimeouts(appId)
-    }, ANIMATION_TIMING.launchToSplash + ANIMATION_TIMING.splashToActive)
-
-    launchTimeouts.set(appId, [splashTimeout, activeTimeout])
-  } else {
-    const activeTimeout = setTimeout(() => {
-      activateApp(appId)
-      clearLaunchTimeouts(appId)
-    }, ANIMATION_TIMING.launchToActive)
-
-    launchTimeouts.set(appId, [activeTimeout])
-  }
+  // 内核准备：等待 icon/slot/iframe 就绪后再进入 launching
+  const targetDesktop = manifest.targetDesktop ?? 'stack'
+  startPreparing(appId, targetDesktop, hasSplash)
 
   return instance
 }
@@ -221,6 +433,9 @@ export function activateApp(appId: string): void {
   const state = miniappRuntimeStore.state
   const app = state.apps.get(appId)
   if (!app) return
+
+  // preparing 阶段只用于资源就绪检查，不允许提前进入 active
+  if (app.state === 'preparing') return
 
   // 当前激活的应用切换到后台
   if (state.activeAppId && state.activeAppId !== appId) {
@@ -255,6 +470,8 @@ export function deactivateApp(appId: string): void {
   const app = state.apps.get(appId)
   if (!app) return
 
+  if (app.state === 'preparing') return
+
   // 移动 iframe 到后台
   if (app.iframeRef) {
     moveIframeToBackground(app.iframeRef)
@@ -282,6 +499,8 @@ export function closeApp(appId: string): void {
   if (!app) return
 
   clearLaunchTimeouts(appId)
+  clearCloseTimeout(appId)
+  cancelPreparing(appId)
 
   // 更新状态为关闭中
   updateAppState(appId, 'closing')
@@ -291,16 +510,13 @@ export function closeApp(appId: string): void {
     removeIframe(app.iframeRef)
   }
 
-  // 从状态中移除
-  miniappRuntimeStore.setState((s) => {
-    const newApps = new Map(s.apps)
-    newApps.delete(appId)
-    return {
-      ...s,
-      apps: newApps,
-      activeAppId: s.activeAppId === appId ? null : s.activeAppId,
-    }
-  })
+  // 兜底：如果 UI 没有在动画结束时回收，则超时清理
+  closeTimeouts.set(
+    appId,
+    setTimeout(() => {
+      finalizeCloseApp(appId)
+    }, CLOSE_CLEANUP_DELAY)
+  )
 
   emit({ type: 'app:close', appId })
 }
@@ -336,7 +552,10 @@ export function updateAppContext(
  */
 export function closeAllApps(): void {
   const state = miniappRuntimeStore.state
-  state.apps.forEach((_, appId) => closeApp(appId))
+  state.apps.forEach((_, appId) => {
+    closeApp(appId)
+    finalizeCloseApp(appId)
+  })
   cleanupAllIframes()
 }
 

@@ -7,7 +7,18 @@
 import type { MiniappManifest } from '../ecosystem/types'
 
 /** 小程序实例状态 */
-export type MiniappState = 'launching' | 'splash' | 'active' | 'background' | 'closing'
+export type MiniappState = 'preparing' | 'launching' | 'splash' | 'active' | 'background' | 'closing'
+
+/** 小程序动画流（包含方向性） */
+export type MiniappFlow =
+  | 'closed'
+  | 'opening'
+  | 'splash'
+  | 'opened'
+  | 'backgrounding'
+  | 'backgrounded'
+  | 'foregrounding'
+  | 'closing'
 
 /** 胶囊主题 */
 export type CapsuleTheme = 'auto' | 'dark' | 'light'
@@ -39,6 +50,8 @@ export interface MiniappInstance {
   manifest: MiniappManifest
   /** 当前状态 */
   state: MiniappState
+  /** 动画流状态（包含方向性） */
+  flow: MiniappFlow
   /** 运行时上下文（可动态修改） */
   ctx: MiniappContext
   /** 启动时间 */

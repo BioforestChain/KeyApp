@@ -7,6 +7,7 @@ import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
 import type { MiniappManifest } from '@/services/ecosystem';
+import { flowToCornerBadge, runtimeStateToStableFlow } from './miniapp-motion-flow';
 import {
   miniappRuntimeStore,
   registerDesktopContainerRef,
@@ -39,7 +40,17 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   const runtimeState = useStore(miniappRuntimeStore, (s) => s.apps.get(app.id)?.state ?? null);
-  const enableSharedLayout = runtimeState === null || runtimeState === 'launching' || runtimeState === 'splash';
+  const isActiveApp = useStore(miniappRuntimeStore, (s) => s.activeAppId === app.id);
+  const iconFlow = runtimeStateToStableFlow(runtimeState);
+  const iconStackingVariant = isActiveApp && (iconFlow === 'opening' || iconFlow === 'splash') ? 'elevated' : 'normal';
+  const cornerBadgeVariant = flowToCornerBadge[iconFlow];
+  // icon 在 launching/splash/active 阶段让出 layoutId 给 window
+  // 在 null/preparing/background/closing 阶段持有 layoutId
+  const enableSharedLayout =
+    !isActiveApp ||
+    runtimeState === 'preparing' ||
+    runtimeState === 'background' ||
+    runtimeState === 'closing';
   const sharedLayoutIds = enableSharedLayout
     ? {
         container: `miniapp:${app.id}:container`,
@@ -47,6 +58,21 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
         inner: `miniapp:${app.id}:inner`,
       }
     : null;
+
+  // DEBUG: 追踪 layoutId 所有权变化
+  useEffect(() => {
+    console.log(`[Icon:${app.id}] runtimeState=${runtimeState}, isActiveApp=${isActiveApp}, enableSharedLayout=${enableSharedLayout}, hasLayoutId=${!!sharedLayoutIds}`);
+  }, [app.id, runtimeState, isActiveApp, enableSharedLayout, sharedLayoutIds]);
+
+  const ICON_STACKING_VARIANTS = {
+    normal: { zIndex: 0, pointerEvents: 'auto' },
+    elevated: { zIndex: 50, pointerEvents: 'none' },
+  } as const;
+
+  const CORNER_BADGE_VARIANTS = {
+    show: { opacity: 1, scale: 1 },
+    hide: { opacity: 0, scale: 0.6 },
+  } as const;
 
   // 注册图标 ref 到 runtime（用于 rect 计算 / 共享元素动画）
   useEffect(() => {
@@ -253,11 +279,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
       <div ref={popoverRef} popover="manual" className={styles.iconPopover}>
         {/* 点击拦截层（视觉效果由 ::backdrop 提供） */}
         {isOpen && (
-          <div
-            className={cn('fixed inset-0', styles.backdropClickArea)}
-            style={{ zIndex: -1 }}
-            onClick={hideMenu}
-          />
+          <div className={cn('fixed inset-0', styles.backdropClickArea)} style={{ zIndex: -1 }} onClick={hideMenu} />
         )}
 
         {/* 图标按钮（只包含图标，不包含 label；label 必须留在静态布局中） */}
@@ -280,11 +302,20 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
               {...(sharedLayoutIds
                 ? { layoutId: sharedLayoutIds.container, 'data-layoutid': sharedLayoutIds.container }
                 : {})}
+              variants={ICON_STACKING_VARIANTS}
+              initial={false}
+              animate={iconStackingVariant}
               className="relative"
-              style={{ width: 68, height: 68, borderRadius: 16, overflow: 'hidden' }}
+              style={{
+                width: 68,
+                height: 68,
+                borderRadius: 16,
+              }}
             >
               <motion.div
-                {...(sharedLayoutIds ? { layoutId: sharedLayoutIds.logo, 'data-layoutid': sharedLayoutIds.logo } : {})}
+                {...(sharedLayoutIds
+                  ? { layoutId: sharedLayoutIds.logo, 'data-layoutid': sharedLayoutIds.logo }
+                  : {})}
                 className="absolute inset-0 flex items-center justify-center"
               >
                 <motion.div
@@ -300,7 +331,15 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
               </motion.div>
 
               <div className="absolute -top-1 -right-1">
-                <SourceIcon src={app.sourceIcon} name={app.sourceName} size="sm" />
+                <motion.div
+                  variants={CORNER_BADGE_VARIANTS}
+                  initial={false}
+                  animate={cornerBadgeVariant}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  style={{ transformOrigin: '100% 0%' }}
+                >
+                  <SourceIcon src={app.sourceIcon} name={app.sourceName} size="sm" />
+                </motion.div>
               </div>
             </motion.div>
           </LayoutGroup>
@@ -314,7 +353,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
             style={{ top: menuPosition.top, left: menuPosition.left }}
             data-testid={`context-menu-${app.id}`}
           >
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-popover/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
+            <div className="bg-popover/95 overflow-hidden rounded-2xl border border-white/10 shadow-2xl shadow-black/40 backdrop-blur-xl">
               <div className="border-b border-white/10 px-4 py-3">
                 <h3 className="truncate text-sm font-semibold">{app.name}</h3>
                 <p className="text-muted-foreground mt-0.5 truncate text-xs">{app.description}</p>
@@ -344,7 +383,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
       </div>
 
       {/* label：永远处于静态布局（不进入 popover top-layer），避免启动动画把文字一起“拎走” */}
-      <span className="line-clamp-2 max-w-[72px] text-center text-[11px] leading-tight font-medium text-foreground/90">
+      <span className="text-foreground/90 line-clamp-2 max-w-[72px] text-center text-[11px] leading-tight font-medium">
         {app.name}
       </span>
     </div>
@@ -379,7 +418,14 @@ export interface MyAppsPageProps {
   onAppRemove: (appId: string) => void;
 }
 
-export function MyAppsPage({ apps, showSearch = true, onSearchClick, onAppOpen, onAppDetail, onAppRemove }: MyAppsPageProps) {
+export function MyAppsPage({
+  apps,
+  showSearch = true,
+  onSearchClick,
+  onAppOpen,
+  onAppDetail,
+  onAppRemove,
+}: MyAppsPageProps) {
   const columns = 4;
   const pageSize = columns * 6;
   const pages = Math.ceil(apps.length / pageSize);
@@ -433,7 +479,10 @@ export function MyAppsPage({ apps, showSearch = true, onSearchClick, onAppOpen, 
                 {Array.from({ length: pages }).map((_, i) => (
                   <div
                     key={i}
-                    className={cn('size-2 rounded-full transition-colors', i === 0 ? 'bg-foreground/80' : 'bg-foreground/20')}
+                    className={cn(
+                      'size-2 rounded-full transition-colors',
+                      i === 0 ? 'bg-foreground/80' : 'bg-foreground/20',
+                    )}
                   />
                 ))}
               </div>

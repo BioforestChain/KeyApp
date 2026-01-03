@@ -28,6 +28,10 @@ export interface MiniappSplashScreenProps {
   onClose?: () => void
   /** 可选：共享元素动画 layoutId（用于 icon <-> splash.icon） */
   iconLayoutId?: string
+  /** 是否渲染图标（默认 true） */
+  showIcon?: boolean
+  /** 是否渲染加载指示器（默认 true） */
+  showSpinner?: boolean
   /** 自定义类名 */
   className?: string
 }
@@ -151,6 +155,8 @@ export function MiniappSplashScreen({
   animating = true,
   onClose: _onClose,
   iconLayoutId,
+  showIcon = true,
+  showSpinner = true,
   className,
 }: MiniappSplashScreenProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -193,26 +199,30 @@ export function MiniappSplashScreen({
       <div className={cn(styles.glowLayer, styles.glowTertiary)} />
 
       {/* 内容区域 */}
-      <div className={styles.content}>
-        {/* 应用图标 */}
-        <motion.div
-          {...(iconLayoutId ? { layoutId: iconLayoutId, 'data-layoutid': iconLayoutId } : {})}
-          className={styles.appIcon}
-        >
-          {!imageError && (
-            <img
-              src={app.icon}
-              alt={app.name}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
-              style={{ opacity: imageLoaded ? 1 : 0 }}
-            />
+      {(showIcon || showSpinner) && (
+        <div className={styles.content}>
+          {/* 应用图标 */}
+          {showIcon && (
+            <motion.div
+              {...(iconLayoutId ? { layoutId: iconLayoutId, 'data-layoutid': iconLayoutId } : {})}
+              className={styles.appIcon}
+            >
+              {!imageError && (
+                <img
+                  src={app.icon}
+                  alt={app.name}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImageError(true)}
+                  style={{ opacity: imageLoaded ? 1 : 0 }}
+                />
+              )}
+            </motion.div>
           )}
-        </motion.div>
 
-        {/* 加载指示器 */}
-        <div className={styles.spinner} aria-hidden="true" />
-      </div>
+          {/* 加载指示器 */}
+          {showSpinner && <div className={styles.spinner} aria-hidden="true" />}
+        </div>
+      )}
     </div>
   )
 }
