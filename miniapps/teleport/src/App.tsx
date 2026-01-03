@@ -179,8 +179,8 @@ export default function App() {
       })
 
       // 3. 构造 fromTrJson（根据链类型）
-      // 注意：signTransData 需要使用 signedTx.data（RLP encoded raw signed tx），
-      // 而非 signedTx.signature（仅包含 r+s，不是可广播的 rawTx）
+      // 注意：signTransData 需要使用 signedTx.data（RLP/Protobuf encoded raw signed tx），
+      // 而非 signedTx.signature（仅包含签名数据，不是可广播的 rawTx）
       const fromTrJson: FromTrJson = {}
       const chainLower = sourceAccount.chain.toLowerCase()
       const signTransData = typeof signedTx.data === 'string' 
@@ -191,8 +191,14 @@ export default function App() {
         fromTrJson.eth = { signTransData }
       } else if (chainLower === 'bsc') {
         fromTrJson.bsc = { signTransData }
+      } else if (chainLower === 'tron') {
+        // TRON 原生 TRX 转账
+        fromTrJson.tron = { signTransData }
+      } else if (chainLower === 'trc20') {
+        // TRON TRC20 代币转账
+        fromTrJson.trc20 = { signTransData }
       } else {
-        // 内链交易
+        // 内链交易（BioForest 链）
         fromTrJson.bcf = {
           chainName: sourceAccount.chain as InternalChainName,
           trJson: signedTx.data as TransferAssetTransaction,
@@ -314,6 +320,7 @@ export default function App() {
                 </div>
                 
                 <Button 
+                  data-testid="connect-button"
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
@@ -357,7 +364,7 @@ export default function App() {
                         transition={{ delay: i * 0.05 }}
                       >
                         <Card 
-                          data-slot="card"
+                          data-testid={`asset-card-${asset.symbol}`}
                           className="cursor-pointer transition-colors hover:bg-accent"
                           onClick={() => handleSelectAsset(asset)}
                         >
@@ -400,6 +407,7 @@ export default function App() {
                     </div>
                     <div className="w-full max-w-xs relative">
                       <Input
+                        data-testid="amount-input"
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -425,7 +433,7 @@ export default function App() {
                   </CardContent>
                 </Card>
 
-                <Button className="w-full h-12" onClick={handleAmountNext} disabled={!amount || parseFloat(amount) <= 0}>
+                <Button data-testid="next-button" className="w-full h-12" onClick={handleAmountNext} disabled={!amount || parseFloat(amount) <= 0}>
                   {t('amount.next')}
                 </Button>
               </motion.div>
@@ -468,6 +476,7 @@ export default function App() {
                 </div>
 
                 <Button 
+                  data-testid="target-button"
                   size="lg" 
                   className="w-full max-w-xs h-12" 
                   onClick={handleSelectTarget} 
@@ -542,7 +551,7 @@ export default function App() {
                 </Card>
 
                 <div className="mt-auto pt-4">
-                  <Button className="w-full h-12" onClick={handleConfirm} disabled={loading}>
+                  <Button data-testid="confirm-button" className="w-full h-12" onClick={handleConfirm} disabled={loading}>
                     {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                     {loading ? t('confirm.loading') : t('confirm.button')}
                   </Button>

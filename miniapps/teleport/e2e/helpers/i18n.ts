@@ -8,6 +8,7 @@ export const UI_TEXT = {
   connect: {
     button: /启动传送门|Start Teleport/i,
     loading: /连接中|加载配置中|Connecting|Loading/i,
+    configError: /加载配置失败|载入配置失败|Failed to load configuration/i,
   },
   asset: {
     select: /选择资产|Select Asset/i,

@@ -12,6 +12,7 @@ export const UI_TEXT = {
   connect: {
     button: { source: '连接钱包', pattern: /连接钱包|Connect Wallet/i },
     loading: { source: '连接中', pattern: /连接中|Connecting/i },
+    configError: { source: 'Network Error', pattern: /Network Error|Failed to load config/i },
   },
   swap: {
     pay: { source: '支付', pattern: /支付|Pay/i },

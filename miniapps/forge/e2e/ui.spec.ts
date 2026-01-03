@@ -246,4 +246,110 @@ test.describe('Forge UI', () => {
       await expect(page.locator('button:has-text("BNB")').first()).toBeVisible({ timeout: 5000 })
     }
   })
+
+  // ============ 边界场景测试 ============
+
+  test('10 - API failure - config unavailable', async ({ page }) => {
+    // Override API mock to throw network error
+    await page.addInitScript(`
+      const originalFetch = window.fetch
+      window.fetch = async (url, options) => {
+        const urlStr = typeof url === 'string' ? url : url.toString()
+        if (urlStr.includes('/cot/recharge/support') || urlStr.includes('/recharge/support')) {
+          throw new Error('Network Error')
+        }
+        return originalFetch(url, options)
+      }
+    `)
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Connect button should be visible
+    const connectBtn = page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first()
+    await expect(connectBtn).toBeVisible({ timeout: 10000 })
+    
+    // Error message should be visible (config load failed)
+    await expect(page.locator(`text=${UI_TEXT.connect.configError.source}`)).toBeVisible({ timeout: 5000 })
+  })
+
+  test('11 - user rejects wallet connection', async ({ page }) => {
+    // Mock bio SDK that rejects wallet selection
+    await page.addInitScript(`
+      window.bio = {
+        request: async ({ method }) => {
+          if (method === 'bio_closeSplashScreen') return {}
+          if (method === 'bio_selectAccount') {
+            throw new Error('用户取消')
+          }
+          return {}
+        }
+      }
+    `)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    const connectBtn = page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first()
+    await expect(connectBtn).toBeVisible({ timeout: 10000 })
+    await connectBtn.click()
+
+    // Should show user cancelled error
+    await expect(page.locator('text=用户取消')).toBeVisible({ timeout: 5000 })
+  })
+
+  test('12 - recharge API failure', async ({ page }) => {
+    // Mock API that fails on recharge
+    await page.addInitScript(`
+      const originalFetch = window.fetch
+      window.fetch = async (url, options) => {
+        const urlStr = typeof url === 'string' ? url : url.toString()
+        
+        if (urlStr.includes('/cot/recharge/support') || urlStr.includes('/recharge/support')) {
+          return {
+            ok: true,
+            json: () => Promise.resolve({
+              recharge: {
+                bfmeta: {
+                  BFM: {
+                    enable: true,
+                    logo: '',
+                    supportChain: {
+                      ETH: { enable: true, assetType: 'ETH', depositAddress: '0x1234567890', logo: '' },
+                    },
+                  },
+                },
+              },
+            }),
+          }
+        }
+        
+        // Fail on recharge POST
+        if (urlStr.includes('/cot/recharge/V2') || urlStr.includes('/recharge/V2')) {
+          throw new Error('服务器错误')
+        }
+        
+        return originalFetch(url, options)
+      }
+    `)
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Navigate through flow
+    await page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first().click()
+    await page.waitForSelector('input[type="number"]', { timeout: 10000 })
+
+    // Enter amount
+    await page.fill('input[type="number"]', '0.5')
+
+    // Click preview
+    await page.locator(`button:has-text("${UI_TEXT.swap.preview.source}")`).click()
+    await expect(page.locator(`button:has-text("${UI_TEXT.confirm.button.source}")`).first()).toBeVisible({ timeout: 5000 })
+
+    // Confirm - this should eventually fail
+    await page.locator(`button:has-text("${UI_TEXT.confirm.button.source}")`).first().click()
+
+    // Should show error (may take time due to signing flow)
+    await expect(page.getByText(/锻造失败|服务器错误/).first()).toBeVisible({ timeout: 15000 })
+  })
 })
