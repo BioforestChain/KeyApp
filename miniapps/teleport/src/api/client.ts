@@ -15,6 +15,22 @@ import type {
 
 const API_BASE_URL = 'https://api.eth-metaverse.com/payment'
 
+type WrappedResponse = {
+  success: boolean
+  result: unknown
+  message?: string
+}
+
+function isWrappedResponse(value: unknown): value is WrappedResponse {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'success' in value &&
+    'result' in value &&
+    typeof (value as { success: unknown }).success === 'boolean'
+  )
+}
+
 class ApiError extends Error {
   constructor(
     message: string,
@@ -49,7 +65,13 @@ async function request<T>(
     )
   }
 
-  return response.json()
+  const data: unknown = await response.json()
+  if (isWrappedResponse(data)) {
+    if (data.success) return data.result as T
+    throw new ApiError(data.message || 'Request failed', response.status, data)
+  }
+
+  return data as T
 }
 
 /**
