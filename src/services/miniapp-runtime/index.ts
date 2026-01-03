@@ -347,6 +347,11 @@ export function finalizeCloseApp(appId: string): void {
     const app = s.apps.get(appId)
     if (!app) return s
 
+    // 移除 iframe（在动画完成后才执行）
+    if (app.iframeRef) {
+      removeIframe(app.iframeRef)
+    }
+
     const newApps = new Map(s.apps)
     newApps.delete(appId)
 
@@ -505,10 +510,7 @@ export function closeApp(appId: string): void {
   // 更新状态为关闭中
   updateAppState(appId, 'closing')
 
-  // 移除 iframe
-  if (app.iframeRef) {
-    removeIframe(app.iframeRef)
-  }
+  // 注意：iframe 的移除延迟到 finalizeCloseApp 执行，让关闭动画期间 iframe 仍然可见
 
   // 兜底：如果 UI 没有在动画结束时回收，则超时清理
   closeTimeouts.set(

@@ -44,11 +44,13 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
   const iconFlow = runtimeStateToStableFlow(runtimeState);
   const iconStackingVariant = isActiveApp && (iconFlow === 'opening' || iconFlow === 'splash') ? 'elevated' : 'normal';
   const cornerBadgeVariant = flowToCornerBadge[iconFlow];
-  // icon 在 launching/splash/active 阶段让出 layoutId 给 window
-  // 在 null/preparing/background/closing 阶段持有 layoutId
+  // icon 在 splash/active 阶段让出 layoutId 给 window
+  // 在 null/preparing/launching/background/closing 阶段持有 layoutId
+  // 注意：launching 阶段 icon 仍持有 layoutId，让 Motion 能捕获"源"位置
   const enableSharedLayout =
     !isActiveApp ||
     runtimeState === 'preparing' ||
+    runtimeState === 'launching' ||
     runtimeState === 'background' ||
     runtimeState === 'closing';
   const sharedLayoutIds = enableSharedLayout
@@ -61,7 +63,9 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
 
   // DEBUG: 追踪 layoutId 所有权变化
   useEffect(() => {
-    console.log(`[Icon:${app.id}] runtimeState=${runtimeState}, isActiveApp=${isActiveApp}, enableSharedLayout=${enableSharedLayout}, hasLayoutId=${!!sharedLayoutIds}`);
+    console.log(
+      `[Icon:${app.id}] runtimeState=${runtimeState}, isActiveApp=${isActiveApp}, enableSharedLayout=${enableSharedLayout}, hasLayoutId=${!!sharedLayoutIds}`,
+    );
   }, [app.id, runtimeState, isActiveApp, enableSharedLayout, sharedLayoutIds]);
 
   const ICON_STACKING_VARIANTS = {
@@ -300,7 +304,10 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
           <LayoutGroup inherit="id">
             <motion.div
               {...(sharedLayoutIds
-                ? { layoutId: sharedLayoutIds.container, 'data-layoutid': sharedLayoutIds.container }
+                ? {
+                    layoutId: sharedLayoutIds.container,
+                    'data-layoutid': sharedLayoutIds.container,
+                  }
                 : {})}
               variants={ICON_STACKING_VARIANTS}
               initial={false}
@@ -314,20 +321,24 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
             >
               <motion.div
                 {...(sharedLayoutIds
-                  ? { layoutId: sharedLayoutIds.logo, 'data-layoutid': sharedLayoutIds.logo }
+                  ? {
+                      layoutId: sharedLayoutIds.inner,
+                      'data-layoutid': sharedLayoutIds.inner,
+                    }
                   : {})}
                 className="absolute inset-0 flex items-center justify-center"
+              ></motion.div>
+              <motion.div
+                ref={iconRef}
+                {...(sharedLayoutIds
+                  ? {
+                      layoutId: sharedLayoutIds.logo,
+                      'data-layoutid': sharedLayoutIds.logo,
+                    }
+                  : {})}
+                className="absolute inset-0 flex size-15 items-center justify-center"
               >
-                <motion.div
-                  {...(sharedLayoutIds
-                    ? { layoutId: sharedLayoutIds.inner, 'data-layoutid': sharedLayoutIds.inner }
-                    : {})}
-                  className="relative"
-                >
-                  <div ref={iconRef} className="relative">
-                    <MiniappIcon src={app.icon} name={app.name} size="lg" shadow />
-                  </div>
-                </motion.div>
+                <MiniappIcon src={app.icon} name={app.name} size="lg" shadow />
               </motion.div>
 
               <div className="absolute -top-1 -right-1">

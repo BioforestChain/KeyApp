@@ -22,42 +22,50 @@
   opacity: 0;
 }
 
-.splashIconLayer {
+/**
+ * 内容层容器：包含 splash-bg 和 iframe
+ * 使用 isolation 隔离混合模式
+ */
+.contentLayer {
   position: absolute;
   inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
+  isolation: isolate;
 }
 
+/* 只在动画过程中启用混合模式 */
+.contentLayer.blending [data-animate='top'] {
+  mix-blend-mode: plus-lighter;
+}
+
+/**
+ * splash-bg 层（和 iframe 互斥）
+ */
 .splashBgLayer {
   position: absolute;
   inset: 0;
-  z-index: 10;
+}
+
+/**
+ * iframe 层（和 splash-bg 互斥）
+ */
+.iframeLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.iframeLayer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
 }
 
 .window.animating {
   /* 动画期间仅禁用 iframe 交互，保留胶囊按钮可强制关闭 */
 }
 
-.window.animating .iframeContainer {
+.window.animating .iframeLayer {
   pointer-events: none;
-}
-
-.iframeContainer {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  transition: opacity 0.2s ease-out;
-}
-
-.iframeContainer iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: transparent;
 }
 
 /* 胶囊容器层 - 在 iframe 之上 */

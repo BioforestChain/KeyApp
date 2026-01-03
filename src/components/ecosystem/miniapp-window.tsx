@@ -28,9 +28,10 @@ import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappIcon } from './miniapp-icon';
 import {
   flowToCapsule,
-  flowToIframe,
-  flowToSplashBg,
-  flowToSplashIcon,
+  flowToSplashBgLayer,
+  flowToSplashIconLayer,
+  flowToIframeLayer,
+  flowToSplashIconLayoutId,
   flowToWindowContainer,
 } from './miniapp-motion-flow';
 import styles from './miniapp-window.module.css';
@@ -49,10 +50,15 @@ const VISIBILITY_VARIANTS = {
   hide: { opacity: 0, pointerEvents: 'none' },
 } as const;
 
-const SPLASH_ICON_VARIANTS = {
-  show: { opacity: 1, scale: 1, pointerEvents: 'none' },
-  hide: { opacity: 0, scale: 0.98, pointerEvents: 'none' },
-} as const;
+/**
+ * 层级变体：z-index 和 opacity 联动
+ * top: 上层可见，bottom: 下层隐藏，gone: display:none
+ */
+const LAYER_VARIANTS = {
+  top: { zIndex: 10, opacity: 1 },
+  bottom: { zIndex: 0, opacity: 0, pointerEvents: 'none' },
+  gone: { zIndex: 0, opacity: 0, display: 'none', pointerEvents: 'none' },
+};
 
 export function MiniappWindow({ className }: MiniappWindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
@@ -95,7 +101,15 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
   }, [activeApp?.appId, activeApp?.state]);
 
   // 直接从 runtime 获取 flow（同步，无延迟）
-  const flow = presentApp?.flow ?? 'closed';
+  // 使用 ref 保留 closing 时的 flow，直到 exit 动画完成
+  const lastFlowRef = useRef<string>('closed');
+  if (presentApp?.flow) {
+    lastFlowRef.current = presentApp.flow;
+  }
+  const flow = presentApp ? presentApp.flow : lastFlowRef.current;
+
+  // DEBUG: 追踪关闭时的 flow 变化
+  console.log(`[Window:render] presentApp=${presentApp?.appId ?? 'null'}, presentApp.flow=${presentApp?.flow ?? 'null'}, lastFlowRef=${lastFlowRef.current}, flow=${flow}`);
 
   // 当动画完成后，将方向性 flow 转为稳定态
   const handleLayoutAnimationComplete = useCallback(() => {
@@ -105,10 +119,14 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
   }, [presentApp?.appId]);
 
   const windowContainerVariant = flowToWindowContainer[flow];
-  const splashBgVariant = flowToSplashBg[flow];
-  const splashIconVariant = flowToSplashIcon[flow];
-  const iframeVariant = flowToIframe[flow];
+  const splashBgLayerVariant = flowToSplashBgLayer[flow];
+  const splashIconLayerVariant = flowToSplashIconLayer[flow];
+  const iframeLayerVariant = flowToIframeLayer[flow];
+  const splashIconHasLayoutId = flowToSplashIconLayoutId[flow];
   const capsuleVariant = flowToCapsule[flow];
+
+  // 只在动画过程中启用混合模式（opening/closing）
+  const isTransitioning = flow === 'opening' || flow === 'closing';
 
   const appDisplay = useMemo(() => {
     return {
@@ -117,12 +135,7 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
       icon: presentApp?.manifest.icon ?? '',
       themeColor: presentApp?.manifest.themeColorFrom ?? 280,
     };
-  }, [
-    presentApp?.appId,
-    presentApp?.manifest.name,
-    presentApp?.manifest.icon,
-    presentApp?.manifest.themeColorFrom,
-  ]);
+  }, [presentApp?.appId, presentApp?.manifest.name, presentApp?.manifest.icon, presentApp?.manifest.themeColorFrom]);
 
   const targetDesktop = activeApp?.manifest.targetDesktop ?? 'stack';
 
@@ -130,7 +143,9 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
 
   // DEBUG: 追踪 window 的 layoutId 挂载时机
   useEffect(() => {
-    console.log(`[Window] presentApp=${presentApp?.appId ?? 'null'}, state=${presentApp?.state ?? 'null'}, flow=${flow}, hasPortalHost=${!!portalHost}`);
+    console.log(
+      `[Window] presentApp=${presentApp?.appId ?? 'null'}, state=${presentApp?.state ?? 'null'}, flow=${flow}, hasPortalHost=${!!portalHost}`,
+    );
   }, [presentApp?.appId, presentApp?.state, flow, portalHost]);
 
   // 注册 window refs
@@ -181,6 +196,8 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
         const exitingAppId = exitingAppIdRef.current;
         if (exitingAppId) finalizeCloseApp(exitingAppId);
         exitingAppIdRef.current = null;
+        // 重置 flow，准备下次启动
+        lastFlowRef.current = 'closed';
       }}
     >
       {presentApp && (
@@ -204,55 +221,69 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
               : {})}
             data-flow={flow}
           >
-            {/* splash-icon */}
+            {/* 内容层容器：隔离混合模式 */}
             <motion.div
-              className={styles.splashIconLayer}
-              variants={SPLASH_ICON_VARIANTS}
+              className={cn(styles.contentLayer, isTransitioning && styles.blending)}
+              {...(appDisplay.appId
+                ? {
+                    layoutId: `miniapp:${appDisplay.appId}:inner`,
+                    'data-layoutid': `miniapp:${appDisplay.appId}:inner`,
+                  }
+                : {})}
+            >
+              {/* splash-bg 层 */}
+              <motion.div
+                className={styles.splashBgLayer}
+                variants={LAYER_VARIANTS}
+                initial={false}
+                animate={splashBgLayerVariant}
+                data-animate={splashBgLayerVariant}
+              >
+                <MiniappSplashScreen
+                  appId={appDisplay.appId}
+                  app={{
+                    name: appDisplay.name,
+                    icon: appDisplay.icon,
+                    themeColor: appDisplay.themeColor,
+                  }}
+                  visible={true}
+                  showIcon={false}
+                  showSpinner={false}
+                  onClose={handleSplashClose}
+                />
+              </motion.div>
+
+              {/* iframe 层 */}
+              <motion.div
+                ref={iframeContainerRef}
+                className={styles.iframeLayer}
+                variants={LAYER_VARIANTS}
+                initial={false}
+                animate={iframeLayerVariant}
+                data-animate={iframeLayerVariant}
+              />
+            </motion.div>
+
+            {/* splash-icon 层（独立于内容层，做 shared layout 动画） */}
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              variants={LAYER_VARIANTS}
               initial={false}
-              animate={splashIconVariant}
-              aria-hidden={true}
+              animate={splashIconLayerVariant}
+              aria-hidden={splashIconLayerVariant !== 'top'}
             >
               <motion.div
-                {...(splashIconVariant === 'show' && appDisplay.appId
+                className="size-30 items-center justify-center"
+                {...(appDisplay.appId
                   ? {
-                      layoutId: `miniapp:${appDisplay.appId}:inner`,
-                      'data-layoutid': `miniapp:${appDisplay.appId}:inner`,
+                      layoutId: `miniapp:${appDisplay.appId}:logo`,
+                      'data-layoutid': `miniapp:${appDisplay.appId}:logo`,
                     }
                   : {})}
               >
                 <MiniappIcon src={appDisplay.icon} name={appDisplay.name} size="2xl" />
               </motion.div>
             </motion.div>
-
-            {/* splash-bg */}
-            <motion.div
-              className={styles.splashBgLayer}
-              variants={VISIBILITY_VARIANTS}
-              initial={false}
-              animate={splashBgVariant}
-            >
-              <MiniappSplashScreen
-                appId={appDisplay.appId}
-                app={{
-                  name: appDisplay.name,
-                  icon: appDisplay.icon,
-                  themeColor: appDisplay.themeColor,
-                }}
-                visible={true}
-                showIcon={false}
-                showSpinner={false}
-                onClose={handleSplashClose}
-              />
-            </motion.div>
-
-            {/* iframe 容器 */}
-            <motion.div
-              ref={iframeContainerRef}
-              className={styles.iframeContainer}
-              variants={VISIBILITY_VARIANTS}
-              initial={false}
-              animate={iframeVariant}
-            />
 
             {/* capsule */}
             <div className={styles.capsuleLayer}>
