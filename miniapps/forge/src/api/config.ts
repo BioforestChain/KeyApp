@@ -44,17 +44,17 @@ export const API_BASE_URL = import.meta.env.VITE_COT_API_BASE_URL || ''
 /** API Endpoints */
 export const API_ENDPOINTS = {
   /** 获取支持的充值配置 */
-  RECHARGE_SUPPORT: '/cot/recharge/support',
+  RECHARGE_SUPPORT: '/cotbfm/recharge/support',
   /** 发起充值（锻造） */
-  RECHARGE_V2: '/cot/recharge/V2',
+  RECHARGE_V2: '/cotbfm/recharge/V2',
   /** 获取合约池信息 */
-  CONTRACT_POOL_INFO: '/cot/recharge/contractPoolInfo',
+  CONTRACT_POOL_INFO: '/cotbfm/recharge/contractPoolInfo',
   /** 获取充值记录列表 */
-  RECORDS: '/cot/recharge/records',
+  RECORDS: '/cotbfm/recharge/records',
   /** 获取充值记录详情 */
-  RECORD_DETAIL: '/cot/recharge/recordDetail',
+  RECORD_DETAIL: '/cotbfm/recharge/recordDetail',
   /** 外链上链重试 */
-  RETRY_EXTERNAL: '/cot/recharge/retryExternalOnChain',
+  RETRY_EXTERNAL: '/cotbfm/recharge/retryExternalOnChain',
   /** 内链上链重试 */
-  RETRY_INTERNAL: '/cot/recharge/retryInternalOnChain',
+  RETRY_INTERNAL: '/cotbfm/recharge/retryInternalOnChain',
 } as const
