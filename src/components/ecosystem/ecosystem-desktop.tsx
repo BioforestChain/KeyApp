@@ -96,7 +96,7 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     const discoverPageRef = useRef<DiscoverPageRef>(null);
     const currentPageRef = useRef<EcosystemSubPage>('mine');
 
-    // 监听是否有运行中的应用（以及是否有 stack-target 应用）
+    // 监听是否有 stack-target 应用（用于决定是否展示 stack 页）
     const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
 
     // 计算实际显示的页面

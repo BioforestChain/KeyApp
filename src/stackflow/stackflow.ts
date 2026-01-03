@@ -30,7 +30,6 @@ import { WelcomeActivity } from './activities/WelcomeActivity';
 import { SettingsWalletChainsActivity } from './activities/SettingsWalletChainsActivity';
 import { SettingsStorageActivity } from './activities/SettingsStorageActivity';
 import { SettingsSourcesActivity } from './activities/SettingsSourcesActivity';
-import { MiniappActivity } from './activities/MiniappActivity';
 import { MiniappDetailActivity } from './activities/MiniappDetailActivity';
 import {
   ChainSelectorJob,
@@ -94,7 +93,6 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         StakingActivity: '/staking',
         WelcomeActivity: '/welcome',
         SettingsSourcesActivity: '/settings/sources',
-        MiniappActivity: '/miniapp/:appId',
         MiniappDetailActivity: '/miniapp/:appId/detail',
         ChainSelectorJob: '/job/chain-selector',
         WalletRenameJob: '/job/wallet-rename/:walletId',
@@ -156,7 +154,6 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     StakingActivity,
     WelcomeActivity,
     SettingsSourcesActivity,
-    MiniappActivity,
     MiniappDetailActivity,
     ChainSelectorJob,
     WalletRenameJob,

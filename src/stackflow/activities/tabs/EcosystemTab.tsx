@@ -15,6 +15,7 @@ import type { MiniappManifest } from '@/services/ecosystem';
 import { EcosystemDesktop, type EcosystemDesktopHandle } from '@/components/ecosystem';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
 import { launchApp } from '@/services/miniapp-runtime';
+import { ecosystemActions } from '@/stores/ecosystem';
 
 export function EcosystemTab() {
   const { push } = useFlow();
@@ -50,11 +51,12 @@ export function EcosystemTab() {
       updateLastUsed(app.id);
       setMyAppRecords(loadMyApps());
 
-      // 使用 runtime service 启动应用
-      launchApp(app.id, app);
-
-      // 滑动到应用堆栈页
-      setTimeout(() => desktopRef.current?.slideTo('stack'), 100);
+      // 为了保证 shared layout 捕获到 icon 的起点位置，先固定到 mine
+      ecosystemActions.setActiveSubPage('mine');
+      desktopRef.current?.slideTo('mine');
+      requestAnimationFrame(() => {
+        launchApp(app.id, { ...app, targetDesktop: 'mine' });
+      });
     },
     [],
   );

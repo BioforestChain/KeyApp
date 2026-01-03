@@ -91,8 +91,9 @@ export const FullDesktop: Story = {
 
     const handleAppOpen = useCallback((app: MiniappManifest) => {
       console.log('Open:', app.name);
-      launchApp(app.id, app);
-      setTimeout(() => desktopRef.current?.slideTo('stack'), 100);
+      const manifest: MiniappManifest = { ...app, targetDesktop: 'mine' };
+      desktopRef.current?.slideTo('mine');
+      requestAnimationFrame(() => launchApp(app.id, manifest));
     }, []);
 
     return (
@@ -149,6 +150,7 @@ export const MyAppsOnly: Story = {
 /** 可配置桌面 */
 export const Configurable: Story = {
   render: function ConfigurableStory() {
+    const desktopRef = useRef<EcosystemDesktopHandle>(null);
     const [showDiscoverPage, setShowDiscoverPage] = useState(true);
     const [showStackPage, setShowStackPage] = useState<boolean | 'auto'>('auto');
     
@@ -189,6 +191,7 @@ export const Configurable: Story = {
         {/* 桌面 */}
         <div className="flex-1 relative overflow-hidden">
           <EcosystemDesktop
+            ref={desktopRef}
             showDiscoverPage={showDiscoverPage}
             showStackPage={showStackPage}
             apps={mockApps}
@@ -198,7 +201,9 @@ export const Configurable: Story = {
             hotApps={mockApps}
             onAppOpen={(app) => {
               console.log('Open:', app.name);
-              launchApp(app.id, app);
+              const manifest: MiniappManifest = { ...app, targetDesktop: 'mine' };
+              desktopRef.current?.slideTo('mine');
+              requestAnimationFrame(() => launchApp(app.id, manifest));
             }}
             onAppDetail={(app) => console.log('Detail:', app.name)}
             onAppRemove={(id) => console.log('Remove:', id)}

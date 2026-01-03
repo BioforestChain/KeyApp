@@ -31,6 +31,8 @@ import {
   IconLink,
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
+import { launchApp } from '@/services/miniapp-runtime'
+import { ecosystemActions } from '@/stores/ecosystem'
 
 type MiniappDetailActivityParams = {
   appId: string
@@ -112,7 +114,7 @@ function InfoRow({
 
 export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityParams> = ({ params }) => {
   const { t } = useTranslation('common')
-  const { pop, push } = useFlow()
+  const { pop } = useFlow()
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
   const [descExpanded, setDescExpanded] = useState(false)
@@ -155,8 +157,10 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
   const handleOpen = useCallback(() => {
     if (!app) return
     updateLastUsed(app.id)
-    push('MiniappActivity', { appId: app.id })
-  }, [app, push])
+    ecosystemActions.setActiveSubPage('mine')
+    launchApp(app.id, { ...app, targetDesktop: 'mine' })
+    pop()
+  }, [app, pop])
 
   if (loading) {
     return (
