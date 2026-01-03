@@ -23,7 +23,7 @@ describe('Teleport API Client', () => {
 
   describe('getTransmitAssetTypeList', () => {
     it('should fetch asset type list', async () => {
-      const mockResponse = {
+      const mockResult = {
         transmitSupport: {
           ETH: {
             ETH: {
@@ -38,13 +38,18 @@ describe('Teleport API Client', () => {
         },
       }
 
+      const mockResponse = {
+        success: true,
+        result: mockResult,
+      }
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockResponse),
       })
 
       const result = await getTransmitAssetTypeList()
-      expect(result).toEqual(mockResponse)
+      expect(result).toEqual(mockResult)
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.eth-metaverse.com/payment/transmit/assetTypeList',
         expect.objectContaining({
