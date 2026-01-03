@@ -10,12 +10,14 @@ import type { MiniappManifest } from '@/services/ecosystem';
 import { flowToCornerBadge, runtimeStateToStableFlow } from './miniapp-motion-flow';
 import {
   miniappRuntimeStore,
+  miniappRuntimeSelectors,
   registerDesktopContainerRef,
   registerIconRef,
   registerIconInnerRef,
   unregisterDesktopContainerRef,
   unregisterIconRef,
 } from '@/services/miniapp-runtime';
+import { getMiniappMotionPresets } from '@/services/miniapp-runtime/visual-config';
 import styles from './my-apps-page.module.css';
 
 // ============================================
@@ -40,19 +42,21 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   const runtimeState = useStore(miniappRuntimeStore, (s) => s.apps.get(app.id)?.state ?? null);
-  const isActiveApp = useStore(miniappRuntimeStore, (s) => s.activeAppId === app.id);
+  const visualConfig = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getVisualConfig);
+  const motionPresets = getMiniappMotionPresets(visualConfig);
+  const focusedAppId = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getFocusedAppId);
+  const isFocusedApp = focusedAppId === app.id;
+  const presentationState = useStore(
+    miniappRuntimeStore,
+    (s) => s.presentations.get(app.id)?.state ?? null,
+  );
   const iconFlow = runtimeStateToStableFlow(runtimeState);
-  const iconStackingVariant = isActiveApp && (iconFlow === 'opening' || iconFlow === 'splash') ? 'elevated' : 'normal';
+  const iconStackingVariant =
+    isFocusedApp && (iconFlow === 'opening' || iconFlow === 'splash') ? 'elevated' : 'normal';
   const cornerBadgeVariant = flowToCornerBadge[iconFlow];
-  // icon 在 splash/active 阶段让出 layoutId 给 window
-  // 在 null/preparing/launching/background/closing 阶段持有 layoutId
-  // 注意：launching 阶段 icon 仍持有 layoutId，让 Motion 能捕获"源"位置
+  // icon 只在窗口 transitioning 阶段持有 shared layout（present/dismiss）
   const enableSharedLayout =
-    !isActiveApp ||
-    runtimeState === 'preparing' ||
-    runtimeState === 'launching' ||
-    runtimeState === 'background' ||
-    runtimeState === 'closing';
+    presentationState === null || presentationState === 'presenting' || presentationState === 'dismissing';
   const sharedLayoutIds = enableSharedLayout
     ? {
         container: `miniapp:${app.id}:container`,
@@ -60,13 +64,6 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
         inner: `miniapp:${app.id}:inner`,
       }
     : null;
-
-  // DEBUG: 追踪 layoutId 所有权变化
-  useEffect(() => {
-    console.log(
-      `[Icon:${app.id}] runtimeState=${runtimeState}, isActiveApp=${isActiveApp}, enableSharedLayout=${enableSharedLayout}, hasLayoutId=${!!sharedLayoutIds}`,
-    );
-  }, [app.id, runtimeState, isActiveApp, enableSharedLayout, sharedLayoutIds]);
 
   const ICON_STACKING_VARIANTS = {
     normal: { zIndex: 0, pointerEvents: 'auto' },
@@ -309,6 +306,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                     'data-layoutid': sharedLayoutIds.container,
                   }
                 : {})}
+              transition={motionPresets.sharedLayout}
               variants={ICON_STACKING_VARIANTS}
               initial={false}
               animate={iconStackingVariant}
@@ -326,6 +324,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                       'data-layoutid': sharedLayoutIds.inner,
                     }
                   : {})}
+                transition={motionPresets.sharedLayout}
                 className="absolute inset-0 flex items-center justify-center"
               ></motion.div>
               <motion.div
@@ -336,6 +335,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                       'data-layoutid': sharedLayoutIds.logo,
                     }
                   : {})}
+                transition={motionPresets.sharedLayout}
                 className="absolute inset-0 flex size-15 items-center justify-center"
               >
                 <MiniappIcon src={app.icon} name={app.name} size="lg" shadow />
@@ -346,7 +346,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                   variants={CORNER_BADGE_VARIANTS}
                   initial={false}
                   animate={cornerBadgeVariant}
-                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  transition={motionPresets.uiFast}
                   style={{ transformOrigin: '100% 0%' }}
                 >
                   <SourceIcon src={app.sourceIcon} name={app.sourceName} size="sm" />

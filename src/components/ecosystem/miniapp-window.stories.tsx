@@ -1,18 +1,24 @@
 /**
  * MiniappWindow Stories
- * 
+ *
  * 演示小程序窗口组件和启动动画
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappWindow } from './miniapp-window';
 import { EcosystemDesktop, type EcosystemDesktopHandle } from './ecosystem-desktop';
 import { SwiperSyncProvider } from '@/components/common/swiper-sync-context';
 import { TabBar } from '@/stackflow/components/TabBar';
-import { launchApp, closeAllApps } from '@/services/miniapp-runtime';
+import {
+  closeAllApps,
+  launchApp,
+  resetMiniappVisualConfig,
+  setMiniappMotionTimeScale,
+} from '@/services/miniapp-runtime';
+import { MiniappVisualProvider } from '@/services/miniapp-runtime/MiniappVisualProvider';
 import type { MiniappManifest } from '@/services/ecosystem';
 
 const meta: Meta = {
@@ -103,8 +109,8 @@ export const CapsuleOnly: Story = {
 /** 不同主题色的启动屏幕 */
 export const SplashScreenThemes: Story = {
   render: () => (
-    <div className="grid grid-cols-2 gap-4 p-4 h-screen">
-      <div className="relative h-full rounded-xl overflow-hidden">
+    <div className="grid h-screen grid-cols-2 gap-4 p-4">
+      <div className="relative h-full overflow-hidden rounded-xl">
         <MiniappSplashScreen
           appId="amber"
           app={{
@@ -115,7 +121,7 @@ export const SplashScreenThemes: Story = {
           visible={true}
         />
       </div>
-      <div className="relative h-full rounded-xl overflow-hidden">
+      <div className="relative h-full overflow-hidden rounded-xl">
         <MiniappSplashScreen
           appId="purple"
           app={{
@@ -126,7 +132,7 @@ export const SplashScreenThemes: Story = {
           visible={true}
         />
       </div>
-      <div className="relative h-full rounded-xl overflow-hidden">
+      <div className="relative h-full overflow-hidden rounded-xl">
         <MiniappSplashScreen
           appId="green"
           app={{
@@ -137,7 +143,7 @@ export const SplashScreenThemes: Story = {
           visible={true}
         />
       </div>
-      <div className="relative h-full rounded-xl overflow-hidden">
+      <div className="relative h-full overflow-hidden rounded-xl">
         <MiniappSplashScreen
           appId="blue"
           app={{
@@ -154,7 +160,7 @@ export const SplashScreenThemes: Story = {
 
 /**
  * 启动动画演示
- * 
+ *
  * 点击图标启动应用，观察 FLIP 动画效果：
  * - 锻造/传送：有 splash screen（路径 1）
  * - 市场/钱包：无 splash screen（路径 2）
@@ -171,12 +177,23 @@ export const LaunchDemo: Story = {
   ],
   render: function LaunchDemoStory() {
     const desktopRef = useRef<EcosystemDesktopHandle>(null);
+    const [timeScale, setTimeScale] = useState(1);
 
     // 清理旧状态
     useEffect(() => {
       // 清理之前可能残留的应用状态
       closeAllApps();
+      resetMiniappVisualConfig();
+      setMiniappMotionTimeScale(1);
+
+      return () => {
+        resetMiniappVisualConfig();
+      };
     }, []);
+
+    useEffect(() => {
+      setMiniappMotionTimeScale(timeScale);
+    }, [timeScale]);
 
     const myApps = mockApps.map((app, i) => ({
       app,
@@ -192,31 +209,65 @@ export const LaunchDemo: Story = {
     };
 
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex-1 relative overflow-hidden">
-          <EcosystemDesktop
-            ref={desktopRef}
-            showDiscoverPage={false}
-            showStackPage="auto"
-            apps={mockApps}
-            myApps={myApps}
-            onAppOpen={handleAppOpen}
-            onAppDetail={(app) => console.log('Detail:', app.name)}
-            onAppRemove={(id) => console.log('Remove:', id)}
-          />
+      <MiniappVisualProvider>
+        <div className="flex h-screen flex-col">
+          <div className="relative flex-1 overflow-hidden">
+            <EcosystemDesktop
+              ref={desktopRef}
+              showDiscoverPage={false}
+              showStackPage="auto"
+              apps={mockApps}
+              myApps={myApps}
+              onAppOpen={handleAppOpen}
+              onAppDetail={(app) => console.log('Detail:', app.name)}
+              onAppRemove={(id) => console.log('Remove:', id)}
+            />
 
-          {/* 窗口层 */}
-          <MiniappWindow />
+            {/* 窗口层 */}
+            <MiniappWindow />
+          </div>
+
+          {/* 真实项目底部指示器（TabBar 内置生态 indicator） */}
+          <TabBar activeTab="ecosystem" className="static" onTabChange={() => {}} />
+
+          {/* 提示 + 速度调控 */}
+          <div className="shrink-0 bg-black/90 px-3 py-2 text-xs text-white">
+            <div className="flex items-center justify-between gap-3">
+              <div className="truncate">点击图标启动应用 | 锻造/传送有 Splash | 市场/钱包直接打开</div>
+
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <button
+                  className="rounded bg-white/10 px-2 py-1"
+                  onClick={() => setTimeScale((s) => Math.max(0.25, Number((s - 0.25).toFixed(2))))}
+                >
+                  -
+                </button>
+                <div className="min-w-[6ch] text-center tabular-nums">x{timeScale.toFixed(2)}</div>
+                <button
+                  className="rounded bg-white/10 px-2 py-1"
+                  onClick={() => setTimeScale((s) => Math.min(4, Number((s + 0.25).toFixed(2))))}
+                >
+                  +
+                </button>
+                <button className="rounded bg-white/10 px-2 py-1" onClick={() => setTimeScale(1)}>
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <input
+              className="mt-2 w-full"
+              type="range"
+              min={0.25}
+              max={4}
+              step={0.05}
+              value={timeScale}
+              onChange={(e) => setTimeScale(Number(e.target.value))}
+              aria-label="Miniapp motion speed"
+            />
+          </div>
         </div>
-
-        {/* 真实项目底部指示器（TabBar 内置生态 indicator） */}
-        <TabBar activeTab="ecosystem" onTabChange={() => {}} />
-
-        {/* 提示 */}
-        <div className="shrink-0 bg-black/90 text-white p-3 text-center text-xs">
-          点击图标启动应用 | 锻造/传送有 Splash | 市场/钱包直接打开
-        </div>
-      </div>
+      </MiniappVisualProvider>
     );
   },
 };

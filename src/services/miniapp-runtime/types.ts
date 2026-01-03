@@ -5,9 +5,40 @@
  */
 
 import type { MiniappManifest } from '../ecosystem/types'
+import type { MiniappTargetDesktop } from '../ecosystem/types'
+import type { MiniappVisualConfig } from './visual-config'
 
 /** 小程序实例状态 */
 export type MiniappState = 'preparing' | 'launching' | 'splash' | 'active' | 'background' | 'closing'
+
+/** 窗口呈现状态（系统级，可见性） */
+export type MiniappPresentationState = 'hidden' | 'presenting' | 'presented' | 'dismissing'
+
+/** 进程/内容载体状态（iframe） */
+export type MiniappProcessStatus = 'loading' | 'loaded'
+
+/** 应用就绪状态（可交互门闩） */
+export type MiniappReadinessState = 'notReady' | 'ready'
+
+export type MiniappTransitionKind = 'present' | 'dismiss'
+
+export type MiniappTransitionStatus = 'requested' | 'inProgress' | 'completed' | 'cancelled'
+
+export interface MiniappTransition {
+  id: string
+  kind: MiniappTransitionKind
+  status: MiniappTransitionStatus
+  startedAt: number
+}
+
+export interface MiniappPresentation {
+  appId: string
+  desktop: MiniappTargetDesktop
+  state: MiniappPresentationState
+  zOrder: number
+  transitionId: string | null
+  transitionKind: MiniappTransitionKind | null
+}
 
 /** 小程序动画流（包含方向性） */
 export type MiniappFlow =
@@ -54,6 +85,10 @@ export interface MiniappInstance {
   flow: MiniappFlow
   /** 运行时上下文（可动态修改） */
   ctx: MiniappContext
+  /** iframe 加载状态 */
+  processStatus: MiniappProcessStatus
+  /** 是否已就绪（由 iframe load 或 splash 关闭触发） */
+  readiness: MiniappReadinessState
   /** 启动时间 */
   launchedAt: number
   /** 最后激活时间 */
@@ -90,8 +125,16 @@ export interface FlipFrames {
 export interface MiniappRuntimeState {
   /** 所有运行中的应用 */
   apps: Map<string, MiniappInstance>
-  /** 当前激活的应用 ID */
+  /** miniapp 视觉配置（motion + css token） */
+  visualConfig: MiniappVisualConfig
+  /** 当前交互焦点的应用 ID（兼容字段，旧逻辑仍使用） */
   activeAppId: string | null
+  /** 当前交互焦点（多窗口架构下的正式字段） */
+  focusedAppId: string | null
+  /** 当前呈现中的窗口集合（多窗口） */
+  presentations: Map<string, MiniappPresentation>
+  /** z-index 递增种子 */
+  zOrderSeed: number
   /** 是否处于层叠视图 */
   isStackViewOpen: boolean
   /** 最大后台应用数 */

@@ -14,21 +14,24 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from '@storybook/test';
 import { useState } from 'react';
-import { motion, MotionConfig, AnimatePresence, LayoutGroup, type Transition } from 'motion/react';
+import { motion, AnimatePresence, LayoutGroup } from 'motion/react';
+import { MiniappVisualProvider } from './MiniappVisualProvider';
+import {
+  DEFAULT_MINIAPP_VISUAL_CONFIG,
+  getMiniappMotionPresets,
+  mergeMiniappVisualConfig,
+} from './visual-config';
 
 const meta: Meta = {
   title: 'Services/MiniappRuntime/LaunchMotion',
   parameters: { layout: 'fullscreen' },
 };
 
-const MOTION_DEBUG_SPEED = 0.01;
-const MOTION_DEBUG_TRANSITION: Transition = {
-  type: 'spring',
-  stiffness: 220 * MOTION_DEBUG_SPEED * MOTION_DEBUG_SPEED,
-  damping: 28 * MOTION_DEBUG_SPEED,
-  mass: 0.85,
-  // duration: 20000,
-} as const;
+const MOTION_DEBUG_TIME_SCALE = 1;
+const MOTION_DEBUG_CONFIG = mergeMiniappVisualConfig(DEFAULT_MINIAPP_VISUAL_CONFIG, {
+  motion: { timeScale: MOTION_DEBUG_TIME_SCALE },
+});
+const MOTION_PRESETS = getMiniappMotionPresets(MOTION_DEBUG_CONFIG);
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -41,7 +44,7 @@ export const DirectPath: Story = {
     const [state, setState] = useState<'idle' | 'window'>('idle');
 
     return (
-      <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
+      <MiniappVisualProvider override={{ motion: { timeScale: MOTION_DEBUG_TIME_SCALE } }}>
         <LayoutGroup>
           <div className="relative h-screen overflow-hidden bg-zinc-900 font-sans">
             {/* idle icon */}
@@ -50,6 +53,7 @@ export const DirectPath: Story = {
                 <motion.div
                   key="idle"
                   layoutId="miniapp-container"
+                  transition={MOTION_PRESETS.sharedLayout}
                   className="absolute top-8 left-8 z-10 bg-zinc-800"
                   style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden' }}
                   onClick={() => setState('window')}
@@ -57,10 +61,15 @@ export const DirectPath: Story = {
                 >
                   <motion.div
                     layoutId="miniapp-icon"
+                    transition={MOTION_PRESETS.sharedLayout}
                     className="flex h-full w-full items-center justify-center bg-blue-500"
                     style={{ borderRadius: 16 }}
                   >
-                    <motion.span layoutId="miniapp-symbol" className="text-2xl select-none">
+                    <motion.span
+                      layoutId="miniapp-symbol"
+                      transition={MOTION_PRESETS.sharedLayout}
+                      className="text-2xl select-none"
+                    >
                       🚀
                     </motion.span>
                   </motion.div>
@@ -74,6 +83,7 @@ export const DirectPath: Story = {
                 <motion.div
                   key="window"
                   layoutId="miniapp-container"
+                  transition={MOTION_PRESETS.sharedLayout}
                   className="absolute inset-4 z-20 flex flex-col bg-zinc-800"
                   style={{ borderRadius: 24, overflow: 'hidden' }}
                   initial={{ opacity: 0 }}
@@ -84,10 +94,15 @@ export const DirectPath: Story = {
                   <div className="flex items-center gap-3 bg-blue-500/80 p-4">
                     <motion.div
                       layoutId="miniapp-icon"
+                      transition={MOTION_PRESETS.sharedLayout}
                       className="flex h-12 w-12 items-center justify-center bg-blue-500"
                       style={{ borderRadius: 16 }}
                     >
-                      <motion.span layoutId="miniapp-symbol" className="text-3xl select-none">
+                      <motion.span
+                        layoutId="miniapp-symbol"
+                        transition={MOTION_PRESETS.sharedLayout}
+                        className="text-3xl select-none"
+                      >
                         🚀
                       </motion.span>
                     </motion.div>
@@ -110,7 +125,7 @@ export const DirectPath: Story = {
             </div>
           </div>
         </LayoutGroup>
-      </MotionConfig>
+      </MiniappVisualProvider>
     );
   },
   play: async ({ canvasElement, step }) => {
@@ -151,7 +166,7 @@ export const SplashPath: Story = {
     };
 
     return (
-      <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
+      <MiniappVisualProvider override={{ motion: { timeScale: MOTION_DEBUG_TIME_SCALE } }}>
         <LayoutGroup>
           <div className="relative h-screen overflow-hidden bg-zinc-900 font-sans">
             {/* idle icon */}
@@ -160,6 +175,7 @@ export const SplashPath: Story = {
                 <motion.div
                   key="idle"
                   layoutId="splash-container"
+                  transition={MOTION_PRESETS.sharedLayout}
                   className="absolute top-8 left-8 z-10 bg-orange-500"
                   style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden' }}
                   onClick={goSplash}
@@ -167,10 +183,15 @@ export const SplashPath: Story = {
                 >
                   <motion.div
                     layoutId="splash-icon"
+                    transition={MOTION_PRESETS.sharedLayout}
                     className="flex h-full w-full items-center justify-center"
                     style={{ borderRadius: 16 }}
                   >
-                    <motion.span layoutId="splash-symbol" className="text-2xl select-none">
+                    <motion.span
+                      layoutId="splash-symbol"
+                      transition={MOTION_PRESETS.sharedLayout}
+                      className="text-2xl select-none"
+                    >
                       🎯
                     </motion.span>
                   </motion.div>
@@ -187,7 +208,7 @@ export const SplashPath: Story = {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  transition={MOTION_PRESETS.uiFast}
                   data-testid="splash-bg"
                 />
               )}
@@ -199,16 +220,22 @@ export const SplashPath: Story = {
                 <motion.div
                   key="splash"
                   layoutId="splash-container"
+                  transition={MOTION_PRESETS.sharedLayout}
                   className="absolute top-1/2 left-1/2 z-20 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-orange-600 shadow-xl"
                   style={{ borderRadius: 24, overflow: 'hidden' }}
                   data-testid="splash-icon"
                 >
                   <motion.div
                     layoutId="splash-icon"
+                    transition={MOTION_PRESETS.sharedLayout}
                     className="flex h-full w-full items-center justify-center"
                     style={{ borderRadius: 24 }}
                   >
-                    <motion.span layoutId="splash-symbol" className="text-4xl select-none">
+                    <motion.span
+                      layoutId="splash-symbol"
+                      transition={MOTION_PRESETS.sharedLayout}
+                      className="text-4xl select-none"
+                    >
                       🎯
                     </motion.span>
                   </motion.div>
@@ -222,6 +249,7 @@ export const SplashPath: Story = {
                 <motion.div
                   key="window"
                   layoutId="splash-container"
+                  transition={MOTION_PRESETS.sharedLayout}
                   className="absolute inset-4 z-30 flex flex-col bg-white"
                   style={{ borderRadius: 24, overflow: 'hidden' }}
                   initial={{ opacity: 0 }}
@@ -232,10 +260,15 @@ export const SplashPath: Story = {
                   <div className="flex items-center gap-3 bg-orange-500 p-4">
                     <motion.div
                       layoutId="splash-icon"
+                      transition={MOTION_PRESETS.sharedLayout}
                       className="flex h-10 w-10 items-center justify-center bg-orange-600"
                       style={{ borderRadius: 12 }}
                     >
-                      <motion.span layoutId="splash-symbol" className="text-lg select-none">
+                      <motion.span
+                        layoutId="splash-symbol"
+                        transition={MOTION_PRESETS.sharedLayout}
+                        className="text-lg select-none"
+                      >
                         🎯
                       </motion.span>
                     </motion.div>
@@ -260,7 +293,7 @@ export const SplashPath: Story = {
             </div>
           </div>
         </LayoutGroup>
-      </MotionConfig>
+      </MiniappVisualProvider>
     );
   },
   play: async ({ canvasElement, step }) => {

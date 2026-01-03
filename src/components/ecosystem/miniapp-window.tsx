@@ -15,14 +15,17 @@ import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
   type MiniappInstance,
+  type MiniappPresentation,
   registerWindowRef,
   registerWindowInnerRef,
   getDesktopAppSlotRef,
-  closeApp,
-  dismissSplash,
-  finalizeCloseApp,
+  requestDismiss,
+  requestDismissSplash,
+  didDismiss,
+  didPresent,
   settleFlow,
 } from '@/services/miniapp-runtime';
+import { getMiniappMotionPresets, type MiniappMotionPresets } from '@/services/miniapp-runtime/visual-config';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappIcon } from './miniapp-icon';
@@ -55,63 +58,106 @@ const VISIBILITY_VARIANTS = {
  * top: 上层可见，bottom: 下层隐藏，gone: display:none
  */
 const LAYER_VARIANTS = {
-  top: { zIndex: 10, opacity: 1 },
+  top: { zIndex: 10, opacity: 1, pointerEvents: 'auto' },
   bottom: { zIndex: 0, opacity: 0, pointerEvents: 'none' },
   gone: { zIndex: 0, opacity: 0, display: 'none', pointerEvents: 'none' },
 };
 
 export function MiniappWindow({ className }: MiniappWindowProps) {
+  const presentations = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getPresentations);
+  const focusedAppId = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getFocusedAppId);
+  const visualConfig = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getVisualConfig);
+  const motionPresets = getMiniappMotionPresets(visualConfig);
+
+  if (presentations.length === 0) return null;
+
+  return (
+    <>
+      {presentations
+        .filter((p) => p.state !== 'hidden')
+        .map((p) => (
+          <MiniappWindowPortal
+            key={p.appId}
+            appId={p.appId}
+            presentation={p}
+            motionPresets={motionPresets}
+            className={className}
+            isFocused={p.appId === focusedAppId}
+          />
+        ))}
+    </>
+  );
+}
+
+function MiniappWindowPortal({
+  appId,
+  presentation,
+  motionPresets,
+  className,
+  isFocused,
+}: {
+  appId: string;
+  presentation: MiniappPresentation;
+  motionPresets: MiniappMotionPresets;
+  className?: string;
+  isFocused: boolean;
+}) {
   const windowRef = useRef<HTMLDivElement>(null);
   const iframeContainerRef = useRef<HTMLDivElement>(null);
   const [presentApp, setPresentApp] = useState<MiniappInstance | null>(null);
   const exitScheduledRef = useRef(false);
-  const exitingAppIdRef = useRef<string | null>(null);
+  const exitingTransitionIdRef = useRef<string | null>(null);
 
-  // 获取当前激活的应用
-  const activeApp = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getActiveApp);
-  const hasRunningApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningApps);
-  const isAnimating = useStore(miniappRuntimeStore, miniappRuntimeSelectors.isAnimating);
+  const app = useStore(miniappRuntimeStore, (s) => s.apps.get(appId) ?? null);
+  const isAnimating = useStore(miniappRuntimeStore, (s) => {
+    const a = s.apps.get(appId);
+    return a?.state === 'launching' || a?.state === 'splash' || a?.state === 'closing';
+  });
+
+  const portalHost = getDesktopAppSlotRef(presentation.desktop, appId);
 
   useLayoutEffect(() => {
-    if (!activeApp) {
+    if (!app) {
       setPresentApp(null);
       exitScheduledRef.current = false;
       return;
     }
 
-    if (activeApp.state === 'preparing') {
+    if (app.state === 'preparing') {
       setPresentApp(null);
       exitScheduledRef.current = false;
       return;
     }
 
-    if (activeApp.state === 'closing') {
+    if (presentation.state === 'dismissing' || app.state === 'closing') {
       if (exitScheduledRef.current) return;
 
       // 先渲染一帧 closing visuals，再触发 exit（layoutId -> icon）
-      setPresentApp(activeApp);
-      exitingAppIdRef.current = activeApp.appId;
+      setPresentApp(app);
+      exitingTransitionIdRef.current = presentation.transitionId;
       exitScheduledRef.current = true;
       requestAnimationFrame(() => setPresentApp(null));
       return;
     }
 
     exitScheduledRef.current = false;
-    setPresentApp(activeApp);
-  }, [activeApp?.appId, activeApp?.state]);
+    setPresentApp(app);
+  }, [app?.appId, app?.state, presentation.state, presentation.transitionId]);
 
-  // 直接从 runtime 获取 flow（同步，无延迟）
-  // 使用 ref 保留 closing 时的 flow，直到 exit 动画完成
+  useEffect(() => {
+    if (!presentApp) return;
+    if (presentation.state !== 'presenting') return;
+    if (presentation.transitionKind !== 'present') return;
+    if (!presentation.transitionId) return;
+    didPresent(appId, presentation.transitionId);
+  }, [appId, presentApp, presentation.state, presentation.transitionKind, presentation.transitionId]);
+
   const lastFlowRef = useRef<string>('closed');
   if (presentApp?.flow) {
     lastFlowRef.current = presentApp.flow;
   }
   const flow = presentApp ? presentApp.flow : lastFlowRef.current;
 
-  // DEBUG: 追踪关闭时的 flow 变化
-  console.log(`[Window:render] presentApp=${presentApp?.appId ?? 'null'}, presentApp.flow=${presentApp?.flow ?? 'null'}, lastFlowRef=${lastFlowRef.current}, flow=${flow}`);
-
-  // 当动画完成后，将方向性 flow 转为稳定态
   const handleLayoutAnimationComplete = useCallback(() => {
     if (presentApp?.appId) {
       settleFlow(presentApp.appId);
@@ -124,8 +170,6 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
   const iframeLayerVariant = flowToIframeLayer[flow];
   const splashIconHasLayoutId = flowToSplashIconLayoutId[flow];
   const capsuleVariant = flowToCapsule[flow];
-
-  // 只在动画过程中启用混合模式（opening/closing）
   const isTransitioning = flow === 'opening' || flow === 'closing';
 
   const appDisplay = useMemo(() => {
@@ -137,66 +181,45 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
     };
   }, [presentApp?.appId, presentApp?.manifest.name, presentApp?.manifest.icon, presentApp?.manifest.themeColorFrom]);
 
-  const targetDesktop = activeApp?.manifest.targetDesktop ?? 'stack';
-
-  const portalHost = activeApp ? getDesktopAppSlotRef(targetDesktop, activeApp.appId) : null;
-
-  // DEBUG: 追踪 window 的 layoutId 挂载时机
-  useEffect(() => {
-    console.log(
-      `[Window] presentApp=${presentApp?.appId ?? 'null'}, state=${presentApp?.state ?? 'null'}, flow=${flow}, hasPortalHost=${!!portalHost}`,
-    );
-  }, [presentApp?.appId, presentApp?.state, flow, portalHost]);
-
-  // 注册 window refs
   useEffect(() => {
     if (!portalHost) return;
     if (windowRef.current) registerWindowRef(windowRef.current);
     if (iframeContainerRef.current) registerWindowInnerRef(iframeContainerRef.current);
   }, [portalHost]);
 
-  // 挂载 iframe 到容器
   useEffect(() => {
     const iframe = presentApp?.iframeRef;
     const container = iframeContainerRef.current;
-
-    // 需要两者都 ready 才能挂载
     if (!iframe || !container) return;
 
-    // 如果 iframe 不在容器中，移动过来
     if (iframe.parentElement !== container) {
       container.appendChild(iframe);
     }
 
-    // 兜底：确保 iframe 可见（可能被 runtime 挂到 global 容器）
     if (iframe.style.display === 'none') {
       iframe.style.display = '';
     }
-
-    return () => {
-      // 组件卸载时不移除 iframe，由 runtime service 管理
-    };
   }, [presentApp?.iframeRef, presentApp?.appId, portalHost]);
 
-  // 处理关闭：关闭 app 由 runtime 状态机接管
   const handleClose = useCallback(() => {
-    if (!activeApp) return;
-    closeApp(activeApp.appId);
-  }, [activeApp]);
+    requestDismiss(appId);
+  }, [appId]);
 
   const handleSplashClose = useCallback(() => {
-    if (!activeApp) return;
-    dismissSplash(activeApp.appId);
-  }, [activeApp]);
+    requestDismissSplash(appId);
+  }, [appId]);
+
+  if (!portalHost) return null;
 
   const node = (
     <AnimatePresence
       initial={false}
       onExitComplete={() => {
-        const exitingAppId = exitingAppIdRef.current;
-        if (exitingAppId) finalizeCloseApp(exitingAppId);
-        exitingAppIdRef.current = null;
-        // 重置 flow，准备下次启动
+        const exitingTransitionId = exitingTransitionIdRef.current;
+        if (exitingTransitionId) {
+          didDismiss(appId, exitingTransitionId);
+        }
+        exitingTransitionIdRef.current = null;
         lastFlowRef.current = 'closed';
       }}
     >
@@ -204,6 +227,7 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
         <div
           ref={windowRef}
           className={cn(styles.window, isAnimating && styles.animating, className)}
+          style={{ zIndex: presentation.zOrder, pointerEvents: isFocused ? undefined : 'none' }}
           data-testid="miniapp-window"
           data-app-id={presentApp.appId}
         >
@@ -219,9 +243,9 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
                   'data-layoutid': `miniapp:${appDisplay.appId}:container`,
                 }
               : {})}
+            transition={motionPresets.sharedLayout}
             data-flow={flow}
           >
-            {/* 内容层容器：隔离混合模式 */}
             <motion.div
               className={cn(styles.contentLayer, isTransitioning && styles.blending)}
               {...(appDisplay.appId
@@ -230,8 +254,8 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
                     'data-layoutid': `miniapp:${appDisplay.appId}:inner`,
                   }
                 : {})}
+              transition={motionPresets.sharedLayout}
             >
-              {/* splash-bg 层 */}
               <motion.div
                 className={styles.splashBgLayer}
                 variants={LAYER_VARIANTS}
@@ -253,7 +277,6 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
                 />
               </motion.div>
 
-              {/* iframe 层 */}
               <motion.div
                 ref={iframeContainerRef}
                 className={styles.iframeLayer}
@@ -264,7 +287,6 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
               />
             </motion.div>
 
-            {/* splash-icon 层（独立于内容层，做 shared layout 动画） */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
               variants={LAYER_VARIANTS}
@@ -274,18 +296,18 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
             >
               <motion.div
                 className="size-30 items-center justify-center"
-                {...(appDisplay.appId
+                {...(splashIconHasLayoutId && appDisplay.appId
                   ? {
                       layoutId: `miniapp:${appDisplay.appId}:logo`,
                       'data-layoutid': `miniapp:${appDisplay.appId}:logo`,
                     }
                   : {})}
+                transition={motionPresets.sharedLayout}
               >
                 <MiniappIcon src={appDisplay.icon} name={appDisplay.name} size="2xl" />
               </motion.div>
             </motion.div>
 
-            {/* capsule */}
             <div className={styles.capsuleLayer}>
               <motion.div variants={VISIBILITY_VARIANTS} initial={false} animate={capsuleVariant}>
                 <MiniappCapsule
@@ -302,8 +324,6 @@ export function MiniappWindow({ className }: MiniappWindowProps) {
       )}
     </AnimatePresence>
   );
-
-  if (!hasRunningApps || !portalHost) return null;
 
   return createPortal(node, portalHost);
 }

@@ -1,23 +1,15 @@
 import { useStore } from '@tanstack/react-store';
-import { LayoutGroup, MotionConfig, type Transition } from 'motion/react';
+import { LayoutGroup } from 'motion/react';
 import { Stack } from './stackflow';
 import { MiniappWindow, MiniappStackView } from './components/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors, closeStackView } from './services/miniapp-runtime';
-
-const MOTION_DEBUG_SPEED = 0.05;
-const MOTION_DEBUG_TRANSITION: Transition = {
-  type: 'spring',
-  stiffness: 220 * MOTION_DEBUG_SPEED * MOTION_DEBUG_SPEED,
-  damping: 28 * MOTION_DEBUG_SPEED,
-  mass: 0.85,
-  // duration: 20000,
-} as const;
+import { MiniappVisualProvider } from './services/miniapp-runtime/MiniappVisualProvider';
 
 export function StackflowApp() {
   const isStackViewOpen = useStore(miniappRuntimeStore, miniappRuntimeSelectors.isStackViewOpen);
 
   return (
-    <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
+    <MiniappVisualProvider>
       <LayoutGroup id="miniapp-shared-layout">
         <>
           <Stack />
@@ -27,6 +19,6 @@ export function StackflowApp() {
           <MiniappStackView visible={isStackViewOpen} onClose={closeStackView} />
         </>
       </LayoutGroup>
-    </MotionConfig>
+    </MiniappVisualProvider>
   );
 }
