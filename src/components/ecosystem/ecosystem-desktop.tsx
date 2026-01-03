@@ -96,6 +96,29 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     const discoverPageRef = useRef<DiscoverPageRef>(null);
     const currentPageRef = useRef<EcosystemSubPage>('mine');
 
+    // 如果启动了小程序，则强制滑到对应的 targetDesktop（mine/stack）
+    const forcedSubPage = useStore(miniappRuntimeStore, (state) => {
+      if (state.presentations.size === 0) return null;
+
+      const visiblePresentations = Array.from(state.presentations.values()).filter((p) => p.state !== 'hidden');
+      if (visiblePresentations.length === 0) return null;
+
+      const focusedId = state.focusedAppId ?? state.activeAppId;
+      const focusedPresentation = focusedId ? state.presentations.get(focusedId) : null;
+      const targetDesktop =
+        focusedPresentation?.desktop ??
+        (focusedId ? (state.apps.get(focusedId)?.manifest.targetDesktop ?? null) : null);
+
+      const desktopToSubPage = (desktop: string | null | undefined): EcosystemSubPage => {
+        return desktop === 'stack' ? 'stack' : 'mine';
+      };
+
+      if (targetDesktop) return desktopToSubPage(targetDesktop);
+
+      const topmost = visiblePresentations.reduce((acc, cur) => (cur.zOrder > acc.zOrder ? cur : acc));
+      return desktopToSubPage(topmost.desktop);
+    });
+
     // 监听是否有 stack-target 应用（用于决定是否展示 stack 页）
     const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
 
@@ -138,6 +161,16 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     useEffect(() => {
       ecosystemActions.setAvailableSubPages(availablePages);
     }, [availablePages]);
+
+    // 当有小程序启动时，强制切到 targetDesktop 所在页
+    useEffect(() => {
+      if (!forcedSubPage) return;
+      if (currentPageRef.current === forcedSubPage) return;
+
+      const idx = availablePages.indexOf(forcedSubPage);
+      if (idx < 0) return;
+      swiperRef.current?.slideTo(idx);
+    }, [forcedSubPage, availablePages]);
 
     // 更新进度到 Store
     const handleProgress = useCallback((_: SwiperType, progress: number) => {
