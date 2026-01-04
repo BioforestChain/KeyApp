@@ -6,14 +6,7 @@
  */
 
 import { chainConfigStore, chainConfigSelectors } from '@/stores/chain-config'
-import type { ChainConfig } from './types'
-
-/** 默认 RPC 端点（代码内置 fallback） */
-const DEFAULT_RPC_URLS: Record<string, string> = {
-  ethereum: 'https://ethereum-rpc.publicnode.com',
-  binance: 'https://bsc-rpc.publicnode.com',
-  tron: 'https://api.trongrid.io',
-}
+import type { ApiEntry, ChainConfig, ParsedApiEntry } from './types'
 
 class ChainConfigService {
   /**
@@ -24,20 +17,84 @@ class ChainConfigService {
   }
 
   /**
-   * 获取链的 RPC URL
-   * 优先使用配置中的 api.url，fallback 到代码内置默认值
+   * 获取链的所有 API 配置
+   * 返回解析后的 ParsedApiEntry 数组
    */
-  getRpcUrl(chainId: string): string {
+  getApi(chainId: string): ParsedApiEntry[] {
     const config = this.getConfig(chainId)
-    return config?.api?.url ?? DEFAULT_RPC_URLS[chainId] ?? ''
+    if (!config?.api) return []
+
+    const entries: ParsedApiEntry[] = []
+    for (const [type, entry] of Object.entries(config.api)) {
+      entries.push(this.parseApiEntry(type, entry as ApiEntry))
+    }
+    return entries
   }
 
   /**
-   * 获取链的 API path (仅 bioforest 链需要)
+   * 获取指定类型的 API 配置
    */
-  getApiPath(chainId: string): string {
-    const config = this.getConfig(chainId)
-    return config?.api?.path ?? chainId
+  getApiByType(chainId: string, type: string): ParsedApiEntry | null {
+    const entries = this.getApi(chainId)
+    return entries.find((e) => e.type === type) ?? null
+  }
+
+  /**
+   * 查找匹配模式的 API (例如 "*-rpc" 匹配 "ethereum-rpc", "tron-rpc")
+   */
+  getApiByPattern(chainId: string, pattern: string): ParsedApiEntry | null {
+    const entries = this.getApi(chainId)
+    const regex = new RegExp('^' + pattern.replace('*', '.*') + '$')
+    return entries.find((e) => regex.test(e.type)) ?? null
+  }
+
+  /**
+   * 解析 API 配置项
+   */
+  private parseApiEntry(type: string, entry: ApiEntry): ParsedApiEntry {
+    if (typeof entry === 'string') {
+      return { type, endpoint: entry }
+    }
+    const [endpoint, config] = entry
+    return { type, endpoint, config }
+  }
+
+  // ========== 便捷方法 (用于 Adapter) ==========
+
+  /**
+   * 获取 RPC URL (匹配 *-rpc 类型的 provider)
+   */
+  getRpcUrl(chainId: string): string {
+    const api = this.getApiByPattern(chainId, '*-rpc')
+    return api?.endpoint ?? ''
+  }
+
+  /**
+   * 获取 BioWallet API 配置 (匹配 biowallet-* 类型)
+   */
+  getBiowalletApi(chainId: string): { endpoint: string; path: string } | null {
+    const api = this.getApiByPattern(chainId, 'biowallet-*')
+    if (!api) return null
+    const path = (api.config?.path as string) ?? chainId
+    return { endpoint: api.endpoint, path }
+  }
+
+  /**
+   * 获取 Etherscan API (匹配 etherscan-* 或 *scan-* 类型)
+   */
+  getEtherscanApi(chainId: string): string | null {
+    // 先尝试 etherscan-*，再尝试 *scan-*
+    const api = this.getApiByPattern(chainId, 'etherscan-*') 
+      ?? this.getApiByPattern(chainId, '*scan-*')
+    return api?.endpoint ?? null
+  }
+
+  /**
+   * 获取 Mempool API (匹配 mempool-* 类型)
+   */
+  getMempoolApi(chainId: string): string | null {
+    const api = this.getApiByPattern(chainId, 'mempool-*')
+    return api?.endpoint ?? null
   }
 
   /**

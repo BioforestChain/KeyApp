@@ -21,13 +21,27 @@ export const ChainConfigTypeSchema = z.enum(['bioforest', 'evm', 'tron', 'bip39'
 
 export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manual'])
 
-/** API 提供商配置（可替换的外部依赖） */
-export const ApiConfigSchema = z.object({
-  /** 提供商 base URL (e.g., https://walletapi.bfmeta.info) */
-  url: z.string().url(),
-  /** 该提供商对这条链的路径别名 (e.g., "bfm" for bfmeta)，仅 bioforest 链需要 */
-  path: z.string().min(1).max(20).optional(),
-})
+/**
+ * API 提供商配置
+ *
+ * 格式: Record<providerType, url | [url, config]>
+ * - providerType: "{provider}-{version}" (e.g., "ethereum-rpc", "etherscan-v2", "biowallet-v1")
+ * - url: 简单 URL 字符串
+ * - [url, config]: URL + 额外配置对象
+ *
+ * 示例:
+ * {
+ *   "ethereum-rpc": "https://ethereum-rpc.publicnode.com",
+ *   "etherscan-v2": ["https://api.etherscan.io/v2/api", { "apiKey": "xxx" }],
+ *   "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "bfm" }]
+ * }
+ */
+export const ApiEntrySchema = z.union([
+  z.string().url(),
+  z.tuple([z.string().url(), z.record(z.string(), z.unknown())]),
+])
+
+export const ApiConfigSchema = z.record(z.string(), ApiEntrySchema)
 
 /** 区块浏览器配置（可替换的外部依赖） */
 export const ExplorerConfigSchema = z.object({

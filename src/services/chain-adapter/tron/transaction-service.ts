@@ -1,10 +1,11 @@
 /**
  * Tron Transaction Service
  * 
- * Uses Tron HTTP API via PublicNode (tron-rpc.publicnode.com)
+ * Uses Tron HTTP API via TronGrid
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import type {
   ITransactionService,
   TransferParams,
@@ -27,12 +28,8 @@ import type {
   TronBlock,
 } from './types'
 
-/** Default Tron RPC endpoints */
-const DEFAULT_RPC_URLS: Record<string, string> = {
-  'tron': 'https://tron-rpc.publicnode.com',
-  'tron-nile': 'https://nile.trongrid.io',
-  'tron-shasta': 'https://api.shasta.trongrid.io',
-}
+/** Default Tron RPC 端点 (fallback) */
+const DEFAULT_RPC_URL = 'https://api.trongrid.io'
 
 export class TronTransactionService implements ITransactionService {
   readonly supportsTransactionHistory = false
@@ -41,7 +38,8 @@ export class TronTransactionService implements ITransactionService {
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.rpcUrl = DEFAULT_RPC_URLS[config.id] ?? config.api?.url ?? DEFAULT_RPC_URLS['tron']!
+    // 使用 *-rpc API 配置
+    this.rpcUrl = chainConfigService.getRpcUrl(config.id) || DEFAULT_RPC_URL
   }
 
   private async api<T>(endpoint: string, body?: unknown): Promise<T> {

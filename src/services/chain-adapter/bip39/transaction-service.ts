@@ -1,8 +1,9 @@
 /**
- * BIP39 Transaction Service (Bitcoin, Tron)
+ * BIP39 Transaction Service (使用 BioWallet API)
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import type {
   ITransactionService,
   TransferParams,
@@ -25,8 +26,9 @@ export class Bip39TransactionService implements ITransactionService {
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.apiUrl = config.api?.url ?? 'https://walletapi.bfmeta.info'
-    this.apiPath = config.api?.path ?? config.id
+    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
+    this.apiUrl = biowalletApi?.endpoint ?? ''
+    this.apiPath = biowalletApi?.path ?? config.id
   }
 
   private async fetch<T>(endpoint: string, body?: unknown): Promise<T> {

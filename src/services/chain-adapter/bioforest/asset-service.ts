@@ -64,15 +64,16 @@ export class BioforestAssetService implements IAssetService {
 
   async getTokenBalances(address: Address): Promise<Balance[]> {
     const config = this.getConfig()
-    const apiUrl = config.api?.url ?? ''
-    const apiPath = config.api?.path ?? config.id
+    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
 
-    if (!apiUrl) {
+    if (!biowalletApi) {
       return [this.getEmptyNativeBalance()]
     }
 
+    const { endpoint, path } = biowalletApi
+
     try {
-      const response = await fetch(`${apiUrl}/wallet/${apiPath}/address/asset`, {
+      const response = await fetch(`${endpoint}/wallet/${path}/address/asset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

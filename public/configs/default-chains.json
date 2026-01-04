@@ -15,7 +15,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "bfm" },
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "bfm" }]
+      },
       "explorer": {
         "url": "https://tracker.bfmeta.org",
         "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
@@ -37,7 +39,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "ccchain" }
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "ccchain" }]
+      }
     },
     {
       "id": "pmchain",
@@ -53,7 +57,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "pmchain" }
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "pmchain" }]
+      }
     },
     {
       "id": "bfchainv2",
@@ -69,7 +75,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "bfchainv2" }
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "bfchainv2" }]
+      }
     },
     {
       "id": "btgmeta",
@@ -85,7 +93,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "btgmeta" }
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "btgmeta" }]
+      }
     },
     {
       "id": "biwmeta",
@@ -99,7 +109,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.biw-meta.com", "path": "biwmeta" },
+      "api": {
+        "biowallet-v1": ["https://walletapi.biw-meta.com", { "path": "biwmeta" }]
+      },
       "explorer": {
         "url": "https://tracker.biw-meta.info",
         "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
@@ -121,7 +133,9 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "api": { "url": "https://walletapi.bfmeta.info", "path": "ethmeta" }
+      "api": {
+        "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "ethmeta" }]
+      }
     },
     {
       "id": "ethereum",
@@ -136,7 +150,10 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth"
       ],
       "decimals": 18,
-      "api": { "url": "https://ethereum-rpc.publicnode.com" },
+      "api": {
+        "ethereum-rpc": "https://ethereum-rpc.publicnode.com",
+        "etherscan-v2": "https://api.etherscan.io/v2/api"
+      },
       "explorer": {
         "url": "https://etherscan.io",
         "queryTx": "https://etherscan.io/tx/:hash",
@@ -156,7 +173,10 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc"
       ],
       "decimals": 18,
-      "api": { "url": "https://bsc-rpc.publicnode.com" },
+      "api": {
+        "bsc-rpc": "https://bsc-rpc.publicnode.com",
+        "bscscan-v2": "https://api.bscscan.com/v2/api"
+      },
       "explorer": {
         "url": "https://bscscan.com",
         "queryTx": "https://bscscan.com/tx/:hash",
@@ -176,7 +196,9 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron"
       ],
       "decimals": 6,
-      "api": { "url": "https://api.trongrid.io" },
+      "api": {
+        "tron-rpc": "https://api.trongrid.io"
+      },
       "explorer": {
         "url": "https://tronscan.org",
         "queryTx": "https://tronscan.org/#/transaction/:hash",
@@ -196,6 +218,9 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm"
       ],
       "decimals": 8,
+      "api": {
+        "mempool-v1": "https://mempool.space/api"
+      },
       "explorer": {
         "url": "https://mempool.space",
         "queryTx": "https://mempool.space/tx/:hash",

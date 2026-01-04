@@ -6,6 +6,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import type {
   ITransactionService,
@@ -32,9 +33,9 @@ export class BioforestTransactionService implements ITransactionService {
 
   constructor(config: ChainConfig) {
     this.config = config
-    // 使用提供商配置（外部依赖）
-    this.apiUrl = config.api?.url ?? ''
-    this.apiPath = config.api?.path ?? config.id
+    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
+    this.apiUrl = biowalletApi?.endpoint ?? ''
+    this.apiPath = biowalletApi?.path ?? config.id
   }
 
   async estimateFee(params: TransferParams): Promise<FeeEstimate> {

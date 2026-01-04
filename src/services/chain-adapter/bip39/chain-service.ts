@@ -1,8 +1,9 @@
 /**
- * BIP39 Chain Service (Bitcoin, Tron)
+ * BIP39 Chain Service (Bitcoin)
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
@@ -10,16 +11,15 @@ import { ChainServiceError, ChainErrorCodes } from '../types'
 export class Bip39ChainService implements IChainService {
   private readonly config: ChainConfig
   private readonly apiUrl: string
-  private readonly apiPath: string
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.apiUrl = config.api?.url ?? 'https://walletapi.bfmeta.info'
-    this.apiPath = config.api?.path ?? config.id
+    // 使用 mempool-* API
+    this.apiUrl = chainConfigService.getMempoolApi(config.id) ?? 'https://mempool.space/api'
   }
 
   private async fetch<T>(endpoint: string): Promise<T> {
-    const url = `${this.apiUrl}/wallet/${this.apiPath}${endpoint}`
+    const url = `${this.apiUrl}${endpoint}`
     const response = await fetch(url)
 
     if (!response.ok) {
