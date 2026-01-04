@@ -312,6 +312,7 @@ function MiniappWindowPortal({
               <motion.div variants={VISIBILITY_VARIANTS} initial={false} animate={capsuleVariant}>
                 <MiniappCapsule
                   visible={true}
+                  theme={presentApp?.ctx.capsuleTheme ?? 'auto'}
                   onAction={() => {
                     // TODO: 显示更多操作菜单
                   }}

@@ -70,8 +70,9 @@ export function MiniappWindowStack() {
   return (
     <div
       ref={rootRef}
-      className="absolute inset-0 z-20 grid"
+      className="absolute left-0 right-0 top-0 z-20 grid"
       style={{
+        bottom: 'var(--tab-bar-height)',
         pointerEvents: 'none',
         gridTemplateColumns: '1fr',
         gridTemplateRows: '1fr',
