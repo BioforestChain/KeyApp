@@ -64,3 +64,8 @@ export {
   addressBalanceKeys,
   type AddressBalanceResult,
 } from './use-address-balance-query'
+
+export {
+  useAddressTransactionsQuery,
+  addressTransactionsQueryKeys,
+} from './use-address-transactions-query'

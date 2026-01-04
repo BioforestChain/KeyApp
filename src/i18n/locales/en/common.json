@@ -363,6 +363,8 @@
     "addressOrHashPlaceholder": "Enter address or tx hash",
     "otherChains": "Other Chains",
     "error": "Query Failed",
+    "queryError": "Failed to query transactions, please try again",
+    "noTransactions": "No transactions found",
     "onChain": "on {{chain}}",
     "explorerHint": "Transaction history requires block explorer",
     "openExplorer": "Open {{name}} Explorer",
