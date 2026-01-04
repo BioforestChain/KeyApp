@@ -4,34 +4,46 @@
  * Migrated from mpay: libs/wallet-base/services/wallet/chain-base/bioforest-chain.base.ts
  */
 
-import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService, type ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import type { IAssetService, Address, Balance, TokenMetadata } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import { AddressAssetsResponseSchema } from './schema'
 
 export class BioforestAssetService implements IAssetService {
-  private readonly config: ChainConfig
-  private readonly apiUrl: string
-  private readonly apiPath: string
+  private readonly chainId: string
+  private config: ChainConfig | null = null
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    // 使用提供商配置（外部依赖）
-    this.apiUrl = config.api?.url ?? ''
-    this.apiPath = config.api?.path ?? config.id
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private getConfig(): ChainConfig {
+    if (!this.config) {
+      const config = chainConfigService.get(this.chainId)
+      if (!config) {
+        throw new ChainServiceError(
+          ChainErrorCodes.CHAIN_NOT_FOUND,
+          `Chain config not found: ${this.chainId}`,
+        )
+      }
+      this.config = config
+    }
+    return this.config
   }
 
   private getEmptyNativeBalance(): Balance {
+    const config = this.getConfig()
     return {
-      amount: Amount.zero(this.config.decimals, this.config.symbol),
-      symbol: this.config.symbol,
+      amount: Amount.zero(config.decimals, config.symbol),
+      symbol: config.symbol,
     }
   }
 
   async getNativeBalance(address: Address): Promise<Balance> {
     const balances = await this.getTokenBalances(address)
-    const native = balances.find((b) => b.symbol === this.config.symbol)
+    const config = this.getConfig()
+    const native = balances.find((b) => b.symbol === config.symbol)
     return native ?? this.getEmptyNativeBalance()
   }
 
@@ -43,19 +55,24 @@ export class BioforestAssetService implements IAssetService {
 
     if (token) return token
 
+    const config = this.getConfig()
     return {
-      amount: Amount.zero(this.config.decimals, assetType),
+      amount: Amount.zero(config.decimals, assetType),
       symbol: assetType,
     }
   }
 
   async getTokenBalances(address: Address): Promise<Balance[]> {
-    if (!this.apiUrl) {
+    const config = this.getConfig()
+    const apiUrl = config.api?.url ?? ''
+    const apiPath = config.api?.path ?? config.id
+
+    if (!apiUrl) {
       return [this.getEmptyNativeBalance()]
     }
 
     try {
-      const response = await fetch(`${this.apiUrl}/wallet/${this.apiPath}/address/asset`, {
+      const response = await fetch(`${apiUrl}/wallet/${apiPath}/address/asset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +113,7 @@ export class BioforestAssetService implements IAssetService {
           const asset = magicAssets[assetType]
           if (!asset) continue
 
-          const decimals = this.config.decimals
+          const decimals = config.decimals
           const amount = Amount.fromRaw(asset.assetNumber, decimals, asset.assetType)
 
           balances.push({
@@ -119,12 +136,12 @@ export class BioforestAssetService implements IAssetService {
   }
 
   async getTokenMetadata(tokenAddress: Address): Promise<TokenMetadata> {
-    // In BioForest, tokenAddress is assetType
+    const config = this.getConfig()
     return {
       address: null,
       name: tokenAddress,
       symbol: tokenAddress,
-      decimals: this.config.decimals,
+      decimals: config.decimals,
     }
   }
 }

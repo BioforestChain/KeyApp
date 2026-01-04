@@ -2,8 +2,31 @@
  * BioforestAssetService 单元测试
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AddressAssetsResponseSchema } from './schema'
+import { BioforestAssetService } from './asset-service'
+
+// Mock chainConfigService
+vi.mock('@/services/chain-config', () => ({
+  chainConfigService: {
+    get: vi.fn((chainId: string) => {
+      if (chainId === 'bfmeta') {
+        return {
+          id: 'bfmeta',
+          type: 'bioforest',
+          name: 'BFMeta',
+          symbol: 'BFM',
+          decimals: 8,
+          api: {
+            url: 'https://walletapi.bfmeta.info',
+            path: 'bfm',
+          },
+        }
+      }
+      return null
+    }),
+  },
+}))
 
 describe('AddressAssetsResponseSchema', () => {
   it('should parse successful response with assets', () => {
@@ -95,6 +118,36 @@ describe('AddressAssetsResponseSchema', () => {
 
     const parsed = AddressAssetsResponseSchema.safeParse(response)
     expect(parsed.success).toBe(false)
+  })
+})
+
+describe('BioforestAssetService', () => {
+  let service: BioforestAssetService
+
+  beforeEach(() => {
+    service = new BioforestAssetService('bfmeta')
+  })
+
+  it('should get config from chainConfigService', () => {
+    // getEmptyNativeBalance uses getConfig internally
+    const balance = (service as any).getEmptyNativeBalance()
+    
+    expect(balance.symbol).toBe('BFM')
+    expect(balance.amount.decimals).toBe(8)
+  })
+
+  it('should throw error for unknown chainId', () => {
+    const unknownService = new BioforestAssetService('unknown-chain')
+    
+    expect(() => (unknownService as any).getConfig()).toThrow('Chain config not found: unknown-chain')
+  })
+
+  it('should return balance with valid symbol from getEmptyNativeBalance', () => {
+    const balance = (service as any).getEmptyNativeBalance()
+    
+    expect(balance.symbol).toBe('BFM')
+    expect(balance.symbol).not.toBeUndefined()
+    expect(balance.amount.symbol).toBe('BFM')
   })
 })
 
