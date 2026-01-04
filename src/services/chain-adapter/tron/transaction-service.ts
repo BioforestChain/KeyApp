@@ -35,6 +35,7 @@ const DEFAULT_RPC_URLS: Record<string, string> = {
 }
 
 export class TronTransactionService implements ITransactionService {
+  readonly supportsTransactionHistory = false
   private readonly config: ChainConfig
   private readonly rpcUrl: string
 

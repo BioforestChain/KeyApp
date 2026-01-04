@@ -18,6 +18,7 @@ import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 
 export class Bip39TransactionService implements ITransactionService {
+  readonly supportsTransactionHistory = true
   private readonly config: ChainConfig
   private readonly apiUrl: string
   private readonly apiPath: string

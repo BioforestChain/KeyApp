@@ -345,6 +345,7 @@
     "noTransactions": "暂无交易记录",
     "onChain": "在 {{chain}} 上",
     "explorerHint": "交易记录需要通过区块浏览器查询",
+    "useExplorerHint": "该链不支持直接查询交易历史，请使用浏览器查看",
     "openExplorer": "打开 {{name}} 浏览器",
     "viewOnExplorer": "在 {{name}} 浏览器中查看"
   }

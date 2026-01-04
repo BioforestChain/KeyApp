@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { useEnabledChains } from '@/stores'
 import { useAddressTransactionsQuery } from '@/queries'
+import { getAdapterRegistry, setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
 import { IconSearch, IconExternalLink, IconArrowUpRight, IconArrowDownLeft, IconLoader2 } from '@tabler/icons-react'
 import type { Transaction } from '@/services/chain-adapter/types'
 
@@ -57,6 +58,20 @@ export function AddressTransactionsPage() {
     () => enabledChains.find((c) => c.id === selectedChain),
     [enabledChains, selectedChain]
   )
+
+  // 检查当前链的 adapter 是否支持交易历史查询
+  const supportsTransactionHistory = useMemo(() => {
+    if (!selectedChainConfig) return false
+    try {
+      setupAdapters()
+      registerChainConfigs([selectedChainConfig])
+      const registry = getAdapterRegistry()
+      const adapter = registry.getAdapter(selectedChain)
+      return adapter?.transaction.supportsTransactionHistory ?? false
+    } catch {
+      return false
+    }
+  }, [selectedChain, selectedChainConfig])
 
   const { data: transactions, isLoading, isError, refetch } = useAddressTransactionsQuery({
     chainId: selectedChain,
@@ -177,7 +192,12 @@ export function AddressTransactionsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('common:addressLookup.noTransactions')}
+                  {/* 不支持直接查询历史的链，显示浏览器提示 */}
+                  {!supportsTransactionHistory ? (
+                    <p>{t('common:addressLookup.useExplorerHint')}</p>
+                  ) : (
+                    <p>{t('common:addressLookup.noTransactions')}</p>
+                  )}
                 </div>
               )}
 
@@ -185,7 +205,7 @@ export function AddressTransactionsPage() {
               {explorerUrl && (
                 <div className="mt-4 pt-4 border-t">
                   <Button
-                    variant="outline"
+                    variant={!supportsTransactionHistory ? 'default' : 'outline'}
                     size="sm"
                     className="w-full gap-2"
                     onClick={handleOpenExplorer}

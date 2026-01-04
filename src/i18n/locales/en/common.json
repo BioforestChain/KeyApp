@@ -367,6 +367,7 @@
     "noTransactions": "No transactions found",
     "onChain": "on {{chain}}",
     "explorerHint": "Transaction history requires block explorer",
+    "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "openExplorer": "Open {{name}} Explorer",
     "viewOnExplorer": "View on {{name}}"
   }

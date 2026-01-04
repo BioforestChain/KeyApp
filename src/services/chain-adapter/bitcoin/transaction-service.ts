@@ -29,6 +29,7 @@ const API_URLS: Record<string, string> = {
 }
 
 export class BitcoinTransactionService implements ITransactionService {
+  readonly supportsTransactionHistory = true
   private readonly config: ChainConfig
   private readonly apiUrl: string
 
