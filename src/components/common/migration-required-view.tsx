@@ -1,18 +1,19 @@
 import { useTranslation } from 'react-i18next'
 import { IconAlertTriangle, IconDatabase } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
-import { useFlow } from '@/stackflow'
 
 /**
  * 数据库迁移引导组件
  * 当检测到旧版数据需要迁移时显示
+ * 
+ * 注意：此组件在 Stackflow context 外部渲染，不能使用 useFlow()
  */
 export function MigrationRequiredView() {
   const { t } = useTranslation(['settings', 'common'])
-  const { push } = useFlow()
 
   const handleGoToStorage = () => {
-    push('SettingsStorageActivity', {})
+    // 直接导航到存储管理页面（不依赖 Stackflow）
+    window.location.href = '/#/settings/storage'
   }
 
   return (
