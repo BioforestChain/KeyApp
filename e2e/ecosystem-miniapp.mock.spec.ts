@@ -528,6 +528,58 @@ test.describe('权限请求截图测试', () => {
 })
 
 // ============================================
+// 小程序权限集成测试（runtime + bridge + sheet）
+// ============================================
+
+test.describe('小程序权限集成测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectTestData(page)
+  })
+
+  test('Teleport 启动传送门应弹出权限请求', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'ecosystem_my_apps',
+        JSON.stringify([{ appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 }])
+      )
+    })
+
+    await page.goto('/#/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    await page.getByTestId('tab-ecosystem').click()
+    await page.waitForTimeout(300)
+
+    await swipeToMyAppsPage(page)
+    await page.waitForTimeout(300)
+
+    // 右键菜单 -> 打开
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]').click({ button: 'right' })
+    await page.waitForTimeout(200)
+    await page.locator('button:has-text("打开")').click()
+
+    // 等待 iframe 加载并点击“启动传送门”
+    const teleportFrame = page.frameLocator('iframe[data-app-id="xin.dweb.teleport"]')
+    const launchButton = teleportFrame.getByRole('button', { name: '启动传送门' })
+    await launchButton.waitFor({ state: 'visible', timeout: 15000 })
+
+    await launchButton.click()
+
+    // 点击后应进入连接中状态
+    await expect(teleportFrame.getByRole('button', { name: '连接中...' })).toBeVisible({ timeout: 3000 })
+
+    // 应出现权限请求 Sheet
+    await expect(page.getByText('请求以下权限')).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText('查看账户')).toBeVisible({ timeout: 8000 })
+
+    // 允许后应进入钱包选择器
+    await page.locator('button:has-text("允许")').click()
+    await expect(page.getByText('选择钱包')).toBeVisible({ timeout: 8000 })
+  })
+})
+
+// ============================================
 // 空状态测试
 // ============================================
 

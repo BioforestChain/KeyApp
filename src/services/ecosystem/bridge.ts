@@ -136,10 +136,18 @@ export class PostMessageBridge {
     }
 
     // Check permissions
-    const skipPermissionCheck = ['bio_connect'].includes(method)
+    const skipPermissionCheck = ['bio_connect', 'bio_closeSplashScreen'].includes(method)
     if (!skipPermissionCheck) {
+      const accountRelatedMethods = ['bio_accounts', 'bio_selectAccount', 'bio_pickWallet']
+      const shouldMapToRequestAccounts =
+        accountRelatedMethods.includes(method) && this.manifestPermissions.includes('bio_requestAccounts')
+      const permissionKey = shouldMapToRequestAccounts ? 'bio_requestAccounts' : method
+
       // 1. 检查 manifest 是否声明了该权限
-      if (!this.manifestPermissions.includes(method) && method !== 'bio_requestAccounts') {
+      const isDeclaredInManifest =
+        this.manifestPermissions.includes(method) || method === 'bio_requestAccounts' || shouldMapToRequestAccounts
+
+      if (!isDeclaredInManifest) {
         this.sendResponse(createErrorResponse(
           id,
           BioErrorCodes.UNAUTHORIZED,
@@ -149,11 +157,11 @@ export class PostMessageBridge {
       }
 
       // 2. 对于敏感方法，检查用户是否已授权
-      if (isSensitiveMethod(method)) {
-        const granted = hasPermission(this.appId, method)
+      if (isSensitiveMethod(permissionKey)) {
+        const granted = hasPermission(this.appId, permissionKey)
         if (!granted) {
           // 请求权限
-          const approved = await this.requestPermission([method])
+          const approved = await this.requestPermission([permissionKey])
           if (!approved) {
             this.sendResponse(createErrorResponse(
               id,

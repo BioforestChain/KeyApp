@@ -4,6 +4,8 @@
 
 export { HandlerContext, getCallbacksOrThrow, type HandlerCallbacks, type SigningParams, type SignTransactionParams } from './context'
 
+export { handleCloseSplashScreen } from './system'
+
 export {
   handleConnect,
   handleRequestAccounts,

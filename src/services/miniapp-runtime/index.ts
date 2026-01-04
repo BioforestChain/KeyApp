@@ -57,6 +57,7 @@ import {
   cleanupAllIframes,
 } from './iframe-manager'
 import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types'
+import { getBridge } from '../ecosystem/provider'
 import { toastService } from '../toast'
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs'
 export {
@@ -104,6 +105,18 @@ const initialState: MiniappRuntimeState = {
   zOrderSeed: 1,
   isStackViewOpen: false,
   maxBackgroundApps: 4,
+}
+
+function attachBioProvider(appId: string): void {
+  const app = miniappRuntimeStore.state.apps.get(appId)
+  const iframe = app?.iframeRef
+  if (!app || !iframe) return
+
+  getBridge().attach(iframe, appId, app.manifest.name, app.manifest.permissions ?? [])
+}
+
+function attachBioProviderToIframe(appId: string, iframe: HTMLIFrameElement, manifest: MiniappManifest): void {
+  getBridge().attach(iframe, appId, manifest.name, manifest.permissions ?? [])
 }
 
 /** Store 实例 */
@@ -556,6 +569,10 @@ export function finalizeCloseApp(appId: string): void {
       focusedAppId: s.focusedAppId === appId ? null : s.focusedAppId,
     }
   })
+
+  if (miniappRuntimeStore.state.apps.size === 0) {
+    getBridge().detach()
+  }
 }
 
 /**
@@ -578,6 +595,7 @@ export function launchApp(
 
   // 如果已存在，直接激活
   if (existingApp) {
+    attachBioProvider(appId)
     const targetDesktop = existingApp.manifest.targetDesktop ?? 'stack'
     upsertPresentation(appId, targetDesktop, {
       state: 'presented',
@@ -610,6 +628,9 @@ export function launchApp(
 
   // 创建 iframe
   instance.iframeRef = createIframe(appId, manifest.url, contextParams)
+
+  // 绑定 BioProvider bridge（用于 window.bio.request + 权限弹窗）
+  attachBioProviderToIframe(appId, instance.iframeRef, manifest)
 
   // iframe load：无 splash 时作为 ready 信号；有 splash 时只记录 loaded
   instance.iframeRef.addEventListener('load', () => {
@@ -690,6 +711,8 @@ export function activateApp(appId: string): void {
 
   // 更新状态
   updateAppState(appId, 'active')
+
+  attachBioProvider(appId)
 
   miniappRuntimeStore.setState((s) => {
     const newApps = new Map(s.apps)
