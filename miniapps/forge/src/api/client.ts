@@ -2,9 +2,7 @@
  * API Client
  */
 
-import { getApiBaseUrlSafe, ApiConfigError } from './config'
-
-export { ApiConfigError }
+import { getApiBaseUrlSafe } from './config'
 
 export class ApiError extends Error {
   constructor(

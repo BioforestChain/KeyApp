@@ -1,45 +1,21 @@
 /**
  * API Configuration
- * 
- * IMPORTANT: Base URL must be configured via VITE_COT_API_BASE_URL environment variable.
- * The COT Recharge API host has not been confirmed - do not use a hardcoded default.
+ *
+ * Default base URL is https://walletapi.bfmeta.info (same as other BioForest services).
+ * Can be overridden via VITE_COT_API_BASE_URL environment variable.
  */
 
-/** Configuration error for missing API base URL */
-export class ApiConfigError extends Error {
-  constructor() {
-    super(
-      '[Forge API] VITE_COT_API_BASE_URL is not configured. ' +
-      'Please set this environment variable to the COT Recharge API base URL.'
-    )
-    this.name = 'ApiConfigError'
-  }
-}
+/** Default API Base URL (used by all BioForest chain services) */
+const DEFAULT_API_BASE_URL = 'https://walletapi.bfmeta.info'
 
-/** API Base URL - must be configured via environment variable */
-function getApiBaseUrl(): string {
-  const url = import.meta.env.VITE_COT_API_BASE_URL
-  if (!url) {
-    // Log error for visibility in dev tools
-    console.error(new ApiConfigError().message)
-    // Throw to fail fast - prevents silent failures with relative paths
-    throw new ApiConfigError()
-  }
-  return url
-}
+/** API Base URL - uses default or environment override */
+export const API_BASE_URL =
+  import.meta.env.VITE_COT_API_BASE_URL || DEFAULT_API_BASE_URL
 
-// Lazy initialization to allow error handling at app level
-let _apiBaseUrl: string | null = null
-
+/** Get API Base URL (for backwards compatibility) */
 export function getApiBaseUrlSafe(): string {
-  if (_apiBaseUrl === null) {
-    _apiBaseUrl = getApiBaseUrl()
-  }
-  return _apiBaseUrl
+  return API_BASE_URL
 }
-
-// For backwards compatibility - will throw if not configured
-export const API_BASE_URL = import.meta.env.VITE_COT_API_BASE_URL || ''
 
 /** API Endpoints */
 export const API_ENDPOINTS = {
