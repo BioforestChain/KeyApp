@@ -88,16 +88,17 @@ describe('useRechargeConfig', () => {
     const options = result.current.forgeOptions
     expect(options).toHaveLength(2) // ETH and BSC enabled, TRON disabled
 
+    // Chain order: BSC -> TRON -> ETH
     expect(options[0]).toMatchObject({
-      externalChain: 'ETH',
-      externalAsset: 'ETH',
+      externalChain: 'BSC',
+      externalAsset: 'BNB',
       internalChain: 'bfmeta',
       internalAsset: 'BFM',
     })
 
     expect(options[1]).toMatchObject({
-      externalChain: 'BSC',
-      externalAsset: 'BNB',
+      externalChain: 'ETH',
+      externalAsset: 'ETH',
       internalChain: 'bfmeta',
       internalAsset: 'BFM',
     })
