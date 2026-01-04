@@ -4,16 +4,10 @@
  * Provides balance queries for EVM chains via public JSON-RPC endpoints.
  */
 
-import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service'
 import type { IAssetService, Address, Balance, TokenMetadata } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
-
-/** Default public RPC endpoints for EVM chains */
-const DEFAULT_RPC_URLS: Record<string, string> = {
-  ethereum: 'https://ethereum-rpc.publicnode.com',
-  binance: 'https://bsc-rpc.publicnode.com',
-}
 
 interface JsonRpcResponse<T> {
   jsonrpc: string
@@ -23,12 +17,22 @@ interface JsonRpcResponse<T> {
 }
 
 export class EvmAssetService implements IAssetService {
-  private readonly config: ChainConfig
-  private readonly rpcUrl: string
+  private readonly chainId: string
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    this.rpcUrl = DEFAULT_RPC_URLS[config.id] ?? config.api?.url ?? DEFAULT_RPC_URLS['ethereum']!
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private get rpcUrl(): string {
+    return chainConfigService.getRpcUrl(this.chainId)
+  }
+
+  private get decimals(): number {
+    return chainConfigService.getDecimals(this.chainId)
+  }
+
+  private get symbol(): string {
+    return chainConfigService.getSymbol(this.chainId)
   }
 
   private async rpc<T>(method: string, params: unknown[]): Promise<T> {
@@ -63,13 +67,13 @@ export class EvmAssetService implements IAssetService {
       const hexBalance = await this.rpc<string>('eth_getBalance', [address, 'latest'])
       const balance = BigInt(hexBalance).toString()
       return {
-        amount: Amount.fromRaw(balance, this.config.decimals, this.config.symbol),
-        symbol: this.config.symbol,
+        amount: Amount.fromRaw(balance, this.decimals, this.symbol),
+        symbol: this.symbol,
       }
     } catch {
       return {
-        amount: Amount.fromRaw('0', this.config.decimals, this.config.symbol),
-        symbol: this.config.symbol,
+        amount: Amount.fromRaw('0', this.decimals, this.symbol),
+        symbol: this.symbol,
       }
     }
   }
@@ -98,8 +102,6 @@ export class EvmAssetService implements IAssetService {
   }
 
   async getTokenMetadata(tokenAddress: Address): Promise<TokenMetadata> {
-    // ERC20 metadata queries would require multiple eth_call requests
-    // Return minimal info for now
     return {
       address: tokenAddress,
       name: 'Unknown Token',

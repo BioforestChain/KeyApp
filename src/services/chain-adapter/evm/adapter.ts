@@ -2,7 +2,7 @@
  * EVM Chain Adapter
  */
 
-import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import type { ChainConfigType } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { EvmIdentityService } from './identity-service'
 import { EvmAssetService } from './asset-service'
@@ -21,15 +21,15 @@ export class EvmAdapter implements IChainAdapter {
 
   private initialized = false
 
-  constructor(config: ChainConfig) {
-    this.chainId = config.id
-    this.identity = new EvmIdentityService(config)
-    this.asset = new EvmAssetService(config)
-    this.transaction = new EvmTransactionService(config)
-    this.chain = new EvmChainService(config)
+  constructor(chainId: string) {
+    this.chainId = chainId
+    this.identity = new EvmIdentityService(chainId)
+    this.asset = new EvmAssetService(chainId)
+    this.transaction = new EvmTransactionService(chainId)
+    this.chain = new EvmChainService(chainId)
   }
 
-  async initialize(_config: ChainConfig): Promise<void> {
+  async initialize(): Promise<void> {
     if (this.initialized) return
     this.initialized = true
   }
@@ -39,6 +39,6 @@ export class EvmAdapter implements IChainAdapter {
   }
 }
 
-export function createEvmAdapter(config: ChainConfig): IChainAdapter {
-  return new EvmAdapter(config)
+export function createEvmAdapter(chainId: string): IChainAdapter {
+  return new EvmAdapter(chainId)
 }

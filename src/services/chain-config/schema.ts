@@ -25,8 +25,8 @@ export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manua
 export const ApiConfigSchema = z.object({
   /** 提供商 base URL (e.g., https://walletapi.bfmeta.info) */
   url: z.string().url(),
-  /** 该提供商对这条链的路径别名 (e.g., "bfm" for bfmeta) */
-  path: z.string().min(1).max(20),
+  /** 该提供商对这条链的路径别名 (e.g., "bfm" for bfmeta)，仅 bioforest 链需要 */
+  path: z.string().min(1).max(20).optional(),
 })
 
 /** 区块浏览器配置（可替换的外部依赖） */
@@ -69,6 +69,14 @@ export const ChainConfigSchema = z
   .strict()
 
 export const ChainConfigListSchema = z.array(ChainConfigSchema).min(1)
+
+/** 带版本号的配置文件格式 */
+export const VersionedChainConfigFileSchema = z.object({
+  /** 配置文件版本号 (semver, e.g., "2.0.0") */
+  version: z.string().regex(/^\d+\.\d+\.\d+$/, 'version must be semver (e.g. "2.0.0")'),
+  /** 链配置列表 */
+  chains: ChainConfigListSchema,
+})
 
 export const ChainConfigSubscriptionSchema = z
   .object({

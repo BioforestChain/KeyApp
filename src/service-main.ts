@@ -3,7 +3,7 @@ import {
   installLegacyAuthorizeHashRewriter,
   rewriteLegacyAuthorizeHashInPlace,
 } from '@/services/authorize/deep-link'
-import { setupAdapters, getAdapterRegistry } from '@/services/chain-adapter'
+import { setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
 import { getEnabledChains } from '@/services/chain-config'
 
 export type ServiceMainCleanup = () => void
@@ -32,8 +32,7 @@ export function startServiceMain(): ServiceMainCleanup {
     const snapshot = chainConfigStore.state.snapshot
     if (snapshot) {
       const enabledConfigs = getEnabledChains(snapshot)
-      const registry = getAdapterRegistry()
-      registry.setChainConfigs(enabledConfigs)
+      registerChainConfigs(enabledConfigs)
     }
   })
 

@@ -167,15 +167,15 @@ export interface IChainAdapter {
   readonly chain: IChainService
   readonly staking: IStakingService | null
 
-  initialize(config: ChainConfig): Promise<void>
+  initialize(): Promise<void>
   dispose(): void
 }
 
-export type AdapterFactory = (config: ChainConfig) => IChainAdapter
+export type AdapterFactory = (chainId: string) => IChainAdapter
 
 export interface IAdapterRegistry {
   register(type: ChainConfigType, factory: AdapterFactory): void
-  setChainConfigs(configs: ChainConfig[]): void
+  registerChain(chainId: string, type: ChainConfigType): void
   getAdapter(chainId: string): IChainAdapter | null
   hasAdapter(chainId: string): boolean
   listAdapters(): string[]

@@ -2,7 +2,7 @@
  * Tron Chain Adapter exports
  */
 
-export { TronAdapter } from './adapter'
+export { TronAdapter, createTronAdapter } from './adapter'
 export { TronIdentityService } from './identity-service'
 export { TronAssetService } from './asset-service'
 export { TronChainService } from './chain-service'

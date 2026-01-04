@@ -4,16 +4,10 @@
  * Provides chain info and gas price queries via public JSON-RPC endpoints.
  */
 
-import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
-
-/** Default public RPC endpoints for EVM chains */
-const DEFAULT_RPC_URLS: Record<string, string> = {
-  ethereum: 'https://ethereum-rpc.publicnode.com',
-  binance: 'https://bsc-rpc.publicnode.com',
-}
 
 interface JsonRpcResponse<T> {
   jsonrpc: string
@@ -23,12 +17,14 @@ interface JsonRpcResponse<T> {
 }
 
 export class EvmChainService implements IChainService {
-  private readonly config: ChainConfig
-  private readonly rpcUrl: string
+  private readonly chainId: string
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    this.rpcUrl = DEFAULT_RPC_URLS[config.id] ?? config.api?.url ?? DEFAULT_RPC_URLS['ethereum']!
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private get rpcUrl(): string {
+    return chainConfigService.getRpcUrl(this.chainId)
   }
 
   private async rpc<T>(method: string, params: unknown[] = []): Promise<T> {
@@ -59,14 +55,15 @@ export class EvmChainService implements IChainService {
   }
 
   getChainInfo(): ChainInfo {
+    const config = chainConfigService.getConfig(this.chainId)
     return {
-      chainId: this.config.id,
-      name: this.config.name,
-      symbol: this.config.symbol,
-      decimals: this.config.decimals,
-      blockTime: 12, // ~12 seconds for Ethereum
+      chainId: this.chainId,
+      name: config?.name ?? this.chainId,
+      symbol: config?.symbol ?? '',
+      decimals: config?.decimals ?? 18,
+      blockTime: 12,
       confirmations: 12,
-      explorerUrl: this.config.explorer?.url,
+      explorerUrl: config?.explorer?.url,
     }
   }
 
@@ -91,8 +88,7 @@ export class EvmChainService implements IChainService {
         lastUpdated: Date.now(),
       }
     } catch {
-      // Return default gas prices
-      const defaultGas = Amount.fromRaw('20000000000', 9, 'Gwei') // 20 Gwei
+      const defaultGas = Amount.fromRaw('20000000000', 9, 'Gwei')
       return {
         slow: defaultGas,
         standard: defaultGas,

@@ -1,6 +1,6 @@
 export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainConfigType } from './types'
 
-import { ChainConfigListSchema, ChainConfigSchema, ChainConfigSubscriptionSchema } from './schema'
+import { ChainConfigListSchema, ChainConfigSchema, ChainConfigSubscriptionSchema, VersionedChainConfigFileSchema } from './schema'
 import { fetchSubscription, type FetchSubscriptionResult } from './subscription'
 import {
   loadChainConfigs,
@@ -9,6 +9,8 @@ import {
   saveChainConfigs,
   saveUserPreferences,
   saveSubscriptionMeta,
+  loadDefaultVersion,
+  saveDefaultVersion,
 } from './storage'
 import type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainConfigType } from './types'
 
@@ -39,8 +41,13 @@ const SUPPORTED_MAJOR_BY_TYPE: Record<ChainConfigType, number> = {
 
 const DEFAULT_CHAINS_PATH = `${import.meta.env.BASE_URL}configs/default-chains.json`
 
-let defaultChainsCache: ChainConfig[] | null = null
-let defaultChainsLoading: Promise<ChainConfig[]> | null = null
+interface DefaultChainsResult {
+  version: string
+  configs: ChainConfig[]
+}
+
+let defaultChainsCache: DefaultChainsResult | null = null
+let defaultChainsLoading: Promise<DefaultChainsResult> | null = null
 
 function normalizeUnknownType(input: unknown): unknown {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) return input
@@ -72,7 +79,7 @@ function getDefaultChainsUrl(): string {
   return new URL(DEFAULT_CHAINS_PATH, base).toString()
 }
 
-async function loadDefaultChainConfigs(): Promise<ChainConfig[]> {
+async function loadDefaultChainConfigs(): Promise<DefaultChainsResult> {
   if (defaultChainsCache) return defaultChainsCache
   if (defaultChainsLoading) return defaultChainsLoading
 
@@ -92,10 +99,26 @@ async function loadDefaultChainConfigs(): Promise<ChainConfig[]> {
     }
 
     const json: unknown = await response.json()
-    // 传入 JSON 文件 URL，用于解析相对路径
-    const parsed = parseConfigs(json, 'default', jsonUrl)
-    defaultChainsCache = parsed
-    return parsed
+
+    // 解析带版本号的配置文件格式
+    const parsed = VersionedChainConfigFileSchema.parse(json)
+    const configs = parsed.chains.map((chain) => normalizeUnknownType(chain)).map((chain) => {
+      const config = ChainConfigSchema.parse(chain)
+      const resolvedPaths = resolveIconPaths(config, jsonUrl)
+      return {
+        ...config,
+        ...resolvedPaths,
+        source: 'default' as const,
+        enabled: true,
+      }
+    })
+
+    const result: DefaultChainsResult = {
+      version: parsed.version,
+      configs,
+    }
+    defaultChainsCache = result
+    return result
   })()
 
   try {
@@ -215,14 +238,34 @@ function collectWarnings(configs: ChainConfig[]): ChainConfigWarning[] {
   return warnings
 }
 
-export async function initialize(): Promise<ChainConfigSnapshot> {
-  const defaults = await loadDefaultChainConfigs()
+/** Compare semver versions: returns 1 if a > b, -1 if a < b, 0 if equal */
+function compareSemver(a: string, b: string): number {
+  const partsA = a.split('.').map(Number)
+  const partsB = b.split('.').map(Number)
+  for (let i = 0; i < 3; i++) {
+    const numA = partsA[i] ?? 0
+    const numB = partsB[i] ?? 0
+    if (numA > numB) return 1
+    if (numA < numB) return -1
+  }
+  return 0
+}
 
-  const [storedConfigs, enabledMap, subscription] = await Promise.all([
+export async function initialize(): Promise<ChainConfigSnapshot> {
+  const { version: bundledVersion, configs: defaultConfigs } = await loadDefaultChainConfigs()
+
+  const [storedConfigs, enabledMap, subscription, storedDefaultVersion] = await Promise.all([
     loadChainConfigs(),
     loadUserPreferences(),
     loadSubscriptionMeta(),
+    loadDefaultVersion(),
   ])
+
+  // 版本比较：bundled > stored 时强制合并默认配置
+  const shouldForceMerge = compareSemver(bundledVersion, storedDefaultVersion ?? '0.0.0') > 0
+  if (shouldForceMerge) {
+    await saveDefaultVersion(bundledVersion)
+  }
 
   const manual = storedConfigs.filter((c) => c.source === 'manual')
 
@@ -231,7 +274,7 @@ export async function initialize(): Promise<ChainConfigSnapshot> {
       ? storedConfigs.filter((c) => c.source === 'subscription')
       : []
 
-  const merged = mergeBySource({ manual, subscription: subscriptionConfigs, defaults })
+  const merged = mergeBySource({ manual, subscription: subscriptionConfigs, defaults: defaultConfigs })
   const configs = applyEnabledMap(merged, enabledMap)
   const warnings = collectWarnings(configs)
 

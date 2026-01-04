@@ -2,12 +2,15 @@
  * EVM Identity Service
  */
 
-import type { ChainConfig } from '@/services/chain-config'
 import type { IIdentityService, Address, Signature } from '../types'
 import { toChecksumAddress, isValidAddress } from '@/lib/crypto'
 
 export class EvmIdentityService implements IIdentityService {
-  constructor(_config: ChainConfig) {}
+  private readonly chainId: string
+
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
 
   async deriveAddress(_seed: Uint8Array, _index = 0): Promise<Address> {
     throw new Error('Use deriveAddressesForChains from @/lib/crypto instead')
@@ -26,7 +29,6 @@ export class EvmIdentityService implements IIdentityService {
   }
 
   async signMessage(_message: string | Uint8Array, _privateKey: Uint8Array): Promise<Signature> {
-    // TODO: Implement EIP-191 personal_sign
     throw new Error('Not implemented')
   }
 
@@ -35,7 +37,6 @@ export class EvmIdentityService implements IIdentityService {
     _signature: Signature,
     _address: Address,
   ): Promise<boolean> {
-    // TODO: Implement signature verification
     throw new Error('Not implemented')
   }
 }
