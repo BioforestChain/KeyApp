@@ -18,9 +18,15 @@ jobs:
         run: |
           if [ ! -d ".git" ]; then
             git clone --depth=1 https://github.com/${{ github.repository }}.git .
+          else
+            # Self-hosted runners keep the workspace between runs; ensure clean checkout
+            git reset --hard HEAD
+            git clean -fdx
           fi
           git fetch origin ${{ github.event.pull_request.head.sha || github.sha }} --depth=1
-          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
+          git checkout -f ${{ github.event.pull_request.head.sha || github.sha }}
+          git reset --hard HEAD
+          git clean -fdx
 
       - name: Detect changes
         id: changes

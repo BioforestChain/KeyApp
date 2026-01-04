@@ -54,9 +54,15 @@ jobs:
         run: |
           if [ ! -d ".git" ]; then
             git clone https://github.com/${{ github.repository }}.git .
+          else
+            # Self-hosted runners keep the workspace between runs; ensure clean checkout
+            git reset --hard HEAD
+            git clean -fdx
           fi
           git fetch origin ${{ github.sha }} --depth=1 --tags
-          git checkout ${{ github.sha }}
+          git checkout -f ${{ github.sha }}
+          git reset --hard HEAD
+          git clean -fdx
 
       - name: Determine channel
         id: channel
