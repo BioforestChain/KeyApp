@@ -8,6 +8,8 @@
 import type { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
+// ==================== 数据类型 ====================
+
 /** 余额信息 */
 export interface Balance {
   amount: Amount
@@ -26,12 +28,48 @@ export interface Transaction {
   blockNumber?: bigint
 }
 
-/** 手续费估算 */
-export interface FeeEstimate {
-  slow: Amount
-  standard: Amount
-  fast: Amount
+/** 手续费选项 */
+export interface Fee {
+  amount: Amount
+  estimatedTime: number // seconds
 }
+
+/** 手续费估算结果 */
+export interface FeeEstimate {
+  slow: Fee
+  standard: Fee
+  fast: Fee
+}
+
+/** 转账参数 */
+export interface TransferParams {
+  from: string
+  to: string
+  amount: Amount
+  memo?: string
+}
+
+/** 未签名交易 */
+export interface UnsignedTransaction {
+  chainId: string
+  data: unknown
+}
+
+/** 已签名交易 */
+export interface SignedTransaction {
+  chainId: string
+  data: unknown
+  signature: string
+}
+
+/** 交易状态 */
+export interface TransactionStatus {
+  status: 'pending' | 'confirming' | 'confirmed' | 'failed'
+  confirmations: number
+  requiredConfirmations: number
+}
+
+// ==================== Provider 接口 ====================
 
 /**
  * API Provider 接口
@@ -42,12 +80,12 @@ export interface FeeEstimate {
 export interface ApiProvider {
   /** Provider 类型 (来自配置的 key，如 "biowallet-v1") */
   readonly type: string
-  /** API 端点 */
+  /** API 端点 (可为空，如 wrapped provider) */
   readonly endpoint: string
   /** 额外配置 */
   readonly config?: Record<string, unknown>
 
-  // ===== 可选实现的方法 =====
+  // ===== 查询能力 =====
   
   /** 查询原生代币余额 */
   getNativeBalance?(address: string): Promise<Balance>
@@ -58,14 +96,39 @@ export interface ApiProvider {
   /** 查询单笔交易 */
   getTransaction?(hash: string): Promise<Transaction | null>
   
-  /** 估算手续费 */
-  estimateFee?(from: string, to: string, amount: Amount): Promise<FeeEstimate>
-  
-  /** 广播已签名交易 */
-  broadcastTransaction?(signedTx: string): Promise<string>
+  /** 获取交易状态 */
+  getTransactionStatus?(hash: string): Promise<TransactionStatus>
   
   /** 获取当前区块高度 */
   getBlockHeight?(): Promise<bigint>
+
+  // ===== 交易能力 =====
+  
+  /** 估算手续费 */
+  estimateFee?(params: TransferParams): Promise<FeeEstimate>
+  
+  /** 构建未签名交易 */
+  buildTransaction?(params: TransferParams): Promise<UnsignedTransaction>
+  
+  /** 签名交易 */
+  signTransaction?(unsignedTx: UnsignedTransaction, privateKey: Uint8Array): Promise<SignedTransaction>
+  
+  /** 广播已签名交易 */
+  broadcastTransaction?(signedTx: SignedTransaction): Promise<string>
+
+  // ===== 身份能力 =====
+  
+  /** 派生地址 */
+  deriveAddress?(seed: Uint8Array, index?: number): Promise<string>
+  
+  /** 批量派生地址 */
+  deriveAddresses?(seed: Uint8Array, startIndex: number, count: number): Promise<string[]>
+  
+  /** 验证地址格式 */
+  isValidAddress?(address: string): boolean
+  
+  /** 规范化地址 */
+  normalizeAddress?(address: string): string
 }
 
 /** ApiProvider 可调用的方法名 */

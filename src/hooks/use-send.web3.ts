@@ -1,24 +1,15 @@
 /**
  * Web3 Transfer Implementation
  * 
- * Handles transfers for EVM, Tron, and Bitcoin chains using chain adapters.
+ * Handles transfers for EVM, Tron, and Bitcoin chains using ChainProvider.
  */
 
 import type { AssetInfo } from '@/types/asset'
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import { getAdapterRegistry, setupAdapters } from '@/services/chain-adapter'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import { mnemonicToSeedSync } from '@scure/bip39'
-
-// Ensure adapters are registered
-let adaptersInitialized = false
-function ensureAdapters() {
-  if (!adaptersInitialized) {
-    setupAdapters()
-    adaptersInitialized = true
-  }
-}
 
 export interface Web3FeeResult {
   amount: Amount
@@ -26,17 +17,13 @@ export interface Web3FeeResult {
 }
 
 export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string): Promise<Web3FeeResult> {
-  ensureAdapters()
+  const chainProvider = getChainProvider(chainConfig.id)
   
-  const registry = getAdapterRegistry()
-  registry.setChainConfigs([chainConfig])
-  
-  const adapter = registry.getAdapter(chainConfig.id)
-  if (!adapter) {
-    throw new Error(`No adapter found for chain: ${chainConfig.id}`)
+  if (!chainProvider.supportsFeeEstimate) {
+    throw new Error(`Chain ${chainConfig.id} does not support fee estimation`)
   }
 
-  const feeEstimate = await adapter.transaction.estimateFee({
+  const feeEstimate = await chainProvider.estimateFee!({
     from: fromAddress,
     to: fromAddress,
     amount: Amount.fromRaw('1', chainConfig.decimals, chainConfig.symbol),
@@ -49,17 +36,13 @@ export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string
 }
 
 export async function fetchWeb3Balance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
-  ensureAdapters()
+  const chainProvider = getChainProvider(chainConfig.id)
   
-  const registry = getAdapterRegistry()
-  registry.setChainConfigs([chainConfig])
-  
-  const adapter = registry.getAdapter(chainConfig.id)
-  if (!adapter) {
-    throw new Error(`No adapter found for chain: ${chainConfig.id}`)
+  if (!chainProvider.supportsNativeBalance) {
+    throw new Error(`Chain ${chainConfig.id} does not support balance queries`)
   }
 
-  const balance = await adapter.asset.getNativeBalance(fromAddress)
+  const balance = await chainProvider.getNativeBalance!(fromAddress)
 
   return {
     assetType: balance.symbol,
@@ -91,8 +74,6 @@ export async function submitWeb3Transfer({
   toAddress,
   amount,
 }: SubmitWeb3Params): Promise<SubmitWeb3Result> {
-  ensureAdapters()
-
   // Get mnemonic from wallet storage
   let mnemonic: string
   try {
@@ -112,12 +93,10 @@ export async function submitWeb3Transfer({
   }
 
   try {
-    const registry = getAdapterRegistry()
-    registry.setChainConfigs([chainConfig])
+    const chainProvider = getChainProvider(chainConfig.id)
     
-    const adapter = registry.getAdapter(chainConfig.id)
-    if (!adapter) {
-      return { status: 'error', message: `不支持的链: ${chainConfig.id}` }
+    if (!chainProvider.supportsFullTransaction) {
+      return { status: 'error', message: `该链不支持完整交易流程: ${chainConfig.id}` }
     }
 
     console.log('[submitWeb3Transfer] Starting transfer:', { 
@@ -133,7 +112,7 @@ export async function submitWeb3Transfer({
     
     // Build unsigned transaction
     console.log('[submitWeb3Transfer] Building transaction...')
-    const unsignedTx = await adapter.transaction.buildTransaction({
+    const unsignedTx = await chainProvider.buildTransaction!({
       from: fromAddress,
       to: toAddress,
       amount,
@@ -141,11 +120,11 @@ export async function submitWeb3Transfer({
 
     // Sign transaction
     console.log('[submitWeb3Transfer] Signing transaction...')
-    const signedTx = await adapter.transaction.signTransaction(unsignedTx, seed)
+    const signedTx = await chainProvider.signTransaction!(unsignedTx, seed)
 
     // Broadcast transaction
     console.log('[submitWeb3Transfer] Broadcasting transaction...')
-    const txHash = await adapter.transaction.broadcastTransaction(signedTx)
+    const txHash = await chainProvider.broadcastTransaction!(signedTx)
 
     console.log('[submitWeb3Transfer] SUCCESS! txHash:', txHash)
     return { status: 'ok', txHash }
@@ -178,13 +157,9 @@ export async function submitWeb3Transfer({
  * Validate address for Web3 chains
  */
 export function validateWeb3Address(chainConfig: ChainConfig, address: string): string | null {
-  ensureAdapters()
+  const chainProvider = getChainProvider(chainConfig.id)
   
-  const registry = getAdapterRegistry()
-  registry.setChainConfigs([chainConfig])
-  
-  const adapter = registry.getAdapter(chainConfig.id)
-  if (!adapter) {
+  if (!chainProvider.supportsAddressValidation) {
     return '不支持的链类型'
   }
 
@@ -192,7 +167,7 @@ export function validateWeb3Address(chainConfig: ChainConfig, address: string): 
     return '请输入收款地址'
   }
 
-  if (!adapter.identity.isValidAddress(address)) {
+  if (!chainProvider.isValidAddress!(address)) {
     return '无效的地址格式'
   }
 

@@ -2,6 +2,9 @@
  * Chain Adapter Service
  *
  * Provides unified interface for interacting with different blockchain networks.
+ * 
+ * NOTE: For new code, prefer using ChainProvider from '@/services/chain-adapter/providers'.
+ * The old adapter registry is deprecated but kept for internal use by wrapped providers.
  */
 
 // Types
@@ -35,36 +38,25 @@ export type {
 
 export { ChainServiceError, ChainErrorCodes } from './types'
 
-// Registry
+// New ChainProvider API (recommended)
+export { 
+  ChainProvider,
+  getChainProvider,
+  createChainProvider,
+  clearProviderCache,
+} from './providers'
+
+// =================================================================
+// DEPRECATED: Old adapter registry API
+// Use ChainProvider from './providers' instead
+// =================================================================
+
+/** @deprecated Use getChainProvider() from './providers' instead */
 export { getAdapterRegistry, resetAdapterRegistry } from './registry'
 
-// Adapters
+// Adapters (kept for internal use by wrapped providers)
 export { BioforestAdapter, createBioforestAdapter } from './bioforest'
 export { EvmAdapter, createEvmAdapter } from './evm'
 export { Bip39Adapter, createBip39Adapter } from './bip39'
 export { TronAdapter, createTronAdapter } from './tron'
 export { BitcoinAdapter, createBitcoinAdapter } from './bitcoin'
-
-// Setup function to register all adapters
-import { getAdapterRegistry } from './registry'
-import { createBioforestAdapter } from './bioforest'
-import { createEvmAdapter } from './evm'
-import { createTronAdapter } from './tron'
-import { createBitcoinAdapter } from './bitcoin'
-import type { ChainConfig } from '@/services/chain-config'
-
-export function setupAdapters(): void {
-  const registry = getAdapterRegistry()
-  registry.register('bioforest', createBioforestAdapter)
-  registry.register('evm', createEvmAdapter)
-  registry.register('tron', createTronAdapter)
-  registry.register('bip39', createBitcoinAdapter)
-}
-
-/** Register chain configs with the adapter registry */
-export function registerChainConfigs(configs: ChainConfig[]): void {
-  const registry = getAdapterRegistry()
-  for (const config of configs) {
-    registry.registerChain(config.id, config.type)
-  }
-}
