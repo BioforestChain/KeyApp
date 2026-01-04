@@ -282,7 +282,7 @@ export async function initialize(): Promise<ChainConfigSnapshot> {
 
   // 检测旧版数据：storedVersion 为 null 且有存储的配置数据（说明是旧版升级）
   const bundledMajor = parseMajorFromSemver(bundledVersion)
-  const hasStoredData = storedConfigs.length > 0 || enabledMap !== null || subscription !== null
+  const hasStoredData = storedConfigs.length > 0 || Object.keys(enabledMap).length > 0 || subscription !== null
   if (storedDefaultVersion === null && bundledMajor >= 2 && hasStoredData) {
     throw new ChainConfigMigrationError(storedDefaultVersion, bundledVersion)
   }
