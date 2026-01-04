@@ -4,6 +4,7 @@ import { Stack } from './stackflow';
 import { MiniappWindow, MiniappStackView } from './components/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors, closeStackView } from './services/miniapp-runtime';
 import { MiniappVisualProvider } from './services/miniapp-runtime/MiniappVisualProvider';
+import { DevWatermark } from './components/common/DevWatermark';
 
 export function StackflowApp() {
   const isStackViewOpen = useStore(miniappRuntimeStore, miniappRuntimeSelectors.isStackViewOpen);
@@ -19,6 +20,8 @@ export function StackflowApp() {
           <MiniappStackView visible={isStackViewOpen} onClose={closeStackView} />
           {/* Fallback 容器 - 当 slot lost 时保持 MiniappWindow 挂载 */}
           <div id="miniapp-fallback-portal" style={{ display: 'contents' }} />
+          {/* 开发版水印 */}
+          <DevWatermark />
         </>
       </LayoutGroup>
     </MiniappVisualProvider>

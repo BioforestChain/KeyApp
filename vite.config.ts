@@ -113,6 +113,8 @@ export default defineConfig({
     'global': 'globalThis',
     // Mock 模式标识（用于条件加载 MockDevTools）
     '__MOCK_MODE__': JSON.stringify(SERVICE_IMPL === 'mock'),
+    // Dev 模式标识（用于显示开发版水印）
+    '__DEV_MODE__': JSON.stringify(process.env.VITE_DEV_MODE === 'true'),
   },
   optimizeDeps: {
     include: ['buffer'],

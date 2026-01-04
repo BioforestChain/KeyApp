@@ -25,19 +25,27 @@ const log = {
 }
 
 /**
- * SFTP 上传配置
+ * SFTP 连接配置
  */
-export type SftpUploadConfig = {
+export type SftpConnectionConfig = {
   /** SFTP URL，格式: sftp://host:port */
   url: string
   /** 用户名 */
   username: string
   /** 密码 */
   password: string
+}
+
+/**
+ * SFTP 上传配置
+ */
+export type SftpUploadConfig = SftpConnectionConfig & {
   /** 本地源目录 */
   sourceDir: string
   /** 项目名称（用于日志） */
   projectName: string
+  /** 远程子目录（可选，用于按日期分组） */
+  remoteSubDir?: string
 }
 
 /**
@@ -66,13 +74,96 @@ function formatSize(bytes: number): string {
 }
 
 /**
+ * 获取今天的日期字符串 YYMMDD
+ */
+export function getTodayDateString(): string {
+  const now = new Date()
+  const yy = String(now.getFullYear() % 100).padStart(2, '0')
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  return `${yy}${mm}${dd}`
+}
+
+/**
+ * 获取下一个 dev 版本号
+ * 格式: baseVersion-dev.YYMMDDNO
+ * 例如: 0.1.0-dev.26010401
+ */
+export async function getNextDevVersion(
+  config: SftpConnectionConfig,
+  baseVersion: string,
+): Promise<{ version: string; dateDir: string; buildNo: number }> {
+  const { url, username, password } = config
+  const { host, port } = parseSftpUrl(url)
+
+  const dateStr = getTodayDateString()
+  const dateDir = dateStr // 日期目录
+
+  const client = new SftpClient()
+
+  try {
+    await client.connect({
+      host,
+      port,
+      username,
+      password,
+      readyTimeout: 30000,
+    })
+
+    const remoteDir = await client.cwd()
+    const dateDirPath = posix.join(remoteDir, dateDir)
+
+    // 检查日期目录是否存在
+    let existingFiles: string[] = []
+    try {
+      const exists = await client.exists(dateDirPath)
+      if (exists) {
+        const list = await client.list(dateDirPath)
+        existingFiles = list.map((f) => f.name)
+      }
+    } catch {
+      // 目录不存在，使用空列表
+    }
+
+    // 查找今天已有的版本号
+    // 文件名格式: dev.bfmpay.bfmeta.com.dweb-0.1.0-dev.26010401.zip
+    const pattern = new RegExp(`-dev\\.${dateStr}(\\d{2})\\.zip$`)
+    let maxNo = 0
+
+    for (const fileName of existingFiles) {
+      const match = fileName.match(pattern)
+      if (match) {
+        const no = parseInt(match[1], 10)
+        if (no > maxNo) {
+          maxNo = no
+        }
+      }
+    }
+
+    const buildNo = maxNo + 1
+    const buildNoStr = String(buildNo).padStart(2, '0')
+    const version = `${baseVersion}-dev.${dateStr}${buildNoStr}`
+
+    log.info(`检测到今天已有 ${maxNo} 个版本，下一个版本号: ${version}`)
+
+    return { version, dateDir, buildNo }
+  } finally {
+    try {
+      await client.end()
+    } catch {
+      // 忽略
+    }
+  }
+}
+
+/**
  * 上传文件到 SFTP 服务器
  *
  * @param config 上传配置
  * @param maxRetries 最大重试次数
  */
 export async function uploadToSftp(config: SftpUploadConfig, maxRetries = 3): Promise<void> {
-  const { url, username, password, sourceDir, projectName } = config
+  const { url, username, password, sourceDir, projectName, remoteSubDir } = config
 
   // 解析 SFTP URL
   const { host, port } = parseSftpUrl(url)
@@ -85,6 +176,9 @@ export async function uploadToSftp(config: SftpUploadConfig, maxRetries = 3): Pr
   log.info(`准备上传 ${projectName} 到 SFTP 服务器: ${host}:${port}`)
   log.info(`源目录: ${sourceDir}`)
   log.info(`用户名: ${username}`)
+  if (remoteSubDir) {
+    log.info(`远程子目录: ${remoteSubDir}`)
+  }
 
   let lastError: Error | null = null
 
@@ -109,8 +203,23 @@ export async function uploadToSftp(config: SftpUploadConfig, maxRetries = 3): Pr
       log.success(`SFTP 连接成功: ${host}`)
 
       // 获取当前工作目录
-      const remoteDir = await client.cwd()
+      let remoteDir = await client.cwd()
       log.info(`远程工作目录: ${remoteDir}`)
+
+      // 如果指定了子目录，创建并切换到子目录
+      if (remoteSubDir) {
+        const targetDir = posix.join(remoteDir, remoteSubDir)
+        try {
+          const exists = await client.exists(targetDir)
+          if (!exists) {
+            await client.mkdir(targetDir, true)
+            log.info(`创建目录: ${targetDir}`)
+          }
+          remoteDir = targetDir
+        } catch (mkdirError) {
+          log.warn(`创建目录失败: ${mkdirError}，尝试继续上传到根目录`)
+        }
+      }
 
       // 获取要上传的文件列表
       const entries = readdirSync(sourceDir, { withFileTypes: true })
