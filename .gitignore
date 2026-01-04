@@ -19,6 +19,8 @@ docs/.vitepress/dist
 docs/.vitepress/cache
 docs/public/webapp
 docs/public/webapp-dev
+docs/public/webapp-beta
+docs/public/webapp-alpha
 
 # dependencies
 node_modules
