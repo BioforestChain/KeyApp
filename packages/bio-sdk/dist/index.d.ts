@@ -7,6 +7,8 @@ export declare interface BioAccount {
     address: string;
     chain: string;
     name?: string;
+    /** Public key (hex encoded) */
+    publicKey: string;
 }
 
 /** RPC error codes */
@@ -63,16 +65,22 @@ export declare interface BioMethods {
         chain?: string;
         exclude?: string;
     }) => Promise<BioAccount>;
-    /** Sign a message */
+    /** Sign a message, returns signature and public key (hex) */
     bio_signMessage: (params: {
         message: string;
         address: string;
-    }) => Promise<string>;
-    /** Sign typed data */
+    }) => Promise<{
+        signature: string;
+        publicKey: string;
+    }>;
+    /** Sign typed data, returns signature and public key (hex) */
     bio_signTypedData: (params: {
         data: object;
         address: string;
-    }) => Promise<string>;
+    }) => Promise<{
+        signature: string;
+        publicKey: string;
+    }>;
     /** Create an unsigned transaction (no signature, no broadcast) */
     bio_createTransaction: (params: TransferParams) => Promise<BioUnsignedTransaction>;
     /** Sign an unsigned transaction (requires user confirmation) */

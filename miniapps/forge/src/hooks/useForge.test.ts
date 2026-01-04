@@ -19,10 +19,10 @@ const mockForgeParams: ForgeParams = {
   externalAsset: 'ETH',
   depositAddress: '0xdeposit123',
   amount: '1.5',
-  externalAccount: { address: '0xexternal123', chain: 'eth' },
+  externalAccount: { address: '0xexternal123', chain: 'eth', publicKey: '0x' },
   internalChain: 'bfmeta',
   internalAsset: 'BFM',
-  internalAccount: { address: 'bfmeta123', chain: 'bfmeta' },
+  internalAccount: { address: 'bfmeta123', chain: 'bfmeta', publicKey: '0x' },
 }
 
 describe('useForge', () => {
