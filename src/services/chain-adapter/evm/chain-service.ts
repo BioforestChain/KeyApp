@@ -1,5 +1,7 @@
 /**
  * EVM Chain Service
+ *
+ * Provides chain info and gas price queries via public JSON-RPC endpoints.
  */
 
 import type { ChainConfig } from '@/services/chain-config'
@@ -7,20 +9,39 @@ import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 
+/** Default public RPC endpoints for EVM chains */
+const DEFAULT_RPC_URLS: Record<string, string> = {
+  ethereum: 'https://ethereum-rpc.publicnode.com',
+  binance: 'https://bsc-rpc.publicnode.com',
+}
+
+interface JsonRpcResponse<T> {
+  jsonrpc: string
+  id: number
+  result?: T
+  error?: { code: number; message: string }
+}
+
 export class EvmChainService implements IChainService {
   private readonly config: ChainConfig
-  private readonly apiUrl: string
-  private readonly apiPath: string
+  private readonly rpcUrl: string
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.apiUrl = config.api?.url ?? 'https://walletapi.bfmeta.info'
-    this.apiPath = config.api?.path ?? config.id
+    this.rpcUrl = DEFAULT_RPC_URLS[config.id] ?? config.api?.url ?? DEFAULT_RPC_URLS['ethereum']!
   }
 
-  private async fetch<T>(endpoint: string): Promise<T> {
-    const url = `${this.apiUrl}/wallet/${this.apiPath}${endpoint}`
-    const response = await fetch(url)
+  private async rpc<T>(method: string, params: unknown[] = []): Promise<T> {
+    const response = await fetch(this.rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method,
+        params,
+        id: 1,
+      }),
+    })
 
     if (!response.ok) {
       throw new ChainServiceError(
@@ -29,12 +50,9 @@ export class EvmChainService implements IChainService {
       )
     }
 
-    const json = await response.json() as { success: boolean; result?: T; error?: { message: string } }
-    if (!json.success) {
-      throw new ChainServiceError(
-        ChainErrorCodes.NETWORK_ERROR,
-        json.error?.message ?? 'API request failed',
-      )
+    const json = (await response.json()) as JsonRpcResponse<T>
+    if (json.error) {
+      throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, json.error.message)
     }
 
     return json.result as T
@@ -54,8 +72,8 @@ export class EvmChainService implements IChainService {
 
   async getBlockHeight(): Promise<bigint> {
     try {
-      const result = await this.fetch<{ height: number }>('/lastblock')
-      return BigInt(result.height)
+      const hexHeight = await this.rpc<string>('eth_blockNumber')
+      return BigInt(hexHeight)
     } catch {
       return 0n
     }
@@ -63,14 +81,13 @@ export class EvmChainService implements IChainService {
 
   async getGasPrice(): Promise<GasPrice> {
     try {
-      const result = await this.fetch<{ gasPrice: string; baseFee?: string }>('/gasprice')
-      const gasPrice = Amount.fromRaw(result.gasPrice, 9, 'Gwei') // Gas price in Gwei
+      const hexGasPrice = await this.rpc<string>('eth_gasPrice')
+      const gasPrice = Amount.fromRaw(BigInt(hexGasPrice).toString(), 9, 'Gwei')
 
       return {
         slow: gasPrice,
         standard: gasPrice,
         fast: gasPrice,
-        baseFee: result.baseFee ? Amount.fromRaw(result.baseFee, 9, 'Gwei') : undefined,
         lastUpdated: Date.now(),
       }
     } catch {
