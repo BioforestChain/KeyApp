@@ -1,6 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { getAdapterRegistry } from '@/services/chain-adapter'
+import { getAdapterRegistry, setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
+import { chainConfigStore, chainConfigSelectors } from '@/stores'
 import type { Transaction } from '@/services/chain-adapter/types'
+
+let adaptersInitialized = false
+function ensureAdapters() {
+  if (!adaptersInitialized) {
+    setupAdapters()
+    adaptersInitialized = true
+  }
+}
 
 export const addressTransactionsQueryKeys = {
   all: ['addressTransactions'] as const,
@@ -24,6 +33,18 @@ export function useAddressTransactionsQuery({
     queryKey: addressTransactionsQueryKeys.address(chainId, address),
     queryFn: async (): Promise<Transaction[]> => {
       if (!chainId || !address) return []
+
+      ensureAdapters()
+
+      const state = chainConfigStore.state
+      const chainConfig = chainConfigSelectors.getChainById(state, chainId)
+      if (!chainConfig) {
+        console.warn(`[useAddressTransactionsQuery] Unknown chain: ${chainId}`)
+        return []
+      }
+
+      // 确保链已注册到 registry
+      registerChainConfigs([chainConfig])
 
       const registry = getAdapterRegistry()
       const adapter = registry.getAdapter(chainId)
