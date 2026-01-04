@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getAdapterRegistry, setupAdapters } from '@/services/chain-adapter'
+import { getAdapterRegistry, setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
 import { chainConfigStore, chainConfigSelectors } from '@/stores'
 import type { Balance } from '@/services/chain-adapter/types'
 
@@ -41,9 +41,10 @@ export function useAddressBalanceQuery(chainId: string, address: string, enabled
           return { balance: null, error: `Unknown chain: ${chainId}` }
         }
 
-        const registry = getAdapterRegistry()
-        registry.setChainConfigs([chainConfig])
+        // 确保链已注册到 registry
+        registerChainConfigs([chainConfig])
 
+        const registry = getAdapterRegistry()
         const adapter = registry.getAdapter(chainId)
         if (!adapter) {
           return { balance: null, error: `No adapter for chain: ${chainId}` }
