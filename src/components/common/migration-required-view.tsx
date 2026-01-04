@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { IconAlertTriangle, IconDatabase } from '@tabler/icons-react'
+import { IconAlertTriangle, IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -10,10 +11,13 @@ import { Button } from '@/components/ui/button'
  */
 export function MigrationRequiredView() {
   const { t } = useTranslation(['settings', 'common'])
+  const [isClearing, setIsClearing] = useState(false)
 
-  const handleGoToStorage = () => {
-    // 直接导航到存储管理页面（不依赖 Stackflow）
-    window.location.href = '/#/settings/storage'
+  const handleClearData = () => {
+    setIsClearing(true)
+    // 跳转到 clear.html 进行清理
+    const baseUri = import.meta.env.BASE_URL || '/'
+    window.location.href = `${baseUri}clear.html`
   }
 
   return (
@@ -35,9 +39,23 @@ export function MigrationRequiredView() {
           </p>
         </div>
 
-        <Button onClick={handleGoToStorage} className="w-full gap-2">
-          <IconDatabase className="size-4" />
-          {t('settings:storage.goToClear', '前往清理数据')}
+        {/* Warning List */}
+        <div className="bg-destructive/5 rounded-lg p-4 w-full">
+          <ul className="text-destructive space-y-2 text-sm text-left">
+            <li>• {t('settings:clearData.item1', '所有钱包数据将被删除')}</li>
+            <li>• {t('settings:clearData.item2', '所有设置将恢复默认')}</li>
+            <li>• {t('settings:clearData.item3', '应用将重新启动')}</li>
+          </ul>
+        </div>
+
+        <Button 
+          variant="destructive" 
+          onClick={handleClearData} 
+          className="w-full gap-2"
+          disabled={isClearing}
+        >
+          <IconTrash className="size-4" />
+          {t('settings:clearData.confirm', '确认清空')}
         </Button>
       </div>
     </div>
