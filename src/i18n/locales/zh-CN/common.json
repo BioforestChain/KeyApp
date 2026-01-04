@@ -330,5 +330,20 @@
     "daysLater": "{{count}} 天后",
     "today": "今天",
     "yesterday": "昨天"
+  },
+  "addressLookup": {
+    "balanceTitle": "地址余额查询",
+    "transactionsTitle": "地址交易查询",
+    "chain": "链",
+    "address": "地址",
+    "addressPlaceholder": "输入钱包地址",
+    "addressOrHash": "地址或交易哈希",
+    "addressOrHashPlaceholder": "输入地址或交易哈希",
+    "otherChains": "其他链",
+    "error": "查询失败",
+    "onChain": "在 {{chain}} 上",
+    "explorerHint": "交易记录需要通过区块浏览器查询",
+    "openExplorer": "打开 {{name}} 浏览器",
+    "viewOnExplorer": "在 {{name}} 浏览器中查看"
   }
 }
