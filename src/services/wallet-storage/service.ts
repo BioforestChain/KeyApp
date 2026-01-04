@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import { encrypt, decrypt, encryptWithRawKey, decryptWithRawKey, deriveEncryptionKeyFromMnemonic, deriveEncryptionKeyFromSecret } from '@/lib/crypto'
+import { safeParseArray } from '@/lib/safe-parse'
 import {
   type WalleterInfo,
   type WalletInfo,
@@ -11,6 +12,11 @@ import {
   WalletStorageError,
   WalletStorageErrorCode,
 } from './types'
+import {
+  WalletInfoSchema,
+  ChainAddressInfoSchema,
+  WalleterInfoSchema,
+} from './schema'
 
 const DB_NAME = 'bfm-wallet-db'
 const DB_VERSION = 1
@@ -145,7 +151,14 @@ export class WalletStorageService {
   /** 获取钱包用户信息 */
   async getWalleterInfo(): Promise<WalleterInfo | null> {
     this.ensureInitialized()
-    return (await this.db!.get('walleter', 'main')) ?? null
+    const raw = await this.db!.get('walleter', 'main')
+    if (!raw) return null
+    const result = WalleterInfoSchema.safeParse(raw)
+    if (!result.success) {
+      console.warn('[WalletStorage] Invalid walleter info:', result.error.issues[0])
+      return null
+    }
+    return result.data as WalleterInfo
   }
 
   // ==================== 钱包管理 ====================
@@ -219,13 +232,21 @@ export class WalletStorageService {
   /** 获取钱包信息 */
   async getWallet(walletId: string): Promise<WalletInfo | null> {
     this.ensureInitialized()
-    return (await this.db!.get('wallets', walletId)) ?? null
+    const raw = await this.db!.get('wallets', walletId)
+    if (!raw) return null
+    const result = WalletInfoSchema.safeParse(raw)
+    if (!result.success) {
+      console.warn('[WalletStorage] Invalid wallet info:', result.error.issues[0])
+      return null
+    }
+    return result.data as WalletInfo
   }
 
   /** 获取所有钱包 */
   async getAllWallets(): Promise<WalletInfo[]> {
     this.ensureInitialized()
-    return this.db!.getAll('wallets')
+    const raw = await this.db!.getAll('wallets')
+    return safeParseArray(WalletInfoSchema, raw, 'indexeddb:wallets') as WalletInfo[]
   }
 
   /** 更新钱包信息 */
@@ -495,19 +516,28 @@ export class WalletStorageService {
   /** 获取链地址信息 */
   async getChainAddress(addressKey: string): Promise<ChainAddressInfo | null> {
     this.ensureInitialized()
-    return (await this.db!.get('chainAddresses', addressKey)) ?? null
+    const raw = await this.db!.get('chainAddresses', addressKey)
+    if (!raw) return null
+    const result = ChainAddressInfoSchema.safeParse(raw)
+    if (!result.success) {
+      console.warn('[WalletStorage] Invalid chain address:', result.error.issues[0])
+      return null
+    }
+    return result.data as ChainAddressInfo
   }
 
   /** 获取钱包的所有链地址 */
   async getWalletChainAddresses(walletId: string): Promise<ChainAddressInfo[]> {
     this.ensureInitialized()
-    return this.db!.getAllFromIndex('chainAddresses', 'by-wallet', walletId)
+    const raw = await this.db!.getAllFromIndex('chainAddresses', 'by-wallet', walletId)
+    return safeParseArray(ChainAddressInfoSchema, raw, 'indexeddb:chainAddresses') as ChainAddressInfo[]
   }
 
   /** 获取链的所有地址 */
   async getChainAddresses(chain: string): Promise<ChainAddressInfo[]> {
     this.ensureInitialized()
-    return this.db!.getAllFromIndex('chainAddresses', 'by-chain', chain)
+    const raw = await this.db!.getAllFromIndex('chainAddresses', 'by-chain', chain)
+    return safeParseArray(ChainAddressInfoSchema, raw, 'indexeddb:chainAddresses') as ChainAddressInfo[]
   }
 
   /** 更新资产信息 */
