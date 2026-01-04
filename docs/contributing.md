@@ -102,7 +102,7 @@ CI/CD 会自动构建以下产物：
 |------|------|
 | `/` | VitePress 文档站点 |
 | `/webapp/` | Web 应用（稳定版） |
-| `/webapp-beta/` | Web 应用（测试版） |
+| `/webapp-dev/` | Web 应用（测试版） |
 | `/storybook/` | Storybook 组件文档 |
 
 ## 开发规范

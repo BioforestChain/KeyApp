@@ -20,7 +20,7 @@
  *   --upload            上传 dweb 版本到服务器
  *
  * 渠道说明:
- *   beta:   部署到 /webapp-beta/，每次 push main 自动触发
+ *   beta:   部署到 /webapp-dev/，每次 push main 自动触发
  *   stable: 部署到 /webapp/，通过 pnpm gen:stable 手动触发
  */
 
@@ -28,6 +28,10 @@ import { execSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, cpSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createWriteStream } from 'node:fs'
+import { uploadToSftp, getNextDevVersion, getTodayDateString } from './utils/sftp'
+
+// Dev 版本信息（在 buildDweb 时设置）
+let devVersionInfo: { version: string; dateDir: string } | null = null
 
 // ==================== 配置 ====================
 
@@ -160,32 +164,87 @@ async function buildWeb() {
 }
 
 async function buildDweb() {
-  log.step('构建 DWEB 版本')
+  const channel = getChannel()
+  const isDev = channel === 'beta'
+
+  log.step(`构建 DWEB 版本 (${channel})`)
 
   cleanDir(DIST_DWEB_DIR)
   cleanDir(DISTS_DIR)
 
-  // 使用 SERVICE_IMPL=dweb 构建
-  exec('pnpm build:dweb', {
-    env: {
-      SERVICE_IMPL: 'dweb',
-    },
-  })
+  // 如果是 dev 版本，先获取版本号
+  if (isDev && process.argv.includes('--upload')) {
+    const sftpUrl = process.env.DWEB_SFTP_URL || 'sftp://iweb.xin:22022'
+    const sftpUser = process.env.DWEB_SFTP_USER_DEV || process.env.DWEB_SFTP_USER
+    const sftpPass = process.env.DWEB_SFTP_PASS_DEV || process.env.DWEB_SFTP_PASS
 
-  // 移动到 dist-dweb
-  if (existsSync(DIST_DIR)) {
-    copyDir(DIST_DIR, DIST_DWEB_DIR)
-    rmSync(DIST_DIR, { recursive: true, force: true })
+    if (sftpUser && sftpPass) {
+      try {
+        const baseVersion = getVersion()
+        const info = await getNextDevVersion({ url: sftpUrl, username: sftpUser, password: sftpPass }, baseVersion)
+        devVersionInfo = { version: info.version, dateDir: info.dateDir }
+        log.info(`Dev 版本号: ${devVersionInfo.version}`)
+      } catch (error) {
+        log.warn(`获取 dev 版本号失败: ${error}，使用默认版本号`)
+      }
+    }
   }
 
-  // 运行 plaoc bundle 打包
-  log.step('运行 Plaoc 打包')
+  // 如果是 dev 版本，修改 manifest.json
+  const manifestPath = join(ROOT, 'manifest.json')
+  const manifestBackupPath = join(ROOT, 'manifest.json.bak')
+  let manifestModified = false
+
+  if (isDev && existsSync(manifestPath)) {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'))
+    // 备份原始 manifest
+    writeFileSync(manifestBackupPath, JSON.stringify(manifest, null, 2))
+
+    // 修改 id 添加 dev 前缀
+    const originalId = manifest.id
+    manifest.id = `dev.${originalId}`
+
+    // 修改版本号
+    if (devVersionInfo) {
+      manifest.version = devVersionInfo.version
+    }
+
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
+    manifestModified = true
+    log.info(`manifest.json 已修改: id=${manifest.id}, version=${manifest.version}`)
+  }
+
   try {
-    exec(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
-    log.success('Plaoc 打包完成')
-  } catch (error) {
-    log.warn('Plaoc 打包失败，可能未安装 plaoc CLI')
-    log.info('请安装: npm install -g @aspect/plaoc-cli')
+    // 使用 SERVICE_IMPL=dweb 构建，dev 模式添加水印标识
+    exec('pnpm build:dweb', {
+      env: {
+        SERVICE_IMPL: 'dweb',
+        VITE_DEV_MODE: isDev ? 'true' : 'false',
+      },
+    })
+
+    // 移动到 dist-dweb
+    if (existsSync(DIST_DIR)) {
+      copyDir(DIST_DIR, DIST_DWEB_DIR)
+      rmSync(DIST_DIR, { recursive: true, force: true })
+    }
+
+    // 运行 plaoc bundle 打包
+    log.step('运行 Plaoc 打包')
+    try {
+      exec(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
+      log.success('Plaoc 打包完成')
+    } catch (error) {
+      log.warn('Plaoc 打包失败，可能未安装 plaoc CLI')
+      log.info('请安装: npm install -g @aspect/plaoc-cli')
+    }
+  } finally {
+    // 恢复原始 manifest.json
+    if (manifestModified && existsSync(manifestBackupPath)) {
+      cpSync(manifestBackupPath, manifestPath)
+      rmSync(manifestBackupPath)
+      log.info('manifest.json 已恢复')
+    }
   }
 
   log.success('DWEB 版本构建完成')
@@ -204,7 +263,7 @@ async function prepareGhPages(webDir: string) {
   log.step('准备 GitHub Pages 部署')
 
   const channel = getChannel()
-  const webappDirName = channel === 'stable' ? 'webapp' : 'webapp-beta'
+  const webappDirName = channel === 'stable' ? 'webapp' : 'webapp-dev'
 
   // 将当前构建复制到 docs/public 目录，供 VitePress 使用
   const docsPublicWebapp = join(ROOT, 'docs', 'public', webappDirName)
@@ -282,21 +341,52 @@ async function uploadDweb() {
     return
   }
 
-  log.step('上传 DWEB 版本')
+  const channel = getChannel()
+  log.step(`上传 DWEB 版本 (${channel})`)
 
-  // 检查环境变量
-  const sftpUrl = process.env.DWEB_SFTP_URL
-  const sftpUser = process.env.DWEB_SFTP_USER
-  const sftpPass = process.env.DWEB_SFTP_PASS
+  // 检查环境变量（URL 有默认值）
+  const sftpUrl = process.env.DWEB_SFTP_URL || 'sftp://iweb.xin:22022'
 
-  if (!sftpUrl || !sftpUser || !sftpPass) {
+  // 根据渠道选择账号：
+  // - stable: DWEB_SFTP_USER / DWEB_SFTP_PASS (正式版账号)
+  // - beta: DWEB_SFTP_USER_DEV / DWEB_SFTP_PASS_DEV (开发版账号)
+  const sftpUser = channel === 'stable' ? process.env.DWEB_SFTP_USER : (process.env.DWEB_SFTP_USER_DEV || process.env.DWEB_SFTP_USER)
+  const sftpPass = channel === 'stable' ? process.env.DWEB_SFTP_PASS : (process.env.DWEB_SFTP_PASS_DEV || process.env.DWEB_SFTP_PASS)
+
+  if (!sftpUser || !sftpPass) {
     log.warn('未配置 SFTP 环境变量，跳过上传')
-    log.info('请设置: DWEB_SFTP_URL, DWEB_SFTP_USER, DWEB_SFTP_PASS')
+    log.info(channel === 'stable' ? '请设置: DWEB_SFTP_USER, DWEB_SFTP_PASS' : '请设置: DWEB_SFTP_USER_DEV, DWEB_SFTP_PASS_DEV')
     return
   }
 
-  // TODO: 实现 SFTP 上传
-  log.warn('SFTP 上传功能待实现')
+  log.info(`SFTP 用户: ${sftpUser}`)
+
+  // 确定上传目录：优先使用 plaoc 打包输出 (dists/)，否则使用 dist-dweb
+  const uploadDir = existsSync(DISTS_DIR) && readdirSync(DISTS_DIR).length > 0 ? DISTS_DIR : DIST_DWEB_DIR
+
+  if (!existsSync(uploadDir)) {
+    log.error(`上传目录不存在: ${uploadDir}`)
+    log.info('请先运行 dweb 构建')
+    return
+  }
+
+  try {
+    // beta 渠道按日期分组上传
+    const remoteSubDir = channel === 'beta' && devVersionInfo ? devVersionInfo.dateDir : undefined
+
+    await uploadToSftp({
+      url: sftpUrl,
+      username: sftpUser,
+      password: sftpPass,
+      sourceDir: uploadDir,
+      projectName: channel === 'beta' ? 'bfmpay-dweb-dev' : 'bfmpay-dweb',
+      remoteSubDir,
+    })
+    log.success('DWEB 上传完成')
+  } catch (error) {
+    log.error(`DWEB 上传失败: ${error}`)
+    throw error
+  }
 }
 
 // ==================== 主程序 ====================

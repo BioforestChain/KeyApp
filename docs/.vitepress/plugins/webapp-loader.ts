@@ -2,7 +2,7 @@
  * VitePress 插件：在 dev/build 前准备 webapp 目录
  *
  * 流程：
- * 1. 尝试从 GitHub Release 下载 webapp/webapp-beta
+ * 1. 尝试从 GitHub Release 下载 webapp/webapp-dev
  * 2. 下载失败则检查本地 dist-web 是否存在
  * 3. 都没有则运行本地构建
  */
@@ -161,7 +161,7 @@ async function prepareAllWebapps() {
   // 并行准备两个版本
   await Promise.all([
     prepareWebapp('stable', join(DOCS_PUBLIC, 'webapp')),
-    prepareWebapp('beta', join(DOCS_PUBLIC, 'webapp-beta')),
+    prepareWebapp('beta', join(DOCS_PUBLIC, 'webapp-dev')),
   ])
 
   log.success('webapp 目录准备完成')
@@ -186,8 +186,8 @@ export function webappLoaderPlugin(): Plugin {
       server.middlewares.use((req, res, next) => {
         const url = req.url || ''
 
-        // 处理 /webapp/ 和 /webapp-beta/ 路径
-        const match = url.match(/^\/(webapp|webapp-beta)(\/.*)?$/)
+        // 处理 /webapp/ 和 /webapp-dev/ 路径
+        const match = url.match(/^\/(webapp|webapp-dev)(\/.*)?$/)
         if (match) {
           const webappDir = match[1]
           const subPath = match[2] || '/'

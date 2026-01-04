@@ -24,7 +24,7 @@ export default defineConfig({
   base,
 
   // webapp/storybook 目录由 CI 动态生成，忽略死链接检查
-  ignoreDeadLinks: [/\.\/webapp/, /\.\/webapp-beta/, /\.\/storybook/],
+  ignoreDeadLinks: [/\.\/webapp/, /\.\/webapp-dev/, /\.\/storybook/],
 
   head: [
     ['link', { rel: 'icon', type: 'image/webp', href: '/logos/logo-64.webp' }],

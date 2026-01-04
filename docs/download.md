@@ -22,7 +22,7 @@
       <h3>Web 测试版</h3>
     </div>
     <p>包含最新功能，每次代码更新自动发布。</p>
-    <a href="./webapp-beta/" class="download-btn secondary">打开 Beta 版</a>
+    <a href="./webapp-dev/" class="download-btn secondary">打开 Beta 版</a>
   </div>
 </div>
 
