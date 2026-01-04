@@ -17,9 +17,12 @@
   },
   "asset": {
     "select": "Select Asset",
+    "selectDesc": "BFM Ecosystem Foundation Community Token Exchange",
     "balance": "Available",
     "noAssets": "No assets available for transfer on this chain",
-    "transfer": "{{from}} → {{to}}"
+    "transfer": "{{from}} → {{to}}",
+    "exchangeTo": "Exchange to {{target}} ({{chain}})",
+    "ratio": "1 {{from}} = {{rate}} {{to}}"
   },
   "wallet": {
     "source": "Source Wallet",

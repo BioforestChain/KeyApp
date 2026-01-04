@@ -53,9 +53,9 @@ export function useTransmitAssetTypeList() {
           assets.push({
             id: `${chainKey}-${assetKey}`,
             chain: chainKey as ChainName,
-            assetType: config.assetType,
-            symbol: config.assetType,
-            name: config.assetType,
+            assetType: assetKey,
+            symbol: assetKey,
+            name: assetKey,
             balance: '0', // 余额需要从钱包获取
             decimals: 8, // 默认精度，实际需要从链上获取
             recipientAddress: config.recipientAddress,

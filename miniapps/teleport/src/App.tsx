@@ -348,7 +348,10 @@ export default function App() {
                 <WalletCard label={t('wallet.source')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} />
                 
                 <div className="space-y-3">
-                  <CardDescription className="px-1">{t('asset.select')}</CardDescription>
+                  <div className="px-1">
+                    <CardDescription>{t('asset.select')}</CardDescription>
+                    <CardDescription className="text-xs text-muted-foreground/70">{t('asset.selectDesc')}</CardDescription>
+                  </div>
                   {availableAssets.length === 0 ? (
                     <Card>
                       <CardContent className="py-8 text-center text-muted-foreground">
@@ -356,32 +359,35 @@ export default function App() {
                       </CardContent>
                     </Card>
                   ) : (
-                    availableAssets.map((asset, i) => (
-                      <motion.div
-                        key={asset.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                      >
-                        <Card 
-                          data-testid={`asset-card-${asset.symbol}`}
-                          className="cursor-pointer transition-colors hover:bg-accent"
-                          onClick={() => handleSelectAsset(asset)}
+                    availableAssets.map((asset, i) => {
+                      const rate = (Number(asset.ratio.numerator) / Number(asset.ratio.denominator)).toFixed(4).replace(/\.?0+$/, '')
+                      return (
+                        <motion.div
+                          key={asset.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
                         >
-                          <CardContent className="py-3 flex items-center gap-3">
-                            <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-base">{asset.symbol}</CardTitle>
-                              <CardDescription>{t('asset.transfer', { from: asset.chain, to: asset.targetChain })}</CardDescription>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-semibold">{asset.balance || '-'}</div>
-                              <CardDescription>{t('asset.balance')}</CardDescription>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))
+                          <Card 
+                            data-testid={`asset-card-${asset.symbol}`}
+                            className="cursor-pointer transition-colors hover:bg-accent"
+                            onClick={() => handleSelectAsset(asset)}
+                          >
+                            <CardContent className="py-3 flex items-center gap-3">
+                              <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-base">{asset.symbol} {t('common.arrow')} {asset.targetAsset}</CardTitle>
+                                <CardDescription>{t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}</CardDescription>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-semibold">{asset.balance || '-'}</div>
+                                <CardDescription>{t('asset.balance')}</CardDescription>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )
+                    })
                   )}
                 </div>
               </motion.div>
