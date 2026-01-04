@@ -218,9 +218,10 @@ function ensurePatternCache(
 }
 
 /**
- * 创建水印 pattern（图标居中在 cell 内）
+ * 创建水印 pattern（菱形排布）
+ * 使用 2x2 的 tile，在对角位置放置图标，重复后形成菱形网格
  * 逻辑间距固定为 WATERMARK_LOGICAL_SPACING
- * @param cellPx cell 物理尺寸（用于创建 tile）
+ * @param cellPx 单个 cell 的物理尺寸
  * @param iconPx 图标物理尺寸
  */
 function ensureWatermarkCache(
@@ -233,20 +234,30 @@ function ensureWatermarkCache(
 ): PatternCache | null {
   if (cache && cache.key === key) return cache
 
-  const tileSize = cellPx
+  // 创建 2x2 cell 大小的 tile，实现菱形排布
+  const tileSize = cellPx * 2
   const tile = new OffscreenCanvas(tileSize, tileSize)
   const tctx = tile.getContext('2d')
   if (!tctx) return null
 
   tctx.clearRect(0, 0, tile.width, tile.height)
-  // 图标在 cell 内居中绘制
-  const iconOffset = (tileSize - iconPx) / 2
+
+  // 图标在 cell 内居中的偏移量
+  const iconOffset = (cellPx - iconPx) / 2
+
+  // 位置 1: 左上 cell 的中心 (0.5, 0.5) in cell units
   tctx.drawImage(image, iconOffset, iconOffset, iconPx, iconPx)
+
+  // 位置 2: 右下 cell 的中心 (1.5, 1.5) in cell units
+  tctx.drawImage(image, cellPx + iconOffset, cellPx + iconOffset, iconPx, iconPx)
 
   const pattern = ctx.createPattern(tile, 'repeat')
   if (!pattern) return null
 
-  return { key, pattern, logicalSpacing: WATERMARK_LOGICAL_SPACING, tileSize }
+  // 使用 3 作为逻辑间距：
+  // 1. 密度适中（比原来的 2 稍稀，视觉更舒适）
+  // 2. 与纹理层（间距 1）错开，避免视觉重复
+  return { key, pattern, logicalSpacing: 3, tileSize }
 }
 
 function renderMaskedLayer(
