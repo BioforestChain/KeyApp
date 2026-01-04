@@ -379,17 +379,13 @@ ${colors.cyan}╔═════════════════════
 
   // 选择要配置的类别
   const selectedCategories = await checkbox({
-    message: '选择要配置的项目:',
+    message: '选择要配置的项目 (空格选中，回车确认):',
     choices: CATEGORIES.map((c) => ({
       value: c.id,
       name: `${c.name} - ${c.description}`,
     })),
+    required: true,
   })
-
-  if (selectedCategories.length === 0) {
-    log.info('未选择任何配置项')
-    return
-  }
 
   // 选择配置目标
   const target = await select({
