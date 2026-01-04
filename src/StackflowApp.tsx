@@ -17,6 +17,8 @@ export function StackflowApp() {
           <MiniappWindow />
           {/* 层叠视图 - 多应用管理 */}
           <MiniappStackView visible={isStackViewOpen} onClose={closeStackView} />
+          {/* Fallback 容器 - 当 slot lost 时保持 MiniappWindow 挂载 */}
+          <div id="miniapp-fallback-portal" style={{ display: 'contents' }} />
         </>
       </LayoutGroup>
     </MiniappVisualProvider>

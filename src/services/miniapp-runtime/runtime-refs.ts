@@ -9,6 +9,39 @@
  */
 
 import type { MiniappTargetDesktop } from '../ecosystem/types'
+import type { SlotStatus } from './types'
+
+// ============================================
+// Slot 状态管理
+// ============================================
+
+/** Slot 状态 Map（key: `${desktop}:${appId}`） */
+const slotStatusMap = new Map<string, SlotStatus>()
+
+/** Slot 状态变化监听器 */
+const slotStatusListeners = new Set<() => void>()
+
+/**
+ * 获取 slot 状态
+ */
+export function getSlotStatus(desktop: MiniappTargetDesktop, appId: string): SlotStatus | null {
+  const key = `${desktop}:${appId}`
+  return slotStatusMap.get(key) ?? null
+}
+
+/**
+ * 订阅 slot 状态变化
+ * @returns 取消订阅函数
+ */
+export function subscribeSlotStatus(listener: () => void): () => void {
+  slotStatusListeners.add(listener)
+  return () => slotStatusListeners.delete(listener)
+}
+
+/** 通知所有监听器 */
+function notifySlotStatusChange(): void {
+  slotStatusListeners.forEach((listener) => listener())
+}
 
 /** 图标 container ref（popover-container） */
 const iconRefs = new Map<string, HTMLElement>()
@@ -188,6 +221,10 @@ export function registerDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, a
   const byApp = desktopAppSlotRefs.get(targetDesktop) ?? new Map<string, HTMLElement>()
   byApp.set(appId, element)
   desktopAppSlotRefs.set(targetDesktop, byApp)
+  // 更新 slot 状态并通知监听器
+  const key = `${targetDesktop}:${appId}`
+  slotStatusMap.set(key, 'ready')
+  notifySlotStatusChange()
 }
 
 export function unregisterDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, appId: string): void {
@@ -197,6 +234,10 @@ export function unregisterDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop,
   if (byApp.size === 0) {
     desktopAppSlotRefs.delete(targetDesktop)
   }
+  // 更新 slot 状态并通知监听器
+  const key = `${targetDesktop}:${appId}`
+  slotStatusMap.set(key, 'lost')
+  notifySlotStatusChange()
 }
 
 export function getDesktopAppSlotRef(targetDesktop: MiniappTargetDesktop, appId: string): HTMLElement | null {

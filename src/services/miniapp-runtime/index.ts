@@ -91,7 +91,10 @@ export {
   unregisterStackContainerRef,
   unregisterSplashBgRef,
   unregisterSplashIconRef,
+  getSlotStatus,
+  subscribeSlotStatus,
 } from './runtime-refs'
+export { useMiniappVisibilityRestore, useSlotStatus } from './hooks'
 
 // 动画实现已迁移到 motion/layoutId；旧版 FLIP/Popover 动画模块保留为备份文件（*.bak）
 
@@ -121,6 +124,8 @@ function attachBioProviderToIframe(appId: string, iframe: HTMLIFrameElement, man
 
 /** Store 实例 */
 export const miniappRuntimeStore = new Store<MiniappRuntimeState>(initialState)
+
+
 
 export function setMiniappVisualConfig(update: MiniappVisualConfigUpdate): void {
   miniappRuntimeStore.setState((s) => ({

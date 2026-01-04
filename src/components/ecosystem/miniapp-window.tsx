@@ -24,6 +24,7 @@ import {
   didDismiss,
   didPresent,
   settleFlow,
+  useSlotStatus,
 } from '@/services/miniapp-runtime';
 import { getMiniappMotionPresets, type MiniappMotionPresets } from '@/services/miniapp-runtime/visual-config';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
@@ -114,7 +115,16 @@ function MiniappWindowPortal({
     return a?.state === 'launching' || a?.state === 'splash' || a?.state === 'closing';
   });
 
+  // 订阅 slot 状态，响应式感知 slot 注册/注销
+  const slotStatus = useSlotStatus(presentation.desktop, appId);
   const portalHost = getDesktopAppSlotRef(presentation.desktop, appId);
+
+  // 当 slot lost 时使用 fallback 容器，保持组件挂载避免 motion 动画问题
+  const fallbackHost = useMemo(() => {
+    return document.getElementById('miniapp-fallback-portal') ?? document.body;
+  }, []);
+  const actualHost = portalHost ?? fallbackHost;
+  const isSlotLost = slotStatus === 'lost' || !portalHost;
 
   useLayoutEffect(() => {
     if (!app) {
@@ -209,7 +219,8 @@ function MiniappWindowPortal({
     requestDismissSplash(appId);
   }, [appId]);
 
-  if (!portalHost) return null;
+  // 当 slot lost 时禁用 layoutId，防止动画到错误位置
+  const enableLayoutId = !isSlotLost;
 
   const node = (
     <AnimatePresence
@@ -227,9 +238,15 @@ function MiniappWindowPortal({
         <div
           ref={windowRef}
           className={cn(styles.window, isAnimating && styles.animating, className)}
-          style={{ zIndex: presentation.zOrder, pointerEvents: isFocused ? undefined : 'none' }}
+          style={{
+            zIndex: presentation.zOrder,
+            pointerEvents: isFocused ? undefined : 'none',
+            // slot lost 时隐藏窗口
+            visibility: isSlotLost ? 'hidden' : 'visible',
+          }}
           data-testid="miniapp-window"
           data-app-id={presentApp.appId}
+          data-slot-lost={isSlotLost ? 'true' : undefined}
         >
           <motion.div
             className={styles.windowInner}
@@ -237,7 +254,7 @@ function MiniappWindowPortal({
             initial={false}
             animate={windowContainerVariant}
             onLayoutAnimationComplete={handleLayoutAnimationComplete}
-            {...(appDisplay.appId
+            {...(enableLayoutId && appDisplay.appId
               ? {
                   layoutId: `miniapp:${appDisplay.appId}:container`,
                   'data-layoutid': `miniapp:${appDisplay.appId}:container`,
@@ -248,7 +265,7 @@ function MiniappWindowPortal({
           >
             <motion.div
               className={cn(styles.contentLayer, isTransitioning && styles.blending)}
-              {...(appDisplay.appId
+              {...(enableLayoutId && appDisplay.appId
                 ? {
                     layoutId: `miniapp:${appDisplay.appId}:inner`,
                     'data-layoutid': `miniapp:${appDisplay.appId}:inner`,
@@ -296,7 +313,7 @@ function MiniappWindowPortal({
             >
               <motion.div
                 className="size-30 items-center justify-center"
-                {...(splashIconHasLayoutId && appDisplay.appId
+                {...(enableLayoutId && splashIconHasLayoutId && appDisplay.appId
                   ? {
                       layoutId: `miniapp:${appDisplay.appId}:logo`,
                       'data-layoutid': `miniapp:${appDisplay.appId}:logo`,
@@ -326,7 +343,7 @@ function MiniappWindowPortal({
     </AnimatePresence>
   );
 
-  return createPortal(node, portalHost);
+  return createPortal(node, actualHost);
 }
 
 export default MiniappWindow;
