@@ -131,6 +131,16 @@ export function WalletTab() {
     push("WalletListJob", {});
   }, [push]);
 
+  // 地址余额查询
+  const handleOpenAddressBalance = useCallback(() => {
+    push("AddressBalanceActivity", {});
+  }, [push]);
+
+  // 地址交易查询
+  const handleOpenAddressTransactions = useCallback(() => {
+    push("AddressTransactionsActivity", {});
+  }, [push]);
+
   // 交易点击
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
@@ -174,6 +184,8 @@ export function WalletTab() {
           onOpenSettings={handleOpenWalletSettings}
           onOpenWalletList={handleOpenWalletList}
           onAddWallet={handleAddWallet}
+          onOpenAddressBalance={handleOpenAddressBalance}
+          onOpenAddressTransactions={handleOpenAddressTransactions}
         />
 
         {/* 快捷操作按钮 - 颜色跟随主题 */}

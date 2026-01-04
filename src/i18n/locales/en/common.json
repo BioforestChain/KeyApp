@@ -352,5 +352,20 @@
     "daysLater": "In {{count}} days",
     "today": "Today",
     "yesterday": "Yesterday"
+  },
+  "addressLookup": {
+    "balanceTitle": "Address Balance",
+    "transactionsTitle": "Address Transactions",
+    "chain": "Chain",
+    "address": "Address",
+    "addressPlaceholder": "Enter wallet address",
+    "addressOrHash": "Address or Transaction Hash",
+    "addressOrHashPlaceholder": "Enter address or tx hash",
+    "otherChains": "Other Chains",
+    "error": "Query Failed",
+    "onChain": "on {{chain}}",
+    "explorerHint": "Transaction history requires block explorer",
+    "openExplorer": "Open {{name}} Explorer",
+    "viewOnExplorer": "View on {{name}}"
   }
 }

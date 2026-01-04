@@ -8,7 +8,13 @@ import { useWalletTheme } from '@/hooks/useWalletTheme';
 import { useChainIconUrls } from '@/hooks/useChainIconUrls';
 import { cn } from '@/lib/utils';
 import type { Wallet, ChainType } from '@/stores';
-import { IconWallet, IconPlus } from '@tabler/icons-react';
+import { IconWallet, IconPlus, IconDotsVertical, IconSearch, IconReceipt } from '@tabler/icons-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 import 'swiper/css';
 import 'swiper/css/effect-cards';
@@ -26,6 +32,8 @@ interface WalletCardCarouselProps {
   onOpenSettings?: (walletId: string) => void;
   onOpenWalletList?: () => void;
   onAddWallet?: () => void;
+  onOpenAddressBalance?: () => void;
+  onOpenAddressTransactions?: () => void;
   className?: string;
 }
 
@@ -45,6 +53,8 @@ export function WalletCardCarousel({
   onOpenSettings,
   onOpenWalletList,
   onAddWallet,
+  onOpenAddressBalance,
+  onOpenAddressTransactions,
   className,
 }: WalletCardCarouselProps) {
   const swiperRef = useRef<SwiperType | null>(null);
@@ -111,15 +121,40 @@ export function WalletCardCarousel({
         </button>
       )}
 
-      {/* 右上角：添加钱包 */}
-      {onAddWallet && (
-        <button
-          onClick={onAddWallet}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 right-4 z-10 flex items-center justify-center rounded-full p-1.5 backdrop-blur-sm transition-colors"
-        >
-          <IconPlus className="size-4" />
-        </button>
-      )}
+      {/* 右上角：添加钱包 + 更多菜单 */}
+      <div className="absolute top-0 right-4 z-10 flex items-center gap-1.5">
+        {onAddWallet && (
+          <button
+            onClick={onAddWallet}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center rounded-full p-1.5 backdrop-blur-sm transition-colors"
+          >
+            <IconPlus className="size-4" />
+          </button>
+        )}
+        {(onOpenAddressBalance || onOpenAddressTransactions) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center rounded-full p-1.5 backdrop-blur-sm transition-colors"
+            >
+              <IconDotsVertical className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={8}>
+              {onOpenAddressBalance && (
+                <DropdownMenuItem onClick={onOpenAddressBalance}>
+                  <IconSearch className="size-4" />
+                  地址余额查询
+                </DropdownMenuItem>
+              )}
+              {onOpenAddressTransactions && (
+                <DropdownMenuItem onClick={onOpenAddressTransactions}>
+                  <IconReceipt className="size-4" />
+                  地址交易查询
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
 
       <Swiper
         modules={[EffectCards]}

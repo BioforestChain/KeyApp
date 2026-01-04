@@ -258,16 +258,16 @@ export const TokenPicker: Story = {
 
     await userEvent.click(canvas.getByRole('button', { name: /连接钱包/i }))
 
-    // Wait for token selector button
+    // Wait for token selector button (BSC/BNB is now first due to chain ordering)
     await waitFor(
       () => {
-        expect(canvas.getByText('ETH')).toBeInTheDocument()
+        expect(canvas.getByText('BNB')).toBeInTheDocument()
       },
       { timeout: 5000 }
     )
 
     // Click token selector to open picker
-    const tokenButton = canvas.getAllByRole('button').find((btn) => btn.textContent?.includes('ETH'))
+    const tokenButton = canvas.getAllByRole('button').find((btn) => btn.textContent?.includes('BNB'))
     if (tokenButton) {
       await userEvent.click(tokenButton)
     }
