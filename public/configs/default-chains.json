@@ -152,12 +152,12 @@
       "decimals": 18,
       "api": {
         "ethereum-rpc": "https://ethereum-rpc.publicnode.com",
-        "etherscan-v2": "https://api.etherscan.io/v2/api"
+        "blockscout-v1": "https://eth.blockscout.com/api"
       },
       "explorer": {
-        "url": "https://etherscan.io",
-        "queryTx": "https://etherscan.io/tx/:hash",
-        "queryAddress": "https://etherscan.io/address/:address"
+        "url": "https://eth.blockscout.com",
+        "queryTx": "https://eth.blockscout.com/tx/:hash",
+        "queryAddress": "https://eth.blockscout.com/address/:address"
       }
     },
     {

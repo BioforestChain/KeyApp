@@ -106,8 +106,9 @@ export class EtherscanProvider implements ApiProvider {
 
 /** 工厂函数 */
 export function createEtherscanProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
-  // 匹配 etherscan-* 或 *scan-* 类型
-  if (entry.type.includes('etherscan') || entry.type.includes('scan')) {
+  // 匹配 etherscan-*, blockscout-*, 或 *scan-* 类型
+  // Blockscout 使用与 Etherscan 兼容的 API 格式
+  if (entry.type.includes('etherscan') || entry.type.includes('blockscout') || entry.type.includes('scan')) {
     return new EtherscanProvider(entry, chainId)
   }
   return null
