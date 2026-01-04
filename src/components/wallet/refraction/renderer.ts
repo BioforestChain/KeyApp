@@ -254,10 +254,8 @@ function ensureWatermarkCache(
   const pattern = ctx.createPattern(tile, 'repeat')
   if (!pattern) return null
 
-  // 使用 3 作为逻辑间距：
-  // 1. 密度适中（比原来的 2 稍稀，视觉更舒适）
-  // 2. 与纹理层（间距 1）错开，避免视觉重复
-  return { key, pattern, logicalSpacing: 3, tileSize }
+  // 2x2 tile 需要 2 倍的 logicalSpacing 来保持图标原始大小
+  return { key, pattern, logicalSpacing: WATERMARK_LOGICAL_SPACING * 2, tileSize }
 }
 
 function renderMaskedLayer(
