@@ -9,7 +9,7 @@ import { BioforestAssetService } from './asset-service'
 // Mock chainConfigService
 vi.mock('@/services/chain-config', () => ({
   chainConfigService: {
-    get: vi.fn((chainId: string) => {
+    getConfig: vi.fn((chainId: string) => {
       if (chainId === 'bfmeta') {
         return {
           id: 'bfmeta',

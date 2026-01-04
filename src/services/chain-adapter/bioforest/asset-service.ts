@@ -20,7 +20,7 @@ export class BioforestAssetService implements IAssetService {
 
   private getConfig(): ChainConfig {
     if (!this.config) {
-      const config = chainConfigService.get(this.chainId)
+      const config = chainConfigService.getConfig(this.chainId)
       if (!config) {
         throw new ChainServiceError(
           ChainErrorCodes.CHAIN_NOT_FOUND,
