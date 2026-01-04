@@ -2,7 +2,6 @@
  * Tron Identity Service
  */
 
-import type { ChainConfig } from '@/services/chain-config'
 import type { IIdentityService, Address, Signature } from '../types'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
@@ -14,7 +13,7 @@ import { HDKey } from '@scure/bip32'
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 export class TronIdentityService implements IIdentityService {
-  constructor(_config: ChainConfig) {}
+  constructor(_chainId: string) {}
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // Tron uses BIP44 path: m/44'/195'/0'/0/index

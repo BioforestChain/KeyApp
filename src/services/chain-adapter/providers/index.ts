@@ -87,9 +87,9 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'tron': {
-      const identity = new TronIdentityService(config)
+      const identity = new TronIdentityService(config.id)
       const asset = new TronAssetService(config.id)
-      const transaction = new TronTransactionService(config)
+      const transaction = new TronTransactionService(config.id)
       providers.push(
         new WrappedTransactionProvider(`wrapped-tron-tx`, transaction, asset),
         new WrappedIdentityProvider(`wrapped-tron-identity`, identity),
@@ -97,7 +97,7 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'bitcoin': {
-      const identity = new BitcoinIdentityService(config)
+      const identity = new BitcoinIdentityService(config.id)
       const asset = new BitcoinAssetService(config.id)
       const transaction = new BitcoinTransactionService(config.id)
       providers.push(
@@ -107,9 +107,9 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'bioforest': {
-      const identity = new BioforestIdentityService(config)
+      const identity = new BioforestIdentityService(config.id)
       const asset = new BioforestAssetService(config.id)
-      const transaction = new BioforestTransactionService(config)
+      const transaction = new BioforestTransactionService(config.id)
       providers.push(
         new WrappedTransactionProvider(`wrapped-bioforest-tx`, transaction, asset),
         new WrappedIdentityProvider(`wrapped-bioforest-identity`, identity),

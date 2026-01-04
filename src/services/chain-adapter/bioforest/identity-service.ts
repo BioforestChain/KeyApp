@@ -15,20 +15,30 @@ function bytesToHex(bytes: Uint8Array): string {
     .join('')
 }
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import type { IIdentityService, Address, Signature } from '../types'
 
 export class BioforestIdentityService implements IIdentityService {
-  private readonly prefix: string
+  private readonly chainId: string
+  private prefix: string | null = null
 
-  constructor(config: ChainConfig) {
-    this.prefix = config.prefix ?? 'b'
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private getPrefix(): string {
+    if (!this.prefix) {
+      const config = chainConfigService.getConfig(this.chainId)
+      this.prefix = config?.prefix ?? 'b'
+    }
+    return this.prefix
   }
 
   async deriveAddress(seed: Uint8Array, _index = 0): Promise<Address> {
     // BioForest uses the same keypair for all indices (no HD derivation)
     const seedString = new TextDecoder().decode(seed)
     const keypair = createBioforestKeypair(seedString)
-    return publicKeyToBioforestAddress(keypair.publicKey, this.prefix)
+    return publicKeyToBioforestAddress(keypair.publicKey, this.getPrefix())
   }
 
   async deriveAddresses(seed: Uint8Array, startIndex: number, count: number): Promise<Address[]> {
