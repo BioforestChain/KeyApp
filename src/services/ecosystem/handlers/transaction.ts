@@ -11,17 +11,10 @@ import { HandlerContext, type MiniappInfo, type SignTransactionParams } from './
 
 import { Amount } from '@/types/amount'
 import { chainConfigActions, chainConfigSelectors, chainConfigStore, walletStore } from '@/stores'
-import { getAdapterRegistry, setupAdapters } from '@/services/chain-adapter'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import { hexToBytes } from '@noble/hashes/utils.js'
 import { deriveKey } from '@/lib/crypto/derivation'
 import { createBioforestKeypair, publicKeyToBioforestAddress } from '@/lib/crypto'
-
-let adaptersInitialized = false
-function ensureAdapters(): void {
-  if (adaptersInitialized) return
-  setupAdapters()
-  adaptersInitialized = true
-}
 
 function findWalletIdByAddress(chainId: string, address: string): string | null {
   const wallets = walletStore.state.wallets
@@ -80,14 +73,12 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
   const chainConfig = await getChainConfigOrThrow(opts.chain)
   const amount = Amount.parse(opts.amount, chainConfig.decimals, chainConfig.symbol)
 
-  ensureAdapters()
-  const registry = getAdapterRegistry()
-  const adapter = registry.getAdapter(chainConfig.id)
-  if (!adapter) {
-    throw Object.assign(new Error(`No adapter for chain: ${chainConfig.id}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
+  const chainProvider = getChainProvider(chainConfig.id)
+  if (!chainProvider.supportsBuildTransaction) {
+    throw Object.assign(new Error(`Chain ${chainConfig.id} does not support transaction building`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
-  const unsignedTx = await adapter.transaction.buildTransaction({
+  const unsignedTx = await chainProvider.buildTransaction!({
     from: opts.from,
     to: opts.to,
     amount,
@@ -153,11 +144,9 @@ export async function signUnsignedTransaction(params: {
 }): Promise<BioSignedTransaction> {
   const chainConfig = await getChainConfigOrThrow(params.chainId)
 
-  ensureAdapters()
-  const registry = getAdapterRegistry()
-  const adapter = registry.getAdapter(chainConfig.id)
-  if (!adapter) {
-    throw Object.assign(new Error(`No adapter for chain: ${chainConfig.id}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
+  const chainProvider = getChainProvider(chainConfig.id)
+  if (!chainProvider.supportsSignTransaction) {
+    throw Object.assign(new Error(`Chain ${chainConfig.id} does not support transaction signing`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
   // Derive chain private key from mnemonic/arbitrary secret.
@@ -181,7 +170,7 @@ export async function signUnsignedTransaction(params: {
     throw Object.assign(new Error(`Unsupported chain type: ${chainConfig.type}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
-  const signed = await adapter.transaction.signTransaction(
+  const signed = await chainProvider.signTransaction!(
     { chainId: params.unsignedTx.chainId, data: params.unsignedTx.data },
     privateKeyBytes,
   )

@@ -66,10 +66,10 @@ export function startFrontendMain(rootElement: HTMLElement): void {
   createRoot(rootElement).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <ServiceProvider>
-          <MigrationProvider>
-            <AppInitializer>
-              <I18nextProvider i18n={i18n}>
+        <I18nextProvider i18n={i18n}>
+          <ServiceProvider>
+            <MigrationProvider>
+              <AppInitializer>
                 <IconProvidersWrapper>
                   <StackflowApp />
                 </IconProvidersWrapper>
@@ -79,10 +79,10 @@ export function startFrontendMain(rootElement: HTMLElement): void {
                     <MockDevTools />
                   </Suspense>
                 )}
-              </I18nextProvider>
-            </AppInitializer>
-          </MigrationProvider>
-        </ServiceProvider>
+              </AppInitializer>
+            </MigrationProvider>
+          </ServiceProvider>
+        </I18nextProvider>
       </QueryClientProvider>
     </StrictMode>,
   )

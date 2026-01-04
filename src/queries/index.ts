@@ -58,3 +58,14 @@ export {
   securityPasswordQueryKeys,
   type SecurityPasswordQueryResult,
 } from './use-security-password-query'
+
+export {
+  useAddressBalanceQuery,
+  addressBalanceKeys,
+  type AddressBalanceResult,
+} from './use-address-balance-query'
+
+export {
+  useAddressTransactionsQuery,
+  addressTransactionsQueryKeys,
+} from './use-address-transactions-query'

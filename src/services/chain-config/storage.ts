@@ -241,3 +241,27 @@ export async function resetChainConfigStorageForTests(): Promise<void> {
     request.onblocked = () => resolve()
   })
 }
+
+export async function saveDefaultVersion(version: string): Promise<void> {
+  const db = await getDb()
+  const tx = db.transaction([STORE_PREFERENCES], 'readwrite')
+  const store = tx.objectStore(STORE_PREFERENCES)
+
+  const record: PreferenceRecord = { key: 'defaultVersion', value: version }
+  store.put(record)
+
+  await transactionDone(tx)
+}
+
+export async function loadDefaultVersion(): Promise<string | null> {
+  const db = await getDb()
+  const tx = db.transaction([STORE_PREFERENCES], 'readonly')
+  const store = tx.objectStore(STORE_PREFERENCES)
+
+  const record = await requestToPromise(store.get('defaultVersion'))
+  await transactionDone(tx)
+
+  if (!record || typeof record !== 'object') return null
+  const value = (record as PreferenceRecord).value
+  return typeof value === 'string' ? value : null
+}

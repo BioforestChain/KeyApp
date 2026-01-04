@@ -141,6 +141,9 @@
     "available": "Available",
     "unavailable": "Unable to get storage info",
     "clearTitle": "Clear Data",
-    "clearDesc": "Clear all locally stored data including wallets, settings, and cache."
+    "clearDesc": "Clear all locally stored data including wallets, settings, and cache.",
+    "migrationRequired": "Data Migration Required",
+    "migrationDesc": "Detected old data format. Please clear the local database to continue. Your mnemonic and private keys are not affected, but you will need to re-import your wallet.",
+    "goToClear": "Go to Clear Data"
   }
 }

@@ -5,6 +5,7 @@ import {
   walletStorageService,
   type WalletInfo,
   type ChainAddressInfo,
+  WalletStorageMigrationError,
 } from '@/services/wallet-storage'
 
 /**
@@ -89,6 +90,8 @@ export interface WalletState {
   chainPreferences: Record<string, ChainType>
   isLoading: boolean
   isInitialized: boolean
+  /** 需要迁移数据库 */
+  migrationRequired: boolean
 }
 
 // localStorage key for chain preferences
@@ -124,6 +127,7 @@ const initialState: WalletState = {
   chainPreferences: {},
   isLoading: false,
   isInitialized: false,
+  migrationRequired: false,
 }
 
 // 创建 Store
@@ -230,6 +234,17 @@ export const walletActions = {
         isLoading: false,
       }))
     } catch (error) {
+      // 检测版本不兼容错误
+      if (error instanceof WalletStorageMigrationError) {
+        walletStore.setState((state) => ({
+          ...state,
+          isInitialized: true,
+          isLoading: false,
+          migrationRequired: true,
+        }))
+        return
+      }
+      
       console.error('Failed to initialize wallets:', error)
       walletStore.setState((state) => ({
         ...state,
@@ -474,33 +489,32 @@ export const walletActions = {
 
     try {
       // 动态导入避免循环依赖
-      const { getAdapterRegistry } = await import('@/services/chain-adapter')
-      const registry = getAdapterRegistry()
-      const adapter = registry.getAdapter(chain)
+      const { getChainProvider } = await import('@/services/chain-adapter/providers')
+      const chainProvider = getChainProvider(chain)
       
-      if (!adapter) {
+      if (!chainProvider.supportsNativeBalance) {
         // This is expected during initialization or for unsupported chains
         // Only log in development to avoid console noise
         if (import.meta.env.DEV) {
-          console.debug(`[refreshBalance] Skipping chain without adapter: ${chain}`)
+          console.debug(`[refreshBalance] Skipping chain without balance support: ${chain}`)
         }
         return
       }
 
-      // 获取余额
-      const balances = await adapter.asset.getTokenBalances(chainAddress.address)
+      // 获取原生代币余额
+      const balance = await chainProvider.getNativeBalance!(chainAddress.address)
       
-      // 转换为 Token 格式
-      const tokens: Token[] = balances.map((b) => ({
-        id: `${chain}:${b.symbol}`,
-        symbol: b.symbol,
-        name: b.symbol,
-        balance: b.amount.toFormatted(),
+      // 转换为 Token 格式 (目前只支持原生代币)
+      const tokens: Token[] = [{
+        id: `${chain}:${balance.symbol}`,
+        symbol: balance.symbol,
+        name: balance.symbol,
+        balance: balance.amount.toFormatted(),
         fiatValue: 0, // TODO: 对接汇率服务
         change24h: 0,
-        decimals: b.amount.decimals,
+        decimals: balance.amount.decimals,
         chain,
-      }))
+      }]
 
       // 更新 store
       await walletActions.updateChainAssets(walletId, chain, tokens)

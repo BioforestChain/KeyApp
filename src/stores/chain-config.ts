@@ -7,6 +7,7 @@ import {
   refreshSubscription,
   setChainEnabled,
   setSubscriptionUrl,
+  ChainConfigMigrationError,
   type ChainConfig,
   type ChainConfigSnapshot,
   type ChainConfigSubscription,
@@ -17,12 +18,15 @@ export interface ChainConfigState {
   snapshot: ChainConfigSnapshot | null
   isLoading: boolean
   error: string | null
+  /** 需要迁移数据库 */
+  migrationRequired: boolean
 }
 
 const initialState: ChainConfigState = {
   snapshot: null,
   isLoading: false,
   error: null,
+  migrationRequired: false,
 }
 
 export const chainConfigStore = new Store<ChainConfigState>(initialState)
@@ -33,13 +37,22 @@ function toErrorMessage(error: unknown): string {
 }
 
 async function runAndUpdate(action: () => Promise<ChainConfigSnapshot>): Promise<void> {
-  chainConfigStore.setState((state) => ({ ...state, isLoading: true, error: null }))
+  chainConfigStore.setState((state) => ({ ...state, isLoading: true, error: null, migrationRequired: false }))
 
   try {
     const snapshot = await action()
     chainConfigStore.setState((state) => ({ ...state, snapshot, isLoading: false, error: null }))
   } catch (error) {
-    chainConfigStore.setState((state) => ({ ...state, isLoading: false, error: toErrorMessage(error) }))
+    if (error instanceof ChainConfigMigrationError) {
+      chainConfigStore.setState((state) => ({
+        ...state,
+        isLoading: false,
+        error: error.message,
+        migrationRequired: true,
+      }))
+    } else {
+      chainConfigStore.setState((state) => ({ ...state, isLoading: false, error: toErrorMessage(error) }))
+    }
   }
 }
 
@@ -161,4 +174,8 @@ export function useChainConfigLoading(): boolean {
 
 export function useChainConfigError(): string | null {
   return useStore(chainConfigStore, (state) => state.error)
+}
+
+export function useChainConfigMigrationRequired(): boolean {
+  return useStore(chainConfigStore, (state) => state.migrationRequired)
 }

@@ -2,7 +2,7 @@
  * BioForest Chain Adapter
  */
 
-import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import type { ChainConfigType } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { BioforestIdentityService } from './identity-service'
 import { BioforestAssetService } from './asset-service'
@@ -17,33 +17,28 @@ export class BioforestAdapter implements IChainAdapter {
   readonly asset: BioforestAssetService
   readonly transaction: BioforestTransactionService
   readonly chain: BioforestChainService
-  readonly staking: IStakingService | null = null // TODO: Implement staking
+  readonly staking: IStakingService | null = null
 
   private initialized = false
 
-  constructor(config: ChainConfig) {
-    this.chainId = config.id
-    this.identity = new BioforestIdentityService(config)
-    this.asset = new BioforestAssetService(config)
-    this.transaction = new BioforestTransactionService(config)
-    this.chain = new BioforestChainService(config)
+  constructor(chainId: string) {
+    this.chainId = chainId
+    this.identity = new BioforestIdentityService(chainId)
+    this.asset = new BioforestAssetService(chainId)
+    this.transaction = new BioforestTransactionService(chainId)
+    this.chain = new BioforestChainService(chainId)
   }
 
-  async initialize(_config: ChainConfig): Promise<void> {
+  async initialize(): Promise<void> {
     if (this.initialized) return
-
-    // Perform any async initialization
-    // e.g., load chain-specific SDK, verify connection
-
     this.initialized = true
   }
 
   dispose(): void {
-    // Clean up resources
     this.initialized = false
   }
 }
 
-export function createBioforestAdapter(config: ChainConfig): IChainAdapter {
-  return new BioforestAdapter(config)
+export function createBioforestAdapter(chainId: string): IChainAdapter {
+  return new BioforestAdapter(chainId)
 }

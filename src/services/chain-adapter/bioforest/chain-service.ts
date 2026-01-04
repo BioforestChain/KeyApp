@@ -3,6 +3,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
@@ -15,8 +16,9 @@ export class BioforestChainService implements IChainService {
 
   constructor(config: ChainConfig) {
     this.config = config
-    this.apiUrl = config.api?.url ?? ''
-    this.apiPath = config.api?.path ?? config.id
+    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
+    this.apiUrl = biowalletApi?.endpoint ?? ''
+    this.apiPath = biowalletApi?.path ?? config.id
   }
 
   getChainInfo(): ChainInfo {

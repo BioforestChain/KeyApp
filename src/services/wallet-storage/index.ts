@@ -14,4 +14,5 @@ export {
   WALLET_STORAGE_VERSION,
   WalletStorageError,
   WalletStorageErrorCode,
+  WalletStorageMigrationError,
 } from './types'

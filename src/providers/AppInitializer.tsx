@@ -1,7 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { addressBookActions, addressBookStore } from '@/stores'
+import {
+  addressBookActions,
+  addressBookStore,
+  useChainConfigMigrationRequired,
+  chainConfigActions,
+  useChainConfigLoading,
+  useWalletMigrationRequired,
+  walletActions,
+  useWalletLoading,
+} from '@/stores'
 import { useStore } from '@tanstack/react-store'
 import { initializeThemeHue } from '@/hooks/useWalletTheme'
+import { MigrationRequiredView } from '@/components/common/migration-required-view'
+import { LoadingSpinner } from '@/components/common/loading-spinner'
 
 // 立即执行：在 React 渲染之前应用缓存的主题色，避免闪烁
 initializeThemeHue()
@@ -17,19 +28,37 @@ initializeThemeHue()
 export function AppInitializer({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false)
   const addressBookState = useStore(addressBookStore)
+  const chainConfigMigrationRequired = useChainConfigMigrationRequired()
+  const walletMigrationRequired = useWalletMigrationRequired()
+  const chainConfigLoading = useChainConfigLoading()
+  const walletLoading = useWalletLoading()
 
   useEffect(() => {
     // 统一初始化所有需要持久化的 store
     if (!addressBookState.isInitialized) {
       addressBookActions.initialize()
     }
-    setIsReady(true)
+    // 初始化链配置和钱包
+    Promise.all([
+      chainConfigActions.initialize(),
+      walletActions.initialize(),
+    ]).finally(() => {
+      setIsReady(true)
+    })
   }, []) // 只在挂载时执行一次
 
-  // 可选：在 store 未初始化完成时显示 loading
-  // 但这里因为是同步初始化，所以直接渲染
-  if (!isReady) {
-    return null
+  // 检测到需要迁移时，显示迁移界面
+  if (chainConfigMigrationRequired || walletMigrationRequired) {
+    return <MigrationRequiredView />
+  }
+
+  // 等待初始化完成
+  if (!isReady || chainConfigLoading || walletLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
 
   return <>{children}</>

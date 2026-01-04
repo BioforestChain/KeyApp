@@ -1,6 +1,6 @@
 import type { EncryptedData } from '@/lib/crypto'
 
-export const WALLET_STORAGE_VERSION = 1
+export const WALLET_STORAGE_VERSION = 2
 
 /** 钱包用户信息 */
 export interface WalleterInfo {
@@ -140,5 +140,19 @@ export class WalletStorageError extends Error {
   ) {
     super(message)
     this.name = 'WalletStorageError'
+  }
+}
+
+/** 钱包存储版本不兼容错误 */
+export class WalletStorageMigrationError extends Error {
+  readonly code = 'WALLET_MIGRATION_REQUIRED'
+  readonly storedVersion: number
+  readonly requiredVersion: number
+
+  constructor(storedVersion: number, requiredVersion: number) {
+    super(`Wallet storage migration required: v${storedVersion} → v${requiredVersion}`)
+    this.name = 'WalletStorageMigrationError'
+    this.storedVersion = storedVersion
+    this.requiredVersion = requiredVersion
   }
 }

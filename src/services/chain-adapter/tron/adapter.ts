@@ -1,10 +1,10 @@
 /**
  * Tron Chain Adapter
- * 
+ *
  * Full adapter for Tron network using PublicNode HTTP API
  */
 
-import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import type { ChainConfigType } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { TronIdentityService } from './identity-service'
 import { TronAssetService } from './asset-service'
@@ -12,34 +12,27 @@ import { TronChainService } from './chain-service'
 import { TronTransactionService } from './transaction-service'
 
 export class TronAdapter implements IChainAdapter {
-  readonly config: ChainConfig
+  readonly chainId: string
+  readonly chainType: ChainConfigType = 'tron'
   readonly identity: TronIdentityService
   readonly asset: TronAssetService
   readonly chain: TronChainService
   readonly transaction: TronTransactionService
   readonly staking: IStakingService | null = null
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    this.identity = new TronIdentityService(config)
-    this.asset = new TronAssetService(config)
-    this.chain = new TronChainService(config)
-    this.transaction = new TronTransactionService(config)
+  constructor(chainId: string) {
+    this.chainId = chainId
+    this.identity = new TronIdentityService(chainId)
+    this.asset = new TronAssetService(chainId)
+    this.chain = new TronChainService(chainId)
+    this.transaction = new TronTransactionService(chainId)
   }
 
-  get chainId(): string {
-    return this.config.id
-  }
+  async initialize(): Promise<void> {}
 
-  get chainType(): ChainConfigType {
-    return 'tron'
-  }
+  dispose(): void {}
+}
 
-  async initialize(_config: ChainConfig): Promise<void> {
-    // No async initialization needed
-  }
-
-  dispose(): void {
-    // No cleanup needed
-  }
+export function createTronAdapter(chainId: string): IChainAdapter {
+  return new TronAdapter(chainId)
 }

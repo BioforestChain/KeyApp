@@ -6,6 +6,7 @@ import { TransactionList } from "@/components/transaction/transaction-list";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
 import { SwipeableTabs } from "@/components/layout/swipeable-tabs";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
+import { MigrationRequiredView } from "@/components/common/migration-required-view";
 import { GradientButton } from "@/components/common/gradient-button";
 import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
@@ -25,6 +26,7 @@ import {
   useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
+  useChainConfigMigrationRequired,
   walletActions,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
@@ -51,6 +53,7 @@ export function WalletTab() {
   const haptics = useHaptics();
   const { t } = useTranslation(["home", "wallet", "common", "transaction"]);
 
+  const migrationRequired = useChainConfigMigrationRequired();
   const isInitialized = useWalletInitialized();
   const hasWallet = useHasWallet();
   const wallets = useWallets();
@@ -128,6 +131,16 @@ export function WalletTab() {
     push("WalletListJob", {});
   }, [push]);
 
+  // 地址余额查询
+  const handleOpenAddressBalance = useCallback(() => {
+    push("AddressBalanceActivity", {});
+  }, [push]);
+
+  // 地址交易查询
+  const handleOpenAddressTransactions = useCallback(() => {
+    push("AddressTransactionsActivity", {});
+  }, [push]);
+
   // 交易点击
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
@@ -137,6 +150,11 @@ export function WalletTab() {
     },
     [push]
   );
+
+  // 需要迁移数据库
+  if (migrationRequired) {
+    return <MigrationRequiredView />;
+  }
 
   if (!isInitialized) {
     return (
@@ -166,6 +184,8 @@ export function WalletTab() {
           onOpenSettings={handleOpenWalletSettings}
           onOpenWalletList={handleOpenWalletList}
           onAddWallet={handleAddWallet}
+          onOpenAddressBalance={handleOpenAddressBalance}
+          onOpenAddressTransactions={handleOpenAddressTransactions}
         />
 
         {/* 快捷操作按钮 - 颜色跟随主题 */}
