@@ -28,6 +28,7 @@ import { execSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, cpSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createWriteStream } from 'node:fs'
+import { uploadToSftp } from './utils/sftp'
 
 // ==================== 配置 ====================
 
@@ -284,19 +285,39 @@ async function uploadDweb() {
 
   log.step('上传 DWEB 版本')
 
-  // 检查环境变量
-  const sftpUrl = process.env.DWEB_SFTP_URL
+  // 检查环境变量（URL 有默认值）
+  const sftpUrl = process.env.DWEB_SFTP_URL || 'sftp://iweb.xin:22022'
   const sftpUser = process.env.DWEB_SFTP_USER
   const sftpPass = process.env.DWEB_SFTP_PASS
 
-  if (!sftpUrl || !sftpUser || !sftpPass) {
+  if (!sftpUser || !sftpPass) {
     log.warn('未配置 SFTP 环境变量，跳过上传')
-    log.info('请设置: DWEB_SFTP_URL, DWEB_SFTP_USER, DWEB_SFTP_PASS')
+    log.info('请设置: DWEB_SFTP_USER, DWEB_SFTP_PASS')
     return
   }
 
-  // TODO: 实现 SFTP 上传
-  log.warn('SFTP 上传功能待实现')
+  // 确定上传目录：优先使用 plaoc 打包输出 (dists/)，否则使用 dist-dweb
+  const uploadDir = existsSync(DISTS_DIR) && readdirSync(DISTS_DIR).length > 0 ? DISTS_DIR : DIST_DWEB_DIR
+
+  if (!existsSync(uploadDir)) {
+    log.error(`上传目录不存在: ${uploadDir}`)
+    log.info('请先运行 dweb 构建')
+    return
+  }
+
+  try {
+    await uploadToSftp({
+      url: sftpUrl,
+      username: sftpUser,
+      password: sftpPass,
+      sourceDir: uploadDir,
+      projectName: 'bfmpay-dweb',
+    })
+    log.success('DWEB 上传完成')
+  } catch (error) {
+    log.error(`DWEB 上传失败: ${error}`)
+    throw error
+  }
 }
 
 // ==================== 主程序 ====================

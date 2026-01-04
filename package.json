@@ -161,6 +161,7 @@
     "semver": "^7.7.3",
     "shadcn": "^3.6.1",
     "sharp": "^0.34.5",
+    "ssh2-sftp-client": "^12.0.1",
     "storybook": "^10.1.4",
     "tailwindcss": "^4.0.0",
     "turbo": "^2.7.1",
