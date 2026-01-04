@@ -5,7 +5,8 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, Activity } from 'react';
+import { within, userEvent, expect } from '@storybook/test';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
 import { MiniappWindow } from './miniapp-window';
@@ -17,6 +18,7 @@ import {
   launchApp,
   resetMiniappVisualConfig,
   setMiniappMotionTimeScale,
+  useMiniappVisibilityRestore,
 } from '@/services/miniapp-runtime';
 import { MiniappVisualProvider } from '@/services/miniapp-runtime/MiniappVisualProvider';
 import type { MiniappManifest } from '@/services/ecosystem';
@@ -269,5 +271,168 @@ export const LaunchDemo: Story = {
         </div>
       </MiniappVisualProvider>
     );
+  },
+};
+
+/**
+ * 模拟 EcosystemTab 组件
+ * 在 Activity 内部调用 activateApp，确保 slots 已注册
+ */
+function EcosystemTabMock({
+  desktopRef,
+  myApps,
+  onAppOpen,
+}: {
+  desktopRef: React.RefObject<EcosystemDesktopHandle | null>;
+  myApps: { app: MiniappManifest; lastUsed: number }[];
+  onAppOpen: (app: MiniappManifest) => void;
+}) {
+  // 使用与真实 EcosystemTab 相同的 hook
+  useMiniappVisibilityRestore();
+
+  return (
+    <EcosystemDesktop
+      ref={desktopRef}
+      showDiscoverPage={false}
+      showStackPage="auto"
+      apps={mockApps}
+      myApps={myApps}
+      onAppOpen={onAppOpen}
+      onAppDetail={(app) => console.log('Detail:', app.name)}
+      onAppRemove={(id) => console.log('Remove:', id)}
+    />
+  );
+}
+
+/**
+ * Tab 切换可见性测试
+ *
+ * 使用真实的 TabBar 和 React 19 Activity 模拟底部 Tab 切换场景：
+ * - MiniappWindow 在全局层渲染（不随 Tab 切换卸载）
+ * - EcosystemTabMock 在 Activity 内，包含 activateApp 逻辑
+ *
+ * 测试步骤：
+ * 1. 点击生态 Tab，然后点击图标启动应用
+ * 2. 点击钱包 Tab 切走
+ * 3. 点击生态 Tab 切回
+ * 4. 观察小程序窗口是否仍然可见
+ */
+export const TabSwitchVisibility: Story = {
+  decorators: [
+    (Story) => (
+      <SwiperSyncProvider>
+        <div className="h-screen">
+          <Story />
+        </div>
+      </SwiperSyncProvider>
+    ),
+  ],
+  render: function TabSwitchVisibilityStory() {
+    const desktopRef = useRef<EcosystemDesktopHandle>(null);
+    const [activeTab, setActiveTab] = useState<'wallet' | 'ecosystem' | 'settings'>('ecosystem');
+
+    // 清理旧状态
+    useEffect(() => {
+      closeAllApps();
+      resetMiniappVisualConfig();
+      return () => {
+        resetMiniappVisualConfig();
+      };
+    }, []);
+
+
+
+    const myApps = mockApps.map((app, i) => ({
+      app,
+      lastUsed: Date.now() - i * 1000 * 60 * 60,
+    }));
+
+    const handleAppOpen = (app: MiniappManifest) => {
+      console.log('[TabSwitchVisibility] Opening app:', app.name);
+      const manifest: MiniappManifest = { ...app, targetDesktop: 'mine' };
+      desktopRef.current?.slideTo('mine');
+      requestAnimationFrame(() => launchApp(app.id, manifest));
+    };
+
+    const handleTabChange = (tab: 'wallet' | 'ecosystem' | 'settings') => {
+      console.log('[TabSwitchVisibility] Tab changed to:', tab);
+      setActiveTab(tab);
+    };
+
+    return (
+      <MiniappVisualProvider>
+        <div className="flex h-screen flex-col bg-background">
+          <div className="relative flex-1 overflow-hidden">
+            {/* 使用 React 19 Activity 模拟真实 Tab 切换行为 */}
+            <Activity mode={activeTab === 'wallet' ? 'visible' : 'hidden'}>
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <div className="text-4xl mb-2">👛</div>
+                  <div>钱包页面</div>
+                </div>
+              </div>
+            </Activity>
+
+            <Activity mode={activeTab === 'ecosystem' ? 'visible' : 'hidden'}>
+              <EcosystemTabMock
+                desktopRef={desktopRef}
+                myApps={myApps}
+                onAppOpen={handleAppOpen}
+              />
+            </Activity>
+
+            <Activity mode={activeTab === 'settings' ? 'visible' : 'hidden'}>
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <div className="text-4xl mb-2">⚙️</div>
+                  <div>设置页面</div>
+                </div>
+              </div>
+            </Activity>
+
+            {/* MiniappWindow 在全局层，不随 Tab 切换卸载（与 StackflowApp 一致） */}
+            <MiniappWindow />
+            {/* Fallback 容器 - 当 slot lost 时保持 MiniappWindow 挂载 */}
+            <div id="miniapp-fallback-portal" style={{ display: 'contents' }} />
+          </div>
+
+          {/* 真实 TabBar */}
+          <TabBar activeTab={activeTab} onTabChange={handleTabChange} className="static" />
+        </div>
+      </MiniappVisualProvider>
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await new Promise((r) => setTimeout(r, 500));
+
+    await step('点击第一个应用图标启动', async () => {
+      const appIcon = canvas.getAllByTestId(/^ios-app-icon-/)[0];
+      expect(appIcon).toBeInTheDocument();
+      await userEvent.click(appIcon);
+      await new Promise((r) => setTimeout(r, 1500));
+    });
+
+    await step('验证窗口已渲染', async () => {
+      const window = canvas.getByTestId('miniapp-window');
+      expect(window).toBeInTheDocument();
+    });
+
+    await step('点击钱包 Tab 切走', async () => {
+      const walletTab = canvas.getByTestId('tab-wallet');
+      await userEvent.click(walletTab);
+      await new Promise((r) => setTimeout(r, 300));
+    });
+
+    await step('点击生态 Tab 切回', async () => {
+      const ecosystemTab = canvas.getByTestId('tab-ecosystem');
+      await userEvent.click(ecosystemTab);
+      await new Promise((r) => setTimeout(r, 500));
+    });
+
+    await step('验证窗口重新可见', async () => {
+      const window = canvas.getByTestId('miniapp-window');
+      expect(window).toBeInTheDocument();
+    });
   },
 };

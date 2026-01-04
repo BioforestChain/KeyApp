@@ -152,6 +152,9 @@ export type MiniappRuntimeEvent =
   | { type: 'stack-view:open' }
   | { type: 'stack-view:close' }
 
+/** Slot 状态 */
+export type SlotStatus = 'ready' | 'lost'
+
 /** 运行时事件监听器 */
 export type MiniappRuntimeListener = (event: MiniappRuntimeEvent) => void
 

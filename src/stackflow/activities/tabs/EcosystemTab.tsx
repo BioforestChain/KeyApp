@@ -14,7 +14,7 @@ import {
 import type { MiniappManifest } from '@/services/ecosystem';
 import { EcosystemDesktop, type EcosystemDesktopHandle } from '@/components/ecosystem';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
-import { launchApp } from '@/services/miniapp-runtime';
+import { launchApp, useMiniappVisibilityRestore } from '@/services/miniapp-runtime';
 import { ecosystemActions } from '@/stores/ecosystem';
 
 export function EcosystemTab() {
@@ -36,6 +36,9 @@ export function EcosystemTab() {
 
     return () => unsubscribe();
   }, []);
+
+  // 当 Activity 从 hidden 变为 visible 时，恢复小程序可见性
+  useMiniappVisibilityRestore();
 
   // App 操作
   const handleAppDetail = useCallback(

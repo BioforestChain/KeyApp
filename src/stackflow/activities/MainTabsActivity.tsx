@@ -200,9 +200,10 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
           <Activity mode={activeTab === "wallet" ? "visible" : "hidden"}>
             <WalletTab />
           </Activity>
-          <Activity mode={activeTab === "ecosystem" ? "visible" : "hidden"}>
+          {/* EcosystemTab 不使用 Activity 包裹，避免 slot 被注销导致小程序窗口问题 */}
+          <div style={{ display: activeTab === "ecosystem" ? "contents" : "none" }}>
             <EcosystemTab />
-          </Activity>
+          </div>
           <Activity mode={activeTab === "settings" ? "visible" : "hidden"}>
             <SettingsTab />
           </Activity>
