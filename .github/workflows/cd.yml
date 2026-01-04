@@ -168,6 +168,21 @@ jobs:
             cp release/bfmpay-dweb-beta.zip "release/bfmpay-dweb-${VERSION}-beta.zip"
           fi
 
+      # 上传 DWEB 到 SFTP 服务器
+      - name: Upload DWEB to SFTP
+        env:
+          CHANNEL: ${{ steps.channel.outputs.channel }}
+          DWEB_SFTP_USER: ${{ secrets.DWEB_SFTP_USER }}
+          DWEB_SFTP_PASS: ${{ secrets.DWEB_SFTP_PASS }}
+          DWEB_SFTP_USER_DEV: ${{ secrets.DWEB_SFTP_USER_DEV }}
+          DWEB_SFTP_PASS_DEV: ${{ secrets.DWEB_SFTP_PASS_DEV }}
+        run: |
+          if [[ "$CHANNEL" == "stable" ]]; then
+            bun scripts/build.ts dweb --upload --stable --skip-typecheck --skip-test
+          else
+            bun scripts/build.ts dweb --upload --skip-typecheck --skip-test
+          fi
+
       # 直接推送到 gh-pages 分支，避免使用 upload-pages-artifact（self-hosted 上容易卡住）
       - name: Deploy to GitHub Pages
         env:
@@ -249,6 +264,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -413,6 +433,21 @@ jobs:
 
           echo "=== Release artifacts ==="
           ls -la release/
+
+      # ===== 上传 DWEB 到 SFTP 服务器 =====
+      - name: Upload DWEB to SFTP
+        env:
+          CHANNEL: ${{ steps.channel.outputs.channel }}
+          DWEB_SFTP_USER: ${{ secrets.DWEB_SFTP_USER }}
+          DWEB_SFTP_PASS: ${{ secrets.DWEB_SFTP_PASS }}
+          DWEB_SFTP_USER_DEV: ${{ secrets.DWEB_SFTP_USER_DEV }}
+          DWEB_SFTP_PASS_DEV: ${{ secrets.DWEB_SFTP_PASS_DEV }}
+        run: |
+          if [[ "$CHANNEL" == "stable" ]]; then
+            bun scripts/build.ts dweb --upload --stable --skip-typecheck --skip-test
+          else
+            bun scripts/build.ts dweb --upload --skip-typecheck --skip-test
+          fi
 
       # ===== 上传构建产物 =====
       - name: Upload GitHub Pages artifact

@@ -283,18 +283,25 @@ async function uploadDweb() {
     return
   }
 
-  log.step('上传 DWEB 版本')
+  const channel = getChannel()
+  log.step(`上传 DWEB 版本 (${channel})`)
 
   // 检查环境变量（URL 有默认值）
   const sftpUrl = process.env.DWEB_SFTP_URL || 'sftp://iweb.xin:22022'
-  const sftpUser = process.env.DWEB_SFTP_USER
-  const sftpPass = process.env.DWEB_SFTP_PASS
+
+  // 根据渠道选择账号：
+  // - stable: DWEB_SFTP_USER / DWEB_SFTP_PASS (正式版账号)
+  // - beta: DWEB_SFTP_USER_DEV / DWEB_SFTP_PASS_DEV (开发版账号)
+  const sftpUser = channel === 'stable' ? process.env.DWEB_SFTP_USER : (process.env.DWEB_SFTP_USER_DEV || process.env.DWEB_SFTP_USER)
+  const sftpPass = channel === 'stable' ? process.env.DWEB_SFTP_PASS : (process.env.DWEB_SFTP_PASS_DEV || process.env.DWEB_SFTP_PASS)
 
   if (!sftpUser || !sftpPass) {
     log.warn('未配置 SFTP 环境变量，跳过上传')
-    log.info('请设置: DWEB_SFTP_USER, DWEB_SFTP_PASS')
+    log.info(channel === 'stable' ? '请设置: DWEB_SFTP_USER, DWEB_SFTP_PASS' : '请设置: DWEB_SFTP_USER_DEV, DWEB_SFTP_PASS_DEV')
     return
   }
+
+  log.info(`SFTP 用户: ${sftpUser}`)
 
   // 确定上传目录：优先使用 plaoc 打包输出 (dists/)，否则使用 dist-dweb
   const uploadDir = existsSync(DISTS_DIR) && readdirSync(DISTS_DIR).length > 0 ? DISTS_DIR : DIST_DWEB_DIR
