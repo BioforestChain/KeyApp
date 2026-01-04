@@ -27,6 +27,9 @@ export interface ForgeOption {
   logo?: string
 }
 
+/** Chain display order: BSC -> TRON -> ETH */
+const CHAIN_ORDER: Record<string, number> = { BSC: 1, TRON: 2, ETH: 3 }
+
 /**
  * Parse recharge config to forge options
  */
@@ -51,6 +54,9 @@ function parseForgeOptions(config: RechargeConfig): ForgeOption[] {
       }
     }
   }
+
+  // Sort by chain order: BSC -> TRON -> ETH
+  options.sort((a, b) => (CHAIN_ORDER[a.externalChain] ?? 99) - (CHAIN_ORDER[b.externalChain] ?? 99))
 
   return options
 }
