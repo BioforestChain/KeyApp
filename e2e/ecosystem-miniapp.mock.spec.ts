@@ -536,6 +536,48 @@ test.describe('小程序权限集成测试', () => {
     await injectTestData(page)
   })
 
+  test('底部 Tab 切换后返回生态，小程序仍可见', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'ecosystem_my_apps',
+        JSON.stringify([{ appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 }])
+      )
+    })
+
+    await page.goto('/#/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 进入生态 - 我的，并打开 Teleport
+    await page.getByTestId('tab-ecosystem').click()
+    await page.waitForTimeout(300)
+    await swipeToMyAppsPage(page)
+    await page.waitForTimeout(300)
+
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.teleport"]').click({ button: 'right' })
+    await page.waitForTimeout(200)
+    await page.locator('button:has-text("打开")').click()
+
+    const teleportFrame = page.frameLocator('iframe[data-app-id="xin.dweb.teleport"]')
+    await teleportFrame.getByRole('button', { name: '启动传送门' }).waitFor({ state: 'visible', timeout: 15000 })
+
+    // 切走到底部其他 tab，再切回来
+    await page.getByTestId('tab-wallet').click()
+    await page.waitForTimeout(300)
+    await page.getByTestId('tab-ecosystem').click()
+    await page.waitForTimeout(500)
+
+    // 生态页重新挂载后需要再次滑到"我的"页
+    await swipeToMyAppsPage(page)
+    await page.waitForTimeout(300)
+
+    // Teleport iframe/窗口应重新可见
+    await expect(page.locator('[data-testid="miniapp-window"][data-app-id="xin.dweb.teleport"]')).toBeVisible({
+      timeout: 15000,
+    })
+    await expect(teleportFrame.getByRole('button', { name: '启动传送门' })).toBeVisible({ timeout: 15000 })
+  })
+
   test('Teleport 启动传送门应弹出权限请求', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
