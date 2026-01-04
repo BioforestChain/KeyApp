@@ -35,3 +35,49 @@ export {
   IOSWallpaper,
   type IOSWallpaperProps,
 } from './ios-wallpaper'
+
+export {
+  MiniappSplashScreen,
+  extractHue,
+  generateGlowHues,
+  type MiniappSplashScreenProps,
+} from './miniapp-splash-screen'
+
+export {
+  AppStackPage,
+  type AppStackPageProps,
+} from './app-stack-page'
+
+export {
+  MiniappWindow,
+  type MiniappWindowProps,
+} from './miniapp-window'
+
+export {
+  MiniappCapsule,
+  type MiniappCapsuleProps,
+} from './miniapp-capsule'
+
+export {
+  MiniappStackCard,
+  type MiniappStackCardProps,
+} from './miniapp-stack-card'
+
+export {
+  MiniappStackView,
+  type MiniappStackViewProps,
+} from './miniapp-stack-view'
+
+export {
+  EcosystemTabIndicator,
+  type EcosystemTabIndicatorProps,
+} from './ecosystem-tab-indicator'
+
+export {
+  EcosystemDesktop,
+  type EcosystemDesktopProps,
+  type EcosystemDesktopConfig,
+  type EcosystemDesktopData,
+  type EcosystemDesktopCallbacks,
+  type EcosystemDesktopHandle,
+} from './ecosystem-desktop'

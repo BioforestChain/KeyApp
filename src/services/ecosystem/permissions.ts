@@ -7,6 +7,7 @@ import { ecosystemStore, ecosystemSelectors, ecosystemActions } from '@/stores/e
 
 /** 敏感方法列表（需要用户确认） */
 export const SENSITIVE_METHODS = [
+  'bio_requestAccounts',
   'bio_signMessage',
   'bio_signTypedData',
   'bio_signTransaction',

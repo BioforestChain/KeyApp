@@ -1,6 +1,6 @@
 /**
  * KeyApp 主程序全局样式
- * 
+ *
  * 导入共享主题 + 主程序专属样式
  */
 
@@ -74,10 +74,18 @@
   [dir='ltr'] {
     --direction-multiplier: 1;
   }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
 }
 
 /* 禁用长按和右键菜单（移动端 App 体验） */
-html, body {
+html,
+body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
@@ -85,7 +93,9 @@ html, body {
 }
 
 /* 允许输入框选择文本 */
-input, textarea, [contenteditable="true"] {
+input,
+textarea,
+[contenteditable='true'] {
   -webkit-user-select: text;
   user-select: text;
 }
@@ -108,31 +118,12 @@ input, textarea, [contenteditable="true"] {
 }
 
 @keyframes fade-in-title {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* 发现页滚动驱动动画（渐进增强） */
-.discover-page {
-  --header-height: 120px;
-}
-
-@keyframes discover-header-shrink {
-  0% {
-    padding-top: 3rem;
-    padding-bottom: 1rem;
+  from {
+    opacity: 0;
   }
-  100% {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+  to {
+    opacity: 1;
   }
-}
-
-.discover-header {
-  animation: discover-header-shrink ease-out forwards;
-  animation-timeline: scroll();
-  animation-duration: 1s;
-  animation-range: entry 0 exit calc(2 * var(--header-height));
 }
 
 /* 详情页滚动驱动 */
@@ -169,97 +160,6 @@ input, textarea, [contenteditable="true"] {
   animation-range: entry 0% entry 100%;
 }
 
-/* iOS Desktop Icon 占位容器 */
-.ios-icon-wrapper {
-  position: relative;
-}
-
-/* iOS Desktop Icon (popover=manual 强制可见) */
-.ios-desktop-icon {
-  /* 重置浏览器 popover 默认样式（未打开状态） */
-  display: block !important;
-  position: static !important;
-  inset: auto !important;
-  margin: 0 !important;
-  background: transparent;
-  border: none;
-  padding: 0;
-  overflow: visible;
-}
-
-/* popover 打开时固定定位到原位 */
-.ios-desktop-icon:popover-open {
-  position: fixed !important;
-  inset: auto !important;
-  top: var(--popover-top) !important;
-  left: var(--popover-left) !important;
-  margin: 0 !important;
-  z-index: 50;
-}
-
-/* ::backdrop 伪元素样式 */
-.ios-desktop-icon::backdrop {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  
-  /* 用 CSS 变量控制退出动画 */
-  opacity: var(--backdrop-opacity, 1);
-  transition: 
-    opacity 0.2s ease-out,
-    backdrop-filter 0.2s ease-out,
-    -webkit-backdrop-filter 0.2s ease-out,
-    display 0.2s ease-out allow-discrete,
-    overlay 0.2s ease-out allow-discrete;
-}
-
-@starting-style {
-  .ios-desktop-icon::backdrop {
-    opacity: 0;
-    backdrop-filter: blur(0) saturate(100%);
-    -webkit-backdrop-filter: blur(0) saturate(100%);
-  }
-}
-
-/* popover 打开时图标效果 */
-.ios-desktop-icon:popover-open > button {
-  transform: scale(1.08) translateY(-4px);
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-}
-
-/* 点击拦截层（透明，只拦截事件） */
-.ios-backdrop-clickarea {
-  background: transparent;
-}
-
-/* 上下文菜单 - 支持进入和退出动画 */
-.ios-context-menu {
-  z-index: 51;
-  transform-origin: center bottom;
-  
-  /* 动画属性 */
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  transition: 
-    opacity 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-    display 0.25s allow-discrete;
-}
-
-/* 菜单进入动画 */
-@starting-style {
-  .ios-context-menu {
-    opacity: 0;
-    transform: scale(0.85) translateY(8px);
-  }
-}
-
-/* 菜单退出状态（通过 JS 添加 class） */
-.ios-context-menu.closing {
-  opacity: 0;
-  transform: scale(0.9) translateY(4px);
-}
-
 /* ============================================
  * iOS Wallpaper 壁纸组件
  * ============================================ */
@@ -276,7 +176,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -20%;
-  background: 
+  background:
     radial-gradient(ellipse 40% 40% at 30% 30%, rgba(99, 102, 241, 0.4), transparent),
     radial-gradient(ellipse 30% 30% at 70% 60%, rgba(236, 72, 153, 0.3), transparent);
   mix-blend-mode: color-dodge;
@@ -287,7 +187,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -20%;
-  background: 
+  background:
     radial-gradient(ellipse 35% 35% at 60% 20%, rgba(168, 85, 247, 0.35), transparent),
     radial-gradient(ellipse 25% 25% at 20% 70%, rgba(59, 130, 246, 0.3), transparent);
   mix-blend-mode: screen;
@@ -309,21 +209,21 @@ input, textarea, [contenteditable="true"] {
 .ios-wallpaper--hard-light .ios-wallpaper__stars {
   position: absolute;
   inset: 0;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.5), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.6), transparent),
-    radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), transparent),
-    radial-gradient(2px 2px at 200px 150px, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 250px 90px, rgba(255,255,255,0.5), transparent);
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 160px 120px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(2px 2px at 200px 150px, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 250px 90px, rgba(255, 255, 255, 0.5), transparent);
   background-size: 300px 200px;
   pointer-events: none;
 }
 .ios-wallpaper--hard-light .ios-wallpaper__glow {
   position: absolute;
   inset: 0;
-  background: 
+  background:
     radial-gradient(ellipse 60% 50% at 25% 25%, rgba(139, 92, 246, 0.6), transparent),
     radial-gradient(ellipse 50% 40% at 75% 70%, rgba(59, 130, 246, 0.5), transparent);
   mix-blend-mode: hard-light;
@@ -333,8 +233,7 @@ input, textarea, [contenteditable="true"] {
 .ios-wallpaper--hard-light .ios-wallpaper__highlight {
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(ellipse 30% 30% at 30% 30%, rgba(255, 255, 255, 0.1), transparent);
+  background: radial-gradient(ellipse 30% 30% at 30% 30%, rgba(255, 255, 255, 0.1), transparent);
   mix-blend-mode: overlay;
   pointer-events: none;
 }
@@ -347,7 +246,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -30%;
-  background: 
+  background:
     radial-gradient(ellipse 50% 50% at 15% 25%, rgba(99, 102, 241, 0.35), transparent),
     radial-gradient(ellipse 45% 45% at 85% 15%, rgba(236, 72, 153, 0.3), transparent),
     radial-gradient(ellipse 40% 40% at 70% 85%, rgba(34, 197, 94, 0.25), transparent);
@@ -359,7 +258,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -30%;
-  background: 
+  background:
     radial-gradient(ellipse 45% 45% at 30% 75%, rgba(251, 191, 36, 0.3), transparent),
     radial-gradient(ellipse 50% 50% at 60% 40%, rgba(59, 130, 246, 0.25), transparent);
   mix-blend-mode: multiply;
@@ -382,7 +281,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -20%;
-  background: 
+  background:
     radial-gradient(ellipse 60% 50% at 10% 20%, rgba(99, 102, 241, 0.45), transparent 70%),
     radial-gradient(ellipse 50% 50% at 90% 80%, rgba(236, 72, 153, 0.4), transparent 70%);
   mix-blend-mode: multiply;
@@ -393,7 +292,7 @@ input, textarea, [contenteditable="true"] {
   content: '';
   position: absolute;
   inset: -20%;
-  background: 
+  background:
     radial-gradient(ellipse 55% 45% at 80% 20%, rgba(168, 85, 247, 0.35), transparent 70%),
     radial-gradient(ellipse 45% 55% at 20% 80%, rgba(14, 165, 233, 0.3), transparent 70%);
   mix-blend-mode: multiply;
@@ -409,8 +308,17 @@ input, textarea, [contenteditable="true"] {
 }
 
 @keyframes ios-wallpaper-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(5%, 5%) scale(1.05); }
-  50% { transform: translate(-3%, 8%) scale(0.98); }
-  75% { transform: translate(-5%, -3%) scale(1.02); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(5%, 5%) scale(1.05);
+  }
+  50% {
+    transform: translate(-3%, 8%) scale(0.98);
+  }
+  75% {
+    transform: translate(-5%, -3%) scale(1.02);
+  }
 }

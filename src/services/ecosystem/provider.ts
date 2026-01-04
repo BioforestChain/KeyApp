@@ -7,6 +7,7 @@
 import { bridge } from './bridge'
 import {
   handleConnect,
+  handleCloseSplashScreen,
   handleRequestAccounts,
   handleAccounts,
   handleSelectAccount,
@@ -24,6 +25,7 @@ import {
 export function initBioProvider(): void {
   // Wallet methods
   bridge.registerHandler('bio_connect', handleConnect)
+  bridge.registerHandler('bio_closeSplashScreen', handleCloseSplashScreen)
   bridge.registerHandler('bio_requestAccounts', handleRequestAccounts)
   bridge.registerHandler('bio_accounts', handleAccounts)
   bridge.registerHandler('bio_selectAccount', handleSelectAccount)
@@ -44,6 +46,7 @@ export function initBioProvider(): void {
 
   console.log('[BioProvider] Initialized with handlers:', [
     'bio_connect',
+    'bio_closeSplashScreen',
     'bio_requestAccounts',
     'bio_accounts',
     'bio_selectAccount',

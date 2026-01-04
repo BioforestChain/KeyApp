@@ -1,0 +1,105 @@
+/**
+ * MyAppsPage 组件样式
+ * iOS Desktop Icon 相关样式（popover + 菜单）
+ */
+
+/* 占位容器 */
+.iconWrapper {
+  position: relative;
+}
+
+/* Popover 基础样式（未打开状态 - 强制可见） */
+.iconPopover {
+  display: block !important;
+  position: static !important;
+  inset: auto !important;
+  margin: 0 !important;
+  background: transparent;
+  border: none;
+  padding: 0;
+  overflow: visible;
+}
+
+/* 菜单模式：popover 打开时固定定位 */
+.iconPopover:popover-open:not([data-launching]) {
+  position: fixed;
+  inset: auto;
+  top: var(--popover-top);
+  left: var(--popover-left);
+  margin: 0;
+  z-index: 50;
+}
+
+/* 菜单模式：::backdrop 背景模糊 */
+.iconPopover:not([data-launching])::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  opacity: var(--backdrop-opacity, 1);
+  transition: 
+    opacity calc(0.2s / var(--miniapp-motion-time-scale, 1)) ease-out,
+    backdrop-filter calc(0.2s / var(--miniapp-motion-time-scale, 1)) ease-out,
+    -webkit-backdrop-filter calc(0.2s / var(--miniapp-motion-time-scale, 1)) ease-out,
+    display calc(0.2s / var(--miniapp-motion-time-scale, 1)) ease-out allow-discrete,
+    overlay calc(0.2s / var(--miniapp-motion-time-scale, 1)) ease-out allow-discrete;
+}
+
+@starting-style {
+  .iconPopover:not([data-launching])::backdrop {
+    opacity: 0;
+    backdrop-filter: blur(0) saturate(100%);
+    -webkit-backdrop-filter: blur(0) saturate(100%);
+  }
+}
+
+/* 菜单模式：图标浮起效果 */
+.iconPopover:popover-open:not([data-launching]) .iconButton {
+  transform: scale(1.08) translateY(-4px);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+}
+
+/* 启动模式：隐藏 backdrop */
+.iconPopover[data-launching]::backdrop {
+  display: none;
+}
+
+/* 启动模式：禁用图标效果（由 Web Animation API 控制） */
+.iconPopover[data-launching] .iconButton {
+  transform: none !important;
+  filter: none !important;
+}
+
+/* 图标按钮（用于 CSS 选择器定位） */
+.iconButton {
+  /* 基础样式由 Tailwind 提供 */
+}
+
+/* 点击拦截层 */
+.backdropClickArea {
+  background: transparent;
+}
+
+/* 上下文菜单 */
+.contextMenu {
+  z-index: 51;
+  transform-origin: center bottom;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: 
+    opacity calc(0.2s / var(--miniapp-motion-time-scale, 1)) cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform calc(0.25s / var(--miniapp-motion-time-scale, 1)) cubic-bezier(0.34, 1.56, 0.64, 1),
+    display calc(0.25s / var(--miniapp-motion-time-scale, 1)) allow-discrete;
+}
+
+@starting-style {
+  .contextMenu {
+    opacity: 0;
+    transform: scale(0.85) translateY(8px);
+  }
+}
+
+/* 菜单退出动画 */
+.contextMenuClosing {
+  opacity: 0;
+  transform: scale(0.9) translateY(4px);
+}

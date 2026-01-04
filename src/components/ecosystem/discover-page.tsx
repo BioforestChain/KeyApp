@@ -1,6 +1,7 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { IconSearch, IconSparkles, IconChevronRight, IconApps } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import styles from './discover-page.module.css';
 import { Button } from '@/components/ui/button';
 import { MiniappIcon } from './miniapp-icon';
 import type { MiniappManifest } from '@/services/ecosystem';
@@ -203,11 +204,11 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
   }));
 
   return (
-    <div className="discover-page h-full overflow-y-auto">
-      {/* BigHeader - sticky，scroll-driven animation */}
-      <header className="discover-header bg-background/80 sticky top-0 z-10 px-5 pt-12 pb-4 backdrop-blur-xl">
+    <div className={cn(styles.discoverPage, 'scrollbar-none h-full overflow-y-auto')}>
+      {/* BigHeader - sticky，scroll-driven background */}
+      <header className={cn(styles.discoverHeader, 'sticky top-0 z-10 px-5 pt-12 pb-4')}>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-muted-foreground text-sm font-medium">{getTodayDate()}</p>
+          <p className="text-foreground text-sm font-medium">{getTodayDate()}</p>
         </div>
 
         {/* 搜索框 */}

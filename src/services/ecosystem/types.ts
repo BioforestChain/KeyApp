@@ -65,6 +65,9 @@ export type MiniappCategory =
   | 'exchange'  // 交易所
   | 'other'     // 其他
 
+/** Miniapp target desktop page */
+export type MiniappTargetDesktop = 'stack' | 'mine'
+
 /** Permission definition */
 export interface PermissionDefinition {
   id: string
@@ -186,6 +189,20 @@ export interface MiniappManifest {
     /** 最大等待时间 (ms)，超时后自动关闭启动屏，默认 5000 */
     timeout?: number
   }
+  /**
+   * 胶囊主题（可选）
+   * - 'auto': 跟随 KeyApp 主题（默认）
+   * - 'dark': 强制深色胶囊
+   * - 'light': 强制浅色胶囊
+   */
+  capsuleTheme?: 'auto' | 'dark' | 'light'
+
+  /**
+   * 目标桌面页（可选，默认 'stack'）
+   * - 'stack': 渲染到应用堆栈页（stack slide）
+   * - 'mine': 渲染到我的页（mine slide）
+   */
+  targetDesktop?: MiniappTargetDesktop
   /** 
    * 主题色 - 用于卡片背景等 
    * 格式: CSS 渐变类名 (Tailwind) 或 HEX 颜色

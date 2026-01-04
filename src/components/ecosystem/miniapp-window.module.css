@@ -1,0 +1,82 @@
+/**
+ * MiniappWindow 小程序窗口样式
+ */
+
+.window {
+  position: static;
+  width: 100%;
+  height: 100%;
+}
+
+.windowInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--background);
+  overflow: hidden;
+
+  /* 变换原点：居中 */
+  transform-origin: center center;
+
+  /* 默认隐藏，避免 layoutId 初次挂载闪现 */
+  opacity: 0;
+}
+
+/**
+ * 内容层容器：包含 splash-bg 和 iframe
+ * 使用 isolation 隔离混合模式
+ */
+.contentLayer {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+
+/* 只在动画过程中启用混合模式 */
+.contentLayer.blending [data-animate='top'] {
+  mix-blend-mode: plus-lighter;
+}
+
+/**
+ * splash-bg 层（和 iframe 互斥）
+ */
+.splashBgLayer {
+  position: absolute;
+  inset: 0;
+}
+
+/**
+ * iframe 层（和 splash-bg 互斥）
+ */
+.iframeLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.iframeLayer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+}
+
+.window.animating {
+  /* 动画期间仅禁用 iframe 交互，保留胶囊按钮可强制关闭 */
+}
+
+.window.animating .iframeLayer {
+  pointer-events: none;
+}
+
+/* 胶囊容器层 - 在 iframe 之上 */
+.capsuleLayer {
+  position: absolute;
+  inset: 0;
+  /* 必须高于 splash/launch overlay，确保卡在 splash 也能关闭 */
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.capsuleLayer > * {
+  pointer-events: auto;
+}

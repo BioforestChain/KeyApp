@@ -3,9 +3,20 @@ import type { DecoratorFunction } from 'storybook/internal/types'
 import { useEffect, useMemo } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { LayoutGroup, MotionConfig } from 'motion/react'
 import i18n, { languages, getLanguageDirection, type LanguageCode } from '../src/i18n'
 import { currencies, preferencesActions, preferencesStore, type CurrencyCode } from '../src/stores/preferences'
 import '../src/styles/globals.css'
+
+const MOTION_DEBUG_SPEED = 0.2
+const MOTION_DEBUG_TRANSITION = {
+  type: 'spring',
+  // Slow motion: 0.2x speed => ~5x longer.
+  // Scale stiffness by speed^2 and damping by speed to keep damping ratio similar.
+  stiffness: 220 * MOTION_DEBUG_SPEED * MOTION_DEBUG_SPEED,
+  damping: 28 * MOTION_DEBUG_SPEED,
+  mass: 0.85,
+} as const
 
 const mobileViewports = {
   iPhoneSE: {
@@ -124,6 +135,15 @@ const preview: Preview = {
     },
   },
   decorators: [
+    // Global slow-motion for animation debugging
+    ((Story) => (
+      <MotionConfig transition={MOTION_DEBUG_TRANSITION}>
+        <LayoutGroup id="miniapp-shared-layout">
+          <Story />
+        </LayoutGroup>
+      </MotionConfig>
+    )) as DecoratorFunction<ReactRenderer>,
+
     // i18n + Theme + Direction + QueryClient decorator
     ((Story, context) => {
       const locale = (context.globals['locale'] || 'zh-CN') as LanguageCode
@@ -179,6 +199,12 @@ const preview: Preview = {
 
     // Container size decorator with theme wrapper
     ((Story, context) => {
+      // Fullscreen stories should not be wrapped in a resizable container.
+      // Many app-level screens (e.g. MiniappWindow) rely on fullscreen canvas layout.
+      if (context.parameters?.layout === 'fullscreen') {
+        return <Story />
+      }
+
       const containerKey = context.globals['containerSize'] || 'standard'
       const containerWidth = containerSizes[containerKey as keyof typeof containerSizes]?.width || 360
       const theme = context.globals['theme'] || 'light'

@@ -21,14 +21,36 @@ export interface SourceRecord {
 }
 
 /** Ecosystem 子页面类型 */
-export type EcosystemSubPage = 'discover' | 'mine'
+export type EcosystemSubPage = 'discover' | 'mine' | 'stack'
+
+/** 默认可用子页面（不包含 stack，由桌面根据运行态启用） */
+const DEFAULT_AVAILABLE_SUBPAGES: EcosystemSubPage[] = ['discover', 'mine']
+
+/** 子页面索引映射 */
+export const ECOSYSTEM_SUBPAGE_INDEX: Record<EcosystemSubPage, number> = {
+  discover: 0,
+  mine: 1,
+  stack: 2,
+}
+
+/** 索引到子页面映射 */
+export const ECOSYSTEM_INDEX_SUBPAGE: EcosystemSubPage[] = ['discover', 'mine', 'stack']
+
+/** 同步控制源 */
+export type SyncSource = 'swiper' | 'indicator' | null
 
 /** Ecosystem 状态 */
 export interface EcosystemState {
   permissions: PermissionRecord[]
   sources: SourceRecord[]
+  /** 当前可用子页面（由 EcosystemDesktop 根据配置/运行态写入） */
+  availableSubPages: EcosystemSubPage[]
   /** 当前子页面（发现/我的） */
   activeSubPage: EcosystemSubPage
+  /** Swiper 滑动进度 (0-2 for 3 pages) */
+  swiperProgress: number
+  /** 当前同步控制源（用于双向绑定） */
+  syncSource: SyncSource
 }
 
 const STORAGE_KEY = 'ecosystem_store'
@@ -39,6 +61,16 @@ function loadState(): EcosystemState {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored) as Partial<EcosystemState>
+
+      const availableSubPages = Array.isArray(parsed.availableSubPages) && parsed.availableSubPages.length > 0
+        ? (parsed.availableSubPages as EcosystemSubPage[])
+        : DEFAULT_AVAILABLE_SUBPAGES
+
+      const activeSubPage = (parsed.activeSubPage ?? 'discover') as EcosystemSubPage
+      const fixedAvailableSubPages = availableSubPages.includes(activeSubPage)
+        ? availableSubPages
+        : [...availableSubPages, activeSubPage]
+
       return {
         permissions: parsed.permissions ?? [],
         sources: parsed.sources ?? [
@@ -49,7 +81,10 @@ function loadState(): EcosystemState {
             enabled: true,
           },
         ],
-        activeSubPage: parsed.activeSubPage ?? 'discover',
+        availableSubPages: fixedAvailableSubPages,
+        activeSubPage,
+        swiperProgress: 0,
+        syncSource: null,
       }
     }
   } catch {
@@ -65,7 +100,10 @@ function loadState(): EcosystemState {
         enabled: true,
       },
     ],
+    availableSubPages: DEFAULT_AVAILABLE_SUBPAGES,
     activeSubPage: 'discover',
+    swiperProgress: 0,
+    syncSource: null,
   }
 }
 
@@ -204,6 +242,35 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       activeSubPage: subPage,
+    }))
+  },
+
+  /** 设置当前可用子页面（由桌面配置驱动） */
+  setAvailableSubPages: (subPages: EcosystemSubPage[]): void => {
+    ecosystemStore.setState((state) => {
+      const next = subPages.length > 0 ? subPages : DEFAULT_AVAILABLE_SUBPAGES
+      const activeSubPage = next.includes(state.activeSubPage) ? state.activeSubPage : next[0] ?? 'mine'
+      return {
+        ...state,
+        availableSubPages: next,
+        activeSubPage,
+      }
+    })
+  },
+
+  /** 更新 Swiper 进度 */
+  setSwiperProgress: (progress: number): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      swiperProgress: progress,
+    }))
+  },
+
+  /** 设置同步控制源 */
+  setSyncSource: (source: SyncSource): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      syncSource: source,
     }))
   },
 }

@@ -1,0 +1,77 @@
+/**
+ * EcosystemTabIndicator 指示器样式
+ */
+
+.indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  transition: opacity 0.15s ease;
+}
+
+.indicator:active {
+  opacity: 0.7;
+}
+
+/* 图标容器 */
+.iconWrapper {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: var(--foreground);
+
+  /* Crossfade 动画 */
+  animation: iconFadeIn 0.2s ease-out;
+}
+
+@keyframes iconFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 页面点指示器 */
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--muted-foreground);
+  opacity: 0.4;
+
+  transition: 
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.dotActive {
+  opacity: 1;
+  transform: scale(1.25);
+  background: var(--primary);
+}

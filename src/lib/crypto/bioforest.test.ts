@@ -298,7 +298,9 @@ describe('BioForest Crypto', () => {
       expect(derived.address.startsWith('c')).toBe(true)
 
       const addresses = deriveBioforestAddressesFromChainConfigs('test', [customConfig])
-      expect(addresses).toEqual([{ chainId: 'custom-bioforest', address: derived.address }])
+      expect(addresses).toEqual([
+        { chainId: 'custom-bioforest', address: derived.address, publicKey: derived.publicKey },
+      ])
     })
 
     it('should reject non-bioforest configs', () => {

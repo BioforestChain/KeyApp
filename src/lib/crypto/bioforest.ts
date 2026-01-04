@@ -157,7 +157,10 @@ export function deriveBioforestAddresses(
     }))
   }
 
-  return deriveBioforestAddressesFromChainConfigs(secret, chainConfigs)
+  return deriveBioforestAddressesFromChainConfigs(secret, chainConfigs).map(({ chainId, address }) => ({
+    chainId,
+    address,
+  }))
 }
 
 // ==================== Base58 编码 ====================
