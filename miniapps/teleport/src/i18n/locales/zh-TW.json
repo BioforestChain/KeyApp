@@ -17,9 +17,12 @@
   },
   "asset": {
     "select": "選擇資產",
+    "selectDesc": "BFM 生態基金會社區代幣兌換",
     "balance": "可用",
     "noAssets": "當前鏈暫無可傳送資產",
-    "transfer": "{{from}} → {{to}}"
+    "transfer": "{{from}} → {{to}}",
+    "exchangeTo": "兌換為 {{target}}（{{chain}}）",
+    "ratio": "1 {{from}} = {{rate}} {{to}}"
   },
   "wallet": {
     "source": "源錢包",

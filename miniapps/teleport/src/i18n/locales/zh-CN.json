@@ -17,9 +17,12 @@
   },
   "asset": {
     "select": "选择资产",
+    "selectDesc": "BFM 生态基金会社区代币兑换",
     "balance": "可用",
     "noAssets": "当前链暂无可传送资产",
-    "transfer": "{{from}} → {{to}}"
+    "transfer": "{{from}} → {{to}}",
+    "exchangeTo": "兑换为 {{target}}（{{chain}}）",
+    "ratio": "1 {{from}} = {{rate}} {{to}}"
   },
   "wallet": {
     "source": "源钱包",
