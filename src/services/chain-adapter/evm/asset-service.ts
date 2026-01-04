@@ -22,6 +22,8 @@ interface JsonRpcResponse<T> {
   error?: { code: number; message: string }
 }
 
+const LOG_PREFIX = '[EvmAssetService]'
+
 export class EvmAssetService implements IAssetService {
   private readonly config: ChainConfig
   private readonly rpcUrl: string
@@ -29,6 +31,10 @@ export class EvmAssetService implements IAssetService {
   constructor(config: ChainConfig) {
     this.config = config
     this.rpcUrl = DEFAULT_RPC_URLS[config.id] ?? config.api?.url ?? DEFAULT_RPC_URLS['ethereum']!
+    
+    if (import.meta.env.DEV) {
+      console.debug(`${LOG_PREFIX} Initialized for chain=${config.id}, rpcUrl=${this.rpcUrl}`)
+    }
   }
 
   private async rpc<T>(method: string, params: unknown[]): Promise<T> {
@@ -60,13 +66,30 @@ export class EvmAssetService implements IAssetService {
 
   async getNativeBalance(address: Address): Promise<Balance> {
     try {
+      if (import.meta.env.DEV) {
+        console.debug(`${LOG_PREFIX} getNativeBalance: chain=${this.config.id}, address=${address}, rpc=${this.rpcUrl}`)
+      }
+      
       const hexBalance = await this.rpc<string>('eth_getBalance', [address, 'latest'])
       const balance = BigInt(hexBalance).toString()
+      
+      if (import.meta.env.DEV) {
+        console.debug(`${LOG_PREFIX} getNativeBalance success: chain=${this.config.id}, balance=${balance}`)
+      }
+      
       return {
         amount: Amount.fromRaw(balance, this.config.decimals, this.config.symbol),
         symbol: this.config.symbol,
       }
-    } catch {
+    } catch (error) {
+      // Log the error for debugging - this was previously silently swallowed
+      console.error(`${LOG_PREFIX} getNativeBalance failed:`, {
+        chain: this.config.id,
+        address,
+        rpcUrl: this.rpcUrl,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      
       return {
         amount: Amount.fromRaw('0', this.config.decimals, this.config.symbol),
         symbol: this.config.symbol,
@@ -76,15 +99,32 @@ export class EvmAssetService implements IAssetService {
 
   async getTokenBalance(address: Address, tokenAddress: Address): Promise<Balance> {
     try {
+      if (import.meta.env.DEV) {
+        console.debug(`${LOG_PREFIX} getTokenBalance: chain=${this.config.id}, address=${address}, token=${tokenAddress}`)
+      }
+      
       // ERC20 balanceOf(address) selector: 0x70a08231
       const data = `0x70a08231000000000000000000000000${address.slice(2).toLowerCase()}`
       const hexBalance = await this.rpc<string>('eth_call', [{ to: tokenAddress, data }, 'latest'])
       const balance = BigInt(hexBalance).toString()
+      
+      if (import.meta.env.DEV) {
+        console.debug(`${LOG_PREFIX} getTokenBalance success: chain=${this.config.id}, token=${tokenAddress}, balance=${balance}`)
+      }
+      
       return {
         amount: Amount.fromRaw(balance, 18, 'TOKEN'),
         symbol: 'TOKEN',
       }
-    } catch {
+    } catch (error) {
+      console.error(`${LOG_PREFIX} getTokenBalance failed:`, {
+        chain: this.config.id,
+        address,
+        tokenAddress,
+        rpcUrl: this.rpcUrl,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      
       return {
         amount: Amount.fromRaw('0', 18, 'UNKNOWN'),
         symbol: 'UNKNOWN',
