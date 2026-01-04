@@ -5,6 +5,7 @@ import {
   walletStorageService,
   type WalletInfo,
   type ChainAddressInfo,
+  WalletStorageMigrationError,
 } from '@/services/wallet-storage'
 
 /**
@@ -89,6 +90,8 @@ export interface WalletState {
   chainPreferences: Record<string, ChainType>
   isLoading: boolean
   isInitialized: boolean
+  /** 需要迁移数据库 */
+  migrationRequired: boolean
 }
 
 // localStorage key for chain preferences
@@ -124,6 +127,7 @@ const initialState: WalletState = {
   chainPreferences: {},
   isLoading: false,
   isInitialized: false,
+  migrationRequired: false,
 }
 
 // 创建 Store
@@ -230,6 +234,17 @@ export const walletActions = {
         isLoading: false,
       }))
     } catch (error) {
+      // 检测版本不兼容错误
+      if (error instanceof WalletStorageMigrationError) {
+        walletStore.setState((state) => ({
+          ...state,
+          isInitialized: true,
+          isLoading: false,
+          migrationRequired: true,
+        }))
+        return
+      }
+      
       console.error('Failed to initialize wallets:', error)
       walletStore.setState((state) => ({
         ...state,

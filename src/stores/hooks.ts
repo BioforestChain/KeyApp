@@ -65,3 +65,8 @@ export function useWalletLoading() {
 export function useWalletInitialized() {
   return useStore(walletStore, (state) => state.isInitialized)
 }
+
+/** 钱包存储是否需要迁移 */
+export function useWalletMigrationRequired() {
+  return useStore(walletStore, (state) => state.migrationRequired)
+}

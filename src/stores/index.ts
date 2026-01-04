@@ -51,4 +51,5 @@ export {
   useHasWallet,
   useWalletLoading,
   useWalletInitialized,
+  useWalletMigrationRequired,
 } from './hooks'
