@@ -24,14 +24,14 @@ export const AddressAssetsResponseSchema = z.object({
       assets: z.record(z.string(), z.record(z.string(), AssetInfoSchema)),
       forgingRewards: z.string().optional(),
     })
-    .optional(),
+    .nullish(), // API 可能返回 null 或 undefined
   error: z
     .object({
       code: z.number(),
       message: z.string(),
       info: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
 })
 
 export type AddressAssetsResponse = z.infer<typeof AddressAssetsResponseSchema>
