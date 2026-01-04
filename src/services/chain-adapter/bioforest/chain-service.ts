@@ -10,33 +10,50 @@ import { ChainServiceError, ChainErrorCodes } from '../types'
 import type { BioforestBlockInfo, BioforestFeeInfo } from './types'
 
 export class BioforestChainService implements IChainService {
-  private readonly config: ChainConfig
-  private readonly apiUrl: string
-  private readonly apiPath: string
+  private readonly chainId: string
+  private config: ChainConfig | null = null
+  private apiUrl: string = ''
+  private apiPath: string = ''
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
-    this.apiUrl = biowalletApi?.endpoint ?? ''
-    this.apiPath = biowalletApi?.path ?? config.id
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private getConfig(): ChainConfig {
+    if (!this.config) {
+      const config = chainConfigService.getConfig(this.chainId)
+      if (!config) {
+        throw new ChainServiceError(
+          ChainErrorCodes.CHAIN_NOT_FOUND,
+          `Chain config not found: ${this.chainId}`,
+        )
+      }
+      this.config = config
+      const biowalletApi = chainConfigService.getBiowalletApi(config.id)
+      this.apiUrl = biowalletApi?.endpoint ?? ''
+      this.apiPath = biowalletApi?.path ?? config.id
+    }
+    return this.config
   }
 
   getChainInfo(): ChainInfo {
+    const config = this.getConfig()
     const info: ChainInfo = {
-      chainId: this.config.id,
-      name: this.config.name,
-      symbol: this.config.symbol,
-      decimals: this.config.decimals,
+      chainId: config.id,
+      name: config.name,
+      symbol: config.symbol,
+      decimals: config.decimals,
       blockTime: 10, // BioForest ~10s block time
       confirmations: 1, // BioForest usually 1 confirmation is enough
     }
-    if (this.config.explorer?.url) {
-      info.explorerUrl = this.config.explorer.url
+    if (config.explorer?.url) {
+      info.explorerUrl = config.explorer.url
     }
     return info
   }
 
   async getBlockHeight(): Promise<bigint> {
+    this.getConfig() // Ensure config is loaded
     if (!this.apiUrl) {
       return 0n
     }
@@ -71,7 +88,8 @@ export class BioforestChainService implements IChainService {
   }
 
   async getGasPrice(): Promise<GasPrice> {
-    const { decimals, symbol } = this.config
+    const config = this.getConfig()
+    const { decimals, symbol } = config
 
     if (!this.apiUrl) {
       // Return default fees - BioForest minimum is around 500 (0.000005 BFM)
@@ -131,6 +149,7 @@ export class BioforestChainService implements IChainService {
   }
 
   async healthCheck(): Promise<HealthStatus> {
+    this.getConfig() // Ensure config is loaded
     if (!this.apiUrl) {
       return {
         isHealthy: false,

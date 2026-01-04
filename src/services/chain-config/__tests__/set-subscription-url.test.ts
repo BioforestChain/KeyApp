@@ -8,12 +8,14 @@ import {
   resetChainConfigStorageForTests,
   saveChainConfigs,
   saveSubscriptionMeta,
+  saveDefaultVersion,
 } from '../storage'
 import { setSubscriptionUrl } from '../index'
 
 describe('chain-config setSubscriptionUrl', () => {
   beforeEach(async () => {
     await resetChainConfigStorageForTests()
+    await saveDefaultVersion('2.0.0')
   })
 
   it('accepts empty string as default and clears cached subscription configs', async () => {

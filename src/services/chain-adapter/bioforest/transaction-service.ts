@@ -26,19 +26,35 @@ import { signMessage, bytesToHex } from '@/lib/crypto'
 import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
-  private readonly config: ChainConfig
-  private readonly apiUrl: string
-  private readonly apiPath: string
+  private readonly chainId: string
+  private config: ChainConfig | null = null
+  private apiUrl: string = ''
+  private apiPath: string = ''
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    const biowalletApi = chainConfigService.getBiowalletApi(config.id)
-    this.apiUrl = biowalletApi?.endpoint ?? ''
-    this.apiPath = biowalletApi?.path ?? config.id
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private getConfig(): ChainConfig {
+    if (!this.config) {
+      const config = chainConfigService.getConfig(this.chainId)
+      if (!config) {
+        throw new ChainServiceError(
+          ChainErrorCodes.CHAIN_NOT_FOUND,
+          `Chain config not found: ${this.chainId}`,
+        )
+      }
+      this.config = config
+      const biowalletApi = chainConfigService.getBiowalletApi(config.id)
+      this.apiUrl = biowalletApi?.endpoint ?? ''
+      this.apiPath = biowalletApi?.path ?? config.id
+    }
+    return this.config
   }
 
   async estimateFee(params: TransferParams): Promise<FeeEstimate> {
-    const { decimals, symbol } = this.config
+    const config = this.getConfig()
+    const { decimals, symbol } = config
 
     const createFee = (amount: Amount, time: number): Fee => ({
       amount,
@@ -51,7 +67,7 @@ export class BioforestTransactionService implements ITransactionService {
       }
 
       // Use SDK to calculate minimum fee (same as mpay)
-      const core = await getBioforestCore(this.config.id)
+      const core = await getBioforestCore(config.id)
       const lastBlock = await getLastBlock(this.apiUrl, this.apiPath)
       
       const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({
@@ -88,6 +104,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async buildTransaction(params: TransferParams): Promise<UnsignedTransaction> {
+    const config = this.getConfig()
     // Validate addresses
     if (!params.from || !params.to) {
       throw new ChainServiceError(ChainErrorCodes.INVALID_ADDRESS, 'Invalid address')
@@ -97,13 +114,13 @@ export class BioforestTransactionService implements ITransactionService {
     const feeEstimate = await this.estimateFee(params)
 
     return {
-      chainId: this.config.id,
+      chainId: config.id,
       data: {
         type: 'transfer',
         from: params.from,
         to: params.to,
         amount: params.amount.toRawString(),
-        assetType: this.config.symbol,
+        assetType: config.symbol,
         fee: feeEstimate.standard.amount.toRawString(),
         memo: params.memo,
         timestamp: Date.now(),
@@ -146,6 +163,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
+    this.getConfig() // Ensure config is loaded
     if (!this.apiUrl) {
       throw new ChainServiceError(
         ChainErrorCodes.NETWORK_ERROR,
@@ -192,6 +210,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransactionStatus(hash: TransactionHash): Promise<TransactionStatus> {
+    this.getConfig() // Ensure config is loaded
     if (!this.apiUrl) {
       return {
         status: 'pending',
@@ -246,6 +265,7 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransaction(hash: TransactionHash): Promise<Transaction | null> {
+    this.getConfig() // Ensure config is loaded
     if (!this.apiUrl) {
       return null
     }
@@ -314,8 +334,9 @@ export class BioforestTransactionService implements ITransactionService {
   }
 
   async getTransactionHistory(address: Address, limit = 20): Promise<Transaction[]> {
+    const config = this.getConfig()
     if (!this.apiUrl) {
-      console.warn('[TransactionService] No baseUrl configured for chain:', this.config.id)
+      console.warn('[TransactionService] No baseUrl configured for chain:', config.id)
       return []
     }
 
@@ -388,11 +409,11 @@ export class BioforestTransactionService implements ITransactionService {
       const transactions = json.result?.trs ?? []
 
       if (transactions.length === 0) {
-        console.debug('[TransactionService] No transactions found for', address, 'on', this.config.id)
+        console.debug('[TransactionService] No transactions found for', address, 'on', config.id)
         return []
       }
 
-      const { decimals, symbol } = this.config
+      const { decimals, symbol } = config
 
       // Show all transaction types for the address
       return transactions

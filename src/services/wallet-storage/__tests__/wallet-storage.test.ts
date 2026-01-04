@@ -48,7 +48,7 @@ describe('WalletStorageService', () => {
       const metadata = await service.getMetadata()
 
       expect(metadata).toBeDefined()
-      expect(metadata?.version).toBe(1)
+      expect(metadata?.version).toBe(2)
       expect(metadata?.createdAt).toBeGreaterThan(0)
     })
   })

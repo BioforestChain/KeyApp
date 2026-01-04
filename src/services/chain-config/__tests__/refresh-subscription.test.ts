@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import 'fake-indexeddb/auto'
 
 import { ChainConfigSubscriptionSchema } from '../schema'
-import { loadChainConfigs, loadSubscriptionMeta, resetChainConfigStorageForTests, saveSubscriptionMeta } from '../storage'
+import { loadChainConfigs, loadSubscriptionMeta, resetChainConfigStorageForTests, saveSubscriptionMeta, saveDefaultVersion } from '../storage'
 import { refreshSubscription } from '../index'
 
 describe('chain-config refreshSubscription', () => {
@@ -10,6 +10,7 @@ describe('chain-config refreshSubscription', () => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
     await resetChainConfigStorageForTests()
+    await saveDefaultVersion('2.0.0')
   })
 
   it('skips when subscription url is default', async () => {

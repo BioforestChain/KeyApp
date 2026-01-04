@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { createBioforestKeypair, publicKeyToBioforestAddress, verifySignature, hexToBytes } from '@/lib/crypto'
@@ -19,6 +19,17 @@ const mockBfmetaConfig: ChainConfig = {
   enabled: true,
   source: 'default',
 }
+
+// Mock chainConfigService
+vi.mock('@/services/chain-config/service', () => ({
+  chainConfigService: {
+    getConfig: (chainId: string) => chainId === 'bfmeta' ? mockBfmetaConfig : null,
+    getRpcUrl: () => '',
+    getDecimals: () => 8,
+    getSymbol: () => 'BFM',
+    getBiowalletApi: () => null,
+  },
+}))
 
 describe('BioforestAdapter', () => {
   describe('constructor', () => {
