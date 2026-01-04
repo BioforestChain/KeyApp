@@ -141,6 +141,9 @@
     "available": "可用空间",
     "unavailable": "无法获取存储信息",
     "clearTitle": "清理数据",
-    "clearDesc": "清空所有本地存储的数据，包括钱包、设置和缓存。"
+    "clearDesc": "清空所有本地存储的数据，包括钱包、设置和缓存。",
+    "migrationRequired": "数据需要迁移",
+    "migrationDesc": "检测到旧版本数据格式，需要清空本地数据库后才能继续使用。您的助记词和私钥不会受到影响，但需要重新导入钱包。",
+    "goToClear": "前往清理数据"
   }
 }

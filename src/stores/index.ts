@@ -32,6 +32,7 @@ export {
   useChainConfigWarnings,
   useChainConfigLoading,
   useChainConfigError,
+  useChainConfigMigrationRequired,
 } from './chain-config'
 export type { ChainConfigState } from './chain-config'
 

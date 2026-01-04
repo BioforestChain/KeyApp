@@ -14,6 +14,20 @@ import {
 } from './storage'
 import type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainConfigType } from './types'
 
+/** 数据库版本不兼容错误，需要用户清空数据 */
+export class ChainConfigMigrationError extends Error {
+  readonly code = 'MIGRATION_REQUIRED'
+  readonly storedVersion: string | null
+  readonly requiredVersion: string
+
+  constructor(storedVersion: string | null, requiredVersion: string) {
+    super(`Database migration required: stored version ${storedVersion ?? 'unknown'} is incompatible with ${requiredVersion}`)
+    this.name = 'ChainConfigMigrationError'
+    this.storedVersion = storedVersion
+    this.requiredVersion = requiredVersion
+  }
+}
+
 export interface ChainConfigWarning {
   id: string
   kind: 'incompatible_major'
@@ -99,9 +113,8 @@ async function loadDefaultChainConfigs(): Promise<DefaultChainsResult> {
     }
 
     const json: unknown = await response.json()
-
-    // 解析带版本号的配置文件格式
     const parsed = VersionedChainConfigFileSchema.parse(json)
+
     const configs = parsed.chains.map((chain) => normalizeUnknownType(chain)).map((chain) => {
       const config = ChainConfigSchema.parse(chain)
       const resolvedPaths = resolveIconPaths(config, jsonUrl)
@@ -238,6 +251,12 @@ function collectWarnings(configs: ChainConfig[]): ChainConfigWarning[] {
   return warnings
 }
 
+/** Parse major version from semver string */
+function parseMajorFromSemver(version: string): number {
+  const major = parseInt(version.split('.')[0] ?? '0', 10)
+  return Number.isNaN(major) ? 0 : major
+}
+
 /** Compare semver versions: returns 1 if a > b, -1 if a < b, 0 if equal */
 function compareSemver(a: string, b: string): number {
   const partsA = a.split('.').map(Number)
@@ -260,6 +279,12 @@ export async function initialize(): Promise<ChainConfigSnapshot> {
     loadSubscriptionMeta(),
     loadDefaultVersion(),
   ])
+
+  // 检测旧版数据：storedVersion 为 null 且 bundledVersion >= 2.0.0
+  const bundledMajor = parseMajorFromSemver(bundledVersion)
+  if (storedDefaultVersion === null && bundledMajor >= 2) {
+    throw new ChainConfigMigrationError(storedDefaultVersion, bundledVersion)
+  }
 
   // 版本比较：bundled > stored 时强制合并默认配置
   const shouldForceMerge = compareSemver(bundledVersion, storedDefaultVersion ?? '0.0.0') > 0
