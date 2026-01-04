@@ -1,15 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getAdapterRegistry, setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
-import { chainConfigStore, chainConfigSelectors } from '@/stores'
-import type { Balance } from '@/services/chain-adapter/types'
-
-let adaptersInitialized = false
-function ensureAdapters() {
-  if (!adaptersInitialized) {
-    setupAdapters()
-    adaptersInitialized = true
-  }
-}
+import { getChainProvider, type Balance } from '@/services/chain-adapter/providers'
 
 export const addressBalanceKeys = {
   all: ['addressBalance'] as const,
@@ -33,24 +23,18 @@ export function useAddressBalanceQuery(chainId: string, address: string, enabled
       }
 
       try {
-        ensureAdapters()
-
-        const state = chainConfigStore.state
-        const chainConfig = chainConfigSelectors.getChainById(state, chainId)
-        if (!chainConfig) {
-          return { balance: null, error: `Unknown chain: ${chainId}` }
+        const chainProvider = getChainProvider(chainId)
+        
+        if (!chainProvider.supportsNativeBalance) {
+          return { balance: null, error: `Chain ${chainId} does not support balance query` }
         }
 
-        // 确保链已注册到 registry
-        registerChainConfigs([chainConfig])
-
-        const registry = getAdapterRegistry()
-        const adapter = registry.getAdapter(chainId)
-        if (!adapter) {
-          return { balance: null, error: `No adapter for chain: ${chainId}` }
+        const getBalance = chainProvider.getNativeBalance
+        if (!getBalance) {
+          return { balance: null, error: `No balance provider for chain: ${chainId}` }
         }
 
-        const balance = await adapter.asset.getNativeBalance(address)
+        const balance = await getBalance(address)
         return { balance, error: null }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)

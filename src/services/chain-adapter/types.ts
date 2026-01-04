@@ -134,8 +134,6 @@ export interface IAssetService {
 }
 
 export interface ITransactionService {
-  /** 是否支持交易历史查询（部分链需要通过浏览器查询） */
-  readonly supportsTransactionHistory: boolean
   estimateFee(params: TransferParams): Promise<FeeEstimate>
   buildTransaction(params: TransferParams): Promise<UnsignedTransaction>
   signTransaction(unsignedTx: UnsignedTransaction, privateKey: Uint8Array): Promise<SignedTransaction>

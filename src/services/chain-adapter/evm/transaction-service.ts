@@ -31,7 +31,6 @@ const EVM_CHAIN_IDS: Record<string, number> = {
 }
 
 export class EvmTransactionService implements ITransactionService {
-  readonly supportsTransactionHistory = false
   private readonly chainId: string
   private readonly evmChainId: number
 

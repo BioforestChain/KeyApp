@@ -32,7 +32,6 @@ import type {
 const DEFAULT_RPC_URL = 'https://api.trongrid.io'
 
 export class TronTransactionService implements ITransactionService {
-  readonly supportsTransactionHistory = false
   private readonly config: ChainConfig
   private readonly rpcUrl: string
 

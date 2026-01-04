@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { useEnabledChains } from '@/stores'
 import { useAddressTransactionsQuery } from '@/queries'
-import { getAdapterRegistry, setupAdapters, registerChainConfigs } from '@/services/chain-adapter'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import { IconSearch, IconExternalLink, IconArrowUpRight, IconArrowDownLeft, IconLoader2 } from '@tabler/icons-react'
-import type { Transaction } from '@/services/chain-adapter/types'
+import type { Transaction } from '@/services/chain-adapter/providers/types'
 
 function formatAmount(amount: string, decimals: number): string {
   const num = parseFloat(amount) / Math.pow(10, decimals)
@@ -59,15 +59,12 @@ export function AddressTransactionsPage() {
     [enabledChains, selectedChain]
   )
 
-  // 检查当前链的 adapter 是否支持交易历史查询
+  // 通过 ChainProvider 检查是否支持交易历史查询
   const supportsTransactionHistory = useMemo(() => {
     if (!selectedChainConfig) return false
     try {
-      setupAdapters()
-      registerChainConfigs([selectedChainConfig])
-      const registry = getAdapterRegistry()
-      const adapter = registry.getAdapter(selectedChain)
-      return adapter?.transaction.supportsTransactionHistory ?? false
+      const chainProvider = getChainProvider(selectedChain)
+      return chainProvider.supportsTransactionHistory
     } catch {
       return false
     }

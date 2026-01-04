@@ -26,7 +26,6 @@ import type { BitcoinUtxo, BitcoinTransaction, BitcoinUnsignedTx, BitcoinFeeEsti
 const DEFAULT_API_URL = 'https://mempool.space/api'
 
 export class BitcoinTransactionService implements ITransactionService {
-  readonly supportsTransactionHistory = true
   private readonly config: ChainConfig
   private readonly apiUrl: string
 

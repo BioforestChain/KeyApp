@@ -26,7 +26,6 @@ import { signMessage, bytesToHex } from '@/lib/crypto'
 import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
-  readonly supportsTransactionHistory = true
   private readonly config: ChainConfig
   private readonly apiUrl: string
   private readonly apiPath: string
