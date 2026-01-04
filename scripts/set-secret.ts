@@ -1,187 +1,437 @@
 #!/usr/bin/env bun
 /**
- * 配置 E2E 测试密钥
- * 
+ * 交互式配置管理工具
+ *
  * 用法:
- *   bun scripts/set-secret.ts --local   # 更新本地 .env.local
- *   bun scripts/set-secret.ts --ci      # 配置 GitHub 仓库 secrets
- *   bun scripts/set-secret.ts --all     # 同时配置两者
- * 
- * 需要输入:
- * - 助记词（必需）- 自动派生地址
- * - 安全密码/二次密钥（可选）- 如果账号设置了 secondPublicKey
- * 
- * 钱包锁在测试代码中固定，不需要配置
+ *   pnpm set-secret              # 交互式选择要配置的项目
+ *   pnpm set-secret --list       # 列出当前配置状态
+ *
+ * 支持配置:
+ *   - E2E 测试账号（助记词、地址、安全密码）
+ *   - DWEB 发布账号（SFTP 正式版/开发版）
+ *
+ * 配置目标:
+ *   - 本地: .env.local
+ *   - CI/CD: GitHub Secrets
  */
 
-import { $ } from 'bun'
-import * as fs from 'fs'
-import * as path from 'path'
-import * as readline from 'readline'
+import { execSync } from 'node:child_process'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { select, checkbox, input, password, confirm } from '@inquirer/prompts'
 
-async function prompt(question: string): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
+// ==================== 配置 ====================
 
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close()
-      resolve(answer.trim())
-    })
-  })
+const ROOT = process.cwd()
+const ENV_LOCAL_PATH = join(ROOT, '.env.local')
+
+// 颜色输出
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+  dim: '\x1b[2m',
 }
 
-/**
- * 从助记词派生 BioForest 地址
- */
-async function deriveAddress(mnemonic: string): Promise<string> {
+const log = {
+  info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
+  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
+}
+
+// ==================== 配置项定义 ====================
+
+interface SecretDefinition {
+  key: string
+  description: string
+  category: string
+  required: boolean
+  isPassword?: boolean
+  validate?: (value: string) => string | true
+}
+
+const SECRET_DEFINITIONS: SecretDefinition[] = [
+  // E2E 测试
+  {
+    key: 'E2E_TEST_MNEMONIC',
+    description: '测试钱包助记词（24个词）',
+    category: 'e2e',
+    required: true,
+    validate: (v) => {
+      const words = v.split(/\s+/).filter(Boolean)
+      if (words.length !== 24 && words.length !== 12) {
+        return `助记词应为 12 或 24 个词，当前: ${words.length} 个`
+      }
+      return true
+    },
+  },
+  {
+    key: 'E2E_TEST_ADDRESS',
+    description: '测试钱包地址（从助记词派生）',
+    category: 'e2e',
+    required: false,
+  },
+  {
+    key: 'E2E_TEST_SECOND_SECRET',
+    description: '安全密码/二次密钥（如果账号设置了 secondPublicKey）',
+    category: 'e2e',
+    required: false,
+    isPassword: true,
+  },
+
+  // DWEB 发布 - 正式版
+  {
+    key: 'DWEB_SFTP_USER',
+    description: 'SFTP 正式版用户名',
+    category: 'dweb-stable',
+    required: true,
+  },
+  {
+    key: 'DWEB_SFTP_PASS',
+    description: 'SFTP 正式版密码',
+    category: 'dweb-stable',
+    required: true,
+    isPassword: true,
+  },
+
+  // DWEB 发布 - 开发版
+  {
+    key: 'DWEB_SFTP_USER_DEV',
+    description: 'SFTP 开发版用户名',
+    category: 'dweb-dev',
+    required: true,
+  },
+  {
+    key: 'DWEB_SFTP_PASS_DEV',
+    description: 'SFTP 开发版密码',
+    category: 'dweb-dev',
+    required: true,
+    isPassword: true,
+  },
+]
+
+interface CategoryDefinition {
+  id: string
+  name: string
+  description: string
+}
+
+const CATEGORIES: CategoryDefinition[] = [
+  {
+    id: 'e2e',
+    name: 'E2E 测试',
+    description: '端到端测试所需的测试钱包配置',
+  },
+  {
+    id: 'dweb-stable',
+    name: 'DWEB 正式版发布',
+    description: 'SFTP 正式服务器账号（用于 pnpm release）',
+  },
+  {
+    id: 'dweb-dev',
+    name: 'DWEB 开发版发布',
+    description: 'SFTP 开发服务器账号（用于日常 CI/CD）',
+  },
+]
+
+// ==================== 工具函数 ====================
+
+function exec(cmd: string, silent = false): string {
   try {
-    const { getBioforestCore, setGenesisBaseUrl } = await import('../src/services/bioforest-sdk/index.js')
-    
-    // 设置 genesis 文件的路径（Node.js 环境使用 file:// 协议）
-    const genesisPath = `file://${path.join(process.cwd(), 'public/configs/genesis')}`
-    setGenesisBaseUrl(genesisPath, { with: { type: 'json' } })
-    
-    // 使用默认的 BioForest 主网配置
-    const core = await getBioforestCore('bfmeta')
-    const accountHelper = core.accountBaseHelper()
-    // 使用正确的 API: getAddressFromSecret
-    return await accountHelper.getAddressFromSecret(mnemonic)
-  } catch (error) {
-    console.error('⚠️  无法派生地址:', error instanceof Error ? error.message : error)
+    return execSync(cmd, {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      stdio: silent ? 'pipe' : 'inherit',
+    }).trim()
+  } catch {
     return ''
   }
 }
 
-interface SecretConfig {
-  mnemonic: string
-  address: string
-  secondSecret: string
-}
-
-async function promptSecrets(): Promise<SecretConfig> {
-  console.log('\n📝 配置 E2E 测试账号\n')
-  
-  // 1. 助记词（必需）
-  console.log('请输入测试钱包助记词:')
-  const mnemonic = await prompt('> ')
-  
-  if (!mnemonic) {
-    console.error('❌ 助记词不能为空')
-    process.exit(1)
-  }
-  
-  const words = mnemonic.split(/\s+/)
-  if (words.length !== 24 && words.length !== 12) {
-    console.error(`❌ 助记词应为 12 或 24 个词，当前: ${words.length} 个`)
-    process.exit(1)
-  }
-  
-  // 派生地址
-  console.log('\n🔄 派生地址...')
-  const address = await deriveAddress(mnemonic)
-  if (address) {
-    console.log(`✅ 地址: ${address}`)
-  }
-  
-  // 2. 安全密码/二次密钥（可选）
-  console.log('\n请输入安全密码/二次密钥（如果账号已设置 secondPublicKey，否则直接回车跳过）:')
-  const secondSecret = await prompt('> ')
-  
-  if (secondSecret) {
-    console.log('✅ 已配置安全密码')
-  } else {
-    console.log('ℹ️  未配置安全密码（账号未设置或不需要）')
-  }
-  
-  return { mnemonic, address, secondSecret }
-}
-
-async function setLocal(config: SecretConfig): Promise<void> {
-  const envPath = path.join(process.cwd(), '.env.local')
-  
-  const content = `# E2E 测试密钥 - 不要提交到 git
-# 由 scripts/set-secret.ts 生成
-
-# 测试钱包助记词
-E2E_TEST_MNEMONIC="${config.mnemonic}"
-
-# 派生地址
-${config.address ? `E2E_TEST_ADDRESS="${config.address}"` : '# E2E_TEST_ADDRESS=（派生失败）'}
-
-# 安全密码/二次密钥（如果账号设置了 secondPublicKey）
-${config.secondSecret ? `E2E_TEST_SECOND_SECRET="${config.secondSecret}"` : '# E2E_TEST_SECOND_SECRET=（未设置）'}
-`
-  
-  fs.writeFileSync(envPath, content)
-  console.log(`\n✅ 已更新 ${envPath}`)
-}
-
-async function setCI(config: SecretConfig): Promise<void> {
-  console.log('\n🔐 配置 GitHub secrets...\n')
-  
+function checkGhCli(): boolean {
   try {
-    await $`gh --version`.quiet()
+    execSync('gh --version', { stdio: 'pipe' })
+    execSync('gh auth status', { stdio: 'pipe' })
+    return true
   } catch {
-    console.error('❌ 需要 GitHub CLI: brew install gh && gh auth login')
-    process.exit(1)
+    return false
   }
-  
+}
+
+function getGitHubSecrets(): Map<string, string> {
+  const secrets = new Map<string, string>()
   try {
-    await $`gh auth status`.quiet()
+    const output = execSync('gh secret list', { encoding: 'utf-8', stdio: 'pipe' })
+    for (const line of output.split('\n')) {
+      const [name, updatedAt] = line.split('\t')
+      if (name) {
+        secrets.set(name.trim(), updatedAt?.trim() || '')
+      }
+    }
   } catch {
-    console.error('❌ 请先登录: gh auth login')
-    process.exit(1)
+    // gh cli not available or not authenticated
   }
-  
-  const secrets: Record<string, string> = { E2E_TEST_MNEMONIC: config.mnemonic }
-  if (config.address) secrets.E2E_TEST_ADDRESS = config.address
-  if (config.secondSecret) secrets.E2E_TEST_SECOND_SECRET = config.secondSecret
-  
-  for (const [key, value] of Object.entries(secrets)) {
-    try {
-      await $`echo ${value} | gh secret set ${key}`.quiet()
-      console.log(`  ✅ ${key}`)
-    } catch (error) {
-      console.error(`  ❌ ${key}: ${error}`)
+  return secrets
+}
+
+function getLocalEnv(): Map<string, string> {
+  const env = new Map<string, string>()
+  if (!existsSync(ENV_LOCAL_PATH)) return env
+
+  const content = readFileSync(ENV_LOCAL_PATH, 'utf-8')
+  for (const line of content.split('\n')) {
+    const match = line.match(/^([A-Z_]+)="(.*)"\s*$/)
+    if (match) {
+      env.set(match[1], match[2])
     }
   }
-  
-  console.log('\n📋 当前 secrets:')
-  await $`gh secret list`
+  return env
 }
+
+function updateLocalEnv(updates: Map<string, string>): void {
+  let content = ''
+  if (existsSync(ENV_LOCAL_PATH)) {
+    content = readFileSync(ENV_LOCAL_PATH, 'utf-8')
+  }
+
+  for (const [key, value] of updates) {
+    const regex = new RegExp(`^${key}=".*"\\s*$`, 'm')
+    const newLine = `${key}="${value}"`
+
+    if (regex.test(content)) {
+      content = content.replace(regex, newLine)
+    } else {
+      content = content.trimEnd() + '\n' + newLine + '\n'
+    }
+  }
+
+  writeFileSync(ENV_LOCAL_PATH, content)
+}
+
+async function setGitHubSecret(key: string, value: string): Promise<boolean> {
+  try {
+    execSync(`gh secret set ${key} --body "${value.replace(/"/g, '\\"')}"`, {
+      cwd: ROOT,
+      stdio: 'pipe',
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+// ==================== 地址派生 ====================
+
+async function deriveAddress(mnemonic: string): Promise<string> {
+  try {
+    const { getBioforestCore, setGenesisBaseUrl } = await import('../src/services/bioforest-sdk/index.js')
+
+    const genesisPath = `file://${join(ROOT, 'public/configs/genesis')}`
+    setGenesisBaseUrl(genesisPath, { with: { type: 'json' } })
+
+    const core = await getBioforestCore('bfmeta')
+    const accountHelper = core.accountBaseHelper()
+    return await accountHelper.getAddressFromSecret(mnemonic)
+  } catch (error) {
+    log.warn(`无法派生地址: ${error instanceof Error ? error.message : error}`)
+    return ''
+  }
+}
+
+// ==================== 状态显示 ====================
+
+async function showStatus(): Promise<void> {
+  console.log(`
+${colors.cyan}╔════════════════════════════════════════╗
+║        配置状态                        ║
+╚════════════════════════════════════════╝${colors.reset}
+`)
+
+  const localEnv = getLocalEnv()
+  const ghSecrets = getGitHubSecrets()
+  const hasGhCli = checkGhCli()
+
+  for (const category of CATEGORIES) {
+    console.log(`\n${colors.blue}▸ ${category.name}${colors.reset} ${colors.dim}(${category.description})${colors.reset}`)
+
+    const secrets = SECRET_DEFINITIONS.filter((s) => s.category === category.id)
+    for (const secret of secrets) {
+      const localValue = localEnv.get(secret.key)
+      const ghValue = ghSecrets.get(secret.key)
+
+      const localStatus = localValue
+        ? `${colors.green}✓${colors.reset}`
+        : `${colors.dim}✗${colors.reset}`
+
+      const ghStatus = !hasGhCli
+        ? `${colors.dim}?${colors.reset}`
+        : ghValue
+          ? `${colors.green}✓${colors.reset}`
+          : `${colors.dim}✗${colors.reset}`
+
+      console.log(
+        `  ${secret.key.padEnd(25)} Local: ${localStatus}  GitHub: ${ghStatus}  ${colors.dim}${secret.description}${colors.reset}`,
+      )
+    }
+  }
+
+  if (!hasGhCli) {
+    console.log(`\n${colors.yellow}⚠ GitHub CLI 未安装或未登录，无法显示 GitHub Secrets 状态${colors.reset}`)
+    console.log(`  安装: brew install gh && gh auth login`)
+  }
+
+  console.log('')
+}
+
+// ==================== 配置流程 ====================
+
+async function configureCategory(categoryId: string, target: 'local' | 'github' | 'both'): Promise<void> {
+  const category = CATEGORIES.find((c) => c.id === categoryId)
+  if (!category) return
+
+  console.log(`\n${colors.cyan}▸ 配置 ${category.name}${colors.reset}\n`)
+
+  const secrets = SECRET_DEFINITIONS.filter((s) => s.category === categoryId)
+  const values = new Map<string, string>()
+
+  for (const secret of secrets) {
+    let value: string
+
+    if (secret.isPassword) {
+      value = await password({
+        message: `${secret.description}:`,
+      })
+    } else {
+      value = await input({
+        message: `${secret.description}:`,
+        validate: (v) => {
+          if (secret.required && !v.trim()) {
+            return '此项必填'
+          }
+          if (secret.validate) {
+            return secret.validate(v)
+          }
+          return true
+        },
+      })
+    }
+
+    if (value) {
+      values.set(secret.key, value)
+
+      // 特殊处理：从助记词派生地址
+      if (secret.key === 'E2E_TEST_MNEMONIC') {
+        log.info('派生地址...')
+        const address = await deriveAddress(value)
+        if (address) {
+          values.set('E2E_TEST_ADDRESS', address)
+          log.success(`地址: ${address}`)
+        }
+      }
+    }
+  }
+
+  // 保存到本地
+  if (target === 'local' || target === 'both') {
+    updateLocalEnv(values)
+    log.success(`已更新 .env.local`)
+  }
+
+  // 保存到 GitHub
+  if (target === 'github' || target === 'both') {
+    if (!checkGhCli()) {
+      log.error('GitHub CLI 未安装或未登录')
+      log.info('安装: brew install gh && gh auth login')
+      return
+    }
+
+    for (const [key, value] of values) {
+      const ok = await setGitHubSecret(key, value)
+      if (ok) {
+        log.success(`GitHub Secret: ${key}`)
+      } else {
+        log.error(`GitHub Secret: ${key} 设置失败`)
+      }
+    }
+  }
+}
+
+// ==================== 主程序 ====================
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
-  const setLocalFlag = args.includes('--local') || args.includes('--all')
-  const setCIFlag = args.includes('--ci') || args.includes('--all')
-  
-  if (!setLocalFlag && !setCIFlag) {
-    console.log(`
-配置 E2E 测试密钥
 
-用法:
-  bun scripts/set-secret.ts --local   更新 .env.local
-  bun scripts/set-secret.ts --ci      配置 GitHub secrets
-  bun scripts/set-secret.ts --all     两者都配置
-
-需要输入:
-  - 助记词（必需）- 自动派生地址
-  - 安全密码/二次密钥（可选）- 如果账号设置了 secondPublicKey
-
-钱包锁在测试代码中固定，不需要配置。
-`)
-    process.exit(0)
+  // 显示状态
+  if (args.includes('--list') || args.includes('-l')) {
+    await showStatus()
+    return
   }
-  
-  const config = await promptSecrets()
-  
-  if (setLocalFlag) await setLocal(config)
-  if (setCIFlag) await setCI(config)
-  
-  console.log('\n🎉 完成!')
+
+  console.log(`
+${colors.cyan}╔════════════════════════════════════════╗
+║        配置管理工具                    ║
+╚════════════════════════════════════════╝${colors.reset}
+`)
+
+  // 选择要配置的类别
+  const selectedCategories = await checkbox({
+    message: '选择要配置的项目:',
+    choices: CATEGORIES.map((c) => ({
+      value: c.id,
+      name: `${c.name} - ${c.description}`,
+    })),
+  })
+
+  if (selectedCategories.length === 0) {
+    log.info('未选择任何配置项')
+    return
+  }
+
+  // 选择配置目标
+  const target = await select({
+    message: '配置保存到:',
+    choices: [
+      { value: 'both' as const, name: '本地 + GitHub（推荐）' },
+      { value: 'local' as const, name: '仅本地 (.env.local)' },
+      { value: 'github' as const, name: '仅 GitHub Secrets' },
+    ],
+  })
+
+  // 检查 GitHub CLI
+  if ((target === 'github' || target === 'both') && !checkGhCli()) {
+    log.error('GitHub CLI 未安装或未登录')
+    log.info('安装: brew install gh && gh auth login')
+
+    if (target === 'github') {
+      return
+    }
+
+    const continueLocal = await confirm({
+      message: '是否仅配置本地?',
+      default: true,
+    })
+
+    if (!continueLocal) {
+      return
+    }
+  }
+
+  // 逐个配置
+  for (const categoryId of selectedCategories) {
+    await configureCategory(categoryId, target as 'local' | 'github' | 'both')
+  }
+
+  console.log(`\n${colors.green}✓ 配置完成!${colors.reset}\n`)
+
+  // 显示最终状态
+  await showStatus()
 }
 
-main().catch(console.error)
+main().catch((error) => {
+  log.error(`配置失败: ${error.message}`)
+  process.exit(1)
+})
