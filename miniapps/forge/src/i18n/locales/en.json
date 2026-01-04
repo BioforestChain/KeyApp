@@ -4,6 +4,11 @@
     "subtitle": "Multi-Chain Furnace",
     "description": "Forge external chain assets into Bio ecosystem tokens"
   },
+  "disclaimer": {
+    "title": "Community token exchange initiated by BFM Ecosystem Foundation",
+    "ratio": "Exchange ratio 1:1",
+    "supported": "Supported tokens"
+  },
   "connect": {
     "button": "Connect Wallet",
     "loading": "Connecting..."

@@ -4,6 +4,11 @@
     "subtitle": "多链熔炉",
     "description": "将其他链资产锻造为 Bio 生态代币"
   },
+  "disclaimer": {
+    "title": "由 BFM 生态基金会发起的社区代币兑换",
+    "ratio": "兑换比例 1:1",
+    "supported": "支持币种"
+  },
   "connect": {
     "button": "连接钱包",
     "loading": "连接中..."

@@ -4,6 +4,11 @@
     "subtitle": "多鏈熔爐",
     "description": "將其他鏈資產鍛造為 Bio 生態代幣"
   },
+  "disclaimer": {
+    "title": "由 BFM 生態基金會發起的社區代幣兌換",
+    "ratio": "兌換比例 1:1",
+    "supported": "支持幣種"
+  },
   "connect": {
     "button": "連接錢包",
     "loading": "連接中..."

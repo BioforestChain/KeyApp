@@ -249,6 +249,12 @@ export default function App() {
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                   {loading ? t('connect.loading') : t('connect.button')}
                 </Button>
+
+                {/* Disclaimer */}
+                <div className="mt-4 text-center text-xs text-muted-foreground space-y-1 max-w-xs">
+                  <p>{t('disclaimer.title')}</p>
+                  <p>{t('disclaimer.ratio')}</p>
+                </div>
               </motion.div>
             )}
 
