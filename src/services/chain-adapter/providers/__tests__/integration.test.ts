@@ -29,7 +29,7 @@ describe('ChainProvider 集成测试', () => {
     const mockEthConfig: ChainConfig = {
       id: 'ethereum',
       version: '1.0',
-      type: 'evm',
+      chainKind: 'evm',
       name: 'Ethereum',
       symbol: 'ETH',
       decimals: 18,
@@ -65,7 +65,7 @@ describe('ChainProvider 集成测试', () => {
     const mockBfmetaConfig: ChainConfig = {
       id: 'bfmeta',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'BFMeta',
       symbol: 'BFM',
       decimals: 8,
@@ -106,7 +106,7 @@ describe('ChainProvider 集成测试', () => {
     const mockConfig: ChainConfig = {
       id: 'test',
       version: '1.0',
-      type: 'evm',
+      chainKind: 'evm',
       name: 'Test',
       symbol: 'TEST',
       decimals: 18,

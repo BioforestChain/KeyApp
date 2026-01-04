@@ -8,7 +8,7 @@ const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon a
 const btcConfig: ChainConfig = {
   id: 'bitcoin',
   version: '1.0',
-  type: 'bip39',
+  chainKind: 'bitcoin',
   name: 'Bitcoin',
   symbol: 'BTC',
   decimals: 8,

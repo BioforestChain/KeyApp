@@ -24,7 +24,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (sub)',
           symbol: 'BFT',
           decimals: 8,
@@ -40,7 +40,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (manual)',
           symbol: 'BFT',
           decimals: 8,
@@ -73,7 +73,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (sub)',
           symbol: 'BFT',
           decimals: 8,
@@ -106,7 +106,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'future',
           version: '2.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'Future',
           symbol: 'FUT',
           decimals: 8,
@@ -128,7 +128,7 @@ describe('chain-config service', () => {
     await addManualConfig({
       id: 'manual-one',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'Manual One',
       symbol: 'M1',
       decimals: 8,
@@ -139,7 +139,7 @@ describe('chain-config service', () => {
       {
         id: 'manual-two',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'Manual Two',
         symbol: 'M2',
         decimals: 8,

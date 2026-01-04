@@ -5,7 +5,7 @@
 import type { ChainConfig } from '@/services/chain-config'
 
 export interface Bip39ChainConfig extends ChainConfig {
-  type: 'bip39'
+  chainKind: 'bitcoin'
 }
 
 export type Bip39ChainId = 'bitcoin' | 'tron'

@@ -5,7 +5,7 @@ import type { ChainConfig } from '@/services/chain-config'
 const ethConfig: ChainConfig = {
   id: 'ethereum',
   version: '1.0',
-  type: 'evm',
+  chainKind: 'evm',
   name: 'Ethereum',
   symbol: 'ETH',
   decimals: 18,

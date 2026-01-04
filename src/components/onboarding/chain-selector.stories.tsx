@@ -8,7 +8,7 @@ const chains: ChainConfig[] = [
   {
     id: 'bfmeta',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BFMeta',
     symbol: 'BFM',
     decimals: 8,
@@ -18,7 +18,7 @@ const chains: ChainConfig[] = [
   {
     id: 'ccchain',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'CCChain',
     symbol: 'CCC',
     decimals: 8,
@@ -28,7 +28,7 @@ const chains: ChainConfig[] = [
   {
     id: 'pmchain',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'PMChain',
     symbol: 'PMC',
     decimals: 8,
@@ -38,7 +38,7 @@ const chains: ChainConfig[] = [
   {
     id: 'ethereum',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Ethereum',
     symbol: 'ETH',
     decimals: 18,
@@ -48,7 +48,7 @@ const chains: ChainConfig[] = [
   {
     id: 'polygon',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Polygon',
     symbol: 'MATIC',
     decimals: 18,
@@ -58,7 +58,7 @@ const chains: ChainConfig[] = [
   {
     id: 'bitcoin',
     version: '1.0',
-    type: 'bip39',
+    chainKind: 'bitcoin',
     name: 'Bitcoin',
     symbol: 'BTC',
     decimals: 8,
@@ -68,7 +68,7 @@ const chains: ChainConfig[] = [
   {
     id: 'tron',
     version: '1.0',
-    type: 'bip39',
+    chainKind: 'bitcoin',
     name: 'Tron',
     symbol: 'TRX',
     decimals: 6,
@@ -141,7 +141,7 @@ export const DefaultSelectionBioforest: Story = {
   name: 'Default: Bioforest Selected',
   render: () => {
     const defaultSelected = getDefaultSelectedChains(chains);
-    const bioforestChains = chains.filter(c => c.type === 'bioforest');
+    const bioforestChains = chains.filter(c => c.chainKind === 'bioforest');
     const allBioforestSelected = bioforestChains.every(c => defaultSelected.includes(c.id));
 
     return (
@@ -306,8 +306,8 @@ export const GroupSelection: Story = {
   render: () => {
     const [selected, setSelected] = useState<string[]>([]);
 
-    const bioforestCount = chains.filter(c => c.type === 'bioforest').length;
-    const evmCount = chains.filter(c => c.type === 'evm').length;
+    const bioforestCount = chains.filter(c => c.chainKind === 'bioforest').length;
+    const evmCount = chains.filter(c => c.chainKind === 'evm').length;
 
     return (
       <div className="w-96 space-y-4">
@@ -326,8 +326,8 @@ export const GroupSelection: Story = {
         />
 
         <div className="text-sm space-y-1">
-          <div>Bioforest: {chains.filter(c => c.type === 'bioforest' && selected.includes(c.id)).length}/{bioforestCount}</div>
-          <div>EVM: {chains.filter(c => c.type === 'evm' && selected.includes(c.id)).length}/{evmCount}</div>
+          <div>Bioforest: {chains.filter(c => c.chainKind === 'bioforest' && selected.includes(c.id)).length}/{bioforestCount}</div>
+          <div>EVM: {chains.filter(c => c.chainKind === 'evm' && selected.includes(c.id)).length}/{evmCount}</div>
           <div>Total Selected: {selected.length}/{chains.length}</div>
         </div>
       </div>

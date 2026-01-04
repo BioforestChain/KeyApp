@@ -89,8 +89,8 @@ export const BIOFOREST_CHAINS: Record<BioforestChainType, BioforestChainConfig> 
 
 export function isBioforestChainConfig(
   config: ChainConfig,
-): config is ChainConfig & { type: 'bioforest' } {
-  return config.type === 'bioforest'
+): config is ChainConfig & { chainKind: 'bioforest' } {
+  return config.chainKind === 'bioforest'
 }
 
 export function toBioforestChainConfig(config: ChainConfig): BioforestChainConfig {

@@ -9,7 +9,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'bfmeta',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BFMeta',
     symbol: 'BFM',
     decimals: 8,
@@ -19,7 +19,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'ccchain',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'CCChain',
     symbol: 'CCC',
     decimals: 8,
@@ -29,7 +29,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'ethereum',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Ethereum',
     symbol: 'ETH',
     decimals: 18,
@@ -39,7 +39,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'tron',
     version: '1.0',
-    type: 'bip39',
+    chainKind: 'bitcoin',
     name: 'Tron',
     symbol: 'TRX',
     decimals: 6,

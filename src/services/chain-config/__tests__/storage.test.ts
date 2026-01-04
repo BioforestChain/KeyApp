@@ -20,7 +20,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'bfmeta',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'BFMeta',
         symbol: 'BFT',
         prefix: 'c',
@@ -29,7 +29,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'custom-1',
         version: '1.0',
-        type: 'custom',
+        chainKind: 'custom',
         name: 'Custom',
         symbol: 'CST',
         decimals: 8,
@@ -49,7 +49,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'first',
         version: '1.0',
-        type: 'custom',
+        chainKind: 'custom',
         name: 'First',
         symbol: 'FST',
         decimals: 8,
@@ -61,7 +61,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'second',
         version: '1.0',
-        type: 'custom',
+        chainKind: 'custom',
         name: 'Second',
         symbol: 'SND',
         decimals: 8,

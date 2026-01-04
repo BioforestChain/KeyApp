@@ -261,7 +261,7 @@ describe('BioForest Crypto', () => {
       const bioforestConfig: ChainConfig = {
         id: 'bfmeta',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'BFMeta',
         symbol: 'BFT',
         decimals: 8,
@@ -282,7 +282,7 @@ describe('BioForest Crypto', () => {
       const customConfig: ChainConfig = {
         id: 'custom-bioforest',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'Custom BioForest',
         symbol: 'CBF',
         decimals: 8,
@@ -307,7 +307,7 @@ describe('BioForest Crypto', () => {
       const evmConfig: ChainConfig = {
         id: 'eth',
         version: '1.0',
-        type: 'evm',
+        chainKind: 'evm',
         name: 'Ethereum',
         symbol: 'ETH',
         decimals: 18,
@@ -337,7 +337,7 @@ describe('BioForest Crypto', () => {
       const customConfig: ChainConfig = {
         id: 'custom-bioforest',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'Custom BioForest',
         symbol: 'CBF',
         decimals: 8,

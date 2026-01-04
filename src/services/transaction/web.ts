@@ -24,7 +24,7 @@ async function fetchHistory(walletId: string, filter?: TransactionFilterInput): 
     if (targetChain && addressInfo.chain !== targetChain) return []
 
     const config = enabledMap.get(addressInfo.chain) ?? getChainById(snapshot, addressInfo.chain)
-    if (!config || !config.enabled || config.type !== 'bioforest') return []
+    if (!config || !config.enabled || config.chainKind !== 'bioforest') return []
 
     const adapter = createBioforestAdapter(config)
     return adapter.transaction.getTransactionHistory(addressInfo.address, 50).then((list) =>

@@ -211,7 +211,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     const manualConfig = JSON.stringify({
       id: 'bf-demo',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'BF Demo',
       symbol: 'BFD',
       decimals: 8,

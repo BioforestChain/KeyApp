@@ -27,7 +27,7 @@ const mockEnabledChains = [
   {
     id: 'ethereum',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Ethereum',
     symbol: 'ETH',
     decimals: 18,
@@ -37,7 +37,7 @@ const mockEnabledChains = [
   {
     id: 'tron',
     version: '1.0',
-    type: 'bip39',
+    chainKind: 'bitcoin',
     name: 'Tron',
     symbol: 'TRX',
     decimals: 6,

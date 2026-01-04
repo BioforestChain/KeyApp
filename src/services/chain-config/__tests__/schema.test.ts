@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { ChainConfigListSchema, ChainConfigSchema } from '../schema'
+import { ChainConfigListSchema, ChainConfigSchema, VersionedChainConfigFileSchema } from '../schema'
 
 describe('ChainConfigSchema', () => {
   it('fills runtime defaults (enabled/source)', () => {
     const parsed = ChainConfigSchema.parse({
       id: 'bfmeta',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'BFMeta',
       symbol: 'BFT',
       prefix: 'c',
@@ -25,7 +25,7 @@ describe('ChainConfigSchema', () => {
       ChainConfigSchema.parse({
         id: 'bfmeta',
         version: '1',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'BFMeta',
         symbol: 'BFT',
         prefix: 'c',
@@ -41,7 +41,8 @@ describe('default-chains.json', () => {
     const raw = await fs.readFile(filePath, 'utf8')
 
     const parsedJson: unknown = JSON.parse(raw)
-    const chains = ChainConfigListSchema.parse(parsedJson)
+    const versionedFile = VersionedChainConfigFileSchema.parse(parsedJson)
+    const chains = versionedFile.chains
 
     // 7 bioforest + 4 external (ethereum, binance, tron, bitcoin)
     expect(chains).toHaveLength(11)
@@ -62,10 +63,10 @@ describe('default-chains.json', () => {
     ])
 
     // Verify chain types
-    const bioforestChains = chains.filter(c => c.type === 'bioforest')
-    const evmChains = chains.filter(c => c.type === 'evm')
-    const tronChains = chains.filter(c => c.type === 'tron')
-    const bip39Chains = chains.filter(c => c.type === 'bip39')
+    const bioforestChains = chains.filter(c => c.chainKind === 'bioforest')
+    const evmChains = chains.filter(c => c.chainKind === 'evm')
+    const tronChains = chains.filter(c => c.chainKind === 'tron')
+    const bip39Chains = chains.filter(c => c.chainKind === 'bitcoin')
 
     expect(bioforestChains).toHaveLength(7)
     expect(evmChains).toHaveLength(2)

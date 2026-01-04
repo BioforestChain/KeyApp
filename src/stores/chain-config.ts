@@ -135,7 +135,7 @@ export const chainConfigSelectors = {
     if (!state.snapshot) return []
 
     return getEnabledChainsFromSnapshot(state.snapshot)
-      .filter((config) => config.type === 'bioforest')
+      .filter((config) => config.chainKind === 'bioforest')
   },
 
   getChainById: (state: ChainConfigState, id: string): ChainConfig | null => {

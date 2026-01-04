@@ -12,7 +12,7 @@ import { BioforestAdapter } from '../bioforest'
 const mockConfigWithRpc: ChainConfig = {
   id: 'bfmeta',
   version: '1.0',
-  type: 'bioforest',
+  chainKind: 'bioforest',
   name: 'BFMeta',
   symbol: 'BFM',
   prefix: 'b',

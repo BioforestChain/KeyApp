@@ -45,8 +45,8 @@ export function AddressBalancePage() {
     [handleSearch]
   )
 
-  const evmChains = enabledChains.filter((c) => c.type === 'evm')
-  const otherChains = enabledChains.filter((c) => c.type !== 'evm')
+  const evmChains = enabledChains.filter((c) => c.chainKind === 'evm')
+  const otherChains = enabledChains.filter((c) => c.chainKind !== 'evm')
 
   return (
     <div className="bg-background flex min-h-screen flex-col">

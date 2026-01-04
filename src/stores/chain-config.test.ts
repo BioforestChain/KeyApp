@@ -27,7 +27,7 @@ describe('chain-config store', () => {
     await chainConfigActions.addManualConfig({
       id: 'manual-test',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'Manual Test',
       symbol: 'MT',
       decimals: 8,
@@ -53,7 +53,7 @@ describe('chain-config store', () => {
       if (requestUrl === subscriptionUrl) {
         return new Response(
           JSON.stringify([
-            { id: 'remote-one', version: '1.0', type: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
+            { id: 'remote-one', version: '1.0', chainKind: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
           ]),
           {
             status: 200,
@@ -92,7 +92,7 @@ describe('chain-config store', () => {
     await chainConfigActions.addManualConfig({
       id: 'custom-bioforest',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'Custom BioForest',
       symbol: 'CBF',
       decimals: 8,

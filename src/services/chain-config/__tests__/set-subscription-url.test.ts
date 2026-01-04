@@ -30,7 +30,7 @@ describe('chain-config setSubscriptionUrl', () => {
         ChainConfigSchema.parse({
           id: 'cached',
           version: '1.0',
-          type: 'custom',
+          chainKind: 'custom',
           name: 'Cached',
           symbol: 'C',
           decimals: 8,
@@ -63,7 +63,7 @@ describe('chain-config setSubscriptionUrl', () => {
         ChainConfigSchema.parse({
           id: 'cached',
           version: '1.0',
-          type: 'custom',
+          chainKind: 'custom',
           name: 'Cached',
           symbol: 'C',
           decimals: 8,

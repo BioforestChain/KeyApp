@@ -17,7 +17,7 @@ const SUBSCRIPTION_CONFIGS = [
   {
     id: 'bf-sub',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BF Sub',
     symbol: 'BFS',
     decimals: 8,

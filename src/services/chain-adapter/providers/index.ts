@@ -75,7 +75,7 @@ function createApiProvider(entry: ParsedApiEntry, chainId: string): ApiProvider 
 function createWrappedProviders(config: ChainConfig): ApiProvider[] {
   const providers: ApiProvider[] = []
 
-  switch (config.type) {
+  switch (config.chainKind) {
     case 'evm': {
       const identity = new EvmIdentityService(config.id)
       const asset = new EvmAssetService(config.id)
@@ -116,14 +116,8 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       )
       break
     }
-    case 'bip39': {
-      const identity = new Bip39IdentityService(config)
-      const asset = new Bip39AssetService(config.id)
-      const transaction = new Bip39TransactionService(config)
-      providers.push(
-        new WrappedTransactionProvider(`wrapped-bip39-tx`, transaction, asset),
-        new WrappedIdentityProvider(`wrapped-bip39-identity`, identity),
-      )
+    case 'custom': {
+      // Custom chains not supported yet - skip
       break
     }
   }

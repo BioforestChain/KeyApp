@@ -17,7 +17,8 @@ import { GradientButton } from '@/components/common/gradient-button';
 import { IconCircle } from '@/components/common/icon-circle';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
-import { deriveMultiChainKeys, deriveBioforestAddresses } from '@/lib/crypto';
+import { deriveBioforestAddresses } from '@/lib/crypto';
+import { buildWalletChainAddresses } from '@/services/wallet/chain-derivation';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
@@ -186,65 +187,18 @@ export function OnboardingRecoverPage() {
       try {
         const mnemonicStr = words.join(' ');
 
-        // 根据选中的链配置派生地址
-        const selectedConfigs = chainConfigs.filter((config) => selectedChainIds.includes(config.id));
-        const selectedBioforestConfigs = selectedConfigs.filter((config) => config.type === 'bioforest');
-        const selectedBip39Ids = new Set(
-          selectedConfigs.filter((config) => config.type === 'bip39').map((config) => config.id),
-        );
-        const selectedEvmConfigs = selectedConfigs.filter(
-          (config) => config.type === 'evm' || config.type === 'custom',
-        );
+        // 使用统一的 chain-derivation 模块派生所有地址
+        const derivedAddresses = buildWalletChainAddresses({
+          mnemonic: mnemonicStr,
+          selectedChainIds,
+          chainConfigs,
+        });
 
-        const externalChains: Array<'ethereum' | 'bitcoin' | 'tron'> = [];
-        if (selectedEvmConfigs.length > 0) externalChains.push('ethereum');
-        if (selectedBip39Ids.has('bitcoin')) externalChains.push('bitcoin');
-        if (selectedBip39Ids.has('tron')) externalChains.push('tron');
-
-        const externalKeys = externalChains.length > 0
-          ? deriveMultiChainKeys(mnemonicStr, externalChains, 0)
-          : [];
-
-        const addressByChain = new Map<string, string>();
-        const ethKey = externalKeys.find((k) => k.chain === 'ethereum');
-        if (ethKey) {
-          if (selectedChainIds.includes('ethereum')) {
-            addressByChain.set('ethereum', ethKey.address);
-          }
-          for (const config of selectedEvmConfigs) {
-            addressByChain.set(config.id, ethKey.address);
-          }
-        }
-
-        const bitcoinKey = externalKeys.find((k) => k.chain === 'bitcoin');
-        if (bitcoinKey && selectedBip39Ids.has('bitcoin')) {
-          addressByChain.set('bitcoin', bitcoinKey.address);
-        }
-
-        const tronKey = externalKeys.find((k) => k.chain === 'tron');
-        if (tronKey && selectedBip39Ids.has('tron')) {
-          addressByChain.set('tron', tronKey.address);
-        }
-
-        const bioforestChainAddresses = deriveBioforestAddresses(
-          mnemonicStr,
-          selectedBioforestConfigs.length > 0 ? selectedBioforestConfigs : [],
-        );
-        for (const item of bioforestChainAddresses) {
-          addressByChain.set(item.chainId, item.address);
-        }
-
-        const chainAddresses = selectedChainIds
-          .map((chainId) => {
-            const address = addressByChain.get(chainId);
-            if (!address) return null;
-            return {
-              chain: chainId,
-              address,
-              tokens: [],
-            };
-          })
-          .filter((item): item is { chain: string; address: string; tokens: [] } => Boolean(item));
+        const chainAddresses = derivedAddresses.map(({ chainId, address }) => ({
+          chain: chainId,
+          address,
+          tokens: [],
+        }));
 
         const primaryChain = chainAddresses[0];
         if (!primaryChain) {
