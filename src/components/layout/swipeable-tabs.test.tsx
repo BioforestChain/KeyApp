@@ -139,7 +139,7 @@ describe('SwipeableTabs', () => {
       <SwipeableTabs>{(tab) => <div>Content: {tab}</div>}</SwipeableTabs>
     )
 
-    const indicator = container.querySelector('[class*="transition-transform"]')
+    const indicator = container.querySelector('div[style*="--tab-index"]')
     expect(indicator).toBeInTheDocument()
   })
 
@@ -151,8 +151,9 @@ describe('SwipeableTabs', () => {
     const historyTab = screen.getByRole('button', { name: /交易/i })
     await userEvent.click(historyTab)
 
-    const contentContainer = container.querySelector('[class*="transition-transform"]')
-    expect(contentContainer).toBeInTheDocument()
+    const indicator = container.querySelector('div[style*="--tab-index"]') as HTMLElement | null
+    expect(indicator).toBeInTheDocument()
+    expect(indicator?.style.transform).toContain('translateX')
   })
 
   it('respects controlled activeTab', () => {

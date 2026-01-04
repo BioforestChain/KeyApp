@@ -119,8 +119,9 @@ describe('SignatureAuthService', () => {
     const sig1 = await service.handleMessageSign(payload, encryptedSecret, 'pwd')
     const sig2 = await service.handleMessageSign(payload, encryptedSecret, 'pwd')
 
-    expect(sig1).toMatch(/^0x[0-9a-f]{128}$/)
-    expect(sig1).toBe(sig2)
+    expect(sig1.signature).toMatch(/^0x[0-9a-f]{128}$/)
+    expect(sig1.publicKey).toMatch(/^[0-9a-f]{64}$/)
+    expect(sig1).toEqual(sig2)
     expect(crypto.decrypt).not.toHaveBeenCalled()
   })
 
@@ -151,8 +152,9 @@ describe('SignatureAuthService', () => {
     const sig1 = await service.handleMessageSign(payload, encryptedSecret, 'pwd')
     const sig2 = await service.handleMessageSign(payload, encryptedSecret, 'pwd')
 
-    expect(sig1).toMatch(/^0x[0-9a-f]{128}$/)
-    expect(sig1).toBe(sig2)
+    expect(sig1.signature).toMatch(/^0x[0-9a-f]{128}$/)
+    expect(sig1.publicKey).toMatch(/^[0-9a-f]{64}$/)
+    expect(sig1).toEqual(sig2)
     expect(crypto.decrypt).toHaveBeenCalledWith(encryptedSecret, 'pwd')
     expect(crypto.verifyPassword).not.toHaveBeenCalled()
   })
