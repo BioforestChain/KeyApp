@@ -111,16 +111,16 @@ jobs:
           fi
           
           # 准备 webapp 目录
-          mkdir -p docs/public/webapp docs/public/webapp-beta
+          mkdir -p docs/public/webapp docs/public/webapp-dev
           if [[ "$CHANNEL" == "stable" ]]; then
             cp -r dist-web/* docs/public/webapp/
             if gh release download --pattern 'bfmpay-web-beta.zip' --dir /tmp -R ${{ github.repository }} 2>/dev/null; then
-              unzip -q /tmp/bfmpay-web-beta.zip -d docs/public/webapp-beta/
+              unzip -q /tmp/bfmpay-web-beta.zip -d docs/public/webapp-dev/
             else
-              cp -r dist-web/* docs/public/webapp-beta/
+              cp -r dist-web/* docs/public/webapp-dev/
             fi
           else
-            cp -r dist-web/* docs/public/webapp-beta/
+            cp -r dist-web/* docs/public/webapp-dev/
             if gh release download --pattern 'bfmpay-web.zip' --dir /tmp -R ${{ github.repository }} 2>/dev/null; then
               unzip -q /tmp/bfmpay-web.zip -d docs/public/webapp/
             else
@@ -212,7 +212,7 @@ jobs:
 
             ### 在线访问
             - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
-            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-beta/
+            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-dev/
             - 文档首页: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
 
             ### DWEB 安装
@@ -334,20 +334,20 @@ jobs:
             echo "Copied current build to docs/public/webapp/ (stable)"
 
             # 尝试下载最新的 beta 版本（从 latest prerelease）
-            mkdir -p docs/public/webapp-beta
+            mkdir -p docs/public/webapp-dev
             if gh release download --pattern 'bfmpay-web-beta.zip' --dir /tmp -R ${{ github.repository }} 2>/dev/null; then
-              unzip -q /tmp/bfmpay-web-beta.zip -d docs/public/webapp-beta/
+              unzip -q /tmp/bfmpay-web-beta.zip -d docs/public/webapp-dev/
               echo "Downloaded beta version from release"
             else
               # 如果没有 beta release，使用当前构建
-              cp -r dist-web/* docs/public/webapp-beta/
-              echo "No beta release found, using current build for webapp-beta"
+              cp -r dist-web/* docs/public/webapp-dev/
+              echo "No beta release found, using current build for webapp-dev"
             fi
           else
-            # beta 构建：当前版本放 webapp-beta/，尝试下载 stable
-            mkdir -p docs/public/webapp-beta
-            cp -r dist-web/* docs/public/webapp-beta/
-            echo "Copied current build to docs/public/webapp-beta/ (beta)"
+            # beta 构建：当前版本放 webapp-dev/，尝试下载 stable
+            mkdir -p docs/public/webapp-dev
+            cp -r dist-web/* docs/public/webapp-dev/
+            echo "Copied current build to docs/public/webapp-dev/ (beta)"
 
             # 尝试下载最新的 stable 版本
             mkdir -p docs/public/webapp
@@ -364,8 +364,8 @@ jobs:
           # 显示准备好的目录
           echo "=== webapp directory ==="
           ls -la docs/public/webapp/ | head -5
-          echo "=== webapp-beta directory ==="
-          ls -la docs/public/webapp-beta/ | head -5
+          echo "=== webapp-dev directory ==="
+          ls -la docs/public/webapp-dev/ | head -5
 
       # ===== 构建 Storybook =====
       - name: Build Storybook
@@ -505,7 +505,7 @@ jobs:
 
             ### 在线访问
             - Web 应用 (stable): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp/
-            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-beta/
+            - Web 应用 (beta): https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/webapp-dev/
             - 文档首页: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
 
             ### DWEB 安装

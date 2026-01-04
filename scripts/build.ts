@@ -20,7 +20,7 @@
  *   --upload            上传 dweb 版本到服务器
  *
  * 渠道说明:
- *   beta:   部署到 /webapp-beta/，每次 push main 自动触发
+ *   beta:   部署到 /webapp-dev/，每次 push main 自动触发
  *   stable: 部署到 /webapp/，通过 pnpm gen:stable 手动触发
  */
 
@@ -263,7 +263,7 @@ async function prepareGhPages(webDir: string) {
   log.step('准备 GitHub Pages 部署')
 
   const channel = getChannel()
-  const webappDirName = channel === 'stable' ? 'webapp' : 'webapp-beta'
+  const webappDirName = channel === 'stable' ? 'webapp' : 'webapp-dev'
 
   // 将当前构建复制到 docs/public 目录，供 VitePress 使用
   const docsPublicWebapp = join(ROOT, 'docs', 'public', webappDirName)

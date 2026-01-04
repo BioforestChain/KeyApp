@@ -18,7 +18,7 @@ storybook-static/
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/public/webapp
-docs/public/webapp-beta
+docs/public/webapp-dev
 
 # dependencies
 node_modules

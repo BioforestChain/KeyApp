@@ -49,7 +49,7 @@ features:
 
 | 平台 | 稳定版 | 测试版 |
 |------|--------|--------|
-| **Web** | <a href="./webapp/" target="_self">webapp/</a> | <a href="./webapp-beta/" target="_self">webapp-beta/</a> |
+| **Web** | <a href="./webapp/" target="_self">webapp/</a> | <a href="./webapp-dev/" target="_self">webapp-dev/</a> |
 | **DWEB** | [下载页面](./download) | [下载页面](./download) |
 
 查看 [下载页面](./download) 了解更多版本信息。
