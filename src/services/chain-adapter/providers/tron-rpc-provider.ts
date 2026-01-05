@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Balance, Transaction } from './types'
+import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -144,25 +144,49 @@ export class TronRpcProvider implements ApiProvider {
 
       if (!result.success || !result.data) return []
 
+      const normalizedAddress = address.toLowerCase()
+
       return result.data.map(tx => {
         const contract = tx.raw_data?.contract?.[0]
         const value = contract?.parameter?.value
         const status: Transaction['status'] = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+        const from = value?.owner_address ?? ''
+        const to = value?.to_address ?? ''
+        const direction = this.getDirection(from, to, normalizedAddress)
 
         return {
           hash: tx.txID,
-          from: value?.owner_address ?? '',
-          to: value?.to_address ?? '',
-          value: (value?.amount ?? 0).toString(),
-          symbol: this.symbol,
+          from,
+          to,
           timestamp: tx.raw_data?.timestamp ?? 0,
           status,
+          action: 'transfer' as const,
+          direction,
+          assets: [{
+            assetType: 'native' as const,
+            value: (value?.amount ?? 0).toString(),
+            symbol: this.symbol,
+            decimals: this.decimals,
+          }],
         }
       })
     } catch (error) {
       console.warn('[TronRpcProvider] Error fetching transaction history:', error)
       return []
     }
+  }
+
+  private getDirection(from: string, to: string, address: string): Direction {
+    const fromLower = from.toLowerCase()
+    const toLower = to.toLowerCase()
+    
+    if (fromLower === address && toLower === address) {
+      return 'self'
+    }
+    if (fromLower === address) {
+      return 'out'
+    }
+    return 'in'
   }
 }
 

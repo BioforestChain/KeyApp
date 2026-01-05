@@ -8,6 +8,31 @@
 import type { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
+// 从 transaction-schema 导出 Transaction 相关类型
+export {
+  type Transaction,
+  type Asset,
+  type NativeAsset,
+  type TokenAsset,
+  type NftAsset,
+  type Action,
+  type Direction,
+  type AssetType,
+  type TxStatus,
+  type FeeInfo,
+  type ContractInfo,
+  TransactionSchema,
+  AssetSchema,
+  ActionSchema,
+  DirectionSchema,
+  getPrimaryAsset,
+  isNativeAsset,
+  isTokenAsset,
+  isNftAsset,
+  parseTransaction,
+  parseTransactions,
+} from './transaction-schema'
+
 // ==================== 数据类型 ====================
 
 /** 余额信息 */
@@ -22,18 +47,6 @@ export interface TokenBalance {
   name: string
   amount: Amount
   isNative: boolean
-}
-
-/** 交易信息 */
-export interface Transaction {
-  hash: string
-  from: string
-  to: string
-  value: string
-  symbol: string
-  timestamp: number
-  status: 'pending' | 'confirmed' | 'failed'
-  blockNumber?: bigint
 }
 
 /** 手续费选项 */

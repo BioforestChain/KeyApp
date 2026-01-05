@@ -211,7 +211,7 @@ export const RealDataEthereum: Story = {
     chromatic: { delay: 5000 },
     docs: {
       description: {
-        story: 'Fetches real token balances and transactions from Ethereum mainnet using blockscout API.',
+        story: 'Fetches real token balances and transactions from Ethereum mainnet using blockscout API. Uses Vitalik address for real ETH transfers.',
       },
     },
   },

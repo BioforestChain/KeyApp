@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Balance, Transaction } from './types'
+import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -102,20 +102,47 @@ export class BscWalletProvider implements ApiProvider {
         return []
       }
 
-      return parsed.data.result.result.map((tx): Transaction => ({
-        hash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        value: tx.value,
-        symbol: this.symbol,
-        timestamp: Number(tx.timeStamp) * 1000,
-        status: tx.isError === '1' ? 'failed' : 'confirmed',
-        blockNumber: BigInt(tx.blockNumber),
-      }))
+      const normalizedAddress = address.toLowerCase()
+
+      return parsed.data.result.result.map((tx): Transaction => {
+        const from = tx.from
+        const to = tx.to
+        const direction = this.getDirection(from, to, normalizedAddress)
+
+        return {
+          hash: tx.hash,
+          from,
+          to,
+          timestamp: Number(tx.timeStamp) * 1000,
+          status: tx.isError === '1' ? 'failed' : 'confirmed',
+          blockNumber: BigInt(tx.blockNumber),
+          action: 'transfer' as const,
+          direction,
+          assets: [{
+            assetType: 'native' as const,
+            value: tx.value,
+            symbol: this.symbol,
+            decimals: this.decimals,
+          }],
+        }
+      })
     } catch (error) {
       console.warn('[BscWalletProvider] Error fetching transactions:', error)
       return []
     }
+  }
+
+  private getDirection(from: string, to: string, address: string): Direction {
+    const fromLower = from.toLowerCase()
+    const toLower = to.toLowerCase()
+    
+    if (fromLower === address && toLower === address) {
+      return 'self'
+    }
+    if (fromLower === address) {
+      return 'out'
+    }
+    return 'in'
   }
 }
 

@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Balance, Transaction } from './types'
+import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -165,15 +165,25 @@ export class MempoolProvider implements ApiProvider {
           ? tx.vout.find(v => v.scriptpubkey_address !== address)?.scriptpubkey_address ?? ''
           : tx.vin[0]?.prevout?.scriptpubkey_address ?? ''
 
+        const from = isOutgoing ? address : counterparty
+        const to = isOutgoing ? counterparty : address
+        const direction: Direction = isOutgoing ? 'out' : 'in'
+
         return {
           hash: tx.txid,
-          from: isOutgoing ? address : counterparty,
-          to: isOutgoing ? counterparty : address,
-          value: value.toString(),
-          symbol: this.symbol,
+          from,
+          to,
           timestamp: (tx.status.block_time ?? Math.floor(Date.now() / 1000)) * 1000,
           status: tx.status.confirmed ? 'confirmed' : 'pending',
           blockNumber: tx.status.block_height ? BigInt(tx.status.block_height) : undefined,
+          action: 'transfer' as const,
+          direction,
+          assets: [{
+            assetType: 'native' as const,
+            value: value.toString(),
+            symbol: this.symbol,
+            decimals: this.decimals,
+          }],
         }
       })
     } catch (error) {
