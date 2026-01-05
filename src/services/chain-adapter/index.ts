@@ -57,6 +57,5 @@ export { getAdapterRegistry, resetAdapterRegistry } from './registry'
 // Adapters (kept for internal use by wrapped providers)
 export { BioforestAdapter, createBioforestAdapter } from './bioforest'
 export { EvmAdapter, createEvmAdapter } from './evm'
-export { Bip39Adapter, createBip39Adapter } from './bip39'
 export { TronAdapter, createTronAdapter } from './tron'
 export { BitcoinAdapter, createBitcoinAdapter } from './bitcoin'
