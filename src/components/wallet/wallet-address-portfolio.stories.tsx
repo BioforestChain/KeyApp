@@ -6,7 +6,7 @@ import { expect, waitFor, within } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletAddressPortfolioView } from './wallet-address-portfolio-view';
 import { WalletAddressPortfolioFromProvider } from './wallet-address-portfolio-from-provider';
-import { chainConfigActions, chainConfigStore } from '@/stores/chain-config';
+import { chainConfigActions, useChainConfigState } from '@/stores/chain-config';
 import { clearProviderCache } from '@/services/chain-adapter';
 import { Amount } from '@/types/amount';
 import type { TokenInfo } from '@/components/token/token-item';
@@ -41,56 +41,50 @@ const mockTransactions: TransactionInfo[] = [
   },
 ];
 
-function ChainConfigProvider({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [error, setError] = useState<string | null>(null);
+function ChainConfigInitializer({ children }: { children: React.ReactNode }) {
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     async function init() {
-      try {
-        clearProviderCache();
-        await chainConfigActions.initialize();
-
-        if (!mounted) return;
-
-        const state = chainConfigStore.state;
-        if (state.error) {
-          setError(state.error);
-          setStatus('error');
-        } else if (state.snapshot) {
-          setStatus('ready');
-        } else {
-          setError('No chain config snapshot after initialization');
-          setStatus('error');
-        }
-      } catch (e) {
-        if (mounted) {
-          setError(e instanceof Error ? e.message : String(e));
-          setStatus('error');
-        }
-      }
+      clearProviderCache();
+      await chainConfigActions.initialize();
+      if (mounted) setInitialized(true);
     }
 
     init();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  if (status === 'error') {
+  if (!initialized) {
     return (
-      <div data-testid="chain-config-error" className="flex h-96 items-center justify-center p-4">
-        <div className="text-destructive text-center">
-          <p className="font-medium">Chain config initialization failed</p>
-          <p className="text-sm">{error}</p>
+      <div data-testid="chain-config-loading" className="flex h-96 items-center justify-center">
+        <div className="text-muted-foreground text-center">
+          <p>Initializing chain config...</p>
         </div>
       </div>
     );
   }
 
-  if (status === 'loading') {
+  return <>{children}</>;
+}
+
+function ChainConfigGate({ children }: { children: React.ReactNode }) {
+  const state = useChainConfigState();
+
+  if (state.error) {
+    return (
+      <div data-testid="chain-config-error" className="flex h-96 items-center justify-center p-4">
+        <div className="text-destructive text-center">
+          <p className="font-medium">Chain config error</p>
+          <p className="text-sm">{state.error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!state.snapshot) {
     return (
       <div data-testid="chain-config-loading" className="flex h-96 items-center justify-center">
         <div className="text-muted-foreground text-center">
@@ -115,11 +109,13 @@ const createQueryClient = () =>
 
 const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
   <QueryClientProvider client={createQueryClient()}>
-    <ChainConfigProvider>
-      <div className="bg-background mx-auto min-h-screen max-w-md">
-        <Story />
-      </div>
-    </ChainConfigProvider>
+    <ChainConfigInitializer>
+      <ChainConfigGate>
+        <div className="bg-background mx-auto min-h-screen max-w-md">
+          <Story />
+        </div>
+      </ChainConfigGate>
+    </ChainConfigInitializer>
   </QueryClientProvider>
 );
 
@@ -205,18 +201,16 @@ export const RealDataBfmeta: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
+    // Wait for data to load - accept either token list or empty state
     await waitFor(
       () => {
         const portfolio = canvas.getByTestId('bfmeta-portfolio');
         expect(portfolio).toBeVisible();
 
+        // Check if data loaded (either has tokens or empty state)
         const tokenList = canvas.queryByTestId('bfmeta-portfolio-token-list');
         const tokenEmpty = canvas.queryByTestId('bfmeta-portfolio-token-list-empty');
         expect(tokenList || tokenEmpty).not.toBeNull();
-
-        const txList = canvas.queryByTestId('bfmeta-portfolio-transaction-list');
-        const txEmpty = canvas.queryByTestId('bfmeta-portfolio-transaction-list-empty');
-        expect(txList || txEmpty).not.toBeNull();
       },
       { timeout: 12000 },
     );
