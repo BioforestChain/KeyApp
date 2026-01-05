@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Balance } from './types'
+import type { ApiProvider, Balance, Transaction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -38,6 +38,31 @@ const TronNowBlockSchema = z.looseObject({
         .optional(),
     })
     .optional(),
+})
+
+const TronTxSchema = z.looseObject({
+  txID: z.string(),
+  raw_data: z.looseObject({
+    contract: z.array(z.looseObject({
+      parameter: z.looseObject({
+        value: z.looseObject({
+          amount: z.number().optional(),
+          owner_address: z.string().optional(),
+          to_address: z.string().optional(),
+        }).optional(),
+      }).optional(),
+      type: z.string().optional(),
+    })).optional(),
+    timestamp: z.number().optional(),
+  }).optional(),
+  ret: z.array(z.looseObject({
+    contractRet: z.string().optional(),
+  })).optional(),
+})
+
+const TronTxListSchema = z.looseObject({
+  success: z.boolean(),
+  data: z.array(TronTxSchema).optional(),
 })
 
 export class TronRpcProvider implements ApiProvider {
@@ -107,6 +132,36 @@ export class TronRpcProvider implements ApiProvider {
       return BigInt(height)
     } catch {
       return 0n
+    }
+  }
+
+  async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
+    try {
+      const result = await this.api(
+        `/v1/accounts/${address}/transactions?limit=${limit}`,
+        TronTxListSchema
+      )
+
+      if (!result.success || !result.data) return []
+
+      return result.data.map(tx => {
+        const contract = tx.raw_data?.contract?.[0]
+        const value = contract?.parameter?.value
+        const status: Transaction['status'] = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+
+        return {
+          hash: tx.txID,
+          from: value?.owner_address ?? '',
+          to: value?.to_address ?? '',
+          value: (value?.amount ?? 0).toString(),
+          symbol: this.symbol,
+          timestamp: tx.raw_data?.timestamp ?? 0,
+          status,
+        }
+      })
+    } catch (error) {
+      console.warn('[TronRpcProvider] Error fetching transaction history:', error)
+      return []
     }
   }
 }

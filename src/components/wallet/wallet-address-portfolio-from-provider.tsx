@@ -37,6 +37,10 @@ export function WalletAddressPortfolioFromProvider({
   }, [chainId, chainConfigState.snapshot])
   
   const decimals = chainConfigService.getDecimals(chainId)
+  
+  // Check if provider is ready for queries
+  const tokensEnabled = !!provider && (provider.supportsTokenBalances || provider.supportsNativeBalance)
+  const transactionsEnabled = !!provider?.supportsTransactionHistory
 
   const tokensQuery = useQuery({
     queryKey: ['address-token-balances', chainId, address],
@@ -63,7 +67,7 @@ export function WalletAddressPortfolioFromProvider({
         chain: chainId,
       }))
     },
-    enabled: !!provider && (provider.supportsTokenBalances || provider.supportsNativeBalance),
+    enabled: tokensEnabled,
     staleTime: 30_000,
   })
 
@@ -87,9 +91,13 @@ export function WalletAddressPortfolioFromProvider({
         }
       })
     },
-    enabled: !!provider?.supportsTransactionHistory,
+    enabled: transactionsEnabled,
     staleTime: 30_000,
   })
+
+  // Show loading if provider not ready OR query is loading
+  const tokensLoading = !tokensEnabled || tokensQuery.isLoading
+  const transactionsLoading = !transactionsEnabled || transactionsQuery.isLoading
 
   return (
     <WalletAddressPortfolioView
@@ -97,8 +105,8 @@ export function WalletAddressPortfolioFromProvider({
       chainName={chainName}
       tokens={tokensQuery.data ?? []}
       transactions={transactionsQuery.data ?? []}
-      tokensLoading={tokensQuery.isLoading}
-      transactionsLoading={transactionsQuery.isLoading}
+      tokensLoading={tokensLoading}
+      transactionsLoading={transactionsLoading}
       tokensRefreshing={tokensQuery.isFetching && !tokensQuery.isLoading}
       onTokenClick={onTokenClick}
       onTransactionClick={onTransactionClick}

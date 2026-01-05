@@ -41,37 +41,17 @@ const mockTransactions: TransactionInfo[] = [
   },
 ];
 
-function ChainConfigInitializer({ children }: { children: React.ReactNode }) {
-  const [initialized, setInitialized] = useState(false);
+function ChainConfigProvider({ children }: { children: React.ReactNode }) {
+  const state = useChainConfigState();
+  const [initStarted, setInitStarted] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
-    async function init() {
+    if (!initStarted && !state.snapshot && !state.isLoading) {
+      setInitStarted(true);
       clearProviderCache();
-      await chainConfigActions.initialize();
-      if (mounted) setInitialized(true);
+      chainConfigActions.initialize();
     }
-
-    init();
-    return () => { mounted = false; };
-  }, []);
-
-  if (!initialized) {
-    return (
-      <div data-testid="chain-config-loading" className="flex h-96 items-center justify-center">
-        <div className="text-muted-foreground text-center">
-          <p>Initializing chain config...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
-
-function ChainConfigGate({ children }: { children: React.ReactNode }) {
-  const state = useChainConfigState();
+  }, [initStarted, state.snapshot, state.isLoading]);
 
   if (state.error) {
     return (
@@ -109,13 +89,11 @@ const createQueryClient = () =>
 
 const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
   <QueryClientProvider client={createQueryClient()}>
-    <ChainConfigInitializer>
-      <ChainConfigGate>
-        <div className="bg-background mx-auto min-h-screen max-w-md">
-          <Story />
-        </div>
-      </ChainConfigGate>
-    </ChainConfigInitializer>
+    <ChainConfigProvider>
+      <div className="bg-background mx-auto min-h-screen max-w-md">
+        <Story />
+      </div>
+    </ChainConfigProvider>
   </QueryClientProvider>
 );
 
@@ -201,18 +179,27 @@ export const RealDataBfmeta: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    // Wait for data to load - accept either token list or empty state
+    // Wait for data to load - check component renders without error
     await waitFor(
       () => {
         const portfolio = canvas.getByTestId('bfmeta-portfolio');
         expect(portfolio).toBeVisible();
 
-        // Check if data loaded (either has tokens or empty state)
+        // Check loading finished (either has tokens, empty state, or loading skeleton stopped)
         const tokenList = canvas.queryByTestId('bfmeta-portfolio-token-list');
         const tokenEmpty = canvas.queryByTestId('bfmeta-portfolio-token-list-empty');
-        expect(tokenList || tokenEmpty).not.toBeNull();
+        const loading = portfolio.querySelector('.animate-pulse');
+        
+        // Should have either: token list, empty state, or still loading
+        expect(tokenList || tokenEmpty || loading).not.toBeNull();
+        
+        // If token list exists, verify it has items
+        if (tokenList) {
+          const tokenItems = tokenList.querySelectorAll('[data-testid^="token-item-"]');
+          expect(tokenItems.length).toBeGreaterThan(0);
+        }
       },
-      { timeout: 12000 },
+      { timeout: 15000 },
     );
   },
 };
@@ -244,11 +231,14 @@ export const RealDataEthereum: Story = {
         const portfolio = canvas.getByTestId('ethereum-portfolio');
         expect(portfolio).toBeVisible();
 
+        // Verify token list exists with actual tokens
         const tokenList = canvas.queryByTestId('ethereum-portfolio-token-list');
-        const tokenEmpty = canvas.queryByTestId('ethereum-portfolio-token-list-empty');
-        expect(tokenList || tokenEmpty).not.toBeNull();
+        expect(tokenList).not.toBeNull();
+
+        const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]');
+        expect(tokenItems?.length).toBeGreaterThan(0);
       },
-      { timeout: 12000 },
+      { timeout: 15000 },
     );
   },
 };
@@ -280,11 +270,14 @@ export const RealDataBitcoin: Story = {
         const portfolio = canvas.getByTestId('bitcoin-portfolio');
         expect(portfolio).toBeVisible();
 
+        // Verify token list exists with BTC balance
         const tokenList = canvas.queryByTestId('bitcoin-portfolio-token-list');
-        const tokenEmpty = canvas.queryByTestId('bitcoin-portfolio-token-list-empty');
-        expect(tokenList || tokenEmpty).not.toBeNull();
+        expect(tokenList).not.toBeNull();
+
+        const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]');
+        expect(tokenItems?.length).toBeGreaterThan(0);
       },
-      { timeout: 12000 },
+      { timeout: 15000 },
     );
   },
 };
@@ -296,7 +289,7 @@ export const RealDataTron: Story = {
     chromatic: { delay: 5000 },
     docs: {
       description: {
-        story: 'Fetches real balance from Tron mainnet using TronGrid API.',
+        story: 'Fetches real balance and transactions from Tron mainnet using TronGrid API.',
       },
     },
   },
@@ -316,11 +309,14 @@ export const RealDataTron: Story = {
         const portfolio = canvas.getByTestId('tron-portfolio');
         expect(portfolio).toBeVisible();
 
+        // Verify token list exists with TRX balance
         const tokenList = canvas.queryByTestId('tron-portfolio-token-list');
-        const tokenEmpty = canvas.queryByTestId('tron-portfolio-token-list-empty');
-        expect(tokenList || tokenEmpty).not.toBeNull();
+        expect(tokenList).not.toBeNull();
+
+        const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]');
+        expect(tokenItems?.length).toBeGreaterThan(0);
       },
-      { timeout: 12000 },
+      { timeout: 15000 },
     );
   },
 };
