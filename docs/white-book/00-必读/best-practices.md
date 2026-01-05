@@ -29,3 +29,5 @@
 - CSS Modules 适用场景：@keyframes 动画、伪元素(::before/::after)、复杂选择器(:focus-within)、scroll-driven animations
 - CSS Modules 与 Tailwind 混用：`className={cn(styles.header, 'sticky top-0 z-10 px-5')}`
 - 优先级：CSS Modules > globals.css，组件样式应内聚到组件目录
+- ❌ as TypeAssertion → ✅ z.looseObject().safeParse() 验证外部 API 响应
+- ❌ z.record(z.record(...)) → ✅ z.record(z.string(), z.record(z.string(), schema))（Zod 4 嵌套 record 需显式 key 类型）
