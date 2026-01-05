@@ -298,7 +298,7 @@ export default function App() {
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
-                  disabled={loading || forgeOptions.length === 0}
+                  disabled={loading || forgeOptions.length === 0 || !selectedOption}
                 >
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                   {loading ? t('connect.loading') : t('connect.button')}
