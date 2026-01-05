@@ -1,8 +1,8 @@
 /**
  * Bitcoin Identity Service
- *
+ * 
  * Uses unified derivation from @/lib/crypto/derivation.ts
- * Default: BIP84 Native SegWit (bc1q...)
+ * Default: Native SegWit (P2WPKH, bc1q...) - BIP84
  */
 
 import type { IIdentityService, Address, Signature } from '../types'
@@ -18,7 +18,7 @@ export class BitcoinIdentityService implements IIdentityService {
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // seed is UTF-8 encoded mnemonic string
     const mnemonic = new TextDecoder().decode(seed)
-    // BIP84 Native SegWit (bc1q...)
+    // Default to BIP84 (Native SegWit, bc1q...)
     const derived = deriveBitcoinKey(mnemonic, 84, index)
     return derived.address
   }

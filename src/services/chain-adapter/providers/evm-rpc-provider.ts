@@ -5,10 +5,20 @@
  * 使用标准 Ethereum JSON-RPC API。
  */
 
+import { z } from 'zod'
 import type { ApiProvider, Balance } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+
+const JsonRpcResponseSchema = z.looseObject({
+  result: z.unknown().optional(),
+  error: z
+    .looseObject({
+      message: z.string(),
+    })
+    .optional(),
+})
 
 export class EvmRpcProvider implements ApiProvider {
   readonly type: string
@@ -28,7 +38,7 @@ export class EvmRpcProvider implements ApiProvider {
     this.decimals = chainConfigService.getDecimals(chainId)
   }
 
-  private async rpc<T>(method: string, params: unknown[] = []): Promise<T> {
+  private async rpc<T>(method: string, resultSchema: z.ZodType<T>, params: unknown[] = []): Promise<T> {
     const response = await fetch(this.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -44,17 +54,27 @@ export class EvmRpcProvider implements ApiProvider {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const json = await response.json() as { result?: T; error?: { message: string } }
-    if (json.error) {
-      throw new Error(json.error.message)
+    const json: unknown = await response.json()
+    const parsed = JsonRpcResponseSchema.safeParse(json)
+    if (!parsed.success) {
+      throw new Error('Invalid JSON-RPC response')
     }
 
-    return json.result as T
+    if (parsed.data.error) {
+      throw new Error(parsed.data.error.message)
+    }
+
+    const resultParsed = resultSchema.safeParse(parsed.data.result)
+    if (!resultParsed.success) {
+      throw new Error('Invalid JSON-RPC result')
+    }
+
+    return resultParsed.data
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
     try {
-      const balanceHex = await this.rpc<string>('eth_getBalance', [address, 'latest'])
+      const balanceHex = await this.rpc('eth_getBalance', z.string(), [address, 'latest'])
       const balanceWei = BigInt(balanceHex)
       
       return {
@@ -72,7 +92,7 @@ export class EvmRpcProvider implements ApiProvider {
 
   async getBlockHeight(): Promise<bigint> {
     try {
-      const blockHex = await this.rpc<string>('eth_blockNumber')
+      const blockHex = await this.rpc('eth_blockNumber', z.string())
       return BigInt(blockHex)
     } catch {
       return 0n

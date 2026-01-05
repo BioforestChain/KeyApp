@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { EtherscanProvider, createEtherscanProvider } from '../etherscan-provider'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
@@ -14,11 +17,16 @@ vi.mock('@/services/chain-config', () => ({
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
+function readFixture<T>(name: string): T {
+  const dir = path.dirname(fileURLToPath(import.meta.url))
+  const filePath = path.join(dir, 'fixtures/real', name)
+  return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T
+}
+
 describe('EtherscanProvider', () => {
   const mockEntry: ParsedApiEntry = {
-    type: 'etherscan-v2',
-    endpoint: 'https://api.etherscan.io/v2/api',
-    config: { apiKey: 'test-api-key' },
+    type: 'blockscout-eth',
+    endpoint: 'https://eth.blockscout.com/api',
   }
 
   beforeEach(() => {
@@ -51,113 +59,225 @@ describe('EtherscanProvider', () => {
   })
 
   describe('getTransactionHistory', () => {
-    it('fetches transactions from Etherscan API', async () => {
-      const mockResponse = {
-        status: '1',
-        message: 'OK',
-        result: [
-          {
-            hash: '0xabc123',
-            from: '0x1111111111111111111111111111111111111111',
-            to: '0x2222222222222222222222222222222222222222',
-            value: '1000000000000000000',
-            timeStamp: '1700000000',
-            isError: '0',
-            blockNumber: '18000000',
-          },
-        ],
-      }
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+    it('classifies swap/approve correctly from real Blockscout txlist samples', async () => {
+      const evmContractCaller = '0xc00eb08fef86e5f74b692813f31bb5957eaa045c'
+      const swap = readFixture<{ tx: unknown }>('eth-blockscout-native-swap-tx.json').tx
+      const approve = readFixture<{ tx: unknown }>('eth-blockscout-native-approve-tx.json').tx
+
+      mockFetch.mockImplementation(async (url: string) => {
+        const u = new URL(url)
+        const action = u.searchParams.get('action')
+        const address = u.searchParams.get('address')
+
+        if (action === 'txlist' && address?.toLowerCase() === evmContractCaller) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [swap, approve] }) }
+        }
+        if (action === 'tokentx') {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+        }
+
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
       })
 
       const provider = new EtherscanProvider(mockEntry, 'ethereum')
-      const txs = await provider.getTransactionHistory('0x2222222222222222222222222222222222222222', 10)
+      const txs = await provider.getTransactionHistory(evmContractCaller, 10)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('https://api.etherscan.io/v2/api')
-      )
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('chainid=1')
-      )
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('apikey=test-api-key')
-      )
+      const swapTx = txs.find(tx => tx.action === 'swap')
+      const approveTx = txs.find(tx => tx.action === 'approve')
+
+      expect(swapTx).toBeDefined()
+      expect(swapTx?.direction).toBe('out')
+      expect(swapTx?.contract?.address).toBe(swapTx?.to)
+      expect(['0x38ed1739', '0x7ff36ab5', '0x18cbafe5']).toContain(swapTx?.contract?.methodId)
+
+      expect(approveTx).toBeDefined()
+      expect(approveTx?.direction).toBe('out')
+      expect(approveTx?.contract?.address).toBe(approveTx?.to)
+      expect(approveTx?.contract?.methodId).toBe('0x095ea7b3')
+    })
+
+    it('converts real Blockscout tokentx sample to token asset', async () => {
+      const receiver = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+      const tokenTx = readFixture<{ tx: any }>('eth-blockscout-token-transfer-tx.json').tx
+
+      mockFetch.mockImplementation(async (url: string) => {
+        const u = new URL(url)
+        const action = u.searchParams.get('action')
+        const address = u.searchParams.get('address')
+
+        if (action === 'txlist' && address?.toLowerCase() === receiver.toLowerCase()) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+        }
+        if (action === 'tokentx' && address?.toLowerCase() === receiver.toLowerCase()) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [tokenTx] }) }
+        }
+
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+      })
+
+      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const txs = await provider.getTransactionHistory(receiver, 10)
+
+      expect(txs.length).toBeGreaterThan(0)
+      expect(txs[0].action).toBe('transfer')
+      expect(txs[0].direction).toBe('in')
+      expect(txs[0].assets[0].assetType).toBe('token')
+      expect(txs[0].assets[0]).toMatchObject({
+        symbol: tokenTx.tokenSymbol,
+        contractAddress: tokenTx.contractAddress,
+        decimals: parseInt(tokenTx.tokenDecimal, 10),
+      })
+    })
+
+    it('converts real Blockscout native transfer sample to native asset', async () => {
+      const receiver = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+      const nativeTx = readFixture<{ tx: any }>('eth-blockscout-native-transfer-tx.json').tx
+
+      mockFetch.mockImplementation(async (url: string) => {
+        const u = new URL(url)
+        const action = u.searchParams.get('action')
+        const address = u.searchParams.get('address')
+
+        if (action === 'txlist' && address?.toLowerCase() === receiver.toLowerCase()) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [nativeTx] }) }
+        }
+        if (action === 'tokentx') {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+        }
+
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+      })
+
+      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const txs = await provider.getTransactionHistory(receiver, 10)
+
       expect(txs).toHaveLength(1)
-      expect(txs[0]).toMatchObject({
-        hash: '0xabc123',
-        from: '0x1111111111111111111111111111111111111111',
-        to: '0x2222222222222222222222222222222222222222',
-        value: '1000000000000000000',
+      expect(txs[0].action).toBe('transfer')
+      expect(txs[0].direction).toBe('in')
+      expect(txs[0].assets[0]).toMatchObject({
+        assetType: 'native',
+        value: nativeTx.value,
         symbol: 'ETH',
-        status: 'confirmed',
+        decimals: 18,
       })
     })
 
-    it('returns empty array when no transactions found', async () => {
-      const mockResponse = {
-        status: '0',
-        message: 'No transactions found',
-        result: [],
+    it('aggregates txlist + tokentx by hash, prioritizing token assets', async () => {
+      // Simulate a USDT transfer: txlist has 0-value contract call, tokentx has the token event
+      const userAddress = '0x75a6F48BF634868b2980c97CcEf467A127597e08'
+      const txHash = '0xabc123def456'
+      const receiverAddress = '0xRecipientAddress123456'
+      const contractAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // USDT
+
+      const nativeTx = {
+        hash: txHash,
+        from: userAddress,
+        to: contractAddress,
+        value: '0',
+        timeStamp: '1700000000',
+        isError: '0',
+        blockNumber: '12345678',
+        input: '0xa9059cbb000000000000000000000000', // transfer methodId
+        methodId: '0xa9059cbb',
+        functionName: 'transfer(address,uint256)',
       }
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      })
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
-      const txs = await provider.getTransactionHistory('0x2222222222222222222222222222222222222222')
-
-      expect(txs).toEqual([])
-    })
-
-    it('returns empty array on HTTP error', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-      })
-
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
-      const txs = await provider.getTransactionHistory('0x2222222222222222222222222222222222222222')
-
-      expect(txs).toEqual([])
-    })
-
-    it('returns empty array on fetch error', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'))
-
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
-      const txs = await provider.getTransactionHistory('0x2222222222222222222222222222222222222222')
-
-      expect(txs).toEqual([])
-    })
-
-    it('marks failed transactions correctly', async () => {
-      const mockResponse = {
-        status: '1',
-        message: 'OK',
-        result: [
-          {
-            hash: '0xfailed',
-            from: '0x1111111111111111111111111111111111111111',
-            to: '0x2222222222222222222222222222222222222222',
-            value: '0',
-            timeStamp: '1700000000',
-            isError: '1',
-            blockNumber: '18000000',
-          },
-        ],
+      const tokenTx = {
+        hash: txHash,
+        from: userAddress,
+        to: receiverAddress,
+        value: '30000000000', // 30000 USDT (6 decimals)
+        timeStamp: '1700000000',
+        blockNumber: '12345678',
+        tokenSymbol: 'USDT',
+        tokenName: 'Tether USD',
+        tokenDecimal: '6',
+        contractAddress,
       }
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+
+      mockFetch.mockImplementation(async (url: string) => {
+        const u = new URL(url)
+        const action = u.searchParams.get('action')
+        const address = u.searchParams.get('address')
+
+        if (action === 'txlist' && address?.toLowerCase() === userAddress.toLowerCase()) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [nativeTx] }) }
+        }
+        if (action === 'tokentx' && address?.toLowerCase() === userAddress.toLowerCase()) {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [tokenTx] }) }
+        }
+
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
       })
 
       const provider = new EtherscanProvider(mockEntry, 'ethereum')
-      const txs = await provider.getTransactionHistory('0x2222222222222222222222222222222222222222')
+      const txs = await provider.getTransactionHistory(userAddress, 10)
 
-      expect(txs[0].status).toBe('failed')
+      // Should produce only 1 aggregated transaction (not 2 separate ones)
+      expect(txs).toHaveLength(1)
+
+      const tx = txs[0]
+      expect(tx.hash).toBe(txHash)
+      expect(tx.action).toBe('transfer')
+      expect(tx.direction).toBe('out')
+
+      // Primary asset should be the token, not the 0-value native
+      expect(tx.assets[0]).toMatchObject({
+        assetType: 'token',
+        value: '30000000000',
+        symbol: 'USDT',
+        decimals: 6,
+        contractAddress,
+      })
+
+      // from/to should reflect the token transfer participants
+      expect(tx.from.toLowerCase()).toBe(userAddress.toLowerCase())
+      expect(tx.to.toLowerCase()).toBe(receiverAddress.toLowerCase())
+
+      // Contract metadata should still be preserved
+      expect(tx.contract).toBeDefined()
+      expect(tx.contract?.methodId).toBe('0xa9059cbb')
+    })
+
+    it('marks unrecognized contract call with no token events as "contract" action', async () => {
+      const userAddress = '0x75a6F48BF634868b2980c97CcEf467A127597e08'
+      const txHash = '0xunknown999'
+      const contractAddr = '0xSomeContract123'
+
+      const nativeTx = {
+        hash: txHash,
+        from: userAddress,
+        to: contractAddr,
+        value: '0',
+        timeStamp: '1700000000',
+        isError: '0',
+        blockNumber: '12345678',
+        input: '0xdeadbeef12345678', // unknown method
+        methodId: '0xdeadbeef',
+        functionName: '',
+      }
+
+      mockFetch.mockImplementation(async (url: string) => {
+        const u = new URL(url)
+        const action = u.searchParams.get('action')
+
+        if (action === 'txlist') {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [nativeTx] }) }
+        }
+        if (action === 'tokentx') {
+          return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+        }
+
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) }
+      })
+
+      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const txs = await provider.getTransactionHistory(userAddress, 10)
+
+      expect(txs).toHaveLength(1)
+      expect(txs[0].action).toBe('contract')
+      expect(txs[0].assets[0].assetType).toBe('native')
+      expect(txs[0].assets[0].value).toBe('0')
     })
   })
 })

@@ -8,6 +8,31 @@
 import type { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
+// 从 transaction-schema 导出 Transaction 相关类型
+export {
+  type Transaction,
+  type Asset,
+  type NativeAsset,
+  type TokenAsset,
+  type NftAsset,
+  type Action,
+  type Direction,
+  type AssetType,
+  type TxStatus,
+  type FeeInfo,
+  type ContractInfo,
+  TransactionSchema,
+  AssetSchema,
+  ActionSchema,
+  DirectionSchema,
+  getPrimaryAsset,
+  isNativeAsset,
+  isTokenAsset,
+  isNftAsset,
+  parseTransaction,
+  parseTransactions,
+} from './transaction-schema'
+
 // ==================== 数据类型 ====================
 
 /** 余额信息 */
@@ -16,16 +41,12 @@ export interface Balance {
   symbol: string
 }
 
-/** 交易信息 */
-export interface Transaction {
-  hash: string
-  from: string
-  to: string
-  value: string
+/** 代币余额（含 native + 所有资产） */
+export interface TokenBalance {
   symbol: string
-  timestamp: number
-  status: 'pending' | 'confirmed' | 'failed'
-  blockNumber?: bigint
+  name: string
+  amount: Amount
+  isNative: boolean
 }
 
 /** 手续费选项 */
@@ -89,6 +110,9 @@ export interface ApiProvider {
   
   /** 查询原生代币余额 */
   getNativeBalance?(address: string): Promise<Balance>
+  
+  /** 查询所有代币余额（native + 资产） */
+  getTokenBalances?(address: string): Promise<TokenBalance[]>
   
   /** 查询交易历史 */
   getTransactionHistory?(address: string, limit?: number): Promise<Transaction[]>

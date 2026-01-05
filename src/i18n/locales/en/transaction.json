@@ -236,6 +236,8 @@
     "dapp": "DApp",
     "certificate": "Certificate",
     "mark": "Mark",
+    "approve": "Approve",
+    "interaction": "Contract Interaction",
     "other": "Other"
   },
   "unstake": "Unstake",

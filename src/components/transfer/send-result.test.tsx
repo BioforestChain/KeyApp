@@ -169,12 +169,13 @@ describe('SendResult', () => {
   describe('Edge cases', () => {
     it('handles short address without truncation', () => {
       renderWithProvider(<SendResult {...defaultProps} toAddress="0x1234" />)
-      expect(screen.getByText(/发送至 0x1234/)).toBeInTheDocument()
+      expect(screen.getByText('发送至')).toBeInTheDocument()
+      expect(screen.getByLabelText('0x1234')).toBeInTheDocument()
     })
 
     it('handles short tx hash without truncation', () => {
       renderWithProvider(<SendResult {...defaultProps} txHash="0x123456789012345678" />)
-      expect(screen.getByText('0x123456789012345678')).toBeInTheDocument()
+      expect(screen.getByTitle('0x123456789012345678')).toBeInTheDocument()
     })
   })
 })

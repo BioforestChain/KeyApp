@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "result": {
+    "height": 1349449,
+    "timestamp": 23069565,
+    "blockSize": 494,
+    "signature": "7bc74353f6f9103b30567f3b02203c449e115a0f2c30ace1940ad3296f00805b0ad931b4b43d70c0a4dda4f06e86d2d9ac00871a4def152fa15f5f85fdeb840c",
+    "generatorPublicKey": "14e4dcb4aea3785ac66f613e14b6985b55865be03a2fc3765b19fa255d75a471",
+    "previousBlockSignature": "9d3c133301082c3c4781d65c56175a005901077050466d0098da424956b2fc501831e1fbb5645c2417da82f1bff63b634c837bb872345f248d03d49be9b0020e",
+    "reward": "1000000000",
+    "magic": "LLLQL",
+    "remark": {
+      "info": "",
+      "debug": "BFM_linux_v3.8.2_P11_DP1_T0_C0_A0.00 UNTRS_B0_E0_TIME14 LOST 0"
+    },
+    "asset": {
+      "commonAsset": {
+        "assetChangeHash": "a73e1d4ab9cd4dd1b8fcfecf9813fa1b7529d5ad1c6c32948b686d8909abf696"
+      }
+    },
+    "version": 1,
+    "transactionInfo": {
+      "startTindex": 119684,
+      "offset": 0,
+      "numberOfTransactions": 0,
+      "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "payloadLength": 0,
+      "blobSize": 0,
+      "totalAmount": "0",
+      "totalFee": "0",
+      "transactionInBlocks": [],
+      "statisticInfo": {
+        "totalFee": "0",
+        "totalAsset": "0",
+        "totalChainAsset": "0",
+        "totalAccount": 0,
+        "magicAssetTypeTypeStatisticHashMap": {},
+        "numberOfTransactionsHashMap": {}
+      }
+    }
+  }
+}

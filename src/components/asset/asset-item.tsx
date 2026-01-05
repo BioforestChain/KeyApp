@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { TokenIcon } from '@/components/wallet/token-icon';
+import { AmountDisplay } from '@/components/common';
 import { formatFiatValue, formatPriceChange, type AssetInfo } from '@/types/asset';
 import { IconChevronRight as ChevronRight } from '@tabler/icons-react';
 
@@ -30,7 +31,6 @@ export function AssetItem({
   exchangeRate,
   className,
 }: AssetItemProps) {
-  const formattedAmount = asset.amount.toFormatted();
   const displayName = asset.name || asset.assetType;
 
   // Calculate fiat value if price is available
@@ -70,7 +70,11 @@ export function AssetItem({
       {/* Balance and price */}
       <div className="flex flex-col items-end gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold tabular-nums">{formattedAmount}</span>
+          <AmountDisplay
+            value={asset.amount.toNumber()}
+            decimals={asset.amount.decimals}
+            weight="semibold"
+          />
           {showChevron && onClick && <ChevronRight className="text-muted-foreground size-4" />}
         </div>
         {(fiatValue || priceChange) && (

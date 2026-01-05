@@ -28,7 +28,7 @@ PDR文件不该包含过多的软件工程技术细节吧，反而应该专注�
 我们的build.ts脚本所实现的持续集成功能，其实默认生成的是“beta”渠道版本：
 
 1. 这是每次git-push到main分支就会自动触发的。
-2. beta版本的网页版链接应该是 `https://???.github.io/???/webapp-dev/`
+2. beta版本的网页版链接应该是 `https://???.github.io/???/webapp-beta/`
    1. 也就是说“stable”版本仍然在`https://???.github.io/???/webapp/`，这个我们可能需要从github-release找最近的一个stable版本
    2. 如果要生成“stable”，那么需要本地执行`pnpm gen:stable`，这个脚本默认是在本地执行：
       1. 它的目的是更新版本号，生成changelog，这是一个交互式的命令。
@@ -49,7 +49,7 @@ PDR文件不该包含过多的软件工程技术细节吧，反而应该专注�
 
 1. 我们需要vitepress作为我们页面的骨架
 2. 不论是stable还是beta，默认都应该从github-release下载，如果下载不到，那么就使用本地构建的
-3. download页面可以下载各种渠道的版本，目前有4个：webapp-stable/webapp-dev/dwebapp-stable/dwebapp-dev
+3. download页面可以下载各种渠道的版本，目前有4个：webapp-stable/webapp-beta/dwebapp-stable/dwebapp-beta
 
 ---
 
@@ -1017,6 +1017,7 @@ forge 和 teleport 虽然可以使用我们自己的keyapp的组件库,但是作
 
 新开一个worktree进行工作:
 这是之前已经完成的一个pr:
+
 ```md
 现在要开发一套基于iframe的小程序. 入口也是在底部tab中, 就叫做“生态”.
 
@@ -1039,7 +1040,128 @@ forge 和 teleport 虽然可以使用我们自己的keyapp的组件库,但是作
 ```
 
 以上pr已经完成,接下来,我们需要开始正式对接这两个小程序的后端.
+
+---
+
 具体的信息需要阅读文件: (会话 2025年12月29日.pdf)[/Users/kzf/Dev/bioforestChain/KeyApp/.chat/会话 2025年12月29日.pdf]
 
 我需要你调查会话中的资料,然后生成两篇独立的research文档,也是放在.chat目录下,客观地记录调查结果.
 research资料的目的是确保能分别完成这两个小程序的后端功能对接.
+
+另外调查过程中如果遇到什么问题,也将问题记录到research文档中,我会替你去向后端提供商进一步咨询这些问题.
+
+持续调查,直到两篇research文档全部完成.
+
+---
+
+我们会同时开启两个AI在两个独立的worktree中分别工作,
+你是其中一个AI,你的任务是《一键传送》,阅读[接口报告](.chat/research-miniapp-一键传送-backend.md),开始完成 minapps/teleport
+
+---
+
+我们会同时开启两个AI在两个独立的worktree中分别工作,
+你是其中一个AI,你的任务是《锻造》,阅读[接口报告](.chat/research-miniapp-锻造-backend.md),开始完成 minapps/forge
+
+---
+
+worktree new task:
+
+1. 修复小程序的启动屏幕: 现在不是立刻显示
+   1. 将启动屏幕封装成独立的组件,并进行 单元测试、真实DOM测试、集成测试
+   2. 将小程序的“桌面”的渲染方案提供给启动屏,因为这种方案更加柔和,不会出现一大片的色块,而是将颜色作为光晕,所以效果更容易令人接受
+2. 优化小程序启动的动画效果: 模拟macos应用启动立刻全屏化的特效
+   1. 不再使用Stackflow的Activity去展示小程序, 而是使用在我们的“生态页”的“发现|我的”这两个Tab页后,增加一个“应用堆栈”
+   2. “应用堆栈”如果没有激活的应用,那么是不能滑动过去(Slider滑动),属于禁用状态. 当我们打开小程序,那么它有了应用,就可以使用了.
+   3. 此时的“启动特效层”是两层:
+      1. 底层是生态Tab页的Slider滑动
+      2. 顶层是“特效层”:“我的”页中的应用图标本身是一个popover元素,然后这图标会被“窗口化”,也就是和我们的“小程序窗口”做一个“平滑变换”,参考IOS的动画曲线
+      3. 注意:这里的关键是,“小程序窗口”其实并不在“应用堆栈”这个DOM中,而始终是一种popover的状态,始终是绝对定位,“应用堆栈”更多只是作为一个背景板
+   4. “小程序窗口”顶部不再有“应用栏,而是在右上角顶部,会有一个悬浮的“胶囊”,存放两个按钮:“多功能按钮(默认IconDots,授权等动作会切换成其它图标)|关闭(IconCircleDot)”
+      1. 胶囊需要渲染在安全区域中所以要避开.
+      2. 所以我们提供的小程序ctx,需要额外再传递safeAreaInsets信息.
+   5. 点击“关闭(IconCircleDot)”,这时候会“反转启动特效”:
+      1. 底层是生态Tab页的Slider滑动,回到“我的”
+      2. 顶层的“特效层”,是“小程序窗口”经过“平滑变换”,变回成“小程序图标”
+   6. 注意,底部的“生态Tab按钮”要切换图标, 使用 IconAppWindowFilled 这个图标
+   7. 背景板其实就是“我的”页面的“墙纸”,这里有一个关键的改动:使用swiperjs的Parallax技术,让这个墙纸在三个页面(发现|我的|应用堆栈)中共享
+3. 点击“生态Tab按钮”的效果是:如果未激活,那么跳转到生态Tab页面;如果已激活:
+   1. 如果在“发现”,那么切换到“我的”
+   2. 如果在“应用堆栈”,那么切换到“我的”
+   3. 如果在“我的”,保持不动
+   4. 这三个图标使用Silder进行封装:可以通过滑动来进行切换, 它本质上是“生态Tab页”的“同步滑动指示器”, 划出的图标透明度要淡化成0,划入则是渐显成1
+   5. 我要的效果就是当前这种“普通图标”的效果,默认情况下只看到当前Slider对应的图标,生态Page的Slider在滑动的时候,把这个Page滑动进度同步到我们指示器的滑动进度上,
+      反之,在指示器上滑动,进度同样可以同步给Page滑动进度. 这是一个双向绑定. swiperjs可能没提供这样的内置双向绑定的能力,
+      如果你调查过确实没内置这个功能,那么注意:你需要监听pointerdown/up来区分是当前的滑动是否是用户的动作,从而决定同步的方向.
+4. 如果在“应用堆栈”,在“生态Tab按钮”向上滑动,可以将目前已经打开的应用全部堆叠展示出来,进入类似IOS那种层叠效果,用户可以通过左右滑动切(Slider),向上滑动关闭应用
+
+---
+
+两种动画路径：
+
+1. icon->window-with-splash
+2. icon->window
+
+这两种动画路径是不一样的：
+
+1.  icon->window-with-splash 动画过程中，icon 与 splash.icon 是属于 sharedElement 的关系。而 window.bounding 一开始是 icon.bounding，然后目标是 desktop.bounding
+2.  icon->window 动画过程中，icon 和 window 是属于 sharedElement 的关系
+
+---
+
+正确的逻辑和做法是：
+
+1. 应用启动了，那么这时候应该是 stack 这个 slide 页面要先生成。因为它是应用启动后，最后的容器
+2. 确定 stack-slide 到 DOM-tree 中了，那么这时候，需要去获得这个stack-slide的 rect，因为它是我们最终要动画的目的地
+3. icon 从 staic-popover 模式进入 show-popover 模式（popover 的 top-layer 且 position: fixed），window 也准备好，也处于 show-popover 模式
+4. 在开始使用 flip 技术开始计算之前，需要了解一个问题：
+   1. icon 是一个正方形，window 则是一个长方形
+   2. 如果我们只是简单地进行 transform，那么虽然效果是平滑的，但是会导致一种拉伸或者压缩的效果
+   3. 所以我们的解决方案是，不论是 icon 还是 window，它们本身首先是一个 popover，同时也是一个容器，下文我们定义为 popover-container，容器存放着内容使用`object-fit: cover`的方式来充满容器，这样做的目的，是确保避免出现拉伸或者压缩的副作用，下文我们将这个内容定义为 popover-inner
+   4. 因此我们的动画过程中，不是直接transform，而是直接通过修改 icon 还是 window 的 width/height/borderradius 来做效果
+   5. 而 popover-inner，则是锁死 flip 计算好的的尺寸，然后通过 transform 来进行缩放。
+   6. 也就是说 icon-inner 就是最开始的那个小尺寸，window-inner 就是最终的大尺寸，二者通过 transform-scale 来强制进行对齐
+5. 理解了这个 popover-container+inner 的原理之后，我们再来看 flip 动画要如何做：
+   1. 首先是icon->window-with-splash这个效果（基于 FLIP 的原理来解释）：
+      1. First：icon-container 的层级需要比window-container高，所以先进行，也就是说最开始 window-container 是在 icon-container 下面的
+      2. First：window-container 的 bg 固定是 theme-color，但是 window 的 rect 和 borderradius 是和 icon-container 一致的。
+      3. First：window-splash 与 window-inner 同级，所以不受 window-inner 缩放的影响。因此 window-container 结构是：`[window-inner, splashBackground, splashIcon]`
+      4. First：window-inner 的 rect 和 desktop 的 rect 一致，然后需要基于 `object-fit: cover`的原理，将自己 scale 到 width/height 刚好等于 window-container 的尺寸，居中放置在 window-container 的中心位置。
+      5. First：splashBackground 和 window-inner 类似，一样的cover算法，将自己 scale 到 width/height 刚好等于 window-container 的尺寸，居中放置在 window-container 的中心位置。
+      6. First：icon-inner 也要基于`object-fit: cover`的原理，计算出最终 splashIcon 的 rect 尺寸下自己的 width/height 对应的 scale。因为是小放大，所以可能会失真，但是没关系，因为它的透明度也会减低，所以符合预期
+      - Last：TODO，你来推理。
+   2. 其次是 icon->window 这个效果（基于 FLIP 的原理来解释）：
+      - First:TODO ，你来推理。
+      - Last:TODO ，你来推理。
+6. window 也是用原生 Popover（popover="manual" + showPopover()）来当 window-container。这里的关键是，在动画结束后，它应该是变成 static-position 的状态
+7. 最最最关键的点在于：需要将 animation 的进度和 swiper 的动画进度绑定在一起。这是什么概念呢：如果我滑动“指示器”来回到“我的”页面，结果就是，动画会跟着手势走。
+   1. 也就是说 animation 始终不会自动 play，而是全程被 swiper 的状态带着走
+   2. 也就是说，我可以通过控制“指示器”，来实现完全“跟手”的动画效果，我可以用滑动来做到将 window 缩回到 icon 上。
+   3. 我说的这些你不用刻意去实现，只要做好单向绑定，就可以实现我说的这些效果。
+   4. 这个技术的重点在于，在动画进度 =0% 的时候，icon-popover 仍然是 static-popover ，并且 window-popover 处于 display:none，只有动画开始之后的下一帧（无限接近于 0%），才是 fixed-popover
+   5. 同理，反过来，在动画进度 =100% 的时候，window-popover 会被强制锁定成 static-popover，否则无限接近于 100% 的阶段，它都是 fixed-popover
+   6. 如果通过指示器回到我的页面，我们会看到的效果是，window-popover会从static-popover进入fixed-popover状态，然后慢慢缩放会 icon-popover，直到 swiper 滑动结束，这时候 icon-popover 从 fixed-popover 进入到 static-popover，然后 window-popover 的 DOM 从页面上被进入 display:none。这里很容易忽视的一点是，如果这时候我点击了另外一个小程序的 icon，那么发生的事情会是：原先的 animation 与 swiper 解除关联，因为它不再是“激活的小程序”，而是被刚刚被点击的小程序的 icon 所关联了。
+   7. 为了确保你理解了，我问你一个问题：如果我点击了“小程序胶囊的关闭按钮”，那么需要如何实现“关闭”的特效？
+
+---
+
+应该统一依赖于"动画结束"事件,现在不是已经有动画结束时间吗?
+我觉得我们runtime应该定义一些"生命周期",然后由 react来触发这些生命周期。这样 runtime自己基于生命周期来行开发。而不是依赖setTimeout、requestAnimationFrame。不过, requestAnimationFrame会特殊一点,但理论上应该尽可能使用生命周期,只有在特定情况下才需要依赖raf。
+理解源代码,按照我的设想,给出你的计划.
+
+---
+
+永远不要在代码中硬编码DEFAULT_RPC_URLS，但是我允许你将 default-chains.json 从 public 迁移到 src 目录下，然后你可以通过 import 的方式引入这个文件，将 json 通过编译技术硬编码到最终的 bundle 中。
+但意味着原本依赖 fetch-json-url 的相关代码也要更改。但好处是启动更快、体验会更好。
+
+---
+
+请深入调查核心原因，从架构师的角度出发，分析是不是架构出了问题？
+从高级工程师的角度出发，分析是不是残留代码导致的问题？
+从测试工程师的角度出发，分析是不是测试没有覆盖到位导致的问题？
+从产品经理的角度出发，是不是流程设计不合理，简洁导致了架构代码或者工程代码出现了不可靠的问题？
+
+---
+
+将 WalletTab 中的下半部分：关于某个地址某个网络中的资产列表和交易列表，封装成一套组件。我要在 stories 中看到这套组件，并绑定真实的 chainProvider。
+提供两个 stories 测试，一个是 `bfmeta:bCfAynSAKhzgKLi3BXyuh5k22GctLR72j` ；一个是 `eth:bCfAynSAKhzgKLi3BXyuh5k22GctLR72j`
+我要确保能看到真实的数据。

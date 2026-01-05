@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ChainIcon, type ChainType } from '@/components/wallet/chain-icon'
+import { AddressDisplay } from '@/components/wallet/address-display'
 
 export interface TransactionDetailsProps {
   /** Sender wallet address */
@@ -33,11 +34,6 @@ const CHAIN_TYPE_MAP: Record<string, ChainType> = {
   ethmeta: 'ethmeta',
   malibu: 'malibu',
   ccc: 'ccc',
-}
-
-function formatAddress(address: string): string {
-  if (address.length <= 16) return address
-  return `${address.slice(0, 8)}...${address.slice(-6)}`
 }
 
 /**
@@ -78,9 +74,7 @@ export function TransactionDetails({
           <span className="text-sm text-muted-foreground">
             {t('signature.details.from')}
           </span>
-          <span className="font-mono text-sm" title={from}>
-            {formatAddress(from)}
-          </span>
+          <AddressDisplay address={from} startChars={8} endChars={6} copyable={false} className="text-sm" />
         </div>
 
         {/* To */}
@@ -88,9 +82,7 @@ export function TransactionDetails({
           <span className="text-sm text-muted-foreground">
             {t('signature.details.to')}
           </span>
-          <span className="font-mono text-sm" title={to}>
-            {formatAddress(to)}
-          </span>
+          <AddressDisplay address={to} startChars={8} endChars={6} copyable={false} className="text-sm" />
         </div>
 
         {/* Amount */}

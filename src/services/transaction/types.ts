@@ -40,6 +40,9 @@ export type TransactionType =
   | 'dapp'             // WOD-00/01/02 DApp相关
   // 凭证
   | 'certificate'      // CRT-00/01 凭证相关
+  // EVM/Tron 合约操作
+  | 'approve'          // ERC-20/TRC-20 授权
+  | 'interaction'      // 合约交互
   // 其他
   | 'mark'             // EXT-00 数据存证
   | 'other'            // 其他未分类
@@ -81,7 +84,7 @@ const TransactionTypeEnum = z.enum([
   'send', 'receive', 'signature', 'stake', 'unstake', 'destroy',
   'gift', 'grab', 'trust', 'signFor', 'emigrate', 'immigrate', 'exchange',
   'issueAsset', 'increaseAsset', 'issueEntity', 'destroyEntity',
-  'locationName', 'dapp', 'certificate', 'mark', 'other',
+  'locationName', 'dapp', 'certificate', 'approve', 'interaction', 'mark', 'other',
 ])
 
 const TransactionRecordSchema = z.object({

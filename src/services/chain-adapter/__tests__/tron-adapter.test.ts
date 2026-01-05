@@ -3,8 +3,6 @@ import { TronAdapter } from '../tron'
 import type { ChainConfig } from '@/services/chain-config'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
-// Identity service expects UTF-8 encoded mnemonic
-const mnemonicAsUint8 = new TextEncoder().encode(TEST_MNEMONIC)
 
 const tronConfig: ChainConfig = {
   id: 'tron',
@@ -22,8 +20,10 @@ describe('TronAdapter', () => {
 
   describe('TronIdentityService', () => {
     it('derives correct Tron address from mnemonic', async () => {
-      const address = await adapter.identity.deriveAddress(mnemonicAsUint8, 0)
-
+      // Identity service now expects UTF-8 encoded mnemonic string
+      const seed = new TextEncoder().encode(TEST_MNEMONIC)
+      const address = await adapter.identity.deriveAddress(seed, 0)
+      
       // Tron addresses start with 'T' and are 34 characters
       expect(address).toMatch(/^T[A-Za-z0-9]{33}$/)
       expect(address.startsWith('T')).toBe(true)
@@ -31,9 +31,10 @@ describe('TronAdapter', () => {
     })
 
     it('derives different addresses for different indices', async () => {
-      const addr0 = await adapter.identity.deriveAddress(mnemonicAsUint8, 0)
-      const addr1 = await adapter.identity.deriveAddress(mnemonicAsUint8, 1)
-
+      const seed = new TextEncoder().encode(TEST_MNEMONIC)
+      const addr0 = await adapter.identity.deriveAddress(seed, 0)
+      const addr1 = await adapter.identity.deriveAddress(seed, 1)
+      
       expect(addr0).not.toBe(addr1)
     })
 

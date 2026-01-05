@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { IconCheck as Check } from '@tabler/icons-react';
 import type { WalletInfo } from './index';
 import { WalletMiniCard } from './wallet-mini-card';
+import { AddressDisplay } from './address-display';
 
 interface WalletSelectorProps {
   /** List of available wallets */
@@ -15,11 +16,6 @@ interface WalletSelectorProps {
   onClose?: () => void;
   /** Additional class names */
   className?: string;
-}
-
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 interface WalletItemProps {
@@ -60,7 +56,7 @@ function WalletItem({ wallet, isSelected, onSelect, notBackedUpLabel }: WalletIt
           )}
         </div>
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <span className="font-mono">{truncateAddress(wallet.address)}</span>
+          <AddressDisplay address={wallet.address} startChars={6} endChars={4} copyable={false} />
           <span>•</span>
           <span className="truncate">{wallet.balance}</span>
         </div>

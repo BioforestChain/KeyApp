@@ -117,6 +117,8 @@
     "dapp": "DApp操作",
     "certificate": "凭证操作",
     "mark": "数据存证",
+    "approve": "授权",
+    "interaction": "合约交互",
     "other": "其他"
   },
   "status": {

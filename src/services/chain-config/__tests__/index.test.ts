@@ -163,7 +163,7 @@ describe('chain-config service', () => {
         name: 'Manual Unknown',
         symbol: 'MU',
         decimals: 8,
-      }),
+      })
     ).rejects.toThrow()
   })
 
