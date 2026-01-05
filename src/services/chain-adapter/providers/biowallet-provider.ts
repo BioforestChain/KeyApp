@@ -29,7 +29,7 @@ const BiowalletTxItemSchema = z.looseObject({
   transaction: z.looseObject({
     type: z.string(),
     senderId: z.string(),
-    recipientId: z.string(),
+    recipientId: z.string().optional().default(''),
     timestamp: z.number(),
     asset: z.looseObject({
       transferAsset: z.looseObject({
@@ -49,6 +49,20 @@ const BiowalletTxItemSchema = z.looseObject({
         numberOfSignFor: z.number(),
         assetType: z.string(),
         amount: z.string(),
+      }).optional(),
+      // BIW / BioForest Meta 其他类型
+      signature: z.looseObject({
+        publicKey: z.string().optional(),
+      }).optional(),
+      destroyAsset: z.looseObject({
+        assetType: z.string(),
+        amount: z.string(),
+      }).optional(),
+      issueEntity: z.looseObject({
+        entityId: z.string().optional(),
+      }).optional(),
+      issueEntityFactory: z.looseObject({
+        factoryId: z.string().optional(),
       }).optional(),
     }).optional(),
   }),
@@ -251,6 +265,10 @@ export class BiowalletProvider implements ApiProvider {
     const typeMap: Record<string, Action> = {
       'AST-01': 'transfer',       // 资产转移 (旧版)
       'AST-02': 'transfer',       // 资产转移
+      'AST-03': 'destroyAsset',   // 销毁资产 (BIW)
+      'BSE-01': 'signature',      // 签名/签章 (BIW)
+      'ETY-01': 'issueEntity',    // 发行实体工厂 (BIW)
+      'ETY-02': 'issueEntity',    // 发行实体 (BIW)
       'GFT-01': 'gift',           // 发红包
       'GFT-02': 'gift',           // 发红包 v2
       'GRB-01': 'grab',           // 抢红包
@@ -287,6 +305,8 @@ export class BiowalletProvider implements ApiProvider {
   private getDirection(from: string, to: string, address: string): Direction {
     const fromLower = from.toLowerCase()
     const toLower = to.toLowerCase()
+
+    if (!toLower) return fromLower === address ? 'out' : 'in'
     
     if (fromLower === address && toLower === address) {
       return 'self'
@@ -326,6 +346,54 @@ export class BiowalletProvider implements ApiProvider {
     
     // 抢红包 (金额需要从其他地方获取)
     if (asset?.grabAsset) {
+      return {
+        value: '0',
+        assetType: this.symbol,
+      }
+    }
+
+    // 销毁资产
+    if (asset?.destroyAsset) {
+      return {
+        value: asset.destroyAsset.amount,
+        assetType: asset.destroyAsset.assetType,
+      }
+    }
+
+    // 发行实体 / 发行实体工厂：无金额，用 0 占位
+    if (asset?.issueEntity || asset?.issueEntityFactory) {
+      return {
+        value: '0',
+        assetType: this.symbol,
+      }
+    }
+
+    // 签名/签章：无金额，用 0 占位
+    if (asset?.signature) {
+      return {
+        value: '0',
+        assetType: this.symbol,
+      }
+    }
+
+    // 销毁资产
+    if (asset?.destroyAsset) {
+      return {
+        value: asset.destroyAsset.amount,
+        assetType: asset.destroyAsset.assetType,
+      }
+    }
+
+    // 发行实体/实体工厂
+    if (asset?.issueEntity || asset?.issueEntityFactory) {
+      return {
+        value: '0',
+        assetType: this.symbol,
+      }
+    }
+
+    // 签名
+    if (asset?.signature) {
       return {
         value: '0',
         assetType: this.symbol,

@@ -189,10 +189,10 @@ export const RealDataBfmeta: Story = {
         const tokenList = canvas.queryByTestId('bfmeta-portfolio-token-list');
         const tokenEmpty = canvas.queryByTestId('bfmeta-portfolio-token-list-empty');
         const loading = portfolio.querySelector('.animate-pulse');
-        
+
         // Should have either: token list, empty state, or still loading
         expect(tokenList || tokenEmpty || loading).not.toBeNull();
-        
+
         // If token list exists, verify it has items
         if (tokenList) {
           const tokenItems = tokenList.querySelectorAll('[data-testid^="token-item-"]');
@@ -211,7 +211,8 @@ export const RealDataEthereum: Story = {
     chromatic: { delay: 5000 },
     docs: {
       description: {
-        story: 'Fetches real token balances and transactions from Ethereum mainnet using blockscout API. Uses Vitalik address for real ETH transfers.',
+        story:
+          'Fetches real token balances and transactions from Ethereum mainnet using blockscout API. Uses Vitalik address for real ETH transfers.',
       },
     },
   },

@@ -148,6 +148,7 @@ function mapToUIType(action: Action, direction: 'in' | 'out' | 'self'): Transact
     grab: 'grab',
     trust: 'trust',
     signFor: 'signFor',
+    signature: 'signature',
     emigrate: 'emigrate',
     immigrate: 'immigrate',
     swap: 'exchange',
@@ -166,13 +167,14 @@ function mapToUIType(action: Action, direction: 'in' | 'out' | 'self'): Transact
     mint: 'issueAsset',
     burn: 'destroy',
     claim: 'receive',
+    contract: 'interaction',
   }
   
   if (actionMap[action]) {
     return actionMap[action]!
   }
   
-  // 对于 transfer/contract/unknown，使用 direction 判断
+  // 对于 transfer/unknown，使用 direction 判断
   if (direction === 'out') return 'send'
   if (direction === 'in') return 'receive'
   return 'other' // self transfer

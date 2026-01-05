@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "result": {
+    "trs": [
+      {
+        "tIndex": 2,
+        "height": 1,
+        "signature": "a8f7fdc3363783168988530b291410d9cfa5afd9e2c85b55f7ebdb4997036eb88947504ad2bc865d149a668fab95d8910fa29cf23e65e0a94a838be8c5cc3b0c",
+        "transaction": {
+          "version": 1,
+          "type": "BIW-BIWMETA-ETY-01",
+          "senderId": "bNKbZW7PJFJk5ygb5MDoQUQcqEiKRLpM1G",
+          "senderPublicKey": "625c8841be07d0c52bd2320927e30a190cfb70fd17ce7f565c9cdfd8f8f1381a",
+          "fee": "846",
+          "timestamp": 0,
+          "applyBlockHeight": 1,
+          "effectiveBlockHeight": 1,
+          "signature": "6160e4827b0fb7758e54f74cf906fbc6de5b6c9f803e0bf5dd39260a187fb0623600bc9a44de788cfc476f36eea0513244f550ed123aff0fbe8c84becf458206",
+          "asset": {
+            "issueEntityFactory": {
+              "sourceChainName": "biwmeta",
+              "sourceChainMagic": "X44FA",
+              "factoryId": "share",
+              "entityPrealnum": "10000",
+              "entityFrozenAssetPrealnum": "0",
+              "purchaseAssetPrealnum": "0"
+            }
+          },
+          "rangeType": 0,
+          "range": [],
+          "fromMagic": "X44FA",
+          "toMagic": "X44FA",
+          "remark": {},
+          "recipientId": "bNKbZW7PJFJk5ygb5MDoQUQcqEiKRLpM1G",
+          "storageKey": "factoryId",
+          "storageValue": "share"
+        }
+      }
+    ],
+    "count": 1,
+    "cmdLimitPerQuery": 20
+  }
+}

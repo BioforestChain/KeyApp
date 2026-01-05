@@ -56,6 +56,9 @@ const ApiResponseSchema = z.looseObject({
 type NativeTx = z.infer<typeof NativeTxSchema>
 type TokenTx = z.infer<typeof TokenTxSchema>
 
+/** 拉取倍数：为了应对分页陷阱，拉取 limit * K 条再聚合 */
+const FETCH_MULTIPLIER = 5
+
 export class EtherscanProvider implements ApiProvider {
   readonly type: string
   readonly endpoint: string
@@ -82,27 +85,214 @@ export class EtherscanProvider implements ApiProvider {
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
     try {
-      // 并行获取原生交易和代币交易
+      const fetchLimit = limit * FETCH_MULTIPLIER
+      
+      // 并行获取原生交易和代币交易（拉取更多以应对分页陷阱）
       const [nativeTxs, tokenTxs] = await Promise.all([
-        this.fetchNativeTransactions(address, limit),
-        this.fetchTokenTransactions(address, limit),
+        this.fetchNativeTransactions(address, fetchLimit),
+        this.fetchTokenTransactions(address, fetchLimit),
       ])
 
-      // 转换并合并
+      // 按 hash 聚合：txlist 为主轴，tokentx 贴合
       const normalizedAddress = address.toLowerCase()
-      const nativeResults = nativeTxs.map(tx => this.convertNativeTx(tx, normalizedAddress))
-      const tokenResults = tokenTxs.map(tx => this.convertTokenTx(tx, normalizedAddress))
+      const aggregated = this.aggregateByHash(nativeTxs, tokenTxs, normalizedAddress)
 
-      // 合并、按时间排序、去重、限制数量
-      const merged = [...nativeResults, ...tokenResults]
+      // 按时间排序、限制数量
+      return aggregated
         .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, limit)
-
-      return merged
     } catch (error) {
       console.warn('[EtherscanProvider] Error fetching transactions:', error)
       return []
     }
+  }
+
+  /**
+   * 按 hash 聚合 txlist + tokentx
+   * - txlist 为主时间轴（Source of Truth for status/timestamp）
+   * - tokentx 按 hash 贴合到对应 native tx
+   * - 优先展示 token 资产，避免"发送 0 ETH"
+   */
+  private aggregateByHash(
+    nativeTxs: NativeTx[],
+    tokenTxs: TokenTx[],
+    normalizedAddress: string
+  ): Transaction[] {
+    // 1. 构建 tokenTxsByHash
+    const tokenTxsByHash = new Map<string, TokenTx[]>()
+    for (const ttx of tokenTxs) {
+      const hash = ttx.hash.toLowerCase()
+      const existing = tokenTxsByHash.get(hash) ?? []
+      existing.push(ttx)
+      tokenTxsByHash.set(hash, existing)
+    }
+
+    // 2. 遍历 nativeTxs，聚合生成 Transaction
+    const results: Transaction[] = []
+    const processedHashes = new Set<string>()
+
+    for (const ntx of nativeTxs) {
+      const hash = ntx.hash.toLowerCase()
+      if (processedHashes.has(hash)) continue
+      processedHashes.add(hash)
+
+      const relatedTokenTxs = tokenTxsByHash.get(hash) ?? []
+      const tx = this.buildAggregatedTransaction(ntx, relatedTokenTxs, normalizedAddress)
+      results.push(tx)
+    }
+
+    // 3. 处理"孤儿" token txs（没有对应 native tx 的 token 转账）
+    // 这种情况可能发生在：native tx 被挤出窗口，但 token tx 仍在窗口内
+    for (const [hash, ttxs] of tokenTxsByHash) {
+      if (processedHashes.has(hash)) continue
+      processedHashes.add(hash)
+
+      const tx = this.buildOrphanTokenTransaction(ttxs, normalizedAddress)
+      results.push(tx)
+    }
+
+    return results
+  }
+
+  /**
+   * 为"孤儿" token txs 构建 Transaction（没有对应的 native tx）
+   */
+  private buildOrphanTokenTransaction(
+    tokenTxs: TokenTx[],
+    normalizedAddress: string
+  ): Transaction {
+    const primaryToken = this.selectPrimaryToken(tokenTxs, normalizedAddress)!
+    const direction = this.getDirection(primaryToken.from, primaryToken.to, normalizedAddress)
+
+    const assets: Transaction['assets'] = tokenTxs.slice(0, 3).map(ttx => ({
+      assetType: 'token' as const,
+      value: ttx.value,
+      symbol: ttx.tokenSymbol,
+      decimals: parseInt(ttx.tokenDecimal, 10),
+      contractAddress: ttx.contractAddress,
+      name: ttx.tokenName,
+    }))
+
+    return {
+      hash: primaryToken.hash,
+      from: primaryToken.from,
+      to: primaryToken.to,
+      timestamp: parseInt(primaryToken.timeStamp, 10) * 1000,
+      status: 'confirmed', // 没有 native tx 无法知道 isError，假定成功
+      blockNumber: BigInt(primaryToken.blockNumber),
+      action: 'transfer',
+      direction,
+      assets,
+    }
+  }
+
+  /**
+   * 构建聚合后的 Transaction
+   */
+  private buildAggregatedTransaction(
+    ntx: NativeTx,
+    tokenTxs: TokenTx[],
+    normalizedAddress: string
+  ): Transaction {
+    const hasTokens = tokenTxs.length > 0
+    const isContractCall = this.isContractCall(ntx)
+    const methodId = isContractCall ? this.getMethodId(ntx) : null
+    
+    // Action: methodId 识别 > 有 token 则 transfer > 合约调用 > 普通转账
+    let action = this.detectAction(ntx)
+    if (action === 'contract' && hasTokens) {
+      // 有 token 事件但方法未识别：视为 transfer
+      action = 'transfer'
+    }
+
+    // 选择主 token event（优先包含当前地址参与的、value 最大的）
+    const primaryToken = this.selectPrimaryToken(tokenTxs, normalizedAddress)
+    
+    // from/to 与 direction：有 token 时用 token 的对手方
+    let from: string
+    let to: string
+    if (primaryToken) {
+      from = primaryToken.from
+      to = primaryToken.to
+    } else {
+      from = ntx.from
+      to = ntx.to
+    }
+    const direction = this.getDirection(from, to, normalizedAddress)
+
+    // Assets：token 优先，native value > 0 时也附加
+    const assets: Transaction['assets'] = []
+    
+    // 添加 token assets（最多 3 条）
+    for (const ttx of tokenTxs.slice(0, 3)) {
+      assets.push({
+        assetType: 'token' as const,
+        value: ttx.value,
+        symbol: ttx.tokenSymbol,
+        decimals: parseInt(ttx.tokenDecimal, 10),
+        contractAddress: ttx.contractAddress,
+        name: ttx.tokenName,
+      })
+    }
+    
+    // native value > 0 时附加（或无 token 时作为主资产）
+    if (ntx.value !== '0' || assets.length === 0) {
+      assets.push({
+        assetType: 'native' as const,
+        value: ntx.value,
+        symbol: this.symbol,
+        decimals: this.decimals,
+      })
+    }
+
+    // 对 assets 排序：token 在前，native 在后；swap 场景下 in 的 token 优先
+    if (action === 'swap' && assets.length > 1) {
+      assets.sort((a, b) => {
+        // token 优先
+        if (a.assetType === 'token' && b.assetType !== 'token') return -1
+        if (a.assetType !== 'token' && b.assetType === 'token') return 1
+        // 同为 token 时，in 的优先（基于 primaryToken 方向）
+        return 0
+      })
+    }
+
+    return {
+      hash: ntx.hash,
+      from,
+      to,
+      timestamp: parseInt(ntx.timeStamp, 10) * 1000,
+      status: ntx.isError === '0' ? 'confirmed' : 'failed',
+      blockNumber: BigInt(ntx.blockNumber),
+      action,
+      direction,
+      assets,
+      contract: isContractCall ? {
+        address: ntx.to,
+        method: ntx.functionName ?? undefined,
+        methodId: methodId ?? undefined,
+      } : undefined,
+    }
+  }
+
+  /**
+   * 选择主 token event（优先包含当前地址的、value 最大的）
+   */
+  private selectPrimaryToken(tokenTxs: TokenTx[], normalizedAddress: string): TokenTx | null {
+    if (tokenTxs.length === 0) return null
+    if (tokenTxs.length === 1) return tokenTxs[0]
+
+    // 优先选择包含当前地址的（from 或 to）
+    const involving = tokenTxs.filter(
+      t => t.from.toLowerCase() === normalizedAddress || t.to.toLowerCase() === normalizedAddress
+    )
+    const candidates = involving.length > 0 ? involving : tokenTxs
+
+    // 按 value 绝对值排序，取最大的
+    return candidates.reduce((max, t) => {
+      const maxVal = BigInt(max.value)
+      const tVal = BigInt(t.value)
+      return tVal > maxVal ? t : max
+    })
   }
 
   private async fetchNativeTransactions(address: string, limit: number): Promise<NativeTx[]> {
@@ -183,58 +373,6 @@ export class EtherscanProvider implements ApiProvider {
       return { success: true, data: result }
     } catch {
       return { success: false, data: [] }
-    }
-  }
-
-  private convertNativeTx(tx: NativeTx, normalizedAddress: string): Transaction {
-    const direction = this.getDirection(tx.from, tx.to, normalizedAddress)
-    const action = this.detectAction(tx)
-    const isContractCall = this.isContractCall(tx)
-    const methodId = isContractCall ? this.getMethodId(tx) : null
-    
-    return {
-      hash: tx.hash,
-      from: tx.from,
-      to: tx.to,
-      timestamp: parseInt(tx.timeStamp, 10) * 1000,
-      status: tx.isError === '0' ? 'confirmed' : 'failed',
-      blockNumber: BigInt(tx.blockNumber),
-      action,
-      direction,
-      assets: [{
-        assetType: 'native' as const,
-        value: tx.value,
-        symbol: this.symbol,
-        decimals: this.decimals,
-      }],
-      contract: isContractCall ? {
-        address: tx.to,
-        method: tx.functionName ?? undefined,
-        methodId: methodId ?? undefined,
-      } : undefined,
-    }
-  }
-
-  private convertTokenTx(tx: TokenTx, normalizedAddress: string): Transaction {
-    const direction = this.getDirection(tx.from, tx.to, normalizedAddress)
-    
-    return {
-      hash: tx.hash,
-      from: tx.from,
-      to: tx.to,
-      timestamp: parseInt(tx.timeStamp, 10) * 1000,
-      status: 'confirmed',
-      blockNumber: BigInt(tx.blockNumber),
-      action: 'transfer',
-      direction,
-      assets: [{
-        assetType: 'token' as const,
-        value: tx.value,
-        symbol: tx.tokenSymbol,
-        decimals: parseInt(tx.tokenDecimal, 10),
-        contractAddress: tx.contractAddress,
-        name: tx.tokenName,
-      }],
     }
   }
 

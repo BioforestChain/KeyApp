@@ -28,6 +28,7 @@ import {
   IconCertificate,
   IconFileText,
   IconDots,
+  IconClick,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
@@ -38,7 +39,8 @@ export type TransactionType =
   | 'emigrate' | 'immigrate' | 'exchange'
   | 'issueAsset' | 'increaseAsset'
   | 'issueEntity' | 'destroyEntity'
-  | 'locationName' | 'dapp' | 'certificate' | 'mark' | 'other';
+  | 'locationName' | 'dapp' | 'certificate' | 'mark'
+  | 'interaction' | 'other';
 
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
 
@@ -93,6 +95,8 @@ const typeIcons: Record<TransactionType, { Icon: Icon; color: string; bg: string
   dapp:          { Icon: IconApps,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
   certificate:   { Icon: IconCertificate,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
   mark:          { Icon: IconFileText,      color: 'text-tx-system', bg: 'bg-tx-system/10' },
+  // 合约交互 - 灰蓝色
+  interaction:   { Icon: IconClick,         color: 'text-tx-system', bg: 'bg-tx-system/10' },
   other:         { Icon: IconDots,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
 };
 

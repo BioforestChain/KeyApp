@@ -23,6 +23,7 @@ export const ActionSchema = z.enum([
   'swap',          // 兑换
   'approve',       // 授权
   'revoke',        // 撤销授权
+  'signature',     // 签名/签章
   
   // 质押相关
   'stake',         // 质押
