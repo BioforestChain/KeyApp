@@ -190,11 +190,6 @@ export default function App() {
     forgeHook.reset()
   }, [forgeHook])
 
-  const handleSelectOption = (option: ForgeOption) => {
-    setSelectedOption(option)
-    setPickerOpen(false)
-  }
-
   // Group options by external chain for picker
   const groupedOptions = useMemo(() => {
     const groups: Record<string, ForgeOption[]> = {}
@@ -205,6 +200,19 @@ export default function App() {
     }
     return groups
   }, [forgeOptions])
+
+  const handleSelectOption = (option: ForgeOption) => {
+    setSelectedOption(option)
+    setPickerOpen(false)
+  }
+
+  const handleSelectExternalChain = useCallback((externalChain: string) => {
+    const options = groupedOptions[externalChain]
+    const first = options?.[0]
+    if (first) {
+      setSelectedOption(first)
+    }
+  }, [groupedOptions])
 
   return (
     <div className="relative min-h-screen w-full bg-background text-foreground">
@@ -286,8 +294,18 @@ export default function App() {
                 {forgeOptions.length > 0 && (
                   <div className="flex gap-2">
                     {Object.keys(groupedOptions).map((chain) => (
-                      <Badge key={chain} variant="outline">
-                        {getChainName(chain)}
+                      <Badge
+                        key={chain}
+                        asChild
+                        variant={selectedOption?.externalChain === chain ? 'secondary' : 'outline'}
+                        className={cn(
+                          'cursor-pointer select-none',
+                          selectedOption?.externalChain === chain && 'ring-2 ring-primary/40'
+                        )}
+                      >
+                        <button type="button" onClick={() => handleSelectExternalChain(chain)}>
+                          {getChainName(chain)}
+                        </button>
                       </Badge>
                     ))}
                   </div>
