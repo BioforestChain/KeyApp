@@ -1,0 +1,91 @@
+{
+  "name": "Bio 官方生态",
+  "version": "1.0.0",
+  "updated": "2026-01-05",
+  "icon": "../logos/logo-256.webp",
+  "apps": [
+    {
+      "id": "xin.dweb.forge",
+      "name": "锻造",
+      "description": "将 ETH 兑换为 Bio 生态 Token",
+      "longDescription": "锻造是 Bio 生态的跨链桥接工具，支持将 ETH 等主流资产兑换为 Bio 生态内的 Token。\n\n## 支持的兑换\n- ETH → BFM\n- ETH → CC\n- 更多资产对即将上线",
+      "icon": "./forge/icon.svg",
+      "version": "0.1.0",
+      "author": "Bio Team",
+      "website": "https://forge.dweb.xin",
+      "category": "exchange",
+      "tags": [
+        "兑换",
+        "跨链桥",
+        "DeFi"
+      ],
+      "permissions": [
+        "bio_requestAccounts",
+        "bio_selectAccount",
+        "bio_createTransaction",
+        "bio_signTransaction"
+      ],
+      "chains": [
+        "ethereum",
+        "bfmeta"
+      ],
+      "officialScore": 70,
+      "communityScore": 85,
+      "screenshots": [
+        "./forge/screenshots/forge-01-connect.png",
+        "./forge/screenshots/forge-02-connect-dark.png"
+      ],
+      "publishedAt": "2024-12-15",
+      "updatedAt": "2024-12-28",
+      "beta": true,
+      "themeColor": "from-red-800 via-orange-900 to-amber-950",
+      "themeColorFrom": "#991b1b",
+      "splashScreen": true,
+      "dirName": "forge",
+      "url": "./forge/"
+    },
+    {
+      "id": "xin.dweb.teleport",
+      "name": "一键传送",
+      "description": "跨钱包资产转移，将资产从一个地址安全转移到另一个地址",
+      "longDescription": "一键传送是 Bio 生态的核心工具，支持在多条链之间安全转移资产。\n\n## 功能特点\n- 支持多链资产转移\n- 安全的签名机制\n- 实时交易状态追踪",
+      "icon": "./teleport/icon.svg",
+      "version": "0.1.0",
+      "author": "Bio Team",
+      "website": "https://teleport.dweb.xin",
+      "category": "tools",
+      "tags": [
+        "转账",
+        "跨链",
+        "资产管理"
+      ],
+      "permissions": [
+        "bio_requestAccounts",
+        "bio_selectAccount",
+        "bio_pickWallet",
+        "bio_signMessage"
+      ],
+      "chains": [
+        "bfmeta",
+        "bfchainv2",
+        "biwmeta",
+        "ccchain",
+        "pmchain"
+      ],
+      "officialScore": 90,
+      "communityScore": 80,
+      "screenshots": [
+        "./teleport/screenshots/teleport-01-connect.png",
+        "./teleport/screenshots/teleport-02-connect-dark.png"
+      ],
+      "publishedAt": "2024-12-01",
+      "updatedAt": "2024-12-28",
+      "beta": false,
+      "themeColor": "from-indigo-800 via-purple-900 to-violet-950",
+      "themeColorFrom": "#3730a3",
+      "splashScreen": true,
+      "dirName": "teleport",
+      "url": "./teleport/"
+    }
+  ]
+}

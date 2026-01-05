@@ -1,0 +1,84 @@
+import{_ as s,c as n,o as p,ag as e}from"./chunks/framework.B0we9iV-.js";const g=JSON.parse('{"title":"IChainService 链信息服务","description":"","frontmatter":{},"headers":[],"relativePath":"white-book/04-服务篇/02-链服务/IChainService.md","filePath":"white-book/04-服务篇/02-链服务/IChainService.md"}'),t={name:"white-book/04-服务篇/02-链服务/IChainService.md"};function l(i,a,r,c,h,o){return p(),n("div",null,[...a[0]||(a[0]=[e(`<h1 id="ichainservice-链信息服务" tabindex="-1">IChainService 链信息服务 <a class="header-anchor" href="#ichainservice-链信息服务" aria-label="Permalink to &quot;IChainService 链信息服务&quot;">​</a></h1><blockquote><p>链状态和网络信息查询</p></blockquote><hr><h2 id="职责" tabindex="-1">职责 <a class="header-anchor" href="#职责" aria-label="Permalink to &quot;职责&quot;">​</a></h2><p>查询区块链网络的基本信息和运行状态。</p><hr><h2 id="接口定义" tabindex="-1">接口定义 <a class="header-anchor" href="#接口定义" aria-label="Permalink to &quot;接口定义&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>IChainService {</span></span>
+<span class="line"><span>  // 获取链配置信息</span></span>
+<span class="line"><span>  getChainInfo(): ChainInfo</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 获取当前区块高度</span></span>
+<span class="line"><span>  getBlockHeight(): bigint</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 获取 Gas 价格</span></span>
+<span class="line"><span>  getGasPrice(): GasPrice</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 检查节点健康状态</span></span>
+<span class="line"><span>  healthCheck(): HealthStatus</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 获取链支持的代币列表</span></span>
+<span class="line"><span>  getTokenList(): TokenInfo[]</span></span>
+<span class="line"><span>}</span></span></code></pre></div><hr><h2 id="数据结构" tabindex="-1">数据结构 <a class="header-anchor" href="#数据结构" aria-label="Permalink to &quot;数据结构&quot;">​</a></h2><h3 id="chaininfo" tabindex="-1">ChainInfo <a class="header-anchor" href="#chaininfo" aria-label="Permalink to &quot;ChainInfo&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>ChainInfo {</span></span>
+<span class="line"><span>  chainId: string           // 链唯一标识</span></span>
+<span class="line"><span>  name: string              // 显示名称</span></span>
+<span class="line"><span>  shortName: string         // 简称</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  nativeCurrency: {</span></span>
+<span class="line"><span>    name: string            // &quot;Ether&quot;</span></span>
+<span class="line"><span>    symbol: string          // &quot;ETH&quot;</span></span>
+<span class="line"><span>    decimals: number        // 18</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  rpc: {</span></span>
+<span class="line"><span>    primary: string         // 主 RPC 端点</span></span>
+<span class="line"><span>    fallback: string[]      // 备用端点</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  explorer: {</span></span>
+<span class="line"><span>    name: string            // &quot;Etherscan&quot;</span></span>
+<span class="line"><span>    url: string             // &quot;https://etherscan.io&quot;</span></span>
+<span class="line"><span>    txPath: string          // &quot;/tx/{hash}&quot;</span></span>
+<span class="line"><span>    addressPath: string     // &quot;/address/{address}&quot;</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  blockTime: number         // 平均出块时间（秒）</span></span>
+<span class="line"><span>  confirmations: number     // 建议确认数</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  features: {</span></span>
+<span class="line"><span>    eip1559: boolean        // 支持 EIP-1559</span></span>
+<span class="line"><span>    staking: boolean        // 支持质押</span></span>
+<span class="line"><span>    nft: boolean            // 支持 NFT</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h3 id="gasprice" tabindex="-1">GasPrice <a class="header-anchor" href="#gasprice" aria-label="Permalink to &quot;GasPrice&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>GasPrice {</span></span>
+<span class="line"><span>  slow: bigint              // 慢速价格</span></span>
+<span class="line"><span>  standard: bigint          // 标准价格</span></span>
+<span class="line"><span>  fast: bigint              // 快速价格</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // EIP-1559 链额外字段</span></span>
+<span class="line"><span>  baseFee?: bigint</span></span>
+<span class="line"><span>  maxPriorityFee?: {</span></span>
+<span class="line"><span>    slow: bigint</span></span>
+<span class="line"><span>    standard: bigint</span></span>
+<span class="line"><span>    fast: bigint</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  lastUpdated: number       // 更新时间戳</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h3 id="healthstatus" tabindex="-1">HealthStatus <a class="header-anchor" href="#healthstatus" aria-label="Permalink to &quot;HealthStatus&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>HealthStatus {</span></span>
+<span class="line"><span>  isHealthy: boolean</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 节点状态</span></span>
+<span class="line"><span>  latency: number           // 响应延迟（ms）</span></span>
+<span class="line"><span>  blockHeight: bigint       // 当前区块高度</span></span>
+<span class="line"><span>  peerCount?: number        // 节点连接数</span></span>
+<span class="line"><span>  isSyncing: boolean        // 是否同步中</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 时间信息</span></span>
+<span class="line"><span>  lastUpdated: number</span></span>
+<span class="line"><span>  lastBlockTime: number     // 最新区块时间</span></span>
+<span class="line"><span>}</span></span></code></pre></div><hr><h2 id="方法详情" tabindex="-1">方法详情 <a class="header-anchor" href="#方法详情" aria-label="Permalink to &quot;方法详情&quot;">​</a></h2><h3 id="getchaininfo" tabindex="-1">getChainInfo <a class="header-anchor" href="#getchaininfo" aria-label="Permalink to &quot;getChainInfo&quot;">​</a></h3><p>获取链的静态配置信息。</p><p><strong>行为规范</strong>：</p><ul><li><strong>SHOULD</strong> 缓存结果（配置不常变）</li><li><strong>MUST</strong> 包含浏览器链接模板</li></ul><h3 id="getblockheight" tabindex="-1">getBlockHeight <a class="header-anchor" href="#getblockheight" aria-label="Permalink to &quot;getBlockHeight&quot;">​</a></h3><p>获取当前最新区块高度。</p><p><strong>行为规范</strong>：</p><ul><li><strong>MUST</strong> 返回最新数据</li><li><strong>SHOULD</strong> 缓存 3-5 秒</li><li>用于判断交易确认数</li></ul><h3 id="getgasprice" tabindex="-1">getGasPrice <a class="header-anchor" href="#getgasprice" aria-label="Permalink to &quot;getGasPrice&quot;">​</a></h3><p>获取当前 gas 价格建议。</p><p><strong>行为规范</strong>：</p><ul><li><strong>MUST</strong> 区分三个档位</li><li><strong>SHOULD</strong> 每 10-15 秒更新</li><li><strong>MUST</strong> 处理 EIP-1559 链</li></ul><h3 id="healthcheck" tabindex="-1">healthCheck <a class="header-anchor" href="#healthcheck" aria-label="Permalink to &quot;healthCheck&quot;">​</a></h3><p>检查节点连接状态。</p><p><strong>返回判断逻辑</strong>：</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>isHealthy = </span></span>
+<span class="line"><span>  latency &lt; 5000ms &amp;&amp;</span></span>
+<span class="line"><span>  !isSyncing &amp;&amp;</span></span>
+<span class="line"><span>  (now - lastBlockTime) &lt; 5 * blockTime</span></span></code></pre></div><hr><h2 id="节点健康判断" tabindex="-1">节点健康判断 <a class="header-anchor" href="#节点健康判断" aria-label="Permalink to &quot;节点健康判断&quot;">​</a></h2><table tabindex="0"><thead><tr><th>指标</th><th>健康阈值</th><th>不健康处理</th></tr></thead><tbody><tr><td>延迟</td><td>&lt; 5s</td><td>切换备用节点</td></tr><tr><td>同步状态</td><td>非同步中</td><td>等待同步完成</td></tr><tr><td>区块滞后</td><td>&lt; 5 个区块时间</td><td>切换节点</td></tr></tbody></table><hr><h2 id="浏览器链接生成" tabindex="-1">浏览器链接生成 <a class="header-anchor" href="#浏览器链接生成" aria-label="Permalink to &quot;浏览器链接生成&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>// 交易链接</span></span>
+<span class="line"><span>getTransactionUrl(hash: string): string {</span></span>
+<span class="line"><span>  return explorer.url + explorer.txPath.replace(&#39;{hash}&#39;, hash)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// 地址链接</span></span>
+<span class="line"><span>getAddressUrl(address: string): string {</span></span>
+<span class="line"><span>  return explorer.url + explorer.addressPath.replace(&#39;{address}&#39;, address)</span></span>
+<span class="line"><span>}</span></span></code></pre></div><hr><h2 id="缓存策略" tabindex="-1">缓存策略 <a class="header-anchor" href="#缓存策略" aria-label="Permalink to &quot;缓存策略&quot;">​</a></h2><table tabindex="0"><thead><tr><th>数据</th><th>缓存时间</th><th>说明</th></tr></thead><tbody><tr><td>chainInfo</td><td>永久</td><td>配置不变</td></tr><tr><td>blockHeight</td><td>5s</td><td>频繁变化</td></tr><tr><td>gasPrice</td><td>15s</td><td>相对稳定</td></tr><tr><td>healthStatus</td><td>30s</td><td>定期检查</td></tr></tbody></table><hr><h2 id="错误码" tabindex="-1">错误码 <a class="header-anchor" href="#错误码" aria-label="Permalink to &quot;错误码&quot;">​</a></h2><table tabindex="0"><thead><tr><th>错误码</th><th>说明</th></tr></thead><tbody><tr><td>CHAIN_NOT_FOUND</td><td>未知的链 ID</td></tr><tr><td>RPC_ERROR</td><td>RPC 调用失败</td></tr><tr><td>NODE_SYNCING</td><td>节点同步中</td></tr><tr><td>ALL_NODES_DOWN</td><td>所有节点不可用</td></tr></tbody></table>`,46)])])}const b=s(t,[["render",l]]);export{g as __pageData,b as default};
