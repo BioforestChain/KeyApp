@@ -32,9 +32,9 @@ export function deriveAddressesForChains(
   const results: DerivedAddress[] = []
 
   // Group chains by type
-  const bioforestChains = chainConfigs.filter((c) => c.type === 'bioforest')
-  const evmChains = chainConfigs.filter((c) => c.type === 'evm')
-  const bip39Chains = chainConfigs.filter((c) => c.type === 'bip39')
+  const bioforestChains = chainConfigs.filter((c) => c.chainKind === 'bioforest')
+  const evmChains = chainConfigs.filter((c) => c.chainKind === 'evm')
+  const bip39Chains = chainConfigs.filter((c) => c.chainKind === 'bitcoin')
 
   // Derive bioforest addresses (Ed25519-based, same address for all chains with same prefix)
   if (bioforestChains.length > 0) {

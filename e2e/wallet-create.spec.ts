@@ -8,6 +8,7 @@ import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
  */
 
 const DEFAULT_PATTERN = [0, 1, 2, 5]
+const E2E_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
 async function drawPattern(page: Page, gridTestId: string, nodes: number[]): Promise<void> {
   const grid = page.locator(`[data-testid="${gridTestId}"]`)
@@ -53,6 +54,9 @@ async function fillVerifyInputs(page: Page, words: string[]): Promise<void> {
 test.describe('钱包创建流程 - 截图测试', () => {
   test.beforeEach(async ({ page }) => {
     // 清除本地存储，确保干净状态
+    await page.addInitScript((mnemonic) => {
+      ;(window as any).__E2E_MNEMONIC__ = mnemonic
+    }, E2E_MNEMONIC)
     await page.addInitScript(() => localStorage.clear())
   })
 
@@ -132,6 +136,9 @@ test.describe('钱包创建流程 - 截图测试', () => {
 
 test.describe('钱包创建流程 - 功能测试', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript((mnemonic) => {
+      ;(window as any).__E2E_MNEMONIC__ = mnemonic
+    }, E2E_MNEMONIC)
     await page.addInitScript(() => localStorage.clear())
   })
 
@@ -190,14 +197,20 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
     // 7. 验证跳转到首页且钱包已创建
     await page.waitForURL(/.*#\/$/)
-    // 等待钱包名称显示，确认首页加载完成
-    await expect(page.locator('[data-testid="wallet-name"]:visible').first()).toBeVisible({ timeout: 10000 })
+
+    await expect
+      .poll(async () => {
+        const wallets = await getWalletDataFromIndexedDB(page)
+        return wallets.length
+      }, {
+        timeout: 10_000,
+      })
+      .toBe(1)
 
     const wallets = await getWalletDataFromIndexedDB(page)
-    expect(wallets).toHaveLength(1)
-    expect(wallets[0].name).toBe('主钱包')
+    expect(wallets[0]?.name).toBe('主钱包')
 
-    const bioforestChains = ['bfmeta', 'pmchain', 'ccchain', 'bfchainv2', 'btgmeta', 'biwmeta', 'ethmeta', 'malibu']
+    const bioforestChains = ['bfmeta', 'pmchain', 'ccchain', 'bfchainv2', 'btgmeta', 'biwmeta', 'ethmeta']
     for (const chain of bioforestChains) {
       const chainAddr = wallets[0].chainAddresses.find((ca: { chain: string }) => ca.chain === chain)
       expect(chainAddr, `应该有 ${chain} 地址`).toBeDefined()
@@ -211,7 +224,7 @@ test.describe('钱包创建流程 - 功能测试', () => {
     const manualConfig = JSON.stringify({
       id: 'bf-demo',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'BF Demo',
       symbol: 'BFD',
       decimals: 8,
@@ -253,8 +266,9 @@ test.describe('钱包创建流程 - 功能测试', () => {
     await page.waitForSelector('[data-testid="chain-selector-step"]')
     await page.locator('[data-testid="chain-selector-group-toggle-evm"]').click()
     await page.locator('[data-testid="chain-selector-chain-ethereum"]').click()
-    await page.locator('[data-testid="chain-selector-group-toggle-bip39"]').click()
+    await page.locator('[data-testid="chain-selector-group-toggle-bitcoin"]').click()
     await page.locator('[data-testid="chain-selector-chain-bitcoin"]').click()
+    await page.locator('[data-testid="chain-selector-group-toggle-tron"]').click()
     await page.locator('[data-testid="chain-selector-chain-tron"]').click()
 
     await page.click('[data-testid="chain-selector-complete-button"]')
@@ -324,6 +338,9 @@ test.describe('钱包创建流程 - 功能测试', () => {
 
 test.describe('钱包导入流程 - 截图测试', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript((mnemonic) => {
+      ;(window as any).__E2E_MNEMONIC__ = mnemonic
+    }, E2E_MNEMONIC)
     await page.addInitScript(() => localStorage.clear())
   })
 

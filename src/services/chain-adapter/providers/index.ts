@@ -75,7 +75,7 @@ function createApiProvider(entry: ParsedApiEntry, chainId: string): ApiProvider 
 function createWrappedProviders(config: ChainConfig): ApiProvider[] {
   const providers: ApiProvider[] = []
 
-  switch (config.type) {
+  switch (config.chainKind) {
     case 'evm': {
       const identity = new EvmIdentityService(config.id)
       const asset = new EvmAssetService(config.id)
@@ -87,9 +87,9 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'tron': {
-      const identity = new TronIdentityService(config)
+      const identity = new TronIdentityService(config.id)
       const asset = new TronAssetService(config.id)
-      const transaction = new TronTransactionService(config)
+      const transaction = new TronTransactionService(config.id)
       providers.push(
         new WrappedTransactionProvider(`wrapped-tron-tx`, transaction, asset),
         new WrappedIdentityProvider(`wrapped-tron-identity`, identity),
@@ -97,7 +97,7 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'bitcoin': {
-      const identity = new BitcoinIdentityService(config)
+      const identity = new BitcoinIdentityService(config.id)
       const asset = new BitcoinAssetService(config.id)
       const transaction = new BitcoinTransactionService(config.id)
       providers.push(
@@ -107,23 +107,17 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
       break
     }
     case 'bioforest': {
-      const identity = new BioforestIdentityService(config)
+      const identity = new BioforestIdentityService(config.id)
       const asset = new BioforestAssetService(config.id)
-      const transaction = new BioforestTransactionService(config)
+      const transaction = new BioforestTransactionService(config.id)
       providers.push(
         new WrappedTransactionProvider(`wrapped-bioforest-tx`, transaction, asset),
         new WrappedIdentityProvider(`wrapped-bioforest-identity`, identity),
       )
       break
     }
-    case 'bip39': {
-      const identity = new Bip39IdentityService(config)
-      const asset = new Bip39AssetService(config.id)
-      const transaction = new Bip39TransactionService(config)
-      providers.push(
-        new WrappedTransactionProvider(`wrapped-bip39-tx`, transaction, asset),
-        new WrappedIdentityProvider(`wrapped-bip39-identity`, identity),
-      )
+    case 'custom': {
+      // Custom chains not supported yet - skip
       break
     }
   }

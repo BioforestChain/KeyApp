@@ -19,7 +19,7 @@ const mockSetChainEnabled = vi.fn<(id: string, enabled: boolean) => Promise<void
 let mockConfigs: Array<{
   id: string
   version: string
-  type: 'bioforest' | 'custom'
+  chainKind: 'bioforest' | 'custom'
   name: string
   symbol: string
   decimals: number
@@ -58,7 +58,7 @@ describe('ChainConfigPage', () => {
       {
         id: 'bfmeta',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'BFMeta',
         symbol: 'BFT',
         decimals: 8,

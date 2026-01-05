@@ -13,12 +13,12 @@ import {
   ChainConfigSchema,
   ChainConfigSourceSchema,
   ChainConfigSubscriptionSchema,
-  ChainConfigTypeSchema,
+  ChainKindSchema,
   ChainConfigVersionSchema,
 } from './schema'
 
 export type ChainConfigVersion = z.infer<typeof ChainConfigVersionSchema>
-export type ChainConfigType = z.infer<typeof ChainConfigTypeSchema>
+export type ChainKind = z.infer<typeof ChainKindSchema>
 export type ChainConfigSource = z.infer<typeof ChainConfigSourceSchema>
 
 export type ChainConfig = z.infer<typeof ChainConfigSchema>

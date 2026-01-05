@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import 'fake-indexeddb/auto'
 
 import { ChainConfigSchema, ChainConfigSubscriptionSchema } from '../schema'
-import { resetChainConfigStorageForTests, saveChainConfigs, saveSubscriptionMeta, saveUserPreferences } from '../storage'
+import { resetChainConfigStorageForTests, saveChainConfigs, saveSubscriptionMeta, saveUserPreferences, saveDefaultVersion } from '../storage'
 import { addManualConfig, getChainById, getEnabledChains, initialize, setChainEnabled } from '../index'
 
 describe('chain-config service', () => {
   beforeEach(async () => {
     await resetChainConfigStorageForTests()
+    // Initialize default version to prevent migration error
+    await saveDefaultVersion('2.0.0')
   })
 
   it('merges sources with precedence manual > subscription > default', async () => {
@@ -24,7 +26,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (sub)',
           symbol: 'BFT',
           decimals: 8,
@@ -40,7 +42,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (manual)',
           symbol: 'BFT',
           decimals: 8,
@@ -73,7 +75,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'bfmeta',
           version: '1.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta (sub)',
           symbol: 'BFT',
           decimals: 8,
@@ -106,7 +108,7 @@ describe('chain-config service', () => {
         ChainConfigSchema.parse({
           id: 'future',
           version: '2.0',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'Future',
           symbol: 'FUT',
           decimals: 8,
@@ -128,7 +130,7 @@ describe('chain-config service', () => {
     await addManualConfig({
       id: 'manual-one',
       version: '1.0',
-      type: 'bioforest',
+      chainKind: 'bioforest',
       name: 'Manual One',
       symbol: 'M1',
       decimals: 8,
@@ -139,7 +141,7 @@ describe('chain-config service', () => {
       {
         id: 'manual-two',
         version: '1.0',
-        type: 'bioforest',
+        chainKind: 'bioforest',
         name: 'Manual Two',
         symbol: 'M2',
         decimals: 8,
@@ -152,18 +154,18 @@ describe('chain-config service', () => {
     expect(getChainById(snapshot, 'manual-two')?.source).toBe('manual')
   })
 
-  it('normalizes unknown type to custom when adding manual config', async () => {
+  it('normalizes unknown chainKind to custom when adding manual config', async () => {
     const snapshot = await addManualConfig({
       id: 'manual-unknown',
       version: '1.0',
-      type: 'unknown-type',
+      chainKind: 'unknown-kind' as any,
       name: 'Manual Unknown',
       symbol: 'MU',
       decimals: 8,
     })
 
     const chain = getChainById(snapshot, 'manual-unknown')
-    expect(chain?.type).toBe('custom')
+    expect(chain?.chainKind).toBe('custom')
     expect(chain?.source).toBe('manual')
   })
 

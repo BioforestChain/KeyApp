@@ -121,6 +121,7 @@ export function AddressBookPage() {
             onClick={handleOpenAdd}
             className={cn('rounded-full p-2 transition-colors', 'hover:bg-muted active:bg-muted/80')}
             aria-label={t('a11y.addContact')}
+            data-testid="address-book-add-button"
           >
             <Plus className="size-5" />
           </button>

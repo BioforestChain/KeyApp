@@ -329,5 +329,23 @@
   "{{item}}Words": "words",
   "{{length}}Words": "words",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "addressLookup": {
+    "balanceTitle": "Address Balance",
+    "transactionsTitle": "Address Transactions",
+    "chain": "Chain",
+    "address": "Address",
+    "addressPlaceholder": "Enter wallet address",
+    "addressOrHash": "Address or Transaction Hash",
+    "addressOrHashPlaceholder": "Enter address or tx hash",
+    "otherChains": "Other Chains",
+    "error": "Query Failed",
+    "queryError": "Failed to query transactions, please try again",
+    "noTransactions": "No transactions found",
+    "onChain": "on {{chain}}",
+    "explorerHint": "Transaction history requires block explorer",
+    "useExplorerHint": "This chain does not support direct history query, please use the explorer",
+    "openExplorer": "Open {{name}} Explorer",
+    "viewOnExplorer": "View on {{name}}"
+  }
 }

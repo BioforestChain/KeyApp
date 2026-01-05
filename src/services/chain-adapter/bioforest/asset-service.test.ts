@@ -13,7 +13,7 @@ vi.mock('@/services/chain-config', () => ({
       if (chainId === 'bfmeta') {
         return {
           id: 'bfmeta',
-          type: 'bioforest',
+          chainKind: 'bioforest',
           name: 'BFMeta',
           symbol: 'BFM',
           decimals: 8,

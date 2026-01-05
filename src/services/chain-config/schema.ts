@@ -2,12 +2,12 @@
  * 链配置 Zod Schema
  *
  * 设计原则：分离链属性与提供商配置
- * - 链属性：id, type, name, symbol, prefix, decimals（链的固有属性）
+ * - 链属性：id, chainKind, name, symbol, prefix, decimals（链的固有属性）
  * - 提供商配置：api, explorer（外部依赖，可替换）
  *
  * 说明：
  * - `version` 使用 `major.minor`（例如 "1.0"）
- * - `type` 用于选择对应的链服务实现（bioforest/evm/bip39/custom）
+ * - `chainKind` 用于选择对应的链派生策略与服务实现（bioforest/evm/bitcoin/tron/custom）
  * - `source/enabled` 为运行时字段：用于 UI 展示与用户启用状态
  */
 
@@ -17,7 +17,7 @@ export const ChainConfigVersionSchema = z
   .string()
   .regex(/^\d+\.\d+$/, 'version must be "major.minor" (e.g. "1.0")')
 
-export const ChainConfigTypeSchema = z.enum(['bioforest', 'evm', 'tron', 'bip39', 'custom'])
+export const ChainKindSchema = z.enum(['bioforest', 'evm', 'bitcoin', 'tron', 'custom'])
 
 export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manual'])
 
@@ -60,7 +60,7 @@ export const ChainConfigSchema = z
     // ===== 链固有属性 =====
     id: z.string().regex(/^[a-z0-9-]+$/, 'id must match /^[a-z0-9-]+$/'),
     version: ChainConfigVersionSchema,
-    type: ChainConfigTypeSchema,
+    chainKind: ChainKindSchema,
 
     name: z.string().min(1).max(50),
     symbol: z.string().min(1).max(10),

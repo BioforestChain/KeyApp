@@ -169,7 +169,7 @@ export function WalletTab() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-background">
+    <div data-testid="wallet-home" className="flex h-full flex-col overflow-y-auto bg-background">
       {/* 钱包卡片轮播 */}
       <div className="pt-2 pb-1">
         <WalletCardCarousel
@@ -192,6 +192,7 @@ export function WalletTab() {
         <div className="mt-2 flex justify-center gap-8 px-6">
           <button
             onClick={() => push("SendActivity", {})}
+            data-testid="wallet-home-send-button"
             className="group flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
@@ -201,6 +202,7 @@ export function WalletTab() {
           </button>
           <button
             onClick={() => push("ReceiveActivity", {})}
+            data-testid="wallet-home-receive-button"
             className="group flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
@@ -210,6 +212,7 @@ export function WalletTab() {
           </button>
           <button
             onClick={() => push("ScannerActivity", {})}
+            data-testid="wallet-home-scan-button"
             className="group flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-all active:scale-95 group-hover:bg-primary/20">
@@ -226,10 +229,11 @@ export function WalletTab() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           className="h-full"
+          testIdPrefix="wallet-home-content-tabs"
         >
           {(tab) =>
             tab === "assets" ? (
-              <div className="p-4">
+              <div className="p-4" data-testid="wallet-home-assets-panel">
                 <TokenList
                   tokens={tokens.map((token) => ({
                     symbol: token.symbol,
@@ -251,16 +255,18 @@ export function WalletTab() {
                   emptyDescription={t("home:wallet.noAssetsOnChain", {
                     chain: selectedChainName,
                   })}
+                  testId="token-list"
                 />
               </div>
             ) : (
-              <div className="p-4">
+              <div className="p-4" data-testid="wallet-home-history-panel">
                 <TransactionList
                   transactions={transactions.slice(0, 5)}
                   loading={txLoading}
                   onTransactionClick={handleTransactionClick}
                   emptyTitle={t("transaction:history.emptyTitle")}
                   emptyDescription={t("transaction:history.emptyDesc")}
+                  testId="transaction-list"
                 />
                 <button
                   onClick={() => push("HistoryActivity", { 

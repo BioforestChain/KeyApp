@@ -7,7 +7,6 @@
  * - P2PKH (Legacy, 1...) - BIP44
  */
 
-import type { ChainConfig } from '@/services/chain-config'
 import type { IIdentityService, Address, Signature } from '../types'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { ripemd160 } from '@noble/hashes/legacy.js'
@@ -17,7 +16,7 @@ import { HDKey } from '@scure/bip32'
 import { bech32, bech32m, base58check } from '@scure/base'
 
 export class BitcoinIdentityService implements IIdentityService {
-  constructor(_config: ChainConfig) {}
+  constructor(_chainId: string) {}
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // Default to Native SegWit (P2WPKH) - BIP84: m/84'/0'/0'/0/index

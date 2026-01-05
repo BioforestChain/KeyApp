@@ -120,7 +120,7 @@ export async function saveChainConfigs(options: {
     const base: BaseChainConfig = {
       id: config.id,
       version: config.version,
-      type: config.type,
+      chainKind: config.chainKind,
       name: config.name,
       symbol: config.symbol,
       decimals: config.decimals,

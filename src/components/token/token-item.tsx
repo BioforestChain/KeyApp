@@ -32,9 +32,10 @@ interface TokenItemProps {
   /** Whether balance is loading (shows animation) */
   loading?: boolean | undefined;
   className?: string | undefined;
+  testId?: string | undefined;
 }
 
-export function TokenItem({ token, onClick, showChange = false, loading = false, className }: TokenItemProps) {
+export function TokenItem({ token, onClick, showChange = false, loading = false, className, testId }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
@@ -67,6 +68,7 @@ export function TokenItem({ token, onClick, showChange = false, loading = false,
 
   return (
     <div
+      {...(testId && { 'data-testid': testId })}
       role={isClickable ? 'button' : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}

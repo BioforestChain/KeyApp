@@ -36,7 +36,7 @@ function normalizeUnknownType(input: unknown): unknown {
 
   const type = record.type
   if (typeof type === 'string' && !KNOWN_TYPES.has(type as never)) {
-    return { ...record, type: 'custom' }
+    return { ...record, chainKind: 'custom' }
   }
 
   return input

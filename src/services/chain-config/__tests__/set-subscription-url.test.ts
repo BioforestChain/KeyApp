@@ -8,12 +8,14 @@ import {
   resetChainConfigStorageForTests,
   saveChainConfigs,
   saveSubscriptionMeta,
+  saveDefaultVersion,
 } from '../storage'
 import { setSubscriptionUrl } from '../index'
 
 describe('chain-config setSubscriptionUrl', () => {
   beforeEach(async () => {
     await resetChainConfigStorageForTests()
+    await saveDefaultVersion('2.0.0')
   })
 
   it('accepts empty string as default and clears cached subscription configs', async () => {
@@ -30,7 +32,7 @@ describe('chain-config setSubscriptionUrl', () => {
         ChainConfigSchema.parse({
           id: 'cached',
           version: '1.0',
-          type: 'custom',
+          chainKind: 'custom',
           name: 'Cached',
           symbol: 'C',
           decimals: 8,
@@ -63,7 +65,7 @@ describe('chain-config setSubscriptionUrl', () => {
         ChainConfigSchema.parse({
           id: 'cached',
           version: '1.0',
-          type: 'custom',
+          chainKind: 'custom',
           name: 'Cached',
           symbol: 'C',
           decimals: 8,

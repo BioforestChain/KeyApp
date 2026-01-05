@@ -6,6 +6,8 @@ import { transactionServiceMeta, type TransactionFilter, type TransactionRecord,
 import { walletStorageService } from '@/services/wallet-storage'
 import { initialize as initializeChainConfigs, getEnabledChains, getChainById, type ChainConfig } from '@/services/chain-config'
 import { createBioforestAdapter, type Transaction as ChainTransaction } from '@/services/chain-adapter'
+import { getChainProvider, type Transaction as ProviderTransaction } from '@/services/chain-adapter/providers'
+import { Amount } from '@/types/amount'
 
 const recordCache = new Map<string, TransactionRecord>()
 type TransactionFilterInput = Partial<TransactionFilter> | undefined
@@ -24,12 +26,25 @@ async function fetchHistory(walletId: string, filter?: TransactionFilterInput): 
     if (targetChain && addressInfo.chain !== targetChain) return []
 
     const config = enabledMap.get(addressInfo.chain) ?? getChainById(snapshot, addressInfo.chain)
-    if (!config || !config.enabled || config.type !== 'bioforest') return []
+    if (!config || !config.enabled) return []
 
-    const adapter = createBioforestAdapter(config)
-    return adapter.transaction.getTransactionHistory(addressInfo.address, 50).then((list) =>
-      list.map((tx) => mapChainTransaction(tx, config, addressInfo.address))
-    )
+    if (config.chainKind === 'bioforest') {
+      const adapter = createBioforestAdapter(config.id)
+      return adapter.transaction.getTransactionHistory(addressInfo.address, 50).then((list) =>
+        list.map((tx) => mapChainTransaction(tx, config, addressInfo.address))
+      )
+    }
+
+    try {
+      const provider = getChainProvider(addressInfo.chain)
+      if (!provider.supportsTransactionHistory || !provider.getTransactionHistory) return []
+
+      return provider.getTransactionHistory(addressInfo.address, 50).then((list) =>
+        list.map((tx) => mapProviderTransaction(tx, config, addressInfo.address))
+      )
+    } catch {
+      return []
+    }
   })
 
   const results = await Promise.all(tasks)
@@ -122,6 +137,37 @@ function mapChainTransaction(tx: ChainTransaction, config: ChainConfig, address:
     feeDecimals: config.decimals,
     blockNumber: tx.blockNumber ? Number(tx.blockNumber) : undefined,
     confirmations: tx.status.confirmations,
+  }
+}
+
+function isSameAddress(left: string, right: string): boolean {
+  const a = left.trim()
+  const b = right.trim()
+  if (a.startsWith('0x') && b.startsWith('0x')) return a.toLowerCase() === b.toLowerCase()
+  return a === b
+}
+
+function mapProviderTransaction(tx: ProviderTransaction, config: ChainConfig, address: string): TransactionRecord {
+  const isOutgoing = isSameAddress(tx.from, address)
+  const type: TransactionType = isOutgoing ? 'send' : 'receive'
+
+  return {
+    // Use '--' as separator to avoid URL routing conflicts with ':'
+    id: `${config.id}--${tx.hash}`,
+    type,
+    status: tx.status,
+    amount: Amount.fromRaw(tx.value, config.decimals, config.symbol),
+    symbol: config.symbol,
+    decimals: config.decimals,
+    address: type === 'send' ? tx.to : tx.from,
+    timestamp: new Date(tx.timestamp),
+    hash: tx.hash,
+    chain: config.id,
+    blockNumber: tx.blockNumber ? Number(tx.blockNumber) : undefined,
+    confirmations: undefined,
+    fee: undefined,
+    feeSymbol: undefined,
+    feeDecimals: undefined,
   }
 }
 

@@ -36,7 +36,7 @@ const mockEnabledChains = [
   {
     id: 'ethereum',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Ethereum',
     symbol: 'ETH',
     decimals: 18,
@@ -50,7 +50,7 @@ const mockEnabledChains = [
   {
     id: 'bfmeta',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BFMeta',
     symbol: 'BFM',
     decimals: 8,

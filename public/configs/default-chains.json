@@ -4,7 +4,7 @@
     {
       "id": "bfmeta",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "BFMeta",
       "symbol": "BFM",
       "icon": "../icons/bfmeta/chain.svg",
@@ -28,7 +28,7 @@
     {
       "id": "ccchain",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "CCChain",
       "symbol": "CCC",
       "icon": "../icons/ccchain/chain.svg",
@@ -46,7 +46,7 @@
     {
       "id": "pmchain",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "PMChain",
       "symbol": "PMC",
       "icon": "../icons/pmchain/chain.svg",
@@ -64,7 +64,7 @@
     {
       "id": "bfchainv2",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "BFChain V2",
       "symbol": "BFT",
       "icon": "../icons/bfchainv2/chain.svg",
@@ -82,7 +82,7 @@
     {
       "id": "btgmeta",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "BTGMeta",
       "symbol": "BTGM",
       "icon": "../icons/btgmeta/chain.svg",
@@ -100,7 +100,7 @@
     {
       "id": "biwmeta",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "BIWMeta",
       "symbol": "BIW",
       "tokenIconBase": [
@@ -122,7 +122,7 @@
     {
       "id": "ethmeta",
       "version": "1.0",
-      "type": "bioforest",
+      "chainKind": "bioforest",
       "name": "ETHMeta",
       "symbol": "ETHM",
       "icon": "../icons/ethmeta/chain.svg",
@@ -140,7 +140,7 @@
     {
       "id": "ethereum",
       "version": "1.0",
-      "type": "evm",
+      "chainKind": "evm",
       "name": "Ethereum",
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
@@ -163,7 +163,7 @@
     {
       "id": "binance",
       "version": "1.0",
-      "type": "evm",
+      "chainKind": "evm",
       "name": "BNB Smart Chain",
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
@@ -186,7 +186,7 @@
     {
       "id": "tron",
       "version": "1.0",
-      "type": "tron",
+      "chainKind": "tron",
       "name": "Tron",
       "symbol": "TRX",
       "icon": "../icons/tron/chain.svg",
@@ -208,7 +208,7 @@
     {
       "id": "bitcoin",
       "version": "1.0",
-      "type": "bip39",
+      "chainKind": "bitcoin",
       "name": "Bitcoin",
       "symbol": "BTC",
       "icon": "../icons/bitcoin/chain.svg",

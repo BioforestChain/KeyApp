@@ -7,7 +7,7 @@ const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon a
 const makeBioforestConfig = (id: string, prefix = 'b'): ChainConfig => ({
   id,
   version: '1.0',
-  type: 'bioforest',
+  chainKind: 'bioforest',
   name: id,
   symbol: id.toUpperCase(),
   prefix,
@@ -19,7 +19,7 @@ const makeBioforestConfig = (id: string, prefix = 'b'): ChainConfig => ({
 const makeEvmConfig = (id: string): ChainConfig => ({
   id,
   version: '1.0',
-  type: 'evm',
+  chainKind: 'evm',
   name: id,
   symbol: id.toUpperCase(),
   decimals: 18,
@@ -30,7 +30,7 @@ const makeEvmConfig = (id: string): ChainConfig => ({
 const makeBip39Config = (id: string, decimals = 8): ChainConfig => ({
   id,
   version: '1.0',
-  type: 'bip39',
+  chainKind: 'bitcoin',
   name: id,
   symbol: id.toUpperCase(),
   decimals,

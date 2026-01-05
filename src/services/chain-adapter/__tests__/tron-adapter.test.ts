@@ -8,7 +8,7 @@ const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon a
 const tronConfig: ChainConfig = {
   id: 'tron',
   version: '1.0',
-  type: 'tron',
+  chainKind: 'tron',
   name: 'Tron',
   symbol: 'TRX',
   decimals: 6,

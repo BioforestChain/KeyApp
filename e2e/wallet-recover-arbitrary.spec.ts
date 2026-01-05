@@ -14,7 +14,7 @@ import { getWalletDataFromIndexedDB } from './utils/indexeddb-helper'
 const MANUAL_CHAIN = {
   id: 'bf-arbitrary-e2e',
   version: '1.0',
-  type: 'bioforest',
+  chainKind: 'bioforest',
   name: 'BF Arbitrary E2E',
   symbol: 'BFA',
   decimals: 8,

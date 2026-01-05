@@ -1,4 +1,4 @@
-export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainConfigType, ParsedApiEntry, ApiEntry, ApiConfig } from './types'
+export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainKind, ParsedApiEntry, ApiEntry, ApiConfig } from './types'
 export { chainConfigService } from './service'
 
 import { ChainConfigListSchema, ChainConfigSchema, ChainConfigSubscriptionSchema, VersionedChainConfigFileSchema } from './schema'
@@ -13,7 +13,7 @@ import {
   loadDefaultVersion,
   saveDefaultVersion,
 } from './storage'
-import type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainConfigType } from './types'
+import type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainKind } from './types'
 
 /** 数据库版本不兼容错误，需要用户清空数据 */
 export class ChainConfigMigrationError extends Error {
@@ -44,13 +44,13 @@ export interface ChainConfigSnapshot {
   warnings: ChainConfigWarning[]
 }
 
-const KNOWN_TYPES: ReadonlySet<string> = new Set(['bioforest', 'evm', 'tron', 'bip39', 'custom'])
+const KNOWN_KINDS: ReadonlySet<string> = new Set(['bioforest', 'evm', 'bitcoin', 'tron', 'custom'])
 
-const SUPPORTED_MAJOR_BY_TYPE: Record<ChainConfigType, number> = {
+const SUPPORTED_MAJOR_BY_KIND: Record<ChainKind, number> = {
   bioforest: 1,
   evm: 1,
+  bitcoin: 1,
   tron: 1,
-  bip39: 1,
   custom: 1,
 }
 
@@ -64,13 +64,13 @@ interface DefaultChainsResult {
 let defaultChainsCache: DefaultChainsResult | null = null
 let defaultChainsLoading: Promise<DefaultChainsResult> | null = null
 
-function normalizeUnknownType(input: unknown): unknown {
+function normalizeUnknownKind(input: unknown): unknown {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) return input
   const record = input as Record<string, unknown>
 
-  const type = record.type
-  if (typeof type === 'string' && !KNOWN_TYPES.has(type)) {
-    return { ...record, type: 'custom' }
+  const chainKind = record.chainKind
+  if (typeof chainKind === 'string' && !KNOWN_KINDS.has(chainKind)) {
+    return { ...record, chainKind: 'custom' }
   }
 
   return input
@@ -86,7 +86,7 @@ function parseMajor(version: string): number | null {
 function isCompatible(config: ChainConfig): boolean {
   const major = parseMajor(config.version)
   if (major === null) return false
-  return major <= SUPPORTED_MAJOR_BY_TYPE[config.type]
+  return major <= SUPPORTED_MAJOR_BY_KIND[config.chainKind]
 }
 
 function getDefaultChainsUrl(): string {
@@ -116,7 +116,7 @@ async function loadDefaultChainConfigs(): Promise<DefaultChainsResult> {
     const json: unknown = await response.json()
     const parsed = VersionedChainConfigFileSchema.parse(json)
 
-    const configs = parsed.chains.map((chain) => normalizeUnknownType(chain)).map((chain) => {
+    const configs = parsed.chains.map((chain) => normalizeUnknownKind(chain)).map((chain) => {
       const config = ChainConfigSchema.parse(chain)
       const resolvedPaths = resolveIconPaths(config, jsonUrl)
       return {
@@ -185,7 +185,7 @@ function resolveIconPaths(
 }
 
 function parseConfigs(input: unknown, source: ChainConfigSource, jsonFileUrl?: string): ChainConfig[] {
-  const normalized: unknown = Array.isArray(input) ? input.map(normalizeUnknownType) : normalizeUnknownType(input)
+  const normalized: unknown = Array.isArray(input) ? input.map(normalizeUnknownKind) : normalizeUnknownKind(input)
 
   const parsed = Array.isArray(normalized)
     ? ChainConfigListSchema.parse(normalized)
@@ -238,7 +238,7 @@ function collectWarnings(configs: ChainConfig[]): ChainConfigWarning[] {
     const major = parseMajor(config.version)
     if (major === null) continue
 
-    const supportedMajor = SUPPORTED_MAJOR_BY_TYPE[config.type]
+    const supportedMajor = SUPPORTED_MAJOR_BY_KIND[config.chainKind]
     if (major > supportedMajor) {
       warnings.push({
         id: config.id,

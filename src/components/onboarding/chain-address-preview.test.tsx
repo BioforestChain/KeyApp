@@ -13,7 +13,7 @@ const mockConfigs: ChainConfig[] = [
   {
     id: 'bfmeta',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BFMeta',
     symbol: 'BFT',
     decimals: 8,
@@ -23,7 +23,7 @@ const mockConfigs: ChainConfig[] = [
   {
     id: 'pmchain',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'PMChain',
     symbol: 'PM',
     decimals: 8,

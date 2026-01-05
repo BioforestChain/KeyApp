@@ -15,6 +15,7 @@ interface TokenListProps {
   emptyDescription?: string | undefined
   emptyAction?: React.ReactNode | undefined
   className?: string | undefined
+  testId?: string | undefined
 }
 
 export function TokenList({
@@ -27,6 +28,7 @@ export function TokenList({
   emptyDescription = '转入资产后将显示在这里',
   emptyAction,
   className,
+  testId,
 }: TokenListProps) {
   if (loading) {
     return <SkeletonList count={3} {...(className && { className })} />
@@ -35,6 +37,7 @@ export function TokenList({
   if (tokens.length === 0) {
     return (
       <EmptyState
+        {...(testId && { testId: `${testId}-empty` })}
         title={emptyTitle}
         description={emptyDescription}
         {...(emptyAction && { action: emptyAction })}
@@ -49,11 +52,12 @@ export function TokenList({
   }
 
   return (
-    <div className={cn('space-y-1', className)}>
+    <div {...(testId && { 'data-testid': testId })} className={cn('space-y-1', className)}>
       {tokens.map((token) => (
         <TokenItem
           key={`${token.chain}-${token.symbol}`}
           token={token}
+          testId={testId ? `token-item-${token.chain}-${token.symbol}` : undefined}
           showChange={showChange}
           loading={refreshing}
           {...(onTokenClick && { onClick: () => onTokenClick(token) })}

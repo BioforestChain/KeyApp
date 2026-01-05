@@ -18,6 +18,7 @@ interface TabsProps {
   onTabChange?: (tabId: string) => void
   children: (activeTab: string) => ReactNode
   className?: string
+  testIdPrefix?: string
 }
 
 const DEFAULT_TABS: Tab[] = [
@@ -89,6 +90,7 @@ export function SwipeableTabs({
   onTabChange,
   children,
   className,
+  testIdPrefix,
 }: TabsProps) {
   const [internalActiveTab, setInternalActiveTab] = useState(defaultTab)
   const swiperRef = useRef<SwiperType | null>(null)
@@ -130,7 +132,7 @@ export function SwipeableTabs({
   )
 
   return (
-    <div className={cn('flex flex-col overflow-hidden', className)}>
+    <div {...(testIdPrefix && { 'data-testid': testIdPrefix })} className={cn('flex flex-col overflow-hidden', className)}>
       <div className="bg-background px-4 pb-2">
         <div className="relative flex rounded-xl bg-muted/60 p-1">
           {/* 指示器 - 使用 CSS 变量实现实时位置更新 */}
@@ -149,6 +151,8 @@ export function SwipeableTabs({
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
+              {...(testIdPrefix && { 'data-testid': `${testIdPrefix}-tab-${tab.id}` })}
+              data-active={activeTab === tab.id ? 'true' : 'false'}
               className={cn(
                 'relative z-10 flex flex-1 items-center justify-center gap-1.5 py-2 text-sm font-medium transition-colors',
                 activeTab === tab.id ? 'text-primary' : 'text-muted-foreground'
@@ -170,7 +174,11 @@ export function SwipeableTabs({
         resistanceRatio={0.5}
       >
         {tabs.map((tab) => (
-          <SwiperSlide key={tab.id} className="h-full overflow-auto">
+          <SwiperSlide
+            key={tab.id}
+            className="h-full overflow-auto"
+            {...(testIdPrefix && { 'data-testid': `${testIdPrefix}-panel-${tab.id}` })}
+          >
             {children(tab.id)}
           </SwiperSlide>
         ))}

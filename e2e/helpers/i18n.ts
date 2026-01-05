@@ -76,14 +76,14 @@ export function getAriaLabel(key: keyof typeof UI_TEXT): RegExp {
  * await btn.click()
  */
 export function i18nLocator(page: Page, selector: string, text: RegExp): Locator {
-  return page.locator(`${selector}:has-text("${text.source}")`)
+  return page.locator(selector).filter({ hasText: text })
 }
 
 /**
  * 等待多语言文本出现
  */
 export async function waitForI18nText(page: Page, text: RegExp, options?: { timeout?: number }) {
-  await page.waitForSelector(`text=${text.source}`, options)
+  await page.getByText(text).first().waitFor({ state: 'visible', timeout: options?.timeout })
 }
 
 /**

@@ -203,6 +203,7 @@ export function SettingsPage() {
             icon={<BookUser size={20} />}
             label={t('settings:items.addressBook')}
             onClick={() => navigate({ to: '/address-book' })}
+            testId="address-book-button"
           />
         </SettingsSection>
 

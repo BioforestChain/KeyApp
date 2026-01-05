@@ -153,13 +153,13 @@ export async function signUnsignedTransaction(params: {
   const mnemonic = await (await import('@/services/wallet-storage')).walletStorageService.getMnemonic(params.walletId, params.password)
 
   let privateKeyBytes: Uint8Array
-  if (chainConfig.type === 'evm') {
+  if (chainConfig.chainKind === 'evm') {
     const derived = deriveKey(mnemonic, 'ethereum', 0, 0)
     if (derived.address.toLowerCase() !== params.from.toLowerCase()) {
       throw Object.assign(new Error('Signing address mismatch'), { code: BioErrorCodes.INVALID_PARAMS })
     }
     privateKeyBytes = hexToBytes(derived.privateKey)
-  } else if (chainConfig.type === 'bioforest') {
+  } else if (chainConfig.chainKind === 'bioforest') {
     const keypair = createBioforestKeypair(mnemonic)
     const derivedAddress = publicKeyToBioforestAddress(keypair.publicKey, chainConfig.prefix ?? 'b')
     if (derivedAddress !== params.from) {
@@ -167,7 +167,7 @@ export async function signUnsignedTransaction(params: {
     }
     privateKeyBytes = keypair.secretKey
   } else {
-    throw Object.assign(new Error(`Unsupported chain type: ${chainConfig.type}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
+    throw Object.assign(new Error(`Unsupported chain kind: ${chainConfig.chainKind}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
   const signed = await chainProvider.signTransaction!(

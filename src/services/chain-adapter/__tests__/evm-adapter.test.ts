@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { EvmAdapter } from '../evm'
 import type { ChainConfig } from '@/services/chain-config'
 
 const ethConfig: ChainConfig = {
   id: 'ethereum',
   version: '1.0',
-  type: 'evm',
+  chainKind: 'evm',
   name: 'Ethereum',
   symbol: 'ETH',
   decimals: 18,
@@ -13,8 +13,20 @@ const ethConfig: ChainConfig = {
   source: 'default',
 }
 
+// Mock chainConfigService
+vi.mock('@/services/chain-config/service', () => ({
+  chainConfigService: {
+    getConfig: (chainId: string) => chainId === 'ethereum' ? ethConfig : null,
+    getRpcUrl: () => '',
+    getDecimals: () => 18,
+    getSymbol: () => 'ETH',
+    getEtherscanApi: () => null,
+    getExplorerUrl: () => null,
+  },
+}))
+
 describe('EvmAdapter', () => {
-  const adapter = new EvmAdapter(ethConfig)
+  const adapter = new EvmAdapter(ethConfig.id)
 
   describe('EvmIdentityService', () => {
     it('validates Ethereum addresses correctly', () => {

@@ -5,7 +5,7 @@
 import type { ChainConfig } from '@/services/chain-config'
 
 export interface EvmChainConfig extends ChainConfig {
-  type: 'evm'
+  chainKind: 'evm'
   /** EVM Chain ID (e.g., 1 for Ethereum mainnet, 56 for BSC) */
   chainId?: number
   /** RPC endpoint URL */

@@ -12,7 +12,7 @@ import { BioforestAdapter } from '../bioforest'
 const mockConfigWithRpc: ChainConfig = {
   id: 'bfmeta',
   version: '1.0',
-  type: 'bioforest',
+  chainKind: 'bioforest',
   name: 'BFMeta',
   symbol: 'BFM',
   prefix: 'b',
@@ -21,6 +21,17 @@ const mockConfigWithRpc: ChainConfig = {
   source: 'default',
   api: { url: 'https://walletapi.bfmeta.info', path: 'bfm' },
 }
+
+// Mock chainConfigService
+vi.mock('@/services/chain-config/service', () => ({
+  chainConfigService: {
+    getConfig: (chainId: string) => chainId === 'bfmeta' ? mockConfigWithRpc : null,
+    getRpcUrl: () => '',
+    getDecimals: () => 8,
+    getSymbol: () => 'BFM',
+    getBiowalletApi: () => ({ endpoint: 'https://walletapi.bfmeta.info', path: 'bfm' }),
+  },
+}))
 
 // Helper to create mock Response
 function mockResponse(data: unknown, ok = true): Response {
@@ -36,7 +47,7 @@ describe('BioForest API Response Parsing', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    adapter = new BioforestAdapter(mockConfigWithRpc)
+    adapter = new BioforestAdapter(mockConfigWithRpc.id)
     fetchSpy = vi.spyOn(globalThis, 'fetch')
   })
 

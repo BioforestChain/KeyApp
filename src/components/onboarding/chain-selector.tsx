@@ -38,8 +38,8 @@ export interface ChainSelectorProps {
   'data-testid'?: string;
 }
 
-/** 链类型分组配置 */
-const CHAIN_TYPE_GROUPS: Record<string, { name: string; description: string }> = {
+/** 链类型分组配置（基于 chainKind） */
+const CHAIN_KIND_GROUPS: Record<string, { name: string; description: string }> = {
   bioforest: {
     name: '生物链林',
     description: 'BioForest 生态链',
@@ -48,9 +48,13 @@ const CHAIN_TYPE_GROUPS: Record<string, { name: string; description: string }> =
     name: 'EVM 兼容链',
     description: '以太坊虚拟机兼容链',
   },
-  bip39: {
-    name: '其他链',
-    description: 'BIP39 标准链',
+  bitcoin: {
+    name: 'Bitcoin',
+    description: 'Bitcoin 网络',
+  },
+  tron: {
+    name: 'Tron',
+    description: 'Tron 网络',
   },
   custom: {
     name: '自定义链',
@@ -80,27 +84,27 @@ export function ChainSelector({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['bioforest']));
   const baseTestId = testId ?? undefined;
 
-  // 按类型分组
+  // 按 chainKind 分组
   const chainGroups = useMemo<ChainGroup[]>(() => {
     const grouped = new Map<string, ChainConfig[]>();
     
     for (const chain of chains) {
-      const type = chain.type || 'custom';
-      if (!grouped.has(type)) {
-        grouped.set(type, []);
+      const kind = chain.chainKind || 'custom';
+      if (!grouped.has(kind)) {
+        grouped.set(kind, []);
       }
-      grouped.get(type)!.push(chain);
+      grouped.get(kind)!.push(chain);
     }
 
     // 按预定义顺序返回
-    const orderedTypes = ['bioforest', 'evm', 'bip39', 'custom'];
-    return orderedTypes
-      .filter(type => grouped.has(type))
-      .map(type => ({
-        id: type,
-        name: CHAIN_TYPE_GROUPS[type]?.name || type,
-        description: CHAIN_TYPE_GROUPS[type]?.description,
-        chains: grouped.get(type)!,
+    const orderedKinds = ['bioforest', 'evm', 'bitcoin', 'tron', 'custom'];
+    return orderedKinds
+      .filter(kind => grouped.has(kind))
+      .map(kind => ({
+        id: kind,
+        name: CHAIN_KIND_GROUPS[kind]?.name || kind,
+        description: CHAIN_KIND_GROUPS[kind]?.description,
+        chains: grouped.get(kind)!,
       }));
   }, [chains]);
 
@@ -352,6 +356,6 @@ export function ChainSelector({
  */
 export function getDefaultSelectedChains(chains: ChainConfig[]): string[] {
   return chains
-    .filter(chain => chain.type === 'bioforest')
+    .filter(chain => chain.chainKind === 'bioforest')
     .map(chain => chain.id);
 }

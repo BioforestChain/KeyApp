@@ -9,7 +9,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'bfmeta',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'BFMeta',
     symbol: 'BFM',
     decimals: 8,
@@ -19,7 +19,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'ccchain',
     version: '1.0',
-    type: 'bioforest',
+    chainKind: 'bioforest',
     name: 'CCChain',
     symbol: 'CCC',
     decimals: 8,
@@ -29,7 +29,7 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'ethereum',
     version: '1.0',
-    type: 'evm',
+    chainKind: 'evm',
     name: 'Ethereum',
     symbol: 'ETH',
     decimals: 18,
@@ -39,10 +39,20 @@ const sampleChains: ChainConfig[] = [
   {
     id: 'tron',
     version: '1.0',
-    type: 'bip39',
+    chainKind: 'tron',
     name: 'Tron',
     symbol: 'TRX',
     decimals: 6,
+    enabled: true,
+    source: 'default',
+  },
+  {
+    id: 'bitcoin',
+    version: '1.0',
+    chainKind: 'bitcoin',
+    name: 'Bitcoin',
+    symbol: 'BTC',
+    decimals: 8,
     enabled: true,
     source: 'default',
   },
@@ -65,7 +75,8 @@ describe('ChainSelector', () => {
 
     expect(screen.getByTestId('chain-selector-group-bioforest')).toBeInTheDocument();
     expect(screen.getByTestId('chain-selector-group-evm')).toBeInTheDocument();
-    expect(screen.getByTestId('chain-selector-group-bip39')).toBeInTheDocument();
+    expect(screen.getByTestId('chain-selector-group-tron')).toBeInTheDocument();
+    expect(screen.getByTestId('chain-selector-group-bitcoin')).toBeInTheDocument();
   });
 
   it('selects all chains in a group', () => {

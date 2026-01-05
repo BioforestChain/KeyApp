@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import 'fake-indexeddb/auto'
 
 import { ChainConfigSubscriptionSchema } from '../schema'
-import { loadChainConfigs, loadSubscriptionMeta, resetChainConfigStorageForTests, saveSubscriptionMeta } from '../storage'
+import { loadChainConfigs, loadSubscriptionMeta, resetChainConfigStorageForTests, saveSubscriptionMeta, saveDefaultVersion } from '../storage'
 import { refreshSubscription } from '../index'
 
 describe('chain-config refreshSubscription', () => {
@@ -10,6 +10,7 @@ describe('chain-config refreshSubscription', () => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
     await resetChainConfigStorageForTests()
+    await saveDefaultVersion('2.0.0')
   })
 
   it('skips when subscription url is default', async () => {
@@ -43,7 +44,7 @@ describe('chain-config refreshSubscription', () => {
 
       return new Response(
         JSON.stringify([
-          { id: 'remote-one', version: '1.0', type: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
+          { id: 'remote-one', version: '1.0', chainKind: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
         ]),
         { status: 200, headers: { 'Content-Type': 'application/json', ETag: 'etag-2' } }
       )

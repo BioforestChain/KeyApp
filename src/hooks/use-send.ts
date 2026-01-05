@@ -19,8 +19,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     asset: initialAsset ?? null,
   })
 
-  const isBioforestChain = chainConfig?.type === 'bioforest'
-  const isWeb3Chain = chainConfig?.type === 'evm' || chainConfig?.type === 'tron' || chainConfig?.type === 'bip39'
+  const isBioforestChain = chainConfig?.chainKind === 'bioforest'
+  const isWeb3Chain = chainConfig?.chainKind === 'evm' || chainConfig?.chainKind === 'tron' || chainConfig?.chainKind === 'bitcoin'
 
   // Validate address
   const validateAddress = useCallback((address: string): string | null => {
@@ -209,7 +209,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
-    if (chainConfig.type === 'evm' || chainConfig.type === 'tron' || chainConfig.type === 'bip39') {
+    if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
       console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.type)
       
       if (!walletId || !fromAddress || !state.asset || !state.amount) {

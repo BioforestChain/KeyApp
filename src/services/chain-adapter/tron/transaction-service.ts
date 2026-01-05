@@ -32,13 +32,27 @@ import type {
 const DEFAULT_RPC_URL = 'https://api.trongrid.io'
 
 export class TronTransactionService implements ITransactionService {
-  private readonly config: ChainConfig
-  private readonly rpcUrl: string
+  private readonly chainId: string
+  private config: ChainConfig | null = null
+  private rpcUrl: string = ''
 
-  constructor(config: ChainConfig) {
-    this.config = config
-    // 使用 *-rpc API 配置
-    this.rpcUrl = chainConfigService.getRpcUrl(config.id) || DEFAULT_RPC_URL
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
+
+  private getConfig(): ChainConfig {
+    if (!this.config) {
+      const config = chainConfigService.getConfig(this.chainId)
+      if (!config) {
+        throw new ChainServiceError(
+          ChainErrorCodes.CHAIN_NOT_FOUND,
+          `Chain config not found: ${this.chainId}`,
+        )
+      }
+      this.config = config
+      this.rpcUrl = chainConfigService.getRpcUrl(config.id) || DEFAULT_RPC_URL
+    }
+    return this.config
   }
 
   private async api<T>(endpoint: string, body?: unknown): Promise<T> {
@@ -77,9 +91,10 @@ export class TronTransactionService implements ITransactionService {
   }
 
   async estimateFee(_params: TransferParams): Promise<FeeEstimate> {
+    const config = this.getConfig()
     // TRX transfers typically cost bandwidth (free up to limit)
     // If bandwidth exhausted, burns TRX at 1000 SUN per bandwidth unit
-    const feeAmount = Amount.fromRaw('0', this.config.decimals, this.config.symbol)
+    const feeAmount = Amount.fromRaw('0', config.decimals, config.symbol)
     
     const fee: Fee = {
       amount: feeAmount,
@@ -94,6 +109,7 @@ export class TronTransactionService implements ITransactionService {
   }
 
   async buildTransaction(params: TransferParams): Promise<UnsignedTransaction> {
+    const config = this.getConfig()
     // Convert addresses to hex format for API
     const ownerAddressHex = this.base58ToHex(params.from)
     const toAddressHex = this.base58ToHex(params.to)
@@ -114,7 +130,7 @@ export class TronTransactionService implements ITransactionService {
     }
 
     return {
-      chainId: this.config.id,
+      chainId: config.id,
       data: rawTx,
     }
   }
@@ -138,7 +154,7 @@ export class TronTransactionService implements ITransactionService {
     }
 
     return {
-      chainId: this.config.id,
+      chainId: unsignedTx.chainId,
       data: signedTx,
       signature: signature,
     }
@@ -203,16 +219,17 @@ export class TronTransactionService implements ITransactionService {
 
       const { amount, owner_address, to_address } = contract.parameter.value
       const isConfirmed = 'blockNumber' in info
+      const config = this.getConfig()
 
       return {
         hash: tx.txID,
         from: owner_address,
         to: to_address,
-        amount: Amount.fromRaw(amount.toString(), this.config.decimals, this.config.symbol),
+        amount: Amount.fromRaw(amount.toString(), config.decimals, config.symbol),
         fee: Amount.fromRaw(
           ((info as TronTransactionInfo).receipt?.net_usage ?? 0).toString(),
-          this.config.decimals,
-          this.config.symbol,
+          config.decimals,
+          config.symbol,
         ),
         status: {
           status: isConfirmed ? 'confirmed' : 'pending',

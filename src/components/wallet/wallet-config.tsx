@@ -228,6 +228,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
           <WalletCard
             wallet={{ ...wallet, name: isEditMode ? editName : wallet.name, themeHue: displayThemeHue }}
             themeHue={displayThemeHue}
+            walletNameTestId="wallet-config-preview-name"
             chain={currentChainAddr?.chain as ChainType}
             chainName={currentChainAddr?.chain || ''}
             address={currentChainAddr?.address || wallet.address}
@@ -320,6 +321,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
               className="w-full"
               onClick={handleConfirm}
               disabled={!editName.trim()}
+              data-testid="theme-complete-button"
               style={
                 {
                   '--primary-hue': editThemeHue,
