@@ -19,11 +19,13 @@ import {
   handleCreateTransaction,
   handleSignTransaction,
   handleSendTransaction,
+  registerEvmHandlers,
+  registerTronHandlers,
 } from './handlers'
 
 /** Initialize the Bio provider with all handlers */
 export function initBioProvider(): void {
-  // Wallet methods
+  // Bio methods (BioChain + wallet features)
   bridge.registerHandler('bio_connect', handleConnect)
   bridge.registerHandler('bio_closeSplashScreen', handleCloseSplashScreen)
   bridge.registerHandler('bio_requestAccounts', handleRequestAccounts)
@@ -44,21 +46,44 @@ export function initBioProvider(): void {
   // Transfer methods
   bridge.registerHandler('bio_sendTransaction', handleSendTransaction)
 
-  console.log('[BioProvider] Initialized with handlers:', [
-    'bio_connect',
-    'bio_closeSplashScreen',
-    'bio_requestAccounts',
-    'bio_accounts',
-    'bio_selectAccount',
-    'bio_pickWallet',
-    'bio_chainId',
-    'bio_getBalance',
-    'bio_signMessage',
-    'bio_signTypedData',
-    'bio_createTransaction',
-    'bio_signTransaction',
-    'bio_sendTransaction',
-  ])
+  // EVM methods (Ethereum/BSC via window.ethereum)
+  registerEvmHandlers((method, handler) => bridge.registerHandler(method, handler))
+
+  // TRON methods (via window.tronLink/tronWeb)
+  registerTronHandlers((method, handler) => bridge.registerHandler(method, handler))
+
+  console.log('[BioProvider] Initialized with handlers:', {
+    bio: [
+      'bio_connect',
+      'bio_closeSplashScreen',
+      'bio_requestAccounts',
+      'bio_accounts',
+      'bio_selectAccount',
+      'bio_pickWallet',
+      'bio_chainId',
+      'bio_getBalance',
+      'bio_signMessage',
+      'bio_signTypedData',
+      'bio_createTransaction',
+      'bio_signTransaction',
+      'bio_sendTransaction',
+    ],
+    evm: [
+      'eth_chainId',
+      'eth_requestAccounts',
+      'eth_accounts',
+      'wallet_switchEthereumChain',
+      'personal_sign',
+      'eth_sendTransaction',
+      // ...
+    ],
+    tron: [
+      'tron_requestAccounts',
+      'tron_accounts',
+      'tron_signTransaction',
+      // ...
+    ],
+  })
 }
 
 /** Get the bridge instance */
@@ -73,4 +98,12 @@ export {
   setSigningDialog,
   setTransferDialog,
   setSignTransactionDialog,
+  // EVM setters
+  setEvmWalletPicker,
+  setChainSwitchConfirm,
+  setEvmSigningDialog,
+  setEvmTransactionDialog,
+  // TRON setters
+  setTronWalletPicker,
+  setTronSigningDialog,
 } from './handlers'

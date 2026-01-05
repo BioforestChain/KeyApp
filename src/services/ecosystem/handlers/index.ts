@@ -2,7 +2,18 @@
  * Handler exports
  */
 
-export { HandlerContext, getCallbacksOrThrow, type HandlerCallbacks, type SigningParams, type SignTransactionParams } from './context'
+export {
+  HandlerContext,
+  getCallbacksOrThrow,
+  type HandlerCallbacks,
+  type SigningParams,
+  type SignTransactionParams,
+  type EvmTransactionRequest,
+  type TronTransaction,
+  type EvmSigningParams,
+  type EvmTransactionParams,
+  type TronSigningParams,
+} from './context'
 
 export { handleCloseSplashScreen } from './system'
 
@@ -35,3 +46,22 @@ export {
   setSignTransactionDialog,
   signUnsignedTransaction,
 } from './transaction'
+
+// EVM handlers
+export {
+  evmHandlers,
+  registerEvmHandlers,
+  setEvmWalletPicker,
+  setChainSwitchConfirm,
+  setEvmSigningDialog,
+  setEvmTransactionDialog,
+} from './evm'
+
+// TRON handlers
+export {
+  tronHandlers,
+  registerTronHandlers,
+  setTronWalletPicker,
+  setTronSigningDialog,
+  type TronAddress,
+} from './tron'

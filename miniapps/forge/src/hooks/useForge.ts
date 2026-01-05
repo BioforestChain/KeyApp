@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from 'react'
 import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { rechargeApi } from '@/api'
 import { encodeRechargeV2ToTrInfoData, createRechargeMessage } from '@/api/helpers'
 import type {
@@ -44,8 +45,8 @@ export interface ForgeParams {
  * Build FromTrJson from signed transaction
  */
 function buildFromTrJson(chain: ExternalChainName, signedTx: BioSignedTransaction): FromTrJson {
-  const signTransData = typeof signedTx.data === 'string' 
-    ? signedTx.data 
+  const signTransData = typeof signedTx.data === 'string'
+    ? signedTx.data
     : JSON.stringify(signedTx.data)
 
   switch (chain) {
@@ -92,13 +93,15 @@ export function useForge() {
       // Step 1: Create and sign external chain transaction
       setState({ step: 'signing_external', orderId: null, error: null })
 
+      const externalKeyAppChainId = normalizeChainId(externalChain)
+
       const unsignedTx = await window.bio.request({
         method: 'bio_createTransaction',
         params: [{
           from: externalAccount.address,
           to: depositAddress,
           amount,
-          chain: externalChain.toLowerCase(),
+          chain: externalKeyAppChainId,
           asset: externalAsset,
         }],
       })
@@ -107,7 +110,7 @@ export function useForge() {
         method: 'bio_signTransaction',
         params: [{
           from: externalAccount.address,
-          chain: externalChain.toLowerCase(),
+          chain: externalKeyAppChainId,
           unsignedTx,
         }],
       })

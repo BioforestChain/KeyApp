@@ -11,12 +11,19 @@ import type { BioAccount, BioSignedTransaction, TransferParams } from "@/service
 import {
   getBridge,
   initBioProvider,
+  setChainSwitchConfirm,
+  setEvmSigningDialog,
+  setEvmTransactionDialog,
+  setEvmWalletPicker,
   setGetAccounts,
   setSigningDialog,
   setSignTransactionDialog,
+  setTronWalletPicker,
   setTransferDialog,
   setWalletPicker,
 } from "@/services/ecosystem";
+import { getKeyAppChainId } from "@biochain/bio-sdk";
+import { formatUnits } from "viem";
 import { walletSelectors, walletStore, type ChainAddress } from "@/stores";
 import { miniappRuntimeStore } from "@/services/miniapp-runtime";
 
@@ -182,9 +189,165 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       });
     });
 
+    setEvmWalletPicker(async (opts) => {
+      const appName = opts.app?.name;
+      const appIcon = opts.app?.icon;
+
+      return new Promise<BioAccount | null>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(null), 30_000);
+
+        const cleanup = () => {
+          window.clearTimeout(timeout);
+          window.removeEventListener("wallet-picker-select", handleSelect);
+          window.removeEventListener("wallet-picker-cancel", handleCancel);
+        };
+
+        const handleSelect = (e: Event) => {
+          cleanup();
+          const detail = (e as CustomEvent).detail as { address: string; chain: string; name?: string };
+          resolve({ address: detail.address, chain: detail.chain, name: detail.name });
+        };
+
+        const handleCancel = () => {
+          cleanup();
+          resolve(null);
+        };
+
+        window.addEventListener("wallet-picker-select", handleSelect);
+        window.addEventListener("wallet-picker-cancel", handleCancel);
+
+        push("WalletPickerJob", {
+          chain: opts.chainId,
+          ...(appName ? { appName } : {}),
+          ...(appIcon ? { appIcon } : {}),
+        });
+      });
+    });
+
+    setChainSwitchConfirm(async (opts) => {
+      return new Promise<boolean>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(false), 30_000);
+
+        const handleResult = (e: Event) => {
+          window.clearTimeout(timeout);
+          const detail = (e as CustomEvent).detail as { approved?: boolean } | undefined;
+          resolve(detail?.approved === true);
+        };
+
+        window.addEventListener("chain-switch-confirm", handleResult, { once: true });
+
+        push("ChainSwitchConfirmJob", {
+          fromChainId: opts.fromChainId,
+          toChainId: opts.toChainId,
+          appName: opts.appName,
+          appIcon: opts.appIcon,
+        });
+      });
+    });
+
+    setEvmSigningDialog(async (params) => {
+      return new Promise<{ signature: string } | null>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(null), 60_000);
+
+        const handleResult = (e: Event) => {
+          window.clearTimeout(timeout);
+          const detail = (e as CustomEvent).detail as
+            | { confirmed?: boolean; signature?: string }
+            | undefined;
+          if (detail?.confirmed && detail.signature) {
+            resolve({ signature: detail.signature });
+            return;
+          }
+          resolve(null);
+        };
+
+        window.addEventListener("signing-confirm", handleResult, { once: true });
+        push("SigningConfirmJob", {
+          message: params.message,
+          address: params.address,
+          appName: params.appName,
+          chainName: "ethereum",
+        });
+      });
+    });
+
+    setEvmTransactionDialog(async (params) => {
+      const { from, to, value, chainId } = params.tx;
+      if (!from || !to) {
+        return null;
+      }
+
+      const valueBigInt = BigInt(value ?? "0x0");
+      const amount = formatUnits(valueBigInt, 18);
+      const keyAppChainId = chainId ? getKeyAppChainId(chainId) : null;
+
+      return new Promise<{ txHash: string } | null>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(null), 60_000);
+
+        const handleResult = (e: Event) => {
+          window.clearTimeout(timeout);
+          const detail = (e as CustomEvent).detail as { confirmed?: boolean; txHash?: string } | undefined;
+          if (detail?.confirmed && detail.txHash) {
+            resolve({ txHash: detail.txHash });
+            return;
+          }
+          resolve(null);
+        };
+
+        window.addEventListener("miniapp-transfer-confirm", handleResult, { once: true });
+        push("MiniappTransferConfirmJob", {
+          appName: params.appName,
+          from,
+          to,
+          amount,
+          chain: keyAppChainId ?? "ethereum",
+        });
+      });
+    });
+
+    setTronWalletPicker(async (opts) => {
+      const appName = opts?.app?.name;
+      const appIcon = opts?.app?.icon;
+
+      return new Promise<BioAccount | null>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(null), 30_000);
+
+        const cleanup = () => {
+          window.clearTimeout(timeout);
+          window.removeEventListener("wallet-picker-select", handleSelect);
+          window.removeEventListener("wallet-picker-cancel", handleCancel);
+        };
+
+        const handleSelect = (e: Event) => {
+          cleanup();
+          const detail = (e as CustomEvent).detail as { address: string; chain: string; name?: string };
+          resolve({ address: detail.address, chain: detail.chain, name: detail.name });
+        };
+
+        const handleCancel = () => {
+          cleanup();
+          resolve(null);
+        };
+
+        window.addEventListener("wallet-picker-select", handleSelect);
+        window.addEventListener("wallet-picker-cancel", handleCancel);
+
+        push("WalletPickerJob", {
+          chain: "tron",
+          ...(appName ? { appName } : {}),
+          ...(appIcon ? { appIcon } : {}),
+        });
+      });
+    });
+
     return () => {
       getBridge().setPermissionRequestCallback(null);
       setWalletPicker(null);
+      setEvmWalletPicker(null);
+      setChainSwitchConfirm(null);
+      setEvmSigningDialog(null);
+      setEvmTransactionDialog(null);
+      setTronWalletPicker(null);
       setGetAccounts(null);
       setSigningDialog(null);
       setTransferDialog(null);

@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
+import { getChainType, getEvmChainIdFromApi } from '@/lib/chain'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -77,20 +79,72 @@ export default function App() {
       setError('Bio SDK 未初始化')
       return
     }
+    if (!selectedOption) {
+      setError('请选择兑换选项')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
-      // Select external chain account (for payment)
-      const extAcc = await window.bio.request<BioAccount>({
-        method: 'bio_selectAccount',
-        params: [{ chain: selectedOption?.externalChain?.toLowerCase() }],
-      })
+      const externalChain = selectedOption.externalChain
+      const chainType = getChainType(externalChain)
+
+      let extAcc: BioAccount
+
+      if (chainType === 'evm') {
+        // Use window.ethereum for EVM chains (ETH, BSC)
+        if (!window.ethereum) {
+          throw new Error('Ethereum provider not available')
+        }
+        const evmChainId = getEvmChainIdFromApi(externalChain)
+        if (evmChainId) {
+          // Switch to the correct chain first
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: evmChainId }],
+          })
+        }
+        // Request accounts
+        const accounts = await window.ethereum.request<string[]>({
+          method: 'eth_requestAccounts',
+        })
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned')
+        }
+        extAcc = {
+          address: accounts[0],
+          chain: normalizeChainId(externalChain),
+          publicKey: '', // EVM doesn't expose public key directly
+        }
+      } else if (chainType === 'tron') {
+        // Use window.tronLink for TRON
+        if (!window.tronLink) {
+          throw new Error('TronLink provider not available')
+        }
+        const result = await window.tronLink.request<{ code: number; message: string; data: { base58: string } }>({
+          method: 'tron_requestAccounts',
+        })
+        if (!result || result.code !== 200) {
+          throw new Error('TRON connection failed')
+        }
+        extAcc = {
+          address: result.data.base58,
+          chain: 'tron',
+          publicKey: '',
+        }
+      } else {
+        // Use bio_selectAccount for BioChain
+        extAcc = await window.bio.request<BioAccount>({
+          method: 'bio_selectAccount',
+          params: [{ chain: normalizeChainId(externalChain) }],
+        })
+      }
       setExternalAccount(extAcc)
 
-      // Select internal chain account (for receiving)
+      // Select internal chain account (for receiving) - always use bio
       const intAcc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{ chain: selectedOption?.internalChain }],
+        params: [{ chain: selectedOption.internalChain }],
       })
       setInternalAccount(intAcc)
 
@@ -136,11 +190,6 @@ export default function App() {
     forgeHook.reset()
   }, [forgeHook])
 
-  const handleSelectOption = (option: ForgeOption) => {
-    setSelectedOption(option)
-    setPickerOpen(false)
-  }
-
   // Group options by external chain for picker
   const groupedOptions = useMemo(() => {
     const groups: Record<string, ForgeOption[]> = {}
@@ -151,6 +200,19 @@ export default function App() {
     }
     return groups
   }, [forgeOptions])
+
+  const handleSelectOption = (option: ForgeOption) => {
+    setSelectedOption(option)
+    setPickerOpen(false)
+  }
+
+  const handleSelectExternalChain = useCallback((externalChain: string) => {
+    const options = groupedOptions[externalChain]
+    const first = options?.[0]
+    if (first) {
+      setSelectedOption(first)
+    }
+  }, [groupedOptions])
 
   return (
     <div className="relative min-h-screen w-full bg-background text-foreground">
@@ -232,8 +294,18 @@ export default function App() {
                 {forgeOptions.length > 0 && (
                   <div className="flex gap-2">
                     {Object.keys(groupedOptions).map((chain) => (
-                      <Badge key={chain} variant="outline">
-                        {getChainName(chain)}
+                      <Badge
+                        key={chain}
+                        asChild
+                        variant={selectedOption?.externalChain === chain ? 'secondary' : 'outline'}
+                        className={cn(
+                          'cursor-pointer select-none',
+                          selectedOption?.externalChain === chain && 'ring-2 ring-primary/40'
+                        )}
+                      >
+                        <button type="button" onClick={() => handleSelectExternalChain(chain)}>
+                          {getChainName(chain)}
+                        </button>
                       </Badge>
                     ))}
                   </div>
@@ -244,7 +316,7 @@ export default function App() {
                   size="lg" 
                   className="w-full max-w-xs h-12"
                   onClick={handleConnect} 
-                  disabled={loading || forgeOptions.length === 0}
+                  disabled={loading || forgeOptions.length === 0 || !selectedOption}
                 >
                   {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                   {loading ? t('connect.loading') : t('connect.button')}

@@ -47,6 +47,23 @@ const setupMockApi = () => {
   })
 }
 
+type EthereumRequest = (args: { method: string; params?: unknown[] }) => Promise<unknown>
+
+function setupMockEthereumProvider(opts?: {
+  accounts?: string[]
+}): void {
+  const accounts = opts?.accounts ?? ['0x1111111111111111111111111111111111111111']
+
+  const request: EthereumRequest = fn().mockImplementation(({ method }) => {
+    if (method === 'wallet_switchEthereumChain') return Promise.resolve(null)
+    if (method === 'eth_requestAccounts') return Promise.resolve(accounts)
+    if (method === 'eth_chainId') return Promise.resolve('0x1')
+    return Promise.resolve(null)
+  })
+
+  window.ethereum = { request } as unknown as typeof window.ethereum
+}
+
 const meta = {
   title: 'App/ForgeApp',
   component: App,
@@ -59,6 +76,7 @@ const meta = {
   decorators: [
     (Story) => {
       setupMockApi()
+      setupMockEthereumProvider()
       return (
         <div style={{ width: '375px', height: '667px', margin: '0 auto' }}>
           <Story />
@@ -103,14 +121,17 @@ export const SwapStep: Story = {
   decorators: [
     (Story) => {
       setupMockApi()
+      setupMockEthereumProvider()
       // Mock bio SDK with connected wallet
       // @ts-expect-error - mock global
       window.bio = {
-        request: fn().mockImplementation(({ method }: { method: string }) => {
+        request: fn().mockImplementation(({ method, params }: { method: string; params?: unknown[] }) => {
           if (method === 'bio_selectAccount') {
+            const chain = (params?.[0] as { chain?: string } | undefined)?.chain ?? 'bfmeta'
             return Promise.resolve({
-              address: '0x1234567890abcdef1234567890abcdef12345678',
-              chain: 'eth',
+              address: chain === 'bfmeta' ? 'bfmeta123' : '0x1234567890abcdef1234567890abcdef12345678',
+              chain,
+              publicKey: '0x',
             })
           }
           if (method === 'bio_closeSplashScreen') {
@@ -222,13 +243,16 @@ export const TokenPicker: Story = {
   decorators: [
     (Story) => {
       setupMockApi()
+      setupMockEthereumProvider()
       // @ts-expect-error - mock global
       window.bio = {
-        request: fn().mockImplementation(({ method }: { method: string }) => {
+        request: fn().mockImplementation(({ method, params }: { method: string; params?: unknown[] }) => {
           if (method === 'bio_selectAccount') {
+            const chain = (params?.[0] as { chain?: string } | undefined)?.chain ?? 'bfmeta'
             return Promise.resolve({
-              address: '0x1234567890abcdef1234567890abcdef12345678',
-              chain: 'eth',
+              address: chain === 'bfmeta' ? 'bfmeta123' : '0x1234567890abcdef1234567890abcdef12345678',
+              chain,
+              publicKey: '0x',
             })
           }
           if (method === 'bio_closeSplashScreen') {
@@ -286,17 +310,19 @@ export const LoadingState: Story = {
   decorators: [
     (Story) => {
       setupMockApi()
+      setupMockEthereumProvider()
       // Mock slow bio SDK
       // @ts-expect-error - mock global
       window.bio = {
-        request: fn().mockImplementation(({ method }: { method: string }) => {
+        request: fn().mockImplementation(({ method, params }: { method: string; params?: unknown[] }) => {
           if (method === 'bio_selectAccount') {
             // Simulate slow connection
             return new Promise((resolve) => {
               setTimeout(() => {
                 resolve({
-                  address: '0x123',
-                  chain: 'eth',
+                  address: ((params?.[0] as { chain?: string } | undefined)?.chain ?? 'bfmeta') === 'bfmeta' ? 'bfmeta123' : '0x123',
+                  chain: (params?.[0] as { chain?: string } | undefined)?.chain ?? 'bfmeta',
+                  publicKey: '0x',
                 })
               }, 10000)
             })
