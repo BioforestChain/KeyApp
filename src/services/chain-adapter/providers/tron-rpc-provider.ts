@@ -4,6 +4,7 @@
  * 提供 Tron 链的余额和区块高度查询能力。
  */
 
+import { z } from 'zod'
 import type { ApiProvider, Balance } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
@@ -21,6 +22,23 @@ interface TronBlockResponse {
     }
   }
 }
+
+const TronAccountSchema = z.looseObject({
+  balance: z.number().optional(),
+  address: z.string().optional(),
+})
+
+const TronNowBlockSchema = z.looseObject({
+  block_header: z
+    .looseObject({
+      raw_data: z
+        .looseObject({
+          number: z.number().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+})
 
 export class TronRpcProvider implements ApiProvider {
   readonly type: string
@@ -40,7 +58,7 @@ export class TronRpcProvider implements ApiProvider {
     this.decimals = chainConfigService.getDecimals(chainId)
   }
 
-  private async api<T>(path: string, body?: unknown): Promise<T> {
+  private async api<T>(path: string, schema: z.ZodType<T>, body?: unknown): Promise<T> {
     const url = `${this.endpoint}${path}`
     const init: RequestInit = body
       ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
@@ -51,13 +69,18 @@ export class TronRpcProvider implements ApiProvider {
       throw new Error(`HTTP ${response.status}`)
     }
 
-    return response.json() as Promise<T>
+    const json: unknown = await response.json()
+    const parsed = schema.safeParse(json)
+    if (!parsed.success) {
+      throw new Error('Invalid API response')
+    }
+    return parsed.data
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
     try {
       // Tron 地址需要转换为 hex 格式或使用 base58
-      const account = await this.api<TronAccountResponse>('/wallet/getaccount', {
+      const account = await this.api('/wallet/getaccount', TronAccountSchema, {
         address,
         visible: true,
       })
@@ -79,7 +102,7 @@ export class TronRpcProvider implements ApiProvider {
 
   async getBlockHeight(): Promise<bigint> {
     try {
-      const block = await this.api<TronBlockResponse>('/wallet/getnowblock')
+      const block = await this.api('/wallet/getnowblock', TronNowBlockSchema)
       const height = block.block_header?.raw_data?.number ?? 0
       return BigInt(height)
     } catch {

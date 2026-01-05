@@ -4,38 +4,53 @@
  * 提供 BioForest 链的余额和交易历史查询能力。
  */
 
+import { z } from 'zod'
 import type { ApiProvider, Balance, Transaction, TokenBalance } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 
-interface BiowalletAssetResponse {
-  success: boolean
-  result?: {
-    address: string
-    assets: Record<string, Record<string, { assetNumber: string; assetType: string }>>
-  }
-}
+const BiowalletAssetSchema = z.looseObject({
+  success: z.boolean(),
+  result: z.looseObject({
+    address: z.string(),
+    assets: z.record(z.record(z.looseObject({
+      assetNumber: z.string(),
+      assetType: z.string(),
+    }))),
+  }).optional(),
+})
 
-interface BiowalletTxResponse {
-  success: boolean
-  result?: {
-    transactions: Array<{
-      signature: string
-      senderAddress: string
-      receiverAddress: string
-      amount: string
-      assetType: string
-      timestamp: number
-      applyBlockHeight: number
-    }>
-  }
-}
+const BiowalletTxItemSchema = z.looseObject({
+  height: z.number(),
+  signature: z.string(),
+  transaction: z.looseObject({
+    senderId: z.string(),
+    recipientId: z.string(),
+    timestamp: z.number(),
+    asset: z.looseObject({
+      transferAsset: z.looseObject({
+        assetType: z.string(),
+        amount: z.string(),
+      }).optional(),
+    }).optional(),
+  }),
+})
 
-interface BiowalletBlockResponse {
-  success: boolean
-  result?: { height: number }
-}
+const BiowalletTxResponseSchema = z.looseObject({
+  success: z.boolean(),
+  result: z.looseObject({
+    trs: z.array(BiowalletTxItemSchema),
+    count: z.number(),
+  }).optional(),
+})
+
+const BiowalletBlockSchema = z.looseObject({
+  success: z.boolean(),
+  result: z.looseObject({
+    height: z.number(),
+  }).optional(),
+})
 
 export class BiowalletProvider implements ApiProvider {
   readonly type: string
@@ -73,14 +88,15 @@ export class BiowalletProvider implements ApiProvider {
         throw new Error(`HTTP ${response.status}`)
       }
 
-      const json = await response.json() as BiowalletAssetResponse
+      const json: unknown = await response.json()
+      const parsed = BiowalletAssetSchema.safeParse(json)
       
-      if (!json.success || !json.result) {
+      if (!parsed.success || !parsed.data.success || !parsed.data.result) {
         return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
       }
 
       // 查找原生代币余额
-      for (const magic of Object.values(json.result.assets)) {
+      for (const magic of Object.values(parsed.data.result.assets)) {
         for (const asset of Object.values(magic)) {
           if (asset.assetType === this.symbol) {
             return {
@@ -110,15 +126,16 @@ export class BiowalletProvider implements ApiProvider {
         throw new Error(`HTTP ${response.status}`)
       }
 
-      const json = await response.json() as BiowalletAssetResponse
+      const json: unknown = await response.json()
+      const parsed = BiowalletAssetSchema.safeParse(json)
       
-      if (!json.success || !json.result) {
+      if (!parsed.success || !parsed.data.success || !parsed.data.result) {
         return []
       }
 
       const tokens: TokenBalance[] = []
 
-      for (const magic of Object.values(json.result.assets)) {
+      for (const magic of Object.values(parsed.data.result.assets)) {
         for (const asset of Object.values(magic)) {
           const isNative = asset.assetType === this.symbol
           tokens.push({
@@ -150,10 +167,11 @@ export class BiowalletProvider implements ApiProvider {
       const blockResponse = await fetch(`${this.baseUrl}/lastblock`)
       if (!blockResponse.ok) return []
       
-      const blockJson = await blockResponse.json() as BiowalletBlockResponse
-      if (!blockJson.success || !blockJson.result) return []
+      const blockJson: unknown = await blockResponse.json()
+      const blockParsed = BiowalletBlockSchema.safeParse(blockJson)
+      if (!blockParsed.success || !blockParsed.data.success || !blockParsed.data.result) return []
       
-      const maxHeight = blockJson.result.height
+      const maxHeight = blockParsed.data.result.height
 
       // 查询交易
       const response = await fetch(`${this.baseUrl}/transactions/query`, {
@@ -168,20 +186,27 @@ export class BiowalletProvider implements ApiProvider {
 
       if (!response.ok) return []
 
-      const json = await response.json() as BiowalletTxResponse
+      const json: unknown = await response.json()
+      const parsed = BiowalletTxResponseSchema.safeParse(json)
       
-      if (!json.success || !json.result?.transactions) return []
+      if (!parsed.success || !parsed.data.success || !parsed.data.result?.trs) return []
 
-      return json.result.transactions.map((tx): Transaction => ({
-        hash: tx.signature,
-        from: tx.senderAddress,
-        to: tx.receiverAddress,
-        value: tx.amount,
-        symbol: tx.assetType,
-        timestamp: tx.timestamp,
-        status: 'confirmed',
-        blockNumber: BigInt(tx.applyBlockHeight),
-      }))
+      return parsed.data.result.trs
+        .filter(item => item.transaction?.asset?.transferAsset)
+        .map((item): Transaction => {
+          const tx = item.transaction
+          const transfer = tx.asset!.transferAsset!
+          return {
+            hash: item.signature,
+            from: tx.senderId,
+            to: tx.recipientId,
+            value: transfer.amount,
+            symbol: transfer.assetType,
+            timestamp: tx.timestamp * 1000,
+            status: 'confirmed',
+            blockNumber: BigInt(item.height),
+          }
+        })
     } catch (error) {
       console.warn('[BiowalletProvider] Error fetching transactions:', error)
       return []
@@ -193,10 +218,11 @@ export class BiowalletProvider implements ApiProvider {
       const response = await fetch(`${this.baseUrl}/lastblock`)
       if (!response.ok) return 0n
       
-      const json = await response.json() as BiowalletBlockResponse
-      if (!json.success || !json.result) return 0n
+      const json: unknown = await response.json()
+      const parsed = BiowalletBlockSchema.safeParse(json)
+      if (!parsed.success || !parsed.data.success || !parsed.data.result) return 0n
       
-      return BigInt(json.result.height)
+      return BigInt(parsed.data.result.height)
     } catch {
       return 0n
     }

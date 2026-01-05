@@ -5,6 +5,7 @@
  * 支持 Etherscan v2 API (统一接口，通过 chainid 区分链)
  */
 
+import { z } from 'zod'
 import type { ApiProvider, Transaction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
@@ -17,21 +18,21 @@ const EVM_CHAIN_IDS: Record<string, number> = {
   'bsc-testnet': 97,
 }
 
-interface EtherscanTx {
-  hash: string
-  from: string
-  to: string
-  value: string
-  timeStamp: string
-  isError: string
-  blockNumber: string
-}
+const EtherscanTxSchema = z.looseObject({
+  hash: z.string(),
+  from: z.string(),
+  to: z.string(),
+  value: z.string(),
+  timeStamp: z.string(),
+  isError: z.string(),
+  blockNumber: z.string(),
+})
 
-interface EtherscanResponse {
-  status: string
-  message: string
-  result: EtherscanTx[] | string
-}
+const EtherscanResponseSchema = z.looseObject({
+  status: z.string(),
+  message: z.string(),
+  result: z.union([z.array(EtherscanTxSchema), z.string()]),
+})
 
 export class EtherscanProvider implements ApiProvider {
   readonly type: string
@@ -80,14 +81,15 @@ export class EtherscanProvider implements ApiProvider {
         return []
       }
 
-      const json = await response.json() as EtherscanResponse
+      const json: unknown = await response.json()
+      const parsed = EtherscanResponseSchema.safeParse(json)
       
-      if (json.status !== '1' || !Array.isArray(json.result)) {
+      if (!parsed.success || parsed.data.status !== '1' || !Array.isArray(parsed.data.result)) {
         // status !== '1' 可能是 "No transactions found" 等情况
         return []
       }
 
-      return json.result.map((tx): Transaction => ({
+      return parsed.data.result.map((tx): Transaction => ({
         hash: tx.hash,
         from: tx.from,
         to: tx.to,

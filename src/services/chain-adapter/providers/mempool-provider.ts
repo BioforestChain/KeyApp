@@ -4,6 +4,7 @@
  * 提供 Bitcoin 链的余额、交易历史和区块高度查询能力。
  */
 
+import { z } from 'zod'
 import type { ApiProvider, Balance, Transaction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
@@ -40,6 +41,43 @@ interface MempoolTx {
   }>
 }
 
+const MempoolAddressInfoSchema = z.looseObject({
+  address: z.string().optional(),
+  chain_stats: z.looseObject({
+    funded_txo_sum: z.number(),
+    spent_txo_sum: z.number(),
+  }),
+  mempool_stats: z.looseObject({
+    funded_txo_sum: z.number(),
+    spent_txo_sum: z.number(),
+  }),
+})
+
+const MempoolTxSchema = z.looseObject({
+  txid: z.string(),
+  status: z.looseObject({
+    confirmed: z.boolean(),
+    block_height: z.number().optional(),
+    block_time: z.number().optional(),
+  }),
+  vin: z.array(
+    z.looseObject({
+      prevout: z
+        .looseObject({
+          scriptpubkey_address: z.string().optional(),
+          value: z.number(),
+        })
+        .optional(),
+    })
+  ),
+  vout: z.array(
+    z.looseObject({
+      scriptpubkey_address: z.string().optional(),
+      value: z.number(),
+    })
+  ),
+})
+
 export class MempoolProvider implements ApiProvider {
   readonly type: string
   readonly endpoint: string
@@ -58,17 +96,23 @@ export class MempoolProvider implements ApiProvider {
     this.decimals = chainConfigService.getDecimals(chainId)
   }
 
-  private async api<T>(path: string): Promise<T> {
+  private async api<T>(path: string, schema: z.ZodType<T>): Promise<T> {
     const response = await fetch(`${this.endpoint}${path}`)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
-    return response.json() as Promise<T>
+
+    const json: unknown = await response.json()
+    const parsed = schema.safeParse(json)
+    if (!parsed.success) {
+      throw new Error('Invalid API response')
+    }
+    return parsed.data
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
     try {
-      const info = await this.api<MempoolAddressInfo>(`/address/${address}`)
+      const info = await this.api(`/address/${address}`, MempoolAddressInfoSchema)
       
       // 计算余额：已收到 - 已花费
       const confirmed = info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum
@@ -90,7 +134,7 @@ export class MempoolProvider implements ApiProvider {
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
     try {
-      const txs = await this.api<MempoolTx[]>(`/address/${address}/txs`)
+      const txs = await this.api(`/address/${address}/txs`, z.array(MempoolTxSchema))
       
       return txs.slice(0, limit).map((tx): Transaction => {
         // 判断是发送还是接收
@@ -140,7 +184,7 @@ export class MempoolProvider implements ApiProvider {
 
   async getBlockHeight(): Promise<bigint> {
     try {
-      const height = await this.api<number>('/blocks/tip/height')
+      const height = await this.api('/blocks/tip/height', z.number())
       return BigInt(height)
     } catch {
       return 0n
