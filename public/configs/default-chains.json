@@ -175,7 +175,7 @@
       "decimals": 18,
       "api": {
         "bsc-rpc": "https://bsc-rpc.publicnode.com",
-        "bscscan-v2": "https://api.bscscan.com/v2/api"
+        "bscwallet-v1": "https://walletapi.bfmeta.info/wallet/bsc"
       },
       "explorer": {
         "url": "https://bscscan.com",

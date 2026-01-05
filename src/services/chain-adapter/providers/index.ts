@@ -11,6 +11,7 @@ export { ChainProvider } from './chain-provider'
 export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider'
 export { EvmRpcProvider, createEvmRpcProvider } from './evm-rpc-provider'
 export { BiowalletProvider, createBiowalletProvider } from './biowallet-provider'
+export { BscWalletProvider, createBscWalletProvider } from './bscwallet-provider'
 export { TronRpcProvider, createTronRpcProvider } from './tron-rpc-provider'
 export { MempoolProvider, createMempoolProvider } from './mempool-provider'
 
@@ -27,6 +28,7 @@ import { ChainProvider } from './chain-provider'
 import { createEtherscanProvider } from './etherscan-provider'
 import { createEvmRpcProvider } from './evm-rpc-provider'
 import { createBiowalletProvider } from './biowallet-provider'
+import { createBscWalletProvider } from './bscwallet-provider'
 import { createTronRpcProvider } from './tron-rpc-provider'
 import { createMempoolProvider } from './mempool-provider'
 import { WrappedTransactionProvider } from './wrapped-transaction-provider'
@@ -49,6 +51,7 @@ import { BioforestTransactionService } from '../bioforest/transaction-service'
 /** 所有 Provider 工厂函数 */
 const PROVIDER_FACTORIES: ApiProviderFactory[] = [
   createBiowalletProvider,
+  createBscWalletProvider,
   createEtherscanProvider,
   createEvmRpcProvider,
   createTronRpcProvider,
