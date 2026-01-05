@@ -27,13 +27,24 @@ const makeEvmConfig = (id: string): ChainConfig => ({
   source: 'default',
 })
 
-const makeBip39Config = (id: string, decimals = 8): ChainConfig => ({
+const makeBitcoinConfig = (id: string): ChainConfig => ({
   id,
   version: '1.0',
   chainKind: 'bitcoin',
   name: id,
   symbol: id.toUpperCase(),
-  decimals,
+  decimals: 8,
+  enabled: true,
+  source: 'default',
+})
+
+const makeTronConfig = (id: string): ChainConfig => ({
+  id,
+  version: '1.0',
+  chainKind: 'tron',
+  name: id,
+  symbol: id.toUpperCase(),
+  decimals: 6,
   enabled: true,
   source: 'default',
 })
@@ -86,30 +97,25 @@ describe('deriveAddressesForChains', () => {
     })
   })
 
-  describe('bip39 chains', () => {
+  describe('bitcoin chains', () => {
     it('derives Bitcoin address (Native SegWit)', () => {
-      const configs = [makeBip39Config('bitcoin')]
+      const configs = [makeBitcoinConfig('bitcoin')]
       const addresses = deriveAddressesForChains(TEST_MNEMONIC, configs)
-      
+
       expect(addresses).toHaveLength(1)
       // Native SegWit addresses start with bc1q
       expect(addresses[0]!.address.startsWith('bc1q')).toBe(true)
     })
+  })
 
+  describe('tron chains', () => {
     it('derives Tron address', () => {
-      const configs = [makeBip39Config('tron', 6)]
+      const configs = [makeTronConfig('tron')]
       const addresses = deriveAddressesForChains(TEST_MNEMONIC, configs)
-      
+
       expect(addresses).toHaveLength(1)
       // Tron addresses start with T
       expect(addresses[0]!.address.startsWith('T')).toBe(true)
-    })
-
-    it('skips unknown bip39 chains', () => {
-      const configs = [makeBip39Config('unknown-chain')]
-      const addresses = deriveAddressesForChains(TEST_MNEMONIC, configs)
-      
-      expect(addresses).toHaveLength(0)
     })
   })
 
@@ -118,13 +124,13 @@ describe('deriveAddressesForChains', () => {
       const configs = [
         makeBioforestConfig('bfmeta'),
         makeEvmConfig('ethereum'),
-        makeBip39Config('bitcoin'),
-        makeBip39Config('tron', 6),
+        makeBitcoinConfig('bitcoin'),
+        makeTronConfig('tron'),
       ]
       const addresses = deriveAddressesForChains(TEST_MNEMONIC, configs)
-      
+
       expect(addresses).toHaveLength(4)
-      
+
       const addressMap = new Map(addresses.map((a) => [a.chainId, a.address]))
       expect(addressMap.get('bfmeta')!.startsWith('b')).toBe(true)
       expect(addressMap.get('ethereum')!.startsWith('0x')).toBe(true)
@@ -140,13 +146,10 @@ describe('deriveAddressesForChains', () => {
 })
 
 describe('canDeriveForChainType', () => {
-  it('returns true for supported chain types', () => {
+  it('returns true for all supported chain kinds', () => {
     expect(canDeriveForChainType('bioforest')).toBe(true)
     expect(canDeriveForChainType('evm')).toBe(true)
-    expect(canDeriveForChainType('bip39')).toBe(true)
-  })
-
-  it('returns false for unsupported chain types', () => {
-    expect(canDeriveForChainType('custom')).toBe(false)
+    expect(canDeriveForChainType('bitcoin')).toBe(true)
+    expect(canDeriveForChainType('tron')).toBe(true)
   })
 })

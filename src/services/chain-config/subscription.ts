@@ -28,26 +28,11 @@ export type FetchSubscriptionResult =
 
 const REQUEST_TIMEOUT = 10_000
 
-const KNOWN_TYPES = new Set(['bioforest', 'evm', 'bip39', 'custom'] as const)
-
-function normalizeUnknownType(input: unknown): unknown {
-  if (typeof input !== 'object' || input === null || Array.isArray(input)) return input
-  const record = input as Record<string, unknown>
-
-  const type = record.type
-  if (typeof type === 'string' && !KNOWN_TYPES.has(type as never)) {
-    return { ...record, chainKind: 'custom' }
-  }
-
-  return input
-}
-
 export function parseAndValidate(json: unknown): ChainConfig[] {
-  const normalized: unknown = Array.isArray(json) ? json.map(normalizeUnknownType) : normalizeUnknownType(json)
-
-  const parsed = Array.isArray(normalized)
-    ? ChainConfigListSchema.parse(normalized)
-    : [ChainConfigSchema.parse(normalized)]
+  // Strict validation: unknown chainKind will fail schema validation directly
+  const parsed = Array.isArray(json)
+    ? ChainConfigListSchema.parse(json)
+    : [ChainConfigSchema.parse(json)]
 
   return parsed.map((c) => ({
     ...c,

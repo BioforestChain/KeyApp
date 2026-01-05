@@ -1,13 +1,14 @@
 /**
  * Unified Address Derivation
- * 
- * Supports deriving addresses for all chain types:
+ *
+ * Supports deriving addresses for all chain kinds:
  * - bioforest: Ed25519-based chains (BFMeta, CCChain, etc.)
  * - evm: Ethereum-compatible chains (Ethereum, BSC, etc.)
- * - bip39: BIP44-based chains (Bitcoin, Tron)
+ * - bitcoin: BIP84 Native SegWit (bc1q...)
+ * - tron: TRC-20 compatible (T...)
  */
 
-import type { ChainConfig } from '@/services/chain-config'
+import type { ChainConfig, ChainKind } from '@/services/chain-config'
 import { deriveBioforestAddressesFromChainConfigs } from './bioforest'
 import { deriveKey, deriveBitcoinKey, type BitcoinPurpose } from './derivation'
 
@@ -31,10 +32,11 @@ export function deriveAddressesForChains(
 ): DerivedAddress[] {
   const results: DerivedAddress[] = []
 
-  // Group chains by type
+  // Group chains by chainKind
   const bioforestChains = chainConfigs.filter((c) => c.chainKind === 'bioforest')
   const evmChains = chainConfigs.filter((c) => c.chainKind === 'evm')
-  const bip39Chains = chainConfigs.filter((c) => c.chainKind === 'bitcoin')
+  const bitcoinChains = chainConfigs.filter((c) => c.chainKind === 'bitcoin')
+  const tronChains = chainConfigs.filter((c) => c.chainKind === 'tron')
 
   // Derive bioforest addresses (Ed25519-based, same address for all chains with same prefix)
   if (bioforestChains.length > 0) {
@@ -54,14 +56,26 @@ export function deriveAddressesForChains(
     }
   }
 
-  // Derive BIP39 addresses (chain-specific derivation paths)
-  for (const chain of bip39Chains) {
-    const derived = deriveBip39Key(secret, chain)
-    if (derived) {
+  // Derive Bitcoin addresses (BIP84 Native SegWit)
+  if (bitcoinChains.length > 0) {
+    const btcKey = deriveBitcoinKey(secret, 84 as BitcoinPurpose, 0, 0)
+    for (const chain of bitcoinChains) {
       results.push({
         chainId: chain.id,
-        address: derived.address,
-        publicKey: derived.publicKey,
+        address: btcKey.address,
+        publicKey: btcKey.publicKey,
+      })
+    }
+  }
+
+  // Derive Tron addresses
+  if (tronChains.length > 0) {
+    const tronKey = deriveKey(secret, 'tron', 0, 0)
+    for (const chain of tronChains) {
+      results.push({
+        chainId: chain.id,
+        address: tronKey.address,
+        publicKey: tronKey.publicKey,
       })
     }
   }
@@ -70,29 +84,8 @@ export function deriveAddressesForChains(
 }
 
 /**
- * Derive key for a BIP39-based chain
+ * Check if a mnemonic can derive addresses for the given chain kind
  */
-function deriveBip39Key(secret: string, chain: ChainConfig): { address: string; publicKey: string } | null {
-  switch (chain.id) {
-    case 'bitcoin': {
-      // Use Native SegWit (BIP84) as default for Bitcoin
-      const btcKey = deriveBitcoinKey(secret, 84 as BitcoinPurpose, 0, 0)
-      return { address: btcKey.address, publicKey: btcKey.publicKey }
-    }
-    case 'tron': {
-      const tronKey = deriveKey(secret, 'tron', 0, 0)
-      return { address: tronKey.address, publicKey: tronKey.publicKey }
-    }
-    default:
-      // Unknown BIP39 chain - skip
-      console.warn(`[deriveAddressesForChains] Unknown BIP39 chain: ${chain.id}`)
-      return null
-  }
-}
-
-/**
- * Check if a mnemonic can derive addresses for the given chain type
- */
-export function canDeriveForChainType(chainType: ChainConfig['type']): boolean {
-  return chainType === 'bioforest' || chainType === 'evm' || chainType === 'bip39'
+export function canDeriveForChainType(chainKind: ChainKind): boolean {
+  return chainKind === 'bioforest' || chainKind === 'evm' || chainKind === 'bitcoin' || chainKind === 'tron'
 }

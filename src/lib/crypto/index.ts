@@ -33,6 +33,7 @@ export {
   deriveKey,
   deriveMultiChainKeys,
   deriveHDKey,
+  deriveBitcoinKey,
   getBIP44Path,
   toChecksumAddress,
   isValidAddress,
@@ -40,6 +41,7 @@ export {
   deriveEncryptionKeyFromSecret,
   type DerivedKey,
   type ChainType as DeriveChainType,
+  type BitcoinPurpose,
 } from './derivation'
 
 // Unified address derivation for all chain types

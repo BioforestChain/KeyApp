@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { BitcoinAdapter } from '../bitcoin'
 import type { ChainConfig } from '@/services/chain-config'
-import { mnemonicToSeedSync } from '@scure/bip39'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+// Identity service expects UTF-8 encoded mnemonic
+const mnemonicAsUint8 = new TextEncoder().encode(TEST_MNEMONIC)
 
 const btcConfig: ChainConfig = {
   id: 'bitcoin',
@@ -21,19 +22,17 @@ describe('BitcoinAdapter', () => {
 
   describe('BitcoinIdentityService', () => {
     it('derives correct P2WPKH address from mnemonic', async () => {
-      const seed = mnemonicToSeedSync(TEST_MNEMONIC)
-      const address = await adapter.identity.deriveAddress(seed, 0)
-      
+      const address = await adapter.identity.deriveAddress(mnemonicAsUint8, 0)
+
       // P2WPKH (bc1q...) address for this mnemonic at BIP84 path m/84'/0'/0'/0/0
       expect(address).toMatch(/^bc1q[a-z0-9]{38,}$/)
       expect(address.startsWith('bc1q')).toBe(true)
     })
 
     it('derives different addresses for different indices', async () => {
-      const seed = mnemonicToSeedSync(TEST_MNEMONIC)
-      const addr0 = await adapter.identity.deriveAddress(seed, 0)
-      const addr1 = await adapter.identity.deriveAddress(seed, 1)
-      
+      const addr0 = await adapter.identity.deriveAddress(mnemonicAsUint8, 0)
+      const addr1 = await adapter.identity.deriveAddress(mnemonicAsUint8, 1)
+
       expect(addr0).not.toBe(addr1)
     })
 

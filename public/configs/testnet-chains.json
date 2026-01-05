@@ -1,62 +1,73 @@
-[
-  {
-    "id": "ethereum-sepolia",
-    "version": "1.0",
-    "type": "evm",
-    "name": "Ethereum Sepolia",
-    "symbol": "SepoliaETH",
-    "icon": "../icons/ethereum/chain.svg",
-    "decimals": 18,
-    "api": { "url": "https://rpc.sepolia.org", "path": "eth" },
-    "explorer": {
-      "url": "https://sepolia.etherscan.io",
-      "queryTx": "https://sepolia.etherscan.io/tx/:hash",
-      "queryAddress": "https://sepolia.etherscan.io/address/:address"
+{
+  "version": "2.0.0",
+  "chains": [
+    {
+      "id": "ethereum-sepolia",
+      "version": "1.0",
+      "chainKind": "evm",
+      "name": "Ethereum Sepolia",
+      "symbol": "SepoliaETH",
+      "icon": "../icons/ethereum/chain.svg",
+      "decimals": 18,
+      "api": {
+        "ethereum-rpc": "https://rpc.sepolia.org"
+      },
+      "explorer": {
+        "url": "https://sepolia.etherscan.io",
+        "queryTx": "https://sepolia.etherscan.io/tx/:hash",
+        "queryAddress": "https://sepolia.etherscan.io/address/:address"
+      }
+    },
+    {
+      "id": "bsc-testnet",
+      "version": "1.0",
+      "chainKind": "evm",
+      "name": "BSC Testnet",
+      "symbol": "tBNB",
+      "icon": "../icons/binance/chain.svg",
+      "decimals": 18,
+      "api": {
+        "ethereum-rpc": "https://bsc-testnet-rpc.publicnode.com"
+      },
+      "explorer": {
+        "url": "https://testnet.bscscan.com",
+        "queryTx": "https://testnet.bscscan.com/tx/:hash",
+        "queryAddress": "https://testnet.bscscan.com/address/:address"
+      }
+    },
+    {
+      "id": "tron-nile",
+      "version": "1.0",
+      "chainKind": "tron",
+      "name": "Tron Nile Testnet",
+      "symbol": "TRX",
+      "icon": "../icons/tron/chain.svg",
+      "decimals": 6,
+      "api": {
+        "tron-rpc": "https://nile.trongrid.io"
+      },
+      "explorer": {
+        "url": "https://nile.tronscan.org",
+        "queryTx": "https://nile.tronscan.org/#/transaction/:hash",
+        "queryAddress": "https://nile.tronscan.org/#/address/:address"
+      }
+    },
+    {
+      "id": "bitcoin-signet",
+      "version": "1.0",
+      "chainKind": "bitcoin",
+      "name": "Bitcoin Signet",
+      "symbol": "sBTC",
+      "icon": "../icons/bitcoin/chain.svg",
+      "decimals": 8,
+      "api": {
+        "mempool-v1": "https://mempool.space/signet/api"
+      },
+      "explorer": {
+        "url": "https://mempool.space/signet",
+        "queryTx": "https://mempool.space/signet/tx/:hash",
+        "queryAddress": "https://mempool.space/signet/address/:address"
+      }
     }
-  },
-  {
-    "id": "bsc-testnet",
-    "version": "1.0",
-    "type": "evm",
-    "name": "BSC Testnet",
-    "symbol": "tBNB",
-    "icon": "../icons/binance/chain.svg",
-    "decimals": 18,
-    "api": { "url": "https://bsc-testnet-rpc.publicnode.com", "path": "bnb" },
-    "explorer": {
-      "url": "https://testnet.bscscan.com",
-      "queryTx": "https://testnet.bscscan.com/tx/:hash",
-      "queryAddress": "https://testnet.bscscan.com/address/:address"
-    }
-  },
-  {
-    "id": "tron-nile",
-    "version": "1.0",
-    "type": "bip39",
-    "name": "Tron Nile Testnet",
-    "symbol": "TRX",
-    "icon": "../icons/tron/chain.svg",
-    "decimals": 6,
-    "api": { "url": "https://nile.trongrid.io", "path": "tron" },
-    "explorer": {
-      "url": "https://nile.tronscan.org",
-      "queryTx": "https://nile.tronscan.org/#/transaction/:hash",
-      "queryAddress": "https://nile.tronscan.org/#/address/:address"
-    }
-  },
-  {
-    "id": "bitcoin-signet",
-    "version": "1.0",
-    "type": "bip39",
-    "name": "Bitcoin Signet",
-    "symbol": "sBTC",
-    "icon": "../icons/bitcoin/chain.svg",
-    "decimals": 8,
-    "api": { "url": "https://mempool.space/signet/api", "path": "btc" },
-    "explorer": {
-      "url": "https://mempool.space/signet",
-      "queryTx": "https://mempool.space/signet/tx/:hash",
-      "queryAddress": "https://mempool.space/signet/address/:address"
-    }
-  }
-]
+  ]
+}

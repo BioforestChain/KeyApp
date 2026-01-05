@@ -16,7 +16,7 @@ describe('chain-config subscription', () => {
     const single = parseAndValidate({
       id: 'one',
       version: '1.0',
-      chainKind: 'custom',
+      chainKind: 'evm',
       name: 'One',
       symbol: 'ONE',
       decimals: 8,
@@ -28,7 +28,7 @@ describe('chain-config subscription', () => {
       {
         id: 'two',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'Two',
         symbol: 'TWO',
         decimals: 8,
@@ -52,7 +52,7 @@ describe('chain-config subscription', () => {
       ChainConfigSchema.parse({
         id: 'cached',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'Cached',
         symbol: 'C',
         decimals: 8,
@@ -83,7 +83,7 @@ describe('chain-config subscription', () => {
     const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async () => {
       return new Response(
         JSON.stringify([
-          { id: 'new', version: '1.0', chainKind: 'custom', name: 'New', symbol: 'NEW', decimals: 8 },
+          { id: 'new', version: '1.0', chainKind: 'evm', name: 'New', symbol: 'NEW', decimals: 8 },
         ]),
         {
           status: 200,
@@ -111,7 +111,7 @@ describe('chain-config subscription', () => {
       ChainConfigSchema.parse({
         id: 'cached',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'Cached',
         symbol: 'C',
         decimals: 8,
