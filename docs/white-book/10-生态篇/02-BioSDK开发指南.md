@@ -13,6 +13,11 @@ pnpm add @biochain/bio-sdk
 ```typescript
 import '@biochain/bio-sdk'
 
+// KeyApp Miniapp 环境会注入:
+// - window.bio        (KeyApp/BioChain 专用 API)
+// - window.ethereum   (EIP-1193 兼容，面向 EVM: Ethereum/BSC)
+// - window.tronWeb / window.tronLink (TronLink 兼容，面向 TRON)
+
 // window.bio 现在可用
 async function connect() {
   const accounts = await window.bio.request({
@@ -21,6 +26,16 @@ async function connect() {
   console.log('Connected accounts:', accounts)
 }
 ```
+
+## 链标识（非常重要）
+
+KeyApp 内部链 ID 与常见外部标识存在差异：
+
+- `ETH` / `eth` / `0x1` → `ethereum`
+- `BSC` / `bsc` / `0x38` → `binance`
+- `TRON` / `tron` → `tron`
+
+建议在调用 `window.bio` 的 `chain` 参数时使用 KeyApp 内部 ID（`ethereum` / `binance` / `tron`），避免出现“暂无支持 bsc 的钱包”这类匹配失败。
 
 ## API 参考
 
@@ -161,7 +176,7 @@ const result = await window.bio.request<{ txHash: string }>({
 
 ```typescript
 type BioUnsignedTransaction = {
-  chain: string
+  chainId: string
   data: unknown
 }
 
@@ -182,9 +197,9 @@ const unsignedTx = await window.bio.request<BioUnsignedTransaction>({
 
 ```typescript
 type BioSignedTransaction = {
-  chain: string
-  raw: string // 链特定的 raw tx（例如 EVM 的 RLP hex）
-  signature?: string
+  chainId: string
+  data: unknown // 链特定的签名产物（例如 EVM 的 raw tx hex）
+  signature: string
 }
 
 const signedTx = await window.bio.request<BioSignedTransaction>({
@@ -195,6 +210,33 @@ const signedTx = await window.bio.request<BioSignedTransaction>({
     unsignedTx
   }]
 })
+```
+
+## EVM Provider（window.ethereum）
+
+面向传统 dApp（EIP-1193 规范）的注入对象：`window.ethereum`。
+
+常用示例：
+
+```typescript
+const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+```
+
+当前支持（按需逐步完善）：
+
+- `eth_chainId` / `eth_accounts` / `eth_requestAccounts`
+- `wallet_switchEthereumChain`
+- `personal_sign` / `eth_sign` / `eth_signTypedData_v4`
+
+## TRON Provider（window.tronLink / window.tronWeb）
+
+面向 TronLink 生态的注入对象：`window.tronLink` 与 `window.tronWeb`（兼容常见调用路径）。
+
+常用示例：
+
+```typescript
+const result = await window.tronLink.request({ method: 'tron_requestAccounts' })
 ```
 
 ## 事件

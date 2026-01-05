@@ -83,12 +83,12 @@ export interface HandlerCallbacks {
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
 
   // EVM (Ethereum/BSC) callbacks
-  showEvmWalletPicker?: (opts: { chainId: string }) => Promise<BioAccount | null>
+  showEvmWalletPicker?: (opts: { chainId: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   showEvmSigningDialog?: (params: EvmSigningParams) => Promise<{ signature: string } | null>
   showEvmTransactionDialog?: (params: EvmTransactionParams) => Promise<{ txHash: string } | null>
 
   // TRON callbacks
-  showTronWalletPicker?: () => Promise<BioAccount | null>
+  showTronWalletPicker?: (opts?: { app?: MiniappInfo }) => Promise<BioAccount | null>
   showTronSigningDialog?: (params: TronSigningParams) => Promise<{ signedTransaction: TronTransaction } | null>
 }
 

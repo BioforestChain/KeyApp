@@ -4,9 +4,9 @@
 
 import { useState, useCallback } from 'react'
 import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { rechargeApi } from '@/api'
 import { encodeRechargeV2ToTrInfoData, createRechargeMessage } from '@/api/helpers'
-import { getChainType } from '@/lib/chain'
 import type {
   ExternalChainName,
   FromTrJson,
@@ -41,111 +41,24 @@ export interface ForgeParams {
   internalAccount: BioAccount
 }
 
-/** EVM signed transaction result */
-interface EvmSignedTransaction {
-  txHash: string
-  signedData: string
-}
-
-/** TRON signed transaction result */
-interface TronSignedTransaction {
-  txID: string
-  signature: string[]
-  raw_data: unknown
-}
-
-/** Union type for signed transactions */
-type SignedTransactionResult = BioSignedTransaction | EvmSignedTransaction | TronSignedTransaction
-
 /**
  * Build FromTrJson from signed transaction
  */
-function buildFromTrJson(chain: ExternalChainName, signedTx: SignedTransactionResult): FromTrJson {
+function buildFromTrJson(chain: ExternalChainName, signedTx: BioSignedTransaction): FromTrJson {
+  const signTransData = typeof signedTx.data === 'string'
+    ? signedTx.data
+    : JSON.stringify(signedTx.data)
+
   switch (chain) {
-    case 'ETH': {
-      const evmTx = signedTx as EvmSignedTransaction
-      return { eth: { signTransData: evmTx.signedData } }
-    }
-    case 'BSC': {
-      const evmTx = signedTx as EvmSignedTransaction
-      return { bsc: { signTransData: evmTx.signedData } }
-    }
-    case 'TRON': {
-      const tronTx = signedTx as TronSignedTransaction
-      return { tron: tronTx }
-    }
+    case 'ETH':
+      return { eth: { signTransData } }
+    case 'BSC':
+      return { bsc: { signTransData } }
+    case 'TRON':
+      return { tron: signedTx.data }
     default:
       throw new Error(`Unsupported chain: ${chain}`)
   }
-}
-
-/**
- * Sign EVM transaction using window.ethereum
- */
-async function signEvmTransaction(
-  from: string,
-  to: string,
-  amount: string,
-  _asset: string
-): Promise<EvmSignedTransaction> {
-  if (!window.ethereum) {
-    throw new Error('Ethereum provider not available')
-  }
-
-  // Convert amount to wei (assuming 18 decimals for native token)
-  // For USDT, we'd need to handle ERC20 transfer differently
-  const valueInWei = BigInt(Math.floor(parseFloat(amount) * 1e18)).toString(16)
-
-  const txHash = await window.ethereum.request<string>({
-    method: 'eth_sendTransaction',
-    params: [{
-      from,
-      to,
-      value: `0x${valueInWei}`,
-    }],
-  })
-
-  if (!txHash) {
-    throw new Error('Transaction failed')
-  }
-
-  return {
-    txHash,
-    signedData: txHash, // For EVM, txHash is returned after broadcast
-  }
-}
-
-/**
- * Sign TRON transaction using window.tronLink
- */
-async function signTronTransaction(
-  from: string,
-  to: string,
-  amount: string,
-  _asset: string
-): Promise<TronSignedTransaction> {
-  if (!window.tronWeb || !window.tronLink) {
-    throw new Error('TronLink provider not available')
-  }
-
-  // Convert amount to SUN (1 TRX = 1,000,000 SUN)
-  const amountInSun = Math.floor(parseFloat(amount) * 1e6)
-
-  // Create unsigned transaction via tronWeb
-  // Note: In real implementation, we'd use tronWeb.transactionBuilder
-  // For now, we'll use the simplified tron_signTransaction method
-  const unsignedTx = {
-    to_address: to,
-    owner_address: from,
-    amount: amountInSun,
-  }
-
-  const signedTx = await window.tronLink.request({
-    method: 'tron_signTransaction',
-    params: unsignedTx,
-  })
-
-  return signedTx as TronSignedTransaction
 }
 
 export function useForge() {
@@ -180,47 +93,27 @@ export function useForge() {
       // Step 1: Create and sign external chain transaction
       setState({ step: 'signing_external', orderId: null, error: null })
 
-      const chainType = getChainType(externalChain)
-      let signedTx: SignedTransactionResult
+      const externalKeyAppChainId = normalizeChainId(externalChain)
 
-      if (chainType === 'evm') {
-        // Use window.ethereum for EVM chains (ETH, BSC)
-        signedTx = await signEvmTransaction(
-          externalAccount.address,
-          depositAddress,
+      const unsignedTx = await window.bio.request({
+        method: 'bio_createTransaction',
+        params: [{
+          from: externalAccount.address,
+          to: depositAddress,
           amount,
-          externalAsset
-        )
-      } else if (chainType === 'tron') {
-        // Use window.tronLink for TRON
-        signedTx = await signTronTransaction(
-          externalAccount.address,
-          depositAddress,
-          amount,
-          externalAsset
-        )
-      } else {
-        // Use bio_createTransaction + bio_signTransaction for BioChain
-        const unsignedTx = await window.bio.request({
-          method: 'bio_createTransaction',
-          params: [{
-            from: externalAccount.address,
-            to: depositAddress,
-            amount,
-            chain: externalChain.toLowerCase(),
-            asset: externalAsset,
-          }],
-        })
+          chain: externalKeyAppChainId,
+          asset: externalAsset,
+        }],
+      })
 
-        signedTx = await window.bio.request<BioSignedTransaction>({
-          method: 'bio_signTransaction',
-          params: [{
-            from: externalAccount.address,
-            chain: externalChain.toLowerCase(),
-            unsignedTx,
-          }],
-        })
-      }
+      const signedTx = await window.bio.request<BioSignedTransaction>({
+        method: 'bio_signTransaction',
+        params: [{
+          from: externalAccount.address,
+          chain: externalKeyAppChainId,
+          unsignedTx,
+        }],
+      })
 
       // Step 2: Sign internal chain message
       setState({ step: 'signing_internal', orderId: null, error: null })

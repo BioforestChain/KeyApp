@@ -1,12 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { useState, useEffect } from 'react'
-import { ChainSwitchConfirmJob } from '../ChainSwitchConfirmJob'
-import { ActivityParamsProvider } from '../../../hooks'
-import { BottomSheet } from '@/components/layout/bottom-sheet'
+import { useState } from 'react'
+import { getKeyAppChainId } from '@biochain/bio-sdk'
 
-const meta: Meta<typeof ChainSwitchConfirmJob> = {
+const meta: Meta = {
   title: 'Sheets/ChainSwitchConfirmJob',
-  component: ChainSwitchConfirmJob,
   parameters: {
     layout: 'fullscreen',
   },
@@ -20,73 +17,75 @@ const meta: Meta<typeof ChainSwitchConfirmJob> = {
 }
 
 export default meta
-type Story = StoryObj<typeof ChainSwitchConfirmJob>
+type Story = StoryObj
 
-/** Demo wrapper to handle events */
-function ChainSwitchDemo({
+function ChainSwitchPreview({
   fromChainId,
   toChainId,
   appName,
-  appIcon,
 }: {
   fromChainId: string
   toChainId: string
   appName?: string
-  appIcon?: string
 }) {
-  const [result, setResult] = useState<{ approved: boolean; toChainId?: string } | null>(null)
-  const [isOpen, setIsOpen] = useState(true)
-
-  useEffect(() => {
-    const handleConfirm = (e: CustomEvent) => {
-      setResult(e.detail)
-      setIsOpen(false)
-    }
-    window.addEventListener('chain-switch-confirm', handleConfirm as EventListener)
-    return () => window.removeEventListener('chain-switch-confirm', handleConfirm as EventListener)
-  }, [])
-
-  if (!isOpen) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 p-4">
-        <div className="text-lg font-semibold">
-          {result?.approved ? '✅ 已确认切换' : '❌ 已取消'}
-        </div>
-        {result?.approved && (
-          <div className="text-muted-foreground text-sm">
-            切换到链: {result.toChainId}
-          </div>
-        )}
-        <button
-          onClick={() => {
-            setResult(null)
-            setIsOpen(true)
-          }}
-          className="bg-primary text-primary-foreground rounded-lg px-4 py-2"
-        >
-          重新打开
-        </button>
-      </div>
-    )
-  }
+  const [result, setResult] = useState<'approved' | 'rejected' | null>(null)
+  const from = getKeyAppChainId(fromChainId) ?? fromChainId
+  const to = getKeyAppChainId(toChainId) ?? toChainId
 
   return (
-    <ActivityParamsProvider params={{ fromChainId, toChainId, appName, appIcon }}>
-      <BottomSheet>
-        <ChainSwitchConfirmJob params={{ fromChainId, toChainId, appName, appIcon }} />
-      </BottomSheet>
-    </ActivityParamsProvider>
+    <div className="mx-auto flex h-screen w-[375px] flex-col justify-end">
+      <div className="bg-background rounded-t-2xl border border-border p-4">
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted" />
+
+        <h2 className="text-center text-lg font-semibold">切换网络确认</h2>
+        <p className="text-muted-foreground mt-1 text-center text-sm">
+          {appName || '未知 DApp'} 请求切换网络
+        </p>
+
+        <div className="mt-4 space-y-2 rounded-xl bg-muted/50 p-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">当前网络</span>
+            <span className="font-medium">{from}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">目标网络</span>
+            <span className="font-medium">{to}</span>
+          </div>
+        </div>
+
+        {result && (
+          <div className="mt-4 rounded-xl border border-border p-3 text-sm">
+            结果：{result === 'approved' ? '已确认' : '已取消'}
+          </div>
+        )}
+
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={() => setResult('rejected')}
+            className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors"
+          >
+            取消
+          </button>
+          <button
+            onClick={() => setResult('approved')}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors"
+          >
+            确认
+          </button>
+        </div>
+      </div>
+      <div className="h-[env(safe-area-inset-bottom)]" />
+    </div>
   )
 }
 
 /** BSC 切换到 Ethereum */
 export const BSCToEthereum: Story = {
   render: () => (
-    <ChainSwitchDemo
+    <ChainSwitchPreview
       fromChainId="0x38"
       toChainId="0x1"
       appName="Forge"
-      appIcon="https://via.placeholder.com/64"
     />
   ),
 }
@@ -94,11 +93,10 @@ export const BSCToEthereum: Story = {
 /** Ethereum 切换到 BSC */
 export const EthereumToBSC: Story = {
   render: () => (
-    <ChainSwitchDemo
+    <ChainSwitchPreview
       fromChainId="0x1"
       toChainId="0x38"
       appName="Teleport"
-      appIcon="https://via.placeholder.com/64"
     />
   ),
 }
@@ -106,7 +104,7 @@ export const EthereumToBSC: Story = {
 /** 无应用信息 */
 export const NoAppInfo: Story = {
   render: () => (
-    <ChainSwitchDemo
+    <ChainSwitchPreview
       fromChainId="0x38"
       toChainId="0x1"
     />
@@ -116,7 +114,7 @@ export const NoAppInfo: Story = {
 /** 未知链 ID */
 export const UnknownChain: Story = {
   render: () => (
-    <ChainSwitchDemo
+    <ChainSwitchPreview
       fromChainId="0x38"
       toChainId="0x89"
       appName="Unknown DApp"

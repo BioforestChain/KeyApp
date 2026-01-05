@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { getChainType, getEvmChainIdFromApi } from '@/lib/chain'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -112,7 +113,7 @@ export default function App() {
         }
         extAcc = {
           address: accounts[0],
-          chain: externalChain.toLowerCase(),
+          chain: normalizeChainId(externalChain),
           publicKey: '', // EVM doesn't expose public key directly
         }
       } else if (chainType === 'tron') {
@@ -120,7 +121,9 @@ export default function App() {
         if (!window.tronLink) {
           throw new Error('TronLink provider not available')
         }
-        const result = await window.tronLink.request({ method: 'tron_requestAccounts' })
+        const result = await window.tronLink.request<{ code: number; message: string; data: { base58: string } }>({
+          method: 'tron_requestAccounts',
+        })
         if (!result || result.code !== 200) {
           throw new Error('TRON connection failed')
         }
@@ -133,7 +136,7 @@ export default function App() {
         // Use bio_selectAccount for BioChain
         extAcc = await window.bio.request<BioAccount>({
           method: 'bio_selectAccount',
-          params: [{ chain: externalChain.toLowerCase() }],
+          params: [{ chain: normalizeChainId(externalChain) }],
         })
       }
       setExternalAccount(extAcc)

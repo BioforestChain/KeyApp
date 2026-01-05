@@ -39,10 +39,21 @@ const mockBio = {
   isConnected: vi.fn(() => true),
 }
 
+const mockEthereum = {
+  request: vi.fn(),
+}
+
 describe('Forge App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(window as unknown as { bio: typeof mockBio }).bio = mockBio
+
+    // Default EVM provider mock (ETH in test config)
+    ;(window as unknown as { ethereum: typeof mockEthereum }).ethereum = mockEthereum
+    mockEthereum.request.mockImplementation(({ method }: { method: string }) => {
+      if (method === 'eth_requestAccounts') return Promise.resolve(['0xexternal123'])
+      return Promise.resolve(null)
+    })
   })
 
   it('should render initial connect step after config loads', async () => {
@@ -63,13 +74,18 @@ describe('Forge App', () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
+      expect(screen.getByTestId('connect-button')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
+    // Ensure option auto-selected and button enabled
+    await waitFor(() => {
+      expect(screen.getByTestId('connect-button')).not.toBeDisabled()
+    })
+
+    fireEvent.click(screen.getByTestId('connect-button'))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '连接中...' })).toBeInTheDocument()
+      expect(screen.getByTestId('connect-button')).toHaveTextContent('连接中...')
     })
   })
 
@@ -122,7 +138,7 @@ describe('Forge App', () => {
   })
 
   it('should call bio_selectAccount on connect', async () => {
-    mockBio.request.mockResolvedValue({ address: '0x123', chain: 'eth' })
+    mockBio.request.mockResolvedValue({ address: 'bfmeta123', chain: 'bfmeta' })
 
     render(<App />)
 
@@ -133,7 +149,7 @@ describe('Forge App', () => {
     fireEvent.click(screen.getByRole('button', { name: '连接钱包' }))
 
     await waitFor(() => {
-      // Should call bio_selectAccount at least once (for external and internal accounts)
+      // Should call bio_selectAccount at least once (internal account)
       expect(mockBio.request).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'bio_selectAccount',

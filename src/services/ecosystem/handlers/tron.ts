@@ -7,7 +7,7 @@
 
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type TronTransaction } from './context'
+import { HandlerContext, type TronTransaction, type MiniappInfo } from './context'
 
 // Re-export for convenience
 export type { TronTransaction } from './context'
@@ -33,7 +33,7 @@ const appAddressState = new Map<string, TronAddress>()
 // Callback setters (for UI integration)
 // ============================================
 
-let _showTronWalletPicker: (() => Promise<BioAccount | null>) | null = null
+let _showTronWalletPicker: ((opts?: { app?: MiniappInfo }) => Promise<BioAccount | null>) | null = null
 let _showTronSigningDialog: ((opts: { transaction: TronTransaction; appName: string }) => Promise<{ signedTransaction: TronTransaction } | null>) | null = null
 
 export function setTronWalletPicker(picker: typeof _showTronWalletPicker): void {
@@ -90,7 +90,7 @@ export const handleTronRequestAccounts: MethodHandler = async (_params, context)
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const wallet = await showWalletPicker()
+  const wallet = await showWalletPicker({ app: { name: context.appName } })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }

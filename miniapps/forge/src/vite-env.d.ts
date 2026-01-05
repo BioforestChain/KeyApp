@@ -1,5 +1,12 @@
 /// <reference types="vite/client" />
 
+import type {
+  BioProvider,
+  EthereumProvider,
+  TronLinkProvider,
+  TronWebProvider,
+} from '@biochain/bio-sdk'
+
 interface ImportMetaEnv {
   readonly VITE_COT_API_BASE_URL?: string
 }
@@ -8,5 +15,13 @@ interface ImportMeta {
   readonly env: ImportMetaEnv
 }
 
-// Bio SDK types are auto-declared by importing @biochain/bio-sdk
-// This ensures window.bio, window.ethereum, window.tronLink are available
+declare global {
+  interface Window {
+    bio?: BioProvider
+    ethereum?: EthereumProvider
+    tronLink?: TronLinkProvider
+    tronWeb?: TronWebProvider
+  }
+}
+
+export {}

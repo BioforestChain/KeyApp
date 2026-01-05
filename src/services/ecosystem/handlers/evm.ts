@@ -16,7 +16,7 @@ import {
   EVM_CHAIN_IDS,
 } from '@biochain/bio-sdk'
 
-import type { EvmTransactionRequest } from './context'
+import type { EvmTransactionRequest, MiniappInfo } from './context'
 
 // Re-export for convenience
 export type { EvmTransactionRequest } from './context'
@@ -59,7 +59,7 @@ const appAccountState = new Map<string, string[]>()
 // Callback setters (for UI integration)
 // ============================================
 
-let _showEvmWalletPicker: ((opts: { chainId: string }) => Promise<BioAccount | null>) | null = null
+let _showEvmWalletPicker: ((opts: { chainId: string; app?: MiniappInfo }) => Promise<BioAccount | null>) | null = null
 let _showChainSwitchConfirm: ((opts: { fromChainId: string; toChainId: string; appName: string }) => Promise<boolean>) | null = null
 let _showEvmSigningDialog: ((opts: { message: string; address: string; appName: string }) => Promise<{ signature: string } | null>) | null = null
 let _showEvmTransactionDialog: ((opts: { tx: EvmTransactionRequest; appName: string }) => Promise<{ txHash: string } | null>) | null = null
@@ -133,7 +133,7 @@ export const handleEthRequestAccounts: MethodHandler = async (_params, context) 
   }
 
   const chainId = getCurrentChainId(context.appId)
-  const wallet = await showWalletPicker({ chainId })
+  const wallet = await showWalletPicker({ chainId, app: { name: context.appName } })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
