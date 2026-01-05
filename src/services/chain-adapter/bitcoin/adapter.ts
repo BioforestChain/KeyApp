@@ -4,7 +4,7 @@
  * Full adapter for Bitcoin network using mempool.space API
  */
 
-import type { ChainConfigType } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { BitcoinIdentityService } from './identity-service'
 import { BitcoinAssetService } from './asset-service'
@@ -13,7 +13,7 @@ import { BitcoinTransactionService } from './transaction-service'
 
 export class BitcoinAdapter implements IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType = 'bip39'
+  readonly chainType: ChainKind = 'bitcoin'
   readonly identity: BitcoinIdentityService
   readonly asset: BitcoinAssetService
   readonly chain: BitcoinChainService

@@ -2,7 +2,7 @@
  * EVM Chain Adapter
  */
 
-import type { ChainConfigType } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { EvmIdentityService } from './identity-service'
 import { EvmAssetService } from './asset-service'
@@ -11,7 +11,7 @@ import { EvmChainService } from './chain-service'
 
 export class EvmAdapter implements IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType = 'evm'
+  readonly chainType: ChainKind = 'evm'
 
   readonly identity: EvmIdentityService
   readonly asset: EvmAssetService

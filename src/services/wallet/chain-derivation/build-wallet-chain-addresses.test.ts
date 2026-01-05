@@ -124,8 +124,8 @@ describe('buildWalletChainAddresses', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]?.chainId).toBe('bitcoin')
-    // Bitcoin P2PKH address: starts with 1 or 3
-    expect(result[0]?.address).toMatch(/^[13][1-9A-HJ-NP-Za-km-z]{25,34}$/)
+    // Bitcoin BIP84 Native SegWit address: starts with bc1q
+    expect(result[0]?.address).toMatch(/^bc1q[a-z0-9]{38,}$/)
   })
 
   it('should be deterministic (same input same output)', () => {
@@ -210,6 +210,7 @@ describe('buildWalletChainAddresses', () => {
     expect(bfmeta?.address).toMatch(/^b[1-9A-HJ-NP-Za-km-z]+$/)
     expect(ethereum?.address).toMatch(/^0x[a-fA-F0-9]{40}$/)
     expect(tron?.address).toMatch(/^T[1-9A-HJ-NP-Za-km-z]{33}$/)
-    expect(bitcoin?.address).toMatch(/^[13][1-9A-HJ-NP-Za-km-z]{25,34}$/)
+    // Bitcoin BIP84 Native SegWit address
+    expect(bitcoin?.address).toMatch(/^bc1q[a-z0-9]{38,}$/)
   })
 })

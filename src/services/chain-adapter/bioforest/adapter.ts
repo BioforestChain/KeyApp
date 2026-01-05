@@ -2,7 +2,7 @@
  * BioForest Chain Adapter
  */
 
-import type { ChainConfigType } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { BioforestIdentityService } from './identity-service'
 import { BioforestAssetService } from './asset-service'
@@ -11,7 +11,7 @@ import { BioforestChainService } from './chain-service'
 
 export class BioforestAdapter implements IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType = 'bioforest'
+  readonly chainType: ChainKind = 'bioforest'
 
   readonly identity: BioforestIdentityService
   readonly asset: BioforestAssetService

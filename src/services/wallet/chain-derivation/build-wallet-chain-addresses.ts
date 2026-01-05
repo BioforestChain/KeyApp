@@ -46,7 +46,6 @@ export function buildWalletChainAddresses(params: BuildWalletChainAddressesParam
   const bitcoinConfigs: ChainConfig[] = []
   const tronConfigs: ChainConfig[] = []
   const bioforestConfigs: ChainConfig[] = []
-  const customConfigs: ChainConfig[] = []
 
   for (const config of selectedConfigsMap.values()) {
     switch (config.chainKind) {
@@ -61,9 +60,6 @@ export function buildWalletChainAddresses(params: BuildWalletChainAddressesParam
         break
       case 'bioforest':
         bioforestConfigs.push(config)
-        break
-      case 'custom':
-        customConfigs.push(config)
         break
     }
   }
@@ -103,9 +99,6 @@ export function buildWalletChainAddresses(params: BuildWalletChainAddressesParam
       addressByChainId.set(config.id, result.address)
     }
   }
-
-  // Custom：跳过，UI 应提示不支持
-  // customConfigs 不派生地址
 
   // 按 selectedChainIds 的顺序输出，保证 deterministic
   const results: ChainAddress[] = []

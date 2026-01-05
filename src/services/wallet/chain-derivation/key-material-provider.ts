@@ -61,10 +61,29 @@ export class KeyMaterialProvider {
   }
 
   /**
-   * 获取 Bitcoin 密钥材料
+   * 获取 Bitcoin 密钥材料 (BIP84 Native SegWit)
+   * 使用路径: m/84'/0'/accountIndex'/0/0
    */
   getBitcoinKeyMaterial(accountIndex = 0): KeyMaterial {
-    return this.getKeyMaterial('bitcoin', accountIndex)
+    const cacheKey = `bitcoin-bip84:${accountIndex}`
+    const cached = this.cache.get(cacheKey)
+    if (cached) return cached
+
+    // BIP84 for Native SegWit (bc1q...)
+    const path = `m/84'/0'/${accountIndex}'/0/0`
+    const childKey = this.hdKey.derive(path)
+
+    if (!childKey.privateKey || !childKey.publicKey) {
+      throw new Error(`Key derivation failed for path: ${path}`)
+    }
+
+    const material: KeyMaterial = {
+      privateKey: childKey.privateKey,
+      publicKey: childKey.publicKey,
+    }
+
+    this.cache.set(cacheKey, material)
+    return material
   }
 
   /**

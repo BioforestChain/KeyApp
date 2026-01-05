@@ -4,7 +4,7 @@
  * Full adapter for Tron network using PublicNode HTTP API
  */
 
-import type { ChainConfigType } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { TronIdentityService } from './identity-service'
 import { TronAssetService } from './asset-service'
@@ -13,7 +13,7 @@ import { TronTransactionService } from './transaction-service'
 
 export class TronAdapter implements IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType = 'tron'
+  readonly chainType: ChainKind = 'tron'
   readonly identity: TronIdentityService
   readonly asset: TronAssetService
   readonly chain: TronChainService

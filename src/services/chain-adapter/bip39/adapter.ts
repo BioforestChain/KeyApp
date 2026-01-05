@@ -2,7 +2,7 @@
  * BIP39 Chain Adapter (Bitcoin, Tron)
  */
 
-import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import type { ChainConfig, ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IStakingService } from '../types'
 import { Bip39IdentityService } from './identity-service'
 import { Bip39AssetService } from './asset-service'
@@ -11,7 +11,7 @@ import { Bip39ChainService } from './chain-service'
 
 export class Bip39Adapter implements IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType = 'bip39'
+  readonly chainType: ChainKind = 'bip39'
 
   readonly identity: Bip39IdentityService
   readonly asset: Bip39AssetService
