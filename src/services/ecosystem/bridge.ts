@@ -9,6 +9,60 @@ import type {
   MethodHandler,
   HandlerContext,
 } from './types'
+
+/** EVM request message from miniapp */
+interface EthRequestMessage {
+  type: 'eth_request'
+  id: string
+  method: string
+  params?: unknown[]
+}
+
+/** EVM response message to miniapp */
+interface EthResponseMessage {
+  type: 'eth_response'
+  id: string
+  success: boolean
+  result?: unknown
+  error?: { code: number; message: string; data?: unknown }
+}
+
+/** EVM event message to miniapp */
+interface EthEventMessage {
+  type: 'eth_event'
+  event: string
+  args: unknown[]
+}
+
+/** TRON request message from miniapp */
+interface TronRequestMessage {
+  type: 'tron_request'
+  id: string
+  method: string
+  params?: unknown[]
+}
+
+/** TRON response message to miniapp */
+interface TronResponseMessage {
+  type: 'tron_response'
+  id: string
+  success: boolean
+  result?: unknown
+  error?: { code: number; message: string; data?: unknown }
+}
+
+/** TRON event message to miniapp */
+interface TronEventMessage {
+  type: 'tron_event'
+  event: string
+  args: unknown[]
+}
+
+/** All supported request types */
+type RequestMessage = BioRequestMessage | EthRequestMessage | TronRequestMessage
+
+/** Protocol type */
+type Protocol = 'bio' | 'eth' | 'tron'
 import {
   BioErrorCodes,
   createErrorResponse,
@@ -87,12 +141,27 @@ export class PostMessageBridge {
     this.manifestPermissions = []
   }
 
-  /** Send event to miniapp */
+  /** Send event to miniapp (Bio protocol) */
   emit(event: string, ...args: unknown[]): void {
+    this.emitTo('bio', event, ...args)
+  }
+
+  /** Send event to miniapp (EVM protocol) */
+  emitEth(event: string, ...args: unknown[]): void {
+    this.emitTo('eth', event, ...args)
+  }
+
+  /** Send event to miniapp (TRON protocol) */
+  emitTron(event: string, ...args: unknown[]): void {
+    this.emitTo('tron', event, ...args)
+  }
+
+  /** Send event to specific protocol */
+  private emitTo(protocol: Protocol, event: string, ...args: unknown[]): void {
     if (!this.iframe?.contentWindow) return
 
-    const message: BioEventMessage = {
-      type: 'bio_event',
+    const message: BioEventMessage | EthEventMessage | TronEventMessage = {
+      type: `${protocol}_event` as 'bio_event' | 'eth_event' | 'tron_event',
       event,
       args,
     }
@@ -111,32 +180,40 @@ export class PostMessageBridge {
       return
     }
 
-    const data = event.data as BioRequestMessage
-    if (!data || data.type !== 'bio_request') {
+    const data = event.data as RequestMessage
+    if (!data || typeof data !== 'object' || !('type' in data)) {
       return
     }
 
-    this.processRequest(data)
+    // Route to appropriate handler based on protocol
+    if (data.type === 'bio_request') {
+      this.processRequest(data, 'bio')
+    } else if (data.type === 'eth_request') {
+      this.processRequest(data as EthRequestMessage, 'eth')
+    } else if (data.type === 'tron_request') {
+      this.processRequest(data as TronRequestMessage, 'tron')
+    }
   }
 
-  private async processRequest(request: BioRequestMessage): Promise<void> {
+  private async processRequest(request: RequestMessage, protocol: Protocol): Promise<void> {
     const { id, method, params } = request
 
-    console.log('[BioProvider] Request:', method, params)
+    console.log(`[BioProvider] ${protocol.toUpperCase()} Request:`, method, params)
 
     // Check if handler exists
     const handler = this.handlers.get(method)
     if (!handler) {
-      this.sendResponse(createErrorResponse(
+      this.sendResponse(protocol, {
+        type: `${protocol}_response` as 'bio_response',
         id,
-        BioErrorCodes.METHOD_NOT_FOUND,
-        `Method not found: ${method}`
-      ))
+        success: false,
+        error: { code: BioErrorCodes.METHOD_NOT_FOUND, message: `Method not found: ${method}` },
+      })
       return
     }
 
-    // Check permissions
-    const skipPermissionCheck = ['bio_connect', 'bio_closeSplashScreen'].includes(method)
+    // Permission check (skip for EVM/TRON - they use their own connection flow)
+    const skipPermissionCheck = protocol !== 'bio' || ['bio_connect', 'bio_closeSplashScreen'].includes(method)
     if (!skipPermissionCheck) {
       const accountRelatedMethods = ['bio_accounts', 'bio_selectAccount', 'bio_pickWallet']
       const shouldMapToRequestAccounts =
@@ -148,11 +225,7 @@ export class PostMessageBridge {
         this.manifestPermissions.includes(method) || method === 'bio_requestAccounts' || shouldMapToRequestAccounts
 
       if (!isDeclaredInManifest) {
-        this.sendResponse(createErrorResponse(
-          id,
-          BioErrorCodes.UNAUTHORIZED,
-          `Permission not declared in manifest: ${method}`
-        ))
+        this.sendResponse(protocol, createErrorResponse(id, BioErrorCodes.UNAUTHORIZED, `Permission not declared in manifest: ${method}`))
         return
       }
 
@@ -163,11 +236,7 @@ export class PostMessageBridge {
           // 请求权限
           const approved = await this.requestPermission([permissionKey])
           if (!approved) {
-            this.sendResponse(createErrorResponse(
-              id,
-              BioErrorCodes.USER_REJECTED,
-              'Permission denied by user'
-            ))
+            this.sendResponse(protocol, createErrorResponse(id, BioErrorCodes.USER_REJECTED, 'Permission denied by user'))
             return
           }
         }
@@ -184,11 +253,21 @@ export class PostMessageBridge {
       }
 
       const result = await handler(params?.[0], context)
-      this.sendResponse(createSuccessResponse(id, result))
+      this.sendResponse(protocol, {
+        type: `${protocol}_response` as 'bio_response',
+        id,
+        success: true,
+        result,
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       const code = (error as { code?: number }).code ?? BioErrorCodes.INTERNAL_ERROR
-      this.sendResponse(createErrorResponse(id, code, message))
+      this.sendResponse(protocol, {
+        type: `${protocol}_response` as 'bio_response',
+        id,
+        success: false,
+        error: { code, message },
+      })
     }
   }
 
@@ -215,10 +294,10 @@ export class PostMessageBridge {
     }
   }
 
-  private sendResponse(response: BioResponseMessage): void {
+  private sendResponse(protocol: Protocol, response: BioResponseMessage | EthResponseMessage | TronResponseMessage): void {
     if (!this.iframe?.contentWindow) return
 
-    console.log('[BioProvider] Response:', response)
+    console.log(`[BioProvider] ${protocol.toUpperCase()} Response:`, response)
     this.iframe.contentWindow.postMessage(response, this.origin)
   }
 }

@@ -7,3 +7,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// Bio SDK types are auto-declared by importing @biochain/bio-sdk
+// This ensures window.bio, window.ethereum, window.tronLink are available

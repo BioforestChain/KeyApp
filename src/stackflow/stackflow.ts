@@ -58,6 +58,7 @@ import {
   PermissionRequestJob,
   MiniappTransferConfirmJob,
   MiniappSignTransactionJob,
+  ChainSwitchConfirmJob,
 } from './activities/sheets';
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
@@ -122,6 +123,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         PermissionRequestJob: '/job/permission-request',
         MiniappTransferConfirmJob: '/job/miniapp-transfer-confirm',
         MiniappSignTransactionJob: '/job/miniapp-sign-transaction',
+        ChainSwitchConfirmJob: '/job/chain-switch-confirm',
       },
       fallbackActivity: () => 'MainTabsActivity',
       useHash: true,
@@ -185,6 +187,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     PermissionRequestJob,
     MiniappTransferConfirmJob,
     MiniappSignTransactionJob,
+    ChainSwitchConfirmJob,
   },
   // Note: Don't set initialActivity when using historySyncPlugin
   // The plugin will determine the initial activity based on the URL

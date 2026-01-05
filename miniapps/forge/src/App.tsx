@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
+import { getChainType, getEvmChainIdFromApi } from '@/lib/chain'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -77,20 +78,70 @@ export default function App() {
       setError('Bio SDK 未初始化')
       return
     }
+    if (!selectedOption) {
+      setError('请选择兑换选项')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
-      // Select external chain account (for payment)
-      const extAcc = await window.bio.request<BioAccount>({
-        method: 'bio_selectAccount',
-        params: [{ chain: selectedOption?.externalChain?.toLowerCase() }],
-      })
+      const externalChain = selectedOption.externalChain
+      const chainType = getChainType(externalChain)
+
+      let extAcc: BioAccount
+
+      if (chainType === 'evm') {
+        // Use window.ethereum for EVM chains (ETH, BSC)
+        if (!window.ethereum) {
+          throw new Error('Ethereum provider not available')
+        }
+        const evmChainId = getEvmChainIdFromApi(externalChain)
+        if (evmChainId) {
+          // Switch to the correct chain first
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: evmChainId }],
+          })
+        }
+        // Request accounts
+        const accounts = await window.ethereum.request<string[]>({
+          method: 'eth_requestAccounts',
+        })
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned')
+        }
+        extAcc = {
+          address: accounts[0],
+          chain: externalChain.toLowerCase(),
+          publicKey: '', // EVM doesn't expose public key directly
+        }
+      } else if (chainType === 'tron') {
+        // Use window.tronLink for TRON
+        if (!window.tronLink) {
+          throw new Error('TronLink provider not available')
+        }
+        const result = await window.tronLink.request({ method: 'tron_requestAccounts' })
+        if (!result || result.code !== 200) {
+          throw new Error('TRON connection failed')
+        }
+        extAcc = {
+          address: result.data.base58,
+          chain: 'tron',
+          publicKey: '',
+        }
+      } else {
+        // Use bio_selectAccount for BioChain
+        extAcc = await window.bio.request<BioAccount>({
+          method: 'bio_selectAccount',
+          params: [{ chain: externalChain.toLowerCase() }],
+        })
+      }
       setExternalAccount(extAcc)
 
-      // Select internal chain account (for receiving)
+      // Select internal chain account (for receiving) - always use bio
       const intAcc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{ chain: selectedOption?.internalChain }],
+        params: [{ chain: selectedOption.internalChain }],
       })
       setInternalAccount(intAcc)
 

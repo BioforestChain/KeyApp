@@ -22,3 +22,4 @@ export { SigningConfirmJob } from "./SigningConfirmJob";
 export { PermissionRequestJob } from "./PermissionRequestJob";
 export { MiniappTransferConfirmJob } from "./MiniappTransferConfirmJob";
 export { MiniappSignTransactionJob } from "./MiniappSignTransactionJob";
+export { ChainSwitchConfirmJob } from "./ChainSwitchConfirmJob";

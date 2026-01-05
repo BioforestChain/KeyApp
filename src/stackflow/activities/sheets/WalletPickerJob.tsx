@@ -8,15 +8,15 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
-import { IconApps } from '@tabler/icons-react'
 import { walletStore, walletSelectors, type Wallet, type ChainAddress } from '@/stores'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { WalletList, type WalletListItem } from '@/components/wallet/wallet-list'
 import { MiniappIcon } from '@/components/ecosystem'
+import { getKeyAppChainId, normalizeChainId, CHAIN_DISPLAY_NAMES } from '@biochain/bio-sdk'
 
 type WalletPickerJobParams = {
-  /** 限定链类型 */
+  /** 限定链类型 (支持: KeyApp 内部 ID, EVM hex chainId, API 名称如 BSC) */
   chain?: string
   /** 排除的地址（不显示在列表中） */
   exclude?: string
@@ -26,10 +26,41 @@ type WalletPickerJobParams = {
   appIcon?: string
 }
 
+/**
+ * 将任意链标识符转换为 KeyApp 内部 ID
+ * 支持:
+ * - EVM hex chainId: '0x38' -> 'binance'
+ * - API 名称: 'BSC', 'ETH' -> 'binance', 'ethereum'
+ * - 已有的 KeyApp ID: 'binance' -> 'binance'
+ */
+function resolveChainId(chain: string | undefined): string | undefined {
+  if (!chain) return undefined
+
+  // Try EVM hex chainId first (e.g., '0x38')
+  if (chain.startsWith('0x')) {
+    const keyAppId = getKeyAppChainId(chain)
+    if (keyAppId) return keyAppId
+  }
+
+  // Try API name normalization (e.g., 'BSC' -> 'binance')
+  const normalized = normalizeChainId(chain)
+
+  // Check if it's a known chain
+  if (CHAIN_DISPLAY_NAMES[normalized]) {
+    return normalized
+  }
+
+  // Return as-is (might be already a KeyApp ID like 'binance')
+  return normalized
+}
+
 function WalletPickerJobContent() {
   const { t } = useTranslation('common')
   const { pop } = useFlow()
-  const { chain, exclude, appName, appIcon } = useActivityParams<WalletPickerJobParams>()
+  const { chain: rawChain, exclude, appName, appIcon } = useActivityParams<WalletPickerJobParams>()
+
+  // Resolve chain to KeyApp internal ID
+  const chain = useMemo(() => resolveChainId(rawChain), [rawChain])
 
   const walletState = useStore(walletStore)
   const currentWallet = walletSelectors.getCurrentWallet(walletState)

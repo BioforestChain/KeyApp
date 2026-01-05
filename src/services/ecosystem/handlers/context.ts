@@ -5,6 +5,28 @@
 
 import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction, TransferParams } from '../types'
 
+/** EVM 交易请求类型 */
+export interface EvmTransactionRequest {
+  from: string
+  to?: string
+  value?: string
+  data?: string
+  gas?: string
+  gasPrice?: string
+  maxFeePerGas?: string
+  maxPriorityFeePerGas?: string
+  nonce?: string
+  chainId?: string
+}
+
+/** TRON 交易类型 */
+export interface TronTransaction {
+  txID: string
+  raw_data: unknown
+  raw_data_hex: string
+  signature?: string[]
+}
+
 /** 小程序信息（用于在 Sheet 中显示） */
 export interface MiniappInfo {
   name: string
@@ -32,13 +54,42 @@ export interface SignTransactionParams {
   app: MiniappInfo
 }
 
+/** EVM 签名参数 */
+export interface EvmSigningParams {
+  message: string
+  address: string
+  appName: string
+}
+
+/** EVM 交易参数 */
+export interface EvmTransactionParams {
+  tx: EvmTransactionRequest
+  appName: string
+}
+
+/** TRON 签名参数 */
+export interface TronSigningParams {
+  transaction: TronTransaction
+  appName: string
+}
+
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
+  // Bio (BioChain) callbacks
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
   showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
+
+  // EVM (Ethereum/BSC) callbacks
+  showEvmWalletPicker?: (opts: { chainId: string }) => Promise<BioAccount | null>
+  showEvmSigningDialog?: (params: EvmSigningParams) => Promise<{ signature: string } | null>
+  showEvmTransactionDialog?: (params: EvmTransactionParams) => Promise<{ txHash: string } | null>
+
+  // TRON callbacks
+  showTronWalletPicker?: () => Promise<BioAccount | null>
+  showTronSigningDialog?: (params: TronSigningParams) => Promise<{ signedTransaction: TronTransaction } | null>
 }
 
 /** 回调注册表 */
