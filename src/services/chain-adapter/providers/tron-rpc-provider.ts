@@ -65,6 +65,33 @@ const TronTxListSchema = z.looseObject({
   data: z.array(TronTxSchema).optional(),
 })
 
+// TRC-20 Token 交易 Schema
+const Trc20TxSchema = z.looseObject({
+  transaction_id: z.string(),
+  token_info: z.looseObject({
+    symbol: z.string(),
+    address: z.string(),
+    decimals: z.number(),
+    name: z.string().optional(),
+  }),
+  block_timestamp: z.number(),
+  from: z.string(),
+  to: z.string(),
+  type: z.string(),
+  value: z.string(),
+})
+
+const Trc20TxListSchema = z.looseObject({
+  success: z.boolean(),
+  data: z.array(Trc20TxSchema).optional(),
+})
+
+type TronTx = z.infer<typeof TronTxSchema>
+type Trc20Tx = z.infer<typeof Trc20TxSchema>
+
+/** 拉取倍数：应对分页陷阱 */
+const FETCH_MULTIPLIER = 5
+
 export class TronRpcProvider implements ApiProvider {
   readonly type: string
   readonly endpoint: string
@@ -137,41 +164,238 @@ export class TronRpcProvider implements ApiProvider {
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
     try {
+      const fetchLimit = limit * FETCH_MULTIPLIER
+
+      // 并行获取原生交易和 TRC-20 交易
+      const [nativeTxs, trc20Txs] = await Promise.all([
+        this.fetchNativeTransactions(address, fetchLimit),
+        this.fetchTrc20Transactions(address, fetchLimit),
+      ])
+
+      // 按 txID 聚合
+      const normalizedAddress = address.toLowerCase()
+      const aggregated = this.aggregateByTxId(nativeTxs, trc20Txs, normalizedAddress)
+
+      // 按时间排序、限制数量
+      return aggregated
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, limit)
+    } catch (error) {
+      console.warn('[TronRpcProvider] Error fetching transaction history:', error)
+      return []
+    }
+  }
+
+  /**
+   * 按 txID 聚合原生交易和 TRC-20 交易
+   */
+  private aggregateByTxId(
+    nativeTxs: TronTx[],
+    trc20Txs: Trc20Tx[],
+    normalizedAddress: string
+  ): Transaction[] {
+    // 1. 构建 trc20TxsByTxId
+    const trc20TxsByTxId = new Map<string, Trc20Tx[]>()
+    for (const ttx of trc20Txs) {
+      const txId = ttx.transaction_id.toLowerCase()
+      const existing = trc20TxsByTxId.get(txId) ?? []
+      existing.push(ttx)
+      trc20TxsByTxId.set(txId, existing)
+    }
+
+    // 2. 遍历原生交易，聚合生成 Transaction
+    const results: Transaction[] = []
+    const processedTxIds = new Set<string>()
+
+    for (const ntx of nativeTxs) {
+      const txId = ntx.txID.toLowerCase()
+      if (processedTxIds.has(txId)) continue
+      processedTxIds.add(txId)
+
+      const relatedTrc20Txs = trc20TxsByTxId.get(txId) ?? []
+      const tx = this.buildAggregatedTransaction(ntx, relatedTrc20Txs, normalizedAddress)
+      results.push(tx)
+    }
+
+    // 3. 处理孤儿 TRC-20 交易
+    for (const [txId, ttxs] of trc20TxsByTxId) {
+      if (processedTxIds.has(txId)) continue
+      processedTxIds.add(txId)
+
+      const tx = this.buildOrphanTrc20Transaction(ttxs, normalizedAddress)
+      results.push(tx)
+    }
+
+    return results
+  }
+
+  /**
+   * 构建聚合后的 Transaction
+   */
+  private buildAggregatedTransaction(
+    ntx: TronTx,
+    trc20Txs: Trc20Tx[],
+    normalizedAddress: string
+  ): Transaction {
+    const contract = ntx.raw_data?.contract?.[0]
+    const contractType = contract?.type ?? ''
+    const value = contract?.parameter?.value
+    const status: Transaction['status'] = ntx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+    const hasTokens = trc20Txs.length > 0
+
+    // Action 识别
+    let action = this.detectAction(contractType)
+    if (action === 'contract' && hasTokens) {
+      action = 'transfer'
+    }
+
+    // 选择主 token event
+    const primaryToken = this.selectPrimaryToken(trc20Txs, normalizedAddress)
+
+    // from/to 与 direction
+    let from: string
+    let to: string
+    if (primaryToken) {
+      from = primaryToken.from
+      to = primaryToken.to
+    } else {
+      from = value?.owner_address ?? ''
+      to = value?.to_address ?? ''
+    }
+    const direction = this.getDirection(from, to, normalizedAddress)
+
+    // Assets 构建
+    const assets: Transaction['assets'] = []
+
+    // 添加 TRC-20 assets（最多 3 条）
+    for (const ttx of trc20Txs.slice(0, 3)) {
+      assets.push({
+        assetType: 'token' as const,
+        value: ttx.value,
+        symbol: ttx.token_info.symbol,
+        decimals: ttx.token_info.decimals,
+        contractAddress: ttx.token_info.address,
+        name: ttx.token_info.name,
+      })
+    }
+
+    // 原生 value > 0 时附加
+    const nativeAmount = value?.amount ?? 0
+    if (nativeAmount > 0 || assets.length === 0) {
+      assets.push({
+        assetType: 'native' as const,
+        value: nativeAmount.toString(),
+        symbol: this.symbol,
+        decimals: this.decimals,
+      })
+    }
+
+    return {
+      hash: ntx.txID,
+      from,
+      to,
+      timestamp: ntx.raw_data?.timestamp ?? 0,
+      status,
+      action,
+      direction,
+      assets,
+    }
+  }
+
+  /**
+   * 为孤儿 TRC-20 交易构建 Transaction
+   */
+  private buildOrphanTrc20Transaction(
+    trc20Txs: Trc20Tx[],
+    normalizedAddress: string
+  ): Transaction {
+    const primaryToken = this.selectPrimaryToken(trc20Txs, normalizedAddress)!
+    const direction = this.getDirection(primaryToken.from, primaryToken.to, normalizedAddress)
+
+    const assets: Transaction['assets'] = trc20Txs.slice(0, 3).map(ttx => ({
+      assetType: 'token' as const,
+      value: ttx.value,
+      symbol: ttx.token_info.symbol,
+      decimals: ttx.token_info.decimals,
+      contractAddress: ttx.token_info.address,
+      name: ttx.token_info.name,
+    }))
+
+    return {
+      hash: primaryToken.transaction_id,
+      from: primaryToken.from,
+      to: primaryToken.to,
+      timestamp: primaryToken.block_timestamp,
+      status: 'confirmed',
+      action: 'transfer',
+      direction,
+      assets,
+    }
+  }
+
+  /**
+   * 选择主 TRC-20 token（优先包含当前地址的、value 最大的）
+   */
+  private selectPrimaryToken(trc20Txs: Trc20Tx[], normalizedAddress: string): Trc20Tx | null {
+    if (trc20Txs.length === 0) return null
+    if (trc20Txs.length === 1) return trc20Txs[0]
+
+    const involving = trc20Txs.filter(
+      t => t.from.toLowerCase() === normalizedAddress || t.to.toLowerCase() === normalizedAddress
+    )
+    const candidates = involving.length > 0 ? involving : trc20Txs
+
+    return candidates.reduce((max, t) => {
+      const maxVal = BigInt(max.value)
+      const tVal = BigInt(t.value)
+      return tVal > maxVal ? t : max
+    })
+  }
+
+  /**
+   * 检测 Tron 交易类型
+   */
+  private detectAction(contractType: string): Transaction['action'] {
+    switch (contractType) {
+      case 'TransferContract':
+      case 'TransferAssetContract':
+        return 'transfer'
+      case 'TriggerSmartContract':
+        return 'contract'
+      case 'FreezeBalanceContract':
+      case 'FreezeBalanceV2Contract':
+      case 'VoteWitnessContract':
+        return 'stake'
+      case 'UnfreezeBalanceContract':
+      case 'UnfreezeBalanceV2Contract':
+        return 'unstake'
+      case 'WithdrawExpireUnfreezeContract':
+        return 'claim'
+      default:
+        return 'transfer'
+    }
+  }
+
+  private async fetchNativeTransactions(address: string, limit: number): Promise<TronTx[]> {
+    try {
       const result = await this.api(
         `/v1/accounts/${address}/transactions?limit=${limit}`,
         TronTxListSchema
       )
+      return result.success && result.data ? result.data : []
+    } catch {
+      return []
+    }
+  }
 
-      if (!result.success || !result.data) return []
-
-      const normalizedAddress = address.toLowerCase()
-
-      return result.data.map(tx => {
-        const contract = tx.raw_data?.contract?.[0]
-        const value = contract?.parameter?.value
-        const status: Transaction['status'] = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
-        const from = value?.owner_address ?? ''
-        const to = value?.to_address ?? ''
-        const direction = this.getDirection(from, to, normalizedAddress)
-
-        return {
-          hash: tx.txID,
-          from,
-          to,
-          timestamp: tx.raw_data?.timestamp ?? 0,
-          status,
-          action: 'transfer' as const,
-          direction,
-          assets: [{
-            assetType: 'native' as const,
-            value: (value?.amount ?? 0).toString(),
-            symbol: this.symbol,
-            decimals: this.decimals,
-          }],
-        }
-      })
-    } catch (error) {
-      console.warn('[TronRpcProvider] Error fetching transaction history:', error)
+  private async fetchTrc20Transactions(address: string, limit: number): Promise<Trc20Tx[]> {
+    try {
+      const result = await this.api(
+        `/v1/accounts/${address}/transactions/trc20?limit=${limit}`,
+        Trc20TxListSchema
+      )
+      return result.success && result.data ? result.data : []
+    } catch {
       return []
     }
   }
