@@ -112,7 +112,7 @@ test.describe('DWEB 授权 - 截图测试', () => {
     await page.waitForLoadState('networkidle')
 
     // 点击确认按钮（使用多语言正则）
-    await page.locator(`button:has-text("${UI_TEXT.drawPattern.source}")`).click()
+    await page.getByRole('button', { name: UI_TEXT.drawPattern }).click()
     await page.waitForTimeout(500)
 
     await expect(page).toHaveScreenshot('authorize-wallet-lock-confirm.png')

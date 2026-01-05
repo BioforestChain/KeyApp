@@ -37,7 +37,19 @@ export function WalletCreatePage() {
   const chainConfigs = useChainConfigs();
   const [step, setStep] = useState<Step>('pattern');
   const [patternKey, setPatternKey] = useState('');
-  const [mnemonic] = useState<string[]>(generateMnemonic);
+  const [mnemonic] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const injected = (window as any).__E2E_MNEMONIC__;
+      if (typeof injected === 'string' && injected.trim()) {
+        return injected.trim().split(/\s+/);
+      }
+      if (Array.isArray(injected) && injected.every((w: unknown) => typeof w === 'string')) {
+        return injected as string[];
+      }
+    }
+
+    return generateMnemonic();
+  });
   const [mnemonicHidden, setMnemonicHidden] = useState(true);
   const [mnemonicCopied, setMnemonicCopied] = useState(false);
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);

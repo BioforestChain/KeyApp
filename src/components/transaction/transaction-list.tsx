@@ -13,6 +13,7 @@ interface TransactionListProps {
   className?: string | undefined;
   /** 是否显示链图标（右下角小徽章） */
   showChainIcon?: boolean | undefined;
+  testId?: string | undefined;
 }
 
 function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionInfo[]> {
@@ -52,6 +53,7 @@ export function TransactionList({
   emptyAction,
   className,
   showChainIcon = false,
+  testId,
 }: TransactionListProps) {
   if (loading) {
     return <SkeletonList count={5} {...(className && { className })} />;
@@ -60,6 +62,7 @@ export function TransactionList({
   if (transactions.length === 0) {
     return (
       <EmptyState
+        {...(testId && { testId: `${testId}-empty` })}
         title={emptyTitle}
         description={emptyDescription}
         {...(emptyAction && { action: emptyAction })}
@@ -80,7 +83,7 @@ export function TransactionList({
   const grouped = groupByDate(transactions);
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div {...(testId && { 'data-testid': testId })} className={cn('space-y-4', className)}>
       {Array.from(grouped.entries()).map(([date, txs]) => (
         <div key={date}>
           <h3 className="text-muted-foreground mb-1 px-3 text-xs font-medium">{date}</h3>

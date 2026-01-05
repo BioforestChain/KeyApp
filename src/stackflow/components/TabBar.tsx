@@ -190,7 +190,8 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   }, [hasRunningApps]);
 
   return (
-    <div 
+    <div
+      data-testid="tab-bar"
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
         "border-t bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",

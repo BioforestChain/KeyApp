@@ -38,6 +38,7 @@ export interface WalletCardProps {
   wallet: Wallet;
   chain: ChainType;
   chainName: string;
+  walletNameTestId?: string | undefined;
   /** 渲染优先级，影响帧率和分辨率 */
   priority?: Priority;
   address?: string | undefined;
@@ -76,6 +77,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     wallet,
     chain,
     chainName,
+    walletNameTestId = 'wallet-name',
     priority = 'high',
     address,
     chainIconUrl,
@@ -167,10 +169,17 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const transitionConfig = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ease-out-back 回弹效果
 
   return (
-    <div ref={ref} className={cn('wallet-card-container h-full w-full', className)} style={{ perspective: '1000px' }}>
+    <div
+      ref={ref}
+      data-testid="wallet-card-container"
+      className={cn('wallet-card-container h-full w-full', className)}
+      style={{ perspective: '1000px' }}
+    >
       {/* 卡片主体 - CSS 变量驱动所有动画 */}
       <div
         ref={cardRef}
+        data-testid="wallet-card"
+        data-active={isActive ? 'true' : 'false'}
         className="wallet-card relative h-full w-full transform-gpu touch-none overflow-hidden rounded-2xl select-none"
         style={{
           ...cssVars,
@@ -212,6 +221,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           <div className="flex items-center justify-between">
             <button
               onClick={onOpenChainSelector}
+              data-testid="chain-selector"
               className="flex items-center gap-1.5 rounded-full bg-black/20 px-2.5 py-1 text-xs text-white backdrop-blur-sm transition-colors hover:bg-black/30"
             >
               <ChainIcon chainId={chain} size="sm" />
@@ -221,6 +231,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
 
             <button
               onClick={onOpenSettings}
+              data-testid="wallet-card-settings-button"
               className="rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/20 hover:text-white"
             >
               <Settings className="size-4" />
@@ -229,7 +240,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
 
           {/* 中部：钱包名称 */}
           <div className="flex flex-1 items-center justify-center">
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg">{wallet.name}</h2>
+            <h2 data-testid={walletNameTestId} className="text-2xl font-bold text-white drop-shadow-lg">{wallet.name}</h2>
           </div>
 
           {/* 底部：地址 */}
@@ -237,10 +248,13 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
             <AddressDisplay
               address={address ?? ''}
               copyable={false}
+              testId="wallet-card-address"
               className="min-w-0 flex-1 text-white/80 drop-shadow"
             />
             <button
               onClick={handleCopy}
+              data-testid="wallet-card-copy-button"
+              data-copied={copied ? 'true' : 'false'}
               className="shrink-0 rounded-full bg-black/10 p-1.5 text-white/80 backdrop-blur-sm transition-all hover:bg-black/20 hover:text-white"
             >
               {copied ? <Check className="size-4 text-green-300" /> : <Copy className="size-4" />}

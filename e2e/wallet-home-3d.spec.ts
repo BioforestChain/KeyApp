@@ -11,53 +11,98 @@ import { test, expect, type Page } from '@playwright/test'
  * - 钱包列表展开
  */
 
+const E2E_WALLET_SEED = {
+  wallets: [
+    {
+      id: 'e2e-wallet-ethereum',
+      name: 'E2E Wallet',
+      address: '0x742d35Cc6634C0532925a3b844Bc9e7595f00000',
+      chain: 'ethereum',
+      keyType: 'mnemonic',
+      encryptedMnemonic: {
+        ciphertext: 'e2e',
+        iv: 'e2e',
+        salt: 'e2e',
+      },
+      createdAt: 1,
+      chainAddresses: [
+        {
+          chain: 'ethereum',
+          address: '0x742d35Cc6634C0532925a3b844Bc9e7595f00000',
+          tokens: [],
+        },
+      ],
+    },
+  ],
+  currentWalletId: 'e2e-wallet-ethereum',
+}
+
+async function seedWallet(page: Page) {
+  await page.addInitScript(async (seed) => {
+    localStorage.clear()
+    sessionStorage.clear()
+
+    const databases = await indexedDB.databases()
+    for (const db of databases) {
+      if (db.name) indexedDB.deleteDatabase(db.name)
+    }
+
+    localStorage.setItem('bfm_wallets', JSON.stringify(seed))
+    localStorage.setItem('bfm_preferences', JSON.stringify({ language: 'zh-CN', currency: 'CNY' }))
+  }, E2E_WALLET_SEED)
+}
+
 test.describe('Wallet Home 3D', () => {
   test.beforeEach(async ({ page }) => {
-    // 假设已有钱包，直接访问首页
+    await seedWallet(page)
     await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('wallet-card-container')).toBeVisible({ timeout: 10_000 })
   })
 
   test.describe('Wallet Card Display', () => {
     test('should display wallet card with 3D perspective', async ({ page }) => {
-      const card = page.locator('.wallet-card-container')
+      const card = page.getByTestId('wallet-card-container')
       await expect(card).toBeVisible()
 
       // 检查 3D 透视容器
-      const perspectiveContainer = page.locator('.perspective-\\[1000px\\]')
-      await expect(perspectiveContainer).toBeVisible()
+      await expect(card).toHaveCSS('perspective', '1000px')
     })
 
     test('should display wallet name on card', async ({ page }) => {
-      const walletName = page.locator('.wallet-card h2')
+      const walletName = page.getByTestId('wallet-name')
       await expect(walletName).toBeVisible()
     })
 
     test('should display chain selector button', async ({ page }) => {
-      const chainButton = page.locator('.wallet-card button').filter({ hasText: /Ethereum|Tron|Bitcoin/i })
-      await expect(chainButton.first()).toBeVisible()
+      await expect(page.getByTestId('wallet-card').getByTestId('chain-selector')).toBeVisible()
     })
 
     test('should display truncated address', async ({ page }) => {
-      const address = page.locator('.wallet-card .font-mono')
-      await expect(address).toBeVisible()
-      const text = await address.textContent()
-      expect(text).toMatch(/^0x[\da-f]{4,6}\.{3}[\da-f]{4}$/i)
+      const address = E2E_WALLET_SEED.wallets[0].address
+      const last4 = address.slice(-4)
+
+      const addressText = page.getByTestId('wallet-card-address-text')
+      await expect(page.getByTestId('wallet-card-address')).toHaveAttribute('title', address)
+      await expect(addressText).toBeVisible()
+
+      const text = (await addressText.textContent()) ?? ''
+      expect(text).toContain('...')
+      expect(text).toMatch(/^0x/i)
+      expect(text.toLowerCase()).toContain(last4.toLowerCase())
     })
   })
 
   test.describe('Wallet Card Interactions', () => {
     test('should copy address on click', async ({ page }) => {
-      // 找到复制按钮（最后一个按钮在底部行）
-      const copyButton = page.locator('.wallet-card button').last()
+      const copyButton = page.getByTestId('wallet-card-copy-button')
       await copyButton.click()
 
-      // 应该显示成功状态（绿色勾）
-      const checkIcon = page.locator('.wallet-card .text-green-300')
-      await expect(checkIcon).toBeVisible({ timeout: 1000 })
+      await expect(copyButton).toHaveAttribute('data-copied', 'true', { timeout: 1000 })
     })
 
     test('should open chain selector on chain button click', async ({ page }) => {
-      const chainButton = page.locator('.wallet-card button').filter({ hasText: /Ethereum|Tron|Bitcoin/i }).first()
+      const chainButton = page.getByTestId('wallet-card').getByTestId('chain-selector')
       await chainButton.click()
 
       // 应该打开链选择器
@@ -66,7 +111,7 @@ test.describe('Wallet Home 3D', () => {
     })
 
     test('should respond to mouse hover with 3D effect', async ({ page }) => {
-      const card = page.locator('.wallet-card')
+      const card = page.getByTestId('wallet-card')
       const box = await card.boundingBox()
       if (!box) throw new Error('Card not visible')
 
@@ -115,29 +160,26 @@ test.describe('Wallet Home 3D', () => {
 
   test.describe('Quick Actions', () => {
     test('should display send button', async ({ page }) => {
-      const sendButton = page.locator('button').filter({ hasText: /发送|转账|Send/i })
-      await expect(sendButton.first()).toBeVisible()
+      await expect(page.getByTestId('wallet-home-send-button')).toBeVisible()
     })
 
     test('should display receive button', async ({ page }) => {
-      const receiveButton = page.locator('button').filter({ hasText: /收款|Receive/i })
-      await expect(receiveButton.first()).toBeVisible()
+      await expect(page.getByTestId('wallet-home-receive-button')).toBeVisible()
     })
 
     test('should display scan button', async ({ page }) => {
-      const scanButton = page.locator('button').filter({ hasText: /扫码|Scan/i })
-      await expect(scanButton.first()).toBeVisible()
+      await expect(page.getByTestId('wallet-home-scan-button')).toBeVisible()
     })
 
     test('should navigate to send page', async ({ page }) => {
-      const sendButton = page.locator('button').filter({ hasText: /发送|转账|Send/i }).first()
+      const sendButton = page.getByTestId('wallet-home-send-button')
       await sendButton.click()
 
       await expect(page).toHaveURL(/\/send/)
     })
 
     test('should navigate to receive page', async ({ page }) => {
-      const receiveButton = page.locator('button').filter({ hasText: /收款|Receive/i }).first()
+      const receiveButton = page.getByTestId('wallet-home-receive-button')
       await receiveButton.click()
 
       await expect(page).toHaveURL(/\/receive/)
@@ -146,55 +188,30 @@ test.describe('Wallet Home 3D', () => {
 
   test.describe('Content Tabs', () => {
     test('should display assets and history tabs', async ({ page }) => {
-      const assetsTab = page.locator('button').filter({ hasText: /资产|Assets/i })
-      const historyTab = page.locator('button').filter({ hasText: /交易|History/i })
-
-      await expect(assetsTab.first()).toBeVisible()
-      await expect(historyTab.first()).toBeVisible()
+      await expect(page.getByTestId('wallet-home-content-tabs-tab-assets')).toBeVisible()
+      await expect(page.getByTestId('wallet-home-content-tabs-tab-history')).toBeVisible()
     })
 
     test('should show assets content by default', async ({ page }) => {
-      // 资产 tab 应该默认激活
-      const assetsTab = page.locator('button').filter({ hasText: /资产|Assets/i }).first()
-      await expect(assetsTab).toHaveClass(/text-primary|border-primary/)
+      await expect(page.getByTestId('wallet-home-content-tabs-tab-assets')).toHaveAttribute('data-active', 'true')
     })
 
     test('should switch to history tab', async ({ page }) => {
-      const historyTab = page.locator('button').filter({ hasText: /交易|History/i }).first()
+      const historyTab = page.getByTestId('wallet-home-content-tabs-tab-history')
       await historyTab.click()
-
-      await expect(historyTab).toHaveClass(/text-primary|border-primary|text-foreground/)
+      await expect(historyTab).toHaveAttribute('data-active', 'true')
     })
 
     test('should display token list in assets tab', async ({ page }) => {
-      // 确保在资产 tab
-      const assetsTab = page.locator('button').filter({ hasText: /资产|Assets/i }).first()
-      await assetsTab.click()
-
-      // 应该显示代币列表或空状态
-      const tokenList = page.locator('[class*="token"]')
-      const emptyState = page.locator('[class*="empty"]')
-
-      const hasTokens = await tokenList.first().isVisible().catch(() => false)
-      const isEmpty = await emptyState.first().isVisible().catch(() => false)
-
-      expect(hasTokens || isEmpty).toBeTruthy()
+      await page.getByTestId('wallet-home-content-tabs-tab-assets').click()
+      const tokenListOrEmpty = page.locator('[data-testid="token-list"], [data-testid="token-list-empty"]').first()
+      await expect(tokenListOrEmpty).toBeVisible()
     })
 
     test('should display transaction list in history tab', async ({ page }) => {
-      const historyTab = page.locator('button').filter({ hasText: /交易|History/i }).first()
-      await historyTab.click()
-
-      await page.waitForTimeout(300)
-
-      // 应该显示交易列表或空状态
-      const txList = page.locator('[class*="transaction"]')
-      const emptyState = page.locator('[class*="empty"]')
-
-      const hasTx = await txList.first().isVisible().catch(() => false)
-      const isEmpty = await emptyState.first().isVisible().catch(() => false)
-
-      expect(hasTx || isEmpty).toBeTruthy()
+      await page.getByTestId('wallet-home-content-tabs-tab-history').click()
+      const txListOrEmpty = page.locator('[data-testid="transaction-list"], [data-testid="transaction-list-empty"]').first()
+      await expect(txListOrEmpty).toBeVisible()
     })
   })
 
@@ -257,30 +274,26 @@ test.describe('Wallet Home 3D', () => {
   })
 
   test.describe('Tab Bar', () => {
-    test('should display only 2 tabs (wallet and settings)', async ({ page }) => {
-      const tabBar = page.locator('[class*="tab-bar"], nav')
-      if (!(await tabBar.isVisible())) return
+    test('should display wallet/ecosystem/settings tabs', async ({ page }) => {
+      const tabBar = page.getByTestId('tab-bar')
+      await expect(tabBar).toBeVisible()
 
-      const tabs = tabBar.locator('button, a')
-      const count = await tabs.count()
-
-      // 应该只有 2 个 tab
-      expect(count).toBe(2)
+      await expect(page.getByTestId('tab-wallet')).toBeVisible()
+      await expect(page.getByTestId('tab-ecosystem')).toBeVisible()
+      await expect(page.getByTestId('tab-settings')).toBeVisible()
     })
 
     test('should navigate to settings', async ({ page }) => {
-      const settingsTab = page.locator('button, a').filter({ hasText: /设置|Settings/i }).first()
-      if (!(await settingsTab.isVisible())) return
-
+      const settingsTab = page.getByTestId('tab-settings')
       await settingsTab.click()
 
-      await expect(page).toHaveURL(/\/settings/)
+      await expect(settingsTab).toHaveAttribute('aria-current', 'page')
     })
   })
 
   test.describe('Visual Regression', () => {
     test('wallet card should match snapshot', async ({ page }) => {
-      const card = page.locator('.wallet-card-container')
+      const card = page.getByTestId('wallet-card-container')
       if (!(await card.isVisible())) return
 
       await expect(card).toHaveScreenshot('wallet-card-3d.png', {
@@ -289,7 +302,7 @@ test.describe('Wallet Home 3D', () => {
     })
 
     test('content tabs should match snapshot', async ({ page }) => {
-      const tabs = page.locator('[class*="content-tabs"], [class*="ContentTabs"]').first()
+      const tabs = page.getByTestId('wallet-home-content-tabs')
       if (!(await tabs.isVisible())) return
 
       await expect(tabs).toHaveScreenshot('content-tabs.png', {
@@ -344,7 +357,7 @@ test.describe('Wallet Home 3D - Accessibility', () => {
   })
 
   test('wallet card should have proper aria labels', async ({ page }) => {
-    const card = page.locator('.wallet-card')
+    const card = page.getByTestId('wallet-card')
     if (!(await card.isVisible())) return
 
     // 按钮应该有 aria-label
@@ -360,8 +373,8 @@ test.describe('Wallet Home 3D - Accessibility', () => {
   })
 
   test('tabs should be keyboard navigable', async ({ page }) => {
-    const assetsTab = page.locator('button').filter({ hasText: /资产|Assets/i }).first()
-    const historyTab = page.locator('button').filter({ hasText: /交易|History/i }).first()
+    const assetsTab = page.getByTestId('wallet-home-content-tabs-tab-assets')
+    const historyTab = page.getByTestId('wallet-home-content-tabs-tab-history')
 
     if (!(await assetsTab.isVisible())) return
 

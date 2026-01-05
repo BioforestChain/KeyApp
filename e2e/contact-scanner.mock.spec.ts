@@ -53,6 +53,10 @@ async function createTestWallet(page: Page) {
   await page.waitForSelector('[data-testid="pattern-step"]')
 
   await drawPattern(page, 'pattern-lock-set-grid', DEFAULT_PATTERN)
+  const nextButton = page.locator('[data-testid="pattern-lock-next-button"]')
+  if (await nextButton.isVisible().catch(() => false)) {
+    await nextButton.click()
+  }
   await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]')
   await drawPattern(page, 'pattern-lock-confirm-grid', DEFAULT_PATTERN)
 
@@ -74,7 +78,11 @@ async function createTestWallet(page: Page) {
   await page.click('[data-testid="verify-next-button"]')
   await page.waitForSelector('[data-testid="chain-selector-step"]')
   await page.click('[data-testid="chain-selector-complete-button"]')
-  await page.waitForURL('/#/')
+
+  await page.waitForSelector('[data-testid="theme-step"]')
+  await page.click('[data-testid="theme-complete-button"]')
+
+  await page.waitForURL(/.*#\/$/)
   await page.waitForSelector('[data-testid="chain-selector"]', { timeout: 10000 })
 }
 
@@ -106,27 +114,19 @@ test.describe('联系人分享流程', () => {
   })
 
   test('通讯录页面可访问', async ({ page }) => {
-    await page.goto('/#/address-book')
-    await page.waitForTimeout(500)
-    
-    // 应该显示通讯录页面
-    await expect(page.locator('text=通讯录').or(page.locator('text=Address Book'))).toBeVisible()
+    await page.getByTestId('tab-settings').click()
+    await page.getByTestId('address-book-button').click()
+
+    const title = page.locator('[data-testid="page-title"]').filter({ hasText: /通讯录|Address Book/i }).first()
+    await expect(title).toBeVisible()
   })
 
   test('可以添加联系人', async ({ page }) => {
-    await page.goto('/#/address-book')
-    await page.waitForTimeout(500)
-    
-    // 点击添加按钮
-    const addButton = page.locator('[aria-label*="add" i], [aria-label*="添加" i], button:has(svg)').first()
-    if (await addButton.isVisible()) {
-      await addButton.click()
-      await page.waitForTimeout(300)
-      
-      // 应该打开添加联系人表单
-      const nameInput = page.locator('input[placeholder*="name" i], input[placeholder*="名称" i]').first()
-      await expect(nameInput).toBeVisible({ timeout: 2000 })
-    }
+    await page.getByTestId('tab-settings').click()
+    await page.getByTestId('address-book-button').click()
+
+    await page.getByTestId('address-book-add-button').click()
+    await expect(page.getByRole('heading', { name: /添加联系人|Add Contact/i })).toBeVisible()
   })
 })
 

@@ -9,6 +9,7 @@ interface AddressDisplayProps {
   copyable?: boolean | undefined;
   className?: string | undefined;
   onCopy?: (() => void) | undefined;
+  testId?: string | undefined;
 }
 
 // 使用 canvas 测量文字宽度（不触发回流）
@@ -68,7 +69,7 @@ function truncateAddress(address: string, maxWidth: number, font: string): strin
   return `${address.slice(0, startChars)}${ellipsis}${address.slice(-endChars)}`;
 }
 
-export function AddressDisplay({ address, copyable = true, className, onCopy }: AddressDisplayProps) {
+export function AddressDisplay({ address, copyable = true, className, onCopy, testId }: AddressDisplayProps) {
   const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [displayText, setDisplayText] = useState<string | null>(null);
@@ -122,6 +123,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
     return (
       <span
         ref={containerRef as React.RefObject<HTMLSpanElement>}
+        {...(testId && { 'data-testid': testId })}
         className={cn('relative block font-mono text-sm', className)}
         title={address}
         aria-label={address}
@@ -131,7 +133,12 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
           0
         </span>
         {/* 绝对定位的实际内容 */}
-        <span className={cn('absolute inset-0 truncate', !isReady && 'invisible')}>{displayText}</span>
+        <span
+          {...(testId && { 'data-testid': `${testId}-text` })}
+          className={cn('absolute inset-0 truncate', !isReady && 'invisible')}
+        >
+          {displayText}
+        </span>
       </span>
     );
   }
@@ -141,6 +148,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
       ref={containerRef as React.RefObject<HTMLButtonElement>}
       type="button"
       onClick={handleCopy}
+      {...(testId && { 'data-testid': testId })}
       className={cn(
         'relative flex w-full items-center gap-1.5 font-mono text-sm transition-colors',
         'hover:text-primary focus-visible:ring-ring rounded focus:outline-none focus-visible:ring-2',
@@ -154,7 +162,11 @@ export function AddressDisplay({ address, copyable = true, className, onCopy }: 
         <span className="invisible" aria-hidden="true">
           0
         </span>
-        <span className={cn('absolute inset-0 truncate', !isReady && 'invisible')} aria-hidden="true">
+        <span
+          {...(testId && { 'data-testid': `${testId}-text` })}
+          className={cn('absolute inset-0 truncate', !isReady && 'invisible')}
+          aria-hidden="true"
+        >
           {displayText}
         </span>
       </span>
