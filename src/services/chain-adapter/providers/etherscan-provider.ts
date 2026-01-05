@@ -189,7 +189,8 @@ export class EtherscanProvider implements ApiProvider {
   private convertNativeTx(tx: NativeTx, normalizedAddress: string): Transaction {
     const direction = this.getDirection(tx.from, tx.to, normalizedAddress)
     const action = this.detectAction(tx)
-    const hasValue = tx.value !== '0'
+    const isContractCall = this.isContractCall(tx)
+    const methodId = isContractCall ? this.getMethodId(tx) : null
     
     return {
       hash: tx.hash,
@@ -206,10 +207,10 @@ export class EtherscanProvider implements ApiProvider {
         symbol: this.symbol,
         decimals: this.decimals,
       }],
-      contract: action === 'contract' ? {
+      contract: isContractCall ? {
         address: tx.to,
         method: tx.functionName ?? undefined,
-        methodId: tx.methodId ?? undefined,
+        methodId: methodId ?? undefined,
       } : undefined,
     }
   }
@@ -252,9 +253,9 @@ export class EtherscanProvider implements ApiProvider {
 
   private detectAction(tx: NativeTx): Action {
     // 有 input data 表示合约调用
-    if (tx.input && tx.input !== '0x' && tx.input.length > 2) {
-      // 尝试识别常见方法
-      const methodId = tx.methodId ?? tx.input.slice(0, 10)
+    if (this.isContractCall(tx)) {
+      const methodId = this.getMethodId(tx)
+      if (!methodId) return 'contract'
       
       // 常见方法签名
       const methodMap: Record<string, Action> = {
@@ -272,11 +273,36 @@ export class EtherscanProvider implements ApiProvider {
         '0x42966c68': 'burn',       // burn(uint256)
       }
       
-      return methodMap[methodId.toLowerCase()] ?? 'contract'
+      return methodMap[methodId] ?? 'contract'
     }
     
     // 普通转账
     return 'transfer'
+  }
+
+  private isContractCall(tx: NativeTx): boolean {
+    const input = tx.input ?? ''
+    return input !== '0x' && input !== '0x0' && input !== '0x00' && input.length > 2
+  }
+
+  private getMethodId(tx: NativeTx): string | null {
+    const rawMethodId = (tx.methodId ?? '').toLowerCase()
+
+    // Some APIs return methodId = "0x" even when input contains the real selector.
+    if (rawMethodId && rawMethodId !== '0x' && rawMethodId !== '0x0' && rawMethodId !== '0x00') {
+      if (rawMethodId.startsWith('0x') && rawMethodId.length === 10) return rawMethodId
+      if (!rawMethodId.startsWith('0x') && rawMethodId.length === 8) return `0x${rawMethodId}`
+    }
+
+    const input = (tx.input ?? '').toLowerCase()
+    if (input.startsWith('0x') && input.length >= 10) {
+      return input.slice(0, 10)
+    }
+    if (!input.startsWith('0x') && input.length >= 8) {
+      return `0x${input.slice(0, 8)}`
+    }
+
+    return null
   }
 }
 

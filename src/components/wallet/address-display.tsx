@@ -6,6 +6,9 @@ import { clipboardService } from '@/services/clipboard';
 
 interface AddressDisplayProps {
   address: string;
+  startChars?: number | undefined;
+  endChars?: number | undefined;
+  placeholder?: string | undefined;
   copyable?: boolean | undefined;
   className?: string | undefined;
   onCopy?: (() => void) | undefined;
@@ -69,7 +72,22 @@ function truncateAddress(address: string, maxWidth: number, font: string): strin
   return `${address.slice(0, startChars)}${ellipsis}${address.slice(-endChars)}`;
 }
 
-export function AddressDisplay({ address, copyable = true, className, onCopy, testId }: AddressDisplayProps) {
+function truncateAddressByChars(address: string, startChars: number, endChars: number): string {
+  const ellipsis = '...'
+  if (address.length <= startChars + endChars + ellipsis.length) return address
+  return `${address.slice(0, startChars)}${ellipsis}${address.slice(-endChars)}`
+}
+
+export function AddressDisplay({
+  address,
+  startChars,
+  endChars,
+  placeholder = '---',
+  copyable = true,
+  className,
+  onCopy,
+  testId,
+}: AddressDisplayProps) {
   const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [displayText, setDisplayText] = useState<string | null>(null);
@@ -78,6 +96,18 @@ export function AddressDisplay({ address, copyable = true, className, onCopy, te
   const updateDisplay = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    if (!address) {
+      setDisplayText(placeholder);
+      return;
+    }
+
+    if (startChars !== undefined || endChars !== undefined) {
+      const start = startChars ?? 6;
+      const end = endChars ?? 4;
+      setDisplayText(truncateAddressByChars(address, start, end));
+      return;
+    }
 
     const style = getComputedStyle(container);
     const font = `${style.fontSize} ${style.fontFamily}`;
@@ -91,7 +121,7 @@ export function AddressDisplay({ address, copyable = true, className, onCopy, te
 
     const truncated = truncateAddress(address, availableWidth, font);
     setDisplayText(truncated);
-  }, [address, copyable]);
+  }, [address, copyable, endChars, placeholder, startChars]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
