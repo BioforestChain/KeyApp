@@ -629,20 +629,21 @@ export const walletActions = {
     let newAddresses: Array<{ chain: string; address: string; publicKey: string }> = []
     if (chainsToAdd.length > 0) {
       // 动态导入避免循环依赖
-      const { deriveAddressesForChains } = await import('@/lib/crypto/address-derivation')
-      
+      const { deriveWalletChainAddresses } = await import('@/services/chain-adapter')
+
       // 只派生需要添加的链
       const chainsToDerive = chainConfigs.filter((c) => chainsToAdd.includes(c.id))
-      const derivedAddresses = deriveAddressesForChains(mnemonic, chainsToDerive)
-      const addressMap = new Map(derivedAddresses.map((a) => [a.chainId, { address: a.address, publicKey: a.publicKey }]))
-      
-      newAddresses = chainsToAdd
-        .map((chainId) => {
-          const derived = addressMap.get(chainId)
-          if (!derived) return null
-          return { chain: chainId, address: derived.address, publicKey: derived.publicKey }
-        })
-        .filter((a): a is { chain: string; address: string; publicKey: string } => a !== null)
+      const derivedAddresses = await deriveWalletChainAddresses({
+        mnemonic,
+        chainConfigs: chainsToDerive,
+        selectedChainIds: chainsToAdd,
+      })
+
+      newAddresses = derivedAddresses.map((a) => ({
+        chain: a.chainId,
+        address: a.address,
+        publicKey: a.publicKey ?? '',
+      }))
     }
 
     // 更新 IndexedDB - 添加新链地址

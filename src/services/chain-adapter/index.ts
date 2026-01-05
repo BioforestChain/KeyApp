@@ -46,6 +46,13 @@ export {
   clearProviderCache,
 } from './providers'
 
+// Unified derivation helper (single source of truth)
+export {
+  deriveWalletChainAddresses,
+  type DerivedChainAddress,
+  type DeriveWalletChainAddressesParams,
+} from './derive-wallet-chain-addresses'
+
 // =================================================================
 // DEPRECATED: Old adapter registry API
 // Use ChainProvider from './providers' instead
