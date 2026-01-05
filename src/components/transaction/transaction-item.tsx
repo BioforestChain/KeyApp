@@ -12,6 +12,7 @@ import {
   IconLock,
   IconLockOpen,
   IconShieldLock,
+  IconShieldCheck,
   IconFlame,
   IconGift,
   IconHandGrab,
@@ -40,7 +41,7 @@ export type TransactionType =
   | 'issueAsset' | 'increaseAsset'
   | 'issueEntity' | 'destroyEntity'
   | 'locationName' | 'dapp' | 'certificate' | 'mark'
-  | 'interaction' | 'other';
+  | 'approve' | 'interaction' | 'other';
 
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
 
@@ -96,6 +97,7 @@ const typeIcons: Record<TransactionType, { Icon: Icon; color: string; bg: string
   certificate:   { Icon: IconCertificate,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
   mark:          { Icon: IconFileText,      color: 'text-tx-system', bg: 'bg-tx-system/10' },
   // 合约交互 - 灰蓝色
+  approve:       { Icon: IconShieldCheck,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
   interaction:   { Icon: IconClick,         color: 'text-tx-system', bg: 'bg-tx-system/10' },
   other:         { Icon: IconDots,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
 };

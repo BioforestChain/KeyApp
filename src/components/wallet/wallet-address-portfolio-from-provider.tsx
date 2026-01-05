@@ -163,7 +163,7 @@ function mapToUIType(action: Action, direction: 'in' | 'out' | 'self'): Transact
     dapp: 'dapp',
     certificate: 'certificate',
     mark: 'mark',
-    approve: 'signature',
+    approve: 'approve',
     mint: 'issueAsset',
     burn: 'destroy',
     claim: 'receive',
