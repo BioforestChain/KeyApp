@@ -16,6 +16,14 @@ export interface Balance {
   symbol: string
 }
 
+/** 代币余额（含 native + 所有资产） */
+export interface TokenBalance {
+  symbol: string
+  name: string
+  amount: Amount
+  isNative: boolean
+}
+
 /** 交易信息 */
 export interface Transaction {
   hash: string
@@ -89,6 +97,9 @@ export interface ApiProvider {
   
   /** 查询原生代币余额 */
   getNativeBalance?(address: string): Promise<Balance>
+  
+  /** 查询所有代币余额（native + 资产） */
+  getTokenBalances?(address: string): Promise<TokenBalance[]>
   
   /** 查询交易历史 */
   getTransactionHistory?(address: string, limit?: number): Promise<Transaction[]>

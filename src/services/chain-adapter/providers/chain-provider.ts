@@ -8,6 +8,7 @@ import type {
   ApiProvider, 
   ApiProviderMethod, 
   Balance, 
+  TokenBalance,
   Transaction, 
   TransactionStatus,
   FeeEstimate,
@@ -47,6 +48,10 @@ export class ChainProvider {
 
   get supportsNativeBalance(): boolean {
     return this.supports('getNativeBalance')
+  }
+
+  get supportsTokenBalances(): boolean {
+    return this.supports('getTokenBalances')
   }
 
   get supportsTransactionHistory(): boolean {
@@ -98,6 +103,10 @@ export class ChainProvider {
 
   get getNativeBalance(): ((address: string) => Promise<Balance>) | undefined {
     return this.getMethod('getNativeBalance')
+  }
+
+  get getTokenBalances(): ((address: string) => Promise<TokenBalance[]>) | undefined {
+    return this.getMethod('getTokenBalances')
   }
 
   get getTransactionHistory(): ((address: string, limit?: number) => Promise<Transaction[]>) | undefined {

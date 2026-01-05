@@ -4,7 +4,7 @@
  * 提供 BioForest 链的余额和交易历史查询能力。
  */
 
-import type { ApiProvider, Balance, Transaction } from './types'
+import type { ApiProvider, Balance, Transaction, TokenBalance } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -95,6 +95,52 @@ export class BiowalletProvider implements ApiProvider {
     } catch (error) {
       console.warn('[BiowalletProvider] Error fetching balance:', error)
       return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
+    }
+  }
+
+  async getTokenBalances(address: string): Promise<TokenBalance[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/address/asset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const json = await response.json() as BiowalletAssetResponse
+      
+      if (!json.success || !json.result) {
+        return []
+      }
+
+      const tokens: TokenBalance[] = []
+
+      for (const magic of Object.values(json.result.assets)) {
+        for (const asset of Object.values(magic)) {
+          const isNative = asset.assetType === this.symbol
+          tokens.push({
+            symbol: asset.assetType,
+            name: asset.assetType,
+            amount: Amount.fromRaw(asset.assetNumber, this.decimals, asset.assetType),
+            isNative,
+          })
+        }
+      }
+
+      // Sort: native first, then by amount descending
+      tokens.sort((a, b) => {
+        if (a.isNative && !b.isNative) return -1
+        if (!a.isNative && b.isNative) return 1
+        return b.amount.toNumber() - a.amount.toNumber()
+      })
+
+      return tokens
+    } catch (error) {
+      console.warn('[BiowalletProvider] Error fetching token balances:', error)
+      return []
     }
   }
 
