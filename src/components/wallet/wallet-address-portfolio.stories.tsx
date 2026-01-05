@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactRenderer } from '@storybook/react';
 import type { DecoratorFunction } from 'storybook/internal/types';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { expect, waitFor, within } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletAddressPortfolioView } from './wallet-address-portfolio-view';
 import { WalletAddressPortfolioFromProvider } from './wallet-address-portfolio-from-provider';
 import { chainConfigActions, useChainConfigState } from '@/stores/chain-config';
-import { clearProviderCache, createChainProvider } from '@/services/chain-adapter';
+import { clearProviderCache } from '@/services/chain-adapter';
 import { Amount } from '@/types/amount';
 import type { TokenInfo } from '@/components/token/token-item';
 import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item';
@@ -157,27 +157,6 @@ export const Empty: Story = {
   },
 };
 
-function DebugProviderInfo({ chainId }: { chainId: string }) {
-  const state = useChainConfigState();
-  const provider = useMemo(() => {
-    if (!state.snapshot) return null;
-    return createChainProvider(chainId);
-  }, [chainId, state.snapshot]);
-
-  return (
-    <div data-testid="debug-provider-info" className="mb-4 rounded bg-muted p-3 text-xs font-mono">
-      <div>chainId: {chainId}</div>
-      <div>hasSnapshot: {String(!!state.snapshot)}</div>
-      <div>hasProvider: {String(!!provider)}</div>
-      <div>supportsTokenBalances: {String(provider?.supportsTokenBalances)}</div>
-      <div>supportsNativeBalance: {String(provider?.supportsNativeBalance)}</div>
-      <div>supportsTransactionHistory: {String(provider?.supportsTransactionHistory)}</div>
-      <div>providersCount: {provider?.getProviders?.()?.length ?? 0}</div>
-      <div>providerTypes: {provider?.getProviders?.()?.map((p: { type: string }) => p.type).join(', ') ?? 'none'}</div>
-    </div>
-  );
-}
-
 export const RealDataBfmeta: Story = {
   name: 'Real Data: biochain-bfmeta',
   decorators: [withChainConfig],
@@ -190,15 +169,12 @@ export const RealDataBfmeta: Story = {
     },
   },
   render: () => (
-    <>
-      <DebugProviderInfo chainId="bfmeta" />
-      <WalletAddressPortfolioFromProvider
-        chainId="bfmeta"
-        address="bCfAynSAKhzgKLi3BXyuh5k22GctLR72j"
-        chainName="BFMeta"
-        testId="bfmeta-portfolio"
-      />
-    </>
+    <WalletAddressPortfolioFromProvider
+      chainId="bfmeta"
+      address="bCfAynSAKhzgKLi3BXyuh5k22GctLR72j"
+      chainName="BFMeta"
+      testId="bfmeta-portfolio"
+    />
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -335,6 +311,45 @@ export const RealDataTron: Story = {
 
         // Verify token list exists with TRX balance
         const tokenList = canvas.queryByTestId('tron-portfolio-token-list');
+        expect(tokenList).not.toBeNull();
+
+        const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]');
+        expect(tokenItems?.length).toBeGreaterThan(0);
+      },
+      { timeout: 15000 },
+    );
+  },
+};
+
+export const RealDataBinance: Story = {
+  name: 'Real Data: binance',
+  decorators: [withChainConfig],
+  parameters: {
+    chromatic: { delay: 5000 },
+    docs: {
+      description: {
+        story: 'Fetches real BNB balance from BSC mainnet using public RPC.',
+      },
+    },
+  },
+  render: () => (
+    <WalletAddressPortfolioFromProvider
+      chainId="binance"
+      address="0x8894E0a0c962CB723c1976a4421c95949bE2D4E3"
+      chainName="BNB Smart Chain"
+      testId="binance-portfolio"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(
+      () => {
+        const portfolio = canvas.getByTestId('binance-portfolio');
+        expect(portfolio).toBeVisible();
+
+        // Verify token list exists with BNB balance
+        const tokenList = canvas.queryByTestId('binance-portfolio-token-list');
         expect(tokenList).not.toBeNull();
 
         const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]');
