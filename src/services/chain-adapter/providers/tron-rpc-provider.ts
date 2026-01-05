@@ -214,7 +214,9 @@ export class TronRpcProvider implements ApiProvider {
 
       const relatedTrc20Txs = trc20TxsByTxId.get(txId) ?? []
       const tx = this.buildAggregatedTransaction(ntx, relatedTrc20Txs, normalizedAddress)
-      results.push(tx)
+      if (tx) {
+        results.push(tx)
+      }
     }
 
     // 3. 处理孤儿 TRC-20 交易
@@ -230,18 +232,78 @@ export class TronRpcProvider implements ApiProvider {
   }
 
   /**
+   * 判断原生交易是否应该被过滤（智能过滤 Option A）
+   * 
+   * 过滤条件（全部满足才过滤）：
+   * 1. contractType === TriggerSmartContract
+   * 2. 原生 TRX amount === 0
+   * 3. 没有关联任何 TRC-20 Token Transfer
+   * 
+   * 白名单（永不过滤）：
+   * - FreezeBalance / UnfreezeBalance（质押/解押）
+   * - VoteWitnessContract（投票超级节点）
+   * - AccountCreateContract（激活账户）
+   * - WithdrawBalanceContract / WithdrawExpireUnfreezeContract（提取奖励）
+   * - TransferContract / TransferAssetContract（原生转账）
+   */
+  private shouldFilterTransaction(ntx: TronTx, hasTrc20Events: boolean): boolean {
+    const contract = ntx.raw_data?.contract?.[0]
+    const contractType = contract?.type ?? ''
+    const nativeAmount = contract?.parameter?.value?.amount ?? 0
+
+    // 白名单：核心系统行为，永不过滤
+    const whitelistTypes = [
+      'TransferContract',
+      'TransferAssetContract',
+      'FreezeBalanceContract',
+      'FreezeBalanceV2Contract',
+      'UnfreezeBalanceContract',
+      'UnfreezeBalanceV2Contract',
+      'VoteWitnessContract',
+      'AccountCreateContract',
+      'WithdrawBalanceContract',
+      'WithdrawExpireUnfreezeContract',
+    ]
+    if (whitelistTypes.includes(contractType)) {
+      return false
+    }
+
+    // 有 TRC-20 事件关联的，不过滤
+    if (hasTrc20Events) {
+      return false
+    }
+
+    // 有原生资产变动的，不过滤
+    if (nativeAmount > 0) {
+      return false
+    }
+
+    // TriggerSmartContract + 0 TRX + 无 TRC-20 → 过滤
+    if (contractType === 'TriggerSmartContract') {
+      return true
+    }
+
+    return false
+  }
+
+  /**
    * 构建聚合后的 Transaction
    */
   private buildAggregatedTransaction(
     ntx: TronTx,
     trc20Txs: Trc20Tx[],
     normalizedAddress: string
-  ): Transaction {
+  ): Transaction | null {
     const contract = ntx.raw_data?.contract?.[0]
     const contractType = contract?.type ?? ''
     const value = contract?.parameter?.value
     const status: Transaction['status'] = ntx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
     const hasTokens = trc20Txs.length > 0
+
+    // 智能过滤：无意义的合约调用
+    if (this.shouldFilterTransaction(ntx, hasTokens)) {
+      return null
+    }
 
     // Action 识别
     let action = this.detectAction(contractType)
