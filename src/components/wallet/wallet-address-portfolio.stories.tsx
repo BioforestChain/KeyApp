@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactRenderer } from '@storybook/react';
 import type { DecoratorFunction } from 'storybook/internal/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { expect, waitFor, within } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletAddressPortfolioView } from './wallet-address-portfolio-view';
 import { WalletAddressPortfolioFromProvider } from './wallet-address-portfolio-from-provider';
 import { chainConfigActions, useChainConfigState } from '@/stores/chain-config';
-import { clearProviderCache } from '@/services/chain-adapter';
+import { clearProviderCache, createChainProvider } from '@/services/chain-adapter';
 import { Amount } from '@/types/amount';
 import type { TokenInfo } from '@/components/token/token-item';
 import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item';
@@ -157,6 +157,27 @@ export const Empty: Story = {
   },
 };
 
+function DebugProviderInfo({ chainId }: { chainId: string }) {
+  const state = useChainConfigState();
+  const provider = useMemo(() => {
+    if (!state.snapshot) return null;
+    return createChainProvider(chainId);
+  }, [chainId, state.snapshot]);
+
+  return (
+    <div data-testid="debug-provider-info" className="mb-4 rounded bg-muted p-3 text-xs font-mono">
+      <div>chainId: {chainId}</div>
+      <div>hasSnapshot: {String(!!state.snapshot)}</div>
+      <div>hasProvider: {String(!!provider)}</div>
+      <div>supportsTokenBalances: {String(provider?.supportsTokenBalances)}</div>
+      <div>supportsNativeBalance: {String(provider?.supportsNativeBalance)}</div>
+      <div>supportsTransactionHistory: {String(provider?.supportsTransactionHistory)}</div>
+      <div>providersCount: {provider?.getProviders?.()?.length ?? 0}</div>
+      <div>providerTypes: {provider?.getProviders?.()?.map((p: { type: string }) => p.type).join(', ') ?? 'none'}</div>
+    </div>
+  );
+}
+
 export const RealDataBfmeta: Story = {
   name: 'Real Data: biochain-bfmeta',
   decorators: [withChainConfig],
@@ -169,12 +190,15 @@ export const RealDataBfmeta: Story = {
     },
   },
   render: () => (
-    <WalletAddressPortfolioFromProvider
-      chainId="bfmeta"
-      address="bCfAynSAKhzgKLi3BXyuh5k22GctLR72j"
-      chainName="BFMeta"
-      testId="bfmeta-portfolio"
-    />
+    <>
+      <DebugProviderInfo chainId="bfmeta" />
+      <WalletAddressPortfolioFromProvider
+        chainId="bfmeta"
+        address="bCfAynSAKhzgKLi3BXyuh5k22GctLR72j"
+        chainName="BFMeta"
+        testId="bfmeta-portfolio"
+      />
+    </>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

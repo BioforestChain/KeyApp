@@ -34,7 +34,6 @@ export {
   deriveBitcoinKey,
   deriveMultiChainKeys,
   deriveHDKey,
-  deriveBitcoinKey,
   getBIP44Path,
   toChecksumAddress,
   isValidAddress,

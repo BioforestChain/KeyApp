@@ -43,11 +43,14 @@ export function WalletAddressPortfolioFromProvider({
   const transactionsEnabled = !!provider?.supportsTransactionHistory
 
   const tokensQuery = useQuery({
-    queryKey: ['address-token-balances', chainId, address],
+    queryKey: ['address-token-balances', chainId, address, !!provider],
     queryFn: async (): Promise<TokenInfo[]> => {
-      if (!provider?.getTokenBalances) {
-        if (provider?.getNativeBalance) {
-          const balance = await provider.getNativeBalance(address)
+      // Re-create provider inside queryFn to ensure we have latest
+      const currentProvider = chainConfigState.snapshot ? createChainProvider(chainId) : null
+      
+      if (!currentProvider?.getTokenBalances) {
+        if (currentProvider?.getNativeBalance) {
+          const balance = await currentProvider.getNativeBalance(address)
           return [{
             symbol: balance.symbol,
             name: balance.symbol,
@@ -58,7 +61,7 @@ export function WalletAddressPortfolioFromProvider({
         }
         return []
       }
-      const tokens = await provider.getTokenBalances(address)
+      const tokens = await currentProvider.getTokenBalances(address)
       return tokens.map(t => ({
         symbol: t.symbol,
         name: t.name,
@@ -72,10 +75,11 @@ export function WalletAddressPortfolioFromProvider({
   })
 
   const transactionsQuery = useQuery({
-    queryKey: ['address-transactions', chainId, address],
+    queryKey: ['address-transactions', chainId, address, !!provider],
     queryFn: async (): Promise<TransactionInfo[]> => {
-      if (!provider?.getTransactionHistory) return []
-      const txs = await provider.getTransactionHistory(address, 20)
+      const currentProvider = chainConfigState.snapshot ? createChainProvider(chainId) : null
+      if (!currentProvider?.getTransactionHistory) return []
+      const txs = await currentProvider.getTransactionHistory(address, 20)
       return txs.map(tx => {
         const isSend = tx.from.toLowerCase() === address.toLowerCase()
         return {
