@@ -381,5 +381,129 @@ describe('TronRpcProvider', () => {
       expect(txs[0].hash).toBe('contract-with-trx')
       expect(txs[0].assets[0].value).toBe('10000000')
     })
+
+    it('keeps FAILED transactions (Rule 3: Critical Feedback)', async () => {
+      const userAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'
+
+      // 失败的合约调用：即使 0 TRX 也必须保留
+      const failedTx = {
+        txID: 'failed-tx-123',
+        raw_data: {
+          contract: [{
+            type: 'TriggerSmartContract',
+            parameter: {
+              value: {
+                owner_address: userAddress,
+                contract_address: 'TContractAddress',
+                amount: 0,
+              },
+            },
+          }],
+          timestamp: 1766822586000,
+        },
+        ret: [{ contractRet: 'REVERT' }], // 失败状态
+      }
+
+      mockFetch.mockImplementation(async (url: string) => {
+        if (url.includes('/transactions/trc20')) {
+          return { ok: true, json: async () => ({ success: true, data: [] }) }
+        }
+        if (url.includes('/transactions?')) {
+          return { ok: true, json: async () => ({ success: true, data: [failedTx] }) }
+        }
+        return { ok: true, json: async () => ({ success: true, data: [] }) }
+      })
+
+      const provider = new TronRpcProvider(mockEntry, 'tron')
+      const txs = await provider.getTransactionHistory(userAddress, 10)
+
+      // 失败交易必须保留，用户需要看到失败记录
+      expect(txs).toHaveLength(1)
+      expect(txs[0].hash).toBe('failed-tx-123')
+      expect(txs[0].status).toBe('failed')
+    })
+
+    it('keeps approve transactions (Rule 4: Key Actions)', async () => {
+      const userAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'
+
+      // approve 授权交易：0 TRX 但是必须保留
+      const approveTx = {
+        txID: 'approve-tx-456',
+        raw_data: {
+          contract: [{
+            type: 'TriggerSmartContract',
+            parameter: {
+              value: {
+                owner_address: userAddress,
+                contract_address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // USDT contract
+                amount: 0,
+                // approve(address,uint256) MethodID: 0x095ea7b3
+                data: '095ea7b3000000000000000000000000spender0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+              },
+            },
+          }],
+          timestamp: 1766822586000,
+        },
+        ret: [{ contractRet: 'SUCCESS' }],
+      }
+
+      mockFetch.mockImplementation(async (url: string) => {
+        if (url.includes('/transactions/trc20')) {
+          return { ok: true, json: async () => ({ success: true, data: [] }) }
+        }
+        if (url.includes('/transactions?')) {
+          return { ok: true, json: async () => ({ success: true, data: [approveTx] }) }
+        }
+        return { ok: true, json: async () => ({ success: true, data: [] }) }
+      })
+
+      const provider = new TronRpcProvider(mockEntry, 'tron')
+      const txs = await provider.getTransactionHistory(userAddress, 10)
+
+      // approve 交易必须保留，且 action 应该是 approve
+      expect(txs).toHaveLength(1)
+      expect(txs[0].hash).toBe('approve-tx-456')
+      expect(txs[0].action).toBe('approve')
+    })
+
+    it('filters successful 0-TRX TriggerSmartContract without TRC-20 and not approve', async () => {
+      const userAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'
+
+      // 纯噪音：成功 + 0 TRX + 无 TRC-20 + 非 approve
+      const spamTx = {
+        txID: 'spam-noise-789',
+        raw_data: {
+          contract: [{
+            type: 'TriggerSmartContract',
+            parameter: {
+              value: {
+                owner_address: userAddress,
+                contract_address: 'TSpamContract',
+                amount: 0,
+                data: 'deadbeef12345678', // 未知方法
+              },
+            },
+          }],
+          timestamp: 1766822586000,
+        },
+        ret: [{ contractRet: 'SUCCESS' }],
+      }
+
+      mockFetch.mockImplementation(async (url: string) => {
+        if (url.includes('/transactions/trc20')) {
+          return { ok: true, json: async () => ({ success: true, data: [] }) }
+        }
+        if (url.includes('/transactions?')) {
+          return { ok: true, json: async () => ({ success: true, data: [spamTx] }) }
+        }
+        return { ok: true, json: async () => ({ success: true, data: [] }) }
+      })
+
+      const provider = new TronRpcProvider(mockEntry, 'tron')
+      const txs = await provider.getTransactionHistory(userAddress, 10)
+
+      // 噪音交易应该被过滤
+      expect(txs).toHaveLength(0)
+    })
   })
 })

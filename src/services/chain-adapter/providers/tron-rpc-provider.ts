@@ -232,26 +232,24 @@ export class TronRpcProvider implements ApiProvider {
   }
 
   /**
-   * 判断原生交易是否应该被过滤（智能过滤 Option A）
+   * 判断原生交易是否应该被过滤（智能过滤 Option A + 安全白名单）
    * 
-   * 过滤条件（全部满足才过滤）：
-   * 1. contractType === TriggerSmartContract
-   * 2. 原生 TRX amount === 0
-   * 3. 没有关联任何 TRC-20 Token Transfer
+   * 保留规则（命中任意一条即保留）：
+   * 1. 核心系统行为：Freeze/Unfreeze/Vote/Withdraw/AccountCreate/Transfer
+   * 2. 资产变动：有 TRC-20 事件 或 TRX amount > 0
+   * 3. 异常反馈：交易失败（用户需要看到失败记录）
+   * 4. 关键操作：approve 授权（Swap 前的必要步骤）
    * 
-   * 白名单（永不过滤）：
-   * - FreezeBalance / UnfreezeBalance（质押/解押）
-   * - VoteWitnessContract（投票超级节点）
-   * - AccountCreateContract（激活账户）
-   * - WithdrawBalanceContract / WithdrawExpireUnfreezeContract（提取奖励）
-   * - TransferContract / TransferAssetContract（原生转账）
+   * 丢弃规则：
+   * - TriggerSmartContract + 成功 + 0 TRX + 无 TRC-20 + 非 approve → 噪音
    */
   private shouldFilterTransaction(ntx: TronTx, hasTrc20Events: boolean): boolean {
     const contract = ntx.raw_data?.contract?.[0]
     const contractType = contract?.type ?? ''
     const nativeAmount = contract?.parameter?.value?.amount ?? 0
+    const txStatus = ntx.ret?.[0]?.contractRet
 
-    // 白名单：核心系统行为，永不过滤
+    // 规则 1：核心系统行为，永不过滤
     const whitelistTypes = [
       'TransferContract',
       'TransferAssetContract',
@@ -268,22 +266,53 @@ export class TronRpcProvider implements ApiProvider {
       return false
     }
 
-    // 有 TRC-20 事件关联的，不过滤
+    // 规则 2a：有 TRC-20 事件关联的，不过滤
     if (hasTrc20Events) {
       return false
     }
 
-    // 有原生资产变动的，不过滤
+    // 规则 2b：有原生资产变动的，不过滤
     if (nativeAmount > 0) {
       return false
     }
 
-    // TriggerSmartContract + 0 TRX + 无 TRC-20 → 过滤
+    // 规则 3：失败交易必须保留（用户需要看到失败记录，避免重复操作）
+    if (txStatus !== 'SUCCESS') {
+      return false
+    }
+
+    // 规则 4：approve 授权操作必须保留（Swap 前的必要步骤）
+    if (this.isApproveTransaction(ntx)) {
+      return false
+    }
+
+    // 丢弃：TriggerSmartContract + 成功 + 0 TRX + 无 TRC-20 + 非 approve → 噪音
     if (contractType === 'TriggerSmartContract') {
       return true
     }
 
     return false
+  }
+
+  /**
+   * 检测是否为 approve 授权交易
+   * ERC-20/TRC-20 approve 的 MethodID: 0x095ea7b3
+   */
+  private isApproveTransaction(ntx: TronTx): boolean {
+    const contract = ntx.raw_data?.contract?.[0]
+    if (contract?.type !== 'TriggerSmartContract') {
+      return false
+    }
+
+    // Tron 的 data 字段包含合约调用数据
+    const data = contract?.parameter?.value?.data
+    if (!data || typeof data !== 'string') {
+      return false
+    }
+
+    // approve(address,uint256) 的 MethodID
+    const APPROVE_METHOD_ID = '095ea7b3'
+    return data.toLowerCase().startsWith(APPROVE_METHOD_ID)
   }
 
   /**
@@ -309,6 +338,10 @@ export class TronRpcProvider implements ApiProvider {
     let action = this.detectAction(contractType)
     if (action === 'contract' && hasTokens) {
       action = 'transfer'
+    }
+    // approve 授权操作
+    if (action === 'contract' && this.isApproveTransaction(ntx)) {
+      action = 'approve'
     }
 
     // 选择主 token event
