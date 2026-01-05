@@ -164,6 +164,7 @@ export function TransactionItem({ transaction, onClick, className, showChainIcon
         <AmountDisplay
           value={amountValue}
           symbol={transaction.symbol}
+          decimals={transaction.amount.decimals}
           sign="always"
           color="default"
           weight="normal"

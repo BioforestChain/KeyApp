@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 import { WalletMiniCard } from './wallet-mini-card'
+import { AddressDisplay } from './address-display'
 
 export interface WalletListItem {
   id: string
@@ -20,12 +21,6 @@ export interface WalletListProps {
   onAddWallet?: () => void
   showAddButton?: boolean
   className?: string
-}
-
-function truncateAddress(address: string): string {
-  if (!address) return '---'
-  if (address.length <= 12) return address
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
 export function WalletList({
@@ -51,7 +46,6 @@ export function WalletList({
     <div className={cn('space-y-2', className)} role="listbox" aria-label={t('common:a11y.selectWallet')}>
       {wallets.map((wallet) => {
         const isActive = wallet.id === currentWalletId
-        const displayAddress = truncateAddress(wallet.address)
 
         return (
           <button
@@ -76,9 +70,13 @@ export function WalletList({
                   <IconCircleCheckFilled className="size-4 shrink-0 text-primary" />
                 )}
               </div>
-              <p className="truncate font-mono text-xs text-muted-foreground">
-                {displayAddress}
-              </p>
+              <AddressDisplay
+                address={wallet.address}
+                startChars={6}
+                endChars={4}
+                copyable={false}
+                className="text-xs text-muted-foreground"
+              />
             </div>
           </button>
         )

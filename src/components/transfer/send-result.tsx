@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { IconCircle } from '@/components/common/icon-circle';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
+import { AddressDisplay } from '@/components/wallet/address-display';
 import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconCopy as Copy, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
 import { clipboardService } from '@/services/clipboard';
@@ -29,16 +30,6 @@ interface SendResultProps {
   onRetry?: (() => void) | undefined;
   /** Additional class name */
   className?: string | undefined;
-}
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 20) return hash;
-  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
-}
-
-function truncateAddress(address: string): string {
-  if (address.length <= 16) return address;
-  return `${address.slice(0, 8)}...${address.slice(-6)}`;
 }
 
 /**
@@ -100,7 +91,10 @@ export function SendResult({
       </p>
 
       {/* Recipient */}
-      <p className="text-muted-foreground mb-6 text-sm">{t('sendResult.sentTo', { address: truncateAddress(toAddress) })}</p>
+      <p className="text-muted-foreground mb-6 flex items-center justify-center gap-1 text-sm">
+        <span>{t('sendResult.sentTo', { address: '' })}</span>
+        <AddressDisplay address={toAddress} startChars={8} endChars={6} copyable={false} />
+      </p>
 
       {/* Error Message */}
       {isFailed && errorMessage && (
@@ -113,14 +107,13 @@ export function SendResult({
       {txHash && isSuccess && (
         <div className="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
           <span>{t('sendResult.txHash')}</span>
-          <button type="button" onClick={handleCopyHash} className="hover:text-foreground font-mono">
-            {truncateHash(txHash)}
-          </button>
-          {copied ? (
-            <Check className="size-4 text-green-500" />
-          ) : (
-            <Copy className="hover:text-foreground size-4 cursor-pointer" onClick={handleCopyHash} />
-          )}
+          <AddressDisplay
+            address={txHash}
+            startChars={10}
+            endChars={8}
+            copyable
+            onCopy={handleCopyHash}
+          />
         </div>
       )}
 
