@@ -97,7 +97,7 @@ interface ChainConfig {
   // 必需字段
   id: string              // 唯一标识，格式: /^[a-z0-9-]+$/
   version: string         // 配置版本，格式: "major.minor"
-  type: ChainConfigType   // 链类型
+  chainKind: ChainKind    // 链类型（严格枚举，不支持 custom）
   name: string            // 显示名称
   symbol: string          // 原生代币符号
   decimals: number        // 原生代币精度
@@ -113,7 +113,7 @@ interface ChainConfig {
   source: ChainConfigSource // 配置来源
 }
 
-type ChainConfigType = 'bioforest' | 'evm' | 'bip39' | 'custom'
+type ChainKind = 'bioforest' | 'evm' | 'bitcoin' | 'tron'
 type ChainConfigSource = 'default' | 'subscription' | 'manual'
 ```
 
@@ -156,18 +156,37 @@ EVM 兼容链，使用 BIP44 派生（coin type 60）：
 
 **支持的链**: Ethereum, BSC, Polygon 等
 
-### bip39
+### bitcoin
 
-其他使用 BIP39/BIP44 的链：
+Bitcoin 网络，使用 BIP84 派生（Native SegWit）：
 
-| 链 | Coin Type | 说明 |
-|---|-----------|------|
-| Bitcoin | 0 | UTXO 模型 |
-| Tron | 195 | 账户模型 |
+| 字段 | 说明 |
+|-----|------|
+| decimals | 8 |
+| 地址格式 | `bc1q...` (Native SegWit P2WPKH) |
 
-### custom
+**派生路径**: `m/84'/0'/account'/0/index`
 
-未知类型，用于向前兼容。应用 **MAY** 显示但 **MUST NOT** 执行交易操作。
+### tron
+
+Tron 网络，使用 BIP44 派生（coin type 195）：
+
+| 字段 | 说明 |
+|-----|------|
+| decimals | 6 |
+| 地址格式 | `T...` (Base58Check) |
+
+**派生路径**: `m/44'/195'/account'/0/index`
+
+---
+
+## 严格类型验证
+
+从版本 2.0.0 起，`chainKind` 采用严格枚举验证：
+
+- **MUST** 使用 `bioforest`、`evm`、`bitcoin`、`tron` 之一
+- **MUST NOT** 使用 `custom` 或 `bip39`（已废弃）
+- 未知类型将导致配置加载失败，而不是静默降级
 
 ---
 
