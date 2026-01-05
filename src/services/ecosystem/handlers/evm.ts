@@ -60,7 +60,7 @@ const appAccountState = new Map<string, string[]>()
 // ============================================
 
 let _showEvmWalletPicker: ((opts: { chainId: string; app?: MiniappInfo }) => Promise<BioAccount | null>) | null = null
-let _showChainSwitchConfirm: ((opts: { fromChainId: string; toChainId: string; appName: string }) => Promise<boolean>) | null = null
+let _showChainSwitchConfirm: ((opts: { fromChainId: string; toChainId: string; appName: string; appIcon?: string }) => Promise<boolean>) | null = null
 let _showEvmSigningDialog: ((opts: { message: string; address: string; appName: string }) => Promise<{ signature: string } | null>) | null = null
 let _showEvmTransactionDialog: ((opts: { tx: EvmTransactionRequest; appName: string }) => Promise<{ txHash: string } | null>) | null = null
 
@@ -133,7 +133,7 @@ export const handleEthRequestAccounts: MethodHandler = async (_params, context) 
   }
 
   const chainId = getCurrentChainId(context.appId)
-  const wallet = await showWalletPicker({ chainId, app: { name: context.appName } })
+  const wallet = await showWalletPicker({ chainId, app: { name: context.appName, icon: context.appIcon } })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -178,6 +178,7 @@ export const handleSwitchChain: MethodHandler = async (params, context) => {
       fromChainId: currentChainId,
       toChainId: targetChainId,
       appName: context.appName,
+      appIcon: context.appIcon,
     })
     if (!approved) {
       throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })

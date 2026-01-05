@@ -191,6 +191,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
 
     setEvmWalletPicker(async (opts) => {
       const appName = opts.app?.name;
+      const appIcon = opts.app?.icon;
 
       return new Promise<BioAccount | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 30_000);
@@ -218,6 +219,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
         push("WalletPickerJob", {
           chain: opts.chainId,
           ...(appName ? { appName } : {}),
+          ...(appIcon ? { appIcon } : {}),
         });
       });
     });
@@ -238,6 +240,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
           fromChainId: opts.fromChainId,
           toChainId: opts.toChainId,
           appName: opts.appName,
+          appIcon: opts.appIcon,
         });
       });
     });
@@ -304,6 +307,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
 
     setTronWalletPicker(async (opts) => {
       const appName = opts?.app?.name;
+      const appIcon = opts?.app?.icon;
 
       return new Promise<BioAccount | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 30_000);
@@ -331,6 +335,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
         push("WalletPickerJob", {
           chain: "tron",
           ...(appName ? { appName } : {}),
+          ...(appIcon ? { appIcon } : {}),
         });
       });
     });

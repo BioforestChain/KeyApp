@@ -81,3 +81,8 @@ export {
   type EcosystemDesktopCallbacks,
   type EcosystemDesktopHandle,
 } from './ecosystem-desktop'
+
+export {
+  MiniappSheetHeader,
+  type MiniappSheetHeaderProps,
+} from './miniapp-sheet-header'

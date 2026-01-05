@@ -9,6 +9,7 @@ import type {
   MethodHandler,
   HandlerContext,
 } from './types'
+import { miniappRuntimeStore } from '../miniapp-runtime'
 
 /** EVM request message from miniapp */
 interface EthRequestMessage {
@@ -245,9 +246,11 @@ export class PostMessageBridge {
 
     // Execute handler
     try {
+      const appIcon = miniappRuntimeStore.state.apps.get(this.appId)?.manifest.icon
       const context: HandlerContext = {
         appId: this.appId,
         appName: this.appName,
+        appIcon,
         origin: this.origin,
         permissions: this.manifestPermissions,
       }

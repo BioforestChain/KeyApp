@@ -12,7 +12,7 @@ import { walletStore, walletSelectors, type Wallet, type ChainAddress } from '@/
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { WalletList, type WalletListItem } from '@/components/wallet/wallet-list'
-import { MiniappIcon } from '@/components/ecosystem'
+import { MiniappSheetHeader } from '@/components/ecosystem'
 import { getKeyAppChainId, normalizeChainId, CHAIN_DISPLAY_NAMES } from '@biochain/bio-sdk'
 
 type WalletPickerJobParams = {
@@ -137,24 +137,12 @@ function WalletPickerJobContent() {
         </div>
 
         {/* Title with App Icon */}
-        <div className="border-border border-b px-4 pb-4">
-          {(appName || appIcon) && (
-            <div className="mx-auto mb-3">
-              <MiniappIcon
-                src={appIcon}
-                name={appName}
-                size="lg"
-                shadow="sm"
-              />
-            </div>
-          )}
-          <h2 className="text-center text-lg font-semibold">
-            {t('selectWallet', '选择钱包')}
-          </h2>
-          <p className="text-muted-foreground mt-1 text-center text-sm">
-            {appName || t('unknownDApp', '未知 DApp')} {t('requestsAccess', '请求访问')}
-          </p>
-        </div>
+        <MiniappSheetHeader
+          title={t('selectWallet', '选择钱包')}
+          description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsAccess', '请求访问')}`}
+          appName={appName}
+          appIcon={appIcon}
+        />
 
         {/* Wallet List */}
         <div className="max-h-[50vh] overflow-y-auto p-4">

@@ -90,7 +90,7 @@ export const handleTronRequestAccounts: MethodHandler = async (_params, context)
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const wallet = await showWalletPicker({ app: { name: context.appName } })
+  const wallet = await showWalletPicker({ app: { name: context.appName, icon: context.appIcon } })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }

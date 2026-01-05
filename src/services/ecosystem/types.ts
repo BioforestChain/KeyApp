@@ -266,6 +266,7 @@ export type MethodHandler = (
 export interface HandlerContext {
   appId: string
   appName: string
+  appIcon?: string
   origin: string
   permissions: string[]
 }

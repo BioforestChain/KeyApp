@@ -8,7 +8,7 @@ import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { IconArrowRight, IconAlertTriangle } from '@tabler/icons-react'
 import { ChainIcon } from '@/components/wallet/chain-icon'
-import { MiniappIcon } from '@/components/ecosystem'
+import { MiniappSheetHeader } from '@/components/ecosystem'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { parseHexChainId, getKeyAppChainId, CHAIN_DISPLAY_NAMES } from '@biochain/bio-sdk'
@@ -81,24 +81,12 @@ function ChainSwitchConfirmJobContent() {
         </div>
 
         {/* App Info */}
-        <div className="border-border border-b px-4 pb-4">
-          {(appName || appIcon) && (
-            <div className="mx-auto mb-3">
-              <MiniappIcon
-                src={appIcon}
-                name={appName}
-                size="lg"
-                shadow="sm"
-              />
-            </div>
-          )}
-          <h2 className="text-center text-lg font-semibold">
-            {t('switchNetwork', '切换网络')}
-          </h2>
-          <p className="text-muted-foreground mt-1 text-center text-sm">
-            {appName || t('unknownDApp', '未知 DApp')} {t('requestsNetworkSwitch', '请求切换网络')}
-          </p>
-        </div>
+        <MiniappSheetHeader
+          title={t('switchNetwork', '切换网络')}
+          description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsNetworkSwitch', '请求切换网络')}`}
+          appName={appName}
+          appIcon={appIcon}
+        />
 
         {/* Chain Switch Visual */}
         <div className="flex items-center justify-center gap-4 px-6 py-8">
