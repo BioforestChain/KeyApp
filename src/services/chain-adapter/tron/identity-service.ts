@@ -1,13 +1,15 @@
 /**
  * Tron Identity Service
+ *
+ * Uses unified derivation from @/lib/crypto/derivation.ts
  */
 
 import type { IIdentityService, Address, Signature } from '../types'
+import { deriveKey } from '@/lib/crypto'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
 import { keccak_256 } from '@noble/hashes/sha3.js'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js'
-import { HDKey } from '@scure/bip32'
 
 /** Base58 alphabet used by Tron */
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -16,31 +18,18 @@ export class TronIdentityService implements IIdentityService {
   constructor(_chainId: string) {}
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
-    // Tron uses BIP44 path: m/44'/195'/0'/0/index
-    const hdKey = HDKey.fromMasterSeed(seed)
-    const derived = hdKey.derive(`m/44'/195'/0'/0/${index}`)
-    
-    if (!derived.privateKey) {
-      throw new Error('Failed to derive private key')
-    }
-
-    // Get public key and derive address
-    const pubKey = secp256k1.getPublicKey(derived.privateKey, false)
-    const pubKeyHash = keccak_256(pubKey.slice(1))
-    const addressBytes = pubKeyHash.slice(-20)
-    
-    // Add Tron prefix (0x41) and encode to base58check
-    const payload = new Uint8Array([0x41, ...addressBytes])
-    const checksum = sha256(sha256(payload)).slice(0, 4)
-    const full = new Uint8Array([...payload, ...checksum])
-    
-    return this.encodeBase58(full)
+    // seed is UTF-8 encoded mnemonic string
+    const mnemonic = new TextDecoder().decode(seed)
+    const derived = deriveKey(mnemonic, 'tron', index)
+    return derived.address
   }
 
   async deriveAddresses(seed: Uint8Array, startIndex: number, count: number): Promise<Address[]> {
+    const mnemonic = new TextDecoder().decode(seed)
     const addresses: Address[] = []
     for (let i = 0; i < count; i++) {
-      addresses.push(await this.deriveAddress(seed, startIndex + i))
+      const derived = deriveKey(mnemonic, 'tron', startIndex + i)
+      addresses.push(derived.address)
     }
     return addresses
   }

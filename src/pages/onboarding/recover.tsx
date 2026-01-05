@@ -17,8 +17,7 @@ import { GradientButton } from '@/components/common/gradient-button';
 import { IconCircle } from '@/components/common/icon-circle';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
-import { deriveBioforestAddresses } from '@/lib/crypto';
-import { buildWalletChainAddresses } from '@/services/wallet/chain-derivation';
+import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
@@ -187,16 +186,17 @@ export function OnboardingRecoverPage() {
       try {
         const mnemonicStr = words.join(' ');
 
-        // 使用统一的 chain-derivation 模块派生所有地址
-        const derivedAddresses = buildWalletChainAddresses({
+        // 使用 chain-adapter 统一派生所有地址（单一真相）
+        const derivedAddresses = await deriveWalletChainAddresses({
           mnemonic: mnemonicStr,
           selectedChainIds,
           chainConfigs,
         });
 
-        const chainAddresses = derivedAddresses.map(({ chainId, address }) => ({
+        const chainAddresses = derivedAddresses.map(({ chainId, address, publicKey }) => ({
           chain: chainId,
           address,
+          publicKey: publicKey ?? '',
           tokens: [],
         }));
 
@@ -247,6 +247,7 @@ export function OnboardingRecoverPage() {
         const chainAddresses = arbitraryDerivedAddresses.map((item) => ({
           chain: item.chainId,
           address: item.address,
+          publicKey: '',
           tokens: [],
         }));
 

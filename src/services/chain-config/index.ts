@@ -44,14 +44,11 @@ export interface ChainConfigSnapshot {
   warnings: ChainConfigWarning[]
 }
 
-const KNOWN_KINDS: ReadonlySet<string> = new Set(['bioforest', 'evm', 'bitcoin', 'tron', 'custom'])
-
 const SUPPORTED_MAJOR_BY_KIND: Record<ChainKind, number> = {
   bioforest: 1,
   evm: 1,
   bitcoin: 1,
   tron: 1,
-  custom: 1,
 }
 
 const DEFAULT_CHAINS_PATH = `${import.meta.env.BASE_URL}configs/default-chains.json`
@@ -63,18 +60,6 @@ interface DefaultChainsResult {
 
 let defaultChainsCache: DefaultChainsResult | null = null
 let defaultChainsLoading: Promise<DefaultChainsResult> | null = null
-
-function normalizeUnknownKind(input: unknown): unknown {
-  if (typeof input !== 'object' || input === null || Array.isArray(input)) return input
-  const record = input as Record<string, unknown>
-
-  const chainKind = record.chainKind
-  if (typeof chainKind === 'string' && !KNOWN_KINDS.has(chainKind)) {
-    return { ...record, chainKind: 'custom' }
-  }
-
-  return input
-}
 
 function parseMajor(version: string): number | null {
   const majorPart = version.split('.')[0]
@@ -116,7 +101,8 @@ async function loadDefaultChainConfigs(): Promise<DefaultChainsResult> {
     const json: unknown = await response.json()
     const parsed = VersionedChainConfigFileSchema.parse(json)
 
-    const configs = parsed.chains.map((chain) => normalizeUnknownKind(chain)).map((chain) => {
+    const configs = parsed.chains.map((chain) => {
+      // Strict validation: unknown chainKind will fail schema validation directly
       const config = ChainConfigSchema.parse(chain)
       const resolvedPaths = resolveIconPaths(config, jsonUrl)
       return {
@@ -185,11 +171,10 @@ function resolveIconPaths(
 }
 
 function parseConfigs(input: unknown, source: ChainConfigSource, jsonFileUrl?: string): ChainConfig[] {
-  const normalized: unknown = Array.isArray(input) ? input.map(normalizeUnknownKind) : normalizeUnknownKind(input)
-
-  const parsed = Array.isArray(normalized)
-    ? ChainConfigListSchema.parse(normalized)
-    : [ChainConfigSchema.parse(normalized)]
+  // Strict validation: unknown chainKind will fail schema validation directly
+  const parsed = Array.isArray(input)
+    ? ChainConfigListSchema.parse(input)
+    : [ChainConfigSchema.parse(input)]
 
   return parsed.map((config) => {
     const resolvedPaths = jsonFileUrl ? resolveIconPaths(config, jsonFileUrl) : {}

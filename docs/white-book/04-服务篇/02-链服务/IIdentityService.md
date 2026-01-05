@@ -102,11 +102,14 @@ IIdentityService {
 
 ## 派生路径规范
 
-| 链类型 | 派生路径 | 算法 |
-|-------|---------|------|
-| EVM 兼容 | m/44'/60'/0'/0/{index} | secp256k1 |
-| Bitcoin | m/44'/0'/0'/0/{index} | secp256k1 |
-| BFM 链 | m/44'/9999'/0'/0/{index} | Ed25519 |
+| 链类型 | 派生路径 | 算法 | 地址格式 |
+|-------|---------|------|---------|
+| EVM 兼容 | m/44'/60'/0'/0/{index} | secp256k1 | 0x... (checksum) |
+| Bitcoin | m/84'/0'/0'/0/{index} | secp256k1 | bc1q... (Native SegWit) |
+| Tron | m/44'/195'/0'/0/{index} | secp256k1 | T... (Base58Check) |
+| BioForest | m/44'/9999'/0'/0/{index} | Ed25519 | b... (Base58) |
+
+> **注意**: Bitcoin 使用 BIP84 路径（Native SegWit），不再使用 BIP44 Legacy 路径。
 
 ### 派生流程
 

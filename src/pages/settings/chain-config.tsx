@@ -328,7 +328,7 @@ export function ChainConfigPage() {
                         <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                           <span className="font-mono">{config.id}</span>
                           <span>v{config.version}</span>
-                          <span>{config.type}</span>
+                          <span>{config.chainKind}</span>
                           <span>{config.symbol}</span>
                         </div>
                         {warning?.kind === 'incompatible_major' && (

@@ -45,9 +45,6 @@ import { BitcoinTransactionService } from '../bitcoin/transaction-service'
 import { BioforestIdentityService } from '../bioforest/identity-service'
 import { BioforestAssetService } from '../bioforest/asset-service'
 import { BioforestTransactionService } from '../bioforest/transaction-service'
-import { Bip39IdentityService } from '../bip39/identity-service'
-import { Bip39AssetService } from '../bip39/asset-service'
-import { Bip39TransactionService } from '../bip39/transaction-service'
 
 /** 所有 Provider 工厂函数 */
 const PROVIDER_FACTORIES: ApiProviderFactory[] = [
@@ -114,10 +111,6 @@ function createWrappedProviders(config: ChainConfig): ApiProvider[] {
         new WrappedTransactionProvider(`wrapped-bioforest-tx`, transaction, asset),
         new WrappedIdentityProvider(`wrapped-bioforest-identity`, identity),
       )
-      break
-    }
-    case 'custom': {
-      // Custom chains not supported yet - skip
       break
     }
   }

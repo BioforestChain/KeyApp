@@ -46,6 +46,13 @@ export {
   clearProviderCache,
 } from './providers'
 
+// Unified derivation helper (single source of truth)
+export {
+  deriveWalletChainAddresses,
+  type DerivedChainAddress,
+  type DeriveWalletChainAddressesParams,
+} from './derive-wallet-chain-addresses'
+
 // =================================================================
 // DEPRECATED: Old adapter registry API
 // Use ChainProvider from './providers' instead
@@ -57,6 +64,5 @@ export { getAdapterRegistry, resetAdapterRegistry } from './registry'
 // Adapters (kept for internal use by wrapped providers)
 export { BioforestAdapter, createBioforestAdapter } from './bioforest'
 export { EvmAdapter, createEvmAdapter } from './evm'
-export { Bip39Adapter, createBip39Adapter } from './bip39'
 export { TronAdapter, createTronAdapter } from './tron'
 export { BitcoinAdapter, createBitcoinAdapter } from './bitcoin'

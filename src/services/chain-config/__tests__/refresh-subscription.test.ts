@@ -44,7 +44,7 @@ describe('chain-config refreshSubscription', () => {
 
       return new Response(
         JSON.stringify([
-          { id: 'remote-one', version: '1.0', chainKind: 'custom', name: 'Remote One', symbol: 'R1', decimals: 8 },
+          { id: 'remote-one', version: '1.0', chainKind: 'evm', name: 'Remote One', symbol: 'R1', decimals: 8 },
         ]),
         { status: 200, headers: { 'Content-Type': 'application/json', ETag: 'etag-2' } }
       )

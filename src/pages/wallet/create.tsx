@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { useChainConfigs, walletActions } from '@/stores';
 import { generateMnemonic } from '@/lib/crypto';
-import { buildWalletChainAddresses } from '@/services/wallet/chain-derivation';
+import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import type { ChainConfig } from '@/services/chain-config';
 
@@ -103,16 +103,17 @@ export function WalletCreatePage() {
     try {
       const mnemonicStr = mnemonic.join(' ');
 
-      // 使用统一的 chain-derivation 模块派生所有地址
-      const derivedAddresses = buildWalletChainAddresses({
+      // 使用 chain-adapter 统一派生所有地址（单一真相）
+      const derivedAddresses = await deriveWalletChainAddresses({
         mnemonic: mnemonicStr,
         selectedChainIds,
         chainConfigs,
       });
 
-      const chainAddresses = derivedAddresses.map(({ chainId, address }) => ({
+      const chainAddresses = derivedAddresses.map(({ chainId, address, publicKey }) => ({
         chain: chainId,
         address,
+        publicKey: publicKey ?? '',
         tokens: [],
       }));
 

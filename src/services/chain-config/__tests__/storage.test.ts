@@ -29,7 +29,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'custom-1',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'Custom',
         symbol: 'CST',
         decimals: 8,
@@ -49,7 +49,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'first',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'First',
         symbol: 'FST',
         decimals: 8,
@@ -61,7 +61,7 @@ describe('chain-config storage', () => {
       ChainConfigSchema.parse({
         id: 'second',
         version: '1.0',
-        chainKind: 'custom',
+        chainKind: 'evm',
         name: 'Second',
         symbol: 'SND',
         decimals: 8,

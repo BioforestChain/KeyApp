@@ -2,7 +2,7 @@
  * 链适配器类型定义
  */
 
-import type { ChainConfig, ChainConfigType } from '@/services/chain-config'
+import type { ChainConfig, ChainKind } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 
 // ==================== 基础类型 ====================
@@ -159,7 +159,7 @@ export interface IStakingService {
 
 export interface IChainAdapter {
   readonly chainId: string
-  readonly chainType: ChainConfigType
+  readonly chainType: ChainKind
 
   readonly identity: IIdentityService
   readonly asset: IAssetService
@@ -174,8 +174,8 @@ export interface IChainAdapter {
 export type AdapterFactory = (chainId: string) => IChainAdapter
 
 export interface IAdapterRegistry {
-  register(type: ChainConfigType, factory: AdapterFactory): void
-  registerChain(chainId: string, type: ChainConfigType): void
+  register(type: ChainKind, factory: AdapterFactory): void
+  registerChain(chainId: string, type: ChainKind): void
   getAdapter(chainId: string): IChainAdapter | null
   hasAdapter(chainId: string): boolean
   listAdapters(): string[]

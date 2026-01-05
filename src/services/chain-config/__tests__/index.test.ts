@@ -154,19 +154,17 @@ describe('chain-config service', () => {
     expect(getChainById(snapshot, 'manual-two')?.source).toBe('manual')
   })
 
-  it('normalizes unknown chainKind to custom when adding manual config', async () => {
-    const snapshot = await addManualConfig({
-      id: 'manual-unknown',
-      version: '1.0',
-      chainKind: 'unknown-kind' as any,
-      name: 'Manual Unknown',
-      symbol: 'MU',
-      decimals: 8,
-    })
-
-    const chain = getChainById(snapshot, 'manual-unknown')
-    expect(chain?.chainKind).toBe('custom')
-    expect(chain?.source).toBe('manual')
+  it('rejects unknown chainKind when adding manual config', async () => {
+    await expect(
+      addManualConfig({
+        id: 'manual-unknown',
+        version: '1.0',
+        chainKind: 'unknown-kind' as any,
+        name: 'Manual Unknown',
+        symbol: 'MU',
+        decimals: 8,
+      }),
+    ).rejects.toThrow()
   })
 
   it('persists enabled/disabled preference via setChainEnabled', async () => {

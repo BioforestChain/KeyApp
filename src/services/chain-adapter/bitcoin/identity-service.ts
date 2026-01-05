@@ -1,44 +1,34 @@
 /**
  * Bitcoin Identity Service
- * 
- * Supports multiple address types:
- * - P2WPKH (Native SegWit, bc1q...) - Default, BIP84
- * - P2TR (Taproot, bc1p...) - BIP86
- * - P2PKH (Legacy, 1...) - BIP44
+ *
+ * Uses unified derivation from @/lib/crypto/derivation.ts
+ * Default: BIP84 Native SegWit (bc1q...)
  */
 
 import type { IIdentityService, Address, Signature } from '../types'
+import { deriveBitcoinKey } from '@/lib/crypto'
 import { sha256 } from '@noble/hashes/sha2.js'
-import { ripemd160 } from '@noble/hashes/legacy.js'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
 import { bytesToHex } from '@noble/hashes/utils.js'
-import { HDKey } from '@scure/bip32'
 import { bech32, bech32m, base58check } from '@scure/base'
 
 export class BitcoinIdentityService implements IIdentityService {
   constructor(_chainId: string) {}
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
-    // Default to Native SegWit (P2WPKH) - BIP84: m/84'/0'/0'/0/index
-    const hdKey = HDKey.fromMasterSeed(seed)
-    const derived = hdKey.derive(`m/84'/0'/0'/0/${index}`)
-    
-    if (!derived.publicKey) {
-      throw new Error('Failed to derive public key')
-    }
-
-    // P2WPKH: HASH160(compressed pubkey)
-    const pubKeyHash = ripemd160(sha256(derived.publicKey))
-    
-    // Encode as bech32 (bc1q...)
-    const words = bech32.toWords(pubKeyHash)
-    return bech32.encode('bc', [0, ...words])
+    // seed is UTF-8 encoded mnemonic string
+    const mnemonic = new TextDecoder().decode(seed)
+    // BIP84 Native SegWit (bc1q...)
+    const derived = deriveBitcoinKey(mnemonic, 84, index)
+    return derived.address
   }
 
   async deriveAddresses(seed: Uint8Array, startIndex: number, count: number): Promise<Address[]> {
+    const mnemonic = new TextDecoder().decode(seed)
     const addresses: Address[] = []
     for (let i = 0; i < count; i++) {
-      addresses.push(await this.deriveAddress(seed, startIndex + i))
+      const derived = deriveBitcoinKey(mnemonic, 84, startIndex + i)
+      addresses.push(derived.address)
     }
     return addresses
   }

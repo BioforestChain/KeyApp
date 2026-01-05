@@ -1,23 +1,30 @@
 /**
  * EVM Identity Service
+ *
+ * Uses unified derivation from @/lib/crypto/derivation.ts
  */
 
 import type { IIdentityService, Address, Signature } from '../types'
-import { toChecksumAddress, isValidAddress } from '@/lib/crypto'
+import { toChecksumAddress, isValidAddress, deriveKey } from '@/lib/crypto'
 
 export class EvmIdentityService implements IIdentityService {
-  private readonly chainId: string
+  constructor(_chainId: string) {}
 
-  constructor(chainId: string) {
-    this.chainId = chainId
+  async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
+    // seed is UTF-8 encoded mnemonic string
+    const mnemonic = new TextDecoder().decode(seed)
+    const derived = deriveKey(mnemonic, 'ethereum', index)
+    return derived.address
   }
 
-  async deriveAddress(_seed: Uint8Array, _index = 0): Promise<Address> {
-    throw new Error('Use deriveAddressesForChains from @/lib/crypto instead')
-  }
-
-  async deriveAddresses(_seed: Uint8Array, _startIndex: number, _count: number): Promise<Address[]> {
-    throw new Error('Use deriveAddressesForChains from @/lib/crypto instead')
+  async deriveAddresses(seed: Uint8Array, startIndex: number, count: number): Promise<Address[]> {
+    const mnemonic = new TextDecoder().decode(seed)
+    const addresses: Address[] = []
+    for (let i = 0; i < count; i++) {
+      const derived = deriveKey(mnemonic, 'ethereum', startIndex + i)
+      addresses.push(derived.address)
+    }
+    return addresses
   }
 
   isValidAddress(address: string): boolean {

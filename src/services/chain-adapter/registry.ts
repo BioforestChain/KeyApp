@@ -2,20 +2,20 @@
  * 链适配器注册表
  */
 
-import type { ChainConfigType } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import type { IChainAdapter, IAdapterRegistry, AdapterFactory } from './types'
 import { ChainServiceError, ChainErrorCodes } from './types'
 
 class AdapterRegistry implements IAdapterRegistry {
-  private factories = new Map<ChainConfigType, AdapterFactory>()
+  private factories = new Map<ChainKind, AdapterFactory>()
   private adapters = new Map<string, IChainAdapter>()
-  private chainTypes = new Map<string, ChainConfigType>()
+  private chainTypes = new Map<string, ChainKind>()
 
-  register(type: ChainConfigType, factory: AdapterFactory): void {
+  register(type: ChainKind, factory: AdapterFactory): void {
     this.factories.set(type, factory)
   }
 
-  registerChain(chainId: string, type: ChainConfigType): void {
+  registerChain(chainId: string, type: ChainKind): void {
     this.chainTypes.set(chainId, type)
   }
 
