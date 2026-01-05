@@ -10,14 +10,16 @@ import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 
+const BiowalletAssetItemSchema = z.looseObject({
+  assetNumber: z.string(),
+  assetType: z.string(),
+})
+
 const BiowalletAssetSchema = z.looseObject({
   success: z.boolean(),
   result: z.looseObject({
     address: z.string(),
-    assets: z.record(z.record(z.looseObject({
-      assetNumber: z.string(),
-      assetType: z.string(),
-    }))),
+    assets: z.record(z.string(), z.record(z.string(), BiowalletAssetItemSchema)),
   }).optional(),
 })
 
