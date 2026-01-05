@@ -31,6 +31,7 @@ export {
 
 export {
   deriveKey,
+  deriveBitcoinKey,
   deriveMultiChainKeys,
   deriveHDKey,
   deriveBitcoinKey,

@@ -1,14 +1,16 @@
 /**
  * EVM Identity Service
- *
- * Uses unified derivation from @/lib/crypto/derivation.ts
  */
 
 import type { IIdentityService, Address, Signature } from '../types'
 import { toChecksumAddress, isValidAddress, deriveKey } from '@/lib/crypto'
 
 export class EvmIdentityService implements IIdentityService {
-  constructor(_chainId: string) {}
+  private readonly chainId: string
+
+  constructor(chainId: string) {
+    this.chainId = chainId
+  }
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // seed is UTF-8 encoded mnemonic string
