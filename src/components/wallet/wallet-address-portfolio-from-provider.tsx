@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getChainProvider } from '@/services/chain-adapter'
+import { createChainProvider } from '@/services/chain-adapter'
 import { chainConfigService } from '@/services/chain-config'
+import { useChainConfigState } from '@/stores/chain-config'
 import { WalletAddressPortfolioView, type WalletAddressPortfolioViewProps } from './wallet-address-portfolio-view'
 import type { TokenInfo } from '@/components/token/token-item'
 import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item'
@@ -26,7 +28,14 @@ export function WalletAddressPortfolioFromProvider({
   className,
   testId,
 }: WalletAddressPortfolioFromProviderProps) {
-  const provider = getChainProvider(chainId)
+  const chainConfigState = useChainConfigState()
+  
+  // Create provider only after chainConfig is ready
+  const provider = useMemo(() => {
+    if (!chainConfigState.snapshot) return null
+    return createChainProvider(chainId)
+  }, [chainId, chainConfigState.snapshot])
+  
   const decimals = chainConfigService.getDecimals(chainId)
 
   const tokensQuery = useQuery({

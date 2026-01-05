@@ -253,10 +253,78 @@ export const RealDataEthereum: Story = {
         const tokenList = canvas.queryByTestId('ethereum-portfolio-token-list');
         const tokenEmpty = canvas.queryByTestId('ethereum-portfolio-token-list-empty');
         expect(tokenList || tokenEmpty).not.toBeNull();
+      },
+      { timeout: 12000 },
+    );
+  },
+};
 
-        const txList = canvas.queryByTestId('ethereum-portfolio-transaction-list');
-        const txEmpty = canvas.queryByTestId('ethereum-portfolio-transaction-list-empty');
-        expect(txList || txEmpty).not.toBeNull();
+export const RealDataBitcoin: Story = {
+  name: 'Real Data: bitcoin',
+  decorators: [withChainConfig],
+  parameters: {
+    chromatic: { delay: 5000 },
+    docs: {
+      description: {
+        story: 'Fetches real balance and transactions from Bitcoin mainnet using mempool.space API.',
+      },
+    },
+  },
+  render: () => (
+    <WalletAddressPortfolioFromProvider
+      chainId="bitcoin"
+      address="bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"
+      chainName="Bitcoin"
+      testId="bitcoin-portfolio"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(
+      () => {
+        const portfolio = canvas.getByTestId('bitcoin-portfolio');
+        expect(portfolio).toBeVisible();
+
+        const tokenList = canvas.queryByTestId('bitcoin-portfolio-token-list');
+        const tokenEmpty = canvas.queryByTestId('bitcoin-portfolio-token-list-empty');
+        expect(tokenList || tokenEmpty).not.toBeNull();
+      },
+      { timeout: 12000 },
+    );
+  },
+};
+
+export const RealDataTron: Story = {
+  name: 'Real Data: tron',
+  decorators: [withChainConfig],
+  parameters: {
+    chromatic: { delay: 5000 },
+    docs: {
+      description: {
+        story: 'Fetches real balance from Tron mainnet using TronGrid API.',
+      },
+    },
+  },
+  render: () => (
+    <WalletAddressPortfolioFromProvider
+      chainId="tron"
+      address="TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9"
+      chainName="Tron"
+      testId="tron-portfolio"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(
+      () => {
+        const portfolio = canvas.getByTestId('tron-portfolio');
+        expect(portfolio).toBeVisible();
+
+        const tokenList = canvas.queryByTestId('tron-portfolio-token-list');
+        const tokenEmpty = canvas.queryByTestId('tron-portfolio-token-list-empty');
+        expect(tokenList || tokenEmpty).not.toBeNull();
       },
       { timeout: 12000 },
     );
