@@ -257,6 +257,53 @@ function CompareConfigInjector() {
   return null;
 }
 
+function formatApiLabel(api: ChainConfig['apis'][number]): string {
+  const apiKeyEnv = api.config && 'apiKeyEnv' in api.config ? (api.config.apiKeyEnv as string | undefined) : undefined;
+  if (apiKeyEnv) return `${api.type} (apiKeyEnv=${apiKeyEnv})`;
+  return api.type;
+}
+
+function ProviderPanel({
+  title,
+  chainId,
+  address,
+  chainName,
+  testId,
+}: {
+  title: string;
+  chainId: ChainConfig['id'];
+  address: string;
+  chainName: string;
+  testId: string;
+}) {
+  const config = COMPARE_CHAIN_CONFIGS.find((c) => c.id === chainId);
+  const apiTypes = config?.apis?.map(formatApiLabel) ?? [];
+  const primary = apiTypes[0] ?? 'unknown';
+  const apiSummary = apiTypes.length ? apiTypes.join(' → ') : 'unknown';
+
+  return (
+    <div className="flex h-[640px] min-h-0 flex-col overflow-hidden rounded-xl border bg-background">
+      <div className="shrink-0 border-b px-4 py-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{title}</p>
+            <p className="text-muted-foreground truncate text-xs">Primary: {primary}</p>
+          </div>
+          <p className="text-muted-foreground shrink-0 text-xs">{chainId}</p>
+        </div>
+        <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">apis[]: {apiSummary}</p>
+      </div>
+      <WalletAddressPortfolioFromProvider
+        chainId={chainId}
+        address={address}
+        chainName={chainName}
+        testId={testId}
+        className="flex-1 min-h-0"
+      />
+    </div>
+  );
+}
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -629,16 +676,18 @@ export const CompareProviders: Story = {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Ethereum</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="blockscout first"
             chainId="ethereum-blockscout-first"
             address={REAL_ADDRESSES.ethereum}
-            chainName="Ethereum (blockscout first)"
+            chainName="Ethereum"
             testId="cmp-ethereum-blockscout"
           />
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="ethwallet first"
             chainId="ethereum-ethwallet-first"
             address={REAL_ADDRESSES.ethereum}
-            chainName="Ethereum (ethwallet first)"
+            chainName="Ethereum"
             testId="cmp-ethereum-ethwallet"
           />
         </div>
@@ -647,16 +696,18 @@ export const CompareProviders: Story = {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Tron</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="tron-rpc first"
             chainId="tron-rpc-first"
             address={REAL_ADDRESSES.tron}
-            chainName="Tron (rpc first)"
+            chainName="Tron"
             testId="cmp-tron-rpc"
           />
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="tronwallet first"
             chainId="tron-tronwallet-first"
             address={REAL_ADDRESSES.tron}
-            chainName="Tron (tronwallet first)"
+            chainName="Tron"
             testId="cmp-tron-tronwallet"
           />
         </div>
@@ -665,16 +716,18 @@ export const CompareProviders: Story = {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Bitcoin</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="mempool first"
             chainId="bitcoin-mempool-first"
             address={REAL_ADDRESSES.bitcoin}
-            chainName="Bitcoin (mempool first)"
+            chainName="Bitcoin"
             testId="cmp-bitcoin-mempool"
           />
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="btcwallet first"
             chainId="bitcoin-btcwallet-first"
             address={REAL_ADDRESSES.bitcoin}
-            chainName="Bitcoin (btcwallet first)"
+            chainName="Bitcoin"
             testId="cmp-bitcoin-btcwallet"
           />
         </div>
@@ -683,16 +736,18 @@ export const CompareProviders: Story = {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">BNB Smart Chain</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="bsc-rpc first"
             chainId="binance-bsc-rpc-first"
             address={REAL_ADDRESSES.binance}
-            chainName="BNB Smart Chain (rpc first)"
+            chainName="BNB Smart Chain"
             testId="cmp-binance-rpc"
           />
-          <WalletAddressPortfolioFromProvider
+          <ProviderPanel
+            title="bscwallet first"
             chainId="binance-bscwallet-first"
             address={REAL_ADDRESSES.binance}
-            chainName="BNB Smart Chain (bscwallet first)"
+            chainName="BNB Smart Chain"
             testId="cmp-binance-bscwallet"
           />
         </div>
