@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getChainProvider, type Transaction } from '@/services/chain-adapter/providers'
+import { getChainProvider, type Transaction, isSupported } from '@/services/chain-adapter/providers'
 
 export const addressTransactionsQueryKeys = {
   all: ['addressTransactions'] as const,
@@ -13,6 +13,13 @@ interface UseAddressTransactionsQueryOptions {
   enabled?: boolean
 }
 
+export interface AddressTransactionsResult {
+  transactions: Transaction[]
+  /** 是否成功查询（false 表示 fallback 到默认值） */
+  supported: boolean
+  fallbackReason?: string
+}
+
 export function useAddressTransactionsQuery({
   chainId,
   address,
@@ -21,20 +28,19 @@ export function useAddressTransactionsQuery({
 }: UseAddressTransactionsQueryOptions) {
   return useQuery({
     queryKey: addressTransactionsQueryKeys.address(chainId, address),
-    queryFn: async (): Promise<Transaction[]> => {
-      if (!chainId || !address) return []
-
-      const chainProvider = getChainProvider(chainId)
-      
-      if (!chainProvider.supportsTransactionHistory) {
-        console.warn(`[useAddressTransactionsQuery] Chain ${chainId} does not support transaction history`)
-        return []
+    queryFn: async (): Promise<AddressTransactionsResult> => {
+      if (!chainId || !address) {
+        return { transactions: [], supported: false, fallbackReason: 'Missing chain or address' }
       }
 
-      const getHistory = chainProvider.getTransactionHistory
-      if (!getHistory) return []
-
-      return getHistory(address, limit)
+      const chainProvider = getChainProvider(chainId)
+      const result = await chainProvider.getTransactionHistory(address, limit)
+      
+      if (isSupported(result)) {
+        return { transactions: result.data, supported: true }
+      } else {
+        return { transactions: result.data, supported: false, fallbackReason: result.reason }
+      }
     },
     enabled: enabled && !!chainId && !!address.trim(),
     staleTime: 30 * 1000,

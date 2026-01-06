@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { useEnabledChains } from '@/stores'
 import { useAddressTransactionsQuery } from '@/queries'
-import { getChainProvider } from '@/services/chain-adapter/providers'
 import { IconSearch, IconExternalLink, IconArrowUpRight, IconArrowDownLeft, IconLoader2 } from '@tabler/icons-react'
 import type { Transaction } from '@/services/chain-adapter/providers/types'
 
@@ -63,22 +62,15 @@ export function AddressTransactionsPage() {
     [enabledChains, selectedChain]
   )
 
-  // 通过 ChainProvider 检查是否支持交易历史查询
-  const supportsTransactionHistory = useMemo(() => {
-    if (!selectedChainConfig) return false
-    try {
-      const chainProvider = getChainProvider(selectedChain)
-      return chainProvider.supportsTransactionHistory
-    } catch {
-      return false
-    }
-  }, [selectedChain, selectedChainConfig])
-
-  const { data: transactions, isLoading, isError, refetch } = useAddressTransactionsQuery({
+  const { data: txResult, isLoading, isError, refetch } = useAddressTransactionsQuery({
     chainId: selectedChain,
     address: searchAddress,
     enabled: !!searchAddress,
   })
+
+  // 从查询结果中提取数据
+  const transactions = txResult?.transactions ?? []
+  const supportsTransactionHistory = txResult?.supported ?? true
 
   const explorerUrl = useMemo(() => {
     if (!selectedChainConfig?.explorer || !searchAddress.trim()) return null

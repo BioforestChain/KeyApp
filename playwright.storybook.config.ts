@@ -7,16 +7,23 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list']],
+  snapshotDir: './storybook-e2e/__screenshots__',
+  snapshotPathTemplate: '{snapshotDir}/{projectName}/{testFileName}-{arg}{ext}',
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01,
+    },
+  },
   projects: [
     {
-      name: 'Desktop Chrome',
+      name: 'Mobile-Chrome',
       use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 720 },
+        ...devices['Pixel 5'],
+        viewport: { width: 393, height: 851 },
       },
     },
   ],

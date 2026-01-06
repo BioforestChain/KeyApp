@@ -8,8 +8,16 @@ import type { TokenInfo } from '@/components/token/token-item'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
 import type { ChainType } from '@/stores'
 import type { Transaction } from '@/services/chain-adapter/providers/types'
+import { isSupported } from '@/services/chain-adapter/providers/types'
 import { Amount } from '@/types/amount'
 import { mapActionToTransactionType } from '@/components/transaction/transaction-meta'
+
+/** 查询结果（带 supported 状态） */
+interface QueryResultWithSupport<T> {
+  data: T
+  supported: boolean
+  fallbackReason?: string
+}
 
 export interface WalletAddressPortfolioFromProviderProps {
   chainId: ChainType
@@ -46,31 +54,55 @@ export function WalletAddressPortfolioFromProvider({
 
   const tokensQuery = useQuery({
     queryKey: ['address-token-balances', chainId, address, !!provider],
-    queryFn: async (): Promise<TokenInfo[]> => {
+    queryFn: async (): Promise<QueryResultWithSupport<TokenInfo[]>> => {
       // Re-create provider inside queryFn to ensure we have latest
       const currentProvider = chainConfigState.snapshot ? createChainProvider(chainId) : null
-      
-      if (!currentProvider?.getTokenBalances) {
-        if (currentProvider?.getNativeBalance) {
-          const balance = await currentProvider.getNativeBalance(address)
-          return [{
-            symbol: balance.symbol,
-            name: balance.symbol,
-            balance: balance.amount.toFormatted(),
-            decimals: balance.amount.decimals,
-            chain: chainId,
-          }]
-        }
-        return []
+      if (!currentProvider) {
+        return { data: [], supported: false, fallbackReason: 'Provider not ready' }
       }
-      const tokens = await currentProvider.getTokenBalances(address)
-      return tokens.map(t => ({
-        symbol: t.symbol,
-        name: t.name,
-        balance: t.amount.toFormatted(),
-        decimals: t.amount.decimals,
-        chain: chainId,
-      }))
+      
+      // 先尝试获取 token 列表
+      const tokensResult = await currentProvider.getTokenBalances(address)
+      if (isSupported(tokensResult) && tokensResult.data.length > 0) {
+        return {
+          data: tokensResult.data.map(t => ({
+            symbol: t.symbol,
+            name: t.name,
+            balance: t.amount.toFormatted(),
+            decimals: t.amount.decimals,
+            chain: chainId,
+          })),
+          supported: true,
+        }
+      }
+      
+      // fallback 到原生代币余额
+      const balanceResult = await currentProvider.getNativeBalance(address)
+      if (isSupported(balanceResult)) {
+        return {
+          data: [{
+            symbol: balanceResult.data.symbol,
+            name: balanceResult.data.symbol,
+            balance: balanceResult.data.amount.toFormatted(),
+            decimals: balanceResult.data.amount.decimals,
+            chain: chainId,
+          }],
+          supported: true,
+        }
+      }
+      
+      // 两者都失败，返回 fallback 数据
+      return {
+        data: [{
+          symbol: balanceResult.data.symbol,
+          name: balanceResult.data.symbol,
+          balance: balanceResult.data.amount.toFormatted(),
+          decimals: balanceResult.data.amount.decimals,
+          chain: chainId,
+        }],
+        supported: false,
+        fallbackReason: balanceResult.reason,
+      }
     },
     enabled: tokensEnabled,
     staleTime: 30_000,
@@ -78,11 +110,26 @@ export function WalletAddressPortfolioFromProvider({
 
   const transactionsQuery = useQuery({
     queryKey: ['address-transactions', chainId, address, !!provider],
-    queryFn: async (): Promise<TransactionInfo[]> => {
+    queryFn: async (): Promise<QueryResultWithSupport<TransactionInfo[]>> => {
       const currentProvider = chainConfigState.snapshot ? createChainProvider(chainId) : null
-      if (!currentProvider?.getTransactionHistory) return []
-      const txs = await currentProvider.getTransactionHistory(address, 20)
-      return txs.map(tx => convertToTransactionInfo(tx, chainId, decimals))
+      if (!currentProvider) {
+        return { data: [], supported: false, fallbackReason: 'Provider not ready' }
+      }
+      
+      const result = await currentProvider.getTransactionHistory(address, 20)
+      
+      if (isSupported(result)) {
+        return {
+          data: result.data.map(tx => convertToTransactionInfo(tx, chainId, decimals)),
+          supported: true,
+        }
+      }
+      
+      return {
+        data: [],
+        supported: false,
+        fallbackReason: result.reason,
+      }
     },
     enabled: transactionsEnabled,
     staleTime: 30_000,
@@ -96,11 +143,15 @@ export function WalletAddressPortfolioFromProvider({
     <WalletAddressPortfolioView
       chainId={chainId}
       chainName={chainName}
-      tokens={tokensQuery.data ?? []}
-      transactions={transactionsQuery.data ?? []}
+      tokens={tokensQuery.data?.data ?? []}
+      transactions={transactionsQuery.data?.data ?? []}
       tokensLoading={tokensLoading}
       transactionsLoading={transactionsLoading}
       tokensRefreshing={tokensQuery.isFetching && !tokensQuery.isLoading}
+      tokensSupported={tokensQuery.data?.supported ?? true}
+      tokensFallbackReason={tokensQuery.data?.fallbackReason}
+      transactionsSupported={transactionsQuery.data?.supported ?? true}
+      transactionsFallbackReason={transactionsQuery.data?.fallbackReason}
       onTokenClick={onTokenClick}
       onTransactionClick={onTransactionClick}
       className={className}

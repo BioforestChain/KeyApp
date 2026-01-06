@@ -28,9 +28,13 @@ vi.mock('@/services/chain-adapter', () => ({
   createBioforestAdapter: mocks.mockCreateBioforestAdapter,
 }))
 
-vi.mock('@/services/chain-adapter/providers', () => ({
-  getChainProvider: mocks.mockGetChainProvider,
-}))
+vi.mock('@/services/chain-adapter/providers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/chain-adapter/providers')>()
+  return {
+    ...actual,
+    getChainProvider: mocks.mockGetChainProvider,
+  }
+})
 
 import { transactionService } from './web'
 
@@ -65,26 +69,30 @@ describe('transactionService(web)', () => {
       getTransactionHistory: mocks.mockGetTransactionHistory,
     })
 
-    mocks.mockGetTransactionHistory.mockResolvedValue([
-      {
-        hash: '0xdeadbeef',
-        from: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
-        to: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
-        timestamp: 1_700_000_000_000,
-        status: 'confirmed',
-        blockNumber: 123n,
-        action: 'transfer',
-        direction: 'out',
-        assets: [
-          {
-            assetType: 'native',
-            value: '1000000000000000000',
-            symbol: 'ETH',
-            decimals: 18,
-          },
-        ],
-      },
-    ])
+    // 返回 ProviderResult 格式（使用新的 Transaction 结构）
+    mocks.mockGetTransactionHistory.mockResolvedValue({
+      supported: true,
+      data: [
+        {
+          hash: '0xdeadbeef',
+          from: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
+          to: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
+          timestamp: 1_700_000_000_000,
+          status: 'confirmed',
+          blockNumber: 123n,
+          action: 'transfer',
+          direction: 'out',
+          assets: [
+            {
+              assetType: 'native',
+              value: '1000000000000000000',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          ],
+        },
+      ],
+    })
 
     const records = await transactionService.getHistory({
       walletId: 'w1',

@@ -8,7 +8,7 @@ import type { AssetInfo } from '@/types/asset'
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import { getChainProvider } from '@/services/chain-adapter/providers'
+import { getChainProvider, isSupported } from '@/services/chain-adapter/providers'
 import { mnemonicToSeedSync } from '@scure/bip39'
 
 export interface Web3FeeResult {
@@ -37,18 +37,17 @@ export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string
 
 export async function fetchWeb3Balance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
   const chainProvider = getChainProvider(chainConfig.id)
+  const result = await chainProvider.getNativeBalance(fromAddress)
   
-  if (!chainProvider.supportsNativeBalance) {
-    throw new Error(`Chain ${chainConfig.id} does not support balance queries`)
+  if (!isSupported(result)) {
+    throw new Error(result.reason || `Chain ${chainConfig.id} balance query failed`)
   }
 
-  const balance = await chainProvider.getNativeBalance!(fromAddress)
-
   return {
-    assetType: balance.symbol,
+    assetType: result.data.symbol,
     name: chainConfig.name,
-    amount: balance.amount,
-    decimals: balance.amount.decimals,
+    amount: result.data.amount,
+    decimals: result.data.amount.decimals,
   }
 }
 

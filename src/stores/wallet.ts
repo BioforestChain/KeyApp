@@ -489,20 +489,22 @@ export const walletActions = {
 
     try {
       // 动态导入避免循环依赖
-      const { getChainProvider } = await import('@/services/chain-adapter/providers')
+      const { getChainProvider, isSupported } = await import('@/services/chain-adapter/providers')
       const chainProvider = getChainProvider(chain)
       
-      if (!chainProvider.supportsNativeBalance) {
+      // 获取原生代币余额
+      const result = await chainProvider.getNativeBalance(chainAddress.address)
+      
+      if (!isSupported(result)) {
         // This is expected during initialization or for unsupported chains
         // Only log in development to avoid console noise
         if (import.meta.env.DEV) {
-          console.debug(`[refreshBalance] Skipping chain without balance support: ${chain}`)
+          console.debug(`[refreshBalance] Balance query failed for ${chain}: ${result.reason}`)
         }
         return
       }
 
-      // 获取原生代币余额
-      const balance = await chainProvider.getNativeBalance!(chainAddress.address)
+      const balance = result.data
       
       // 转换为 Token 格式 (目前只支持原生代币)
       const tokens: Token[] = [{
