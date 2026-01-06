@@ -84,6 +84,54 @@ export class EtherscanProvider implements ApiProvider {
     return true
   }
 
+  get supportsNativeBalance() {
+    return true
+  }
+
+  async getNativeBalance(address: string): Promise<Balance> {
+    const params = new URLSearchParams({
+      module: 'account',
+      action: 'balance',
+      address,
+    })
+
+    // Etherscan v2 统一 API 需要 chainid
+    if (this.endpoint.includes('etherscan.io/v2')) {
+      params.set('chainid', this.evmChainId.toString())
+    }
+
+    const apiKey = this.config?.apiKey
+    if (apiKey && typeof apiKey === 'string') {
+      params.set('apikey', apiKey)
+    }
+
+    const url = `${this.endpoint}?${params.toString()}`
+    const json: unknown = await fetchJson(url, undefined, {
+      cacheKey: `balance:${this.chainId}:${address}`,
+      ttlMs: 30_000, // 30s cache
+      tags: [`balance:${this.chainId}:${address}`],
+    })
+
+    const parsed = ApiResponseSchema.safeParse(json)
+    if (!parsed.success) {
+      throw new Error('Invalid API response for balance')
+    }
+
+    if (parsed.data.status !== '1') {
+      throw new Error(`API error: ${parsed.data.message}`)
+    }
+
+    const result = parsed.data.result
+    if (typeof result !== 'string') {
+      throw new Error('Invalid balance result')
+    }
+
+    return {
+      amount: Amount.fromRaw(result, this.decimals, this.symbol),
+      symbol: this.symbol,
+    }
+  }
+
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
     const fetchLimit = limit * FETCH_MULTIPLIER
 
