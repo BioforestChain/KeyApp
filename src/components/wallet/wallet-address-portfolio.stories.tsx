@@ -819,3 +819,32 @@ export const CompareProviders: Story = {
     });
   },
 };
+
+/**
+ * 展示 ProviderFallbackWarning 组件
+ * 当所有 provider 都失败时（supported: false），显示黄色警告
+ */
+export const FallbackWarningDemo: Story = {
+  name: 'Fallback Warning Demo',
+  args: {
+    chainId: 'bfmeta',
+    chainName: 'BFMeta Demo',
+    tokens: [
+      { symbol: 'BFT', name: 'BFT', balance: '0', decimals: 8, chain: 'bfmeta' },
+    ],
+    transactions: [],
+    tokensSupported: false,
+    tokensFallbackReason: 'All 2 provider(s) failed. Last error: Network timeout',
+    transactionsSupported: false,
+    transactionsFallbackReason: 'No provider implements getTransactionHistory',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(() => {
+      // 验证黄色警告出现
+      const warnings = canvas.getAllByTestId('provider-fallback-warning');
+      expect(warnings.length).toBeGreaterThanOrEqual(1);
+    });
+  },
+};
