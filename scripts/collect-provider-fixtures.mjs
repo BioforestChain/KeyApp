@@ -198,6 +198,58 @@ async function fetchTronBalance(address) {
   }
 }
 
+// Tron RPC transactions
+async function fetchTronTransactions(address) {
+  const url = `${PROVIDERS.tron.rpc}/v1/accounts/${address}/transactions?limit=10`
+  try {
+    const result = await fetchJson(url)
+    return {
+      provider: 'tron-rpc',
+      chain: 'tron',
+      address,
+      transactions: result.data || [],
+    }
+  } catch (e) {
+    return { provider: 'tron-rpc', chain: 'tron', address, error: e.message, transactions: [] }
+  }
+}
+
+// Etherscan transactions (using V2 API)
+async function fetchEtherscanTransactions(address) {
+  const apiKey = 'UN6TIKGANUFRYYPNSD1SCHRAZ3NABF52XS'
+  // V2 API endpoint
+  const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${apiKey}`
+  try {
+    const result = await fetchJson(url)
+    return {
+      provider: 'etherscan-v2',
+      chain: 'ethereum',
+      address,
+      transactions: result.result?.slice(0, 10) || [],
+    }
+  } catch (e) {
+    return { provider: 'etherscan-v2', chain: 'ethereum', address, error: e.message, transactions: [] }
+  }
+}
+
+// BSCScan transactions (using V2 API via Etherscan)
+async function fetchBscScanTransactions(address) {
+  const apiKey = 'UN6TIKGANUFRYYPNSD1SCHRAZ3NABF52XS'
+  // V2 API endpoint with chainid=56 for BSC
+  const url = `https://api.etherscan.io/v2/api?chainid=56&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${apiKey}`
+  try {
+    const result = await fetchJson(url)
+    return {
+      provider: 'bscscan-v2',
+      chain: 'binance',
+      address,
+      transactions: result.result?.slice(0, 10) || [],
+    }
+  } catch (e) {
+    return { provider: 'bscscan-v2', chain: 'binance', address, error: e.message, transactions: [] }
+  }
+}
+
 // BSC RPC balance
 async function fetchBscBalance(address) {
   const result = await fetchJson(PROVIDERS.binance.rpc, {
@@ -273,6 +325,14 @@ async function collectAllFixtures() {
     console.log(`  ✗ ethwallet txs: ${e.message}`)
   }
 
+  try {
+    const etherscanTx = await fetchEtherscanTransactions(REAL_ADDRESSES.ethereum)
+    console.log(`  ✓ etherscan txs: ${etherscanTx.transactions?.length || 0} transactions`)
+    fixtures.transactions.push(etherscanTx)
+  } catch (e) {
+    console.log(`  ✗ etherscan txs: ${e.message}`)
+  }
+
   // Bitcoin
   console.log('\n📦 Bitcoin...')
   try {
@@ -325,6 +385,14 @@ async function collectAllFixtures() {
     console.log(`  ✗ tronwallet txs: ${e.message}`)
   }
 
+  try {
+    const tronRpcTx = await fetchTronTransactions(REAL_ADDRESSES.tron)
+    console.log(`  ✓ tron-rpc txs: ${tronRpcTx.transactions?.length || 0} transactions`)
+    fixtures.transactions.push(tronRpcTx)
+  } catch (e) {
+    console.log(`  ✗ tron-rpc txs: ${e.message}`)
+  }
+
   // Binance
   console.log('\n📦 Binance Smart Chain...')
   try {
@@ -349,6 +417,14 @@ async function collectAllFixtures() {
     fixtures.transactions.push(bscwalletTx)
   } catch (e) {
     console.log(`  ✗ bscwallet txs: ${e.message}`)
+  }
+
+  try {
+    const bscscanTx = await fetchBscScanTransactions(REAL_ADDRESSES.binance)
+    console.log(`  ✓ bscscan txs: ${bscscanTx.transactions?.length || 0} transactions`)
+    fixtures.transactions.push(bscscanTx)
+  } catch (e) {
+    console.log(`  ✗ bscscan txs: ${e.message}`)
   }
 
   // Save fixtures

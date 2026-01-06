@@ -1,9 +1,11 @@
 /**
  * ProviderFallbackWarning Storybook E2E 截图测试
  * 
- * 验证四条链（BFMeta, ETH, BSC, Tron）的两种场景：
- * 1. 正常数据（supported: true）- 无警告
- * 2. Fallback 警告（supported: false）- 黄色警告
+ * 验证四条链（BFMeta, ETH, BSC, Tron）的场景：
+ * 1. 资产标签页 - 正常数据（supported: true）- 无警告
+ * 2. 资产标签页 - Fallback 警告（supported: false）- 黄色警告
+ * 3. 交易标签页 - 正常数据 - 有交易记录
+ * 4. 交易标签页 - Fallback 警告 - 显示警告
  * 
  * 运行: npx playwright test --config=playwright.storybook.config.ts storybook-e2e/provider-fallback-warning.spec.ts
  */
@@ -93,7 +95,7 @@ test.describe('ProviderFallbackWarning Screenshots', () => {
   })
 
   // ==================== BFMeta 链 ====================
-  test('BFMeta - Normal Data', async ({ page }) => {
+  test('BFMeta - Normal Data (Assets)', async ({ page }) => {
     await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--bf-meta-normal-data'))
     await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
     
@@ -101,7 +103,19 @@ test.describe('ProviderFallbackWarning Screenshots', () => {
     const warnings = page.locator('[data-testid="provider-fallback-warning"]')
     await expect(warnings).toHaveCount(0)
     
-    await expect(page).toHaveScreenshot('bfmeta-normal-data.png')
+    await expect(page).toHaveScreenshot('bfmeta-normal-assets.png')
+  })
+
+  test('BFMeta - Normal Data (Transactions)', async ({ page }) => {
+    await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--bf-meta-normal-data'))
+    await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
+    
+    // 切换到交易标签页
+    const txTab = page.getByTestId('wallet-address-portfolio-tabs-tab-history')
+    await txTab.click()
+    await page.waitForTimeout(300)
+    
+    await expect(page).toHaveScreenshot('bfmeta-normal-transactions.png')
   })
 
   test('BFMeta - Fallback Warning', async ({ page }) => {
@@ -116,12 +130,23 @@ test.describe('ProviderFallbackWarning Screenshots', () => {
   })
 
   // ==================== Ethereum 链 ====================
-  test('Ethereum - Normal Data (23.68 ETH)', async ({ page }) => {
+  test('Ethereum - Normal Data (Assets)', async ({ page }) => {
     await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--ethereum-normal-data'))
     await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
     
     await expect(page.locator('[data-testid="provider-fallback-warning"]')).toHaveCount(0)
-    await expect(page).toHaveScreenshot('ethereum-normal-data.png')
+    await expect(page).toHaveScreenshot('ethereum-normal-assets.png')
+  })
+
+  test('Ethereum - Normal Data (Transactions)', async ({ page }) => {
+    await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--ethereum-normal-data'))
+    await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
+    
+    const txTab = page.getByTestId('wallet-address-portfolio-tabs-tab-history')
+    await txTab.click()
+    await page.waitForTimeout(300)
+    
+    await expect(page).toHaveScreenshot('ethereum-normal-transactions.png')
   })
 
   test('Ethereum - Fallback Warning', async ({ page }) => {
@@ -133,12 +158,23 @@ test.describe('ProviderFallbackWarning Screenshots', () => {
   })
 
   // ==================== Binance/BSC 链 ====================
-  test('Binance - Normal Data (234.08 BNB)', async ({ page }) => {
+  test('Binance - Normal Data (Assets)', async ({ page }) => {
     await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--binance-normal-data'))
     await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
     
     await expect(page.locator('[data-testid="provider-fallback-warning"]')).toHaveCount(0)
-    await expect(page).toHaveScreenshot('binance-normal-data.png')
+    await expect(page).toHaveScreenshot('binance-normal-assets.png')
+  })
+
+  test('Binance - Normal Data (Transactions)', async ({ page }) => {
+    await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--binance-normal-data'))
+    await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
+    
+    const txTab = page.getByTestId('wallet-address-portfolio-tabs-tab-history')
+    await txTab.click()
+    await page.waitForTimeout(300)
+    
+    await expect(page).toHaveScreenshot('binance-normal-transactions.png')
   })
 
   test('Binance - Fallback Warning', async ({ page }) => {
@@ -150,12 +186,23 @@ test.describe('ProviderFallbackWarning Screenshots', () => {
   })
 
   // ==================== Tron 链 ====================
-  test('Tron - Normal Data (163,377 TRX)', async ({ page }) => {
+  test('Tron - Normal Data (Assets)', async ({ page }) => {
     await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--tron-normal-data'))
     await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
     
     await expect(page.locator('[data-testid="provider-fallback-warning"]')).toHaveCount(0)
-    await expect(page).toHaveScreenshot('tron-normal-data.png')
+    await expect(page).toHaveScreenshot('tron-normal-assets.png')
+  })
+
+  test('Tron - Normal Data (Transactions)', async ({ page }) => {
+    await page.goto(storyIframeUrl(baseUrl, 'wallet-walletaddressportfolio--tron-normal-data'))
+    await page.waitForSelector('[data-testid="wallet-address-portfolio"]', { timeout: 10000 })
+    
+    const txTab = page.getByTestId('wallet-address-portfolio-tabs-tab-history')
+    await txTab.click()
+    await page.waitForTimeout(300)
+    
+    await expect(page).toHaveScreenshot('tron-normal-transactions.png')
   })
 
   test('Tron - Fallback Warning', async ({ page }) => {

@@ -42,6 +42,144 @@ const mockTransactions: TransactionInfo[] = [
   },
 ];
 
+// 基于 Bitcoin mempool.space 真实数据格式创建的 mock 交易
+// 参考: https://mempool.space/api/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa/txs
+const mockBitcoinTransactions: TransactionInfo[] = [
+  {
+    id: '78a44e6e62bf7638065bf58327c8486217dbf84bba617def8f8a2816a23e14c9',
+    type: 'receive' as TransactionType,
+    status: 'pending',
+    amount: Amount.fromRaw('546', 8, 'BTC'),
+    symbol: 'BTC',
+    address: 'bc1pl4qpz24u7zf6zn7lckdckglns02xghrh4jw3qeh2w37x3m6k657qv6pqw7',
+    timestamp: new Date(Date.now() - 600000), // 10 min ago
+    chain: 'bitcoin',
+  },
+  {
+    id: 'd274d00350d384f443cb1e42defdd7e12f350aee37813d305b6bb9468270de19',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('546', 8, 'BTC'),
+    symbol: 'BTC',
+    address: 'bc1py4h77ccc0yalhrv2w8h5l5htw2t2up7nhcmg5t89ndgkjhpxek3qz3dsgc',
+    timestamp: new Date(1767688327000),
+    chain: 'bitcoin',
+  },
+  {
+    id: 'c11dfe6e1033eb354c6bf7b3428f9290d635cefbe16876b86a8ce84be8c5637d',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('546', 8, 'BTC'),
+    symbol: 'BTC',
+    address: 'bc1p75kfwfe6se8uztt67nat7fev50ydly9lmcrdj6gtalz6zmsjachqtryrtc',
+    timestamp: new Date(1767682433000),
+    chain: 'bitcoin',
+  },
+  {
+    id: 'd8773c23582a0bf0fe7f640fd1053c14c5ebf3782fed994bd9cd2aed7d19dedd',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('12168', 8, 'BTC'),
+    symbol: 'BTC',
+    address: 'bc1ppcagzftu7w6pl7saqvs4nvtpwpr2g7ja96tdylt3lz775yjkkcsqlu7exa',
+    timestamp: new Date(1767681823000),
+    chain: 'bitcoin',
+  },
+];
+
+// 基于 TronGrid API 真实数据格式创建的 mock 交易
+// 参考: https://api.trongrid.io/v1/accounts/TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9/transactions
+const mockTronTransactions: TransactionInfo[] = [
+  {
+    id: 'caacd034fd600a9a66cb9c841f39b81101e97e23068c8d73152f8741654139e1',
+    type: 'send' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('149000000', 6, 'TRX'), // 149 TRX
+    symbol: 'TRX',
+    address: 'TF17BgPaZYbz8oxbjhriubPDsA7ArKoLX3',
+    timestamp: new Date(1767691140000),
+    chain: 'tron',
+  },
+  {
+    id: '2b8d0c9e7f3a1b5e4d6c8a9f0e1d2c3b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('500000000', 6, 'TRX'), // 500 TRX
+    symbol: 'TRX',
+    address: 'TAnahWWRPm6jhiYR6gMCE3eLDqL8LfCnVE',
+    timestamp: new Date(1767680000000),
+    chain: 'tron',
+  },
+  {
+    id: '3c9e1d0f8a2b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d',
+    type: 'send' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('1000000000', 6, 'TRX'), // 1000 TRX
+    symbol: 'TRX',
+    address: 'TRkJg1B9WgM8uXzthJJhBhX7K1GBqH9dXb',
+    timestamp: new Date(1767670000000),
+    chain: 'tron',
+  },
+];
+
+// 基于 Etherscan API 真实数据格式创建的 mock 交易 (Vitalik's wallet)
+const mockEthereumTransactions: TransactionInfo[] = [
+  {
+    id: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890',
+    type: 'send' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'), // 1 ETH
+    symbol: 'ETH',
+    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD38',
+    timestamp: new Date(Date.now() - 7200000), // 2 hours ago
+    chain: 'ethereum',
+  },
+  {
+    id: '0x2b3c4d5e6f78901abcdef2345678901abcdef2345678901abcdef2345678901',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('5000000000000000000', 18, 'ETH'), // 5 ETH
+    symbol: 'ETH',
+    address: '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+    timestamp: new Date(Date.now() - 86400000), // 1 day ago
+    chain: 'ethereum',
+  },
+  {
+    id: '0x3c4d5e6f789012abcdef3456789012abcdef3456789012abcdef3456789012',
+    type: 'send' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('100000000', 6, 'USDC'), // 100 USDC
+    symbol: 'USDC',
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    timestamp: new Date(Date.now() - 172800000), // 2 days ago
+    chain: 'ethereum',
+  },
+];
+
+// BSC 交易 mock
+const mockBinanceTransactions: TransactionInfo[] = [
+  {
+    id: '0xbsc1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',
+    type: 'receive' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('10000000000000000000', 18, 'BNB'), // 10 BNB
+    symbol: 'BNB',
+    address: '0x8894E0a0c962CB723c1976a4421c95949bE2D4E3',
+    timestamp: new Date(Date.now() - 3600000),
+    chain: 'binance',
+  },
+  {
+    id: '0xbsc2345678901abcdef2345678901abcdef2345678901abcdef2345678901bc',
+    type: 'send' as TransactionType,
+    status: 'confirmed',
+    amount: Amount.fromRaw('5000000000000000000', 18, 'BNB'), // 5 BNB
+    symbol: 'BNB',
+    address: '0x28C6c06298d514Db089934071355E5743bf21d60',
+    timestamp: new Date(Date.now() - 14400000), // 4 hours ago
+    chain: 'binance',
+  },
+];
+
 function ChainConfigProvider({ children }: { children: React.ReactNode }) {
   const state = useChainConfigState();
   const [initStarted, setInitStarted] = useState(false);
@@ -874,18 +1012,7 @@ export const EthereumNormalData: Story = {
       { symbol: 'ETH', name: 'Ethereum', balance: '23.683156206881918', decimals: 18, chain: 'ethereum' },
       { symbol: 'USDC', name: 'USD Coin', balance: '1500.00', decimals: 6, chain: 'ethereum' },
     ],
-    transactions: [
-      {
-        id: 'eth-tx1',
-        type: 'receive' as TransactionType,
-        status: 'confirmed',
-        amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'),
-        symbol: 'ETH',
-        address: '0x1234...5678',
-        timestamp: new Date(Date.now() - 3600000),
-        chain: 'ethereum',
-      },
-    ],
+    transactions: mockEthereumTransactions,
     tokensSupported: true,
     transactionsSupported: true,
   },
@@ -921,18 +1048,7 @@ export const BinanceNormalData: Story = {
       { symbol: 'BNB', name: 'BNB', balance: '234.084063038409', decimals: 18, chain: 'binance' },
       { symbol: 'BUSD', name: 'BUSD', balance: '2000.00', decimals: 18, chain: 'binance' },
     ],
-    transactions: [
-      {
-        id: 'bnb-tx1',
-        type: 'send' as TransactionType,
-        status: 'confirmed',
-        amount: Amount.fromRaw('5000000000000000000', 18, 'BNB'),
-        symbol: 'BNB',
-        address: '0xabcd...ef01',
-        timestamp: new Date(Date.now() - 7200000),
-        chain: 'binance',
-      },
-    ],
+    transactions: mockBinanceTransactions,
     tokensSupported: true,
     transactionsSupported: true,
   },
@@ -968,18 +1084,7 @@ export const TronNormalData: Story = {
       { symbol: 'TRX', name: 'Tron', balance: '163377.648279', decimals: 6, chain: 'tron' },
       { symbol: 'USDT', name: 'Tether', balance: '10000.00', decimals: 6, chain: 'tron' },
     ],
-    transactions: [
-      {
-        id: 'trx-tx1',
-        type: 'receive' as TransactionType,
-        status: 'confirmed',
-        amount: Amount.fromRaw('50000000000', 6, 'TRX'),
-        symbol: 'TRX',
-        address: 'TN3W4H6rK2ce...',
-        timestamp: new Date(Date.now() - 1800000),
-        chain: 'tron',
-      },
-    ],
+    transactions: mockTronTransactions,
     tokensSupported: true,
     transactionsSupported: true,
   },
