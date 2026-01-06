@@ -143,6 +143,11 @@
       "apis": [
         { "type": "blockscout-v1", "endpoint": "https://eth.blockscout.com/api" },
         { "type": "ethereum-rpc", "endpoint": "https://ethereum-rpc.publicnode.com" },
+        {
+          "type": "etherscan-v2",
+          "endpoint": "https://api.etherscan.io/v2/api",
+          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
+        },
         { "type": "ethwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/eth" }
       ],
       "explorer": {
@@ -166,6 +171,11 @@
       "decimals": 18,
       "apis": [
         { "type": "bsc-rpc", "endpoint": "https://bsc-rpc.publicnode.com" },
+        {
+          "type": "etherscan-v2",
+          "endpoint": "https://api.etherscan.io/v2/api",
+          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
+        },
         { "type": "bscwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bsc" }
       ],
       "explorer": {
@@ -192,7 +202,7 @@
         {
           "type": "tron-rpc-pro",
           "endpoint": "https://api.trongrid.io",
-          "config": { "apiKeyEnv": "VITE_TRONGRID_API_KEY" }
+          "config": { "apiKeyEnv": "TRONGRID_API_KEY" }
         },
         { "type": "tronwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/tron" }
       ],
