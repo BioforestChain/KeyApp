@@ -821,30 +821,221 @@ export const CompareProviders: Story = {
 };
 
 /**
- * 展示 ProviderFallbackWarning 组件
- * 当所有 provider 都失败时（supported: false），显示黄色警告
+ * ProviderFallbackWarning 截图验证 Stories
+ * 
+ * 覆盖四种主要链的各种场景：
+ * 1. 正常数据（supported: true）
+ * 2. Fallback 警告（supported: false）
  */
-export const FallbackWarningDemo: Story = {
-  name: 'Fallback Warning Demo',
+
+// ==================== BFMeta 链 ====================
+export const BFMetaNormalData: Story = {
+  name: 'BFMeta - Normal Data',
   args: {
     chainId: 'bfmeta',
-    chainName: 'BFMeta Demo',
+    chainName: 'BFMeta',
     tokens: [
-      { symbol: 'BFT', name: 'BFT', balance: '0', decimals: 8, chain: 'bfmeta' },
+      { symbol: 'BFT', name: 'BFT', balance: '1234.56789012', decimals: 8, chain: 'bfmeta' },
+      { symbol: 'USDT', name: 'USDT', balance: '500.00', decimals: 8, chain: 'bfmeta' },
     ],
+    transactions: mockTransactions,
+    tokensSupported: true,
+    transactionsSupported: true,
+  },
+};
+
+export const BFMetaFallbackWarning: Story = {
+  name: 'BFMeta - Fallback Warning',
+  args: {
+    chainId: 'bfmeta',
+    chainName: 'BFMeta',
+    tokens: [{ symbol: 'BFT', name: 'BFT', balance: '0', decimals: 8, chain: 'bfmeta' }],
     transactions: [],
     tokensSupported: false,
-    tokensFallbackReason: 'All 2 provider(s) failed. Last error: Network timeout',
+    tokensFallbackReason: 'All 2 provider(s) failed. Last error: Connection timeout',
     transactionsSupported: false,
     transactionsFallbackReason: 'No provider implements getTransactionHistory',
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-
     await waitFor(() => {
-      // 验证黄色警告出现
-      const warnings = canvas.getAllByTestId('provider-fallback-warning');
-      expect(warnings.length).toBeGreaterThanOrEqual(1);
+      expect(canvas.getAllByTestId('provider-fallback-warning').length).toBeGreaterThanOrEqual(1);
+    });
+  },
+};
+
+// ==================== Ethereum 链 ====================
+export const EthereumNormalData: Story = {
+  name: 'Ethereum - Normal Data (23.68 ETH)',
+  args: {
+    chainId: 'ethereum',
+    chainName: 'Ethereum',
+    tokens: [
+      { symbol: 'ETH', name: 'Ethereum', balance: '23.683156206881918', decimals: 18, chain: 'ethereum' },
+      { symbol: 'USDC', name: 'USD Coin', balance: '1500.00', decimals: 6, chain: 'ethereum' },
+    ],
+    transactions: [
+      {
+        id: 'eth-tx1',
+        type: 'receive' as TransactionType,
+        status: 'confirmed',
+        amount: Amount.fromRaw('1000000000000000000', 18, 'ETH'),
+        symbol: 'ETH',
+        address: '0x1234...5678',
+        timestamp: new Date(Date.now() - 3600000),
+        chain: 'ethereum',
+      },
+    ],
+    tokensSupported: true,
+    transactionsSupported: true,
+  },
+};
+
+export const EthereumFallbackWarning: Story = {
+  name: 'Ethereum - Fallback Warning',
+  args: {
+    chainId: 'ethereum',
+    chainName: 'Ethereum',
+    tokens: [{ symbol: 'ETH', name: 'Ethereum', balance: '0', decimals: 18, chain: 'ethereum' }],
+    transactions: [],
+    tokensSupported: false,
+    tokensFallbackReason: 'All providers failed: ethereum-rpc timeout, etherscan rate limited',
+    transactionsSupported: false,
+    transactionsFallbackReason: 'Blockscout API returned 503',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getAllByTestId('provider-fallback-warning').length).toBeGreaterThanOrEqual(1);
+    });
+  },
+};
+
+// ==================== BSC/Binance 链 ====================
+export const BinanceNormalData: Story = {
+  name: 'Binance - Normal Data (234.08 BNB)',
+  args: {
+    chainId: 'binance',
+    chainName: 'BNB Smart Chain',
+    tokens: [
+      { symbol: 'BNB', name: 'BNB', balance: '234.084063038409', decimals: 18, chain: 'binance' },
+      { symbol: 'BUSD', name: 'BUSD', balance: '2000.00', decimals: 18, chain: 'binance' },
+    ],
+    transactions: [
+      {
+        id: 'bnb-tx1',
+        type: 'send' as TransactionType,
+        status: 'confirmed',
+        amount: Amount.fromRaw('5000000000000000000', 18, 'BNB'),
+        symbol: 'BNB',
+        address: '0xabcd...ef01',
+        timestamp: new Date(Date.now() - 7200000),
+        chain: 'binance',
+      },
+    ],
+    tokensSupported: true,
+    transactionsSupported: true,
+  },
+};
+
+export const BinanceFallbackWarning: Story = {
+  name: 'Binance - Fallback Warning',
+  args: {
+    chainId: 'binance',
+    chainName: 'BNB Smart Chain',
+    tokens: [{ symbol: 'BNB', name: 'BNB', balance: '0', decimals: 18, chain: 'binance' }],
+    transactions: [],
+    tokensSupported: false,
+    tokensFallbackReason: 'BSC RPC node unreachable',
+    transactionsSupported: false,
+    transactionsFallbackReason: 'BscScan API key exhausted',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getAllByTestId('provider-fallback-warning').length).toBeGreaterThanOrEqual(1);
+    });
+  },
+};
+
+// ==================== Tron 链 ====================
+export const TronNormalData: Story = {
+  name: 'Tron - Normal Data (163,377 TRX)',
+  args: {
+    chainId: 'tron',
+    chainName: 'Tron',
+    tokens: [
+      { symbol: 'TRX', name: 'Tron', balance: '163377.648279', decimals: 6, chain: 'tron' },
+      { symbol: 'USDT', name: 'Tether', balance: '10000.00', decimals: 6, chain: 'tron' },
+    ],
+    transactions: [
+      {
+        id: 'trx-tx1',
+        type: 'receive' as TransactionType,
+        status: 'confirmed',
+        amount: Amount.fromRaw('50000000000', 6, 'TRX'),
+        symbol: 'TRX',
+        address: 'TN3W4H6rK2ce...',
+        timestamp: new Date(Date.now() - 1800000),
+        chain: 'tron',
+      },
+    ],
+    tokensSupported: true,
+    transactionsSupported: true,
+  },
+};
+
+export const TronFallbackWarning: Story = {
+  name: 'Tron - Fallback Warning',
+  args: {
+    chainId: 'tron',
+    chainName: 'Tron',
+    tokens: [{ symbol: 'TRX', name: 'Tron', balance: '0', decimals: 6, chain: 'tron' }],
+    transactions: [],
+    tokensSupported: false,
+    tokensFallbackReason: 'TronGrid API rate limit exceeded',
+    transactionsSupported: false,
+    transactionsFallbackReason: 'All Tron providers failed',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getAllByTestId('provider-fallback-warning').length).toBeGreaterThanOrEqual(1);
+    });
+  },
+};
+
+// ==================== 混合场景 ====================
+export const PartialFallback: Story = {
+  name: 'Partial Fallback - Tokens OK, Transactions Failed',
+  args: {
+    chainId: 'ethereum',
+    chainName: 'Ethereum',
+    tokens: [
+      { symbol: 'ETH', name: 'Ethereum', balance: '5.5', decimals: 18, chain: 'ethereum' },
+    ],
+    transactions: [],
+    tokensSupported: true, // 余额查询成功
+    transactionsSupported: false, // 交易历史查询失败
+    transactionsFallbackReason: 'Etherscan API key invalid',
+  },
+};
+
+export const EmptyButSupported: Story = {
+  name: 'Empty Data - No Warning (Provider OK)',
+  args: {
+    chainId: 'ethereum',
+    chainName: 'Ethereum',
+    tokens: [],
+    transactions: [],
+    tokensSupported: true, // Provider 正常，只是没数据
+    transactionsSupported: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      // 应该没有警告
+      expect(canvas.queryAllByTestId('provider-fallback-warning')).toHaveLength(0);
     });
   },
 };
