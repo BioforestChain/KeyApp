@@ -10,10 +10,10 @@ import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js'
 /** Base58 alphabet used by Tron */
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
-const BalanceResponseSchema = z.union([
-  z.string(),
-  z.number().transform((v) => String(v)),
-])
+const WalletApiBalanceSchema = z.looseObject({
+  success: z.boolean(),
+  result: z.union([z.string(), z.number().transform((v) => String(v))]),
+})
 
 const TronHistorySchema = z.looseObject({
   data: z.array(z.unknown()),
@@ -148,19 +148,21 @@ export class TronWalletProvider implements ApiProvider {
       ttlMs: 60_000,
       tags: [`balance:${this.chainId}:${address}`],
     })
-    const parsed = BalanceResponseSchema.safeParse(json)
-    if (!parsed.success) {
+    const parsed = WalletApiBalanceSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success) {
       throw new Error('Invalid API response')
     }
 
+    const balanceValue = parsed.data.result
+
     observeValueAndInvalidate({
       key: `balance:${this.chainId}:${address}`,
-      value: parsed.data,
+      value: balanceValue,
       invalidateTags: [`txhistory:${this.chainId}:${address}`],
     })
 
     return {
-      amount: Amount.fromRaw(parsed.data, this.decimals, this.symbol),
+      amount: Amount.fromRaw(balanceValue, this.decimals, this.symbol),
       symbol: this.symbol,
     }
   }

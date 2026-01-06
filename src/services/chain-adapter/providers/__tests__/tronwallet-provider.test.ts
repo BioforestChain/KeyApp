@@ -62,7 +62,7 @@ describe('TronWalletProvider', () => {
 
     mockFetch.mockImplementation(async (url: string) => {
       expect(url).toContain(`/balance?address=${expectedHex}`)
-      return { ok: true, json: async () => '1000000' }
+      return { ok: true, json: async () => ({ success: true, result: '1000000' }) }
     })
 
     const provider = new TronWalletProvider(entry, 'tron')

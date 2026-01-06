@@ -7,9 +7,10 @@
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Transaction, Direction, Action } from './types'
+import type { ApiProvider, Balance, Transaction, Direction, Action } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
 import { fetchJson } from './fetch-json'
 import { pickApiKey } from './api-key-picker'
 
