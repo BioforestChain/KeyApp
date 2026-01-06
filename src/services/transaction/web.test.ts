@@ -70,11 +70,19 @@ describe('transactionService(web)', () => {
         hash: '0xdeadbeef',
         from: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
         to: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
-        value: '1000000000000000000',
-        symbol: 'ETH',
         timestamp: 1_700_000_000_000,
         status: 'confirmed',
         blockNumber: 123n,
+        action: 'transfer',
+        direction: 'out',
+        assets: [
+          {
+            assetType: 'native',
+            value: '1000000000000000000',
+            symbol: 'ETH',
+            decimals: 18,
+          },
+        ],
       },
     ])
 

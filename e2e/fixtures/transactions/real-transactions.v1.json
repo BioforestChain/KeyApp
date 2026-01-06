@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "transactions": [
+    {
+      "id": "ethereum--0x1111111111111111111111111111111111111111111111111111111111111111",
+      "type": "swap",
+      "status": "confirmed",
+      "amount": { "value": "100000000", "decimals": 6, "symbol": "USDT" },
+      "symbol": "USDT",
+      "decimals": 6,
+      "address": "0x1111111254eeb25477b68fb85ed929f73a960582",
+      "timestamp": 1700000000000,
+      "hash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "chain": "ethereum",
+      "fee": { "value": "2000000000000000", "decimals": 18, "symbol": "ETH" },
+      "blockNumber": 19000000,
+      "confirmations": 12,
+      "from": "0xc00eb08fef86e5f74b692813f31bb5957eaa045c",
+      "to": "0x1111111254eeb25477b68fb85ed929f73a960582",
+      "action": "swap",
+      "direction": "out",
+      "assets": [
+        {
+          "assetType": "token",
+          "value": "100000000",
+          "symbol": "USDT",
+          "decimals": 6,
+          "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "name": "Tether USD"
+        },
+        {
+          "assetType": "native",
+          "value": "50000000000000000",
+          "symbol": "ETH",
+          "decimals": 18
+        }
+      ],
+      "contract": {
+        "address": "0x1111111254eeb25477b68fb85ed929f73a960582",
+        "method": "swapExactTokensForETH",
+        "methodId": "0x38ed1739"
+      }
+    },
+    {
+      "id": "ethereum--0x2222222222222222222222222222222222222222222222222222222222222222",
+      "type": "approve",
+      "status": "confirmed",
+      "amount": { "value": "1000000000", "decimals": 6, "symbol": "USDT" },
+      "symbol": "USDT",
+      "decimals": 6,
+      "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "timestamp": 1700000500000,
+      "hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "chain": "ethereum",
+      "fee": { "value": "1500000000000000", "decimals": 18, "symbol": "ETH" },
+      "blockNumber": 19000001,
+      "confirmations": 12,
+      "from": "0xc00eb08fef86e5f74b692813f31bb5957eaa045c",
+      "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "action": "approve",
+      "direction": "out",
+      "assets": [
+        {
+          "assetType": "token",
+          "value": "1000000000",
+          "symbol": "USDT",
+          "decimals": 6,
+          "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "name": "Tether USD"
+        }
+      ],
+      "contract": {
+        "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "method": "approve",
+        "methodId": "0x095ea7b3"
+      }
+    },
+    {
+      "id": "ethereum--0x3333333333333333333333333333333333333333333333333333333333333333",
+      "type": "interaction",
+      "status": "confirmed",
+      "amount": { "value": "0", "decimals": 18, "symbol": "ETH" },
+      "symbol": "ETH",
+      "decimals": 18,
+      "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "timestamp": 1700001000000,
+      "hash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+      "chain": "ethereum",
+      "fee": { "value": "1200000000000000", "decimals": 18, "symbol": "ETH" },
+      "blockNumber": 19000002,
+      "confirmations": 12,
+      "from": "0xc00eb08fef86e5f74b692813f31bb5957eaa045c",
+      "to": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "action": "contract",
+      "direction": "out",
+      "contract": {
+        "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "method": "transfer",
+        "methodId": "0xa9059cbb"
+      }
+    },
+    {
+      "id": "ethereum--0x4444444444444444444444444444444444444444444444444444444444444444",
+      "type": "send",
+      "status": "confirmed",
+      "amount": { "value": "100000000000000000", "decimals": 18, "symbol": "ETH" },
+      "symbol": "ETH",
+      "decimals": 18,
+      "address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "timestamp": 1700001500000,
+      "hash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+      "chain": "ethereum",
+      "fee": { "value": "2100000000000000", "decimals": 18, "symbol": "ETH" },
+      "blockNumber": 19000003,
+      "confirmations": 12,
+      "from": "0xc00eb08fef86e5f74b692813f31bb5957eaa045c",
+      "to": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "action": "transfer",
+      "direction": "out",
+      "assets": [
+        {
+          "assetType": "native",
+          "value": "100000000000000000",
+          "symbol": "ETH",
+          "decimals": 18
+        }
+      ]
+    },
+    {
+      "id": "binance--0x5555555555555555555555555555555555555555555555555555555555555555",
+      "type": "approve",
+      "status": "confirmed",
+      "amount": { "value": "250000000000000000000", "decimals": 18, "symbol": "BUSD" },
+      "symbol": "BUSD",
+      "decimals": 18,
+      "address": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+      "timestamp": 1700002000000,
+      "hash": "0x5555555555555555555555555555555555555555555555555555555555555555",
+      "chain": "binance",
+      "fee": { "value": "3000000000000000", "decimals": 18, "symbol": "BNB" },
+      "blockNumber": 32000000,
+      "confirmations": 18,
+      "from": "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
+      "to": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+      "action": "approve",
+      "direction": "out",
+      "assets": [
+        {
+          "assetType": "token",
+          "value": "250000000000000000000",
+          "symbol": "BUSD",
+          "decimals": 18,
+          "contractAddress": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+          "name": "Binance USD"
+        }
+      ],
+      "contract": {
+        "address": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+        "method": "approve",
+        "methodId": "0x095ea7b3"
+      }
+    },
+    {
+      "id": "tron--7f6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a",
+      "type": "interaction",
+      "status": "confirmed",
+      "amount": { "value": "0", "decimals": 6, "symbol": "TRX" },
+      "symbol": "TRX",
+      "decimals": 6,
+      "address": "TX9dQz9cJrG2JYc4bG4gqkz8oF6sVw1P2X",
+      "timestamp": 1700002500000,
+      "hash": "7f6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a",
+      "chain": "tron",
+      "fee": { "value": "10000", "decimals": 6, "symbol": "TRX" },
+      "blockNumber": 56000000,
+      "confirmations": 25,
+      "from": "TQf2Gf5gX5dP8qP3bG9r2qkY1mZt8rKJ6u",
+      "to": "TX9dQz9cJrG2JYc4bG4gqkz8oF6sVw1P2X",
+      "action": "contract",
+      "direction": "out",
+      "contract": {
+        "address": "TX9dQz9cJrG2JYc4bG4gqkz8oF6sVw1P2X",
+        "method": "transfer",
+        "methodId": "0xa9059cbb"
+      }
+    },
+    {
+      "id": "bitcoin--9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
+      "type": "send",
+      "status": "confirmed",
+      "amount": { "value": "250000", "decimals": 8, "symbol": "BTC" },
+      "symbol": "BTC",
+      "decimals": 8,
+      "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "timestamp": 1700003000000,
+      "hash": "9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
+      "chain": "bitcoin",
+      "fee": { "value": "1500", "decimals": 8, "symbol": "BTC" },
+      "blockNumber": 820000,
+      "confirmations": 6,
+      "from": "bc1qf7n7v0m3p7j9y2t5k0x8m7g0v9c5u7zv5l4q8a",
+      "to": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "action": "transfer",
+      "direction": "out"
+    },
+    {
+      "id": "bfchainv2--0x6666666666666666666666666666666666666666666666666666666666666666",
+      "type": "send",
+      "status": "confirmed",
+      "amount": { "value": "123450000", "decimals": 8, "symbol": "BFC" },
+      "symbol": "BFC",
+      "decimals": 8,
+      "address": "BF2uQh3nC7pW8c9tX1yZ2aB3cD4eF5gH6iJ7kL8mN",
+      "timestamp": 1700003500000,
+      "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+      "chain": "bfchainv2",
+      "fee": { "value": "100000", "decimals": 8, "symbol": "BFC" },
+      "blockNumber": 1200000,
+      "confirmations": 10,
+      "from": "BF2aB3cD4eF5gH6iJ7kL8mN9pQ1rS2tU3vW4xY5z",
+      "to": "BF2uQh3nC7pW8c9tX1yZ2aB3cD4eF5gH6iJ7kL8mN",
+      "action": "transfer",
+      "direction": "out"
+    }
+  ]
+}

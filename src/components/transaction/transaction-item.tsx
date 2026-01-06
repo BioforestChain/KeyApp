@@ -1,62 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import type { Amount } from '@/types/amount';
-import type { ChainType } from '@/stores';
 import { AddressDisplay } from '../wallet/address-display';
 import { ChainIcon } from '../wallet/chain-icon';
 import { AmountDisplay, TimeDisplay } from '../common';
-import {
-  IconArrowUp,
-  IconArrowDown,
-  IconArrowsExchange,
-  IconLock,
-  IconLockOpen,
-  IconShieldLock,
-  IconShieldCheck,
-  IconFlame,
-  IconGift,
-  IconHandGrab,
-  IconUserShare,
-  IconSignature,
-  IconLogout,
-  IconLogin,
-  IconSparkles,
-  IconCoins,
-  IconDiamond,
-  IconTrash,
-  IconMapPin,
-  IconApps,
-  IconCertificate,
-  IconFileText,
-  IconDots,
-  IconClick,
-} from '@tabler/icons-react';
-import type { Icon } from '@tabler/icons-react';
+import type { TransactionInfo } from './types';
+import { getTransactionStatusColor, getTransactionVisualMeta } from './transaction-meta';
 
-export type TransactionType =
-  | 'send' | 'receive' | 'signature'
-  | 'stake' | 'unstake' | 'destroy'
-  | 'gift' | 'grab' | 'trust' | 'signFor'
-  | 'emigrate' | 'immigrate' | 'exchange'
-  | 'issueAsset' | 'increaseAsset'
-  | 'issueEntity' | 'destroyEntity'
-  | 'locationName' | 'dapp' | 'certificate' | 'mark'
-  | 'approve' | 'interaction' | 'other';
-
-export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
-
-export interface TransactionInfo {
-  id: string;
-  type: TransactionType;
-  status: TransactionStatus;
-  amount: Amount;
-  symbol: string;
-  address: string;
-  timestamp: Date | string;
-  hash?: string | undefined;
-  /** 链类型，用于显示链图标 */
-  chain?: ChainType | undefined;
-}
+export type { TransactionInfo, TransactionStatus, TransactionType } from './types';
 
 interface TransactionItemProps {
   transaction: TransactionInfo;
@@ -66,54 +16,12 @@ interface TransactionItemProps {
   showChainIcon?: boolean | undefined;
 }
 
-// 颜色按类别归类，图标各不相同
-const typeIcons: Record<TransactionType, { Icon: Icon; color: string; bg: string }> = {
-  // 资产流出 - 红橙色
-  send:          { Icon: IconArrowUp,       color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  destroy:       { Icon: IconFlame,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  emigrate:      { Icon: IconLogout,        color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  destroyEntity: { Icon: IconTrash,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  // 资产流入 - 绿色
-  receive:       { Icon: IconArrowDown,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  grab:          { Icon: IconHandGrab,      color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  immigrate:     { Icon: IconLogin,         color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  signFor:       { Icon: IconSignature,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  // 交换 - 蓝色
-  exchange:      { Icon: IconArrowsExchange, color: 'text-tx-exchange', bg: 'bg-tx-exchange/10' },
-  // 质押/委托 - 紫色
-  stake:         { Icon: IconLock,          color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  unstake:       { Icon: IconLockOpen,      color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  trust:         { Icon: IconUserShare,     color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  // 安全 - 青色
-  signature:     { Icon: IconShieldLock,    color: 'text-tx-security', bg: 'bg-tx-security/10' },
-  // 创建/发行 - 橙色
-  gift:          { Icon: IconGift,          color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  issueAsset:    { Icon: IconSparkles,      color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  increaseAsset: { Icon: IconCoins,         color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  issueEntity:   { Icon: IconDiamond,       color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  // 系统操作 - 灰蓝色
-  locationName:  { Icon: IconMapPin,        color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  dapp:          { Icon: IconApps,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  certificate:   { Icon: IconCertificate,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  mark:          { Icon: IconFileText,      color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  // 合约交互 - 灰蓝色
-  approve:       { Icon: IconShieldCheck,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  interaction:   { Icon: IconClick,         color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  other:         { Icon: IconDots,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
-};
-
-const statusColors: Record<TransactionStatus, string> = {
-  pending: 'text-yellow-500',
-  confirmed: 'text-green-500',
-  failed: 'text-destructive',
-};
-
 export function TransactionItem({ transaction, onClick, className, showChainIcon }: TransactionItemProps) {
   const { t } = useTranslation('transaction');
-  const typeIcon = typeIcons[transaction.type];
-  const statusColor = statusColors[transaction.status];
+  const typeMeta = getTransactionVisualMeta(transaction.type);
+  const statusColor = getTransactionStatusColor(transaction.status);
   const isClickable = !!onClick;
-  const Icon = typeIcon.Icon;
+  const Icon = typeMeta.Icon;
 
   // Get the amount value for display
   const amountValue = transaction.type === 'send'
@@ -137,10 +45,10 @@ export function TransactionItem({ transaction, onClick, className, showChainIcon
         <div
           className={cn(
             'flex size-10 items-center justify-center rounded-full @xs:size-12',
-            typeIcon.bg,
+            typeMeta.bg,
           )}
         >
-          <Icon className={cn('size-5 @xs:size-6', typeIcon.color)} />
+          <Icon className={cn('size-5 @xs:size-6', typeMeta.color)} />
         </div>
         {showChainIcon && transaction.chain && (
           <ChainIcon
@@ -171,11 +79,11 @@ export function TransactionItem({ transaction, onClick, className, showChainIcon
           value={amountValue}
           symbol={transaction.symbol}
           decimals={transaction.amount.decimals}
-          sign="always"
+          sign={typeMeta.amountSign}
           color="default"
           weight="normal"
           size="sm"
-          className={cn('@xs:text-base', typeIcon.color)}
+          className={cn('@xs:text-base', typeMeta.color)}
         />
         <TimeDisplay value={transaction.timestamp} className="text-muted-foreground block text-xs" />
       </div>

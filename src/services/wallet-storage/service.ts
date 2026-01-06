@@ -20,7 +20,7 @@ import {
   WalletStorageErrorCode,
   WalletStorageMigrationError,
 } from './types';
-import { WalletInfoSchema, ChainAddressInfoSchema, WalleterInfoSchema } from './schema';
+import { WalletInfoSchema, ChainAddressInfoSchema, WalleterInfoSchema, AddressBookEntrySchema } from './schema';
 
 const DB_NAME = 'bfm-wallet-db';
 const DB_VERSION = 1;
@@ -546,19 +546,28 @@ export class WalletStorageService {
   /** 获取地址簿条目 */
   async getAddressBookEntry(id: string): Promise<AddressBookEntry | null> {
     this.ensureInitialized();
-    return (await this.db!.get('addressBook', id)) ?? null;
+    const raw = await this.db!.get('addressBook', id);
+    if (!raw) return null;
+    const result = AddressBookEntrySchema.safeParse(raw);
+    if (!result.success) {
+      console.warn('[WalletStorage] Invalid address book entry:', result.error.issues[0]);
+      return null;
+    }
+    return result.data as AddressBookEntry;
   }
 
   /** 获取所有地址簿条目 */
   async getAllAddressBookEntries(): Promise<AddressBookEntry[]> {
     this.ensureInitialized();
-    return this.db!.getAll('addressBook');
+    const raw = await this.db!.getAll('addressBook');
+    return safeParseArray(AddressBookEntrySchema, raw, 'indexeddb:addressBook') as AddressBookEntry[];
   }
 
   /** 获取链的地址簿条目 */
   async getChainAddressBookEntries(chain: string): Promise<AddressBookEntry[]> {
     this.ensureInitialized();
-    return this.db!.getAllFromIndex('addressBook', 'by-chain', chain);
+    const raw = await this.db!.getAllFromIndex('addressBook', 'by-chain', chain);
+    return safeParseArray(AddressBookEntrySchema, raw, 'indexeddb:addressBook') as AddressBookEntry[];
   }
 
   /** 删除地址簿条目 */

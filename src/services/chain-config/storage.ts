@@ -1,4 +1,5 @@
-import { ChainConfigSubscriptionSchema } from './schema'
+import { z } from 'zod'
+import { ChainConfigSchema, ChainConfigSourceSchema, ChainConfigSubscriptionSchema } from './schema'
 import type { ChainConfig, ChainConfigSource, ChainConfigSubscription } from './types'
 
 const DB_NAME = 'bfm_chain_config'
@@ -23,6 +24,16 @@ interface PreferenceRecord {
 
 let dbInstance: IDBDatabase | null = null
 let dbOpening: Promise<IDBDatabase> | null = null
+
+const BaseChainConfigSchema = ChainConfigSchema.omit({ enabled: true, source: true })
+const ChainConfigRecordSchema = z.object({
+  key: z.string(),
+  id: z.string(),
+  source: ChainConfigSourceSchema,
+  config: BaseChainConfigSchema,
+})
+
+const EnabledMapRawSchema = z.record(z.string(), z.any())
 
 function assertIndexedDbAvailable(): void {
   if (typeof indexedDB === 'undefined') {
@@ -151,29 +162,32 @@ export async function loadChainConfigs(): Promise<ChainConfig[]> {
   const records = await requestToPromise(store.getAll())
   await transactionDone(tx)
 
-  return records
-    .filter((r): r is ChainConfigRecord => {
-      return (
-        typeof r === 'object' &&
-        r !== null &&
-        'source' in r &&
-        'config' in r &&
-        'id' in r
-      )
-    })
-    .map((record) => ({
-      ...record.config,
-      source: record.source,
-      enabled: true,
-    }))
-}
+  const configs: ChainConfig[] = []
 
-function isRecordOfBoolean(value: unknown): value is Record<string, boolean> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
-  for (const entry of Object.values(value as Record<string, unknown>)) {
-    if (typeof entry !== 'boolean') return false
+  for (const raw of records as unknown[]) {
+    const parsed = ChainConfigRecordSchema.safeParse(raw)
+    if (!parsed.success) {
+      console.warn('[ChainConfigStorage] Invalid chain config record:', parsed.error.issues[0])
+      continue
+    }
+
+    if (parsed.data.id !== parsed.data.config.id) {
+      console.warn('[ChainConfigStorage] Invalid chain config record (id mismatch):', {
+        key: parsed.data.key,
+        id: parsed.data.id,
+        configId: parsed.data.config.id,
+      })
+      continue
+    }
+
+    configs.push({
+      ...parsed.data.config,
+      source: parsed.data.source,
+      enabled: true,
+    })
   }
-  return true
+
+  return configs
 }
 
 export async function saveUserPreferences(preferences: Record<string, boolean>): Promise<void> {
@@ -197,7 +211,31 @@ export async function loadUserPreferences(): Promise<Record<string, boolean>> {
 
   if (!record || typeof record !== 'object') return {}
   const value = (record as PreferenceRecord).value
-  return isRecordOfBoolean(value) ? value : {}
+  const parsed = EnabledMapRawSchema.safeParse(value)
+  if (!parsed.success) {
+    console.warn('[ChainConfigStorage] Invalid enabledMap:', parsed.error.issues[0])
+    return {}
+  }
+
+  const result: Record<string, boolean> = {}
+  for (const [key, rawFlag] of Object.entries(parsed.data)) {
+    if (typeof rawFlag === 'boolean') {
+      result[key] = rawFlag
+      continue
+    }
+
+    if (typeof rawFlag === 'string') {
+      const normalized = rawFlag.trim().toLowerCase()
+      if (normalized === 'true' || normalized === '1') result[key] = true
+      else if (normalized === 'false' || normalized === '0') result[key] = false
+      continue
+    }
+
+    if (rawFlag === 1) result[key] = true
+    else if (rawFlag === 0) result[key] = false
+  }
+
+  return result
 }
 
 export async function saveSubscriptionMeta(meta: ChainConfigSubscription): Promise<void> {
@@ -263,5 +301,10 @@ export async function loadDefaultVersion(): Promise<string | null> {
 
   if (!record || typeof record !== 'object') return null
   const value = (record as PreferenceRecord).value
-  return typeof value === 'string' ? value : null
+  const parsed = z.string().safeParse(value)
+  if (!parsed.success) {
+    console.warn('[ChainConfigStorage] Invalid defaultVersion:', parsed.error.issues[0])
+    return null
+  }
+  return parsed.data
 }

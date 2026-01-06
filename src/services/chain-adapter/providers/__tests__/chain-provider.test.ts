@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
 import { Amount } from '@/types/amount'
+import { InvalidDataError } from '../errors'
 
 vi.mock('@/services/chain-config', () => ({
   chainConfigService: {
@@ -73,21 +74,25 @@ describe('ChainProvider', () => {
     })
 
     it('delegates getTransactionHistory to the implementing provider', async () => {
-      const mockTxs: Transaction[] = [{
-        hash: '0xabc',
-        from: '0x1',
-        to: '0x2',
-        timestamp: Date.now(),
-        status: 'confirmed',
-        action: 'transfer',
-        direction: 'out',
-        assets: [{
-          assetType: 'native',
-          value: '1000',
-          symbol: 'TEST',
-          decimals: 8,
-        }],
-      }]
+      const mockTxs: Transaction[] = [
+        {
+          hash: '0xabc',
+          from: '0x1',
+          to: '0x2',
+          timestamp: Date.now(),
+          status: 'confirmed',
+          action: 'transfer',
+          direction: 'out',
+          assets: [
+            {
+              assetType: 'native',
+              value: '1000',
+              symbol: 'TEST',
+              decimals: 8,
+            },
+          ],
+        },
+      ]
       const provider = createMockProvider({
         getTransactionHistory: vi.fn().mockResolvedValue(mockTxs),
       })
@@ -159,6 +164,47 @@ describe('ChainProvider', () => {
       
       expect(chainProvider.getNativeBalance).toBeUndefined()
       expect(chainProvider.getTransactionHistory).toBeUndefined()
+    })
+  })
+
+  describe('guard-at-the-gate validation', () => {
+    it('filters invalid transactions from getTransactionHistory and warns', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const valid: Transaction = {
+        hash: '0xvalid',
+        from: '0x1',
+        to: '0x2',
+        timestamp: Date.now(),
+        status: 'confirmed',
+        action: 'transfer',
+        direction: 'out',
+        assets: [
+          {
+            assetType: 'native',
+            value: '1',
+            symbol: 'TEST',
+            decimals: 18,
+          },
+        ],
+      }
+
+      const provider = createMockProvider({
+        getTransactionHistory: vi.fn().mockResolvedValue([valid, { bad: true }]),
+      })
+      const chainProvider = new ChainProvider('test', [provider])
+
+      const result = await chainProvider.getTransactionHistory!('0x123', 10)
+      expect(result).toEqual([valid])
+      expect(warnSpy).toHaveBeenCalled()
+    })
+
+    it('throws InvalidDataError when getTransaction returns invalid payload', async () => {
+      const provider = createMockProvider({
+        getTransaction: vi.fn().mockResolvedValue({ bad: true }),
+      })
+      const chainProvider = new ChainProvider('test', [provider])
+
+      await expect(chainProvider.getTransaction!('0xabc')).rejects.toBeInstanceOf(InvalidDataError)
     })
   })
 

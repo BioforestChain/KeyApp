@@ -31,10 +31,17 @@ const REQUEST_TIMEOUT = 10_000
 export function parseAndValidate(json: unknown): ChainConfig[] {
   // Strict validation: unknown chainKind will fail schema validation directly
   const parsed = Array.isArray(json)
-    ? ChainConfigListSchema.parse(json)
-    : [ChainConfigSchema.parse(json)]
+    ? ChainConfigListSchema.safeParse(json)
+    : ChainConfigSchema.safeParse(json)
 
-  return parsed.map((c) => ({
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0]
+    throw new Error(firstIssue?.message ?? 'Invalid subscription chain config')
+  }
+
+  const list = Array.isArray(json) ? parsed.data : [parsed.data]
+
+  return list.map((c) => ({
     ...c,
     source: 'subscription',
     enabled: true,
@@ -106,11 +113,16 @@ export async function fetchSubscription(
     const merged = mergeWithExisting(fetchedConfigs, cachedConfigs)
 
     const responseEtag = response.headers.get('ETag') ?? undefined
-    const nextMeta: ChainConfigSubscription = ChainConfigSubscriptionSchema.parse({
+    const nextMetaParsed = ChainConfigSubscriptionSchema.safeParse({
       url,
       ...(responseEtag !== undefined ? { etag: responseEtag } : {}),
       lastUpdated: new Date().toISOString(),
     })
+    if (!nextMetaParsed.success) {
+      return { status: 'error', error: 'Invalid subscription meta', configs: cachedConfigs, meta: existingMeta ?? null }
+    }
+
+    const nextMeta: ChainConfigSubscription = nextMetaParsed.data
 
     await saveChainConfigs({ source: 'subscription', configs: merged })
     await saveSubscriptionMeta(nextMeta)

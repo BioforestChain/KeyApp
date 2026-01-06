@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Amount } from '@/types/amount'
 import { TransactionDetailPage } from './detail'
 import { TestI18nProvider, testI18n } from '@/test/i18n-mock'
+import { transactionService } from '@/services/transaction'
+import { InvalidDataError } from '@/services/chain-adapter/providers'
 
 // Mock stackflow
 const mockNavigate = vi.fn()
@@ -51,9 +53,49 @@ const createMockTransaction = () => ({
   confirmations: 50,
 })
 
+const createMockSwapTransaction = (overrides?: Partial<ReturnType<typeof createMockTransaction>>) => ({
+  ...createMockTransaction(),
+  id: 'ethereum--0xswaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  type: 'swap' as const,
+  symbol: 'ETH',
+  amount: Amount.fromFormatted('0', 18, 'ETH'),
+  assets: [
+    { assetType: 'token', symbol: 'ETH', decimals: 18, value: '1000000000000000000', contractAddress: '0xeth' },
+  ],
+  ...overrides,
+})
+
+const createMockSwapTransactionEnhanced = () =>
+  createMockSwapTransaction({
+    assets: [
+      { assetType: 'token', symbol: 'ETH', decimals: 18, value: '1000000000000000000', contractAddress: '0xeth' },
+      { assetType: 'token', symbol: 'USDC', decimals: 6, value: '1000000', contractAddress: '0xusdc' },
+    ],
+  })
+
+const createMockApproveTransaction = () => ({
+  ...createMockTransaction(),
+  id: 'ethereum--0xapppppppppppppppppppppppppppppppppppppppppppppppppppppppp',
+  type: 'approve' as const,
+  amount: Amount.fromFormatted('0', 18, 'ETH'),
+  to: '0xtoken',
+  contract: { address: '0xtoken' },
+})
+
+const createMockInteractionTransaction = () => ({
+  ...createMockTransaction(),
+  id: 'ethereum--0xintttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
+  type: 'interaction' as const,
+  amount: Amount.fromFormatted('0', 18, 'ETH'),
+  to: '0xcontract',
+  contract: { address: '0xcontract' },
+})
+
+let mockTransactions = [createMockTransaction()]
+
 vi.mock('@/queries', () => ({
   useTransactionHistoryQuery: () => ({
-    transactions: [createMockTransaction()],
+    transactions: mockTransactions,
     isLoading: false,
     isFetching: false,
     error: undefined,
@@ -72,6 +114,12 @@ vi.mock('@/services/clipboard', () => ({
   clipboardService: {
     write: mockClipboardWrite,
     read: vi.fn().mockResolvedValue(''),
+  },
+}))
+
+vi.mock('@/services/transaction', () => ({
+  transactionService: {
+    getTransaction: vi.fn().mockResolvedValue(null),
   },
 }))
 
@@ -95,6 +143,7 @@ describe('TransactionDetailPage', () => {
     vi.clearAllMocks()
     mockCurrentWallet = mockWallet
     mockTxId = 'tx-1'
+    mockTransactions = [createMockTransaction()]
     mockClipboardWrite.mockResolvedValue(undefined)
   })
 
@@ -148,10 +197,71 @@ describe('TransactionDetailPage', () => {
   })
 
   describe('Transaction Not Found', () => {
-    it('shows message when transaction is not found', () => {
+    it('shows message when transaction is not found', async () => {
       mockTxId = 'non-existent-tx'
       renderWithProviders(<TransactionDetailPage />)
-      expect(screen.getByText(t('transaction:detail.notFound'))).toBeInTheDocument()
+      expect(await screen.findByText(t('transaction:detail.notFound'))).toBeInTheDocument()
+    })
+  })
+
+  describe('Invalid Data', () => {
+    it('shows message when transaction data cannot be parsed', async () => {
+      mockTransactions = []
+      mockTxId = 'ethereum--0xdeadbeef'
+      vi.mocked(transactionService.getTransaction).mockRejectedValue(
+        new InvalidDataError({ source: 'provider', chainId: 'ethereum', method: 'getTransaction' }),
+      )
+
+      renderWithProviders(<TransactionDetailPage />)
+      expect(await screen.findByText(t('transaction:detail.invalidData'))).toBeInTheDocument()
+
+      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
+      await userEvent.click(copyButton)
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: 'ethereum--0xdeadbeef'.split('--')[1] })
+    })
+  })
+
+  describe('Provider Enhancement', () => {
+    it('enhances swap transaction and renders From/To + header summary', async () => {
+      mockTransactions = [createMockSwapTransaction()]
+      mockTxId = mockTransactions[0]!.id
+      vi.mocked(transactionService.getTransaction).mockResolvedValue(createMockSwapTransactionEnhanced() as any)
+
+      renderWithProviders(<TransactionDetailPage />)
+
+      expect(await screen.findByText(t('transaction:detail.swapFrom'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.swapTo'))).toBeInTheDocument()
+      expect(screen.getByText('→')).toBeInTheDocument()
+      expect(screen.getAllByText('ETH').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('USDC').length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('Approve/Interaction Placeholders', () => {
+    it('renders approve with method/spender/allowance placeholders', async () => {
+      mockTransactions = [createMockApproveTransaction()]
+      mockTxId = mockTransactions[0]!.id
+      vi.mocked(transactionService.getTransaction).mockResolvedValue(null)
+
+      renderWithProviders(<TransactionDetailPage />)
+
+      expect(await screen.findByText(t('transaction:detail.contractAddress'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.method'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.spender'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.allowance'))).toBeInTheDocument()
+      expect(screen.getAllByText(t('common:unknown')).length).toBeGreaterThan(0)
+    })
+
+    it('renders interaction with method placeholder', async () => {
+      mockTransactions = [createMockInteractionTransaction()]
+      mockTxId = mockTransactions[0]!.id
+      vi.mocked(transactionService.getTransaction).mockResolvedValue(null)
+
+      renderWithProviders(<TransactionDetailPage />)
+
+      expect(await screen.findByText(t('transaction:detail.contractAddress'))).toBeInTheDocument()
+      expect(screen.getByText(t('transaction:detail.method'))).toBeInTheDocument()
+      expect(screen.getByText(t('common:unknown'))).toBeInTheDocument()
     })
   })
 

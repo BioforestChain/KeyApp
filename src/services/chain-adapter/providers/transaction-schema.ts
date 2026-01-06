@@ -21,6 +21,7 @@ export const ActionSchema = z.enum([
   // 通用操作
   'transfer',      // 转账
   'swap',          // 兑换
+  'exchange',      // 交换 (BioForest legacy)
   'approve',       // 授权
   'revoke',        // 撤销授权
   'signature',     // 签名/签章

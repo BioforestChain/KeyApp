@@ -126,10 +126,18 @@ describe('AddressTransactionsPage', () => {
         hash: '0xabc123',
         from: '0x1111111111111111111111111111111111111111',
         to: '0x1234567890abcdef1234567890abcdef12345678',
-        value: '1000000000000000000',
-        symbol: 'ETH',
         timestamp: Date.now(),
         status: 'confirmed',
+        action: 'transfer',
+        direction: 'in',
+        assets: [
+          {
+            assetType: 'native',
+            value: '1000000000000000000',
+            symbol: 'ETH',
+            decimals: 18,
+          },
+        ],
       },
     ]
     mockGetTransactionHistory.mockResolvedValue(mockTxs)

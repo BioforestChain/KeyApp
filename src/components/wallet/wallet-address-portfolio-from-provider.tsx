@@ -5,10 +5,11 @@ import { chainConfigService } from '@/services/chain-config'
 import { useChainConfigState } from '@/stores/chain-config'
 import { WalletAddressPortfolioView, type WalletAddressPortfolioViewProps } from './wallet-address-portfolio-view'
 import type { TokenInfo } from '@/components/token/token-item'
-import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item'
+import type { TransactionInfo } from '@/components/transaction/transaction-item'
 import type { ChainType } from '@/stores'
-import type { Transaction, Action } from '@/services/chain-adapter/providers/types'
+import type { Transaction } from '@/services/chain-adapter/providers/types'
 import { Amount } from '@/types/amount'
+import { mapActionToTransactionType } from '@/components/transaction/transaction-meta'
 
 export interface WalletAddressPortfolioFromProviderProps {
   chainId: ChainType
@@ -81,7 +82,7 @@ export function WalletAddressPortfolioFromProvider({
       const currentProvider = chainConfigState.snapshot ? createChainProvider(chainId) : null
       if (!currentProvider?.getTransactionHistory) return []
       const txs = await currentProvider.getTransactionHistory(address, 20)
-      return txs.map(tx => convertToTransactionInfo(tx, address, chainId, decimals))
+      return txs.map(tx => convertToTransactionInfo(tx, chainId, decimals))
     },
     enabled: transactionsEnabled,
     staleTime: 30_000,
@@ -111,21 +112,20 @@ export function WalletAddressPortfolioFromProvider({
 /** 将 provider Transaction 转换为 UI TransactionInfo */
 function convertToTransactionInfo(
   tx: Transaction, 
-  address: string, 
   chainId: ChainType,
   fallbackDecimals: number
 ): TransactionInfo {
   // 使用 direction 判断对方地址
   const counterpartyAddress = tx.direction === 'out' ? tx.to : tx.from
   
-  // 获取主要资产信息 (第一个资产)
-  const primaryAsset = tx.assets[0]
-  const value = primaryAsset?.value ?? '0'
-  const symbol = primaryAsset?.symbol ?? ''
-  const decimals = primaryAsset?.decimals ?? fallbackDecimals
+  // 获取主要资产信息 (优先 fungible: native/token)
+  const primaryAsset = tx.assets.find((a) => a.assetType === 'native' || a.assetType === 'token')
+  const value = primaryAsset ? primaryAsset.value : '0'
+  const symbol = primaryAsset ? primaryAsset.symbol : ''
+  const decimals = primaryAsset ? primaryAsset.decimals : fallbackDecimals
   
-  // 将 action + direction 映射到 UI TransactionType
-  const uiType = mapToUIType(tx.action, tx.direction)
+  // 将 action + direction 映射到 UI TransactionType (single source of truth)
+  const uiType = mapActionToTransactionType(tx.action, tx.direction)
   
   return {
     id: tx.hash,
@@ -140,42 +140,4 @@ function convertToTransactionInfo(
   }
 }
 
-/** 将 action + direction 映射到 UI TransactionType */
-function mapToUIType(action: Action, direction: 'in' | 'out' | 'self'): TransactionType {
-  // 基于 action 的直接映射
-  const actionMap: Partial<Record<Action, TransactionType>> = {
-    gift: 'gift',
-    grab: 'grab',
-    trust: 'trust',
-    signFor: 'signFor',
-    signature: 'signature',
-    emigrate: 'emigrate',
-    immigrate: 'immigrate',
-    swap: 'exchange',
-    stake: 'stake',
-    unstake: 'unstake',
-    issueAsset: 'issueAsset',
-    increaseAsset: 'increaseAsset',
-    destroyAsset: 'destroy',
-    issueEntity: 'issueEntity',
-    destroyEntity: 'destroyEntity',
-    locationName: 'locationName',
-    dapp: 'dapp',
-    certificate: 'certificate',
-    mark: 'mark',
-    approve: 'approve',
-    mint: 'issueAsset',
-    burn: 'destroy',
-    claim: 'receive',
-    contract: 'interaction',
-  }
-  
-  if (actionMap[action]) {
-    return actionMap[action]!
-  }
-  
-  // 对于 transfer/unknown，使用 direction 判断
-  if (direction === 'out') return 'send'
-  if (direction === 'in') return 'receive'
-  return 'other' // self transfer
-}
+// mapToUIType removed - use mapActionToTransactionType from transaction-meta.ts (single source of truth)

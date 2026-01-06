@@ -2,9 +2,14 @@
  * Transaction 服务 - Mock 实现
  */
 
+import { z } from 'zod'
 import { Amount } from '@/types/amount'
 import { transactionServiceMeta, type ITransactionMockController, type TransactionRecord, type TransactionFilter, type TransactionType, type TransactionStatus } from './types'
 import type { ChainType } from '@/stores'
+import { ActionSchema, AssetSchema, ContractInfoSchema, DirectionSchema } from '@/services/chain-adapter/providers/transaction-schema'
+
+const E2E_FIXTURE_STORAGE_KEY = 'bfm_e2e_transaction_fixtures_v1'
+const E2E_FIXTURE_GLOBAL_KEY = '__BFM_E2E_TRANSACTION_FIXTURES_V1__'
 
 // ==================== 工具函数 ====================
 
@@ -26,6 +31,113 @@ function randomHash(): string {
 const TOKEN_DECIMALS: Record<string, number> = {
   ETH: 18, USDT: 6, USDC: 6, TRX: 6, BTC: 8, BNB: 18, BUSD: 18, BFM: 8,
   BFC: 8, CC: 8, PM: 8, BTG: 8, BIW: 8, ETHM: 18, MAL: 8, TOKEN: 18,
+}
+
+const TransactionTypeSchema = z.enum([
+  'send', 'receive', 'signature', 'stake', 'unstake', 'destroy',
+  'gift', 'grab', 'trust', 'signFor', 'emigrate', 'immigrate', 'exchange', 'swap',
+  'issueAsset', 'increaseAsset', 'mint', 'issueEntity', 'destroyEntity',
+  'locationName', 'dapp', 'certificate', 'approve', 'interaction', 'mark', 'other',
+])
+
+const TransactionStatusSchema = z.enum(['pending', 'confirmed', 'failed'])
+
+const FixtureAmountSchema = z.object({
+  value: z.string(),
+  decimals: z.number(),
+  symbol: z.string(),
+})
+
+const TransactionFixtureSchema = z.object({
+  id: z.string(),
+  type: TransactionTypeSchema,
+  status: TransactionStatusSchema,
+  amount: FixtureAmountSchema,
+  symbol: z.string(),
+  decimals: z.number(),
+  address: z.string(),
+  timestamp: z.union([z.number(), z.string()]),
+  hash: z.string().optional(),
+  chain: z.string(),
+  fee: FixtureAmountSchema.optional(),
+  feeSymbol: z.string().optional(),
+  feeDecimals: z.number().optional(),
+  blockNumber: z.number().optional(),
+  confirmations: z.number().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  action: ActionSchema.optional(),
+  direction: DirectionSchema.optional(),
+  assets: z.array(AssetSchema).optional(),
+  contract: ContractInfoSchema.optional(),
+})
+
+const TransactionFixturePayloadSchema = z.union([
+  z.array(TransactionFixtureSchema),
+  z.object({
+    version: z.literal(1).optional(),
+    transactions: z.array(TransactionFixtureSchema),
+  }),
+])
+
+function tryLoadFixturePayload(): unknown | null {
+  try {
+    const globalValue = (globalThis as any)[E2E_FIXTURE_GLOBAL_KEY]
+    if (globalValue !== undefined && globalValue !== null) return globalValue
+
+    if (typeof localStorage === 'undefined') return null
+    const raw = localStorage.getItem(E2E_FIXTURE_STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as unknown
+  } catch {
+    return null
+  }
+}
+
+function tryLoadFixtureTransactions(): TransactionRecord[] | null {
+  const payload = tryLoadFixturePayload()
+  if (!payload) return null
+
+  const parsed = TransactionFixturePayloadSchema.safeParse(payload)
+  if (!parsed.success) {
+    // eslint-disable-next-line no-console
+    console.warn('[transaction/mock] invalid e2e fixture payload, fallback to generated transactions', parsed.error)
+    return null
+  }
+
+  const items = Array.isArray(parsed.data) ? parsed.data : parsed.data.transactions
+  const records: TransactionRecord[] = []
+
+  for (const item of items) {
+    const date = new Date(item.timestamp)
+    if (Number.isNaN(date.getTime())) continue
+
+    records.push({
+      id: item.id,
+      type: item.type,
+      status: item.status,
+      amount: Amount.fromRaw(item.amount.value, item.amount.decimals, item.amount.symbol),
+      symbol: item.symbol,
+      decimals: item.decimals,
+      address: item.address,
+      timestamp: date,
+      hash: item.hash,
+      chain: item.chain as ChainType,
+      fee: item.fee ? Amount.fromRaw(item.fee.value, item.fee.decimals, item.fee.symbol) : undefined,
+      feeSymbol: item.fee?.symbol ?? item.feeSymbol,
+      feeDecimals: item.fee?.decimals ?? item.feeDecimals,
+      blockNumber: item.blockNumber,
+      confirmations: item.confirmations,
+      from: item.from,
+      to: item.to,
+      action: item.action,
+      direction: item.direction,
+      assets: item.assets,
+      contract: item.contract,
+    })
+  }
+
+  return records.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 }
 
 function generateInitialTransactions(count: number = 30): TransactionRecord[] {
@@ -102,7 +214,7 @@ function filterByChain(transactions: TransactionRecord[], chain: ChainType | 'al
 
 // ==================== Mock 状态 ====================
 
-let transactions = generateInitialTransactions(30)
+let transactions = tryLoadFixtureTransactions() ?? generateInitialTransactions(30)
 let delayMs = 200
 let simulatedError: Error | null = null
 

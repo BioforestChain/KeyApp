@@ -12,6 +12,76 @@ import type {
   MpayAddressBookEntry,
 } from './types'
 
+import { z } from 'zod'
+
+const MpayAddressAssetSchema = z.looseObject({
+  assetType: z.string(),
+  decimals: z.number(),
+  amount: z.string().optional(),
+  useDefaultDecimals: z.boolean().optional(),
+  logoUrl: z.string().optional(),
+  contractAddress: z.string().optional(),
+})
+
+const MpayChainAddressInfoSchema: z.ZodType<MpayChainAddressInfo> = z.looseObject({
+  address: z.string(),
+  symbol: z.string(),
+  addressKey: z.string(),
+  mainWalletId: z.string(),
+  chain: z.string(),
+  mnemonic: z.string().optional(),
+  privateKey: z.string(),
+  publicKey: z.string().optional(),
+  isCustomAssets: z.boolean().optional(),
+  isFreezed: z.boolean().optional(),
+  assets: z.array(MpayAddressAssetSchema),
+  name: z.string(),
+  prohibitChangeName: z.boolean().optional(),
+  index: z.number().optional(),
+  purpose: z.union([z.literal(44), z.literal(49), z.literal(84), z.literal(86)]).optional(),
+})
+
+const MpayMainWalletAddressInfoSchema = z.looseObject({
+  chainName: z.string(),
+  addressKey: z.string(),
+  address: z.string(),
+  symbol: z.string(),
+  mainWalletId: z.string(),
+  index: z.number().optional(),
+  purpose: z.union([z.literal(44), z.literal(49), z.literal(84), z.literal(86)]).optional(),
+})
+
+const MpayMainWalletSchema: z.ZodType<MpayMainWallet> = z.looseObject({
+  name: z.string(),
+  skipBackup: z.boolean().optional(),
+  importPhrase: z.string(),
+  importType: z.string(),
+  addressKeyList: z.array(MpayMainWalletAddressInfoSchema),
+  mainWalletId: z.string(),
+  headSculpture: z.string(),
+  createTimestamp: z.number(),
+  lastBitcoinAddressKey: z.string().optional(),
+})
+
+const MpayAddressBookEntrySchema: z.ZodType<MpayAddressBookEntry> = z.looseObject({
+  addressBookId: z.string(),
+  name: z.string(),
+  address: z.string(),
+  chainList: z.array(z.string()).optional(),
+  remarks: z.string().optional(),
+  iconName: z.string().optional(),
+  symbol: z.string().optional(),
+})
+
+const MpayWalletAppSettingsSchema: z.ZodType<MpayWalletAppSettings> = z.looseObject({
+  password: z.string(),
+  passwordTips: z.string().optional(),
+  lastWalletActivate: MpayChainAddressInfoSchema.optional(),
+  walletLock: z.boolean().optional(),
+  fingerprintLock: z.boolean().optional(),
+  fingerprintPay: z.boolean().optional(),
+})
+
 const MPAY_IDB_NAME = 'walletv2-idb'
 const MPAY_ADDRESS_BOOK_IDB = 'chainAddressBook-idb'
 const MPAY_SETTINGS_KEY = '👨‍👩‍👧‍👦walletAppSetting'
@@ -37,7 +107,7 @@ async function checkIndexedDBExists(): Promise<boolean> {
 /**
  * 获取 IndexedDB store 中的所有数据
  */
-async function getAllFromStore<T>(storeName: string): Promise<T[]> {
+async function getAllFromStore(storeName: string): Promise<unknown[]> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(MPAY_IDB_NAME)
     request.onsuccess = () => {
@@ -66,7 +136,7 @@ async function getAllFromStore<T>(storeName: string): Promise<T[]> {
 /**
  * 获取指定 IndexedDB 数据库中的所有数据
  */
-async function getAllFromDatabase<T>(dbName: string): Promise<T[]> {
+async function getAllFromDatabase(dbName: string): Promise<unknown[]> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(dbName)
     request.onsuccess = () => {
@@ -107,7 +177,9 @@ function getMpaySettings(): MpayWalletAppSettings | null {
   try {
     const json = localStorage.getItem(MPAY_SETTINGS_KEY)
     if (!json) return null
-    return JSON.parse(json) as MpayWalletAppSettings
+    const raw: unknown = JSON.parse(json)
+    const parsed = MpayWalletAppSettingsSchema.safeParse(raw)
+    return parsed.success ? parsed.data : null
   } catch {
     return null
   }
@@ -129,8 +201,8 @@ export async function detectMpayData(): Promise<MpayDetectionResult> {
   }
 
   const [wallets, addresses, addressBook] = await Promise.all([
-    getAllFromStore<MpayMainWallet>('mainWallet'),
-    getAllFromStore<MpayChainAddressInfo>('chainAddress'),
+    readMpayWallets(),
+    readMpayAddresses(),
     readMpayAddressBook(),
   ])
 
@@ -149,14 +221,34 @@ export async function detectMpayData(): Promise<MpayDetectionResult> {
  * 读取所有 mpay 钱包数据
  */
 export async function readMpayWallets(): Promise<MpayMainWallet[]> {
-  return getAllFromStore<MpayMainWallet>('mainWallet')
+  const raw = await getAllFromStore('mainWallet')
+  const wallets: MpayMainWallet[] = []
+  for (const item of raw) {
+    const parsed = MpayMainWalletSchema.safeParse(item)
+    if (!parsed.success) {
+      console.warn('[mpay-reader] Invalid mainWallet record:', parsed.error.issues[0])
+      continue
+    }
+    wallets.push(parsed.data)
+  }
+  return wallets
 }
 
 /**
  * 读取所有 mpay 链地址数据
  */
 export async function readMpayAddresses(): Promise<MpayChainAddressInfo[]> {
-  return getAllFromStore<MpayChainAddressInfo>('chainAddress')
+  const raw = await getAllFromStore('chainAddress')
+  const addresses: MpayChainAddressInfo[] = []
+  for (const item of raw) {
+    const parsed = MpayChainAddressInfoSchema.safeParse(item)
+    if (!parsed.success) {
+      console.warn('[mpay-reader] Invalid chainAddress record:', parsed.error.issues[0])
+      continue
+    }
+    addresses.push(parsed.data)
+  }
+  return addresses
 }
 
 /**
@@ -171,7 +263,17 @@ export function readMpaySettings(): MpayWalletAppSettings | null {
  */
 export async function readMpayAddressBook(): Promise<MpayAddressBookEntry[]> {
   try {
-    return await getAllFromDatabase<MpayAddressBookEntry>(MPAY_ADDRESS_BOOK_IDB)
+    const raw = await getAllFromDatabase(MPAY_ADDRESS_BOOK_IDB)
+    const entries: MpayAddressBookEntry[] = []
+    for (const item of raw) {
+      const parsed = MpayAddressBookEntrySchema.safeParse(item)
+      if (!parsed.success) {
+        console.warn('[mpay-reader] Invalid address book record:', parsed.error.issues[0])
+        continue
+      }
+      entries.push(parsed.data)
+    }
+    return entries
   } catch {
     // 地址簿数据库可能不存在
     return []

@@ -1,4 +1,6 @@
+import { z } from 'zod'
 import type { EcosystemSource } from './types'
+import { EcosystemSourceSchema } from './schema'
 
 const DB_NAME = 'bfm_ecosystem'
 const DB_VERSION = 1
@@ -11,6 +13,13 @@ export interface SourcePayloadRecord {
   lastUpdated: string
   payload: EcosystemSource
 }
+
+const SourcePayloadRecordSchema = z.object({
+  url: z.string(),
+  etag: z.string().optional(),
+  lastUpdated: z.string(),
+  payload: EcosystemSourceSchema,
+})
 
 let dbInstance: IDBDatabase | null = null
 let dbOpening: Promise<IDBDatabase> | null = null
@@ -81,14 +90,12 @@ export async function loadSourcePayload(url: string): Promise<SourcePayloadRecor
   const record = await requestToPromise(store.get(url))
   await transactionDone(tx)
 
-  if (!record || typeof record !== 'object') return null
-  const parsed = record as Partial<SourcePayloadRecord>
-
-  if (typeof parsed.url !== 'string') return null
-  if (typeof parsed.lastUpdated !== 'string') return null
-  if (typeof parsed.payload !== 'object' || parsed.payload === null) return null
-
-  return parsed as SourcePayloadRecord
+  const parsed = SourcePayloadRecordSchema.safeParse(record)
+  if (!parsed.success) {
+    console.warn('[EcosystemStorage] Invalid source payload record:', parsed.error.issues[0])
+    return null
+  }
+  return parsed.data
 }
 
 export async function deleteSourcePayload(url: string): Promise<void> {
