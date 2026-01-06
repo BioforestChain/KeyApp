@@ -6,11 +6,12 @@ import { expect, waitFor, within } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletAddressPortfolioView } from './wallet-address-portfolio-view';
 import { WalletAddressPortfolioFromProvider } from './wallet-address-portfolio-from-provider';
-import { chainConfigActions, useChainConfigState } from '@/stores/chain-config';
+import { chainConfigActions, chainConfigStore, useChainConfigState } from '@/stores/chain-config';
 import { clearProviderCache } from '@/services/chain-adapter';
 import { Amount } from '@/types/amount';
 import type { TokenInfo } from '@/components/token/token-item';
 import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item';
+import type { ChainConfig } from '@/services/chain-config';
 
 const mockTokens: TokenInfo[] = [
   { symbol: 'BFT', name: 'BFT', balance: '1234.56789012', decimals: 8, chain: 'bfmeta' },
@@ -77,6 +78,185 @@ function ChainConfigProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const REAL_ADDRESSES = {
+  ethereum: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+  tron: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
+  bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+  binance: '0x8894E0a0c962CB723c1976a4421c95949bE2D4E3',
+} as const;
+
+const COMPARE_CHAIN_CONFIGS: ChainConfig[] = [
+  {
+    id: 'ethereum-blockscout-first',
+    version: '1.0',
+    chainKind: 'evm',
+    name: 'Ethereum (blockscout first)',
+    symbol: 'ETH',
+    icon: '../icons/ethereum/chain.svg',
+    decimals: 18,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' },
+      { type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' },
+      { type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' },
+    ],
+  },
+  {
+    id: 'ethereum-ethwallet-first',
+    version: '1.0',
+    chainKind: 'evm',
+    name: 'Ethereum (ethwallet first)',
+    symbol: 'ETH',
+    icon: '../icons/ethereum/chain.svg',
+    decimals: 18,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' },
+      { type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' },
+      { type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' },
+    ],
+  },
+
+  {
+    id: 'tron-rpc-first',
+    version: '1.0',
+    chainKind: 'tron',
+    name: 'Tron (rpc first)',
+    symbol: 'TRX',
+    icon: '../icons/tron/chain.svg',
+    decimals: 6,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'tron-rpc', endpoint: 'https://api.trongrid.io' },
+      { type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } },
+      { type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' },
+    ],
+  },
+  {
+    id: 'tron-tronwallet-first',
+    version: '1.0',
+    chainKind: 'tron',
+    name: 'Tron (tronwallet first)',
+    symbol: 'TRX',
+    icon: '../icons/tron/chain.svg',
+    decimals: 6,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' },
+      { type: 'tron-rpc', endpoint: 'https://api.trongrid.io' },
+      { type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } },
+    ],
+  },
+
+  {
+    id: 'bitcoin-mempool-first',
+    version: '1.0',
+    chainKind: 'bitcoin',
+    name: 'Bitcoin (mempool first)',
+    symbol: 'BTC',
+    icon: '../icons/bitcoin/chain.svg',
+    decimals: 8,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'mempool-v1', endpoint: 'https://mempool.space/api' },
+      { type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' },
+    ],
+  },
+  {
+    id: 'bitcoin-btcwallet-first',
+    version: '1.0',
+    chainKind: 'bitcoin',
+    name: 'Bitcoin (btcwallet first)',
+    symbol: 'BTC',
+    icon: '../icons/bitcoin/chain.svg',
+    decimals: 8,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' },
+      { type: 'mempool-v1', endpoint: 'https://mempool.space/api' },
+    ],
+  },
+
+  {
+    id: 'binance-bsc-rpc-first',
+    version: '1.0',
+    chainKind: 'evm',
+    name: 'BNB Smart Chain (rpc first)',
+    symbol: 'BNB',
+    icon: '../icons/binance/chain.svg',
+    decimals: 18,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' },
+      { type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' },
+    ],
+  },
+  {
+    id: 'binance-bscwallet-first',
+    version: '1.0',
+    chainKind: 'evm',
+    name: 'BNB Smart Chain (bscwallet first)',
+    symbol: 'BNB',
+    icon: '../icons/binance/chain.svg',
+    decimals: 18,
+    enabled: true,
+    source: 'manual',
+    apis: [
+      { type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' },
+      { type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' },
+    ],
+  },
+];
+
+function mergeConfigsById(existing: ChainConfig[], injected: ChainConfig[]): ChainConfig[] {
+  const byId = new Map<string, ChainConfig>();
+  for (const config of existing) {
+    byId.set(config.id, config);
+  }
+  for (const config of injected) {
+    byId.set(config.id, config);
+  }
+  return [...byId.values()];
+}
+
+function CompareConfigInjector() {
+  const state = useChainConfigState();
+  const [injected, setInjected] = useState(false);
+
+  useEffect(() => {
+    if (!state.snapshot) return;
+    if (injected) return;
+    const alreadyInjected = state.snapshot.configs.some((c) => c.id === 'ethereum-blockscout-first');
+    if (alreadyInjected) {
+      setInjected(true);
+      return;
+    }
+
+    chainConfigStore.setState((prev) => {
+      if (!prev.snapshot) return prev;
+      return {
+        ...prev,
+        snapshot: {
+          ...prev.snapshot,
+          configs: mergeConfigsById(prev.snapshot.configs, COMPARE_CHAIN_CONFIGS),
+        },
+      };
+    });
+
+    clearProviderCache();
+    setInjected(true);
+  }, [state.snapshot, injected]);
+
+  return null;
+}
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -96,6 +276,78 @@ const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
     </ChainConfigProvider>
   </QueryClientProvider>
 );
+
+const withCompareChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
+  <QueryClientProvider client={createQueryClient()}>
+    <ChainConfigProvider>
+      <CompareConfigInjector />
+      <div className="bg-background mx-auto min-h-screen max-w-6xl">
+        <Story />
+      </div>
+    </ChainConfigProvider>
+  </QueryClientProvider>
+);
+
+function hasPositiveNumber(text: string): boolean {
+  const matches = text.match(/\d+(?:\.\d+)?/g);
+  if (!matches) return false;
+  for (const value of matches) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return true;
+  }
+  return false;
+}
+
+async function verifyNonEmptyAssetsAndHistory(canvas: ReturnType<typeof within>, testId: string): Promise<void> {
+  await waitFor(
+    () => {
+      const portfolio = canvas.getByTestId(testId);
+      expect(portfolio).toBeVisible();
+    },
+    { timeout: 25_000 },
+  );
+
+  await waitFor(
+    () => {
+      const tokenList = canvas.queryByTestId(`${testId}-token-list`);
+      expect(tokenList).not.toBeNull();
+      const tokenItems = tokenList?.querySelectorAll('[data-testid^="token-item-"]') ?? [];
+      expect(tokenItems.length).toBeGreaterThan(0);
+      const tokenText = tokenItems[0]?.textContent ?? '';
+      expect(hasPositiveNumber(tokenText)).toBe(true);
+    },
+    { timeout: 25_000 },
+  );
+
+  const historyTab = canvas.getByTestId(`${testId}-tabs-tab-history`);
+  historyTab.click();
+
+  await waitFor(
+    () => {
+      const txList = canvas.queryByTestId(`${testId}-transaction-list`);
+      expect(txList).not.toBeNull();
+    },
+    { timeout: 25_000 },
+  );
+}
+
+async function expectAnyProviderPanelOk(options: {
+  canvas: ReturnType<typeof within>;
+  label: string;
+  testIds: string[];
+}): Promise<void> {
+  const errors: string[] = [];
+  for (const testId of options.testIds) {
+    try {
+      await verifyNonEmptyAssetsAndHistory(options.canvas, testId);
+      return;
+    } catch (error) {
+      errors.push(`${testId}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  throw new Error(`No provider panel returned non-empty data for ${options.label}. Details: ${errors.join(' | ')}`);
+}
 
 const meta = {
   title: 'Wallet/WalletAddressPortfolio',
@@ -358,5 +610,139 @@ export const RealDataBinance: Story = {
       },
       { timeout: 15000 },
     );
+  },
+};
+
+export const CompareProviders: Story = {
+  name: 'Compare Providers (Real Data)',
+  decorators: [withCompareChainConfig],
+  parameters: {
+    chromatic: { delay: 8000 },
+    docs: {
+      description: {
+        story: 'Side-by-side comparison: each panel includes all supported providers but with different apis[] order, to compare rendering differences.',
+      },
+    },
+  },
+  render: () => (
+    <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-2">
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Ethereum</h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <WalletAddressPortfolioFromProvider
+            chainId="ethereum-blockscout-first"
+            address={REAL_ADDRESSES.ethereum}
+            chainName="Ethereum (blockscout first)"
+            testId="cmp-ethereum-blockscout"
+          />
+          <WalletAddressPortfolioFromProvider
+            chainId="ethereum-ethwallet-first"
+            address={REAL_ADDRESSES.ethereum}
+            chainName="Ethereum (ethwallet first)"
+            testId="cmp-ethereum-ethwallet"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Tron</h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <WalletAddressPortfolioFromProvider
+            chainId="tron-rpc-first"
+            address={REAL_ADDRESSES.tron}
+            chainName="Tron (rpc first)"
+            testId="cmp-tron-rpc"
+          />
+          <WalletAddressPortfolioFromProvider
+            chainId="tron-tronwallet-first"
+            address={REAL_ADDRESSES.tron}
+            chainName="Tron (tronwallet first)"
+            testId="cmp-tron-tronwallet"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Bitcoin</h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <WalletAddressPortfolioFromProvider
+            chainId="bitcoin-mempool-first"
+            address={REAL_ADDRESSES.bitcoin}
+            chainName="Bitcoin (mempool first)"
+            testId="cmp-bitcoin-mempool"
+          />
+          <WalletAddressPortfolioFromProvider
+            chainId="bitcoin-btcwallet-first"
+            address={REAL_ADDRESSES.bitcoin}
+            chainName="Bitcoin (btcwallet first)"
+            testId="cmp-bitcoin-btcwallet"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">BNB Smart Chain</h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <WalletAddressPortfolioFromProvider
+            chainId="binance-bsc-rpc-first"
+            address={REAL_ADDRESSES.binance}
+            chainName="BNB Smart Chain (rpc first)"
+            testId="cmp-binance-rpc"
+          />
+          <WalletAddressPortfolioFromProvider
+            chainId="binance-bscwallet-first"
+            address={REAL_ADDRESSES.binance}
+            chainName="BNB Smart Chain (bscwallet first)"
+            testId="cmp-binance-bscwallet"
+          />
+        </div>
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Storybook's Vitest runner has a default 15s timeout and runs in MODE=test.
+    // Keep this story lightweight in automated Storybook tests; enforce real-network assertions in Storybook UI.
+    if (import.meta.env.MODE === 'test') {
+      await waitFor(
+        () => {
+          expect(canvas.getByTestId('cmp-ethereum-blockscout')).toBeVisible();
+          expect(canvas.getByTestId('cmp-ethereum-ethwallet')).toBeVisible();
+          expect(canvas.getByTestId('cmp-tron-rpc')).toBeVisible();
+          expect(canvas.getByTestId('cmp-tron-tronwallet')).toBeVisible();
+          expect(canvas.getByTestId('cmp-bitcoin-mempool')).toBeVisible();
+          expect(canvas.getByTestId('cmp-bitcoin-btcwallet')).toBeVisible();
+          expect(canvas.getByTestId('cmp-binance-rpc')).toBeVisible();
+          expect(canvas.getByTestId('cmp-binance-bscwallet')).toBeVisible();
+        },
+        { timeout: 10_000 },
+      );
+      return;
+    }
+
+    await expectAnyProviderPanelOk({
+      canvas,
+      label: 'ethereum',
+      testIds: ['cmp-ethereum-blockscout', 'cmp-ethereum-ethwallet'],
+    });
+
+    await expectAnyProviderPanelOk({
+      canvas,
+      label: 'tron',
+      testIds: ['cmp-tron-rpc', 'cmp-tron-tronwallet'],
+    });
+
+    await expectAnyProviderPanelOk({
+      canvas,
+      label: 'bitcoin',
+      testIds: ['cmp-bitcoin-mempool', 'cmp-bitcoin-btcwallet'],
+    });
+
+    await expectAnyProviderPanelOk({
+      canvas,
+      label: 'binance',
+      testIds: ['cmp-binance-rpc', 'cmp-binance-bscwallet'],
+    });
   },
 };
