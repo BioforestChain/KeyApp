@@ -13,18 +13,22 @@ import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 import { pickApiKey } from './api-key-picker'
 
 function readEnvValue(key: string): string | undefined {
+  // Node/Vitest 环境：允许在运行时通过 process.env 覆盖（保证测试可控）
   try {
-    const fromImportMeta = (import.meta as any)?.env?.[key]
-    if (typeof fromImportMeta === 'string' && fromImportMeta.length > 0) return fromImportMeta
+    const fromProcess = (process as any)?.env?.[key]
+    if (typeof fromProcess === 'string' && fromProcess.length > 0) {
+      return fromProcess
+    }
   } catch {
     // ignore
   }
 
-  try {
-    const fromProcess = (process as any)?.env?.[key]
-    if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess
-  } catch {
-    // ignore
+  // Vite 编译时注入：__API_KEYS__ 是可动态索引的对象字面量
+  if (typeof __API_KEYS__ !== 'undefined') {
+    const apiKey = __API_KEYS__[key]
+    if (typeof apiKey === 'string' && apiKey.length > 0) {
+      return apiKey
+    }
   }
 
   return undefined

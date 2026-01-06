@@ -13,6 +13,28 @@ import { chainConfigService } from '@/services/chain-config'
 import { fetchJson } from './fetch-json'
 import { pickApiKey } from './api-key-picker'
 
+function readEnvValue(key: string): string | undefined {
+  // Node/Vitest 环境：允许在运行时通过 process.env 覆盖（保证测试可控）
+  try {
+    const fromProcess = (process as any)?.env?.[key]
+    if (typeof fromProcess === 'string' && fromProcess.length > 0) {
+      return fromProcess
+    }
+  } catch {
+    // ignore
+  }
+
+  // Vite 编译时注入：__API_KEYS__ 是可动态索引的对象字面量
+  if (typeof __API_KEYS__ !== 'undefined') {
+    const apiKey = __API_KEYS__[key]
+    if (typeof apiKey === 'string' && apiKey.length > 0) {
+      return apiKey
+    }
+  }
+
+  return undefined
+}
+
 /** EVM Chain IDs */
 const EVM_CHAIN_IDS: Record<string, number> = {
   ethereum: 1,
@@ -89,6 +111,23 @@ export class EtherscanProvider implements ApiProvider {
     return true
   }
 
+  private getApiKey(): string | undefined {
+    // 支持两种 API key 配置方式：
+    // 1. apiKey: 直接配置（支持逗号分隔多个）
+    // 2. apiKeyEnv: 从环境变量读取（支持逗号分隔多个）
+    let apiKeyString: string | undefined
+    const apiKeyDirect = this.config?.apiKey
+    if (typeof apiKeyDirect === 'string' && apiKeyDirect.length > 0) {
+      apiKeyString = apiKeyDirect
+    } else {
+      const apiKeyEnv = this.config?.apiKeyEnv
+      if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
+        apiKeyString = readEnvValue(apiKeyEnv)
+      }
+    }
+    return pickApiKey(apiKeyString, `etherscan:${this.chainId}`)
+  }
+
   async getNativeBalance(address: string): Promise<Balance> {
     const params = new URLSearchParams({
       module: 'account',
@@ -101,7 +140,7 @@ export class EtherscanProvider implements ApiProvider {
       params.set('chainid', this.evmChainId.toString())
     }
 
-    const apiKey = pickApiKey(this.config?.apiKey as string | undefined, `etherscan:${this.chainId}`)
+    const apiKey = this.getApiKey()
     if (apiKey) {
       params.set('apikey', apiKey)
     }
@@ -374,7 +413,7 @@ export class EtherscanProvider implements ApiProvider {
       params.set('chainid', this.evmChainId.toString())
     }
     
-    const apiKey = pickApiKey(this.config?.apiKey as string | undefined, `etherscan:${this.chainId}`)
+    const apiKey = this.getApiKey()
     if (apiKey) {
       params.set('apikey', apiKey)
     }

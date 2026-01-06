@@ -301,7 +301,15 @@ export class EvmTransactionService implements ITransactionService {
     }
   }
 
+  /** EVM JSON-RPC 不支持交易历史查询 */
+  readonly supportsTransactionHistory = false
+
   async getTransactionHistory(_address: string, _limit = 20): Promise<Transaction[]> {
-    return []
+    // 标准 Ethereum JSON-RPC 没有交易历史查询 API
+    // 需要使用 Etherscan/Blockscout 等区块浏览器 API
+    throw new ChainServiceError(
+      ChainErrorCodes.NOT_SUPPORTED,
+      'Transaction history not supported by standard EVM JSON-RPC'
+    )
   }
 }

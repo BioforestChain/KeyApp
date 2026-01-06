@@ -216,162 +216,49 @@ function ChainConfigProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const REAL_ADDRESSES = {
+const REAL_ADDRESSES: Record<string, string> = {
   ethereum: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
   tron: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
   bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
   binance: '0x8894E0a0c962CB723c1976a4421c95949bE2D4E3',
-} as const;
+  bfmeta: 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j',
+};
 
-const COMPARE_CHAIN_CONFIGS: ChainConfig[] = [
-  {
-    id: 'ethereum-blockscout-only',
-    version: '1.0',
-    chainKind: 'evm',
-    name: 'Ethereum (blockscout only)',
-    symbol: 'ETH',
-    icon: '../icons/ethereum/chain.svg',
-    decimals: 18,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' }],
-  },
-  {
-    id: 'ethereum-rpc-only',
-    version: '1.0',
-    chainKind: 'evm',
-    name: 'Ethereum (rpc only)',
-    symbol: 'ETH',
-    icon: '../icons/ethereum/chain.svg',
-    decimals: 18,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' }],
-  },
-  {
-    id: 'ethereum-ethwallet-only',
-    version: '1.0',
-    chainKind: 'evm',
-    name: 'Ethereum (ethwallet only)',
-    symbol: 'ETH',
-    icon: '../icons/ethereum/chain.svg',
-    decimals: 18,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' }],
-  },
-
-  {
-    id: 'tron-rpc-only',
-    version: '1.0',
-    chainKind: 'tron',
-    name: 'Tron (rpc only)',
-    symbol: 'TRX',
-    icon: '../icons/tron/chain.svg',
-    decimals: 6,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'tron-rpc', endpoint: 'https://api.trongrid.io' }],
-  },
-  {
-    id: 'tron-rpc-pro-only',
-    version: '1.0',
-    chainKind: 'tron',
-    name: 'Tron (rpc-pro only)',
-    symbol: 'TRX',
-    icon: '../icons/tron/chain.svg',
-    decimals: 6,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } }],
-  },
-  {
-    id: 'tron-tronwallet-only',
-    version: '1.0',
-    chainKind: 'tron',
-    name: 'Tron (tronwallet only)',
-    symbol: 'TRX',
-    icon: '../icons/tron/chain.svg',
-    decimals: 6,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' }],
-  },
-
-  {
-    id: 'bitcoin-mempool-only',
-    version: '1.0',
-    chainKind: 'bitcoin',
-    name: 'Bitcoin (mempool only)',
-    symbol: 'BTC',
-    icon: '../icons/bitcoin/chain.svg',
-    decimals: 8,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'mempool-v1', endpoint: 'https://mempool.space/api' }],
-  },
-  {
-    id: 'bitcoin-btcwallet-only',
-    version: '1.0',
-    chainKind: 'bitcoin',
-    name: 'Bitcoin (btcwallet only)',
-    symbol: 'BTC',
-    icon: '../icons/bitcoin/chain.svg',
-    decimals: 8,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' }],
-  },
-
-  {
-    id: 'binance-bsc-rpc-only',
-    version: '1.0',
-    chainKind: 'evm',
-    name: 'BNB Smart Chain (rpc only)',
-    symbol: 'BNB',
-    icon: '../icons/binance/chain.svg',
-    decimals: 18,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' }],
-  },
-  {
-    id: 'binance-bscwallet-only',
-    version: '1.0',
-    chainKind: 'evm',
-    name: 'BNB Smart Chain (bscwallet only)',
-    symbol: 'BNB',
-    icon: '../icons/binance/chain.svg',
-    decimals: 18,
-    enabled: true,
-    source: 'manual',
-    apis: [{ type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' }],
-  },
-];
-
-function mergeConfigsById(existing: ChainConfig[], injected: ChainConfig[]): ChainConfig[] {
-  const byId = new Map<string, ChainConfig>();
-  for (const config of existing) {
-    byId.set(config.id, config);
-  }
-  for (const config of injected) {
-    byId.set(config.id, config);
-  }
-  return [...byId.values()];
+function formatApiLabel(api: ChainConfig['apis'][number]): string {
+  const apiKeyEnv = api.config && 'apiKeyEnv' in api.config ? (api.config.apiKeyEnv as string | undefined) : undefined;
+  if (apiKeyEnv) return `${api.type} (${apiKeyEnv})`;
+  return api.type;
 }
 
-function CompareConfigInjector() {
+function generateSingleApiConfigs(baseConfig: ChainConfig): ChainConfig[] {
+  return baseConfig.apis.map((api, index) => ({
+    ...baseConfig,
+    id: `${baseConfig.id}-api-${index}-${api.type}`,
+    name: `${baseConfig.name} (${api.type})`,
+    apis: [api],
+    enabled: true,
+    source: 'manual' as const,
+  }));
+}
+
+function DynamicCompareConfigInjector({ chainId }: { chainId: string }) {
   const state = useChainConfigState();
   const [injected, setInjected] = useState(false);
 
   useEffect(() => {
     if (!state.snapshot) return;
     if (injected) return;
-    const alreadyInjected = state.snapshot.configs.some((c) => c.id === 'ethereum-blockscout-only');
+
+    const baseConfig = state.snapshot.configs.find((c) => c.id === chainId);
+    if (!baseConfig) return;
+
+    const alreadyInjected = state.snapshot.configs.some((c) => c.id === `${chainId}-api-0-${baseConfig.apis[0]?.type}`);
     if (alreadyInjected) {
       setInjected(true);
       return;
     }
+
+    const singleApiConfigs = generateSingleApiConfigs(baseConfig);
 
     chainConfigStore.setState((prev) => {
       if (!prev.snapshot) return prev;
@@ -379,61 +266,85 @@ function CompareConfigInjector() {
         ...prev,
         snapshot: {
           ...prev.snapshot,
-          configs: mergeConfigsById(prev.snapshot.configs, COMPARE_CHAIN_CONFIGS),
+          configs: [...prev.snapshot.configs, ...singleApiConfigs],
         },
       };
     });
 
     clearProviderCache();
     setInjected(true);
-  }, [state.snapshot, injected]);
+  }, [state.snapshot, injected, chainId]);
 
   return null;
 }
 
-function formatApiLabel(api: ChainConfig['apis'][number]): string {
-  const apiKeyEnv = api.config && 'apiKeyEnv' in api.config ? (api.config.apiKeyEnv as string | undefined) : undefined;
-  if (apiKeyEnv) return `${api.type} (apiKeyEnv=${apiKeyEnv})`;
-  return api.type;
-}
-
-function ProviderPanel({
-  title,
-  chainId,
+function DynamicProviderPanel({
+  api,
+  baseConfig,
+  index,
   address,
-  chainName,
-  testId,
 }: {
-  title: string;
-  chainId: ChainConfig['id'];
+  api: ChainConfig['apis'][number];
+  baseConfig: ChainConfig;
+  index: number;
   address: string;
-  chainName: string;
-  testId: string;
 }) {
-  const config = COMPARE_CHAIN_CONFIGS.find((c) => c.id === chainId);
-  const apiTypes = config?.apis?.map(formatApiLabel) ?? [];
-  const primary = apiTypes[0] ?? 'unknown';
-  const apiSummary = apiTypes.length ? apiTypes.join(' → ') : 'unknown';
+  const dynamicChainId = `${baseConfig.id}-api-${index}-${api.type}`;
+  const testId = `cmp-${baseConfig.id}-${api.type}`;
 
   return (
     <div className="flex h-[640px] min-h-0 flex-col overflow-hidden rounded-xl border bg-background">
       <div className="shrink-0 border-b px-4 py-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{title}</p>
-            <p className="text-muted-foreground truncate text-xs">Primary: {primary}</p>
+            <p className="truncate text-sm font-semibold">{api.type}</p>
+            <p className="text-muted-foreground truncate text-xs">{api.endpoint}</p>
           </div>
-          <p className="text-muted-foreground shrink-0 text-xs">{chainId}</p>
+          <p className="text-muted-foreground shrink-0 text-xs">#{index}</p>
         </div>
-        <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">apis[]: {apiSummary}</p>
+        <p className="text-muted-foreground mt-1 line-clamp-1 text-xs">{formatApiLabel(api)}</p>
       </div>
       <WalletAddressPortfolioFromProvider
-        chainId={chainId}
+        chainId={dynamicChainId}
         address={address}
-        chainName={chainName}
+        chainName={baseConfig.name}
         testId={testId}
         className="flex-1 min-h-0"
       />
+    </div>
+  );
+}
+
+function DynamicCompareProvidersGrid({ chainId }: { chainId: string }) {
+  const state = useChainConfigState();
+  const baseConfig = state.snapshot?.configs.find((c) => c.id === chainId);
+
+  if (!baseConfig) {
+    return <div className="p-4 text-muted-foreground">Chain config not found: {chainId}</div>;
+  }
+
+  const address = REAL_ADDRESSES[chainId] ?? '';
+
+  return (
+    <div className="space-y-4 p-4">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">{baseConfig.name}</h2>
+        <p className="text-muted-foreground text-sm">
+          Comparing {baseConfig.apis.length} provider(s) from default-chains.json
+        </p>
+        <p className="text-muted-foreground font-mono text-xs">{address}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {baseConfig.apis.map((api, index) => (
+          <DynamicProviderPanel
+            key={`${api.type}-${index}`}
+            api={api}
+            baseConfig={baseConfig}
+            index={index}
+            address={address}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -458,10 +369,10 @@ const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
   </QueryClientProvider>
 );
 
-const withCompareChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
+const createCompareDecorator = (chainId: string): DecoratorFunction<ReactRenderer> => (Story) => (
   <QueryClientProvider client={createQueryClient()}>
     <ChainConfigProvider>
-      <CompareConfigInjector />
+      <DynamicCompareConfigInjector chainId={chainId} />
       <div className="bg-background mx-auto min-h-screen max-w-6xl">
         <Story />
       </div>
@@ -800,162 +711,74 @@ export const RealDataBinance: Story = {
   },
 };
 
-export const CompareProviders: Story = {
-  name: 'Compare Providers (Real Data)',
-  decorators: [withCompareChainConfig],
+export const CompareProvidersBfmeta: Story = {
+  name: 'Compare Providers: BFMeta',
+  decorators: [createCompareDecorator('bfmeta')],
   parameters: {
     chromatic: { delay: 8000 },
     docs: {
       description: {
-        story: 'Side-by-side comparison: each panel uses a single provider (single-item apis[]), so you can compare results provider-by-provider.',
+        story: 'Dynamically compares all providers configured in default-chains.json for BFMeta chain.',
       },
     },
   },
-  render: () => (
-    <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-2">
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Ethereum</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          <ProviderPanel
-            title="blockscout-v1"
-            chainId="ethereum-blockscout-only"
-            address={REAL_ADDRESSES.ethereum}
-            chainName="Ethereum"
-            testId="cmp-ethereum-blockscout"
-          />
-          <ProviderPanel
-            title="ethereum-rpc"
-            chainId="ethereum-rpc-only"
-            address={REAL_ADDRESSES.ethereum}
-            chainName="Ethereum"
-            testId="cmp-ethereum-rpc"
-          />
-          <ProviderPanel
-            title="ethwallet-v1"
-            chainId="ethereum-ethwallet-only"
-            address={REAL_ADDRESSES.ethereum}
-            chainName="Ethereum"
-            testId="cmp-ethereum-ethwallet"
-          />
-        </div>
-      </div>
+  render: () => <DynamicCompareProvidersGrid chainId="bfmeta" />,
+};
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Tron</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          <ProviderPanel
-            title="tron-rpc"
-            chainId="tron-rpc-only"
-            address={REAL_ADDRESSES.tron}
-            chainName="Tron"
-            testId="cmp-tron-rpc"
-          />
-          <ProviderPanel
-            title="tron-rpc-pro"
-            chainId="tron-rpc-pro-only"
-            address={REAL_ADDRESSES.tron}
-            chainName="Tron"
-            testId="cmp-tron-rpc-pro"
-          />
-          <ProviderPanel
-            title="tronwallet-v1"
-            chainId="tron-tronwallet-only"
-            address={REAL_ADDRESSES.tron}
-            chainName="Tron"
-            testId="cmp-tron-tronwallet"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Bitcoin</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <ProviderPanel
-            title="mempool-v1"
-            chainId="bitcoin-mempool-only"
-            address={REAL_ADDRESSES.bitcoin}
-            chainName="Bitcoin"
-            testId="cmp-bitcoin-mempool"
-          />
-          <ProviderPanel
-            title="btcwallet-v1"
-            chainId="bitcoin-btcwallet-only"
-            address={REAL_ADDRESSES.bitcoin}
-            chainName="Bitcoin"
-            testId="cmp-bitcoin-btcwallet"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">BNB Smart Chain</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <ProviderPanel
-            title="bsc-rpc"
-            chainId="binance-bsc-rpc-only"
-            address={REAL_ADDRESSES.binance}
-            chainName="BNB Smart Chain"
-            testId="cmp-binance-rpc"
-          />
-          <ProviderPanel
-            title="bscwallet-v1"
-            chainId="binance-bscwallet-only"
-            address={REAL_ADDRESSES.binance}
-            chainName="BNB Smart Chain"
-            testId="cmp-binance-bscwallet"
-          />
-        </div>
-      </div>
-    </div>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-
-    // Storybook's Vitest runner has a default 15s timeout and runs in MODE=test.
-    // Keep this story lightweight in automated Storybook tests; enforce real-network assertions in Storybook UI.
-    if (import.meta.env.MODE === 'test') {
-      await waitFor(
-        () => {
-          expect(canvas.getByTestId('cmp-ethereum-blockscout')).toBeVisible();
-          expect(canvas.getByTestId('cmp-ethereum-rpc')).toBeVisible();
-          expect(canvas.getByTestId('cmp-ethereum-ethwallet')).toBeVisible();
-          expect(canvas.getByTestId('cmp-tron-rpc')).toBeVisible();
-          expect(canvas.getByTestId('cmp-tron-rpc-pro')).toBeVisible();
-          expect(canvas.getByTestId('cmp-tron-tronwallet')).toBeVisible();
-          expect(canvas.getByTestId('cmp-bitcoin-mempool')).toBeVisible();
-          expect(canvas.getByTestId('cmp-bitcoin-btcwallet')).toBeVisible();
-          expect(canvas.getByTestId('cmp-binance-rpc')).toBeVisible();
-          expect(canvas.getByTestId('cmp-binance-bscwallet')).toBeVisible();
-        },
-        { timeout: 10_000 },
-      );
-      return;
-    }
-
-    await expectAnyProviderPanelOk({
-      canvas,
-      label: 'ethereum',
-      testIds: ['cmp-ethereum-blockscout', 'cmp-ethereum-ethwallet'],
-    });
-
-    await expectAnyProviderPanelOk({
-      canvas,
-      label: 'tron',
-      testIds: ['cmp-tron-rpc', 'cmp-tron-rpc-pro', 'cmp-tron-tronwallet'],
-    });
-
-    await expectAnyProviderPanelOk({
-      canvas,
-      label: 'bitcoin',
-      testIds: ['cmp-bitcoin-mempool', 'cmp-bitcoin-btcwallet'],
-    });
-
-    await expectAnyProviderPanelOk({
-      canvas,
-      label: 'binance',
-      testIds: ['cmp-binance-rpc', 'cmp-binance-bscwallet'],
-    });
+export const CompareProvidersEthereum: Story = {
+  name: 'Compare Providers: Ethereum',
+  decorators: [createCompareDecorator('ethereum')],
+  parameters: {
+    chromatic: { delay: 8000 },
+    docs: {
+      description: {
+        story: 'Dynamically compares all providers configured in default-chains.json for Ethereum chain.',
+      },
+    },
   },
+  render: () => <DynamicCompareProvidersGrid chainId="ethereum" />,
+};
+
+export const CompareProvidersTron: Story = {
+  name: 'Compare Providers: Tron',
+  decorators: [createCompareDecorator('tron')],
+  parameters: {
+    chromatic: { delay: 8000 },
+    docs: {
+      description: {
+        story: 'Dynamically compares all providers configured in default-chains.json for Tron chain.',
+      },
+    },
+  },
+  render: () => <DynamicCompareProvidersGrid chainId="tron" />,
+};
+
+export const CompareProvidersBitcoin: Story = {
+  name: 'Compare Providers: Bitcoin',
+  decorators: [createCompareDecorator('bitcoin')],
+  parameters: {
+    chromatic: { delay: 8000 },
+    docs: {
+      description: {
+        story: 'Dynamically compares all providers configured in default-chains.json for Bitcoin chain.',
+      },
+    },
+  },
+  render: () => <DynamicCompareProvidersGrid chainId="bitcoin" />,
+};
+
+export const CompareProvidersBinance: Story = {
+  name: 'Compare Providers: Binance',
+  decorators: [createCompareDecorator('binance')],
+  parameters: {
+    chromatic: { delay: 8000 },
+    docs: {
+      description: {
+        story: 'Dynamically compares all providers configured in default-chains.json for BNB Smart Chain.',
+      },
+    },
+  },
+  render: () => <DynamicCompareProvidersGrid chainId="binance" />,
 };
 
 /**

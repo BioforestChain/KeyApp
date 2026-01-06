@@ -35,6 +35,12 @@ export class WrappedTransactionProvider implements ApiProvider {
     this.type = type
   }
 
+  /** 检查底层服务是否支持交易历史查询 */
+  get supportsTransactionHistory(): boolean {
+    const service = this.transactionService as { supportsTransactionHistory?: boolean }
+    return service.supportsTransactionHistory !== false
+  }
+
   async getNativeBalance(address: string): Promise<Balance> {
     return this.assetService.getNativeBalance(address)
   }

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import commonjs from 'vite-plugin-commonjs'
@@ -8,21 +8,6 @@ import { resolve } from 'node:path'
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps'
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check'
-
-/**
- * 服务实现选择（编译时）
- * - web: 浏览器环境（默认）
- * - dweb: DWEB/Plaoc 平台
- * - mock: 测试环境
- */
-const SERVICE_IMPL = process.env.SERVICE_IMPL ?? 'web'
-
-/**
- * Base URL 配置
- * - 使用 './' 允许部署在任意子路径下
- * - 例如: https://example.com/ 或 https://example.com/app/
- */
-const BASE_URL = process.env.VITE_BASE_URL ?? './'
 
 function getPreferredLanIPv4(): string | undefined {
   const ifaces = networkInterfaces()
@@ -50,9 +35,30 @@ function getPreferredLanIPv4(): string | undefined {
   return ips[0]
 }
 
-const DEV_HOST = process.env.VITE_DEV_HOST ?? getPreferredLanIPv4()
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
 
-export default defineConfig({
+  /**
+   * 服务实现选择（编译时）
+   * - web: 浏览器环境（默认）
+   * - dweb: DWEB/Plaoc 平台
+   * - mock: 测试环境
+   */
+  const SERVICE_IMPL = env.SERVICE_IMPL ?? process.env.SERVICE_IMPL ?? 'web'
+
+  /**
+   * Base URL 配置
+   * - 使用 './' 允许部署在任意子路径下
+   * - 例如: https://example.com/ 或 https://example.com/app/
+   */
+  const BASE_URL = env.VITE_BASE_URL ?? process.env.VITE_BASE_URL ?? './'
+
+  const DEV_HOST = env.VITE_DEV_HOST ?? process.env.VITE_DEV_HOST ?? getPreferredLanIPv4()
+
+  const tronGridApiKey = env.TRONGRID_API_KEY ?? process.env.TRONGRID_API_KEY ?? ''
+  const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? ''
+
+  return {
   base: BASE_URL,
   server: {
     host: true,
@@ -114,7 +120,12 @@ export default defineConfig({
     // Mock 模式标识（用于条件加载 MockDevTools）
     '__MOCK_MODE__': JSON.stringify(SERVICE_IMPL === 'mock'),
     // Dev 模式标识（用于显示开发版水印）
-    '__DEV_MODE__': JSON.stringify(process.env.VITE_DEV_MODE === 'true'),
+    '__DEV_MODE__': JSON.stringify((env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'),
+    // API Keys 对象（用于动态读取环境变量）
+    '__API_KEYS__': JSON.stringify({
+      TRONGRID_API_KEY: tronGridApiKey,
+      ETHERSCAN_API_KEY: etherscanApiKey,
+    }),
   },
   optimizeDeps: {
     include: ['buffer'],
@@ -173,4 +184,5 @@ export default defineConfig({
       },
     },
   },
+}
 })

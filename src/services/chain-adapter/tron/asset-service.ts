@@ -42,28 +42,22 @@ export class TronAssetService implements IAssetService {
   }
 
   async getNativeBalance(address: Address): Promise<Balance> {
-    try {
-      const account = await this.api<TronAccount | Record<string, never>>('/wallet/getaccount', {
-        address,
-        visible: true,
-      })
+    const account = await this.api<TronAccount | Record<string, never>>('/wallet/getaccount', {
+      address,
+      visible: true,
+    })
 
-      if (!account || !('balance' in account)) {
-        return {
-          amount: Amount.fromRaw('0', this.decimals, this.symbol),
-          symbol: this.symbol,
-        }
-      }
-
-      return {
-        amount: Amount.fromRaw(account.balance.toString(), this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
-    } catch {
+    // 空账户或未激活账户返回 0 余额
+    if (!account || !('balance' in account)) {
       return {
         amount: Amount.fromRaw('0', this.decimals, this.symbol),
         symbol: this.symbol,
       }
+    }
+
+    return {
+      amount: Amount.fromRaw(account.balance.toString(), this.decimals, this.symbol),
+      symbol: this.symbol,
     }
   }
 
