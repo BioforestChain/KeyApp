@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { defineServiceMeta } from '@/lib/service-meta'
 import { Amount } from '@/types/amount'
 import type { ChainType } from '@/stores'
+import type { Action, Asset, ContractInfo, Direction } from '@/services/chain-adapter/providers/types'
+import { ActionSchema, AssetSchema, ContractInfoSchema, DirectionSchema } from '@/services/chain-adapter/providers/transaction-schema'
 
 // Custom Amount schema for Zod validation
 const AmountSchema = z.custom<Amount>((val) => val instanceof Amount)
@@ -28,9 +30,11 @@ export type TransactionType =
   | 'emigrate'         // AST-08 权益迁出
   | 'immigrate'        // AST-09 权益迁入
   | 'exchange'         // AST-10/11 权益交换
+  | 'swap'             // Swap
   // 资产发行
   | 'issueAsset'       // AST-00 创建权益
   | 'increaseAsset'    // AST-01 增发权益
+  | 'mint'             // Mint
   // NFT
   | 'issueEntity'      // ETY-02 创建非同质资产
   | 'destroyEntity'    // ETY-03 销毁非同质资产
@@ -67,6 +71,12 @@ export interface TransactionRecord {
   feeDecimals?: number | undefined
   blockNumber?: number | undefined
   confirmations?: number | undefined
+  from?: string | undefined
+  to?: string | undefined
+  action?: Action | undefined
+  direction?: Direction | undefined
+  assets?: Asset[] | undefined
+  contract?: ContractInfo | undefined
 }
 
 /** 交易过滤器 */
@@ -82,8 +92,8 @@ export interface TransactionFilter {
 // All transaction types for validation
 const TransactionTypeEnum = z.enum([
   'send', 'receive', 'signature', 'stake', 'unstake', 'destroy',
-  'gift', 'grab', 'trust', 'signFor', 'emigrate', 'immigrate', 'exchange',
-  'issueAsset', 'increaseAsset', 'issueEntity', 'destroyEntity',
+  'gift', 'grab', 'trust', 'signFor', 'emigrate', 'immigrate', 'exchange', 'swap',
+  'issueAsset', 'increaseAsset', 'mint', 'issueEntity', 'destroyEntity',
   'locationName', 'dapp', 'certificate', 'approve', 'interaction', 'mark', 'other',
 ])
 
@@ -103,6 +113,12 @@ const TransactionRecordSchema = z.object({
   feeDecimals: z.number().optional(),
   blockNumber: z.number().optional(),
   confirmations: z.number().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  action: ActionSchema.optional(),
+  direction: DirectionSchema.optional(),
+  assets: z.array(AssetSchema).optional(),
+  contract: ContractInfoSchema.optional(),
 })
 
 const TransactionFilterSchema = z.object({

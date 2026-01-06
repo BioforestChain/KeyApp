@@ -99,11 +99,15 @@ async function loadDefaultChainConfigs(): Promise<DefaultChainsResult> {
     }
 
     const json: unknown = await response.json()
-    const parsed = VersionedChainConfigFileSchema.parse(json)
+    const parsedResult = VersionedChainConfigFileSchema.safeParse(json)
+    if (!parsedResult.success) {
+      const firstIssue = parsedResult.error.issues[0]
+      throw new Error(firstIssue?.message ?? 'Invalid default chain config file')
+    }
 
-    const configs = parsed.chains.map((chain) => {
-      // Strict validation: unknown chainKind will fail schema validation directly
-      const config = ChainConfigSchema.parse(chain)
+    const parsed = parsedResult.data
+
+    const configs = parsed.chains.map((config) => {
       const resolvedPaths = resolveIconPaths(config, jsonUrl)
       return {
         ...config,
@@ -172,9 +176,16 @@ function resolveIconPaths(
 
 function parseConfigs(input: unknown, source: ChainConfigSource, jsonFileUrl?: string): ChainConfig[] {
   // Strict validation: unknown chainKind will fail schema validation directly
-  const parsed = Array.isArray(input)
-    ? ChainConfigListSchema.parse(input)
-    : [ChainConfigSchema.parse(input)]
+  const parsedResult = Array.isArray(input)
+    ? ChainConfigListSchema.safeParse(input)
+    : ChainConfigSchema.safeParse(input)
+
+  if (!parsedResult.success) {
+    const firstIssue = parsedResult.error.issues[0]
+    throw new Error(firstIssue?.message ?? 'Invalid chain config')
+  }
+
+  const parsed = Array.isArray(input) ? parsedResult.data : [parsedResult.data]
 
   return parsed.map((config) => {
     const resolvedPaths = jsonFileUrl ? resolveIconPaths(config, jsonFileUrl) : {}

@@ -30,6 +30,9 @@ const READ_METHODS = new Set<ApiProviderMethod>([
   'getBlockHeight',
 ])
 
+import { TransactionSchema } from './types'
+import { InvalidDataError } from './errors'
+
 export class ChainProvider {
   readonly chainId: string
   private readonly providers: ApiProvider[]
@@ -182,11 +185,71 @@ export class ChainProvider {
   }
 
   get getTransactionHistory(): ((address: string, limit?: number) => Promise<Transaction[]>) | undefined {
-    return this.getMethod('getTransactionHistory')
+    const getHistory = this.getMethod('getTransactionHistory')
+    if (!getHistory) return undefined
+
+    return async (address: string, limit?: number) => {
+      const raw: unknown = await (getHistory as unknown as (address: string, limit?: number) => Promise<unknown>)(
+        address,
+        limit,
+      )
+
+      if (!Array.isArray(raw)) {
+        console.warn('[ChainProvider] Invalid transaction history payload (not array)', {
+          chainId: this.chainId,
+          method: 'getTransactionHistory',
+        })
+        return []
+      }
+
+      const parsed: Transaction[] = []
+      let invalidCount = 0
+      let firstIssue: unknown = null
+
+      for (const item of raw) {
+        const result = TransactionSchema.safeParse(item)
+        if (result.success) {
+          parsed.push(result.data)
+        } else {
+          invalidCount += 1
+          if (!firstIssue) firstIssue = result.error.issues[0]
+        }
+      }
+
+      if (invalidCount > 0) {
+        console.warn('[ChainProvider] Dropped invalid transactions from history', {
+          chainId: this.chainId,
+          method: 'getTransactionHistory',
+          invalidCount,
+          totalCount: raw.length,
+          firstIssue,
+        })
+      }
+
+      return parsed
+    }
   }
 
   get getTransaction(): ((hash: string) => Promise<Transaction | null>) | undefined {
-    return this.getMethod('getTransaction')
+    const getTransaction = this.getMethod('getTransaction')
+    if (!getTransaction) return undefined
+
+    return async (hash: string) => {
+      const raw: unknown = await (getTransaction as unknown as (hash: string) => Promise<unknown>)(hash)
+      if (raw === null || raw === undefined) return null
+
+      const parsed = TransactionSchema.safeParse(raw)
+      if (!parsed.success) {
+        throw new InvalidDataError({
+          source: 'provider',
+          chainId: this.chainId,
+          method: 'getTransaction',
+          issues: parsed.error.issues,
+        })
+      }
+
+      return parsed.data
+    }
   }
 
   get getTransactionStatus(): ((hash: string) => Promise<TransactionStatus>) | undefined {

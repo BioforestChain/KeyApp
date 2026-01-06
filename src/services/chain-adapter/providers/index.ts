@@ -6,6 +6,7 @@
 
 export * from './types'
 export { ChainProvider } from './chain-provider'
+export { InvalidDataError } from './errors'
 
 // API Provider 实现
 export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider'

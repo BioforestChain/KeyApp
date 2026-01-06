@@ -23,7 +23,11 @@ function formatDate(timestamp: number): string {
 }
 
 function TransactionItem({ tx, address }: { tx: Transaction; address: string }) {
-  const isOutgoing = tx.from.toLowerCase() === address.toLowerCase()
+  const isOutgoing = tx.direction === 'out' || tx.from.toLowerCase() === address.toLowerCase()
+  const primaryAsset = tx.assets.find((a) => a.assetType === 'native' || a.assetType === 'token')
+  const value = primaryAsset ? primaryAsset.value : '0'
+  const symbol = primaryAsset ? primaryAsset.symbol : ''
+  const decimals = primaryAsset ? primaryAsset.decimals : 0
   
   return (
     <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
@@ -39,7 +43,7 @@ function TransactionItem({ tx, address }: { tx: Transaction; address: string }) 
         </div>
       </div>
       <div className={`text-sm font-medium ${isOutgoing ? 'text-red-600' : 'text-green-600'}`}>
-        {isOutgoing ? '-' : '+'}{formatAmount(tx.value, 8)} {tx.symbol}
+        {isOutgoing ? '-' : '+'}{formatAmount(value, decimals)} {symbol}
       </div>
     </div>
   )

@@ -1,34 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
   IconCopy as Copy,
   IconCheck as Check,
   IconShare as Share,
-  IconArrowUp,
-  IconArrowDown,
-  IconArrowsExchange,
-  IconLock,
-  IconLockOpen,
-  IconShieldLock,
-  IconFlame,
-  IconGift,
-  IconHandGrab,
-  IconUserShare,
-  IconSignature,
-  IconLogout,
-  IconLogin,
-  IconSparkles,
-  IconCoins,
-  IconDiamond,
-  IconTrash,
-  IconMapPin,
-  IconApps,
-  IconCertificate,
-  IconFileText,
-  IconDots,
 } from '@tabler/icons-react';
-import type { Icon } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { AmountDisplay, TimeDisplay } from '@/components/common';
@@ -40,49 +18,37 @@ import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/s
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
+import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
+import { Amount } from '@/types/amount';
+import { transactionService } from '@/services/transaction';
+import { InvalidDataError } from '@/services/chain-adapter/providers';
 
-// 交易类型图标和颜色配置
-const typeConfig: Record<TransactionType, { Icon: Icon; color: string; bg: string }> = {
-  // 资产流出 - 红橙色
-  send:          { Icon: IconArrowUp,       color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  destroy:       { Icon: IconFlame,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  emigrate:      { Icon: IconLogout,        color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  destroyEntity: { Icon: IconTrash,         color: 'text-tx-out', bg: 'bg-tx-out/10' },
-  // 资产流入 - 绿色
-  receive:       { Icon: IconArrowDown,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  grab:          { Icon: IconHandGrab,      color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  immigrate:     { Icon: IconLogin,         color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  signFor:       { Icon: IconSignature,     color: 'text-tx-in', bg: 'bg-tx-in/10' },
-  // 交换 - 蓝色
-  exchange:      { Icon: IconArrowsExchange, color: 'text-tx-exchange', bg: 'bg-tx-exchange/10' },
-  // 质押/委托 - 紫色
-  stake:         { Icon: IconLock,          color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  unstake:       { Icon: IconLockOpen,      color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  trust:         { Icon: IconUserShare,     color: 'text-tx-lock', bg: 'bg-tx-lock/10' },
-  // 安全 - 青色
-  signature:     { Icon: IconShieldLock,    color: 'text-tx-security', bg: 'bg-tx-security/10' },
-  // 创建/发行 - 橙色
-  gift:          { Icon: IconGift,          color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  issueAsset:    { Icon: IconSparkles,      color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  increaseAsset: { Icon: IconCoins,         color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  issueEntity:   { Icon: IconDiamond,       color: 'text-tx-create', bg: 'bg-tx-create/10' },
-  // 系统操作 - 灰蓝色
-  locationName:  { Icon: IconMapPin,        color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  dapp:          { Icon: IconApps,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  certificate:   { Icon: IconCertificate,   color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  mark:          { Icon: IconFileText,      color: 'text-tx-system', bg: 'bg-tx-system/10' },
-  other:         { Icon: IconDots,          color: 'text-tx-system', bg: 'bg-tx-system/10' },
-};
+function parseTxId(id: string | undefined): { chainId: string; hash: string } | null {
+  if (!id) return null;
+  const [chainId, hash] = id.split('--');
+  if (!chainId || !hash) return null;
+  return { chainId, hash };
+}
 
-/** 状态映射 (TransactionInfo.status -> TransactionStatusType) */
-const STATUS_MAP: Record<string, 'success' | 'failed' | 'pending'> = {
-  confirmed: 'success',
-  pending: 'pending',
-  failed: 'failed',
-};
+function needsEnhancement(record: TransactionRecord | undefined): boolean {
+  if (!record) return false;
+
+  if (record.type === 'swap') {
+    const assets = record.assets ?? [];
+    return assets.length < 2;
+  }
+
+  if (record.type === 'approve' || record.type === 'interaction') {
+    const method = record.contract?.method;
+    const methodId = record.contract?.methodId;
+    return !method && !methodId;
+  }
+
+  return false;
+}
 
 export function TransactionDetailPage() {
-  const { t } = useTranslation('transaction');
+  const { t } = useTranslation(['transaction', 'common']);
   const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
@@ -91,23 +57,40 @@ export function TransactionDetailPage() {
 
   const [copied, setCopied] = useState(false);
 
-  // 查找交易
-  const transaction = useMemo<TransactionRecord | undefined>(() => {
+  const txFromHistory = useMemo<TransactionRecord | undefined>(() => {
     return transactions.find((tx) => tx.id === txId);
   }, [transactions, txId]);
 
+  const parsedTxId = useMemo(() => parseTxId(txId), [txId]);
+
+  const txDetailQuery = useQuery({
+    queryKey: ['transaction-detail', txId],
+    queryFn: async () => {
+      return transactionService.getTransaction({ id: txId });
+    },
+    enabled: !!currentWallet?.id && !!txId && (!txFromHistory || needsEnhancement(txFromHistory)),
+    staleTime: 30_000,
+  });
+
+  const enhancedTransaction = txDetailQuery.data ?? undefined;
+  const transaction = enhancedTransaction ?? txFromHistory;
+
+  const isPageLoading = isLoading || txDetailQuery.isLoading;
+
   // 获取链配置（用于构建浏览器 URL）
   const chainConfig = useMemo(() => {
-    if (!transaction?.chain) return null;
-    return chainConfigSelectors.getChainById(chainConfigState, transaction.chain);
-  }, [chainConfigState, transaction?.chain]);
+    const chainId = transaction?.chain ?? parsedTxId?.chainId;
+    if (!chainId) return null;
+    return chainConfigSelectors.getChainById(chainConfigState, chainId);
+  }, [chainConfigState, parsedTxId?.chainId, transaction?.chain]);
 
   // 构建交易浏览器 URL（没有配置则返回 null）
   const explorerTxUrl = useMemo(() => {
     const queryTx = chainConfig?.explorer?.queryTx;
-    if (!queryTx || !transaction?.hash) return null;
-    return queryTx.replace(':signature', transaction.hash);
-  }, [transaction?.hash, chainConfig?.explorer?.queryTx]);
+    const hash = transaction?.hash ?? parsedTxId?.hash;
+    if (!queryTx || !hash) return null;
+    return queryTx.replace(':signature', hash);
+  }, [chainConfig?.explorer?.queryTx, parsedTxId?.hash, transaction?.hash]);
 
   // 复制交易哈希
   const handleCopyHash = useCallback(async () => {
@@ -117,6 +100,13 @@ export function TransactionDetailPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   }, [transaction?.hash]);
+
+  const handleCopyFallbackHash = useCallback(async () => {
+    if (!parsedTxId?.hash) return;
+    await clipboardService.write({ text: parsedTxId.hash });
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [parsedTxId?.hash]);
 
   // 分享（复制浏览器链接）
   const [shared, setShared] = useState(false);
@@ -145,7 +135,7 @@ export function TransactionDetailPage() {
   }
 
   // 加载中
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
         <PageHeader title={t('detail.title')} onBack={handleBack} />
@@ -153,6 +143,74 @@ export function TransactionDetailPage() {
           <SkeletonCard className="h-48" />
           <SkeletonCard className="h-64" />
           <SkeletonCard className="h-32" />
+        </div>
+      </div>
+    );
+  }
+
+  if (txDetailQuery.error instanceof InvalidDataError) {
+    const fallbackHash = parsedTxId?.hash;
+
+    return (
+      <div className="bg-muted/30 flex min-h-screen flex-col">
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <div className="flex-1 space-y-4 p-4">
+          <div className="bg-card flex items-center justify-center rounded-xl p-6 shadow-sm">
+            <p className="text-muted-foreground">{t('detail.invalidData')}</p>
+          </div>
+
+          {fallbackHash && (
+            <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
+              <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
+              <p className="text-muted-foreground font-mono text-xs break-all">{fallbackHash}</p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCopyFallbackHash}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5',
+                    'bg-background border transition-colors',
+                    'hover:bg-muted active:bg-muted/80',
+                  )}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="text-green-500 size-4" />
+                      <span className="text-sm">{t('detail.copied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" />
+                      <span className="text-sm">{t('detail.copyHash')}</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleShare}
+                  disabled={!explorerTxUrl}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5',
+                    'bg-background border transition-colors',
+                    'hover:bg-muted active:bg-muted/80',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                  )}
+                >
+                  {shared ? (
+                    <>
+                      <Check className="text-green-500 size-4" />
+                      <span className="text-sm">{t('detail.copied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share className="size-4" />
+                      <span className="text-sm">{t('detail.share')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -172,8 +230,23 @@ export function TransactionDetailPage() {
 
   // 获取交易类型配置
   const txType = transaction.type as TransactionType;
-  const config = typeConfig[txType] || typeConfig.other;
-  const TxIcon = config.Icon;
+  const typeMeta = getTransactionVisualMeta(txType);
+  const TxIcon = typeMeta.Icon;
+
+  const swapFromAsset = transaction.type === 'swap' ? transaction.assets?.[0] : undefined;
+  const swapToAsset = transaction.type === 'swap' ? transaction.assets?.[1] : undefined;
+  const contractAddress = transaction.contract?.address || transaction.to;
+  const contractMethod = transaction.contract?.method;
+  const contractMethodId = transaction.contract?.methodId;
+
+  const contractMethodLabel = contractMethod ? t(`method.${contractMethod}`, { defaultValue: contractMethod }) : null;
+
+  const swapHeaderFrom = swapFromAsset
+    ? Amount.fromRaw(swapFromAsset.value, swapFromAsset.decimals, swapFromAsset.symbol)
+    : null;
+  const swapHeaderTo = swapToAsset
+    ? Amount.fromRaw(swapToAsset.value, swapToAsset.decimals, swapToAsset.symbol)
+    : null;
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -182,26 +255,50 @@ export function TransactionDetailPage() {
       <div className="flex-1 space-y-4 p-4">
         {/* 状态头 */}
         <div className="bg-card flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm">
-          <div className={cn('flex size-16 items-center justify-center rounded-full', config.bg)}>
-            <TxIcon className={cn('size-8', config.color)} />
+          <div className={cn('flex size-16 items-center justify-center rounded-full', typeMeta.bg)}>
+            <TxIcon className={cn('size-8', typeMeta.color)} />
           </div>
 
           <div className="text-center">
             <p className="text-muted-foreground text-sm">{t(`type.${transaction.type}`, { defaultValue: transaction.type })}</p>
-            <AmountDisplay
-              value={transaction.type === 'send' ? -Math.abs(transaction.amount.toNumber()) : transaction.amount.toNumber()}
-              symbol={transaction.symbol}
-              sign="always"
-              color="default"
-              weight="normal"
-              size="xl"
-              className={config.color}
-            />
+            {transaction.type === 'swap' && swapHeaderFrom && swapHeaderTo ? (
+              <div className={cn('flex items-center justify-center gap-2', typeMeta.color)}>
+                <AmountDisplay
+                  value={swapHeaderFrom.toNumber()}
+                  symbol={swapHeaderFrom.symbol}
+                  decimals={swapHeaderFrom.decimals}
+                  sign="never"
+                  color="default"
+                  weight="normal"
+                  size="lg"
+                />
+                <span className="text-lg">→</span>
+                <AmountDisplay
+                  value={swapHeaderTo.toNumber()}
+                  symbol={swapHeaderTo.symbol}
+                  decimals={swapHeaderTo.decimals}
+                  sign="never"
+                  color="default"
+                  weight="normal"
+                  size="lg"
+                />
+              </div>
+            ) : (
+              <AmountDisplay
+                value={transaction.type === 'send' ? -Math.abs(transaction.amount.toNumber()) : transaction.amount.toNumber()}
+                symbol={transaction.symbol}
+                sign={typeMeta.amountSign}
+                color="default"
+                weight="normal"
+                size="xl"
+                className={typeMeta.color}
+              />
+            )}
           </div>
 
           <TransactionStatusBadge
-            status={STATUS_MAP[transaction.status] || 'pending'}
-            label={t(`status.${transaction.status}`)}
+            status={getTransactionStatusMeta(transaction.status).badgeStatus}
+            label={t(`transaction:status.${transaction.status}`)}
           />
         </div>
 
@@ -210,14 +307,115 @@ export function TransactionDetailPage() {
           <h3 className="text-muted-foreground text-sm font-medium">{t('detail.info')}</h3>
 
           {/* 地址 */}
-          <div className="flex items-center justify-between py-2">
-            <span className="text-muted-foreground text-sm">
-              {transaction.type === 'send' ? t('detail.toAddress') : t('detail.fromAddress')}
-            </span>
-            <AddressDisplay address={transaction.address} copyable className="text-sm" />
-          </div>
+          {transaction.from && transaction.to ? (
+            <>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground text-sm">{t('detail.fromAddress')}</span>
+                <AddressDisplay address={transaction.from} copyable className="text-sm" />
+              </div>
+
+              <div className="bg-border h-px" />
+
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground text-sm">{t('detail.toAddress')}</span>
+                <AddressDisplay address={transaction.to} copyable className="text-sm" />
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">
+                {transaction.type === 'send' ? t('detail.toAddress') : t('detail.fromAddress')}
+              </span>
+              <AddressDisplay address={transaction.address} copyable className="text-sm" />
+            </div>
+          )}
 
           <div className="bg-border h-px" />
+
+          {/* Swap */}
+          {transaction.type === 'swap' && (swapFromAsset || swapToAsset) && (
+            <>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground text-sm">{t('detail.swapFrom')}</span>
+                <span className="text-sm font-medium">
+                  {swapFromAsset ? (
+                    <AmountDisplay
+                      value={Amount.fromRaw(swapFromAsset.value, swapFromAsset.decimals, swapFromAsset.symbol).toNumber()}
+                      symbol={swapFromAsset.symbol}
+                      decimals={swapFromAsset.decimals}
+                      sign="never"
+                      color="default"
+                      size="sm"
+                    />
+                  ) : (
+                    '-'
+                  )}
+                </span>
+              </div>
+
+              <div className="bg-border h-px" />
+
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground text-sm">{t('detail.swapTo')}</span>
+                <span className="text-sm font-medium">
+                  {swapToAsset ? (
+                    <AmountDisplay
+                      value={Amount.fromRaw(swapToAsset.value, swapToAsset.decimals, swapToAsset.symbol).toNumber()}
+                      symbol={swapToAsset.symbol}
+                      decimals={swapToAsset.decimals}
+                      sign="never"
+                      color="default"
+                      size="sm"
+                    />
+                  ) : (
+                    '-'
+                  )}
+                </span>
+              </div>
+
+              <div className="bg-border h-px" />
+            </>
+          )}
+
+          {/* 合约信息 */}
+          {(transaction.type === 'approve' || transaction.type === 'interaction' || transaction.type === 'swap') && contractAddress && (
+            <>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground text-sm">{t('detail.contractAddress')}</span>
+                <AddressDisplay address={contractAddress} copyable className="text-sm" />
+              </div>
+
+              {(transaction.type === 'approve' || transaction.type === 'interaction') && (
+                <>
+                  <div className="bg-border h-px" />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-muted-foreground text-sm">{t('detail.method')}</span>
+                    <span className="text-sm font-medium font-mono">
+                      {contractMethodLabel || contractMethodId || t('common:unknown')}
+                    </span>
+                  </div>
+
+                  {transaction.type === 'approve' && (
+                    <>
+                      <div className="bg-border h-px" />
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-muted-foreground text-sm">{t('detail.spender')}</span>
+                        <span className="text-sm font-medium">{t('common:unknown')}</span>
+                      </div>
+
+                      <div className="bg-border h-px" />
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-muted-foreground text-sm">{t('detail.allowance')}</span>
+                        <span className="text-sm font-medium">{t('common:unknown')}</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              <div className="bg-border h-px" />
+            </>
+          )}
 
           {/* 时间 */}
           <div className="flex items-center justify-between py-2">

@@ -20,8 +20,15 @@ export interface TransactionRecord extends TransactionInfo {
   chain: ChainType
   fee: Amount | undefined
   feeSymbol: string | undefined
+  feeDecimals: number | undefined
   blockNumber: number | undefined
   confirmations: number | undefined
+  from: ServiceTransactionRecord['from']
+  to: ServiceTransactionRecord['to']
+  action: ServiceTransactionRecord['action']
+  direction: ServiceTransactionRecord['direction']
+  assets: ServiceTransactionRecord['assets']
+  contract: ServiceTransactionRecord['contract']
 }
 
 /**
@@ -48,8 +55,15 @@ function convertToComponentFormat(record: ServiceTransactionRecord): Transaction
     chain: record.chain,
     fee: record.fee,
     feeSymbol: record.feeSymbol,
+    feeDecimals: record.feeDecimals,
     blockNumber: record.blockNumber,
     confirmations: record.confirmations,
+    from: record.from,
+    to: record.to,
+    action: record.action,
+    direction: record.direction,
+    assets: record.assets,
+    contract: record.contract,
   }
 }
 

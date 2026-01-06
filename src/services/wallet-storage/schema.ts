@@ -70,3 +70,14 @@ export const StorageMetadataSchema = z.object({
   createdAt: z.number(),
   lastMigratedAt: z.number().optional(),
 }).passthrough()
+
+/** 地址簿条目 schema */
+export const AddressBookEntrySchema = z.object({
+  id: z.string(),
+  chain: z.string(),
+  address: z.string(),
+  name: z.string(),
+  note: z.string().optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+}).passthrough()

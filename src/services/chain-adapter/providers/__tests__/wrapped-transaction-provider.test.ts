@@ -64,19 +64,23 @@ describe('WrappedTransactionProvider', () => {
         hash: '0xabc',
         from: '0x1',
         to: '0x2',
-        value: '1000',
-        symbol: 'TEST',
+        amount: Amount.fromRaw('1000', 8, 'TEST'),
+        fee: Amount.fromRaw('10', 8, 'TEST'),
         timestamp: 1234567890,
-        status: 'confirmed',
+        status: { status: 'confirmed', confirmations: 1, requiredConfirmations: 1 },
         blockNumber: 100n,
+        type: 'transfer',
       }]
       vi.mocked(transactionService.getTransactionHistory).mockResolvedValue(mockTxs)
 
-      const result = await provider.getTransactionHistory('0x123', 10)
+      const result = await provider.getTransactionHistory('0x1', 10)
 
-      expect(transactionService.getTransactionHistory).toHaveBeenCalledWith('0x123', 10)
+      expect(transactionService.getTransactionHistory).toHaveBeenCalledWith('0x1', 10)
       expect(result).toHaveLength(1)
       expect(result[0].hash).toBe('0xabc')
+      expect(result[0].action).toBe('transfer')
+      expect(result[0].direction).toBe('out')
+      expect(result[0].assets[0]?.value).toBe('1000')
     })
   })
 
@@ -86,10 +90,11 @@ describe('WrappedTransactionProvider', () => {
         hash: '0xabc',
         from: '0x1',
         to: '0x2',
-        value: '1000',
-        symbol: 'TEST',
+        amount: Amount.fromRaw('1000', 8, 'TEST'),
+        fee: Amount.fromRaw('10', 8, 'TEST'),
         timestamp: 1234567890,
-        status: 'confirmed',
+        status: { status: 'confirmed', confirmations: 1, requiredConfirmations: 1 },
+        type: 'transfer',
       }
       vi.mocked(transactionService.getTransaction).mockResolvedValue(mockTx)
 
@@ -97,6 +102,7 @@ describe('WrappedTransactionProvider', () => {
 
       expect(transactionService.getTransaction).toHaveBeenCalledWith('0xabc')
       expect(result?.hash).toBe('0xabc')
+      expect(result?.action).toBe('transfer')
     })
 
     it('returns null when transaction not found', async () => {
