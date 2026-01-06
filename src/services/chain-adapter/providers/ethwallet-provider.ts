@@ -5,14 +5,17 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 
-const BalanceResponseSchema = z.union([
-  z.string(),
-  z.number().transform((v) => String(v)),
-])
+const WalletApiBalanceSchema = z.looseObject({
+  success: z.boolean(),
+  result: z.union([z.string(), z.number().transform((v) => String(v))]),
+})
 
-const HistoryResponseSchema = z.looseObject({
-  status: z.string().optional(),
-  result: z.array(z.unknown()),
+const WalletApiHistorySchema = z.looseObject({
+  success: z.boolean(),
+  result: z.looseObject({
+    status: z.string().optional(),
+    result: z.array(z.unknown()),
+  }),
 })
 
 const NativeTxSchema = z.looseObject({
@@ -112,19 +115,21 @@ export class EthWalletProvider implements ApiProvider {
       ttlMs: 60_000,
       tags: [`balance:${this.chainId}:${address}`],
     })
-    const parsed = BalanceResponseSchema.safeParse(json)
-    if (!parsed.success) {
+    const parsed = WalletApiBalanceSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success) {
       throw new Error('Invalid API response')
     }
 
+    const balanceValue = parsed.data.result
+
     observeValueAndInvalidate({
       key: `balance:${this.chainId}:${address}`,
-      value: parsed.data,
+      value: balanceValue,
       invalidateTags: [`txhistory:${this.chainId}:${address}`],
     })
 
     return {
-      amount: Amount.fromRaw(parsed.data, this.decimals, this.symbol),
+      amount: Amount.fromRaw(balanceValue, this.decimals, this.symbol),
       symbol: this.symbol,
     }
   }
@@ -264,12 +269,12 @@ export class EthWalletProvider implements ApiProvider {
       },
     )
 
-    const parsed = HistoryResponseSchema.safeParse(json)
-    if (!parsed.success) {
+    const parsed = WalletApiHistorySchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success) {
       throw new Error('Invalid API response')
     }
 
-    return parsed.data.result
+    return parsed.data.result.result
       .map((item) => itemSchema.safeParse(item))
       .filter((r): r is z.SafeParseSuccess<T> => r.success)
       .map((r) => r.data)

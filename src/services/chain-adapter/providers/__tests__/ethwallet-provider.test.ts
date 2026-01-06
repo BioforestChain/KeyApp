@@ -33,7 +33,7 @@ describe('EthWalletProvider', () => {
   })
 
   it('maps balance string to Amount', async () => {
-    mockFetch.mockResolvedValue({ ok: true, json: async () => '1000000000000000000' })
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true, result: '1000000000000000000' }) })
 
     const provider = new EthWalletProvider(entry, 'ethereum')
     const balance = await provider.getNativeBalance('0xabc')
@@ -73,13 +73,13 @@ describe('EthWalletProvider', () => {
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
       if (url.endsWith('/trans/normal/history')) {
         expect(init?.method).toBe('POST')
-        return { ok: true, json: async () => ({ status: '1', result: [nativeTx] }) }
+        return { ok: true, json: async () => ({ success: true, result: { status: '1', result: [nativeTx] } }) }
       }
       if (url.endsWith('/trans/erc20/history')) {
         expect(init?.method).toBe('POST')
-        return { ok: true, json: async () => ({ status: '1', result: [tokenTx] }) }
+        return { ok: true, json: async () => ({ success: true, result: { status: '1', result: [tokenTx] } }) }
       }
-      return { ok: true, json: async () => ({ status: '1', result: [] }) }
+      return { ok: true, json: async () => ({ success: true, result: { status: '1', result: [] } }) }
     })
 
     const provider = new EthWalletProvider(entry, 'ethereum')
