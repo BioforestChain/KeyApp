@@ -245,9 +245,15 @@ export class TronTransactionService implements ITransactionService {
     }
   }
 
+  /** Tron HTTP API 不支持交易历史查询，需要使用 TronGrid API */
+  readonly supportsTransactionHistory = false
+
   async getTransactionHistory(_address: string, _limit = 20): Promise<Transaction[]> {
     // Tron HTTP API doesn't support transaction history queries
     // Would need TronGrid API or similar indexer service
-    return []
+    throw new ChainServiceError(
+      ChainErrorCodes.NOT_SUPPORTED,
+      'Transaction history not supported by Tron HTTP API, use TronGrid API instead'
+    )
   }
 }

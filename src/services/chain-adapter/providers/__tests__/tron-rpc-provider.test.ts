@@ -65,14 +65,14 @@ describe('TronRpcProvider', () => {
 
   describe('apiKeyEnv', () => {
     it('adds TRON-PRO-API-KEY header when apiKeyEnv is set', async () => {
-      const previous = process.env.VITE_TRONGRID_API_KEY
-      process.env.VITE_TRONGRID_API_KEY = 'test-trongrid-key'
+      const previous = process.env.TRONGRID_API_KEY
+      process.env.TRONGRID_API_KEY = 'test-trongrid-key'
 
       try {
         const entry: ParsedApiEntry = {
           type: 'tron-rpc-pro',
           endpoint: 'https://api.trongrid.io',
-          config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' },
+          config: { apiKeyEnv: 'TRONGRID_API_KEY' },
         }
 
         mockFetch.mockImplementationOnce(async (_url: string, init?: RequestInit) => {
@@ -89,9 +89,9 @@ describe('TronRpcProvider', () => {
         expect(height).toBe(1n)
       } finally {
         if (previous === undefined) {
-          delete process.env.VITE_TRONGRID_API_KEY
+          delete process.env.TRONGRID_API_KEY
         } else {
-          process.env.VITE_TRONGRID_API_KEY = previous
+          process.env.TRONGRID_API_KEY = previous
         }
       }
     })

@@ -39,9 +39,34 @@ export class ChainProvider {
 
   /**
    * 检查是否有 Provider 支持某方法
+   * 
+   * 除了检查方法是否存在，还会检查 provider 是否有对应的 supportsXxx 属性。
+   * 如果 supportsXxx 明确为 false，则认为该 provider 不支持此方法。
    */
   supports(method: ApiProviderMethod): boolean {
-    return this.providers.some(p => typeof p[method] === 'function')
+    return this.getCandidates(method).length > 0
+  }
+
+  /**
+   * 获取真正支持某方法的 Provider 列表
+   * 
+   * 过滤掉明确声明不支持的 provider（supportsXxx = false）
+   */
+  private getCandidates(method: ApiProviderMethod): ApiProvider[] {
+    return this.providers.filter(p => {
+      if (typeof p[method] !== 'function') return false
+      
+      // 检查是否有明确的能力声明
+      // 例如: getTransactionHistory -> supportsTransactionHistory
+      const methodName = method.startsWith('get') ? method.slice(3) : method
+      const capabilityKey = `supports${methodName.charAt(0).toUpperCase()}${methodName.slice(1)}` as keyof ApiProvider
+      const capability = p[capabilityKey]
+      if (typeof capability === 'boolean') {
+        return capability
+      }
+      
+      return true
+    })
   }
 
   /**
@@ -221,7 +246,7 @@ export class ChainProvider {
    * @returns ProviderResult<Transaction[]> - supported: true 表示查询成功，false 表示 fallback 到默认值
    */
   async getTransactionHistory(address: string, limit = 20): Promise<ProviderResult<Transaction[]>> {
-    const candidates = this.providers.filter(p => typeof p.getTransactionHistory === 'function')
+    const candidates = this.getCandidates('getTransactionHistory')
     
     if (candidates.length === 0) {
       return createFallbackResult(

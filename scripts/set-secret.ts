@@ -115,14 +115,35 @@ const SECRET_DEFINITIONS: SecretDefinition[] = [
 
   // API Keys
   {
-    key: 'VITE_TRONGRID_API_KEY',
-    description: 'TronGrid API Key（用于高频率 Tron 请求）',
+    key: 'TRONGRID_API_KEY',
+    description: 'TronGrid API Key（支持逗号分隔多个，启动时随机选中一个）',
     category: 'api-keys',
     required: false,
     isPassword: true,
     validate: (v) => {
-      if (v && !/^[a-f0-9-]{36}$/i.test(v)) {
-        return 'API Key 格式无效（应为 UUID）'
+      if (!v) return true
+      const keys = v.split(',').map(k => k.trim()).filter(Boolean)
+      for (const key of keys) {
+        if (!/^[a-f0-9-]{36}$/i.test(key)) {
+          return `API Key 格式无效: ${key}（应为 UUID）`
+        }
+      }
+      return true
+    },
+  },
+  {
+    key: 'ETHERSCAN_API_KEY',
+    description: 'Etherscan API Key（支持逗号分隔多个，启动时随机选中一个）',
+    category: 'api-keys',
+    required: false,
+    isPassword: true,
+    validate: (v) => {
+      if (!v) return true
+      const keys = v.split(',').map(k => k.trim()).filter(Boolean)
+      for (const key of keys) {
+        if (!/^[A-Z0-9]{34}$/i.test(key)) {
+          return `API Key 格式无效: ${key}（应为 34 位字母数字）`
+        }
       }
       return true
     },

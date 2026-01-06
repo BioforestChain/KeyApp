@@ -7,6 +7,7 @@
 export * from './types'
 export { ChainProvider } from './chain-provider'
 export { InvalidDataError } from './errors'
+export { pickApiKey, clearApiKeyCache, getLockedApiKey } from './api-key-picker'
 
 // API Provider 实现
 export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider'

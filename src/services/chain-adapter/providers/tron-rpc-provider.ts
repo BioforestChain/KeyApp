@@ -10,20 +10,25 @@ import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+import { pickApiKey } from './api-key-picker'
 
 function readEnvValue(key: string): string | undefined {
+  // Node/Vitest 环境：允许在运行时通过 process.env 覆盖（保证测试可控）
   try {
-    const fromImportMeta = (import.meta as any)?.env?.[key]
-    if (typeof fromImportMeta === 'string' && fromImportMeta.length > 0) return fromImportMeta
+    const fromProcess = (process as any)?.env?.[key]
+    if (typeof fromProcess === 'string' && fromProcess.length > 0) {
+      return fromProcess
+    }
   } catch {
     // ignore
   }
 
-  try {
-    const fromProcess = (process as any)?.env?.[key]
-    if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess
-  } catch {
-    // ignore
+  // Vite 编译时注入：__API_KEYS__ 是可动态索引的对象字面量
+  if (typeof __API_KEYS__ !== 'undefined') {
+    const apiKey = __API_KEYS__[key]
+    if (typeof apiKey === 'string' && apiKey.length > 0) {
+      return apiKey
+    }
   }
 
   return undefined
@@ -137,12 +142,23 @@ export class TronRpcProvider implements ApiProvider {
       headers['Content-Type'] = 'application/json'
     }
 
-    const apiKeyEnv = this.config?.apiKeyEnv
-    if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
-      const apiKey = readEnvValue(apiKeyEnv)
-      if (apiKey) {
-        headers['TRON-PRO-API-KEY'] = apiKey
+    // 支持两种 API key 配置方式：
+    // 1. apiKey: 直接配置（支持逗号分隔多个）
+    // 2. apiKeyEnv: 从环境变量读取（支持逗号分隔多个）
+    let apiKeyString: string | undefined
+    const apiKeyDirect = this.config?.apiKey
+    if (typeof apiKeyDirect === 'string' && apiKeyDirect.length > 0) {
+      apiKeyString = apiKeyDirect
+    } else {
+      const apiKeyEnv = this.config?.apiKeyEnv
+      if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
+        apiKeyString = readEnvValue(apiKeyEnv)
       }
+    }
+
+    const apiKey = pickApiKey(apiKeyString, `trongrid:${this.chainId}`)
+    if (apiKey) {
+      headers['TRON-PRO-API-KEY'] = apiKey
     }
 
     const init: RequestInit = body !== undefined

@@ -68,7 +68,7 @@ describe.skipIf(!process.env.TEST_REAL_API)("WalletAddressPortfolio Real Provide
       source: "default",
       apis: [
         { type: "tron-rpc", endpoint: "https://api.trongrid.io" },
-        { type: "tron-rpc-pro", endpoint: "https://api.trongrid.io", config: { apiKeyEnv: "VITE_TRONGRID_API_KEY" } },
+        { type: "tron-rpc-pro", endpoint: "https://api.trongrid.io", config: { apiKeyEnv: "TRONGRID_API_KEY" } },
         { type: "tronwallet-v1", endpoint: "https://walletapi.bfmeta.info/wallet/tron" },
       ],
     },
