@@ -10,6 +10,7 @@ import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+import { pickApiKey } from './api-key-picker'
 
 function readEnvValue(key: string): string | undefined {
   try {
@@ -137,12 +138,23 @@ export class TronRpcProvider implements ApiProvider {
       headers['Content-Type'] = 'application/json'
     }
 
-    const apiKeyEnv = this.config?.apiKeyEnv
-    if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
-      const apiKey = readEnvValue(apiKeyEnv)
-      if (apiKey) {
-        headers['TRON-PRO-API-KEY'] = apiKey
+    // 支持两种 API key 配置方式：
+    // 1. apiKey: 直接配置（支持逗号分隔多个）
+    // 2. apiKeyEnv: 从环境变量读取（支持逗号分隔多个）
+    let apiKeyString: string | undefined
+    const apiKeyDirect = this.config?.apiKey
+    if (typeof apiKeyDirect === 'string' && apiKeyDirect.length > 0) {
+      apiKeyString = apiKeyDirect
+    } else {
+      const apiKeyEnv = this.config?.apiKeyEnv
+      if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
+        apiKeyString = readEnvValue(apiKeyEnv)
       }
+    }
+
+    const apiKey = pickApiKey(apiKeyString, `trongrid:${this.chainId}`)
+    if (apiKey) {
+      headers['TRON-PRO-API-KEY'] = apiKey
     }
 
     const init: RequestInit = body !== undefined

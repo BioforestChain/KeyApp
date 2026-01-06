@@ -11,6 +11,7 @@ import type { ApiProvider, Transaction, Direction, Action } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { fetchJson } from './fetch-json'
+import { pickApiKey } from './api-key-picker'
 
 /** EVM Chain IDs */
 const EVM_CHAIN_IDS: Record<string, number> = {
@@ -100,8 +101,8 @@ export class EtherscanProvider implements ApiProvider {
       params.set('chainid', this.evmChainId.toString())
     }
 
-    const apiKey = this.config?.apiKey
-    if (apiKey && typeof apiKey === 'string') {
+    const apiKey = pickApiKey(this.config?.apiKey as string | undefined, `etherscan:${this.chainId}`)
+    if (apiKey) {
       params.set('apikey', apiKey)
     }
 
@@ -357,7 +358,6 @@ export class EtherscanProvider implements ApiProvider {
   }
 
   private buildParams(action: string, address: string, limit: number): URLSearchParams {
-    const apiKey = (this.config?.apiKey as string) ?? ''
     const params = new URLSearchParams({
       module: 'account',
       action,
@@ -374,6 +374,7 @@ export class EtherscanProvider implements ApiProvider {
       params.set('chainid', this.evmChainId.toString())
     }
     
+    const apiKey = pickApiKey(this.config?.apiKey as string | undefined, `etherscan:${this.chainId}`)
     if (apiKey) {
       params.set('apikey', apiKey)
     }
