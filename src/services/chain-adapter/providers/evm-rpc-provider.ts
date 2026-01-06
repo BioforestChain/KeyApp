@@ -10,6 +10,7 @@ import type { ApiProvider, Balance } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+import { fetchJson } from './fetch-json'
 
 const JsonRpcResponseSchema = z.looseObject({
   result: z.unknown().optional(),
@@ -39,22 +40,23 @@ export class EvmRpcProvider implements ApiProvider {
   }
 
   private async rpc<T>(method: string, resultSchema: z.ZodType<T>, params: unknown[] = []): Promise<T> {
-    const response = await fetch(this.endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method,
-        params,
-      }),
+    const body = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method,
+      params,
     })
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
+    const cacheable = method === 'eth_getBalance' || method === 'eth_blockNumber'
+    const json: unknown = await fetchJson(this.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }, {
+      cacheKey: `evm-rpc:${this.endpoint}:${method}:${JSON.stringify(params)}`,
+      ttlMs: cacheable ? 10_000 : 0,
+    })
 
-    const json: unknown = await response.json()
     const parsed = JsonRpcResponseSchema.safeParse(json)
     if (!parsed.success) {
       throw new Error('Invalid JSON-RPC response')
@@ -73,30 +75,18 @@ export class EvmRpcProvider implements ApiProvider {
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
-    try {
-      const balanceHex = await this.rpc('eth_getBalance', z.string(), [address, 'latest'])
-      const balanceWei = BigInt(balanceHex)
-      
-      return {
-        amount: Amount.fromRaw(balanceWei.toString(), this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
-    } catch (error) {
-      console.warn('[EvmRpcProvider] Error fetching balance:', error)
-      return {
-        amount: Amount.zero(this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
+    const balanceHex = await this.rpc('eth_getBalance', z.string(), [address, 'latest'])
+    const balanceWei = BigInt(balanceHex)
+
+    return {
+      amount: Amount.fromRaw(balanceWei.toString(), this.decimals, this.symbol),
+      symbol: this.symbol,
     }
   }
 
   async getBlockHeight(): Promise<bigint> {
-    try {
-      const blockHex = await this.rpc('eth_blockNumber', z.string())
-      return BigInt(blockHex)
-    } catch {
-      return 0n
-    }
+    const blockHex = await this.rpc('eth_blockNumber', z.string())
+    return BigInt(blockHex)
   }
 }
 

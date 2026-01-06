@@ -149,8 +149,9 @@ export function SettingsPage() {
       // checkConfirmed callback - 检查交易是否上链
       async () => {
         const { getAddressInfo } = await import('@/services/bioforest-sdk');
-        const apiUrl = chainConfig.api?.url;
-        const apiPath = chainConfig.api?.path ?? chainConfig.id;
+        const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1');
+        const apiUrl = biowallet?.endpoint;
+        const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id;
         if (!apiUrl) return false;
         try {
           const info = await getAddressInfo(apiUrl, apiPath, bfmAddress.address);

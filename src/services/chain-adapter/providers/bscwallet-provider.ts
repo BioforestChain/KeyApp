@@ -10,6 +10,7 @@ import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 
 const BalanceResponseSchema = z.looseObject({
   success: z.boolean(),
@@ -36,13 +37,15 @@ const TxHistoryResponseSchema = z.looseObject({
 
 export class BscWalletProvider implements ApiProvider {
   readonly type: string
-  readonly baseUrl: string
+  readonly endpoint: string
   readonly decimals: number
   readonly symbol: string
+  private readonly chainId: string
 
-  constructor(entry: ParsedApiEntry, chainDecimals: number, chainSymbol: string) {
-    this.type = entry.key
-    this.baseUrl = entry.url.replace(/\/$/, '')
+  constructor(entry: ParsedApiEntry, chainId: string, chainDecimals: number, chainSymbol: string) {
+    this.type = entry.type
+    this.endpoint = entry.endpoint.replace(/\/$/, '')
+    this.chainId = chainId
     this.decimals = chainDecimals
     this.symbol = chainSymbol
   }
@@ -56,32 +59,35 @@ export class BscWalletProvider implements ApiProvider {
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
-    try {
-      const response = await fetch(`${this.baseUrl}/balance?address=${address}`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
+    const url = `${this.endpoint}/balance?address=${address}`
+    const json: unknown = await fetchJson(url, undefined, {
+      cacheKey: `bscwallet:balance:${address}`,
+      ttlMs: 60_000,
+      tags: [`balance:${this.chainId}:${address}`],
+    })
 
-      const json: unknown = await response.json()
-      const parsed = BalanceResponseSchema.safeParse(json)
+    const parsed = BalanceResponseSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success) {
+      throw new Error('Upstream API error')
+    }
 
-      if (!parsed.success || !parsed.data.success) {
-        return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
-      }
+    observeValueAndInvalidate({
+      key: `balance:${this.chainId}:${address}`,
+      value: parsed.data.result,
+      invalidateTags: [`txhistory:${this.chainId}:${address}`],
+    })
 
-      return {
-        amount: Amount.fromRaw(parsed.data.result, this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
-    } catch (error) {
-      console.warn('[BscWalletProvider] Error fetching balance:', error)
-      return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
+    return {
+      amount: Amount.fromRaw(parsed.data.result, this.decimals, this.symbol),
+      symbol: this.symbol,
     }
   }
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/trans/normal/history`, {
+    const url = `${this.endpoint}/trans/normal/history`
+    const json: unknown = await fetchJson(
+      url,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,47 +95,46 @@ export class BscWalletProvider implements ApiProvider {
           page: 1,
           offset: limit,
         }),
-      })
+      },
+      {
+        cacheKey: `bscwallet:txs:${address}:${limit}`,
+        ttlMs: 5 * 60_000,
+        tags: [`txhistory:${this.chainId}:${address}`],
+      },
+    )
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const json: unknown = await response.json()
-      const parsed = TxHistoryResponseSchema.safeParse(json)
-
-      if (!parsed.success || !parsed.data.success || parsed.data.result.status !== '1') {
-        return []
-      }
-
-      const normalizedAddress = address.toLowerCase()
-
-      return parsed.data.result.result.map((tx): Transaction => {
-        const from = tx.from
-        const to = tx.to
-        const direction = this.getDirection(from, to, normalizedAddress)
-
-        return {
-          hash: tx.hash,
-          from,
-          to,
-          timestamp: Number(tx.timeStamp) * 1000,
-          status: tx.isError === '1' ? 'failed' : 'confirmed',
-          blockNumber: BigInt(tx.blockNumber),
-          action: 'transfer' as const,
-          direction,
-          assets: [{
-            assetType: 'native' as const,
-            value: tx.value,
-            symbol: this.symbol,
-            decimals: this.decimals,
-          }],
-        }
-      })
-    } catch (error) {
-      console.warn('[BscWalletProvider] Error fetching transactions:', error)
+    const parsed = TxHistoryResponseSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success) {
+      throw new Error('Upstream API error')
+    }
+    if (parsed.data.result.status !== '1') {
       return []
     }
+
+    const normalizedAddress = address.toLowerCase()
+
+    return parsed.data.result.result.map((tx): Transaction => {
+      const from = tx.from
+      const to = tx.to
+      const direction = this.getDirection(from, to, normalizedAddress)
+
+      return {
+        hash: tx.hash,
+        from,
+        to,
+        timestamp: Number(tx.timeStamp) * 1000,
+        status: tx.isError === '1' ? 'failed' : 'confirmed',
+        blockNumber: BigInt(tx.blockNumber),
+        action: 'transfer' as const,
+        direction,
+        assets: [{
+          assetType: 'native' as const,
+          value: tx.value,
+          symbol: this.symbol,
+          decimals: this.decimals,
+        }],
+      }
+    })
   }
 
   private getDirection(from: string, to: string, address: string): Direction {
@@ -150,10 +155,10 @@ export class BscWalletProvider implements ApiProvider {
  * 工厂函数：识别 bscwallet-v1 类型的 API entry
  */
 export function createBscWalletProvider(entry: ParsedApiEntry, chainId: string): BscWalletProvider | null {
-  if (entry.key !== 'bscwallet-v1') return null
+  if (entry.type !== 'bscwallet-v1') return null
   
   const decimals = chainConfigService.getDecimals(chainId)
   const symbol = chainConfigService.getSymbol(chainId)
   
-  return new BscWalletProvider(entry, decimals, symbol)
+  return new BscWalletProvider(entry, chainId, decimals, symbol)
 }

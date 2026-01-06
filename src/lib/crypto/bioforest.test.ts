@@ -311,7 +311,7 @@ describe('BioForest Crypto', () => {
         name: 'Ethereum',
         symbol: 'ETH',
         decimals: 18,
-        api: { url: 'https://example.invalid', path: 'eth' },
+        apis: [{ type: 'ethereum-rpc', endpoint: 'https://example.invalid' }],
         enabled: true,
         source: 'default',
       }

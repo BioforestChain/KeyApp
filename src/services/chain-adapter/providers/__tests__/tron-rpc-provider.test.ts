@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import { TronRpcProvider, createTronRpcProvider } from '../tron-rpc-provider'
+import { resetFetchJsonForTests } from '../fetch-json'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
 vi.mock('@/services/chain-config', () => ({
@@ -10,7 +11,12 @@ vi.mock('@/services/chain-config', () => ({
 }))
 
 const mockFetch = vi.fn()
+const originalFetch = global.fetch
 global.fetch = mockFetch
+
+afterAll(() => {
+  global.fetch = originalFetch
+})
 
 describe('TronRpcProvider', () => {
   const mockEntry: ParsedApiEntry = {
@@ -20,6 +26,7 @@ describe('TronRpcProvider', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    resetFetchJsonForTests()
   })
 
   describe('createTronRpcProvider', () => {
@@ -28,13 +35,22 @@ describe('TronRpcProvider', () => {
       expect(provider).toBeInstanceOf(TronRpcProvider)
     })
 
-    it('creates provider for tron-* type', () => {
+    it('creates provider for tron-rpc-pro type', () => {
       const entry: ParsedApiEntry = {
-        type: 'tron-grid',
+        type: 'tron-rpc-pro',
         endpoint: 'https://api.trongrid.io',
       }
       const provider = createTronRpcProvider(entry, 'tron')
       expect(provider).toBeInstanceOf(TronRpcProvider)
+    })
+
+    it('returns null for tronwallet-v1', () => {
+      const entry: ParsedApiEntry = {
+        type: 'tronwallet-v1',
+        endpoint: 'https://walletapi.example.com/wallet/tron',
+      }
+      const provider = createTronRpcProvider(entry, 'tron')
+      expect(provider).toBeNull()
     })
 
     it('returns null for non-tron type', () => {
@@ -46,6 +62,41 @@ describe('TronRpcProvider', () => {
       expect(provider).toBeNull()
     })
   })
+
+  describe('apiKeyEnv', () => {
+    it('adds TRON-PRO-API-KEY header when apiKeyEnv is set', async () => {
+      const previous = process.env.VITE_TRONGRID_API_KEY
+      process.env.VITE_TRONGRID_API_KEY = 'test-trongrid-key'
+
+      try {
+        const entry: ParsedApiEntry = {
+          type: 'tron-rpc-pro',
+          endpoint: 'https://api.trongrid.io',
+          config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' },
+        }
+
+        mockFetch.mockImplementationOnce(async (_url: string, init?: RequestInit) => {
+          const headers = (init?.headers ?? {}) as Record<string, string>
+          expect(headers['TRON-PRO-API-KEY']).toBe('test-trongrid-key')
+          return {
+            ok: true,
+            json: async () => ({ block_header: { raw_data: { number: 1 } } }),
+          } as any
+        })
+
+        const provider = new TronRpcProvider(entry, 'tron')
+        const height = await provider.getBlockHeight()
+        expect(height).toBe(1n)
+      } finally {
+        if (previous === undefined) {
+          delete process.env.VITE_TRONGRID_API_KEY
+        } else {
+          process.env.VITE_TRONGRID_API_KEY = previous
+        }
+      }
+    })
+  })
+
 
   describe('getTransactionHistory', () => {
     it('aggregates native and TRC-20 transactions by txID', async () => {

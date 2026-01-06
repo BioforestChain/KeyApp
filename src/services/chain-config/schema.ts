@@ -3,7 +3,7 @@
  *
  * 设计原则：分离链属性与提供商配置
  * - 链属性：id, chainKind, name, symbol, prefix, decimals（链的固有属性）
- * - 提供商配置：api, explorer（外部依赖，可替换）
+ * - 提供商配置：apis, explorer（外部依赖，可替换）
  *
  * 说明：
  * - `version` 使用 `major.minor`（例如 "1.0"）
@@ -22,26 +22,24 @@ export const ChainKindSchema = z.enum(['bioforest', 'evm', 'bitcoin', 'tron'])
 export const ChainConfigSourceSchema = z.enum(['default', 'subscription', 'manual'])
 
 /**
- * API 提供商配置
+ * API 提供商配置（有序）
  *
- * 格式: Record<providerType, url | [url, config]>
- * - providerType: "{provider}-{version}" (e.g., "ethereum-rpc", "etherscan-v2", "biowallet-v1")
- * - url: 简单 URL 字符串
- * - [url, config]: URL + 额外配置对象
+ * 格式: apis: Array<{ type, endpoint, config? }>
+ * - type: "{provider}-{version}" (e.g., "ethereum-rpc", "blockscout-v1", "biowallet-v1")
+ * - endpoint: URL
+ * - config: 额外配置（可选）
  *
- * 示例:
- * {
- *   "ethereum-rpc": "https://ethereum-rpc.publicnode.com",
- *   "etherscan-v2": ["https://api.etherscan.io/v2/api", { "apiKey": "xxx" }],
- *   "biowallet-v1": ["https://walletapi.bfmeta.info", { "path": "bfm" }]
- * }
+ * 说明：数组顺序即 fallback 顺序，越靠前优先级越高。
  */
-export const ApiEntrySchema = z.union([
-  z.string().url(),
-  z.tuple([z.string().url(), z.record(z.string(), z.unknown())]),
-])
+export const ApiProviderEntrySchema = z
+  .object({
+    type: z.string().min(1),
+    endpoint: z.string().url(),
+    config: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict()
 
-export const ApiConfigSchema = z.record(z.string(), ApiEntrySchema)
+export const ApiProvidersSchema = z.array(ApiProviderEntrySchema)
 
 /** 区块浏览器配置（可替换的外部依赖） */
 export const ExplorerConfigSchema = z.object({
@@ -73,7 +71,7 @@ export const ChainConfigSchema = z
     decimals: z.number().int().min(0).max(18),
 
     // ===== 提供商配置（外部依赖） =====
-    api: ApiConfigSchema.optional(),
+    apis: ApiProvidersSchema.optional(),
     explorer: ExplorerConfigSchema.optional(),
 
     // ===== 运行时字段 =====

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,7 +13,12 @@ vi.mock('@/services/chain-config', () => ({
 }))
 
 const mockFetch = vi.fn()
+const originalFetch = global.fetch
 global.fetch = mockFetch
+
+afterAll(() => {
+  global.fetch = originalFetch
+})
 
 function readFixture<T>(name: string): T {
   const dir = path.dirname(fileURLToPath(import.meta.url))

@@ -9,6 +9,7 @@ import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 
 interface MempoolAddressInfo {
   address: string
@@ -97,12 +98,11 @@ export class MempoolProvider implements ApiProvider {
   }
 
   private async api<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-    const response = await fetch(`${this.endpoint}${path}`)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const json: unknown = await response.json()
+    const url = `${this.endpoint}${path}`
+    const json: unknown = await fetchJson(url, undefined, {
+      cacheKey: `mempool:${url}`,
+      ttlMs: 30_000,
+    })
     const parsed = schema.safeParse(json)
     if (!parsed.success) {
       throw new Error('Invalid API response')
@@ -111,32 +111,46 @@ export class MempoolProvider implements ApiProvider {
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
-    try {
-      const info = await this.api(`/address/${address}`, MempoolAddressInfoSchema)
-      
-      // 计算余额：已收到 - 已花费
-      const confirmed = info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum
-      const unconfirmed = info.mempool_stats.funded_txo_sum - info.mempool_stats.spent_txo_sum
-      const total = confirmed + unconfirmed
-      
-      return {
-        amount: Amount.fromRaw(total.toString(), this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
-    } catch (error) {
-      console.warn('[MempoolProvider] Error fetching balance:', error)
-      return {
-        amount: Amount.zero(this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
+    const url = `${this.endpoint}/address/${address}`
+    const info = await fetchJson(url, undefined, {
+      cacheKey: `mempool:balance:${address}`,
+      ttlMs: 60_000,
+      tags: [`balance:${this.chainId}:${address}`],
+    }).then((json) => {
+      const parsed = MempoolAddressInfoSchema.safeParse(json)
+      if (!parsed.success) throw new Error('Invalid API response')
+      return parsed.data
+    })
+
+    const confirmed = info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum
+    const unconfirmed = info.mempool_stats.funded_txo_sum - info.mempool_stats.spent_txo_sum
+    const total = confirmed + unconfirmed
+
+    observeValueAndInvalidate({
+      key: `balance:${this.chainId}:${address}`,
+      value: total.toString(),
+      invalidateTags: [`txhistory:${this.chainId}:${address}`],
+    })
+
+    return {
+      amount: Amount.fromRaw(total.toString(), this.decimals, this.symbol),
+      symbol: this.symbol,
     }
   }
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    try {
-      const txs = await this.api(`/address/${address}/txs`, z.array(MempoolTxSchema))
-      
-      return txs.slice(0, limit).map((tx): Transaction => {
+    const url = `${this.endpoint}/address/${address}/txs`
+    const txs = await fetchJson(url, undefined, {
+      cacheKey: `mempool:txs:${address}`,
+      ttlMs: 5 * 60_000,
+      tags: [`txhistory:${this.chainId}:${address}`],
+    }).then((json) => {
+      const parsed = z.array(MempoolTxSchema).safeParse(json)
+      if (!parsed.success) throw new Error('Invalid API response')
+      return parsed.data
+    })
+
+    return txs.slice(0, limit).map((tx): Transaction => {
         // 判断是发送还是接收
         const isOutgoing = tx.vin.some(vin => 
           vin.prevout?.scriptpubkey_address === address
@@ -186,19 +200,11 @@ export class MempoolProvider implements ApiProvider {
           }],
         }
       })
-    } catch (error) {
-      console.warn('[MempoolProvider] Error fetching transactions:', error)
-      return []
-    }
   }
 
   async getBlockHeight(): Promise<bigint> {
-    try {
-      const height = await this.api('/blocks/tip/height', z.number())
-      return BigInt(height)
-    } catch {
-      return 0n
-    }
+    const height = await this.api('/blocks/tip/height', z.number())
+    return BigInt(height)
   }
 }
 

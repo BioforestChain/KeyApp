@@ -14,6 +14,9 @@ export { BiowalletProvider, createBiowalletProvider } from './biowallet-provider
 export { BscWalletProvider, createBscWalletProvider } from './bscwallet-provider'
 export { TronRpcProvider, createTronRpcProvider } from './tron-rpc-provider'
 export { MempoolProvider, createMempoolProvider } from './mempool-provider'
+export { EthWalletProvider, createEthwalletProvider } from './ethwallet-provider'
+export { TronWalletProvider, createTronwalletProvider } from './tronwallet-provider'
+export { BtcWalletProvider, createBtcwalletProvider } from './btcwallet-provider'
 
 // Wrapped Provider 实现
 export { WrappedTransactionProvider } from './wrapped-transaction-provider'
@@ -31,6 +34,9 @@ import { createBiowalletProvider } from './biowallet-provider'
 import { createBscWalletProvider } from './bscwallet-provider'
 import { createTronRpcProvider } from './tron-rpc-provider'
 import { createMempoolProvider } from './mempool-provider'
+import { createEthwalletProvider } from './ethwallet-provider'
+import { createTronwalletProvider } from './tronwallet-provider'
+import { createBtcwalletProvider } from './btcwallet-provider'
 import { WrappedTransactionProvider } from './wrapped-transaction-provider'
 import { WrappedIdentityProvider } from './wrapped-identity-provider'
 
@@ -56,6 +62,9 @@ const PROVIDER_FACTORIES: ApiProviderFactory[] = [
   createEvmRpcProvider,
   createTronRpcProvider,
   createMempoolProvider,
+  createEthwalletProvider,
+  createTronwalletProvider,
+  createBtcwalletProvider,
 ]
 
 /**

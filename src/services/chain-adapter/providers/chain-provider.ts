@@ -16,6 +16,19 @@ import type {
   UnsignedTransaction,
   SignedTransaction,
 } from './types'
+import { chainConfigService } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
+
+const SYNC_METHODS = new Set<ApiProviderMethod>(['isValidAddress', 'normalizeAddress'])
+
+const READ_METHODS = new Set<ApiProviderMethod>([
+  'getNativeBalance',
+  'getTokenBalances',
+  'getTransactionHistory',
+  'getTransaction',
+  'getTransactionStatus',
+  'getBlockHeight',
+])
 
 export class ChainProvider {
   readonly chainId: string
@@ -34,14 +47,73 @@ export class ChainProvider {
   }
 
   /**
-   * 查找实现了某方法的 Provider，返回绑定好的方法
+   * 查找实现了某方法的 Provider，返回自动 fallback 的方法
    */
   private getMethod<K extends ApiProviderMethod>(method: K): ApiProvider[K] | undefined {
-    const provider = this.providers.find(p => typeof p[method] === 'function')
-    if (!provider) return undefined
-    const fn = provider[method]
-    if (typeof fn !== 'function') return undefined
-    return fn.bind(provider) as ApiProvider[K]
+    const candidates = this.providers.filter((p) => typeof p[method] === 'function')
+    if (candidates.length === 0) return undefined
+
+    const first = candidates[0]
+    const firstFn = first[method]
+    if (typeof firstFn !== 'function') return undefined
+
+    if (SYNC_METHODS.has(method)) {
+      return firstFn.bind(first) as ApiProvider[K]
+    }
+
+    const fn = (async (...args: unknown[]) => {
+      let lastError: unknown = null
+
+      for (const provider of candidates) {
+        const impl = provider[method]
+        if (typeof impl !== 'function') continue
+        try {
+          return await (impl as (...args: unknown[]) => Promise<unknown>).apply(provider, args)
+        } catch (error) {
+          lastError = error
+        }
+      }
+
+      if (READ_METHODS.has(method)) {
+        return this.getReadDefault(method)
+      }
+
+      throw lastError instanceof Error ? lastError : new Error('All providers failed')
+    }) as ApiProvider[K]
+
+    return fn
+  }
+
+  private getReadDefault(method: ApiProviderMethod): unknown {
+    switch (method) {
+      case 'getNativeBalance': {
+        const decimals = chainConfigService.getDecimals(this.chainId)
+        const symbol = chainConfigService.getSymbol(this.chainId)
+        const balance: Balance = {
+          amount: Amount.zero(decimals, symbol),
+          symbol,
+        }
+        return balance
+      }
+      case 'getTokenBalances':
+        return [] as TokenBalance[]
+      case 'getTransactionHistory':
+        return [] as Transaction[]
+      case 'getTransaction':
+        return null as Transaction | null
+      case 'getTransactionStatus': {
+        const status: TransactionStatus = {
+          status: 'pending',
+          confirmations: 0,
+          requiredConfirmations: 1,
+        }
+        return status
+      }
+      case 'getBlockHeight':
+        return 0n
+      default:
+        return null
+    }
   }
 
   // ===== 便捷属性：检查查询能力 =====

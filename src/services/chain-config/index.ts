@@ -1,4 +1,4 @@
-export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainKind, ParsedApiEntry, ApiEntry, ApiConfig } from './types'
+export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainKind, ParsedApiEntry, ApiProviderEntry, ApiProviders } from './types'
 export { chainConfigService } from './service'
 
 import { ChainConfigListSchema, ChainConfigSchema, ChainConfigSubscriptionSchema, VersionedChainConfigFileSchema } from './schema'

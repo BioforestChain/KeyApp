@@ -6,7 +6,7 @@
  */
 
 import { chainConfigStore, chainConfigSelectors } from '@/stores/chain-config'
-import type { ApiEntry, ChainConfig, ParsedApiEntry } from './types'
+import type { ChainConfig, ParsedApiEntry } from './types'
 
 class ChainConfigService {
   /**
@@ -22,13 +22,7 @@ class ChainConfigService {
    */
   getApi(chainId: string): ParsedApiEntry[] {
     const config = this.getConfig(chainId)
-    if (!config?.api) return []
-
-    const entries: ParsedApiEntry[] = []
-    for (const [type, entry] of Object.entries(config.api)) {
-      entries.push(this.parseApiEntry(type, entry as ApiEntry))
-    }
-    return entries
+    return config?.apis ?? []
   }
 
   /**
@@ -46,17 +40,6 @@ class ChainConfigService {
     const entries = this.getApi(chainId)
     const regex = new RegExp('^' + pattern.replace('*', '.*') + '$')
     return entries.find((e) => regex.test(e.type)) ?? null
-  }
-
-  /**
-   * 解析 API 配置项
-   */
-  private parseApiEntry(type: string, entry: ApiEntry): ParsedApiEntry {
-    if (typeof entry === 'string') {
-      return { type, endpoint: entry }
-    }
-    const [endpoint, config] = entry
-    return { type, endpoint, config }
   }
 
   // ========== 便捷方法 (用于 Adapter) ==========

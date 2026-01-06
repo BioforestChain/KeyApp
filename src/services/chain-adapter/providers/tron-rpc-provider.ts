@@ -9,6 +9,25 @@ import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+
+function readEnvValue(key: string): string | undefined {
+  try {
+    const fromImportMeta = (import.meta as any)?.env?.[key]
+    if (typeof fromImportMeta === 'string' && fromImportMeta.length > 0) return fromImportMeta
+  } catch {
+    // ignore
+  }
+
+  try {
+    const fromProcess = (process as any)?.env?.[key]
+    if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess
+  } catch {
+    // ignore
+  }
+
+  return undefined
+}
 
 interface TronAccountResponse {
   balance?: number
@@ -110,18 +129,32 @@ export class TronRpcProvider implements ApiProvider {
     this.decimals = chainConfigService.getDecimals(chainId)
   }
 
-  private async api<T>(path: string, schema: z.ZodType<T>, body?: unknown): Promise<T> {
+  private async api<T>(path: string, schema: z.ZodType<T>, body?: unknown, options?: { ttlMs?: number; tags?: string[] }): Promise<T> {
     const url = `${this.endpoint}${path}`
-    const init: RequestInit = body
-      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-      : { method: 'GET' }
 
-    const response = await fetch(url, init)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
+    const headers: Record<string, string> = {}
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json'
     }
 
-    const json: unknown = await response.json()
+    const apiKeyEnv = this.config?.apiKeyEnv
+    if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
+      const apiKey = readEnvValue(apiKeyEnv)
+      if (apiKey) {
+        headers['TRON-PRO-API-KEY'] = apiKey
+      }
+    }
+
+    const init: RequestInit = body !== undefined
+      ? { method: 'POST', headers, body: JSON.stringify(body) }
+      : { method: 'GET', headers }
+
+    const json: unknown = await fetchJson(url, init, {
+      cacheKey: `tron:${this.type}:${url}:${typeof init.body === 'string' ? init.body : ''}`,
+      ttlMs: options?.ttlMs ?? 0,
+      tags: options?.ttlMs ? options?.tags : undefined,
+    })
+
     const parsed = schema.safeParse(json)
     if (!parsed.success) {
       throw new Error('Invalid API response')
@@ -130,60 +163,48 @@ export class TronRpcProvider implements ApiProvider {
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
-    try {
-      // Tron 地址需要转换为 hex 格式或使用 base58
-      const account = await this.api('/wallet/getaccount', TronAccountSchema, {
-        address,
-        visible: true,
-      })
+    // Tron 地址需要转换为 hex 格式或使用 base58
+    const account = await this.api('/wallet/getaccount', TronAccountSchema, {
+      address,
+      visible: true,
+    }, {
+      ttlMs: 60_000,
+      tags: [`balance:${this.chainId}:${address}`],
+    })
 
-      const balanceSun = account.balance ?? 0
-      
-      return {
-        amount: Amount.fromRaw(balanceSun.toString(), this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
-    } catch (error) {
-      console.warn('[TronRpcProvider] Error fetching balance:', error)
-      return {
-        amount: Amount.zero(this.decimals, this.symbol),
-        symbol: this.symbol,
-      }
+    const balanceSun = account.balance ?? 0
+    observeValueAndInvalidate({
+      key: `balance:${this.chainId}:${address}`,
+      value: balanceSun.toString(),
+      invalidateTags: [`txhistory:${this.chainId}:${address}`],
+    })
+
+    return {
+      amount: Amount.fromRaw(balanceSun.toString(), this.decimals, this.symbol),
+      symbol: this.symbol,
     }
   }
 
   async getBlockHeight(): Promise<bigint> {
-    try {
-      const block = await this.api('/wallet/getnowblock', TronNowBlockSchema)
-      const height = block.block_header?.raw_data?.number ?? 0
-      return BigInt(height)
-    } catch {
-      return 0n
-    }
+    const block = await this.api('/wallet/getnowblock', TronNowBlockSchema, undefined, { ttlMs: 10_000 })
+    const height = block.block_header?.raw_data?.number ?? 0
+    return BigInt(height)
   }
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    try {
-      const fetchLimit = limit * FETCH_MULTIPLIER
+    const fetchLimit = limit * FETCH_MULTIPLIER
 
-      // 并行获取原生交易和 TRC-20 交易
-      const [nativeTxs, trc20Txs] = await Promise.all([
-        this.fetchNativeTransactions(address, fetchLimit),
-        this.fetchTrc20Transactions(address, fetchLimit),
-      ])
+    const [nativeTxs, trc20Txs] = await Promise.all([
+      this.fetchNativeTransactions(address, fetchLimit),
+      this.fetchTrc20Transactions(address, fetchLimit),
+    ])
 
-      // 按 txID 聚合
-      const normalizedAddress = address.toLowerCase()
-      const aggregated = this.aggregateByTxId(nativeTxs, trc20Txs, normalizedAddress)
+    const normalizedAddress = address.toLowerCase()
+    const aggregated = this.aggregateByTxId(nativeTxs, trc20Txs, normalizedAddress)
 
-      // 按时间排序、限制数量
-      return aggregated
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, limit)
-    } catch (error) {
-      console.warn('[TronRpcProvider] Error fetching transaction history:', error)
-      return []
-    }
+    return aggregated
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit)
   }
 
   /**
@@ -472,27 +493,29 @@ export class TronRpcProvider implements ApiProvider {
   }
 
   private async fetchNativeTransactions(address: string, limit: number): Promise<TronTx[]> {
-    try {
-      const result = await this.api(
-        `/v1/accounts/${address}/transactions?limit=${limit}`,
-        TronTxListSchema
-      )
-      return result.success && result.data ? result.data : []
-    } catch {
-      return []
+    const result = await this.api(
+      `/v1/accounts/${address}/transactions?limit=${limit}`,
+      TronTxListSchema,
+      undefined,
+      { ttlMs: 5 * 60_000, tags: [`txhistory:${this.chainId}:${address}`] },
+    )
+    if (!result.success) {
+      throw new Error('Tron API error')
     }
+    return result.data ?? []
   }
 
   private async fetchTrc20Transactions(address: string, limit: number): Promise<Trc20Tx[]> {
-    try {
-      const result = await this.api(
-        `/v1/accounts/${address}/transactions/trc20?limit=${limit}`,
-        Trc20TxListSchema
-      )
-      return result.success && result.data ? result.data : []
-    } catch {
-      return []
+    const result = await this.api(
+      `/v1/accounts/${address}/transactions/trc20?limit=${limit}`,
+      Trc20TxListSchema,
+      undefined,
+      { ttlMs: 5 * 60_000, tags: [`txhistory:${this.chainId}:${address}`] },
+    )
+    if (!result.success) {
+      throw new Error('Tron API error')
     }
+    return result.data ?? []
   }
 
   private getDirection(from: string, to: string, address: string): Direction {
@@ -511,7 +534,7 @@ export class TronRpcProvider implements ApiProvider {
 
 /** 工厂函数 */
 export function createTronRpcProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
-  if (entry.type === 'tron-rpc' || entry.type.startsWith('tron-')) {
+  if (entry.type === 'tron-rpc' || entry.type === 'tron-rpc-pro') {
     return new TronRpcProvider(entry, chainId)
   }
   return null
