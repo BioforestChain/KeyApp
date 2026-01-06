@@ -9,9 +9,9 @@
       "symbol": "SepoliaETH",
       "icon": "../icons/ethereum/chain.svg",
       "decimals": 18,
-      "api": {
-        "ethereum-rpc": "https://rpc.sepolia.org"
-      },
+      "apis": [
+        { "type": "ethereum-rpc", "endpoint": "https://rpc.sepolia.org" }
+      ],
       "explorer": {
         "url": "https://sepolia.etherscan.io",
         "queryTx": "https://sepolia.etherscan.io/tx/:hash",
@@ -26,9 +26,9 @@
       "symbol": "tBNB",
       "icon": "../icons/binance/chain.svg",
       "decimals": 18,
-      "api": {
-        "ethereum-rpc": "https://bsc-testnet-rpc.publicnode.com"
-      },
+      "apis": [
+        { "type": "ethereum-rpc", "endpoint": "https://bsc-testnet-rpc.publicnode.com" }
+      ],
       "explorer": {
         "url": "https://testnet.bscscan.com",
         "queryTx": "https://testnet.bscscan.com/tx/:hash",
@@ -43,9 +43,9 @@
       "symbol": "TRX",
       "icon": "../icons/tron/chain.svg",
       "decimals": 6,
-      "api": {
-        "tron-rpc": "https://nile.trongrid.io"
-      },
+      "apis": [
+        { "type": "tron-rpc", "endpoint": "https://nile.trongrid.io" }
+      ],
       "explorer": {
         "url": "https://nile.tronscan.org",
         "queryTx": "https://nile.tronscan.org/#/transaction/:hash",
@@ -60,9 +60,9 @@
       "symbol": "sBTC",
       "icon": "../icons/bitcoin/chain.svg",
       "decimals": 8,
-      "api": {
-        "mempool-v1": "https://mempool.space/signet/api"
-      },
+      "apis": [
+        { "type": "mempool-v1", "endpoint": "https://mempool.space/signet/api" }
+      ],
       "explorer": {
         "url": "https://mempool.space/signet",
         "queryTx": "https://mempool.space/signet/tx/:hash",

@@ -112,6 +112,21 @@ const SECRET_DEFINITIONS: SecretDefinition[] = [
     required: true,
     isPassword: true,
   },
+
+  // API Keys
+  {
+    key: 'VITE_TRONGRID_API_KEY',
+    description: 'TronGrid API Key（用于高频率 Tron 请求）',
+    category: 'api-keys',
+    required: false,
+    isPassword: true,
+    validate: (v) => {
+      if (v && !/^[a-f0-9-]{36}$/i.test(v)) {
+        return 'API Key 格式无效（应为 UUID）'
+      }
+      return true
+    },
+  },
 ]
 
 interface CategoryDefinition {
@@ -135,6 +150,11 @@ const CATEGORIES: CategoryDefinition[] = [
     id: 'dweb-dev',
     name: 'DWEB 开发版发布',
     description: 'SFTP 开发服务器账号（用于日常 CI/CD）',
+  },
+  {
+    id: 'api-keys',
+    name: 'API Keys',
+    description: '第三方 API 密钥（TronGrid 等）',
   },
 ]
 

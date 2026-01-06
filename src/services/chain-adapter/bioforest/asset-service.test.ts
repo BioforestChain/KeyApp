@@ -13,14 +13,12 @@ vi.mock('@/services/chain-config', () => ({
       if (chainId === 'bfmeta') {
         return {
           id: 'bfmeta',
+          version: '1.0',
           chainKind: 'bioforest',
           name: 'BFMeta',
           symbol: 'BFM',
           decimals: 8,
-          api: {
-            url: 'https://walletapi.bfmeta.info',
-            path: 'bfm',
-          },
+          apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bfmeta.info', config: { path: 'bfm' } }],
         }
       }
       return null

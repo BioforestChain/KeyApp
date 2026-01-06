@@ -12,6 +12,26 @@
 
 ---
 
+## KeyApp 配置与 Provider（重要）
+
+KeyApp 的链配置（`public/configs/*.json`）使用有序数组 `apis[]` 描述外部 Provider。
+
+- 字段：`{ type, endpoint, config? }`
+- 顺序：**从前到后**为优先级，前一个失败会自动 fallback 到下一个
+- 破坏性变更：历史的 `api`（对象/字典）已废弃，统一使用 `apis[]`
+
+常见 Provider 类型（示例）：
+
+- EVM：`blockscout-v1` / `*-rpc` / `ethwallet-v1` / `bscwallet-v1`
+- Tron：`tron-rpc` / `tron-rpc-pro` / `tronwallet-v1`
+- Bitcoin：`mempool-v1` / `btcwallet-v1`
+
+TronGrid Key：
+
+- `tron-rpc-pro` 支持在 `config.apiKeyEnv` 指定环境变量（如 `VITE_TRONGRID_API_KEY`），用于注入请求头 `TRON-PRO-API-KEY`
+
+---
+
 ## 链类型分类
 
 | 类型 | 链 | API 路径前缀 | 特点 |
@@ -112,6 +132,11 @@ src/apis/
 | POST | `/wallet/eth/account/balance/v2` | 批量查余额 |
 | GET | `/wallet/eth/getChainId` | 获取 chainId |
 
+KeyApp Provider 对应关系：
+
+- `ethwallet-v1` 以 `/wallet/eth/*` 为前缀
+- `bscwallet-v1` 以 `/wallet/bsc/*` 为前缀
+
 ---
 
 ## 三、比特币 (bitcoin)
@@ -136,6 +161,10 @@ src/apis/
 | GET | `/wallet/btc/blockbook` + `/api/v2/estimatefee/{blocks}` | 费率估算 |
 
 **注意**: Bitcoin API 使用代理模式，通过 POST 发送 `{ url, method }` 参数。
+
+KeyApp Provider 对应关系：
+
+- `btcwallet-v1` 对应 `/wallet/btc/blockbook`（代理 blockbook）
 
 ---
 
@@ -169,6 +198,10 @@ src/apis/
 | POST | `/wallet/tron/contract/tokens` | 代币列表 |
 | POST | `/wallet/tron/contract/token/detail` | 代币详情 |
 | POST | `/wallet/tron/account/balance/v2` | 批量查余额 |
+
+KeyApp Provider 对应关系：
+
+- `tronwallet-v1` 以 `/wallet/tron/*` 为前缀
 
 ---
 

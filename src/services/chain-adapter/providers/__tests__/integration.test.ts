@@ -35,10 +35,10 @@ describe('ChainProvider 集成测试', () => {
       decimals: 18,
       enabled: true,
       source: 'default',
-      api: {
-        'ethereum-rpc': 'https://ethereum-rpc.publicnode.com',
-        'etherscan-v2': 'https://api.etherscan.io/v2/api',
-      },
+      apis: [
+        { type: 'etherscan-v2', endpoint: 'https://api.etherscan.io/v2/api' },
+        { type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' },
+      ],
     }
     mockGetChainById.mockReturnValue(mockEthConfig)
 
@@ -72,9 +72,7 @@ describe('ChainProvider 集成测试', () => {
       prefix: 'b',
       enabled: true,
       source: 'default',
-      api: {
-        'biowallet-v1': ['https://walletapi.bfmeta.info', { path: 'bfmeta' }],
-      },
+      apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bfmeta.info', config: { path: 'bfmeta' } }],
     }
     mockGetChainById.mockReturnValue(mockBfmetaConfig)
 
@@ -112,9 +110,7 @@ describe('ChainProvider 集成测试', () => {
       decimals: 18,
       enabled: true,
       source: 'default',
-      api: {
-        'ethereum-rpc': 'https://rpc.test.com',
-      },
+      apis: [{ type: 'ethereum-rpc', endpoint: 'https://rpc.test.com' }],
     }
     mockGetChainById.mockReturnValue(mockConfig)
 

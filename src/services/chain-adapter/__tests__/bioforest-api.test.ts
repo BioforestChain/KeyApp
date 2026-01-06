@@ -19,7 +19,7 @@ const mockConfigWithRpc: ChainConfig = {
   decimals: 8,
   enabled: true,
   source: 'default',
-  api: { url: 'https://walletapi.bfmeta.info', path: 'bfm' },
+  apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bfmeta.info', config: { path: 'bfm' } }],
 }
 
 // Mock chainConfigService

@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EtherscanProvider, createEtherscanProvider } from '../etherscan-provider'
+import { resetFetchJsonForTests } from '../fetch-json'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
 // Mock chainConfigService
@@ -15,7 +16,12 @@ vi.mock('@/services/chain-config', () => ({
 
 // Mock fetch
 const mockFetch = vi.fn()
+const originalFetch = global.fetch
 global.fetch = mockFetch
+
+afterAll(() => {
+  global.fetch = originalFetch
+})
 
 function readFixture<T>(name: string): T {
   const dir = path.dirname(fileURLToPath(import.meta.url))
@@ -31,6 +37,7 @@ describe('EtherscanProvider', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    resetFetchJsonForTests()
   })
 
   describe('createEtherscanProvider', () => {

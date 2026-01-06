@@ -49,8 +49,9 @@ export function useSecurityPasswordQuery(
         return { address, secondPublicKey: null }
       }
 
-      const apiUrl = chainConfig.api?.url
-      const apiPath = chainConfig.api?.path ?? chainConfig.id
+      const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+      const apiUrl = biowallet?.endpoint
+      const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
       
       if (!apiUrl) {
         console.warn(`[useSecurityPasswordQuery] API URL not configured for ${chain}`)

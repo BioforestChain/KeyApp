@@ -10,6 +10,7 @@ import { z } from 'zod'
 import type { ApiProvider, Transaction, Direction, Action } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
+import { fetchJson } from './fetch-json'
 
 /** EVM Chain IDs */
 const EVM_CHAIN_IDS: Record<string, number> = {
@@ -84,27 +85,19 @@ export class EtherscanProvider implements ApiProvider {
   }
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    try {
-      const fetchLimit = limit * FETCH_MULTIPLIER
-      
-      // 并行获取原生交易和代币交易（拉取更多以应对分页陷阱）
-      const [nativeTxs, tokenTxs] = await Promise.all([
-        this.fetchNativeTransactions(address, fetchLimit),
-        this.fetchTokenTransactions(address, fetchLimit),
-      ])
+    const fetchLimit = limit * FETCH_MULTIPLIER
 
-      // 按 hash 聚合：txlist 为主轴，tokentx 贴合
-      const normalizedAddress = address.toLowerCase()
-      const aggregated = this.aggregateByHash(nativeTxs, tokenTxs, normalizedAddress)
+    const [nativeTxs, tokenTxs] = await Promise.all([
+      this.fetchNativeTransactions(address, fetchLimit),
+      this.fetchTokenTransactions(address, fetchLimit),
+    ])
 
-      // 按时间排序、限制数量
-      return aggregated
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, limit)
-    } catch (error) {
-      console.warn('[EtherscanProvider] Error fetching transactions:', error)
-      return []
-    }
+    const normalizedAddress = address.toLowerCase()
+    const aggregated = this.aggregateByHash(nativeTxs, tokenTxs, normalizedAddress)
+
+    return aggregated
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit)
   }
 
   /**
@@ -297,13 +290,9 @@ export class EtherscanProvider implements ApiProvider {
 
   private async fetchNativeTransactions(address: string, limit: number): Promise<NativeTx[]> {
     const params = this.buildParams('txlist', address, limit)
-    const response = await this.fetchApi(params)
-    
-    if (!response.success || !Array.isArray(response.data)) {
-      return []
-    }
+    const data = await this.fetchApi(params, `etherscan:${this.type}:txlist:${address}:${limit}`)
 
-    return response.data
+    return data
       .map(item => NativeTxSchema.safeParse(item))
       .filter((r): r is z.SafeParseSuccess<NativeTx> => r.success)
       .map(r => r.data)
@@ -311,13 +300,9 @@ export class EtherscanProvider implements ApiProvider {
 
   private async fetchTokenTransactions(address: string, limit: number): Promise<TokenTx[]> {
     const params = this.buildParams('tokentx', address, limit)
-    const response = await this.fetchApi(params)
-    
-    if (!response.success || !Array.isArray(response.data)) {
-      return []
-    }
+    const data = await this.fetchApi(params, `etherscan:${this.type}:tokentx:${address}:${limit}`)
 
-    return response.data
+    return data
       .map(item => TokenTxSchema.safeParse(item))
       .filter((r): r is z.SafeParseSuccess<TokenTx> => r.success)
       .map(r => r.data)
@@ -348,32 +333,36 @@ export class EtherscanProvider implements ApiProvider {
     return params
   }
 
-  private async fetchApi(params: URLSearchParams): Promise<{ success: boolean; data: unknown[] }> {
-    try {
-      const url = `${this.endpoint}?${params.toString()}`
-      const response = await fetch(url)
-      
-      if (!response.ok) {
-        console.warn(`[EtherscanProvider] HTTP ${response.status}`)
-        return { success: false, data: [] }
-      }
+  private async fetchApi(params: URLSearchParams, cacheKey: string): Promise<unknown[]> {
+    const url = `${this.endpoint}?${params.toString()}`
+    const address = params.get('address') ?? ''
+    const json: unknown = await fetchJson(url, undefined, {
+      cacheKey,
+      ttlMs: 5 * 60_000,
+      tags: address ? [`txhistory:${this.chainId}:${address}`] : undefined,
+    })
 
-      const json: unknown = await response.json()
-      const parsed = ApiResponseSchema.safeParse(json)
-      
-      if (!parsed.success || parsed.data.status !== '1') {
-        return { success: false, data: [] }
-      }
-
-      const result = parsed.data.result
-      if (!Array.isArray(result)) {
-        return { success: false, data: [] }
-      }
-
-      return { success: true, data: result }
-    } catch {
-      return { success: false, data: [] }
+    const parsed = ApiResponseSchema.safeParse(json)
+    if (!parsed.success) {
+      throw new Error('Invalid API response')
     }
+
+    const status = parsed.data.status
+    const message = parsed.data.message.toLowerCase()
+
+    if (status === '0' && message.includes('no transactions')) {
+      return []
+    }
+    if (status !== '1') {
+      throw new Error('Upstream API error')
+    }
+
+    const result = parsed.data.result
+    if (!Array.isArray(result)) {
+      throw new Error('Invalid API result')
+    }
+
+    return result
   }
 
   private getDirection(from: string, to: string, address: string): Direction {

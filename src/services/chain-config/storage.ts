@@ -126,7 +126,7 @@ export async function saveChainConfigs(options: {
       decimals: config.decimals,
       ...(config.icon !== undefined ? { icon: config.icon } : {}),
       ...(config.prefix !== undefined ? { prefix: config.prefix } : {}),
-      ...(config.api !== undefined ? { api: config.api } : {}),
+      ...(config.apis !== undefined ? { apis: config.apis } : {}),
       ...(config.explorer !== undefined ? { explorer: config.explorer } : {}),
     }
 

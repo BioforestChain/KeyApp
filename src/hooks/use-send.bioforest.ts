@@ -17,6 +17,13 @@ export interface BioforestFeeResult {
   symbol: string
 }
 
+function getBioforestApi(chainConfig: ChainConfig): { apiUrl: string | null; apiPath: string } {
+  const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+  const apiUrl = biowallet?.endpoint ?? null
+  const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
+  return { apiUrl, apiPath }
+}
+
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
   const adapter = createBioforestAdapter(chainConfig)
   const feeEstimate = await adapter.transaction.estimateFee({
@@ -67,8 +74,7 @@ export async function checkTwoStepSecretRequired(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<{ required: boolean; secondPublicKey?: string }> {
-  const apiUrl = chainConfig.api?.url
-  const apiPath = chainConfig.api?.path ?? chainConfig.id
+  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
   if (!apiUrl) {
     return { required: false }
   }
@@ -131,8 +137,7 @@ export async function submitBioforestTransfer({
     return { status: 'error', message: '请输入有效金额' }
   }
 
-  const apiUrl = chainConfig.api?.url
-  const apiPath = chainConfig.api?.path ?? chainConfig.id
+  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
   if (!apiUrl) {
     return { status: 'error', message: 'API URL 未配置' }
   }
@@ -245,8 +250,7 @@ export async function submitSetTwoStepSecret({
     }
   }
 
-  const apiUrl = chainConfig.api?.url
-  const apiPath = chainConfig.api?.path ?? chainConfig.id
+  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
   if (!apiUrl) {
     return { status: 'error', message: 'API URL 未配置' }
   }
@@ -292,8 +296,7 @@ export async function submitSetTwoStepSecret({
 export async function getSetTwoStepSecretFee(
   chainConfig: ChainConfig,
 ): Promise<{ amount: Amount; symbol: string } | null> {
-  const apiUrl = chainConfig.api?.url
-  const apiPath = chainConfig.api?.path ?? chainConfig.id
+  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
   if (!apiUrl) {
     return null
   }
@@ -317,8 +320,7 @@ export async function hasTwoStepSecretSet(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<boolean> {
-  const apiUrl = chainConfig.api?.url
-  const apiPath = chainConfig.api?.path ?? chainConfig.id
+  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
   if (!apiUrl) {
     return false
   }

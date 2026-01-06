@@ -3,6 +3,13 @@ import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
 import { Amount } from '@/types/amount'
 
+vi.mock('@/services/chain-config', () => ({
+  chainConfigService: {
+    getSymbol: () => 'TEST',
+    getDecimals: () => 8,
+  },
+}))
+
 // Mock ApiProvider
 function createMockProvider(overrides: Partial<ApiProvider> = {}): ApiProvider {
   return {
@@ -13,6 +20,10 @@ function createMockProvider(overrides: Partial<ApiProvider> = {}): ApiProvider {
 }
 
 describe('ChainProvider', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   describe('supports', () => {
     it('returns true when a provider implements the method', () => {
       const provider = createMockProvider({
@@ -66,10 +77,16 @@ describe('ChainProvider', () => {
         hash: '0xabc',
         from: '0x1',
         to: '0x2',
-        value: '1000',
-        symbol: 'TEST',
         timestamp: Date.now(),
         status: 'confirmed',
+        action: 'transfer',
+        direction: 'out',
+        assets: [{
+          assetType: 'native',
+          value: '1000',
+          symbol: 'TEST',
+          decimals: 8,
+        }],
       }]
       const provider = createMockProvider({
         getTransactionHistory: vi.fn().mockResolvedValue(mockTxs),
@@ -82,6 +99,58 @@ describe('ChainProvider', () => {
       const result = await getHistory!('0x123', 10)
       expect(result).toEqual(mockTxs)
       expect(provider.getTransactionHistory).toHaveBeenCalledWith('0x123', 10)
+    })
+
+    it('falls back to the next provider when the first throws', async () => {
+      const p1 = createMockProvider({
+        type: 'p1',
+        getNativeBalance: vi.fn().mockRejectedValue(new Error('p1 down')),
+      })
+      const mockBalance: Balance = {
+        amount: Amount.fromRaw('123', 8, 'TEST'),
+        symbol: 'TEST',
+      }
+      const p2 = createMockProvider({
+        type: 'p2',
+        getNativeBalance: vi.fn().mockResolvedValue(mockBalance),
+      })
+
+      const chainProvider = new ChainProvider('test', [p1, p2])
+      const result = await chainProvider.getNativeBalance!('0x123')
+
+      expect(result).toEqual(mockBalance)
+      expect(p1.getNativeBalance).toHaveBeenCalledTimes(1)
+      expect(p2.getNativeBalance).toHaveBeenCalledTimes(1)
+    })
+
+    it('returns safe defaults for read methods when all providers fail', async () => {
+      const p1 = createMockProvider({
+        type: 'p1',
+        getTransactionHistory: vi.fn().mockRejectedValue(new Error('nope')),
+      })
+      const p2 = createMockProvider({
+        type: 'p2',
+        getTransactionHistory: vi.fn().mockRejectedValue(new Error('still nope')),
+      })
+
+      const chainProvider = new ChainProvider('test', [p1, p2])
+      const txs = await chainProvider.getTransactionHistory!('0xabc', 10)
+
+      expect(txs).toEqual([])
+    })
+
+    it('rethrows for non-read methods when all providers fail', async () => {
+      const p1 = createMockProvider({
+        type: 'p1',
+        estimateFee: vi.fn().mockRejectedValue(new Error('fee fail')),
+      })
+      const chainProvider = new ChainProvider('test', [p1])
+
+      await expect(chainProvider.estimateFee!({
+        from: 'a',
+        to: 'b',
+        amount: Amount.fromRaw('1', 8, 'TEST'),
+      })).rejects.toThrow('fee fail')
     })
 
     it('returns undefined for unimplemented methods', () => {

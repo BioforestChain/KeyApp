@@ -9,6 +9,7 @@ import type { ApiProvider, Balance, Transaction, TokenBalance, Action, Direction
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
+import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 
 const BiowalletAssetItemSchema = z.looseObject({
   assetNumber: z.string(),
@@ -108,104 +109,112 @@ export class BiowalletProvider implements ApiProvider {
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
-    try {
-      const response = await fetch(`${this.baseUrl}/address/asset`, {
+    const url = `${this.baseUrl}/address/asset`
+    const json: unknown = await fetchJson(
+      url,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address }),
-      })
+      },
+      {
+        cacheKey: `biowallet:${this.path}:assets:${address}`,
+        ttlMs: 60_000,
+        tags: [`balance:${this.chainId}:${address}`],
+      },
+    )
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
+    const parsed = BiowalletAssetSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
+      throw new Error('Upstream API error')
+    }
 
-      const json: unknown = await response.json()
-      const parsed = BiowalletAssetSchema.safeParse(json)
-      
-      if (!parsed.success || !parsed.data.success || !parsed.data.result) {
-        return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
-      }
+    // 查找原生代币余额
+    for (const magic of Object.values(parsed.data.result.assets)) {
+      for (const asset of Object.values(magic)) {
+        if (asset.assetType === this.symbol) {
+          observeValueAndInvalidate({
+            key: `balance:${this.chainId}:${address}`,
+            value: asset.assetNumber,
+            invalidateTags: [`txhistory:${this.chainId}:${address}`],
+          })
 
-      // 查找原生代币余额
-      for (const magic of Object.values(parsed.data.result.assets)) {
-        for (const asset of Object.values(magic)) {
-          if (asset.assetType === this.symbol) {
-            return {
-              amount: Amount.fromRaw(asset.assetNumber, this.decimals, this.symbol),
-              symbol: this.symbol,
-            }
+          return {
+            amount: Amount.fromRaw(asset.assetNumber, this.decimals, this.symbol),
+            symbol: this.symbol,
           }
         }
       }
-
-      return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
-    } catch (error) {
-      console.warn('[BiowalletProvider] Error fetching balance:', error)
-      return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
     }
+
+    observeValueAndInvalidate({
+      key: `balance:${this.chainId}:${address}`,
+      value: '0',
+      invalidateTags: [`txhistory:${this.chainId}:${address}`],
+    })
+
+    return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
   }
 
   async getTokenBalances(address: string): Promise<TokenBalance[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/address/asset`, {
+    const url = `${this.baseUrl}/address/asset`
+    const json: unknown = await fetchJson(
+      url,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address }),
-      })
+      },
+      {
+        cacheKey: `biowallet:${this.path}:assets:${address}`,
+        ttlMs: 60_000,
+        tags: [`balance:${this.chainId}:${address}`],
+      },
+    )
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const json: unknown = await response.json()
-      const parsed = BiowalletAssetSchema.safeParse(json)
-      
-      if (!parsed.success || !parsed.data.success || !parsed.data.result) {
-        return []
-      }
-
-      const tokens: TokenBalance[] = []
-
-      for (const magic of Object.values(parsed.data.result.assets)) {
-        for (const asset of Object.values(magic)) {
-          const isNative = asset.assetType === this.symbol
-          tokens.push({
-            symbol: asset.assetType,
-            name: asset.assetType,
-            amount: Amount.fromRaw(asset.assetNumber, this.decimals, asset.assetType),
-            isNative,
-          })
-        }
-      }
-
-      // Sort: native first, then by amount descending
-      tokens.sort((a, b) => {
-        if (a.isNative && !b.isNative) return -1
-        if (!a.isNative && b.isNative) return 1
-        return b.amount.toNumber() - a.amount.toNumber()
-      })
-
-      return tokens
-    } catch (error) {
-      console.warn('[BiowalletProvider] Error fetching token balances:', error)
-      return []
+    const parsed = BiowalletAssetSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
+      throw new Error('Upstream API error')
     }
+
+    const tokens: TokenBalance[] = []
+
+    for (const magic of Object.values(parsed.data.result.assets)) {
+      for (const asset of Object.values(magic)) {
+        const isNative = asset.assetType === this.symbol
+        tokens.push({
+          symbol: asset.assetType,
+          name: asset.assetType,
+          amount: Amount.fromRaw(asset.assetNumber, this.decimals, asset.assetType),
+          isNative,
+        })
+      }
+    }
+
+    tokens.sort((a, b) => {
+      if (a.isNative && !b.isNative) return -1
+      if (!a.isNative && b.isNative) return 1
+      return b.amount.toNumber() - a.amount.toNumber()
+    })
+
+    return tokens
   }
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    try {
-      // 先获取最新区块高度
-      const blockResponse = await fetch(`${this.baseUrl}/lastblock`)
-      if (!blockResponse.ok) return []
-      
-      const blockJson: unknown = await blockResponse.json()
-      const blockParsed = BiowalletBlockSchema.safeParse(blockJson)
-      if (!blockParsed.success || !blockParsed.data.success || !blockParsed.data.result) return []
-      
-      const maxHeight = blockParsed.data.result.height
+    const blockJson: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
+      cacheKey: `biowallet:${this.path}:lastblock`,
+      ttlMs: 10_000,
+    })
+    const blockParsed = BiowalletBlockSchema.safeParse(blockJson)
+    if (!blockParsed.success || !blockParsed.data.success || !blockParsed.data.result) {
+      throw new Error('Upstream API error')
+    }
 
-      // 查询交易
-      const response = await fetch(`${this.baseUrl}/transactions/query`, {
+    const maxHeight = blockParsed.data.result.height
+
+    const json: unknown = await fetchJson(
+      `${this.baseUrl}/transactions/query`,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -213,49 +222,48 @@ export class BiowalletProvider implements ApiProvider {
           address,
           limit,
         }),
-      })
+      },
+      {
+        cacheKey: `biowallet:${this.path}:txs:${address}:${limit}:${maxHeight}`,
+        ttlMs: 5 * 60_000,
+        tags: [`txhistory:${this.chainId}:${address}`],
+      },
+    )
 
-      if (!response.ok) return []
-
-      const json: unknown = await response.json()
-      const parsed = BiowalletTxResponseSchema.safeParse(json)
-      
-      if (!parsed.success || !parsed.data.success || !parsed.data.result?.trs) return []
-
-      const normalizedAddress = address.toLowerCase()
-      
-      return parsed.data.result.trs
-        .map((item): Transaction | null => {
-          const tx = item.transaction
-          const action = this.detectAction(tx.type)
-          const direction = this.getDirection(tx.senderId, tx.recipientId, normalizedAddress)
-          
-          // 获取金额和资产类型
-          const { value, assetType } = this.extractAssetInfo(tx)
-          if (value === null) return null
-          
-          return {
-            hash: item.signature,
-            from: tx.senderId,
-            to: tx.recipientId,
-            timestamp: tx.timestamp * 1000,
-            status: 'confirmed',
-            blockNumber: BigInt(item.height),
-            action,
-            direction,
-            assets: [{
-              assetType: 'native' as const,
-              value,
-              symbol: assetType,
-              decimals: this.decimals,
-            }],
-          }
-        })
-        .filter((tx): tx is Transaction => tx !== null)
-    } catch (error) {
-      console.warn('[BiowalletProvider] Error fetching transactions:', error)
-      return []
+    const parsed = BiowalletTxResponseSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success || !parsed.data.result?.trs) {
+      throw new Error('Upstream API error')
     }
+
+    const normalizedAddress = address.toLowerCase()
+
+    return parsed.data.result.trs
+      .map((item): Transaction | null => {
+        const tx = item.transaction
+        const action = this.detectAction(tx.type)
+        const direction = this.getDirection(tx.senderId, tx.recipientId, normalizedAddress)
+
+        const { value, assetType } = this.extractAssetInfo(tx)
+        if (value === null) return null
+
+        return {
+          hash: item.signature,
+          from: tx.senderId,
+          to: tx.recipientId,
+          timestamp: tx.timestamp * 1000,
+          status: 'confirmed',
+          blockNumber: BigInt(item.height),
+          action,
+          direction,
+          assets: [{
+            assetType: 'native' as const,
+            value,
+            symbol: assetType,
+            decimals: this.decimals,
+          }],
+        }
+      })
+      .filter((tx): tx is Transaction => tx !== null)
   }
 
   private detectAction(txType: string): Action {
@@ -404,18 +412,15 @@ export class BiowalletProvider implements ApiProvider {
   }
 
   async getBlockHeight(): Promise<bigint> {
-    try {
-      const response = await fetch(`${this.baseUrl}/lastblock`)
-      if (!response.ok) return 0n
-      
-      const json: unknown = await response.json()
-      const parsed = BiowalletBlockSchema.safeParse(json)
-      if (!parsed.success || !parsed.data.success || !parsed.data.result) return 0n
-      
-      return BigInt(parsed.data.result.height)
-    } catch {
-      return 0n
+    const json: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
+      cacheKey: `biowallet:${this.path}:lastblock`,
+      ttlMs: 10_000,
+    })
+    const parsed = BiowalletBlockSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
+      throw new Error('Upstream API error')
     }
+    return BigInt(parsed.data.result.height)
   }
 }
 
