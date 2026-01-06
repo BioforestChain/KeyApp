@@ -87,131 +87,127 @@ const REAL_ADDRESSES = {
 
 const COMPARE_CHAIN_CONFIGS: ChainConfig[] = [
   {
-    id: 'ethereum-blockscout-first',
+    id: 'ethereum-blockscout-only',
     version: '1.0',
     chainKind: 'evm',
-    name: 'Ethereum (blockscout first)',
+    name: 'Ethereum (blockscout only)',
     symbol: 'ETH',
     icon: '../icons/ethereum/chain.svg',
     decimals: 18,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' },
-      { type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' },
-      { type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' },
-    ],
+    apis: [{ type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' }],
   },
   {
-    id: 'ethereum-ethwallet-first',
+    id: 'ethereum-rpc-only',
     version: '1.0',
     chainKind: 'evm',
-    name: 'Ethereum (ethwallet first)',
+    name: 'Ethereum (rpc only)',
     symbol: 'ETH',
     icon: '../icons/ethereum/chain.svg',
     decimals: 18,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' },
-      { type: 'blockscout-v1', endpoint: 'https://eth.blockscout.com/api' },
-      { type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' },
-    ],
+    apis: [{ type: 'ethereum-rpc', endpoint: 'https://ethereum-rpc.publicnode.com' }],
+  },
+  {
+    id: 'ethereum-ethwallet-only',
+    version: '1.0',
+    chainKind: 'evm',
+    name: 'Ethereum (ethwallet only)',
+    symbol: 'ETH',
+    icon: '../icons/ethereum/chain.svg',
+    decimals: 18,
+    enabled: true,
+    source: 'manual',
+    apis: [{ type: 'ethwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/eth' }],
   },
 
   {
-    id: 'tron-rpc-first',
+    id: 'tron-rpc-only',
     version: '1.0',
     chainKind: 'tron',
-    name: 'Tron (rpc first)',
+    name: 'Tron (rpc only)',
     symbol: 'TRX',
     icon: '../icons/tron/chain.svg',
     decimals: 6,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'tron-rpc', endpoint: 'https://api.trongrid.io' },
-      { type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } },
-      { type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' },
-    ],
+    apis: [{ type: 'tron-rpc', endpoint: 'https://api.trongrid.io' }],
   },
   {
-    id: 'tron-tronwallet-first',
+    id: 'tron-rpc-pro-only',
     version: '1.0',
     chainKind: 'tron',
-    name: 'Tron (tronwallet first)',
+    name: 'Tron (rpc-pro only)',
     symbol: 'TRX',
     icon: '../icons/tron/chain.svg',
     decimals: 6,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' },
-      { type: 'tron-rpc', endpoint: 'https://api.trongrid.io' },
-      { type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } },
-    ],
+    apis: [{ type: 'tron-rpc-pro', endpoint: 'https://api.trongrid.io', config: { apiKeyEnv: 'VITE_TRONGRID_API_KEY' } }],
+  },
+  {
+    id: 'tron-tronwallet-only',
+    version: '1.0',
+    chainKind: 'tron',
+    name: 'Tron (tronwallet only)',
+    symbol: 'TRX',
+    icon: '../icons/tron/chain.svg',
+    decimals: 6,
+    enabled: true,
+    source: 'manual',
+    apis: [{ type: 'tronwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/tron' }],
   },
 
   {
-    id: 'bitcoin-mempool-first',
+    id: 'bitcoin-mempool-only',
     version: '1.0',
     chainKind: 'bitcoin',
-    name: 'Bitcoin (mempool first)',
+    name: 'Bitcoin (mempool only)',
     symbol: 'BTC',
     icon: '../icons/bitcoin/chain.svg',
     decimals: 8,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'mempool-v1', endpoint: 'https://mempool.space/api' },
-      { type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' },
-    ],
+    apis: [{ type: 'mempool-v1', endpoint: 'https://mempool.space/api' }],
   },
   {
-    id: 'bitcoin-btcwallet-first',
+    id: 'bitcoin-btcwallet-only',
     version: '1.0',
     chainKind: 'bitcoin',
-    name: 'Bitcoin (btcwallet first)',
+    name: 'Bitcoin (btcwallet only)',
     symbol: 'BTC',
     icon: '../icons/bitcoin/chain.svg',
     decimals: 8,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' },
-      { type: 'mempool-v1', endpoint: 'https://mempool.space/api' },
-    ],
+    apis: [{ type: 'btcwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/btc/blockbook' }],
   },
 
   {
-    id: 'binance-bsc-rpc-first',
+    id: 'binance-bsc-rpc-only',
     version: '1.0',
     chainKind: 'evm',
-    name: 'BNB Smart Chain (rpc first)',
+    name: 'BNB Smart Chain (rpc only)',
     symbol: 'BNB',
     icon: '../icons/binance/chain.svg',
     decimals: 18,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' },
-      { type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' },
-    ],
+    apis: [{ type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' }],
   },
   {
-    id: 'binance-bscwallet-first',
+    id: 'binance-bscwallet-only',
     version: '1.0',
     chainKind: 'evm',
-    name: 'BNB Smart Chain (bscwallet first)',
+    name: 'BNB Smart Chain (bscwallet only)',
     symbol: 'BNB',
     icon: '../icons/binance/chain.svg',
     decimals: 18,
     enabled: true,
     source: 'manual',
-    apis: [
-      { type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' },
-      { type: 'bsc-rpc', endpoint: 'https://bsc-rpc.publicnode.com' },
-    ],
+    apis: [{ type: 'bscwallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bsc' }],
   },
 ];
 
@@ -233,7 +229,7 @@ function CompareConfigInjector() {
   useEffect(() => {
     if (!state.snapshot) return;
     if (injected) return;
-    const alreadyInjected = state.snapshot.configs.some((c) => c.id === 'ethereum-blockscout-first');
+    const alreadyInjected = state.snapshot.configs.some((c) => c.id === 'ethereum-blockscout-only');
     if (alreadyInjected) {
       setInjected(true);
       return;
@@ -362,6 +358,9 @@ async function verifyNonEmptyAssetsAndHistory(canvas: ReturnType<typeof within>,
       expect(tokenItems.length).toBeGreaterThan(0);
       const tokenText = tokenItems[0]?.textContent ?? '';
       expect(hasPositiveNumber(tokenText)).toBe(true);
+
+      const tokenEmpty = canvas.queryByTestId(`${testId}-token-list-empty`);
+      expect(tokenEmpty).toBeNull();
     },
     { timeout: 25_000 },
   );
@@ -373,6 +372,9 @@ async function verifyNonEmptyAssetsAndHistory(canvas: ReturnType<typeof within>,
     () => {
       const txList = canvas.queryByTestId(`${testId}-transaction-list`);
       expect(txList).not.toBeNull();
+
+      const txEmpty = canvas.queryByTestId(`${testId}-transaction-list-empty`);
+      expect(txEmpty).toBeNull();
     },
     { timeout: 25_000 },
   );
@@ -667,7 +669,7 @@ export const CompareProviders: Story = {
     chromatic: { delay: 8000 },
     docs: {
       description: {
-        story: 'Side-by-side comparison: each panel includes all supported providers but with different apis[] order, to compare rendering differences.',
+        story: 'Side-by-side comparison: each panel uses a single provider (single-item apis[]), so you can compare results provider-by-provider.',
       },
     },
   },
@@ -675,17 +677,24 @@ export const CompareProviders: Story = {
     <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-2">
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Ethereum</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
           <ProviderPanel
-            title="blockscout first"
-            chainId="ethereum-blockscout-first"
+            title="blockscout-v1"
+            chainId="ethereum-blockscout-only"
             address={REAL_ADDRESSES.ethereum}
             chainName="Ethereum"
             testId="cmp-ethereum-blockscout"
           />
           <ProviderPanel
-            title="ethwallet first"
-            chainId="ethereum-ethwallet-first"
+            title="ethereum-rpc"
+            chainId="ethereum-rpc-only"
+            address={REAL_ADDRESSES.ethereum}
+            chainName="Ethereum"
+            testId="cmp-ethereum-rpc"
+          />
+          <ProviderPanel
+            title="ethwallet-v1"
+            chainId="ethereum-ethwallet-only"
             address={REAL_ADDRESSES.ethereum}
             chainName="Ethereum"
             testId="cmp-ethereum-ethwallet"
@@ -695,17 +704,24 @@ export const CompareProviders: Story = {
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Tron</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
           <ProviderPanel
-            title="tron-rpc first"
-            chainId="tron-rpc-first"
+            title="tron-rpc"
+            chainId="tron-rpc-only"
             address={REAL_ADDRESSES.tron}
             chainName="Tron"
             testId="cmp-tron-rpc"
           />
           <ProviderPanel
-            title="tronwallet first"
-            chainId="tron-tronwallet-first"
+            title="tron-rpc-pro"
+            chainId="tron-rpc-pro-only"
+            address={REAL_ADDRESSES.tron}
+            chainName="Tron"
+            testId="cmp-tron-rpc-pro"
+          />
+          <ProviderPanel
+            title="tronwallet-v1"
+            chainId="tron-tronwallet-only"
             address={REAL_ADDRESSES.tron}
             chainName="Tron"
             testId="cmp-tron-tronwallet"
@@ -717,15 +733,15 @@ export const CompareProviders: Story = {
         <h2 className="text-lg font-semibold">Bitcoin</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ProviderPanel
-            title="mempool first"
-            chainId="bitcoin-mempool-first"
+            title="mempool-v1"
+            chainId="bitcoin-mempool-only"
             address={REAL_ADDRESSES.bitcoin}
             chainName="Bitcoin"
             testId="cmp-bitcoin-mempool"
           />
           <ProviderPanel
-            title="btcwallet first"
-            chainId="bitcoin-btcwallet-first"
+            title="btcwallet-v1"
+            chainId="bitcoin-btcwallet-only"
             address={REAL_ADDRESSES.bitcoin}
             chainName="Bitcoin"
             testId="cmp-bitcoin-btcwallet"
@@ -737,15 +753,15 @@ export const CompareProviders: Story = {
         <h2 className="text-lg font-semibold">BNB Smart Chain</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ProviderPanel
-            title="bsc-rpc first"
-            chainId="binance-bsc-rpc-first"
+            title="bsc-rpc"
+            chainId="binance-bsc-rpc-only"
             address={REAL_ADDRESSES.binance}
             chainName="BNB Smart Chain"
             testId="cmp-binance-rpc"
           />
           <ProviderPanel
-            title="bscwallet first"
-            chainId="binance-bscwallet-first"
+            title="bscwallet-v1"
+            chainId="binance-bscwallet-only"
             address={REAL_ADDRESSES.binance}
             chainName="BNB Smart Chain"
             testId="cmp-binance-bscwallet"
@@ -763,8 +779,10 @@ export const CompareProviders: Story = {
       await waitFor(
         () => {
           expect(canvas.getByTestId('cmp-ethereum-blockscout')).toBeVisible();
+          expect(canvas.getByTestId('cmp-ethereum-rpc')).toBeVisible();
           expect(canvas.getByTestId('cmp-ethereum-ethwallet')).toBeVisible();
           expect(canvas.getByTestId('cmp-tron-rpc')).toBeVisible();
+          expect(canvas.getByTestId('cmp-tron-rpc-pro')).toBeVisible();
           expect(canvas.getByTestId('cmp-tron-tronwallet')).toBeVisible();
           expect(canvas.getByTestId('cmp-bitcoin-mempool')).toBeVisible();
           expect(canvas.getByTestId('cmp-bitcoin-btcwallet')).toBeVisible();
@@ -785,7 +803,7 @@ export const CompareProviders: Story = {
     await expectAnyProviderPanelOk({
       canvas,
       label: 'tron',
-      testIds: ['cmp-tron-rpc', 'cmp-tron-tronwallet'],
+      testIds: ['cmp-tron-rpc', 'cmp-tron-rpc-pro', 'cmp-tron-tronwallet'],
     });
 
     await expectAnyProviderPanelOk({
