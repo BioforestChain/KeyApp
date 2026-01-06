@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getChainProvider, type Balance } from '@/services/chain-adapter/providers'
+import { getChainProvider, type Balance, isSupported } from '@/services/chain-adapter/providers'
 
 export const addressBalanceKeys = {
   all: ['addressBalance'] as const,
@@ -9,6 +9,8 @@ export const addressBalanceKeys = {
 export interface AddressBalanceResult {
   balance: Balance | null
   error: string | null
+  /** 是否成功查询（false 表示 fallback 到默认值） */
+  supported: boolean
 }
 
 /**
@@ -19,26 +21,16 @@ export function useAddressBalanceQuery(chainId: string, address: string, enabled
     queryKey: addressBalanceKeys.query(chainId, address),
     queryFn: async (): Promise<AddressBalanceResult> => {
       if (!chainId || !address) {
-        return { balance: null, error: 'Missing chain or address' }
+        return { balance: null, error: 'Missing chain or address', supported: false }
       }
 
-      try {
-        const chainProvider = getChainProvider(chainId)
-        
-        if (!chainProvider.supportsNativeBalance) {
-          return { balance: null, error: `Chain ${chainId} does not support balance query` }
-        }
-
-        const getBalance = chainProvider.getNativeBalance
-        if (!getBalance) {
-          return { balance: null, error: `No balance provider for chain: ${chainId}` }
-        }
-
-        const balance = await getBalance(address)
-        return { balance, error: null }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        return { balance: null, error: message }
+      const chainProvider = getChainProvider(chainId)
+      const result = await chainProvider.getNativeBalance(address)
+      
+      if (isSupported(result)) {
+        return { balance: result.data, error: null, supported: true }
+      } else {
+        return { balance: result.data, error: result.reason, supported: false }
       }
     },
     enabled: enabled && !!chainId && !!address,

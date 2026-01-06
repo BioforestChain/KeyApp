@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
+import { isSupported } from '../types'
 import { Amount } from '@/types/amount'
 import { InvalidDataError } from '../errors'
 
@@ -65,11 +66,10 @@ describe('ChainProvider', () => {
       })
       const chainProvider = new ChainProvider('test', [provider])
       
-      const getBalance = chainProvider.getNativeBalance
-      expect(getBalance).toBeDefined()
+      const result = await chainProvider.getNativeBalance('0x123')
       
-      const result = await getBalance!('0x123')
-      expect(result).toEqual(mockBalance)
+      expect(isSupported(result)).toBe(true)
+      expect(result.data).toEqual(mockBalance)
       expect(provider.getNativeBalance).toHaveBeenCalledWith('0x123')
     })
 
@@ -98,11 +98,10 @@ describe('ChainProvider', () => {
       })
       const chainProvider = new ChainProvider('test', [provider])
       
-      const getHistory = chainProvider.getTransactionHistory
-      expect(getHistory).toBeDefined()
+      const result = await chainProvider.getTransactionHistory('0x123', 10)
       
-      const result = await getHistory!('0x123', 10)
-      expect(result).toEqual(mockTxs)
+      expect(isSupported(result)).toBe(true)
+      expect(result.data).toEqual(mockTxs)
       expect(provider.getTransactionHistory).toHaveBeenCalledWith('0x123', 10)
     })
 
@@ -121,14 +120,15 @@ describe('ChainProvider', () => {
       })
 
       const chainProvider = new ChainProvider('test', [p1, p2])
-      const result = await chainProvider.getNativeBalance!('0x123')
+      const result = await chainProvider.getNativeBalance('0x123')
 
-      expect(result).toEqual(mockBalance)
+      expect(isSupported(result)).toBe(true)
+      expect(result.data).toEqual(mockBalance)
       expect(p1.getNativeBalance).toHaveBeenCalledTimes(1)
       expect(p2.getNativeBalance).toHaveBeenCalledTimes(1)
     })
 
-    it('returns safe defaults for read methods when all providers fail', async () => {
+    it('returns fallback result when all providers fail', async () => {
       const p1 = createMockProvider({
         type: 'p1',
         getTransactionHistory: vi.fn().mockRejectedValue(new Error('nope')),
@@ -139,9 +139,14 @@ describe('ChainProvider', () => {
       })
 
       const chainProvider = new ChainProvider('test', [p1, p2])
-      const txs = await chainProvider.getTransactionHistory!('0xabc', 10)
+      const result = await chainProvider.getTransactionHistory('0xabc', 10)
 
-      expect(txs).toEqual([])
+      expect(isSupported(result)).toBe(false)
+      expect(result.data).toEqual([])
+      if (!isSupported(result)) {
+        expect(result.reason).toContain('All 2 provider(s) failed')
+        expect(result.reason).toContain('still nope')
+      }
     })
 
     it('rethrows for non-read methods when all providers fail', async () => {
@@ -158,12 +163,21 @@ describe('ChainProvider', () => {
       })).rejects.toThrow('fee fail')
     })
 
-    it('returns undefined for unimplemented methods', () => {
+    it('returns fallback result when no provider implements the method', async () => {
       const provider = createMockProvider()
       const chainProvider = new ChainProvider('test', [provider])
       
-      expect(chainProvider.getNativeBalance).toBeUndefined()
-      expect(chainProvider.getTransactionHistory).toBeUndefined()
+      const balanceResult = await chainProvider.getNativeBalance('0x123')
+      const txResult = await chainProvider.getTransactionHistory('0x123', 10)
+      
+      expect(isSupported(balanceResult)).toBe(false)
+      expect(isSupported(txResult)).toBe(false)
+      if (!isSupported(balanceResult)) {
+        expect(balanceResult.reason).toContain('No provider implements')
+      }
+      if (!isSupported(txResult)) {
+        expect(txResult.reason).toContain('No provider implements')
+      }
     })
   })
 
@@ -193,18 +207,25 @@ describe('ChainProvider', () => {
       })
       const chainProvider = new ChainProvider('test', [provider])
 
-      const result = await chainProvider.getTransactionHistory!('0x123', 10)
-      expect(result).toEqual([valid])
+      const result = await chainProvider.getTransactionHistory('0x123', 10)
+      // 现在返回 ProviderResult 格式
+      expect(isSupported(result)).toBe(true)
+      if (isSupported(result)) {
+        expect(result.data).toEqual([valid])
+      }
       expect(warnSpy).toHaveBeenCalled()
     })
 
-    it('throws InvalidDataError when getTransaction returns invalid payload', async () => {
+    it('returns fallback result when getTransaction returns invalid payload', async () => {
       const provider = createMockProvider({
         getTransaction: vi.fn().mockResolvedValue({ bad: true }),
       })
       const chainProvider = new ChainProvider('test', [provider])
 
-      await expect(chainProvider.getTransaction!('0xabc')).rejects.toBeInstanceOf(InvalidDataError)
+      // 现在 getTransaction 返回 ProviderResult 而不是抛出异常
+      const result = await chainProvider.getTransaction('0xabc')
+      expect(result.supported).toBe(false)
+      expect(result.data).toBeNull()
     })
   })
 

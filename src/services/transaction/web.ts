@@ -5,7 +5,7 @@
 import { transactionServiceMeta, type TransactionFilter, type TransactionRecord, type TransactionStatus, type TransactionType } from './types'
 import { walletStorageService } from '@/services/wallet-storage'
 import { initialize as initializeChainConfigs, getEnabledChains, getChainById, type ChainConfig } from '@/services/chain-config'
-import { getChainProvider, type Transaction as ProviderTransaction, InvalidDataError } from '@/services/chain-adapter/providers'
+import { getChainProvider, type Transaction as ProviderTransaction, isSupported, InvalidDataError } from '@/services/chain-adapter/providers'
 import { Amount } from '@/types/amount'
 import { mapActionToTransactionType } from '@/components/transaction/transaction-meta'
 
@@ -36,11 +36,11 @@ async function fetchHistory(walletId: string, filter?: TransactionFilterInput): 
 
     try {
       const provider = getChainProvider(addressInfo.chain)
-      if (!provider.supportsTransactionHistory || !provider.getTransactionHistory) return []
 
-      return provider.getTransactionHistory(addressInfo.address, 50).then((list) =>
-        list.map((tx) => mapProviderTransaction(tx, config))
-      )
+      return provider.getTransactionHistory(addressInfo.address, 50).then((result) => {
+        if (!isSupported(result)) return []
+        return result.data.map((tx) => mapProviderTransaction(tx, config))
+      })
     } catch {
       return []
     }

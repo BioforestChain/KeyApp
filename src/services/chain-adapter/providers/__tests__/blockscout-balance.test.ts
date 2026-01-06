@@ -6,6 +6,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { createChainProvider } from '../index'
+import { isSupported } from '../types'
 import { chainConfigStore } from '@/stores/chain-config'
 import type { ChainConfig } from '@/services/chain-config'
 
@@ -54,28 +55,24 @@ describe('Blockscout/Etherscan Provider Balance Support', () => {
     // Test address
     const address = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-    // 必须支持 getNativeBalance 或 getTokenBalances
-    expect(provider.getNativeBalance || provider.getTokenBalances).toBeDefined()
+    // 查询余额
+    const balanceResult = await provider.getNativeBalance(address)
+    
+    // 应该返回 supported 结果（即使网络请求在测试环境下可能失败）
+    expect(balanceResult).toBeDefined()
+    expect(balanceResult.data).toBeDefined()
+    expect(balanceResult.data.symbol).toBe('ETH')
+    expect(balanceResult.data.amount).toBeDefined()
+    expect(balanceResult.data.amount.decimals).toBe(18)
+    
+    // 余额应该 >= 0
+    const value = balanceResult.data.amount.toNumber()
+    expect(typeof value).toBe('number')
+    expect(value).toBeGreaterThanOrEqual(0)
 
-    // 如果支持 getNativeBalance，调用时不应该报错，且余额应该有意义
-    if (provider.getNativeBalance) {
-      const balance = await provider.getNativeBalance(address)
-      
-      expect(balance).toBeDefined()
-      expect(balance.symbol).toBe('ETH')
-      expect(balance.amount).toBeDefined()
-      expect(balance.amount.decimals).toBe(18)
-      
-      // 余额应该 >= 0
-      const value = balance.amount.toNumber()
-      expect(typeof value).toBe('number')
-      expect(value).toBeGreaterThanOrEqual(0)
-    }
-
-    // 如果支持 getTokenBalances，应该返回 token list（可能为空）
-    if (provider.getTokenBalances) {
-      const tokens = await provider.getTokenBalances(address)
-      expect(Array.isArray(tokens)).toBe(true)
-    }
+    // 查询 token 列表
+    const tokensResult = await provider.getTokenBalances(address)
+    expect(tokensResult).toBeDefined()
+    expect(Array.isArray(tokensResult.data)).toBe(true)
   }, 30_000)
 })

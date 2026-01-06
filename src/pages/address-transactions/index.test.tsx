@@ -64,17 +64,21 @@ vi.mock('@/stores', () => ({
   useEnabledChains: () => mockEnabledChains,
 }))
 
-// Mock ChainProvider
-const mockGetTransactionHistory = vi.fn<(address: string, limit?: number) => Promise<Transaction[]>>()
+// Mock ChainProvider - 现在 getTransactionHistory 返回 ProviderResult<Transaction[]>
+const mockGetTransactionHistory = vi.fn()
 const mockSupportsTransactionHistory = vi.fn<() => boolean>()
 
-vi.mock('@/services/chain-adapter/providers', () => ({
-  getChainProvider: (chainId: string) => ({
-    chainId,
-    supportsTransactionHistory: mockSupportsTransactionHistory(),
-    getTransactionHistory: mockSupportsTransactionHistory() ? mockGetTransactionHistory : undefined,
-  }),
-}))
+vi.mock('@/services/chain-adapter/providers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/chain-adapter/providers')>()
+  return {
+    ...actual,
+    getChainProvider: (chainId: string) => ({
+      chainId,
+      supportsTransactionHistory: mockSupportsTransactionHistory(),
+      getTransactionHistory: mockGetTransactionHistory,
+    }),
+  }
+})
 
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
@@ -93,7 +97,8 @@ describe('AddressTransactionsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSupportsTransactionHistory.mockReturnValue(true)
-    mockGetTransactionHistory.mockResolvedValue([])
+    // 返回 ProviderResult 格式
+    mockGetTransactionHistory.mockResolvedValue({ supported: true, data: [] })
   })
 
   it('renders page with chain selector and address input', () => {
@@ -105,7 +110,7 @@ describe('AddressTransactionsPage', () => {
   })
 
   it('shows empty state when no transactions found', async () => {
-    mockGetTransactionHistory.mockResolvedValue([])
+    mockGetTransactionHistory.mockResolvedValue({ supported: true, data: [] })
     
     renderWithProviders(<AddressTransactionsPage />)
     
@@ -140,7 +145,7 @@ describe('AddressTransactionsPage', () => {
         ],
       },
     ]
-    mockGetTransactionHistory.mockResolvedValue(mockTxs)
+    mockGetTransactionHistory.mockResolvedValue({ supported: true, data: mockTxs })
     
     renderWithProviders(<AddressTransactionsPage />)
     
@@ -155,8 +160,13 @@ describe('AddressTransactionsPage', () => {
     })
   })
 
-  it('shows explorer hint when chain does not support transaction history', async () => {
-    mockSupportsTransactionHistory.mockReturnValue(false)
+  it('shows explorer hint when provider returns not supported', async () => {
+    // Provider returns fallback result indicating not supported
+    mockGetTransactionHistory.mockResolvedValue({ 
+      supported: false, 
+      data: [], 
+      fallbackReason: 'No provider implements getTransactionHistory'
+    })
     
     renderWithProviders(<AddressTransactionsPage />)
     
@@ -173,7 +183,7 @@ describe('AddressTransactionsPage', () => {
 
   it('calls getTransactionHistory with correct parameters', async () => {
     const testAddress = '0x75a6F48BF634868b2980c97CcEf467A127597e08'
-    mockGetTransactionHistory.mockResolvedValue([])
+    mockGetTransactionHistory.mockResolvedValue({ supported: true, data: [] })
     
     renderWithProviders(<AddressTransactionsPage />)
     

@@ -8,6 +8,15 @@
 import type { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
 
+// 导出 ProviderResult 类型
+export {
+  type ProviderResult,
+  createSupportedResult,
+  createFallbackResult,
+  isSupported,
+  unwrapResult,
+} from '@/types/provider-result'
+
 // 从 transaction-schema 导出 Transaction 相关类型
 export {
   type Transaction,

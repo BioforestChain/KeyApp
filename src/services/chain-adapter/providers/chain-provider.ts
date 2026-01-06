@@ -2,6 +2,8 @@
  * Chain Provider
  * 
  * 聚合多个 ApiProvider，通过能力发现动态代理方法调用。
+ * 
+ * 查询方法返回 ProviderResult<T>，区分"查询成功"与"fallback到默认值"。
  */
 
 import type { 
@@ -15,20 +17,13 @@ import type {
   TransferParams,
   UnsignedTransaction,
   SignedTransaction,
+  ProviderResult,
 } from './types'
+import { createSupportedResult, createFallbackResult } from './types'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 
 const SYNC_METHODS = new Set<ApiProviderMethod>(['isValidAddress', 'normalizeAddress'])
-
-const READ_METHODS = new Set<ApiProviderMethod>([
-  'getNativeBalance',
-  'getTokenBalances',
-  'getTransactionHistory',
-  'getTransaction',
-  'getTransactionStatus',
-  'getBlockHeight',
-])
 
 import { TransactionSchema } from './types'
 import { InvalidDataError } from './errors'
@@ -50,7 +45,7 @@ export class ChainProvider {
   }
 
   /**
-   * 查找实现了某方法的 Provider，返回自动 fallback 的方法
+   * 查找实现了某方法的 Provider，返回自动 fallback 的方法（用于非查询方法）
    */
   private getMethod<K extends ApiProviderMethod>(method: K): ApiProvider[K] | undefined {
     const candidates = this.providers.filter((p) => typeof p[method] === 'function')
@@ -77,45 +72,28 @@ export class ChainProvider {
         }
       }
 
-      if (READ_METHODS.has(method)) {
-        return this.getReadDefault(method)
-      }
-
       throw lastError instanceof Error ? lastError : new Error('All providers failed')
     }) as ApiProvider[K]
 
     return fn
   }
 
-  private getReadDefault(method: ApiProviderMethod): unknown {
-    switch (method) {
-      case 'getNativeBalance': {
-        const decimals = chainConfigService.getDecimals(this.chainId)
-        const symbol = chainConfigService.getSymbol(this.chainId)
-        const balance: Balance = {
-          amount: Amount.zero(decimals, symbol),
-          symbol,
-        }
-        return balance
-      }
-      case 'getTokenBalances':
-        return [] as TokenBalance[]
-      case 'getTransactionHistory':
-        return [] as Transaction[]
-      case 'getTransaction':
-        return null as Transaction | null
-      case 'getTransactionStatus': {
-        const status: TransactionStatus = {
-          status: 'pending',
-          confirmations: 0,
-          requiredConfirmations: 1,
-        }
-        return status
-      }
-      case 'getBlockHeight':
-        return 0n
-      default:
-        return null
+  // ===== 查询方法的默认值 =====
+
+  private getDefaultBalance(): Balance {
+    const decimals = chainConfigService.getDecimals(this.chainId)
+    const symbol = chainConfigService.getSymbol(this.chainId)
+    return {
+      amount: Amount.zero(decimals, symbol),
+      symbol,
+    }
+  }
+
+  private getDefaultTransactionStatus(): TransactionStatus {
+    return {
+      status: 'pending',
+      confirmations: 0,
+      requiredConfirmations: 1,
     }
   }
 
@@ -174,90 +152,240 @@ export class ChainProvider {
     return this.supports('isValidAddress')
   }
 
-  // ===== 代理方法：查询 =====
+  // ===== 查询方法（返回 ProviderResult<T>） =====
 
-  get getNativeBalance(): ((address: string) => Promise<Balance>) | undefined {
-    return this.getMethod('getNativeBalance')
-  }
-
-  get getTokenBalances(): ((address: string) => Promise<TokenBalance[]>) | undefined {
-    return this.getMethod('getTokenBalances')
-  }
-
-  get getTransactionHistory(): ((address: string, limit?: number) => Promise<Transaction[]>) | undefined {
-    const getHistory = this.getMethod('getTransactionHistory')
-    if (!getHistory) return undefined
-
-    return async (address: string, limit?: number) => {
-      const raw: unknown = await (getHistory as unknown as (address: string, limit?: number) => Promise<unknown>)(
-        address,
-        limit,
+  /**
+   * 查询原生代币余额
+   * @returns ProviderResult<Balance> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getNativeBalance(address: string): Promise<ProviderResult<Balance>> {
+    const candidates = this.providers.filter(p => typeof p.getNativeBalance === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        this.getDefaultBalance(),
+        'No provider implements getNativeBalance'
       )
+    }
 
-      if (!Array.isArray(raw)) {
-        console.warn('[ChainProvider] Invalid transaction history payload (not array)', {
-          chainId: this.chainId,
-          method: 'getTransactionHistory',
-        })
-        return []
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const balance = await provider.getNativeBalance!(address)
+        return createSupportedResult(balance)
+      } catch (error) {
+        lastError = error
       }
+    }
 
-      const parsed: Transaction[] = []
-      let invalidCount = 0
-      let firstIssue: unknown = null
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      this.getDefaultBalance(),
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
+  }
 
-      for (const item of raw) {
-        const result = TransactionSchema.safeParse(item)
-        if (result.success) {
-          parsed.push(result.data)
-        } else {
-          invalidCount += 1
-          if (!firstIssue) firstIssue = result.error.issues[0]
+  /**
+   * 查询所有代币余额
+   * @returns ProviderResult<TokenBalance[]> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getTokenBalances(address: string): Promise<ProviderResult<TokenBalance[]>> {
+    const candidates = this.providers.filter(p => typeof p.getTokenBalances === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        [],
+        'No provider implements getTokenBalances'
+      )
+    }
+
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const tokens = await provider.getTokenBalances!(address)
+        return createSupportedResult(tokens)
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      [],
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
+  }
+
+  /**
+   * 查询交易历史（带数据验证）
+   * @returns ProviderResult<Transaction[]> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getTransactionHistory(address: string, limit = 20): Promise<ProviderResult<Transaction[]>> {
+    const candidates = this.providers.filter(p => typeof p.getTransactionHistory === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        [],
+        'No provider implements getTransactionHistory'
+      )
+    }
+
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const raw: unknown = await provider.getTransactionHistory!(address, limit)
+        
+        // 数据验证
+        if (!Array.isArray(raw)) {
+          console.warn('[ChainProvider] Invalid transaction history payload (not array)', {
+            chainId: this.chainId,
+            method: 'getTransactionHistory',
+          })
+          continue
         }
-      }
 
-      if (invalidCount > 0) {
-        console.warn('[ChainProvider] Dropped invalid transactions from history', {
-          chainId: this.chainId,
-          method: 'getTransactionHistory',
-          invalidCount,
-          totalCount: raw.length,
-          firstIssue,
-        })
-      }
+        const parsed: Transaction[] = []
+        let invalidCount = 0
+        let firstIssue: unknown = null
 
-      return parsed
+        for (const item of raw) {
+          const result = TransactionSchema.safeParse(item)
+          if (result.success) {
+            parsed.push(result.data)
+          } else {
+            invalidCount += 1
+            if (!firstIssue) firstIssue = result.error.issues[0]
+          }
+        }
+
+        if (invalidCount > 0) {
+          console.warn('[ChainProvider] Dropped invalid transactions from history', {
+            chainId: this.chainId,
+            method: 'getTransactionHistory',
+            invalidCount,
+            totalCount: raw.length,
+            firstIssue,
+          })
+        }
+
+        return createSupportedResult(parsed)
+      } catch (error) {
+        lastError = error
+      }
     }
+
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      [],
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
   }
 
-  get getTransaction(): ((hash: string) => Promise<Transaction | null>) | undefined {
-    const getTransaction = this.getMethod('getTransaction')
-    if (!getTransaction) return undefined
-
-    return async (hash: string) => {
-      const raw: unknown = await (getTransaction as unknown as (hash: string) => Promise<unknown>)(hash)
-      if (raw === null || raw === undefined) return null
-
-      const parsed = TransactionSchema.safeParse(raw)
-      if (!parsed.success) {
-        throw new InvalidDataError({
-          source: 'provider',
-          chainId: this.chainId,
-          method: 'getTransaction',
-          issues: parsed.error.issues,
-        })
-      }
-
-      return parsed.data
+  /**
+   * 查询单笔交易（带数据验证）
+   * @returns ProviderResult<Transaction | null> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getTransaction(hash: string): Promise<ProviderResult<Transaction | null>> {
+    const candidates = this.providers.filter(p => typeof p.getTransaction === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        null,
+        'No provider implements getTransaction'
+      )
     }
+
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const raw: unknown = await provider.getTransaction!(hash)
+        if (raw === null || raw === undefined) {
+          return createSupportedResult(null)
+        }
+
+        const parsed = TransactionSchema.safeParse(raw)
+        if (!parsed.success) {
+          throw new InvalidDataError({
+            source: 'provider',
+            chainId: this.chainId,
+            method: 'getTransaction',
+            issues: parsed.error.issues,
+          })
+        }
+
+        return createSupportedResult(parsed.data)
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      null,
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
   }
 
-  get getTransactionStatus(): ((hash: string) => Promise<TransactionStatus>) | undefined {
-    return this.getMethod('getTransactionStatus')
+  /**
+   * 获取交易状态
+   * @returns ProviderResult<TransactionStatus> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getTransactionStatus(hash: string): Promise<ProviderResult<TransactionStatus>> {
+    const candidates = this.providers.filter(p => typeof p.getTransactionStatus === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        this.getDefaultTransactionStatus(),
+        'No provider implements getTransactionStatus'
+      )
+    }
+
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const status = await provider.getTransactionStatus!(hash)
+        return createSupportedResult(status)
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      this.getDefaultTransactionStatus(),
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
   }
 
-  get getBlockHeight(): (() => Promise<bigint>) | undefined {
-    return this.getMethod('getBlockHeight')
+  /**
+   * 获取当前区块高度
+   * @returns ProviderResult<bigint> - supported: true 表示查询成功，false 表示 fallback 到默认值
+   */
+  async getBlockHeight(): Promise<ProviderResult<bigint>> {
+    const candidates = this.providers.filter(p => typeof p.getBlockHeight === 'function')
+    
+    if (candidates.length === 0) {
+      return createFallbackResult(
+        0n,
+        'No provider implements getBlockHeight'
+      )
+    }
+
+    let lastError: unknown = null
+    for (const provider of candidates) {
+      try {
+        const height = await provider.getBlockHeight!()
+        return createSupportedResult(height)
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error'
+    return createFallbackResult(
+      0n,
+      `All ${candidates.length} provider(s) failed. Last error: ${errorMsg}`
+    )
   }
 
   // ===== 代理方法：交易 =====
