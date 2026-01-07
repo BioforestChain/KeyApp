@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:run": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "vitest run --passWithNoTests",
     "test:storybook": "echo 'SDK has no storybook'",
     "i18n:run": "echo 'SDK has no i18n'",
     "theme:run": "echo 'SDK has no theme'"
