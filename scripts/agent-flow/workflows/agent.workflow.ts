@@ -267,5 +267,12 @@ export const workflow = createRouter({
   ],
 });
 
-// Auto-start
-workflow.run();
+// Auto-start only when run directly (not when imported by meta.mcp)
+const isMain =
+  process.argv[1] &&
+  (process.argv[1].endsWith("agent.workflow.ts") ||
+    process.argv[1].endsWith("agent.workflow.js"));
+
+if (isMain) {
+  workflow.run();
+}

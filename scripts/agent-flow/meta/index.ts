@@ -1,8 +1,8 @@
 /**
- * Agent Meta - 统一导出 MCPs 和 Workflows
+ * Agent Meta - 导出内部 Tools 供 Workflow 使用
  *
- * Usage:
- *   import { mcps, workflows, allTools } from './meta'
+ * 注意：这些 tools 仅供 workflow 内部调用，不直接暴露给 AI。
+ * AI 通过 workflow("agent", [...]) 间接使用这些功能。
  */
 
 import * as whitebookMcp from "../mcps/whitebook.mcp.js";
@@ -10,45 +10,7 @@ import * as practiceMcp from "../mcps/practice.mcp.js";
 import * as roadmapMcp from "../mcps/roadmap.mcp.js";
 
 // =============================================================================
-// MCP Registry
-// =============================================================================
-
-export const mcps = {
-  whitebook: {
-    name: "whitebook",
-    description: "白皮书工具",
-    tools: whitebookMcp.tools,
-  },
-  practice: {
-    name: "practice",
-    description: "最佳实践工具",
-    tools: practiceMcp.tools,
-  },
-  roadmap: {
-    name: "roadmap",
-    description: "Roadmap 工具",
-    tools: roadmapMcp.tools,
-  },
-};
-
-// =============================================================================
-// All Tools (flattened)
-// =============================================================================
-
-export const allTools = [
-  ...whitebookMcp.tools,
-  ...practiceMcp.tools,
-  ...roadmapMcp.tools,
-];
-
-// =============================================================================
-// Tool Access by Name
-// =============================================================================
-
-export const toolsByName = Object.fromEntries(allTools.map((t) => [t.name, t]));
-
-// =============================================================================
-// Direct Tool Exports (for workflow composition)
+// Tool Exports (for workflow internal use)
 // =============================================================================
 
 export const whitebook = {
