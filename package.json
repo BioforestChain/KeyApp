@@ -56,6 +56,8 @@
     "theme:check": "turbo run theme:run --",
     "theme:run": "bun scripts/theme-check.ts",
     "agent": "bun scripts/agent/cli.ts",
+    "agent:flow": "bun scripts/agent-flow/workflows/agent.workflow.ts",
+    "agent:mcp": "bun scripts/agent-flow/mcps/agent.mcp.ts",
     "check": "turbo run typecheck:run test:run i18n:run theme:run",
     "sdk:build": "pnpm --filter @biochain/bio-sdk build",
     "sdk:dev": "pnpm --filter @biochain/bio-sdk dev",
