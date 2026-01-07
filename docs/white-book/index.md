@@ -1,6 +1,6 @@
 # KeyApp 白皮书丛书
 
-KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组织，分为 8 本独立的专著。
+KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组织，分为 10 本独立的专著。
 
 ## 📚 丛书目录
 
@@ -24,6 +24,11 @@ KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组
 >
 > 设计系统与组件库文档。包含 Design Tokens、基础组件 (Primitives) 和业务组件 (Composites)。
 
+### 📘 Book T4: The Security Reference (安全技术参考)
+> **[阅读本书](./08-Security-Ref/README.md)**
+>
+> 密钥管理、身份认证和授权协议。包含 BIP39/BIP44 规范、图案锁、DWEB 授权和安全审计清单。
+
 ### 📗 Book F1: The Wallet Guide (钱包业务指南)
 > **[阅读本书](./10-Wallet-Guide/README.md)**
 >
@@ -43,6 +48,11 @@ KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组
 > **[阅读本书](./90-DevOps/README.md)**
 >
 > 工程化与发布流程。包含构建配置、测试策略和 CI/CD 流水线。
+
+### 📙 Appendix (附录)
+> **[阅读附录](./99-Appendix/README.md)**
+>
+> 参考资料和技术规范。包含术语表、链网络配置、状态机规范和边界条件目录。
 
 ---
 
