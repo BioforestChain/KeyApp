@@ -263,4 +263,3 @@ function MyComponent() {
 
 - [Activities 详细文档](./01-Activities/00-Index.md)
 - [Sheets/Jobs 详细文档](./02-Sheets/00-Index.md)
-- [Tabs 详细文档](./03-Tabs/00-Index.md)

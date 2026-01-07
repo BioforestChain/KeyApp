@@ -16,8 +16,8 @@ Platform Services 提供跨平台的原生能力抽象，支持 Web、DWeb (原�
 | [Camera](./02-Camera.md) | `camera/` | 相机/扫码 |
 | [Haptics](./03-Haptics.md) | `haptics/` | 触觉反馈 |
 | [Clipboard](./04-Clipboard.md) | `clipboard/` | 剪贴板 |
-| [Storage](./05-Storage.md) | `storage/` | 持久化存储 |
-| [Toast](./06-Toast.md) | `toast/` | Toast 通知 |
+| [Toast](./05-Toast.md) | `toast/` | Toast 通知 |
+| [SecureStorage](./06-SecureStorage.md) | `storage/` | 安全存储 |
 
 ---
 

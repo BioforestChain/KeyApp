@@ -256,6 +256,8 @@ import { cn } from '@/lib/utils';
 
 ## 相关文档
 
-- [Forms 组件](./02-Forms.md)
-- [Feedback 组件](./03-Feedback.md)
+- [Button](./Button.md) - 按钮组件
+- [Card](./Card.md) - 卡片组件
+- [Input](./Input.md) - 输入组件
+- [Dialog](./Dialog.md) - 对话框组件
 - [Design System](../01-Foundation/01-Colors.md)

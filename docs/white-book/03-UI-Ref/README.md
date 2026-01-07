@@ -14,14 +14,18 @@
 
 ### 02-Primitives (基础组件)
 
-*   [01-Base-UI.md](./02-Primitives/01-Base-UI.md) - 基础 UI 组件 (Button, Card, Badge, Avatar, Separator)
-*   [02-Forms.md](./02-Primitives/02-Forms.md) - 表单组件 (Input, Select, Checkbox, Switch, Slider)
-*   [03-Feedback.md](./02-Primitives/03-Feedback.md) - 反馈组件 (Dialog, Sheet, Toast, Skeleton, Progress)
+*   [00-Index.md](./02-Primitives/00-Index.md) - 基础组件索引
+*   [Button.md](./02-Primitives/Button.md) - 按钮组件
+*   [Card.md](./02-Primitives/Card.md) - 卡片组件
+*   [Input.md](./02-Primitives/Input.md) - 输入组件
+*   [Dialog.md](./02-Primitives/Dialog.md) - 对话框组件
 
 ### 03-Composites (复合组件)
 
-*   [01-Common.md](./03-Composites/01-Common.md) - 通用复合组件 (CopyButton, ChainLogo, NetworkBadge)
-*   [02-Layout.md](./03-Composites/02-Layout.md) - 布局组件 (AppBar, BottomNav, PageContainer)
+*   [00-Index.md](./03-Composites/00-Index.md) - 复合组件索引
+*   [Common.md](./03-Composites/Common.md) - 通用复合组件
+*   [Layout.md](./03-Composites/Layout.md) - 布局组件
+*   [WalletCard.md](./03-Composites/WalletCard.md) - 钱包卡片组件
 
 ### 04-Domain (领域组件)
 

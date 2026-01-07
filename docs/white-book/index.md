@@ -1,6 +1,6 @@
 # KeyApp 白皮书丛书
 
-KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组织，分为 11 本独立的专著。
+KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组织，分为 **16 本**独立的专著。
 
 ## 📚 丛书目录
 
@@ -24,12 +24,32 @@ KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组
 >
 > 设计系统与组件库文档。包含 Design Tokens、基础组件 (Primitives) 和业务组件 (Composites)。
 
-### 📘 Book T4: The Security Reference (安全技术参考)
+### 📘 Book T4: The Platform Reference (平台服务参考)
+> **[阅读本书](./04-Platform-Ref/README.md)**
+>
+> 硬件与系统集成服务。包含生物识别、相机、触觉反馈等跨平台能力适配。
+
+### 📘 Book T5: The State Reference (状态管理参考)
+> **[阅读本书](./05-State-Ref/README.md)**
+>
+> 应用状态管理层。包含 TanStack Store (Client State) 和 TanStack Query (Server State)。
+
+### 📘 Book T6: The Service Reference (服务层参考)
+> **[阅读本书](./06-Service-Ref/00-Index.md)**
+>
+> 核心业务服务层。包含 35 个服务目录、160+ 源文件，覆盖钱包、链适配、生态系统等。
+
+### 📘 Book T7: The Types Reference (类型系统参考)
+> **[阅读本书](./07-Types-Ref/README.md)**
+>
+> 核心类型定义。包含 Amount (精确金额)、Asset (资产信息)、Staking (跨链质押) 等。
+
+### 📘 Book T8: The Security Reference (安全技术参考)
 > **[阅读本书](./08-Security-Ref/README.md)**
 >
 > 密钥管理、身份认证和授权协议。包含 BIP39/BIP44 规范、图案锁、DWEB 授权和安全审计清单。
 
-### 📘 Book T5: The i18n Reference (国际化技术参考)
+### 📘 Book T9: The i18n Reference (国际化技术参考)
 > **[阅读本书](./09-i18n-Ref/README.md)**
 >
 > 多语言支持和本地化规范。包含 6 种语言支持、RTL 布局、翻译资源管理和数字/日期格式化。
@@ -58,6 +78,11 @@ KeyApp 的技术文档采用 **"技术丛书 (Technical Library)"** 的结构组
 > **[阅读附录](./99-Appendix/README.md)**
 >
 > 参考资料和技术规范。包含术语表、链网络配置、状态机规范和边界条件目录。
+
+### 📓 Book E3: The Documentation Guide (文档编辑规范)
+> **[阅读本书](./99-Documentation-Guide/README.md)**
+>
+> 白皮书编写标准和审稿依据。包含结构规范、内容标准、交叉引用规则。
 
 ---
 

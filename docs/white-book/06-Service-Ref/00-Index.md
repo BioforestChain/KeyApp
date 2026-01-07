@@ -15,19 +15,18 @@
 | 服务 | 目录 | 文件数 | 职责 |
 |------|------|--------|------|
 | [wallet-storage](./02-Wallet/01-Storage.md) | `wallet-storage/` | 4 | 钱包加密存储 (IndexedDB + AES) |
-| [wallet](./02-Wallet/02-Types.md) | `wallet/` | 1 | 钱包类型定义 |
 
 ### ⛓️ 链适配器 (Chain Adapter)
 
 | 服务 | 目录 | 文件数 | 职责 |
 |------|------|--------|------|
+| [chain-config](./01-Chain-Config/01-Service.md) | `chain-config/` | 6 | 链配置管理 |
 | [chain-adapter](./03-Chain/01-Adapter.md) | `chain-adapter/` | 20+ | 多链统一接口 |
 | [chain-adapter/evm](./03-Chain/02-EVM.md) | `chain-adapter/evm/` | 7 | EVM 链实现 (ETH/BSC/Polygon) |
 | [chain-adapter/bitcoin](./03-Chain/03-Bitcoin.md) | `chain-adapter/bitcoin/` | 7 | BTC UTXO 实现 |
 | [chain-adapter/tron](./03-Chain/04-Tron.md) | `chain-adapter/tron/` | 7 | TVM 实现 (TRX/TRC20) |
 | [chain-adapter/bioforest](./03-Chain/05-BioForest.md) | `chain-adapter/bioforest/` | 9 | 生物链林实现 |
 | [chain-adapter/providers](./03-Chain/06-Providers.md) | `chain-adapter/providers/` | 12 | API Provider 实现 |
-| [chain-config](./03-Chain/07-Config.md) | `chain-config/` | 6 | 链配置管理 |
 
 ### 🖥️ 小程序运行时 (MiniApp Runtime)
 
@@ -35,24 +34,25 @@
 |------|------|--------|------|
 | [miniapp-runtime](./04-MiniApp/01-Runtime.md) | `miniapp-runtime/` | 8 | 小程序生命周期/动画 |
 | [ecosystem](./04-MiniApp/02-Ecosystem.md) | `ecosystem/` | 10 | 应用市场/PostMessage Bridge |
-| [authorize](./04-MiniApp/03-Authorize.md) | `authorize/` | 4 | DApp 授权管理 |
+| [authorize](./08-Authorize/01-PlaocAdapter.md) | `authorize/` | 4 | DApp 授权管理 |
 
 ### 📱 平台服务 (Platform Services)
 
 | 服务 | 目录 | 文件数 | 职责 |
 |------|------|--------|------|
+| [平台服务索引](./05-Platform/00-Index.md) | - | - | 平台服务总览 |
 | [biometric](./05-Platform/01-Biometric.md) | `biometric/` | 4 | 生物识别 (Face ID/指纹) |
 | [camera](./05-Platform/02-Camera.md) | `camera/` | 4 | 相机/二维码扫描 |
 | [haptics](./05-Platform/03-Haptics.md) | `haptics/` | 4 | 触觉反馈 |
 | [clipboard](./05-Platform/04-Clipboard.md) | `clipboard/` | 1 | 剪贴板 |
-| [storage](./05-Platform/05-Storage.md) | `storage/` | 4 | 本地存储抽象 |
-| [toast](./05-Platform/06-Toast.md) | `toast/` | 4 | Toast 通知 |
+| [toast](./05-Platform/05-Toast.md) | `toast/` | 4 | Toast 通知 |
+| [secure-storage](./05-Platform/06-SecureStorage.md) | `storage/` | 4 | 安全存储 |
 
 ### 💱 金融服务 (Financial Services)
 
 | 服务 | 目录 | 文件数 | 职责 |
 |------|------|--------|------|
-| [currency-exchange](./06-Finance/01-Exchange.md) | `currency-exchange/` | 3 | 法币汇率 |
+| [currency-exchange](./06-Finance/01-CurrencyExchange.md) | `currency-exchange/` | 3 | 法币汇率 |
 | [staking](./06-Finance/02-Staking.md) | `staking/` | 4 | 质押服务 |
 | [transaction](./06-Finance/03-Transaction.md) | `transaction/` | 4 | 交易服务抽象 |
 
@@ -60,10 +60,9 @@
 
 | 服务 | 目录 | 文件数 | 职责 |
 |------|------|--------|------|
-| [bioforest-sdk](./07-Infra/01-SDK.md) | `bioforest-sdk/` | 2 | BioForest SDK 类型 |
-| [bioforest-api](./07-Infra/02-API.md) | `bioforest-api/` | 2 | BioForest API 客户端 |
-| [migration](./07-Infra/03-Migration.md) | `migration/` | 1 | 数据迁移 |
-| [mock-devtools](./07-Infra/04-MockDevtools.md) | `mock-devtools/` | 3 | 开发工具/Mock |
+| [bioforest-sdk](./09-BioForest/01-SDK.md) | `bioforest-sdk/` | 2 | BioForest SDK 类型 |
+| [bioforest-api](./09-BioForest/02-API.md) | `bioforest-api/` | 2 | BioForest API 客户端 |
+| [migration](./07-Migration/01-MpayMigration.md) | `migration/` | 1 | 数据迁移 |
 
 ---
 

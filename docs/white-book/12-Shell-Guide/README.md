@@ -7,8 +7,10 @@
 ## 📖 目录
 
 *   [00-Overview.md](./00-Overview.md) - Shell 架构
+*   [00-Navigation-Map.md](./00-Navigation-Map.md) - 导航地图
 *   **01-Navigation (导航系统)**
     *   [01-Router-Config.md](./01-Navigation/01-Router-Config.md) - 路由配置
-    *   [03-History-Sync.md](./01-Navigation/03-History-Sync.md) - 历史同步
-*   **02-System-Flows (系统流程)**
-    *   [01-Onboarding.md](./02-System-Flows/01-Onboarding.md) - 引导流程
+*   **01-Activities (页面活动)**
+    *   [Activities](./01-Activities/) - 页面活动列表
+*   **02-Sheets (底部弹窗)**
+    *   [Sheets](./02-Sheets/) - 底部弹窗列表
