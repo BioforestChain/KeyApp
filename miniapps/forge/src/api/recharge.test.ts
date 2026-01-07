@@ -37,7 +37,7 @@ describe('Forge rechargeApi', () => {
     const result = await rechargeApi.getSupport()
     expect(result).toEqual(mockResult)
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://walletapi.bfmeta.info/cotbfm/recharge/support',
+      'https://walletapi.bf-meta.org/cotbfm/recharge/support',
       expect.any(Object),
     )
   })
