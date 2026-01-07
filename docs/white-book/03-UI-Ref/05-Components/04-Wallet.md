@@ -1,0 +1,216 @@
+# Wallet 组件
+
+> 源码: [`src/components/wallet/`](https://github.com/BioforestChain/KeyApp/blob/main/src/components/wallet/)
+
+## 组件列表
+
+| 组件 | 文件 | 说明 |
+|------|------|------|
+| `WalletCard` | `wallet-card.tsx` | 3D 钱包卡片 |
+| `WalletCardCarousel` | `wallet-card-carousel.tsx` | 卡片轮播 |
+| `AddressDisplay` | `address-display.tsx` | 地址显示 |
+| `ChainIcon` | `chain-icon.tsx` | 链图标 |
+| `ChainBadge` | `chain-icon.tsx` | 链标签 |
+| `ChainAddressSelector` | `chain-address-selector.tsx` | 链地址选择器 |
+| `ChainAddressDisplay` | `chain-address-display.tsx` | 链地址显示 |
+| `TokenIcon` | `token-icon.tsx` | 代币图标 |
+| `WalletAddressPortfolio` | `wallet-address-portfolio.tsx` | 钱包资产组合 |
+
+---
+
+## WalletCard
+
+3D 全息钱包卡片，支持陀螺仪/触摸交互。
+
+### Props
+
+```typescript
+interface WalletCardProps {
+  wallet: Wallet
+  chain: ChainType
+  chainName: string
+  priority?: 'high' | 'low'     // 渲染优先级
+  address?: string
+  chainIconUrl?: string         // 水印图标
+  watermarkLogoSize?: number    // 水印尺寸 (默认 60)
+  themeHue?: number             // 主题色相 (默认 323)
+  onCopyAddress?: () => void
+  onOpenChainSelector?: () => void
+  onOpenSettings?: () => void
+  disableWatermarkRefraction?: boolean
+  disablePatternRefraction?: boolean
+  enableGyro?: boolean
+  className?: string
+}
+```
+
+### 特性
+
+- **3D 倾斜**: 基于触摸/陀螺仪的 3D 旋转
+- **全息效果**: Canvas 渲染的彩虹光影
+- **水印层**: 链图标单色遮罩平铺
+- **GPU 加速**: CSS 变量驱动动画
+
+### 交互系统
+
+```typescript
+// CSS 变量驱动所有动画
+const cssVars = {
+  '--tilt-x': tiltX,           // 倾斜角度 X
+  '--tilt-y': tiltY,           // 倾斜角度 Y
+  '--tilt-nx': normalizedTiltX, // 归一化 X (-1~1)
+  '--tilt-ny': normalizedTiltY, // 归一化 Y (-1~1)
+  '--tilt-intensity': tiltIntensity,  // 强度 (0~1)
+  '--tilt-direction': tiltDirection,  // 方向角
+}
+```
+
+### 渲染结构
+
+```
+┌─────────────────────────────────────────────┐
+│ [🔷 Ethereum ▾]                    [⚙️]    │
+│                                             │
+│              My Wallet                      │
+│                                             │
+│ 0x742d...6634                      [📋]    │
+└─────────────────────────────────────────────┘
+     ↑ 3D 倾斜 + 全息光影 + 水印层
+```
+
+---
+
+## AddressDisplay
+
+智能截断的地址显示，支持复制。
+
+### Props
+
+```typescript
+interface AddressDisplayProps {
+  address: string
+  startChars?: number          // 开头字符数
+  endChars?: number            // 结尾字符数
+  placeholder?: string
+  copyable?: boolean           // 可复制 (默认 true)
+  onCopy?: () => void
+  className?: string
+}
+```
+
+### 智能截断算法
+
+```typescript
+// 1. 使用 Canvas 测量文字宽度
+// 2. 根据容器宽度计算可显示字符数
+// 3. 按 55:45 比例分配前后字符
+// 4. 响应容器尺寸变化自动调整
+```
+
+### 使用示例
+
+```tsx
+// 自动截断
+<AddressDisplay address="0x742d35Cc6634C0532925a3b844Bc9e7595f..." />
+// 显示: 0x742d35Cc...7595f
+
+// 固定截断
+<AddressDisplay address={address} startChars={8} endChars={6} />
+// 显示: 0x742d35...e7595f
+```
+
+---
+
+## ChainIcon
+
+链图标组件，支持图片和首字母回退。
+
+### Props
+
+```typescript
+interface ChainIconProps {
+  chainId?: string
+  iconUrl?: string             // 优先使用
+  symbol?: string              // 回退显示
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}
+```
+
+### 优先级
+
+1. `iconUrl` prop
+2. `ChainIconProvider` context
+3. 首字母 + 背景色
+
+### 使用示例
+
+```tsx
+// 从 context 自动获取图标
+<ChainIconProvider getIconUrl={(id) => configs[id]?.icon}>
+  <ChainIcon chainId="ethereum" />
+</ChainIconProvider>
+
+// 手动指定
+<ChainIcon chainId="ethereum" iconUrl="/icons/eth.svg" />
+```
+
+### 预设背景色
+
+| Chain | 颜色 |
+|-------|------|
+| ethereum | 蓝紫 |
+| bitcoin | 橙色 |
+| tron | 红色 |
+| binance | 黄色 |
+| bfmeta | 自定义 |
+
+---
+
+## ChainBadge
+
+链标签，图标 + 文字。
+
+```tsx
+<ChainBadge chainId="ethereum" />
+// 渲染: [🔷 ETH]
+```
+
+---
+
+## TokenIcon
+
+代币图标，支持 URL 和符号回退。
+
+```tsx
+<TokenIcon symbol="ETH" imageUrl="/icons/eth.png" size="lg" />
+<TokenIcon symbol="UNKNOWN" />  // 显示首字母 U
+```
+
+---
+
+## ChainAddressSelector
+
+链地址选择下拉框。
+
+```tsx
+<ChainAddressSelector
+  addresses={wallet.chainAddresses}
+  value={selectedChain}
+  onChange={setSelectedChain}
+/>
+```
+
+---
+
+## WalletCardCarousel
+
+钱包卡片轮播，支持左右滑动切换。
+
+```tsx
+<WalletCardCarousel
+  wallets={wallets}
+  activeIndex={currentIndex}
+  onIndexChange={setCurrentIndex}
+/>
+```
