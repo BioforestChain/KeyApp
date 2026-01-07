@@ -2,19 +2,19 @@
 /**
  * Agent CLI Workflow
  *
+ * 组合 MCP tools 成 CLI 工作流，通过 tool.call() 调用
+ *
  * Usage:
- *   pnpm agent readme              # 输出索引
- *   pnpm agent toc                 # 白皮书目录
- *   pnpm agent chapter <path>      # 读取章节
- *   pnpm agent search <query>      # 搜索白皮书
- *   pnpm agent practice list       # 最佳实践列表
- *   pnpm agent roadmap [release]   # Roadmap
+ *   pnpm agent:flow readme
+ *   pnpm agent:flow toc
+ *   pnpm agent:flow chapter <path>
+ *   pnpm agent:flow search <query>
+ *   pnpm agent:flow practice list
+ *   pnpm agent:flow roadmap [release]
  */
 
 import { defineWorkflow, createRouter } from "../../../packages/flow/src/common/workflow/base-workflow.js";
-import { getToc, readChapter, getKnowledgeMap, searchWhiteBook } from "../tools/whitebook.js";
-import { listPractices, addPractice, removePractice, updatePractice, getPracticesContent } from "../tools/practice.js";
-import { formatRoadmap, getCurrentTasks, getRoadmapStats } from "../tools/roadmap.js";
+import { whitebook, practice, roadmap } from "../meta/index.js";
 
 // =============================================================================
 // Readme Workflow
@@ -26,33 +26,34 @@ const readmeWorkflow = defineWorkflow({
   handler: async () => {
     console.log("# KeyApp AI 开发索引\n");
 
-    // Best practices
-    console.log(getPracticesContent());
-    console.log("\n详见: pnpm agent chapter 00-Manifesto\n");
+    // Call MCP tools
+    const [practiceResult, mapResult, currentResult] = await Promise.all([
+      practice.list.call({}),
+      whitebook.knowledgeMap.call({}),
+      roadmap.current.call({}),
+    ]);
 
-    // Knowledge map
-    console.log(getKnowledgeMap());
+    console.log(practiceResult.formatted);
+    console.log("\n详见: pnpm agent:flow chapter 00-Manifesto\n");
+    console.log(mapResult.content);
 
-    // Current tasks
-    const tasks = getCurrentTasks();
-    if (tasks) {
-      console.log(tasks);
+    if (currentResult.formatted) {
+      console.log("\n" + currentResult.formatted);
     }
 
-    // Workflow help
     console.log(`
 # 工作流
 
-pnpm agent readme             启动入口（索引 + 知识地图 + 最佳实践）
-pnpm agent toc                白皮书目录
-pnpm agent chapter <path>     查阅白皮书章节
-pnpm agent search <query>     搜索白皮书
-pnpm agent practice list      最佳实践列表
-pnpm agent roadmap [release]  查看 Roadmap
-pnpm agent stats [release]    进度统计
+pnpm agent:flow readme             启动入口
+pnpm agent:flow toc                白皮书目录
+pnpm agent:flow chapter <path>     查阅章节
+pnpm agent:flow search <query>     搜索白皮书
+pnpm agent:flow practice list      最佳实践
+pnpm agent:flow roadmap [release]  查看 Roadmap
+pnpm agent:flow stats [release]    进度统计
 
 MCP 模式:
-pnpm agent:mcp                启动 MCP 服务器 (供 AI 调用)
+pnpm agent:mcp                     启动 MCP 服务器
 `);
   },
 });
@@ -65,8 +66,8 @@ const tocWorkflow = defineWorkflow({
   name: "toc",
   description: "白皮书目录结构",
   handler: async () => {
-    const { formatted } = getToc();
-    console.log(formatted);
+    const result = await whitebook.toc.call({});
+    console.log(result.formatted);
   },
 });
 
@@ -81,17 +82,15 @@ const chapterWorkflow = defineWorkflow({
     path: { type: "string", alias: "p", description: "章节路径", required: false },
   },
   handler: async (args) => {
-    // Support positional argument: pnpm agent:flow chapter 00-Manifesto
     const chapterPath = args.path || args._[0];
     if (!chapterPath) {
       console.error("错误: 请指定章节路径");
       console.error("用法: pnpm agent:flow chapter <path>");
-      console.error("示例: pnpm agent:flow chapter 00-Manifesto");
       process.exit(1);
     }
 
     try {
-      const result = readChapter(chapterPath);
+      const result = await whitebook.chapter.call({ path: chapterPath });
       console.log(`# 章节: ${chapterPath}\n`);
       console.log(result.content);
 
@@ -122,14 +121,13 @@ const searchWorkflow = defineWorkflow({
     const query = args.query || args._[0];
     if (!query) {
       console.error("错误: 请指定搜索关键词");
-      console.error("用法: pnpm agent:flow search <query>");
       process.exit(1);
     }
 
-    const results = searchWhiteBook(query);
-    console.log(`# 搜索: "${query}" (${results.length} 条结果)\n`);
+    const result = await whitebook.search.call({ query });
+    console.log(`# 搜索: "${query}" (${result.count} 条结果)\n`);
 
-    for (const r of results) {
+    for (const r of result.results) {
       console.log(`${r.path}:${r.line}`);
       console.log(`  ${r.text}`);
     }
@@ -144,8 +142,8 @@ const practiceListWorkflow = defineWorkflow({
   name: "list",
   description: "列出最佳实践",
   handler: async () => {
-    const { formatted } = listPractices();
-    console.log(formatted);
+    const result = await practice.list.call({});
+    console.log(result.formatted);
   },
 });
 
@@ -159,12 +157,11 @@ const practiceAddWorkflow = defineWorkflow({
     const content = args.content || args._.join(" ");
     if (!content) {
       console.error("错误: 请指定内容");
-      console.error("用法: pnpm agent:flow practice add <content>");
       process.exit(1);
     }
-    const { formatted } = addPractice(content);
+    const result = await practice.add.call({ content });
     console.log("已添加\n");
-    console.log(formatted);
+    console.log(result.formatted);
   },
 });
 
@@ -178,12 +175,11 @@ const practiceRemoveWorkflow = defineWorkflow({
     const target = args.target || args._[0];
     if (!target) {
       console.error("错误: 请指定序号或关键词");
-      console.error("用法: pnpm agent:flow practice remove <index|keyword>");
       process.exit(1);
     }
-    const { formatted } = removePractice(target);
+    const result = await practice.remove.call({ target });
     console.log("已删除\n");
-    console.log(formatted);
+    console.log(result.formatted);
   },
 });
 
@@ -199,12 +195,11 @@ const practiceUpdateWorkflow = defineWorkflow({
     const content = args.content || args._.slice(1).join(" ");
     if (!index || !content) {
       console.error("错误: 请指定序号和内容");
-      console.error("用法: pnpm agent:flow practice update <index> <content>");
       process.exit(1);
     }
-    const { formatted } = updatePractice(index, content);
+    const result = await practice.update.call({ index, content });
     console.log("已更新\n");
-    console.log(formatted);
+    console.log(result.formatted);
   },
 });
 
@@ -225,7 +220,9 @@ const roadmapWorkflow = defineWorkflow({
     release: { type: "string", description: "版本号 (V1/V2)", required: false },
   },
   handler: async (args) => {
-    console.log(formatRoadmap(args.release));
+    const release = args.release || args._[0];
+    const result = await roadmap.list.call({ release });
+    console.log(result.formatted);
   },
 });
 
@@ -240,13 +237,14 @@ const statsWorkflow = defineWorkflow({
     release: { type: "string", description: "版本号", required: false },
   },
   handler: async (args) => {
-    const stats = getRoadmapStats(args.release);
-    console.log(`# 进度统计${args.release ? ` (${args.release})` : ""}\n`);
-    console.log(`总任务: ${stats.total}`);
-    console.log(`已完成: ${stats.done}`);
-    console.log(`进行中: ${stats.inProgress}`);
-    console.log(`待处理: ${stats.todo}`);
-    console.log(`完成率: ${stats.progress}%`);
+    const release = args.release || args._[0];
+    const result = await roadmap.stats.call({ release });
+    console.log(`# 进度统计${release ? ` (${release})` : ""}\n`);
+    console.log(`总任务: ${result.total}`);
+    console.log(`已完成: ${result.done}`);
+    console.log(`进行中: ${result.inProgress}`);
+    console.log(`待处理: ${result.todo}`);
+    console.log(`完成率: ${result.progress}%`);
   },
 });
 
@@ -256,7 +254,7 @@ const statsWorkflow = defineWorkflow({
 
 export const workflow = createRouter({
   name: "agent",
-  description: "KeyApp AI Agent CLI - 白皮书、最佳实践、Roadmap 管理",
+  description: "KeyApp AI Agent CLI",
   version: "2.0.0",
   subflows: [
     readmeWorkflow,
@@ -269,5 +267,5 @@ export const workflow = createRouter({
   ],
 });
 
-// Auto-start when run directly
+// Auto-start
 workflow.run();
