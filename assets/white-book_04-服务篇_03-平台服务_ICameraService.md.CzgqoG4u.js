@@ -1,0 +1,106 @@
+import{_ as s,c as n,o as p,ag as e}from"./chunks/framework.B0we9iV-.js";const u=JSON.parse('{"title":"ICameraService 相机服务","description":"","frontmatter":{},"headers":[],"relativePath":"white-book/04-服务篇/03-平台服务/ICameraService.md","filePath":"white-book/04-服务篇/03-平台服务/ICameraService.md"}'),l={name:"white-book/04-服务篇/03-平台服务/ICameraService.md"};function i(t,a,c,o,r,d){return p(),n("div",null,[...a[0]||(a[0]=[e(`<h1 id="icameraservice-相机服务" tabindex="-1">ICameraService 相机服务 <a class="header-anchor" href="#icameraservice-相机服务" aria-label="Permalink to &quot;ICameraService 相机服务&quot;">​</a></h1><blockquote><p>相机访问和二维码扫描</p></blockquote><hr><h2 id="职责" tabindex="-1">职责 <a class="header-anchor" href="#职责" aria-label="Permalink to &quot;职责&quot;">​</a></h2><p>提供相机访问能力，主要用于扫描二维码。</p><hr><h2 id="接口定义" tabindex="-1">接口定义 <a class="header-anchor" href="#接口定义" aria-label="Permalink to &quot;接口定义&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>ICameraService {</span></span>
+<span class="line"><span>  // 检查是否支持</span></span>
+<span class="line"><span>  isSupported(): boolean</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 请求相机权限</span></span>
+<span class="line"><span>  requestPermission(): PermissionStatus</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 扫描二维码</span></span>
+<span class="line"><span>  scanQRCode(options?: ScanOptions): ScanResult</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 停止扫描</span></span>
+<span class="line"><span>  stopScan(): void</span></span>
+<span class="line"><span>}</span></span></code></pre></div><hr><h2 id="数据结构" tabindex="-1">数据结构 <a class="header-anchor" href="#数据结构" aria-label="Permalink to &quot;数据结构&quot;">​</a></h2><h3 id="scanoptions" tabindex="-1">ScanOptions <a class="header-anchor" href="#scanoptions" aria-label="Permalink to &quot;ScanOptions&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>ScanOptions {</span></span>
+<span class="line"><span>  // 扫描区域（相对于视口）</span></span>
+<span class="line"><span>  scanArea?: {</span></span>
+<span class="line"><span>    x: number       // 0-1</span></span>
+<span class="line"><span>    y: number       // 0-1</span></span>
+<span class="line"><span>    width: number   // 0-1</span></span>
+<span class="line"><span>    height: number  // 0-1</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 支持的格式</span></span>
+<span class="line"><span>  formats?: QRFormat[]</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 是否显示取景框</span></span>
+<span class="line"><span>  showViewfinder?: boolean</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 振动反馈</span></span>
+<span class="line"><span>  hapticFeedback?: boolean</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>QRFormat = &#39;QR_CODE&#39; | &#39;DATA_MATRIX&#39; | &#39;AZTEC&#39; | &#39;PDF_417&#39;</span></span></code></pre></div><h3 id="scanresult" tabindex="-1">ScanResult <a class="header-anchor" href="#scanresult" aria-label="Permalink to &quot;ScanResult&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>ScanResult {</span></span>
+<span class="line"><span>  success: boolean</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 成功时</span></span>
+<span class="line"><span>  data?: string           // 解码内容</span></span>
+<span class="line"><span>  format?: QRFormat       // 码格式</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  // 失败时</span></span>
+<span class="line"><span>  error?: ScanError</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ScanError = </span></span>
+<span class="line"><span>  | &#39;PERMISSION_DENIED&#39;   // 权限被拒绝</span></span>
+<span class="line"><span>  | &#39;NO_CAMERA&#39;           // 无可用相机</span></span>
+<span class="line"><span>  | &#39;CANCELLED&#39;           // 用户取消</span></span>
+<span class="line"><span>  | &#39;DECODE_FAILED&#39;       // 解码失败</span></span></code></pre></div><hr><h2 id="扫描流程" tabindex="-1">扫描流程 <a class="header-anchor" href="#扫描流程" aria-label="Permalink to &quot;扫描流程&quot;">​</a></h2><h3 id="用户流程" tabindex="-1">用户流程 <a class="header-anchor" href="#用户流程" aria-label="Permalink to &quot;用户流程&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>1. 用户点击&quot;扫码&quot;按钮</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ▼</span></span>
+<span class="line"><span>2. 检查权限状态</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ├─ denied → 显示权限引导</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ├─ prompt → requestPermission()</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ▼ granted</span></span>
+<span class="line"><span>3. 打开扫码界面</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ▼</span></span>
+<span class="line"><span>4. 实时扫描</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ├─ 识别成功 → 处理结果</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ├─ 用户取消 → 关闭</span></span>
+<span class="line"><span>        │</span></span>
+<span class="line"><span>        ▼</span></span>
+<span class="line"><span>5. 返回结果</span></span></code></pre></div><h3 id="扫码界面规范" tabindex="-1">扫码界面规范 <a class="header-anchor" href="#扫码界面规范" aria-label="Permalink to &quot;扫码界面规范&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>┌─────────────────────────────────┐</span></span>
+<span class="line"><span>│  [←]        扫一扫              │</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│    ┌───────────────────┐       │</span></span>
+<span class="line"><span>│    │                   │       │</span></span>
+<span class="line"><span>│    │    取景框区域      │       │  ← 扫描区域</span></span>
+<span class="line"><span>│    │    (带动画边框)    │       │</span></span>
+<span class="line"><span>│    │                   │       │</span></span>
+<span class="line"><span>│    └───────────────────┘       │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│    将二维码放入框内             │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│  [相册]            [手电筒]     │</span></span>
+<span class="line"><span>└─────────────────────────────────┘</span></span></code></pre></div><hr><h2 id="扫描内容处理" tabindex="-1">扫描内容处理 <a class="header-anchor" href="#扫描内容处理" aria-label="Permalink to &quot;扫描内容处理&quot;">​</a></h2><h3 id="支持的内容格式" tabindex="-1">支持的内容格式 <a class="header-anchor" href="#支持的内容格式" aria-label="Permalink to &quot;支持的内容格式&quot;">​</a></h3><table tabindex="0"><thead><tr><th>格式</th><th>示例</th><th>处理</th></tr></thead><tbody><tr><td>纯地址</td><td><code>0x1234...</code></td><td>填入地址输入框</td></tr><tr><td>EIP-681</td><td><code>ethereum:0x1234?value=1e18</code></td><td>解析并填入转账表单</td></tr><tr><td>BFM 协议</td><td><code>bfm://transfer?to=...</code></td><td>解析并执行</td></tr><tr><td>DWEB 授权</td><td><code>bfmpay://authorize?...</code></td><td>跳转授权页</td></tr></tbody></table><h3 id="解析流程" tabindex="-1">解析流程 <a class="header-anchor" href="#解析流程" aria-label="Permalink to &quot;解析流程&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>扫描结果</span></span>
+<span class="line"><span>    │</span></span>
+<span class="line"><span>    ▼</span></span>
+<span class="line"><span>尝试解析为 URI</span></span>
+<span class="line"><span>    │</span></span>
+<span class="line"><span>    ├─ 是 URI → 按协议处理</span></span>
+<span class="line"><span>    │</span></span>
+<span class="line"><span>    ▼ 不是</span></span>
+<span class="line"><span>尝试验证为地址</span></span>
+<span class="line"><span>    │</span></span>
+<span class="line"><span>    ├─ 是地址 → 填入地址框</span></span>
+<span class="line"><span>    │</span></span>
+<span class="line"><span>    ▼ 不是</span></span>
+<span class="line"><span>显示&quot;无法识别的内容&quot;</span></span></code></pre></div><hr><h2 id="权限处理" tabindex="-1">权限处理 <a class="header-anchor" href="#权限处理" aria-label="Permalink to &quot;权限处理&quot;">​</a></h2><h3 id="权限被拒绝" tabindex="-1">权限被拒绝 <a class="header-anchor" href="#权限被拒绝" aria-label="Permalink to &quot;权限被拒绝&quot;">​</a></h3><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>┌─────────────────────────────────┐</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│      [相机图标]                 │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│   需要相机权限才能扫码          │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│   请在系统设置中允许            │</span></span>
+<span class="line"><span>│   BFM Pay 访问相机              │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>│      [打开设置]                 │</span></span>
+<span class="line"><span>│                                 │</span></span>
+<span class="line"><span>└─────────────────────────────────┘</span></span></code></pre></div><hr><h2 id="性能要求" tabindex="-1">性能要求 <a class="header-anchor" href="#性能要求" aria-label="Permalink to &quot;性能要求&quot;">​</a></h2><table tabindex="0"><thead><tr><th>指标</th><th>目标值</th></tr></thead><tbody><tr><td>相机启动时间</td><td>&lt; 1s</td></tr><tr><td>识别延迟</td><td>&lt; 500ms</td></tr><tr><td>帧率</td><td>≥ 30fps</td></tr></tbody></table><hr><h2 id="可访问性" tabindex="-1">可访问性 <a class="header-anchor" href="#可访问性" aria-label="Permalink to &quot;可访问性&quot;">​</a></h2><ul><li><strong>MUST</strong> 提供手动输入作为替代</li><li><strong>SHOULD</strong> 支持从相册选择图片</li><li><strong>SHOULD</strong> 扫描成功时振动反馈</li></ul>`,36)])])}const b=s(l,[["render",i]]);export{u as __pageData,b as default};
