@@ -1,24 +1,59 @@
-# 01. 密钥派生 (Key Derivation)
+# Key Derivation
 
-Code: `src/services/chain-adapter/derive-wallet-chain-addresses.ts`
+## Overview
 
-KeyApp 使用 **BIP-44** 标准进行多链确定性推导。
+KeyApp uses a unified key derivation strategy based on standard BIP protocols where applicable, while respecting chain-specific requirements.
 
-## 派生路径 (Derivation Paths)
+## Master Seed
 
-| 链 | 算法 | 路径示例 | 说明 |
-| :--- | :--- | :--- | :--- |
-| **Ethereum** | secp256k1 | `m/44'/60'/0'/0/0` | 标准以太坊路径 |
-| **Tron** | secp256k1 | `m/44'/195'/0'/0/0` | Tron 路径 |
-| **Bitcoin** | secp256k1 | `m/84'/0'/0'/0/0` | Native Segwit (Bech32) |
-| **BioChain** | ed25519 | `m/44'/...` | 自定义派生 |
+The root of all keys is a **12 or 24 word mnemonic phrase** (BIP-39). This mnemonic is converted into a binary seed which is then used to derive chain-specific keys.
 
-## 流程
+> **Note**: For BioForest chains, the mnemonic string itself (UTF-8 encoded) acts as the seed for Ed25519 key generation, rather than the BIP-39 binary seed. This is a legacy compatibility requirement.
 
-1.  用户输入 Mnemonic。
-2.  生成 Seed。
-3.  根据 `chain-config` 中的配置，遍历所有启用的链。
-4.  为每条链生成对应的私钥和公钥。
-5.  从公钥生成地址。
+## Derivation Paths
 
-所有派生都在本地完成，私钥永远不会离开设备内存（且仅在签名时短暂存在）。
+| Chain Kind | Algorithm | Path / Method | Standard |
+|------------|-----------|---------------|----------|
+| **BioForest** | Ed25519 | `sha256(mnemonic)` | Custom |
+| **Bitcoin** | Secp256k1 | `m/84'/0'/0'/0/0` | BIP-84 (Native SegWit) |
+| **Ethereum** | Secp256k1 | `m/44'/60'/0'/0/0` | BIP-44 |
+| **Tron** | Secp256k1 | `m/44'/195'/0'/0/0` | BIP-44 |
+
+## Implementation
+
+### Unified Interface
+
+Address derivation is exposed via the `IIdentityService` interface implemented by each chain adapter.
+
+```typescript
+interface IIdentityService {
+  deriveAddress(seed: Uint8Array, index?: number): Promise<string>;
+  deriveAddresses(seed: Uint8Array, startIndex: number, count: number): Promise<string[]>;
+}
+```
+
+### Usage
+
+The helper function `deriveWalletChainAddresses` acts as the single entry point for deriving addresses for a user's wallet across multiple selected chains.
+
+```typescript
+// src/services/chain-adapter/derive-wallet-chain-addresses.ts
+export async function deriveWalletChainAddresses(params) {
+  // Iterates through selected chains and calls provider.deriveAddress
+}
+```
+
+### Specific Implementations
+
+- **BioForest (`BioforestIdentityService`)**:
+  - Uses `createBioforestKeypair(seedString)`.
+  - Same keypair for all indices (no HD support yet).
+
+- **Bitcoin (`BitcoinIdentityService`)**:
+  - Uses `deriveBitcoinKey(mnemonic, 84, index)`.
+  - Supports full HD derivation.
+
+## Security Considerations
+
+- **Memory**: Mnemonics are kept in memory only during the derivation process and cleared immediately after.
+- **Storage**: Keys are never stored in plain text. See [Wallet Storage](./02-Wallet-Storage.md) for encryption details.
