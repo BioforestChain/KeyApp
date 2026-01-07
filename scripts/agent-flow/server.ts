@@ -19,4 +19,5 @@ await buildMetaMcp({
   name: "keyapp-agent",
   directories: [join(ROOT, "scripts/agent-flow/workflows")],
   autoStart: true,
+  autoRefresh: true,
 });

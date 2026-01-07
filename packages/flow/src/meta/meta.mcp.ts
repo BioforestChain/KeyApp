@@ -469,13 +469,8 @@ export async function buildMetaMcp(config: MetaMcpConfig = {}) {
   };
 
   const workflowTool = await createWorkflowTool(directories, workflowFilter);
-  const reloadTool = createReloadTool(
-    directories,
-    workflowFilter,
-    refreshWorkflows
-  );
-  const listTool = createListTool(directories);
-  const tools = [workflowTool, reloadTool, listTool, ...extraTools];
+  const reloadTool = createReloadTool(directories, workflowFilter, refreshWorkflows);
+  const tools = [workflowTool, reloadTool, ...extraTools];
 
   const server = createMcpServer({
     name,
@@ -580,7 +575,6 @@ export {
   buildToolDescription,
   createWorkflowTool,
   createReloadTool,
-  createListTool,
   executeWorkflow,
   scanWorkflows,
 };
