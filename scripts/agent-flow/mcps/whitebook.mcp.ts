@@ -146,6 +146,32 @@ export function getKnowledgeMap(): string {
 3. 00-Manifesto/07-Best-Practices.md - 最佳实践`;
 }
 
+export function getRelatedChapters(type: string): string[] {
+  const map: Record<string, string[]> = {
+    ui: [
+      "03-UI-Ref/01-Foundation/02-Design-Principles.md",
+      "03-UI-Ref/05-Components/00-Index.md",
+      "03-UI-Ref/02-Primitives/00-Index.md",
+    ],
+    service: [
+      "06-Service-Ref/01-Service-Definition-System.md",
+      "04-Platform-Ref/05-Hooks.md",
+      "06-Service-Ref/00-Index.md",
+    ],
+    page: [
+      "12-Shell-Guide/01-Navigation/Router-Config.md",
+      "12-Shell-Guide/02-System-Flows/Activities.md",
+      "03-UI-Ref/05-Components/10-Layout.md",
+    ],
+    hybrid: [
+      "00-Manifesto/03-Architecture.md",
+      "06-Service-Ref/01-Service-Definition-System.md",
+      "12-Shell-Guide/00-Navigation-Map.md",
+    ],
+  };
+  return map[type] || map["hybrid"];
+}
+
 // =============================================================================
 // Internal Helpers
 // =============================================================================
