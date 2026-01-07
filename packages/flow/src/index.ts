@@ -130,9 +130,15 @@ export {
 
 // Scanner
 export {
+  createScanner,
   extractDescription,
   extractMcpDependencies,
   extractMcpTools,
-  getBaseName,
-  scanDirectory,
+  scanMcpsIn,
+  scanWorkflowsIn,
+  type McpItem,
+  type ScannerConfig,
+  type ScanResult,
+  type ScannedItem,
+  type WorkflowItem,
 } from "./meta/lib/scanner.js";
