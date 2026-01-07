@@ -15,6 +15,7 @@
  *   pnpm agent epic <action>                   # Epic 管理
  *   pnpm agent worktree <action>               # Worktree 管理
  *   pnpm agent practice [action]               # 最佳实践管理
+ *   pnpm agent docs <action>                   # 文档工具链 (validate/related/graph/sync)
  */
 
 import yargs from 'yargs'
@@ -31,6 +32,7 @@ import chapterCommand from './commands/chapter'
 import epicCommand from './commands/epic'
 import worktreeCommand from './commands/worktree'
 import practiceCommand from './commands/practice'
+import docsCommand from './commands/docs'
 
 yargs(hideBin(process.argv))
   .scriptName('pnpm agent')
@@ -46,6 +48,7 @@ yargs(hideBin(process.argv))
   .command(epicCommand)
   .command(worktreeCommand)
   .command(practiceCommand)
+  .command(docsCommand)
   .demandCommand(1, '请指定命令，使用 --help 查看可用命令')
   .strict()
   .help()
