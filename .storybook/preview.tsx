@@ -99,7 +99,7 @@ const preview: Preview = {
       description: 'Fiat display currency (default USD)',
       defaultValue: 'USD',
       toolbar: {
-        icon: 'creditcard',
+        icon: 'credit',
         items: supportedCurrencyCodes.map((code) => ({
           value: code,
           title: `${currencies[code].symbol} ${code}`,
