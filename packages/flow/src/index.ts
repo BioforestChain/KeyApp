@@ -142,3 +142,13 @@ export {
   type ScannedItem,
   type WorkflowItem,
 } from "./meta/lib/scanner.js";
+
+// Meta MCP
+export {
+  buildMetaMcp,
+  createListTool,
+  createReloadTool,
+  createWorkflowTool,
+  scanWorkflows,
+  type MetaMcpConfig,
+} from "./meta/meta.mcp.js";
