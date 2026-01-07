@@ -2,11 +2,27 @@
  * Best Practice Tools
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 const ROOT_DIR = process.cwd();
-const PRACTICE_FILE = join(ROOT_DIR, "docs/white-book/00-Manifesto/best-practices.md");
+const PRACTICE_FILE = join(ROOT_DIR, "docs/white-book/00-Manifesto/07-Best-Practices.md");
+
+const DEFAULT_CONTENT = `# 最佳实践
+
+1. 先阅读白皮书相关章节，再开始编码
+2. 使用 TypeScript 严格模式，避免 any 类型
+3. 所有组件必须有 Storybook story
+4. 所有业务逻辑必须有单元测试
+5. PR 描述使用 \`Closes #issue编号\` 自动关联任务
+`;
+
+function ensurePracticeFile(): void {
+  if (!existsSync(PRACTICE_FILE)) {
+    mkdirSync(dirname(PRACTICE_FILE), { recursive: true });
+    writeFileSync(PRACTICE_FILE, DEFAULT_CONTENT, "utf-8");
+  }
+}
 
 export interface Practice {
   index: number;
@@ -40,9 +56,7 @@ function parsePractices(content: string): Practice[] {
  * List all best practices
  */
 export function listPractices(): PracticeList {
-  if (!existsSync(PRACTICE_FILE)) {
-    return { practices: [], formatted: "最佳实践文件不存在" };
-  }
+  ensurePracticeFile();
 
   const content = readFileSync(PRACTICE_FILE, "utf-8");
   const practices = parsePractices(content);

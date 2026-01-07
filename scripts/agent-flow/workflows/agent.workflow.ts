@@ -153,10 +153,16 @@ const practiceAddWorkflow = defineWorkflow({
   name: "add",
   description: "添加最佳实践",
   args: {
-    content: { type: "string", description: "内容", required: true },
+    content: { type: "string", alias: "c", description: "内容", required: false },
   },
   handler: async (args) => {
-    const { formatted } = addPractice(args.content);
+    const content = args.content || args._.join(" ");
+    if (!content) {
+      console.error("错误: 请指定内容");
+      console.error("用法: pnpm agent:flow practice add <content>");
+      process.exit(1);
+    }
+    const { formatted } = addPractice(content);
     console.log("已添加\n");
     console.log(formatted);
   },
@@ -166,10 +172,16 @@ const practiceRemoveWorkflow = defineWorkflow({
   name: "remove",
   description: "删除最佳实践",
   args: {
-    target: { type: "string", description: "序号或关键词", required: true },
+    target: { type: "string", alias: "t", description: "序号或关键词", required: false },
   },
   handler: async (args) => {
-    const { formatted } = removePractice(args.target);
+    const target = args.target || args._[0];
+    if (!target) {
+      console.error("错误: 请指定序号或关键词");
+      console.error("用法: pnpm agent:flow practice remove <index|keyword>");
+      process.exit(1);
+    }
+    const { formatted } = removePractice(target);
     console.log("已删除\n");
     console.log(formatted);
   },
@@ -179,11 +191,18 @@ const practiceUpdateWorkflow = defineWorkflow({
   name: "update",
   description: "更新最佳实践",
   args: {
-    index: { type: "number", description: "序号", required: true },
-    content: { type: "string", description: "新内容", required: true },
+    index: { type: "number", alias: "i", description: "序号", required: false },
+    content: { type: "string", alias: "c", description: "新内容", required: false },
   },
   handler: async (args) => {
-    const { formatted } = updatePractice(args.index, args.content);
+    const index = args.index || parseInt(args._[0], 10);
+    const content = args.content || args._.slice(1).join(" ");
+    if (!index || !content) {
+      console.error("错误: 请指定序号和内容");
+      console.error("用法: pnpm agent:flow practice update <index> <content>");
+      process.exit(1);
+    }
+    const { formatted } = updatePractice(index, content);
     console.log("已更新\n");
     console.log(formatted);
   },
