@@ -14,11 +14,9 @@ import { allTools } from "./meta/index.js";
 
 const ROOT = process.cwd();
 
-const { server } = buildMetaMcp({
+const { server } = await buildMetaMcp({
   name: "keyapp-agent",
-  directories: [
-    join(ROOT, "scripts/agent-flow/workflows"),
-  ],
+  directories: [join(ROOT, "scripts/agent-flow/workflows")],
   extraTools: allTools,
   autoStart: true,
 });
