@@ -58,6 +58,7 @@ Mapping source directories to documentation books.
 | **UI System** | `src/components/ui`, `src/styles` | [`03-UI-Ref`](../03-UI-Ref) |
 | **Platform** | `src/services/{biometric,camera,...}` | [`04-Platform-Ref`](../04-Platform-Ref) |
 | **State** | `src/stores`, `src/queries` | [`05-State-Ref`](../05-State-Ref) |
+| **Services** | `src/services/{chain-config,ecosystem,...}` | [`06-Service-Ref`](../06-Service-Ref) |
 | **Wallet Logic** | `src/services/wallet`, `src/services/transaction` | [`10-Wallet-Guide`](../10-Wallet-Guide) |
 | **DApps** | `src/components/ecosystem` | [`11-DApp-Guide`](../11-DApp-Guide) |
 | **Shell** | `src/stackflow` | [`12-Shell-Guide`](../12-Shell-Guide) |
