@@ -184,19 +184,20 @@ async function buildToolDescription(
     })
     .join("\n");
 
+  // 动态生成 examples
+  const examples = workflows.slice(0, 3).map((w) => `  workflow("${w.name}", ["--help"])`).join("\n");
+
   return `Execute a workflow by name with arguments.
 
 ## Usage
-- Use \`--help\` to get detailed usage: workflow("research", ["--help"])
-- Most AI-driven workflows support \`--resume\` for session continuation
+- Use \`--help\` to get detailed usage for any workflow
+- Pass arguments as string array
 
 ## Available Workflows
 ${workflowList || "(none)"}
 
 ## Examples
-  workflow("agent", ["readme"])
-  workflow("agent", ["chapter", "00-必读"])
-  workflow("agent", ["practice", "list"])`;
+${examples || '  workflow("<name>", ["--help"])'}`;
 }
 
 // =============================================================================

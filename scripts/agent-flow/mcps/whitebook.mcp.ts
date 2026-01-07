@@ -3,13 +3,6 @@
  * Whitebook MCP - 白皮书读写工具集
  *
  * 提供白皮书的查阅、搜索、知识地图等原子操作。
- * 被 workflows 组合调用，也可独立作为 MCP 服务器运行。
- *
- * 工具列表:
- * - toc: 获取白皮书目录结构
- * - chapter: 读取指定章节内容
- * - search: 全文搜索
- * - knowledge_map: 获取代码与文档的知识地图
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -54,16 +47,10 @@ export interface ChapterContent {
 // Pure Functions (供 workflows 调用)
 // =============================================================================
 
-/**
- * 获取白皮书目录结构
- */
 export function getToc(): ChapterInfo[] {
   return getChaptersRecursive(WHITE_BOOK_DIR);
 }
 
-/**
- * 格式化目录为可读文本
- */
 export function formatToc(chapters: ChapterInfo[], indent = 0): string {
   const lines: string[] = [];
   for (const chapter of chapters) {
@@ -76,22 +63,15 @@ export function formatToc(chapters: ChapterInfo[], indent = 0): string {
   return lines.join("\n");
 }
 
-/**
- * 读取章节内容
- */
 export function getChapter(chapterPath: string): ChapterContent {
   const fullPath = join(WHITE_BOOK_DIR, chapterPath);
-
-  if (!existsSync(fullPath)) {
-    throw new Error(`章节不存在: ${chapterPath}`);
-  }
+  if (!existsSync(fullPath)) throw new Error(`章节不存在: ${chapterPath}`);
 
   const stat = statSync(fullPath);
 
   if (stat.isDirectory()) {
     const entryFiles = ["README.md", "00-Index.md", "index.md"];
     let content = "";
-
     for (const entry of entryFiles) {
       const entryPath = join(fullPath, entry);
       if (existsSync(entryPath)) {
@@ -101,11 +81,7 @@ export function getChapter(chapterPath: string): ChapterContent {
     }
 
     const subFiles = readdirSync(fullPath)
-      .filter(
-        (f) =>
-          f.endsWith(".md") &&
-          !["index.md", "README.md", "00-Index.md"].includes(f)
-      )
+      .filter((f) => f.endsWith(".md") && !["index.md", "README.md", "00-Index.md"].includes(f))
       .sort()
       .map((f) => ({
         name: f.replace(".md", ""),
@@ -120,30 +96,21 @@ export function getChapter(chapterPath: string): ChapterContent {
   throw new Error(`无效路径: ${chapterPath}`);
 }
 
-/**
- * 搜索白皮书内容
- */
 export function searchContent(query: string, limit = 50): SearchResult[] {
   const results: SearchResult[] = [];
   const lowerQuery = query.toLowerCase();
 
   function searchDir(dir: string) {
     if (!existsSync(dir)) return;
-    const items = readdirSync(dir);
-    for (const item of items) {
+    for (const item of readdirSync(dir)) {
       const fullPath = join(dir, item);
       const stat = statSync(fullPath);
       if (stat.isDirectory() && !item.startsWith(".")) {
         searchDir(fullPath);
       } else if (item.endsWith(".md")) {
-        const content = readFileSync(fullPath, "utf-8");
-        content.split("\n").forEach((line, idx) => {
+        readFileSync(fullPath, "utf-8").split("\n").forEach((line, idx) => {
           if (line.toLowerCase().includes(lowerQuery)) {
-            results.push({
-              path: relative(WHITE_BOOK_DIR, fullPath),
-              line: idx + 1,
-              text: line.trim().slice(0, 100),
-            });
+            results.push({ path: relative(WHITE_BOOK_DIR, fullPath), line: idx + 1, text: line.trim().slice(0, 100) });
           }
         });
       }
@@ -154,9 +121,6 @@ export function searchContent(query: string, limit = 50): SearchResult[] {
   return results.slice(0, limit);
 }
 
-/**
- * 获取知识地图
- */
 export function getKnowledgeMap(): string {
   return `# 知识地图
 
@@ -189,48 +153,38 @@ export function getKnowledgeMap(): string {
 function getChaptersRecursive(dir: string): ChapterInfo[] {
   if (!existsSync(dir)) return [];
 
-  const items = readdirSync(dir)
+  return readdirSync(dir)
     .filter((item) => !item.startsWith("."))
-    .sort();
+    .sort()
+    .map((item) => {
+      const fullPath = join(dir, item);
+      const stat = statSync(fullPath);
 
-  const chapters: ChapterInfo[] = [];
-
-  for (const item of items) {
-    const fullPath = join(dir, item);
-    const stat = statSync(fullPath);
-
-    if (stat.isDirectory()) {
-      const entryFiles = ["README.md", "00-Index.md", "index.md"];
-      let indexPath: string | undefined;
-      for (const entry of entryFiles) {
-        const entryPath = join(fullPath, entry);
-        if (existsSync(entryPath)) {
-          indexPath = entryPath;
-          break;
+      if (stat.isDirectory()) {
+        const entryFiles = ["README.md", "00-Index.md", "index.md"];
+        let indexPath: string | undefined;
+        for (const entry of entryFiles) {
+          const entryPath = join(fullPath, entry);
+          if (existsSync(entryPath)) { indexPath = entryPath; break; }
         }
+        return {
+          name: item,
+          path: fullPath,
+          relativePath: relative(WHITE_BOOK_DIR, fullPath),
+          indexPath,
+          subChapters: getChaptersRecursive(fullPath),
+        };
+      } else if (item.endsWith(".md") && !["index.md", "README.md", "00-Index.md"].includes(item)) {
+        return {
+          name: item.replace(".md", ""),
+          path: fullPath,
+          relativePath: relative(WHITE_BOOK_DIR, fullPath),
+          subChapters: [],
+        };
       }
-
-      chapters.push({
-        name: item,
-        path: fullPath,
-        relativePath: relative(WHITE_BOOK_DIR, fullPath),
-        indexPath,
-        subChapters: getChaptersRecursive(fullPath),
-      });
-    } else if (
-      item.endsWith(".md") &&
-      !["index.md", "README.md", "00-Index.md"].includes(item)
-    ) {
-      chapters.push({
-        name: item.replace(".md", ""),
-        path: fullPath,
-        relativePath: relative(WHITE_BOOK_DIR, fullPath),
-        subChapters: [],
-      });
-    }
-  }
-
-  return chapters;
+      return null;
+    })
+    .filter((x): x is ChapterInfo => x !== null);
 }
 
 // =============================================================================
@@ -239,58 +193,33 @@ function getChaptersRecursive(dir: string): ChapterInfo[] {
 
 export const tocTool = defineTool({
   name: "whitebook_toc",
-  description: `获取白皮书完整目录结构。
-
-返回所有章节的树形结构，包括：
-- 章节名称和相对路径
-- 子章节层级
-
-用于了解白皮书整体结构，决定阅读哪些章节。`,
+  description: "获取白皮书完整目录结构，返回所有章节的树形结构。",
   inputSchema: z.object({}),
   outputSchema: z.object({ formatted: z.string() }),
-  handler: async () => {
-    const chapters = getToc();
-    return { formatted: `# 白皮书目录结构\n\n${formatToc(chapters)}` };
-  },
+  handler: async () => ({ formatted: `# 白皮书目录结构\n\n${formatToc(getToc())}` }),
 });
 
 export const chapterTool = defineTool({
   name: "whitebook_chapter",
-  description: `读取白皮书指定章节的完整内容。
-
-参数:
-- path: 章节路径（如 "00-Manifesto" 或 "00-Manifesto/01-Vision.md"）
-
-如果是目录，返回索引文件和所有子文件内容。
-如果是文件，返回文件内容。`,
+  description: "读取白皮书章节内容。目录返回索引和子文件，文件返回内容。",
   inputSchema: z.object({
     path: z.string().describe("章节路径，如 '00-Manifesto' 或 '00-Manifesto/01-Vision.md'"),
   }),
   outputSchema: z.object({
     content: z.string(),
-    subFiles: z
-      .array(z.object({ name: z.string(), content: z.string() }))
-      .optional(),
+    subFiles: z.array(z.object({ name: z.string(), content: z.string() })).optional(),
   }),
   handler: async ({ path }) => getChapter(path),
 });
 
 export const searchTool = defineTool({
   name: "whitebook_search",
-  description: `在白皮书中全文搜索。
-
-参数:
-- query: 搜索关键词
-
-返回匹配的文件路径、行号和上下文文本（最多 50 条）。
-用于快速定位相关内容。`,
+  description: "在白皮书中全文搜索，返回匹配的文件路径、行号和上下文。",
   inputSchema: z.object({
     query: z.string().describe("搜索关键词"),
   }),
   outputSchema: z.object({
-    results: z.array(
-      z.object({ path: z.string(), line: z.number(), text: z.string() })
-    ),
+    results: z.array(z.object({ path: z.string(), line: z.number(), text: z.string() })),
     count: z.number(),
   }),
   handler: async ({ query }) => {
@@ -301,12 +230,7 @@ export const searchTool = defineTool({
 
 export const knowledgeMapTool = defineTool({
   name: "whitebook_knowledge_map",
-  description: `获取项目知识地图。
-
-返回代码目录结构和白皮书章节的对应关系，帮助快速定位：
-- 代码在哪里
-- 文档在哪里
-- 必读章节有哪些`,
+  description: "获取代码目录与白皮书章节的对照图，帮助快速定位相关内容。",
   inputSchema: z.object({}),
   outputSchema: z.object({ content: z.string() }),
   handler: async () => ({ content: getKnowledgeMap() }),
@@ -322,21 +246,12 @@ export const tools = [tocTool, chapterTool, searchTool, knowledgeMapTool];
 // Standalone MCP Server
 // =============================================================================
 
-const isMain =
-  process.argv[1] &&
-  (process.argv[1].endsWith("whitebook.mcp.ts") ||
-    process.argv[1].endsWith("whitebook.mcp.js"));
+const isMain = process.argv[1]?.endsWith("whitebook.mcp.ts") || process.argv[1]?.endsWith("whitebook.mcp.js");
 
 if (isMain) {
   createMcpServer({
     name: "whitebook",
-    description: `白皮书工具集 - 查阅 KeyApp 技术文档
-
-提供以下工具:
-- whitebook_toc: 获取目录结构
-- whitebook_chapter: 读取章节内容
-- whitebook_search: 全文搜索
-- whitebook_knowledge_map: 代码与文档对照图`,
+    description: "白皮书工具集 - 查阅 KeyApp 技术文档",
     tools,
     autoStart: true,
   });
