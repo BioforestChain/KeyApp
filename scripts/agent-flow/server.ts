@@ -3,21 +3,19 @@
  * Agent MCP Server 启动入口
  *
  * 基于 meta.mcp 的 buildMetaMcp 构建，自动发现 workflows 并暴露给 AI。
- * AI 通过 workflow("agent", [...]) 调用功能，无需手动聚合 MCP tools。
+ * AI 通过 workflow("agent", [...]) 调用功能。
  *
  * Usage:
  *   pnpm agent:mcp
  */
 
-import { join } from "node:path";
 import { buildMetaMcp } from "../../packages/flow/src/meta/meta.mcp.js";
+import { WORKFLOWS_DIR } from "./meta/index.js";
 
-const ROOT = process.cwd();
-
-// Meta 只负责发现 workflows，不需要 extraTools
+// Meta 自动发现 workflows
 await buildMetaMcp({
   name: "keyapp-agent",
-  directories: [join(ROOT, "scripts/agent-flow/workflows")],
+  directories: [WORKFLOWS_DIR],
   autoStart: true,
   autoRefresh: true,
 });

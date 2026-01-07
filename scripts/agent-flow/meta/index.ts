@@ -1,17 +1,31 @@
 /**
- * Agent Meta - 导出内部 Tools 供 Workflow 使用
+ * Agent Meta - Workflow 发现路径配置
  *
- * 注意：这些 tools 仅供 workflow 内部调用，不直接暴露给 AI。
- * AI 通过 workflow("agent", [...]) 间接使用这些功能。
+ * 定义 workflows 的发现目录，供 buildMetaMcp 使用。
  */
+
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Agent-flow 根目录
+export const AGENT_FLOW_DIR = dirname(__dirname);
+
+// Workflow 目录
+export const WORKFLOWS_DIR = join(AGENT_FLOW_DIR, "workflows");
+
+// MCP 目录
+export const MCPS_DIR = join(AGENT_FLOW_DIR, "mcps");
+
+// =============================================================================
+// Re-export tools for workflow internal use
+// =============================================================================
 
 import * as whitebookMcp from "../mcps/whitebook.mcp.js";
 import * as practiceMcp from "../mcps/practice.mcp.js";
 import * as roadmapMcp from "../mcps/roadmap.mcp.js";
-
-// =============================================================================
-// Tool Exports (for workflow internal use)
-// =============================================================================
 
 export const whitebook = {
   toc: whitebookMcp.toc,
