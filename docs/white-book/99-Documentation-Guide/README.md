@@ -9,4 +9,4 @@
 *   [00-Overview.md](./00-Overview.md) - 文档哲学
 *   [01-Style-Guide.md](./01-Style-Guide.md) - 风格指南 (Tone & Formatting)
 *   [02-Structure-Rules.md](./02-Structure-Rules.md) - 结构化规则 (Frontmatter & Code Mapping)
-*   [03-Diagram-Standard.md](./03-Diagram-Standard.md) - 图表绘制标准 (Mermaid)
+*   [03-Series-Standards.md](./03-Series-Standards.md) - **丛书编写标准** (审稿依据)
