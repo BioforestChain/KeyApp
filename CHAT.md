@@ -1163,5 +1163,74 @@ worktree new task:
 ---
 
 将 WalletTab 中的下半部分：关于某个地址某个网络中的资产列表和交易列表，封装成一套组件。我要在 stories 中看到这套组件，并绑定真实的 chainProvider。
-提供两个 stories 测试，一个是 `bfmeta:bCfAynSAKhzgKLi3BXyuh5k22GctLR72j` ；一个是 `eth:bCfAynSAKhzgKLi3BXyuh5k22GctLR72j`
+提供两个 stories 测试，一个是 `biochain-bfmeta:b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx` ；一个是 `eth-eth:0x75a6F48BF634868b2980c97CcEf467A127597e08`
 我要确保能看到真实的数据。
+
+---
+
+使用 walletapi 继续完善我们的底层 api 的支持，比如实现 tronwallet-v1/ethwallet-v1/btcwallet-v1，并用它来作为我们的 fallback方案。
+参考：`/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/bitcoin`/`/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/ethereum`/`/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/binance`/`/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/tron`
+
+1. getMethod 返回的是一个能自动 fallback 的函数，比如一个函数有多个 provider，那么 Provider1 失败(`比如 response.ok()===false，或者其它错误结构`)，自动使用 Provider2 进行重试
+   1. 优先使用第三方，失败就 fallback 到 `*wallet-v1`，
+   2. 基于 default-chains.json 中 api 的配置顺序：破坏性更新！将 api 字段改成数组 apis。
+2. 完善测试，在 walletaddressportfolio 中补充测试各种 provider（独立对 Provider 进行测试）：
+   1. 比如在 real-data-ethereum 中，同时提供所有支持的 provider
+   2. 然后在测试中，确保至少有一个 Provider 真确显示出了非空的交易列表、非 0 的资产
+3. 这是我的 trongrid-api-key： c2c43cea-d490-4ba8-bab1-2ebf4ce81bae，我们可以优先使用 无 APIKEY 的 trongrid 免费接口，失败了再用有 api-key 的接口，再失败了再回退成使用 tronwallet-v1
+4. 先办法优化请求的调用次数，比如说这个方案：默认情况下余额和交易列表都是独立地去拉取，比如说 60s 轮询一次，但这会导致并发问题，可以优化成，如果余额变动了，那么交易列表再去触发拉取，否则交易列表的默认拉取时间是 5 分钟。
+   1. 以上这个方案我只是举一个粗糙的例子，这种代码实现可能会导致很多问题。这里我给出一些优化上的原则，不可以违背这些原则：
+   2. 不可以为了优化而影响代码的可靠性和可维护性。比如我上面的例子，具体要实现的时候，得从 fetch 函数入手：通过篡改 fetch 函数，来得知余额变更，否则优先返回列表缓存。这样的好处是这些优化策略都是可以动态插拔的，不会影响业务。
+   3. 还有一些链，可能出块比较慢，那么需要可以等区块变更了，再去做后续的拉取。这里的核心逻辑是：将“轮询”封装成“订阅”，基于订阅机制去做按需更新
+   4. 每种策略要足够独立，通过交叉优化来逐步改进
+5. 更新白皮书
+
+/Users/kzf/.factory/specs/2026-01-05-walletapi-fallback-providers-ordered-apis-request-optimization.md
+/Users/kzf/.factory/specs/2026-01-06-merge-walletapi-fallback-worktree-to-main.md
+
+这是我的 etherscan-api-key: UN6TIKGANUFRYYPNSD1SCHRAZ3NABF52XS,KXX7MGJR3U6IEZNSY1ESMCXWUGX6Z8QEU6,TMMTZHU2XN2YM2A5YIXTXA9EKJS1GPC3GD
+每次会话随机锁定其中一个，要能自动根据`,`分隔 api-key，然后随机选中其中一个（应用启动后，随机选中一次不会再变）
+这种随机选中 api-key 的逻辑，也在 trongrid 适用。
+
+---
+
+1. 基于 spec 文件： /Users/kzf/.factory/specs/2026-01-05-option-b1-evm-hash-token.md 开始进行 review
+2. 参考这份 spec，给出一份关于binance、tron、bitcoin 等优化方案： /Users/kzf/.factory/specs/2026-01-05-other-network-better-trs-list.md
+
+---
+
+更新完成交易列表，我们需要更新交易详情页，请你给我一份详细的交易详情页的更新计划
+
+/Users/kzf/.factory/specs/2026-01-05-update-transaction-detail-page-provider-schema.md
+/Users/kzf/.factory/specs/2026-01-06-chain-adapter-ssot-guard-at-the-gate-safeparse-transactions.md
+
+---
+
+我打开 storybook，发现大量的警告：
+
+```
+Use of an unknown prop (creditcard) in the Icons component. The Icons component is deprecated. Please use the @storybook/icons component directly. For more informations, see the migration notes at https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#icons-is-deprecat
+```
+
+---
+
+刚才你已经成功将 tron 的两个接口都修复了，并学会了使用测试驱动开发(#173)。
+接下来，我需要你开始修复其它接口：
+
+1. eth: https://eth.blockscout.com/api 预期是交易和资产都能查询到；目前是能查询到交易但是资产错误显示0。
+2. eth: https://ethereum-rpc.publicnode.com 预期是资产能查询到，不支持交易查询；目前是能查询资产，但是交易查询一直 loading。
+3. eth: https://api.etherscan.io/v2/api 预期是交易和资产都能查询到；目前是能查询到交易但是资产错误显示0。
+4. bnb: https://bsc-rpc.publicnode.com 预期是资产能查询到，不支持交易查询；目前是能查询资产，但是交易查询一直 loading。
+5. bsc: https://api.etherscan.io/v2/api 预期是交易和资产都能查询到；目前是能查询到交易但是资产错误显示0。
+
+walletapi相关的接口：
+
+6. eth: https://walletapi.bfmeta.info/wallet/eth 预期是交易和资产都能查询到；但是目前资产错误显示0，交易显示`Invalid API response`
+   参考文件： /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/ethereum/ethereum.service.ts
+7. tron: https://walletapi.bfmeta.info/wallet/tron 预期是交易和资产都能查询到；但是目前资产错误请求了`http://STORYBOOK_HOST/wallet/getaccount`，交易界面显示`Upstream API error`，我看网络面板是看到参数填写错误
+   参考文件： /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/tron/tron.service.ts
+8. bitcoin: https://walletapi.bfmeta.info/wallet/btc 预期是交易和资产都能查询到；但是目前资产和交易都错误请求了`https://walletapi.bfmeta.info/wallet/btc/blockbook`，并且界面上没有正确显示错误信息
+9. bsc: https://walletapi.bfmeta.info/wallet/bsc 预期是交易和资产都能查询到；目前是能查询资产，但是显示没有交易记录（查询了`https://walletapi.bfmeta.info/wallet/bsc/trans/normal/history`，然后返回：`{"success":true,"result":{"status":"0","message":"NOTOK","result":[]}}`）
+   参考文件： /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/binance/binance.service.ts
+
+/Users/kzf/.factory/specs/2026-01-06-api-walletapi.md
