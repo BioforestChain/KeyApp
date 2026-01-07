@@ -1,35 +1,37 @@
-# 03. 宏观架构图 (Architecture Map)
+# Architecture Map
 
-KeyApp 遵循典型的 **分层架构 (Layered Architecture)**，模仿操作系统的设计。
+KeyApp follows a **Layered Architecture** inspired by Operating System design.
 
 ```mermaid
 graph TD
     subgraph "App Layer (DApps)"
         DApp1[Uniswap]
-        DApp2[AAVE]
         Miniapp[System Miniapps]
     end
 
     subgraph "Shell Layer (System UI)"
         Router[Stackflow Router]
-        TaskManager[Task View]
         SystemApps[Wallet / Settings]
     end
 
-    subgraph "Kernel Layer (Miniapp Runtime)"
+    subgraph "Kernel Layer (Runtime)"
         Process[Process Manager]
         Window[Window Manager]
         Sandbox[Iframe Sandbox]
-        Bridge[BioBridge IPC]
     end
 
-    subgraph "Service Layer (Business Logic)"
+    subgraph "State Layer (Reactive)"
+        Stores[TanStack Store]
+        Queries[TanStack Query]
+    end
+
+    subgraph "Service Layer (Logic)"
         WalletCore[Wallet Core]
-        Store[State Store]
         Identity[Biometric / Auth]
+        Platform[Platform Adapters]
     end
 
-    subgraph "Driver Layer (Chain Adapters)"
+    subgraph "Driver Layer (Chain)"
         HAL[ApiProvider Interface]
         EVM[EVM Driver]
         UTXO[BTC Driver]
@@ -37,19 +39,25 @@ graph TD
     end
 
     DApp1 --> Sandbox
-    Sandbox --> Bridge
-    Bridge --> ServiceLayer
-    SystemApps --> ServiceLayer
-    ServiceLayer --> HAL
-    HAL --> EVM & UTXO & TVM
+    Sandbox --> ServiceLayer
+    SystemApps --> StateLayer
+    StateLayer --> ServiceLayer
+    ServiceLayer --> DriverLayer
+    ServiceLayer --> Platform
 ```
 
-## 目录映射
+## Directory Mapping
 
-| 架构层级 | 对应代码目录 | 对应文档 |
+The documentation structure strictly mirrors the codebase:
+
+| Architecture Layer | Code Path | Documentation Book |
 | :--- | :--- | :--- |
-| **Kernel** | `src/services/miniapp-runtime` | `01-Kernel-Ref` |
-| **Shell** | `src/stackflow` | `03-Shell-Guide` |
-| **Service** | `src/services/*`, `src/stores` | `10-Wallet-Guide` |
-| **Driver** | `src/services/chain-adapter` | `02-Driver-Ref` |
-| **UI** | `src/components`, `src/styles` | `03-UI-Ref` |
+| **Kernel** | `src/services/miniapp-runtime` | [`01-Kernel-Ref`](../01-Kernel-Ref) |
+| **Drivers** | `src/services/chain-adapter` | [`02-Driver-Ref`](../02-Driver-Ref) |
+| **UI System** | `src/components/ui`, `src/styles` | [`03-UI-Ref`](../03-UI-Ref) |
+| **Platform** | `src/services/{biometric,camera,...}` | [`04-Platform-Ref`](../04-Platform-Ref) |
+| **State** | `src/stores`, `src/queries` | [`05-State-Ref`](../05-State-Ref) |
+| **Wallet Logic** | `src/services/wallet`, `src/services/transaction` | [`10-Wallet-Guide`](../10-Wallet-Guide) |
+| **DApps** | `src/components/ecosystem` | [`11-DApp-Guide`](../11-DApp-Guide) |
+| **Shell** | `src/stackflow` | [`12-Shell-Guide`](../12-Shell-Guide) |
+| **DevOps** | `vite.config.ts`, `.github` | [`90-DevOps`](../90-DevOps) |
