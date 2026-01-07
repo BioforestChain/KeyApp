@@ -2,7 +2,7 @@
 
 > 记录各链 API Provider 的可用性状态、已知问题和配置建议。
 > 
-> 最后更新: 2026-01-06 (PR #174)
+> 最后更新: 2026-01-07 (PR #176)
 
 ## Provider 状态概览
 
@@ -16,7 +16,7 @@
 | **BSC** | `etherscan-v2` | `api.etherscan.io` | ❌ 需付费 | ❌ | ❌ | BSC 链在 Etherscan V2 中需要付费 Plan |
 | **BSC** | `bscwallet-v1` | `walletapi.bfmeta.info` | ⚠️ 部分 | ✅ | ❌ | 交易历史查询返回 `NOTOK`，后端数据问题 |
 | **Tron** | `tronwallet-v1` | `walletapi.bfmeta.info` | ✅ 正常 | ✅ | ✅ | PR #174 已修复 Schema 问题 |
-| **BTC** | `btcwallet-v1` | `walletapi.bfmeta.info` | ❌ 故障 | ❌ | ❌ | 后端返回 404，建议使用 Mempool |
+| **BTC** | `btcwallet-v1` | `walletapi.bfmeta.info` | ✅ 正常 | ✅ | ✅ | PR #176 修复 Schema 解包问题 |
 | **BTC** | `mempool-v1` | `mempool.space` | ✅ 正常 | ✅ | ✅ | 推荐使用的标准 BTC 数据源 |
 
 ## 已知问题与解决方案
@@ -31,9 +31,10 @@
 - **配置**: 需要在环境变量中设置 `ETHERSCAN_API_KEY`。
 - **注意**: BSC 链即使有 Key，普通免费 Plan 也不支持通过统一入口访问，需要使用独立的 BscScan API（V1 已弃用，需迁移到 V2）。
 
-### 3. BTC WalletAPI 404
-- **现象**: 所有 `/wallet/btc/*` 路径均返回 404 Not Found。
-- **建议**: 在 `default-chains.json` 中保持 `mempool-v1` 为首选，或移除 `btcwallet-v1` 配置。
+### 3. BTC WalletAPI (已修复)
+- **原现象**: Schema 解析失败，数据返回空。
+- **修复**: PR #176 添加 `{ success, result }` 包装解包逻辑。
+- **状态**: 正常可用，支持余额查询和交易历史。
 
 ## 配置建议
 
