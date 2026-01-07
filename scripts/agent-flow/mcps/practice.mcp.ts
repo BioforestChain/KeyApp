@@ -19,11 +19,15 @@ const PRACTICE_FILE = join(ROOT_DIR, "docs/white-book/00-Manifesto/07-Best-Pract
 
 const DEFAULT_CONTENT = `# 最佳实践
 
-1. 先阅读白皮书相关章节，再开始编码
-2. 使用 TypeScript 严格模式，避免 any 类型
-3. 所有组件必须有 Storybook story
-4. 所有业务逻辑必须有单元测试
-5. PR 描述使用 \`Closes #issue编号\` 自动关联任务
+> 由 \`pnpm agent practice\` 维护。
+
+## 列表
+
+- ❌ Radix Dialog / position:fixed → ✅ Stackflow BottomSheet/Modal
+- ❌ React Router → ✅ Stackflow push/pop/replace
+- ❌ 复制 mpay 代码 → ✅ 理解后用 React/TS 重写
+- ❌ 明文选择器 → ✅ data-testid
+- ❌ 安装新 UI 库 → ✅ shadcn/ui（已集成）
 `;
 
 // =============================================================================
@@ -50,7 +54,8 @@ export function parsePractices(content: string): Practice[] {
   const practices: Practice[] = [];
   let index = 0;
   for (const line of content.split("\n")) {
-    const match = line.match(/^\d+\.\s+(.+)$/);
+    // 支持 `- xxx` 格式（原版）和 `1. xxx` 格式
+    const match = line.match(/^-\s+(.+)$/) || line.match(/^\d+\.\s+(.+)$/);
     if (match) practices.push({ index: ++index, content: match[1] });
   }
   return practices;
@@ -58,7 +63,7 @@ export function parsePractices(content: string): Practice[] {
 
 export function formatPractices(practices: Practice[]): string {
   return practices.length > 0
-    ? `# 最佳实践\n\n${practices.map((p) => `${p.index}. ${p.content}`).join("\n")}`
+    ? `# 最佳实践\n\n${practices.map((p) => `- ${p.content}`).join("\n")}`
     : "暂无最佳实践";
 }
 
@@ -101,7 +106,15 @@ export function updatePractice(index: number, newContent: string): Practice[] {
 }
 
 function savePractices(practices: Practice[]): void {
-  writeFileSync(PRACTICE_FILE, `# 最佳实践\n\n${practices.map((p) => `${p.index}. ${p.content}`).join("\n")}\n`, "utf-8");
+  const content = `# 最佳实践
+
+> 由 \`pnpm agent practice\` 维护。
+
+## 列表
+
+${practices.map((p) => `- ${p.content}`).join("\n")}
+`;
+  writeFileSync(PRACTICE_FILE, content, "utf-8");
 }
 
 // =============================================================================
