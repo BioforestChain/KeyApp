@@ -46,9 +46,10 @@ graph TD
     ServiceLayer --> Platform
 ```
 
-## Directory Mapping
+## Navigation Paths (Multi-Dimensional Access)
 
-The documentation structure strictly mirrors the codebase:
+### 1. By Code Structure (Physical View)
+Mapping source directories to documentation books.
 
 | Architecture Layer | Code Path | Documentation Book |
 | :--- | :--- | :--- |
@@ -61,3 +62,15 @@ The documentation structure strictly mirrors the codebase:
 | **DApps** | `src/components/ecosystem` | [`11-DApp-Guide`](../11-DApp-Guide) |
 | **Shell** | `src/stackflow` | [`12-Shell-Guide`](../12-Shell-Guide) |
 | **DevOps** | `vite.config.ts`, `.github` | [`90-DevOps`](../90-DevOps) |
+
+### 2. By User Flow (Logical View)
+Tracing a feature across multiple layers.
+
+*   **Transaction Flow**: 
+    *   Lifecycle: [`10-Wallet-Guide/03-Transaction-Flow`](../10-Wallet-Guide/03-Transaction-Flow)
+    *   State: [`05-State-Ref/02-Stores/01-Wallet-Store`](../05-State-Ref/02-Stores/01-Wallet-Store.md)
+    *   Driver: [`02-Driver-Ref`](../02-Driver-Ref)
+*   **Balance Refresh**:
+    *   Query: [`05-State-Ref/03-Queries/01-Balance-Query`](../05-State-Ref/03-Queries/01-Balance-Query.md)
+    *   Store: [`05-State-Ref/02-Stores/01-Wallet-Store`](../05-State-Ref/02-Stores/01-Wallet-Store.md)
+    *   Platform: [`04-Platform-Ref/04-Haptics`](../04-Platform-Ref/04-Haptics.md)

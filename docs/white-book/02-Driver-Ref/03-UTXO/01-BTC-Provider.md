@@ -1,5 +1,7 @@
 # Bitcoin Provider (UTXO)
 
+> **Code Source**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](../../../../src/services/chain-adapter/providers/btcwallet-provider.ts)
+
 ## Overview
 
 The `BtcWalletProvider` implements the `ApiProvider` interface for Bitcoin-like UTXO chains. It relies on a Blockbook-compatible backend API (btcwallet) to fetch balances and transaction history.
@@ -19,7 +21,7 @@ graph TD
 
 - **Class**: `BtcWalletProvider`
 - **Implements**: `ApiProvider`
-- **Location**: `src/services/chain-adapter/providers/btcwallet-provider.ts`
+- **Location**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](../../../../src/services/chain-adapter/providers/btcwallet-provider.ts)
 
 ### Key Features
 

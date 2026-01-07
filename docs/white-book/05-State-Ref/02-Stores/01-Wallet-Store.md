@@ -1,10 +1,14 @@
 # Wallet Store
 
+> **Code Source**: [`src/stores/wallet.ts`](../../../src/stores/wallet.ts)
+
 ## Overview
 
 The Wallet Store manages the user's wallets, chain preferences, and UI selection state.
 
 ## State Structure
+
+> **Defined in**: [`src/stores/wallet.ts`](../../../src/stores/wallet.ts)
 
 ```typescript
 interface WalletState {
@@ -27,3 +31,8 @@ interface WalletState {
 
 - **Wallet Data**: Stored in IndexedDB via `WalletStorageService` (encrypted).
 - **Preferences**: Chain selection preferences are cached in `localStorage` for fast restore.
+
+## Related Documentation
+
+- **Service**: [Wallet Storage](../../10-Wallet-Guide/01-Account-System/02-Wallet-Storage.md)
+- **Adapter**: [Chain Config Store](./02-Chain-Config-Store.md)
