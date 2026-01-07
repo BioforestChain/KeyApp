@@ -8,6 +8,7 @@
 *   [02-Tech-Stack.md](./02-Tech-Stack.md) - 技术栈清单 (React 19, Vite, TanStack, Stackflow)
 *   [03-Architecture.md](./03-Architecture.md) - 宏观架构图 (Kernel - Shell - Driver - App)
 *   [04-Get-Started.md](./04-Get-Started.md) - 从零开始：环境搭建与启动
+*   [05-Product-Vision.md](./05-Product-Vision.md) - **产品愿景**：让数字资产管理变得安全、简单
 *   [05-Workflows.md](./05-Workflows.md) - AI 协作流 (Worktree, Spec Mode, PR)
 *   [06-Guidelines.md](./06-Guidelines.md) - 编码规范 (Hooks, i18n, Comments)
 
