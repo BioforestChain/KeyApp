@@ -10,6 +10,8 @@
 | [02-Chain-Networks](./02-Chain-Networks.md) | 链网络配置清单 |
 | [03-State-Machines](./03-State-Machines.md) | 核心业务状态机 |
 | [04-Edge-Cases](./04-Edge-Cases.md) | 边界条件目录 |
+| [05-API-Providers](./05-API-Providers.md) | 外部服务提供商 API |
+| [06-Network-Faults](./06-Network-Faults.md) | 网络故障矩阵 |
 
 ---
 
