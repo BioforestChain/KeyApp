@@ -1,6 +1,6 @@
 # BioForest SDK Integration
 
-> **Code Source**: [`src/services/bioforest-sdk/index.ts`](../../../src/services/bioforest-sdk/index.ts)
+> **Code Source**: [`src/services/bioforest-sdk/index.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/bioforest-sdk/index.ts)
 
 ## Overview
 

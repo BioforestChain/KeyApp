@@ -1,6 +1,6 @@
 # Migration Service
 
-> **Code Source**: [`src/services/migration/migration-service.ts`](../../../src/services/migration/migration-service.ts)
+> **Code Source**: [`src/services/migration/migration-service.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/migration/migration-service.ts)
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Layout Components
 
-> **Code Source**: [`src/components/layout`](../../../../src/components/layout)
+> **Code Source**: [`src/components/layout`](https://github.com/BioforestChain/KeyApp/tree/main/src/components/layout)
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Tron Provider (TVM)
 
-> **Code Source**: [`src/services/chain-adapter/providers/tronwallet-provider.ts`](../../../../src/services/chain-adapter/providers/tronwallet-provider.ts)
+> **Code Source**: [`src/services/chain-adapter/providers/tronwallet-provider.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/chain-adapter/providers/tronwallet-provider.ts)
 
 ## Overview
 
@@ -21,7 +21,7 @@ graph TD
 
 - **Class**: `TronWalletProvider`
 - **Implements**: `ApiProvider`
-- **Location**: [`src/services/chain-adapter/providers/tronwallet-provider.ts`](../../../../src/services/chain-adapter/providers/tronwallet-provider.ts)
+- **Location**: [`src/services/chain-adapter/providers/tronwallet-provider.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/chain-adapter/providers/tronwallet-provider.ts)
 
 ### Key Features
 

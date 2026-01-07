@@ -1,6 +1,6 @@
 # Wallet Store
 
-> **Code Source**: [`src/stores/wallet.ts`](../../../src/stores/wallet.ts)
+> **Code Source**: [`src/stores/wallet.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/stores/wallet.ts)
 
 ## Overview
 
@@ -8,7 +8,7 @@ The Wallet Store manages the user's wallets, chain preferences, and UI selection
 
 ## State Structure
 
-> **Defined in**: [`src/stores/wallet.ts`](../../../src/stores/wallet.ts)
+> **Defined in**: [`src/stores/wallet.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/stores/wallet.ts)
 
 ```typescript
 interface WalletState {

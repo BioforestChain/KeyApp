@@ -1,6 +1,6 @@
 # Common Components
 
-> **Code Source**: [`src/components/common`](../../../../src/components/common)
+> **Code Source**: [`src/components/common`](https://github.com/BioforestChain/KeyApp/tree/main/src/components/common)
 
 ## Overview
 

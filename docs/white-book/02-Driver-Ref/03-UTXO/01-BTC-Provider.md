@@ -1,6 +1,6 @@
 # Bitcoin Provider (UTXO)
 
-> **Code Source**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](../../../../src/services/chain-adapter/providers/btcwallet-provider.ts)
+> **Code Source**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/chain-adapter/providers/btcwallet-provider.ts)
 
 ## Overview
 
@@ -21,7 +21,7 @@ graph TD
 
 - **Class**: `BtcWalletProvider`
 - **Implements**: `ApiProvider`
-- **Location**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](../../../../src/services/chain-adapter/providers/btcwallet-provider.ts)
+- **Location**: [`src/services/chain-adapter/providers/btcwallet-provider.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/chain-adapter/providers/btcwallet-provider.ts)
 
 ### Key Features
 

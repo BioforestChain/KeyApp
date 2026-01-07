@@ -1,6 +1,6 @@
 # PostMessage Bridge
 
-> **Code Source**: [`src/services/ecosystem/bridge.ts`](../../../src/services/ecosystem/bridge.ts)
+> **Code Source**: [`src/services/ecosystem/bridge.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/ecosystem/bridge.ts)
 
 ## Overview
 

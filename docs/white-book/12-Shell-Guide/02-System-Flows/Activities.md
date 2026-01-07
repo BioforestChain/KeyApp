@@ -1,6 +1,6 @@
 # Activities (Pages)
 
-> **Code Source**: [`src/stackflow/activities`](../../../../src/stackflow/activities)
+> **Code Source**: [`src/stackflow/activities`](https://github.com/BioforestChain/KeyApp/tree/main/src/stackflow/activities)
 
 ## Overview
 

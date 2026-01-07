@@ -1,6 +1,6 @@
 # Router Configuration
 
-> **Code Source**: [`src/stackflow/stackflow.ts`](../../../../src/stackflow/stackflow.ts)
+> **Code Source**: [`src/stackflow/stackflow.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/stackflow/stackflow.ts)
 
 ## Overview
 

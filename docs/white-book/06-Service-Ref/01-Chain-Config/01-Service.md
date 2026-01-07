@@ -1,6 +1,6 @@
 # Chain Config Service
 
-> **Code Source**: [`src/services/chain-config/service.ts`](../../../src/services/chain-config/service.ts)
+> **Code Source**: [`src/services/chain-config/service.ts`](https://github.com/BioforestChain/KeyApp/blob/main/src/services/chain-config/service.ts)
 
 ## Overview
 
