@@ -39,7 +39,8 @@ describe('BtcWalletProvider', () => {
       const body = JSON.parse(String(init?.body ?? '{}'))
       expect(body.method).toBe('GET')
       expect(body.url).toContain(`/api/v2/address/${address}`)
-      return { ok: true, json: async () => ({ balance: '10', unconfirmedBalance: '-2' }) }
+      // API returns { success, result } wrapper
+      return { ok: true, json: async () => ({ success: true, result: { balance: '10', unconfirmedBalance: '-2' } }) }
     })
 
     const provider = new BtcWalletProvider(entry, 'bitcoin')
@@ -56,21 +57,24 @@ describe('BtcWalletProvider', () => {
         return {
           ok: true,
           json: async () => ({
-            balance: '0',
-            transactions: [
-              {
-                txid: 'tx1',
-                blockHeight: 100,
-                confirmations: 1,
-                blockTime: 1700000000,
-                vin: [{ addresses: [address], value: '5000' }],
-                vout: [{ addresses: ['bc1qother'], value: '3000' }, { addresses: [address], value: '1900' }],
-              },
-            ],
+            success: true,
+            result: {
+              balance: '0',
+              transactions: [
+                {
+                  txid: 'tx1',
+                  blockHeight: 100,
+                  confirmations: 1,
+                  blockTime: 1700000000,
+                  vin: [{ addresses: [address], value: '5000' }],
+                  vout: [{ addresses: ['bc1qother'], value: '3000' }, { addresses: [address], value: '1900' }],
+                },
+              ],
+            },
           }),
         }
       }
-      return { ok: true, json: async () => ({ balance: '0' }) }
+      return { ok: true, json: async () => ({ success: true, result: { balance: '0' } }) }
     })
 
     const provider = new BtcWalletProvider(entry, 'bitcoin')

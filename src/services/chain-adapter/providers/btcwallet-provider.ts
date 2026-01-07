@@ -9,6 +9,12 @@ const BlockbookErrorSchema = z.looseObject({
   error: z.string(),
 })
 
+const WalletApiWrapperSchema = <T extends z.ZodTypeAny>(innerSchema: T) =>
+  z.looseObject({
+    success: z.boolean(),
+    result: innerSchema,
+  })
+
 const BlockbookVinSchema = z.looseObject({
   addresses: z.array(z.string()),
   value: z.string(),
@@ -179,11 +185,19 @@ export class BtcWalletProvider implements ApiProvider {
       throw new Error(err.data.error)
     }
 
-    const parsed = schema.safeParse(json)
-    if (!parsed.success) {
-      throw new Error('Invalid API response')
+    // Unwrap { success, result } wrapper from walletapi.bfmeta.info
+    const wrapped = WalletApiWrapperSchema(schema).safeParse(json)
+    if (wrapped.success && wrapped.data.success) {
+      return wrapped.data.result
     }
-    return parsed.data
+
+    // Fallback: direct parse (for mempool or other non-wrapped APIs)
+    const direct = schema.safeParse(json)
+    if (direct.success) {
+      return direct.data
+    }
+
+    throw new Error('Invalid API response')
   }
 }
 
