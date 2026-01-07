@@ -135,9 +135,18 @@ export function WalletAddressPortfolioFromProvider({
     staleTime: 30_000,
   })
 
-  // Show loading if provider not ready OR query is loading
-  const tokensLoading = !tokensEnabled || tokensQuery.isLoading
-  const transactionsLoading = !transactionsEnabled || transactionsQuery.isLoading
+  // Loading 状态：只有当 query 正在执行时才显示 loading
+  // 当 provider 不支持时，不显示 loading，而是直接显示"不支持"提示
+  const tokensLoading = tokensEnabled && tokensQuery.isLoading
+  const transactionsLoading = transactionsEnabled && transactionsQuery.isLoading
+
+  // Supported 状态：当 provider 明确不支持时，supported 应为 false
+  const tokensSupported = tokensEnabled
+    ? (tokensQuery.data?.supported ?? true)
+    : false
+  const transactionsSupported = transactionsEnabled
+    ? (transactionsQuery.data?.supported ?? true)
+    : false
 
   return (
     <WalletAddressPortfolioView
@@ -148,10 +157,10 @@ export function WalletAddressPortfolioFromProvider({
       tokensLoading={tokensLoading}
       transactionsLoading={transactionsLoading}
       tokensRefreshing={tokensQuery.isFetching && !tokensQuery.isLoading}
-      tokensSupported={tokensQuery.data?.supported ?? true}
-      tokensFallbackReason={tokensQuery.data?.fallbackReason}
-      transactionsSupported={transactionsQuery.data?.supported ?? true}
-      transactionsFallbackReason={transactionsQuery.data?.fallbackReason}
+      tokensSupported={tokensSupported}
+      tokensFallbackReason={tokensEnabled ? tokensQuery.data?.fallbackReason : 'Provider does not support token balance queries'}
+      transactionsSupported={transactionsSupported}
+      transactionsFallbackReason={transactionsEnabled ? transactionsQuery.data?.fallbackReason : 'Provider does not support transaction history queries'}
       onTokenClick={onTokenClick}
       onTransactionClick={onTransactionClick}
       className={className}
