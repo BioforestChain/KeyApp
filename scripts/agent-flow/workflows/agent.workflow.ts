@@ -78,12 +78,21 @@ const chapterWorkflow = defineWorkflow({
   name: "chapter",
   description: "查阅白皮书章节",
   args: {
-    path: { type: "string", description: "章节路径", required: true },
+    path: { type: "string", alias: "p", description: "章节路径", required: false },
   },
   handler: async (args) => {
+    // Support positional argument: pnpm agent:flow chapter 00-Manifesto
+    const chapterPath = args.path || args._[0];
+    if (!chapterPath) {
+      console.error("错误: 请指定章节路径");
+      console.error("用法: pnpm agent:flow chapter <path>");
+      console.error("示例: pnpm agent:flow chapter 00-Manifesto");
+      process.exit(1);
+    }
+
     try {
-      const result = readChapter(args.path);
-      console.log(`# 章节: ${args.path}\n`);
+      const result = readChapter(chapterPath);
+      console.log(`# 章节: ${chapterPath}\n`);
       console.log(result.content);
 
       if (result.subFiles && result.subFiles.length > 0) {
@@ -107,11 +116,18 @@ const searchWorkflow = defineWorkflow({
   name: "search",
   description: "搜索白皮书",
   args: {
-    query: { type: "string", description: "搜索关键词", required: true },
+    query: { type: "string", alias: "q", description: "搜索关键词", required: false },
   },
   handler: async (args) => {
-    const results = searchWhiteBook(args.query);
-    console.log(`# 搜索: "${args.query}" (${results.length} 条结果)\n`);
+    const query = args.query || args._[0];
+    if (!query) {
+      console.error("错误: 请指定搜索关键词");
+      console.error("用法: pnpm agent:flow search <query>");
+      process.exit(1);
+    }
+
+    const results = searchWhiteBook(query);
+    console.log(`# 搜索: "${query}" (${results.length} 条结果)\n`);
 
     for (const r of results) {
       console.log(`${r.path}:${r.line}`);
