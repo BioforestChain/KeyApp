@@ -26,6 +26,11 @@ export default defineConfig({
   // webapp/storybook 目录由 CI 动态生成，忽略死链接检查
   ignoreDeadLinks: [/\.\/webapp/, /\.\/webapp-dev/, /\.\/storybook/],
 
+  // 将 README.md 重写为 index.md (VitePress 默认入口)
+  rewrites: {
+    'white-book/:path*/README.md': 'white-book/:path*/index.md',
+  },
+
   head: [
     ['link', { rel: 'icon', type: 'image/webp', href: '/logos/logo-64.webp' }],
     ['meta', { name: 'theme-color', content: '#667eea' }],
