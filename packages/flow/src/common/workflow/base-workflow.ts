@@ -22,7 +22,7 @@
 
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { withPreferences } from "../async-context.js";
+import { withPreferences } from "../async-context.ts";
 
 // =============================================================================
 // Types

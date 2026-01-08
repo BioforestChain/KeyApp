@@ -22,7 +22,7 @@ import {
   parseCliArgs,
   printMcpHelp,
   z,
-} from "../common/mcp/base-mcp.js";
+} from "../common/mcp/base-mcp.ts";
 
 const MCP_NAME = "meta";
 

@@ -1,0 +1,308 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/fs@*": "1.0.21",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/path@*": "1.1.4",
+    "jsr:@std/path@^1.1.4": "1.1.4"
+  },
+  "jsr": {
+    "@std/fs@1.0.21": {
+      "integrity": "d720fe1056d78d43065a4d6e0eeb2b19f34adb8a0bc7caf3a4dbf1d4178252cd",
+      "dependencies": [
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.4"
+      ]
+    },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@axe-core/playwright@^4.11.0",
+        "npm:@base-ui/react@1",
+        "npm:@bfchain/util@5",
+        "npm:@bfmeta/sign-util@^1.3.10",
+        "npm:@bnqkl/server-util@^1.3.4",
+        "npm:@bnqkl/wallet-sdk@~0.23.8",
+        "npm:@bnqkl/wallet-typings@~0.23.8",
+        "npm:@fontsource-variable/dm-sans@^5.2.8",
+        "npm:@fontsource-variable/figtree@^5.2.10",
+        "npm:@fontsource/dm-mono@^5.2.7",
+        "npm:@fontsource/dm-serif-display@^5.2.8",
+        "npm:@gamepark/avataaars@3",
+        "npm:@inquirer/prompts@^8.0.2",
+        "npm:@noble/curves@^2.0.1",
+        "npm:@noble/hashes@^2.0.1",
+        "npm:@noble/secp256k1@3",
+        "npm:@number-flow/react@~0.5.10",
+        "npm:@plaoc/plugins@^1.1.9",
+        "npm:@playwright/test@^1.57.0",
+        "npm:@radix-ui/react-avatar@^1.1.11",
+        "npm:@radix-ui/react-dialog@^1.1.15",
+        "npm:@radix-ui/react-slot@^1.2.4",
+        "npm:@scure/base@2",
+        "npm:@scure/bip32@^2.0.1",
+        "npm:@scure/bip39@^2.0.1",
+        "npm:@stackflow/core@^1.3.0",
+        "npm:@stackflow/plugin-basic-ui@^1.18.1",
+        "npm:@stackflow/plugin-history-sync@^1.8.1",
+        "npm:@stackflow/plugin-renderer-basic@^1.1.13",
+        "npm:@stackflow/react@^1.11.1",
+        "npm:@storybook/addon-docs@^10.1.4",
+        "npm:@storybook/addon-vitest@^10.1.4",
+        "npm:@storybook/react-vite@^10.1.4",
+        "npm:@storybook/react@^10.1.4",
+        "npm:@storybook/test@^8.6.14",
+        "npm:@tabler/icons-react@^3.36.0",
+        "npm:@tailwindcss/vite@4",
+        "npm:@tanstack/ai@^0.0.3",
+        "npm:@tanstack/react-query@^5.90.12",
+        "npm:@tanstack/react-router@^1.140.0",
+        "npm:@tanstack/react-store@0.8",
+        "npm:@testing-library/jest-dom@^6.9.1",
+        "npm:@testing-library/react@^16.3.0",
+        "npm:@testing-library/user-event@^14.6.1",
+        "npm:@types/big.js@^6.2.2",
+        "npm:@types/lodash@^4.17.21",
+        "npm:@types/node@^24.10.1",
+        "npm:@types/qrcode@^1.5.6",
+        "npm:@types/react-dom@19",
+        "npm:@types/react@19",
+        "npm:@types/semver@^7.7.1",
+        "npm:@types/yargs@^17.0.35",
+        "npm:@vitejs/plugin-react@^5.1.1",
+        "npm:@vitest/browser-playwright@^4.0.15",
+        "npm:@vitest/browser@^4.0.15",
+        "npm:@vitest/coverage-istanbul@^4.0.15",
+        "npm:@vitest/coverage-v8@^4.0.15",
+        "npm:@zumer/snapdom@^2.0.1",
+        "npm:big.js@^7.0.1",
+        "npm:bip39@^3.1.0",
+        "npm:buffer@^6.0.3",
+        "npm:class-variance-authority@~0.7.1",
+        "npm:clsx@^2.1.1",
+        "npm:detect-port@^2.1.0",
+        "npm:dotenv@^17.2.3",
+        "npm:eslint-plugin-i18next@^6.1.3",
+        "npm:fake-indexeddb@^6.2.5",
+        "npm:i18next@^25.7.1",
+        "npm:idb@^8.0.3",
+        "npm:jsdom@^27.2.0",
+        "npm:jsqr@^1.4.0",
+        "npm:lodash@^4.17.21",
+        "npm:motion@^12.23.26",
+        "npm:oxlint@^1.32.0",
+        "npm:playwright@^1.57.0",
+        "npm:prettier-plugin-tailwindcss@~0.7.2",
+        "npm:prettier@^3.7.4",
+        "npm:qrcode.react@^4.2.0",
+        "npm:qrcode@^1.5.4",
+        "npm:react-dom@19",
+        "npm:react-error-boundary@6",
+        "npm:react-i18next@^16.4.0",
+        "npm:react-inspector@9",
+        "npm:react@19",
+        "npm:rollup-plugin-visualizer@^6.0.5",
+        "npm:semver@^7.7.3",
+        "npm:shadcn@^3.6.1",
+        "npm:sharp@~0.34.5",
+        "npm:ssh2-sftp-client@^12.0.1",
+        "npm:storybook@^10.1.4",
+        "npm:swiper@^12.0.3",
+        "npm:tailwind-merge@^3.4.0",
+        "npm:tailwindcss@4",
+        "npm:turbo@^2.7.1",
+        "npm:tw-animate-css@^1.4.0",
+        "npm:typescript@~5.9.3",
+        "npm:vaul@^1.1.2",
+        "npm:viem@^2.43.3",
+        "npm:vite-plugin-commonjs@~0.10.4",
+        "npm:vite-plugin-mkcert@^1.17.9",
+        "npm:vite@^7.2.7",
+        "npm:vitepress@^1.6.4",
+        "npm:vitest@^4.0.15",
+        "npm:yargs@18",
+        "npm:zod@^4.1.13"
+      ]
+    },
+    "members": {
+      "miniapps/forge": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@base-ui/react@1",
+            "npm:@playwright/test@^1.49.1",
+            "npm:@radix-ui/react-avatar@^1.1.11",
+            "npm:@radix-ui/react-separator@^1.1.8",
+            "npm:@radix-ui/react-slot@^1.2.4",
+            "npm:@storybook/addon-docs@^10.1.4",
+            "npm:@storybook/addon-vitest@^10.1.4",
+            "npm:@storybook/react-vite@^10.1.4",
+            "npm:@storybook/react@^10.1.4",
+            "npm:@tailwindcss/vite@^4.1.0",
+            "npm:@testing-library/jest-dom@^6.6.3",
+            "npm:@testing-library/react@16",
+            "npm:@types/react-dom@19",
+            "npm:@types/react@19",
+            "npm:@vitejs/plugin-react@5",
+            "npm:@vitest/browser-playwright@^4.0.15",
+            "npm:@vitest/browser@^4.0.15",
+            "npm:class-variance-authority@~0.7.1",
+            "npm:clsx@^2.1.1",
+            "npm:eslint-plugin-i18next@^6.1.3",
+            "npm:framer-motion@^12.23.26",
+            "npm:i18next@^25.2.1",
+            "npm:jsdom@^26.1.0",
+            "npm:lucide-react@0.562",
+            "npm:oxlint@^1.32.0",
+            "npm:playwright@^1.57.0",
+            "npm:react-dom@19",
+            "npm:react-i18next@^15.5.2",
+            "npm:react@19",
+            "npm:storybook@^10.1.4",
+            "npm:tailwind-merge@^3.4.0",
+            "npm:tailwindcss@^4.1.0",
+            "npm:typescript@^5.9.3",
+            "npm:vite-plugin-mkcert@^1.17.9",
+            "npm:vite-tsconfig-paths@^5.1.0",
+            "npm:vite@^7.3.0",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "miniapps/teleport": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@base-ui/react@1",
+            "npm:@bnqkl/metabox-core@0.5.2",
+            "npm:@bnqkl/wallet-typings@0.23.8",
+            "npm:@playwright/test@^1.49.1",
+            "npm:@radix-ui/react-avatar@^1.1.11",
+            "npm:@radix-ui/react-select@^2.2.6",
+            "npm:@radix-ui/react-separator@^1.1.8",
+            "npm:@radix-ui/react-slot@^1.2.4",
+            "npm:@storybook/addon-docs@^10.1.4",
+            "npm:@storybook/addon-vitest@^10.1.4",
+            "npm:@storybook/react-vite@^10.1.4",
+            "npm:@storybook/react@^10.1.4",
+            "npm:@tailwindcss/vite@^4.1.0",
+            "npm:@tanstack/react-query@^5.90.12",
+            "npm:@testing-library/jest-dom@^6.6.3",
+            "npm:@testing-library/react@16",
+            "npm:@types/react-dom@19",
+            "npm:@types/react@19",
+            "npm:@vitejs/plugin-react@5",
+            "npm:@vitest/browser-playwright@^4.0.15",
+            "npm:@vitest/browser@^4.0.15",
+            "npm:class-variance-authority@~0.7.1",
+            "npm:clsx@^2.1.1",
+            "npm:eslint-plugin-i18next@^6.1.3",
+            "npm:framer-motion@^12.23.26",
+            "npm:i18next@^25.2.1",
+            "npm:jsdom@^26.1.0",
+            "npm:lucide-react@0.562",
+            "npm:oxlint@^1.32.0",
+            "npm:playwright@^1.57.0",
+            "npm:react-dom@19",
+            "npm:react-i18next@^15.5.2",
+            "npm:react@19",
+            "npm:storybook@^10.1.4",
+            "npm:tailwind-merge@^3.4.0",
+            "npm:tailwindcss@^4.1.0",
+            "npm:typescript@^5.9.3",
+            "npm:vite-plugin-mkcert@^1.17.9",
+            "npm:vite-tsconfig-paths@^5.1.0",
+            "npm:vite@^7.3.0",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/bio-sdk": {
+        "packageJson": {
+          "dependencies": [
+            "npm:jsdom@^26.1.0",
+            "npm:typescript@^5.9.3",
+            "npm:vite-plugin-dts@^4.5.4",
+            "npm:vite@^7.3.0",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/create-miniapp": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@inquirer/prompts@^7.5.0",
+            "npm:@types/node@^22.15.21",
+            "npm:@types/yargs@^17.0.33",
+            "npm:chalk@^5.4.1",
+            "npm:execa@^9.5.2",
+            "npm:oxlint@^1.32.0",
+            "npm:tsup@^8.5.0",
+            "npm:typescript@^5.9.3",
+            "npm:yargs@18"
+          ]
+        }
+      },
+      "packages/e2e-tools": {
+        "packageJson": {
+          "dependencies": [
+            "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/flow": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@modelcontextprotocol/sdk@1",
+            "npm:typescript@^5.7.0",
+            "npm:vitest@3",
+            "npm:zod@^3.24.0"
+          ]
+        }
+      },
+      "packages/i18n-tools": {
+        "packageJson": {
+          "dependencies": [
+            "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/keyapp-sdk": {
+        "packageJson": {
+          "dependencies": [
+            "npm:react@19",
+            "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/plugin-navigation-sync": {
+        "packageJson": {
+          "dependencies": [
+            "npm:flatted@^3.3.1",
+            "npm:history@^5.3.0",
+            "npm:urlpattern-polyfill@^10.1.0"
+          ]
+        }
+      },
+      "packages/theme-tools": {
+        "packageJson": {
+          "dependencies": [
+            "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      }
+    }
+  }
+}

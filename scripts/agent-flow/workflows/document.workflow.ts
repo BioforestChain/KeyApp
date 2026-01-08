@@ -1,16 +1,15 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A
 /**
  * Document Workflow - 文档维护
  *
  * 确保代码变更与文档同步，维护白皮书质量。
  */
 
-import { execSync } from "node:child_process";
 import {
   createRouter,
   defineWorkflow,
-} from "../../../packages/flow/src/common/workflow/base-workflow.js";
-import { getRelatedChapters } from "../mcps/whitebook.mcp.js";
+} from "../../../packages/flow/src/common/workflow/base-workflow.ts";
+import { getRelatedChapters } from "../mcps/whitebook.mcp.ts";
 
 // =============================================================================
 // Subflows
@@ -24,7 +23,13 @@ const syncWorkflow = defineWorkflow({
 
     try {
       // 1. 获取变更文件列表
-      const changedFiles = execSync("git diff --name-only main", { encoding: "utf-8" })
+      const p = new Deno.Command("git", {
+        args: ["diff", "--name-only", "main"],
+        stdout: "piped",
+        stderr: "null",
+      });
+      const output = p.outputSync();
+      const changedFiles = new TextDecoder().decode(output.stdout)
         .trim()
         .split("\n")
         .filter(Boolean);
@@ -92,10 +97,6 @@ export const workflow = createRouter({
 // Auto-start
 // =============================================================================
 
-const isMain =
-  process.argv[1]?.endsWith("document.workflow.ts") ||
-  process.argv[1]?.endsWith("document.workflow.js");
-
-if (isMain) {
+if (import.meta.main) {
   workflow.run();
 }

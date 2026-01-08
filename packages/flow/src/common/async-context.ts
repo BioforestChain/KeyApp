@@ -13,7 +13,7 @@
  */
 
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { Preferences } from "./preferences.schema.js";
+import type { Preferences } from "./preferences.schema.ts";
 
 // =============================================================================
 // Generic AsyncContext
@@ -93,7 +93,7 @@ export const PreferencesContext = new AsyncContext<Preferences>(
  * Run function within preferences context
  */
 export async function withPreferences<R>(fn: () => R | Promise<R>): Promise<R> {
-  const { loadPreferences } = await import("./preferences.js");
+  const { loadPreferences } = await import("./preferences.ts");
   const prefs = await loadPreferences();
   return PreferencesContext.run(prefs, fn);
 }

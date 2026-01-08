@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A
 /**
  * Investigate Workflow - 需求调查与方案设计
  *
@@ -8,8 +8,8 @@
 import {
   createRouter,
   defineWorkflow,
-} from "../../../packages/flow/src/common/workflow/base-workflow.js";
-import { getChapter, getRelatedChapters } from "../mcps/whitebook.mcp.js";
+} from "../../../packages/flow/src/common/workflow/base-workflow.ts";
+import { getChapter, getRelatedChapters } from "../mcps/whitebook.mcp.ts";
 
 // =============================================================================
 // Subflows
@@ -91,10 +91,6 @@ export const workflow = createRouter({
 // Auto-start
 // =============================================================================
 
-const isMain =
-  process.argv[1]?.endsWith("investigate.workflow.ts") ||
-  process.argv[1]?.endsWith("investigate.workflow.js");
-
-if (isMain) {
+if (import.meta.main) {
   workflow.run();
 }

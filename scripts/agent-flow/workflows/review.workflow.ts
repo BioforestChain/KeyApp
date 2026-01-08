@@ -1,15 +1,14 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A
 /**
  * Review Workflow - 质量检查与代码评审
  *
  * 在提交 PR 前进行自动化检查，确保代码符合最佳实践。
  */
 
-import { execSync } from "node:child_process";
 import {
   createRouter,
   defineWorkflow,
-} from "../../../packages/flow/src/common/workflow/base-workflow.js";
+} from "../../../packages/flow/src/common/workflow/base-workflow.ts";
 
 // =============================================================================
 // Constants
@@ -51,10 +50,18 @@ const CHECKLISTS = {
 function exec(cmd: string): void {
   try {
     console.log(`> ${cmd}`);
-    execSync(cmd, { stdio: "inherit" });
-  } catch {
-    console.error(`❌ Command failed: ${cmd}`);
-    // Don't exit immediately to allow running other checks
+    const [command, ...args] = cmd.split(" ");
+    const p = new Deno.Command(command, {
+      args,
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    const { code } = p.outputSync();
+    if (code !== 0) {
+        console.error(`❌ Command failed with code ${code}: ${cmd}`);
+    }
+  } catch (e) {
+    console.error(`❌ Command failed: ${cmd}`, e);
   }
 }
 
@@ -97,7 +104,6 @@ const verifyWorkflow = defineWorkflow({
 
     console.log("\n## 3. Unit Tests");
     // Run tests related to changed files (simplified as all tests for now)
-    // In future: use jest --findRelatedTests or similar
     exec("pnpm test run");
 
     console.log("\n✨ Verification Complete.");
@@ -123,10 +129,6 @@ export const workflow = createRouter({
 // Auto-start
 // =============================================================================
 
-const isMain =
-  process.argv[1]?.endsWith("review.workflow.ts") ||
-  process.argv[1]?.endsWith("review.workflow.js");
-
-if (isMain) {
+if (import.meta.main) {
   workflow.run();
 }

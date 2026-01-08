@@ -33,7 +33,7 @@ export {
   type TransportMode,
   type TypedTool,
   type ZodRawShape,
-} from "./common/mcp/base-mcp.js";
+} from "./common/mcp/base-mcp.ts";
 
 // Workflow
 export {
@@ -48,7 +48,7 @@ export {
   type WorkflowConfig,
   type WorkflowContext,
   type WorkflowMeta,
-} from "./common/workflow/base-workflow.js";
+} from "./common/workflow/base-workflow.ts";
 
 // Context
 export {
@@ -63,7 +63,7 @@ export {
   isContextWorkflowDisabled,
   PreferencesContext,
   withPreferences,
-} from "./common/async-context.js";
+} from "./common/async-context.ts";
 
 // Preferences
 export {
@@ -95,7 +95,7 @@ export {
   type RetryableError,
   type RetryConfig,
   type WorkflowConfig as PreferencesWorkflowConfig,
-} from "./common/preferences.js";
+} from "./common/preferences.ts";
 
 // Preferences Schema
 export {
@@ -107,7 +107,7 @@ export {
   PreferencesSchema,
   RetryConfigSchema,
   WorkflowConfigSchema,
-} from "./common/preferences.schema.js";
+} from "./common/preferences.schema.ts";
 
 // Paths
 export {
@@ -126,7 +126,7 @@ export {
   type McpServerConfig as PathMcpServerConfig,
   type PathConfig,
   type Runtime,
-} from "./common/paths.js";
+} from "./common/paths.ts";
 
 // Scanner
 export {
@@ -141,7 +141,7 @@ export {
   type ScanResult,
   type ScannedItem,
   type WorkflowItem,
-} from "./meta/lib/scanner.js";
+} from "./meta/lib/scanner.ts";
 
 // Meta MCP
 export {
@@ -151,4 +151,4 @@ export {
   createWorkflowTool,
   scanWorkflows,
   type MetaMcpConfig,
-} from "./meta/meta.mcp.js";
+} from "./meta/meta.mcp.ts";

@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A
 /**
  * Task Workflow - 任务管理 (Domain-Driven & Full-Lifecycle)
  *
@@ -10,22 +10,20 @@
  * 3. submit: 提交任务 (Push -> Ready PR)
  */
 
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync } from "jsr:@std/fs";
+import { join } from "jsr:@std/path";
 import {
   createRouter,
   defineWorkflow,
-} from "../../../packages/flow/src/common/workflow/base-workflow.js";
+} from "../../../packages/flow/src/common/workflow/base-workflow.ts";
 import {
   createIssue,
   createPr,
   createWorktree,
-  getWorktreeInfo,
-  markPrReady,
   pushWorktree,
   updateIssue,
-} from "../mcps/git-workflow.mcp.js";
-import { getRelatedChapters } from "../mcps/whitebook.mcp.js";
+} from "../mcps/git-workflow.mcp.ts";
+import { getRelatedChapters } from "../mcps/whitebook.mcp.ts";
 
 // =============================================================================
 // Constants
@@ -112,7 +110,7 @@ const startWorkflow = defineWorkflow({
     const title = args.title || args._.join(" ");
     if (!title) {
       console.error("❌ 错误: 请提供任务标题");
-      process.exit(1);
+      Deno.exit(1);
     }
     const type = (args.type || "hybrid") as keyof typeof TEMPLATES;
     const rawDesc = args.description || "Start development...";
@@ -170,14 +168,14 @@ const startWorkflow = defineWorkflow({
         base: "main",
         draft: true,
         labels,
-      }); // Note: PR creation needs context, passed via cwd or explicit repo in MCP
+      }); 
       console.log(`   ✅ Draft PR Created: ${prUrl}`);
 
       console.log("\n✨ 任务环境已就绪！");
       console.log(`👉 请执行: cd ${path}`);
     } catch (error: any) {
       console.error(`❌ 失败: ${error.message}`);
-      process.exit(1);
+      Deno.exit(1);
     }
   },
 });
@@ -193,24 +191,20 @@ const syncWorkflow = defineWorkflow({
     content: { type: "string", description: "新的任务列表/进度 (Markdown)", required: true },
   },
   handler: async (args) => {
-    // 获取当前 Worktree 信息
-    // Note: getWorktreeInfo 暂未封装到 git-workflow.mcp，这里复用逻辑或需要新增工具
-    // 为保持简单，这里假设在 worktree 目录下运行
     const wt = getCurrentWorktreeInfo();
     if (!wt || !wt.issueId) {
       console.error("❌ 错误: 必须在 issue worktree 中运行");
-      process.exit(1);
+      Deno.exit(1);
     }
 
     const content = args.content || args._.join(" ");
     if (!content) {
       console.error("❌ 错误: 请提供同步内容");
-      process.exit(1);
+      Deno.exit(1);
     }
 
     console.log(`🔄 同步进度到 Issue #${wt.issueId}...`);
     
-    // 这里简单追加 PR 链接的逻辑可以在 MCP 中处理，或者由用户保证 content 完整性
     await updateIssue({
       issueId: wt.issueId,
       body: content,
@@ -231,7 +225,7 @@ const submitWorkflow = defineWorkflow({
     const wt = getCurrentWorktreeInfo();
     if (!wt || !wt.path) {
       console.error("❌ 错误: 必须在 worktree 中运行");
-      process.exit(1);
+      Deno.exit(1);
     }
 
     console.log("🚀 提交任务...\n");
@@ -246,11 +240,7 @@ const submitWorkflow = defineWorkflow({
     // 2. 标记 PR 为 Ready
     if (wt.issueId) {
       console.log("\n2️⃣  更新 PR 状态...");
-      // 需要先找到 PR 号，这里简化逻辑，假设 PR 已关联 Issue
-      // 实际生产中可能需要 `github_pr_find` 工具
-      // 临时方案：让用户手动确认或假设 PR 存在
       console.log("⚠️  提示: 请手动确认 PR 状态或使用 `gh pr ready`");
-      // await markPrReady({ prNumber: "..." }); 
     }
 
     console.log("\n✨ 提交完成，等待 Review！");
@@ -258,11 +248,11 @@ const submitWorkflow = defineWorkflow({
 });
 
 // =============================================================================
-// Internal Helpers (Temporary until full MCP coverage)
+// Internal Helpers
 // =============================================================================
 
 function getCurrentWorktreeInfo() {
-  const cwd = process.cwd();
+  const cwd = Deno.cwd();
   if (cwd.includes(WORKTREE_BASE)) {
     const match = cwd.match(new RegExp(`${WORKTREE_BASE}/([^/]+)`));
     if (match) {
@@ -299,10 +289,6 @@ export const workflow = createRouter({
 // Auto-start
 // =============================================================================
 
-const isMain =
-  process.argv[1]?.endsWith("task.workflow.ts") ||
-  process.argv[1]?.endsWith("task.workflow.js");
-
-if (isMain) {
+if (import.meta.main) {
   workflow.run();
 }

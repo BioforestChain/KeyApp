@@ -14,7 +14,7 @@
 
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { getPaths } from "./paths.js";
+import { getPaths } from "./paths.ts";
 import type {
   AgentConfig,
   AgentOptions,
@@ -23,7 +23,7 @@ import type {
   Preferences,
   RetryConfig,
   WorkflowConfig,
-} from "./preferences.schema.js";
+} from "./preferences.schema.ts";
 
 // =============================================================================
 // Types (re-export from schema)
