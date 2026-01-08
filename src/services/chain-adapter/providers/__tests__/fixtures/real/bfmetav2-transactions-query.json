@@ -1,0 +1,40 @@
+{
+  "success": true,
+  "result": {
+    "trs": [
+      {
+        "tIndex": 3,
+        "height": 1,
+        "signature": "f4b1b23bd4e0618d98f859fa3a9235a7babfb011298955f0c5dbbf9919cf33517f284b19bb0045dc6a2dfc99465bafc300fde6f31198375cf4bf9fb894f64306",
+        "transaction": {
+          "version": 1,
+          "type": "BFM-BFMETAV2-AST-02",
+          "senderId": "b54ACZhWTyHDTxiZumQcksKMwa1zhuejKe",
+          "senderPublicKey": "013233143c0074592c733ff4c2d4fcde3c697d7b30e1638e90b0fb9e9c2fc90d",
+          "rangeType": 0,
+          "range": [],
+          "fee": "82",
+          "timestamp": 0,
+          "fromMagic": "GAGGQ",
+          "toMagic": "GAGGQ",
+          "applyBlockHeight": 1,
+          "effectiveBlockHeight": 1,
+          "signature": "47cc4d38322ae3af7f9126086f3b1ea7c49ba1bbf3dab0f246ed8a428c2babc98dda2034ebe80ac92276e3561fdbfdc0f067da38cc0fa6861d3bb017be1ece05",
+          "remark": {},
+          "asset": {
+            "transferAsset": {
+              "sourceChainName": "bfmetav2",
+              "sourceChainMagic": "GAGGQ",
+              "assetType": "BFM",
+              "amount": "444"
+            }
+          },
+          "recipientId": "bPbubZwJGSJBB3feZpsvttMFj8spu1jCm2",
+          "storageKey": "assetType",
+          "storageValue": "BFM"
+        }
+      }
+    ],
+    "count": 1
+  }
+}

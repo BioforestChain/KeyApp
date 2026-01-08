@@ -29,8 +29,7 @@ function readFixture<T>(name: string): T {
 describe('BiowalletProvider (BIWMeta real fixtures)', () => {
   const entry: ParsedApiEntry = {
     type: 'biowallet-v1',
-    endpoint: 'https://walletapi.bfmeta.info',
-    config: { path: 'biwmeta' },
+    endpoint: 'https://walletapi.biw-meta.com/wallet/biwmeta',
   };
 
   const lastblock = readFixture<any>('biwmeta-lastblock.json');
@@ -44,10 +43,10 @@ describe('BiowalletProvider (BIWMeta real fixtures)', () => {
     const tx = query.result.trs[0].transaction;
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/biwmeta/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock };
       }
-      if (url.endsWith('/wallet/biwmeta/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST');
         return { ok: true, json: async () => query };
       }
@@ -73,10 +72,10 @@ describe('BiowalletProvider (BIWMeta real fixtures)', () => {
     const tx = query.result.trs[0].transaction;
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/biwmeta/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock };
       }
-      if (url.endsWith('/wallet/biwmeta/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST');
         return { ok: true, json: async () => query };
       }
@@ -102,10 +101,10 @@ describe('BiowalletProvider (BIWMeta real fixtures)', () => {
     const tx = query.result.trs[0].transaction;
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/biwmeta/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock };
       }
-      if (url.endsWith('/wallet/biwmeta/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST');
         return { ok: true, json: async () => query };
       }
@@ -131,10 +130,10 @@ describe('BiowalletProvider (BIWMeta real fixtures)', () => {
     const tx = query.result.trs[0].transaction;
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/biwmeta/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock };
       }
-      if (url.endsWith('/wallet/biwmeta/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST');
         return { ok: true, json: async () => query };
       }
@@ -160,10 +159,10 @@ describe('BiowalletProvider (BIWMeta real fixtures)', () => {
     const tx = query.result.trs[0].transaction;
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/biwmeta/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock };
       }
-      if (url.endsWith('/wallet/biwmeta/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST');
         return { ok: true, json: async () => query };
       }

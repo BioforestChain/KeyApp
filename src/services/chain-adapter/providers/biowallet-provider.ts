@@ -90,7 +90,6 @@ export class BiowalletProvider implements ApiProvider {
   readonly config?: Record<string, unknown>
   
   private readonly chainId: string
-  private readonly path: string
   private readonly symbol: string
   private readonly decimals: number
 
@@ -99,13 +98,12 @@ export class BiowalletProvider implements ApiProvider {
     this.endpoint = entry.endpoint
     this.config = entry.config
     this.chainId = chainId
-    this.path = (entry.config?.path as string) ?? chainId
     this.symbol = chainConfigService.getSymbol(chainId)
     this.decimals = chainConfigService.getDecimals(chainId)
   }
 
   private get baseUrl(): string {
-    return `${this.endpoint}/wallet/${this.path}`
+    return this.endpoint
   }
 
   async getNativeBalance(address: string): Promise<Balance> {
@@ -118,7 +116,7 @@ export class BiowalletProvider implements ApiProvider {
         body: JSON.stringify({ address }),
       },
       {
-        cacheKey: `biowallet:${this.path}:assets:${address}`,
+        cacheKey: `biowallet:${this.chainId}:assets:${address}`,
         ttlMs: 60_000,
         tags: [`balance:${this.chainId}:${address}`],
       },
@@ -166,7 +164,7 @@ export class BiowalletProvider implements ApiProvider {
         body: JSON.stringify({ address }),
       },
       {
-        cacheKey: `biowallet:${this.path}:assets:${address}`,
+        cacheKey: `biowallet:${this.chainId}:assets:${address}`,
         ttlMs: 60_000,
         tags: [`balance:${this.chainId}:${address}`],
       },
@@ -202,7 +200,7 @@ export class BiowalletProvider implements ApiProvider {
 
   async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
     const blockJson: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
-      cacheKey: `biowallet:${this.path}:lastblock`,
+      cacheKey: `biowallet:${this.chainId}:lastblock`,
       ttlMs: 10_000,
     })
     const blockParsed = BiowalletBlockSchema.safeParse(blockJson)
@@ -224,7 +222,7 @@ export class BiowalletProvider implements ApiProvider {
         }),
       },
       {
-        cacheKey: `biowallet:${this.path}:txs:${address}:${limit}:${maxHeight}`,
+        cacheKey: `biowallet:${this.chainId}:txs:${address}:${limit}:${maxHeight}`,
         ttlMs: 5 * 60_000,
         tags: [`txhistory:${this.chainId}:${address}`],
       },
@@ -413,7 +411,7 @@ export class BiowalletProvider implements ApiProvider {
 
   async getBlockHeight(): Promise<bigint> {
     const json: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
-      cacheKey: `biowallet:${this.path}:lastblock`,
+      cacheKey: `biowallet:${this.chainId}:lastblock`,
       ttlMs: 10_000,
     })
     const parsed = BiowalletBlockSchema.safeParse(json)

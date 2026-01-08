@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "result": {
+    "height": 45052,
+    "timestamp": 1472055,
+    "blockSize": 492,
+    "signature": "b9630bbdd9c5745fa89ec7c2b59cc5385e5e618377334d356a31c68c19a19ac69038e02d23f224f72c524cbda0d5990cf335d42f0ffbec72ac310d1e4354eb04",
+    "generatorPublicKey": "ab7b49784a710c1afb2e522553934b02392b4a89778f882b1d911de10d2c4c63",
+    "previousBlockSignature": "b010a5355bd83650c4e8b38afc579c2dc136b473e6d26ed5be697fcd40ecc7b01aef2ea99395dde3de8e52d97d64dc41ffa9da4190a80bd4713f5db66889ca0e",
+    "reward": "1000000000",
+    "magic": "GAGGQ"
+  }
+}
