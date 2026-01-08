@@ -201,7 +201,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
-    console.log('[useSend.submit] Called with:', { useMock, chainType: chainConfig?.type, walletId, fromAddress })
+    console.log('[useSend.submit] Called with:', { useMock, chainKind: chainConfig?.chainKind, walletId, fromAddress })
     
     if (useMock) {
       console.log('[useSend.submit] Using mock transfer')
@@ -224,7 +224,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
     if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
-      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.type)
+      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.chainKind)
       
       if (!walletId || !fromAddress || !state.asset || !state.amount) {
         setState((prev) => ({
@@ -288,15 +288,15 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }
 
     // Unsupported chain type
-    if (chainConfig.type !== 'bioforest') {
-      console.log('[useSend.submit] Chain type not supported:', chainConfig.type)
+    if (chainConfig.chainKind !== 'bioforest') {
+      console.log('[useSend.submit] Chain type not supported:', chainConfig.chainKind)
       setState((prev) => ({
         ...prev,
         step: 'result',
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: `不支持的链类型: ${chainConfig.type}`,
+        errorMessage: `不支持的链类型: ${chainConfig.chainKind}`,
       }))
       return { status: 'error' as const }
     }

@@ -118,7 +118,7 @@ async function scanWorkflows(directories: string[]): Promise<WorkflowInfo[]> {
     });
   }
 
-  return workflows.toSorted((a, b) => a.name.localeCompare(b.name));
+  return workflows.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function getWorkflowInfo(

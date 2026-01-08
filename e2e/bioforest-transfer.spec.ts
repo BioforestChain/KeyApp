@@ -2,7 +2,7 @@
  * BioForest 转账流程测试
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import * as crypto from 'crypto'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
@@ -15,10 +15,36 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') })
 
 const FUND_MNEMONIC = process.env.E2E_TEST_MNEMONIC ?? ''
 const FUND_ADDRESS = process.env.E2E_TEST_ADDRESS ?? ''
-const WALLET_PATTERN = '0,1,2,5,8' // 钱包锁图案：L形
+const WALLET_PATTERN = [0, 1, 2, 5, 8] // 钱包锁图案：L形
 const API_BASE = 'https://walletapi.bfmeta.info'
 const CHAIN_PATH = 'bfm'
 const CHAIN_MAGIC = 'nxOGQ'
+
+async function drawPattern(page: Page, gridTestId: string, nodes: number[]): Promise<void> {
+  const grid = page.locator(`[data-testid="${gridTestId}"]`)
+  await grid.scrollIntoViewIfNeeded()
+  const box = await grid.boundingBox()
+  if (!box) throw new Error(`Pattern grid ${gridTestId} not visible`)
+
+  const size = 3
+  const toPoint = (index: number) => {
+    const row = Math.floor(index / size)
+    const col = index % size
+    return {
+      x: box.x + box.width * ((col + 0.5) / size),
+      y: box.y + box.height * ((row + 0.5) / size),
+    }
+  }
+
+  const points = nodes.map((node) => toPoint(node))
+  const first = points[0]!
+  await page.mouse.move(first.x, first.y)
+  await page.mouse.down()
+  for (const point of points.slice(1)) {
+    await page.mouse.move(point.x, point.y, { steps: 8 })
+  }
+  await page.mouse.up()
+}
 
 const BIP39_WORDS = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract']
 function randomMnemonic(): string {
@@ -48,7 +74,7 @@ async function getTxCount(address: string): Promise<number> {
 const describeOrSkip = FUND_MNEMONIC ? test.describe : test.describe.skip
 
 describeOrSkip('BioForest 转账测试', () => {
-  test.setTimeout(150000) // 2.5 分钟
+  test.setTimeout(60000) // 1 分钟
 
   let tempMnemonic: string
   let tempAddress: string
@@ -127,19 +153,27 @@ describeOrSkip('BioForest 转账测试', () => {
     await page.locator('[data-testid="continue-button"]').click()
     await page.locator('[data-testid="mnemonic-textarea"]').fill(FUND_MNEMONIC)
     await page.locator('[data-testid="continue-button"]').click()
-    await page.locator('[data-testid="pattern-lock-input"]').fill(WALLET_PATTERN)
-    const confirmInput = page.locator('[data-testid="pattern-lock-confirm"]')
-    if (await confirmInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmInput.fill(WALLET_PATTERN)
-    }
-    await page.locator('[data-testid="continue-button"]').click()
-    await page.locator('[data-testid="enter-wallet-button"]').click()
-    await page.waitForLoadState('networkidle')
+    
+    // 设置图案锁
+    await page.waitForSelector('[data-testid="pattern-lock-set-grid"]', { timeout: 10000 })
+    await drawPattern(page, 'pattern-lock-set-grid', WALLET_PATTERN)
+    await page.locator('[data-testid="pattern-lock-next-button"]').click()
+    await page.waitForSelector('[data-testid="pattern-lock-confirm-grid"]', { timeout: 5000 })
+    await drawPattern(page, 'pattern-lock-confirm-grid', WALLET_PATTERN)
+    
+    // 选择链并完成
+    await page.waitForSelector('[data-testid="chains-continue-button"]', { timeout: 10000 })
+    await page.locator('[data-testid="chains-continue-button"]').click()
+    
+    // 选择钱包主题
+    await page.waitForSelector('button:has-text("确认")', { timeout: 5000 })
+    await page.locator('button:has-text("确认")').click()
+    await page.waitForTimeout(1000)
     console.log('   ✅ 钱包导入完成')
 
     // 4. 切换到 BFMeta 链
     console.log('4. 切换到 BFMeta...')
-    const chainSelector = page.locator('[data-testid="chain-selector"]')
+    const chainSelector = page.locator('[data-testid="wallet-home"] [data-testid="chain-selector"]').first()
     if (await chainSelector.isVisible({ timeout: 2000 }).catch(() => false)) {
       await chainSelector.click()
       const bfmetaOption = page.locator('[data-testid="chain-option-bfmeta"]')
@@ -152,7 +186,8 @@ describeOrSkip('BioForest 转账测试', () => {
 
     // 5. 进入发送页面并填写
     console.log('5. 填写转账信息...')
-    await page.locator('[data-testid="send-button"]:visible').click()
+    // 点击转账按钮 - 使用可见的那个
+    await page.getByRole('button', { name: '转账' }).click()
     await page.waitForTimeout(500)
     
     await page.locator('[data-testid="address-input"]').fill(tempAddress)
@@ -175,15 +210,16 @@ describeOrSkip('BioForest 转账测试', () => {
 
     // 8. 验证钱包锁
     console.log('8. 验证钱包锁...')
-    const pwdInput = page.locator('[data-testid="wallet-pattern-input"]')
-    await expect(pwdInput).toBeVisible({ timeout: 5000 })
-    await pwdInput.fill(WALLET_PATTERN)
-    await page.locator('[data-testid="wallet-lock-confirm-button"]').click()
+    await page.waitForSelector('[data-testid="transfer-wallet-lock-pattern-grid"]', { timeout: 10000 })
+    await drawPattern(page, 'transfer-wallet-lock-pattern-grid', WALLET_PATTERN)
+    // 绘制图案即完成验证，无需点击确认按钮
     console.log('   ✅ 钱包锁验证')
 
     // 9. 等待结果
     console.log('9. 等待交易处理...')
-    await page.waitForTimeout(3000)
+    // 等待转账成功或失败页面
+    await page.waitForSelector('text=转账成功', { timeout: 30000 }).catch(() => {})
+    await page.waitForTimeout(1000)
 
     // 10. 检查交易是否上链
     console.log('10. 等待上链（最多 45 秒）...')
