@@ -49,33 +49,20 @@ export interface TokenIconProps {
 }
 
 /**
- * 检查 URL 是否是同源的（本地资源）
+ * 根据模板 URL 和 symbol 生成图标 URL
+ * 
+ * 模板格式：URL 中包含 $symbol 或 $SYMBOL 占位符
+ * - $symbol: 替换为小写 symbol (如 bft)
+ * - $SYMBOL: 替换为大写 symbol (如 BFT)
+ * 
+ * 例如：
+ * - "../icons/bfmeta/tokens/$symbol.svg" -> "../icons/bfmeta/tokens/bft.svg"
+ * - "https://cdn.example.com/icon-$SYMBOL.png" -> "https://cdn.example.com/icon-BFT.png"
  */
-function isSameOrigin(url: string): boolean {
-  // 相对路径视为同源
-  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
-    return true
-  }
-  // 检查是否与当前页面同源
-  try {
-    const urlObj = new URL(url)
-    return urlObj.origin === window.location.origin
-  } catch {
-    return true // 解析失败视为相对路径
-  }
-}
-
-/**
- * 根据 base 路径和 symbol 生成图标 URL
- * - 本地资源（同源）：使用 {symbol}.svg 格式
- * - CDN 资源（跨域）：使用 icon-{symbol}.png 格式
- */
-function buildIconUrl(base: string, symbol: string): string {
-  const lowerSymbol = symbol.toLowerCase();
-  if (isSameOrigin(base)) {
-    return `${base}/${lowerSymbol}.svg`;
-  }
-  return `${base}/icon-${lowerSymbol}.png`;
+function buildIconUrl(template: string, symbol: string): string {
+  return template
+    .replace(/\$SYMBOL/g, symbol.toUpperCase())
+    .replace(/\$symbol/g, symbol.toLowerCase());
 }
 
 /**

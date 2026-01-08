@@ -1,13 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactRenderer } from '@storybook/react';
 import type { DecoratorFunction } from 'storybook/internal/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { expect, waitFor, within } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletAddressPortfolioView } from './wallet-address-portfolio-view';
 import { WalletAddressPortfolioFromProvider } from './wallet-address-portfolio-from-provider';
-import { chainConfigActions, chainConfigStore, useChainConfigState } from '@/stores/chain-config';
+import { TokenIconProvider } from './token-icon';
+import { chainConfigActions, chainConfigStore, useChainConfigState, useChainConfigs } from '@/stores/chain-config';
 import { clearProviderCache } from '@/services/chain-adapter';
+import { resolveAssetUrl } from '@/lib/asset-url';
 import { Amount } from '@/types/amount';
 import type { TokenInfo } from '@/components/token/token-item';
 import type { TransactionInfo, TransactionType } from '@/components/transaction/transaction-item';
@@ -216,6 +218,28 @@ function ChainConfigProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function TokenIconProviderWrapper({ children }: { children: React.ReactNode }) {
+  const configs = useChainConfigs();
+
+  const resolvedConfigs = useMemo(() => {
+    return configs.map((config) => ({
+      ...config,
+      tokenIconBase: config.tokenIconBase?.map(resolveAssetUrl),
+    }));
+  }, [configs]);
+
+  const getTokenIconBases = useCallback(
+    (chainId: string) => resolvedConfigs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
+    [resolvedConfigs],
+  );
+
+  return (
+    <TokenIconProvider getTokenIconBases={getTokenIconBases}>
+      {children}
+    </TokenIconProvider>
+  );
+}
+
 const REAL_ADDRESSES: Record<string, string> = {
   ethereum: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
   tron: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
@@ -362,9 +386,11 @@ const createQueryClient = () =>
 const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
   <QueryClientProvider client={createQueryClient()}>
     <ChainConfigProvider>
-      <div className="bg-background mx-auto min-h-screen max-w-md">
-        <Story />
-      </div>
+      <TokenIconProviderWrapper>
+        <div className="bg-background mx-auto min-h-screen max-w-md">
+          <Story />
+        </div>
+      </TokenIconProviderWrapper>
     </ChainConfigProvider>
   </QueryClientProvider>
 );
@@ -372,10 +398,12 @@ const withChainConfig: DecoratorFunction<ReactRenderer> = (Story) => (
 const createCompareDecorator = (chainId: string): DecoratorFunction<ReactRenderer> => (Story) => (
   <QueryClientProvider client={createQueryClient()}>
     <ChainConfigProvider>
-      <DynamicCompareConfigInjector chainId={chainId} />
-      <div className="bg-background mx-auto min-h-screen max-w-6xl">
-        <Story />
-      </div>
+      <TokenIconProviderWrapper>
+        <DynamicCompareConfigInjector chainId={chainId} />
+        <div className="bg-background mx-auto min-h-screen max-w-6xl">
+          <Story />
+        </div>
+      </TokenIconProviderWrapper>
     </ChainConfigProvider>
   </QueryClientProvider>
 );

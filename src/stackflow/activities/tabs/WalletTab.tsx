@@ -1,10 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
-import { TokenList } from "@/components/token/token-list";
-import { TransactionList } from "@/components/transaction/transaction-list";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
-import { SwipeableTabs } from "@/components/layout/swipeable-tabs";
+import { WalletAddressPortfolioView } from "@/components/wallet/wallet-address-portfolio-view";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { MigrationRequiredView } from "@/components/common/migration-required-view";
 import { GradientButton } from "@/components/common/gradient-button";
@@ -67,11 +65,8 @@ export function WalletTab() {
   // 初始化钱包主题
   useWalletTheme();
 
-  // 当前内容 Tab
-  const [activeTab, setActiveTab] = useState("assets");
-
-  // 余额查询
-  const { isFetching: isRefreshing } = useBalanceQuery(
+  // 余额查询（包含 supported 状态）
+  const { data: balanceData, isFetching: isRefreshing } = useBalanceQuery(
     currentWallet?.id,
     selectedChain
   );
@@ -223,65 +218,44 @@ export function WalletTab() {
         </div>
       </div>
 
-      {/* 内容区 Tab 切换 */}
+      {/* 内容区：复用 WalletAddressPortfolioView */}
       <div className="flex-1 pt-3">
-        <SwipeableTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          className="h-full"
-          testIdPrefix="wallet-home-content-tabs"
-        >
-          {(tab) =>
-            tab === "assets" ? (
-              <div className="p-4" data-testid="wallet-home-assets-panel">
-                <TokenList
-                  tokens={tokens.map((token) => ({
-                    symbol: token.symbol,
-                    name: token.name,
-                    chain: selectedChain,
-                    balance: token.balance,
-                    decimals: token.decimals,
-                    fiatValue: token.fiatValue
-                      ? String(token.fiatValue)
-                      : undefined,
-                    change24h: token.change24h,
-                    icon: token.icon,
-                  }))}
-                  refreshing={isRefreshing}
-                  onTokenClick={(token) => {
-                    console.log("Token clicked:", token.symbol);
-                  }}
-                  emptyTitle={t("home:wallet.noAssets")}
-                  emptyDescription={t("home:wallet.noAssetsOnChain", {
-                    chain: selectedChainName,
-                  })}
-                  testId="token-list"
-                />
-              </div>
-            ) : (
-              <div className="p-4" data-testid="wallet-home-history-panel">
-                <TransactionList
-                  transactions={transactions.slice(0, 5)}
-                  loading={txLoading}
-                  onTransactionClick={handleTransactionClick}
-                  emptyTitle={t("transaction:history.emptyTitle")}
-                  emptyDescription={t("transaction:history.emptyDesc")}
-                  testId="transaction-list"
-                />
-                <button
-                  onClick={() => push("HistoryActivity", { 
-                    chain: transactions.length > 0 ? selectedChain : "all" 
-                  })}
-                  className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-                >
-                  {transactions.length > 0
-                    ? t("transaction:history.viewAll", { count: transactions.length })
-                    : t("transaction:history.viewAllChains")}
-                </button>
-              </div>
-            )
-          }
-        </SwipeableTabs>
+        <WalletAddressPortfolioView
+          chainId={selectedChain}
+          chainName={selectedChainName}
+          tokens={tokens.map((token) => ({
+            symbol: token.symbol,
+            name: token.name,
+            chain: selectedChain,
+            balance: token.balance,
+            decimals: token.decimals,
+            fiatValue: token.fiatValue ? String(token.fiatValue) : undefined,
+            change24h: token.change24h,
+            icon: token.icon,
+          }))}
+          transactions={transactions.slice(0, 5)}
+          tokensRefreshing={isRefreshing}
+          transactionsLoading={txLoading}
+          tokensSupported={balanceData?.supported ?? true}
+          tokensFallbackReason={balanceData?.fallbackReason}
+          onTokenClick={(token) => {
+            console.log("Token clicked:", token.symbol);
+          }}
+          onTransactionClick={handleTransactionClick}
+          renderTransactionFooter={() => (
+            <button
+              onClick={() => push("HistoryActivity", { 
+                chain: transactions.length > 0 ? selectedChain : "all" 
+              })}
+              className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              {transactions.length > 0
+                ? t("transaction:history.viewAll", { count: transactions.length })
+                : t("transaction:history.viewAllChains")}
+            </button>
+          )}
+          testId="wallet-home"
+        />
       </div>
 
       {/* TabBar spacer */}

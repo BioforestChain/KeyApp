@@ -479,49 +479,66 @@ export const walletActions = {
   },
 
   /** 刷新钱包余额（从链上获取） */
-  refreshBalance: async (walletId: string, chain: ChainType): Promise<void> => {
+  refreshBalance: async (walletId: string, chain: ChainType): Promise<{ supported: boolean; fallbackReason?: string }> => {
     const state = walletStore.state
     const wallet = state.wallets.find((w) => w.id === walletId)
-    if (!wallet) return
+    if (!wallet) return { supported: false, fallbackReason: 'Wallet not found' }
 
     const chainAddress = wallet.chainAddresses.find((ca) => ca.chain === chain)
-    if (!chainAddress) return
+    if (!chainAddress) return { supported: false, fallbackReason: 'Chain address not found' }
 
     try {
       // 动态导入避免循环依赖
       const { getChainProvider, isSupported } = await import('@/services/chain-adapter/providers')
       const chainProvider = getChainProvider(chain)
       
-      // 获取原生代币余额
+      // 1. 优先尝试 getTokenBalances（获取完整资产列表）
+      if (chainProvider.supportsTokenBalances) {
+        const tokensResult = await chainProvider.getTokenBalances(chainAddress.address)
+        if (isSupported(tokensResult) && tokensResult.data.length > 0) {
+          const tokens: Token[] = tokensResult.data.map((t) => ({
+            id: `${chain}:${t.symbol}`,
+            symbol: t.symbol,
+            name: t.name,
+            balance: t.amount.toFormatted(),
+            fiatValue: 0,
+            change24h: 0,
+            decimals: t.amount.decimals,
+            chain,
+          }))
+          await walletActions.updateChainAssets(walletId, chain, tokens)
+          return { supported: true }
+        }
+      }
+      
+      // 2. Fallback: getNativeBalance（仅获取原生代币）
       const result = await chainProvider.getNativeBalance(chainAddress.address)
       
       if (!isSupported(result)) {
-        // This is expected during initialization or for unsupported chains
-        // Only log in development to avoid console noise
         if (import.meta.env.DEV) {
           console.debug(`[refreshBalance] Balance query failed for ${chain}: ${result.reason}`)
         }
-        return
+        return { supported: false, fallbackReason: result.reason }
       }
 
       const balance = result.data
       
-      // 转换为 Token 格式 (目前只支持原生代币)
       const tokens: Token[] = [{
         id: `${chain}:${balance.symbol}`,
         symbol: balance.symbol,
         name: balance.symbol,
         balance: balance.amount.toFormatted(),
-        fiatValue: 0, // TODO: 对接汇率服务
+        fiatValue: 0,
         change24h: 0,
         decimals: balance.amount.decimals,
         chain,
       }]
 
-      // 更新 store
       await walletActions.updateChainAssets(walletId, chain, tokens)
+      return { supported: true }
     } catch (error) {
       console.error(`[refreshBalance] Failed to refresh balance for ${chain}:`, error)
+      return { supported: false, fallbackReason: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 

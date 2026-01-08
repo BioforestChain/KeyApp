@@ -9,9 +9,9 @@
       "symbol": "BFM",
       "icon": "../icons/bfmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/bfmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm"
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -25,9 +25,9 @@
       "symbol": "BFM",
       "icon": "../icons/bfmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/bfmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm"
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -47,9 +47,9 @@
       "symbol": "CCC",
       "icon": "../icons/ccchain/chain.svg",
       "tokenIconBase": [
-        "../icons/ccchain/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc"
+        "../icons/ccchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -63,9 +63,9 @@
       "symbol": "PMC",
       "icon": "../icons/pmchain/chain.svg",
       "tokenIconBase": [
-        "../icons/pmchain/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc"
+        "../icons/pmchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -79,9 +79,9 @@
       "symbol": "BFT",
       "icon": "../icons/bfchainv2/chain.svg",
       "tokenIconBase": [
-        "../icons/bfchainv2/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2"
+        "../icons/bfchainv2/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -95,9 +95,9 @@
       "symbol": "BTGM",
       "icon": "../icons/btgmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/btgmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm"
+        "../icons/btgmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -110,8 +110,8 @@
       "name": "BIWMeta",
       "symbol": "BIW",
       "tokenIconBase": [
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm"
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -131,9 +131,9 @@
       "symbol": "ETHM",
       "icon": "../icons/ethmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/ethmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm"
+        "../icons/ethmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
@@ -147,9 +147,9 @@
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
       "tokenIconBase": [
-        "../icons/ethereum/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth"
+        "../icons/ethereum/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth/icon-$SYMBOL.png"
       ],
       "decimals": 18,
       "apis": [
@@ -176,9 +176,9 @@
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
       "tokenIconBase": [
-        "../icons/binance/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc"
+        "../icons/binance/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc/icon-$SYMBOL.png"
       ],
       "decimals": 18,
       "apis": [
@@ -204,9 +204,9 @@
       "symbol": "TRX",
       "icon": "../icons/tron/chain.svg",
       "tokenIconBase": [
-        "../icons/tron/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron"
+        "../icons/tron/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron/icon-$SYMBOL.png"
       ],
       "decimals": 6,
       "apis": [
@@ -232,9 +232,9 @@
       "symbol": "BTC",
       "icon": "../icons/bitcoin/chain.svg",
       "tokenIconBase": [
-        "../icons/bitcoin/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm"
+        "../icons/bitcoin/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm/icon-$SYMBOL.png"
       ],
       "decimals": 8,
       "apis": [

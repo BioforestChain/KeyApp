@@ -1234,3 +1234,19 @@ walletapi相关的接口：
    参考文件： /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/binance/binance.service.ts
 
 /Users/kzf/.factory/specs/2026-01-06-api-walletapi.md
+
+---
+
+同样都是    bfmeta: 'bCfAynSAKhzgKLi3BXyuh5k22GctLR72j' 这个地址，在 walletaddressportfolio stories 中,我就能显示我的两个资产。
+为什么在 WalletTab 页面，只能显示一个资产？两个组件不一样？
+
+/Users/kzf/.factory/specs/2026-01-08-b.md
+
+---
+
+
+客户反馈说转账无法工作，我们的 e2e 测试流程中，存在一个真实的 bioChain 的转账测试，使用 E2E_TEST_MNEMONIC 这个助记词，请你验证，修复转账的 bug。注意遵守最佳实践
+
+我自己初步测试了一下，存在大量的问题，连网络费用的估算都除了问题，现在显示 0（不单是估算有问题，显示也没有使用标准组件），更进一步的，连网络费用都无法进行修改（应该要能点击编辑按钮，弹出一个 Stackflow-Modal 弹出框进行编辑）
+
+/Users/kzf/.factory/specs/2026-01-08-fix-bioforest-transfer-fee-estimation-0-fee-edit-modal-real-e2e.md

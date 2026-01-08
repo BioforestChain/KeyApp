@@ -12,7 +12,15 @@ export {
   useBalanceQueryKey,
   useRefreshBalance,
   balanceQueryKeys,
+  type BalanceQueryResult,
 } from './use-balance-query'
+
+export {
+  useAddressPortfolio,
+  addressPortfolioKeys,
+  type AddressPortfolioResult,
+  type UseAddressPortfolioOptions,
+} from './use-address-portfolio'
 
 export {
   useTransactionHistoryQuery,
