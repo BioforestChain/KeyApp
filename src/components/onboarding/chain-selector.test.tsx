@@ -129,8 +129,8 @@ describe('ChainSelector', () => {
 });
 
 describe('getDefaultSelectedChains', () => {
-  it('returns bioforest chain ids only', () => {
+  it('returns all chain ids', () => {
     const defaults = getDefaultSelectedChains(sampleChains);
-    expect(defaults).toEqual(['bfmeta', 'ccchain']);
+    expect(defaults).toEqual(['bfmeta', 'ccchain', 'ethereum', 'tron', 'bitcoin']);
   });
 });
