@@ -65,19 +65,21 @@ describeOrSkip('BioForest 转账测试', () => {
       await page.evaluate(async ({ mnemonic, toAddr, amt }) => {
         // @ts-expect-error
         const sdk = await import('/src/services/bioforest-sdk/index.ts')
+        const baseUrl = `${API_BASE}/wallet/${CHAIN_PATH}`
+        const core = await sdk.getBioforestCore('bfmeta')
+        const fromAddr = await core.accountBaseHelper().getAddressFromSecret(mnemonic)
         const tx = await sdk.createTransferTransaction({
-          rpcUrl: 'https://walletapi.bfmeta.info',
+          baseUrl,
           chainId: 'bfmeta',
-          apiPath: 'bfm',
           mainSecret: mnemonic,
-          from: await (await sdk.getBioforestCore('bfmeta')).accountBaseHelper().getAddressFromSecret(mnemonic),
+          from: fromAddr,
           to: toAddr,
           amount: String(amt - 500),
           assetType: 'BFM',
           fee: '500',
         })
-        await sdk.broadcastTransaction('https://walletapi.bfmeta.info', 'bfm', tx).catch(() => {})
-      }, { mnemonic: tempMnemonic, toAddr: FUND_ADDRESS, amt: balance })
+        await sdk.broadcastTransaction(baseUrl, tx).catch(() => {})
+      }, { mnemonic: tempMnemonic, toAddr: FUND_ADDRESS, amt: balance, API_BASE, CHAIN_PATH })
       console.log('✅ 归还完成')
     } catch (e) {
       console.log('⚠️ 归还失败:', e)

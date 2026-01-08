@@ -54,6 +54,18 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }))
   }, [])
 
+  // Set custom fee (from FeeEditJob modal)
+  const setFee = useCallback((formattedFee: string) => {
+    setState((prev) => {
+      if (!prev.feeAmount) return prev
+      const newFeeAmount = Amount.fromFormatted(formattedFee, prev.feeAmount.decimals, prev.feeAmount.symbol)
+      return {
+        ...prev,
+        feeAmount: newFeeAmount,
+      }
+    })
+  }, [])
+
   // Set asset and estimate fee
   const setAsset = useCallback((asset: AssetInfo) => {
     setState((prev) => ({
@@ -72,6 +84,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         setState((prev) => ({
           ...prev,
           feeAmount: feeAmount,
+          feeMinAmount: feeAmount,
           feeSymbol: fee.symbol,
           feeLoading: false,
         }))
@@ -89,6 +102,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         setState((prev) => ({
           ...prev,
           feeAmount: feeEstimate.amount,
+          feeMinAmount: feeEstimate.amount,
           feeSymbol: feeEstimate.symbol,
           feeLoading: false,
         }))
@@ -337,6 +351,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      fee: state.feeAmount ?? undefined,
     })
 
     if (result.status === 'password') {
@@ -416,6 +431,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      fee: state.feeAmount ?? undefined,
       twoStepSecret,
     })
 
@@ -478,6 +494,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     setToAddress,
     setAmount,
     setAsset,
+    setFee,
     goToConfirm,
     goBack,
     submit,

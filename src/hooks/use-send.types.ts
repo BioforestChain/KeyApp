@@ -22,8 +22,10 @@ export interface SendState {
   addressError: string | null
   /** Amount validation error */
   amountError: string | null
-  /** Estimated fee amount */
+  /** Estimated fee amount (user-editable) */
   feeAmount: Amount | null
+  /** Minimum fee from estimation (immutable reference for validation) */
+  feeMinAmount: Amount | null
   /** Fee token symbol */
   feeSymbol: string
   /** Fee loading state */
@@ -67,6 +69,8 @@ export interface UseSendReturn {
   setAmount: (amount: Amount | null) => void
   /** Set asset */
   setAsset: (asset: AssetInfo) => void
+  /** Set custom fee (formatted string, e.g. "0.001") */
+  setFee: (formattedFee: string) => void
   /** Validate and go to confirm */
   goToConfirm: () => boolean
   /** Go back to input */

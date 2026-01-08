@@ -18,6 +18,7 @@ export const initialState: SendState = {
   addressError: null,
   amountError: null,
   feeAmount: null,
+  feeMinAmount: null,
   feeSymbol: '',
   feeLoading: false,
   isSubmitting: false,
