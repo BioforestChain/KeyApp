@@ -26,6 +26,26 @@ export const WithValue: Story = {
   },
 };
 
+export const WithValueFocused: Story = {
+  render: () => {
+    return (
+      <AddressInput 
+        label="收款地址 (Focused)" 
+        value="0x1234567890abcdef1234567890abcdef12345678" 
+        autoFocus
+        onScan={() => {}}
+      />
+    );
+  },
+};
+
+export const LongAddressUnfocused: Story = {
+  args: {
+    label: 'Long Address (Unfocused)',
+    value: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+  },
+};
+
 export const WithError: Story = {
   args: {
     label: '收款地址',

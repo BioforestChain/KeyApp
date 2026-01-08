@@ -56,6 +56,9 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // 默认使用移动端配置 (Pixel 5)
+    ...devices['Pixel 5'],
+    locale: process.env.TEST_LOCALE || 'en-US',
   },
 
   // 截图对比配置
@@ -72,8 +75,7 @@ export default defineConfig({
     {
       name: 'Mobile Chrome',
       use: {
-        ...devices['Pixel 5'],
-        locale: process.env.TEST_LOCALE || 'en-US',
+        // 项目级别配置会合并/覆盖全局 use 配置
       },
     },
     {
@@ -81,7 +83,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
-        locale: process.env.TEST_LOCALE || 'en-US',
       },
     },
   ],
