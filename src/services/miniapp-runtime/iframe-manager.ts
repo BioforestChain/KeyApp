@@ -130,7 +130,7 @@ export function enforceBackgroundLimit(
   // 获取所有后台应用，按最后激活时间排序
   const backgroundApps = Array.from(apps.values())
     .filter((app) => app.appId !== activeAppId && app.state === 'background')
-    .sort((a, b) => a.lastActiveAt - b.lastActiveAt)
+    .toSorted((a, b) => a.lastActiveAt - b.lastActiveAt)
 
   // 移除超出限制的
   while (backgroundApps.length > maxBackground) {

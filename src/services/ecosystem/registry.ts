@@ -251,7 +251,7 @@ export async function getAllApps(): Promise<MiniappManifest[]> {
 
 export async function getFeaturedApps(limit: number, date: Date = new Date()): Promise<MiniappManifest[]> {
   const apps = getApps()
-  const ranked = [...apps].sort((a, b) => computeFeaturedScore(b, date) - computeFeaturedScore(a, date))
+  const ranked = [...apps].toSorted((a, b) => computeFeaturedScore(b, date) - computeFeaturedScore(a, date))
   return ranked.slice(0, Math.max(0, limit))
 }
 

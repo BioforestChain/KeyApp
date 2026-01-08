@@ -34,7 +34,7 @@ function computeScore(path: string): number {
 export function sortActivityRoutes<T>(
   routes: ActivityRoute<T>[],
 ): ActivityRoute<T>[] {
-  return [...routes].sort(
+  return [...routes].toSorted(
     (a, b) => computeScore(b.path) - computeScore(a.path),
   );
 }

@@ -97,32 +97,28 @@ async function transferWithSDK(
   amount: number
 ): Promise<string> {
   // 动态导入 SDK
-  const sdk = await import('../src/services/bioforest-sdk/index.js')
+  const sdk = await import('../src/services/bioforest-sdk/index.ts')
   
   // 设置 genesis 路径（Node.js 环境）
   const genesisPath = `file://${path.join(process.cwd(), 'public/configs/genesis')}`
   sdk.setGenesisBaseUrl(genesisPath, { with: { type: 'json' } })
   
-  // 获取最新区块信息
-  const lastBlock = await sdk.getLastBlock(API_BASE, CHAIN_PATH)
+  const baseUrl = `${API_BASE}/wallet/${CHAIN_PATH}`
   
-  // 创建交易
+  // 创建交易 (SDK will fetch lastBlock internally)
   const tx = await sdk.createTransferTransaction({
-    rpcUrl: API_BASE,
+    baseUrl,
     chainId: CHAIN_ID,
-    apiPath: CHAIN_PATH,
     mainSecret: fromMnemonic,
     from: FUND_ADDRESS,
     to: toAddress,
     amount: String(amount),
     assetType: 'BFM',
     fee: '500',
-    applyBlockHeight: lastBlock.height,
-    timestamp: lastBlock.timestamp,
   })
   
   // 广播交易
-  const txHash = await sdk.broadcastTransaction(API_BASE, CHAIN_PATH, tx)
+  const txHash = await sdk.broadcastTransaction(baseUrl, tx)
   return txHash
 }
 

@@ -38,11 +38,11 @@ const makeActionsProxy = <T extends CoreStore["actions"]>({
     get<K extends keyof CoreStore["actions"]>(target: typeof actions, p: K) {
       return (...args: Parameters<(typeof target)[K]>) =>
         new Promise<ReturnType<(typeof target)[K]>>((resolve) => {
-          // @ts-ignore
+          // @ts-expect-error
           const ret: ReturnType<(typeof target)[K]> = target[p](...args);
 
           setTimeout(() => {
-            // @ts-ignore
+            // @ts-expect-error
             resolve(p === "getStack" ? target[p](...args) : ret);
           }, 16 + 32);
         });

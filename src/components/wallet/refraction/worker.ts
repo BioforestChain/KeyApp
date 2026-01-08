@@ -106,7 +106,7 @@ function renderFrame() {
   frameCount++
 
   // Sort by priority: high → medium → low
-  const sorted = pendingStates.slice().sort((a, b) => priorityOrder(a.priority) - priorityOrder(b.priority))
+  const sorted = pendingStates.slice().toSorted((a, b) => priorityOrder(a.priority) - priorityOrder(b.priority))
 
   for (const state of sorted) {
     // Frame rate division based on priority

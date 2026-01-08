@@ -229,7 +229,7 @@ export function base58Decode(str: string): Uint8Array {
     else break
   }
 
-  return new Uint8Array(bytes.reverse())
+  return new Uint8Array(bytes.toReversed())
 }
 
 // ==================== Base58Check 编码 ====================

@@ -74,7 +74,7 @@ export function SendPage() {
     };
   }, [chainConfig, currentChainAddress?.tokens]);
 
-  const { state, setToAddress, setAmount, setAsset, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
     initialAsset: defaultAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
@@ -151,53 +151,59 @@ export function SendPage() {
     haptics.impact('light');
 
     // Set up callback: TransferConfirm -> TransferWalletLock (合并的钱包锁+二次签名)
-    setTransferConfirmCallback(async () => {
-      if (isWalletLockSheetOpen.current) return;
-      isWalletLockSheetOpen.current = true;
+    setTransferConfirmCallback(
+      async () => {
+        if (isWalletLockSheetOpen.current) return;
+        isWalletLockSheetOpen.current = true;
 
-      await haptics.impact('medium');
+        await haptics.impact('medium');
 
-      // 使用合并的钱包锁确认组件
-      setTransferWalletLockCallback(async (walletLockKey: string, twoStepSecret?: string) => {
-        // 第一次调用：只有钱包锁
-        if (!twoStepSecret) {
-          const result = await submit(walletLockKey);
-          
-          if (result.status === 'password') {
-            return { status: 'wallet_lock_invalid' as const };
+        // 使用合并的钱包锁确认组件
+        setTransferWalletLockCallback(async (walletLockKey: string, twoStepSecret?: string) => {
+          // 第一次调用：只有钱包锁
+          if (!twoStepSecret) {
+            const result = await submit(walletLockKey);
+            
+            if (result.status === 'password') {
+              return { status: 'wallet_lock_invalid' as const };
+            }
+            
+            if (result.status === 'two_step_secret_required') {
+              return { status: 'two_step_secret_required' as const };
+            }
+            
+            if (result.status === 'ok') {
+              isWalletLockSheetOpen.current = false;
+              return { status: 'ok' as const, txHash: result.txHash };
+            }
+            
+            return { status: 'error' as const, message: '转账失败' };
           }
           
-          if (result.status === 'two_step_secret_required') {
-            return { status: 'two_step_secret_required' as const };
-          }
+          // 第二次调用：有钱包锁和二次签名
+          const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret);
           
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false;
             return { status: 'ok' as const, txHash: result.txHash };
           }
           
-          return { status: 'error' as const, message: '转账失败' };
-        }
-        
-        // 第二次调用：有钱包锁和二次签名
-        const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret);
-        
-        if (result.status === 'ok') {
-          isWalletLockSheetOpen.current = false;
-          return { status: 'ok' as const, txHash: result.txHash };
-        }
-        
-        if (result.status === 'password') {
-          return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
-        }
-        
-        return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
-      });
+          if (result.status === 'password') {
+            return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
+          }
+          
+          return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
+        });
 
-      push('TransferWalletLockJob', {
-        title: t('security:walletLock.verifyTitle'),
-      });
-    });
+        push('TransferWalletLockJob', {
+          title: t('security:walletLock.verifyTitle'),
+        });
+      },
+      {
+        minFee: state.feeMinAmount?.toFormatted() ?? state.feeAmount?.toFormatted() ?? '0',
+        onFeeChange: setFee,
+      }
+    );
 
     push('TransferConfirmJob', {
       amount: state.amount?.toFormatted() ?? '0',

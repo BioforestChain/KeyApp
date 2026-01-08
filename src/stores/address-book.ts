@@ -313,7 +313,7 @@ export const addressBookSelectors = {
     const lowerPartial = hasQuery ? partialAddress.toLowerCase() : ''
 
     // 按最近更新时间排序联系人
-    const sortedContacts = [...state.contacts].sort(
+    const sortedContacts = [...state.contacts].toSorted(
       (a, b) => b.updatedAt - a.updatedAt
     )
 
@@ -392,7 +392,7 @@ export const addressBookSelectors = {
 
     // 排序：先按分数，再按最近更新时间
     return Array.from(seen.values())
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         if (b.score !== a.score) return b.score - a.score
         return b.contact.updatedAt - a.contact.updatedAt
       })

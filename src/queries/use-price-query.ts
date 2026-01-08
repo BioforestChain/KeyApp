@@ -23,7 +23,7 @@ const MOCK_PRICES: Record<string, PriceData> = {
  */
 export const priceQueryKeys = {
   all: ['prices'] as const,
-  symbols: (symbols: string[]) => ['prices', symbols.sort().join(',')] as const,
+  symbols: (symbols: string[]) => ['prices', symbols.toSorted().join(',')] as const,
 }
 
 /**

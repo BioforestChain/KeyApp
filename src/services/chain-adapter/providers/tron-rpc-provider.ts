@@ -219,7 +219,7 @@ export class TronRpcProvider implements ApiProvider {
     const aggregated = this.aggregateByTxId(nativeTxs, trc20Txs, normalizedAddress)
 
     return aggregated
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .toSorted((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit)
   }
 

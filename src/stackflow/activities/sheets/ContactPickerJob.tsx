@@ -44,7 +44,7 @@ function ContactPickerJobContent() {
     }
 
     // Sort by updated time
-    contacts = [...contacts].sort((a, b) => b.updatedAt - a.updatedAt);
+    contacts = [...contacts].toSorted((a, b) => b.updatedAt - a.updatedAt);
 
     return contacts.map((contact) => {
       const addresses: AddressWithValidity[] = contact.addresses.map((addr) => ({

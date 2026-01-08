@@ -13,7 +13,7 @@ import { bytesToHex } from '@noble/hashes/utils.js'
 import { bech32, bech32m, base58check } from '@scure/base'
 
 export class BitcoinIdentityService implements IIdentityService {
-  constructor(_chainId: string) {}
+  
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // seed is UTF-8 encoded mnemonic string

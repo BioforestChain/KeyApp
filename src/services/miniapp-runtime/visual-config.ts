@@ -78,15 +78,15 @@ export function mergeMiniappVisualConfig(
   return {
     motion: {
       ...base.motion,
-      ...(update.motion ?? {}),
+      ...update.motion,
       spring: {
         ...base.motion.spring,
-        ...(update.motion?.spring ?? {}),
+        ...update.motion?.spring,
       },
     },
     css: {
       ...base.css,
-      ...(update.css ?? {}),
+      ...update.css,
     },
   }
 }

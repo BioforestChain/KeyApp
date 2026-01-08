@@ -31,7 +31,7 @@ function buildCacheKey(baseCurrency: string, targetCurrencies: readonly string[]
   const base = normalizeCurrencyCode(baseCurrency)
   const targets = [...new Set(targetCurrencies.map(normalizeCurrencyCode))]
     .filter((c) => c !== base)
-    .sort()
+    .toSorted()
     .join(',')
 
   return `${base}|${targets}`

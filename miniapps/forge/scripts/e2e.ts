@@ -22,8 +22,8 @@ async function findAvailablePort(startPort: number): Promise<number> {
 }
 
 async function main() {
-  const args = process.argv.slice(2)
-  const updateSnapshots = args.includes('--update-snapshots') || args.includes('-u')
+  const args = new Set(process.argv.slice(2))
+  const updateSnapshots = args.has('--update-snapshots') || args.has('-u')
   
   const port = await findAvailablePort(5184)
   console.log(`[e2e] Using port ${port}`)

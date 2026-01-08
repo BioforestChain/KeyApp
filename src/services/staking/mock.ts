@@ -168,7 +168,7 @@ export const stakingService = stakingServiceMeta.impl({
   async getTransactions() {
     await delay()
     checkError()
-    return [...transactions].sort((a, b) => b.createdAt - a.createdAt)
+    return [...transactions].toSorted((a, b) => b.createdAt - a.createdAt)
   },
 
   async getTransaction({ id }) {

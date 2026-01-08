@@ -22,7 +22,7 @@ const config: StorybookConfig = {
       config.resolve.alias.push({ find: '#currency-exchange-impl', replacement })
     } else {
       config.resolve.alias = {
-        ...(config.resolve.alias ?? {}),
+        ...config.resolve.alias,
         '#currency-exchange-impl': replacement,
       }
     }

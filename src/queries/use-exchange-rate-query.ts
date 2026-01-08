@@ -8,7 +8,7 @@ import { currencyExchangeService, type ExchangeRateResponse } from '@/services'
 export const exchangeRateQueryKeys = {
   all: ['exchangeRate'] as const,
   rate: (baseCurrency: string, targetCurrencies: string[]) =>
-    ['exchangeRate', baseCurrency.toUpperCase(), targetCurrencies.sort().join(',')] as const,
+    ['exchangeRate', baseCurrency.toUpperCase(), targetCurrencies.toSorted().join(',')] as const,
 }
 
 function normalizeCurrencyCode(code: string): string {

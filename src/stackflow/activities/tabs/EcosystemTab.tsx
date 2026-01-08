@@ -82,19 +82,19 @@ export function EcosystemTab() {
 
   const featuredApps = useMemo(() => {
     if (apps.length === 0) return [];
-    return [...apps].sort((a, b) => computeFeaturedScore(b) - computeFeaturedScore(a)).slice(0, 2);
+    return [...apps].toSorted((a, b) => computeFeaturedScore(b) - computeFeaturedScore(a)).slice(0, 2);
   }, [apps]);
 
   const recommendedApps = useMemo(() => {
     const featuredIds = new Set(featuredApps.map((a) => a.id));
     return [...apps]
       .filter((a) => !featuredIds.has(a.id))
-      .sort((a, b) => (b.officialScore ?? 0) - (a.officialScore ?? 0))
+      .toSorted((a, b) => (b.officialScore ?? 0) - (a.officialScore ?? 0))
       .slice(0, 6);
   }, [apps, featuredApps]);
 
   const hotApps = useMemo(() => {
-    return [...apps].sort((a, b) => (b.communityScore ?? 0) - (a.communityScore ?? 0)).slice(0, 10);
+    return [...apps].toSorted((a, b) => (b.communityScore ?? 0) - (a.communityScore ?? 0)).slice(0, 10);
   }, [apps]);
 
   if (loading) {

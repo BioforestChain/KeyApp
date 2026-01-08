@@ -23,7 +23,7 @@ function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
 }
 
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
-  const adapter = createBioforestAdapter(chainConfig)
+  const adapter = createBioforestAdapter(chainConfig.id)
   const feeEstimate = await adapter.transaction.estimateFee({
     from: fromAddress,
     to: fromAddress,
@@ -38,7 +38,7 @@ export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: s
 }
 
 export async function fetchBioforestBalance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
-  const adapter = createBioforestAdapter(chainConfig)
+  const adapter = createBioforestAdapter(chainConfig.id)
   const balance = await adapter.asset.getNativeBalance(fromAddress)
 
   return {
@@ -62,6 +62,7 @@ export interface SubmitBioforestParams {
   fromAddress: string
   toAddress: string
   amount: Amount
+  fee?: Amount
   twoStepSecret?: string
 }
 
@@ -115,6 +116,7 @@ export async function submitBioforestTransfer({
   fromAddress,
   toAddress,
   amount,
+  fee,
   twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
   // Get mnemonic from wallet storage
@@ -176,6 +178,7 @@ export async function submitBioforestTransfer({
       to: toAddress,
       amount: amount.toRawString(),
       assetType: chainConfig.symbol,
+      fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
     console.log('[submitBioforestTransfer] Transaction created:', txHash?.slice(0, 20))

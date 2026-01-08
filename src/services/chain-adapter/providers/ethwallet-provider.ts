@@ -244,7 +244,7 @@ export class EthWalletProvider implements ApiProvider {
     }
 
     return results
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .toSorted((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit)
   }
 

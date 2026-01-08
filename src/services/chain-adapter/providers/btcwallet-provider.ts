@@ -158,7 +158,7 @@ export class BtcWalletProvider implements ApiProvider {
       }
     })
 
-    return results.sort((a, b) => b.timestamp - a.timestamp)
+    return results.toSorted((a, b) => b.timestamp - a.timestamp)
   }
 
   private async proxyGet<T>(

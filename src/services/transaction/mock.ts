@@ -137,7 +137,7 @@ function tryLoadFixtureTransactions(): TransactionRecord[] | null {
     })
   }
 
-  return records.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  return records.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 }
 
 function generateInitialTransactions(count: number = 30): TransactionRecord[] {
@@ -197,7 +197,7 @@ function generateInitialTransactions(count: number = 30): TransactionRecord[] {
     })
   }
 
-  return transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  return transactions.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 }
 
 function filterByPeriod(transactions: TransactionRecord[], period: string): TransactionRecord[] {
@@ -249,7 +249,7 @@ export const transactionService = transactionServiceMeta.impl({
       result = result.filter((tx) => tx.status === f.status)
     }
 
-    return result.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    return result.toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
   },
 
   async getTransaction({ id }) {

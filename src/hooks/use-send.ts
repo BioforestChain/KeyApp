@@ -54,6 +54,18 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }))
   }, [])
 
+  // Set custom fee (from FeeEditJob modal)
+  const setFee = useCallback((formattedFee: string) => {
+    setState((prev) => {
+      if (!prev.feeAmount) return prev
+      const newFeeAmount = Amount.fromFormatted(formattedFee, prev.feeAmount.decimals, prev.feeAmount.symbol)
+      return {
+        ...prev,
+        feeAmount: newFeeAmount,
+      }
+    })
+  }, [])
+
   // Set asset and estimate fee
   const setAsset = useCallback((asset: AssetInfo) => {
     setState((prev) => ({
@@ -72,6 +84,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         setState((prev) => ({
           ...prev,
           feeAmount: feeAmount,
+          feeMinAmount: feeAmount,
           feeSymbol: fee.symbol,
           feeLoading: false,
         }))
@@ -89,6 +102,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         setState((prev) => ({
           ...prev,
           feeAmount: feeEstimate.amount,
+          feeMinAmount: feeEstimate.amount,
           feeSymbol: feeEstimate.symbol,
           feeLoading: false,
         }))
@@ -187,7 +201,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
-    console.log('[useSend.submit] Called with:', { useMock, chainType: chainConfig?.type, walletId, fromAddress })
+    console.log('[useSend.submit] Called with:', { useMock, chainKind: chainConfig?.chainKind, walletId, fromAddress })
     
     if (useMock) {
       console.log('[useSend.submit] Using mock transfer')
@@ -210,7 +224,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
     if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
-      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.type)
+      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.chainKind)
       
       if (!walletId || !fromAddress || !state.asset || !state.amount) {
         setState((prev) => ({
@@ -274,15 +288,15 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     }
 
     // Unsupported chain type
-    if (chainConfig.type !== 'bioforest') {
-      console.log('[useSend.submit] Chain type not supported:', chainConfig.type)
+    if (chainConfig.chainKind !== 'bioforest') {
+      console.log('[useSend.submit] Chain type not supported:', chainConfig.chainKind)
       setState((prev) => ({
         ...prev,
         step: 'result',
         isSubmitting: false,
         resultStatus: 'failed',
         txHash: null,
-        errorMessage: `不支持的链类型: ${chainConfig.type}`,
+        errorMessage: `不支持的链类型: ${chainConfig.chainKind}`,
       }))
       return { status: 'error' as const }
     }
@@ -337,6 +351,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      fee: state.feeAmount ?? undefined,
     })
 
     if (result.status === 'password') {
@@ -416,6 +431,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      fee: state.feeAmount ?? undefined,
       twoStepSecret,
     })
 
@@ -478,6 +494,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     setToAddress,
     setAmount,
     setAsset,
+    setFee,
     goToConfirm,
     goBack,
     submit,
