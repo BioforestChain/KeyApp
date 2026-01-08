@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Review Workflow - 质量检查与代码评审
  *

@@ -5,7 +5,13 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
-    "composite": true
+    "composite": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "downlevelIteration": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

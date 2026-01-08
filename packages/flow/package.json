@@ -3,29 +3,14 @@
   "version": "0.1.0",
   "description": "MCP Server & Workflow Framework for KeyApp",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./mcp": {
-      "types": "./dist/common/mcp/base-mcp.d.ts",
-      "import": "./dist/common/mcp/base-mcp.js"
-    },
-    "./workflow": {
-      "types": "./dist/common/workflow/base-workflow.d.ts",
-      "import": "./dist/common/workflow/base-workflow.js"
-    },
-    "./preferences": {
-      "types": "./dist/common/preferences.d.ts",
-      "import": "./dist/common/preferences.js"
-    },
-    "./context": {
-      "types": "./dist/common/async-context.d.ts",
-      "import": "./dist/common/async-context.js"
-    }
+    ".": "./src/index.ts",
+    "./mcp": "./src/common/mcp/base-mcp.ts",
+    "./workflow": "./src/common/workflow/base-workflow.ts",
+    "./preferences": "./src/common/preferences.ts",
+    "./context": "./src/common/async-context.ts"
   },
   "scripts": {
     "build": "tsc",

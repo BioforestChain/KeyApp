@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Investigate Workflow - 需求调查与方案设计
  *

@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Git Workflow MCP - GitHub & Git 操作封装
  * 
@@ -12,7 +12,7 @@ import { z } from "zod";
 import {
   createMcpServer,
   defineTool,
-} from "../../../packages/flow/src/common/mcp/base-mcp.js";
+} from "../../../packages/flow/src/common/mcp/base-mcp.ts";
 
 // =============================================================================
 // Constants
@@ -27,7 +27,6 @@ const WORKTREE_BASE = ".git-worktree";
 
 function exec(cmd: string, cwd?: string): string {
   try {
-    // stdio: 'pipe' to capture output, 'ignore' stderr unless error
     return execSync(cmd, { encoding: "utf-8", cwd, stdio: ["ignore", "pipe", "pipe"] }).trim();
   } catch (error: any) {
     const stderr = error.stderr ? error.stderr.toString() : "";
@@ -44,7 +43,91 @@ function safeExec(cmd: string, cwd?: string): string | null {
 }
 
 // =============================================================================
-// Tools
+// Pure Functions (Exports)
+// =============================================================================
+
+export async function createIssue(args: { title: string; body: string; labels?: string[]; assignee?: string }) {
+  const { title, body, labels, assignee = "@me" } = args;
+  const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
+  const assigneeFlag = assignee ? `--assignee "${assignee}"` : "";
+  const safeBody = body.replace(/"/g, '\\"');
+  
+  const url = exec(`gh issue create --repo ${REPO} --title "${title}" --body "${safeBody}" ${labelFlag} ${assigneeFlag}`);
+  const issueId = url.split("/").pop() || "";
+  return { issueId, url };
+}
+
+export async function updateIssue(args: { issueId: string; body?: string; state?: "open" | "closed"; labels?: string[] }) {
+  const { issueId, body, state, labels } = args;
+  let flags = [];
+  if (body) flags.push(`--body "${body.replace(/"/g, '\\"')}"`);
+  if (state) flags.push(`--state "${state}"`);
+  if (labels) labels.forEach(l => flags.push(`--add-label "${l}"`));
+  
+  if (flags.length > 0) {
+    exec(`gh issue edit ${issueId} --repo ${REPO} ${flags.join(" ")}`);
+  }
+  return { success: true };
+}
+
+export async function createPr(args: { title: string; body: string; head: string; base?: string; draft?: boolean; labels?: string[] }) {
+  const { title, body, head, base = "main", draft = true, labels } = args;
+  const draftFlag = draft ? "--draft" : "";
+  const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
+  
+  const url = exec(`gh pr create --repo ${REPO} ${draftFlag} --title "${title}" --body "${body.replace(/"/g, '\\"')}" --base "${base}" --head "${head}" ${labelFlag}`);
+  const prNumber = url.split("/").pop() || "";
+  return { prNumber, url };
+}
+
+export async function markPrReady(args: { prNumber: string }) {
+  exec(`gh pr ready ${args.prNumber} --repo ${REPO}`);
+  return { success: true };
+}
+
+export async function createWorktree(args: { name: string; baseBranch?: string }) {
+  const { name, baseBranch = "main" } = args;
+  const branchName = `feat/${name}`;
+  const worktreePath = `${WORKTREE_BASE}/${name}`;
+  
+  if (existsSync(worktreePath)) {
+    throw new Error(`Worktree ${worktreePath} already exists`);
+  }
+  
+  exec(`git worktree add -b ${branchName} ${worktreePath} ${baseBranch}`);
+  return { path: worktreePath, branch: branchName };
+}
+
+export async function pushWorktree(args: { path: string; message?: string }) {
+  const { path, message = "chore: update" } = args;
+  const status = safeExec("git status --porcelain", path);
+  if (status) {
+    exec("git add -A", path);
+    exec(`git commit -m "${message}"`, path);
+  }
+  const branch = exec("git branch --show-current", path);
+  exec(`git push -u origin ${branch}`, path);
+  return { success: true };
+}
+
+export async function getWorktreeInfo(cwd: string = Deno.cwd()) {
+  if (cwd.includes(WORKTREE_BASE)) {
+    const match = cwd.match(new RegExp(`${WORKTREE_BASE}/([^/]+)`));
+    if (match) {
+      const name = match[1];
+      const issueMatch = name.match(/issue-(\d+)/);
+      return {
+        name,
+        path: cwd, // Assuming we are in the root of the worktree or deeper
+        issueId: issueMatch ? issueMatch[1] : null,
+      };
+    }
+  }
+  return null;
+}
+
+// =============================================================================
+// MCP Tools (Wrappers)
 // =============================================================================
 
 const createIssueTool = defineTool({
@@ -54,24 +137,10 @@ const createIssueTool = defineTool({
     title: z.string(),
     body: z.string(),
     labels: z.array(z.string()).optional(),
-    assignee: z.string().optional().default("@me"),
+    assignee: z.string().optional(),
   }),
-  outputSchema: z.object({
-    issueId: z.string(),
-    url: z.string(),
-  }),
-  handler: async ({ title, body, labels, assignee }) => {
-    const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
-    const assigneeFlag = assignee ? `--assignee "${assignee}"` : "";
-    
-    // Escape quotes in body
-    const safeBody = body.replace(/"/g, '\\"');
-    
-    const url = exec(`gh issue create --repo ${REPO} --title "${title}" --body "${safeBody}" ${labelFlag} ${assigneeFlag}`);
-    const issueId = url.split("/").pop() || "";
-    
-    return { issueId, url };
-  },
+  outputSchema: z.object({ issueId: z.string(), url: z.string() }),
+  handler: createIssue,
 });
 
 const updateIssueTool = defineTool({
@@ -84,17 +153,7 @@ const updateIssueTool = defineTool({
     labels: z.array(z.string()).optional(),
   }),
   outputSchema: z.object({ success: z.boolean() }),
-  handler: async ({ issueId, body, state, labels }) => {
-    let flags = [];
-    if (body) flags.push(`--body "${body.replace(/"/g, '\\"')}"`);
-    if (state) flags.push(`--state "${state}"`);
-    if (labels) labels.forEach(l => flags.push(`--add-label "${l}"`));
-    
-    if (flags.length === 0) return { success: true };
-    
-    exec(`gh issue edit ${issueId} --repo ${REPO} ${flags.join(" ")}`);
-    return { success: true };
-  },
+  handler: updateIssue,
 });
 
 const createPrTool = defineTool({
@@ -104,91 +163,36 @@ const createPrTool = defineTool({
     title: z.string(),
     body: z.string(),
     head: z.string(),
-    base: z.string().default("main"),
-    draft: z.boolean().default(true),
+    base: z.string().optional(),
+    draft: z.boolean().optional(),
     labels: z.array(z.string()).optional(),
   }),
-  outputSchema: z.object({
-    prNumber: z.string(),
-    url: z.string(),
-  }),
-  handler: async ({ title, body, head, base, draft, labels }, cwd) => { // cwd needed context
-    // Determine working directory: either passed explicitly or current cwd
-    // Note: MCP tools don't receive cwd automatically unless passed, 
-    // but here we assume exec runs in project root unless we're in a worktree.
-    // For PR creation, we typically need to be in the repo or specify repo.
-    // Since we use `gh ... --repo ${REPO}`, path matters less BUT head branch must be pushed.
-    
-    const draftFlag = draft ? "--draft" : "";
-    const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
-    
-    const url = exec(`gh pr create --repo ${REPO} ${draftFlag} --title "${title}" --body "${body.replace(/"/g, '\\"')}" --base "${base}" --head "${head}" ${labelFlag}`);
-    const prNumber = url.split("/").pop() || "";
-    
-    return { prNumber, url };
-  },
+  outputSchema: z.object({ prNumber: z.string(), url: z.string() }),
+  handler: createPr,
 });
 
 const markPrReadyTool = defineTool({
   name: "github_pr_ready",
   description: "将 Draft PR 标记为 Ready",
-  inputSchema: z.object({
-    prNumber: z.string(),
-  }),
+  inputSchema: z.object({ prNumber: z.string() }),
   outputSchema: z.object({ success: z.boolean() }),
-  handler: async ({ prNumber }) => {
-    exec(`gh pr ready ${prNumber} --repo ${REPO}`);
-    return { success: true };
-  },
+  handler: markPrReady,
 });
 
 const createWorktreeTool = defineTool({
   name: "git_worktree_create",
   description: "创建 Git Worktree 和分支",
-  inputSchema: z.object({
-    name: z.string(),
-    baseBranch: z.string().default("main"),
-  }),
-  outputSchema: z.object({
-    path: z.string(),
-    branch: z.string(),
-  }),
-  handler: async ({ name, baseBranch }) => {
-    const branchName = `feat/${name}`;
-    const worktreePath = `${WORKTREE_BASE}/${name}`;
-    
-    if (existsSync(worktreePath)) {
-      throw new Error(`Worktree ${worktreePath} already exists`);
-    }
-    
-    exec(`git worktree add -b ${branchName} ${worktreePath} ${baseBranch}`);
-    
-    return { path: worktreePath, branch: branchName };
-  },
+  inputSchema: z.object({ name: z.string(), baseBranch: z.string().optional() }),
+  outputSchema: z.object({ path: z.string(), branch: z.string() }),
+  handler: createWorktree,
 });
 
 const pushWorktreeTool = defineTool({
   name: "git_worktree_push",
   description: "提交并推送当前 Worktree 的更改",
-  inputSchema: z.object({
-    path: z.string().describe("Worktree 绝对路径或相对路径"),
-    message: z.string().optional().default("chore: update"),
-  }),
+  inputSchema: z.object({ path: z.string(), message: z.string().optional() }),
   outputSchema: z.object({ success: z.boolean() }),
-  handler: async ({ path, message }) => {
-    // 1. Check status
-    const status = safeExec("git status --porcelain", path);
-    if (status) {
-      exec("git add -A", path);
-      exec(`git commit -m "${message}"`, path);
-    }
-    
-    // 2. Push
-    const branch = exec("git branch --show-current", path);
-    exec(`git push -u origin ${branch}`, path);
-    
-    return { success: true };
-  },
+  handler: pushWorktree,
 });
 
 // =============================================================================
@@ -208,13 +212,6 @@ export const tools = [
 // Standalone Server
 // =============================================================================
 
-const isMain = process.argv[1]?.endsWith("git-workflow.mcp.ts") || process.argv[1]?.endsWith("git-workflow.mcp.js");
-
-if (isMain) {
-  createMcpServer({
-    name: "git-workflow",
-    description: "Git & GitHub Workflow Tools",
-    tools,
-    autoStart: true,
-  });
-}
+// const isMain = import.meta.main; // Deno
+// if (isMain) { ... }
+// For now, assume this is mostly imported.

@@ -576,6 +576,7 @@ export {
   buildToolDescription,
   createWorkflowTool,
   createReloadTool,
+  createListTool,
   executeWorkflow,
   scanWorkflows,
 };

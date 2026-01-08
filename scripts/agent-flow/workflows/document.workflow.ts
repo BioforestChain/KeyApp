@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Document Workflow - 文档维护
  *

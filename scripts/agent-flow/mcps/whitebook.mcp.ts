@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Whitebook MCP - 白皮书读写工具集
  *

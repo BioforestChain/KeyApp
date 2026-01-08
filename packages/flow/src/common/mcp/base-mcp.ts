@@ -38,6 +38,7 @@ import { z, type ZodSchema, type ZodType } from "zod";
 
 // Re-export zod for convenience
 export { z } from "zod";
+export type { ImageContent, TextContent };
 
 // =============================================================================
 // Types
