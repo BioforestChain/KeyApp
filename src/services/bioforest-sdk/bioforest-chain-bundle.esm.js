@@ -1,10 +1,10 @@
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __commonJS = (cb, mod) => function __require() {
+const __getOwnPropNames = Object.getOwnPropertyNames;
+const __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 
 // src/services/bioforest-sdk/bioforest-chain-bundle.cjs
-var require_bioforest_chain_bundle = __commonJS({
+const require_bioforest_chain_bundle = __commonJS({
   "src/services/bioforest-sdk/bioforest-chain-bundle.cjs"(exports) {
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
     function l(i, e, t, r) {

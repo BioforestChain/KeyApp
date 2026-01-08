@@ -15,7 +15,7 @@ import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js'
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 export class TronIdentityService implements IIdentityService {
-  constructor(_chainId: string) {}
+  
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {
     // seed is UTF-8 encoded mnemonic string

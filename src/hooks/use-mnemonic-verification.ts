@@ -29,7 +29,7 @@ export function selectRandomIndices(count: number, max: number): number[] {
       indices.push(randomIndex)
     }
   }
-  return indices.sort((a, b) => a - b)
+  return indices.toSorted((a, b) => a - b)
 }
 
 export interface VerificationSlot {

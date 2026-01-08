@@ -136,7 +136,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
               }}
               placeholder="订阅 URL (https://...)"
               className="w-full px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              autoFocus
+              
             />
             <input
               type="text"

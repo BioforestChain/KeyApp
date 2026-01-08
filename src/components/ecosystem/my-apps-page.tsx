@@ -326,7 +326,7 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                   : {})}
                 transition={motionPresets.sharedLayout}
                 className="absolute inset-0 flex items-center justify-center"
-              ></motion.div>
+               />
               <motion.div
                 ref={iconRef}
                 {...(sharedLayoutIds

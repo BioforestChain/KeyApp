@@ -251,7 +251,7 @@ function TransferWalletLockJobContent() {
                   disabled={isVerifying}
                   aria-describedby={error ? "two-step-error" : undefined}
                   data-testid="two-step-secret-input"
-                  autoFocus
+                  
                 />
                 {twoStepSecret.length > 0 && twoStepSecret.length < 6 && (
                   <div className="absolute right-10 top-1/2 -translate-y-1/2">

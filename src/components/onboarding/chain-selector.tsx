@@ -130,7 +130,7 @@ export function ChainSelector({
   const sortedGroups = useMemo(() => {
     return filteredGroups.map(group => ({
       ...group,
-      chains: [...group.chains].sort((a, b) => {
+      chains: [...group.chains].toSorted((a, b) => {
         const aFav = favoriteSet.has(a.id);
         const bFav = favoriteSet.has(b.id);
         if (aFav !== bFav) return aFav ? -1 : 1;

@@ -54,7 +54,7 @@ export const currencyExchangeService = currencyExchangeServiceMeta.impl({
     } catch (error) {
       clearTimeout(timeoutId)
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Exchange rate request timeout')
+        throw new Error('Exchange rate request timeout', { cause: error })
       }
       throw error
     }

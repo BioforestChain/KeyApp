@@ -270,8 +270,8 @@ function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
   const { t } = useTranslation(['onboarding', 'common']);
   const [selectedIndices] = useState<number[]>(() => {
     const indices = Array.from({ length: mnemonic.length }, (_, i) => i);
-    const shuffled = indices.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3).sort((a, b) => a - b);
+    const shuffled = indices.toSorted(() => Math.random() - 0.5);
+    return shuffled.slice(0, 3).toSorted((a, b) => a - b);
   });
 
   const [answers, setAnswers] = useState<Record<number, string>>({});

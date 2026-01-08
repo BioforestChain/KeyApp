@@ -66,7 +66,7 @@ function getLogs(): RequestLogEntry[] {
     originalOutput: undefined,
   }))
   // 合并并按时间排序
-  return [...oldLogs, ...newLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  return [...oldLogs, ...newLogs].toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 }
 
 /** 清除所有日志 */

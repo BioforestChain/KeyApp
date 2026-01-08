@@ -185,7 +185,7 @@ export class EtherscanProvider implements ApiProvider {
     const aggregated = this.aggregateByHash(nativeTxs, tokenTxs, normalizedAddress)
 
     return aggregated
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .toSorted((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit)
   }
 

@@ -405,7 +405,7 @@ export function ConsolePanel({
           <option value="$_" />
           <option value="$paused" />
           {/* 历史记录（倒序，最新的在前） */}
-          {[...history].reverse().map((cmd, i) => (
+          {[...history].toReversed().map((cmd, i) => (
             <option key={i} value={cmd} />
           ))}
         </datalist>
