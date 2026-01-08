@@ -24,6 +24,8 @@ export interface WalletAddressPortfolioViewProps {
   transactionsFallbackReason?: string
   onTokenClick?: (token: TokenInfo) => void
   onTransactionClick?: (tx: TransactionInfo) => void
+  /** 渲染交易列表底部额外内容（如"查看全部"按钮） */
+  renderTransactionFooter?: () => React.ReactNode
   className?: string
   testId?: string
 }
@@ -42,6 +44,7 @@ export function WalletAddressPortfolioView({
   transactionsFallbackReason,
   onTokenClick,
   onTransactionClick,
+  renderTransactionFooter,
   className,
   testId = 'wallet-address-portfolio',
 }: WalletAddressPortfolioViewProps) {
@@ -94,6 +97,7 @@ export function WalletAddressPortfolioView({
                 emptyDescription={t('transaction:history.emptyDesc')}
                 testId={`${testId}-transaction-list`}
               />
+              {renderTransactionFooter?.()}
             </div>
           )
         }

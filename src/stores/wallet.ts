@@ -478,14 +478,17 @@ export const walletActions = {
     }))
   },
 
+  /** 刷新钱包余额返回结果 */
+  RefreshBalanceResult: undefined as unknown as { supported: boolean; fallbackReason?: string },
+
   /** 刷新钱包余额（从链上获取） */
-  refreshBalance: async (walletId: string, chain: ChainType): Promise<void> => {
+  refreshBalance: async (walletId: string, chain: ChainType): Promise<{ supported: boolean; fallbackReason?: string }> => {
     const state = walletStore.state
     const wallet = state.wallets.find((w) => w.id === walletId)
-    if (!wallet) return
+    if (!wallet) return { supported: false, fallbackReason: 'Wallet not found' }
 
     const chainAddress = wallet.chainAddresses.find((ca) => ca.chain === chain)
-    if (!chainAddress) return
+    if (!chainAddress) return { supported: false, fallbackReason: 'Chain address not found' }
 
     try {
       // 动态导入避免循环依赖
@@ -507,7 +510,7 @@ export const walletActions = {
             chain,
           }))
           await walletActions.updateChainAssets(walletId, chain, tokens)
-          return
+          return { supported: true }
         }
       }
       
@@ -518,7 +521,7 @@ export const walletActions = {
         if (import.meta.env.DEV) {
           console.debug(`[refreshBalance] Balance query failed for ${chain}: ${result.reason}`)
         }
-        return
+        return { supported: false, fallbackReason: result.reason }
       }
 
       const balance = result.data
@@ -535,8 +538,10 @@ export const walletActions = {
       }]
 
       await walletActions.updateChainAssets(walletId, chain, tokens)
+      return { supported: true }
     } catch (error) {
       console.error(`[refreshBalance] Failed to refresh balance for ${chain}:`, error)
+      return { supported: false, fallbackReason: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
