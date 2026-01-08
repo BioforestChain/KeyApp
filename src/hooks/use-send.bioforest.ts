@@ -17,11 +17,9 @@ export interface BioforestFeeResult {
   symbol: string
 }
 
-function getBioforestApi(chainConfig: ChainConfig): { apiUrl: string | null; apiPath: string } {
+function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
   const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
-  const apiUrl = biowallet?.endpoint ?? null
-  const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
-  return { apiUrl, apiPath }
+  return biowallet?.endpoint ?? null
 }
 
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
@@ -74,13 +72,13 @@ export async function checkTwoStepSecretRequired(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<{ required: boolean; secondPublicKey?: string }> {
-  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
+  const apiUrl = getBioforestApiUrl(chainConfig)
   if (!apiUrl) {
     return { required: false }
   }
 
   try {
-    const info = await getAddressInfo(apiUrl, apiPath, address)
+    const info = await getAddressInfo(apiUrl, address)
     if (info.secondPublicKey) {
       return { required: true, secondPublicKey: info.secondPublicKey }
     }
@@ -137,16 +135,16 @@ export async function submitBioforestTransfer({
     return { status: 'error', message: '请输入有效金额' }
   }
 
-  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
+  const apiUrl = getBioforestApiUrl(chainConfig)
   if (!apiUrl) {
     return { status: 'error', message: 'API URL 未配置' }
   }
 
   try {
-    console.log('[submitBioforestTransfer] Starting transfer:', { apiUrl, apiPath, fromAddress, toAddress, amount: amount.toRawString() })
+    console.log('[submitBioforestTransfer] Starting transfer:', { apiUrl, fromAddress, toAddress, amount: amount.toRawString() })
     
     // Check if pay password is required but not provided
-    const addressInfo = await getAddressInfo(apiUrl, apiPath, fromAddress)
+    const addressInfo = await getAddressInfo(apiUrl, fromAddress)
     console.log('[submitBioforestTransfer] Address info:', { hasSecondPubKey: !!addressInfo.secondPublicKey })
     
     if (addressInfo.secondPublicKey && !twoStepSecret) {
@@ -170,9 +168,8 @@ export async function submitBioforestTransfer({
     // Create transaction using SDK
     console.log('[submitBioforestTransfer] Creating transaction...')
     const transaction = await createTransferTransaction({
-      rpcUrl: apiUrl,
+      baseUrl: apiUrl,
       chainId: chainConfig.id,
-      apiPath,
       mainSecret: secret,
       paySecret: twoStepSecret,
       from: fromAddress,
@@ -185,7 +182,7 @@ export async function submitBioforestTransfer({
 
     // 广播交易，忽略 "rejected" 错误（API 可能返回 rejected 但交易实际成功）
     console.log('[submitBioforestTransfer] Broadcasting...')
-    await broadcastTransaction(apiUrl, apiPath, transaction).catch((err) => {
+    await broadcastTransaction(apiUrl, transaction).catch((err) => {
       console.warn('[submitBioforestTransfer] Broadcast warning (may still succeed):', err.message)
     })
 
@@ -250,14 +247,14 @@ export async function submitSetTwoStepSecret({
     }
   }
 
-  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
+  const apiUrl = getBioforestApiUrl(chainConfig)
   if (!apiUrl) {
     return { status: 'error', message: 'API URL 未配置' }
   }
 
   try {
     // Check if already has pay password
-    const addressInfo = await getAddressInfo(apiUrl, apiPath, fromAddress)
+    const addressInfo = await getAddressInfo(apiUrl, fromAddress)
     if (addressInfo.secondPublicKey) {
       return { status: 'already_set' }
     }
@@ -265,9 +262,8 @@ export async function submitSetTwoStepSecret({
     // Set pay password
     console.log('[submitSetTwoStepSecret] Creating signature transaction...')
     const result = await setTwoStepSecret({
-      rpcUrl: apiUrl,
+      baseUrl: apiUrl,
       chainId: chainConfig.id,
-      apiPath,
       mainSecret: secret,
       newPaySecret: newTwoStepSecret,
     })
@@ -296,13 +292,13 @@ export async function submitSetTwoStepSecret({
 export async function getSetTwoStepSecretFee(
   chainConfig: ChainConfig,
 ): Promise<{ amount: Amount; symbol: string } | null> {
-  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
+  const apiUrl = getBioforestApiUrl(chainConfig)
   if (!apiUrl) {
     return null
   }
 
   try {
-    const feeRaw = await getSignatureTransactionMinFee(apiUrl, apiPath, chainConfig.id)
+    const feeRaw = await getSignatureTransactionMinFee(apiUrl, chainConfig.id)
     return {
       amount: Amount.fromRaw(feeRaw, chainConfig.decimals, chainConfig.symbol),
       symbol: chainConfig.symbol,
@@ -320,13 +316,13 @@ export async function hasTwoStepSecretSet(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<boolean> {
-  const { apiUrl, apiPath } = getBioforestApi(chainConfig)
+  const apiUrl = getBioforestApiUrl(chainConfig)
   if (!apiUrl) {
     return false
   }
 
   try {
-    const info = await getAddressInfo(apiUrl, apiPath, address)
+    const info = await getAddressInfo(apiUrl, address)
     return !!info.secondPublicKey
   } catch {
     return false

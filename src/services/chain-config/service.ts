@@ -53,13 +53,12 @@ class ChainConfigService {
   }
 
   /**
-   * 获取 BioWallet API 配置 (匹配 biowallet-* 类型)
+   * 获取 BioWallet API endpoint (匹配 biowallet-* 类型)
+   * endpoint 已包含完整路径，如 https://walletapi.bfmeta.info/wallet/bfm
    */
-  getBiowalletApi(chainId: string): { endpoint: string; path: string } | null {
+  getBiowalletApi(chainId: string): string | null {
     const api = this.getApiByPattern(chainId, 'biowallet-*')
-    if (!api) return null
-    const path = (api.config?.path as string) ?? chainId
-    return { endpoint: api.endpoint, path }
+    return api?.endpoint ?? null
   }
 
   /**
