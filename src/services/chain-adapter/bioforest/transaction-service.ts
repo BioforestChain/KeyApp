@@ -28,8 +28,7 @@ import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
 export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
   private config: ChainConfig | null = null
-  private apiUrl: string = ''
-  private apiPath: string = ''
+  private baseUrl: string = ''
 
   constructor(chainId: string) {
     this.chainId = chainId
@@ -45,9 +44,7 @@ export class BioforestTransactionService implements ITransactionService {
         )
       }
       this.config = config
-      const biowalletApi = chainConfigService.getBiowalletApi(config.id)
-      this.apiUrl = biowalletApi?.endpoint ?? ''
-      this.apiPath = biowalletApi?.path ?? config.id
+      this.baseUrl = chainConfigService.getBiowalletApi(config.id) ?? ''
     }
     return this.config
   }
@@ -62,13 +59,13 @@ export class BioforestTransactionService implements ITransactionService {
     })
 
     try {
-      if (!this.apiUrl) {
+      if (!this.baseUrl) {
         throw new Error('No RPC URL configured')
       }
 
       // Use SDK to calculate minimum fee (same as mpay)
       const core = await getBioforestCore(config.id)
-      const lastBlock = await getLastBlock(this.apiUrl, this.apiPath)
+      const lastBlock = await getLastBlock(this.baseUrl)
       
       const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({
         transaction: {
@@ -164,7 +161,7 @@ export class BioforestTransactionService implements ITransactionService {
 
   async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
     this.getConfig() // Ensure config is loaded
-    if (!this.apiUrl) {
+    if (!this.baseUrl) {
       throw new ChainServiceError(
         ChainErrorCodes.NETWORK_ERROR,
         'RPC URL not configured',
@@ -173,7 +170,7 @@ export class BioforestTransactionService implements ITransactionService {
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/wallet/${this.apiPath}/transactions/broadcast`,
+        `${this.baseUrl}/transactions/broadcast`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -211,7 +208,7 @@ export class BioforestTransactionService implements ITransactionService {
 
   async getTransactionStatus(hash: TransactionHash): Promise<TransactionStatus> {
     this.getConfig() // Ensure config is loaded
-    if (!this.apiUrl) {
+    if (!this.baseUrl) {
       return {
         status: 'pending',
         confirmations: 0,
@@ -221,7 +218,7 @@ export class BioforestTransactionService implements ITransactionService {
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`,
+        `${this.baseUrl}/transactions/query`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -266,13 +263,13 @@ export class BioforestTransactionService implements ITransactionService {
 
   async getTransaction(hash: TransactionHash): Promise<Transaction | null> {
     this.getConfig() // Ensure config is loaded
-    if (!this.apiUrl) {
+    if (!this.baseUrl) {
       return null
     }
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`,
+        `${this.baseUrl}/transactions/query`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -335,14 +332,14 @@ export class BioforestTransactionService implements ITransactionService {
 
   async getTransactionHistory(address: Address, limit = 20): Promise<Transaction[]> {
     const config = this.getConfig()
-    if (!this.apiUrl) {
+    if (!this.baseUrl) {
       console.warn('[TransactionService] No baseUrl configured for chain:', config.id)
       return []
     }
 
     try {
       // First get the latest block height
-      const lastBlockUrl = `${this.apiUrl}/wallet/${this.apiPath}/lastblock`
+      const lastBlockUrl = `${this.baseUrl}/lastblock`
       const blockResponse = await fetch(lastBlockUrl)
       if (!blockResponse.ok) {
         console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
@@ -356,7 +353,7 @@ export class BioforestTransactionService implements ITransactionService {
       const maxHeight = lastBlockJson.result.height
 
       // Query transactions using the correct API format
-      const queryUrl = `${this.apiUrl}/wallet/${this.apiPath}/transactions/query`
+      const queryUrl = `${this.baseUrl}/transactions/query`
       const response = await fetch(queryUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

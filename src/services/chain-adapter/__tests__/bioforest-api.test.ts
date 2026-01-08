@@ -29,7 +29,7 @@ vi.mock('@/services/chain-config/service', () => ({
     getRpcUrl: () => '',
     getDecimals: () => 8,
     getSymbol: () => 'BFM',
-    getBiowalletApi: () => ({ endpoint: 'https://walletapi.bfmeta.info', path: 'bfm' }),
+    getBiowalletApi: () => 'https://walletapi.bfmeta.info/wallet/bfm',
   },
 }))
 

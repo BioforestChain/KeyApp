@@ -44,13 +44,14 @@ describe('default-chains.json', () => {
     const versionedFile = VersionedChainConfigFileSchema.parse(parsedJson)
     const chains = versionedFile.chains
 
-    // 7 bioforest + 4 external (ethereum, binance, tron, bitcoin)
-    expect(chains).toHaveLength(11)
+    // 8 bioforest + 4 external (ethereum, binance, tron, bitcoin)
+    expect(chains).toHaveLength(12)
 
     const ids = chains.map(c => c.id).sort()
     expect(ids).toEqual([
       'bfchainv2',
       'bfmeta',
+      'bfmetav2',
       'binance',
       'bitcoin',
       'biwmeta',
@@ -68,7 +69,7 @@ describe('default-chains.json', () => {
     const tronChains = chains.filter(c => c.chainKind === 'tron')
     const bip39Chains = chains.filter(c => c.chainKind === 'bitcoin')
 
-    expect(bioforestChains).toHaveLength(7)
+    expect(bioforestChains).toHaveLength(8)
     expect(evmChains).toHaveLength(2)
     expect(tronChains).toHaveLength(1)
     expect(bip39Chains).toHaveLength(1)

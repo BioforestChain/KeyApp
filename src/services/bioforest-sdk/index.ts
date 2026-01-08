@@ -34,18 +34,33 @@ import type {
 
 import { BnqklWalletBioforestApi } from '@/apis/bnqkl_wallet/bioforest'
 
-/** API client cache by baseUrl+chainPath */
+/** API client cache by baseUrl */
 const apiCache = new Map<string, BnqklWalletBioforestApi>()
 
 /**
- * Get or create a BnqklWalletBioforestApi instance
+ * Parse a full wallet API URL into baseUrl and chainPath components
+ * e.g., "https://walletapi.bf-meta.org/wallet/bfmetav2" => { baseUrl: "https://walletapi.bf-meta.org", chainPath: "bfmetav2" }
  */
-function getApi(baseUrl: string, chainPath: string): BnqklWalletBioforestApi {
-  const key = `${baseUrl}|${chainPath}`
-  let api = apiCache.get(key)
+function parseWalletUrl(fullUrl: string): { baseUrl: string; chainPath: string } {
+  const match = fullUrl.match(/^(https?:\/\/[^/]+)\/wallet\/([^/]+)\/?$/)
+  if (match) {
+    return { baseUrl: match[1], chainPath: match[2] }
+  }
+  // Fallback: assume the URL is just a base URL without path
+  // This shouldn't happen with proper config, but provides safety
+  throw new Error(`Invalid wallet API URL format: ${fullUrl}. Expected format: https://host/wallet/chainPath`)
+}
+
+/**
+ * Get or create a BnqklWalletBioforestApi instance from a full URL
+ * @param fullUrl - Full wallet API URL (e.g., "https://walletapi.bf-meta.org/wallet/bfmetav2")
+ */
+function getApi(fullUrl: string): BnqklWalletBioforestApi {
+  let api = apiCache.get(fullUrl)
   if (!api) {
+    const { baseUrl, chainPath } = parseWalletUrl(fullUrl)
     api = new BnqklWalletBioforestApi({ baseUrl, chainPath })
-    apiCache.set(key, api)
+    apiCache.set(fullUrl, api)
   }
   return api
 }
@@ -65,18 +80,6 @@ let genesisBaseUrl: string | null = null // null means use document.baseURI
 
 /** Import options for JSON modules (needed for Node.js, not for browser/Vite) */
 let genesisImportOptions: object | undefined = undefined
-
-/**
- * Resolve the API chain path for BioForest walletapi endpoints.
- *
- * Notes:
- * - Most BioForest chains use `/{chainId}` (e.g. `/wallet/ccchain/...`).
- * - BFMeta is the exception: production walletapi uses `/wallet/bfm/...`.
- */
-function resolveBioforestApiPath(chainId: string, apiPath?: string): string {
-  if (apiPath) return apiPath
-  return chainId === 'bfmeta' ? 'bfm' : chainId
-}
 
 /**
  * Set base URL for genesis block fetching
@@ -245,14 +248,12 @@ export async function getBioforestCore(chainId: string): Promise<BioforestChainB
 
 /**
  * Get the latest block info for transaction timing
- * @param rpcUrl - API base URL (e.g., "https://walletapi.bfmeta.info")
- * @param apiPath - API provider's chain path (e.g., "bfm" not "bfmeta")
+ * @param baseUrl - Full wallet API URL (e.g., "https://walletapi.bf-meta.org/wallet/bfm")
  */
 export async function getLastBlock(
-  rpcUrl: string,
-  apiPath: string,
+  baseUrl: string,
 ): Promise<{ height: number; timestamp: number }> {
-  const api = getApi(rpcUrl, apiPath)
+  const api = getApi(baseUrl)
   const block = await api.getLastBlock()
   return { height: block.height, timestamp: block.timestamp }
 }
@@ -265,16 +266,14 @@ export interface AddressInfo {
 
 /**
  * Get address info including second public key
- * @param rpcUrl - API base URL
- * @param apiPath - API provider's chain path (e.g., "bfm")
+ * @param baseUrl - Full wallet API URL
  * @param address - Address to query
  */
 export async function getAddressInfo(
-  rpcUrl: string,
-  apiPath: string,
+  baseUrl: string,
   address: string,
 ): Promise<AddressInfo> {
-  const api = getApi(rpcUrl, apiPath)
+  const api = getApi(baseUrl)
   try {
     const result = await api.getAddressInfo(address)
     return result ?? { address }
@@ -285,22 +284,19 @@ export async function getAddressInfo(
 
 /**
  * Get account balance for the main asset type
- * @param rpcUrl - API base URL
+ * @param baseUrl - Full wallet API URL
  * @param chainId - Chain ID for loading genesis/core
  * @param address - Address to query
- * @param apiPath - Optional API path override
  */
 export async function getAccountBalance(
-  rpcUrl: string,
+  baseUrl: string,
   chainId: string,
   address: string,
-  apiPath?: string,
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
   const assetType = await core.getAssetType()
-  const chainPath = resolveBioforestApiPath(chainId, apiPath)
   
-  const api = getApi(rpcUrl, chainPath)
+  const api = getApi(baseUrl)
   try {
     const result = await api.getAddressAssets(address)
     if (!result?.assets) {
@@ -320,10 +316,9 @@ export async function getAccountBalance(
 }
 
 export interface CreateTransferParams {
-  rpcUrl: string
+  /** Full wallet API URL (e.g., "https://walletapi.bf-meta.org/wallet/bfm") */
+  baseUrl: string
   chainId: string
-  /** API path for the provider (e.g., "bfm" for bfmeta) */
-  apiPath?: string
   mainSecret: string
   paySecret?: string | undefined
   from: string
@@ -341,10 +336,9 @@ export async function createTransferTransaction(
   params: CreateTransferParams,
 ): Promise<BFChainCore.TransferAssetTransactionJSON> {
   const core = await getBioforestCore(params.chainId)
-  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
 
   // Get latest block for transaction timing
-  const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
+  const lastBlock = await getLastBlock(params.baseUrl)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -369,7 +363,7 @@ export async function createTransferTransaction(
   // Determine pay password version if set
   let usePaySecretV1 = false
   if (params.paySecret) {
-    const addressInfo = await getAddressInfo(params.rpcUrl, apiPath, params.from)
+    const addressInfo = await getAddressInfo(params.baseUrl, params.from)
     if (addressInfo.secondPublicKey) {
       const version = await verifyTwoStepSecret(
         params.chainId,
@@ -409,13 +403,11 @@ export async function createTransferTransaction(
 
 /**
  * Broadcast a signed transaction
- * @param rpcUrl - API base URL
- * @param apiPath - API provider's chain path
+ * @param baseUrl - Full wallet API URL
  * @param transaction - Signed transaction to broadcast
  */
 export async function broadcastTransaction(
-  rpcUrl: string,
-  apiPath: string,
+  baseUrl: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -423,7 +415,7 @@ export async function broadcastTransaction(
     nonce?: number
   }
 
-  const api = getApi(rpcUrl, apiPath)
+  const api = getApi(baseUrl)
   const result = await api.broadcastTransaction(txWithoutNonce)
 
   if (!result.success) {
@@ -472,15 +464,16 @@ export async function verifyTwoStepSecret(
 
 /**
  * Get minimum fee for setting pay password
+ * @param baseUrl - Full wallet API URL
+ * @param chainId - Chain ID
  */
 export async function getSignatureTransactionMinFee(
-  rpcUrl: string,
-  apiPath: string,
+  baseUrl: string,
   chainId: string,
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
 
-  const lastBlock = await getLastBlock(rpcUrl, apiPath)
+  const lastBlock = await getLastBlock(baseUrl)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -492,10 +485,9 @@ export async function getSignatureTransactionMinFee(
 }
 
 export interface CreateSignatureParams {
-  rpcUrl: string
+  /** Full wallet API URL */
+  baseUrl: string
   chainId: string
-  /** API path for the provider (e.g., "bfm" for bfmeta) */
-  apiPath?: string
   mainSecret: string
   newPaySecret: string
   fee?: string | undefined
@@ -508,9 +500,8 @@ export async function createSignatureTransaction(
   params: CreateSignatureParams,
 ): Promise<BFChainCore.TransactionJSON<BFChainCore.SignatureAssetJSON>> {
   const core = await getBioforestCore(params.chainId)
-  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
 
-  const lastBlock = await getLastBlock(params.rpcUrl, apiPath)
+  const lastBlock = await getLastBlock(params.baseUrl)
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
@@ -536,10 +527,9 @@ export async function createSignatureTransaction(
 }
 
 export interface SetTwoStepSecretParams {
-  rpcUrl: string
+  /** Full wallet API URL */
+  baseUrl: string
   chainId: string
-  /** API path for the provider (e.g., "bfm" for bfmeta) */
-  apiPath?: string
   mainSecret: string
   newPaySecret: string
 }
@@ -550,20 +540,16 @@ export interface SetTwoStepSecretParams {
 export async function setTwoStepSecret(
   params: SetTwoStepSecretParams,
 ): Promise<{ txHash: string; success: boolean }> {
-  const apiPath = resolveBioforestApiPath(params.chainId, params.apiPath)
-
   const transaction = await createSignatureTransaction({
-    rpcUrl: params.rpcUrl,
+    baseUrl: params.baseUrl,
     chainId: params.chainId,
-    apiPath,
     mainSecret: params.mainSecret,
     newPaySecret: params.newPaySecret,
   })
 
   // 广播可能返回 "rejected" 但交易实际成功，忽略异常
   await broadcastTransaction(
-    params.rpcUrl,
-    apiPath,
+    params.baseUrl,
     transaction as unknown as BFChainCore.TransactionJSON,
   ).catch(() => {})
 
