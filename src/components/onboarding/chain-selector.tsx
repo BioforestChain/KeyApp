@@ -352,10 +352,8 @@ export function ChainSelector({
 }
 
 /**
- * 获取默认选择的链（生物链林）
+ * 获取默认选择的链（全选）
  */
 export function getDefaultSelectedChains(chains: ChainConfig[]): string[] {
-  return chains
-    .filter(chain => chain.chainKind === 'bioforest')
-    .map(chain => chain.id);
+  return chains.map(chain => chain.id);
 }
