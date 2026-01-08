@@ -61,8 +61,6 @@ export function useAddressPortfolio(
     return createChainProvider(chainId)
   }, [chainId, chainConfigState.snapshot])
   
-  const decimals = chainConfigService.getDecimals(chainId)
-  
   const tokensEnabled = enabled && !!provider && !!address && (provider.supportsTokenBalances || provider.supportsNativeBalance)
   const transactionsEnabled = enabled && !!provider && !!address && provider.supportsTransactionHistory
 
@@ -131,10 +129,12 @@ export function useAddressPortfolio(
       }
       
       const result = await currentProvider.getTransactionHistory(address, transactionLimit)
+      // 在 queryFn 内获取 decimals，避免闭包问题
+      const currentDecimals = chainConfigService.getDecimals(chainId)
       
       if (isSupported(result)) {
         return {
-          data: result.data.map(tx => convertToTransactionInfo(tx, chainId, decimals)),
+          data: result.data.map(tx => convertToTransactionInfo(tx, chainId, currentDecimals)),
           supported: true,
         }
       }

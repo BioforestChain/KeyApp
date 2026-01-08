@@ -478,9 +478,6 @@ export const walletActions = {
     }))
   },
 
-  /** 刷新钱包余额返回结果 */
-  RefreshBalanceResult: undefined as unknown as { supported: boolean; fallbackReason?: string },
-
   /** 刷新钱包余额（从链上获取） */
   refreshBalance: async (walletId: string, chain: ChainType): Promise<{ supported: boolean; fallbackReason?: string }> => {
     const state = walletStore.state
