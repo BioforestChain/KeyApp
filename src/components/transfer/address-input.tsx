@@ -2,12 +2,13 @@ import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } 
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX, IconPencil } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
 import { isValidAddressForChain } from '@/lib/address-format';
 import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { addressBookStore, addressBookSelectors, type ChainType, type ContactSuggestion, type ContactAddress } from '@/stores';
+import { AddressDisplay } from '@/components/wallet/address-display';
 
 /** 获取地址显示标签（只显示自定义 label，没有则为空） */
 function getAddressDisplayLabel(address: ContactAddress): string {
@@ -49,6 +50,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const { t } = useTranslation('common');
     const errorId = useId();
     const listboxId = useId();
@@ -60,6 +62,17 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
     const currentValue = value || internalValue;
     const isValid = isValidAddress(currentValue);
     const hasError = !!(error || (!isValid && currentValue));
+
+    const isDisplayMode = !focused && currentValue && !hasError;
+
+    // Merge refs
+    useEffect(() => {
+      if (typeof ref === 'function') {
+        ref(inputRef.current);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLInputElement | null>).current = inputRef.current;
+      }
+    }, [ref]);
 
     // 检测当前输入是否精确匹配某个联系人的地址
     const matchedContact = useMemo(() => {
@@ -112,6 +125,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
         setInternalValue(trimmed);
         onChange?.(trimmed);
         onPaste?.();
+        inputRef.current?.focus();
       } catch {
         console.error('Failed to read clipboard');
       }
@@ -121,11 +135,13 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
       setInternalValue(suggestion.matchedAddress.address);
       onChange?.(suggestion.matchedAddress.address);
       setShowDropdown(false);
+      setFocused(false);
     }, [onChange]);
 
     const handleClearContact = useCallback(() => {
       setInternalValue('');
       onChange?.('');
+      inputRef.current?.focus();
     }, [onChange]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -162,6 +178,12 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
               focused ? 'border-primary ring-primary/20 ring-2' : 'border-input',
               hasError && 'border-destructive ring-destructive/20 ring-2',
             )}
+            onClick={() => {
+               if (isDisplayMode) {
+                 setFocused(true);
+                 setTimeout(() => inputRef.current?.focus(), 0);
+               }
+            }}
           >
             {/* 匹配到联系人时显示头像和信息 */}
             {matchedContact ? (
@@ -179,23 +201,51 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                 </div>
                 <button
                   type="button"
-                  onClick={handleClearContact}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClearContact();
+                  }}
                   className="text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0 rounded-lg p-1.5 transition-colors"
                   aria-label={t('a11y.clear')}
                 >
                   <IconX className="size-5" />
                 </button>
               </>
+            ) : isDisplayMode ? (
+              <div 
+                className="group flex h-10 w-full cursor-text items-center justify-between gap-2 overflow-hidden hover:opacity-80 transition-opacity"
+                tabIndex={0}
+                role="button"
+                onFocus={() => {
+                   setFocused(true);
+                   setTimeout(() => inputRef.current?.focus(), 0);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setFocused(true);
+                    setTimeout(() => inputRef.current?.focus(), 0);
+                  }
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <AddressDisplay 
+                    address={currentValue} 
+                    copyable={false} 
+                    className="w-full text-sm"
+                  />
+                </div>
+                <IconPencil className="text-muted-foreground/50 group-hover:text-muted-foreground size-4 shrink-0 transition-colors" />
+              </div>
             ) : (
               <>
                 <input
-                  ref={ref}
+                  ref={inputRef}
                   type="text"
                   data-testid="address-input"
                   value={currentValue}
                   onChange={handleChange}
                   onFocus={() => setFocused(true)}
-                  onBlur={() => setTimeout(() => setFocused(false), 150)}
+                  onBlur={() => setTimeout(() => setFocused(false), 200)}
                   onKeyDown={handleKeyDown}
                   className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
                   placeholder={t('addressPlaceholder')}
@@ -217,7 +267,10 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                     <button
                       type="button"
                       data-testid="scan-address-button"
-                      onClick={onScan}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onScan();
+                      }}
                       className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg p-1.5 transition-colors @xs:p-2"
                       aria-label={t('a11y.scanQrCode')}
                     >
@@ -226,7 +279,10 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                   )}
                   <button
                     type="button"
-                    onClick={handlePaste}
+                    onClick={(e) => {
+                       e.stopPropagation();
+                       handlePaste();
+                    }}
                     className="text-muted-foreground hover:text-foreground hover:bg-muted/50 @xs:text-primary @xs:hover:text-primary/80 rounded-lg p-1.5 transition-colors @xs:px-3 @xs:py-1.5 @xs:text-sm @xs:font-medium @xs:hover:bg-transparent"
                     aria-label={t('a11y.paste')}
                   >
@@ -238,7 +294,8 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
             )}
           </div>
 
-          {/* Contact suggestions dropdown */}
+          {/* Contact suggestions dropdown */
+}
           {showDropdown && (
             <div
               id={listboxId}

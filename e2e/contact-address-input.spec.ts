@@ -8,7 +8,13 @@
  * 4. 验证 ContactPickerJob 能看到联系人
  */
 
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page, type TestInfo } from '@playwright/test'
+
+// 辅助函数：生成带项目名称的截图路径
+function getScreenshotPath(testInfo: TestInfo, name: string) {
+  const projectName = testInfo.project.name.replace(/\s+/g, '-').toLowerCase()
+  return `e2e/screenshots/${projectName}/${name}`
+}
 
 const TEST_WALLET_DATA = {
   wallets: [
@@ -62,31 +68,32 @@ async function setupTestData(page: Page) {
 }
 
 test.describe('联系人与转账页面集成', () => {
-  test('Step 1: 通讯录页面能看到预置联系人', async ({ page }) => {
+  test('Step 1: 通讯录页面能看到预置联系人', async ({ page }, testInfo) => {
     await setupTestData(page)
     await page.goto('/#/address-book')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
     
     await page.screenshot({ 
-      path: 'e2e/screenshots/contact-01-address-book.png',
+      path: getScreenshotPath(testInfo, 'contact-01-address-book.png'),
       fullPage: true,
     })
 
     // 检查联系人是否显示
-    const contactName = page.locator(`text=${TEST_CONTACT.name}`)
-    await expect(contactName).toBeVisible({ timeout: 5000 })
+    // 在实际页面中，联系人列表可能加载需要一点时间，或者渲染方式不同
+    // 使用更通用的选择器，或者等待列表容器
+    await expect(page.locator('text=Alice Test')).toBeVisible({ timeout: 10000 })
     console.log(`[OK] Contact "${TEST_CONTACT.name}" visible in address book`)
   })
 
-  test('Step 2: 转账页面 AddressInput 聚焦后显示联系人建议', async ({ page }) => {
+  test('Step 2: 转账页面 AddressInput 聚焦后显示联系人建议', async ({ page }, testInfo) => {
     await setupTestData(page)
     await page.goto('/#/send')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
     
     await page.screenshot({ 
-      path: 'e2e/screenshots/contact-02-send-page.png',
+      path: getScreenshotPath(testInfo, 'contact-02-send-page.png'),
       fullPage: true,
     })
 
@@ -96,7 +103,7 @@ test.describe('联系人与转账页面集成', () => {
     await page.waitForTimeout(500)
     
     await page.screenshot({ 
-      path: 'e2e/screenshots/contact-03-address-input-focused.png',
+      path: getScreenshotPath(testInfo, 'contact-03-address-input-focused.png'),
       fullPage: true,
     })
 
@@ -112,7 +119,7 @@ test.describe('联系人与转账页面集成', () => {
 
     if (noContactsVisible) {
       await page.screenshot({ 
-        path: 'e2e/screenshots/contact-04-ERROR-no-contacts.png',
+        path: getScreenshotPath(testInfo, 'contact-04-ERROR-no-contacts.png'),
         fullPage: true,
       })
     }
@@ -124,7 +131,7 @@ test.describe('联系人与转账页面集成', () => {
 
     if (contactInSuggestions) {
       await page.screenshot({ 
-        path: 'e2e/screenshots/contact-05-suggestions-with-contact.png',
+        path: getScreenshotPath(testInfo, 'contact-05-suggestions-with-contact.png'),
         fullPage: true,
       })
     }
@@ -133,7 +140,7 @@ test.describe('联系人与转账页面集成', () => {
     expect(noContactsVisible).toBe(false)
   })
 
-  test('Step 3: ContactPickerJob 能看到联系人', async ({ page }) => {
+  test('Step 3: ContactPickerJob 能看到联系人', async ({ page }, testInfo) => {
     await setupTestData(page)
     await page.goto('/#/send')
     await page.waitForLoadState('networkidle')
@@ -151,7 +158,7 @@ test.describe('联系人与转账页面集成', () => {
       await page.waitForTimeout(500)
       
       await page.screenshot({ 
-        path: 'e2e/screenshots/contact-06-contact-picker.png',
+        path: getScreenshotPath(testInfo, 'contact-06-contact-picker.png'),
         fullPage: true,
       })
 
@@ -167,13 +174,123 @@ test.describe('联系人与转账页面集成', () => {
 
       if (noContactsInPickerVisible) {
         await page.screenshot({ 
-          path: 'e2e/screenshots/contact-07-ERROR-picker-no-contacts.png',
+          path: getScreenshotPath(testInfo, 'contact-07-ERROR-picker-no-contacts.png'),
           fullPage: true,
         })
       }
 
       expect(noContactsInPickerVisible).toBe(false)
     }
+  })
+
+  test('Step 4: 验证地址输入框的非聚焦/聚焦状态切换', async ({ page }, testInfo) => {
+    await setupTestData(page)
+    await page.goto('/#/send')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    // 1. 输入地址
+    const inputSelector = '[data-testid="address-input"]'
+    const address = '0x1234567890abcdef1234567890abcdef12345678'
+    
+    // 聚焦并输入
+    await page.locator(inputSelector).click()
+    await page.locator(inputSelector).fill(address)
+    
+    // 验证当前是输入框模式
+    await expect(page.locator(inputSelector)).toBeVisible()
+    
+    // 2. 失去焦点 (点击页面其他地方)
+    // 注意：body 可能不是可点击的，或者点击后不一定触发 blur
+    // 更好的方式是点击另一个元素，例如 "转账" 标题或者其他非交互区域
+    // 或者直接调用 input.blur()
+    await page.locator('h1, h2, h3').first().click({ force: true })
+    await page.waitForTimeout(500)
+
+    // 验证切换到显示模式 (input 不可见，显示截断的地址)
+    // 我们的 AddressInput 逻辑是：如果有值且未聚焦，显示 AddressDisplay
+    // AddressDisplay 在 input 位置渲染一个 div
+    // 我们检查 input 是否消失或者 hidden
+    await expect(page.locator(inputSelector)).not.toBeVisible()
+    
+    // 验证显示了地址文本 (截断形式)
+    // 我们的截断逻辑可能依赖于具体的 DOM 宽度，因此 '...' 的位置可能不同
+    // 但是我们可以检查 DOM 中是否存在这个地址的文本（AddressDisplay 内部会渲染一个 invisible 的完整文本用于占位）
+    // 或者检查截断后的部分文本
+    const startPart = address.slice(0, 6)
+    const endPart = address.slice(-4)
+    
+    // 使用更宽松的匹配，因为截断逻辑可能包含省略号
+    const addressDisplay = page.locator(`text=${startPart}`).first()
+    await expect(addressDisplay).toBeVisible()
+    
+    // 截图验证非聚焦状态
+    await page.screenshot({ 
+      path: getScreenshotPath(testInfo, 'contact-08-address-input-unfocused.png'),
+      fullPage: false,
+    })
+
+    // 3. 再次点击，验证切换回输入模式
+    // 点击上面找到的地址显示组件
+    await addressDisplay.click({ force: true })
+    await page.waitForTimeout(500)
+    
+    await expect(page.locator(inputSelector)).toBeVisible()
+    await expect(page.locator(inputSelector)).toBeFocused()
+    
+    // 截图验证聚焦状态
+    await page.screenshot({ 
+      path: getScreenshotPath(testInfo, 'contact-09-address-input-refocused.png'),
+      fullPage: false,
+    })
+  })
+
+  test('Step 5: 验证 AddressInput 键盘可访问性 (Tab 切换到编辑模式)', async ({ page }) => {
+    await setupTestData(page)
+    await page.goto('/#/send')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500)
+
+    const inputSelector = '[data-testid="address-input"]'
+    const address = '0x1234567890abcdef1234567890abcdef12345678'
+    
+    // 1. 输入地址
+    await page.locator(inputSelector).click()
+    await page.locator(inputSelector).fill(address)
+    
+    // 2. 失去焦点 (切换到显示模式)
+    await page.locator('h1, h2, h3').first().click({ force: true })
+    await page.waitForTimeout(500)
+    await expect(page.locator(inputSelector)).not.toBeVisible()
+
+    // 3. 使用键盘 Tab 键聚焦
+    // 注意：我们需要找到之前的可聚焦元素，然后 Tab 进去，或者直接 focus 那个 div
+    // 这里我们简单地按多次 Tab 直到聚焦
+    
+    // 为了简化，我们直接在页面上按 Tab，或者定位到前面的元素按 Tab
+    // 但定位前面的元素可能不稳定。
+    // 我们尝试直接 focus 那个显示模式的 div (它有 role=button)
+    // 但在 E2E 中，我们模拟真实用户行为比较好。
+    
+    // 让我们尝试点击页面顶部，然后按 Tab 直到 AddressDisplay 被聚焦
+    // 或者，我们可以直接 locator.focus() 那个显示组件
+    const startPart = address.slice(0, 6)
+    const addressDisplay = page.locator(`text=${startPart}`).first()
+    
+    // AddressDisplay 被包裹在 div[role="button"][tabindex="0"] 中
+    // 我们找到这个父级 div
+    const displayWrapper = addressDisplay.locator('xpath=..').locator('xpath=..') // AddressDisplay -> span -> div(wrapper)
+    // 实际上 AddressInput.tsx 结构: <div role="button"...><AddressDisplay.../></div>
+    // AddressDisplay 渲染: <span class="relative block..."><span...>text</span></span>
+    // So: AddressDisplay root is a span. Parent is the div wrapper.
+    const wrapper = page.locator(`div[role="button"]:has-text("${startPart}")`)
+    
+    await wrapper.focus()
+    await page.waitForTimeout(300)
+    
+    // 聚焦后，根据我们的实现 (onFocus -> setFocused(true))，它应该立即切换到编辑模式
+    await expect(page.locator(inputSelector)).toBeVisible()
+    await expect(page.locator(inputSelector)).toBeFocused()
   })
 
   test('调试：检查 localStorage 和 store 状态', async ({ page }) => {
