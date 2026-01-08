@@ -3,6 +3,10 @@
     "shadcn": {
       "command": "npx",
       "args": ["-y", "shadcn@latest", "mcp"]
+    },
+    "workflow": {
+      "command": "pnpm",
+      "args": ["agent:mcp"]
     }
   }
 }

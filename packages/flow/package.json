@@ -1,0 +1,44 @@
+{
+  "name": "@biochain/flow",
+  "version": "0.1.0",
+  "description": "MCP Server & Workflow Framework for KeyApp",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./mcp": "./src/common/mcp/base-mcp.ts",
+    "./workflow": "./src/common/workflow/base-workflow.ts",
+    "./preferences": "./src/common/preferences.ts",
+    "./context": "./src/common/async-context.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "mcp",
+    "workflow",
+    "ai",
+    "framework"
+  ],
+  "license": "MIT"
+}

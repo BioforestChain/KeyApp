@@ -14,6 +14,7 @@ interface FileMeta {
 /**
  * 从文件/目录名解析排序和显示名称
  * 例如: "01-产品篇" -> { order: 1, name: "产品篇" }
+ * 例如: "01-Kernel-Ref" -> { order: 1, name: "Kernel-Ref" }
  * 例如: "Button.md" -> { order: 500, name: "Button" }
  */
 function parseFileName(fileName: string, isDir: boolean): FileMeta {
@@ -30,12 +31,17 @@ function parseFileName(fileName: string, isDir: boolean): FileMeta {
   }
   
   // 特殊处理：附录放最后
-  if (baseName === '附录') {
-    return { order: 999, name: '附录', isDir, collapsed: true }
+  if (baseName === '附录' || baseName === '99-Appendix') {
+    return { order: 998, name: baseName.replace('99-', ''), isDir, collapsed: true }
   }
   
-  // index 文件不单独显示
-  if (baseName === 'index') {
+  // 特殊处理：文档指南
+  if (baseName === '99-Documentation-Guide') {
+    return { order: 999, name: 'Documentation-Guide', isDir, collapsed: true }
+  }
+  
+  // index/README/00-Index/00-Overview 文件不单独显示（由父目录处理）
+  if (baseName === 'index' || baseName === 'README' || baseName === '00-Index' || baseName === '00-Overview') {
     return { order: -1, name: '', isDir: false }
   }
   
@@ -87,12 +93,17 @@ function scanDirectory(
     if (entry.isDirectory()) {
       const subUrlBase = `${urlBase}${entry.name}/`
       const indexPath = path.join(entryPath, 'index.md')
+      const readmePath = path.join(entryPath, 'README.md')
+      const zeroIndexPath = path.join(entryPath, '00-Index.md')
       
-      // 检查是否有 index.md
+      // 检查是否有 index.md, README.md, 或 00-Index.md
       const hasIndex = fs.existsSync(indexPath)
-      if (!hasIndex) continue
+      const hasReadme = fs.existsSync(readmePath)
+      const hasZeroIndex = fs.existsSync(zeroIndexPath)
+      if (!hasIndex && !hasReadme && !hasZeroIndex) continue
       
-      const title = getTitle(indexPath, meta.name)
+      const entryFile = hasIndex ? indexPath : hasReadme ? readmePath : zeroIndexPath
+      const title = getTitle(entryFile, meta.name)
       const children = scanDirectory(entryPath, subUrlBase, depth + 1)
       
       const item: SidebarItem & { _order: number } = {

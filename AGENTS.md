@@ -1,152 +1,113 @@
-# AI 开发元原则
+# AI 开发元原则 (AI-Native Workflow 3.0)
 
-1. 本文档定义 AI 开发的**元意识** — 如何思考、如何工作的方法论。
-2. 项目具体知识（技术栈、API、业务概念）请查阅 `docs/white-book/`。
+1. **Schema-first**: 一切服务与数据结构设计，始于 Schema (Zod) 定义。
+2. **Issue-Driven**: 每一个改动都对应一个 Issue，每一个执行都对应一个 PR。
+3. **Full-Lifecycle**: 从 `investigate` 到 `document`，全流程自动化。
 
-
----
-
-## 元意识（自检与自更新）
-
-AI 必须具备以下自检与自更新能力，并在工作中显式执行：
-
-1. **进度自检**：随时能说明当前在做什么、卡点在哪里、下一步是什么。
-2. **知识自更新**：用户提供新知识或纠正时，先更新 `docs/white-book/`，再继续任务。
-3. **项目自管理**：用 Roadmap/Issue/Worktree/PR 管理工作流，保证可追踪、可回滚。
-4. **最佳实践自维护**：发现可复用规律，及时更新白皮书或最佳实践提示。
+项目具体知识（技术栈、API、业务概念）请查阅 `docs/white-book/`。
 
 ---
 
-## pnpm agent 工具（AI 启动入口）
+## pnpm agent 工具体系
 
-**每次新上下文启动必须执行：**
+我们不再手动执行 git 命令，而是通过 `pnpm agent` 驱动全生命周期。
+
+### 核心工作流
+
+| 阶段 | 命令 | 作用 |
+|------|------|------|
+| **1. 调查** | `pnpm agent investigate analyze --type <type> --topic "..."` | 分析需求，阅读白皮书，生成 RFC |
+| **2. 启动** | `pnpm agent task start --type <type> --title "..."` | 创建 Issue/Branch/Worktree/Draft PR |
+| **3. 同步** | `pnpm agent task sync "..."` | 将本地进度同步到 GitHub Issue |
+| **4. 检查** | `pnpm agent review verify` | 运行 Lint/Typecheck/Test |
+| **5. 提交** | `pnpm agent task submit` | 推送代码，标记 PR 为 Ready |
+| **6. 文档** | `pnpm agent document sync` | 检查变更，推荐白皮书更新 |
+
+### 辅助工具
 
 ```bash
-pnpm agent readme
-```
-
-`pnpm agent readme` 是白皮书导览入口，白皮书具体路径与阅读建议以该命令输出为准。
-最佳实践文件位于 `docs/white-book/00-必读/best-practices.md`，由 `pnpm agent practice` 维护。
-
-常用命令：
-
-```bash
-pnpm agent readme              # 启动入口（索引 + 知识地图 + 最佳实践）
-pnpm agent --help              # 查看帮助
-pnpm agent roadmap current     # 当前 Roadmap
-pnpm agent toc                 # 白皮书目录
-pnpm agent chapter <路径>       # 读取白皮书章节
-pnpm agent practice list       # 最佳实践列表
-pnpm agent practice add "<内容>"
-pnpm agent practice remove <序号|内容>
-pnpm agent practice update <序号> "<内容>"
-pnpm agent claim <issue#>       # 领取任务
-pnpm agent worktree create <name> --branch <branch> --base main
-pnpm agent worktree list
-pnpm agent worktree delete <name>
+pnpm agent readme              # 白皮书导览
+pnpm agent search "keyword"    # 搜索白皮书
+pnpm agent chapter <path>      # 阅读章节
+pnpm agent roadmap current     # 查看当前任务
 ```
 
 ---
 
-## 角色化工作流程（多场景）
+## 角色化工作流程
 
-### 1) 新上下文启动（必做）
+### 1) 需求澄清 (Investigate)
+
+**场景**: 收到模糊需求，或需要进行架构设计。
 
 ```bash
-pnpm agent readme
-pnpm agent roadmap current
-pnpm agent toc
-pnpm agent chapter 00-必读
+# 1. 分析需求 & 查阅白皮书
+pnpm agent investigate analyze --type service --topic "New Auth Service"
+
+# 2. (可选) 搜索更多资料
+pnpm agent search "authentication"
 ```
 
-完成后自检：
-- 当前任务目标是否清晰？
-- 是否需要读更多白皮书章节？
-- 是否需要查看 openspec 规范？
+### 2) 任务开发 (Task Loop)
 
-### 2) 继续未完成任务（接手/续写）
+**场景**: 开始编码实现。
 
 ```bash
-pnpm agent readme
-pnpm agent roadmap current
-pnpm agent worktree list
-# 进入已有 worktree，检查 git status / 进度
+# 1. 启动任务 (自动环境准备)
+pnpm agent task start --type service --title "Implement Auth Service"
+# -> 输出: cd .git-worktree/issue-123
+
+# 2. 进入开发环境
+cd .git-worktree/issue-123
+
+# 3. 开发循环
+# ... coding ...
+pnpm agent task sync "- [x] Schema defined" 
+# ... coding ...
+pnpm agent review verify
 ```
 
-自检：确认已有 worktree 的分支、PR 状态、CI 状态是否需要处理。
+### 3) 完工交付 (Submit)
 
-### 3) 需求澄清 / 方案设计（产品/架构角色）
+**场景**: 代码完成，准备 Review。
 
 ```bash
-pnpm agent readme
-pnpm agent toc
-pnpm agent chapter <需求相关章节>
+# 1. 最后一次检查
+pnpm agent review checklist --type service
+pnpm agent review verify
+
+# 2. 提交 & 触发 CI
+pnpm agent task submit
 ```
 
-- 若涉及新能力/架构变更，先查看 `openspec/AGENTS.md` 并走提案流程。
-- 记录结论到白皮书或 openspec 变更中。
+### 4) 维护者 (Reviewer/Integrator)
 
-### 4) 实现开发（工程师角色）
-
-```bash
-pnpm agent readme
-pnpm agent claim <issue#>
-pnpm agent worktree create issue-<id> --branch feat/issue-<id> --base main
-cd .git-worktree/issue-<id>
-pnpm agent chapter <路径>
-# 开发 + 测试
-pnpm dev
-pnpm test
-pnpm typecheck
-```
+**场景**: Review 代码或合并 PR。
 
 ```bash
-# 提交与 PR
- git add -A
- git commit -m "feat/fix: 描述"
- git push -u origin <branch>
- gh pr create --title "标题" --body "Closes #<issue#>" --base main
-```
+# 1. 检查文档一致性
+pnpm agent document sync
 
-### 5) Bug 修复 / 回归（维护者角色）
-
-```bash
-pnpm agent readme
-pnpm agent roadmap current
-pnpm agent worktree create fix-<id> --branch fix/<id> --base main
-```
-
-- 先复现并记录原因。
-- 必要时更新白皮书，说明修复背景与影响。
-
-### 6) 评审 / 质量保证（Reviewer 角色）
-
-```bash
-pnpm agent readme
-pnpm agent chapter <测试/规范相关章节>
-```
-
-- 关注回归风险、测试覆盖、接口兼容性。
-- 有问题先写明事实，再给出修复建议。
-
-### 7) 合并收尾（集成角色）
-
-```bash
-gh pr checks <pr#> --watch
+# 2. 合并 PR (使用 gh cli)
 gh pr merge <pr#> --squash --delete-branch
-pnpm agent worktree delete <name>
 ```
 
-合并门禁（必须执行）：  
-- **在合并之前必须询问用户**，并明确告知当前工作目录（worktree 路径）。  
-- 用户 review 确认后才允许执行合并。  
+---
+
+## 任务类型 (Type)
+
+- `ui`: 组件库、UI 交互 (自动关联 Storybook 检查)
+- `service`: 业务逻辑、API (自动关联 Unit Test 检查)
+- `page`: 页面路由、导航 (自动关联 Router 配置)
+- `hybrid`: 混合开发 (通用模板)
 
 ---
 
 ## 重要提醒
 
-- 白皮书是唯一权威来源：用户补充/纠正知识，必须先更新 `docs/white-book/`。
-- 不允许在主目录直接开发，所有代码必须在 `.git-worktree/` 中进行。
+- **白皮书是唯一权威**: 开发前必读相关章节 (`investigate` 会自动推荐)。
+- **严禁主目录开发**: 必须使用 `task start` 创建的 Worktree。
+- **Schema-first**: 服务开发必须先定义 `types.ts`。
 
 <!-- OPENSPEC:START -->
 

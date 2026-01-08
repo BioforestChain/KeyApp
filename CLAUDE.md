@@ -1,19 +1,44 @@
 <coding_guidelines>
 
-## ⚠️ 开始开发前
+## ⚠️ 开始开发前 (AI-Native Workflow)
+
+**Schema-first & Issue-Driven Development**
+
+### 1. 需求分析 (Investigate)
+在正式开工前，先分析需求并查阅相关白皮书：
 
 ```bash
-# 1. 获取索引（最佳实践 + 知识地图）
-pnpm agent readme
-
-# 2. 查看当前任务
-pnpm agent roadmap current
-
-# 3. 查阅白皮书必读章节
-pnpm agent chapter 00-必读
+# 生成 RFC 草稿和白皮书推荐
+pnpm agent investigate analyze --type <ui|service|page|hybrid> --topic "需求描述"
 ```
 
-完整工作流和命令速查见 [AGENTS.md](./AGENTS.md)
+### 2. 任务启动 (Task Start)
+**严禁**手动创建 Issue/Branch/Worktree，必须使用自动化工作流：
+
+```bash
+# 自动创建 Issue -> Branch -> Worktree -> Draft PR
+pnpm agent task start --type <type> --title "Task Title"
+```
+
+### 3. 开发循环 (Develop Loop)
+进入生成的 Worktree 目录后：
+
+```bash
+# 同步进度到 Issue
+pnpm agent task sync "- [x] Step 1 done"
+
+# 质量检查 (Pre-commit)
+pnpm agent review verify
+```
+
+### 4. 完工提交 (Submit)
+
+```bash
+# 推送代码并标记 PR 为 Ready
+pnpm agent task submit
+```
+
+完整指南见 [AGENTS.md](./AGENTS.md)
 
 ---
 
@@ -45,42 +70,22 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 | 文档 | 路径 | 用途 |
 |-----|------|------|
-| **白皮书** | `docs/white-book/` | 完整技术文档 |
-| **mpay 原始代码** | `/Users/kzf/Dev/bioforestChain/legacy-apps/apps/mpay/` | 参考实现 |
-
-**优先级**: 白皮书 > mpay 原始代码
+| **白皮书** | `docs/white-book/` | 唯一权威技术文档 (Schema-first) |
+| **Workflow** | `scripts/agent-flow/` | 自动化工作流源码 |
 
 ## 技术栈
 
 - React 19 + Vite 7
 - Stackflow (导航) + TanStack (Query + Store + Form)
 - shadcn/ui + Tailwind CSS 4.x
-- Zod 4.x + i18next
+- Zod 4.x (Schema-first) + i18next
 - Storybook 10.x + Vitest 4.x
 
 ## 开发原则
 
-- **参考而非复制** mpay 代码
-- **质疑原始实现**（可能有 Bug 或过时模式）
-- **现代化改进**（TypeScript 类型安全、函数组件）
-
-## Git Worktree 工作流
-
-所有编码工作必须在 `.git-worktree/` 目录下进行：
-
-```bash
-pnpm agent worktree create issue-28 --branch feat/issue-28
-cd .git-worktree/issue-28
-# 开发...
-gh pr create --body "Closes #28"
-```
-
-## 注意事项
-
-- 所有组件必须有 Storybook story
-- 所有业务逻辑必须有单元测试
-- 使用 TypeScript 严格模式
-- PR 描述使用 `Closes #issue编号` 自动关联任务
-- 合并前必须告知当前 worktree 路径并征求用户确认
+1. **Schema-first**: 先定义 `types.ts` 和 Zod Schema，再写实现。
+2. **Issue-Driven**: 没有 Issue 就没有代码。
+3. **Worktree-Only**: 所有开发必须在 `.git-worktree/` 下进行。
+4. **Test-Driven**: 业务逻辑必须有测试，UI 必须有 Storybook。
 
 </coding_guidelines>
