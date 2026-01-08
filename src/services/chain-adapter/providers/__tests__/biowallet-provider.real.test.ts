@@ -29,8 +29,7 @@ function readFixture<T>(name: string): T {
 describe('BiowalletProvider (real fixtures)', () => {
   const entry: ParsedApiEntry = {
     type: 'biowallet-v1',
-    endpoint: 'https://walletapi.bfmeta.info',
-    config: { path: 'bfm' },
+    endpoint: 'https://walletapi.bfmeta.info/wallet/bfm',
   }
 
   beforeEach(() => {
@@ -43,10 +42,10 @@ describe('BiowalletProvider (real fixtures)', () => {
     const query = readFixture<any>('bfmeta-transactions-query.json')
 
     mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/wallet/bfm/lastblock')) {
+      if (url.endsWith('/lastblock')) {
         return { ok: true, json: async () => lastblock }
       }
-      if (url.endsWith('/wallet/bfm/transactions/query')) {
+      if (url.endsWith('/transactions/query')) {
         expect(init?.method).toBe('POST')
         return { ok: true, json: async () => query }
       }

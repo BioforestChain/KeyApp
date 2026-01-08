@@ -72,7 +72,7 @@ describe('ChainProvider 集成测试', () => {
       prefix: 'b',
       enabled: true,
       source: 'default',
-      apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bfmeta.info', config: { path: 'bfmeta' } }],
+      apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bfmeta.info/wallet/bfm' }],
     }
     mockGetChainById.mockReturnValue(mockBfmetaConfig)
 
@@ -84,6 +84,38 @@ describe('ChainProvider 集成测试', () => {
     // 检查是否有 biowallet provider
     const biowalletProvider = providers.find(p => p.type.includes('biowallet'))
     expect(biowalletProvider).toBeDefined()
+    
+    // 检查能力
+    expect(provider.supportsTransactionHistory).toBe(true)
+    expect(provider.supportsNativeBalance).toBe(true)
+  })
+
+  it('为 BFMeta V2 链创建正确的 providers', () => {
+    const mockBfmetav2Config: ChainConfig = {
+      id: 'bfmetav2',
+      version: '1.0',
+      chainKind: 'bioforest',
+      name: 'BFMeta V2',
+      symbol: 'BFM',
+      decimals: 8,
+      prefix: 'b',
+      enabled: true,
+      source: 'default',
+      apis: [{ type: 'biowallet-v1', endpoint: 'https://walletapi.bf-meta.org/wallet/bfmetav2' }],
+    }
+    mockGetChainById.mockReturnValue(mockBfmetav2Config)
+
+    const provider = createChainProvider('bfmetav2')
+    
+    const providers = provider.getProviders()
+    expect(providers.length).toBeGreaterThanOrEqual(1)
+    
+    // 检查是否有 biowallet provider
+    const biowalletProvider = providers.find(p => p.type.includes('biowallet'))
+    expect(biowalletProvider).toBeDefined()
+    
+    // biowallet provider 应该直接使用 endpoint，无需 path 拼接
+    expect(biowalletProvider?.endpoint).toBe('https://walletapi.bf-meta.org/wallet/bfmetav2')
     
     // 检查能力
     expect(provider.supportsTransactionHistory).toBe(true)
