@@ -23,7 +23,8 @@ import {
   printMcpHelp,
   z,
 } from "../common/mcp/base-mcp.ts";
-import { withRuntimeMode } from "../common/async-context.ts";
+import { withRuntimeMode, WorkflowNameContext } from "../common/async-context.ts";
+import { resolveDescription } from "../common/workflow/base-workflow.ts";
 
 const MCP_NAME = "meta";
 
@@ -145,7 +146,13 @@ async function getWorkflowInfo(
       else if (hasAi) mode = "ai";
       else if (hasSubflows || hasDirectCommands) mode = "programmatic";
 
-      return { description: workflow.meta.description, mode };
+      // Resolve description with workflow name context
+      const description = await WorkflowNameContext.run(
+        workflow.meta.name,
+        () => resolveDescription(workflow.meta.description)
+      );
+
+      return { description, mode };
     }
   } catch {
     // Ignore import errors

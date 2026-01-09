@@ -44,6 +44,7 @@ import {
   createRouter,
   defineWorkflow,
 } from "../../../packages/flow/src/common/workflow/base-workflow.ts";
+import { str } from "../../../packages/flow/src/common/async-context.ts";
 import {
   createIssue,
   createPr,
@@ -125,7 +126,12 @@ ${desc}
  */
 const startWorkflow = defineWorkflow({
   name: "start",
-  description: "启动新任务 (Issue + Worktree + Draft PR，不触发 CI)",
+  description: str`启动新任务 (Issue + Worktree + Draft PR，不触发 CI)
+
+## When to Use
+- 启动服务开发 → ${str.scenarios(["--type", "service", "--title", "Feature"])}
+- 列出可用标签 → ${str.scenarios(["--list-labels"])}
+- 自动创建标签 → ${str.scenarios(["--type", "ui", "--create-labels"])}`,
   args: {
     title: { type: "string", description: "任务标题", required: false },
     type: {

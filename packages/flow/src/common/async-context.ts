@@ -123,8 +123,20 @@ export function isCliMode(): boolean {
 
 /**
  * Run function within specified runtime mode
+ * Supports both sync and async functions
  */
 export function withRuntimeMode<R>(mode: RuntimeMode, fn: () => R): R {
+  return RuntimeContext.run({ mode }, fn);
+}
+
+/**
+ * Run async function within specified runtime mode
+ * Use this for async functions to ensure context is preserved
+ */
+export async function withRuntimeModeAsync<R>(
+  mode: RuntimeMode,
+  fn: () => Promise<R>
+): Promise<R> {
   return RuntimeContext.run({ mode }, fn);
 }
 
