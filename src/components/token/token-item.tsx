@@ -234,7 +234,7 @@ export function TokenItem({
           <DropdownMenuTrigger
             onClick={(e) => e.stopPropagation()}
             aria-label={t('common:a11y.more', '更多操作')}
-            className="flex size-11 items-center justify-center rounded-lg hover:bg-muted/80 active:bg-muted transition-colors"
+            className="flex size-11 items-center justify-center rounded-lg hover:bg-muted/80 active:bg-muted transition-colors [&_svg]:pointer-events-auto"
           >
             <IconDotsVertical className="size-5 text-muted-foreground" />
           </DropdownMenuTrigger>
