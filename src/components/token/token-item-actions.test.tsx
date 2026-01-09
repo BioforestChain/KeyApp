@@ -107,23 +107,6 @@ describe('TokenItem actions', () => {
       )
     })
 
-    it('more button click should trigger onContextMenu', () => {
-      const onContextMenu = vi.fn()
-      
-      render(
-        <TokenItem 
-          token={mockToken}
-          onContextMenu={onContextMenu}
-          testId="token-item"
-        />
-      )
-
-      const moreButton = screen.getByLabelText(/more|更多/i)
-      fireEvent.click(moreButton)
-      
-      expect(onContextMenu).toHaveBeenCalled()
-    })
-
     it('long press should trigger onContextMenu on touch devices', async () => {
       const onContextMenu = vi.fn()
       

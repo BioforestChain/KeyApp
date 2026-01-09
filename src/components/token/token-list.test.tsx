@@ -52,7 +52,8 @@ describe('TokenList', () => {
     const handleClick = vi.fn()
     render(<TokenList tokens={mockTokens} onTokenClick={handleClick} />)
     
-    await userEvent.click(screen.getByText('USDT').closest('[role="button"]')!)
+    // Item component uses data-slot="item" instead of role="button"
+    await userEvent.click(screen.getByText('USDT').closest('[data-slot="item"]')!)
     expect(handleClick).toHaveBeenCalledWith(mockTokens[0])
   })
 
