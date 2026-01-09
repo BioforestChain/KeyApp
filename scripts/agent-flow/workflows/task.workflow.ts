@@ -185,11 +185,11 @@ const startWorkflow = defineWorkflow({
       console.log(`   ✅ Worktree Created: ${path}`);
       console.log(`   ✅ Branch Created: ${branch}`);
 
-      // 6. 初始化提交 & 推送
+      // 6. 初始化提交 & 推送 (skip CI for draft)
       console.log("\n3️⃣  初始化 Git 环境...");
       await pushWorktree({
         path,
-        message: `chore: start issue #${issueId}`,
+        message: `chore: start issue #${issueId} [skip ci]`,
       });
 
       // 7. 创建 Draft PR
