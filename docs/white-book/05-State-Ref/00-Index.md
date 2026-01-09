@@ -27,7 +27,7 @@
 | [addressBookStore](./02-Stores/04-AddressBook-Store.md) | `address-book.ts` | ~150 | 地址簿 |
 | [notificationStore](./02-Stores/05-Notification-Store.md) | `notification.ts` | ~80 | 通知 |
 | [ecosystemStore](./02-Stores/06-Ecosystem-Store.md) | `ecosystem.ts` | ~100 | 小程序生态 |
-| [securityPasswordStore](./02-Stores/07-Security-Store.md) | `security-password.ts` | ~60 | 安全密码 |
+| [securityPasswordStore](./02-Stores/07-SecurityPassword-Store.md) | `security-password.ts` | ~60 | 安全密码 |
 
 ---
 
@@ -36,13 +36,13 @@
 | Query | 文件 | 职责 |
 |-------|------|------|
 | [useBalanceQuery](./03-Queries/01-Balance-Query.md) | `use-balance-query.ts` | 余额查询 |
-| [usePriceQuery](./03-Queries/02-Price-Query.md) | `use-price-query.ts` | 价格查询 |
-| [useExchangeRateQuery](./03-Queries/03-ExchangeRate-Query.md) | `use-exchange-rate-query.ts` | 汇率查询 |
-| [useTransactionHistoryQuery](./03-Queries/04-TransactionHistory-Query.md) | `use-transaction-history-query.ts` | 交易历史 |
-| [useAddressTransactionsQuery](./03-Queries/05-AddressTransactions-Query.md) | `use-address-transactions-query.ts` | 地址交易 |
-| [useAddressBalanceQuery](./03-Queries/06-AddressBalance-Query.md) | `use-address-balance-query.ts` | 地址余额 |
-| [useChainConfigQuery](./03-Queries/07-ChainConfig-Query.md) | `use-chain-config-query.ts` | 链配置 |
-| [useStakingQuery](./03-Queries/08-Staking-Query.md) | `use-staking-query.ts` | 质押信息 |
+| [useTransactionHistoryQuery](./03-Queries/02-TransactionHistory-Query.md) | `use-transaction-history-query.ts` | 交易历史 |
+| [usePriceQuery](./03-Queries/03-Price-Query.md) | `use-price-query.ts` | 价格查询 |
+| [useExchangeRateQuery](./03-Queries/04-ExchangeRate-Query.md) | `use-exchange-rate-query.ts` | 汇率查询 |
+| [useStakingQuery](./03-Queries/05-Staking-Query.md) | `use-staking-query.ts` | 质押信息 |
+| [useAddressTransactionsQuery](./03-Queries/06-AddressTransactions-Query.md) | `use-address-transactions-query.ts` | 地址交易 |
+| [useAddressBalanceQuery](./03-Queries/07-AddressBalance-Query.md) | `use-address-balance-query.ts` | 地址余额 |
+| [useChainConfigQuery](./03-Queries/08-ChainConfig-Query.md) | `use-chain-config-query.ts` | 链配置 |
 | [useSecurityPasswordQuery](./03-Queries/09-SecurityPassword-Query.md) | `use-security-password-query.ts` | 安全密码 |
 
 ---

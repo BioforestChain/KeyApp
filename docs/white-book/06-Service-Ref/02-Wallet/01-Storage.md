@@ -314,4 +314,4 @@ const privateKey = await walletStorageService.decryptPrivateKey(chainAddress, en
 
 - [Key Derivation](../../10-Wallet-Guide/01-Account-System/01-Key-Derivation.md)
 - [Wallet Store](../../05-State-Ref/02-Stores/01-Wallet-Store.md)
-- [Crypto Utils](../../01-Kernel-Ref/03-Crypto.md)
+- [Kernel Overview](../../01-Kernel-Ref/00-Overview.md)

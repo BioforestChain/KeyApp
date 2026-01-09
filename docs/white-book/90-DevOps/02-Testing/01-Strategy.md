@@ -230,6 +230,6 @@ jobs:
 
 ## 相关文档
 
-- [构建配置](../01-Build/01-Vite-Config.md)
-- [CI 工作流](../03-Release/01-CI-Workflows.md)
+- [构建配置](../01-Build/README.md)
+- [部署机制](../03-Release/02-Deployment.md)
 - [安全审计](../../08-Security-Ref/04-Security-Audit.md)

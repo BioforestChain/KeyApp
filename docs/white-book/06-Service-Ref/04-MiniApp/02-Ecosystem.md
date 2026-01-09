@@ -350,5 +350,5 @@ class AppRegistry {
 ## 相关文档
 
 - [MiniApp Runtime](./01-Runtime.md)
-- [Authorize Service](./03-Authorize.md)
+- [Authorize Service](../08-Authorize/01-PlaocAdapter.md)
 - [Ecosystem Components](../../03-UI-Ref/04-Domain/04-Ecosystem.md)

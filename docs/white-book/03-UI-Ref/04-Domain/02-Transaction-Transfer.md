@@ -212,5 +212,5 @@ idle → validating → previewing → confirming → broadcasting → success
 ## Related Documentation
 
 - [Transaction Lifecycle](../../10-Wallet-Guide/03-Transaction-Flow/01-Lifecycle.md)
-- [Chain Adapter](../../02-Driver-Ref/01-Overview.md)
+- [Chain Adapter](../../02-Driver-Ref/00-Overview.md)
 - [Biometric Service](../../04-Platform-Ref/02-Biometric.md)

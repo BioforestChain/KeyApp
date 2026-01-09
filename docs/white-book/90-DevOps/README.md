@@ -6,11 +6,9 @@
 
 ## 📖 目录
 
-*   [00-Overview.md](./00-Overview.md) - 工程化概览
 *   **01-Build (构建)**
-    *   [01-Vite-Config.md](./01-Build/01-Vite-Config.md) - 构建配置
+    *   [README.md](./01-Build/README.md) - 构建配置
 *   **02-Testing (测试)**
     *   [01-Strategy.md](./02-Testing/01-Strategy.md) - 测试策略
 *   **03-Release (发布)**
-    *   [01-CI-Workflows.md](./03-Release/01-CI-Workflows.md) - CI 工作流
     *   [02-Deployment.md](./03-Release/02-Deployment.md) - 部署机制

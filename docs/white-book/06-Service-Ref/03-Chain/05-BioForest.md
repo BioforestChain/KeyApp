@@ -304,5 +304,5 @@ if (error.code === 'PAYSECRET') {
 ## 相关文档
 
 - [Chain Adapter 架构](./01-Adapter.md)
-- [BioForest SDK](../07-Infra/01-SDK.md)
-- [BioForest API](../07-Infra/02-API.md)
+- [BioForest SDK](../09-BioForest/01-SDK.md)
+- [BioForest API](../09-BioForest/02-API.md)

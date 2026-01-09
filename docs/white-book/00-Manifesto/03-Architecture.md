@@ -53,24 +53,24 @@ Mapping source directories to documentation books.
 
 | Architecture Layer | Code Path | Documentation Book |
 | :--- | :--- | :--- |
-| **Kernel** | `src/services/miniapp-runtime` | [`01-Kernel-Ref`](../01-Kernel-Ref) |
-| **Drivers** | `src/services/chain-adapter` | [`02-Driver-Ref`](../02-Driver-Ref) |
-| **UI System** | `src/components/ui`, `src/styles` | [`03-UI-Ref`](../03-UI-Ref) |
-| **Platform** | `src/services/{biometric,camera,...}` | [`04-Platform-Ref`](../04-Platform-Ref) |
-| **State** | `src/stores`, `src/queries` | [`05-State-Ref`](../05-State-Ref) |
-| **Services** | `src/services/{chain-config,ecosystem,...}` | [`06-Service-Ref`](../06-Service-Ref) |
-| **Wallet Logic** | `src/services/wallet`, `src/services/transaction` | [`10-Wallet-Guide`](../10-Wallet-Guide) |
-| **DApps** | `src/components/ecosystem` | [`11-DApp-Guide`](../11-DApp-Guide) |
-| **Shell** | `src/stackflow` | [`12-Shell-Guide`](../12-Shell-Guide) |
-| **DevOps** | `vite.config.ts`, `.github` | [`90-DevOps`](../90-DevOps) |
+| **Kernel** | `src/services/miniapp-runtime` | [`01-Kernel-Ref`](../01-Kernel-Ref/README.md) |
+| **Drivers** | `src/services/chain-adapter` | [`02-Driver-Ref`](../02-Driver-Ref/README.md) |
+| **UI System** | `src/components/ui`, `src/styles` | [`03-UI-Ref`](../03-UI-Ref/README.md) |
+| **Platform** | `src/services/{biometric,camera,...}` | [`04-Platform-Ref`](../04-Platform-Ref/README.md) |
+| **State** | `src/stores`, `src/queries` | [`05-State-Ref`](../05-State-Ref/README.md) |
+| **Services** | `src/services/{chain-config,ecosystem,...}` | [`06-Service-Ref`](../06-Service-Ref/README.md) |
+| **Wallet Logic** | `src/services/wallet`, `src/services/transaction` | [`10-Wallet-Guide`](../10-Wallet-Guide/README.md) |
+| **DApps** | `src/components/ecosystem` | [`11-DApp-Guide`](../11-DApp-Guide/README.md) |
+| **Shell** | `src/stackflow` | [`12-Shell-Guide`](../12-Shell-Guide/README.md) |
+| **DevOps** | `vite.config.ts`, `.github` | [`90-DevOps`](../90-DevOps/README.md) |
 
 ### 2. By User Flow (Logical View)
 Tracing a feature across multiple layers.
 
 *   **Transaction Flow**: 
-    *   Lifecycle: [`10-Wallet-Guide/03-Transaction-Flow`](../10-Wallet-Guide/03-Transaction-Flow)
+    *   Lifecycle: [`10-Wallet-Guide/03-Transaction-Flow`](../10-Wallet-Guide/03-Transaction-Flow/README.md)
     *   State: [`05-State-Ref/02-Stores/01-Wallet-Store`](../05-State-Ref/02-Stores/01-Wallet-Store.md)
-    *   Driver: [`02-Driver-Ref`](../02-Driver-Ref)
+    *   Driver: [`02-Driver-Ref`](../02-Driver-Ref/README.md)
 *   **Balance Refresh**:
     *   Query: [`05-State-Ref/03-Queries/01-Balance-Query`](../05-State-Ref/03-Queries/01-Balance-Query.md)
     *   Store: [`05-State-Ref/02-Stores/01-Wallet-Store`](../05-State-Ref/02-Stores/01-Wallet-Store.md)

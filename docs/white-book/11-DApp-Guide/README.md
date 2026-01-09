@@ -8,7 +8,6 @@
 
 *   [00-Overview.md](./00-Overview.md) - 生态架构
 *   **01-Runtime-Env (运行环境)**
-    *   [01-Browser-Container.md](./01-Runtime-Env/01-Browser-Container.md) - 容器特性
     *   [02-Miniapp-Manifest.md](./01-Runtime-Env/02-Miniapp-Manifest.md) - 清单文件规范
 *   **02-Connectivity (连接性)**
-    *   [01-Injected-Provider.md](./02-Connectivity/01-Injected-Provider.md) - 注入对象
+    *   [README.md](./02-Connectivity/README.md) - 连接性概述
