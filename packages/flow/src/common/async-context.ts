@@ -86,6 +86,107 @@ export const PreferencesContext = new AsyncContext<Preferences>(
 );
 
 // =============================================================================
+// Runtime Context (MCP vs CLI)
+// =============================================================================
+
+export type RuntimeMode = "mcp" | "cli";
+
+export interface RuntimeInfo {
+  mode: RuntimeMode;
+}
+
+/**
+ * Async context for runtime mode
+ */
+export const RuntimeContext = new AsyncContext<RuntimeInfo>("RuntimeContext");
+
+/**
+ * Get current runtime mode, defaults to "cli"
+ */
+export function getRuntimeMode(): RuntimeMode {
+  return RuntimeContext.tryGet()?.mode ?? "cli";
+}
+
+/**
+ * Check if running in MCP mode
+ */
+export function isMcpMode(): boolean {
+  return getRuntimeMode() === "mcp";
+}
+
+/**
+ * Check if running in CLI mode
+ */
+export function isCliMode(): boolean {
+  return getRuntimeMode() === "cli";
+}
+
+/**
+ * Run function within specified runtime mode
+ */
+export function withRuntimeMode<R>(mode: RuntimeMode, fn: () => R): R {
+  return RuntimeContext.run({ mode }, fn);
+}
+
+// =============================================================================
+// Scenario Formatting (mode-aware)
+// =============================================================================
+
+export interface Scenario {
+  when: string;
+  args?: string[];
+}
+
+/**
+ * Format scenarios based on current runtime mode
+ * - MCP: `when → use("workflow", ["arg1", "arg2"])`
+ * - CLI: `when:\n  workflow arg1 arg2`
+ */
+export function formatScenarios(
+  workflowName: string,
+  scenarios: Scenario[]
+): string {
+  const mode = getRuntimeMode();
+  
+  if (mode === "mcp") {
+    return scenarios
+      .map((s) => `- ${s.when} → use("${workflowName}", ${JSON.stringify(s.args ?? [])})`)
+      .join("\n");
+  } else {
+    return scenarios
+      .map((s) => `  ${s.when}:\n    ${workflowName} ${s.args?.join(" ") ?? ""}`)
+      .join("\n");
+  }
+}
+
+/**
+ * Format a key-value data section
+ * - MCP: compact inline format
+ * - CLI: indented list format
+ */
+export function formatDataSection(
+  title: string,
+  items: Array<{ name: string; description?: string; color?: string }>
+): string {
+  const mode = getRuntimeMode();
+  
+  if (mode === "mcp") {
+    // Compact format for MCP
+    return `${title}: ${items.map((i) => i.name).join(", ")}`;
+  } else {
+    // Detailed format for CLI
+    const lines = [`${title}:`];
+    for (const item of items) {
+      const parts = [item.name];
+      if (item.color) parts.push(`#${item.color}`);
+      if (item.description) parts.push(`- ${item.description}`);
+      lines.push(`  ${parts.join(" ")}`);
+    }
+    return lines.join("\n");
+  }
+}
+
+// =============================================================================
 // Helpers
 // =============================================================================
 

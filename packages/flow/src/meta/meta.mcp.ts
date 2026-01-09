@@ -23,6 +23,7 @@ import {
   printMcpHelp,
   z,
 } from "../common/mcp/base-mcp.ts";
+import { withRuntimeMode } from "../common/async-context.ts";
 
 const MCP_NAME = "meta";
 
@@ -168,26 +169,28 @@ async function buildToolDescription(
   directories: string[],
   filter?: string[]
 ): Promise<string> {
-  let workflows = await scanWorkflows(directories);
+  // Run in MCP mode to get MCP-formatted descriptions
+  return withRuntimeMode("mcp", async () => {
+    let workflows = await scanWorkflows(directories);
 
-  if (filter && filter.length > 0) {
-    workflows = workflows.filter((w) => filter.includes(w.name));
-  }
+    if (filter && filter.length > 0) {
+      workflows = workflows.filter((w) => filter.includes(w.name));
+    }
 
-  const workflowList = workflows
-    .map((w) => {
-      const tags: string[] = [];
-      if (w.mode) tags.push(w.mode);
-      if (w.isUserOverride) tags.push("user");
-      const tagStr = tags.length > 0 ? ` [${tags.join(", ")}]` : "";
-      return `- ${w.name}: ${w.description}${tagStr}`;
-    })
-    .join("\n");
+    const workflowList = workflows
+      .map((w) => {
+        const tags: string[] = [];
+        if (w.mode) tags.push(w.mode);
+        if (w.isUserOverride) tags.push("user");
+        const tagStr = tags.length > 0 ? ` [${tags.join(", ")}]` : "";
+        return `- ${w.name}: ${w.description}${tagStr}`;
+      })
+      .join("\n");
 
-  // 动态生成 examples
-  const examples = workflows.slice(0, 3).map((w) => `  use("${w.name}", ["--help"])`).join("\n");
+    // 动态生成 examples
+    const examples = workflows.slice(0, 3).map((w) => `  use("${w.name}", ["--help"])`).join("\n");
 
-  return `Execute a workflow by name with arguments.
+    return `Execute a workflow by name with arguments.
 
 ## Usage
 - Use \`--help\` to get detailed usage for any workflow
@@ -198,6 +201,7 @@ ${workflowList || "(none)"}
 
 ## Examples
 ${examples || '  use("<name>", ["--help"])'}`;
+  });
 }
 
 // =============================================================================
@@ -295,8 +299,8 @@ async function executeWorkflow(
       };
     }
 
-    // Execute with args
-    await workflow.run(args);
+    // Execute with args in MCP mode
+    await withRuntimeMode("mcp", () => workflow.run(args));
 
     return {
       success: true,
