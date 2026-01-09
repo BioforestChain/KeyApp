@@ -22,6 +22,7 @@ import {
   createWorktree,
   pushWorktree,
   updateIssue,
+  getLabels,
 } from "../mcps/git-workflow.mcp.ts";
 import { getRelatedChapters } from "../mcps/whitebook.mcp.ts";
 
@@ -98,15 +99,44 @@ const startWorkflow = defineWorkflow({
   name: "start",
   description: "启动新任务 (Issue -> Branch -> Worktree -> Draft PR)",
   args: {
-    title: { type: "string", description: "任务标题", required: true },
+    title: { type: "string", description: "任务标题", required: false },
     type: {
       type: "string",
       description: "任务类型 (ui|service|page|hybrid)",
       default: "hybrid",
     },
     description: { type: "string", description: "任务描述", required: false },
+    "create-labels": {
+      type: "boolean",
+      description: "自动创建不存在的标签",
+      default: false,
+    },
+    "list-labels": {
+      type: "boolean",
+      description: "列出所有可用标签",
+      default: false,
+    },
   },
   handler: async (args) => {
+    // Handle --list-labels flag
+    if (args["list-labels"]) {
+      const { labels } = await getLabels({ refresh: true });
+      console.log("📋 可用标签列表:\n");
+      const grouped = new Map<string, typeof labels>();
+      for (const label of labels) {
+        const prefix = label.name.includes("/") ? label.name.split("/")[0] : "other";
+        if (!grouped.has(prefix)) grouped.set(prefix, []);
+        grouped.get(prefix)!.push(label);
+      }
+      for (const [prefix, items] of grouped) {
+        console.log(`  [${prefix}]`);
+        for (const item of items) {
+          console.log(`    - ${item.name} (#${item.color})${item.description ? ` - ${item.description}` : ""}`);
+        }
+      }
+      return;
+    }
+
     const title = args.title || args._.join(" ");
     if (!title) {
       console.error("❌ 错误: 请提供任务标题");
@@ -114,6 +144,7 @@ const startWorkflow = defineWorkflow({
     }
     const type = (args.type || "hybrid") as keyof typeof TEMPLATES;
     const rawDesc = args.description || "Start development...";
+    const createLabels = args["create-labels"] as boolean;
     
     // 1. 组装 Description
     const template = TEMPLATES[type] || TEMPLATES.hybrid;
@@ -125,6 +156,7 @@ const startWorkflow = defineWorkflow({
     if (type === "service") labels.push("area/core");
 
     console.log(`🚀 启动任务: ${title} [${type}]\n`);
+    console.log(`🏷️  标签: ${labels.join(", ")}${createLabels ? " (自动创建)" : ""}\n`);
 
     // 3. 上下文注入
     console.log("📚 推荐阅读白皮书章节:");
@@ -138,6 +170,7 @@ const startWorkflow = defineWorkflow({
       title,
       body: description,
       labels,
+      createLabels,
     });
     console.log(`   ✅ Issue #${issueId} Created: ${issueUrl}`);
 
@@ -168,6 +201,7 @@ const startWorkflow = defineWorkflow({
         base: "main",
         draft: true,
         labels,
+        createLabels,
       }); 
       console.log(`   ✅ Draft PR Created: ${prUrl}`);
 
@@ -280,6 +314,8 @@ export const workflow = createRouter({
   examples: [
     ['task start --type ui --title "Button Component"', "启动 UI 任务"],
     ['task start --type service --title "Auth Service"', "启动服务任务"],
+    ['task start --type service --title "New Feature" --create-labels', "启动任务并自动创建缺失标签"],
+    ['task start --list-labels', "列出所有可用标签"],
     ['task sync "- [x] Step 1"', "同步进度"],
     ["task submit", "提交任务"],
   ],
