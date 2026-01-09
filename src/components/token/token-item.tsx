@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { IconDotsVertical } from '@tabler/icons-react';
 import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
 import {
@@ -12,11 +13,11 @@ import {
   ItemActions,
 } from '@/components/ui/item';
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
 
@@ -71,23 +72,14 @@ interface TokenItemProps {
   className?: string | undefined;
   testId?: string | undefined;
   /** 
-   * Render prop for custom actions (e.g., dropdown menu)
+   * Render prop for custom actions (e.g., action buttons on the right)
    * Receives the token and context for conditional rendering
-   * @deprecated Use menuItems instead for dropdown menu
    */
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined;
   /** Main asset symbol of the chain (used to determine isMainAsset) */
   mainAssetSymbol?: string | undefined;
   /**
-   * Context menu handler - triggered by:
-   * - Right click (desktop)
-   * - Long press (mobile)
-   * - More button click
-   * @deprecated Use menuItems instead for dropdown menu
-   */
-  onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined;
-  /**
-   * Menu items for the dropdown menu (recommended approach)
+   * Menu items for the context menu (right-click on desktop)
    * Function receives token and context, returns array of menu items
    */
   menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined;
@@ -114,16 +106,11 @@ export function TokenItem({
   testId,
   renderActions,
   mainAssetSymbol,
-  onContextMenu,
   menuItems,
 }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
-  
-  // Long press support for mobile
-  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTriggeredRef = React.useRef(false);
 
   // Compute context for renderActions
   const isBioforestChain = BIOFOREST_CHAINS.has(token.chain);
@@ -138,56 +125,6 @@ export function TokenItem({
     isMainAsset,
     canDestroy,
   };
-
-  // Context menu handlers
-  const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
-    if (onContextMenu) {
-      e.preventDefault();
-      e.stopPropagation();
-      onContextMenu(e, token, context);
-    }
-  }, [onContextMenu, token, context]);
-
-  const handleMoreButtonClick = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onContextMenu?.(e, token, context);
-  }, [onContextMenu, token, context]);
-
-  // Long press handlers for touch devices
-  const handleTouchStart = React.useCallback(() => {
-    if (!onContextMenu) return;
-    
-    longPressTriggeredRef.current = false;
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      onContextMenu(null, token, context);
-    }, 500); // 500ms long press
-  }, [onContextMenu, token, context]);
-
-  const handleTouchEnd = React.useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  const handleTouchMove = React.useCallback(() => {
-    // Cancel long press if user moves finger
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  // Cleanup timer on unmount
-  React.useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
-  }, []);
 
   const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD';
   const {
@@ -273,69 +210,9 @@ export function TokenItem({
     </>
   );
 
-  // If menuItems is provided, wrap with ContextMenu for better touch interaction
-  if (menuItems) {
-    const items = menuItems(token, context).filter((item) => item.show !== false);
-    
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <Item
-            {...(testId && { 'data-testid': testId })}
-            variant="default"
-            size="default"
-            render={isClickable ? <button type="button" /> : undefined}
-            onClick={onClick}
-            aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
-            className={cn(
-              'cursor-pointer hover:bg-muted/50 active:bg-muted',
-              className,
-            )}
-          >
-            {itemContent}
-          </Item>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          {items.map((item, index) => (
-            <ContextMenuItem
-              key={index}
-              onClick={item.onClick}
-              variant={item.variant}
-            >
-              {item.icon}
-              {item.label}
-            </ContextMenuItem>
-          ))}
-        </ContextMenuContent>
-      </ContextMenu>
-    );
-  }
+  // Get menu items if provided
+  const items = menuItems?.(token, context).filter((item) => item.show !== false) ?? [];
 
-  // Legacy: onContextMenu handler
-  if (onContextMenu) {
-    return (
-      <Item
-        {...(testId && { 'data-testid': testId })}
-        variant="default"
-        size="default"
-        render={isClickable ? <button type="button" /> : undefined}
-        onClick={onClick}
-        onContextMenu={handleContextMenu}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-        aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
-        className={cn(
-          'cursor-pointer hover:bg-muted/50 active:bg-muted',
-          className,
-        )}
-      >
-        {itemContent}
-      </Item>
-    );
-  }
-
-  // Default: no menu
   return (
     <Item
       {...(testId && { 'data-testid': testId })}
@@ -350,8 +227,36 @@ export function TokenItem({
       )}
     >
       {itemContent}
-      {/* Custom actions slot (deprecated) */}
-      {renderActions && (
+
+      {/* More button with dropdown menu */}
+      {items.length > 0 && (
+        <ItemActions>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              onClick={(e) => e.stopPropagation()}
+              aria-label={t('common:a11y.more', '更多操作')}
+              className="p-2 -mr-2 rounded-full hover:bg-muted/80 active:bg-muted transition-colors"
+            >
+              <IconDotsVertical className="size-4 text-muted-foreground" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={4}>
+              {items.map((item, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  onClick={item.onClick}
+                  variant={item.variant}
+                >
+                  {item.icon}
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ItemActions>
+      )}
+
+      {/* Custom actions slot */}
+      {renderActions && !menuItems && (
         <ItemActions onClick={(e) => e.stopPropagation()}>
           {renderActions(token, context)}
         </ItemActions>

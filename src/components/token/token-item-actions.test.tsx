@@ -82,56 +82,25 @@ describe('TokenItem actions', () => {
     })
   })
 
-  describe('context menu (onContextMenu)', () => {
-    it('should trigger onContextMenu when provided', () => {
-      const onContextMenu = vi.fn()
+  describe('menuItems dropdown', () => {
+    it('should show more button when menuItems is provided', () => {
+      const menuItems = () => [
+        { label: 'Transfer', onClick: vi.fn() },
+        { label: 'Destroy', onClick: vi.fn(), variant: 'destructive' as const },
+      ]
       
       render(
         <TokenItem 
           token={mockToken}
-          onContextMenu={onContextMenu}
+          menuItems={menuItems}
           testId="token-item"
         />
       )
 
-      const tokenItem = screen.getByTestId('token-item')
-      fireEvent.contextMenu(tokenItem)
-      
-      expect(onContextMenu).toHaveBeenCalledWith(
-        expect.any(Object), // event
-        mockToken,
-        expect.objectContaining({
-          chainType: 'bfmeta',
-          isBioforestChain: true,
-        })
-      )
+      expect(screen.getByLabelText(/more|更多/i)).toBeInTheDocument()
     })
 
-    it('long press should trigger onContextMenu on touch devices', async () => {
-      const onContextMenu = vi.fn()
-      
-      render(
-        <TokenItem 
-          token={mockToken}
-          onContextMenu={onContextMenu}
-          testId="token-item"
-        />
-      )
-
-      const tokenItem = screen.getByTestId('token-item')
-      
-      // Simulate long press via touch events
-      fireEvent.touchStart(tokenItem)
-      
-      // Wait for long press timeout (typically 500ms)
-      await new Promise(resolve => setTimeout(resolve, 600))
-      
-      fireEvent.touchEnd(tokenItem)
-      
-      expect(onContextMenu).toHaveBeenCalled()
-    })
-
-    it('should not show more button when onContextMenu is not provided', () => {
+    it('should not show more button when menuItems is not provided', () => {
       render(
         <TokenItem 
           token={mockToken}
@@ -139,7 +108,7 @@ describe('TokenItem actions', () => {
         />
       )
 
-      expect(screen.queryByLabelText(/more|操作/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/more|更多/i)).not.toBeInTheDocument()
     })
   })
 
