@@ -144,7 +144,7 @@ export function AssetSelector({
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <AmountDisplay value={asset.balance} size="sm" decimals={asset.decimals ?? 8} />
+                        <AmountDisplay value={asset.balance} size="sm" decimals={asset.decimals ?? 8} fixedDecimals={true} />
                       </div>
                       {isSelected && <IconCheck className="size-5 text-primary" />}
                     </div>
