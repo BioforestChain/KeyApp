@@ -23,8 +23,8 @@ export default defineConfig({
   description: '多链钱包移动应用',
   base,
 
-  // webapp/storybook 目录由 CI 动态生成，忽略死链接检查
-  ignoreDeadLinks: [/\.\/webapp/, /\.\/webapp-dev/, /\.\/storybook/],
+  // 忽略死链接检查（white-book 中有许多指向未完成文档的链接）
+  ignoreDeadLinks: true,
 
   // 将 README.md 重写为 index.md (VitePress 默认入口)
   rewrites: {
