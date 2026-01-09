@@ -160,6 +160,7 @@ function MiniappDestroyConfirmJobContent() {
               size="xl" 
               weight="bold"
               decimals={8}
+              fixedDecimals={true}
             />
           </div>
 

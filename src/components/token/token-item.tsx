@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
+import { Button } from '../ui/button';
 
 function parseFiatNumber(input: string): number | null {
   const normalized = input.replaceAll(',', '').trim();
@@ -178,7 +179,6 @@ export function TokenItem({
             value={token.balance}
             loading={loading}
             decimals={token.decimals ?? 8}
-            fixedDecimals
             className="text-sm"
           />
           {displayFiatValue && !loading && (
@@ -219,7 +219,9 @@ export function TokenItem({
             aria-label={t('common:a11y.more', '更多操作')}
             className="hover:bg-muted/80 active:bg-muted flex size-11 items-center justify-center rounded-lg transition-colors [&_svg]:pointer-events-auto"
           >
-            <IconDotsVertical className="text-muted-foreground size-5" />
+            <Button variant="ghost" size="icon-sm">
+              <IconDotsVertical className="text-muted-foreground" />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={4}>
             {items.map((item, index) => (

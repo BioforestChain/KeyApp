@@ -76,6 +76,7 @@ export function FeeDisplay({
           size="sm"
           decimals={8}
           animated={false}
+          fixedDecimals={true}
         />
         {isHighFee && <AlertTriangle className="text-warning size-4" aria-label={t('a11y.highFeeWarning')} />}
         {editable && (

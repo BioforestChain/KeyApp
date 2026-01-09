@@ -62,7 +62,8 @@ describe('TokenList', () => {
       { ...mockTokens[0]!, fiatValue: '100', change24h: 5.5 },
     ]
     render(<TokenList tokens={tokensWithChange} showChange />)
-    expect(screen.getByText('+5.5')).toBeInTheDocument()
+    // Auto mode renders text in multiple places, use aria-label to find the element
+    expect(screen.getByRole('text', { name: '+5.5' })).toBeInTheDocument()
     expect(screen.getByText(/≈.*%/)).toBeInTheDocument()
   })
 
