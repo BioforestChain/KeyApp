@@ -1,0 +1,128 @@
+import{_ as a,c as t,o as n,ag as i}from"./chunks/framework.B0we9iV-.js";const k=JSON.parse('{"title":"页面导航完整地图","description":"","frontmatter":{},"headers":[],"relativePath":"white-book/12-Shell-Guide/00-Navigation-Map.md","filePath":"white-book/12-Shell-Guide/00-Navigation-Map.md"}'),e={name:"white-book/12-Shell-Guide/00-Navigation-Map.md"};function p(d,s,l,c,o,r){return n(),t("div",null,[...s[0]||(s[0]=[i(`<h1 id="页面导航完整地图" tabindex="-1">页面导航完整地图 <a class="header-anchor" href="#页面导航完整地图" aria-label="Permalink to &quot;页面导航完整地图&quot;">​</a></h1><blockquote><p>Source: <a href="https://github.com/BioforestChain/KeyApp/tree/main/src/stackflow" target="_blank" rel="noreferrer">src/stackflow/</a></p></blockquote><h2 id="概览" tabindex="-1">概览 <a class="header-anchor" href="#概览" aria-label="Permalink to &quot;概览&quot;">​</a></h2><p>应用使用 Stackflow 作为导航框架，共有 <strong>31 个 Activity</strong> + <strong>27 个 Sheet/Job</strong> + <strong>3 个 Tab</strong>。</p><hr><h2 id="路由表" tabindex="-1">路由表 <a class="header-anchor" href="#路由表" aria-label="Permalink to &quot;路由表&quot;">​</a></h2><h3 id="主页面-activities" tabindex="-1">主页面 (Activities) <a class="header-anchor" href="#主页面-activities" aria-label="Permalink to &quot;主页面 (Activities)&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Activity</th><th>路由</th><th>描述</th></tr></thead><tbody><tr><td>MainTabsActivity</td><td><code>/</code></td><td>主页 (含 3 个 Tab)</td></tr><tr><td>WelcomeActivity</td><td><code>/welcome</code></td><td>欢迎页 (首次启动)</td></tr><tr><td>WalletListActivity</td><td><code>/wallet/list</code></td><td>钱包列表</td></tr><tr><td>WalletConfigActivity</td><td><code>/wallet/:walletId</code></td><td>钱包设置</td></tr><tr><td>WalletCreateActivity</td><td><code>/wallet/create</code></td><td>创建钱包</td></tr><tr><td>OnboardingRecoverActivity</td><td><code>/onboarding/recover</code></td><td>恢复钱包</td></tr><tr><td>SendActivity</td><td><code>/send</code></td><td>发送</td></tr><tr><td>ReceiveActivity</td><td><code>/receive</code></td><td>接收</td></tr><tr><td>TokenDetailActivity</td><td><code>/token/:tokenId</code></td><td>代币详情</td></tr><tr><td>TransactionDetailActivity</td><td><code>/transaction/:txId</code></td><td>交易详情</td></tr><tr><td>HistoryActivity</td><td><code>/history</code></td><td>交易历史</td></tr><tr><td>AddressBalanceActivity</td><td><code>/address-balance</code></td><td>地址余额</td></tr><tr><td>AddressTransactionsActivity</td><td><code>/address-transactions</code></td><td>地址交易</td></tr><tr><td>AddressBookActivity</td><td><code>/address-book</code></td><td>地址簿</td></tr><tr><td>ScannerActivity</td><td><code>/scanner</code></td><td>扫码</td></tr><tr><td>StakingActivity</td><td><code>/staking</code></td><td>质押</td></tr><tr><td>NotificationsActivity</td><td><code>/notifications</code></td><td>通知</td></tr><tr><td>SettingsActivity</td><td><code>/settings</code></td><td>设置</td></tr><tr><td>SettingsLanguageActivity</td><td><code>/settings/language</code></td><td>语言设置</td></tr><tr><td>SettingsCurrencyActivity</td><td><code>/settings/currency</code></td><td>货币设置</td></tr><tr><td>SettingsChainsActivity</td><td><code>/settings/chains</code></td><td>链设置</td></tr><tr><td>SettingsMnemonicActivity</td><td><code>/settings/mnemonic</code></td><td>助记词</td></tr><tr><td>SettingsWalletLockActivity</td><td><code>/settings/wallet-lock</code></td><td>钱包锁定</td></tr><tr><td>SettingsWalletChainsActivity</td><td><code>/settings/wallet-chains</code></td><td>钱包链</td></tr><tr><td>SettingsStorageActivity</td><td><code>/settings/storage</code></td><td>存储管理</td></tr><tr><td>SettingsSourcesActivity</td><td><code>/settings/sources</code></td><td>应用源</td></tr><tr><td>MiniappDetailActivity</td><td><code>/miniapp/:appId/detail</code></td><td>小程序详情</td></tr><tr><td>AuthorizeAddressActivity</td><td><code>/authorize/address/:id</code></td><td>授权地址</td></tr><tr><td>AuthorizeSignatureActivity</td><td><code>/authorize/signature/:id</code></td><td>授权签名</td></tr></tbody></table><h3 id="sheet-job-底部弹窗" tabindex="-1">Sheet/Job (底部弹窗) <a class="header-anchor" href="#sheet-job-底部弹窗" aria-label="Permalink to &quot;Sheet/Job (底部弹窗)&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Job</th><th>路由</th><th>描述</th></tr></thead><tbody><tr><td>ChainSelectorJob</td><td><code>/job/chain-selector</code></td><td>选择链</td></tr><tr><td>ChainSwitchConfirmJob</td><td><code>/job/chain-switch-confirm</code></td><td>确认切换链</td></tr><tr><td>WalletAddJob</td><td><code>/job/wallet-add</code></td><td>添加钱包</td></tr><tr><td>WalletListJob</td><td><code>/job/wallet-list</code></td><td>钱包列表弹窗</td></tr><tr><td>WalletPickerJob</td><td><code>/job/wallet-picker</code></td><td>选择钱包</td></tr><tr><td>WalletRenameJob</td><td><code>/job/wallet-rename/:walletId</code></td><td>重命名钱包</td></tr><tr><td>WalletDeleteJob</td><td><code>/job/wallet-delete/:walletId</code></td><td>删除钱包</td></tr><tr><td>WalletLockConfirmJob</td><td><code>/job/wallet-lock-confirm</code></td><td>确认锁定</td></tr><tr><td>TransferConfirmJob</td><td><code>/job/transfer-confirm</code></td><td>确认转账</td></tr><tr><td>TransferWalletLockJob</td><td><code>/job/transfer-wallet-lock</code></td><td>转账钱包锁</td></tr><tr><td>SigningConfirmJob</td><td><code>/job/signing-confirm</code></td><td>确认签名</td></tr><tr><td>FeeEditJob</td><td><code>/job/fee-edit</code></td><td>编辑手续费</td></tr><tr><td>ScannerJob</td><td><code>/job/scanner</code></td><td>扫码弹窗</td></tr><tr><td>ContactEditJob</td><td><code>/job/contact-edit</code></td><td>编辑联系人</td></tr><tr><td>ContactPickerJob</td><td><code>/job/contact-picker</code></td><td>选择联系人</td></tr><tr><td>ContactAddConfirmJob</td><td><code>/job/contact-add-confirm</code></td><td>确认添加联系人</td></tr><tr><td>ContactShareJob</td><td><code>/job/contact-share</code></td><td>分享联系人</td></tr><tr><td>MnemonicOptionsJob</td><td><code>/job/mnemonic-options</code></td><td>助记词选项</td></tr><tr><td>SecurityWarningJob</td><td><code>/job/security-warning</code></td><td>安全警告</td></tr><tr><td>SetTwoStepSecretJob</td><td><code>/job/set-two-step-secret</code></td><td>设置二步密码</td></tr><tr><td>TwoStepSecretConfirmJob</td><td><code>/job/two-step-secret-confirm</code></td><td>确认二步密码</td></tr><tr><td>ClearDataConfirmJob</td><td><code>/job/clear-data-confirm</code></td><td>确认清除数据</td></tr><tr><td>PermissionRequestJob</td><td><code>/job/permission-request</code></td><td>权限请求</td></tr><tr><td>MiniappTransferConfirmJob</td><td><code>/job/miniapp-transfer-confirm</code></td><td>小程序转账确认</td></tr><tr><td>MiniappSignTransactionJob</td><td><code>/job/miniapp-sign-transaction</code></td><td>小程序签名交易</td></tr></tbody></table><h3 id="tabs-主页标签" tabindex="-1">Tabs (主页标签) <a class="header-anchor" href="#tabs-主页标签" aria-label="Permalink to &quot;Tabs (主页标签)&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Tab</th><th>文件</th><th>描述</th></tr></thead><tbody><tr><td>WalletTab</td><td><code>tabs/WalletTab.tsx</code></td><td>钱包首页</td></tr><tr><td>EcosystemTab</td><td><code>tabs/EcosystemTab.tsx</code></td><td>生态系统/小程序</td></tr><tr><td>SettingsTab</td><td><code>tabs/SettingsTab.tsx</code></td><td>设置</td></tr></tbody></table><hr><h2 id="导航关系图" tabindex="-1">导航关系图 <a class="header-anchor" href="#导航关系图" aria-label="Permalink to &quot;导航关系图&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>┌────────────────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│                           WelcomeActivity                              │</span></span>
+<span class="line"><span>│                    (首次启动 / 无钱包时)                                 │</span></span>
+<span class="line"><span>└───────────────────────────────┬────────────────────────────────────────┘</span></span>
+<span class="line"><span>                                │</span></span>
+<span class="line"><span>          ┌─────────────────────┼─────────────────────┐</span></span>
+<span class="line"><span>          ▼                     ▼                     ▼</span></span>
+<span class="line"><span>┌─────────────────┐   ┌─────────────────┐   ┌─────────────────────────┐</span></span>
+<span class="line"><span>│WalletCreateActivity│   │OnboardingRecoverActivity│  │   (Import from other app)  │</span></span>
+<span class="line"><span>│  (创建新钱包)     │   │    (恢复钱包)      │   │                         │</span></span>
+<span class="line"><span>└────────┬────────┘   └────────┬────────┘   └────────────┬────────────┘</span></span>
+<span class="line"><span>         │                     │                         │</span></span>
+<span class="line"><span>         └─────────────────────┼─────────────────────────┘</span></span>
+<span class="line"><span>                               │</span></span>
+<span class="line"><span>                               ▼</span></span>
+<span class="line"><span>┌────────────────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│                         MainTabsActivity                               │</span></span>
+<span class="line"><span>│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │  WalletTab   │  │ EcosystemTab │  │        SettingsTab           │ │</span></span>
+<span class="line"><span>│  │  (钱包首页)  │  │ (小程序商店) │  │         (设置)               │ │</span></span>
+<span class="line"><span>│  └──────┬───────┘  └──────┬───────┘  └──────────────┬───────────────┘ │</span></span>
+<span class="line"><span>└─────────┼─────────────────┼─────────────────────────┼──────────────────┘</span></span>
+<span class="line"><span>          │                 │                         │</span></span>
+<span class="line"><span>          ▼                 ▼                         ▼</span></span>
+<span class="line"><span>    ┌─────────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>    │                       钱包操作                                  │</span></span>
+<span class="line"><span>    │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌───────────┐ │</span></span>
+<span class="line"><span>    │  │SendActivity │ │ReceiveActivity│ │TokenDetailActivity│ │HistoryActivity│ │</span></span>
+<span class="line"><span>    │  └──────┬──────┘ └─────────────┘ └──────┬──────┘ └─────┬─────┘ │</span></span>
+<span class="line"><span>    │         │                               │              │       │</span></span>
+<span class="line"><span>    │         ▼                               ▼              ▼       │</span></span>
+<span class="line"><span>    │  ┌────────────────┐              ┌──────────────────────────┐  │</span></span>
+<span class="line"><span>    │  │TransferConfirmJob│              │TransactionDetailActivity  │  │</span></span>
+<span class="line"><span>    │  └────────────────┘              └──────────────────────────┘  │</span></span>
+<span class="line"><span>    └─────────────────────────────────────────────────────────────────┘</span></span></code></pre></div><hr><h2 id="钱包管理流程" tabindex="-1">钱包管理流程 <a class="header-anchor" href="#钱包管理流程" aria-label="Permalink to &quot;钱包管理流程&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>MainTabsActivity (WalletTab)</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ WalletListActivity ──▶ WalletConfigActivity</span></span>
+<span class="line"><span>         │         │                        │</span></span>
+<span class="line"><span>         │         ├──▶ WalletAddJob        ├──▶ WalletRenameJob</span></span>
+<span class="line"><span>         │         │                        ├──▶ WalletDeleteJob</span></span>
+<span class="line"><span>         │         └──▶ WalletPickerJob     └──▶ SettingsWalletChainsActivity</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ SendActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         ├──▶ ScannerJob (扫描地址)</span></span>
+<span class="line"><span>         │         ├──▶ ContactPickerJob (选择联系人)</span></span>
+<span class="line"><span>         │         ├──▶ FeeEditJob (编辑手续费)</span></span>
+<span class="line"><span>         │         └──▶ TransferConfirmJob</span></span>
+<span class="line"><span>         │                   │</span></span>
+<span class="line"><span>         │                   └──▶ TransferWalletLockJob (验证密码/生物识别)</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ ReceiveActivity</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ TokenDetailActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         └──▶ TransactionDetailActivity</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         └──▶ HistoryActivity</span></span>
+<span class="line"><span>                   │</span></span>
+<span class="line"><span>                   └──▶ TransactionDetailActivity</span></span></code></pre></div><hr><h2 id="设置页面流程" tabindex="-1">设置页面流程 <a class="header-anchor" href="#设置页面流程" aria-label="Permalink to &quot;设置页面流程&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>MainTabsActivity (SettingsTab)</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ SettingsLanguageActivity</span></span>
+<span class="line"><span>         ├──▶ SettingsCurrencyActivity</span></span>
+<span class="line"><span>         ├──▶ SettingsChainsActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         └──▶ ChainSelectorJob</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ SettingsMnemonicActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         └──▶ MnemonicOptionsJob</span></span>
+<span class="line"><span>         │                   │</span></span>
+<span class="line"><span>         │                   └──▶ SecurityWarningJob</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ SettingsWalletLockActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         ├──▶ SetTwoStepSecretJob</span></span>
+<span class="line"><span>         │         └──▶ TwoStepSecretConfirmJob</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ SettingsStorageActivity</span></span>
+<span class="line"><span>         │         │</span></span>
+<span class="line"><span>         │         └──▶ ClearDataConfirmJob</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         └──▶ SettingsSourcesActivity</span></span></code></pre></div><hr><h2 id="小程序-dapp-流程" tabindex="-1">小程序/DApp 流程 <a class="header-anchor" href="#小程序-dapp-流程" aria-label="Permalink to &quot;小程序/DApp 流程&quot;">​</a></h2><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>MainTabsActivity (EcosystemTab)</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         ├──▶ MiniappDetailActivity</span></span>
+<span class="line"><span>         │</span></span>
+<span class="line"><span>         └──▶ [MiniappWindow] (非 Stackflow, 由 miniapp-runtime 管理)</span></span>
+<span class="line"><span>                   │</span></span>
+<span class="line"><span>                   ├──▶ PermissionRequestJob (权限请求)</span></span>
+<span class="line"><span>                   ├──▶ MiniappTransferConfirmJob (转账确认)</span></span>
+<span class="line"><span>                   ├──▶ MiniappSignTransactionJob (签名确认)</span></span>
+<span class="line"><span>                   ├──▶ ChainSwitchConfirmJob (切换链)</span></span>
+<span class="line"><span>                   │</span></span>
+<span class="line"><span>                   └──▶ AuthorizeAddressActivity</span></span>
+<span class="line"><span>                              │</span></span>
+<span class="line"><span>                              └──▶ AuthorizeSignatureActivity</span></span></code></pre></div><hr><h2 id="stackflow-配置" tabindex="-1">Stackflow 配置 <a class="header-anchor" href="#stackflow-配置" aria-label="Permalink to &quot;Stackflow 配置&quot;">​</a></h2><div class="language-typescript vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">typescript</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// src/stackflow/stackflow.ts</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">export</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;"> const</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> { </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">Stack</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">useFlow</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">useStepFlow</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">activities</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> } </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> stackflow</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">({</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  transitionDuration: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">350</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  plugins: [</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">    basicRendererPlugin</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(),</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">    basicUIPlugin</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">({</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">      theme: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;cupertino&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,  </span><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// iOS 风格</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }),</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">    historySyncPlugin</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">({</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">      routes: { </span><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">/* 路由表 */</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> },</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">      fallbackActivity</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: () </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=&gt;</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;"> &#39;MainTabsActivity&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">      useHash: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">true</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">      urlPatternOptions: {</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        segmentValueCharset: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;a-zA-Z0-9-._~ %&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,  </span><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 支持 appId 中的点号</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">      },</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }),</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  ],</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  activities: { </span><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">/* Activity 组件 */</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> },</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">});</span></span></code></pre></div><hr><h2 id="导航-hooks" tabindex="-1">导航 Hooks <a class="header-anchor" href="#导航-hooks" aria-label="Permalink to &quot;导航 Hooks&quot;">​</a></h2><div class="language-typescript vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">typescript</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">import</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> { useFlow } </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">from</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;"> &#39;@/stackflow&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">function</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> MyComponent</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">() {</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">  const</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> { </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">push</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">pop</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">replace</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> } </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> useFlow</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  </span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">  // 跳转到新页面</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">  push</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;SendActivity&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, { chainId: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;ethereum&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> });</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  </span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">  // 返回上一页</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">  pop</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">  </span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">  // 替换当前页面</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">  replace</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;MainTabsActivity&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, {});</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span></code></pre></div><hr><h2 id="相关文档" tabindex="-1">相关文档 <a class="header-anchor" href="#相关文档" aria-label="Permalink to &quot;相关文档&quot;">​</a></h2><ul><li><a href="./01-Activities/00-Index.html">Activities 详细文档</a></li><li><a href="./02-Sheets/00-Index.html">Sheets/Jobs 详细文档</a></li></ul>`,33)])])}const E=a(e,[["render",p]]);export{k as __pageData,E as default};
