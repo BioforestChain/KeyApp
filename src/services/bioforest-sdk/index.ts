@@ -99,12 +99,14 @@ function getGenesisBaseUrl(): string {
   if (genesisBaseUrl) {
     return genesisBaseUrl
   }
-  // Browser: use document.baseURI to get full HTTP URL
+  // Browser: use relative path from document.baseURI for subdirectory deployment support
+  // Using './configs/genesis' instead of '/configs/genesis' ensures correct resolution
+  // when deployed to subdirectories (e.g., GitHub Pages at /KeyApp/)
   if (typeof document !== 'undefined') {
-    return new URL('/configs/genesis', document.baseURI).href
+    return new URL('./configs/genesis', document.baseURI).href
   }
-  // Fallback
-  return '/configs/genesis'
+  // Fallback for non-browser environments
+  return './configs/genesis'
 }
 
 /**
