@@ -1,5 +1,7 @@
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { IconDotsVertical } from '@tabler/icons-react';
 import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
 import { currencies, useCurrency } from '@/stores';
@@ -52,6 +54,13 @@ interface TokenItemProps {
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined;
   /** Main asset symbol of the chain (used to determine isMainAsset) */
   mainAssetSymbol?: string | undefined;
+  /**
+   * Context menu handler - triggered by:
+   * - Right click (desktop)
+   * - Long press (mobile)
+   * - More button click
+   */
+  onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined;
 }
 
 // BioForest chain types that support asset destruction
@@ -75,10 +84,15 @@ export function TokenItem({
   testId,
   renderActions,
   mainAssetSymbol,
+  onContextMenu,
 }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
+  
+  // Long press support for mobile
+  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = React.useRef(false);
 
   // Compute context for renderActions
   const isBioforestChain = BIOFOREST_CHAINS.has(token.chain);
@@ -93,6 +107,56 @@ export function TokenItem({
     isMainAsset,
     canDestroy,
   };
+
+  // Context menu handlers
+  const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
+    if (onContextMenu) {
+      e.preventDefault();
+      e.stopPropagation();
+      onContextMenu(e, token, context);
+    }
+  }, [onContextMenu, token, context]);
+
+  const handleMoreButtonClick = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onContextMenu?.(e, token, context);
+  }, [onContextMenu, token, context]);
+
+  // Long press handlers for touch devices
+  const handleTouchStart = React.useCallback(() => {
+    if (!onContextMenu) return;
+    
+    longPressTriggeredRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      onContextMenu(null, token, context);
+    }, 500); // 500ms long press
+  }, [onContextMenu, token, context]);
+
+  const handleTouchEnd = React.useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handleTouchMove = React.useCallback(() => {
+    // Cancel long press if user moves finger
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
 
   const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD';
   const {
@@ -127,6 +191,10 @@ export function TokenItem({
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={isClickable ? (e) => e.key === 'Enter' && onClick?.() : undefined}
+      onContextMenu={handleContextMenu}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
       aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
       className={cn(
         '@container flex items-center gap-3 rounded-xl p-3 transition-colors',
@@ -182,8 +250,21 @@ export function TokenItem({
         )}
       </div>
 
-      {/* Custom actions slot */}
-      {renderActions && (
+      {/* More button - visible when onContextMenu is provided */}
+      {onContextMenu && (
+        <button
+          type="button"
+          onClick={handleMoreButtonClick}
+          onKeyDown={(e) => e.stopPropagation()}
+          aria-label={t('common:a11y.more', '更多操作')}
+          className="shrink-0 p-2 -mr-2 rounded-full hover:bg-muted/50 active:bg-muted transition-colors"
+        >
+          <IconDotsVertical className="size-4 text-muted-foreground" />
+        </button>
+      )}
+
+      {/* Custom actions slot (deprecated: use onContextMenu instead) */}
+      {renderActions && !onContextMenu && (
         <div 
           className="shrink-0" 
           onClick={(e) => e.stopPropagation()}

@@ -28,8 +28,10 @@ export interface WalletAddressPortfolioViewProps {
   renderTransactionFooter?: () => React.ReactNode
   /** Main asset symbol for the chain (used for renderActions context) */
   mainAssetSymbol?: string
-  /** Render prop for token item actions (e.g., dropdown menu) */
+  /** Render prop for token item actions (deprecated: use onTokenContextMenu) */
   renderTokenActions?: (token: TokenInfo, context: TokenItemContext) => React.ReactNode
+  /** Context menu handler for token items (right-click, long-press, more button) */
+  onTokenContextMenu?: (event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void
   className?: string
   testId?: string
 }
@@ -51,6 +53,7 @@ export function WalletAddressPortfolioView({
   renderTransactionFooter,
   mainAssetSymbol,
   renderTokenActions,
+  onTokenContextMenu,
   className,
   testId = 'wallet-address-portfolio',
 }: WalletAddressPortfolioViewProps) {
@@ -85,6 +88,7 @@ export function WalletAddressPortfolioView({
                 emptyDescription={t('home:wallet.noAssetsOnChain', { chain: displayChainName })}
                 mainAssetSymbol={mainAssetSymbol}
                 renderActions={renderTokenActions}
+                onContextMenu={onTokenContextMenu}
                 testId={`${testId}-token-list`}
               />
             </div>

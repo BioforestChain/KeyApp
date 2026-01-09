@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -8,11 +8,11 @@ import { MigrationRequiredView } from "@/components/common/migration-required-vi
 import { GradientButton } from "@/components/common/gradient-button";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { useBalanceQuery, useTransactionHistoryQuery } from "@/queries";
@@ -22,7 +22,6 @@ import {
   IconSend,
   IconQrcode,
   IconLineScan,
-  IconDotsVertical,
   IconFlame,
   IconArrowRight,
 } from "@tabler/icons-react";
@@ -163,48 +162,34 @@ export function WalletTab() {
     [push]
   );
 
-  // 资产操作菜单渲染
-  const renderTokenActions = useCallback(
-    (token: TokenInfo, context: TokenItemContext) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="p-2 -mr-2 rounded-full hover:bg-muted/50 transition-colors"
-              onClick={(e) => e.stopPropagation()}
-              aria-label={t("home:wallet.tokenActions")}
-            >
-              <IconDotsVertical className="size-4 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                push("SendActivity", { assetType: token.symbol });
-              }}
-            >
-              <IconArrowRight className="mr-2 size-4" />
-              {t("home:wallet.transfer")}
-            </DropdownMenuItem>
-            {context.canDestroy && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  push("DestroyActivity", { assetType: token.symbol, assetLocked: "true" });
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <IconFlame className="mr-2 size-4" />
-                {t("home:wallet.destroy")}
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+  // 资产操作菜单状态
+  const [actionSheetOpen, setActionSheetOpen] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<{ token: TokenInfo; context: TokenItemContext } | null>(null);
+
+  // 资产操作菜单触发
+  const handleTokenContextMenu = useCallback(
+    (_event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => {
+      haptics.impact("light");
+      setSelectedToken({ token, context });
+      setActionSheetOpen(true);
     },
-    [push, t]
+    [haptics]
   );
+
+  // 资产操作菜单项点击
+  const handleTransfer = useCallback(() => {
+    if (selectedToken) {
+      setActionSheetOpen(false);
+      push("SendActivity", { assetType: selectedToken.token.symbol });
+    }
+  }, [selectedToken, push]);
+
+  const handleDestroy = useCallback(() => {
+    if (selectedToken) {
+      setActionSheetOpen(false);
+      push("DestroyActivity", { assetType: selectedToken.token.symbol, assetLocked: "true" });
+    }
+  }, [selectedToken, push]);
 
   // 需要迁移数据库
   if (migrationRequired) {
@@ -303,7 +288,7 @@ export function WalletTab() {
           }}
           onTransactionClick={handleTransactionClick}
           mainAssetSymbol={mainAssetSymbol}
-          renderTokenActions={renderTokenActions}
+          onTokenContextMenu={handleTokenContextMenu}
           renderTransactionFooter={() => (
             <button
               onClick={() => push("HistoryActivity", { 
@@ -322,6 +307,37 @@ export function WalletTab() {
 
       {/* TabBar spacer */}
       <div className="shrink-0 h-[var(--tab-bar-height)]" />
+
+      {/* Token Action Sheet */}
+      <Sheet open={actionSheetOpen} onOpenChange={setActionSheetOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="text-left">
+            <SheetTitle>{selectedToken?.token.symbol ?? ''}</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col gap-2 py-4">
+            <button
+              onClick={handleTransfer}
+              className="flex items-center gap-3 rounded-xl p-4 text-left hover:bg-muted/50 active:bg-muted transition-colors"
+            >
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                <IconArrowRight className="size-5 text-primary" />
+              </div>
+              <span className="font-medium">{t("home:wallet.transfer")}</span>
+            </button>
+            {selectedToken?.context.canDestroy && (
+              <button
+                onClick={handleDestroy}
+                className="flex items-center gap-3 rounded-xl p-4 text-left hover:bg-destructive/10 active:bg-destructive/20 transition-colors"
+              >
+                <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10">
+                  <IconFlame className="size-5 text-destructive" />
+                </div>
+                <span className="font-medium text-destructive">{t("home:wallet.destroy")}</span>
+              </button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
