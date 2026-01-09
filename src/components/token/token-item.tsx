@@ -156,7 +156,7 @@ export function TokenItem({
   const itemContent = (
     <>
       {/* Token Icon */}
-      <ItemMedia variant="image">
+      <ItemMedia variant="image" className="overflow-visible">
         <div className="relative size-full">
           <TokenIcon
             symbol={token.symbol}
@@ -165,11 +165,11 @@ export function TokenItem({
             size="lg"
             className="size-full"
           />
-          {/* Chain badge */}
+          {/* Chain badge - 40% of parent size, positioned at bottom-right */}
           <ChainIcon
             chain={token.chain}
             size="sm"
-            className="ring-background absolute -right-0.5 -bottom-0.5 size-4 text-[8px] ring-2"
+            className="ring-background absolute -right-[10%] -bottom-[10%] size-[40%] text-[0.2em] ring-2"
           />
         </div>
       </ItemMedia>
@@ -180,7 +180,7 @@ export function TokenItem({
         <ItemDescription>{token.name}</ItemDescription>
       </ItemContent>
 
-      {/* Balance */}
+      {/* Balance and Actions */}
       <ItemActions>
         <div className="text-right">
           <AnimatedAmount
@@ -228,31 +228,29 @@ export function TokenItem({
     >
       {itemContent}
 
-      {/* More button with dropdown menu */}
+      {/* More button with dropdown menu - min 44x44 touch target */}
       {items.length > 0 && (
-        <ItemActions>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              onClick={(e) => e.stopPropagation()}
-              aria-label={t('common:a11y.more', '更多操作')}
-              className="p-2 -mr-2 rounded-full hover:bg-muted/80 active:bg-muted transition-colors"
-            >
-              <IconDotsVertical className="size-4 text-muted-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={4}>
-              {items.map((item, index) => (
-                <DropdownMenuItem
-                  key={index}
-                  onClick={item.onClick}
-                  variant={item.variant}
-                >
-                  {item.icon}
-                  {item.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ItemActions>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            onClick={(e) => e.stopPropagation()}
+            aria-label={t('common:a11y.more', '更多操作')}
+            className="flex size-11 items-center justify-center rounded-lg hover:bg-muted/80 active:bg-muted transition-colors"
+          >
+            <IconDotsVertical className="size-5 text-muted-foreground" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={4}>
+            {items.map((item, index) => (
+              <DropdownMenuItem
+                key={index}
+                onClick={item.onClick}
+                variant={item.variant}
+              >
+                {item.icon}
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       {/* Custom actions slot */}
