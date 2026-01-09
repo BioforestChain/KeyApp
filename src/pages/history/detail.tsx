@@ -3,13 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
-  IconCopy as Copy,
   IconCheck as Check,
   IconShare as Share,
+  IconExternalLink as ExternalLink,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
-import { AmountDisplay, TimeDisplay } from '@/components/common';
+import { AmountDisplay, TimeDisplay, CopyableText } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { SkeletonCard } from '@/components/common/skeleton';
@@ -55,7 +55,7 @@ export function TransactionDetailPage() {
   const chainConfigState = useChainConfigState();
   const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
-  const [copied, setCopied] = useState(false);
+
 
   const txFromHistory = useMemo<TransactionRecord | undefined>(() => {
     return transactions.find((tx) => tx.id === txId);
@@ -92,21 +92,12 @@ export function TransactionDetailPage() {
     return queryTx.replace(':signature', hash);
   }, [chainConfig?.explorer?.queryTx, parsedTxId?.hash, transaction?.hash]);
 
-  // 复制交易哈希
-  const handleCopyHash = useCallback(async () => {
-    if (transaction?.hash) {
-      await clipboardService.write({ text: transaction.hash });
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  // 在浏览器中打开
+  const handleOpenInExplorer = useCallback(() => {
+    if (explorerTxUrl) {
+      window.open(explorerTxUrl, '_blank', 'noopener,noreferrer');
     }
-  }, [transaction?.hash]);
-
-  const handleCopyFallbackHash = useCallback(async () => {
-    if (!parsedTxId?.hash) return;
-    await clipboardService.write({ text: parsedTxId.hash });
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [parsedTxId?.hash]);
+  }, [explorerTxUrl]);
 
   // 分享（复制浏览器链接）
   const [shared, setShared] = useState(false);
@@ -162,28 +153,24 @@ export function TransactionDetailPage() {
           {fallbackHash && (
             <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
               <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
-              <p className="text-muted-foreground font-mono text-xs break-all">{fallbackHash}</p>
+              <CopyableText
+                text={fallbackHash}
+                className="text-muted-foreground text-xs"
+              />
 
               <div className="flex gap-2">
                 <button
-                  onClick={handleCopyFallbackHash}
+                  onClick={handleOpenInExplorer}
+                  disabled={!explorerTxUrl}
                   className={cn(
                     'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5',
                     'bg-background border transition-colors',
                     'hover:bg-muted active:bg-muted/80',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
                   )}
                 >
-                  {copied ? (
-                    <>
-                      <Check className="text-green-500 size-4" />
-                      <span className="text-sm">{t('detail.copied')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="size-4" />
-                      <span className="text-sm">{t('detail.copyHash')}</span>
-                    </>
-                  )}
+                  <ExternalLink className="size-4" />
+                  <span className="text-sm">{t('detail.openInExplorer')}</span>
                 </button>
 
                 <button
@@ -473,28 +460,24 @@ export function TransactionDetailPage() {
         {transaction.hash && (
           <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
             <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
-            <p className="text-muted-foreground font-mono text-xs break-all">{transaction.hash}</p>
+            <CopyableText
+              text={transaction.hash}
+              className="text-muted-foreground text-xs"
+            />
 
             <div className="flex gap-2">
               <button
-                onClick={handleCopyHash}
+                onClick={handleOpenInExplorer}
+                disabled={!explorerTxUrl}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5',
                   'bg-background border transition-colors',
                   'hover:bg-muted active:bg-muted/80',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
                 )}
               >
-                {copied ? (
-                  <>
-                    <Check className="text-green-500 size-4" />
-                    <span className="text-sm">{t('detail.copied')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="size-4" />
-                    <span className="text-sm">{t('detail.copyHash')}</span>
-                  </>
-                )}
+                <ExternalLink className="size-4" />
+                <span className="text-sm">{t('detail.openInExplorer')}</span>
               </button>
 
               <button
