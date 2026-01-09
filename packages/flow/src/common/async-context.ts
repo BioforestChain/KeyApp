@@ -129,62 +129,120 @@ export function withRuntimeMode<R>(mode: RuntimeMode, fn: () => R): R {
 }
 
 // =============================================================================
-// Scenario Formatting (mode-aware)
+// Workflow Name Context
 // =============================================================================
 
-export interface Scenario {
-  when: string;
-  args?: string[];
+/**
+ * Async context for current workflow name (used by str template)
+ */
+export const WorkflowNameContext = new AsyncContext<string>("WorkflowNameContext");
+
+/**
+ * Get current workflow name from context
+ */
+export function getWorkflowName(): string {
+  return WorkflowNameContext.tryGet() ?? "workflow";
+}
+
+// =============================================================================
+// str`` Template Literal (mode-aware string builder)
+// =============================================================================
+
+/**
+ * str`` tagged template literal for mode-aware description generation.
+ * 
+ * Returns `() => Promise<string>` - an async function that resolves the template.
+ * 
+ * Values can be:
+ * - Static values (strings, numbers) - inserted directly
+ * - Functions `() => string | Promise<string>` - called and result inserted
+ * 
+ * @example
+ * ```ts
+ * const description = str`
+ * Task management workflow.
+ * 
+ * ## When to Use
+ * - Start new task → ${str.scenarios(["start", "--type", "service"])}
+ * - List labels → ${str.scenarios(["start", "--list-labels"])}
+ * 
+ * ${str.data("Labels", labels)}
+ * `;
+ * ```
+ */
+export function str(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): () => Promise<string> {
+  return async () => {
+    const parts: string[] = [];
+    for (let i = 0; i < strings.length; i++) {
+      parts.push(strings[i]);
+      if (i < values.length) {
+        const value = values[i];
+        if (typeof value === "function") {
+          const result = (value as () => unknown)();
+          parts.push(String(result instanceof Promise ? await result : result));
+        } else {
+          parts.push(String(value ?? ""));
+        }
+      }
+    }
+    return parts.join("");
+  };
 }
 
 /**
- * Format scenarios based on current runtime mode
- * - MCP: `when → use("workflow", ["arg1", "arg2"])`
- * - CLI: `when:\n  workflow arg1 arg2`
+ * Format a single scenario (command example) based on runtime mode.
+ * Workflow name is obtained from WorkflowNameContext.
+ * 
+ * Returns `() => string` - a function that generates the formatted string.
+ * 
+ * - MCP: `use("workflow", ["arg1", "arg2"])`
+ * - CLI: `workflow arg1 arg2`
  */
-export function formatScenarios(
-  workflowName: string,
-  scenarios: Scenario[]
-): string {
-  const mode = getRuntimeMode();
-  
-  if (mode === "mcp") {
-    return scenarios
-      .map((s) => `- ${s.when} → use("${workflowName}", ${JSON.stringify(s.args ?? [])})`)
-      .join("\n");
-  } else {
-    return scenarios
-      .map((s) => `  ${s.when}:\n    ${workflowName} ${s.args?.join(" ") ?? ""}`)
-      .join("\n");
-  }
-}
+str.scenarios = (args: string[]): (() => string) => {
+  return () => {
+    const workflowName = getWorkflowName();
+    const mode = getRuntimeMode();
+    
+    if (mode === "mcp") {
+      return `use("${workflowName}", ${JSON.stringify(args)})`;
+    } else {
+      return `${workflowName} ${args.join(" ")}`;
+    }
+  };
+};
 
 /**
- * Format a key-value data section
- * - MCP: compact inline format
- * - CLI: indented list format
+ * Format a data section (e.g., labels list) based on runtime mode.
+ * 
+ * Returns `() => string` - a function that generates the formatted string.
+ * 
+ * - MCP: `Title: item1, item2, item3`
+ * - CLI: `Title:\n  item1 - description\n  item2 - description`
  */
-export function formatDataSection(
+str.data = (
   title: string,
   items: Array<{ name: string; description?: string; color?: string }>
-): string {
-  const mode = getRuntimeMode();
-  
-  if (mode === "mcp") {
-    // Compact format for MCP
-    return `${title}: ${items.map((i) => i.name).join(", ")}`;
-  } else {
-    // Detailed format for CLI
-    const lines = [`${title}:`];
-    for (const item of items) {
-      const parts = [item.name];
-      if (item.color) parts.push(`#${item.color}`);
-      if (item.description) parts.push(`- ${item.description}`);
-      lines.push(`  ${parts.join(" ")}`);
+): (() => string) => {
+  return () => {
+    const mode = getRuntimeMode();
+    
+    if (mode === "mcp") {
+      return `${title}: ${items.map((i) => i.name).join(", ")}`;
+    } else {
+      const lines = [`${title}:`];
+      for (const item of items) {
+        const parts = [`  ${item.name}`];
+        if (item.color) parts.push(`(#${item.color})`);
+        if (item.description) parts.push(`- ${item.description}`);
+        lines.push(parts.join(" "));
+      }
+      return lines.join("\n");
     }
-    return lines.join("\n");
-  }
-}
+  };
+};
 
 // =============================================================================
 // Helpers

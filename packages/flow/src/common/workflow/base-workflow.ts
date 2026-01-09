@@ -22,7 +22,7 @@
 
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { withPreferences } from "../async-context.ts";
+import { withPreferences, WorkflowNameContext } from "../async-context.ts";
 
 // =============================================================================
 // Types
@@ -256,7 +256,8 @@ async function printHelp<TArgs extends Record<string, ArgConfig>>(
   }
   opts.printed.add(id);
 
-  const description = await getMetaDescription(meta);
+  // Set workflow name context for str.scenarios() to use
+  const description = await WorkflowNameContext.run(meta.name, () => getMetaDescription(meta));
   if (opts.indent === 0) {
     console.log(`${meta.name} v${meta.version} - ${description}`);
     console.log();
