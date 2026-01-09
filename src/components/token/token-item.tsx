@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
 
@@ -39,6 +45,16 @@ export interface TokenItemContext {
   canDestroy: boolean;
 }
 
+/** Menu item for token actions dropdown */
+export interface TokenMenuItem {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: 'default' | 'destructive';
+  /** Condition to show this item (default: true) */
+  show?: boolean;
+}
+
 interface TokenItemProps {
   token: TokenInfo;
   onClick?: (() => void) | undefined;
@@ -50,6 +66,7 @@ interface TokenItemProps {
   /** 
    * Render prop for custom actions (e.g., dropdown menu)
    * Receives the token and context for conditional rendering
+   * @deprecated Use menuItems instead for dropdown menu
    */
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined;
   /** Main asset symbol of the chain (used to determine isMainAsset) */
@@ -59,8 +76,14 @@ interface TokenItemProps {
    * - Right click (desktop)
    * - Long press (mobile)
    * - More button click
+   * @deprecated Use menuItems instead for dropdown menu
    */
   onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined;
+  /**
+   * Menu items for the dropdown menu (recommended approach)
+   * Function receives token and context, returns array of menu items
+   */
+  menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined;
 }
 
 // BioForest chain types that support asset destruction
@@ -85,6 +108,7 @@ export function TokenItem({
   renderActions,
   mainAssetSymbol,
   onContextMenu,
+  menuItems,
 }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
@@ -250,8 +274,36 @@ export function TokenItem({
         )}
       </div>
 
-      {/* More button - visible when onContextMenu is provided */}
-      {onContextMenu && (
+      {/* Dropdown menu - recommended approach */}
+      {menuItems && (
+        <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label={t('common:a11y.more', '更多操作')}
+              className="p-2 -mr-2 rounded-full hover:bg-muted/50 active:bg-muted transition-colors"
+            >
+              <IconDotsVertical className="size-4 text-muted-foreground" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={4}>
+              {menuItems(token, context)
+                .filter((item) => item.show !== false)
+                .map((item, index) => (
+                  <DropdownMenuItem
+                    key={index}
+                    onClick={item.onClick}
+                    variant={item.variant}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
+      {/* More button - visible when onContextMenu is provided (deprecated) */}
+      {onContextMenu && !menuItems && (
         <button
           type="button"
           onClick={handleMoreButtonClick}
@@ -263,8 +315,8 @@ export function TokenItem({
         </button>
       )}
 
-      {/* Custom actions slot (deprecated: use onContextMenu instead) */}
-      {renderActions && !onContextMenu && (
+      {/* Custom actions slot (deprecated: use menuItems instead) */}
+      {renderActions && !onContextMenu && !menuItems && (
         <div 
           className="shrink-0" 
           onClick={(e) => e.stopPropagation()}

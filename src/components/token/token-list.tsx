@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { TokenItem, type TokenInfo, type TokenItemContext } from './token-item'
+import { TokenItem, type TokenInfo, type TokenItemContext, type TokenMenuItem } from './token-item'
 import { EmptyState } from '../common/empty-state'
 import { SkeletonList } from '../common/skeleton'
 
@@ -16,12 +16,14 @@ interface TokenListProps {
   emptyAction?: React.ReactNode | undefined
   className?: string | undefined
   testId?: string | undefined
-  /** Render prop for custom actions per token item (deprecated: use onContextMenu) */
+  /** Render prop for custom actions per token item (deprecated: use menuItems) */
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined
   /** Main asset symbol for the chain (used by renderActions context) */
   mainAssetSymbol?: string | undefined
-  /** Context menu handler for token items */
+  /** Context menu handler for token items (deprecated: use menuItems) */
   onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined
+  /** Menu items for dropdown menu (recommended approach) */
+  menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined
 }
 
 export function TokenList({
@@ -38,6 +40,7 @@ export function TokenList({
   renderActions,
   mainAssetSymbol,
   onContextMenu,
+  menuItems,
 }: TokenListProps) {
   if (loading) {
     return <SkeletonList count={3} {...(className && { className })} />
@@ -72,6 +75,7 @@ export function TokenList({
           renderActions={renderActions}
           mainAssetSymbol={mainAssetSymbol}
           onContextMenu={onContextMenu}
+          menuItems={menuItems}
           {...(onTokenClick && { onClick: () => onTokenClick(token) })}
         />
       ))}
