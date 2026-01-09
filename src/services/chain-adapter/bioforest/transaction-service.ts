@@ -23,7 +23,7 @@ import type {
 import { ChainServiceError, ChainErrorCodes } from '../types'
 
 import { signMessage, bytesToHex } from '@/lib/crypto'
-import { getBioforestCore, getLastBlock } from '@/services/bioforest-sdk'
+import { getTransferMinFee } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
@@ -58,28 +58,25 @@ export class BioforestTransactionService implements ITransactionService {
       estimatedTime: time,
     })
 
-    try {
-      if (!this.baseUrl) {
-        throw new Error('No RPC URL configured')
-      }
+    if (!this.baseUrl) {
+      throw new ChainServiceError(
+        ChainErrorCodes.NETWORK_ERROR,
+        'RPC URL not configured for BioForest chain',
+      )
+    }
 
-      // Use SDK to calculate minimum fee (same as mpay)
-      const core = await getBioforestCore(config.id)
-      const lastBlock = await getLastBlock(this.baseUrl)
-      
-      const minFeeRaw = await core.transactionController.getTransferTransactionMinFee({
-        transaction: {
-          applyBlockHeight: lastBlock.height,
-          timestamp: lastBlock.timestamp,
-          remark: {},
-        },
-        assetInfo: {
-          sourceChainName: await core.getChainName(),
-          sourceChainMagic: await core.getMagic(),
-          assetType: params.amount?.symbol ?? symbol,
-          amount: params.amount?.toRawString() ?? '0',
-        },
-      })
+    try {
+      // Use SDK to calculate minimum fee dynamically
+      // Considers:
+      // - Whether sender has pay password (secondPublicKey) - affects transaction size
+      // - Transaction amount and remark
+      const minFeeRaw = await getTransferMinFee(
+        this.baseUrl,
+        config.id,
+        params.from, // Pass sender address to check pay password status
+        params.amount?.toRawString(),
+        undefined, // remark - could be added to TransferParams if needed
+      )
 
       const minFee = Amount.fromRaw(minFeeRaw, decimals, symbol)
       
@@ -89,14 +86,12 @@ export class BioforestTransactionService implements ITransactionService {
         fast: createFee(minFee.mul(2), 5),
       }
     } catch (error) {
-      console.warn('[TransactionService] Failed to get min fee from SDK, using default:', error)
-      // Fallback to default - real minimum is around 500 (0.000005 BFM)
-      const defaultFee = Amount.fromRaw('1000', decimals, symbol)
-      return {
-        slow: createFee(defaultFee, 30),
-        standard: createFee(defaultFee, 15),
-        fast: createFee(defaultFee.mul(2), 5),
-      }
+      throw new ChainServiceError(
+        ChainErrorCodes.NETWORK_ERROR,
+        'Failed to calculate minimum fee from SDK',
+        undefined,
+        error instanceof Error ? error : undefined,
+      )
     }
   }
 

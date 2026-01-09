@@ -7,7 +7,8 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
-import type { BioforestBlockInfo, BioforestFeeInfo } from './types'
+import type { BioforestBlockInfo } from './types'
+import { getTransferMinFee } from '@/services/bioforest-sdk'
 
 export class BioforestChainService implements IChainService {
   private readonly chainId: string
@@ -89,59 +90,38 @@ export class BioforestChainService implements IChainService {
     const { decimals, symbol } = config
 
     if (!this.baseUrl) {
-      // Return default fees - BioForest minimum is around 500 (0.000005 BFM)
-      const defaultFee = Amount.fromRaw('1000', decimals, symbol) // 0.00001 BFM
-      return {
-        slow: defaultFee,
-        standard: defaultFee.mul(2),
-        fast: defaultFee.mul(5),
-        lastUpdated: Date.now(),
-      }
+      throw new ChainServiceError(
+        ChainErrorCodes.NETWORK_ERROR,
+        'RPC URL not configured for BioForest chain',
+      )
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/blockAveFee`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
+      // Use SDK to calculate minimum fee dynamically
+      // Note: This is a base fee without considering specific sender's pay password status
+      // For more accurate fee, use transaction-service.estimateFee() with sender address
+      const minFeeRaw = await getTransferMinFee(
+        this.baseUrl,
+        config.id,
+        undefined, // No specific sender - base fee calculation
+      )
 
-      if (!response.ok) {
-        throw new ChainServiceError(
-          ChainErrorCodes.NETWORK_ERROR,
-          `Failed to fetch fee info: ${response.status}`,
-        )
-      }
-
-      const json = (await response.json()) as { success: boolean; result: BioforestFeeInfo }
-      if (!json.success) {
-        // Return default fees on API error - BioForest minimum is around 500
-        const defaultFee = Amount.fromRaw('1000', decimals, symbol)
-        return {
-          slow: defaultFee,
-          standard: defaultFee.mul(2),
-          fast: defaultFee.mul(5),
-          lastUpdated: Date.now(),
-        }
-      }
-      const minFee = Amount.fromRaw(json.result.minFee, decimals, symbol)
-      const avgFee = Amount.fromRaw(json.result.avgFee, decimals, symbol)
+      const minFee = Amount.fromRaw(minFeeRaw, decimals, symbol)
 
       return {
         slow: minFee,
-        standard: avgFee.gt(minFee) ? avgFee : minFee,
-        fast: avgFee.mul(2).gt(minFee) ? avgFee.mul(2) : minFee.mul(2),
+        standard: minFee,
+        fast: minFee.mul(2),
         lastUpdated: Date.now(),
       }
     } catch (error) {
       if (error instanceof ChainServiceError) throw error
-      // Return default on error - BioForest minimum is around 500
-      const defaultFee = Amount.fromRaw('1000', decimals, symbol)
-      return {
-        slow: defaultFee,
-        standard: defaultFee.mul(2),
-        fast: defaultFee.mul(5),
-        lastUpdated: Date.now(),
-      }
+      throw new ChainServiceError(
+        ChainErrorCodes.NETWORK_ERROR,
+        'Failed to calculate minimum fee from SDK',
+        undefined,
+        error instanceof Error ? error : undefined,
+      )
     }
   }
 

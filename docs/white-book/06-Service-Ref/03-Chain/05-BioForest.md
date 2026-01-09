@@ -32,7 +32,7 @@ chain-adapter/bioforest/
 | 地址格式 | `b...` / `BFM...` | `0x...` | `bc1...` | `T...` |
 | HD 派生 | 无 (单密钥) | BIP44 | BIP84 | BIP44 |
 | 代币标准 | AST | ERC-20 | - | TRC-20 |
-| 手续费 | 固定费率 | Gas | 费率 | 能量/带宽 |
+| 手续费 | 动态计算 | Gas | 费率 | 能量/带宽 |
 
 ---
 
@@ -145,19 +145,55 @@ type BioforestTransactionType =
 
 ### 手续费模型
 
-BioForest 使用 **固定费率** 模型:
+BioForest 使用 **动态计算** 模型，手续费根据交易体自动计算：
+
+#### 影响手续费的因素
+
+| 因素 | 说明 |
+|------|------|
+| **交易类型** | 转账、设置支付密码等不同类型费用不同 |
+| **支付密码** | 若发送方已设置支付密码，交易需二次签名，体积增大 |
+| **备注 (remark)** | 备注内容越多，交易体积越大 |
+| **转账金额** | 影响交易序列化后的字节数 |
+
+#### SDK 提供的手续费计算函数
 
 ```typescript
-async estimateFee(params: TransferParams): Promise<FeeEstimate> {
-  // 固定手续费
-  const fixedFee = await this.api.getTransactionFee();
-  
-  const fee: Fee = {
-    amount: Amount.fromRaw(fixedFee, this.config.decimals, this.config.symbol),
-    estimatedTime: 3,  // 约 3 秒
-  };
-  
-  return { slow: fee, standard: fee, fast: fee };
+import { getMinFee, getTransferMinFee } from '@/services/bioforest-sdk'
+
+// 方式 1: 通用接口，根据意图计算
+const fee = await getMinFee({
+  baseUrl,
+  chainId,
+  intent: { type: 'transfer', amount: '100000000', remark: {} },
+  fromAddress, // 传入发送方地址，自动检查是否有支付密码
+})
+
+// 方式 2: 设置支付密码的手续费
+const fee = await getMinFee({
+  baseUrl,
+  chainId,
+  intent: { type: 'setPayPassword' },
+})
+
+// 方式 3: 快捷函数
+const fee = await getTransferMinFee(baseUrl, chainId, fromAddress, amount, remark)
+```
+
+#### 实现原理
+
+SDK 内部通过模拟创建交易来计算最低手续费：
+
+```typescript
+// 核心调用
+const minFee = await core.transactionController.getTransferTransactionMinFee({
+  transaction: { applyBlockHeight, timestamp, remark },
+  assetInfo: { sourceChainName, sourceChainMagic, assetType, amount }
+})
+
+// 若发送方有支付密码，增加 5% 缓冲 (signSignature 额外开销)
+if (hasPayPassword) {
+  minFee = String(BigInt(minFee) * BigInt(105) / BigInt(100))
 }
 ```
 
