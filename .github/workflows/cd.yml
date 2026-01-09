@@ -198,12 +198,28 @@ jobs:
           echo "Deployed to gh-pages branch"
 
       # 直接在 build job 中创建 release，避免跨 job 传递 artifact（self-hosted 下载很慢）
+      # 使用重试逻辑处理网络不稳定问题
       - name: Create or Update Release
-        uses: softprops/action-gh-release@v2
+        uses: nick-fields/retry@v3
         with:
-          tag_name: ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}
-          name: ${{ steps.channel.outputs.channel == 'stable' && format('BFM Pay v{0}', steps.version.outputs.version) || 'BFM Pay Beta' }}
-          body: |
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            gh release create "$TAG_NAME" \
+              --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES" \
+              ${{ steps.channel.outputs.channel == 'beta' && '--prerelease' || '' }} \
+              --target ${{ github.sha }} \
+              release/* \
+              2>/dev/null || \
+            gh release upload "$TAG_NAME" release/* --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}
+          RELEASE_TITLE: ${{ steps.channel.outputs.channel == 'stable' && format('BFM Pay v{0}', steps.version.outputs.version) || 'BFM Pay Beta' }}
+          RELEASE_NOTES: |
             ## BFM Pay ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'Beta' }}
 
             ### 下载
@@ -220,11 +236,6 @@ jobs:
             ```
             dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}/bfmpay-dweb${{ steps.channel.outputs.channel == 'beta' && '-beta' || '' }}.zip
             ```
-          files: |
-            release/*
-          draft: false
-          prerelease: ${{ steps.channel.outputs.channel == 'beta' }}
-          generate_release_notes: ${{ steps.channel.outputs.channel == 'stable' }}
 
   # ==================== GitHub-hosted 标准构建 ====================
   build-standard:
@@ -483,12 +494,28 @@ jobs:
           name: release-${{ needs.build-standard.outputs.channel }}-${{ needs.build-standard.outputs.version }}
           path: release/
 
+      # 使用重试逻辑处理网络不稳定问题
       - name: Create or Update Release
-        uses: softprops/action-gh-release@v2
+        uses: nick-fields/retry@v3
         with:
-          tag_name: ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}
-          name: ${{ needs.build-standard.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build-standard.outputs.version) || 'BFM Pay Beta' }}
-          body: |
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            gh release create "$TAG_NAME" \
+              --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES" \
+              ${{ needs.build-standard.outputs.channel == 'beta' && '--prerelease' || '' }} \
+              --target ${{ github.sha }} \
+              release/* \
+              2>/dev/null || \
+            gh release upload "$TAG_NAME" release/* --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}
+          RELEASE_TITLE: ${{ needs.build-standard.outputs.channel == 'stable' && format('BFM Pay v{0}', needs.build-standard.outputs.version) || 'BFM Pay Beta' }}
+          RELEASE_NOTES: |
             ## BFM Pay ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'Beta' }}
 
             ### 下载
@@ -505,8 +532,3 @@ jobs:
             ```
             dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build-standard.outputs.channel == 'beta' && '-beta' || '' }}.zip
             ```
-          files: |
-            release/*
-          draft: false
-          prerelease: ${{ needs.build-standard.outputs.channel == 'beta' }}
-          generate_release_notes: ${{ needs.build-standard.outputs.channel == 'stable' }}

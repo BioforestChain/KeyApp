@@ -1252,8 +1252,15 @@ walletapi相关的接口：
 
 ---
 
-
 升级我们的地址输入框，需要分成两种状态：聚焦输入状态，与非聚焦输入状态。
-非聚焦状态下，专注于展示地址（使用我们专门的地址显示组件）。同时视觉上给人一种点击可以进行编辑的感觉。
+非聚焦状态下，专注于展示地址（使用我们专门的地址显示组件：可以完整的展示头尾，中间自动省略或者显示）。同时视觉上给人一种点击可以进行编辑的感觉。
 
 需要配套完整的 storybook+vitest 测试，storybook-e2e+截图
+
+----
+
+昨天有一个任务是关于支付面板的时候确认手续费，我自己测试了一下，发现用了一个 0.00001 作为默认手续费，这是错误的，我们 bioChain 是有专门的接口来获取最低手续费的。请你检查，并修复这个问题。
+看一下白皮书有没有，如果没有，你调查完成后，顺便更新白皮书。
+参考代码： `/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/chain-base/bioforest-chain.base.ts:378 #getTransferTransactionMinFee`
+核心的逻辑就是用 SDK 试着创建一笔交易，SDK 会根据交易体自动提供一个最低手续费。
+这个功能应该被封装到我们的 chain-provider 内核中。

@@ -289,6 +289,6 @@ function ChainToggle({ chainId }: Props) {
 
 ## 相关文档
 
-- [Chain Config Service](../../06-Service-Ref/03-Chain/07-Config.md)
+- [Chain Adapter](../../06-Service-Ref/03-Chain/01-Adapter.md)
 - [Chain Adapter](../../06-Service-Ref/03-Chain/01-Adapter.md)
 - [Wallet Store](./01-Wallet-Store.md)

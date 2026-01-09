@@ -179,4 +179,3 @@ export { MyActivity };
 
 - [Navigation Map](../00-Navigation-Map.md)
 - [Sheets/Jobs](../02-Sheets/00-Index.md)
-- [Tabs](../03-Tabs/00-Index.md)

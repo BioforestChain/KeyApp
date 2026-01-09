@@ -321,4 +321,4 @@ const miniappRuntimeSelectors = {
 
 - [Ecosystem Components](../../03-UI-Ref/04-Domain/04-Ecosystem.md)
 - [PostMessage Bridge](./02-Ecosystem.md)
-- [Authorize Service](./03-Authorize.md)
+- [Authorize Service](../08-Authorize/01-PlaocAdapter.md)

@@ -273,6 +273,6 @@ Bottom sheet header for miniapp modals.
 
 ## Related Documentation
 
-- [MiniApp Runtime](../../01-Kernel-Ref/01-Overview.md)
+- [MiniApp Runtime](../../01-Kernel-Ref/00-Overview.md)
 - [PostMessage Bridge](../../06-Service-Ref/02-Ecosystem/01-PostMessage-Bridge.md)
 - [Shell Navigation](../../12-Shell-Guide/01-Navigation/Router-Config.md)

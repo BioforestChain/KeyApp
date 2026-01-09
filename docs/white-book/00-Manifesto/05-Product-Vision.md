@@ -144,5 +144,5 @@ BFM Pay 是 mpay 的 **技术重构版本**，而非简单的 UI 改版。
 ## 相关文档
 
 - [技术栈](./02-Tech-Stack.md)
-- [开发工作流](./03-Workflow.md)
+- [开发工作流](./05-Workflows.md)
 - [设计原则](../03-UI-Ref/01-Foundation/02-Design-Principles.md)

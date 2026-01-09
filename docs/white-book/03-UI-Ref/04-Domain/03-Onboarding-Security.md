@@ -295,4 +295,4 @@ Migration success with summary.
 - [Key Derivation](../../10-Wallet-Guide/01-Account-System/01-Key-Derivation.md)
 - [Biometric Service](../../04-Platform-Ref/02-Biometric.md)
 - [Migration Service](../../06-Service-Ref/03-Migration/01-Mpay-Migration.md)
-- [MiniApp Runtime](../../01-Kernel-Ref/01-Overview.md)
+- [MiniApp Runtime](../../01-Kernel-Ref/00-Overview.md)
