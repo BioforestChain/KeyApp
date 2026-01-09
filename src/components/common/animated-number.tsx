@@ -11,6 +11,10 @@
 
 import NumberFlow from '@number-flow/react'
 import { cn } from '@/lib/utils'
+import { AmountDisplay } from './amount-display'
+
+/** 小数位显示模式：false=隐藏尾随零, true=显示完整小数位, 'auto'=自适应容器宽度 */
+type FixedDecimalsMode = boolean | 'auto';
 
 interface AnimatedNumberProps {
   /** The number value to display */
@@ -19,8 +23,8 @@ interface AnimatedNumberProps {
   loading?: boolean | undefined
   /** Decimal places to show (default: 8) */
   decimals?: number | undefined
-  /** Always show full decimal places (e.g., 0.00000000) */
-  fixedDecimals?: boolean | undefined
+  /** 小数位显示模式：false=隐藏尾随零, true=显示完整, 'auto'=自适应宽度 */
+  fixedDecimals?: FixedDecimalsMode | undefined
   /** Formatting locale (default: en-US) */
   locale?: string | undefined
   /** Additional CSS classes */
@@ -38,10 +42,24 @@ export function AnimatedNumber({
   value,
   loading = false,
   decimals = 8,
-  fixedDecimals = false,
+  fixedDecimals = 'auto',
   locale = 'en-US',
   className,
 }: AnimatedNumberProps) {
+  // auto 模式：使用 AmountDisplay 的自适应逻辑
+  if (fixedDecimals === 'auto') {
+    return (
+      <AmountDisplay
+        value={value}
+        decimals={decimals}
+        fixedDecimals="auto"
+        loading={loading}
+        animated
+        className={className}
+      />
+    )
+  }
+
   const format = {
     minimumFractionDigits: fixedDecimals ? decimals : 0,
     maximumFractionDigits: decimals,
@@ -95,8 +113,8 @@ interface AnimatedAmountProps {
   loading?: boolean | undefined
   /** Decimal places to show (default: 8) */
   decimals?: number | undefined
-  /** Always show full decimal places (e.g., 0.00000000) */
-  fixedDecimals?: boolean | undefined
+  /** 小数位显示模式：false=隐藏尾随零, true=显示完整, 'auto'=自适应宽度 */
+  fixedDecimals?: FixedDecimalsMode | undefined
   /** Formatting locale (default: en-US) */
   locale?: string | undefined
   /** Additional CSS classes */
@@ -107,7 +125,7 @@ export function AnimatedAmount({
   value,
   loading = false,
   decimals = 8,
-  fixedDecimals = false,
+  fixedDecimals = 'auto',
   locale = 'en-US',
   className,
 }: AnimatedAmountProps) {

@@ -98,6 +98,15 @@ export function SendPage() {
       decimals: chainConfig.decimals,
     };
   }, [chainConfig, tokens, initialAssetType]);
+
+  // useSend hook must be called before any code that references state/setAsset
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
+    initialAsset: initialAsset ?? undefined,
+    useMock: false,
+    walletId: currentWallet?.id,
+    fromAddress: currentChainAddress?.address,
+    chainConfig,
+  });
   
   // Selected token for AssetSelector (convert from state.asset)
   const selectedToken = useMemo((): TokenInfo | null => {
@@ -123,14 +132,6 @@ export function SendPage() {
     };
     setAsset(asset);
   }, [chainConfig?.decimals, setAsset]);
-
-  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
-    initialAsset: initialAsset ?? undefined,
-    useMock: false,
-    walletId: currentWallet?.id,
-    fromAddress: currentChainAddress?.address,
-    chainConfig,
-  });
 
   useEffect(() => {
     if (!initialAsset) return;

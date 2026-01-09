@@ -4,8 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
+import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { currencies, useCurrency } from '@/stores';
 import { getExchangeRate, useExchangeRate } from '@/hooks/use-exchange-rate';
+import { Button } from '../ui/button';
 
 function parseFiatNumber(input: string): number | null {
   const normalized = input.replaceAll(',', '').trim();
@@ -39,6 +47,16 @@ export interface TokenItemContext {
   canDestroy: boolean;
 }
 
+/** Menu item for token actions dropdown */
+export interface TokenMenuItem {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: 'default' | 'destructive';
+  /** Condition to show this item (default: true) */
+  show?: boolean;
+}
+
 interface TokenItemProps {
   token: TokenInfo;
   onClick?: (() => void) | undefined;
@@ -47,20 +65,18 @@ interface TokenItemProps {
   loading?: boolean | undefined;
   className?: string | undefined;
   testId?: string | undefined;
-  /** 
-   * Render prop for custom actions (e.g., dropdown menu)
+  /**
+   * Render prop for custom actions (e.g., action buttons on the right)
    * Receives the token and context for conditional rendering
    */
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined;
   /** Main asset symbol of the chain (used to determine isMainAsset) */
   mainAssetSymbol?: string | undefined;
   /**
-   * Context menu handler - triggered by:
-   * - Right click (desktop)
-   * - Long press (mobile)
-   * - More button click
+   * Menu items for the context menu (right-click on desktop)
+   * Function receives token and context, returns array of menu items
    */
-  onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined;
+  menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined;
 }
 
 // BioForest chain types that support asset destruction
@@ -75,30 +91,24 @@ const BIOFOREST_CHAINS = new Set<ChainType>([
   'malibu',
 ]);
 
-export function TokenItem({ 
-  token, 
-  onClick, 
-  showChange = false, 
-  loading = false, 
-  className, 
+export function TokenItem({
+  token,
+  onClick,
+  showChange = false,
+  loading = false,
+  className,
   testId,
   renderActions,
   mainAssetSymbol,
-  onContextMenu,
+  menuItems,
 }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
-  
-  // Long press support for mobile
-  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTriggeredRef = React.useRef(false);
 
   // Compute context for renderActions
   const isBioforestChain = BIOFOREST_CHAINS.has(token.chain);
-  const isMainAsset = mainAssetSymbol 
-    ? token.symbol.toUpperCase() === mainAssetSymbol.toUpperCase()
-    : false;
+  const isMainAsset = mainAssetSymbol ? token.symbol.toUpperCase() === mainAssetSymbol.toUpperCase() : false;
   const canDestroy = isBioforestChain && !isMainAsset;
 
   const context: TokenItemContext = {
@@ -107,56 +117,6 @@ export function TokenItem({
     isMainAsset,
     canDestroy,
   };
-
-  // Context menu handlers
-  const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
-    if (onContextMenu) {
-      e.preventDefault();
-      e.stopPropagation();
-      onContextMenu(e, token, context);
-    }
-  }, [onContextMenu, token, context]);
-
-  const handleMoreButtonClick = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onContextMenu?.(e, token, context);
-  }, [onContextMenu, token, context]);
-
-  // Long press handlers for touch devices
-  const handleTouchStart = React.useCallback(() => {
-    if (!onContextMenu) return;
-    
-    longPressTriggeredRef.current = false;
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      onContextMenu(null, token, context);
-    }, 500); // 500ms long press
-  }, [onContextMenu, token, context]);
-
-  const handleTouchEnd = React.useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  const handleTouchMove = React.useCallback(() => {
-    // Cancel long press if user moves finger
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  // Cleanup timer on unmount
-  React.useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
-  }, []);
 
   const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD';
   const {
@@ -184,95 +144,100 @@ export function TokenItem({
           : t('exchange.unavailable')
       : null;
 
-  return (
-    <div
-      {...(testId && { 'data-testid': testId })}
-      role={isClickable ? 'button' : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={isClickable ? (e) => e.key === 'Enter' && onClick?.() : undefined}
-      onContextMenu={handleContextMenu}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
-      aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
-      className={cn(
-        '@container flex items-center gap-3 rounded-xl p-3 transition-colors',
-        isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer',
-        className,
-      )}
-    >
+  // Content to render inside the item
+  const itemContent = (
+    <>
       {/* Token Icon */}
-      <div className="relative">
-        <TokenIcon
-          symbol={token.symbol}
-          chainId={token.chain}
-          imageUrl={token.icon}
-          size="lg"
-        />
-        {/* Chain badge */}
-        <ChainIcon
-          chain={token.chain}
-          size="sm"
-          className="ring-background absolute -right-0.5 -bottom-0.5 size-4 text-[8px] ring-2"
-        />
-      </div>
+      <ItemMedia variant="image" className="overflow-visible">
+        <div className="relative size-full">
+          <TokenIcon
+            symbol={token.symbol}
+            chainId={token.chain}
+            imageUrl={token.icon}
+            size="lg"
+            className="size-full"
+          />
+          {/* Chain badge - 40% of parent size, positioned at bottom-right */}
+          <ChainIcon
+            chain={token.chain}
+            size="sm"
+            className="bg-background ring-background absolute -right-[10%] -bottom-[10%] size-[40%]! text-[0.2em] ring-2"
+          />
+        </div>
+      </ItemMedia>
 
       {/* Token Info */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium @xs:text-base">{token.symbol}</p>
-        <p className="text-muted-foreground truncate text-xs @xs:text-sm">{token.name}</p>
-      </div>
+      <ItemContent>
+        <ItemTitle>{token.symbol}</ItemTitle>
+        <ItemDescription>{token.name}</ItemDescription>
+      </ItemContent>
 
-      {/* Balance */}
-      <div className="shrink-0 text-right">
-        <AnimatedAmount
-          value={token.balance}
-          loading={loading}
-          decimals={token.decimals ?? 8}
-          fixedDecimals
-          className="text-sm @xs:text-base"
-        />
-        {displayFiatValue && !loading && (
-          <p className="text-muted-foreground text-xs @xs:text-sm" title={exchangeStatusMessage ?? undefined}>
-            ≈ {fiatSymbol}
-            <AmountDisplay value={displayFiatValue} size="xs" className="inline" />
-            {showChange && token.change24h !== undefined && (
-              <AmountDisplay value={token.change24h} sign="always" color="auto" size="xs" className="ml-1 inline" />
-            )}
-            {showChange && token.change24h !== undefined && '%'}
-          </p>
-        )}
-        {loading && (
-          <p className="text-muted-foreground animate-pulse text-xs @xs:text-sm">
-            ≈ --
-          </p>
-        )}
-      </div>
-
-      {/* More button - visible when onContextMenu is provided */}
-      {onContextMenu && (
-        <button
-          type="button"
-          onClick={handleMoreButtonClick}
-          onKeyDown={(e) => e.stopPropagation()}
-          aria-label={t('common:a11y.more', '更多操作')}
-          className="shrink-0 p-2 -mr-2 rounded-full hover:bg-muted/50 active:bg-muted transition-colors"
-        >
-          <IconDotsVertical className="size-4 text-muted-foreground" />
-        </button>
-      )}
-
-      {/* Custom actions slot (deprecated: use onContextMenu instead) */}
-      {renderActions && !onContextMenu && (
-        <div 
-          className="shrink-0" 
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          {renderActions(token, context)}
+      {/* Balance and Actions */}
+      <ItemActions>
+        <div className="text-right">
+          <AnimatedAmount
+            value={token.balance}
+            loading={loading}
+            decimals={token.decimals ?? 8}
+            className="text-sm"
+          />
+          {displayFiatValue && !loading && (
+            <p className="text-muted-foreground text-xs" title={exchangeStatusMessage ?? undefined}>
+              ≈ {fiatSymbol}
+              <AmountDisplay value={displayFiatValue} size="xs" className="inline" />
+              {showChange && token.change24h !== undefined && (
+                <AmountDisplay value={token.change24h} sign="always" color="auto" size="xs" className="ml-1 inline" />
+              )}
+              {showChange && token.change24h !== undefined && '%'}
+            </p>
+          )}
+          {loading && <p className="text-muted-foreground animate-pulse text-xs">≈ --</p>}
         </div>
+      </ItemActions>
+    </>
+  );
+
+  // Get menu items if provided
+  const items = menuItems?.(token, context).filter((item) => item.show !== false) ?? [];
+
+  return (
+    <Item
+      {...(testId && { 'data-testid': testId })}
+      variant="default"
+      size="default"
+      render={isClickable ? <button type="button" /> : undefined}
+      onClick={onClick}
+      aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
+      className={cn(isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer', className)}
+    >
+      {itemContent}
+
+      {/* More button with dropdown menu - min 44x44 touch target */}
+      {items.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t('common:a11y.more', '更多操作')}
+            className="hover:bg-muted/80 active:bg-muted flex size-11 items-center justify-center rounded-lg transition-colors [&_svg]:pointer-events-auto"
+          >
+            <Button variant="ghost" size="icon-sm">
+              <IconDotsVertical className="text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={4}>
+            {items.map((item, index) => (
+              <DropdownMenuItem key={index} onClick={item.onClick} variant={item.variant}>
+                {item.icon}
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
-    </div>
+
+      {/* Custom actions slot */}
+      {renderActions && !menuItems && (
+        <ItemActions onClick={(e) => e.stopPropagation()}>{renderActions(token, context)}</ItemActions>
+      )}
+    </Item>
   );
 }

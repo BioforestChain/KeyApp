@@ -61,7 +61,7 @@ describe('AssetSelector', () => {
     expect(screen.getByText('BFM')).toBeInTheDocument()
   })
 
-  it('opens sheet on click', () => {
+  it('opens dropdown on click', () => {
     render(
       <AssetSelector
         selectedAsset={null}
@@ -73,7 +73,7 @@ describe('AssetSelector', () => {
 
     fireEvent.click(screen.getByTestId('asset-selector'))
     
-    // Sheet should open and show assets
+    // Dropdown should open and show assets
     expect(screen.getByText('BFMeta')).toBeInTheDocument()
     expect(screen.getByText('Tether USD')).toBeInTheDocument()
   })
@@ -89,7 +89,7 @@ describe('AssetSelector', () => {
       />,
     )
 
-    // Open sheet
+    // Open dropdown
     fireEvent.click(screen.getByTestId('asset-selector'))
     
     // Click on USDT
@@ -109,7 +109,7 @@ describe('AssetSelector', () => {
       />,
     )
 
-    // Open sheet
+    // Open dropdown
     fireEvent.click(screen.getByTestId('asset-selector'))
     
     // Only ETH should be visible
@@ -129,7 +129,7 @@ describe('AssetSelector', () => {
       />,
     )
 
-    // Open sheet
+    // Open dropdown
     fireEvent.click(screen.getByTestId('asset-selector'))
     
     expect(screen.getByText('暂无可选资产')).toBeInTheDocument()
@@ -161,7 +161,7 @@ describe('AssetSelector', () => {
       />,
     )
 
-    expect(screen.getByText('余额:')).toBeInTheDocument()
+    expect(screen.getByText(/余额/)).toBeInTheDocument()
   })
 
   it('hides balance when showBalance is false', () => {
@@ -175,7 +175,7 @@ describe('AssetSelector', () => {
       />,
     )
 
-    expect(screen.queryByText('余额:')).not.toBeInTheDocument()
+    expect(screen.queryByText(/余额/)).not.toBeInTheDocument()
   })
 
   it('uses custom placeholder', () => {
@@ -192,7 +192,7 @@ describe('AssetSelector', () => {
     expect(screen.getByText('Pick an asset')).toBeInTheDocument()
   })
 
-  it('highlights selected asset in list', () => {
+  it('shows selected asset in list', () => {
     render(
       <AssetSelector
         selectedAsset={mockAssets[1]}
@@ -202,11 +202,10 @@ describe('AssetSelector', () => {
       />,
     )
 
-    // Open sheet
+    // Open dropdown
     fireEvent.click(screen.getByTestId('asset-selector'))
     
-    // The selected asset (USDT) should have a different background style
-    // We can verify the sheet is open and shows assets
+    // Assets should be visible
     expect(screen.getByText('Tether USD')).toBeInTheDocument()
     expect(screen.getByText('BFMeta')).toBeInTheDocument()
   })
