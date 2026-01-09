@@ -2,7 +2,7 @@ import { useState, forwardRef, useId, useMemo, useCallback, useRef, useEffect } 
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
-import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX, IconPencil } from '@tabler/icons-react';
+import { IconLineScan as ScanLine, IconClipboardCopy as ClipboardPaste, IconUsers, IconX, IconPencil, IconWallet } from '@tabler/icons-react';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { clipboardService } from '@/services/clipboard';
 import { isValidAddressForChain } from '@/lib/address-format';
@@ -227,6 +227,9 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
                   }
                 }}
               >
+                <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full">
+                  <IconWallet className="text-muted-foreground size-5" />
+                </div>
                 <div className="min-w-0 flex-1">
                   <AddressDisplay 
                     address={currentValue} 
