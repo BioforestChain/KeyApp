@@ -3,6 +3,27 @@
  * Git Workflow MCP - GitHub & Git 操作封装
  * 
  * 提供原子化的 Git/GitHub 操作工具，供 workflow 调用。
+ * 
+ * ## 标签管理
+ * 
+ * 模块加载时通过 top-level await 从 GitHub 获取所有标签：
+ * - `getLabels()` - 获取标签列表（含 name, color, description）
+ * - `createLabel()` - 创建新标签（自动推断颜色）
+ * - `ensureLabels()` - 确保标签存在，可选自动创建
+ * 
+ * 颜色推断规则：
+ * - `area/*` → #c5def5 (蓝色)
+ * - `type/*` → #0e8a16 (绿色)  
+ * - `priority/*` → #d93f0b (红色)
+ * - 其他 → #ededed (灰色)
+ * 
+ * ## Issue/PR 创建
+ * 
+ * `createIssue()` 和 `createPr()` 支持：
+ * - `labels` - 要添加的标签数组
+ * - `createLabels` - 是否自动创建缺失的标签
+ * 
+ * 如果标签不存在且 `createLabels=false`，会抛出错误提示。
  */
 
 import { execSync } from "node:child_process";

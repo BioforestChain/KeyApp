@@ -4,10 +4,38 @@
  *
  * 核心理念：AI 的计划即 Issue，AI 的执行即 PR。
  *
- * 主要功能：
- * 1. start: 一键启动 (Issue -> Branch -> Worktree -> Draft PR)
- * 2. sync:  同步进度 (Local Todo -> Issue Body)
- * 3. submit: 提交任务 (Push -> Ready PR)
+ * ## 工作流程
+ *
+ * ```
+ * task start                    task submit
+ *     │                              │
+ *     ▼                              ▼
+ * Issue + Branch + Worktree    Push + Ready PR
+ * + Draft PR [skip ci]         (触发 CI)
+ * ```
+ *
+ * ## 主要功能
+ *
+ * 1. **start**: 一键启动开发环境
+ *    - 创建 GitHub Issue (根据 type 选择模板)
+ *    - 创建 Git Branch + Worktree
+ *    - 创建 Draft PR (带 [skip ci]，不触发 CI)
+ *    - 支持 --list-labels 列出可用标签
+ *    - 支持 --create-labels 自动创建缺失标签
+ *
+ * 2. **sync**: 同步进度到 Issue
+ *    - 将本地 Todo/进度更新到 Issue Description
+ *
+ * 3. **submit**: 提交任务触发 CI
+ *    - 推送代码 (不带 [skip ci]，触发 CI)
+ *    - 标记 PR 为 Ready for Review
+ *
+ * ## 标签管理
+ *
+ * 标签在模块加载时从 GitHub 动态获取，支持：
+ * - 按前缀分组显示 (type/, area/, etc.)
+ * - 自动推断新标签颜色
+ * - 创建前验证标签是否存在
  */
 
 import { existsSync } from "jsr:@std/fs";
@@ -97,7 +125,7 @@ ${desc}
  */
 const startWorkflow = defineWorkflow({
   name: "start",
-  description: "启动新任务 (Issue -> Branch -> Worktree -> Draft PR)",
+  description: "启动新任务 (Issue + Worktree + Draft PR，不触发 CI)",
   args: {
     title: { type: "string", description: "任务标题", required: false },
     type: {
@@ -250,11 +278,11 @@ const syncWorkflow = defineWorkflow({
 
 /**
  * 提交任务
- * Push 代码 -> 标记 PR 为 Ready
+ * Push 代码 (触发 CI) -> 标记 PR 为 Ready
  */
 const submitWorkflow = defineWorkflow({
   name: "submit",
-  description: "提交任务 (Push -> Ready PR)",
+  description: "提交任务并触发 CI (Push + Ready PR)",
   handler: async () => {
     const wt = getCurrentWorktreeInfo();
     if (!wt || !wt.path) {
