@@ -97,7 +97,7 @@ export function AssetSelector({
               <span className="text-sm font-medium">{selectedAsset.symbol}</span>
               {showBalance && (
                 <span className="text-xs text-muted-foreground">
-                  {t('assetSelector.balance', '余额')}: <AmountDisplay value={selectedAsset.balance} size="xs" className="inline" decimals={selectedAsset.decimals ?? 8} />
+                  {t('assetSelector.balance', '余额')}: <AmountDisplay value={selectedAsset.balance} size="xs" className="inline" decimals={selectedAsset.decimals ?? 8} fixedDecimals />
                 </span>
               )}
             </div>
@@ -144,7 +144,7 @@ export function AssetSelector({
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <AmountDisplay value={asset.balance} size="sm" decimals={asset.decimals ?? 8} />
+                        <AmountDisplay value={asset.balance} size="sm" decimals={asset.decimals ?? 8} fixedDecimals />
                       </div>
                       {isSelected && <IconCheck className="size-5 text-primary" />}
                     </div>
