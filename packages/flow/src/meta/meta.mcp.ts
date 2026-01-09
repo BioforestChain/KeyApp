@@ -3,7 +3,7 @@
  * Meta MCP Server
  *
  * Provides workflow execution capability to AI agents.
- * - workflow(name, args): Execute any workflow
+ * - use(name, args): Execute any workflow by name
  * - reload(): Refresh workflow list and return updated description
  * - buildMetaMcp(): Package workflows into an MCP server
  *
@@ -185,7 +185,7 @@ async function buildToolDescription(
     .join("\n");
 
   // 动态生成 examples
-  const examples = workflows.slice(0, 3).map((w) => `  workflow("${w.name}", ["--help"])`).join("\n");
+  const examples = workflows.slice(0, 3).map((w) => `  use("${w.name}", ["--help"])`).join("\n");
 
   return `Execute a workflow by name with arguments.
 
@@ -197,7 +197,7 @@ async function buildToolDescription(
 ${workflowList || "(none)"}
 
 ## Examples
-${examples || '  workflow("<name>", ["--help"])'}`;
+${examples || '  use("<name>", ["--help"])'}`;
 }
 
 // =============================================================================
@@ -341,7 +341,7 @@ async function createWorkflowTool(
   const description = await buildToolDescription(directories, filter);
 
   return defineTool({
-    name: "workflow",
+    name: "use",
     description,
     inputSchema: z.object({
       name: z
