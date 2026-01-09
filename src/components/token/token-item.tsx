@@ -4,14 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { ChainIcon, TokenIcon, type ChainType } from '../wallet';
 import { AmountDisplay, AnimatedAmount } from '../common';
-import {
-  Item,
-  ItemMedia,
-  ItemContent,
-  ItemTitle,
-  ItemDescription,
-  ItemActions,
-} from '@/components/ui/item';
+import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +64,7 @@ interface TokenItemProps {
   loading?: boolean | undefined;
   className?: string | undefined;
   testId?: string | undefined;
-  /** 
+  /**
    * Render prop for custom actions (e.g., action buttons on the right)
    * Receives the token and context for conditional rendering
    */
@@ -97,12 +90,12 @@ const BIOFOREST_CHAINS = new Set<ChainType>([
   'malibu',
 ]);
 
-export function TokenItem({ 
-  token, 
-  onClick, 
-  showChange = false, 
-  loading = false, 
-  className, 
+export function TokenItem({
+  token,
+  onClick,
+  showChange = false,
+  loading = false,
+  className,
   testId,
   renderActions,
   mainAssetSymbol,
@@ -114,9 +107,7 @@ export function TokenItem({
 
   // Compute context for renderActions
   const isBioforestChain = BIOFOREST_CHAINS.has(token.chain);
-  const isMainAsset = mainAssetSymbol 
-    ? token.symbol.toUpperCase() === mainAssetSymbol.toUpperCase()
-    : false;
+  const isMainAsset = mainAssetSymbol ? token.symbol.toUpperCase() === mainAssetSymbol.toUpperCase() : false;
   const canDestroy = isBioforestChain && !isMainAsset;
 
   const context: TokenItemContext = {
@@ -169,7 +160,7 @@ export function TokenItem({
           <ChainIcon
             chain={token.chain}
             size="sm"
-            className="ring-background absolute -right-[10%] -bottom-[10%] size-[40%] text-[0.2em] ring-2"
+            className="bg-background ring-background absolute -right-[10%] -bottom-[10%] size-[40%]! text-[0.2em] ring-2"
           />
         </div>
       </ItemMedia>
@@ -200,11 +191,7 @@ export function TokenItem({
               {showChange && token.change24h !== undefined && '%'}
             </p>
           )}
-          {loading && (
-            <p className="text-muted-foreground animate-pulse text-xs">
-              ≈ --
-            </p>
-          )}
+          {loading && <p className="text-muted-foreground animate-pulse text-xs">≈ --</p>}
         </div>
       </ItemActions>
     </>
@@ -221,10 +208,7 @@ export function TokenItem({
       render={isClickable ? <button type="button" /> : undefined}
       onClick={onClick}
       aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
-      className={cn(
-        isClickable && 'cursor-pointer hover:bg-muted/50 active:bg-muted',
-        className,
-      )}
+      className={cn(isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer', className)}
     >
       {itemContent}
 
@@ -232,19 +216,14 @@ export function TokenItem({
       {items.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger
-            onClick={(e) => e.stopPropagation()}
             aria-label={t('common:a11y.more', '更多操作')}
-            className="flex size-11 items-center justify-center rounded-lg hover:bg-muted/80 active:bg-muted transition-colors [&_svg]:pointer-events-auto"
+            className="hover:bg-muted/80 active:bg-muted flex size-11 items-center justify-center rounded-lg transition-colors [&_svg]:pointer-events-auto"
           >
-            <IconDotsVertical className="size-5 text-muted-foreground" />
+            <IconDotsVertical className="text-muted-foreground size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={4}>
             {items.map((item, index) => (
-              <DropdownMenuItem
-                key={index}
-                onClick={item.onClick}
-                variant={item.variant}
-              >
+              <DropdownMenuItem key={index} onClick={item.onClick} variant={item.variant}>
                 {item.icon}
                 {item.label}
               </DropdownMenuItem>
@@ -255,9 +234,7 @@ export function TokenItem({
 
       {/* Custom actions slot */}
       {renderActions && !menuItems && (
-        <ItemActions onClick={(e) => e.stopPropagation()}>
-          {renderActions(token, context)}
-        </ItemActions>
+        <ItemActions onClick={(e) => e.stopPropagation()}>{renderActions(token, context)}</ItemActions>
       )}
     </Item>
   );
