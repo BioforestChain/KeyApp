@@ -3,6 +3,27 @@
  * Git Workflow MCP - GitHub & Git 操作封装
  * 
  * 提供原子化的 Git/GitHub 操作工具，供 workflow 调用。
+ * 
+ * ## 标签管理
+ * 
+ * 模块加载时通过 top-level await 从 GitHub 获取所有标签：
+ * - `getLabels()` - 获取标签列表（含 name, color, description）
+ * - `createLabel()` - 创建新标签（自动推断颜色）
+ * - `ensureLabels()` - 确保标签存在，可选自动创建
+ * 
+ * 颜色推断规则：
+ * - `area/*` → #c5def5 (蓝色)
+ * - `type/*` → #0e8a16 (绿色)  
+ * - `priority/*` → #d93f0b (红色)
+ * - 其他 → #ededed (灰色)
+ * 
+ * ## Issue/PR 创建
+ * 
+ * `createIssue()` 和 `createPr()` 支持：
+ * - `labels` - 要添加的标签数组
+ * - `createLabels` - 是否自动创建缺失的标签
+ * 
+ * 如果标签不存在且 `createLabels=false`，会抛出错误提示。
  */
 
 import { execSync } from "node:child_process";
@@ -46,8 +67,107 @@ function safeExec(cmd: string, cwd?: string): string | null {
 // Pure Functions (Exports)
 // =============================================================================
 
-export async function createIssue(args: { title: string; body: string; labels?: string[]; assignee?: string }) {
-  const { title, body, labels, assignee = "@me" } = args;
+/** Label info type */
+interface LabelInfo {
+  name: string;
+  color: string;
+  description: string;
+}
+
+/** Cache for available labels with their colors */
+let labelsCache: LabelInfo[] | null = null;
+
+/**
+ * Load labels from GitHub (called once at startup via top-level await)
+ */
+async function loadLabelsFromGitHub(): Promise<LabelInfo[]> {
+  const output = safeExec(`gh label list --repo ${REPO} --limit 100 --json name,color,description`);
+  if (!output) return [];
+  try {
+    return JSON.parse(output) as LabelInfo[];
+  } catch {
+    return [];
+  }
+}
+
+// Top-level await: load labels at module initialization
+labelsCache = await loadLabelsFromGitHub();
+console.log(`📋 Loaded ${labelsCache.length} labels from GitHub`);
+
+/**
+ * Get all available labels in the repository
+ */
+export async function getLabels(args?: { refresh?: boolean }): Promise<{ labels: LabelInfo[] }> {
+  if (args?.refresh || !labelsCache) {
+    labelsCache = await loadLabelsFromGitHub();
+  }
+  return { labels: labelsCache };
+}
+
+/**
+ * Get color for a label (from cache or generate based on prefix)
+ */
+function getLabelColor(name: string): string {
+  // Check if label exists in cache
+  const existing = labelsCache?.find(l => l.name === name);
+  if (existing) return existing.color;
+  
+  // Generate color based on prefix
+  if (name.startsWith("area/")) return "c5def5";
+  if (name.startsWith("type/")) return "0e8a16";
+  if (name.startsWith("priority/")) return "d93f0b";
+  return "ededed"; // Default gray
+}
+
+/**
+ * Create a label if it doesn't exist
+ */
+export async function createLabel(args: { name: string; description?: string; color?: string }): Promise<{ created: boolean }> {
+  const { name, description = "", color = getLabelColor(name) } = args;
+  const { labels } = await getLabels();
+  
+  if (labels.some(l => l.name === name)) {
+    return { created: false };
+  }
+  
+  const descFlag = description ? `--description "${description}"` : "";
+  exec(`gh label create "${name}" --repo ${REPO} --color "${color}" ${descFlag}`);
+  labelsCache = null; // Invalidate cache
+  return { created: true };
+}
+
+/**
+ * Ensure all specified labels exist, creating missing ones if requested
+ */
+export async function ensureLabels(args: { labels: string[]; create?: boolean }): Promise<{ missing: string[]; created: string[] }> {
+  const { labels: requestedLabels, create = false } = args;
+  const { labels: existingLabels } = await getLabels();
+  const existingNames = existingLabels.map(l => l.name);
+  
+  const missing = requestedLabels.filter(l => !existingNames.includes(l));
+  const created: string[] = [];
+  
+  if (create && missing.length > 0) {
+    for (const label of missing) {
+      await createLabel({ name: label });
+      created.push(label);
+    }
+  }
+  
+  return { missing: create ? [] : missing, created };
+}
+
+export async function createIssue(args: { title: string; body: string; labels?: string[]; assignee?: string; createLabels?: boolean }) {
+  const { title, body, labels, assignee = "@me", createLabels = false } = args;
+  
+  // Ensure labels exist before creating issue
+  if (labels && labels.length > 0) {
+    const { missing } = await ensureLabels({ labels, create: createLabels });
+    if (missing.length > 0) {
+      throw new Error(`Labels not found: ${missing.join(", ")}. Use --create-labels to auto-create them.`);
+    }
+  }
+  
   const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
   const assigneeFlag = assignee ? `--assignee "${assignee}"` : "";
   const safeBody = body.replace(/"/g, '\\"');
@@ -70,8 +190,17 @@ export async function updateIssue(args: { issueId: string; body?: string; state?
   return { success: true };
 }
 
-export async function createPr(args: { title: string; body: string; head: string; base?: string; draft?: boolean; labels?: string[] }) {
-  const { title, body, head, base = "main", draft = true, labels } = args;
+export async function createPr(args: { title: string; body: string; head: string; base?: string; draft?: boolean; labels?: string[]; createLabels?: boolean }) {
+  const { title, body, head, base = "main", draft = true, labels, createLabels = false } = args;
+  
+  // Ensure labels exist before creating PR
+  if (labels && labels.length > 0) {
+    const { missing } = await ensureLabels({ labels, create: createLabels });
+    if (missing.length > 0) {
+      throw new Error(`Labels not found: ${missing.join(", ")}. Use --create-labels to auto-create them.`);
+    }
+  }
+  
   const draftFlag = draft ? "--draft" : "";
   const labelFlag = labels ? labels.map(l => `--label "${l}"`).join(" ") : "";
   
