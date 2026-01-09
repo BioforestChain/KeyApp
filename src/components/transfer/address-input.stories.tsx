@@ -200,3 +200,36 @@ export const FilterByChain: Story = {
     );
   },
 };
+
+/**
+ * 未知地址显示模式 - 显示钱包占位图标
+ */
+export const UnknownAddressDisplay: Story = {
+  args: {
+    label: 'Unknown Address',
+    value: '0x1234567890abcdef1234567890abcdef12345678',
+  },
+};
+
+/**
+ * 已知联系人显示模式 - 显示头像和双行信息（名称+地址）
+ */
+export const KnownContactDisplay: Story = {
+  decorators: [
+    (Story) => {
+      addressBookActions.clearAll();
+      addressBookActions.addContact({
+        name: 'Alice Cooper',
+        addresses: [
+          { id: '1', address: '0x1234567890abcdef1234567890abcdef12345678', label: 'ETH', isDefault: true },
+        ],
+        memo: 'Rockstar',
+      });
+      return <Story />;
+    },
+  ],
+  args: {
+    label: 'Known Contact',
+    value: '0x1234567890abcdef1234567890abcdef12345678',
+  },
+};

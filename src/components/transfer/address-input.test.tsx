@@ -168,4 +168,20 @@ describe('AddressInput', () => {
     expect(screen.getByTestId('address-input')).toBeInTheDocument()
     expect(screen.getByTestId('address-input')).toHaveFocus()
   })
+
+  it('shows placeholder icon in display mode for unknown address', () => {
+    renderWithProviders(<AddressInput value="0x1234567890abcdef1234567890abcdef12345678" />)
+    
+    const addressText = screen.getByText('0x1234567890abcdef1234567890abcdef12345678')
+    const displayContainer = addressText.closest('.group')
+    
+    // Verify the placeholder icon container exists
+    // The container has specific classes: "bg-muted flex size-10 shrink-0 items-center justify-center rounded-full"
+    // We can check if such an element exists within the displayContainer
+    const iconContainer = displayContainer?.querySelector('.bg-muted.size-10.rounded-full')
+    expect(iconContainer).toBeInTheDocument()
+    
+    // Verify it contains an SVG (IconWallet)
+    expect(iconContainer?.querySelector('svg')).toBeInTheDocument()
+  })
 })
