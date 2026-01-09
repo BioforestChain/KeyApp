@@ -49,6 +49,7 @@
     "toAddressLabel": "Recipient Address",
     "toAddressPlaceholder": "Enter {{chain}} address",
     "amountLabel": "Amount",
+    "assetLabel": "Transfer Asset",
     "networkWarning": "Please ensure the recipient address is a {{chain}} network address. Sending to the wrong network cannot be recovered",
     "continue": "Continue",
     "cameraPermissionRequired": "Camera permission required for scanning",
@@ -58,7 +59,18 @@
     "twoStepSecretTitle": "Security Password Required",
     "twoStepSecretDescription": "This address has a security password set. Please enter your security password to confirm the transfer.",
     "twoStepSecretPlaceholder": "Enter security password",
-    "twoStepSecretError": "Incorrect security password"
+    "twoStepSecretError": "Incorrect security password",
+    "fee": "Fee"
+  },
+  "destroyPage": {
+    "title": "Destroy",
+    "resultTitle": "Destroy Result",
+    "assetLabel": "Asset to Destroy",
+    "amountLabel": "Destroy Amount",
+    "warning": "This action cannot be undone. Please verify the amount before confirming.",
+    "confirm": "Confirm Destroy",
+    "notSupported": "Asset destruction not supported on this chain",
+    "noDestroyableAssets": "No assets available for destruction"
   },
   "aboutFee": "About Fee",
   "amount": "Amount",

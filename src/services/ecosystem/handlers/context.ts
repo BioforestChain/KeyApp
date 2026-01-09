@@ -3,7 +3,7 @@
  * 管理小程序回调的注册中心，支持多实例
  */
 
-import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction, TransferParams } from '../types'
+import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction, TransferParams, DestroyParams } from '../types'
 
 /** EVM 交易请求类型 */
 export interface EvmTransactionRequest {
@@ -80,6 +80,7 @@ export interface HandlerCallbacks {
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
   showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showDestroyDialog?: (params: DestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
 
   // EVM (Ethereum/BSC) callbacks

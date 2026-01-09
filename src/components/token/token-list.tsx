@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { TokenItem, type TokenInfo } from './token-item'
+import { TokenItem, type TokenInfo, type TokenItemContext } from './token-item'
 import { EmptyState } from '../common/empty-state'
 import { SkeletonList } from '../common/skeleton'
 
@@ -16,6 +16,10 @@ interface TokenListProps {
   emptyAction?: React.ReactNode | undefined
   className?: string | undefined
   testId?: string | undefined
+  /** Render prop for custom actions per token item */
+  renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined
+  /** Main asset symbol for the chain (used by renderActions context) */
+  mainAssetSymbol?: string | undefined
 }
 
 export function TokenList({
@@ -29,6 +33,8 @@ export function TokenList({
   emptyAction,
   className,
   testId,
+  renderActions,
+  mainAssetSymbol,
 }: TokenListProps) {
   if (loading) {
     return <SkeletonList count={3} {...(className && { className })} />
@@ -60,6 +66,8 @@ export function TokenList({
           testId={testId ? `token-item-${token.chain}-${token.symbol}` : undefined}
           showChange={showChange}
           loading={refreshing}
+          renderActions={renderActions}
+          mainAssetSymbol={mainAssetSymbol}
           {...(onTokenClick && { onClick: () => onTokenClick(token) })}
         />
       ))}

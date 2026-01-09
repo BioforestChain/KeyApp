@@ -12,6 +12,9 @@
     "noAssets": "No Assets",
     "noAssetsOnChain": "No tokens on {{chain}}",
     "selectNetwork": "Select Network",
-    "addressCopied": "Address copied"
+    "addressCopied": "Address copied",
+    "tokenActions": "Token Actions",
+    "transfer": "Transfer",
+    "destroy": "Destroy"
   }
 }

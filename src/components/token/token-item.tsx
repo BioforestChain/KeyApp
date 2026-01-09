@@ -25,6 +25,18 @@ export interface TokenInfo {
   change24h?: number | undefined;
 }
 
+/** Context passed to renderActions for conditional rendering */
+export interface TokenItemContext {
+  /** Chain type of the token */
+  chainType: ChainType;
+  /** Whether this is a BioForest chain (supports destroy) */
+  isBioforestChain: boolean;
+  /** Whether this is the main/native asset of the chain */
+  isMainAsset: boolean;
+  /** Whether this asset can be destroyed (bioforest + non-main asset) */
+  canDestroy: boolean;
+}
+
 interface TokenItemProps {
   token: TokenInfo;
   onClick?: (() => void) | undefined;
@@ -33,12 +45,54 @@ interface TokenItemProps {
   loading?: boolean | undefined;
   className?: string | undefined;
   testId?: string | undefined;
+  /** 
+   * Render prop for custom actions (e.g., dropdown menu)
+   * Receives the token and context for conditional rendering
+   */
+  renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined;
+  /** Main asset symbol of the chain (used to determine isMainAsset) */
+  mainAssetSymbol?: string | undefined;
 }
 
-export function TokenItem({ token, onClick, showChange = false, loading = false, className, testId }: TokenItemProps) {
+// BioForest chain types that support asset destruction
+const BIOFOREST_CHAINS = new Set<ChainType>([
+  'bfmeta',
+  'ccchain',
+  'pmchain',
+  'bfchainv2',
+  'btgmeta',
+  'biwmeta',
+  'ethmeta',
+  'malibu',
+]);
+
+export function TokenItem({ 
+  token, 
+  onClick, 
+  showChange = false, 
+  loading = false, 
+  className, 
+  testId,
+  renderActions,
+  mainAssetSymbol,
+}: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
   const currency = useCurrency();
+
+  // Compute context for renderActions
+  const isBioforestChain = BIOFOREST_CHAINS.has(token.chain);
+  const isMainAsset = mainAssetSymbol 
+    ? token.symbol.toUpperCase() === mainAssetSymbol.toUpperCase()
+    : false;
+  const canDestroy = isBioforestChain && !isMainAsset;
+
+  const context: TokenItemContext = {
+    chainType: token.chain,
+    isBioforestChain,
+    isMainAsset,
+    canDestroy,
+  };
 
   const shouldFetchRate = token.fiatValue !== undefined && currency !== 'USD';
   const {
@@ -127,6 +181,17 @@ export function TokenItem({ token, onClick, showChange = false, loading = false,
           </p>
         )}
       </div>
+
+      {/* Custom actions slot */}
+      {renderActions && (
+        <div 
+          className="shrink-0" 
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {renderActions(token, context)}
+        </div>
+      )}
     </div>
   );
 }

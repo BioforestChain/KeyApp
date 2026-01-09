@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -7,14 +7,24 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { MigrationRequiredView } from "@/components/common/migration-required-view";
 import { GradientButton } from "@/components/common/gradient-button";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { useBalanceQuery, useTransactionHistoryQuery } from "@/queries";
+import type { TokenInfo, TokenItemContext } from "@/components/token/token-item";
 import {
   IconPlus,
   IconSend,
   IconQrcode,
   IconLineScan,
+  IconDotsVertical,
+  IconFlame,
+  IconArrowRight,
 } from "@tabler/icons-react";
 import {
   useWallets,
@@ -25,6 +35,8 @@ import {
   useHasWallet,
   useWalletInitialized,
   useChainConfigMigrationRequired,
+  useChainConfigState,
+  chainConfigSelectors,
   walletActions,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
@@ -61,6 +73,11 @@ export function WalletTab() {
   const chainPreferences = useChainPreferences();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const tokens = useCurrentChainTokens();
+  const chainConfigState = useChainConfigState();
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
+    : null;
+  const mainAssetSymbol = chainConfig?.symbol;
 
   // 初始化钱包主题
   useWalletTheme();
@@ -144,6 +161,49 @@ export function WalletTab() {
       }
     },
     [push]
+  );
+
+  // 资产操作菜单渲染
+  const renderTokenActions = useCallback(
+    (token: TokenInfo, context: TokenItemContext) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="p-2 -mr-2 rounded-full hover:bg-muted/50 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={t("home:wallet.tokenActions")}
+            >
+              <IconDotsVertical className="size-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                push("SendActivity", { assetType: token.symbol });
+              }}
+            >
+              <IconArrowRight className="mr-2 size-4" />
+              {t("home:wallet.transfer")}
+            </DropdownMenuItem>
+            {context.canDestroy && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  push("DestroyActivity", { assetType: token.symbol, assetLocked: "true" });
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <IconFlame className="mr-2 size-4" />
+                {t("home:wallet.destroy")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+    [push, t]
   );
 
   // 需要迁移数据库
@@ -242,6 +302,8 @@ export function WalletTab() {
             console.log("Token clicked:", token.symbol);
           }}
           onTransactionClick={handleTransactionClick}
+          mainAssetSymbol={mainAssetSymbol}
+          renderTokenActions={renderTokenActions}
           renderTransactionFooter={() => (
             <button
               onClick={() => push("HistoryActivity", { 
