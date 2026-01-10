@@ -122,3 +122,53 @@ export const Responsive: Story = {
     },
   },
 };
+
+export const WithContextMenu: Story = {
+  args: {
+    token: mockUSDT,
+    onClick: () => alert('Clicked USDT'),
+    onContextMenu: (event, token, context) => {
+      alert(`Context menu for ${token.symbol}\nCan destroy: ${context.canDestroy}`);
+    },
+    mainAssetSymbol: 'ETH', // USDT is not main asset, so canDestroy = true for bioforest chains
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '带有更多操作按钮的代币项，点击按钮、右键点击或长按触发上下文菜单',
+      },
+    },
+  },
+};
+
+export const ContextMenuList: Story = {
+  render: () => (
+    <div className="space-y-1">
+      <TokenItem 
+        token={mockUSDT} 
+        onClick={() => {}} 
+        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        mainAssetSymbol="ETH"
+      />
+      <TokenItem 
+        token={mockETH} 
+        onClick={() => {}} 
+        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        mainAssetSymbol="ETH"
+      />
+      <TokenItem 
+        token={mockTRX} 
+        onClick={() => {}} 
+        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        mainAssetSymbol="TRX"
+      />
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: '多个代币项带有上下文菜单，注意主资产(TRX)的 canDestroy 为 false',
+      },
+    },
+  },
+};

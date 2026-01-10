@@ -22,7 +22,7 @@
 
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { withPreferences } from "../async-context.ts";
+import { withPreferences, WorkflowNameContext } from "../async-context.ts";
 
 // =============================================================================
 // Types
@@ -62,9 +62,19 @@ async function buildSubflowMap(subflows: SubflowDef[]): Promise<Map<string, Subf
   return map;
 }
 
+/** Description can be static string, sync function, or async function */
+export type DescriptionProvider = string | (() => string) | (() => Promise<string>);
+
+/** Resolve description to string */
+export async function resolveDescription(desc: DescriptionProvider): Promise<string> {
+  if (typeof desc === "string") return desc;
+  const result = desc();
+  return result instanceof Promise ? await result : result;
+}
+
 export interface WorkflowConfig<TArgs extends Record<string, ArgConfig>> {
   name: string;
-  description: string;
+  description: DescriptionProvider;
   version?: string;
   args?: TArgs;
   subflows?: SubflowDef[];
@@ -76,9 +86,14 @@ export interface WorkflowConfig<TArgs extends Record<string, ArgConfig>> {
 
 export interface WorkflowMeta {
   name: string;
-  description: string;
+  description: DescriptionProvider;
   version: string;
   args: Record<string, ArgConfig>;
+}
+
+/** Get resolved description string from WorkflowMeta */
+export async function getMetaDescription(meta: WorkflowMeta): Promise<string> {
+  return resolveDescription(meta.description);
 }
 
 export interface WorkflowContext {
@@ -241,12 +256,14 @@ async function printHelp<TArgs extends Record<string, ArgConfig>>(
   }
   opts.printed.add(id);
 
+  // Set workflow name context for str.scenarios() to use
+  const description = await WorkflowNameContext.run(meta.name, () => getMetaDescription(meta));
   if (opts.indent === 0) {
-    console.log(`${meta.name} v${meta.version} - ${meta.description}`);
+    console.log(`${meta.name} v${meta.version} - ${description}`);
     console.log();
     console.log(`Usage: ${pathStr || meta.name} [subflow...] [options]`);
   } else {
-    console.log(`${prefix}${meta.name} - ${meta.description}`);
+    console.log(`${prefix}${meta.name} - ${description}`);
   }
 
   const argEntries = Object.entries(meta.args);

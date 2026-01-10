@@ -85,6 +85,12 @@ export default defineConfig({
         viewport: { width: 1280, height: 720 },
       },
     },
+    {
+      name: 'Mobile Safari',
+      use: {
+        ...devices['iPhone 12'],
+      },
+    },
   ],
 
   // 使用标准 dev 服务器（端口 11173，避免与 vite 默认 517x 冲突）

@@ -9,6 +9,7 @@
   "balance": "余额",
   "exceedsBalance": "超出可用余额",
   "copiedToClipboard": "已复制到剪贴板",
+  "clickToCopy": "点击复制",
   "passwordStrength": "强度",
   "a11y": {
     "skipToMain": "跳转到主要内容",

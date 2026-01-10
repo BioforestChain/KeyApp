@@ -99,12 +99,14 @@ function getGenesisBaseUrl(): string {
   if (genesisBaseUrl) {
     return genesisBaseUrl
   }
-  // Browser: use document.baseURI to get full HTTP URL
+  // Browser: use relative path from document.baseURI for subdirectory deployment support
+  // Using './configs/genesis' instead of '/configs/genesis' ensures correct resolution
+  // when deployed to subdirectories (e.g., GitHub Pages at /KeyApp/)
   if (typeof document !== 'undefined') {
-    return new URL('/configs/genesis', document.baseURI).href
+    return new URL('./configs/genesis', document.baseURI).href
   }
-  // Fallback
-  return '/configs/genesis'
+  // Fallback for non-browser environments
+  return './configs/genesis'
 }
 
 /**
@@ -668,4 +670,153 @@ export async function setTwoStepSecret(
   ).catch(() => {})
 
   return { txHash: transaction.signature, success: true }
+}
+
+// ============================================================================
+// Destroy Asset (销毁资产)
+// ============================================================================
+
+export interface DestroyAssetInfo {
+  sourceChainName: string
+  sourceChainMagic: string
+  assetType: string
+  amount: string
+}
+
+export interface CreateDestroyParams {
+  /** Full wallet API URL */
+  baseUrl: string
+  chainId: string
+  mainSecret: string
+  paySecret?: string | undefined
+  from: string
+  /** Recipient address - usually the asset's applyAddress (issuer) */
+  recipientId: string
+  assetType: string
+  amount: string
+  fee?: string | undefined
+  remark?: Record<string, string> | undefined
+}
+
+/**
+ * Get minimum fee for destroying an asset
+ */
+export async function getDestroyTransactionMinFee(
+  baseUrl: string,
+  chainId: string,
+  assetType: string,
+  amount: string,
+): Promise<string> {
+  const core = await getBioforestCore(chainId)
+
+  const lastBlock = await getLastBlock(baseUrl)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  return core.transactionController.getDestoryAssetTransactionMinFee({
+    transaction: {
+      applyBlockHeight,
+      timestamp,
+      remark: {},
+    },
+    assetInfo: {
+      sourceChainName: await core.getChainName(),
+      sourceChainMagic: await core.getMagic(),
+      assetType,
+      amount,
+    },
+  })
+}
+
+/**
+ * Create a destroy asset transaction using the SDK
+ * 
+ * NOTE: The SDK uses "Destory" (typo from legacy code, not "Destroy")
+ */
+export async function createDestroyTransaction(
+  params: CreateDestroyParams,
+): Promise<BFChainCore.TransactionJSON> {
+  const core = await getBioforestCore(params.chainId)
+
+  const lastBlock = await getLastBlock(params.baseUrl)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  // Calculate fee if not provided
+  let fee = params.fee
+  if (!fee) {
+    fee = await getDestroyTransactionMinFee(
+      params.baseUrl,
+      params.chainId,
+      params.assetType,
+      params.amount,
+    )
+  }
+
+  // Determine pay password version if set
+  let usePaySecretV1 = false
+  if (params.paySecret) {
+    const addressInfo = await getAddressInfo(params.baseUrl, params.from)
+    if (addressInfo.secondPublicKey) {
+      const version = await verifyTwoStepSecret(
+        params.chainId,
+        params.mainSecret,
+        params.paySecret,
+        addressInfo.secondPublicKey,
+      )
+      usePaySecretV1 = version === 'v1'
+    }
+  }
+
+  const secrets: Secrets = {
+    mainSecret: params.mainSecret,
+    ...(params.paySecret ? { paySecret: params.paySecret, usePaySecretV1 } : {}),
+  }
+
+  const assetInfo: DestroyAssetInfo = {
+    sourceChainName: await core.getChainName(),
+    sourceChainMagic: await core.getMagic(),
+    assetType: params.assetType,
+    amount: params.amount,
+  }
+
+  // SDK method is "createDestoryAssetTransactionJSON" (typo preserved)
+  return core.transactionController.createDestoryAssetTransactionJSON({
+    secrets,
+    transaction: {
+      fee,
+      recipientId: params.recipientId,
+      applyBlockHeight,
+      timestamp,
+      remark: params.remark ?? {},
+      effectiveBlockHeight: applyBlockHeight + 100,
+    },
+    assetInfo,
+  })
+}
+
+/**
+ * Get asset detail including applyAddress (issuer address)
+ * @param baseUrl - Full wallet API URL
+ * @param assetType - Asset type to query
+ * @param address - Address to query (required by API)
+ */
+export async function getAssetDetail(
+  baseUrl: string,
+  assetType: string,
+  address: string,
+): Promise<{ applyAddress: string; assetType: string } | null> {
+  const api = getApi(baseUrl)
+  try {
+    const result = await api.queryTokenDetail({ assetType, address })
+    if (result?.applyAddress) {
+      return {
+        applyAddress: result.applyAddress,
+        assetType: result.assetType,
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
 }

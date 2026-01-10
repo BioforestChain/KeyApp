@@ -90,6 +90,8 @@ export interface TokenDetailResult {
   decimals: number
   logoUrl?: string
   iconUrl?: string
+  /** Asset issuer address (used as recipient for destroy transactions) */
+  applyAddress: string
 }
 
 export interface BroadcastResult {

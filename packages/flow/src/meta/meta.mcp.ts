@@ -3,7 +3,7 @@
  * Meta MCP Server
  *
  * Provides workflow execution capability to AI agents.
- * - workflow(name, args): Execute any workflow
+ * - use(name, args): Execute any workflow by name
  * - reload(): Refresh workflow list and return updated description
  * - buildMetaMcp(): Package workflows into an MCP server
  *
@@ -23,6 +23,8 @@ import {
   printMcpHelp,
   z,
 } from "../common/mcp/base-mcp.ts";
+import { withRuntimeMode, WorkflowNameContext } from "../common/async-context.ts";
+import { resolveDescription } from "../common/workflow/base-workflow.ts";
 
 const MCP_NAME = "meta";
 
@@ -144,7 +146,13 @@ async function getWorkflowInfo(
       else if (hasAi) mode = "ai";
       else if (hasSubflows || hasDirectCommands) mode = "programmatic";
 
-      return { description: workflow.meta.description, mode };
+      // Resolve description with workflow name context
+      const description = await WorkflowNameContext.run(
+        workflow.meta.name,
+        () => resolveDescription(workflow.meta.description)
+      );
+
+      return { description, mode };
     }
   } catch {
     // Ignore import errors
@@ -168,26 +176,28 @@ async function buildToolDescription(
   directories: string[],
   filter?: string[]
 ): Promise<string> {
-  let workflows = await scanWorkflows(directories);
+  // Run in MCP mode to get MCP-formatted descriptions
+  return withRuntimeMode("mcp", async () => {
+    let workflows = await scanWorkflows(directories);
 
-  if (filter && filter.length > 0) {
-    workflows = workflows.filter((w) => filter.includes(w.name));
-  }
+    if (filter && filter.length > 0) {
+      workflows = workflows.filter((w) => filter.includes(w.name));
+    }
 
-  const workflowList = workflows
-    .map((w) => {
-      const tags: string[] = [];
-      if (w.mode) tags.push(w.mode);
-      if (w.isUserOverride) tags.push("user");
-      const tagStr = tags.length > 0 ? ` [${tags.join(", ")}]` : "";
-      return `- ${w.name}: ${w.description}${tagStr}`;
-    })
-    .join("\n");
+    const workflowList = workflows
+      .map((w) => {
+        const tags: string[] = [];
+        if (w.mode) tags.push(w.mode);
+        if (w.isUserOverride) tags.push("user");
+        const tagStr = tags.length > 0 ? ` [${tags.join(", ")}]` : "";
+        return `- ${w.name}: ${w.description}${tagStr}`;
+      })
+      .join("\n");
 
-  // 动态生成 examples
-  const examples = workflows.slice(0, 3).map((w) => `  workflow("${w.name}", ["--help"])`).join("\n");
+    // 动态生成 examples
+    const examples = workflows.slice(0, 3).map((w) => `  use("${w.name}", ["--help"])`).join("\n");
 
-  return `Execute a workflow by name with arguments.
+    return `Execute a workflow by name with arguments.
 
 ## Usage
 - Use \`--help\` to get detailed usage for any workflow
@@ -197,7 +207,8 @@ async function buildToolDescription(
 ${workflowList || "(none)"}
 
 ## Examples
-${examples || '  workflow("<name>", ["--help"])'}`;
+${examples || '  use("<name>", ["--help"])'}`;
+  });
 }
 
 // =============================================================================
@@ -295,8 +306,8 @@ async function executeWorkflow(
       };
     }
 
-    // Execute with args
-    await workflow.run(args);
+    // Execute with args in MCP mode
+    await withRuntimeMode("mcp", () => workflow.run(args));
 
     return {
       success: true,
@@ -341,7 +352,7 @@ async function createWorkflowTool(
   const description = await buildToolDescription(directories, filter);
 
   return defineTool({
-    name: "workflow",
+    name: "use",
     description,
     inputSchema: z.object({
       name: z

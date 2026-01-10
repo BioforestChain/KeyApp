@@ -86,6 +86,177 @@ export const PreferencesContext = new AsyncContext<Preferences>(
 );
 
 // =============================================================================
+// Runtime Context (MCP vs CLI)
+// =============================================================================
+
+export type RuntimeMode = "mcp" | "cli";
+
+export interface RuntimeInfo {
+  mode: RuntimeMode;
+}
+
+/**
+ * Async context for runtime mode
+ */
+export const RuntimeContext = new AsyncContext<RuntimeInfo>("RuntimeContext");
+
+/**
+ * Get current runtime mode, defaults to "cli"
+ */
+export function getRuntimeMode(): RuntimeMode {
+  return RuntimeContext.tryGet()?.mode ?? "cli";
+}
+
+/**
+ * Check if running in MCP mode
+ */
+export function isMcpMode(): boolean {
+  return getRuntimeMode() === "mcp";
+}
+
+/**
+ * Check if running in CLI mode
+ */
+export function isCliMode(): boolean {
+  return getRuntimeMode() === "cli";
+}
+
+/**
+ * Run function within specified runtime mode
+ * Supports both sync and async functions
+ */
+export function withRuntimeMode<R>(mode: RuntimeMode, fn: () => R): R {
+  return RuntimeContext.run({ mode }, fn);
+}
+
+/**
+ * Run async function within specified runtime mode
+ * Use this for async functions to ensure context is preserved
+ */
+export async function withRuntimeModeAsync<R>(
+  mode: RuntimeMode,
+  fn: () => Promise<R>
+): Promise<R> {
+  return RuntimeContext.run({ mode }, fn);
+}
+
+// =============================================================================
+// Workflow Name Context
+// =============================================================================
+
+/**
+ * Async context for current workflow name (used by str template)
+ */
+export const WorkflowNameContext = new AsyncContext<string>("WorkflowNameContext");
+
+/**
+ * Get current workflow name from context
+ */
+export function getWorkflowName(): string {
+  return WorkflowNameContext.tryGet() ?? "workflow";
+}
+
+// =============================================================================
+// str`` Template Literal (mode-aware string builder)
+// =============================================================================
+
+/**
+ * str`` tagged template literal for mode-aware description generation.
+ * 
+ * Returns `() => Promise<string>` - an async function that resolves the template.
+ * 
+ * Values can be:
+ * - Static values (strings, numbers) - inserted directly
+ * - Functions `() => string | Promise<string>` - called and result inserted
+ * 
+ * @example
+ * ```ts
+ * const description = str`
+ * Task management workflow.
+ * 
+ * ## When to Use
+ * - Start new task → ${str.scenarios(["start", "--type", "service"])}
+ * - List labels → ${str.scenarios(["start", "--list-labels"])}
+ * 
+ * ${str.data("Labels", labels)}
+ * `;
+ * ```
+ */
+export function str(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): () => Promise<string> {
+  return async () => {
+    const parts: string[] = [];
+    for (let i = 0; i < strings.length; i++) {
+      parts.push(strings[i]);
+      if (i < values.length) {
+        const value = values[i];
+        if (typeof value === "function") {
+          const result = (value as () => unknown)();
+          parts.push(String(result instanceof Promise ? await result : result));
+        } else {
+          parts.push(String(value ?? ""));
+        }
+      }
+    }
+    return parts.join("");
+  };
+}
+
+/**
+ * Format a single scenario (command example) based on runtime mode.
+ * Workflow name is obtained from WorkflowNameContext.
+ * 
+ * Returns `() => string` - a function that generates the formatted string.
+ * 
+ * - MCP: `use("workflow", ["arg1", "arg2"])`
+ * - CLI: `workflow arg1 arg2`
+ */
+str.scenarios = (args: string[]): (() => string) => {
+  return () => {
+    const workflowName = getWorkflowName();
+    const mode = getRuntimeMode();
+    
+    if (mode === "mcp") {
+      return `use("${workflowName}", ${JSON.stringify(args)})`;
+    } else {
+      return `${workflowName} ${args.join(" ")}`;
+    }
+  };
+};
+
+/**
+ * Format a data section (e.g., labels list) based on runtime mode.
+ * 
+ * Returns `() => string` - a function that generates the formatted string.
+ * 
+ * - MCP: `Title: item1, item2, item3`
+ * - CLI: `Title:\n  item1 - description\n  item2 - description`
+ */
+str.data = (
+  title: string,
+  items: Array<{ name: string; description?: string; color?: string }>
+): (() => string) => {
+  return () => {
+    const mode = getRuntimeMode();
+    
+    if (mode === "mcp") {
+      return `${title}: ${items.map((i) => i.name).join(", ")}`;
+    } else {
+      const lines = [`${title}:`];
+      for (const item of items) {
+        const parts = [`  ${item.name}`];
+        if (item.color) parts.push(`(#${item.color})`);
+        if (item.description) parts.push(`- ${item.description}`);
+        lines.push(parts.join(" "));
+      }
+      return lines.join("\n");
+    }
+  };
+};
+
+// =============================================================================
 // Helpers
 // =============================================================================
 

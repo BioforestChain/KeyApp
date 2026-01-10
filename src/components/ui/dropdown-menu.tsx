@@ -146,6 +146,7 @@ function DropdownMenuSubContent({
 function DropdownMenuCheckboxItem({
   className,
   children,
+  checked,
   ...props
 }: MenuPrimitive.CheckboxItem.Props) {
   return (
@@ -155,6 +156,7 @@ function DropdownMenuCheckboxItem({
         "focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm [&_svg:not([class*='size-'])]:size-4 relative flex cursor-default items-center outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
       )}
+      checked={checked}
       {...props}
     >
       <span

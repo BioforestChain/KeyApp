@@ -21,5 +21,6 @@ export { WalletPickerJob } from "./WalletPickerJob";
 export { SigningConfirmJob } from "./SigningConfirmJob";
 export { PermissionRequestJob } from "./PermissionRequestJob";
 export { MiniappTransferConfirmJob } from "./MiniappTransferConfirmJob";
+export { MiniappDestroyConfirmJob } from "./MiniappDestroyConfirmJob";
 export { MiniappSignTransactionJob } from "./MiniappSignTransactionJob";
 export { ChainSwitchConfirmJob } from "./ChainSwitchConfirmJob";

@@ -9,6 +9,7 @@ import { WalletConfigActivity } from './activities/WalletConfigActivity';
 import { WalletCreateActivity } from './activities/WalletCreateActivity';
 
 import { SendActivity } from './activities/SendActivity';
+import { DestroyActivity } from './activities/DestroyActivity';
 import { ReceiveActivity } from './activities/ReceiveActivity';
 import { SettingsActivity } from './activities/SettingsActivity';
 import { SettingsLanguageActivity } from './activities/SettingsLanguageActivity';
@@ -57,6 +58,7 @@ import {
   SigningConfirmJob,
   PermissionRequestJob,
   MiniappTransferConfirmJob,
+  MiniappDestroyConfirmJob,
   MiniappSignTransactionJob,
   ChainSwitchConfirmJob,
 } from './activities/sheets';
@@ -75,6 +77,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         WalletConfigActivity: '/wallet/:walletId',
         WalletCreateActivity: '/wallet/create',
         SendActivity: '/send',
+        DestroyActivity: '/destroy',
         ReceiveActivity: '/receive',
         SettingsActivity: '/settings',
         SettingsLanguageActivity: '/settings/language',
@@ -122,6 +125,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         SigningConfirmJob: '/job/signing-confirm',
         PermissionRequestJob: '/job/permission-request',
         MiniappTransferConfirmJob: '/job/miniapp-transfer-confirm',
+        MiniappDestroyConfirmJob: '/job/miniapp-destroy-confirm',
         MiniappSignTransactionJob: '/job/miniapp-sign-transaction',
         ChainSwitchConfirmJob: '/job/chain-switch-confirm',
       },
@@ -139,6 +143,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     WalletConfigActivity,
     WalletCreateActivity,
     SendActivity,
+    DestroyActivity,
     ReceiveActivity,
     SettingsActivity,
     SettingsLanguageActivity,
@@ -186,6 +191,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     SigningConfirmJob,
     PermissionRequestJob,
     MiniappTransferConfirmJob,
+    MiniappDestroyConfirmJob,
     MiniappSignTransactionJob,
     ChainSwitchConfirmJob,
   },

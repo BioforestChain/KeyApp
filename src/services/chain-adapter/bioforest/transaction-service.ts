@@ -29,9 +29,39 @@ export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
   private config: ChainConfig | null = null
   private baseUrl: string = ''
+  private beginEpochTime: number | null = null
 
   constructor(chainId: string) {
     this.chainId = chainId
+  }
+
+  /**
+   * Get the genesis block's beginEpochTime (in milliseconds).
+   * BioForest chain timestamps are relative to this epoch time.
+   */
+  private async getBeginEpochTime(): Promise<number> {
+    if (this.beginEpochTime !== null) {
+      return this.beginEpochTime
+    }
+    try {
+      const core = await getBioforestCore(this.chainId)
+      // Access config through the core's internal structure
+      // The SDK stores beginEpochTime in milliseconds
+      const config = (core as unknown as { config?: { beginEpochTime?: number } }).config
+      this.beginEpochTime = config?.beginEpochTime ?? 0
+    } catch {
+      this.beginEpochTime = 0
+    }
+    return this.beginEpochTime
+  }
+
+  /**
+   * Convert BioForest relative timestamp to absolute milliseconds.
+   * BioForest timestamps are seconds since beginEpochTime.
+   */
+  private async toAbsoluteTimestamp(relativeTimestamp: number): Promise<number> {
+    const epochTime = await this.getBeginEpochTime()
+    return relativeTimestamp * 1000 + epochTime
   }
 
   private getConfig(): ChainConfig {
@@ -316,7 +346,7 @@ export class BioforestTransactionService implements ITransactionService {
           confirmations: 1,
           requiredConfirmations: 1,
         },
-        timestamp: tx.timestamp * 1000, // Convert to milliseconds
+        timestamp: await this.toAbsoluteTimestamp(tx.timestamp),
         blockNumber: BigInt(item.height),
         type: 'transfer',
       }
@@ -407,6 +437,9 @@ export class BioforestTransactionService implements ITransactionService {
 
       const { decimals, symbol } = config
 
+      // Get beginEpochTime once for all transactions
+      const beginEpochTime = await this.getBeginEpochTime()
+
       // Show all transaction types for the address
       return transactions
         .map((item) => {
@@ -432,7 +465,7 @@ export class BioforestTransactionService implements ITransactionService {
               confirmations: 1,
               requiredConfirmations: 1,
             },
-            timestamp: tx.timestamp * 1000, // Convert to milliseconds
+            timestamp: tx.timestamp * 1000 + beginEpochTime,
             blockNumber: BigInt(item.height),
             type: 'transfer' as const,
             rawType: txType,  // Pass the original chain transaction type

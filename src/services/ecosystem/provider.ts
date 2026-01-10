@@ -19,6 +19,7 @@ import {
   handleCreateTransaction,
   handleSignTransaction,
   handleSendTransaction,
+  handleDestroyAsset,
   registerEvmHandlers,
   registerTronHandlers,
 } from './handlers'
@@ -46,6 +47,9 @@ export function initBioProvider(): void {
   // Transfer methods
   bridge.registerHandler('bio_sendTransaction', handleSendTransaction)
 
+  // Destroy asset (BioForest chains only)
+  bridge.registerHandler('bio_destroyAsset', handleDestroyAsset)
+
   // EVM methods (Ethereum/BSC via window.ethereum)
   registerEvmHandlers((method, handler) => bridge.registerHandler(method, handler))
 
@@ -67,6 +71,7 @@ export function initBioProvider(): void {
       'bio_createTransaction',
       'bio_signTransaction',
       'bio_sendTransaction',
+      'bio_destroyAsset',
     ],
     evm: [
       'eth_chainId',
@@ -97,6 +102,7 @@ export {
   setGetAccounts,
   setSigningDialog,
   setTransferDialog,
+  setDestroyDialog,
   setSignTransactionDialog,
   // EVM setters
   setEvmWalletPicker,

@@ -52,7 +52,8 @@ describe('TokenList', () => {
     const handleClick = vi.fn()
     render(<TokenList tokens={mockTokens} onTokenClick={handleClick} />)
     
-    await userEvent.click(screen.getByText('USDT').closest('[role="button"]')!)
+    // Item component uses data-slot="item" instead of role="button"
+    await userEvent.click(screen.getByText('USDT').closest('[data-slot="item"]')!)
     expect(handleClick).toHaveBeenCalledWith(mockTokens[0])
   })
 
@@ -61,7 +62,8 @@ describe('TokenList', () => {
       { ...mockTokens[0]!, fiatValue: '100', change24h: 5.5 },
     ]
     render(<TokenList tokens={tokensWithChange} showChange />)
-    expect(screen.getByText('+5.5')).toBeInTheDocument()
+    // Auto mode renders text in multiple places, use aria-label to find the element
+    expect(screen.getByRole('text', { name: '+5.5' })).toBeInTheDocument()
     expect(screen.getByText(/≈.*%/)).toBeInTheDocument()
   })
 

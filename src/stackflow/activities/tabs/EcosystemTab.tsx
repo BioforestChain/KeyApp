@@ -1,28 +1,27 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useStore } from '@tanstack/react-store';
 import { useFlow } from '../../stackflow';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import {
   initRegistry,
   getApps,
   subscribeApps,
-  loadMyApps,
-  addToMyApps,
-  updateLastUsed,
-  removeFromMyApps,
   type MyAppRecord,
 } from '@/services/ecosystem';
 import type { MiniappManifest } from '@/services/ecosystem';
 import { EcosystemDesktop, type EcosystemDesktopHandle } from '@/components/ecosystem';
 import { computeFeaturedScore } from '@/services/ecosystem/scoring';
 import { launchApp, useMiniappVisibilityRestore } from '@/services/miniapp-runtime';
-import { ecosystemActions } from '@/stores/ecosystem';
+import { ecosystemActions, ecosystemStore } from '@/stores/ecosystem';
 
 export function EcosystemTab() {
   const { push } = useFlow();
   const desktopRef = useRef<EcosystemDesktopHandle>(null);
   const [apps, setApps] = useState<MiniappManifest[]>([]);
-  const [myAppRecords, setMyAppRecords] = useState<MyAppRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Subscribe to myApps from the store (Single Source of Truth)
+  const myAppRecords = useStore(ecosystemStore, (state) => state.myApps);
 
   // 初始化数据
   useEffect(() => {
@@ -30,7 +29,6 @@ export function EcosystemTab() {
 
     initRegistry({ refresh: true }).then(() => {
       setApps(getApps());
-      setMyAppRecords(loadMyApps());
       setLoading(false);
     });
 
@@ -50,9 +48,9 @@ export function EcosystemTab() {
 
   const handleAppOpen = useCallback(
     (app: MiniappManifest) => {
-      addToMyApps(app.id);
-      updateLastUsed(app.id);
-      setMyAppRecords(loadMyApps());
+      // Use store actions instead of direct service calls
+      ecosystemActions.installApp(app.id);
+      ecosystemActions.updateAppLastUsed(app.id);
 
       // 为了保证 shared layout 捕获到 icon 的起点位置，先固定到 mine
       ecosystemActions.setActiveSubPage('mine');
@@ -65,8 +63,7 @@ export function EcosystemTab() {
   );
 
   const handleAppRemove = useCallback((appId: string) => {
-    removeFromMyApps(appId);
-    setMyAppRecords(loadMyApps());
+    ecosystemActions.uninstallApp(appId);
   }, []);
 
   // 计算数据
@@ -121,3 +118,4 @@ export function EcosystemTab() {
     />
   );
 }
+

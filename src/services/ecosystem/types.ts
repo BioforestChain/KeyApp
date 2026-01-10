@@ -18,6 +18,14 @@ export interface TransferParams {
   asset?: string
 }
 
+/** Destroy asset parameters */
+export interface DestroyParams {
+  from: string
+  amount: string
+  chain: string
+  asset: string
+}
+
 /** Unsigned transaction payload (chain-specific) */
 export interface BioUnsignedTransaction {
   chainId: string
@@ -124,6 +132,12 @@ export const KNOWN_PERMISSIONS: Record<string, PermissionDefinition> = {
     id: 'bio_sendTransaction',
     name: '发送交易',
     description: '请求发送转账（需要您确认）',
+    risk: 'high',
+  },
+  bio_destroyAsset: {
+    id: 'bio_destroyAsset',
+    name: '销毁资产',
+    description: '请求销毁资产（需要您确认，不可撤销）',
     risk: 'high',
   },
 }
@@ -254,6 +268,15 @@ export interface SourceRecord {
   icon?: string
   /** 是否为内置源 */
   builtin?: boolean
+}
+
+/**
+ * My Apps - Local installed app record
+ */
+export interface MyAppRecord {
+  appId: string
+  installedAt: number
+  lastUsedAt: number
 }
 
 /** Method handler */

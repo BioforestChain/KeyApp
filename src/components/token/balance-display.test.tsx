@@ -62,10 +62,11 @@ describe('BalanceDisplay', () => {
 
   it('applies size classes correctly', () => {
     const { rerender } = render(<BalanceDisplay value="100" size="sm" />)
-    expect(screen.getByText('100')).toHaveClass('text-sm')
+    // Auto mode uses aria-label for accessibility
+    expect(screen.getByRole('text', { name: '100' })).toHaveClass('text-sm')
 
     rerender(<BalanceDisplay value="100" size="md" />)
-    expect(screen.getByText('100')).toHaveClass('text-base')
+    expect(screen.getByRole('text', { name: '100' })).toHaveClass('text-base')
   })
 
   it('renders without fiat when not provided', () => {

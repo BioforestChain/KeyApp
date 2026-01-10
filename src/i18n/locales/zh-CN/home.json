@@ -12,6 +12,9 @@
     "noAssets": "暂无资产",
     "noAssetsOnChain": "{{chain}} 链上暂无代币",
     "selectNetwork": "选择网络",
-    "addressCopied": "地址已复制"
+    "addressCopied": "地址已复制",
+    "tokenActions": "资产操作",
+    "transfer": "转账",
+    "destroy": "销毁"
   }
 }

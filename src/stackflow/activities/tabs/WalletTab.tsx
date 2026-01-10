@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { useBalanceQuery, useTransactionHistoryQuery } from "@/queries";
+import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
   IconPlus,
   IconSend,
   IconQrcode,
   IconLineScan,
+  IconFlame,
+  IconArrowRight,
 } from "@tabler/icons-react";
 import {
   useWallets,
@@ -25,6 +28,8 @@ import {
   useHasWallet,
   useWalletInitialized,
   useChainConfigMigrationRequired,
+  useChainConfigState,
+  chainConfigSelectors,
   walletActions,
 } from "@/stores";
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
@@ -61,6 +66,11 @@ export function WalletTab() {
   const chainPreferences = useChainPreferences();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
   const tokens = useCurrentChainTokens();
+  const chainConfigState = useChainConfigState();
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
+    : null;
+  const mainAssetSymbol = chainConfig?.symbol;
 
   // 初始化钱包主题
   useWalletTheme();
@@ -144,6 +154,31 @@ export function WalletTab() {
       }
     },
     [push]
+  );
+
+  // 资产操作菜单项生成器
+  const getTokenMenuItems = useCallback(
+    (token: TokenInfo, context: TokenItemContext): TokenMenuItem[] => [
+      {
+        label: t("home:wallet.transfer"),
+        icon: <IconArrowRight className="size-4" />,
+        onClick: () => {
+          haptics.impact("light");
+          push("SendActivity", { assetType: token.symbol });
+        },
+      },
+      {
+        label: t("home:wallet.destroy"),
+        icon: <IconFlame className="size-4" />,
+        onClick: () => {
+          haptics.impact("light");
+          push("DestroyActivity", { assetType: token.symbol, assetLocked: "true" });
+        },
+        variant: "destructive",
+        show: context.canDestroy,
+      },
+    ],
+    [haptics, push, t]
   );
 
   // 需要迁移数据库
@@ -242,6 +277,8 @@ export function WalletTab() {
             console.log("Token clicked:", token.symbol);
           }}
           onTransactionClick={handleTransactionClick}
+          mainAssetSymbol={mainAssetSymbol}
+          tokenMenuItems={getTokenMenuItems}
           renderTransactionFooter={() => (
             <button
               onClick={() => push("HistoryActivity", { 

@@ -4,6 +4,8 @@
  */
 
 import { Store } from '@tanstack/react-store'
+import { type MyAppRecord } from '@/services/ecosystem/types'
+import { loadMyApps, normalizeAppId, saveMyApps } from '@/services/ecosystem/my-apps'
 
 /** 权限记录 */
 export interface PermissionRecord {
@@ -43,6 +45,7 @@ export type SyncSource = 'swiper' | 'indicator' | null
 export interface EcosystemState {
   permissions: PermissionRecord[]
   sources: SourceRecord[]
+  myApps: MyAppRecord[]
   /** 当前可用子页面（由 EcosystemDesktop 根据配置/运行态写入） */
   availableSubPages: EcosystemSubPage[]
   /** 当前子页面（发现/我的） */
@@ -81,6 +84,7 @@ function loadState(): EcosystemState {
             enabled: true,
           },
         ],
+        myApps: loadMyApps(),
         availableSubPages: fixedAvailableSubPages,
         activeSubPage,
         swiperProgress: 0,
@@ -100,6 +104,7 @@ function loadState(): EcosystemState {
         enabled: true,
       },
     ],
+    myApps: loadMyApps(),
     availableSubPages: DEFAULT_AVAILABLE_SUBPAGES,
     activeSubPage: 'discover',
     swiperProgress: 0,
@@ -110,7 +115,14 @@ function loadState(): EcosystemState {
 /** 保存状态到 localStorage */
 function saveState(state: EcosystemState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      permissions: state.permissions,
+      sources: state.sources,
+      availableSubPages: state.availableSubPages,
+      activeSubPage: state.activeSubPage,
+      // myApps is saved separately
+    }))
+    saveMyApps(state.myApps)
   } catch {
     // ignore
   }
@@ -141,10 +153,60 @@ export const ecosystemSelectors = {
   getEnabledSources: (state: EcosystemState): SourceRecord[] => {
     return state.sources.filter((s) => s.enabled)
   },
+
+  /** 检查应用是否已安装 */
+  isAppInstalled: (state: EcosystemState, appId: string): boolean => {
+    const normalized = normalizeAppId(appId)
+    return state.myApps.some((a) => a.appId === normalized)
+  },
 }
 
 /** Actions */
 export const ecosystemActions = {
+  /** 安装应用 */
+  installApp: (appId: string): void => {
+    ecosystemStore.setState((state) => {
+      const normalized = normalizeAppId(appId)
+      if (state.myApps.some((a) => a.appId === normalized)) {
+        return state // 已安装
+      }
+      return {
+        ...state,
+        myApps: [
+          { appId: normalized, installedAt: Date.now(), lastUsedAt: Date.now() },
+          ...state.myApps,
+        ],
+      }
+    })
+  },
+
+  /** 卸载应用 */
+  uninstallApp: (appId: string): void => {
+    ecosystemStore.setState((state) => {
+      const normalized = normalizeAppId(appId)
+      return {
+        ...state,
+        myApps: state.myApps.filter((a) => a.appId !== normalized),
+      }
+    })
+  },
+
+  /** 更新应用最后使用时间 */
+  updateAppLastUsed: (appId: string): void => {
+    ecosystemStore.setState((state) => {
+      const normalized = normalizeAppId(appId)
+      const existing = state.myApps.find((a) => a.appId === normalized)
+      if (!existing) return state
+
+      return {
+        ...state,
+        myApps: state.myApps.map((a) =>
+          a.appId === normalized ? { ...a, lastUsedAt: Date.now() } : a
+        ),
+      }
+    })
+  },
+
   /** 授予权限 */
   grantPermissions: (appId: string, permissions: string[]): void => {
     ecosystemStore.setState((state) => {

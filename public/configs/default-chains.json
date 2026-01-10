@@ -15,7 +15,13 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2" }],
+      "explorer": {
+        "url": "https://tracker.bf-meta.org",
+        "queryTx": "https://tracker.bf-meta.org/#/info/event-details/:signature",
+        "queryAddress": "https://tracker.bf-meta.org/#/info/address-details/:address",
+        "queryBlock": "https://tracker.bf-meta.org/#/info/block-details/:height"
+      }
     },
     {
       "id": "bfmeta",

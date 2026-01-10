@@ -8,6 +8,8 @@ type SendParams = {
   address?: string;
   chain?: string;
   amount?: string;
+  assetType?: string;
+  assetLocked?: string;
 };
 
 export const SendActivity: ActivityComponentType<SendParams> = ({ params }) => {

@@ -4,7 +4,7 @@ import { TokenList } from '@/components/token/token-list'
 import { TransactionList } from '@/components/transaction/transaction-list'
 import { SwipeableTabs } from '@/components/layout/swipeable-tabs'
 import { ProviderFallbackWarning } from '@/components/common/provider-fallback-warning'
-import type { TokenInfo } from '@/components/token/token-item'
+import type { TokenInfo, TokenItemContext, TokenMenuItem } from '@/components/token/token-item'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
 import type { ChainType } from '@/stores'
 
@@ -26,6 +26,14 @@ export interface WalletAddressPortfolioViewProps {
   onTransactionClick?: (tx: TransactionInfo) => void
   /** 渲染交易列表底部额外内容（如"查看全部"按钮） */
   renderTransactionFooter?: () => React.ReactNode
+  /** Main asset symbol for the chain (used for renderActions context) */
+  mainAssetSymbol?: string
+  /** Render prop for token item actions (deprecated: use tokenMenuItems) */
+  renderTokenActions?: (token: TokenInfo, context: TokenItemContext) => React.ReactNode
+  /** Context menu handler for token items (deprecated: use tokenMenuItems) */
+  onTokenContextMenu?: (event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void
+  /** Menu items for token dropdown menu (recommended approach) */
+  tokenMenuItems?: (token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]
   className?: string
   testId?: string
 }
@@ -45,6 +53,10 @@ export function WalletAddressPortfolioView({
   onTokenClick,
   onTransactionClick,
   renderTransactionFooter,
+  mainAssetSymbol,
+  renderTokenActions,
+  onTokenContextMenu,
+  tokenMenuItems,
   className,
   testId = 'wallet-address-portfolio',
 }: WalletAddressPortfolioViewProps) {
@@ -77,6 +89,10 @@ export function WalletAddressPortfolioView({
                 onTokenClick={onTokenClick}
                 emptyTitle={t('home:wallet.noAssets')}
                 emptyDescription={t('home:wallet.noAssetsOnChain', { chain: displayChainName })}
+                mainAssetSymbol={mainAssetSymbol}
+                renderActions={renderTokenActions}
+                onContextMenu={onTokenContextMenu}
+                menuItems={tokenMenuItems}
                 testId={`${testId}-token-list`}
               />
             </div>

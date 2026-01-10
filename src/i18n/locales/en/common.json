@@ -116,6 +116,7 @@
   "contractRiskWarning": "The contract carries a certain level of risk. Users are requested to confirm the security of the contract code themselves. If authorized, the risk will be confirmed",
   "copied": "Copied",
   "copiedToClipboard": "Copied to clipboard",
+  "clickToCopy": "Click to copy",
   "copy": "Copy",
   "copyPrivateKey": "Copy Private key",
   "copySuccess": "Copied successfully",

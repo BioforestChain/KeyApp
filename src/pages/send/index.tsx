@@ -5,8 +5,10 @@ import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerRe
 import type { Contact, ContactAddress } from '@/stores';
 import { addressBookStore, addressBookSelectors, preferencesActions } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
+import { AssetSelector } from '@/components/asset';
 import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
+import type { TokenInfo } from '@/components/token/token-item';
 import { GradientButton } from '@/components/common/gradient-button';
 import { Alert } from '@/components/common/alert';
 import { ChainIcon } from '@/components/wallet/chain-icon';
@@ -21,6 +23,7 @@ import {
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
+  useCurrentChainTokens,
   type ChainType,
 } from '@/stores';
 
@@ -48,10 +51,14 @@ export function SendPage() {
   const isWalletLockSheetOpen = useRef(false);
 
   // Read params for pre-fill from scanner
-  const { address: initialAddress, amount: initialAmount } = useActivityParams<{
+  const { address: initialAddress, amount: initialAmount, assetType: initialAssetType, assetLocked: assetLockedParam } = useActivityParams<{
     address?: string;
     amount?: string;
+    assetType?: string;
+    assetLocked?: string;
   }>();
+  
+  const assetLocked = assetLockedParam === 'true';
 
   const selectedChain = useSelectedChain();
   const currentWallet = useCurrentWallet();
@@ -61,10 +68,28 @@ export function SendPage() {
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null;
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const tokens = useCurrentChainTokens();
 
-  const defaultAsset = useMemo(() => {
+  // Find initial asset from params or use default
+  const initialAsset = useMemo(() => {
     if (!chainConfig) return null;
-    const nativeBalance = currentChainAddress?.tokens.find((token) => token.symbol === chainConfig.symbol);
+    
+    // If assetType is specified, find it in tokens
+    if (initialAssetType) {
+      const found = tokens.find((t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
+      if (found) {
+        return {
+          assetType: found.symbol,
+          name: found.name,
+          amount: Amount.fromFormatted(found.balance, found.decimals ?? chainConfig.decimals, found.symbol),
+          decimals: found.decimals ?? chainConfig.decimals,
+          logoUrl: found.icon,
+        };
+      }
+    }
+    
+    // Default to native asset
+    const nativeBalance = tokens.find((token) => token.symbol === chainConfig.symbol);
     const balanceFormatted = nativeBalance?.balance ?? '0';
     return {
       assetType: chainConfig.symbol,
@@ -72,20 +97,46 @@ export function SendPage() {
       amount: Amount.fromFormatted(balanceFormatted, chainConfig.decimals, chainConfig.symbol),
       decimals: chainConfig.decimals,
     };
-  }, [chainConfig, currentChainAddress?.tokens]);
+  }, [chainConfig, tokens, initialAssetType]);
 
+  // useSend hook must be called before any code that references state/setAsset
   const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
-    initialAsset: defaultAsset ?? undefined,
+    initialAsset: initialAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
     fromAddress: currentChainAddress?.address,
     chainConfig,
   });
+  
+  // Selected token for AssetSelector (convert from state.asset)
+  const selectedToken = useMemo((): TokenInfo | null => {
+    if (!state.asset) return null;
+    return {
+      symbol: state.asset.assetType,
+      name: state.asset.name ?? state.asset.assetType,
+      balance: state.asset.amount.toFormatted(),
+      decimals: state.asset.decimals,
+      chain: selectedChain,
+      icon: state.asset.logoUrl,
+    };
+  }, [state.asset, selectedChain]);
+  
+  // Handle asset selection from AssetSelector
+  const handleAssetSelect = useCallback((token: TokenInfo) => {
+    const asset = {
+      assetType: token.symbol,
+      name: token.name,
+      amount: Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol),
+      decimals: token.decimals ?? chainConfig?.decimals ?? 8,
+      logoUrl: token.icon,
+    };
+    setAsset(asset);
+  }, [chainConfig?.decimals, setAsset]);
 
   useEffect(() => {
-    if (!defaultAsset) return;
-    setAsset(defaultAsset);
-  }, [defaultAsset, setAsset]);
+    if (!initialAsset) return;
+    setAsset(initialAsset);
+  }, [initialAsset, setAsset]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
@@ -284,6 +335,22 @@ export function SendPage() {
             </div>
           )}
         </div>
+
+        {/* Asset selector (only show if multiple tokens available) */}
+        {tokens.length > 1 && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t('sendPage.assetLabel', '转账资产')}
+            </label>
+            <AssetSelector
+              selectedAsset={selectedToken}
+              assets={tokens}
+              onSelect={handleAssetSelect}
+              disabled={assetLocked}
+              testId="send-asset-selector"
+            />
+          </div>
+        )}
 
         {/* Address input - 直接从 addressBookStore 读取（单一数据源） */}
         <AddressInput

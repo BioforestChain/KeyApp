@@ -56,21 +56,23 @@ describe('TokenItem', () => {
 
   it('shows 24h change when showChange is true', () => {
     render(<TokenItem token={mockToken} showChange />)
-    // AmountDisplay shows +2.5 (without trailing zeros)
-    expect(screen.getByText('+2.5')).toBeInTheDocument()
+    // Auto mode uses aria-label for accessibility
+    expect(screen.getByRole('text', { name: '+2.5' })).toBeInTheDocument()
     // % is in the same <p> as the fiat value
     expect(screen.getByText(/≈.*%/)).toBeInTheDocument()
   })
 
   it('shows negative change with correct color', () => {
     render(<TokenItem token={{ ...mockToken, change24h: -3.5 }} showChange />)
-    const changeText = screen.getByText('-3.5')
+    // Auto mode uses aria-label, check class on the element with role="text"
+    const changeText = screen.getByRole('text', { name: '-3.5' })
     expect(changeText).toHaveClass('text-destructive')
   })
 
   it('shows positive change with correct color', () => {
     render(<TokenItem token={mockToken} showChange />)
-    const changeText = screen.getByText('+2.5')
+    // Auto mode uses aria-label, check class on the element with role="text"
+    const changeText = screen.getByRole('text', { name: '+2.5' })
     expect(changeText).toHaveClass('text-green-500')
   })
 

@@ -41,6 +41,11 @@ export {
 } from './transfer'
 
 export {
+  handleDestroyAsset,
+  setDestroyDialog,
+} from './destroy'
+
+export {
   handleCreateTransaction,
   handleSignTransaction,
   setSignTransactionDialog,

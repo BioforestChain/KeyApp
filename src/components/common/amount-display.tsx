@@ -1,8 +1,11 @@
 import NumberFlow from '@number-flow/react'
+import { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils';
 
 type AmountSign = 'auto' | 'always' | 'never';
 type AmountColor = 'auto' | 'default' | 'positive' | 'negative';
+/** 小数位显示模式：false=隐藏尾随零, true=显示完整小数位, 'auto'=自适应容器宽度 */
+type FixedDecimalsMode = boolean | 'auto';
 
 interface AmountDisplayProps {
   value: string | number;
@@ -26,9 +29,48 @@ interface AmountDisplayProps {
   mono?: boolean | undefined;
   /** 是否启用动画 (默认 true) */
   animated?: boolean | undefined;
-  /** 始终显示完整小数位 (如 0.00000000) */
-  fixedDecimals?: boolean | undefined;
+  /** 小数位显示模式：false=隐藏尾随零, true=显示完整, 'auto'=自适应宽度 */
+  fixedDecimals?: FixedDecimalsMode | undefined;
   className?: string | undefined;
+}
+
+// Canvas 测量文字宽度（不触发回流）
+let measureCanvas: HTMLCanvasElement | null = null;
+let measureCtx: CanvasRenderingContext2D | null = null;
+
+function measureText(text: string, font: string): number {
+  if (typeof document === 'undefined') {
+    return text.length * 8;
+  }
+
+  if (!measureCanvas) {
+    measureCanvas = document.createElement('canvas');
+    measureCtx = measureCanvas.getContext('2d');
+  }
+
+  if (!measureCtx) {
+    return text.length * 8;
+  }
+
+  measureCtx.font = font;
+  return measureCtx.measureText(text).width;
+}
+
+// 格式化数字为字符串（用于测量宽度）
+function formatNumberToString(num: number, minDecimals: number, maxDecimals: number): string {
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: maxDecimals,
+  });
+}
+
+// 计算数值的有效小数位数（去除尾随零后的位数）
+function getEffectiveDecimals(num: number, maxDecimals: number): number {
+  if (num === 0) return 0;
+  const str = Math.abs(num).toFixed(maxDecimals);
+  const decimalPart = str.split('.')[1] || '';
+  const trimmed = decimalPart.replace(/0+$/, '');
+  return trimmed.length;
 }
 
 // 格式化数字 (仅用于非动画模式或 compact 模式)
@@ -83,6 +125,59 @@ const weightClasses = {
   bold: 'font-bold',
 };
 
+// 自适应小数位数 Hook
+function useAutoDecimals(
+  containerRef: React.RefObject<HTMLElement | null>,
+  numValue: number,
+  maxDecimals: number,
+  signChar: string,
+  symbol: string | undefined,
+): number {
+  const minDecimals = getEffectiveDecimals(numValue, maxDecimals);
+  const [displayDecimals, setDisplayDecimals] = useState(minDecimals);
+
+  const updateDecimals = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const style = getComputedStyle(container);
+    const font = `${style.fontSize} ${style.fontFamily}`;
+    const symbolSpace = symbol ? measureText(` ${symbol}`, font) : 0;
+    const signSpace = signChar ? measureText(signChar, font) : 0;
+    const availableWidth = container.clientWidth - symbolSpace - signSpace;
+
+    if (availableWidth <= 0) {
+      setDisplayDecimals(minDecimals);
+      return;
+    }
+
+    // 从最大小数位开始，找到能容纳的最大位数
+    for (let d = maxDecimals; d >= minDecimals; d--) {
+      const text = formatNumberToString(Math.abs(numValue), d, maxDecimals);
+      const textWidth = measureText(text, font);
+      if (textWidth <= availableWidth) {
+        setDisplayDecimals(d);
+        return;
+      }
+    }
+    setDisplayDecimals(minDecimals);
+  }, [numValue, maxDecimals, minDecimals, signChar, symbol]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    updateDecimals();
+
+    const observer = new ResizeObserver(updateDecimals);
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [updateDecimals]);
+
+  return displayDecimals;
+}
+
 export function AmountDisplay({
   value,
   symbol,
@@ -96,10 +191,44 @@ export function AmountDisplay({
   weight = 'normal',
   mono = true,
   animated = true,
-  fixedDecimals = false,
+  fixedDecimals = 'auto',
   className,
 }: AmountDisplayProps) {
+  const containerRef = useRef<HTMLSpanElement>(null);
   const baseClassName = cn(sizeClasses[size], weightClasses[weight], mono && 'font-mono', className);
+
+  // 预计算数值信息
+  const { isNegative, isZero, numValue } = formatAmount(value, decimals, compact);
+
+  // 计算符号
+  let signChar = '';
+  if (sign === 'always' && !isZero) {
+    signChar = isNegative ? '-' : '+';
+  } else if (sign === 'auto' && isNegative) {
+    signChar = '-';
+  }
+
+  // auto 模式：自适应小数位数
+  const autoDecimals = useAutoDecimals(
+    containerRef,
+    numValue,
+    decimals,
+    signChar,
+    symbol,
+  );
+
+  // 根据 fixedDecimals 模式确定 minimumFractionDigits
+  const effectiveMinDecimals =
+    fixedDecimals === 'auto'
+      ? autoDecimals
+      : fixedDecimals === true
+        ? decimals
+        : 0;
+
+  const format = {
+    minimumFractionDigits: effectiveMinDecimals,
+    maximumFractionDigits: decimals,
+  };
 
   if (hidden) {
     return (
@@ -109,11 +238,6 @@ export function AmountDisplay({
       </span>
     );
   }
-
-  const format = {
-    minimumFractionDigits: fixedDecimals ? decimals : 0,
-    maximumFractionDigits: decimals,
-  };
 
   // 加载状态：显示 0 配合呼吸动画
   if (loading) {
@@ -134,15 +258,7 @@ export function AmountDisplay({
     );
   }
 
-  const { formatted, isNegative, isZero, numValue } = formatAmount(value, decimals, compact);
-
-  // 计算符号
-  let signChar = '';
-  if (sign === 'always' && !isZero) {
-    signChar = isNegative ? '-' : '+';
-  } else if (sign === 'auto' && isNegative) {
-    signChar = '-';
-  }
+  const { formatted } = formatAmount(value, decimals, compact);
 
   // 计算颜色
   let colorClass = '';
@@ -156,7 +272,41 @@ export function AmountDisplay({
 
   const coloredClassName = cn(baseClassName, colorClass);
 
-  // 使用 NumberFlow 进行动画显示 (compact 模式不使用动画)
+  // auto 模式需要使用相对定位容器
+  if (fixedDecimals === 'auto') {
+    const minText = formatNumberToString(Math.abs(numValue), getEffectiveDecimals(numValue, decimals), decimals);
+    const a11yLabel = `${signChar}${formatted}${symbol ? ` ${symbol}` : ''}`;
+    
+    return (
+      <span
+        ref={containerRef}
+        className={cn(coloredClassName, 'relative inline-block')}
+        role="text"
+        aria-label={a11yLabel}
+      >
+        {/* 隐藏占位符：最小宽度（有效数字） */}
+        <span className="invisible" aria-hidden="true">
+          {signChar}{minText}{symbol ? ` ${symbol}` : ''}
+        </span>
+        {/* 绝对定位的实际内容 */}
+        <span className="absolute inset-0 text-right" aria-hidden="true">
+          {signChar}
+          {animated && !compact ? (
+            <NumberFlow
+              value={Math.abs(numValue)}
+              format={format}
+              locales="en-US"
+            />
+          ) : (
+            formatNumberToString(Math.abs(numValue), effectiveMinDecimals, decimals)
+          )}
+          {symbol && <span className="text-muted-foreground ml-1 font-normal">{symbol}</span>}
+        </span>
+      </span>
+    );
+  }
+
+  // 非 auto 模式：使用 NumberFlow 进行动画显示 (compact 模式不使用动画)
   if (animated && !compact) {
     const a11yLabel = `${signChar}${formatted}${symbol ? ` ${symbol}` : ''}`;
     return (

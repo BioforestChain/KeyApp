@@ -1,0 +1,24 @@
+{
+  "title": "[MISSING:en] 生态",
+  "empty": "[MISSING:en] 暂无小程序",
+  "loading": "[MISSING:en] 加载中...",
+  "notFound": "[MISSING:en] 小程序不存在",
+  "refresh": "[MISSING:en] 刷新",
+  "sources": {
+    "title": "[MISSING:en] 可信源管理",
+    "add": "[MISSING:en] 添加订阅",
+    "remove": "[MISSING:en] 移除",
+    "empty": "[MISSING:en] 暂无订阅源"
+  },
+  "permissions": {
+    "title": "[MISSING:en] 权限请求",
+    "grant": "[MISSING:en] 授权",
+    "deny": "[MISSING:en] 拒绝",
+    "bio_requestAccounts": "[MISSING:en] 访问钱包地址",
+    "bio_selectAccount": "[MISSING:en] 选择账户",
+    "bio_pickWallet": "[MISSING:en] 选择其他钱包",
+    "bio_signMessage": "[MISSING:en] 签名消息",
+    "bio_signTypedData": "[MISSING:en] 签名数据",
+    "bio_sendTransaction": "[MISSING:en] 发起交易"
+  }
+}
