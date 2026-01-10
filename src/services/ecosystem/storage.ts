@@ -90,6 +90,11 @@ export async function loadSourcePayload(url: string): Promise<SourcePayloadRecor
   const record = await requestToPromise(store.get(url))
   await transactionDone(tx)
 
+  // 记录不存在是正常情况，直接返回 null
+  if (record === undefined) {
+    return null
+  }
+
   const parsed = SourcePayloadRecordSchema.safeParse(record)
   if (!parsed.success) {
     console.warn('[EcosystemStorage] Invalid source payload record:', parsed.error.issues[0])
