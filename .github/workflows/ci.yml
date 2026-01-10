@@ -110,11 +110,11 @@ jobs:
 
       - name: Install Playwright
         if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Install Playwright deps
         if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: pnpm exec playwright install-deps chromium webkit
 
       - name: Run all checks
         env:
