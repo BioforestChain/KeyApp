@@ -29,7 +29,7 @@ function readFixture<T>(name: string): T {
 describe('BiowalletProvider (BIWMeta real fixtures)', () => {
   const entry: ParsedApiEntry = {
     type: 'biowallet-v1',
-    endpoint: 'https://walletapi.biw-meta.com/wallet/biwmeta',
+    endpoint: 'https://walletapi.bfmeta.info/wallet/biwmeta',
   };
 
   const lastblock = readFixture<any>('biwmeta-lastblock.json');

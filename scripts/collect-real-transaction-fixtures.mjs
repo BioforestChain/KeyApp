@@ -138,7 +138,7 @@ async function main() {
   writeJson('bfmeta-transactions-query.json', bfmetaQuery)
 
   // BIW (BIWMeta) - collect provided real signatures
-  const biwmetaBase = 'https://walletapi.biw-meta.com/wallet/biwmeta'
+  const biwmetaBase = 'https://walletapi.bfmeta.info/wallet/biwmeta'
   const biwmetaLastblock = await fetchJson(`${biwmetaBase}/lastblock`)
   writeJson('biwmeta-lastblock.json', biwmetaLastblock)
 
