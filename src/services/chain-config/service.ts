@@ -62,6 +62,16 @@ class ChainConfigService {
   }
 
   /**
+   * 获取 BioWallet API 的 genesisBlock 配置路径
+   * 路径是相对于 default-chains.json 的位置
+   */
+  getBiowalletGenesisBlock(chainId: string): string | null {
+    const api = this.getApiByPattern(chainId, 'biowallet-*')
+    const config = api?.config as { genesisBlock?: string } | undefined
+    return config?.genesisBlock ?? null
+  }
+
+  /**
    * 获取 Etherscan API (匹配 etherscan-* 或 *scan-* 类型)
    */
   getEtherscanApi(chainId: string): string | null {

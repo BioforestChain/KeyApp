@@ -110,19 +110,40 @@ function getGenesisBaseUrl(): string {
 }
 
 /**
- * Load genesis block from {baseUrl}/{chainId}.json
+ * Load genesis block
+ * - If genesisBlockPath is provided (from config), resolve it relative to ./configs/
+ * - Otherwise, fallback to {baseUrl}/{chainId}.json
  * - Browser (http/https): uses fetch()
  * - Node.js (file://): uses import() with { with: { type: 'json' } }
+ * 
+ * @param chainId - Chain ID for caching and fallback path
+ * @param genesisBlockPath - Optional path relative to configs directory (e.g., "./genesis/bfmeta.json")
  */
 async function fetchGenesisBlock(
   chainId: string,
+  genesisBlockPath?: string,
 ): Promise<BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>> {
-  const cached = genesisCache.get(chainId)
+  // Use genesisBlockPath as cache key if provided, otherwise use chainId
+  const cacheKey = genesisBlockPath ?? chainId
+  const cached = genesisCache.get(cacheKey)
   if (cached) {
     return cached
   }
 
-  const url = `${getGenesisBaseUrl()}/${chainId}.json`
+  // Determine the URL to fetch
+  let url: string
+  if (genesisBlockPath) {
+    // Resolve genesisBlockPath relative to ./configs/ directory
+    // The genesisBlockPath is like "./genesis/bfmeta.json" relative to default-chains.json location
+    if (typeof document !== 'undefined') {
+      url = new URL(`./configs/${genesisBlockPath.replace(/^\.\//, '')}`, document.baseURI).href
+    } else {
+      url = `./configs/${genesisBlockPath.replace(/^\.\//, '')}`
+    }
+  } else {
+    // Fallback to original behavior: {baseUrl}/{chainId}.json
+    url = `${getGenesisBaseUrl()}/${chainId}.json`
+  }
   
   let genesis: BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
   if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -140,7 +161,7 @@ async function fetchGenesisBlock(
     genesis = module.default
   }
 
-  genesisCache.set(chainId, genesis)
+  genesisCache.set(cacheKey, genesis)
   return genesis
 }
 
@@ -225,9 +246,11 @@ async function loadBundle(): Promise<BioforestChainBundle> {
 
 /**
  * Get or create a BioForest core instance for a specific chain
+ * @param chainId - Chain ID
+ * @param genesisBlockPath - Optional genesis block path from config (relative to configs directory)
  */
-export async function getBioforestCore(chainId: string): Promise<BioforestChainBundleCore> {
-  const genesis = await fetchGenesisBlock(chainId)
+export async function getBioforestCore(chainId: string, genesisBlockPath?: string): Promise<BioforestChainBundleCore> {
+  const genesis = await fetchGenesisBlock(chainId, genesisBlockPath)
   const chainMagic = genesis.magic
 
   const cached = coreCache.get(chainMagic)
