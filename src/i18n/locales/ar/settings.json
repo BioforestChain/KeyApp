@@ -1,146 +1,149 @@
 {
-  "language": "اللغة",
-  "settings": "الإعدادات",
-  "title": "الإعدادات",
-  "sections": {
-    "walletManagement": "إدارة المحفظة",
-    "security": "الأمان",
-    "preferences": "التفضيلات",
-    "about": "حول"
-  },
-  "items": {
-    "walletManagement": "إدارة المحفظة",
-    "walletChains": "شبكات المحفظة",
-    "addressBook": "دفتر العناوين",
-    "appLock": "قفل التطبيق",
-    "viewMnemonic": "عرض العبارة السرية",
-    "changeWalletLock": "تغيير كلمة المرور",
-    "language": "اللغة",
-    "currency": "العملة",
-    "chainConfig": "تكوين السلسلة",
-    "appearance": "المظهر",
-    "aboutApp": "حول BFM Pay",
-    "clearData": "مسح بيانات التطبيق",
-    "storage": "التخزين"
-  },
   "appearance": {
-    "title": "المظهر",
-    "system": "اتباع النظام",
+    "dark": "الوضع الداكن",
     "light": "الوضع الفاتح",
-    "dark": "الوضع الداكن"
-  },
-  "languagePage": {
-    "title": "اللغة",
-    "hint": "بعد اختيار لغة الواجهة، سيتحول التطبيق فوراً إلى اللغة المحددة."
-  },
-  "currency": {
-    "title": "العملة",
-    "hint": "بعد اختيار العملة، ستُعرض قيم الأصول بالعملة المحددة.",
-    "names": {
-      "USD": "الدولار الأمريكي",
-      "CNY": "اليوان الصيني",
-      "EUR": "اليورو",
-      "JPY": "الين الياباني",
-      "KRW": "الوون الكوري"
-    }
-  },
-  "viewMnemonic": {
-    "titleMnemonic": "عرض العبارة السرية",
-    "titleKey": "عرض المفتاح",
-    "noWallet": "الرجاء إنشاء أو استيراد محفظة أولاً",
-    "walletIncomplete": "بيانات المحفظة غير مكتملة",
-    "patternError": "النمط غير صحيح",
-    "securityTip": "نصيحة أمان",
-    "securityWarningMnemonic": "تأكد من عدم وجود أحد يراقب. أصولك معرضة للخطر إذا تم كشف العبارة السرية.",
-    "securityWarningKey": "تأكد من عدم وجود أحد يراقب. أصولك معرضة للخطر إذا تم كشف المفتاح.",
-    "charCount": "{{count}} حرف",
-    "wordCount": "عبارة سرية من {{count}} كلمة",
-    "show": "إظهار",
-    "hide": "إخفاء",
-    "autoHideNote": "سيتم الإخفاء تلقائياً بعد 30 ثانية",
-    "verifyTitle": "تحقق من كلمة المرور",
-    "verifyDescMnemonic": "أدخل كلمة مرور المحفظة لعرض العبارة السرية",
-    "verifyDescKey": "أدخل كلمة مرور المحفظة لعرض المفتاح"
-  },
-  "changeWalletLock": {
-    "title": "تغيير قفل المحفظة",
-    "noWallet": "الرجاء إنشاء أو استيراد محفظة أولاً",
-    "walletIncomplete": "بيانات المحفظة غير مكتملة",
-    "success": "تم تغيير قفل المحفظة بنجاح",
-    "returning": "جاري العودة إلى الإعدادات...",
-    "verifyTitle": "تحقق من النمط الحالي",
-    "verifyDesc": "ارسم نمط قفل المحفظة الحالي للمتابعة",
-    "forgotPattern": "نسيت النمط؟ إعادة تعيين باستخدام عبارة الاسترداد",
-    "mnemonicVerifyTitle": "التحقق بعبارة الاسترداد",
-    "mnemonicVerifyDesc": "أدخل عبارة الاسترداد التي احتفظت بها عند إنشاء المحفظة",
-    "verifyMnemonic": "تحقق من عبارة الاسترداد",
-    "verifying": "جاري التحقق...",
-    "usePattern": "العودة للتحقق بالنمط",
-    "invalidMnemonic": "تنسيق عبارة الاسترداد غير صالح",
-    "mnemonicVerifyFailed": "فشل التحقق من عبارة الاسترداد، يرجى التحقق من صحتها"
+    "system": "اتباع النظام",
+    "title": "المظهر"
   },
   "chainAddressCount": "{{count}} عناوين سلاسل",
-  "notSupported": "غير مدعوم",
   "chainConfig": {
-    "title": "تهيئة السلاسل",
-    "subscription": {
-      "title": "رابط الاشتراك",
-      "description": "أدخل <code>default</code> لاستخدام تهيئة السلاسل المضمنة.",
-      "refreshAriaLabel": "تحديث الاشتراك",
-      "save": "حفظ",
-      "placeholder": "default أو https://example.com/chains.json",
-      "lastUpdated": "آخر تحديث: {{value}}"
+    "hint": "تلميح: يتم تخزين تهيئة الاشتراك مؤقتًا محليًا. تغيير الرابط يمسح ذاكرة التخزين المؤقت القديمة لتجنب الالتباس.",
+    "list": {
+      "description": "تتوفر السلاسل المفعّلة في تدفقات المحفظة/الأصول.",
+      "empty": "لا توجد تهيئات سلاسل.",
+      "title": "قائمة السلاسل"
     },
     "manual": {
-      "title": "إضافة يدويًا",
-      "description": "الصق JSON (كائن واحد أو مصفوفة)، ثم اضغط على إضافة.",
       "add": "إضافة",
-      "placeholder": "مثال: {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "description": "الصق JSON (كائن واحد أو مصفوفة)، ثم اضغط على إضافة.",
       "duplicate": {
-        "title": "معرّفات سلاسل مكررة",
+        "cancel": "إلغاء",
         "description": "هذه المعرّفات موجودة بالفعل. هل تريد استبدالها؟",
         "replace": "استبدال",
-        "cancel": "إلغاء"
-      }
-    },
-    "list": {
-      "title": "قائمة السلاسل",
-      "description": "تتوفر السلاسل المفعّلة في تدفقات المحفظة/الأصول.",
-      "empty": "لا توجد تهيئات سلاسل."
+        "title": "معرّفات سلاسل مكررة"
+      },
+      "placeholder": "مثال: {\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "title": "إضافة يدويًا"
     },
     "source": {
       "default": "افتراضي",
-      "subscription": "اشتراك",
-      "manual": "يدوي"
+      "manual": "يدوي",
+      "subscription": "اشتراك"
+    },
+    "subscription": {
+      "description": "أدخل <code>default</code> لاستخدام تهيئة السلاسل المضمنة.",
+      "lastUpdated": "آخر تحديث: {{value}}",
+      "placeholder": "default أو https://example.com/chains.json",
+      "refreshAriaLabel": "تحديث الاشتراك",
+      "save": "حفظ",
+      "title": "رابط الاشتراك"
+    },
+    "title": "تهيئة السلاسل",
+    "toast": {
+      "manualAdded": "تمت إضافة تهيئة السلسلة",
+      "subscriptionRefreshed": "تم تحديث الاشتراك",
+      "subscriptionSaved": "تم حفظ رابط الاشتراك"
     },
     "warning": {
       "incompatibleMajor": "إصدار غير متوافق: {{version}} (يدعم ≤ {{supportedMajor}}.x)"
-    },
-    "toast": {
-      "subscriptionSaved": "تم حفظ رابط الاشتراك",
-      "subscriptionRefreshed": "تم تحديث الاشتراك",
-      "manualAdded": "تمت إضافة تهيئة السلسلة"
-    },
-    "hint": "تلميح: يتم تخزين تهيئة الاشتراك مؤقتًا محليًا. تغيير الرابط يمسح ذاكرة التخزين المؤقت القديمة لتجنب الالتباس."
+    }
+  },
+  "changeWalletLock": {
+    "forgotPattern": "نسيت النمط؟ إعادة تعيين باستخدام عبارة الاسترداد",
+    "invalidMnemonic": "تنسيق عبارة الاسترداد غير صالح",
+    "mnemonicVerifyDesc": "أدخل عبارة الاسترداد التي احتفظت بها عند إنشاء المحفظة",
+    "mnemonicVerifyFailed": "فشل التحقق من عبارة الاسترداد، يرجى التحقق من صحتها",
+    "mnemonicVerifyTitle": "التحقق بعبارة الاسترداد",
+    "noWallet": "الرجاء إنشاء أو استيراد محفظة أولاً",
+    "returning": "جاري العودة إلى الإعدادات...",
+    "success": "تم تغيير قفل المحفظة بنجاح",
+    "title": "تغيير قفل المحفظة",
+    "usePattern": "العودة للتحقق بالنمط",
+    "verifyDesc": "ارسم نمط قفل المحفظة الحالي للمتابعة",
+    "verifyMnemonic": "تحقق من عبارة الاسترداد",
+    "verifyTitle": "تحقق من النمط الحالي",
+    "verifying": "جاري التحقق...",
+    "walletIncomplete": "بيانات المحفظة غير مكتملة"
   },
   "clearData": {
-    "title": "مسح بيانات التطبيق",
-    "warning": "ستحذف هذه العملية جميع البيانات المحلية، بما في ذلك المحافظ والإعدادات والذاكرة المؤقتة. لا يمكن التراجع عن هذه العملية!",
+    "confirm": "تأكيد المسح",
     "item1": "سيتم حذف جميع بيانات المحفظة",
     "item2": "ستتم استعادة جميع الإعدادات إلى الوضع الافتراضي",
     "item3": "سيتم إعادة تشغيل التطبيق",
-    "confirm": "تأكيد المسح"
+    "title": "مسح بيانات التطبيق",
+    "warning": "ستحذف هذه العملية جميع البيانات المحلية، بما في ذلك المحافظ والإعدادات والذاكرة المؤقتة. لا يمكن التراجع عن هذه العملية!"
   },
+  "currency": {
+    "hint": "بعد اختيار العملة، ستُعرض قيم الأصول بالعملة المحددة.",
+    "names": {
+      "CNY": "اليوان الصيني",
+      "EUR": "اليورو",
+      "JPY": "الين الياباني",
+      "KRW": "الوون الكوري",
+      "USD": "الدولار الأمريكي"
+    },
+    "title": "العملة"
+  },
+  "items": {
+    "aboutApp": "حول BFM Pay",
+    "addressBook": "دفتر العناوين",
+    "appLock": "قفل التطبيق",
+    "appearance": "المظهر",
+    "chainConfig": "تكوين السلسلة",
+    "changeWalletLock": "تغيير كلمة المرور",
+    "clearData": "مسح بيانات التطبيق",
+    "currency": "العملة",
+    "language": "اللغة",
+    "storage": "التخزين",
+    "viewMnemonic": "عرض العبارة السرية",
+    "walletChains": "شبكات المحفظة",
+    "walletManagement": "إدارة المحفظة"
+  },
+  "language": "اللغة",
+  "languagePage": {
+    "hint": "بعد اختيار لغة الواجهة، سيتحول التطبيق فوراً إلى اللغة المحددة.",
+    "title": "اللغة"
+  },
+  "notSupported": "غير مدعوم",
+  "sections": {
+    "about": "حول",
+    "preferences": "التفضيلات",
+    "security": "الأمان",
+    "walletManagement": "إدارة المحفظة"
+  },
+  "settings": "الإعدادات",
   "storage": {
-    "title": "التخزين",
-    "usage": "استخدام التخزين",
-    "basedOn": "بناءً على حصة تخزين المتصفح",
-    "used": "مستخدم",
-    "total": "المساحة الإجمالية",
-    "usagePercent": "نسبة الاستخدام",
     "available": "المساحة المتاحة",
-    "unavailable": "تعذر الحصول على معلومات التخزين",
+    "basedOn": "بناءً على حصة تخزين المتصفح",
+    "clearDesc": "مسح جميع البيانات المخزنة محليًا، بما في ذلك المحافظ والإعدادات والذاكرة المؤقتة.",
     "clearTitle": "مسح البيانات",
-    "clearDesc": "مسح جميع البيانات المخزنة محليًا، بما في ذلك المحافظ والإعدادات والذاكرة المؤقتة."
+    "goToClear": "[MISSING:ar] 前往清理数据",
+    "migrationDesc": "[MISSING:ar] 检测到旧版本数据格式，需要清空本地数据库后才能继续使用。您的助记词和私钥不会受到影响，但需要重新导入钱包。",
+    "migrationRequired": "[MISSING:ar] 数据需要迁移",
+    "title": "التخزين",
+    "total": "المساحة الإجمالية",
+    "unavailable": "تعذر الحصول على معلومات التخزين",
+    "usage": "استخدام التخزين",
+    "usagePercent": "نسبة الاستخدام",
+    "used": "مستخدم"
+  },
+  "title": "الإعدادات",
+  "viewMnemonic": {
+    "autoHideNote": "سيتم الإخفاء تلقائياً بعد 30 ثانية",
+    "charCount": "{{count}} حرف",
+    "hide": "إخفاء",
+    "noWallet": "الرجاء إنشاء أو استيراد محفظة أولاً",
+    "patternError": "النمط غير صحيح",
+    "securityTip": "نصيحة أمان",
+    "securityWarningKey": "تأكد من عدم وجود أحد يراقب. أصولك معرضة للخطر إذا تم كشف المفتاح.",
+    "securityWarningMnemonic": "تأكد من عدم وجود أحد يراقب. أصولك معرضة للخطر إذا تم كشف العبارة السرية.",
+    "show": "إظهار",
+    "titleKey": "عرض المفتاح",
+    "titleMnemonic": "عرض العبارة السرية",
+    "verifyDescKey": "أدخل كلمة مرور المحفظة لعرض المفتاح",
+    "verifyDescMnemonic": "أدخل كلمة مرور المحفظة لعرض العبارة السرية",
+    "verifyTitle": "تحقق من كلمة المرور",
+    "walletIncomplete": "بيانات المحفظة غير مكتملة",
+    "wordCount": "عبارة سرية من {{count}} كلمة"
   }
 }

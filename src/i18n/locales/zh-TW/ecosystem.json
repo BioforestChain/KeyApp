@@ -1,0 +1,24 @@
+{
+  "title": "[MISSING:zh-TW] 生态",
+  "empty": "[MISSING:zh-TW] 暂无小程序",
+  "loading": "[MISSING:zh-TW] 加载中...",
+  "notFound": "[MISSING:zh-TW] 小程序不存在",
+  "refresh": "[MISSING:zh-TW] 刷新",
+  "sources": {
+    "title": "[MISSING:zh-TW] 可信源管理",
+    "add": "[MISSING:zh-TW] 添加订阅",
+    "remove": "[MISSING:zh-TW] 移除",
+    "empty": "[MISSING:zh-TW] 暂无订阅源"
+  },
+  "permissions": {
+    "title": "[MISSING:zh-TW] 权限请求",
+    "grant": "[MISSING:zh-TW] 授权",
+    "deny": "[MISSING:zh-TW] 拒绝",
+    "bio_requestAccounts": "[MISSING:zh-TW] 访问钱包地址",
+    "bio_selectAccount": "[MISSING:zh-TW] 选择账户",
+    "bio_pickWallet": "[MISSING:zh-TW] 选择其他钱包",
+    "bio_signMessage": "[MISSING:zh-TW] 签名消息",
+    "bio_signTypedData": "[MISSING:zh-TW] 签名数据",
+    "bio_sendTransaction": "[MISSING:zh-TW] 发起交易"
+  }
+}

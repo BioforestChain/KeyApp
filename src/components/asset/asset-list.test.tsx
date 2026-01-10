@@ -62,9 +62,10 @@ describe('AssetList', () => {
 
   it('renders asset balances', () => {
     renderWithI18n(<AssetList assets={mockAssets} />)
-    expect(screen.getByText('1.5')).toBeInTheDocument() // ETH
-    expect(screen.getByText('100')).toBeInTheDocument() // USDT
-    expect(screen.getByText('0.5')).toBeInTheDocument() // BTC
+    // AmountDisplay uses aria-label due to NumberFlow dual-span structure
+    expect(screen.getByLabelText('1.5')).toBeInTheDocument()
+    expect(screen.getByLabelText('100')).toBeInTheDocument()
+    expect(screen.getByLabelText('0.5')).toBeInTheDocument()
   })
 
   it('applies custom className', () => {

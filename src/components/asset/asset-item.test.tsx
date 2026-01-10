@@ -21,7 +21,8 @@ describe('AssetItem', () => {
 
   it('renders formatted balance', () => {
     render(<AssetItem asset={mockAsset} />)
-    expect(screen.getByText('1.5')).toBeInTheDocument()
+    // AmountDisplay uses aria-label due to NumberFlow dual-span structure
+    expect(screen.getByLabelText('1.5')).toBeInTheDocument()
   })
 
   it('uses assetType as name when name is not provided', () => {
