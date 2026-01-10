@@ -2,6 +2,28 @@
   "version": "2.0.0",
   "chains": [
     {
+      "id": "bfmetav2",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BFMeta V2",
+      "symbol": "BFM",
+      "icon": "../icons/bfmeta/chain.svg",
+      "tokenIconBase": [
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2" }],
+      "explorer": {
+        "url": "https://tracker.bf-meta.org",
+        "queryTx": "https://tracker.bf-meta.org/#/info/event-details/:signature",
+        "queryAddress": "https://tracker.bf-meta.org/#/info/address-details/:address",
+        "queryBlock": "https://tracker.bf-meta.org/#/info/block-details/:height"
+      }
+    },
+    {
       "id": "bfmeta",
       "version": "1.0",
       "chainKind": "bioforest",
@@ -9,13 +31,13 @@
       "symbol": "BFM",
       "icon": "../icons/bfmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/bfmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm"
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "bfm" } }],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfm" }],
       "explorer": {
         "url": "https://tracker.bfmeta.org",
         "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
@@ -31,13 +53,13 @@
       "symbol": "CCC",
       "icon": "../icons/ccchain/chain.svg",
       "tokenIconBase": [
-        "../icons/ccchain/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc"
+        "../icons/ccchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "ccchain" } }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain" }]
     },
     {
       "id": "pmchain",
@@ -47,13 +69,13 @@
       "symbol": "PMC",
       "icon": "../icons/pmchain/chain.svg",
       "tokenIconBase": [
-        "../icons/pmchain/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc"
+        "../icons/pmchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "pmchain" } }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain" }]
     },
     {
       "id": "bfchainv2",
@@ -63,15 +85,13 @@
       "symbol": "BFT",
       "icon": "../icons/bfchainv2/chain.svg",
       "tokenIconBase": [
-        "../icons/bfchainv2/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2"
+        "../icons/bfchainv2/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [
-        { "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "bfchainv2" } }
-      ]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2" }]
     },
     {
       "id": "btgmeta",
@@ -81,13 +101,13 @@
       "symbol": "BTGM",
       "icon": "../icons/btgmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/btgmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm"
+        "../icons/btgmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "btgmeta" } }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta" }]
     },
     {
       "id": "biwmeta",
@@ -96,14 +116,12 @@
       "name": "BIWMeta",
       "symbol": "BIW",
       "tokenIconBase": [
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm"
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [
-        { "type": "biowallet-v1", "endpoint": "https://walletapi.biw-meta.com", "config": { "path": "biwmeta" } }
-      ],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.biw-meta.com/wallet/biwmeta" }],
       "explorer": {
         "url": "https://tracker.biw-meta.info",
         "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
@@ -119,13 +137,13 @@
       "symbol": "ETHM",
       "icon": "../icons/ethmeta/chain.svg",
       "tokenIconBase": [
-        "../icons/ethmeta/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm"
+        "../icons/ethmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm/icon-$SYMBOL.png"
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info", "config": { "path": "ethmeta" } }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta" }]
     },
     {
       "id": "ethereum",
@@ -135,9 +153,9 @@
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
       "tokenIconBase": [
-        "../icons/ethereum/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth"
+        "../icons/ethereum/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth/icon-$SYMBOL.png"
       ],
       "decimals": 18,
       "apis": [
@@ -164,9 +182,9 @@
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
       "tokenIconBase": [
-        "../icons/binance/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc"
+        "../icons/binance/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc/icon-$SYMBOL.png"
       ],
       "decimals": 18,
       "apis": [
@@ -192,9 +210,9 @@
       "symbol": "TRX",
       "icon": "../icons/tron/chain.svg",
       "tokenIconBase": [
-        "../icons/tron/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron"
+        "../icons/tron/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron/icon-$SYMBOL.png"
       ],
       "decimals": 6,
       "apis": [
@@ -220,9 +238,9 @@
       "symbol": "BTC",
       "icon": "../icons/bitcoin/chain.svg",
       "tokenIconBase": [
-        "../icons/bitcoin/tokens",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm"
+        "../icons/bitcoin/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm/icon-$SYMBOL.png"
       ],
       "decimals": 8,
       "apis": [
