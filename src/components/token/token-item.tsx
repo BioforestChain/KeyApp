@@ -199,18 +199,42 @@ export function TokenItem({
 
   // Get menu items if provided
   const items = menuItems?.(token, context).filter((item) => item.show !== false) ?? [];
+  
+  // When there are menu items (which render as buttons), Item cannot be a button
+  // to avoid button nesting hydration errors
+  const hasMenuItems = items.length > 0;
+  const shouldRenderAsButton = isClickable && !hasMenuItems;
 
   return (
     <Item
       {...(testId && { 'data-testid': testId })}
       variant="default"
       size="default"
-      render={isClickable ? <button type="button" /> : undefined}
-      onClick={onClick}
-      aria-label={isClickable ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
+      render={shouldRenderAsButton ? <button type="button" /> : undefined}
+      onClick={shouldRenderAsButton ? onClick : undefined}
+      aria-label={shouldRenderAsButton ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
       className={cn(isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer', className)}
     >
-      {itemContent}
+      {/* When we have menu items, wrap content in a clickable div */}
+      {hasMenuItems && isClickable ? (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClick?.();
+            }
+          }}
+          aria-label={t('common:a11y.tokenDetails', { token: token.symbol })}
+          className="flex flex-1 items-center gap-2.5 outline-none"
+        >
+          {itemContent}
+        </div>
+      ) : (
+        itemContent
+      )}
 
       {/* More button with dropdown menu - min 44x44 touch target */}
       {items.length > 0 && (
