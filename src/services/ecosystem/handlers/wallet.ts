@@ -5,6 +5,8 @@
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
+import { chainConfigService } from '@/services/chain-config'
+import { getAccountBalance as getBioforestBalance } from '@/services/bioforest-sdk'
 
 // 兼容旧 API，逐步迁移到 HandlerContext
 let _showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
@@ -106,6 +108,17 @@ export const handleGetBalance: MethodHandler = async (params, _context) => {
     throw Object.assign(new Error('Missing address or chain'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
-  // TODO: Query actual balance from chain adapter
-  return '0'
+  // Get biowallet API endpoint from chain config
+  const biowalletApi = chainConfigService.getBiowalletApi(opts.chain)
+  if (!biowalletApi) {
+    // Chain doesn't have biowallet API configured, return '0'
+    return '0'
+  }
+
+  try {
+    return await getBioforestBalance(biowalletApi, opts.chain, opts.address)
+  } catch (error) {
+    console.warn('[bio_getBalance] Failed to query balance:', error)
+    return '0'
+  }
 }

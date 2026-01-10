@@ -246,7 +246,20 @@ export class PostMessageBridge {
 
     // Execute handler
     try {
-      const appIcon = miniappRuntimeStore.state.apps.get(this.appId)?.manifest.icon
+      const app = miniappRuntimeStore.state.apps.get(this.appId)
+      const manifest = app?.manifest
+      let appIcon = manifest?.icon
+
+      // Resolve relative icon URL to absolute based on miniapp's URL
+      if (appIcon && !appIcon.startsWith('http') && !appIcon.startsWith('data:')) {
+        try {
+          const baseUrl = new URL(manifest?.url ?? '', window.location.origin)
+          appIcon = new URL(appIcon, baseUrl).href
+        } catch {
+          // Keep original if resolution fails
+        }
+      }
+
       const context: HandlerContext = {
         appId: this.appId,
         appName: this.appName,
