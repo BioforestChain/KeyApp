@@ -23,7 +23,8 @@
         "bio_requestAccounts",
         "bio_selectAccount",
         "bio_createTransaction",
-        "bio_signTransaction"
+        "bio_signTransaction",
+        "bio_signMessage"
       ],
       "chains": [
         "ethereum",
