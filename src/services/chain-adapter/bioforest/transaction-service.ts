@@ -23,7 +23,7 @@ import type {
 import { ChainServiceError, ChainErrorCodes } from '../types'
 
 import { signMessage, bytesToHex } from '@/lib/crypto'
-import { getTransferMinFee } from '@/services/bioforest-sdk'
+import { getTransferMinFee, getBioforestCore } from '@/services/bioforest-sdk'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
@@ -44,7 +44,8 @@ export class BioforestTransactionService implements ITransactionService {
       return this.beginEpochTime
     }
     try {
-      const core = await getBioforestCore(this.chainId)
+      const genesisBlockPath = chainConfigService.getBiowalletGenesisBlock(this.chainId)
+      const core = await getBioforestCore(this.chainId, genesisBlockPath ?? undefined)
       // Access config through the core's internal structure
       // The SDK stores beginEpochTime in milliseconds
       const config = (core as unknown as { config?: { beginEpochTime?: number } }).config
