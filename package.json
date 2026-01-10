@@ -27,6 +27,7 @@
     "typecheck": "turbo run typecheck:run --",
     "typecheck:run": "tsc --build --noEmit",
     "e2e": "bun scripts/e2e.ts",
+    "e2e:runner": "bun scripts/e2e-runner.ts",
     "e2e:all": "turbo run e2e:run e2e:mock:run --",
     "e2e:run": "playwright test",
     "e2e:mock": "playwright test --config playwright.mock.config.ts",
