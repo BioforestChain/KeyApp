@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { UI_TEXT } from './helpers/i18n'
 
 /**

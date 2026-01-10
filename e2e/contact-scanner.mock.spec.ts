@@ -5,7 +5,7 @@
  * 2. 分享联系人名片
  */
 
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page } from './fixtures'
 
 const DEFAULT_PATTERN = [0, 1, 2, 5]
 

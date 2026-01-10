@@ -4,9 +4,16 @@
  * 提供统一的测试 fixtures，包括：
  * - 控制台错误检测：测试结束时如果有未处理的控制台错误则失败
  * - 页面错误检测：捕获未处理的 JavaScript 错误
+ * 
+ * 使用方式：在测试文件中替换导入
+ * ```typescript
+ * // 替换原有导入
+ * // import { test, expect } from '@playwright/test'
+ * import { test, expect } from './fixtures'
+ * ```
  */
 
-import { test as base, expect } from '@playwright/test'
+import { test as base, expect, type Page } from '@playwright/test'
 
 /** 允许的控制台错误模式（这些不会导致测试失败） */
 const ALLOWED_ERROR_PATTERNS = [
@@ -36,6 +43,8 @@ export interface ConsoleMessage {
 
 /**
  * 扩展的 test fixture，包含控制台错误检测
+ * 
+ * consoleErrors 和 pageErrors 会自动收集错误，测试结束时断言
  */
 export const test = base.extend<{
   /** 收集的控制台错误 */
@@ -101,3 +110,4 @@ export const test = base.extend<{
 })
 
 export { expect }
+export type { Page }
