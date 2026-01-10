@@ -464,6 +464,120 @@ export async function verifyTwoStepSecret(
   return false
 }
 
+// ===== Fee Estimation APIs =====
+
+export type FeeIntent = 
+  | { type: 'transfer'; amount: string; remark?: Record<string, string> }
+  | { type: 'setPayPassword' }
+
+export interface GetMinFeeParams {
+  /** Full wallet API URL */
+  baseUrl: string
+  /** Chain ID */
+  chainId: string
+  /** Fee calculation intent */
+  intent: FeeIntent
+  /** Sender address (for checking if has pay password) */
+  fromAddress?: string
+}
+
+/**
+ * Get minimum fee based on transaction intent
+ * 
+ * Fee calculation considers:
+ * - Transaction type (transfer, setPayPassword, etc.)
+ * - Whether sender has pay password set (affects transaction size)
+ * - Remark content size
+ * - Transfer amount
+ * 
+ * @param params - Fee calculation parameters
+ * @returns Minimum fee in raw string format
+ */
+export async function getMinFee(params: GetMinFeeParams): Promise<string> {
+  const { baseUrl, chainId, intent, fromAddress } = params
+  const core = await getBioforestCore(chainId)
+  const lastBlock = await getLastBlock(baseUrl)
+  const applyBlockHeight = lastBlock.height
+  const timestamp = lastBlock.timestamp
+
+  switch (intent.type) {
+    case 'transfer': {
+      // Check if sender has pay password (secondPublicKey)
+      // This affects transaction size because it requires signSignature
+      let hasPayPassword = false
+      if (fromAddress) {
+        try {
+          const addressInfo = await getAddressInfo(baseUrl, fromAddress)
+          hasPayPassword = !!addressInfo.secondPublicKey
+        } catch {
+          // Ignore errors, assume no pay password
+        }
+      }
+
+      // Use a large amount to get maximum fee estimation
+      // The SDK calculates fee based on transaction bytes
+      const estimationAmount = intent.amount || '99999999999999999'
+      
+      let minFee = await core.transactionController.getTransferTransactionMinFee({
+        transaction: {
+          applyBlockHeight,
+          timestamp,
+          remark: intent.remark ?? {},
+        },
+        assetInfo: {
+          sourceChainName: await core.getChainName(),
+          sourceChainMagic: await core.getMagic(),
+          assetType: await core.getAssetType(),
+          amount: estimationAmount,
+        },
+      })
+
+      // If has pay password, the transaction will have signSignature
+      // which adds ~64 bytes to the transaction, increasing fee
+      if (hasPayPassword) {
+        // Add ~5% buffer for signSignature overhead
+        minFee = String(BigInt(minFee) * BigInt(105) / BigInt(100))
+      }
+
+      return minFee
+    }
+
+    case 'setPayPassword': {
+      return core.transactionController.getSignatureTransactionMinFee({
+        newPaySecret: `${Date.now()}getSignatureTransactionMinFee`,
+        applyBlockHeight,
+        timestamp,
+      })
+    }
+
+    default:
+      throw new Error(`Unknown fee intent type: ${(intent as FeeIntent).type}`)
+  }
+}
+
+/**
+ * Get minimum fee for transfer transaction
+ * @param baseUrl - Full wallet API URL
+ * @param chainId - Chain ID
+ * @param fromAddress - Sender address (to check pay password)
+ * @param amount - Transfer amount
+ * @param remark - Transaction remark
+ */
+export async function getTransferMinFee(
+  baseUrl: string,
+  chainId: string,
+  fromAddress?: string,
+  amount?: string,
+  remark?: Record<string, string>,
+): Promise<string> {
+  return getMinFee({
+    baseUrl,
+    chainId,
+    intent: { type: 'transfer', amount: amount ?? '0', remark },
+    fromAddress,
+  })
+}
+
 /**
  * Get minimum fee for setting pay password
  * @param baseUrl - Full wallet API URL
