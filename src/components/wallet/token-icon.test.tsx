@@ -3,9 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { TokenIcon, TokenBadge, TokenIconProvider } from './token-icon'
 
 const mockGetTokenIconBases = (chainId: string) => {
+  // Templates use $symbol (lowercase) or $SYMBOL (uppercase) placeholders
   const bases: Record<string, string[]> = {
-    ethereum: ['/icons/ethereum/tokens', 'https://cdn.example.com/eth'],
-    bfmeta: ['/icons/bfmeta/tokens', 'https://cdn.example.com/bfm'],
+    ethereum: ['/icons/ethereum/tokens/$symbol.svg', 'https://cdn.example.com/eth/$symbol.png'],
+    bfmeta: ['/icons/bfmeta/tokens/$symbol.svg', 'https://cdn.example.com/bfm/$symbol.png'],
   }
   return bases[chainId] ?? []
 }
