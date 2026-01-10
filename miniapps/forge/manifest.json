@@ -9,7 +9,7 @@
   "website": "https://forge.dweb.xin",
   "category": "exchange",
   "tags": ["兑换", "跨链桥", "DeFi"],
-  "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_createTransaction", "bio_signTransaction"],
+  "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_createTransaction", "bio_signTransaction", "bio_signMessage"],
   "chains": ["ethereum", "bfmeta"],
   "officialScore": 70,
   "communityScore": 85,
