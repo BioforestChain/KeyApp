@@ -270,6 +270,15 @@ export interface SourceRecord {
   builtin?: boolean
 }
 
+/**
+ * My Apps - Local installed app record
+ */
+export interface MyAppRecord {
+  appId: string
+  installedAt: number
+  lastUsedAt: number
+}
+
 /** Method handler */
 export type MethodHandler = (
   params: unknown,

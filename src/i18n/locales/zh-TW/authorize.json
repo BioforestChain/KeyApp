@@ -1,62 +1,63 @@
 {
-  "title": {
-    "address": "地址授權",
-    "signature": "交易授權"
+  "address": {
+    "confirmDescription": "請繪製圖案以繼續",
+    "noWallets": "暫無錢包",
+    "permissions": {
+      "getMain": "查看你的錢包匯入密語（主密鑰）",
+      "signMessage": "簽名驗證訊息",
+      "viewAddress": "查看你的錢包地址",
+      "viewPublicKey": "查看你的公鑰"
+    },
+    "scope": {
+      "all": "所有錢包",
+      "main": "僅目前錢包",
+      "network": "所有 {{chainName}} 地址"
+    },
+    "selectNetwork": "[MISSING:zh-TW] 选择网络",
+    "shareWith": "是否與該應用分享地址？"
   },
   "app": {
-    "requesting": "{{appName}} 正在請求存取",
-    "from": "來自：{{appHome}}"
-  },
-  "address": {
-    "shareWith": "是否與該應用分享地址？",
-    "scope": {
-      "main": "僅目前錢包",
-      "network": "所有 {{chainName}} 地址",
-      "all": "所有錢包"
-    },
-    "permissions": {
-      "viewAddress": "查看你的錢包地址",
-      "viewPublicKey": "查看你的公鑰",
-      "signMessage": "簽名驗證訊息",
-      "getMain": "查看你的錢包匯入密語（主密鑰）"
-    },
-    "confirmDescription": "請繪製圖案以繼續",
-    "noWallets": "暫無錢包"
-  },
-  "signature": {
-    "reviewTransaction": "請確認此交易",
-    "messageToSign": "待簽名訊息",
-    "confirmDescription": "請繪製圖案進行簽名",
-    "type": {
-      "message": "訊息簽名",
-      "transfer": "代幣轉帳",
-      "destroy": "資產銷毀"
-    },
-    "details": {
-      "from": "從",
-      "to": "到",
-      "amount": "金額",
-      "fee": "網路手續費",
-      "total": "合計"
-    },
-    "balanceWarning": {
-      "need": "需要：{{amount}} {{symbol}}",
-      "have": "擁有：{{amount}} {{symbol}}"
-    }
+    "from": "來自：{{appHome}}",
+    "requesting": "{{appName}} 正在請求存取"
   },
   "button": {
     "approve": "同意",
-    "reject": "拒絕",
-    "confirm": "繪製圖案確認"
+    "confirm": "繪製圖案確認",
+    "reject": "拒絕"
   },
   "error": {
-    "insufficientBalance": "餘額不足，無法完成此交易",
-    "unknownChain": "不支援的區塊鏈",
     "authFailed": "授權失敗",
+    "insufficientBalance": "餘額不足，無法完成此交易",
     "patternIncorrect": "圖案錯誤",
-    "timeout": "請求已逾時"
+    "timeout": "請求已逾時",
+    "unknownChain": "不支援的區塊鏈"
   },
   "passwordConfirm": {
     "title": "Confirm Password"
+  },
+  "signature": {
+    "balanceWarning": {
+      "have": "擁有：{{amount}} {{symbol}}",
+      "need": "需要：{{amount}} {{symbol}}"
+    },
+    "confirmDescription": "請繪製圖案進行簽名",
+    "details": {
+      "amount": "金額",
+      "fee": "網路手續費",
+      "from": "從",
+      "to": "到",
+      "total": "合計"
+    },
+    "messageToSign": "待簽名訊息",
+    "reviewTransaction": "請確認此交易",
+    "type": {
+      "destroy": "資產銷毀",
+      "message": "訊息簽名",
+      "transfer": "代幣轉帳"
+    }
+  },
+  "title": {
+    "address": "地址授權",
+    "signature": "交易授權"
   }
 }

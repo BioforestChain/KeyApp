@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import type { ActivityComponentType } from '@stackflow/react'
+import { useStore } from '@tanstack/react-store'
 import { AppScreen } from '@stackflow/plugin-basic-ui'
 import { useTranslation } from 'react-i18next'
 import { useFlow } from '../stackflow'
@@ -11,9 +12,6 @@ import {
   getAppById, 
   initRegistry, 
   refreshSources,
-  addToMyApps,
-  isInMyApps,
-  updateLastUsed,
   type MiniappManifest, 
   KNOWN_PERMISSIONS 
 } from '@/services/ecosystem'
@@ -32,7 +30,7 @@ import {
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { launchApp } from '@/services/miniapp-runtime'
-import { ecosystemActions } from '@/stores/ecosystem'
+import { ecosystemActions, ecosystemStore, ecosystemSelectors } from '@/stores/ecosystem'
 
 type MiniappDetailActivityParams = {
   appId: string
@@ -118,7 +116,11 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)
   const [descExpanded, setDescExpanded] = useState(false)
-  const [installed, setInstalled] = useState(false)
+  
+  // Use store selector for reactivity (Single Source of Truth)
+  const installed = useStore(ecosystemStore, (state) => 
+    ecosystemSelectors.isAppInstalled(state, params.appId)
+  )
 
   useEffect(() => {
     let disposed = false
@@ -137,7 +139,6 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
 
       if (disposed) return
       setApp(manifest ?? null)
-      setInstalled(isInMyApps(params.appId))
       setLoading(false)
     }
 
@@ -150,13 +151,12 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
 
   const handleInstall = useCallback(() => {
     if (!app) return
-    addToMyApps(app.id)
-    setInstalled(true)
+    ecosystemActions.installApp(app.id)
   }, [app])
 
   const handleOpen = useCallback(() => {
     if (!app) return
-    updateLastUsed(app.id)
+    ecosystemActions.updateAppLastUsed(app.id)
     ecosystemActions.setActiveSubPage('mine')
     launchApp(app.id, { ...app, targetDesktop: 'mine' })
     pop()
@@ -414,3 +414,4 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
     </AppScreen>
   )
 }
+

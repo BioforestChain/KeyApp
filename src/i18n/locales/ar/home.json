@@ -1,17 +1,20 @@
 {
-  "welcome": {
-    "title": "مرحبًا بك في BFM Pay",
-    "subtitle": "إنشاء أو استيراد محفظة للبدء",
-    "createWallet": "إنشاء محفظة جديدة",
-    "importWallet": "استيراد محفظة موجودة"
-  },
   "wallet": {
-    "send": "إرسال",
-    "receive": "استلام",
+    "addressCopied": "تم نسخ العنوان",
     "assets": "الأصول",
+    "destroy": "[MISSING:ar] 销毁",
     "noAssets": "لا توجد أصول",
     "noAssetsOnChain": "لا توجد رموز على {{chain}}",
+    "receive": "استلام",
     "selectNetwork": "اختر الشبكة",
-    "addressCopied": "تم نسخ العنوان"
+    "send": "إرسال",
+    "tokenActions": "[MISSING:ar] 资产操作",
+    "transfer": "[MISSING:ar] 转账"
+  },
+  "welcome": {
+    "createWallet": "إنشاء محفظة جديدة",
+    "importWallet": "استيراد محفظة موجودة",
+    "subtitle": "إنشاء أو استيراد محفظة للبدء",
+    "title": "مرحبًا بك في BFM Pay"
   }
 }

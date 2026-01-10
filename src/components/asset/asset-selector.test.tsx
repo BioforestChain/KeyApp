@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { AssetSelector } from './asset-selector'
 import type { TokenInfo } from '@/components/token/token-item'
 
@@ -78,7 +79,8 @@ describe('AssetSelector', () => {
     expect(screen.getByText('Tether USD')).toBeInTheDocument()
   })
 
-  it('calls onSelect when asset is clicked', () => {
+  it('calls onSelect when asset is clicked', async () => {
+    const user = userEvent.setup()
     const onSelect = vi.fn()
     render(
       <AssetSelector
@@ -90,10 +92,13 @@ describe('AssetSelector', () => {
     )
 
     // Open dropdown
-    fireEvent.click(screen.getByTestId('asset-selector'))
+    await user.click(screen.getByTestId('asset-selector'))
     
-    // Click on USDT
-    fireEvent.click(screen.getByText('Tether USD'))
+    // Click on USDT option (Base UI Select uses role="option")
+    const options = screen.getAllByRole('option')
+    const usdtOption = options.find(opt => opt.textContent?.includes('Tether USD'))
+    expect(usdtOption).toBeDefined()
+    await user.click(usdtOption!)
     
     expect(onSelect).toHaveBeenCalledWith(mockAssets[1])
   })

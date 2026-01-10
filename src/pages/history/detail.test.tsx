@@ -215,9 +215,10 @@ describe('TransactionDetailPage', () => {
       renderWithProviders(<TransactionDetailPage />)
       expect(await screen.findByText(t('transaction:detail.invalidData'))).toBeInTheDocument()
 
-      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
+      // CopyableText component uses clickToCopy aria-label
+      const copyButton = screen.getByLabelText(t('common:clickToCopy'))
       await userEvent.click(copyButton)
-      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: 'ethereum--0xdeadbeef'.split('--')[1] })
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: '0xdeadbeef' })
     })
   })
 
@@ -269,19 +270,22 @@ describe('TransactionDetailPage', () => {
     it('copies hash to clipboard when button is clicked', async () => {
       renderWithProviders(<TransactionDetailPage />)
 
-      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
+      // CopyableText component displays the hash and uses clickToCopy aria-label
+      const mockTx = createMockTransaction()
+      const copyButton = await screen.findByLabelText(t('common:clickToCopy'))
       await userEvent.click(copyButton)
 
-      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: createMockTransaction().hash })
+      expect(mockClipboardWrite).toHaveBeenCalledWith({ text: mockTx.hash })
     })
 
     it('shows copied state after clicking', async () => {
       renderWithProviders(<TransactionDetailPage />)
 
-      const copyButton = screen.getByText(t('transaction:detail.copyHash'))
+      // CopyableText component changes aria-label to copiedToClipboard after click
+      const copyButton = await screen.findByLabelText(t('common:clickToCopy'))
       await userEvent.click(copyButton)
 
-      expect(screen.getByText(t('transaction:detail.copied'))).toBeInTheDocument()
+      expect(screen.getByLabelText(t('common:copiedToClipboard'))).toBeInTheDocument()
     })
   })
 

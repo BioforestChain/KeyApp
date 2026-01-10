@@ -50,79 +50,85 @@ describe('formatAmount', () => {
 })
 
 describe('AmountDisplay', () => {
+  // Helper to get amount element (uses aria-label due to NumberFlow dual-span structure)
+  const getAmount = (value: string) => screen.getByLabelText(value)
+  const queryAmount = (value: string) => screen.queryByLabelText(value)
+
   it('renders value', () => {
     render(<AmountDisplay value={100} />)
-    expect(screen.getByText('100')).toBeInTheDocument()
+    expect(getAmount('100')).toBeInTheDocument()
   })
 
   it('renders with symbol', () => {
     render(<AmountDisplay value={100} symbol="USDT" />)
-    expect(screen.getByText('100')).toBeInTheDocument()
-    expect(screen.getByText('USDT')).toBeInTheDocument()
+    expect(getAmount('100 USDT')).toBeInTheDocument()
   })
 
   it('shows hidden state', () => {
     render(<AmountDisplay value={100} symbol="USDT" hidden />)
     expect(screen.getByText('••••••')).toBeInTheDocument()
-    expect(screen.queryByText('100')).not.toBeInTheDocument()
+    expect(queryAmount('100')).not.toBeInTheDocument()
   })
 
   it('shows + sign when sign=always for positive', () => {
     render(<AmountDisplay value={100} sign="always" />)
-    expect(screen.getByText('+100')).toBeInTheDocument()
+    expect(getAmount('+100')).toBeInTheDocument()
   })
 
   it('shows - sign when sign=always for negative', () => {
     render(<AmountDisplay value={-100} sign="always" />)
-    expect(screen.getByText('-100')).toBeInTheDocument()
+    expect(getAmount('-100')).toBeInTheDocument()
   })
 
   it('shows - sign when sign=auto for negative', () => {
     render(<AmountDisplay value={-100} sign="auto" />)
-    expect(screen.getByText('-100')).toBeInTheDocument()
+    expect(getAmount('-100')).toBeInTheDocument()
   })
 
   it('applies positive color when color=auto', () => {
     render(<AmountDisplay value={100} color="auto" />)
-    expect(screen.getByText('100')).toHaveClass('text-green-500')
+    expect(getAmount('100')).toHaveClass('text-green-500')
   })
 
   it('applies negative color when color=auto', () => {
     render(<AmountDisplay value={-100} color="auto" />)
-    expect(screen.getByText('100')).toHaveClass('text-destructive')
+    expect(getAmount('100')).toHaveClass('text-destructive')
   })
 
   it('applies size classes', () => {
     render(<AmountDisplay value={100} size="lg" />)
-    expect(screen.getByText('100')).toHaveClass('text-lg')
+    expect(getAmount('100')).toHaveClass('text-lg')
   })
 
   it('applies weight classes', () => {
     render(<AmountDisplay value={100} weight="bold" />)
-    expect(screen.getByText('100')).toHaveClass('font-bold')
+    expect(getAmount('100')).toHaveClass('font-bold')
   })
 
   it('applies mono font', () => {
     render(<AmountDisplay value={100} mono />)
-    expect(screen.getByText('100')).toHaveClass('font-mono')
+    expect(getAmount('100')).toHaveClass('font-mono')
   })
 
   it('uses compact format', () => {
     render(<AmountDisplay value={1500000} compact />)
-    expect(screen.getByText('1.5M')).toBeInTheDocument()
+    expect(getAmount('1.5M')).toBeInTheDocument()
   })
 })
 
 describe('AmountWithFiat', () => {
+  // Helper to get amount element (uses aria-label due to NumberFlow dual-span structure)
+  const getAmount = (value: string) => screen.getByLabelText(value)
+
   it('renders amount and fiat value vertically', () => {
     render(<AmountWithFiat value={100} symbol="USDT" fiatValue={100} />)
-    expect(screen.getByText('100')).toBeInTheDocument()
+    expect(getAmount('100 USDT')).toBeInTheDocument()
     expect(screen.getByText('≈ $100')).toBeInTheDocument()
   })
 
   it('renders amount and fiat value horizontally', () => {
     render(<AmountWithFiat value={100} fiatValue={100} layout="horizontal" />)
-    expect(screen.getByText('100')).toBeInTheDocument()
+    expect(getAmount('100')).toBeInTheDocument()
     expect(screen.getByText('≈ $100')).toBeInTheDocument()
   })
 
@@ -133,7 +139,7 @@ describe('AmountWithFiat', () => {
 
   it('renders without fiat when not provided', () => {
     render(<AmountWithFiat value={100} />)
-    expect(screen.getByText('100')).toBeInTheDocument()
+    expect(getAmount('100')).toBeInTheDocument()
     expect(screen.queryByText(/≈/)).not.toBeInTheDocument()
   })
 })

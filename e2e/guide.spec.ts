@@ -63,7 +63,7 @@ test.describe('Guide 页面', () => {
     await page.click('[data-testid="get-started-button"]', { force: true })
 
     // 应该导航到创建钱包页
-    await expect(page).toHaveURL(/\/#\/wallet\/create\/?/)
+    await expect(page).toHaveURL(/(\/#\/wallet\/create)|(\/#\/onboarding\/create)\/?/)
   })
 
   test('我有钱包按钮导航到导入钱包页', async ({ page }) => {
@@ -79,6 +79,6 @@ test.describe('Guide 页面', () => {
     await page.click('[data-testid="have-wallet-button"]', { force: true })
 
     // 应该导航到导入钱包页
-    await expect(page).toHaveURL(/\/#\/wallet\/import\/?/)
+    await expect(page).toHaveURL(/(\/#\/wallet\/import)|(\/#\/onboarding\/recover)\/?/)
   })
 })

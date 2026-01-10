@@ -1,146 +1,149 @@
 {
-  "language": "語言",
-  "settings": "設定",
-  "title": "設定",
-  "sections": {
-    "walletManagement": "錢包管理",
-    "security": "安全",
-    "preferences": "偏好設定",
-    "about": "關於"
-  },
-  "items": {
-    "walletManagement": "錢包管理",
-    "walletChains": "錢包網路",
-    "addressBook": "通訊錄",
-    "appLock": "應用程式鎖定",
-    "viewMnemonic": "查看助記詞",
-    "changeWalletLock": "修改密碼",
-    "language": "語言",
-    "currency": "貨幣單位",
-    "chainConfig": "鏈配置",
-    "appearance": "外觀",
-    "aboutApp": "關於 BFM Pay",
-    "clearData": "清空應用程式資料",
-    "storage": "儲存空間"
-  },
   "appearance": {
-    "title": "外觀設定",
-    "system": "跟隨系統",
+    "dark": "深色模式",
     "light": "淺色模式",
-    "dark": "深色模式"
-  },
-  "languagePage": {
-    "title": "語言",
-    "hint": "選擇介面語言後，應用程式將立即切換到所選語言。"
-  },
-  "currency": {
-    "title": "計價貨幣",
-    "hint": "選擇計價貨幣後，資產價值將以所選貨幣顯示。",
-    "names": {
-      "USD": "美元",
-      "CNY": "人民幣",
-      "EUR": "歐元",
-      "JPY": "日圓",
-      "KRW": "韓圓"
-    }
-  },
-  "viewMnemonic": {
-    "titleMnemonic": "查看助記詞",
-    "titleKey": "查看密鑰",
-    "noWallet": "請先建立或匯入錢包",
-    "walletIncomplete": "錢包資料不完整",
-    "patternError": "圖案錯誤",
-    "securityTip": "安全提示",
-    "securityWarningMnemonic": "請確保周圍無人窺視。助記詞一旦洩露，資產將面臨風險。",
-    "securityWarningKey": "請確保周圍無人窺視。密鑰一旦洩露，資產將面臨風險。",
-    "charCount": "{{count}} 字元",
-    "wordCount": "{{count}} 位助記詞",
-    "show": "顯示",
-    "hide": "隱藏",
-    "autoHideNote": "30秒後將自動隱藏",
-    "verifyTitle": "驗證密碼",
-    "verifyDescMnemonic": "請輸入錢包密碼以查看助記詞",
-    "verifyDescKey": "請輸入錢包密碼以查看密鑰"
-  },
-  "changeWalletLock": {
-    "title": "修改錢包鎖",
-    "noWallet": "請先建立或匯入錢包",
-    "walletIncomplete": "錢包資料不完整",
-    "success": "錢包鎖修改成功",
-    "returning": "正在返回設定頁面...",
-    "verifyTitle": "驗證目前圖案",
-    "verifyDesc": "請繪製目前錢包鎖圖案以繼續",
-    "forgotPattern": "忘記圖案？使用助記詞重設",
-    "mnemonicVerifyTitle": "使用助記詞驗證",
-    "mnemonicVerifyDesc": "輸入建立錢包時備份的助記詞",
-    "verifyMnemonic": "驗證助記詞",
-    "verifying": "驗證中...",
-    "usePattern": "返回使用圖案驗證",
-    "invalidMnemonic": "助記詞格式無效",
-    "mnemonicVerifyFailed": "助記詞驗證失敗，請檢查是否正確"
+    "system": "跟隨系統",
+    "title": "外觀設定"
   },
   "chainAddressCount": "{{count}} 個鏈地址",
-  "notSupported": "暫不支援",
   "chainConfig": {
-    "title": "鏈配置",
-    "subscription": {
-      "title": "訂閱 URL",
-      "description": "輸入 <code>default</code> 使用內建鏈配置。",
-      "refreshAriaLabel": "刷新訂閱",
-      "save": "儲存",
-      "placeholder": "default 或 https://example.com/chains.json",
-      "lastUpdated": "最近更新：{{value}}"
+    "hint": "提示：訂閱配置會快取到本機，切換 URL 會清空舊快取以避免混淆。",
+    "list": {
+      "description": "啟用後會在錢包/資產相關流程中可用。",
+      "empty": "暫無鏈配置",
+      "title": "鏈清單"
     },
     "manual": {
-      "title": "手動新增",
-      "description": "貼上 JSON（單一物件或陣列），點擊新增。",
       "add": "新增",
-      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "description": "貼上 JSON（單一物件或陣列），點擊新增。",
       "duplicate": {
-        "title": "鏈 ID 已存在",
+        "cancel": "取消",
         "description": "以下鏈 ID 已存在，是否取代？",
         "replace": "取代",
-        "cancel": "取消"
-      }
-    },
-    "list": {
-      "title": "鏈清單",
-      "description": "啟用後會在錢包/資產相關流程中可用。",
-      "empty": "暫無鏈配置"
+        "title": "鏈 ID 已存在"
+      },
+      "placeholder": "例如：{\"id\":\"mychain\",\"version\":\"1.0\",\"type\":\"custom\",\"name\":\"MyChain\",\"symbol\":\"MC\",\"decimals\":8}",
+      "title": "手動新增"
     },
     "source": {
       "default": "預設",
-      "subscription": "訂閱",
-      "manual": "手動"
+      "manual": "手動",
+      "subscription": "訂閱"
+    },
+    "subscription": {
+      "description": "輸入 <code>default</code> 使用內建鏈配置。",
+      "lastUpdated": "最近更新：{{value}}",
+      "placeholder": "default 或 https://example.com/chains.json",
+      "refreshAriaLabel": "刷新訂閱",
+      "save": "儲存",
+      "title": "訂閱 URL"
+    },
+    "title": "鏈配置",
+    "toast": {
+      "manualAdded": "已新增鏈配置",
+      "subscriptionRefreshed": "訂閱已更新",
+      "subscriptionSaved": "已儲存訂閱 URL"
     },
     "warning": {
       "incompatibleMajor": "版本不相容：{{version}}（支援 ≤ {{supportedMajor}}.x）"
-    },
-    "toast": {
-      "subscriptionSaved": "已儲存訂閱 URL",
-      "subscriptionRefreshed": "訂閱已更新",
-      "manualAdded": "已新增鏈配置"
-    },
-    "hint": "提示：訂閱配置會快取到本機，切換 URL 會清空舊快取以避免混淆。"
+    }
+  },
+  "changeWalletLock": {
+    "forgotPattern": "忘記圖案？使用助記詞重設",
+    "invalidMnemonic": "助記詞格式無效",
+    "mnemonicVerifyDesc": "輸入建立錢包時備份的助記詞",
+    "mnemonicVerifyFailed": "助記詞驗證失敗，請檢查是否正確",
+    "mnemonicVerifyTitle": "使用助記詞驗證",
+    "noWallet": "請先建立或匯入錢包",
+    "returning": "正在返回設定頁面...",
+    "success": "錢包鎖修改成功",
+    "title": "修改錢包鎖",
+    "usePattern": "返回使用圖案驗證",
+    "verifyDesc": "請繪製目前錢包鎖圖案以繼續",
+    "verifyMnemonic": "驗證助記詞",
+    "verifyTitle": "驗證目前圖案",
+    "verifying": "驗證中...",
+    "walletIncomplete": "錢包資料不完整"
   },
   "clearData": {
-    "title": "清空應用程式資料",
-    "warning": "此操作將刪除所有本機資料，包括錢包、設定和快取。此操作不可撤銷！",
+    "confirm": "確認清空",
     "item1": "所有錢包資料將被刪除",
     "item2": "所有設定將恢復預設",
     "item3": "應用程式將重新啟動",
-    "confirm": "確認清空"
+    "title": "清空應用程式資料",
+    "warning": "此操作將刪除所有本機資料，包括錢包、設定和快取。此操作不可撤銷！"
   },
+  "currency": {
+    "hint": "選擇計價貨幣後，資產價值將以所選貨幣顯示。",
+    "names": {
+      "CNY": "人民幣",
+      "EUR": "歐元",
+      "JPY": "日圓",
+      "KRW": "韓圓",
+      "USD": "美元"
+    },
+    "title": "計價貨幣"
+  },
+  "items": {
+    "aboutApp": "關於 BFM Pay",
+    "addressBook": "通訊錄",
+    "appLock": "應用程式鎖定",
+    "appearance": "外觀",
+    "chainConfig": "鏈配置",
+    "changeWalletLock": "修改密碼",
+    "clearData": "清空應用程式資料",
+    "currency": "貨幣單位",
+    "language": "語言",
+    "storage": "儲存空間",
+    "viewMnemonic": "查看助記詞",
+    "walletChains": "錢包網路",
+    "walletManagement": "錢包管理"
+  },
+  "language": "語言",
+  "languagePage": {
+    "hint": "選擇介面語言後，應用程式將立即切換到所選語言。",
+    "title": "語言"
+  },
+  "notSupported": "暫不支援",
+  "sections": {
+    "about": "關於",
+    "preferences": "偏好設定",
+    "security": "安全",
+    "walletManagement": "錢包管理"
+  },
+  "settings": "設定",
   "storage": {
-    "title": "儲存空間",
-    "usage": "儲存使用情況",
-    "basedOn": "基於瀏覽器儲存配額",
-    "used": "已使用",
-    "total": "總空間",
-    "usagePercent": "使用率",
     "available": "可用空間",
-    "unavailable": "無法取得儲存資訊",
+    "basedOn": "基於瀏覽器儲存配額",
+    "clearDesc": "清空所有本機儲存的資料，包括錢包、設定和快取。",
     "clearTitle": "清理資料",
-    "clearDesc": "清空所有本機儲存的資料，包括錢包、設定和快取。"
+    "goToClear": "[MISSING:zh-TW] 前往清理数据",
+    "migrationDesc": "[MISSING:zh-TW] 检测到旧版本数据格式，需要清空本地数据库后才能继续使用。您的助记词和私钥不会受到影响，但需要重新导入钱包。",
+    "migrationRequired": "[MISSING:zh-TW] 数据需要迁移",
+    "title": "儲存空間",
+    "total": "總空間",
+    "unavailable": "無法取得儲存資訊",
+    "usage": "儲存使用情況",
+    "usagePercent": "使用率",
+    "used": "已使用"
+  },
+  "title": "設定",
+  "viewMnemonic": {
+    "autoHideNote": "30秒後將自動隱藏",
+    "charCount": "{{count}} 字元",
+    "hide": "隱藏",
+    "noWallet": "請先建立或匯入錢包",
+    "patternError": "圖案錯誤",
+    "securityTip": "安全提示",
+    "securityWarningKey": "請確保周圍無人窺視。密鑰一旦洩露，資產將面臨風險。",
+    "securityWarningMnemonic": "請確保周圍無人窺視。助記詞一旦洩露，資產將面臨風險。",
+    "show": "顯示",
+    "titleKey": "查看密鑰",
+    "titleMnemonic": "查看助記詞",
+    "verifyDescKey": "請輸入錢包密碼以查看密鑰",
+    "verifyDescMnemonic": "請輸入錢包密碼以查看助記詞",
+    "verifyTitle": "驗證密碼",
+    "walletIncomplete": "錢包資料不完整",
+    "wordCount": "{{count}} 位助記詞"
   }
 }
