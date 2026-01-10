@@ -217,11 +217,15 @@ export function TokenItem({
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label={t('common:a11y.more', '更多操作')}
-            className="hover:bg-muted/80 active:bg-muted flex size-11 items-center justify-center rounded-lg transition-colors [&_svg]:pointer-events-auto"
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11 rounded-lg"
+              />
+            }
           >
-            <Button variant="ghost" size="icon-sm">
-              <IconDotsVertical className="text-muted-foreground" />
-            </Button>
+            <IconDotsVertical className="text-muted-foreground size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={4}>
             {items.map((item, index) => (
