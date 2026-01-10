@@ -15,7 +15,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2" }],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2", "config": { "genesisBlock": "./genesis/bfmetav2.json" } }],
       "explorer": {
         "url": "https://tracker.bf-meta.org",
         "queryTx": "https://tracker.bf-meta.org/#/info/event-details/:signature",
@@ -37,7 +37,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfm" }],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfm", "config": { "genesisBlock": "./genesis/bfmeta.json" } }],
       "explorer": {
         "url": "https://tracker.bfmeta.org",
         "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
@@ -59,7 +59,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain", "config": { "genesisBlock": "./genesis/ccchain.json" } }]
     },
     {
       "id": "pmchain",
@@ -75,7 +75,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain", "config": { "genesisBlock": "./genesis/pmchain.json" } }]
     },
     {
       "id": "bfchainv2",
@@ -91,7 +91,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2", "config": { "genesisBlock": "./genesis/bfchainv2.json" } }]
     },
     {
       "id": "btgmeta",
@@ -107,7 +107,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta", "config": { "genesisBlock": "./genesis/btgmeta.json" } }]
     },
     {
       "id": "biwmeta",
@@ -121,7 +121,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.biw-meta.com/wallet/biwmeta" }],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.biw-meta.com/wallet/biwmeta", "config": { "genesisBlock": "./genesis/biwmeta.json" } }],
       "explorer": {
         "url": "https://tracker.biw-meta.info",
         "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
@@ -143,7 +143,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta" }]
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta", "config": { "genesisBlock": "./genesis/ethmeta.json" } }]
     },
     {
       "id": "ethereum",
