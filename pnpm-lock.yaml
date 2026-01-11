@@ -726,6 +726,86 @@ importers:
         specifier: ^4.0.0
         version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
 
+  packages/key-ui:
+    dependencies:
+      '@biochain/key-utils':
+        specifier: workspace:*
+        version: link:../key-utils
+      '@number-flow/react':
+        specifier: ^0.5.5
+        version: 0.5.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@testing-library/react':
+        specifier: ^16.0.0
+        version: 16.3.1(@testing-library/dom@10.4.0)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.7
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.7)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      eslint-plugin-file-component-constraints:
+        specifier: workspace:*
+        version: link:../eslint-plugin-file-component-constraints
+      jsdom:
+        specifier: ^26.1.0
+        version: 26.1.0
+      oxlint:
+        specifier: ^1.32.0
+        version: 1.35.0
+      tailwind-merge:
+        specifier: ^3.4.0
+        version: 3.4.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.0
+        version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)
+      vite-plugin-dts:
+        specifier: ^4.5.4
+        version: 4.5.4(@types/node@24.10.4)(rollup@4.54.0)(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+
+  packages/key-utils:
+    dependencies:
+      react:
+        specifier: ^19.0.0
+        version: 19.2.3
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.7
+      jsdom:
+        specifier: ^26.1.0
+        version: 26.1.0
+      oxlint:
+        specifier: ^1.32.0
+        version: 1.35.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.0
+        version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)
+      vite-plugin-dts:
+        specifier: ^4.5.4
+        version: 4.5.4(@types/node@24.10.4)(rollup@4.54.0)(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))
+
   packages/keyapp-sdk:
     devDependencies:
       react:
