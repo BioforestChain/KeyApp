@@ -46,7 +46,9 @@ export const handleRequestAccounts: MethodHandler = async (_params, context) => 
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const wallet = await showWalletPicker()
+  const wallet = await showWalletPicker({
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -71,7 +73,10 @@ export const handleSelectAccount: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string } | undefined
-  const wallet = await showWalletPicker(opts)
+  const wallet = await showWalletPicker({
+    ...opts,
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -87,7 +92,10 @@ export const handlePickWallet: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string; exclude?: string } | undefined
-  const account = await showWalletPicker(opts)
+  const account = await showWalletPicker({
+    ...opts,
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!account) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
