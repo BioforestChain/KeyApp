@@ -270,6 +270,9 @@ importers:
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      eslint-plugin-file-component-constraints:
+        specifier: workspace:*
+        version: link:packages/eslint-plugin-file-component-constraints
       eslint-plugin-i18next:
         specifier: ^6.1.3
         version: 6.1.3

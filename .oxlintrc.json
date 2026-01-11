@@ -3,7 +3,7 @@
   "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
   "jsPlugins": [
     "eslint-plugin-i18next",
-    "./packages/eslint-plugin-file-component-constraints"
+    "eslint-plugin-file-component-constraints"
   ],
   "categories": {
     "correctness": "warn",
