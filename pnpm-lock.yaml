@@ -23,6 +23,12 @@ importers:
       '@biochain/bio-sdk':
         specifier: workspace:*
         version: link:packages/bio-sdk
+      '@biochain/key-ui':
+        specifier: workspace:*
+        version: link:packages/key-ui
+      '@biochain/key-utils':
+        specifier: workspace:*
+        version: link:packages/key-utils
       '@biochain/plugin-navigation-sync':
         specifier: workspace:*
         version: link:packages/plugin-navigation-sync

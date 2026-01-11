@@ -1,14 +1,47 @@
-export { GradientButton, gradientButtonVariants, type GradientButtonProps } from './gradient-button'
-export { LoadingSpinner } from './loading-spinner'
-export { EmptyState } from './empty-state'
-export { Skeleton, SkeletonText, SkeletonCard, SkeletonList } from './skeleton'
+// Re-export from @biochain/key-ui
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonList,
+  EmptyState,
+  Alert,
+  IconCircle,
+  StepIndicator,
+  ProgressSteps,
+  GradientButton,
+  LoadingSpinner,
+  QRCode,
+  AddressQRCode,
+} from '@biochain/key-ui'
+
+export type {
+  SkeletonProps,
+  SkeletonTextProps,
+  EmptyStateProps,
+  AlertProps,
+  AlertVariant,
+  IconCircleProps,
+  IconCircleVariant,
+  IconCircleSize,
+  StepIndicatorProps,
+  ProgressStepsProps,
+  GradientButtonProps,
+  GradientButtonVariant,
+  GradientButtonSize,
+  LoadingSpinnerProps,
+  LoadingSpinnerSize,
+  QRCodeProps,
+  AddressQRCodeProps,
+} from '@biochain/key-ui'
+
+// Keep local components that are not yet migrated
 export { AmountDisplay, AmountWithFiat, formatAmount } from './amount-display'
 export { AnimatedNumber, AnimatedAmount } from './animated-number'
 export { TimeDisplay, formatDate, formatDateTime, formatTime, toDate } from './time-display'
-export { QRCode, AddressQRCode } from './qr-code'
-export { IconCircle } from './icon-circle'
 export { FormField } from './form-field'
-export { Alert } from './alert'
-export { StepIndicator, ProgressSteps } from './step-indicator'
 export { ErrorBoundary } from './error-boundary'
 export { CopyableText } from './copyable-text'
+
+// Legacy export for gradientButtonVariants (cva)
+export { gradientButtonVariants } from './gradient-button'
