@@ -16,7 +16,7 @@
     "test:run": {
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
-      "outputs": ["coverage/**"],
+      "outputs": [],
       "cache": true
     },
     "test:storybook": {
