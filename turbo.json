@@ -2,7 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "lint:run": {
-      "dependsOn": [],
+      "dependsOn": ["eslint-plugin-file-component-constraints#build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", ".oxlintrc.json"],
       "outputs": [],
       "cache": true
