@@ -336,24 +336,14 @@ export default function App() {
                 {/* From Card (External Chain) */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
-                      <CardDescription className="text-xs truncate max-w-32">
-                        {externalAccount?.address?.slice(0, 8)}...
-                      </CardDescription>
-                    </div>
+                    <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        className="shrink-0 gap-2 h-10 px-3"
-                        onClick={() => setPickerOpen(true)}
-                      >
+                      <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
                         <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
                         <span className="font-semibold">{selectedOption.externalAsset}</span>
-                        <ChevronDown className="size-4 text-muted-foreground" />
-                      </Button>
+                      </div>
                       <Input
                         data-testid="amount-input"
                         type="number"
@@ -362,6 +352,9 @@ export default function App() {
                         placeholder="0.00"
                         className="text-right text-2xl font-bold h-10 border-0 focus-visible:ring-0"
                       />
+                    </div>
+                    <div className="text-xs text-muted-foreground font-mono break-all">
+                      {externalAccount?.address}
                     </div>
                   </CardContent>
                 </Card>
@@ -378,14 +371,9 @@ export default function App() {
                 {/* To Card (Internal Chain) */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
-                      <CardDescription className="text-xs truncate max-w-32">
-                        {internalAccount?.address?.slice(0, 8)}...
-                      </CardDescription>
-                    </div>
+                    <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-3">
                       <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
                         <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
@@ -394,6 +382,9 @@ export default function App() {
                       <div className="flex-1 text-right text-2xl font-bold text-muted-foreground">
                         {amount || '0.00'}
                       </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground font-mono break-all">
+                      {internalAccount?.address}
                     </div>
                   </CardContent>
                 </Card>

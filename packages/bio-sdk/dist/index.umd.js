@@ -532,10 +532,14 @@
     ETH: "ethereum",
     BSC: "binance",
     TRON: "tron",
+    BFMCHAIN: "bfmeta",
+    BFCHAIN: "bfchain",
     // Lowercase variants
     eth: "ethereum",
     bsc: "binance",
-    tron: "tron"
+    tron: "tron",
+    bfmchain: "bfmeta",
+    bfchain: "bfchain"
   };
   const CHAIN_DISPLAY_NAMES = {
     ethereum: "Ethereum",
