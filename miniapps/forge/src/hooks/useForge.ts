@@ -7,6 +7,7 @@ import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk'
 import { normalizeChainId } from '@biochain/bio-sdk'
 import { rechargeApi } from '@/api'
 import { encodeRechargeV2ToTrInfoData, createRechargeMessage } from '@/api/helpers'
+import { validateDepositAddress } from '@/lib/chain'
 import type {
   ExternalChainName,
   FromTrJson,
@@ -86,6 +87,13 @@ export function useForge() {
 
     if (!window.bio) {
       setState({ step: 'error', orderId: null, error: 'Bio SDK not available' })
+      return
+    }
+
+    // Validate deposit address format before proceeding
+    const addressError = validateDepositAddress(externalChain, depositAddress)
+    if (addressError) {
+      setState({ step: 'error', orderId: null, error: addressError })
       return
     }
 

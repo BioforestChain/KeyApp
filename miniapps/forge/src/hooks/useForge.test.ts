@@ -17,9 +17,9 @@ const mockBio = {
 const mockForgeParams: ForgeParams = {
   externalChain: 'ETH',
   externalAsset: 'ETH',
-  depositAddress: '0xdeposit123',
+  depositAddress: '0x1234567890abcdef1234567890abcdef12345678',
   amount: '1.5',
-  externalAccount: { address: '0xexternal123', chain: 'eth', publicKey: '0x' },
+  externalAccount: { address: '0xabcdef1234567890abcdef1234567890abcdef12', chain: 'eth', publicKey: '0x' },
   internalChain: 'bfmeta',
   internalAsset: 'BFM',
   internalAccount: { address: 'bfmeta123', chain: 'bfmeta', publicKey: '0x' },
@@ -211,5 +211,73 @@ describe('useForge', () => {
     const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
     expect(submitCall.fromTrJson).toHaveProperty('bsc')
     expect(submitCall.fromTrJson.bsc?.signTransData).toBe('0xsignedBscTx')
+  })
+
+  it('should build correct fromTrJson for TRON with base58 address', async () => {
+    // TRON depositAddress should be base58 format (starts with T)
+    const tronDepositAddress = 'TZ4UXDV5ZhNW7fb2AMSbgfAEZ7hWsnYS2g'
+    
+    mockBio.request
+      .mockResolvedValueOnce({ txHash: 'unsigned' })
+      .mockResolvedValueOnce({ data: { txID: 'tronTxId123', signature: ['sig'] } })
+      .mockResolvedValueOnce({ signature: 'sig', publicKey: 'pubkey' })
+
+    vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
+
+    const { result } = renderHook(() => useForge())
+
+    const tronParams: ForgeParams = {
+      ...mockForgeParams,
+      externalChain: 'TRON',
+      externalAsset: 'TRX',
+      depositAddress: tronDepositAddress,
+      externalAccount: { address: 'TUserAddress123456789012345678901234', chain: 'tron', publicKey: '' },
+    }
+
+    act(() => {
+      result.current.forge(tronParams)
+    })
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('success')
+    })
+
+    // Verify bio_createTransaction was called with correct depositAddress
+    const createTxCall = mockBio.request.mock.calls[0]
+    expect(createTxCall[0].method).toBe('bio_createTransaction')
+    expect(createTxCall[0].params[0].to).toBe(tronDepositAddress)
+
+    const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
+    expect(submitCall.fromTrJson).toHaveProperty('tron')
+  })
+
+  it('should handle TRON transaction with 0x address format error', async () => {
+    // This test verifies early validation catches invalid address format
+    const invalidTronAddress = '0x1234567890abcdef1234567890abcdef12345678'
+
+    const { result } = renderHook(() => useForge())
+
+    const tronParams: ForgeParams = {
+      ...mockForgeParams,
+      externalChain: 'TRON',
+      externalAsset: 'TRX',
+      depositAddress: invalidTronAddress,
+      externalAccount: { address: 'TUserAddress123456789012345678901234', chain: 'tron', publicKey: '' },
+    }
+
+    act(() => {
+      result.current.forge(tronParams)
+    })
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('error')
+    })
+
+    // Should get a helpful error about address format, not a cryptic base58 error
+    expect(result.current.error).toContain('Invalid TRON address')
+    expect(result.current.error).toContain('EVM format')
+    
+    // bio.request should NOT have been called since we catch the error early
+    expect(mockBio.request).not.toHaveBeenCalled()
   })
 })
