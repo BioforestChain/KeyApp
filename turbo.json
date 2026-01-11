@@ -1,27 +1,28 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["pnpm-lock.yaml"],
   "tasks": {
     "lint:run": {
       "dependsOn": ["eslint-plugin-file-component-constraints#build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", ".oxlintrc.json"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", ".oxlintrc.json", "package.json"],
       "outputs": [],
       "cache": true
     },
     "typecheck:run": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json", "package.json"],
       "outputs": [],
       "cache": true
     },
     "test:run": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts", "package.json"],
       "outputs": [],
       "cache": true
     },
     "test:storybook": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts", ".storybook/**", "package.json"],
       "outputs": [],
       "cache": true
     },
