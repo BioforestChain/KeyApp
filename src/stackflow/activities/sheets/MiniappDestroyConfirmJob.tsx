@@ -8,16 +8,16 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconFlame, IconAlertTriangle, IconLoader2, IconApps } from '@tabler/icons-react'
+import { IconFlame, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores'
-import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
 import { submitBioforestBurn } from '@/hooks/use-burn.bioforest'
 import { Amount } from '@/types/amount'
 import { AddressDisplay } from '@/components/wallet/address-display'
 import { AmountDisplay } from '@/components/common/amount-display'
+import { MiniappSheetHeader } from '@/components/ecosystem'
 
 type MiniappDestroyConfirmJobParams = {
   /** 来源小程序名称 */
@@ -134,21 +134,12 @@ function MiniappDestroyConfirmJobContent() {
         </div>
 
         {/* Header */}
-        <div className="border-border border-b px-4 pb-4">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-destructive/10 overflow-hidden">
-            {appIcon ? (
-              <img src={appIcon} alt={appName} className="size-full object-cover" />
-            ) : (
-              <IconApps className="size-8 text-destructive" />
-            )}
-          </div>
-          <h2 className="text-center text-lg font-semibold">
-            {t('transaction:destroyPage.title')}
-          </h2>
-          <p className="text-muted-foreground mt-1 text-center text-sm">
-            {appName || t('common:unknownDApp')} {t('common:requestsDestroy', '请求销毁资产')}
-          </p>
-        </div>
+        <MiniappSheetHeader
+          title={t('transaction:destroyPage.title')}
+          description={`${appName || t('common:unknownDApp')} ${t('common:requestsDestroy', '请求销毁资产')}`}
+          appName={appName}
+          appIcon={appIcon}
+        />
 
         {/* Content */}
         <div className="space-y-4 p-4">
