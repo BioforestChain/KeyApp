@@ -8,13 +8,14 @@ import type { ActivityComponentType } from '@stackflow/react'
 import { BottomSheet } from '@/components/layout/bottom-sheet'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { IconApps, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
+import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { walletStore } from '@/stores'
 import type { BioUnsignedTransaction } from '@/services/ecosystem'
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers'
+import { MiniappSheetHeader } from '@/components/ecosystem'
 
 type MiniappSignTransactionJobParams = {
   /** 来源小程序名称 */
@@ -127,19 +128,12 @@ function MiniappSignTransactionJobContent() {
           <div className="bg-muted h-1 w-10 rounded-full" />
         </div>
 
-        <div className="border-border border-b px-4 pb-4">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
-            {appIcon ? (
-              <img src={appIcon} alt={appName} className="size-full object-cover" />
-            ) : (
-              <IconApps className="size-8 text-primary" />
-            )}
-          </div>
-          <h2 className="text-center text-lg font-semibold">{t('signTransaction', '签名交易')}</h2>
-          <p className="text-muted-foreground mt-1 text-center text-sm">
-            {appName || t('unknownDApp', '未知 DApp')}
-          </p>
-        </div>
+        <MiniappSheetHeader
+          title={t('signTransaction', '签名交易')}
+          description={appName || t('unknownDApp', '未知 DApp')}
+          appName={appName}
+          appIcon={appIcon}
+        />
 
         <div className="space-y-4 p-4">
           {!unsignedTx && (

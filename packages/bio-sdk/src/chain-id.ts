@@ -23,10 +23,14 @@ export const API_CHAIN_TO_KEYAPP: Record<string, string> = {
   ETH: 'ethereum',
   BSC: 'binance',
   TRON: 'tron',
+  BFMCHAIN: 'bfmeta',
+  BFCHAIN: 'bfchain',
   // Lowercase variants
   eth: 'ethereum',
   bsc: 'binance',
   tron: 'tron',
+  bfmchain: 'bfmeta',
+  bfchain: 'bfchain',
 } as const
 
 /** KeyApp chain ID to display name */

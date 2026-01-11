@@ -71,11 +71,14 @@ describe('chain-id utilities', () => {
       expect(normalizeChainId('BSC')).toBe('binance')
       expect(normalizeChainId('ETH')).toBe('ethereum')
       expect(normalizeChainId('TRON')).toBe('tron')
+      expect(normalizeChainId('BFMCHAIN')).toBe('bfmeta')
+      expect(normalizeChainId('BFCHAIN')).toBe('bfchain')
     })
 
     it('should handle lowercase variants', () => {
       expect(normalizeChainId('bsc')).toBe('binance')
       expect(normalizeChainId('eth')).toBe('ethereum')
+      expect(normalizeChainId('bfmchain')).toBe('bfmeta')
     })
 
     it('should return lowercase for unknown chains', () => {

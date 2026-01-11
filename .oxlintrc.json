@@ -1,7 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
-  "jsPlugins": ["eslint-plugin-i18next"],
+  "jsPlugins": [
+    "eslint-plugin-i18next",
+    "eslint-plugin-file-component-constraints"
+  ],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -37,6 +40,16 @@
     "unicorn/no-null": "off",
     "unicorn/prefer-query-selector": "off",
     "unicorn/require-module-specifiers": "off",
+
+    "file-component-constraints/enforce": ["error", {
+      "rules": [{
+        "fileMatch": "**/sheets/Miniapp*.tsx",
+        "mustUse": ["MiniappSheetHeader"],
+        "mustImportFrom": {
+          "MiniappSheetHeader": ["@/components/ecosystem"]
+        }
+      }]
+    }],
 
     "i18next/no-literal-string": ["warn", {
       "mode": "jsx-only",

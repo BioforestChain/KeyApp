@@ -1257,10 +1257,74 @@ walletapi相关的接口：
 
 需要配套完整的 storybook+vitest 测试，storybook-e2e+截图
 
-----
+---
 
 昨天有一个任务是关于支付面板的时候确认手续费，我自己测试了一下，发现用了一个 0.00001 作为默认手续费，这是错误的，我们 bioChain 是有专门的接口来获取最低手续费的。请你检查，并修复这个问题。
 看一下白皮书有没有，如果没有，你调查完成后，顺便更新白皮书。
 参考代码： `/Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/chain-base/bioforest-chain.base.ts:378 #getTransferTransactionMinFee`
 核心的逻辑就是用 SDK 试着创建一笔交易，SDK 会根据交易体自动提供一个最低手续费。
 这个功能应该被封装到我们的 chain-provider 内核中。
+
+---
+
+1. bfmetav2的 “区块链浏览器”的 baseURL 是 https://tracker.bf-meta.org，请配置到default-chains.json中
+2. 在我们的交易详情页面中，改进一下底部的交易 hash，“复制哈希”不用单独做一个大按钮，实现一个 copyable 的组件（先看一下有没有现成的），来点击复制，并在末尾显示一个 icon 来表示可以复制、复制成功、复制失败
+3. 原本的“复制哈希”就变成“在浏览器中打开”。和“分享”按钮的连接是一样的
+
+---
+
+bioChain 的交易时间有点问题，显示 1970 年，要加入创世块的创世时间，才是完整的时间。
+请你修复对应的适配器函数，确保详情页的显示正确。
+
+---
+
+我们的老钱包 mpay 有“销毁”功能，和“转账”、“收款”一起放在底部工具栏，这是 bioChain 特有的功能。
+请你调查这个功能，然后为它专门实现一个页面，和转账页面类似，注意这是，主资产是不支持销毁的。
+我个人建议是， WalletTab 的资产列表这里，每一项资产的右边都能有一个 more 的 icon button。
+点击展开一个菜单，里面有转账和销毁。
+
+---
+
+转账页面要能支持选择资产，目前只支持了 NativeBalance 的转账。要能支持切换资产。这个切换资产可以放在顶部，现在顶部只显示了“链”和“发送者”。现在还需要显示一个资产选择器（看一下有没有现成了组件，如果没有就创建组件，并配套各种测试）。
+
+注意，bioChain 进行任意转账到时候，都是使用主资产来提供手续费的。
+其它链我不知道，但是你要做好适配。
+
+也就是说这个转账页面，要支持两个参数：一个是决定用什么资产进行转账，一个是决定是否可以修改资产。默认是主资产、默认是不可以修改资产。
+销毁页面也是如此。
+
+你需要做一个详细的计划，把相关的流程都考虑进来。
+
+---
+
+EcosystemTab 这里有 bug，我在 discovery 页面获取了新 的小程序，然后说是获取成功，结果 mine 页没有出现这个小程序 的图标，但是页面刷新后就有了。确保单一可信原则、使用测试驱动开发，先找到合适的测试模式复现确定这个问题，然后再进行修复。确保以后 CI 都能检测到这个问题不再复现  
+/Users/kzf/.factory/specs/2026-01-10-i-will-adopt-a-test-driven-development-tdd-approach-to-fix-the-my-apps-synchroni.md
+/Users/kzf/.factory/specs/2026-01-10-fixed-the-bug-where-installed-apps-were-not-syncing-to-the-mine-page.md
+
+---
+
+两个小程序在使用体验上都存在一些问题。 请你调查，给出你的修复意见。
+两个小程序的接口文档：
+.chat/research-miniapp-锻造-backend.md
+.chat/research-miniapp-一键传送-backend.md
+
+目前已知的问题：
+
+1. forge 小程序存在问题，无法连接到钱包。
+2. 连接到钱包，取消授权，好像小程序没有收到用户取消的回调。
+3. 连接到钱包的弹出层没有真确渲染小程序 Icon，我记得这里是有统一的组件的，不该犯这种低级错误。请检查所有的弹出层
+4. 我在 transfer 小程序，好像不能正确拿到账户余额？我不知道这个是走 transfer 独立的查询还是使用钱包授权获得的数据，不论哪种方式，现在的问题是显示可用是“0”
+
+请你深度调查，使用测试驱动开发。同时记得更新白皮书
+
+---
+
+我记得昨天还是前天，有修复一个关于 bioChain 获取创世块的问题，这个代码被覆盖了吗？
+就是 default-chains.json 这里，要有一个：
+
+```
+{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain", config: {genesisBlock:JSON_PATH} }
+```
+
+这里genesisBlock的路径的 resolve 逻辑是一致的：基于default-chains.json 的文件的位置进行相对索引。
+这个代码怎么没了？请你调查一下，这个代码是否被覆盖了。被覆盖到原因是什么，如果找不到历史代码，请你实现这个功能。

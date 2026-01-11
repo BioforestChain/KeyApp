@@ -5,6 +5,8 @@
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
+import { chainConfigService } from '@/services/chain-config'
+import { getAccountBalance as getBioforestBalance } from '@/services/bioforest-sdk'
 
 // 兼容旧 API，逐步迁移到 HandlerContext
 let _showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
@@ -44,7 +46,9 @@ export const handleRequestAccounts: MethodHandler = async (_params, context) => 
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const wallet = await showWalletPicker()
+  const wallet = await showWalletPicker({
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -69,7 +73,10 @@ export const handleSelectAccount: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string } | undefined
-  const wallet = await showWalletPicker(opts)
+  const wallet = await showWalletPicker({
+    ...opts,
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -85,7 +92,10 @@ export const handlePickWallet: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string; exclude?: string } | undefined
-  const account = await showWalletPicker(opts)
+  const account = await showWalletPicker({
+    ...opts,
+    app: { name: context.appName, icon: context.appIcon },
+  })
   if (!account) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -106,6 +116,17 @@ export const handleGetBalance: MethodHandler = async (params, _context) => {
     throw Object.assign(new Error('Missing address or chain'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
-  // TODO: Query actual balance from chain adapter
-  return '0'
+  // Get biowallet API endpoint from chain config
+  const biowalletApi = chainConfigService.getBiowalletApi(opts.chain)
+  if (!biowalletApi) {
+    // Chain doesn't have biowallet API configured, return '0'
+    return '0'
+  }
+
+  try {
+    return await getBioforestBalance(biowalletApi, opts.chain, opts.address)
+  } catch (error) {
+    console.warn('[bio_getBalance] Failed to query balance:', error)
+    return '0'
+  }
 }

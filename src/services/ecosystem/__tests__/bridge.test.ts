@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { PostMessageBridge } from '../bridge'
 import { BioErrorCodes } from '../types'
 
+// Mock miniappRuntimeStore for icon URL resolution tests
+vi.mock('../../miniapp-runtime', () => ({
+  miniappRuntimeStore: {
+    state: {
+      apps: new Map(),
+    },
+  },
+}))
+
 describe('PostMessageBridge', () => {
   let bridge: PostMessageBridge
 

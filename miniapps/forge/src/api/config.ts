@@ -6,7 +6,7 @@
  */
 
 /** Default API Base URL (used by all BioForest chain services) */
-const DEFAULT_API_BASE_URL = 'https://walletapi.bf-meta.org'
+const DEFAULT_API_BASE_URL = 'https://walletapi.bfmeta.info'
 
 /** API Base URL - uses default or environment override */
 export const API_BASE_URL =

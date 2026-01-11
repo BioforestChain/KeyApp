@@ -30,7 +30,7 @@ type WalletPickerJobParams = {
  * 将任意链标识符转换为 KeyApp 内部 ID
  * 支持:
  * - EVM hex chainId: '0x38' -> 'binance'
- * - API 名称: 'BSC', 'ETH' -> 'binance', 'ethereum'
+ * - API 名称: 'BSC', 'ETH', 'BFMCHAIN' -> 'binance', 'ethereum', 'bfmeta'
  * - 已有的 KeyApp ID: 'binance' -> 'binance'
  */
 function resolveChainId(chain: string | undefined): string | undefined {
@@ -42,7 +42,7 @@ function resolveChainId(chain: string | undefined): string | undefined {
     if (keyAppId) return keyAppId
   }
 
-  // Try API name normalization (e.g., 'BSC' -> 'binance')
+  // Try API name normalization (e.g., 'BSC' -> 'binance', 'BFMCHAIN' -> 'bfmeta')
   const normalized = normalizeChainId(chain)
 
   // Check if it's a known chain
@@ -52,6 +52,11 @@ function resolveChainId(chain: string | undefined): string | undefined {
 
   // Return as-is (might be already a KeyApp ID like 'binance')
   return normalized
+}
+
+/** Get display name for chain ID */
+function getChainDisplayName(chainId: string): string {
+  return CHAIN_DISPLAY_NAMES[chainId] || chainId
 }
 
 function WalletPickerJobContent() {

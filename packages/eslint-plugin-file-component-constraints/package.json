@@ -1,0 +1,32 @@
+{
+  "name": "eslint-plugin-file-component-constraints",
+  "version": "0.1.0",
+  "description": "ESLint plugin to enforce component usage constraints based on file patterns",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "components",
+    "constraints",
+    "architecture"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/eslint": "^9.0.0",
+    "@types/estree": "^1.0.8",
+    "@types/estree-jsx": "^1.0.5",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}
