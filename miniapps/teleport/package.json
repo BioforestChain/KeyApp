@@ -28,6 +28,8 @@
   "dependencies": {
     "@base-ui/react": "^1.0.0",
     "@biochain/bio-sdk": "workspace:*",
+    "@biochain/key-ui": "workspace:*",
+    "@biochain/key-utils": "workspace:*",
     "@biochain/keyapp-sdk": "workspace:*",
     "@bnqkl/metabox-core": "0.5.2",
     "@bnqkl/wallet-typings": "0.23.8",
