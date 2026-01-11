@@ -1,0 +1,24 @@
+/* Key UI Base Styles */
+/* These CSS variables can be imported by consumers for consistent theming */
+
+:root {
+  /* Colors - can be overridden by consumer's theme */
+  --key-ui-text-muted: oklch(0.556 0.012 286.286);
+  --key-ui-text-destructive: oklch(0.577 0.245 27.325);
+  --key-ui-text-success: oklch(0.723 0.191 149.579);
+  --key-ui-bg-muted: oklch(0.967 0.001 286.375);
+  
+  /* Sizes */
+  --key-ui-icon-xs: 1rem;
+  --key-ui-icon-sm: 1.5rem;
+  --key-ui-icon-md: 2rem;
+  --key-ui-icon-lg: 2.5rem;
+  --key-ui-icon-xl: 3rem;
+}
+
+.dark {
+  --key-ui-text-muted: oklch(0.708 0.012 286.286);
+  --key-ui-text-destructive: oklch(0.704 0.191 22.216);
+  --key-ui-text-success: oklch(0.792 0.209 151.711);
+  --key-ui-bg-muted: oklch(0.21 0.006 285.885);
+}
