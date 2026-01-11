@@ -106,9 +106,7 @@ test.describe('Forge 小程序授权流程', () => {
     await expect(forgeFrame.getByTestId('connect-button')).toBeVisible({ timeout: 15000 })
   })
 
-  test.skip('Forge 点击连接应触发钱包选择器', async ({ page }) => {
-    // 跳过: 此测试需要后端API返回配置数据，在mock环境中按钮会保持禁用状态
-    // 实际的授权流程测试应在真实环境中进行
+  test('Forge 点击连接应触发钱包选择器', async ({ page }) => {
     await page.goto('/#/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
