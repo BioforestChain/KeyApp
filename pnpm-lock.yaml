@@ -753,6 +753,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      eslint-plugin-file-component-constraints:
+        specifier: workspace:*
+        version: link:../eslint-plugin-file-component-constraints
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
