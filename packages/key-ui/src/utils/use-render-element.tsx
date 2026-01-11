@@ -1,7 +1,7 @@
 'use client'
 import * as React from 'react'
 import { cn } from '@biochain/key-utils'
-import type { KeyUIComponentProps, ComponentRenderFn } from './types'
+import type { ComponentRenderFn } from './types'
 import { EMPTY_OBJECT } from './constants'
 import { useMergedRefs } from './use-merged-refs'
 
@@ -27,27 +27,27 @@ function resolveStyle<State>(
   return styleProp
 }
 
-function getReactElementRef(element: React.ReactElement | undefined): React.Ref<any> | undefined {
+function getReactElementRef(element: React.ReactElement | undefined): React.Ref<unknown> | undefined {
   if (!element) return undefined
-  return (element as any).ref
+  return (element as unknown as { ref?: React.Ref<unknown> }).ref
 }
 
 export interface UseRenderElementParameters<State, RenderedElementType extends Element> {
   enabled?: boolean
   ref?: React.Ref<RenderedElementType> | (React.Ref<RenderedElementType> | undefined)[]
   state?: State
-  props?: React.HTMLAttributes<any> | ((props: React.HTMLAttributes<any>) => React.HTMLAttributes<any>)
+  props?: Record<string, unknown>
   defaultClassName?: string
 }
 
 export interface UseRenderElementComponentProps<State> {
   className?: string | ((state: State) => string | undefined)
-  render?: ComponentRenderFn<React.HTMLAttributes<any>, State> | React.ReactElement
+  render?: ComponentRenderFn<Record<string, unknown>, State> | React.ReactElement
   style?: React.CSSProperties | ((state: State) => React.CSSProperties | undefined)
 }
 
 export function useRenderElement<
-  State extends Record<string, any>,
+  State extends object,
   RenderedElementType extends Element,
   TagName extends IntrinsicTagName | undefined,
 >(
@@ -76,13 +76,13 @@ export function useRenderElement<
   const className = resolveClassName(classNameProp, state)
   const style = resolveStyle(styleProp, state)
 
-  const baseProps = typeof propsProp === 'function' ? propsProp({}) : (propsProp ?? {})
+  const baseProps = propsProp ?? {}
   
-  const outProps: React.HTMLAttributes<any> & React.RefAttributes<any> = {
+  const outProps = {
     ...baseProps,
     ref: mergedRef,
-    className: cn(defaultClassName, (baseProps as React.HTMLAttributes<any>).className, className),
-    style: { ...(baseProps as React.HTMLAttributes<any>).style, ...style },
+    className: cn(defaultClassName, baseProps.className as string | undefined, className),
+    style: { ...(baseProps.style as React.CSSProperties | undefined), ...style },
   }
 
   if (renderProp) {

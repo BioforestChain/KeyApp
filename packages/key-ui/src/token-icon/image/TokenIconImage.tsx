@@ -37,6 +37,7 @@ export const TokenIconImage = React.forwardRef(function TokenIconImage(
       onLoadingStatusChange?.('loading')
       context.setImageLoaded(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src])
 
   if (!src) {

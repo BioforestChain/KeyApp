@@ -1,7 +1,7 @@
 'use client'
 import * as React from 'react'
 import NumberFlow from '@number-flow/react'
-import { cn, formatAmount, formatNumberToString, getEffectiveDecimals } from '@biochain/key-utils'
+import { cn, formatAmount, getEffectiveDecimals } from '@biochain/key-utils'
 import type { KeyUIComponentProps } from '../utils/types'
 
 type AmountSign = 'auto' | 'always' | 'never'
@@ -153,7 +153,7 @@ export const AmountDisplay = React.forwardRef(function AmountDisplay(
         ref={forwardedRef}
         className={coloredClassName}
         style={resolvedStyle}
-        role="text"
+        role="img"
         aria-label={a11yLabel}
         {...elementProps}
       >

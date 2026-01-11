@@ -70,7 +70,7 @@ export const AddressDisplay = React.forwardRef(function AddressDisplay(
   )
 
   if (!copyable) {
-    return useRenderElement('span', { className, render, style }, {
+    return useRenderElement<AddressDisplayState, HTMLElement, 'span'>('span', { className, render: render as React.ReactElement | undefined, style }, {
       state,
       ref: [forwardedRef, containerRef as React.Ref<HTMLElement>],
       props: {
@@ -127,7 +127,7 @@ export const AddressDisplay = React.forwardRef(function AddressDisplay(
         <CopyIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
       )}
       <span role="status" aria-live="polite" className="sr-only">
-        {copied ? '已复制到剪贴板' : ''}
+        {copied ? 'Copied' : ''}
       </span>
     </button>
   )

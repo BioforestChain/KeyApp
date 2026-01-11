@@ -7,9 +7,10 @@ export function useMergedRefs<T>(...refs: Ref<T>[]): React.RefCallback<T> {
     for (const ref of refs) {
       if (typeof ref === 'function') {
         ref(instance)
-      } else if (ref != null) {
+      } else if (ref !== null && ref !== undefined) {
         ;(ref as React.MutableRefObject<T | null>).current = instance
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refs)
 }
