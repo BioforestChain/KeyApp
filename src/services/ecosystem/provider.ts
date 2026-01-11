@@ -24,8 +24,15 @@ import {
   registerTronHandlers,
 } from './handlers'
 
+/** Track if handlers have been registered */
+let initialized = false
+
 /** Initialize the Bio provider with all handlers */
 export function initBioProvider(): void {
+  // Prevent double initialization
+  if (initialized) return
+  initialized = true
+
   // Bio methods (BioChain + wallet features)
   bridge.registerHandler('bio_connect', handleConnect)
   bridge.registerHandler('bio_closeSplashScreen', handleCloseSplashScreen)
@@ -90,6 +97,10 @@ export function initBioProvider(): void {
     ],
   })
 }
+
+// Auto-initialize handlers at module load time to prevent race conditions
+// where miniapp calls methods before React useEffect runs
+initBioProvider()
 
 /** Get the bridge instance */
 export function getBridge() {
