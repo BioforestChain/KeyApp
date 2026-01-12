@@ -8,6 +8,7 @@ const mockConfig = {
     BFM: {
       enable: true,
       logo: '',
+      applyAddress: 'b0000000000000000000000000000000000000000',
       supportChain: {
         ETH: {
           enable: true,
@@ -21,6 +22,13 @@ const mockConfig = {
           depositAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
           logo: '',
         },
+      },
+      redemption: {
+        enable: true,
+        min: '100000000',
+        max: '10000000000000',
+        fee: { ETH: '1000000', BSC: '500000', TRON: '500000' },
+        radioFee: '0.001',
       },
     },
   },
@@ -41,6 +49,13 @@ const setupMockApi = () => {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ orderId: 'mock-order-123' }),
+      })
+    }
+    // Match /cot/redemption/V2 endpoint
+    if (url.includes('/redemption/V2')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ orderId: 'mock-redemption-456' }),
       })
     }
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
@@ -65,7 +80,7 @@ function setupMockEthereumProvider(opts?: {
 }
 
 const meta = {
-  title: 'App/ForgeApp',
+  title: 'App/BioBridge',
   component: App,
   parameters: {
     layout: 'fullscreen',
@@ -381,5 +396,67 @@ export const ErrorState: Story = {
       const errorElements = canvasElement.querySelectorAll('[class*="destructive"]')
       expect(errorElements.length).toBeGreaterThan(0)
     })
+  },
+}
+
+/**
+ * Redemption mode - shows redemption form
+ */
+export const RedemptionMode: Story = {
+  decorators: [
+    (Story) => {
+      setupMockApi()
+      setupMockEthereumProvider()
+      // @ts-expect-error - mock global
+      window.bio = {
+        request: fn().mockImplementation(({ method, params }: { method: string; params?: unknown[] }) => {
+          if (method === 'bio_selectAccount') {
+            const chain = (params?.[0] as { chain?: string } | undefined)?.chain ?? 'bfmeta'
+            return Promise.resolve({
+              address: chain === 'bfmeta' ? 'bfmeta123' : '0x1234567890abcdef1234567890abcdef12345678',
+              chain,
+              publicKey: '0x',
+            })
+          }
+          if (method === 'bio_closeSplashScreen') {
+            return Promise.resolve()
+          }
+          if (method === 'bio_createTransaction') {
+            return Promise.resolve({ txHash: 'unsigned-tx-123' })
+          }
+          if (method === 'bio_signTransaction') {
+            return Promise.resolve({ trJson: { signed: true } })
+          }
+          return Promise.resolve({})
+        }),
+      }
+      return (
+        <div style={{ width: '375px', height: '667px', margin: '0 auto' }}>
+          <Story />
+        </div>
+      )
+    },
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Wait for mode tabs to be visible
+    await waitFor(
+      () => {
+        expect(canvas.getByText('赎回')).toBeInTheDocument()
+      },
+      { timeout: 5000 }
+    )
+
+    // Click redemption tab
+    await userEvent.click(canvas.getByText('赎回'))
+
+    // Should show redemption UI
+    await waitFor(
+      () => {
+        expect(canvas.getByText('赎回')).toBeInTheDocument()
+      },
+      { timeout: 5000 }
+    )
   },
 }
