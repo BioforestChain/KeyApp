@@ -48,14 +48,14 @@ jobs:
             git clone https://github.com/${{ github.repository }}.git .
           else
             # Self-hosted runners keep the workspace between runs; ensure clean checkout
-            # Preserve .turbo cache and node_modules for faster builds
+            # Preserve caches and build artifacts for faster builds
             git reset --hard HEAD
-            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules'
+            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
           fi
           git fetch origin ${{ github.sha }} --depth=1 --tags
           git checkout -f ${{ github.sha }}
           git reset --hard HEAD
-          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules'
+          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
 
       - name: Determine channel
         id: channel
