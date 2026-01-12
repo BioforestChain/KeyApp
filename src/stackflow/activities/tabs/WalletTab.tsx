@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { useBalanceQuery, useTransactionHistoryQuery } from "@/queries";
+import { usePendingTransactions } from "@/hooks/use-pending-transactions";
+import { PendingTxList } from "@/components/transaction/pending-tx-list";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
   IconPlus,
@@ -84,6 +86,13 @@ export function WalletTab() {
   const { transactions, isLoading: txLoading, setFilter } = useTransactionHistoryQuery(
     currentWallet?.id
   );
+
+  // Pending Transactions
+  const { 
+    transactions: pendingTransactions, 
+    deleteTransaction: deletePendingTx,
+    retryTransaction: retryPendingTx,
+  } = usePendingTransactions(currentWallet?.id);
 
   // 当链切换时更新交易过滤器
   useEffect(() => {
@@ -251,6 +260,17 @@ export function WalletTab() {
           </button>
         </div>
       </div>
+
+      {/* Pending Transactions */}
+      {pendingTransactions.length > 0 && (
+        <div className="px-4 pt-2">
+          <PendingTxList
+            transactions={pendingTransactions}
+            onRetry={retryPendingTx}
+            onDelete={deletePendingTx}
+          />
+        </div>
+      )}
 
       {/* 内容区：复用 WalletAddressPortfolioView */}
       <div className="flex-1 pt-3">
