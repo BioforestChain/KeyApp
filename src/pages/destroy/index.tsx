@@ -219,11 +219,16 @@ export function DestroyPage() {
     reset()
   }
 
-  const handleViewExplorer = () => {
-    if (state.txHash) {
+  const handleViewExplorer = useCallback(() => {
+    if (!state.txHash) return
+    const queryTx = chainConfig?.explorer?.queryTx
+    if (!queryTx) {
       toast.show(t('sendPage.explorerNotImplemented'))
+      return
     }
-  }
+    const url = queryTx.replace(':hash', state.txHash).replace(':signature', state.txHash)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }, [state.txHash, chainConfig?.explorer?.queryTx, toast, t])
 
   // Check if chain supports destroy
   const isBioforestChain = chainConfig?.chainKind === 'bioforest'
@@ -267,7 +272,7 @@ export function DestroyPage() {
           errorMessage={state.errorMessage ?? undefined}
           onDone={handleDone}
           onRetry={state.resultStatus === 'failed' ? handleRetry : undefined}
-          onViewExplorer={state.resultStatus === 'success' ? handleViewExplorer : undefined}
+          onViewExplorer={state.resultStatus === 'success' && chainConfig?.explorer?.queryTx ? handleViewExplorer : undefined}
         />
       </div>
     )

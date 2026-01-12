@@ -10365,6 +10365,18 @@
           ]
         }
       },
+      "packages/eslint-plugin-file-component-constraints": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@types/eslint@9",
+            "npm:@types/estree-jsx@^1.0.5",
+            "npm:@types/estree@^1.0.8",
+            "npm:@types/node@22",
+            "npm:minimatch@9",
+            "npm:typescript@5"
+          ]
+        }
+      },
       "packages/flow": {
         "packageJson": {
           "dependencies": [
@@ -10379,6 +10391,42 @@
         "packageJson": {
           "dependencies": [
             "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/key-ui": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@number-flow/react@~0.5.5",
+            "npm:@storybook/addon-docs@10",
+            "npm:@storybook/addon-vitest@10",
+            "npm:@storybook/react-vite@10",
+            "npm:@testing-library/react@16",
+            "npm:@types/react-dom@19",
+            "npm:@types/react@19",
+            "npm:@vitest/browser-playwright@4",
+            "npm:clsx@^2.1.1",
+            "npm:jsdom@^26.1.0",
+            "npm:oxlint@^1.32.0",
+            "npm:storybook@10",
+            "npm:tailwind-merge@^3.4.0",
+            "npm:typescript@^5.9.3",
+            "npm:vite-plugin-dts@^4.5.4",
+            "npm:vite@^7.3.0",
+            "npm:vitest@4"
+          ]
+        }
+      },
+      "packages/key-utils": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@types/react@19",
+            "npm:jsdom@^26.1.0",
+            "npm:oxlint@^1.32.0",
+            "npm:typescript@^5.9.3",
+            "npm:vite-plugin-dts@^4.5.4",
+            "npm:vite@^7.3.0",
             "npm:vitest@4"
           ]
         }

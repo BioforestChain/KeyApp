@@ -49,6 +49,8 @@ export interface TxStatusDisplayProps {
   onRetry?: () => void;
   /** 点击查看详情按钮 */
   onViewDetails?: () => void;
+  /** 点击在浏览器中查看按钮 */
+  onViewExplorer?: () => void;
   /** 点击分享按钮（目前复制链接） */
   onShare?: () => void;
   /** 轮询间隔（毫秒） */
@@ -70,6 +72,7 @@ export function TxStatusDisplay({
   onDone,
   onRetry,
   onViewDetails,
+  onViewExplorer,
   onShare,
   pollInterval = 10000,
   maxPollAttempts = 18,
@@ -234,6 +237,16 @@ export function TxStatusDisplay({
                 className="flex-1 rounded-full border border-border py-2 text-sm font-medium transition-colors hover:bg-muted"
               >
                 {t("transaction:txStatus.viewDetails")}
+              </button>
+            )}
+            {onViewExplorer && (
+              <button
+                type="button"
+                onClick={onViewExplorer}
+                data-testid="tx-status-view-explorer-button"
+                className="flex-1 rounded-full border border-border py-2 text-sm font-medium transition-colors hover:bg-muted"
+              >
+                {t("transaction:sendResult.viewInBrowser")}
               </button>
             )}
             {onShare && (
