@@ -66,9 +66,9 @@ describe('Forge App', () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByText('多链熔炉')).toBeInTheDocument()
+      expect(screen.getByText('跨链桥接')).toBeInTheDocument()
     })
-    expect(screen.getByText(/将其他链资产锻造为/)).toBeInTheDocument()
+    expect(screen.getByText(/在外链与 Bio 生态之间桥接资产/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument()
   })
 
@@ -129,7 +129,7 @@ describe('Forge App', () => {
     fireEvent.click(screen.getByTestId('connect-button'))
 
     await waitFor(() => {
-      expect(screen.getByText('Bio SDK 未初始化')).toBeInTheDocument()
+      expect(screen.getByText('Bio SDK not initialized')).toBeInTheDocument()
     })
   })
 

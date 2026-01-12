@@ -1,8 +1,8 @@
 {
-  "name": "@biochain/miniapp-forge",
+  "name": "@biochain/miniapp-biobridge",
   "private": true,
-  "version": "0.1.0",
-  "description": "锻造 - ETH 兑换 Bio Token",
+  "version": "1.0.0",
+  "description": "跨链通 - BioBridge 跨链资产桥接，支持充值和赎回",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -218,3 +218,115 @@ export interface RechargeRecordDetailResDto {
 export interface RetryOnChainReqDto {
   orderId: string
 }
+
+// ============================================================================
+// Redemption Types (赎回相关类型)
+// ============================================================================
+
+/** 赎回订单状态 */
+export enum REDEMPTION_ORDER_STATE_ID {
+  /** 初始 */
+  INIT = 1,
+  /** 等待内链上链 */
+  INTERNAL_WAIT_ON_CHAIN = 2,
+  /** 内链上链失败 */
+  INTERNAL_ON_CHAIN_FAIL = 201,
+  /** 等待外链上链 */
+  EXTERNAL_WAIT_ON_CHAIN = 3,
+  /** 外链上链失败 */
+  EXTERNAL_ON_CHAIN_FAIL = 301,
+  /** 成功 */
+  SUCCESS = 4,
+}
+
+/** 赎回记录状态 */
+export enum REDEMPTION_RECORD_STATE {
+  /** 转账中 */
+  PENDING = 1,
+  /** 外链交易转账中 */
+  TO_BE_POSTED = 2,
+  /** 赎回已到账 */
+  POSTED = 3,
+  /** 赎回失败 */
+  FAIL = 4,
+}
+
+/** 赎回交易 remark (目标外链信息) */
+export interface RedemptionTransRemark {
+  /** 外链名 */
+  chainName: ExternalChainName
+  /** 外链接收地址 */
+  address: string
+  /** 外链资产类型 */
+  assetType: string
+}
+
+/** 赎回交易体 (内链 DestroyAsset 交易) */
+export interface RedemptionV2Tr {
+  bcf: {
+    chainName: string
+    trJson: unknown
+  }
+}
+
+/** 赎回请求 */
+export interface RedemptionV2ReqDto {
+  /** 发起方交易体 - 内链 DestroyAsset 交易 */
+  fromTrJson: RedemptionV2Tr
+}
+
+/** 赎回响应 */
+export interface RedemptionV2ResDto {
+  /** 赎回订单ID */
+  orderId: string
+}
+
+/** 赎回记录请求 */
+export interface RedemptionRecordsReqDto {
+  page: number
+  pageSize: number
+  internalChain?: string
+  internalAddress?: string
+}
+
+/** 赎回记录 */
+export interface RedemptionRecord {
+  orderId: string
+  state: REDEMPTION_RECORD_STATE
+  orderState: REDEMPTION_ORDER_STATE_ID
+  fromTxInfo: RecordTxInfo
+  toTxInfo: RecordTxInfo
+  redemptionFee: string
+  createdTime: string
+}
+
+/** 赎回记录响应 */
+export type RedemptionRecordsResDto = PageData<RedemptionRecord>
+
+/** 赎回记录详情请求 */
+export interface RedemptionRecordDetailReqDto {
+  orderId: string
+}
+
+/** 赎回记录详情响应 */
+export interface RedemptionRecordDetailResDto {
+  state: REDEMPTION_RECORD_STATE
+  orderState: REDEMPTION_ORDER_STATE_ID
+  redemptionRatio: number
+  fromTxInfo: RecordDetailTxInfo
+  toTxInfo: RecordDetailTxInfo
+  orderFailReason?: string
+  updatedTime: string
+}
+
+// ============================================================================
+// Bridge Types (跨链通统一类型)
+// ============================================================================
+
+/** 桥接模式 */
+export type BridgeMode = 'recharge' | 'redemption'
+
+/** 桥接记录类型 (充值或赎回) */
+export type BridgeRecord = 
+  | { type: 'recharge'; data: RechargeRecord }
+  | { type: 'redemption'; data: RedemptionRecord }

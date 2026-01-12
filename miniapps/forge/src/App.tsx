@@ -1,3 +1,8 @@
+/**
+ * BioBridge App - 跨链通
+ * 支持充值 (Recharge) 和赎回 (Redemption) 双模式
+ */
+
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
@@ -11,13 +16,16 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 import { BackgroundBeams } from './components/BackgroundBeams'
+import { ModeTabs } from './components/ModeTabs'
+import { RedemptionForm } from './components/RedemptionForm'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Coins, Leaf, DollarSign, X, ChevronDown, ChevronLeft, Zap, ArrowDown, Check, Loader2, AlertCircle } from 'lucide-react'
+import { Coins, Leaf, DollarSign, X, ChevronLeft, Zap, ArrowDown, Check, Loader2, AlertCircle, ArrowLeftRight } from 'lucide-react'
 
 import { useRechargeConfig, useForge, type ForgeOption } from '@/hooks'
+import type { BridgeMode } from '@/api/types'
 
-type Step = 'connect' | 'swap' | 'confirm' | 'processing' | 'success'
+type RechargeStep = 'connect' | 'swap' | 'confirm' | 'processing' | 'success'
 
 const TOKEN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
@@ -28,9 +36,33 @@ const TOKEN_COLORS: Record<string, string> = {
   BFC: 'bg-blue-600',
 }
 
+function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
+  const iconSize = size === 'md' ? 'size-5' : 'size-4'
+  const icons: Record<string, React.ReactNode> = {
+    ETH: <Coins className={iconSize} />,
+    BSC: <Coins className={iconSize} />,
+    TRON: <Coins className={iconSize} />,
+    BFM: <Leaf className={iconSize} />,
+    BFC: <Leaf className={iconSize} />,
+    USDT: <DollarSign className={iconSize} />,
+  }
+  return (
+    <Avatar className={cn(size === 'md' ? 'size-10' : 'size-6', TOKEN_COLORS[symbol] || 'bg-muted')}>
+      <AvatarFallback className="bg-transparent text-white">
+        {icons[symbol] || <Coins className={iconSize} />}
+      </AvatarFallback>
+    </Avatar>
+  )
+}
+
 export default function App() {
   const { t } = useTranslation()
-  const [step, setStep] = useState<Step>('connect')
+  
+  // Bridge mode: recharge or redemption
+  const [mode, setMode] = useState<BridgeMode>('recharge')
+  
+  // Recharge state
+  const [rechargeStep, setRechargeStep] = useState<RechargeStep>('connect')
   const [externalAccount, setExternalAccount] = useState<BioAccount | null>(null)
   const [internalAccount, setInternalAccount] = useState<BioAccount | null>(null)
   const [selectedOption, setSelectedOption] = useState<ForgeOption | null>(null)
@@ -40,9 +72,9 @@ export default function App() {
   const [pickerOpen, setPickerOpen] = useState(false)
 
   // Fetch recharge config from backend
-  const { forgeOptions, isLoading: configLoading, error: configError } = useRechargeConfig()
+  const { config, forgeOptions, isLoading: configLoading, error: configError } = useRechargeConfig()
   
-  // Forge hook
+  // Forge hook for recharge
   const forgeHook = useForge()
 
   // Helper to get chain name from translations
@@ -65,22 +97,33 @@ export default function App() {
   // Watch forge status
   useEffect(() => {
     if (forgeHook.step === 'success') {
-      setStep('success')
+      setRechargeStep('success')
     } else if (forgeHook.step === 'error') {
       setError(forgeHook.error)
-      setStep('confirm')
+      setRechargeStep('confirm')
     } else if (forgeHook.step !== 'idle') {
-      setStep('processing')
+      setRechargeStep('processing')
     }
   }, [forgeHook.step, forgeHook.error])
 
+  // Reset state when mode changes
+  const handleModeChange = useCallback((newMode: BridgeMode) => {
+    setMode(newMode)
+    setError(null)
+    if (newMode === 'recharge') {
+      setRechargeStep('connect')
+      setAmount('')
+      forgeHook.reset()
+    }
+  }, [forgeHook])
+
   const handleConnect = useCallback(async () => {
     if (!window.bio) {
-      setError('Bio SDK 未初始化')
+      setError('Bio SDK not initialized')
       return
     }
     if (!selectedOption) {
-      setError('请选择兑换选项')
+      setError('Please select an option')
       return
     }
     setLoading(true)
@@ -92,19 +135,16 @@ export default function App() {
       let extAcc: BioAccount
 
       if (chainType === 'evm') {
-        // Use window.ethereum for EVM chains (ETH, BSC)
         if (!window.ethereum) {
           throw new Error('Ethereum provider not available')
         }
         const evmChainId = getEvmChainIdFromApi(externalChain)
         if (evmChainId) {
-          // Switch to the correct chain first
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: evmChainId }],
           })
         }
-        // Request accounts
         const accounts = await window.ethereum.request<string[]>({
           method: 'eth_requestAccounts',
         })
@@ -114,10 +154,9 @@ export default function App() {
         extAcc = {
           address: accounts[0],
           chain: normalizeChainId(externalChain),
-          publicKey: '', // EVM doesn't expose public key directly
+          publicKey: '',
         }
       } else if (chainType === 'tron') {
-        // Use window.tronLink for TRON
         if (!window.tronLink) {
           throw new Error('TronLink provider not available')
         }
@@ -133,7 +172,6 @@ export default function App() {
           publicKey: '',
         }
       } else {
-        // Use bio_selectAccount for BioChain
         extAcc = await window.bio.request<BioAccount>({
           method: 'bio_selectAccount',
           params: [{ chain: normalizeChainId(externalChain) }],
@@ -141,16 +179,15 @@ export default function App() {
       }
       setExternalAccount(extAcc)
 
-      // Select internal chain account (for receiving) - always use bio
       const intAcc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
         params: [{ chain: selectedOption.internalChain }],
       })
       setInternalAccount(intAcc)
 
-      setStep('swap')
+      setRechargeStep('swap')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '连接失败')
+      setError(err instanceof Error ? err.message : 'Connection failed')
     } finally {
       setLoading(false)
     }
@@ -158,18 +195,18 @@ export default function App() {
 
   const handlePreview = () => {
     if (!amount || parseFloat(amount) <= 0) {
-      setError('请输入有效金额')
+      setError(t('error.invalidAmount'))
       return
     }
     setError(null)
-    setStep('confirm')
+    setRechargeStep('confirm')
   }
 
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return
     
     setError(null)
-    setStep('processing')
+    setRechargeStep('processing')
 
     await forgeHook.forge({
       externalChain: selectedOption.externalChain,
@@ -184,7 +221,7 @@ export default function App() {
   }, [externalAccount, internalAccount, selectedOption, amount, forgeHook])
 
   const handleReset = useCallback(() => {
-    setStep('swap')
+    setRechargeStep('swap')
     setAmount('')
     setError(null)
     forgeHook.reset()
@@ -214,6 +251,19 @@ export default function App() {
     }
   }, [groupedOptions])
 
+  // Check if redemption is available
+  const hasRedemptionOptions = useMemo(() => {
+    if (!config) return false
+    for (const chain of Object.values(config)) {
+      for (const item of Object.values(chain)) {
+        if (item.enable && item.redemption?.enable) {
+          return true
+        }
+      }
+    }
+    return false
+  }, [config])
+
   return (
     <div className="relative min-h-screen w-full bg-background text-foreground">
       <BackgroundBeams className="opacity-30" />
@@ -222,16 +272,28 @@ export default function App() {
         {/* Header */}
         <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b border-border">
           <div className="flex items-center h-14 px-4">
-            {step === 'confirm' && (
-              <Button variant="ghost" size="icon-sm" onClick={() => setStep('swap')}>
+            {(rechargeStep === 'confirm' && mode === 'recharge') && (
+              <Button variant="ghost" size="icon-sm" onClick={() => setRechargeStep('swap')}>
                 <ChevronLeft className="size-5" />
               </Button>
             )}
-            <h1 className="flex-1 text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+            <h1 className="flex-1 text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
               {t('app.title')}
             </h1>
             <div className="w-7" />
           </div>
+          
+          {/* Mode Tabs - Only show if redemption is available */}
+          {hasRedemptionOptions && !configLoading && (
+            <div className="px-4 pb-3">
+              <ModeTabs
+                mode={mode}
+                onChange={handleModeChange}
+                rechargeLabel={t('mode.recharge')}
+                redemptionLabel={t('mode.redemption')}
+              />
+            </div>
+          )}
         </header>
 
         {/* Content */}
@@ -266,291 +328,304 @@ export default function App() {
             </motion.div>
           )}
 
-          <AnimatePresence mode="wait">
-            {/* Connect */}
-            {step === 'connect' && !configLoading && (
-              <motion.div
-                key="connect"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full" />
-                  <Avatar className="relative size-28 border-2 border-orange-500/30">
-                    <AvatarFallback className="bg-gradient-to-b from-muted to-muted/50">
-                      <Zap className="size-14 text-orange-500" strokeWidth={1.5} />
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
-                  <p className="text-muted-foreground text-sm">{t('app.description')}</p>
-                </div>
+          {/* Redemption Mode */}
+          {mode === 'redemption' && config && !configLoading && (
+            <RedemptionForm
+              config={config}
+              onSuccess={(orderId) => {
+                console.log('Redemption success:', orderId)
+              }}
+            />
+          )}
 
-                {/* Available chains preview */}
-                {forgeOptions.length > 0 && (
-                  <div className="flex gap-2">
-                    {Object.keys(groupedOptions).map((chain) => (
-                      <Badge
-                        key={chain}
-                        asChild
-                        variant={selectedOption?.externalChain === chain ? 'secondary' : 'outline'}
-                        className={cn(
-                          'cursor-pointer select-none',
-                          selectedOption?.externalChain === chain && 'ring-2 ring-primary/40'
-                        )}
-                      >
-                        <button type="button" onClick={() => handleSelectExternalChain(chain)}>
-                          {getChainName(chain)}
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                
-                <Button 
-                  data-testid="connect-button"
-                  size="lg" 
-                  className="w-full max-w-xs h-12"
-                  onClick={handleConnect} 
-                  disabled={loading || forgeOptions.length === 0 || !selectedOption}
+          {/* Recharge Mode */}
+          {mode === 'recharge' && (
+            <AnimatePresence mode="wait">
+              {/* Connect */}
+              {rechargeStep === 'connect' && !configLoading && (
+                <motion.div
+                  key="connect"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
                 >
-                  {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {loading ? t('connect.loading') : t('connect.button')}
-                </Button>
-              </motion.div>
-            )}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
+                    <Avatar className="relative size-28 border-2 border-blue-500/30">
+                      <AvatarFallback className="bg-gradient-to-b from-muted to-muted/50">
+                        <ArrowLeftRight className="size-14 text-blue-500" strokeWidth={1.5} />
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  
+                  <div className="text-center space-y-2">
+                    <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
+                    <p className="text-muted-foreground text-sm">{t('app.description')}</p>
+                  </div>
 
-            {/* Swap */}
-            {step === 'swap' && selectedOption && (
-              <motion.div
-                key="swap"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col gap-3"
-              >
-                {/* From Card (External Chain) */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                        <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                        <span className="font-semibold">{selectedOption.externalAsset}</span>
+                  {/* Available chains preview */}
+                  {forgeOptions.length > 0 && (
+                    <div className="flex gap-2">
+                      {Object.keys(groupedOptions).map((chain) => (
+                        <Badge
+                          key={chain}
+                          asChild
+                          variant={selectedOption?.externalChain === chain ? 'secondary' : 'outline'}
+                          className={cn(
+                            'cursor-pointer select-none',
+                            selectedOption?.externalChain === chain && 'ring-2 ring-primary/40'
+                          )}
+                        >
+                          <button type="button" onClick={() => handleSelectExternalChain(chain)}>
+                            {getChainName(chain)}
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <Button 
+                    data-testid="connect-button"
+                    size="lg" 
+                    className="w-full max-w-xs h-12"
+                    onClick={handleConnect} 
+                    disabled={loading || forgeOptions.length === 0 || !selectedOption}
+                  >
+                    {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                    {loading ? t('connect.loading') : t('connect.button')}
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Swap */}
+              {rechargeStep === 'swap' && selectedOption && (
+                <motion.div
+                  key="swap"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col gap-3"
+                >
+                  {/* From Card (External Chain) */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>{t('forge.pay')} ({getChainName(selectedOption.externalChain)})</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
+                          <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
+                          <span className="font-semibold">{selectedOption.externalAsset}</span>
+                        </div>
+                        <Input
+                          data-testid="amount-input"
+                          type="number"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="text-right text-2xl font-bold h-10 border-0 focus-visible:ring-0"
+                        />
                       </div>
-                      <Input
-                        data-testid="amount-input"
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="text-right text-2xl font-bold h-10 border-0 focus-visible:ring-0"
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground font-mono break-all">
-                      {externalAccount?.address}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Arrow */}
-                <div className="flex justify-center -my-1.5 relative z-10">
-                  <Avatar className="size-10 border border-orange-500/30 bg-background">
-                    <AvatarFallback className="bg-orange-500/10">
-                      <ArrowDown className="size-4 text-orange-500" />
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-
-                {/* To Card (Internal Chain) */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                        <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
-                        <span className="font-semibold">{selectedOption.internalAsset}</span>
+                      <div className="text-xs text-muted-foreground font-mono break-all">
+                        {externalAccount?.address}
                       </div>
-                      <div className="flex-1 text-right text-2xl font-bold text-muted-foreground">
-                        {amount || '0.00'}
-                      </div>
-                    </div>
-                    <div className="text-xs text-muted-foreground font-mono break-all">
-                      {internalAccount?.address}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                {/* Rate Info - 1:1 for forge */}
-                {amount && parseFloat(amount) > 0 && (
-                  <Card className="border-orange-500/20 bg-orange-500/5">
-                    <CardContent className="py-3 space-y-2 text-sm">
+                  {/* Arrow */}
+                  <div className="flex justify-center -my-1.5 relative z-10">
+                    <Avatar className="size-10 border border-blue-500/30 bg-background">
+                      <AvatarFallback className="bg-blue-500/10">
+                        <ArrowDown className="size-4 text-blue-500" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+
+                  {/* To Card (Internal Chain) */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>{t('forge.receive')} ({getChainName(selectedOption.internalChain)})</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
+                          <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                          <span className="font-semibold">{selectedOption.internalAsset}</span>
+                        </div>
+                        <div className="flex-1 text-right text-2xl font-bold text-muted-foreground">
+                          {amount || '0.00'}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono break-all">
+                        {internalAccount?.address}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Rate Info - 1:1 for recharge */}
+                  {amount && parseFloat(amount) > 0 && (
+                    <Card className="border-blue-500/20 bg-blue-500/5">
+                      <CardContent className="py-3 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{t('forge.ratio')}</span>
+                          <span>1:1</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
+                          <span className="font-mono text-xs truncate max-w-40">
+                            {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="mt-auto pt-4">
+                    <Button 
+                      data-testid="preview-button"
+                      className="w-full h-12" 
+                      onClick={handlePreview}
+                      disabled={!amount || parseFloat(amount) <= 0}
+                    >
+                      {t('forge.preview')}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Confirm */}
+              {rechargeStep === 'confirm' && selectedOption && (
+                <motion.div
+                  key="confirm"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col gap-4"
+                >
+                  <Card>
+                    <CardContent className="py-6 text-center space-y-4">
+                      <div>
+                        <CardDescription className="mb-1">
+                          {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
+                        </CardDescription>
+                        <div className="text-3xl font-bold flex items-center justify-center gap-2">
+                          <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
+                          {amount} <span className="text-lg text-muted-foreground">{selectedOption.externalAsset}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-center">
+                        <Avatar className="size-10 border border-blue-500/30 bg-blue-500/10">
+                          <AvatarFallback className="bg-transparent">
+                            <ArrowDown className="size-5 text-blue-500" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <div>
+                        <CardDescription className="mb-1">
+                          {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
+                        </CardDescription>
+                        <div className="text-3xl font-bold text-blue-500 flex items-center justify-center gap-2">
+                          <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                          {amount} <span className="text-lg text-blue-500/60">{selectedOption.internalAsset}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="py-4 space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t('forge.ratio')}</span>
                         <span>1:1</span>
                       </div>
+                      <Separator />
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('forge.network')}</span>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{getChainName(selectedOption.externalChain)}</Badge>
+                          <span>→</span>
+                          <Badge variant="outline">{getChainName(selectedOption.internalChain)}</Badge>
+                        </div>
+                      </div>
+                      <Separator />
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
-                        <span className="font-mono text-xs truncate max-w-40">
+                        <span className="font-mono text-xs truncate max-w-32">
                           {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
                         </span>
                       </div>
                     </CardContent>
                   </Card>
-                )}
 
-                <div className="mt-auto pt-4">
-                  <Button 
-                    data-testid="preview-button"
-                    className="w-full h-12" 
-                    onClick={handlePreview}
-                    disabled={!amount || parseFloat(amount) <= 0}
-                  >
-                    {t('forge.preview')}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
+                  <div className="mt-auto pt-4">
+                    <Button 
+                      data-testid="confirm-button"
+                      className="w-full h-12" 
+                      onClick={handleConfirm}
+                      disabled={loading}
+                    >
+                      {t('forge.confirm')}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Confirm */}
-            {step === 'confirm' && selectedOption && (
-              <motion.div
-                key="confirm"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col gap-4"
-              >
-                <Card>
-                  <CardContent className="py-6 text-center space-y-4">
-                    <div>
-                      <CardDescription className="mb-1">
-                        {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
-                      </CardDescription>
-                      <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                        <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                        {amount} <span className="text-lg text-muted-foreground">{selectedOption.externalAsset}</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <Avatar className="size-10 border border-orange-500/30 bg-orange-500/10">
-                        <AvatarFallback className="bg-transparent">
-                          <ArrowDown className="size-5 text-orange-500" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div>
-                      <CardDescription className="mb-1">
-                        {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
-                      </CardDescription>
-                      <div className="text-3xl font-bold text-orange-500 flex items-center justify-center gap-2">
-                        <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
-                        {amount} <span className="text-lg text-orange-500/60">{selectedOption.internalAsset}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Processing */}
+              {rechargeStep === 'processing' && (
+                <motion.div
+                  key="processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+                >
+                  <div className="relative size-24">
+                    <div className="absolute inset-0 border-4 border-muted rounded-full" />
+                    <div className="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <h2 className="text-xl font-bold">
+                      {forgeHook.step === 'signing_external' && t('processing.signingExternal')}
+                      {forgeHook.step === 'signing_internal' && t('processing.signingInternal')}
+                      {forgeHook.step === 'submitting' && t('processing.submitting')}
+                      {forgeHook.step === 'idle' && t('processing.default')}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">{t('processing.hint')}</p>
+                  </div>
+                </motion.div>
+              )}
 
-                <Card>
-                  <CardContent className="py-4 space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('forge.ratio')}</span>
-                      <span>1:1</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('forge.network')}</span>
-                      <div className="flex gap-2">
-                        <Badge variant="outline">{getChainName(selectedOption.externalChain)}</Badge>
-                        <span>→</span>
-                        <Badge variant="outline">{getChainName(selectedOption.internalChain)}</Badge>
-                      </div>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
-                      <span className="font-mono text-xs truncate max-w-32">
-                        {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="mt-auto pt-4">
-                  <Button 
-                    data-testid="confirm-button"
-                    className="w-full h-12" 
-                    onClick={handleConfirm}
-                    disabled={loading}
-                  >
-                    {t('forge.confirm')}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Processing */}
-            {step === 'processing' && (
-              <motion.div
-                key="processing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
-              >
-                <div className="relative size-24">
-                  <div className="absolute inset-0 border-4 border-muted rounded-full" />
-                  <div className="absolute inset-0 border-4 border-t-orange-500 rounded-full animate-spin" />
-                </div>
-                <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">
-                    {forgeHook.step === 'signing_external' && t('processing.signingExternal')}
-                    {forgeHook.step === 'signing_internal' && t('processing.signingInternal')}
-                    {forgeHook.step === 'submitting' && t('processing.submitting')}
-                    {forgeHook.step === 'idle' && t('processing.default')}
-                  </h2>
-                  <p className="text-muted-foreground text-sm">{t('processing.hint')}</p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Success */}
-            {step === 'success' && selectedOption && (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
-              >
-                <Avatar className="size-20 border border-emerald-500/30 bg-emerald-500/10">
-                  <AvatarFallback className="bg-transparent">
-                    <Check className="size-10 text-emerald-500" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center space-y-2">
-                  <h2 className="text-xl font-bold">{t('success.title')}</h2>
-                  <p className="text-2xl font-bold text-emerald-400">
-                    {amount} {selectedOption.internalAsset}
-                  </p>
-                  {forgeHook.orderId && (
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {t('success.orderId')}: {forgeHook.orderId.slice(0, 16)}...
+              {/* Success */}
+              {rechargeStep === 'success' && selectedOption && (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+                >
+                  <Avatar className="size-20 border border-emerald-500/30 bg-emerald-500/10">
+                    <AvatarFallback className="bg-transparent">
+                      <Check className="size-10 text-emerald-500" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center space-y-2">
+                    <h2 className="text-xl font-bold">{t('success.title')}</h2>
+                    <p className="text-2xl font-bold text-emerald-400">
+                      {amount} {selectedOption.internalAsset}
                     </p>
-                  )}
-                </div>
-                <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
-                  {t('forge.continue')}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    {forgeHook.orderId && (
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {t('success.orderId')}: {forgeHook.orderId.slice(0, 16)}...
+                      </p>
+                    )}
+                  </div>
+                  <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
+                    {t('forge.continue')}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
 
           {/* Token Picker Modal */}
           {pickerOpen && (
@@ -611,24 +686,5 @@ export default function App() {
         </main>
       </div>
     </div>
-  )
-}
-
-function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
-  const iconSize = size === 'md' ? 'size-5' : 'size-4'
-  const icons: Record<string, React.ReactNode> = {
-    ETH: <Coins className={iconSize} />,
-    BSC: <Coins className={iconSize} />,
-    TRON: <Coins className={iconSize} />,
-    BFM: <Leaf className={iconSize} />,
-    BFC: <Leaf className={iconSize} />,
-    USDT: <DollarSign className={iconSize} />,
-  }
-  return (
-    <Avatar className={cn(size === 'md' ? 'size-10' : 'size-6', TOKEN_COLORS[symbol] || 'bg-muted')}>
-      <AvatarFallback className="bg-transparent text-white">
-        {icons[symbol] || <Coins className={iconSize} />}
-      </AvatarFallback>
-    </Avatar>
   )
 }

@@ -1,8 +1,12 @@
 {
   "app": {
-    "title": "Forge",
-    "subtitle": "Multi-Chain Furnace",
-    "description": "Forge external chain assets into Bio ecosystem tokens"
+    "title": "BioBridge",
+    "subtitle": "Cross-Chain Bridge",
+    "description": "Bridge assets between external chains and Bio ecosystem"
+  },
+  "mode": {
+    "recharge": "Recharge",
+    "redemption": "Redemption"
   },
   "connect": {
     "button": "Connect Wallet",
@@ -15,35 +19,69 @@
     "depositAddress": "Deposit Address",
     "network": "Network",
     "preview": "Preview Transaction",
-    "confirm": "Confirm Forge",
-    "continue": "Continue Forging"
+    "confirm": "Confirm Recharge",
+    "continue": "Continue"
+  },
+  "redemption": {
+    "title": "Redemption",
+    "description": "Redeem Bio tokens back to external chain assets",
+    "connect": "Connect Wallet",
+    "from": "From",
+    "to": "To",
+    "limits": "Limits",
+    "fee": "Fee",
+    "receivable": "You will receive",
+    "addressPlaceholder": "Enter external chain address",
+    "targetAddress": "Target Address",
+    "preview": "Preview Redemption",
+    "confirm": "Confirm Redemption",
+    "continue": "Continue",
+    "noOptions": "No redemption options available",
+    "success": {
+      "title": "Redemption Submitted"
+    },
+    "processing": {
+      "creating": "Creating transaction...",
+      "signing": "Signing transaction...",
+      "submitting": "Submitting redemption..."
+    },
+    "error": {
+      "fillAll": "Please fill in all fields",
+      "below_min": "Amount below minimum",
+      "above_max": "Amount above maximum",
+      "amountTooLow": "Amount too low after fees"
+    }
   },
   "processing": {
     "signingExternal": "Signing external transaction...",
     "signingInternal": "Signing internal message...",
-    "submitting": "Submitting forge request...",
-    "default": "Forging...",
+    "submitting": "Submitting request...",
+    "default": "Processing...",
     "hint": "Please confirm in your wallet"
   },
   "success": {
-    "title": "Forge Complete",
+    "title": "Complete",
     "orderId": "Order"
   },
   "error": {
     "sdkNotInit": "Bio SDK not initialized",
     "connectionFailed": "Connection failed",
     "invalidAmount": "Please enter a valid amount",
-    "forgeFailed": "Forge failed"
+    "forgeFailed": "Operation failed"
   },
   "picker": {
-    "title": "Select Forge Token",
+    "title": "Select Token",
     "selected": "Selected"
+  },
+  "common": {
+    "back": "Back"
   },
   "chain": {
     "ETH": "Ethereum",
     "BSC": "BNB Chain",
     "TRON": "Tron",
     "bfmeta": "BFMeta",
-    "bfchain": "BFChain"
+    "bfchain": "BFChain",
+    "pmchain": "PMC"
   }
 }
