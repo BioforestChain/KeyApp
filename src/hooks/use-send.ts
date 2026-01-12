@@ -327,6 +327,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      assetType: state.asset.assetType,
       fee: state.feeAmount ?? undefined,
     })
 
@@ -388,7 +389,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    if (!state.amount) {
+    if (!state.amount || !state.asset) {
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -407,6 +408,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      assetType: state.asset.assetType,
       fee: state.feeAmount ?? undefined,
       twoStepSecret,
     })

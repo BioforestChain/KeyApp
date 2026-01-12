@@ -62,6 +62,7 @@ export interface SubmitBioforestParams {
   fromAddress: string
   toAddress: string
   amount: Amount
+  assetType: string
   fee?: Amount
   twoStepSecret?: string
 }
@@ -116,6 +117,7 @@ export async function submitBioforestTransfer({
   fromAddress,
   toAddress,
   amount,
+  assetType,
   fee,
   twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
@@ -177,7 +179,7 @@ export async function submitBioforestTransfer({
       from: fromAddress,
       to: toAddress,
       amount: amount.toRawString(),
-      assetType: chainConfig.symbol,
+      assetType,
       fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
