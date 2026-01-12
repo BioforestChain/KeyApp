@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { Amount } from '@/types/amount'
 import { TransactionList } from './transaction-list'
 import type { TransactionInfo } from './transaction-item'
-import { GradientButton } from '../common/gradient-button'
+import { GradientButton } from '@biochain/key-ui'
 
 const meta: Meta<typeof TransactionList> = {
   title: 'Transaction/TransactionList',

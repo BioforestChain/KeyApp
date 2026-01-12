@@ -1,7 +1,6 @@
 import { cn } from '@/lib/utils';
 import { TransactionItem, type TransactionInfo } from './transaction-item';
-import { EmptyState } from '../common/empty-state';
-import { SkeletonList } from '../common/skeleton';
+import { EmptyState, SkeletonList } from '@biochain/key-ui';
 
 interface TransactionListProps {
   transactions: TransactionInfo[];

@@ -1,7 +1,6 @@
 import { cn } from '@/lib/utils'
 import { TokenItem, type TokenInfo, type TokenItemContext, type TokenMenuItem } from './token-item'
-import { EmptyState } from '../common/empty-state'
-import { SkeletonList } from '../common/skeleton'
+import { EmptyState, SkeletonList } from '@biochain/key-ui'
 
 interface TokenListProps {
   tokens: TokenInfo[]
