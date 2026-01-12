@@ -50,12 +50,12 @@ jobs:
             # Self-hosted runners keep the workspace between runs; ensure clean checkout
             # Preserve caches and build artifacts for faster builds
             git reset --hard HEAD
-            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
+            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist' -e 'miniapps/*/dist'
           fi
           git fetch origin ${{ github.sha }} --depth=1 --tags
           git checkout -f ${{ github.sha }}
           git reset --hard HEAD
-          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
+          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist' -e 'miniapps/*/dist'
 
       - name: Determine channel
         id: channel
