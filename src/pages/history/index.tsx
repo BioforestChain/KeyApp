@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
+import { PendingTxList } from '@/components/transaction/pending-tx-list';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTransactionHistoryQuery, type TransactionFilter } from '@/queries';
 import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
+import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
 import type { TransactionInfo } from '@/components/transaction/transaction-item';
 import type { ChainType } from '@/stores';
@@ -24,6 +26,12 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   const { t } = useTranslation(['transaction', 'common']);
   // 使用 TanStack Query 管理交易历史
   const { transactions, isLoading, isFetching, filter, setFilter, refresh } = useTransactionHistoryQuery(currentWallet?.id);
+  // 获取 pending transactions
+  const { 
+    transactions: pendingTransactions, 
+    deleteTransaction: deletePendingTx,
+    refresh: refreshPending,
+  } = usePendingTransactions(currentWallet?.id);
 
   const periodOptions = useMemo(() => [
     { value: 'all' as const, label: t('history.filter.allTime') },
@@ -166,7 +174,16 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
       </div>
 
       {/* 交易列表 */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 space-y-4 p-4">
+        {/* Pending Transactions */}
+        {pendingTransactions.length > 0 && (
+          <PendingTxList
+            transactions={pendingTransactions}
+            onDelete={deletePendingTx}
+          />
+        )}
+
+        {/* Confirmed Transactions */}
         <TransactionList
           transactions={transactions}
           loading={isLoading}
