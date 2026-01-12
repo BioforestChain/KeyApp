@@ -263,6 +263,8 @@
   "tronNetworkFeeLongTips_1": "The network fee will vary according to networksituation, once the transaction is confirmed, the fee cannot be refunded regardless of whether the transaction is successful or not.",
   "tronNetworkFeeLongTips_2": "The network fee is charged by the TRON network, and BFM Pay does not charge any fees !",
   "txStatus": {
+    "created": "Pending Broadcast",
+    "createdDesc": "Transaction created, waiting to broadcast...",
     "broadcasted": "Broadcast Successful",
     "broadcastedDesc": "Transaction broadcasted, awaiting block confirmation...",
     "broadcasting": "Broadcasting",
@@ -302,6 +304,21 @@
     "swap": "Swap",
     "trust": "Trust",
     "unstake": "إلغاء التخزين"
+  },
+  "pendingTx": {
+    "title": "Pending Transactions",
+    "broadcasting": "Broadcasting",
+    "broadcasted": "Awaiting confirmation",
+    "failed": "Broadcast failed",
+    "retry": "Retry",
+    "delete": "Delete",
+    "retryCount": "Retry count"
+  },
+  "broadcast": {
+    "assetNotEnough": "Insufficient asset balance",
+    "feeNotEnough": "Insufficient fee",
+    "rejected": "Transaction rejected",
+    "unknown": "Broadcast failed, please try again"
   },
   "unstake": "Unstake",
   "viewTransactionDetails": "[MISSING:ar] 查看交易详情",
