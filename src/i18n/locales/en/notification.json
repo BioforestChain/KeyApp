@@ -26,6 +26,7 @@
   "clear": "Clear",
   "delete": "Delete",
   "unread": "Unread",
+  "viewDetails": "View Details",
   "empty": {
     "title": "No notifications",
     "desc": "All your notifications will appear here"
