@@ -36,3 +36,6 @@ export type {
   UpdatePendingTxStatusInput,
   IPendingTxService,
 } from './pending-tx'
+
+// Pending Transaction Manager
+export { pendingTxManager } from './pending-tx-manager'

@@ -1,15 +1,17 @@
 /**
  * usePendingTransactions Hook
  * 
- * 获取当前钱包的未上链交易列表
+ * 获取当前钱包的未上链交易列表，并订阅状态变化
  */
 
 import { useEffect, useState, useCallback } from 'react'
-import { pendingTxService, type PendingTx } from '@/services/transaction'
+import { pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
+import { useChainConfigState } from '@/stores'
 
 export function usePendingTransactions(walletId: string | undefined) {
   const [transactions, setTransactions] = useState<PendingTx[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const chainConfigState = useChainConfigState()
 
   const refresh = useCallback(async () => {
     if (!walletId) {
@@ -29,9 +31,35 @@ export function usePendingTransactions(walletId: string | undefined) {
     }
   }, [walletId])
 
+  // 初始加载和订阅状态变化
   useEffect(() => {
     refresh()
-  }, [refresh])
+
+    // 订阅 pendingTxManager 的状态变化
+    const unsubscribe = pendingTxManager.subscribe((updatedTx) => {
+      if (updatedTx.walletId === walletId) {
+        refresh()
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [refresh, walletId])
+
+  // 启动/停止 manager（当有 pending tx 时启动）
+  useEffect(() => {
+    if (transactions.length > 0) {
+      pendingTxManager.start()
+    }
+  }, [transactions.length])
+
+  // 同步钱包的 pending 交易状态
+  useEffect(() => {
+    if (walletId && transactions.length > 0) {
+      pendingTxManager.syncWalletPendingTransactions(walletId, chainConfigState)
+    }
+  }, [walletId, chainConfigState, transactions.length])
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
@@ -39,12 +67,10 @@ export function usePendingTransactions(walletId: string | undefined) {
   }, [refresh])
 
   const retryTransaction = useCallback(async (tx: PendingTx) => {
-    // 重试逻辑需要调用方提供，这里只增加重试计数
-    await pendingTxService.incrementRetry({ id: tx.id })
-    await pendingTxService.updateStatus({ id: tx.id, status: 'created' })
+    const updated = await pendingTxManager.retryBroadcast(tx.id, chainConfigState)
     await refresh()
-    return tx
-  }, [refresh])
+    return updated
+  }, [refresh, chainConfigState])
 
   return {
     transactions,
