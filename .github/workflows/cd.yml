@@ -44,18 +44,17 @@ jobs:
     steps:
       - name: Git checkout
         run: |
+          COMMIT="${{ github.sha }}"
+          EXCLUDES="-e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist' -e 'miniapps/*/dist'"
           if [ ! -d ".git" ]; then
-            git clone https://github.com/${{ github.repository }}.git .
+            git clone --depth=1 https://github.com/${{ github.repository }}.git .
+            git fetch origin $COMMIT --depth=1 --tags
+            git checkout -f $COMMIT
           else
-            # Self-hosted runners keep the workspace between runs; ensure clean checkout
-            # Preserve caches and build artifacts for faster builds
-            git reset --hard HEAD
-            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
+            git fetch origin $COMMIT --depth=1 --tags
+            git checkout -f $COMMIT
+            eval "git clean -fdx $EXCLUDES"
           fi
-          git fetch origin ${{ github.sha }} --depth=1 --tags
-          git checkout -f ${{ github.sha }}
-          git reset --hard HEAD
-          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
 
       - name: Determine channel
         id: channel

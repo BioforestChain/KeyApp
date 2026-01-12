@@ -16,18 +16,17 @@ jobs:
     steps:
       - name: Git checkout
         run: |
+          COMMIT="${{ github.event.pull_request.head.sha || github.sha }}"
+          EXCLUDES="-e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist' -e 'miniapps/*/dist'"
           if [ ! -d ".git" ]; then
             git clone --depth=1 https://github.com/${{ github.repository }}.git .
+            git fetch origin $COMMIT --depth=1
+            git checkout -f $COMMIT
           else
-            # Self-hosted runners keep the workspace between runs; ensure clean checkout
-            # Preserve caches and build artifacts for faster builds
-            git reset --hard HEAD
-            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
+            git fetch origin $COMMIT --depth=1
+            git checkout -f $COMMIT
+            eval "git clean -fdx $EXCLUDES"
           fi
-          git fetch origin ${{ github.event.pull_request.head.sha || github.sha }} --depth=1
-          git checkout -f ${{ github.event.pull_request.head.sha || github.sha }}
-          git reset --hard HEAD
-          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules' -e 'packages/*/dist'
 
       - name: Detect changes
         id: changes
