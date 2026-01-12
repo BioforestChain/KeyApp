@@ -76,6 +76,50 @@ async function getSendPageInputs(page: Page) {
   return { addressInput, amountInput }
 }
 
+test.describe('发送交易 - assetType URL 参数测试', () => {
+  test('assetType 参数在 tokens 加载后正确生效', async ({ page }) => {
+    // 使用带有多个 token 的钱包数据
+    const walletWithMultipleTokens = {
+      ...TEST_WALLET_DATA,
+      wallets: [{
+        ...TEST_WALLET_DATA.wallets[0],
+        chainAddresses: [{
+          chain: 'ethereum',
+          address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+          tokens: [
+            { symbol: 'ETH', balance: '1.5', decimals: 18 },
+            { symbol: 'USDT', balance: '1000', decimals: 6, contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
+            { symbol: 'CPCC', balance: '500', decimals: 8, contractAddress: '0x1234567890abcdef' },
+          ],
+        }],
+      }],
+    }
+
+    await page.addInitScript((data) => {
+      localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
+      localStorage.setItem('bfm_preferences', JSON.stringify({ language: 'zh-CN', currency: 'USD' }))
+    }, { wallet: walletWithMultipleTokens })
+
+    // 导航到带 assetType 参数的发送页面
+    await page.goto('/#/send?assetType=CPCC')
+    await page.waitForLoadState('networkidle')
+    await waitForAppReady(page)
+
+    // 等待 tokens 加载并验证选中的资产是 CPCC
+    const assetSelector = page.locator('[data-testid="send-asset-selector"]')
+    await expect(assetSelector).toContainText('CPCC', { timeout: 10000 })
+  })
+
+  test('assetType 参数指定不存在的资产时 fallback 到原生资产', async ({ page }) => {
+    await setupTestWallet(page, '/send?assetType=NONEXISTENT')
+    await waitForAppReady(page)
+
+    // 应该 fallback 到原生资产 ETH
+    const assetSelector = page.locator('[data-testid="send-asset-selector"]')
+    await expect(assetSelector).toContainText('ETH', { timeout: 10000 })
+  })
+})
+
 test.describe('发送交易 - 金额输入测试', () => {
   test('输入有效金额', async ({ page }) => {
     await setupTestWallet(page, '/send')
