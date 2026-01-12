@@ -22,6 +22,7 @@ export class BroadcastError extends Error {
 const BROADCAST_ERROR_I18N_KEYS: Record<string, string> = {
   '001-11028': 'transaction:broadcast.assetNotEnough',
   '001-11029': 'transaction:broadcast.feeNotEnough',
+  '002-41011': 'transaction:broadcast.feeNotEnough', // Transaction fee is not enough
 }
 
 /**

@@ -14,6 +14,7 @@ import {
   verifyTwoStepSecret,
 } from '@/services/bioforest-sdk'
 import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
+import { pendingTxService } from '@/services/transaction'
 
 export interface BioforestBurnFeeResult {
   amount: Amount
@@ -174,15 +175,42 @@ export async function submitBioforestBurn({
     const txHash = transaction.signature
     console.log('[submitBioforestBurn] Transaction created:', txHash?.slice(0, 20))
 
+    // 存储到 pendingTxService
+    const pendingTx = await pendingTxService.create({
+      walletId,
+      chainId: chainConfig.id,
+      fromAddress,
+      rawTx: transaction,
+      meta: {
+        type: 'destroy',
+        displayAmount: amount.toFormatted(),
+        displaySymbol: assetType,
+        displayToAddress: recipientAddress,
+      },
+    })
+
     // Broadcast transaction
     console.log('[submitBioforestBurn] Broadcasting...')
+    await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
+    
     try {
       await broadcastTransaction(apiUrl, transaction)
       console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash)
+      await pendingTxService.updateStatus({ 
+        id: pendingTx.id, 
+        status: 'broadcasted',
+        txHash,
+      })
       return { status: 'ok', txHash }
     } catch (err) {
       console.error('[submitBioforestBurn] Broadcast failed:', err)
       if (err instanceof BroadcastError) {
+        await pendingTxService.updateStatus({
+          id: pendingTx.id,
+          status: 'failed',
+          errorCode: err.code,
+          errorMessage: translateBroadcastError(err),
+        })
         return { status: 'error', message: translateBroadcastError(err) }
       }
       throw err
