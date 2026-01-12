@@ -20,14 +20,14 @@ jobs:
             git clone --depth=1 https://github.com/${{ github.repository }}.git .
           else
             # Self-hosted runners keep the workspace between runs; ensure clean checkout
-            # Preserve .turbo cache for incremental builds
+            # Preserve .turbo cache and node_modules for faster builds
             git reset --hard HEAD
-            git clean -fdx -e .turbo -e '**/.turbo'
+            git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules'
           fi
           git fetch origin ${{ github.event.pull_request.head.sha || github.sha }} --depth=1
           git checkout -f ${{ github.event.pull_request.head.sha || github.sha }}
           git reset --hard HEAD
-          git clean -fdx -e .turbo -e '**/.turbo'
+          git clean -fdx -e .turbo -e '**/.turbo' -e node_modules -e '**/node_modules'
 
       - name: Detect changes
         id: changes
