@@ -427,7 +427,8 @@ export async function createTransferTransaction(
 }
 
 import { BroadcastError } from './errors'
-import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/schema'
+import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/types'
+import { ApiError } from '@/apis/bnqkl_wallet/client'
 
 /**
  * Broadcast a signed transaction
@@ -445,19 +446,44 @@ export async function broadcastTransaction(
   }
 
   const api = getApi(baseUrl)
-  const rawResult = await api.broadcastTransaction(txWithoutNonce)
   
-  // Validate with Zod schema
-  const parseResult = BroadcastResultSchema.safeParse(rawResult)
-  const result = parseResult.success ? parseResult.data : rawResult
+  try {
+    const rawResult = await api.broadcastTransaction(txWithoutNonce)
+    
+    // Validate with Zod schema
+    const parseResult = BroadcastResultSchema.safeParse(rawResult)
+    const result = parseResult.success ? parseResult.data : rawResult
 
-  if (!result.success) {
-    const errorCode = result.error?.code
-    const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
-    throw new BroadcastError(errorCode, errorMsg, result.minFee)
+    if (!result.success) {
+      const errorCode = result.error?.code
+      const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+      throw new BroadcastError(errorCode, errorMsg, result.minFee)
+    }
+
+    return transaction.signature
+  } catch (error) {
+    // Re-throw BroadcastError as-is
+    if (error instanceof BroadcastError) {
+      throw error
+    }
+    
+    // Extract broadcast error info from ApiError
+    if (error instanceof ApiError && error.response) {
+      const parseResult = BroadcastResultSchema.safeParse(error.response)
+      if (parseResult.success) {
+        const result = parseResult.data
+        const errorCode = result.error?.code
+        const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+        throw new BroadcastError(errorCode, errorMsg, result.minFee)
+      }
+    }
+    
+    // Fallback: wrap unknown errors
+    throw new BroadcastError(
+      undefined,
+      error instanceof Error ? error.message : 'Transaction rejected',
+    )
   }
-
-  return transaction.signature
 }
 
 /**

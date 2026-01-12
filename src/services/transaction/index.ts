@@ -17,3 +17,22 @@ export type {
 } from './types'
 export { transactionServiceMeta } from './types'
 export { transactionService } from '#transaction-impl'
+
+// Pending Transaction Service
+export {
+  pendingTxService,
+  pendingTxServiceMeta,
+  PendingTxSchema,
+  PendingTxStatusSchema,
+  PendingTxMetaSchema,
+  CreatePendingTxInputSchema,
+  UpdatePendingTxStatusInputSchema,
+} from './pending-tx'
+export type {
+  PendingTx,
+  PendingTxStatus,
+  PendingTxMeta,
+  CreatePendingTxInput,
+  UpdatePendingTxStatusInput,
+  IPendingTxService,
+} from './pending-tx'

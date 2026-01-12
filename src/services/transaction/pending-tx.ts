@@ -1,19 +1,125 @@
 /**
- * Pending Transaction Service - IndexedDB 存储实现
+ * Pending Transaction Service
  * 
- * 管理未上链交易的完整生命周期
+ * 未上链交易管理 - IndexedDB 存储实现
+ * 专注状态管理，不关心交易内容本身
  */
 
+import { z } from 'zod'
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { v4 as uuidv4 } from 'uuid'
-import type {
-  PendingTx,
-  PendingTxStatus,
-  CreatePendingTxInput,
-  UpdatePendingTxStatusInput,
-  IPendingTxService,
-} from './types'
-import { PendingTxSchema } from './schema'
+import { defineServiceMeta } from '@/lib/service-meta'
+
+// ==================== Schema ====================
+
+/** 未上链交易状态 */
+export const PendingTxStatusSchema = z.enum([
+  'created',      // 交易已创建，待广播
+  'broadcasting', // 广播中
+  'broadcasted',  // 广播成功，待上链
+  'confirmed',    // 已上链确认
+  'failed',       // 广播失败
+])
+
+/** 用于 UI 展示的最小元数据（可选，由调用方提供） */
+export const PendingTxMetaSchema = z.object({
+  /** 交易类型标识，用于 UI 展示 */
+  type: z.string().optional(),
+  /** 展示用的金额 */
+  displayAmount: z.string().optional(),
+  /** 展示用的符号 */
+  displaySymbol: z.string().optional(),
+  /** 展示用的目标地址 */
+  displayToAddress: z.string().optional(),
+}).passthrough()  // 允许扩展字段
+
+/** 未上链交易记录 - 专注状态管理 */
+export const PendingTxSchema = z.object({
+  /** 唯一ID (uuid) */
+  id: z.string(),
+  /** 钱包ID */
+  walletId: z.string(),
+  /** 链ID */
+  chainId: z.string(),
+  /** 发送地址 */
+  fromAddress: z.string(),
+  
+  // ===== 状态管理 =====
+  /** 当前状态 */
+  status: PendingTxStatusSchema,
+  /** 交易哈希（广播成功后有值） */
+  txHash: z.string().optional(),
+  /** 失败时的错误码 */
+  errorCode: z.string().optional(),
+  /** 失败时的错误信息 */
+  errorMessage: z.string().optional(),
+  /** 重试次数 */
+  retryCount: z.number().default(0),
+  
+  // ===== 时间戳 =====
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  
+  // ===== 交易数据（不透明） =====
+  /** 原始交易数据，用于广播和重试 */
+  rawTx: z.unknown(),
+  /** UI 展示用的元数据（可选） */
+  meta: PendingTxMetaSchema.optional(),
+})
+
+export type PendingTx = z.infer<typeof PendingTxSchema>
+export type PendingTxStatus = z.infer<typeof PendingTxStatusSchema>
+export type PendingTxMeta = z.infer<typeof PendingTxMetaSchema>
+
+/** 创建 pending tx 的输入 */
+export const CreatePendingTxInputSchema = z.object({
+  walletId: z.string(),
+  chainId: z.string(),
+  fromAddress: z.string(),
+  rawTx: z.unknown(),
+  meta: PendingTxMetaSchema.optional(),
+})
+
+export type CreatePendingTxInput = z.infer<typeof CreatePendingTxInputSchema>
+
+/** 更新状态的输入 */
+export const UpdatePendingTxStatusInputSchema = z.object({
+  id: z.string(),
+  status: PendingTxStatusSchema,
+  txHash: z.string().optional(),
+  errorCode: z.string().optional(),
+  errorMessage: z.string().optional(),
+})
+
+export type UpdatePendingTxStatusInput = z.infer<typeof UpdatePendingTxStatusInputSchema>
+
+// ==================== Service Meta ====================
+
+export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
+  s.description('未上链交易管理服务 - 专注状态管理，不关心交易内容')
+    
+    // ===== 查询 =====
+    .api('getAll', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
+    .api('getById', z.object({ id: z.string() }), PendingTxSchema.nullable())
+    .api('getByStatus', z.object({ 
+      walletId: z.string(), 
+      status: PendingTxStatusSchema,
+    }), z.array(PendingTxSchema))
+    .api('getPending', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
+    
+    // ===== 生命周期管理 =====
+    .api('create', CreatePendingTxInputSchema, PendingTxSchema)
+    .api('updateStatus', UpdatePendingTxStatusInputSchema, PendingTxSchema)
+    .api('incrementRetry', z.object({ id: z.string() }), PendingTxSchema)
+    
+    // ===== 清理 =====
+    .api('delete', z.object({ id: z.string() }), z.void())
+    .api('deleteConfirmed', z.object({ walletId: z.string() }), z.void())
+    .api('deleteAll', z.object({ walletId: z.string() }), z.void())
+)
+
+export type IPendingTxService = typeof pendingTxServiceMeta.Type
+
+// ==================== IndexedDB 实现 ====================
 
 const DB_NAME = 'bfm-pending-tx-db'
 const DB_VERSION = 1
@@ -31,12 +137,10 @@ interface PendingTxDBSchema extends DBSchema {
   }
 }
 
-/** Pending Transaction Service 实现 */
 class PendingTxServiceImpl implements IPendingTxService {
   private db: IDBPDatabase<PendingTxDBSchema> | null = null
   private initialized = false
 
-  /** 初始化数据库 */
   private async ensureDb(): Promise<IDBPDatabase<PendingTxDBSchema>> {
     if (this.db && this.initialized) {
       return this.db
@@ -88,7 +192,6 @@ class PendingTxServiceImpl implements IPendingTxService {
 
   async getPending({ walletId }: { walletId: string }): Promise<PendingTx[]> {
     const all = await this.getAll({ walletId })
-    // 返回所有非 confirmed 状态的交易
     return all.filter((tx) => tx.status !== 'confirmed')
   }
 
@@ -99,7 +202,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     const now = Date.now()
     
     const pendingTx: PendingTx = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       walletId: input.walletId,
       chainId: input.chainId,
       fromAddress: input.fromAddress,
