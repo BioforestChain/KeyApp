@@ -276,6 +276,53 @@ test.describe('BioBridge UI', () => {
     await expect(page).toHaveScreenshot('09b-redemption-mode.png')
   })
 
+  test('09c - redemption form after connect', async ({ page }) => {
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Switch to redemption mode
+    await expect(page.locator('text=赎回')).toBeVisible({ timeout: 10000 })
+    await page.click('text=赎回')
+
+    // Connect wallet
+    await page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first().click()
+
+    // Wait for redemption form to appear
+    await expect(page.locator('input[type="number"]')).toBeVisible({ timeout: 10000 })
+
+    // Should show redemption form with amount input and limits
+    await expect(page.locator('text=限额').first()).toBeVisible()
+
+    await expect(page).toHaveScreenshot('09c-redemption-form.png')
+  })
+
+  test('09d - redemption form with amount', async ({ page }) => {
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Switch to redemption mode and connect
+    await expect(page.locator('text=赎回')).toBeVisible({ timeout: 10000 })
+    await page.click('text=赎回')
+    await page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first().click()
+
+    // Wait for form
+    await expect(page.locator('input[type="number"]')).toBeVisible({ timeout: 10000 })
+
+    // Enter amount
+    await page.fill('input[type="number"]', '100')
+
+    // Enter target address in the text input (placeholder contains "地址" or "address")
+    const addressInput = page.locator('input[type="text"]').first()
+    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
+
+    // Wait for fee calculation to show
+    await page.waitForTimeout(500)
+
+    await expect(page).toHaveScreenshot('09d-redemption-amount.png')
+  })
+
   // ============ 边界场景测试 ============
 
   test('10 - API failure - config unavailable', async ({ page }) => {
