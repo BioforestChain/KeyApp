@@ -48,13 +48,14 @@ jobs:
             git clone https://github.com/${{ github.repository }}.git .
           else
             # Self-hosted runners keep the workspace between runs; ensure clean checkout
+            # Preserve .turbo cache for incremental builds
             git reset --hard HEAD
-            git clean -fdx
+            git clean -fdx -e .turbo -e '**/.turbo'
           fi
           git fetch origin ${{ github.sha }} --depth=1 --tags
           git checkout -f ${{ github.sha }}
           git reset --hard HEAD
-          git clean -fdx
+          git clean -fdx -e .turbo -e '**/.turbo'
 
       - name: Determine channel
         id: channel
