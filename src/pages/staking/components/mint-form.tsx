@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { TokenIcon } from '@/components/wallet/token-icon';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { LoadingSpinner } from '@/components/common';
 import { stakingService } from '@/services/staking';
 import { Amount } from '@/types/amount';
 import type { ExternalChain, InternalChain, RechargeConfig, MintRequest } from '@/types/staking';

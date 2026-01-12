@@ -15,7 +15,7 @@ import {
   type MiniappManifest, 
   KNOWN_PERMISSIONS 
 } from '@/services/ecosystem'
-import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { LoadingSpinner } from '@/components/common'
 import { MiniappIcon } from '@/components/ecosystem'
 import { 
   IconArrowLeft, 

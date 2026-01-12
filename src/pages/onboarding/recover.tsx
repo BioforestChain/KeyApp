@@ -13,16 +13,14 @@ import { PatternLockSetup } from '@/components/security/pattern-lock-setup';
 import { ChainSelector, getDefaultSelectedChains } from '@/components/onboarding/chain-selector';
 import { WalletConfig } from '@/components/wallet/wallet-config';
 import { Button } from '@/components/ui/button';
-import { GradientButton } from '@/components/common/gradient-button';
-import { IconCircle } from '@/components/common/icon-circle';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { GradientButton, IconCircle, LoadingSpinner } from '@/components/common';
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconCircleCheck as CheckCircle } from '@tabler/icons-react';
-import { ProgressSteps } from '@/components/common/step-indicator';
+import { ProgressSteps } from '@/components/common';
 
 type Step = 'keyType' | 'mnemonic' | 'arbitrary' | 'pattern' | 'chains' | 'theme' | 'collision' | 'success';
 

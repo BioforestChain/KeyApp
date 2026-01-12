@@ -14,7 +14,7 @@ import {
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { TokenIcon } from '@/components/wallet/token-icon';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { LoadingSpinner } from '@/components/common';
 import { stakingService } from '@/services/staking';
 import type { Amount } from '@/types/amount';
 import type { StakingTransaction, StakingTxType, StakingTxStatus } from '@/types/staking';

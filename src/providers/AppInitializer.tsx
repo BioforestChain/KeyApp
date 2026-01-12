@@ -12,7 +12,7 @@ import {
 import { useStore } from '@tanstack/react-store'
 import { initializeThemeHue } from '@/hooks/useWalletTheme'
 import { MigrationRequiredView } from '@/components/common/migration-required-view'
-import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { LoadingSpinner } from '@/components/common'
 
 // 立即执行：在 React 渲染之前应用缓存的主题色，避免闪烁
 initializeThemeHue()
