@@ -18,9 +18,19 @@ const mockApiResponses = `
               BFM: {
                 enable: true,
                 logo: '',
+                chainName: 'bfmeta',
+                assetType: 'BFM',
+                applyAddress: 'b0000000000000000000000000000000000000000',
                 supportChain: {
                   ETH: { enable: true, assetType: 'ETH', depositAddress: '0x1234567890', logo: '' },
                   BSC: { enable: true, assetType: 'BNB', depositAddress: '0xabcdef1234', logo: '' },
+                },
+                redemption: {
+                  enable: true,
+                  min: '100000000',
+                  max: '10000000000000',
+                  fee: { ETH: '1000000', BSC: '500000', TRON: '500000' },
+                  radioFee: '0.001',
                 },
               },
             },
@@ -33,6 +43,13 @@ const mockApiResponses = `
       return {
         ok: true,
         json: () => Promise.resolve({ orderId: 'order-123456' }),
+      }
+    }
+    // Match redemption endpoint
+    if (urlStr.includes('/cot/redemption/V2') || urlStr.includes('/redemption/V2')) {
+      return {
+        ok: true,
+        json: () => Promise.resolve({ orderId: 'redemption-789012' }),
       }
     }
     return originalFetch(url, options)
@@ -236,12 +253,27 @@ test.describe('BioBridge UI', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    await page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first().click()
-    await page.waitForSelector('input[type="number"]', { timeout: 10000 })
+    // Wait for config to load - mode tabs should be visible since redemption is enabled
+    await expect(page.locator('text=充值')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=赎回')).toBeVisible({ timeout: 5000 })
 
-    // Verify swap page is functional
-    await expect(page.locator('input[type="number"]')).toBeVisible()
-    await expect(page.locator('text=支付').first()).toBeVisible()
+    await expect(page).toHaveScreenshot('09-mode-tabs.png')
+  })
+
+  test('09b - redemption mode UI', async ({ page }) => {
+    await page.addInitScript(mockBioSDK)
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Wait for mode tabs and click redemption
+    await expect(page.locator('text=赎回')).toBeVisible({ timeout: 10000 })
+    await page.click('text=赎回')
+
+    // Should show redemption UI
+    await expect(page.locator('text=赎回').first()).toBeVisible()
+    await expect(page.locator(`button:has-text("${UI_TEXT.connect.button.source}")`).first()).toBeVisible()
+
+    await expect(page).toHaveScreenshot('09b-redemption-mode.png')
   })
 
   // ============ 边界场景测试 ============
