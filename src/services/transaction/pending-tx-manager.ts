@@ -15,6 +15,7 @@ import { chainConfigSelectors, useChainConfigState } from '@/stores'
 import { notificationActions } from '@/stores/notification'
 import { queryClient } from '@/lib/query-client'
 import { balanceQueryKeys } from '@/queries/use-balance-query'
+import { transactionHistoryKeys } from '@/queries/use-transaction-history-query'
 
 // ==================== 配置 ====================
 
@@ -371,7 +372,7 @@ class PendingTxManagerImpl {
   }
 
   /**
-   * 刷新余额缓存
+   * 刷新余额和交易历史缓存
    */
   private invalidateBalance(walletId: string, chainId: string) {
     try {
@@ -379,9 +380,13 @@ class PendingTxManagerImpl {
       queryClient.invalidateQueries({
         queryKey: balanceQueryKeys.chain(walletId, chainId),
       })
-      console.log('[PendingTxManager] Balance cache invalidated for', walletId, chainId)
+      // 使交易历史缓存失效
+      queryClient.invalidateQueries({
+        queryKey: transactionHistoryKeys.wallet(walletId),
+      })
+      console.log('[PendingTxManager] Cache invalidated for', walletId, chainId)
     } catch (error) {
-      console.error('[PendingTxManager] Failed to invalidate balance:', error)
+      console.error('[PendingTxManager] Failed to invalidate cache:', error)
     }
   }
 }
