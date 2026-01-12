@@ -422,7 +422,7 @@ export function OnboardingRecoverPage() {
           <div data-testid="chains-step" className="flex-1 p-4">
             <div className="space-y-6">
               <div className="text-center">
-                <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
+                <IconCircle icon={<CheckCircle className="size-full" />} variant="success" size="lg" className="mx-auto mb-4" />
                 <h2 className="text-xl font-bold">{t('onboarding:chainSelector.title')}</h2>
                 <p className="text-muted-foreground mt-2 text-sm">{t('onboarding:chainSelector.subtitle')}</p>
               </div>

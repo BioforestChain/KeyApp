@@ -78,7 +78,7 @@ export function PatternLockSetup({
     <div className={cn('space-y-6', className)}>
       {/* 标题区域 */}
       <div className="text-center">
-        <IconCircle icon={ShieldCheck} variant="primary" size="lg" className="mx-auto mb-4" />
+        <IconCircle icon={<ShieldCheck className="size-full" />} variant="primary" size="lg" className="mx-auto mb-4" />
         <h2 className="text-xl font-bold">
           {step === 'set' ? t('patternLock.setTitle') : t('patternLock.confirmTitle')}
         </h2>
