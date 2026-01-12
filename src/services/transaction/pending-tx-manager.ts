@@ -5,12 +5,14 @@
  * 1. 自动重试失败的广播
  * 2. 同步 broadcasted 交易的上链状态
  * 3. 提供订阅机制供 UI 更新
+ * 4. 发送通知提醒用户交易状态变化
  */
 
 import { pendingTxService, type PendingTx, type PendingTxStatus } from './pending-tx'
 import { broadcastTransaction } from '@/services/bioforest-sdk'
 import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 import { chainConfigSelectors, useChainConfigState } from '@/stores'
+import { notificationActions } from '@/stores/notification'
 
 // ==================== 配置 ====================
 
@@ -207,6 +209,10 @@ class PendingTxManagerImpl {
         txHash,
       })
       this.notifySubscribers(updated)
+      
+      // 发送广播成功通知
+      this.sendNotification(updated, 'broadcasted')
+      
       console.log('[PendingTxManager] Broadcast success:', txHash.slice(0, 16))
     } catch (error) {
       console.error('[PendingTxManager] Broadcast failed:', error)
@@ -223,6 +229,9 @@ class PendingTxManagerImpl {
         errorMessage,
       })
       this.notifySubscribers(updated)
+      
+      // 发送广播失败通知
+      this.sendNotification(updated, 'failed')
     }
   }
 
@@ -264,6 +273,10 @@ class PendingTxManagerImpl {
           status: 'confirmed',
         })
         this.notifySubscribers(updated)
+        
+        // 发送交易确认通知
+        this.sendNotification(updated, 'confirmed')
+        
         console.log('[PendingTxManager] Transaction confirmed:', tx.txHash.slice(0, 16))
       } else {
         // 检查是否超时
@@ -290,6 +303,55 @@ class PendingTxManagerImpl {
 
     await this.tryBroadcast(tx, chainConfigState)
     return pendingTxService.getById({ id: txId })
+  }
+
+  /**
+   * 发送通知
+   */
+  private sendNotification(tx: PendingTx, event: 'broadcasted' | 'confirmed' | 'failed') {
+    const displayAmount = tx.meta?.displayAmount ?? ''
+    const displaySymbol = tx.meta?.displaySymbol ?? ''
+    const displayType = tx.meta?.type ?? 'transfer'
+    
+    let title: string
+    let message: string
+    let status: 'pending' | 'success' | 'failed'
+    
+    switch (event) {
+      case 'broadcasted':
+        title = '交易已广播'
+        message = displayAmount 
+          ? `${displayType} ${displayAmount} ${displaySymbol} 已广播，等待确认`
+          : '交易已广播到网络，等待区块确认'
+        status = 'pending'
+        break
+        
+      case 'confirmed':
+        title = '交易已确认'
+        message = displayAmount
+          ? `${displayType} ${displayAmount} ${displaySymbol} 已成功上链`
+          : '交易已成功确认上链'
+        status = 'success'
+        break
+        
+      case 'failed':
+        title = '交易失败'
+        message = tx.errorMessage ?? '广播失败，请重试'
+        status = 'failed'
+        break
+    }
+    
+    notificationActions.add({
+      type: 'transaction',
+      title,
+      message,
+      data: {
+        txHash: tx.txHash,
+        walletId: tx.walletId,
+        status,
+        pendingTxId: tx.id,
+      },
+    })
   }
 }
 
