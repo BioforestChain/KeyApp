@@ -272,6 +272,27 @@ class PendingTxServiceImpl implements IPendingTxService {
     await tx.done
   }
 
+  async deleteExpired({ walletId, maxAge }: { walletId: string; maxAge: number }): Promise<number> {
+    const all = await this.getAll({ walletId })
+    const now = Date.now()
+    const expired = all.filter((tx) => {
+      // 只清理已确认或失败超过 maxAge 的交易
+      if (tx.status === 'confirmed' || tx.status === 'failed') {
+        return now - tx.updatedAt > maxAge
+      }
+      return false
+    })
+    
+    if (expired.length === 0) return 0
+    
+    const db = await this.ensureDb()
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    await Promise.all(expired.map((item) => tx.store.delete(item.id)))
+    await tx.done
+    
+    return expired.length
+  }
+
   async deleteAll({ walletId }: { walletId: string }): Promise<void> {
     const all = await this.getAll({ walletId })
     const db = await this.ensureDb()

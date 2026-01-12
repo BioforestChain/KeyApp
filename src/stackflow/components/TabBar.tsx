@@ -20,6 +20,8 @@ import {
   miniappRuntimeSelectors,
   openStackView,
 } from "@/services/miniapp-runtime";
+import { usePendingTransactions } from "@/hooks/use-pending-transactions";
+import { useCurrentWallet } from "@/stores";
 
 /** 生态页面顺序 */
 const ECOSYSTEM_PAGE_ORDER: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
@@ -131,6 +133,11 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
   const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
   
+  // Pending transactions count for wallet tab badge
+  const currentWallet = useCurrentWallet();
+  const { transactions: pendingTxs } = usePendingTransactions(currentWallet?.id);
+  const pendingTxCount = pendingTxs.filter((tx) => tx.status !== 'confirmed').length;
+  
   // 生态 Tab 是否激活
   const isEcosystemActive = activeTab === 'ecosystem';
   
@@ -232,6 +239,12 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
                 {/* 运行中应用指示器（红点） */}
                 {isEcosystem && hasRunningApps && !isActive && (
                   <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary" />
+                )}
+                {/* Pending transactions badge */}
+                {tab.id === 'wallet' && pendingTxCount > 0 && (
+                  <span className="absolute -top-1 -right-2 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
+                    {pendingTxCount > 9 ? '9+' : pendingTxCount}
+                  </span>
                 )}
               </div>
               {/* 标签区域 */}

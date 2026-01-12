@@ -25,6 +25,8 @@ const CONFIG = {
   SYNC_INTERVAL: 15000,
   /** 交易确认超时 (ms) - 超过此时间仍未确认则标记为需要检查 */
   CONFIRM_TIMEOUT: 5 * 60 * 1000, // 5 分钟
+  /** 过期交易清理时间 (ms) - 已确认/失败的交易超过此时间后自动清理 */
+  CLEANUP_MAX_AGE: 24 * 60 * 60 * 1000, // 24 小时
 }
 
 // ==================== 类型 ====================
@@ -123,6 +125,15 @@ class PendingTxManagerImpl {
    */
   async syncWalletPendingTransactions(walletId: string, chainConfigState: ReturnType<typeof useChainConfigState>) {
     try {
+      // 清理过期交易
+      const cleanedCount = await pendingTxService.deleteExpired({ 
+        walletId, 
+        maxAge: CONFIG.CLEANUP_MAX_AGE 
+      })
+      if (cleanedCount > 0) {
+        console.log(`[PendingTxManager] Cleaned ${cleanedCount} expired transactions`)
+      }
+
       const pendingTxs = await pendingTxService.getPending({ walletId })
       
       for (const tx of pendingTxs) {
