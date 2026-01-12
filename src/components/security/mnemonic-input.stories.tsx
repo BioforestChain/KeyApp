@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { MnemonicInput } from './mnemonic-input';
-import { GradientButton } from '../common/gradient-button';
+import { GradientButton } from '@biochain/key-ui';
 
 const meta: Meta<typeof MnemonicInput> = {
   title: 'Security/MnemonicInput',

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { TokenList } from './token-list'
 import type { TokenInfo } from './token-item'
-import { GradientButton } from '../common/gradient-button'
+import { GradientButton } from '@biochain/key-ui'
 
 const meta: Meta<typeof TokenList> = {
   title: 'Token/TokenList',
