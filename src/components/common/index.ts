@@ -42,6 +42,3 @@ export { TimeDisplay, formatDate, formatDateTime, formatTime, toDate } from './t
 export { FormField } from './form-field'
 export { ErrorBoundary } from './error-boundary'
 export { CopyableText } from './copyable-text'
-
-// Legacy export for gradientButtonVariants (cva)
-export { gradientButtonVariants } from './gradient-button'
