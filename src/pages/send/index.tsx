@@ -85,8 +85,11 @@ export function SendPage() {
           logoUrl: found.icon,
         };
       }
-      // assetType specified but not found - return null to wait for tokens
-      return null;
+      // If assetType is specified but not found in tokens yet, return null to wait for tokens to load
+      if (tokens.length === 0) {
+        return null;
+      }
+      // If tokens loaded but specified asset not found, fall through to native asset
     }
     
     // No assetType specified - default to native asset
