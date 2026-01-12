@@ -2,8 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { PatternLock, patternToString } from './pattern-lock';
-import { IconCircle } from '@/components/common/icon-circle';
-import { GradientButton } from '@/components/common/gradient-button';
+import { IconCircle, GradientButton } from '@/components/common';
 import {
   IconShieldCheck as ShieldCheck,
   IconChevronRight as ArrowRight,

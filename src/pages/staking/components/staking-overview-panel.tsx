@@ -8,7 +8,7 @@ import { IconSearch as Search, IconFilter as Filter } from '@tabler/icons-react'
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { LoadingSpinner } from '@/components/common';
 import { StakingPoolCard } from './staking-pool-card';
 import { stakingService } from '@/services/staking';
 import type { StakingOverviewItem, ExternalChain, InternalChain } from '@/types/staking';

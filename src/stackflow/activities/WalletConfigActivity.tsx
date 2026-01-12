@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityParamsProvider, useActivityParams, useNavigation } from "../hooks";
 import { PageHeader } from '@/components/layout/page-header';
 import { WalletConfig } from '@/components/wallet/wallet-config';
-import { Alert } from '@/components/common/alert';
+import { Alert } from '@/components/common';
 import { useWallets } from '@/stores';
 
 type WalletConfigParams = {

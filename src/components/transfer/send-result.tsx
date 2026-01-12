@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { IconCircle } from '@/components/common/icon-circle';
+import { IconCircle } from '@/components/common';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconCopy as Copy, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';

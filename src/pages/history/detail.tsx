@@ -12,7 +12,7 @@ import { AddressDisplay } from '@/components/wallet/address-display';
 import { AmountDisplay, TimeDisplay, CopyableText } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
-import { SkeletonCard } from '@/components/common/skeleton';
+import { SkeletonCard } from '@/components/common';
 import { useTransactionHistoryQuery, type TransactionRecord } from '@/queries';
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';

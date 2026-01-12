@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/common/skeleton';
+import { Skeleton } from '@/components/common';
 import { AmountDisplay, formatAmount } from '@/components/common/amount-display';
 import { IconAlertTriangle as AlertTriangle, IconPencil as Pencil } from '@tabler/icons-react';
 

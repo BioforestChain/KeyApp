@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useStore } from '@tanstack/react-store';
 import { useFlow } from '../../stackflow';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { LoadingSpinner } from '@/components/common';
 import {
   initRegistry,
   getApps,

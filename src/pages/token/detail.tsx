@@ -3,7 +3,7 @@ import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { BalanceDisplay } from '@/components/token/balance-display';
 import { TransactionList } from '@/components/transaction/transaction-list';
-import { GradientButton } from '@/components/common/gradient-button';
+import { GradientButton } from '@/components/common';
 import { IconArrowUp as ArrowUp, IconArrowDown as ArrowDown } from '@tabler/icons-react';
 import { Amount } from '@/types/amount';
 
