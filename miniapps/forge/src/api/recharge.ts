@@ -4,6 +4,7 @@
 
 import { apiClient } from './client'
 import { API_ENDPOINTS } from './config'
+import { tronHexToBase58, isTronHexAddress } from '@/lib/tron-address'
 import type {
   RechargeSupportResDto,
   RechargeV2ReqDto,
@@ -15,12 +16,55 @@ import type {
   RechargeRecordDetailReqDto,
   RechargeRecordDetailResDto,
   RetryOnChainReqDto,
+  ExternalAssetInfoItem,
 } from './types'
 
+/**
+ * Convert TRON hex addresses in ExternalAssetInfoItem to Base58 format
+ */
+async function convertTronAddresses(item: ExternalAssetInfoItem): Promise<ExternalAssetInfoItem> {
+  const result = { ...item }
+  
+  // Convert depositAddress if it's TRON hex format
+  if (result.depositAddress && isTronHexAddress(result.depositAddress)) {
+    result.depositAddress = await tronHexToBase58(result.depositAddress)
+  }
+  
+  // Convert contract address if it's TRON hex format
+  if (result.contract && isTronHexAddress(result.contract)) {
+    result.contract = await tronHexToBase58(result.contract)
+  }
+  
+  return result
+}
+
+/**
+ * Transform API response to convert all TRON hex addresses to Base58
+ */
+async function transformSupportResponse(response: RechargeSupportResDto): Promise<RechargeSupportResDto> {
+  const recharge = { ...response.recharge }
+  
+  for (const chainName of Object.keys(recharge)) {
+    const assets = recharge[chainName]
+    for (const assetType of Object.keys(assets)) {
+      const item = assets[assetType]
+      if (item.supportChain?.TRON) {
+        item.supportChain = {
+          ...item.supportChain,
+          TRON: await convertTronAddresses(item.supportChain.TRON),
+        }
+      }
+    }
+  }
+  
+  return { recharge }
+}
+
 export const rechargeApi = {
-  /** 获取支持的充值配置 */
-  getSupport(): Promise<RechargeSupportResDto> {
-    return apiClient.get(API_ENDPOINTS.RECHARGE_SUPPORT)
+  /** 获取支持的充值配置 (TRON addresses converted to Base58) */
+  async getSupport(): Promise<RechargeSupportResDto> {
+    const response = await apiClient.get<RechargeSupportResDto>(API_ENDPOINTS.RECHARGE_SUPPORT)
+    return transformSupportResponse(response)
   },
 
   /** 发起充值（锻造） */
