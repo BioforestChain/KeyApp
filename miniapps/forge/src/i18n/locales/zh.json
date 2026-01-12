@@ -1,8 +1,12 @@
 {
   "app": {
-    "title": "锻造",
-    "subtitle": "多链熔炉",
-    "description": "将其他链资产锻造为 Bio 生态代币"
+    "title": "跨链通",
+    "subtitle": "跨链桥接",
+    "description": "在外链与 Bio 生态之间桥接资产"
+  },
+  "mode": {
+    "recharge": "充值",
+    "redemption": "赎回"
   },
   "connect": {
     "button": "连接钱包",
@@ -15,35 +19,69 @@
     "depositAddress": "充值地址",
     "network": "网络",
     "preview": "预览交易",
-    "confirm": "确认锻造",
-    "continue": "继续锻造"
+    "confirm": "确认充值",
+    "continue": "继续"
+  },
+  "redemption": {
+    "title": "赎回",
+    "description": "将 Bio 代币赎回为外链资产",
+    "connect": "连接钱包",
+    "from": "从",
+    "to": "到",
+    "limits": "限额",
+    "fee": "手续费",
+    "receivable": "预计到账",
+    "addressPlaceholder": "输入外链地址",
+    "targetAddress": "目标地址",
+    "preview": "预览赎回",
+    "confirm": "确认赎回",
+    "continue": "继续",
+    "noOptions": "暂无可用的赎回选项",
+    "success": {
+      "title": "赎回已提交"
+    },
+    "processing": {
+      "creating": "创建交易中...",
+      "signing": "签名交易中...",
+      "submitting": "提交赎回请求..."
+    },
+    "error": {
+      "fillAll": "请填写所有字段",
+      "below_min": "金额低于最小限额",
+      "above_max": "金额超过最大限额",
+      "amountTooLow": "扣除手续费后金额不足"
+    }
   },
   "processing": {
     "signingExternal": "签名外链交易...",
     "signingInternal": "签名内链消息...",
-    "submitting": "提交锻造请求...",
-    "default": "锻造中...",
+    "submitting": "提交请求...",
+    "default": "处理中...",
     "hint": "请在钱包中确认操作"
   },
   "success": {
-    "title": "锻造完成",
+    "title": "完成",
     "orderId": "订单"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "连接失败",
     "invalidAmount": "请输入有效金额",
-    "forgeFailed": "锻造失败"
+    "forgeFailed": "操作失败"
   },
   "picker": {
-    "title": "选择锻造币种",
+    "title": "选择币种",
     "selected": "已选"
+  },
+  "common": {
+    "back": "返回"
   },
   "chain": {
     "ETH": "Ethereum",
     "BSC": "BNB Chain",
     "TRON": "Tron",
     "bfmeta": "BFMeta",
-    "bfchain": "BFChain"
+    "bfchain": "BFChain",
+    "pmchain": "PMC"
   }
 }
