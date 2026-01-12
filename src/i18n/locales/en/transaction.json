@@ -320,6 +320,7 @@
     "broadcasted": "Awaiting confirmation",
     "failed": "Broadcast failed",
     "retry": "Retry",
-    "delete": "Delete"
+    "delete": "Delete",
+    "retryCount": "Retry count"
   }
 }

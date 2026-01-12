@@ -320,6 +320,7 @@
     "broadcasted": "等待上链",
     "failed": "广播失败",
     "retry": "重试",
-    "delete": "删除"
+    "delete": "删除",
+    "retryCount": "重试次数"
   }
 }

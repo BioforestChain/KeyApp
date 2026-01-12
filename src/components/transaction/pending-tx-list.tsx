@@ -5,6 +5,7 @@
  */
 
 import { useTranslation } from 'react-i18next'
+import { useNavigation } from '@/stackflow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { IconRefresh, IconTrash, IconLoader2, IconAlertCircle, IconClock } from '@tabler/icons-react'
@@ -50,11 +51,13 @@ function getStatusColor(status: PendingTxStatus) {
 function PendingTxItem({ 
   tx, 
   onRetry, 
-  onDelete 
+  onDelete,
+  onClick,
 }: { 
   tx: PendingTx
   onRetry?: (tx: PendingTx) => void
   onDelete?: (tx: PendingTx) => void
+  onClick?: (tx: PendingTx) => void
 }) {
   const { t } = useTranslation('transaction')
   const StatusIcon = getStatusIcon(tx.status)
@@ -68,8 +71,23 @@ function PendingTxItem({
   const displayType = tx.meta?.type ?? 'transfer'
   const displayToAddress = tx.meta?.displayToAddress ?? ''
 
+  const handleClick = () => {
+    onClick?.(tx)
+  }
+
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation()
+    action()
+  }
+
   return (
-    <div className="bg-card border-border flex items-center gap-3 rounded-lg border p-3">
+    <div 
+      className="bg-card border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+    >
       {/* Status Icon */}
       <div className={cn('flex size-10 items-center justify-center rounded-full bg-muted', statusColor)}>
         <StatusIcon className={cn('size-5', isProcessing && 'animate-spin')} />
@@ -111,7 +129,7 @@ function PendingTxItem({
             variant="ghost"
             size="icon"
             className="size-8"
-            onClick={() => onRetry(tx)}
+            onClick={(e) => handleActionClick(e, () => onRetry(tx))}
             title={t('pendingTx.retry')}
           >
             <IconRefresh className="size-4" />
@@ -122,7 +140,7 @@ function PendingTxItem({
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-destructive size-8"
-            onClick={() => onDelete(tx)}
+            onClick={(e) => handleActionClick(e, () => onDelete(tx))}
             title={t('pendingTx.delete')}
           >
             <IconTrash className="size-4" />
@@ -140,6 +158,11 @@ export function PendingTxList({
   className 
 }: PendingTxListProps) {
   const { t } = useTranslation('transaction')
+  const { navigate } = useNavigation()
+
+  const handleClick = (tx: PendingTx) => {
+    navigate({ to: `/pending-tx/${tx.id}` })
+  }
 
   if (transactions.length === 0) {
     return null
@@ -157,6 +180,7 @@ export function PendingTxList({
             tx={tx}
             onRetry={onRetry}
             onDelete={onDelete}
+            onClick={handleClick}
           />
         ))}
       </div>
