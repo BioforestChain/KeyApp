@@ -13,6 +13,8 @@ import { broadcastTransaction } from '@/services/bioforest-sdk'
 import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 import { chainConfigSelectors, useChainConfigState } from '@/stores'
 import { notificationActions } from '@/stores/notification'
+import { queryClient } from '@/lib/query-client'
+import { balanceQueryKeys } from '@/queries/use-balance-query'
 
 // ==================== 配置 ====================
 
@@ -288,6 +290,9 @@ class PendingTxManagerImpl {
         // 发送交易确认通知
         this.sendNotification(updated, 'confirmed')
         
+        // 刷新余额
+        this.invalidateBalance(tx.walletId, tx.chainId)
+        
         console.log('[PendingTxManager] Transaction confirmed:', tx.txHash.slice(0, 16))
       } else {
         // 检查是否超时
@@ -363,6 +368,21 @@ class PendingTxManagerImpl {
         pendingTxId: tx.id,
       },
     })
+  }
+
+  /**
+   * 刷新余额缓存
+   */
+  private invalidateBalance(walletId: string, chainId: string) {
+    try {
+      // 使 balance query 缓存失效，触发重新获取
+      queryClient.invalidateQueries({
+        queryKey: balanceQueryKeys.chain(walletId, chainId),
+      })
+      console.log('[PendingTxManager] Balance cache invalidated for', walletId, chainId)
+    } catch (error) {
+      console.error('[PendingTxManager] Failed to invalidate balance:', error)
+    }
   }
 }
 
