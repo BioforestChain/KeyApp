@@ -51,7 +51,7 @@ function getStatusColor(status: PendingTxStatus) {
     case 'broadcasting':
       return 'text-blue-500 bg-blue-500/10'
     case 'broadcasted':
-      return 'text-yellow-500 bg-yellow-500/10'
+      return 'text-amber-500 bg-amber-500/10'
     case 'failed':
       return 'text-red-500 bg-red-500/10'
     case 'confirmed':
