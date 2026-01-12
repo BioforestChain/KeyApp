@@ -38,13 +38,29 @@ function getStatusColor(status: PendingTxStatus) {
     case 'broadcasting':
       return 'text-blue-500'
     case 'broadcasted':
-      return 'text-yellow-500'
+      return 'text-amber-500'
     case 'failed':
       return 'text-red-500'
     case 'confirmed':
       return 'text-green-500'
     default:
       return 'text-muted-foreground'
+  }
+}
+
+function getStatusBgColor(status: PendingTxStatus) {
+  switch (status) {
+    case 'created':
+    case 'broadcasting':
+      return 'bg-blue-500/10'
+    case 'broadcasted':
+      return 'bg-amber-500/10'
+    case 'failed':
+      return 'bg-red-500/10'
+    case 'confirmed':
+      return 'bg-green-500/10'
+    default:
+      return 'bg-muted'
   }
 }
 
@@ -62,8 +78,10 @@ function PendingTxItem({
   const { t } = useTranslation('transaction')
   const StatusIcon = getStatusIcon(tx.status)
   const statusColor = getStatusColor(tx.status)
+  const statusBgColor = getStatusBgColor(tx.status)
   const isFailed = tx.status === 'failed'
   const isProcessing = tx.status === 'broadcasting'
+  const isBroadcasted = tx.status === 'broadcasted'
 
   // 获取展示信息
   const displayAmount = tx.meta?.displayAmount ?? ''
@@ -89,8 +107,19 @@ function PendingTxItem({
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
     >
       {/* Status Icon */}
-      <div className={cn('flex size-10 items-center justify-center rounded-full bg-muted', statusColor)}>
+      <div className={cn(
+        'relative flex size-10 items-center justify-center rounded-full',
+        statusBgColor,
+        statusColor
+      )}>
         <StatusIcon className={cn('size-5', isProcessing && 'animate-spin')} />
+        {/* Pulse animation for broadcasting/broadcasted */}
+        {(isProcessing || isBroadcasted) && (
+          <span className={cn(
+            'absolute inset-0 rounded-full animate-ping opacity-30',
+            isProcessing ? 'bg-blue-500' : 'bg-amber-500'
+          )} />
+        )}
       </div>
 
       {/* Transaction Info */}
