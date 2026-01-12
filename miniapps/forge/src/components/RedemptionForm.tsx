@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { ArrowDown, Loader2, AlertCircle, Check, Coins, DollarSign, Leaf } from 'lucide-react'
+import { ArrowDown, AlertCircle, Check, Coins, DollarSign, Leaf } from 'lucide-react'
 
 import type { RechargeConfig, ExternalChainName, RechargeItem } from '@/api/types'
 import { useRedemption } from '@/hooks/useRedemption'
@@ -62,7 +62,7 @@ function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'm
   )
 }
 
-export function RedemptionForm({ config, onSuccess, onBack }: RedemptionFormProps) {
+export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
   const { t } = useTranslation()
   const redemption = useRedemption()
 

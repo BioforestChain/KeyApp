@@ -3,6 +3,7 @@
  * 赎回手续费计算
  */
 
+import Big from 'big.js'
 import type { RedemptionConfig, ExternalChainName } from '@/api/types'
 
 export interface RedemptionFeeResult {
@@ -19,7 +20,7 @@ export interface RedemptionFeeResult {
 }
 
 /**
- * Calculate redemption fees
+ * Calculate redemption fees using big.js for precision
  * @param amount - 赎回金额 (内链最小单位)
  * @param chain - 目标外链
  * @param config - 赎回配置
@@ -29,27 +30,29 @@ export function calculateRedemptionFee(
   chain: ExternalChainName,
   config: RedemptionConfig
 ): RedemptionFeeResult {
-  const amountBigInt = typeof amount === 'string' ? BigInt(amount || '0') : amount
+  const amountBig = new Big(amount.toString())
   
   // Fixed fee for the target chain
-  const fixedFee = BigInt(config.fee[chain] || '0')
+  const fixedFeeBig = new Big(config.fee[chain] || '0')
   
   // Ratio fee (radioFee is a decimal string like "0.001" = 0.1%)
-  const ratio = parseFloat(config.radioFee || '0')
-  const ratioFee = BigInt(Math.floor(Number(amountBigInt) * ratio))
+  const ratioBig = new Big(config.radioFee || '0')
+  const ratioFeeBig = amountBig.times(ratioBig).round(0, Big.roundDown)
   
   // Total fee
-  const totalFee = fixedFee + ratioFee
+  const totalFeeBig = fixedFeeBig.plus(ratioFeeBig)
   
   // Receivable amount
-  const receivable = amountBigInt > totalFee ? amountBigInt - totalFee : BigInt(0)
+  const receivableBig = amountBig.gt(totalFeeBig) 
+    ? amountBig.minus(totalFeeBig) 
+    : new Big(0)
   
   return {
-    fixedFee,
-    ratioFee,
-    totalFee,
-    receivable,
-    isValid: receivable > BigInt(0),
+    fixedFee: BigInt(fixedFeeBig.toFixed(0)),
+    ratioFee: BigInt(ratioFeeBig.toFixed(0)),
+    totalFee: BigInt(totalFeeBig.toFixed(0)),
+    receivable: BigInt(receivableBig.toFixed(0)),
+    isValid: receivableBig.gt(0),
   }
 }
 
@@ -59,17 +62,13 @@ export function calculateRedemptionFee(
  * @param decimals - Number of decimals (default: 8 for BioChain)
  */
 export function formatAmount(amount: string | bigint, decimals = 8): string {
-  const amountBigInt = typeof amount === 'string' ? BigInt(amount || '0') : amount
-  const divisor = BigInt(10 ** decimals)
-  const integerPart = amountBigInt / divisor
-  const fractionalPart = amountBigInt % divisor
+  const amountBig = new Big(amount.toString())
+  const divisor = new Big(10).pow(decimals)
+  const formatted = amountBig.div(divisor)
   
-  if (fractionalPart === BigInt(0)) {
-    return integerPart.toString()
-  }
-  
-  const fractionalStr = fractionalPart.toString().padStart(decimals, '0').replace(/0+$/, '')
-  return `${integerPart}.${fractionalStr}`
+  // Remove trailing zeros
+  const fixed = formatted.toFixed(decimals)
+  return fixed.replace(/\.?0+$/, '') || '0'
 }
 
 /**
@@ -80,10 +79,14 @@ export function formatAmount(amount: string | bigint, decimals = 8): string {
 export function parseAmount(displayAmount: string, decimals = 8): bigint {
   if (!displayAmount || displayAmount === '') return BigInt(0)
   
-  const [integerPart, fractionalPart = ''] = displayAmount.split('.')
-  const paddedFractional = fractionalPart.padEnd(decimals, '0').slice(0, decimals)
-  
-  return BigInt(integerPart + paddedFractional)
+  try {
+    const parsed = new Big(displayAmount)
+    const multiplier = new Big(10).pow(decimals)
+    const raw = parsed.times(multiplier).round(0, Big.roundDown)
+    return BigInt(raw.toFixed(0))
+  } catch {
+    return BigInt(0)
+  }
 }
 
 /**
@@ -93,15 +96,15 @@ export function isAmountWithinLimits(
   amount: string | bigint,
   config: RedemptionConfig
 ): { valid: boolean; reason?: 'below_min' | 'above_max' } {
-  const amountBigInt = typeof amount === 'string' ? BigInt(amount || '0') : amount
-  const min = BigInt(config.min || '0')
-  const max = BigInt(config.max || '0')
+  const amountBig = new Big(amount.toString())
+  const min = new Big(config.min || '0')
+  const max = new Big(config.max || '0')
   
-  if (amountBigInt < min) {
+  if (amountBig.lt(min)) {
     return { valid: false, reason: 'below_min' }
   }
   
-  if (max > BigInt(0) && amountBigInt > max) {
+  if (max.gt(0) && amountBig.gt(max)) {
     return { valid: false, reason: 'above_max' }
   }
   
