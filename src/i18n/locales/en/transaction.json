@@ -296,11 +296,13 @@
     "belowMinFee": "Fee cannot be lower than minimum fee {{minFee}} {{symbol}}"
   },
   "txStatus": {
+    "created": "Pending Broadcast",
     "broadcasting": "Broadcasting",
     "broadcasted": "Broadcast Successful",
     "confirming": "Awaiting Confirmation",
     "confirmed": "Transaction Confirmed",
     "failed": "Transaction Failed",
+    "createdDesc": "Transaction created, waiting to broadcast...",
     "broadcastingDesc": "Broadcasting transaction to the network...",
     "broadcastedDesc": "Transaction broadcasted, awaiting block confirmation...",
     "confirmingDesc": "Waiting for block confirmation...",

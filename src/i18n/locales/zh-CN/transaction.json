@@ -296,11 +296,13 @@
     "belowMinFee": "手续费不能低于最低手续费 {{minFee}} {{symbol}}"
   },
   "txStatus": {
+    "created": "待广播",
     "broadcasting": "广播中",
     "broadcasted": "广播成功",
     "confirming": "等待上链",
     "confirmed": "交易已上链",
     "failed": "交易失败",
+    "createdDesc": "交易已创建，等待广播...",
     "broadcastingDesc": "正在将交易广播到网络...",
     "broadcastedDesc": "交易已广播，等待区块确认...",
     "confirmingDesc": "正在等待区块确认...",
