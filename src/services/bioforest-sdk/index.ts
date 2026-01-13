@@ -464,6 +464,13 @@ export async function broadcastTransaction(
       if (!result.success) {
         const errorCode = result.error?.code
         const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+        
+        // 001-00034: 交易已存在（重复广播），视为成功
+        if (errorCode === '001-00034') {
+          console.log('[broadcastTransaction] Transaction already exists, treating as success')
+          return transaction.signature
+        }
+        
         throw new BroadcastError(errorCode, errorMsg, result.minFee)
       }
       // success=true 的情况
