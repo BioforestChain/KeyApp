@@ -16,6 +16,7 @@ import { notificationActions } from '@/stores/notification'
 import { queryClient } from '@/lib/query-client'
 import { balanceQueryKeys } from '@/queries/use-balance-query'
 import { transactionHistoryKeys } from '@/queries/use-transaction-history-query'
+import i18n from '@/i18n'
 
 // ==================== 配置 ====================
 
@@ -337,24 +338,24 @@ class PendingTxManagerImpl {
     
     switch (event) {
       case 'broadcasted':
-        title = '交易已广播'
+        title = i18n.t('notification:pendingTx.broadcasted.title')
         message = displayAmount 
-          ? `${displayType} ${displayAmount} ${displaySymbol} 已广播，等待确认`
-          : '交易已广播到网络，等待区块确认'
+          ? i18n.t('notification:pendingTx.broadcasted.message', { type: displayType, amount: displayAmount, symbol: displaySymbol })
+          : i18n.t('notification:pendingTx.broadcasted.messageSimple')
         status = 'pending'
         break
         
       case 'confirmed':
-        title = '交易已确认'
+        title = i18n.t('notification:pendingTx.confirmed.title')
         message = displayAmount
-          ? `${displayType} ${displayAmount} ${displaySymbol} 已成功上链`
-          : '交易已成功确认上链'
+          ? i18n.t('notification:pendingTx.confirmed.message', { type: displayType, amount: displayAmount, symbol: displaySymbol })
+          : i18n.t('notification:pendingTx.confirmed.messageSimple')
         status = 'success'
         break
         
       case 'failed':
-        title = '交易失败'
-        message = tx.errorMessage ?? '广播失败，请重试'
+        title = i18n.t('notification:pendingTx.failed.title')
+        message = tx.errorMessage ?? i18n.t('notification:pendingTx.failed.message')
         status = 'failed'
         break
     }
