@@ -1328,3 +1328,116 @@ EcosystemTab 这里有 bug，我在 discovery 页面获取了新 的小程序，
 
 这里genesisBlock的路径的 resolve 逻辑是一致的：基于default-chains.json 的文件的位置进行相对索引。
 这个代码怎么没了？请你调查一下，这个代码是否被覆盖了。被覆盖到原因是什么，如果找不到历史代码，请你实现这个功能。
+
+---
+
+1. oxlint的插件开发,好像是可以直接会使用 exlintd规范的,我们项目之前就有 i18n相关的开发,现在这些不再默认生效了?怎么又被篡改了?
+2. 你的方案是一种不错的方案,但是并不能根本解决问题,I正如我们明明有MiniappSheetHeader,但是AI开发的时候还是会忘记使用MiniappSheetHeader,所以同样的,即便你封装了MiniappAuthSheet,还是可能会忘记
+   。所以你的方案和我的需求虽然有一定的交集,但是并不是一个彻底的解决。我的目的是把最佳实践做成标准化。
+3. 未来AI在开发新弹窗的时候,即便不参考其他文件的代码,但是至少它需要调查,寻找到放置这个小程序弹窗的入口要挂载不在哪里。所以我才说通过这个挂载点来约束组件命名(可以同时约束文件的路径和名称)
+   然后再根据文件的路径和名称进一步约束这些文件必须使用MiniappSheetHeader或者MiniappAuthSheet
+   顺便看一下，为什么我们的i18n 检查现在不再依赖 oxlint，是被误删了，还是升级成独立的 command 了？我印象中我们项目好像有补充性的 i18n oxlint 插件。也许是我记错了。
+
+你确定问题修复了？我现在在 fix/miniapp-balance-and-icon 这个分支。我刚才提到的问题还是存在没有修复：
+···
+forge小程序能弹出授权弹窗了，但是我选择 tron 开始授权后，选择了某一个钱包，下一步就显示：“暂无支持 bfmchain 的钱包”，这一步骤的弹窗头部甚至显示：“未知 DApp 请求访问”，所以才有上面这个问题
+
+---
+
+1. forge 应用有一个 “充值地址”，没有正缺使用
+2. forge 应用到了“确认锻造”这一步报错：“Invalid base58 character: 0”
+
+---
+
+我需要你给我一个严谨的计划，可以涵盖未来开发时同类错误的检查、并修复当前错误
+
+---
+
+我们接下来还需要在我们的底层的 service 中提供一个专门的接口：“关于未上链的交易”，大部分情况下链服务是不支持未上链交易的查询能力，单这是我们钱包自己的功能。
+有了这个能力，我们就可以用这部分的 service 来构建更加易用的接口，前端开发也会更加有序。
+比如说，交易列表可以在顶部显示这些“未上链”的交易，有的是广播中，有的是广播失败。可以在这里删除失败的交易，或者点进去可以看到“交易详情+广播中”的页面、或者“交易详情+广播失败”的页面。
+同时我们有了这个底层能力，就能帮用户在底层去重试广播。从而实现视觉上订阅和查询的能力。
+
+另外，send 页面更加侧重于“填写交易单”+“显示交易详情”，最后才是“交易状态”。现在只是提供了“填写交易单”+“交易状态”。而我们的侧重点应该是“填写交易单”+“显示交易详情”。
+因为我们的交易签名面板，它的流程会更加侧重于提供“签名”+“广播”+“交易状态”。它已经包含交易状态了，这是因为它的通用性导致它必须这样设计。
+所以当 send 页面与交易签名面板做配合的时候，如果 send 页面还在侧重显示“交易状态”，那么就和交易签名面板的作用重复了。
+所以假设我们有了这套“关于未上链的交易”的能力，那么交易签名面板和 send 页面都需要做一定的流程适配，把“交易状态”进行合理的融合。而不是卡在“广播成功”，广播成功后续还需要补充流程。
+
+我说的这些和你目前计划的是同一个东西，只是我给你更加系统性的流程。而不是只是单纯地“捕捉错误并显示”，这是一个需要系统性解决的问题。
+
+/Users/kzf/.factory/specs/2026-01-12-pending-transaction-service.md
+
+基于spec 文件 /Users/kzf/.factory/specs/2026-01-12-pending-transaction-service.md ，开始self-review 。   
+
+---
+
+我们需要对 forge 小程序做一个大升级，它将被升级成：“跨链通” （BioBridge）
+
+1. 目前的 forge 只提供了 外链资产（ETH、BSC、TRON等） 转 内链资产（bioChain系列） 的能力
+2. 我们需要加入一个 内链资产 转 外链资产 的能力
+
+3. 文件是 .chat/research-miniapp-锻造-backend.md 是 forge 的关于文档，以 https://walletapi.bf-meta.org/cot/recharge/support 为例，显示的是这样的结构体：
+
+```
+{
+  success: boolean
+  result: {
+    recharge: {
+      BFMETAV2: {
+        USDT: {
+          enable: boolean
+          chainName: string
+          assetType: string
+          applyAddress: string
+          supportChain: {
+            ETH: {
+              enable: boolean
+              contract: string
+              depositAddress: string
+              assetType: string
+              logo: string
+            }
+            BSC: {
+              enable: boolean
+              contract: string
+              depositAddress: string
+              assetType: string
+              logo: string
+            }
+            TRON: {
+              enable: boolean
+              contract: string
+              depositAddress: string
+              assetType: string
+              logo: string
+            }
+          }
+          redemption: {
+            enable: boolean
+            min: string
+            max: string
+            radioFee: string
+            fee: {
+              ETH: string
+              BSC: string
+              TRON: string
+            }
+          }
+          logo: string
+        }
+      }
+    }
+  }
+}
+```
+
+这里 BFMETAV2 是指链，也就是说这个endpoint支持 外链资产（ETH、BSC、TRON）的USDT 转 内链资产（bfmetav2）的USDT
+
+4. 你需要继续调研`npm:@bnqkl/cotcore`这个包关于“赎回”的能力，源代码在：https://github.com/BioforestChain/cot-server/tree/master/packages/core/src/redemption ，你可以 clone 到本地临时文件夹，然后调研升成接口文档，同样放在 .chat 目录下。
+
+5. 目前的目录在做一些工作，但和你不相关。你需要使用 git worktree（在 .git-worktree）创建一个新分支，然后在新分支上完成你的工作。
+
+
+/Users/kzf/.factory/specs/2026-01-12-biobridge.md
+
+基于spec 文件 /Users/kzf/.factory/specs/2026-01-12-biobridge.md ，开始self-review 。

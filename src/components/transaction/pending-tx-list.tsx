@@ -80,18 +80,11 @@ function PendingTxItem({
     onClick?.(tx)
   }
 
-  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation()
-    action()
-  }
-
   return (
-    <div 
-      className="bg-card border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+    <button 
+      type="button"
+      className="bg-card border-border flex w-full cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
       onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
     >
       {/* Status Icon - 使用 IconCircle */}
       <div className="relative">
@@ -160,7 +153,7 @@ function PendingTxItem({
             variant="ghost"
             size="icon"
             className="size-8"
-            onClick={(e) => handleActionClick(e, () => onRetry(tx))}
+            onClick={(e) => { e.stopPropagation(); onRetry(tx) }}
             title={t('pendingTx.retry')}
           >
             <IconRefresh className="size-4" />
@@ -171,14 +164,14 @@ function PendingTxItem({
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-destructive size-8"
-            onClick={(e) => handleActionClick(e, () => onDelete(tx))}
+            onClick={(e) => { e.stopPropagation(); onDelete(tx) }}
             title={t('pendingTx.delete')}
           >
             <IconTrash className="size-4" />
           </Button>
         )}
       </div>
-    </div>
+    </button>
   )
 }
 
