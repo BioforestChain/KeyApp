@@ -66,7 +66,7 @@ interface TransactionResponse {
  */
 function buildBalanceUrl(chainId: string, address: string): string | null {
   if (!chainId || !address) return null
-  const baseUrl = chainConfigService.getApiUrl(chainId)
+  const baseUrl = chainConfigService.getBiowalletApi(chainId)
   if (!baseUrl) return null
   return `${baseUrl}/address/asset?address=${address}`
 }
@@ -76,7 +76,7 @@ function buildBalanceUrl(chainId: string, address: string): string | null {
  */
 function buildTransactionsUrl(chainId: string, address: string, limit: number): string | null {
   if (!chainId || !address) return null
-  const baseUrl = chainConfigService.getApiUrl(chainId)
+  const baseUrl = chainConfigService.getBiowalletApi(chainId)
   if (!baseUrl) return null
   return `${baseUrl}/transactions/query?address=${address}&limit=${limit}`
 }

@@ -28,7 +28,7 @@ interface BalanceResponse {
  */
 function buildBalanceUrl(chainId: string, address: string): string | null {
   if (!chainId || !address) return null
-  const baseUrl = chainConfigService.getApiUrl(chainId)
+  const baseUrl = chainConfigService.getBiowalletApi(chainId)
   if (!baseUrl) return null
   return `${baseUrl}/address/asset?address=${address}`
 }
