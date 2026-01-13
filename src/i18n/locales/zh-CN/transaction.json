@@ -327,6 +327,7 @@
     "delete": "删除",
     "retryCount": "重试次数",
     "waitingFor": "已等待 {{seconds}} 秒",
-    "viewAll": "查看全部 {{count}} 条待处理交易"
+    "viewAll": "查看全部 {{count}} 条待处理交易",
+    "clearAllFailed": "清除失败"
   }
 }

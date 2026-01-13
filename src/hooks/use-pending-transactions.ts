@@ -72,11 +72,20 @@ export function usePendingTransactions(walletId: string | undefined) {
     return updated
   }, [refresh, chainConfigState])
 
+  const clearAllFailed = useCallback(async () => {
+    const failedTxs = transactions.filter(tx => tx.status === 'failed')
+    for (const tx of failedTxs) {
+      await pendingTxService.delete({ id: tx.id })
+    }
+    await refresh()
+  }, [transactions, refresh])
+
   return {
     transactions,
     isLoading,
     refresh,
     deleteTransaction,
     retryTransaction,
+    clearAllFailed,
   }
 }

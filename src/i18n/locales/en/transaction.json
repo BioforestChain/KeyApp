@@ -327,6 +327,7 @@
     "delete": "Delete",
     "retryCount": "Retry count",
     "waitingFor": "Waiting for {{seconds}}s",
-    "viewAll": "View all {{count}} pending transactions"
+    "viewAll": "View all {{count}} pending transactions",
+    "clearAllFailed": "Clear failed"
   }
 }

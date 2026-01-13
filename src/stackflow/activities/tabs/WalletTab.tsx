@@ -92,6 +92,7 @@ export function WalletTab() {
     transactions: pendingTransactions, 
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
+    clearAllFailed: clearAllFailedPendingTx,
   } = usePendingTransactions(currentWallet?.id);
 
   // 当链切换时更新交易过滤器
@@ -268,6 +269,7 @@ export function WalletTab() {
             transactions={pendingTransactions.slice(0, 3)}
             onRetry={retryPendingTx}
             onDelete={deletePendingTx}
+            onClearAllFailed={clearAllFailedPendingTx}
           />
           {pendingTransactions.length > 3 && (
             <button

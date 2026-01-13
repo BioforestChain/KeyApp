@@ -17,6 +17,7 @@ interface PendingTxListProps {
   transactions: PendingTx[]
   onRetry?: (tx: PendingTx) => void
   onDelete?: (tx: PendingTx) => void
+  onClearAllFailed?: () => void
   className?: string
 }
 
@@ -178,7 +179,8 @@ function PendingTxItem({
 export function PendingTxList({ 
   transactions, 
   onRetry, 
-  onDelete, 
+  onDelete,
+  onClearAllFailed,
   className 
 }: PendingTxListProps) {
   const { t } = useTranslation('transaction')
@@ -188,15 +190,28 @@ export function PendingTxList({
     navigate({ to: `/pending-tx/${tx.id}` })
   }
 
+  const failedCount = transactions.filter(tx => tx.status === 'failed').length
+
   if (transactions.length === 0) {
     return null
   }
 
   return (
     <div className={cn('space-y-2', className)}>
-      <h3 className="text-muted-foreground px-1 text-xs font-medium uppercase tracking-wider">
-        {t('pendingTx.title')}
-      </h3>
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+          {t('pendingTx.title')}
+        </h3>
+        {failedCount > 1 && onClearAllFailed && (
+          <button
+            type="button"
+            onClick={onClearAllFailed}
+            className="text-destructive hover:text-destructive/80 text-xs font-medium"
+          >
+            {t('pendingTx.clearAllFailed')}
+          </button>
+        )}
+      </div>
       <div className="space-y-2">
         {transactions.map((tx) => (
           <PendingTxItem
