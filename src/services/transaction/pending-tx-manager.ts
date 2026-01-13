@@ -8,7 +8,7 @@
  * 4. 发送通知提醒用户交易状态变化
  */
 
-import { pendingTxService, type PendingTx, type PendingTxStatus } from './pending-tx'
+import { pendingTxService, type PendingTx } from './pending-tx'
 import { broadcastTransaction } from '@/services/bioforest-sdk'
 import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 import { chainConfigSelectors, useChainConfigState } from '@/stores'
