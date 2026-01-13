@@ -61,7 +61,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
       if (!tx.id) {
-        console.warn('[TransactionHistory] Transaction has no id:', tx);
+        
         return;
       }
       navigate({ to: `/transaction/${tx.id}` });

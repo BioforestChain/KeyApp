@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 
-import { Buffer } from 'buffer'
 
 declare global {
   /** Mock 模式标识 - 通过 vite.config.ts define 配置 */

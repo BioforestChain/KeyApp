@@ -6,8 +6,7 @@
  */
 
 import { EventEmitter } from './events'
-import { BioErrorCodes, createProviderError, type ProviderRpcError } from './types'
-import { toHexChainId, parseHexChainId, getKeyAppChainId, EVM_CHAIN_IDS } from './chain-id'
+import { BioErrorCodes, createProviderError } from './types'
 
 /** EIP-1193 Request Arguments */
 export interface EthRequestArguments {
@@ -142,7 +141,7 @@ export class EthereumProvider {
 
   private postMessage(message: RequestMessage): void {
     if (window.parent === window) {
-      console.warn('[EthereumProvider] Not running in iframe, cannot communicate with host')
+      
       return
     }
     window.parent.postMessage(message, this.targetOrigin)
@@ -168,7 +167,7 @@ export class EthereumProvider {
         id,
         method,
         params: paramsArray,
-      })
+      }, self.location.origin)
 
       // Timeout after 5 minutes (for user interactions)
       setTimeout(() => {
@@ -283,13 +282,13 @@ export function initEthereumProvider(targetOrigin = '*'): EthereumProvider {
   }
 
   if (window.ethereum) {
-    console.warn('[EthereumProvider] Provider already exists, returning existing instance')
+    
     return window.ethereum
   }
 
   const provider = new EthereumProvider(targetOrigin)
   window.ethereum = provider
 
-  console.log('[EthereumProvider] Provider initialized')
+  
   return provider
 }

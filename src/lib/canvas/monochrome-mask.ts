@@ -325,7 +325,7 @@ function processImageToMask(
         imageData = ctx.getImageData(0, 0, size, size)
         fn(ctx, imageData, size, hook.args)
       } catch (e) {
-        console.error('[monochrome-mask] Pipeline hook error:', e)
+        
       }
     }
   }

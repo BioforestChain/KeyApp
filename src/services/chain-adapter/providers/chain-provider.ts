@@ -262,10 +262,7 @@ export class ChainProvider {
         
         // 数据验证
         if (!Array.isArray(raw)) {
-          console.warn('[ChainProvider] Invalid transaction history payload (not array)', {
-            chainId: this.chainId,
-            method: 'getTransactionHistory',
-          })
+          
           continue
         }
 
@@ -284,13 +281,7 @@ export class ChainProvider {
         }
 
         if (invalidCount > 0) {
-          console.warn('[ChainProvider] Dropped invalid transactions from history', {
-            chainId: this.chainId,
-            method: 'getTransactionHistory',
-            invalidCount,
-            totalCount: raw.length,
-            firstIssue,
-          })
+          
         }
 
         return createSupportedResult(parsed)

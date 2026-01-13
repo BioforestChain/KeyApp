@@ -383,7 +383,7 @@ export class EtherscanProvider implements ApiProvider {
 
     return data
       .map(item => NativeTxSchema.safeParse(item))
-      .filter((r): r is z.SafeParseSuccess<NativeTx> => r.success)
+      .filter((r): r is z.ZodSafeParseSuccess<NativeTx> => r.success)
       .map(r => r.data)
   }
 
@@ -393,7 +393,7 @@ export class EtherscanProvider implements ApiProvider {
 
     return data
       .map(item => TokenTxSchema.safeParse(item))
-      .filter((r): r is z.SafeParseSuccess<TokenTx> => r.success)
+      .filter((r): r is z.ZodSafeParseSuccess<TokenTx> => r.success)
       .map(r => r.data)
   }
 

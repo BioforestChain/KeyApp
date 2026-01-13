@@ -98,19 +98,13 @@ export async function submitWeb3Transfer({
       return { status: 'error', message: `该链不支持完整交易流程: ${chainConfig.id}` }
     }
 
-    console.log('[submitWeb3Transfer] Starting transfer:', { 
-      chain: chainConfig.id, 
-      type: chainConfig.type,
-      fromAddress, 
-      toAddress, 
-      amount: amount.toRawString() 
-    })
+    
 
     // Derive private key from mnemonic
     const seed = mnemonicToSeedSync(mnemonic)
     
     // Build unsigned transaction
-    console.log('[submitWeb3Transfer] Building transaction...')
+    
     const unsignedTx = await chainProvider.buildTransaction!({
       from: fromAddress,
       to: toAddress,
@@ -118,17 +112,17 @@ export async function submitWeb3Transfer({
     })
 
     // Sign transaction
-    console.log('[submitWeb3Transfer] Signing transaction...')
+    
     const signedTx = await chainProvider.signTransaction!(unsignedTx, seed)
 
     // Broadcast transaction
-    console.log('[submitWeb3Transfer] Broadcasting transaction...')
+    
     const txHash = await chainProvider.broadcastTransaction!(signedTx)
 
-    console.log('[submitWeb3Transfer] SUCCESS! txHash:', txHash)
+    
     return { status: 'ok', txHash }
   } catch (error) {
-    console.error('[submitWeb3Transfer] FAILED:', error)
+    
 
     const errorMessage = error instanceof Error ? error.message : String(error)
 

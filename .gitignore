@@ -41,6 +41,7 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/assets
+eslint.config.js
 
 # misc
 /.sass-cache

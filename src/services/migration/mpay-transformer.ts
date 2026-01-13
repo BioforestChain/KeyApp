@@ -80,7 +80,7 @@ function transformChainAddress(
 ): ChainAddress | null {
   const chain = mapChainName(mpayAddress.chain)
   if (!chain) {
-    console.warn(`Unknown mpay chain: ${mpayAddress.chain}, skipping`)
+    
     return null
   }
 
@@ -240,7 +240,7 @@ export async function transformMpayData(
 
       wallets.push(wallet)
     } catch (error) {
-      console.error(`Failed to transform wallet ${mpayWallet.name}:`, error)
+      
       // 继续处理其他钱包
     }
   }

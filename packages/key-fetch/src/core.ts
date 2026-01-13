@@ -34,7 +34,7 @@ function buildUrl(template: string, params: FetchParams = {}): string {
 function buildCacheKey(name: string, params: FetchParams = {}): string {
   const sortedParams = Object.entries(params)
     .filter(([, v]) => v !== undefined)
-    .sort(([a], [b]) => a.localeCompare(b))
+    .toSorted(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
     .join('&')
   return sortedParams ? `${name}?${sortedParams}` : name

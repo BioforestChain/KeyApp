@@ -6,7 +6,6 @@
 
 import { describe, it, expect } from 'vitest'
 import { createChainProvider } from '../index'
-import { isSupported } from '../types'
 import { chainConfigStore } from '@/stores/chain-config'
 import type { ChainConfig } from '@/services/chain-config'
 

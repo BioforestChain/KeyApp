@@ -128,7 +128,7 @@ async function clearAllData() {
     try {
       await step.action();
     } catch (e) {
-      console.error(`${step.label}:`, e);
+      
     }
 
     setStepDone(step.id);

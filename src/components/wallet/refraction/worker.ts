@@ -183,4 +183,4 @@ function priorityOrder(p: Priority) {
   return p === 'high' ? 0 : p === 'medium' ? 1 : 2
 }
 
-self.postMessage({ type: 'ready' })
+self.postMessage({ type: 'ready' }, self.location.origin)

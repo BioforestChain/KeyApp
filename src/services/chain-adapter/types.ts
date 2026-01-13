@@ -2,7 +2,7 @@
  * 链适配器类型定义
  */
 
-import type { ChainConfig, ChainKind } from '@/services/chain-config'
+import type { ChainKind } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 
 // ==================== 基础类型 ====================

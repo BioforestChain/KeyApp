@@ -147,14 +147,14 @@ export async function submitBioforestTransfer({
   }
 
   try {
-    console.log('[submitBioforestTransfer] Starting transfer:', { apiUrl, fromAddress, toAddress, amount: amount.toRawString() })
+    
     
     // Check if pay password is required but not provided
     const addressInfo = await getAddressInfo(apiUrl, fromAddress)
-    console.log('[submitBioforestTransfer] Address info:', { hasSecondPubKey: !!addressInfo.secondPublicKey })
+    
     
     if (addressInfo.secondPublicKey && !twoStepSecret) {
-      console.log('[submitBioforestTransfer] Pay password required')
+      
       return {
         status: 'password_required',
         secondPublicKey: addressInfo.secondPublicKey,
@@ -163,16 +163,16 @@ export async function submitBioforestTransfer({
 
     // Verify pay password if provided
     if (twoStepSecret && addressInfo.secondPublicKey) {
-      console.log('[submitBioforestTransfer] Verifying pay password...')
+      
       const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
-      console.log('[submitBioforestTransfer] Pay password verification result:', isValid)
+      
       if (!isValid) {
         return { status: 'error', message: '安全密码验证失败' }
       }
     }
 
     // Create transaction using SDK
-    console.log('[submitBioforestTransfer] Creating transaction...')
+    
     const transaction = await createTransferTransaction({
       baseUrl: apiUrl,
       chainId: chainConfig.id,
@@ -185,7 +185,7 @@ export async function submitBioforestTransfer({
       fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
-    console.log('[submitBioforestTransfer] Transaction created:', txHash?.slice(0, 20))
+    
 
     // 存储到 pendingTxService
     const pendingTx = await pendingTxService.create({
@@ -202,12 +202,12 @@ export async function submitBioforestTransfer({
     })
 
     // 广播交易
-    console.log('[submitBioforestTransfer] Broadcasting...')
+    
     await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
     
     try {
       const broadcastResult = await broadcastTransaction(apiUrl, transaction)
-      console.log('[submitBioforestTransfer] SUCCESS! txHash:', txHash, 'alreadyExists:', broadcastResult.alreadyExists)
+      
       
       // 如果交易已存在于链上，直接标记为 confirmed
       const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
@@ -218,7 +218,7 @@ export async function submitBioforestTransfer({
       })
       return { status: 'ok', txHash, pendingTxId: pendingTx.id }
     } catch (err) {
-      console.error('[submitBioforestTransfer] Broadcast failed:', err)
+      
       if (err instanceof BroadcastError) {
         await pendingTxService.updateStatus({
           id: pendingTx.id,
@@ -231,7 +231,7 @@ export async function submitBioforestTransfer({
       throw err
     }
   } catch (error) {
-    console.error('[submitBioforestTransfer] FAILED:', error)
+    
 
     // Handle BroadcastError
     if (error instanceof BroadcastError) {
@@ -298,7 +298,7 @@ export async function submitSetTwoStepSecret({
     }
 
     // Set pay password
-    console.log('[submitSetTwoStepSecret] Creating signature transaction...')
+    
     const result = await setTwoStepSecret({
       baseUrl: apiUrl,
       chainId: chainConfig.id,
@@ -306,10 +306,10 @@ export async function submitSetTwoStepSecret({
       newPaySecret: newTwoStepSecret,
     })
 
-    console.log('[submitSetTwoStepSecret] Pay password set successfully:', result.txHash)
+    
     return { status: 'ok', txHash: result.txHash }
   } catch (error) {
-    console.error('[submitSetTwoStepSecret] Failed to set pay password:', error)
+    
 
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -342,7 +342,7 @@ export async function getSetTwoStepSecretFee(
       symbol: chainConfig.symbol,
     }
   } catch (error) {
-    console.error('[getSetTwoStepSecretFee] Failed to get fee:', error)
+    
     return null
   }
 }

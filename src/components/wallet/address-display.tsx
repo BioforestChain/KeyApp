@@ -142,7 +142,7 @@ export function AddressDisplay({
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy address');
+      
     }
   };
 

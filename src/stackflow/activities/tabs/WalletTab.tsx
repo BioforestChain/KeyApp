@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -302,8 +302,8 @@ export function WalletTab() {
           transactionsLoading={txLoading}
           tokensSupported={balanceData?.supported ?? true}
           tokensFallbackReason={balanceData?.fallbackReason}
-          onTokenClick={(token) => {
-            console.log("Token clicked:", token.symbol);
+          onTokenClick={(_token) => {
+            // Token click handler
           }}
           onTransactionClick={handleTransactionClick}
           mainAssetSymbol={mainAssetSymbol}

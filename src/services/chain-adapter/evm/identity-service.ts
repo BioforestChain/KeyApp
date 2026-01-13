@@ -6,10 +6,8 @@ import type { IIdentityService, Address, Signature } from '../types'
 import { toChecksumAddress, isValidAddress, deriveKey } from '@/lib/crypto'
 
 export class EvmIdentityService implements IIdentityService {
-  private readonly chainId: string
-
-  constructor(chainId: string) {
-    this.chainId = chainId
+  constructor(_chainId: string) {
+    // chainId parameter for interface compatibility
   }
 
   async deriveAddress(seed: Uint8Array, index = 0): Promise<Address> {

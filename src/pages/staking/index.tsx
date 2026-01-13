@@ -71,7 +71,7 @@ function StakingMintPanel() {
 
   const handleSuccess = (txId: string) => {
     // TODO: Navigate to transaction detail or show success toast
-    console.log('Mint transaction submitted:', txId)
+    
   }
 
   return (
@@ -88,7 +88,7 @@ function StakingBurnPanel() {
 
   const handleSuccess = (txId: string) => {
     // TODO: Navigate to transaction detail or show success toast
-    console.log('Burn transaction submitted:', txId)
+    
   }
 
   return (

@@ -47,7 +47,7 @@ function SigningConfirmJobContent() {
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
         if (!encryptedSecret) {
-          console.error('[SigningConfirmJob] No encrypted mnemonic found')
+          
           return false
         }
 
@@ -79,7 +79,7 @@ function SigningConfirmJobContent() {
         pop()
         return true
       } catch (error) {
-        console.error('[SigningConfirmJob] Signing failed:', error)
+        
         return false
       } finally {
         setIsSubmitting(false)

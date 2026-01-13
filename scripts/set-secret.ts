@@ -181,17 +181,8 @@ const CATEGORIES: CategoryDefinition[] = [
 
 // ==================== 工具函数 ====================
 
-function exec(cmd: string, silent = false): string {
-  try {
-    return execSync(cmd, {
-      cwd: ROOT,
-      encoding: 'utf-8',
-      stdio: silent ? 'pipe' : 'inherit',
-    }).trim()
-  } catch {
-    return ''
-  }
-}
+// Note: exec utility function available if needed
+// function _exec(cmd: string, silent = false): string { ... }
 
 function checkGhCli(): boolean {
   try {

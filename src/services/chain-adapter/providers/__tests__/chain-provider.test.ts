@@ -3,7 +3,6 @@ import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
 import { isSupported } from '../types'
 import { Amount } from '@/types/amount'
-import { InvalidDataError } from '../errors'
 
 vi.mock('@/services/chain-config', () => ({
   chainConfigService: {

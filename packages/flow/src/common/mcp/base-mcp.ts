@@ -171,9 +171,7 @@ export function parseCliArgs(args: string[] = process.argv.slice(2)): CliArgs {
       if (["stdio", "sse", "http"].includes(mode)) {
         result.transport = mode;
       } else {
-        console.error(
-          `[mcp] Warning: Unknown transport "${mode}", using stdio`,
-        );
+        
       }
     } else if (arg.startsWith("--port=")) {
       result.port = parseInt(arg.slice("--port=".length), 10) || 3000;
@@ -520,7 +518,7 @@ export class McpServerWrapper {
       case "sse":
       case "http": {
         // HTTP/SSE not implemented for Node.js yet
-        console.error("HTTP/SSE transport not yet supported in Node.js version");
+        
         process.exit(1);
       }
     }
@@ -543,7 +541,7 @@ export class McpServerWrapper {
 
   private log(message: string): void {
     if (this.config.debug) {
-      console.error(`[${this.config.name}] ${message}`);
+      
     }
   }
 }
@@ -556,7 +554,7 @@ export function createMcpServer(config: McpServerConfig): McpServerWrapper {
 
   if (config.autoStart) {
     server.start().catch((error) => {
-      console.error(`[${config.name}] Fatal error:`, error);
+      
       process.exit(1);
     });
   }
@@ -568,20 +566,7 @@ export function createMcpServer(config: McpServerConfig): McpServerWrapper {
  * Print help message for MCP server CLI
  */
 export function printMcpHelp(name: string, description?: string): void {
-  console.log(`${name} - MCP Server
-
-${description || "A Model Context Protocol server."}
-
-Usage:
-  bun ${name}.mcp.ts [options]
-
-Options:
-  --transport=<mode>  Transport mode: stdio (default)
-  -h, --help          Show this help message
-
-Examples:
-  bun ${name}.mcp.ts                      # stdio mode
-`);
+  
 }
 
 // =============================================================================

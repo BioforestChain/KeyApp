@@ -10,7 +10,7 @@ export const toastService = toastServiceMeta.impl({
   async show(options) {
     const message = typeof options === 'string' ? options : options.message
     toastHistory.push({ message, timestamp: Date.now() })
-    console.log('[Toast]', message)
+    
   },
 })
 

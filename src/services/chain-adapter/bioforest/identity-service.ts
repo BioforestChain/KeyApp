@@ -14,7 +14,6 @@ function bytesToHex(bytes: Uint8Array): string {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
 }
-import type { ChainConfig } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import type { IIdentityService, Address, Signature } from '../types'
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { AssetInfo } from '@/types/asset'
 import { Amount } from '@/types/amount'
 import { initialState, MOCK_FEES } from './use-send.constants'
@@ -177,16 +177,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
-    console.log('[useSend.submit] Called with:', { useMock, chainKind: chainConfig?.chainKind, walletId, fromAddress })
+    
     
     if (useMock) {
-      console.log('[useSend.submit] Using mock transfer')
+      
       const result = await submitMockTransfer(setState)
       return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
     }
 
     if (!chainConfig) {
-      console.log('[useSend.submit] No chain config')
+      
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -200,7 +200,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
     if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
-      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.chainKind)
+      
       
       if (!walletId || !fromAddress || !state.asset || !state.amount) {
         setState((prev) => ({
@@ -265,7 +265,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Unsupported chain type
     if (chainConfig.chainKind !== 'bioforest') {
-      console.log('[useSend.submit] Chain type not supported:', chainConfig.chainKind)
+      
       setState((prev) => ({
         ...prev,
         step: 'result',

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useKeyFetch } from '@biochain/key-fetch/react';
+import { useKeyFetch } from '@biochain/key-fetch';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {

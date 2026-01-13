@@ -12,7 +12,6 @@ import {
   toHexChainId,
   parseHexChainId,
   getKeyAppChainId,
-  getEvmChainId,
   EVM_CHAIN_IDS,
 } from '@biochain/bio-sdk'
 
@@ -282,7 +281,7 @@ export const handleEthSendTransaction: MethodHandler = async (params, context) =
 }
 
 /** eth_signTransaction - Sign transaction without broadcasting */
-export const handleEthSignTransaction: MethodHandler = async (params, context) => {
+export const handleEthSignTransaction: MethodHandler = async (params, _context) => {
   const tx = params as EvmTransactionRequest | undefined
   if (!tx?.from) {
     throw Object.assign(new Error('Missing transaction data'), { code: BioErrorCodes.INVALID_PARAMS })
@@ -297,8 +296,8 @@ export const handleEthSignTransaction: MethodHandler = async (params, context) =
 }
 
 /** eth_getBalance - Get account balance */
-export const handleEthGetBalance: MethodHandler = async (params, context) => {
-  const [address, _blockTag] = params as [string, string?]
+export const handleEthGetBalance: MethodHandler = async (params, _context) => {
+  const [address] = params as [string, string?]
   if (!address) {
     throw Object.assign(new Error('Missing address'), { code: BioErrorCodes.INVALID_PARAMS })
   }

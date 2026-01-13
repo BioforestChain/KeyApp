@@ -22,6 +22,7 @@
 
     /* Path aliases (keep in sync with tsconfig.app.json) */
     "baseUrl": ".",
+    "types": ["bun", "node"],
     "paths": {
       "@/*": ["./src/*"],
       "#biometric-impl": ["./src/services/biometric/web.ts"],
@@ -35,5 +36,5 @@
     },
   },
   "include": ["vite.config.ts", "vitest.config.ts", ".storybook/**/*", "scripts/**/*"],
-  "exclude": ["scripts/agent-flow/**/*"]
+  "exclude": ["scripts/agent-flow/**/*"],
 }

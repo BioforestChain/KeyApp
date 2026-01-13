@@ -34,7 +34,7 @@ export function ErrorBoundary({ children, fallback, onError }: ErrorBoundaryProp
     <BaseErrorBoundary
       FallbackComponent={fallback ? () => <>{fallback}</> : ErrorFallback}
       onError={(error, info) => {
-        console.error('ErrorBoundary caught an error:', error, info)
+        
         onError?.(error, info)
       }}
     >

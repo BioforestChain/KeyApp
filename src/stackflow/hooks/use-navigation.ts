@@ -95,7 +95,7 @@ export function useNavigation() {
     const resolved = resolveRoute(options.to);
 
     if (!resolved) {
-      console.warn(`[useNavigation] Unknown route: ${options.to}`);
+      
       return;
     }
 

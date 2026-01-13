@@ -56,7 +56,7 @@ export function invalidateByTag(tagName: string): void {
   if (instances) {
     // 需要通过 registry 失效
     // 这里仅提供辅助函数，实际失效需要在外部调用
-    console.log(`[key-fetch:tag] Invalidating tag "${tagName}":`, [...instances])
+    
   }
 }
 

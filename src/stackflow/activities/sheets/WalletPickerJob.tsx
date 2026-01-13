@@ -54,10 +54,8 @@ function resolveChainId(chain: string | undefined): string | undefined {
   return normalized
 }
 
-/** Get display name for chain ID */
-function getChainDisplayName(chainId: string): string {
-  return CHAIN_DISPLAY_NAMES[chainId] || chainId
-}
+// Utility function for chain display names (currently unused - using direct chain IDs)
+// function __getChainDisplayName(chainId: string): string { return CHAIN_DISPLAY_NAMES[chainId] || chainId }
 
 function WalletPickerJobContent() {
   const { t } = useTranslation('common')

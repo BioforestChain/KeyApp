@@ -92,7 +92,7 @@ function MiniappSignTransactionJobContent() {
         pop()
         return true
       } catch (error) {
-        console.error('[MiniappSignTransactionJob] signTransaction failed:', error)
+        
         return false
       } finally {
         setIsSubmitting(false)

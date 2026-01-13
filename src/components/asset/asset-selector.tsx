@@ -61,7 +61,8 @@ export function AssetSelector({
   // 生成唯一 key
   const getAssetKey = (asset: TokenInfo) => `${asset.chain}-${asset.symbol}`;
 
-  const handleValueChange = (value: string) => {
+  const handleValueChange = (value: string | null) => {
+    if (!value) return;
     const asset = availableAssets.find((a) => getAssetKey(a) === value);
     if (asset) {
       onSelect(asset);

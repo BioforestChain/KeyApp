@@ -200,10 +200,10 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string): Promise<BurnSubmitResult> => {
-    console.log('[useBurn.submit] Called with:', { useMock, chainKind: chainConfig?.chainKind, walletId, fromAddress })
+    
 
     if (useMock) {
-      console.log('[useBurn.submit] Using mock burn')
+      
       setState((prev) => ({
         ...prev,
         step: 'burning',

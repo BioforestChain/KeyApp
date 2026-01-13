@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { IconCircle } from '@/components/common';
 import { TransactionStatus } from '@/components/transaction/transaction-status';
 import { AddressDisplay } from '@/components/wallet/address-display';
-import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconCopy as Copy, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
+import { IconCheck as Check, IconX as X, IconExternalLink as ExternalLink, IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
 import { clipboardService } from '@/services/clipboard';
 
@@ -48,7 +48,7 @@ export function SendResult({
   className,
 }: SendResultProps) {
   const { t } = useTranslation('transaction');
-  const [copied, setCopied] = useState(false);
+  const [_copied, setCopied] = useState(false);
 
   const handleCopyHash = useCallback(async () => {
     if (!txHash) return;
@@ -57,7 +57,7 @@ export function SendResult({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy hash');
+      
     }
   }, [txHash]);
 

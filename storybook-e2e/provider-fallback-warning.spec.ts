@@ -11,7 +11,7 @@
  */
 import { expect, test } from '@playwright/test'
 import { createReadStream } from 'node:fs'
-import { stat, mkdir } from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
 import { createServer, type Server } from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

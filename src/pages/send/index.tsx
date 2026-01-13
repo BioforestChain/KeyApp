@@ -11,7 +11,6 @@ import { AmountInput } from '@/components/transfer/amount-input';
 import type { TokenInfo } from '@/components/token/token-item';
 import { GradientButton, Alert } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
-import { SendResult } from '@/components/transfer/send-result';
 import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { Amount } from '@/types/amount';

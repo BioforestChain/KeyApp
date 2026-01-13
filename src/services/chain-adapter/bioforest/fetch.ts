@@ -79,7 +79,7 @@ const DEFAULT_FORGE_INTERVAL = 15_000
 
 export function setForgeInterval(chainId: string, intervalMs: number): void {
   forgeIntervals.set(chainId, intervalMs)
-  console.log(`[bioforest-fetch] Set forgeInterval for ${chainId}: ${intervalMs}ms`)
+  
 }
 
 export function getForgeInterval(chainId: string): number {
@@ -156,7 +156,7 @@ export function getChainFetchInstances(chainId: string, baseUrl: string): ChainF
     instances = { lastBlock, balance, transactionQuery }
     chainInstances.set(chainId, instances)
     
-    console.log(`[bioforest-fetch] Created fetch instances for chain: ${chainId}`)
+    
   }
   return instances
 }

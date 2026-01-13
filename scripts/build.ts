@@ -27,8 +27,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, cpSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { createWriteStream } from 'node:fs'
-import { uploadToSftp, getNextDevVersion, getTodayDateString } from './utils/sftp'
+import { uploadToSftp, getNextDevVersion } from './utils/sftp'
 
 // Dev 版本信息（在 buildDweb 时设置）
 let devVersionInfo: { version: string; dateDir: string } | null = null
@@ -40,11 +39,6 @@ const DIST_DIR = join(ROOT, 'dist')
 const DIST_WEB_DIR = join(ROOT, 'dist-web')
 const DIST_DWEB_DIR = join(ROOT, 'dist-dweb')
 const DISTS_DIR = join(ROOT, 'dists') // plaoc 打包输出目录
-
-// GitHub 仓库信息
-const GITHUB_OWNER = 'BioforestChain'
-const GITHUB_REPO = 'KeyApp'
-const GITHUB_PAGES_BASE = `/${GITHUB_REPO}/`
 
 // 颜色输出
 const colors = {
@@ -111,7 +105,6 @@ async function createZip(sourceDir: string, outputPath: string): Promise<void> {
 
   // 使用系统 zip 命令（更可靠）
   const cwd = sourceDir
-  const zipName = outputPath.split('/').pop()!
   exec(`zip -r "${outputPath}" .`, { cwd })
 }
 

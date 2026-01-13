@@ -47,14 +47,14 @@ export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema>
       // 首个订阅者，启动轮询
       if (count === 1) {
         const intervalMs = typeof ms === 'function' ? ms() : ms
-        console.log(`[key-fetch:interval] Starting polling for ${ctx.kf.name} every ${intervalMs}ms`)
+        
 
         const poll = async () => {
           try {
             const data = await ctx.kf.fetch(ctx.params as Record<string, string>, { skipCache: true })
             ctx.notify(data)
           } catch (error) {
-            console.error(`[key-fetch:interval] Error polling ${ctx.kf.name}:`, error)
+            
           }
         }
 
@@ -71,7 +71,7 @@ export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema>
         if (newCount === 0) {
           const timer = timers.get(key)
           if (timer) {
-            console.log(`[key-fetch:interval] Stopping polling for ${ctx.kf.name}`)
+            
             clearInterval(timer)
             timers.delete(key)
           }

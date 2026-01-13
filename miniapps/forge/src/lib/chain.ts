@@ -2,7 +2,7 @@
  * Chain utilities for Forge miniapp
  */
 
-import { toHexChainId, EVM_CHAIN_IDS, API_CHAIN_TO_KEYAPP } from '@biochain/bio-sdk'
+import { toHexChainId, EVM_CHAIN_IDS } from '@biochain/bio-sdk'
 
 /** Chain types */
 export type ChainType = 'evm' | 'tron' | 'bio'

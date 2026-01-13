@@ -59,7 +59,7 @@ class PendingTxManagerImpl {
     if (this.state.isRunning) return;
 
     this.state.isRunning = true;
-    console.log('[PendingTxManager] Started');
+    
 
     // 启动定时同步
     this.state.syncTimer = setInterval(() => {
@@ -83,7 +83,7 @@ class PendingTxManagerImpl {
       this.state.syncTimer = null;
     }
 
-    console.log('[PendingTxManager] Stopped');
+    
   }
 
   /**
@@ -104,7 +104,7 @@ class PendingTxManagerImpl {
       try {
         callback(tx);
       } catch (error) {
-        console.error('[PendingTxManager] Subscriber error:', error);
+        
       }
     });
   }
@@ -118,9 +118,9 @@ class PendingTxManagerImpl {
     try {
       // 由于我们不知道所有 walletId，这里需要一个 getAllPending 方法
       // 暂时跳过，等待 UI 层提供 walletId
-      console.log('[PendingTxManager] Sync cycle (waiting for walletId)');
+      
     } catch (error) {
-      console.error('[PendingTxManager] Sync error:', error);
+      
     }
   }
 
@@ -135,7 +135,7 @@ class PendingTxManagerImpl {
         maxAge: CONFIG.CLEANUP_MAX_AGE,
       });
       if (cleanedCount > 0) {
-        console.log(`[PendingTxManager] Cleaned ${cleanedCount} expired transactions`);
+        
       }
 
       const pendingTxs = await pendingTxService.getPending({ walletId });
@@ -144,7 +144,7 @@ class PendingTxManagerImpl {
         await this.processPendingTransaction(tx, chainConfigState);
       }
     } catch (error) {
-      console.error('[PendingTxManager] Sync wallet error:', error);
+      
     }
   }
 
@@ -192,14 +192,14 @@ class PendingTxManagerImpl {
   private async tryBroadcast(tx: PendingTx, chainConfigState: ReturnType<typeof useChainConfigState>) {
     const chainConfig = chainConfigSelectors.getChainById(chainConfigState, tx.chainId);
     if (!chainConfig) {
-      console.warn('[PendingTxManager] Chain config not found:', tx.chainId);
+      
       return;
     }
 
     const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
     const apiUrl = biowallet?.endpoint;
     if (!apiUrl) {
-      console.warn('[PendingTxManager] API URL not found for chain:', tx.chainId);
+      
       return;
     }
 
@@ -223,14 +223,9 @@ class PendingTxManagerImpl {
       // 发送广播成功通知
       this.sendNotification(updated, newStatus === 'confirmed' ? 'confirmed' : 'broadcasted');
 
-      console.log(
-        '[PendingTxManager] Broadcast success:',
-        broadcastResult.txHash.slice(0, 16),
-        'alreadyExists:',
-        broadcastResult.alreadyExists,
-      );
+      
     } catch (error) {
-      console.error('[PendingTxManager] Broadcast failed:', error);
+      
 
       const errorMessage =
         error instanceof BroadcastError
@@ -302,17 +297,17 @@ class PendingTxManagerImpl {
         // 刷新余额
         this.invalidateBalance(tx.walletId, tx.chainId);
 
-        console.log('[PendingTxManager] Transaction confirmed:', tx.txHash.slice(0, 16));
+        
       } else {
         // 检查是否超时
         const elapsed = Date.now() - tx.updatedAt;
         if (elapsed > CONFIG.CONFIRM_TIMEOUT) {
-          console.warn('[PendingTxManager] Transaction confirmation timeout:', tx.txHash.slice(0, 16));
+          
           // 不自动标记失败，只记录日志，让用户决定
         }
       }
     } catch (error) {
-      console.error('[PendingTxManager] Check confirmation error:', error);
+      
     }
   }
 
@@ -400,9 +395,9 @@ class PendingTxManagerImpl {
       queryClient.invalidateQueries({
         queryKey: transactionHistoryKeys.wallet(walletId),
       });
-      console.log('[PendingTxManager] Cache invalidated for', walletId, chainId);
+      
     } catch (error) {
-      console.error('[PendingTxManager] Failed to invalidate cache:', error);
+      
     }
   }
 }

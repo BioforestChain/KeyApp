@@ -119,7 +119,7 @@ function ScannerJobContent() {
           handleScanResult(result.content)
         }
       } catch (err) {
-        console.error('[ScannerJob] Scan error:', err)
+        
       }
       
       if (scanningRef.current) {
@@ -148,7 +148,7 @@ function ScannerJobContent() {
     
     // 检查是否支持 mediaDevices
     if (!navigator.mediaDevices?.getUserMedia) {
-      console.error('[ScannerJob] mediaDevices not available')
+      
       setMessage({ type: 'error', text: t('error') })
       initializingRef.current = false
       return
@@ -168,7 +168,7 @@ function ScannerJobContent() {
         }
       } catch (permErr) {
         // 权限检查失败，继续尝试直接获取相机
-        console.warn('[ScannerJob] Permission check failed, trying direct access:', permErr)
+        
       }
       
       // 如果组件已卸载，停止
@@ -202,14 +202,14 @@ function ScannerJobContent() {
         } catch (playErr) {
           // AbortError 表示 play() 被打断，这在 StrictMode 下是正常的
           if (playErr instanceof DOMException && playErr.name === 'AbortError') {
-            console.debug('[ScannerJob] Play interrupted, will retry on next mount')
+            
           } else {
             throw playErr
           }
         }
       }
     } catch (err) {
-      console.error('[ScannerJob] Camera error:', err)
+      
       if (!mountedRef.current) {
         initializingRef.current = false
         return

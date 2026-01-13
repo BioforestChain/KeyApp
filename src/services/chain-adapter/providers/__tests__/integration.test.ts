@@ -127,7 +127,7 @@ describe('ChainProvider 集成测试', () => {
 
     const provider = createChainProvider('unknown-chain')
     
-    const providers = provider.getProviders()
+    const _providers = provider.getProviders()
     // 没有 API providers，但可能有 wrapped providers（取决于实现）
     expect(provider.supportsTransactionHistory).toBe(false)
   })

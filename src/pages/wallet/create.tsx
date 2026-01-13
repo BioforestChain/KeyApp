@@ -138,7 +138,7 @@ export function WalletCreatePage() {
       setCreatedWalletId(wallet.id);
       setStep('theme');
     } catch (error) {
-      console.error(t('create.createFailed'), error);
+      
     } finally {
       setIsCreating(false);
     }

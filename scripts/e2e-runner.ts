@@ -16,14 +16,13 @@
  *   pnpm e2e:runner --project chrome   # 指定浏览器
  */
 
-import { readdirSync, statSync, existsSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
 import { join, resolve, basename } from 'node:path'
 import { spawnSync, spawn, type ChildProcess } from 'node:child_process'
 import { createHash } from 'node:crypto'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const E2E_DIR = join(ROOT, 'e2e')
-const SCREENSHOTS_DIR = join(E2E_DIR, '__screenshots__')
 
 // 端口配置
 const MOCK_PORT = 11174
@@ -318,7 +317,6 @@ function runSpec(
   options: RunnerOptions
 ): { success: boolean; duration: number } {
   const startTime = Date.now()
-  const port = spec.isMock ? MOCK_PORT : DEV_PORT
   
   // 构建 playwright 参数
   const args = ['test', spec.path]

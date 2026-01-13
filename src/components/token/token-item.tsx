@@ -77,6 +77,10 @@ interface TokenItemProps {
    * Function receives token and context, returns array of menu items
    */
   menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined;
+  /**
+   * Context menu handler
+   */
+  onContextMenu?: ((e: React.MouseEvent, token: TokenInfo) => void) | undefined;
 }
 
 // BioForest chain types that support asset destruction
@@ -101,6 +105,7 @@ export function TokenItem({
   renderActions,
   mainAssetSymbol,
   menuItems,
+  onContextMenu,
 }: TokenItemProps) {
   const isClickable = !!onClick;
   const { t } = useTranslation(['currency', 'common']);
@@ -212,6 +217,7 @@ export function TokenItem({
       size="default"
       render={shouldRenderAsButton ? <button type="button" /> : undefined}
       onClick={shouldRenderAsButton ? onClick : undefined}
+      onContextMenu={(e) => onContextMenu?.(e, token)}
       aria-label={shouldRenderAsButton ? t('common:a11y.tokenDetails', { token: token.symbol }) : undefined}
       className={cn(isClickable && 'hover:bg-muted/50 active:bg-muted cursor-pointer', className)}
     >

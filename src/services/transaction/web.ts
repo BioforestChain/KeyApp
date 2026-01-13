@@ -2,7 +2,7 @@
  * Transaction 服务 - Web 平台实现
  */
 
-import { transactionServiceMeta, type TransactionFilter, type TransactionRecord, type TransactionStatus, type TransactionType } from './types'
+import { transactionServiceMeta, type TransactionFilter, type TransactionRecord } from './types'
 import { walletStorageService } from '@/services/wallet-storage'
 import { initialize as initializeChainConfigs, getEnabledChains, getChainById, type ChainConfig } from '@/services/chain-config'
 import { getChainProvider, type Transaction as ProviderTransaction, isSupported, InvalidDataError } from '@/services/chain-adapter/providers'

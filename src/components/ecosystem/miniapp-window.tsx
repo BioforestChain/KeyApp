@@ -174,12 +174,12 @@ function MiniappWindowPortal({
     }
   }, [presentApp?.appId]);
 
-  const windowContainerVariant = flowToWindowContainer[flow];
-  const splashBgLayerVariant = flowToSplashBgLayer[flow];
-  const splashIconLayerVariant = flowToSplashIconLayer[flow];
-  const iframeLayerVariant = flowToIframeLayer[flow];
-  const splashIconHasLayoutId = flowToSplashIconLayoutId[flow];
-  const capsuleVariant = flowToCapsule[flow];
+  const windowContainerVariant = flowToWindowContainer[flow as MiniappFlow];
+  const splashBgLayerVariant = flowToSplashBgLayer[flow as MiniappFlow];
+  const splashIconLayerVariant = flowToSplashIconLayer[flow as MiniappFlow];
+  const iframeLayerVariant = flowToIframeLayer[flow as MiniappFlow];
+  const splashIconHasLayoutId = flowToSplashIconLayoutId[flow as MiniappFlow];
+  const capsuleVariant = flowToCapsule[flow as MiniappFlow];
   const isTransitioning = flow === 'opening' || flow === 'closing';
 
   const appDisplay = useMemo(() => {

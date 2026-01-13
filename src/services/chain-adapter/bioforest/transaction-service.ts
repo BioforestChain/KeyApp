@@ -349,7 +349,7 @@ export class BioforestTransactionService implements ITransactionService {
   async getTransactionHistory(address: Address, limit = 20): Promise<Transaction[]> {
     const config = this.getConfig()
     if (!this.baseUrl) {
-      console.warn('[TransactionService] No baseUrl configured for chain:', config.id)
+      
       return []
     }
 
@@ -361,7 +361,7 @@ export class BioforestTransactionService implements ITransactionService {
       }
       const lastBlockJson = await lastBlockResponse.json() as { success: boolean; result: { height: number; timestamp: number } }
       if (!lastBlockJson.success) {
-        console.warn('[TransactionService] lastblock API returned success=false')
+        
         return []
       }
       const maxHeight = lastBlockJson.result.height
@@ -410,14 +410,14 @@ export class BioforestTransactionService implements ITransactionService {
       }
 
       if (!json.success) {
-        console.warn('[TransactionService] API returned success=false')
+        
         return []
       }
 
       const transactions = json.result?.trs ?? []
 
       if (transactions.length === 0) {
-        console.debug('[TransactionService] No transactions found for', address, 'on', config.id)
+        
         return []
       }
 
@@ -458,7 +458,7 @@ export class BioforestTransactionService implements ITransactionService {
           }
         })
     } catch (error) {
-      console.error('[TransactionService] Failed to fetch history:', error)
+      
       return []
     }
   }

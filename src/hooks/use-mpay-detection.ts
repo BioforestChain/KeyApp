@@ -75,7 +75,7 @@ export function useMpayDetection(): UseMpayDetectionResult {
         setStatus('detected')
       }
     } catch (error) {
-      console.error('Failed to detect mpay data:', error)
+      
       setDetection({
         hasData: false,
         walletCount: 0,

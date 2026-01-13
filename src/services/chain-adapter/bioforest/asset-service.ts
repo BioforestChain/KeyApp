@@ -89,7 +89,7 @@ export class BioforestAssetService implements IAssetService {
       const parsed = AddressAssetsResponseSchema.safeParse(json)
 
       if (!parsed.success) {
-        console.warn('[BioforestAssetService] Invalid API response:', parsed.error.message)
+        
         return [this.getEmptyNativeBalance()]
       }
 

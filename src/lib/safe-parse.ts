@@ -46,7 +46,7 @@ export function safeParseArray<T>(
   source: string
 ): T[] {
   if (!Array.isArray(data)) {
-    console.warn(`[safeParse] Expected array from ${source}, got ${typeof data}`)
+    
     return []
   }
 
@@ -56,7 +56,7 @@ export function safeParseArray<T>(
     if (result.success) {
       results.push(result.data)
     } else {
-      console.warn(`[safeParse] Invalid item at index ${i} from ${source}:`, result.error.issues[0])
+      
     }
   }
   return results
@@ -76,13 +76,13 @@ export function safeParseJson<T>(
   try {
     parsed = JSON.parse(jsonString)
   } catch {
-    console.warn(`[safeParse] Invalid JSON from ${source}`)
+    
     return null
   }
 
   const result = schema.safeParse(parsed)
   if (!result.success) {
-    console.warn(`[safeParse] Schema validation failed for ${source}:`, result.error.issues[0])
+    
     return null
   }
   return result.data

@@ -245,7 +245,7 @@ export const walletActions = {
         return
       }
       
-      console.error('Failed to initialize wallets:', error)
+      
       walletStore.setState((state) => ({
         ...state,
         isInitialized: true,
@@ -516,7 +516,7 @@ export const walletActions = {
       
       if (!isSupported(result)) {
         if (import.meta.env.DEV) {
-          console.debug(`[refreshBalance] Balance query failed for ${chain}: ${result.reason}`)
+          
         }
         return { supported: false, fallbackReason: result.reason }
       }
@@ -537,7 +537,7 @@ export const walletActions = {
       await walletActions.updateChainAssets(walletId, chain, tokens)
       return { supported: true }
     } catch (error) {
-      console.error(`[refreshBalance] Failed to refresh balance for ${chain}:`, error)
+      
       return { supported: false, fallbackReason: error instanceof Error ? error.message : 'Unknown error' }
     }
   },

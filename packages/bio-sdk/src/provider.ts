@@ -96,7 +96,7 @@ export class BioProviderImpl implements BioProvider {
       id: this.generateId(),
       method: 'bio_connect',
       params: [],
-    })
+    }, self.location.origin)
   }
 
   private generateId(): string {
@@ -105,7 +105,7 @@ export class BioProviderImpl implements BioProvider {
 
   private postMessage(message: RequestMessage): void {
     if (window.parent === window) {
-      console.warn('[BioSDK] Not running in iframe, cannot communicate with host')
+      
       return
     }
     window.parent.postMessage(message, this.targetOrigin)
@@ -125,7 +125,7 @@ export class BioProviderImpl implements BioProvider {
         id,
         method: args.method,
         params: args.params,
-      })
+      }, self.location.origin)
 
       // Timeout after 5 minutes (for user interactions)
       setTimeout(() => {

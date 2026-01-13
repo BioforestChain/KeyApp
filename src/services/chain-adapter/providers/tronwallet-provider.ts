@@ -319,7 +319,7 @@ export class TronWalletProvider implements ApiProvider {
 
     return parsed.data.data
       .map((item) => itemSchema.safeParse(item))
-      .filter((r): r is z.SafeParseSuccess<T> => r.success)
+      .filter((r): r is z.ZodSafeParseSuccess<T> => r.success)
       .map((r) => r.data)
   }
 }

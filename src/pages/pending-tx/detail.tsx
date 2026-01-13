@@ -103,7 +103,7 @@ export function PendingTxDetailPage() {
         const tx = await pendingTxService.getById({ id: pendingTxId })
         setPendingTx(tx)
       } catch (error) {
-        console.error('[PendingTxDetail] Failed to load:', error)
+        
       } finally {
         setIsLoading(false)
       }
@@ -162,7 +162,7 @@ export function PendingTxDetailPage() {
       })
       setPendingTx(updated)
     } catch (error) {
-      console.error('[PendingTxDetail] Retry failed:', error)
+      
       
       // 广播失败
       const errorMessage = error instanceof BroadcastError
@@ -191,7 +191,7 @@ export function PendingTxDetailPage() {
       await pendingTxService.delete({ id: pendingTx.id })
       goBack()
     } catch (error) {
-      console.error('[PendingTxDetail] Delete failed:', error)
+      
       setIsDeleting(false)
     }
   }, [pendingTx, goBack])

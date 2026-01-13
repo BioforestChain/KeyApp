@@ -12,7 +12,7 @@
  * 
  * ApiClient 在 !json.success 时抛出 ApiError，其中 response = json（完整响应）
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/types'
 import { ApiError } from '@/apis/bnqkl_wallet/client'
 import { BroadcastError } from '../errors'

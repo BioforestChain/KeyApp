@@ -11,36 +11,8 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { fetchJson, observeValueAndInvalidate } from './fetch-json'
 
-interface MempoolAddressInfo {
-  address: string
-  chain_stats: {
-    funded_txo_sum: number
-    spent_txo_sum: number
-  }
-  mempool_stats: {
-    funded_txo_sum: number
-    spent_txo_sum: number
-  }
-}
-
-interface MempoolTx {
-  txid: string
-  status: {
-    confirmed: boolean
-    block_height?: number
-    block_time?: number
-  }
-  vin: Array<{
-    prevout?: {
-      scriptpubkey_address?: string
-      value: number
-    }
-  }>
-  vout: Array<{
-    scriptpubkey_address?: string
-    value: number
-  }>
-}
+// Note: Full transaction interface available if needed for future enhancements
+// interface _MempoolTx { ... }
 
 const MempoolAddressInfoSchema = z.looseObject({
   address: z.string().optional(),

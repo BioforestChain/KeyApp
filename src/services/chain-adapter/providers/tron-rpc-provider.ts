@@ -34,19 +34,6 @@ function readEnvValue(key: string): string | undefined {
   return undefined
 }
 
-interface TronAccountResponse {
-  balance?: number
-  address?: string
-}
-
-interface TronBlockResponse {
-  block_header?: {
-    raw_data?: {
-      number?: number
-    }
-  }
-}
-
 const TronAccountSchema = z.looseObject({
   balance: z.number().optional(),
   address: z.string().optional(),

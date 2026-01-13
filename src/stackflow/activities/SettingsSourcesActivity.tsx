@@ -73,7 +73,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
     try {
       await refreshSources()
     } catch (e) {
-      console.error('Refresh failed:', e)
+      
     }
     setIsRefreshing(false)
   }

@@ -250,7 +250,7 @@ async function printHelp<TArgs extends Record<string, ArgConfig>>(
 
   if (opts.printed.has(id)) {
     if (opts.showAll) {
-      console.log(`${prefix}${meta.name}: (see above)`);
+      
     }
     return;
   }
@@ -259,59 +259,59 @@ async function printHelp<TArgs extends Record<string, ArgConfig>>(
   // Set workflow name context for str.scenarios() to use
   const description = await WorkflowNameContext.run(meta.name, () => getMetaDescription(meta));
   if (opts.indent === 0) {
-    console.log(`${meta.name} v${meta.version} - ${description}`);
-    console.log();
-    console.log(`Usage: ${pathStr || meta.name} [subflow...] [options]`);
+    
+    
+    
   } else {
-    console.log(`${prefix}${meta.name} - ${description}`);
+    
   }
 
   const argEntries = Object.entries(meta.args);
   if (argEntries.length > 0) {
-    console.log();
-    console.log(`${prefix}Options:`);
-    for (const [key, cfg] of argEntries) {
-      console.log(`${prefix}${formatArg(key, cfg)}`);
+    
+    
+    for (const [_key, _cfg] of argEntries) {
+      
     }
   }
 
   if (opts.indent === 0) {
-    console.log();
-    console.log(`${prefix}Built-in:`);
-    console.log(`${prefix}  --help, -h      Show help (use --help=all for full tree)`);
-    console.log(`${prefix}  --version, -v   Show version`);
+    
+    
+    
+    
   }
 
   const subflows = config.subflows || [];
   if (subflows.length > 0) {
-    console.log();
-    console.log(`${prefix}Subflows:`);
+    
+    
     for (const subDef of subflows) {
       const sub = await resolveSubflow(subDef);
       if (opts.showAll) {
-        console.log();
+        
         await printHelp(sub, [...path, sub.meta.name], {
           ...opts,
           indent: opts.indent + 1,
         });
       } else {
-        console.log(`${prefix}  ${sub.meta.name}  ${sub.meta.description}`);
+        
       }
     }
   }
 
   if (config.examples && config.examples.length > 0 && opts.indent === 0) {
-    console.log();
-    console.log("Examples:");
-    for (const [cmd, desc] of config.examples) {
-      console.log(`  ${cmd}`);
-      console.log(`    ${desc}`);
+    
+    
+    for (const [_cmd, _desc] of config.examples) {
+      
+      
     }
   }
 
   if (config.notes && opts.indent === 0) {
-    console.log();
-    console.log(config.notes);
+    
+    
   }
 }
 
@@ -370,7 +370,7 @@ export function defineWorkflow<TArgs extends Record<string, ArgConfig>>(
     const parsed = parseArgs(argv, {});
 
     if (parsed["version"] === true) {
-      console.log(meta.version);
+      
       return;
     }
 
@@ -420,8 +420,8 @@ export function defineWorkflow<TArgs extends Record<string, ArgConfig>>(
 
     for (const [key, cfg] of Object.entries(currentWorkflow.meta.args)) {
       if (cfg.required && args[key] === undefined) {
-        console.error(`Error: Missing required argument: --${key}`);
-        console.error(`Run with --help for usage information.`);
+        
+        
         process.exit(1);
       }
     }
@@ -454,7 +454,7 @@ export function defineWorkflow<TArgs extends Record<string, ArgConfig>>(
       try {
         await withPreferences(() => currentWorkflow.config.handler!(args, ctx));
       } catch (error) {
-        console.error("Error:", error instanceof Error ? error.message : error);
+        
         process.exit(1);
       }
     } else {
@@ -477,7 +477,7 @@ export function defineWorkflow<TArgs extends Record<string, ArgConfig>>(
 
   if (config.autoStart) {
     run().catch((error) => {
-      console.error("Error:", error instanceof Error ? error.message : error);
+      
       process.exit(1);
     });
   }

@@ -101,7 +101,7 @@ export class QRScanner {
     }
     
     this.worker.onerror = (error) => {
-      console.error('[QRScanner] Worker error:', error)
+      
       // 回退到主线程模式
       this.worker?.terminate()
       this.worker = null
@@ -219,7 +219,7 @@ export class QRScanner {
   destroy() {
     if (this.worker) {
       const message: WorkerMessage = { type: 'terminate' }
-      this.worker.postMessage(message)
+      this.worker.postMessage(message, self.location.origin)
       this.worker.terminate()
       this.worker = null
     }

@@ -86,7 +86,7 @@ function TransferConfirmJobContent() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy address');
+      
     }
   }, [params.toAddress]);
 
@@ -114,15 +114,15 @@ function TransferConfirmJobContent() {
 
   const handleConfirm = useCallback(async () => {
     const config = configRef.current;
-    console.log('[TransferConfirmJob] handleConfirm called, hasCallback:', !!config?.onConfirm);
+    
     if (!config?.onConfirm || isConfirming) return;
 
     setIsConfirming(true);
     try {
       pop();
-      console.log('[TransferConfirmJob] Executing callback...');
+      
       await config.onConfirm();
-      console.log('[TransferConfirmJob] Callback executed');
+      
     } finally {
       setIsConfirming(false);
     }

@@ -2,7 +2,7 @@
  * AI Agent 索引输出
  */
 
-import { fetchRoadmap, printStats } from './roadmap'
+import { fetchRoadmap } from './roadmap'
 import { resolveRelease } from '../utils'
 import { printBestPracticesContent } from './practice'
 

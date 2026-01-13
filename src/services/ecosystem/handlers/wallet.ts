@@ -126,7 +126,7 @@ export const handleGetBalance: MethodHandler = async (params, _context) => {
   try {
     return await getBioforestBalance(biowalletApi, opts.chain, opts.address)
   } catch (error) {
-    console.warn('[bio_getBalance] Failed to query balance:', error)
+    
     return '0'
   }
 }

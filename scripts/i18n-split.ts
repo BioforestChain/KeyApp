@@ -36,7 +36,7 @@ const log = {
   dim: (msg: string) => console.log(`${colors.dim}  ${msg}${colors.reset}`),
 }
 
-type NestedObject = Record<string, string | NestedObject>
+type NestedObject = { [key: string]: string | NestedObject }
 
 function splitLocale(locale: string, isDryRun: boolean): { namespaces: string[]; keyCount: number } {
   const jsonPath = join(LOCALES_DIR, `${locale}.json`)

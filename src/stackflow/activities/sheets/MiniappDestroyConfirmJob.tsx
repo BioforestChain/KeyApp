@@ -57,7 +57,7 @@ function MiniappDestroyConfirmJobContent() {
       
       try {
         if (!currentWallet?.id || !chainConfig) {
-          console.error('[MiniappDestroyConfirmJob] Missing wallet or chain config')
+          
           return false
         }
 
@@ -66,7 +66,7 @@ function MiniappDestroyConfirmJobContent() {
         const applyAddress = await fetchAssetApplyAddress(chainConfig, asset, from)
         
         if (!applyAddress) {
-          console.error('[MiniappDestroyConfirmJob] Failed to get asset apply address')
+          
           return false
         }
 
@@ -88,7 +88,7 @@ function MiniappDestroyConfirmJobContent() {
         }
 
         if (result.status === 'error') {
-          console.error('[MiniappDestroyConfirmJob] Destroy failed:', result.message)
+          
           return false
         }
 
@@ -104,7 +104,7 @@ function MiniappDestroyConfirmJobContent() {
         pop()
         return true
       } catch (error) {
-        console.error('[MiniappDestroyConfirmJob] Destroy failed:', error)
+        
         return false
       } finally {
         setIsConfirming(false)

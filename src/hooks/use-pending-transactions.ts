@@ -24,7 +24,7 @@ export function usePendingTransactions(walletId: string | undefined) {
       const pending = await pendingTxService.getPending({ walletId })
       setTransactions(pending)
     } catch (error) {
-      console.error('[usePendingTransactions] Failed to fetch:', error)
+      
       setTransactions([])
     } finally {
       setIsLoading(false)

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, userEvent, within, waitFor, fn } from '@storybook/test'
+import { expect, userEvent, within, waitFor } from '@storybook/test'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AddressTransactionsPage } from './index'
 

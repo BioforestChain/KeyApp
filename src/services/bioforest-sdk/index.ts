@@ -454,7 +454,7 @@ export async function broadcastTransaction(
     // Case 1: API 返回交易对象本身 = 成功
     // ApiClient 在 success=true 时返回 json.result，即交易对象
     if (rawResult && typeof rawResult === 'object' && 'signature' in rawResult) {
-      console.log('[broadcastTransaction] SUCCESS: received transaction object')
+      
       return { txHash: transaction.signature, alreadyExists: false }
     }
     
@@ -468,7 +468,7 @@ export async function broadcastTransaction(
         
         // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
         if (errorCode === '001-00034') {
-          console.log('[broadcastTransaction] Transaction already exists, treating as success')
+          
           return { txHash: transaction.signature, alreadyExists: true }
         }
         
@@ -479,7 +479,7 @@ export async function broadcastTransaction(
     }
     
     // Case 3: 未知格式，假设成功（保守处理）
-    console.log('[broadcastTransaction] Unknown response format, assuming success:', rawResult)
+    
     return { txHash: transaction.signature, alreadyExists: false }
   } catch (error) {
     // Re-throw BroadcastError as-is
@@ -497,7 +497,7 @@ export async function broadcastTransaction(
         
         // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
         if (errorCode === '001-00034') {
-          console.log('[broadcastTransaction] Transaction already exists (from ApiError), treating as success')
+          
           return { txHash: transaction.signature, alreadyExists: true }
         }
         

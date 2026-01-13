@@ -50,14 +50,14 @@ export function initBioProvider(targetOrigin = '*'): BioProvider {
   }
 
   if (window.bio) {
-    console.warn('[BioSDK] Provider already exists, returning existing instance')
+    
     return window.bio
   }
 
   const provider = new BioProviderImpl(targetOrigin)
   window.bio = provider
 
-  console.log('[BioSDK] Provider initialized')
+  
   return provider
 }
 

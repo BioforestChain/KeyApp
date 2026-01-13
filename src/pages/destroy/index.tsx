@@ -4,7 +4,7 @@
  * 仅支持 BioForest 链，主资产不可销毁
  */
 
-import { useEffect, useMemo, useRef, useCallback } from 'react'
+import { useMemo, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
 import { setTransferConfirmCallback, setTransferWalletLockCallback } from '@/stackflow/activities/sheets'

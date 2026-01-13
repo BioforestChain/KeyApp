@@ -12,8 +12,8 @@ import type { CommandModule } from 'yargs'
 import fs from 'node:fs'
 import path from 'node:path'
 
-// 简易 glob 实现
-function globSync(pattern: string): string[] {
+// Simple glob implementation (unused - could be replaced with fast-glob if needed)
+function _globSync(pattern: string): string[] {
   const results: string[] = []
   const parts = pattern.split('/')
   const baseDir = parts[0]
@@ -120,7 +120,6 @@ function getAllTsFiles(dir: string): string[] {
 }
 
 const WHITE_BOOK_DIR = 'docs/white-book'
-const SRC_DIR = 'src'
 
 // ============================================================================
 // 关系图数据结构

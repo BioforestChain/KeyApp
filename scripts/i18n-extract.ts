@@ -31,9 +31,6 @@ const LOCALE_MAP: Record<string, string> = {
   'messages.zh-Hant.xlf': 'zh-TW.json',
 }
 
-// Arabic sync: copy en.json keys with English placeholders
-const AR_SYNC_ENABLED = process.argv.includes('--sync-ar')
-
 // Namespace categorization rules (order matters - first match wins)
 const NAMESPACE_RULES: Array<{ namespace: string; patterns: RegExp[] }> = [
   {
@@ -180,7 +177,7 @@ function getNamespace(key: string): string {
 
 // ==================== JSON 合并 ====================
 
-type NestedObject = Record<string, string | NestedObject>
+type NestedObject = { [key: string]: string | NestedObject }
 
 function deepMerge(target: NestedObject, source: NestedObject): NestedObject {
   const result = { ...target }

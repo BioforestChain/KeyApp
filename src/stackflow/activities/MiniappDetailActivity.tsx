@@ -19,14 +19,12 @@ import { LoadingSpinner } from '@/components/common'
 import { MiniappIcon } from '@/components/ecosystem'
 import { 
   IconArrowLeft, 
-  IconExternalLink, 
   IconShieldCheck, 
   IconAlertTriangle,
   IconChevronRight,
   IconChevronDown,
   IconChevronUp,
   IconShare,
-  IconLink,
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { launchApp } from '@/services/miniapp-runtime'
@@ -111,7 +109,6 @@ function InfoRow({
 }
 
 export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityParams> = ({ params }) => {
-  const { t } = useTranslation('common')
   const { pop } = useFlow()
   const [app, setApp] = useState<MiniappManifest | null>(null)
   const [loading, setLoading] = useState(true)

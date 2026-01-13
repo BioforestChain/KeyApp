@@ -1,5 +1,4 @@
 import { test, expect, type Page } from './fixtures'
-import { UI_TEXT } from './helpers/i18n'
 
 /**
  * Token Context Menu E2E Tests

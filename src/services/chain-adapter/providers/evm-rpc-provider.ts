@@ -26,7 +26,6 @@ export class EvmRpcProvider implements ApiProvider {
   readonly endpoint: string
   readonly config?: Record<string, unknown>
   
-  private readonly chainId: string
   private readonly symbol: string
   private readonly decimals: number
 

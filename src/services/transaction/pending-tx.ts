@@ -244,7 +244,7 @@ class PendingTxServiceImpl implements IPendingTxService {
       try {
         callback(tx, event)
       } catch (error) {
-        console.error('[PendingTxService] Subscriber error:', error)
+        
       }
     })
   }

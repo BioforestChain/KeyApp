@@ -94,7 +94,7 @@ class MigrationServiceImpl implements IMigrationService {
       this.retryCount++
       if (this.retryCount >= this.maxRetries) {
         // 达到最大重试次数，提示用户
-        console.warn('Password verification failed 3 times')
+        
       }
     } else {
       this.retryCount = 0

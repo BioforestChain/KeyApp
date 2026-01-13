@@ -36,7 +36,7 @@ export function SettingsStoragePage() {
         });
       }
     } catch (error) {
-      console.error('Failed to get storage estimate:', error);
+      
     } finally {
       setLoading(false);
     }

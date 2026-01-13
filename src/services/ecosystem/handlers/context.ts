@@ -105,7 +105,7 @@ export const HandlerContext = {
    */
   register(appId: string, callbacks: HandlerCallbacks): void {
     callbackRegistry.set(appId, callbacks)
-    console.log('[HandlerContext] Registered callbacks for:', appId)
+    
   },
 
   /**
@@ -113,7 +113,7 @@ export const HandlerContext = {
    */
   unregister(appId: string): void {
     callbackRegistry.delete(appId)
-    console.log('[HandlerContext] Unregistered callbacks for:', appId)
+    
   },
 
   /**

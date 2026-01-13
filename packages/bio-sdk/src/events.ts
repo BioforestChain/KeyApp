@@ -33,7 +33,7 @@ export class EventEmitter {
         try {
           handler(...args)
         } catch (error) {
-          console.error(`[BioSDK] Error in event handler for "${event}":`, error)
+          
         }
       })
     }
