@@ -131,6 +131,9 @@ function TransferWalletLockJobContent() {
       
       if (result.status === 'error') {
         setError(result.message ?? t("security:walletLock.error"));
+        setPatternError(true);
+        setPattern([]);
+        return;
       }
     } catch {
       setPatternError(true);
@@ -237,6 +240,13 @@ function TransferWalletLockJobContent() {
                 disabled={isVerifying}
                 data-testid="transfer-wallet-lock-pattern"
               />
+              
+              {error && (
+                <div className="flex items-center justify-center gap-1.5 text-sm text-destructive mt-3">
+                  <AlertCircle className="size-4" />
+                  <span>{error}</span>
+                </div>
+              )}
               
               <button
                 type="button"

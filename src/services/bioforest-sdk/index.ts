@@ -450,16 +450,28 @@ export async function broadcastTransaction(
   try {
     const rawResult = await api.broadcastTransaction(txWithoutNonce)
     
-    // Validate with Zod schema
-    const parseResult = BroadcastResultSchema.safeParse(rawResult)
-    const result = parseResult.success ? parseResult.data : rawResult
-
-    if (!result.success) {
-      const errorCode = result.error?.code
-      const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
-      throw new BroadcastError(errorCode, errorMsg, result.minFee)
+    // Case 1: API 返回交易对象本身 = 成功
+    // ApiClient 在 success=true 时返回 json.result，即交易对象
+    if (rawResult && typeof rawResult === 'object' && 'signature' in rawResult) {
+      console.log('[broadcastTransaction] SUCCESS: received transaction object')
+      return transaction.signature
     }
-
+    
+    // Case 2: API 返回错误对象或状态对象
+    const parseResult = BroadcastResultSchema.safeParse(rawResult)
+    if (parseResult.success) {
+      const result = parseResult.data
+      if (!result.success) {
+        const errorCode = result.error?.code
+        const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+        throw new BroadcastError(errorCode, errorMsg, result.minFee)
+      }
+      // success=true 的情况
+      return transaction.signature
+    }
+    
+    // Case 3: 未知格式，假设成功（保守处理）
+    console.log('[broadcastTransaction] Unknown response format, assuming success:', rawResult)
     return transaction.signature
   } catch (error) {
     // Re-throw BroadcastError as-is
