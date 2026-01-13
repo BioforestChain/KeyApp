@@ -167,7 +167,7 @@ export class EthereumProvider {
         id,
         method,
         params: paramsArray,
-      }, self.location.origin)
+      })
 
       // Timeout after 5 minutes (for user interactions)
       setTimeout(() => {
