@@ -1,0 +1,45 @@
+{
+  "name": "@biochain/key-fetch",
+  "version": "0.1.0",
+  "description": "Plugin-based reactive fetch with subscription support",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts",
+    "./plugins": "./src/plugins/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests",
+    "lint:run": "oxlint .",
+    "i18n:run": "echo 'No i18n'",
+    "theme:run": "echo 'No theme'"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "jsdom": "^26.1.0",
+    "oxlint": "^1.32.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "keywords": [
+    "biochain",
+    "fetch",
+    "cache",
+    "reactive",
+    "subscription"
+  ],
+  "license": "MIT"
+}

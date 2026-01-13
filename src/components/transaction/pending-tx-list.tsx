@@ -81,11 +81,20 @@ function PendingTxItem({
     onClick?.(tx)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
   return (
-    <button 
-      type="button"
+    <div 
+      role="button"
+      tabIndex={0}
       className="bg-card border-border flex w-full cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       {/* Status Icon - 使用 IconCircle */}
       <div className="relative">
@@ -172,7 +181,7 @@ function PendingTxItem({
           </Button>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 

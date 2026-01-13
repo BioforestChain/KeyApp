@@ -2,11 +2,13 @@
  * usePendingTransactions Hook
  * 
  * 获取当前钱包的未上链交易列表，并订阅状态变化
+ * 使用 keyFetch 订阅区块高度变化，实现响应式交易确认检查
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
-import { useChainConfigState } from '@/stores'
+import { useChainConfigState, chainConfigSelectors } from '@/stores'
+import { keyFetch } from '@biochain/key-fetch'
 
 export function usePendingTransactions(walletId: string | undefined) {
   const [transactions, setTransactions] = useState<PendingTx[]>([])
@@ -60,6 +62,42 @@ export function usePendingTransactions(walletId: string | undefined) {
       pendingTxManager.syncWalletPendingTransactions(walletId, chainConfigState)
     }
   }, [walletId, chainConfigState, transactions.length])
+
+  // 订阅区块高度变化，当有 broadcasted 状态的交易时检查确认
+  useEffect(() => {
+    const broadcastedTxs = transactions.filter(tx => tx.status === 'broadcasted')
+    if (broadcastedTxs.length === 0 || !walletId) return
+
+    // 获取需要监控的链列表
+    const chainIds = [...new Set(broadcastedTxs.map(tx => tx.chainId))]
+    const unsubscribes: (() => void)[] = []
+
+    for (const chainId of chainIds) {
+      const chainConfig = chainConfigSelectors.getChainById(chainConfigState, chainId)
+      if (!chainConfig) continue
+
+      const biowallet = chainConfig.apis.find(p => p.type === 'biowallet-v1')
+      if (!biowallet?.endpoint) continue
+
+      const lastblockUrl = `${biowallet.endpoint}/lastblock`
+
+      // 订阅区块高度变化
+      const unsubscribe = keyFetch.subscribe<{ height: number }>(
+        lastblockUrl,
+        (_block, event) => {
+          if (event === 'update') {
+            // 区块高度更新时，同步该链的交易状态
+            pendingTxManager.syncWalletPendingTransactions(walletId, chainConfigState)
+          }
+        }
+      )
+      unsubscribes.push(unsubscribe)
+    }
+
+    return () => {
+      unsubscribes.forEach(fn => fn())
+    }
+  }, [transactions, walletId, chainConfigState])
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
