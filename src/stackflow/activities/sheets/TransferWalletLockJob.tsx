@@ -3,20 +3,28 @@
  * 
  * 将钱包锁和二次签名确认合并到一个 BottomSheet 中，
  * 避免 stackflow 多个 sheet 的时序问题，提供更流畅的用户体验。
+ * 
+ * 流程：
+ * - 广播中：显示加载动画，无关闭按钮
+ * - 广播成功/失败：显示关闭按钮（不自动关闭）
+ * - 广播失败：显示重试+关闭按钮
+ * - 上链成功：5秒倒计时自动关闭
  */
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet, SheetContent } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PatternLock, patternToString } from "@/components/security/pattern-lock";
 import { PasswordInput } from "@/components/security/password-input";
-import { IconAlertCircle as AlertCircle, IconLock as Lock } from "@tabler/icons-react";
+import { IconAlertCircle as AlertCircle, IconLock as Lock, IconRefresh as Refresh } from "@tabler/icons-react";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-status-display";
 import { useClipboard, useToast } from "@/services";
 import { useSelectedChain, useChainConfigState, chainConfigSelectors } from "@/stores";
+import { pendingTxManager } from "@/services/transaction/pending-tx-manager";
+import type { PendingTx } from "@/services/transaction/pending-tx";
 
 // 回调类型
 type SubmitCallback = (walletLockKey: string, twoStepSecret?: string) => Promise<{
@@ -24,6 +32,7 @@ type SubmitCallback = (walletLockKey: string, twoStepSecret?: string) => Promise
   secondPublicKey?: string | undefined;
   message?: string | undefined;
   txHash?: string | undefined;
+  pendingTxId?: string | undefined;
 }>;
 
 // Global callback store
@@ -60,6 +69,8 @@ function TransferWalletLockJobContent() {
   const [error, setError] = useState<string>();
   const [patternError, setPatternError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [pendingTxId, setPendingTxId] = useState<string>();
+  const [countdown, setCountdown] = useState<number | null>(null);
   
   // Capture callback on mount
   const callbackRef = useRef<SubmitCallback | null>(null);
@@ -71,6 +82,52 @@ function TransferWalletLockJobContent() {
     clearTransferWalletLockCallback();
     initialized.current = true;
   }
+
+  // 订阅 pendingTxManager 状态变化
+  useEffect(() => {
+    if (!pendingTxId) return;
+    
+    const unsubscribe = pendingTxManager.subscribe((tx: PendingTx) => {
+      if (tx.id !== pendingTxId) return;
+      
+      // 更新状态
+      if (tx.status === 'confirmed') {
+        setTxStatus('confirmed');
+      } else if (tx.status === 'failed') {
+        setTxStatus('failed');
+        setError(tx.errorMessage);
+      } else if (tx.status === 'broadcasted') {
+        setTxStatus('broadcasted');
+        if (tx.txHash) {
+          setTxHash(tx.txHash);
+        }
+      }
+    });
+    
+    return unsubscribe;
+  }, [pendingTxId]);
+
+  // 上链成功后 5 秒倒计时自动关闭
+  useEffect(() => {
+    if (txStatus !== 'confirmed') {
+      setCountdown(null);
+      return;
+    }
+    
+    setCountdown(5);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          pop();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [txStatus, pop]);
 
   // Get chain config for explorer URL
   const chainConfig = useMemo(() => {
@@ -113,6 +170,9 @@ function TransferWalletLockJobContent() {
         if (result.txHash) {
           setTxHash(result.txHash);
         }
+        if (result.pendingTxId) {
+          setPendingTxId(result.pendingTxId);
+        }
         setTxStatus("broadcasted");
         return;
       }
@@ -131,8 +191,10 @@ function TransferWalletLockJobContent() {
       
       if (result.status === 'error') {
         setError(result.message ?? t("security:walletLock.error"));
-        setPatternError(true);
-        setPattern([]);
+        setTxStatus("failed");
+        if (result.pendingTxId) {
+          setPendingTxId(result.pendingTxId);
+        }
         return;
       }
     } catch {
@@ -158,12 +220,19 @@ function TransferWalletLockJobContent() {
         if (result.txHash) {
           setTxHash(result.txHash);
         }
+        if (result.pendingTxId) {
+          setPendingTxId(result.pendingTxId);
+        }
         setTxStatus("broadcasted");
         return;
       }
       
       if (result.status === 'two_step_secret_invalid' || result.status === 'error') {
         setError(result.message ?? t("transaction:sendPage.twoStepSecretError"));
+        if (result.pendingTxId) {
+          setPendingTxId(result.pendingTxId);
+          setTxStatus("failed");
+        }
       }
     } catch {
       setError(t("transaction:sendPage.twoStepSecretError"));
@@ -181,8 +250,28 @@ function TransferWalletLockJobContent() {
 
   const canSubmitTwoStepSecret = twoStepSecret.trim().length > 0 && !isVerifying;
 
-  // 交易成功后显示状态
+  // 重试广播
+  const handleRetry = useCallback(async () => {
+    if (!pendingTxId) return;
+    
+    setIsVerifying(true);
+    setError(undefined);
+    
+    try {
+      await pendingTxManager.retryBroadcast(pendingTxId, chainConfigState);
+      setTxStatus("broadcasted");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("transaction:broadcast.unknown"));
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [pendingTxId, chainConfigState, t]);
+
+  // 交易状态显示（广播后）
   if (txStatus !== "idle") {
+    const isFailed = txStatus === "failed";
+    const isConfirmed = txStatus === "confirmed";
+    
     return (
       <BottomSheet>
         <div data-testid="transfer-wallet-lock-dialog">
@@ -194,12 +283,16 @@ function TransferWalletLockJobContent() {
               status={txStatus}
               txHash={txHash}
               title={{
-                broadcasted: t("transaction:sendResult.success"),
+                broadcasted: t("transaction:txStatus.broadcasted"),
                 confirmed: t("transaction:sendResult.success"),
+                failed: t("transaction:broadcast.failed"),
               }}
               description={{
                 broadcasted: t("transaction:txStatus.broadcastedDesc"),
-                confirmed: t("transaction:txStatus.confirmedDesc"),
+                confirmed: countdown !== null 
+                  ? t("transaction:txStatus.autoCloseIn", { seconds: countdown })
+                  : t("transaction:txStatus.confirmedDesc"),
+                failed: error,
               }}
               onStatusChange={setTxStatus}
               onDone={() => pop()}
@@ -217,6 +310,38 @@ function TransferWalletLockJobContent() {
                 }
               }}
             />
+            
+            {/* 操作按钮区域 */}
+            <div className="px-4 pb-4 space-y-2">
+              {/* 失败时显示重试按钮 */}
+              {isFailed && (
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  disabled={isVerifying}
+                  className={cn(
+                    "w-full flex items-center justify-center gap-2 rounded-full py-3 font-medium transition-colors",
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
+                    "disabled:cursor-not-allowed disabled:opacity-50"
+                  )}
+                >
+                  <Refresh className="size-4" />
+                  {isVerifying ? t("common:retrying") : t("transaction:pendingTx.retry")}
+                </button>
+              )}
+              
+              {/* 广播后（成功或失败）显示关闭按钮，confirmed 状态显示倒计时 */}
+              <button
+                type="button"
+                onClick={() => pop()}
+                className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                {isConfirmed && countdown !== null
+                  ? t("transaction:txStatus.closeIn", { seconds: countdown })
+                  : t("common:close")}
+              </button>
+            </div>
+            
             <div className="h-[env(safe-area-inset-bottom)]" />
           </div>
         </div>

@@ -308,7 +308,9 @@
     "confirmingDesc": "Waiting for block confirmation...",
     "confirmedDesc": "Transaction has been confirmed on chain",
     "failedDesc": "Transaction failed, please try again later",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "autoCloseIn": "Auto-closing in {{seconds}}s",
+    "closeIn": "Close ({{seconds}}s)"
   },
   "broadcast": {
     "assetNotEnough": "Insufficient asset balance",

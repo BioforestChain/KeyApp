@@ -119,6 +119,49 @@ export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
 
 export type IPendingTxService = typeof pendingTxServiceMeta.Type
 
+// ==================== 过期检查器接口 ====================
+
+/**
+ * 交易过期检查器接口
+ * 不同链可以有不同的过期判定逻辑
+ */
+export interface ExpirationChecker {
+  /**
+   * 检查交易是否已过期
+   * @param rawTx 原始交易数据
+   * @param currentBlockHeight 当前区块高度
+   * @returns 是否已过期
+   */
+  isExpired(rawTx: unknown, currentBlockHeight: number): boolean
+}
+
+/**
+ * BioChain 过期检查器
+ * 基于 effectiveBlockHeight 判断交易是否过期
+ */
+export const bioChainExpirationChecker: ExpirationChecker = {
+  isExpired(rawTx: unknown, currentBlockHeight: number): boolean {
+    const tx = rawTx as { effectiveBlockHeight?: number }
+    if (typeof tx?.effectiveBlockHeight === 'number') {
+      return currentBlockHeight > tx.effectiveBlockHeight
+    }
+    return false // 无 effectiveBlockHeight 时不判定过期
+  }
+}
+
+/**
+ * 获取链对应的过期检查器
+ * @param chainId 链ID
+ * @returns 过期检查器，若无对应实现则返回 undefined
+ */
+export function getExpirationChecker(chainId: string): ExpirationChecker | undefined {
+  // BioChain 系列链使用 bioChainExpirationChecker
+  if (chainId.startsWith('bfmeta') || chainId.startsWith('bfm') || chainId === 'bioforest') {
+    return bioChainExpirationChecker
+  }
+  return undefined
+}
+
 // ==================== IndexedDB 实现 ====================
 
 const DB_NAME = 'bfm-pending-tx-db'
@@ -272,14 +315,27 @@ class PendingTxServiceImpl implements IPendingTxService {
     await tx.done
   }
 
-  async deleteExpired({ walletId, maxAge }: { walletId: string; maxAge: number }): Promise<number> {
+  async deleteExpired({ walletId, maxAge, currentBlockHeight }: { 
+    walletId: string
+    maxAge: number
+    currentBlockHeight?: number 
+  }): Promise<number> {
     const all = await this.getAll({ walletId })
     const now = Date.now()
-    const expired = all.filter((tx) => {
-      // 只清理已确认或失败超过 maxAge 的交易
-      if (tx.status === 'confirmed' || tx.status === 'failed') {
-        return now - tx.updatedAt > maxAge
+    const expired = all.filter((pendingTx) => {
+      // 1. 已确认或失败超过 maxAge 的交易
+      if (pendingTx.status === 'confirmed' || pendingTx.status === 'failed') {
+        return now - pendingTx.updatedAt > maxAge
       }
+      
+      // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
+      if (currentBlockHeight !== undefined) {
+        const checker = getExpirationChecker(pendingTx.chainId)
+        if (checker?.isExpired(pendingTx.rawTx, currentBlockHeight)) {
+          return true
+        }
+      }
+      
       return false
     })
     

@@ -308,7 +308,9 @@
     "confirmingDesc": "正在等待区块确认...",
     "confirmedDesc": "交易已成功上链",
     "failedDesc": "交易处理失败，请稍后重试",
-    "viewDetails": "查看详情"
+    "viewDetails": "查看详情",
+    "autoCloseIn": "{{seconds}}秒后自动关闭",
+    "closeIn": "关闭 ({{seconds}}s)"
   },
   "broadcast": {
     "assetNotEnough": "资产余额不足",
