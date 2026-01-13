@@ -152,7 +152,7 @@ function PendingTxItem({
       </div>
 
       {/* Actions */}
-      <div className="flex shrink-0 gap-1">
+      <div className="flex shrink-0 flex-col gap-1">
         {isFailed && onRetry && (
           <Button
             variant="ghost"

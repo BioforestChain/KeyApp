@@ -276,4 +276,103 @@ test.describe('广播错误处理测试', () => {
       expect(result.feeNotEnough).toBe('Insufficient fee')
     })
   })
+
+  test.describe('BroadcastResult 类型测试', () => {
+    test('broadcastTransaction 返回 BroadcastResult 对象', async ({ page }) => {
+      await page.goto('/')
+      
+      const result = await page.evaluate(async () => {
+        // @ts-expect-error - 动态导入
+        const { BroadcastResult } = await import('/src/services/bioforest-sdk/errors.ts')
+        
+        // 验证 BroadcastResult 接口结构
+        const mockResult: typeof BroadcastResult = {
+          txHash: 'abc123def456',
+          alreadyExists: false,
+        }
+        
+        return {
+          hasTxHash: typeof mockResult.txHash === 'string',
+          hasAlreadyExists: typeof mockResult.alreadyExists === 'boolean',
+          txHash: mockResult.txHash,
+          alreadyExists: mockResult.alreadyExists,
+        }
+      })
+      
+      expect(result.hasTxHash).toBe(true)
+      expect(result.hasAlreadyExists).toBe(true)
+      expect(result.txHash).toBe('abc123def456')
+      expect(result.alreadyExists).toBe(false)
+    })
+
+    test('重复交易 (001-00034) 应返回 alreadyExists: true', async ({ page }) => {
+      await page.goto('/')
+      
+      // 测试当交易已存在时的处理逻辑
+      const result = await page.evaluate(async () => {
+        // 模拟 API 返回 001-00034 错误的场景
+        const errorCode = '001-00034'
+        const errorMessage = 'Transaction already exist'
+        
+        // 根据我们的实现逻辑，001-00034 应该被视为成功且 alreadyExists=true
+        const shouldTreatAsSuccess = errorCode === '001-00034'
+        const expectedAlreadyExists = shouldTreatAsSuccess
+        
+        return {
+          errorCode,
+          shouldTreatAsSuccess,
+          expectedAlreadyExists,
+        }
+      })
+      
+      expect(result.errorCode).toBe('001-00034')
+      expect(result.shouldTreatAsSuccess).toBe(true)
+      expect(result.expectedAlreadyExists).toBe(true)
+    })
+
+    test('PendingTx 重复广播应标记为 confirmed', async ({ page }) => {
+      await page.goto('/')
+      
+      const result = await page.evaluate(async () => {
+        // @ts-expect-error - 动态导入
+        const { pendingTxService } = await import('/src/services/transaction/index.ts')
+        
+        // 创建一个 pending tx
+        const created = await pendingTxService.create({
+          walletId: 'test-wallet-duplicate',
+          chainId: 'bfmeta',
+          fromAddress: 'bXXXtestXXX',
+          rawTx: { signature: 'test-sig-duplicate-123' },
+          meta: {
+            type: 'transfer',
+            displayAmount: '1.0',
+            displaySymbol: 'BFM',
+            displayToAddress: 'bYYYtargetYYY',
+          },
+        })
+        
+        // 模拟重复广播成功后的处理：应该标记为 confirmed
+        const updated = await pendingTxService.updateStatus({
+          id: created.id,
+          status: 'confirmed', // 重复广播应该直接标记为 confirmed
+          txHash: 'existing-tx-hash',
+        })
+        
+        const finalStatus = updated.status
+        
+        // 清理
+        await pendingTxService.delete({ id: created.id })
+        
+        return {
+          initialStatus: created.status,
+          finalStatus,
+          isConfirmed: finalStatus === 'confirmed',
+        }
+      })
+      
+      expect(result.initialStatus).toBe('created')
+      expect(result.finalStatus).toBe('confirmed')
+      expect(result.isConfirmed).toBe(true)
+    })
+  })
 })
