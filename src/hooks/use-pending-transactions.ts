@@ -35,8 +35,8 @@ export function usePendingTransactions(walletId: string | undefined) {
   useEffect(() => {
     refresh()
 
-    // 订阅 pendingTxManager 的状态变化
-    const unsubscribe = pendingTxManager.subscribe((updatedTx) => {
+    // 订阅 pendingTxService 的状态变化（create/update/delete 时立即触发）
+    const unsubscribe = pendingTxService.subscribe((updatedTx) => {
       if (updatedTx.walletId === walletId) {
         refresh()
       }

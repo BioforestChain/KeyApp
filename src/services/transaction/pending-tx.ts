@@ -217,9 +217,37 @@ interface PendingTxDBSchema extends DBSchema {
   }
 }
 
+type PendingTxChangeCallback = (tx: PendingTx, event: 'created' | 'updated' | 'deleted') => void
+
 class PendingTxServiceImpl implements IPendingTxService {
   private db: IDBPDatabase<PendingTxDBSchema> | null = null
   private initialized = false
+  private subscribers = new Set<PendingTxChangeCallback>()
+
+  /**
+   * 订阅 pending tx 变化
+   * @param callback 变化回调，接收变化的 tx 和事件类型
+   * @returns 取消订阅函数
+   */
+  subscribe(callback: PendingTxChangeCallback): () => void {
+    this.subscribers.add(callback)
+    return () => {
+      this.subscribers.delete(callback)
+    }
+  }
+
+  /**
+   * 通知所有订阅者
+   */
+  private notify(tx: PendingTx, event: 'created' | 'updated' | 'deleted') {
+    this.subscribers.forEach((callback) => {
+      try {
+        callback(tx, event)
+      } catch (error) {
+        console.error('[PendingTxService] Subscriber error:', error)
+      }
+    })
+  }
 
   private async ensureDb(): Promise<IDBPDatabase<PendingTxDBSchema>> {
     if (this.db && this.initialized) {
@@ -295,6 +323,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     }
 
     await db.put(STORE_NAME, pendingTx)
+    this.notify(pendingTx, 'created')
     return pendingTx
   }
 
@@ -318,6 +347,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     }
 
     await db.put(STORE_NAME, updated)
+    this.notify(updated, 'updated')
     return updated
   }
 
@@ -336,6 +366,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     }
 
     await db.put(STORE_NAME, updated)
+    this.notify(updated, 'updated')
     return updated
   }
 
@@ -343,7 +374,11 @@ class PendingTxServiceImpl implements IPendingTxService {
 
   async delete({ id }: { id: string }): Promise<void> {
     const db = await this.ensureDb()
+    const existing = await db.get(STORE_NAME, id)
     await db.delete(STORE_NAME, id)
+    if (existing) {
+      this.notify(existing, 'deleted')
+    }
   }
 
   async deleteConfirmed({ walletId }: { walletId: string }): Promise<void> {

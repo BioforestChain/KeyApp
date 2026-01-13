@@ -159,6 +159,7 @@ function TransferWalletLockJobContent() {
     setIsVerifying(true);
     setError(undefined);
     setPatternError(false);
+    setTxStatus("broadcasting");
     
     const patternKey = patternToString(nodes);
     walletLockKeyRef.current = patternKey;

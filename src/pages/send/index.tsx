@@ -309,26 +309,6 @@ export function SendPage() {
     );
   }
 
-  // Result step
-  if (state.step === 'result' || state.step === 'sending') {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <PageHeader title={t('sendPage.resultTitle')} />
-        <SendResult
-          status={state.step === 'sending' ? 'pending' : (state.resultStatus ?? 'pending')}
-          amount={state.amount?.toFormatted() ?? '0'}
-          symbol={symbol}
-          toAddress={state.toAddress}
-          txHash={state.txHash ?? undefined}
-          errorMessage={state.errorMessage ?? undefined}
-          onDone={handleDone}
-          onRetry={state.resultStatus === 'failed' ? handleRetry : undefined}
-          onViewExplorer={state.resultStatus === 'success' && chainConfig?.explorer?.queryTx ? handleViewExplorer : undefined}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader title={t('sendPage.title')} onBack={navGoBack} />
