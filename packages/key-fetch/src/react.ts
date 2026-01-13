@@ -85,7 +85,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     setIsFetching(true)
     setError(undefined)
 
-    const unsubscribe = kf.subscribe(params, (newData, event) => {
+    const unsubscribe = kf.subscribe(params, (newData, _event) => {
       setData(newData)
       setIsLoading(false)
       setIsFetching(false)

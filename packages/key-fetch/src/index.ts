@@ -44,7 +44,6 @@
 
 import { create, get, invalidate, clear } from './core'
 import { getInstancesByTag } from './plugins/tag'
-import { globalRegistry } from './registry'
 
 // ==================== 导出类型 ====================
 

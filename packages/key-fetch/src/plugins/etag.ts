@@ -4,7 +4,7 @@
  * HTTP ETag 缓存验证插件
  */
 
-import type { CachePlugin, AnyZodSchema, RequestContext, ResponseContext } from '../types'
+import type { CachePlugin, AnyZodSchema, ResponseContext } from '../types'
 
 /**
  * ETag 缓存验证插件

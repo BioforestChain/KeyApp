@@ -4,7 +4,6 @@
  * Schema-first 工厂模式实现
  */
 
-import type { z } from 'zod'
 import type {
   AnyZodSchema,
   InferOutput,
@@ -17,7 +16,6 @@ import type {
   RequestContext,
   ResponseContext,
   SubscribeContext,
-  CacheEntry,
 } from './types'
 import { globalCache, globalRegistry } from './registry'
 
@@ -211,11 +209,9 @@ class KeyFetchInstanceImpl<S extends AnyZodSchema> implements KeyFetchInstance<S
     }
 
     // 立即获取一次
-    let isInitial = true
     this.fetch(params)
       .then(data => {
         callback(data, 'initial')
-        isInitial = false
       })
       .catch(error => {
         console.error(`[key-fetch] Error fetching ${this.name}:`, error)
