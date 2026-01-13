@@ -9,6 +9,7 @@ import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import type { BioforestBlockInfo } from './types'
 import { getTransferMinFee } from '@/services/bioforest-sdk'
+import { keyFetch } from '@biochain/key-fetch'
 
 export class BioforestChainService implements IChainService {
   private readonly chainId: string
@@ -57,19 +58,11 @@ export class BioforestChainService implements IChainService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/lastblock`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
+      // 使用 keyFetch 获取区块高度（利用缓存和响应式轮询）
+      const json = await keyFetch<{ success: boolean; result: BioforestBlockInfo }>(
+        `${this.baseUrl}/lastblock`
+      )
 
-      if (!response.ok) {
-        throw new ChainServiceError(
-          ChainErrorCodes.NETWORK_ERROR,
-          `Failed to fetch block height: ${response.status}`,
-        )
-      }
-
-      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
       if (!json.success) {
         throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
       }

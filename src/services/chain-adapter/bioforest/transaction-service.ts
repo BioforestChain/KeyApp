@@ -24,6 +24,7 @@ import { ChainServiceError, ChainErrorCodes } from '../types'
 
 import { signMessage, bytesToHex } from '@/lib/crypto'
 import { getTransferMinFee, getBioforestCore } from '@/services/bioforest-sdk'
+import { keyFetch } from '@biochain/key-fetch'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
@@ -243,27 +244,17 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/transactions/query`,
-        {
+      // 使用 keyFetch 查询交易状态（利用缓存和响应式更新）
+      const json = await keyFetch<{
+        success: boolean
+        result?: { trs?: Array<{ height?: number }> }
+      }>(`${this.baseUrl}/transactions/query`, {
+        init: {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ signature: hash }),
         },
-      )
-
-      if (!response.ok) {
-        return {
-          status: 'pending',
-          confirmations: 0,
-          requiredConfirmations: 1,
-        }
-      }
-
-      const json = (await response.json()) as {
-        success: boolean
-        result?: { trs?: Array<{ height?: number }> }
-      }
+      })
 
       if (json.success && json.result?.trs?.[0]?.height) {
         return {
@@ -294,20 +285,8 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/transactions/query`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: hash }),
-        },
-      )
-
-      if (!response.ok) {
-        return null
-      }
-
-      const json = (await response.json()) as {
+      // 使用 keyFetch 查询交易详情（利用缓存和响应式更新）
+      const json = await keyFetch<{
         success: boolean
         result?: {
           trs?: Array<{
@@ -326,7 +305,13 @@ export class BioforestTransactionService implements ITransactionService {
             }
           }>
         }
-      }
+      }>(`${this.baseUrl}/transactions/query`, {
+        init: {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: hash }),
+        },
+      })
 
       if (!json.success || !json.result?.trs?.[0]) return null
       const item = json.result.trs[0]
