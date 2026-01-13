@@ -242,9 +242,9 @@ function TransferWalletLockJobContent() {
               />
               
               {error && (
-                <div className="flex items-center justify-center gap-1.5 text-sm text-destructive mt-3">
-                  <AlertCircle className="size-4" />
-                  <span>{error}</span>
+                <div className="flex items-start justify-center gap-1.5 text-sm text-destructive mt-3">
+                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                  <pre className="overflow-auto whitespace-break-spaces">{error}</pre>
                 </div>
               )}
               

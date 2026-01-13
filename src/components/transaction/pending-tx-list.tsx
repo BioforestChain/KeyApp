@@ -145,9 +145,9 @@ function PendingTxItem({
         )}
 
         {isFailed && tx.errorMessage && (
-          <p className="text-destructive mt-1 text-xs">
+          <pre className="text-destructive mt-1 text-xs overflow-auto whitespace-break-spaces">
             {tx.errorMessage}
-          </p>
+          </pre>
         )}
       </div>
 
