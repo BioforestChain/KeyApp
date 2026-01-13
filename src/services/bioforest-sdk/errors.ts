@@ -18,6 +18,13 @@ export class BroadcastError extends Error {
   }
 }
 
+/** 广播结果类型 */
+export interface BroadcastResult {
+  txHash: string
+  /** 交易已存在于链上（重复广播），应直接标记为 confirmed */
+  alreadyExists: boolean
+}
+
 /** 错误码到 i18n key 的映射 */
 const BROADCAST_ERROR_I18N_KEYS: Record<string, string> = {
   '001-11028': 'transaction:broadcast.assetNotEnough',

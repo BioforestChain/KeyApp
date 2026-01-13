@@ -426,7 +426,7 @@ export async function createTransferTransaction(
   })
 }
 
-import { BroadcastError } from './errors'
+import { BroadcastError, type BroadcastResult } from './errors'
 import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/types'
 import { ApiError } from '@/apis/bnqkl_wallet/client'
 
@@ -434,12 +434,13 @@ import { ApiError } from '@/apis/bnqkl_wallet/client'
  * Broadcast a signed transaction
  * @param baseUrl - Full wallet API URL
  * @param transaction - Signed transaction to broadcast
+ * @returns BroadcastResult with txHash and alreadyExists flag
  * @throws {BroadcastError} if broadcast fails
  */
 export async function broadcastTransaction(
   baseUrl: string,
   transaction: BFChainCore.TransactionJSON,
-): Promise<string> {
+): Promise<BroadcastResult> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
     nonce?: number
@@ -454,7 +455,7 @@ export async function broadcastTransaction(
     // ApiClient 在 success=true 时返回 json.result，即交易对象
     if (rawResult && typeof rawResult === 'object' && 'signature' in rawResult) {
       console.log('[broadcastTransaction] SUCCESS: received transaction object')
-      return transaction.signature
+      return { txHash: transaction.signature, alreadyExists: false }
     }
     
     // Case 2: API 返回错误对象或状态对象
@@ -465,21 +466,21 @@ export async function broadcastTransaction(
         const errorCode = result.error?.code
         const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
         
-        // 001-00034: 交易已存在（重复广播），视为成功
+        // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
         if (errorCode === '001-00034') {
           console.log('[broadcastTransaction] Transaction already exists, treating as success')
-          return transaction.signature
+          return { txHash: transaction.signature, alreadyExists: true }
         }
         
         throw new BroadcastError(errorCode, errorMsg, result.minFee)
       }
       // success=true 的情况
-      return transaction.signature
+      return { txHash: transaction.signature, alreadyExists: false }
     }
     
     // Case 3: 未知格式，假设成功（保守处理）
     console.log('[broadcastTransaction] Unknown response format, assuming success:', rawResult)
-    return transaction.signature
+    return { txHash: transaction.signature, alreadyExists: false }
   } catch (error) {
     // Re-throw BroadcastError as-is
     if (error instanceof BroadcastError) {

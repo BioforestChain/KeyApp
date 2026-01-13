@@ -194,11 +194,14 @@ export async function submitBioforestBurn({
     await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
     
     try {
-      await broadcastTransaction(apiUrl, transaction)
-      console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash)
+      const broadcastResult = await broadcastTransaction(apiUrl, transaction)
+      console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash, 'alreadyExists:', broadcastResult.alreadyExists)
+      
+      // 如果交易已存在于链上，直接标记为 confirmed
+      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
       await pendingTxService.updateStatus({ 
         id: pendingTx.id, 
-        status: 'broadcasted',
+        status: newStatus,
         txHash,
       })
       return { status: 'ok', txHash }

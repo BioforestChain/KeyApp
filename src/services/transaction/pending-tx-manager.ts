@@ -214,20 +214,21 @@ class PendingTxManagerImpl {
       await pendingTxService.incrementRetry({ id: tx.id })
 
       // 广播
-      const txHash = await broadcastTransaction(apiUrl, tx.rawTx as BFChainCore.TransactionJSON)
+      const broadcastResult = await broadcastTransaction(apiUrl, tx.rawTx as BFChainCore.TransactionJSON)
 
-      // 成功
+      // 成功，如果交易已存在则直接标记为 confirmed
+      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
       const updated = await pendingTxService.updateStatus({
         id: tx.id,
-        status: 'broadcasted',
-        txHash,
+        status: newStatus,
+        txHash: broadcastResult.txHash,
       })
       this.notifySubscribers(updated)
       
       // 发送广播成功通知
-      this.sendNotification(updated, 'broadcasted')
+      this.sendNotification(updated, newStatus === 'confirmed' ? 'confirmed' : 'broadcasted')
       
-      console.log('[PendingTxManager] Broadcast success:', txHash.slice(0, 16))
+      console.log('[PendingTxManager] Broadcast success:', broadcastResult.txHash.slice(0, 16), 'alreadyExists:', broadcastResult.alreadyExists)
     } catch (error) {
       console.error('[PendingTxManager] Broadcast failed:', error)
 

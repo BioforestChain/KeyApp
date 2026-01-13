@@ -131,13 +131,14 @@ export function PendingTxDetailPage() {
       setPendingTx((prev) => prev ? { ...prev, status: 'broadcasting' } : null)
 
       // 重新广播
-      const txHash = await broadcastTransaction(apiUrl, pendingTx.rawTx as BFChainCore.TransactionJSON)
+      const broadcastResult = await broadcastTransaction(apiUrl, pendingTx.rawTx as BFChainCore.TransactionJSON)
       
-      // 广播成功
+      // 广播成功，如果交易已存在则直接标记为 confirmed
+      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
       const updated = await pendingTxService.updateStatus({
         id: pendingTx.id,
-        status: 'broadcasted',
-        txHash,
+        status: newStatus,
+        txHash: broadcastResult.txHash,
       })
       setPendingTx(updated)
     } catch (error) {
