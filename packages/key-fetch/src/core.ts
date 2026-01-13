@@ -1,206 +1,321 @@
 /**
  * Key-Fetch Core
  * 
- * 核心实现：请求、订阅、失效
+ * Schema-first 工厂模式实现
  */
 
-import type { 
-  CacheRule, 
-  KeyFetchOptions, 
+import type { z } from 'zod'
+import type {
+  AnyZodSchema,
+  InferOutput,
+  KeyFetchDefineOptions,
+  KeyFetchInstance,
+  FetchParams,
   SubscribeCallback,
+  CachePlugin,
+  PluginContext,
   RequestContext,
   ResponseContext,
   SubscribeContext,
-  CacheStore,
+  CacheEntry,
 } from './types'
-import { globalCache } from './cache'
-import { RuleRegistryImpl } from './registry'
+import { globalCache, globalRegistry } from './registry'
 
-/** 进行中的请求（用于去重） */
-const inFlight = new Map<string, Promise<unknown>>()
+/** 构建 URL，替换 :param 占位符 */
+function buildUrl(template: string, params: FetchParams = {}): string {
+  let url = template
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      url = url.replace(`:${key}`, encodeURIComponent(String(value)))
+    }
+  }
+  return url
+}
 
-/** 活跃的订阅清理函数 */
-const activeSubscriptions = new Map<string, Map<() => void, () => void>>()
+/** 构建缓存 key */
+function buildCacheKey(name: string, params: FetchParams = {}): string {
+  const sortedParams = Object.entries(params)
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${v}`)
+    .join('&')
+  return sortedParams ? `${name}?${sortedParams}` : name
+}
 
-class KeyFetchCore {
-  private registry: RuleRegistryImpl
-  private cache: CacheStore
+/** KeyFetch 实例实现 */
+class KeyFetchInstanceImpl<S extends AnyZodSchema> implements KeyFetchInstance<S> {
+  readonly name: string
+  readonly schema: S
+  readonly _output!: InferOutput<S>
+  
+  private urlTemplate: string
+  private method: 'GET' | 'POST'
+  private plugins: CachePlugin<S>[]
+  private subscribers = new Map<string, Set<SubscribeCallback<InferOutput<S>>>>()
+  private subscriptionCleanups = new Map<string, (() => void)[]>()
+  private inFlight = new Map<string, Promise<InferOutput<S>>>()
 
-  constructor() {
-    this.cache = globalCache
-    this.registry = new RuleRegistryImpl(this.cache)
+  constructor(options: KeyFetchDefineOptions<S>) {
+    this.name = options.name
+    this.schema = options.schema
+    this.urlTemplate = options.url ?? ''
+    this.method = options.method ?? 'GET'
+    this.plugins = options.use ?? []
+
+    // 注册到全局
+    globalRegistry.register(this)
+
+    // 初始化插件
+    const pluginCtx: PluginContext<S> = {
+      kf: this,
+      cache: globalCache,
+      registry: globalRegistry,
+      notifySubscribers: (data) => this.notifyAll(data),
+    }
+
+    for (const plugin of this.plugins) {
+      if (plugin.setup) {
+        plugin.setup(pluginCtx)
+      }
+    }
   }
 
-  /** 定义缓存规则 */
-  define(rule: CacheRule): void {
-    this.registry.define(rule)
-  }
+  async fetch(params?: FetchParams, options?: { skipCache?: boolean }): Promise<InferOutput<S>> {
+    const cacheKey = buildCacheKey(this.name, params)
+    const url = buildUrl(this.urlTemplate, params)
 
-  /** 执行请求 */
-  async fetch<T>(url: string, options?: KeyFetchOptions): Promise<T> {
-    const rule = this.registry.findRule(url)
-    const init = options?.init
+    // 检查进行中的请求（去重）
+    const pending = this.inFlight.get(cacheKey)
+    if (pending) {
+      return pending
+    }
 
-    // 如果有匹配规则，执行插件链
-    if (rule && !options?.skipCache) {
-      const requestCtx: RequestContext = {
+    // 检查插件缓存
+    if (!options?.skipCache) {
+      const requestCtx: RequestContext<S> = {
         url,
-        init,
-        cache: this.cache,
-        ruleName: rule.name,
+        params: params ?? {},
+        cache: globalCache,
+        kf: this,
       }
 
-      // 按顺序执行 onRequest，第一个返回数据的插件生效
-      for (const plugin of rule.plugins) {
+      for (const plugin of this.plugins) {
         if (plugin.onRequest) {
           const cached = await plugin.onRequest(requestCtx)
           if (cached !== undefined) {
-            return cached as T
+            return cached
           }
         }
       }
     }
 
-    // 检查是否有进行中的相同请求
-    const cacheKey = this.buildCacheKey(url, init)
-    const pending = inFlight.get(cacheKey)
-    if (pending) {
-      return (await pending) as T
-    }
-
     // 发起请求
-    const task = this.doFetch(url, init, rule?.name)
-    inFlight.set(cacheKey, task)
+    const task = this.doFetch(url, params)
+    this.inFlight.set(cacheKey, task)
 
     try {
-      const data = await task
-      return data as T
+      return await task
     } finally {
-      inFlight.delete(cacheKey)
+      this.inFlight.delete(cacheKey)
     }
   }
 
-  /** 实际执行 fetch */
-  private async doFetch(url: string, init?: RequestInit, ruleName?: string): Promise<unknown> {
+  private async doFetch(url: string, params?: FetchParams): Promise<InferOutput<S>> {
+    const init: RequestInit = {
+      method: this.method,
+      headers: { 'Content-Type': 'application/json' },
+    }
+
+    if (this.method === 'POST' && params) {
+      init.body = JSON.stringify(params)
+    }
+
     const response = await fetch(url, init)
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const json = await response.json()
 
-    // 如果有匹配规则，执行 onResponse
-    if (ruleName) {
-      const rule = this.registry.getRule(ruleName)
-      if (rule) {
-        const responseCtx: ResponseContext = {
-          url,
-          data,
-          response,
-          cache: this.cache,
-          ruleName,
-        }
+    // Schema 验证（核心！）
+    const result = this.schema.parse(json) as InferOutput<S>
 
-        for (const plugin of rule.plugins) {
-          if (plugin.onResponse) {
-            await plugin.onResponse(responseCtx)
-          }
-        }
+    // 执行 onResponse 插件
+    const responseCtx: ResponseContext<S> = {
+      url,
+      data: result,
+      response,
+      cache: globalCache,
+      kf: this,
+    }
 
-        // 通知规则更新
-        this.registry.emitRuleUpdate(ruleName)
+    for (const plugin of this.plugins) {
+      if (plugin.onResponse) {
+        await plugin.onResponse(responseCtx)
       }
     }
 
-    return data
+    // 通知 registry 更新
+    globalRegistry.emitUpdate(this.name)
+
+    return result
   }
 
-  /** 订阅 URL 数据变化 */
-  subscribe<T>(
-    url: string, 
-    callback: SubscribeCallback<T>,
-    options?: KeyFetchOptions
+  subscribe(
+    params: FetchParams | undefined,
+    callback: SubscribeCallback<InferOutput<S>>
   ): () => void {
-    const rule = this.registry.findRule(url)
-    const cleanups: (() => void)[] = []
+    const cacheKey = buildCacheKey(this.name, params)
+    const url = buildUrl(this.urlTemplate, params)
 
-    // 包装回调，添加事件类型
-    let isInitial = true
-    const wrappedCallback = (data: unknown) => {
-      callback(data as T, isInitial ? 'initial' : 'update')
-      isInitial = false
+    // 添加订阅者
+    let subs = this.subscribers.get(cacheKey)
+    if (!subs) {
+      subs = new Set()
+      this.subscribers.set(cacheKey, subs)
     }
+    subs.add(callback)
 
-    // 注册到 registry
-    if (rule) {
-      const unsubscribe = this.registry.addSubscriber(rule.name, wrappedCallback)
-      cleanups.push(unsubscribe)
+    // 首次订阅该 key，初始化插件
+    if (subs.size === 1) {
+      const cleanups: (() => void)[] = []
 
-      // 调用插件的 onSubscribe
-      const subscribeCtx: SubscribeContext = {
+      const subscribeCtx: SubscribeContext<S> = {
         url,
-        cache: this.cache,
-        ruleName: rule.name,
-        notify: wrappedCallback,
+        params: params ?? {},
+        cache: globalCache,
+        kf: this,
+        notify: (data) => this.notify(cacheKey, data),
       }
 
-      for (const plugin of rule.plugins) {
+      for (const plugin of this.plugins) {
         if (plugin.onSubscribe) {
           const cleanup = plugin.onSubscribe(subscribeCtx)
           cleanups.push(cleanup)
         }
       }
 
-      // 监听规则更新，自动重新获取
-      const unsubUpdate = this.registry.onRuleUpdate(rule.name, async () => {
+      this.subscriptionCleanups.set(cacheKey, cleanups)
+
+      // 监听 registry 更新
+      const unsubRegistry = globalRegistry.onUpdate(this.name, async () => {
         try {
-          const data = await this.fetch<T>(url, { ...options, skipCache: true })
-          wrappedCallback(data)
+          const data = await this.fetch(params, { skipCache: true })
+          this.notify(cacheKey, data)
         } catch (error) {
-          console.error(`[key-fetch] Error refetching ${url}:`, error)
+          console.error(`[key-fetch] Error refetching ${this.name}:`, error)
         }
       })
-      cleanups.push(unsubUpdate)
+      cleanups.push(unsubRegistry)
     }
 
-    // 立即获取一次数据
-    this.fetch<T>(url, options)
-      .then(wrappedCallback)
+    // 立即获取一次
+    let isInitial = true
+    this.fetch(params)
+      .then(data => {
+        callback(data, 'initial')
+        isInitial = false
+      })
       .catch(error => {
-        console.error(`[key-fetch] Error fetching ${url}:`, error)
+        console.error(`[key-fetch] Error fetching ${this.name}:`, error)
       })
 
     // 返回取消订阅函数
     return () => {
-      cleanups.forEach(fn => fn())
+      subs?.delete(callback)
+      
+      // 最后一个订阅者，清理资源
+      if (subs?.size === 0) {
+        this.subscribers.delete(cacheKey)
+        const cleanups = this.subscriptionCleanups.get(cacheKey)
+        if (cleanups) {
+          cleanups.forEach(fn => fn())
+          this.subscriptionCleanups.delete(cacheKey)
+        }
+      }
     }
   }
 
-  /** 手动失效规则 */
-  invalidate(ruleName: string): void {
-    this.registry.invalidateRule(ruleName)
+  invalidate(): void {
+    // 清理所有相关缓存
+    for (const key of globalCache.keys()) {
+      if (key.startsWith(this.name)) {
+        globalCache.delete(key)
+      }
+    }
   }
 
-  /** 按标签失效 */
-  invalidateByTag(tag: string): void {
-    this.registry.invalidateByTag(tag)
+  getCached(params?: FetchParams): InferOutput<S> | undefined {
+    const cacheKey = buildCacheKey(this.name, params)
+    const entry = globalCache.get<InferOutput<S>>(cacheKey)
+    return entry?.data
   }
 
-  /** 清理所有 */
-  clear(): void {
-    this.registry.clear()
-    this.cache.clear()
-    inFlight.clear()
+  /** 通知特定 key 的订阅者 */
+  private notify(cacheKey: string, data: InferOutput<S>): void {
+    const subs = this.subscribers.get(cacheKey)
+    if (subs) {
+      subs.forEach(cb => cb(data, 'update'))
+    }
   }
 
-  /** 构建缓存 key */
-  private buildCacheKey(url: string, init?: RequestInit): string {
-    const method = (init?.method ?? 'GET').toUpperCase()
-    const body = typeof init?.body === 'string' ? init.body : ''
-    return `${method}:${url}:${body}`
+  /** 通知所有订阅者 */
+  private notifyAll(data: InferOutput<S>): void {
+    for (const subs of this.subscribers.values()) {
+      subs.forEach(cb => cb(data, 'update'))
+    }
   }
 }
 
-/** 全局单例 */
-export const keyFetchCore = new KeyFetchCore()
+/**
+ * 创建 KeyFetch 实例
+ * 
+ * @example
+ * ```ts
+ * import { z } from 'zod'
+ * import { keyFetch, interval, deps } from '@biochain/key-fetch'
+ * 
+ * // 定义 Schema
+ * const LastBlockSchema = z.object({
+ *   success: z.boolean(),
+ *   result: z.object({
+ *     height: z.number(),
+ *     timestamp: z.number(),
+ *   }),
+ * })
+ * 
+ * // 创建 KeyFetch 实例
+ * const lastBlockFetch = keyFetch.create({
+ *   name: 'bfmeta.lastblock',
+ *   schema: LastBlockSchema,
+ *   url: 'https://api.bfmeta.info/wallet/:chainId/lastblock',
+ *   use: [interval(15_000)],
+ * })
+ * 
+ * // 使用
+ * const data = await lastBlockFetch.fetch({ chainId: 'bfmeta' })
+ * // data 类型自动推断，且已通过 Schema 验证
+ * ```
+ */
+export function create<S extends AnyZodSchema>(
+  options: KeyFetchDefineOptions<S>
+): KeyFetchInstance<S> {
+  return new KeyFetchInstanceImpl(options)
+}
+
+/** 获取已注册的实例 */
+export function get<S extends AnyZodSchema>(name: string): KeyFetchInstance<S> | undefined {
+  return globalRegistry.get<S>(name)
+}
+
+/** 按名称失效 */
+export function invalidate(name: string): void {
+  globalRegistry.invalidate(name)
+}
+
+/** 清理所有（用于测试） */
+export function clear(): void {
+  globalRegistry.clear()
+  globalCache.clear()
+}

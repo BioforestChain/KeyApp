@@ -1,80 +1,68 @@
 /**
  * Key-Fetch React Hooks
  * 
- * React 集成，提供响应式数据获取，完全替代 React Query
+ * 基于工厂模式的 React 集成
  */
 
-import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
-import { keyFetch } from './index'
-import type { KeyFetchOptions } from './types'
-
-export interface UseKeyFetchResult<T> {
-  /** 数据 */
-  data: T | undefined
-  /** 是否正在加载（首次加载） */
-  isLoading: boolean
-  /** 是否正在获取（包括后台刷新） */
-  isFetching: boolean
-  /** 错误信息 */
-  error: Error | undefined
-  /** 手动刷新 */
-  refetch: () => Promise<void>
-}
-
-export interface UseKeyFetchOptions extends KeyFetchOptions {
-  /** 是否启用查询（默认 true） */
-  enabled?: boolean
-}
+import { useState, useEffect, useCallback, useRef } from 'react'
+import type { 
+  KeyFetchInstance, 
+  AnyZodSchema, 
+  InferOutput,
+  FetchParams,
+  UseKeyFetchResult,
+  UseKeyFetchOptions,
+} from './types'
 
 /**
  * 响应式数据获取 Hook
  * 
- * 自动订阅 URL 的数据变化，当数据更新时自动重新渲染
- * 完全替代 React Query 的 useQuery
+ * 订阅 KeyFetch 实例的数据变化，当数据更新时自动重新渲染
  * 
  * @example
  * ```tsx
- * function BlockHeight({ chainId }: { chainId: string }) {
- *   const { data: block, isLoading } = useKeyFetch<BlockInfo>(
- *     `https://walletapi.bfmeta.info/wallet/${chainId}/lastblock`
- *   )
+ * // 在 chain-provider 中定义
+ * const lastBlockFetch = keyFetch.create({
+ *   name: 'bfmeta.lastblock',
+ *   schema: LastBlockSchema,
+ *   url: 'https://api.bfmeta.info/wallet/:chainId/lastblock',
+ *   use: [interval(15_000)],
+ * })
+ * 
+ * // 在组件中使用
+ * function BlockHeight() {
+ *   const { data, isLoading } = useKeyFetch(lastBlockFetch, { chainId: 'bfmeta' })
  *   
  *   if (isLoading) return <div>Loading...</div>
- *   return <div>Height: {block?.height}</div>
- * }
- * 
- * // 条件查询（类似 React Query 的 enabled）
- * function Balance({ chainId, address }: { chainId?: string; address?: string }) {
- *   const { data } = useKeyFetch<BalanceInfo>(
- *     chainId && address ? `${API}/${chainId}/balance/${address}` : null,
- *     { enabled: !!chainId && !!address }
- *   )
+ *   return <div>Height: {data?.result.height}</div>
  * }
  * ```
  */
-export function useKeyFetch<T>(
-  url: string | null | undefined,
+export function useKeyFetch<S extends AnyZodSchema>(
+  kf: KeyFetchInstance<S>,
+  params?: FetchParams,
   options?: UseKeyFetchOptions
-): UseKeyFetchResult<T> {
+): UseKeyFetchResult<InferOutput<S>> {
+  type T = InferOutput<S>
+  
   const [data, setData] = useState<T | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [isFetching, setIsFetching] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined)
   
-  const optionsRef = useRef(options)
-  optionsRef.current = options
+  const paramsRef = useRef(params)
+  paramsRef.current = params
   
-  // enabled 默认为 true
   const enabled = options?.enabled !== false
 
   const refetch = useCallback(async () => {
-    if (!url || !enabled) return
+    if (!enabled) return
     
     setIsFetching(true)
     setError(undefined)
     
     try {
-      const result = await keyFetch<T>(url, { ...optionsRef.current, skipCache: true })
+      const result = await kf.fetch(paramsRef.current, { skipCache: true })
       setData(result)
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)))
@@ -82,11 +70,10 @@ export function useKeyFetch<T>(
       setIsFetching(false)
       setIsLoading(false)
     }
-  }, [url, enabled])
+  }, [kf, enabled])
 
   useEffect(() => {
-    // 如果 url 为空或 enabled 为 false，重置状态
-    if (!url || !enabled) {
+    if (!enabled) {
       setData(undefined)
       setIsLoading(false)
       setIsFetching(false)
@@ -98,22 +85,17 @@ export function useKeyFetch<T>(
     setIsFetching(true)
     setError(undefined)
 
-    // 订阅数据变化
-    const unsubscribe = keyFetch.subscribe<T>(
-      url,
-      (newData, event) => {
-        setData(newData)
-        setIsLoading(false)
-        setIsFetching(false)
-        setError(undefined)
-      },
-      optionsRef.current
-    )
+    const unsubscribe = kf.subscribe(params, (newData, event) => {
+      setData(newData)
+      setIsLoading(false)
+      setIsFetching(false)
+      setError(undefined)
+    })
 
     return () => {
       unsubscribe()
     }
-  }, [url, enabled])
+  }, [kf, enabled, JSON.stringify(params)])
 
   return { data, isLoading, isFetching, error, refetch }
 }
@@ -122,31 +104,34 @@ export function useKeyFetch<T>(
  * 订阅 Hook（不返回数据，只订阅）
  * 
  * 用于需要监听数据变化但不需要渲染数据的场景
+ * 
+ * @example
+ * ```tsx
+ * function PendingTxWatcher() {
+ *   useKeyFetchSubscribe(lastBlockFetch, { chainId: 'bfmeta' }, (data) => {
+ *     // 区块更新时检查 pending 交易
+ *     checkPendingTransactions(data.result.height)
+ *   })
+ *   
+ *   return null
+ * }
+ * ```
  */
-export function useKeyFetchSubscribe<T>(
-  url: string | null | undefined,
-  callback: (data: T, event: 'initial' | 'update') => void,
-  options?: KeyFetchOptions
+export function useKeyFetchSubscribe<S extends AnyZodSchema>(
+  kf: KeyFetchInstance<S>,
+  params: FetchParams | undefined,
+  callback: (data: InferOutput<S>, event: 'initial' | 'update') => void
 ): void {
   const callbackRef = useRef(callback)
   callbackRef.current = callback
 
-  const optionsRef = useRef(options)
-  optionsRef.current = options
-
   useEffect(() => {
-    if (!url) return
-
-    const unsubscribe = keyFetch.subscribe<T>(
-      url,
-      (data, event) => {
-        callbackRef.current(data, event)
-      },
-      optionsRef.current
-    )
+    const unsubscribe = kf.subscribe(params, (data, event) => {
+      callbackRef.current(data, event)
+    })
 
     return () => {
       unsubscribe()
     }
-  }, [url])
+  }, [kf, JSON.stringify(params)])
 }

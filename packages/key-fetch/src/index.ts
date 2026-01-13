@@ -1,103 +1,127 @@
 /**
  * @biochain/key-fetch
  * 
- * 插件化响应式 Fetch，支持订阅能力
+ * Schema-first 插件化响应式 Fetch
  * 
  * @example
  * ```ts
+ * import { z } from 'zod'
  * import { keyFetch, interval, deps } from '@biochain/key-fetch'
  * 
- * // 定义缓存规则
- * keyFetch.define({
- *   name: 'bfmetav2.lastblock',
- *   pattern: /\/wallet\/bfmetav2\/lastblock/,
+ * // 定义 Schema
+ * const LastBlockSchema = z.object({
+ *   success: z.boolean(),
+ *   result: z.object({
+ *     height: z.number(),
+ *     timestamp: z.number(),
+ *   }),
+ * })
+ * 
+ * // 创建 KeyFetch 实例（工厂模式）
+ * const lastBlockFetch = keyFetch.create({
+ *   name: 'bfmeta.lastblock',
+ *   schema: LastBlockSchema,
+ *   url: 'https://api.bfmeta.info/wallet/:chainId/lastblock',
  *   use: [interval(15_000)],
  * })
  * 
- * keyFetch.define({
- *   name: 'bfmetav2.balance',
- *   pattern: /\/wallet\/bfmetav2\/address\/asset/,
- *   use: [deps('bfmetav2.lastblock')],
- * })
- * 
- * // 请求
- * const block = await keyFetch<BlockInfo>(url)
+ * // 请求（类型安全，已验证）
+ * const data = await lastBlockFetch.fetch({ chainId: 'bfmeta' })
  * 
  * // 订阅
- * const unsubscribe = keyFetch.subscribe<BlockInfo>(url, (data, event) => {
- *   console.log('更新:', data, event)
+ * const unsubscribe = lastBlockFetch.subscribe({ chainId: 'bfmeta' }, (data, event) => {
+ *   console.log('区块更新:', data.result.height)
  * })
+ * 
+ * // React 中使用
+ * function BlockHeight() {
+ *   const { data, isLoading } = useKeyFetch(lastBlockFetch, { chainId: 'bfmeta' })
+ *   if (isLoading) return <div>Loading...</div>
+ *   return <div>Height: {data?.result.height}</div>
+ * }
  * ```
  */
 
-import { keyFetchCore } from './core'
-import type { CacheRule, KeyFetchOptions, SubscribeCallback } from './types'
+import { create, get, invalidate, clear } from './core'
+import { getInstancesByTag } from './plugins/tag'
+import { globalRegistry } from './registry'
 
-// 导出类型
+// ==================== 导出类型 ====================
+
 export type {
-  CachePlugin,
-  CacheRule,
-  CacheStore,
+  // Schema types
+  AnyZodSchema,
+  InferOutput,
+  // Cache types
   CacheEntry,
-  KeyFetchOptions,
-  SubscribeCallback,
+  CacheStore,
+  // Plugin types
+  CachePlugin,
   PluginContext,
   RequestContext,
   ResponseContext,
   SubscribeContext,
-  InvalidateContext,
-  RuleRegistry,
+  // Instance types
+  KeyFetchDefineOptions,
+  KeyFetchInstance,
+  FetchParams,
+  SubscribeCallback,
+  // Registry types
+  KeyFetchRegistry,
+  // React types
+  UseKeyFetchResult,
+  UseKeyFetchOptions,
 } from './types'
 
-// 导出插件
-export { interval, deps, ttl, dedupe, tag, etag } from './plugins/index'
+// ==================== 导出插件 ====================
+
+export { interval } from './plugins/interval'
+export { deps } from './plugins/deps'
+export { ttl } from './plugins/ttl'
+export { dedupe } from './plugins/dedupe'
+export { tag } from './plugins/tag'
+export { etag } from './plugins/etag'
+
+// ==================== 导出 React Hooks ====================
+
+export { useKeyFetch, useKeyFetchSubscribe } from './react'
+
+// ==================== 主 API ====================
 
 /**
- * 响应式 Fetch 函数
- * 
- * 支持插件化缓存策略和订阅能力
+ * KeyFetch 命名空间
  */
-export async function keyFetch<T>(url: string, options?: KeyFetchOptions): Promise<T> {
-  return keyFetchCore.fetch<T>(url, options)
+export const keyFetch = {
+  /**
+   * 创建 KeyFetch 实例
+   */
+  create,
+
+  /**
+   * 获取已注册的实例
+   */
+  get,
+
+  /**
+   * 按名称失效
+   */
+  invalidate,
+
+  /**
+   * 按标签失效
+   */
+  invalidateByTag(tagName: string): void {
+    const names = getInstancesByTag(tagName)
+    for (const name of names) {
+      invalidate(name)
+    }
+  },
+
+  /**
+   * 清理所有（用于测试）
+   */
+  clear,
 }
 
-/**
- * 定义缓存规则
- */
-keyFetch.define = (rule: CacheRule): void => {
-  keyFetchCore.define(rule)
-}
-
-/**
- * 订阅 URL 数据变化
- * 
- * @returns 取消订阅函数
- */
-keyFetch.subscribe = <T>(
-  url: string,
-  callback: SubscribeCallback<T>,
-  options?: KeyFetchOptions
-): (() => void) => {
-  return keyFetchCore.subscribe<T>(url, callback, options)
-}
-
-/**
- * 手动失效规则
- */
-keyFetch.invalidate = (ruleName: string): void => {
-  keyFetchCore.invalidate(ruleName)
-}
-
-/**
- * 按标签失效
- */
-keyFetch.invalidateByTag = (tag: string): void => {
-  keyFetchCore.invalidateByTag(tag)
-}
-
-/**
- * 清理所有规则和缓存（用于测试）
- */
-keyFetch.clear = (): void => {
-  keyFetchCore.clear()
-}
+// 默认导出
+export default keyFetch

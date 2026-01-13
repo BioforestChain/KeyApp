@@ -1,39 +1,43 @@
 /**
  * TTL Plugin
  * 
- * 基于时间的缓存过期
+ * 缓存生存时间插件
  */
 
-import type { CachePlugin, RequestContext, ResponseContext } from '../types'
+import type { CachePlugin, AnyZodSchema, RequestContext, ResponseContext } from '../types'
 
 /**
  * TTL 缓存插件
  * 
  * @example
  * ```ts
- * keyFetch.define({
- *   name: 'api.data',
- *   pattern: /\/api\/data/,
- *   use: [ttl(60_000)], // 60秒缓存
+ * const configFetch = keyFetch.create({
+ *   name: 'chain.config',
+ *   schema: ConfigSchema,
+ *   use: [ttl(5 * 60 * 1000)], // 5 分钟缓存
  * })
  * ```
  */
-export function ttl(ms: number): CachePlugin {
+export function ttl(ms: number): CachePlugin<AnyZodSchema> {
   return {
     name: 'ttl',
 
     onRequest(ctx: RequestContext) {
-      const cached = ctx.cache.get(ctx.url)
-      if (cached && Date.now() - cached.timestamp < ms) {
-        return cached.data
+      const cacheKey = `${ctx.kf.name}:${JSON.stringify(ctx.params)}`
+      const entry = ctx.cache.get(cacheKey)
+      
+      if (entry && Date.now() - entry.timestamp < ms) {
+        return entry.data
       }
+      
       return undefined
     },
 
     onResponse(ctx: ResponseContext) {
-      ctx.cache.set(ctx.url, { 
-        data: ctx.data, 
-        timestamp: Date.now() 
+      const cacheKey = `${ctx.kf.name}:${JSON.stringify({})}`
+      ctx.cache.set(cacheKey, {
+        data: ctx.data,
+        timestamp: Date.now(),
       })
     },
   }
