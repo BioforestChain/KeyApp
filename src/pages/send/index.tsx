@@ -227,7 +227,11 @@ export function SendPage() {
             
             if (result.status === 'ok') {
               isWalletLockSheetOpen.current = false;
-              return { status: 'ok' as const, txHash: result.txHash };
+              return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
+            }
+            
+            if (result.status === 'error') {
+              return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
             }
             
             return { status: 'error' as const, message: '转账失败' };
@@ -238,14 +242,18 @@ export function SendPage() {
           
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false;
-            return { status: 'ok' as const, txHash: result.txHash };
+            return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
           }
           
           if (result.status === 'password') {
             return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
           }
           
-          return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
+          if (result.status === 'error') {
+            return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
+          }
+          
+          return { status: 'error' as const, message: '未知错误' };
         });
 
         push('TransferWalletLockJob', {
