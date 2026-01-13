@@ -1,23 +1,25 @@
 {
   "name": "Bio 官方生态",
   "version": "1.0.0",
-  "updated": "2026-01-11",
+  "updated": "2026-01-13",
   "icon": "../logos/logo-256.webp",
   "apps": [
     {
-      "id": "xin.dweb.forge",
-      "name": "锻造",
-      "description": "将 ETH 兑换为 Bio 生态 Token",
-      "longDescription": "锻造是 Bio 生态的跨链桥接工具，支持将 ETH 等主流资产兑换为 Bio 生态内的 Token。\n\n## 支持的兑换\n- ETH → BFM\n- ETH → CC\n- 更多资产对即将上线",
+      "id": "xin.dweb.biobridge",
+      "name": "跨链通",
+      "description": "BioBridge - 跨链资产桥接，支持充值和赎回",
+      "longDescription": "跨链通 (BioBridge) 是 Bio 生态的跨链桥接工具，支持外链资产与内链资产的双向兑换。\n\n## 功能\n- **充值**: 将 ETH/BSC/TRON 等外链资产转换为 Bio 生态内的 Token\n- **赎回**: 将 Bio 生态内的 Token 转换回外链资产\n\n## 支持的链\n- Ethereum (ETH)\n- BNB Chain (BSC)\n- Tron (TRON)\n- BFMeta / BFChain / PMC",
       "icon": "./forge/icon.svg",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "author": "Bio Team",
-      "website": "https://forge.dweb.xin",
+      "website": "https://bridge.dweb.xin",
       "category": "exchange",
       "tags": [
-        "兑换",
         "跨链桥",
-        "DeFi"
+        "充值",
+        "赎回",
+        "DeFi",
+        "兑换"
       ],
       "permissions": [
         "bio_requestAccounts",
@@ -28,19 +30,20 @@
       ],
       "chains": [
         "ethereum",
-        "bfmeta"
+        "bsc",
+        "tron",
+        "bfmeta",
+        "bfchain",
+        "pmchain"
       ],
-      "officialScore": 70,
-      "communityScore": 85,
-      "screenshots": [
-        "./forge/screenshots/forge-01-connect.png",
-        "./forge/screenshots/forge-02-connect-dark.png"
-      ],
+      "officialScore": 80,
+      "communityScore": 90,
+      "screenshots": [],
       "publishedAt": "2024-12-15",
-      "updatedAt": "2024-12-28",
-      "beta": true,
-      "themeColor": "from-red-800 via-orange-900 to-amber-950",
-      "themeColorFrom": "#991b1b",
+      "updatedAt": "2026-01-12",
+      "beta": false,
+      "themeColor": "from-blue-800 via-purple-900 to-indigo-950",
+      "themeColorFrom": "#1e40af",
       "splashScreen": true,
       "dirName": "forge",
       "url": "./forge/"
