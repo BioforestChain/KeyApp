@@ -42,6 +42,11 @@ const dynamicRoutePatterns: Array<{
     paramExtractor: (match) => ({ txId: match[1] ?? "" }),
   },
   {
+    pattern: /^\/pending-tx\/([^/]+)$/,
+    activity: "PendingTxDetailActivity",
+    paramExtractor: (match) => ({ pendingTxId: match[1] ?? "" }),
+  },
+  {
     pattern: /^\/authorize\/address\/([^/]+)$/,
     activity: "AuthorizeAddressActivity",
     paramExtractor: (match) => ({ id: match[1] ?? "" }),

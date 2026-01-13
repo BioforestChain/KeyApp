@@ -277,7 +277,7 @@ class PendingTxServiceImpl implements IPendingTxService {
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
-      .toSorted((a, b) => b.createdAt - a.createdAt)
+      .sort((a, b) => b.createdAt - a.createdAt)
   }
 
   async getById({ id }: { id: string }): Promise<PendingTx | null> {
@@ -295,7 +295,7 @@ class PendingTxServiceImpl implements IPendingTxService {
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
-      .toSorted((a, b) => b.createdAt - a.createdAt)
+      .sort((a, b) => b.createdAt - a.createdAt)
   }
 
   async getPending({ walletId }: { walletId: string }): Promise<PendingTx[]> {

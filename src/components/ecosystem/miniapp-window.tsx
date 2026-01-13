@@ -37,6 +37,7 @@ import {
   flowToIframeLayer,
   flowToSplashIconLayoutId,
   flowToWindowContainer,
+  type MiniappFlow,
 } from './miniapp-motion-flow';
 import styles from './miniapp-window.module.css';
 
