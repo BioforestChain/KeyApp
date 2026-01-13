@@ -4,7 +4,7 @@
  * 测试未上链交易管理器的核心逻辑
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { BroadcastError } from '@/services/bioforest-sdk/errors'
 import { 
   isPendingTxExpired, 
