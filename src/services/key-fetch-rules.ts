@@ -6,10 +6,10 @@
 
 import { keyFetch, interval, deps, dedupe, tag } from '@biochain/key-fetch'
 
-// 默认出块间隔（毫秒）
+// 默认出块间隔（毫秒）- 15秒
 const DEFAULT_FORGE_INTERVAL = 15_000
 
-// 存储各链的出块间隔
+// 存储各链的出块间隔（从 genesis block 获取后缓存）
 const forgeIntervals = new Map<string, number>()
 
 /**
@@ -17,6 +17,7 @@ const forgeIntervals = new Map<string, number>()
  */
 export function setForgeInterval(chainId: string, intervalMs: number): void {
   forgeIntervals.set(chainId, intervalMs)
+  console.log(`[key-fetch] Set forgeInterval for ${chainId}: ${intervalMs}ms`)
 }
 
 /**
@@ -29,9 +30,24 @@ export function getForgeInterval(chainId: string): number {
 /**
  * 从 URL 提取 chainId
  */
-function extractChainId(url: string): string | undefined {
+function extractChainIdFromUrl(url: string): string | undefined {
+  // 匹配 /wallet/{chainId}/lastblock 格式
   const match = url.match(/\/wallet\/(\w+)\//)
   return match?.[1]
+}
+
+/**
+ * 根据 URL 获取轮询间隔
+ */
+function getPollingIntervalByUrl(url: string): number {
+  const chainId = extractChainIdFromUrl(url)
+  if (chainId) {
+    const interval = forgeIntervals.get(chainId)
+    if (interval) {
+      return interval * 1000 // 转换为毫秒
+    }
+  }
+  return DEFAULT_FORGE_INTERVAL
 }
 
 /**
@@ -49,11 +65,7 @@ export function initBioChainCacheRules(): void {
     pattern: /\/wallet\/\w+\/lastblock/,
     use: [
       dedupe(),
-      interval((ctx) => {
-        // 从 URL 中提取 chainId 并获取对应的出块间隔
-        // 注意：这里需要在实际请求时动态获取
-        return DEFAULT_FORGE_INTERVAL
-      }),
+      interval(getPollingIntervalByUrl),
       tag('biochain', 'lastblock'),
     ],
   })
@@ -80,7 +92,7 @@ export function initBioChainCacheRules(): void {
     ],
   })
 
-  // 地址信息（二次签名等）- 较长缓存
+  // 地址信息（二次签名等）- 依赖区块高度
   keyFetch.define({
     name: 'biochain.addressInfo',
     pattern: /\/wallet\/\w+\/address\/info/,
