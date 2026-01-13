@@ -42,6 +42,26 @@ pnpm agent task submit
 
 ---
 
+## ⚠️ 类型检查命令 (IMPORTANT)
+
+**必须使用以下命令进行类型检查：**
+
+```bash
+# 正确：检查主应用 src/ 目录
+pnpm tsc -p tsconfig.app.json --noEmit
+
+# 正确：通过 turbo 检查所有 packages
+pnpm typecheck
+```
+
+**禁止使用：**
+```bash
+# 错误！根 tsconfig.json 的 files: [] 为空，不会检查任何文件
+pnpm tsc --noEmit
+```
+
+---
+
 <!-- OPENSPEC:START -->
 
 # OpenSpec Instructions
