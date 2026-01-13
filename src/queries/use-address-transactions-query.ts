@@ -1,6 +1,5 @@
 import { useKeyFetch } from '@biochain/key-fetch'
 import { chainConfigService } from '@/services/chain-config'
-import { Amount } from '@/types/amount'
 import type { Transaction } from '@/services/chain-adapter/providers'
 
 export const addressTransactionsQueryKeys = {
@@ -53,7 +52,7 @@ interface TransactionQueryResponse {
  */
 function buildTransactionsUrl(chainId: string, address: string): string | null {
   if (!chainId || !address) return null
-  const baseUrl = chainConfigService.getApiUrl(chainId)
+  const baseUrl = chainConfigService.getBiowalletApi(chainId)
   if (!baseUrl) return null
   return `${baseUrl}/transactions/query?address=${address}`
 }
