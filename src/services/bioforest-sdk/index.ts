@@ -494,6 +494,13 @@ export async function broadcastTransaction(
         const result = parseResult.data
         const errorCode = result.error?.code
         const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+        
+        // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
+        if (errorCode === '001-00034') {
+          console.log('[broadcastTransaction] Transaction already exists (from ApiError), treating as success')
+          return { txHash: transaction.signature, alreadyExists: true }
+        }
+        
         throw new BroadcastError(errorCode, errorMsg, result.minFee)
       }
     }

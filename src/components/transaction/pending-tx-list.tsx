@@ -2,13 +2,15 @@
  * Pending Transaction List Component
  * 
  * 显示未上链的交易列表，支持重试和删除操作
+ * 使用 @biochain/key-ui 组件库
  */
 
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@/stackflow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { IconRefresh, IconTrash, IconLoader2, IconAlertCircle, IconClock } from '@tabler/icons-react'
+import { IconCircle, AddressDisplay, Alert } from '@biochain/key-ui'
+import { IconRefresh, IconTrash, IconLoader2, IconAlertCircle, IconClock, IconCheck } from '@tabler/icons-react'
 import type { PendingTx, PendingTxStatus } from '@/services/transaction'
 
 interface PendingTxListProps {
@@ -27,40 +29,26 @@ function getStatusIcon(status: PendingTxStatus) {
       return IconClock
     case 'failed':
       return IconAlertCircle
+    case 'confirmed':
+      return IconCheck
     default:
       return IconClock
   }
 }
 
-function getStatusColor(status: PendingTxStatus) {
+function getStatusVariant(status: PendingTxStatus): 'primary' | 'warning' | 'error' | 'success' {
   switch (status) {
     case 'created':
     case 'broadcasting':
-      return 'text-blue-500'
+      return 'primary'
     case 'broadcasted':
-      return 'text-amber-500'
+      return 'warning'
     case 'failed':
-      return 'text-red-500'
+      return 'error'
     case 'confirmed':
-      return 'text-green-500'
+      return 'success'
     default:
-      return 'text-muted-foreground'
-  }
-}
-
-function getStatusBgColor(status: PendingTxStatus) {
-  switch (status) {
-    case 'created':
-    case 'broadcasting':
-      return 'bg-blue-500/10'
-    case 'broadcasted':
-      return 'bg-amber-500/10'
-    case 'failed':
-      return 'bg-red-500/10'
-    case 'confirmed':
-      return 'bg-green-500/10'
-    default:
-      return 'bg-muted'
+      return 'primary'
   }
 }
 
@@ -77,8 +65,7 @@ function PendingTxItem({
 }) {
   const { t } = useTranslation('transaction')
   const StatusIcon = getStatusIcon(tx.status)
-  const statusColor = getStatusColor(tx.status)
-  const statusBgColor = getStatusBgColor(tx.status)
+  const statusVariant = getStatusVariant(tx.status)
   const isFailed = tx.status === 'failed'
   const isProcessing = tx.status === 'broadcasting'
   const isBroadcasted = tx.status === 'broadcasted'
@@ -106,18 +93,18 @@ function PendingTxItem({
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
     >
-      {/* Status Icon */}
-      <div className={cn(
-        'relative flex size-10 items-center justify-center rounded-full',
-        statusBgColor,
-        statusColor
-      )}>
-        <StatusIcon className={cn('size-5', isProcessing && 'animate-spin')} />
+      {/* Status Icon - 使用 IconCircle */}
+      <div className="relative">
+        <IconCircle
+          icon={<StatusIcon className={cn(isProcessing && 'animate-spin')} />}
+          variant={statusVariant}
+          size="sm"
+        />
         {/* Pulse animation for broadcasting/broadcasted */}
         {(isProcessing || isBroadcasted) && (
           <span className={cn(
             'absolute inset-0 rounded-full animate-ping opacity-30',
-            isProcessing ? 'bg-blue-500' : 'bg-amber-500'
+            isProcessing ? 'bg-primary' : 'bg-warning'
           )} />
         )}
       </div>
@@ -128,8 +115,14 @@ function PendingTxItem({
           <span className="text-sm font-medium">
             {t(`type.${displayType}`, displayType)}
           </span>
-          <span className={cn('text-xs', statusColor)}>
-            {t(`pendingTx.${tx.status === 'broadcasting' ? 'broadcasting' : tx.status === 'broadcasted' ? 'broadcasted' : 'failed'}`)}
+          <span className={cn(
+            'text-xs',
+            statusVariant === 'primary' && 'text-primary',
+            statusVariant === 'warning' && 'text-warning',
+            statusVariant === 'error' && 'text-destructive',
+            statusVariant === 'success' && 'text-success',
+          )}>
+            {t(`pendingTx.${tx.status}`)}
           </span>
         </div>
         
@@ -138,16 +131,25 @@ function PendingTxItem({
             {displayAmount} {displaySymbol}
             {displayToAddress && (
               <span className="ml-1">
-                → {displayToAddress.slice(0, 8)}...{displayToAddress.slice(-6)}
+                → <AddressDisplay 
+                    address={displayToAddress} 
+                    mode="fixed" 
+                    startChars={6} 
+                    endChars={4}
+                    copyable={false}
+                    className="inline text-xs"
+                  />
               </span>
             )}
           </p>
         )}
 
         {isFailed && tx.errorMessage && (
-          <pre className="text-destructive mt-1 text-xs overflow-auto whitespace-break-spaces">
-            {tx.errorMessage}
-          </pre>
+          <Alert variant="error" className="mt-2 p-2">
+            <pre className="text-xs overflow-auto whitespace-break-spaces">
+              {tx.errorMessage}
+            </pre>
+          </Alert>
         )}
       </div>
 
