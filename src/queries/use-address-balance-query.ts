@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import { getChainProvider, type Balance, isSupported } from '@/services/chain-adapter/providers'
+import { useKeyFetch } from '@biochain/key-fetch/react'
+import { chainConfigService } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
+import type { Balance } from '@/services/chain-adapter/providers'
 
 export const addressBalanceKeys = {
   all: ['addressBalance'] as const,
@@ -13,28 +15,57 @@ export interface AddressBalanceResult {
   supported: boolean
 }
 
+/** API 响应类型 */
+interface BalanceResponse {
+  success: boolean
+  result?: {
+    assets?: Array<{ symbol: string; balance: string }>
+  }
+}
+
+/**
+ * 构建余额查询 URL
+ */
+function buildBalanceUrl(chainId: string, address: string): string | null {
+  if (!chainId || !address) return null
+  const baseUrl = chainConfigService.getApiUrl(chainId)
+  if (!baseUrl) return null
+  return `${baseUrl}/address/asset?address=${address}`
+}
+
 /**
  * Query hook for fetching balance of any address on any chain
+ * 
+ * 使用 keyFetch 响应式订阅，当区块更新时自动刷新
  */
 export function useAddressBalanceQuery(chainId: string, address: string, enabled = true) {
-  return useQuery({
-    queryKey: addressBalanceKeys.query(chainId, address),
-    queryFn: async (): Promise<AddressBalanceResult> => {
-      if (!chainId || !address) {
-        return { balance: null, error: 'Missing chain or address', supported: false }
-      }
+  const url = buildBalanceUrl(chainId, address)
 
-      const chainProvider = getChainProvider(chainId)
-      const result = await chainProvider.getNativeBalance(address)
-      
-      if (isSupported(result)) {
-        return { balance: result.data, error: null, supported: true }
-      } else {
-        return { balance: result.data, error: result.reason, supported: false }
-      }
-    },
-    enabled: enabled && !!chainId && !!address,
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-  })
+  const { data, isLoading, isFetching, error, refetch } = useKeyFetch<BalanceResponse>(
+    url,
+    { enabled: enabled && !!chainId && !!address }
+  )
+
+  // 转换为 Balance 格式
+  let balance: Balance | null = null
+  if (data?.success && data.result?.assets?.[0]) {
+    const asset = data.result.assets[0]
+    const decimals = chainConfigService.getDecimals(chainId)
+    balance = {
+      symbol: asset.symbol,
+      amount: Amount.fromRaw(asset.balance, decimals, asset.symbol),
+    }
+  }
+
+  return {
+    data: {
+      balance,
+      error: error?.message ?? null,
+      supported: !error && !!data?.success,
+    } as AddressBalanceResult,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  }
 }

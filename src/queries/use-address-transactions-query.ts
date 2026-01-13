@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import { getChainProvider, type Transaction, isSupported } from '@/services/chain-adapter/providers'
+import { useKeyFetch } from '@biochain/key-fetch/react'
+import { chainConfigService } from '@/services/chain-config'
+import { Amount } from '@/types/amount'
+import type { Transaction } from '@/services/chain-adapter/providers'
 
 export const addressTransactionsQueryKeys = {
   all: ['addressTransactions'] as const,
@@ -20,30 +22,113 @@ export interface AddressTransactionsResult {
   fallbackReason?: string
 }
 
+/** API 响应类型 */
+interface TransactionQueryResponse {
+  success: boolean
+  result?: {
+    trs?: Array<{
+      height: number
+      signature: string
+      tIndex: number
+      transaction: {
+        signature: string
+        senderId: string
+        recipientId?: string
+        fee: string
+        timestamp: number
+        type: string
+        asset?: {
+          transferAsset?: {
+            amount: string
+            assetType: string
+          }
+        }
+      }
+    }>
+  }
+}
+
+/**
+ * 构建交易查询 URL
+ */
+function buildTransactionsUrl(chainId: string, address: string): string | null {
+  if (!chainId || !address) return null
+  const baseUrl = chainConfigService.getApiUrl(chainId)
+  if (!baseUrl) return null
+  return `${baseUrl}/transactions/query?address=${address}`
+}
+
+/**
+ * Query hook for fetching transactions of any address on any chain
+ * 
+ * 使用 keyFetch 响应式订阅，当区块更新时自动刷新
+ */
 export function useAddressTransactionsQuery({
   chainId,
   address,
   limit = 20,
   enabled = true,
 }: UseAddressTransactionsQueryOptions) {
-  return useQuery({
-    queryKey: addressTransactionsQueryKeys.address(chainId, address),
-    queryFn: async (): Promise<AddressTransactionsResult> => {
-      if (!chainId || !address) {
-        return { transactions: [], supported: false, fallbackReason: 'Missing chain or address' }
-      }
+  const url = buildTransactionsUrl(chainId, address)
 
-      const chainProvider = getChainProvider(chainId)
-      const result = await chainProvider.getTransactionHistory(address, limit)
-      
-      if (isSupported(result)) {
-        return { transactions: result.data, supported: true }
-      } else {
-        return { transactions: result.data, supported: false, fallbackReason: result.reason }
-      }
-    },
-    enabled: enabled && !!chainId && !!address.trim(),
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-  })
+  const { data, isLoading, isFetching, error, refetch } = useKeyFetch<TransactionQueryResponse>(
+    url,
+    {
+      enabled: enabled && !!chainId && !!address.trim(),
+      init: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address,
+          page: 1,
+          pageSize: limit,
+          sort: -1,
+        }),
+      },
+    }
+  )
+
+  // 转换为 Transaction 格式
+  const transactions: Transaction[] = data?.success && data.result?.trs
+    ? data.result.trs.map(item => {
+        const tx = item.transaction
+        const decimals = chainConfigService.getDecimals(chainId)
+        const symbol = chainConfigService.getSymbol(chainId)
+        const amountRaw = tx.asset?.transferAsset?.amount ?? '0'
+
+        return {
+          hash: tx.signature,
+          from: tx.senderId,
+          to: tx.recipientId,
+          status: 'confirmed' as const,
+          timestamp: tx.timestamp,
+          blockNumber: String(item.height),
+          action: 'transfer' as const,
+          direction: 'out' as const,
+          assets: [{
+            assetType: 'native' as const,
+            value: amountRaw,
+            symbol,
+            decimals,
+          }],
+          fee: {
+            value: tx.fee,
+            symbol,
+            decimals,
+          },
+        }
+      })
+    : []
+
+  return {
+    data: {
+      transactions,
+      supported: !error && !!data?.success,
+      fallbackReason: error?.message,
+    } as AddressTransactionsResult,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  }
 }

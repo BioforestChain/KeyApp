@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useKeyFetch } from '@biochain/key-fetch/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
@@ -20,7 +20,7 @@ import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
 import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
 import { Amount } from '@/types/amount';
-import { transactionService } from '@/services/transaction';
+import { chainConfigService } from '@/services/chain-config';
 import { InvalidDataError } from '@/services/chain-adapter/providers';
 
 function parseTxId(id: string | undefined): { chainId: string; hash: string } | null {
@@ -55,24 +55,29 @@ export function TransactionDetailPage() {
   const chainConfigState = useChainConfigState();
   const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
-
-
   const txFromHistory = useMemo<TransactionRecord | undefined>(() => {
     return transactions.find((tx) => tx.id === txId);
   }, [transactions, txId]);
 
   const parsedTxId = useMemo(() => parseTxId(txId), [txId]);
 
-  const txDetailQuery = useQuery({
-    queryKey: ['transaction-detail', txId],
-    queryFn: async () => {
-      return transactionService.getTransaction({ id: txId });
-    },
+  // 构建交易详情查询 URL
+  const txDetailUrl = useMemo(() => {
+    if (!parsedTxId || txFromHistory) return null;
+    const baseUrl = chainConfigService.getApiUrl(parsedTxId.chainId);
+    if (!baseUrl) return null;
+    return `${baseUrl}/transactions/query?signature=${parsedTxId.hash}`;
+  }, [parsedTxId, txFromHistory]);
+
+  // 使用 keyFetch 获取交易详情
+  const txDetailQuery = useKeyFetch<{
+    success: boolean;
+    result?: { trs?: Array<{ transaction: { signature: string } }> };
+  }>(txDetailUrl, {
     enabled: !!currentWallet?.id && !!txId && (!txFromHistory || needsEnhancement(txFromHistory)),
-    staleTime: 30_000,
   });
 
-  const enhancedTransaction = txDetailQuery.data ?? undefined;
+  const enhancedTransaction = txDetailQuery.data ? txFromHistory : undefined;
   const transaction = enhancedTransaction ?? txFromHistory;
 
   const isPageLoading = isLoading || txDetailQuery.isLoading;
