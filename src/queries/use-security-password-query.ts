@@ -45,7 +45,7 @@ export function useSecurityPasswordQuery(
       const chainConfig = chainConfigSelectors.getChainById(chainConfigState, chain)
       
       if (!chainConfig) {
-        console.warn(`[useSecurityPasswordQuery] Chain config not found for ${chain}`)
+        
         return { address, secondPublicKey: null }
       }
 
@@ -54,7 +54,7 @@ export function useSecurityPasswordQuery(
       const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
       
       if (!apiUrl) {
-        console.warn(`[useSecurityPasswordQuery] API URL not configured for ${chain}`)
+        
         return { address, secondPublicKey: null }
       }
 
@@ -65,7 +65,7 @@ export function useSecurityPasswordQuery(
           secondPublicKey: info.secondPublicKey ?? null,
         }
       } catch (error) {
-        console.error(`[useSecurityPasswordQuery] Failed to query for ${address}:`, error)
+        
         return { address, secondPublicKey: null }
       }
     },

@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useKeyFetch } from '@biochain/key-fetch/react'
+import { useKeyFetch } from '@biochain/key-fetch'
 import { walletActions, walletStore, type Token, type ChainType } from '@/stores'
 import { chainConfigService } from '@/services/chain-config'
 

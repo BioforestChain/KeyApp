@@ -1,4 +1,4 @@
-import { useKeyFetch } from '@biochain/key-fetch/react'
+import { useKeyFetch } from '@biochain/key-fetch'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import type { Transaction } from '@/services/chain-adapter/providers'

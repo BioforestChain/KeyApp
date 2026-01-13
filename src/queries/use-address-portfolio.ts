@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useKeyFetch } from '@biochain/key-fetch/react'
+import { useKeyFetch } from '@biochain/key-fetch'
 import { chainConfigService } from '@/services/chain-config'
 import { useChainConfigState } from '@/stores/chain-config'
 import type { TokenInfo } from '@/components/token/token-item'

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useKeyFetch } from '@biochain/key-fetch/react'
+import { useKeyFetch } from '@biochain/key-fetch'
 import { walletStore, type ChainType } from '@/stores'
 import { chainConfigService } from '@/services/chain-config'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
