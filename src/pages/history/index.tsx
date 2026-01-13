@@ -30,6 +30,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   const { 
     transactions: pendingTransactions, 
     deleteTransaction: deletePendingTx,
+    retryTransaction: retryPendingTx,
     refresh: refreshPending,
   } = usePendingTransactions(currentWallet?.id);
 
@@ -179,6 +180,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
         {pendingTransactions.length > 0 && (
           <PendingTxList
             transactions={pendingTransactions}
+            onRetry={retryPendingTx}
             onDelete={deletePendingTx}
           />
         )}
