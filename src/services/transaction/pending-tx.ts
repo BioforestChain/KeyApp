@@ -55,6 +55,12 @@ export const PendingTxSchema = z.object({
   /** 重试次数 */
   retryCount: z.number().default(0),
   
+  // ===== 确认信息 =====
+  /** 确认时的区块高度 */
+  confirmedBlockHeight: z.number().optional(),
+  /** 确认时间戳 */
+  confirmedAt: z.number().optional(),
+  
   // ===== 时间戳 =====
   createdAt: z.number(),
   updatedAt: z.number(),
@@ -88,6 +94,8 @@ export const UpdatePendingTxStatusInputSchema = z.object({
   txHash: z.string().optional(),
   errorCode: z.string().optional(),
   errorMessage: z.string().optional(),
+  confirmedBlockHeight: z.number().optional(),
+  confirmedAt: z.number().optional(),
 })
 
 export type UpdatePendingTxStatusInput = z.infer<typeof UpdatePendingTxStatusInputSchema>
@@ -305,6 +313,8 @@ class PendingTxServiceImpl implements IPendingTxService {
       ...(input.txHash !== undefined && { txHash: input.txHash }),
       ...(input.errorCode !== undefined && { errorCode: input.errorCode }),
       ...(input.errorMessage !== undefined && { errorMessage: input.errorMessage }),
+      ...(input.confirmedBlockHeight !== undefined && { confirmedBlockHeight: input.confirmedBlockHeight }),
+      ...(input.confirmedAt !== undefined && { confirmedAt: input.confirmedAt }),
     }
 
     await db.put(STORE_NAME, updated)

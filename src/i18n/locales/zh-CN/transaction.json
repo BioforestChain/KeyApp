@@ -113,7 +113,9 @@
     "copyHash": "复制哈希",
     "viewExplorer": "区块浏览器",
     "openInExplorer": "在浏览器中打开",
-    "share": "分享"
+    "share": "分享",
+    "confirmedBlockHeight": "确认区块",
+    "confirmedAt": "确认时间"
   },
   "method": {
     "approve": "授权",

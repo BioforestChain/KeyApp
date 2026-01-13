@@ -151,7 +151,9 @@
     "toAddress": "To Address",
     "viewExplorer": "View in Explorer",
     "openInExplorer": "Open in Explorer",
-    "share": "Share"
+    "share": "Share",
+    "confirmedBlockHeight": "Confirmed Block",
+    "confirmedAt": "Confirmed At"
   },
   "method": {
     "approve": "Approve",

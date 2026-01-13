@@ -338,6 +338,24 @@ export function PendingTxDetailPage() {
             </div>
           )}
 
+          {/* 确认区块高度 */}
+          {pendingTx.confirmedBlockHeight && (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">{t('detail.confirmedBlockHeight')}</span>
+              <span className="text-sm font-mono">{pendingTx.confirmedBlockHeight.toLocaleString()}</span>
+            </div>
+          )}
+
+          {/* 确认时间 */}
+          {pendingTx.confirmedAt && (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">{t('detail.confirmedAt')}</span>
+              <span className="text-sm">
+                {new Date(pendingTx.confirmedAt).toLocaleString()}
+              </span>
+            </div>
+          )}
+
           {/* 创建时间 */}
           <div className="flex items-center justify-between py-2">
             <span className="text-muted-foreground text-sm">{t('detail.time')}</span>
