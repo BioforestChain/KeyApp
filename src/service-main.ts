@@ -3,7 +3,6 @@ import {
   installLegacyAuthorizeHashRewriter,
   rewriteLegacyAuthorizeHashInPlace,
 } from '@/services/authorize/deep-link'
-import { initBioChainCacheRules } from '@/services/key-fetch-rules'
 
 export type ServiceMainCleanup = () => void
 
@@ -21,11 +20,9 @@ export function startServiceMain(): ServiceMainCleanup {
   // Initialize preference side effects (i18n + RTL) as early as possible.
   preferencesActions.initialize()
 
-  // Initialize key-fetch cache rules for reactive data fetching.
-  initBioChainCacheRules()
-
   // Start async store initializations (non-blocking).
   // ChainProvider uses lazy initialization, no explicit setup needed.
+  // KeyFetch instances are created on-demand in chain-adapter/bioforest/fetch.ts
   void walletActions.initialize()
   void chainConfigActions.initialize()
 
