@@ -162,6 +162,35 @@ export function getExpirationChecker(chainId: string): ExpirationChecker | undef
   return undefined
 }
 
+/**
+ * 检查单个 pending tx 是否已过期
+ * @param pendingTx pending 交易记录
+ * @param currentBlockHeight 当前区块高度（用于 BioChain 等链）
+ * @param maxAge 最大存活时间（毫秒），默认 24 小时
+ * @returns 是否已过期
+ */
+export function isPendingTxExpired(
+  pendingTx: PendingTx,
+  currentBlockHeight?: number,
+  maxAge: number = 24 * 60 * 60 * 1000
+): boolean {
+  // 1. 基于时间的过期检查（适用于所有链）
+  const now = Date.now()
+  if (now - pendingTx.createdAt > maxAge) {
+    return true
+  }
+  
+  // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
+  if (currentBlockHeight !== undefined) {
+    const checker = getExpirationChecker(pendingTx.chainId)
+    if (checker?.isExpired(pendingTx.rawTx, currentBlockHeight)) {
+      return true
+    }
+  }
+  
+  return false
+}
+
 // ==================== IndexedDB 实现 ====================
 
 const DB_NAME = 'bfm-pending-tx-db'

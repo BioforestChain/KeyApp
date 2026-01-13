@@ -71,6 +71,26 @@ export function PendingTxDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRetrying, setIsRetrying] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  // 计算等待时间（broadcasted 状态下实时更新）
+  useEffect(() => {
+    if (!pendingTx || pendingTx.status !== 'broadcasted') {
+      setElapsedSeconds(0)
+      return
+    }
+    
+    // 初始化已等待时间
+    const updateElapsed = () => {
+      const elapsed = Math.floor((Date.now() - pendingTx.updatedAt) / 1000)
+      setElapsedSeconds(elapsed)
+    }
+    updateElapsed()
+    
+    // 每秒更新
+    const timer = setInterval(updateElapsed, 1000)
+    return () => clearInterval(timer)
+  }, [pendingTx?.status, pendingTx?.updatedAt])
 
   // 加载 pending tx
   useEffect(() => {
@@ -249,6 +269,13 @@ export function PendingTxDetailPage() {
           <p className="text-muted-foreground text-center text-sm">
             {t(`txStatus.${pendingTx.status}Desc`)}
           </p>
+
+          {/* 等待时间（broadcasted 状态下显示） */}
+          {isBroadcasted && elapsedSeconds > 0 && (
+            <p className="text-muted-foreground text-center text-xs">
+              {t('pendingTx.waitingFor', { seconds: elapsedSeconds })}
+            </p>
+          )}
         </div>
 
         {/* 错误信息 */}

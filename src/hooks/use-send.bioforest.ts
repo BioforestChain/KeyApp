@@ -52,10 +52,10 @@ export async function fetchBioforestBalance(chainConfig: ChainConfig, fromAddres
 }
 
 export type SubmitBioforestResult =
-  | { status: 'ok'; txHash: string }
+  | { status: 'ok'; txHash: string; pendingTxId: string }
   | { status: 'password' }
   | { status: 'password_required'; secondPublicKey: string }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string; pendingTxId?: string }
 
 export interface SubmitBioforestParams {
   chainConfig: ChainConfig
@@ -216,7 +216,7 @@ export async function submitBioforestTransfer({
         status: newStatus,
         txHash,
       })
-      return { status: 'ok', txHash }
+      return { status: 'ok', txHash, pendingTxId: pendingTx.id }
     } catch (err) {
       console.error('[submitBioforestTransfer] Broadcast failed:', err)
       if (err instanceof BroadcastError) {
@@ -226,7 +226,7 @@ export async function submitBioforestTransfer({
           errorCode: err.code,
           errorMessage: translateBroadcastError(err),
         })
-        return { status: 'error', message: translateBroadcastError(err) }
+        return { status: 'error', message: translateBroadcastError(err), pendingTxId: pendingTx.id }
       }
       throw err
     }

@@ -325,6 +325,7 @@
     "failed": "Broadcast failed",
     "retry": "Retry",
     "delete": "Delete",
-    "retryCount": "Retry count"
+    "retryCount": "Retry count",
+    "waitingFor": "Waiting for {{seconds}}s"
   }
 }
