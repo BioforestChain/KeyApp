@@ -349,49 +349,26 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      // First get the latest block height
+      // 使用 keyFetch 获取最新区块高度（利用缓存和响应式轮询）
       const lastBlockUrl = `${this.baseUrl}/lastblock`
-      const blockResponse = await fetch(lastBlockUrl)
-      if (!blockResponse.ok) {
-        console.warn('[TransactionService] Failed to get lastblock:', blockResponse.status)
-        return []
-      }
-      const lastBlockJson = (await blockResponse.json()) as { success: boolean; result: { height: number; timestamp: number } }
+      const lastBlockJson = await keyFetch<{ success: boolean; result: { height: number; timestamp: number } }>(lastBlockUrl)
       if (!lastBlockJson.success) {
         console.warn('[TransactionService] lastblock API returned success=false')
         return []
       }
       const maxHeight = lastBlockJson.result.height
 
-      // Query transactions using the correct API format
+      // 使用 keyFetch 查询交易历史（利用缓存和响应式更新）
       const queryUrl = `${this.baseUrl}/transactions/query`
-      const response = await fetch(queryUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          maxHeight,
-          address, // Query all transactions for this address
-          page: 1,
-          pageSize: limit,
-          sort: -1, // Newest first
-        }),
-      })
-
-      if (!response.ok) {
-        console.warn('[TransactionService] API error:', response.status, response.statusText, 'for', queryUrl)
-        return []
-      }
-
-      // BioForest API response format: { success: boolean, result: { trs: TransactionDetail[], count: number } }
-      const json = (await response.json()) as {
+      const json = await keyFetch<{
         success: boolean
         result: {
           trs?: Array<{
             height: number
-            signature: string // Block signature
+            signature: string
             tIndex: number
             transaction: {
-              signature: string // Transaction ID
+              signature: string
               senderId: string
               recipientId?: string
               fee: string
@@ -407,7 +384,19 @@ export class BioforestTransactionService implements ITransactionService {
           }>
           count?: number
         }
-      }
+      }>(queryUrl, {
+        init: {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            maxHeight,
+            address,
+            page: 1,
+            pageSize: limit,
+            sort: -1,
+          }),
+        },
+      })
 
       if (!json.success) {
         console.warn('[TransactionService] API returned success=false')
