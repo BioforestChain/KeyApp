@@ -318,7 +318,12 @@
     "assetNotEnough": "Insufficient asset balance",
     "feeNotEnough": "Insufficient fee",
     "rejected": "Transaction rejected",
-    "unknown": "Broadcast failed, please try again"
+    "unknown": "Broadcast failed, please try again",
+    "alreadyExists": "Transaction already exists",
+    "forbidden": "Operation forbidden",
+    "assetNotExist": "Asset does not exist",
+    "invalidParams": "Invalid parameters",
+    "accountFrozen": "Account is frozen"
   },
   "pendingTx": {
     "title": "Pending Transactions",

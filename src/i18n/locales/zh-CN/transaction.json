@@ -318,7 +318,12 @@
     "assetNotEnough": "资产余额不足",
     "feeNotEnough": "手续费不足",
     "rejected": "交易被拒绝",
-    "unknown": "广播失败，请稍后重试"
+    "unknown": "广播失败，请稍后重试",
+    "alreadyExists": "交易已存在",
+    "forbidden": "操作被禁止",
+    "assetNotExist": "资产不存在",
+    "invalidParams": "参数无效",
+    "accountFrozen": "账户已冻结"
   },
   "pendingTx": {
     "title": "待处理交易",

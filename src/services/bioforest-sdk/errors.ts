@@ -88,7 +88,12 @@ export interface BroadcastResult {
 const BROADCAST_ERROR_I18N_KEYS: Record<string, string> = {
   '001-11028': 'transaction:broadcast.assetNotEnough',
   '001-11029': 'transaction:broadcast.feeNotEnough',
-  '002-41011': 'transaction:broadcast.feeNotEnough', // Transaction fee is not enough
+  '002-41011': 'transaction:broadcast.feeNotEnough',
+  '001-00034': 'transaction:broadcast.alreadyExists',
+  '001-11038': 'transaction:broadcast.forbidden',
+  '001-11039': 'transaction:broadcast.assetNotExist',
+  '001-22001': 'transaction:broadcast.invalidParams',
+  '001-11067': 'transaction:broadcast.accountFrozen',
 }
 
 /**
