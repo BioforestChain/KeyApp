@@ -16,7 +16,6 @@ import { notificationActions } from '@/stores/notification'
 import { queryClient } from '@/lib/query-client'
 import { balanceQueryKeys } from '@/queries/use-balance-query'
 import { transactionHistoryKeys } from '@/queries/use-transaction-history-query'
-import { keyFetch } from '@biochain/key-fetch'
 import i18n from '@/i18n'
 
 // ==================== 配置 ====================
@@ -269,7 +268,7 @@ class PendingTxManagerImpl {
     if (!apiUrl) return
 
     try {
-      // 使用 keyFetch 查询交易状态（利用缓存和响应式更新）
+      // 查询交易状态
       const queryUrl = `${apiUrl}/transactions/query`
       const queryBody = {
         signature: tx.txHash,
@@ -278,13 +277,17 @@ class PendingTxManagerImpl {
         maxHeight: Number.MAX_SAFE_INTEGER,
       }
 
-      const json = await keyFetch<{ success: boolean; result?: { count: number } }>(queryUrl, {
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(queryBody),
-        },
+      const response = await fetch(queryUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(queryBody),
       })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const json = await response.json() as { success: boolean; result?: { count: number } }
 
       if (json.success && json.result && json.result.count > 0) {
         // 交易已上链

@@ -24,7 +24,6 @@ import { ChainServiceError, ChainErrorCodes } from '../types'
 
 import { signMessage, bytesToHex } from '@/lib/crypto'
 import { getTransferMinFee, getBioforestCore } from '@/services/bioforest-sdk'
-import { keyFetch } from '@biochain/key-fetch'
 
 export class BioforestTransactionService implements ITransactionService {
   private readonly chainId: string
@@ -244,17 +243,20 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      // 使用 keyFetch 查询交易状态（利用缓存和响应式更新）
-      const json = await keyFetch<{
+      const response = await fetch(`${this.baseUrl}/transactions/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signature: hash }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const json = await response.json() as {
         success: boolean
         result?: { trs?: Array<{ height?: number }> }
-      }>(`${this.baseUrl}/transactions/query`, {
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: hash }),
-        },
-      })
+      }
 
       if (json.success && json.result?.trs?.[0]?.height) {
         return {
@@ -285,8 +287,17 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      // 使用 keyFetch 查询交易详情（利用缓存和响应式更新）
-      const json = await keyFetch<{
+      const response = await fetch(`${this.baseUrl}/transactions/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signature: hash }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const json = await response.json() as {
         success: boolean
         result?: {
           trs?: Array<{
@@ -305,19 +316,13 @@ export class BioforestTransactionService implements ITransactionService {
             }
           }>
         }
-      }>(`${this.baseUrl}/transactions/query`, {
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: hash }),
-        },
-      })
+      }
 
       if (!json.success || !json.result?.trs?.[0]) return null
       const item = json.result.trs[0]
       const tx = item.transaction
 
-      const { decimals, symbol } = this.config
+      const { decimals, symbol } = this.config!
 
       const amountRaw = tx.asset?.transferAsset?.amount ?? '0'
 
@@ -349,18 +354,36 @@ export class BioforestTransactionService implements ITransactionService {
     }
 
     try {
-      // 使用 keyFetch 获取最新区块高度（利用缓存和响应式轮询）
-      const lastBlockUrl = `${this.baseUrl}/lastblock`
-      const lastBlockJson = await keyFetch<{ success: boolean; result: { height: number; timestamp: number } }>(lastBlockUrl)
+      // 获取最新区块高度
+      const lastBlockResponse = await fetch(`${this.baseUrl}/lastblock`)
+      if (!lastBlockResponse.ok) {
+        throw new Error(`HTTP ${lastBlockResponse.status}`)
+      }
+      const lastBlockJson = await lastBlockResponse.json() as { success: boolean; result: { height: number; timestamp: number } }
       if (!lastBlockJson.success) {
         console.warn('[TransactionService] lastblock API returned success=false')
         return []
       }
       const maxHeight = lastBlockJson.result.height
 
-      // 使用 keyFetch 查询交易历史（利用缓存和响应式更新）
-      const queryUrl = `${this.baseUrl}/transactions/query`
-      const json = await keyFetch<{
+      // 查询交易历史
+      const queryResponse = await fetch(`${this.baseUrl}/transactions/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          maxHeight,
+          address,
+          page: 1,
+          pageSize: limit,
+          sort: -1,
+        }),
+      })
+
+      if (!queryResponse.ok) {
+        throw new Error(`HTTP ${queryResponse.status}`)
+      }
+
+      const json = await queryResponse.json() as {
         success: boolean
         result: {
           trs?: Array<{
@@ -384,19 +407,7 @@ export class BioforestTransactionService implements ITransactionService {
           }>
           count?: number
         }
-      }>(queryUrl, {
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            maxHeight,
-            address,
-            page: 1,
-            pageSize: limit,
-            sort: -1,
-          }),
-        },
-      })
+      }
 
       if (!json.success) {
         console.warn('[TransactionService] API returned success=false')

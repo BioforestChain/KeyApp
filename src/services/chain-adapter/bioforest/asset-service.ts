@@ -9,7 +9,6 @@ import { Amount } from '@/types/amount'
 import type { IAssetService, Address, Balance, TokenMetadata } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import { AddressAssetsResponseSchema } from './schema'
-import { keyFetch } from '@biochain/key-fetch'
 
 export class BioforestAssetService implements IAssetService {
   private readonly chainId: string
@@ -72,18 +71,21 @@ export class BioforestAssetService implements IAssetService {
     }
 
     try {
-      // 使用 keyFetch 获取余额（利用缓存和响应式更新）
-      const json = await keyFetch<unknown>(`${baseUrl}/address/asset`, {
-        init: {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({ address }),
+      // 直接使用 fetch 获取余额（后续可通过 React 层使用 keyFetch 订阅）
+      const response = await fetch(`${baseUrl}/address/asset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
+        body: JSON.stringify({ address }),
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const json = await response.json()
       const parsed = AddressAssetsResponseSchema.safeParse(json)
 
       if (!parsed.success) {
