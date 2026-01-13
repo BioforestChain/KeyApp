@@ -307,5 +307,19 @@
     "confirmedDesc": "交易已成功上链",
     "failedDesc": "交易处理失败，请稍后重试",
     "viewDetails": "查看详情"
+  },
+  "broadcast": {
+    "assetNotEnough": "资产余额不足",
+    "feeNotEnough": "手续费不足",
+    "rejected": "交易被拒绝",
+    "unknown": "广播失败，请稍后重试"
+  },
+  "pendingTx": {
+    "title": "待处理交易",
+    "broadcasting": "广播中",
+    "broadcasted": "等待上链",
+    "failed": "广播失败",
+    "retry": "重试",
+    "delete": "删除"
   }
 }

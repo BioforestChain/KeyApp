@@ -70,10 +70,10 @@ export function SendResult({
       {/* Status Icon */}
       <div className="mb-6">
         {isSuccess && (
-          <IconCircle icon={Check} size="lg" variant="success" className="animate-in zoom-in size-20 duration-300" />
+          <IconCircle icon={<Check className="size-full" />} size="lg" variant="success" className="animate-in zoom-in size-20 duration-300" />
         )}
         {isFailed && (
-          <IconCircle icon={X} size="lg" variant="error" className="animate-in zoom-in size-20 duration-300" />
+          <IconCircle icon={<X className="size-full" />} size="lg" variant="error" className="animate-in zoom-in size-20 duration-300" />
         )}
         {isPending && <div className="bg-muted size-20 animate-pulse rounded-full" />}
       </div>
@@ -105,14 +105,15 @@ export function SendResult({
 
       {/* Transaction Hash */}
       {txHash && isSuccess && (
-        <div className="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
-          <span>{t('sendResult.txHash')}</span>
+        <div className="text-muted-foreground mb-6 w-full max-w-sm space-y-1 text-sm">
+          <div className="text-center">{t('sendResult.txHash')}</div>
           <AddressDisplay
             address={txHash}
-            startChars={10}
-            endChars={8}
+            startChars={16}
+            endChars={16}
             copyable
             onCopy={handleCopyHash}
+            className="justify-center"
           />
         </div>
       )}

@@ -1,8 +1,12 @@
 {
   "app": {
-    "title": "鍛造",
-    "subtitle": "多鏈熔爐",
-    "description": "將其他鏈資產鍛造為 Bio 生態代幣"
+    "title": "跨鏈通",
+    "subtitle": "跨鏈橋接",
+    "description": "在外鏈與 Bio 生態之間橋接資產"
+  },
+  "mode": {
+    "recharge": "充值",
+    "redemption": "贖回"
   },
   "connect": {
     "button": "連接錢包",
@@ -15,35 +19,69 @@
     "depositAddress": "充值地址",
     "network": "網絡",
     "preview": "預覽交易",
-    "confirm": "確認鍛造",
-    "continue": "繼續鍛造"
+    "confirm": "確認充值",
+    "continue": "繼續"
+  },
+  "redemption": {
+    "title": "贖回",
+    "description": "將 Bio 代幣贖回為外鏈資產",
+    "connect": "連接錢包",
+    "from": "從",
+    "to": "到",
+    "limits": "限額",
+    "fee": "手續費",
+    "receivable": "預計到賬",
+    "addressPlaceholder": "輸入外鏈地址",
+    "targetAddress": "目標地址",
+    "preview": "預覽贖回",
+    "confirm": "確認贖回",
+    "continue": "繼續",
+    "noOptions": "暫無可用的贖回選項",
+    "success": {
+      "title": "贖回已提交"
+    },
+    "processing": {
+      "creating": "創建交易中...",
+      "signing": "簽名交易中...",
+      "submitting": "提交贖回請求..."
+    },
+    "error": {
+      "fillAll": "請填寫所有字段",
+      "below_min": "金額低於最小限額",
+      "above_max": "金額超過最大限額",
+      "amountTooLow": "扣除手續費後金額不足"
+    }
   },
   "processing": {
     "signingExternal": "簽名外鏈交易...",
     "signingInternal": "簽名內鏈消息...",
-    "submitting": "提交鍛造請求...",
-    "default": "鍛造中...",
+    "submitting": "提交請求...",
+    "default": "處理中...",
     "hint": "請在錢包中確認操作"
   },
   "success": {
-    "title": "鍛造完成",
+    "title": "完成",
     "orderId": "訂單"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "連接失敗",
     "invalidAmount": "請輸入有效金額",
-    "forgeFailed": "鍛造失敗"
+    "forgeFailed": "操作失敗"
   },
   "picker": {
-    "title": "選擇鍛造幣種",
+    "title": "選擇幣種",
     "selected": "已選"
+  },
+  "common": {
+    "back": "返回"
   },
   "chain": {
     "ETH": "Ethereum",
     "BSC": "BNB Chain",
     "TRON": "Tron",
     "bfmeta": "BFMeta",
-    "bfchain": "BFChain"
+    "bfchain": "BFChain",
+    "pmchain": "PMC"
   }
 }

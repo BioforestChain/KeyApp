@@ -230,7 +230,7 @@ function MnemonicStep({ mnemonic, hidden, copied, onToggleHidden, onCopy, onCont
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <IconCircle icon={KeyRound} variant="warning" size="lg" className="mx-auto mb-4" />
+        <IconCircle icon={<KeyRound className="size-full" />} variant="warning" size="lg" className="mx-auto mb-4" />
         <h2 className="text-xl font-bold">{t('create.backupMnemonic')}</h2>
         <p className="text-muted-foreground mt-2 text-sm">{t('create.backupHint')}</p>
       </div>
@@ -294,7 +294,7 @@ function VerifyStep({ mnemonic, onContinue }: VerifyStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
+        <IconCircle icon={<CheckCircle className="size-full" />} variant="success" size="lg" className="mx-auto mb-4" />
         <h2 className="text-xl font-bold">{t('create.verifyTitle')}</h2>
         <p className="text-muted-foreground mt-2 text-sm">{t('create.verifyDesc')}</p>
       </div>
@@ -353,7 +353,7 @@ function ChainSelectionStep({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <IconCircle icon={CheckCircle} variant="success" size="lg" className="mx-auto mb-4" />
+        <IconCircle icon={<CheckCircle className="size-full" />} variant="success" size="lg" className="mx-auto mb-4" />
         <h2 className="text-xl font-bold">{t('chainSelector.title')}</h2>
         <p className="text-muted-foreground mt-2 text-sm">{t('chainSelector.subtitle')}</p>
       </div>

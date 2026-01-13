@@ -4,7 +4,7 @@
  * 将钱包锁和二次签名确认合并到一个 BottomSheet 中，
  * 避免 stackflow 多个 sheet 的时序问题，提供更流畅的用户体验。
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { BottomSheet, SheetContent } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,7 @@ import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-status-display";
 import { useClipboard, useToast } from "@/services";
+import { useSelectedChain, useChainConfigState, chainConfigSelectors } from "@/stores";
 
 // 回调类型
 type SubmitCallback = (walletLockKey: string, twoStepSecret?: string) => Promise<{
@@ -48,6 +49,8 @@ function TransferWalletLockJobContent() {
   const { title } = useActivityParams<TransferWalletLockJobParams>();
   const clipboard = useClipboard();
   const toast = useToast();
+  const selectedChain = useSelectedChain();
+  const chainConfigState = useChainConfigState();
 
   const [step, setStep] = useState<Step>('wallet_lock');
   const [pattern, setPattern] = useState<number[]>([]);
@@ -68,6 +71,24 @@ function TransferWalletLockJobContent() {
     clearTransferWalletLockCallback();
     initialized.current = true;
   }
+
+  // Get chain config for explorer URL
+  const chainConfig = useMemo(() => {
+    return chainConfigSelectors.getChainById(chainConfigState, selectedChain);
+  }, [chainConfigState, selectedChain]);
+
+  // Build explorer URL
+  const explorerTxUrl = useMemo(() => {
+    const queryTx = chainConfig?.explorer?.queryTx;
+    if (!queryTx || !txHash) return null;
+    return queryTx.replace(':hash', txHash).replace(':signature', txHash);
+  }, [chainConfig?.explorer?.queryTx, txHash]);
+
+  const handleViewExplorer = useCallback(() => {
+    if (explorerTxUrl) {
+      window.open(explorerTxUrl, '_blank', 'noopener,noreferrer');
+    }
+  }, [explorerTxUrl]);
 
   const displayTitle = step === 'wallet_lock' 
     ? (title ?? t("security:walletLock.verifyTitle"))
@@ -185,6 +206,7 @@ function TransferWalletLockJobContent() {
                   push("TransactionDetailActivity", { txId: txHash });
                 }
               }}
+              onViewExplorer={explorerTxUrl ? handleViewExplorer : undefined}
               onShare={async () => {
                 if (txHash) {
                   await clipboard.write({ text: txHash });

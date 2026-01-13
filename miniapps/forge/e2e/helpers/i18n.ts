@@ -1,13 +1,17 @@
 /**
- * Forge E2E 测试国际化辅助
+ * BioBridge E2E 测试国际化辅助
  */
 
 import type { Page, Locator } from '@playwright/test'
 
 export const UI_TEXT = {
   app: {
-    title: { source: '锻造', pattern: /锻造|Forge/i },
-    subtitle: { source: '多链熔炉', pattern: /多链熔炉|Multi-chain Forge/i },
+    title: { source: '跨链通', pattern: /跨链通|BioBridge/i },
+    subtitle: { source: '跨链桥接', pattern: /跨链桥接|Cross-chain Bridge/i },
+  },
+  mode: {
+    recharge: { source: '充值', pattern: /充值|Recharge/i },
+    redemption: { source: '赎回', pattern: /赎回|Redemption/i },
   },
   connect: {
     button: { source: '连接钱包', pattern: /连接钱包|Connect Wallet/i },
@@ -21,24 +25,32 @@ export const UI_TEXT = {
     preview: { source: '预览交易', pattern: /预览交易|Preview/i },
   },
   confirm: {
-    title: { source: '确认锻造', pattern: /确认锻造|Confirm Forge/i },
-    button: { source: '确认锻造', pattern: /确认锻造|Confirm/i },
+    title: { source: '确认充值', pattern: /确认充值|Confirm Recharge/i },
+    button: { source: '确认充值', pattern: /确认充值|Confirm/i },
   },
   success: {
-    title: { source: '锻造完成', pattern: /锻造完成|Forge Complete/i },
-    continue: { source: '继续锻造', pattern: /继续锻造|Continue/i },
+    title: { source: '完成', pattern: /完成|Complete/i },
+    continue: { source: '继续', pattern: /继续|Continue/i },
   },
   token: {
-    select: { source: '选择锻造币种', pattern: /选择锻造币种|Select Token/i },
+    select: { source: '选择币种', pattern: /选择币种|Select Token/i },
     selected: { source: '已选', pattern: /已选|Selected/i },
   },
   processing: {
     signingExternal: { source: '签名外链交易', pattern: /签名外链交易|Signing External/i },
     signingInternal: { source: '签名内链消息', pattern: /签名内链消息|Signing Internal/i },
-    submitting: { source: '提交锻造请求', pattern: /提交锻造请求|Submitting/i },
+    submitting: { source: '提交请求', pattern: /提交请求|Submitting/i },
   },
   error: {
-    sdkNotInit: { source: 'Bio SDK 未初始化', pattern: /Bio SDK 未初始化|SDK not initialized/i },
+    sdkNotInit: { source: 'Bio SDK not initialized', pattern: /Bio SDK not initialized|Bio SDK 未初始化/i },
+  },
+  redemption: {
+    title: { source: '赎回', pattern: /赎回|Redemption/i },
+    from: { source: '从', pattern: /从|From/i },
+    to: { source: '到', pattern: /到|To/i },
+    fee: { source: '手续费', pattern: /手续费|Fee/i },
+    preview: { source: '预览赎回', pattern: /预览赎回|Preview Redemption/i },
+    confirm: { source: '确认赎回', pattern: /确认赎回|Confirm Redemption/i },
   },
 } as const
 

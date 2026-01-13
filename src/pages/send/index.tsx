@@ -85,9 +85,11 @@ export function SendPage() {
           logoUrl: found.icon,
         };
       }
+      // assetType specified but not found - return null to wait for tokens
+      return null;
     }
     
-    // Default to native asset
+    // No assetType specified - default to native asset
     const nativeBalance = tokens.find((token) => token.symbol === chainConfig.symbol);
     const balanceFormatted = nativeBalance?.balance ?? '0';
     return {
@@ -132,6 +134,7 @@ export function SendPage() {
     setAsset(asset);
   }, [chainConfig?.decimals, setAsset]);
 
+  // Sync initialAsset to useSend state when it changes (e.g., after async token loading)
   useEffect(() => {
     if (!initialAsset) return;
     setAsset(initialAsset);
@@ -276,12 +279,16 @@ export function SendPage() {
     reset();
   };
 
-  const handleViewExplorer = () => {
-    // TODO: Open block explorer with txHash
-    if (state.txHash) {
+  const handleViewExplorer = useCallback(() => {
+    if (!state.txHash) return;
+    const queryTx = chainConfig?.explorer?.queryTx;
+    if (!queryTx) {
       toast.show(t('sendPage.explorerNotImplemented'));
+      return;
     }
-  };
+    const url = queryTx.replace(':hash', state.txHash).replace(':signature', state.txHash);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, [state.txHash, chainConfig?.explorer?.queryTx, toast, t]);
 
   if (!currentWallet || !currentChainAddress) {
     return (
@@ -308,7 +315,7 @@ export function SendPage() {
           errorMessage={state.errorMessage ?? undefined}
           onDone={handleDone}
           onRetry={state.resultStatus === 'failed' ? handleRetry : undefined}
-          onViewExplorer={state.resultStatus === 'success' ? handleViewExplorer : undefined}
+          onViewExplorer={state.resultStatus === 'success' && chainConfig?.explorer?.queryTx ? handleViewExplorer : undefined}
         />
       </div>
     );

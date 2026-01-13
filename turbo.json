@@ -9,19 +9,19 @@
       "cache": true
     },
     "typecheck:run": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig*.json", "package.json"],
       "outputs": [],
       "cache": true
     },
     "test:run": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts", "package.json"],
       "outputs": [],
       "cache": true
     },
     "test:storybook": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts", ".storybook/**", "package.json"],
       "outputs": [],
       "cache": true

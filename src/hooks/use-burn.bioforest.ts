@@ -13,6 +13,7 @@ import {
   getDestroyTransactionMinFee,
   verifyTwoStepSecret,
 } from '@/services/bioforest-sdk'
+import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 
 export interface BioforestBurnFeeResult {
   amount: Amount
@@ -175,24 +176,26 @@ export async function submitBioforestBurn({
 
     // Broadcast transaction
     console.log('[submitBioforestBurn] Broadcasting...')
-    await broadcastTransaction(apiUrl, transaction).catch((err) => {
-      console.warn('[submitBioforestBurn] Broadcast warning (may still succeed):', err.message)
-    })
-
-    console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash)
-    return { status: 'ok', txHash }
+    try {
+      await broadcastTransaction(apiUrl, transaction)
+      console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash)
+      return { status: 'ok', txHash }
+    } catch (err) {
+      console.error('[submitBioforestBurn] Broadcast failed:', err)
+      if (err instanceof BroadcastError) {
+        return { status: 'error', message: translateBroadcastError(err) }
+      }
+      throw err
+    }
   } catch (error) {
     console.error('[submitBioforestBurn] FAILED:', error)
 
+    // Handle BroadcastError
+    if (error instanceof BroadcastError) {
+      return { status: 'error', message: translateBroadcastError(error) }
+    }
+
     const errorMessage = error instanceof Error ? error.message : String(error)
-
-    if (errorMessage.includes('insufficient') || errorMessage.includes('余额不足')) {
-      return { status: 'error', message: '余额不足' }
-    }
-
-    if (errorMessage.includes('fee') || errorMessage.includes('手续费')) {
-      return { status: 'error', message: '手续费不足' }
-    }
 
     return {
       status: 'error',

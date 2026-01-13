@@ -3,7 +3,7 @@ import type { AssetInfo } from '@/types/asset'
 import { Amount } from '@/types/amount'
 import { initialState, MOCK_FEES } from './use-send.constants'
 import type { SendState, UseSendOptions, UseSendReturn } from './use-send.types'
-import { fetchBioforestBalance, fetchBioforestFee, submitBioforestTransfer } from './use-send.bioforest'
+import { fetchBioforestFee, submitBioforestTransfer } from './use-send.bioforest'
 import { fetchWeb3Fee, submitWeb3Transfer, validateWeb3Address } from './use-send.web3'
 import { adjustAmountForFee, canProceedToConfirm, validateAddressInput, validateAmountInput } from './use-send.logic'
 import { submitMockTransfer } from './use-send.mock'
@@ -115,30 +115,6 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       }
     })()
   }, [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock])
-
-  useEffect(() => {
-    if (useMock || !isBioforestChain || !chainConfig || !fromAddress) return
-
-    let cancelled = false
-
-    void (async () => {
-      try {
-        const balanceAsset = await fetchBioforestBalance(chainConfig, fromAddress)
-        if (cancelled) return
-
-        setState((prev) => ({
-          ...prev,
-          asset: balanceAsset,
-        }))
-      } catch {
-        if (cancelled) return
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [chainConfig, fromAddress, isBioforestChain, useMock])
 
   // Check if can proceed
   const canProceed = useMemo(() => {
@@ -351,6 +327,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      assetType: state.asset.assetType,
       fee: state.feeAmount ?? undefined,
     })
 
@@ -412,7 +389,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    if (!state.amount) {
+    if (!state.amount || !state.asset) {
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -431,6 +408,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       fromAddress,
       toAddress: state.toAddress,
       amount: state.amount,
+      assetType: state.asset.assetType,
       fee: state.feeAmount ?? undefined,
       twoStepSecret,
     })

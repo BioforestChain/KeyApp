@@ -307,5 +307,19 @@
     "confirmedDesc": "Transaction has been confirmed on chain",
     "failedDesc": "Transaction failed, please try again later",
     "viewDetails": "View Details"
+  },
+  "broadcast": {
+    "assetNotEnough": "Insufficient asset balance",
+    "feeNotEnough": "Insufficient fee",
+    "rejected": "Transaction rejected",
+    "unknown": "Broadcast failed, please try again"
+  },
+  "pendingTx": {
+    "title": "Pending Transactions",
+    "broadcasting": "Broadcasting",
+    "broadcasted": "Awaiting confirmation",
+    "failed": "Broadcast failed",
+    "retry": "Retry",
+    "delete": "Delete"
   }
 }

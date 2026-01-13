@@ -11,6 +11,7 @@ import {
   setTwoStepSecret,
   getSignatureTransactionMinFee,
 } from '@/services/bioforest-sdk'
+import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 
 export interface BioforestFeeResult {
   amount: Amount
@@ -62,6 +63,7 @@ export interface SubmitBioforestParams {
   fromAddress: string
   toAddress: string
   amount: Amount
+  assetType: string
   fee?: Amount
   twoStepSecret?: string
 }
@@ -116,6 +118,7 @@ export async function submitBioforestTransfer({
   fromAddress,
   toAddress,
   amount,
+  assetType,
   fee,
   twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
@@ -177,33 +180,34 @@ export async function submitBioforestTransfer({
       from: fromAddress,
       to: toAddress,
       amount: amount.toRawString(),
-      assetType: chainConfig.symbol,
+      assetType,
       fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
     console.log('[submitBioforestTransfer] Transaction created:', txHash?.slice(0, 20))
 
-    // 广播交易，忽略 "rejected" 错误（API 可能返回 rejected 但交易实际成功）
+    // 广播交易
     console.log('[submitBioforestTransfer] Broadcasting...')
-    await broadcastTransaction(apiUrl, transaction).catch((err) => {
-      console.warn('[submitBioforestTransfer] Broadcast warning (may still succeed):', err.message)
-    })
-
-    console.log('[submitBioforestTransfer] SUCCESS! txHash:', txHash)
-    return { status: 'ok', txHash }
+    try {
+      await broadcastTransaction(apiUrl, transaction)
+      console.log('[submitBioforestTransfer] SUCCESS! txHash:', txHash)
+      return { status: 'ok', txHash }
+    } catch (err) {
+      console.error('[submitBioforestTransfer] Broadcast failed:', err)
+      if (err instanceof BroadcastError) {
+        return { status: 'error', message: translateBroadcastError(err) }
+      }
+      throw err
+    }
   } catch (error) {
     console.error('[submitBioforestTransfer] FAILED:', error)
 
+    // Handle BroadcastError
+    if (error instanceof BroadcastError) {
+      return { status: 'error', message: translateBroadcastError(error) }
+    }
+
     const errorMessage = error instanceof Error ? error.message : String(error)
-
-    // Handle specific error cases
-    if (errorMessage.includes('insufficient') || errorMessage.includes('余额不足')) {
-      return { status: 'error', message: '余额不足' }
-    }
-
-    if (errorMessage.includes('fee') || errorMessage.includes('手续费')) {
-      return { status: 'error', message: '手续费不足' }
-    }
 
     return {
       status: 'error',
