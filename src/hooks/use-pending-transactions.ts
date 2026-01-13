@@ -6,7 +6,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
-import { useChainConfigState, chainConfigSelectors } from '@/stores'
+import { useChainConfigState } from '@/stores'
 
 export function usePendingTransactions(walletId: string | undefined) {
   const [transactions, setTransactions] = useState<PendingTx[]>([])
