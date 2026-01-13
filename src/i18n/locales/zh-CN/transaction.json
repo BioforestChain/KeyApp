@@ -323,7 +323,9 @@
     "forbidden": "操作被禁止",
     "assetNotExist": "资产不存在",
     "invalidParams": "参数无效",
-    "accountFrozen": "账户已冻结"
+    "accountFrozen": "账户已冻结",
+    "timeout": "广播超时，请重试",
+    "failed": "广播失败"
   },
   "pendingTx": {
     "title": "待处理交易",

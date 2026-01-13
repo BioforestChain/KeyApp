@@ -181,7 +181,7 @@ class PendingTxManagerImpl {
           const updated = await pendingTxService.updateStatus({
             id: tx.id,
             status: 'failed',
-            errorMessage: '广播超时，请重试',
+            errorMessage: i18n.t('transaction:broadcast.timeout'),
           })
           this.notifySubscribers(updated)
         }

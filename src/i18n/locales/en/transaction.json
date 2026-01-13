@@ -323,7 +323,9 @@
     "forbidden": "Operation forbidden",
     "assetNotExist": "Asset does not exist",
     "invalidParams": "Invalid parameters",
-    "accountFrozen": "Account is frozen"
+    "accountFrozen": "Account is frozen",
+    "timeout": "Broadcast timeout, please retry",
+    "failed": "Broadcast failed"
   },
   "pendingTx": {
     "title": "Pending Transactions",
