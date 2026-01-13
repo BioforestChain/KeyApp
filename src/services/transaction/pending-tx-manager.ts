@@ -235,7 +235,7 @@ class PendingTxManagerImpl {
 
       const errorMessage = error instanceof BroadcastError
         ? translateBroadcastError(error)
-        : (error instanceof Error ? error.message : '广播失败')
+        : (error instanceof Error ? error.message : i18n.t('transaction:broadcast.failed'))
       const errorCode = error instanceof BroadcastError ? error.code : undefined
 
       const updated = await pendingTxService.updateStatus({
