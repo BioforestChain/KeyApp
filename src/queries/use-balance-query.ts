@@ -1,5 +1,7 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { walletActions, type Token, type ChainType } from '@/stores'
+import { useCallback } from 'react'
+import { useKeyFetch } from '@biochain/key-fetch/react'
+import { walletActions, walletStore, type Token, type ChainType } from '@/stores'
+import { chainConfigService } from '@/services/chain-config'
 
 /**
  * Balance Query Keys
@@ -28,42 +30,67 @@ export interface BalanceQueryResult {
 }
 
 /**
+ * 构建余额查询的 URL
+ * 基于 chain 和 address 生成唯一的订阅 URL
+ */
+function buildBalanceUrl(chain: ChainType | undefined, address: string | undefined): string | null {
+  if (!chain || !address) return null
+  const baseUrl = chainConfigService.getApiUrl(chain)
+  if (!baseUrl) return null
+  return `${baseUrl}/address/asset?address=${address}`
+}
+
+/**
  * Balance Query Hook
  *
  * 特性：
- * - 30 秒 staleTime：Tab 切换不会重复请求
- * - 60 秒轮询：自动刷新余额
- * - 共享缓存：多个组件使用同一 key 时共享数据
- * - 智能去重：同时发起的相同请求会被合并
- * - 返回 supported 状态：指示是否成功从 Provider 获取数据
+ * - 基于 keyFetch 的响应式订阅
+ * - 当 lastblock 更新时自动刷新（通过 deps 插件）
+ * - 按需订阅：只查询当前链
+ * - 无轮询：依赖区块高度变化触发更新
  */
 export function useBalanceQuery(walletId: string | undefined, chain: ChainType | undefined) {
-  return useQuery({
-    queryKey: balanceQueryKeys.chain(walletId ?? '', chain ?? ''),
-    queryFn: async (): Promise<BalanceQueryResult> => {
-      if (!walletId || !chain) return { tokens: [], supported: false, fallbackReason: 'Missing walletId or chain' }
+  // 获取当前链的地址
+  const wallet = walletStore.state.wallets.find(w => w.id === walletId)
+  const chainAddress = wallet?.chainAddresses.find(ca => ca.chain === chain)
+  const address = chainAddress?.address
 
-      // 调用 refreshBalance 获取余额（内部会优先 getTokenBalances）
-      const refreshResult = await walletActions.refreshBalance(walletId, chain)
+  // 构建订阅 URL
+  const url = buildBalanceUrl(chain, address)
 
-      // 从 store 中获取更新后的数据
-      const state = (await import('@/stores')).walletStore.state
-      const wallet = state.wallets.find((w) => w.id === walletId)
-      const chainAddress = wallet?.chainAddresses.find((ca) => ca.chain === chain)
-
-      return {
-        tokens: chainAddress?.tokens ?? [],
-        supported: refreshResult?.supported ?? true,
-        fallbackReason: refreshResult?.fallbackReason,
-      }
-    },
-    enabled: !!walletId && !!chain,
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    refetchInterval: 60 * 1000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+  // 使用 keyFetch 订阅余额数据
+  const { data, isLoading, isFetching, error, refetch } = useKeyFetch<{
+    success: boolean
+    result?: { assets?: Array<{ symbol: string; balance: string }> }
+  }>(url, {
+    enabled: !!walletId && !!chain && !!address,
   })
+
+  // 将 API 响应转换为 Token 格式
+  const tokens: Token[] = data?.success && data.result?.assets
+    ? data.result.assets.map(asset => ({
+        id: `${chain}:${asset.symbol}`,
+        symbol: asset.symbol,
+        name: asset.symbol,
+        balance: asset.balance,
+        fiatValue: 0,
+        change24h: 0,
+        decimals: chainConfigService.getDecimals(chain!),
+        chain: chain!,
+      }))
+    : chainAddress?.tokens ?? []
+
+  return {
+    data: {
+      tokens,
+      supported: !error,
+      fallbackReason: error?.message,
+    } as BalanceQueryResult,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  }
 }
 
 /**
@@ -72,18 +99,14 @@ export function useBalanceQuery(walletId: string | undefined, chain: ChainType |
  * 用于下拉刷新等场景
  */
 export function useRefreshBalance() {
-  const queryClient = useQueryClient()
+  const refresh = useCallback(async (walletId: string, chain: ChainType) => {
+    // 直接调用 walletActions 刷新
+    await walletActions.refreshBalance(walletId, chain)
+  }, [])
 
-  return {
-    refresh: async (walletId: string, chain: ChainType) => {
-      await queryClient.invalidateQueries({
-        queryKey: balanceQueryKeys.chain(walletId, chain),
-      })
-    },
-    refreshAll: async (walletId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: balanceQueryKeys.wallet(walletId),
-      })
-    },
-  }
+  const refreshAll = useCallback(async (walletId: string) => {
+    await walletActions.refreshAllBalances()
+  }, [])
+
+  return { refresh, refreshAll }
 }
