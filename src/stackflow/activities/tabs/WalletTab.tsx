@@ -265,10 +265,18 @@ export function WalletTab() {
       {pendingTransactions.length > 0 && (
         <div className="px-4 pt-2">
           <PendingTxList
-            transactions={pendingTransactions}
+            transactions={pendingTransactions.slice(0, 3)}
             onRetry={retryPendingTx}
             onDelete={deletePendingTx}
           />
+          {pendingTransactions.length > 3 && (
+            <button
+              onClick={() => push("HistoryActivity", { chain: selectedChain })}
+              className="mt-2 w-full rounded-lg bg-muted/60 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              {t("transaction:pendingTx.viewAll", { count: pendingTransactions.length })}
+            </button>
+          )}
         </div>
       )}
 
