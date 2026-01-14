@@ -53,12 +53,12 @@ function getStatusVariant(status: PendingTxStatus): 'primary' | 'warning' | 'err
   }
 }
 
-function PendingTxItem({ 
-  tx, 
-  onRetry, 
+function PendingTxItem({
+  tx,
+  onRetry,
   onDelete,
   onClick,
-}: { 
+}: {
   tx: PendingTx
   onRetry?: (tx: PendingTx) => void
   onDelete?: (tx: PendingTx) => void
@@ -89,7 +89,7 @@ function PendingTxItem({
   }
 
   return (
-    <div 
+    <div
       role="button"
       tabIndex={0}
       className="bg-card border-border flex w-full cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
@@ -125,23 +125,23 @@ function PendingTxItem({
             statusVariant === 'error' && 'text-destructive',
             statusVariant === 'success' && 'text-success',
           )}>
-            {t(`pendingTx.${tx.status}`)}
+            {t(`pendingTx.${tx.status}`, tx.status)}
           </span>
         </div>
-        
+
         {displayAmount && (
           <p className="text-muted-foreground text-xs">
             {displayAmount} {displaySymbol}
             {displayToAddress && (
               <span className="ml-1">
-                → <AddressDisplay 
-                    address={displayToAddress} 
-                    mode="fixed" 
-                    startChars={6} 
-                    endChars={4}
-                    copyable={false}
-                    className="inline text-xs"
-                  />
+                → <AddressDisplay
+                  address={displayToAddress}
+                  mode="compact"
+                  startChars={6}
+                  endChars={4}
+                  copyable={false}
+                  className="inline text-xs"
+                />
               </span>
             )}
           </p>
@@ -185,12 +185,12 @@ function PendingTxItem({
   )
 }
 
-export function PendingTxList({ 
-  transactions, 
-  onRetry, 
+export function PendingTxList({
+  transactions,
+  onRetry,
   onDelete,
   onClearAllFailed,
-  className 
+  className
 }: PendingTxListProps) {
   const { t } = useTranslation('transaction')
   const { navigate } = useNavigation()
