@@ -36,9 +36,6 @@ export function AddressBalancePage() {
     { enabled: !!queryChain && !!queryAddress }
   ) ?? {}
 
-  // 通过 error 类型判断是否支持
-  const _isSupported = !(error instanceof NoSupportError)
-
   const handleSearch = useCallback(() => {
     if (address.trim()) {
       setQueryAddress(address.trim())
