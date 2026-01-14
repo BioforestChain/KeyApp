@@ -95,7 +95,7 @@ export function useSecurityPassword({
   const refresh = useCallback(async () => {
     if (!chainConfig || !address) return
 
-    const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+    const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
     const apiUrl = biowallet?.endpoint
     const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
     if (!apiUrl) {
@@ -119,7 +119,7 @@ export function useSecurityPassword({
     if (!chainConfig || !publicKey) return false
 
     try {
-      const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
+      const result = await verifyTwoStepSecret(mainSecret, paySecret)
       return result !== false
     } catch {
       return false

@@ -22,7 +22,7 @@ export interface BioforestBurnFeeResult {
 }
 
 function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
-  const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+  const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
   return biowallet?.endpoint ?? null
 }
 
@@ -65,7 +65,7 @@ export async function fetchBioforestBurnFee(
       symbol: chainConfig.symbol,
     }
   } catch (error) {
-    
+
     return {
       amount: Amount.fromRaw('1000', chainConfig.decimals, chainConfig.symbol),
       symbol: chainConfig.symbol,
@@ -129,14 +129,14 @@ export async function submitBioforestBurn({
   }
 
   try {
-    
-    
+
+
     // Check if pay password is required but not provided
     const addressInfo = await getAddressInfo(apiUrl, fromAddress)
-    
-    
+
+
     if (addressInfo.secondPublicKey && !twoStepSecret) {
-      
+
       return {
         status: 'password_required',
         secondPublicKey: addressInfo.secondPublicKey,
@@ -145,16 +145,16 @@ export async function submitBioforestBurn({
 
     // Verify pay password if provided
     if (twoStepSecret && addressInfo.secondPublicKey) {
-      
+
       const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
-      
+
       if (!isValid) {
         return { status: 'error', message: '安全密码验证失败' }
       }
     }
 
     // Create destroy transaction using SDK
-    
+
     const transaction = await createDestroyTransaction({
       baseUrl: apiUrl,
       chainId: chainConfig.id,
@@ -167,7 +167,7 @@ export async function submitBioforestBurn({
       fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
-    
+
 
     // 存储到 pendingTxService
     const pendingTx = await pendingTxService.create({
@@ -184,23 +184,23 @@ export async function submitBioforestBurn({
     })
 
     // Broadcast transaction
-    
+
     await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
-    
+
     try {
       const broadcastResult = await broadcastTransaction(apiUrl, transaction)
-      
-      
+
+
       // 如果交易已存在于链上，直接标记为 confirmed
       const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
-      await pendingTxService.updateStatus({ 
-        id: pendingTx.id, 
+      await pendingTxService.updateStatus({
+        id: pendingTx.id,
         status: newStatus,
         txHash,
       })
       return { status: 'ok', txHash, pendingTxId: pendingTx.id }
     } catch (err) {
-      
+
       if (err instanceof BroadcastError) {
         await pendingTxService.updateStatus({
           id: pendingTx.id,
@@ -213,7 +213,7 @@ export async function submitBioforestBurn({
       throw err
     }
   } catch (error) {
-    
+
 
     // Handle BroadcastError
     if (error instanceof BroadcastError) {
