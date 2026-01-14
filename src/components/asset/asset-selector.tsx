@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TokenIcon } from '@/components/wallet/token-icon';
 import { AmountDisplay } from '@/components/common';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import type { TokenInfo } from '@/components/token/token-item';
 
 export interface AssetSelectorProps {
@@ -108,7 +108,7 @@ export function AssetSelector({
   return (
     <Select value={selectedValue} onValueChange={handleValueChange} disabled={disabled}>
       <SelectTrigger data-testid={testId} className={cn('bg-muted/50 h-15! w-full px-3 py-2.5', className)}>
-        <SelectValue placeholder={displayPlaceholder}>{renderTriggerContent()}</SelectValue>
+        {renderTriggerContent()}
       </SelectTrigger>
 
       <SelectContent>

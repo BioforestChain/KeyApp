@@ -39,15 +39,14 @@ export function parseAndValidate(json: unknown): ChainConfig[] {
     throw new Error(firstIssue?.message ?? 'Invalid subscription chain config')
   }
 
-  // Normalize to array with explicit typing
-  const list: Array<typeof parsed.data extends Array<infer T> ? T : typeof parsed.data> =
-    Array.isArray(json) ? parsed.data as ChainConfig[] : [parsed.data as ChainConfig]
+  // Normalize to array - parsed.data is correctly typed after success check
+  const configs = (Array.isArray(json) ? parsed.data : [parsed.data]) as ChainConfig[]
 
-  return list.map((c) => ({
+  return configs.map((c) => ({
     ...c,
     source: 'subscription' as const,
     enabled: true,
-  }))
+  })) as ChainConfig[]
 }
 
 export function mergeWithExisting(fetched: ChainConfig[], cached: ChainConfig[]): ChainConfig[] {

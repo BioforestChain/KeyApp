@@ -219,7 +219,7 @@ export class QRScanner {
   destroy() {
     if (this.worker) {
       const message: WorkerMessage = { type: 'terminate' }
-      this.worker.postMessage(message, self.location.origin)
+      this.worker.postMessage(message)
       this.worker.terminate()
       this.worker = null
     }

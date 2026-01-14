@@ -19,8 +19,8 @@ interface TokenListProps {
   renderActions?: ((token: TokenInfo, context: TokenItemContext) => React.ReactNode) | undefined
   /** Main asset symbol for the chain (used by renderActions context) */
   mainAssetSymbol?: string | undefined
-  /** Context menu handler for token items (deprecated: use menuItems) */
-  onContextMenu?: ((event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void) | undefined
+  /** Context menu handler for token items (matches TokenItem signature) */
+  onContextMenu?: ((e: React.MouseEvent, token: TokenInfo) => void) | undefined
   /** Menu items for dropdown menu (recommended approach) */
   menuItems?: ((token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]) | undefined
 }

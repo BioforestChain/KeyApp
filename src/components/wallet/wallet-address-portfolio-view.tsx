@@ -30,8 +30,8 @@ export interface WalletAddressPortfolioViewProps {
   mainAssetSymbol?: string
   /** Render prop for token item actions (deprecated: use tokenMenuItems) */
   renderTokenActions?: (token: TokenInfo, context: TokenItemContext) => React.ReactNode
-  /** Context menu handler for token items (deprecated: use tokenMenuItems) */
-  onTokenContextMenu?: (event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void
+  /** Context menu handler for token items (matches TokenItem signature) */
+  onTokenContextMenu?: (e: React.MouseEvent, token: TokenInfo) => void
   /** Menu items for token dropdown menu (recommended approach) */
   tokenMenuItems?: (token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]
   className?: string

@@ -70,7 +70,7 @@ class HologramScheduler {
       // Send to worker if ready
       this.sendTriangleMaskIfReady()
     } catch (e) {
-      
+
     }
   }
 
@@ -89,10 +89,10 @@ class HologramScheduler {
       this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
       this.worker.onmessage = this.handleMessage
       this.worker.onerror = (_e) => {
-        
+
       }
     } catch (e) {
-      
+
     }
   }
 
@@ -113,7 +113,7 @@ class HologramScheduler {
 
   register(cardId: string, canvas: HTMLCanvasElement): () => void {
     if (!this.worker) {
-      return () => {}
+      return () => { }
     }
 
     const offscreen = canvas.transferControlToOffscreen()
@@ -156,7 +156,7 @@ class HologramScheduler {
     this.worker.postMessage({
       type: 'update',
       states: [...this.states.values()],
-    } satisfies WorkerMessage, self.location.origin)
+    } satisfies WorkerMessage)
   }
 }
 
