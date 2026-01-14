@@ -10,7 +10,7 @@ import i18n from '@/i18n'
 export class BroadcastError extends Error {
   /** 是否可重试（网络超时等临时错误） */
   public readonly isRetryable: boolean
-  
+
   constructor(
     public readonly code: string | undefined,
     message: string,
@@ -18,7 +18,7 @@ export class BroadcastError extends Error {
   ) {
     super(message)
     this.name = 'BroadcastError'
-    
+
     // 判断是否可重试
     this.isRetryable = isRetryableError(code, message)
   }
@@ -37,11 +37,11 @@ function isRetryableError(code: string | undefined, message: string): boolean {
     '002-41011', // Transaction fee is not enough
     '001-00034', // Transaction already exists (though this is treated as success)
   ]
-  
+
   if (code && permanentErrorCodes.includes(code)) {
     return false
   }
-  
+
   // 检查消息中的临时错误关键词
   const lowerMessage = message.toLowerCase()
   const retryableKeywords = [
@@ -55,11 +55,11 @@ function isRetryableError(code: string | undefined, message: string): boolean {
     'fetch failed',
     'failed to fetch',
   ]
-  
+
   if (retryableKeywords.some(keyword => lowerMessage.includes(keyword))) {
     return true
   }
-  
+
   // 检查消息中的永久错误关键词
   const permanentKeywords = [
     'insufficient',
@@ -68,11 +68,11 @@ function isRetryableError(code: string | undefined, message: string): boolean {
     'invalid',
     'expired',
   ]
-  
+
   if (permanentKeywords.some(keyword => lowerMessage.includes(keyword))) {
     return false
   }
-  
+
   // 默认：无错误码的未知错误假设可重试
   return code === undefined
 }
@@ -111,9 +111,9 @@ export function translateBroadcastError(err: BroadcastError): string {
   // 1. 尝试通过错误码翻译
   const i18nKey = getBroadcastErrorI18nKey(err.code)
   if (i18nKey && i18n.exists(i18nKey)) {
-    return i18n.t(i18nKey)
+    return i18n.t(i18nKey, i18nKey)
   }
-  
+
   // 2. 尝试从原始消息中识别错误类型
   const message = err.message.toLowerCase()
   if (message.includes('asset not enough') || message.includes('insufficient')) {
@@ -125,7 +125,7 @@ export function translateBroadcastError(err: BroadcastError): string {
   if (message.includes('rejected')) {
     return i18n.t('transaction:broadcast.rejected')
   }
-  
+
   // 3. 使用原始消息或默认消息
   return err.message || i18n.t('transaction:broadcast.unknown')
 }

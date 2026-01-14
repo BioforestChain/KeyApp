@@ -44,14 +44,13 @@ const NativeTxSchema = z.object({
 type ApiResponse = z.infer<typeof ApiResponseSchema>
 type NativeTx = z.infer<typeof NativeTxSchema>
 
-// ==================== EVM Chain IDs ====================
-
-const EVM_CHAIN_IDS: Record<string, number> = {
-  ethereum: 1,
-  binance: 56,
-  'ethereum-sepolia': 11155111,
-  'bsc-testnet': 97,
-}
+// EVM Chain IDs - preserved for future use
+// const EVM_CHAIN_IDS: Record<string, number> = {
+//   ethereum: 1,
+//   binance: 56,
+//   'ethereum-sepolia': 11155111,
+//   'bsc-testnet': 97,
+// }
 
 // ==================== 工具函数 ====================
 

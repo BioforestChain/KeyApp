@@ -100,7 +100,7 @@ export function SendPage() {
   }, [chainConfig, tokens, initialAssetType]);
 
   // useSend hook must be called before any code that references state/setAsset
-  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
     initialAsset: initialAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
