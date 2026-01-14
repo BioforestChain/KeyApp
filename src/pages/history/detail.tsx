@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useKeyFetch } from '@biochain/key-fetch';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
 import {
@@ -13,15 +12,13 @@ import { AmountDisplay, TimeDisplay, CopyableText } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { SkeletonCard } from '@/components/common';
-import { useTransactionHistoryQuery, type TransactionRecord } from '@/queries';
+import { getChainProvider } from '@/services/chain-adapter/providers';
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
 import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
 import { Amount } from '@/types/amount';
-import { chainConfigService } from '@/services/chain-config';
-import { InvalidDataError } from '@/services/chain-adapter/providers';
 
 function parseTxId(id: string | undefined): { chainId: string; hash: string } | null {
   if (!id) return null;
@@ -30,58 +27,31 @@ function parseTxId(id: string | undefined): { chainId: string; hash: string } | 
   return { chainId, hash };
 }
 
-function needsEnhancement(record: TransactionRecord | undefined): boolean {
-  if (!record) return false;
-
-  if (record.type === 'swap') {
-    const assets = record.assets ?? [];
-    return assets.length < 2;
-  }
-
-  if (record.type === 'approve' || record.type === 'interaction') {
-    const method = record.contract?.method;
-    const methodId = record.contract?.methodId;
-    return !method && !methodId;
-  }
-
-  return false;
-}
-
 export function TransactionDetailPage() {
   const { t } = useTranslation(['transaction', 'common']);
   const { goBack } = useNavigation();
   const { txId } = useActivityParams<{ txId: string }>();
   const currentWallet = useCurrentWallet();
   const chainConfigState = useChainConfigState();
-  const { transactions, isLoading } = useTransactionHistoryQuery(currentWallet?.id);
 
-  const txFromHistory = useMemo<TransactionRecord | undefined>(() => {
-    return transactions.find((tx) => tx.id === txId);
-  }, [transactions, txId]);
-
+  // 解析 txId 获取 chainId 和 hash
   const parsedTxId = useMemo(() => parseTxId(txId), [txId]);
+  const chainId = parsedTxId?.chainId;
 
-  // 构建交易详情查询 URL
-  const txDetailUrl = useMemo(() => {
-    if (!parsedTxId || txFromHistory) return null;
-    const baseUrl = chainConfigService.getApiUrl(parsedTxId.chainId);
-    if (!baseUrl) return null;
-    return `${baseUrl}/transactions/query?signature=${parsedTxId.hash}`;
-  }, [parsedTxId, txFromHistory]);
+  // 获取 ChainProvider 用于查询交易详情
+  const chainProvider = useMemo(
+    () => (chainId ? getChainProvider(chainId) : null),
+    [chainId]
+  );
 
-  // 使用 keyFetch 获取交易详情
-  const txDetailQuery = useKeyFetch<{
-    success: boolean;
-    result?: { trs?: Array<{ transaction: { signature: string } }> };
-  }>(txDetailUrl, {
-    enabled: !!currentWallet?.id && !!txId && (!txFromHistory || needsEnhancement(txFromHistory)),
-  });
+  // 使用 ChainProvider.transaction.useState() 获取交易详情
+  const { data: transaction, isLoading, error, refetch } = chainProvider?.transaction.useState(
+    { hash: parsedTxId?.hash ?? '' },
+    { enabled: !!parsedTxId?.hash }
+  ) ?? {}
 
-  const enhancedTransaction = txDetailQuery.data ? txFromHistory : undefined;
-  const transaction = enhancedTransaction ?? txFromHistory;
-
-  const isPageLoading = isLoading || txDetailQuery.isLoading;
-
+  const isPageLoading = isLoading
+  // error 可用于显示错误或判断是否支持
   // 获取链配置（用于构建浏览器 URL）
   const chainConfig = useMemo(() => {
     const chainId = transaction?.chain ?? parsedTxId?.chainId;

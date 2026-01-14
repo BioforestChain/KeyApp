@@ -25,7 +25,7 @@ export class BioforestChainService implements IChainService {
       const config = chainConfigService.getConfig(this.chainId)
       if (!config) {
         throw new ChainServiceError(
-          ChainErrorCodes.CHAIN_NOT_FOUND,
+          ChainErrorCodes.CHAIN_NOT_SUPPORTED,
           `Chain config not found: ${this.chainId}`,
         )
       }

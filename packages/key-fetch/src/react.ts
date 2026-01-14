@@ -5,9 +5,10 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { 
-  KeyFetchInstance, 
-  AnyZodSchema, 
+import { injectUseState } from './core'
+import type {
+  KeyFetchInstance,
+  AnyZodSchema,
   InferOutput,
   FetchParams,
   UseKeyFetchResult,
@@ -44,25 +45,25 @@ export function useKeyFetch<S extends AnyZodSchema>(
   options?: UseKeyFetchOptions
 ): UseKeyFetchResult<InferOutput<S>> {
   type T = InferOutput<S>
-  
+
   const [data, setData] = useState<T | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [isFetching, setIsFetching] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined)
-  
+
   const paramsRef = useRef(params)
   paramsRef.current = params
-  
+
   const enabled = options?.enabled !== false
 
   const refetch = useCallback(async () => {
     if (!enabled) return
-    
+
     setIsFetching(true)
     setError(undefined)
-    
+
     try {
-      const result = await kf.fetch(paramsRef.current, { skipCache: true })
+      const result = await kf.fetch(paramsRef.current ?? {}, { skipCache: true })
       setData(result)
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)))
@@ -85,7 +86,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     setIsFetching(true)
     setError(undefined)
 
-    const unsubscribe = kf.subscribe(params, (newData, _event) => {
+    const unsubscribe = kf.subscribe(params ?? {}, (newData, _event) => {
       setData(newData)
       setIsLoading(false)
       setIsFetching(false)
@@ -126,7 +127,7 @@ export function useKeyFetchSubscribe<S extends AnyZodSchema>(
   callbackRef.current = callback
 
   useEffect(() => {
-    const unsubscribe = kf.subscribe(params, (data, event) => {
+    const unsubscribe = kf.subscribe(params ?? {}, (data, event) => {
       callbackRef.current(data, event)
     })
 
@@ -135,3 +136,21 @@ export function useKeyFetchSubscribe<S extends AnyZodSchema>(
     }
   }, [kf, JSON.stringify(params)])
 }
+
+// ==================== 注入 useState 实现 ====================
+
+/**
+ * 内部 useState 实现
+ * 复用 useKeyFetch 逻辑，供 KeyFetchInstance.useState() 调用
+ */
+function useStateImpl<S extends AnyZodSchema>(
+  kf: KeyFetchInstance<S>,
+  params?: FetchParams,
+  options?: { enabled?: boolean }
+): UseKeyFetchResult<InferOutput<S>> {
+  return useKeyFetch(kf, params, options)
+}
+
+// 注入到 KeyFetchInstance.prototype
+injectUseState(useStateImpl)
+

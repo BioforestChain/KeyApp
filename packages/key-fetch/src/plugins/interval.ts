@@ -1,10 +1,10 @@
 /**
  * Interval Plugin
  * 
- * 定时轮询插件 - 适配新的工厂模式架构
+ * 定时轮询插件 - 中间件模式
  */
 
-import type { CachePlugin, AnyZodSchema, SubscribeContext } from '../types'
+import type { FetchPlugin, SubscribeContext } from '../types'
 
 export interface IntervalOptions {
   /** 轮询间隔（毫秒）或动态获取函数 */
@@ -27,7 +27,7 @@ export interface IntervalOptions {
  * use: [interval(() => getForgeInterval())]
  * ```
  */
-export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema> {
+export function interval(ms: number | (() => number)): FetchPlugin {
   // 每个参数组合独立的轮询状态
   const timers = new Map<string, ReturnType<typeof setInterval>>()
   const subscriberCounts = new Map<string, number>()
@@ -39,6 +39,11 @@ export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema>
   return {
     name: 'interval',
 
+    // 透传请求（不修改）
+    async onFetch(request, next) {
+      return next(request)
+    },
+
     onSubscribe(ctx) {
       const key = getKey(ctx)
       const count = (subscriberCounts.get(key) ?? 0) + 1
@@ -47,14 +52,12 @@ export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema>
       // 首个订阅者，启动轮询
       if (count === 1) {
         const intervalMs = typeof ms === 'function' ? ms() : ms
-        
 
         const poll = async () => {
           try {
-            const data = await ctx.kf.fetch(ctx.params as Record<string, string>, { skipCache: true })
-            ctx.notify(data)
+            await ctx.refetch()
           } catch (error) {
-            
+            // 静默处理轮询错误
           }
         }
 
@@ -71,7 +74,6 @@ export function interval(ms: number | (() => number)): CachePlugin<AnyZodSchema>
         if (newCount === 0) {
           const timer = timers.get(key)
           if (timer) {
-            
             clearInterval(timer)
             timers.delete(key)
           }

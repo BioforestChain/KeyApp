@@ -134,13 +134,16 @@ export interface IAssetService {
 }
 
 export interface ITransactionService {
+  // 写入操作 - 使用原生 fetch
   estimateFee(params: TransferParams): Promise<FeeEstimate>
   buildTransaction(params: TransferParams): Promise<UnsignedTransaction>
   signTransaction(unsignedTx: UnsignedTransaction, privateKey: Uint8Array): Promise<SignedTransaction>
   broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash>
-  getTransactionStatus(hash: TransactionHash): Promise<TransactionStatus>
-  getTransaction(hash: TransactionHash): Promise<Transaction | null>
-  getTransactionHistory(address: Address, limit?: number): Promise<Transaction[]>
+
+  // 查询操作 - 使用 Provider 层的 keyFetch
+  // getTransactionStatus: 通过 Provider.transactionStatus fetcher 获取
+  // getTransaction: 通过 Provider.transaction fetcher 获取
+  // getTransactionHistory: 通过 Provider.transactionHistory fetcher 获取
 }
 
 export interface IChainService {

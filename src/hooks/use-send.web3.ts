@@ -8,7 +8,7 @@ import type { AssetInfo } from '@/types/asset'
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import { getChainProvider, isSupported } from '@/services/chain-adapter/providers'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import { mnemonicToSeedSync } from '@scure/bip39'
 
 export interface Web3FeeResult {
@@ -18,7 +18,7 @@ export interface Web3FeeResult {
 
 export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string): Promise<Web3FeeResult> {
   const chainProvider = getChainProvider(chainConfig.id)
-  
+
   if (!chainProvider.supportsFeeEstimate) {
     throw new Error(`Chain ${chainConfig.id} does not support fee estimation`)
   }
@@ -37,17 +37,13 @@ export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string
 
 export async function fetchWeb3Balance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
   const chainProvider = getChainProvider(chainConfig.id)
-  const result = await chainProvider.getNativeBalance(fromAddress)
-  
-  if (!isSupported(result)) {
-    throw new Error(result.reason || `Chain ${chainConfig.id} balance query failed`)
-  }
+  const balance = await chainProvider.nativeBalance.fetch({ address: fromAddress })
 
   return {
-    assetType: result.data.symbol,
+    assetType: balance.symbol,
     name: chainConfig.name,
-    amount: result.data.amount,
-    decimals: result.data.amount.decimals,
+    amount: balance.amount,
+    decimals: balance.amount.decimals,
   }
 }
 
@@ -93,18 +89,18 @@ export async function submitWeb3Transfer({
 
   try {
     const chainProvider = getChainProvider(chainConfig.id)
-    
+
     if (!chainProvider.supportsFullTransaction) {
       return { status: 'error', message: `该链不支持完整交易流程: ${chainConfig.id}` }
     }
 
-    
+
 
     // Derive private key from mnemonic
     const seed = mnemonicToSeedSync(mnemonic)
-    
+
     // Build unsigned transaction
-    
+
     const unsignedTx = await chainProvider.buildTransaction!({
       from: fromAddress,
       to: toAddress,
@@ -112,17 +108,17 @@ export async function submitWeb3Transfer({
     })
 
     // Sign transaction
-    
+
     const signedTx = await chainProvider.signTransaction!(unsignedTx, seed)
 
     // Broadcast transaction
-    
+
     const txHash = await chainProvider.broadcastTransaction!(signedTx)
 
-    
+
     return { status: 'ok', txHash }
   } catch (error) {
-    
+
 
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -151,7 +147,7 @@ export async function submitWeb3Transfer({
  */
 export function validateWeb3Address(chainConfig: ChainConfig, address: string): string | null {
   const chainProvider = getChainProvider(chainConfig.id)
-  
+
   if (!chainProvider.supportsAddressValidation) {
     return '不支持的链类型'
   }

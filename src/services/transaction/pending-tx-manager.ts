@@ -14,8 +14,6 @@ import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sd
 import { chainConfigSelectors, useChainConfigState } from '@/stores';
 import { notificationActions } from '@/stores/notification';
 import { queryClient } from '@/lib/query-client';
-import { balanceQueryKeys } from '@/queries/use-balance-query';
-import { transactionHistoryKeys } from '@/queries/use-transaction-history-query';
 import i18n from '@/i18n';
 
 // ==================== 配置 ====================
@@ -59,7 +57,7 @@ class PendingTxManagerImpl {
     if (this.state.isRunning) return;
 
     this.state.isRunning = true;
-    
+
 
     // 启动定时同步
     this.state.syncTimer = setInterval(() => {
@@ -83,7 +81,7 @@ class PendingTxManagerImpl {
       this.state.syncTimer = null;
     }
 
-    
+
   }
 
   /**
@@ -104,7 +102,7 @@ class PendingTxManagerImpl {
       try {
         callback(tx);
       } catch (error) {
-        
+
       }
     });
   }
@@ -118,9 +116,9 @@ class PendingTxManagerImpl {
     try {
       // 由于我们不知道所有 walletId，这里需要一个 getAllPending 方法
       // 暂时跳过，等待 UI 层提供 walletId
-      
+
     } catch (error) {
-      
+
     }
   }
 
@@ -135,7 +133,7 @@ class PendingTxManagerImpl {
         maxAge: CONFIG.CLEANUP_MAX_AGE,
       });
       if (cleanedCount > 0) {
-        
+
       }
 
       const pendingTxs = await pendingTxService.getPending({ walletId });
@@ -144,7 +142,7 @@ class PendingTxManagerImpl {
         await this.processPendingTransaction(tx, chainConfigState);
       }
     } catch (error) {
-      
+
     }
   }
 
@@ -192,14 +190,14 @@ class PendingTxManagerImpl {
   private async tryBroadcast(tx: PendingTx, chainConfigState: ReturnType<typeof useChainConfigState>) {
     const chainConfig = chainConfigSelectors.getChainById(chainConfigState, tx.chainId);
     if (!chainConfig) {
-      
+
       return;
     }
 
     const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
     const apiUrl = biowallet?.endpoint;
     if (!apiUrl) {
-      
+
       return;
     }
 
@@ -223,9 +221,9 @@ class PendingTxManagerImpl {
       // 发送广播成功通知
       this.sendNotification(updated, newStatus === 'confirmed' ? 'confirmed' : 'broadcasted');
 
-      
+
     } catch (error) {
-      
+
 
       const errorMessage =
         error instanceof BroadcastError
@@ -297,17 +295,17 @@ class PendingTxManagerImpl {
         // 刷新余额
         this.invalidateBalance(tx.walletId, tx.chainId);
 
-        
+
       } else {
         // 检查是否超时
         const elapsed = Date.now() - tx.updatedAt;
         if (elapsed > CONFIG.CONFIRM_TIMEOUT) {
-          
+
           // 不自动标记失败，只记录日志，让用户决定
         }
       }
     } catch (error) {
-      
+
     }
   }
 
@@ -342,10 +340,10 @@ class PendingTxManagerImpl {
         title = i18n.t('notification:pendingTx.broadcasted.title');
         message = displayAmount
           ? i18n.t('notification:pendingTx.broadcasted.message', {
-              type: displayType,
-              amount: displayAmount,
-              symbol: displaySymbol,
-            })
+            type: displayType,
+            amount: displayAmount,
+            symbol: displaySymbol,
+          })
           : i18n.t('notification:pendingTx.broadcasted.messageSimple');
         status = 'pending';
         break;
@@ -354,10 +352,10 @@ class PendingTxManagerImpl {
         title = i18n.t('notification:pendingTx.confirmed.title');
         message = displayAmount
           ? i18n.t('notification:pendingTx.confirmed.message', {
-              type: displayType,
-              amount: displayAmount,
-              symbol: displaySymbol,
-            })
+            type: displayType,
+            amount: displayAmount,
+            symbol: displaySymbol,
+          })
           : i18n.t('notification:pendingTx.confirmed.messageSimple');
         status = 'success';
         break;
@@ -388,16 +386,17 @@ class PendingTxManagerImpl {
   private invalidateBalance(walletId: string, chainId: string) {
     try {
       // 使 balance query 缓存失效，触发重新获取
+      // 使用内联 query key（src/queries 已废弃）
       queryClient.invalidateQueries({
-        queryKey: balanceQueryKeys.chain(walletId, chainId),
+        queryKey: ['balance', walletId, chainId],
       });
       // 使交易历史缓存失效
       queryClient.invalidateQueries({
-        queryKey: transactionHistoryKeys.wallet(walletId),
+        queryKey: ['transactionHistory', walletId],
       });
-      
+
     } catch (error) {
-      
+
     }
   }
 }

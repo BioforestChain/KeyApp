@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   mockGetEnabledChains: vi.fn(),
   mockGetChainById: vi.fn(),
   mockCreateBioforestAdapter: vi.fn(),
-  mockGetTransactionHistory: vi.fn(),
+  mockTransactionHistoryFetch: vi.fn(),
   mockGetChainProvider: vi.fn(),
 }))
 
@@ -43,7 +43,7 @@ describe('transactionService(web)', () => {
     vi.clearAllMocks()
   })
 
-  it('loads EVM history via ChainProvider.getTransactionHistory', async () => {
+  it('loads EVM history via ChainProvider.transactionHistory.fetch()', async () => {
     mocks.mockWalletStorageInitialize.mockResolvedValue(undefined)
     mocks.mockGetWalletChainAddresses.mockResolvedValue([
       {
@@ -64,34 +64,33 @@ describe('transactionService(web)', () => {
     mocks.mockGetEnabledChains.mockReturnValue([ethereumConfig])
     mocks.mockGetChainById.mockReturnValue(null)
 
+    // 新 API: transactionHistory.fetch() 直接返回数组
+    mocks.mockTransactionHistoryFetch.mockResolvedValue([
+      {
+        hash: '0xdeadbeef',
+        from: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
+        to: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
+        timestamp: 1_700_000_000_000,
+        status: 'confirmed',
+        blockNumber: 123n,
+        action: 'transfer',
+        direction: 'out',
+        assets: [
+          {
+            assetType: 'native',
+            value: '1000000000000000000',
+            symbol: 'ETH',
+            decimals: 18,
+          },
+        ],
+      },
+    ])
+
     mocks.mockGetChainProvider.mockReturnValue({
       supportsTransactionHistory: true,
-      getTransactionHistory: mocks.mockGetTransactionHistory,
-    })
-
-    // 返回 ProviderResult 格式（使用新的 Transaction 结构）
-    mocks.mockGetTransactionHistory.mockResolvedValue({
-      supported: true,
-      data: [
-        {
-          hash: '0xdeadbeef',
-          from: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
-          to: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
-          timestamp: 1_700_000_000_000,
-          status: 'confirmed',
-          blockNumber: 123n,
-          action: 'transfer',
-          direction: 'out',
-          assets: [
-            {
-              assetType: 'native',
-              value: '1000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-          ],
-        },
-      ],
+      transactionHistory: {
+        fetch: mocks.mockTransactionHistoryFetch,
+      },
     })
 
     const records = await transactionService.getHistory({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -8,7 +8,8 @@ import { MigrationRequiredView } from "@/components/common/migration-required-vi
 import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
-import { useBalanceQuery, useTransactionHistoryQuery } from "@/queries";
+import { getChainProvider } from "@/services/chain-adapter/providers";
+import { NoSupportError } from "@biochain/key-fetch";
 import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { PendingTxList } from "@/components/transaction/pending-tx-list";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
@@ -76,29 +77,51 @@ export function WalletTab() {
   // 初始化钱包主题
   useWalletTheme();
 
-  // 余额查询（包含 supported 状态）
-  const { data: balanceData, isFetching: isRefreshing } = useBalanceQuery(
-    currentWallet?.id,
-    selectedChain
+  // 获取当前链地址
+  const currentChainAddress = currentWallet?.chainAddresses?.find(
+    (ca) => ca.chain === selectedChain
+  );
+  const address = currentChainAddress?.address;
+
+  // 获取 ChainProvider 的响应式 fetchers
+  const chainProvider = useMemo(
+    () => (selectedChain ? getChainProvider(selectedChain) : null),
+    [selectedChain]
   );
 
-  // 交易历史 - 按当前选中的链过滤
-  const { transactions, isLoading: txLoading, setFilter } = useTransactionHistoryQuery(
-    currentWallet?.id
-  );
+  // 余额查询（使用 fetcher.useState()）- 不再需要可选链
+  const { data: balanceResult, isFetching: isRefreshing, error: balanceError } = chainProvider?.nativeBalance.useState(
+    { address: address ?? "" },
+    { enabled: !!address }
+  ) ?? {}
+
+  // 交易历史（使用 fetcher.useState()）- 不再需要可选链
+  const { data: txResult, isLoading: txLoading, error: txError } = chainProvider?.transactionHistory.useState(
+    { address: address ?? "", limit: 50 },
+    { enabled: !!address }
+  ) ?? {}
+
+  // 通过 error 类型判断是否支持
+  const balanceSupported = !(balanceError instanceof NoSupportError)
+  const txSupported = !(txError instanceof NoSupportError)
+
+  // 转换余额数据格式
+  const balanceData = useMemo(() => ({
+    tokens: tokens,
+    supported: !!balanceResult,
+    fallbackReason: !chainProvider?.nativeBalance ? "No balance provider" : undefined,
+  }), [balanceResult, chainProvider?.nativeBalance, tokens]);
+
+  // 转换交易历史格式
+  const transactions = useMemo(() => txResult ?? [], [txResult]);
 
   // Pending Transactions
-  const { 
-    transactions: pendingTransactions, 
+  const {
+    transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
     clearAllFailed: clearAllFailedPendingTx,
   } = usePendingTransactions(currentWallet?.id);
-
-  // 当链切换时更新交易过滤器
-  useEffect(() => {
-    setFilter((prev) => ({ ...prev, chain: selectedChain }));
-  }, [selectedChain, setFilter]);
 
   // 复制地址
   const handleCopyAddress = useCallback(
@@ -310,8 +333,8 @@ export function WalletTab() {
           tokenMenuItems={getTokenMenuItems}
           renderTransactionFooter={() => (
             <button
-              onClick={() => push("HistoryActivity", { 
-                chain: transactions.length > 0 ? selectedChain : "all" 
+              onClick={() => push("HistoryActivity", {
+                chain: transactions.length > 0 ? selectedChain : "all"
               })}
               className="mt-3 w-full rounded-lg bg-muted/60 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
             >

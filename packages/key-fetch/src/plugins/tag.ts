@@ -1,10 +1,10 @@
 /**
  * Tag Plugin
  * 
- * 标签插件 - 用于批量失效
+ * 标签插件 - 用于批量失效（中间件模式）
  */
 
-import type { CachePlugin, AnyZodSchema } from '../types'
+import type { FetchPlugin } from '../types'
 
 // 全局标签映射
 const tagToInstances = new Map<string, Set<string>>()
@@ -24,26 +24,27 @@ const tagToInstances = new Map<string, Set<string>>()
  * keyFetch.invalidateByTag('wallet-data')
  * ```
  */
-export function tag(...tags: string[]): CachePlugin<AnyZodSchema> {
+export function tag(...tags: string[]): FetchPlugin {
+  let initialized = false
+
   return {
     name: 'tag',
 
-    setup(ctx) {
-      for (const t of tags) {
-        let instances = tagToInstances.get(t)
-        if (!instances) {
-          instances = new Set()
-          tagToInstances.set(t, instances)
+    async onFetch(request, next, context) {
+      // 首次请求时注册标签
+      if (!initialized) {
+        initialized = true
+        for (const t of tags) {
+          let instances = tagToInstances.get(t)
+          if (!instances) {
+            instances = new Set()
+            tagToInstances.set(t, instances)
+          }
+          instances.add(context.name)
         }
-        instances.add(ctx.kf.name)
       }
 
-      return () => {
-        for (const t of tags) {
-          const instances = tagToInstances.get(t)
-          instances?.delete(ctx.kf.name)
-        }
-      }
+      return next(request)
     },
   }
 }
@@ -56,7 +57,6 @@ export function invalidateByTag(tagName: string): void {
   if (instances) {
     // 需要通过 registry 失效
     // 这里仅提供辅助函数，实际失效需要在外部调用
-    
   }
 }
 

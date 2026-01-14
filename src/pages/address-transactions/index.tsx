@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { useEnabledChains } from '@/stores'
-import { useAddressTransactionsQuery } from '@/queries'
+import { getChainProvider, type Transaction } from '@/services/chain-adapter/providers'
+import { NoSupportError } from '@biochain/key-fetch'
 import { IconSearch, IconExternalLink, IconArrowUpRight, IconArrowDownLeft, IconLoader2 } from '@tabler/icons-react'
-import type { Transaction } from '@/services/chain-adapter/providers/types'
 
 function formatAmount(amount: string, decimals: number): string {
   const num = parseFloat(amount) / Math.pow(10, decimals)
@@ -27,7 +27,7 @@ function TransactionItem({ tx, address }: { tx: Transaction; address: string }) 
   const value = primaryAsset ? primaryAsset.value : '0'
   const symbol = primaryAsset ? primaryAsset.symbol : ''
   const decimals = primaryAsset ? primaryAsset.decimals : 0
-  
+
   return (
     <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
       <div className={`p-2 rounded-full ${isOutgoing ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
@@ -62,15 +62,20 @@ export function AddressTransactionsPage() {
     [enabledChains, selectedChain]
   )
 
-  const { data: txResult, isLoading, isError, refetch } = useAddressTransactionsQuery({
-    chainId: selectedChain,
-    address: searchAddress,
-    enabled: !!searchAddress,
-  })
+  // 获取 ChainProvider
+  const chainProvider = useMemo(
+    () => (selectedChain && searchAddress ? getChainProvider(selectedChain) : null),
+    [selectedChain, searchAddress]
+  )
 
-  // 从查询结果中提取数据
-  const transactions = txResult?.transactions ?? []
-  const supportsTransactionHistory = txResult?.supported ?? true
+  // 使用 fetcher.useState() - 不再需要可选链
+  const { data: transactions, isLoading, error, refetch } = chainProvider?.transactionHistory.useState(
+    { address: searchAddress, limit: 50 },
+    { enabled: !!searchAddress }
+  ) ?? {}
+
+  // 通过 error 类型判断是否支持
+  const supportsTransactionHistory = !(error instanceof NoSupportError)
 
   const explorerUrl = useMemo(() => {
     if (!selectedChainConfig?.explorer || !searchAddress.trim()) return null
@@ -173,7 +178,7 @@ export function AddressTransactionsPage() {
                 <div className="flex items-center justify-center py-8">
                   <IconLoader2 className="size-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : isError ? (
+              ) : error ? (
                 <div className="text-center py-8 text-destructive">
                   {t('common:addressLookup.queryError')}
                 </div>
@@ -185,7 +190,6 @@ export function AddressTransactionsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  {/* 不支持直接查询历史的链，显示浏览器提示 */}
                   {!supportsTransactionHistory ? (
                     <p>{t('common:addressLookup.useExplorerHint')}</p>
                   ) : (

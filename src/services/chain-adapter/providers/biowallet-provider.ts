@@ -1,430 +1,439 @@
 /**
  * BioWallet API Provider
  * 
- * 提供 BioForest 链的余额和交易历史查询能力。
+ * 使用 Mixin 继承模式组合 Identity 和 Transaction 能力
  */
 
 import { z } from 'zod'
-import type { ApiProvider, Balance, Transaction, TokenBalance, Action, Direction } from './types'
+import { keyFetch, ttl, derive, transform, postBody } from '@biochain/key-fetch'
+import type { KeyFetchInstance } from '@biochain/key-fetch'
+import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action } from './types'
+import {
+  BalanceOutputSchema,
+  TokenBalancesOutputSchema,
+  TransactionsOutputSchema,
+  BlockHeightOutputSchema,
+} from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
-import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+import { BioforestIdentityMixin } from '../bioforest/identity-mixin'
+import { BioforestTransactionMixin } from '../bioforest/transaction-mixin'
 
-const BiowalletAssetItemSchema = z.looseObject({
+// ==================== 参数 Schema 定义 ====================
+
+/** 地址资产查询参数 Schema */
+export const AddressParamsSchema = z.object({
+  address: z.string(),
+})
+export type AddressParams = z.infer<typeof AddressParamsSchema>
+
+/** 交易列表查询参数 Schema */
+export const TxListParamsSchema = z.object({
+  address: z.string(),
+  limit: z.number().optional(),
+  page: z.number().optional(),
+})
+export type TxListParams = z.infer<typeof TxListParamsSchema>
+
+// ==================== 内部 API Schema（原始响应格式，来自 main 分支）====================
+
+// 资产余额项（嵌套结构：assets[magic][assetType] = { assetNumber, assetType }）
+const BiowalletAssetItemSchema = z.object({
   assetNumber: z.string(),
   assetType: z.string(),
-})
+}).passthrough()
 
-const BiowalletAssetSchema = z.looseObject({
+const AssetResponseSchema = z.object({
   success: z.boolean(),
-  result: z.looseObject({
+  result: z.object({
     address: z.string(),
     assets: z.record(z.string(), z.record(z.string(), BiowalletAssetItemSchema)),
   }).optional(),
 })
 
-const BiowalletTxItemSchema = z.looseObject({
+// 交易项 - 支持所有 BioForest 交易类型
+const BiowalletTxItemSchema = z.object({
   height: z.number(),
   signature: z.string(),
-  transaction: z.looseObject({
+  transaction: z.object({
     type: z.string(),
     senderId: z.string(),
     recipientId: z.string().optional().default(''),
     timestamp: z.number(),
-    asset: z.looseObject({
-      transferAsset: z.looseObject({
+    asset: z.object({
+      transferAsset: z.object({
         assetType: z.string(),
         amount: z.string(),
       }).optional(),
       // 其他 BioForest 资产类型
-      giftAsset: z.looseObject({
+      giftAsset: z.object({
         totalAmount: z.string(),
         assetType: z.string(),
-      }).optional(),
-      grabAsset: z.looseObject({
+      }).passthrough().optional(),
+      grabAsset: z.object({
         transactionSignature: z.string(),
-      }).optional(),
-      trustAsset: z.looseObject({
+      }).passthrough().optional(),
+      trustAsset: z.object({
         trustees: z.array(z.string()),
         numberOfSignFor: z.number(),
         assetType: z.string(),
         amount: z.string(),
-      }).optional(),
+      }).passthrough().optional(),
       // BIW / BioForest Meta 其他类型
-      signature: z.looseObject({
+      signature: z.object({
         publicKey: z.string().optional(),
-      }).optional(),
-      destroyAsset: z.looseObject({
+      }).passthrough().optional(),
+      destroyAsset: z.object({
         assetType: z.string(),
         amount: z.string(),
-      }).optional(),
-      issueEntity: z.looseObject({
+      }).passthrough().optional(),
+      issueEntity: z.object({
         entityId: z.string().optional(),
-      }).optional(),
-      issueEntityFactory: z.looseObject({
+      }).passthrough().optional(),
+      issueEntityFactory: z.object({
         factoryId: z.string().optional(),
-      }).optional(),
-    }).optional(),
-  }),
-})
+      }).passthrough().optional(),
+    }).passthrough().optional(),
+  }).passthrough(),
+}).passthrough()
 
-const BiowalletTxResponseSchema = z.looseObject({
+const TxListResponseSchema = z.object({
   success: z.boolean(),
-  result: z.looseObject({
+  result: z.object({
     trs: z.array(BiowalletTxItemSchema),
-    count: z.number(),
+    count: z.number().optional(),
   }).optional(),
 })
 
-const BiowalletBlockSchema = z.looseObject({
+const BlockResponseSchema = z.object({
   success: z.boolean(),
-  result: z.looseObject({
+  result: z.object({
     height: z.number(),
   }).optional(),
 })
 
-export class BiowalletProvider implements ApiProvider {
+type AssetResponse = z.infer<typeof AssetResponseSchema>
+type TxListResponse = z.infer<typeof TxListResponseSchema>
+type BiowalletTxItem = z.infer<typeof BiowalletTxItemSchema>
+
+// ==================== 工具函数 ====================
+
+function getDirection(from: string, to: string, address: string): Direction {
+  const fromLower = from.toLowerCase()
+  const toLower = to.toLowerCase()
+  const addrLower = address.toLowerCase()
+
+  if (!toLower) return fromLower === addrLower ? 'out' : 'in'
+  if (fromLower === addrLower && toLower === addrLower) return 'self'
+  if (fromLower === addrLower) return 'out'
+  return 'in'
+}
+
+/** 
+ * 检测 BioForest 交易类型并映射到标准 Action
+ * 格式: {CHAIN}-{NETWORK}-{TYPE}-{VERSION}
+ * 例如: BFM-BFMETA-AST-02 = 资产转账
+ */
+function detectAction(txType: string): Action {
+  const typeMap: Record<string, Action> = {
+    'AST-01': 'transfer',       // 资产转移 (旧版)
+    'AST-02': 'transfer',       // 资产转移
+    'AST-03': 'destroyAsset',   // 销毁资产 (BIW)
+    'BSE-01': 'signature',      // 签名/签章 (BIW)
+    'ETY-01': 'issueEntity',    // 发行实体工厂 (BIW)
+    'ETY-02': 'issueEntity',    // 发行实体 (BIW)
+    'GFT-01': 'gift',           // 发红包
+    'GFT-02': 'gift',           // 发红包 v2
+    'GRB-01': 'grab',           // 抢红包
+    'GRB-02': 'grab',           // 抢红包 v2
+    'TRS-01': 'trust',          // 委托
+    'TRS-02': 'trust',          // 委托 v2
+    'SGN-01': 'signFor',        // 代签
+    'SGN-02': 'signFor',        // 代签 v2
+    'EMI-01': 'emigrate',       // 跨链转出
+    'EMI-02': 'emigrate',       // 跨链转出 v2
+    'IMI-01': 'immigrate',      // 跨链转入
+    'IMI-02': 'immigrate',      // 跨链转入 v2
+    'ISA-01': 'issueAsset',     // 发行资产
+    'ICA-01': 'increaseAsset',  // 增发资产
+    'DSA-01': 'destroyAsset',   // 销毁资产
+    'ISE-01': 'issueEntity',    // 发行实体
+    'DSE-01': 'destroyEntity',  // 销毁实体
+    'LNS-01': 'locationName',   // 位名
+    'DAP-01': 'dapp',           // DApp 调用
+    'CRT-01': 'certificate',    // 证书
+    'MRK-01': 'mark',           // 标记
+  }
+
+  // 提取类型后缀 (例如 "BFM-BFMETA-AST-02" -> "AST-02")
+  const parts = txType.split('-')
+  if (parts.length >= 4) {
+    const suffix = `${parts[parts.length - 2]}-${parts[parts.length - 1]}`
+    return typeMap[suffix] ?? 'unknown'
+  }
+
+  return 'unknown'
+}
+
+/** 从交易资产中提取金额和类型 */
+function extractAssetInfo(
+  asset: BiowalletTxItem['transaction']['asset'],
+  defaultSymbol: string
+): { value: string | null; assetType: string } {
+  if (!asset) return { value: null, assetType: defaultSymbol }
+
+  // 转账
+  if (asset.transferAsset) {
+    return {
+      value: asset.transferAsset.amount,
+      assetType: asset.transferAsset.assetType,
+    }
+  }
+
+  // 红包
+  if (asset.giftAsset) {
+    return {
+      value: asset.giftAsset.totalAmount,
+      assetType: asset.giftAsset.assetType,
+    }
+  }
+
+  // 委托
+  if (asset.trustAsset) {
+    return {
+      value: asset.trustAsset.amount,
+      assetType: asset.trustAsset.assetType,
+    }
+  }
+
+  // 抢红包 (金额需要从其他地方获取)
+  if (asset.grabAsset) {
+    return { value: '0', assetType: defaultSymbol }
+  }
+
+  // 销毁资产
+  if (asset.destroyAsset) {
+    return {
+      value: asset.destroyAsset.amount,
+      assetType: asset.destroyAsset.assetType,
+    }
+  }
+
+  // 发行实体 / 发行实体工厂：无金额，用 0 占位
+  if (asset.issueEntity || asset.issueEntityFactory) {
+    return { value: '0', assetType: defaultSymbol }
+  }
+
+  // 签名/签章：无金额，用 0 占位
+  if (asset.signature) {
+    return { value: '0', assetType: defaultSymbol }
+  }
+
+  return { value: null, assetType: defaultSymbol }
+}
+
+// ==================== Base Class for Mixins ====================
+
+class BiowalletBase {
+  readonly chainId: string
   readonly type: string
   readonly endpoint: string
   readonly config?: Record<string, unknown>
-  
-  private readonly chainId: string
-  private readonly symbol: string
-  private readonly decimals: number
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     this.type = entry.type
     this.endpoint = entry.endpoint
     this.config = entry.config
     this.chainId = chainId
-    this.symbol = chainConfigService.getSymbol(chainId)
-    this.decimals = chainConfigService.getDecimals(chainId)
-  }
-
-  private get baseUrl(): string {
-    return this.endpoint
-  }
-
-  async getNativeBalance(address: string): Promise<Balance> {
-    const url = `${this.baseUrl}/address/asset`
-    const json: unknown = await fetchJson(
-      url,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-      },
-      {
-        cacheKey: `biowallet:${this.chainId}:assets:${address}`,
-        ttlMs: 60_000,
-        tags: [`balance:${this.chainId}:${address}`],
-      },
-    )
-
-    const parsed = BiowalletAssetSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
-      throw new Error('Upstream API error')
-    }
-
-    // 查找原生代币余额
-    for (const magic of Object.values(parsed.data.result.assets)) {
-      for (const asset of Object.values(magic)) {
-        if (asset.assetType === this.symbol) {
-          observeValueAndInvalidate({
-            key: `balance:${this.chainId}:${address}`,
-            value: asset.assetNumber,
-            invalidateTags: [`txhistory:${this.chainId}:${address}`],
-          })
-
-          return {
-            amount: Amount.fromRaw(asset.assetNumber, this.decimals, this.symbol),
-            symbol: this.symbol,
-          }
-        }
-      }
-    }
-
-    observeValueAndInvalidate({
-      key: `balance:${this.chainId}:${address}`,
-      value: '0',
-      invalidateTags: [`txhistory:${this.chainId}:${address}`],
-    })
-
-    return { amount: Amount.zero(this.decimals, this.symbol), symbol: this.symbol }
-  }
-
-  async getTokenBalances(address: string): Promise<TokenBalance[]> {
-    const url = `${this.baseUrl}/address/asset`
-    const json: unknown = await fetchJson(
-      url,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-      },
-      {
-        cacheKey: `biowallet:${this.chainId}:assets:${address}`,
-        ttlMs: 60_000,
-        tags: [`balance:${this.chainId}:${address}`],
-      },
-    )
-
-    const parsed = BiowalletAssetSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
-      throw new Error('Upstream API error')
-    }
-
-    const tokens: TokenBalance[] = []
-
-    for (const magic of Object.values(parsed.data.result.assets)) {
-      for (const asset of Object.values(magic)) {
-        const isNative = asset.assetType === this.symbol
-        tokens.push({
-          symbol: asset.assetType,
-          name: asset.assetType,
-          amount: Amount.fromRaw(asset.assetNumber, this.decimals, asset.assetType),
-          isNative,
-        })
-      }
-    }
-
-    tokens.sort((a, b) => {
-      if (a.isNative && !b.isNative) return -1
-      if (!a.isNative && b.isNative) return 1
-      return b.amount.toNumber() - a.amount.toNumber()
-    })
-
-    return tokens
-  }
-
-  async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    const blockJson: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
-      cacheKey: `biowallet:${this.chainId}:lastblock`,
-      ttlMs: 10_000,
-    })
-    const blockParsed = BiowalletBlockSchema.safeParse(blockJson)
-    if (!blockParsed.success || !blockParsed.data.success || !blockParsed.data.result) {
-      throw new Error('Upstream API error')
-    }
-
-    const maxHeight = blockParsed.data.result.height
-
-    const json: unknown = await fetchJson(
-      `${this.baseUrl}/transactions/query`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          maxHeight,
-          address,
-          limit,
-        }),
-      },
-      {
-        cacheKey: `biowallet:${this.chainId}:txs:${address}:${limit}:${maxHeight}`,
-        ttlMs: 5 * 60_000,
-        tags: [`txhistory:${this.chainId}:${address}`],
-      },
-    )
-
-    const parsed = BiowalletTxResponseSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success || !parsed.data.result?.trs) {
-      throw new Error('Upstream API error')
-    }
-
-    const normalizedAddress = address.toLowerCase()
-
-    return parsed.data.result.trs
-      .map((item): Transaction | null => {
-        const tx = item.transaction
-        const action = this.detectAction(tx.type)
-        const direction = this.getDirection(tx.senderId, tx.recipientId, normalizedAddress)
-
-        const { value, assetType } = this.extractAssetInfo(tx)
-        if (value === null) return null
-
-        return {
-          hash: item.signature,
-          from: tx.senderId,
-          to: tx.recipientId,
-          timestamp: tx.timestamp * 1000,
-          status: 'confirmed',
-          blockNumber: BigInt(item.height),
-          action,
-          direction,
-          assets: [{
-            assetType: 'native' as const,
-            value,
-            symbol: assetType,
-            decimals: this.decimals,
-          }],
-        }
-      })
-      .filter((tx): tx is Transaction => tx !== null)
-  }
-
-  private detectAction(txType: string): Action {
-    // BioForest 交易类型映射
-    // 格式: {CHAIN}-{NETWORK}-{TYPE}-{VERSION}
-    // 例如: BFM-BFMETA-AST-02 = 资产转账
-    const typeMap: Record<string, Action> = {
-      'AST-01': 'transfer',       // 资产转移 (旧版)
-      'AST-02': 'transfer',       // 资产转移
-      'AST-03': 'destroyAsset',   // 销毁资产 (BIW)
-      'BSE-01': 'signature',      // 签名/签章 (BIW)
-      'ETY-01': 'issueEntity',    // 发行实体工厂 (BIW)
-      'ETY-02': 'issueEntity',    // 发行实体 (BIW)
-      'GFT-01': 'gift',           // 发红包
-      'GFT-02': 'gift',           // 发红包 v2
-      'GRB-01': 'grab',           // 抢红包
-      'GRB-02': 'grab',           // 抢红包 v2
-      'TRS-01': 'trust',          // 委托
-      'TRS-02': 'trust',          // 委托 v2
-      'SGN-01': 'signFor',        // 代签
-      'SGN-02': 'signFor',        // 代签 v2
-      'EMI-01': 'emigrate',       // 跨链转出
-      'EMI-02': 'emigrate',       // 跨链转出 v2
-      'IMI-01': 'immigrate',      // 跨链转入
-      'IMI-02': 'immigrate',      // 跨链转入 v2
-      'ISA-01': 'issueAsset',     // 发行资产
-      'ICA-01': 'increaseAsset',  // 增发资产
-      'DSA-01': 'destroyAsset',   // 销毁资产
-      'ISE-01': 'issueEntity',    // 发行实体
-      'DSE-01': 'destroyEntity',  // 销毁实体
-      'LNS-01': 'locationName',   // 位名
-      'DAP-01': 'dapp',           // DApp 调用
-      'CRT-01': 'certificate',    // 证书
-      'MRK-01': 'mark',           // 标记
-    }
-    
-    // 提取类型后缀 (例如 "BFM-BFMETA-AST-02" -> "AST-02")
-    const parts = txType.split('-')
-    if (parts.length >= 4) {
-      const suffix = `${parts[parts.length - 2]}-${parts[parts.length - 1]}`
-      return typeMap[suffix] ?? 'unknown'
-    }
-    
-    return 'unknown'
-  }
-
-  private getDirection(from: string, to: string, address: string): Direction {
-    const fromLower = from.toLowerCase()
-    const toLower = to.toLowerCase()
-
-    if (!toLower) return fromLower === address ? 'out' : 'in'
-    
-    if (fromLower === address && toLower === address) {
-      return 'self'
-    }
-    if (fromLower === address) {
-      return 'out'
-    }
-    return 'in'
-  }
-
-  private extractAssetInfo(tx: z.infer<typeof BiowalletTxItemSchema>['transaction']): { value: string | null; assetType: string } {
-    const asset = tx.asset
-    
-    // 转账
-    if (asset?.transferAsset) {
-      return {
-        value: asset.transferAsset.amount,
-        assetType: asset.transferAsset.assetType,
-      }
-    }
-    
-    // 红包
-    if (asset?.giftAsset) {
-      return {
-        value: asset.giftAsset.totalAmount,
-        assetType: asset.giftAsset.assetType,
-      }
-    }
-    
-    // 委托
-    if (asset?.trustAsset) {
-      return {
-        value: asset.trustAsset.amount,
-        assetType: asset.trustAsset.assetType,
-      }
-    }
-    
-    // 抢红包 (金额需要从其他地方获取)
-    if (asset?.grabAsset) {
-      return {
-        value: '0',
-        assetType: this.symbol,
-      }
-    }
-
-    // 销毁资产
-    if (asset?.destroyAsset) {
-      return {
-        value: asset.destroyAsset.amount,
-        assetType: asset.destroyAsset.assetType,
-      }
-    }
-
-    // 发行实体 / 发行实体工厂：无金额，用 0 占位
-    if (asset?.issueEntity || asset?.issueEntityFactory) {
-      return {
-        value: '0',
-        assetType: this.symbol,
-      }
-    }
-
-    // 签名/签章：无金额，用 0 占位
-    if (asset?.signature) {
-      return {
-        value: '0',
-        assetType: this.symbol,
-      }
-    }
-
-    // 销毁资产
-    if (asset?.destroyAsset) {
-      return {
-        value: asset.destroyAsset.amount,
-        assetType: asset.destroyAsset.assetType,
-      }
-    }
-
-    // 发行实体/实体工厂
-    if (asset?.issueEntity || asset?.issueEntityFactory) {
-      return {
-        value: '0',
-        assetType: this.symbol,
-      }
-    }
-
-    // 签名
-    if (asset?.signature) {
-      return {
-        value: '0',
-        assetType: this.symbol,
-      }
-    }
-    
-    return { value: null, assetType: this.symbol }
-  }
-
-  async getBlockHeight(): Promise<bigint> {
-    const json: unknown = await fetchJson(`${this.baseUrl}/lastblock`, undefined, {
-      cacheKey: `biowallet:${this.chainId}:lastblock`,
-      ttlMs: 10_000,
-    })
-    const parsed = BiowalletBlockSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success || !parsed.data.result) {
-      throw new Error('Upstream API error')
-    }
-    return BigInt(parsed.data.result.height)
   }
 }
 
-/** 工厂函数 */
+// ==================== Provider 实现 (使用 Mixin 继承) ====================
+
+export class BiowalletProvider extends BioforestIdentityMixin(BioforestTransactionMixin(BiowalletBase)) implements ApiProvider {
+  private readonly symbol: string
+  private readonly decimals: number
+
+  // ==================== 私有基础 Fetcher ====================
+
+  readonly #addressAsset: KeyFetchInstance<typeof AssetResponseSchema, typeof AddressParamsSchema>
+  readonly #txList: KeyFetchInstance<typeof TxListResponseSchema, typeof TxListParamsSchema>
+
+  // ==================== 公开响应式数据源（派生视图）====================
+
+  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
+  readonly tokenBalances: KeyFetchInstance<typeof TokenBalancesOutputSchema>
+  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
+
+  constructor(entry: ParsedApiEntry, chainId: string) {
+    super(entry, chainId)
+    this.symbol = chainConfigService.getSymbol(chainId)
+    this.decimals = chainConfigService.getDecimals(chainId)
+
+    const baseUrl = this.endpoint
+    const symbol = this.symbol
+    const decimals = this.decimals
+
+    // ==================== 基础 Fetcher（私有）====================
+    // 使用 postBody 插件将 params 作为 JSON body 发送
+    // 使用 paramsSchema 进行类型推导
+
+    this.#addressAsset = keyFetch.create({
+      name: `biowallet.${chainId}.addressAsset`,
+      schema: AssetResponseSchema,
+      paramsSchema: AddressParamsSchema,
+      url: `${baseUrl}/address/asset`,
+      method: 'POST',
+      use: [postBody(), ttl(60_000)],
+    })
+
+    this.#txList = keyFetch.create({
+      name: `biowallet.${chainId}.txList`,
+      schema: TxListResponseSchema,
+      paramsSchema: TxListParamsSchema,
+      url: `${baseUrl}/transaction/list`,
+      method: 'POST',
+      use: [postBody(), ttl(5 * 60_000)],
+    })
+
+    // ==================== 派生视图（使用 use 插件系统）====================
+
+    // 原生余额：从 #addressAsset 派生
+    // 原版逻辑：遍历 assets[magic][assetType]，找到 assetType === symbol
+    this.nativeBalance = derive({
+      name: `biowallet.${chainId}.nativeBalance`,
+      source: this.#addressAsset,
+      schema: BalanceOutputSchema,
+      use: [
+        transform<AssetResponse, Balance>({
+          transform: (raw) => {
+            if (!raw.result?.assets) {
+              return { amount: Amount.zero(decimals, symbol), symbol }
+            }
+            // 遍历嵌套结构 assets[magic][assetType]
+            for (const magic of Object.values(raw.result.assets)) {
+              for (const asset of Object.values(magic)) {
+                if (asset.assetType === symbol) {
+                  return {
+                    amount: Amount.fromRaw(asset.assetNumber, decimals, symbol),
+                    symbol,
+                  }
+                }
+              }
+            }
+            return { amount: Amount.zero(decimals, symbol), symbol }
+          },
+        }),
+      ],
+    })
+
+    // 代币余额列表：从 #addressAsset 派生
+    this.tokenBalances = derive({
+      name: `biowallet.${chainId}.tokenBalances`,
+      source: this.#addressAsset,
+      schema: TokenBalancesOutputSchema,
+      use: [
+        transform<AssetResponse, TokenBalance[]>({
+          transform: (raw) => {
+            if (!raw.result?.assets) return []
+            const tokens: TokenBalance[] = []
+            // 遍历嵌套结构 assets[magic][assetType]
+            for (const magic of Object.values(raw.result.assets)) {
+              for (const asset of Object.values(magic)) {
+                const isNative = asset.assetType === symbol
+                tokens.push({
+                  symbol: asset.assetType,
+                  name: asset.assetType,
+                  amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
+                  isNative,
+                })
+              }
+            }
+            // 原生代币排前面
+            tokens.sort((a, b) => {
+              if (a.isNative && !b.isNative) return -1
+              if (!a.isNative && b.isNative) return 1
+              return b.amount.toNumber() - a.amount.toNumber()
+            })
+            return tokens
+          },
+        }),
+      ],
+    })
+
+    // 交易历史：从 #txList 派生
+    // 原版逻辑：使用 detectAction 和 extractAssetInfo
+    this.transactionHistory = derive({
+      name: `biowallet.${chainId}.transactionHistory`,
+      source: this.#txList,
+      schema: TransactionsOutputSchema,
+      use: [
+        transform<TxListResponse, Transaction[]>({
+          transform: (raw, ctx) => {
+            if (!raw.result?.trs) return []
+            const address = (ctx.params.address as string) ?? ''
+            const normalizedAddress = address.toLowerCase()
+
+            return raw.result.trs
+              .map((item): Transaction | null => {
+                const tx = item.transaction
+                const action = detectAction(tx.type)
+                const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress)
+
+                const { value, assetType } = extractAssetInfo(tx.asset, symbol)
+                if (value === null) return null
+
+                return {
+                  hash: item.signature,
+                  from: tx.senderId,
+                  to: tx.recipientId ?? '',
+                  timestamp: tx.timestamp * 1000, // BFM timestamp 是秒，转换为毫秒
+                  status: 'confirmed',
+                  blockNumber: BigInt(item.height),
+                  action,
+                  direction,
+                  assets: [{
+                    assetType: 'native' as const,
+                    value,
+                    symbol: assetType,
+                    decimals,
+                  }],
+                }
+              })
+              .filter((tx): tx is Transaction => tx !== null)
+          },
+        }),
+      ],
+    })
+
+    // 区块高度：需要从 API 响应中提取 result.height
+    const blockApi = keyFetch.create({
+      name: `biowallet.${chainId}.blockApi`,
+      schema: BlockResponseSchema,
+      url: `${baseUrl}/block/lastblock`,
+      use: [ttl(15_000)],
+    })
+
+    this.blockHeight = derive({
+      name: `biowallet.${chainId}.blockHeight`,
+      source: blockApi,
+      schema: BlockHeightOutputSchema,
+      use: [
+        transform<z.infer<typeof BlockResponseSchema>, bigint>({
+          transform: (raw) => {
+            if (!raw.result?.height) return BigInt(0)
+            return BigInt(raw.result.height)
+          },
+        }),
+      ],
+    })
+  }
+}
+
 export function createBiowalletProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
-  if (entry.type.startsWith('biowallet-')) {
+  if (entry.type === 'biowallet-v1') {
     return new BiowalletProvider(entry, chainId)
   }
   return null
