@@ -22,8 +22,8 @@ function createWallet(partial?: Partial<Wallet>): Wallet {
     address: '0xmain',
     chain: 'ethereum',
     chainAddresses: [
-      { chain: 'ethereum', address: '0xmain', tokens: [] },
-      { chain: 'bfmeta', address: 'c123', tokens: [] },
+      { chain: 'ethereum', address: '0xmain', publicKey: '0x04main', tokens: [] },
+      { chain: 'bfmeta', address: 'c123', publicKey: '0x04bfm', tokens: [] },
     ],
     createdAt: Date.now(),
     themeHue: 323,
@@ -52,16 +52,16 @@ describe('AddressAuthService', () => {
         id: 'w1',
         name: 'W1',
         chainAddresses: [
-          { chain: 'ethereum', address: '0x111', tokens: [] },
-          { chain: 'bfmeta', address: 'c111', tokens: [] },
+          { chain: 'ethereum', address: '0x111', publicKey: '0x04a', tokens: [] },
+          { chain: 'bfmeta', address: 'c111', publicKey: '0x04b', tokens: [] },
         ],
       }),
       createWallet({
         id: 'w2',
         name: 'W2',
         chainAddresses: [
-          { chain: 'ethereum', address: '0x222', tokens: [] },
-          { chain: 'ccchain', address: 'c222', tokens: [] },
+          { chain: 'ethereum', address: '0x222', publicKey: '0x04c', tokens: [] },
+          { chain: 'ccchain', address: 'c222', publicKey: '0x04d', tokens: [] },
         ],
       }),
     ]
@@ -77,8 +77,8 @@ describe('AddressAuthService', () => {
       id: 'w-abc',
       name: 'My Wallet',
       chainAddresses: [
-        { chain: 'ethereum', address: '0xaaa', tokens: [] },
-        { chain: 'ccchain', address: 'cbbb', tokens: [] },
+        { chain: 'ethereum', address: '0xaaa', publicKey: '0x04e', tokens: [] },
+        { chain: 'ccchain', address: 'cbbb', publicKey: '0x04f', tokens: [] },
       ],
     })
 
@@ -117,13 +117,13 @@ describe('AddressAuthService', () => {
     const wallets = [
       createWallet({
         id: 'w1',
-        chainAddresses: [{ chain: 'ethereum', address: '0x111', tokens: [] }],
+        chainAddresses: [{ chain: 'ethereum', address: '0x111', publicKey: '0x04g', tokens: [] }],
       }),
       createWallet({
         id: 'w2',
         chainAddresses: [
-          { chain: 'ethereum', address: '0x222', tokens: [] },
-          { chain: 'bfmeta', address: 'c222', tokens: [] },
+          { chain: 'ethereum', address: '0x222', publicKey: '0x04h', tokens: [] },
+          { chain: 'bfmeta', address: 'c222', publicKey: '0x04i', tokens: [] },
         ],
       }),
     ]
@@ -193,7 +193,7 @@ describe('AddressAuthService', () => {
     const wallet = createWallet({
       id: 'w-bio',
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'bfmeta', address: 'c111', tokens: [] }],
+      chainAddresses: [{ chain: 'bfmeta', address: 'c111', publicKey: '0x04j', tokens: [] }],
     })
 
     const service = new AddressAuthService(adapter, 'evt-sign-bio')
@@ -226,7 +226,7 @@ describe('AddressAuthService', () => {
     const wallet = createWallet({
       id: 'w-evm',
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x111', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x111', publicKey: '0x04k', tokens: [] }],
     })
 
     const service = new AddressAuthService(adapter, 'evt-sign-evm')
@@ -258,7 +258,7 @@ describe('AddressAuthService', () => {
     const wallet = createWallet({
       id: 'w-evm',
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x111', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x111', publicKey: '0x04l', tokens: [] }],
     })
 
     const service = new AddressAuthService(adapter, 'evt-sign-badpwd')
@@ -287,7 +287,7 @@ describe('AddressAuthService', () => {
     const wallet = createWallet({
       id: 'w-main',
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x111', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x111', publicKey: '0x04m', tokens: [] }],
     })
 
     const service = new AddressAuthService(adapter, 'evt-main')
