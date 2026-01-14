@@ -33,13 +33,13 @@ const mockToken: TokenInfo = {
 describe('TokenItem actions', () => {
   describe('renderActions', () => {
     it('renders custom actions when provided', () => {
-      const renderActions = vi.fn((token: TokenInfo, context: TokenItemContext) => (
+      const renderActions = vi.fn((_token: TokenInfo, _context: TokenItemContext) => (
         <button data-testid="custom-action">Action</button>
       ))
 
       render(
-        <TokenItem 
-          token={mockToken} 
+        <TokenItem
+          token={mockToken}
           renderActions={renderActions}
           mainAssetSymbol="BFM"
         />
@@ -60,7 +60,7 @@ describe('TokenItem actions', () => {
     it('action click does not trigger parent onClick', () => {
       const onClick = vi.fn()
       const actionClick = vi.fn()
-      
+
       const renderActions = () => (
         <button data-testid="custom-action" onClick={actionClick}>
           Action
@@ -68,15 +68,15 @@ describe('TokenItem actions', () => {
       )
 
       render(
-        <TokenItem 
-          token={mockToken} 
+        <TokenItem
+          token={mockToken}
           onClick={onClick}
           renderActions={renderActions}
         />
       )
 
       fireEvent.click(screen.getByTestId('custom-action'))
-      
+
       expect(actionClick).toHaveBeenCalled()
       expect(onClick).not.toHaveBeenCalled()
     })
@@ -88,9 +88,9 @@ describe('TokenItem actions', () => {
         { label: 'Transfer', onClick: vi.fn() },
         { label: 'Destroy', onClick: vi.fn(), variant: 'destructive' as const },
       ]
-      
+
       render(
-        <TokenItem 
+        <TokenItem
           token={mockToken}
           menuItems={menuItems}
           testId="token-item"
@@ -102,7 +102,7 @@ describe('TokenItem actions', () => {
 
     it('should not show more button when menuItems is not provided', () => {
       render(
-        <TokenItem 
+        <TokenItem
           token={mockToken}
           testId="token-item"
         />
@@ -115,63 +115,66 @@ describe('TokenItem actions', () => {
   describe('context for bioforest chains', () => {
     it('canDestroy is true for non-main asset on bioforest chain', () => {
       let capturedContext: TokenItemContext | null = null
-      
+
       const renderActions = (_token: TokenInfo, context: TokenItemContext) => {
         capturedContext = context
         return null
       }
 
       render(
-        <TokenItem 
+        <TokenItem
           token={{ ...mockToken, chain: 'bfmeta' }}
           renderActions={renderActions}
           mainAssetSymbol="BFM"
         />
       )
 
-      expect(capturedContext?.canDestroy).toBe(true)
-      expect(capturedContext?.isBioforestChain).toBe(true)
-      expect(capturedContext?.isMainAsset).toBe(false)
+      expect(capturedContext).not.toBeNull()
+      expect(capturedContext!.canDestroy).toBe(true)
+      expect(capturedContext!.isBioforestChain).toBe(true)
+      expect(capturedContext!.isMainAsset).toBe(false)
     })
 
     it('canDestroy is false for main asset', () => {
       let capturedContext: TokenItemContext | null = null
-      
+
       const renderActions = (_token: TokenInfo, context: TokenItemContext) => {
         capturedContext = context
         return null
       }
 
       render(
-        <TokenItem 
+        <TokenItem
           token={{ ...mockToken, symbol: 'BFM', chain: 'bfmeta' }}
           renderActions={renderActions}
           mainAssetSymbol="BFM"
         />
       )
 
-      expect(capturedContext?.canDestroy).toBe(false)
-      expect(capturedContext?.isMainAsset).toBe(true)
+      expect(capturedContext).not.toBeNull()
+      expect(capturedContext!.canDestroy).toBe(false)
+      expect(capturedContext!.isMainAsset).toBe(true)
     })
 
     it('canDestroy is false for non-bioforest chains', () => {
       let capturedContext: TokenItemContext | null = null
-      
+
       const renderActions = (_token: TokenInfo, context: TokenItemContext) => {
         capturedContext = context
         return null
       }
 
       render(
-        <TokenItem 
+        <TokenItem
           token={{ ...mockToken, chain: 'ethereum' }}
           renderActions={renderActions}
           mainAssetSymbol="ETH"
         />
       )
 
-      expect(capturedContext?.canDestroy).toBe(false)
-      expect(capturedContext?.isBioforestChain).toBe(false)
+      expect(capturedContext).not.toBeNull()
+      expect(capturedContext!.canDestroy).toBe(false)
+      expect(capturedContext!.isBioforestChain).toBe(false)
     })
   })
 })
