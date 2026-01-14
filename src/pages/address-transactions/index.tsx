@@ -118,7 +118,7 @@ export function AddressTransactionsPage() {
         {/* Chain Selector */}
         <div className="space-y-2">
           <Label>{t('common:addressLookup.chain')}</Label>
-          <Select value={selectedChain} onValueChange={setSelectedChain}>
+          <Select value={selectedChain} onValueChange={(v) => v && setSelectedChain(v)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
