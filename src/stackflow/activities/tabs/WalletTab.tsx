@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { getChainProvider } from "@/services/chain-adapter/providers";
-import { NoSupportError } from "@biochain/key-fetch";
 import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { PendingTxList } from "@/components/transaction/pending-tx-list";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
@@ -90,13 +89,13 @@ export function WalletTab() {
   );
 
   // 余额查询（使用 fetcher.useState()）- 不再需要可选链
-  const { data: balanceResult, isFetching: isRefreshing, error: balanceError } = chainProvider?.nativeBalance.useState(
+  const { data: balanceResult, isFetching: isRefreshing } = chainProvider?.nativeBalance.useState(
     { address: address ?? "" },
     { enabled: !!address }
   ) ?? {}
 
   // 交易历史（使用 fetcher.useState()）- 不再需要可选链
-  const { data: txResult, isLoading: txLoading, error: txError } = chainProvider?.transactionHistory.useState(
+  const { data: txResult, isLoading: txLoading } = chainProvider?.transactionHistory.useState(
     { address: address ?? "", limit: 50 },
     { enabled: !!address }
   ) ?? {}
