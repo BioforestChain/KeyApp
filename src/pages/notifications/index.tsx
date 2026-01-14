@@ -62,7 +62,7 @@ function NotificationItem({
   t: TFunction<'notification'>;
 }) {
   const style = typeStyles[notification.type];
-  const hasPendingTxLink = notification.type === 'transaction' && notification.data?.pendingTxId;
+  const hasPendingTxLink = notification.type === 'transaction' && !!notification.data?.pendingTxId;
 
   // 点击标记为已读并跳转
   const handleClick = useCallback(() => {

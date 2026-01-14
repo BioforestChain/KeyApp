@@ -41,7 +41,7 @@ function MiniappDestroyConfirmJobContent() {
   const { appName, appIcon, from, amount, chain, asset } = params
   const currentWallet = useCurrentWallet()
   const chainConfigState = useChainConfigState()
-  
+
   const chainConfig = chainConfigState.snapshot
     ? chainConfigSelectors.getChainById(chainConfigState, chain as 'bfmeta')
     : null
@@ -54,25 +54,25 @@ function MiniappDestroyConfirmJobContent() {
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
       setIsConfirming(true)
-      
+
       try {
         if (!currentWallet?.id || !chainConfig) {
-          
+
           return false
         }
 
         // 获取 applyAddress
         const { fetchAssetApplyAddress } = await import('@/hooks/use-burn.bioforest')
         const applyAddress = await fetchAssetApplyAddress(chainConfig, asset, from)
-        
+
         if (!applyAddress) {
-          
+
           return false
         }
 
         // 执行销毁
         const amountObj = Amount.fromFormatted(amount, chainConfig.decimals, asset)
-        
+
         const result = await submitBioforestBurn({
           chainConfig,
           walletId: currentWallet.id,
@@ -88,7 +88,7 @@ function MiniappDestroyConfirmJobContent() {
         }
 
         if (result.status === 'error') {
-          
+
           return false
         }
 
@@ -96,15 +96,15 @@ function MiniappDestroyConfirmJobContent() {
         const event = new CustomEvent('miniapp-destroy-confirm', {
           detail: {
             confirmed: true,
-            txHash: result.txHash,
+            txHash: result.status === 'ok' ? result.txHash : undefined,
           },
         })
         window.dispatchEvent(event)
-        
+
         pop()
         return true
       } catch (error) {
-        
+
         return false
       } finally {
         setIsConfirming(false)
@@ -136,7 +136,7 @@ function MiniappDestroyConfirmJobContent() {
         {/* Header */}
         <MiniappSheetHeader
           title={t('transaction:destroyPage.title')}
-          description={`${appName || t('common:unknownDApp')} ${t('common:requestsDestroy', '请求销毁资产')}`}
+          description={`${appName || t('common:unknownDApp', 'Unknown App')} ${t('common:requestsDestroy', '请求销毁资产')}`}
           appName={appName}
           appIcon={appIcon}
         />
@@ -145,10 +145,10 @@ function MiniappDestroyConfirmJobContent() {
         <div className="space-y-4 p-4">
           {/* Amount */}
           <div className="bg-destructive/5 rounded-xl p-4 text-center">
-            <AmountDisplay 
-              value={amount} 
-              symbol={asset} 
-              size="xl" 
+            <AmountDisplay
+              value={amount}
+              symbol={asset}
+              size="xl"
               weight="bold"
               decimals={8}
               fixedDecimals={true}
