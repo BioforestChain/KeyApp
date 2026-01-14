@@ -104,7 +104,7 @@ export function DestroyPage() {
     const found = destroyableTokens.find(
       (t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
     )
-    return found ? tokenToAsset(found) : null
+    return found ? tokenToAsset(found as unknown as TokenInfo) : null
   }, [initialAssetType, destroyableTokens])
 
   const assetLocked = assetLockedParam === 'true'
