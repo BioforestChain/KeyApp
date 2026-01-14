@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { AssetSelector } from '@/components/asset';
 import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
-import type { TokenInfo } from '@/components/token/token-item';
+import { toTokenInfoList, type TokenInfo } from '@/components/token';
 import { GradientButton, Alert } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { useToast, useHaptics } from '@/services';
@@ -318,7 +318,7 @@ export function SendPage() {
             </label>
             <AssetSelector
               selectedAsset={selectedToken}
-              assets={tokens as unknown as import('@/components/token/token-item').TokenInfo[]}
+              assets={toTokenInfoList(tokens)}
               onSelect={handleAssetSelect}
               disabled={assetLocked}
               testId="send-asset-selector"

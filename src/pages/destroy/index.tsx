@@ -18,7 +18,7 @@ import { useToast, useHaptics } from '@/services'
 import { useBurn } from '@/hooks/use-burn'
 import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
-import type { TokenInfo } from '@/components/token/token-item'
+import { toTokenInfo, toTokenInfoList, type TokenInfo } from '@/components/token'
 import { IconFlame } from '@tabler/icons-react'
 import {
   useChainConfigState,
@@ -104,7 +104,7 @@ export function DestroyPage() {
     const found = destroyableTokens.find(
       (t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
     )
-    return found ? tokenToAsset(found as unknown as TokenInfo) : null
+    return found ? tokenToAsset(toTokenInfo(found)) : null
   }, [initialAssetType, destroyableTokens])
 
   const assetLocked = assetLockedParam === 'true'
@@ -314,7 +314,7 @@ export function DestroyPage() {
           </label>
           <AssetSelector
             selectedAsset={selectedToken}
-            assets={destroyableTokens as unknown as import('@/components/token/token-item').TokenInfo[]}
+            assets={toTokenInfoList(destroyableTokens)}
             onSelect={handleAssetSelect}
             disabled={assetLocked}
             excludeAssets={chainConfig ? [chainConfig.symbol] : []}
