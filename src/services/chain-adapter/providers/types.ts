@@ -20,10 +20,10 @@ import { z } from 'zod'
 // ==================== 注册 Amount 类型序列化 ====================
 // 使用 superjson 的 registerCustom 使 Amount 对象能正确序列化/反序列化
 // 注：Amount 使用 private constructor，所以用 registerCustom 而非 registerClass
-keyFetch.superjson.registerCustom(
+keyFetch.superjson.registerCustom<Amount, ReturnType<Amount['toJSON']>>(
   {
     isApplicable: (v): v is Amount => v instanceof Amount,
-    serialize: (v) => v.toJSON() as unknown,
+    serialize: (v) => v.toJSON(),
     deserialize: (v) => Amount.fromJSON(v as unknown as AmountJSON),
   },
   'Amount'

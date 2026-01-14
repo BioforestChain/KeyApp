@@ -82,7 +82,7 @@ class EtherscanBase {
 // ==================== Provider 实现 (使用 Mixin 继承) ====================
 
 export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(EtherscanBase)) implements ApiProvider {
-  private readonly evmChainId: number
+  private readonly _evmChainId: number
   private readonly symbol: string
   private readonly decimals: number
 
@@ -94,7 +94,7 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
-    this.evmChainId = EVM_CHAIN_IDS[chainId] ?? 1
+    this._evmChainId = EVM_CHAIN_IDS[chainId] ?? 1
     this.symbol = chainConfigService.getSymbol(chainId)
     this.decimals = chainConfigService.getDecimals(chainId)
 
@@ -109,12 +109,12 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
       url: `${baseUrl}`,
       use: [
         searchParams({
-          transform: (params: AddressParams) => ({
+          transform: ((params: AddressParams) => ({
             module: 'account',
             action: 'balance',
             address: params.address,
             tag: 'latest',
-          }),
+          })) as unknown as (params: Record<string, unknown>) => Record<string, unknown>,
         }),
         ttl(30_000),
       ],
@@ -127,14 +127,14 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
       url: `${baseUrl}`,
       use: [
         searchParams({
-          transform: (params: TxHistoryParams) => ({
+          transform: ((params: TxHistoryParams) => ({
             module: 'account',
             action: 'txlist',
             address: params.address,
             page: '1',
             offset: String(params.limit ?? 20),
             sort: 'desc',
-          }),
+          })) as unknown as (params: Record<string, unknown>) => Record<string, unknown>,
         }),
         ttl(5 * 60_000),
       ],

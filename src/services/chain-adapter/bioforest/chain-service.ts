@@ -60,7 +60,7 @@ export class BioforestChainService implements IChainService {
     try {
       // 使用 keyFetch 实例获取区块高度（Schema 验证 + 响应式轮询）
       const instances = getChainFetchInstances(this.chainId, this.baseUrl)
-      const json = await instances.lastBlock.fetch()
+      const json = await instances.lastBlock.fetch({})
 
       if (!json.success) {
         throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')

@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
-import { BalanceOutputSchema, TransactionsOutputSchema, TransactionOutputSchema } from '../types'
+import { BalanceOutputSchema, TransactionsOutputSchema } from '../types'
 import { Amount } from '@/types/amount'
 import { keyFetch, NoSupportError } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
@@ -37,7 +37,7 @@ function createMockResponse<T>(data: T, ok = true, status = 200): Response {
 }
 
 // 创建 mock KeyFetchInstance
-function createMockKeyFetchInstance<T>(mockData: T): KeyFetchInstance<any> {
+function createMockKeyFetchInstance<T>(_mockData: T): KeyFetchInstance<any> {
   return keyFetch.create({
     name: `mock.${Date.now()}`,
     schema: BalanceOutputSchema,

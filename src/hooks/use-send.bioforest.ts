@@ -2,7 +2,7 @@ import type { AssetInfo } from '@/types/asset'
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import { createBioforestAdapter } from '@/services/chain-adapter'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import {
   createTransferTransaction,
   broadcastTransaction,
@@ -20,13 +20,21 @@ export interface BioforestFeeResult {
 }
 
 function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
-  const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+  const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
   return biowallet?.endpoint ?? null
 }
 
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
-  const adapter = createBioforestAdapter(chainConfig.id)
-  const feeEstimate = await adapter.transaction.estimateFee({
+  const provider = getChainProvider(chainConfig.id)
+  if (!provider.estimateFee) {
+    // Fallback to zero fee if provider doesn't support estimateFee
+    return {
+      amount: Amount.fromRaw('0', chainConfig.decimals, chainConfig.symbol),
+      symbol: chainConfig.symbol,
+    }
+  }
+
+  const feeEstimate = await provider.estimateFee({
     from: fromAddress,
     to: fromAddress,
     // SDK requires amount > 0 for fee calculation, use 1 unit as placeholder
@@ -40,8 +48,8 @@ export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: s
 }
 
 export async function fetchBioforestBalance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
-  const adapter = createBioforestAdapter(chainConfig.id)
-  const balance = await adapter.asset.getNativeBalance(fromAddress)
+  const provider = getChainProvider(chainConfig.id)
+  const balance = await provider.nativeBalance.fetch({ address: fromAddress })
 
   return {
     assetType: balance.symbol,
@@ -147,14 +155,14 @@ export async function submitBioforestTransfer({
   }
 
   try {
-    
-    
+
+
     // Check if pay password is required but not provided
     const addressInfo = await getAddressInfo(apiUrl, fromAddress)
-    
-    
+
+
     if (addressInfo.secondPublicKey && !twoStepSecret) {
-      
+
       return {
         status: 'password_required',
         secondPublicKey: addressInfo.secondPublicKey,
@@ -163,16 +171,16 @@ export async function submitBioforestTransfer({
 
     // Verify pay password if provided
     if (twoStepSecret && addressInfo.secondPublicKey) {
-      
+
       const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
-      
+
       if (!isValid) {
         return { status: 'error', message: '安全密码验证失败' }
       }
     }
 
     // Create transaction using SDK
-    
+
     const transaction = await createTransferTransaction({
       baseUrl: apiUrl,
       chainId: chainConfig.id,
@@ -185,7 +193,7 @@ export async function submitBioforestTransfer({
       fee: fee?.toRawString(),
     })
     const txHash = transaction.signature
-    
+
 
     // 存储到 pendingTxService
     const pendingTx = await pendingTxService.create({
@@ -202,23 +210,23 @@ export async function submitBioforestTransfer({
     })
 
     // 广播交易
-    
+
     await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
-    
+
     try {
       const broadcastResult = await broadcastTransaction(apiUrl, transaction)
-      
-      
+
+
       // 如果交易已存在于链上，直接标记为 confirmed
       const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
-      await pendingTxService.updateStatus({ 
-        id: pendingTx.id, 
+      await pendingTxService.updateStatus({
+        id: pendingTx.id,
         status: newStatus,
         txHash,
       })
       return { status: 'ok', txHash, pendingTxId: pendingTx.id }
     } catch (err) {
-      
+
       if (err instanceof BroadcastError) {
         await pendingTxService.updateStatus({
           id: pendingTx.id,
@@ -231,7 +239,7 @@ export async function submitBioforestTransfer({
       throw err
     }
   } catch (error) {
-    
+
 
     // Handle BroadcastError
     if (error instanceof BroadcastError) {
@@ -298,7 +306,7 @@ export async function submitSetTwoStepSecret({
     }
 
     // Set pay password
-    
+
     const result = await setTwoStepSecret({
       baseUrl: apiUrl,
       chainId: chainConfig.id,
@@ -306,10 +314,10 @@ export async function submitSetTwoStepSecret({
       newPaySecret: newTwoStepSecret,
     })
 
-    
+
     return { status: 'ok', txHash: result.txHash }
   } catch (error) {
-    
+
 
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -342,7 +350,7 @@ export async function getSetTwoStepSecretFee(
       symbol: chainConfig.symbol,
     }
   } catch (error) {
-    
+
     return null
   }
 }

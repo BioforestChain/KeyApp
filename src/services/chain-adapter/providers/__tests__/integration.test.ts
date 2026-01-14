@@ -5,7 +5,7 @@
  * 使用新 KeyFetch API，直接实例化 provider 避免 mock 问题
  */
 
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChainProvider } from '../chain-provider'
 import { EtherscanProvider, EvmRpcProvider, BiowalletProvider, TronRpcProvider } from '../index'
 import { clearProviderCache } from '../index'

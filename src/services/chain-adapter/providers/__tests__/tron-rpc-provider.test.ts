@@ -5,9 +5,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { TronRpcProvider, createTronRpcProvider } from '../tron-rpc-provider'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { keyFetch } from '@biochain/key-fetch'
@@ -28,13 +25,6 @@ Object.assign(global, { fetch: mockFetch })
 afterAll(() => {
   Object.assign(global, { fetch: originalFetch })
 })
-
-// 读取真实 fixture 数据
-function readFixture<T>(name: string): T {
-  const dir = path.dirname(fileURLToPath(import.meta.url))
-  const filePath = path.join(dir, 'fixtures/real', name)
-  return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T
-}
 
 // 创建 mock Response 辅助函数
 function createMockResponse<T>(data: T, ok = true, status = 200): Response {
@@ -182,7 +172,10 @@ describe('TronRpcProvider', () => {
       expect(txs[0].action).toBe('transfer')
       expect(txs[0].direction).toBe('out')
       expect(txs[0].assets[0].assetType).toBe('native')
-      expect(txs[0].assets[0].symbol).toBe('TRX')
+      const nativeAsset = txs[0].assets[0]
+      if (nativeAsset.assetType === 'native') {
+        expect(nativeAsset.symbol).toBe('TRX')
+      }
     })
 
     it('correctly determines direction for incoming transaction', async () => {

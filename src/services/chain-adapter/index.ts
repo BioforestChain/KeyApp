@@ -39,7 +39,7 @@ export type {
 export { ChainServiceError, ChainErrorCodes } from './types'
 
 // New ChainProvider API (recommended)
-export { 
+export {
   ChainProvider,
   getChainProvider,
   createChainProvider,
@@ -60,9 +60,3 @@ export {
 
 /** @deprecated Use getChainProvider() from './providers' instead */
 export { getAdapterRegistry, resetAdapterRegistry } from './registry'
-
-// Adapters (kept for internal use by wrapped providers)
-export { BioforestAdapter, createBioforestAdapter } from './bioforest'
-export { EvmAdapter, createEvmAdapter } from './evm'
-export { TronAdapter, createTronAdapter } from './tron'
-export { BitcoinAdapter, createBitcoinAdapter } from './bitcoin'

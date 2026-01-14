@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import { clearProviderCache } from '../index'
 import { ChainProvider } from '../chain-provider'
 import { EtherscanProvider, TronRpcProvider } from '../index'
-import type { ChainConfig, ParsedApiEntry } from '@/services/chain-config'
+import type { ParsedApiEntry } from '@/services/chain-config'
 import { keyFetch, NoSupportError } from '@biochain/key-fetch'
 
 vi.mock('@/services/chain-config', () => ({

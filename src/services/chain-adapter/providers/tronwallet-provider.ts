@@ -37,7 +37,7 @@ const TxHistoryApiSchema = z.object({
   data: z.array(TronNativeTxSchema),
 }).passthrough()
 
-type TronNativeTx = z.infer<typeof TronNativeTxSchema>
+type _TronNativeTx = z.infer<typeof TronNativeTxSchema>
 
 // ==================== 工具函数 ====================
 

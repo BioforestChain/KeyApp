@@ -4,6 +4,12 @@
  * 为不同链创建对应的 ChainProvider，聚合多个 ApiProvider。
  */
 
+// 导出类型
+export type { Transaction, Balance, TokenBalance, Direction, Action, ApiProvider } from './types';
+
+// 导出错误类
+export { InvalidDataError } from './errors';
+
 // 导出所有 Provider 实现
 export { ChainProvider } from './chain-provider';
 export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider';

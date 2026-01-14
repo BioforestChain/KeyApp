@@ -52,7 +52,7 @@ describe('BtcWalletProvider', () => {
     const address = 'bc1qexample'
 
     // BtcWallet API returns {success: true, result: AddressInfo}
-    mockFetch.mockImplementation(async (input: Request | string) => {
+    mockFetch.mockImplementation(async (_input: Request | string) => {
       return createMockResponse({
         success: true,
         result: { balance: '8' }, // walletApiUnwrap 会解包为 balance: '8'
@@ -69,7 +69,7 @@ describe('BtcWalletProvider', () => {
   it('computes direction and value from vin/vout', async () => {
     const address = 'bc1qme'
 
-    mockFetch.mockImplementation(async (input: Request | string) => {
+    mockFetch.mockImplementation(async (_input: Request | string) => {
       return createMockResponse({
         success: true,
         result: {

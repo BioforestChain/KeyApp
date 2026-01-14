@@ -120,7 +120,10 @@ describe('MempoolProvider', () => {
             // 地址在 vin 中（发送方）
             expect(txs[0].direction).toBe('self') // 因为地址同时在 vin 和 vout 中
             expect(txs[0].assets[0].assetType).toBe('native')
-            expect(txs[0].assets[0].symbol).toBe('BTC')
+            const nativeAsset = txs[0].assets[0]
+            if (nativeAsset.assetType === 'native') {
+                expect(nativeAsset.symbol).toBe('BTC')
+            }
         })
 
         it('correctly determines direction for outgoing transaction', async () => {
