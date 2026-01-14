@@ -286,13 +286,6 @@ class KeyFetchInstanceImpl<
     }
   }
 
-  /** 通知所有订阅者 */
-  private _notifyAll(data: InferOutput<S>): void {
-    for (const subs of this.subscribers.values()) {
-      subs.forEach(cb => cb(data, 'update'))
-    }
-  }
-
   /**
    * React Hook - 由 react.ts 模块注入实现
    * 如果直接调用而没有导入 react 模块，会抛出错误

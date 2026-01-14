@@ -69,9 +69,9 @@ export function StakingPage() {
 function StakingMintPanel() {
   const { t } = useTranslation('staking')
 
-  const handleSuccess = (txId: string) => {
+  const handleSuccess = (_txId: string) => {
     // TODO: Navigate to transaction detail or show success toast
-    
+
   }
 
   return (
@@ -86,9 +86,9 @@ function StakingMintPanel() {
 function StakingBurnPanel() {
   const { t } = useTranslation('staking')
 
-  const handleSuccess = (txId: string) => {
+  const handleSuccess = (_txId: string) => {
     // TODO: Navigate to transaction detail or show success toast
-    
+
   }
 
   return (

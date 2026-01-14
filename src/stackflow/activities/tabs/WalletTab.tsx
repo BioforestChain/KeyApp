@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFlow } from "../../stackflow";
 import { WalletCardCarousel } from "@/components/wallet/wallet-card-carousel";
@@ -102,8 +102,8 @@ export function WalletTab() {
   ) ?? {}
 
   // 通过 error 类型判断是否支持
-  const balanceSupported = !(balanceError instanceof NoSupportError)
-  const txSupported = !(txError instanceof NoSupportError)
+  const _balanceSupported = !(balanceError instanceof NoSupportError)
+  const _txSupported = !(txError instanceof NoSupportError)
 
   // 转换余额数据格式
   const balanceData = useMemo(() => ({
@@ -320,7 +320,7 @@ export function WalletTab() {
             change24h: token.change24h,
             icon: token.icon,
           }))}
-          transactions={transactions.slice(0, 5)}
+          transactions={transactions.slice(0, 5) as unknown as import('@/components/transaction/transaction-item').TransactionInfo[]}
           tokensRefreshing={isRefreshing}
           transactionsLoading={txLoading}
           tokensSupported={balanceData?.supported ?? true}

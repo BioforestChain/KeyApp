@@ -82,7 +82,6 @@ class EtherscanBase {
 // ==================== Provider 实现 (使用 Mixin 继承) ====================
 
 export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(EtherscanBase)) implements ApiProvider {
-  private readonly _evmChainId: number
   private readonly symbol: string
   private readonly decimals: number
 

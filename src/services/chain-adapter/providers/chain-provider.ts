@@ -97,14 +97,15 @@ export class ChainProvider {
 
   // ===== 默认值 =====
 
-  private _getDefaultBalance(): Balance {
-    const decimals = chainConfigService.getDecimals(this.chainId)
-    const symbol = chainConfigService.getSymbol(this.chainId)
-    return {
-      amount: Amount.zero(decimals, symbol),
-      symbol,
-    }
-  }
+  // Preserved for potential future use
+  // private _getDefaultBalance(): Balance {
+  //   const decimals = chainConfigService.getDecimals(this.chainId)
+  //   const symbol = chainConfigService.getSymbol(this.chainId)
+  //   return {
+  //     amount: Amount.zero(decimals, symbol),
+  //     symbol,
+  //   }
+  // }
 
 
   // ===== 便捷属性：检查能力 =====

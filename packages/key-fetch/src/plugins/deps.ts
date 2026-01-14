@@ -32,7 +32,6 @@ const dependencyCleanups = new Map<string, (() => void)[]>()
  */
 export function deps(...dependencies: KeyFetchInstance<AnyZodSchema>[]): FetchPlugin {
   let initialized = false
-  let _instanceName = ''
 
   return {
     name: 'deps',
@@ -41,7 +40,6 @@ export function deps(...dependencies: KeyFetchInstance<AnyZodSchema>[]): FetchPl
       // 首次请求时初始化依赖监听
       if (!initialized) {
         initialized = true
-        _instanceName = context.name
 
         // 注册依赖关系
         for (const dep of dependencies) {
