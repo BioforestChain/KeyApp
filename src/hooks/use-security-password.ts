@@ -97,7 +97,6 @@ export function useSecurityPassword({
 
     const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
     const apiUrl = biowallet?.endpoint
-    const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
     if (!apiUrl) {
       securityPasswordActions.setError(address, 'API URL 未配置')
       return
@@ -106,7 +105,7 @@ export function useSecurityPassword({
     securityPasswordActions.setLoading(address, true)
 
     try {
-      const info = await getAddressInfo(apiUrl, apiPath, address)
+      const info = await getAddressInfo(apiUrl, address)
       securityPasswordActions.setPublicKey(address, info.secondPublicKey ?? null)
     } catch (err) {
       const message = err instanceof Error ? err.message : '查询失败'
@@ -119,7 +118,7 @@ export function useSecurityPassword({
     if (!chainConfig || !publicKey) return false
 
     try {
-      const result = await verifyTwoStepSecret(mainSecret, paySecret)
+      const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
       return result !== false
     } catch {
       return false
