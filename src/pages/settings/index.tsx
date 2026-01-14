@@ -63,12 +63,12 @@ export function SettingsPage() {
         setTwoStepSecretStatus('unavailable');
         return;
       }
-      
+
       // Find BioForest chain address
       const bfmAddress = currentWallet.chainAddresses.find(
         (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
       );
-      
+
       if (!bfmAddress) {
         setTwoStepSecretStatus('unavailable');
         return;
@@ -80,14 +80,14 @@ export function SettingsPage() {
           setTwoStepSecretStatus('unavailable');
           return;
         }
-        
+
         const hasPassword = await hasTwoStepSecretSet(chainConfig, bfmAddress.address);
         setTwoStepSecretStatus(hasPassword ? 'set' : 'not_set');
       } catch {
         setTwoStepSecretStatus('unavailable');
       }
     }
-    
+
     checkTwoStepSecret();
   }, [currentWallet]);
 
@@ -149,12 +149,11 @@ export function SettingsPage() {
       // checkConfirmed callback - 检查交易是否上链
       async () => {
         const { getAddressInfo } = await import('@/services/bioforest-sdk');
-        const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1');
+        const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
         const apiUrl = biowallet?.endpoint;
-        const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id;
         if (!apiUrl) return false;
         try {
-          const info = await getAddressInfo(apiUrl, apiPath, bfmAddress.address);
+          const info = await getAddressInfo(apiUrl, bfmAddress.address);
           return !!info.secondPublicKey;
         } catch {
           return false;

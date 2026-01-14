@@ -55,7 +55,7 @@ export function SendPage() {
     assetType?: string;
     assetLocked?: string;
   }>();
-  
+
   const assetLocked = assetLockedParam === 'true';
 
   const selectedChain = useSelectedChain();
@@ -71,7 +71,7 @@ export function SendPage() {
   // Find initial asset from params or use default
   const initialAsset = useMemo(() => {
     if (!chainConfig) return null;
-    
+
     // If assetType is specified, find it in tokens
     if (initialAssetType) {
       const found = tokens.find((t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
@@ -87,7 +87,7 @@ export function SendPage() {
       // assetType specified but not found - return null to wait for tokens
       return null;
     }
-    
+
     // No assetType specified - default to native asset
     const nativeBalance = tokens.find((token) => token.symbol === chainConfig.symbol);
     const balanceFormatted = nativeBalance?.balance ?? '0';
@@ -107,7 +107,7 @@ export function SendPage() {
     fromAddress: currentChainAddress?.address,
     chainConfig,
   });
-  
+
   // Selected token for AssetSelector (convert from state.asset)
   const selectedToken = useMemo((): TokenInfo | null => {
     if (!state.asset) return null;
@@ -120,7 +120,7 @@ export function SendPage() {
       icon: state.asset.logoUrl,
     };
   }, [state.asset, selectedChain]);
-  
+
   // Handle asset selection from AssetSelector
   const handleAssetSelect = useCallback((token: TokenInfo) => {
     const asset = {
@@ -190,7 +190,7 @@ export function SendPage() {
       haptics.impact('success');
       toast.show(t('sendPage.scanSuccess'));
     });
-    
+
     // 打开扫描器
     push('ScannerJob', {
       chainType: selectedChainName ?? selectedChain,
@@ -215,43 +215,43 @@ export function SendPage() {
           // 第一次调用：只有钱包锁
           if (!twoStepSecret) {
             const result = await submit(walletLockKey);
-            
+
             if (result.status === 'password') {
               return { status: 'wallet_lock_invalid' as const };
             }
-            
+
             if (result.status === 'two_step_secret_required') {
               return { status: 'two_step_secret_required' as const };
             }
-            
+
             if (result.status === 'ok') {
               isWalletLockSheetOpen.current = false;
               return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
             }
-            
+
             if (result.status === 'error') {
               return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
             }
-            
+
             return { status: 'error' as const, message: '转账失败' };
           }
-          
+
           // 第二次调用：有钱包锁和二次签名
           const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret);
-          
+
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false;
             return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
           }
-          
+
           if (result.status === 'password') {
             return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
           }
-          
+
           if (result.status === 'error') {
             return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
           }
-          
+
           return { status: 'error' as const, message: '未知错误' };
         });
 
@@ -275,18 +275,18 @@ export function SendPage() {
     });
   };
 
-  const handleDone = () => {
+  const _handleDone = () => {
     if (state.resultStatus === 'success') {
       haptics.impact('success');
     }
     navGoBack();
   };
 
-  const handleRetry = () => {
+  const _handleRetry = () => {
     reset();
   };
 
-  const handleViewExplorer = useCallback(() => {
+  const _handleViewExplorer = useCallback(() => {
     if (!state.txHash) return;
     const queryTx = chainConfig?.explorer?.queryTx;
     if (!queryTx) {
@@ -337,7 +337,7 @@ export function SendPage() {
             </label>
             <AssetSelector
               selectedAsset={selectedToken}
-              assets={tokens}
+              assets={tokens as unknown as import('@/components/token/token-item').TokenInfo[]}
               onSelect={handleAssetSelect}
               disabled={assetLocked}
               testId="send-asset-selector"

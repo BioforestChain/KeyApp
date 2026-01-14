@@ -43,29 +43,28 @@ export function useSecurityPasswordQuery(
       // 获取链配置
       const chainConfigState = chainConfigStore.state
       const chainConfig = chainConfigSelectors.getChainById(chainConfigState, chain)
-      
+
       if (!chainConfig) {
-        
+
         return { address, secondPublicKey: null }
       }
 
-      const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+      const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
       const apiUrl = biowallet?.endpoint
-      const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
-      
+
       if (!apiUrl) {
-        
+
         return { address, secondPublicKey: null }
       }
 
       try {
-        const info = await getAddressInfo(apiUrl, apiPath, address)
+        const info = await getAddressInfo(apiUrl, address)
         return {
           address,
           secondPublicKey: info.secondPublicKey ?? null,
         }
       } catch (error) {
-        
+
         return { address, secondPublicKey: null }
       }
     },
