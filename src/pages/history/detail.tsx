@@ -482,8 +482,8 @@ export function TransactionDetailPage() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-muted-foreground text-sm">{t('detail.fee')}</span>
                 <FeeDisplay
-                  amount={transaction.fee.toNumber()}
-                  symbol={transaction.fee.symbol}
+                  amount={transaction.fee?.toNumber?.() ?? 0}
+                  symbol={transaction.fee?.symbol ?? ''}
                   className="text-sm"
                 />
               </div>

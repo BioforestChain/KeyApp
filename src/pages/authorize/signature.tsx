@@ -467,16 +467,19 @@ export function SignatureAuthPage() {
         if (!encryptedSecret) return false
         if (!signatureRequest) return false
 
-        let signature: string
+        let signature: string = ''
         if (signatureRequest.type === 'message') {
           if (!messagePayload) return false
-          signature = await authService.handleMessageSign(messagePayload, encryptedSecret, password)
+          const result = await authService.handleMessageSign(messagePayload, encryptedSecret, password)
+          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
         } else if (signatureRequest.type === 'transfer') {
           if (!transferPayload) return false
-          signature = await authService.handleTransferSign(transferPayload, encryptedSecret, password)
+          const result = await authService.handleTransferSign(transferPayload, encryptedSecret, password)
+          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
         } else if (signatureRequest.type === 'destory') {
           if (!destroyPayload) return false
-          signature = await authService.handleDestroySign(destroyPayload, encryptedSecret, password)
+          const result = await authService.handleDestroySign(destroyPayload, encryptedSecret, password)
+          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
         } else {
           return false
         }

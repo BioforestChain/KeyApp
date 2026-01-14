@@ -79,14 +79,14 @@ export function PendingTxDetailPage() {
       setElapsedSeconds(0)
       return
     }
-    
+
     // 初始化已等待时间
     const updateElapsed = () => {
       const elapsed = Math.floor((Date.now() - pendingTx.updatedAt) / 1000)
       setElapsedSeconds(elapsed)
     }
     updateElapsed()
-    
+
     // 每秒更新
     const timer = setInterval(updateElapsed, 1000)
     return () => clearInterval(timer)
@@ -103,7 +103,7 @@ export function PendingTxDetailPage() {
         const tx = await pendingTxService.getById({ id: pendingTxId })
         setPendingTx(tx)
       } catch (error) {
-        
+
       } finally {
         setIsLoading(false)
       }
@@ -139,7 +139,7 @@ export function PendingTxDetailPage() {
     setIsRetrying(true)
     try {
       // 获取 API URL
-      const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
+      const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
       const apiUrl = biowallet?.endpoint
       if (!apiUrl) {
         throw new Error('API URL not configured')
@@ -151,8 +151,8 @@ export function PendingTxDetailPage() {
       setPendingTx((prev) => prev ? { ...prev, status: 'broadcasting' } : null)
 
       // 重新广播
-      const broadcastResult = await broadcastTransaction(apiUrl, pendingTx.rawTx as BFChainCore.TransactionJSON)
-      
+      const broadcastResult = await broadcastTransaction(apiUrl, pendingTx.rawTx as unknown as Parameters<typeof broadcastTransaction>[1])
+
       // 广播成功，如果交易已存在则直接标记为 confirmed
       const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
       const updated = await pendingTxService.updateStatus({
@@ -162,8 +162,8 @@ export function PendingTxDetailPage() {
       })
       setPendingTx(updated)
     } catch (error) {
-      
-      
+
+
       // 广播失败
       const errorMessage = error instanceof BroadcastError
         ? translateBroadcastError(error)
@@ -191,7 +191,7 @@ export function PendingTxDetailPage() {
       await pendingTxService.delete({ id: pendingTx.id })
       goBack()
     } catch (error) {
-      
+
       setIsDeleting(false)
     }
   }, [pendingTx, goBack])
@@ -288,7 +288,7 @@ export function PendingTxDetailPage() {
                 <p className="text-destructive/80 mt-1 text-sm">{pendingTx.errorMessage}</p>
                 {pendingTx.errorCode && (
                   <p className="text-destructive/60 mt-1 text-xs">
-                    {t('detail.errorCode')}: {pendingTx.errorCode}
+                    {t('detail.errorCode', 'Error Code')}: {pendingTx.errorCode}
                   </p>
                 )}
               </div>
@@ -316,7 +316,7 @@ export function PendingTxDetailPage() {
 
           {/* 链 */}
           <div className="flex items-center justify-between py-2">
-            <span className="text-muted-foreground text-sm">{t('detail.chain')}</span>
+            <span className="text-muted-foreground text-sm">{t('detail.chain', 'Chain')}</span>
             <span className="text-sm">{chainConfig?.name ?? pendingTx.chainId}</span>
           </div>
 

@@ -109,15 +109,15 @@ export function DestroyPage() {
 
   const assetLocked = assetLockedParam === 'true'
 
-  const { 
-    state, 
-    setAmount, 
-    setAsset, 
-    goToConfirm, 
-    submit, 
-    submitWithTwoStepSecret, 
-    reset, 
-    canProceed 
+  const {
+    state,
+    setAmount,
+    setAsset,
+    goToConfirm,
+    submit,
+    submitWithTwoStepSecret,
+    reset,
+    canProceed
   } = useBurn({
     initialAsset: initialAsset ?? undefined,
     assetLocked,
@@ -158,42 +158,42 @@ export function DestroyPage() {
         setTransferWalletLockCallback(async (walletLockKey: string, twoStepSecret?: string) => {
           if (!twoStepSecret) {
             const result = await submit(walletLockKey)
-            
+
             if (result.status === 'password') {
               return { status: 'wallet_lock_invalid' as const }
             }
-            
+
             if (result.status === 'two_step_secret_required') {
               return { status: 'two_step_secret_required' as const }
             }
-            
+
             if (result.status === 'ok') {
               isWalletLockSheetOpen.current = false
               return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
             }
-            
+
             if (result.status === 'error') {
               return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
             }
-            
+
             return { status: 'error' as const, message: '销毁失败' }
           }
-          
+
           const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret)
-          
+
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false
             return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
           }
-          
+
           if (result.status === 'password') {
             return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' }
           }
-          
+
           if (result.status === 'error') {
             return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
           }
-          
+
           return { status: 'error' as const, message: '未知错误' }
         })
 
@@ -314,7 +314,7 @@ export function DestroyPage() {
           </label>
           <AssetSelector
             selectedAsset={selectedToken}
-            assets={destroyableTokens}
+            assets={destroyableTokens as unknown as import('@/components/token/token-item').TokenInfo[]}
             onSelect={handleAssetSelect}
             disabled={assetLocked}
             excludeAssets={chainConfig ? [chainConfig.symbol] : []}
@@ -358,11 +358,11 @@ export function DestroyPage() {
 
         {/* Continue button */}
         <div className="pt-4">
-          <GradientButton 
-            variant="mint" 
-            className="w-full" 
-            data-testid="destroy-continue-button" 
-            disabled={!canProceed || destroyableTokens.length === 0} 
+          <GradientButton
+            variant="mint"
+            className="w-full"
+            data-testid="destroy-continue-button"
+            disabled={!canProceed || destroyableTokens.length === 0}
             onClick={handleProceed}
           >
             <IconFlame className="-ml-4 mr-2 size-4" />
