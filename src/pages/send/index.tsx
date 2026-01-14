@@ -275,27 +275,8 @@ export function SendPage() {
     });
   };
 
-  const _handleDone = () => {
-    if (state.resultStatus === 'success') {
-      haptics.impact('success');
-    }
-    navGoBack();
-  };
-
-  const _handleRetry = () => {
-    reset();
-  };
-
-  const _handleViewExplorer = useCallback(() => {
-    if (!state.txHash) return;
-    const queryTx = chainConfig?.explorer?.queryTx;
-    if (!queryTx) {
-      toast.show(t('sendPage.explorerNotImplemented'));
-      return;
-    }
-    const url = queryTx.replace(':hash', state.txHash).replace(':signature', state.txHash);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, [state.txHash, chainConfig?.explorer?.queryTx, toast, t]);
+  // Handler functions below are preserved for future use when result UI is implemented
+  // See: handleDone, handleRetry, handleViewExplorer
 
   if (!currentWallet || !currentChainAddress) {
     return (
