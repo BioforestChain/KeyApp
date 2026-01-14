@@ -4,27 +4,27 @@ import { loadChainConfigs, loadSubscriptionMeta, saveChainConfigs, saveSubscript
 
 export type FetchSubscriptionResult =
   | {
-      status: 'skipped'
-      reason: 'default'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'skipped'
+    reason: 'default'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
   | {
-      status: 'not_modified'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'not_modified'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
   | {
-      status: 'updated'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription
-    }
+    status: 'updated'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription
+  }
   | {
-      status: 'error'
-      error: string
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'error'
+    error: string
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
 
 const REQUEST_TIMEOUT = 10_000
 
@@ -39,11 +39,13 @@ export function parseAndValidate(json: unknown): ChainConfig[] {
     throw new Error(firstIssue?.message ?? 'Invalid subscription chain config')
   }
 
-  const list = Array.isArray(json) ? parsed.data : [parsed.data]
+  // Normalize to array with explicit typing
+  const list: Array<typeof parsed.data extends Array<infer T> ? T : typeof parsed.data> =
+    Array.isArray(json) ? parsed.data as ChainConfig[] : [parsed.data as ChainConfig]
 
   return list.map((c) => ({
     ...c,
-    source: 'subscription',
+    source: 'subscription' as const,
     enabled: true,
   }))
 }
