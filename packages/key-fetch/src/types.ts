@@ -117,7 +117,7 @@ export interface SubscribeContext<P extends FetchParams = FetchParams> {
 
 // 向后兼容别名
 /** @deprecated 使用 FetchPlugin 代替 */
-export type CachePlugin<S extends AnyZodSchema = AnyZodSchema> = FetchPlugin
+export type CachePlugin<_S extends AnyZodSchema = AnyZodSchema> = FetchPlugin
 
 // ==================== KeyFetch Instance Types ====================
 

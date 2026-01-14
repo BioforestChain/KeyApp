@@ -185,7 +185,7 @@ export function derive<
             source.invalidate()
         },
 
-        getCached(params?: InferOutput<P>) {
+        getCached(_params?: InferOutput<P>) {
             // 对于派生实例，getCached 需要同步执行插件链
             // 这比较复杂，暂时返回 undefined
             return undefined

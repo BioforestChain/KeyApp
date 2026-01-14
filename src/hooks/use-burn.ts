@@ -34,16 +34,16 @@ const MOCK_FEE = { amount: '0.001', symbol: 'BFM' }
  */
 function validateAmountInput(amount: Amount | null, asset: AssetInfo | null): string | null {
   if (!amount || !asset) return null
-  
+
   if (!amount.isPositive()) {
     return '请输入有效金额'
   }
-  
+
   const balance = asset.amount
   if (amount.gt(balance)) {
     return '销毁数量不能大于余额'
   }
-  
+
   return null
 }
 
@@ -51,13 +51,13 @@ function validateAmountInput(amount: Amount | null, asset: AssetInfo | null): st
  * Hook for managing burn flow
  */
 export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
-  const { 
-    initialAsset, 
+  const {
+    initialAsset,
     assetLocked = false,
-    useMock = true, 
-    walletId, 
-    fromAddress, 
-    chainConfig 
+    useMock = true,
+    walletId,
+    fromAddress,
+    chainConfig
   } = options
 
   const [state, setState] = useState<BurnState>({
@@ -200,10 +200,10 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string): Promise<BurnSubmitResult> => {
-    
+
 
     if (useMock) {
-      
+
       setState((prev) => ({
         ...prev,
         step: 'burning',
@@ -349,6 +349,17 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
       return { status: 'error', message: result.message }
     }
 
+    if (result.status === 'password_required') {
+      // 不应该发生，因为已经提供了 twoStepSecret
+      setState((prev) => ({
+        ...prev,
+        step: 'confirm',
+        isSubmitting: false,
+      }))
+      return { status: 'two_step_secret_required', secondPublicKey: result.secondPublicKey }
+    }
+
+    // result.status === 'ok'
     setState((prev) => ({
       ...prev,
       step: 'result',

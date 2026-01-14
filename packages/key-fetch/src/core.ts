@@ -287,7 +287,7 @@ class KeyFetchInstanceImpl<
   }
 
   /** 通知所有订阅者 */
-  private notifyAll(data: InferOutput<S>): void {
+  private _notifyAll(data: InferOutput<S>): void {
     for (const subs of this.subscribers.values()) {
       subs.forEach(cb => cb(data, 'update'))
     }
