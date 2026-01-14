@@ -55,10 +55,10 @@ export interface UseSendOptions {
 
 /** Submit result type */
 export type SubmitResult =
-  | { status: 'ok'; txHash?: string }
+  | { status: 'ok'; txHash?: string; pendingTxId?: string }
   | { status: 'password' }
   | { status: 'two_step_secret_required'; secondPublicKey: string }
-  | { status: 'error' }
+  | { status: 'error'; message?: string; pendingTxId?: string }
 
 export interface UseSendReturn {
   /** Current state */
