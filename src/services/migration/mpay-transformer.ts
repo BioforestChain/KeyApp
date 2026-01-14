@@ -80,13 +80,14 @@ function transformChainAddress(
 ): ChainAddress | null {
   const chain = mapChainName(mpayAddress.chain)
   if (!chain) {
-    
+
     return null
   }
 
   return {
     chain,
     address: mpayAddress.address,
+    publicKey: '', // Will be derived on wallet unlock
     tokens: mpayAddress.assets.map((asset) => transformAsset(asset, chain)),
   }
 }
@@ -240,7 +241,7 @@ export async function transformMpayData(
 
       wallets.push(wallet)
     } catch (error) {
-      
+
       // 继续处理其他钱包
     }
   }

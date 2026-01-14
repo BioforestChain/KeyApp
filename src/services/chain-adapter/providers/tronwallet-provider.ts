@@ -37,8 +37,6 @@ const TxHistoryApiSchema = z.object({
   data: z.array(TronNativeTxSchema),
 }).passthrough()
 
-type _TronNativeTx = z.infer<typeof TronNativeTxSchema>
-
 // ==================== 工具函数 ====================
 
 function getDirection(from: string, to: string, address: string): Direction {

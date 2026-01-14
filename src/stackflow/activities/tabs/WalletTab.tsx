@@ -101,9 +101,7 @@ export function WalletTab() {
     { enabled: !!address }
   ) ?? {}
 
-  // 通过 error 类型判断是否支持
-  const _balanceSupported = !(balanceError instanceof NoSupportError)
-  const _txSupported = !(txError instanceof NoSupportError)
+  // Note: Support checks via NoSupportError are available via balanceError/txError if needed
 
   // 转换余额数据格式
   const balanceData = useMemo(() => ({
