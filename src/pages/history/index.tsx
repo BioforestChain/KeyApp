@@ -7,7 +7,6 @@ import { TransactionList } from '@/components/transaction/transaction-list';
 import { PendingTxList } from '@/components/transaction/pending-tx-list';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getChainProvider } from '@/services/chain-adapter/providers';
-import { NoSupportError } from '@biochain/key-fetch';
 import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
@@ -51,7 +50,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   );
 
   // 使用 fetcher.useState() - 不再需要可选链
-  const { data: rawTransactions, isLoading, isFetching, error, refetch } = chainProvider?.transactionHistory.useState(
+  const { data: rawTransactions, isLoading, isFetching, error: _error, refetch } = chainProvider?.transactionHistory.useState(
     { address: address ?? '', limit: 50 },
     { enabled: !!address }
   ) ?? {}
@@ -112,7 +111,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   );
 
   const handleRefresh = useCallback(async () => {
-    await refetch();
+    await refetch?.();
   }, [refetch]);
 
   if (!currentWallet) {
@@ -216,7 +215,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
 
         {/* Confirmed Transactions */}
         <TransactionList
-          transactions={transactions}
+          transactions={transactions as unknown as TransactionInfo[]}
           loading={isLoading}
           onTransactionClick={handleTransactionClick}
           emptyTitle={t('transaction:history.emptyTitle')}

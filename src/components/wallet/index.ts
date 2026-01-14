@@ -23,4 +23,3 @@ export { ChainIcon, ChainBadge, ChainIconProvider, type ChainType } from './chai
 export { ChainAddressDisplay } from './chain-address-display'
 export { TokenIcon, TokenBadge, TokenIconProvider } from './token-icon'
 export { WalletAddressPortfolioView, type WalletAddressPortfolioViewProps } from './wallet-address-portfolio-view'
-export { WalletAddressPortfolioFromProvider, type WalletAddressPortfolioFromProviderProps } from './wallet-address-portfolio-from-provider'

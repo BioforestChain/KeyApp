@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/common'
 import { getChainProvider } from '@/services/chain-adapter/providers'
-import { NoSupportError } from '@biochain/key-fetch'
 import { useEnabledChains } from '@/stores'
 import { IconSearch, IconAlertCircle, IconCurrencyEthereum } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
