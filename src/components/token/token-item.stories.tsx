@@ -148,19 +148,19 @@ export const ContextMenuList: Story = {
       <TokenItem
         token={mockUSDT}
         onClick={() => { }}
-        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        onContextMenu={(_e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="ETH"
       />
       <TokenItem
         token={mockETH}
         onClick={() => { }}
-        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        onContextMenu={(_e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="ETH"
       />
       <TokenItem
         token={mockTRX}
         onClick={() => { }}
-        onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
+        onContextMenu={(_e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="TRX"
       />
     </div>

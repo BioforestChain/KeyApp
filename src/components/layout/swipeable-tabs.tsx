@@ -38,7 +38,7 @@ export function Tabs({
   className,
 }: TabsProps) {
   const [internalActiveTab, setInternalActiveTab] = useState(defaultTab)
-  
+
   const activeTab = controlledActiveTab ?? internalActiveTab
 
   const handleTabClick = useCallback(
@@ -121,7 +121,7 @@ export function SwipeableTabs({
 
   // 实时更新指示器位置（通过 CSS 变量）
   const handleProgress = useCallback(
-    (swiper: SwiperType, progress: number) => {
+    (_swiper: SwiperType, progress: number) => {
       if (!indicatorRef.current) return
       // progress: 0 = 第一个 tab, 1 = 最后一个 tab
       // 转换为 tab 索引（支持小数，用于平滑过渡）
@@ -146,7 +146,7 @@ export function SwipeableTabs({
               transform: `translateX(calc(var(--tab-index) * (100% + 4px)))`,
             } as React.CSSProperties}
           />
-          
+
           {tabs.map((tab) => (
             <button
               key={tab.id}

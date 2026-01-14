@@ -43,10 +43,10 @@ export function safeParse<T>(
 export function safeParseArray<T>(
   itemSchema: z.ZodType<T>,
   data: unknown,
-  source: string
+  _source: string
 ): T[] {
   if (!Array.isArray(data)) {
-    
+
     return []
   }
 
@@ -56,7 +56,7 @@ export function safeParseArray<T>(
     if (result.success) {
       results.push(result.data)
     } else {
-      
+
     }
   }
   return results
@@ -68,7 +68,7 @@ export function safeParseArray<T>(
 export function safeParseJson<T>(
   schema: z.ZodType<T>,
   jsonString: string | null,
-  source: string
+  _source: string
 ): T | null {
   if (!jsonString) return null
 
@@ -76,13 +76,13 @@ export function safeParseJson<T>(
   try {
     parsed = JSON.parse(jsonString)
   } catch {
-    
+
     return null
   }
 
   const result = schema.safeParse(parsed)
   if (!result.success) {
-    
+
     return null
   }
   return result.data

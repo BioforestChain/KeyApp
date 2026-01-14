@@ -46,11 +46,11 @@ export class QRScanner {
 
   constructor(config: ScannerConfig = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
-    
+
     this.readyPromise = new Promise((resolve) => {
       this.readyResolve = resolve
     })
-    
+
     if (this.config.useWorker && typeof Worker !== 'undefined') {
       this.initWorker()
     } else {
@@ -62,16 +62,16 @@ export class QRScanner {
   /** 初始化 Worker */
   private initWorker() {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
-    
+
     this.worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
       const response = event.data
-      
+
       switch (response.type) {
         case 'ready':
           this._ready = true
           this.readyResolve?.()
           break
-          
+
         case 'result': {
           const callback = this.pendingRequests.get(response.id)
           if (callback) {
@@ -84,7 +84,7 @@ export class QRScanner {
           }
           break
         }
-        
+
         case 'batchResult': {
           const callback = this.batchPendingRequests.get(response.id)
           if (callback) {
@@ -99,9 +99,9 @@ export class QRScanner {
         }
       }
     }
-    
-    this.worker.onerror = (error) => {
-      
+
+    this.worker.onerror = (_error) => {
+
       // 回退到主线程模式
       this.worker?.terminate()
       this.worker = null
@@ -123,7 +123,7 @@ export class QRScanner {
   /** 扫描单帧 ImageData */
   async scan(imageData: ImageData): Promise<ScanResult | null> {
     await this.readyPromise
-    
+
     if (this.worker) {
       return this.scanWithWorker(imageData)
     }
@@ -135,7 +135,7 @@ export class QRScanner {
     return new Promise((resolve, reject) => {
       const id = ++requestId
       this.pendingRequests.set(id, { resolve, reject })
-      
+
       const message: WorkerMessage = { type: 'scan', id, imageData }
       this.worker!.postMessage(message, [imageData.data.buffer])
     })
@@ -145,13 +145,13 @@ export class QRScanner {
   private async scanMainThread(imageData: ImageData): Promise<ScanResult | null> {
     const { default: jsQR } = await import('jsqr')
     const start = performance.now()
-    
+
     const result = jsQR(imageData.data, imageData.width, imageData.height, {
       inversionAttempts: 'dontInvert',
     })
-    
+
     if (!result) return null
-    
+
     return {
       content: result.data,
       duration: performance.now() - start,
@@ -167,7 +167,7 @@ export class QRScanner {
   /** 批量扫描多帧 */
   async scanBatch(frames: ImageData[]): Promise<(ScanResult | null)[]> {
     await this.readyPromise
-    
+
     if (this.worker && frames.length > 0) {
       return this.scanBatchWithWorker(frames)
     }
@@ -179,7 +179,7 @@ export class QRScanner {
     return new Promise((resolve, reject) => {
       const id = ++requestId
       this.batchPendingRequests.set(id, { resolve, reject })
-      
+
       const message: WorkerMessage = { type: 'scanBatch', id, frames }
       const transfers = frames.map(f => f.data.buffer)
       this.worker!.postMessage(message, transfers)
@@ -190,19 +190,19 @@ export class QRScanner {
   async scanFromVideo(video: HTMLVideoElement, canvas?: HTMLCanvasElement): Promise<ScanResult | null> {
     const width = video.videoWidth
     const height = video.videoHeight
-    
+
     if (width === 0 || height === 0) return null
-    
+
     const cvs = canvas ?? document.createElement('canvas')
     cvs.width = width
     cvs.height = height
-    
+
     const ctx = cvs.getContext('2d', { willReadFrequently: true })
     if (!ctx) return null
-    
+
     ctx.drawImage(video, 0, 0, width, height)
     const imageData = ctx.getImageData(0, 0, width, height)
-    
+
     return this.scan(imageData)
   }
 
@@ -210,7 +210,7 @@ export class QRScanner {
   async scanFromCanvas(canvas: HTMLCanvasElement): Promise<ScanResult | null> {
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return null
-    
+
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
     return this.scan(imageData)
   }

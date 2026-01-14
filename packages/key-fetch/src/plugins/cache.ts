@@ -9,7 +9,7 @@
  * - custom: 自定义存储实现
  */
 
-import type { FetchPlugin, SubscribeContext } from '../types'
+import type { FetchPlugin, SubscribeContext as _SubscribeContext } from '../types'
 
 // ==================== 存储后端接口 ====================
 
