@@ -33,7 +33,7 @@ import {
   chainConfigSelectors,
   walletActions,
 } from "@/stores";
-import type { TransactionInfo } from "@/components/transaction/transaction-item";
+import { toTransactionInfoList, type TransactionInfo } from "@/components/transaction";
 
 const CHAIN_NAMES: Record<string, string> = {
   ethereum: "Ethereum",
@@ -317,7 +317,7 @@ export function WalletTab() {
             change24h: token.change24h,
             icon: token.icon,
           }))}
-          transactions={transactions.slice(0, 5) as unknown as import('@/components/transaction/transaction-item').TransactionInfo[]}
+          transactions={toTransactionInfoList(transactions?.slice(0, 5) ?? [], selectedChain)}
           tokensRefreshing={isRefreshing}
           transactionsLoading={txLoading}
           tokensSupported={balanceData?.supported ?? true}

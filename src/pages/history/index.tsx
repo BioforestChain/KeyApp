@@ -10,7 +10,7 @@ import { getChainProvider } from '@/services/chain-adapter/providers';
 import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
-import type { TransactionInfo } from '@/components/transaction/transaction-item';
+import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
 import type { ChainType } from '@/stores';
 
 /** 交易历史过滤器 */
@@ -215,7 +215,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
 
         {/* Confirmed Transactions */}
         <TransactionList
-          transactions={transactions as unknown as TransactionInfo[]}
+          transactions={toTransactionInfoList(transactions ?? [], targetChain)}
           loading={isLoading}
           onTransactionClick={handleTransactionClick}
           emptyTitle={t('transaction:history.emptyTitle')}
