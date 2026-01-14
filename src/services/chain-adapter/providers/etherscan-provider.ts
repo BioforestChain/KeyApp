@@ -93,7 +93,7 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
-    this._evmChainId = EVM_CHAIN_IDS[chainId] ?? 1
+    // EVM chain ID determined by chainId parameter
     this.symbol = chainConfigService.getSymbol(chainId)
     this.decimals = chainConfigService.getDecimals(chainId)
 

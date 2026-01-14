@@ -11,7 +11,6 @@ import { merge, type KeyFetchInstance } from '@biochain/key-fetch'
 import type {
   ApiProvider,
   ApiProviderMethod,
-  Balance,
   FeeEstimate,
   TransferParams,
   UnsignedTransaction,
@@ -24,8 +23,6 @@ import {
   TransactionOutputSchema,
   BlockHeightOutputSchema,
 } from './types'
-import { chainConfigService } from '@/services/chain-config'
-import { Amount } from '@/types/amount'
 
 const SYNC_METHODS = new Set<ApiProviderMethod>(['isValidAddress', 'normalizeAddress'])
 
