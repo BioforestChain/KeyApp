@@ -144,7 +144,7 @@ async function fetchGenesisBlock(
     // Fallback to original behavior: {baseUrl}/{chainId}.json
     url = `${getGenesisBaseUrl()}/${chainId}.json`
   }
-  
+
   let genesis: BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
   if (url.startsWith('http://') || url.startsWith('https://')) {
     // Browser: use fetch() for JSON files
@@ -173,7 +173,7 @@ async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> 
   // Dynamic import for tree-shaking, use .js extension for ESM compatibility
   const { sha256 } = await import('@noble/hashes/sha2.js')
   const { md5, ripemd160 } = await import('@noble/hashes/legacy.js')
-  
+
   // Helper to create chainable hash object
   const createChainable = (hashFn: (data: Uint8Array) => Uint8Array) => {
     const chunks: Uint8Array[] = []
@@ -320,7 +320,7 @@ export async function getAccountBalance(
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
   const assetType = await core.getAssetType()
-  
+
   const api = getApi(baseUrl)
   try {
     const result = await api.getAddressAssets(address)
@@ -447,17 +447,17 @@ export async function broadcastTransaction(
   }
 
   const api = getApi(baseUrl)
-  
+
   try {
     const rawResult = await api.broadcastTransaction(txWithoutNonce)
-    
+
     // Case 1: API 返回交易对象本身 = 成功
     // ApiClient 在 success=true 时返回 json.result，即交易对象
     if (rawResult && typeof rawResult === 'object' && 'signature' in rawResult) {
-      
+
       return { txHash: transaction.signature, alreadyExists: false }
     }
-    
+
     // Case 2: API 返回错误对象或状态对象
     const parseResult = BroadcastResultSchema.safeParse(rawResult)
     if (parseResult.success) {
@@ -465,28 +465,28 @@ export async function broadcastTransaction(
       if (!result.success) {
         const errorCode = result.error?.code
         const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
-        
+
         // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
         if (errorCode === '001-00034') {
-          
+
           return { txHash: transaction.signature, alreadyExists: true }
         }
-        
+
         throw new BroadcastError(errorCode, errorMsg, result.minFee)
       }
       // success=true 的情况
       return { txHash: transaction.signature, alreadyExists: false }
     }
-    
+
     // Case 3: 未知格式，假设成功（保守处理）
-    
+
     return { txHash: transaction.signature, alreadyExists: false }
   } catch (error) {
     // Re-throw BroadcastError as-is
     if (error instanceof BroadcastError) {
       throw error
     }
-    
+
     // Extract broadcast error info from ApiError
     if (error instanceof ApiError && error.response) {
       const parseResult = BroadcastResultSchema.safeParse(error.response)
@@ -494,17 +494,17 @@ export async function broadcastTransaction(
         const result = parseResult.data
         const errorCode = result.error?.code
         const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
-        
+
         // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
         if (errorCode === '001-00034') {
-          
+
           return { txHash: transaction.signature, alreadyExists: true }
         }
-        
+
         throw new BroadcastError(errorCode, errorMsg, result.minFee)
       }
     }
-    
+
     // Fallback: wrap unknown errors
     throw new BroadcastError(
       undefined,
@@ -550,7 +550,7 @@ export async function verifyTwoStepSecret(
 
 // ===== Fee Estimation APIs =====
 
-export type FeeIntent = 
+export type FeeIntent =
   | { type: 'transfer'; amount: string; remark?: Record<string, string> }
   | { type: 'setPayPassword' }
 
@@ -601,7 +601,7 @@ export async function getMinFee(params: GetMinFeeParams): Promise<string> {
       // Use a large amount to get maximum fee estimation
       // The SDK calculates fee based on transaction bytes
       const estimationAmount = intent.amount || '99999999999999999'
-      
+
       let minFee = await core.transactionController.getTransferTransactionMinFee({
         transaction: {
           applyBlockHeight,
@@ -751,7 +751,7 @@ export async function setTwoStepSecret(
   await broadcastTransaction(
     params.baseUrl,
     transaction as unknown as BFChainCore.TransactionJSON,
-  ).catch(() => {})
+  ).catch(() => { })
 
   return { txHash: transaction.signature, success: true }
 }
@@ -797,7 +797,11 @@ export async function getDestroyTransactionMinFee(
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
-  return core.transactionController.getDestoryAssetTransactionMinFee({
+  // SDK method uses "Destory" spelling (typo in SDK)
+  const controller = core.transactionController as unknown as {
+    getDestoryAssetTransactionMinFee: (params: unknown) => Promise<string>
+  }
+  return controller.getDestoryAssetTransactionMinFee({
     transaction: {
       applyBlockHeight,
       timestamp,
@@ -864,8 +868,11 @@ export async function createDestroyTransaction(
     amount: params.amount,
   }
 
-  // SDK method is "createDestoryAssetTransactionJSON" (typo preserved)
-  return core.transactionController.createDestoryAssetTransactionJSON({
+  // SDK method uses "Destory" spelling (typo in SDK)
+  const controller = core.transactionController as unknown as {
+    createDestoryAssetTransactionJSON: (params: unknown) => Promise<BFChainCore.TransactionJSON>
+  }
+  return controller.createDestoryAssetTransactionJSON({
     secrets,
     transaction: {
       fee,
