@@ -31,13 +31,13 @@ export function AddressBalancePage() {
   )
 
   // 使用 fetcher.useState() - 不再需要可选链
-  const { data: balance, isLoading, isFetching, error, refetch } = chainProvider?.nativeBalance.useState(
+  const { data: balance, isLoading, isFetching, error, refetch: _refetch } = chainProvider?.nativeBalance.useState(
     { address: queryAddress },
     { enabled: !!queryChain && !!queryAddress }
   ) ?? {}
 
   // 通过 error 类型判断是否支持
-  const isSupported = !(error instanceof NoSupportError)
+  const _isSupported = !(error instanceof NoSupportError)
 
   const handleSearch = useCallback(() => {
     if (address.trim()) {

@@ -57,7 +57,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   ) ?? {}
 
   // 通过 error 类型判断是否支持
-  const isSupported = !(error instanceof NoSupportError)
+  const _isSupported = !(error instanceof NoSupportError)
 
   // 获取 pending transactions
   const {

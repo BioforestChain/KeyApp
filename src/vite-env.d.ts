@@ -22,3 +22,5 @@ declare module '#services-impl' {
   import type { IServices } from '@/services/types'
   export function createServices(): IServices
 }
+
+export { }

@@ -69,7 +69,7 @@ export function AddressTransactionsPage() {
   )
 
   // 使用 fetcher.useState() - 不再需要可选链
-  const { data: transactions, isLoading, error, refetch } = chainProvider?.transactionHistory.useState(
+  const { data: transactions, isLoading, error, refetch: _refetch } = chainProvider?.transactionHistory.useState(
     { address: searchAddress, limit: 50 },
     { enabled: !!searchAddress }
   ) ?? {}

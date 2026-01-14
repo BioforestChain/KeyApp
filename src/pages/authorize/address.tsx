@@ -119,7 +119,7 @@ export function AddressAuthPage() {
   const [selectedChain, setSelectedChain] = useState<ChainIconType | undefined>(chainIconType)
   useEffect(() => setSelectedChain(chainIconType), [chainIconType])
 
-  const [selectedAddress, setSelectedAddress] = useState<string | undefined>(undefined)
+  const [_selectedAddress, _setSelectedAddress] = useState<string | undefined>(undefined)
   const [selectedWalletIds, setSelectedWalletIds] = useState<Set<string>>(() => new Set(wallets.map((w) => w.id)))
   const [chainSelectorOpen, setChainSelectorOpen] = useState(false)
 
@@ -469,11 +469,11 @@ export function AddressAuthPage() {
 
       {/* 链选择器 Sheet */}
       {chainSelectorOpen && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50" 
+        <div
+          className="fixed inset-0 z-50 bg-black/50"
           onClick={() => setChainSelectorOpen(false)}
         >
-          <div 
+          <div
             className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl"
             onClick={(e) => e.stopPropagation()}
           >
