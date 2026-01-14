@@ -55,10 +55,10 @@ export interface UseBurnOptions {
 
 /** Submit result type */
 export type BurnSubmitResult =
-  | { status: 'ok'; txHash?: string }
+  | { status: 'ok'; txHash?: string; pendingTxId?: string }
   | { status: 'password' }
   | { status: 'two_step_secret_required'; secondPublicKey: string }
-  | { status: 'error'; message?: string }
+  | { status: 'error'; message?: string; pendingTxId?: string }
 
 export interface UseBurnReturn {
   /** Current state */
