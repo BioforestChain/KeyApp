@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import type React from 'react';
 import { TokenItem, type TokenInfo } from './token-item';
 
 const meta: Meta<typeof TokenItem> = {
@@ -77,10 +78,10 @@ export const NotClickable: Story = {
 export const TokenList: Story = {
   render: () => (
     <div className="space-y-1">
-      <TokenItem token={mockUSDT} onClick={() => {}} showChange />
-      <TokenItem token={mockETH} onClick={() => {}} showChange />
-      <TokenItem token={mockTRX} onClick={() => {}} showChange />
-      <TokenItem token={mockBTC} onClick={() => {}} showChange />
+      <TokenItem token={mockUSDT} onClick={() => { }} showChange />
+      <TokenItem token={mockETH} onClick={() => { }} showChange />
+      <TokenItem token={mockTRX} onClick={() => { }} showChange />
+      <TokenItem token={mockBTC} onClick={() => { }} showChange />
     </div>
   ),
 };
@@ -92,10 +93,10 @@ export const MultiCurrency: Story = {
         使用顶部工具栏的 <span className="font-medium">Currency</span> 切换 USD/CNY/EUR/JPY/KRW，查看汇率换算展示。
       </p>
       <div className="space-y-1">
-        <TokenItem token={mockUSDT} onClick={() => {}} showChange />
-        <TokenItem token={mockETH} onClick={() => {}} showChange />
-        <TokenItem token={mockTRX} onClick={() => {}} showChange />
-        <TokenItem token={mockBTC} onClick={() => {}} showChange />
+        <TokenItem token={mockUSDT} onClick={() => { }} showChange />
+        <TokenItem token={mockETH} onClick={() => { }} showChange />
+        <TokenItem token={mockTRX} onClick={() => { }} showChange />
+        <TokenItem token={mockBTC} onClick={() => { }} showChange />
       </div>
     </div>
   ),
@@ -111,7 +112,7 @@ export const MultiCurrency: Story = {
 export const Responsive: Story = {
   args: {
     token: mockUSDT,
-    onClick: () => {},
+    onClick: () => { },
     showChange: true,
   },
   parameters: {
@@ -127,8 +128,8 @@ export const WithContextMenu: Story = {
   args: {
     token: mockUSDT,
     onClick: () => alert('Clicked USDT'),
-    onContextMenu: (event, token, context) => {
-      alert(`Context menu for ${token.symbol}\nCan destroy: ${context.canDestroy}`);
+    onContextMenu: (_event: React.MouseEvent, token: TokenInfo) => {
+      alert(`Context menu for ${token.symbol}`);
     },
     mainAssetSymbol: 'ETH', // USDT is not main asset, so canDestroy = true for bioforest chains
   },
@@ -144,21 +145,21 @@ export const WithContextMenu: Story = {
 export const ContextMenuList: Story = {
   render: () => (
     <div className="space-y-1">
-      <TokenItem 
-        token={mockUSDT} 
-        onClick={() => {}} 
+      <TokenItem
+        token={mockUSDT}
+        onClick={() => { }}
         onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="ETH"
       />
-      <TokenItem 
-        token={mockETH} 
-        onClick={() => {}} 
+      <TokenItem
+        token={mockETH}
+        onClick={() => { }}
         onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="ETH"
       />
-      <TokenItem 
-        token={mockTRX} 
-        onClick={() => {}} 
+      <TokenItem
+        token={mockTRX}
+        onClick={() => { }}
         onContextMenu={(e, token) => alert(`Menu: ${token.symbol}`)}
         mainAssetSymbol="TRX"
       />
