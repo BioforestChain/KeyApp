@@ -63,6 +63,7 @@ const createMockWallet = (id: string, name: string): Wallet => ({
     {
       chain: 'ethereum',
       address: `0x${id}`,
+      publicKey: `0x04${id}`,
       tokens: [],
     },
   ],
@@ -164,8 +165,8 @@ describe('WalletCardCarousel', () => {
     const walletWithMultiChain: Wallet = {
       ...baseWallet,
       chainAddresses: [
-        { chain: 'ethereum', address: '0xETH-ADDRESS', tokens: [] },
-        { chain: 'tron', address: 'TRON-ADDRESS', tokens: [] },
+        { chain: 'ethereum', address: '0xETH-ADDRESS', publicKey: '0x04eth', tokens: [] },
+        { chain: 'tron', address: 'TRON-ADDRESS', publicKey: '0x04tron', tokens: [] },
       ],
     }
 
