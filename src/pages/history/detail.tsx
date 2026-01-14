@@ -12,13 +12,88 @@ import { AmountDisplay, TimeDisplay, CopyableText } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { SkeletonCard } from '@/components/common';
-import { getChainProvider } from '@/services/chain-adapter/providers';
+import { getChainProvider, InvalidDataError, type Transaction } from '@/services/chain-adapter/providers';
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
 import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
 import { Amount } from '@/types/amount';
+
+// Action 到 TransactionType 的映射
+const ACTION_TO_TYPE: Record<string, TransactionType> = {
+  transfer: 'send', swap: 'swap', exchange: 'exchange', approve: 'approve',
+  signature: 'signature', stake: 'stake', unstake: 'unstake', mint: 'mint',
+  burn: 'destroy', gift: 'gift', grab: 'grab', trust: 'trust', signFor: 'signFor',
+  emigrate: 'emigrate', immigrate: 'immigrate', issueAsset: 'issueAsset',
+  increaseAsset: 'increaseAsset', destroyAsset: 'destroy', issueEntity: 'issueEntity',
+  destroyEntity: 'destroyEntity', locationName: 'locationName', dapp: 'dapp',
+  certificate: 'certificate', mark: 'mark', contract: 'interaction', unknown: 'other',
+  revoke: 'approve', claim: 'receive',
+}
+
+// 将 API Transaction 转换为页面使用的格式
+interface AdaptedTransaction {
+  hash: string
+  from: string
+  to: string
+  address: string  // 根据 direction 确定的显示地址
+  timestamp: number
+  status: 'pending' | 'confirmed' | 'failed'
+  type: TransactionType
+  direction: 'in' | 'out' | 'self'
+  amount: Amount
+  symbol: string
+  chain?: string
+  assets?: Transaction['assets']
+  fee?: Amount  // 转换为 Amount 对象
+  contract?: Transaction['contract']
+  blockNumber?: bigint
+  confirmations?: number  // 可选，需要额外计算
+}
+
+function adaptTransaction(tx: Transaction, chainId?: string): AdaptedTransaction {
+  const action = tx.action
+  const direction = tx.direction
+  const type = action === 'transfer'
+    ? (direction === 'in' ? 'receive' : 'send')
+    : (ACTION_TO_TYPE[action] ?? 'other')
+
+  const asset = tx.assets[0]
+  const value = asset.assetType === 'nft' ? '1' : asset.value
+  const decimals = asset.assetType === 'nft' ? 0 : asset.decimals
+  const symbol = asset.assetType === 'nft' ? 'NFT' : asset.symbol
+
+  // 根据 direction 确定显示的地址
+  const address = direction === 'in' ? tx.from : tx.to
+
+  return {
+    hash: tx.hash,
+    from: tx.from,
+    to: tx.to,
+    address,
+    timestamp: tx.timestamp,
+    status: tx.status,
+    type,
+    direction,
+    amount: Amount.fromRaw(value, decimals, symbol),
+    symbol,
+    chain: chainId,
+    assets: tx.assets,
+    fee: tx.fee ? Amount.fromRaw(tx.fee.value, tx.fee.decimals, tx.fee.symbol) : undefined,
+    contract: tx.contract,
+    blockNumber: tx.blockNumber,
+  }
+}
+
+// 安全获取资产的 value/decimals/symbol（NFT 没有这些字段）
+function getAssetAmount(asset: NonNullable<Transaction['assets']>[0] | undefined): { value: string, decimals: number, symbol: string } | null {
+  if (!asset) return null
+  if (asset.assetType === 'nft') return null
+  return { value: asset.value, decimals: asset.decimals, symbol: asset.symbol }
+}
+
+
 
 function parseTxId(id: string | undefined): { chainId: string; hash: string } | null {
   if (!id) return null;
@@ -45,18 +120,23 @@ export function TransactionDetailPage() {
   );
 
   // 使用 ChainProvider.transaction.useState() 获取交易详情
-  const { data: transaction, isLoading, error, refetch } = chainProvider?.transaction.useState(
+  const { data: rawTransaction, isLoading, error } = chainProvider?.transaction.useState(
     { hash: parsedTxId?.hash ?? '' },
     { enabled: !!parsedTxId?.hash }
   ) ?? {}
 
+  // 转换为页面使用的格式
+  const transaction = useMemo(
+    () => rawTransaction ? adaptTransaction(rawTransaction, chainId) : null,
+    [rawTransaction, chainId]
+  )
+
   const isPageLoading = isLoading
-  // error 可用于显示错误或判断是否支持
   // 获取链配置（用于构建浏览器 URL）
   const chainConfig = useMemo(() => {
-    const chainId = transaction?.chain ?? parsedTxId?.chainId;
-    if (!chainId) return null;
-    return chainConfigSelectors.getChainById(chainConfigState, chainId);
+    const cid = transaction?.chain ?? parsedTxId?.chainId;
+    if (!cid) return null;
+    return chainConfigSelectors.getChainById(chainConfigState, cid);
   }, [chainConfigState, parsedTxId?.chainId, transaction?.chain]);
 
   // 构建交易浏览器 URL（没有配置则返回 null）
@@ -114,7 +194,7 @@ export function TransactionDetailPage() {
     );
   }
 
-  if (txDetailQuery.error instanceof InvalidDataError) {
+  if (error instanceof InvalidDataError) {
     const fallbackHash = parsedTxId?.hash;
 
     return (
@@ -195,8 +275,10 @@ export function TransactionDetailPage() {
   const typeMeta = getTransactionVisualMeta(txType);
   const TxIcon = typeMeta.Icon;
 
-  const swapFromAsset = transaction.type === 'swap' ? transaction.assets?.[0] : undefined;
-  const swapToAsset = transaction.type === 'swap' ? transaction.assets?.[1] : undefined;
+  const swapFromAssetRaw = transaction.type === 'swap' ? transaction.assets?.[0] : undefined;
+  const swapToAssetRaw = transaction.type === 'swap' ? transaction.assets?.[1] : undefined;
+  const swapFromAsset = getAssetAmount(swapFromAssetRaw);
+  const swapToAsset = getAssetAmount(swapToAssetRaw);
   const contractAddress = transaction.contract?.address || transaction.to;
   const contractMethod = transaction.contract?.method;
   const contractMethodId = transaction.contract?.methodId;
@@ -401,7 +483,7 @@ export function TransactionDetailPage() {
                 <span className="text-muted-foreground text-sm">{t('detail.fee')}</span>
                 <FeeDisplay
                   amount={transaction.fee.toNumber()}
-                  symbol={transaction.feeSymbol || transaction.symbol}
+                  symbol={transaction.fee.symbol}
                   className="text-sm"
                 />
               </div>
