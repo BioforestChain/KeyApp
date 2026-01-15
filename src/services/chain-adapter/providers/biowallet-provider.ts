@@ -528,15 +528,26 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               // TODO: 更精确地匹配 txHash
               const pendingTx = results.pending.result[0]
               const tx = pendingTx.trJson
+
+              // 从 transferAsset 中提取资产信息
+              const transferAsset = tx.asset?.transferAsset
+              const assetType = transferAsset?.assetType ?? 'BFM'
+              const amount = transferAsset?.amount ?? '0'
+
               return {
-                hash: '', // BFChain pending tx 可能还没有 signature
+                hash: tx.signature ?? '', // pending tx 已经有 signature
                 from: tx.senderId,
                 to: tx.recipientId ?? '',
                 timestamp: new Date(pendingTx.createdTime).getTime(),
                 status: 'pending' as const,
                 action: detectAction(tx.type),
                 direction: 'out' as const,
-                assets: [],
+                assets: [{
+                  assetType: 'native' as const,
+                  value: amount,
+                  symbol: assetType,
+                  decimals: 8, // TODO: 从 chainConfig 获取
+                }],
               }
             }
 
