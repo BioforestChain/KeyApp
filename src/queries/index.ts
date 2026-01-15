@@ -37,11 +37,3 @@ export {
   chainConfigQueryKeys,
 } from './use-chain-config-query'
 
-export {
-  useSecurityPasswordQuery,
-  useSecurityPublicKey,
-  useHasSecurityPassword,
-  useRefreshSecurityPassword,
-  securityPasswordQueryKeys,
-  type SecurityPasswordQueryResult,
-} from './use-security-password-query'

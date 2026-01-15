@@ -148,12 +148,11 @@ export function SettingsPage() {
       fee ?? undefined,
       // checkConfirmed callback - 检查交易是否上链
       async () => {
-        const { getAddressInfo } = await import('@/services/bioforest-sdk');
-        const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
-        const apiUrl = biowallet?.endpoint;
-        if (!apiUrl) return false;
+        const { getChainProvider } = await import('@/services/chain-adapter/providers');
+        const provider = getChainProvider(chainConfig.id);
+        if (!provider.bioGetAccountInfo) return false;
         try {
-          const info = await getAddressInfo(apiUrl, bfmAddress.address);
+          const info = await provider.bioGetAccountInfo(bfmAddress.address);
           return !!info.secondPublicKey;
         } catch {
           return false;
