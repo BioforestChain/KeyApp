@@ -86,6 +86,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                     assetType: intent.bioAssetType ?? config.symbol,
                     memo: intent.memo,
                 },
+                estimatedFee: intent.fee,
             }
         }
 
@@ -104,6 +105,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                     amount: intent.amount.toRawString(),
                     assetType: intent.bioAssetType,
                 },
+                estimatedFee: intent.fee,
             }
         }
 
@@ -119,6 +121,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                 data: {
                     from: intent.from,
                 },
+                estimatedFee: intent.fee,
             }
         }
 

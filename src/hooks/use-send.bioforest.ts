@@ -126,7 +126,7 @@ export async function submitBioforestTransfer({
   toAddress,
   amount,
   assetType,
-  fee: _fee,
+  fee,
   twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
   // Get mnemonic from wallet storage
@@ -188,6 +188,7 @@ export async function submitBioforestTransfer({
       from: fromAddress,
       to: toAddress,
       amount,
+      fee, // Pass fee to avoid re-estimation in signTransaction
       // BioChain 特有字段
       bioAssetType: assetType,
     })

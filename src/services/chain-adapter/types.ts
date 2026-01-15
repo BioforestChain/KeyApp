@@ -47,6 +47,8 @@ export interface Fee {
 /** 交易意图基础接口 */
 interface TransactionIntentBase {
   from: Address
+  /** 可选的手续费（如果指定，签名时使用此值而不重新估算） */
+  fee?: Amount
 }
 
 /** 转账意图 */

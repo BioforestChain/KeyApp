@@ -9,9 +9,11 @@ export function isValidRecipientAddress(address: string, isBioforestChain: boole
   return isValidAddress(address)
 }
 
-export function validateAddressInput(address: string, isBioforestChain: boolean): string | null {
+export function validateAddressInput(address: string, isBioforestChain: boolean, fromAddress?: string): string | null {
   if (!address.trim()) return '请输入收款地址'
   if (!isValidRecipientAddress(address, isBioforestChain)) return '无效的地址格式'
+  // BioChain 不允许自己给自己转账
+  if (isBioforestChain && fromAddress && address.trim() === fromAddress.trim()) return '不能转账给自己'
   return null
 }
 

@@ -28,8 +28,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     if (isWeb3Chain && chainConfig) {
       return validateWeb3Address(chainConfig, address)
     }
-    return validateAddressInput(address, isBioforestChain)
-  }, [isBioforestChain, isWeb3Chain, chainConfig])
+    return validateAddressInput(address, isBioforestChain, fromAddress)
+  }, [isBioforestChain, isWeb3Chain, chainConfig, fromAddress])
 
   // Validate amount
   const validateAmount = useCallback((amount: Amount | null, asset: AssetInfo | null): string | null => {
