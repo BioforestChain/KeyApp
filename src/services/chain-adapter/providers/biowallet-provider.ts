@@ -545,6 +545,9 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     const singleTxApi = keyFetch.create({
       name: `biowallet.${chainId}.singleTx`,
       schema: TxListResponseSchema,
+      paramsSchema: z.object({
+        txHash: z.string().optional(),
+      }),
       url: `${baseUrl}/transactions/query`,
       method: 'POST',
       use: [
