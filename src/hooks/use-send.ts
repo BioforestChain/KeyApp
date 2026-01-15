@@ -118,15 +118,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Get current balance from external source (single source of truth)
   const currentBalance = useMemo(() => {
-    const fromGetBalance = getBalance ? getBalance(state.asset?.assetType ?? '') : null
-    const result = fromGetBalance ?? state.asset?.amount ?? null
-    console.log('[useSend] currentBalance:', {
-      assetType: state.asset?.assetType,
-      fromGetBalance: fromGetBalance?.toFormatted(),
-      stateAssetAmount: state.asset?.amount?.toFormatted(),
-      result: result?.toFormatted(),
-    })
-    return result
+    if (!state.asset?.assetType || !getBalance) return state.asset?.amount ?? null
+    return getBalance(state.asset.assetType) ?? state.asset?.amount ?? null
   }, [state.asset?.assetType, state.asset?.amount, getBalance])
 
   // Create asset with current balance for validation
@@ -137,33 +130,19 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Check if can proceed
   const canProceed = useMemo(() => {
-    const result = canProceedToConfirm({
+    return canProceedToConfirm({
       toAddress: state.toAddress,
       amount: state.amount,
       asset: assetWithCurrentBalance,
       isBioforestChain,
       feeLoading: state.feeLoading,
     })
-    console.log('[useSend] canProceed:', result, {
-      toAddress: state.toAddress,
-      amount: state.amount?.toFormatted(),
-      assetBalance: assetWithCurrentBalance?.amount?.toFormatted(),
-      feeLoading: state.feeLoading,
-    })
-    return result
   }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeLoading])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
     const addressError = validateAddress(state.toAddress)
     const amountError = assetWithCurrentBalance ? validateAmount(state.amount, assetWithCurrentBalance) : '请选择资产'
-
-    console.log('[useSend] goToConfirm validation:', {
-      addressError,
-      amountError,
-      amount: state.amount?.toFormatted(),
-      assetBalance: assetWithCurrentBalance?.amount.toFormatted(),
-    })
 
     if (addressError || amountError) {
       setState((prev) => ({
@@ -176,13 +155,6 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     if (assetWithCurrentBalance && state.feeAmount && state.amount) {
       const adjustResult = adjustAmountForFee(state.amount, assetWithCurrentBalance, state.feeAmount)
-      console.log('[useSend] adjustAmountForFee:', {
-        status: adjustResult.status,
-        message: (adjustResult as any).message,
-        amount: state.amount.toFormatted(),
-        balance: assetWithCurrentBalance.amount.toFormatted(),
-        fee: state.feeAmount.toFormatted(),
-      })
       if (adjustResult.status === 'error') {
         setState((prev) => ({
           ...prev,
@@ -399,7 +371,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         txHash: null,
         errorMessage: result.message,
       }))
-      return { status: 'error' as const }
+      return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
     }
 
     setState((prev) => ({
@@ -411,7 +383,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const, txHash: result.txHash }
+    return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
   }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
   // Submit with pay password (for addresses with secondPublicKey)
@@ -471,7 +443,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         txHash: null,
         errorMessage: result.message,
       }))
-      return { status: 'error' as const }
+      return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
     }
 
     // password_required should not happen when twoStepSecret is provided
@@ -496,7 +468,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const, txHash: result.txHash }
+    return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
   }, [chainConfig, fromAddress, state.amount, state.toAddress, walletId])
 
   // Reset to initial state

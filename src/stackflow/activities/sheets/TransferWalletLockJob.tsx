@@ -71,12 +71,12 @@ function TransferWalletLockJobContent() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [pendingTxId, setPendingTxId] = useState<string>();
   const [countdown, setCountdown] = useState<number | null>(null);
-  
+
   // Capture callback on mount
   const callbackRef = useRef<SubmitCallback | null>(null);
   const walletLockKeyRef = useRef<string>("");
   const initialized = useRef(false);
-  
+
   if (!initialized.current && pendingCallback) {
     callbackRef.current = pendingCallback;
     clearTransferWalletLockCallback();
@@ -86,10 +86,10 @@ function TransferWalletLockJobContent() {
   // 订阅 pendingTxManager 状态变化
   useEffect(() => {
     if (!pendingTxId) return;
-    
+
     const unsubscribe = pendingTxManager.subscribe((tx: PendingTx) => {
       if (tx.id !== pendingTxId) return;
-      
+
       // 更新状态
       if (tx.status === 'confirmed') {
         setTxStatus('confirmed');
@@ -103,7 +103,7 @@ function TransferWalletLockJobContent() {
         }
       }
     });
-    
+
     return unsubscribe;
   }, [pendingTxId]);
 
@@ -113,7 +113,7 @@ function TransferWalletLockJobContent() {
       setCountdown(null);
       return;
     }
-    
+
     setCountdown(5);
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -125,7 +125,7 @@ function TransferWalletLockJobContent() {
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [txStatus, pop]);
 
@@ -147,7 +147,7 @@ function TransferWalletLockJobContent() {
     }
   }, [explorerTxUrl]);
 
-  const displayTitle = step === 'wallet_lock' 
+  const displayTitle = step === 'wallet_lock'
     ? (title ?? t("security:walletLock.verifyTitle"))
     : t("transaction:sendPage.twoStepSecretTitle");
 
@@ -160,13 +160,13 @@ function TransferWalletLockJobContent() {
     setError(undefined);
     setPatternError(false);
     setTxStatus("broadcasting");
-    
+
     const patternKey = patternToString(nodes);
     walletLockKeyRef.current = patternKey;
 
     try {
       const result = await callback(patternKey);
-      
+
       if (result.status === 'ok') {
         if (result.txHash) {
           setTxHash(result.txHash);
@@ -177,19 +177,19 @@ function TransferWalletLockJobContent() {
         setTxStatus("broadcasted");
         return;
       }
-      
+
       if (result.status === 'wallet_lock_invalid') {
         setPatternError(true);
         setPattern([]);
         return;
       }
-      
+
       if (result.status === 'two_step_secret_required') {
         setStep('two_step_secret');
         setError(undefined);
         return;
       }
-      
+
       if (result.status === 'error') {
         setError(result.message ?? t("security:walletLock.error"));
         setTxStatus("failed");
@@ -216,7 +216,7 @@ function TransferWalletLockJobContent() {
 
     try {
       const result = await callback(walletLockKeyRef.current, twoStepSecret);
-      
+
       if (result.status === 'ok') {
         if (result.txHash) {
           setTxHash(result.txHash);
@@ -227,7 +227,7 @@ function TransferWalletLockJobContent() {
         setTxStatus("broadcasted");
         return;
       }
-      
+
       if (result.status === 'two_step_secret_invalid' || result.status === 'error') {
         setError(result.message ?? t("transaction:sendPage.twoStepSecretError"));
         if (result.pendingTxId) {
@@ -254,10 +254,10 @@ function TransferWalletLockJobContent() {
   // 重试广播
   const handleRetry = useCallback(async () => {
     if (!pendingTxId) return;
-    
+
     setIsVerifying(true);
     setError(undefined);
-    
+
     try {
       await pendingTxManager.retryBroadcast(pendingTxId, chainConfigState);
       setTxStatus("broadcasted");
@@ -272,7 +272,7 @@ function TransferWalletLockJobContent() {
   if (txStatus !== "idle") {
     const isFailed = txStatus === "failed";
     const isConfirmed = txStatus === "confirmed";
-    
+
     return (
       <BottomSheet>
         <div data-testid="transfer-wallet-lock-dialog">
@@ -290,7 +290,7 @@ function TransferWalletLockJobContent() {
               }}
               description={{
                 broadcasted: t("transaction:txStatus.broadcastedDesc"),
-                confirmed: countdown !== null 
+                confirmed: countdown !== null
                   ? t("transaction:txStatus.autoCloseIn", { seconds: countdown })
                   : t("transaction:txStatus.confirmedDesc"),
                 failed: error,
@@ -311,7 +311,7 @@ function TransferWalletLockJobContent() {
                 }
               }}
             />
-            
+
             {/* 操作按钮区域 */}
             <div className="px-4 pb-4 space-y-2">
               {/* 失败时显示重试按钮 */}
@@ -330,7 +330,7 @@ function TransferWalletLockJobContent() {
                   {isVerifying ? t("common:retrying") : t("transaction:pendingTx.retry")}
                 </button>
               )}
-              
+
               {/* 广播后（成功或失败）显示关闭按钮，confirmed 状态显示倒计时 */}
               <button
                 type="button"
@@ -342,7 +342,7 @@ function TransferWalletLockJobContent() {
                   : t("common:close")}
               </button>
             </div>
-            
+
             <div className="h-[env(safe-area-inset-bottom)]" />
           </div>
         </div>
@@ -366,14 +366,14 @@ function TransferWalletLockJobContent() {
                 disabled={isVerifying}
                 data-testid="transfer-wallet-lock-pattern"
               />
-              
+
               {error && (
                 <div className="flex items-start justify-center gap-1.5 text-sm text-destructive mt-3">
                   <AlertCircle className="size-4 shrink-0 mt-0.5" />
                   <pre className="overflow-auto whitespace-break-spaces">{error}</pre>
                 </div>
               )}
-              
+
               <button
                 type="button"
                 onClick={() => pop()}
@@ -409,7 +409,7 @@ function TransferWalletLockJobContent() {
                   disabled={isVerifying}
                   aria-describedby={error ? "two-step-error" : undefined}
                   data-testid="two-step-secret-input"
-                  
+
                 />
                 {twoStepSecret.length > 0 && twoStepSecret.length < 6 && (
                   <div className="absolute right-10 top-1/2 -translate-y-1/2">
