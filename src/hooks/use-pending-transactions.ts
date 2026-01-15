@@ -49,6 +49,8 @@ export function usePendingTransactions(walletId: string | undefined, chainId?: s
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
+    // 立即更新本地状态，提供即时 UI 反馈
+    setTransactions(prev => prev.filter(t => t.id !== tx.id))
   }, [])
 
   const retryTransaction = useCallback(async (tx: PendingTx) => {

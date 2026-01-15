@@ -12,6 +12,7 @@ import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { pendingTxToTransactionInfo } from "@/services/transaction/convert";
 import { ChainProviderGate, useChainProvider } from "@/contexts";
+import keyFetch from "@biochain/key-fetch";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
   IconPlus,
@@ -160,14 +161,17 @@ function WalletTabContent({
     return toTransactionInfoList(txResult, selectedChain);
   }, [txResult, selectedChain]);
 
-  // 交易点击
+  // 交易点击 - 传递原始交易数据以避免重复网络请求
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
       if (tx.id) {
-        push("TransactionDetailActivity", { txId: tx.id });
+        // 从原始数据中找到对应的交易（通过 hash 匹配）
+        const originalTx = txResult?.find(t => t.hash === tx.hash);
+        const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+        push("TransactionDetailActivity", { txId: tx.id, txData });
       }
     },
-    [push]
+    [push, txResult]
   );
 
   // 资产操作菜单项生成器
@@ -263,7 +267,7 @@ function WalletTabContent({
                 <TransactionItem
                   key={pendingTx.id}
                   transaction={txInfo}
-                  onClick={() => push("PendingTxDetailActivity", { txId: pendingTx.id })}
+                  onClick={() => push("TransactionDetailActivity", { txId: txInfo.id })}
                   onRetry={pendingTx.status === 'failed' ? () => retryPendingTx(pendingTx) : undefined}
                   onDelete={() => deletePendingTx(pendingTx)}
                 />

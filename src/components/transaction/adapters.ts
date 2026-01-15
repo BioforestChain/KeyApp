@@ -84,11 +84,18 @@ function mapStatus(status: Transaction['status']): TransactionStatus {
  * @returns TransactionInfo for UI components
  */
 export function toTransactionInfo(tx: Transaction, chain?: ChainType): TransactionInfo {
+    // Generate composite ID for navigation (chainId--hash format)
+    // This format is expected by detail.tsx:parseTxId()
+    const makeId = (hash: string | undefined) => {
+        if (!hash) return 'unknown'
+        return chain ? `${chain}--${hash}` : hash
+    }
+
     // Defensive check for malformed transaction
     if (!tx || !tx.hash || !tx.assets || tx.assets.length === 0) {
         // Return a placeholder for invalid transactions
         return {
-            id: tx?.hash ?? 'unknown',
+            id: makeId(tx?.hash),
             type: 'other',
             status: 'pending',
             amount: Amount.fromRaw('0', 8, ''),
@@ -117,7 +124,7 @@ export function toTransactionInfo(tx: Transaction, chain?: ChainType): Transacti
     }
 
     return {
-        id: tx.hash,
+        id: makeId(tx.hash),
         type: mapActionToType(tx.action, tx.direction),
         status: mapStatus(tx.status),
         amount: Amount.fromRaw(value, decimals, symbol),
@@ -147,8 +154,10 @@ export function toTransactionInfoList(txs: Transaction[], chain?: ChainType): Tr
             } catch (e) {
                 console.warn('[toTransactionInfoList] Failed to convert transaction:', tx, e)
                 // Return a placeholder for failed conversions
+                // Use chainId--hash format for consistency
+                const id = chain ? `${chain}--${tx?.hash ?? 'error'}` : (tx?.hash ?? 'error')
                 return {
-                    id: tx?.hash ?? 'error',
+                    id,
                     type: 'other' as const,
                     status: 'pending' as const,
                     amount: Amount.fromRaw('0', 8, ''),

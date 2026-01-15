@@ -45,7 +45,7 @@ export const PendingTxMetaSchema = z.object({
 
 /** 未上链交易记录 - 专注状态管理 */
 export const PendingTxSchema = z.object({
-  /** 唯一ID (uuid) */
+  /** 唯一ID (使用 rawTx.signature，即区块链交易ID) */
   id: z.string(),
   /** 钱包ID */
   walletId: z.string(),
@@ -57,8 +57,8 @@ export const PendingTxSchema = z.object({
   // ===== 状态管理 =====
   /** 当前状态 */
   status: PendingTxStatusSchema,
-  /** 交易哈希（广播成功后有值） */
-  txHash: z.string().optional(),
+  /** 交易哈希（等于 id，即 rawTx.signature） */
+  txHash: z.string(),
   /** 失败时的错误码 */
   errorCode: z.string().optional(),
   /** 失败时的错误信息 */
@@ -319,13 +319,16 @@ class PendingTxServiceImpl implements IPendingTxService {
   async create(input: CreatePendingTxInput): Promise<PendingTx> {
     const db = await this.ensureDb()
     const now = Date.now()
+    // 使用区块链签名作为 ID（即交易哈希）
+    const txHash = input.rawTx.signature
 
     const pendingTx: PendingTx = {
-      id: crypto.randomUUID(),
+      id: txHash,
       walletId: input.walletId,
       chainId: input.chainId,
       fromAddress: input.fromAddress,
       status: 'created',
+      txHash,
       retryCount: 0,
       createdAt: now,
       updatedAt: now,

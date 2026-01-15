@@ -31,37 +31,32 @@ const dynamicRoutePatterns: Array<{
   activity: ActivityName;
   paramExtractor: (match: RegExpMatchArray) => Record<string, string>;
 }> = [
-  {
-    pattern: /^\/wallet\/([^/]+)$/,
-    activity: "WalletConfigActivity",
-    paramExtractor: (match) => ({ walletId: match[1] ?? "" }),
-  },
-  {
-    pattern: /^\/transaction\/([^/]+)$/,
-    activity: "TransactionDetailActivity",
-    paramExtractor: (match) => ({ txId: match[1] ?? "" }),
-  },
-  {
-    pattern: /^\/pending-tx\/([^/]+)$/,
-    activity: "PendingTxDetailActivity",
-    paramExtractor: (match) => ({ pendingTxId: match[1] ?? "" }),
-  },
-  {
-    pattern: /^\/authorize\/address\/([^/]+)$/,
-    activity: "AuthorizeAddressActivity",
-    paramExtractor: (match) => ({ id: match[1] ?? "" }),
-  },
-  {
-    pattern: /^\/authorize\/signature\/([^/]+)$/,
-    activity: "AuthorizeSignatureActivity",
-    paramExtractor: (match) => ({ id: match[1] ?? "" }),
-  },
-  {
-    pattern: /^\/token\/([^/]+)$/,
-    activity: "TokenDetailActivity",
-    paramExtractor: (match) => ({ tokenId: match[1] ?? "" }),
-  },
-];
+    {
+      pattern: /^\/wallet\/([^/]+)$/,
+      activity: "WalletConfigActivity",
+      paramExtractor: (match) => ({ walletId: match[1] ?? "" }),
+    },
+    {
+      pattern: /^\/transaction\/([^/]+)$/,
+      activity: "TransactionDetailActivity",
+      paramExtractor: (match) => ({ txId: match[1] ?? "" }),
+    },
+    {
+      pattern: /^\/authorize\/address\/([^/]+)$/,
+      activity: "AuthorizeAddressActivity",
+      paramExtractor: (match) => ({ id: match[1] ?? "" }),
+    },
+    {
+      pattern: /^\/authorize\/signature\/([^/]+)$/,
+      activity: "AuthorizeSignatureActivity",
+      paramExtractor: (match) => ({ id: match[1] ?? "" }),
+    },
+    {
+      pattern: /^\/token\/([^/]+)$/,
+      activity: "TokenDetailActivity",
+      paramExtractor: (match) => ({ tokenId: match[1] ?? "" }),
+    },
+  ];
 
 function resolveRoute(
   to: string
@@ -100,7 +95,7 @@ export function useNavigation() {
     const resolved = resolveRoute(options.to);
 
     if (!resolved) {
-      
+
       return;
     }
 

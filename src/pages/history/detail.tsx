@@ -26,6 +26,7 @@ import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
 import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
 import { Amount } from '@/types/amount';
+import keyFetch from '@biochain/key-fetch';
 
 // Action 到 TransactionType 的映射
 const ACTION_TO_TYPE: Record<string, TransactionType> = {
@@ -112,21 +113,33 @@ function parseTxId(id: string | undefined): { chainId: string; hash: string } | 
 interface TransactionDetailContentProps {
   hash: string
   chainId: string
+  /** Optional pre-loaded transaction data (serialized JSON). When provided, skips network fetch */
+  txData?: string
   onBack: () => void
 }
 
-function TransactionDetailContent({ hash, chainId, onBack }: TransactionDetailContentProps) {
+function TransactionDetailContent({ hash, chainId, txData, onBack }: TransactionDetailContentProps) {
   const { t } = useTranslation(['transaction', 'common']);
   const chainConfigState = useChainConfigState();
 
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();
 
-  // 现在可以直接调用，不需要条件判断
-  const { data: rawTransaction, isLoading, error } = chainProvider.transaction.useState(
-    { hash },
+  // 解析传入的初始数据（用于即时显示，避免加载闪烁）
+  const initialTransaction = useMemo(
+    () => txData ? keyFetch.superjson.parse<Transaction>(txData) : null,
+    [txData]
+  );
+
+  // 始终订阅链上交易状态，实现实时更新（当交易确认时自动刷新）
+  // 即使有 initialTransaction 也要订阅，以便获取最新状态
+  const { data: fetchedTransaction, isLoading, error } = chainProvider.transaction.useState(
+    { txHash: hash },
     { enabled: !!hash }
   );
+
+  // 优先使用链上获取的最新数据，若尚未加载则使用初始数据
+  const rawTransaction = fetchedTransaction ?? initialTransaction;
 
   // 转换为页面使用的格式
   const transaction = useMemo(
@@ -164,8 +177,8 @@ function TransactionDetailContent({ hash, chainId, onBack }: TransactionDetailCo
     setTimeout(() => setShared(false), 2000);
   }, [explorerTxUrl]);
 
-  // 加载中
-  if (isLoading) {
+  // 加载中（只有当没有初始数据且正在加载时才显示骨架屏）
+  if (isLoading && !initialTransaction) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
         <PageHeader title={t('detail.title')} onBack={onBack} />
@@ -496,11 +509,11 @@ function TransactionDetailContent({ hash, chainId, onBack }: TransactionDetailCo
         </div>
 
         {/* 交易哈希 */}
-        {transaction.hash && (
+        {hash && (
           <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
             <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
             <CopyableText
-              text={transaction.hash}
+              text={hash}
               className="text-muted-foreground text-xs"
             />
 
@@ -554,7 +567,7 @@ function TransactionDetailContent({ hash, chainId, onBack }: TransactionDetailCo
 export function TransactionDetailPage() {
   const { t } = useTranslation(['transaction', 'common']);
   const { goBack } = useNavigation();
-  const { txId } = useActivityParams<{ txId: string }>();
+  const { txId, txData } = useActivityParams<{ txId: string; txData?: string }>();
   const currentWallet = useCurrentWallet();
 
   // 解析 txId 获取 chainId 和 hash
@@ -604,6 +617,7 @@ export function TransactionDetailPage() {
       <TransactionDetailContent
         hash={parsedTxId.hash}
         chainId={parsedTxId.chainId}
+        txData={txData}
         onBack={handleBack}
       />
     </ChainProviderGate>

@@ -19,7 +19,6 @@ import { SettingsMnemonicActivity } from './activities/SettingsMnemonicActivity'
 import { SettingsWalletLockActivity } from './activities/SettingsWalletLockActivity';
 import { HistoryActivity } from './activities/HistoryActivity';
 import { TransactionDetailActivity } from './activities/TransactionDetailActivity';
-import { PendingTxDetailActivity } from './activities/PendingTxDetailActivity';
 import { ScannerActivity } from './activities/ScannerActivity';
 import { AuthorizeAddressActivity } from './activities/AuthorizeAddressActivity';
 import { AuthorizeSignatureActivity } from './activities/AuthorizeSignatureActivity';
@@ -90,7 +89,6 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         SettingsStorageActivity: '/settings/storage',
         HistoryActivity: '/history',
         TransactionDetailActivity: '/transaction/:txId',
-        PendingTxDetailActivity: '/pending-tx/:pendingTxId',
         ScannerActivity: '/scanner',
         AuthorizeAddressActivity: '/authorize/address/:id',
         AuthorizeSignatureActivity: '/authorize/signature/:id',
@@ -157,7 +155,6 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     SettingsStorageActivity,
     HistoryActivity,
     TransactionDetailActivity,
-    PendingTxDetailActivity,
     ScannerActivity,
     AuthorizeAddressActivity,
     AuthorizeSignatureActivity,

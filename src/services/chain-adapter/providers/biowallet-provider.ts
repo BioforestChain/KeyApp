@@ -57,12 +57,13 @@ const AssetResponseSchema = z.object({
 // 交易项 - 支持所有 BioForest 交易类型
 const BiowalletTxItemSchema = z.object({
   height: z.number(),
-  signature: z.string(),
+  signature: z.string(), // 这是区块签名，不是交易签名
   transaction: z.object({
     type: z.string(),
     senderId: z.string(),
     recipientId: z.string().optional().default(''),
     timestamp: z.number(),
+    signature: z.string(), // 这才是真正的交易签名/ID
     asset: z.object({
       transferAsset: z.object({
         assetType: z.string(),
@@ -499,7 +500,8 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
                 if (value === null) return null
 
                 return {
-                  hash: item.signature,
+                  // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
+                  hash: tx.signature ?? item.signature,
                   from: tx.senderId,
                   to: tx.recipientId ?? '',
                   timestamp: BFM_EPOCH_MS + tx.timestamp * 1000, // BFM timestamp 是从 2017-01-01 开始的秒数
@@ -583,21 +585,25 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
           transform: (results: {
             pending?: z.infer<typeof PendingTrResponseSchema>,
             confirmed?: TxListResponse
-          }) => {
+          }, ctx) => {
             // 返回 pending 状态的交易
             if (results.pending?.result && results.pending.result.length > 0) {
-              const pendingTx = results.pending.result[0]
-              return convertBioTransactionToTransaction(pendingTx.trJson, {
-                signature: pendingTx.signature ?? '',
-                status: 'pending',
-                createdTime: pendingTx.createdTime,
-              })
+              const pendingTx = results.pending.result.find(tx => tx.signature === ctx.params.txHash)
+              if (pendingTx) {
+                return convertBioTransactionToTransaction(pendingTx.trJson, {
+                  // 使用 trJson.signature (交易签名)，而不是 pendingTx.signature
+                  signature: pendingTx.trJson.signature ?? pendingTx.signature ?? '',
+                  status: 'pending',
+                  createdTime: pendingTx.createdTime,
+                })
+              }
             }
             // 优先返回 confirmed 交易
             if (results.confirmed?.result?.trs?.length) {
               const item = results.confirmed.result.trs[0]
               return convertBioTransactionToTransaction(item.transaction, {
-                signature: item.signature,
+                // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
+                signature: item.transaction.signature ?? item.signature,
                 height: item.height,
                 status: 'confirmed',
               })

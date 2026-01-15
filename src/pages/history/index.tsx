@@ -13,6 +13,7 @@ import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
 import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
 import type { ChainType } from '@/stores';
+import keyFetch from '@biochain/key-fetch';
 
 /** 交易历史过滤器 */
 interface TransactionFilter {
@@ -82,12 +83,16 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
     })),
   ], [t, enabledChains]);
 
+  // 交易点击 - 传递原始交易数据以避免重复网络请求
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
       if (!tx.id) return;
-      navigate({ to: `/transaction/${tx.id}` });
+      // 从原始数据中找到对应的交易（通过 hash 匹配）
+      const originalTx = rawTransactions?.find(t => t.hash === tx.hash);
+      const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+      navigate({ to: `/transaction/${tx.id}`, search: { txData } });
     },
-    [navigate],
+    [navigate, rawTransactions],
   );
 
   const handleChainChange = useCallback(
