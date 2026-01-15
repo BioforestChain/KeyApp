@@ -12,6 +12,7 @@ import {
   BalanceOutputSchema,
   TokenBalancesOutputSchema,
   TransactionsOutputSchema,
+  TransactionOutputSchema,
   BlockHeightOutputSchema,
 } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
@@ -112,6 +113,24 @@ const BlockResponseSchema = z.object({
   result: z.object({
     height: z.number(),
   }).optional(),
+})
+
+// Pending 交易查询参数
+const PendingTrParamsSchema = z.object({
+  senderId: z.string(),
+  sort: z.number().optional(),
+})
+
+// Pending 交易响应 Schema
+const PendingTrItemSchema = z.object({
+  state: z.number(), // InternalTransStateID
+  trJson: BiowalletTxItemSchema.shape.transaction,
+  createdTime: z.string(),
+})
+
+const PendingTrResponseSchema = z.object({
+  success: z.boolean(),
+  result: z.array(PendingTrItemSchema).optional(),
 })
 
 type AssetResponse = z.infer<typeof AssetResponseSchema>
@@ -271,6 +290,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
   readonly tokenBalances: KeyFetchInstance<typeof TokenBalancesOutputSchema>
   readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
   readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
+  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -310,7 +330,19 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
       paramsSchema: TxListParamsSchema,
       url: `${baseUrl}/transactions/query`,
       method: 'POST',
-      use: [deps(blockApi), postBody(), ttl(30_000)], // 降低 TTL，依赖区块刷新
+      use: [
+        deps(blockApi),
+        // 转换通用参数到 BioChain 格式
+        postBody({
+          transform: (params) => ({
+            address: params.address,
+            page: params.page ?? 1,
+            pageSize: params.limit ?? 50,
+            sort: -1, // BioChain 需要 -1 表示逆序（最新在前）
+          }),
+        }),
+        ttl(30_000),
+      ],
     })
 
     // 派生 blockHeight 视图
@@ -436,6 +468,101 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               })
               .filter((tx): tx is Transaction => tx !== null)
               .sort((a, b) => b.timestamp - a.timestamp) // 最新交易在前
+          },
+        }),
+      ],
+    })
+
+    // Pending 交易列表（独立 fetcher）
+    const bioPendingTr = keyFetch.create({
+      name: `biowallet.${chainId}.pendingTr`,
+      schema: PendingTrResponseSchema,
+      paramsSchema: PendingTrParamsSchema,
+      url: `${baseUrl}/pendingTr`,
+      method: 'POST',
+      use: [
+        deps(blockApi),
+        postBody({
+          transform: (params) => ({
+            senderId: params.senderId,
+            sort: -1,
+          }),
+        }),
+        ttl(5_000), // 更短的 TTL，因为 pending 状态变化快
+      ],
+    })
+
+    // 单笔交易查询内部 fetcher（使用 signature 参数）
+    const singleTxApi = keyFetch.create({
+      name: `biowallet.${chainId}.singleTx`,
+      schema: TxListResponseSchema,
+      url: `${baseUrl}/transactions/query`,
+      method: 'POST',
+      use: [
+        postBody({
+          transform: (params) => ({
+            signature: (params as { txHash?: string }).txHash,
+          }),
+        }),
+        ttl(10_000),
+      ],
+    })
+
+    // transaction: 先查 pendingTr，如果存在则返回 pending 状态；否则查 transactionHistory
+    this.transaction = derive({
+      name: `biowallet.${chainId}.transaction`,
+      source: singleTxApi,
+      schema: TransactionOutputSchema,
+      use: [
+        transform<TxListResponse, Transaction | null>({
+          transform: async (singleTxResult, ctx) => {
+            const txHash = (ctx.params as { txHash?: string; senderId?: string }).txHash
+            const senderId = (ctx.params as { txHash?: string; senderId?: string }).senderId
+            if (!txHash) return null
+
+            // 先查 pendingTr（需要 senderId）
+            if (senderId) {
+              try {
+                const pendingResult = await bioPendingTr.fetch({ senderId })
+                const pendingList = pendingResult.result ?? []
+                // 检查是否在 pending 队列中（这里没有直接的 signature 匹配，但如果有 pending 交易就返回 pending）
+                // TODO: 更精确地匹配 txHash
+                if (pendingList.length > 0) {
+                  return {
+                    hash: txHash,
+                    from: senderId,
+                    to: '',
+                    timestamp: Date.now(),
+                    status: 'pending' as const,
+                    action: 'transfer' as const,
+                    direction: 'out' as const,
+                    assets: [],
+                  }
+                }
+              } catch {
+                // pendingTr 查询失败，继续查 transactionHistory
+              }
+            }
+
+            // 检查 singleTxApi 的结果
+            if (singleTxResult.result?.trs?.length) {
+              const item = singleTxResult.result.trs[0]
+              const tx = item.transaction
+              return {
+                hash: item.signature,
+                from: tx.senderId,
+                to: tx.recipientId ?? '',
+                timestamp: BFM_EPOCH_MS + tx.timestamp * 1000,
+                status: 'confirmed' as const,
+                blockNumber: BigInt(item.height),
+                action: detectAction(tx.type),
+                direction: 'out' as const,
+                assets: [],
+              }
+            }
+
+            // 都没找到，返回 null
+            return null
           },
         }),
       ],
