@@ -70,7 +70,8 @@ export function AssetSelector({
   };
 
   const displayPlaceholder = placeholder ?? t('assetSelector.selectAsset', '选择资产');
-  const selectedValue = selectedAsset ? getAssetKey(selectedAsset) : undefined;
+  // 使用空字符串代替 undefined，确保 Select 始终是受控的
+  const selectedValue = selectedAsset ? getAssetKey(selectedAsset) : '';
 
   // 渲染 trigger 内容
   const renderTriggerContent = () => {

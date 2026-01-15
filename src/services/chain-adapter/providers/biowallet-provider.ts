@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, postBody } from '@biochain/key-fetch'
+import { keyFetch, ttl, derive, transform, postBody, interval } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action } from './types'
 import {
@@ -410,6 +410,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
                 }
               })
               .filter((tx): tx is Transaction => tx !== null)
+              .sort((a, b) => b.timestamp - a.timestamp) // 最新交易在前
           },
         }),
       ],
@@ -420,7 +421,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
       name: `biowallet.${chainId}.blockApi`,
       schema: BlockResponseSchema,
       url: `${baseUrl}/block/lastblock`,
-      use: [ttl(15_000)],
+      use: [interval(15_000), ttl(10_000)],
     })
 
     this.blockHeight = derive({

@@ -103,7 +103,6 @@ export function useKeyFetch<S extends AnyZodSchema>(
   const paramsKey = useMemo(() => JSON.stringify(stableParams ?? {}), [stableParams])
 
   useEffect(() => {
-    console.log('[key-fetch] useEffect triggered:', kf.name, 'enabled:', enabled, 'paramsKey:', paramsKey)
     if (!enabled) {
       setData(undefined)
       setIsLoading(false)
@@ -134,7 +133,6 @@ export function useKeyFetch<S extends AnyZodSchema>(
     kf.fetch(currentParams)
       .then((result) => {
         if (isCancelled) return
-        console.log('[key-fetch] fetch success:', kf.name, result)
         setData(result)
         setIsLoading(false)
         setIsFetching(false)
@@ -142,7 +140,6 @@ export function useKeyFetch<S extends AnyZodSchema>(
       })
       .catch((err) => {
         if (isCancelled) return
-        console.error('[key-fetch] fetch error:', kf.name, err)
         setError(err instanceof Error ? err : new Error(String(err)))
         setIsLoading(false)
         setIsFetching(false)
