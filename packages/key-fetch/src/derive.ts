@@ -83,7 +83,10 @@ export function derive<
         onSubscribe: (context) => {
             // 订阅 source，source 更新时触发 refetch
             return source.subscribe(context.params as any, () => {
-                context.refetch()
+                context.refetch().catch((error) => {
+                    // Error is already logged by core.ts, just need to prevent unhandled rejection
+                    console.error(`[key-fetch] Error in derive refetch for ${name}:`, error)
+                })
             })
         },
     }

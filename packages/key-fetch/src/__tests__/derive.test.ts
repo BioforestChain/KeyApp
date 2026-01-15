@@ -324,6 +324,10 @@ describe('derive functionality', () => {
         expect(errorSpy).toHaveBeenCalled()
 
         unsubscribe()
+
+        // Wait for any pending async operations to settle before restoring mock
+        await new Promise(resolve => setTimeout(resolve, 100))
+
         errorSpy.mockRestore()
     })
 })
