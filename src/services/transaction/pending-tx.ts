@@ -6,8 +6,7 @@
  */
 
 import { z } from 'zod'
-import { openDB, type IDBPDatabase } from 'idb'
-import type { TransactionType } from '@/components/transaction/types'
+import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import { derive, transform } from '@biochain/key-fetch'
 import { getChainProvider } from '@/services/chain-adapter/providers'
 import { defineServiceMeta } from '@/lib/service-meta'

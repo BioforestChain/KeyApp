@@ -116,7 +116,7 @@ function PendingTxItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">
-            {t(displayType.startsWith("type.") ? displayType : `type.${displayType}`)}
+            {t((displayType.startsWith("type.") ? displayType : `type.${displayType}`) as any)}
           </span>
           <span className={cn(
             'text-xs',
@@ -125,7 +125,7 @@ function PendingTxItem({
             statusVariant === 'error' && 'text-destructive',
             statusVariant === 'success' && 'text-success',
           )}>
-            {t(`pendingTx.${tx.status}`)}
+            {t(`pendingTx.${tx.status}` as any)}
           </span>
         </div>
 
