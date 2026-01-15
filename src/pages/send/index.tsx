@@ -159,6 +159,27 @@ function SendPageContent() {
     }
   }, [initialAsset, setAsset, state.asset]);
 
+  // Sync selected asset's balance when tokens refresh
+  // This ensures balance validation uses the latest data
+  useEffect(() => {
+    if (!state.asset || tokens.length === 0) return;
+
+    // Find the current selected asset in the refreshed tokens
+    const updatedToken = tokens.find(t => t.symbol === state.asset?.assetType);
+    if (updatedToken) {
+      const currentBalance = state.asset.amount.toFormatted();
+      const newBalance = updatedToken.balance;
+
+      // Only update if balance actually changed
+      if (currentBalance !== newBalance) {
+        setAsset({
+          ...state.asset,
+          amount: Amount.fromFormatted(newBalance, updatedToken.decimals ?? state.asset.decimals, state.asset.assetType),
+        });
+      }
+    }
+  }, [tokens, state.asset, setAsset]);
+
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
     if (initialAddress && !state.toAddress) {
