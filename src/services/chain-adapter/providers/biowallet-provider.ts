@@ -508,45 +508,41 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
       ],
     })
 
-    // transaction: 先查 pendingTr，如果存在则返回 pending 状态；否则查 transactionHistory
-    this.transaction = derive({
+    // transaction: 使用 combine 合并 pendingTr 和 singleTx 的结果
+    // params 结构: { pending: { senderId }, confirmed: { txHash } }
+    this.transaction = combine({
       name: `biowallet.${chainId}.transaction`,
-      source: singleTxApi,
       schema: TransactionOutputSchema,
+      sources: {
+        pending: bioPendingTr,
+        confirmed: singleTxApi,
+      },
       use: [
-        transform<TxListResponse, Transaction | null>({
-          transform: async (singleTxResult, ctx) => {
-            const txHash = (ctx.params as { txHash?: string; senderId?: string }).txHash
-            const senderId = (ctx.params as { txHash?: string; senderId?: string }).senderId
-            if (!txHash) return null
-
-            // 先查 pendingTr（需要 senderId）
-            if (senderId) {
-              try {
-                const pendingResult = await bioPendingTr.fetch({ senderId })
-                const pendingList = pendingResult.result ?? []
-                // 检查是否在 pending 队列中（这里没有直接的 signature 匹配，但如果有 pending 交易就返回 pending）
-                // TODO: 更精确地匹配 txHash
-                if (pendingList.length > 0) {
-                  return {
-                    hash: txHash,
-                    from: senderId,
-                    to: '',
-                    timestamp: Date.now(),
-                    status: 'pending' as const,
-                    action: 'transfer' as const,
-                    direction: 'out' as const,
-                    assets: [],
-                  }
-                }
-              } catch {
-                // pendingTr 查询失败，继续查 transactionHistory
+        transform({
+          transform: (results: {
+            pending?: z.infer<typeof PendingTrResponseSchema>,
+            confirmed?: TxListResponse
+          }) => {
+            // 优先返回 pending 状态的交易
+            if (results.pending?.result && results.pending.result.length > 0) {
+              // TODO: 更精确地匹配 txHash
+              const pendingTx = results.pending.result[0]
+              const tx = pendingTx.trJson
+              return {
+                hash: '', // BFChain pending tx 可能还没有 signature
+                from: tx.senderId,
+                to: tx.recipientId ?? '',
+                timestamp: new Date(pendingTx.createdTime).getTime(),
+                status: 'pending' as const,
+                action: detectAction(tx.type),
+                direction: 'out' as const,
+                assets: [],
               }
             }
 
-            // 检查 singleTxApi 的结果
-            if (singleTxResult.result?.trs?.length) {
-              const item = singleTxResult.result.trs[0]
+            // 否则返回 confirmed 交易
+            if (results.confirmed?.result?.trs?.length) {
+              const item = results.confirmed.result.trs[0]
               const tx = item.transaction
               return {
                 hash: item.signature,
@@ -561,7 +557,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               }
             }
 
-            // 都没找到，返回 null
+            // 都没找到
             return null
           },
         }),

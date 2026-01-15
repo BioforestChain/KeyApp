@@ -96,8 +96,8 @@ export type { KeyFetchDeriveOptions } from './derive'
 
 // ==================== 导出 Merge 工具 ====================
 
-export { fallback as merge, NoSupportError } from './merge'
-export type { FallbackOptions as MergeOptions } from './merge'
+export { fallback, NoSupportError } from './fallback'
+export type { FallbackOptions as MergeOptions } from './fallback'
 
 // ==================== 导出 Combine 工具 ====================
 
@@ -128,7 +128,7 @@ async function parseBody<T>(input: Request | Response): Promise<T> {
 
 // ==================== 主 API ====================
 
-import { fallback as mergeImpl } from './merge'
+import { fallback as mergeImpl } from './fallback'
 
 /**
  * KeyFetch 命名空间

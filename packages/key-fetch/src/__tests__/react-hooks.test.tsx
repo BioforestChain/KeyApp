@@ -8,7 +8,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { z } from 'zod'
-import { keyFetch, merge, derive, transform } from '../index'
+import { keyFetch, fallback, derive, transform } from '../index'
 import '@biochain/key-fetch/react'  // Enable React support
 
 // Mock fetch globally
@@ -120,7 +120,7 @@ describe('merge useState in React component', () => {
             url: 'https://api.test.com/balance',
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'react.merge.test',
             sources: [source],
         })
@@ -313,7 +313,7 @@ describe('ChainProvider simulation with merge and derive', () => {
         })
 
         // Simulates ChainProvider.nativeBalance (merge of provider balances)
-        const chainNativeBalance = merge({
+        const chainNativeBalance = fallback({
             name: 'bfmeta.nativeBalance.react',
             sources: [nativeBalance],
         })

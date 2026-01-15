@@ -7,7 +7,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { z } from 'zod'
-import { keyFetch, merge } from '../index'
+import { keyFetch, fallback } from '../index'
 import '@biochain/key-fetch/react'  // Enable React support
 
 // Mock fetch globally
@@ -53,7 +53,7 @@ describe('merge functionality', () => {
             url: 'https://api2.test.com/balance',
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'merge.test',
             sources: [source1, source2],
         })
@@ -84,7 +84,7 @@ describe('merge functionality', () => {
             url: 'https://api2.test.com/balance',
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'merge.fail.test',
             sources: [source1, source2],
         })
@@ -105,7 +105,7 @@ describe('merge functionality', () => {
             url: 'https://api1.test.com/balance',
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'merge.sub.test',
             sources: [source1],
         })
@@ -132,7 +132,7 @@ describe('merge functionality', () => {
             url: 'https://api1.test.com/balance',
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'merge.useState.test',
             sources: [source1],
         })
@@ -144,7 +144,7 @@ describe('merge functionality', () => {
     })
 
     test('merge with empty sources should throw NoSupportError', async () => {
-        const merged = merge({
+        const merged = fallback({
             name: 'merge.empty.test',
             sources: [],
         })
@@ -221,7 +221,7 @@ describe('merge with derived sources', () => {
         })
 
         // Merge the derived instance (simulating ChainProvider.nativeBalance)
-        const merged = merge({
+        const merged = fallback({
             name: 'chainProvider.merged.nativeBalance',
             sources: [nativeBalance],
         })
@@ -289,7 +289,7 @@ describe('merge with derived sources', () => {
             ],
         })
 
-        const merged = merge({
+        const merged = fallback({
             name: 'real.merged',
             sources: [nativeBalance],
         })

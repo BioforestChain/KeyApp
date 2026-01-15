@@ -30,7 +30,6 @@ import type {
     KeyFetchInstance,
     AnyZodSchema,
     FetchPlugin,
-    InferOutput,
 } from './types'
 import { keyFetch } from './index'
 
@@ -48,10 +47,6 @@ export interface CombineOptions<
     /** 插件列表 */
     use?: FetchPlugin[]
 }
-
-/** 从 sources 推导出统一的 params 类型 */
-type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<any, any>>> =
-    Sources[keyof Sources] extends KeyFetchInstance<any, infer P> ? InferOutput<P> : never
 
 /**
  * 合并多个 KeyFetchInstance 的结果

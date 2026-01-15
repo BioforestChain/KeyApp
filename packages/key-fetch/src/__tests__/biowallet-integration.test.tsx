@@ -8,7 +8,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { z } from 'zod'
-import { keyFetch, merge, derive, transform } from '../index'
+import { keyFetch, fallback, derive, transform } from '../index'
 import { postBody } from '../plugins/params'
 import { ttl } from '../plugins/ttl'
 import '@biochain/key-fetch/react'  // Enable React support
@@ -201,7 +201,7 @@ describe('BiowalletProvider exact structure', () => {
         })
 
         // Simulate ChainProvider.nativeBalance (merge of provider balances)
-        const chainNativeBalance = merge({
+        const chainNativeBalance = fallback({
             name: `${chainId}.nativeBalance.cp`,
             sources: [nativeBalance],
         })
@@ -263,7 +263,7 @@ describe('BiowalletProvider exact structure', () => {
             ],
         })
 
-        const chainNativeBalance = merge({
+        const chainNativeBalance = fallback({
             name: `${chainId}.nativeBalance.null`,
             sources: [nativeBalance],
         })

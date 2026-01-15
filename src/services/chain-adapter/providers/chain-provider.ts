@@ -7,7 +7,7 @@
  * 错误处理：NoSupportError 表示不支持，AggregateError 表示全部失败
  */
 
-import { merge, type KeyFetchInstance } from '@biochain/key-fetch'
+import { fallback, type KeyFetchInstance } from '@biochain/key-fetch'
 import type {
   ApiProvider,
   ApiProviderMethod,
@@ -169,7 +169,7 @@ export class ChainProvider {
       const sources = this.providers
         .map(p => p.nativeBalance)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._nativeBalance = merge({
+      this._nativeBalance = fallback({
         name: `${this.chainId}.nativeBalance`,
         sources,
       })
@@ -182,7 +182,7 @@ export class ChainProvider {
       const sources = this.providers
         .map(p => p.tokenBalances)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._tokenBalances = merge({
+      this._tokenBalances = fallback({
         name: `${this.chainId}.tokenBalances`,
         sources,
       })
@@ -195,7 +195,7 @@ export class ChainProvider {
       const sources = this.providers
         .map(p => p.transactionHistory)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._transactionHistory = merge({
+      this._transactionHistory = fallback({
         name: `${this.chainId}.transactionHistory`,
         sources,
       })
@@ -208,7 +208,7 @@ export class ChainProvider {
       const sources = this.providers
         .map(p => p.transaction)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._transaction = merge({
+      this._transaction = fallback({
         name: `${this.chainId}.transaction`,
         sources,
       })
@@ -221,7 +221,7 @@ export class ChainProvider {
       const sources = this.providers
         .map(p => p.blockHeight)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._blockHeight = merge({
+      this._blockHeight = fallback({
         name: `${this.chainId}.blockHeight`,
         sources,
       })
