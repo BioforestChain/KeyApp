@@ -54,8 +54,9 @@ export function searchParams<P extends FetchParams = FetchParams>(options?: {
             }
             if (options?.defaults) {
                 for (const key in mergedParams) {
-                    if (mergedParams[key] == null && options?.defaults?.[key] != null) {
-                        (mergedParams as any)[key] = options?.defaults?.[key]
+                    if ((mergedParams[key] === undefined || mergedParams[key] === null) &&
+                        options?.defaults?.[key] !== undefined && options?.defaults?.[key] !== null) {
+                        (mergedParams as Record<string, unknown>)[key] = options?.defaults?.[key]
                     }
                 }
             }

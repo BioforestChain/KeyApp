@@ -27,6 +27,7 @@ import type {
     KeyFetchInstance,
     AnyZodSchema,
     InferOutput,
+    FetchParams,
     SubscribeCallback,
     UseKeyFetchResult,
     UseKeyFetchOptions,
@@ -209,7 +210,7 @@ function createFallbackFetcher<S extends AnyZodSchema, P extends AnyZodSchema>(
             }
             // 对于 merge 实例，直接调用注入的实现
             // 传入 merged 实例本身，这样 useKeyFetch 会正确使用 merged 的 subscribe
-            return impl(merged as any, params as any, options)
+            return impl(merged as unknown as KeyFetchInstance<S>, params as unknown as FetchParams | undefined, options)
         },
     }
 
