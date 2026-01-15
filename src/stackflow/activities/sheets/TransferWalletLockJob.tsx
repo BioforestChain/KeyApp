@@ -24,7 +24,8 @@ import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-stat
 import { useClipboard, useToast } from "@/services";
 import { useSelectedChain, useChainConfigState, useCurrentWallet, chainConfigSelectors } from "@/stores";
 import { pendingTxManager } from "@/services/transaction";
-import { getChainProvider } from "@/services/chain-adapter/providers/chain-provider";
+import { useChainProvider } from "@/contexts/chain-provider-context";
+import type { Transaction } from "@/services/chain-adapter/providers/transaction-schema";
 
 // 回调类型
 type SubmitCallback = (walletLockKey: string, twoStepSecret?: string) => Promise<{
@@ -61,7 +62,7 @@ function TransferWalletLockJobContent() {
   const selectedChain = useSelectedChain();
   const chainConfigState = useChainConfigState();
   const currentWallet = useCurrentWallet();
-  const walletId = currentWallet?.id;
+  const chainProvider = useChainProvider();
 
   const [step, setStep] = useState<Step>('wallet_lock');
   const [pattern, setPattern] = useState<number[]>([]);
@@ -87,14 +88,11 @@ function TransferWalletLockJobContent() {
 
   // 订阅交易状态变化
   useEffect(() => {
-    if (!txHash || !selectedChain || !currentWallet?.address) return;
-
-    const chainProvider = getChainProvider(selectedChain);
-    if (!chainProvider?.transaction) return;
+    if (!txHash || !currentWallet?.address || !chainProvider?.transaction) return;
 
     const unsubscribe = chainProvider.transaction.subscribe(
       { txHash, senderId: currentWallet.address },
-      (transaction) => {
+      (transaction: Transaction | null) => {
         if (!transaction) return;
 
         if (transaction.status === 'confirmed') {
@@ -108,7 +106,7 @@ function TransferWalletLockJobContent() {
     );
 
     return unsubscribe;
-  }, [txHash, selectedChain, currentWallet?.address]);
+  }, [txHash, chainProvider, currentWallet?.address]);
 
   // 上链成功后 5 秒倒计时自动关闭
   useEffect(() => {
