@@ -11,6 +11,7 @@ import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import {
   BalanceOutputSchema,
   TransactionsOutputSchema,
+  TransactionOutputSchema,
   BlockHeightOutputSchema,
 } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
@@ -159,9 +160,11 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
   readonly #accountApi: KeyFetchInstance<typeof TronAccountSchema>
   readonly #blockApi: KeyFetchInstance<typeof TronNowBlockSchema>
   readonly #txListApi: KeyFetchInstance<typeof TronTxListSchema>
+  readonly #txByIdApi: KeyFetchInstance<typeof TronTxSchema>
 
   readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
   readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
   readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
@@ -267,6 +270,63 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
                 }],
               }
             })
+          },
+        }),
+      ],
+    })
+
+    // transaction: 单笔交易查询
+    this.#txByIdApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.txById`,
+      schema: TronTxSchema,
+      paramsSchema: z.object({ txHash: z.string() }),
+      url: `${baseUrl}/wallet/gettransactionbyid`,
+      method: 'POST',
+      use: [
+        postBody({
+          transform: (params) => ({ value: params.txHash }),
+        }),
+        ttl(10_000),
+      ],
+    })
+
+    this.transaction = derive({
+      name: `tron-rpc.${chainId}.transaction`,
+      source: this.#txByIdApi,
+      schema: TransactionOutputSchema,
+      use: [
+        transform<z.infer<typeof TronTxSchema>, Transaction | null>({
+          transform: (tx) => {
+            if (!tx.txID) return null
+
+            const contract = tx.raw_data?.contract?.[0]
+            const value = contract?.parameter?.value
+            const from = value?.owner_address ?? ''
+            const to = value?.to_address ?? ''
+
+            // 判断状态：如果没有 ret，说明是 pending
+            let status: 'pending' | 'confirmed' | 'failed'
+            if (!tx.ret || tx.ret.length === 0) {
+              status = 'pending'
+            } else {
+              status = tx.ret[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+            }
+
+            return {
+              hash: tx.txID,
+              from,
+              to,
+              timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
+              status,
+              action: 'transfer' as const,
+              direction: 'out', // TODO: 根据 address 判断
+              assets: [{
+                assetType: 'native' as const,
+                value: (value?.amount ?? 0).toString(),
+                symbol,
+                decimals,
+              }],
+            }
           },
         }),
       ],
