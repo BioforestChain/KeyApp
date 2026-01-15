@@ -114,7 +114,7 @@ function SendPageContent() {
   }, [chainConfig, tokens, initialAssetType]);
 
   // useSend hook must be called before any code that references state/setAsset
-  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
+  const { state, setToAddress, setAmount, setAsset, setFee, updateAssetBalance, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
     initialAsset: initialAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
@@ -159,26 +159,17 @@ function SendPageContent() {
     }
   }, [initialAsset, setAsset, state.asset]);
 
-  // Sync selected asset's balance when tokens refresh
-  // This ensures balance validation uses the latest data
+  // Sync selected asset's balance when tokens refresh (single source of truth: tokens)
   useEffect(() => {
     if (!state.asset || tokens.length === 0) return;
-
-    // Find the current selected asset in the refreshed tokens
     const updatedToken = tokens.find(t => t.symbol === state.asset?.assetType);
     if (updatedToken) {
-      const currentBalance = state.asset.amount.toFormatted();
-      const newBalance = updatedToken.balance;
-
-      // Only update if balance actually changed
-      if (currentBalance !== newBalance) {
-        setAsset({
-          ...state.asset,
-          amount: Amount.fromFormatted(newBalance, updatedToken.decimals ?? state.asset.decimals, state.asset.assetType),
-        });
+      const newBalance = Amount.fromFormatted(updatedToken.balance, updatedToken.decimals ?? state.asset.decimals, state.asset.assetType);
+      if (!newBalance.eq(state.asset.amount)) {
+        updateAssetBalance(newBalance);
       }
     }
-  }, [tokens, state.asset, setAsset]);
+  }, [tokens, state.asset, updateAssetBalance]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {

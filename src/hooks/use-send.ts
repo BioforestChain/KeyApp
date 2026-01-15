@@ -66,6 +66,18 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     })
   }, [])
 
+  // Update asset balance without re-estimating fee
+  // This is used when tokens refresh to sync latest balance
+  const updateAssetBalance = useCallback((balance: Amount) => {
+    setState((prev) => {
+      if (!prev.asset) return prev
+      return {
+        ...prev,
+        asset: { ...prev.asset, amount: balance },
+      }
+    })
+  }, [])
+
   // Set asset and estimate fee
   const setAsset = useCallback((asset: AssetInfo) => {
     setState((prev) => ({
@@ -98,7 +110,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         const feeEstimate = isWeb3Chain
           ? await fetchWeb3Fee(chainConfig, fromAddress)
           : await fetchBioforestFee(chainConfig, fromAddress)
-        
+
         setState((prev) => ({
           ...prev,
           feeAmount: feeEstimate.amount,
@@ -177,16 +189,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
-    
-    
+
+
     if (useMock) {
-      
+
       const result = await submitMockTransfer(setState)
       return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
     }
 
     if (!chainConfig) {
-      
+
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -200,8 +212,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
     if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
-      
-      
+
+
       if (!walletId || !fromAddress || !state.asset || !state.amount) {
         setState((prev) => ({
           ...prev,
@@ -265,7 +277,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Unsupported chain type
     if (chainConfig.chainKind !== 'bioforest') {
-      
+
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -473,6 +485,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     setAmount,
     setAsset,
     setFee,
+    updateAssetBalance,
     goToConfirm,
     goBack,
     submit,

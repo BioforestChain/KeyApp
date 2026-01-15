@@ -71,6 +71,8 @@ export interface UseSendReturn {
   setAsset: (asset: AssetInfo) => void
   /** Set custom fee (formatted string, e.g. "0.001") */
   setFee: (formattedFee: string) => void
+  /** Update asset balance without re-estimating fee (for live balance sync) */
+  updateAssetBalance: (balance: Amount) => void
   /** Validate and go to confirm */
   goToConfirm: () => boolean
   /** Go back to input */
