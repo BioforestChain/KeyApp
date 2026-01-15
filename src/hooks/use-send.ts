@@ -118,8 +118,15 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Get current balance from external source (single source of truth)
   const currentBalance = useMemo(() => {
-    if (!state.asset?.assetType || !getBalance) return state.asset?.amount ?? null
-    return getBalance(state.asset.assetType) ?? state.asset?.amount ?? null
+    const fromGetBalance = getBalance ? getBalance(state.asset?.assetType ?? '') : null
+    const result = fromGetBalance ?? state.asset?.amount ?? null
+    console.log('[useSend] currentBalance:', {
+      assetType: state.asset?.assetType,
+      fromGetBalance: fromGetBalance?.toFormatted(),
+      stateAssetAmount: state.asset?.amount?.toFormatted(),
+      result: result?.toFormatted(),
+    })
+    return result
   }, [state.asset?.assetType, state.asset?.amount, getBalance])
 
   // Create asset with current balance for validation
@@ -130,19 +137,33 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Check if can proceed
   const canProceed = useMemo(() => {
-    return canProceedToConfirm({
+    const result = canProceedToConfirm({
       toAddress: state.toAddress,
       amount: state.amount,
       asset: assetWithCurrentBalance,
       isBioforestChain,
       feeLoading: state.feeLoading,
     })
+    console.log('[useSend] canProceed:', result, {
+      toAddress: state.toAddress,
+      amount: state.amount?.toFormatted(),
+      assetBalance: assetWithCurrentBalance?.amount?.toFormatted(),
+      feeLoading: state.feeLoading,
+    })
+    return result
   }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeLoading])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
     const addressError = validateAddress(state.toAddress)
     const amountError = assetWithCurrentBalance ? validateAmount(state.amount, assetWithCurrentBalance) : '请选择资产'
+
+    console.log('[useSend] goToConfirm validation:', {
+      addressError,
+      amountError,
+      amount: state.amount?.toFormatted(),
+      assetBalance: assetWithCurrentBalance?.amount.toFormatted(),
+    })
 
     if (addressError || amountError) {
       setState((prev) => ({
@@ -155,6 +176,13 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     if (assetWithCurrentBalance && state.feeAmount && state.amount) {
       const adjustResult = adjustAmountForFee(state.amount, assetWithCurrentBalance, state.feeAmount)
+      console.log('[useSend] adjustAmountForFee:', {
+        status: adjustResult.status,
+        message: (adjustResult as any).message,
+        amount: state.amount.toFormatted(),
+        balance: assetWithCurrentBalance.amount.toFormatted(),
+        fee: state.feeAmount.toFormatted(),
+      })
       if (adjustResult.status === 'error') {
         setState((prev) => ({
           ...prev,
