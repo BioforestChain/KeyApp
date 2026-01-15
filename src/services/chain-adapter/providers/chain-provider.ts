@@ -7,7 +7,8 @@
  * 错误处理：NoSupportError 表示不支持，AggregateError 表示全部失败
  */
 
-import { fallback, type KeyFetchInstance } from '@biochain/key-fetch'
+import { fallback, derive, transform, type KeyFetchInstance } from '@biochain/key-fetch'
+import { chainConfigService } from '@/services/chain-config'
 import type {
   ApiProvider,
   ApiProviderMethod,
@@ -37,6 +38,7 @@ export class ChainProvider {
   private _transactionHistory?: KeyFetchInstance<typeof TransactionsOutputSchema>
   private _transaction?: KeyFetchInstance<typeof TransactionOutputSchema>
   private _blockHeight?: KeyFetchInstance<typeof BlockHeightOutputSchema>
+  private _allBalances?: KeyFetchInstance<typeof TokenBalancesOutputSchema>
 
   constructor(chainId: string, providers: ApiProvider[]) {
     this.chainId = chainId
@@ -188,6 +190,56 @@ export class ChainProvider {
       })
     }
     return this._tokenBalances
+  }
+
+  /**
+   * 统一资产列表（合并 nativeBalance 和 tokenBalances）
+   * - 如果有 tokenBalances，使用 tokenBalances（通常已包含 native）
+   * - 如果只有 nativeBalance，将其转换为 TokenBalance[] 格式
+   * - 统一的 isLoading 状态
+   */
+  get allBalances(): KeyFetchInstance<typeof TokenBalancesOutputSchema> {
+    if (!this._allBalances) {
+      const hasTokenBalances = this.supportsTokenBalances
+      const hasNativeBalance = this.supportsNativeBalance
+
+      if (hasTokenBalances) {
+        // 直接使用 tokenBalances（通常已包含 native）
+        this._allBalances = this.tokenBalances
+      } else if (hasNativeBalance) {
+        // 只有 nativeBalance，使用 derive 转换为 TokenBalance[]
+        const { chainId } = this
+        const symbol = chainConfigService.getSymbol(chainId)
+        const decimals = chainConfigService.getDecimals(chainId)
+
+        this._allBalances = derive({
+          name: `${chainId}.allBalances`,
+          source: this.nativeBalance,
+          schema: TokenBalancesOutputSchema,
+          use: [
+            transform({
+              transform: (balance: { amount: import('@/types/amount').Amount; symbol: string } | null) => {
+                if (!balance) return []
+                return [{
+                  symbol: balance.symbol || symbol,
+                  name: balance.symbol || symbol,
+                  amount: balance.amount,
+                  isNative: true,
+                  decimals,
+                }]
+              },
+            }),
+          ],
+        })
+      } else {
+        // 无任何 balance 能力，返回空 fallback
+        this._allBalances = fallback({
+          name: `${this.chainId}.allBalances`,
+          sources: [],
+        })
+      }
+    }
+    return this._allBalances
   }
 
   get transactionHistory(): KeyFetchInstance<typeof TransactionsOutputSchema> {

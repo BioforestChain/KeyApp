@@ -100,13 +100,8 @@ function WalletTabContent({
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();
 
-  // 现在可以直接调用，不需要条件判断
-  const { data: balanceResult, isFetching: isRefreshing } = chainProvider.nativeBalance.useState(
-    { address },
-    { enabled: !!address }
-  );
-
-  const { data: tokensResult } = chainProvider.tokenBalances.useState(
+  // 统一资产查询（合并 nativeBalance 和 tokenBalances）
+  const { data: tokens = [], isLoading: tokensLoading } = chainProvider.allBalances.useState(
     { address },
     { enabled: !!address }
   );
@@ -122,38 +117,6 @@ function WalletTabContent({
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
   } = usePendingTransactions(currentWalletId ?? undefined, selectedChain);
-
-  // 转换代币数据（包含原生资产）
-  const tokens = useMemo(() => {
-    const tokenList = tokensResult ?? [];
-
-    // 将原生资产添加到列表开头
-    if (balanceResult) {
-      const nativeToken = {
-        symbol: balanceResult.symbol,
-        name: balanceResult.symbol, // 使用 symbol 作为 name
-        amount: balanceResult.amount,
-        decimals: balanceResult.amount.decimals,
-        isNative: true,
-        icon: undefined,
-      };
-
-      // 检查是否已存在同 symbol 的原生资产，避免重复
-      const hasNative = tokenList.some(t => t.symbol === balanceResult.symbol && t.isNative);
-      if (!hasNative) {
-        return [nativeToken, ...tokenList];
-      }
-    }
-
-    return tokenList;
-  }, [tokensResult, balanceResult]);
-
-  // 转换余额数据格式
-  const balanceData = useMemo(() => ({
-    tokens: tokens,
-    supported: !!balanceResult || tokens.length > 0,
-    fallbackReason: undefined,
-  }), [balanceResult, tokens]);
 
   // 转换交易历史格式
   const transactions = useMemo(() => {
@@ -301,10 +264,8 @@ function WalletTabContent({
             icon: token.icon,
           }))}
           transactions={transactions.slice(0, 5)}
-          tokensRefreshing={isRefreshing}
+          tokensLoading={tokensLoading}
           transactionsLoading={txLoading}
-          tokensSupported={balanceData?.supported ?? true}
-          tokensFallbackReason={balanceData?.fallbackReason}
           onTokenClick={(_token) => {
             // Token click handler
           }}
