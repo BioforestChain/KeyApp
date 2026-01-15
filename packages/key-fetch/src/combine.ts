@@ -82,7 +82,9 @@ export function combine<
             const results = await Promise.all(
                 sourceKeys.map(async (key) => {
                     try {
-                        const result = await sources[key].fetch(context.params as any)
+                        // context.params 是一个 object，每个 key 对应一个 source 的 params
+                        const sourceParams = (context.params as any)[key]
+                        const result = await sources[key].fetch(sourceParams)
                         return [key, result] as const
                     } catch (error) {
                         // 某个 source 失败时返回 undefined
@@ -100,7 +102,8 @@ export function combine<
         onSubscribe: (context) => {
             // 订阅所有 sources，任何一个更新都触发 refetch
             const unsubscribes = sourceKeys.map((key) => {
-                return sources[key].subscribe(context.params as any, () => {
+                const sourceParams = (context.params as any)[key]
+                return sources[key].subscribe(sourceParams, () => {
                     // 任何 source 更新时，触发 combine 的 refetch
                     context.refetch()
                 })
