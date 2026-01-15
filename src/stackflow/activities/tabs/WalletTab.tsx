@@ -94,6 +94,9 @@ function WalletTabContent({
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();
 
+  // Subscribe to block height updates for pending tx sync
+  const { data: blockHeight } = chainProvider.blockHeight.useState({}, { enabled: true });
+
   // 现在可以直接调用，不需要条件判断
   const { data: balanceResult, isFetching: isRefreshing } = chainProvider.nativeBalance.useState(
     { address },
@@ -110,13 +113,13 @@ function WalletTabContent({
     { enabled: !!address }
   );
 
-  // Pending Transactions
+  // Pending Transactions (syncs when blockHeight changes)
   const {
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
     clearAllFailed: clearAllFailedPendingTx,
-  } = usePendingTransactions(currentWalletId ?? undefined);
+  } = usePendingTransactions(currentWalletId ?? undefined, blockHeight);
 
   // 转换代币数据（包含原生资产）
   const tokens = useMemo(() => {

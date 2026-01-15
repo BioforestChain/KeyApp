@@ -8,7 +8,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
 
-export function usePendingTransactions(walletId: string | undefined) {
+export function usePendingTransactions(walletId: string | undefined, blockHeight?: bigint) {
   const [transactions, setTransactions] = useState<PendingTx[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const chainConfigState = useChainConfigState()
@@ -24,7 +24,7 @@ export function usePendingTransactions(walletId: string | undefined) {
       const pending = await pendingTxService.getPending({ walletId })
       setTransactions(pending)
     } catch (error) {
-      
+
       setTransactions([])
     } finally {
       setIsLoading(false)
@@ -54,12 +54,12 @@ export function usePendingTransactions(walletId: string | undefined) {
     }
   }, [transactions.length])
 
-  // 同步钱包的 pending 交易状态
+  // 同步钱包的 pending 交易状态（当新区块到来时触发）
   useEffect(() => {
     if (walletId && transactions.length > 0) {
       pendingTxManager.syncWalletPendingTransactions(walletId, chainConfigState)
     }
-  }, [walletId, chainConfigState, transactions.length])
+  }, [walletId, chainConfigState, transactions.length, blockHeight])
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
