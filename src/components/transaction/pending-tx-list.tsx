@@ -116,7 +116,7 @@ function PendingTxItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">
-            {t(`type.${displayType}`)}
+            {t(displayType.startsWith("type.") ? displayType : `type.${displayType}`)}
           </span>
           <span className={cn(
             'text-xs',
