@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, postBody, interval } from '@biochain/key-fetch'
+import { keyFetch, ttl, derive, transform, postBody, interval, deps } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action } from './types'
 import {
@@ -281,9 +281,19 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     const symbol = this.symbol
     const decimals = this.decimals
 
+    // ==================== 区块高度（必须先创建，供其他 fetcher 依赖）====================
+
+    const blockApi = keyFetch.create({
+      name: `biowallet.${chainId}.blockApi`,
+      schema: BlockResponseSchema,
+      url: `${baseUrl}/block/lastblock`,
+      use: [interval(15_000), ttl(10_000)],
+    })
+
     // ==================== 基础 Fetcher（私有）====================
     // 使用 postBody 插件将 params 作为 JSON body 发送
     // 使用 paramsSchema 进行类型推导
+    // 使用 deps(blockApi) 在区块高度变化时自动刷新
 
     this.#addressAsset = keyFetch.create({
       name: `biowallet.${chainId}.addressAsset`,
@@ -291,7 +301,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
       paramsSchema: AddressParamsSchema,
       url: `${baseUrl}/address/asset`,
       method: 'POST',
-      use: [postBody(), ttl(60_000)],
+      use: [deps(blockApi), postBody(), ttl(30_000)], // 降低 TTL，依赖区块刷新
     })
 
     this.#txList = keyFetch.create({
@@ -300,7 +310,22 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
       paramsSchema: TxListParamsSchema,
       url: `${baseUrl}/transactions/query`,
       method: 'POST',
-      use: [postBody(), ttl(5 * 60_000)],
+      use: [deps(blockApi), postBody(), ttl(30_000)], // 降低 TTL，依赖区块刷新
+    })
+
+    // 派生 blockHeight 视图
+    this.blockHeight = derive({
+      name: `biowallet.${chainId}.blockHeight`,
+      source: blockApi,
+      schema: BlockHeightOutputSchema,
+      use: [
+        transform<z.infer<typeof BlockResponseSchema>, bigint>({
+          transform: (raw) => {
+            if (!raw.result?.height) return BigInt(0)
+            return BigInt(raw.result.height)
+          },
+        }),
+      ],
     })
 
     // ==================== 派生视图（使用 use 插件系统）====================
@@ -411,28 +436,6 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               })
               .filter((tx): tx is Transaction => tx !== null)
               .sort((a, b) => b.timestamp - a.timestamp) // 最新交易在前
-          },
-        }),
-      ],
-    })
-
-    // 区块高度：需要从 API 响应中提取 result.height
-    const blockApi = keyFetch.create({
-      name: `biowallet.${chainId}.blockApi`,
-      schema: BlockResponseSchema,
-      url: `${baseUrl}/block/lastblock`,
-      use: [interval(15_000), ttl(10_000)],
-    })
-
-    this.blockHeight = derive({
-      name: `biowallet.${chainId}.blockHeight`,
-      source: blockApi,
-      schema: BlockHeightOutputSchema,
-      use: [
-        transform<z.infer<typeof BlockResponseSchema>, bigint>({
-          transform: (raw) => {
-            if (!raw.result?.height) return BigInt(0)
-            return BigInt(raw.result.height)
           },
         }),
       ],
