@@ -33,7 +33,7 @@ export class EventEmitter {
         try {
           handler(...args)
         } catch (error) {
-          
+          console.error('[bio-sdk] Error in event handler:', error)
         }
       })
     }
