@@ -1,89 +1,42 @@
 /**
  * usePendingTransactions Hook
  * 
- * 获取当前钱包的未上链交易列表，并订阅状态变化
+ * 获取当前钱包的未上链交易列表
+ * 使用 key-fetch 的 useState，依赖 blockHeight 自动刷新
  */
 
-import { useEffect, useState, useCallback } from 'react'
-import { pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
+import { useCallback } from 'react'
+import { getPendingTxFetcher, pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
 
-export function usePendingTransactions(walletId: string | undefined, blockHeight?: bigint) {
-  const [transactions, setTransactions] = useState<PendingTx[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function usePendingTransactions(walletId: string | undefined, chainId?: string) {
   const chainConfigState = useChainConfigState()
 
-  const refresh = useCallback(async () => {
-    if (!walletId) {
-      setTransactions([])
-      setIsLoading(false)
-      return
-    }
+  // 获取 key-fetch 实例
+  const fetcher = walletId && chainId ? getPendingTxFetcher(chainId, walletId) : null
 
-    try {
-      const pending = await pendingTxService.getPending({ walletId })
-      setTransactions(pending)
-    } catch (error) {
-
-      setTransactions([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [walletId])
-
-  // 初始加载和订阅状态变化
-  useEffect(() => {
-    refresh()
-
-    // 订阅 pendingTxService 的状态变化（create/update/delete 时立即触发）
-    const unsubscribe = pendingTxService.subscribe((updatedTx) => {
-      if (updatedTx.walletId === walletId) {
-        refresh()
-      }
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [refresh, walletId])
-
-  // 启动/停止 manager（当有 pending tx 时启动）
-  useEffect(() => {
-    if (transactions.length > 0) {
-      pendingTxManager.start()
-    }
-  }, [transactions.length])
-
-  // 同步钱包的 pending 交易状态（当新区块到来时触发）
-  useEffect(() => {
-    if (walletId && transactions.length > 0) {
-      pendingTxManager.syncWalletPendingTransactions(walletId, chainConfigState)
-    }
-  }, [walletId, chainConfigState, transactions.length, blockHeight])
+  // 使用 key-fetch 的 useState（自动订阅 blockHeight 变化）
+  const { data, isLoading } = fetcher?.useState({}) ?? { data: undefined, isLoading: false }
+  const transactions: PendingTx[] = (data as PendingTx[] | undefined) ?? []
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
-    await refresh()
-  }, [refresh])
+  }, [])
 
   const retryTransaction = useCallback(async (tx: PendingTx) => {
-    const updated = await pendingTxManager.retryBroadcast(tx.id, chainConfigState)
-    await refresh()
-    return updated
-  }, [refresh, chainConfigState])
+    return await pendingTxManager.retryBroadcast(tx.id, chainConfigState)
+  }, [chainConfigState])
 
   const clearAllFailed = useCallback(async () => {
-    const failedTxs = transactions.filter(tx => tx.status === 'failed')
+    const failedTxs = transactions.filter((tx: PendingTx) => tx.status === 'failed')
     for (const tx of failedTxs) {
       await pendingTxService.delete({ id: tx.id })
     }
-    await refresh()
-  }, [transactions, refresh])
+  }, [transactions])
 
   return {
     transactions,
     isLoading,
-    refresh,
     deleteTransaction,
     retryTransaction,
     clearAllFailed,

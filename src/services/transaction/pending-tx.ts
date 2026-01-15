@@ -435,3 +435,66 @@ class PendingTxServiceImpl implements IPendingTxService {
 
 /** 单例服务实例 */
 export const pendingTxService = new PendingTxServiceImpl()
+
+// ==================== Key-Fetch Instance Factory ====================
+
+import { derive, transform } from '@biochain/key-fetch'
+import { getChainProvider } from '@/services/chain-adapter/providers'
+
+// 缓存已创建的 fetcher 实例
+const pendingTxFetchers = new Map<string, ReturnType<typeof derive>>()
+
+/**
+ * 获取 pending tx 的 key-fetch 实例
+ * 依赖 blockHeight 自动刷新
+ */
+export function getPendingTxFetcher(chainId: string, walletId: string) {
+  const key = `${chainId}:${walletId}`
+
+  if (!pendingTxFetchers.has(key)) {
+    const chainProvider = getChainProvider(chainId)
+
+    if (!chainProvider?.supports('blockHeight')) {
+      return null
+    }
+
+    const fetcher = derive({
+      name: `pendingTx.${chainId}.${walletId}`,
+      source: chainProvider.blockHeight,
+      schema: z.array(PendingTxSchema),
+      use: [
+        transform({
+          transform: async () => {
+            // 检查 pending 交易状态，更新/移除已上链的
+            const pending = await pendingTxService.getPending({ walletId })
+
+            for (const tx of pending) {
+              if (tx.status === 'broadcasted' && tx.txHash) {
+                try {
+                  // 检查是否已上链
+                  const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash })
+                  if (txInfo?.status === 'confirmed') {
+                    await pendingTxService.updateStatus({
+                      id: tx.id,
+                      status: 'confirmed',
+                    })
+                  }
+                } catch (e) {
+                  console.error('检查pending交易状态失败', e)
+                  // 查询失败，跳过
+                }
+              }
+            }
+
+            // 返回最新的 pending 列表
+            return await pendingTxService.getPending({ walletId })
+          },
+        }),
+      ],
+    })
+
+    pendingTxFetchers.set(key, fetcher)
+  }
+
+  return pendingTxFetchers.get(key)!
+}
