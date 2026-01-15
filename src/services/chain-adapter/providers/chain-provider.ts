@@ -247,6 +247,20 @@ export class ChainProvider {
     return this.getMethod('normalizeAddress')
   }
 
+  // ===== IBioAccountService 代理（BioChain 专属）=====
+
+  get bioGetAccountInfo() {
+    return this.getMethod('bioGetAccountInfo')
+  }
+
+  get bioVerifyPayPassword() {
+    return this.getMethod('bioVerifyPayPassword')
+  }
+
+  get supportsBioAccountInfo(): boolean {
+    return this.supports('bioGetAccountInfo')
+  }
+
   // ===== 工具方法 =====
 
   getProviders(): readonly ApiProvider[] {

@@ -19,6 +19,7 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { BioforestIdentityMixin } from '../bioforest/identity-mixin'
 import { BioforestTransactionMixin } from '../bioforest/transaction-mixin'
+import { BioforestAccountMixin } from '../bioforest/account-mixin'
 
 // ==================== 参数 Schema 定义 ====================
 
@@ -255,7 +256,7 @@ class BiowalletBase {
 
 // ==================== Provider 实现 (使用 Mixin 继承) ====================
 
-export class BiowalletProvider extends BioforestIdentityMixin(BioforestTransactionMixin(BiowalletBase)) implements ApiProvider {
+export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMixin(BioforestTransactionMixin(BiowalletBase))) implements ApiProvider {
   private readonly symbol: string
   private readonly decimals: number
 

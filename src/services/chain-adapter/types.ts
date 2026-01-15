@@ -224,6 +224,51 @@ export interface ITransactionService {
   broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash>
 }
 
+// ==================== BioChain 专属服务接口 ====================
+// bio* 前缀表示 BioChain 专属功能，类似于 CSS 的 webkit 前缀
+// 如果未来被其他链采纳，可以移除前缀
+
+/**
+ * BioChain 账户信息
+ */
+export interface BioAccountInfo {
+  /** 地址 */
+  address: string
+  /** 支付密码公钥，null 表示未设置支付密码 */
+  secondPublicKey: string | null
+  /** 账户余额（可选） */
+  balance?: string
+  /** 是否多重签名账户 */
+  isMultisig?: boolean
+}
+
+/**
+ * 验证支付密码参数
+ */
+export interface BioVerifyPayPasswordParams {
+  /** 主密钥（助记词） */
+  mainSecret: string
+  /** 支付密码 */
+  paySecret: string
+  /** 支付密码公钥 */
+  publicKey: string
+}
+
+/**
+ * BioChain 账户服务接口（bio* 前缀表示 BioChain 专属）
+ * 
+ * 提供 BioChain 特有的账户功能：
+ * - 支付密码（二次验证）
+ * - 账户信息查询
+ */
+export interface IBioAccountService {
+  /** 获取账户信息（含支付密码公钥等 BioChain 特有字段） */
+  bioGetAccountInfo(address: Address): Promise<BioAccountInfo>
+
+  /** 验证支付密码是否正确 */
+  bioVerifyPayPassword(params: BioVerifyPayPasswordParams): Promise<boolean>
+}
+
 // 查询操作说明：使用 Provider 层的 keyFetch
 // - getTransactionStatus: 通过 Provider.transactionStatus fetcher 获取
 // - getTransaction: 通过 Provider.transaction fetcher 获取

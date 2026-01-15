@@ -112,7 +112,7 @@ export interface TokenBalance {
 // ==================== 从 ../types 统一导入交易相关类型 ====================
 // 避免重复定义，确保单一数据源
 
-import type { ITransactionService, IIdentityService, IAssetService } from '../types'
+import type { ITransactionService, IIdentityService, IAssetService, IBioAccountService } from '../types'
 
 export type {
   Fee,
@@ -126,6 +126,9 @@ export type {
   SetPayPasswordIntent,
   ContractCallIntent,
   SignOptions,
+  // BioChain 专属类型
+  BioAccountInfo,
+  BioVerifyPayPasswordParams,
 } from '../types'
 
 // ==================== 标准输出 Schema（强类型）====================
@@ -191,7 +194,7 @@ export type BlockHeightOutput = z.infer<typeof BlockHeightOutputSchema>
  * const { data } = provider.nativeBalance?.useState({ address }) ?? {}
  * ```
  */
-export interface ApiProvider extends Partial<ITransactionService & IIdentityService & IAssetService> {
+export interface ApiProvider extends Partial<ITransactionService & IIdentityService & IAssetService & IBioAccountService> {
   /** Provider 类型 (来自配置的 key，如 "biowallet-v1") */
   readonly type: string
   /** API 端点 (可为空，如 wrapped provider) */

@@ -33,14 +33,19 @@ export type {
   ChainInfo,
   GasPrice,
   HealthStatus,
+  // Service interfaces
   IIdentityService,
   IAssetService,
   ITransactionService,
+  IBioAccountService,
   IChainService,
   IStakingService,
   IChainAdapter,
   IAdapterRegistry,
   AdapterFactory,
+  // BioChain-specific types
+  BioAccountInfo,
+  BioVerifyPayPasswordParams,
 } from './types'
 
 export { ChainServiceError, ChainErrorCodes } from './types'
