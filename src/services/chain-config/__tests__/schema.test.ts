@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { ChainConfigListSchema, ChainConfigSchema, VersionedChainConfigFileSchema } from '../schema'
+import { ChainConfigSchema, VersionedChainConfigFileSchema } from '../schema'
 
 describe('ChainConfigSchema', () => {
   it('fills runtime defaults (enabled/source)', () => {

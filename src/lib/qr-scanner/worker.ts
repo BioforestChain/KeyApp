@@ -41,7 +41,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       try {
         const result = scanFrame(message.imageData)
         const response: WorkerResponse = { type: 'result', id: message.id, result }
-        self.postMessage(response)
+        self.postMessage(response, self.location.origin)
       } catch (error) {
         const response: WorkerResponse = {
           type: 'result',
@@ -49,7 +49,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
           result: null,
           error: error instanceof Error ? error.message : 'Unknown error',
         }
-        self.postMessage(response)
+        self.postMessage(response, self.location.origin)
       }
       break
     }
@@ -58,7 +58,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       try {
         const results = message.frames.map(scanFrame)
         const response: WorkerResponse = { type: 'batchResult', id: message.id, results }
-        self.postMessage(response)
+        self.postMessage(response, self.location.origin)
       } catch (error) {
         const response: WorkerResponse = {
           type: 'batchResult',
@@ -66,7 +66,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
           results: [],
           error: error instanceof Error ? error.message : 'Unknown error',
         }
-        self.postMessage(response)
+        self.postMessage(response, self.location.origin)
       }
       break
     }
@@ -80,4 +80,4 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 
 // 通知主线程 Worker 已就绪
 const readyResponse: WorkerResponse = { type: 'ready' }
-self.postMessage(readyResponse)
+self.postMessage(readyResponse, self.location.origin)

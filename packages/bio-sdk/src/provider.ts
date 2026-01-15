@@ -105,7 +105,7 @@ export class BioProviderImpl implements BioProvider {
 
   private postMessage(message: RequestMessage): void {
     if (window.parent === window) {
-      console.warn('[BioSDK] Not running in iframe, cannot communicate with host')
+      console.warn('[bio-sdk] Not running in iframe, postMessage will not work')
       return
     }
     window.parent.postMessage(message, this.targetOrigin)

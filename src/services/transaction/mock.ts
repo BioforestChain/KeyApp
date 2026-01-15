@@ -100,7 +100,7 @@ function tryLoadFixtureTransactions(): TransactionRecord[] | null {
 
   const parsed = TransactionFixturePayloadSchema.safeParse(payload)
   if (!parsed.success) {
-    // eslint-disable-next-line no-console
+     
     console.warn('[transaction/mock] invalid e2e fixture payload, fallback to generated transactions', parsed.error)
     return null
   }

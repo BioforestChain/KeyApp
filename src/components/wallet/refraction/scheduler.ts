@@ -70,7 +70,7 @@ class HologramScheduler {
       // Send to worker if ready
       this.sendTriangleMaskIfReady()
     } catch (e) {
-      console.error('[HologramScheduler] Failed to load triangle mask:', e)
+
     }
   }
 
@@ -88,11 +88,11 @@ class HologramScheduler {
     try {
       this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
       this.worker.onmessage = this.handleMessage
-      this.worker.onerror = (e) => {
-        console.error('[HologramScheduler] Worker error:', e)
+      this.worker.onerror = (_e) => {
+
       }
     } catch (e) {
-      console.error('[HologramScheduler] Failed to create worker:', e)
+
     }
   }
 
@@ -113,7 +113,7 @@ class HologramScheduler {
 
   register(cardId: string, canvas: HTMLCanvasElement): () => void {
     if (!this.worker) {
-      return () => {}
+      return () => { }
     }
 
     const offscreen = canvas.transferControlToOffscreen()

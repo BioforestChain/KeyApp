@@ -4,6 +4,7 @@ import { TokenList } from '@/components/token/token-list'
 import { TransactionList } from '@/components/transaction/transaction-list'
 import { SwipeableTabs } from '@/components/layout/swipeable-tabs'
 import { ProviderFallbackWarning } from '@/components/common/provider-fallback-warning'
+import { ErrorBoundary } from '@/components/common/error-boundary'
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from '@/components/token/token-item'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
 import type { ChainType } from '@/stores'
@@ -30,8 +31,8 @@ export interface WalletAddressPortfolioViewProps {
   mainAssetSymbol?: string
   /** Render prop for token item actions (deprecated: use tokenMenuItems) */
   renderTokenActions?: (token: TokenInfo, context: TokenItemContext) => React.ReactNode
-  /** Context menu handler for token items (deprecated: use tokenMenuItems) */
-  onTokenContextMenu?: (event: React.MouseEvent | React.TouchEvent | null, token: TokenInfo, context: TokenItemContext) => void
+  /** Context menu handler for token items (matches TokenItem signature) */
+  onTokenContextMenu?: (e: React.MouseEvent, token: TokenInfo) => void
   /** Menu items for token dropdown menu (recommended approach) */
   tokenMenuItems?: (token: TokenInfo, context: TokenItemContext) => TokenMenuItem[]
   className?: string
@@ -105,14 +106,29 @@ export function WalletAddressPortfolioView({
                   className="mb-4"
                 />
               )}
-              <TransactionList
-                transactions={transactions}
-                loading={transactionsLoading}
-                onTransactionClick={onTransactionClick}
-                emptyTitle={t('transaction:history.emptyTitle')}
-                emptyDescription={t('transaction:history.emptyDesc')}
-                testId={`${testId}-transaction-list`}
-              />
+              <ErrorBoundary
+                fallback={(error, reset) => (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <p className="text-sm text-destructive mb-2">交易历史加载失败</p>
+                    <p className="text-xs text-muted-foreground mb-3">{error.message}</p>
+                    <button
+                      onClick={reset}
+                      className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground"
+                    >
+                      重试
+                    </button>
+                  </div>
+                )}
+              >
+                <TransactionList
+                  transactions={transactions}
+                  loading={transactionsLoading}
+                  onTransactionClick={onTransactionClick}
+                  emptyTitle={t('transaction:history.emptyTitle')}
+                  emptyDescription={t('transaction:history.emptyDesc')}
+                  testId={`${testId}-transaction-list`}
+                />
+              </ErrorBoundary>
               {renderTransactionFooter?.()}
             </div>
           )

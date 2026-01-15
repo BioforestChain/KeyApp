@@ -5,6 +5,8 @@ import { TransactionDetailPage } from "@/pages/history/detail";
 
 type TransactionDetailParams = {
   txId: string;
+  /** Optional serialized Transaction data (JSON). When provided, skips network fetch */
+  txData?: string;
 };
 
 export const TransactionDetailActivity: ActivityComponentType<TransactionDetailParams> = ({ params }) => {

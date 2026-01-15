@@ -12,7 +12,7 @@
  * - Hot reload: AI agents can call reload() to manually refresh
  */
 
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -120,7 +120,7 @@ async function scanWorkflows(directories: string[]): Promise<WorkflowInfo[]> {
     });
   }
 
-  return workflows.sort((a, b) => a.name.localeCompare(b.name));
+  return [...workflows].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function getWorkflowInfo(
@@ -514,15 +514,13 @@ export async function buildMetaMcp(config: MetaMcpConfig = {}) {
 
           if (!signal.aborted) {
             await refreshWorkflows();
-            console.error(
-              `[meta.mcp] Auto-refreshed workflows at ${new Date().toISOString()}`
-            );
+
           }
         } catch (e) {
           if (e instanceof DOMException && e.name === "AbortError") {
             return;
           }
-          console.error("[meta.mcp] Auto-refresh error:", e);
+
         }
       }
     })();

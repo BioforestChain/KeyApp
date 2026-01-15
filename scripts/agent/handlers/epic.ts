@@ -4,7 +4,7 @@
 
 import { execSync } from 'node:child_process'
 import { ROOT, log } from '../utils'
-import { createIssue, addIssueToProject, setIssueRelease, fetchRoadmap } from './roadmap'
+import { createIssue } from './roadmap'
 
 export interface EpicOptions {
   title: string

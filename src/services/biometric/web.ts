@@ -22,7 +22,7 @@ export const biometricService = biometricServiceMeta.impl({
   },
 
   async verify(_options) {
-    console.warn('Biometric not available in web, falling back to password')
+    
     return {
       success: false,
       errorMessage: 'Biometric authentication not available in web browser',

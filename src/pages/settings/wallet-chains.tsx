@@ -75,7 +75,7 @@ export function WalletChainsPage() {
           goBack();
         }, 1500);
       } catch (error) {
-        console.error('Failed to update chain addresses:', error);
+        
         if (error instanceof Error && error.message.includes('decrypt')) {
           setVerifyError(true);
           setPattern([]);

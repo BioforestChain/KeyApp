@@ -8,21 +8,20 @@ import { PageHeader } from '@/components/layout/page-header';
 import { AssetSelector } from '@/components/asset';
 import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
-import type { TokenInfo } from '@/components/token/token-item';
+import { tokenBalancesToTokenInfoList, type TokenInfo } from '@/components/token';
 import { GradientButton, Alert } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
-import { SendResult } from '@/components/transfer/send-result';
 import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
+import { ChainProviderGate, useChainProvider } from '@/contexts';
 import {
   useChainConfigState,
   chainConfigSelectors,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
-  useCurrentChainTokens,
   type ChainType,
 } from '@/stores';
 
@@ -41,7 +40,9 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   malibu: 'Malibu',
 };
 
-export function SendPage() {
+// ==================== 内部内容组件 ====================
+
+function SendPageContent() {
   const { t } = useTranslation(['transaction', 'common', 'security']);
   const { goBack: navGoBack } = useNavigation();
   const { push } = useFlow();
@@ -56,7 +57,7 @@ export function SendPage() {
     assetType?: string;
     assetLocked?: string;
   }>();
-  
+
   const assetLocked = assetLockedParam === 'true';
 
   const selectedChain = useSelectedChain();
@@ -67,15 +68,27 @@ export function SendPage() {
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null;
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const tokens = useCurrentChainTokens();
+
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
+
+  // 直接调用，不需要条件判断
+  const tokenBalancesState = chainProvider.tokenBalances.useState(
+    { address: currentChainAddress?.address ?? '' },
+    { enabled: !!currentChainAddress?.address }
+  );
+  const tokens = useMemo(() => {
+    if (!tokenBalancesState?.data) return [];
+    return tokenBalancesToTokenInfoList(tokenBalancesState.data, selectedChain);
+  }, [tokenBalancesState?.data, selectedChain]);
 
   // Find initial asset from params or use default
   const initialAsset = useMemo(() => {
     if (!chainConfig) return null;
-    
+
     // If assetType is specified, find it in tokens
     if (initialAssetType) {
-      const found = tokens.find((t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
+      const found = tokens.find((t: TokenInfo) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
       if (found) {
         return {
           assetType: found.symbol,
@@ -88,9 +101,9 @@ export function SendPage() {
       // assetType specified but not found - return null to wait for tokens
       return null;
     }
-    
+
     // No assetType specified - default to native asset
-    const nativeBalance = tokens.find((token) => token.symbol === chainConfig.symbol);
+    const nativeBalance = tokens.find((token: TokenInfo) => token.symbol === chainConfig.symbol);
     const balanceFormatted = nativeBalance?.balance ?? '0';
     return {
       assetType: chainConfig.symbol,
@@ -100,28 +113,38 @@ export function SendPage() {
     };
   }, [chainConfig, tokens, initialAssetType]);
 
-  // useSend hook must be called before any code that references state/setAsset
-  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, reset, canProceed } = useSend({
+  // getBalance callback - single source of truth from tokens
+  const getBalance = useCallback((assetType: string): Amount | null => {
+    const token = tokens.find(t => t.symbol === assetType);
+    if (!token) return null;
+    return Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol);
+  }, [tokens, chainConfig?.decimals]);
+
+  // useSend hook with getBalance for real-time balance validation
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
     initialAsset: initialAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
     fromAddress: currentChainAddress?.address,
     chainConfig,
+    getBalance,
   });
-  
+
   // Selected token for AssetSelector (convert from state.asset)
   const selectedToken = useMemo((): TokenInfo | null => {
     if (!state.asset) return null;
+    // Use balance from tokens (single source of truth)
+    const currentBalance = getBalance(state.asset.assetType);
     return {
       symbol: state.asset.assetType,
       name: state.asset.name ?? state.asset.assetType,
-      balance: state.asset.amount.toFormatted(),
+      balance: currentBalance?.toFormatted() ?? state.asset.amount.toFormatted(),
       decimals: state.asset.decimals,
       chain: selectedChain,
       icon: state.asset.logoUrl,
     };
-  }, [state.asset, selectedChain]);
-  
+  }, [state.asset, selectedChain, getBalance]);
+
   // Handle asset selection from AssetSelector
   const handleAssetSelect = useCallback((token: TokenInfo) => {
     const asset = {
@@ -134,11 +157,15 @@ export function SendPage() {
     setAsset(asset);
   }, [chainConfig?.decimals, setAsset]);
 
-  // Sync initialAsset to useSend state when it changes (e.g., after async token loading)
+  // Sync initialAsset to useSend state only once (when first loading)
+  const hasInitializedAsset = useRef(false);
   useEffect(() => {
     if (!initialAsset) return;
-    setAsset(initialAsset);
-  }, [initialAsset, setAsset]);
+    if (!hasInitializedAsset.current && !state.asset) {
+      setAsset(initialAsset);
+      hasInitializedAsset.current = true;
+    }
+  }, [initialAsset, setAsset, state.asset]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
@@ -176,8 +203,15 @@ export function SendPage() {
     push('ContactPickerJob', { chainType: selectedChain });
   }, [push, selectedChain]);
 
-  // Derive formatted values for display
-  const balance = state.asset?.amount ?? null;
+  // Derive formatted values for display - get balance from tokens (single source of truth)
+  const currentToken = useMemo(() =>
+    state.asset ? tokens.find(t => t.symbol === state.asset?.assetType) : null,
+    [state.asset, tokens]
+  );
+  const balance = useMemo(() =>
+    currentToken ? Amount.fromFormatted(currentToken.balance, currentToken.decimals ?? state.asset?.decimals ?? 8, currentToken.symbol) : null,
+    [currentToken, state.asset?.decimals]
+  );
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
   const handleOpenScanner = useCallback(() => {
@@ -191,7 +225,7 @@ export function SendPage() {
       haptics.impact('success');
       toast.show(t('sendPage.scanSuccess'));
     });
-    
+
     // 打开扫描器
     push('ScannerJob', {
       chainType: selectedChainName ?? selectedChain,
@@ -216,36 +250,44 @@ export function SendPage() {
           // 第一次调用：只有钱包锁
           if (!twoStepSecret) {
             const result = await submit(walletLockKey);
-            
+
             if (result.status === 'password') {
               return { status: 'wallet_lock_invalid' as const };
             }
-            
+
             if (result.status === 'two_step_secret_required') {
               return { status: 'two_step_secret_required' as const };
             }
-            
+
             if (result.status === 'ok') {
               isWalletLockSheetOpen.current = false;
-              return { status: 'ok' as const, txHash: result.txHash };
+              return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
             }
-            
+
+            if (result.status === 'error') {
+              return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
+            }
+
             return { status: 'error' as const, message: '转账失败' };
           }
-          
+
           // 第二次调用：有钱包锁和二次签名
           const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret);
-          
+
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false;
-            return { status: 'ok' as const, txHash: result.txHash };
+            return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId };
           }
-          
+
           if (result.status === 'password') {
             return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
           }
-          
-          return { status: 'error' as const, message: result.status === 'error' ? '转账失败' : '未知错误' };
+
+          if (result.status === 'error') {
+            return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
+          }
+
+          return { status: 'error' as const, message: '未知错误' };
         });
 
         push('TransferWalletLockJob', {
@@ -268,27 +310,8 @@ export function SendPage() {
     });
   };
 
-  const handleDone = () => {
-    if (state.resultStatus === 'success') {
-      haptics.impact('success');
-    }
-    navGoBack();
-  };
-
-  const handleRetry = () => {
-    reset();
-  };
-
-  const handleViewExplorer = useCallback(() => {
-    if (!state.txHash) return;
-    const queryTx = chainConfig?.explorer?.queryTx;
-    if (!queryTx) {
-      toast.show(t('sendPage.explorerNotImplemented'));
-      return;
-    }
-    const url = queryTx.replace(':hash', state.txHash).replace(':signature', state.txHash);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, [state.txHash, chainConfig?.explorer?.queryTx, toast, t]);
+  // Handler functions below are preserved for future use when result UI is implemented
+  // See: handleDone, handleRetry, handleViewExplorer
 
   if (!currentWallet || !currentChainAddress) {
     return (
@@ -297,26 +320,6 @@ export function SendPage() {
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">{t('history.noWallet')}</p>
         </div>
-      </div>
-    );
-  }
-
-  // Result step
-  if (state.step === 'result' || state.step === 'sending') {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <PageHeader title={t('sendPage.resultTitle')} />
-        <SendResult
-          status={state.step === 'sending' ? 'pending' : (state.resultStatus ?? 'pending')}
-          amount={state.amount?.toFormatted() ?? '0'}
-          symbol={symbol}
-          toAddress={state.toAddress}
-          txHash={state.txHash ?? undefined}
-          errorMessage={state.errorMessage ?? undefined}
-          onDone={handleDone}
-          onRetry={state.resultStatus === 'failed' ? handleRetry : undefined}
-          onViewExplorer={state.resultStatus === 'success' && chainConfig?.explorer?.queryTx ? handleViewExplorer : undefined}
-        />
       </div>
     );
   }
@@ -393,5 +396,29 @@ export function SendPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function SendPage() {
+  const { goBack } = useNavigation();
+  const selectedChain = useSelectedChain();
+  const { t } = useTranslation(['transaction', 'common']);
+
+  return (
+    <ChainProviderGate
+      chainId={selectedChain}
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <PageHeader title={t('sendPage.title')} onBack={goBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <SendPageContent />
+    </ChainProviderGate>
   );
 }

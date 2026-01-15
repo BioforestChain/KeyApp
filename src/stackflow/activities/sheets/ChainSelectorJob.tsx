@@ -3,8 +3,9 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { IconCheck } from "@tabler/icons-react";
 import { ChainIcon } from "@/components/wallet/chain-icon";
-import { useCurrentWallet, useSelectedChain, useAvailableChains, walletActions, type ChainType } from "@/stores";
+import { useCurrentWallet, useSelectedChain, walletActions, type ChainType } from "@/stores";
 import { useFlow } from "../../stackflow";
+import { useMemo } from "react";
 
 const CHAIN_NAMES: Record<ChainType, string> = {
   ethereum: "Ethereum",
@@ -31,7 +32,12 @@ export const ChainSelectorJob: ActivityComponentType = () => {
   const { pop } = useFlow();
   const currentWallet = useCurrentWallet();
   const selectedChain = useSelectedChain();
-  const availableChains = useAvailableChains();
+
+  // 从钱包地址直接获取可用链（useAvailableChains 已移除）
+  const availableChains = useMemo(() => {
+    if (!currentWallet) return [];
+    return currentWallet.chainAddresses.map((ca) => ca.chain);
+  }, [currentWallet]);
 
   const handleSelectChain = (chain: ChainType) => {
     walletActions.setSelectedChain(chain);
@@ -53,18 +59,17 @@ export const ChainSelectorJob: ActivityComponentType = () => {
 
         {/* Chain List - scrollable with max height */}
         <div data-testid="chain-sheet" className="max-h-[60vh] space-y-2 overflow-y-auto p-4">
-          {availableChains.map((chain) => {
+          {availableChains.map((chain: ChainType) => {
             const chainAddr = currentWallet?.chainAddresses.find((ca) => ca.chain === chain);
             return (
               <button
                 key={chain}
                 data-testid={`chain-option-${chain}`}
                 onClick={() => handleSelectChain(chain)}
-                className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${
-                  chain === selectedChain
+                className={`flex w-full items-center gap-3 rounded-xl p-4 transition-colors ${chain === selectedChain
                     ? "bg-primary/10 ring-1 ring-primary"
                     : "bg-muted/50 hover:bg-muted"
-                }`}
+                  }`}
               >
                 <ChainIcon chain={chain} size="md" />
                 <div className="flex-1 text-left">

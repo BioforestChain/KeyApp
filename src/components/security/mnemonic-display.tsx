@@ -22,7 +22,7 @@ export function MnemonicDisplay({ words, hidden = false, onCopy, className }: Mn
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy mnemonic');
+      
     }
   };
 

@@ -63,7 +63,7 @@ function persistContacts(contacts: Contact[]) {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch (error) {
-    console.error('Failed to persist address book:', error)
+    
   }
 }
 
@@ -83,7 +83,7 @@ function loadContacts(): Contact[] {
     // 其他版本直接返回空（破坏性更新）
     return []
   } catch (error) {
-    console.error('Failed to load address book:', error)
+    
     return []
   }
 }

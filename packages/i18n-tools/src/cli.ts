@@ -20,10 +20,10 @@ const colors = {
 }
 
 const log = {
-  info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
+  info: (msg: string) => {},
+  success: (msg: string) => {},
+  warn: (msg: string) => {},
+  error: (msg: string) => {},
 }
 
 function parseArgs(args: string[]) {
@@ -51,10 +51,10 @@ function main() {
   const args = process.argv.slice(2)
   const options = parseArgs(args)
 
-  console.log('\n📦 i18n Check\n')
-  console.log('Fallback rules:')
-  console.log('  • zh-CN, zh-TW, zh-HK → zh')
-  console.log('  • other languages → en\n')
+  
+  
+  
+  
 
   const result = checkI18n(options)
 
@@ -70,7 +70,7 @@ function main() {
     log.success(fix)
   }
 
-  console.log('\n' + '─'.repeat(40))
+  
 
   if (result.success) {
     log.success('All i18n checks passed!')

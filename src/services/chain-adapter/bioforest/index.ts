@@ -1,6 +1,8 @@
-export { BioforestAdapter, createBioforestAdapter } from './adapter'
-export { BioforestIdentityService } from './identity-service'
-export { BioforestAssetService } from './asset-service'
-export { BioforestTransactionService } from './transaction-service'
+/**
+ * Bioforest Chain Adapter exports
+ */
+
+export { BioforestIdentityMixin } from './identity-mixin'
+export { BioforestTransactionMixin } from './transaction-mixin'
 export { BioforestChainService } from './chain-service'
 export type * from './types'

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TokenIcon } from '@/components/wallet/token-icon';
 import { AmountDisplay } from '@/components/common';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import type { TokenInfo } from '@/components/token/token-item';
 
 export interface AssetSelectorProps {
@@ -61,7 +61,8 @@ export function AssetSelector({
   // 生成唯一 key
   const getAssetKey = (asset: TokenInfo) => `${asset.chain}-${asset.symbol}`;
 
-  const handleValueChange = (value: string) => {
+  const handleValueChange = (value: string | null) => {
+    if (!value) return;
     const asset = availableAssets.find((a) => getAssetKey(a) === value);
     if (asset) {
       onSelect(asset);
@@ -69,7 +70,8 @@ export function AssetSelector({
   };
 
   const displayPlaceholder = placeholder ?? t('assetSelector.selectAsset', '选择资产');
-  const selectedValue = selectedAsset ? getAssetKey(selectedAsset) : undefined;
+  // 使用空字符串代替 undefined，确保 Select 始终是受控的
+  const selectedValue = selectedAsset ? getAssetKey(selectedAsset) : '';
 
   // 渲染 trigger 内容
   const renderTriggerContent = () => {
@@ -107,7 +109,7 @@ export function AssetSelector({
   return (
     <Select value={selectedValue} onValueChange={handleValueChange} disabled={disabled}>
       <SelectTrigger data-testid={testId} className={cn('bg-muted/50 h-15! w-full px-3 py-2.5', className)}>
-        <SelectValue placeholder={displayPlaceholder}>{renderTriggerContent()}</SelectValue>
+        {renderTriggerContent()}
       </SelectTrigger>
 
       <SelectContent>

@@ -42,6 +42,28 @@ pnpm agent task submit
 
 ---
 
+## ⚠️ 类型检查命令 (IMPORTANT)
+
+**必须使用以下命令进行类型检查：**
+
+```bash
+# 正确：通过 turbo 检查所有 packages（注意清除缓存以获取最新结果）
+pnpm typecheck
+
+# 正确：直接检查主应用 src/ 目录（无缓存）
+pnpm tsc --build --noEmit
+
+# 或者明确指定 tsconfig
+pnpm tsc -p tsconfig.app.json --noEmit
+```
+
+**注意：turbo 缓存可能导致误报，如需确保最新结果：**
+```bash
+rm -rf .turbo && pnpm typecheck
+```
+
+---
+
 <!-- OPENSPEC:START -->
 
 # OpenSpec Instructions

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigation } from '@/stackflow';
-import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2 } from '@tabler/icons-react';
+import { IconBell as Bell, IconCheck as Check, IconTrash as Trash2, IconChevronRight } from '@tabler/icons-react';
 import { useStore } from '@tanstack/react-store';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
@@ -50,23 +50,29 @@ function NotificationItem({
   notification,
   onRead,
   onRemove,
+  onNavigate,
   formatRelativeTime,
   t,
 }: {
   notification: Notification;
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  onNavigate?: (notification: Notification) => void;
   formatRelativeTime: (timestamp: number) => string;
   t: TFunction<'notification'>;
 }) {
   const style = typeStyles[notification.type];
+  const hasPendingTxLink = notification.type === 'transaction' && !!notification.data?.pendingTxId;
 
-  // 点击标记为已读
+  // 点击标记为已读并跳转
   const handleClick = useCallback(() => {
     if (!notification.read) {
       onRead(notification.id);
     }
-  }, [notification.id, notification.read, onRead]);
+    if (hasPendingTxLink && onNavigate) {
+      onNavigate(notification);
+    }
+  }, [notification, onRead, onNavigate, hasPendingTxLink]);
 
   return (
     <div
@@ -88,7 +94,15 @@ function NotificationItem({
         <p className={cn('mt-1 text-sm', notification.read ? 'text-muted-foreground' : 'text-foreground/80')}>
           {notification.message}
         </p>
-        {!notification.read && <div className="bg-primary mt-2 flex size-2 rounded-full" aria-label={t('unread')} />}
+        <div className="mt-2 flex items-center gap-2">
+          {!notification.read && <div className="bg-primary flex size-2 rounded-full" aria-label={t('unread')} />}
+          {hasPendingTxLink && (
+            <span className="text-primary flex items-center gap-0.5 text-xs">
+              {t('viewDetails')}
+              <IconChevronRight className="size-3" />
+            </span>
+          )}
+        </div>
       </div>
 
       <button
@@ -110,6 +124,7 @@ function GroupedNotificationList({
   notifications,
   onRead,
   onRemove,
+  onNavigate,
   formatRelativeTime,
   t,
   language,
@@ -117,6 +132,7 @@ function GroupedNotificationList({
   notifications: Notification[];
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  onNavigate?: (notification: Notification) => void;
   formatRelativeTime: (timestamp: number) => string;
   t: TFunction<'notification'>;
   language: string;
@@ -162,6 +178,7 @@ function GroupedNotificationList({
                 notification={n}
                 onRead={onRead}
                 onRemove={onRemove}
+                onNavigate={onNavigate}
                 formatRelativeTime={formatRelativeTime}
                 t={t}
               />
@@ -178,7 +195,7 @@ export function NotificationCenterPage() {
   const { t } = useTranslation('notification');
   const language = useLanguage();
   const formatRelativeTime = useFormatRelativeTime();
-  const { goBack } = useNavigation();
+  const { goBack, navigate } = useNavigation();
   const state = useStore(notificationStore);
 
   // 初始化加载
@@ -203,6 +220,13 @@ export function NotificationCenterPage() {
   const handleClearAll = useCallback(() => {
     notificationActions.clearAll();
   }, []);
+
+  // 处理通知点击导航
+  const handleNavigate = useCallback((notification: Notification) => {
+    if (notification.type === 'transaction' && notification.data?.pendingTxId) {
+      navigate({ to: `/pending-tx/${notification.data.pendingTxId}` });
+    }
+  }, [navigate]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -244,6 +268,7 @@ export function NotificationCenterPage() {
           notifications={state.notifications}
           onRead={handleRead}
           onRemove={handleRemove}
+          onNavigate={handleNavigate}
           formatRelativeTime={formatRelativeTime}
           t={t}
           language={language}

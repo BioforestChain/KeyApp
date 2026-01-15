@@ -152,13 +152,13 @@ export const MiniappIcon = forwardRef<HTMLDivElement, MiniappIconProps>(function
           // 玻璃态：光照边框效果
           ...(glass
             ? {
-                boxShadow: `
+              boxShadow: `
                 inset 0 1px 1px rgba(255,255,255,0.6),
                 inset 0 -1px 1px rgba(0,0,0,0.1),
                 0 0 0 1.5px rgba(255,255,255,0.4),
                 0 4px 12px rgba(0,0,0,0.15)
               `,
-              }
+            }
             : {}),
         }}
       >
@@ -329,7 +329,7 @@ export interface MiniappIconGridProps {
 
 export function MiniappIconGrid({
   columns = 4,
-  iconSize = 'lg',
+  iconSize: _iconSize = 'lg',
   gap = 'md',
   children,
   className,

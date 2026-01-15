@@ -9,6 +9,7 @@ import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import type { BioforestBlockInfo } from './types'
 import { getTransferMinFee } from '@/services/bioforest-sdk'
+import { getChainFetchInstances } from './fetch'
 
 export class BioforestChainService implements IChainService {
   private readonly chainId: string
@@ -24,7 +25,7 @@ export class BioforestChainService implements IChainService {
       const config = chainConfigService.getConfig(this.chainId)
       if (!config) {
         throw new ChainServiceError(
-          ChainErrorCodes.CHAIN_NOT_FOUND,
+          ChainErrorCodes.CHAIN_NOT_SUPPORTED,
           `Chain config not found: ${this.chainId}`,
         )
       }
@@ -57,19 +58,10 @@ export class BioforestChainService implements IChainService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/lastblock`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
+      // 使用 keyFetch 实例获取区块高度（Schema 验证 + 响应式轮询）
+      const instances = getChainFetchInstances(this.chainId, this.baseUrl)
+      const json = await instances.lastBlock.fetch({})
 
-      if (!response.ok) {
-        throw new ChainServiceError(
-          ChainErrorCodes.NETWORK_ERROR,
-          `Failed to fetch block height: ${response.status}`,
-        )
-      }
-
-      const json = (await response.json()) as { success: boolean; result: BioforestBlockInfo }
       if (!json.success) {
         throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')
       }

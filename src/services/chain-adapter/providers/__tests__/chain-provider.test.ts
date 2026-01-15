@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+/**
+ * ChainProvider 测试
+ * 
+ * 使用 KeyFetch 架构
+ */
+
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import { ChainProvider } from '../chain-provider'
 import type { ApiProvider, Balance, Transaction } from '../types'
-import { isSupported } from '../types'
+import { BalanceOutputSchema, TransactionsOutputSchema } from '../types'
 import { Amount } from '@/types/amount'
-import { InvalidDataError } from '../errors'
+import { keyFetch, NoSupportError } from '@biochain/key-fetch'
+import type { KeyFetchInstance } from '@biochain/key-fetch'
 
 vi.mock('@/services/chain-config', () => ({
   chainConfigService: {
@@ -12,7 +19,34 @@ vi.mock('@/services/chain-config', () => ({
   },
 }))
 
-// Mock ApiProvider
+// Mock fetch
+const mockFetch = vi.fn()
+const originalFetch = global.fetch
+Object.assign(global, { fetch: mockFetch })
+
+afterAll(() => {
+  Object.assign(global, { fetch: originalFetch })
+})
+
+function createMockResponse<T>(data: T, ok = true, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    statusText: ok ? 'OK' : 'Error',
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+// 创建 mock KeyFetchInstance
+function createMockKeyFetchInstance<T>(_mockData: T): KeyFetchInstance<any> {
+  return keyFetch.create({
+    name: `mock.${Date.now()}`,
+    schema: BalanceOutputSchema,
+    url: 'https://mock.api/test',
+    use: [],
+  })
+}
+
+// Mock ApiProvider with KeyFetch instances
 function createMockProvider(overrides: Partial<ApiProvider> = {}): ApiProvider {
   return {
     type: 'mock-provider',
@@ -24,56 +58,83 @@ function createMockProvider(overrides: Partial<ApiProvider> = {}): ApiProvider {
 describe('ChainProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    keyFetch.clear()
   })
 
   describe('supports', () => {
-    it('returns true when a provider implements the method', () => {
-      const provider = createMockProvider({
-        getNativeBalance: vi.fn(),
-      })
-      const chainProvider = new ChainProvider('test', [provider])
-      
-      expect(chainProvider.supports('getNativeBalance')).toBe(true)
-    })
-
-    it('returns false when no provider implements the method', () => {
-      const provider = createMockProvider()
-      const chainProvider = new ChainProvider('test', [provider])
-      
-      expect(chainProvider.supports('getNativeBalance')).toBe(false)
-    })
-
-    it('returns true when any provider implements the method', () => {
-      const provider1 = createMockProvider({ type: 'p1' })
-      const provider2 = createMockProvider({ 
-        type: 'p2',
-        getTransactionHistory: vi.fn(),
-      })
-      const chainProvider = new ChainProvider('test', [provider1, provider2])
-      
-      expect(chainProvider.supportsTransactionHistory).toBe(true)
-    })
-  })
-
-  describe('method delegation', () => {
-    it('delegates getNativeBalance to the implementing provider', async () => {
+    it('returns true for nativeBalance when a provider has the property', () => {
       const mockBalance: Balance = {
         amount: Amount.fromRaw('1000000', 8, 'TEST'),
         symbol: 'TEST',
       }
+      mockFetch.mockResolvedValue(createMockResponse(mockBalance))
+
+      // 创建一个带 nativeBalance 的 mock provider
+      const nativeBalanceFetcher = keyFetch.create({
+        name: 'test.nativeBalance',
+        schema: BalanceOutputSchema,
+        url: 'https://mock.api/balance',
+      })
+
       const provider = createMockProvider({
-        getNativeBalance: vi.fn().mockResolvedValue(mockBalance),
+        nativeBalance: nativeBalanceFetcher,
       })
       const chainProvider = new ChainProvider('test', [provider])
-      
-      const result = await chainProvider.getNativeBalance('0x123')
-      
-      expect(isSupported(result)).toBe(true)
-      expect(result.data).toEqual(mockBalance)
-      expect(provider.getNativeBalance).toHaveBeenCalledWith('0x123')
+
+      expect(chainProvider.supports('nativeBalance')).toBe(true)
     })
 
-    it('delegates getTransactionHistory to the implementing provider', async () => {
+    it('returns false when no provider has the capability', () => {
+      const provider = createMockProvider()
+      const chainProvider = new ChainProvider('test', [provider])
+
+      expect(chainProvider.supports('nativeBalance')).toBe(false)
+    })
+
+    it('returns true when any provider has the capability', () => {
+      const provider1 = createMockProvider({ type: 'p1' })
+
+      const txHistoryFetcher = keyFetch.create({
+        name: 'test.transactionHistory',
+        schema: TransactionsOutputSchema,
+        url: 'https://mock.api/txs',
+      })
+
+      const provider2 = createMockProvider({
+        type: 'p2',
+        transactionHistory: txHistoryFetcher,
+      })
+      const chainProvider = new ChainProvider('test', [provider1, provider2])
+
+      expect(chainProvider.supportsTransactionHistory).toBe(true)
+    })
+  })
+
+  describe('KeyFetch property delegation', () => {
+    it('nativeBalance.fetch() returns balance from provider', async () => {
+      const mockBalance: Balance = {
+        amount: Amount.fromRaw('1000000', 8, 'TEST'),
+        symbol: 'TEST',
+      }
+      mockFetch.mockResolvedValue(createMockResponse(mockBalance))
+
+      const nativeBalanceFetcher = keyFetch.create({
+        name: 'test.nativeBalance',
+        schema: BalanceOutputSchema,
+        url: 'https://mock.api/balance',
+      })
+
+      const provider = createMockProvider({
+        nativeBalance: nativeBalanceFetcher,
+      })
+      const chainProvider = new ChainProvider('test', [provider])
+
+      const result = await chainProvider.nativeBalance.fetch({ address: '0x123' })
+
+      expect(result.symbol).toBe('TEST')
+    })
+
+    it('transactionHistory.fetch() returns transactions from provider', async () => {
       const mockTxs: Transaction[] = [
         {
           hash: '0xabc',
@@ -93,159 +154,64 @@ describe('ChainProvider', () => {
           ],
         },
       ]
+      mockFetch.mockResolvedValue(createMockResponse(mockTxs))
+
+      const txHistoryFetcher = keyFetch.create({
+        name: 'test.transactionHistory',
+        schema: TransactionsOutputSchema,
+        url: 'https://mock.api/txs',
+      })
+
       const provider = createMockProvider({
-        getTransactionHistory: vi.fn().mockResolvedValue(mockTxs),
+        transactionHistory: txHistoryFetcher,
       })
       const chainProvider = new ChainProvider('test', [provider])
-      
-      const result = await chainProvider.getTransactionHistory('0x123', 10)
-      
-      expect(isSupported(result)).toBe(true)
-      expect(result.data).toEqual(mockTxs)
-      expect(provider.getTransactionHistory).toHaveBeenCalledWith('0x123', 10)
+
+      const result = await chainProvider.transactionHistory.fetch({ address: '0x123' })
+
+      expect(result).toHaveLength(1)
+      expect(result[0].hash).toBe('0xabc')
     })
 
-    it('falls back to the next provider when the first throws', async () => {
-      const p1 = createMockProvider({
-        type: 'p1',
-        getNativeBalance: vi.fn().mockRejectedValue(new Error('p1 down')),
-      })
-      const mockBalance: Balance = {
-        amount: Amount.fromRaw('123', 8, 'TEST'),
-        symbol: 'TEST',
-      }
-      const p2 = createMockProvider({
-        type: 'p2',
-        getNativeBalance: vi.fn().mockResolvedValue(mockBalance),
-      })
-
-      const chainProvider = new ChainProvider('test', [p1, p2])
-      const result = await chainProvider.getNativeBalance('0x123')
-
-      expect(isSupported(result)).toBe(true)
-      expect(result.data).toEqual(mockBalance)
-      expect(p1.getNativeBalance).toHaveBeenCalledTimes(1)
-      expect(p2.getNativeBalance).toHaveBeenCalledTimes(1)
-    })
-
-    it('returns fallback result when all providers fail', async () => {
-      const p1 = createMockProvider({
-        type: 'p1',
-        getTransactionHistory: vi.fn().mockRejectedValue(new Error('nope')),
-      })
-      const p2 = createMockProvider({
-        type: 'p2',
-        getTransactionHistory: vi.fn().mockRejectedValue(new Error('still nope')),
-      })
-
-      const chainProvider = new ChainProvider('test', [p1, p2])
-      const result = await chainProvider.getTransactionHistory('0xabc', 10)
-
-      expect(isSupported(result)).toBe(false)
-      expect(result.data).toEqual([])
-      if (!isSupported(result)) {
-        expect(result.reason).toContain('All 2 provider(s) failed')
-        expect(result.reason).toContain('still nope')
-      }
-    })
-
-    it('rethrows for non-read methods when all providers fail', async () => {
-      const p1 = createMockProvider({
-        type: 'p1',
-        estimateFee: vi.fn().mockRejectedValue(new Error('fee fail')),
-      })
-      const chainProvider = new ChainProvider('test', [p1])
-
-      await expect(chainProvider.estimateFee!({
-        from: 'a',
-        to: 'b',
-        amount: Amount.fromRaw('1', 8, 'TEST'),
-      })).rejects.toThrow('fee fail')
-    })
-
-    it('returns fallback result when no provider implements the method', async () => {
+    it('throws NoSupportError when no provider has the capability', async () => {
       const provider = createMockProvider()
       const chainProvider = new ChainProvider('test', [provider])
-      
-      const balanceResult = await chainProvider.getNativeBalance('0x123')
-      const txResult = await chainProvider.getTransactionHistory('0x123', 10)
-      
-      expect(isSupported(balanceResult)).toBe(false)
-      expect(isSupported(txResult)).toBe(false)
-      if (!isSupported(balanceResult)) {
-        expect(balanceResult.reason).toContain('No provider implements')
-      }
-      if (!isSupported(txResult)) {
-        expect(txResult.reason).toContain('No provider implements')
-      }
-    })
-  })
 
-  describe('guard-at-the-gate validation', () => {
-    it('filters invalid transactions from getTransactionHistory and warns', async () => {
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      const valid: Transaction = {
-        hash: '0xvalid',
-        from: '0x1',
-        to: '0x2',
-        timestamp: Date.now(),
-        status: 'confirmed',
-        action: 'transfer',
-        direction: 'out',
-        assets: [
-          {
-            assetType: 'native',
-            value: '1',
-            symbol: 'TEST',
-            decimals: 18,
-          },
-        ],
-      }
-
-      const provider = createMockProvider({
-        getTransactionHistory: vi.fn().mockResolvedValue([valid, { bad: true }]),
-      })
-      const chainProvider = new ChainProvider('test', [provider])
-
-      const result = await chainProvider.getTransactionHistory('0x123', 10)
-      // 现在返回 ProviderResult 格式
-      expect(isSupported(result)).toBe(true)
-      if (isSupported(result)) {
-        expect(result.data).toEqual([valid])
-      }
-      expect(warnSpy).toHaveBeenCalled()
-    })
-
-    it('returns fallback result when getTransaction returns invalid payload', async () => {
-      const provider = createMockProvider({
-        getTransaction: vi.fn().mockResolvedValue({ bad: true }),
-      })
-      const chainProvider = new ChainProvider('test', [provider])
-
-      // 现在 getTransaction 返回 ProviderResult 而不是抛出异常
-      const result = await chainProvider.getTransaction('0xabc')
-      expect(result.supported).toBe(false)
-      expect(result.data).toBeNull()
+      await expect(
+        chainProvider.nativeBalance.fetch({ address: '0x123' })
+      ).rejects.toThrow(NoSupportError)
     })
   })
 
   describe('convenience properties', () => {
     it('supportsNativeBalance reflects provider capabilities', () => {
+      const nativeBalanceFetcher = keyFetch.create({
+        name: 'test.nativeBalance.2',
+        schema: BalanceOutputSchema,
+        url: 'https://mock.api/balance',
+      })
+
       const provider = createMockProvider({
-        getNativeBalance: vi.fn(),
+        nativeBalance: nativeBalanceFetcher,
       })
       const chainProvider = new ChainProvider('test', [provider])
-      
+
       expect(chainProvider.supportsNativeBalance).toBe(true)
       expect(chainProvider.supportsTransactionHistory).toBe(false)
     })
 
     it('supportsTransactionHistory reflects provider capabilities', () => {
+      const txHistoryFetcher = keyFetch.create({
+        name: 'test.transactionHistory.2',
+        schema: TransactionsOutputSchema,
+        url: 'https://mock.api/txs',
+      })
+
       const provider = createMockProvider({
-        getTransactionHistory: vi.fn(),
+        transactionHistory: txHistoryFetcher,
       })
       const chainProvider = new ChainProvider('test', [provider])
-      
+
       expect(chainProvider.supportsNativeBalance).toBe(false)
       expect(chainProvider.supportsTransactionHistory).toBe(true)
     })
@@ -256,15 +222,36 @@ describe('ChainProvider', () => {
       const provider1 = createMockProvider({ type: 'ethereum-rpc' })
       const provider2 = createMockProvider({ type: 'etherscan-v2' })
       const chainProvider = new ChainProvider('test', [provider1, provider2])
-      
+
       expect(chainProvider.getProviderByType('etherscan-v2')).toBe(provider2)
     })
 
     it('returns undefined for unknown type', () => {
       const provider = createMockProvider({ type: 'ethereum-rpc' })
       const chainProvider = new ChainProvider('test', [provider])
-      
+
       expect(chainProvider.getProviderByType('unknown')).toBeUndefined()
+    })
+  })
+
+  describe('legacy method proxies', () => {
+    it('estimateFee is proxied from provider', async () => {
+      const mockFeeEstimate = {
+        standard: { amount: Amount.fromRaw('1000', 8, 'TEST'), symbol: 'TEST' },
+      }
+
+      const provider = createMockProvider({
+        estimateFee: vi.fn().mockResolvedValue(mockFeeEstimate),
+      })
+      const chainProvider = new ChainProvider('test', [provider])
+
+      const result = await chainProvider.estimateFee!({
+        from: 'a',
+        to: 'b',
+        amount: Amount.fromRaw('1', 8, 'TEST'),
+      })
+
+      expect(result).toEqual(mockFeeEstimate)
     })
   })
 })

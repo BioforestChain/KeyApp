@@ -1,164 +1,101 @@
 /**
- * BSC Wallet API Provider
+ * BscWallet API Provider
  * 
- * 使用 walletapi.bfmeta.info 提供的 BSC API
- * 支持余额查询和交易历史
+ * 使用 Mixin 继承模式组合 Identity 和 Transaction 能力
  */
 
 import { z } from 'zod'
+import { keyFetch, ttl, derive, transform } from '@biochain/key-fetch'
+import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction } from './types'
+import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
-import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+import { EvmIdentityMixin } from '../evm/identity-mixin'
+import { EvmTransactionMixin } from '../evm/transaction-mixin'
 
-const BalanceResponseSchema = z.looseObject({
-  success: z.boolean(),
-  result: z.string(),
-})
+const BalanceApiSchema = z.object({ balance: z.string() }).passthrough()
+const TxApiSchema = z.object({
+  transactions: z.array(z.object({
+    hash: z.string(), from: z.string(), to: z.string(), value: z.string(),
+    timestamp: z.number(), status: z.string().optional(),
+  }).passthrough()),
+}).passthrough()
 
-const TxItemSchema = z.looseObject({
-  hash: z.string(),
-  from: z.string(),
-  to: z.string(),
-  value: z.string(),
-  timeStamp: z.string(),
-  blockNumber: z.string(),
-  isError: z.string().optional(),
-})
+type BalanceApi = z.infer<typeof BalanceApiSchema>
+type TxApi = z.infer<typeof TxApiSchema>
 
-const TxHistoryResponseSchema = z.looseObject({
-  success: z.boolean(),
-  result: z.looseObject({
-    status: z.string(),
-    result: z.array(TxItemSchema),
-  }),
-})
+function getDirection(from: string, to: string, address: string): Direction {
+  const f = from.toLowerCase(), t = to.toLowerCase()
+  if (f === address && t === address) return 'self'
+  return f === address ? 'out' : 'in'
+}
 
-export class BscWalletProvider implements ApiProvider {
+// ==================== Base Class for Mixins ====================
+
+class BscWalletBase {
+  readonly chainId: string
   readonly type: string
   readonly endpoint: string
-  readonly decimals: number
-  readonly symbol: string
-  private readonly chainId: string
+  readonly config?: Record<string, unknown>
 
-  constructor(entry: ParsedApiEntry, chainId: string, chainDecimals: number, chainSymbol: string) {
+  constructor(entry: ParsedApiEntry, chainId: string) {
     this.type = entry.type
-    this.endpoint = entry.endpoint.replace(/\/$/, '')
+    this.endpoint = entry.endpoint
+    this.config = entry.config
     this.chainId = chainId
-    this.decimals = chainDecimals
-    this.symbol = chainSymbol
-  }
-
-  get supportsNativeBalance() {
-    return true
-  }
-
-  get supportsTransactionHistory() {
-    return true
-  }
-
-  async getNativeBalance(address: string): Promise<Balance> {
-    const url = `${this.endpoint}/balance?address=${address}`
-    const json: unknown = await fetchJson(url, undefined, {
-      cacheKey: `bscwallet:balance:${address}`,
-      ttlMs: 60_000,
-      tags: [`balance:${this.chainId}:${address}`],
-    })
-
-    const parsed = BalanceResponseSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success) {
-      throw new Error('Upstream API error')
-    }
-
-    observeValueAndInvalidate({
-      key: `balance:${this.chainId}:${address}`,
-      value: parsed.data.result,
-      invalidateTags: [`txhistory:${this.chainId}:${address}`],
-    })
-
-    return {
-      amount: Amount.fromRaw(parsed.data.result, this.decimals, this.symbol),
-      symbol: this.symbol,
-    }
-  }
-
-  async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    const url = `${this.endpoint}/trans/normal/history`
-    const json: unknown = await fetchJson(
-      url,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address,
-          page: 1,
-          offset: limit,
-        }),
-      },
-      {
-        cacheKey: `bscwallet:txs:${address}:${limit}`,
-        ttlMs: 5 * 60_000,
-        tags: [`txhistory:${this.chainId}:${address}`],
-      },
-    )
-
-    const parsed = TxHistoryResponseSchema.safeParse(json)
-    if (!parsed.success || !parsed.data.success) {
-      throw new Error('Upstream API error')
-    }
-    if (parsed.data.result.status !== '1') {
-      return []
-    }
-
-    const normalizedAddress = address.toLowerCase()
-
-    return parsed.data.result.result.map((tx): Transaction => {
-      const from = tx.from
-      const to = tx.to
-      const direction = this.getDirection(from, to, normalizedAddress)
-
-      return {
-        hash: tx.hash,
-        from,
-        to,
-        timestamp: Number(tx.timeStamp) * 1000,
-        status: tx.isError === '1' ? 'failed' : 'confirmed',
-        blockNumber: BigInt(tx.blockNumber),
-        action: 'transfer' as const,
-        direction,
-        assets: [{
-          assetType: 'native' as const,
-          value: tx.value,
-          symbol: this.symbol,
-          decimals: this.decimals,
-        }],
-      }
-    })
-  }
-
-  private getDirection(from: string, to: string, address: string): Direction {
-    const fromLower = from.toLowerCase()
-    const toLower = to.toLowerCase()
-    
-    if (fromLower === address && toLower === address) {
-      return 'self'
-    }
-    if (fromLower === address) {
-      return 'out'
-    }
-    return 'in'
   }
 }
 
-/**
- * 工厂函数：识别 bscwallet-v1 类型的 API entry
- */
-export function createBscWalletProvider(entry: ParsedApiEntry, chainId: string): BscWalletProvider | null {
-  if (entry.type !== 'bscwallet-v1') return null
-  
-  const decimals = chainConfigService.getDecimals(chainId)
-  const symbol = chainConfigService.getSymbol(chainId)
-  
-  return new BscWalletProvider(entry, chainId, decimals, symbol)
+// ==================== Provider 实现 (使用 Mixin 继承) ====================
+
+export class BscWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(BscWalletBase)) implements ApiProvider {
+  private readonly symbol: string
+  private readonly decimals: number
+
+  readonly #balanceApi: KeyFetchInstance<typeof BalanceApiSchema>
+  readonly #txApi: KeyFetchInstance<typeof TxApiSchema>
+  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
+  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+
+  constructor(entry: ParsedApiEntry, chainId: string) {
+    super(entry, chainId)
+    this.symbol = chainConfigService.getSymbol(chainId)
+    this.decimals = chainConfigService.getDecimals(chainId)
+
+    const { endpoint: base, symbol, decimals } = this
+
+    this.#balanceApi = keyFetch.create({ name: `bscwallet.${chainId}.balanceApi`, schema: BalanceApiSchema, url: `${base}/balance`, use: [ttl(60_000)] })
+    this.#txApi = keyFetch.create({ name: `bscwallet.${chainId}.txApi`, schema: TxApiSchema, url: `${base}/transactions`, use: [ttl(5 * 60_000)] })
+
+    this.nativeBalance = derive({
+      name: `bscwallet.${chainId}.nativeBalance`,
+      source: this.#balanceApi,
+      schema: BalanceOutputSchema,
+      use: [transform<BalanceApi, Balance>({ transform: (r) => ({ amount: Amount.fromRaw(r.balance, decimals, symbol), symbol }) })],
+    })
+
+    this.transactionHistory = derive({
+      name: `bscwallet.${chainId}.transactionHistory`,
+      source: this.#txApi,
+      schema: TransactionsOutputSchema,
+      use: [transform<TxApi, Transaction[]>({
+        transform: (r, ctx) => {
+          const addr = ((ctx.params.address as string) ?? '').toLowerCase()
+          return r.transactions.map(tx => ({
+            hash: tx.hash, from: tx.from, to: tx.to, timestamp: tx.timestamp,
+            status: tx.status === 'success' ? 'confirmed' as const : 'failed' as const,
+            action: 'transfer' as const, direction: getDirection(tx.from, tx.to, addr),
+            assets: [{ assetType: 'native' as const, value: tx.value, symbol, decimals }],
+          }))
+        },
+      })],
+    })
+  }
+}
+
+export function createBscWalletProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
+  if (entry.type === 'bscwallet-v1') return new BscWalletProvider(entry, chainId)
+  return null
 }

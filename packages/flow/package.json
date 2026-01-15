@@ -13,9 +13,8 @@
     "./context": "./src/common/async-context.ts"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
+    "dev": "tsc --noEmit --watch",
+    "typecheck:run": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },

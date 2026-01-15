@@ -65,7 +65,7 @@ export function ChainAddressDisplay({
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy address');
+      
     }
   }, [address, onCopy]);
 

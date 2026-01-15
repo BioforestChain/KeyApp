@@ -133,7 +133,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
           return; // 停止扫描
         }
       } catch (err) {
-        console.error('[Scanner] Scan error:', err);
+        
       }
 
       // 继续下一帧
@@ -187,7 +187,7 @@ export function ScannerPage({ onScan, className }: ScannerPageProps) {
 
       setState('scanning');
     } catch (err) {
-      console.error('Camera error:', err);
+      
       setState('error');
       setError(err instanceof Error ? err.message : 'Camera initialization failed');
     }

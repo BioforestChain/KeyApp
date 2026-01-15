@@ -53,7 +53,7 @@ function persistNotifications(notifications: Notification[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications))
   } catch (error) {
-    console.error('Failed to persist notifications:', error)
+    
   }
 }
 
@@ -82,7 +82,7 @@ export const notificationActions = {
         }))
       }
     } catch (error) {
-      console.error('Failed to initialize notifications:', error)
+      
       notificationStore.setState((state) => ({
         ...state,
         isInitialized: true,

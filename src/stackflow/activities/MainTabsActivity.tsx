@@ -7,7 +7,7 @@ import { WalletTab } from "./tabs/WalletTab";
 import { EcosystemTab } from "./tabs/EcosystemTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { useFlow } from "../stackflow";
-import type { BioAccount, BioSignedTransaction, TransferParams } from "@/services/ecosystem";
+import type { BioAccount, EcosystemTransferParams, SignedTransaction } from "@/services/ecosystem";
 import {
   getBridge,
   initBioProvider,
@@ -135,7 +135,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       });
     });
 
-    setTransferDialog(async (params: TransferParams & { app: { name: string; icon?: string } }) => {
+    setTransferDialog(async (params: EcosystemTransferParams & { app: { name: string; icon?: string } }) => {
       return new Promise<{ txHash: string } | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 
@@ -163,13 +163,13 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
     });
 
     setSignTransactionDialog(async (params) => {
-      return new Promise<BioSignedTransaction | null>((resolve) => {
+      return new Promise<SignedTransaction | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 
         const handleResult = (e: Event) => {
           window.clearTimeout(timeout);
           const detail = (e as CustomEvent).detail as
-            | { confirmed?: boolean; signedTx?: BioSignedTransaction }
+            | { confirmed?: boolean; signedTx?: SignedTransaction }
             | undefined;
           if (detail?.confirmed && detail.signedTx) {
             resolve(detail.signedTx);

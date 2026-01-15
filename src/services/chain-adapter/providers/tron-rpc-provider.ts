@@ -1,75 +1,47 @@
 /**
  * Tron RPC Provider
  * 
- * 提供 Tron 链的余额和区块高度查询能力。
+ * 使用 Mixin 继承模式组合 Identity 和 Transaction 能力
  */
 
 import { z } from 'zod'
+import { keyFetch, ttl, derive, transform, pathParams, postBody } from '@biochain/key-fetch'
+import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction } from './types'
+import {
+  BalanceOutputSchema,
+  TransactionsOutputSchema,
+  TransactionOutputSchema,
+  BlockHeightOutputSchema,
+} from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
-import { fetchJson, observeValueAndInvalidate } from './fetch-json'
-import { pickApiKey } from './api-key-picker'
+import { TronIdentityMixin } from '../tron/identity-mixin'
+import { TronTransactionMixin } from '../tron/transaction-mixin'
 
-function readEnvValue(key: string): string | undefined {
-  // Node/Vitest 环境：允许在运行时通过 process.env 覆盖（保证测试可控）
-  try {
-    const fromProcess = (process as any)?.env?.[key]
-    if (typeof fromProcess === 'string' && fromProcess.length > 0) {
-      return fromProcess
-    }
-  } catch {
-    // ignore
-  }
+// ==================== Schema 定义 ====================
 
-  // Vite 编译时注入：__API_KEYS__ 是可动态索引的对象字面量
-  if (typeof __API_KEYS__ !== 'undefined') {
-    const apiKey = __API_KEYS__[key]
-    if (typeof apiKey === 'string' && apiKey.length > 0) {
-      return apiKey
-    }
-  }
-
-  return undefined
-}
-
-interface TronAccountResponse {
-  balance?: number
-  address?: string
-}
-
-interface TronBlockResponse {
-  block_header?: {
-    raw_data?: {
-      number?: number
-    }
-  }
-}
-
-const TronAccountSchema = z.looseObject({
+const TronAccountSchema = z.object({
   balance: z.number().optional(),
   address: z.string().optional(),
-})
+}).passthrough()
 
-const TronNowBlockSchema = z.looseObject({
-  block_header: z
-    .looseObject({
-      raw_data: z
-        .looseObject({
-          number: z.number().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-})
+const TronNowBlockSchema = z.object({
+  block_header: z.object({
+    raw_data: z.object({
+      number: z.number().optional(),
+    }).optional(),
+  }).optional(),
+}).passthrough()
 
-const TronTxSchema = z.looseObject({
+const TronTxSchema = z.object({
   txID: z.string(),
-  raw_data: z.looseObject({
-    contract: z.array(z.looseObject({
-      parameter: z.looseObject({
-        value: z.looseObject({
+  block_timestamp: z.number().optional(),
+  raw_data: z.object({
+    contract: z.array(z.object({
+      parameter: z.object({
+        value: z.object({
           amount: z.number().optional(),
           owner_address: z.string().optional(),
           to_address: z.string().optional(),
@@ -79,476 +51,289 @@ const TronTxSchema = z.looseObject({
     })).optional(),
     timestamp: z.number().optional(),
   }).optional(),
-  ret: z.array(z.looseObject({
+  ret: z.array(z.object({
     contractRet: z.string().optional(),
   })).optional(),
-})
+}).passthrough()
 
-const TronTxListSchema = z.looseObject({
+const TronTxListSchema = z.object({
   success: z.boolean(),
   data: z.array(TronTxSchema).optional(),
+}).passthrough()
+
+type TronAccount = z.infer<typeof TronAccountSchema>
+type TronNowBlock = z.infer<typeof TronNowBlockSchema>
+type TronTxList = z.infer<typeof TronTxListSchema>
+
+// Params Schema for validation
+const AddressParamsSchema = z.object({
+  address: z.string().min(1, 'Address is required'),
 })
 
-// TRC-20 Token 交易 Schema
-const Trc20TxSchema = z.looseObject({
-  transaction_id: z.string(),
-  token_info: z.looseObject({
-    symbol: z.string(),
-    address: z.string(),
-    decimals: z.number(),
-    name: z.string().optional(),
-  }),
-  block_timestamp: z.number(),
-  from: z.string(),
-  to: z.string(),
-  type: z.string(),
-  value: z.string(),
-})
+// ==================== 工具函数 ====================
 
-const Trc20TxListSchema = z.looseObject({
-  success: z.boolean(),
-  data: z.array(Trc20TxSchema).optional(),
-})
+// Base58 字符表
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
-type TronTx = z.infer<typeof TronTxSchema>
-type Trc20Tx = z.infer<typeof Trc20TxSchema>
+/**
+ * Base58 解码
+ */
+function base58Decode(input: string): Uint8Array {
+  const bytes = [0]
+  for (const char of input) {
+    const idx = BASE58_ALPHABET.indexOf(char)
+    if (idx === -1) throw new Error(`Invalid Base58 character: ${char}`)
 
-/** 拉取倍数：应对分页陷阱 */
-const FETCH_MULTIPLIER = 5
+    let carry = idx
+    for (let i = 0; i < bytes.length; i++) {
+      carry += bytes[i] * 58
+      bytes[i] = carry & 0xff
+      carry >>= 8
+    }
+    while (carry > 0) {
+      bytes.push(carry & 0xff)
+      carry >>= 8
+    }
+  }
 
-export class TronRpcProvider implements ApiProvider {
+  // 处理前导 '1'
+  for (const char of input) {
+    if (char !== '1') break
+    bytes.push(0)
+  }
+
+  return new Uint8Array(bytes.reverse())
+}
+
+/**
+ * 将 Tron Base58Check 地址转换为 Hex 格式
+ * T... -> 41... (不带 0x 前缀)
+ */
+function tronAddressToHex(address: string): string {
+  if (address.startsWith('41') && address.length === 42) {
+    return address // 已经是 hex 格式
+  }
+  if (!address.startsWith('T')) {
+    throw new Error(`Invalid Tron address: ${address}`)
+  }
+
+  // Base58Check 解码后取前 21 字节（去掉 4 字节校验和）
+  const decoded = base58Decode(address)
+  const addressBytes = decoded.slice(0, 21)
+
+  // 转为 hex
+  return Array.from(addressBytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+function getDirection(from: string, to: string, address: string): Direction {
+  const fromLower = from.toLowerCase()
+  const toLower = to.toLowerCase()
+  if (fromLower === address && toLower === address) return 'self'
+  if (fromLower === address) return 'out'
+  return 'in'
+}
+
+// ==================== Base Class for Mixins ====================
+
+class TronRpcBase {
+  readonly chainId: string
   readonly type: string
   readonly endpoint: string
   readonly config?: Record<string, unknown>
-  
-  private readonly chainId: string
-  private readonly symbol: string
-  private readonly decimals: number
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     this.type = entry.type
     this.endpoint = entry.endpoint
     this.config = entry.config
     this.chainId = chainId
-    this.symbol = chainConfigService.getSymbol(chainId)
-    this.decimals = chainConfigService.getDecimals(chainId)
-  }
-
-  private async api<T>(path: string, schema: z.ZodType<T>, body?: unknown, options?: { ttlMs?: number; tags?: string[] }): Promise<T> {
-    const url = `${this.endpoint}${path}`
-
-    const headers: Record<string, string> = {}
-    if (body !== undefined) {
-      headers['Content-Type'] = 'application/json'
-    }
-
-    // 支持两种 API key 配置方式：
-    // 1. apiKey: 直接配置（支持逗号分隔多个）
-    // 2. apiKeyEnv: 从环境变量读取（支持逗号分隔多个）
-    let apiKeyString: string | undefined
-    const apiKeyDirect = this.config?.apiKey
-    if (typeof apiKeyDirect === 'string' && apiKeyDirect.length > 0) {
-      apiKeyString = apiKeyDirect
-    } else {
-      const apiKeyEnv = this.config?.apiKeyEnv
-      if (typeof apiKeyEnv === 'string' && apiKeyEnv.length > 0) {
-        apiKeyString = readEnvValue(apiKeyEnv)
-      }
-    }
-
-    const apiKey = pickApiKey(apiKeyString, `trongrid:${this.chainId}`)
-    if (apiKey) {
-      headers['TRON-PRO-API-KEY'] = apiKey
-    }
-
-    const init: RequestInit = body !== undefined
-      ? { method: 'POST', headers, body: JSON.stringify(body) }
-      : { method: 'GET', headers }
-
-    const json: unknown = await fetchJson(url, init, {
-      cacheKey: `tron:${this.type}:${url}:${typeof init.body === 'string' ? init.body : ''}`,
-      ttlMs: options?.ttlMs ?? 0,
-      tags: options?.ttlMs ? options?.tags : undefined,
-    })
-
-    const parsed = schema.safeParse(json)
-    if (!parsed.success) {
-      throw new Error('Invalid API response')
-    }
-    return parsed.data
-  }
-
-  async getNativeBalance(address: string): Promise<Balance> {
-    // Tron 地址需要转换为 hex 格式或使用 base58
-    const account = await this.api('/wallet/getaccount', TronAccountSchema, {
-      address,
-      visible: true,
-    }, {
-      ttlMs: 60_000,
-      tags: [`balance:${this.chainId}:${address}`],
-    })
-
-    const balanceSun = account.balance ?? 0
-    observeValueAndInvalidate({
-      key: `balance:${this.chainId}:${address}`,
-      value: balanceSun.toString(),
-      invalidateTags: [`txhistory:${this.chainId}:${address}`],
-    })
-
-    return {
-      amount: Amount.fromRaw(balanceSun.toString(), this.decimals, this.symbol),
-      symbol: this.symbol,
-    }
-  }
-
-  async getBlockHeight(): Promise<bigint> {
-    const block = await this.api('/wallet/getnowblock', TronNowBlockSchema, undefined, { ttlMs: 10_000 })
-    const height = block.block_header?.raw_data?.number ?? 0
-    return BigInt(height)
-  }
-
-  async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    const fetchLimit = limit * FETCH_MULTIPLIER
-
-    const [nativeTxs, trc20Txs] = await Promise.all([
-      this.fetchNativeTransactions(address, fetchLimit),
-      this.fetchTrc20Transactions(address, fetchLimit),
-    ])
-
-    const normalizedAddress = address.toLowerCase()
-    const aggregated = this.aggregateByTxId(nativeTxs, trc20Txs, normalizedAddress)
-
-    return aggregated
-      .toSorted((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit)
-  }
-
-  /**
-   * 按 txID 聚合原生交易和 TRC-20 交易
-   */
-  private aggregateByTxId(
-    nativeTxs: TronTx[],
-    trc20Txs: Trc20Tx[],
-    normalizedAddress: string
-  ): Transaction[] {
-    // 1. 构建 trc20TxsByTxId
-    const trc20TxsByTxId = new Map<string, Trc20Tx[]>()
-    for (const ttx of trc20Txs) {
-      const txId = ttx.transaction_id.toLowerCase()
-      const existing = trc20TxsByTxId.get(txId) ?? []
-      existing.push(ttx)
-      trc20TxsByTxId.set(txId, existing)
-    }
-
-    // 2. 遍历原生交易，聚合生成 Transaction
-    const results: Transaction[] = []
-    const processedTxIds = new Set<string>()
-
-    for (const ntx of nativeTxs) {
-      const txId = ntx.txID.toLowerCase()
-      if (processedTxIds.has(txId)) continue
-      processedTxIds.add(txId)
-
-      const relatedTrc20Txs = trc20TxsByTxId.get(txId) ?? []
-      const tx = this.buildAggregatedTransaction(ntx, relatedTrc20Txs, normalizedAddress)
-      if (tx) {
-        results.push(tx)
-      }
-    }
-
-    // 3. 处理孤儿 TRC-20 交易
-    for (const [txId, ttxs] of trc20TxsByTxId) {
-      if (processedTxIds.has(txId)) continue
-      processedTxIds.add(txId)
-
-      const tx = this.buildOrphanTrc20Transaction(ttxs, normalizedAddress)
-      results.push(tx)
-    }
-
-    return results
-  }
-
-  /**
-   * 判断原生交易是否应该被过滤（智能过滤 Option A + 安全白名单）
-   * 
-   * 保留规则（命中任意一条即保留）：
-   * 1. 核心系统行为：Freeze/Unfreeze/Vote/Withdraw/AccountCreate/Transfer
-   * 2. 资产变动：有 TRC-20 事件 或 TRX amount > 0
-   * 3. 异常反馈：交易失败（用户需要看到失败记录）
-   * 4. 关键操作：approve 授权（Swap 前的必要步骤）
-   * 
-   * 丢弃规则：
-   * - TriggerSmartContract + 成功 + 0 TRX + 无 TRC-20 + 非 approve → 噪音
-   */
-  private shouldFilterTransaction(ntx: TronTx, hasTrc20Events: boolean): boolean {
-    const contract = ntx.raw_data?.contract?.[0]
-    const contractType = contract?.type ?? ''
-    const nativeAmount = contract?.parameter?.value?.amount ?? 0
-    const txStatus = ntx.ret?.[0]?.contractRet
-
-    // 规则 1：核心系统行为，永不过滤
-    const whitelistTypes = [
-      'TransferContract',
-      'TransferAssetContract',
-      'FreezeBalanceContract',
-      'FreezeBalanceV2Contract',
-      'UnfreezeBalanceContract',
-      'UnfreezeBalanceV2Contract',
-      'VoteWitnessContract',
-      'AccountCreateContract',
-      'WithdrawBalanceContract',
-      'WithdrawExpireUnfreezeContract',
-    ]
-    if (whitelistTypes.includes(contractType)) {
-      return false
-    }
-
-    // 规则 2a：有 TRC-20 事件关联的，不过滤
-    if (hasTrc20Events) {
-      return false
-    }
-
-    // 规则 2b：有原生资产变动的，不过滤
-    if (nativeAmount > 0) {
-      return false
-    }
-
-    // 规则 3：失败交易必须保留（用户需要看到失败记录，避免重复操作）
-    if (txStatus !== 'SUCCESS') {
-      return false
-    }
-
-    // 规则 4：approve 授权操作必须保留（Swap 前的必要步骤）
-    if (this.isApproveTransaction(ntx)) {
-      return false
-    }
-
-    // 丢弃：TriggerSmartContract + 成功 + 0 TRX + 无 TRC-20 + 非 approve → 噪音
-    if (contractType === 'TriggerSmartContract') {
-      return true
-    }
-
-    return false
-  }
-
-  /**
-   * 检测是否为 approve 授权交易
-   * ERC-20/TRC-20 approve 的 MethodID: 0x095ea7b3
-   */
-  private isApproveTransaction(ntx: TronTx): boolean {
-    const contract = ntx.raw_data?.contract?.[0]
-    if (contract?.type !== 'TriggerSmartContract') {
-      return false
-    }
-
-    // Tron 的 data 字段包含合约调用数据
-    const data = contract?.parameter?.value?.data
-    if (!data || typeof data !== 'string') {
-      return false
-    }
-
-    // approve(address,uint256) 的 MethodID
-    const APPROVE_METHOD_ID = '095ea7b3'
-    return data.toLowerCase().startsWith(APPROVE_METHOD_ID)
-  }
-
-  /**
-   * 构建聚合后的 Transaction
-   */
-  private buildAggregatedTransaction(
-    ntx: TronTx,
-    trc20Txs: Trc20Tx[],
-    normalizedAddress: string
-  ): Transaction | null {
-    const contract = ntx.raw_data?.contract?.[0]
-    const contractType = contract?.type ?? ''
-    const value = contract?.parameter?.value
-    const status: Transaction['status'] = ntx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
-    const hasTokens = trc20Txs.length > 0
-
-    // 智能过滤：无意义的合约调用
-    if (this.shouldFilterTransaction(ntx, hasTokens)) {
-      return null
-    }
-
-    // Action 识别
-    let action = this.detectAction(contractType)
-    if (action === 'contract' && hasTokens) {
-      action = 'transfer'
-    }
-    // approve 授权操作
-    if (action === 'contract' && this.isApproveTransaction(ntx)) {
-      action = 'approve'
-    }
-
-    // 选择主 token event
-    const primaryToken = this.selectPrimaryToken(trc20Txs, normalizedAddress)
-
-    // from/to 与 direction
-    let from: string
-    let to: string
-    if (primaryToken) {
-      from = primaryToken.from
-      to = primaryToken.to
-    } else {
-      from = value?.owner_address ?? ''
-      to = value?.to_address ?? ''
-    }
-    const direction = this.getDirection(from, to, normalizedAddress)
-
-    // Assets 构建
-    const assets: Transaction['assets'] = []
-
-    // 添加 TRC-20 assets（最多 3 条）
-    for (const ttx of trc20Txs.slice(0, 3)) {
-      assets.push({
-        assetType: 'token' as const,
-        value: ttx.value,
-        symbol: ttx.token_info.symbol,
-        decimals: ttx.token_info.decimals,
-        contractAddress: ttx.token_info.address,
-        name: ttx.token_info.name,
-      })
-    }
-
-    // 原生 value > 0 时附加
-    const nativeAmount = value?.amount ?? 0
-    if (nativeAmount > 0 || assets.length === 0) {
-      assets.push({
-        assetType: 'native' as const,
-        value: nativeAmount.toString(),
-        symbol: this.symbol,
-        decimals: this.decimals,
-      })
-    }
-
-    return {
-      hash: ntx.txID,
-      from,
-      to,
-      timestamp: ntx.raw_data?.timestamp ?? 0,
-      status,
-      action,
-      direction,
-      assets,
-    }
-  }
-
-  /**
-   * 为孤儿 TRC-20 交易构建 Transaction
-   */
-  private buildOrphanTrc20Transaction(
-    trc20Txs: Trc20Tx[],
-    normalizedAddress: string
-  ): Transaction {
-    const primaryToken = this.selectPrimaryToken(trc20Txs, normalizedAddress)!
-    const direction = this.getDirection(primaryToken.from, primaryToken.to, normalizedAddress)
-
-    const assets: Transaction['assets'] = trc20Txs.slice(0, 3).map(ttx => ({
-      assetType: 'token' as const,
-      value: ttx.value,
-      symbol: ttx.token_info.symbol,
-      decimals: ttx.token_info.decimals,
-      contractAddress: ttx.token_info.address,
-      name: ttx.token_info.name,
-    }))
-
-    return {
-      hash: primaryToken.transaction_id,
-      from: primaryToken.from,
-      to: primaryToken.to,
-      timestamp: primaryToken.block_timestamp,
-      status: 'confirmed',
-      action: 'transfer',
-      direction,
-      assets,
-    }
-  }
-
-  /**
-   * 选择主 TRC-20 token（优先包含当前地址的、value 最大的）
-   */
-  private selectPrimaryToken(trc20Txs: Trc20Tx[], normalizedAddress: string): Trc20Tx | null {
-    if (trc20Txs.length === 0) return null
-    if (trc20Txs.length === 1) return trc20Txs[0]
-
-    const involving = trc20Txs.filter(
-      t => t.from.toLowerCase() === normalizedAddress || t.to.toLowerCase() === normalizedAddress
-    )
-    const candidates = involving.length > 0 ? involving : trc20Txs
-
-    return candidates.reduce((max, t) => {
-      const maxVal = BigInt(max.value)
-      const tVal = BigInt(t.value)
-      return tVal > maxVal ? t : max
-    })
-  }
-
-  /**
-   * 检测 Tron 交易类型
-   */
-  private detectAction(contractType: string): Transaction['action'] {
-    switch (contractType) {
-      case 'TransferContract':
-      case 'TransferAssetContract':
-        return 'transfer'
-      case 'TriggerSmartContract':
-        return 'contract'
-      case 'FreezeBalanceContract':
-      case 'FreezeBalanceV2Contract':
-      case 'VoteWitnessContract':
-        return 'stake'
-      case 'UnfreezeBalanceContract':
-      case 'UnfreezeBalanceV2Contract':
-        return 'unstake'
-      case 'WithdrawExpireUnfreezeContract':
-        return 'claim'
-      default:
-        return 'transfer'
-    }
-  }
-
-  private async fetchNativeTransactions(address: string, limit: number): Promise<TronTx[]> {
-    const result = await this.api(
-      `/v1/accounts/${address}/transactions?limit=${limit}`,
-      TronTxListSchema,
-      undefined,
-      { ttlMs: 5 * 60_000, tags: [`txhistory:${this.chainId}:${address}`] },
-    )
-    if (!result.success) {
-      throw new Error('Tron API error')
-    }
-    return result.data ?? []
-  }
-
-  private async fetchTrc20Transactions(address: string, limit: number): Promise<Trc20Tx[]> {
-    const result = await this.api(
-      `/v1/accounts/${address}/transactions/trc20?limit=${limit}`,
-      Trc20TxListSchema,
-      undefined,
-      { ttlMs: 5 * 60_000, tags: [`txhistory:${this.chainId}:${address}`] },
-    )
-    if (!result.success) {
-      throw new Error('Tron API error')
-    }
-    return result.data ?? []
-  }
-
-  private getDirection(from: string, to: string, address: string): Direction {
-    const fromLower = from.toLowerCase()
-    const toLower = to.toLowerCase()
-    
-    if (fromLower === address && toLower === address) {
-      return 'self'
-    }
-    if (fromLower === address) {
-      return 'out'
-    }
-    return 'in'
   }
 }
 
-/** 工厂函数 */
+// ==================== Provider 实现 (使用 Mixin 继承) ====================
+
+export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(TronRpcBase)) implements ApiProvider {
+  private readonly symbol: string
+  private readonly decimals: number
+
+  readonly #accountApi: KeyFetchInstance<typeof TronAccountSchema>
+  readonly #blockApi: KeyFetchInstance<typeof TronNowBlockSchema>
+  readonly #txListApi: KeyFetchInstance<typeof TronTxListSchema>
+  readonly #txByIdApi: KeyFetchInstance<typeof TronTxSchema>
+
+  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
+  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
+  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
+
+  constructor(entry: ParsedApiEntry, chainId: string) {
+    super(entry, chainId)
+    this.symbol = chainConfigService.getSymbol(chainId)
+    this.decimals = chainConfigService.getDecimals(chainId)
+
+    const baseUrl = this.endpoint
+    const symbol = this.symbol
+    const decimals = this.decimals
+
+    // 基础 API fetcher
+    this.#accountApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.accountApi`,
+      schema: TronAccountSchema,
+      paramsSchema: AddressParamsSchema,
+      url: `${baseUrl}/wallet/getaccount`,
+      method: 'POST',
+      use: [
+        postBody({
+          transform: (params) => ({
+            address: tronAddressToHex(params.address as string),
+          }),
+        }),
+        ttl(60_000),
+      ],
+    })
+
+    this.#blockApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.blockApi`,
+      schema: TronNowBlockSchema,
+      url: `${baseUrl}/wallet/getnowblock`,
+      method: 'POST',
+      use: [ttl(10_000)],
+    })
+
+    this.#txListApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.txListApi`,
+      schema: TronTxListSchema,
+      paramsSchema: AddressParamsSchema,
+      url: `${baseUrl}/v1/accounts/:address/transactions`,
+      use: [pathParams(), ttl(5 * 60_000)],
+    })
+
+    // 派生视图
+    this.nativeBalance = derive({
+      name: `tron-rpc.${chainId}.nativeBalance`,
+      source: this.#accountApi,
+      schema: BalanceOutputSchema,
+      use: [
+        transform<TronAccount, Balance>({
+          transform: (raw) => ({
+            amount: Amount.fromRaw((raw.balance ?? 0).toString(), decimals, symbol),
+            symbol,
+          }),
+        }),
+      ],
+    })
+
+    this.blockHeight = derive({
+      name: `tron-rpc.${chainId}.blockHeight`,
+      source: this.#blockApi,
+      schema: BlockHeightOutputSchema,
+      use: [
+        transform<TronNowBlock, bigint>({
+          transform: (raw) => BigInt(raw.block_header?.raw_data?.number ?? 0),
+        }),
+      ],
+    })
+
+    this.transactionHistory = derive({
+      name: `tron-rpc.${chainId}.transactionHistory`,
+      source: this.#txListApi,
+      schema: TransactionsOutputSchema,
+      use: [
+        transform<TronTxList, Transaction[]>({
+          transform: (raw, ctx) => {
+            if (!raw.success || !raw.data) return []
+
+            const address = ((ctx.params.address as string) ?? '').toLowerCase()
+
+            return raw.data.map((tx): Transaction => {
+              const contract = tx.raw_data?.contract?.[0]
+              const value = contract?.parameter?.value
+              const from = value?.owner_address ?? ''
+              const to = value?.to_address ?? ''
+              const direction = getDirection(from, to, address)
+              const status = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+
+              return {
+                hash: tx.txID,
+                from,
+                to,
+                timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
+                status,
+                action: 'transfer' as const,
+                direction,
+                assets: [{
+                  assetType: 'native' as const,
+                  value: (value?.amount ?? 0).toString(),
+                  symbol,
+                  decimals,
+                }],
+              }
+            })
+          },
+        }),
+      ],
+    })
+
+    // transaction: 单笔交易查询
+    this.#txByIdApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.txById`,
+      schema: TronTxSchema,
+      paramsSchema: z.object({ txHash: z.string() }),
+      url: `${baseUrl}/wallet/gettransactionbyid`,
+      method: 'POST',
+      use: [
+        postBody({
+          transform: (params) => ({ value: params.txHash }),
+        }),
+        ttl(10_000),
+      ],
+    })
+
+    this.transaction = derive({
+      name: `tron-rpc.${chainId}.transaction`,
+      source: this.#txByIdApi,
+      schema: TransactionOutputSchema,
+      use: [
+        transform<z.infer<typeof TronTxSchema>, Transaction | null>({
+          transform: (tx) => {
+            if (!tx.txID) return null
+
+            const contract = tx.raw_data?.contract?.[0]
+            const value = contract?.parameter?.value
+            const from = value?.owner_address ?? ''
+            const to = value?.to_address ?? ''
+
+            // 判断状态：如果没有 ret，说明是 pending
+            let status: 'pending' | 'confirmed' | 'failed'
+            if (!tx.ret || tx.ret.length === 0) {
+              status = 'pending'
+            } else {
+              status = tx.ret[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+            }
+
+            return {
+              hash: tx.txID,
+              from,
+              to,
+              timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
+              status,
+              action: 'transfer' as const,
+              direction: 'out', // TODO: 根据 address 判断
+              assets: [{
+                assetType: 'native' as const,
+                value: (value?.amount ?? 0).toString(),
+                symbol,
+                decimals,
+              }],
+            }
+          },
+        }),
+      ],
+    })
+  }
+}
+
 export function createTronRpcProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
   if (entry.type === 'tron-rpc' || entry.type === 'tron-rpc-pro') {
     return new TronRpcProvider(entry, chainId)

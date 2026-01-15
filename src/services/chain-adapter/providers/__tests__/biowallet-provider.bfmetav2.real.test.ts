@@ -14,16 +14,29 @@ vi.mock('@/services/chain-config', () => ({
 
 const mockFetch = vi.fn();
 const originalFetch = global.fetch;
-global.fetch = mockFetch;
+Object.assign(global, { fetch: mockFetch });
 
 afterAll(() => {
-  global.fetch = originalFetch;
+  Object.assign(global, { fetch: originalFetch });
 });
 
 function readFixture<T>(name: string): T {
   const dir = path.dirname(fileURLToPath(import.meta.url));
   const filePath = path.join(dir, 'fixtures/real', name);
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+}
+
+/** 创建模拟 Response 对象 */
+function createMockResponse(data: unknown, ok = true, status = 200): Response {
+  const jsonData = JSON.stringify(data);
+  return {
+    ok,
+    status,
+    statusText: ok ? 'OK' : 'Not Found',
+    json: async () => data,
+    text: async () => jsonData,
+    clone: function () { return createMockResponse(data, ok, status); },
+  } as unknown as Response;
 }
 
 describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
@@ -44,20 +57,18 @@ describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
   });
 
   it('fetches block height from the correct endpoint', async () => {
-    mockFetch.mockImplementation(async (url: string) => {
-      if (url === 'https://walletapi.bf-meta.org/wallet/bfmetav2/lastblock') {
-        return { ok: true, json: async () => lastblock };
+    mockFetch.mockImplementation(async (input: Request | string) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url === 'https://walletapi.bf-meta.org/wallet/bfmetav2/block/lastblock') {
+        return createMockResponse(lastblock);
       }
-      return { ok: false, status: 404 };
+      return createMockResponse({ error: 'Not found' }, false, 404);
     });
 
     const provider = new BiowalletProvider(entry, 'bfmetav2');
-    const height = await provider.getBlockHeight();
+    const height = await provider.blockHeight.fetch({});
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://walletapi.bf-meta.org/wallet/bfmetav2/lastblock',
-      undefined
-    );
+    expect(mockFetch).toHaveBeenCalled();
     expect(height).toBe(BigInt(45052));
   });
 
@@ -65,19 +76,21 @@ describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
     const query = readFixture<any>('bfmetav2-transactions-query.json');
     const tx = query.result.trs[0].transaction;
 
-    mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/lastblock')) {
-        return { ok: true, json: async () => lastblock };
+    mockFetch.mockImplementation(async (input: Request | string) => {
+      const url = typeof input === 'string' ? input : input.url;
+      const method = typeof input === 'string' ? undefined : input.method;
+      if (url.endsWith('/block/lastblock')) {
+        return createMockResponse(lastblock);
       }
-      if (url.endsWith('/transactions/query')) {
-        expect(init?.method).toBe('POST');
-        return { ok: true, json: async () => query };
+      if (url.endsWith('/transaction/list')) {
+        expect(method).toBe('POST');
+        return createMockResponse(query);
       }
-      return { ok: false, status: 404 };
+      return createMockResponse({ error: 'Not found' }, false, 404);
     });
 
     const provider = new BiowalletProvider(entry, 'bfmetav2');
-    const txs = await provider.getTransactionHistory(tx.recipientId, 10);
+    const txs = await provider.transactionHistory.fetch({ address: tx.recipientId, limit: 10 });
 
     expect(txs.length).toBeGreaterThan(0);
     expect(txs[0].action).toBe('transfer');
@@ -103,21 +116,20 @@ describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
       },
     };
 
-    mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+    mockFetch.mockImplementation(async (input: Request | string) => {
+      const url = typeof input === 'string' ? input : input.url;
+      const method = typeof input === 'string' ? undefined : input.method;
       if (url === 'https://walletapi.bf-meta.org/wallet/bfmetav2/address/asset') {
-        expect(init?.method).toBe('POST');
-        return { ok: true, json: async () => assetResponse };
+        expect(method).toBe('POST');
+        return createMockResponse(assetResponse);
       }
-      return { ok: false, status: 404 };
+      return createMockResponse({ error: 'Not found' }, false, 404);
     });
 
     const provider = new BiowalletProvider(entry, 'bfmetav2');
-    const balance = await provider.getNativeBalance('bPbubZwJGSJBB3feZpsvttMFj8spu1jCm2');
+    const balance = await provider.nativeBalance.fetch({ address: 'bPbubZwJGSJBB3feZpsvttMFj8spu1jCm2' });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://walletapi.bf-meta.org/wallet/bfmetav2/address/asset',
-      expect.objectContaining({ method: 'POST' })
-    );
+    expect(mockFetch).toHaveBeenCalled();
     expect(balance.symbol).toBe('BFM');
     expect(balance.amount.toRawString()).toBe('1000000000');
   });

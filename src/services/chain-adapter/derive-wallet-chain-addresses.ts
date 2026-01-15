@@ -47,7 +47,7 @@ export async function deriveWalletChainAddresses(
   for (const chainId of selectedChainIds) {
     const config = configMap.get(chainId)
     if (!config) {
-      console.warn(`[deriveWalletChainAddresses] Chain config not found: ${chainId}`)
+      
       continue
     }
 

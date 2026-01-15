@@ -97,7 +97,7 @@ export async function loadSourcePayload(url: string): Promise<SourcePayloadRecor
 
   const parsed = SourcePayloadRecordSchema.safeParse(record)
   if (!parsed.success) {
-    console.warn('[EcosystemStorage] Invalid source payload record:', parsed.error.issues[0])
+    
     return null
   }
   return parsed.data

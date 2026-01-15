@@ -113,7 +113,9 @@
     "copyHash": "复制哈希",
     "viewExplorer": "区块浏览器",
     "openInExplorer": "在浏览器中打开",
-    "share": "分享"
+    "share": "分享",
+    "confirmedBlockHeight": "确认区块",
+    "confirmedAt": "确认时间"
   },
   "method": {
     "approve": "授权",
@@ -296,23 +298,34 @@
     "belowMinFee": "手续费不能低于最低手续费 {{minFee}} {{symbol}}"
   },
   "txStatus": {
+    "created": "待广播",
     "broadcasting": "广播中",
     "broadcasted": "广播成功",
     "confirming": "等待上链",
     "confirmed": "交易已上链",
     "failed": "交易失败",
+    "createdDesc": "交易已创建，等待广播...",
     "broadcastingDesc": "正在将交易广播到网络...",
     "broadcastedDesc": "交易已广播，等待区块确认...",
     "confirmingDesc": "正在等待区块确认...",
     "confirmedDesc": "交易已成功上链",
     "failedDesc": "交易处理失败，请稍后重试",
-    "viewDetails": "查看详情"
+    "viewDetails": "查看详情",
+    "autoCloseIn": "{{seconds}}秒后自动关闭",
+    "closeIn": "关闭 ({{seconds}}s)"
   },
   "broadcast": {
     "assetNotEnough": "资产余额不足",
     "feeNotEnough": "手续费不足",
     "rejected": "交易被拒绝",
-    "unknown": "广播失败，请稍后重试"
+    "unknown": "广播失败，请稍后重试",
+    "alreadyExists": "交易已存在",
+    "forbidden": "操作被禁止",
+    "assetNotExist": "资产不存在",
+    "invalidParams": "参数无效",
+    "accountFrozen": "账户已冻结",
+    "timeout": "广播超时，请重试",
+    "failed": "广播失败"
   },
   "pendingTx": {
     "title": "待处理交易",
@@ -320,6 +333,10 @@
     "broadcasted": "等待上链",
     "failed": "广播失败",
     "retry": "重试",
-    "delete": "删除"
+    "delete": "删除",
+    "retryCount": "重试次数",
+    "waitingFor": "已等待 {{seconds}} 秒",
+    "viewAll": "查看全部 {{count}} 条待处理交易",
+    "clearAllFailed": "清除失败"
   }
 }

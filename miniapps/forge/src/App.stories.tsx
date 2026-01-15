@@ -36,6 +36,7 @@ const mockConfig = {
 
 // Setup mock API responses
 const setupMockApi = () => {
+  // @ts-expect-error - mock fetch for storybook
   window.fetch = fn().mockImplementation((url: string) => {
     // Match /cot/recharge/support endpoint
     if (url.includes('/recharge/support')) {

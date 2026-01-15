@@ -207,14 +207,14 @@ function scanMiniapps(miniappsPath: string): MiniappManifest[] {
   return manifests
 }
 
-async function createMiniappServer(id: string, root: string, port: number): Promise<ViteDevServer> {
+async function createMiniappServer(_id: string, root: string, port: number): Promise<ViteDevServer> {
   const server = await createServer({
     root,
     configFile: join(root, 'vite.config.ts'),
     server: {
       port,
       strictPort: true,
-      https: true,
+      https: true as any, // Type compatibility workaround
     },
     logLevel: 'warn',
   })

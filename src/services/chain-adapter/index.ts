@@ -16,7 +16,14 @@ export type {
   TokenMetadata,
   FeeEstimate,
   Fee,
-  TransferParams,
+  // Transaction Intent types
+  TransactionIntent,
+  TransferIntent,
+  DestroyIntent,
+  SetPayPasswordIntent,
+  ContractCallIntent,
+  SignOptions,
+  // Transaction types
   UnsignedTransaction,
   SignedTransaction,
   TransactionStatus,
@@ -26,20 +33,26 @@ export type {
   ChainInfo,
   GasPrice,
   HealthStatus,
+  // Service interfaces
   IIdentityService,
   IAssetService,
   ITransactionService,
+  IBioAccountService,
   IChainService,
   IStakingService,
   IChainAdapter,
   IAdapterRegistry,
   AdapterFactory,
+  // BioChain-specific types
+  BioAccountInfo,
+  BioVerifyPayPasswordParams,
+  BioAssetDetail,
 } from './types'
 
 export { ChainServiceError, ChainErrorCodes } from './types'
 
 // New ChainProvider API (recommended)
-export { 
+export {
   ChainProvider,
   getChainProvider,
   createChainProvider,
@@ -60,9 +73,3 @@ export {
 
 /** @deprecated Use getChainProvider() from './providers' instead */
 export { getAdapterRegistry, resetAdapterRegistry } from './registry'
-
-// Adapters (kept for internal use by wrapped providers)
-export { BioforestAdapter, createBioforestAdapter } from './bioforest'
-export { EvmAdapter, createEvmAdapter } from './evm'
-export { TronAdapter, createTronAdapter } from './tron'
-export { BitcoinAdapter, createBitcoinAdapter } from './bitcoin'

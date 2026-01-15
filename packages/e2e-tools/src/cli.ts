@@ -23,11 +23,11 @@ const colors = {
 }
 
 const log = {
-  info: (msg: string) => console.log(`${colors.cyan}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-  dim: (msg: string) => console.log(`${colors.dim}  ${msg}${colors.reset}`),
+  info: (msg: string) => {},
+  success: (msg: string) => {},
+  warn: (msg: string) => {},
+  error: (msg: string) => {},
+  dim: (msg: string) => {},
 }
 
 function parseArgs(args: string[]) {
@@ -52,58 +52,35 @@ function groupBySpecDir(orphaned: OrphanedScreenshot[]): Map<string, OrphanedScr
 }
 
 function printResult(result: AuditResult, verbose: boolean) {
-  console.log(`
-${colors.cyan}╔════════════════════════════════════════╗
-║     E2E Screenshot Audit               ║
-╚════════════════════════════════════════╝${colors.reset}
-`)
+  
 
   log.info(`Scanned: ${result.root}`)
   log.info(`Specs: ${result.specsScanned} files, ${result.screenshotsReferenced} screenshots referenced`)
   log.info(`On disk: ${result.screenshotsOnDisk} screenshot files`)
 
   if (result.orphaned.length === 0) {
-    console.log('')
+    
     log.success('No orphaned screenshots found!')
-    console.log(`\n${colors.green}✓ All screenshots are referenced in tests${colors.reset}\n`)
+    
     return
   }
 
-  console.log('')
+  
   log.error(`Found ${result.orphaned.length} orphaned screenshots:`)
 
   const grouped = groupBySpecDir(result.orphaned)
-  for (const [dir, items] of grouped) {
-    console.log(`\n  ${colors.bold}${dir}/${colors.reset}`)
-    for (const item of items) {
-      console.log(`    ${colors.yellow}•${colors.reset} ${item.name}`)
+  for (const [_dir, items] of grouped) {
+    
+    for (const _item of items) {
+      
     }
   }
 
-  console.log(`
-${colors.bold}Summary:${colors.reset}
-  ${colors.yellow}Orphaned: ${result.orphaned.length}${colors.reset}
-  ${colors.dim}These screenshots are not referenced by any test${colors.reset}
-`)
+  
 }
 
 function printHelp() {
-  console.log(`
-${colors.cyan}E2E Tools${colors.reset} - Screenshot audit utility
-
-${colors.bold}Usage:${colors.reset}
-  bunx @biochain/e2e-tools audit [options]
-
-${colors.bold}Options:${colors.reset}
-  --strict   Exit with code 1 if orphaned screenshots found
-  --fix      Remove orphaned screenshot files
-  --verbose  Show detailed information
-
-${colors.bold}Examples:${colors.reset}
-  bunx @biochain/e2e-tools audit
-  bunx @biochain/e2e-tools audit --strict
-  bunx @biochain/e2e-tools audit --fix
-`)
+  
 }
 
 async function main() {
@@ -141,7 +118,7 @@ async function main() {
   }
 
   if (!result.success) {
-    console.log(`${colors.dim}Run with --fix to remove orphaned files${colors.reset}\n`)
+    
     process.exit(1)
   }
 }

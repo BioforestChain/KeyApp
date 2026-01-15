@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2022",
+    "target": "ES2023",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -14,7 +17,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting - Strict Mode */
     "strict": true,
     "noUnusedLocals": true,
@@ -23,22 +25,52 @@
     "noUncheckedIndexedAccess": false,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": false,
-
     /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "#biometric-impl": ["./src/services/biometric/web.ts"],
-      "#clipboard-impl": ["./src/services/clipboard/web.ts"],
-      "#toast-impl": ["./src/services/toast/web.ts"],
-      "#haptics-impl": ["./src/services/haptics/web.ts"],
-      "#storage-impl": ["./src/services/storage/web.ts"],
-      "#camera-impl": ["./src/services/camera/web.ts"],
-      "#authorize-impl": ["./src/services/authorize/web.ts"],
-      "#currency-exchange-impl": ["./src/services/currency-exchange/web.ts"],
-      "#staking-impl": ["./src/services/staking/web.ts"],
-      "#transaction-impl": ["./src/services/transaction/web.ts"],
+      "@/*": [
+        "./src/*"
+      ],
+      "#biometric-impl": [
+        "./src/services/biometric/web.ts"
+      ],
+      "#clipboard-impl": [
+        "./src/services/clipboard/web.ts"
+      ],
+      "#toast-impl": [
+        "./src/services/toast/web.ts"
+      ],
+      "#haptics-impl": [
+        "./src/services/haptics/web.ts"
+      ],
+      "#storage-impl": [
+        "./src/services/storage/web.ts"
+      ],
+      "#camera-impl": [
+        "./src/services/camera/web.ts"
+      ],
+      "#authorize-impl": [
+        "./src/services/authorize/web.ts"
+      ],
+      "#currency-exchange-impl": [
+        "./src/services/currency-exchange/web.ts"
+      ],
+      "#staking-impl": [
+        "./src/services/staking/web.ts"
+      ],
+      "#transaction-impl": [
+        "./src/services/transaction/web.ts"
+      ],
     },
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.stories.ts",
+    "src/**/*.stories.tsx",
+    "packages/**/*"
+  ]
 }

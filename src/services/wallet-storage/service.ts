@@ -166,7 +166,7 @@ export class WalletStorageService {
     if (!raw) return null;
     const result = WalleterInfoSchema.safeParse(raw);
     if (!result.success) {
-      console.warn('[WalletStorage] Invalid walleter info:', result.error.issues[0]);
+      
       return null;
     }
     return result.data as WalleterInfo;
@@ -245,7 +245,7 @@ export class WalletStorageService {
     if (!raw) return null;
     const result = WalletInfoSchema.safeParse(raw);
     if (!result.success) {
-      console.warn('[WalletStorage] Invalid wallet info:', result.error.issues[0]);
+      
       return null;
     }
     return result.data as WalletInfo;
@@ -493,7 +493,7 @@ export class WalletStorageService {
     if (!raw) return null;
     const result = ChainAddressInfoSchema.safeParse(raw);
     if (!result.success) {
-      console.warn('[WalletStorage] Invalid chain address:', result.error.issues[0]);
+      
       return null;
     }
     return result.data as ChainAddressInfo;
@@ -550,7 +550,7 @@ export class WalletStorageService {
     if (!raw) return null;
     const result = AddressBookEntrySchema.safeParse(raw);
     if (!result.success) {
-      console.warn('[WalletStorage] Invalid address book entry:', result.error.issues[0]);
+      
       return null;
     }
     return result.data as AddressBookEntry;
@@ -697,7 +697,7 @@ export class WalletStorageService {
 
       return true;
     } catch (err) {
-      console.error('Failed to migrate from localStorage:', err);
+      
       throw new WalletStorageError(
         WalletStorageErrorCode.MIGRATION_FAILED,
         'Failed to migrate data from localStorage',

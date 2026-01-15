@@ -21,11 +21,11 @@ const colors = {
 }
 
 const log = {
-  info: (msg: string) => console.log(`${colors.cyan}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-  dim: (msg: string) => console.log(`${colors.dim}  ${msg}${colors.reset}`),
+  info: (msg: string) => {},
+  success: (msg: string) => {},
+  warn: (msg: string) => {},
+  error: (msg: string) => {},
+  dim: (msg: string) => {},
 }
 
 function parseArgs(args: string[]) {
@@ -50,11 +50,7 @@ function main() {
   const args = process.argv.slice(2)
   const options = parseArgs(args)
 
-  console.log(`
-${colors.cyan}╔════════════════════════════════════════╗
-║     Theme (Dark Mode) Check            ║
-╚════════════════════════════════════════╝${colors.reset}
-`)
+  
 
   const result = checkTheme(options)
 
@@ -62,29 +58,25 @@ ${colors.cyan}╔═════════════════════
 
   if (result.errors.length === 0 && result.warnings.length === 0) {
     log.success('No theme issues found!')
-    console.log(`\n${colors.green}✓ All files follow dark mode best practices${colors.reset}\n`)
+    
     process.exit(0)
   }
 
   const allIssues = [...result.errors, ...result.warnings]
   const byFile = groupByFile(allIssues)
 
-  for (const [file, issues] of byFile) {
-    console.log(`\n${colors.bold}${file}${colors.reset}`)
+  for (const [_file, issues] of byFile) {
+    
     for (const issue of issues) {
       const icon = issue.severity === 'error' ? colors.red + '✗' : colors.yellow + '⚠'
-      console.log(`  ${icon}${colors.reset} Line ${issue.line}: ${issue.message}`)
+      
       if (issue.suggestion) {
         log.dim(`    → ${issue.suggestion}`)
       }
     }
   }
 
-  console.log(`
-${colors.bold}Summary:${colors.reset}
-  ${colors.red}Errors: ${result.errors.length}${colors.reset}
-  ${colors.yellow}Warnings: ${result.warnings.length}${colors.reset}
-`)
+  
 
   if (!result.success) {
     process.exit(1)

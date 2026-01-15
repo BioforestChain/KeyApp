@@ -47,7 +47,7 @@ export const colors = {
 }
 
 export const log = {
-  title: (msg: string) => console.log(`\n${colors.bold}${colors.cyan}${'='.repeat(60)}${colors.reset}`),
+  title: (_msg: string) => console.log(`\n${colors.bold}${colors.cyan}${'='.repeat(60)}${colors.reset}`),
   section: (msg: string) => console.log(`\n${colors.bold}${colors.green}## ${msg}${colors.reset}\n`),
   subsection: (msg: string) => console.log(`\n${colors.yellow}### ${msg}${colors.reset}\n`),
   info: (msg: string) => console.log(`${colors.dim}${msg}${colors.reset}`),

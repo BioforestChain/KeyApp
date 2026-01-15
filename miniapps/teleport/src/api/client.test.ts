@@ -10,6 +10,7 @@ import {
 } from './client'
 
 const mockFetch = vi.fn()
+// @ts-expect-error - mock fetch for testing
 global.fetch = mockFetch
 
 describe('Teleport API Client', () => {

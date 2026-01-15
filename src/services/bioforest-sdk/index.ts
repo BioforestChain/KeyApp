@@ -75,82 +75,51 @@ const coreCache = new Map<string, BioforestChainBundleCore>()
 let bundleModule: BioforestChainBundle | null = null
 let bundlePromise: Promise<BioforestChainBundle> | null = null
 
-/** Base URL for fetching genesis blocks (configurable for different environments) */
-let genesisBaseUrl: string | null = null // null means use document.baseURI
-
 /** Import options for JSON modules (needed for Node.js, not for browser/Vite) */
 let genesisImportOptions: object | undefined = undefined
 
 /**
- * Set base URL for genesis block fetching
- * - Browser: null (default, uses document.baseURI + '/configs/genesis')
- * - Node.js: 'file:///absolute/path/to/public/configs/genesis'
- * @param baseUrl - Base URL for genesis files
+ * Set import options for genesis block fetching (Node.js environments)
  * @param importOptions - Import options (e.g., { with: { type: 'json' } } for Node.js)
  */
-export function setGenesisBaseUrl(baseUrl: string, importOptions?: object): void {
-  genesisBaseUrl = baseUrl
+export function setGenesisImportOptions(importOptions?: object): void {
   genesisImportOptions = importOptions
-  genesisCache.clear() // Clear cache when base URL changes
-}
-
-/** Get the effective base URL for genesis files */
-function getGenesisBaseUrl(): string {
-  if (genesisBaseUrl) {
-    return genesisBaseUrl
-  }
-  // Browser: use relative path from document.baseURI for subdirectory deployment support
-  // Using './configs/genesis' instead of '/configs/genesis' ensures correct resolution
-  // when deployed to subdirectories (e.g., GitHub Pages at /KeyApp/)
-  if (typeof document !== 'undefined') {
-    return new URL('./configs/genesis', document.baseURI).href
-  }
-  // Fallback for non-browser environments
-  return './configs/genesis'
+  genesisCache.clear() // Clear cache when options change
 }
 
 /**
- * Load genesis block
- * - If genesisBlockPath is provided (from config), resolve it relative to ./configs/
- * - Otherwise, fallback to {baseUrl}/{chainId}.json
+ * Load genesis block from configured path
+ * - Path is relative to ./configs/ directory
  * - Browser (http/https): uses fetch()
  * - Node.js (file://): uses import() with { with: { type: 'json' } }
  * 
- * @param chainId - Chain ID for caching and fallback path
- * @param genesisBlockPath - Optional path relative to configs directory (e.g., "./genesis/bfmeta.json")
+ * @param chainId - Chain ID for caching
+ * @param genesisBlockPath - Path relative to configs directory (e.g., "./genesis/bfmeta.json")
  */
 async function fetchGenesisBlock(
   chainId: string,
-  genesisBlockPath?: string,
+  genesisBlockPath: string,
 ): Promise<BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>> {
-  // Use genesisBlockPath as cache key if provided, otherwise use chainId
-  const cacheKey = genesisBlockPath ?? chainId
+  const cacheKey = genesisBlockPath
   const cached = genesisCache.get(cacheKey)
   if (cached) {
     return cached
   }
 
-  // Determine the URL to fetch
+  // Resolve genesisBlockPath relative to ./configs/ directory
   let url: string
-  if (genesisBlockPath) {
-    // Resolve genesisBlockPath relative to ./configs/ directory
-    // The genesisBlockPath is like "./genesis/bfmeta.json" relative to default-chains.json location
-    if (typeof document !== 'undefined') {
-      url = new URL(`./configs/${genesisBlockPath.replace(/^\.\//, '')}`, document.baseURI).href
-    } else {
-      url = `./configs/${genesisBlockPath.replace(/^\.\//, '')}`
-    }
+  if (typeof document !== 'undefined') {
+    url = new URL(`./configs/${genesisBlockPath.replace(/^\.\//, '')}`, document.baseURI).href
   } else {
-    // Fallback to original behavior: {baseUrl}/{chainId}.json
-    url = `${getGenesisBaseUrl()}/${chainId}.json`
+    url = `./configs/${genesisBlockPath.replace(/^\.\//, '')}`
   }
-  
+
   let genesis: BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>
   if (url.startsWith('http://') || url.startsWith('https://')) {
     // Browser: use fetch() for JSON files
     const response = await fetch(url)
     if (!response.ok) {
-      throw new Error(`Failed to fetch genesis block: ${response.status}`)
+      throw new Error(`Failed to fetch genesis block for ${chainId}: ${response.status}`)
     }
     genesis = await response.json()
   } else {
@@ -173,7 +142,7 @@ async function createCryptoHelper(): Promise<BFChainCore.CryptoHelperInterface> 
   // Dynamic import for tree-shaking, use .js extension for ESM compatibility
   const { sha256 } = await import('@noble/hashes/sha2.js')
   const { md5, ripemd160 } = await import('@noble/hashes/legacy.js')
-  
+
   // Helper to create chainable hash object
   const createChainable = (hashFn: (data: Uint8Array) => Uint8Array) => {
     const chunks: Uint8Array[] = []
@@ -247,9 +216,16 @@ async function loadBundle(): Promise<BioforestChainBundle> {
 /**
  * Get or create a BioForest core instance for a specific chain
  * @param chainId - Chain ID
- * @param genesisBlockPath - Optional genesis block path from config (relative to configs directory)
  */
-export async function getBioforestCore(chainId: string, genesisBlockPath?: string): Promise<BioforestChainBundleCore> {
+export async function getBioforestCore(chainId: string): Promise<BioforestChainBundleCore> {
+  // 使用 chain-config 作为唯一可信源获取 genesisBlock 路径
+  const { chainConfigService } = await import('@/services/chain-config')
+  const genesisBlockPath = chainConfigService.getBiowalletGenesisBlock(chainId)
+
+  if (!genesisBlockPath) {
+    throw new Error(`Genesis block path not configured for chain: ${chainId}`)
+  }
+
   const genesis = await fetchGenesisBlock(chainId, genesisBlockPath)
   const chainMagic = genesis.magic
 
@@ -320,7 +296,7 @@ export async function getAccountBalance(
 ): Promise<string> {
   const core = await getBioforestCore(chainId)
   const assetType = await core.getAssetType()
-  
+
   const api = getApi(baseUrl)
   try {
     const result = await api.getAddressAssets(address)
@@ -426,38 +402,90 @@ export async function createTransferTransaction(
   })
 }
 
-import { BroadcastError } from './errors'
-import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/schema'
+import { BroadcastError, type BroadcastResult } from './errors'
+import { BroadcastResultSchema } from '@/apis/bnqkl_wallet/bioforest/types'
+import { ApiError } from '@/apis/bnqkl_wallet/client'
 
 /**
  * Broadcast a signed transaction
  * @param baseUrl - Full wallet API URL
  * @param transaction - Signed transaction to broadcast
+ * @returns BroadcastResult with txHash and alreadyExists flag
  * @throws {BroadcastError} if broadcast fails
  */
 export async function broadcastTransaction(
   baseUrl: string,
   transaction: BFChainCore.TransactionJSON,
-): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
+): Promise<BroadcastResult> {
+  const { nonce: _nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
     nonce?: number
   }
 
   const api = getApi(baseUrl)
-  const rawResult = await api.broadcastTransaction(txWithoutNonce)
-  
-  // Validate with Zod schema
-  const parseResult = BroadcastResultSchema.safeParse(rawResult)
-  const result = parseResult.success ? parseResult.data : rawResult
 
-  if (!result.success) {
-    const errorCode = result.error?.code
-    const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
-    throw new BroadcastError(errorCode, errorMsg, result.minFee)
+  try {
+    const rawResult = await api.broadcastTransaction(txWithoutNonce)
+
+    // Case 1: API 返回交易对象本身 = 成功
+    // ApiClient 在 success=true 时返回 json.result，即交易对象
+    if (rawResult && typeof rawResult === 'object' && 'signature' in rawResult) {
+
+      return { txHash: transaction.signature, alreadyExists: false }
+    }
+
+    // Case 2: API 返回错误对象或状态对象
+    const parseResult = BroadcastResultSchema.safeParse(rawResult)
+    if (parseResult.success) {
+      const result = parseResult.data
+      if (!result.success) {
+        const errorCode = result.error?.code
+        const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+
+        // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
+        if (errorCode === '001-00034') {
+
+          return { txHash: transaction.signature, alreadyExists: true }
+        }
+
+        throw new BroadcastError(errorCode, errorMsg, result.minFee)
+      }
+      // success=true 的情况
+      return { txHash: transaction.signature, alreadyExists: false }
+    }
+
+    // Case 3: 未知格式，假设成功（保守处理）
+
+    return { txHash: transaction.signature, alreadyExists: false }
+  } catch (error) {
+    // Re-throw BroadcastError as-is
+    if (error instanceof BroadcastError) {
+      throw error
+    }
+
+    // Extract broadcast error info from ApiError
+    if (error instanceof ApiError && error.response) {
+      const parseResult = BroadcastResultSchema.safeParse(error.response)
+      if (parseResult.success) {
+        const result = parseResult.data
+        const errorCode = result.error?.code
+        const errorMsg = result.error?.message ?? result.message ?? 'Transaction rejected'
+
+        // 001-00034: 交易已存在（重复广播），视为成功但标记 alreadyExists
+        if (errorCode === '001-00034') {
+
+          return { txHash: transaction.signature, alreadyExists: true }
+        }
+
+        throw new BroadcastError(errorCode, errorMsg, result.minFee)
+      }
+    }
+
+    // Fallback: wrap unknown errors
+    throw new BroadcastError(
+      undefined,
+      error instanceof Error ? error.message : 'Transaction rejected',
+    )
   }
-
-  return transaction.signature
 }
 
 /**
@@ -497,7 +525,7 @@ export async function verifyTwoStepSecret(
 
 // ===== Fee Estimation APIs =====
 
-export type FeeIntent = 
+export type FeeIntent =
   | { type: 'transfer'; amount: string; remark?: Record<string, string> }
   | { type: 'setPayPassword' }
 
@@ -548,7 +576,7 @@ export async function getMinFee(params: GetMinFeeParams): Promise<string> {
       // Use a large amount to get maximum fee estimation
       // The SDK calculates fee based on transaction bytes
       const estimationAmount = intent.amount || '99999999999999999'
-      
+
       let minFee = await core.transactionController.getTransferTransactionMinFee({
         transaction: {
           applyBlockHeight,
@@ -698,7 +726,7 @@ export async function setTwoStepSecret(
   await broadcastTransaction(
     params.baseUrl,
     transaction as unknown as BFChainCore.TransactionJSON,
-  ).catch(() => {})
+  ).catch(() => { })
 
   return { txHash: transaction.signature, success: true }
 }
@@ -744,7 +772,11 @@ export async function getDestroyTransactionMinFee(
   const applyBlockHeight = lastBlock.height
   const timestamp = lastBlock.timestamp
 
-  return core.transactionController.getDestoryAssetTransactionMinFee({
+  // SDK method uses "Destory" spelling (typo in SDK)
+  const controller = core.transactionController as unknown as {
+    getDestoryAssetTransactionMinFee: (params: unknown) => Promise<string>
+  }
+  return controller.getDestoryAssetTransactionMinFee({
     transaction: {
       applyBlockHeight,
       timestamp,
@@ -811,8 +843,11 @@ export async function createDestroyTransaction(
     amount: params.amount,
   }
 
-  // SDK method is "createDestoryAssetTransactionJSON" (typo preserved)
-  return core.transactionController.createDestoryAssetTransactionJSON({
+  // SDK method uses "Destory" spelling (typo in SDK)
+  const controller = core.transactionController as unknown as {
+    createDestoryAssetTransactionJSON: (params: unknown) => Promise<BFChainCore.TransactionJSON>
+  }
+  return controller.createDestoryAssetTransactionJSON({
     secrets,
     transaction: {
       fee,

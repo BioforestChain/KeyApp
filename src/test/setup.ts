@@ -28,7 +28,7 @@ const defaultChainsJsonText = readFileSync(
 )
 const realFetch: typeof fetch | undefined = typeof fetch === 'undefined' ? undefined : fetch.bind(globalThis)
 
-globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+const mockFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
 
   if (url.includes('/configs/default-chains.json')) {
@@ -43,7 +43,15 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   }
 
   return realFetch(input, init)
-}) satisfies typeof fetch
+}) as typeof fetch
+
+// Add preconnect property to satisfy type requirements
+Object.defineProperty(mockFetch, 'preconnect', {
+  value: undefined,
+  writable: true,
+})
+
+globalThis.fetch = mockFetch
 
 afterEach(() => {
   cleanup()

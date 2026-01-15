@@ -9,9 +9,11 @@ export function isValidRecipientAddress(address: string, isBioforestChain: boole
   return isValidAddress(address)
 }
 
-export function validateAddressInput(address: string, isBioforestChain: boolean): string | null {
+export function validateAddressInput(address: string, isBioforestChain: boolean, fromAddress?: string): string | null {
   if (!address.trim()) return '请输入收款地址'
   if (!isValidRecipientAddress(address, isBioforestChain)) return '无效的地址格式'
+  // BioChain 不允许自己给自己转账
+  if (isBioforestChain && fromAddress && address.trim() === fromAddress.trim()) return '不能转账给自己'
   return null
 }
 
@@ -56,14 +58,25 @@ export function adjustAmountForFee(
 
   const balance = asset.amount
 
-  if (amount.add(fee).lte(balance)) return { status: 'ok' }
-  if (!amount.eq(balance)) return { status: 'error', message: '余额不足' }
+  // Only deduct fee from balance if transferring the same asset as fee
+  // e.g., BioChain: fee is BFM, but transferring CPCC - don't mix them
+  const isSameAsset = asset.assetType === fee.symbol
 
-  const maxSendable = balance.sub(fee)
-  if (!maxSendable.isPositive()) return { status: 'error', message: '余额不足' }
+  if (isSameAsset) {
+    // Same asset: amount + fee must <= balance
+    if (amount.add(fee).lte(balance)) return { status: 'ok' }
+    if (!amount.eq(balance)) return { status: 'error', message: '余额不足' }
 
-  return {
-    status: 'ok',
-    adjustedAmount: maxSendable,
+    const maxSendable = balance.sub(fee)
+    if (!maxSendable.isPositive()) return { status: 'error', message: '余额不足' }
+
+    return {
+      status: 'ok',
+      adjustedAmount: maxSendable,
+    }
+  } else {
+    // Different asset: just check amount <= balance (fee is paid separately)
+    if (amount.lte(balance)) return { status: 'ok' }
+    return { status: 'error', message: '余额不足' }
   }
 }

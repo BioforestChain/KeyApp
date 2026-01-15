@@ -90,7 +90,7 @@ function ContactAddConfirmJobContent() {
       setSaved(true)
       setTimeout(() => pop(), 500)
     } catch (err) {
-      console.error('[ContactAddConfirmJob] Save error:', err)
+      
     } finally {
       setIsSaving(false)
     }

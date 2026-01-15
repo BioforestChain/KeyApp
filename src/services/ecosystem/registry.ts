@@ -44,7 +44,7 @@ function isValidAppId(appId: string): boolean {
 
 function normalizeAppFromSource(app: MiniappManifest, source: SourceRecord, payload: EcosystemSource): MiniappManifest | null {
   if (!isValidAppId(app.id)) {
-    console.warn(`[Registry] Invalid appId "${app.id}" from source "${source.url}", skipping`)
+    
     return null
   }
 
@@ -92,14 +92,14 @@ async function fetchSourceWithCache(url: string, force: boolean): Promise<Ecosys
     }
 
     if (!response.ok) {
-      console.warn(`[Registry] Failed to fetch source: ${url}`, response.status, response.statusText)
+      
       return cached?.payload ?? null
     }
 
     const json: unknown = await response.json()
     const parsed = EcosystemSourceSchema.safeParse(json)
     if (!parsed.success) {
-      console.warn(`[Registry] Invalid source JSON: ${url}`, parsed.error)
+      
       return cached?.payload ?? null
     }
 
@@ -115,13 +115,7 @@ async function fetchSourceWithCache(url: string, force: boolean): Promise<Ecosys
 
     return payload
   } catch (error) {
-    const message =
-      error instanceof Error && error.name === 'AbortError'
-        ? 'request timeout'
-        : error instanceof Error
-          ? error.message
-          : String(error)
-    console.warn(`[Registry] Error fetching source: ${url}`, message)
+    // Error occurred, return cached payload if available
     return cached?.payload ?? null
   }
 }
@@ -148,7 +142,7 @@ async function rebuildCachedAppsFromCache(): Promise<void> {
       if (!normalized) continue
 
       if (seen.has(normalized.id)) {
-        console.warn(`[Registry] Duplicate appId "${normalized.id}" detected, skipping later entry`)
+        
         continue
       }
       seen.add(normalized.id)
@@ -215,7 +209,7 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
       if (!normalized) continue
 
       if (seen.has(normalized.id)) {
-        console.warn(`[Registry] Duplicate appId "${normalized.id}" detected, skipping later entry`)
+        
         continue
       }
       seen.add(normalized.id)
@@ -226,7 +220,7 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
   cachedApps = next
   notifyApps()
 
-  console.log(`[Registry] Loaded ${cachedApps.length} apps from ${enabledSources.length} sources`)
+  
   return [...cachedApps]
 }
 
@@ -287,20 +281,20 @@ async function fetchRemoteSearch(source: SourceRecord, urlTemplate: string, quer
   })
 
   if (!response.ok) {
-    console.warn(`[Registry] Remote search failed: ${source.url}`, response.status, response.statusText)
+    
     return []
   }
 
   const json: unknown = await response.json()
   const parsed = EcosystemSearchResponseSchema.safeParse(json)
   if (!parsed.success) {
-    console.warn(`[Registry] Invalid search response from source: ${source.url}`, parsed.error)
+    
     return []
   }
 
   const { version, data } = parsed.data as { version: string; data: MiniappManifest[] }
   if (!isSupportedSearchResponseVersion(version)) {
-    console.warn(`[Registry] Unsupported search response version "${version}" from source: ${source.url}`)
+    
     return []
   }
 
@@ -313,7 +307,7 @@ async function fetchRemoteSearch(source: SourceRecord, urlTemplate: string, quer
     }))
     .filter((app) => {
       if (isValidAppId(app.id)) return true
-      console.warn(`[Registry] Invalid appId "${app.id}" from remote search of source "${source.url}", skipping`)
+      
       return false
     })
 }

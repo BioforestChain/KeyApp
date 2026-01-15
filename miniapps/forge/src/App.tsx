@@ -20,7 +20,7 @@ import { ModeTabs } from './components/ModeTabs'
 import { RedemptionForm } from './components/RedemptionForm'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Coins, Leaf, DollarSign, X, ChevronLeft, Zap, ArrowDown, Check, Loader2, AlertCircle, ArrowLeftRight } from 'lucide-react'
+import { Coins, Leaf, DollarSign, X, ChevronLeft, ArrowDown, Check, Loader2, AlertCircle, ArrowLeftRight } from 'lucide-react'
 
 import { useRechargeConfig, useForge, type ForgeOption } from '@/hooks'
 import type { BridgeMode } from '@/api/types'
@@ -333,7 +333,7 @@ export default function App() {
             <RedemptionForm
               config={config}
               onSuccess={(orderId) => {
-                console.log('Redemption success:', orderId)
+                
               }}
             />
           )}

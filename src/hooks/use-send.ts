@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { AssetInfo } from '@/types/asset'
 import { Amount } from '@/types/amount'
 import { initialState, MOCK_FEES } from './use-send.constants'
@@ -12,7 +12,7 @@ import { submitMockTransfer } from './use-send.mock'
  * Hook for managing send flow state
  */
 export function useSend(options: UseSendOptions = {}): UseSendReturn {
-  const { initialAsset, useMock = true, walletId, fromAddress, chainConfig } = options
+  const { initialAsset, useMock = true, walletId, fromAddress, chainConfig, getBalance } = options
 
   const [state, setState] = useState<SendState>({
     ...initialState,
@@ -28,8 +28,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     if (isWeb3Chain && chainConfig) {
       return validateWeb3Address(chainConfig, address)
     }
-    return validateAddressInput(address, isBioforestChain)
-  }, [isBioforestChain, isWeb3Chain, chainConfig])
+    return validateAddressInput(address, isBioforestChain, fromAddress)
+  }, [isBioforestChain, isWeb3Chain, chainConfig, fromAddress])
 
   // Validate amount
   const validateAmount = useCallback((amount: Amount | null, asset: AssetInfo | null): string | null => {
@@ -98,7 +98,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         const feeEstimate = isWeb3Chain
           ? await fetchWeb3Fee(chainConfig, fromAddress)
           : await fetchBioforestFee(chainConfig, fromAddress)
-        
+
         setState((prev) => ({
           ...prev,
           feeAmount: feeEstimate.amount,
@@ -116,21 +116,33 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     })()
   }, [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock])
 
+  // Get current balance from external source (single source of truth)
+  const currentBalance = useMemo(() => {
+    if (!state.asset?.assetType || !getBalance) return state.asset?.amount ?? null
+    return getBalance(state.asset.assetType) ?? state.asset?.amount ?? null
+  }, [state.asset?.assetType, state.asset?.amount, getBalance])
+
+  // Create asset with current balance for validation
+  const assetWithCurrentBalance = useMemo((): AssetInfo | null => {
+    if (!state.asset || !currentBalance) return state.asset
+    return { ...state.asset, amount: currentBalance }
+  }, [state.asset, currentBalance])
+
   // Check if can proceed
   const canProceed = useMemo(() => {
     return canProceedToConfirm({
       toAddress: state.toAddress,
       amount: state.amount,
-      asset: state.asset,
+      asset: assetWithCurrentBalance,
       isBioforestChain,
       feeLoading: state.feeLoading,
     })
-  }, [isBioforestChain, state.amount, state.asset, state.toAddress, state.feeLoading])
+  }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeLoading])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
     const addressError = validateAddress(state.toAddress)
-    const amountError = state.asset ? validateAmount(state.amount, state.asset) : '请选择资产'
+    const amountError = assetWithCurrentBalance ? validateAmount(state.amount, assetWithCurrentBalance) : '请选择资产'
 
     if (addressError || amountError) {
       setState((prev) => ({
@@ -141,8 +153,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return false
     }
 
-    if (state.asset && state.feeAmount && state.amount) {
-      const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmount)
+    if (assetWithCurrentBalance && state.feeAmount && state.amount) {
+      const adjustResult = adjustAmountForFee(state.amount, assetWithCurrentBalance, state.feeAmount)
       if (adjustResult.status === 'error') {
         setState((prev) => ({
           ...prev,
@@ -165,7 +177,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amountError: null,
     }))
     return true
-  }, [state.toAddress, state.amount, state.asset, state.feeAmount, validateAddress, validateAmount])
+  }, [state.toAddress, state.amount, assetWithCurrentBalance, state.feeAmount, validateAddress, validateAmount])
 
   // Go back to input
   const goBack = useCallback(() => {
@@ -177,16 +189,16 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
   // Submit transaction
   const submit = useCallback(async (password: string) => {
-    console.log('[useSend.submit] Called with:', { useMock, chainKind: chainConfig?.chainKind, walletId, fromAddress })
-    
+
+
     if (useMock) {
-      console.log('[useSend.submit] Using mock transfer')
+
       const result = await submitMockTransfer(setState)
       return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const }
     }
 
     if (!chainConfig) {
-      console.log('[useSend.submit] No chain config')
+
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -200,8 +212,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Handle Web3 chains (EVM, Tron, Bitcoin)
     if (chainConfig.chainKind === 'evm' || chainConfig.chainKind === 'tron' || chainConfig.chainKind === 'bitcoin') {
-      console.log('[useSend.submit] Using Web3 transfer for:', chainConfig.chainKind)
-      
+
+
       if (!walletId || !fromAddress || !state.asset || !state.amount) {
         setState((prev) => ({
           ...prev,
@@ -265,7 +277,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
 
     // Unsupported chain type
     if (chainConfig.chainKind !== 'bioforest') {
-      console.log('[useSend.submit] Chain type not supported:', chainConfig.chainKind)
+
       setState((prev) => ({
         ...prev,
         step: 'result',
@@ -359,7 +371,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         txHash: null,
         errorMessage: result.message,
       }))
-      return { status: 'error' as const }
+      return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
     }
 
     setState((prev) => ({
@@ -371,7 +383,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const, txHash: result.txHash }
+    return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
   }, [chainConfig, fromAddress, state.amount, state.asset, state.toAddress, useMock, validateAddress, validateAmount, walletId])
 
   // Submit with pay password (for addresses with secondPublicKey)
@@ -431,7 +443,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
         txHash: null,
         errorMessage: result.message,
       }))
-      return { status: 'error' as const }
+      return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
     }
 
     // password_required should not happen when twoStepSecret is provided
@@ -456,7 +468,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       errorMessage: null,
     }))
 
-    return { status: 'ok' as const, txHash: result.txHash }
+    return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
   }, [chainConfig, fromAddress, state.amount, state.toAddress, walletId])
 
   // Reset to initial state

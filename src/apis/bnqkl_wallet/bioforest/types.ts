@@ -2,6 +2,28 @@
  * BioForest chain API types
  */
 
+import { z } from 'zod'
+
+// ==================== Zod Schemas ====================
+
+/** 广播错误信息 Schema */
+export const BroadcastErrorInfoSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+})
+
+/** 广播结果 Schema */
+export const BroadcastResultSchema = z.object({
+  success: z.boolean(),
+  minFee: z.string().optional(),
+  message: z.string().optional(),
+  error: BroadcastErrorInfoSchema.optional(),
+})
+
+export type BroadcastErrorInfo = z.infer<typeof BroadcastErrorInfoSchema>
+
+// ==================== Interfaces ====================
+
 export interface BlockInfo {
   height: number
   timestamp: number

@@ -96,11 +96,9 @@ interface WalletListItemProps {
 }
 
 function WalletListItem({ wallet, isActive, onSelect, onDetail, t }: WalletListItemProps) {
-  // 计算总余额
-  const totalBalance = wallet.chainAddresses.reduce(
-    (sum, ca) => sum + ca.tokens.reduce((s, t) => s + t.fiatValue, 0),
-    0,
-  );
+  // 总余额计算已移除 - 价格数据需要从价格服务获取
+  // TODO: 集成价格服务后重新实现
+  const totalBalance = 0;
 
   return (
     <div className={cn('bg-card rounded-xl p-4 shadow-sm transition-colors', isActive && 'ring-primary ring-2')}>

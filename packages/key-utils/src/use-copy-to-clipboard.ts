@@ -29,7 +29,7 @@ export function useCopyToClipboard(
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to copy')
         onError?.(err)
-        console.error('Failed to copy to clipboard:', err)
+        
       }
     },
     [timeout, onCopy, onError],

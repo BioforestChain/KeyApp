@@ -167,16 +167,12 @@ export async function loadChainConfigs(): Promise<ChainConfig[]> {
   for (const raw of records as unknown[]) {
     const parsed = ChainConfigRecordSchema.safeParse(raw)
     if (!parsed.success) {
-      console.warn('[ChainConfigStorage] Invalid chain config record:', parsed.error.issues[0])
+      
       continue
     }
 
     if (parsed.data.id !== parsed.data.config.id) {
-      console.warn('[ChainConfigStorage] Invalid chain config record (id mismatch):', {
-        key: parsed.data.key,
-        id: parsed.data.id,
-        configId: parsed.data.config.id,
-      })
+      
       continue
     }
 
@@ -213,7 +209,7 @@ export async function loadUserPreferences(): Promise<Record<string, boolean>> {
   const value = (record as PreferenceRecord).value
   const parsed = EnabledMapRawSchema.safeParse(value)
   if (!parsed.success) {
-    console.warn('[ChainConfigStorage] Invalid enabledMap:', parsed.error.issues[0])
+    
     return {}
   }
 
@@ -303,7 +299,7 @@ export async function loadDefaultVersion(): Promise<string | null> {
   const value = (record as PreferenceRecord).value
   const parsed = z.string().safeParse(value)
   if (!parsed.success) {
-    console.warn('[ChainConfigStorage] Invalid defaultVersion:', parsed.error.issues[0])
+    
     return null
   }
   return parsed.data

@@ -1,4 +1,4 @@
-import type { ArgumentsCamelCase, CommandModule, Argv } from 'yargs'
+import type { CommandModule, Argv } from 'yargs'
 import {
   createEpic,
   listEpics,
@@ -6,7 +6,6 @@ import {
   syncEpicStatus,
   addSubIssueToEpic,
 } from '../handlers/epic'
-import { log } from '../utils'
 
 interface EpicCreateArgs {
   title: string

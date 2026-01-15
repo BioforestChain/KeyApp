@@ -226,7 +226,7 @@ export async function readMpayWallets(): Promise<MpayMainWallet[]> {
   for (const item of raw) {
     const parsed = MpayMainWalletSchema.safeParse(item)
     if (!parsed.success) {
-      console.warn('[mpay-reader] Invalid mainWallet record:', parsed.error.issues[0])
+      
       continue
     }
     wallets.push(parsed.data)
@@ -243,7 +243,7 @@ export async function readMpayAddresses(): Promise<MpayChainAddressInfo[]> {
   for (const item of raw) {
     const parsed = MpayChainAddressInfoSchema.safeParse(item)
     if (!parsed.success) {
-      console.warn('[mpay-reader] Invalid chainAddress record:', parsed.error.issues[0])
+      
       continue
     }
     addresses.push(parsed.data)
@@ -268,7 +268,7 @@ export async function readMpayAddressBook(): Promise<MpayAddressBookEntry[]> {
     for (const item of raw) {
       const parsed = MpayAddressBookEntrySchema.safeParse(item)
       if (!parsed.success) {
-        console.warn('[mpay-reader] Invalid address book record:', parsed.error.issues[0])
+        
         continue
       }
       entries.push(parsed.data)

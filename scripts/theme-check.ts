@@ -13,7 +13,7 @@
  *   pnpm theme:check --verbose # Show all checked files
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve, join, relative } from 'node:path'
 
 // ==================== Configuration ====================
@@ -330,17 +330,11 @@ function checkBgMutedWithoutText(content: string, file: string): Issue[] {
 /**
  * Rule 6: Success/error states should use semantic colors
  */
-function checkSemanticColors(content: string, file: string): Issue[] {
+function checkSemanticColors(_content: string, _file: string): Issue[] {
   const issues: Issue[] = []
-  const lines = content.split('\n')
 
-  // Check for hardcoded success/error colors that should use theme variables
-  const semanticPatterns = [
-    { pattern: /\btext-green-[45]00\b/g, suggestion: 'text-success or text-green-500 (already ok)' },
-    { pattern: /\btext-red-[45]00\b/g, suggestion: 'text-destructive' },
-    { pattern: /\bbg-green-[45]00\b/g, suggestion: 'bg-success' },
-    { pattern: /\bbg-red-[45]00\b/g, suggestion: 'bg-destructive' },
-  ]
+  // Semantic color patterns check (disabled for now)
+  // const semanticPatterns = [ ... ]
 
   // This rule is informational only - semantic colors are preferred but hardcoded ones work
   // Skip for now to reduce noise

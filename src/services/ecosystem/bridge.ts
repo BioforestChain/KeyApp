@@ -67,7 +67,6 @@ type Protocol = 'bio' | 'eth' | 'tron'
 import {
   BioErrorCodes,
   createErrorResponse,
-  createSuccessResponse,
 } from './types'
 import {
   hasPermission,
@@ -127,7 +126,7 @@ export class PostMessageBridge {
     this.messageHandler = this.handleMessage.bind(this)
     window.addEventListener('message', this.messageHandler)
 
-    console.log('[BioProvider] Attached to iframe:', appId)
+    
   }
 
   /** Detach from iframe */
@@ -199,7 +198,7 @@ export class PostMessageBridge {
   private async processRequest(request: RequestMessage, protocol: Protocol): Promise<void> {
     const { id, method, params } = request
 
-    console.log(`[BioProvider] ${protocol.toUpperCase()} Request:`, method, params)
+    
 
     // Check if handler exists
     const handler = this.handlers.get(method)
@@ -290,7 +289,7 @@ export class PostMessageBridge {
   /** 请求用户授权权限 */
   private async requestPermission(permissions: string[]): Promise<boolean> {
     if (!this.permissionRequestCallback) {
-      console.warn('[BioProvider] No permission request callback set')
+      
       return false
     }
 
@@ -305,15 +304,15 @@ export class PostMessageBridge {
       }
       return approved
     } catch (error) {
-      console.error('[BioProvider] Permission request failed:', error)
+      
       return false
     }
   }
 
-  private sendResponse(protocol: Protocol, response: BioResponseMessage | EthResponseMessage | TronResponseMessage): void {
+  private sendResponse(_protocol: Protocol, response: BioResponseMessage | EthResponseMessage | TronResponseMessage): void {
     if (!this.iframe?.contentWindow) return
 
-    console.log(`[BioProvider] ${protocol.toUpperCase()} Response:`, response)
+    
     this.iframe.contentWindow.postMessage(response, this.origin)
   }
 }

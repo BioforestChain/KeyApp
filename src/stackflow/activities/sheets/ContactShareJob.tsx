@@ -67,7 +67,7 @@ function ContactShareJobContent() {
         quality: 1,
       });
     } catch (error) {
-      console.error('Download failed:', error);
+      
     } finally {
       setIsDownloading(false);
     }

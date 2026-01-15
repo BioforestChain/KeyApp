@@ -1,209 +1,118 @@
+/**
+ * BtcWallet API Provider (Blockbook)
+ * 
+ * 使用 Mixin 继承模式组合 Identity 和 Transaction 能力
+ */
+
 import { z } from 'zod'
+import { keyFetch, ttl, derive, transform, pathParams, walletApiUnwrap } from '@biochain/key-fetch'
+import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction } from './types'
+import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
-import { fetchJson, observeValueAndInvalidate } from './fetch-json'
+import { BitcoinIdentityMixin } from '../bitcoin/identity-mixin'
+import { BitcoinTransactionMixin } from '../bitcoin/transaction-mixin'
 
-const BlockbookErrorSchema = z.looseObject({
-  error: z.string(),
-})
+// ==================== Schema 定义 ====================
 
-const WalletApiWrapperSchema = <T extends z.ZodTypeAny>(innerSchema: T) =>
-  z.looseObject({
-    success: z.boolean(),
-    result: innerSchema,
-  })
-
-const BlockbookVinSchema = z.looseObject({
-  addresses: z.array(z.string()),
-  value: z.string(),
-})
-
-const BlockbookVoutSchema = z.looseObject({
-  addresses: z.array(z.string()),
-  value: z.string(),
-})
-
-const BlockbookTxSchema = z.looseObject({
-  txid: z.string(),
-  blockHeight: z.number(),
-  confirmations: z.number(),
-  blockTime: z.number(),
-  vin: z.array(BlockbookVinSchema),
-  vout: z.array(BlockbookVoutSchema),
-  fees: z.string().optional(),
-})
-
-const BlockbookAddressInfoSchema = z.looseObject({
-  address: z.string().optional(),
+const AddressInfoSchema = z.object({
   balance: z.string(),
-  unconfirmedBalance: z.string().optional(),
   txs: z.number().optional(),
-  transactions: z.array(BlockbookTxSchema).optional(),
-})
+  transactions: z.array(z.object({
+    txid: z.string(),
+    vin: z.array(z.object({ addresses: z.array(z.string()).optional() }).passthrough()).optional(),
+    vout: z.array(z.object({ addresses: z.array(z.string()).optional(), value: z.string().optional() }).passthrough()).optional(),
+    blockTime: z.number().optional(),
+    confirmations: z.number().optional(),
+  }).passthrough()).optional(),
+}).passthrough()
 
-function sumValues(items: Array<{ addresses: string[]; value: string }>, address: string): bigint {
-  let sum = 0n
-  for (const item of items) {
-    if (item.addresses.some((a) => a === address)) {
-      sum += BigInt(item.value)
-    }
-  }
-  return sum
+type AddressInfo = z.infer<typeof AddressInfoSchema>
+
+// ==================== 工具函数 ====================
+
+function getDirection(vin: any[], vout: any[], address: string): Direction {
+  const isFrom = vin?.some(v => v.addresses?.includes(address))
+  const isTo = vout?.some(v => v.addresses?.includes(address))
+  if (isFrom && isTo) return 'self'
+  return isFrom ? 'out' : 'in'
 }
 
-function getDirection(net: bigint): Direction {
-  if (net > 0n) return 'in'
-  if (net < 0n) return 'out'
-  return 'self'
-}
+// ==================== Base Class for Mixins ====================
 
-export class BtcWalletProvider implements ApiProvider {
+class BtcWalletBase {
+  readonly chainId: string
   readonly type: string
   readonly endpoint: string
   readonly config?: Record<string, unknown>
-
-  private readonly chainId: string
-  private readonly symbol: string
-  private readonly decimals: number
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     this.type = entry.type
     this.endpoint = entry.endpoint
     this.config = entry.config
     this.chainId = chainId
+  }
+}
+
+// ==================== Provider 实现 (使用 Mixin 继承) ====================
+
+export class BtcWalletProvider extends BitcoinIdentityMixin(BitcoinTransactionMixin(BtcWalletBase)) implements ApiProvider {
+  private readonly symbol: string
+  private readonly decimals: number
+
+  readonly #addressInfo: KeyFetchInstance<typeof AddressInfoSchema>
+  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
+  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+
+  constructor(entry: ParsedApiEntry, chainId: string) {
+    super(entry, chainId)
     this.symbol = chainConfigService.getSymbol(chainId)
     this.decimals = chainConfigService.getDecimals(chainId)
-  }
 
-  get supportsNativeBalance() {
-    return true
-  }
+    const { endpoint: base, symbol, decimals } = this
 
-  get supportsTransactionHistory() {
-    return true
-  }
-
-  async getNativeBalance(address: string): Promise<Balance> {
-    const info = await this.proxyGet(`/api/v2/address/${address}`, BlockbookAddressInfoSchema, {
-      cacheKey: `btcwallet:${this.chainId}:address:${address}`,
-      ttlMs: 60_000,
-      tags: [`balance:${this.chainId}:${address}`],
+    this.#addressInfo = keyFetch.create({
+      name: `btcwallet.${chainId}.addressInfo`,
+      schema: AddressInfoSchema,
+      url: `${base}/address/:address`,
+      use: [pathParams(), walletApiUnwrap(), ttl(60_000)],
     })
 
-    const confirmed = BigInt(info.balance)
-    const unconfirmed = BigInt(info.unconfirmedBalance ?? '0')
-    const total = confirmed + unconfirmed
-
-    observeValueAndInvalidate({
-      key: `balance:${this.chainId}:${address}`,
-      value: total.toString(),
-      invalidateTags: [`txhistory:${this.chainId}:${address}`],
+    this.nativeBalance = derive({
+      name: `btcwallet.${chainId}.nativeBalance`,
+      source: this.#addressInfo,
+      schema: BalanceOutputSchema,
+      use: [transform<AddressInfo, Balance>({
+        transform: (r) => ({ amount: Amount.fromRaw(r.balance, decimals, symbol), symbol }),
+      })],
     })
 
-    return {
-      amount: Amount.fromRaw(total.toString(), this.decimals, this.symbol),
-      symbol: this.symbol,
-    }
-  }
-
-  async getTransactionHistory(address: string, limit = 20): Promise<Transaction[]> {
-    const info = await this.proxyGet(
-      `/api/v2/address/${address}?details=txs&page=1&pageSize=${limit}`,
-      BlockbookAddressInfoSchema,
-      {
-        cacheKey: `btcwallet:${this.chainId}:txs:${address}:${limit}`,
-        ttlMs: 5 * 60_000,
-        tags: [`txhistory:${this.chainId}:${address}`],
-      },
-    )
-
-    const txs = info.transactions ?? []
-    const results: Transaction[] = txs.map((tx) => {
-      const inSum = sumValues(tx.vin, address)
-      const outSum = sumValues(tx.vout, address)
-      const net = outSum - inSum
-      const direction = getDirection(net)
-      const value = net < 0n ? (-net).toString() : net.toString()
-
-      const from = direction === 'in'
-        ? (tx.vin[0]?.addresses?.[0] ?? '')
-        : address
-
-      const toCandidate = tx.vout
-        .flatMap((v) => v.addresses)
-        .find((a) => a !== address)
-      const to = direction === 'out'
-        ? (toCandidate ?? address)
-        : address
-
-      return {
-        hash: tx.txid,
-        from,
-        to,
-        timestamp: tx.blockTime * 1000,
-        status: tx.confirmations > 0 ? 'confirmed' : 'pending',
-        blockNumber: tx.blockHeight > 0 ? BigInt(tx.blockHeight) : undefined,
-        action: 'transfer',
-        direction,
-        assets: [
-          {
-            assetType: 'native' as const,
-            value,
-            symbol: this.symbol,
-            decimals: this.decimals,
-          },
-        ],
-      }
+    this.transactionHistory = derive({
+      name: `btcwallet.${chainId}.transactionHistory`,
+      source: this.#addressInfo,
+      schema: TransactionsOutputSchema,
+      use: [transform<AddressInfo, Transaction[]>({
+        transform: (r, ctx) => {
+          const addr = (ctx.params.address as string) ?? ''
+          return (r.transactions ?? []).map(tx => ({
+            hash: tx.txid,
+            from: tx.vin?.[0]?.addresses?.[0] ?? '',
+            to: tx.vout?.[0]?.addresses?.[0] ?? '',
+            timestamp: (tx.blockTime ?? 0) * 1000,
+            status: (tx.confirmations ?? 0) > 0 ? 'confirmed' as const : 'pending' as const,
+            action: 'transfer' as const,
+            direction: getDirection(tx.vin ?? [], tx.vout ?? [], addr),
+            assets: [{ assetType: 'native' as const, value: tx.vout?.[0]?.value ?? '0', symbol, decimals }],
+          }))
+        },
+      })],
     })
-
-    return results.toSorted((a, b) => b.timestamp - a.timestamp)
-  }
-
-  private async proxyGet<T>(
-    path: string,
-    schema: z.ZodType<T>,
-    options?: { cacheKey?: string; ttlMs?: number; tags?: string[] },
-  ): Promise<T> {
-    const json: unknown = await fetchJson(
-      this.endpoint,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: path, method: 'GET' }),
-      },
-      {
-        cacheKey: options?.cacheKey,
-        ttlMs: options?.ttlMs,
-        tags: options?.tags,
-      },
-    )
-
-    const err = BlockbookErrorSchema.safeParse(json)
-    if (err.success && err.data.error) {
-      throw new Error(err.data.error)
-    }
-
-    // Unwrap { success, result } wrapper from walletapi.bfmeta.info
-    const wrapped = WalletApiWrapperSchema(schema).safeParse(json)
-    if (wrapped.success && wrapped.data.success) {
-      return wrapped.data.result
-    }
-
-    // Fallback: direct parse (for mempool or other non-wrapped APIs)
-    const direct = schema.safeParse(json)
-    if (direct.success) {
-      return direct.data
-    }
-
-    throw new Error('Invalid API response')
   }
 }
 
 export function createBtcwalletProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
-  if (entry.type === 'btcwallet-v1') {
-    return new BtcWalletProvider(entry, chainId)
-  }
+  if (entry.type === 'btcwallet-v1') return new BtcWalletProvider(entry, chainId)
   return null
 }

@@ -1,6 +1,7 @@
 export type { ChainConfig, ChainConfigSource, ChainConfigSubscription, ChainKind, ParsedApiEntry, ApiProviderEntry, ApiProviders } from './types'
 export { chainConfigService } from './service'
 
+import { z } from 'zod'
 import { ChainConfigListSchema, ChainConfigSchema, ChainConfigSubscriptionSchema, VersionedChainConfigFileSchema } from './schema'
 import { fetchSubscription, type FetchSubscriptionResult } from './subscription'
 import {
@@ -160,17 +161,17 @@ function resolveIconPaths(
   jsonFileUrl: string
 ): { icon?: string; tokenIconBase?: string[] } {
   const result: { icon?: string; tokenIconBase?: string[] } = {}
-  
+
   if (config.icon !== undefined) {
     result.icon = resolveRelativePath(config.icon, jsonFileUrl)
   }
-  
+
   if (config.tokenIconBase !== undefined) {
     result.tokenIconBase = config.tokenIconBase.map((base) =>
       resolveRelativePath(base, jsonFileUrl)
     )
   }
-  
+
   return result
 }
 
@@ -185,9 +186,12 @@ function parseConfigs(input: unknown, source: ChainConfigSource, jsonFileUrl?: s
     throw new Error(firstIssue?.message ?? 'Invalid chain config')
   }
 
-  const parsed = Array.isArray(input) ? parsedResult.data : [parsedResult.data]
+  // Normalize to array - use type assertion since Zod union types are complex
+  const configs = Array.isArray(input)
+    ? (parsedResult.data as z.infer<typeof ChainConfigListSchema>)
+    : [parsedResult.data as z.infer<typeof ChainConfigSchema>]
 
-  return parsed.map((config) => {
+  return configs.map((config) => {
     const resolvedPaths = jsonFileUrl ? resolveIconPaths(config, jsonFileUrl) : {}
     return {
       ...config,
@@ -373,9 +377,9 @@ export async function setSubscriptionUrl(input: string): Promise<ChainConfigSnap
     refreshIntervalMinutes: existingMeta?.refreshIntervalMinutes ?? 1440,
     ...(previousUrl === url
       ? {
-          ...(existingMeta?.etag ? { etag: existingMeta.etag } : {}),
-          ...(existingMeta?.lastUpdated ? { lastUpdated: existingMeta.lastUpdated } : {}),
-        }
+        ...(existingMeta?.etag ? { etag: existingMeta.etag } : {}),
+        ...(existingMeta?.lastUpdated ? { lastUpdated: existingMeta.lastUpdated } : {}),
+      }
       : {}),
   })
 

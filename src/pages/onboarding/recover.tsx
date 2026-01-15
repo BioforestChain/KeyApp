@@ -151,7 +151,7 @@ export function OnboardingRecoverPage() {
         if (result.type === 'address') {
           // Simple duplicate - show error toast
           // Toast: "该助记词已导入"
-          console.log('Duplicate detected:', result.matchedWallet?.name);
+          
           return;
         } else if (result.type === 'privateKey') {
           // Private key collision - show confirmation dialog
@@ -222,7 +222,7 @@ export function OnboardingRecoverPage() {
         setCreatedWalletId(wallet.id);
         setStep('theme');
       } catch (error) {
-        console.error('恢复钱包失败:', error);
+        
       } finally {
         setIsSubmitting(false);
       }
@@ -266,7 +266,7 @@ export function OnboardingRecoverPage() {
         setCreatedWalletId(wallet.id);
         setStep('theme');
       } catch (error) {
-        console.error('导入密钥钱包失败:', error);
+        
       } finally {
         setIsSubmitting(false);
       }

@@ -26,6 +26,7 @@
   "clear": "Clear",
   "delete": "Delete",
   "unread": "Unread",
+  "viewDetails": "View Details",
   "empty": {
     "title": "No notifications",
     "desc": "All your notifications will appear here"
@@ -37,5 +38,21 @@
     "daysAgo": "{{count}} days ago",
     "today": "Today",
     "yesterday": "Yesterday"
+  },
+  "pendingTx": {
+    "broadcasted": {
+      "title": "Transaction Broadcasted",
+      "message": "{{type}} {{amount}} {{symbol}} broadcasted, awaiting confirmation",
+      "messageSimple": "Transaction broadcasted, awaiting block confirmation"
+    },
+    "confirmed": {
+      "title": "Transaction Confirmed",
+      "message": "{{type}} {{amount}} {{symbol}} confirmed on chain",
+      "messageSimple": "Transaction confirmed on chain"
+    },
+    "failed": {
+      "title": "Transaction Failed",
+      "message": "Broadcast failed, please retry"
+    }
   }
 }

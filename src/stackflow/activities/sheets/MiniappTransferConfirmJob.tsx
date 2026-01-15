@@ -54,7 +54,7 @@ function MiniappTransferConfirmJobContent() {
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
         if (!encryptedSecret) {
-          console.error('[MiniappTransferConfirmJob] No encrypted mnemonic found')
+          
           return false
         }
 
@@ -101,7 +101,7 @@ function MiniappTransferConfirmJobContent() {
         pop()
         return true
       } catch (error) {
-        console.error('[MiniappTransferConfirmJob] Transfer failed:', error)
+        
         return false
       } finally {
         setIsConfirming(false)

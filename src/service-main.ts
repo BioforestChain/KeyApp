@@ -22,6 +22,7 @@ export function startServiceMain(): ServiceMainCleanup {
 
   // Start async store initializations (non-blocking).
   // ChainProvider uses lazy initialization, no explicit setup needed.
+  // KeyFetch instances are created on-demand in chain-adapter/bioforest/fetch.ts
   void walletActions.initialize()
   void chainConfigActions.initialize()
 

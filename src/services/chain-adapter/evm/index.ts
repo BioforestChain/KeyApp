@@ -1,6 +1,8 @@
-export { EvmAdapter, createEvmAdapter } from './adapter'
-export { EvmIdentityService } from './identity-service'
-export { EvmAssetService } from './asset-service'
-export { EvmTransactionService } from './transaction-service'
+/**
+ * EVM Chain Adapter exports
+ */
+
+export { EvmIdentityMixin } from './identity-mixin'
+export { EvmTransactionMixin } from './transaction-mixin'
 export { EvmChainService } from './chain-service'
 export type * from './types'

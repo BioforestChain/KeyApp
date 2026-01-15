@@ -31,6 +31,7 @@ const createMockWallet = (id: string, name: string): Wallet => ({
     {
       chain: 'ethereum',
       address: `0x${id.padStart(40, '0')}`,
+      publicKey: `0x04${id}ethpubkey`,
       tokens: [
         { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '1.5', fiatValue: 3000, change24h: 2.5, decimals: 18, contractAddress: '', chain: 'ethereum' },
         { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500', fiatValue: 500, change24h: 0.1, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', chain: 'ethereum' },
@@ -39,6 +40,7 @@ const createMockWallet = (id: string, name: string): Wallet => ({
     {
       chain: 'binance',
       address: `0x${id.padStart(40, '0')}`,
+      publicKey: `0x04${id}bnbpubkey`,
       tokens: [
         { id: 'bnb', symbol: 'BNB', name: 'Binance Coin', balance: '2.0', fiatValue: 600, change24h: 1.8, decimals: 18, contractAddress: '', chain: 'binance' },
       ],
@@ -58,7 +60,7 @@ export const Empty: Story = {
         wallets: [],
         currentWalletId: null,
         chainPreferences: {},
-      selectedChain: 'ethereum',
+        selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -78,7 +80,7 @@ export const SingleWallet: Story = {
         wallets: [wallet],
         currentWalletId: '1',
         chainPreferences: {},
-      selectedChain: 'ethereum',
+        selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -102,7 +104,7 @@ export const MultipleWallets: Story = {
         wallets,
         currentWalletId: '1',
         chainPreferences: {},
-      selectedChain: 'ethereum',
+        selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -126,7 +128,7 @@ export const SecondWalletActive: Story = {
         wallets,
         currentWalletId: '2',
         chainPreferences: {},
-      selectedChain: 'ethereum',
+        selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })
@@ -149,7 +151,7 @@ export const LongWalletNames: Story = {
         wallets,
         currentWalletId: '1',
         chainPreferences: {},
-      selectedChain: 'ethereum',
+        selectedChain: 'ethereum',
         isLoading: false,
         isInitialized: true,
       })

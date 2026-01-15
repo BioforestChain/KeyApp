@@ -189,7 +189,7 @@ function notifyListeners(prefs: Preferences): void {
     try {
       listener(prefs);
     } catch (e) {
-      console.error("[preferences] Listener error:", e);
+      
     }
   }
 }
@@ -218,7 +218,7 @@ export function startPolling(): void {
           }
           break;
         } catch (e) {
-          console.error("[preferences] Load failed, retrying in 3s:", e);
+          
           try {
             await sleep(RETRY_INTERVAL_MS, signal);
           } catch {
@@ -385,7 +385,7 @@ export async function withRetry<T>(
           config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt),
           config.maxDelayMs
         );
-        console.error(`[retry] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+        
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

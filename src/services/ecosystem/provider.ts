@@ -63,39 +63,7 @@ export function initBioProvider(): void {
   // TRON methods (via window.tronLink/tronWeb)
   registerTronHandlers((method, handler) => bridge.registerHandler(method, handler))
 
-  console.log('[BioProvider] Initialized with handlers:', {
-    bio: [
-      'bio_connect',
-      'bio_closeSplashScreen',
-      'bio_requestAccounts',
-      'bio_accounts',
-      'bio_selectAccount',
-      'bio_pickWallet',
-      'bio_chainId',
-      'bio_getBalance',
-      'bio_signMessage',
-      'bio_signTypedData',
-      'bio_createTransaction',
-      'bio_signTransaction',
-      'bio_sendTransaction',
-      'bio_destroyAsset',
-    ],
-    evm: [
-      'eth_chainId',
-      'eth_requestAccounts',
-      'eth_accounts',
-      'wallet_switchEthereumChain',
-      'personal_sign',
-      'eth_sendTransaction',
-      // ...
-    ],
-    tron: [
-      'tron_requestAccounts',
-      'tron_accounts',
-      'tron_signTransaction',
-      // ...
-    ],
-  })
+  
 }
 
 // Auto-initialize handlers at module load time to prevent race conditions

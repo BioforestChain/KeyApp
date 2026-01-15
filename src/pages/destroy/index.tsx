@@ -4,7 +4,7 @@
  * 仅支持 BioForest 链，主资产不可销毁
  */
 
-import { useEffect, useMemo, useRef, useCallback } from 'react'
+import { useMemo, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
 import { setTransferConfirmCallback, setTransferWalletLockCallback } from '@/stackflow/activities/sheets'
@@ -18,15 +18,15 @@ import { useToast, useHaptics } from '@/services'
 import { useBurn } from '@/hooks/use-burn'
 import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
-import type { TokenInfo } from '@/components/token/token-item'
+import { tokenBalancesToTokenInfoList, type TokenInfo } from '@/components/token'
 import { IconFlame } from '@tabler/icons-react'
+import { ChainProviderGate, useChainProvider } from '@/contexts'
 import {
   useChainConfigState,
   chainConfigSelectors,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
-  useCurrentChainTokens,
   type ChainType,
 } from '@/stores'
 
@@ -68,7 +68,7 @@ function assetToToken(asset: AssetInfo, chain: ChainType): TokenInfo {
   }
 }
 
-export function DestroyPage() {
+function DestroyPageContent() {
   const { t } = useTranslation(['transaction', 'common', 'security'])
   const { goBack: navGoBack } = useNavigation()
   const { push } = useFlow()
@@ -90,34 +90,46 @@ export function DestroyPage() {
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain
-  const tokens = useCurrentChainTokens()
+
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
+
+  // 直接调用，不需要条件判断
+  const tokenBalancesState = chainProvider.tokenBalances.useState(
+    { address: currentChainAddress?.address ?? '' },
+    { enabled: !!currentChainAddress?.address }
+  );
+  const tokens = useMemo(() => {
+    if (!tokenBalancesState?.data) return []
+    return tokenBalancesToTokenInfoList(tokenBalancesState.data, selectedChain)
+  }, [tokenBalancesState?.data, selectedChain])
 
   // Filter out main asset (cannot be destroyed)
   const destroyableTokens = useMemo(() => {
     if (!chainConfig) return []
-    return tokens.filter((token) => token.symbol.toUpperCase() !== chainConfig.symbol.toUpperCase())
+    return tokens.filter((token: TokenInfo) => token.symbol.toUpperCase() !== chainConfig.symbol.toUpperCase())
   }, [tokens, chainConfig])
 
   // Find initial asset from params
   const initialAsset = useMemo(() => {
     if (!initialAssetType || destroyableTokens.length === 0) return null
     const found = destroyableTokens.find(
-      (t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
+      (t: TokenInfo) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
     )
     return found ? tokenToAsset(found) : null
   }, [initialAssetType, destroyableTokens])
 
   const assetLocked = assetLockedParam === 'true'
 
-  const { 
-    state, 
-    setAmount, 
-    setAsset, 
-    goToConfirm, 
-    submit, 
-    submitWithTwoStepSecret, 
-    reset, 
-    canProceed 
+  const {
+    state,
+    setAmount,
+    setAsset,
+    goToConfirm,
+    submit,
+    submitWithTwoStepSecret,
+    reset,
+    canProceed
   } = useBurn({
     initialAsset: initialAsset ?? undefined,
     assetLocked,
@@ -158,35 +170,43 @@ export function DestroyPage() {
         setTransferWalletLockCallback(async (walletLockKey: string, twoStepSecret?: string) => {
           if (!twoStepSecret) {
             const result = await submit(walletLockKey)
-            
+
             if (result.status === 'password') {
               return { status: 'wallet_lock_invalid' as const }
             }
-            
+
             if (result.status === 'two_step_secret_required') {
               return { status: 'two_step_secret_required' as const }
             }
-            
+
             if (result.status === 'ok') {
               isWalletLockSheetOpen.current = false
-              return { status: 'ok' as const, txHash: result.txHash }
+              return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
             }
-            
+
+            if (result.status === 'error') {
+              return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
+            }
+
             return { status: 'error' as const, message: '销毁失败' }
           }
-          
+
           const result = await submitWithTwoStepSecret(walletLockKey, twoStepSecret)
-          
+
           if (result.status === 'ok') {
             isWalletLockSheetOpen.current = false
-            return { status: 'ok' as const, txHash: result.txHash }
+            return { status: 'ok' as const, txHash: result.txHash, pendingTxId: result.pendingTxId }
           }
-          
+
           if (result.status === 'password') {
             return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' }
           }
-          
-          return { status: 'error' as const, message: result.status === 'error' ? '销毁失败' : '未知错误' }
+
+          if (result.status === 'error') {
+            return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId }
+          }
+
+          return { status: 'error' as const, message: '未知错误' }
         })
 
         push('TransferWalletLockJob', {
@@ -350,11 +370,11 @@ export function DestroyPage() {
 
         {/* Continue button */}
         <div className="pt-4">
-          <GradientButton 
-            variant="mint" 
-            className="w-full" 
-            data-testid="destroy-continue-button" 
-            disabled={!canProceed || destroyableTokens.length === 0} 
+          <GradientButton
+            variant="mint"
+            className="w-full"
+            data-testid="destroy-confirm-button"
+            disabled={!canProceed}
             onClick={handleProceed}
           >
             <IconFlame className="-ml-4 mr-2 size-4" />
@@ -363,6 +383,30 @@ export function DestroyPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function DestroyPage() {
+  const { goBack } = useNavigation()
+  const selectedChain = useSelectedChain()
+  const { t } = useTranslation(['transaction', 'common'])
+
+  return (
+    <ChainProviderGate
+      chainId={selectedChain}
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <PageHeader title={t('destroyPage.title', '销毁资产')} onBack={goBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <DestroyPageContent />
+    </ChainProviderGate>
   )
 }
 

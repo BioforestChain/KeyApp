@@ -40,6 +40,7 @@ const createMockWallet = (id: string, name: string, _isActive: boolean = false):
     {
       chain: 'ethereum',
       address: `0x${id}abc123def456`,
+      publicKey: `0x04${id}pubkey`,
       tokens: [
         { id: 'eth', symbol: 'ETH', name: 'Ethereum', balance: '1.5', fiatValue: 3000, change24h: 2.5, decimals: 18, contractAddress: '', chain: 'ethereum' },
         { id: 'usdt', symbol: 'USDT', name: 'Tether', balance: '500', fiatValue: 500, change24h: 0.1, decimals: 6, contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', chain: 'ethereum' },

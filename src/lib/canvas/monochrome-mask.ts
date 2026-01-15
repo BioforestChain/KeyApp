@@ -230,7 +230,7 @@ function processImageToMask(
   targetBrightness?: number
 ): string {
   const canvas = canvasPool.acquire(size)
-  const ctx = canvas.getContext('2d')
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
   if (!ctx) {
     canvasPool.release(canvas)
     throw new Error('Failed to get 2d context')
@@ -325,7 +325,7 @@ function processImageToMask(
         imageData = ctx.getImageData(0, 0, size, size)
         fn(ctx, imageData, size, hook.args)
       } catch (e) {
-        console.error('[monochrome-mask] Pipeline hook error:', e)
+
       }
     }
   }

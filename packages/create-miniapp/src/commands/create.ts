@@ -1,7 +1,6 @@
 import { resolve } from 'path'
 import { existsSync, mkdirSync, readdirSync } from 'fs'
 import { execa } from 'execa'
-import chalk from 'chalk'
 import type { CreateOptions } from '../types'
 import { promptMissingOptions } from '../utils/prompts'
 import { buildShadcnPresetUrl } from '../utils/shadcn'
@@ -28,12 +27,12 @@ import {
 } from '../utils/inject'
 
 const log = {
-  info: (msg: string) => console.log(chalk.cyan('ℹ'), msg),
-  success: (msg: string) => console.log(chalk.green('✓'), msg),
-  warn: (msg: string) => console.log(chalk.yellow('⚠'), msg),
-  error: (msg: string) => console.log(chalk.red('✗'), msg),
+  info: (msg: string) => {},
+  success: (msg: string) => {},
+  warn: (msg: string) => {},
+  error: (msg: string) => {},
   step: (step: number, total: number, msg: string) =>
-    console.log(chalk.dim(`[${step}/${total}]`), msg),
+    {},
 }
 
 function getNextPort(outputDir: string): number {
@@ -48,11 +47,11 @@ function getNextPort(outputDir: string): number {
 }
 
 export async function createMiniapp(options: CreateOptions): Promise<void> {
-  console.log()
-  console.log(chalk.cyan.bold('╔════════════════════════════════════════╗'))
-  console.log(chalk.cyan.bold('║     Create Bio Miniapp                 ║'))
-  console.log(chalk.cyan.bold('╚════════════════════════════════════════╝'))
-  console.log()
+  
+  
+  
+  
+  
 
   try {
     // 1. 交互式补全选项
@@ -84,7 +83,7 @@ export async function createMiniapp(options: CreateOptions): Promise<void> {
 
       const presetUrl = buildShadcnPresetUrl(finalOptions)
 
-      console.log(chalk.dim(`  Preset: ${presetUrl}`))
+      
 
       await execa('pnpm', [
         'dlx',
@@ -156,17 +155,17 @@ export async function createMiniapp(options: CreateOptions): Promise<void> {
     currentStep++
     log.step(currentStep, totalSteps, '配置摘要')
 
-    console.log()
-    console.log(chalk.bold('  配置:'))
-    console.log(chalk.dim(`    名称:       ${name}`))
-    console.log(chalk.dim(`    App ID:     ${finalOptions.appId}`))
-    console.log(chalk.dim(`    风格:       ${finalOptions.style}`))
-    console.log(chalk.dim(`    主题:       ${finalOptions.theme}`))
-    console.log(chalk.dim(`    图标库:     ${finalOptions.iconLibrary}`))
-    console.log(chalk.dim(`    字体:       ${finalOptions.font}`))
-    console.log(chalk.dim(`    模板:       ${finalOptions.template}`))
-    console.log(chalk.dim(`    端口:       ${port}`))
-    console.log()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     // 6. 安装依赖
     if (!skipInstall) {
@@ -182,22 +181,22 @@ export async function createMiniapp(options: CreateOptions): Promise<void> {
     }
 
     // 完成
-    console.log()
-    console.log(chalk.green.bold('✨ Miniapp 创建成功!'))
-    console.log()
-    console.log(chalk.bold('  开始开发:'))
-    console.log(chalk.cyan(`    cd ${output}/${name}`))
-    console.log(chalk.cyan('    pnpm dev'))
-    console.log()
-    console.log(chalk.bold('  其他命令:'))
-    console.log(chalk.dim('    pnpm build       构建生产版本'))
-    console.log(chalk.dim('    pnpm test        运行单元测试'))
-    console.log(chalk.dim('    pnpm storybook   启动 Storybook'))
-    console.log(chalk.dim('    pnpm e2e         运行 E2E 测试'))
-    console.log(chalk.dim('    pnpm lint        代码检查'))
-    console.log(chalk.dim('    pnpm typecheck   类型检查'))
-    console.log(chalk.dim('    pnpm gen-logo    生成 Logo 多尺寸资源'))
-    console.log()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   } catch (error) {
     if (error instanceof Error) {
       log.error(error.message)

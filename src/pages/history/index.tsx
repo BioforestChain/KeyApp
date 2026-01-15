@@ -1,29 +1,72 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
+import { TransactionItem } from '@/components/transaction/transaction-item';
+import { pendingTxToTransactionInfo } from '@/services/transaction/convert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTransactionHistoryQuery, type TransactionFilter } from '@/queries';
-import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
+import { ChainProviderGate, useChainProvider } from '@/contexts';
+import { useCurrentWallet, useEnabledChains, useSelectedChain, useChainConfigState, chainConfigSelectors } from '@/stores';
+import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
-import type { TransactionInfo } from '@/components/transaction/transaction-item';
+import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
 import type { ChainType } from '@/stores';
+import keyFetch from '@biochain/key-fetch';
+
+/** 交易历史过滤器 */
+interface TransactionFilter {
+  chain?: ChainType | 'all';
+  period?: '7d' | '30d' | '90d' | 'all';
+}
 
 interface TransactionHistoryPageProps {
-  /** 初始链过滤器，'all' 表示全部链 */
   initialChain?: ChainType | 'all' | undefined;
 }
 
-export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageProps) {
+// ==================== 内部内容组件：使用 useChainProvider ====================
+
+interface HistoryContentProps {
+  targetChain: ChainType;
+  address: string;
+  filter: TransactionFilter;
+  setFilter: React.Dispatch<React.SetStateAction<TransactionFilter>>;
+  walletId: string;
+  decimals: number;
+}
+
+function HistoryContent({ targetChain, address, filter, setFilter, walletId, decimals }: HistoryContentProps) {
   const { navigate, goBack } = useNavigation();
-  const currentWallet = useCurrentWallet();
   const enabledChains = useEnabledChains();
-  const selectedChain = useSelectedChain();
   const { t } = useTranslation(['transaction', 'common']);
-  // 使用 TanStack Query 管理交易历史
-  const { transactions, isLoading, isFetching, filter, setFilter, refresh } = useTransactionHistoryQuery(currentWallet?.id);
+
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
+
+  // 直接调用，不需要条件判断
+  const { data: rawTransactions, isLoading, isFetching, refetch } = chainProvider.transactionHistory.useState(
+    { address, limit: 50 },
+    { enabled: !!address }
+  );
+
+  // 获取 pending transactions
+  const {
+    transactions: pendingTransactions,
+    deleteTransaction: deletePendingTx,
+    retryTransaction: retryPendingTx,
+  } = usePendingTransactions(walletId);
+
+  // 客户端过滤：按时间段
+  const transactions = useMemo(() => {
+    if (!rawTransactions) return [];
+    const period = filter.period;
+    if (!period || period === 'all') return rawTransactions;
+
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return rawTransactions.filter((tx) => tx.timestamp >= cutoff);
+  }, [rawTransactions, filter.period]);
 
   const periodOptions = useMemo(() => [
     { value: 'all' as const, label: t('history.filter.allTime') },
@@ -40,53 +83,35 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
     })),
   ], [t, enabledChains]);
 
-  // 初始化时设置过滤器：优先使用传入的 initialChain，否则使用当前选中的网络
-  useEffect(() => {
-    const targetChain = initialChain ?? selectedChain;
-    if (targetChain && filter.chain !== targetChain) {
-      setFilter({ ...filter, chain: targetChain });
-    }
-  }, []);
-
-  // 处理交易点击 - 导航到详情页
+  // 交易点击 - 传递原始交易数据以避免重复网络请求
   const handleTransactionClick = useCallback(
     (tx: TransactionInfo) => {
-      if (!tx.id) {
-        console.warn('[TransactionHistory] Transaction has no id:', tx);
-        return;
-      }
-      navigate({ to: `/transaction/${tx.id}` });
+      if (!tx.id) return;
+      // 从原始数据中找到对应的交易（通过 hash 匹配）
+      const originalTx = rawTransactions?.find(t => t.hash === tx.hash);
+      const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+      navigate({ to: `/transaction/${tx.id}`, search: { txData } });
     },
-    [navigate],
+    [navigate, rawTransactions],
   );
 
-  // 处理链过滤器变化
   const handleChainChange = useCallback(
     (chain: ChainType | 'all') => {
-      setFilter({ ...filter, chain });
+      setFilter((prev) => ({ ...prev, chain }));
     },
-    [filter, setFilter],
+    [setFilter],
   );
 
-  // 处理时间段过滤器变化
   const handlePeriodChange = useCallback(
     (period: TransactionFilter['period']) => {
-      setFilter({ ...filter, period });
+      setFilter((prev) => ({ ...prev, period }));
     },
-    [filter, setFilter],
+    [setFilter],
   );
 
-  // 无钱包时显示提示
-  if (!currentWallet) {
-    return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={t('transaction:history.title')} onBack={goBack} />
-        <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">{t('transaction:history.noWallet')}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleRefresh = useCallback(async () => {
+    await refetch?.();
+  }, [refetch]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -95,7 +120,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
         onBack={goBack}
         rightAction={
           <button
-            onClick={refresh}
+            onClick={handleRefresh}
             disabled={isFetching}
             className={cn(
               'rounded-full p-2 transition-colors',
@@ -166,9 +191,33 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
       </div>
 
       {/* 交易列表 */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 space-y-4 p-4">
+        {/* Pending Transactions */}
+        {pendingTransactions.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wider px-1">
+              {t('pendingTx.title')}
+            </h3>
+            <div className="space-y-1">
+              {pendingTransactions.map((pendingTx) => {
+                const txInfo = pendingTxToTransactionInfo(pendingTx, decimals);
+                return (
+                  <TransactionItem
+                    key={pendingTx.id}
+                    transaction={txInfo}
+                    onClick={() => navigate({ to: `/pending-tx/${pendingTx.id}` })}
+                    onRetry={pendingTx.status === 'failed' ? () => retryPendingTx(pendingTx) : undefined}
+                    onDelete={() => deletePendingTx(pendingTx)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Confirmed Transactions */}
         <TransactionList
-          transactions={transactions}
+          transactions={toTransactionInfoList(transactions ?? [], targetChain)}
           loading={isLoading}
           onTransactionClick={handleTransactionClick}
           emptyTitle={t('transaction:history.emptyTitle')}
@@ -177,5 +226,67 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
         />
       </div>
     </div>
+  );
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageProps) {
+  const { goBack } = useNavigation();
+  const currentWallet = useCurrentWallet();
+  const selectedChain = useSelectedChain();
+  const { t } = useTranslation(['transaction', 'common']);
+  const chainConfigState = useChainConfigState();
+
+  // 过滤器状态（内部管理）
+  const [filter, setFilter] = useState<TransactionFilter>({
+    chain: initialChain ?? selectedChain,
+    period: 'all',
+  });
+
+  // 获取 chainConfig
+  const targetChain = filter.chain === 'all' ? selectedChain : filter.chain;
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, targetChain ?? '')
+    : undefined;
+  // 获取当前链地址
+  const currentChainAddress = currentWallet?.chainAddresses?.find(
+    (ca) => ca.chain === targetChain
+  );
+  const address = currentChainAddress?.address ?? '';
+
+  if (!currentWallet) {
+    return (
+      <div className="bg-muted/30 flex min-h-screen flex-col">
+        <PageHeader title={t('transaction:history.title')} onBack={goBack} />
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground">{t('transaction:history.noWallet')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 使用 ChainProviderGate 包裹内容
+  return (
+    <ChainProviderGate
+      chainId={targetChain}
+      fallback={
+        <div className="bg-muted/30 flex min-h-screen flex-col">
+          <PageHeader title={t('transaction:history.title')} onBack={goBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <HistoryContent
+        targetChain={targetChain as ChainType}
+        address={address}
+        filter={filter}
+        setFilter={setFilter}
+        walletId={currentWallet.id}
+        decimals={chainConfig?.decimals ?? 8}
+      />
+    </ChainProviderGate>
   );
 }

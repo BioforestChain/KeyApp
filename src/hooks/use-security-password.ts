@@ -10,7 +10,7 @@ import {
   securityPasswordActions,
   securityPasswordSelectors,
 } from '@/stores/security-password'
-import { getAddressInfo, verifyTwoStepSecret } from '@/services/bioforest-sdk'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import type { ChainConfig } from '@/services/chain-config'
 
 interface UseSecurityPasswordOptions {
@@ -95,18 +95,16 @@ export function useSecurityPassword({
   const refresh = useCallback(async () => {
     if (!chainConfig || !address) return
 
-    const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
-    const apiUrl = biowallet?.endpoint
-    const apiPath = (biowallet?.config?.path as string | undefined) ?? chainConfig.id
-    if (!apiUrl) {
-      securityPasswordActions.setError(address, 'API URL 未配置')
+    const provider = getChainProvider(chainConfig.id)
+    if (!provider.supportsBioAccountInfo) {
+      securityPasswordActions.setError(address, '该链不支持安全密码')
       return
     }
 
     securityPasswordActions.setLoading(address, true)
 
     try {
-      const info = await getAddressInfo(apiUrl, apiPath, address)
+      const info = await provider.bioGetAccountInfo!(address)
       securityPasswordActions.setPublicKey(address, info.secondPublicKey ?? null)
     } catch (err) {
       const message = err instanceof Error ? err.message : '查询失败'
@@ -118,9 +116,15 @@ export function useSecurityPassword({
   const verify = useCallback(async (mainSecret: string, paySecret: string): Promise<boolean> => {
     if (!chainConfig || !publicKey) return false
 
+    const provider = getChainProvider(chainConfig.id)
+    if (!provider.bioVerifyPayPassword) return false
+
     try {
-      const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
-      return result !== false
+      return await provider.bioVerifyPayPassword({
+        mainSecret,
+        paySecret,
+        publicKey,
+      })
     } catch {
       return false
     }
@@ -174,8 +178,17 @@ export function useSecurityPasswordValidation({
     setIsValidating(true)
     const timer = setTimeout(async () => {
       try {
-        const result = await verifyTwoStepSecret(chainConfig.id, mainSecret, paySecret, publicKey)
-        setIsValid(result !== false)
+        const provider = getChainProvider(chainConfig.id)
+        if (!provider.bioVerifyPayPassword) {
+          setIsValid(false)
+          return
+        }
+        const result = await provider.bioVerifyPayPassword({
+          mainSecret,
+          paySecret,
+          publicKey,
+        })
+        setIsValid(result)
       } catch {
         setIsValid(false)
       } finally {

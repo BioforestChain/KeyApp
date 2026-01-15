@@ -1,6 +1,6 @@
 import { unlinkSync } from 'node:fs'
 import { join } from 'node:path'
-import type { AuditResult, AuditOptions, OrphanedScreenshot, ScreenshotFile, ScreenshotRef } from './types'
+import type { AuditResult, AuditOptions, OrphanedScreenshot } from './types'
 import { findE2eRoot, scanScreenshots, scanSpecFiles } from './scanner'
 import { parseAllSpecs } from './parser'
 

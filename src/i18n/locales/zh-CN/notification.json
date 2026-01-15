@@ -26,6 +26,7 @@
   "clear": "清空",
   "delete": "删除",
   "unread": "未读",
+  "viewDetails": "查看详情",
   "empty": {
     "title": "暂无通知",
     "desc": "您的所有通知都会显示在这里"
@@ -37,5 +38,21 @@
     "daysAgo": "{{count}}天前",
     "today": "今天",
     "yesterday": "昨天"
+  },
+  "pendingTx": {
+    "broadcasted": {
+      "title": "交易已广播",
+      "message": "{{type}} {{amount}} {{symbol}} 已广播，等待确认",
+      "messageSimple": "交易已广播到网络，等待区块确认"
+    },
+    "confirmed": {
+      "title": "交易已确认",
+      "message": "{{type}} {{amount}} {{symbol}} 已成功上链",
+      "messageSimple": "交易已成功确认上链"
+    },
+    "failed": {
+      "title": "交易失败",
+      "message": "广播失败，请重试"
+    }
   }
 }

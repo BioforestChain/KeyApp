@@ -1,28 +1,18 @@
 /**
  * BioForest chain-specific burn (destroy asset) logic
+ * 
+ * 已完全迁移到 ChainProvider，不再直接依赖 bioforest-sdk
  */
 
 import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import {
-  createDestroyTransaction,
-  broadcastTransaction,
-  getAddressInfo,
-  getAssetDetail,
-  getDestroyTransactionMinFee,
-  verifyTwoStepSecret,
-} from '@/services/bioforest-sdk'
-import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
+import { getChainProvider } from '@/services/chain-adapter/providers'
+import { pendingTxService } from '@/services/transaction'
 
 export interface BioforestBurnFeeResult {
   amount: Amount
   symbol: string
-}
-
-function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
-  const biowallet = chainConfig.apis.find((p) => p.type === 'biowallet-v1')
-  return biowallet?.endpoint ?? null
 }
 
 /**
@@ -33,10 +23,13 @@ export async function fetchAssetApplyAddress(
   assetType: string,
   fromAddress: string,
 ): Promise<string | null> {
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) return null
+  const provider = getChainProvider(chainConfig.id)
 
-  const detail = await getAssetDetail(apiUrl, assetType, fromAddress)
+  if (!provider.bioGetAssetDetail) {
+    return null
+  }
+
+  const detail = await provider.bioGetAssetDetail(assetType, fromAddress)
   return detail?.applyAddress ?? null
 }
 
@@ -48,8 +41,9 @@ export async function fetchBioforestBurnFee(
   assetType: string,
   amount: string,
 ): Promise<BioforestBurnFeeResult> {
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
+  const provider = getChainProvider(chainConfig.id)
+
+  if (!provider.buildTransaction || !provider.estimateFee) {
     // Fallback fee
     return {
       amount: Amount.fromRaw('1000', chainConfig.decimals, chainConfig.symbol),
@@ -58,13 +52,21 @@ export async function fetchBioforestBurnFee(
   }
 
   try {
-    const feeRaw = await getDestroyTransactionMinFee(apiUrl, chainConfig.id, assetType, amount)
+    // 使用伪地址构建交易估算费用
+    const unsignedTx = await provider.buildTransaction({
+      type: 'destroy',
+      from: '0x0000000000000000000000000000000000000000',
+      recipientId: '0x0000000000000000000000000000000000000000',
+      bioAssetType: assetType,
+      amount: Amount.fromRaw(amount, chainConfig.decimals, chainConfig.symbol),
+    })
+    const feeEstimate = await provider.estimateFee(unsignedTx)
+
     return {
-      amount: Amount.fromRaw(feeRaw, chainConfig.decimals, chainConfig.symbol),
+      amount: feeEstimate.standard.amount,
       symbol: chainConfig.symbol,
     }
-  } catch (error) {
-    console.warn('[fetchBioforestBurnFee] Failed to get fee:', error)
+  } catch {
     return {
       amount: Amount.fromRaw('1000', chainConfig.decimals, chainConfig.symbol),
       symbol: chainConfig.symbol,
@@ -73,10 +75,10 @@ export async function fetchBioforestBurnFee(
 }
 
 export type SubmitBioforestBurnResult =
-  | { status: 'ok'; txHash: string }
+  | { status: 'ok'; txHash: string; pendingTxId: string }
   | { status: 'password' }
   | { status: 'password_required'; secondPublicKey: string }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string; pendingTxId?: string }
 
 export interface SubmitBioforestBurnParams {
   chainConfig: ChainConfig
@@ -101,7 +103,7 @@ export async function submitBioforestBurn({
   recipientAddress,
   assetType,
   amount,
-  fee,
+  fee: _fee,
   twoStepSecret,
 }: SubmitBioforestBurnParams): Promise<SubmitBioforestBurnResult> {
   // Get mnemonic from wallet storage
@@ -122,79 +124,94 @@ export async function submitBioforestBurn({
     return { status: 'error', message: '请输入有效金额' }
   }
 
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
-    return { status: 'error', message: 'API URL 未配置' }
+  const provider = getChainProvider(chainConfig.id)
+
+  // 检查 provider 是否支持完整交易流程
+  if (!provider.supportsFullTransaction) {
+    return { status: 'error', message: '该链不支持完整交易流程' }
   }
 
   try {
-    console.log('[submitBioforestBurn] Starting destroy:', { 
-      apiUrl, 
-      fromAddress, 
-      recipientAddress, 
-      assetType,
-      amount: amount.toRawString() 
-    })
-    
     // Check if pay password is required but not provided
-    const addressInfo = await getAddressInfo(apiUrl, fromAddress)
-    console.log('[submitBioforestBurn] Address info:', { hasSecondPubKey: !!addressInfo.secondPublicKey })
-    
-    if (addressInfo.secondPublicKey && !twoStepSecret) {
-      console.log('[submitBioforestBurn] Pay password required')
-      return {
-        status: 'password_required',
-        secondPublicKey: addressInfo.secondPublicKey,
+    let secondPublicKey: string | null = null
+    if (provider.bioGetAccountInfo) {
+      const accountInfo = await provider.bioGetAccountInfo(fromAddress)
+      secondPublicKey = accountInfo.secondPublicKey
+
+      if (secondPublicKey && !twoStepSecret) {
+        return {
+          status: 'password_required',
+          secondPublicKey,
+        }
+      }
+
+      // Verify pay password if provided
+      if (twoStepSecret && secondPublicKey && provider.bioVerifyPayPassword) {
+        const isValid = await provider.bioVerifyPayPassword({
+          mainSecret: secret,
+          paySecret: twoStepSecret,
+          publicKey: secondPublicKey,
+        })
+
+        if (!isValid) {
+          return { status: 'error', message: '安全密码验证失败' }
+        }
       }
     }
 
-    // Verify pay password if provided
-    if (twoStepSecret && addressInfo.secondPublicKey) {
-      console.log('[submitBioforestBurn] Verifying pay password...')
-      const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
-      console.log('[submitBioforestBurn] Pay password verification result:', isValid)
-      if (!isValid) {
-        return { status: 'error', message: '安全密码验证失败' }
-      }
-    }
-
-    // Create destroy transaction using SDK
-    console.log('[submitBioforestBurn] Creating transaction...')
-    const transaction = await createDestroyTransaction({
-      baseUrl: apiUrl,
-      chainId: chainConfig.id,
-      mainSecret: secret,
-      paySecret: twoStepSecret,
+    // Build unsigned transaction using ChainProvider
+    const unsignedTx = await provider.buildTransaction!({
+      type: 'destroy',
       from: fromAddress,
       recipientId: recipientAddress,
-      assetType,
-      amount: amount.toRawString(),
-      fee: fee?.toRawString(),
+      amount,
+      bioAssetType: assetType,
     })
-    const txHash = transaction.signature
-    console.log('[submitBioforestBurn] Transaction created:', txHash?.slice(0, 20))
+
+    // Sign transaction
+    const signedTx = await provider.signTransaction!(unsignedTx, {
+      privateKey: new TextEncoder().encode(secret),
+      bioSecret: secret,
+      bioPaySecret: twoStepSecret,
+    })
+
+    // 存储到 pendingTxService（使用 ChainProvider 标准格式）
+    const pendingTx = await pendingTxService.create({
+      walletId,
+      chainId: chainConfig.id,
+      fromAddress,
+      rawTx: signedTx,
+      meta: {
+        type: 'destroy',
+        displayAmount: amount.toFormatted(),
+        displaySymbol: assetType,
+        displayToAddress: recipientAddress,
+      },
+    })
 
     // Broadcast transaction
-    console.log('[submitBioforestBurn] Broadcasting...')
+    await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
+
     try {
-      await broadcastTransaction(apiUrl, transaction)
-      console.log('[submitBioforestBurn] SUCCESS! txHash:', txHash)
-      return { status: 'ok', txHash }
+      const broadcastTxHash = await provider.broadcastTransaction!(signedTx)
+
+      await pendingTxService.updateStatus({
+        id: pendingTx.id,
+        status: 'broadcasted',
+        txHash: broadcastTxHash,
+      })
+      return { status: 'ok', txHash: broadcastTxHash, pendingTxId: pendingTx.id }
     } catch (err) {
-      console.error('[submitBioforestBurn] Broadcast failed:', err)
-      if (err instanceof BroadcastError) {
-        return { status: 'error', message: translateBroadcastError(err) }
-      }
-      throw err
+      const error = err as Error
+      await pendingTxService.updateStatus({
+        id: pendingTx.id,
+        status: 'failed',
+        errorCode: 'BROADCAST_FAILED',
+        errorMessage: error.message,
+      })
+      return { status: 'error', message: error.message, pendingTxId: pendingTx.id }
     }
   } catch (error) {
-    console.error('[submitBioforestBurn] FAILED:', error)
-
-    // Handle BroadcastError
-    if (error instanceof BroadcastError) {
-      return { status: 'error', message: translateBroadcastError(error) }
-    }
-
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     return {

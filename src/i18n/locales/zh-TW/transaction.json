@@ -263,6 +263,8 @@
   "tronNetworkFeeLongTips_1": "網絡費用會根據網絡情況有所不同，一旦交易確認，無論交易成功與否，費用均不退還。",
   "tronNetworkFeeLongTips_2": "網絡費用是由TRON網絡收取， BFM Pay不會收取任何費用！",
   "txStatus": {
+    "created": "待廣播",
+    "createdDesc": "交易已創建，等待廣播...",
     "broadcasted": "广播成功",
     "broadcastedDesc": "交易已广播，等待区块确认...",
     "broadcasting": "广播中",
@@ -302,6 +304,21 @@
     "swap": "Swap",
     "trust": "发起委托",
     "unstake": "解押"
+  },
+  "pendingTx": {
+    "title": "待處理交易",
+    "broadcasting": "廣播中",
+    "broadcasted": "等待上鏈",
+    "failed": "廣播失敗",
+    "retry": "重試",
+    "delete": "刪除",
+    "retryCount": "重試次數"
+  },
+  "broadcast": {
+    "assetNotEnough": "資產餘額不足",
+    "feeNotEnough": "手續費不足",
+    "rejected": "交易被拒絕",
+    "unknown": "廣播失敗，請稍後重試"
   },
   "unstake": "[MISSING:zh-TW] 解押",
   "viewTransactionDetails": "查看交易詳情",

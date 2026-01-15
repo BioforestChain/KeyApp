@@ -54,10 +54,8 @@ function resolveChainId(chain: string | undefined): string | undefined {
   return normalized
 }
 
-/** Get display name for chain ID */
-function getChainDisplayName(chainId: string): string {
-  return CHAIN_DISPLAY_NAMES[chainId] || chainId
-}
+// Utility function for chain display names (currently unused - using direct chain IDs)
+// function __getChainDisplayName(chainId: string): string { return CHAIN_DISPLAY_NAMES[chainId] || chainId }
 
 function WalletPickerJobContent() {
   const { t } = useTranslation('common')
@@ -73,28 +71,30 @@ function WalletPickerJobContent() {
   // 转换钱包数据为 WalletListItem 格式，并过滤排除的地址
   const walletItems = useMemo((): WalletListItem[] => {
     const excludeLower = exclude?.toLowerCase()
-    return walletState.wallets
-      .map((wallet) => {
-        const chainAddress = chain
-          ? wallet.chainAddresses.find((ca) => ca.chain === chain)
-          : wallet.chainAddresses[0]
+    const items: WalletListItem[] = []
 
-        if (!chainAddress) return null
+    for (const wallet of walletState.wallets) {
+      const chainAddress = chain
+        ? wallet.chainAddresses.find((ca) => ca.chain === chain)
+        : wallet.chainAddresses[0]
 
-        // 过滤排除的地址
-        if (excludeLower && chainAddress.address.toLowerCase() === excludeLower) {
-          return null
-        }
+      if (!chainAddress) continue
 
-        return {
-          id: wallet.id,
-          name: wallet.name,
-          address: chainAddress.address,
-          themeHue: wallet.themeHue,
-          chainIconUrl: undefined, // TODO: 从链配置获取图标
-        }
+      // 过滤排除的地址
+      if (excludeLower && chainAddress.address.toLowerCase() === excludeLower) {
+        continue
+      }
+
+      items.push({
+        id: wallet.id,
+        name: wallet.name,
+        address: chainAddress.address,
+        themeHue: wallet.themeHue,
+        chainIconUrl: undefined, // TODO: 从链配置获取图标
       })
-      .filter((item): item is WalletListItem => item !== null)
+    }
+
+    return items
   }, [walletState.wallets, chain, exclude])
 
   // 保存钱包到链地址的映射

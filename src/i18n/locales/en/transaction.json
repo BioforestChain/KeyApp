@@ -151,7 +151,9 @@
     "toAddress": "To Address",
     "viewExplorer": "View in Explorer",
     "openInExplorer": "Open in Explorer",
-    "share": "Share"
+    "share": "Share",
+    "confirmedBlockHeight": "Confirmed Block",
+    "confirmedAt": "Confirmed At"
   },
   "method": {
     "approve": "Approve",
@@ -296,23 +298,34 @@
     "belowMinFee": "Fee cannot be lower than minimum fee {{minFee}} {{symbol}}"
   },
   "txStatus": {
+    "created": "Pending Broadcast",
     "broadcasting": "Broadcasting",
     "broadcasted": "Broadcast Successful",
     "confirming": "Awaiting Confirmation",
     "confirmed": "Transaction Confirmed",
     "failed": "Transaction Failed",
+    "createdDesc": "Transaction created, waiting to broadcast...",
     "broadcastingDesc": "Broadcasting transaction to the network...",
     "broadcastedDesc": "Transaction broadcasted, awaiting block confirmation...",
     "confirmingDesc": "Waiting for block confirmation...",
     "confirmedDesc": "Transaction has been confirmed on chain",
     "failedDesc": "Transaction failed, please try again later",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "autoCloseIn": "Auto-closing in {{seconds}}s",
+    "closeIn": "Close ({{seconds}}s)"
   },
   "broadcast": {
     "assetNotEnough": "Insufficient asset balance",
     "feeNotEnough": "Insufficient fee",
     "rejected": "Transaction rejected",
-    "unknown": "Broadcast failed, please try again"
+    "unknown": "Broadcast failed, please try again",
+    "alreadyExists": "Transaction already exists",
+    "forbidden": "Operation forbidden",
+    "assetNotExist": "Asset does not exist",
+    "invalidParams": "Invalid parameters",
+    "accountFrozen": "Account is frozen",
+    "timeout": "Broadcast timeout, please retry",
+    "failed": "Broadcast failed"
   },
   "pendingTx": {
     "title": "Pending Transactions",
@@ -320,6 +333,10 @@
     "broadcasted": "Awaiting confirmation",
     "failed": "Broadcast failed",
     "retry": "Retry",
-    "delete": "Delete"
+    "delete": "Delete",
+    "retryCount": "Retry count",
+    "waitingFor": "Waiting for {{seconds}}s",
+    "viewAll": "View all {{count}} pending transactions",
+    "clearAllFailed": "Clear failed"
   }
 }

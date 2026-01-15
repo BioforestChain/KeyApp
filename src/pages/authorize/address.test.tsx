@@ -60,11 +60,11 @@ function parseSearchParams(url: string): Record<string, string> {
 function renderWithParams(initialEntry: string) {
   const [path = ''] = initialEntry.split('?')
   const searchParams = parseSearchParams(initialEntry)
-  
+
   // Extract id from path like /authorize/address/test-event
   const pathMatch = path.match(/\/authorize\/address\/([^/]+)/)
   const id = pathMatch?.[1] || ''
-  
+
   mockActivityParams = {
     id,
     type: searchParams.type || 'main',
@@ -124,7 +124,7 @@ describe('AddressAuthPage', () => {
       chain: 'ethereum',
       themeHue: 323,
       chainAddresses: [
-        { chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] },
+        { chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', publicKey: '0x04abc', tokens: [] },
       ],
     })
 
@@ -163,7 +163,7 @@ describe('AddressAuthPage', () => {
       chain: 'ethereum',
       themeHue: 323,
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', publicKey: '0x04abc', tokens: [] }],
     })
 
     renderWithParams('/authorize/address/test-event?type=main&signMessage=hello')
@@ -211,7 +211,7 @@ describe('AddressAuthPage', () => {
       chain: 'ethereum',
       themeHue: 323,
       encryptedMnemonic,
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', publicKey: '0x04abc', tokens: [] }],
     })
 
     renderWithParams('/authorize/address/test-event?type=main&getMain=true')
@@ -255,7 +255,7 @@ describe('AddressAuthPage', () => {
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
       themeHue: 323,
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', publicKey: '0x04abc', tokens: [] }],
     })
 
     renderWithParams('/authorize/address/test-event?type=main')
@@ -286,7 +286,7 @@ describe('AddressAuthPage', () => {
       address: '0x1234567890abcdef1234567890abcdef12345678',
       chain: 'ethereum',
       themeHue: 323,
-      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', tokens: [] }],
+      chainAddresses: [{ chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678', publicKey: '0x04abc', tokens: [] }],
     })
 
     renderWithParams('/authorize/address/test-event?type=main')
@@ -296,7 +296,7 @@ describe('AddressAuthPage', () => {
     expect(timeoutCall).toBeDefined()
     const timeoutCb = timeoutCall?.[0]
     expect(typeof timeoutCb).toBe('function')
-    ;(timeoutCb as () => void)()
+      ; (timeoutCb as () => void)()
 
     await Promise.resolve()
     await Promise.resolve()

@@ -1,5 +1,5 @@
 import { readdirSync, statSync, existsSync } from 'node:fs'
-import { join, relative, basename, dirname } from 'node:path'
+import { join, relative } from 'node:path'
 import type { ScreenshotFile } from './types'
 
 export function findE2eRoot(cwd: string): string | null {

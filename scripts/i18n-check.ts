@@ -55,7 +55,7 @@ const log = {
 
 // ==================== Types ====================
 
-type TranslationValue = string | Record<string, TranslationValue>
+type TranslationValue = string | { [key: string]: TranslationValue }
 type TranslationFile = Record<string, TranslationValue>
 
 interface KeyDiff {

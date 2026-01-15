@@ -4,27 +4,27 @@ import { loadChainConfigs, loadSubscriptionMeta, saveChainConfigs, saveSubscript
 
 export type FetchSubscriptionResult =
   | {
-      status: 'skipped'
-      reason: 'default'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'skipped'
+    reason: 'default'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
   | {
-      status: 'not_modified'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'not_modified'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
   | {
-      status: 'updated'
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription
-    }
+    status: 'updated'
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription
+  }
   | {
-      status: 'error'
-      error: string
-      configs: ChainConfig[]
-      meta: ChainConfigSubscription | null
-    }
+    status: 'error'
+    error: string
+    configs: ChainConfig[]
+    meta: ChainConfigSubscription | null
+  }
 
 const REQUEST_TIMEOUT = 10_000
 
@@ -39,13 +39,14 @@ export function parseAndValidate(json: unknown): ChainConfig[] {
     throw new Error(firstIssue?.message ?? 'Invalid subscription chain config')
   }
 
-  const list = Array.isArray(json) ? parsed.data : [parsed.data]
+  // Normalize to array - parsed.data is correctly typed after success check
+  const configs = (Array.isArray(json) ? parsed.data : [parsed.data]) as ChainConfig[]
 
-  return list.map((c) => ({
+  return configs.map((c) => ({
     ...c,
-    source: 'subscription',
+    source: 'subscription' as const,
     enabled: true,
-  }))
+  })) as ChainConfig[]
 }
 
 export function mergeWithExisting(fetched: ChainConfig[], cached: ChainConfig[]): ChainConfig[] {

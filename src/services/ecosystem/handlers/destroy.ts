@@ -2,12 +2,12 @@
  * Destroy asset method handlers
  */
 
-import type { MethodHandler, DestroyParams } from '../types'
+import type { MethodHandler, EcosystemDestroyParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo } from './context'
 
 // 兼容旧 API
-let _showDestroyDialog: ((params: DestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
+let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setDestroyDialog(dialog: typeof _showDestroyDialog): void {
@@ -22,7 +22,7 @@ function getDestroyDialog(appId: string) {
 
 /** bio_destroyAsset - Destroy an asset (BioForest chains only) */
 export const handleDestroyAsset: MethodHandler = async (params, context) => {
-  const opts = params as Partial<DestroyParams> | undefined
+  const opts = params as Partial<EcosystemDestroyParams> | undefined
   if (!opts?.from || !opts?.amount || !opts?.chain || !opts?.asset) {
     throw Object.assign(
       new Error('Missing required parameters: from, amount, chain, asset'),
@@ -35,7 +35,7 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Destroy dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const destroyParams: DestroyParams & { app: MiniappInfo } = {
+  const destroyParams: EcosystemDestroyParams & { app: MiniappInfo } = {
     from: opts.from,
     amount: opts.amount,
     chain: opts.chain,

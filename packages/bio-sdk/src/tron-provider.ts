@@ -102,7 +102,7 @@ export class TronLinkProvider {
 
   private postMessage(message: RequestMessage): void {
     if (window.parent === window) {
-      console.warn('[TronLinkProvider] Not running in iframe, cannot communicate with host')
+      
       return
     }
     window.parent.postMessage(message, this.targetOrigin)
@@ -295,7 +295,7 @@ export function initTronProvider(targetOrigin = '*'): { tronLink: TronLinkProvid
   }
 
   if (window.tronLink && window.tronWeb) {
-    console.warn('[TronProvider] Providers already exist, returning existing instances')
+    
     return { tronLink: window.tronLink, tronWeb: window.tronWeb }
   }
 
@@ -305,6 +305,6 @@ export function initTronProvider(targetOrigin = '*'): { tronLink: TronLinkProvid
   window.tronLink = tronLink
   window.tronWeb = tronWeb
 
-  console.log('[TronProvider] Providers initialized')
+  
   return { tronLink, tronWeb }
 }

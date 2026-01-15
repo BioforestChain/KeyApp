@@ -57,6 +57,7 @@ const mockAssetTypeList = {
 // Setup mock fetch
 const setupMockFetch = () => {
   const originalFetch = window.fetch
+  // @ts-expect-error - mock fetch for storybook
   window.fetch = async (url: RequestInfo | URL) => {
     const urlStr = url.toString()
     if (urlStr.includes('/transmit/assetTypeList')) {

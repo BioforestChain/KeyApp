@@ -127,7 +127,7 @@ const AddressInput = forwardRef<HTMLInputElement, AddressInputProps>(
         onPaste?.();
         inputRef.current?.focus();
       } catch {
-        console.error('Failed to read clipboard');
+        
       }
     };
 
