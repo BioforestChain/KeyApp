@@ -113,27 +113,37 @@ function SendPageContent() {
     };
   }, [chainConfig, tokens, initialAssetType]);
 
-  // useSend hook must be called before any code that references state/setAsset
-  const { state, setToAddress, setAmount, setAsset, setFee, updateAssetBalance, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
+  // getBalance callback - single source of truth from tokens
+  const getBalance = useCallback((assetType: string): Amount | null => {
+    const token = tokens.find(t => t.symbol === assetType);
+    if (!token) return null;
+    return Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol);
+  }, [tokens, chainConfig?.decimals]);
+
+  // useSend hook with getBalance for real-time balance validation
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
     initialAsset: initialAsset ?? undefined,
     useMock: false,
     walletId: currentWallet?.id,
     fromAddress: currentChainAddress?.address,
     chainConfig,
+    getBalance,
   });
 
   // Selected token for AssetSelector (convert from state.asset)
   const selectedToken = useMemo((): TokenInfo | null => {
     if (!state.asset) return null;
+    // Use balance from tokens (single source of truth)
+    const currentBalance = getBalance(state.asset.assetType);
     return {
       symbol: state.asset.assetType,
       name: state.asset.name ?? state.asset.assetType,
-      balance: state.asset.amount.toFormatted(),
+      balance: currentBalance?.toFormatted() ?? state.asset.amount.toFormatted(),
       decimals: state.asset.decimals,
       chain: selectedChain,
       icon: state.asset.logoUrl,
     };
-  }, [state.asset, selectedChain]);
+  }, [state.asset, selectedChain, getBalance]);
 
   // Handle asset selection from AssetSelector
   const handleAssetSelect = useCallback((token: TokenInfo) => {
@@ -148,28 +158,14 @@ function SendPageContent() {
   }, [chainConfig?.decimals, setAsset]);
 
   // Sync initialAsset to useSend state only once (when first loading)
-  // Don't overwrite user's selection when tokens refresh
   const hasInitializedAsset = useRef(false);
   useEffect(() => {
     if (!initialAsset) return;
-    // Only set asset if user hasn't made a selection yet
     if (!hasInitializedAsset.current && !state.asset) {
       setAsset(initialAsset);
       hasInitializedAsset.current = true;
     }
   }, [initialAsset, setAsset, state.asset]);
-
-  // Sync selected asset's balance when tokens refresh (single source of truth: tokens)
-  useEffect(() => {
-    if (!state.asset || tokens.length === 0) return;
-    const updatedToken = tokens.find(t => t.symbol === state.asset?.assetType);
-    if (updatedToken) {
-      const newBalance = Amount.fromFormatted(updatedToken.balance, updatedToken.decimals ?? state.asset.decimals, state.asset.assetType);
-      if (!newBalance.eq(state.asset.amount)) {
-        updateAssetBalance(newBalance);
-      }
-    }
-  }, [tokens, state.asset, updateAssetBalance]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
@@ -207,8 +203,15 @@ function SendPageContent() {
     push('ContactPickerJob', { chainType: selectedChain });
   }, [push, selectedChain]);
 
-  // Derive formatted values for display
-  const balance = state.asset?.amount ?? null;
+  // Derive formatted values for display - get balance from tokens (single source of truth)
+  const currentToken = useMemo(() =>
+    state.asset ? tokens.find(t => t.symbol === state.asset?.assetType) : null,
+    [state.asset, tokens]
+  );
+  const balance = useMemo(() =>
+    currentToken ? Amount.fromFormatted(currentToken.balance, currentToken.decimals ?? state.asset?.decimals ?? 8, currentToken.symbol) : null,
+    [currentToken, state.asset?.decimals]
+  );
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
   const handleOpenScanner = useCallback(() => {

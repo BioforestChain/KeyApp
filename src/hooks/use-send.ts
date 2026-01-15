@@ -12,7 +12,7 @@ import { submitMockTransfer } from './use-send.mock'
  * Hook for managing send flow state
  */
 export function useSend(options: UseSendOptions = {}): UseSendReturn {
-  const { initialAsset, useMock = true, walletId, fromAddress, chainConfig } = options
+  const { initialAsset, useMock = true, walletId, fromAddress, chainConfig, getBalance } = options
 
   const [state, setState] = useState<SendState>({
     ...initialState,
@@ -62,18 +62,6 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return {
         ...prev,
         feeAmount: newFeeAmount,
-      }
-    })
-  }, [])
-
-  // Update asset balance without re-estimating fee
-  // This is used when tokens refresh to sync latest balance
-  const updateAssetBalance = useCallback((balance: Amount) => {
-    setState((prev) => {
-      if (!prev.asset) return prev
-      return {
-        ...prev,
-        asset: { ...prev.asset, amount: balance },
       }
     })
   }, [])
@@ -128,21 +116,33 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     })()
   }, [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock])
 
+  // Get current balance from external source (single source of truth)
+  const currentBalance = useMemo(() => {
+    if (!state.asset?.assetType || !getBalance) return state.asset?.amount ?? null
+    return getBalance(state.asset.assetType) ?? state.asset?.amount ?? null
+  }, [state.asset?.assetType, state.asset?.amount, getBalance])
+
+  // Create asset with current balance for validation
+  const assetWithCurrentBalance = useMemo((): AssetInfo | null => {
+    if (!state.asset || !currentBalance) return state.asset
+    return { ...state.asset, amount: currentBalance }
+  }, [state.asset, currentBalance])
+
   // Check if can proceed
   const canProceed = useMemo(() => {
     return canProceedToConfirm({
       toAddress: state.toAddress,
       amount: state.amount,
-      asset: state.asset,
+      asset: assetWithCurrentBalance,
       isBioforestChain,
       feeLoading: state.feeLoading,
     })
-  }, [isBioforestChain, state.amount, state.asset, state.toAddress, state.feeLoading])
+  }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeLoading])
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
     const addressError = validateAddress(state.toAddress)
-    const amountError = state.asset ? validateAmount(state.amount, state.asset) : '请选择资产'
+    const amountError = assetWithCurrentBalance ? validateAmount(state.amount, assetWithCurrentBalance) : '请选择资产'
 
     if (addressError || amountError) {
       setState((prev) => ({
@@ -153,8 +153,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       return false
     }
 
-    if (state.asset && state.feeAmount && state.amount) {
-      const adjustResult = adjustAmountForFee(state.amount, state.asset, state.feeAmount)
+    if (assetWithCurrentBalance && state.feeAmount && state.amount) {
+      const adjustResult = adjustAmountForFee(state.amount, assetWithCurrentBalance, state.feeAmount)
       if (adjustResult.status === 'error') {
         setState((prev) => ({
           ...prev,
@@ -177,7 +177,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amountError: null,
     }))
     return true
-  }, [state.toAddress, state.amount, state.asset, state.feeAmount, validateAddress, validateAmount])
+  }, [state.toAddress, state.amount, assetWithCurrentBalance, state.feeAmount, validateAddress, validateAmount])
 
   // Go back to input
   const goBack = useCallback(() => {
@@ -485,7 +485,6 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     setAmount,
     setAsset,
     setFee,
-    updateAssetBalance,
     goToConfirm,
     goBack,
     submit,
