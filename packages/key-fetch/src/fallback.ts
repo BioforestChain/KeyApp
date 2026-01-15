@@ -44,8 +44,8 @@ export class NoSupportError extends Error {
     }
 }
 
-/** Merge 选项 */
-export interface MergeOptions<S extends AnyZodSchema, P extends AnyZodSchema> {
+/** Fallback 选项 */
+export interface FallbackOptions<S extends AnyZodSchema, P extends AnyZodSchema> {
     /** 合并后的名称 */
     name: string
     /** 源 fetcher 数组（可以是空数组） */
@@ -57,14 +57,14 @@ export interface MergeOptions<S extends AnyZodSchema, P extends AnyZodSchema> {
 }
 
 /**
- * 合并多个 KeyFetchInstance
+ *  提供 KeyFetchInstance，一个出错自动使用下一个来回退
  * 
  * - 如果 sources 为空，调用 onEmpty（默认抛出 NoSupportError）
  * - 如果某个 source 失败，自动尝试下一个
  * - 如果全部失败，调用 onAllFailed（默认抛出 AggregateError）
  */
-export function merge<S extends AnyZodSchema, P extends AnyZodSchema>(
-    options: MergeOptions<S, P>
+export function fallback<S extends AnyZodSchema, P extends AnyZodSchema>(
+    options: FallbackOptions<S, P>
 ): KeyFetchInstance<S, P> {
     const { name, sources, onEmpty, onAllFailed } = options
 

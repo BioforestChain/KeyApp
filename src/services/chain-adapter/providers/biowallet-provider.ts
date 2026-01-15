@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, postBody, interval, deps } from '@biochain/key-fetch'
+import { keyFetch, ttl, derive, transform, postBody, interval, deps, combine } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action } from './types'
 import {

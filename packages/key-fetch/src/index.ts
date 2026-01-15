@@ -96,8 +96,13 @@ export type { KeyFetchDeriveOptions } from './derive'
 
 // ==================== 导出 Merge 工具 ====================
 
-export { merge, NoSupportError } from './merge'
-export type { MergeOptions } from './merge'
+export { fallback as merge, NoSupportError } from './merge'
+export type { FallbackOptions as MergeOptions } from './merge'
+
+// ==================== 导出 Combine 工具 ====================
+
+export { combine } from './combine'
+export type { CombineOptions } from './combine'
 
 // ==================== React Hooks（内部注入）====================
 // 注意：不直接导出 useKeyFetch
@@ -123,7 +128,7 @@ async function parseBody<T>(input: Request | Response): Promise<T> {
 
 // ==================== 主 API ====================
 
-import { merge as mergeImpl } from './merge'
+import { fallback as mergeImpl } from './merge'
 
 /**
  * KeyFetch 命名空间
