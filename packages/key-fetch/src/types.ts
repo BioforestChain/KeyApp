@@ -72,6 +72,8 @@ export interface MiddlewareContext<P extends FetchParams = FetchParams> {
   superjson: typeof import('superjson').default
   /** 创建包含序列化数据的 Response 对象（自动添加 X-Superjson: true 头） */
   createResponse: <T>(data: T, init?: ResponseInit) => Response
+  /** 创建包含序列化数据的 Request 对象（自动添加 X-Superjson: true 头） */
+  createRequest: <T>(data: T, url?: string, init?: RequestInit) => Request
   /** 解析 Request/Response body（根据 X-Superjson 头自动选择 superjson.parse 或 JSON.parse） */
   body: <T>(input: Request | Response) => Promise<T>
 }

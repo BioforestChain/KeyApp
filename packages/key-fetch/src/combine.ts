@@ -26,6 +26,7 @@
  * ```
  */
 
+import { z } from 'zod'
 import type {
     KeyFetchInstance,
     AnyZodSchema,
@@ -48,6 +49,13 @@ export interface CombineOptions<
     use?: FetchPlugin[]
 }
 
+/** 从 Sources 推导出组合的 params 类型 */
+type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<any, any>>> = {
+    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<any, infer P>
+    ? (P extends AnyZodSchema ? z.infer<P> : never)
+    : never
+}
+
 /**
  * 合并多个 KeyFetchInstance 的结果
  * 
@@ -61,7 +69,7 @@ export function combine<
     Sources extends Record<string, KeyFetchInstance<any, any>>
 >(
     options: CombineOptions<S, Sources>
-): KeyFetchInstance<S, any> {
+): KeyFetchInstance<S, z.ZodType<InferCombinedParams<Sources>>> {
     const { name, schema, sources, use = [] } = options
 
     const sourceKeys = Object.keys(sources)
@@ -91,7 +99,7 @@ export function combine<
             // 组合为 object
             const combined = Object.fromEntries(results)
 
-            // 返回 Response（使用 context.createResponse）
+            // 直接返回 Response，让后续插件（如 transform）处理
             return context.createResponse(combined)
         },
         onSubscribe: (context) => {
@@ -111,13 +119,26 @@ export function combine<
         },
     }
 
-    // 使用 keyFetch.create 创建实例，插件顺序：combinePlugin -> 用户插件
+    // 创建组合的 paramsSchema：{ sourceKey1: schema1, sourceKey2: schema2 }
+    const combinedParamsShape: Record<string, AnyZodSchema> = {}
+    for (const key of sourceKeys) {
+        const sourceParamsSchema = sources[key].paramsSchema
+        if (sourceParamsSchema) {
+            combinedParamsShape[key] = sourceParamsSchema
+        }
+    }
+    const combinedParamsSchema = Object.keys(combinedParamsShape).length > 0
+        ? z.object(combinedParamsShape as any)
+        : undefined
+
+    // 使用 keyFetch.create 创建实例
     return keyFetch.create({
         name,
         schema,
-        // paramsSchema 从 sources 推导，这里不传
+        paramsSchema: combinedParamsSchema,
         url,
         method: 'GET',
-        use: [combinePlugin, ...use],
-    })
+        // 用户插件在前，combinePlugin 在后，这样 transform 可以处理 combined 结果
+        use: [...use, combinePlugin],
+    }) as KeyFetchInstance<S, z.ZodType<InferCombinedParams<Sources>>>
 }

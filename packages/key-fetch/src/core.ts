@@ -114,6 +114,19 @@ class KeyFetchInstanceImpl<
           },
         })
       },
+      // 创建带 X-Superjson 头的 Request
+      createRequest: <T>(data: T, url?: string, init?: RequestInit) => {
+        return new Request(url ?? baseRequest.url, {
+          ...init,
+          method: init?.method ?? 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Superjson': 'true',
+            ...init?.headers,
+          },
+          body: superjson.stringify(data),
+        })
+      },
       // 根据 X-Superjson 头自动选择解析方式
       body: async <T>(input: Request | Response): Promise<T> => {
         const text = await input.text()
