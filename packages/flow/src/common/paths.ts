@@ -29,7 +29,6 @@ export const DEFAULT_USER_PROMPTS_DIR = join(DEFAULT_USER_DIR, "prompts");
 export type Runtime = "node" | "bun" | "deno" | "unknown";
 
 export function detectRuntime(): Runtime {
-  // @ts-expect-error Bun global
   if (typeof Bun !== "undefined") return "bun";
   // @ts-expect-error Deno global
   if (typeof Deno !== "undefined") return "deno";
@@ -109,10 +108,10 @@ export function getWorkflowPath(name: string): string {
 
 export type McpServerConfig =
   | {
-      type?: "stdio";
-      command: string;
-      args?: string[];
-      env?: Record<string, string>;
-    }
+    type?: "stdio";
+    command: string;
+    args?: string[];
+    env?: Record<string, string>;
+  }
   | { type: "http"; url: string; headers?: Record<string, string> }
   | { type: "sse"; url: string; headers?: Record<string, string> };
