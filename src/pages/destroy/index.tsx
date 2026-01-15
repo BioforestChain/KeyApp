@@ -18,15 +18,15 @@ import { useToast, useHaptics } from '@/services'
 import { useBurn } from '@/hooks/use-burn'
 import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
-import { toTokenInfo, toTokenInfoList, type TokenInfo } from '@/components/token'
+import { tokenBalancesToTokenInfoList, type TokenInfo } from '@/components/token'
 import { IconFlame } from '@tabler/icons-react'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import {
   useChainConfigState,
   chainConfigSelectors,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
-  useCurrentChainTokens,
   type ChainType,
 } from '@/stores'
 
@@ -90,21 +90,28 @@ export function DestroyPage() {
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain
-  const tokens = useCurrentChainTokens()
+
+  // 从 chainProvider 获取代币余额 (单一信源)
+  const chainProvider = getChainProvider(selectedChain)
+  const tokenBalancesResult = chainProvider?.tokenBalances?.useState?.({ address: currentChainAddress?.address ?? '' })
+  const tokens = useMemo(() => {
+    if (!tokenBalancesResult?.data) return []
+    return tokenBalancesToTokenInfoList(tokenBalancesResult.data, selectedChain)
+  }, [tokenBalancesResult?.data, selectedChain])
 
   // Filter out main asset (cannot be destroyed)
   const destroyableTokens = useMemo(() => {
     if (!chainConfig) return []
-    return tokens.filter((token) => token.symbol.toUpperCase() !== chainConfig.symbol.toUpperCase())
+    return tokens.filter((token: TokenInfo) => token.symbol.toUpperCase() !== chainConfig.symbol.toUpperCase())
   }, [tokens, chainConfig])
 
   // Find initial asset from params
   const initialAsset = useMemo(() => {
     if (!initialAssetType || destroyableTokens.length === 0) return null
     const found = destroyableTokens.find(
-      (t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
+      (t: TokenInfo) => t.symbol.toUpperCase() === initialAssetType.toUpperCase()
     )
-    return found ? tokenToAsset(toTokenInfo(found)) : null
+    return found ? tokenToAsset(found) : null
   }, [initialAssetType, destroyableTokens])
 
   const assetLocked = assetLockedParam === 'true'
@@ -314,7 +321,7 @@ export function DestroyPage() {
           </label>
           <AssetSelector
             selectedAsset={selectedToken}
-            assets={toTokenInfoList(destroyableTokens)}
+            assets={destroyableTokens}
             onSelect={handleAssetSelect}
             disabled={assetLocked}
             excludeAssets={chainConfig ? [chainConfig.symbol] : []}

@@ -24,8 +24,8 @@ import { Button } from '@/components/ui/button'
 import { SkeletonCard } from '@/components/common'
 import { AddressDisplay } from '@/components/wallet/address-display'
 import { pendingTxService, type PendingTx, type PendingTxStatus } from '@/services/transaction'
-import { broadcastTransaction } from '@/services/bioforest-sdk'
-import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
+import { getChainProvider } from '@/services/chain-adapter/providers'
+import { ChainServiceError } from '@/services/chain-adapter/types'
 import { useChainConfigState, chainConfigSelectors } from '@/stores'
 import { cn } from '@/lib/utils'
 
@@ -138,11 +138,13 @@ export function PendingTxDetailPage() {
 
     setIsRetrying(true)
     try {
-      // 获取 API URL
-      const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
-      const apiUrl = biowallet?.endpoint
+      // 通过 chain-provider 获取 API URL（抽象接口）
+      const chainProvider = getChainProvider(pendingTx.chainId)
+      // 获取 biowallet-v1 provider 的 endpoint（用于广播 SDK 格式的交易）
+      const biowalletProvider = chainProvider?.getProviderByType('biowallet-v1')
+      const apiUrl = biowalletProvider?.endpoint
       if (!apiUrl) {
-        throw new Error('API URL not configured')
+        throw new Error('Broadcast API not available for chain: ' + pendingTx.chainId)
       }
 
       // 更新状态为 broadcasting
@@ -150,25 +152,28 @@ export function PendingTxDetailPage() {
       await pendingTxService.incrementRetry({ id: pendingTx.id })
       setPendingTx((prev) => prev ? { ...prev, status: 'broadcasting' } : null)
 
-      // 重新广播
-      const broadcastResult = await broadcastTransaction(apiUrl, pendingTx.rawTx as unknown as Parameters<typeof broadcastTransaction>[1])
+      // 使用 ChainProvider 标准接口广播交易
+      const broadcast = chainProvider?.broadcastTransaction
+      if (!broadcast) {
+        throw new Error('Broadcast not supported for chain: ' + pendingTx.chainId)
+      }
 
-      // 广播成功，如果交易已存在则直接标记为 confirmed
-      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
+      // rawTx 已是 SignedTransaction 类型（ChainProvider 标准格式）
+      const txHash = await broadcast(pendingTx.rawTx)
+
+      // 广播成功
       const updated = await pendingTxService.updateStatus({
         id: pendingTx.id,
-        status: newStatus,
-        txHash: broadcastResult.txHash,
+        status: 'broadcasted',
+        txHash,
       })
       setPendingTx(updated)
     } catch (error) {
-
-
       // 广播失败
-      const errorMessage = error instanceof BroadcastError
-        ? translateBroadcastError(error)
+      const errorMessage = error instanceof ChainServiceError
+        ? error.message
         : (error instanceof Error ? error.message : '重试失败')
-      const errorCode = error instanceof BroadcastError ? error.code : undefined
+      const errorCode = error instanceof ChainServiceError ? error.code : undefined
 
       const updated = await pendingTxService.updateStatus({
         id: pendingTx.id,

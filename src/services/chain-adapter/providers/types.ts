@@ -88,54 +88,45 @@ export interface Balance {
   symbol: string
 }
 
-/** 代币余额（含 native + 所有资产） */
+/** 代币余额（含 native + 所有资产）
+ * 
+ * 继承自老代码 Token 类型的核心字段：
+ * - amount: 余额（Amount 对象）
+ * - decimals: 精度（从老代码 Token.decimals 继承）
+ * - icon: 图标 URL（可选，从老代码 Token.icon 继承）
+ * - contractAddress: 合约地址（可选，从老代码 Token.contractAddress 继承）
+ */
 export interface TokenBalance {
   symbol: string
   name: string
   amount: Amount
   isNative: boolean
+  /** 代币精度 */
+  decimals: number
+  /** 代币图标 URL */
+  icon?: string
+  /** 合约地址（ERC20/TRC20 等）*/
+  contractAddress?: string
 }
 
-/** 手续费选项 */
-export interface Fee {
-  amount: Amount
-  estimatedTime: number // seconds
-}
+// ==================== 从 ../types 统一导入交易相关类型 ====================
+// 避免重复定义，确保单一数据源
 
-/** 手续费估算结果 */
-export interface FeeEstimate {
-  slow: Fee
-  standard: Fee
-  fast: Fee
-}
+import type { ITransactionService, IIdentityService, IAssetService } from '../types'
 
-/** 转账参数 */
-export interface TransferParams {
-  from: string
-  to: string
-  amount: Amount
-  memo?: string
-}
-
-/** 未签名交易 */
-export interface UnsignedTransaction {
-  chainId: string
-  data: unknown
-}
-
-/** 已签名交易 */
-export interface SignedTransaction {
-  chainId: string
-  data: unknown
-  signature: string
-}
-
-/** 交易状态 */
-export interface TransactionStatus {
-  status: 'pending' | 'confirming' | 'confirmed' | 'failed'
-  confirmations: number
-  requiredConfirmations: number
-}
+export type {
+  Fee,
+  FeeEstimate,
+  UnsignedTransaction,
+  SignedTransaction,
+  TransactionStatus,
+  TransactionIntent,
+  TransferIntent,
+  DestroyIntent,
+  SetPayPasswordIntent,
+  ContractCallIntent,
+  SignOptions,
+} from '../types'
 
 // ==================== 标准输出 Schema（强类型）====================
 
@@ -155,6 +146,9 @@ export const TokenBalancesOutputSchema = z.array(z.object({
   name: z.string(),
   amount: AmountSchema,
   isNative: z.boolean(),
+  decimals: z.number(),
+  icon: z.string().optional(),
+  contractAddress: z.string().optional(),
 }))
 export type TokenBalancesOutput = z.infer<typeof TokenBalancesOutputSchema>
 
@@ -197,7 +191,7 @@ export type BlockHeightOutput = z.infer<typeof BlockHeightOutputSchema>
  * const { data } = provider.nativeBalance?.useState({ address }) ?? {}
  * ```
  */
-export interface ApiProvider {
+export interface ApiProvider extends Partial<ITransactionService & IIdentityService & IAssetService> {
   /** Provider 类型 (来自配置的 key，如 "biowallet-v1") */
   readonly type: string
   /** API 端点 (可为空，如 wrapped provider) */
@@ -225,33 +219,11 @@ export interface ApiProvider {
   /** 当前区块高度 - 参数: {} */
   blockHeight?: KeyFetchInstance<typeof BlockHeightOutputSchema>
 
-  // ===== 非响应式操作（保持方法形式）=====
-
-  /** 估算手续费 */
-  estimateFee?(params: TransferParams): Promise<FeeEstimate>
-
-  /** 构建未签名交易 */
-  buildTransaction?(params: TransferParams): Promise<UnsignedTransaction>
-
-  /** 签名交易 */
-  signTransaction?(unsignedTx: UnsignedTransaction, privateKey: Uint8Array): Promise<SignedTransaction>
-
-  /** 广播已签名交易 */
-  broadcastTransaction?(signedTx: SignedTransaction): Promise<string>
-
-  // ===== 身份能力（同步方法）=====
-
-  /** 派生地址 */
-  deriveAddress?(seed: Uint8Array, index?: number): Promise<string>
-
-  /** 批量派生地址 */
-  deriveAddresses?(seed: Uint8Array, startIndex: number, count: number): Promise<string[]>
-
-  /** 验证地址格式 */
-  isValidAddress?(address: string): boolean
-
-  /** 规范化地址 */
-  normalizeAddress?(address: string): string
+  // ===== 服务接口方法（通过 extends Partial<ITransactionService & IIdentityService & IAssetService> 继承）=====
+  // - ITransactionService: buildTransaction, estimateFee, signTransaction, broadcastTransaction
+  // - IIdentityService: deriveAddress, deriveAddresses, isValidAddress, normalizeAddress, signMessage, verifyMessage
+  // - IAssetService: getNativeBalance, getTokenBalance, getTokenBalances, getTokenMetadata
+  // 无需重复声明
 }
 
 /** ApiProvider 可调用的方法名 */

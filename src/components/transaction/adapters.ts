@@ -5,23 +5,41 @@
  * Chain-provider Transaction is the source of truth for API responses.
  */
 
-import type { Transaction, Action } from '@/services/chain-adapter/providers/transaction-schema'
-import { getPrimaryAsset, isNativeAsset, isTokenAsset } from '@/services/chain-adapter/providers/transaction-schema'
 import type { TransactionInfo, TransactionType, TransactionStatus } from './types'
 import type { ChainType } from '@/stores'
 import { Amount } from '@/types/amount'
 
+// Inline Transaction type to avoid circular dependency
+interface Transaction {
+    hash: string
+    from: string
+    to: string
+    timestamp: number
+    status: 'pending' | 'confirmed' | 'failed'
+    action: string
+    direction: 'in' | 'out' | 'self'
+    assets: Array<{
+        assetType: 'native' | 'token' | 'nft'
+        value?: string
+        symbol?: string
+        decimals?: number
+        tokenId?: string
+        contractAddress?: string
+        name?: string
+    }>
+}
+
 /**
  * Map chain-provider Action to component TransactionType
  */
-function mapActionToType(action: Action, direction: Transaction['direction']): TransactionType {
+function mapActionToType(action: string, direction: Transaction['direction']): TransactionType {
     // Map bidirectional actions based on direction
     if (action === 'transfer') {
         return direction === 'in' ? 'receive' : 'send'
     }
 
     // Direct mappings
-    const actionMap: Partial<Record<Action, TransactionType>> = {
+    const actionMap: Partial<Record<string, TransactionType>> = {
         swap: 'swap',
         exchange: 'exchange',
         approve: 'approve',
@@ -66,7 +84,24 @@ function mapStatus(status: Transaction['status']): TransactionStatus {
  * @returns TransactionInfo for UI components
  */
 export function toTransactionInfo(tx: Transaction, chain?: ChainType): TransactionInfo {
-    const primaryAsset = getPrimaryAsset(tx)
+    // Defensive check for malformed transaction
+    if (!tx || !tx.hash || !tx.assets || tx.assets.length === 0) {
+        // Return a placeholder for invalid transactions
+        return {
+            id: tx?.hash ?? 'unknown',
+            type: 'other',
+            status: 'pending',
+            amount: Amount.fromRaw('0', 8, ''),
+            symbol: '',
+            address: tx?.from ?? tx?.to ?? '',
+            timestamp: new Date(),
+            hash: tx?.hash,
+            chain,
+        }
+    }
+
+    // Get primary asset (first asset in array)
+    const primaryAsset = tx.assets[0]
     const address = tx.direction === 'in' ? tx.from : tx.to
 
     // Get amount info from primary asset
@@ -74,10 +109,11 @@ export function toTransactionInfo(tx: Transaction, chain?: ChainType): Transacti
     let value = '0'
     let symbol = ''
 
-    if (isNativeAsset(primaryAsset) || isTokenAsset(primaryAsset)) {
-        decimals = primaryAsset.decimals
-        value = primaryAsset.value
-        symbol = primaryAsset.symbol
+    // Check if it's native or token asset (has value, symbol, decimals)
+    if (primaryAsset.assetType === 'native' || primaryAsset.assetType === 'token') {
+        decimals = primaryAsset.decimals ?? 8
+        value = primaryAsset.value ?? '0'
+        symbol = primaryAsset.symbol ?? ''
     }
 
     return {
@@ -95,7 +131,33 @@ export function toTransactionInfo(tx: Transaction, chain?: ChainType): Transacti
 
 /**
  * Convert array of chain-provider Transactions to TransactionInfo array
+ * With defensive error handling
  */
 export function toTransactionInfoList(txs: Transaction[], chain?: ChainType): TransactionInfo[] {
-    return txs.map(tx => toTransactionInfo(tx, chain))
+    // Defensive check for null/undefined array
+    if (!txs || !Array.isArray(txs)) {
+        return []
+    }
+
+    return txs
+        .filter(tx => tx != null) // Filter out null/undefined entries
+        .map(tx => {
+            try {
+                return toTransactionInfo(tx, chain)
+            } catch (e) {
+                console.warn('[toTransactionInfoList] Failed to convert transaction:', tx, e)
+                // Return a placeholder for failed conversions
+                return {
+                    id: tx?.hash ?? 'error',
+                    type: 'other' as const,
+                    status: 'pending' as const,
+                    amount: Amount.fromRaw('0', 8, ''),
+                    symbol: '',
+                    address: '',
+                    timestamp: new Date(),
+                    chain,
+                }
+            }
+        })
 }
+

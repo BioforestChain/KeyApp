@@ -328,6 +328,14 @@ export function injectUseState(impl: typeof useStateImpl): void {
 }
 
 /**
+ * 获取 useState 实现（供 derive.ts 使用）
+ * @internal
+ */
+export function getUseStateImpl() {
+  return useStateImpl
+}
+
+/**
  * 创建 KeyFetch 实例
  * 
  * @example

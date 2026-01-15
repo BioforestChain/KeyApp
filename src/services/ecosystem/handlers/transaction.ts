@@ -5,7 +5,7 @@
  * - bio_signTransaction: sign unsigned tx (requires user confirmation)
  */
 
-import type { MethodHandler, TransferParams, BioUnsignedTransaction, BioSignedTransaction } from '../types'
+import type { MethodHandler, EcosystemTransferParams, UnsignedTransaction, SignedTransaction } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo, type SignTransactionParams } from './context'
 
@@ -54,7 +54,7 @@ async function getChainConfigOrThrow(chainId: string) {
 
 /** bio_createTransaction - build unsigned tx */
 export const handleCreateTransaction: MethodHandler = async (params, _context) => {
-  const opts = params as Partial<TransferParams> | undefined
+  const opts = params as Partial<EcosystemTransferParams> | undefined
   if (!opts?.from || !opts?.to || !opts?.amount || !opts?.chain) {
     throw Object.assign(
       new Error('Missing required parameters: from, to, amount, chain'),
@@ -79,13 +79,15 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
   }
 
   const unsignedTx = await chainProvider.buildTransaction!({
+    type: 'transfer',
     from: opts.from,
     to: opts.to,
     amount,
   })
 
-  const result: BioUnsignedTransaction = {
+  const result: UnsignedTransaction = {
     chainId: unsignedTx.chainId,
+    intentType: unsignedTx.intentType,
     data: unsignedTx.data,
   }
 
@@ -93,7 +95,7 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
 }
 
 // 兼容旧 API
-let _showSignTransactionDialog: ((params: SignTransactionParams) => Promise<BioSignedTransaction | null>) | null = null
+let _showSignTransactionDialog: ((params: SignTransactionParams) => Promise<SignedTransaction | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setSignTransactionDialog(dialog: typeof _showSignTransactionDialog): void {
@@ -107,7 +109,7 @@ function getSignTransactionDialog(appId: string) {
 
 /** bio_signTransaction - sign an unsigned tx (requires user confirmation) */
 export const handleSignTransaction: MethodHandler = async (params, context) => {
-  const opts = params as { from?: string; chain?: string; unsignedTx?: BioUnsignedTransaction } | undefined
+  const opts = params as { from?: string; chain?: string; unsignedTx?: UnsignedTransaction } | undefined
   if (!opts?.from || !opts?.chain || !opts?.unsignedTx) {
     throw Object.assign(new Error('Missing required parameters: from, chain, unsignedTx'), { code: BioErrorCodes.INVALID_PARAMS })
   }
@@ -140,8 +142,8 @@ export async function signUnsignedTransaction(params: {
   password: string
   from: string
   chainId: string
-  unsignedTx: BioUnsignedTransaction
-}): Promise<BioSignedTransaction> {
+  unsignedTx: UnsignedTransaction
+}): Promise<SignedTransaction> {
   const chainConfig = await getChainConfigOrThrow(params.chainId)
 
   const chainProvider = getChainProvider(chainConfig.id)
@@ -171,8 +173,10 @@ export async function signUnsignedTransaction(params: {
   }
 
   const signed = await chainProvider.signTransaction!(
-    { chainId: params.unsignedTx.chainId, data: params.unsignedTx.data },
-    privateKeyBytes,
+    { chainId: params.unsignedTx.chainId, intentType: params.unsignedTx.intentType ?? 'transfer', data: params.unsignedTx.data },
+    chainConfig.chainKind === 'bioforest'
+      ? { bioSecret: mnemonic, privateKey: privateKeyBytes }
+      : { privateKey: privateKeyBytes },
   )
 
   return {

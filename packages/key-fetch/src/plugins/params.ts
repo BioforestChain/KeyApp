@@ -36,12 +36,12 @@ import type { FetchPlugin, FetchParams } from '../types'
  * })]
  * ```
  */
-export function searchParams(options?: {
+export function searchParams<P extends FetchParams = FetchParams>(options?: {
     /** 额外固定参数（合并到 params） */
-    defaults?: FetchParams
+    defaults?: P
     /** 转换函数（自定义 query params 格式） */
-    transform?: (params: Record<string, unknown>) => Record<string, unknown>
-}): FetchPlugin {
+    transform?: (params: P) => Record<string, unknown>
+}): FetchPlugin<P> {
     return {
         name: 'params:searchParams',
         onFetch: async (request, next, context) => {
@@ -55,7 +55,7 @@ export function searchParams(options?: {
             if (options?.defaults) {
                 for (const key in mergedParams) {
                     if (mergedParams[key] == null && options?.defaults?.[key] != null) {
-                        mergedParams[key] = options?.defaults?.[key]
+                        (mergedParams as any)[key] = options?.defaults?.[key]
                     }
                 }
             }

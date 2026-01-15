@@ -1,21 +1,20 @@
 /**
- * Transaction Service Mixin
+ * Tron Transaction Mixin
  * 
- * 使用 Mixin Factory 模式为任意类添加 Transaction 服务能力。
+ * 使用 Mixin Factory 模式为任意类添加 Tron Transaction 服务能力。
  * 
- * @example
- * ```ts
- * class TronRpcProvider extends TronTransactionMixin(TronIdentityMixin(BaseProvider)) {
- *   // 自动获得 estimateFee、buildTransaction 等方法
- * }
- * ```
+ * 支持的交易类型：
+ * - transfer: 转账
+ * - 其他类型抛出不支持错误
  */
 
 import type { ChainConfig } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import type {
     ITransactionService,
-    TransferParams,
+    TransactionIntent,
+    TransferIntent,
+    SignOptions,
     UnsignedTransaction,
     SignedTransaction,
     TransactionHash,
@@ -94,25 +93,26 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
             return hex.slice(0, 42)
         }
 
-        async estimateFee(_params: TransferParams): Promise<FeeEstimate> {
-            const config = this.#getConfig()
-            const feeAmount = Amount.fromRaw('0', config.decimals, config.symbol)
-            const fee: Fee = {
-                amount: feeAmount,
-                estimatedTime: 3,
+        /**
+         * 构建未签名交易
+         */
+        async buildTransaction(intent: TransactionIntent): Promise<UnsignedTransaction> {
+            if (intent.type !== 'transfer') {
+                throw new ChainServiceError(
+                    ChainErrorCodes.NOT_SUPPORTED,
+                    `Transaction type not supported: ${intent.type}`,
+                )
             }
-            return { slow: fee, standard: fee, fast: fee }
-        }
 
-        async buildTransaction(params: TransferParams): Promise<UnsignedTransaction> {
+            const transferIntent = intent as TransferIntent
             const config = this.#getConfig()
-            const ownerAddressHex = this.#base58ToHex(params.from)
-            const toAddressHex = this.#base58ToHex(params.to)
+            const ownerAddressHex = this.#base58ToHex(transferIntent.from)
+            const toAddressHex = this.#base58ToHex(transferIntent.to)
 
             const rawTx = await this.#api<TronRawTransaction>('/wallet/createtransaction', {
                 owner_address: ownerAddressHex,
                 to_address: toAddressHex,
-                amount: Number(params.amount.raw),
+                amount: Number(transferIntent.amount.raw),
                 visible: false,
             })
 
@@ -123,16 +123,43 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
                 )
             }
 
-            return { chainId: config.id, data: rawTx }
+            return {
+                chainId: config.id,
+                intentType: 'transfer',
+                data: rawTx,
+            }
         }
 
+        /**
+         * 估算手续费
+         */
+        async estimateFee(_unsignedTx: UnsignedTransaction): Promise<FeeEstimate> {
+            const config = this.#getConfig()
+            const feeAmount = Amount.fromRaw('0', config.decimals, config.symbol)
+            const fee: Fee = {
+                amount: feeAmount,
+                estimatedTime: 3,
+            }
+            return { slow: fee, standard: fee, fast: fee }
+        }
+
+        /**
+         * 签名交易
+         */
         async signTransaction(
             unsignedTx: UnsignedTransaction,
-            privateKey: Uint8Array,
+            options: SignOptions,
         ): Promise<SignedTransaction> {
+            if (!options.privateKey) {
+                throw new ChainServiceError(
+                    ChainErrorCodes.SIGNATURE_FAILED,
+                    'privateKey is required for Tron signing',
+                )
+            }
+
             const rawTx = unsignedTx.data as TronRawTransaction
             const txIdBytes = hexToBytes(rawTx.txID)
-            const sigBytes = secp256k1.sign(txIdBytes, privateKey, { prehash: false, format: 'recovered' })
+            const sigBytes = secp256k1.sign(txIdBytes, options.privateKey, { prehash: false, format: 'recovered' })
             const signature = bytesToHex(sigBytes)
 
             const signedTx: TronSignedTransaction = {
@@ -147,6 +174,9 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
             }
         }
 
+        /**
+         * 广播交易
+         */
         async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
             const tx = signedTx.data as TronSignedTransaction
             const result = await this.#api<{ result?: boolean; txid?: string; code?: string; message?: string }>(

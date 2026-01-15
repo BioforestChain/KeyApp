@@ -169,12 +169,16 @@ export async function submitBioforestBurn({
     const txHash = transaction.signature
 
 
-    // 存储到 pendingTxService
+    // 存储到 pendingTxService（转换为 ChainProvider 标准格式）
     const pendingTx = await pendingTxService.create({
       walletId,
       chainId: chainConfig.id,
       fromAddress,
-      rawTx: transaction,
+      rawTx: {
+        chainId: chainConfig.id,
+        data: transaction, // SDK 交易数据
+        signature: transaction.signature,
+      },
       meta: {
         type: 'destroy',
         displayAmount: amount.toFormatted(),

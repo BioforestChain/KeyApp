@@ -25,7 +25,6 @@ import {
   useCurrentWallet,
   useSelectedChain,
   useChainPreferences,
-  useCurrentChainTokens,
   useHasWallet,
   useWalletInitialized,
   useChainConfigMigrationRequired,
@@ -33,7 +32,8 @@ import {
   chainConfigSelectors,
   walletActions,
 } from "@/stores";
-import { toTransactionInfoList, type TransactionInfo } from "@/components/transaction";
+import type { TransactionInfo } from "@/components/transaction/transaction-item";
+import { toTransactionInfoList } from "@/components/transaction/adapters";
 
 const CHAIN_NAMES: Record<string, string> = {
   ethereum: "Ethereum",
@@ -66,7 +66,6 @@ export function WalletTab() {
   const selectedChain = useSelectedChain();
   const chainPreferences = useChainPreferences();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const tokens = useCurrentChainTokens();
   const chainConfigState = useChainConfigState();
   const chainConfig = chainConfigState.snapshot
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
@@ -88,13 +87,19 @@ export function WalletTab() {
     [selectedChain]
   );
 
-  // 余额查询（使用 fetcher.useState()）- 不再需要可选链
+  // 余额查询（使用 fetcher.useState()）
   const { data: balanceResult, isFetching: isRefreshing } = chainProvider?.nativeBalance.useState(
     { address: address ?? "" },
     { enabled: !!address }
   ) ?? {}
 
-  // 交易历史（使用 fetcher.useState()）- 不再需要可选链
+  // 代币余额列表（使用 fetcher.useState()）
+  const { data: tokensResult } = chainProvider?.tokenBalances.useState(
+    { address: address ?? "" },
+    { enabled: !!address }
+  ) ?? {}
+
+  // 交易历史（使用 fetcher.useState()）
   const { data: txResult, isLoading: txLoading } = chainProvider?.transactionHistory.useState(
     { address: address ?? "", limit: 50 },
     { enabled: !!address }
@@ -102,15 +107,21 @@ export function WalletTab() {
 
   // Note: Support checks via NoSupportError are available via balanceError/txError if needed
 
+  // 转换代币数据（从 tokenBalances 使用 keyFetch 获取）
+  const tokens = useMemo(() => tokensResult ?? [], [tokensResult]);
+
   // 转换余额数据格式
   const balanceData = useMemo(() => ({
     tokens: tokens,
-    supported: !!balanceResult,
+    supported: !!balanceResult || tokens.length > 0,
     fallbackReason: !chainProvider?.nativeBalance ? "No balance provider" : undefined,
   }), [balanceResult, chainProvider?.nativeBalance, tokens]);
 
-  // 转换交易历史格式
-  const transactions = useMemo(() => txResult ?? [], [txResult]);
+  // 转换交易历史格式（使用适配器将 API Transaction 转换为 UI TransactionInfo）
+  const transactions = useMemo(() => {
+    if (!txResult) return [];
+    return toTransactionInfoList(txResult, selectedChain);
+  }, [txResult, selectedChain]);
 
   // Pending Transactions
   const {
@@ -311,13 +322,13 @@ export function WalletTab() {
             symbol: token.symbol,
             name: token.name,
             chain: selectedChain,
-            balance: token.balance,
+            balance: token.amount.toFormatted(),
             decimals: token.decimals,
-            fiatValue: token.fiatValue ? String(token.fiatValue) : undefined,
-            change24h: token.change24h,
+            fiatValue: undefined, // Price data not in TokenBalance, handled separately
+            change24h: 0,
             icon: token.icon,
           }))}
-          transactions={toTransactionInfoList(transactions?.slice(0, 5) ?? [], selectedChain)}
+          transactions={transactions.slice(0, 5)}
           tokensRefreshing={isRefreshing}
           transactionsLoading={txLoading}
           tokensSupported={balanceData?.supported ?? true}

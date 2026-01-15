@@ -94,7 +94,7 @@ class MigrationServiceImpl implements IMigrationService {
       this.retryCount++
       if (this.retryCount >= this.maxRetries) {
         // 达到最大重试次数，提示用户
-        
+
       }
     } else {
       this.retryCount = 0
@@ -236,12 +236,7 @@ class MigrationServiceImpl implements IMigrationService {
           walletId,
           chain: ca.chain,
           address: ca.address,
-          assets: ca.tokens?.map((t) => ({
-            assetType: t.symbol,
-            symbol: t.symbol,
-            decimals: t.decimals || 8,
-            balance: t.balance || '0',
-          })) ?? [],
+          assets: [], // 余额数据从 chain-provider 获取，不再存储在这里
           isCustomAssets: false,
           isFrozen: false,
         }

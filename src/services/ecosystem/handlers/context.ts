@@ -3,7 +3,7 @@
  * 管理小程序回调的注册中心，支持多实例
  */
 
-import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction, TransferParams, DestroyParams } from '../types'
+import type { BioAccount, EcosystemTransferParams, EcosystemDestroyParams, UnsignedTransaction, SignedTransaction } from '../types'
 
 /** EVM 交易请求类型 */
 export interface EvmTransactionRequest {
@@ -50,7 +50,7 @@ export interface SigningResult {
 export interface SignTransactionParams {
   from: string
   chain: string
-  unsignedTx: BioUnsignedTransaction
+  unsignedTx: UnsignedTransaction
   app: MiniappInfo
 }
 
@@ -79,9 +79,9 @@ export interface HandlerCallbacks {
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
-  showTransferDialog: (params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
-  showDestroyDialog?: (params: DestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
-  showSignTransactionDialog: (params: SignTransactionParams) => Promise<BioSignedTransaction | null>
+  showTransferDialog: (params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showDestroyDialog?: (params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showSignTransactionDialog: (params: SignTransactionParams) => Promise<SignedTransaction | null>
 
   // EVM (Ethereum/BSC) callbacks
   showEvmWalletPicker?: (opts: { chainId: string; app?: MiniappInfo }) => Promise<BioAccount | null>
@@ -105,7 +105,7 @@ export const HandlerContext = {
    */
   register(appId: string, callbacks: HandlerCallbacks): void {
     callbackRegistry.set(appId, callbacks)
-    
+
   },
 
   /**
@@ -113,7 +113,7 @@ export const HandlerContext = {
    */
   unregister(appId: string): void {
     callbackRegistry.delete(appId)
-    
+
   },
 
   /**

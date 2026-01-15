@@ -2,12 +2,18 @@
  * EVM Transaction Mixin
  * 
  * 使用 Mixin Factory 模式为任意类添加 EVM Transaction 服务能力。
+ * 
+ * 支持的交易类型：
+ * - transfer: 转账
+ * - 其他类型抛出不支持错误
  */
 
 import { chainConfigService } from '@/services/chain-config/service'
 import type {
     ITransactionService,
-    TransferParams,
+    TransactionIntent,
+    TransferIntent,
+    SignOptions,
     UnsignedTransaction,
     SignedTransaction,
     TransactionHash,
@@ -86,7 +92,41 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             return json.result as T
         }
 
-        async estimateFee(_params: TransferParams): Promise<FeeEstimate> {
+        /**
+         * 构建未签名交易
+         */
+        async buildTransaction(intent: TransactionIntent): Promise<UnsignedTransaction> {
+            if (intent.type !== 'transfer') {
+                throw new ChainServiceError(
+                    ChainErrorCodes.NOT_SUPPORTED,
+                    `Transaction type not supported: ${intent.type}`,
+                )
+            }
+
+            const transferIntent = intent as TransferIntent
+            const nonceHex = await this.#rpc<string>('eth_getTransactionCount', [transferIntent.from, 'pending'])
+            const nonce = parseInt(nonceHex, 16)
+            const gasPriceHex = await this.#rpc<string>('eth_gasPrice')
+
+            return {
+                chainId: this.chainId,
+                intentType: 'transfer',
+                data: {
+                    nonce,
+                    gasPrice: gasPriceHex,
+                    gasLimit: '0x5208',
+                    to: transferIntent.to,
+                    value: '0x' + transferIntent.amount.raw.toString(16),
+                    data: '0x',
+                    chainId: this.#evmId,
+                },
+            }
+        }
+
+        /**
+         * 估算手续费
+         */
+        async estimateFee(_unsignedTx: UnsignedTransaction): Promise<FeeEstimate> {
             const gasPriceHex = await this.#rpc<string>('eth_gasPrice')
             const gasPrice = BigInt(gasPriceHex)
             const gasLimit = 21000n
@@ -103,29 +143,20 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             }
         }
 
-        async buildTransaction(params: TransferParams): Promise<UnsignedTransaction> {
-            const nonceHex = await this.#rpc<string>('eth_getTransactionCount', [params.from, 'pending'])
-            const nonce = parseInt(nonceHex, 16)
-            const gasPriceHex = await this.#rpc<string>('eth_gasPrice')
-
-            return {
-                chainId: this.chainId,
-                data: {
-                    nonce,
-                    gasPrice: gasPriceHex,
-                    gasLimit: '0x5208',
-                    to: params.to,
-                    value: '0x' + params.amount.raw.toString(16),
-                    data: '0x',
-                    chainId: this.#evmId,
-                },
-            }
-        }
-
+        /**
+         * 签名交易
+         */
         async signTransaction(
             unsignedTx: UnsignedTransaction,
-            privateKey: Uint8Array,
+            options: SignOptions,
         ): Promise<SignedTransaction> {
+            if (!options.privateKey) {
+                throw new ChainServiceError(
+                    ChainErrorCodes.SIGNATURE_FAILED,
+                    'privateKey is required for EVM signing',
+                )
+            }
+
             const txData = unsignedTx.data as {
                 nonce: number
                 gasPrice: string
@@ -149,7 +180,7 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             ])
 
             const msgHash = keccak_256(hexToBytes(rawTx.slice(2)))
-            const sigBytes = secp256k1.sign(msgHash, privateKey, { prehash: false, format: 'recovered' })
+            const sigBytes = secp256k1.sign(msgHash, options.privateKey, { prehash: false, format: 'recovered' })
 
             const r = BigInt('0x' + bytesToHex(sigBytes.slice(0, 32)))
             const s = BigInt('0x' + bytesToHex(sigBytes.slice(32, 64)))
@@ -179,6 +210,9 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             }
         }
 
+        /**
+         * 广播交易
+         */
         async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
             const rawTx = signedTx.data as string
             const txHash = await this.#rpc<string>('eth_sendRawTransaction', [rawTx])

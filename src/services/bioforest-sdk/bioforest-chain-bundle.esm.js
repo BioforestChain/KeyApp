@@ -8,9 +8,9 @@ const require_bioforest_chain_bundle = __commonJS({
   "src/services/bioforest-sdk/bioforest-chain-bundle.cjs"(exports) {
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
     function l(i, e, t, r) {
-      let n = arguments.length, s = n < 3 ? e : r === null ? r = Object.getOwnPropertyDescriptor(e, t) : r, o;
-      if (typeof Reflect === "object" && typeof Reflect.decorate === "function") s = Reflect.decorate(i, e, t, r);
-      else for (let a = i.length - 1; a >= 0; a--) (o = i[a]) && (s = (n < 3 ? o(s) : n > 3 ? o(e, t, s) : o(e, t)) || s);
+      var n = arguments.length, s = n < 3 ? e : r === null ? r = Object.getOwnPropertyDescriptor(e, t) : r, o;
+      if (typeof Reflect == "object" && typeof Reflect.decorate == "function") s = Reflect.decorate(i, e, t, r);
+      else for (var a = i.length - 1; a >= 0; a--) (o = i[a]) && (s = (n < 3 ? o(s) : n > 3 ? o(e, t, s) : o(e, t)) || s);
       return n > 3 && s && Object.defineProperty(e, t, s), s;
     }
     function be(i, e) {
@@ -19,11 +19,11 @@ const require_bioforest_chain_bundle = __commonJS({
       };
     }
     function u(i, e) {
-      if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(i, e);
+      if (typeof Reflect == "object" && typeof Reflect.metadata == "function") return Reflect.metadata(i, e);
     }
-    const Dy = /* @__PURE__ */ new WeakMap();
+    var Dy = /* @__PURE__ */ new WeakMap();
     function Vs(i, e, t) {
-      if (!t || typeof t.value !== "function") throw new TypeError(`Only methods can be decorated with @cacheBytesGetter. <${e}> is not a method!`);
+      if (!t || typeof t.value != "function") throw new TypeError(`Only methods can be decorated with @cacheBytesGetter. <${e}> is not a method!`);
       const r = t.value, n = function(...s) {
         if (Object.isFrozen(this)) {
           const a = JSON.stringify(s);
@@ -36,15 +36,15 @@ const require_bioforest_chain_bundle = __commonJS({
       };
       return t.value = n, t;
     }
-    const Fy = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
+    var Fy = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
     function mo(i) {
       return i && i.__esModule && Object.prototype.hasOwnProperty.call(i, "default") ? i.default : i;
     }
-    const k_ = {};
+    var k_ = {};
     (function(i) {
-      const e = i;
+      var e = i;
       e.length = function(a) {
-        let p = a.length;
+        var p = a.length;
         if (!p) return 0;
         for (var h = 0; --p % 4 > 1 && a.charAt(p) === "="; ) ++h;
         return Math.ceil(a.length * 3) / 4 - h;
@@ -52,7 +52,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (var t = new Array(64), r = new Array(123), n = 0; n < 64; ) r[t[n] = n < 26 ? n + 65 : n < 52 ? n + 71 : n < 62 ? n - 4 : n - 59 | 43] = n++;
       e.encode = function(a, p, h) {
         for (var f = null, g = [], d = 0, y = 0, _; p < h; ) {
-          const I = a[p++];
+          var I = a[p++];
           switch (y) {
             case 0:
               g[d++] = t[I >> 2], _ = (I & 3) << 4, y = 1;
@@ -68,10 +68,10 @@ const require_bioforest_chain_bundle = __commonJS({
         }
         return y && (g[d++] = t[_], g[d++] = 61, y === 1 && (g[d++] = 61)), f ? (d && f.push(String.fromCharCode.apply(String, g.slice(0, d))), f.join("")) : String.fromCharCode.apply(String, g.slice(0, d));
       };
-      const s = "invalid encoding";
+      var s = "invalid encoding";
       e.decode = function(a, p, h) {
         for (var f = h, g = 0, d, y = 0; y < a.length; ) {
-          let _ = a.charCodeAt(y++);
+          var _ = a.charCodeAt(y++);
           if (_ === 61 && g > 1) break;
           if ((_ = r[_]) === void 0) throw Error(s);
           switch (g) {
@@ -95,16 +95,16 @@ const require_bioforest_chain_bundle = __commonJS({
         return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(a);
       };
     })(k_);
-    const mf = mo(k_);
-    let dn;
+    var mf = mo(k_);
+    var dn;
     try {
-      if (typeof WebAssembly === "object") {
+      if (typeof WebAssembly == "object") {
         const i = "AGFzbQEAAAABDQJgAAF/YAR/f39/AX8DBwYAAQEBAQEGBgF/AUEACwcyBgNtdWwAAQVkaXZfcwACBWRpdl91AAMFcmVtX3MABAVyZW1fdQAFCGdldF9oaWdoAAAKvwEGBAAjAAskAQF+IACtIAGtQiCGhCACrSADrUIghoR+IgRCIIenJAAgBKcLJAEBfiAArSABrUIghoQgAq0gA61CIIaEfyIEQiCHpyQAIASnCyQBAX4gAK0gAa1CIIaEIAKtIAOtQiCGhIAiBEIgh6ckACAEpwskAQF+IACtIAGtQiCGhCACrSADrUIghoSBIgRCIIenJAAgBKcLJAEBfiAArSABrUIghoQgAq0gA61CIIaEgiIEQiCHpyQAIASnCw==", e = new Uint8Array(mf.length(i));
         mf.decode(i, e, 0), dn = new WebAssembly.Instance(new WebAssembly.Module(e), {}).exports;
       }
     } catch {
     }
-    const zt = class fe {
+    var zt = class fe {
       constructor(e, t, r) {
         this.__isLong__ = true, this.low = e | 0, this.high = t | 0, this.unsigned = !!r;
       }
@@ -112,7 +112,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return (e && e.__isLong__) === true;
       }
       static fromInt(e, t) {
-        let r, n, s;
+        var r, n, s;
         return t ? (e >>>= 0, (s = 0 <= e && e < 256) && (n = this._UINT_CACHE[e], n) ? n : (r = this.fromBits(e, (e | 0) < 0 ? -1 : 0, true), s && (this._UINT_CACHE[e] = r), r)) : (e |= 0, (s = -128 <= e && e < 128) && (n = this._INT_CACHE[e], n) ? n : (r = this.fromBits(e, e < 0 ? -1 : 0, false), s && (this._INT_CACHE[e] = r), r));
       }
       static fromNumber(e, t) {
@@ -132,21 +132,21 @@ const require_bioforest_chain_bundle = __commonJS({
       static fromString(e, t, r) {
         if (e.length === 0) throw Error("empty string");
         if (e === "NaN" || e === "Infinity" || e === "+Infinity" || e === "-Infinity") return fe.ZERO;
-        if (typeof t === "number" ? (r = t, t = false) : t = !!t, r = r || 10, r < 2 || 36 < r) throw RangeError("radix");
-        let n;
+        if (typeof t == "number" ? (r = t, t = false) : t = !!t, r = r || 10, r < 2 || 36 < r) throw RangeError("radix");
+        var n;
         if ((n = e.indexOf("-")) > 0) throw Error("interior hyphen");
         if (n === 0) return this.fromString(e.substring(1), t, r).neg();
         for (var s = this.fromNumber(vl(r, 8)), o = fe.ZERO, a = 0; a < e.length; a += 8) {
-          const p = Math.min(8, e.length - a), h = parseInt(e.substring(a, a + p), r);
+          var p = Math.min(8, e.length - a), h = parseInt(e.substring(a, a + p), r);
           if (p < 8) {
-            const f = this.fromNumber(vl(r, p));
+            var f = this.fromNumber(vl(r, p));
             o = o.mul(f).add(this.fromNumber(h));
           } else o = o.mul(s), o = o.add(this.fromNumber(h));
         }
         return o.unsigned = t, o;
       }
       static fromValue(e, t) {
-        return typeof e === "number" ? this.fromNumber(e, t) : typeof e === "string" ? this.fromString(e, t) : this.fromBits(e.low, e.high, typeof t === "boolean" ? t : e.unsigned);
+        return typeof e == "number" ? this.fromNumber(e, t) : typeof e == "string" ? this.fromString(e, t) : this.fromBits(e.low, e.high, typeof t == "boolean" ? t : e.unsigned);
       }
       toInt() {
         return this.unsigned ? this.low >>> 0 : this.low;
@@ -158,11 +158,11 @@ const require_bioforest_chain_bundle = __commonJS({
         if (e = e || 10, e < 2 || 36 < e) throw RangeError("radix");
         if (this.isZero()) return "0";
         if (this.isNegative()) if (this.eq(fe.MIN_VALUE)) {
-          const t = fe.fromNumber(e), r = this.div(t), n = r.mul(t).sub(this);
+          var t = fe.fromNumber(e), r = this.div(t), n = r.mul(t).sub(this);
           return r.toString(e) + n.toInt().toString(e);
         } else return "-" + this.neg().toString(e);
-        for (let s = fe.fromNumber(vl(e, 6), this.unsigned), o = this, a = ""; ; ) {
-          let p = o.div(s), h = o.sub(p.mul(s)).toInt() >>> 0, f = h.toString(e);
+        for (var s = fe.fromNumber(vl(e, 6), this.unsigned), o = this, a = ""; ; ) {
+          var p = o.div(s), h = o.sub(p.mul(s)).toInt() >>> 0, f = h.toString(e);
           if (o = p, o.isZero()) return f + a;
           for (; f.length < 6; ) f = "0" + f;
           a = "" + f + a;
@@ -220,7 +220,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       compare(e) {
         if (fe.isLong(e) || (e = fe.fromValue(e)), this.eq(e)) return 0;
-        const t = this.isNegative(), r = e.isNegative();
+        var t = this.isNegative(), r = e.isNegative();
         return t && !r ? -1 : !t && r ? 1 : this.unsigned ? e.high >>> 0 > this.high >>> 0 || e.high === this.high && e.low >>> 0 > this.low >>> 0 ? -1 : 1 : this.sub(e).isNegative() ? -1 : 1;
       }
       negate() {
@@ -228,7 +228,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       add(e) {
         fe.isLong(e) || (e = fe.fromValue(e));
-        let t = this.high >>> 16, r = this.high & 65535, n = this.low >>> 16, s = this.low & 65535, o = e.high >>> 16, a = e.high & 65535, p = e.low >>> 16, h = e.low & 65535, f = 0, g = 0, d = 0, y = 0;
+        var t = this.high >>> 16, r = this.high & 65535, n = this.low >>> 16, s = this.low & 65535, o = e.high >>> 16, a = e.high & 65535, p = e.low >>> 16, h = e.low & 65535, f = 0, g = 0, d = 0, y = 0;
         return y += s + h, d += y >>> 16, y &= 65535, d += n + p, g += d >>> 16, d &= 65535, g += r + a, f += g >>> 16, g &= 65535, f += t + o, f &= 65535, fe.fromBits(d << 16 | y, f << 16 | g, this.unsigned);
       }
       subtract(e) {
@@ -237,7 +237,7 @@ const require_bioforest_chain_bundle = __commonJS({
       multiply(e) {
         if (this.isZero()) return fe.ZERO;
         if (fe.isLong(e) || (e = fe.fromValue(e)), dn) {
-          const t = dn.mul(this.low, this.high, e.low, e.high);
+          var t = dn.mul(this.low, this.high, e.low, e.high);
           return fe.fromBits(t, dn.get_high(), this.unsigned);
         }
         if (e.isZero()) return fe.ZERO;
@@ -246,18 +246,18 @@ const require_bioforest_chain_bundle = __commonJS({
         if (this.isNegative()) return e.isNegative() ? this.neg().mul(e.neg()) : this.neg().mul(e).neg();
         if (e.isNegative()) return this.mul(e.neg()).neg();
         if (this.lt(Vy) && e.lt(Vy)) return fe.fromNumber(this.toNumber() * e.toNumber(), this.unsigned);
-        let r = this.high >>> 16, n = this.high & 65535, s = this.low >>> 16, o = this.low & 65535, a = e.high >>> 16, p = e.high & 65535, h = e.low >>> 16, f = e.low & 65535, g = 0, d = 0, y = 0, _ = 0;
+        var r = this.high >>> 16, n = this.high & 65535, s = this.low >>> 16, o = this.low & 65535, a = e.high >>> 16, p = e.high & 65535, h = e.low >>> 16, f = e.low & 65535, g = 0, d = 0, y = 0, _ = 0;
         return _ += o * f, y += _ >>> 16, _ &= 65535, y += s * f, d += y >>> 16, y &= 65535, y += o * h, d += y >>> 16, y &= 65535, d += n * f, g += d >>> 16, d &= 65535, d += s * h, g += d >>> 16, d &= 65535, d += o * p, g += d >>> 16, d &= 65535, g += r * f + n * h + s * p + o * a, g &= 65535, fe.fromBits(y << 16 | _, g << 16 | d, this.unsigned);
       }
       divide(e) {
         if (fe.isLong(e) || (e = fe.fromValue(e)), e.isZero()) throw Error("division by zero");
         if (dn) {
           if (!this.unsigned && this.high === -2147483648 && e.low === -1 && e.high === -1) return this;
-          const t = (this.unsigned ? dn.div_u : dn.div_s)(this.low, this.high, e.low, e.high);
+          var t = (this.unsigned ? dn.div_u : dn.div_s)(this.low, this.high, e.low, e.high);
           return fe.fromBits(t, dn.get_high(), this.unsigned);
         }
         if (this.isZero()) return this.unsigned ? fe.UZERO : fe.ZERO;
-        let r, n, s;
+        var r, n, s;
         if (this.unsigned) {
           if (e.unsigned || (e = e.toUnsigned()), e.gt(this)) return fe.UZERO;
           if (e.gt(this.shru(1))) return fe.UONE;
@@ -266,7 +266,7 @@ const require_bioforest_chain_bundle = __commonJS({
           if (this.eq(fe.MIN_VALUE)) {
             if (e.eq(fe.ONE) || e.eq(fe.NEG_ONE)) return fe.MIN_VALUE;
             if (e.eq(fe.MIN_VALUE)) return fe.ONE;
-            const o = this.shr(1);
+            var o = this.shr(1);
             return r = o.div(e).shl(1), r.eq(fe.ZERO) ? e.isNegative() ? fe.ONE : fe.NEG_ONE : (n = this.sub(e.mul(r)), s = r.add(n.div(e)), s);
           } else if (e.eq(fe.MIN_VALUE)) return this.unsigned ? fe.UZERO : fe.ZERO;
           if (this.isNegative()) return e.isNegative() ? this.neg().div(e.neg()) : this.neg().div(e).neg();
@@ -282,7 +282,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       modulo(e) {
         if (fe.isLong(e) || (e = fe.fromValue(e)), dn) {
-          const t = (this.unsigned ? dn.rem_u : dn.rem_s)(this.low, this.high, e.low, e.high);
+          var t = (this.unsigned ? dn.rem_u : dn.rem_s)(this.low, this.high, e.low, e.high);
           return fe.fromBits(t, dn.get_high(), this.unsigned);
         }
         return this.sub(this.div(e).mul(e));
@@ -307,9 +307,9 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       shiftRightUnsigned(e) {
         if (fe.isLong(e) && (e = e.toInt()), e &= 63, e === 0) return this;
-        const t = this.high;
+        var t = this.high;
         if (e < 32) {
-          const r = this.low;
+          var r = this.low;
           return fe.fromBits(r >>> e | t << 32 - e, t >>> e, this.unsigned);
         } else return e === 32 ? fe.fromBits(t, 0, this.unsigned) : fe.fromBits(t >>> e - 32, 0, this.unsigned);
       }
@@ -323,11 +323,11 @@ const require_bioforest_chain_bundle = __commonJS({
         return e ? this.toBytesLE() : this.toBytesBE();
       }
       toBytesLE() {
-        const e = this.high, t = this.low;
+        var e = this.high, t = this.low;
         return [t & 255, t >>> 8 & 255, t >>> 16 & 255, t >>> 24, e & 255, e >>> 8 & 255, e >>> 16 & 255, e >>> 24];
       }
       toBytesBE() {
-        const e = this.high, t = this.low;
+        var e = this.high, t = this.low;
         return [e >>> 24, e >>> 16 & 255, e >>> 8 & 255, e & 255, t >>> 24, t >>> 16 & 255, t >>> 8 & 255, t & 255];
       }
       static fromBytes(e, t, r) {
@@ -350,14 +350,14 @@ const require_bioforest_chain_bundle = __commonJS({
     zt.MAX_VALUE = zt.fromBits(-1, 2147483647, false);
     zt.MAX_UNSIGNED_VALUE = zt.fromBits(-1, -1, true);
     zt.MIN_VALUE = zt.fromBits(0, -2147483648, false);
-    const vl = Math.pow;
-    const $y = 65536;
-    const tE = 1 << 24;
-    const ea = $y * $y;
-    const D_ = ea * ea;
-    const Uy = D_ / 2;
-    const Vy = zt.fromInt(tE);
-    const Ue = zt.prototype;
+    var vl = Math.pow;
+    var $y = 65536;
+    var tE = 1 << 24;
+    var ea = $y * $y;
+    var D_ = ea * ea;
+    var Uy = D_ / 2;
+    var Vy = zt.fromInt(tE);
+    var Ue = zt.prototype;
     Ue.eqz = Ue.isZero;
     Ue.eq = Ue.equals;
     Ue.neq = Ue.notEquals;
@@ -379,37 +379,37 @@ const require_bioforest_chain_bundle = __commonJS({
     Ue.shr = Ue.shiftRight;
     Ue.shru = Ue.shiftRightUnsigned;
     Ue.shr_u = Ue.shiftRightUnsigned;
-    const rs = {};
-    const uu = {};
+    var rs = {};
+    var uu = {};
     uu.byteLength = sE;
     uu.toByteArray = oE;
     uu.fromByteArray = pE;
-    const ns = [];
-    const yn = [];
-    const rE = typeof Uint8Array < "u" ? Uint8Array : Array;
-    const Cu = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var ns = [];
+    var yn = [];
+    var rE = typeof Uint8Array < "u" ? Uint8Array : Array;
+    var Cu = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     for (Ho = 0, nE = Cu.length; Ho < nE; ++Ho) ns[Ho] = Cu[Ho], yn[Cu.charCodeAt(Ho)] = Ho;
-    let Ho;
-    let nE;
+    var Ho;
+    var nE;
     yn["-".charCodeAt(0)] = 62;
     yn["_".charCodeAt(0)] = 63;
     function F_(i) {
-      const e = i.length;
+      var e = i.length;
       if (e % 4 > 0) throw new Error("Invalid string. Length must be a multiple of 4");
-      let t = i.indexOf("=");
+      var t = i.indexOf("=");
       t === -1 && (t = e);
-      const r = t === e ? 0 : 4 - t % 4;
+      var r = t === e ? 0 : 4 - t % 4;
       return [t, r];
     }
     function sE(i) {
-      const e = F_(i), t = e[0], r = e[1];
+      var e = F_(i), t = e[0], r = e[1];
       return (t + r) * 3 / 4 - r;
     }
     function iE(i, e, t) {
       return (e + t) * 3 / 4 - t;
     }
     function oE(i) {
-      let e, t = F_(i), r = t[0], n = t[1], s = new rE(iE(i, r, n)), o = 0, a = n > 0 ? r - 4 : r, p;
+      var e, t = F_(i), r = t[0], n = t[1], s = new rE(iE(i, r, n)), o = 0, a = n > 0 ? r - 4 : r, p;
       for (p = 0; p < a; p += 4) e = yn[i.charCodeAt(p)] << 18 | yn[i.charCodeAt(p + 1)] << 12 | yn[i.charCodeAt(p + 2)] << 6 | yn[i.charCodeAt(p + 3)], s[o++] = e >> 16 & 255, s[o++] = e >> 8 & 255, s[o++] = e & 255;
       return n === 2 && (e = yn[i.charCodeAt(p)] << 2 | yn[i.charCodeAt(p + 1)] >> 4, s[o++] = e & 255), n === 1 && (e = yn[i.charCodeAt(p)] << 10 | yn[i.charCodeAt(p + 1)] << 4 | yn[i.charCodeAt(p + 2)] >> 2, s[o++] = e >> 8 & 255, s[o++] = e & 255), s;
     }
@@ -424,9 +424,9 @@ const require_bioforest_chain_bundle = __commonJS({
       for (var e, t = i.length, r = t % 3, n = [], s = 16383, o = 0, a = t - r; o < a; o += s) n.push(cE(i, o, o + s > a ? a : o + s));
       return r === 1 ? (e = i[t - 1], n.push(ns[e >> 2] + ns[e << 4 & 63] + "==")) : r === 2 && (e = (i[t - 2] << 8) + i[t - 1], n.push(ns[e >> 10] + ns[e >> 4 & 63] + ns[e << 2 & 63] + "=")), n.join("");
     }
-    const pd = {};
+    var pd = {};
     pd.read = function(i, e, t, r, n) {
-      let s, o, a = n * 8 - r - 1, p = (1 << a) - 1, h = p >> 1, f = -7, g = t ? n - 1 : 0, d = t ? -1 : 1, y = i[e + g];
+      var s, o, a = n * 8 - r - 1, p = (1 << a) - 1, h = p >> 1, f = -7, g = t ? n - 1 : 0, d = t ? -1 : 1, y = i[e + g];
       for (g += d, s = y & (1 << -f) - 1, y >>= -f, f += a; f > 0; s = s * 256 + i[e + g], g += d, f -= 8) ;
       for (o = s & (1 << -f) - 1, s >>= -f, f += r; f > 0; o = o * 256 + i[e + g], g += d, f -= 8) ;
       if (s === 0) s = 1 - h;
@@ -437,16 +437,16 @@ const require_bioforest_chain_bundle = __commonJS({
       return (y ? -1 : 1) * o * Math.pow(2, s - r);
     };
     pd.write = function(i, e, t, r, n, s) {
-      let o, a, p, h = s * 8 - n - 1, f = (1 << h) - 1, g = f >> 1, d = n === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0, y = r ? 0 : s - 1, _ = r ? 1 : -1, I = e < 0 || e === 0 && 1 / e < 0 ? 1 : 0;
+      var o, a, p, h = s * 8 - n - 1, f = (1 << h) - 1, g = f >> 1, d = n === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0, y = r ? 0 : s - 1, _ = r ? 1 : -1, I = e < 0 || e === 0 && 1 / e < 0 ? 1 : 0;
       for (e = Math.abs(e), isNaN(e) || e === 1 / 0 ? (a = isNaN(e) ? 1 : 0, o = f) : (o = Math.floor(Math.log(e) / Math.LN2), e * (p = Math.pow(2, -o)) < 1 && (o--, p *= 2), o + g >= 1 ? e += d / p : e += d * Math.pow(2, 1 - g), e * p >= 2 && (o++, p /= 2), o + g >= f ? (a = 0, o = f) : o + g >= 1 ? (a = (e * p - 1) * Math.pow(2, n), o = o + g) : (a = e * Math.pow(2, g - 1) * Math.pow(2, n), o = 0)); n >= 8; i[t + y] = a & 255, y += _, a /= 256, n -= 8) ;
       for (o = o << n | a, h += n; h > 0; i[t + y] = o & 255, y += _, o /= 256, h -= 8) ;
       i[t + y - _] |= I * 128;
     };
     (function(i) {
-      const e = uu, t = pd, r = typeof Symbol === "function" && typeof Symbol.for === "function" ? /* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom") : null;
+      const e = uu, t = pd, r = typeof Symbol == "function" && typeof Symbol.for == "function" ? /* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom") : null;
       i.Buffer = a, i.SlowBuffer = N, i.INSPECT_MAX_BYTES = 50;
       const n = 2147483647;
-      i.kMaxLength = n, a.TYPED_ARRAY_SUPPORT = s(), !a.TYPED_ARRAY_SUPPORT && typeof console < "u" && typeof console.error === "function" && ;
+      i.kMaxLength = n, a.TYPED_ARRAY_SUPPORT = s(), !a.TYPED_ARRAY_SUPPORT && typeof console < "u" && typeof console.error == "function" && console.error("This browser lacks typed array (Uint8Array) support which is required by `buffer` v5.x. Use `buffer` v4.x if you require old browser support.");
       function s() {
         try {
           const T = new Uint8Array(1), m = { foo: function() {
@@ -468,35 +468,35 @@ const require_bioforest_chain_bundle = __commonJS({
         return Object.setPrototypeOf(m, a.prototype), m;
       }
       function a(T, m, E) {
-        if (typeof T === "number") {
-          if (typeof m === "string") throw new TypeError('The "string" argument must be of type string. Received type number');
+        if (typeof T == "number") {
+          if (typeof m == "string") throw new TypeError('The "string" argument must be of type string. Received type number');
           return g(T);
         }
         return p(T, m, E);
       }
       a.poolSize = 8192;
       function p(T, m, E) {
-        if (typeof T === "string") return d(T, m);
+        if (typeof T == "string") return d(T, m);
         if (ArrayBuffer.isView(T)) return _(T);
         if (T == null) throw new TypeError("The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof T);
         if (hn(T, ArrayBuffer) || T && hn(T.buffer, ArrayBuffer) || typeof SharedArrayBuffer < "u" && (hn(T, SharedArrayBuffer) || T && hn(T.buffer, SharedArrayBuffer))) return I(T, m, E);
-        if (typeof T === "number") throw new TypeError('The "value" argument must not be of type number. Received type number');
+        if (typeof T == "number") throw new TypeError('The "value" argument must not be of type number. Received type number');
         const b = T.valueOf && T.valueOf();
         if (b != null && b !== T) return a.from(b, m, E);
         const M = S(T);
         if (M) return M;
-        if (typeof Symbol < "u" && Symbol.toPrimitive != null && typeof T[Symbol.toPrimitive] === "function") return a.from(T[Symbol.toPrimitive]("string"), m, E);
+        if (typeof Symbol < "u" && Symbol.toPrimitive != null && typeof T[Symbol.toPrimitive] == "function") return a.from(T[Symbol.toPrimitive]("string"), m, E);
         throw new TypeError("The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof T);
       }
       a.from = function(T, m, E) {
         return p(T, m, E);
       }, Object.setPrototypeOf(a.prototype, Uint8Array.prototype), Object.setPrototypeOf(a, Uint8Array);
       function h(T) {
-        if (typeof T !== "number") throw new TypeError('"size" argument must be of type number');
+        if (typeof T != "number") throw new TypeError('"size" argument must be of type number');
         if (T < 0) throw new RangeError('The value "' + T + '" is invalid for option "size"');
       }
       function f(T, m, E) {
-        return h(T), T <= 0 ? o(T) : m !== void 0 ? typeof E === "string" ? o(T).fill(m, E) : o(T).fill(m) : o(T);
+        return h(T), T <= 0 ? o(T) : m !== void 0 ? typeof E == "string" ? o(T).fill(m, E) : o(T).fill(m) : o(T);
       }
       a.alloc = function(T, m, E) {
         return f(T, m, E);
@@ -510,7 +510,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return g(T);
       };
       function d(T, m) {
-        if ((typeof m !== "string" || m === "") && (m = "utf8"), !a.isEncoding(m)) throw new TypeError("Unknown encoding: " + m);
+        if ((typeof m != "string" || m === "") && (m = "utf8"), !a.isEncoding(m)) throw new TypeError("Unknown encoding: " + m);
         const E = B(T, m) | 0;
         let b = o(E);
         const M = b.write(T, m);
@@ -539,7 +539,7 @@ const require_bioforest_chain_bundle = __commonJS({
           const m = w(T.length) | 0, E = o(m);
           return E.length === 0 || T.copy(E, 0, 0, m), E;
         }
-        if (T.length !== void 0) return typeof T.length !== "number" || Mi(T.length) ? o(0) : y(T);
+        if (T.length !== void 0) return typeof T.length != "number" || Mi(T.length) ? o(0) : y(T);
         if (T.type === "Buffer" && Array.isArray(T.data)) return y(T.data);
       }
       function w(T) {
@@ -596,7 +596,7 @@ const require_bioforest_chain_bundle = __commonJS({
       function B(T, m) {
         if (a.isBuffer(T)) return T.length;
         if (ArrayBuffer.isView(T) || hn(T, ArrayBuffer)) return T.byteLength;
-        if (typeof T !== "string") throw new TypeError('The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof T);
+        if (typeof T != "string") throw new TypeError('The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof T);
         const E = T.length, b = arguments.length > 2 && arguments[2] === true;
         if (!b && E === 0) return 0;
         let M = false;
@@ -696,13 +696,13 @@ const require_bioforest_chain_bundle = __commonJS({
       };
       function C(T, m, E, b, M) {
         if (T.length === 0) return -1;
-        if (typeof E === "string" ? (b = E, E = 0) : E > 2147483647 ? E = 2147483647 : E < -2147483648 && (E = -2147483648), E = +E, Mi(E) && (E = M ? 0 : T.length - 1), E < 0 && (E = T.length + E), E >= T.length) {
+        if (typeof E == "string" ? (b = E, E = 0) : E > 2147483647 ? E = 2147483647 : E < -2147483648 && (E = -2147483648), E = +E, Mi(E) && (E = M ? 0 : T.length - 1), E < 0 && (E = T.length + E), E >= T.length) {
           if (M) return -1;
           E = T.length - 1;
         } else if (E < 0) if (M) E = 0;
         else return -1;
-        if (typeof m === "string" && (m = a.from(m, b)), a.isBuffer(m)) return m.length === 0 ? -1 : V(T, m, E, b, M);
-        if (typeof m === "number") return m = m & 255, typeof Uint8Array.prototype.indexOf === "function" ? M ? Uint8Array.prototype.indexOf.call(T, m, E) : Uint8Array.prototype.lastIndexOf.call(T, m, E) : V(T, [m], E, b, M);
+        if (typeof m == "string" && (m = a.from(m, b)), a.isBuffer(m)) return m.length === 0 ? -1 : V(T, m, E, b, M);
+        if (typeof m == "number") return m = m & 255, typeof Uint8Array.prototype.indexOf == "function" ? M ? Uint8Array.prototype.indexOf.call(T, m, E) : Uint8Array.prototype.lastIndexOf.call(T, m, E) : V(T, [m], E, b, M);
         throw new TypeError("val must be string, number or Buffer");
       }
       function V(T, m, E, b, M) {
@@ -765,7 +765,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       a.prototype.write = function(m, E, b, M) {
         if (E === void 0) M = "utf8", b = this.length, E = 0;
-        else if (b === void 0 && typeof E === "string") M = E, b = this.length, E = 0;
+        else if (b === void 0 && typeof E == "string") M = E, b = this.length, E = 0;
         else if (isFinite(E)) E = E >>> 0, isFinite(b) ? (b = b >>> 0, M === void 0 && (M = "utf8")) : (M = b, b = void 0);
         else throw new Error("Buffer.write(string, encoding, offset[, length]) is no longer supported");
         const k = this.length - E;
@@ -1054,21 +1054,21 @@ const require_bioforest_chain_bundle = __commonJS({
         if (M < 0) throw new RangeError("sourceEnd out of bounds");
         M > this.length && (M = this.length), m.length - E < M - b && (M = m.length - E + b);
         const k = M - b;
-        return this === m && typeof Uint8Array.prototype.copyWithin === "function" ? this.copyWithin(E, b, M) : Uint8Array.prototype.set.call(m, this.subarray(b, M), E), k;
+        return this === m && typeof Uint8Array.prototype.copyWithin == "function" ? this.copyWithin(E, b, M) : Uint8Array.prototype.set.call(m, this.subarray(b, M), E), k;
       }, a.prototype.fill = function(m, E, b, M) {
-        if (typeof m === "string") {
-          if (typeof E === "string" ? (M = E, E = 0, b = this.length) : typeof b === "string" && (M = b, b = this.length), M !== void 0 && typeof M !== "string") throw new TypeError("encoding must be a string");
-          if (typeof M === "string" && !a.isEncoding(M)) throw new TypeError("Unknown encoding: " + M);
+        if (typeof m == "string") {
+          if (typeof E == "string" ? (M = E, E = 0, b = this.length) : typeof b == "string" && (M = b, b = this.length), M !== void 0 && typeof M != "string") throw new TypeError("encoding must be a string");
+          if (typeof M == "string" && !a.isEncoding(M)) throw new TypeError("Unknown encoding: " + M);
           if (m.length === 1) {
             const X = m.charCodeAt(0);
             (M === "utf8" && X < 128 || M === "latin1") && (m = X);
           }
-        } else typeof m === "number" ? m = m & 255 : typeof m === "boolean" && (m = Number(m));
+        } else typeof m == "number" ? m = m & 255 : typeof m == "boolean" && (m = Number(m));
         if (E < 0 || this.length < E || this.length < b) throw new RangeError("Out of range index");
         if (b <= E) return this;
         E = E >>> 0, b = b === void 0 ? this.length : b >>> 0, m || (m = 0);
         let k;
-        if (typeof m === "number") for (k = E; k < b; ++k) this[k] = m;
+        if (typeof m == "number") for (k = E; k < b; ++k) this[k] = m;
         else {
           const X = a.isBuffer(m) ? m : a.from(m, M), we = X.length;
           if (we === 0) throw new TypeError('The value "' + m + '" is invalid for argument "value"');
@@ -1099,7 +1099,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return `The "${T}" argument must be of type number. Received type ${typeof m}`;
       }, TypeError), le("ERR_OUT_OF_RANGE", function(T, m, E) {
         let b = `The value of "${T}" is out of range.`, M = E;
-        return Number.isInteger(E) && Math.abs(E) > 2 ** 32 ? M = Pe(String(E)) : typeof E === "bigint" && (M = String(E), (E > BigInt(2) ** BigInt(32) || E < -(BigInt(2) ** BigInt(32))) && (M = Pe(M)), M += "n"), b += ` It must be ${m}. Received ${M}`, b;
+        return Number.isInteger(E) && Math.abs(E) > 2 ** 32 ? M = Pe(String(E)) : typeof E == "bigint" && (M = String(E), (E > BigInt(2) ** BigInt(32) || E < -(BigInt(2) ** BigInt(32))) && (M = Pe(M)), M += "n"), b += ` It must be ${m}. Received ${M}`, b;
       }, RangeError);
       function Pe(T) {
         let m = "", E = T.length;
@@ -1112,14 +1112,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function Qe(T, m, E, b, M, k) {
         if (T > E || T < m) {
-          const X = typeof m === "bigint" ? "n" : "";
+          const X = typeof m == "bigint" ? "n" : "";
           let we;
           throw k > 3 ? m === 0 || m === BigInt(0) ? we = `>= 0${X} and < 2${X} ** ${(k + 1) * 8}${X}` : we = `>= -(2${X} ** ${(k + 1) * 8 - 1}${X}) and < 2 ** ${(k + 1) * 8 - 1}${X}` : we = `>= ${m}${X} and <= ${E}${X}`, new ae.ERR_OUT_OF_RANGE("value", we, T);
         }
         Ke(b, M, k);
       }
       function tt(T, m) {
-        if (typeof T !== "number") throw new ae.ERR_INVALID_ARG_TYPE(m, "number", T);
+        if (typeof T != "number") throw new ae.ERR_INVALID_ARG_TYPE(m, "number", T);
       }
       function yt(T, m, E) {
         throw Math.floor(T) !== T ? (tt(T, E), new ae.ERR_OUT_OF_RANGE(E || "offset", "an integer", T)) : m < 0 ? new ae.ERR_BUFFER_OUT_OF_BOUNDS() : new ae.ERR_OUT_OF_RANGE(E || "offset", `>= ${E ? 1 : 0} and <= ${m}`, T);
@@ -1211,7 +1211,7 @@ const require_bioforest_chain_bundle = __commonJS({
         throw new Error("BigInt not supported");
       }
     })(rs);
-    const lE = hE;
+    var lE = hE;
     function hE(i, e) {
       for (var t = new Array(arguments.length - 1), r = 0, n = 2, s = true; n < arguments.length; ) t[r++] = arguments[n++];
       return new Promise(function(a, p) {
@@ -1229,8 +1229,8 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       });
     }
-    const uE = mo(lE);
-    const fE = fu;
+    var uE = mo(lE);
+    var fE = fu;
     function fu() {
       this._listeners = {};
     }
@@ -1240,22 +1240,22 @@ const require_bioforest_chain_bundle = __commonJS({
     fu.prototype.off = function(e, t) {
       if (e === void 0) this._listeners = {};
       else if (t === void 0) this._listeners[e] = [];
-      else for (let r = this._listeners[e], n = 0; n < r.length; ) r[n].fn === t ? r.splice(n, 1) : ++n;
+      else for (var r = this._listeners[e], n = 0; n < r.length; ) r[n].fn === t ? r.splice(n, 1) : ++n;
       return this;
     };
     fu.prototype.emit = function(e) {
-      const t = this._listeners[e];
+      var t = this._listeners[e];
       if (t) {
         for (var r = [], n = 1; n < arguments.length; ) r.push(arguments[n++]);
         for (n = 0; n < t.length; ) t[n].fn.apply(t[n++].ctx, r);
       }
       return this;
     };
-    const gE = mo(fE);
-    const dE = Gy(Gy);
+    var gE = mo(fE);
+    var dE = Gy(Gy);
     function Gy(i) {
       return typeof Float32Array < "u" ? (function() {
-        const e = new Float32Array([-0]), t = new Uint8Array(e.buffer), r = t[3] === 128;
+        var e = new Float32Array([-0]), t = new Uint8Array(e.buffer), r = t[3] === 128;
         function n(p, h, f) {
           e[0] = p, h[f] = t[0], h[f + 1] = t[1], h[f + 2] = t[2], h[f + 3] = t[3];
         }
@@ -1272,24 +1272,24 @@ const require_bioforest_chain_bundle = __commonJS({
         i.readFloatLE = r ? o : a, i.readFloatBE = r ? a : o;
       })() : (function() {
         function e(r, n, s, o) {
-          const a = n < 0 ? 1 : 0;
+          var a = n < 0 ? 1 : 0;
           if (a && (n = -n), n === 0) r(1 / n > 0 ? 0 : 2147483648, s, o);
           else if (isNaN(n)) r(2143289344, s, o);
           else if (n > 34028234663852886e22) r((a << 31 | 2139095040) >>> 0, s, o);
           else if (n < 11754943508222875e-54) r((a << 31 | Math.round(n / 1401298464324817e-60)) >>> 0, s, o);
           else {
-            const p = Math.floor(Math.log(n) / Math.LN2), h = Math.round(n * Math.pow(2, -p) * 8388608) & 8388607;
+            var p = Math.floor(Math.log(n) / Math.LN2), h = Math.round(n * Math.pow(2, -p) * 8388608) & 8388607;
             r((a << 31 | p + 127 << 23 | h) >>> 0, s, o);
           }
         }
         i.writeFloatLE = e.bind(null, Ky), i.writeFloatBE = e.bind(null, zy);
         function t(r, n, s) {
-          const o = r(n, s), a = (o >> 31) * 2 + 1, p = o >>> 23 & 255, h = o & 8388607;
+          var o = r(n, s), a = (o >> 31) * 2 + 1, p = o >>> 23 & 255, h = o & 8388607;
           return p === 255 ? h ? NaN : a * (1 / 0) : p === 0 ? a * 1401298464324817e-60 * h : a * Math.pow(2, p - 150) * (h + 8388608);
         }
         i.readFloatLE = t.bind(null, jy), i.readFloatBE = t.bind(null, Jy);
       })(), typeof Float64Array < "u" ? (function() {
-        const e = new Float64Array([-0]), t = new Uint8Array(e.buffer), r = t[7] === 128;
+        var e = new Float64Array([-0]), t = new Uint8Array(e.buffer), r = t[7] === 128;
         function n(p, h, f) {
           e[0] = p, h[f] = t[0], h[f + 1] = t[1], h[f + 2] = t[2], h[f + 3] = t[3], h[f + 4] = t[4], h[f + 5] = t[5], h[f + 6] = t[6], h[f + 7] = t[7];
         }
@@ -1306,22 +1306,22 @@ const require_bioforest_chain_bundle = __commonJS({
         i.readDoubleLE = r ? o : a, i.readDoubleBE = r ? a : o;
       })() : (function() {
         function e(r, n, s, o, a, p) {
-          const h = o < 0 ? 1 : 0;
+          var h = o < 0 ? 1 : 0;
           if (h && (o = -o), o === 0) r(0, a, p + n), r(1 / o > 0 ? 0 : 2147483648, a, p + s);
           else if (isNaN(o)) r(0, a, p + n), r(2146959360, a, p + s);
           else if (o > 17976931348623157e292) r(0, a, p + n), r((h << 31 | 2146435072) >>> 0, a, p + s);
           else {
-            let f;
+            var f;
             if (o < 22250738585072014e-324) f = o / 5e-324, r(f >>> 0, a, p + n), r((h << 31 | f / 4294967296) >>> 0, a, p + s);
             else {
-              let g = Math.floor(Math.log(o) / Math.LN2);
+              var g = Math.floor(Math.log(o) / Math.LN2);
               g === 1024 && (g = 1023), f = o * Math.pow(2, -g), r(f * 4503599627370496 >>> 0, a, p + n), r((h << 31 | g + 1023 << 20 | f * 1048576 & 1048575) >>> 0, a, p + s);
             }
           }
         }
         i.writeDoubleLE = e.bind(null, Ky, 0, 4), i.writeDoubleBE = e.bind(null, zy, 4, 0);
         function t(r, n, s, o, a) {
-          const p = r(o, a + n), h = r(o, a + s), f = (h >> 31) * 2 + 1, g = h >>> 20 & 2047, d = 4294967296 * (h & 1048575) + p;
+          var p = r(o, a + n), h = r(o, a + s), f = (h >> 31) * 2 + 1, g = h >>> 20 & 2047, d = 4294967296 * (h & 1048575) + p;
           return g === 2047 ? d ? NaN : f * (1 / 0) : g === 0 ? f * 5e-324 * d : f * Math.pow(2, g - 1075) * (d + 4503599627370496);
         }
         i.readDoubleLE = t.bind(null, jy, 0, 4), i.readDoubleBE = t.bind(null, Jy, 4, 0);
@@ -1339,15 +1339,15 @@ const require_bioforest_chain_bundle = __commonJS({
     function Jy(i, e) {
       return (i[e] << 24 | i[e + 1] << 16 | i[e + 2] << 8 | i[e + 3]) >>> 0;
     }
-    const yE = mo(dE);
-    const $_ = {};
+    var yE = mo(dE);
+    var $_ = {};
     (function(i) {
-      const e = i;
+      var e = i;
       e.length = function(r) {
         for (var n = 0, s = 0, o = 0; o < r.length; ++o) s = r.charCodeAt(o), s < 128 ? n += 1 : s < 2048 ? n += 2 : (s & 64512) === 55296 && (r.charCodeAt(o + 1) & 64512) === 56320 ? (++o, n += 4) : n += 3;
         return n;
       }, e.read = function(r, n, s) {
-        const o = s - n;
+        var o = s - n;
         if (o < 1) return "";
         for (var a = null, p = [], h = 0, f; n < s; ) f = r[n++], f < 128 ? p[h++] = f : f > 191 && f < 224 ? p[h++] = (f & 31) << 6 | r[n++] & 63 : f > 239 && f < 365 ? (f = ((f & 7) << 18 | (r[n++] & 63) << 12 | (r[n++] & 63) << 6 | r[n++] & 63) - 65536, p[h++] = 55296 + (f >> 10), p[h++] = 56320 + (f & 1023)) : p[h++] = (f & 15) << 12 | (r[n++] & 63) << 6 | r[n++] & 63, h > 8191 && ((a || (a = [])).push(String.fromCharCode.apply(String, p)), h = 0);
         return a ? (h && a.push(String.fromCharCode.apply(String, p.slice(0, h))), a.join("")) : String.fromCharCode.apply(String, p.slice(0, h));
@@ -1356,18 +1356,18 @@ const require_bioforest_chain_bundle = __commonJS({
         return s - o;
       };
     })($_);
-    const mE = mo($_);
-    const _E = AE;
+    var mE = mo($_);
+    var _E = AE;
     function AE(i, e, t) {
-      let r = t || 8192, n = r >>> 1, s = null, o = r;
+      var r = t || 8192, n = r >>> 1, s = null, o = r;
       return function(p) {
         if (p < 1 || p > n) return i(p);
         o + p > r && (s = i(r), o = 0);
-        const h = e.call(s, o, o += p);
+        var h = e.call(s, o, o += p);
         return o & 7 && (o = (o | 7) + 1), h;
       };
     }
-    const EE = mo(_E);
+    var EE = mo(_E);
     function U_(i, e, t = false) {
       for (let r = Object.keys(e), n = 0; n < r.length; ++n) (i[r[n]] === void 0 || !t) && (i[r[n]] = e[r[n]]);
       return i;
@@ -1385,34 +1385,34 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.name + ": " + this.message;
       }, e;
     }
-    const He = { asPromise: uE, base64: mf, EventEmitter: gE, float: yE, utf8: mE, pool: EE, emptyArray: Object.freeze ? Object.freeze([]) : [], emptyBytes: new Uint8Array(), emptyObject: Object.freeze ? Object.freeze({}) : {}, isInteger: Number.isInteger || function(e) {
-      return typeof e === "number" && isFinite(e) && Math.floor(e) === e;
+    var He = { asPromise: uE, base64: mf, EventEmitter: gE, float: yE, utf8: mE, pool: EE, emptyArray: Object.freeze ? Object.freeze([]) : [], emptyBytes: new Uint8Array(), emptyObject: Object.freeze ? Object.freeze({}) : {}, isInteger: Number.isInteger || function(e) {
+      return typeof e == "number" && isFinite(e) && Math.floor(e) === e;
     }, isString: function(e) {
-      return typeof e === "string" || e instanceof String;
+      return typeof e == "string" || e instanceof String;
     }, isObject: function(e) {
-      return e && typeof e === "object";
+      return e && typeof e == "object";
     }, get isset() {
       return this.isSet;
     }, isSet(i, e) {
-      const t = i[e];
-      return t != null && i.hasOwnProperty(e) ? typeof t !== "object" || (Array.isArray(t) ? t.length : Object.keys(t).length) > 0 : false;
+      var t = i[e];
+      return t != null && i.hasOwnProperty(e) ? typeof t != "object" || (Array.isArray(t) ? t.length : Object.keys(t).length) > 0 : false;
     }, Buffer: (function() {
       return rs.Buffer.prototype.utf8Write ? rs.Buffer : null;
     })(), newBuffer: function(e) {
-      return typeof e === "number" ? He.Buffer ? He._Buffer_allocUnsafe(e) : new He.Array(e) : He.Buffer ? He._Buffer_from(e) : typeof Uint8Array > "u" ? e : new Uint8Array(e);
+      return typeof e == "number" ? He.Buffer ? He._Buffer_allocUnsafe(e) : new He.Array(e) : He.Buffer ? He._Buffer_from(e) : typeof Uint8Array > "u" ? e : new Uint8Array(e);
     }, Array: typeof Uint8Array < "u" ? Uint8Array : Array, Long: zt, key2Re: /^true|false|0|1$/, key32Re: /^-?(?:0|[1-9][0-9]*)$/, key64Re: /^(?:[\\x00-\\xff]{8}|-?(?:0|[1-9][0-9]*))$/, merge: U_, lcFirst(i) {
       return i.charAt(0).toLowerCase() + i.substring(1);
     }, newError: Yy, ProtocolError: Yy("ProtocolError"), oneOfGetter: function(e) {
       for (var t = {}, r = 0; r < e.length; ++r) t[e[r]] = 1;
       return function() {
-        for (let n = Object.keys(this), s = n.length - 1; s > -1; --s) if (t[n[s]] === 1 && this[n[s]] !== void 0 && this[n[s]] !== null) return n[s];
+        for (var n = Object.keys(this), s = n.length - 1; s > -1; --s) if (t[n[s]] === 1 && this[n[s]] !== void 0 && this[n[s]] !== null) return n[s];
       };
     }, oneOfSetter: function(e) {
       return function(t) {
-        for (let r = 0; r < e.length; ++r) e[r] !== t && delete this[e[r]];
+        for (var r = 0; r < e.length; ++r) e[r] !== t && delete this[e[r]];
       };
     }, toJSONOptions: { longs: String, enums: String, bytes: String, json: true }, _Buffer_from: null, _Buffer_allocUnsafe: null, _configure2: function() {
-      const i = He.Buffer;
+      var i = He.Buffer;
       if (!i) {
         He._Buffer_from = He._Buffer_allocUnsafe = null;
         return;
@@ -1424,17 +1424,17 @@ const require_bioforest_chain_bundle = __commonJS({
       };
     }, isReservedId: function(e, t) {
       if (e) {
-        for (let r = 0; r < e.length; ++r) if (typeof e[r] !== "string" && e[r][0] <= t && e[r][1] > t) return true;
+        for (var r = 0; r < e.length; ++r) if (typeof e[r] != "string" && e[r][0] <= t && e[r][1] > t) return true;
       }
       return false;
     }, isReservedName: function(e, t) {
       if (e) {
-        for (let r = 0; r < e.length; ++r) if (e[r] === t) return true;
+        for (var r = 0; r < e.length; ++r) if (e[r] === t) return true;
       }
       return false;
     } };
-    let kl;
-    const xs = class _xs {
+    var kl;
+    var xs = class _xs {
       constructor(e, t) {
         if (this.name = e, this.options = t, this.resolved = false, this.comment = null, this.filename = null, !He.isString(e)) throw TypeError("name must be a string");
         if (t && !He.isObject(t)) throw TypeError("options must be an object");
@@ -1454,11 +1454,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       onAdd(e) {
         this.parent && this.parent !== e && this.parent.remove(this), this.parent = e, this.resolved = false;
-        const t = e.root;
+        var t = e.root;
         t instanceof kl && t._handleAdd(this);
       }
       onRemove(e) {
-        const t = e.root;
+        var t = e.root;
         t instanceof kl && t._handleRemove(this), this.parent = null, this.resolved = false;
       }
       resolve() {
@@ -1480,14 +1480,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     xs.className = "ReflectionObject";
-    const IE = ld;
+    var IE = ld;
     function ld(i, e) {
-      typeof i === "string" && (e = i, i = void 0);
-      const t = [];
+      typeof i == "string" && (e = i, i = void 0);
+      var t = [];
       function r(s) {
-        if (typeof s !== "string") {
-          let o = n();
-          if (ld.verbose && , o = "return " + o, s) {
+        if (typeof s != "string") {
+          var o = n();
+          if (ld.verbose && console.log("codegen: " + o), o = "return " + o, s) {
             for (var a = Object.keys(s), p = new Array(a.length + 1), h = new Array(a.length), f = 0; f < a.length; ) p[f] = a[f], h[f] = s[a[f++]];
             return p[f] = o, Function.apply(null, p).apply(null, h);
           }
@@ -1495,7 +1495,7 @@ const require_bioforest_chain_bundle = __commonJS({
         }
         for (var g = new Array(arguments.length - 1), d = 0; d < g.length; ) g[d] = arguments[++d];
         if (d = 0, s = s.replace(/%([%dfijs])/g, function(_, I) {
-          const S = g[d++];
+          var S = g[d++];
           switch (I) {
             case "d":
             case "f":
@@ -1520,20 +1520,20 @@ const require_bioforest_chain_bundle = __commonJS({
       return r.toString = n, r;
     }
     ld.verbose = false;
-    const TE = mo(IE);
-    const Gt = class _Gt {
+    var TE = mo(IE);
+    var Gt = class _Gt {
       constructor(e, t) {
         this.lo = e >>> 0, this.hi = t >>> 0;
       }
       static fromNumber(e) {
         if (e === 0) return $i;
-        const t = e < 0;
+        var t = e < 0;
         t && (e = -e);
-        let r = e >>> 0, n = (e - r) / 4294967296 >>> 0;
+        var r = e >>> 0, n = (e - r) / 4294967296 >>> 0;
         return t && (n = ~n >>> 0, r = ~r >>> 0, ++r > 4294967295 && (r = 0, ++n > 4294967295 && (n = 0))), new _Gt(r, n);
       }
       static from(e) {
-        if (typeof e === "number") return _Gt.fromNumber(e);
+        if (typeof e == "number") return _Gt.fromNumber(e);
         if (He.isString(e)) if (He.Long) e = He.Long.fromString(e);
         else return _Gt.fromNumber(parseInt(e, 10));
         const t = e;
@@ -1541,7 +1541,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       toNumber(e = false) {
         if (!e && this.hi >>> 31) {
-          let t = ~this.lo + 1 >>> 0, r = ~this.hi >>> 0;
+          var t = ~this.lo + 1 >>> 0, r = ~this.hi >>> 0;
           return t || (r = r + 1 >>> 0), -(t + r * 4294967296);
         }
         return this.lo + this.hi * 4294967296;
@@ -1558,20 +1558,20 @@ const require_bioforest_chain_bundle = __commonJS({
         return String.fromCharCode(this.lo & 255, this.lo >>> 8 & 255, this.lo >>> 16 & 255, this.lo >>> 24, this.hi & 255, this.hi >>> 8 & 255, this.hi >>> 16 & 255, this.hi >>> 24);
       }
       zzEncode() {
-        const e = this.hi >> 31;
+        var e = this.hi >> 31;
         return this.hi = ((this.hi << 1 | this.lo >>> 31) ^ e) >>> 0, this.lo = (this.lo << 1 ^ e) >>> 0, this;
       }
       zzDecode() {
-        const e = -(this.lo & 1);
+        var e = -(this.lo & 1);
         return this.lo = ((this.lo >>> 1 | this.hi << 31) ^ e) >>> 0, this.hi = (this.hi >>> 1 ^ e) >>> 0, this;
       }
       length() {
-        const e = this.lo, t = (this.lo >>> 28 | this.hi << 4) >>> 0, r = this.hi >>> 24;
+        var e = this.lo, t = (this.lo >>> 28 | this.hi << 4) >>> 0, r = this.hi >>> 24;
         return r === 0 ? t === 0 ? e < 16384 ? e < 128 ? 1 : 2 : e < 2097152 ? 3 : 4 : t < 16384 ? t < 128 ? 5 : 6 : t < 2097152 ? 7 : 8 : r < 128 ? 9 : 10;
       }
     };
     Gt.zeroHash = "\0\0\0\0\0\0\0\0";
-    const $i = Gt.zero = new Gt(0, 0);
+    var $i = Gt.zero = new Gt(0, 0);
     $i.toNumber = function() {
       return 0;
     };
@@ -1582,12 +1582,12 @@ const require_bioforest_chain_bundle = __commonJS({
       return 1;
     };
     Gt.zeroHash;
-    const Qy = {};
-    let Wy;
-    let Xy;
-    let qy;
-    let SE = 0;
-    const sa = { _configure: function(i, e, t) {
+    var Qy = {};
+    var Wy;
+    var Xy;
+    var qy;
+    var SE = 0;
+    var sa = { _configure: function(i, e, t) {
       Wy = i, Xy = e, qy = t;
     }, decorateType: function(i, e) {
       const t = e || i.name;
@@ -1601,13 +1601,13 @@ const require_bioforest_chain_bundle = __commonJS({
     }, get decorateRoot() {
       return Qy.decorated || (Qy.decorated = new Xy());
     } };
-    const wE = /\\/g;
-    const bE = /"/g;
-    const NE = /_([a-z])/g;
-    const Se = Object.assign(sa, He, { codegen: TE, LongBits: Gt, longToHash(i) {
+    var wE = /\\/g;
+    var bE = /"/g;
+    var NE = /_([a-z])/g;
+    var Se = Object.assign(sa, He, { codegen: TE, LongBits: Gt, longToHash(i) {
       return i ? Gt.from(i).toHash() : Gt.zeroHash;
     }, longFromHash(i, e = false) {
-      const t = Gt.fromHash(i);
+      var t = Gt.fromHash(i);
       return He.Long ? He.Long.fromBits(t.lo, t.hi, e) : t.toNumber(!!e);
     }, compareFieldsById(i, e) {
       return i.id - e.id;
@@ -1621,7 +1621,7 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = {};
       let t = 0;
       for (; t < i.length; ) {
-        const r = i[t++], n = i[t++];
+        var r = i[t++], n = i[t++];
         n !== void 0 && (e[r] = n);
       }
       return e;
@@ -1636,12 +1636,12 @@ const require_bioforest_chain_bundle = __commonJS({
         return t.toUpperCase();
       });
     } });
-    const br = class V_ extends xs {
+    var br = class V_ extends xs {
       constructor(e, t, r, n, s) {
-        if (super(e, r), t && typeof t !== "object") throw TypeError("values must be an object");
-        if (this.valuesById = {}, this.values = Object.create(this.valuesById), this.keys = [], this.comment = n, this.comments = s || {}, this.reserved = void 0, t) for (let o = Object.keys(t), a = 0; a < o.length; ++a) {
-          const p = o[a], h = t[p];
-          typeof h === "number" && (this.values[p] = h, this.valuesById[h] = p, this.keys.push(p));
+        if (super(e, r), t && typeof t != "object") throw TypeError("values must be an object");
+        if (this.valuesById = {}, this.values = Object.create(this.valuesById), this.keys = [], this.comment = n, this.comments = s || {}, this.reserved = void 0, t) for (var o = Object.keys(t), a = 0; a < o.length; ++a) {
+          var p = o[a], h = t[p];
+          typeof h == "number" && (this.values[p] = h, this.valuesById[h] = p, this.keys.push(p));
         }
       }
       lookupType(e) {
@@ -1675,7 +1675,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       remove(e) {
         if (!Se.isString(e)) throw TypeError("name must be a string");
-        const t = this.values[e];
+        var t = this.values[e];
         if (t == null) throw Error("name '" + e + "' does not exist in " + this);
         return delete this.valuesById[t], delete this.values[e], delete this.comments[e], this;
       }
@@ -1687,21 +1687,21 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     br.className = "Enum";
-    const xE = ["double", "float", "int32", "uint32", "sint32", "fixed32", "sfixed32", "int64", "uint64", "sint64", "fixed64", "sfixed64", "bool", "string", "bytes"];
+    var xE = ["double", "float", "int32", "uint32", "sint32", "fixed32", "sfixed32", "int64", "uint64", "sint64", "fixed64", "sfixed64", "bool", "string", "bytes"];
     function Tl(i, e = 0) {
       let t = 0;
       const r = {};
       for (e |= 0; t < i.length; ) r[xE[t + e]] = i[t++];
       return r;
     }
-    const ta = Tl([1, 5, 0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0, 2, 2]);
-    const OE = Tl([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, "", He.emptyBytes, null]);
-    const G_ = Tl([0, 0, 0, 1, 1], 7);
-    const hd = Tl([0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0, 2], 2);
-    const ud = Tl([1, 5, 0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0]);
-    const CE = /^required|optional|repeated$/;
-    let Ru;
-    const is = class extends xs {
+    var ta = Tl([1, 5, 0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0, 2, 2]);
+    var OE = Tl([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, "", He.emptyBytes, null]);
+    var G_ = Tl([0, 0, 0, 1, 1], 7);
+    var hd = Tl([0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0, 2], 2);
+    var ud = Tl([1, 5, 0, 0, 0, 5, 5, 0, 0, 0, 1, 1, 0]);
+    var CE = /^required|optional|repeated$/;
+    var Ru;
+    var is = class extends xs {
       constructor(e, t, r, n, s, o, a) {
         if (Se.isObject(n) ? (a = s, o = n, n = s = void 0) : Se.isObject(s) && (a = o, o = s, s = void 0), super(e, o), !Se.isInteger(t) || t < 0) throw TypeError("id must be a non-negative integer");
         if (!Se.isString(r)) throw TypeError("type must be a string");
@@ -1738,8 +1738,8 @@ const require_bioforest_chain_bundle = __commonJS({
         if (this.resolved) return this;
         (this.typeDefault = OE[this.type]) === void 0 && (this.resolvedType = (this.declaringField ? this.declaringField.parent : this.parent).lookupTypeOrEnum(this.type), this.resolvedType instanceof Ru ? this.typeDefault = null : this.typeDefault = this.resolvedType.values[Object.keys(this.resolvedType.values)[0]]);
         const e = this.options && this.options.default != null;
-        if (e && (this.typeDefault = this.options.default, this.resolvedType instanceof br && typeof this.typeDefault === "string" && (this.typeDefault = this.resolvedType.values[this.typeDefault])), this.options && ((this.options.packed === true || this.options.packed !== void 0 && this.resolvedType && !(this.resolvedType instanceof br)) && delete this.options.packed, Object.keys(this.options).length || (this.options = void 0)), this.long) this.typeDefault = Se.Long.fromNumber(this.typeDefault, this.type.charAt(0) === "u"), Object.freeze && Object.freeze(this.typeDefault);
-        else if (this.bytes && typeof this.typeDefault === "string") {
+        if (e && (this.typeDefault = this.options.default, this.resolvedType instanceof br && typeof this.typeDefault == "string" && (this.typeDefault = this.resolvedType.values[this.typeDefault])), this.options && ((this.options.packed === true || this.options.packed !== void 0 && this.resolvedType && !(this.resolvedType instanceof br)) && delete this.options.packed, Object.keys(this.options).length || (this.options = void 0)), this.long) this.typeDefault = Se.Long.fromNumber(this.typeDefault, this.type.charAt(0) === "u"), Object.freeze && Object.freeze(this.typeDefault);
+        else if (this.bytes && typeof this.typeDefault == "string") {
           let t;
           Se.base64.test(this.typeDefault) ? Se.base64.decode(this.typeDefault, t = Se.newBuffer(Se.base64.length(this.typeDefault)), 0) : Se.utf8.write(this.typeDefault, t = Se.newBuffer(Se.utf8.length(this.typeDefault)), 0), this.typeDefault = t;
         }
@@ -1750,10 +1750,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     is.className = "Field";
-    const A = class K_ extends is {
+    var A = class K_ extends is {
       static d(e, t, r, n) {
         let s;
-        typeof t === "function" ? s = sa.decorateType(t).name : typeof t === "object" ? s = sa.decorateEnum(t).name : s = t;
+        typeof t == "function" ? s = sa.decorateType(t).name : typeof t == "object" ? s = sa.decorateEnum(t).name : s = t;
         const o = /* @__PURE__ */ Symbol.for("field");
         return function(p, h) {
           const f = p.constructor;
@@ -1761,10 +1761,10 @@ const require_bioforest_chain_bundle = __commonJS({
         };
       }
     };
-    let vo;
-    let ko;
-    let Zy;
-    const Ht = class _Ht extends xs {
+    var vo;
+    var ko;
+    var Zy;
+    var Ht = class _Ht extends xs {
       constructor(e, t) {
         super(e, t), this._nestedArray = null;
       }
@@ -1819,7 +1819,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.nested && (delete this.nested[e.name], Object.keys(this.nested).length || (this.nested = void 0)), e.onRemove(this), this._nestedArray = null, this;
       }
       define(e, t) {
-        if (typeof e === "string") e = e.split(".");
+        if (typeof e == "string") e = e.split(".");
         else if (!Array.isArray(e)) throw TypeError("illegal path");
         if (e && e.length && e[0] === "") throw Error("path must be relative");
         let r = this;
@@ -1832,11 +1832,11 @@ const require_bioforest_chain_bundle = __commonJS({
         return t && r.addJSON(t), r;
       }
       resolveAll() {
-        for (let e = this.nestedArray, t = 0; t < e.length; ) e[t] instanceof _Ht ? e[t++].resolveAll() : e[t++].resolve();
+        for (var e = this.nestedArray, t = 0; t < e.length; ) e[t] instanceof _Ht ? e[t++].resolveAll() : e[t++].resolve();
         return this.resolve();
       }
       lookup(e, t, r = false) {
-        if (typeof t === "boolean" ? (r = t, t = void 0) : t && !Array.isArray(t) && (t = [t]), Se.isString(e) && e.length) {
+        if (typeof t == "boolean" ? (r = t, t = void 0) : t && !Array.isArray(t) && (t = [t]), Se.isString(e) && e.length) {
           if (e === ".") return this.root;
           e = e.split(".");
         } else if (!e.length) return this;
@@ -1850,12 +1850,12 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.parent === null || r ? null : this.parent.lookup(e, t);
       }
       lookupType(e) {
-        const t = this.lookup(e, [vo]);
+        var t = this.lookup(e, [vo]);
         if (!t) throw Error("no such type: " + e);
         return t;
       }
       lookupEnum(e) {
-        const t = this.lookup(e, [ko]);
+        var t = this.lookup(e, [ko]);
         if (!t) throw Error("no such Enum '" + e + "' in " + this);
         return t;
       }
@@ -1869,7 +1869,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ht.className = "Namespace";
-    const Ns = class _Ns extends xs {
+    var Ns = class _Ns extends xs {
       constructor(e, t, r, n) {
         if (Array.isArray(t) || (r = t, t = void 0), super(e, r), !(t === void 0 || Array.isArray(t))) throw TypeError("fieldNames must be an Array");
         this.oneof = t || [], this.fieldsArray = [], this.comment = n;
@@ -1887,7 +1887,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return new _Ns(e, t.oneof, t.options, t.comment);
       }
       toJSON(e) {
-        const t = e ? !!e.keepComments : false;
+        var t = e ? !!e.keepComments : false;
         return Se.toObject(["options", this.options, "oneof", this.oneof, "comment", t ? this.comment : void 0]);
       }
       add(e) {
@@ -1897,20 +1897,20 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       remove(e) {
         if (!(e instanceof is)) throw TypeError("field must be a Field");
-        let t = this.fieldsArray.indexOf(e);
+        var t = this.fieldsArray.indexOf(e);
         if (t < 0) throw Error(e + " is not a member of " + this);
         return this.fieldsArray.splice(t, 1), t = this.oneof.indexOf(e.name), t > -1 && this.oneof.splice(t, 1), e.partOf = null, this;
       }
       onAdd(e) {
         super.onAdd(e);
-        for (let t = 0; t < this.oneof.length; ++t) {
-          const r = e.get(this.oneof[t]);
+        for (var t = 0; t < this.oneof.length; ++t) {
+          var r = e.get(this.oneof[t]);
           r && !r.partOf && (r.partOf = this, this.fieldsArray.push(r));
         }
         em(this);
       }
       onRemove(e) {
-        for (let t = 0, r; t < this.fieldsArray.length; ++t) (r = this.fieldsArray[t]).parent && r.parent.remove(r);
+        for (var t = 0, r; t < this.fieldsArray.length; ++t) (r = this.fieldsArray[t]).parent && r.parent.remove(r);
         super.onRemove(e);
       }
       static d(...e) {
@@ -1927,9 +1927,9 @@ const require_bioforest_chain_bundle = __commonJS({
     function em(i) {
       if (i.parent) for (let e = 0; e < i.fieldsArray.length; ++e) i.fieldsArray[e].parent || i.parent.add(i.fieldsArray[e]);
     }
-    const Dl = /^[A-Z]/;
-    let tm;
-    const ci = class _ci extends Ht {
+    var Dl = /^[A-Z]/;
+    var tm;
+    var ci = class _ci extends Ht {
       constructor(e) {
         super("", e), this.deferred = [], this.files = [];
       }
@@ -1947,8 +1947,8 @@ const require_bioforest_chain_bundle = __commonJS({
         if (e instanceof is) e.extend !== void 0 && !e.extensionField && (rm(this, e) || this.deferred.push(e));
         else if (e instanceof br) Dl.test(e.name) && (t.parent[e.name] = e.values);
         else if (!(e instanceof Ns)) {
-          if (e instanceof tm) for (let r = 0; r < this.deferred.length; ) rm(this, this.deferred[r]) ? this.deferred.splice(r, 1) : ++r;
-          for (let n = 0; n < t.nestedArray.length; ++n) this._handleAdd(t._nestedArray[n]);
+          if (e instanceof tm) for (var r = 0; r < this.deferred.length; ) rm(this, this.deferred[r]) ? this.deferred.splice(r, 1) : ++r;
+          for (var n = 0; n < t.nestedArray.length; ++n) this._handleAdd(t._nestedArray[n]);
           Dl.test(e.name) && (t.parent[e.name] = e);
         }
       }
@@ -1957,13 +1957,13 @@ const require_bioforest_chain_bundle = __commonJS({
         if (e instanceof is) {
           if (e.extend !== void 0) if (e.extensionField) t.extensionField.parent.remove(e.extensionField), e.extensionField = null;
           else {
-            const r = this.deferred.indexOf(e);
+            var r = this.deferred.indexOf(e);
             r > -1 && this.deferred.splice(r, 1);
           }
         } else if (e instanceof br) Dl.test(e.name) && delete t.parent[e.name];
         else if (e instanceof Ht) {
           const s = e;
-          for (let n = 0; n < e.nestedArray.length; ++n) this._handleRemove(s._nestedArray[n]);
+          for (var n = 0; n < e.nestedArray.length; ++n) this._handleRemove(s._nestedArray[n]);
           Dl.test(e.name) && delete s.parent[e.name];
         }
       }
@@ -1980,7 +1980,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return false;
     }
-    const fr = class _fr extends is {
+    var fr = class _fr extends is {
       constructor(e, t, r, n, s, o) {
         if (super(e, t, n, void 0, void 0, s, o), this.map = true, !Se.isString(r)) throw TypeError("keyType must be a string");
         this.keyType = r, this.resolvedKeyType = null, this.map = true;
@@ -1999,17 +1999,17 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       static d(e, t, r) {
         let n;
-        typeof r === "function" ? n = sa.decorateType(r).name : typeof r === "object" ? n = sa.decorateEnum(r).name : n = r;
-        const s = /* @__PURE__ */ Symbol.for("field");
+        typeof r == "function" ? n = sa.decorateType(r).name : typeof r == "object" ? n = sa.decorateEnum(r).name : n = r;
+        var s = /* @__PURE__ */ Symbol.for("field");
         return function(a, p) {
           const h = a.constructor;
-          const f = h[s] || (h[s] = []);
+          var f = h[s] || (h[s] = []);
           f.push(new _fr(p, e, t, n));
         };
       }
     };
     fr.className = "MapField";
-    const Y = class {
+    var Y = class {
       constructor(e) {
         if (e) {
           const t = Object.keys(e);
@@ -2053,19 +2053,19 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.$type.decode(this.$type.encode(this).finish());
       }
     };
-    let z_;
-    const RE = He.utf8;
+    var z_;
+    var RE = He.utf8;
     function Mn(i, e) {
       return new RangeError("index out of range: " + i.pos + " + " + (e || 1) + " > " + i.len);
     }
-    const nm = typeof Uint8Array < "u" ? function(e) {
+    var nm = typeof Uint8Array < "u" ? function(e) {
       if (e instanceof Uint8Array || Array.isArray(e)) return new Xr(e);
       throw Error("illegal buffer");
     } : function(e) {
       if (Array.isArray(e)) return new Xr(e);
       throw Error("illegal buffer");
     };
-    const Xr = class _Xr {
+    var Xr = class _Xr {
       constructor(e) {
         this.pos = 0, this.uint32 = /* @__PURE__ */ (function() {
           let r = 4294967295;
@@ -2096,12 +2096,12 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       float() {
         if (this.pos + 4 > this.len) throw Mn(this, 4);
-        const e = He.float.readFloatLE(this.buf, this.pos);
+        var e = He.float.readFloatLE(this.buf, this.pos);
         return this.pos += 4, e;
       }
       double() {
         if (this.pos + 8 > this.len) throw Mn(this, 4);
-        const e = He.float.readDoubleLE(this.buf, this.pos);
+        var e = He.float.readDoubleLE(this.buf, this.pos);
         return this.pos += 8, e;
       }
       bytes() {
@@ -2119,7 +2119,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return RE.read(e, 0, e.length);
       }
       skip(e) {
-        if (typeof e === "number") {
+        if (typeof e == "number") {
           if (this.pos + e > this.len) throw Mn(this, e);
           this.pos += e;
         } else do
@@ -2174,7 +2174,7 @@ const require_bioforest_chain_bundle = __commonJS({
       return (i[e - 4] | i[e - 3] << 8 | i[e - 2] << 16 | i[e - 1] << 24) >>> 0;
     }
     function Bu() {
-      let i = new Gt(0, 0), e = 0;
+      var i = new Gt(0, 0), e = 0;
       if (this.len - this.pos > 4) {
         for (; e < 4; ++e) if (i.lo = (i.lo | (this.buf[this.pos] & 127) << e * 7) >>> 0, this.buf[this.pos++] < 128) return i;
         if (i.lo = (i.lo | (this.buf[this.pos] & 127) << 28) >>> 0, i.hi = (i.hi | (this.buf[this.pos] & 127) >> 4) >>> 0, this.buf[this.pos++] < 128) return i;
@@ -2198,8 +2198,8 @@ const require_bioforest_chain_bundle = __commonJS({
       if (this.pos + 8 > this.len) throw Mn(this, 8);
       return new Gt(sh(this.buf, this.pos += 4), sh(this.buf, this.pos += 4));
     }
-    let j_;
-    const _c = class {
+    var j_;
+    var _c = class {
       constructor(e, t, r) {
         this.fn = e, this.len = t, this.next = void 0, this.val = r;
       }
@@ -2208,12 +2208,12 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     function Pu() {
     }
-    const BE = class {
+    var BE = class {
       constructor(e) {
         this.head = e.head, this.tail = e.tail, this.len = e.len, this.next = e.states;
       }
     };
-    const kn = class _kn {
+    var kn = class _kn {
       constructor() {
         this.len = 0, this.head = new _c(Pu, 0, 0), this.tail = this.head, this.states = null;
       }
@@ -2233,14 +2233,14 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.uint32((e << 1 ^ e >> 31) >>> 0);
       }
       uint64(e) {
-        const t = Gt.from(e);
+        var t = Gt.from(e);
         return this._push(Lu, t.length(), t);
       }
       int64(e) {
         return this.uint64(e);
       }
       sint64(e) {
-        const t = Gt.from(e).zzEncode();
+        var t = Gt.from(e).zzEncode();
         return this._push(Lu, t.length(), t);
       }
       bool(e) {
@@ -2253,7 +2253,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.fixed32(e);
       }
       fixed64(e) {
-        const t = Gt.from(e);
+        var t = Gt.from(e);
         return this._push(Hu, 4, t.lo)._push(Hu, 4, t.hi);
       }
       sfixed64(e) {
@@ -2266,16 +2266,16 @@ const require_bioforest_chain_bundle = __commonJS({
         return this._push(He.float.writeDoubleLE, 8, e);
       }
       bytes(e) {
-        let t = e.length >>> 0;
+        var t = e.length >>> 0;
         if (!t) return this._push(Mu, 1, 0);
         if (He.isString(e)) {
-          const r = _kn.alloc(t = He.base64.length(e));
+          var r = _kn.alloc(t = He.base64.length(e));
           He.base64.decode(e, r, 0), e = r;
         }
         return this.uint32(t)._push(ME, t, e);
       }
       string(e) {
-        const t = He.utf8.length(e);
+        var t = He.utf8.length(e);
         return t ? this.uint32(t)._push(He.utf8.write, t, e) : this._push(Mu, 1, 0);
       }
       fork() {
@@ -2285,7 +2285,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.states ? (this.head = this.states.head, this.tail = this.states.tail, this.len = this.states.len, this.states = this.states.next) : (this.head = this.tail = new _c(Pu, 0, 0), this.len = 0), this;
       }
       ldelim() {
-        const e = this.head, t = this.tail, r = this.len;
+        var e = this.head, t = this.tail, r = this.len;
         return this.reset().uint32(r), r && (this.tail.next = e.next, this.tail = t, this.len += r), this;
       }
       finish() {
@@ -2311,7 +2311,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (; i > 127; ) e[t++] = i & 127 | 128, i >>>= 7;
       e[t] = i;
     }
-    const PE = class extends _c {
+    var PE = class extends _c {
       constructor(e, t) {
         super(im, e, t), this.len = e, this.next = void 0, this.val = t;
       }
@@ -2334,7 +2334,7 @@ const require_bioforest_chain_bundle = __commonJS({
       return e.resolvedType.group ? i("%s&&types[%i].encode(%s,w.uint32(%i)).uint32(%i)", r, t, r, (e.id << 3 | 3) >>> 0, (e.id << 3 | 4) >>> 0) : i("%s&&types[%i].encode(%s,w.uint32(%i).fork()).ldelim()", r, t, r, (e.id << 3 | 2) >>> 0);
     }
     function LE(i) {
-      let e = Se.codegen(["m", "w"], i.name + "$encode")("if(!w)")("w=Writer.create()"), t, r = i.fieldsArray.slice().toSorted(Se.compareFieldsById);
+      var e = Se.codegen(["m", "w"], i.name + "$encode")("if(!w)")("w=Writer.create()"), t, r = i.fieldsArray.slice().sort(Se.compareFieldsById);
       if (i._fieldsArray instanceof Array) for (let n = 0; n < r.length; ++n) {
         const s = r[n].resolve(), o = i._fieldsArray.indexOf(s), a = s.resolvedType instanceof br ? "int32" : s.type, p = ta[a];
         if (t = "m" + Se.safeProp(s.name), s.map) e("if(%s!=null){", t)("for(var ks=Object.keys(%s),i=0;i<ks.length;++i){", t)("w.uint32(%i).fork().uint32(%i).%s(ks[i])", (s.id << 3 | 2) >>> 0, 8 | hd[s.keyType], s.keyType), p === void 0 ? e("types[%i].encode(%s[ks[i]],w.uint32(18).fork()).ldelim().ldelim()", o, t) : e(".uint32(%i).%s(%s[ks[i]]).ldelim()", 16 | p, a, t), e("}")("}");
@@ -2360,7 +2360,7 @@ const require_bioforest_chain_bundle = __commonJS({
       return "missing required '" + i.name + "'";
     }
     function vE(i) {
-      let e = Se.codegen(["r", "l"], i.name + "$decode")("if(!(r instanceof Reader))")("r=Reader.create(r)")("var c=l===undefined?r.len:r.pos+l,m=new this.ctor" + (i.fieldsArray.filter(function(a) {
+      var e = Se.codegen(["r", "l"], i.name + "$decode")("if(!(r instanceof Reader))")("r=Reader.create(r)")("var c=l===undefined?r.len:r.pos+l,m=new this.ctor" + (i.fieldsArray.filter(function(a) {
         return a.map;
       }).length ? ",k" : "")), t = 0;
       if (i._fieldsArray instanceof Array) {
@@ -2375,7 +2375,7 @@ const require_bioforest_chain_bundle = __commonJS({
           r.map ? (e("r.skip().pos++")("k=r.%s()", r.keyType)("r.pos++"), G_[r.keyType] !== void 0 ? ta[n] === void 0 ? e('%s[typeof k==="object"?util.longToHash(k):k]=types[%i].decode(r,r.uint32())', s, t) : e('%s[typeof k==="object"?util.longToHash(k):k]=r.%s()', s, n) : ta[n] === void 0 ? e("%s[k]=types[%i].decode(r,r.uint32())", s, t) : e("%s[k]=r.%s()", s, n)) : r.repeated ? (ud[n] !== void 0 && e("if((t&7)===2){")("var c2=r.uint32()+r.pos")("while(r.pos<c2)")("%s.push(r.%s())", s, n)("}else"), ta[n] === void 0 ? e(p.group ? "%s.push(types[%i].decode(r))" : "%s.push(types[%i].decode(r,r.uint32()))", s, t) : e("%s.push(r.%s())", s, n)) : ta[n] === void 0 ? e(p.group ? "%s=types[%i].decode(r)" : "%s=types[%i].decode(r,r.uint32())", s, t) : e("%s=r.%s()", s, n), e("break");
         }
         for (e("default:")("r.skipType(t&7)")("break")("}")("}"), t = 0; t < i._fieldsArray.length; ++t) {
-          const o = i._fieldsArray[t];
+          var o = i._fieldsArray[t];
           o.required && e("if(m.%s==null)", o.name)("throw util.ProtocolError(%j,{instance:m})", HE(o));
         }
       }
@@ -2387,7 +2387,7 @@ const require_bioforest_chain_bundle = __commonJS({
     function vu(i, e, t, r) {
       if (e.resolvedType) if (e.resolvedType instanceof br) {
         i("switch(%s){", r)("default:")("return%j", _n(e, "enum value"));
-        for (let n = Object.keys(e.resolvedType.values), s = 0; s < n.length; ++s) i("case %i:", e.resolvedType.values[n[s]]);
+        for (var n = Object.keys(e.resolvedType.values), s = 0; s < n.length; ++s) i("case %i:", e.resolvedType.values[n[s]]);
         i("break")("}");
       } else i("{")("var e=types[%i].verify(%s);", t, r)("if(e)")("return%j+e", e.name + ".")("}");
       else switch (e.type) {
@@ -2444,14 +2444,14 @@ const require_bioforest_chain_bundle = __commonJS({
       return i;
     }
     function DE(i) {
-      const e = Se.codegen(["m"], i.name + "$verify")('if(typeof m!=="object"||m===null)')("return%j", "object expected"), t = i.oneofsArray, r = {};
-      if (t.length && e("var p={}"), i._fieldsArray instanceof Array) for (let n = 0; n < i.fieldsArray.length; ++n) {
-        const s = i._fieldsArray[n].resolve(), o = "m" + Se.safeProp(s.name);
+      var e = Se.codegen(["m"], i.name + "$verify")('if(typeof m!=="object"||m===null)')("return%j", "object expected"), t = i.oneofsArray, r = {};
+      if (t.length && e("var p={}"), i._fieldsArray instanceof Array) for (var n = 0; n < i.fieldsArray.length; ++n) {
+        var s = i._fieldsArray[n].resolve(), o = "m" + Se.safeProp(s.name);
         if (s.optional && e("if(%s!=null){", o), s.map) e("if(!util.isObject(%s))", o)("return%j", _n(s, "object"))("var k=Object.keys(%s)", o)("for(var i=0;i<k.length;++i){"), kE(e, s, "k[i]"), vu(e, s, n, o + "[k[i]]")("}");
         else if (s.repeated) e("if(!Array.isArray(%s))", o)("return%j", _n(s, "array"))("for(var i=0;i<%s.length;++i){", o), vu(e, s, n, o + "[i]")("}");
         else {
           if (s.partOf) {
-            const a = Se.safeProp(s.partOf.name);
+            var a = Se.safeProp(s.partOf.name);
             r[s.partOf.name] === 1 && e("if(p%s===1)", a)("return%j", s.partOf.name + ": multiple values"), r[s.partOf.name] = 1, e("p%s=1", a);
           }
           vu(e, s, n, o);
@@ -2531,7 +2531,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return i;
     }
-    const am = { fromObject(i) {
+    var am = { fromObject(i) {
       const e = i.fieldsArray, t = Se.codegen(["d"], i.name + "$fromObject")("if(d instanceof this.ctor)")("return d");
       if (!e.length) return t("return new this.ctor");
       t("var m=new this.ctor");
@@ -2541,7 +2541,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return t("return m");
     }, toObject(i) {
-      const e = i.fieldsArray.slice().toSorted(Se.compareFieldsById);
+      const e = i.fieldsArray.slice().sort(Se.compareFieldsById);
       if (!e.length) return Se.codegen()("return {}");
       const t = Se.codegen(["m", "o"], i.name + "$toObject")("if(!o)")("o={}")("var d={}"), r = [], n = [], s = [];
       let o = 0;
@@ -2573,9 +2573,9 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return t("return d");
     } };
-    const cm = /* @__PURE__ */ Symbol("bindThisProps");
+    var cm = /* @__PURE__ */ Symbol("bindThisProps");
     function De(i, e, t) {
-      if (!t || typeof t.value !== "function") throw new TypeError(`Only methods can be decorated with @bind. <${e}> is not a method!`);
+      if (!t || typeof t.value != "function") throw new TypeError(`Only methods can be decorated with @bind. <${e}> is not a method!`);
       return { configurable: true, get() {
         let r = this[cm];
         if (r && r.has(e)) return t.value;
@@ -2583,7 +2583,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return Object.defineProperty(this, e, { value: n, configurable: true, writable: true }), r || (r = this[cm] = /* @__PURE__ */ new Set()), r.add(e), n;
       } };
     }
-    const pm = /* @__PURE__ */ Symbol("CACHE_GETTER_KEYS_STORE");
+    var pm = /* @__PURE__ */ Symbol("CACHE_GETTER_KEYS_STORE");
     function J_(i) {
       let e = Reflect.get(i, pm);
       return e || (e = /* @__PURE__ */ new Map(), Reflect.set(i, pm, e)), e;
@@ -2594,7 +2594,7 @@ const require_bioforest_chain_bundle = __commonJS({
       return r || (r = /* @__PURE__ */ Symbol(`[${typeof e}]${String(e)}`), t.set(e, r)), r;
     }
     function oe(i, e, t) {
-      if (typeof t.get !== "function") throw new TypeError(`property ${String(e)} must has an getter function.`);
+      if (typeof t.get != "function") throw new TypeError(`property ${String(e)} must has an getter function.`);
       const r = t.get, n = FE(i, e), s = function() {
         if (n in this) return this[n].value;
         {
@@ -2602,7 +2602,7 @@ const require_bioforest_chain_bundle = __commonJS({
           if (this[n] = a, t.set === void 0) try {
             Object.defineProperty(this, e, { value: o, writable: false, configurable: true, enumerable: t.enumerable });
           } catch (p) {
-            
+            console.error(p);
           }
           return o;
         }
@@ -2617,7 +2617,7 @@ const require_bioforest_chain_bundle = __commonJS({
       const r = Reflect.get(i, t);
       return r === void 0 || Reflect.deleteProperty(r.target, t) !== false && (Reflect.deleteProperty(r.target, e), true);
     }
-    const Du = class {
+    var Du = class {
       constructor(e = Math.random().toString(36).slice(2)) {
         this.pid = e, this.CLASS_PROTO_ARRAYDATA_POOL = /* @__PURE__ */ new Map(), this.PA_ID_VALUE = 0, this.PA_ID_KEY = /* @__PURE__ */ Symbol(`@PAID:${e}`);
       }
@@ -2650,37 +2650,37 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([De, u("design:type", Function), u("design:paramtypes", [Object, Object]), u("design:returntype", void 0)], Du.prototype, "get", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, Object, Object]), u("design:returntype", void 0)], Du.prototype, "add", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, Object, Object]), u("design:returntype", void 0)], Du.prototype, "remove", null);
-    const _f = (i) => {
+    var _f = (i) => {
     };
-    const VE = ((i) => (i[i.WAIT_RESULT_RETURN = 0] = "WAIT_RESULT_RETURN", i[i.NO_WAIT_EXEC_TIME = 1] = "NO_WAIT_EXEC_TIME", i))(VE || {});
-    const R = class _R extends Ht {
+    var VE = ((i) => (i[i.WAIT_RESULT_RETURN = 0] = "WAIT_RESULT_RETURN", i[i.NO_WAIT_EXEC_TIME = 1] = "NO_WAIT_EXEC_TIME", i))(VE || {});
+    var R = class _R extends Ht {
       constructor(e, t) {
         super(e, t), this.fields = {}, this.oneofs = void 0, this.extensions = void 0, this.reserved = void 0, this.group = void 0, this._fieldsById = null, this._fieldsArray = null, this._oneofsArray = null, this._ctor = null;
       }
       get fieldsById() {
         if (this._fieldsById) return this._fieldsById;
         this._fieldsById = {};
-        for (let e = Object.keys(this.fields), t = 0; t < e.length; ++t) {
-          const r = this.fields[e[t]], n = r.id;
+        for (var e = Object.keys(this.fields), t = 0; t < e.length; ++t) {
+          var r = this.fields[e[t]], n = r.id;
           if (this._fieldsById[n]) throw Error("duplicate id " + n + " in " + this);
           this._fieldsById[n] = r;
         }
         return this._fieldsById;
       }
       get fieldsArray() {
-        let e = this._fieldsArray;
+        var e = this._fieldsArray;
         if (!e) {
           e = [];
-          for (let t in this.fields) e.push(this.fields[t]);
+          for (var t in this.fields) e.push(this.fields[t]);
           this._fieldsArray = e;
         }
         return e;
       }
       get oneofsArray() {
-        let e = this._oneofsArray;
+        var e = this._oneofsArray;
         if (!e) {
           e = [];
-          for (let t in this.oneofs) e.push(this.oneofs[t]);
+          for (var t in this.oneofs) e.push(this.oneofs[t]);
           this._oneofsArray = e;
         }
         return e;
@@ -2721,7 +2721,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       resolveAll() {
         for (var e = this.fieldsArray, t = 0; t < e.length; ) e[t++].resolve();
-        const r = this.oneofsArray;
+        var r = this.oneofsArray;
         for (t = 0; t < r.length; ) r[t++].resolve();
         return super.resolveAll();
       }
@@ -2811,48 +2811,52 @@ const require_bioforest_chain_bundle = __commonJS({
     function $l(i) {
       return i._fieldsById = i._fieldsArray = i._oneofsArray = null, Reflect.deleteProperty(i, "encode"), Reflect.deleteProperty(i, "decode"), Reflect.deleteProperty(i, "verify"), i;
     }
-    const Y_ = class extends Xr {
-      
+    var Y_ = class extends Xr {
+      constructor(e) {
+        super(e);
+      }
       string() {
         const e = this.uint32();
         return this.buf.utf8Slice(this.pos, this.pos = Math.min(this.pos + e, this.len));
       }
     };
     He.Buffer && (Y_.prototype._slice = He.Buffer.prototype.slice);
-    const Xl = He.Buffer;
-    const fd = class _fd extends kn {
-      
+    var Xl = He.Buffer;
+    var fd = class _fd extends kn {
+      constructor() {
+        super();
+      }
       static alloc(e) {
         return (_fd.alloc = He._Buffer_allocUnsafe)(e);
       }
       bytes(e) {
         He.isString(e) && (e = He._Buffer_from(e, "base64"));
-        const t = e.length >>> 0;
+        var t = e.length >>> 0;
         return this.uint32(t), t && this._push(GE, t, e), this;
       }
       string(e) {
-        const t = Xl.byteLength(e);
+        var t = Xl.byteLength(e);
         return this.uint32(t), t && this._push(KE, t, e), this;
       }
     };
-    const GE = Xl && Xl.prototype instanceof Uint8Array && Xl.prototype.set.name === "set" ? function(e, t, r) {
+    var GE = Xl && Xl.prototype instanceof Uint8Array && Xl.prototype.set.name === "set" ? function(e, t, r) {
       t.set(e, r);
     } : function(e, t, r) {
       if (e.copy) e.copy(t, r, 0, e.length);
-      else for (let n = 0; n < e.length; ) t[r++] = e[n++];
+      else for (var n = 0; n < e.length; ) t[r++] = e[n++];
     };
     function KE(i, e, t) {
       i.length < 40 ? He.utf8.write(i, e, t) : e.utf8Write(i, t);
     }
-    const Fu = /[\s{}=;:[\],'"()<>]/g;
-    const zE = /(?:"([^"\\]*(?:\\.[^"\\]*)*)")/g;
-    const jE = /(?:'([^'\\]*(?:\\.[^'\\]*)*)')/g;
-    const JE = /^ *[*/]+ */;
-    const YE = /^\s*\*?\/*/;
-    const QE = /\n/g;
-    const WE = /\s/;
-    const XE = /\\(.?)/g;
-    const qE = { 0: "\0", r: "\r", n: `
+    var Fu = /[\s{}=;:[\],'"()<>]/g;
+    var zE = /(?:"([^"\\]*(?:\\.[^"\\]*)*)")/g;
+    var jE = /(?:'([^'\\]*(?:\\.[^'\\]*)*)')/g;
+    var JE = /^ *[*/]+ */;
+    var YE = /^\s*\*?\/*/;
+    var QE = /\n/g;
+    var WE = /\s/;
+    var XE = /\\(.?)/g;
+    var qE = { 0: "\0", r: "\r", n: `
 `, t: "	" };
     function Q_(i) {
       return i.replace(XE, function(e, t) {
@@ -2868,14 +2872,14 @@ const require_bioforest_chain_bundle = __commonJS({
     W_.unescape = Q_;
     function W_(i, e) {
       i = i.toString();
-      let t = 0, r = i.length, n = 1, s = null, o = null, a = 0, p = false, h = [], f = null;
+      var t = 0, r = i.length, n = 1, s = null, o = null, a = 0, p = false, h = [], f = null;
       function g(C) {
         return Error("illegal " + C + " (line " + n + ")");
       }
       function d() {
-        const C = f === "'" ? jE : zE;
+        var C = f === "'" ? jE : zE;
         C.lastIndex = t - 1;
-        const V = C.exec(i);
+        var V = C.exec(i);
         if (!V) throw g("string");
         return t = C.lastIndex, N(f), f = null, Q_(V[1]);
       }
@@ -2884,9 +2888,9 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function _(C, V) {
         s = i.charAt(C++), a = n, p = false;
-        let F;
+        var F;
         e ? F = 2 : F = 3;
-        let K = C - F, L;
+        var K = C - F, L;
         do
           if (--K < 0 || (L = i.charAt(K)) === `
 `) {
@@ -2899,7 +2903,7 @@ const require_bioforest_chain_bundle = __commonJS({
 `).trim();
       }
       function I(C) {
-        const V = S(C), F = i.substring(C, V), K = /^\s*\/{1,2}/.test(F);
+        var V = S(C), F = i.substring(C, V), K = /^\s*\/{1,2}/.test(F);
         return K;
       }
       function S(C) {
@@ -2910,7 +2914,7 @@ const require_bioforest_chain_bundle = __commonJS({
       function w() {
         if (h.length > 0) return h.shift();
         if (f) return d();
-        let C, V, F, K, L;
+        var C, V, F, K, L;
         do {
           if (t === r) return null;
           for (C = false; WE.test(F = y(t)); ) if (F === `
@@ -2942,11 +2946,11 @@ const require_bioforest_chain_bundle = __commonJS({
             } else return "/";
           }
         } while (C);
-        let H = t;
+        var H = t;
         Fu.lastIndex = 0;
-        const W = Fu.test(y(H++));
+        var W = Fu.test(y(H++));
         if (!W) for (; H < r && !Fu.test(y(H)); ) ++H;
-        const z = i.substring(t, t = H);
+        var z = i.substring(t, t = H);
         return (z === '"' || z === "'") && (f = z), z;
       }
       function N(C) {
@@ -2954,20 +2958,20 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function B() {
         if (!h.length) {
-          const C = w();
+          var C = w();
           if (C === null) return null;
           N(C);
         }
         return h[0];
       }
       function O(C, V = false) {
-        const F = B(), K = F === C;
+        var F = B(), K = F === C;
         if (K) return w(), true;
         if (!V) throw g("token '" + F + "', '" + C + "' expected");
         return false;
       }
       function P(C) {
-        let V = null;
+        var V = null;
         return C === void 0 ? a === n - 1 && (e || s === "*" || p) && (V = o) : (a < C && B(), a === C && !p && (e || s === "/") && (V = o)), V;
       }
       return Object.defineProperty({ next: w, peek: B, push: N, skip: O, cmnt: P }, "line", { get: function() {
@@ -2976,27 +2980,27 @@ const require_bioforest_chain_bundle = __commonJS({
     }
     Object.defineProperty(ri, "filename", { value: null });
     ri.defaults = { keepCase: false };
-    const ZE = /^[1-9][0-9]*$/;
-    const eI = /^-?[1-9][0-9]*$/;
-    const tI = /^0[x][0-9a-fA-F]+$/;
-    const rI = /^-?0[x][0-9a-fA-F]+$/;
-    const nI = /^0[0-7]+$/;
-    const sI = /^-?0[0-7]+$/;
-    const iI = /^(?![eE])[0-9]*(?:\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$/;
-    const Js = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
-    const Ys = /^(?:\.?[a-zA-Z_][a-zA-Z_0-9]*)(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*$/;
-    const oI = /^(?:\.[a-zA-Z_][a-zA-Z_0-9]*)+$/;
+    var ZE = /^[1-9][0-9]*$/;
+    var eI = /^-?[1-9][0-9]*$/;
+    var tI = /^0[x][0-9a-fA-F]+$/;
+    var rI = /^-?0[x][0-9a-fA-F]+$/;
+    var nI = /^0[0-7]+$/;
+    var sI = /^-?0[0-7]+$/;
+    var iI = /^(?![eE])[0-9]*(?:\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$/;
+    var Js = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
+    var Ys = /^(?:\.?[a-zA-Z_][a-zA-Z_0-9]*)(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*$/;
+    var oI = /^(?:\.[a-zA-Z_][a-zA-Z_0-9]*)+$/;
     function ri(i, e, t) {
       e instanceof ci || (t = e, e = new ci()), t || (t = ri.defaults);
-      let r = W_(i, t.alternateCommentMode || false), n = r.next, s = r.push, o = r.peek, a = r.skip, p = r.cmnt, h = true, f, g, d, y, _ = false, I = e, S = t.keepCase ? function(j) {
+      var r = W_(i, t.alternateCommentMode || false), n = r.next, s = r.push, o = r.peek, a = r.skip, p = r.cmnt, h = true, f, g, d, y, _ = false, I = e, S = t.keepCase ? function(j) {
         return j;
       } : Se.camelCase;
       function w(j, re, se) {
-        const ae = Object.getOwnPropertyDescriptor(ri, "filename");
+        var ae = Object.getOwnPropertyDescriptor(ri, "filename");
         return se || Object.defineProperty(ri, "filename", { value: null }), Error("illegal " + (re || "token") + " '" + j + "' (" + (ae ? ae + ", " : "") + "line " + r.line + ")");
       }
       function N() {
-        let j = [], re;
+        var j = [], re;
         do {
           if ((re = n()) !== '"' && re !== "'") throw w(re);
           j.push(n()), a(re), re = o();
@@ -3004,7 +3008,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return j.join("");
       }
       function B(j) {
-        const re = n();
+        var re = n();
         switch (re) {
           case "'":
           case '"':
@@ -3024,14 +3028,14 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       }
       function O(j, re) {
-        let se, ae;
+        var se, ae;
         do
           re && ((se = o()) === '"' || se === "'") ? j.push(N()) : j.push([ae = C(n()), a("to", true) ? C(n()) : ae]);
         while (a(",", true));
         a(";");
       }
       function P(j, re) {
-        let se = 1;
+        var se = 1;
         switch (j.charAt(0) === "-" && (se = -1, j = j.substring(1)), j) {
           case "inf":
           case "INF":
@@ -3072,7 +3076,7 @@ const require_bioforest_chain_bundle = __commonJS({
         I = I.define(f), a(";");
       }
       function F() {
-        let j = o(), re;
+        var j = o(), re;
         switch (j) {
           case "weak":
             re = d || (d = []), n();
@@ -3103,15 +3107,15 @@ const require_bioforest_chain_bundle = __commonJS({
         return false;
       }
       function H(j, re, se) {
-        const ae = r.line;
+        var ae = r.line;
         if (j && (j.comment = p(), j.filename = Object.getOwnPropertyDescriptor(ri, "filename")), a("{", true)) {
-          for (let le; (le = n()) !== "}"; ) re(le);
+          for (var le; (le = n()) !== "}"; ) re(le);
           a(";", true);
-        } else se && se(), a(";"), j && typeof j.comment !== "string" && (j.comment = p(ae));
+        } else se && se(), a(";"), j && typeof j.comment != "string" && (j.comment = p(ae));
       }
       function W(j, re) {
         if (!Js.test(re = n())) throw w(re, "type name");
-        const se = new R(re);
+        var se = new R(re);
         H(se, function(le) {
           if (!L(se, le)) switch (le) {
             case "map":
@@ -3139,16 +3143,16 @@ const require_bioforest_chain_bundle = __commonJS({
         }), j.add(se);
       }
       function z(j, re, se) {
-        const ae = n();
+        var ae = n();
         if (ae === "group") {
           $(j, re);
           return;
         }
         if (!Ys.test(ae)) throw w(ae, "type");
-        let le = n();
+        var le = n();
         if (!Js.test(le)) throw w(le, "name");
         le = S(le), a("=");
-        const Pe = new A(le, C(n()), ae, re, se);
+        var Pe = new A(le, C(n()), ae, re, se);
         H(Pe, function(Qe) {
           if (Qe === "option") he(Pe, Qe), a(";");
           else throw w(Qe);
@@ -3157,13 +3161,13 @@ const require_bioforest_chain_bundle = __commonJS({
         }), j.add(Pe), !_ && Pe.repeated && (ud[ae] !== void 0 || ta[ae] === void 0) && Pe.setOption("packed", false, true);
       }
       function $(j, re) {
-        let se = n();
+        var se = n();
         if (!Js.test(se)) throw w(se, "name");
-        const ae = Se.lcFirst(se);
+        var ae = Se.lcFirst(se);
         se === ae && (se = Se.ucFirst(se)), a("=");
-        const le = C(n()), Pe = new R(se);
+        var le = C(n()), Pe = new R(se);
         Pe.group = true;
-        const Ke = new A(ae, le, se, re);
+        var Ke = new A(ae, le, se, re);
         Ke.filename = Object.getOwnPropertyDescriptor(ri, "filename"), H(Pe, function(tt) {
           switch (tt) {
             case "option":
@@ -3181,16 +3185,16 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function q(j, re) {
         a("<");
-        const se = n();
+        var se = n();
         if (hd[se] === void 0) throw w(se, "type");
         a(",");
-        const ae = n();
+        var ae = n();
         if (!Ys.test(ae)) throw w(ae, "type");
         a(">");
-        const le = n();
+        var le = n();
         if (!Js.test(le)) throw w(le, "name");
         a("=");
-        const Pe = new fr(S(le), C(n()), se, ae);
+        var Pe = new fr(S(le), C(n()), se, ae);
         H(Pe, function(Qe) {
           if (Qe === "option") he(Pe, Qe), a(";");
           else throw w(Qe);
@@ -3200,14 +3204,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function ie(j, re) {
         if (!Js.test(re = n())) throw w(re, "name");
-        const se = new Ns(S(re));
+        var se = new Ns(S(re));
         H(se, function(le) {
           le === "option" ? (he(se, le), a(";")) : (s(le), z(se, "optional"));
         }), j.add(se);
       }
       function ge(j, re) {
         if (!Js.test(re = n())) throw w(re, "name");
-        const se = new br(re);
+        var se = new br(re);
         H(se, function(le) {
           switch (le) {
             case "option":
@@ -3224,7 +3228,7 @@ const require_bioforest_chain_bundle = __commonJS({
       function Ae(j, re) {
         if (!Js.test(re)) throw w(re, "name");
         a("=");
-        const se = C(n(), true), ae = {};
+        var se = C(n(), true), ae = {};
         H(ae, function(Pe) {
           if (Pe === "option") he(ae, Pe), a(";");
           else throw w(Pe);
@@ -3233,9 +3237,9 @@ const require_bioforest_chain_bundle = __commonJS({
         }), j.add(re, se, ae.comment);
       }
       function he(j, re) {
-        const se = a("(", true);
+        var se = a("(", true);
         if (!Ys.test(re = n())) throw w(re, "name");
-        let ae = re;
+        var ae = re;
         se && (a(")"), ae = "(" + ae + ")", re = o(), oI.test(re) && (ae += re, n())), a("="), x(j, ae);
       }
       function x(j, re) {
@@ -3259,7 +3263,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       function ke(j, re) {
         if (!Ys.test(re = n())) throw w(re, "reference");
-        const se = re;
+        var se = re;
         H(null, function(le) {
           switch (le) {
             case "required":
@@ -3308,8 +3312,8 @@ const require_bioforest_chain_bundle = __commonJS({
     A._configure(R);
     Xr._configure(Y_);
     kn._configure(fd);
-    const Sc = Se.Long;
-    let os = class extends Y {
+    var Sc = Se.Long;
+    var os = class extends Y {
       toJSON() {
         return { numerator: this.numerator, denominator: this.denominator };
       }
@@ -3317,7 +3321,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "int32"), u("design:type", Number)], os.prototype, "numerator", void 0);
     l([A.d(2, "int32"), u("design:type", Number)], os.prototype, "denominator", void 0);
     os = l([R.d("Fraction")], os);
-    let Nr = class extends Y {
+    var Nr = class extends Y {
       toJSON() {
         return { numerator: this.numerator, denominator: this.denominator };
       }
@@ -3325,7 +3329,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "string"), u("design:type", String)], Nr.prototype, "numerator", void 0);
     l([A.d(2, "string"), u("design:type", String)], Nr.prototype, "denominator", void 0);
     Nr = l([R.d("FractionBigIntModel")], Nr);
-    let ia = class extends Y {
+    var ia = class extends Y {
       toJSON() {
         return { start: this.start, end: this.end };
       }
@@ -3333,7 +3337,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "uint32"), u("design:type", Number)], ia.prototype, "start", void 0);
     l([A.d(2, "uint32"), u("design:type", Number)], ia.prototype, "end", void 0);
     ia = l([R.d("Range")], ia);
-    let oa = class extends Y {
+    var oa = class extends Y {
       toJSON() {
         return { prevWeight: this.prevWeight, nextWeight: this.nextWeight };
       }
@@ -3341,7 +3345,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "string"), u("design:type", String)], oa.prototype, "prevWeight", void 0);
     l([A.d(2, "string"), u("design:type", String)], oa.prototype, "nextWeight", void 0);
     oa = l([R.d("RateModel")], oa);
-    const bi = class {
+    var bi = class {
       constructor(e, t) {
         this._raw = e, this.valueCode = t, this._m = /* @__PURE__ */ new Map();
         for (const [r, n] of Object.entries(this._raw)) this._m.set(r, t.decode(n, r));
@@ -3365,7 +3369,7 @@ const require_bioforest_chain_bundle = __commonJS({
         const e = {};
         for (const t of this._m.entries()) {
           const r = t[1];
-          e[t[0]] = r && typeof r.toJSON === "function" ? r.toJSON() : r;
+          e[t[0]] = r && typeof r.toJSON == "function" ? r.toJSON() : r;
         }
         return e;
       }
@@ -3400,17 +3404,17 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Object), u("design:paramtypes", [])], bi.prototype, "entries", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], bi.prototype, "keys", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], bi.prototype, "values", null);
-    const pi = class extends bi {
+    var pi = class extends bi {
       constructor(e) {
         super(e, { decode: (t) => t, encode: (t) => t });
       }
     };
-    const X_ = class extends bi {
+    var X_ = class extends bi {
       constructor(e) {
         super(e, { decode: (t) => JSON.parse(t), encode: (t) => JSON.stringify(t) });
       }
     };
-    const Sl = class {
+    var Sl = class {
       constructor(e) {
         this._l = e, this._s = new Set(e);
       }
@@ -3454,7 +3458,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Sl.prototype, "entries", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Sl.prototype, "keys", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Sl.prototype, "values", null);
-    let Rc = class extends Y {
+    var Rc = class extends Y {
       get remarkMap() {
         return this._remarkMap || (this._remarkMap = new pi(this.remark)), this._remarkMap;
       }
@@ -3468,21 +3472,21 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(1, "string", "string"), u("design:type", Object)], Rc.prototype, "remark", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], Rc.prototype, "getBytes", null);
     Rc = l([R.d("TemplateRemark")], Rc);
-    const Af = /* @__PURE__ */ new WeakMap();
-    const aI = new Uint8Array();
-    const ih = [];
-    const oh = /* @__PURE__ */ Object.create({});
+    var Af = /* @__PURE__ */ new WeakMap();
+    var aI = new Uint8Array();
+    var ih = [];
+    var oh = /* @__PURE__ */ Object.create({});
     for (let i = 0; i < 256; i++) {
       const e = i.toString(16).padStart(2, "0");
       ih[i] = e, oh[e] = i, oh[e.toUpperCase()] = i;
     }
-    const Ef = [];
+    var Ef = [];
     {
       const i = new Uint16Array(1), e = new Uint8Array(i.buffer);
       for (const t of ih) for (const r of ih) e[0] = oh[t], e[1] = oh[r], Ef[i[0]] = t + r;
     }
-    const Ac = new Uint8Array(40);
-    const lm = new Uint16Array(Ac.buffer);
+    var Ac = new Uint8Array(40);
+    var lm = new Uint16Array(Ac.buffer);
     function cI(i) {
       const e = i.length >> 1;
       let t = "";
@@ -3515,17 +3519,17 @@ const require_bioforest_chain_bundle = __commonJS({
     function gd(i) {
       if (!i) return "";
       let e;
-      return i.length === i.byteLength && (e = Af.get(i), typeof e === "string") || (e = cI(i), Af.set(i, e)), e;
+      return i.length === i.byteLength && (e = Af.get(i), typeof e == "string") || (e = cI(i), Af.set(i, e)), e;
     }
-    const xe = gd;
+    var xe = gd;
     function Z_(i) {
       if (!i) return aI;
       const e = q_(i);
       return Af.set(e, i), e;
     }
-    const _e = Z_;
-    let Wa;
-    let gt = Wa = class extends Y {
+    var _e = Z_;
+    var Wa;
+    var gt = Wa = class extends Y {
       get publicKey() {
         return xe(this.publicKeyBuffer);
       }
@@ -3565,7 +3569,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Wa.INC++, "bytes"), u("design:type", Uint8Array)], gt.prototype, "secondPublicKeyBuffer", void 0);
     l([A.d(Wa.INC++, "bytes"), u("design:type", Uint8Array)], gt.prototype, "signSignatureBuffer", void 0);
     gt = Wa = l([R.d("AccountSignatureModel")], gt);
-    let Qt = class extends Y {
+    var Qt = class extends Y {
       toJSON() {
         return { taxCollector: this.taxCollector, taxAssetPrealnum: this.taxAssetPrealnum };
       }
@@ -3573,41 +3577,41 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "string"), u("design:type", String)], Qt.prototype, "taxCollector", void 0);
     l([A.d(2, "string"), u("design:type", String)], Qt.prototype, "taxAssetPrealnum", void 0);
     Qt = l([R.d("TaxInformationModel")], Qt);
-    let ah;
+    var ah;
     (function(i) {
       i.TESTNET = "c", i.MAINNET = "b";
     })(ah || (ah = {}));
-    const eA = "100000000";
-    let hm;
+    var eA = "100000000";
+    var hm;
     (function(i) {
       i[i.CHAIN = 2] = "CHAIN", i[i.DAPP = 4] = "DAPP", i[i.LNS = 8] = "LNS";
     })(hm || (hm = {}));
-    const ch = { ENDPOINT: /* @__PURE__ */ Symbol("endpoint"), REFUSETIME: /* @__PURE__ */ Symbol("refuseTime") };
-    let G;
+    var ch = { ENDPOINT: /* @__PURE__ */ Symbol("endpoint"), REFUSETIME: /* @__PURE__ */ Symbol("refuseTime") };
+    var G;
     (function(i) {
       i[i.DAPP = 1] = "DAPP", i[i.LOCATION_NAME = 2] = "LOCATION_NAME", i[i.ENTITY = 3] = "ENTITY", i[i.ASSETS = 5] = "ASSETS", i[i.CERTIFICATE = 6] = "CERTIFICATE";
     })(G || (G = {}));
-    let ht;
+    var ht;
     (function(i) {
       i[i.GIFT = 0] = "GIFT", i[i.EXCHANGE = 1] = "EXCHANGE", i[i.TRUST = 2] = "TRUST", i[i.ENTITY = 3] = "ENTITY";
     })(ht || (ht = {}));
-    let Fi;
+    var Fi;
     (function(i) {
       i[i.P_0 = 0] = "P_0", i[i.P_1 = 1] = "P_1", i[i.P_2 = 2] = "P_2", i[i.P_3 = 3] = "P_3", i[i.P_4 = 4] = "P_4", i[i.P_5 = 5] = "P_5", i[i.P_6 = 6] = "P_6", i[i.P_7 = 7] = "P_7", i[i.P_8 = 8] = "P_8", i[i.P_9 = 9] = "P_9", i.P_10 = "A", i.P_11 = "B", i.P_12 = "C", i.P_13 = "D", i.P_14 = "E", i.P_15 = "F", i.P_16 = "G", i.P_17 = "H", i.P_18 = "I", i.P_19 = "J", i.P_20 = "K", i.P_21 = "L", i.P_22 = "M", i.P_23 = "N", i.P_24 = "O", i.P_25 = "P", i.P_26 = "Q", i.P_27 = "R", i.P_28 = "S", i.P_29 = "T", i.P_30 = "U", i.P_31 = "V", i.P_32 = "W", i.P_33 = "X", i.P_34 = "Y", i.P_35 = "Z";
     })(Fi || (Fi = {}));
-    let ph;
+    var ph;
     (function(i) {
       i.DIFFERENT_PRE_BLOCK_SIGNATURE = "the previous block signature is inconsistent", i.GENERATE_BLOCK_FAIL = "generate block fail", i.REPLY_BLOCK_FAIL = "reply block fail";
     })(ph || (ph = {}));
-    let v;
+    var v;
     (function(i) {
       i.SIGNATURE = "BSE-01", i.DAPP = "WOD-00", i.DAPP_PURCHASING = "WOD-01", i.REGISTER_CHAIN = "WOD-02", i.MARK = "EXT-00", i.ISSUE_ASSET = "AST-00", i.INCREASE_ASSET = "AST-01", i.TRANSFER_ASSET = "AST-02", i.DESTROY_ASSET = "AST-03", i.GIFT_ASSET = "AST-04", i.GRAB_ASSET = "AST-05", i.TRUST_ASSET = "AST-06", i.SIGN_FOR_ASSET = "AST-07", i.EMIGRATE_ASSET = "AST-08", i.IMMIGRATE_ASSET = "AST-09", i.TO_EXCHANGE_ASSET = "AST-10", i.BE_EXCHANGE_ASSET = "AST-11", i.STAKE_ASSET = "AST-12", i.UNSTAKE_ASSET = "AST-13", i.LOCATION_NAME = "LNS-00", i.SET_LNS_RECORD_VALUE = "LNS-01", i.SET_LNS_MANAGER = "LNS-02", i.ISSUE_ENTITY_FACTORY = "ETY-00", i.ISSUE_ENTITY_FACTORY_V1 = "ETY-01", i.ISSUE_ENTITY = "ETY-02", i.DESTROY_ENTITY = "ETY-03", i.ISSUE_ENTITY_MULTI = "ETY-04", i.TRANSFER_ANY = "ANY-00", i.GIFT_ANY = "ANY-01", i.GRAB_ANY = "ANY-02", i.TO_EXCHANGE_ANY = "ANY-03", i.BE_EXCHANGE_ANY = "ANY-04", i.TO_EXCHANGE_ANY_MULTI = "ANY-05", i.BE_EXCHANGE_ANY_MULTI = "ANY-06", i.TO_EXCHANGE_ANY_MULTI_ALL = "ANY-07", i.BE_EXCHANGE_ANY_MULTI_ALL = "ANY-08", i.ISSUE_CERTIFICATE = "CRT-00", i.DESTROY_CERTIFICATE = "CRT-01", i.MULTIPLE = "MTP-00", i.PROMISE = "PMS-00", i.PROMISE_RESOLVE = "PMS-01", i.MACRO = "MAC-00", i.MACRO_CALL = "MAC-01";
     })(v || (v = {}));
-    const Re = { VK: /* @__PURE__ */ new Map(), KV: /* @__PURE__ */ new Map(), VM: /* @__PURE__ */ new Map(), MV: /* @__PURE__ */ new Map(), trsTypeToV(i) {
+    var Re = { VK: /* @__PURE__ */ new Map(), KV: /* @__PURE__ */ new Map(), VM: /* @__PURE__ */ new Map(), MV: /* @__PURE__ */ new Map(), trsTypeToV(i) {
       const e = i.indexOf("-", i.indexOf("-") + 1);
       return i.substr(e + 1);
     } };
-    const wt = class _wt extends Map {
+    var wt = class _wt extends Map {
       constructor(e, t, r = (s) => s, n) {
         super(t), this.creater = e, this.transformKey = r, this._afterDelete = n;
       }
@@ -3644,12 +3648,12 @@ const require_bioforest_chain_bundle = __commonJS({
         const o = new _wt(t, r, n, s), a = Object.getPrototypeOf(o), p = Object.getPrototypeOf(a), h = Object.getOwnPropertyDescriptors(p);
         for (const d in h) if (d !== "constructor") {
           const y = h[d];
-          typeof y.value === "function" ? y.value = y.value.bind(o) : (typeof y.get === "function" && (y.get = y.get.bind(o)), typeof y.set === "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
+          typeof y.value == "function" ? y.value = y.value.bind(o) : (typeof y.get == "function" && (y.get = y.get.bind(o)), typeof y.set == "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
         }
         const f = Object.getOwnPropertyDescriptors(a);
         for (const d in f) if (d !== "constructor") {
           const y = f[d];
-          typeof y.value === "function" ? y.value = y.value.bind(o) : (typeof y.get === "function" && (y.get = y.get.bind(o)), typeof y.set === "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
+          typeof y.value == "function" ? y.value = y.value.bind(o) : (typeof y.get == "function" && (y.get = y.get.bind(o)), typeof y.set == "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
         }
         const g = Object.getOwnPropertyDescriptors(o);
         for (const d in g) d !== "constructor" && Object.defineProperty(e, d, { enumerable: true, configurable: true, get: () => Reflect.get(o, d), set(y) {
@@ -3658,7 +3662,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return e;
       }
     };
-    const ss = class _ss extends WeakMap {
+    var ss = class _ss extends WeakMap {
       constructor(e, t, r = (s) => s, n) {
         super(t), this.creater = e, this.transformKey = r, this._afterDelete = n;
       }
@@ -3695,12 +3699,12 @@ const require_bioforest_chain_bundle = __commonJS({
         const o = new _ss(t, r, n, s), a = Object.getPrototypeOf(o), p = Object.getPrototypeOf(a), h = Object.getOwnPropertyDescriptors(p);
         for (const d in h) if (d !== "constructor") {
           const y = h[d];
-          typeof y.value === "function" ? y.value = y.value.bind(o) : (typeof y.get === "function" && (y.get = y.get.bind(o)), typeof y.set === "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
+          typeof y.value == "function" ? y.value = y.value.bind(o) : (typeof y.get == "function" && (y.get = y.get.bind(o)), typeof y.set == "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
         }
         const f = Object.getOwnPropertyDescriptors(a);
         for (const d in f) if (d !== "constructor") {
           const y = f[d];
-          typeof y.value === "function" ? y.value = y.value.bind(o) : (typeof y.get === "function" && (y.get = y.get.bind(o)), typeof y.set === "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
+          typeof y.value == "function" ? y.value = y.value.bind(o) : (typeof y.get == "function" && (y.get = y.get.bind(o)), typeof y.set == "function" && (y.set = y.set.bind(o))), Object.defineProperty(e, d, y);
         }
         const g = Object.getOwnPropertyDescriptors(o);
         for (const d in g) d !== "constructor" && Object.defineProperty(e, d, { enumerable: true, configurable: true, get: () => Reflect.get(o, d), set(y) {
@@ -3709,10 +3713,10 @@ const require_bioforest_chain_bundle = __commonJS({
         return e;
       }
     };
-    let gu;
-    let Rt;
-    const pI = new ss((i) => new pi(i.remark));
-    const lI = new ss((i) => {
+    var gu;
+    var Rt;
+    var pI = new ss((i) => new pi(i.remark));
+    var lI = new ss((i) => {
       const e = {}, t = "blob+sha256+hex://";
       for (const r in i.remark) {
         const n = i.remark[r];
@@ -3734,7 +3738,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return new pi(e);
     });
-    let as = gu = class extends Y {
+    var as = gu = class extends Y {
       toJSON() {
         return { key: this.key, value: this.value };
       }
@@ -3743,7 +3747,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(gu.INC++, "string"), u("design:type", String)], as.prototype, "key", void 0);
     l([A.d(gu.INC++, "string"), u("design:type", String)], as.prototype, "value", void 0);
     as = gu = l([R.d("TransactionBaseStorageModel")], as);
-    let Je = Rt = class extends Y {
+    var Je = Rt = class extends Y {
       get senderPublicKey() {
         return xe(this.senderPublicKeyBuffer);
       }
@@ -3798,7 +3802,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       static fromObject(e) {
         const t = super.fromObject(e);
-        return t !== e && (e.senderPublicKey && (t.senderPublicKey = e.senderPublicKey), e.senderSecondPublicKey && (t.senderSecondPublicKey = e.senderSecondPublicKey), e.signature && (t.signature = e.signature), e.signSignature && (t.signSignature = e.signSignature), !t.storage && typeof e.storageKey === "string" && typeof e.storageValue === "string" && (t.storage = new as({ key: e.storageKey, value: e.storageValue }))), t;
+        return t !== e && (e.senderPublicKey && (t.senderPublicKey = e.senderPublicKey), e.senderSecondPublicKey && (t.senderSecondPublicKey = e.senderSecondPublicKey), e.signature && (t.signature = e.signature), e.signSignature && (t.signSignature = e.signSignature), !t.storage && typeof e.storageKey == "string" && typeof e.storageValue == "string" && (t.storage = new as({ key: e.storageKey, value: e.storageValue }))), t;
       }
       as(e, t) {
       }
@@ -3827,7 +3831,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(Rt.INC++, "string", "string"), u("design:type", Object)], Je.prototype, "remark", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", [Boolean, Boolean]), u("design:returntype", void 0)], Je.prototype, "getBytes", null);
     Je = Rt = l([R.d("Transaction")], Je);
-    let Ve = class extends Je {
+    var Ve = class extends Je {
       as(e, t) {
         const r = Re.MV.get(e), n = Re.trsTypeToV(this.type);
         if (r === n) if (t) {
@@ -3836,7 +3840,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ve = l([R.d("AbstractTransaction")], Ve);
-    let Bc = class extends Y {
+    var Bc = class extends Y {
       get publicKey() {
         return xe(this.publicKeyBuffer);
       }
@@ -3853,15 +3857,15 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(1, "bytes"), u("design:type", Uint8Array)], Bc.prototype, "publicKeyBuffer", void 0);
     Bc = l([R.d("SignatureModel")], Bc);
-    let Pc = class extends Y {
+    var Pc = class extends Y {
       toJSON() {
         return { signature: this.signature.toJSON() };
       }
     };
     l([A.d(1, Bc), u("design:type", Bc)], Pc.prototype, "signature", void 0);
     Pc = l([R.d("SignatureAssetModel")], Pc);
-    let _o;
-    let $r = _o = class extends Y {
+    var _o;
+    var $r = _o = class extends Y {
       toJSON() {
         const e = { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, dappid: this.dappid, type: this.type };
         return this.purchaseAsset && (e.purchaseAsset = this.purchaseAsset), e;
@@ -3874,15 +3878,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(_o.INC++, "uint32"), u("design:type", Number)], $r.prototype, "type", void 0);
     l([A.d(_o.INC++, "string", "optional"), u("design:type", String)], $r.prototype, "purchaseAsset", void 0);
     $r = _o = l([R.d("DAppModel")], $r);
-    let Mc = class extends Y {
+    var Mc = class extends Y {
       toJSON() {
         return { dapp: this.dapp.toJSON() };
       }
     };
     l([A.d(1, $r), u("design:type", $r)], Mc.prototype, "dapp", void 0);
     Mc = l([R.d("DAppAssetModel")], Mc);
-    let dd;
-    let aa = dd = class extends Y {
+    var dd;
+    var aa = dd = class extends Y {
       toJSON() {
         return { dappAsset: this.dappAsset.toJSON() };
       }
@@ -3890,15 +3894,15 @@ const require_bioforest_chain_bundle = __commonJS({
     aa.INC = 1;
     l([A.d(dd.INC++, $r), u("design:type", $r)], aa.prototype, "dappAsset", void 0);
     aa = dd = l([R.d("DAppPurchasingModel")], aa);
-    let Lc = class extends Y {
+    var Lc = class extends Y {
       toJSON() {
         return { dappPurchasing: this.dappPurchasing.toJSON() };
       }
     };
     l([A.d(1, aa), u("design:type", aa)], Lc.prototype, "dappPurchasing", void 0);
     Lc = l([R.d("DAppPurchasingAssetModel")], Lc);
-    let wl;
-    let li = wl = class extends Y {
+    var wl;
+    var li = wl = class extends Y {
       toJSON() {
         return { content: this.content, action: this.action, dapp: this.dapp.toJSON() };
       }
@@ -3908,14 +3912,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(wl.INC++, "string"), u("design:type", String)], li.prototype, "action", void 0);
     l([A.d(wl.INC++, $r), u("design:type", $r)], li.prototype, "dapp", void 0);
     li = wl = l([R.d("MarkModel")], li);
-    let Hc = class extends Y {
+    var Hc = class extends Y {
       toJSON() {
         return { mark: this.mark.toJSON() };
       }
     };
     l([A.d(1, li), u("design:type", li)], Hc.prototype, "mark", void 0);
     Hc = l([R.d("MarkAssetModel")], Hc);
-    let hi = class extends Y {
+    var hi = class extends Y {
       toJSON() {
         return { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, expectedIssuedAssets: this.expectedIssuedAssets };
       }
@@ -3925,14 +3929,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(3, "string"), u("design:type", String)], hi.prototype, "assetType", void 0);
     l([A.d(4, "string"), u("design:type", String)], hi.prototype, "expectedIssuedAssets", void 0);
     hi = l([R.d("IssueAssetModel")], hi);
-    let vc = class extends Y {
+    var vc = class extends Y {
       toJSON() {
         return { issueAsset: this.issueAsset.toJSON() };
       }
     };
     l([A.d(1, hi), u("design:type", hi)], vc.prototype, "issueAsset", void 0);
     vc = l([R.d("IssueAssetAssetModel")], vc);
-    let cs = class extends Y {
+    var cs = class extends Y {
       toJSON() {
         return { applyAddress: this.applyAddress, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, increasedAssetPrealnum: this.increasedAssetPrealnum, frozenMainAssetPrealnum: this.frozenMainAssetPrealnum };
       }
@@ -3944,14 +3948,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(5, "string"), u("design:type", String)], cs.prototype, "increasedAssetPrealnum", void 0);
     l([A.d(6, "string"), u("design:type", String)], cs.prototype, "frozenMainAssetPrealnum", void 0);
     cs = l([R.d("IncreaseAssetModel")], cs);
-    let kc = class extends Y {
+    var kc = class extends Y {
       toJSON() {
         return { increaseAsset: this.increaseAsset.toJSON() };
       }
     };
     l([A.d(1, cs), u("design:type", cs)], kc.prototype, "increaseAsset", void 0);
     kc = l([R.d("IncreaseAssetAssetModel")], kc);
-    let ui = class extends Y {
+    var ui = class extends Y {
       toJSON() {
         return { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, amount: this.amount };
       }
@@ -3961,14 +3965,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(3, "string"), u("design:type", String)], ui.prototype, "assetType", void 0);
     l([A.d(4, "string"), u("design:type", String)], ui.prototype, "amount", void 0);
     ui = l([R.d("TransferAssetModel")], ui);
-    let Dc = class extends Y {
+    var Dc = class extends Y {
       toJSON() {
         return { transferAsset: this.transferAsset.toJSON() };
       }
     };
     l([A.d(1, ui), u("design:type", ui)], Dc.prototype, "transferAsset", void 0);
     Dc = l([R.d("TransferAssetAssetModel")], Dc);
-    let fi = class extends Y {
+    var fi = class extends Y {
       toJSON() {
         return { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, amount: this.amount };
       }
@@ -3978,16 +3982,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(3, "string"), u("design:type", String)], fi.prototype, "assetType", void 0);
     l([A.d(4, "string"), u("design:type", String)], fi.prototype, "amount", void 0);
     fi = l([R.d("DestroyAssetModel")], fi);
-    let Fc = class extends Y {
+    var Fc = class extends Y {
       toJSON() {
         return { destroyAsset: this.destroyAsset.toJSON() };
       }
     };
     l([A.d(1, fi), u("design:type", fi)], Fc.prototype, "destroyAsset", void 0);
     Fc = l([R.d("DestroyAssetAssetModel")], Fc);
-    let ms;
-    const um = /* @__PURE__ */ new WeakMap();
-    let Lr = ms = class extends Y {
+    var ms;
+    var um = /* @__PURE__ */ new WeakMap();
+    var Lr = ms = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = um.get(e);
@@ -4016,16 +4020,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(ms.INC++, "uint32", "optional"), u("design:type", Number)], Lr.prototype, "beginUnfrozenBlockHeight", void 0);
     l([A.d(ms.INC++, "uint32"), u("design:type", Number)], Lr.prototype, "giftDistributionRule", void 0);
     Lr = ms = l([R.d("GiftAssetModel")], Lr);
-    let $c = class extends Y {
+    var $c = class extends Y {
       toJSON() {
         return { giftAsset: this.giftAsset.toJSON() };
       }
     };
     l([A.d(1, Lr), u("design:type", Lr)], $c.prototype, "giftAsset", void 0);
     $c = l([R.d("GiftAssetAssetModel")], $c);
-    let Ao;
-    const $u = /* @__PURE__ */ new WeakMap();
-    let Dn = Ao = class extends Y {
+    var Ao;
+    var $u = /* @__PURE__ */ new WeakMap();
+    var Dn = Ao = class extends Y {
       get blockSignature() {
         return xe(this.blockSignatureBuffer);
       }
@@ -4066,15 +4070,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ao.INC++, "bytes", "optional"), u("design:type", Uint8Array)], Dn.prototype, "ciphertextSignatureBuffer", void 0);
     l([A.d(Ao.INC++, Lr), u("design:type", Lr)], Dn.prototype, "giftAsset", void 0);
     Dn = Ao = l([R.d("GrabAssetModel")], Dn);
-    let Uc = class extends Y {
+    var Uc = class extends Y {
       toJSON() {
         return { grabAsset: this.grabAsset.toJSON() };
       }
     };
     l([A.d(1, Dn), u("design:type", Dn)], Uc.prototype, "grabAsset", void 0);
     Uc = l([R.d("GrabAssetAssetModel")], Uc);
-    let Ni;
-    let en = Ni = class extends Y {
+    var Ni;
+    var en = Ni = class extends Y {
       toJSON() {
         return { trustees: this.trustees, numberOfSignFor: this.numberOfSignFor, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, amount: this.amount };
       }
@@ -4087,15 +4091,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ni.INC++, "string"), u("design:type", String)], en.prototype, "assetType", void 0);
     l([A.d(Ni.INC++, "string"), u("design:type", String)], en.prototype, "amount", void 0);
     en = Ni = l([R.d("TrustAssetModel")], en);
-    let Vc = class extends Y {
+    var Vc = class extends Y {
       toJSON() {
         return { trustAsset: this.trustAsset.toJSON() };
       }
     };
     l([A.d(1, en), u("design:type", en)], Vc.prototype, "trustAsset", void 0);
     Vc = l([R.d("TrustAssetAssetModel")], Vc);
-    let Xa;
-    let ps = Xa = class extends Y {
+    var Xa;
+    var ps = Xa = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4121,44 +4125,44 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Xa.INC++, en), u("design:type", en)], ps.prototype, "trustAsset", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], ps.prototype, "getBytes", null);
     ps = Xa = l([R.d("SignForAssetModel")], ps);
-    let Gc = class extends Y {
+    var Gc = class extends Y {
       toJSON() {
         return { signForAsset: this.signForAsset.toJSON() };
       }
     };
     l([A.d(1, ps), u("design:type", ps)], Gc.prototype, "signForAsset", void 0);
     Gc = l([R.d("SignForAssetAssetModel")], Gc);
-    let Kc = class extends Y {
+    var Kc = class extends Y {
       toJSON() {
         return { migrateCertificate: this.migrateCertificate };
       }
     };
     l([A.d(1, "string"), u("design:type", String)], Kc.prototype, "migrateCertificate", void 0);
     Kc = l([R.d("EmigrateAssetModel")], Kc);
-    let zc = class extends Y {
+    var zc = class extends Y {
       toJSON() {
         return { emigrateAsset: this.emigrateAsset.toJSON() };
       }
     };
     l([A.d(1, Kc), u("design:type", Kc)], zc.prototype, "emigrateAsset", void 0);
     zc = l([R.d("EmigrateAssetAssetModel")], zc);
-    let jc = class extends Y {
+    var jc = class extends Y {
       toJSON() {
         return { migrateCertificate: this.migrateCertificate };
       }
     };
     l([A.d(1, "string"), u("design:type", String)], jc.prototype, "migrateCertificate", void 0);
     jc = l([R.d("ImmigrateAssetModel")], jc);
-    let Jc = class extends Y {
+    var Jc = class extends Y {
       toJSON() {
         return { immigrateAsset: this.immigrateAsset.toJSON() };
       }
     };
     l([A.d(1, jc), u("design:type", jc)], Jc.prototype, "immigrateAsset", void 0);
     Jc = l([R.d("ImmigrateAssetAssetModel")], Jc);
-    let Yn;
-    const Uu = /* @__PURE__ */ new WeakMap();
-    let ar = Yn = class extends Y {
+    var Yn;
+    var Uu = /* @__PURE__ */ new WeakMap();
+    var ar = Yn = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = Uu.get(e);
@@ -4196,16 +4200,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ar.prototype, "to", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ar.prototype, "be", null);
     ar = Yn = l([R.d("ToExchangeAssetModel")], ar);
-    let Yc = class extends Y {
+    var Yc = class extends Y {
       toJSON() {
         return { toExchangeAsset: this.toExchangeAsset.toJSON() };
       }
     };
     l([A.d(1, ar), u("design:type", ar)], Yc.prototype, "toExchangeAsset", void 0);
     Yc = l([R.d("ToExchangeAssetAssetModel")], Yc);
-    let Eo;
-    const Vu = /* @__PURE__ */ new WeakMap();
-    let Fn = Eo = class extends Y {
+    var Eo;
+    var Vu = /* @__PURE__ */ new WeakMap();
+    var Fn = Eo = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4250,15 +4254,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Eo.INC++, ar), u("design:type", ar)], Fn.prototype, "exchangeAsset", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Fn.prototype, "to", null);
     Fn = Eo = l([R.d("BeExchangeAssetModel")], Fn);
-    let Qc = class extends Y {
+    var Qc = class extends Y {
       toJSON() {
         return { beExchangeAsset: this.beExchangeAsset.toJSON() };
       }
     };
     l([A.d(1, Fn), u("design:type", Fn)], Qc.prototype, "beExchangeAsset", void 0);
     Qc = l([R.d("BeExchangeAssetAssetModel")], Qc);
-    let xi;
-    let $n = xi = class extends Y {
+    var xi;
+    var $n = xi = class extends Y {
       toJSON() {
         return { stakeId: this.stakeId, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, assetPrealnum: this.assetPrealnum, beginUnstakeHeight: this.beginUnstakeHeight };
       }
@@ -4271,15 +4275,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(xi.INC++, "string"), u("design:type", String)], $n.prototype, "assetPrealnum", void 0);
     l([A.d(xi.INC++, "uint32"), u("design:type", Number)], $n.prototype, "beginUnstakeHeight", void 0);
     $n = xi = l([R.d("StakeAssetModel")], $n);
-    let Wc = class extends Y {
+    var Wc = class extends Y {
       toJSON() {
         return { stakeAsset: this.stakeAsset.toJSON() };
       }
     };
     l([A.d(1, $n), u("design:type", $n)], Wc.prototype, "stakeAsset", void 0);
     Wc = l([R.d("StakeAssetAssetModel")], Wc);
-    let Io;
-    let ls = Io = class extends Y {
+    var Io;
+    var ls = Io = class extends Y {
       toJSON() {
         return { stakeId: this.stakeId, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, assetType: this.assetType, assetPrealnum: this.assetPrealnum };
       }
@@ -4291,14 +4295,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Io.INC++, "string"), u("design:type", String)], ls.prototype, "assetType", void 0);
     l([A.d(Io.INC++, "string"), u("design:type", String)], ls.prototype, "assetPrealnum", void 0);
     ls = Io = l([R.d("UnstakeAssetModel")], ls);
-    let Xc = class extends Y {
+    var Xc = class extends Y {
       toJSON() {
         return { unstakeAsset: this.unstakeAsset.toJSON() };
       }
     };
     l([A.d(1, ls), u("design:type", ls)], Xc.prototype, "unstakeAsset", void 0);
     Xc = l([R.d("UnstakeAssetAssetModel")], Xc);
-    let gi = class extends Y {
+    var gi = class extends Y {
       toJSON() {
         return { name: this.name, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, operationType: this.operationType };
       }
@@ -4308,14 +4312,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(3, "string"), u("design:type", String)], gi.prototype, "sourceChainMagic", void 0);
     l([A.d(4, "uint32"), u("design:type", Number)], gi.prototype, "operationType", void 0);
     gi = l([R.d("LocationNameInfo")], gi);
-    let qc = class extends Y {
+    var qc = class extends Y {
       toJSON() {
         return { locationName: this.locationName.toJSON() };
       }
     };
     l([A.d(1, gi), u("design:type", gi)], qc.prototype, "locationName", void 0);
     qc = l([R.d("LocationNameAssetModel")], qc);
-    let Vi = class extends Y {
+    var Vi = class extends Y {
       toJSON() {
         return { name: this.name, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic };
       }
@@ -4324,14 +4328,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(2, "string"), u("design:type", String)], Vi.prototype, "sourceChainName", void 0);
     l([A.d(3, "string"), u("design:type", String)], Vi.prototype, "sourceChainMagic", void 0);
     Vi = l([R.d("SetLnsManagerModel")], Vi);
-    let Zc = class extends Y {
+    var Zc = class extends Y {
       toJSON() {
         return { lnsManager: this.lnsManager.toJSON() };
       }
     };
     l([A.d(1, Vi), u("design:type", Vi)], Zc.prototype, "lnsManager", void 0);
     Zc = l([R.d("SetLnsManagerAssetModel")], Zc);
-    let di = class extends Y {
+    var di = class extends Y {
       toJSON() {
         return { recordType: this.recordType, recordValue: this.recordValue };
       }
@@ -4339,8 +4343,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "int32"), u("design:type", Number)], di.prototype, "recordType", void 0);
     l([A.d(2, "string"), u("design:type", String)], di.prototype, "recordValue", void 0);
     di = l([R.d("LocationNameRecordInfo")], di);
-    let Oi;
-    let Un = Oi = class extends Y {
+    var Oi;
+    var Un = Oi = class extends Y {
       toJSON() {
         const e = { name: this.name, sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, operationType: this.operationType };
         return this.addRecord && (e.addRecord = this.addRecord.toJSON()), this.deleteRecord && (e.deleteRecord = this.deleteRecord.toJSON()), e;
@@ -4354,14 +4358,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Oi.INC++, di, "optional"), u("design:type", di)], Un.prototype, "addRecord", void 0);
     l([A.d(Oi.INC++, di, "optional"), u("design:type", di)], Un.prototype, "deleteRecord", void 0);
     Un = Oi = l([R.d("SetLnsRecordValueModel")], Un);
-    let ep = class extends Y {
+    var ep = class extends Y {
       toJSON() {
         return { lnsRecordValue: this.lnsRecordValue.toJSON() };
       }
     };
     l([A.d(1, Un), u("design:type", Un)], ep.prototype, "lnsRecordValue", void 0);
     ep = l([R.d("SetLnsRecordValueAssetModel")], ep);
-    let lh = class extends Y {
+    var lh = class extends Y {
       toJSON() {
         return { senderPaidFeeRate: this.senderPaidFeeRate.toJSON(), recipientPaidFeeRate: this.recipientPaidFeeRate.toJSON() };
       }
@@ -4369,8 +4373,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, os), u("design:type", os)], lh.prototype, "senderPaidFeeRate", void 0);
     l([A.d(2, os), u("design:type", os)], lh.prototype, "recipientPaidFeeRate", void 0);
     lh = l([R.d("FeeRateModel")], lh);
-    let Ci;
-    let Zt = Ci = class extends Y {
+    var Ci;
+    var Zt = Ci = class extends Y {
       toJSON() {
         return { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, factoryId: this.factoryId, entityPrealnum: this.entityPrealnum, entityFrozenAssetPrealnum: this.entityFrozenAssetPrealnum, purchaseAssetPrealnum: this.purchaseAssetPrealnum };
       }
@@ -4383,15 +4387,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ci.INC++, "string"), u("design:type", String)], Zt.prototype, "entityFrozenAssetPrealnum", void 0);
     l([A.d(Ci.INC++, "string"), u("design:type", String)], Zt.prototype, "purchaseAssetPrealnum", void 0);
     Zt = Ci = l([R.d("IssueEntityFactoryModel")], Zt);
-    let Gi = class extends Y {
+    var Gi = class extends Y {
       toJSON() {
         return { issueEntityFactory: this.issueEntityFactory.toJSON() };
       }
     };
     l([A.d(1, Zt), u("design:type", Zt)], Gi.prototype, "issueEntityFactory", void 0);
     Gi = l([R.d("IssueEntityFactoryAssetModel")], Gi);
-    let To;
-    let In = To = class extends Y {
+    var To;
+    var In = To = class extends Y {
       toJSON() {
         const e = { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, entityId: this.entityId, taxAssetPrealnum: this.taxAssetPrealnum, entityFactoryPossessor: this.entityFactoryPossessor, entityFactory: this.entityFactory.toJSON() };
         return this.taxAssetRecipientId && (e.taxAssetRecipientId = this.taxAssetRecipientId), e;
@@ -4406,15 +4410,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(To.INC++, Zt), u("design:type", Zt)], In.prototype, "entityFactory", void 0);
     l([A.d(Zt.INC++, "string", "optional"), u("design:type", String)], In.prototype, "taxAssetRecipientId", void 0);
     In = To = l([R.d("IssueEntityModel")], In);
-    let tp = class extends Y {
+    var tp = class extends Y {
       toJSON() {
         return { issueEntity: this.issueEntity.toJSON() };
       }
     };
     l([A.d(1, In), u("design:type", In)], tp.prototype, "issueEntity", void 0);
     tp = l([R.d("IssueEntityAssetModel")], tp);
-    let Gs;
-    let Tn = Gs = class extends Y {
+    var Gs;
+    var Tn = Gs = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4438,15 +4442,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Gs.INC++, "string"), u("design:type", String)], Tn.prototype, "entityFactoryPossessor", void 0);
     l([A.d(Gs.INC++, Zt), u("design:type", Zt)], Tn.prototype, "entityFactory", void 0);
     Tn = Gs = l([R.d("DestroyEntityModel")], Tn);
-    let rp = class extends Y {
+    var rp = class extends Y {
       toJSON() {
         return { destroyEntity: this.destroyEntity.toJSON() };
       }
     };
     l([A.d(1, Tn), u("design:type", Tn)], rp.prototype, "destroyEntity", void 0);
     rp = l([R.d("DestroyEntityAssetModel")], rp);
-    let So;
-    let ca = class extends Y {
+    var So;
+    var ca = class extends Y {
       toJSON() {
         const e = { entityId: this.entityId, taxAssetPrealnum: this.taxAssetPrealnum };
         return this.taxAssetRecipientId && (e.taxAssetRecipientId = this.taxAssetRecipientId), e;
@@ -4456,7 +4460,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(2, "string"), u("design:type", String)], ca.prototype, "taxAssetPrealnum", void 0);
     l([A.d(3, "string", "optional"), u("design:type", String)], ca.prototype, "taxAssetRecipientId", void 0);
     ca = l([R.d("EntityStructModel")], ca);
-    let hs = So = class extends Y {
+    var hs = So = class extends Y {
       toJSON() {
         return { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, entityStructList: this.entityStructList.map((t) => t.toJSON()), entityFactoryPossessor: this.entityFactoryPossessor, entityFactory: this.entityFactory.toJSON() };
       }
@@ -4468,14 +4472,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(So.INC++, "string"), u("design:type", String)], hs.prototype, "entityFactoryPossessor", void 0);
     l([A.d(So.INC++, Zt), u("design:type", Zt)], hs.prototype, "entityFactory", void 0);
     hs = So = l([R.d("IssueEntityMultiModel")], hs);
-    let np = class extends Y {
+    var np = class extends Y {
       toJSON() {
         return { issueEntityMulti: this.issueEntityMulti.toJSON() };
       }
     };
     l([A.d(1, hs), u("design:type", hs)], np.prototype, "issueEntityMulti", void 0);
     np = l([R.d("IssueEntityMultiAssetModel")], np);
-    let us = class extends Y {
+    var us = class extends Y {
       toJSON() {
         const e = { sourceChainName: this.sourceChainName, sourceChainMagic: this.sourceChainMagic, parentAssetType: this.parentAssetType, assetType: this.assetType, amount: this.amount };
         return this.taxInformation && (e.taxInformation = this.taxInformation.toJSON()), e;
@@ -4488,16 +4492,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(5, "string"), u("design:type", String)], us.prototype, "amount", void 0);
     l([A.d(6, Qt, "optional"), u("design:type", Qt)], us.prototype, "taxInformation", void 0);
     us = l([R.d("TransferAnyModel")], us);
-    let sp = class extends Y {
+    var sp = class extends Y {
       toJSON() {
         return { transferAny: this.transferAny.toJSON() };
       }
     };
     l([A.d(1, us), u("design:type", us)], sp.prototype, "transferAny", void 0);
     sp = l([R.d("TransferAnyAssetModel")], sp);
-    let bn;
-    const fm = /* @__PURE__ */ new WeakMap();
-    let gr = bn = class extends Y {
+    var bn;
+    var fm = /* @__PURE__ */ new WeakMap();
+    var gr = bn = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = fm.get(e);
@@ -4528,16 +4532,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(bn.INC++, "uint32", "optional"), u("design:type", Number)], gr.prototype, "giftDistributionRule", void 0);
     l([A.d(bn.INC++, Qt, "optional"), u("design:type", Qt)], gr.prototype, "taxInformation", void 0);
     gr = bn = l([R.d("GiftAnyModel")], gr);
-    let ip = class extends Y {
+    var ip = class extends Y {
       toJSON() {
         return { giftAny: this.giftAny.toJSON() };
       }
     };
     l([A.d(1, gr), u("design:type", gr)], ip.prototype, "giftAny", void 0);
     ip = l([R.d("GiftAnyAssetModel")], ip);
-    let wo;
-    const Gu = /* @__PURE__ */ new WeakMap();
-    let fs = wo = class extends Y {
+    var wo;
+    var Gu = /* @__PURE__ */ new WeakMap();
+    var fs = wo = class extends Y {
       get blockSignature() {
         return xe(this.blockSignatureBuffer);
       }
@@ -4578,16 +4582,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(wo.INC++, "bytes", "optional"), u("design:type", Uint8Array)], fs.prototype, "ciphertextSignatureBuffer", void 0);
     l([A.d(wo.INC++, gr), u("design:type", gr)], fs.prototype, "giftAny", void 0);
     fs = wo = l([R.d("GrabAnyModel")], fs);
-    let op = class extends Y {
+    var op = class extends Y {
       toJSON() {
         return { grabAny: this.grabAny.toJSON() };
       }
     };
     l([A.d(1, fs), u("design:type", fs)], op.prototype, "grabAny", void 0);
     op = l([R.d("GrabAnyAssetModel")], op);
-    let vr;
-    const gm = /* @__PURE__ */ new WeakMap();
-    let yi = class extends Y {
+    var vr;
+    var gm = /* @__PURE__ */ new WeakMap();
+    var yi = class extends Y {
       toJSON() {
         return { toExchangeAssetWeight: this.toExchangeAssetWeight, beExchangeAssetWeight: this.beExchangeAssetWeight };
       }
@@ -4595,7 +4599,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "string"), u("design:type", String)], yi.prototype, "toExchangeAssetWeight", void 0);
     l([A.d(2, "string"), u("design:type", String)], yi.prototype, "beExchangeAssetWeight", void 0);
     yi = l([R.d("AssetExchangeWeightRatioModel")], yi);
-    let Dt = vr = class extends Y {
+    var Dt = vr = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = gm.get(e);
@@ -4636,16 +4640,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(vr.INC++, Qt, "optional"), u("design:type", Qt)], Dt.prototype, "taxInformation", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Dt.prototype, "to", null);
     Dt = vr = l([R.d("ToExchangeAnyModel")], Dt);
-    let ap = class extends Y {
+    var ap = class extends Y {
       toJSON() {
         return { toExchangeAny: this.toExchangeAny.toJSON() };
       }
     };
     l([A.d(1, Dt), u("design:type", Dt)], ap.prototype, "toExchangeAny", void 0);
     ap = l([R.d("ToExchangeAnyAssetModel")], ap);
-    let bo;
-    const Ku = /* @__PURE__ */ new WeakMap();
-    let Vn = bo = class extends Y {
+    var bo;
+    var Ku = /* @__PURE__ */ new WeakMap();
+    var Vn = bo = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4681,18 +4685,18 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(bo.INC++, Dt), u("design:type", Dt)], Vn.prototype, "exchangeAny", void 0);
     l([A.d(Dt.INC++, Qt, "optional"), u("design:type", Qt)], Vn.prototype, "taxInformation", void 0);
     Vn = bo = l([R.d("BeExchangeAnyModel")], Vn);
-    let cp = class extends Y {
+    var cp = class extends Y {
       toJSON() {
         return { beExchangeAny: this.beExchangeAny.toJSON() };
       }
     };
     l([A.d(1, Vn), u("design:type", Vn)], cp.prototype, "beExchangeAny", void 0);
     cp = l([R.d("BeExchangeAnyAssetModel")], cp);
-    let Ks;
-    let No;
-    let bl;
-    const dm = /* @__PURE__ */ new WeakMap();
-    let tn = Ks = class extends Y {
+    var Ks;
+    var No;
+    var bl;
+    var dm = /* @__PURE__ */ new WeakMap();
+    var tn = Ks = class extends Y {
       toJSON() {
         const e = { toExchangeSource: this.toExchangeSource, toExchangeChainName: this.toExchangeChainName, toExchangeParentAssetType: this.toExchangeParentAssetType, toExchangeAssetType: this.toExchangeAssetType, toExchangeAssetPrealnum: this.toExchangeAssetPrealnum };
         return this.assetExchangeWeightRatio && (e.assetExchangeWeightRatio = this.assetExchangeWeightRatio.toJSON()), this.taxInformation && (e.taxInformation = this.taxInformation.toJSON()), e;
@@ -4707,7 +4711,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ks.INC++, yi, "optional"), u("design:type", yi)], tn.prototype, "assetExchangeWeightRatio", void 0);
     l([A.d(Ks.INC++, Qt, "optional"), u("design:type", Qt)], tn.prototype, "taxInformation", void 0);
     tn = Ks = l([R.d("ToExchangeAssetV1Model")], tn);
-    let rn = No = class extends Y {
+    var rn = No = class extends Y {
       toJSON() {
         const e = { beExchangeSource: this.beExchangeSource, beExchangeChainName: this.beExchangeChainName, beExchangeParentAssetType: this.beExchangeParentAssetType, beExchangeAssetType: this.beExchangeAssetType };
         return this.beExchangeAssetPrealnum && (e.beExchangeAssetPrealnum = this.beExchangeAssetPrealnum), this.taxInformation && (e.taxInformation = this.taxInformation.toJSON()), e;
@@ -4721,7 +4725,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(No.INC++, "string", "optional"), u("design:type", String)], rn.prototype, "beExchangeAssetPrealnum", void 0);
     l([A.d(tn.INC++, Qt, "optional"), u("design:type", Qt)], rn.prototype, "taxInformation", void 0);
     rn = No = l([R.d("BeExchangeAssetV1Model")], rn);
-    let Os = bl = class extends Y {
+    var Os = bl = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = dm.get(e);
@@ -4751,16 +4755,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(bl.INC++, rn), u("design:type", rn)], Os.prototype, "beExchangeAsset", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Os.prototype, "to", null);
     Os = bl = l([R.d("ToExchangeAnyMultiModel")], Os);
-    let pp = class extends Y {
+    var pp = class extends Y {
       toJSON() {
         return { toExchangeAnyMulti: this.toExchangeAnyMulti.toJSON() };
       }
     };
     l([A.d(1, Os), u("design:type", Os)], pp.prototype, "toExchangeAnyMulti", void 0);
     pp = l([R.d("ToExchangeAnyMultiAssetModel")], pp);
-    let qa;
-    const zu = /* @__PURE__ */ new WeakMap();
-    let Cs = qa = class extends Y {
+    var qa;
+    var zu = /* @__PURE__ */ new WeakMap();
+    var Cs = qa = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4794,18 +4798,18 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(qa.INC++, tn, "repeated"), u("design:type", Array)], Cs.prototype, "toExchangeAssets", void 0);
     l([A.d(qa.INC++, rn), u("design:type", rn)], Cs.prototype, "beExchangeAsset", void 0);
     Cs = qa = l([R.d("BeExchangeAnyMultiModel")], Cs);
-    let lp = class extends Y {
+    var lp = class extends Y {
       toJSON() {
         return { beExchangeAnyMulti: this.beExchangeAnyMulti.toJSON() };
       }
     };
     l([A.d(1, Cs), u("design:type", Cs)], lp.prototype, "beExchangeAnyMulti", void 0);
     lp = l([R.d("BeExchangeAnyMultiAssetModel")], lp);
-    let Ri;
-    let xo;
-    let Nl;
-    const ym = /* @__PURE__ */ new WeakMap();
-    let Sn = Ri = class extends Y {
+    var Ri;
+    var xo;
+    var Nl;
+    var ym = /* @__PURE__ */ new WeakMap();
+    var Sn = Ri = class extends Y {
       toJSON() {
         const e = { toExchangeSource: this.toExchangeSource, toExchangeChainName: this.toExchangeChainName, toExchangeParentAssetType: this.toExchangeParentAssetType, toExchangeAssetType: this.toExchangeAssetType, toExchangeAssetPrealnum: this.toExchangeAssetPrealnum };
         return this.taxInformation && (e.taxInformation = this.taxInformation.toJSON()), e;
@@ -4819,7 +4823,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ri.INC++, "string"), u("design:type", String)], Sn.prototype, "toExchangeAssetPrealnum", void 0);
     l([A.d(Ri.INC++, Qt, "optional"), u("design:type", Qt)], Sn.prototype, "taxInformation", void 0);
     Sn = Ri = l([R.d("ToExchangeAssetV2Model")], Sn);
-    let Gn = xo = class extends Y {
+    var Gn = xo = class extends Y {
       toJSON() {
         const e = { beExchangeSource: this.beExchangeSource, beExchangeChainName: this.beExchangeChainName, beExchangeParentAssetType: this.beExchangeParentAssetType, beExchangeAssetType: this.beExchangeAssetType, beExchangeAssetPrealnum: this.beExchangeAssetPrealnum };
         return this.taxInformation && (e.taxInformation = this.taxInformation.toJSON()), e;
@@ -4833,7 +4837,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(xo.INC++, "string"), u("design:type", String)], Gn.prototype, "beExchangeAssetPrealnum", void 0);
     l([A.d(Sn.INC++, Qt, "optional"), u("design:type", Qt)], Gn.prototype, "taxInformation", void 0);
     Gn = xo = l([R.d("BeExchangeAssetV2Model")], Gn);
-    let Rs = Nl = class extends Y {
+    var Rs = Nl = class extends Y {
       get cipherPublicKeys() {
         const { cipherPublicKeysBuffer: e } = this;
         let t = ym.get(e);
@@ -4863,16 +4867,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Nl.INC++, Gn, "repeated"), u("design:type", Array)], Rs.prototype, "beExchangeAssets", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Rs.prototype, "to", null);
     Rs = Nl = l([R.d("ToExchangeAnyMultiAllModel")], Rs);
-    let hp = class extends Y {
+    var hp = class extends Y {
       toJSON() {
         return { toExchangeAnyMultiAll: this.toExchangeAnyMultiAll.toJSON() };
       }
     };
     l([A.d(1, Rs), u("design:type", Rs)], hp.prototype, "toExchangeAnyMultiAll", void 0);
     hp = l([R.d("ToExchangeAnyMultiAllAssetModel")], hp);
-    let Za;
-    const ju = /* @__PURE__ */ new WeakMap();
-    let Bs = Za = class extends Y {
+    var Za;
+    var ju = /* @__PURE__ */ new WeakMap();
+    var Bs = Za = class extends Y {
       get transactionSignature() {
         return xe(this.transactionSignatureBuffer);
       }
@@ -4906,15 +4910,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Za.INC++, Sn, "repeated"), u("design:type", Array)], Bs.prototype, "toExchangeAssets", void 0);
     l([A.d(Za.INC++, Gn, "repeated"), u("design:type", Array)], Bs.prototype, "beExchangeAssets", void 0);
     Bs = Za = l([R.d("BeExchangeAnyMultiAllModel")], Bs);
-    let up = class extends Y {
+    var up = class extends Y {
       toJSON() {
         return { beExchangeAnyMultiAll: this.beExchangeAnyMultiAll.toJSON() };
       }
     };
     l([A.d(1, Bs), u("design:type", Bs)], up.prototype, "beExchangeAnyMultiAll", void 0);
     up = l([R.d("BeExchangeAnyMultiAllAssetModel")], up);
-    let ec;
-    let Ps = ec = class extends Y {
+    var ec;
+    var Ps = ec = class extends Y {
       toJSON() {
         return { sourceChainMagic: this.sourceChainMagic, sourceChainName: this.sourceChainName, certificateId: this.certificateId, type: this.type };
       }
@@ -4925,15 +4929,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(ec.INC++, "string"), u("design:type", String)], Ps.prototype, "certificateId", void 0);
     l([A.d(ec.INC++, "uint32"), u("design:type", Number)], Ps.prototype, "type", void 0);
     Ps = ec = l([R.d("IssueCertificateModel")], Ps);
-    let fp = class extends Y {
+    var fp = class extends Y {
       toJSON() {
         return { issueCertificate: this.issueCertificate.toJSON() };
       }
     };
     l([A.d(1, Ps), u("design:type", Ps)], fp.prototype, "issueCertificate", void 0);
     fp = l([R.d("IssueCertificateAssetModel")], fp);
-    let tc;
-    let Ms = tc = class extends Y {
+    var tc;
+    var Ms = tc = class extends Y {
       toJSON() {
         return { sourceChainMagic: this.sourceChainMagic, sourceChainName: this.sourceChainName, certificateId: this.certificateId, type: this.type };
       }
@@ -4944,199 +4948,199 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(tc.INC++, "string"), u("design:type", String)], Ms.prototype, "certificateId", void 0);
     l([A.d(tc.INC++, "uint32"), u("design:type", Number)], Ms.prototype, "type", void 0);
     Ms = tc = l([R.d("DestroyCertificateModel")], Ms);
-    let gp = class extends Y {
+    var gp = class extends Y {
       toJSON() {
         return { destroyCertificate: this.destroyCertificate.toJSON() };
       }
     };
     l([A.d(1, Ms), u("design:type", Ms)], gp.prototype, "destroyCertificate", void 0);
     gp = l([R.d("DestroyCertificateAssetModel")], gp);
-    let yd;
-    let dp = yd = class extends Ve {
+    var yd;
+    var dp = yd = class extends Ve {
     };
     l([A.d(yd.INC++, Pc), u("design:type", Pc)], dp.prototype, "asset", void 0);
     dp = yd = l([R.d("SignatureTransaction")], dp);
-    let md;
-    let yp = md = class extends Ve {
+    var md;
+    var yp = md = class extends Ve {
     };
     l([A.d(md.INC++, Mc), u("design:type", Mc)], yp.prototype, "asset", void 0);
     yp = md = l([R.d("DAppTransaction")], yp);
-    let _d;
-    let mp = _d = class extends Ve {
+    var _d;
+    var mp = _d = class extends Ve {
     };
     l([A.d(_d.INC++, Lc), u("design:type", Lc)], mp.prototype, "asset", void 0);
     mp = _d = l([R.d("DAppPurchasingTransaction")], mp);
-    let Ad;
-    let _p = Ad = class extends Ve {
+    var Ad;
+    var _p = Ad = class extends Ve {
     };
     l([A.d(Ad.INC++, Hc), u("design:type", Hc)], _p.prototype, "asset", void 0);
     _p = Ad = l([R.d("MarkTransaction")], _p);
-    let Ed;
-    let Ap = Ed = class extends Ve {
+    var Ed;
+    var Ap = Ed = class extends Ve {
     };
     l([A.d(Ed.INC++, vc), u("design:type", vc)], Ap.prototype, "asset", void 0);
     Ap = Ed = l([R.d("IssueAssetTransaction")], Ap);
-    let Id;
-    let Ep = Id = class extends Ve {
+    var Id;
+    var Ep = Id = class extends Ve {
     };
     l([A.d(Id.INC++, kc), u("design:type", kc)], Ep.prototype, "asset", void 0);
     Ep = Id = l([R.d("IncreaseAssetTransaction")], Ep);
-    let Td;
-    let Ip = Td = class extends Ve {
+    var Td;
+    var Ip = Td = class extends Ve {
     };
     l([A.d(Td.INC++, Dc), u("design:type", Dc)], Ip.prototype, "asset", void 0);
     Ip = Td = l([R.d("TransferAssetTransaction")], Ip);
-    let Sd;
-    let Tp = Sd = class extends Ve {
+    var Sd;
+    var Tp = Sd = class extends Ve {
     };
     l([A.d(Sd.INC++, Fc), u("design:type", Fc)], Tp.prototype, "asset", void 0);
     Tp = Sd = l([R.d("DestroyAssetTransaction")], Tp);
-    let wd;
-    let Ki = wd = class extends Ve {
+    var wd;
+    var Ki = wd = class extends Ve {
     };
     l([A.d(wd.INC++, $c), u("design:type", $c)], Ki.prototype, "asset", void 0);
     Ki = wd = l([R.d("GiftAssetTransaction")], Ki);
-    let bd;
-    let Sp = bd = class extends Ve {
+    var bd;
+    var Sp = bd = class extends Ve {
     };
     l([A.d(bd.INC++, Uc), u("design:type", Uc)], Sp.prototype, "asset", void 0);
     Sp = bd = l([R.d("GrabAssetTransaction")], Sp);
-    let Nd;
-    let pa = Nd = class extends Ve {
+    var Nd;
+    var pa = Nd = class extends Ve {
     };
     l([A.d(Nd.INC++, Vc), u("design:type", Vc)], pa.prototype, "asset", void 0);
     pa = Nd = l([R.d("TrustAssetTransaction")], pa);
-    let xd;
-    let wp = xd = class extends Ve {
+    var xd;
+    var wp = xd = class extends Ve {
     };
     l([A.d(xd.INC++, Gc), u("design:type", Gc)], wp.prototype, "asset", void 0);
     wp = xd = l([R.d("SignForAssetTransaction")], wp);
-    let Od;
-    let bp = Od = class extends Ve {
+    var Od;
+    var bp = Od = class extends Ve {
     };
     l([A.d(Od.INC++, zc), u("design:type", zc)], bp.prototype, "asset", void 0);
     bp = Od = l([R.d("EmigrateAssetTransaction")], bp);
-    let Cd;
-    let Np = Cd = class extends Ve {
+    var Cd;
+    var Np = Cd = class extends Ve {
     };
     l([A.d(Cd.INC++, Jc), u("design:type", Jc)], Np.prototype, "asset", void 0);
     Np = Cd = l([R.d("ImmigrateAssetTransaction")], Np);
-    let Rd;
-    let la = Rd = class extends Ve {
+    var Rd;
+    var la = Rd = class extends Ve {
     };
     l([A.d(Rd.INC++, Yc), u("design:type", Yc)], la.prototype, "asset", void 0);
     la = Rd = l([R.d("ToExchangeAssetTransaction")], la);
-    let Bd;
-    let xp = Bd = class extends Ve {
+    var Bd;
+    var xp = Bd = class extends Ve {
     };
     l([A.d(Bd.INC++, Qc), u("design:type", Qc)], xp.prototype, "asset", void 0);
     xp = Bd = l([R.d("BeExchangeAssetTransaction")], xp);
-    let Pd;
-    let zi = Pd = class extends Ve {
+    var Pd;
+    var zi = Pd = class extends Ve {
     };
     l([A.d(Pd.INC++, Wc), u("design:type", Wc)], zi.prototype, "asset", void 0);
     zi = Pd = l([R.d("StakeAssetTransaction")], zi);
-    let Md;
-    let Op = Md = class extends Ve {
+    var Md;
+    var Op = Md = class extends Ve {
     };
     l([A.d(Md.INC++, Xc), u("design:type", Xc)], Op.prototype, "asset", void 0);
     Op = Md = l([R.d("UnstakeAssetTransaction")], Op);
-    let Ld;
-    let Cp = Ld = class extends Ve {
+    var Ld;
+    var Cp = Ld = class extends Ve {
     };
     l([A.d(Ld.INC++, qc), u("design:type", qc)], Cp.prototype, "asset", void 0);
     Cp = Ld = l([R.d("LocationNameTransaction")], Cp);
-    let Hd;
-    let Rp = Hd = class extends Ve {
+    var Hd;
+    var Rp = Hd = class extends Ve {
     };
     l([A.d(Hd.INC++, Zc), u("design:type", Zc)], Rp.prototype, "asset", void 0);
     Rp = Hd = l([R.d("SetLnsManagerTransaction")], Rp);
-    let vd;
-    let Bp = vd = class extends Ve {
+    var vd;
+    var Bp = vd = class extends Ve {
     };
     l([A.d(vd.INC++, ep), u("design:type", ep)], Bp.prototype, "asset", void 0);
     Bp = vd = l([R.d("SetLnsRecordValueTransaction")], Bp);
-    let kd;
-    let Pp = kd = class extends Ve {
+    var kd;
+    var Pp = kd = class extends Ve {
     };
     l([A.d(kd.INC++, Gi), u("design:type", Gi)], Pp.prototype, "asset", void 0);
     Pp = kd = l([R.d("IssueEntityFactoryTransaction")], Pp);
-    let Dd;
-    let Mp = Dd = class extends Ve {
+    var Dd;
+    var Mp = Dd = class extends Ve {
     };
     l([A.d(Dd.INC++, Gi), u("design:type", Gi)], Mp.prototype, "asset", void 0);
     Mp = Dd = l([R.d("IssueEntityFactoryTransactionV1")], Mp);
-    let Fd;
-    let ji = Fd = class extends Ve {
+    var Fd;
+    var ji = Fd = class extends Ve {
     };
     l([A.d(Fd.INC++, tp), u("design:type", tp)], ji.prototype, "asset", void 0);
     ji = Fd = l([R.d("IssueEntityTransaction")], ji);
-    let $d;
-    let Lp = $d = class extends Ve {
+    var $d;
+    var Lp = $d = class extends Ve {
     };
     l([A.d($d.INC++, rp), u("design:type", rp)], Lp.prototype, "asset", void 0);
     Lp = $d = l([R.d("DestroyEntityTransaction")], Lp);
-    let Ud;
-    let Ji = Ud = class extends Ve {
+    var Ud;
+    var Ji = Ud = class extends Ve {
     };
     l([A.d(Ud.INC++, np), u("design:type", np)], Ji.prototype, "asset", void 0);
     Ji = Ud = l([R.d("IssueEntityMultiTransaction")], Ji);
-    let Vd;
-    let Hp = Vd = class extends Ve {
+    var Vd;
+    var Hp = Vd = class extends Ve {
     };
     l([A.d(Vd.INC++, sp), u("design:type", sp)], Hp.prototype, "asset", void 0);
     Hp = Vd = l([R.d("TransferAnyTransaction")], Hp);
-    let Gd;
-    let Yi = Gd = class extends Ve {
+    var Gd;
+    var Yi = Gd = class extends Ve {
     };
     l([A.d(Gd.INC++, ip), u("design:type", ip)], Yi.prototype, "asset", void 0);
     Yi = Gd = l([R.d("GiftAnyTransaction")], Yi);
-    let Kd;
-    let vp = Kd = class extends Ve {
+    var Kd;
+    var vp = Kd = class extends Ve {
     };
     l([A.d(Kd.INC++, op), u("design:type", op)], vp.prototype, "asset", void 0);
     vp = Kd = l([R.d("GrabAnyTransaction")], vp);
-    let zd;
-    let ha = zd = class extends Ve {
+    var zd;
+    var ha = zd = class extends Ve {
     };
     l([A.d(zd.INC++, ap), u("design:type", ap)], ha.prototype, "asset", void 0);
     ha = zd = l([R.d("ToExchangeAnyTransaction")], ha);
-    let jd;
-    let kp = jd = class extends Ve {
+    var jd;
+    var kp = jd = class extends Ve {
     };
     l([A.d(jd.INC++, cp), u("design:type", cp)], kp.prototype, "asset", void 0);
     kp = jd = l([R.d("BeExchangeAnyTransaction")], kp);
-    let Jd;
-    let ua = Jd = class extends Ve {
+    var Jd;
+    var ua = Jd = class extends Ve {
     };
     l([A.d(Jd.INC++, pp), u("design:type", pp)], ua.prototype, "asset", void 0);
     ua = Jd = l([R.d("ToExchangeAnyMultiTransaction")], ua);
-    let Yd;
-    let Dp = Yd = class extends Ve {
+    var Yd;
+    var Dp = Yd = class extends Ve {
     };
     l([A.d(Yd.INC++, lp), u("design:type", lp)], Dp.prototype, "asset", void 0);
     Dp = Yd = l([R.d("BeExchangeAnyMultiTransaction")], Dp);
-    let Qd;
-    let fa = Qd = class extends Ve {
+    var Qd;
+    var fa = Qd = class extends Ve {
     };
     l([A.d(Qd.INC++, hp), u("design:type", hp)], fa.prototype, "asset", void 0);
     fa = Qd = l([R.d("ToExchangeAnyMultiAllTransaction")], fa);
-    let Wd;
-    let Fp = Wd = class extends Ve {
+    var Wd;
+    var Fp = Wd = class extends Ve {
     };
     l([A.d(Wd.INC++, up), u("design:type", up)], Fp.prototype, "asset", void 0);
     Fp = Wd = l([R.d("BeExchangeAnyMultiAllTransaction")], Fp);
-    let Xd;
-    let $p = Xd = class extends Ve {
+    var Xd;
+    var $p = Xd = class extends Ve {
     };
     l([A.d(Xd.INC++, fp), u("design:type", fp)], $p.prototype, "asset", void 0);
     $p = Xd = l([R.d("IssueCertificateTransaction")], $p);
-    let qd;
-    let Up = qd = class extends Ve {
+    var qd;
+    var Up = qd = class extends Ve {
     };
     l([A.d(qd.INC++, gp), u("design:type", gp)], Up.prototype, "asset", void 0);
     Up = qd = l([R.d("DestroyCertificateTransaction")], Up);
-    const U = class {
+    var U = class {
       constructor(e, t) {
         this.__code = e, this.__message = t;
       }
@@ -5153,17 +5157,17 @@ const require_bioforest_chain_bundle = __commonJS({
         return e ? this.__message.replace(/\{([^\\]+?)\}/g, (t, r) => e[r] ?? t) : this.__message;
       }
     };
-    const Zd = /* @__PURE__ */ Symbol("InjectionToken");
-    const If = /* @__PURE__ */ Symbol("SingletonToken");
-    const tA = /* @__PURE__ */ Symbol("GroupToken");
-    const Tf = /* @__PURE__ */ new WeakMap();
-    const rA = /* @__PURE__ */ new WeakMap();
-    const hh = [];
+    var Zd = /* @__PURE__ */ Symbol("InjectionToken");
+    var If = /* @__PURE__ */ Symbol("SingletonToken");
+    var tA = /* @__PURE__ */ Symbol("GroupToken");
+    var Tf = /* @__PURE__ */ new WeakMap();
+    var rA = /* @__PURE__ */ new WeakMap();
+    var hh = [];
     function hI(i) {
       return rA.get(i) || hh[hh.length - 1];
     }
-    const nA = "injectProps:afertInit";
-    const sA = "injectProps:onInit";
+    var nA = "injectProps:afertInit";
+    var sA = "injectProps:onInit";
     function iA(i) {
       return i[Zd];
     }
@@ -5178,18 +5182,18 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return e;
     }
-    let mm;
+    var mm;
     (function(i) {
       (function(e) {
-        let t = typeof Fy === "object" ? Fy : typeof self === "object" ? self : typeof this === "object" ? this : Function("return this;")(), r = n(i);
+        var t = typeof Fy == "object" ? Fy : typeof self == "object" ? self : typeof this == "object" ? this : Function("return this;")(), r = n(i);
         typeof t.Reflect > "u" ? t.Reflect = i : r = n(t.Reflect, r), e(r);
         function n(s, o) {
           return function(a, p) {
-            typeof s[a] !== "function" && Object.defineProperty(s, a, { configurable: true, writable: true, value: p }), o && o(a, p);
+            typeof s[a] != "function" && Object.defineProperty(s, a, { configurable: true, writable: true, value: p }), o && o(a, p);
           };
         }
       })(function(e) {
-        const t = Object.prototype.hasOwnProperty, r = typeof Symbol === "function", n = r && typeof Symbol.toPrimitive < "u" ? Symbol.toPrimitive : "@@toPrimitive", s = r && typeof Symbol.iterator < "u" ? Symbol.iterator : "@@iterator", o = typeof Object.create === "function", a = { __proto__: [] } instanceof Array, p = !o && !a, h = { create: o ? function() {
+        var t = Object.prototype.hasOwnProperty, r = typeof Symbol == "function", n = r && typeof Symbol.toPrimitive < "u" ? Symbol.toPrimitive : "@@toPrimitive", s = r && typeof Symbol.iterator < "u" ? Symbol.iterator : "@@iterator", o = typeof Object.create == "function", a = { __proto__: [] } instanceof Array, p = !o && !a, h = { create: o ? function() {
           return Mi(/* @__PURE__ */ Object.create(null));
         } : a ? function() {
           return Mi({ __proto__: null });
@@ -5203,7 +5207,7 @@ const require_bioforest_chain_bundle = __commonJS({
           return t.call(Q, te) ? Q[te] : void 0;
         } : function(Q, te) {
           return Q[te];
-        } }, f = Object.getPrototypeOf(Function), g = typeof process === "object" && process.env && process.env.REFLECT_METADATA_USE_MAP_POLYFILL === "true", d = !g && typeof Map === "function" && typeof Map.prototype.entries === "function" ? Map : Hl(), y = !g && typeof Set === "function" && typeof Set.prototype.entries === "function" ? Set : Lo(), _ = !g && typeof WeakMap === "function" ? WeakMap : hn(), I = new _();
+        } }, f = Object.getPrototypeOf(Function), g = typeof process == "object" && process.env && process.env.REFLECT_METADATA_USE_MAP_POLYFILL === "true", d = !g && typeof Map == "function" && typeof Map.prototype.entries == "function" ? Map : Hl(), y = !g && typeof Set == "function" && typeof Set.prototype.entries == "function" ? Set : Lo(), _ = !g && typeof WeakMap == "function" ? WeakMap : hn(), I = new _();
         function S(Q, te, ue, T) {
           if (ce(ue)) {
             if (!Pe(Q)) throw new TypeError();
@@ -5264,16 +5268,16 @@ const require_bioforest_chain_bundle = __commonJS({
         function K(Q, te, ue) {
           if (!pe(te)) throw new TypeError();
           ce(ue) || (ue = le(ue));
-          const T = W(te, ue, false);
+          var T = W(te, ue, false);
           if (ce(T) || !T.delete(Q)) return false;
           if (T.size > 0) return true;
-          const m = I.get(te);
+          var m = I.get(te);
           return m.delete(ue), m.size > 0 || I.delete(te), true;
         }
         e("deleteMetadata", K);
         function L(Q, te) {
-          for (let ue = Q.length - 1; ue >= 0; --ue) {
-            const T = Q[ue], m = T(te);
+          for (var ue = Q.length - 1; ue >= 0; --ue) {
+            var T = Q[ue], m = T(te);
             if (!ce(m) && !de(m)) {
               if (!Qe(m)) throw new TypeError();
               te = m;
@@ -5282,8 +5286,8 @@ const require_bioforest_chain_bundle = __commonJS({
           return te;
         }
         function H(Q, te, ue, T) {
-          for (let m = Q.length - 1; m >= 0; --m) {
-            const E = Q[m], b = E(te, ue, T);
+          for (var m = Q.length - 1; m >= 0; --m) {
+            var E = Q[m], b = E(te, ue, T);
             if (!ce(b) && !de(b)) {
               if (!pe(b)) throw new TypeError();
               T = b;
@@ -5292,12 +5296,12 @@ const require_bioforest_chain_bundle = __commonJS({
           return T;
         }
         function W(Q, te, ue) {
-          let T = I.get(Q);
+          var T = I.get(Q);
           if (ce(T)) {
             if (!ue) return;
             T = new d(), I.set(Q, T);
           }
-          let m = T.get(te);
+          var m = T.get(te);
           if (ce(m)) {
             if (!ue) return;
             m = new d(), T.set(te, m);
@@ -5305,52 +5309,52 @@ const require_bioforest_chain_bundle = __commonJS({
           return m;
         }
         function z(Q, te, ue) {
-          const T = $(Q, te, ue);
+          var T = $(Q, te, ue);
           if (T) return true;
-          const m = oc(te);
+          var m = oc(te);
           return de(m) ? false : z(Q, m, ue);
         }
         function $(Q, te, ue) {
-          const T = W(te, ue, false);
+          var T = W(te, ue, false);
           return ce(T) ? false : se(T.has(Q));
         }
         function q(Q, te, ue) {
-          const T = $(Q, te, ue);
+          var T = $(Q, te, ue);
           if (T) return ie(Q, te, ue);
-          const m = oc(te);
+          var m = oc(te);
           if (!de(m)) return q(Q, m, ue);
         }
         function ie(Q, te, ue) {
-          const T = W(te, ue, false);
+          var T = W(te, ue, false);
           if (!ce(T)) return T.get(Q);
         }
         function ge(Q, te, ue, T) {
-          const m = W(ue, T, true);
+          var m = W(ue, T, true);
           m.set(Q, te);
         }
         function Ae(Q, te) {
-          const ue = he(Q, te), T = oc(Q);
+          var ue = he(Q, te), T = oc(Q);
           if (T === null) return ue;
-          const m = Ae(T, te);
+          var m = Ae(T, te);
           if (m.length <= 0) return ue;
           if (ue.length <= 0) return m;
           for (var E = new y(), b = [], M = 0, k = ue; M < k.length; M++) {
             var X = k[M], we = E.has(X);
             we || (E.add(X), b.push(X));
           }
-          for (let et = 0, at = m; et < at.length; et++) {
+          for (var et = 0, at = m; et < at.length; et++) {
             var X = at[et], we = E.has(X);
             we || (E.add(X), b.push(X));
           }
           return b;
         }
         function he(Q, te) {
-          const ue = [], T = W(Q, te, false);
+          var ue = [], T = W(Q, te, false);
           if (ce(T)) return ue;
-          for (let m = T.keys(), E = jt(m), b = 0; ; ) {
-            const M = ic(E);
+          for (var m = T.keys(), E = jt(m), b = 0; ; ) {
+            var M = ic(E);
             if (!M) return ue.length = b, ue;
-            const k = xu(M);
+            var k = xu(M);
             try {
               ue[b] = k;
             } catch (X) {
@@ -5389,10 +5393,10 @@ const require_bioforest_chain_bundle = __commonJS({
           return Q === null;
         }
         function ke(Q) {
-          return typeof Q === "symbol";
+          return typeof Q == "symbol";
         }
         function pe(Q) {
-          return typeof Q === "object" ? Q !== null : typeof Q === "function";
+          return typeof Q == "object" ? Q !== null : typeof Q == "function";
         }
         function j(Q, te) {
           switch (x(Q)) {
@@ -5409,9 +5413,9 @@ const require_bioforest_chain_bundle = __commonJS({
             case 5:
               return Q;
           }
-          const ue = te === 3 ? "string" : te === 5 ? "number" : "default", T = yt(Q, n);
+          var ue = te === 3 ? "string" : te === 5 ? "number" : "default", T = yt(Q, n);
           if (T !== void 0) {
-            const m = T.call(Q, ue);
+            var m = T.call(Q, ue);
             if (pe(m)) throw new TypeError();
             return m;
           }
@@ -5419,7 +5423,7 @@ const require_bioforest_chain_bundle = __commonJS({
         }
         function re(Q, te) {
           if (te === "string") {
-            const ue = Q.toString;
+            var ue = Q.toString;
             if (Ke(ue)) {
               var T = ue.call(Q);
               if (!pe(T)) return T;
@@ -5435,7 +5439,7 @@ const require_bioforest_chain_bundle = __commonJS({
               var T = m.call(Q);
               if (!pe(T)) return T;
             }
-            const E = Q.toString;
+            var E = Q.toString;
             if (Ke(E)) {
               var T = E.call(Q);
               if (!pe(T)) return T;
@@ -5450,17 +5454,17 @@ const require_bioforest_chain_bundle = __commonJS({
           return "" + Q;
         }
         function le(Q) {
-          const te = j(Q, 3);
+          var te = j(Q, 3);
           return ke(te) ? te : ae(te);
         }
         function Pe(Q) {
           return Array.isArray ? Array.isArray(Q) : Q instanceof Object ? Q instanceof Array : Object.prototype.toString.call(Q) === "[object Array]";
         }
         function Ke(Q) {
-          return typeof Q === "function";
+          return typeof Q == "function";
         }
         function Qe(Q) {
-          return typeof Q === "function";
+          return typeof Q == "function";
         }
         function tt(Q) {
           switch (x(Q)) {
@@ -5473,16 +5477,16 @@ const require_bioforest_chain_bundle = __commonJS({
           }
         }
         function yt(Q, te) {
-          const ue = Q[te];
+          var ue = Q[te];
           if (ue != null) {
             if (!Ke(ue)) throw new TypeError();
             return ue;
           }
         }
         function jt(Q) {
-          const te = yt(Q, s);
+          var te = yt(Q, s);
           if (!Ke(te)) throw new TypeError();
-          const ue = te.call(Q);
+          var ue = te.call(Q);
           if (!pe(ue)) throw new TypeError();
           return ue;
         }
@@ -5490,23 +5494,23 @@ const require_bioforest_chain_bundle = __commonJS({
           return Q.value;
         }
         function ic(Q) {
-          const te = Q.next();
+          var te = Q.next();
           return te.done ? false : te;
         }
         function Ou(Q) {
-          const te = Q.return;
+          var te = Q.return;
           te && te.call(Q);
         }
         function oc(Q) {
-          const te = Object.getPrototypeOf(Q);
-          if (typeof Q !== "function" || Q === f || te !== f) return te;
-          const ue = Q.prototype, T = ue && Object.getPrototypeOf(ue);
+          var te = Object.getPrototypeOf(Q);
+          if (typeof Q != "function" || Q === f || te !== f) return te;
+          var ue = Q.prototype, T = ue && Object.getPrototypeOf(ue);
           if (T == null || T === Object.prototype) return te;
-          const m = T.constructor;
-          return typeof m !== "function" || m === Q ? te : m;
+          var m = T.constructor;
+          return typeof m != "function" || m === Q ? te : m;
         }
         function Hl() {
-          const Q = {}, te = [], ue = (function() {
+          var Q = {}, te = [], ue = (function() {
             function b(M, k, X) {
               this._index = 0, this._keys = M, this._values = k, this._selector = X;
             }
@@ -5515,9 +5519,9 @@ const require_bioforest_chain_bundle = __commonJS({
             }, b.prototype[s] = function() {
               return this;
             }, b.prototype.next = function() {
-              const M = this._index;
+              var M = this._index;
               if (M >= 0 && M < this._keys.length) {
-                const k = this._selector(this._keys[M], this._values[M]);
+                var k = this._selector(this._keys[M], this._values[M]);
                 return M + 1 >= this._keys.length ? (this._index = -1, this._keys = te, this._values = te) : this._index++, { value: k, done: false };
               }
               return { value: void 0, done: true };
@@ -5536,15 +5540,15 @@ const require_bioforest_chain_bundle = __commonJS({
             }, enumerable: true, configurable: true }), b.prototype.has = function(M) {
               return this._find(M, false) >= 0;
             }, b.prototype.get = function(M) {
-              const k = this._find(M, false);
+              var k = this._find(M, false);
               return k >= 0 ? this._values[k] : void 0;
             }, b.prototype.set = function(M, k) {
-              const X = this._find(M, true);
+              var X = this._find(M, true);
               return this._values[X] = k, this;
             }, b.prototype.delete = function(M) {
-              const k = this._find(M, false);
+              var k = this._find(M, false);
               if (k >= 0) {
-                for (let X = this._keys.length, we = k + 1; we < X; we++) this._keys[we - 1] = this._keys[we], this._values[we - 1] = this._values[we];
+                for (var X = this._keys.length, we = k + 1; we < X; we++) this._keys[we - 1] = this._keys[we], this._values[we - 1] = this._values[we];
                 return this._keys.length--, this._values.length--, M === this._cacheKey && (this._cacheKey = Q, this._cacheIndex = -2), true;
               }
               return false;
@@ -5603,29 +5607,29 @@ const require_bioforest_chain_bundle = __commonJS({
           })();
         }
         function hn() {
-          const Q = 16, te = h.create(), ue = T();
+          var Q = 16, te = h.create(), ue = T();
           return (function() {
             function k() {
               this._key = T();
             }
             return k.prototype.has = function(X) {
-              const we = m(X, false);
+              var we = m(X, false);
               return we !== void 0 ? h.has(we, this._key) : false;
             }, k.prototype.get = function(X) {
-              const we = m(X, false);
+              var we = m(X, false);
               return we !== void 0 ? h.get(we, this._key) : void 0;
             }, k.prototype.set = function(X, we) {
-              const et = m(X, true);
+              var et = m(X, true);
               return et[this._key] = we, this;
             }, k.prototype.delete = function(X) {
-              const we = m(X, false);
+              var we = m(X, false);
               return we !== void 0 ? delete we[this._key] : false;
             }, k.prototype.clear = function() {
               this._key = T();
             }, k;
           })();
           function T() {
-            let k;
+            var k;
             do
               k = "@@WeakMap@@" + M();
             while (h.has(te, k));
@@ -5639,17 +5643,17 @@ const require_bioforest_chain_bundle = __commonJS({
             return k[ue];
           }
           function E(k, X) {
-            for (let we = 0; we < X; ++we) k[we] = Math.random() * 255 | 0;
+            for (var we = 0; we < X; ++we) k[we] = Math.random() * 255 | 0;
             return k;
           }
           function b(k) {
-            return typeof Uint8Array === "function" ? typeof crypto < "u" ? crypto.getRandomValues(new Uint8Array(k)) : typeof msCrypto < "u" ? msCrypto.getRandomValues(new Uint8Array(k)) : E(new Uint8Array(k), k) : E(new Array(k), k);
+            return typeof Uint8Array == "function" ? typeof crypto < "u" ? crypto.getRandomValues(new Uint8Array(k)) : typeof msCrypto < "u" ? msCrypto.getRandomValues(new Uint8Array(k)) : E(new Uint8Array(k), k) : E(new Array(k), k);
           }
           function M() {
-            const k = b(Q);
+            var k = b(Q);
             k[6] = k[6] & 79 | 64, k[8] = k[8] & 191 | 128;
             for (var X = "", we = 0; we < Q; ++we) {
-              const et = k[we];
+              var et = k[we];
               (we === 4 || we === 6 || we === 8) && (X += "-"), et < 16 && (X += "0"), X += et.toString(16).toLowerCase();
             }
             return X;
@@ -5663,16 +5667,16 @@ const require_bioforest_chain_bundle = __commonJS({
     function J(i, e) {
       return (t) => {
         let r, n, s;
-        typeof i === "object" ? (r = i.module_name, e = i, n = i.singleton) : r = i, r === void 0 && (r = Symbol(t.name)), e && (e.singleton !== void 0 && (n = e.singleton), e.group !== void 0 && (typeof e.group === "boolean" ? e.group === true && (s = [r]) : s = e.group instanceof Array ? e.group : [e.group])), t[Zd] = r, t[If] = !!n, s && (t[tA] = s);
+        typeof i == "object" ? (r = i.module_name, e = i, n = i.singleton) : r = i, r === void 0 && (r = Symbol(t.name)), e && (e.singleton !== void 0 && (n = e.singleton), e.group !== void 0 && (typeof e.group == "boolean" ? e.group === true && (s = [r]) : s = e.group instanceof Array ? e.group : [e.group])), t[Zd] = r, t[If] = !!n, s && (t[tA] = s);
       };
     }
-    let aA;
-    let cA;
-    let pA;
-    const Sf = /* @__PURE__ */ Symbol("module-map");
-    const ql = /* @__PURE__ */ Symbol("mask-level");
-    const wf = /* @__PURE__ */ Symbol("mask-self");
-    let ze = class {
+    var aA;
+    var cA;
+    var pA;
+    var Sf = /* @__PURE__ */ Symbol("module-map");
+    var ql = /* @__PURE__ */ Symbol("mask-level");
+    var wf = /* @__PURE__ */ Symbol("mask-self");
+    var ze = class {
       constructor(i, e) {
         this.parent = e, this[aA] = "ModuleStroge", this[cA] = 0, this[pA] = this, this._stroge = new Map(i), this.set(Sf, this);
       }
@@ -5775,7 +5779,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     aA = Symbol.toStringTag, cA = ql, pA = wf, ze = l([J(Sf), u("design:paramtypes", [Object, ze])], ze);
-    const uI = /* @__PURE__ */ new Map();
+    var uI = /* @__PURE__ */ new Map();
     function fI(i) {
       for (; ; ) {
         const e = Tf.get(i);
@@ -5800,10 +5804,10 @@ const require_bioforest_chain_bundle = __commonJS({
         }) : [];
         hh.push(e), s = new i(...p), hh.pop(), rA.set(s, e), r && (i[If] = s), t !== void 0 && e.set(t, s);
         for (const g of n) e.groupInsert(g, s);
-        typeof s.bfOnInit === "function" && s.bfOnInit();
+        typeof s.bfOnInit == "function" && s.bfOnInit();
         const h = Reflect.getMetadata(sA, i.prototype);
         if (h) for (const [g, d] of h) s[g] = bt(d.injectModel, e);
-        typeof s.bfAfterInit === "function" && queueMicrotask(() => {
+        typeof s.bfAfterInit == "function" && queueMicrotask(() => {
           s.bfAfterInit();
         });
         const f = Reflect.getMetadata(nA, i.prototype);
@@ -5815,12 +5819,12 @@ const require_bioforest_chain_bundle = __commonJS({
     }
     function D(i, e) {
       return (t, r, n) => {
-        if (typeof n !== "number") {
+        if (typeof n != "number") {
           if (i === void 0) throw new ReferenceError("inject_moudle should not be empty");
           return dI(i, e)(t, r, n);
         }
         {
-          const s = typeof i === "function" ? iA(i) : i;
+          const s = typeof i == "function" ? iA(i) : i;
           if (s !== void 0) {
             const o = Tf.get(t) || /* @__PURE__ */ new Map();
             Tf.set(t, o), o.set(n, { id: s, conf: e });
@@ -5828,7 +5832,7 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       };
     }
-    const gI = ((i) => (i[i.NO_RESOLVE = 0] = "NO_RESOLVE", i[i.ON_GETTER = 1] = "ON_GETTER", i[i.ON_INIT = 2] = "ON_INIT", i[i.AFTER_INIT = 3] = "AFTER_INIT", i))(gI || {});
+    var gI = ((i) => (i[i.NO_RESOLVE = 0] = "NO_RESOLVE", i[i.ON_GETTER = 1] = "ON_GETTER", i[i.ON_INIT = 2] = "ON_INIT", i[i.AFTER_INIT = 3] = "AFTER_INIT", i))(gI || {});
     function _m(i, e) {
       let t = Reflect.getMetadata(e, i);
       return t || (t = /* @__PURE__ */ new Map(), Reflect.metadata(e, t)(i)), t;
@@ -5837,11 +5841,11 @@ const require_bioforest_chain_bundle = __commonJS({
       const { dynamics: t, optional: r, autoResolve: n, writable: s = true } = e;
       let o;
       o = n === false ? 0 : n === true || n === void 0 ? 1 : n;
-      const a = typeof i === "function" ? iA(i) : i;
+      const a = typeof i == "function" ? iA(i) : i;
       if (a === void 0) throw new TypeError("module name is undefined");
       return (p, h, f) => {
         if (o !== 0 && o !== 1) {
-          if (typeof i !== "function") throw new TypeError(`${p} could not resolve prop '${h}', inject_module not an function.`);
+          if (typeof i != "function") throw new TypeError(`${p} could not resolve prop '${h}', inject_module not an function.`);
           o === 3 ? _m(p, nA).set(h, { injectModel: i }) : o === 2 && _m(p, sA).set(h, { injectModel: i });
         }
         const g = (I) => {
@@ -5853,7 +5857,7 @@ const require_bioforest_chain_bundle = __commonJS({
         }, y = (I) => {
           const S = g(I);
           if (S.has(a)) return S.get(a);
-          if (o !== 0 && typeof i === "function") return bt(i, S);
+          if (o !== 0 && typeof i == "function") return bt(i, S);
           if (!r) throw new ReferenceError(`module of ${String(a)} must been Injected first.`);
         }, _ = { configurable: true, enumerable: true };
         if (t) s && (_.set = function(I) {
@@ -5879,13 +5883,13 @@ const require_bioforest_chain_bundle = __commonJS({
       return (e) => {
       };
     }
-    let bf;
-    let wc;
+    var bf;
+    var wc;
     (function(i) {
       i.CHINESE = "zh_CN.UTF-8", i.ENGLISH = "en_US.UTF-8";
     })(wc || (wc = {}));
-    const lA = /* @__PURE__ */ Symbol("errorCodeLang");
-    let Nf = bf = class {
+    var lA = /* @__PURE__ */ Symbol("errorCodeLang");
+    var Nf = bf = class {
       constructor(i = wc.ENGLISH) {
         this.__store = /* @__PURE__ */ new Map(), this.__checkLanguage(i), this.__lang = i;
       }
@@ -5920,15 +5924,15 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Nf = bf = l([J(), be(0, D(lA, { optional: true })), u("design:paramtypes", [String])], Nf);
-    const yI = { "001-00001": "params {param} lost", "001-00002": "{prop} in {target} is required", "001-00003": "{prop} in {target} is invalid", "001-00004": "{to_compare_prop} in {to_target} and {be_compare_prop} in {be_target} not match", "001-00005": "{prop} in {target} should greater than {field}", "001-00006": "{prop} in {target} should greater than or equals to {field}", "001-00007": "{prop} in {target} should less than {field}", "001-00008": "{prop} in {target} should less than or equals to {field}", "001-00009": "{prop} in {target} should equals to {field}", "001-00010": "{to_compare_prop} in {to_target} should be {be_compare_prop}", "001-00011": "{to_compare_prop} in {to_target} should not be {be_compare_prop}", "001-00012": "{prop} in {target} not exist", "001-00013": "{prop} in {target} should not exist", "001-00014": "Transaction fee is not enough, errorId {errorId}, minFee {minFee}", "001-00015": "{prop} in {target} not in [{min}, {max}]", "001-00016": "{prop} in {target} is over length {limit}", "001-00017": "{prop} in {target} should not start with or end with {field}", "001-00018": "{prop} in {target} not a string, value {value}", "001-00019": "{prop} in {target} not a ip, value {value}", "001-00020": "{prop} in {target} not a ipv4, value {value}", "001-00021": "{prop} in {target} not a ipv6, value {value}", "001-00022": "{prop} in {target} not a longitude-latitude, value {value}", "001-00023": "{prop} in {target} not a longitude, value {value}", "001-00024": "{prop} in {target} not a latitude, value {value}", "001-00025": "{prop} in {target} not a address, value {value}", "001-00026": "{prop} in {target} not a locationName, value {value}", "001-00027": "{prop} in {target} not a dns, value {value}", "001-00028": "{prop} in {target} not a email, value {value}", "001-00029": "{prop} in {target} not a url, value {value}", "001-00030": "Permission denied at operation {operationName}", "001-00031": "{prop} in {target} should not inclue {value}", "001-00032": "{prop} in {target} should inclue {value}", "001-00033": "{prop} in {target} should not duplicate", "001-00034": "{prop} in {target} already exist, errorId {errorId}", "001-00035": "Genesis generator not enough, at least {expected}, actual {actual}", "001-00036": "{prop} in {target} should be an array", "001-00037": "Invalid block generator, reason {reason}", "001-00038": "transaction's porf of work verify fail", "001-00039": "{prop} not found", "001-00040": "{prop} is too large, reason {reason}, errorId {errorId}", "001-00041": "{prop} length in {target} should less than {field}", "001-00042": "{prop} length in {target} should less than or equals to {field}", "001-00043": "{prop} length in {target} should greater than {field}", "001-00044": "{prop} length in {target} should greater than or equals to {field}", "001-00045": "{prop} length in {target} should equals to {field}", "001-00046": "{prop} length in {target} should not equals to {field}", "001-00047": "Invalid transaction base type: {base_type}", "001-00048": "Invalid block constructor: {name}", "001-00049": "Invalid block type: {type}", "001-00050": "Custom transaction verify fail: {message}", "001-00051": "Disabled create {trsName} Transaction", "001-00052": "Disabled insert {trsName} Transaction", "001-00053": "Transaction is in unchangable state", "001-00054": "AssetStatistic index: {index} already in use", "001-00055": "Invalid {taskLabel} signature", "001-00056": "Invalid {taskLabel} signSignature", "001-00057": "Invalid base type {base_type}", "001-00058": "Unregistered TransactionFactory {factoryName}", "001-00059": "Unregistered Transaction base type {trs_base}", "001-00060": "Unregistered Transaction type {trs_key}", "001-00061": "Invalid {taskLabel} fromAuthSignature", "001-00062": "Invalid {taskLabel} fromAuthSignSignature", "001-00063": "Invalid {taskLabel} toAuthSignature", "001-00064": "Invalid {taskLabel} toAuthSignSignature", "001-00065": "Invalid macro input type: {type}", "001-00066": "{prop} in {target} already expired", "001-11001": "{prop} in {target} lose", "001-11002": "Account with address {address} was frozen, status {status}, errorId {errorId}", "001-11003": "Transaction signSignature is required, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11004": "Transaction sender second secret have already change, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11005": "Transaction should not have senderSecondPublicKey, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11006": "Transaction should not have signSignature, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11007": "Invalid transaction({signature}) apply block height, reason {reason}", "001-11008": "Invalid transaction({signature}) effective block height, reason {reason}", "001-11009": "Invalid transaction from magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11010": "Invalid transaction to magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11011": "Invalid transaction timestamp, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11012": "DAppid is not exist, dappid {dappid}", "001-11013": "DAppid is already exist, dappid {dappid}, errorId {errorId}", "001-11014": "LocationName is not exist, locationName {locationName}, errorId {errorId}", "001-11015": "LocationName is already exist, locationName {locationName}, errorId {errorId}", "001-11016": "Entity factory is not exist, factoryId {factoryId}", "001-11017": "Entity factory is already exist, factoryId {factoryId}, errorId {errorId}", "001-11018": "Entity is not exist, entityId {entityId}", "001-11019": "Entity is already exist, entityId {entityId}, errorId {errorId}", "001-11020": "Unknow rangeType, rangeType {rangeType}", "001-11021": "Invalid transaction byte length, reason {reason}", "001-11022": "Need purchase dappid before use, dappid {dappid}", "001-11025": "Can not delete locationName {locationName}, reason {reason}", "001-11026": "Set locationName {locationName} manager field, reason {reason}, errorId {errorId}", "001-11027": "Set locationName {locationName} recordValue field, reason {reason}, errorId {errorId}", "001-11028": "Asset not enough, reason {reason}, errorId {errorId}", "001-11029": "Account remain equity not enough, reason {reason}, errorId {errorId}", "001-11030": "Frozen asset is not begin to unfrozen yet, frozenId {frozenId}", "001-11031": "Frozen asset is already expiration, frozenId {frozenId}", "001-11032": "Gift asset unfrozen time use up, frozenId {frozenId}", "001-11034": "Account with address {address} is already an generator, errorId {errorId}", "001-11035": "Account with address {address} is not an generator, errorId {errorId}", "001-11038": "{prop} in {target} is forbidden", "001-11039": "Asset not exist, magic {magic} assetType {assetType}", "001-11040": "Account with address {address} not dappid {dappid} possessor, errorId {errorId}", "001-11041": "Account with address {address} not locationName {locationName} possessor, errorId {errorId}", "001-11042": "Account with address {address} not entityId {entityId} possessor, errorId {errorId}", "001-11043": "DAppid not frozen, dappid {dappid}", "001-11044": "DAppid already frozen, dappid {dappid}", "001-11045": "LocationName not frozen, locationName {locationName}", "001-11046": "LocationName already frozen, locationName {locationName}", "001-11047": "Entity not frozen, entityId {entityId}", "001-11048": "Entity already frozen, entityId {entityId}", "001-11049": "No need to purchase asset, type {type} asset {asset}", "001-11050": "Only top level location name can exchange", "001-11051": "Can not destroy entityId {entityId}, reason {reason}", "001-11052": "Entity already destroy, entityId {entityId}", "001-11053": "Asset is already migration, migrateCertificateId {migrateCertificateId}", "001-11054": "{prop} in {target} not exist or expired", "001-11055": "Transaction with signature {signature} is not an expected related transaction", "001-11056": "Can not secondary transaction, reason {reason}", "001-11057": "The register generator quota is full in round {round}", "001-11058": "Generator can not migrate asset", "001-11059": "You can only migrate main asset, {assetType} is not main asset {mainAsset}", "001-11060": "Can not carry second publicKey", "001-11061": "Can not carry second signature", "001-11063": "Account possess frozen asset", "001-11064": "Need emigrate total asset, address {address}", "001-11065": "Account possess asset expect chain asset", "001-11066": "Account possess frozen asset expect chain asset", "001-11067": "Account with address {address} can not be frozen, reason {reason}, errorId {errorId}", "001-11068": "You can only trust main asset, {assetType} is not main asset {mainAsset}", "001-11070": "Issue entity times use up, entityFactory {entityFactory}", "001-11071": "Asset already exist, magic {magic} assetType {assetType}", "001-11072": "Frozen asset with frozenAddress {frozenAddress} signature {signature} assetType {assetType} in blockChain not exist or expired", "001-11073": "Not enough issue entity times, entityFactory {entityFactory}", "001-11074": "Promise is not begin to resolve yet, promiseId {promiseId}", "001-11075": "Certificate is not exist, certificateId {certificateId}", "001-11076": "Certificate is already exist, certificateId {certificateId}, errorId {errorId}", "001-11077": "Can not destroy certificate, certificateId {certificateId}, reason {reason}", "001-11078": "Account with address {address} not certificate {certificateId} possessor, errorId {errorId}", "001-11079": "Certificate not frozen, certificateId {certificateId}", "001-11080": "Certificate already frozen, certificateId {certificateId}", "001-11081": "Certificate already destroy, certificateId {certificateId}", "001-12001": "Block signSignature is required, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12002": "Block generator second secret have already change, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12003": "Block should not have generatorSecondPublicKey, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12004": "Block should not have signSignature, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12005": "{variable} out of range", "001-12006": "Failed to find nearest same block in one round, should not happen", "001-12007": "GenesisBlock not match, the signature of genesisBlock and synchronized peer's genesisBlock's signature not equal", "000-12008": "Falied to get blocks by range({minHeight}~{maxHeight})", "001-22001": "Invalid params: {params}", "001-22002": "Invalid params field: {field}", "001-22003": "GenesisBlock maybe no equal", "001-22004": "Invalid QueryBlockArg query params, no query conditions", "001-22005": "QueryBlock ({query}) from peer({peerId}) timeout", "001-22006": "ReqId reuse", "001-22007": "ChainChannel closed", "001-22008": "Refuse response query transaction", "001-22009": "Refuse response index transaction", "001-22010": "Refuse response download transaction", "001-22011": "Refuse response broadcast transaction", "001-22012": "Refuse response query block", "001-22013": "Refuse response broadcast block", "001-22014": "Message type error", "001-22015": "OnMessage get invalid req_id: {req_id}", "001-22016": "Request limit", "001-22017": "Invalid message cmd", "001-22018": "ChainChannel Timeout, cmd {cmd}", "001-22019": "Task {task_id} abort because the free chainChannel size is zero", "001-22020": "Refuse response open blob", "001-22021": "Refuse response read blob", "001-22022": "Refuse response close blob", "001-23001": "blob({hash}) algorithm({algorithm}) is invalid", "001-23002": "Fail to download blob({hash}) size({size})" };
-    const mI = { "001-00001": "\u53C2\u6570 {param} \u4E22\u5931", "001-00002": "{target} \u7684 {prop} \u662F\u5FC5\u987B\u7684", "001-00003": "{target} \u7684 {prop} \u4E0D\u5408\u6CD5", "001-00004": "{to_target} \u7684 {to_compare_prop} \u548C {be_target} \u7684 {be_compare_prop} \u4E0D\u5339\u914D", "001-00005": "{target} \u7684 {prop} \u5FC5\u987B\u5927\u4E8E {field}", "001-00006": "{target} \u7684 {prop} \u5FC5\u987B\u5927\u4E8E\u6216\u7B49\u4E8E {field}", "001-00007": "{target} \u7684 {prop} \u5FC5\u987B\u5C0F\u4E8E {field}", "001-00008": "{target} \u7684 {prop} \u5FC5\u987B\u5C0F\u4E8E\u6216\u7B49\u4E8E {field}", "001-00009": "{target} \u7684 {prop} \u5FC5\u987B\u7B49\u4E8E {field}", "001-00010": "{to_target} \u7684 {to_compare_prop} \u5FC5\u987B\u662F {be_compare_prop}", "001-00011": "{to_target} \u7684 {to_compare_prop} \u4E0D\u80FD\u662F {be_compare_prop}", "001-00012": "{target} \u7684 {prop} \u4E0D\u5B58\u5728", "001-00013": "{target} \u7684 {prop} \u4E0D\u5E94\u8BE5\u5B58\u5728", "001-00014": "\u4E8B\u4EF6\u7684\u624B\u7EED\u8D39\u4E0D\u8DB3\uFF0C\u9519\u8BEF id {errorId}\uFF0C\u6700\u5C0F\u9700\u8981\u7684\u624B\u7EED\u8D39 {minFee}", "001-00015": "{target} \u7684 {prop} \u4E0D\u5728 [{min}, {max}] \u8303\u56F4", "001-00016": "{target} \u7684 {prop} \u8D85\u51FA\u957F\u5EA6\u9650\u5236\uFF0C\u6700\u5927\u957F\u5EA6 {limit}", "001-00017": "{target} \u7684 {prop} \u4E0D\u80FD\u7528 {field} \u5F00\u5934\u6216\u7ED3\u5C3E", "001-00018": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5B57\u7B26\u4E32\uFF0C\u8F93\u5165\u503C {value}", "001-00019": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ip, \u8F93\u5165\u503C {value}", "001-00020": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ipv4, \u8F93\u5165\u503C {value}", "001-00021": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ipv6, \u8F93\u5165\u503C {value}", "001-00022": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7ECF\u7EAC\u5EA6, \u8F93\u5165\u503C {value}", "001-00023": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7ECF\u5EA6, \u8F93\u5165\u503C {value}", "001-00024": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7EAC\u5EA6, \u8F93\u5165\u503C {value}", "001-00025": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u8D26\u6237\u5730\u5740, \u8F93\u5165\u503C {value}", "001-00026": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u4F4D\u540D, \u8F93\u5165\u503C {value}", "001-00027": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 dns, \u8F93\u5165\u503C {value}", "001-00028": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 email, \u8F93\u5165\u503C {value}", "001-00029": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 url, \u8F93\u5165\u503C {value}", "001-00030": "\u6CA1\u6709\u505A {operationName} \u7684\u6743\u9650", "001-00031": "{target} \u7684 {prop} \u4E0D\u80FD\u5305\u542B {value}", "001-00032": "{target} \u7684 {prop} \u5FC5\u987B\u5305\u542B {value}", "001-00033": "{target} \u7684 {prop} \u4E0D\u80FD\u91CD\u590D", "001-00034": "{target} \u7684 {prop} \u5DF2\u7ECF\u5B58\u5728\uFF0C\u9519\u8BEF id {errorId}", "001-00035": "\u521B\u4E16\u53D7\u6258\u4EBA\u4E0D\u8DB3\uFF0C\u6700\u5C11\u9700\u8981 {expected}\uFF0C\u5B9E\u9645\u53EA\u6709 {actual}", "001-00036": "{target} \u7684 {prop} \u5FC5\u987B\u662F\u4E00\u4E2A\u5B57\u7B26\u4E32", "001-00037": "\u533A\u5757\u953B\u9020\u8005\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-00038": "\u4E8B\u4EF6\u7684\u5DE5\u4F5C\u91CF\u9A8C\u8BC1\u5931\u8D25", "001-00039": "{prop} \u672A\u627E\u5230", "001-00040": "{prop} \u592A\u5927\u4E86\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-00041": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5C0F\u4E8E {field}", "001-00042": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5C0F\u4E8E\u6216\u7B49\u4E8E {field}", "001-00043": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5927\u4E8E {field}", "001-00044": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5927\u4E8E\u6216\u7B49\u4E8E {field}", "001-00045": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u7B49\u4E8E {field}", "001-00046": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u4E0D\u80FD\u7B49\u4E8E {field}", "001-00047": "\u4E8B\u4EF6\u7684\u57FA\u7840\u7C7B\u578B\u4E0D\u5408\u6CD5\uFF1A{base_type}", "001-00048": "\u533A\u5757\u7684\u6784\u9020\u51FD\u6570\u4E0D\u5408\u6CD5\uFF1A{name}", "001-00049": "\u533A\u5757\u7684\u7C7B\u578B\u4E0D\u5408\u6CD5\uFF1A{type}", "001-00050": "\u81EA\u5B9A\u4E49\u4E8B\u4EF6\u68C0\u9A8C\u5931\u8D25\uFF1A{message}", "001-00051": "\u7981\u6B62\u521B\u5EFA\u4E8B\u4EF6 {trsName}", "001-00052": "\u7981\u6B62\u63D2\u5165\u4E8B\u4EF6 {trsName}", "001-00053": "\u4E8B\u4EF6\u5904\u4E8E\u4E0D\u53EF\u53D8\u72B6\u6001", "001-00054": "\u8D44\u4EA7\u7EDF\u8BA1\u7D22\u5F15\uFF1A{index} \u5DF2\u7ECF\u88AB\u4F7F\u7528", "001-00055": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} signature", "001-00056": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} signSignature", "001-00057": "\u4E0D\u5408\u6CD5\u7684 base type {base_type}", "001-00058": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 factory {factoryName}", "001-00059": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 base type {trs_base}", "001-00060": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 type {trs_key}", "001-00061": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} fromAuthSignature", "001-00062": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} fromAuthSignSignature", "001-00063": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} toAuthSignature", "001-00064": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} toAuthSignSignature", "001-00065": "\u4E0D\u5408\u6CD5\u7684\u5B8F\u8F93\u5165\u7C7B\u578B: {type}", "001-00066": "{target} \u7684 {prop} \u5DF2\u7ECF\u8FC7\u671F", "001-11001": "{target} \u7684 {prop} \u4E22\u5931", "001-11002": "\u8D26\u6237 {address} \u5DF2\u7ECF\u51BB\u7ED3\uFF0C\u72B6\u6001 {status}\uFF0C\u9519\u8BEF id {errorId}", "001-11003": "\u4E8B\u4EF6\u7684\u5B89\u5168\u7B7E\u540D\u662F\u5FC5\u987B\u7684\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11004": "\u4E8B\u4EF6\u7684\u53D1\u8D77\u8D26\u6237\u5B89\u5168\u5BC6\u94A5\u5DF2\u7ECF\u6539\u53D8\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11005": "\u4E8B\u4EF6\u4E0D\u5E94\u8BE5\u643A\u5E26\u53D1\u8D77\u8D26\u6237\u7684\u5B89\u5168\u516C\u94A5\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11006": "\u4EF6\u4E0D\u5E94\u8BE5\u643A\u5E26\u5B89\u5168\u7B7E\u540D\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11007": "\u4E8B\u4EF6\uFF08{signature}\uFF09\u7684\u53D1\u8D77\u9AD8\u5EA6\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11008": "\u4E8B\u4EF6\uFF08{signature}\uFF09\u7684\u6709\u6548\u9AD8\u5EA6\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11009": "\u4E8B\u4EF6\u7684\u6765\u6E90\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11010": "\u4E8B\u4EF6\u7684\u53BB\u5F80\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11011": "\u4E8B\u4EF6\u7684\u65F6\u95F4\u6233\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11012": "DAppid \u4E0D\u5B58\u5728\uFF0Cdappid {dappid}", "001-11013": "DAppid \u5DF2\u7ECF\u5B58\u5728, dappid {dappid}\uFF0C\u9519\u8BEF id {errorId}", "001-11014": "\u4F4D\u540D\u4E0D\u5B58\u5728, \u4F4D\u540D {locationName}\uFF0C\u9519\u8BEF id {errorId}", "001-11015": "\u4F4D\u540D\u5DF2\u7ECF\u5B58\u5728\uFF0C\u4F4D\u540D {locationName}\uFF0C\u9519\u8BEF id {errorId}", "001-11016": "Entity factory \u4E0D\u5B58\u5728, factoryId {factoryId}", "001-11017": "Entity factory \u5DF2\u7ECF\u5B58\u5728, factoryId {factoryId}\uFF0C\u9519\u8BEF id {errorId}", "001-11018": "Entity \u4E0D\u5B58\u5728, entityId {entityId}", "001-11019": "Entity \u5DF2\u7ECF\u5B58\u5728, entityId {entityId}\uFF0C\u9519\u8BEF id {errorId}", "001-11020": "\u672A\u77E5\u7684 rangeType\uFF0CrangeType {rangeType}", "001-11021": "\u4E8B\u4EF6\u7684\u5B57\u8282\u6570\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11022": "\u5728\u4F7F\u7528 dappid \u4E4B\u524D\u5FC5\u987B\u5148\u8D2D\u4E70\uFF0Cdappid {dappid}", "001-11023": "\u5728\u4F7F\u7528 dappid \u4E4B\u524D\u5FC5\u987B\u5148\u7ED9 dappid \u7684\u62E5\u6709\u8005\u6295\u7968\uFF0Cdappid {dappid}\uFF0C\u9519\u8BEF id {errorId}", "001-11024": "\u4E8B\u4EF6\u7684\u5DE5\u4F5C\u91CF\u9A8C\u8BC1\u9519\u8BEF\uFF0C\u9519\u8BEF id {errorId\uFF0C\u539F\u56E0 {reason}", "001-11025": "\u4E0D\u80FD\u9500\u6BC1\u4F4D\u540D {locationName}\uFF0C\u539F\u56E0 {reason}", "001-11026": "\u8BBE\u7F6E\u4F4D\u540D {locationName} \u7684\u7BA1\u7406\u5458\u5931\u8D25\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11027": "\u8BBE\u7F6E\u4F4D\u540D {locationName} \u7684\u89E3\u6790\u503C\u5931\u8D25\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11028": "\u6743\u76CA\u4E0D\u8DB3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11029": "\u8D26\u6237\u5269\u4F59\u7684\u6295\u7968\u6743\u76CA\u4E0D\u8DB3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11030": "\u51BB\u7ED3\u7684\u6743\u76CA\u5C1A\u672A\u5F00\u59CB\u89E3\u51BB\uFF0CfrozenId {frozenId}", "001-11031": "\u51BB\u7ED3\u7684\u6743\u76CA\u5DF2\u7ECF\u8FC7\u671F\uFF0CfrozenId {frozenId}", "001-11032": "\u8D60\u9001\u6743\u76CA\u7684\u88AB\u89E3\u51BB\u6B21\u6570\u5DF2\u7ECF\u7528\u5B8C\uFF0CfrozenId {frozenId}", "001-11033": "\u7528\u6237\u540D\u5DF2\u7ECF\u5B58\u5728\uFF0C\u9519\u8BEF id {errorId}", "001-11034": "\u8D26\u6237 {address} \u5DF2\u7ECF\u662F\u53D7\u6258\u4EBA\uFF0C\u9519\u8BEF id {errorId}", "001-11035": "\u8D26\u6237 {address} \u4E0D\u662F\u53D7\u6258\u4EBA\uFF0C\u9519\u8BEF id {errorId}", "001-11036": "\u53D7\u6258\u4EBA {address} \u5DF2\u7ECF\u5F00\u542F\u6536\u7968\uFF0C\u9519\u8BEF id {errorId}", "001-11037": "\u53D7\u6258\u4EBA {address} \u5DF2\u7ECF\u5173\u95ED\u6536\u7968\uFF0C\u9519\u8BEF id {errorId}", "001-11038": "{target} \u7684 {prop} \u88AB\u7981\u7528", "001-11039": "\u6743\u76CA\u4E0D\u5B58\u5728\uFF0C\u6240\u5C5E\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26 {magic} \u6743\u76CA\u540D {assetType}", "001-11040": "\u8D26\u6237 {address} \u4E0D\u662F dappid {dappid} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11041": "\u8D26\u6237 {address} \u4E0D\u662F locationName {locationName} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11042": "\u8D26\u6237 {address} \u4E0D\u662F entityId {entityId} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11043": "DAppid \u5C1A\u672A\u51BB\u7ED3\uFF0Cdappid {dappid}", "001-11044": "DAppid \u5DF2\u7ECF\u51BB\u7ED3\uFF0Cdappid {dappid}", "001-11045": "\u4F4D\u540D\u5C1A\u672A\u51BB\u7ED3\uFF0C\u4F4D\u540D {locationName}", "001-11046": "\u4F4D\u540D\u5DF2\u7ECF\u51BB\u7ED3\uFF0C\u4F4D\u540D {locationName}", "001-11047": "Entity \u5C1A\u672A\u51BB\u7ED3\uFF0CEntityId {entityId}", "001-11048": "Entity \u5DF2\u7ECF\u51BB\u7ED3\uFF0CentityId {entityId}", "001-11049": "\u4E0D\u9700\u8981\u8D2D\u4E70\u8D44\u4EA7\uFF0C\u8D44\u4EA7\u7C7B\u578B {type}\uFF0C\u8D44\u4EA7\u540D {asset}", "001-11050": "\u53EA\u6709\u9876\u7EA7\u4F4D\u540D\u53EF\u4EE5\u4EA4\u6362", "001-11051": "\u65E0\u6CD5\u9500\u6BC1 entityId {entityId}\uFF0C\u539F\u56E0 {reason}", "001-11052": "Entity \u5DF2\u7ECF\u9500\u6BC1 entityId {entityId}", "001-11053": "\u6743\u76CA\u5DF2\u7ECF\u8FC1\u79FB\uFF0C\u8FC1\u79FB\u51ED\u8BC1\u7684 id {migrateCertificateId}", "001-11054": "{target} \u7684 {prop} \u4E0D\u5B58\u5728\u6216\u5DF2\u7ECF\u8FC7\u671F", "001-11055": "\u4E8B\u4EF6 {signature} \u4E0D\u662F\u9884\u671F\u7684\u5173\u8054\u4E8B\u4EF6", "001-11056": "\u4E0D\u80FD\u4E8C\u6B21\u4F7F\u7528\u540C\u4E00\u7B14\u4E8B\u4EF6\uFF0C\u539F\u56E0 {reason}", "001-11057": "\u8F6E\u6B21 {round} \u7684\u6CE8\u518C\u53D7\u6258\u4EBA\u540D\u989D\u5DF2\u6EE1", "001-11058": "\u53D7\u6258\u4EBA\u4E0D\u80FD\u8FC1\u79FB\u6743\u76CA", "001-11059": "\u4F60\u53EA\u80FD\u8FC1\u79FB\u4E3B\u6743\u76CA\uFF0C{assetType} \u4E0D\u662F\u4E3B\u6743\u76CA {mainAsset}", "001-11060": "\u4E0D\u80FD\u643A\u5E26\u5B89\u5168\u516C\u94A5", "001-11061": "\u4E0D\u80FD\u643A\u5E26\u5B89\u5168\u7B7E\u540D", "001-11062": "\u8D26\u6237\u8FD1\u671F\u53C2\u4E0E\u4E86\u6295\u7968", "001-11063": "\u8D26\u6237\u62E5\u6709\u51BB\u7ED3\u7684\u6743\u76CA", "001-11064": "\u9700\u8981\u8FC1\u51FA\u5168\u90E8\u6743\u76CA\uFF0C\u5730\u5740 {address}", "001-11065": "\u8D26\u6237\u6301\u6709\u9664\u4E3B\u6743\u76CA\u5916\u7684\u5176\u4ED6\u6743\u76CA", "001-11066": "\u8D26\u6237\u6301\u6709\u9664\u4E3B\u6743\u76CA\u5916\u7684\u5176\u4ED6\u6743\u76CA\u7684\u51BB\u7ED3\u6743\u76CA", "001-11067": "\u8D26\u6237 {address} \u4E0D\u80FD\u88AB\u51BB\u7ED3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11068": "\u4F60\u53EA\u80FD\u89C1\u8BC1\u4E3B\u6743\u76CA\uFF0C{assetType} \u4E0D\u662F\u4E3B\u6743\u76CA {mainAsset}", "001-11069": "\u8D26\u6237\u5DF2\u7ECF\u8BBE\u7F6E\u4E86\u7528\u6237\u540D\uFF0C\u9519\u8BEF id {errorId}", "001-11070": "\u6A21\u677F\u53D1\u884C entity \u7684\u6B21\u6570\u7528\u5B8C\uFF0CentityFactory {entityFactory}", "001-11071": "\u6743\u76CA\u5DF2\u7ECF\u5B58\u5728\uFF0C\u6240\u5C5E\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26 {magic} \u6743\u76CA\u540D {assetType}", "001-11072": "\u94FE\u4E0A\u7684\u51BB\u7ED3\u8D44\u4EA7 frozenAddress {frozenAddress} signature {signature} assetType {assetType} \u4E0D\u5B58\u5728\u6216\u8005\u5DF2\u7ECF\u8FC7\u671F", "001-11073": "\u6A21\u677F\u6CA1\u6709\u8DB3\u591F\u7684\u53D1\u884C entity \u6B21\u6570\uFF0CentityFactory {entityFactory}", "001-11074": "\u627F\u8BFA\u5C1A\u672A\u5F00\u59CB\u5151\u73B0\uFF0CpromiseId {promiseId}", "001-11075": "\u51ED\u8BC1\u4E0D\u5B58\u5728\uFF0C certificateId {certificateId}", "001-11076": "\u51ED\u8BC1\u5DF2\u7ECF\u5B58\u5728\uFF0CcertificateId {certificateId}\uFF0C\u9519\u8BEF id {errorId}", "001-11077": "\u65E0\u6CD5\u9500\u6BC1\u51ED\u8BC1\uFF0CcertificateId {certificateId}\uFF0Creason {reason}", "001-11078": "\u8D26\u6237 address {address} \u4E0D\u662F\u51ED\u8BC1 {certificateId} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11079": "\u51ED\u8BC1\u5C1A\u672A\u88AB\u51BB\u7ED3\uFF0CcertificateId {certificateId}", "001-11080": "\u51ED\u8BC1\u5DF2\u7ECF\u88AB\u51BB\u7ED3\uFF0CcertificateId {certificateId}", "001-11081": "\u51ED\u8BC1\u5DF2\u7ECF\u88AB\u9500\u6BC1\uFF0CcertificateId {certificateId}", "001-12001": "\u533A\u5757\u7684\u5B89\u5168\u7B7E\u540D\u662F\u5FC5\u987B\u7684\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12002": "\u533A\u5757\u953B\u9020\u8005\u7684\u5B89\u5168\u7B7E\u540D\u5DF2\u7ECF\u6539\u53D8\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12003": "\u533A\u5757\u4E0D\u5E94\u8BE5\u643A\u5E26\u953B\u9020\u8005\u7684\u5B89\u5168\u516C\u94A5\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12004": "\u533A\u5757\u4E0D\u5E94\u8BE5\u643A\u5E26\u5B89\u5168\u7B7E\u540D\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12005": "{variable} \u8D85\u51FA\u8303\u56F4", "001-12006": "\u83B7\u53D6\u6700\u63A5\u8FD1\u7684\u76F8\u540C\u533A\u5757\u5931\u8D25\uFF0C\u4E0D\u5E94\u8BE5\u53D1\u751F", "001-12007": "\u521B\u4E16\u5757\u4E0D\u5339\u914D, \u521B\u4E16\u5757\u7684 signature \u548C\u88AB\u540C\u6B65\u8282\u70B9\u7684\u521B\u4E16\u5757\u7684 signature \u4E0D\u76F8\u7B49", "000-12008": "\u6839\u636E\u8303\u56F4\u83B7\u53D6\u533A\u5757\u5931\u8D25\uFF08{minHeigh\uFF08t}~{maxHeight}\uFF09", "001-22001": "\u53C2\u6570\u4E0D\u5408\u6CD5\uFF1A{params}", "001-22002": "\u53C2\u6570\u5B57\u6BB5\u4E0D\u5408\u6CD5\uFF1A{field}", "001-22003": "\u521B\u4E16\u5757\u6216\u8BB8\u4E0D\u76F8\u7B49", "001-22004": "\u4E0D\u5408\u6CD5\u7684 QueryBlockArg \u67E5\u8BE2\u53C2\u6570\uFF0C\u6CA1\u6709\u67E5\u8BE2\u6761\u4EF6", "001-22005": "\u4ECE\u8282\u70B9 \uFF08{peerId}\uFF09 \u67E5\u8BE2\u533A\u5757 \uFF08{query}\uFF09 \u8D85\u65F6", "001-22006": "ReqId \u91CD\u590D\u4F7F\u7528", "001-22007": "ChainChannel \u5DF2\u7ECF\u5173\u95ED", "001-22008": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u4E8B\u4EF6", "001-22009": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u4E8B\u4EF6\u7D22\u5F15", "001-22010": "\u62D2\u7EDD\u54CD\u5E94\u4E0B\u8F7D\u4E8B\u4EF6", "001-22011": "\u62D2\u7EDD\u54CD\u5E94\u5E7F\u64AD\u4E8B\u4EF6", "001-22012": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u533A\u5757", "001-22013": "\u62D2\u7EDD\u54CD\u5E94\u5E7F\u64AD\u533A\u5757", "001-22014": "Message \u7C7B\u578B\u9519\u8BEF", "001-22015": "OnMessage \u83B7\u53D6\u5230\u4E0D\u5408\u6CD5\u7684 req_id\uFF1A{req_id}", "001-22016": "\u8BF7\u6C42\u9650\u5236", "001-22017": "\u4E0D\u5408\u6CD5\u7684 message cmd", "001-22018": "ChainChannel \u8D85\u65F6\uFF0Ccmd {cmd}", "001-22019": "Task {task_id} \u4E2D\u65AD\uFF0C\u56E0\u4E3A\u7A7A\u95F2 chainChannel \u6570\u4E3A 0", "001-22020": "\u62D2\u7EDD\u54CD\u5E94\u5F00\u542F blob", "001-22021": "\u62D2\u7EDD\u54CD\u5E94\u8BFB\u53D6 blob", "001-22022": "\u62D2\u7EDD\u54CD\u5E94\u5173\u95ED blob", "001-23001": "blob({hash}) \u7684 algorithm({algorithm}) \u4E0D\u5408\u6CD5", "001-23002": "\u4E0B\u8F7D blob({hash}) size({size}) \u5931\u8D25" };
-    const ey = /* @__PURE__ */ new Map();
+    var yI = { "001-00001": "params {param} lost", "001-00002": "{prop} in {target} is required", "001-00003": "{prop} in {target} is invalid", "001-00004": "{to_compare_prop} in {to_target} and {be_compare_prop} in {be_target} not match", "001-00005": "{prop} in {target} should greater than {field}", "001-00006": "{prop} in {target} should greater than or equals to {field}", "001-00007": "{prop} in {target} should less than {field}", "001-00008": "{prop} in {target} should less than or equals to {field}", "001-00009": "{prop} in {target} should equals to {field}", "001-00010": "{to_compare_prop} in {to_target} should be {be_compare_prop}", "001-00011": "{to_compare_prop} in {to_target} should not be {be_compare_prop}", "001-00012": "{prop} in {target} not exist", "001-00013": "{prop} in {target} should not exist", "001-00014": "Transaction fee is not enough, errorId {errorId}, minFee {minFee}", "001-00015": "{prop} in {target} not in [{min}, {max}]", "001-00016": "{prop} in {target} is over length {limit}", "001-00017": "{prop} in {target} should not start with or end with {field}", "001-00018": "{prop} in {target} not a string, value {value}", "001-00019": "{prop} in {target} not a ip, value {value}", "001-00020": "{prop} in {target} not a ipv4, value {value}", "001-00021": "{prop} in {target} not a ipv6, value {value}", "001-00022": "{prop} in {target} not a longitude-latitude, value {value}", "001-00023": "{prop} in {target} not a longitude, value {value}", "001-00024": "{prop} in {target} not a latitude, value {value}", "001-00025": "{prop} in {target} not a address, value {value}", "001-00026": "{prop} in {target} not a locationName, value {value}", "001-00027": "{prop} in {target} not a dns, value {value}", "001-00028": "{prop} in {target} not a email, value {value}", "001-00029": "{prop} in {target} not a url, value {value}", "001-00030": "Permission denied at operation {operationName}", "001-00031": "{prop} in {target} should not inclue {value}", "001-00032": "{prop} in {target} should inclue {value}", "001-00033": "{prop} in {target} should not duplicate", "001-00034": "{prop} in {target} already exist, errorId {errorId}", "001-00035": "Genesis generator not enough, at least {expected}, actual {actual}", "001-00036": "{prop} in {target} should be an array", "001-00037": "Invalid block generator, reason {reason}", "001-00038": "transaction's porf of work verify fail", "001-00039": "{prop} not found", "001-00040": "{prop} is too large, reason {reason}, errorId {errorId}", "001-00041": "{prop} length in {target} should less than {field}", "001-00042": "{prop} length in {target} should less than or equals to {field}", "001-00043": "{prop} length in {target} should greater than {field}", "001-00044": "{prop} length in {target} should greater than or equals to {field}", "001-00045": "{prop} length in {target} should equals to {field}", "001-00046": "{prop} length in {target} should not equals to {field}", "001-00047": "Invalid transaction base type: {base_type}", "001-00048": "Invalid block constructor: {name}", "001-00049": "Invalid block type: {type}", "001-00050": "Custom transaction verify fail: {message}", "001-00051": "Disabled create {trsName} Transaction", "001-00052": "Disabled insert {trsName} Transaction", "001-00053": "Transaction is in unchangable state", "001-00054": "AssetStatistic index: {index} already in use", "001-00055": "Invalid {taskLabel} signature", "001-00056": "Invalid {taskLabel} signSignature", "001-00057": "Invalid base type {base_type}", "001-00058": "Unregistered TransactionFactory {factoryName}", "001-00059": "Unregistered Transaction base type {trs_base}", "001-00060": "Unregistered Transaction type {trs_key}", "001-00061": "Invalid {taskLabel} fromAuthSignature", "001-00062": "Invalid {taskLabel} fromAuthSignSignature", "001-00063": "Invalid {taskLabel} toAuthSignature", "001-00064": "Invalid {taskLabel} toAuthSignSignature", "001-00065": "Invalid macro input type: {type}", "001-00066": "{prop} in {target} already expired", "001-11001": "{prop} in {target} lose", "001-11002": "Account with address {address} was frozen, status {status}, errorId {errorId}", "001-11003": "Transaction signSignature is required, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11004": "Transaction sender second secret have already change, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11005": "Transaction should not have senderSecondPublicKey, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11006": "Transaction should not have signSignature, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11007": "Invalid transaction({signature}) apply block height, reason {reason}", "001-11008": "Invalid transaction({signature}) effective block height, reason {reason}", "001-11009": "Invalid transaction from magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11010": "Invalid transaction to magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11011": "Invalid transaction timestamp, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}", "001-11012": "DAppid is not exist, dappid {dappid}", "001-11013": "DAppid is already exist, dappid {dappid}, errorId {errorId}", "001-11014": "LocationName is not exist, locationName {locationName}, errorId {errorId}", "001-11015": "LocationName is already exist, locationName {locationName}, errorId {errorId}", "001-11016": "Entity factory is not exist, factoryId {factoryId}", "001-11017": "Entity factory is already exist, factoryId {factoryId}, errorId {errorId}", "001-11018": "Entity is not exist, entityId {entityId}", "001-11019": "Entity is already exist, entityId {entityId}, errorId {errorId}", "001-11020": "Unknow rangeType, rangeType {rangeType}", "001-11021": "Invalid transaction byte length, reason {reason}", "001-11022": "Need purchase dappid before use, dappid {dappid}", "001-11025": "Can not delete locationName {locationName}, reason {reason}", "001-11026": "Set locationName {locationName} manager field, reason {reason}, errorId {errorId}", "001-11027": "Set locationName {locationName} recordValue field, reason {reason}, errorId {errorId}", "001-11028": "Asset not enough, reason {reason}, errorId {errorId}", "001-11029": "Account remain equity not enough, reason {reason}, errorId {errorId}", "001-11030": "Frozen asset is not begin to unfrozen yet, frozenId {frozenId}", "001-11031": "Frozen asset is already expiration, frozenId {frozenId}", "001-11032": "Gift asset unfrozen time use up, frozenId {frozenId}", "001-11034": "Account with address {address} is already an generator, errorId {errorId}", "001-11035": "Account with address {address} is not an generator, errorId {errorId}", "001-11038": "{prop} in {target} is forbidden", "001-11039": "Asset not exist, magic {magic} assetType {assetType}", "001-11040": "Account with address {address} not dappid {dappid} possessor, errorId {errorId}", "001-11041": "Account with address {address} not locationName {locationName} possessor, errorId {errorId}", "001-11042": "Account with address {address} not entityId {entityId} possessor, errorId {errorId}", "001-11043": "DAppid not frozen, dappid {dappid}", "001-11044": "DAppid already frozen, dappid {dappid}", "001-11045": "LocationName not frozen, locationName {locationName}", "001-11046": "LocationName already frozen, locationName {locationName}", "001-11047": "Entity not frozen, entityId {entityId}", "001-11048": "Entity already frozen, entityId {entityId}", "001-11049": "No need to purchase asset, type {type} asset {asset}", "001-11050": "Only top level location name can exchange", "001-11051": "Can not destroy entityId {entityId}, reason {reason}", "001-11052": "Entity already destroy, entityId {entityId}", "001-11053": "Asset is already migration, migrateCertificateId {migrateCertificateId}", "001-11054": "{prop} in {target} not exist or expired", "001-11055": "Transaction with signature {signature} is not an expected related transaction", "001-11056": "Can not secondary transaction, reason {reason}", "001-11057": "The register generator quota is full in round {round}", "001-11058": "Generator can not migrate asset", "001-11059": "You can only migrate main asset, {assetType} is not main asset {mainAsset}", "001-11060": "Can not carry second publicKey", "001-11061": "Can not carry second signature", "001-11063": "Account possess frozen asset", "001-11064": "Need emigrate total asset, address {address}", "001-11065": "Account possess asset expect chain asset", "001-11066": "Account possess frozen asset expect chain asset", "001-11067": "Account with address {address} can not be frozen, reason {reason}, errorId {errorId}", "001-11068": "You can only trust main asset, {assetType} is not main asset {mainAsset}", "001-11070": "Issue entity times use up, entityFactory {entityFactory}", "001-11071": "Asset already exist, magic {magic} assetType {assetType}", "001-11072": "Frozen asset with frozenAddress {frozenAddress} signature {signature} assetType {assetType} in blockChain not exist or expired", "001-11073": "Not enough issue entity times, entityFactory {entityFactory}", "001-11074": "Promise is not begin to resolve yet, promiseId {promiseId}", "001-11075": "Certificate is not exist, certificateId {certificateId}", "001-11076": "Certificate is already exist, certificateId {certificateId}, errorId {errorId}", "001-11077": "Can not destroy certificate, certificateId {certificateId}, reason {reason}", "001-11078": "Account with address {address} not certificate {certificateId} possessor, errorId {errorId}", "001-11079": "Certificate not frozen, certificateId {certificateId}", "001-11080": "Certificate already frozen, certificateId {certificateId}", "001-11081": "Certificate already destroy, certificateId {certificateId}", "001-12001": "Block signSignature is required, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12002": "Block generator second secret have already change, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12003": "Block should not have generatorSecondPublicKey, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12004": "Block should not have signSignature, signature {signature} generatorAddress {generatorAddress} height {height}", "001-12005": "{variable} out of range", "001-12006": "Failed to find nearest same block in one round, should not happen", "001-12007": "GenesisBlock not match, the signature of genesisBlock and synchronized peer's genesisBlock's signature not equal", "000-12008": "Falied to get blocks by range({minHeight}~{maxHeight})", "001-22001": "Invalid params: {params}", "001-22002": "Invalid params field: {field}", "001-22003": "GenesisBlock maybe no equal", "001-22004": "Invalid QueryBlockArg query params, no query conditions", "001-22005": "QueryBlock ({query}) from peer({peerId}) timeout", "001-22006": "ReqId reuse", "001-22007": "ChainChannel closed", "001-22008": "Refuse response query transaction", "001-22009": "Refuse response index transaction", "001-22010": "Refuse response download transaction", "001-22011": "Refuse response broadcast transaction", "001-22012": "Refuse response query block", "001-22013": "Refuse response broadcast block", "001-22014": "Message type error", "001-22015": "OnMessage get invalid req_id: {req_id}", "001-22016": "Request limit", "001-22017": "Invalid message cmd", "001-22018": "ChainChannel Timeout, cmd {cmd}", "001-22019": "Task {task_id} abort because the free chainChannel size is zero", "001-22020": "Refuse response open blob", "001-22021": "Refuse response read blob", "001-22022": "Refuse response close blob", "001-23001": "blob({hash}) algorithm({algorithm}) is invalid", "001-23002": "Fail to download blob({hash}) size({size})" };
+    var mI = { "001-00001": "\u53C2\u6570 {param} \u4E22\u5931", "001-00002": "{target} \u7684 {prop} \u662F\u5FC5\u987B\u7684", "001-00003": "{target} \u7684 {prop} \u4E0D\u5408\u6CD5", "001-00004": "{to_target} \u7684 {to_compare_prop} \u548C {be_target} \u7684 {be_compare_prop} \u4E0D\u5339\u914D", "001-00005": "{target} \u7684 {prop} \u5FC5\u987B\u5927\u4E8E {field}", "001-00006": "{target} \u7684 {prop} \u5FC5\u987B\u5927\u4E8E\u6216\u7B49\u4E8E {field}", "001-00007": "{target} \u7684 {prop} \u5FC5\u987B\u5C0F\u4E8E {field}", "001-00008": "{target} \u7684 {prop} \u5FC5\u987B\u5C0F\u4E8E\u6216\u7B49\u4E8E {field}", "001-00009": "{target} \u7684 {prop} \u5FC5\u987B\u7B49\u4E8E {field}", "001-00010": "{to_target} \u7684 {to_compare_prop} \u5FC5\u987B\u662F {be_compare_prop}", "001-00011": "{to_target} \u7684 {to_compare_prop} \u4E0D\u80FD\u662F {be_compare_prop}", "001-00012": "{target} \u7684 {prop} \u4E0D\u5B58\u5728", "001-00013": "{target} \u7684 {prop} \u4E0D\u5E94\u8BE5\u5B58\u5728", "001-00014": "\u4E8B\u4EF6\u7684\u624B\u7EED\u8D39\u4E0D\u8DB3\uFF0C\u9519\u8BEF id {errorId}\uFF0C\u6700\u5C0F\u9700\u8981\u7684\u624B\u7EED\u8D39 {minFee}", "001-00015": "{target} \u7684 {prop} \u4E0D\u5728 [{min}, {max}] \u8303\u56F4", "001-00016": "{target} \u7684 {prop} \u8D85\u51FA\u957F\u5EA6\u9650\u5236\uFF0C\u6700\u5927\u957F\u5EA6 {limit}", "001-00017": "{target} \u7684 {prop} \u4E0D\u80FD\u7528 {field} \u5F00\u5934\u6216\u7ED3\u5C3E", "001-00018": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5B57\u7B26\u4E32\uFF0C\u8F93\u5165\u503C {value}", "001-00019": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ip, \u8F93\u5165\u503C {value}", "001-00020": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ipv4, \u8F93\u5165\u503C {value}", "001-00021": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 ipv6, \u8F93\u5165\u503C {value}", "001-00022": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7ECF\u7EAC\u5EA6, \u8F93\u5165\u503C {value}", "001-00023": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7ECF\u5EA6, \u8F93\u5165\u503C {value}", "001-00024": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u7EAC\u5EA6, \u8F93\u5165\u503C {value}", "001-00025": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u8D26\u6237\u5730\u5740, \u8F93\u5165\u503C {value}", "001-00026": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684\u4F4D\u540D, \u8F93\u5165\u503C {value}", "001-00027": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 dns, \u8F93\u5165\u503C {value}", "001-00028": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 email, \u8F93\u5165\u503C {value}", "001-00029": "{target} \u7684 {prop} \u4E0D\u662F\u4E00\u4E2A\u5408\u6CD5\u7684 url, \u8F93\u5165\u503C {value}", "001-00030": "\u6CA1\u6709\u505A {operationName} \u7684\u6743\u9650", "001-00031": "{target} \u7684 {prop} \u4E0D\u80FD\u5305\u542B {value}", "001-00032": "{target} \u7684 {prop} \u5FC5\u987B\u5305\u542B {value}", "001-00033": "{target} \u7684 {prop} \u4E0D\u80FD\u91CD\u590D", "001-00034": "{target} \u7684 {prop} \u5DF2\u7ECF\u5B58\u5728\uFF0C\u9519\u8BEF id {errorId}", "001-00035": "\u521B\u4E16\u53D7\u6258\u4EBA\u4E0D\u8DB3\uFF0C\u6700\u5C11\u9700\u8981 {expected}\uFF0C\u5B9E\u9645\u53EA\u6709 {actual}", "001-00036": "{target} \u7684 {prop} \u5FC5\u987B\u662F\u4E00\u4E2A\u5B57\u7B26\u4E32", "001-00037": "\u533A\u5757\u953B\u9020\u8005\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-00038": "\u4E8B\u4EF6\u7684\u5DE5\u4F5C\u91CF\u9A8C\u8BC1\u5931\u8D25", "001-00039": "{prop} \u672A\u627E\u5230", "001-00040": "{prop} \u592A\u5927\u4E86\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-00041": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5C0F\u4E8E {field}", "001-00042": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5C0F\u4E8E\u6216\u7B49\u4E8E {field}", "001-00043": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5927\u4E8E {field}", "001-00044": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u5927\u4E8E\u6216\u7B49\u4E8E {field}", "001-00045": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u5FC5\u987B\u7B49\u4E8E {field}", "001-00046": "{target} \u7684 {prop} \u7684\u957F\u5EA6\u4E0D\u80FD\u7B49\u4E8E {field}", "001-00047": "\u4E8B\u4EF6\u7684\u57FA\u7840\u7C7B\u578B\u4E0D\u5408\u6CD5\uFF1A{base_type}", "001-00048": "\u533A\u5757\u7684\u6784\u9020\u51FD\u6570\u4E0D\u5408\u6CD5\uFF1A{name}", "001-00049": "\u533A\u5757\u7684\u7C7B\u578B\u4E0D\u5408\u6CD5\uFF1A{type}", "001-00050": "\u81EA\u5B9A\u4E49\u4E8B\u4EF6\u68C0\u9A8C\u5931\u8D25\uFF1A{message}", "001-00051": "\u7981\u6B62\u521B\u5EFA\u4E8B\u4EF6 {trsName}", "001-00052": "\u7981\u6B62\u63D2\u5165\u4E8B\u4EF6 {trsName}", "001-00053": "\u4E8B\u4EF6\u5904\u4E8E\u4E0D\u53EF\u53D8\u72B6\u6001", "001-00054": "\u8D44\u4EA7\u7EDF\u8BA1\u7D22\u5F15\uFF1A{index} \u5DF2\u7ECF\u88AB\u4F7F\u7528", "001-00055": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} signature", "001-00056": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} signSignature", "001-00057": "\u4E0D\u5408\u6CD5\u7684 base type {base_type}", "001-00058": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 factory {factoryName}", "001-00059": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 base type {trs_base}", "001-00060": "\u672A\u6CE8\u518C\u7684\u4E8B\u4EF6 type {trs_key}", "001-00061": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} fromAuthSignature", "001-00062": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} fromAuthSignSignature", "001-00063": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} toAuthSignature", "001-00064": "\u4E0D\u5408\u6CD5\u7684 {taskLabel} toAuthSignSignature", "001-00065": "\u4E0D\u5408\u6CD5\u7684\u5B8F\u8F93\u5165\u7C7B\u578B: {type}", "001-00066": "{target} \u7684 {prop} \u5DF2\u7ECF\u8FC7\u671F", "001-11001": "{target} \u7684 {prop} \u4E22\u5931", "001-11002": "\u8D26\u6237 {address} \u5DF2\u7ECF\u51BB\u7ED3\uFF0C\u72B6\u6001 {status}\uFF0C\u9519\u8BEF id {errorId}", "001-11003": "\u4E8B\u4EF6\u7684\u5B89\u5168\u7B7E\u540D\u662F\u5FC5\u987B\u7684\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11004": "\u4E8B\u4EF6\u7684\u53D1\u8D77\u8D26\u6237\u5B89\u5168\u5BC6\u94A5\u5DF2\u7ECF\u6539\u53D8\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11005": "\u4E8B\u4EF6\u4E0D\u5E94\u8BE5\u643A\u5E26\u53D1\u8D77\u8D26\u6237\u7684\u5B89\u5168\u516C\u94A5\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11006": "\u4EF6\u4E0D\u5E94\u8BE5\u643A\u5E26\u5B89\u5168\u7B7E\u540D\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11007": "\u4E8B\u4EF6\uFF08{signature}\uFF09\u7684\u53D1\u8D77\u9AD8\u5EA6\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11008": "\u4E8B\u4EF6\uFF08{signature}\uFF09\u7684\u6709\u6548\u9AD8\u5EA6\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11009": "\u4E8B\u4EF6\u7684\u6765\u6E90\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11010": "\u4E8B\u4EF6\u7684\u53BB\u5F80\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11011": "\u4E8B\u4EF6\u7684\u65F6\u95F4\u6233\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}\uFF0C\u4E8B\u4EF6\u7B7E\u540D {signature} \u4E8B\u4EF6\u53D1\u8D77\u8D26\u6237\u5730\u5740 {senderId} \u4E8B\u4EF6\u53D1\u8D77\u9AD8\u5EA6 {applyBlockHeight} \u4E8B\u4EF6\u7C7B\u578B {type}", "001-11012": "DAppid \u4E0D\u5B58\u5728\uFF0Cdappid {dappid}", "001-11013": "DAppid \u5DF2\u7ECF\u5B58\u5728, dappid {dappid}\uFF0C\u9519\u8BEF id {errorId}", "001-11014": "\u4F4D\u540D\u4E0D\u5B58\u5728, \u4F4D\u540D {locationName}\uFF0C\u9519\u8BEF id {errorId}", "001-11015": "\u4F4D\u540D\u5DF2\u7ECF\u5B58\u5728\uFF0C\u4F4D\u540D {locationName}\uFF0C\u9519\u8BEF id {errorId}", "001-11016": "Entity factory \u4E0D\u5B58\u5728, factoryId {factoryId}", "001-11017": "Entity factory \u5DF2\u7ECF\u5B58\u5728, factoryId {factoryId}\uFF0C\u9519\u8BEF id {errorId}", "001-11018": "Entity \u4E0D\u5B58\u5728, entityId {entityId}", "001-11019": "Entity \u5DF2\u7ECF\u5B58\u5728, entityId {entityId}\uFF0C\u9519\u8BEF id {errorId}", "001-11020": "\u672A\u77E5\u7684 rangeType\uFF0CrangeType {rangeType}", "001-11021": "\u4E8B\u4EF6\u7684\u5B57\u8282\u6570\u4E0D\u5408\u6CD5\uFF0C\u539F\u56E0 {reason}", "001-11022": "\u5728\u4F7F\u7528 dappid \u4E4B\u524D\u5FC5\u987B\u5148\u8D2D\u4E70\uFF0Cdappid {dappid}", "001-11023": "\u5728\u4F7F\u7528 dappid \u4E4B\u524D\u5FC5\u987B\u5148\u7ED9 dappid \u7684\u62E5\u6709\u8005\u6295\u7968\uFF0Cdappid {dappid}\uFF0C\u9519\u8BEF id {errorId}", "001-11024": "\u4E8B\u4EF6\u7684\u5DE5\u4F5C\u91CF\u9A8C\u8BC1\u9519\u8BEF\uFF0C\u9519\u8BEF id {errorId\uFF0C\u539F\u56E0 {reason}", "001-11025": "\u4E0D\u80FD\u9500\u6BC1\u4F4D\u540D {locationName}\uFF0C\u539F\u56E0 {reason}", "001-11026": "\u8BBE\u7F6E\u4F4D\u540D {locationName} \u7684\u7BA1\u7406\u5458\u5931\u8D25\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11027": "\u8BBE\u7F6E\u4F4D\u540D {locationName} \u7684\u89E3\u6790\u503C\u5931\u8D25\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11028": "\u6743\u76CA\u4E0D\u8DB3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11029": "\u8D26\u6237\u5269\u4F59\u7684\u6295\u7968\u6743\u76CA\u4E0D\u8DB3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11030": "\u51BB\u7ED3\u7684\u6743\u76CA\u5C1A\u672A\u5F00\u59CB\u89E3\u51BB\uFF0CfrozenId {frozenId}", "001-11031": "\u51BB\u7ED3\u7684\u6743\u76CA\u5DF2\u7ECF\u8FC7\u671F\uFF0CfrozenId {frozenId}", "001-11032": "\u8D60\u9001\u6743\u76CA\u7684\u88AB\u89E3\u51BB\u6B21\u6570\u5DF2\u7ECF\u7528\u5B8C\uFF0CfrozenId {frozenId}", "001-11033": "\u7528\u6237\u540D\u5DF2\u7ECF\u5B58\u5728\uFF0C\u9519\u8BEF id {errorId}", "001-11034": "\u8D26\u6237 {address} \u5DF2\u7ECF\u662F\u53D7\u6258\u4EBA\uFF0C\u9519\u8BEF id {errorId}", "001-11035": "\u8D26\u6237 {address} \u4E0D\u662F\u53D7\u6258\u4EBA\uFF0C\u9519\u8BEF id {errorId}", "001-11036": "\u53D7\u6258\u4EBA {address} \u5DF2\u7ECF\u5F00\u542F\u6536\u7968\uFF0C\u9519\u8BEF id {errorId}", "001-11037": "\u53D7\u6258\u4EBA {address} \u5DF2\u7ECF\u5173\u95ED\u6536\u7968\uFF0C\u9519\u8BEF id {errorId}", "001-11038": "{target} \u7684 {prop} \u88AB\u7981\u7528", "001-11039": "\u6743\u76CA\u4E0D\u5B58\u5728\uFF0C\u6240\u5C5E\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26 {magic} \u6743\u76CA\u540D {assetType}", "001-11040": "\u8D26\u6237 {address} \u4E0D\u662F dappid {dappid} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11041": "\u8D26\u6237 {address} \u4E0D\u662F locationName {locationName} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11042": "\u8D26\u6237 {address} \u4E0D\u662F entityId {entityId} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11043": "DAppid \u5C1A\u672A\u51BB\u7ED3\uFF0Cdappid {dappid}", "001-11044": "DAppid \u5DF2\u7ECF\u51BB\u7ED3\uFF0Cdappid {dappid}", "001-11045": "\u4F4D\u540D\u5C1A\u672A\u51BB\u7ED3\uFF0C\u4F4D\u540D {locationName}", "001-11046": "\u4F4D\u540D\u5DF2\u7ECF\u51BB\u7ED3\uFF0C\u4F4D\u540D {locationName}", "001-11047": "Entity \u5C1A\u672A\u51BB\u7ED3\uFF0CEntityId {entityId}", "001-11048": "Entity \u5DF2\u7ECF\u51BB\u7ED3\uFF0CentityId {entityId}", "001-11049": "\u4E0D\u9700\u8981\u8D2D\u4E70\u8D44\u4EA7\uFF0C\u8D44\u4EA7\u7C7B\u578B {type}\uFF0C\u8D44\u4EA7\u540D {asset}", "001-11050": "\u53EA\u6709\u9876\u7EA7\u4F4D\u540D\u53EF\u4EE5\u4EA4\u6362", "001-11051": "\u65E0\u6CD5\u9500\u6BC1 entityId {entityId}\uFF0C\u539F\u56E0 {reason}", "001-11052": "Entity \u5DF2\u7ECF\u9500\u6BC1 entityId {entityId}", "001-11053": "\u6743\u76CA\u5DF2\u7ECF\u8FC1\u79FB\uFF0C\u8FC1\u79FB\u51ED\u8BC1\u7684 id {migrateCertificateId}", "001-11054": "{target} \u7684 {prop} \u4E0D\u5B58\u5728\u6216\u5DF2\u7ECF\u8FC7\u671F", "001-11055": "\u4E8B\u4EF6 {signature} \u4E0D\u662F\u9884\u671F\u7684\u5173\u8054\u4E8B\u4EF6", "001-11056": "\u4E0D\u80FD\u4E8C\u6B21\u4F7F\u7528\u540C\u4E00\u7B14\u4E8B\u4EF6\uFF0C\u539F\u56E0 {reason}", "001-11057": "\u8F6E\u6B21 {round} \u7684\u6CE8\u518C\u53D7\u6258\u4EBA\u540D\u989D\u5DF2\u6EE1", "001-11058": "\u53D7\u6258\u4EBA\u4E0D\u80FD\u8FC1\u79FB\u6743\u76CA", "001-11059": "\u4F60\u53EA\u80FD\u8FC1\u79FB\u4E3B\u6743\u76CA\uFF0C{assetType} \u4E0D\u662F\u4E3B\u6743\u76CA {mainAsset}", "001-11060": "\u4E0D\u80FD\u643A\u5E26\u5B89\u5168\u516C\u94A5", "001-11061": "\u4E0D\u80FD\u643A\u5E26\u5B89\u5168\u7B7E\u540D", "001-11062": "\u8D26\u6237\u8FD1\u671F\u53C2\u4E0E\u4E86\u6295\u7968", "001-11063": "\u8D26\u6237\u62E5\u6709\u51BB\u7ED3\u7684\u6743\u76CA", "001-11064": "\u9700\u8981\u8FC1\u51FA\u5168\u90E8\u6743\u76CA\uFF0C\u5730\u5740 {address}", "001-11065": "\u8D26\u6237\u6301\u6709\u9664\u4E3B\u6743\u76CA\u5916\u7684\u5176\u4ED6\u6743\u76CA", "001-11066": "\u8D26\u6237\u6301\u6709\u9664\u4E3B\u6743\u76CA\u5916\u7684\u5176\u4ED6\u6743\u76CA\u7684\u51BB\u7ED3\u6743\u76CA", "001-11067": "\u8D26\u6237 {address} \u4E0D\u80FD\u88AB\u51BB\u7ED3\uFF0C\u539F\u56E0 {reason}\uFF0C\u9519\u8BEF id {errorId}", "001-11068": "\u4F60\u53EA\u80FD\u89C1\u8BC1\u4E3B\u6743\u76CA\uFF0C{assetType} \u4E0D\u662F\u4E3B\u6743\u76CA {mainAsset}", "001-11069": "\u8D26\u6237\u5DF2\u7ECF\u8BBE\u7F6E\u4E86\u7528\u6237\u540D\uFF0C\u9519\u8BEF id {errorId}", "001-11070": "\u6A21\u677F\u53D1\u884C entity \u7684\u6B21\u6570\u7528\u5B8C\uFF0CentityFactory {entityFactory}", "001-11071": "\u6743\u76CA\u5DF2\u7ECF\u5B58\u5728\uFF0C\u6240\u5C5E\u94FE\u7684\u7F51\u7EDC\u6807\u8BC6\u7B26 {magic} \u6743\u76CA\u540D {assetType}", "001-11072": "\u94FE\u4E0A\u7684\u51BB\u7ED3\u8D44\u4EA7 frozenAddress {frozenAddress} signature {signature} assetType {assetType} \u4E0D\u5B58\u5728\u6216\u8005\u5DF2\u7ECF\u8FC7\u671F", "001-11073": "\u6A21\u677F\u6CA1\u6709\u8DB3\u591F\u7684\u53D1\u884C entity \u6B21\u6570\uFF0CentityFactory {entityFactory}", "001-11074": "\u627F\u8BFA\u5C1A\u672A\u5F00\u59CB\u5151\u73B0\uFF0CpromiseId {promiseId}", "001-11075": "\u51ED\u8BC1\u4E0D\u5B58\u5728\uFF0C certificateId {certificateId}", "001-11076": "\u51ED\u8BC1\u5DF2\u7ECF\u5B58\u5728\uFF0CcertificateId {certificateId}\uFF0C\u9519\u8BEF id {errorId}", "001-11077": "\u65E0\u6CD5\u9500\u6BC1\u51ED\u8BC1\uFF0CcertificateId {certificateId}\uFF0Creason {reason}", "001-11078": "\u8D26\u6237 address {address} \u4E0D\u662F\u51ED\u8BC1 {certificateId} \u7684\u62E5\u6709\u8005\uFF0C\u9519\u8BEF id {errorId}", "001-11079": "\u51ED\u8BC1\u5C1A\u672A\u88AB\u51BB\u7ED3\uFF0CcertificateId {certificateId}", "001-11080": "\u51ED\u8BC1\u5DF2\u7ECF\u88AB\u51BB\u7ED3\uFF0CcertificateId {certificateId}", "001-11081": "\u51ED\u8BC1\u5DF2\u7ECF\u88AB\u9500\u6BC1\uFF0CcertificateId {certificateId}", "001-12001": "\u533A\u5757\u7684\u5B89\u5168\u7B7E\u540D\u662F\u5FC5\u987B\u7684\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12002": "\u533A\u5757\u953B\u9020\u8005\u7684\u5B89\u5168\u7B7E\u540D\u5DF2\u7ECF\u6539\u53D8\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12003": "\u533A\u5757\u4E0D\u5E94\u8BE5\u643A\u5E26\u953B\u9020\u8005\u7684\u5B89\u5168\u516C\u94A5\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12004": "\u533A\u5757\u4E0D\u5E94\u8BE5\u643A\u5E26\u5B89\u5168\u7B7E\u540D\uFF0C\u533A\u5757\u7B7E\u540D {signature} \u953B\u9020\u8005\u7684\u5730\u5740 {generatorAddress} \u533A\u5757\u9AD8\u5EA6 {height}", "001-12005": "{variable} \u8D85\u51FA\u8303\u56F4", "001-12006": "\u83B7\u53D6\u6700\u63A5\u8FD1\u7684\u76F8\u540C\u533A\u5757\u5931\u8D25\uFF0C\u4E0D\u5E94\u8BE5\u53D1\u751F", "001-12007": "\u521B\u4E16\u5757\u4E0D\u5339\u914D, \u521B\u4E16\u5757\u7684 signature \u548C\u88AB\u540C\u6B65\u8282\u70B9\u7684\u521B\u4E16\u5757\u7684 signature \u4E0D\u76F8\u7B49", "000-12008": "\u6839\u636E\u8303\u56F4\u83B7\u53D6\u533A\u5757\u5931\u8D25\uFF08{minHeigh\uFF08t}~{maxHeight}\uFF09", "001-22001": "\u53C2\u6570\u4E0D\u5408\u6CD5\uFF1A{params}", "001-22002": "\u53C2\u6570\u5B57\u6BB5\u4E0D\u5408\u6CD5\uFF1A{field}", "001-22003": "\u521B\u4E16\u5757\u6216\u8BB8\u4E0D\u76F8\u7B49", "001-22004": "\u4E0D\u5408\u6CD5\u7684 QueryBlockArg \u67E5\u8BE2\u53C2\u6570\uFF0C\u6CA1\u6709\u67E5\u8BE2\u6761\u4EF6", "001-22005": "\u4ECE\u8282\u70B9 \uFF08{peerId}\uFF09 \u67E5\u8BE2\u533A\u5757 \uFF08{query}\uFF09 \u8D85\u65F6", "001-22006": "ReqId \u91CD\u590D\u4F7F\u7528", "001-22007": "ChainChannel \u5DF2\u7ECF\u5173\u95ED", "001-22008": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u4E8B\u4EF6", "001-22009": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u4E8B\u4EF6\u7D22\u5F15", "001-22010": "\u62D2\u7EDD\u54CD\u5E94\u4E0B\u8F7D\u4E8B\u4EF6", "001-22011": "\u62D2\u7EDD\u54CD\u5E94\u5E7F\u64AD\u4E8B\u4EF6", "001-22012": "\u62D2\u7EDD\u54CD\u5E94\u67E5\u8BE2\u533A\u5757", "001-22013": "\u62D2\u7EDD\u54CD\u5E94\u5E7F\u64AD\u533A\u5757", "001-22014": "Message \u7C7B\u578B\u9519\u8BEF", "001-22015": "OnMessage \u83B7\u53D6\u5230\u4E0D\u5408\u6CD5\u7684 req_id\uFF1A{req_id}", "001-22016": "\u8BF7\u6C42\u9650\u5236", "001-22017": "\u4E0D\u5408\u6CD5\u7684 message cmd", "001-22018": "ChainChannel \u8D85\u65F6\uFF0Ccmd {cmd}", "001-22019": "Task {task_id} \u4E2D\u65AD\uFF0C\u56E0\u4E3A\u7A7A\u95F2 chainChannel \u6570\u4E3A 0", "001-22020": "\u62D2\u7EDD\u54CD\u5E94\u5F00\u542F blob", "001-22021": "\u62D2\u7EDD\u54CD\u5E94\u8BFB\u53D6 blob", "001-22022": "\u62D2\u7EDD\u54CD\u5E94\u5173\u95ED blob", "001-23001": "blob({hash}) \u7684 algorithm({algorithm}) \u4E0D\u5408\u6CD5", "001-23002": "\u4E0B\u8F7D blob({hash}) size({size}) \u5931\u8D25" };
+    var ey = /* @__PURE__ */ new Map();
     ey.set("en_US.UTF-8", yI);
     ey.set("zh_CN.UTF-8", mI);
-    const _I = ey;
-    const c = { PARAM_LOST: new U("001-00001", "params {param} lost"), PROP_IS_REQUIRE: new U("001-00002", "{prop} in {target} is required"), PROP_IS_INVALID: new U("001-00003", "{prop} in {target} is invalid"), NOT_MATCH: new U("001-00004", "{to_compare_prop} in {to_target} and {be_compare_prop} in {be_target} not match"), PROP_SHOULD_GT_FIELD: new U("001-00005", "{prop} in {target} should greater than {field}"), PROP_SHOULD_GTE_FIELD: new U("001-00006", "{prop} in {target} should greater than or equals to {field}"), PROP_SHOULD_LT_FIELD: new U("001-00007", "{prop} in {target} should less than {field}"), PROP_SHOULD_LTE_FIELD: new U("001-00008", "{prop} in {target} should less than or equals to {field}"), PROP_SHOULD_EQ_FIELD: new U("001-00009", "{prop} in {target} should equals to {field}"), SHOULD_BE: new U("001-00010", "{to_compare_prop} in {to_target} should be {be_compare_prop}"), SHOULD_NOT_BE: new U("001-00011", "{to_compare_prop} in {to_target} should not be {be_compare_prop}"), NOT_EXIST: new U("001-00012", "{prop} in {target} not exist"), SHOULD_NOT_EXIST: new U("001-00013", "{prop} in {target} should not exist"), TRANSACTION_FEE_NOT_ENOUGH: new U("001-00014", "Transaction fee is not enough, errorId {errorId}, minFee {minFee}"), NOT_IN_EXPECTED_RANGE: new U("001-00015", "{prop} in {target} not in [{min}, {max}]"), OVER_LENGTH: new U("001-00016", "{prop} in {target} is over length {limit}"), SHOULD_NOT_START_WITH_OR_END_WITH: new U("001-00017", "{prop} in {target} should not start with or end with {field}"), NOT_A_STRING: new U("001-00018", "{prop} in {target} not a string, value {value}"), NOT_A_IP: new U("001-00019", "{prop} in {target} not a ip, value {value}"), NOT_A_IPV4: new U("001-00020", "{prop} in {target} not a ipv4, value {value}"), NOT_A_IPV6: new U("001-00021", "{prop} in {target} not a ipv6, value {value}"), NOT_A_LONGITUDE_LATITUDE: new U("001-00022", "{prop} in {target} not a longitude-latitude, value {value}"), NOT_A_LONGITUDE: new U("001-00023", "{prop} in {target} not a longitude, value {value}"), NOT_A_LATITUDE: new U("001-00024", "{prop} in {target} not a latitude, value {value}"), NOT_A_ADDRESS: new U("001-00025", "{prop} in {target} not a address, value {value}"), NOT_A_LOCATION_NAME: new U("001-00026", "{prop} in {target} not a locationName, value {value}"), NOT_A_DNS: new U("001-00027", "{prop} in {target} not a dns, value {value}"), NOT_A_EMAIL: new U("001-00028", "{prop} in {target} not a email, value {value}"), NOT_A_URL: new U("001-00029", "{prop} in {target} not a url, value {value}"), PERMISSION_DENIED: new U("001-00030", "Permission denied at operation {operationName}"), SHOULD_NOT_INCLUDE: new U("001-00031", "{prop} in {target} should not inclue {value}"), SHOULD_INCLUDE: new U("001-00032", "{prop} in {target} should inclue {value}"), SHOULD_NOT_DUPLICATE: new U("001-00033", "{prop} in {target} should not duplicate"), ALREADY_EXIST: new U("001-00034", "{prop} in {target} already exist, errorId {errorId}"), GENESIS_GENERATOR_NOT_ENOUGH: new U("001-00035", "Genesis generator not enough, at least {expected}, actual {actual}"), PROP_SHOULD_BE_ARRAY: new U("001-00036", "{prop} in {target} should be an array"), INVALID_BLOCK_GENERATOR: new U("001-00037", "Invalid block generator, reason {reason}"), NOT_FOUND: new U("001-00039", "{prop} not found"), TOO_LARGE: new U("001-00040", "{prop} is too large, reason {reason}, errorId {errorId}"), PROP_LENGTH_SHOULD_LT_FIELD: new U("001-00041", "{prop} length in {target} should less than {field}"), PROP_LENGTH_SHOULD_LTE_FIELD: new U("001-00042", "{prop} length in {target} should less than or equals to {field}"), PROP_LENGTH_SHOULD_GT_FIELD: new U("001-00043", "{prop} length in {target} should greater than {field}"), PROP_LENGTH_SHOULD_GTE_FIELD: new U("001-00044", "{prop} length in {target} should greater than or equals to {field}"), PROP_LENGTH_SHOULD_EQ_FIELD: new U("001-00045", "{prop} length in {target} should equals to {field}"), PROP_LENGTH_SHOULD_NOT_EQ_FIELD: new U("001-00046", "{prop} length in {target} should not equals to {field}"), INVALID_TRANSACTION_BASE_TYPE: new U("001-00047", "Invalid transaction base type: {base_type}"), INVALID_BLOCK_CONSTRUCTOR: new U("001-00048", "Invalid block constructor: {name}"), INVALID_BLOCK_TYPE: new U("001-00049", "Invalid block type: {type}"), CUSTOM_TRANS_VERIFY_FAIL: new U("001-00050", "Custom transaction verify fail: {message}"), DISABLED_CREATE_TRANSACTION: new U("001-00051", "Disabled create {trsName} Transaction"), DISABLED_INSERT_TRANSACTION: new U("001-00052", "Disabled insert {trsName} Transaction"), TRANSACTION_IS_IN_UNCHANGABLE_STATE: new U("001-00053", "Transaction is in unchangable state"), ASSETSTATISTIC_INDEX_ALREADY_IN_USE: new U("001-00054", "AssetStatistic index: {index} already in use"), INVALID_SIGNATURE: new U("001-00055", "Invalid {taskLabel} signature"), INVALID_SIGNSIGNATURE: new U("001-00056", "Invalid {taskLabel} signSignature"), INVALID_BASE_TYPE: new U("001-00057", "Invalid base type {base_type}"), UNREGISTERED_TRANSACTION_FACTORY: new U("001-00058", "Unregistered TransactionFactory {factoryName}"), UNREGISTERED_TRANSACTION_BASE_TYPE: new U("001-00059", "Unregistered Transaction base type {trs_base}"), UNREGISTERED_TRANSACTION_TYPE: new U("001-00060", "Unregistered Transaction type {trs_key}"), INVALID_FROMAUTHSIGNATURE: new U("001-00061", "Invalid {taskLabel} fromAuthSignature"), INVALID_FROMAUTHSIGNSIGNATURE: new U("001-00062", "Invalid {taskLabel} fromAuthSignSignature"), INVALID_TOAUTHSIGNATURE: new U("001-00063", "Invalid {taskLabel} toAuthSignature"), INVALID_TOAUTHSIGNSIGNATURE: new U("001-00064", "Invalid {taskLabel} toAuthSignSignature"), INVALID_MACRO_INPUT_TYPE: new U("001-00065", "Invalid macro input type: {type}"), ALREADY_EXPIRED: new U("001-00066", "{prop} in {target} already expired"), PROP_LOSE: new U("001-11001", "{prop} in {target} lose"), ACCOUNT_FROZEN: new U("001-11002", "Account with address {address} was frozen, status {status}, errorId {errorId}"), TRANSACTION_SIGN_SIGNATURE_IS_REQUIRED: new U("001-11003", "Transaction signSignature is required, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SENDER_SECOND_PUBLICKEY_ALREADY_CHANGE: new U("001-11004", "Transaction sender second secret have already change, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SHOULD_NOT_HAVE_SENDER_SECOND_PUBLICKEY: new U("001-11005", "Transaction should not have senderSecondPublicKey, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SHOULD_NOT_HAVE_SIGN_SIGNATURE: new U("001-11006", "Transaction should not have signSignature, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_APPLY_BLOCK_HEIGHT: new U("001-11007", "Invalid transaction({signature}) apply block height, reason {reason}"), INVALID_TRANSACTION_EFFECTIVE_BLOCK_HEIGHT: new U("001-11008", "Invalid transaction({signature}) effective block height, reason {reason}"), INVALID_TRANSACTION_FROM_MAGIC: new U("001-11009", "Invalid transaction from magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_TO_MAGIC: new U("001-11010", "Invalid transaction to magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_TIMESTAMP: new U("001-11011", "Invalid transaction timestamp, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), DAPPID_IS_NOT_EXIST: new U("001-11012", "DAppid is not exist, dappid {dappid}"), DAPPID_IS_ALREADY_EXIST: new U("001-11013", "DAppid is already exist, dappid {dappid}, errorId {errorId}"), LOCATION_NAME_IS_NOT_EXIST: new U("001-11014", "LocationName is not exist, locationName {locationName}, errorId {errorId}"), LOCATION_NAME_IS_ALREADY_EXIST: new U("001-11015", "LocationName is already exist, locationName {locationName}, errorId {errorId}"), ENTITY_FACTORY_IS_NOT_EXIST: new U("001-11016", "Entity factory is not exist, factoryId {factoryId}"), ENTITY_FACTORY_IS_ALREADY_EXIST: new U("001-11017", "Entity factory is already exist, factoryId {factoryId}, errorId {errorId}"), ENTITY_IS_NOT_EXIST: new U("001-11018", "Entity is not exist, entityId {entityId}"), ENTITY_IS_ALREADY_EXIST: new U("001-11019", "Entity is already exist, entityId {entityId}, errorId {errorId}"), UNKNOWN_RANGE_TYPE: new U("001-11020", "Unknow rangeType, rangeType {rangeType}"), INVALID_TRANSACTION_BYTE_LENGTH: new U("001-11021", "Invalid transaction byte length, reason {reason}"), NEED_PURCHASE_DAPPID_BEFORE_USE: new U("001-11022", "Need purchase dappid before use, dappid {dappid}"), CAN_NOT_DELETE_LOCATION_NAME: new U("001-11025", "Can not delete locationName {locationName}, reason {reason}"), SET_LOCATION_NAME_MANAGER_FIELD: new U("001-11026", "Set locationName {locationName} manager field, reason {reason}, errorId {errorId}"), SET_LOCATION_NAME_RECORD_VALUE_FIELD: new U("001-11027", "Set locationName {locationName} recordValue field, reason {reason}, errorId {errorId}"), ASSET_NOT_ENOUGH: new U("001-11028", "Asset not enough, reason {reason}, errorId {errorId}"), ACCOUNT_REMAIN_EQUITY_NOT_ENOUGH: new U("001-11029", "Account remain equity not enough, reason {reason}, errorId {errorId}"), NOT_BEGIN_UNFROZEN_YET: new U("001-11030", "Frozen asset is not begin to unfrozen yet, frozenId {frozenId}"), FROZEN_ASSET_EXPIRATION: new U("001-11031", "Frozen asset is already expiration, frozenId {frozenId}"), UNFROZEN_TIME_USE_UP: new U("001-11032", "Gift asset unfrozen time use up, frozenId {frozenId}"), FORBIDDEN: new U("001-11038", "{prop} in {target} is forbidden"), ASSET_NOT_EXIST: new U("001-11039", "Asset not exist, magic {magic} assetType {assetType}"), ACCOUNT_NOT_DAPPID_POSSESSOR: new U("001-11040", "Account with address {address} not dappid {dappid} possessor, errorId {errorId}"), ACCOUNT_NOT_LOCATION_NAME_POSSESSOR: new U("001-11041", "Account with address {address} not locationName {locationName} possessor, errorId {errorId}"), ACCOUNT_NOT_ENTITY_POSSESSOR: new U("001-11042", "Account with address {address} not entityId {entityId} possessor, errorId {errorId}"), DAPPID_NOT_FROZEN: new U("001-11043", "DAppid not frozen, dappid {dappid}"), DAPPID_ALREADY_FROZEN: new U("001-11044", "DAppid already frozen, dappid {dappid}"), LOCATION_NAME_NOT_FROZEN: new U("001-11045", "LocationName not frozen, locationName {locationName}"), LOCATION_NAME_ALREADY_FROZEN: new U("001-11046", "LocationName already frozen, locationName {locationName}"), ENTITY_NOT_FROZEN: new U("001-11047", "Entity not frozen, entityId {entityId}"), ENTITY_ALREADY_FROZEN: new U("001-11048", "Entity already frozen, entityId {entityId}"), NO_NEED_TO_PURCHASE_SPECIAL_ASSET: new U("001-11049", "No need to purchase asset, type {type} asset {asset}"), ONLY_TOP_LEVEL_LOCATION_NAME_CAN_EXCHANGE: new U("001-11050", "Only top level location name can exchange"), CAN_NOT_DESTROY_ENTITY: new U("001-11051", "Can not destroy entityId {entityId}, reason {reason}"), ENTITY_ALREADY_DESTROY: new U("001-11052", "Entity already destroy, entityId {entityId}"), ASSET_IS_ALREADY_MIGRATION: new U("001-11053", "Asset is already migration, migrateCertificateId {migrateCertificateId}"), NOT_EXIST_OR_EXPIRED: new U("001-11054", "{prop} in {target} not exist or expired"), NOT_EXPECTED_RELATED_TRANSACTION: new U("001-11055", "Transaction with signature {signature} is not an expected related transaction"), CAN_NOT_SECONDARY_TRANSACTION: new U("001-11056", "Can not secondary transaction, reason {reason}"), REGISTER_GENERATOR_QUOTA_FULL: new U("001-11057", "The register generator quota is full in round {round}"), GENERATOR_CAN_NOT_MIGRATE_ASSET: new U("001-11058", "Generator can not migrate asset"), MIGRATE_MAIN_ASSET_ONLY: new U("001-11059", "You can only migrate main asset, {assetType} is not main asset {mainAsset}"), CAN_NOT_CARRY_SECOND_PUBLICKEY: new U("001-11060", "Can not carry second publicKey"), CAN_NOT_CARRY_SECOND_SIGNATURE: new U("001-11061", "Can not carry second signature"), POSSESS_FROZEN_ASSET: new U("001-11063", "Account possess frozen asset"), NEED_EMIGRATE_TOTAL_ASSET: new U("001-11064", "Need emigrate total asset, address {address}"), POSSESS_ASSET_EXCEPT_CHAIN_ASSET: new U("001-11065", "Account possess asset expect chain asset"), POSSESS_FROZEN_ASSET_EXCEPT_CHAIN_ASSET: new U("001-11066", "Account possess frozen asset expect chain asset"), ACCOUNT_CAN_NOT_BE_FROZEN: new U("001-11067", "Account with address {address} can not be frozen, reason {reason}, errorId {errorId}"), TRUST_MAIN_ASSET_ONLY: new U("001-11068", "You can only trust main asset, {assetType} is not main asset {mainAsset}"), ISSUE_ENTITY_TIMES_USE_UP: new U("001-11070", "Issue entity times use up, entityFactory {entityFactory}"), ASSET_ALREADY_EXIST: new U("001-11071", "Asset already exist, magic {magic} assetType {assetType}"), FROZEN_ASSET_NOT_EXIST_OR_EXPIRED: new U("001-11072", "Frozen asset with frozenAddress {frozenAddress} signature {signature} assetType {assetType} in blockChain not exist or expired"), NOT_ENOUGH_ISSUE_ENTITY_TIMES: new U("001-11073", "Not enough issue entity times, entityFactory {entityFactory}"), NOT_BEGIN_RESOLVE_YET: new U("001-11074", "Promise is not begin to resolve yet, promiseId {promiseId}"), CERTIFICATE_IS_NOT_EXIST: new U("001-11075", "Certificate is not exist, certificateId {certificateId}"), CERTIFICATE_IS_ALREADY_EXIST: new U("001-11076", "Certificate is already exist, certificateId {certificateId}, errorId {errorId}"), CAN_NOT_DESTROY_CERTIFICATE: new U("001-11077", "Can not destroy certificate, certificateId {certificateId}, reason {reason}"), ACCOUNT_NOT_CERTIFICATE_POSSESSOR: new U("001-11078", "Account with address {address} not certificate {certificateId} possessor, errorId {errorId}"), CERTIFICATE_NOT_FROZEN: new U("001-11079", "Certificate not frozen, certificateId {certificateId}"), CERTIFICATE_ALREADY_FROZEN: new U("001-11080", "Certificate already frozen, certificateId {certificateId}"), CERTIFICATE_ALREADY_DESTROY: new U("001-11081", "Certificate already destroy, certificateId {certificateId}"), FROZEN_ASSET_NOT_ENOUGH: new U("001-11082", "Frozen asset not enough, frozenId {frozenId}, reason {reason}"), STAKE_ASSET_NOT_EXIST_OR_EXPIRED: new U("001-11083", "Stake asset with stakeAddress {stakeAddress} stakeId {stakeId} in blockChain not exist or expired"), NOT_BEGIN_UNSTAKE_YET: new U("001-11084", "Stake asset is not begin to unstake yet, stakeId {stakeId}"), STAKE_ASSET_NOT_ENOUGH: new U("001-11085", "Stake asset not enough, stakeId {stakeId}, reason {reason}"), BLOCK_SIGN_SIGNATURE_IS_REQUIRED: new U("001-12001", "Block signSignature is required, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_GENERATOR_SECOND_PUBLICKEY_ALREADY_CHANGE: new U("001-12002", "Block generator second secret have already change, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_SHOULD_NOT_HAVE_GENERATOR_SECOND_PUBLICKEY: new U("001-12003", "Block should not have generatorSecondPublicKey, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_SHOULD_NOT_HAVE_SIGN_SIGNATURE: new U("001-12004", "Block should not have signSignature, signature {signature} generatorAddress {generatorAddress} height {height}"), OUT_OF_RANGE: new U("001-12005", "{variable} out of range"), FAILED_TO_FIND_NEAREST_SAME_BLOCK_IN_ONE_ROUND: new U("001-12006", "Failed to find nearest same block in one round, should not happen"), GENESIS_BLOCK_NOT_MATCH: new U("001-12007", "GenesisBlock not match, the signature of genesisBlock and synchronized peer's genesisBlock's signature not equal"), FAILED_TO_GET_BLOCKS_BY_RANGE: new U("000-12008", "Falied to get blocks by range({minHeight}~{maxHeight})"), INVALID_PARAMS: new U("001-22001", "Invalid params: {params}"), INVALID_PARAMS_FIELD: new U("001-22002", "Invalid params field: {field}"), GENESIS_BLOCK_MAYBE_NO_EQUAL: new U("001-22003", "GenesisBlock maybe no equal"), INVALID_QUERYBLOCKARG_QUERY_PARAMS: new U("001-22004", "Invalid QueryBlockArg query params, no query conditions"), QUERY_BLOCK_FROM_PEER_TIMEOUT: new U("001-22005", "QueryBlock ({query}) from peer({peerId}) timeout"), REQID_REUSE: new U("001-22006", "ReqId reuse"), CHAINCHANNEL_CLOSED: new U("001-22007", "chainChannel closed"), REFUSE_RESPONSE_QUERY_TRANSACTION: new U("001-22008", "Refuse response query transaction"), REFUSE_RESPONSE_INDEX_TRANSACTION: new U("001-22009", "Refuse response index transaction"), REFUSE_RESPONSE_DOWNLOAD_TRANSACTION: new U("001-22010", "Refuse response download transaction"), REFUSE_RESPONSE_BROADCAST_TRANSACTION: new U("001-22011", "Refuse response broadcast transaction"), REFUSE_RESPONSE_QUERY_BLOCK: new U("001-22012", "Refuse response query block"), REFUSE_RESPONSE_BROADCAST_BLOCK: new U("001-22013", "Refuse response broadcast block"), MESSAGE_TYPE_ERROR: new U("001-22014", "Message type error"), ONMESSAGE_GET_INVALID_REQ_ID: new U("001-22015", "OnMessage get invalid req_id: {req_id}"), REQUEST_LIMIT: new U("001-22016", "Request limit"), INVALID_MESSAGE_CMD: new U("001-22017", "Invalid message cmd"), CHAINCHANNEL_TIMEOUT: new U("001-22018", "ChainChannel Timeout, cmd {cmd}"), TASK_ABORT: new U("001-22019", "Task {task_id} abort because the free chainChannel size is zero"), REFUSE_RESPONSE_OPEN_BLOB: new U("001-22020", "Refuse response open blob"), REFUSE_RESPONSE_READ_BLOB: new U("001-22021", "Refuse response read blob"), REFUSE_RESPONSE_CLOSE_BLOB: new U("001-22022", "Refuse response close blob"), BLOB_ALGORITHM_IS_INVALID: new U("001-23001", "blob({hash}) algorithm({algorithm}) is invalid"), FAIL_TO_DOWNLOAD_BLOB: new U("001-23002", "Fail to download blob({hash}) size({size})") };
-    const AI = /* @__PURE__ */ new Map();
-    const xl = Error.captureStackTrace ? (i) => {
+    var _I = ey;
+    var c = { PARAM_LOST: new U("001-00001", "params {param} lost"), PROP_IS_REQUIRE: new U("001-00002", "{prop} in {target} is required"), PROP_IS_INVALID: new U("001-00003", "{prop} in {target} is invalid"), NOT_MATCH: new U("001-00004", "{to_compare_prop} in {to_target} and {be_compare_prop} in {be_target} not match"), PROP_SHOULD_GT_FIELD: new U("001-00005", "{prop} in {target} should greater than {field}"), PROP_SHOULD_GTE_FIELD: new U("001-00006", "{prop} in {target} should greater than or equals to {field}"), PROP_SHOULD_LT_FIELD: new U("001-00007", "{prop} in {target} should less than {field}"), PROP_SHOULD_LTE_FIELD: new U("001-00008", "{prop} in {target} should less than or equals to {field}"), PROP_SHOULD_EQ_FIELD: new U("001-00009", "{prop} in {target} should equals to {field}"), SHOULD_BE: new U("001-00010", "{to_compare_prop} in {to_target} should be {be_compare_prop}"), SHOULD_NOT_BE: new U("001-00011", "{to_compare_prop} in {to_target} should not be {be_compare_prop}"), NOT_EXIST: new U("001-00012", "{prop} in {target} not exist"), SHOULD_NOT_EXIST: new U("001-00013", "{prop} in {target} should not exist"), TRANSACTION_FEE_NOT_ENOUGH: new U("001-00014", "Transaction fee is not enough, errorId {errorId}, minFee {minFee}"), NOT_IN_EXPECTED_RANGE: new U("001-00015", "{prop} in {target} not in [{min}, {max}]"), OVER_LENGTH: new U("001-00016", "{prop} in {target} is over length {limit}"), SHOULD_NOT_START_WITH_OR_END_WITH: new U("001-00017", "{prop} in {target} should not start with or end with {field}"), NOT_A_STRING: new U("001-00018", "{prop} in {target} not a string, value {value}"), NOT_A_IP: new U("001-00019", "{prop} in {target} not a ip, value {value}"), NOT_A_IPV4: new U("001-00020", "{prop} in {target} not a ipv4, value {value}"), NOT_A_IPV6: new U("001-00021", "{prop} in {target} not a ipv6, value {value}"), NOT_A_LONGITUDE_LATITUDE: new U("001-00022", "{prop} in {target} not a longitude-latitude, value {value}"), NOT_A_LONGITUDE: new U("001-00023", "{prop} in {target} not a longitude, value {value}"), NOT_A_LATITUDE: new U("001-00024", "{prop} in {target} not a latitude, value {value}"), NOT_A_ADDRESS: new U("001-00025", "{prop} in {target} not a address, value {value}"), NOT_A_LOCATION_NAME: new U("001-00026", "{prop} in {target} not a locationName, value {value}"), NOT_A_DNS: new U("001-00027", "{prop} in {target} not a dns, value {value}"), NOT_A_EMAIL: new U("001-00028", "{prop} in {target} not a email, value {value}"), NOT_A_URL: new U("001-00029", "{prop} in {target} not a url, value {value}"), PERMISSION_DENIED: new U("001-00030", "Permission denied at operation {operationName}"), SHOULD_NOT_INCLUDE: new U("001-00031", "{prop} in {target} should not inclue {value}"), SHOULD_INCLUDE: new U("001-00032", "{prop} in {target} should inclue {value}"), SHOULD_NOT_DUPLICATE: new U("001-00033", "{prop} in {target} should not duplicate"), ALREADY_EXIST: new U("001-00034", "{prop} in {target} already exist, errorId {errorId}"), GENESIS_GENERATOR_NOT_ENOUGH: new U("001-00035", "Genesis generator not enough, at least {expected}, actual {actual}"), PROP_SHOULD_BE_ARRAY: new U("001-00036", "{prop} in {target} should be an array"), INVALID_BLOCK_GENERATOR: new U("001-00037", "Invalid block generator, reason {reason}"), NOT_FOUND: new U("001-00039", "{prop} not found"), TOO_LARGE: new U("001-00040", "{prop} is too large, reason {reason}, errorId {errorId}"), PROP_LENGTH_SHOULD_LT_FIELD: new U("001-00041", "{prop} length in {target} should less than {field}"), PROP_LENGTH_SHOULD_LTE_FIELD: new U("001-00042", "{prop} length in {target} should less than or equals to {field}"), PROP_LENGTH_SHOULD_GT_FIELD: new U("001-00043", "{prop} length in {target} should greater than {field}"), PROP_LENGTH_SHOULD_GTE_FIELD: new U("001-00044", "{prop} length in {target} should greater than or equals to {field}"), PROP_LENGTH_SHOULD_EQ_FIELD: new U("001-00045", "{prop} length in {target} should equals to {field}"), PROP_LENGTH_SHOULD_NOT_EQ_FIELD: new U("001-00046", "{prop} length in {target} should not equals to {field}"), INVALID_TRANSACTION_BASE_TYPE: new U("001-00047", "Invalid transaction base type: {base_type}"), INVALID_BLOCK_CONSTRUCTOR: new U("001-00048", "Invalid block constructor: {name}"), INVALID_BLOCK_TYPE: new U("001-00049", "Invalid block type: {type}"), CUSTOM_TRANS_VERIFY_FAIL: new U("001-00050", "Custom transaction verify fail: {message}"), DISABLED_CREATE_TRANSACTION: new U("001-00051", "Disabled create {trsName} Transaction"), DISABLED_INSERT_TRANSACTION: new U("001-00052", "Disabled insert {trsName} Transaction"), TRANSACTION_IS_IN_UNCHANGABLE_STATE: new U("001-00053", "Transaction is in unchangable state"), ASSETSTATISTIC_INDEX_ALREADY_IN_USE: new U("001-00054", "AssetStatistic index: {index} already in use"), INVALID_SIGNATURE: new U("001-00055", "Invalid {taskLabel} signature"), INVALID_SIGNSIGNATURE: new U("001-00056", "Invalid {taskLabel} signSignature"), INVALID_BASE_TYPE: new U("001-00057", "Invalid base type {base_type}"), UNREGISTERED_TRANSACTION_FACTORY: new U("001-00058", "Unregistered TransactionFactory {factoryName}"), UNREGISTERED_TRANSACTION_BASE_TYPE: new U("001-00059", "Unregistered Transaction base type {trs_base}"), UNREGISTERED_TRANSACTION_TYPE: new U("001-00060", "Unregistered Transaction type {trs_key}"), INVALID_FROMAUTHSIGNATURE: new U("001-00061", "Invalid {taskLabel} fromAuthSignature"), INVALID_FROMAUTHSIGNSIGNATURE: new U("001-00062", "Invalid {taskLabel} fromAuthSignSignature"), INVALID_TOAUTHSIGNATURE: new U("001-00063", "Invalid {taskLabel} toAuthSignature"), INVALID_TOAUTHSIGNSIGNATURE: new U("001-00064", "Invalid {taskLabel} toAuthSignSignature"), INVALID_MACRO_INPUT_TYPE: new U("001-00065", "Invalid macro input type: {type}"), ALREADY_EXPIRED: new U("001-00066", "{prop} in {target} already expired"), PROP_LOSE: new U("001-11001", "{prop} in {target} lose"), ACCOUNT_FROZEN: new U("001-11002", "Account with address {address} was frozen, status {status}, errorId {errorId}"), TRANSACTION_SIGN_SIGNATURE_IS_REQUIRED: new U("001-11003", "Transaction signSignature is required, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SENDER_SECOND_PUBLICKEY_ALREADY_CHANGE: new U("001-11004", "Transaction sender second secret have already change, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SHOULD_NOT_HAVE_SENDER_SECOND_PUBLICKEY: new U("001-11005", "Transaction should not have senderSecondPublicKey, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), TRANSACTION_SHOULD_NOT_HAVE_SIGN_SIGNATURE: new U("001-11006", "Transaction should not have signSignature, signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_APPLY_BLOCK_HEIGHT: new U("001-11007", "Invalid transaction({signature}) apply block height, reason {reason}"), INVALID_TRANSACTION_EFFECTIVE_BLOCK_HEIGHT: new U("001-11008", "Invalid transaction({signature}) effective block height, reason {reason}"), INVALID_TRANSACTION_FROM_MAGIC: new U("001-11009", "Invalid transaction from magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_TO_MAGIC: new U("001-11010", "Invalid transaction to magic, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), INVALID_TRANSACTION_TIMESTAMP: new U("001-11011", "Invalid transaction timestamp, reason {reason} signature {signature} senderId {senderId} applyBlockHeight {applyBlockHeight} type {type}"), DAPPID_IS_NOT_EXIST: new U("001-11012", "DAppid is not exist, dappid {dappid}"), DAPPID_IS_ALREADY_EXIST: new U("001-11013", "DAppid is already exist, dappid {dappid}, errorId {errorId}"), LOCATION_NAME_IS_NOT_EXIST: new U("001-11014", "LocationName is not exist, locationName {locationName}, errorId {errorId}"), LOCATION_NAME_IS_ALREADY_EXIST: new U("001-11015", "LocationName is already exist, locationName {locationName}, errorId {errorId}"), ENTITY_FACTORY_IS_NOT_EXIST: new U("001-11016", "Entity factory is not exist, factoryId {factoryId}"), ENTITY_FACTORY_IS_ALREADY_EXIST: new U("001-11017", "Entity factory is already exist, factoryId {factoryId}, errorId {errorId}"), ENTITY_IS_NOT_EXIST: new U("001-11018", "Entity is not exist, entityId {entityId}"), ENTITY_IS_ALREADY_EXIST: new U("001-11019", "Entity is already exist, entityId {entityId}, errorId {errorId}"), UNKNOWN_RANGE_TYPE: new U("001-11020", "Unknow rangeType, rangeType {rangeType}"), INVALID_TRANSACTION_BYTE_LENGTH: new U("001-11021", "Invalid transaction byte length, reason {reason}"), NEED_PURCHASE_DAPPID_BEFORE_USE: new U("001-11022", "Need purchase dappid before use, dappid {dappid}"), CAN_NOT_DELETE_LOCATION_NAME: new U("001-11025", "Can not delete locationName {locationName}, reason {reason}"), SET_LOCATION_NAME_MANAGER_FIELD: new U("001-11026", "Set locationName {locationName} manager field, reason {reason}, errorId {errorId}"), SET_LOCATION_NAME_RECORD_VALUE_FIELD: new U("001-11027", "Set locationName {locationName} recordValue field, reason {reason}, errorId {errorId}"), ASSET_NOT_ENOUGH: new U("001-11028", "Asset not enough, reason {reason}, errorId {errorId}"), ACCOUNT_REMAIN_EQUITY_NOT_ENOUGH: new U("001-11029", "Account remain equity not enough, reason {reason}, errorId {errorId}"), NOT_BEGIN_UNFROZEN_YET: new U("001-11030", "Frozen asset is not begin to unfrozen yet, frozenId {frozenId}"), FROZEN_ASSET_EXPIRATION: new U("001-11031", "Frozen asset is already expiration, frozenId {frozenId}"), UNFROZEN_TIME_USE_UP: new U("001-11032", "Gift asset unfrozen time use up, frozenId {frozenId}"), FORBIDDEN: new U("001-11038", "{prop} in {target} is forbidden"), ASSET_NOT_EXIST: new U("001-11039", "Asset not exist, magic {magic} assetType {assetType}"), ACCOUNT_NOT_DAPPID_POSSESSOR: new U("001-11040", "Account with address {address} not dappid {dappid} possessor, errorId {errorId}"), ACCOUNT_NOT_LOCATION_NAME_POSSESSOR: new U("001-11041", "Account with address {address} not locationName {locationName} possessor, errorId {errorId}"), ACCOUNT_NOT_ENTITY_POSSESSOR: new U("001-11042", "Account with address {address} not entityId {entityId} possessor, errorId {errorId}"), DAPPID_NOT_FROZEN: new U("001-11043", "DAppid not frozen, dappid {dappid}"), DAPPID_ALREADY_FROZEN: new U("001-11044", "DAppid already frozen, dappid {dappid}"), LOCATION_NAME_NOT_FROZEN: new U("001-11045", "LocationName not frozen, locationName {locationName}"), LOCATION_NAME_ALREADY_FROZEN: new U("001-11046", "LocationName already frozen, locationName {locationName}"), ENTITY_NOT_FROZEN: new U("001-11047", "Entity not frozen, entityId {entityId}"), ENTITY_ALREADY_FROZEN: new U("001-11048", "Entity already frozen, entityId {entityId}"), NO_NEED_TO_PURCHASE_SPECIAL_ASSET: new U("001-11049", "No need to purchase asset, type {type} asset {asset}"), ONLY_TOP_LEVEL_LOCATION_NAME_CAN_EXCHANGE: new U("001-11050", "Only top level location name can exchange"), CAN_NOT_DESTROY_ENTITY: new U("001-11051", "Can not destroy entityId {entityId}, reason {reason}"), ENTITY_ALREADY_DESTROY: new U("001-11052", "Entity already destroy, entityId {entityId}"), ASSET_IS_ALREADY_MIGRATION: new U("001-11053", "Asset is already migration, migrateCertificateId {migrateCertificateId}"), NOT_EXIST_OR_EXPIRED: new U("001-11054", "{prop} in {target} not exist or expired"), NOT_EXPECTED_RELATED_TRANSACTION: new U("001-11055", "Transaction with signature {signature} is not an expected related transaction"), CAN_NOT_SECONDARY_TRANSACTION: new U("001-11056", "Can not secondary transaction, reason {reason}"), REGISTER_GENERATOR_QUOTA_FULL: new U("001-11057", "The register generator quota is full in round {round}"), GENERATOR_CAN_NOT_MIGRATE_ASSET: new U("001-11058", "Generator can not migrate asset"), MIGRATE_MAIN_ASSET_ONLY: new U("001-11059", "You can only migrate main asset, {assetType} is not main asset {mainAsset}"), CAN_NOT_CARRY_SECOND_PUBLICKEY: new U("001-11060", "Can not carry second publicKey"), CAN_NOT_CARRY_SECOND_SIGNATURE: new U("001-11061", "Can not carry second signature"), POSSESS_FROZEN_ASSET: new U("001-11063", "Account possess frozen asset"), NEED_EMIGRATE_TOTAL_ASSET: new U("001-11064", "Need emigrate total asset, address {address}"), POSSESS_ASSET_EXCEPT_CHAIN_ASSET: new U("001-11065", "Account possess asset expect chain asset"), POSSESS_FROZEN_ASSET_EXCEPT_CHAIN_ASSET: new U("001-11066", "Account possess frozen asset expect chain asset"), ACCOUNT_CAN_NOT_BE_FROZEN: new U("001-11067", "Account with address {address} can not be frozen, reason {reason}, errorId {errorId}"), TRUST_MAIN_ASSET_ONLY: new U("001-11068", "You can only trust main asset, {assetType} is not main asset {mainAsset}"), ISSUE_ENTITY_TIMES_USE_UP: new U("001-11070", "Issue entity times use up, entityFactory {entityFactory}"), ASSET_ALREADY_EXIST: new U("001-11071", "Asset already exist, magic {magic} assetType {assetType}"), FROZEN_ASSET_NOT_EXIST_OR_EXPIRED: new U("001-11072", "Frozen asset with frozenAddress {frozenAddress} signature {signature} assetType {assetType} in blockChain not exist or expired"), NOT_ENOUGH_ISSUE_ENTITY_TIMES: new U("001-11073", "Not enough issue entity times, entityFactory {entityFactory}"), NOT_BEGIN_RESOLVE_YET: new U("001-11074", "Promise is not begin to resolve yet, promiseId {promiseId}"), CERTIFICATE_IS_NOT_EXIST: new U("001-11075", "Certificate is not exist, certificateId {certificateId}"), CERTIFICATE_IS_ALREADY_EXIST: new U("001-11076", "Certificate is already exist, certificateId {certificateId}, errorId {errorId}"), CAN_NOT_DESTROY_CERTIFICATE: new U("001-11077", "Can not destroy certificate, certificateId {certificateId}, reason {reason}"), ACCOUNT_NOT_CERTIFICATE_POSSESSOR: new U("001-11078", "Account with address {address} not certificate {certificateId} possessor, errorId {errorId}"), CERTIFICATE_NOT_FROZEN: new U("001-11079", "Certificate not frozen, certificateId {certificateId}"), CERTIFICATE_ALREADY_FROZEN: new U("001-11080", "Certificate already frozen, certificateId {certificateId}"), CERTIFICATE_ALREADY_DESTROY: new U("001-11081", "Certificate already destroy, certificateId {certificateId}"), FROZEN_ASSET_NOT_ENOUGH: new U("001-11082", "Frozen asset not enough, frozenId {frozenId}, reason {reason}"), STAKE_ASSET_NOT_EXIST_OR_EXPIRED: new U("001-11083", "Stake asset with stakeAddress {stakeAddress} stakeId {stakeId} in blockChain not exist or expired"), NOT_BEGIN_UNSTAKE_YET: new U("001-11084", "Stake asset is not begin to unstake yet, stakeId {stakeId}"), STAKE_ASSET_NOT_ENOUGH: new U("001-11085", "Stake asset not enough, stakeId {stakeId}, reason {reason}"), BLOCK_SIGN_SIGNATURE_IS_REQUIRED: new U("001-12001", "Block signSignature is required, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_GENERATOR_SECOND_PUBLICKEY_ALREADY_CHANGE: new U("001-12002", "Block generator second secret have already change, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_SHOULD_NOT_HAVE_GENERATOR_SECOND_PUBLICKEY: new U("001-12003", "Block should not have generatorSecondPublicKey, signature {signature} generatorAddress {generatorAddress} height {height}"), BLOCK_SHOULD_NOT_HAVE_SIGN_SIGNATURE: new U("001-12004", "Block should not have signSignature, signature {signature} generatorAddress {generatorAddress} height {height}"), OUT_OF_RANGE: new U("001-12005", "{variable} out of range"), FAILED_TO_FIND_NEAREST_SAME_BLOCK_IN_ONE_ROUND: new U("001-12006", "Failed to find nearest same block in one round, should not happen"), GENESIS_BLOCK_NOT_MATCH: new U("001-12007", "GenesisBlock not match, the signature of genesisBlock and synchronized peer's genesisBlock's signature not equal"), FAILED_TO_GET_BLOCKS_BY_RANGE: new U("000-12008", "Falied to get blocks by range({minHeight}~{maxHeight})"), INVALID_PARAMS: new U("001-22001", "Invalid params: {params}"), INVALID_PARAMS_FIELD: new U("001-22002", "Invalid params field: {field}"), GENESIS_BLOCK_MAYBE_NO_EQUAL: new U("001-22003", "GenesisBlock maybe no equal"), INVALID_QUERYBLOCKARG_QUERY_PARAMS: new U("001-22004", "Invalid QueryBlockArg query params, no query conditions"), QUERY_BLOCK_FROM_PEER_TIMEOUT: new U("001-22005", "QueryBlock ({query}) from peer({peerId}) timeout"), REQID_REUSE: new U("001-22006", "ReqId reuse"), CHAINCHANNEL_CLOSED: new U("001-22007", "chainChannel closed"), REFUSE_RESPONSE_QUERY_TRANSACTION: new U("001-22008", "Refuse response query transaction"), REFUSE_RESPONSE_INDEX_TRANSACTION: new U("001-22009", "Refuse response index transaction"), REFUSE_RESPONSE_DOWNLOAD_TRANSACTION: new U("001-22010", "Refuse response download transaction"), REFUSE_RESPONSE_BROADCAST_TRANSACTION: new U("001-22011", "Refuse response broadcast transaction"), REFUSE_RESPONSE_QUERY_BLOCK: new U("001-22012", "Refuse response query block"), REFUSE_RESPONSE_BROADCAST_BLOCK: new U("001-22013", "Refuse response broadcast block"), MESSAGE_TYPE_ERROR: new U("001-22014", "Message type error"), ONMESSAGE_GET_INVALID_REQ_ID: new U("001-22015", "OnMessage get invalid req_id: {req_id}"), REQUEST_LIMIT: new U("001-22016", "Request limit"), INVALID_MESSAGE_CMD: new U("001-22017", "Invalid message cmd"), CHAINCHANNEL_TIMEOUT: new U("001-22018", "ChainChannel Timeout, cmd {cmd}"), TASK_ABORT: new U("001-22019", "Task {task_id} abort because the free chainChannel size is zero"), REFUSE_RESPONSE_OPEN_BLOB: new U("001-22020", "Refuse response open blob"), REFUSE_RESPONSE_READ_BLOB: new U("001-22021", "Refuse response read blob"), REFUSE_RESPONSE_CLOSE_BLOB: new U("001-22022", "Refuse response close blob"), BLOB_ALGORITHM_IS_INVALID: new U("001-23001", "blob({hash}) algorithm({algorithm}) is invalid"), FAIL_TO_DOWNLOAD_BLOB: new U("001-23002", "Fail to download blob({hash}) size({size})") };
+    var AI = /* @__PURE__ */ new Map();
+    var xl = Error.captureStackTrace ? (i) => {
       const e = { stack: "" };
       return Error.captureStackTrace(e, i), e.stack;
     } : Function("f", `
@@ -5949,7 +5953,7 @@ const require_bioforest_chain_bundle = __commonJS({
     stackLineLine.splice(1, deep);
     return stackLineLine.join('\\n');
   `);
-    const du = class _du extends Error {
+    var du = class _du extends Error {
       get name() {
         return this.constructor.name;
       }
@@ -5958,9 +5962,9 @@ const require_bioforest_chain_bundle = __commonJS({
         return e.stack = xl(e.constructor), e.message = t || "", e;
       }
     };
-    const Ju = () => {
+    var Ju = () => {
     };
-    const Am = /* @__PURE__ */ Symbol("cog");
+    var Am = /* @__PURE__ */ Symbol("cog");
     function hA(i) {
       for (const [e, t] of Object.entries(Object.getOwnPropertyDescriptors(i))) {
         const r = t.get;
@@ -5971,9 +5975,9 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return i;
     }
-    const uA = /* @__PURE__ */ new Map();
-    const EI = ((i) => (i.BLOCKER = "blocker", i.CRITICAL = "critical", i.MAJOR = "major", i.MINOR = "minor", i))(EI || {});
-    const qe = class extends du {
+    var uA = /* @__PURE__ */ new Map();
+    var EI = ((i) => (i.BLOCKER = "blocker", i.CRITICAL = "critical", i.MAJOR = "major", i.MINOR = "minor", i))(EI || {});
+    var qe = class extends du {
       constructor(e = "", t, r, n) {
         super(t ? e instanceof U ? e.build(t) : e.replace(/\{([^\\]+?)\}/g, (a, p) => t[p] ?? a) : e instanceof U ? e.message : e), this.detail = t;
         const s = this.constructor, { ERROR_CODE_MAP: o } = s;
@@ -5995,82 +5999,82 @@ const require_bioforest_chain_bundle = __commonJS({
         return o(class extends a {
         });
       }, get OutOfRangeException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "OutOfRangeException", a));
       }, get ArgumentException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "ArgumentException", a));
       }, get ArgumentIllegalException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "ArgumentIllegalException", a));
       }, get ArgumentFormatException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "ArgumentFormatException", a));
       }, get NoFoundException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "NoFoundException", a));
       }, get ResponseException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "ResponseException", a));
       }, get IOException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "IOException", a));
       }, get NetworkIOException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "NetworkIOException", a));
       }, get BusyIOException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "BusyIOException", a));
       }, get DatebaseIOException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "DatebaseIOException", a));
       }, get InterruptedException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "InterruptedException", a));
       }, get IllegalStateException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "IllegalStateException", a));
       }, get TimeOutException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "TimeOutException", a));
       }, get BusyException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "BusyException", a));
       }, get ConsensusException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "ConsensusException", a));
       }, get AbortException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "AbortException", a));
       }, get RefuseException() {
-        let a;
+        var a;
         return o(((a = class extends qe {
         }).TYPE = "RefuseException", a));
       } });
     }
-    qe.TYPE = "Exception", qe.PLATFORM = "", qe.CHANNEL = "", qe.BUSINESS = "", qe.MODULE = "", qe.FILE = "", qe.CODE = "", qe.SEVERIFY = "major", qe.ERROR_CODE_MAP = uA, typeof Error.stackTraceLimit === "number" && (Error.stackTraceLimit += 3);
-    const ga = 1e3;
-    const da = 60 * ga;
-    const ya = 60 * da;
-    const Qi = 24 * ya;
-    const TI = 7 * Qi;
-    const SI = 365.25 * Qi;
+    qe.TYPE = "Exception", qe.PLATFORM = "", qe.CHANNEL = "", qe.BUSINESS = "", qe.MODULE = "", qe.FILE = "", qe.CODE = "", qe.SEVERIFY = "major", qe.ERROR_CODE_MAP = uA, typeof Error.stackTraceLimit == "number" && (Error.stackTraceLimit += 3);
+    var ga = 1e3;
+    var da = 60 * ga;
+    var ya = 60 * da;
+    var Qi = 24 * ya;
+    var TI = 7 * Qi;
+    var SI = 365.25 * Qi;
     function wI(i, e = {}) {
       switch (typeof i) {
         case "string":
@@ -6142,10 +6146,10 @@ const require_bioforest_chain_bundle = __commonJS({
       const n = e >= 1.5 * t;
       return `${Math.round(i / t)} ${r}${n ? "s" : ""}`;
     }
-    let Em;
-    let Im;
-    let Tm;
-    let Fr;
+    var Em;
+    var Im;
+    var Tm;
+    var Fr;
     function OI(i) {
       return i.source.slice(1, -1).replace(/\.\*\?$/, "*").replace(/\\/g, "");
     }
@@ -6156,7 +6160,7 @@ const require_bioforest_chain_bundle = __commonJS({
     function CI(i) {
       return (i.type === "disable" ? "-" : "") + OI(i.regexp);
     }
-    const RI = class {
+    var RI = class {
       constructor() {
         this.namespaceFilters = [], this._levelFilter = (e) => true, this._createdDebugCache = new wt((e) => new Ec(e, this)), this.setNamespaceFilter(this.load());
       }
@@ -6170,17 +6174,17 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       }
       setNamespaceFilter(e) {
-        e = typeof e === "string" ? e : e.join(","), this.namespaceFilters.length = 0;
+        e = typeof e == "string" ? e : e.join(","), this.namespaceFilters.length = 0;
         const t = [...new Set(e.split(/[\s,]+/))];
         for (const r of t) r && this.namespaceFilters.push(Sm(r));
         this._resetInstancesEnabled(), this.save(t.join(","));
       }
       addNamespaceFilter(e, t) {
-        this.removeNamespaceFilter(e), e = typeof e === "string" ? Sm(e) : e, t === void 0 || t > this.namespaceFilters.length - 1 || t < 0 ? this.namespaceFilters.push(e) : this.namespaceFilters.splice(t, 0, e), this._resetInstancesEnabled(), this.save(this.getNamespaceFilter().join(","));
+        this.removeNamespaceFilter(e), e = typeof e == "string" ? Sm(e) : e, t === void 0 || t > this.namespaceFilters.length - 1 || t < 0 ? this.namespaceFilters.push(e) : this.namespaceFilters.splice(t, 0, e), this._resetInstancesEnabled(), this.save(this.getNamespaceFilter().join(","));
       }
       removeNamespaceFilter(e) {
         const t = (r) => r >= 0 && r < this.namespaceFilters.length && (this.namespaceFilters.splice(r, 1), this._resetInstancesEnabled(), this.save(this.getNamespaceFilter().join(",")), true);
-        return typeof e === "number" ? t(e) : typeof e === "string" ? t(this.namespaceFilters.findIndex((r) => r.source === e)) : t(this.namespaceFilters.indexOf(e)) || this.removeNamespaceFilter(CI(e));
+        return typeof e == "number" ? t(e) : typeof e == "string" ? t(this.namespaceFilters.findIndex((r) => r.source === e)) : t(this.namespaceFilters.indexOf(e)) || this.removeNamespaceFilter(CI(e));
       }
       get levelFilter() {
         return this._levelFilter;
@@ -6212,14 +6216,14 @@ const require_bioforest_chain_bundle = __commonJS({
         return this._createdDebugCache.delete(e);
       }
     };
-    const Ec = class {
+    var Ec = class {
       constructor(e, t, r) {
         this.namespace = e, this._creater = t, this.__prev = 0, this.__curr = 0, this._scope = new wt((a) => {
           const p = wt.from({ creater: (h) => ({ id: this._scopeIdAcc++, color: a, level: h, enabled: this._creater.levelFilter(h) }), afterDelete: () => {
             p.size === 0 && this._scope.delete(a);
           } });
           return p;
-        }), this._scopeIdAcc = 0, this.scopePrinterMap = wt.from({ creater: (a) => this._printerBuilder(a) }), this.$enableDefaultFormatter = false, typeof t.init === "function" && t.init(this);
+        }), this._scopeIdAcc = 0, this.scopePrinterMap = wt.from({ creater: (a) => this._printerBuilder(a) }), this.$enableDefaultFormatter = false, typeof t.init == "function" && t.init(this);
         let n = 0, s = false, o = false;
         return r && (r.enableTime !== void 0 && (s = r.enableTime), r.enableDuration !== void 0 && (o = r.enableDuration), r.level !== void 0 && (n = r.level)), this._config = { useColors: this._creater.canUseColors(), enabled: this._creater.isEnabled(this.namespace, n), color: this._creater.selectColor(this.namespace), level: n, enableTime: s, enableDuration: o }, this;
       }
@@ -6290,13 +6294,13 @@ const require_bioforest_chain_bundle = __commonJS({
         const { _creater: t } = this, r = () => e.enabled && this.enabled, n = (...s) => {
           if (!r()) return;
           this._resetDiff();
-          let o = typeof s[0] !== "string" ? "%O" : s.shift();
+          let o = typeof s[0] != "string" ? "%O" : s.shift();
           if (this.$enableDefaultFormatter) {
             let p = 0;
             o = o.replace(/%([a-zA-Z%])/g, (h, f) => {
               if (h === "%%") return h;
               const g = t.formatters[f];
-              return typeof g === "function" && (h = g(this, s[p]), s.splice(p, 1), p--), p++, h;
+              return typeof g == "function" && (h = g(this, s[p]), s.splice(p, 1), p--), p++, h;
             });
           }
           const a = [o, ...s];
@@ -6305,10 +6309,10 @@ const require_bioforest_chain_bundle = __commonJS({
         return Object.defineProperty(n, "enabled", { get: r }), n;
       }
     };
-    l([oe, u("design:type", Object), u("design:paramtypes", [])], Ec.prototype, "_dater", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Ec.prototype, "print", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (Em = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.DebugLevel) === "function" ? Em : Object]), u("design:returntype", typeof (Im = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.Pinter) === "function" ? Im : Object)], Ec.prototype, "createPrinter", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (Tm = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.DebugLevel) === "function" ? Tm : Object]), u("design:returntype", Boolean)], Ec.prototype, "deletePrinter", null), (function(i) {
+    l([oe, u("design:type", Object), u("design:paramtypes", [])], Ec.prototype, "_dater", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Ec.prototype, "print", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (Em = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.DebugLevel) == "function" ? Em : Object]), u("design:returntype", typeof (Im = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.Pinter) == "function" ? Im : Object)], Ec.prototype, "createPrinter", null), l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (Tm = typeof BFChainUtilLogger < "u" && BFChainUtilLogger.DebugLevel) == "function" ? Tm : Object]), u("design:returntype", Boolean)], Ec.prototype, "deletePrinter", null), (function(i) {
       i[i.log = 0] = "log", i[i.info = 1] = "info", i[i.warn = 2] = "warn", i[i.trace = 3] = "trace", i[i.success = 4] = "success", i[i.error = 5] = "error";
     })(Fr || (Fr = {}));
-    const ws = class _ws extends RI {
+    var ws = class _ws extends RI {
       constructor() {
         super(...arguments), this.formatters = { j(e, t) {
           try {
@@ -6373,22 +6377,22 @@ const require_bioforest_chain_bundle = __commonJS({
       printArgs(e, t, r = e) {
         switch (r.level) {
           case Fr.log:
-            
+            console.log(...t);
             break;
           case Fr.info:
-            
+            console.info(...t);
             break;
           case Fr.warn:
-            
+            console.warn(...t);
             break;
           case Fr.trace:
-            
+            console.trace(...t);
             break;
           case Fr.success:
-            
+            console.info(...t);
             break;
           case Fr.error:
-            
+            console.error(...t);
         }
       }
     };
@@ -6413,9 +6417,9 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.buildHTML.tmpHTML || this.toString();
       }
     }`)(), l([oe, u("design:type", Object), u("design:paramtypes", [])], ws.prototype, "colors", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], ws.prototype, "storage", null);
-    const BI = () => new ws();
-    const PI = BI();
-    const Do = { log: "inherit", info: "inherit", trace: "inherit", success: "inherit", warn: "inherit", error: "inherit" };
+    var BI = () => new ws();
+    var PI = BI();
+    var Do = { log: "inherit", info: "inherit", trace: "inherit", success: "inherit", warn: "inherit", error: "inherit" };
     function Fo(i, e, t) {
       const r = PI.create(i);
       return e === void 0 ? r.forceSetUseColors(false) : r.forceSetUseColors(true), r.createPrinter(e === "inherit" ? r.color : e, t);
@@ -6435,34 +6439,34 @@ const require_bioforest_chain_bundle = __commonJS({
         return Fo(i, Do.error, Fr.error);
       } });
     }
-    const fA = !!(typeof process < "u" && process && process.versions && process.versions.node);
-    const LI = typeof process < "u" && (process.platform === "win32" || /^(msys|cygwin)$/.test(process.env && {}.OSTYPE));
-    const ty = (i, e) => {
+    var fA = !!(typeof process < "u" && process && process.versions && process.versions.node);
+    var LI = typeof process < "u" && (process.platform === "win32" || /^(msys|cygwin)$/.test(process.env && {}.OSTYPE));
+    var ty = (i, e) => {
       try {
         return new Function(`return typeof ${i} === "${e}"`)();
       } catch {
         return false;
       }
     };
-    const gA = ty("cordova", "object");
-    const Ol = ty("navigator", "object");
-    const HI = Ol && /Android/i.test(navigator.userAgent);
-    const vI = Ol && /iPhone|iPod|iPad/i.test(navigator.userAgent);
-    const ry = Ol && ty("document", "object");
-    const dA = Ol && !ry;
-    const Ss = { getGlobalFlag(i, e = "") {
+    var gA = ty("cordova", "object");
+    var Ol = ty("navigator", "object");
+    var HI = Ol && /Android/i.test(navigator.userAgent);
+    var vI = Ol && /iPhone|iPod|iPad/i.test(navigator.userAgent);
+    var ry = Ol && ty("document", "object");
+    var dA = Ol && !ry;
+    var Ss = { getGlobalFlag(i, e = "") {
       const t = this.global();
       return t[i] || t.process && t.process.env && t.process.env[i] || t.location && t.location.href && new URL(t.location.href).searchParams.get(i) || t.localStorage && t.localStorage.getItem(i) || e;
     }, global() {
-      const i = typeof globalThis === "object" ? globalThis : typeof self === "object" ? self.globalThis = self : typeof global === "object" ? global.globalThis = global : Function("return this")();
+      const i = typeof globalThis == "object" ? globalThis : typeof self == "object" ? self.globalThis = self : typeof global == "object" ? global.globalThis = global : Function("return this")();
       return this.global = () => i, i;
     }, platformName() {
       if (fA) return "Nodejs";
       const i = HI ? "Android" : vI ? "IOS" : "unknown";
       return gA ? "Cordova-" + i : ry ? "WebMaster-" + i : dA ? "WebWorker-" + i : "UNKNOWN";
     }, getChannel: () => "UNKNOWN", getBusiness: () => "UNKNOWN" };
-    let wm;
-    let bc;
+    var wm;
+    var bc;
     function kI(i, e, t, r, n, s) {
       let o = `${e.toLowerCase()}-${t.toLowerCase()}`;
       r && (o += `:${r}`), n && (o += `/${n}`);
@@ -6470,7 +6474,7 @@ const require_bioforest_chain_bundle = __commonJS({
       return new Proxy({}, { get: (h, f) => h[f] || a[f] || p[f] });
     }
     function DI(i) {
-      const e = typeof i.platform === "string" ? i.platform : Ss.getGlobalFlag("PLATFORM") || Ss.platformName(), t = typeof i.platform === "string" ? i.platform : Ss.getGlobalFlag("CHANNEL") || Ss.getChannel(), r = typeof i.platform === "string" ? i.platform : Ss.getGlobalFlag("BUSINESS") || Ss.getBusiness();
+      const e = typeof i.platform == "string" ? i.platform : Ss.getGlobalFlag("PLATFORM") || Ss.platformName(), t = typeof i.platform == "string" ? i.platform : Ss.getGlobalFlag("CHANNEL") || Ss.getChannel(), r = typeof i.platform == "string" ? i.platform : Ss.getGlobalFlag("BUSINESS") || Ss.getBusiness();
       return function(n, s, o) {
         return kI(o.platformName || e, o.channelName || t, o.businessName || r, n, s, o.errorCodeMap);
       };
@@ -6478,17 +6482,17 @@ const require_bioforest_chain_bundle = __commonJS({
     (function(i) {
       i.PLATFORM = "exception.platform", i.CHANNEL = "exception.channel", i.BUSINESS = "exception.business";
     })(bc || (bc = {}));
-    let qo = class {
+    var qo = class {
       constructor(i) {
         this.moduleMap = i, this.platformName = void 0, this.channelName = void 0, this.businessName = void 0, this.exceptionGeneratorDefiner = DI({ platform: this.platformName, channel: this.channelName, business: this.businessName });
       }
     };
-    l([D(bc.PLATFORM, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "platformName", void 0), l([D(bc.CHANNEL, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "channelName", void 0), l([D(bc.BUSINESS, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "businessName", void 0), qo = l([J("bfchain-util:custom-exception", { singleton: true }), u("design:paramtypes", [typeof (wm = ze !== void 0 && ze) === "function" ? wm : Object])], qo);
-    const FI = bt(qo);
+    l([D(bc.PLATFORM, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "platformName", void 0), l([D(bc.CHANNEL, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "channelName", void 0), l([D(bc.BUSINESS, { dynamics: true, optional: true }), u("design:type", String)], qo.prototype, "businessName", void 0), qo = l([J("bfchain-util:custom-exception", { singleton: true }), u("design:paramtypes", [typeof (wm = ze !== void 0 && ze) == "function" ? wm : Object])], qo);
+    var FI = bt(qo);
     function yA(i, e, t) {
       return FI.exceptionGeneratorDefiner(i, e, Object.assign({ errorCodeMap: uA, businessName: "util" }, t));
     }
-    const mA = class extends qe {
+    var mA = class extends qe {
     };
     mA.TYPE = "IdempotentException";
     function ee(i, e) {
@@ -6498,8 +6502,8 @@ const require_bioforest_chain_bundle = __commonJS({
         return r ?? (r = t.getException(mA));
       } } });
     }
-    let yu;
-    const { ArgumentFormatException: Yu, error: Jb, IllegalStateException: $I } = ee("MODEL", "transactionModel");
+    var yu;
+    var { ArgumentFormatException: Yu, error: Jb, IllegalStateException: $I } = ee("MODEL", "transactionModel");
     (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       for (const n in v) {
@@ -6511,8 +6515,8 @@ const require_bioforest_chain_bundle = __commonJS({
         t.set(n, s), r.set(s, n);
       }), Re.VK = i, Re.KV = e, Re.VM = t, Re.MV = r;
     })();
-    const Qu = /* @__PURE__ */ new WeakMap();
-    let Wi = yu = class extends Y {
+    var Qu = /* @__PURE__ */ new WeakMap();
+    var Wi = yu = class extends Y {
       get transaction() {
         let e = Qu.get(this._trs_bytes);
         if (!e) {
@@ -6552,9 +6556,9 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(yu.INC++, "string"), u("design:type", String)], Wi.prototype, "_trs_base_type", void 0);
     l([A.d(yu.INC++, "bytes"), u("design:type", Uint8Array)], Wi.prototype, "_trs_bytes", void 0);
     Wi = yu = l([R.d("SomeTransactionModel")], Wi);
-    let mu;
-    let Co;
-    let Xi = mu = class extends Y {
+    var mu;
+    var Co;
+    var Xi = mu = class extends Y {
       toJSON() {
         return { remainAssetPrealnum: this.remainAssetPrealnum, frozenMainAssetPrealnum: this.frozenMainAssetPrealnum };
       }
@@ -6563,7 +6567,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(mu.INC++, "string"), u("design:type", String)], Xi.prototype, "remainAssetPrealnum", void 0);
     l([A.d(mu.INC++, "string"), u("design:type", String)], Xi.prototype, "frozenMainAssetPrealnum", void 0);
     Xi = mu = l([R.d("AssetPrealnumModel")], Xi);
-    let qt = Co = class extends Wi {
+    var qt = Co = class extends Wi {
       get signature() {
         return xe(this.signatureBuffer);
       }
@@ -6601,12 +6605,12 @@ const require_bioforest_chain_bundle = __commonJS({
     function ny(i, e, t) {
       const r = [];
       for (const n in i) r[r.length] = { sortKey: n, value: t(i[n]) };
-      r.toSorted((n, s) => n.sortKey > s.sortKey ? 1 : -1), e.clear();
+      r.sort((n, s) => n.sortKey > s.sortKey ? 1 : -1), e.clear();
       for (const n of r) e.set(n.sortKey, n.value);
       return e;
     }
-    let rc;
-    let Kn = rc = class extends Y {
+    var rc;
+    var Kn = rc = class extends Y {
       toJSON() {
         return { changeAmount: this.changeAmount, changeCount: this.changeCount, moveAmount: this.moveAmount, transactionCount: this.transactionCount };
       }
@@ -6617,9 +6621,9 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(rc.INC++, "string", "required", "0"), u("design:type", String)], Kn.prototype, "moveAmount", void 0);
     l([A.d(rc.INC++, "uint32", "required", 0), u("design:type", Number)], Kn.prototype, "transactionCount", void 0);
     Kn = rc = l([R.d("CountAndAmountStatisticModel")], Kn);
-    let _u;
-    let sy;
-    let qi = _u = class extends Y {
+    var _u;
+    var sy;
+    var qi = _u = class extends Y {
       get typeStatisticMap() {
         return this._typeStatisticMap || (this._typeStatisticMap = new pi(this.typeStatisticHashMap));
       }
@@ -6637,7 +6641,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(_u.INC++, "string", Kn), u("design:type", Object)], qi.prototype, "typeStatisticHashMap", void 0);
     l([A.d(_u.INC++, Kn), u("design:type", Kn)], qi.prototype, "total", void 0);
     qi = _u = l([R.d("AssetStatisticModel")], qi);
-    let Zi = sy = class extends Y {
+    var Zi = sy = class extends Y {
       get assetTypeTypeStatisticMap() {
         return this._assetTypeTypeStatisticMap || (this._assetTypeTypeStatisticMap = new pi(this.assetTypeTypeStatisticHashMap));
       }
@@ -6654,8 +6658,8 @@ const require_bioforest_chain_bundle = __commonJS({
     Zi.INC = 1;
     l([fr.d(sy.INC++, "string", qi), u("design:type", Object)], Zi.prototype, "assetTypeTypeStatisticHashMap", void 0);
     Zi = sy = l([R.d("AssetTypeAssetStatisticModel")], Zi);
-    let Bi;
-    let nn = Bi = class extends Y {
+    var Bi;
+    var nn = Bi = class extends Y {
       get magicAssetTypeTypeStatisticMap() {
         return this._magicAssetTypeTypeStatisticMap || (this._magicAssetTypeTypeStatisticMap = new pi(this.magicAssetTypeTypeStatisticHashMap));
       }
@@ -6687,16 +6691,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(Bi.INC++, "string", "uint32"), u("design:type", Object)], nn.prototype, "numberOfTransactionsHashMap", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], nn.prototype, "getBytes", null);
     nn = Bi = l([R.d("StatisticInfoModel")], nn);
-    let _s;
-    let nc;
-    const UI = new ss((i) => new pi(i.remark));
-    const bm = /* @__PURE__ */ new WeakMap();
-    const Wu = /* @__PURE__ */ new WeakMap();
-    let xf = class extends Y {
+    var _s;
+    var nc;
+    var UI = new ss((i) => new pi(i.remark));
+    var bm = /* @__PURE__ */ new WeakMap();
+    var Wu = /* @__PURE__ */ new WeakMap();
+    var xf = class extends Y {
     };
     l([A.d(1, "uint32"), u("design:type", Number)], xf.prototype, "version", void 0);
     xf = l([R.d("BlockVersionReader")], xf);
-    let sn = _s = class extends Y {
+    var sn = _s = class extends Y {
       get payloadHash() {
         return xe(this.payloadHashBuffer);
       }
@@ -6757,7 +6761,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(_s.INC++, nn), u("design:type", nn)], sn.prototype, "statisticInfo", void 0);
     l([A.d(_s.INC++, "bytes", "repeated"), u("design:type", Array)], sn.prototype, "transactionInBlockBufferList", void 0);
     sn = _s = l([R.d("BlockTransactionInfo")], sn);
-    let Nt = nc = class extends Y {
+    var Nt = nc = class extends Y {
       get signature() {
         return xe(this.signatureBuffer);
       }
@@ -6852,8 +6856,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(nc.INC++, sn), u("design:type", sn)], Nt.prototype, "transactionInfo", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", [Boolean, Boolean, Object]), u("design:returntype", void 0)], Nt.prototype, "getBytes", null);
     Nt = nc = l([R.d("Block")], Nt);
-    let iy;
-    let eo = iy = class extends Y {
+    var iy;
+    var eo = iy = class extends Y {
       get assetChangeHash() {
         if (this.assetChangeBuffer !== void 0) return xe(this.assetChangeBuffer);
       }
@@ -6876,16 +6880,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(iy.INC++, "bytes", "optional"), u("design:type", Uint8Array)], eo.prototype, "assetChangeBuffer", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], eo.prototype, "getBytes", null);
     eo = iy = l([R.d("CommonAssetModel")], eo);
-    let Vp = class extends Y {
+    var Vp = class extends Y {
       toJSON() {
         return { commonAsset: this.commonAsset.toJSON() };
       }
     };
     l([A.d(1, eo), u("design:type", eo)], Vp.prototype, "commonAsset", void 0);
     Vp = l([R.d("CommonBlockAssetModel")], Vp);
-    let Au;
-    let oy;
-    let ma = Au = class extends Y {
+    var Au;
+    var oy;
+    var ma = Au = class extends Y {
       toJSON() {
         return { address: this.address, numberOfForgeEntities: this.numberOfForgeEntities };
       }
@@ -6894,7 +6898,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Au.INC++, "string"), u("design:type", String)], ma.prototype, "address", void 0);
     l([A.d(Au.INC++, "uint32"), u("design:type", Number)], ma.prototype, "numberOfForgeEntities", void 0);
     ma = Au = l([R.d("NextRoundGeneratorModel")], ma);
-    let _a = oy = class extends Y {
+    var _a = oy = class extends Y {
       get nextRoundGeneratorAddressList() {
         if (!this._next_round_generator_address_list) {
           this._next_round_generator_address_list = [];
@@ -6909,15 +6913,15 @@ const require_bioforest_chain_bundle = __commonJS({
     _a.INC = 1;
     l([A.d(oy.INC++, ma, "repeated"), u("design:type", Array)], _a.prototype, "nextRoundGenerators", void 0);
     _a = oy = l([R.d("RoundGeneratorModel")], _a);
-    let rt;
-    let Gp = class extends Y {
+    var rt;
+    var Gp = class extends Y {
       toJSON() {
         return { port: this.port };
       }
     };
     l([A.d(1, "uint32"), u("design:type", Number)], Gp.prototype, "port", void 0);
     Gp = l([R.d("PortsModel")], Gp);
-    let Ze = rt = class extends _a {
+    var Ze = rt = class extends _a {
       get beginEpochTime() {
         return this.beginEpochTimeLong.toNumber();
       }
@@ -6984,15 +6988,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(rt.INC++, "bytes", "optional"), u("design:type", Uint8Array)], Ze.prototype, "assetChangeBuffer", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], Ze.prototype, "getBytes", null);
     Ze = rt = l([R.d("GenesisAssetModel")], Ze);
-    let Kp = class extends Y {
+    var Kp = class extends Y {
       toJSON() {
         return { genesisAsset: this.genesisAsset.toJSON() };
       }
     };
     l([A.d(1, Ze), u("design:type", Ze)], Kp.prototype, "genesisAsset", void 0);
     Kp = l([R.d("GenesisBlockAssetModel")], Kp);
-    let Eu;
-    let to = Eu = class extends _a {
+    var Eu;
+    var to = Eu = class extends _a {
       get assetChangeHash() {
         if (this.assetChangeBuffer !== void 0) return xe(this.assetChangeBuffer);
       }
@@ -7021,39 +7025,39 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Eu.INC++, "bytes"), u("design:type", Uint8Array)], to.prototype, "chainOnChainBuffer", void 0);
     l([Vs, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], to.prototype, "getBytes", null);
     to = Eu = l([R.d("RoundLastAssetModel")], to);
-    let zp = class extends Y {
+    var zp = class extends Y {
       toJSON() {
         return { roundLastAsset: this.roundLastAsset.toJSON() };
       }
     };
     l([A.d(1, to), u("design:type", to)], zp.prototype, "roundLastAsset", void 0);
     zp = l([R.d("RoundLastBlockAssetModel")], zp);
-    let Aa = class extends Nt {
+    var Aa = class extends Nt {
     };
     l([A.d(21, Vp), u("design:type", Vp)], Aa.prototype, "asset", void 0);
     Aa = l([R.d("CommonBlock")], Aa);
-    let ro = class extends Nt {
+    var ro = class extends Nt {
     };
     l([A.d(21, Kp), u("design:type", Kp)], ro.prototype, "asset", void 0);
     ro = l([R.d("GenesisBlock")], ro);
-    let Ea = class extends Nt {
+    var Ea = class extends Nt {
     };
     l([A.d(22, zp), u("design:type", zp)], Ea.prototype, "asset", void 0);
     Ea = l([R.d("RoundLastBlock")], Ea);
-    let Iu;
-    const { ArgumentFormatException: Nm } = ee("MODEL", "blockModel");
-    let Kt;
+    var Iu;
+    var { ArgumentFormatException: Nm } = ee("MODEL", "blockModel");
+    var Kt;
     (function(i) {
       i[i.GENESIS = 0] = "GENESIS", i[i.COMMON = 1] = "COMMON", i[i.ROUNDEND = 2] = "ROUNDEND";
     })(Kt || (Kt = {}));
-    const Zl = (() => {
+    var Zl = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[Kt.GENESIS, ro], [Kt.COMMON, Aa], [Kt.ROUNDEND, Ea]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
       }), { KM: i, MK: e };
     })();
-    const Xu = /* @__PURE__ */ new WeakMap();
-    let mi = Iu = class extends Y {
+    var Xu = /* @__PURE__ */ new WeakMap();
+    var mi = Iu = class extends Y {
       get block() {
         let e = Xu.get(this._block_bytes);
         if (!e) {
@@ -7090,30 +7094,30 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Iu.INC++, Kt), u("design:type", Number)], mi.prototype, "_block_type", void 0);
     l([A.d(Iu.INC++, "bytes"), u("design:type", Uint8Array)], mi.prototype, "_block_bytes", void 0);
     mi = Iu = l([R.d("SomeBlockModel")], mi);
-    let jp = class extends Y {
+    var jp = class extends Y {
       toJSON() {
         return { genesisBlock: this.genesisBlock };
       }
     };
     l([A.d(1, "string"), u("design:type", String)], jp.prototype, "genesisBlock", void 0);
     jp = l([R.d("RegisterChainModel")], jp);
-    let Jp = class extends Y {
+    var Jp = class extends Y {
       toJSON() {
         return { registerChain: this.registerChain.toJSON() };
       }
     };
     l([A.d(1, jp), u("design:type", jp)], Jp.prototype, "registerChain", void 0);
     Jp = l([R.d("RegisterChainAssetModel")], Jp);
-    let ay;
-    let Ia = ay = class extends Je {
+    var ay;
+    var Ia = ay = class extends Je {
     };
     l([A.d(ay.INC++, Jp), u("design:type", Jp)], Ia.prototype, "asset", void 0);
     Ia = ay = l([R.d("RegisterChainTransaction")], Ia);
-    let cy;
-    const { ArgumentFormatException: xm, error: EN, IllegalStateException: IN } = ee("MODEL", "transactionModel");
-    const Om = /* @__PURE__ */ new WeakMap();
-    const qu = /* @__PURE__ */ new WeakMap();
-    let Ta = cy = class extends Y {
+    var cy;
+    var { ArgumentFormatException: xm, error: EN, IllegalStateException: IN } = ee("MODEL", "transactionModel");
+    var Om = /* @__PURE__ */ new WeakMap();
+    var qu = /* @__PURE__ */ new WeakMap();
+    var Ta = cy = class extends Y {
       get transactions() {
         const { transactionBufferList: e } = this;
         let t = Om.get(e);
@@ -7155,15 +7159,15 @@ const require_bioforest_chain_bundle = __commonJS({
     Ta.INC = 1;
     l([A.d(cy.INC++, "bytes", "repeated"), u("design:type", Array)], Ta.prototype, "transactionBufferList", void 0);
     Ta = cy = l([R.d("MultipleModel")], Ta);
-    let Yp = class extends Y {
+    var Yp = class extends Y {
       toJSON() {
         return { multiple: this.multiple.toJSON() };
       }
     };
     l([A.d(1, Ta), u("design:type", Ta)], Yp.prototype, "multiple", void 0);
     Yp = l([R.d("MultipleAssetModel")], Yp);
-    let py;
-    let Sa = py = class extends Je {
+    var py;
+    var Sa = py = class extends Je {
       as(e, t) {
         const r = Re.MV.get(e), n = Re.trsTypeToV(this.type);
         if (r === n) if (t) {
@@ -7188,11 +7192,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(py.INC++, Yp), u("design:type", Yp)], Sa.prototype, "asset", void 0);
     Sa = py = l([R.d("MultipleTransaction")], Sa);
-    let ly;
-    const { ArgumentFormatException: Cm, error: bN, IllegalStateException: NN } = ee("MODEL", "transactionModel");
-    const Zu = /* @__PURE__ */ new WeakMap();
-    const ef = /* @__PURE__ */ new WeakMap();
-    let wa = ly = class extends Y {
+    var ly;
+    var { ArgumentFormatException: Cm, error: bN, IllegalStateException: NN } = ee("MODEL", "transactionModel");
+    var Zu = /* @__PURE__ */ new WeakMap();
+    var ef = /* @__PURE__ */ new WeakMap();
+    var wa = ly = class extends Y {
       get transaction() {
         const { transactionBuffer: e } = this;
         let t = Zu.get(e);
@@ -7230,21 +7234,21 @@ const require_bioforest_chain_bundle = __commonJS({
     wa.INC = 1;
     l([A.d(ly.INC++, "bytes"), u("design:type", Uint8Array)], wa.prototype, "transactionBuffer", void 0);
     wa = ly = l([R.d("PromiseModel")], wa);
-    let Qp = class extends Y {
+    var Qp = class extends Y {
       toJSON() {
         return { promise: this.promise.toJSON() };
       }
     };
     l([A.d(1, wa), u("design:type", wa)], Qp.prototype, "promise", void 0);
     Qp = l([R.d("PromiseAssetModel")], Qp);
-    let hy;
-    let no = hy = class extends Ve {
+    var hy;
+    var no = hy = class extends Ve {
     };
     l([A.d(hy.INC++, Qp), u("design:type", Qp)], no.prototype, "asset", void 0);
     no = hy = l([R.d("PromiseTransaction")], no);
-    let Tu;
-    const { ArgumentFormatException: Rm } = ee("MODEL", "transactionModel");
-    let so = Tu = class extends Y {
+    var Tu;
+    var { ArgumentFormatException: Rm } = ee("MODEL", "transactionModel");
+    var so = Tu = class extends Y {
       get promiseId() {
         return xe(this.promiseIdBuffer);
       }
@@ -7283,15 +7287,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Tu.INC++, "bytes"), u("design:type", Uint8Array)], so.prototype, "promiseIdBuffer", void 0);
     l([A.d(Tu.INC++, "bytes"), u("design:type", Uint8Array)], so.prototype, "transactionBuffer", void 0);
     so = Tu = l([R.d("PromiseResolveModel")], so);
-    let Wp = class extends Y {
+    var Wp = class extends Y {
       toJSON() {
         return { resolve: this.resolve.toJSON() };
       }
     };
     l([A.d(1, so), u("design:type", so)], Wp.prototype, "resolve", void 0);
     Wp = l([R.d("PromiseResolveAssetModel")], Wp);
-    let uy;
-    let ba = uy = class extends Je {
+    var uy;
+    var ba = uy = class extends Je {
       as(e, t) {
         const r = Re.MV.get(e);
         let n = Re.trsTypeToV(this.type);
@@ -7310,20 +7314,20 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(uy.INC++, Wp), u("design:type", Wp)], ba.prototype, "asset", void 0);
     ba = uy = l([R.d("PromiseResolveTransaction")], ba);
-    let kt;
+    var kt;
     (function(i) {
       i.TEXT = "text", i.ADDRESS = "address", i.PUBLICKEY = "publicKey", i.SIGNATURE = "signature", i.NUMBER = "number", i.CALC = "calc";
     })(kt || (kt = {}));
-    let Na;
+    var Na;
     (function(i) {
       i.STRING = "string", i.LITERAL = "literal";
     })(Na || (Na = {}));
-    let Bm;
+    var Bm;
     (function(i) {
       i.FLOAT_32 = "float32", i.FLOAT_64 = "float64", i.FLOAT_128 = "float128", i.FLOAT_big = "bigfloat";
     })(Bm || (Bm = {}));
-    let Ro;
-    let zn = Ro = class extends Y {
+    var Ro;
+    var zn = Ro = class extends Y {
       toJSON() {
         const e = { type: this.type, name: this.name, keyPath: this.keyPath };
         return this.pattern && (e.pattern = this.pattern), this.repeat !== void 0 && (e.repeat = this.repeat), e;
@@ -7336,8 +7340,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Ro.INC++, "string", "optional"), u("design:type", String)], zn.prototype, "pattern", void 0);
     l([A.d(Ro.INC++, "bool", "optional"), u("design:type", Boolean)], zn.prototype, "repeat", void 0);
     zn = Ro = l([R.d("BaseInputModel")], zn);
-    let Bo;
-    let Ls = Bo = class extends zn {
+    var Bo;
+    var Ls = Bo = class extends zn {
       toJSON() {
         const e = { ...super.toJSON(), format: this.format };
         return this.base && (e.base = this.base.toJSON()), this.min && (e.min = this.min.toJSON()), this.max && (e.max = this.max.toJSON()), this.step && (e.step = this.step.toJSON()), e;
@@ -7349,7 +7353,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Bo.INC++, Nr, "optional"), u("design:type", Nr)], Ls.prototype, "step", void 0);
     l([A.d(Bo.INC++, "string", "required", Na.LITERAL), u("design:type", String)], Ls.prototype, "format", void 0);
     Ls = Bo = l([R.d("NumberInputModel")], Ls);
-    const Ct = class _Ct {
+    var Ct = class _Ct {
       constructor(e, t) {
         if (Object.defineProperty(this, "numerator", { enumerable: true, configurable: true, writable: true, value: e }), Object.defineProperty(this, "denominator", { enumerable: true, configurable: true, writable: true, value: t }), t < 0n) throw new RangeError("invalid denominator: should not be negative number.");
       }
@@ -7401,22 +7405,22 @@ const require_bioforest_chain_bundle = __commonJS({
         }
         d = d.padStart(o, "0");
         let y = d.slice(0, -s) + "." + d.slice(-s);
-        return y.endsWith("0") && (y = y.replace(/[.0]+$/, "")), f + y;
+        return y.endsWith("0") && (y = y.replace(/[\.0]+$/, "")), f + y;
       }
     };
-    let Nc;
+    var Nc;
     (function(i) {
       i[i.FLOOR = 0] = "FLOOR", i[i.ROUND = 1] = "ROUND", i[i.CEIL = 2] = "CEIL";
     })(Nc || (Nc = {}));
-    const fy = (i, e, t) => {
+    var fy = (i, e, t) => {
       if (i.denominator === e.denominator) return new Ct(t(i.numerator, e.numerator, i.denominator), i.denominator);
       const r = i.numerator * e.denominator, n = e.numerator * i.denominator, s = i.denominator * e.denominator;
       return new Ct(t(r, n, s), i.denominator * e.denominator);
     };
-    const VI = (i, e) => fy(i, e, (t, r) => t + r);
-    const GI = (i, e) => fy(i, e, (t, r) => t - r);
-    const _A = (i, e) => fy(i, e, (t, r) => t * r);
-    const KI = (i, e) => _A(i, new Ct(e.denominator, e.numerator));
+    var VI = (i, e) => fy(i, e, (t, r) => t + r);
+    var GI = (i, e) => fy(i, e, (t, r) => t - r);
+    var _A = (i, e) => fy(i, e, (t, r) => t * r);
+    var KI = (i, e) => _A(i, new Ct(e.denominator, e.numerator));
     new Ct(0n, 0n);
     new Ct(1n, 1n);
     new Ct(0n, 1n);
@@ -7427,12 +7431,12 @@ const require_bioforest_chain_bundle = __commonJS({
     Ct.from(Math.LOG2E);
     Ct.from(Math.LOG10E);
     Ct.from(Math.SQRT1_2);
-    const Dr = class {
+    var Dr = class {
       constructor(e, t = {}) {
         Object.defineProperty(this, "label", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "isBinary", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "isPrefix", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "precedence", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "updateContext", { enumerable: true, configurable: true, writable: true, value: void 0 }), this.label = e, this.isBinary = !!t.isBinary, this.isPrefix = !!t.isPrefix, this.precedence = t.precedence ?? -1;
       }
     };
-    const Tt = { start: new Dr("start"), end: new Dr("end"), parenL: new Dr("("), parenR: new Dr(")"), numeric: new Dr("numeric"), identifier: new Dr("identifier"), plus: new Dr("+", { isBinary: true, precedence: 13 }), minus: new Dr("-", { isBinary: true, precedence: 13 }), times: new Dr("*", { isBinary: true, precedence: 14 }), div: new Dr("/", { isBinary: true, precedence: 14 }), prefixPlus: new Dr("+", { isPrefix: true, precedence: 16 }), prefixMinus: new Dr("-", { isPrefix: true, precedence: 16 }) };
+    var Tt = { start: new Dr("start"), end: new Dr("end"), parenL: new Dr("("), parenR: new Dr(")"), numeric: new Dr("numeric"), identifier: new Dr("identifier"), plus: new Dr("+", { isBinary: true, precedence: 13 }), minus: new Dr("-", { isBinary: true, precedence: 13 }), times: new Dr("*", { isBinary: true, precedence: 14 }), div: new Dr("/", { isBinary: true, precedence: 14 }), prefixPlus: new Dr("+", { isPrefix: true, precedence: 16 }), prefixMinus: new Dr("-", { isPrefix: true, precedence: 16 }) };
     Tt.parenL.updateContext = function() {
       this.allowPrefix = true;
     };
@@ -7445,7 +7449,7 @@ const require_bioforest_chain_bundle = __commonJS({
     Tt.identifier.updateContext = function() {
       this.allowPrefix = false;
     };
-    const gy = class {
+    var gy = class {
       constructor(e) {
         Object.defineProperty(this, "type", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "start", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "end", { enumerable: true, configurable: true, writable: true, value: void 0 }), this.type = "", this.start = e, this.end = e;
       }
@@ -7468,36 +7472,36 @@ const require_bioforest_chain_bundle = __commonJS({
       for (let r = 0; r < e.length; r++) e.charCodeAt(r) !== 95 && t.push(e[r]);
       return t.length !== e.length && (e = t.join("")), e;
     }
-    const Pm = ["+", "-", "*", "/", "(", ")"];
-    const Hs = [];
+    var Pm = ["+", "-", "*", "/", "(", ")"];
+    var Hs = [];
     function JI(i) {
       Hs.includes(i) || Hs.unshift(i);
     }
     function IA(i, e) {
-      if (typeof i !== "string" || !/^\S+$/.test(i)) throw new Error("The custom operator should be a non-empty string");
+      if (typeof i != "string" || !/^\S+$/.test(i)) throw new Error("The custom operator should be a non-empty string");
       if (Pm.includes(i)) throw new Error(`The custom operator cannot use reserved character, including: ${Pm.join(", ")}`);
       if (AA(i.charCodeAt(0))) throw new Error("The custom operator cannot start with a possible number, including: `.`, 0-9");
       if (i.charCodeAt(0) === 63) throw new Error("The custom operator cannot start with `?`");
-      if (e != null && (typeof e !== "number" || e < 0)) throw new Error("The precedence should be a number greater than 0");
+      if (e != null && (typeof e != "number" || e < 0)) throw new Error("The precedence should be a number greater than 0");
     }
-    const TA = class {
+    var TA = class {
       constructor(e, t, r, n = false) {
         Object.defineProperty(this, "value", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "codes", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "type", { enumerable: true, configurable: true, writable: true, value: void 0 }), Object.defineProperty(this, "calc", { enumerable: true, configurable: true, writable: true, value: void 0 }), this.value = e, this.codes = e.split("").map((s, o) => e.charCodeAt(o)), this.type = new Dr(e, { isBinary: !n, isPrefix: n, precedence: t }), this.calc = r;
       }
     };
     function YI(i, e, t) {
-      if (IA(i, e), typeof t !== "function") throw new Error("Expected to receive a calculation method, like: `(left, right) => String(left - right)`");
+      if (IA(i, e), typeof t != "function") throw new Error("Expected to receive a calculation method, like: `(left, right) => String(left - right)`");
       return new TA(i, e, t, false);
     }
     function QI(i, e, t) {
-      if (IA(i, e), typeof t !== "function") throw new Error("Expected to receive a calculation method, like: `(value) => String(Math.abs(value))`");
+      if (IA(i, e), typeof t != "function") throw new Error("Expected to receive a calculation method, like: `(value) => String(Math.abs(value))`");
       return new TA(i, e, t, true);
     }
-    let SA = { "+": (i, e) => String(Number(i) + Number(e)), "-": (i, e) => String(Number(i) - Number(e)), "*": (i, e) => String(Number(i) * Number(e)), "/": (i, e) => String(Number(i) / Number(e)) };
+    var SA = { "+": (i, e) => String(Number(i) + Number(e)), "-": (i, e) => String(Number(i) - Number(e)), "*": (i, e) => String(Number(i) * Number(e)), "/": (i, e) => String(Number(i) / Number(e)) };
     function WI(i) {
       const e = ["+", "-", "*", "/"];
       i = i || {}, e.forEach((t) => {
-        if (typeof i[t] !== "function") throw new Error(`Missing method for calculation operator \`${t}\``);
+        if (typeof i[t] != "function") throw new Error(`Missing method for calculation operator \`${t}\``);
       }), SA = i;
     }
     function XI(i, e, t) {
@@ -7550,7 +7554,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return i;
     }
-    const Nn = class _Nn {
+    var Nn = class _Nn {
       static evaluate(e, t) {
         return new _Nn(e).compile()(t);
       }
@@ -7724,15 +7728,15 @@ const require_bioforest_chain_bundle = __commonJS({
     Object.defineProperty(Nn, "TokenType", { enumerable: true, configurable: true, writable: true, value: Dr });
     Object.defineProperty(Nn, "tokenTypes", { enumerable: true, configurable: true, writable: true, value: Tt });
     Object.defineProperty(Nn, "installedOperators", { enumerable: true, configurable: true, writable: true, value: Hs });
-    const wA = Nn.evaluate;
+    var wA = Nn.evaluate;
     Nn.createBinaryOperator = YI;
     Nn.createUnaryOperator = QI;
     Nn.useOperator = JI;
     Nn.useAdapter = WI;
-    const ZI = { "+": (i, e) => VI(Ct.from(i), Ct.from(e)).toString(), "-": (i, e) => GI(Ct.from(i), Ct.from(e)).toString(), "*": (i, e) => _A(Ct.from(i), Ct.from(e)).toString(), "/": (i, e) => KI(Ct.from(i), Ct.from(e)).toString() };
+    var ZI = { "+": (i, e) => VI(Ct.from(i), Ct.from(e)).toString(), "-": (i, e) => GI(Ct.from(i), Ct.from(e)).toString(), "*": (i, e) => _A(Ct.from(i), Ct.from(e)).toString(), "/": (i, e) => KI(Ct.from(i), Ct.from(e)).toString() };
     Nn.useAdapter(ZI);
-    let Su;
-    let Xp = Su = class extends Ls {
+    var Su;
+    var Xp = Su = class extends Ls {
       toJSON() {
         return { ...super.toJSON(), calc: this.calc, precision: this.precision };
       }
@@ -7743,27 +7747,27 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Su.INC++, "string"), u("design:type", String)], Xp.prototype, "calc", void 0);
     l([A.d(Su.INC++, "string"), u("design:type", String)], Xp.prototype, "precision", void 0);
     Xp = Su = l([R.d("CalcInputModel")], Xp);
-    let xa = class extends zn {
+    var xa = class extends zn {
     };
     xa = l([R.d("TextInputModel")], xa);
-    let Of = class extends xa {
+    var Of = class extends xa {
     };
     Of = l([R.d("AddressInputModel")], Of);
-    let Cf = class extends xa {
+    var Cf = class extends xa {
     };
     Cf = l([R.d("SignatureInputModel")], Cf);
-    let Rf = class extends xa {
+    var Rf = class extends xa {
     };
     Rf = l([R.d("PublicKeyInputModel")], Rf);
-    const Mm = (() => {
+    var Mm = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[kt.NUMBER, Ls], [kt.CALC, Xp], [kt.TEXT, xa], [kt.ADDRESS, Of], [kt.PUBLICKEY, Rf], [kt.SIGNATURE, Cf]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
       }), { VM: i, MV: e };
     })();
-    let wu;
-    const { ArgumentFormatException: Vl } = ee("MODEL", "transactionModel");
-    let io = wu = class extends Y {
+    var wu;
+    var { ArgumentFormatException: Vl } = ee("MODEL", "transactionModel");
+    var io = wu = class extends Y {
       get inputs() {
         return this.inputBufferList.map((e) => {
           const t = zn.decode(e), r = Mm.VM.get(t.type);
@@ -7819,20 +7823,20 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(wu.INC++, "bytes", "repeated"), u("design:type", Array)], io.prototype, "inputBufferList", void 0);
     l([A.d(wu.INC++, "bytes"), u("design:type", Uint8Array)], io.prototype, "templateBuffer", void 0);
     io = wu = l([R.d("MacroModel")], io);
-    let qp = class extends Y {
+    var qp = class extends Y {
       toJSON() {
         return { macro: this.macro.toJSON() };
       }
     };
     l([A.d(1, io), u("design:type", io)], qp.prototype, "macro", void 0);
     qp = l([R.d("MacroAssetModel")], qp);
-    let yy;
-    let oo = yy = class extends Ve {
+    var yy;
+    var oo = yy = class extends Ve {
     };
     l([A.d(yy.INC++, qp), u("design:type", qp)], oo.prototype, "asset", void 0);
     oo = yy = l([R.d("MacroTransaction")], oo);
-    const eT = (i) => typeof i === "object" && i !== null && typeof i.then === "function";
-    const Yt = class {
+    var eT = (i) => typeof i == "object" && i !== null && typeof i.then == "function";
+    var Yt = class {
       constructor() {
         this.is_resolved = false, this.is_rejected = false, this.is_finished = false, this.promise = new Promise((e, t) => {
           this.resolve = (r) => {
@@ -7866,7 +7870,7 @@ const require_bioforest_chain_bundle = __commonJS({
           try {
             await e(this._innerFinallyArg);
           } catch (t) {
-            
+            console.error("Unhandled promise rejection when running onFinished", e, t);
           }
         });
       }
@@ -7887,7 +7891,7 @@ const require_bioforest_chain_bundle = __commonJS({
           try {
             await e(this.value);
           } catch (t) {
-            
+            console.error("Unhandled promise rejection when running onSuccess", e, t);
           }
         });
       }
@@ -7896,21 +7900,21 @@ const require_bioforest_chain_bundle = __commonJS({
           try {
             await e(this.value);
           } catch (t) {
-            
+            console.error("Unhandled promise rejection when running onError", e, t);
           }
         });
       }
     };
-    const tT = (i, e) => ["%c" + i, e];
-    const ai = /* @__PURE__ */ Symbol("eventemitter.description");
-    const vt = { head: tT, MIDNIGHTBLUE_BOLD_UNDERLINE: "color:midnightblue;text-decoration: underline;font-weight: bold;", DARKVIOLET_BOLD_UNDERLINE: "color:darkviolet;text-decoration: underline;font-weight: bold;" };
+    var tT = (i, e) => ["%c" + i, e];
+    var ai = /* @__PURE__ */ Symbol("eventemitter.description");
+    var vt = { head: tT, MIDNIGHTBLUE_BOLD_UNDERLINE: "color:midnightblue;text-decoration: underline;font-weight: bold;", DARKVIOLET_BOLD_UNDERLINE: "color:darkviolet;text-decoration: underline;font-weight: bold;" };
     function bA(i, e) {
       const t = Object.getOwnPropertyDescriptor(i, "name");
       t && t.configurable && Object.defineProperty(i, "name", { value: e, configurable: true });
     }
-    const NA = Ss.getGlobalFlag("BFCHAIN_ENV", "development");
+    var NA = Ss.getGlobalFlag("BFCHAIN_ENV", "development");
     NA.split(",").map((i) => i.trim());
-    const Bf = /* @__PURE__ */ new Map();
+    var Bf = /* @__PURE__ */ new Map();
     for (const i of NA.split(",")) {
       const [e, t] = i.split("=").map((s) => s.trim());
       let r = e, n = false;
@@ -7919,8 +7923,8 @@ const require_bioforest_chain_bundle = __commonJS({
     function Zp(i) {
       return Bf.has(i);
     }
-    const Wr = Zp("eventemitter") && Zp("browser");
-    const An = class {
+    var Wr = Zp("eventemitter") && Zp("browser");
+    var An = class {
       constructor() {
         this._e = /* @__PURE__ */ Object.create(null);
       }
@@ -7930,7 +7934,7 @@ const require_bioforest_chain_bundle = __commonJS({
       _on(e, t, r, n) {
         const s = this._e;
         let o = s[e];
-        o ? o.has(t) &&  : o = s[e] = /* @__PURE__ */ new Map(), r === void 0 && (r = xl(this.constructor)), o.set(t, { taskname: r, once: n });
+        o ? o.has(t) && console.warn(`hanlder '${t.name}' already exits in event set ${e}.`) : o = s[e] = /* @__PURE__ */ new Map(), r === void 0 && (r = xl(this.constructor)), o.set(t, { taskname: r, once: n });
       }
       once(e, t, r = {}) {
         this._on(e, t, r.taskname, true);
@@ -7954,7 +7958,7 @@ const require_bioforest_chain_bundle = __commonJS({
         if (Wr && (console.group(...vt.head("%s EMIT [%s]", vt.MIDNIGHTBLUE_BOLD_UNDERLINE), this[ai] || this, e), console.log(...vt.head("%s ARGS:", vt.MIDNIGHTBLUE_BOLD_UNDERLINE), ...t)), r) for (const [n, s] of r.entries()) try {
           if (Wr) {
             const { taskname: a = n.name } = s;
-            
+            console.log(...vt.head("%s RUN [%s]", vt.MIDNIGHTBLUE_BOLD_UNDERLINE), this[ai] || this, a);
           }
           const o = n(...t);
           o instanceof Promise && o.catch((a) => this._emitErrorHanlder(a, e, t));
@@ -7963,17 +7967,17 @@ const require_bioforest_chain_bundle = __commonJS({
         } finally {
           s.once && r.delete(n);
         }
-        Wr && ;
+        Wr && console.groupEnd();
       }
       _emitErrorHanlder(e, t, r) {
-        if (!this._hasEmitErrorHandlerSet) throw Wr && , e;
+        if (!this._hasEmitErrorHandlerSet) throw Wr && console.error(`EventEmitter '${this.constructor.name}' emit '${t.toString()}' fail:`, e), e;
         for (const n of this._emitErrorHandlerSet) n(e, { eventname: t, args: r });
       }
       get _emitErrorHandlerSet() {
         return this._hasEmitErrorHandlerSet = true, /* @__PURE__ */ new Set();
       }
       onError(e, t) {
-        typeof t === "string" && bA(e, t), this._emitErrorHandlerSet.has(e) && , this._emitErrorHandlerSet.add(e);
+        typeof t == "string" && bA(e, t), this._emitErrorHandlerSet.has(e) && console.warn(`hanlder '${e.name}' already exits in custom error hanlder event set.`), this._emitErrorHandlerSet.add(e);
       }
       offError(e) {
         return !!this._hasEmitErrorHandlerSet && (e ? this._emitErrorHandlerSet.delete(e) : (this._emitErrorHandlerSet.clear(), true));
@@ -7994,15 +7998,15 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], An.prototype, "_emitErrorHandlerSet", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], An.prototype, "removeAllListeners", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], An.prototype, "addListener", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], An.prototype, "removeListener", null);
-    const Lm = (i) => !(!i || !i.constructor) && typeof i.next === "function" && typeof i.return === "function" && typeof i.throw === "function" && typeof i[Symbol.asyncIterator] === "function" && i[Symbol.asyncIterator]() === i;
-    const Hm = (i) => !!i && typeof i.next === "function" && typeof i.return === "function" && typeof i.throw === "function" && typeof i[Symbol.iterator] === "function" && i[Symbol.iterator]() === i;
-    const ii = class {
+    var Lm = (i) => !(!i || !i.constructor) && typeof i.next == "function" && typeof i.return == "function" && typeof i.throw == "function" && typeof i[Symbol.asyncIterator] == "function" && i[Symbol.asyncIterator]() === i;
+    var Hm = (i) => !!i && typeof i.next == "function" && typeof i.return == "function" && typeof i.throw == "function" && typeof i[Symbol.iterator] == "function" && i[Symbol.iterator]() === i;
+    var ii = class {
       constructor() {
         this._e = /* @__PURE__ */ Object.create(null);
       }
       on(e, t, r = {}) {
         let n = this._e[e];
-        n ? n.has(t) &&  : n = this._e[e] = /* @__PURE__ */ new Map(), r.taskname === void 0 && (r.taskname = xl(this.on)), n.set(t, r);
+        n ? n.has(t) && console.warn(`\u91CD\u590D\u76D1\u542C[${r.taskname || e.toString()}]\u4E8B\u4EF6\uFF0C\u53EF\u80FD\u5B58\u5728\u5F02\u5E38`) : n = this._e[e] = /* @__PURE__ */ new Map(), r.taskname === void 0 && (r.taskname = xl(this.on)), n.set(t, r);
       }
       once(e, t, r) {
         return this.on(e, t, r ? new Proxy(r, { get: (n, s, o) => s === "once" || Reflect.get(n, s, o) }) : { once: true });
@@ -8022,9 +8026,9 @@ const require_bioforest_chain_bundle = __commonJS({
       emit(e, t) {
         const r = this._e[e];
         if (r) {
-          Wr && r.size && ;
+          Wr && r.size && console.log(...vt.head("%s QUENE EMIT [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), this[ai] || this, e, t);
           const n = r.entries(), s = (a) => {
-            if (typeof a === "object") {
+            if (typeof a == "object") {
               if (Lm(a)) return (async () => {
                 try {
                   const p = a[Symbol.asyncIterator]();
@@ -8054,7 +8058,7 @@ const require_bioforest_chain_bundle = __commonJS({
             if (!a.done) {
               const [p, h] = a.value;
               try {
-                Wr && ;
+                Wr && console.log(...vt.head("RUN [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), p.name);
                 const f = p(t, o);
                 return f instanceof Promise ? f.then(s, (g) => this._emitErrorHanlder(g, e, t)) : s(f);
               } catch (f) {
@@ -8070,15 +8074,15 @@ const require_bioforest_chain_bundle = __commonJS({
       async *emitToAsyncGenerator(e, t) {
         const r = this._e[e];
         if (r) {
-          Wr && r.size && ;
+          Wr && r.size && console.log(...vt.head("%s QUENE EMIT [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), this[ai] || this, e, t);
           const n = r.entries(), s = async function* () {
             const o = n.next();
             if (!o.done) {
               const [a, p] = o.value;
               try {
-                Wr && , yield;
+                Wr && console.log(...vt.head("RUN [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), a.name), yield;
                 const h = await a(t, s);
-                if (typeof h === "object") {
+                if (typeof h == "object") {
                   if (Lm(h)) return yield* h;
                   if (Hm(h)) return yield* h;
                 }
@@ -8108,32 +8112,32 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.off;
       }
       _emitErrorHanlder(e, t, r) {
-        if (!this._hasEmitErrorHandlerSet) throw Wr && , e;
+        if (!this._hasEmitErrorHandlerSet) throw Wr && console.error(`QueneEventEmitter '${this.constructor.name}' emit '${t.toString()}' fail:`, e), e;
         for (const n of this._emitErrorHandlerSet) n(e, { eventname: t, arg: r });
       }
       get _emitErrorHandlerSet() {
         return this._hasEmitErrorHandlerSet = true, /* @__PURE__ */ new Set();
       }
       onError(e, t) {
-        typeof t === "string" && bA(e, t), this._emitErrorHandlerSet.has(e) && , this._emitErrorHandlerSet.add(e);
+        typeof t == "string" && bA(e, t), this._emitErrorHandlerSet.has(e) && console.warn(`hanlder '${e.name}' already exits in custom error hanlder event set.`), this._emitErrorHandlerSet.add(e);
       }
       offError(e) {
         return !!this._hasEmitErrorHandlerSet && (e ? this._emitErrorHandlerSet.delete(e) : (this._emitErrorHandlerSet.clear(), true));
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ii.prototype, "removeAllListeners", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], ii.prototype, "addListener", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], ii.prototype, "removeListener", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], ii.prototype, "_emitErrorHandlerSet", null);
-    const eh = class extends An {
+    var eh = class extends An {
       _emit(e, t) {
         if (this._hasBeforeTaskMap) {
           const r = this._beforeTasks[e];
           r && (delete this._beforeTasks[e], r.resolve(t));
         }
         if (this._hasCommonEmitHandlerMap) {
-          Wr && this._commonEmitHandlerMap.size && ;
+          Wr && this._commonEmitHandlerMap.size && console.log(...vt.head("%s EMIT WILDCARDS * [%s]", vt.MIDNIGHTBLUE_BOLD_UNDERLINE), this[ai] || this, { eventname: e, args: t });
           for (const [r, n] of this._commonEmitHandlerMap) try {
             if (Wr) {
               const { taskname: o = r.name } = n;
-              
+              console.log(...vt.head("RUN [%s]", vt.MIDNIGHTBLUE_BOLD_UNDERLINE), o);
             }
             const s = r({ eventname: e, args: t });
             s instanceof Promise && s.catch((o) => this._emitErrorHanlder(o, e, t));
@@ -8164,7 +8168,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this._hasCommonEmitHandlerMap = true, /* @__PURE__ */ new Map();
       }
       onEmit(e, t = {}) {
-        this._commonEmitHandlerMap.has(e) && , t.taskname === void 0 && (t.taskname = xl(this.onEmit)), this._commonEmitHandlerMap.set(e, t);
+        this._commonEmitHandlerMap.has(e) && console.warn(`hanlder '${e.name}' already exits in common hanlder event set.`), t.taskname === void 0 && (t.taskname = xl(this.onEmit)), this._commonEmitHandlerMap.set(e, t);
       }
       offEmit(e) {
         return !!this._hasCommonEmitHandlerMap && (e ? this._commonEmitHandlerMap.delete(e) : (this._commonEmitHandlerMap.clear(), true));
@@ -8193,17 +8197,17 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], eh.prototype, "_commonEmitHandlerMap", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], eh.prototype, "_afterTasks", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], eh.prototype, "_beforeTasks", null);
-    const xA = class extends ii {
+    var xA = class extends ii {
       emit(e, t) {
         if (this._hasCommonEmitHandlerMap) {
           if (Wr && this._commonEmitHandlerMap.size) {
             const r = this[ai] || this;
-            
+            console.log(...vt.head("%s QUENE EMIT WILDCARDS * [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), r, e, t);
           }
           for (const [r, n] of this._commonEmitHandlerMap) try {
             if (Wr) {
               const { taskname: o = r.name } = n;
-              
+              console.log(...vt.head("RUN [%s]", vt.DARKVIOLET_BOLD_UNDERLINE), o);
             }
             const s = r({ eventname: e, args: t });
             s instanceof Promise && s.catch((o) => this._emitErrorHanlder(o, e, t));
@@ -8219,7 +8223,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this._hasCommonEmitHandlerMap = true, /* @__PURE__ */ new Map();
       }
       onEmit(e, t = {}) {
-        this._commonEmitHandlerMap.has(e) && , t.taskname === void 0 && (t.taskname = xl(this.onEmit)), this._commonEmitHandlerMap.set(e, t);
+        this._commonEmitHandlerMap.has(e) && console.warn(`hanlder '${e.name}' already exits in common hanlder event set.`), t.taskname === void 0 && (t.taskname = xl(this.onEmit)), this._commonEmitHandlerMap.set(e, t);
       }
       offEmit(e) {
         return !!this._hasCommonEmitHandlerMap && (e ? this._commonEmitHandlerMap.delete(e) : (this._commonEmitHandlerMap.clear(), true));
@@ -8231,7 +8235,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], xA.prototype, "_commonEmitHandlerMap", null);
-    const Sr = class extends ii {
+    var Sr = class extends ii {
       constructor() {
         super(...arguments), this.list = [], this.min_next_index = 0, this.calcs = [], this._is_rejected = false, this._is_resolved = false, this._requestProcess = 0;
       }
@@ -8263,7 +8267,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return e || (e = this._task = new Yt(), this._is_rejected ? e.reject(this._reason) : this._is_resolved ? e.resolve(this.list) : (this._requestProcess = 1 / 0, this.emit("requestAll", void 0))), e.promise;
       }
       async done() {
-        let e;
+        var e;
         if (!this.is_done) {
           for (this._is_resolved = true, (e = this._task) == null ? void 0 : e.resolve(this.list); ; ) {
             const t = new Set(Object.keys(this.calcs));
@@ -8283,7 +8287,7 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       }
       throw(e) {
-        let t;
+        var t;
         if (!this.is_done) return this._is_rejected = true, (t = this._task) == null || t.reject(e), Object.freeze(this.list), this.emit("error", this._reason = e);
       }
       resolve() {
@@ -8329,7 +8333,7 @@ const require_bioforest_chain_bundle = __commonJS({
       yield* i;
     }
     l([De, u("design:type", Function), u("design:paramtypes", [Object, Object]), u("design:returntype", void 0)], Sr.prototype, "push", null), l([De, u("design:type", Function), u("design:paramtypes", [Function, Object]), u("design:returntype", void 0)], Sr.prototype, "pushCalc", null), l([De, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", Promise)], Sr.prototype, "done", null), l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", void 0)], Sr.prototype, "throw", null), l([De, u("design:type", Function), u("design:paramtypes", []), u("design:returntype", void 0)], Sr.prototype, "resolve", null), l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", void 0)], Sr.prototype, "reject", null), l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", void 0)], Sr.prototype, "then", null), l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", void 0)], Sr.prototype, "catch", null);
-    const tf = (i, e, t) => {
+    var tf = (i, e, t) => {
       let r = [new Yt()];
       const n = (a, p) => {
         let h = a[p];
@@ -8359,7 +8363,7 @@ const require_bioforest_chain_bundle = __commonJS({
         p();
       });
     };
-    const ni = class {
+    var ni = class {
       static InitCryptTable() {
         const i = new Array(1280);
         let e, t, r, n = 1048577, s = 0, o = 0;
@@ -8381,9 +8385,9 @@ const require_bioforest_chain_bundle = __commonJS({
         return n ? Math.floor(s) : s;
       }
     };
-    const rf = ni;
+    var rf = ni;
     rf.cryptTable = Object.freeze(ni.InitCryptTable()), rf.cryptTable_length = ni.cryptTable.length, rf.hashRange = Object.freeze({ min: -2147483648, max: 2147483647, dis: Math.pow(2, 32) });
-    const nT = class extends wt {
+    var nT = class extends wt {
       constructor(e) {
         super((t) => [], e);
       }
@@ -8399,7 +8403,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return false;
       }
     };
-    const nf = class {
+    var nf = class {
       constructor(e) {
         this.eventEmitter = e, this.BINDED_EVENTS_MAP = new nT();
       }
@@ -8431,8 +8435,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], nf.prototype, "clear", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], nf.prototype, "addListener", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], nf.prototype, "removeListener", null);
-    let vm;
-    let Pf = class {
+    var vm;
+    var Pf = class {
       constructor() {
         this._instanceParamWM = /* @__PURE__ */ new WeakMap();
       }
@@ -8444,8 +8448,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Pf = l([J()], Pf);
-    const sT = /"(?:\.|(\\")|[^""\n])*"|'(?:\.|(\\')|[^''\n])*'/g;
-    let uh = class {
+    var sT = /"(?:\.|(\\\")|[^\""\n])*"|'(?:\.|(\\\')|[^\''\n])*'/g;
+    var uh = class {
       constructor(i, e) {
         this.moduleMap = i, this.flagParamStack = e, this._applyedFlagMap = /* @__PURE__ */ new Map(), this._flagInfomationMap = /* @__PURE__ */ new Map();
       }
@@ -8483,11 +8487,11 @@ const require_bioforest_chain_bundle = __commonJS({
               p = this._formatString(h);
           }
           else {
-            if (p = this.strToBool_(h), typeof p === "string") {
+            if (p = this.strToBool_(h), typeof p == "string") {
               const g = parseFloat(p);
               g.toString() === p && (p = g);
             }
-            typeof p === "string" && (p = this._formatString(p));
+            typeof p == "string" && (p = this._formatString(p));
           }
           n.delete(a), n.set(a, p);
         }
@@ -8495,7 +8499,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       quote(i) {
         const e = [];
-        for (let [t, r] of i) r === void 0 ? e.push(t) : (typeof r === "string" && (r = JSON.stringify(r)), e.push(`${t}=${r}`));
+        for (let [t, r] of i) r === void 0 ? e.push(t) : (typeof r == "string" && (r = JSON.stringify(r)), e.push(`${t}=${r}`));
         return e.join(" ");
       }
       applyFlags(i) {
@@ -8536,10 +8540,10 @@ const require_bioforest_chain_bundle = __commonJS({
         } });
       }
     };
-    uh = l([J(), u("design:paramtypes", [typeof (vm = ze !== void 0 && ze) === "function" ? vm : Object, Pf])], uh);
-    const iT = /* @__PURE__ */ Symbol("flag param in constructor");
-    const oT = () => performance;
-    let Pn = class {
+    uh = l([J(), u("design:paramtypes", [typeof (vm = ze !== void 0 && ze) == "function" ? vm : Object, Pf])], uh);
+    var iT = /* @__PURE__ */ Symbol("flag param in constructor");
+    var oT = () => performance;
+    var Pn = class {
       constructor() {
         this.platformInfo = Ss, this.performance = oT();
       }
@@ -8566,7 +8570,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "platformName", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isNodejs", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isWindows", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isCordova", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isWebView", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isWebMainThread", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Pn.prototype, "isWebWorker", null), Pn = l([J()], Pn);
-    const Mf = /* @__PURE__ */ new WeakMap();
+    var Mf = /* @__PURE__ */ new WeakMap();
     function Ui(i, e, t) {
       let r, n = Mf.get(i);
       if (!n) {
@@ -8577,7 +8581,7 @@ const require_bioforest_chain_bundle = __commonJS({
             try {
               await f(h);
             } catch (g) {
-              
+              console.error("Unhandled promise rejection when running onfulfilled", f, g);
             }
           });
           o();
@@ -8586,7 +8590,7 @@ const require_bioforest_chain_bundle = __commonJS({
             try {
               await f(h);
             } catch (g) {
-              
+              console.error("Unhandled promise rejection when running onrejected", f, g);
             }
           });
           o();
@@ -8599,7 +8603,7 @@ const require_bioforest_chain_bundle = __commonJS({
       const r = Mf.get(i);
       return r && r.cbs && (e && r.cbs.resolves.delete(e), t && r.cbs.rejects.delete(t)), r;
     }
-    const my = class _my {
+    var my = class _my {
       constructor(e) {
         this.rankList = [], this.thenedMap = /* @__PURE__ */ new Map(), this._cter = false, this.options = _my.mergeOptions(e);
       }
@@ -8663,13 +8667,13 @@ const require_bioforest_chain_bundle = __commonJS({
       let t = true;
       const r = [];
       for (const n of i) {
-        if (typeof n !== "object" || n === null || typeof n.then !== "function") {
+        if (typeof n != "object" || n === null || typeof n.then != "function") {
           t = false, e.resolve(n);
           break;
         }
         r.push(n);
       }
-      if (t) if (r.length === 0) {}
+      if (t) if (r.length === 0) console.warn("safePromiseRace got empty array");
       else {
         const n = new my();
         e.onFinished(() => n.clear());
@@ -8678,9 +8682,9 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return e.promise;
     }
-    const Lf = /* @__PURE__ */ Symbol("then");
-    const Hf = /* @__PURE__ */ Symbol("catch");
-    const vf = class {
+    var Lf = /* @__PURE__ */ Symbol("then");
+    var Hf = /* @__PURE__ */ Symbol("catch");
+    var vf = class {
       constructor(e) {
         let t, r;
         const n = new Promise((a, p) => {
@@ -8707,7 +8711,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     vf.THEN_SYMBOL = Lf, vf.CATCH_SYMBOL = Hf;
-    const aT = class {
+    var aT = class {
       constructor(e = 2) {
         this.maxParallelNum = e, this._runningTasks = [], this._waitingQuene = [];
       }
@@ -8775,13 +8779,15 @@ const require_bioforest_chain_bundle = __commonJS({
         this._yielding = void 0;
       }
     };
-    const cT = class extends du {
+    var cT = class extends du {
       constructor(e, t) {
         super(e), this.silence = t, this.ABORT_ERROR_FLAG = true;
       }
     };
-    const _y = class __y extends Yt {
-      
+    var _y = class __y extends Yt {
+      constructor() {
+        super();
+      }
       get is_done() {
         return this.is_resolved || this.is_rejected;
       }
@@ -8806,8 +8812,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], _y.prototype, "_abortEvent", null);
-    const fh = /* @__PURE__ */ new WeakMap();
-    const bs = (i, e) => {
+    var fh = /* @__PURE__ */ new WeakMap();
+    var bs = (i, e) => {
       let t;
       i <= 0 && (i = 1);
       const r = new Promise((n) => t = setTimeout(() => {
@@ -8815,11 +8821,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }, i)).then(e);
       return fh.set(r, t), r;
     };
-    const CA = (i) => {
+    var CA = (i) => {
       const e = fh.get(i);
       e !== void 0 && (fh.delete(i), clearTimeout(e));
     };
-    const RA = class {
+    var RA = class {
       constructor() {
         this._task_list = [];
       }
@@ -8830,10 +8836,10 @@ const require_bioforest_chain_bundle = __commonJS({
         this._task_list.push(e);
       }
       tryToPromise() {
-        return this._task_list.some((e) => e && typeof e.then === "function") ? Promise.all(this._task_list) : this._task_list;
+        return this._task_list.some((e) => e && typeof e.then == "function") ? Promise.all(this._task_list) : this._task_list;
       }
     };
-    const $e = async (i) => {
+    var $e = async (i) => {
       const e = new RA();
       try {
         await i(e);
@@ -8842,13 +8848,13 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       return e.toPromise();
     };
-    let rh;
-    let km;
-    const { info: pT } = yA("util", "TimeHelper");
-    const lT = { TIME_SPEED: "TIME_SPEED" };
-    let nh = rh = class {
+    var rh;
+    var km;
+    var { info: pT } = yA("util", "TimeHelper");
+    var lT = { TIME_SPEED: "TIME_SPEED" };
+    var nh = rh = class {
       constructor(i, e = 1) {
-        this.platformHelper = i, this.TIME_SPEED = e, this.clearTimeout = clearTimeout, this.clearInterval = clearInterval, this.time_offset_ms = 0, this.SYSTEM_START_TIME = this.platformHelper.performance.timeOrigin, typeof e === "number" && e > 0 || (this.TIME_SPEED = 1), pT("TIME SPPED \xD7 %d.", this.TIME_SPEED);
+        this.platformHelper = i, this.TIME_SPEED = e, this.clearTimeout = clearTimeout, this.clearInterval = clearInterval, this.time_offset_ms = 0, this.SYSTEM_START_TIME = this.platformHelper.performance.timeOrigin, typeof e == "number" && e > 0 || (this.TIME_SPEED = 1), pT("TIME SPPED \xD7 %d.", this.TIME_SPEED);
       }
       setTimeout(i, e) {
         return setTimeout(i, e / this.TIME_SPEED);
@@ -8900,8 +8906,8 @@ const require_bioforest_chain_bundle = __commonJS({
         return `${o(i, 4)}-${o(e)}-${o(t)} ${o(r)}:${o(n)}:${o(s)}`;
       }
     };
-    nh.NOW_DIFF_SYMBOL = /* @__PURE__ */ Symbol("now-diff-ms"), nh = rh = l([J(), be(1, D(lT.TIME_SPEED, { optional: true })), u("design:paramtypes", [typeof (km = Pn !== void 0 && Pn) === "function" ? km : Object, Object])], nh);
-    let Zo = class {
+    nh.NOW_DIFF_SYMBOL = /* @__PURE__ */ Symbol("now-diff-ms"), nh = rh = l([J(), be(1, D(lT.TIME_SPEED, { optional: true })), u("design:paramtypes", [typeof (km = Pn !== void 0 && Pn) == "function" ? km : Object, Object])], nh);
+    var Zo = class {
       get v4() {
         return "(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}";
       }
@@ -8943,7 +8949,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Zo.prototype, "v4", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Zo.prototype, "v6seg", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], Zo.prototype, "v6", null), Zo = l([J()], Zo);
-    const wr = class extends rs.Buffer {
+    var wr = class extends rs.Buffer {
       static from(e, t, r) {
         return rs.Buffer.from(e, t, r);
       }
@@ -8958,7 +8964,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     function kf(i) {
-      return typeof i === "object" && i !== null && !(Symbol.iterator in i);
+      return typeof i == "object" && i !== null && !(Symbol.iterator in i);
     }
     function Df(i) {
       return i.length === 1 ? i[0] : new Proxy(i[0], { get(e, t, r) {
@@ -8983,12 +8989,12 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = i.filter(kf);
       return e.length === 0 ? {} : Df(e);
     }
-    const uT = () => ({ TextDecoder, TextEncoder });
-    const fT = /* @__PURE__ */ new WeakMap();
-    const { TextEncoder: gT, TextDecoder: dT } = uT();
-    const yT = new gT();
+    var uT = () => ({ TextDecoder, TextEncoder });
+    var fT = /* @__PURE__ */ new WeakMap();
+    var { TextEncoder: gT, TextDecoder: dT } = uT();
+    var yT = new gT();
     new dT("utf-8");
-    const mT = new Uint8Array();
+    var mT = new Uint8Array();
     function _T(i) {
       if (!i) return mT;
       const e = i.length <= 128 ? AT(i) : yT.encode(i);
@@ -9000,8 +9006,8 @@ const require_bioforest_chain_bundle = __commonJS({
       for (let n = 0; n < i.length; ++n) t = i.charCodeAt(n), t < 128 ? e[e.length] = t : t < 2048 ? (e[e.length] = t >> 6 | 192, e[e.length] = 63 & t | 128) : (64512 & t) == 55296 && (64512 & (r = i.charCodeAt(n + 1))) == 56320 ? (t = 65536 + ((1023 & t) << 10) + (1023 & r), ++n, e[e.length] = t >> 18 | 240, e[e.length] = t >> 12 & 63 | 128, e[e.length] = t >> 6 & 63 | 128, e[e.length] = 63 & t | 128) : (e[e.length] = t >> 12 | 224, e[e.length] = t >> 6 & 63 | 128, e[e.length] = 63 & t | 128);
       return new Uint8Array(e);
     }
-    let BA;
-    const mn = class _mn {
+    var BA;
+    var mn = class _mn {
       constructor(e, t = (n) => n, r) {
         this.transformKey = t, this._afterDelete = r, this._set = new Set(e);
       }
@@ -9053,7 +9059,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "clear", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "delete", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "forEach", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "has", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "add", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, BA, null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "entries", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "keys", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], mn.prototype, "values", null);
-    const xc = class _xc {
+    var xc = class _xc {
       constructor(e, t = (n) => n, r) {
         this.transformKey = t, this._afterDelete = r, this._ws = new WeakSet(e);
       }
@@ -9084,51 +9090,51 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], xc.prototype, "delete", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], xc.prototype, "add", null), l([oe, u("design:type", Object), u("design:paramtypes", [])], xc.prototype, "has", null);
-    const ET = typeof Promise === "function";
-    const IT = typeof self === "object" ? self : global;
-    const PA = typeof Symbol < "u";
-    const Ff = typeof Map < "u";
-    const $f = typeof Set < "u";
-    const TT = typeof WeakMap < "u";
-    const ST = typeof WeakSet < "u";
-    const wT = typeof DataView < "u";
-    const MA = PA && Symbol.iterator !== void 0;
-    const Dm = PA && Symbol.toStringTag !== void 0;
-    const bT = $f && typeof Set.prototype.entries === "function";
-    const NT = Ff && typeof Map.prototype.entries === "function";
-    const xT = bT && Object.getPrototypeOf((/* @__PURE__ */ new Set()).entries());
-    const OT = NT && Object.getPrototypeOf((/* @__PURE__ */ new Map()).entries());
-    const LA = MA && typeof Array.prototype[Symbol.iterator] === "function";
-    const CT = LA && Object.getPrototypeOf([][Symbol.iterator]());
-    const HA = MA && typeof String.prototype[Symbol.iterator] === "function";
-    const RT = HA && Object.getPrototypeOf(""[Symbol.iterator]());
+    var ET = typeof Promise == "function";
+    var IT = typeof self == "object" ? self : global;
+    var PA = typeof Symbol < "u";
+    var Ff = typeof Map < "u";
+    var $f = typeof Set < "u";
+    var TT = typeof WeakMap < "u";
+    var ST = typeof WeakSet < "u";
+    var wT = typeof DataView < "u";
+    var MA = PA && Symbol.iterator !== void 0;
+    var Dm = PA && Symbol.toStringTag !== void 0;
+    var bT = $f && typeof Set.prototype.entries == "function";
+    var NT = Ff && typeof Map.prototype.entries == "function";
+    var xT = bT && Object.getPrototypeOf((/* @__PURE__ */ new Set()).entries());
+    var OT = NT && Object.getPrototypeOf((/* @__PURE__ */ new Map()).entries());
+    var LA = MA && typeof Array.prototype[Symbol.iterator] == "function";
+    var CT = LA && Object.getPrototypeOf([][Symbol.iterator]());
+    var HA = MA && typeof String.prototype[Symbol.iterator] == "function";
+    var RT = HA && Object.getPrototypeOf(""[Symbol.iterator]());
     function BT(i) {
       const e = typeof i;
       if (e !== "object") return e;
       if (i === null) return "null";
       if (i === IT) return "global";
       if (Array.isArray(i) && (Dm === false || !(Symbol.toStringTag in i))) return "Array";
-      if (typeof window === "object" && window !== null) {
-        if (typeof window.location === "object" && i === window.location) return "Location";
-        if (typeof window.document === "object" && i === window.document) return "Document";
-        if (typeof window.navigator === "object") {
-          if (typeof window.navigator.mimeTypes === "object" && i === window.navigator.mimeTypes) return "MimeTypeArray";
-          if (typeof window.navigator.plugins === "object" && i === window.navigator.plugins) return "PluginArray";
+      if (typeof window == "object" && window !== null) {
+        if (typeof window.location == "object" && i === window.location) return "Location";
+        if (typeof window.document == "object" && i === window.document) return "Document";
+        if (typeof window.navigator == "object") {
+          if (typeof window.navigator.mimeTypes == "object" && i === window.navigator.mimeTypes) return "MimeTypeArray";
+          if (typeof window.navigator.plugins == "object" && i === window.navigator.plugins) return "PluginArray";
         }
-        if ((typeof window.HTMLElement === "function" || typeof window.HTMLElement === "object") && i instanceof window.HTMLElement) {
+        if ((typeof window.HTMLElement == "function" || typeof window.HTMLElement == "object") && i instanceof window.HTMLElement) {
           if (i.tagName === "BLOCKQUOTE") return "HTMLQuoteElement";
           if (i.tagName === "TD") return "HTMLTableDataCellElement";
           if (i.tagName === "TH") return "HTMLTableHeaderCellElement";
         }
       }
       const t = Dm && i[Symbol.toStringTag];
-      if (typeof t === "string") return t;
+      if (typeof t == "string") return t;
       const r = Object.getPrototypeOf(i);
       return r === RegExp.prototype ? "RegExp" : r === Date.prototype ? "Date" : ET && r === Promise.prototype ? "Promise" : $f && r === Set.prototype ? "Set" : Ff && r === Map.prototype ? "Map" : ST && r === WeakSet.prototype ? "WeakSet" : TT && r === WeakMap.prototype ? "WeakMap" : wT && r === DataView.prototype ? "DataView" : Ff && r === OT ? "Map Iterator" : $f && r === xT ? "Set Iterator" : LA && r === CT ? "Array Iterator" : HA && r === RT ? "String Iterator" : r === null ? "Object" : Object.prototype.toString.call(i).slice(8, -1);
     }
-    const vA = typeof Buffer < "u";
+    var vA = typeof Buffer < "u";
     vA && Buffer.from;
-    const PT = vA ? function(i) {
+    var PT = vA ? function(i) {
       return Buffer.isBuffer(i);
     } : function(i) {
       return false;
@@ -9136,7 +9142,7 @@ const require_bioforest_chain_bundle = __commonJS({
     function Fm(i) {
       return PT(i) ? "Buffer" : BT(i);
     }
-    const kA = new class {
+    var kA = new class {
       get(i, e, t = Fm(i)) {
         switch (t) {
           case "Arguments":
@@ -9167,14 +9173,14 @@ const require_bioforest_chain_bundle = __commonJS({
     }();
     kA.get;
     kA.set;
-    const MT = typeof globalThis < "u" && globalThis !== null && globalThis.Object === Object && globalThis;
-    const LT = typeof global < "u" && global !== null && global.Object === Object && global;
-    const HT = typeof self < "u" && self !== null && self.Object === Object && self;
+    var MT = typeof globalThis < "u" && globalThis !== null && globalThis.Object === Object && globalThis;
+    var LT = typeof global < "u" && global !== null && global.Object === Object && global;
+    var HT = typeof self < "u" && self !== null && self.Object === Object && self;
     MT || LT || HT || Function("return this")();
-    let Cl;
-    const { ArgumentFormatException: $m } = ee("MODEL", "transactionModel");
-    const vT = new ss((i) => new X_(i.inputs));
-    let _i = Cl = class extends Y {
+    var Cl;
+    var { ArgumentFormatException: $m } = ee("MODEL", "transactionModel");
+    var vT = new ss((i) => new X_(i.inputs));
+    var _i = Cl = class extends Y {
       get macroId() {
         return xe(this.macroIdBuffer);
       }
@@ -9217,15 +9223,15 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(Cl.INC++, "string", "string"), u("design:type", Object)], _i.prototype, "inputs", void 0);
     l([A.d(Cl.INC++, "bytes"), u("design:type", Uint8Array)], _i.prototype, "transactionBuffer", void 0);
     _i = Cl = l([R.d("MacroCallModel")], _i);
-    let el = class extends Y {
+    var el = class extends Y {
       toJSON() {
         return { call: this.call.toJSON() };
       }
     };
     l([A.d(1, _i), u("design:type", _i)], el.prototype, "call", void 0);
     el = l([R.d("MacroCallAssetModel")], el);
-    let Ay;
-    let Oa = Ay = class extends Je {
+    var Ay;
+    var Oa = Ay = class extends Je {
       as(e, t) {
         const r = Re.MV.get(e), n = Re.trsTypeToV(this.type);
         if (r === n) if (t) {
@@ -9255,12 +9261,12 @@ const require_bioforest_chain_bundle = __commonJS({
     Re.MV.set(oo, v.MACRO);
     Re.VM.set(v.MACRO_CALL, Oa);
     Re.MV.set(Oa, v.MACRO_CALL);
-    let Po;
-    let si;
+    var Po;
+    var si;
     (function(i) {
       i[i.INDETERMINATE = 0] = "INDETERMINATE", i[i.DETERMINATE = 1] = "DETERMINATE", i[i.BUFFER = 2] = "BUFFER", i[i.QUERY = 3] = "QUERY";
     })(si || (si = {}));
-    let Hr = Po = class extends Y {
+    var Hr = Po = class extends Y {
       get loaded() {
         return this._loaded > this.total ? this.total : this._loaded;
       }
@@ -9274,7 +9280,7 @@ const require_bioforest_chain_bundle = __commonJS({
         this._buffer = e;
       }
       toJSON() {
-        let e;
+        var e;
         const t = { type: this.type, mode: this.mode, loaded: this.loaded, buffer: this.buffer, total: this.total };
         return (e = this.buffer) !== null && e !== void 0 || (t.buffer = this.buffer), t;
       }
@@ -9290,16 +9296,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Po.INC++, "uint32", "optional"), u("design:type", Number)], Hr.prototype, "_buffer", void 0);
     l([A.d(Po.INC++, "uint32"), u("design:type", Number)], Hr.prototype, "total", void 0);
     Hr = Po = l([R.d("ProgressEvent")], Hr);
-    let Ey;
-    let gh = Ey = class extends Hr {
+    var Ey;
+    var gh = Ey = class extends Hr {
       toJSON() {
         return Object.assign({ finishedDetails: this.finishedDetails.map((e) => e.toJSON()) }, super.toJSON());
       }
     };
     l([A.d(Ey.INC++, ia, "repeated"), u("design:type", Array)], gh.prototype, "finishedDetails", void 0);
     gh = Ey = l([R.d("TransactionsProgressEvent")], gh);
-    let bu;
-    let Ai = bu = class extends Hr {
+    var bu;
+    var Ai = bu = class extends Hr {
       toJSON() {
         return Object.assign({ finishedDetails: this.finishedDetails.map((e) => e.toJSON()), processingDetails: this.processingDetails }, super.toJSON());
       }
@@ -9307,18 +9313,18 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(bu.INC++, ia, "repeated"), u("design:type", Array)], Ai.prototype, "finishedDetails", void 0);
     l([fr.d(bu.INC++, "uint32", gh), u("design:type", Object)], Ai.prototype, "processingDetails", void 0);
     Ai = bu = l([R.d("BlocksProgressEvent")], Ai);
-    let Iy;
-    let vs = Iy = class extends Hr {
+    var Iy;
+    var vs = Iy = class extends Hr {
       toJSON() {
         return Object.assign({ currentBlockDetails: this.currentBlockDetails.toJSON() }, super.toJSON());
       }
     };
     l([A.d(Iy.INC++, Ai), u("design:type", Ai)], vs.prototype, "currentBlockDetails", void 0);
     vs = Iy = l([R.d("BlockchainRebuidingProgressEvent")], vs);
-    let Ca = class extends Hr {
+    var Ca = class extends Hr {
     };
     Ca = l([R.d("BlockchainPeerScanningProgressEvent")], Ca);
-    let Ei = class extends Hr {
+    var Ei = class extends Hr {
       toJSON() {
         const e = {};
         for (const r in this.applyDetails) e[r] = this.applyDetails[r].toJSON();
@@ -9330,35 +9336,35 @@ const require_bioforest_chain_bundle = __commonJS({
     l([fr.d(vs.INC++, "uint32", Ai), u("design:type", Object)], Ei.prototype, "applyDetails", void 0);
     l([fr.d(vs.INC++, "uint32", Ai), u("design:type", Object)], Ei.prototype, "syncDetails", void 0);
     Ei = l([R.d("BlockchainReplayBlockProgressEvent")], Ei);
-    let Ra = class extends Hr {
+    var Ra = class extends Hr {
     };
     Ra = l([R.d("BlockchainRollbackProgressEventModel")], Ra);
-    let Ba = class extends Hr {
+    var Ba = class extends Hr {
     };
     Ba = l([R.d("BlockchainGeneratingProgressEvent")], Ba);
-    let Ne;
+    var Ne;
     (function(i) {
       i[i.error = 0] = "error", i[i.busy = 1] = "busy", i[i.success = 2] = "success", i[i.idempotentError = 3] = "idempotentError";
     })(Ne || (Ne = {}));
-    let Qr;
+    var Qr;
     (function(i) {
       i[i.OFFLINE = 0] = "OFFLINE", i[i.FREE = 1] = "FREE", i[i.REBUIDING = 2] = "REBUIDING", i[i.PEER_SCANNING = 3] = "PEER_SCANNING", i[i.REPLAY_BLOCK = 4] = "REPLAY_BLOCK", i[i.GENERATING = 5] = "GENERATING", i[i.ROLLBACK = 6] = "ROLLBACK";
     })(Qr || (Qr = {}));
-    let dh;
+    var dh;
     (function(i) {
       i[i.Refuse = 0] = "Refuse", i[i.InBlock = 1] = "InBlock", i[i.InUnconfirmQuene = 2] = "InUnconfirmQuene";
     })(dh || (dh = {}));
-    let Ce;
+    var Ce;
     (function(i) {
       i[i.FEE_LESS_THAN_WEB_FEE = 0] = "FEE_LESS_THAN_WEB_FEE", i[i.TRS_EXPRIED = 1] = "TRS_EXPRIED", i[i.TRANSACTION_IN_UNTREATEDTR = 2] = "TRANSACTION_IN_UNTREATEDTR", i[i.TRANSACTION_IN_TRS = 3] = "TRANSACTION_IN_TRS", i[i.TRANSACTION_BASE_TYPE_NOT_FOUND = 4] = "TRANSACTION_BASE_TYPE_NOT_FOUND", i[i.TRANSACTION_BASE_NOT_FOUND = 5] = "TRANSACTION_BASE_NOT_FOUND", i[i.CHAIN_ASSET_NOT_ENOUGH = 6] = "CHAIN_ASSET_NOT_ENOUGH", i[i.ASSET_NOT_ENOUGH = 7] = "ASSET_NOT_ENOUGH", i[i.TRANSACTION_SENDER_ASSET_FROZEN = 8] = "TRANSACTION_SENDER_ASSET_FROZEN", i[i.TRANSACTION_RECIPIENT_ASSET_FROZEN = 9] = "TRANSACTION_RECIPIENT_ASSET_FROZEN", i[i.TRANSACTION_FEE_NOT_ENOUGH = 10] = "TRANSACTION_FEE_NOT_ENOUGH", i[i.TRANSACTION_ASSET_DEBT = 11] = "TRANSACTION_ASSET_DEBT", i[i.LOCATION_NAME_NOT_EXIST = 12] = "LOCATION_NAME_NOT_EXIST", i[i.ACCOUNT_NOT_LNS_POSSESSOR = 13] = "ACCOUNT_NOT_LNS_POSSESSOR", i[i.DAPP_ALREADY_EXISTS = 14] = "DAPP_ALREADY_EXISTS", i[i.ASSETTYPE_ALREADY_EXIST = 15] = "ASSETTYPE_ALREADY_EXIST", i[i.CHAINNAME_ALREADY_EXIST = 16] = "CHAINNAME_ALREADY_EXIST", i[i.ASSET_ALREADY_EXIST = 17] = "ASSET_ALREADY_EXIST", i[i.LOCATION_NAME_ALREADY_EXIST = 18] = "LOCATION_NAME_ALREADY_EXIST", i[i.CAN_NOT_SET_FROZEN_ACCOUNT_AS_MANAGER = 19] = "CAN_NOT_SET_FROZEN_ACCOUNT_AS_MANAGER", i[i.CAN_NOT_SET_SAME_ACCOUNT_AS_MANAGER = 20] = "CAN_NOT_SET_SAME_ACCOUNT_AS_MANAGER", i[i.SET_LNS_MANAGER_PERMISSION_DENIED = 21] = "SET_LNS_MANAGER_PERMISSION_DENIED", i[i.SET_LNS_RECORD_VALUE_PERMISSION_DENIED = 22] = "SET_LNS_RECORD_VALUE_PERMISSION_DENIED", i[i.TRS_IN_FEATURE = 23] = "TRS_IN_FEATURE", i[i.TRUST_MAIN_ASSET_ONLY = 24] = "TRUST_MAIN_ASSET_ONLY", i[i.USE_MAIN_ASSET_PURCHASE_ONLY = 25] = "USE_MAIN_ASSET_PURCHASE_ONLY", i[i.ACCOUNT_REMAIN_EQUITY_NOT_ENOUGH = 26] = "ACCOUNT_REMAIN_EQUITY_NOT_ENOUGH", i[i.MIGRATE_MAIN_ASSET_ONLY = 27] = "MIGRATE_MAIN_ASSET_ONLY", i[i.ASSET_IS_ALREADY_MIGRATION = 28] = "ASSET_IS_ALREADY_MIGRATION", i[i.MAGIC_ALREADY_EXIST = 29] = "MAGIC_ALREADY_EXIST", i[i.ENTITY_FACTORY_ALREADY_EXIST = 30] = "ENTITY_FACTORY_ALREADY_EXIST", i[i.ENTITY_FACTORY_NOT_EXIST = 31] = "ENTITY_FACTORY_NOT_EXIST", i[i.ENTITY_ALREADY_EXIST = 32] = "ENTITY_ALREADY_EXIST", i[i.ENTITY_NOT_EXIST = 33] = "ENTITY_NOT_EXIST", i[i.ACCOUNT_NOT_ENTITY_POSSESSOR = 34] = "ACCOUNT_NOT_ENTITY_POSSESSOR", i[i.ACCOUNT_NOT_DAPPID_POSSESSOR = 35] = "ACCOUNT_NOT_DAPPID_POSSESSOR", i[i.ASSET_NOT_EXIST = 36] = "ASSET_NOT_EXIST", i[i.DAPPID_NOT_EXIST = 37] = "DAPPID_NOT_EXIST", i[i.CERTIFICATE_ALREADY_EXIST = 38] = "CERTIFICATE_ALREADY_EXIST", i[i.CERTIFICATE_NOT_EXIST = 39] = "CERTIFICATE_NOT_EXIST", i[i.ACCOUNT_NOT_CERTIFICATE_POSSESSOR = 40] = "ACCOUNT_NOT_CERTIFICATE_POSSESSOR";
     })(Ce || (Ce = {}));
-    let Ie;
+    var Ie;
     (function(i) {
       i[i.REFUSE = 0] = "REFUSE", i[i.RESPONSE = 1] = "RESPONSE", i[i.QUERY_TRANSACTION = 2] = "QUERY_TRANSACTION", i[i.NEW_TRANSACTION = 4] = "NEW_TRANSACTION", i[i.QUERY_BLOCK = 8] = "QUERY_BLOCK", i[i.NEW_BLOCK = 16] = "NEW_BLOCK", i[i.GET_PEER_INFO = 32] = "GET_PEER_INFO", i[i.INDEX_TRANSACTION = 64] = "INDEX_TRANSACTION", i[i.DOWNLOAD_TRANSACTION = 128] = "DOWNLOAD_TRANSACTION", i[i.OPEN_BLOB = 256] = "OPEN_BLOB", i[i.READ_BLOB = 512] = "READ_BLOB", i[i.CLOSE_BLOB = 1024] = "CLOSE_BLOB", i[i.QUERY_TINDEX = 2048] = "QUERY_TINDEX", i[i.GET_TRANSACTIONINBLOCK = 4096] = "GET_TRANSACTIONINBLOCK", i[i.QUERY_TRANSACTION_RETURN = 3] = "QUERY_TRANSACTION_RETURN", i[i.NEW_TRANSACTION_RETURN = 5] = "NEW_TRANSACTION_RETURN", i[i.QUERY_BLOCK_RETURN = 9] = "QUERY_BLOCK_RETURN", i[i.NEW_BLOCK_RETURN = 17] = "NEW_BLOCK_RETURN", i[i.GET_PEER_INFO_RETURN = 33] = "GET_PEER_INFO_RETURN", i[i.INDEX_TRANSACTION_RETURN = 65] = "INDEX_TRANSACTION_RETURN", i[i.DOWNLOAD_TRANSACTION_RETURN = 129] = "DOWNLOAD_TRANSACTION_RETURN", i[i.OPEN_BLOB_RETURN = 257] = "OPEN_BLOB_RETURN", i[i.READ_BLOB_RETURN = 513] = "READ_BLOB_RETURN", i[i.CLOSE_BLOB_RETURN = 1025] = "CLOSE_BLOB_RETURN", i[i.QUERY_TINDEX_RETURN = 2049] = "QUERY_TINDEX_RETURN", i[i.GET_TRANSACTIONINBLOCK_RETURN = 4097] = "GET_TRANSACTIONINBLOCK_RETURN";
     })(Ie || (Ie = {}));
-    let Uf;
-    let Nu;
-    let St = Uf = class extends Y {
+    var Uf;
+    var Nu;
+    var St = Uf = class extends Y {
       constructor() {
         super(...arguments), this._parsed_detail = false;
       }
@@ -9393,7 +9399,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(7, "string", "optional"), u("design:type", String)], St.prototype, "FILE", void 0);
     l([A.d(8, "string", "optional"), u("design:type", String)], St.prototype, "CODE", void 0);
     St = Uf = l([R.d("ExceptionMessage")], St);
-    let er = Nu = class extends Y {
+    var er = Nu = class extends Y {
       toJSON() {
         const e = { status: this.status };
         return this.error && (e.error = this.error.toJSON()), e;
@@ -9403,17 +9409,17 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Nu.INC++, Ne), u("design:type", Number)], er.prototype, "status", void 0);
     l([A.d(Nu.INC++, St, "optional"), u("design:type", St)], er.prototype, "error", void 0);
     er = Nu = l([R.d("CommonResponse")], er);
-    let tr;
-    let Ty;
-    let Sy;
-    let wy;
-    let by;
-    let Ny;
-    let xy;
-    let Mo;
-    let Oy;
-    let Cy;
-    let it = tr = class extends Y {
+    var tr;
+    var Ty;
+    var Sy;
+    var wy;
+    var by;
+    var Ny;
+    var xy;
+    var Mo;
+    var Oy;
+    var Cy;
+    var it = tr = class extends Y {
       get signature() {
         return this.signatureBuffer && xe(this.signatureBuffer) || void 0;
       }
@@ -9447,7 +9453,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(tr.INC++, "string", "optional"), u("design:type", String)], it.prototype, "range", void 0);
     l([A.d(tr.INC++, "string", "optional"), u("design:type", String)], it.prototype, "address", void 0);
     it = tr = l([R.d("TransactionQueryOptions")], it);
-    let qr = Ty = class extends Y {
+    var qr = Ty = class extends Y {
       toJSON() {
         return { tIndex: this.tIndex };
       }
@@ -9455,7 +9461,7 @@ const require_bioforest_chain_bundle = __commonJS({
     qr.INC = 1;
     l([A.d(Ty.INC++, "int32", "required", 1), u("design:type", Number)], qr.prototype, "tIndex", void 0);
     qr = Ty = l([R.d("TransactionSortOptions")], qr);
-    let ao = class extends Y {
+    var ao = class extends Y {
       toJSON() {
         return { query: this.query.toJSON(), sort: this.sort.toJSON() };
       }
@@ -9463,14 +9469,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, it), u("design:type", it)], ao.prototype, "query", void 0);
     l([A.d(2, qr), u("design:type", qr)], ao.prototype, "sort", void 0);
     ao = l([R.d("QueryTransactionArg")], ao);
-    let Pa = Sy = class extends er {
+    var Pa = Sy = class extends er {
       toJSON() {
         return Object.assign({ transactions: this.transactions.map((e) => e.toJSON()) }, super.toJSON());
       }
     };
     l([A.d(Sy.INC++, qt, "repeated"), u("design:type", Array)], Pa.prototype, "transactions", void 0);
     Pa = Sy = l([R.d("QueryTransactionReturn")], Pa);
-    let tl = class extends Y {
+    var tl = class extends Y {
       toJSON() {
         return { query: this.query, sort: this.sort };
       }
@@ -9478,14 +9484,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, it), u("design:type", it)], tl.prototype, "query", void 0);
     l([A.d(2, qr), u("design:type", qr)], tl.prototype, "sort", void 0);
     tl = l([R.d("QueryTindexArg")], tl);
-    let Ma = wy = class extends er {
+    var Ma = wy = class extends er {
       toJSON() {
         return Object.assign({ tIndexes: this.tIndexes }, super.toJSON());
       }
     };
     l([A.d(wy.INC++, "uint32", "repeated"), u("design:type", Array)], Ma.prototype, "tIndexes", void 0);
     Ma = wy = l([R.d("QueryTindexReturn")], Ma);
-    let co = by = class extends Y {
+    var co = by = class extends Y {
       static fromObject(e) {
         return super.fromObject(e);
       }
@@ -9496,30 +9502,30 @@ const require_bioforest_chain_bundle = __commonJS({
     co.INC = 1;
     l([A.d(by.INC++, "uint32", "repeated"), u("design:type", Array)], co.prototype, "tIndexRanges", void 0);
     co = by = l([R.d("TransactionInBlockGetOptions")], co);
-    let rl = class extends Y {
+    var rl = class extends Y {
       toJSON() {
         return { query: this.query };
       }
     };
     l([A.d(1, co), u("design:type", co)], rl.prototype, "query", void 0);
     rl = l([R.d("GetTransactionInBlockArg")], rl);
-    let La = Ny = class extends er {
+    var La = Ny = class extends er {
       toJSON() {
         return Object.assign({ transactionInBlocks: this.transactionInBlocks.map((e) => e.toJSON()) }, super.toJSON());
       }
     };
     l([A.d(Ny.INC++, qt, "repeated"), u("design:type", Array)], La.prototype, "transactionInBlocks", void 0);
     La = Ny = l([R.d("GetTransactionInBlockReturn")], La);
-    let nl = xy = class extends Wi {
+    var nl = xy = class extends Wi {
       static fromObject(e) {
         return super.fromObject(e);
       }
     };
     l([A.d(xy.INC++, "string", "optional"), u("design:type", String)], nl.prototype, "grabSecret", void 0);
     nl = xy = l([R.d("NewTransactionArg")], nl);
-    let gs = Mo = class extends er {
+    var gs = Mo = class extends er {
       toJSON() {
-        let e, t, r;
+        var e, t, r;
         const n = Object.assign({ newTrsStatus: this.newTrsStatus, minFee: this.minFee }, super.toJSON());
         return (e = this.refuseReason) !== null && e !== void 0 || (n.refuseReason = this.refuseReason), (t = this.errorCode) !== null && t !== void 0 || (n.errorCode = this.errorCode), (r = this.errorMessage) !== null && r !== void 0 || (n.errorMessage = this.errorMessage), n;
       }
@@ -9530,7 +9536,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Mo.INC++, "string", "optional"), u("design:type", String)], gs.prototype, "errorCode", void 0);
     l([A.d(Mo.INC++, "string", "optional"), u("design:type", String)], gs.prototype, "errorMessage", void 0);
     gs = Mo = l([R.d("NewTransactionReturn")], gs);
-    let ds = class extends Y {
+    var ds = class extends Y {
       toJSON() {
         const e = { height: this.height, tIndex: this.tIndex, length: this.length };
         return this.blockSignature && (e.blockSignature = this.blockSignature), e;
@@ -9541,7 +9547,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(3, "uint32", "required", 1), u("design:type", Number)], ds.prototype, "length", void 0);
     l([A.d(4, "string"), u("design:type", String)], ds.prototype, "blockSignature", void 0);
     ds = l([R.d("TransactionIndexModel")], ds);
-    let sl = class extends Y {
+    var sl = class extends Y {
       toJSON() {
         return { query: this.query.toJSON(), sort: this.sort.toJSON() };
       }
@@ -9549,32 +9555,32 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, it), u("design:type", it)], sl.prototype, "query", void 0);
     l([A.d(2, qr), u("design:type", qr)], sl.prototype, "sort", void 0);
     sl = l([R.d("IndexTransactionArg")], sl);
-    let Ha = Oy = class extends er {
+    var Ha = Oy = class extends er {
       toJSON() {
         return Object.assign({ tIndexes: this.tIndexes.map((e) => e.toJSON()) }, super.toJSON());
       }
     };
     l([A.d(Oy.INC++, ds, "repeated"), u("design:type", Array)], Ha.prototype, "tIndexes", void 0);
     Ha = Oy = l([R.d("IndexTransactionReturn")], Ha);
-    let il = class extends Y {
+    var il = class extends Y {
       toJSON() {
         return { tIndexes: this.tIndexes.map((e) => e.toJSON()) };
       }
     };
     l([A.d(1, ds, "repeated"), u("design:type", Array)], il.prototype, "tIndexes", void 0);
     il = l([R.d("DownloadTransactionArg")], il);
-    let va = Cy = class extends er {
+    var va = Cy = class extends er {
       toJSON() {
         return Object.assign({ transactions: this.transactions.map((e) => e.toJSON()) }, super.toJSON());
       }
     };
     l([A.d(Cy.INC++, qt, "repeated"), u("design:type", Array)], va.prototype, "transactions", void 0);
     va = Cy = l([R.d("DownloadTransactionReturn")], va);
-    let Rl;
-    let Bl;
-    let Ry;
-    let Pl;
-    let Ii = Rl = class extends Y {
+    var Rl;
+    var Bl;
+    var Ry;
+    var Pl;
+    var Ii = Rl = class extends Y {
       get hash() {
         return xe(this.hashBuffer);
       }
@@ -9594,7 +9600,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Rl.INC++, "bytes"), u("design:type", Uint8Array)], Ii.prototype, "hashBuffer", void 0);
     l([A.d(Rl.INC++, "int32"), u("design:type", Number)], Ii.prototype, "downloadSize", void 0);
     Ii = Rl = l([R.d("OpenBlobArgModel")], Ii);
-    let Ti = Bl = class extends er {
+    var Ti = Bl = class extends er {
       toJSON() {
         const e = super.toJSON();
         return e.descriptor = this.descriptor, e.contentType = this.contentType, e;
@@ -9607,7 +9613,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Bl.INC++, "string", "optional"), u("design:type", String)], Ti.prototype, "contentType", void 0);
     l([A.d(Bl.INC++, "uint32", "optional"), u("design:type", Number)], Ti.prototype, "size", void 0);
     Ti = Bl = l([R.d("OpenBlobReturn")], Ti);
-    let ka = Ry = class extends Y {
+    var ka = Ry = class extends Y {
       toJSON() {
         return { descriptor: this.descriptor };
       }
@@ -9615,10 +9621,10 @@ const require_bioforest_chain_bundle = __commonJS({
     ka.INC = 1;
     l([A.d(Ry.INC++, "string"), u("design:type", String)], ka.prototype, "descriptor", void 0);
     ka = Ry = l([R.d("CloseBlobArg")], ka);
-    let ol = class extends er {
+    var ol = class extends er {
     };
     ol = l([R.d("CloseBlobReturn")], ol);
-    let ks = Pl = class extends Y {
+    var ks = Pl = class extends Y {
       toJSON() {
         return { descriptor: this.descriptor, start: this.start, end: this.end };
       }
@@ -9628,7 +9634,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Pl.INC++, "uint32"), u("design:type", Number)], ks.prototype, "start", void 0);
     l([A.d(Pl.INC++, "uint32"), u("design:type", Number)], ks.prototype, "end", void 0);
     ks = Pl = l([R.d("ReadBlobArg")], ks);
-    let po = class extends er {
+    var po = class extends er {
       get chunk() {
         return xe(this.chunkBuffer);
       }
@@ -9647,9 +9653,9 @@ const require_bioforest_chain_bundle = __commonJS({
     po.INC = 1;
     l([A.d(ks.INC++, "bytes"), u("design:type", Uint8Array)], po.prototype, "chunkBuffer", void 0);
     po = l([R.d("ReadBlobReturn")], po);
-    let By;
-    let As;
-    let lo = class extends Y {
+    var By;
+    var As;
+    var lo = class extends Y {
       toJSON() {
         const e = super.toJSON();
         return this.signature && (e.signature = this.signature), this.height && (e.height = this.height), e;
@@ -9658,14 +9664,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(1, "string", "optional"), u("design:type", String)], lo.prototype, "signature", void 0);
     l([A.d(2, "uint32", "optional"), u("design:type", Number)], lo.prototype, "height", void 0);
     lo = l([R.d("BlockQueryOptions")], lo);
-    let Da = class extends Y {
+    var Da = class extends Y {
       toJSON() {
         return { query: this.query.toJSON() };
       }
     };
     l([A.d(1, lo), u("design:type", lo)], Da.prototype, "query", void 0);
     Da = l([R.d("QueryBlockArg")], Da);
-    let Fa = By = class extends er {
+    var Fa = By = class extends er {
       toJSON() {
         const e = super.toJSON();
         return this.someBlock && (e.someBlock = this.someBlock.toJSON()), e;
@@ -9673,7 +9679,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(By.INC++, mi, "optional"), u("design:type", mi)], Fa.prototype, "someBlock", void 0);
     Fa = By = l([R.d("QueryBlockReturn")], Fa);
-    let Ur = As = class extends Y {
+    var Ur = As = class extends Y {
       get generatorPublicKey() {
         return xe(this.generatorPublicKeyBuffer);
       }
@@ -9698,23 +9704,23 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(As.INC++, "bytes"), u("design:type", Uint8Array)], Ur.prototype, "generatorPublicKeyBuffer", void 0);
     l([A.d(As.INC++, "uint32"), u("design:type", Number)], Ur.prototype, "version", void 0);
     Ur = As = l([R.d("NewBlockArg")], Ur);
-    let $a = class extends er {
+    var $a = class extends er {
     };
     $a = l([R.d("NewBlockReturn")], $a);
-    let cn;
-    let Pi;
-    let zs;
-    let Py;
-    const Um = /* @__PURE__ */ new WeakMap();
-    const sf = /* @__PURE__ */ new WeakMap();
-    let al = class extends Y {
+    var cn;
+    var Pi;
+    var zs;
+    var Py;
+    var Um = /* @__PURE__ */ new WeakMap();
+    var sf = /* @__PURE__ */ new WeakMap();
+    var al = class extends Y {
       toJSON() {
         return { uid: this.uid };
       }
     };
     l([A.d(1, "uint32", "optional"), u("design:type", Number)], al.prototype, "uid", void 0);
     al = l([R.d("GetPeerInfoArg")], al);
-    let cl = class extends Y {
+    var cl = class extends Y {
       get peerTime() {
         return this.peerTimeLong.toNumber();
       }
@@ -9731,7 +9737,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(1, "uint64"), u("design:type", Object)], cl.prototype, "peerTimeLong", void 0);
     cl = l([R.d("PeerConsensus")], cl);
-    let ur = cn = class extends Y {
+    var ur = cn = class extends Y {
       get servicePeerInfo() {
         return { peerInfoDelay: this.peerInfoDelay, onlineUser: this.onlineUser, productivity: this.productivity, paidSourceChainMagic: this.paidSourceChainMagic, paidsourceChainName: this.paidsourceChainName, paidAssetType: this.paidAssetType, paidAmount: this.paidAmount, paidType: this.paidType, serviceNotesName: this.serviceNotesName, noteIP: this.noteIP, dappOnChainBuy: this.dappOnChainBuy };
       }
@@ -9759,7 +9765,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(cn.INC++, "string"), u("design:type", String)], ur.prototype, "noteIP", void 0);
     l([A.d(cn.INC++, "bool"), u("design:type", Boolean)], ur.prototype, "dappOnChainBuy", void 0);
     ur = cn = l([R.d("ServicePeerInfo")], ur);
-    let jn = Pi = class extends Y {
+    var jn = Pi = class extends Y {
       get progress() {
         const { status: e } = this;
         return e === Qr.REBUIDING ? { status: e, progressEvent: this.rebuildingProgressEvent } : e === Qr.PEER_SCANNING ? { status: e, progressEvent: this.peerScanningProgressEvent } : e === Qr.REPLAY_BLOCK ? { status: e, progressEvent: this.replayBlockProgressEvent } : e === Qr.GENERATING ? { status: e, progressEvent: this.generatingProgressEvent } : e === Qr.ROLLBACK ? { status: e, progressEvent: this.rollbackProgressEvent } : { status: e, progressEvent: void 0 };
@@ -9791,12 +9797,12 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(Pi.INC++, Ra, "optional"), u("design:type", Ra)], jn.prototype, "rollbackProgressEvent", void 0);
     l([A.d(Pi.INC++, Qr), u("design:type", Number)], jn.prototype, "_status", void 0);
     jn = Pi = l([R.d("BlockchainStatus")], jn);
-    let on = zs = class extends Y {
+    var on = zs = class extends Y {
       constructor() {
         super(...arguments), this._parsed_serviceInfo = false;
       }
       get serviceInfo() {
-        return !this._parsed_serviceInfo && typeof this.serviceInfoJSON === "string" && (this._parsed_serviceInfo = true, this._serviceInfo = JSON.parse(this.serviceInfoJSON)), this._serviceInfo;
+        return !this._parsed_serviceInfo && typeof this.serviceInfoJSON == "string" && (this._parsed_serviceInfo = true, this._serviceInfo = JSON.parse(this.serviceInfoJSON)), this._serviceInfo;
       }
       set serviceInfo(e) {
         this.serviceInfoJSON = (this._serviceInfo = e) ? JSON.stringify(e) : void 0, this._parsed_serviceInfo = true;
@@ -9841,7 +9847,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(zs.INC++, cl), u("design:type", cl)], on.prototype, "peerConsensus", void 0);
     l([A.d(zs.INC++, "uint32"), u("design:type", Number)], on.prototype, "peerLinkCount", void 0);
     on = zs = l([R.d("PeerInfo")], on);
-    let Ua = Py = class extends er {
+    var Ua = Py = class extends er {
       toJSON() {
         const e = super.toJSON();
         return this.peerInfo && (e.peerInfo = this.peerInfo.toJSON()), e;
@@ -9849,8 +9855,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([A.d(Py.INC++, on, "optional"), u("design:type", on)], Ua.prototype, "peerInfo", void 0);
     Ua = Py = l([R.d("GetPeerInfoReturn")], Ua);
-    let js;
-    let Zr = js = class extends Y {
+    var js;
+    var Zr = js = class extends Y {
     };
     Zr.INC = 1;
     l([A.d(js.INC++, "uint32"), u("design:type", Number)], Zr.prototype, "version", void 0);
@@ -9861,16 +9867,16 @@ const require_bioforest_chain_bundle = __commonJS({
     l([A.d(js.INC++, "uint32"), u("design:type", Number)], Zr.prototype, "refuseTimespan", void 0);
     l([A.d(js.INC++, "uint32"), u("design:type", Number)], Zr.prototype, "messageVersion", void 0);
     Zr = js = l([R.d("ChainChannelMessageModel")], Zr);
-    let yh;
+    var yh;
     (function(i) {
       i[i.TESTNET = 0] = "TESTNET", i[i.MAINNET = 1] = "MAINNET";
     })(yh || (yh = {}));
-    let ne = class {
+    var ne = class {
       constructor(e, t) {
         this.genesisBlock = e, this.business = t, this.events = new An(), this._hookBlockMap = /* @__PURE__ */ new Map(), this._hookBlockMap.set(e.version, e), this.hookedGenesisBlock = this.genesisBlock;
       }
       _applyHookGenesisBlock() {
-        const e = [...this._hookBlockMap].toSorted((t, r) => t[0] - r[0]);
+        const e = [...this._hookBlockMap].sort((t, r) => t[0] - r[0]);
         this.hookedGenesisBlock = hT(this.genesisBlock, ...e.map((t) => ({ ...t[1], version: t[0] }))), $E(this), this.events.emit("hookGenesisBlockApply", this.toJSON());
       }
       setHookGenesisBlock(e, t) {
@@ -10029,7 +10035,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ne.prototype, "signature", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ne.prototype, "nextRoundGenerators", null);
     ne = l([J("config"), u("design:paramtypes", [Object, String])], ne);
-    let xr = class {
+    var xr = class {
       constructor() {
         this._map = /* @__PURE__ */ new Map();
       }
@@ -10080,7 +10086,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Object), u("design:paramtypes", [])], xr.prototype, "keys", null);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], xr.prototype, "values", null);
     xr = l([J("configMap")], xr);
-    const Ft = class extends nh {
+    var Ft = class extends nh {
       getTimestamp(e = this.now()) {
         return Math.floor((e - this.config.beginEpochTime) / 1e3);
       }
@@ -10105,20 +10111,20 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(ne), u("design:type", ne)], Ft.prototype, "config", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Ft.prototype, "beginEpochTime", null);
-    const { ArgumentIllegalException: kT } = ee("HELPER", "jsbiHelper");
+    var { ArgumentIllegalException: kT } = ee("HELPER", "jsbiHelper");
     function dr(i) {
       try {
-        if (typeof i === "string") {
+        if (typeof i == "string") {
           if (/^[0-9-]*$/.test(i) === false) throw new Error("QAQ");
           i = parseInt(i);
-        } else if (typeof i === "number") i = Math.floor(i);
+        } else if (typeof i == "number") i = Math.floor(i);
         else return i;
         return BigInt(i);
       } catch {
         throw new kT(c.PROP_IS_INVALID, { prop: `param ${i}`, target: "fraction" });
       }
     }
-    let xt = class {
+    var xt = class {
       multiplyFloor(e, t) {
         return this.multiplyFloorFraction(e, this.numberToFraction(t));
       }
@@ -10201,7 +10207,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     xt = l([J()], xt);
-    let Or = class {
+    var Or = class {
       constructor(e, t, r) {
         this.cryptoHelper = e, this.keypairHelper = t, this.ed2curveHelper = r;
       }
@@ -10230,7 +10236,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Or = l([J("asymmetricHelper"), be(0, D("cryptoHelper")), be(1, D("keypairHelper")), be(2, D("ed2curveHelper")), u("design:paramtypes", [Object, Object, Object])], Or);
-    let mh = class {
+    var mh = class {
       calcParityBit(e) {
         let t = 0;
         for (let r = 0; r < e.length; r++) t += e.charCodeAt(r);
@@ -10259,22 +10265,22 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       createMagic(e) {
         if (e) {
-          if (typeof e !== "string") throw new Error(`Not a valid magic ${e}`);
+          if (typeof e != "string") throw new Error(`Not a valid magic ${e}`);
           if (!new RegExp("^[A-Z0-9]{4}$").test(e)) throw new Error(`Not a valid magic ${e}`);
         } else e = this.__getRandomString(4);
         return this.__addParityBit(e);
       }
       createDAppId(e) {
         if (e) {
-          if (typeof e !== "string") throw new Error(`Not a valid dappid ${e}`);
+          if (typeof e != "string") throw new Error(`Not a valid dappid ${e}`);
           if (!new RegExp("^[A-Z0-9]{7}$").test(e)) throw new Error(`Not a valid dappid ${e}`);
         } else e = this.__getRandomString(7);
         return this.__addParityBit(e);
       }
     };
     mh = l([J()], mh);
-    const DT = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-    const FT = class {
+    var DT = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    var FT = class {
       constructor(e = DT) {
         this.ALPHABET = e, this.BASE = this.ALPHABET.length, this.ALPHABET_MAP = {}, this.LEADER = this.ALPHABET.charAt(0);
         for (let t = 0; t < e.length; t++) {
@@ -10307,7 +10313,7 @@ const require_bioforest_chain_bundle = __commonJS({
           for (; s > 0; ) t.push(s & 255), s >>= 8;
         }
         for (let r = 0; e[r] === this.LEADER && r < e.length - 1; ++r) t.push(0);
-        return new Uint8Array(t).toReversed();
+        return new Uint8Array(t).reverse();
       }
       decode(e) {
         const t = this.decodeUnsafe(e);
@@ -10315,8 +10321,8 @@ const require_bioforest_chain_bundle = __commonJS({
         throw new Error("Non-base" + this.BASE + " character");
       }
     };
-    const $T = new FT();
-    let _h = class {
+    var $T = new FT();
+    var _h = class {
       constructor(e, t) {
         this.cryptoHelper = e, this.Buffer = t, this.bs58 = $T;
       }
@@ -10342,8 +10348,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     _h = l([J(), be(0, D("cryptoHelper")), be(1, D("Buffer")), u("design:paramtypes", [Object, Object])], _h);
-    const Vm = /* @__PURE__ */ new WeakMap();
-    let me = class {
+    var Vm = /* @__PURE__ */ new WeakMap();
+    var me = class {
       constructor(e, t, r, n, s) {
         this.cryptoHelper = e, this.keypairHelperInterface = t, this.Buffer = r, this.base58Helper = n, this.config = s;
       }
@@ -10380,7 +10386,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.getAddressFromPublicKey(await this.getPublicKeyFromSecret(e), t);
       }
       async isAddress(e) {
-        return typeof e !== "string" || /^[0-9]{1,20}$/g.test(e) ? false : !(e[0] !== this._prefix || !await this.base58Helper.decodeUnsafe(e.slice(1)));
+        return typeof e != "string" || /^[0-9]{1,20}$/g.test(e) ? false : !(e[0] !== this._prefix || !await this.base58Helper.decodeUnsafe(e.slice(1)));
       }
       async createSecondSecretKeypair(e, t) {
         return this.createSecretKeypair(`${e}-${t}`);
@@ -10396,7 +10402,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     me = l([J(), be(0, D("cryptoHelper")), be(1, D("keypairHelper")), be(2, D("Buffer")), u("design:paramtypes", [Object, Object, Object, _h, ne])], me);
-    let Be = class {
+    var Be = class {
       constructor(e, t, r, n, s) {
         this.accountBaseHelper = e, this.configHelper = t, this.ipHelper = r, this.parityBitHelper = n, this.jsbiHelper = s, this.MAX_UINT_32_INTEGER = 2 ** 32, this.MAX_INT_32_INTEGER = 2 ** 31 - 1, this.MIN_INT_32_INTEGER = -(2 ** 31), this.isValidSecondPublicKey = this.isValidPublicKey, this.isValidAssetNumber = this.isStringNumber, this.isValidAccountEquity = this.isStringNumber, this.isValidBlockParticipation = this.isStringNumber, this.isValidEquityRate = this.isStringNumber, this.isValidAssetPrealnum = this.isStringNumber;
       }
@@ -10410,16 +10416,16 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.ipHelper.isIpV6(e);
       }
       isLongitude(e) {
-        return /^[-+]((0(\.\d{1,10})?)|(([1,9](\d)?)(\.\d{1,10})?)|(1[0-7]\d{1}(\.\d{1,10})?)|(180(\.0{1,10})?))$/.test(e);
+        return /^[\-\+]((0(\.\d{1,10})?)|(([1,9](\d)?)(\.\d{1,10})?)|(1[0-7]\d{1}(\.\d{1,10})?)|(180(\.0{1,10})?))$/.test(e);
       }
       isLatitude(e) {
-        return /^[-+]((0(\.\d{1,10})?)|([1,9](\.\d{1,10})?)|([1-8]\d?(\.\d{1,10})?)|(90(\.0{1,10})?))$/.test(e);
+        return /^[\-\+]((0(\.\d{1,10})?)|([1,9](\.\d{1,10})?)|([1-8]\d?(\.\d{1,10})?)|(90(\.0{1,10})?))$/.test(e);
       }
       isDNS(e) {
         return /^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$/.test(e);
       }
       isEmail(e) {
-        return /^([A-Za-z0-9_\-.])+@([A-Za-z0-9_\-.])+\.([A-Za-z]{2,4})$/.test(e) ? ["qq.com", "163.com", "vip.163.com", "263.net", "yeah.net", "sohu.com", "sina.cn", "sina.com", "eyou.com", "gmail.com", "hotmail.com", "42du.cn"].includes(e.substring(e.indexOf("@") + 1)) : false;
+        return /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/.test(e) ? ["qq.com", "163.com", "vip.163.com", "263.net", "yeah.net", "sohu.com", "sina.cn", "sina.com", "eyou.com", "gmail.com", "hotmail.com", "42du.cn"].includes(e.substring(e.indexOf("@") + 1)) : false;
       }
       async isValidLocationNameRecord(e) {
         if (!this.isObject(e)) return false;
@@ -10470,7 +10476,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return Object.prototype.toString.call(e);
       }
       isBoolean(e) {
-        return typeof e === "boolean";
+        return typeof e == "boolean";
       }
       isNaturalNumber(e) {
         return Number.isInteger(e) && e >= 0;
@@ -10489,7 +10495,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       isPositiveFloatMatchCondition(e, t) {
         let r = e;
-        if (e && typeof e.denominator === "number" && typeof e.numerator === "number") {
+        if (e && typeof e.denominator == "number" && typeof e.numerator == "number") {
           if (e.denominator === 0) return false;
           r = e.numerator / e.denominator;
         }
@@ -10502,7 +10508,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.isPositiveFloatMatchCondition(e, (t) => t > 0);
       }
       isPositiveBigFloatMatchCondition(e, t, r = 32) {
-        if (!(e && typeof e.denominator === "string" && typeof e.numerator === "string")) return false;
+        if (!(e && typeof e.denominator == "string" && typeof e.numerator == "string")) return false;
         const { numerator: n, denominator: s } = e;
         return this.isStringNumber(n) === false || n.length > r || this.isPositiveStringNumber(s) === false || s.length > r ? false : t(e);
       }
@@ -10513,7 +10519,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.isPositiveBigFloatMatchCondition(e, (r) => this.jsbiHelper.compareFraction(r, { numerator: 0, denominator: 888 }) > 0, t);
       }
       isFraction(e) {
-        if (typeof e !== "object" || e === null || !(e.numerator && e.denominator)) return false;
+        if (typeof e != "object" || e === null || !(e.numerator && e.denominator)) return false;
         try {
           const t = BigInt(e.denominator), r = BigInt(0);
           if (t === r) return false;
@@ -10555,10 +10561,10 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.isValidBufferSize(e, 64);
       }
       isString(e) {
-        return typeof e === "string";
+        return typeof e == "string";
       }
       isHexString(e) {
-        return typeof e === "string" && /^[A-F0-9]+$/i.test(e);
+        return typeof e == "string" && /^[A-F0-9]+$/i.test(e);
       }
       isArray(e) {
         return this.getVariableType(e) === "[object Array]";
@@ -10680,7 +10686,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.isString(e) && /^[A-Za-z0-9]+$/.test(e);
       }
       isStartWithOrEndWithPoint(e) {
-        return !/^[^.].*[^.]$/.test(e);
+        return !/^[^\.].*[^\.]$/.test(e);
       }
       isLowerCaseLetterOrNumber(e) {
         return /^[a-z0-9]+$/.test(e);
@@ -10701,7 +10707,7 @@ const require_bioforest_chain_bundle = __commonJS({
         const t = e.prevWeight, r = e.nextWeight;
         try {
           const n = BigInt(t), s = BigInt(r);
-          return n === BigInt(0) || s === BigInt(0) ? false : typeof r === typeof t;
+          return n === BigInt(0) || s === BigInt(0) ? false : typeof r == typeof t;
         } catch {
           return false;
         }
@@ -10737,10 +10743,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Be = l([J(), u("design:paramtypes", [me, ne, Zo, mh, xt])], Be);
-    const UT = /* @__PURE__ */ Symbol("bfchain-core:TransactionFilter");
-    const VT = /* @__PURE__ */ Symbol("bfchain-core:AbortForbiddenTransaction");
-    const { ArgumentFormatException: of, ArgumentIllegalException: Gm, NoFoundException: GT } = ee("HELPER", "transactionHelper");
-    let Ee = class {
+    var UT = /* @__PURE__ */ Symbol("bfchain-core:TransactionFilter");
+    var VT = /* @__PURE__ */ Symbol("bfchain-core:AbortForbiddenTransaction");
+    var { ArgumentFormatException: of, ArgumentIllegalException: Gm, NoFoundException: GT } = ee("HELPER", "transactionHelper");
+    var Ee = class {
       constructor(e, t, r, n, s, o, a, p) {
         this.config = e, this.baseHelper = t, this.jsbiHelper = r, this.cryptoHelper = n, this.keypairHelper = s, this.Buffer = o, this.asymmetricHelper = a, this.accountBaseHelper = p, this.ALL_TRANSACTION_TYPES = [this.SIGNATURE, this.DAPP, this.DAPP_PURCHASING, this.REGISTER_CHAIN, this.MARK, this.ISSUE_ASSET, this.INCREASE_ASSET, this.DESTROY_ASSET, this.TRANSFER_ASSET, this.TO_EXCHANGE_ASSET, this.BE_EXCHANGE_ASSET, this.GIFT_ASSET, this.GRAB_ASSET, this.TRUST_ASSET, this.SIGN_FOR_ASSET, this.EMIGRATE_ASSET, this.IMMIGRATE_ASSET, this.LOCATION_NAME, this.SET_LNS_RECORD_VALUE, this.SET_LNS_MANAGER, this.ISSUE_ENTITY_FACTORY, this.ISSUE_ENTITY, this.DESTROY_ENTITY, this.ISSUE_ENTITY_MULTI, this.TRANSFER_ANY, this.GIFT_ANY, this.GRAB_ANY, this.TO_EXCHANGE_ANY, this.BE_EXCHANGE_ANY, this.TO_EXCHANGE_ANY_MULTI, this.BE_EXCHANGE_ANY_MULTI, this.TO_EXCHANGE_ANY_MULTI_ALL, this.BE_EXCHANGE_ANY_MULTI_ALL, this.ISSUE_CERTIFICATE, this.DESTROY_CERTIFICATE, this.MULTIPLE, this.PROMISE, this.PROMISE_RESOLVE, this.MACRO, this.MACRO_CALL], this.abortForbiddenTransaction = true;
       }
@@ -11098,8 +11104,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(UT, { optional: true }), u("design:type", Array)], Ee.prototype, "transactionFilter", void 0);
     l([D(VT, { dynamics: true }), u("design:type", Object)], Ee.prototype, "abortForbiddenTransaction", void 0);
     Ee = l([J(), be(3, D("cryptoHelper")), be(4, D("keypairHelper")), be(5, D("Buffer")), u("design:paramtypes", [ne, Be, xt, Object, Object, Object, Or, me])], Ee);
-    const { NoFoundException: KT, ArgumentIllegalException: af, RefuseException: Gl } = ee("helper", "blobHelper");
-    let Si = class {
+    var { NoFoundException: KT, ArgumentIllegalException: af, RefuseException: Gl } = ee("helper", "blobHelper");
+    var Si = class {
       constructor(e) {
         this.timeHelper = e;
       }
@@ -11157,14 +11163,14 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("blobSha256Reader", { optional: true }), u("design:type", Object)], Si.prototype, "blobSha256Reader", void 0);
     l([D("blobSha256Writer", { optional: true }), u("design:type", Object)], Si.prototype, "blobSha256Writer", void 0);
     Si = l([J(), u("design:paramtypes", [Ft])], Si);
-    const zT = class {
+    var zT = class {
       constructor(e, t, r) {
         this.chainName = e, this.magic = t, this.assetType = r;
       }
     };
-    const Km = /* @__PURE__ */ new Map();
-    const zm = /* @__PURE__ */ new WeakSet();
-    let ve = class {
+    var Km = /* @__PURE__ */ new Map();
+    var zm = /* @__PURE__ */ new WeakSet();
+    var ve = class {
       isChainAssetInfo(e) {
         return zm.has(e);
       }
@@ -11175,10 +11181,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ve = l([J()], ve);
-    let Vf;
-    let Gf;
+    var Vf;
+    var Gf;
     ee("helper-block_base_statistics", "blockBaseStatisticsHelper");
-    let Ds = Vf = class {
+    var Ds = Vf = class {
       constructor(e, t, r, n) {
         this.transactionHelper = e, this.chainAssetInfo = t, this.config = r, this.moduleMap = n, this._block_statistics_m = /* @__PURE__ */ new Map();
       }
@@ -11226,7 +11232,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     Ds.eventEmitterStatisticsWM = new ss((i) => /* @__PURE__ */ new WeakSet());
     Ds = Vf = l([J("bfchain-core:BlockBaseStatistics"), u("design:paramtypes", [Ee, ve, ne, ze])], Ds);
-    let pl = Gf = class extends An {
+    var pl = Gf = class extends An {
       constructor(e = nn.fromObject({}), t) {
         super(), this.source_data = e, this.chainAssetInfoHelper = t, this.subIdMap = /* @__PURE__ */ new Map(), this.typeSubIdMap = /* @__PURE__ */ new Map(), this._accountAddressSet = /* @__PURE__ */ new Set(), this._souce_data_totalAccount = this.source_data.totalAccount, this._reasonSet = /* @__PURE__ */ new Set();
       }
@@ -11306,8 +11312,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     pl.SOURCE_DATA_SYMBOL = /* @__PURE__ */ Symbol("source-data");
     pl = Gf = l([J(), be(0, D(Gf.SOURCE_DATA_SYMBOL, { optional: true })), u("design:paramtypes", [Object, ve])], pl);
-    const { ArgumentFormatException: Qs, NoFoundException: Li, ArgumentIllegalException: Qx, OutOfRangeException: jT, IllegalStateException: JT, ConsensusException: YT } = ee("HELPER", "blockHelper");
-    let dt = class {
+    var { ArgumentFormatException: Qs, NoFoundException: Li, ArgumentIllegalException: Qx, OutOfRangeException: jT, IllegalStateException: JT, ConsensusException: YT } = ee("HELPER", "blockHelper");
+    var dt = class {
       constructor(e, t, r, n, s, o, a) {
         this.config = e, this.baseHelper = t, this.accountBaseHelper = r, this.jsbiHelper = n, this.cryptoHelper = s, this.keypairHelper = o, this.Buffer = a, this._BTC_BLOCK_WM = /* @__PURE__ */ new WeakMap(), this._BLOCK_BTC_WM = /* @__PURE__ */ new WeakMap();
       }
@@ -11380,13 +11386,13 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       async forceGetBlockGeneratorAddressByHeight(e, t = this.blockGetterHelper) {
         if (!t) throw new Li(c.NOT_EXIST, { prop: "blockGetterHelper", target: "moduleStroge" });
-        const r = typeof t.getBlockGeneratorPublicKeyBufferByHeight === "function" ? await t.getBlockGeneratorPublicKeyBufferByHeight(e) : (await this.forceGetBlockByHeight(e, t)).generatorPublicKeyBuffer;
+        const r = typeof t.getBlockGeneratorPublicKeyBufferByHeight == "function" ? await t.getBlockGeneratorPublicKeyBufferByHeight(e) : (await this.forceGetBlockByHeight(e, t)).generatorPublicKeyBuffer;
         if (!r) throw new Qs(c.NOT_EXIST, { prop: `height:${e}`, target: "generatorPublicKey" });
         return this.accountBaseHelper.getAddressFromPublicKey(r);
       }
       async forceGetBlockSignatureBufferByHeight(e, t = this.blockGetterHelper) {
         if (!t) throw new Li(c.NOT_EXIST, { prop: "blockGetterHelper", target: "moduleStroge" });
-        const r = typeof t.getBlockSignatureByHeight === "function" ? await t.getBlockSignatureByHeight(e) : (await this.forceGetBlockByHeight(e, t)).signatureBuffer;
+        const r = typeof t.getBlockSignatureByHeight == "function" ? await t.getBlockSignatureByHeight(e) : (await this.forceGetBlockByHeight(e, t)).signatureBuffer;
         if (!r) throw new Qs(c.NOT_EXIST, { prop: `height:${e}`, target: "generatorPublicKey" });
         return r;
       }
@@ -11451,7 +11457,7 @@ const require_bioforest_chain_bundle = __commonJS({
         if (!t) throw new Li(c.NOT_EXIST, { prop: "blockGetterHelper", target: "moduleStroge" });
         const r = (e - 1) * this.config.blockPerRound + 1, n = e * this.config.blockPerRound, s = [];
         for (let o = r; o <= n; o++) {
-          const a = typeof t.getBlockGeneratorPublicKeyBufferByHeight === "function" ? await t.getBlockGeneratorPublicKeyBufferByHeight(o) : (await this.forceGetBlockByHeight(o, t)).generatorPublicKeyBuffer;
+          const a = typeof t.getBlockGeneratorPublicKeyBufferByHeight == "function" ? await t.getBlockGeneratorPublicKeyBufferByHeight(o) : (await this.forceGetBlockByHeight(o, t)).generatorPublicKeyBuffer;
           if (!a) throw new Qs(c.NOT_EXIST, { prop: `height:${o}`, target: "generatorPublicKey" });
           const p = await this.accountBaseHelper.getAddressFromPublicKey(a);
           s.includes(p) || s.push(p);
@@ -11467,7 +11473,7 @@ const require_bioforest_chain_bundle = __commonJS({
             for (const h in p) r.push(`${s}-${a}-${h}-${p[h]}`);
           }
         }
-        if (r.toSorted((s, o) => s > o ? 1 : -1), r.length === 0) return;
+        if (r.sort((s, o) => s > o ? 1 : -1), r.length === 0) return;
         const n = this.cryptoHelper.sha256();
         for (const s of r) n.update(wr.from(s, t));
         return (await n.digest()).toString("hex");
@@ -11490,7 +11496,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return t.numberOfForgeEntities > e.numberOfForgeEntities ? 1 : t.numberOfForgeEntities < e.numberOfForgeEntities ? -1 : t.producedblocks > e.producedblocks ? 1 : t.producedblocks < e.producedblocks ? -1 : e.publicKey > t.publicKey ? 1 : e.publicKey === t.publicKey ? 0 : -1;
       }
       sortInRankAccountInfoList(e) {
-        return e.toSorted(this.nextRoundGeneratorsCompareFn);
+        return e.sort(this.nextRoundGeneratorsCompareFn);
       }
       calcForginAndHoldingRewards(e, t, r, n) {
         const s = BigInt(e.reward), o = { forgingRewards: BigInt(e.totalFee) + s, holdingRewardsList: [], circulations: BigInt(0) };
@@ -11511,7 +11517,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("blockGetterHelper", { optional: true }), u("design:type", Object)], dt.prototype, "blockGetterHelper", void 0);
     dt = l([J(), be(4, D("cryptoHelper")), be(5, D("keypairHelper")), be(6, D("Buffer")), u("design:paramtypes", [ne, Be, me, xt, Object, Object, Object])], dt);
-    const Qn = class _Qn {
+    var Qn = class _Qn {
       constructor(e) {
         this._map = new Map(e);
       }
@@ -11540,10 +11546,10 @@ const require_bioforest_chain_bundle = __commonJS({
         return this;
       }
     };
-    const Xe = "/";
-    const En = "utf-8";
-    const { ArgumentIllegalException: Wn } = ee("HELPER", "transactionHelper");
-    let Kf = class {
+    var Xe = "/";
+    var En = "utf-8";
+    var { ArgumentIllegalException: Wn } = ee("HELPER", "transactionHelper");
+    var Kf = class {
       constructor() {
         this.version = "1";
       }
@@ -11551,15 +11557,15 @@ const require_bioforest_chain_bundle = __commonJS({
         if (!e) throw new Wn(c.PROP_IS_REQUIRE, { prop: `chainInfo ${e}`, target: "encodeArgs" });
         const { chainName: t, magic: r, genesisBlockSignature: n } = e;
         if (!t) throw new Wn(c.PROP_IS_REQUIRE, { prop: `chainName ${t}`, target: "encodeArgs" });
-        if (typeof t !== "string") throw new Wn(c.PROP_IS_INVALID, { prop: `chainName ${t}`, target: "encodeArgs" });
+        if (typeof t != "string") throw new Wn(c.PROP_IS_INVALID, { prop: `chainName ${t}`, target: "encodeArgs" });
         if (!r) throw new Wn(c.PROP_IS_REQUIRE, { prop: `magic ${r}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new Wn(c.PROP_IS_INVALID, { prop: `magic ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new Wn(c.PROP_IS_INVALID, { prop: `magic ${r}`, target: "encodeArgs" });
         if (!n) throw new Wn(c.PROP_IS_REQUIRE, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
-        if (typeof n !== "string") throw new Wn(c.PROP_IS_INVALID, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
+        if (typeof n != "string") throw new Wn(c.PROP_IS_INVALID, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new Wn(c.PROP_IS_REQUIRE, { prop: `fromChainId ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new Wn(c.PROP_IS_INVALID, { prop: `fromChainId ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new Wn(c.PROP_IS_INVALID, { prop: `fromChainId ${e}`, target: "decodeArgs" });
         if (e.split(Xe).length !== 4) throw new Wn(c.PROP_IS_INVALID, { prop: `fromChainId ${e}`, target: "decodeArgs" });
       }
       encode(e, t = false) {
@@ -11576,8 +11582,8 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Kf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: Xn } = ee("HELPER", "transactionHelper");
-    let zf = class {
+    var { ArgumentIllegalException: Xn } = ee("HELPER", "transactionHelper");
+    var zf = class {
       constructor() {
         this.version = "1";
       }
@@ -11585,15 +11591,15 @@ const require_bioforest_chain_bundle = __commonJS({
         if (!e) throw new Xn(c.PROP_IS_REQUIRE, { prop: `chainInfo ${e}`, target: "encodeArgs" });
         const { chainName: t, magic: r, genesisBlockSignature: n } = e;
         if (!t) throw new Xn(c.PROP_IS_REQUIRE, { prop: `chainName ${t}`, target: "encodeArgs" });
-        if (typeof t !== "string") throw new Xn(c.PROP_IS_INVALID, { prop: `chainName ${t}`, target: "encodeArgs" });
+        if (typeof t != "string") throw new Xn(c.PROP_IS_INVALID, { prop: `chainName ${t}`, target: "encodeArgs" });
         if (!r) throw new Xn(c.PROP_IS_REQUIRE, { prop: `magic ${r}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new Xn(c.PROP_IS_INVALID, { prop: `magic ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new Xn(c.PROP_IS_INVALID, { prop: `magic ${r}`, target: "encodeArgs" });
         if (!n) throw new Xn(c.PROP_IS_REQUIRE, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
-        if (typeof n !== "string") throw new Xn(c.PROP_IS_INVALID, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
+        if (typeof n != "string") throw new Xn(c.PROP_IS_INVALID, { prop: `genesisBlockSignature ${n}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new Xn(c.PROP_IS_REQUIRE, { prop: `toChainId ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new Xn(c.PROP_IS_INVALID, { prop: `toChainId ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new Xn(c.PROP_IS_INVALID, { prop: `toChainId ${e}`, target: "decodeArgs" });
         if (e.split(Xe).length !== 4) throw new Xn(c.PROP_IS_INVALID, { prop: `toChainId ${e}`, target: "decodeArgs" });
       }
       encode(e, t = false) {
@@ -11610,18 +11616,18 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new zf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: ac } = ee("HELPER", "transactionHelper");
-    let jf = class {
+    var { ArgumentIllegalException: ac } = ee("HELPER", "transactionHelper");
+    var jf = class {
       constructor() {
         this.version = "1";
       }
       checkEncodeArgs(e) {
         if (!e) throw new ac(c.PROP_IS_REQUIRE, { prop: `address ${e}`, target: "encodeArgs" });
-        if (typeof e !== "string") throw new ac(c.PROP_IS_INVALID, { prop: `address ${e}`, target: "encodeArgs" });
+        if (typeof e != "string") throw new ac(c.PROP_IS_INVALID, { prop: `address ${e}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new ac(c.PROP_IS_REQUIRE, { prop: `fromId ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new ac(c.PROP_IS_INVALID, { prop: `fromId ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new ac(c.PROP_IS_INVALID, { prop: `fromId ${e}`, target: "decodeArgs" });
         if (e.split(Xe).length !== 2) throw new ac(c.PROP_IS_INVALID, { prop: `fromId ${e}`, target: "decodeArgs" });
       }
       encode(e, t = false) {
@@ -11636,18 +11642,18 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new jf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: cc } = ee("HELPER", "transactionHelper");
-    let Jf = class {
+    var { ArgumentIllegalException: cc } = ee("HELPER", "transactionHelper");
+    var Jf = class {
       constructor() {
         this.version = "1";
       }
       checkEncodeArgs(e) {
         if (!e) throw new cc(c.PROP_IS_REQUIRE, { prop: `address ${e}`, target: "encodeArgs" });
-        if (typeof e !== "string") throw new cc(c.PROP_IS_INVALID, { prop: `address ${e}`, target: "encodeArgs" });
+        if (typeof e != "string") throw new cc(c.PROP_IS_INVALID, { prop: `address ${e}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new cc(c.PROP_IS_REQUIRE, { prop: `toId ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new cc(c.PROP_IS_INVALID, { prop: `toId ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new cc(c.PROP_IS_INVALID, { prop: `toId ${e}`, target: "decodeArgs" });
         if (e.split(Xe).length !== 2) throw new cc(c.PROP_IS_INVALID, { prop: `toId ${e}`, target: "decodeArgs" });
       }
       encode(e, t = false) {
@@ -11662,8 +11668,8 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Jf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: $o } = ee("HELPER", "transactionHelper");
-    let Yf = class {
+    var { ArgumentIllegalException: $o } = ee("HELPER", "transactionHelper");
+    var Yf = class {
       constructor() {
         this.version = "1";
       }
@@ -11671,11 +11677,11 @@ const require_bioforest_chain_bundle = __commonJS({
         if (!e) throw new $o(c.PROP_IS_REQUIRE, { prop: `assetInfo ${e}`, target: "encodeArgs" });
         const { parentAssetType: t, assetType: r } = e;
         if (t !== G.DAPP && t !== G.LOCATION_NAME && t !== G.ENTITY && t !== G.ASSETS) throw new $o(c.PROP_IS_INVALID, { prop: `parentAssetType ${t}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new $o(c.PROP_IS_INVALID, { prop: `assetType ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new $o(c.PROP_IS_INVALID, { prop: `assetType ${r}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new $o(c.PROP_IS_REQUIRE, { prop: `assetId ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new $o(c.PROP_IS_INVALID, { prop: `assetId ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new $o(c.PROP_IS_INVALID, { prop: `assetId ${e}`, target: "decodeArgs" });
         if (e.split(Xe).length !== 3) throw new $o(c.PROP_IS_INVALID, { prop: `assetId ${e}`, target: "decodeArgs" });
       }
       encode(e, t = false) {
@@ -11692,27 +11698,27 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Yf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: yr } = ee("HELPER", "transactionHelper");
-    let Qf = class {
+    var { ArgumentIllegalException: yr } = ee("HELPER", "transactionHelper");
+    var Qf = class {
       constructor() {
         this.version = "1";
       }
       checkEncodeArgs(e) {
         const { publicKey: t, signature: r, secondPublicKey: n, signSignature: s } = e;
         if (!t) throw new yr(c.PROP_IS_REQUIRE, { prop: `publicKey ${t}`, target: "encodeArgs" });
-        if (typeof t !== "string") throw new yr(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
+        if (typeof t != "string") throw new yr(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
         if (!r) throw new yr(c.PROP_IS_REQUIRE, { prop: `signature ${r}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new yr(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new yr(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
         if (n) {
           if (!n) throw new yr(c.PROP_IS_REQUIRE, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
-          if (typeof n !== "string") throw new yr(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
+          if (typeof n != "string") throw new yr(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
           if (!s) throw new yr(c.PROP_IS_REQUIRE, { prop: `signSignature ${s}`, target: "encodeArgs" });
-          if (typeof s !== "string") throw new yr(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
+          if (typeof s != "string") throw new yr(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
         } else if (s) throw new yr(c.SHOULD_NOT_EXIST, { prop: `signSignature ${s}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new yr(c.PROP_IS_REQUIRE, { prop: `signature ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new yr(c.PROP_IS_INVALID, { prop: `signature ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new yr(c.PROP_IS_INVALID, { prop: `signature ${e}`, target: "decodeArgs" });
         const t = e.split("/");
         if (t.length !== 2 && t.length !== 3) throw new yr(c.PROP_IS_INVALID, { prop: `signature ${e}`, target: "decodeArgs" });
         if (t[1].split("-").length !== 2) throw new yr(c.PROP_IS_INVALID, { prop: `signature ${e}`, target: "decodeArgs" });
@@ -11759,27 +11765,27 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Qf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: mr } = ee("HELPER", "transactionHelper");
-    let Wf = class {
+    var { ArgumentIllegalException: mr } = ee("HELPER", "transactionHelper");
+    var Wf = class {
       constructor() {
         this.version = "1";
       }
       checkEncodeArgs(e) {
         const { publicKey: t, signature: r, secondPublicKey: n, signSignature: s } = e;
         if (!t) throw new mr(c.PROP_IS_REQUIRE, { prop: `publicKey ${t}`, target: "encodeArgs" });
-        if (typeof t !== "string") throw new mr(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
+        if (typeof t != "string") throw new mr(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
         if (!r) throw new mr(c.PROP_IS_REQUIRE, { prop: `signature ${r}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new mr(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new mr(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
         if (n) {
           if (!n) throw new mr(c.PROP_IS_REQUIRE, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
-          if (typeof n !== "string") throw new mr(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
+          if (typeof n != "string") throw new mr(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
           if (!s) throw new mr(c.PROP_IS_REQUIRE, { prop: `signSignature ${s}`, target: "encodeArgs" });
-          if (typeof s !== "string") throw new mr(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
+          if (typeof s != "string") throw new mr(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
         } else if (s) throw new mr(c.SHOULD_NOT_EXIST, { prop: `signSignature ${s}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e) {
         if (!e) throw new mr(c.PROP_IS_REQUIRE, { prop: `fromAuthSignature ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new mr(c.PROP_IS_INVALID, { prop: `fromAuthSignature ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new mr(c.PROP_IS_INVALID, { prop: `fromAuthSignature ${e}`, target: "decodeArgs" });
         const t = e.split("/");
         if (t.length !== 2 && t.length !== 3) throw new mr(c.PROP_IS_INVALID, { prop: `fromAuthSignature ${e}`, target: "decodeArgs" });
         if (t[1].split("-").length !== 2) throw new mr(c.PROP_IS_INVALID, { prop: `fromAuthSignature ${e}`, target: "decodeArgs" });
@@ -11826,27 +11832,27 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Wf();
       return new Qn([[`${i}/${e.version}`, e]]);
     }
-    const { ArgumentIllegalException: _r } = ee("HELPER", "transactionHelper");
-    let Xf = class {
+    var { ArgumentIllegalException: _r } = ee("HELPER", "transactionHelper");
+    var Xf = class {
       constructor() {
         this.version = "1";
       }
       checkEncodeArgs(e) {
         const { publicKey: t, signature: r, secondPublicKey: n, signSignature: s } = e;
         if (!t) throw new _r(c.PROP_IS_REQUIRE, { prop: `publicKey ${t}`, target: "encodeArgs" });
-        if (typeof t !== "string") throw new _r(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
+        if (typeof t != "string") throw new _r(c.PROP_IS_INVALID, { prop: `publicKey ${t}`, target: "encodeArgs" });
         if (!r) throw new _r(c.PROP_IS_REQUIRE, { prop: `signature ${r}`, target: "encodeArgs" });
-        if (typeof r !== "string") throw new _r(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
+        if (typeof r != "string") throw new _r(c.PROP_IS_INVALID, { prop: `signature ${r}`, target: "encodeArgs" });
         if (n) {
           if (!n) throw new _r(c.PROP_IS_REQUIRE, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
-          if (typeof n !== "string") throw new _r(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
+          if (typeof n != "string") throw new _r(c.PROP_IS_INVALID, { prop: `secondPublicKey ${n}`, target: "encodeArgs" });
           if (!s) throw new _r(c.PROP_IS_REQUIRE, { prop: `signSignature ${s}`, target: "encodeArgs" });
-          if (typeof s !== "string") throw new _r(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
+          if (typeof s != "string") throw new _r(c.PROP_IS_INVALID, { prop: `signSignature ${s}`, target: "encodeArgs" });
         } else if (s) throw new _r(c.SHOULD_NOT_EXIST, { prop: `signSignature ${s}`, target: "encodeArgs" });
       }
       checkDecodeArgs(e, t) {
         if (!e) throw new _r(c.PROP_IS_REQUIRE, { prop: `toAuthSignature ${e}`, target: "decodeArgs" });
-        if (typeof e !== "string") throw new _r(c.PROP_IS_INVALID, { prop: `toAuthSignature ${e}`, target: "decodeArgs" });
+        if (typeof e != "string") throw new _r(c.PROP_IS_INVALID, { prop: `toAuthSignature ${e}`, target: "decodeArgs" });
         const r = e.split("/");
         if (r.length !== 2 && r.length !== 3) throw new _r(c.PROP_IS_INVALID, { prop: `toAuthSignature ${e}`, target: "decodeArgs" });
         if (r[1].split("-").length !== 2) throw new _r(c.PROP_IS_INVALID, { prop: `toAuthSignature ${e}`, target: "decodeArgs" });
@@ -11896,8 +11902,8 @@ const require_bioforest_chain_bundle = __commonJS({
     function n0(i = 1) {
       return new Qn().mergeWithPrefix(`${i}/`, QT()).mergeWithPrefix(`${i}/`, WT()).mergeWithPrefix(`${i}/`, XT()).mergeWithPrefix(`${i}/`, qT()).mergeWithPrefix(`${i}/`, ZT()).mergeWithPrefix(`${i}/`, e0()).mergeWithPrefix(`${i}/`, t0()).mergeWithPrefix(`${i}/`, r0());
     }
-    const cr = n0();
-    let Ah = class {
+    var cr = n0();
+    var Ah = class {
       constructor(e) {
         this.config = e, this.fieldConverter = cr, this._init(), this._check();
       }
@@ -11950,7 +11956,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ah = l([J(), u("design:paramtypes", [Object])], Ah);
-    const { ArgumentIllegalException: jm } = ee("HELPER", "transactionHelper");
+    var { ArgumentIllegalException: jm } = ee("HELPER", "transactionHelper");
     function Ws(i) {
       return i.split("/", 1)[0];
     }
@@ -11962,7 +11968,7 @@ const require_bioforest_chain_bundle = __commonJS({
       const { fromChainId: s, toChainId: o, fromId: a, toId: p, assetId: h } = e, f = Ws(s), g = Ws(o), d = Ws(a), y = Ws(p), _ = Ws(h), I = Ws(t), S = { fromChainIdVersion: f, toChainIdVersion: g, fromIdVersion: d, toIdVersion: y, assetIdVersion: _, signatureVersion: I };
       return r && (S.fromAuthSignatureVersion = Ws(r)), n && (S.toAuthSignatureVersion = Ws(n)), new Ah(S);
     }
-    let qf = class {
+    var qf = class {
       constructor() {
         this.__version = "0.0.1";
       }
@@ -11974,14 +11980,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     qf = l([J()], qf);
-    const { ArgumentIllegalException: rr } = ee("HELPER", "transactionHelper");
-    let Fs = class {
+    var { ArgumentIllegalException: rr } = ee("HELPER", "transactionHelper");
+    var Fs = class {
       constructor(e, t, r, n, s, o, a) {
         this.baseHelper = e, this.configHelper = t, this.chainTimeHelper = r, this.asymmetricHelper = n, this.accountBaseHelper = s, this.transactionHelper = o, this.config = a;
       }
       __checkVersion(e) {
         if (!e) throw new rr(c.PROP_IS_REQUIRE, { prop: "version", target: "migrateCertificate" });
-        if (typeof e !== "string") throw new rr(c.PROP_IS_INVALID, { prop: "version", target: "migrateCertificate" });
+        if (typeof e != "string") throw new rr(c.PROP_IS_INVALID, { prop: "version", target: "migrateCertificate" });
       }
       __checkTimestamp(e) {
         if (!e) throw new rr(c.PROP_IS_REQUIRE, { prop: "timestamp", target: "migrateCertificate" });
@@ -12080,7 +12086,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Fs = l([J(), u("design:paramtypes", [Be, ne, Ft, Or, me, Ee, qf])], Fs);
-    let Zf = class {
+    var Zf = class {
       constructor() {
         this.__version = "0.0.1";
       }
@@ -12092,15 +12098,15 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Zf = l([J()], Zf);
-    const Kl = "utf-8";
-    const { ArgumentIllegalException: Gr } = ee("HELPER", "RegisterChainCertificateHelper");
-    let Eh = class {
+    var Kl = "utf-8";
+    var { ArgumentIllegalException: Gr } = ee("HELPER", "RegisterChainCertificateHelper");
+    var Eh = class {
       constructor(e, t, r, n, s) {
         this.baseHelper = e, this.chainTimeHelper = t, this.asymmetricHelper = r, this.accountBaseHelper = n, this.config = s;
       }
       __checkVersion(e) {
         if (!e) throw new Gr(c.PROP_IS_REQUIRE, { prop: "version", target: "registerChainCertificate" });
-        if (typeof e !== "string") throw new Gr(c.PROP_IS_INVALID, { prop: "version", target: "registerChainCertificate" });
+        if (typeof e != "string") throw new Gr(c.PROP_IS_INVALID, { prop: "version", target: "registerChainCertificate" });
       }
       __checkTimestamp(e) {
         if (!e) throw new Gr(c.PROP_IS_REQUIRE, { prop: "timestamp", target: "registerChainCertificate" });
@@ -12149,8 +12155,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Eh = l([J(), u("design:paramtypes", [Be, Ft, Or, me, Zf])], Eh);
-    const { ArgumentIllegalException: Te } = ee("CONTROLLER", "_txbase");
-    const Ge = class {
+    var { ArgumentIllegalException: Te } = ee("CONTROLLER", "_txbase");
+    var Ge = class {
       async fromJSON(e, t) {
         const r = this.init(e, e.asset);
         return t && t.verify && await this.verify(r, t.config), r;
@@ -12346,8 +12352,8 @@ const require_bioforest_chain_bundle = __commonJS({
         return "0";
       }
     };
-    const { ArgumentIllegalException: Hi } = ee("CONTROLLER", "SignatureTransactionFactory");
-    let Ih = class extends Ge {
+    var { ArgumentIllegalException: Hi } = ee("CONTROLLER", "SignatureTransactionFactory");
+    var Ih = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12376,8 +12382,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ih = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], Ih);
-    const { ArgumentIllegalException: pr } = ee("CONTROLLER", "DAppTransactionFactory");
-    let ll = class extends Ge {
+    var { ArgumentIllegalException: pr } = ee("CONTROLLER", "DAppTransactionFactory");
+    var ll = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12422,8 +12428,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ll = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], ll);
-    const { ArgumentIllegalException: Xs } = ee("CONTROLLER", "DAppPurchasingTransactionFactory");
-    let eg = class extends Ge {
+    var { ArgumentIllegalException: Xs } = ee("CONTROLLER", "DAppPurchasingTransactionFactory");
+    var eg = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.dappTransactionFactory = o;
       }
@@ -12458,8 +12464,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     eg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, ll])], eg);
-    const { ArgumentIllegalException: Rr } = ee("CONTROLLER", "MarkTransactionFactory");
-    let tg = class extends Ge {
+    var { ArgumentIllegalException: Rr } = ee("CONTROLLER", "MarkTransactionFactory");
+    var tg = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.dappTransactionFactory = o;
       }
@@ -12495,8 +12501,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     tg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, ll])], tg);
-    const { ArgumentIllegalException: Ar } = ee("CONTROLLER", "IssueAssetTransactionFactory");
-    let rg = class extends Ge {
+    var { ArgumentIllegalException: Ar } = ee("CONTROLLER", "IssueAssetTransactionFactory");
+    var rg = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12544,8 +12550,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     rg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], rg);
-    const { ArgumentIllegalException: Er } = ee("CONTROLLER", "IncreaseAssetTransactionFactory");
-    let ng = class extends Ge {
+    var { ArgumentIllegalException: Er } = ee("CONTROLLER", "IncreaseAssetTransactionFactory");
+    var ng = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12592,8 +12598,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ng = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], ng);
-    const { ArgumentIllegalException: Uo } = ee("CONTROLLER", "TransferTransactionFactory");
-    let Th = class extends Ge {
+    var { ArgumentIllegalException: Uo } = ee("CONTROLLER", "TransferTransactionFactory");
+    var Th = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12613,8 +12619,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Th = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], Th);
-    const { ArgumentIllegalException: Jm } = ee("CONTROLLER", "TransferAssetTransactionFactory");
-    let Sh = class extends Th {
+    var { ArgumentIllegalException: Jm } = ee("CONTROLLER", "TransferAssetTransactionFactory");
+    var Sh = class extends Th {
       async verifyTransactionBody(e, t, r = this.configHelper) {
         const n = { target: "transferAssetAsset" }, s = await super.commonVerifyTransactionBody(e, t, r), o = t.transferAsset;
         if (!o) throw new Jm(c.PARAM_LOST, { param: "transferAsset" });
@@ -12638,8 +12644,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Sh = l([J()], Sh);
-    const { ArgumentIllegalException: Vo } = ee("CONTROLLER", "TransferAnyTransactionFactory");
-    let wh = class extends Th {
+    var { ArgumentIllegalException: Vo } = ee("CONTROLLER", "TransferAnyTransactionFactory");
+    var wh = class extends Th {
       async verifyTransactionBody(e, t, r = this.configHelper) {
         const n = await super.commonVerifyTransactionBody(e, t, r), s = { target: "transferAnyAsset" };
         if (n.key !== "assetType") throw new Vo(c.SHOULD_BE, { to_compare_prop: `storage.key ${n.key}`, to_target: "storage", be_compare_prop: "assetType", ...s });
@@ -12677,8 +12683,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     wh = l([J()], wh);
-    const { ArgumentIllegalException: On } = ee("CONTROLLER", "DestroyAssetTransactionFactory");
-    let bh = class extends Ge {
+    var { ArgumentIllegalException: On } = ee("CONTROLLER", "DestroyAssetTransactionFactory");
+    var bh = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12719,8 +12725,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     bh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], bh);
-    const { ArgumentIllegalException: Kr } = ee("CONTROLLER", "ToExchangeAssetTransactionFactory");
-    let Nh = class extends Ge {
+    var { ArgumentIllegalException: Kr } = ee("CONTROLLER", "ToExchangeAssetTransactionFactory");
+    var Nh = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -12762,8 +12768,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Nh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], Nh);
-    const { ArgumentIllegalException: Jt } = ee("CONTROLLER", "BeExchangeAssetTransactionFactory");
-    let sg = class extends Ge {
+    var { ArgumentIllegalException: Jt } = ee("CONTROLLER", "BeExchangeAssetTransactionFactory");
+    var sg = class extends Ge {
       constructor(e, t, r, n, s, o, a) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.jsbiHelper = o, this.toExchangeAssetTransactionFactory = a;
       }
@@ -12821,8 +12827,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     sg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, xt, Nh])], sg);
-    const { ArgumentIllegalException: Go } = ee("CONTROLLER", "GiftTransactionFactory");
-    let xh = class extends Ge {
+    var { ArgumentIllegalException: Go } = ee("CONTROLLER", "GiftTransactionFactory");
+    var xh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.jsbiHelper = o;
       }
@@ -12846,8 +12852,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     xh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, xt])], xh);
-    const { ArgumentIllegalException: qn } = ee("CONTROLLER", "GiftAssetTransactionFactory");
-    let Oh = class extends xh {
+    var { ArgumentIllegalException: qn } = ee("CONTROLLER", "GiftAssetTransactionFactory");
+    var Oh = class extends xh {
       async verifyTransactionBody(e, t, r = this.configHelper) {
         const n = await this.commonVerifyTransactionBody(e, t, r), s = t.giftAsset;
         if (this.verifyGiftAsset(s, r), s.giftDistributionRule === 2 && e.rangeType !== 1) throw new qn(c.SHOULD_BE, { to_compare_prop: `rangeType ${e.rangeType}`, to_target: "body", be_compare_prop: 1 });
@@ -12884,8 +12890,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Oh = l([J()], Oh);
-    const { ArgumentIllegalException: Ir } = ee("CONTROLLER", "GiftAnyTransactionFactory");
-    let hl = class extends xh {
+    var { ArgumentIllegalException: Ir } = ee("CONTROLLER", "GiftAnyTransactionFactory");
+    var hl = class extends xh {
       async verifyTransactionBody(e, t, r = this.configHelper) {
         const n = await this.commonVerifyTransactionBody(e, t, r), s = t.giftAny;
         if (await this.verifyGiftAny(s, r), s.giftDistributionRule === 2 && e.rangeType !== 1) throw new Ir(c.SHOULD_BE, { to_compare_prop: `rangeType ${e.rangeType}`, to_target: "body", be_compare_prop: 1 });
@@ -12943,8 +12949,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     hl = l([J()], hl);
-    const { ArgumentIllegalException: Tr } = ee("CONTROLLER", "GrabAssetTransactionFactory");
-    let ig = class extends Ge {
+    var { ArgumentIllegalException: Tr } = ee("CONTROLLER", "GrabAssetTransactionFactory");
+    var ig = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.__giftAssetTransactionFactory = o;
       }
@@ -12994,8 +13000,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ig = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, Oh])], ig);
-    const { ArgumentIllegalException: lr } = ee("CONTROLLER", "GrabAnyTransactionFactory");
-    let Ch = class extends Ge {
+    var { ArgumentIllegalException: lr } = ee("CONTROLLER", "GrabAnyTransactionFactory");
+    var Ch = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.__giftAnyTransactionFactory = o;
       }
@@ -13054,8 +13060,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ch = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, hl])], Ch);
-    const { ArgumentIllegalException: nr } = ee("CONTROLLER", "TrustAssetTransactionFactory");
-    let Rh = class extends Ge {
+    var { ArgumentIllegalException: nr } = ee("CONTROLLER", "TrustAssetTransactionFactory");
+    var Rh = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13108,8 +13114,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Rh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], Rh);
-    const { ArgumentIllegalException: Br } = ee("CONTROLLER", "signForAssetTransactionFactory");
-    let og = class extends Ge {
+    var { ArgumentIllegalException: Br } = ee("CONTROLLER", "signForAssetTransactionFactory");
+    var og = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.trustAssetTransactionFactory = o;
       }
@@ -13156,8 +13162,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     og = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, Rh])], og);
-    const { ArgumentIllegalException: zr } = ee("CONTROLLER", "EmigrateAssetTransactionFactory");
-    let ag = class extends Ge {
+    var { ArgumentIllegalException: zr } = ee("CONTROLLER", "EmigrateAssetTransactionFactory");
+    var ag = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.baseHelper = e, this.configHelper = t, this.accountBaseHelper = r, this.transactionHelper = n, this.chainAssetInfoHelper = s, this.migrateCertificateHelper = o;
       }
@@ -13202,8 +13208,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ag = l([J(), u("design:paramtypes", [Be, ne, me, Ee, ve, Fs])], ag);
-    const { ArgumentIllegalException: jr } = ee("CONTROLLER", "ImmigrateAssetTransactionFactory");
-    let cg = class extends Ge {
+    var { ArgumentIllegalException: jr } = ee("CONTROLLER", "ImmigrateAssetTransactionFactory");
+    var cg = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.baseHelper = e, this.configHelper = t, this.accountBaseHelper = r, this.transactionHelper = n, this.chainAssetInfoHelper = s, this.migrateCertificateHelper = o;
       }
@@ -13265,8 +13271,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     cg = l([J(), u("design:paramtypes", [Be, ne, me, Ee, ve, Fs])], cg);
-    const { ArgumentIllegalException: Cn } = ee("CONTROLLER", "StakeAssetTransactionFactory");
-    let Bh = class extends Ge {
+    var { ArgumentIllegalException: Cn } = ee("CONTROLLER", "StakeAssetTransactionFactory");
+    var Bh = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13304,8 +13310,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Bh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], Bh);
-    const { ArgumentIllegalException: Zn } = ee("CONTROLLER", "UnstakeAssetTransactionFactory");
-    let pg = class extends Ge {
+    var { ArgumentIllegalException: Zn } = ee("CONTROLLER", "UnstakeAssetTransactionFactory");
+    var pg = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.stakeAssetTransactionFactory = o;
       }
@@ -13344,8 +13350,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     pg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, Bh])], pg);
-    const { ArgumentIllegalException: Vt } = ee("CONTROLLER", "LocationNameTransactionFactory");
-    let lg = class extends Ge {
+    var { ArgumentIllegalException: Vt } = ee("CONTROLLER", "LocationNameTransactionFactory");
+    var lg = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13399,8 +13405,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     lg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], lg);
-    const { ArgumentIllegalException: Es } = ee("CONTROLLER", "SetLnsManagerTransactionFactory");
-    let hg = class extends Ge {
+    var { ArgumentIllegalException: Es } = ee("CONTROLLER", "SetLnsManagerTransactionFactory");
+    var hg = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13436,8 +13442,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     hg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], hg);
-    const { ArgumentIllegalException: nt } = ee("CONTROLLER", "SetLnsRecordValueTransactionFactory");
-    let ug = class extends Ge {
+    var { ArgumentIllegalException: nt } = ee("CONTROLLER", "SetLnsRecordValueTransactionFactory");
+    var ug = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13517,8 +13523,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ug = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], ug);
-    const { ArgumentIllegalException: Wt } = ee("CONTROLLER", "IssueEntityFactoryTransactionFactory");
-    let ho = class extends Ge {
+    var { ArgumentIllegalException: Wt } = ee("CONTROLLER", "IssueEntityFactoryTransactionFactory");
+    var ho = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.jsbiHelper = o;
       }
@@ -13566,7 +13572,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ho = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, xt])], ho);
-    let Ph = class extends ho {
+    var Ph = class extends ho {
       async verifyTransactionBody(e, t, r = this.configHelper) {
         await this.commonVerifyTransactionBody(e, t, r);
       }
@@ -13583,8 +13589,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ph = l([J()], Ph);
-    const { ArgumentIllegalException: Xt } = ee("CONTROLLER", "IssueEntityTransactionFactory");
-    let Mh = class extends Ge {
+    var { ArgumentIllegalException: Xt } = ee("CONTROLLER", "IssueEntityTransactionFactory");
+    var Mh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.issueEntityFactoryTransactionFactory = o;
       }
@@ -13633,8 +13639,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Mh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, ho])], Mh);
-    const { ArgumentIllegalException: sr } = ee("CONTROLLER", "DestroyEntityTransactionFactory");
-    let fg = class extends Ge {
+    var { ArgumentIllegalException: sr } = ee("CONTROLLER", "DestroyEntityTransactionFactory");
+    var fg = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.issueEntityFactoryTransactionFactory = o;
       }
@@ -13687,8 +13693,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     fg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, ho])], fg);
-    const { ArgumentIllegalException: mt } = ee("CONTROLLER", "ToExchangeAnyTransactionFactory");
-    let ul = class extends Ge {
+    var { ArgumentIllegalException: mt } = ee("CONTROLLER", "ToExchangeAnyTransactionFactory");
+    var ul = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -13766,8 +13772,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     ul = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], ul);
-    const { ArgumentIllegalException: Pt } = ee("CONTROLLER", "BeExchangeAnyTransactionFactory");
-    let Lh = class extends Ge {
+    var { ArgumentIllegalException: Pt } = ee("CONTROLLER", "BeExchangeAnyTransactionFactory");
+    var Lh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.toExchangeAnyTransactionFactory = o;
       }
@@ -13857,8 +13863,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Lh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, ul])], Lh);
-    const { ArgumentIllegalException: Mt } = ee("CONTROLLER", "IssueEntityMultiTransactionV1");
-    let Hh = class extends Ge {
+    var { ArgumentIllegalException: Mt } = ee("CONTROLLER", "IssueEntityMultiTransactionV1");
+    var Hh = class extends Ge {
       constructor(e, t, r, n, s, o, a) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.jsbiHelper = o, this.issueEntityFactoryTransactionFactory = a;
       }
@@ -13925,8 +13931,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Hh = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, xt, ho])], Hh);
-    const { ArgumentIllegalException: ot } = ee("CONTROLLER", "ToExchangeAnyMultiTransactionFactory");
-    let vh = class extends Ge {
+    var { ArgumentIllegalException: ot } = ee("CONTROLLER", "ToExchangeAnyMultiTransactionFactory");
+    var vh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.Buffer = e, this.accountBaseHelper = t, this.transactionHelper = r, this.baseHelper = n, this.configHelper = s, this.chainAssetInfoHelper = o;
       }
@@ -14028,8 +14034,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     vh = l([J(), be(0, D("Buffer")), u("design:paramtypes", [Object, me, Ee, Be, ne, ve])], vh);
-    const { ArgumentIllegalException: st } = ee("CONTROLLER", "BeExchangeAnyMultiTransactionFactory");
-    let kh = class extends Ge {
+    var { ArgumentIllegalException: st } = ee("CONTROLLER", "BeExchangeAnyMultiTransactionFactory");
+    var kh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.Buffer = e, this.accountBaseHelper = t, this.transactionHelper = r, this.baseHelper = n, this.configHelper = s, this.chainAssetInfoHelper = o;
       }
@@ -14152,8 +14158,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     kh = l([J(), be(0, D("Buffer")), u("design:paramtypes", [Object, me, Ee, Be, ne, ve])], kh);
-    const { ArgumentIllegalException: _t } = ee("CONTROLLER", "ToExchangeAnyMultiAllTransactionFactory");
-    let Dh = class extends Ge {
+    var { ArgumentIllegalException: _t } = ee("CONTROLLER", "ToExchangeAnyMultiAllTransactionFactory");
+    var Dh = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.Buffer = e, this.accountBaseHelper = t, this.transactionHelper = r, this.baseHelper = n, this.configHelper = s, this.chainAssetInfoHelper = o;
       }
@@ -14245,8 +14251,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Dh = l([J(), be(0, D("Buffer")), u("design:paramtypes", [Object, me, Ee, Be, ne, ve])], Dh);
-    const { ArgumentIllegalException: Jr } = ee("CONTROLLER", "BeExchangeAnyMultiAllTransactionFactory");
-    let gg = class extends Ge {
+    var { ArgumentIllegalException: Jr } = ee("CONTROLLER", "BeExchangeAnyMultiAllTransactionFactory");
+    var gg = class extends Ge {
       constructor(e, t, r, n, s, o, a) {
         super(), this.Buffer = e, this.accountBaseHelper = t, this.transactionHelper = r, this.baseHelper = n, this.configHelper = s, this.chainAssetInfoHelper = o, this.toExchangeAnyMultiAllTransactionFactory = a;
       }
@@ -14334,8 +14340,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     gg = l([J(), be(0, D("Buffer")), u("design:paramtypes", [Object, me, Ee, Be, ne, ve, Dh])], gg);
-    const { ArgumentIllegalException: un } = ee("CONTROLLER", "IssueCertificateTransactionFactory");
-    let dg = class extends Ge {
+    var { ArgumentIllegalException: un } = ee("CONTROLLER", "IssueCertificateTransactionFactory");
+    var dg = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -14375,8 +14381,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     dg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], dg);
-    const { ArgumentIllegalException: es } = ee("CONTROLLER", "DestroyCertificateTransactionFactory");
-    let yg = class extends Ge {
+    var { ArgumentIllegalException: es } = ee("CONTROLLER", "DestroyCertificateTransactionFactory");
+    var yg = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -14412,8 +14418,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     yg = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], yg);
-    const { ArgumentFormatException: pc, OutOfRangeException: QO, ConsensusException: Ym, warn: Qm } = ee("CONTROLLER", "transaction");
-    let $t = class {
+    var { ArgumentFormatException: pc, OutOfRangeException: QO, ConsensusException: Ym, warn: Qm } = ee("CONTROLLER", "transaction");
+    var $t = class {
       constructor(e, t, r, n, s, o, a) {
         this.transactionHelper = e, this.accountBaseHelper = t, this.asymmetricHelper = r, this.keypairHelper = n, this.Buffer = s, this.config = o, this.moduleMap = a, this._txFactoryCache = /* @__PURE__ */ new Map(), this.fromJSON = this.recombineTransaction;
       }
@@ -14498,7 +14504,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     $t = l([J("bfchain-core:TransactionCore"), be(3, D("keypairHelper")), be(4, D("Buffer")), u("design:paramtypes", [Ee, me, Or, Object, Object, ne, ze])], $t);
-    const Mr = (() => {
+    var Mr = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       for (const n in v) {
         const s = v[n];
@@ -14512,12 +14518,12 @@ const require_bioforest_chain_bundle = __commonJS({
         return n.substr(s + 1);
       } };
     })();
-    const { ConsensusException: At } = ee("VERIFIER", "HelperLogicVerifier");
-    let wi = class {
+    var { ConsensusException: At } = ee("VERIFIER", "HelperLogicVerifier");
+    var wi = class {
       deepClone(e) {
         const t = Array.isArray(e) ? [] : {};
-        if (typeof e === "object") {
-          for (const r in e) e[r] && typeof e[r] === "object" ? t[r] = this.deepClone(e[r]) : t[r] = e[r];
+        if (typeof e == "object") {
+          for (const r in e) e[r] && typeof e[r] == "object" ? t[r] = this.deepClone(e[r]) : t[r] = e[r];
           return t;
         } else return e;
       }
@@ -14611,8 +14617,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(ne), u("design:type", ne)], wi.prototype, "configHelper", void 0);
     l([D("accountGetterHelper", { dynamics: true }), u("design:type", Object)], wi.prototype, "accountGetterHelper", void 0);
     wi = l([J()], wi);
-    const { ConsensusException: Z, NoFoundException: qO } = ee("VERIFIER", "EventLogicVerifier");
-    let Jn = class {
+    var { ConsensusException: Z, NoFoundException: qO } = ee("VERIFIER", "EventLogicVerifier");
+    var Jn = class {
       addRecord(e, t, r) {
         const { recordType: n, recordValue: s } = t;
         if (r && r[n] && r[n][s]) throw new Z(c.SET_LOCATION_NAME_RECORD_VALUE_FIELD, { locationName: e, reason: "New location name record value already exist" });
@@ -15071,7 +15077,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], Jn.prototype, "transactionCore", void 0);
     l([D("accountGetterHelper", { dynamics: true }), u("design:type", Object)], Jn.prototype, "accountGetterHelper", void 0);
     Jn = l([J()], Jn);
-    let Va = class {
+    var Va = class {
       constructor() {
         this.__cacheMap = /* @__PURE__ */ new Map();
       }
@@ -15086,8 +15092,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Va = l([J()], Va);
-    const { ConsensusException: ut, NoFoundException: tC } = ee("VERIFIER", "TransactionLogicVerifier");
-    const Me = class {
+    var { ConsensusException: ut, NoFoundException: tC } = ee("VERIFIER", "TransactionLogicVerifier");
+    var Me = class {
       async logicVerify(e, t, r) {
         if (e.version > this.configHelper.version) throw new ut(c.PROP_SHOULD_LTE_FIELD, { prop: `version ${e.version}`, target: `transaction ${e.signature}`, field: `blockChain version ${this.configHelper.version}` });
         const { senderId: n, recipientId: s } = e, o = await this.helperLogicVerifier.getAccountForce(r, n, t);
@@ -15210,8 +15216,10 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("blockGetterHelper", { dynamics: true }), u("design:type", Object)], Me.prototype, "blockGetterHelper", void 0);
     l([D("accountGetterHelper", { dynamics: true }), u("design:type", Object)], Me.prototype, "accountGetterHelper", void 0);
     l([D(Va), u("design:type", Va)], Me.prototype, "memoryCache", void 0);
-    let mg = class extends Me {
-      
+    var mg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15219,8 +15227,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     mg = l([J(), u("design:paramtypes", [])], mg);
-    let _g = class extends Me {
-      
+    var _g = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15231,9 +15241,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     _g = l([J(), u("design:paramtypes", [])], _g);
-    const { ConsensusException: Ko } = ee("VERIFIER", "DAppPurchasingLogicVerifier");
-    let Ag = class extends Me {
-      
+    var { ConsensusException: Ko } = ee("VERIFIER", "DAppPurchasingLogicVerifier");
+    var Ag = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.isDAppidMatch(e, t), await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15251,9 +15263,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ag = l([J(), u("design:paramtypes", [])], Ag);
-    const { ConsensusException: lc } = ee("VERIFIER", "MarkLogicVerifier");
-    let Eg = class extends Me {
-      
+    var { ConsensusException: lc } = ee("VERIFIER", "MarkLogicVerifier");
+    var Eg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.isDAppidMatch(e, t), await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15270,7 +15284,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Eg = l([J(), u("design:paramtypes", [])], Eg);
-    let Ig = class extends Me {
+    var Ig = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15284,8 +15298,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ig = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], Ig);
-    const { ConsensusException: Wm } = ee("VERIFIER", "TransactionLogicVerifier");
-    let Tg = class extends Me {
+    var { ConsensusException: Wm } = ee("VERIFIER", "TransactionLogicVerifier");
+    var Tg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15306,9 +15320,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Tg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], Tg);
-    const { ConsensusException: Xm } = ee("VERIFIER", "TransactionLogicVerifier");
-    let Sg = class extends Me {
-      
+    var { ConsensusException: Xm } = ee("VERIFIER", "TransactionLogicVerifier");
+    var Sg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, sourceChainName: p } = e.asset.transferAsset;
         await this.helperLogicVerifier.isAssetExist(p, o, a);
@@ -15323,9 +15339,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Sg = l([J(), u("design:paramtypes", [])], Sg);
-    const { ConsensusException: qm } = ee("VERIFIER", "TransactionLogicVerifier");
-    let wg = class extends Me {
-      
+    var { ConsensusException: qm } = ee("VERIFIER", "TransactionLogicVerifier");
+    var wg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainName: o, sourceChainMagic: a, parentAssetType: p, assetType: h } = e.asset.transferAny;
         p === G.ASSETS && await this.helperLogicVerifier.isAssetExist(o, a, h);
@@ -15344,9 +15362,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     wg = l([J(), u("design:paramtypes", [])], wg);
-    const { ConsensusException: s0 } = ee("VERIFIER", "TransactionLogicVerifier");
-    let bg = class extends Me {
-      
+    var { ConsensusException: s0 } = ee("VERIFIER", "TransactionLogicVerifier");
+    var bg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, sourceChainName: p } = e.asset.destroyAsset, h = await this.helperLogicVerifier.isAssetExist(p, o, a);
         if (h.applyAddress !== e.recipientId) throw new s0(c.SHOULD_BE, { to_compare_prop: `recipientId ${e.recipientId}`, to_target: "transaction", be_compare_prop: `asset apply account address ${h.applyAddress}` });
@@ -15356,8 +15376,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     bg = l([J(), u("design:paramtypes", [])], bg);
-    let Ng = class extends Me {
-      
+    var Ng = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, sourceChainName: p, totalGrabableTimes: h } = e.asset.giftAsset;
         await this.helperLogicVerifier.isAssetExist(p, o, a), await this.logicVerify(e, t, r);
@@ -15374,8 +15396,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ng = l([J(), u("design:paramtypes", [])], Ng);
-    let xg = class extends Me {
-      
+    var xg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, parentAssetType: p, sourceChainName: h } = e.asset.giftAny;
         p === G.ASSETS && await this.helperLogicVerifier.isAssetExist(h, o, a), await this.logicVerify(e, t, r);
@@ -15396,9 +15420,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     xg = l([J(), u("design:paramtypes", [])], xg);
-    const { ConsensusException: ir, NoFoundException: i0 } = ee("VERIFIER", "GrabAssetLogicVerifier");
-    let Fh = class extends Me {
-      
+    var { ConsensusException: ir, NoFoundException: i0 } = ee("VERIFIER", "GrabAssetLogicVerifier");
+    var Fh = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.grabAsset, { transactionSignature: a } = o, p = await this.transactionGetterHelper.getTransactionAndBlockSignatureBySignature(a, this.transactionHelper.calcTransactionQueryRange(t));
         if (!p) throw new i0(c.NOT_EXIST_OR_EXPIRED, { prop: `Transaction with signature ${a}`, target: "grabAsset" });
@@ -15468,9 +15494,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Fh.prototype, "transactionCore", void 0);
     Fh = l([J(), u("design:paramtypes", [])], Fh);
-    const { ConsensusException: Lt, NoFoundException: o0 } = ee("VERIFIER", "GrabAnyLogicVerifier");
-    let $h = class extends Me {
-      
+    var { ConsensusException: Lt, NoFoundException: o0 } = ee("VERIFIER", "GrabAnyLogicVerifier");
+    var $h = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.grabAny, { transactionSignature: a, giftAny: p } = o, h = await this.transactionGetterHelper.getTransactionAndBlockSignatureBySignature(a, this.transactionHelper.calcTransactionQueryRange(t));
         if (!h) throw new o0(c.NOT_EXIST_OR_EXPIRED, { prop: `Transaction with signature ${a}`, target: "grabAny" });
@@ -15546,9 +15574,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], $h.prototype, "transactionCore", void 0);
     $h = l([J(), u("design:paramtypes", [])], $h);
-    const { ConsensusException: Zm } = ee("VERIFIER", "TrustAssetLogicVerifier");
-    let Og = class extends Me {
-      
+    var { ConsensusException: Zm } = ee("VERIFIER", "TrustAssetLogicVerifier");
+    var Og = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, sourceChainName: p, numberOfSignFor: h } = e.asset.trustAsset;
         if (!(o === this.configHelper.magic && a === this.configHelper.assetType)) throw new Zm(c.TRUST_MAIN_ASSET_ONLY, { assetType: a, mainAsset: this.configHelper.assetType, errorId: Ce.TRUST_MAIN_ASSET_ONLY });
@@ -15572,8 +15602,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Og = l([J(), u("design:paramtypes", [])], Og);
-    const { ConsensusException: vi } = ee("VERIFIER", "SignForAssetLogicVerifier");
-    let Uh = class extends Me {
+    var { ConsensusException: vi } = ee("VERIFIER", "SignForAssetLogicVerifier");
+    var Uh = class extends Me {
       constructor(e) {
         super(), this.accountBaseHelper = e;
       }
@@ -15609,8 +15639,10 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Uh.prototype, "transactionCore", void 0);
     Uh = l([J(), be(0, D(me)), u("design:paramtypes", [me])], Uh);
-    let Cg = class extends Me {
-      
+    var Cg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.toExchangeAsset;
         await this.isExchangeAssetAlreadyExist(o), await this.logicVerify(e, t, r);
@@ -15623,8 +15655,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Cg = l([J(), u("design:paramtypes", [])], Cg);
-    const { ConsensusException: or, NoFoundException: a0 } = ee("VERIFIER", "TransactionLogicVerifier");
-    let Vh = class extends Me {
+    var { ConsensusException: or, NoFoundException: a0 } = ee("VERIFIER", "TransactionLogicVerifier");
+    var Vh = class extends Me {
       constructor(e) {
         super(), this.jsbiHelper = e;
       }
@@ -15675,8 +15707,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Vh.prototype, "transactionCore", void 0);
     Vh = l([J(), u("design:paramtypes", [xt])], Vh);
-    const { ConsensusException: Rn } = ee("VERIFIER", "EmigrateAssetLogicVerifier");
-    let Rg = class extends Me {
+    var { ConsensusException: Rn } = ee("VERIFIER", "EmigrateAssetLogicVerifier");
+    var Rg = class extends Me {
       constructor(e, t, r) {
         super(), this.accountBaseHelper = e, this.configMap = t, this.migrateCertificateHelper = r;
       }
@@ -15716,8 +15748,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Rg = l([J(), be(0, D(me)), u("design:paramtypes", [me, xr, Fs])], Rg);
-    const { ConsensusException: qs, NoFoundException: EC } = ee("VERIFIER", "ImmigrateAssetLogicVerifier");
-    let Bg = class extends Me {
+    var { ConsensusException: qs, NoFoundException: EC } = ee("VERIFIER", "ImmigrateAssetLogicVerifier");
+    var Bg = class extends Me {
       constructor(e, t, r, n) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.configMap = r, this.migrateCertificateHelper = n;
       }
@@ -15749,8 +15781,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Bg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee, xr, Fs])], Bg);
-    let Pg = class extends Me {
-      
+    var Pg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, assetType: a, sourceChainName: p } = e.asset.stakeAsset;
         await this.helperLogicVerifier.isAssetExist(p, o, a), await this.logicVerify(e, t, r);
@@ -15762,8 +15796,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Pg = l([J(), u("design:paramtypes", [])], Pg);
-    const { ConsensusException: c0 } = ee("VERIFIER", "UnstakeAssetLogicVerifier");
-    let Gh = class extends Me {
+    var { ConsensusException: c0 } = ee("VERIFIER", "UnstakeAssetLogicVerifier");
+    var Gh = class extends Me {
       constructor(e) {
         super(), this.accountBaseHelper = e;
       }
@@ -15780,8 +15814,10 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Gh.prototype, "transactionCore", void 0);
     Gh = l([J(), be(0, D(me)), u("design:paramtypes", [me])], Gh);
-    let Mg = class extends Me {
-      
+    var Mg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15792,8 +15828,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Mg = l([J(), u("design:paramtypes", [])], Mg);
-    let Lg = class extends Me {
-      
+    var Lg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15804,8 +15842,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Lg = l([J(), u("design:paramtypes", [])], Lg);
-    let Hg = class extends Me {
-      
+    var Hg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -15816,7 +15856,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Hg = l([J(), u("design:paramtypes", [])], Hg);
-    let vg = class extends Me {
+    var vg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15830,7 +15870,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     vg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], vg);
-    let kg = class extends Me {
+    var kg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15844,7 +15884,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     kg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], kg);
-    let Dg = class extends Me {
+    var Dg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15858,9 +15898,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Dg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], Dg);
-    const { ConsensusException: zl, NoFoundException: p0 } = ee("VERIFIER", "DestroyEntityLogicVerifier");
-    let Kh = class extends Me {
-      
+    var { ConsensusException: zl, NoFoundException: p0 } = ee("VERIFIER", "DestroyEntityLogicVerifier");
+    var Kh = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.destroyEntity, { transactionSignature: a } = o, p = await this.transactionGetterHelper.getTransactionAndBlockSignatureBySignature(a, this.transactionHelper.calcTransactionQueryRange(t));
         if (!p) throw new p0(c.NOT_EXIST_OR_EXPIRED, { prop: `Transaction with signature ${a}`, target: "destroyEntity" });
@@ -15889,8 +15931,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Kh.prototype, "transactionCore", void 0);
     Kh = l([J(), u("design:paramtypes", [])], Kh);
-    const { ConsensusException: l0 } = ee("CONTROLLER", "IssueEntityMultiLogicVerifier");
-    let Fg = class extends Me {
+    var { ConsensusException: l0 } = ee("CONTROLLER", "IssueEntityMultiLogicVerifier");
+    var Fg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -15914,9 +15956,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Fg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], Fg);
-    const { ConsensusException: zo } = ee("VERIFIER", "ToExchangeAnyLogicVerifier");
-    let $g = class extends Me {
-      
+    var { ConsensusException: zo } = ee("VERIFIER", "ToExchangeAnyLogicVerifier");
+    var $g = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.toExchangeAny, { beExchangeSource: a, beExchangeChainName: p, beExchangeParentAssetType: h, beExchangeAssetType: f } = o, g = this.accountGetterHelper;
         if (h === G.ASSETS) await this.helperLogicVerifier.isAssetExist(p, a, f);
@@ -15940,8 +15984,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     $g = l([J(), u("design:paramtypes", [])], $g);
-    const { ConsensusException: pt, NoFoundException: h0 } = ee("VERIFIER", "BeExchangeAnyLogicVerifier");
-    let zh = class extends Me {
+    var { ConsensusException: pt, NoFoundException: h0 } = ee("VERIFIER", "BeExchangeAnyLogicVerifier");
+    var zh = class extends Me {
       constructor(e) {
         super(), this.jsbiHelper = e;
       }
@@ -16006,9 +16050,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], zh.prototype, "transactionCore", void 0);
     zh = l([J(), u("design:paramtypes", [xt])], zh);
-    const { ConsensusException: ki } = ee("VERIFIER", "ToExchangeAnyMultiLogicVerifier");
-    let Ug = class extends Me {
-      
+    var { ConsensusException: ki } = ee("VERIFIER", "ToExchangeAnyMultiLogicVerifier");
+    var Ug = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         this.__checkTrsFee(e);
         const o = e.asset.toExchangeAnyMulti, { beExchangeAsset: a } = o, { beExchangeSource: p, beExchangeChainName: h, beExchangeParentAssetType: f, beExchangeAssetType: g } = a, d = this.accountGetterHelper;
@@ -16047,8 +16093,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Ug = l([J(), u("design:paramtypes", [])], Ug);
-    const { ConsensusException: ft, NoFoundException: u0 } = ee("VERIFIER", "BeExchangeAnyMultiLogicVerifier");
-    let jh = class extends Me {
+    var { ConsensusException: ft, NoFoundException: u0 } = ee("VERIFIER", "BeExchangeAnyMultiLogicVerifier");
+    var jh = class extends Me {
       constructor(e) {
         super(), this.jsbiHelper = e;
       }
@@ -16138,9 +16184,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], jh.prototype, "transactionCore", void 0);
     jh = l([J(), u("design:paramtypes", [xt])], jh);
-    const { ConsensusException: Di } = ee("VERIFIER", "ToExchangeAnyMultiAllLogicVerifier");
-    let Vg = class extends Me {
-      
+    var { ConsensusException: Di } = ee("VERIFIER", "ToExchangeAnyMultiAllLogicVerifier");
+    var Vg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         this.__checkTrsFee(e);
         const o = e.asset.toExchangeAnyMultiAll, { beExchangeAssets: a } = o, p = this.accountGetterHelper;
@@ -16184,8 +16232,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Vg = l([J(), u("design:paramtypes", [])], Vg);
-    const { ConsensusException: Et, NoFoundException: f0 } = ee("VERIFIER", "BeExchangeAnyMultiAllLogicVerifier");
-    let Jh = class extends Me {
+    var { ConsensusException: Et, NoFoundException: f0 } = ee("VERIFIER", "BeExchangeAnyMultiAllLogicVerifier");
+    var Jh = class extends Me {
       constructor(e) {
         super(), this.jsbiHelper = e;
       }
@@ -16277,8 +16325,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Jh.prototype, "transactionCore", void 0);
     Jh = l([J(), u("design:paramtypes", [xt])], Jh);
-    const { ConsensusException: e_, NoFoundException: DC } = ee("VERIFIER", "IssueCertificateLogicVerifier");
-    let Gg = class extends Me {
+    var { ConsensusException: e_, NoFoundException: DC } = ee("VERIFIER", "IssueCertificateLogicVerifier");
+    var Gg = class extends Me {
       constructor(e, t) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t;
       }
@@ -16300,9 +16348,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Gg = l([J(), be(0, D(me)), be(1, D(Ee)), u("design:paramtypes", [me, Ee])], Gg);
-    const { ConsensusException: t_ } = ee("VERIFIER", "TransactionLogicVerifier");
-    let Kg = class extends Me {
-      
+    var { ConsensusException: t_ } = ee("VERIFIER", "TransactionLogicVerifier");
+    var Kg = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { sourceChainMagic: o, sourceChainName: a, certificateId: p, type: h } = e.asset.destroyCertificate, f = await this.helperLogicVerifier.isCertificateExist(a, o, p, t);
         if (f.applyAddress !== e.recipientId) throw new t_(c.SHOULD_BE, { to_compare_prop: `recipientId ${e.recipientId}`, to_target: "transaction", be_compare_prop: `certificate apply account address ${f.applyAddress}` });
@@ -16313,8 +16363,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Kg = l([J(), u("design:paramtypes", [])], Kg);
-    const { ArgumentFormatException: g0 } = ee("CONTROLLER", "TransactionLogicVerifierCore");
-    let $s = class {
+    var { ArgumentFormatException: g0 } = ee("CONTROLLER", "TransactionLogicVerifierCore");
+    var $s = class {
       constructor(e, t, r, n, s, o, a) {
         this.transactionHelper = e, this.accountBaseHelper = t, this.asymmetricHelper = r, this.keypairHelper = n, this.Buffer = s, this.config = o, this.moduleMap = a, this._txLogicVerifierCache = /* @__PURE__ */ new Map();
       }
@@ -16333,7 +16383,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     $s = l([J("bfchain-core:TransactionLogicVerifierCore"), be(3, D("keypairHelper")), be(4, D("Buffer")), u("design:paramtypes", [Ee, me, Or, Object, Object, ne, ze])], $s);
-    const pn = (() => {
+    var pn = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[v.SIGNATURE, mg], [v.DAPP, _g], [v.DAPP_PURCHASING, Ag], [v.MARK, Eg], [v.ISSUE_ASSET, Ig], [v.INCREASE_ASSET, Tg], [v.DESTROY_ASSET, bg], [v.TRANSFER_ASSET, Sg], [v.TO_EXCHANGE_ASSET, Cg], [v.BE_EXCHANGE_ASSET, Vh], [v.GIFT_ASSET, Ng], [v.GRAB_ASSET, Fh], [v.TRUST_ASSET, Og], [v.SIGN_FOR_ASSET, Uh], [v.EMIGRATE_ASSET, Rg], [v.IMMIGRATE_ASSET, Bg], [v.STAKE_ASSET, Pg], [v.UNSTAKE_ASSET, Gh], [v.LOCATION_NAME, Mg], [v.SET_LNS_RECORD_VALUE, Hg], [v.SET_LNS_MANAGER, Lg], [v.ISSUE_ENTITY_FACTORY, vg], [v.ISSUE_ENTITY_FACTORY_V1, kg], [v.ISSUE_ENTITY, Dg], [v.DESTROY_ENTITY, Kh], [v.ISSUE_ENTITY_MULTI, Fg], [v.TRANSFER_ANY, wg], [v.GIFT_ANY, xg], [v.GRAB_ANY, $h], [v.TO_EXCHANGE_ANY, $g], [v.BE_EXCHANGE_ANY, zh], [v.TO_EXCHANGE_ANY_MULTI, Ug], [v.BE_EXCHANGE_ANY_MULTI, jh], [v.TO_EXCHANGE_ANY_MULTI_ALL, Vg], [v.BE_EXCHANGE_ANY_MULTI_ALL, Jh], [v.ISSUE_CERTIFICATE, Gg], [v.DESTROY_CERTIFICATE, Kg]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
@@ -16342,8 +16392,10 @@ const require_bioforest_chain_bundle = __commonJS({
         return t.substr(r + 1);
       } };
     })();
-    let Yh = class extends Me {
-      
+    var Yh = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -16354,8 +16406,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Yh = l([J(), u("design:paramtypes", [])], Yh);
-    const { NoFoundException: r_ } = ee("VERIFIER", "LogicHelper");
-    let Cr = class {
+    var { NoFoundException: r_ } = ee("VERIFIER", "LogicHelper");
+    var Cr = class {
       async getMacroCallTransaction(e) {
         const { macroId: t, inputs: r } = e.asset.call, n = `${t}_${e.signature}`;
         let s = this.memoryCache.getCache(n);
@@ -16413,9 +16465,11 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("bfchain-core:TransactionLogicVerifierCore", { dynamics: true }), u("design:type", $s)], Cr.prototype, "transactionLogicVerifierCore", void 0);
     l([D("transactionGetterHelper", { dynamics: true }), u("design:type", Object)], Cr.prototype, "transactionGetterHelper", void 0);
     Cr = l([J()], Cr);
-    const { ConsensusException: n_ } = ee("VERIFIER", "MultipleLogicVerifier");
-    let Ga = class extends Me {
-      
+    var { ConsensusException: n_ } = ee("VERIFIER", "MultipleLogicVerifier");
+    var Ga = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -16483,9 +16537,11 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(Cr), u("design:type", Cr)], Ga.prototype, "complexTransactionLogicHelper", void 0);
     l([D("bfchain-core:TransactionLogicVerifierCore", { dynamics: true }), u("design:type", $s)], Ga.prototype, "transactionLogicVerifierCore", void 0);
     Ga = l([J(), u("design:paramtypes", [])], Ga);
-    const { ConsensusException: cf } = ee("VERIFIER", "PromiseLogicVerifier");
-    let Ka = class extends Me {
-      
+    var { ConsensusException: cf } = ee("VERIFIER", "PromiseLogicVerifier");
+    var Ka = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const o = e.asset.promise.transaction, { signature: a } = o;
         if (await this.transactionGetterHelper.getTransactionBySignature(a, this.transactionHelper.calcTransactionQueryRange(t))) throw new cf(c.ALREADY_EXIST, { prop: `promiseTransaction ${a}`, target: "blockChain", errorId: Ce.TRANSACTION_IN_TRS });
@@ -16519,9 +16575,11 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(Cr), u("design:type", Cr)], Ka.prototype, "complexTransactionLogicHelper", void 0);
     l([D("bfchain-core:TransactionLogicVerifierCore", { dynamics: true }), u("design:type", $s)], Ka.prototype, "transactionLogicVerifierCore", void 0);
     Ka = l([J(), u("design:paramtypes", [])], Ka);
-    const { ConsensusException: Zs, NoFoundException: d0 } = ee("VERIFIER", "PromiseResolveLogicVerifier");
-    let uo = class extends Me {
-      
+    var { ConsensusException: Zs, NoFoundException: d0 } = ee("VERIFIER", "PromiseResolveLogicVerifier");
+    var uo = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -16582,8 +16640,10 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], uo.prototype, "transactionCore", void 0);
     l([D("bfchain-core:TransactionLogicVerifierCore", { dynamics: true }), u("design:type", $s)], uo.prototype, "transactionLogicVerifierCore", void 0);
     uo = l([J(), u("design:paramtypes", [])], uo);
-    let fl = class extends Me {
-      
+    var fl = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         await this.logicVerify(e, t, r);
         const { eventLogicVerifier: o } = this;
@@ -16592,9 +16652,11 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionLogicVerifierCore", { dynamics: true }), u("design:type", $s)], fl.prototype, "transactionLogicVerifierCore", void 0);
     fl = l([J(), u("design:paramtypes", [])], fl);
-    const { ConsensusException: hc, NoFoundException: y0 } = ee("VERIFIER", "MacroCallLogicVerifier");
-    let fo = class extends Me {
-      
+    var { ConsensusException: hc, NoFoundException: y0 } = ee("VERIFIER", "MacroCallLogicVerifier");
+    var fo = class extends Me {
+      constructor() {
+        super();
+      }
       async verify(e, t, r, n, s) {
         const { macroId: o, inputs: a } = e.asset.call, p = await this.transactionGetterHelper.getTransactionBySignature(o, this.transactionHelper.calcTransactionQueryRange(t));
         if (!p) throw new y0(c.NOT_EXIST_OR_EXPIRED, { prop: `Transaction with signature ${o}`, target: "blockChain" });
@@ -16607,8 +16669,8 @@ const require_bioforest_chain_bundle = __commonJS({
         return n === false && d.listenEvent(r, t, s), await d.awaitEventResult(e, s), await this.transactionLogicVerifierCore.getTransactionLogicVerifierFromType(g.type).verify(g, t, r, true, s), true;
       }
       isInputMatch(e, t) {
-        const r = new Set(t.map((n) => n.name));
-        for (const n in e) if (r.has(n) === false) throw new hc(c.SHOULD_NOT_EXIST, { prop: `input ${n}`, target: "inputs" });
+        const r = t.map((n) => n.name);
+        for (const n in e) if (r.includes(n) === false) throw new hc(c.SHOULD_NOT_EXIST, { prop: `input ${n}`, target: "inputs" });
       }
       async isTransactionMatch(e, t) {
         const r = await this.complexTransactionLogicHelper.getMacroCallTransaction(t), n = t.asset.call.transaction;
@@ -16670,9 +16732,9 @@ const require_bioforest_chain_bundle = __commonJS({
     pn.LVK.set(fl, v.MACRO);
     pn.KLV.set(v.MACRO_CALL, fo);
     pn.LVK.set(fo, v.MACRO_CALL);
-    const { ArgumentIllegalException: uc, NoFoundException: m0, ConsensusException: _0, info: s_ } = ee("CONTROLLER", "_blockbase");
-    const i_ = Zp("generateBlock");
-    const My = class {
+    var { ArgumentIllegalException: uc, NoFoundException: m0, ConsensusException: _0, info: s_ } = ee("CONTROLLER", "_blockbase");
+    var i_ = Zp("generateBlock");
+    var My = class {
       transactionInBlockFromJSON(e) {
         return qt.fromObject(e);
       }
@@ -16711,8 +16773,8 @@ const require_bioforest_chain_bundle = __commonJS({
         await this.commonBlockVerify.isBlockAlreadyExist(e, t, r);
       }
     };
-    const { NoFoundException: QC, ArgumentException: A0 } = ee("Core", "BlockGeneratorCalculator");
-    let wn = class {
+    var { NoFoundException: QC, ArgumentException: A0 } = ee("Core", "BlockGeneratorCalculator");
+    var wn = class {
       constructor(e, t, r, n) {
         this.config = e, this.timeHelper = t, this.blockHelper = r, this.accountBaseHelper = n, this.getAddressSeedMap = (s) => new wt((a) => {
           let p = 0;
@@ -16786,8 +16848,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     wn = l([J(), u("design:paramtypes", [ne, Ft, dt, me])], wn);
-    const { ArgumentIllegalException: Yr, ConsensusException: o_ } = ee("CONTROLLER", "_blockbase");
-    let ys = class {
+    var { ArgumentIllegalException: Yr, ConsensusException: o_ } = ee("CONTROLLER", "_blockbase");
+    var ys = class {
       constructor(e, t, r, n) {
         this.config = e, this.blockHelper = t, this.baseHelper = r, this.chainAssetInfoHelper = n;
       }
@@ -16841,15 +16903,15 @@ const require_bioforest_chain_bundle = __commonJS({
         return o;
       }
       async isBlockAlreadyExist(e, t, r) {
-        if (typeof r.getCountBlock !== "function") throw new o_(c.PROP_IS_INVALID, { prop: "getCountBlock", target: "blockGetterHelper" });
+        if (typeof r.getCountBlock != "function") throw new o_(c.PROP_IS_INVALID, { prop: "getCountBlock", target: "blockGetterHelper" });
         if (await r.getCountBlock({ signature: e }) > 0) throw new o_(c.ALREADY_EXIST, { prop: `Block with signature ${e}`, target: "blockChain", errorId: `Block already exists: ${e} height: ${t}` });
       }
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], ys.prototype, "transactionCore", void 0);
     l([oe, u("design:type", Object), u("design:paramtypes", [])], ys.prototype, "canInsertTransaction", null);
     ys = l([J(), u("design:paramtypes", [ne, dt, Be, ve])], ys);
-    const { ArgumentIllegalException: Is, ArgumentFormatException: qC, ConsensusException: ZC } = ee("CONTROLLER", "_blockbase");
-    let za = class {
+    var { ArgumentIllegalException: Is, ArgumentFormatException: qC, ConsensusException: ZC } = ee("CONTROLLER", "_blockbase");
+    var za = class {
       constructor(e, t, r, n, s, o, a, p, h) {
         this.blockHelper = e, this.baseHelper = t, this.config = r, this.statisticsHelper = n, this.asymmetricHelper = s, this.chainAssetInfoHelper = o, this.commonBlockVerify = a, this.accountBaseHelper = p, this.cryptoHelper = h;
       }
@@ -16872,8 +16934,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], za.prototype, "transactionCore", void 0);
     za = l([J(), be(8, D("cryptoHelper")), u("design:paramtypes", [dt, Be, ne, Ds, Or, ve, ys, me, Object])], za);
-    const { ConsensusException: a_ } = ee("CONTROLLER", "_blockbase");
-    let gl = class {
+    var { ConsensusException: a_ } = ee("CONTROLLER", "_blockbase");
+    var gl = class {
       async applyTransaction(e, t, r) {
         const n = r.type, s = this.transactionCore, o = s.transactionHelper;
         if (await s.getTransactionFactoryFromType(n).applyTransaction(r, e), n === o.MULTIPLE) {
@@ -16894,9 +16956,9 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], gl.prototype, "transactionCore", void 0);
     gl = l([J()], gl);
-    const { ArgumentIllegalException: fc, ArgumentFormatException: rR, NoFoundException: pf, log: jl, info: c_, warn: p_, ConsensusException: l_ } = ee("CONTROLLER", "_blockbase");
-    const jo = Zp("generateBlock");
-    let ja = class {
+    var { ArgumentIllegalException: fc, ArgumentFormatException: rR, NoFoundException: pf, log: jl, info: c_, warn: p_, ConsensusException: l_ } = ee("CONTROLLER", "_blockbase");
+    var jo = Zp("generateBlock");
+    var ja = class {
       constructor(e, t, r, n, s, o, a, p, h, f) {
         this.blockHelper = e, this.baseHelper = t, this.config = r, this.statisticsHelper = n, this.asymmetricHelper = s, this.blockGeneratorCalculator = o, this.commonBlockVerify = a, this.blockUtils = p, this.cryptoHelper = h, this.moduleMap = f;
       }
@@ -16978,9 +17040,9 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], ja.prototype, "transactionCore", void 0);
     ja = l([J(), be(8, D("cryptoHelper")), u("design:paramtypes", [dt, Be, ne, Ds, Or, wn, ys, gl, Object, ze])], ja);
-    const { ArgumentIllegalException: Pr, OutOfRangeException: E0, ArgumentFormatException: lf, NoFoundException: Jo, log: Jl, info: Yl, warn: h_, ConsensusException: gc } = ee("CONTROLLER", "_blockbase");
-    const ei = Zp("generateBlock");
-    let Ja = class {
+    var { ArgumentIllegalException: Pr, OutOfRangeException: E0, ArgumentFormatException: lf, NoFoundException: Jo, log: Jl, info: Yl, warn: h_, ConsensusException: gc } = ee("CONTROLLER", "_blockbase");
+    var ei = Zp("generateBlock");
+    var Ja = class {
       constructor(e, t, r, n, s, o, a, p, h, f, g, d, y, _) {
         this.blockHelper = e, this.accountBaseHelper = t, this.transactionHelper = r, this.baseHelper = n, this.config = s, this.statisticsHelper = o, this.asymmetricHelper = a, this.chainAssetInfoHelper = p, this.chainTimeHelper = h, this.blockGeneratorCalculator = f, this.moduleMap = g, this.commonBlockVerify = d, this.blockUtils = y, this.cryptoHelper = _;
       }
@@ -17103,7 +17165,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], Ja.prototype, "transactionCore", void 0);
     Ja = l([J(), be(13, D("cryptoHelper")), u("design:paramtypes", [dt, me, Ee, Be, ne, Ds, Or, ve, Ft, wn, ze, ys, gl, Object])], Ja);
-    let Qh = class extends My {
+    var Qh = class extends My {
       constructor(e, t, r, n, s, o, a, p, h, f, g, d) {
         super(), this.blockHelper = e, this.baseHelper = t, this.config = r, this.statisticsHelper = n, this.asymmetricHelper = s, this.cryptoHelper = o, this.blockGeneratorCalculator = a, this.commonBlockVerify = p, this.verifyBlockCore = h, this.generateBlockCore = f, this.replayBlockCore = g, this.moduleMap = d;
       }
@@ -17124,8 +17186,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], Qh.prototype, "transactionCore", void 0);
     Qh = l([J(), be(5, D("cryptoHelper")), u("design:paramtypes", [dt, Be, ne, Ds, Or, Object, wn, ys, za, ja, Ja, ze])], Qh);
-    const { ArgumentIllegalException: Le } = ee("CONTROLLER", "GenesisBlockFactory");
-    let Wh = class extends My {
+    var { ArgumentIllegalException: Le } = ee("CONTROLLER", "GenesisBlockFactory");
+    var Wh = class extends My {
       constructor(e, t, r, n, s, o, a, p, h, f, g, d, y) {
         super(), this.blockHelper = e, this.accountBaseHelper = t, this.baseHelper = r, this.config = n, this.statisticsHelper = s, this.asymmetricHelper = o, this.cryptoHelper = a, this.blockGeneratorCalculator = p, this.commonBlockVerify = h, this.verifyBlockCore = f, this.generateBlockCore = g, this.replayBlockCore = d, this.moduleMap = y;
       }
@@ -17210,8 +17272,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], Wh.prototype, "transactionCore", void 0);
     Wh = l([J(), be(6, D("cryptoHelper")), u("design:paramtypes", [dt, me, Be, ne, Ds, Or, Object, wn, ys, za, ja, Ja, ze])], Wh);
-    const { ArgumentIllegalException: u_, ConsensusException: Ql, NoFoundException: f_ } = ee("CONTROLLER", "RoundLastBlockFactory");
-    let Xh = class extends My {
+    var { ArgumentIllegalException: u_, ConsensusException: Ql, NoFoundException: f_ } = ee("CONTROLLER", "RoundLastBlockFactory");
+    var Xh = class extends My {
       constructor(e, t, r, n, s, o, a, p, h, f, g, d) {
         super(), this.blockHelper = e, this.baseHelper = t, this.config = r, this.statisticsHelper = n, this.asymmetricHelper = s, this.cryptoHelper = o, this.blockGeneratorCalculator = a, this.commonBlockVerify = p, this.verifyBlockCore = h, this.generateBlockCore = f, this.replayBlockCore = g, this.moduleMap = d;
       }
@@ -17257,8 +17319,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore"), u("design:type", Object)], Xh.prototype, "transactionCore", void 0);
     Xh = l([J(), be(5, D("cryptoHelper")), u("design:paramtypes", [dt, Be, ne, Ds, Or, Object, wn, ys, za, ja, Ja, ze])], Xh);
-    const { NoFoundException: hr } = ee("helper-account", "accountHelper");
-    let qh = class {
+    var { NoFoundException: hr } = ee("helper-account", "accountHelper");
+    var qh = class {
       getAccounts(e, t, r = this.accountGetterHelper) {
         if (!r) throw new hr(c.NOT_EXIST, { prop: "accountGetterHelper", target: "moduleStroge" });
         return r.getAccounts(e, t);
@@ -17330,7 +17392,7 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("accountGetterHelper", { optional: true }), u("design:type", Object)], qh.prototype, "accountGetterHelper", void 0);
     qh = l([J()], qh);
-    let g_ = class {
+    var g_ = class {
       constructor(e, t, r, n) {
         this.config = e, this.blockHelper = t, this.accountHelper = r, this.transactionHelper = n;
       }
@@ -17362,16 +17424,16 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     g_ = l([J(), u("design:paramtypes", [ne, dt, qh, Ee])], g_);
-    const { warn: d_, ConsensusException: hf, log: I0 } = ee("Core", "blockForkCheck");
-    let We;
+    var { warn: d_, ConsensusException: hf, log: I0 } = ee("Core", "blockForkCheck");
+    var We;
     (function(i) {
       i[i.KEEP = 1] = "KEEP", i[i.MERGE = 2] = "MERGE", i[i.FORK = 3] = "FORK";
     })(We || (We = {}));
-    let Zh;
+    var Zh;
     (function(i) {
       i[i.PUZZLED = 11] = "PUZZLED";
     })(Zh || (Zh = {}));
-    let y_ = class {
+    var y_ = class {
       constructor(e, t, r) {
         this.blockHelper = e, this.timeHelper = t, this.config = r;
       }
@@ -17409,7 +17471,7 @@ const require_bioforest_chain_bundle = __commonJS({
         const [s, o] = await Promise.all([this.getBlockPlotCheckerEnd_(t, e), this.getBlockPlotCheckerEnd_(n, r)]);
         if (s.pc.height <= o.pc.height) {
           const p = await this.checkBlockGetterPlotEnd(s.pc, o.pc, o.blockGetterHelper);
-          return p.plot === We.KEEP ? { plot: We.KEEP, height: e.height, blockPlotChecker: e } : p.plot === We.MERGE ? { plot: We.MERGE, height: r.height, blockPlotChecker: r } : p.plot === We.FORK && typeof p.height === "number" && p.height <= e.height ? { plot: p.plot, height: p.height } : p;
+          return p.plot === We.KEEP ? { plot: We.KEEP, height: e.height, blockPlotChecker: e } : p.plot === We.MERGE ? { plot: We.MERGE, height: r.height, blockPlotChecker: r } : p.plot === We.FORK && typeof p.height == "number" && p.height <= e.height ? { plot: p.plot, height: p.height } : p;
         }
         const a = await this.checkBlockGetterPlotEnd(o.pc, s.pc, s.blockGetterHelper);
         return a.plot === We.MERGE ? { plot: We.MERGE, height: r.height, blockPlotChecker: r } : a.plot === We.FORK ? { plot: We.KEEP, height: e.height, blockPlotChecker: e } : (d_(`should not happen: the pc5.height is large then pc6.height, Why plot is ${We[a.plot]}?`), a);
@@ -17440,7 +17502,7 @@ const require_bioforest_chain_bundle = __commonJS({
           throw new Error("should not happen in PUZZLED");
         }
         if (a.plot === We.FORK) {
-          if (typeof a.height === "number") return f(a.height, a.height === s.height ? n : void 0);
+          if (typeof a.height == "number") return f(a.height, a.height === s.height ? n : void 0);
           const g = await this.findNearestSameBlock(s.height - 1, r, t);
           return f(g.height, g);
         }
@@ -17473,8 +17535,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     y_ = l([J(), u("design:paramtypes", [dt, Ft, ne])], y_);
-    const { ArgumentFormatException: m_, log: hR, warn: T0 } = ee("Core", "Block");
-    let dl = class {
+    var { ArgumentFormatException: m_, log: hR, warn: T0 } = ee("Core", "Block");
+    var dl = class {
       constructor(e, t, r, n, s, o, a) {
         this.blockHelper = e, this.asymmetricHelper = t, this.blockGeneratorCalculator = r, this.keypairHelper = n, this.cryptoHelper = s, this.Buffer = o, this.moduleMap = a, this._blockFactoryCache = /* @__PURE__ */ new Map(), this.fromJSON = this.recombineBlock;
       }
@@ -17506,7 +17568,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return Nt.decode(e);
       }
       parseBytesToSomeBlock(e, t) {
-        if (typeof t !== "number") {
+        if (typeof t != "number") {
           const n = new Xr(e);
           n.uint32(), n.uint32(), n.uint32(), t = n.uint32();
         }
@@ -17525,18 +17587,18 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     dl = l([J("bfchain-core:BlockCore"), be(3, D("keypairHelper")), be(4, D("cryptoHelper")), be(5, D("Buffer")), u("design:paramtypes", [dt, Or, wn, Object, Object, Object, ze])], dl);
-    const S0 = (() => {
+    var S0 = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[Kt.GENESIS, Wh], [Kt.COMMON, Qh], [Kt.ROUNDEND, Xh]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
       }), { KF: i, FK: e };
     })();
-    const { ConsensusException: fn, NoFoundException: w0 } = ee("VERIFIER", "BlockLogicVerifier");
-    let eu;
+    var { ConsensusException: fn, NoFoundException: w0 } = ee("VERIFIER", "BlockLogicVerifier");
+    var eu;
     (function(i) {
       i[i.SYNC = 1] = "SYNC", i[i.REBUILD = 2] = "REBUILD", i[i.GENERATEBLOCK = 3] = "GENERATEBLOCK";
     })(eu || (eu = {}));
-    const ln = class {
+    var ln = class {
       async verifyBlockBase(e, t, r) {
         this.blockHelper.verifyBlockVersion(e, this.configHelper), t !== eu.REBUILD && await this.isBlockAlreadyExist(e.signature, e.height), this.checkBlockTimestamp(e), e.height !== 1 && await this.checkPreviousBlock(e), await this.checkSecondPublicKey(e, r);
       }
@@ -17553,11 +17615,11 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       checkBlockTimestamp(e) {
         const { timeHelper: t } = this, r = t.getTimestamp(), n = t.getSlotNumberByTimestamp(e.timestamp), s = t.getSlotNumberByTimestamp(r);
-        n > s && ;
+        n > s && console.debug(`Block timestamp in future. Block time is ahead of the time on the server, block timestamp ${e.timestamp}, block timestamp slot ${n}, blockChain now timestamp ${r}, blockChain now timestamp slot ${s}`);
       }
       async isBlockAlreadyExist(e, t) {
         const r = this.blockGetterHelper;
-        if (typeof r.getCountBlock !== "function") throw new fn(c.PROP_IS_INVALID, { prop: "getCountBlock", target: "blockGetterHelper" });
+        if (typeof r.getCountBlock != "function") throw new fn(c.PROP_IS_INVALID, { prop: "getCountBlock", target: "blockGetterHelper" });
         if (await r.getCountBlock({ signature: e }) > 0) throw new fn(c.ALREADY_EXIST, { prop: `Block with signature ${e}`, target: "blockChain", errorId: `Block already exists: ${e} height: ${t}` });
       }
       async verifyBlockWithTransactions(e, t) {
@@ -17565,7 +17627,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       async checkPreviousBlock(e) {
         const t = this.blockGetterHelper;
-        if (typeof t.chainBlockFork !== "function") throw new fn(c.PROP_IS_INVALID, { prop: "chainBlockFork", target: "blockGetterHelper" });
+        if (typeof t.chainBlockFork != "function") throw new fn(c.PROP_IS_INVALID, { prop: "chainBlockFork", target: "blockGetterHelper" });
         const { height: r, previousBlockSignature: n, timestamp: s } = e, o = await t.getBlockByHeight(r - 1);
         if (!o) throw new fn(c.NOT_EXIST, { prop: `Block with height ${r - 1}`, target: "blockChain" });
         const a = o.signature;
@@ -17592,7 +17654,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("transactionGetterHelper", { dynamics: true }), u("design:type", Object)], ln.prototype, "transactionGetterHelper", void 0);
     l([D("blockGetterHelper", { dynamics: true }), u("design:type", Object)], ln.prototype, "blockGetterHelper", void 0);
     l([D("accountGetterHelper", { dynamics: true }), u("design:type", Object)], ln.prototype, "accountGetterHelper", void 0);
-    const b0 = class extends ln {
+    var b0 = class extends ln {
       async verify(e, t, r) {
         return await this.verifyBlockBase(e, t, r), true;
       }
@@ -17600,7 +17662,7 @@ const require_bioforest_chain_bundle = __commonJS({
         await this.checkAssetChangeHash(e.height, e.asset.genesisAsset.assetChangeHash);
       }
     };
-    const N0 = class extends ln {
+    var N0 = class extends ln {
       async verify(e, t, r) {
         return await this.verifyBlockBase(e, t, r), await this.checkPreviousBlock(e), await this.isValidBlockSlot(e), true;
       }
@@ -17608,8 +17670,8 @@ const require_bioforest_chain_bundle = __commonJS({
         await this.checkAssetChangeHash(e.height, e.asset.commonAsset.assetChangeHash);
       }
     };
-    const { ConsensusException: dc, NoFoundException: fR } = ee("VERIFIER", "BlockLogicVerifier");
-    const x0 = class extends ln {
+    var { ConsensusException: dc, NoFoundException: fR } = ee("VERIFIER", "BlockLogicVerifier");
+    var x0 = class extends ln {
       async verify(e, t, r) {
         return await this.verifyBlockBase(e, t, r), await this.checkPreviousBlock(e), await this.isValidBlockSlot(e), true;
       }
@@ -17623,7 +17685,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       async checkNextRoundGenerators(e) {
         const t = this.blockGetterHelper;
-        if (typeof t.getNextRoundGenerators !== "function") throw new dc(c.PROP_IS_INVALID, { prop: "checkNextRoundGenerators", target: "blockGetterHelper" });
+        if (typeof t.getNextRoundGenerators != "function") throw new dc(c.PROP_IS_INVALID, { prop: "checkNextRoundGenerators", target: "blockGetterHelper" });
         const r = await t.getNextRoundGenerators(await t.getLastBlock(), e.generatorPublicKey), n = e.asset.roundLastAsset.nextRoundGenerators;
         if (r.length !== n.length) throw new dc(c.NOT_MATCH, { to_compare_prop: `generators length ${r.length}`, be_compare_prop: `generators length ${n.length}`, to_target: "block asset", be_target: "calculate" });
         for (let s = 0; s < r.length; s++) {
@@ -17634,8 +17696,8 @@ const require_bioforest_chain_bundle = __commonJS({
         }
       }
     };
-    const { ArgumentFormatException: O0 } = ee("Core", "BlockLogicVerifierCore");
-    let zg = class {
+    var { ArgumentFormatException: O0 } = ee("Core", "BlockLogicVerifierCore");
+    var zg = class {
       constructor(e, t) {
         this.blockHelper = e, this.moduleMap = t, this._blockLogicVerifierCache = /* @__PURE__ */ new Map();
       }
@@ -17654,14 +17716,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     zg = l([J("bfchain-core:BlockLogicVerifierCore"), u("design:paramtypes", [dt, ze])], zg);
-    const C0 = (() => {
+    var C0 = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[Kt.GENESIS, b0], [Kt.COMMON, N0], [Kt.ROUNDEND, x0]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
       }), { KLV: i, LVK: e };
     })();
-    const { ConsensusException: dR, NoFoundException: Yo } = ee("TICKER", "BlockLogicTicker");
-    let Vr = class {
+    var { ConsensusException: dR, NoFoundException: Yo } = ee("TICKER", "BlockLogicTicker");
+    var Vr = class {
       async tickBlockBase(e, t = this.accountGetterHelper, r = this.blockTickGetterHelper) {
         const n = await this.__calcForginAndHoldingRewards(e, t);
         await this.__updateForgingAndHoldingAccount(e, n, r);
@@ -17707,20 +17769,20 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D("blockTickGetterHelper", { optional: true, dynamics: true }), u("design:type", Object)], Vr.prototype, "blockTickGetterHelper", void 0);
     Vr = l([J()], Vr);
     ee("CONTROLLER", "BlockLogicVerifier");
-    let jg = class extends Vr {
+    var jg = class extends Vr {
       async tick(e, t = this.accountGetterHelper, r = this.blockTickGetterHelper) {
         await this.tickBlockBase(e, t, r);
       }
     };
     jg = l([J()], jg);
-    let Jg = class extends Vr {
+    var Jg = class extends Vr {
       async tick(e, t = this.accountGetterHelper, r = this.blockTickGetterHelper) {
         await this.tickBlockBase(e, t, r);
       }
     };
     Jg = l([J()], Jg);
     ee("TICKER", "BlockLogicTicker");
-    let Yg = class extends Vr {
+    var Yg = class extends Vr {
       async tick(e, t = this.accountGetterHelper, r = this.blockTickGetterHelper) {
         await this.tickBlockBase(e, t, r);
       }
@@ -17728,8 +17790,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Yg = l([J()], Yg);
-    const { ArgumentFormatException: R0, log: ER, warn: IR } = ee("Core", "BlockTicker");
-    let Qg = class {
+    var { ArgumentFormatException: R0, log: ER, warn: IR } = ee("Core", "BlockTicker");
+    var Qg = class {
       constructor(e, t) {
         this.blockHelper = e, this.moduleMap = t, this._blockTickerCache = /* @__PURE__ */ new Map();
       }
@@ -17748,14 +17810,14 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     Qg = l([J("bfchain-core:BlockTickerCore"), u("design:paramtypes", [dt, ze])], Qg);
-    const B0 = (() => {
+    var B0 = (() => {
       const i = /* @__PURE__ */ new Map(), e = /* @__PURE__ */ new Map();
       return [[Kt.GENESIS, jg], [Kt.COMMON, Jg], [Kt.ROUNDEND, Yg]].forEach(([t, r]) => {
         i.set(t, r), e.set(r, t);
       }), { KT: i, TK: e };
     })();
-    const { ArgumentIllegalException: gn } = ee("CONTROLLER", "RegisterChainTransactionFactory");
-    let tu = class extends Ge {
+    var { ArgumentIllegalException: gn } = ee("CONTROLLER", "RegisterChainTransactionFactory");
+    var tu = class extends Ge {
       constructor(e, t, r, n, s, o, a) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.registerChainCertificateHelper = o, this.configMap = a;
       }
@@ -17792,8 +17854,8 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     tu = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, Eh, xr])], tu);
-    const { ArgumentIllegalException: Bn } = ee("CONTROLLER", "MultipleTransactionFactory");
-    let yl = class extends Ge {
+    var { ArgumentIllegalException: Bn } = ee("CONTROLLER", "MultipleTransactionFactory");
+    var yl = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -17866,8 +17928,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], yl.prototype, "transactionCore", void 0);
     yl = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], yl);
-    const { ArgumentIllegalException: Qo } = ee("CONTROLLER", "PromiseTransactionFactory");
-    let ml = class extends Ge {
+    var { ArgumentIllegalException: Qo } = ee("CONTROLLER", "PromiseTransactionFactory");
+    var ml = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -17899,8 +17961,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], ml.prototype, "transactionCore", void 0);
     ml = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], ml);
-    const { ArgumentIllegalException: ts } = ee("CONTROLLER", "PromiseResolveTransactionFactory");
-    let _l = class extends Ge {
+    var { ArgumentIllegalException: ts } = ee("CONTROLLER", "PromiseResolveTransactionFactory");
+    var _l = class extends Ge {
       constructor(e, t, r, n, s) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s;
       }
@@ -17936,8 +17998,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], _l.prototype, "transactionCore", void 0);
     _l = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve])], _l);
-    const { ArgumentIllegalException: lt } = ee("CONTROLLER", "MacrotionFactory");
-    let Al = class extends Ge {
+    var { ArgumentIllegalException: lt } = ee("CONTROLLER", "MacrotionFactory");
+    var Al = class extends Ge {
       constructor(e, t, r, n, s, o) {
         super(), this.accountBaseHelper = e, this.transactionHelper = t, this.baseHelper = r, this.configHelper = n, this.chainAssetInfoHelper = s, this.jsbiHelper = o;
       }
@@ -18013,8 +18075,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D("bfchain-core:TransactionCore", { dynamics: true }), u("design:type", $t)], Al.prototype, "transactionCore", void 0);
     Al = l([J(), u("design:paramtypes", [me, Ee, Be, ne, ve, xt])], Al);
-    const { ArgumentIllegalException: It } = ee("CONTROLLER", "MacroCallTransactionFactory");
-    let El = class extends Ge {
+    var { ArgumentIllegalException: It } = ee("CONTROLLER", "MacroCallTransactionFactory");
+    var El = class extends Ge {
       constructor(e, t, r, n, s, o, a) {
         super(), this.accountBaseHelper = e, this.asymmetricHelper = t, this.transactionHelper = r, this.baseHelper = n, this.configHelper = s, this.chainAssetInfoHelper = o, this.jsbiHelper = a;
       }
@@ -18042,7 +18104,7 @@ const require_bioforest_chain_bundle = __commonJS({
           const { name: f, pattern: g, repeat: d } = h;
           let y = s.get(f);
           const _ = async (I) => {
-            if (typeof I !== "string") throw new It(c.PROP_IS_INVALID, { prop: `${h.name} ${I}`, target: "inputs" });
+            if (typeof I != "string") throw new It(c.PROP_IS_INVALID, { prop: `${h.name} ${I}`, target: "inputs" });
             if (g && new RegExp(g).test(I) === false) throw new It(c.NOT_MATCH, { to_compare_prop: `${f} ${I}`, to_target: "inputs", be_compare_prop: `pattern ${g}`, be_target: "defineInput" });
             switch (h.type) {
               case kt.ADDRESS:
@@ -18148,7 +18210,7 @@ const require_bioforest_chain_bundle = __commonJS({
     Mr.FV.set(Al, v.MACRO);
     Mr.VF.set(v.MACRO_CALL, El);
     Mr.FV.set(El, v.MACRO_CALL);
-    const uf = class extends Yt {
+    var uf = class extends Yt {
       constructor() {
         super(), this._startTime = Date.now(), this._sleepTime = 0, this.onFinished(() => this.clearTimeout());
       }
@@ -18165,12 +18227,12 @@ const require_bioforest_chain_bundle = __commonJS({
         this._sleepTi && (CA(this._sleepTi), this._sleepTime = 0, this._sleepTi = void 0);
       }
     };
-    let ti;
-    let __;
-    let A_;
-    let E_;
-    const { ArgumentIllegalException: ye, ArgumentFormatException: Ot, TimeOutException: P0 } = ee("channel", "chainChannelHelper");
-    let Fe = ti = class {
+    var ti;
+    var __;
+    var A_;
+    var E_;
+    var { ArgumentIllegalException: ye, ArgumentFormatException: Ot, TimeOutException: P0 } = ee("channel", "chainChannelHelper");
+    var Fe = ti = class {
       constructor(e, t, r, n, s) {
         this.baseHelper = e, this.transctionHelper = t, this.blockHelper = r, this.timeHelper = n, this.accountBaseHelper = s;
       }
@@ -18507,13 +18569,13 @@ const require_bioforest_chain_bundle = __commonJS({
         let r;
         e.aborter && (r || (r = new uf()), this._bindRejectedToPromiseOut(e.aborter.abortedPromise, r));
         let n;
-        if (e.timeout !== void 0 && (n = typeof e.timeout === "function" ? e.timeout(t) : e.timeout), e.deadlineTime !== void 0) {
+        if (e.timeout !== void 0 && (n = typeof e.timeout == "function" ? e.timeout(t) : e.timeout), e.deadlineTime !== void 0) {
           const s = this.timeHelper.now(), o = e.deadlineTime - s;
           n ? o < n && (n = o) : n = o;
         }
         if (n !== void 0) {
           const { reject: s } = r || (r = new uf());
-          r.setTimeout(n, () => s(typeof e.timeoutException === "function" ? e.timeoutException(t) : e.timeoutException || new P0()));
+          r.setTimeout(n, () => s(typeof e.timeoutException == "function" ? e.timeoutException(t) : e.timeoutException || new P0()));
         }
         return e.rejected && (r || (r = new uf()), this._bindRejectedToPromiseOut(e.rejected, r)), r;
       }
@@ -18562,13 +18624,13 @@ const require_bioforest_chain_bundle = __commonJS({
     l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", Promise)], Fe.prototype, "boxQueryTindexReturn", null);
     l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", Promise)], Fe.prototype, "boxGetTransactionInBlockArg", null);
     l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", Promise)], Fe.prototype, "boxGetTransactionInBlockReturn", null);
-    l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (__ = typeof ENV < "u" && ENV) === "function" ? __ : Object]), u("design:returntype", void 0)], Fe.prototype, "parserAborterOptions", null);
-    l([De, u("design:type", Function), u("design:paramtypes", [Promise, Object, typeof (A_ = typeof ENV < "u" && ENV) === "function" ? A_ : Object]), u("design:returntype", void 0)], Fe.prototype, "wrapAborterOptions", null);
-    l([De, u("design:type", Function), u("design:paramtypes", [Yt, Object, typeof (E_ = typeof ENV < "u" && ENV) === "function" ? E_ : Object]), u("design:returntype", void 0)], Fe.prototype, "wrapOutAborterOptions", null);
+    l([De, u("design:type", Function), u("design:paramtypes", [Object, typeof (__ = typeof ENV < "u" && ENV) == "function" ? __ : Object]), u("design:returntype", void 0)], Fe.prototype, "parserAborterOptions", null);
+    l([De, u("design:type", Function), u("design:paramtypes", [Promise, Object, typeof (A_ = typeof ENV < "u" && ENV) == "function" ? A_ : Object]), u("design:returntype", void 0)], Fe.prototype, "wrapAborterOptions", null);
+    l([De, u("design:type", Function), u("design:paramtypes", [Yt, Object, typeof (E_ = typeof ENV < "u" && ENV) == "function" ? E_ : Object]), u("design:returntype", void 0)], Fe.prototype, "wrapOutAborterOptions", null);
     l([De, u("design:type", Function), u("design:paramtypes", [Object, Object]), u("design:returntype", void 0)], Fe.prototype, "getChainChannelTimeout", null);
     Fe = ti = l([J(), u("design:paramtypes", [Be, Ee, dt, Ft, me])], Fe);
-    const { RefuseException: kr, ArgumentFormatException: I_, NoFoundException: DA, error: M0, TimeOutException: Wg, success: T_, log: S_ } = ee("channel", "chainChannel");
-    const FA = class extends xA {
+    var { RefuseException: kr, ArgumentFormatException: I_, NoFoundException: DA, error: M0, TimeOutException: Wg, success: T_, log: S_ } = ee("channel", "chainChannel");
+    var FA = class extends xA {
       toBlockGetterHelper(e) {
         return this._blockGetterHelper || (this._blockGetterHelper = { getBlockByHeight: (t) => this.findBlock({ height: t }), getBlockBySignature: (t) => this.findBlock({ signature: t }), maxHeight: 1, lastBlock: ro.fromObject(this.config.genesisBlock), async getLastBlock() {
           if (this.lastBlock.height !== this.maxHeight) {
@@ -18580,15 +18642,15 @@ const require_bioforest_chain_bundle = __commonJS({
         } }), e && (this.baseHelper.isPositiveFloatNotContainZero(e.maxHeight) && (this._blockGetterHelper.maxHeight = e.maxHeight), e.lastBlock && (this._blockGetterHelper.lastBlock = e.lastBlock)), this._blockGetterHelper;
       }
     };
-    const Ts = /* @__PURE__ */ new Map();
-    const w_ = new Uint32Array(1);
-    const L0 = () => {
+    var Ts = /* @__PURE__ */ new Map();
+    var w_ = new Uint32Array(1);
+    var L0 = () => {
       const i = w_[0]++ || w_[0]++, e = Ts.get(i);
       return e && (e.reject(new Wg(c.REQID_REUSE)), Ts.delete(i)), i;
     };
-    const yc = /* @__PURE__ */ new Map([[Ie.QUERY_TRANSACTION, Ie.QUERY_TRANSACTION_RETURN], [Ie.INDEX_TRANSACTION, Ie.INDEX_TRANSACTION_RETURN], [Ie.DOWNLOAD_TRANSACTION, Ie.DOWNLOAD_TRANSACTION_RETURN], [Ie.NEW_TRANSACTION, Ie.NEW_TRANSACTION_RETURN], [Ie.QUERY_BLOCK, Ie.QUERY_BLOCK_RETURN], [Ie.NEW_BLOCK, Ie.NEW_BLOCK_RETURN], [Ie.GET_PEER_INFO, Ie.GET_PEER_INFO_RETURN], [Ie.OPEN_BLOB, Ie.OPEN_BLOB_RETURN], [Ie.READ_BLOB, Ie.READ_BLOB_RETURN], [Ie.CLOSE_BLOB, Ie.CLOSE_BLOB_RETURN]]);
-    const H0 = 2;
-    let Us = class extends FA {
+    var yc = /* @__PURE__ */ new Map([[Ie.QUERY_TRANSACTION, Ie.QUERY_TRANSACTION_RETURN], [Ie.INDEX_TRANSACTION, Ie.INDEX_TRANSACTION_RETURN], [Ie.DOWNLOAD_TRANSACTION, Ie.DOWNLOAD_TRANSACTION_RETURN], [Ie.NEW_TRANSACTION, Ie.NEW_TRANSACTION_RETURN], [Ie.QUERY_BLOCK, Ie.QUERY_BLOCK_RETURN], [Ie.NEW_BLOCK, Ie.NEW_BLOCK_RETURN], [Ie.GET_PEER_INFO, Ie.GET_PEER_INFO_RETURN], [Ie.OPEN_BLOB, Ie.OPEN_BLOB_RETURN], [Ie.READ_BLOB, Ie.READ_BLOB_RETURN], [Ie.CLOSE_BLOB, Ie.CLOSE_BLOB_RETURN]]);
+    var H0 = 2;
+    var Us = class extends FA {
       constructor(e, t = 1e3) {
         super(), this.endpoint = e, this.refuseTime = t, this._canQueryTindex = false, this._canGetTransactionInBlock = false, this._limitQT = 100, this._limitIT = 100, this._limitDT = 100, this.MESSAGE_VERSION = 2, this._closed = false, this._maybeHeight = 1, this._lastConsensusVersion = 1, this._address = "", this._delayHistroyList = new Float32Array(32), this._reqIdSet = /* @__PURE__ */ new Set(), this.reqresLimitInfoEM = wt.from({ creater(r) {
           return { preResponseTime: 0, preRefuseTime: 0, preResponseLimitConfig: { lockTimespan: 0, refuseTimespan: 1 / 0 } };
@@ -18606,7 +18668,7 @@ const require_bioforest_chain_bundle = __commonJS({
                 }
                 if (s.sign.is_rejected) continue;
                 const a = Zr.fromObject({ version: this.config.version, req_id: s.req_id, cmd: s.cmd, binary: s.binary, messageVersion: this.MESSAGE_VERSION });
-                this.endpoint.postMessage(a.getBytes(), self.location.origin), s.sign.resolve();
+                this.endpoint.postMessage(a.getBytes()), s.sign.resolve();
                 const p = Ts.get(s.req_id);
                 p && await new Promise((h) => p.onFinished(h));
               } while (n.taskList.length > 0);
@@ -18761,7 +18823,7 @@ const require_bioforest_chain_bundle = __commonJS({
           h !== void 0 && (a = a || this.reqresLimitInfoEM.forceGet(t), a.preResponseTime = p, a.preResponseLimitConfig = h, n = h.lockTimespan, s = h.refuseTimespan);
         }
         const o = Zr.fromObject({ version: this.config.version, req_id: e, cmd: t, binary: r, lockTimespan: n, refuseTimespan: s, messageVersion: this.MESSAGE_VERSION });
-        return this.endpoint.postMessage(o.getBytes(), self.location.origin);
+        return this.endpoint.postMessage(o.getBytes());
       }
       async queryTransactions(e, t, r) {
         if (!this.canQueryTransactions) return Pa.fromObject({ status: Ne.error, error: St.fromObject(new kr(c.REFUSE_RESPONSE_QUERY_TRANSACTION)) });
@@ -19102,7 +19164,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(Fe), u("design:type", Fe)], Us.prototype, "chainChannelHelper", void 0);
     l([D(Si), u("design:type", Si)], Us.prototype, "blobHelper", void 0);
     Us = l([Oo(), be(0, D(ch.ENDPOINT)), be(1, D(ch.REFUSETIME, { optional: true })), u("design:paramtypes", [Object, Object])], Us);
-    const v0 = class extends Yt {
+    var v0 = class extends Yt {
       constructor(e) {
         super(), this.filter = e;
       }
@@ -19110,7 +19172,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.filter === void 0 || this.filter(e);
       }
     };
-    const k0 = class {
+    var k0 = class {
       constructor() {
         this._queue = /* @__PURE__ */ new Set();
       }
@@ -19125,13 +19187,13 @@ const require_bioforest_chain_bundle = __commonJS({
         for (const t of this._queue) if (t.match(e)) return t.resolve(e), this._queue.delete(t), t;
       }
     };
-    let Xg;
-    let qg;
-    let Zg;
-    let ed;
-    let td;
+    var Xg;
+    var qg;
+    var Zg;
+    var ed;
+    var td;
     ee("channel", "chainChannelGroup");
-    const Ml = class {
+    var Ml = class {
       constructor() {
         this._inQueneTaskMap = /* @__PURE__ */ new Map(), this._generateQueneTask = (e, t) => {
           const r = this._doRequest(e, t).then((n) => (r.resolved = r.finished = true, this._inQueneTaskMap.has(e) && this._retCCMap.set(n, e), n), (n) => {
@@ -19157,8 +19219,8 @@ const require_bioforest_chain_bundle = __commonJS({
         this._inQueneTaskMap.clear(), this._retCCMap.clear();
       }
     };
-    const ru = { QUERY: /* @__PURE__ */ Symbol("query"), SORT: /* @__PURE__ */ Symbol("sort") };
-    let nu = Xg = class extends Ml {
+    var ru = { QUERY: /* @__PURE__ */ Symbol("query"), SORT: /* @__PURE__ */ Symbol("sort") };
+    var nu = Xg = class extends Ml {
       constructor(e, t) {
         super(), this.query = e, this.sort = t;
       }
@@ -19171,8 +19233,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(Fe), u("design:type", Fe)], nu.prototype, "helper", void 0);
     nu = Xg = l([Oo(), be(0, D(ru.QUERY)), be(1, D(ru.SORT, { optional: true })), u("design:paramtypes", [Object, Object])], nu);
-    const su = { QUERY: /* @__PURE__ */ Symbol("query"), SORT: /* @__PURE__ */ Symbol("sort") };
-    let iu = qg = class extends Ml {
+    var su = { QUERY: /* @__PURE__ */ Symbol("query"), SORT: /* @__PURE__ */ Symbol("sort") };
+    var iu = qg = class extends Ml {
       constructor(e, t) {
         super(), this.query = e, this.sort = t;
       }
@@ -19185,8 +19247,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(Fe), u("design:type", Fe)], iu.prototype, "helper", void 0);
     iu = qg = l([Oo(), be(0, D(su.QUERY)), be(1, D(su.SORT, { optional: true })), u("design:paramtypes", [Object, Object])], iu);
-    const $A = { TINDEXES: /* @__PURE__ */ Symbol("tIndexes") };
-    let ou = Zg = class extends Ml {
+    var $A = { TINDEXES: /* @__PURE__ */ Symbol("tIndexes") };
+    var ou = Zg = class extends Ml {
       constructor(e) {
         super(), this.tIndexes = e;
       }
@@ -19199,8 +19261,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(Fe), u("design:type", Fe)], ou.prototype, "helper", void 0);
     ou = Zg = l([Oo(), be(0, D($A.TINDEXES)), u("design:paramtypes", [Array])], ou);
-    const UA = { QUERY: /* @__PURE__ */ Symbol("query") };
-    let au = ed = class extends Ml {
+    var UA = { QUERY: /* @__PURE__ */ Symbol("query") };
+    var au = ed = class extends Ml {
       constructor(e) {
         super(), this.query = e;
       }
@@ -19219,8 +19281,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(Fe), u("design:type", Fe)], au.prototype, "helper", void 0);
     au = ed = l([Oo(), be(0, D(UA.QUERY)), u("design:paramtypes", [Object])], au);
-    const VA = { QUERY: /* @__PURE__ */ Symbol("query") };
-    let rd = td = class extends Ml {
+    var VA = { QUERY: /* @__PURE__ */ Symbol("query") };
+    var rd = td = class extends Ml {
       constructor(e) {
         super(), this.query = e;
       }
@@ -19239,8 +19301,8 @@ const require_bioforest_chain_bundle = __commonJS({
     };
     l([D(Fe), u("design:type", Fe)], rd.prototype, "helper", void 0);
     rd = td = l([Oo(), be(0, D(VA.QUERY)), u("design:paramtypes", [Object])], rd);
-    const { error: ff } = ee("channel", "IntSet");
-    const D0 = class {
+    var { error: ff } = ee("channel", "IntSet");
+    var D0 = class {
       constructor(e) {
         this._src = e, this._end = 1 / 0, this._maybeEnd = -1 / 0, this._srcIte = this._src[Symbol.iterator](), this._rl = [];
       }
@@ -19318,9 +19380,9 @@ const require_bioforest_chain_bundle = __commonJS({
         for (const t of e) this._rl[t] = t;
       }
     };
-    const { AbortException: Wl, InterruptedException: F0, error: Wo, success: b_, info: $0, warn: mc, log: N_, TimeOutException: Tc, IdempotentException: Xo } = ee("channel", "chainChannelGroup");
-    const Oc = { GROUP_NAME: /* @__PURE__ */ Symbol("groupName"), CHANNEL_LIST: /* @__PURE__ */ Symbol("channelList"), OPTIONS: /* @__PURE__ */ Symbol("options") };
-    let Ut = class extends FA {
+    var { AbortException: Wl, InterruptedException: F0, error: Wo, success: b_, info: $0, warn: mc, log: N_, TimeOutException: Tc, IdempotentException: Xo } = ee("channel", "chainChannelGroup");
+    var Oc = { GROUP_NAME: /* @__PURE__ */ Symbol("groupName"), CHANNEL_LIST: /* @__PURE__ */ Symbol("channelList"), OPTIONS: /* @__PURE__ */ Symbol("options") };
+    var Ut = class extends FA {
       constructor(e, t = "", r) {
         super(), this.groupName = t, this._ccBlobSupportAlgorithms = wt.from({ creater: (n) => {
           const s = mn.from({ afterDelete: () => {
@@ -19343,7 +19405,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return false;
       }
       get blobSupportAlgorithms() {
-        let e;
+        var e;
         const t = this._ccBlobSupportAlgorithms;
         if (this._initBlobSupportAlgorithmsBinding === false) {
           this._initBlobSupportAlgorithmsBinding = true;
@@ -19431,7 +19493,7 @@ const require_bioforest_chain_bundle = __commonJS({
       $requestParallelTask(e, t = {}) {
         let r = this._parallelTasksMap.get(e);
         if (r) return r;
-        const { channelFirewall: n = () => true, abortWhenNoChainChannel: s } = t, o = this._workCountWM, { taskResponseCmd: a } = t, p = a !== void 0 ? (C, V) => C.delay * o.forceGet(C) + C.getApiMaybeQueueTime(a) - (V.delay * o.forceGet(V) + V.getApiMaybeQueueTime(a)) : (C, V) => C.delay * o.forceGet(C) - V.delay * o.forceGet(V), h = new Set([...this.chainChannelSet.values()].filter(n).toSorted(p)), f = /* @__PURE__ */ new Set(), g = new k0(), d = /* @__PURE__ */ new Set(), y = () => h.size > 0, _ = (C = {}) => {
+        const { channelFirewall: n = () => true, abortWhenNoChainChannel: s } = t, o = this._workCountWM, { taskResponseCmd: a } = t, p = a !== void 0 ? (C, V) => C.delay * o.forceGet(C) + C.getApiMaybeQueueTime(a) - (V.delay * o.forceGet(V) + V.getApiMaybeQueueTime(a)) : (C, V) => C.delay * o.forceGet(C) - V.delay * o.forceGet(V), h = new Set([...this.chainChannelSet.values()].filter(n).sort(p)), f = /* @__PURE__ */ new Set(), g = new k0(), d = /* @__PURE__ */ new Set(), y = () => h.size > 0, _ = (C = {}) => {
           if (s && this.size === 0) throw new Wl(c.TASK_ABORT, { task_id: e });
           const V = C == null ? void 0 : C.filter;
           for (const K of h) if (V === void 0 || V(K)) return K;
@@ -19510,7 +19572,7 @@ const require_bioforest_chain_bundle = __commonJS({
         let d = () => true;
         {
           const O = e.maxHeight;
-          typeof O === "number" && (d = (P) => P.maybeHeight >= O);
+          typeof O == "number" && (d = (P) => P.maybeHeight >= O);
         }
         const y = r && this.helper.parserAborterOptions(r, { channelGroup: this }), _ = n || new Sr(), I = y && y.promise;
         if (I) {
@@ -19545,7 +19607,7 @@ const require_bioforest_chain_bundle = __commonJS({
             return O = O.then(async () => {
               do
                 if (await g({ autoFreeChainChannel: false, filter: d }, async (Ae) => {
-                  let he, x;
+                  var he, x;
                   _.push({ type: "success", value: `\u7533\u8BF7\u5230\u53EF\u7528\u8282\u70B9(${Ae.chainChannel.address})\u7528\u4E8E\u8BF7\u6C42` });
                   const ce = Math.min(Ae.chainChannel.limitQueryTransactions, q), { requester: de, options: ke } = w.forceGet({ offset: $, limit: ce });
                   W.resolve(ce);
@@ -19591,7 +19653,7 @@ const require_bioforest_chain_bundle = __commonJS({
         let d;
         {
           const O = e.maxHeight;
-          typeof O === "number" && (d = (P) => P.maybeHeight >= O);
+          typeof O == "number" && (d = (P) => P.maybeHeight >= O);
         }
         const y = r && this.helper.parserAborterOptions(r, { channelGroup: this }), _ = n || new Sr(), I = y && y.promise;
         if (I) {
@@ -19626,7 +19688,7 @@ const require_bioforest_chain_bundle = __commonJS({
             return O = O.then(async () => {
               do
                 if (await g({ autoFreeChainChannel: false, filter: d }, async (Ae) => {
-                  let he, x;
+                  var he, x;
                   _.push({ type: "success", value: `\u7533\u8BF7\u5230\u53EF\u7528\u8282\u70B9(${Ae.chainChannel.address})\u7528\u4E8E\u8BF7\u6C42` });
                   const ce = Math.min(Ae.chainChannel.limitQueryTransactions, q), { requester: de, options: ke } = w.forceGet({ offset: $, limit: ce });
                   W.resolve(ce);
@@ -19669,7 +19731,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
       _formatHiList(e) {
         const t = [], r = new wt((p) => t.length + 1);
-        for (const p of e.slice().toSorted((h, f) => h.height - f.height)) {
+        for (const p of e.slice().sort((h, f) => h.height - f.height)) {
           const f = r.forceGet(p.height) + p.tIndex;
           t[f] = f;
         }
@@ -19710,7 +19772,7 @@ const require_bioforest_chain_bundle = __commonJS({
               const C = this._formatHiList(P), V = P.length, F = P[P.length - 1].height;
               let K = 0;
               for (; !await y({ filter: (H) => H.maybeHeight >= F }, async (H) => {
-                let W, z;
+                var W, z;
                 f.push({ type: "success", value: `\u7533\u8BF7\u5230\u53EF\u7528\u8282\u70B9(${H.chainChannel.address})\u7528\u4E8E\u8BF7\u6C42` });
                 const { requester: $, options: q } = I.forceGet(C);
                 try {
@@ -19718,7 +19780,7 @@ const require_bioforest_chain_bundle = __commonJS({
                   if (ge.status === Ne.success) {
                     if (f.push({ type: "success", value: `\u8282\u70B9(${H.chainChannel.address})\u8FD4\u56DE\u6210\u529F\u54CD\u5E94 +${he}ms` }), ge.transactions.length < V) return $.removeChainChannelByResult(ge), K++, false;
                     {
-                      const x = ge.transactions.map((ce) => ({ tib: ce, hiIndex: a.findIndex((de) => de.height === ce.height && de.tIndex === ce.tIndex) })).toSorted((ce, de) => ce.hiIndex - de.hiIndex);
+                      const x = ge.transactions.map((ce) => ({ tib: ce, hiIndex: a.findIndex((de) => de.height === ce.height && de.tIndex === ce.tIndex) })).sort((ce, de) => ce.hiIndex - de.hiIndex);
                       for (const ce of x) f.canPush(f.list.length) && f.push({ type: "result", value: ce.tib });
                       return true;
                     }
@@ -19823,7 +19885,7 @@ const require_bioforest_chain_bundle = __commonJS({
         return r && r.emit("endBroadcast", { duraction: h - p }), a;
       }
       async queryBlock(e, t, r) {
-        if (typeof e.height === "number") {
+        if (typeof e.height == "number") {
           const f = e.height;
           if (![...this.chainChannelSet.values()].find((d) => d.maybeHeight >= f)) return;
         }
@@ -19848,12 +19910,12 @@ const require_bioforest_chain_bundle = __commonJS({
           let y = 0, _, I = () => true;
           {
             const S = e.height;
-            typeof S === "number" && (I = (w) => w.maybeHeight >= S);
+            typeof S == "number" && (I = (w) => w.maybeHeight >= S);
           }
           do {
             if (a) return;
             await s({ autoFreeChainChannel: false, filter: I }, async (S) => {
-              let w, N;
+              var w, N;
               try {
                 const B = await g.addChainChannel(S.chainChannel, d);
                 if (B.status === Ne.error) throw g.removeChainChannelByResult(B), B.error;
@@ -20011,7 +20073,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([oe, u("design:type", Function), u("design:paramtypes", [])], Ut.prototype, "onMaybeHeightChanged", null);
     l([oe, u("design:type", Function), u("design:paramtypes", [])], Ut.prototype, "offMaybeHeightChanged", null);
     Ut = l([Oo(), be(0, D(Oc.CHANNEL_LIST)), be(1, D(Oc.GROUP_NAME, { optional: true })), be(2, D(Oc.OPTIONS, { optional: true })), u("design:paramtypes", [Object, Object, Object])], Ut);
-    const Cc = class {
+    var Cc = class {
       constructor(e, t, r, n, s) {
         this.exmBuilder = e, this.data = t, this.requester = r, this.getChainChannelTimeout = n, this.resultPo = s;
       }
@@ -20025,13 +20087,13 @@ const require_bioforest_chain_bundle = __commonJS({
         return this.getChainChannelTimeout(e.chainChannel);
       }
       get rejected() {
-        let e;
+        var e;
         return (e = this.resultPo) === null || e === void 0 ? void 0 : e.promise;
       }
     };
     l([oe, u("design:type", Object), u("design:paramtypes", [])], Cc.prototype, "_exm", null);
     l([De, u("design:type", Function), u("design:paramtypes", [Object]), u("design:returntype", void 0)], Cc.prototype, "timeoutException", null);
-    let nd = class {
+    var nd = class {
       constructor(e) {
         this.moduleMap = e, this._groupNameAcc = 1;
       }
@@ -20044,10 +20106,10 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     nd = l([J(), u("design:paramtypes", [ze])], nd);
-    const je = Uint8Array;
-    const gf = Uint16Array;
-    const cu = Int32Array;
-    const Ll = Float64Array;
+    var je = Uint8Array;
+    var gf = Uint16Array;
+    var cu = Int32Array;
+    var Ll = Float64Array;
     function pu(i, e, t, r) {
       const n = r[0] & 255 | (r[1] & 255) << 8 | (r[2] & 255) << 16 | (r[3] & 255) << 24, s = t[0] & 255 | (t[1] & 255) << 8 | (t[2] & 255) << 16 | (t[3] & 255) << 24, o = t[4] & 255 | (t[5] & 255) << 8 | (t[6] & 255) << 16 | (t[7] & 255) << 24, a = t[8] & 255 | (t[9] & 255) << 8 | (t[10] & 255) << 16 | (t[11] & 255) << 24, p = t[12] & 255 | (t[13] & 255) << 8 | (t[14] & 255) << 16 | (t[15] & 255) << 24, h = r[4] & 255 | (r[5] & 255) << 8 | (r[6] & 255) << 16 | (r[7] & 255) << 24, f = e[0] & 255 | (e[1] & 255) << 8 | (e[2] & 255) << 16 | (e[3] & 255) << 24, g = e[4] & 255 | (e[5] & 255) << 8 | (e[6] & 255) << 16 | (e[7] & 255) << 24, d = e[8] & 255 | (e[9] & 255) << 8 | (e[10] & 255) << 16 | (e[11] & 255) << 24, y = e[12] & 255 | (e[13] & 255) << 8 | (e[14] & 255) << 16 | (e[15] & 255) << 24, _ = r[8] & 255 | (r[9] & 255) << 8 | (r[10] & 255) << 16 | (r[11] & 255) << 24, I = t[16] & 255 | (t[17] & 255) << 8 | (t[18] & 255) << 16 | (t[19] & 255) << 24, S = t[20] & 255 | (t[21] & 255) << 8 | (t[22] & 255) << 16 | (t[23] & 255) << 24, w = t[24] & 255 | (t[25] & 255) << 8 | (t[26] & 255) << 16 | (t[27] & 255) << 24, N = t[28] & 255 | (t[29] & 255) << 8 | (t[30] & 255) << 16 | (t[31] & 255) << 24, B = r[12] & 255 | (r[13] & 255) << 8 | (r[14] & 255) << 16 | (r[15] & 255) << 24;
       let O = n, P = s, C = o, V = a, F = p, K = h, L = f, H = g, W = d, z = y, $ = _, q = I, ie = S, ge = w, Ae = N, he = B, x;
@@ -20060,7 +20122,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (let ce = 0; ce < 20; ce += 2) x = O + ie | 0, F ^= x << 7 | x >>> 32 - 7, x = F + O | 0, W ^= x << 9 | x >>> 32 - 9, x = W + F | 0, ie ^= x << 13 | x >>> 32 - 13, x = ie + W | 0, O ^= x << 18 | x >>> 32 - 18, x = K + P | 0, z ^= x << 7 | x >>> 32 - 7, x = z + K | 0, ge ^= x << 9 | x >>> 32 - 9, x = ge + z | 0, P ^= x << 13 | x >>> 32 - 13, x = P + ge | 0, K ^= x << 18 | x >>> 32 - 18, x = $ + L | 0, Ae ^= x << 7 | x >>> 32 - 7, x = Ae + $ | 0, C ^= x << 9 | x >>> 32 - 9, x = C + Ae | 0, L ^= x << 13 | x >>> 32 - 13, x = L + C | 0, $ ^= x << 18 | x >>> 32 - 18, x = he + q | 0, V ^= x << 7 | x >>> 32 - 7, x = V + he | 0, H ^= x << 9 | x >>> 32 - 9, x = H + V | 0, q ^= x << 13 | x >>> 32 - 13, x = q + H | 0, he ^= x << 18 | x >>> 32 - 18, x = O + V | 0, P ^= x << 7 | x >>> 32 - 7, x = P + O | 0, C ^= x << 9 | x >>> 32 - 9, x = C + P | 0, V ^= x << 13 | x >>> 32 - 13, x = V + C | 0, O ^= x << 18 | x >>> 32 - 18, x = K + F | 0, L ^= x << 7 | x >>> 32 - 7, x = L + K | 0, H ^= x << 9 | x >>> 32 - 9, x = H + L | 0, F ^= x << 13 | x >>> 32 - 13, x = F + H | 0, K ^= x << 18 | x >>> 32 - 18, x = $ + z | 0, q ^= x << 7 | x >>> 32 - 7, x = q + $ | 0, W ^= x << 9 | x >>> 32 - 9, x = W + q | 0, z ^= x << 13 | x >>> 32 - 13, x = z + W | 0, $ ^= x << 18 | x >>> 32 - 18, x = he + Ae | 0, ie ^= x << 7 | x >>> 32 - 7, x = ie + he | 0, ge ^= x << 9 | x >>> 32 - 9, x = ge + ie | 0, Ae ^= x << 13 | x >>> 32 - 13, x = Ae + ge | 0, he ^= x << 18 | x >>> 32 - 18;
       i[0] = O >>> 0 & 255, i[1] = O >>> 8 & 255, i[2] = O >>> 16 & 255, i[3] = O >>> 24 & 255, i[4] = K >>> 0 & 255, i[5] = K >>> 8 & 255, i[6] = K >>> 16 & 255, i[7] = K >>> 24 & 255, i[8] = $ >>> 0 & 255, i[9] = $ >>> 8 & 255, i[10] = $ >>> 16 & 255, i[11] = $ >>> 24 & 255, i[12] = he >>> 0 & 255, i[13] = he >>> 8 & 255, i[14] = he >>> 16 & 255, i[15] = he >>> 24 & 255, i[16] = L >>> 0 & 255, i[17] = L >>> 8 & 255, i[18] = L >>> 16 & 255, i[19] = L >>> 24 & 255, i[20] = H >>> 0 & 255, i[21] = H >>> 8 & 255, i[22] = H >>> 16 & 255, i[23] = H >>> 24 & 255, i[24] = W >>> 0 & 255, i[25] = W >>> 8 & 255, i[26] = W >>> 16 & 255, i[27] = W >>> 24 & 255, i[28] = z >>> 0 & 255, i[29] = z >>> 8 & 255, i[30] = z >>> 16 & 255, i[31] = z >>> 24 & 255;
     }
-    const go = new je([101, 120, 112, 97, 110, 100, 32, 51, 50, 45, 98, 121, 116, 101, 32, 107]);
+    var go = new je([101, 120, 112, 97, 110, 100, 32, 51, 50, 45, 98, 121, 116, 101, 32, 107]);
     function U0(i, e, t, r, n, s, o) {
       const a = new je(16), p = new je(64);
       let h, f;
@@ -20178,17 +20240,17 @@ const require_bioforest_chain_bundle = __commonJS({
       const e = new Ll(16);
       return i && e.set(i), e;
     }
-    const q0 = new je(16);
-    const Z0 = new je(32);
+    var q0 = new je(16);
+    var Z0 = new je(32);
     Z0[0] = 9;
-    const id = Oe();
-    const Ya = Oe([1]);
-    const eS = Oe([56129, 1]);
-    const tS = Oe([30883, 4953, 19914, 30187, 55467, 16705, 2637, 112, 59544, 30585, 16505, 36039, 65139, 11119, 27886, 20995]);
-    const rS = Oe([61785, 9906, 39828, 60374, 45398, 33411, 5274, 224, 53552, 61171, 33010, 6542, 64743, 22239, 55772, 9222]);
-    const x_ = Oe([54554, 36645, 11616, 51542, 42930, 38181, 51040, 26924, 56412, 64982, 57905, 49316, 21502, 52590, 14035, 8553]);
-    const O_ = Oe([26200, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214]);
-    const nS = Oe([41136, 18958, 6951, 50414, 58488, 44335, 6150, 12099, 55207, 15867, 153, 11085, 57099, 20417, 9344, 11139]);
+    var id = Oe();
+    var Ya = Oe([1]);
+    var eS = Oe([56129, 1]);
+    var tS = Oe([30883, 4953, 19914, 30187, 55467, 16705, 2637, 112, 59544, 30585, 16505, 36039, 65139, 11119, 27886, 20995]);
+    var rS = Oe([61785, 9906, 39828, 60374, 45398, 33411, 5274, 224, 53552, 61171, 33010, 6542, 64743, 22239, 55772, 9222]);
+    var x_ = Oe([54554, 36645, 11616, 51542, 42930, 38181, 51040, 26924, 56412, 64982, 57905, 49316, 21502, 52590, 14035, 8553]);
+    var O_ = Oe([26200, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214, 26214]);
+    var nS = Oe([41136, 18958, 6951, 50414, 58488, 44335, 6150, 12099, 55207, 15867, 153, 11085, 57099, 20417, 9344, 11139]);
     function Ln(i, e, t) {
       for (let r = 0; r < 16; r++) i[r] = e[r] + t[r];
     }
@@ -20202,7 +20264,7 @@ const require_bioforest_chain_bundle = __commonJS({
     function Hn(i, e) {
       Ye(i, e, e);
     }
-    const C_ = 65536;
+    var C_ = 65536;
     function sS(i, e) {
       for (let t = 0; t < e; t += C_) crypto.getRandomValues(i.subarray(t, t + Math.min(e - t, C_)));
     }
@@ -20303,7 +20365,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (s[t] = 128, t = 256 - 128 * (t < 112 ? 1 : 0), s[t - 9] = 0, M_(s, t - 8, a / 536870912 | 0, a << 3), P_(r, n, s, t), o = 0; o < 8; o++) M_(i, 8 * o, r[o], n[o]);
       return 0;
     }
-    const B_ = [1116352408, 3609767458, 1899447441, 602891725, 3049323471, 3964484399, 3921009573, 2173295548, 961987163, 4081628472, 1508970993, 3053834265, 2453635748, 2937671579, 2870763221, 3664609560, 3624381080, 2734883394, 310598401, 1164996542, 607225278, 1323610764, 1426881987, 3590304994, 1925078388, 4068182383, 2162078206, 991336113, 2614888103, 633803317, 3248222580, 3479774868, 3835390401, 2666613458, 4022224774, 944711139, 264347078, 2341262773, 604807628, 2007800933, 770255983, 1495990901, 1249150122, 1856431235, 1555081692, 3175218132, 1996064986, 2198950837, 2554220882, 3999719339, 2821834349, 766784016, 2952996808, 2566594879, 3210313671, 3203337956, 3336571891, 1034457026, 3584528711, 2466948901, 113926993, 3758326383, 338241895, 168717936, 666307205, 1188179964, 773529912, 1546045734, 1294757372, 1522805485, 1396182291, 2643833823, 1695183700, 2343527390, 1986661051, 1014477480, 2177026350, 1206759142, 2456956037, 344077627, 2730485921, 1290863460, 2820302411, 3158454273, 3259730800, 3505952657, 3345764771, 106217008, 3516065817, 3606008344, 3600352804, 1432725776, 4094571909, 1467031594, 275423344, 851169720, 430227734, 3100823752, 506948616, 1363258195, 659060556, 3750685593, 883997877, 3785050280, 958139571, 3318307427, 1322822218, 3812723403, 1537002063, 2003034995, 1747873779, 3602036899, 1955562222, 1575990012, 2024104815, 1125592928, 2227730452, 2716904306, 2361852424, 442776044, 2428436474, 593698344, 2756734187, 3733110249, 3204031479, 2999351573, 3329325298, 3815920427, 3391569614, 3928383900, 3515267271, 566280711, 3940187606, 3454069534, 4118630271, 4000239992, 116418474, 1914138554, 174292421, 2731055270, 289380356, 3203993006, 460393269, 320620315, 685471733, 587496836, 852142971, 1086792851, 1017036298, 365543100, 1126000580, 2618297676, 1288033470, 3409855158, 1501505948, 4234509866, 1607167915, 987167468, 1816402316, 1246189591];
+    var B_ = [1116352408, 3609767458, 1899447441, 602891725, 3049323471, 3964484399, 3921009573, 2173295548, 961987163, 4081628472, 1508970993, 3053834265, 2453635748, 2937671579, 2870763221, 3664609560, 3624381080, 2734883394, 310598401, 1164996542, 607225278, 1323610764, 1426881987, 3590304994, 1925078388, 4068182383, 2162078206, 991336113, 2614888103, 633803317, 3248222580, 3479774868, 3835390401, 2666613458, 4022224774, 944711139, 264347078, 2341262773, 604807628, 2007800933, 770255983, 1495990901, 1249150122, 1856431235, 1555081692, 3175218132, 1996064986, 2198950837, 2554220882, 3999719339, 2821834349, 766784016, 2952996808, 2566594879, 3210313671, 3203337956, 3336571891, 1034457026, 3584528711, 2466948901, 113926993, 3758326383, 338241895, 168717936, 666307205, 1188179964, 773529912, 1546045734, 1294757372, 1522805485, 1396182291, 2643833823, 1695183700, 2343527390, 1986661051, 1014477480, 2177026350, 1206759142, 2456956037, 344077627, 2730485921, 1290863460, 2820302411, 3158454273, 3259730800, 3505952657, 3345764771, 106217008, 3516065817, 3606008344, 3600352804, 1432725776, 4094571909, 1467031594, 275423344, 851169720, 430227734, 3100823752, 506948616, 1363258195, 659060556, 3750685593, 883997877, 3785050280, 958139571, 3318307427, 1322822218, 3812723403, 1537002063, 2003034995, 1747873779, 3602036899, 1955562222, 1575990012, 2024104815, 1125592928, 2227730452, 2716904306, 2361852424, 442776044, 2428436474, 593698344, 2756734187, 3733110249, 3204031479, 2999351573, 3329325298, 3815920427, 3391569614, 3928383900, 3515267271, 566280711, 3940187606, 3454069534, 4118630271, 4000239992, 116418474, 1914138554, 174292421, 2731055270, 289380356, 3203993006, 460393269, 320620315, 685471733, 587496836, 852142971, 1086792851, 1017036298, 365543100, 1126000580, 2618297676, 1288033470, 3409855158, 1501505948, 4234509866, 1607167915, 987167468, 1816402316, 1246189591];
     function P_(i, e, t, r) {
       const n = new cu(16), s = new cu(16);
       let o, a, p, h, f, g, d, y, _, I, S, w, N, B, O, P, C, V, F, K, L, H, W, z, $, q, ie = i[0], ge = i[1], Ae = i[2], he = i[3], x = i[4], ce = i[5], de = i[6], ke = i[7], pe = e[0], j = e[1], re = e[2], se = e[3], ae = e[4], le = e[5], Pe = e[6], Ke = e[7], Qe = 0;
@@ -20394,7 +20456,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (t = 0; t < 64; t++) i[t] = 0;
       ZA(i, e);
     }
-    const yf = new Ll([237, 211, 245, 92, 26, 99, 18, 88, 214, 156, 247, 162, 222, 249, 222, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16]);
+    var yf = new Ll([237, 211, 245, 92, 26, 99, 18, 88, 214, 156, 247, 162, 222, 249, 222, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16]);
     function ZA(i, e) {
       let t, r, n, s;
       for (r = 63; r >= 32; --r) {
@@ -20419,7 +20481,7 @@ const require_bioforest_chain_bundle = __commonJS({
       for (r = 250; r >= 0; r--) Hn(t, t), r !== 1 && Ye(t, t, e);
       for (r = 0; r < 16; r++) i[r] = t[r];
     }
-    const AS = { create(i) {
+    var AS = { create(i) {
       const e = gS(i);
       return { secretKey: wr.from(e.secretKey), publicKey: wr.from(e.publicKey) };
     }, detached_sign(i, e) {
@@ -20443,15 +20505,15 @@ const require_bioforest_chain_bundle = __commonJS({
       for (r = 0; r < 64; r++) e[r] = 0;
       return t;
     }
-    const TS = { convertPublicKey: ES, convertSecretKey: IS };
-    let H_ = class {
+    var TS = { convertPublicKey: ES, convertSecretKey: IS };
+    var H_ = class {
       createRemark(e) {
         return Rc.fromObject({ remark: e });
       }
     };
     H_ = l([J()], H_);
-    const SS = { CURRENT_HEIGHT: /* @__PURE__ */ Symbol("currentHeight") };
-    let yo = class {
+    var SS = { CURRENT_HEIGHT: /* @__PURE__ */ Symbol("currentHeight") };
+    var yo = class {
       constructor(e = 0) {
         this.currentHeight = e, this.emitter = new An(), this.emitter.on("height", (t) => {
           const r = this.currentHeight;
@@ -20478,7 +20540,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(dl), u("design:type", dl)], yo.prototype, "block", void 0);
     l([D("blockGetterHelper", { optional: true, dynamics: true }), u("design:type", Object)], yo.prototype, "blockGetterHelper", void 0);
     yo = l([J({ group: true }), be(0, D(SS.CURRENT_HEIGHT, { optional: true })), u("design:paramtypes", [Number])], yo);
-    let cd = class extends eh {
+    var cd = class extends eh {
       constructor(e, t) {
         super(), this.moduleMap = e, this.config = t, this._consensusVersionAndHeightMap = /* @__PURE__ */ new Map(), this._lastConsensusVersion = 1, this._lastPatchEffectiveHeight = 1, this._patchVersionMap = new wt(() => 0);
       }
@@ -20514,7 +20576,7 @@ const require_bioforest_chain_bundle = __commonJS({
       async _installPatchs() {
         const e = [...this.moduleMap.groupGet(yo)];
         e.sort((n, s) => n.version - s.version);
-        const t = new wt((n) => e.filter((s) => s.name === n).toSorted((s, o) => o.version - s.version)[0].version), r = new An();
+        const t = new wt((n) => e.filter((s) => s.name === n).sort((s, o) => o.version - s.version)[0].version), r = new An();
         this.config.version;
         try {
           for (const n of e) {
@@ -20534,7 +20596,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     cd = l([J(), u("design:paramtypes", [ze, ne])], cd);
-    let Il = class {
+    var Il = class {
       constructor(e, t, r, n, s, o, a, p, h, f, g, d, y, _, I, S, w, N, B, O, P, C, V, F, K, L, H, W) {
         this.config = e, this.cryptoHelper = t, this.keypairHelper = r, this.ed2curveHelper = n, this.Buffer = s, this.base58Helper = o, this.jsbiHelper = a, this.asymmetricHelper = p, this.accountBaseHelper = h, this.transactionHelper = f, this.blockHelper = g, this.parityBitHelper = d, this.baseHelper = y, this.chainAssetInfoHelper = _, this.migrateCertificateHelper = I, this.registerChainCertificateHelper = S, this.complexTransactionLogicHelper = w, this.configMap = N, this.block = B, this.blockLogicVerifier = O, this.blockTicker = P, this.transaction = C, this.transactionLogicVerifier = V, this.channel = F, this.time = K, this.moduleMap = L, this.patchInstaller = H, this.i18N = W, this.i18N.addErrorCodeList("BFCHAIN-CORE", c, _I);
       }
@@ -20549,7 +20611,7 @@ const require_bioforest_chain_bundle = __commonJS({
         bt(n, e);
       }), e.set("BFChainCoreFactory", eE), bt(Il, e);
     }
-    let an = class {
+    var an = class {
       constructor() {
         this.defaultDiffHeight = 20;
       }
@@ -20557,10 +20619,10 @@ const require_bioforest_chain_bundle = __commonJS({
         const { transactionCore: o, timeHelper: a, config: p, accountBaseHelper: h } = this, f = await h.createSecretKeypair(t.mainSecret);
         let g;
         t.paySecret && (g = await this.accountBaseHelper.createSecondSecretKeypair(t.mainSecret, t.paySecret));
-        const d = await this.transactionCore.getTransactionTypeFromTransactionFactoryConstructor(e), y = await h.getAddressFromPublicKey(f.publicKey), _ = f.publicKey.toString("hex"), I = r.applyBlockHeight || 1, S = g && g.publicKey.toString("hex"), w = r.fromMagic || p.magic, N = r.toMagic || p.magic, B = { ...this.customTrsRemark, ...r.remark };
+        const d = await this.transactionCore.getTransactionTypeFromTransactionFactoryConstructor(e), y = await h.getAddressFromPublicKey(f.publicKey), _ = f.publicKey.toString("hex"), I = r.applyBlockHeight || 1, S = g && g.publicKey.toString("hex"), w = r.fromMagic || p.magic, N = r.toMagic || p.magic, B = { ...this.customTrsRemark, ...r.remark || {} };
         let O, P = 0;
         const C = [];
-        r.recipientId && (typeof r.recipientId === "string" ? O = r.recipientId : (P = r.recipientId.type, C.push(...r.recipientId.range)));
+        r.recipientId && (typeof r.recipientId == "string" ? O = r.recipientId : (P = r.recipientId.type, C.push(...r.recipientId.range)));
         let V;
         r.effectiveBlockHeight ? V = await this.checkEffectiveBlockHeight(r.effectiveBlockHeight, I) : V = await this.calcEffectiveBlockHeight(I);
         const F = (H, W = true) => o.createTransaction(e, { version: this.config.version, type: d, senderId: y, senderPublicKey: _, senderSecondPublicKey: S, recipientId: O || void 0, range: C, rangeType: P, fee: H, timestamp: r.timestamp || (r.timestamp = a.getTimestamp()), dappid: r.dappid || void 0, lns: r.lns || void 0, sourceIP: r.sourceIP || void 0, fromMagic: w, toMagic: N, applyBlockHeight: I, effectiveBlockHeight: V, remark: B, storage: s }, n, f, g, this.config);
@@ -20658,7 +20720,7 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(uh), u("design:type", uh)], an.prototype, "flagsHelper", void 0);
     l([D(me), u("design:type", me)], an.prototype, "accountBaseHelper", void 0);
     an = l([J()], an);
-    let lu = class extends an {
+    var lu = class extends an {
       async createTransferTransactionJSON(e) {
         const { secrets: t, transaction: r, assetInfo: n } = e, s = { fee: r.fee, recipientId: r.recipientId, remark: r.remark, applyBlockHeight: r.applyBlockHeight, timestamp: r.timestamp, effectiveBlockHeight: r.effectiveBlockHeight };
         return (await this.createTransferAssetTransaction(t, s, { transferAsset: { sourceChainName: n.sourceChainName || this.config.chainName, sourceChainMagic: n.sourceChainMagic, assetType: n.assetType, amount: n.amount } })).toJSON();
@@ -20697,7 +20759,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     lu = l([J()], lu);
-    let hu = class extends an {
+    var hu = class extends an {
       async createIssueEntityFactoryTransactionJSON(e, t, r) {
         const n = { fee: t.fee, remark: t.remark, applyBlockHeight: t.applyBlockHeight, timestamp: t.timestamp, effectiveBlockHeight: t.effectiveBlockHeight, recipientId: t.recipientId }, s = { ...r, sourceChainMagic: this.config.magic, sourceChainName: this.config.chainName };
         return (await this.createIssueEntityFactoryTransaction(e, n, { issueEntityFactory: s })).toJSON();
@@ -20776,7 +20838,7 @@ const require_bioforest_chain_bundle = __commonJS({
       }
     };
     hu = l([J()], hu);
-    const wS = "BTGMetaBundleCore";
+    var wS = "BTGMetaBundleCore";
     exports.BTGMetaBundleCore = class extends An {
       constructor(e) {
         super(), this.moduleMap = e, this._init_task = new Yt();
@@ -20814,8 +20876,8 @@ const require_bioforest_chain_bundle = __commonJS({
     l([D(lu), u("design:type", lu)], exports.BTGMetaBundleCore.prototype, "transactionController", void 0);
     l([D(hu), u("design:type", hu)], exports.BTGMetaBundleCore.prototype, "exchangeTransactionCtrl", void 0);
     exports.BTGMetaBundleCore = l([J(wS), u("design:paramtypes", [ze])], exports.BTGMetaBundleCore);
-    const v_ = /* @__PURE__ */ new Map();
-    const bS = async (i, e, t = {}) => {
+    var v_ = /* @__PURE__ */ new Map();
+    var bS = async (i, e, t = {}) => {
       const r = i.magic;
       let n = v_.get(r);
       if (n) return n;

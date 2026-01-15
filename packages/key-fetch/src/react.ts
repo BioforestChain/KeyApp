@@ -86,11 +86,29 @@ export function useKeyFetch<S extends AnyZodSchema>(
     setIsFetching(true)
     setError(undefined)
 
+    // 初始获取数据（带错误处理）
+    kf.fetch(params ?? {})
+      .then((result) => {
+        setData(result)
+        setIsLoading(false)
+        setIsFetching(false)
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err : new Error(String(err)))
+        setIsLoading(false)
+        setIsFetching(false)
+      })
+
+    // 订阅后续更新（带错误处理）
     const unsubscribe = kf.subscribe(params ?? {}, (newData, _event) => {
-      setData(newData)
-      setIsLoading(false)
-      setIsFetching(false)
-      setError(undefined)
+      try {
+        setData(newData)
+        setIsLoading(false)
+        setIsFetching(false)
+        setError(undefined)
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)))
+      }
     })
 
     return () => {

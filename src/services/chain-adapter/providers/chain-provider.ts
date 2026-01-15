@@ -12,7 +12,8 @@ import type {
   ApiProvider,
   ApiProviderMethod,
   FeeEstimate,
-  TransferParams,
+  TransactionIntent,
+  SignOptions,
   UnsignedTransaction,
   SignedTransaction,
 } from './types'
@@ -34,7 +35,6 @@ export class ChainProvider {
     this.chainId = chainId
     this.providers = providers
   }
-
   /**
    * 检查是否有 Provider 支持某能力
    */
@@ -53,7 +53,7 @@ export class ChainProvider {
       return this.providers.some(p => p.blockHeight !== undefined)
     }
 
-    // 传统方法检查
+    // 方法检查（包括 ITransactionService 方法，通过 extends Partial 继承）
     return this.providers.some(p => typeof p[capability as ApiProviderMethod] === 'function')
   }
 
@@ -211,17 +211,17 @@ export class ChainProvider {
   // - 空数组 → NoSupportError (isSupported = !(error instanceof NoSupportError))
   // - 全部失败 → AggregateError (错误列表显示)
 
-  // ===== 代理方法：交易 =====
+  // ===== 代理方法：交易（ITransactionService）=====
 
-  get estimateFee(): ((params: TransferParams) => Promise<FeeEstimate>) | undefined {
-    return this.getMethod('estimateFee')
-  }
-
-  get buildTransaction(): ((params: TransferParams) => Promise<UnsignedTransaction>) | undefined {
+  get buildTransaction(): ((intent: TransactionIntent) => Promise<UnsignedTransaction>) | undefined {
     return this.getMethod('buildTransaction')
   }
 
-  get signTransaction(): ((unsignedTx: UnsignedTransaction, privateKey: Uint8Array) => Promise<SignedTransaction>) | undefined {
+  get estimateFee(): ((unsignedTx: UnsignedTransaction) => Promise<FeeEstimate>) | undefined {
+    return this.getMethod('estimateFee')
+  }
+
+  get signTransaction(): ((unsignedTx: UnsignedTransaction, options: SignOptions) => Promise<SignedTransaction>) | undefined {
     return this.getMethod('signTransaction')
   }
 

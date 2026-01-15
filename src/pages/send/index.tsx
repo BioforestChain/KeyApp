@@ -8,20 +8,20 @@ import { PageHeader } from '@/components/layout/page-header';
 import { AssetSelector } from '@/components/asset';
 import { AddressInput } from '@/components/transfer';
 import { AmountInput } from '@/components/transfer/amount-input';
-import { toTokenInfoList, type TokenInfo } from '@/components/token';
+import { tokenBalancesToTokenInfoList, type TokenInfo } from '@/components/token';
 import { GradientButton, Alert } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
+import { getChainProvider } from '@/services/chain-adapter/providers';
 import {
   useChainConfigState,
   chainConfigSelectors,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
-  useCurrentChainTokens,
   type ChainType,
 } from '@/stores';
 
@@ -66,7 +66,14 @@ export function SendPage() {
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null;
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const tokens = useCurrentChainTokens();
+
+  // 从 chainProvider 获取代币余额 (单一信源)
+  const chainProvider = getChainProvider(selectedChain);
+  const tokenBalances = chainProvider?.tokenBalances?.useState?.({ address: currentChainAddress?.address ?? '' });
+  const tokens = useMemo(() => {
+    if (!tokenBalances?.data) return [];
+    return tokenBalancesToTokenInfoList(tokenBalances.data, selectedChain);
+  }, [tokenBalances?.data, selectedChain]);
 
   // Find initial asset from params or use default
   const initialAsset = useMemo(() => {
@@ -74,7 +81,7 @@ export function SendPage() {
 
     // If assetType is specified, find it in tokens
     if (initialAssetType) {
-      const found = tokens.find((t) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
+      const found = tokens.find((t: TokenInfo) => t.symbol.toUpperCase() === initialAssetType.toUpperCase());
       if (found) {
         return {
           assetType: found.symbol,
@@ -89,7 +96,7 @@ export function SendPage() {
     }
 
     // No assetType specified - default to native asset
-    const nativeBalance = tokens.find((token) => token.symbol === chainConfig.symbol);
+    const nativeBalance = tokens.find((token: TokenInfo) => token.symbol === chainConfig.symbol);
     const balanceFormatted = nativeBalance?.balance ?? '0';
     return {
       assetType: chainConfig.symbol,
@@ -318,7 +325,7 @@ export function SendPage() {
             </label>
             <AssetSelector
               selectedAsset={selectedToken}
-              assets={toTokenInfoList(tokens)}
+              assets={tokens}
               onSelect={handleAssetSelect}
               disabled={assetLocked}
               testId="send-asset-selector"

@@ -1,6 +1,28 @@
 /**
  * Bio Ecosystem Types
+ * 
+ * 统一从 chain-adapter 导入交易相关类型
  */
+
+// ===== 从 chain-adapter 导入核心类型 =====
+export type {
+  // 交易意图
+  TransactionIntent,
+  TransferIntent,
+  DestroyIntent,
+  SetPayPasswordIntent,
+  ContractCallIntent,
+  // 签名选项
+  SignOptions,
+  // 交易对象
+  UnsignedTransaction,
+  SignedTransaction,
+  // 手续费
+  Fee,
+  FeeEstimate,
+} from '@/services/chain-adapter'
+
+// ===== Ecosystem 专用类型 =====
 
 /** Account information */
 export interface BioAccount {
@@ -9,34 +31,29 @@ export interface BioAccount {
   name?: string
 }
 
-/** Transfer parameters */
-export interface TransferParams {
+/**
+ * Ecosystem 转账参数（RPC 参数格式）
+ * 
+ * 注意：这与 chain-adapter 的 TransferIntent 不同
+ * - 这是 RPC 接收的参数格式（amount 是 string）
+ * - TransferIntent 是内部使用的格式（amount 是 Amount）
+ */
+export interface EcosystemTransferParams {
   from: string
   to: string
-  amount: string
+  amount: string  // RPC 参数是字符串
   chain: string
   asset?: string
 }
 
-/** Destroy asset parameters */
-export interface DestroyParams {
+/**
+ * Ecosystem 销毁参数（RPC 参数格式）
+ */
+export interface EcosystemDestroyParams {
   from: string
   amount: string
   chain: string
   asset: string
-}
-
-/** Unsigned transaction payload (chain-specific) */
-export interface BioUnsignedTransaction {
-  chainId: string
-  data: unknown
-}
-
-/** Signed transaction payload (chain-specific) */
-export interface BioSignedTransaction {
-  chainId: string
-  data: unknown
-  signature: string
 }
 
 /** Request message from miniapp */
@@ -64,7 +81,7 @@ export interface BioEventMessage {
 }
 
 /** Miniapp category */
-export type MiniappCategory = 
+export type MiniappCategory =
   | 'defi'      // DeFi 应用
   | 'nft'       // NFT 相关
   | 'tools'     // 工具类
@@ -231,11 +248,11 @@ export interface MiniappManifest {
    * 主题色（结束）- HEX 格式
    */
   themeColorTo?: string
-  
+
   // ============================================
   // 以下字段由 registry 在加载时自动填充
   // ============================================
-  
+
   /** 来源 URL（运行时填充） */
   sourceUrl?: string
   /** 来源图标（运行时填充） */

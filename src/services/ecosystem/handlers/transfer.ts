@@ -2,12 +2,12 @@
  * Transfer-related method handlers
  */
 
-import type { MethodHandler, TransferParams } from '../types'
+import type { MethodHandler, EcosystemTransferParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo } from './context'
 
 // 兼容旧 API
-let _showTransferDialog: ((params: TransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
+let _showTransferDialog: ((params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setTransferDialog(dialog: typeof _showTransferDialog): void {
@@ -22,7 +22,7 @@ function getTransferDialog(appId: string) {
 
 /** bio_sendTransaction - Send a transaction */
 export const handleSendTransaction: MethodHandler = async (params, context) => {
-  const opts = params as Partial<TransferParams> | undefined
+  const opts = params as Partial<EcosystemTransferParams> | undefined
   if (!opts?.from || !opts?.to || !opts?.amount || !opts?.chain) {
     throw Object.assign(
       new Error('Missing required parameters: from, to, amount, chain'),
@@ -35,7 +35,7 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Transfer dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const transferParams: TransferParams & { app: MiniappInfo } = {
+  const transferParams: EcosystemTransferParams & { app: MiniappInfo } = {
     from: opts.from,
     to: opts.to,
     amount: opts.amount,

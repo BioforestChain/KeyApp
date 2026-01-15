@@ -1,6 +1,6 @@
 // Stores
 export { walletStore, walletActions, walletSelectors } from './wallet'
-export type { Wallet, Token, ChainType, ChainAddress, WalletState } from './wallet'
+export type { Wallet, ChainType, ChainAddress, WalletState } from './wallet'
 
 // Address Book Store
 export { addressBookStore, addressBookActions, addressBookSelectors } from './address-book'
@@ -44,12 +44,13 @@ export {
   useSelectedChain,
   useChainPreferences,
   useCurrentChainAddress,
-  useCurrentChainTokens,
-  useAvailableChains,
-  useCurrentTokens,
-  useTotalFiatValue,
   useHasWallet,
   useWalletLoading,
   useWalletInitialized,
   useWalletMigrationRequired,
 } from './hooks'
+// 已移除的 hooks (现在使用 chain-provider):
+// - useCurrentChainTokens → getChainProvider(chain).tokenBalances.useState()
+// - useAvailableChains → wallet.chainAddresses.map(ca => ca.chain)
+// - useCurrentTokens → getChainProvider(chain).tokenBalances.useState()
+// - useTotalFiatValue → 价格数据需要从价格服务获取

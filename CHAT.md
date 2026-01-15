@@ -1398,9 +1398,9 @@ review 的具体方向：
 
 ---
 
-ChainProvider 的特性是它将各种接口供应商进行了统一。
+1. ChainProvider 的特性是它将各种接口供应商进行了统一。
 
-KeyFetch 的特性是提供了一种响应式的数据订阅能力（类似 双工通讯推送数据的这种最理想的理念），同时它提供了插件的能力，能将各种接口返回，最终通过插件转化成我们需要的接口返回。这样才能做到 ChainProvider 需要的上层统一。
+2. KeyFetch 的特性是提供了一种响应式的数据订阅能力（类似 双工通讯推送数据的这种最理想的理念），同时它提供了插件的能力，能将各种接口返回，最终通过插件转化成我们需要的接口返回。这样才能做到 ChainProvider 需要的上层统一。
 
 Zod schemas 定义的是响应的数据输入，插件需要一层层将这个响应进行转换。每个插件其实都是一个 onFetch 的逻辑：收到一个 request 和 nextFetch 函数，最终返回一个 response。
 类似于中间件的理念：
@@ -1489,3 +1489,14 @@ return response
 ```
 
 ```
+
+---
+
+还有，应用刚刚启动的时候，明明是在加载数据，这时候确显示：
+
+```
+Token balance query failed
+All configured providers failed. Showing default value.
+```
+
+等数据加载下来，这个错误提示就不见了。说明程序错误地处理了“isLoading” 的逻辑，需要修复。然后找到同类的问题，继续统一修复。

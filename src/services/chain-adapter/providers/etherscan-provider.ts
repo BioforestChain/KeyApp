@@ -7,7 +7,7 @@
 import { z } from 'zod'
 import { keyFetch, ttl, derive, transform, searchParams } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction, AddressParams, TxHistoryParams } from './types'
+import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import {
   BalanceOutputSchema,
   TransactionsOutputSchema,
@@ -107,12 +107,12 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
       url: `${baseUrl}`,
       use: [
         searchParams({
-          transform: ((params: AddressParams) => ({
+          transform: ((params) => ({
             module: 'account',
             action: 'balance',
             address: params.address,
             tag: 'latest',
-          })) as unknown as (params: Record<string, unknown>) => Record<string, unknown>,
+          })),
         }),
         ttl(30_000),
       ],
@@ -125,14 +125,14 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
       url: `${baseUrl}`,
       use: [
         searchParams({
-          transform: ((params: TxHistoryParams) => ({
+          transform: ((params) => ({
             module: 'account',
             action: 'txlist',
             address: params.address,
             page: '1',
             offset: String(params.limit ?? 20),
             sort: 'desc',
-          })) as unknown as (params: Record<string, unknown>) => Record<string, unknown>,
+          })),
         }),
         ttl(5 * 60_000),
       ],

@@ -4,13 +4,12 @@
  * 将 mpay 数据格式转换为 KeyApp 格式
  */
 
-import type { Wallet, ChainAddress, Token, ChainType } from '@/stores/wallet'
+import type { Wallet, ChainAddress, ChainType } from '@/stores/wallet'
 import type { EncryptedData } from '@/lib/crypto'
 import { encrypt } from '@/lib/crypto'
 import type {
   MpayMainWallet,
   MpayChainAddressInfo,
-  MpayAddressAsset,
   MpayAddressBookEntry,
 } from './types'
 import type { Contact } from '@/stores/address-book'
@@ -49,28 +48,10 @@ function mapChainName(mpayChain: string): ChainType | null {
 }
 
 /**
- * 转换 mpay 资产为 KeyApp Token
+ * 转换 mpay 资产 - 已废弃，余额数据从 chain-provider 获取
+ * @deprecated tokens 不再存储在 ChainAddress 中
  */
-function transformAsset(asset: MpayAddressAsset, chain: ChainType): Token {
-  const token: Token = {
-    id: `${chain}-${asset.assetType}`,
-    symbol: asset.assetType,
-    name: asset.assetType,
-    balance: asset.amount ?? '0',
-    fiatValue: 0, // 需要重新获取
-    change24h: 0,
-    decimals: asset.decimals,
-    chain,
-  }
-  // 可选属性只在有值时赋值
-  if (asset.logoUrl) {
-    token.icon = asset.logoUrl
-  }
-  if (asset.contractAddress) {
-    token.contractAddress = asset.contractAddress
-  }
-  return token
-}
+// function transformAsset removed - balance data now comes from chain-provider
 
 /**
  * 转换 mpay ChainAddressInfo 为 KeyApp ChainAddress
@@ -88,7 +69,7 @@ function transformChainAddress(
     chain,
     address: mpayAddress.address,
     publicKey: '', // Will be derived on wallet unlock
-    tokens: mpayAddress.assets.map((asset) => transformAsset(asset, chain)),
+    // tokens 已从 ChainAddress 移除 - 余额数据从 chain-provider 获取
   }
 }
 
@@ -226,8 +207,8 @@ export async function transformMpayData(
       const primaryAddress =
         chainAddresses.find((ca) => ca.chain === primaryChain)?.address ?? ''
 
-      // 创建 KeyApp 钱包
-      const wallet: Wallet = {
+      // 创建 KeyApp 钱包 (不包含 tokens，余额从 chain-provider 获取)
+      const wallet = {
         id: mpayWallet.mainWalletId,
         name: mpayWallet.name,
         address: primaryAddress,
@@ -236,7 +217,7 @@ export async function transformMpayData(
         encryptedMnemonic,
         createdAt: mpayWallet.createTimestamp,
         themeHue: deriveThemeHue(mpayWallet.mainWalletId),
-        tokens: [], // deprecated, use chainAddresses[].tokens
+        // tokens 已移除 - 从 chain-provider.tokenBalances 获取
       }
 
       wallets.push(wallet)
@@ -257,4 +238,4 @@ export async function transformMpayData(
   }
 }
 
-export { mapChainName, transformChainAddress, transformAsset, determineChainFromList }
+export { mapChainName, transformChainAddress, determineChainFromList }

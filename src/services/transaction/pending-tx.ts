@@ -8,6 +8,7 @@
 import { z } from 'zod'
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import { defineServiceMeta } from '@/lib/service-meta'
+import { SignedTransactionSchema } from '@/services/chain-adapter/types'
 
 // ==================== Schema ====================
 
@@ -42,7 +43,7 @@ export const PendingTxSchema = z.object({
   chainId: z.string(),
   /** 发送地址 */
   fromAddress: z.string(),
-  
+
   // ===== 状态管理 =====
   /** 当前状态 */
   status: PendingTxStatusSchema,
@@ -54,20 +55,20 @@ export const PendingTxSchema = z.object({
   errorMessage: z.string().optional(),
   /** 重试次数 */
   retryCount: z.number().default(0),
-  
+
   // ===== 确认信息 =====
   /** 确认时的区块高度 */
   confirmedBlockHeight: z.number().optional(),
   /** 确认时间戳 */
   confirmedAt: z.number().optional(),
-  
+
   // ===== 时间戳 =====
   createdAt: z.number(),
   updatedAt: z.number(),
-  
-  // ===== 交易数据（不透明） =====
-  /** 原始交易数据，用于广播和重试 */
-  rawTx: z.unknown(),
+
+  // ===== 交易数据（ChainProvider 标准格式）=====
+  /** 已签名交易数据，用于广播和重试 */
+  rawTx: SignedTransactionSchema,
   /** UI 展示用的元数据（可选） */
   meta: PendingTxMetaSchema.optional(),
 })
@@ -81,7 +82,7 @@ export const CreatePendingTxInputSchema = z.object({
   walletId: z.string(),
   chainId: z.string(),
   fromAddress: z.string(),
-  rawTx: z.unknown(),
+  rawTx: SignedTransactionSchema,
   meta: PendingTxMetaSchema.optional(),
 })
 
@@ -104,21 +105,21 @@ export type UpdatePendingTxStatusInput = z.infer<typeof UpdatePendingTxStatusInp
 
 export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
   s.description('未上链交易管理服务 - 专注状态管理，不关心交易内容')
-    
+
     // ===== 查询 =====
     .api('getAll', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
     .api('getById', z.object({ id: z.string() }), PendingTxSchema.nullable())
-    .api('getByStatus', z.object({ 
-      walletId: z.string(), 
+    .api('getByStatus', z.object({
+      walletId: z.string(),
       status: PendingTxStatusSchema,
     }), z.array(PendingTxSchema))
     .api('getPending', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
-    
+
     // ===== 生命周期管理 =====
     .api('create', CreatePendingTxInputSchema, PendingTxSchema)
     .api('updateStatus', UpdatePendingTxStatusInputSchema, PendingTxSchema)
     .api('incrementRetry', z.object({ id: z.string() }), PendingTxSchema)
-    
+
     // ===== 清理 =====
     .api('delete', z.object({ id: z.string() }), z.void())
     .api('deleteConfirmed', z.object({ walletId: z.string() }), z.void())
@@ -187,7 +188,7 @@ export function isPendingTxExpired(
   if (now - pendingTx.createdAt > maxAge) {
     return true
   }
-  
+
   // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
   if (currentBlockHeight !== undefined) {
     const checker = getExpirationChecker(pendingTx.chainId)
@@ -195,7 +196,7 @@ export function isPendingTxExpired(
       return true
     }
   }
-  
+
   return false
 }
 
@@ -244,7 +245,7 @@ class PendingTxServiceImpl implements IPendingTxService {
       try {
         callback(tx, event)
       } catch (error) {
-        
+
       }
     })
   }
@@ -308,7 +309,7 @@ class PendingTxServiceImpl implements IPendingTxService {
   async create(input: CreatePendingTxInput): Promise<PendingTx> {
     const db = await this.ensureDb()
     const now = Date.now()
-    
+
     const pendingTx: PendingTx = {
       id: crypto.randomUUID(),
       walletId: input.walletId,
@@ -330,7 +331,7 @@ class PendingTxServiceImpl implements IPendingTxService {
   async updateStatus(input: UpdatePendingTxStatusInput): Promise<PendingTx> {
     const db = await this.ensureDb()
     const existing = await db.get(STORE_NAME, input.id)
-    
+
     if (!existing) {
       throw new Error(`PendingTx not found: ${input.id}`)
     }
@@ -354,7 +355,7 @@ class PendingTxServiceImpl implements IPendingTxService {
   async incrementRetry({ id }: { id: string }): Promise<PendingTx> {
     const db = await this.ensureDb()
     const existing = await db.get(STORE_NAME, id)
-    
+
     if (!existing) {
       throw new Error(`PendingTx not found: ${id}`)
     }
@@ -389,10 +390,10 @@ class PendingTxServiceImpl implements IPendingTxService {
     await tx.done
   }
 
-  async deleteExpired({ walletId, maxAge, currentBlockHeight }: { 
+  async deleteExpired({ walletId, maxAge, currentBlockHeight }: {
     walletId: string
     maxAge: number
-    currentBlockHeight?: number 
+    currentBlockHeight?: number
   }): Promise<number> {
     const all = await this.getAll({ walletId })
     const now = Date.now()
@@ -401,7 +402,7 @@ class PendingTxServiceImpl implements IPendingTxService {
       if (pendingTx.status === 'confirmed' || pendingTx.status === 'failed') {
         return now - pendingTx.updatedAt > maxAge
       }
-      
+
       // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
       if (currentBlockHeight !== undefined) {
         const checker = getExpirationChecker(pendingTx.chainId)
@@ -409,17 +410,17 @@ class PendingTxServiceImpl implements IPendingTxService {
           return true
         }
       }
-      
+
       return false
     })
-    
+
     if (expired.length === 0) return 0
-    
+
     const db = await this.ensureDb()
     const tx = db.transaction(STORE_NAME, 'readwrite')
     await Promise.all(expired.map((item) => tx.store.delete(item.id)))
     await tx.done
-    
+
     return expired.length
   }
 

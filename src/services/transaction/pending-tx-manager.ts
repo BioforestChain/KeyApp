@@ -9,8 +9,8 @@
  */
 
 import { pendingTxService, type PendingTx } from './pending-tx';
-import { broadcastTransaction, type BFChainCore } from '@/services/bioforest-sdk';
-import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors';
+import { getChainProvider } from '@/services/chain-adapter/providers';
+import { ChainServiceError } from '@/services/chain-adapter/types';
 import { chainConfigSelectors, useChainConfigState } from '@/stores';
 import { notificationActions } from '@/stores/notification';
 import { queryClient } from '@/lib/query-client';
@@ -194,9 +194,10 @@ class PendingTxManagerImpl {
       return;
     }
 
-    const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
-    const apiUrl = biowallet?.endpoint;
-    if (!apiUrl) {
+    // 使用 ChainProvider 标准接口
+    const chainProvider = getChainProvider(tx.chainId);
+    const broadcast = chainProvider?.broadcastTransaction;
+    if (!broadcast) {
 
       return;
     }
@@ -206,32 +207,31 @@ class PendingTxManagerImpl {
       await pendingTxService.updateStatus({ id: tx.id, status: 'broadcasting' });
       await pendingTxService.incrementRetry({ id: tx.id });
 
-      // 广播
-      const broadcastResult = await broadcastTransaction(apiUrl, tx.rawTx as BFChainCore.TransactionJSON);
+      // 使用 ChainProvider 标准格式广播（rawTx 已是 SignedTransaction 格式）
+      const txHash = await broadcast(tx.rawTx);
 
-      // 成功，如果交易已存在则直接标记为 confirmed
-      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted';
+      // 成功
       const updated = await pendingTxService.updateStatus({
         id: tx.id,
-        status: newStatus,
-        txHash: broadcastResult.txHash,
+        status: 'broadcasted',
+        txHash,
       });
       this.notifySubscribers(updated);
 
       // 发送广播成功通知
-      this.sendNotification(updated, newStatus === 'confirmed' ? 'confirmed' : 'broadcasted');
+      this.sendNotification(updated, 'broadcasted');
 
 
     } catch (error) {
 
 
       const errorMessage =
-        error instanceof BroadcastError
-          ? translateBroadcastError(error)
+        error instanceof ChainServiceError
+          ? error.message
           : error instanceof Error
             ? error.message
             : i18n.t('transaction:broadcast.failed');
-      const errorCode = error instanceof BroadcastError ? error.code : undefined;
+      const errorCode = error instanceof ChainServiceError ? error.code : undefined;
 
       const updated = await pendingTxService.updateStatus({
         id: tx.id,

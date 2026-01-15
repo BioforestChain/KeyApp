@@ -19,15 +19,19 @@ export interface Web3FeeResult {
 export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string): Promise<Web3FeeResult> {
   const chainProvider = getChainProvider(chainConfig.id)
 
-  if (!chainProvider.supportsFeeEstimate) {
+  if (!chainProvider.supportsFeeEstimate || !chainProvider.supportsBuildTransaction) {
     throw new Error(`Chain ${chainConfig.id} does not support fee estimation`)
   }
 
-  const feeEstimate = await chainProvider.estimateFee!({
+  // 新流程：先构建交易，再估算手续费
+  const unsignedTx = await chainProvider.buildTransaction!({
+    type: 'transfer',
     from: fromAddress,
     to: fromAddress,
     amount: Amount.fromRaw('1', chainConfig.decimals, chainConfig.symbol),
   })
+
+  const feeEstimate = await chainProvider.estimateFee!(unsignedTx)
 
   return {
     amount: feeEstimate.standard.amount,
@@ -100,19 +104,17 @@ export async function submitWeb3Transfer({
     const seed = mnemonicToSeedSync(mnemonic)
 
     // Build unsigned transaction
-
     const unsignedTx = await chainProvider.buildTransaction!({
+      type: 'transfer',
       from: fromAddress,
       to: toAddress,
       amount,
     })
 
     // Sign transaction
-
-    const signedTx = await chainProvider.signTransaction!(unsignedTx, seed)
+    const signedTx = await chainProvider.signTransaction!(unsignedTx, { privateKey: seed })
 
     // Broadcast transaction
-
     const txHash = await chainProvider.broadcastTransaction!(signedTx)
 
 

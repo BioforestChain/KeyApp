@@ -31,6 +31,7 @@ import type {
     UseKeyFetchResult,
     UseKeyFetchOptions,
 } from './types'
+import { getUseStateImpl } from './core'
 
 /** 自定义错误：不支持的能力 */
 export class NoSupportError extends Error {
@@ -147,7 +148,7 @@ function createFallbackFetcher<S extends AnyZodSchema, P extends AnyZodSchema>(
 ): KeyFetchInstance<S, P> {
     const first = sources[0]
 
-    return {
+    const merged: KeyFetchInstance<S, P> = {
         name,
         schema: first.schema,
         paramsSchema: first.paramsSchema,
@@ -199,10 +200,18 @@ function createFallbackFetcher<S extends AnyZodSchema, P extends AnyZodSchema>(
             params?: InferOutput<P>,
             options?: UseKeyFetchOptions
         ): UseKeyFetchResult<InferOutput<S>> {
-            // 使用第一个 source 的 useState
-            // 注意：这里不会自动 fallback，useState 是同步的
-            // 错误会在 fetch 时通过 fallback 机制处理
-            return first.useState(params as InferOutput<P>, options)
+            // 使用注入的 useState 实现（与 derive 一致）
+            const impl = getUseStateImpl()
+            if (!impl) {
+                throw new Error(
+                    `[key-fetch] useState() requires React. Import from '@biochain/key-fetch' to enable React support.`
+                )
+            }
+            // 对于 merge 实例，直接调用注入的实现
+            // 传入 merged 实例本身，这样 useKeyFetch 会正确使用 merged 的 subscribe
+            return impl(merged as any, params as any, options)
         },
     }
+
+    return merged
 }

@@ -49,7 +49,7 @@ const AssetResponseSchema = z.object({
   result: z.object({
     address: z.string(),
     assets: z.record(z.string(), z.record(z.string(), BiowalletAssetItemSchema)),
-  }).optional(),
+  }).nullish(),  // API returns null for addresses without assets
 })
 
 // 交易项 - 支持所有 BioForest 交易类型
@@ -129,6 +129,10 @@ function getDirection(from: string, to: string, address: string): Direction {
   if (fromLower === addrLower) return 'out'
   return 'in'
 }
+
+// BFM 链的 epoch 时间（2017-01-01T00:00:00Z 的毫秒时间戳）
+// BFM timestamp 是从这个时间点开始的秒数偏移量
+const BFM_EPOCH_MS = new Date('2017-01-01T00:00:00Z').getTime()
 
 /** 
  * 检测 BioForest 交易类型并映射到标准 Action
@@ -293,7 +297,7 @@ export class BiowalletProvider extends BioforestIdentityMixin(BioforestTransacti
       name: `biowallet.${chainId}.txList`,
       schema: TxListResponseSchema,
       paramsSchema: TxListParamsSchema,
-      url: `${baseUrl}/transaction/list`,
+      url: `${baseUrl}/transactions/query`,
       method: 'POST',
       use: [postBody(), ttl(5 * 60_000)],
     })
@@ -348,6 +352,8 @@ export class BiowalletProvider extends BioforestIdentityMixin(BioforestTransacti
                   name: asset.assetType,
                   amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
                   isNative,
+                  decimals,
+                  icon: (asset as Record<string, unknown>).iconUrl as string | undefined,
                 })
               }
             }
@@ -389,7 +395,7 @@ export class BiowalletProvider extends BioforestIdentityMixin(BioforestTransacti
                   hash: item.signature,
                   from: tx.senderId,
                   to: tx.recipientId ?? '',
-                  timestamp: tx.timestamp * 1000, // BFM timestamp 是秒，转换为毫秒
+                  timestamp: BFM_EPOCH_MS + tx.timestamp * 1000, // BFM timestamp 是从 2017-01-01 开始的秒数
                   status: 'confirmed',
                   blockNumber: BigInt(item.height),
                   action,

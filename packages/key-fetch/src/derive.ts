@@ -35,6 +35,7 @@ import type {
     SubscribeCallback,
     FetchPlugin,
 } from './types'
+import { getUseStateImpl } from './core'
 import superjson from 'superjson'
 
 /** 派生选项 - 类似 KeyFetchDefineOptions */
@@ -134,50 +135,54 @@ export function derive<
         ) {
             // 订阅 source，通过插件链转换后通知
             return source.subscribe(params, async (sourceData, event) => {
-                // 构建完整的 middlewareContext（包含 superjson 工具）
-                const middlewareContext: import('./types').MiddlewareContext = {
-                    name,
-                    params: (params ?? {}) as import('./types').FetchParams,
-                    skipCache: false,
-                    // 直接暴露 superjson 库
-                    superjson,
-                    // 创建带 X-Superjson 头的 Response
-                    createResponse: <T>(data: T, init?: ResponseInit) => {
-                        return new Response(superjson.stringify(data), {
-                            ...init,
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Superjson': 'true',
-                                ...init?.headers,
-                            },
-                        })
-                    },
-                    // 根据 X-Superjson 头自动选择解析方式
-                    body: async <T>(input: Request | Response): Promise<T> => {
-                        const isSuperjson = input.headers.get('X-Superjson') === 'true'
-                        if (isSuperjson) {
-                            return superjson.parse(await input.text()) as T
-                        }
-                        return await input.json() as T
-                    },
-                }
-
-                // 构造 Response 对象 (使用 ctx.createResponse)
-                let response = middlewareContext.createResponse(sourceData, { status: 200 })
-
-                for (const plugin of plugins) {
-                    if (plugin.onFetch) {
-                        response = await plugin.onFetch(
-                            new Request('derive://source'),
-                            async () => response,
-                            middlewareContext
-                        )
+                try {
+                    // 构建完整的 middlewareContext（包含 superjson 工具）
+                    const middlewareContext: import('./types').MiddlewareContext = {
+                        name,
+                        params: (params ?? {}) as import('./types').FetchParams,
+                        skipCache: false,
+                        // 直接暴露 superjson 库
+                        superjson,
+                        // 创建带 X-Superjson 头的 Response
+                        createResponse: <T>(data: T, init?: ResponseInit) => {
+                            return new Response(superjson.stringify(data), {
+                                ...init,
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Superjson': 'true',
+                                    ...init?.headers,
+                                },
+                            })
+                        },
+                        // 根据 X-Superjson 头自动选择解析方式
+                        body: async <T>(input: Request | Response): Promise<T> => {
+                            const isSuperjson = input.headers.get('X-Superjson') === 'true'
+                            if (isSuperjson) {
+                                return superjson.parse(await input.text()) as T
+                            }
+                            return await input.json() as T
+                        },
                     }
-                }
 
-                // 解析最终结果 (使用 ctx.body)
-                const transformed = await middlewareContext.body<InferOutput<TOutputSchema>>(response)
-                callback(transformed, event)
+                    // 构造 Response 对象 (使用 ctx.createResponse)
+                    let response = middlewareContext.createResponse(sourceData, { status: 200 })
+
+                    for (const plugin of plugins) {
+                        if (plugin.onFetch) {
+                            response = await plugin.onFetch(
+                                new Request('derive://source'),
+                                async () => response,
+                                middlewareContext
+                            )
+                        }
+                    }
+
+                    // 解析最终结果 (使用 ctx.body)
+                    const transformed = await middlewareContext.body<InferOutput<TOutputSchema>>(response)
+                    callback(transformed, event)
+                } catch (err) {
+                    console.error(`[key-fetch] Error in derive subscribe for ${name}:`, err)
+                }
             })
         },
 
@@ -191,11 +196,15 @@ export function derive<
             return undefined
         },
 
-        useState(_params?: InferOutput<P>, _options?: { enabled?: boolean }) {
-            // React hook 由 react.ts 模块注入实现
-            throw new Error(
-                `[key-fetch] useState() requires React. Import from '@biochain/key-fetch' to enable React support.`
-            )
+        useState(params?: InferOutput<P>, options?: { enabled?: boolean }) {
+            // 使用 core.ts 中注入的 useState 实现
+            const impl = getUseStateImpl()
+            if (!impl) {
+                throw new Error(
+                    `[key-fetch] useState() requires React. Import from '@biochain/key-fetch' to enable React support.`
+                )
+            }
+            return impl(derived as any, params as any, options)
         },
     }
 

@@ -26,7 +26,7 @@ function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
 
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
   const provider = getChainProvider(chainConfig.id)
-  if (!provider.estimateFee) {
+  if (!provider.estimateFee || !provider.buildTransaction) {
     // Fallback to zero fee if provider doesn't support estimateFee
     return {
       amount: Amount.fromRaw('0', chainConfig.decimals, chainConfig.symbol),
@@ -34,12 +34,16 @@ export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: s
     }
   }
 
-  const feeEstimate = await provider.estimateFee({
+  // 新流程：先构建交易，再估算手续费
+  const unsignedTx = await provider.buildTransaction({
+    type: 'transfer',
     from: fromAddress,
     to: fromAddress,
     // SDK requires amount > 0 for fee calculation, use 1 unit as placeholder
     amount: Amount.fromRaw('1', chainConfig.decimals, chainConfig.symbol),
   })
+
+  const feeEstimate = await provider.estimateFee(unsignedTx)
 
   return {
     amount: feeEstimate.standard.amount,
@@ -195,12 +199,16 @@ export async function submitBioforestTransfer({
     const txHash = transaction.signature
 
 
-    // 存储到 pendingTxService
+    // 存储到 pendingTxService（转换为 ChainProvider 标准格式）
     const pendingTx = await pendingTxService.create({
       walletId,
       chainId: chainConfig.id,
       fromAddress,
-      rawTx: transaction,
+      rawTx: {
+        chainId: chainConfig.id,
+        data: transaction, // SDK 交易数据
+        signature: transaction.signature,
+      },
       meta: {
         type: 'transfer',
         displayAmount: amount.toFormatted(),

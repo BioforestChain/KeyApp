@@ -16,7 +16,14 @@ export type {
   TokenMetadata,
   FeeEstimate,
   Fee,
-  TransferParams,
+  // Transaction Intent types
+  TransactionIntent,
+  TransferIntent,
+  DestroyIntent,
+  SetPayPasswordIntent,
+  ContractCallIntent,
+  SignOptions,
+  // Transaction types
   UnsignedTransaction,
   SignedTransaction,
   TransactionStatus,

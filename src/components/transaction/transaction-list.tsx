@@ -22,7 +22,10 @@ function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionIn
   const yesterday = new Date(now.getTime() - 86400000).toDateString();
 
   transactions.forEach((tx) => {
-    const date = typeof tx.timestamp === 'string' ? new Date(tx.timestamp) : tx.timestamp;
+    // timestamp 可能是 number (毫秒), string, 或 Date 对象
+    const date = tx.timestamp instanceof Date
+      ? tx.timestamp
+      : new Date(tx.timestamp);
     const dateStr = date.toDateString();
 
     let key: string;

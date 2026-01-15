@@ -1,7 +1,6 @@
 import { dwebServiceWorker, type ServiceWorkerFetchEvent } from '@plaoc/plugins'
 import { WALLET_PLAOC_PATH } from './paths'
 import type { CallerAppInfo, IPlaocAdapter } from './types'
-import { walletStore } from '@/stores'
 
 type WireEnvelope<T> = Readonly<{ data: T }>
 
@@ -97,19 +96,9 @@ function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePa
 > {
   if (!req) return {}
 
-  const state = walletStore.state
-  const chainName = req.chainName
-  const senderAddress = req.senderAddress
-
-  const matchingChainAddresses = state.wallets.flatMap((w) =>
-    w.chainAddresses.filter(
-      (ca) =>
-        String(ca.chain).trim().toLowerCase() === chainName &&
-        String(ca.address).trim().toLowerCase() === senderAddress.trim().toLowerCase()
-    )
-  )
-
-  const allTokens = matchingChainAddresses.flatMap((ca) => ca.tokens)
+  // tokens 数据已从 walletStore 移除 - 需要从 chain-provider 获取
+  // TODO: 使用 getChainProvider(req.chainName).tokenBalances 获取实时余额
+  // 目前返回所有请求的 assetType 的默认值
 
   const result: Record<
     string,
@@ -123,22 +112,11 @@ function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePa
 
   for (const reqAsset of req.assetTypes) {
     const wantedAssetType = reqAsset.assetType
-    const wantedContract = reqAsset.contractAddress?.trim().toLowerCase()
-
-    const token =
-      wantedContract
-        ? allTokens.find((t) => (t.contractAddress ?? '').trim().toLowerCase() === wantedContract)
-        : allTokens.find((t) => t.symbol === wantedAssetType || t.id === wantedAssetType)
-
     result[wantedAssetType] = {
       assetType: wantedAssetType,
-      decimals: token?.decimals ?? 0,
-      balance: token?.balance ?? '0',
-      ...(token?.contractAddress
-        ? { contracts: token.contractAddress }
-        : reqAsset.contractAddress
-          ? { contracts: reqAsset.contractAddress }
-          : {}),
+      decimals: 0,
+      balance: '0',
+      ...(reqAsset.contractAddress ? { contracts: reqAsset.contractAddress } : {}),
     }
   }
 

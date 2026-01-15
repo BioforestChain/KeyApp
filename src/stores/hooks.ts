@@ -31,25 +31,11 @@ export function useCurrentChainAddress() {
   return useStore(walletStore, (state) => walletSelectors.getCurrentChainAddress(state))
 }
 
-/** 获取当前链的代币列表 */
-export function useCurrentChainTokens() {
-  return useStore(walletStore, (state) => walletSelectors.getCurrentChainTokens(state))
-}
+// useCurrentChainTokens 已移除 - 使用 getChainProvider(chain).tokenBalances.useState() 代替
+// useAvailableChains 已移除 - 使用 wallet.chainAddresses.map(ca => ca.chain) 代替
+// useCurrentTokens 已移除 - 使用 getChainProvider(chain).tokenBalances.useState() 代替
+// useTotalFiatValue 已移除 - 价格数据需要从价格服务获取
 
-/** 获取可用的链列表 */
-export function useAvailableChains() {
-  return useStore(walletStore, (state) => walletSelectors.getAvailableChains(state))
-}
-
-/** 获取当前钱包的代币列表 (兼容旧代码) */
-export function useCurrentTokens() {
-  return useStore(walletStore, (state) => walletSelectors.getCurrentChainTokens(state))
-}
-
-/** 获取当前钱包总资产（法币） */
-export function useTotalFiatValue() {
-  return useStore(walletStore, (state) => walletSelectors.getTotalFiatValue(state))
-}
 
 /** 是否有钱包 */
 export function useHasWallet() {

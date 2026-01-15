@@ -31,19 +31,8 @@ export type { BioforestChainType }
 // 所有链（来自 chain-config，可扩展）
 export type ChainType = string
 
-export interface Token {
-  id: string
-  symbol: string
-  name: string
-  balance: string
-  fiatValue: number
-  change24h: number
-  icon?: string
-  contractAddress?: string
-  decimals: number
-  /** 所属链 */
-  chain: ChainType
-}
+// Token 类型已移除 - 余额数据从 chain-provider 获取
+// 使用 TokenBalance from '@/services/chain-adapter/providers/types' 代替
 
 /** 链地址信息 */
 export interface ChainAddress {
@@ -51,8 +40,7 @@ export interface ChainAddress {
   address: string
   /** 公钥（hex 编码） */
   publicKey: string
-  /** 该链上的代币 */
-  tokens: Token[]
+  // tokens 字段已移除 - 从 chain-provider.tokenBalances 获取
 }
 
 export interface Wallet {
@@ -77,8 +65,7 @@ export interface Wallet {
   createdAt: number
   /** 主题色 hue (0-360) */
   themeHue: number
-  /** @deprecated 使用 chainAddresses[].tokens */
-  tokens: Token[]
+  // tokens 字段已移除 - 从 chain-provider.tokenBalances 获取
 }
 
 export interface WalletState {
@@ -150,28 +137,10 @@ function walletInfoToWallet(info: WalletInfo, chainAddresses: ChainAddressInfo[]
       chain: ca.chain,
       address: ca.address,
       publicKey: ca.publicKey ?? '',
-      tokens: ca.assets.map((asset): Token => {
-        const token: Token = {
-          id: `${ca.chain}:${asset.assetType}`,
-          symbol: asset.symbol,
-          name: asset.symbol,
-          balance: asset.balance,
-          fiatValue: 0, // TODO: 从汇率服务获取
-          change24h: 0,
-          decimals: asset.decimals,
-          chain: ca.chain,
-        }
-        if (asset.contractAddress) {
-          token.contractAddress = asset.contractAddress
-        }
-        if (asset.logoUrl) {
-          token.icon = asset.logoUrl
-        }
-        return token
-      }),
+      // tokens 从 chain-provider.tokenBalances 获取
     })),
     themeHue: info.themeHue ?? 0,
-    tokens: [], // deprecated
+    // tokens 从 chain-provider.tokenBalances 获取
   }
 
   if (info.encryptedMnemonic) {
@@ -318,7 +287,7 @@ export const walletActions = {
       createdAt: now,
       chainAddresses,
       themeHue: themeHue ?? deriveThemeHue(mnemonic),
-      tokens: [],
+      // tokens 从 chain-provider.tokenBalances 获取
       ...(savedWalletInfo.encryptedMnemonic ? { encryptedMnemonic: savedWalletInfo.encryptedMnemonic } : {}),
     }
 
@@ -442,123 +411,10 @@ export const walletActions = {
     }))
   },
 
-  /** 更新链地址资产（用于余额更新） */
-  updateChainAssets: async (
-    walletId: string,
-    chain: ChainType,
-    tokens: Token[]
-  ): Promise<void> => {
-    const addressKey = `${walletId}:${chain}`
+  // updateChainAssets 已移除 - 余额数据从 chain-provider.tokenBalances 获取
+  // refreshBalance 已移除 - 使用 getChainProvider(chain).tokenBalances.useState() 代替
+  // refreshAllBalances 已移除 - 页面组件直接订阅 chain-provider
 
-    // 更新 IndexedDB
-    await walletStorageService.updateAssets(
-      addressKey,
-      tokens.map((t) => ({
-        assetType: t.symbol,
-        symbol: t.symbol,
-        decimals: t.decimals,
-        balance: t.balance,
-        contractAddress: t.contractAddress,
-        logoUrl: t.icon,
-      }))
-    )
-
-    // 更新 store
-    walletStore.setState((state) => ({
-      ...state,
-      wallets: state.wallets.map((w) => {
-        if (w.id !== walletId) return w
-        return {
-          ...w,
-          chainAddresses: w.chainAddresses.map((ca) =>
-            ca.chain === chain ? { ...ca, tokens } : ca
-          ),
-        }
-      }),
-    }))
-  },
-
-  /** 刷新钱包余额（从链上获取） */
-  refreshBalance: async (walletId: string, chain: ChainType): Promise<{ supported: boolean; fallbackReason?: string }> => {
-    const state = walletStore.state
-    const wallet = state.wallets.find((w) => w.id === walletId)
-    if (!wallet) return { supported: false, fallbackReason: 'Wallet not found' }
-
-    const chainAddress = wallet.chainAddresses.find((ca) => ca.chain === chain)
-    if (!chainAddress) return { supported: false, fallbackReason: 'Chain address not found' }
-
-    try {
-      // 动态导入避免循环依赖
-      const { getChainProvider } = await import('@/services/chain-adapter/providers')
-      const { NoSupportError } = await import('@biochain/key-fetch')
-      const chainProvider = getChainProvider(chain)
-
-      // 1. 优先尝试 tokenBalances（获取完整资产列表）
-      if (chainProvider.supportsTokenBalances) {
-        try {
-          const tokensData = await chainProvider.tokenBalances.fetch({ address: chainAddress.address })
-          if (tokensData.length > 0) {
-            const tokens: Token[] = tokensData.map((t) => ({
-              id: `${chain}:${t.symbol}`,
-              symbol: t.symbol,
-              name: t.name,
-              balance: t.amount.toFormatted(),
-              fiatValue: 0,
-              change24h: 0,
-              decimals: t.amount.decimals,
-              chain,
-            }))
-            await walletActions.updateChainAssets(walletId, chain, tokens)
-            return { supported: true }
-          }
-        } catch (e) {
-          // 如果是不支持错误，继续尝试 nativeBalance
-          if (!(e instanceof NoSupportError)) throw e
-        }
-      }
-
-      // 2. Fallback: nativeBalance（仅获取原生代币）
-      try {
-        const balance = await chainProvider.nativeBalance.fetch({ address: chainAddress.address })
-
-        const tokens: Token[] = [{
-          id: `${chain}:${balance.symbol}`,
-          symbol: balance.symbol,
-          name: balance.symbol,
-          balance: balance.amount.toFormatted(),
-          fiatValue: 0,
-          change24h: 0,
-          decimals: balance.amount.decimals,
-          chain,
-        }]
-
-        await walletActions.updateChainAssets(walletId, chain, tokens)
-        return { supported: true }
-      } catch (e) {
-        if (e instanceof NoSupportError) {
-          return { supported: false, fallbackReason: 'Chain does not support balance queries' }
-        }
-        throw e
-      }
-    } catch (error) {
-
-      return { supported: false, fallbackReason: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  },
-
-  /** 刷新当前钱包所有链的余额 */
-  refreshAllBalances: async (): Promise<void> => {
-    const state = walletStore.state
-    const wallet = walletSelectors.getCurrentWallet(state)
-    if (!wallet) return
-
-    // 并行刷新所有链的余额
-    await Promise.all(
-      wallet.chainAddresses.map((ca) =>
-        walletActions.refreshBalance(wallet.id, ca.chain)
-      )
-    )
-  },
 
   /** 更新钱包锁（使用旧钱包锁验证） */
   updateWalletLock: async (
@@ -737,10 +593,10 @@ export const walletActions = {
       chain: wallet.chain,
       createdAt: wallet.createdAt ?? Date.now(),
       chainAddresses: wallet.chainAddresses ?? [
-        { chain: wallet.chain, address: wallet.address, publicKey: '', tokens: [] }
+        { chain: wallet.chain, address: wallet.address, publicKey: '' }
       ],
       themeHue: wallet.themeHue,
-      tokens: [],
+      // tokens 从 chain-provider.tokenBalances 获取
       ...(wallet.encryptedMnemonic ? { encryptedMnemonic: wallet.encryptedMnemonic } : {}),
     }
 
@@ -778,28 +634,9 @@ export const walletSelectors = {
     return wallet.chainAddresses.find((ca) => ca.chain === state.selectedChain) || null
   },
 
-  /** 获取当前链的代币列表 */
-  getCurrentChainTokens: (state: WalletState): Token[] => {
-    const chainAddress = walletSelectors.getCurrentChainAddress(state)
-    return chainAddress?.tokens || []
-  },
+  // getCurrentChainTokens 已移除 - 使用 getChainProvider(chain).tokenBalances.useState() 代替
+  // getTotalFiatValue 已移除 - 价格数据需要从价格服务获取
 
-  /** 获取可用的链列表 */
-  getAvailableChains: (state: WalletState): ChainType[] => {
-    const wallet = walletSelectors.getCurrentWallet(state)
-    if (!wallet) return []
-    return wallet.chainAddresses.map((ca) => ca.chain)
-  },
-
-  /** 获取钱包总余额（法币） */
-  getTotalFiatValue: (state: WalletState): number => {
-    const currentWallet = walletSelectors.getCurrentWallet(state)
-    if (!currentWallet) return 0
-    // 汇总所有链的代币价值
-    return currentWallet.chainAddresses.reduce((sum, ca) =>
-      sum + ca.tokens.reduce((s, t) => s + t.fiatValue, 0), 0
-    )
-  },
 
   /** 是否有钱包 */
   hasWallet: (state: WalletState): boolean => {

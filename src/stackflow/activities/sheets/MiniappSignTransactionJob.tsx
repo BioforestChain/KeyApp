@@ -13,7 +13,7 @@ import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { walletStore } from '@/stores'
-import type { BioUnsignedTransaction } from '@/services/ecosystem'
+import type { UnsignedTransaction } from '@/services/ecosystem'
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers'
 import { MiniappSheetHeader } from '@/components/ecosystem'
 
@@ -53,9 +53,9 @@ function MiniappSignTransactionJobContent() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const unsignedTx = useMemo((): BioUnsignedTransaction | null => {
+  const unsignedTx = useMemo((): UnsignedTransaction | null => {
     try {
-      return JSON.parse(unsignedTxJson) as BioUnsignedTransaction
+      return JSON.parse(unsignedTxJson) as UnsignedTransaction
     } catch {
       return null
     }
@@ -92,7 +92,7 @@ function MiniappSignTransactionJobContent() {
         pop()
         return true
       } catch (error) {
-        
+
         return false
       } finally {
         setIsSubmitting(false)
