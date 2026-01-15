@@ -15,7 +15,7 @@ import '@biochain/key-fetch/react'  // Enable React support
 const mockFetch = vi.fn()
 const originalFetch = global.fetch
 beforeEach(() => {
-    global.fetch = mockFetch as typeof fetch
+    global.fetch = mockFetch as unknown as typeof fetch
     vi.clearAllMocks()
 })
 afterEach(() => {

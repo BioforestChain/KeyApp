@@ -7,7 +7,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { z } from 'zod'
-import { keyFetch, derive } from '../index'
+import { keyFetch, derive, transform } from '../index'
 import { injectUseState, getUseStateImpl } from '../core'
 
 // Mock React hook implementation
@@ -74,7 +74,7 @@ describe('key-fetch React useState injection', () => {
                 url: 'https://api.test.com/data',
             })
 
-            const result = instance.useState()
+            const result = instance.useState({})
 
             expect(result).toBe(expectedResult)
         })
@@ -101,7 +101,11 @@ describe('key-fetch React useState injection', () => {
                 name: 'test.derived',
                 source: sourceInstance,
                 schema: DerivedSchema,
-                transform: (data) => data.items.map(item => item.name),
+                use: [
+                    transform<z.infer<typeof SourceSchema>, z.infer<typeof DerivedSchema>>({
+                        transform: (data) => data.items.map(item => item.name),
+                    }),
+                ],
             })
 
             const params = { filter: 'active' }
