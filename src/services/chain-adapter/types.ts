@@ -255,11 +255,26 @@ export interface BioVerifyPayPasswordParams {
 }
 
 /**
+ * BioChain 资产详情
+ */
+export interface BioAssetDetail {
+  /** 资产类型 */
+  assetType: string
+  /** 资产发行者地址（用于销毁交易的 recipientId） */
+  applyAddress: string
+  /** 资产名称 */
+  assetName?: string
+  /** 资产精度 */
+  precision?: number
+}
+
+/**
  * BioChain 账户服务接口（bio* 前缀表示 BioChain 专属）
  * 
  * 提供 BioChain 特有的账户功能：
  * - 支付密码（二次验证）
  * - 账户信息查询
+ * - 资产详情查询
  */
 export interface IBioAccountService {
   /** 获取账户信息（含支付密码公钥等 BioChain 特有字段） */
@@ -267,6 +282,9 @@ export interface IBioAccountService {
 
   /** 验证支付密码是否正确 */
   bioVerifyPayPassword(params: BioVerifyPayPasswordParams): Promise<boolean>
+
+  /** 获取资产详情（用于销毁交易获取发行者地址） */
+  bioGetAssetDetail(assetType: string, holderAddress: string): Promise<BioAssetDetail | null>
 }
 
 // 查询操作说明：使用 Provider 层的 keyFetch

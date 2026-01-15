@@ -257,6 +257,10 @@ export class ChainProvider {
     return this.getMethod('bioVerifyPayPassword')
   }
 
+  get bioGetAssetDetail() {
+    return this.getMethod('bioGetAssetDetail')
+  }
+
   get supportsBioAccountInfo(): boolean {
     return this.supports('bioGetAccountInfo')
   }

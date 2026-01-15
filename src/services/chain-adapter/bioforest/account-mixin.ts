@@ -4,9 +4,10 @@
  * 提供 BioChain 专属的账户查询功能：
  * - 账户信息查询（含支付密码公钥）
  * - 支付密码验证
+ * - 资产详情查询
  */
 
-import type { BioAccountInfo, BioVerifyPayPasswordParams } from '../types'
+import type { BioAccountInfo, BioVerifyPayPasswordParams, BioAssetDetail } from '../types'
 
 type Constructor<T = object> = new (...args: any[]) => T
 
@@ -21,7 +22,7 @@ interface HasEndpointAndChainId {
  * @example
  * ```ts
  * class MyProvider extends BioforestAccountMixin(BaseClass) {
- *   // 自动获得 bioGetAccountInfo 和 bioVerifyPayPassword 方法
+ *   // 自动获得 bioGetAccountInfo, bioVerifyPayPassword, bioGetAssetDetail 方法
  * }
  * ```
  */
@@ -76,6 +77,26 @@ export function BioforestAccountMixin<TBase extends Constructor<HasEndpointAndCh
             }
 
             return false
+        }
+
+        /**
+         * 获取资产详情（用于销毁交易获取发行者地址）
+         */
+        async bioGetAssetDetail(assetType: string, holderAddress: string): Promise<BioAssetDetail | null> {
+            const { getAssetDetail } = await import('@/services/bioforest-sdk')
+
+            try {
+                const detail = await getAssetDetail(this.endpoint, assetType, holderAddress)
+                if (!detail?.applyAddress) {
+                    return null
+                }
+                return {
+                    assetType: detail.assetType,
+                    applyAddress: detail.applyAddress,
+                }
+            } catch {
+                return null
+            }
         }
     }
 }

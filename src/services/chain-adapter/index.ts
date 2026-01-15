@@ -46,6 +46,7 @@ export type {
   // BioChain-specific types
   BioAccountInfo,
   BioVerifyPayPasswordParams,
+  BioAssetDetail,
 } from './types'
 
 export { ChainServiceError, ChainErrorCodes } from './types'

@@ -441,8 +441,7 @@ export async function broadcastTransaction(
   baseUrl: string,
   transaction: BFChainCore.TransactionJSON,
 ): Promise<BroadcastResult> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
+  const { nonce: _nonce, ...txWithoutNonce } = transaction as BFChainCore.TransactionJSON & {
     nonce?: number
   }
 

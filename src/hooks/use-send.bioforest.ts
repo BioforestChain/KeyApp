@@ -3,25 +3,11 @@ import type { ChainConfig } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
 import { getChainProvider } from '@/services/chain-adapter/providers'
-import {
-  createTransferTransaction,
-  broadcastTransaction,
-  getAddressInfo,
-  verifyTwoStepSecret,
-  setTwoStepSecret,
-  getSignatureTransactionMinFee,
-} from '@/services/bioforest-sdk'
-import { BroadcastError, translateBroadcastError } from '@/services/bioforest-sdk/errors'
 import { pendingTxService } from '@/services/transaction'
 
 export interface BioforestFeeResult {
   amount: Amount
   symbol: string
-}
-
-function getBioforestApiUrl(chainConfig: ChainConfig): string | null {
-  const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1')
-  return biowallet?.endpoint ?? null
 }
 
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
@@ -88,13 +74,13 @@ export async function checkTwoStepSecretRequired(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<{ required: boolean; secondPublicKey?: string }> {
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
+  const provider = getChainProvider(chainConfig.id)
+  if (!provider.bioGetAccountInfo) {
     return { required: false }
   }
 
   try {
-    const info = await getAddressInfo(apiUrl, address)
+    const info = await provider.bioGetAccountInfo(address)
     if (info.secondPublicKey) {
       return { required: true, secondPublicKey: info.secondPublicKey }
     }
@@ -115,10 +101,18 @@ export async function verifyBioforestTwoStepSecret(
   twoStepSecret: string,
   secondPublicKey: string,
 ): Promise<boolean> {
+  const provider = getChainProvider(chainConfig.id)
+  if (!provider.bioVerifyPayPassword) {
+    return false
+  }
+
   try {
-    const secret = await walletStorageService.getMnemonic(walletId, password)
-    const result = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, secondPublicKey)
-    return result !== false
+    const mainSecret = await walletStorageService.getMnemonic(walletId, password)
+    return await provider.bioVerifyPayPassword({
+      mainSecret,
+      paySecret: twoStepSecret,
+      publicKey: secondPublicKey,
+    })
   } catch {
     return false
   }
@@ -132,7 +126,7 @@ export async function submitBioforestTransfer({
   toAddress,
   amount,
   assetType,
-  fee,
+  fee: _fee,
   twoStepSecret,
 }: SubmitBioforestParams): Promise<SubmitBioforestResult> {
   // Get mnemonic from wallet storage
@@ -153,62 +147,64 @@ export async function submitBioforestTransfer({
     return { status: 'error', message: '请输入有效金额' }
   }
 
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
-    return { status: 'error', message: 'API URL 未配置' }
+  const provider = getChainProvider(chainConfig.id)
+
+  // 检查 provider 是否支持完整交易流程
+  if (!provider.supportsFullTransaction) {
+    return { status: 'error', message: '该链不支持完整交易流程' }
   }
 
   try {
-
-
     // Check if pay password is required but not provided
-    const addressInfo = await getAddressInfo(apiUrl, fromAddress)
+    let secondPublicKey: string | null = null
+    if (provider.bioGetAccountInfo) {
+      const accountInfo = await provider.bioGetAccountInfo(fromAddress)
+      secondPublicKey = accountInfo.secondPublicKey
 
+      if (secondPublicKey && !twoStepSecret) {
+        return {
+          status: 'password_required',
+          secondPublicKey,
+        }
+      }
 
-    if (addressInfo.secondPublicKey && !twoStepSecret) {
+      // Verify pay password if provided
+      if (twoStepSecret && secondPublicKey && provider.bioVerifyPayPassword) {
+        const isValid = await provider.bioVerifyPayPassword({
+          mainSecret: secret,
+          paySecret: twoStepSecret,
+          publicKey: secondPublicKey,
+        })
 
-      return {
-        status: 'password_required',
-        secondPublicKey: addressInfo.secondPublicKey,
+        if (!isValid) {
+          return { status: 'error', message: '安全密码验证失败' }
+        }
       }
     }
 
-    // Verify pay password if provided
-    if (twoStepSecret && addressInfo.secondPublicKey) {
-
-      const isValid = await verifyTwoStepSecret(chainConfig.id, secret, twoStepSecret, addressInfo.secondPublicKey)
-
-      if (!isValid) {
-        return { status: 'error', message: '安全密码验证失败' }
-      }
-    }
-
-    // Create transaction using SDK
-
-    const transaction = await createTransferTransaction({
-      baseUrl: apiUrl,
-      chainId: chainConfig.id,
-      mainSecret: secret,
-      paySecret: twoStepSecret,
+    // Build unsigned transaction using ChainProvider
+    const unsignedTx = await provider.buildTransaction!({
+      type: 'transfer',
       from: fromAddress,
       to: toAddress,
-      amount: amount.toRawString(),
-      assetType,
-      fee: fee?.toRawString(),
+      amount,
+      // BioChain 特有字段
+      bioAssetType: assetType,
     })
-    const txHash = transaction.signature
 
+    // Sign transaction
+    const signedTx = await provider.signTransaction!(unsignedTx, {
+      privateKey: new TextEncoder().encode(secret), // 助记词作为私钥
+      bioSecret: secret,
+      bioPaySecret: twoStepSecret,
+    })
 
-    // 存储到 pendingTxService（转换为 ChainProvider 标准格式）
+    // 存储到 pendingTxService（使用 ChainProvider 标准格式）
     const pendingTx = await pendingTxService.create({
       walletId,
       chainId: chainConfig.id,
       fromAddress,
-      rawTx: {
-        chainId: chainConfig.id,
-        data: transaction, // SDK 交易数据
-        signature: transaction.signature,
-      },
+      rawTx: signedTx,
       meta: {
         type: 'transfer',
         displayAmount: amount.toFormatted(),
@@ -218,42 +214,28 @@ export async function submitBioforestTransfer({
     })
 
     // 广播交易
-
     await pendingTxService.updateStatus({ id: pendingTx.id, status: 'broadcasting' })
 
     try {
-      const broadcastResult = await broadcastTransaction(apiUrl, transaction)
+      const broadcastTxHash = await provider.broadcastTransaction!(signedTx)
 
-
-      // 如果交易已存在于链上，直接标记为 confirmed
-      const newStatus = broadcastResult.alreadyExists ? 'confirmed' : 'broadcasted'
       await pendingTxService.updateStatus({
         id: pendingTx.id,
-        status: newStatus,
-        txHash,
+        status: 'broadcasted',
+        txHash: broadcastTxHash,
       })
-      return { status: 'ok', txHash, pendingTxId: pendingTx.id }
+      return { status: 'ok', txHash: broadcastTxHash, pendingTxId: pendingTx.id }
     } catch (err) {
-
-      if (err instanceof BroadcastError) {
-        await pendingTxService.updateStatus({
-          id: pendingTx.id,
-          status: 'failed',
-          errorCode: err.code,
-          errorMessage: translateBroadcastError(err),
-        })
-        return { status: 'error', message: translateBroadcastError(err), pendingTxId: pendingTx.id }
-      }
-      throw err
+      const error = err as Error
+      await pendingTxService.updateStatus({
+        id: pendingTx.id,
+        status: 'failed',
+        errorCode: 'BROADCAST_FAILED',
+        errorMessage: error.message,
+      })
+      return { status: 'error', message: error.message, pendingTxId: pendingTx.id }
     }
   } catch (error) {
-
-
-    // Handle BroadcastError
-    if (error instanceof BroadcastError) {
-      return { status: 'error', message: translateBroadcastError(error) }
-    }
-
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     return {
@@ -301,32 +283,39 @@ export async function submitSetTwoStepSecret({
     }
   }
 
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
-    return { status: 'error', message: 'API URL 未配置' }
+  const provider = getChainProvider(chainConfig.id)
+
+  // 检查 provider 是否支持完整交易流程
+  if (!provider.supportsFullTransaction) {
+    return { status: 'error', message: '该链不支持完整交易流程' }
   }
 
   try {
     // Check if already has pay password
-    const addressInfo = await getAddressInfo(apiUrl, fromAddress)
-    if (addressInfo.secondPublicKey) {
-      return { status: 'already_set' }
+    if (provider.bioGetAccountInfo) {
+      const accountInfo = await provider.bioGetAccountInfo(fromAddress)
+      if (accountInfo.secondPublicKey) {
+        return { status: 'already_set' }
+      }
     }
 
-    // Set pay password
-
-    const result = await setTwoStepSecret({
-      baseUrl: apiUrl,
-      chainId: chainConfig.id,
-      mainSecret: secret,
-      newPaySecret: newTwoStepSecret,
+    // Build and sign setPayPassword transaction using ChainProvider
+    const unsignedTx = await provider.buildTransaction!({
+      type: 'setPayPassword',
+      from: fromAddress,
     })
 
+    const signedTx = await provider.signTransaction!(unsignedTx, {
+      privateKey: new TextEncoder().encode(secret),
+      bioSecret: secret,
+      bioNewPaySecret: newTwoStepSecret,
+    })
 
-    return { status: 'ok', txHash: result.txHash }
+    // Broadcast transaction
+    const txHash = await provider.broadcastTransaction!(signedTx)
+
+    return { status: 'ok', txHash }
   } catch (error) {
-
-
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     if (errorMessage.includes('fee') || errorMessage.includes('手续费')) {
@@ -346,19 +335,25 @@ export async function submitSetTwoStepSecret({
 export async function getSetTwoStepSecretFee(
   chainConfig: ChainConfig,
 ): Promise<{ amount: Amount; symbol: string } | null> {
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
+  const provider = getChainProvider(chainConfig.id)
+
+  if (!provider.buildTransaction || !provider.estimateFee) {
     return null
   }
 
   try {
-    const feeRaw = await getSignatureTransactionMinFee(apiUrl, chainConfig.id)
+    // 使用一个伪地址构建交易估算费用
+    const unsignedTx = await provider.buildTransaction({
+      type: 'setPayPassword',
+      from: '0x0000000000000000000000000000000000000000',
+    })
+    const feeEstimate = await provider.estimateFee(unsignedTx)
+
     return {
-      amount: Amount.fromRaw(feeRaw, chainConfig.decimals, chainConfig.symbol),
+      amount: feeEstimate.standard.amount,
       symbol: chainConfig.symbol,
     }
-  } catch (error) {
-
+  } catch {
     return null
   }
 }
@@ -370,15 +365,17 @@ export async function hasTwoStepSecretSet(
   chainConfig: ChainConfig,
   address: string,
 ): Promise<boolean> {
-  const apiUrl = getBioforestApiUrl(chainConfig)
-  if (!apiUrl) {
+  const provider = getChainProvider(chainConfig.id)
+
+  if (!provider.bioGetAccountInfo) {
     return false
   }
 
   try {
-    const info = await getAddressInfo(apiUrl, address)
+    const info = await provider.bioGetAccountInfo(address)
     return !!info.secondPublicKey
   } catch {
     return false
   }
 }
+
