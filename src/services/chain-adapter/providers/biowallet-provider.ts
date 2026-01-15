@@ -125,6 +125,7 @@ const PendingTrParamsSchema = z.object({
 const PendingTrItemSchema = z.object({
   state: z.number(), // InternalTransStateID
   trJson: BiowalletTxItemSchema.shape.transaction,
+  signature: z.string().optional(), // 从外层提取
   createdTime: z.string(),
 })
 
@@ -256,6 +257,54 @@ function extractAssetInfo(
 
   return { value: null, assetType: defaultSymbol }
 }
+
+/**
+ * 统一的 BioChain 交易转换函数
+ * 将 BioChain 的交易格式转换为 KeyApp 的 Transaction 格式
+ */
+function convertBioTransactionToTransaction(
+  bioTx: BiowalletTxItem['transaction'],
+  options: {
+    signature: string
+    height?: number
+    status: 'pending' | 'confirmed' | 'failed'
+    createdTime?: string  // pending 交易的创建时间
+    address?: string      // 当前钱包地址，用于判断方向
+  }
+): Transaction {
+  const { signature, height, status, createdTime, address = '' } = options
+
+  // 提取资产信息
+  const { value, assetType } = extractAssetInfo(bioTx.asset, 'BFM')
+
+  // 计算时间戳
+  const timestamp = createdTime
+    ? new Date(createdTime).getTime()
+    : BFM_EPOCH_MS + bioTx.timestamp * 1000
+
+  // 判断方向
+  const direction = address
+    ? getDirection(bioTx.senderId, bioTx.recipientId ?? '', address)
+    : 'out'
+
+  return {
+    hash: signature,
+    from: bioTx.senderId,
+    to: bioTx.recipientId ?? '',
+    timestamp,
+    status,
+    blockNumber: height !== undefined ? BigInt(height) : undefined,
+    action: detectAction(bioTx.type),
+    direction,
+    assets: [{
+      assetType: 'native' as const,
+      value: value ?? '0',
+      symbol: assetType,
+      decimals: 8, // TODO: 从 chainConfig 获取
+    }],
+  }
+}
+
 
 // ==================== Base Class for Mixins ====================
 
@@ -525,47 +574,22 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
           }) => {
             // 优先返回 pending 状态的交易
             if (results.pending?.result && results.pending.result.length > 0) {
-              // TODO: 更精确地匹配 txHash
               const pendingTx = results.pending.result[0]
-              const tx = pendingTx.trJson
-
-              // 从 transferAsset 中提取资产信息
-              const transferAsset = tx.asset?.transferAsset
-              const assetType = transferAsset?.assetType ?? 'BFM'
-              const amount = transferAsset?.amount ?? '0'
-
-              return {
-                hash: tx.signature ?? '', // pending tx 已经有 signature
-                from: tx.senderId,
-                to: tx.recipientId ?? '',
-                timestamp: new Date(pendingTx.createdTime).getTime(),
-                status: 'pending' as const,
-                action: detectAction(tx.type),
-                direction: 'out' as const,
-                assets: [{
-                  assetType: 'native' as const,
-                  value: amount,
-                  symbol: assetType,
-                  decimals: 8, // TODO: 从 chainConfig 获取
-                }],
-              }
+              return convertBioTransactionToTransaction(pendingTx.trJson, {
+                signature: pendingTx.signature ?? '',
+                status: 'pending',
+                createdTime: pendingTx.createdTime,
+              })
             }
 
             // 否则返回 confirmed 交易
             if (results.confirmed?.result?.trs?.length) {
               const item = results.confirmed.result.trs[0]
-              const tx = item.transaction
-              return {
-                hash: item.signature,
-                from: tx.senderId,
-                to: tx.recipientId ?? '',
-                timestamp: BFM_EPOCH_MS + tx.timestamp * 1000,
-                status: 'confirmed' as const,
-                blockNumber: BigInt(item.height),
-                action: detectAction(tx.type),
-                direction: 'out' as const,
-                assets: [],
-              }
+              return convertBioTransactionToTransaction(item.transaction, {
+                signature: item.signature,
+                height: item.height,
+                status: 'confirmed',
+              })
             }
 
             // 都没找到
