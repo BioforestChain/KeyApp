@@ -91,6 +91,10 @@ function WalletTabContent({
   const { push } = useFlow();
   const haptics = useHaptics();
   const { t } = useTranslation(["home", "wallet", "common", "transaction"]);
+  const chainConfigState = useChainConfigState();
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
+    : undefined;
 
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();
@@ -254,7 +258,7 @@ function WalletTabContent({
           </h3>
           <div className="space-y-1">
             {pendingTransactions.slice(0, 3).map((pendingTx) => {
-              const txInfo = pendingTxToTransactionInfo(pendingTx);
+              const txInfo = pendingTxToTransactionInfo(pendingTx, chainConfig?.decimals ?? 8);
               return (
                 <TransactionItem
                   key={pendingTx.id}

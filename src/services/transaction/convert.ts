@@ -6,11 +6,10 @@ import { Amount } from '@/types/amount'
 import type { TransactionInfo } from '@/components/transaction/types'
 import type { PendingTx } from './pending-tx'
 
-export function pendingTxToTransactionInfo(tx: PendingTx): TransactionInfo {
-    // 解析金额，使用 Amount.fromFormatted 或者默认为 0
+export function pendingTxToTransactionInfo(tx: PendingTx, decimals: number): TransactionInfo {
     const amountStr = tx.meta?.displayAmount ?? '0'
     const symbol = tx.meta?.displaySymbol ?? ''
-    const amount = Amount.fromFormatted(amountStr, 0, symbol) // pending tx 的 displayAmount 已经是格式化的
+    const amount = Amount.fromFormatted(amountStr, decimals, symbol)
 
     return {
         id: tx.id,
