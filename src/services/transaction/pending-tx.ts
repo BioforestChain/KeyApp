@@ -6,7 +6,10 @@
  */
 
 import { z } from 'zod'
-import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
+import { openDB, type IDBPDatabase } from 'idb'
+import type { TransactionType } from '@/components/transaction/types'
+import { derive, transform } from '@biochain/key-fetch'
+import { getChainProvider } from '@/services/chain-adapter/providers'
 import { defineServiceMeta } from '@/lib/service-meta'
 import { SignedTransactionSchema } from '@/services/chain-adapter/types'
 
@@ -21,10 +24,18 @@ export const PendingTxStatusSchema = z.enum([
   'failed',       // 广播失败
 ])
 
+// TransactionType as zod schema for validation
+const TransactionTypeSchema = z.enum([
+  'send', 'receive', 'signature', 'stake', 'unstake', 'destroy', 'gift', 'grab',
+  'trust', 'signFor', 'emigrate', 'immigrate', 'exchange', 'swap', 'issueAsset',
+  'increaseAsset', 'mint', 'issueEntity', 'destroyEntity', 'locationName', 'dapp',
+  'certificate', 'mark', 'approve', 'interaction', 'other'
+])
+
 /** 用于 UI 展示的最小元数据（可选，由调用方提供） */
 export const PendingTxMetaSchema = z.object({
-  /** 交易类型标识，用于 UI 展示 */
-  type: z.string().optional(),
+  /** 交易类型标识，用于 UI 展示，必须是 TransactionType */
+  type: TransactionTypeSchema.optional(),
   /** 展示用的金额 */
   displayAmount: z.string().optional(),
   /** 展示用的符号 */
@@ -437,9 +448,6 @@ class PendingTxServiceImpl implements IPendingTxService {
 export const pendingTxService = new PendingTxServiceImpl()
 
 // ==================== Key-Fetch Instance Factory ====================
-
-import { derive, transform } from '@biochain/key-fetch'
-import { getChainProvider } from '@/services/chain-adapter/providers'
 
 // 缓存已创建的 fetcher 实例
 const pendingTxFetchers = new Map<string, ReturnType<typeof derive>>()

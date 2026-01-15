@@ -207,7 +207,7 @@ export async function submitBioforestTransfer({
       fromAddress,
       rawTx: signedTx,
       meta: {
-        type: 'transfer',
+        type: 'send',
         displayAmount: amount.toFormatted(),
         displaySymbol: assetType,
         displayToAddress: toAddress,
