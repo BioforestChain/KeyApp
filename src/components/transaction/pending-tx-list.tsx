@@ -99,7 +99,7 @@ function PendingTxItem({
       {/* Status Icon - 使用 IconCircle */}
       <div className="relative">
         <IconCircle
-          icon={<StatusIcon className={cn(isProcessing && 'animate-spin')} />}
+          icon={<StatusIcon className={cn(isProcessing && 'animate-spin', 'size-5')} />}
           variant={statusVariant}
           size="sm"
         />
@@ -116,7 +116,7 @@ function PendingTxItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">
-            {t(`type.${displayType}`, displayType)}
+            {t(`type.${displayType}`)}
           </span>
           <span className={cn(
             'text-xs',
@@ -125,7 +125,7 @@ function PendingTxItem({
             statusVariant === 'error' && 'text-destructive',
             statusVariant === 'success' && 'text-success',
           )}>
-            {t(`pendingTx.${tx.status}`, tx.status)}
+            {t(`pendingTx.${tx.status}`)}
           </span>
         </div>
 
@@ -181,7 +181,7 @@ function PendingTxItem({
           </Button>
         )}
       </div>
-    </div>
+    </div >
   )
 }
 
