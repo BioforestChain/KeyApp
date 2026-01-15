@@ -112,10 +112,14 @@ export function combine<
             return context.createResponse(combined)
         },
         onSubscribe: (context) => {
+            // 转换 params（与 onFetch 保持一致）
+            const sourceParams = transformParams
+                ? transformParams(context.params as any)
+                : (context.params as any)
+
             // 订阅所有 sources，任何一个更新都触发 refetch
             const unsubscribes = sourceKeys.map((key) => {
-                const sourceParams = (context.params as any)[key]
-                return sources[key].subscribe(sourceParams, () => {
+                return sources[key].subscribe(sourceParams[key], () => {
                     // 任何 source 更新时，触发 combine 的 refetch
                     context.refetch()
                 })
