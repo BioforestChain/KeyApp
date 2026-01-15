@@ -584,15 +584,6 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
             pending?: z.infer<typeof PendingTrResponseSchema>,
             confirmed?: TxListResponse
           }) => {
-            // 优先返回 confirmed 交易
-            if (results.confirmed?.result?.trs?.length) {
-              const item = results.confirmed.result.trs[0]
-              return convertBioTransactionToTransaction(item.transaction, {
-                signature: item.signature,
-                height: item.height,
-                status: 'confirmed',
-              })
-            }
             // 返回 pending 状态的交易
             if (results.pending?.result && results.pending.result.length > 0) {
               const pendingTx = results.pending.result[0]
@@ -600,6 +591,15 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
                 signature: pendingTx.signature ?? '',
                 status: 'pending',
                 createdTime: pendingTx.createdTime,
+              })
+            }
+            // 优先返回 confirmed 交易
+            if (results.confirmed?.result?.trs?.length) {
+              const item = results.confirmed.result.trs[0]
+              return convertBioTransactionToTransaction(item.transaction, {
+                signature: item.signature,
+                height: item.height,
+                status: 'confirmed',
               })
             }
 
