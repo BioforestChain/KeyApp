@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { IconRefresh as RefreshCw, IconFilter as Filter } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { TransactionList } from '@/components/transaction/transaction-list';
-import { PendingTxList } from '@/components/transaction/pending-tx-list';
+import { TransactionItem } from '@/components/transaction/transaction-item';
+import { pendingTxToTransactionInfo } from '@/services/transaction/convert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChainProviderGate, useChainProvider } from '@/contexts';
-import { useCurrentWallet, useEnabledChains, useSelectedChain } from '@/stores';
+import { useCurrentWallet, useEnabledChains, useSelectedChain, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { cn } from '@/lib/utils';
 import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
@@ -31,9 +32,10 @@ interface HistoryContentProps {
   filter: TransactionFilter;
   setFilter: React.Dispatch<React.SetStateAction<TransactionFilter>>;
   walletId: string;
+  decimals: number;
 }
 
-function HistoryContent({ targetChain, address, filter, setFilter, walletId }: HistoryContentProps) {
+function HistoryContent({ targetChain, address, filter, setFilter, walletId, decimals }: HistoryContentProps) {
   const { navigate, goBack } = useNavigation();
   const enabledChains = useEnabledChains();
   const { t } = useTranslation(['transaction', 'common']);
@@ -187,11 +189,25 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId }: H
       <div className="flex-1 space-y-4 p-4">
         {/* Pending Transactions */}
         {pendingTransactions.length > 0 && (
-          <PendingTxList
-            transactions={pendingTransactions}
-            onRetry={retryPendingTx}
-            onDelete={deletePendingTx}
-          />
+          <div className="space-y-2">
+            <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wider px-1">
+              {t('pendingTx.title')}
+            </h3>
+            <div className="space-y-1">
+              {pendingTransactions.map((pendingTx) => {
+                const txInfo = pendingTxToTransactionInfo(pendingTx, decimals);
+                return (
+                  <TransactionItem
+                    key={pendingTx.id}
+                    transaction={txInfo}
+                    onClick={() => navigate({ to: `/pending-tx/${pendingTx.id}` })}
+                    onRetry={pendingTx.status === 'failed' ? () => retryPendingTx(pendingTx) : undefined}
+                    onDelete={() => deletePendingTx(pendingTx)}
+                  />
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Confirmed Transactions */}
@@ -215,6 +231,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
   const currentWallet = useCurrentWallet();
   const selectedChain = useSelectedChain();
   const { t } = useTranslation(['transaction', 'common']);
+  const chainConfigState = useChainConfigState();
 
   // 过滤器状态（内部管理）
   const [filter, setFilter] = useState<TransactionFilter>({
@@ -222,8 +239,12 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
     period: 'all',
   });
 
-  // 获取当前链地址
+  // 获取 chainConfig
   const targetChain = filter.chain === 'all' ? selectedChain : filter.chain;
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, targetChain ?? '')
+    : undefined;
+  // 获取当前链地址
   const currentChainAddress = currentWallet?.chainAddresses?.find(
     (ca) => ca.chain === targetChain
   );
@@ -259,6 +280,7 @@ export function TransactionHistoryPage({ initialChain }: TransactionHistoryPageP
         filter={filter}
         setFilter={setFilter}
         walletId={currentWallet.id}
+        decimals={chainConfig?.decimals ?? 8}
       />
     </ChainProviderGate>
   );
