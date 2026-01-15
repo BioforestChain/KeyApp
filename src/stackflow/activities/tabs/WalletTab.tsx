@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
 import { usePendingTransactions } from "@/hooks/use-pending-transactions";
-import { PendingTxList } from "@/components/transaction/pending-tx-list";
+import { TransactionItem } from "@/components/transaction/transaction-item";
+import { pendingTxToTransactionInfo } from "@/services/transaction/convert";
 import { ChainProviderGate, useChainProvider } from "@/contexts";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
@@ -115,7 +116,6 @@ function WalletTabContent({
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
-    clearAllFailed: clearAllFailedPendingTx,
   } = usePendingTransactions(currentWalletId ?? undefined, selectedChain);
 
   // 转换代币数据（包含原生资产）
@@ -248,13 +248,24 @@ function WalletTabContent({
 
       {/* Pending Transactions */}
       {pendingTransactions.length > 0 && (
-        <div className="px-4 pt-2">
-          <PendingTxList
-            transactions={pendingTransactions.slice(0, 3)}
-            onRetry={retryPendingTx}
-            onDelete={deletePendingTx}
-            onClearAllFailed={clearAllFailedPendingTx}
-          />
+        <div className="px-4 pt-2 space-y-2">
+          <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wider px-1">
+            {t("transaction:pendingTx.title")}
+          </h3>
+          <div className="space-y-1">
+            {pendingTransactions.slice(0, 3).map((pendingTx) => {
+              const txInfo = pendingTxToTransactionInfo(pendingTx);
+              return (
+                <TransactionItem
+                  key={pendingTx.id}
+                  transaction={txInfo}
+                  onClick={() => push("PendingTxDetailActivity", { txId: pendingTx.id })}
+                  onRetry={pendingTx.status === 'failed' ? () => retryPendingTx(pendingTx) : undefined}
+                  onDelete={() => deletePendingTx(pendingTx)}
+                />
+              );
+            })}
+          </div>
           {pendingTransactions.length > 3 && (
             <button
               onClick={() => push("HistoryActivity", { chain: selectedChain })}
