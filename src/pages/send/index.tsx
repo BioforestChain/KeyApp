@@ -147,11 +147,17 @@ function SendPageContent() {
     setAsset(asset);
   }, [chainConfig?.decimals, setAsset]);
 
-  // Sync initialAsset to useSend state when it changes (e.g., after async token loading)
+  // Sync initialAsset to useSend state only once (when first loading)
+  // Don't overwrite user's selection when tokens refresh
+  const hasInitializedAsset = useRef(false);
   useEffect(() => {
     if (!initialAsset) return;
-    setAsset(initialAsset);
-  }, [initialAsset, setAsset]);
+    // Only set asset if user hasn't made a selection yet
+    if (!hasInitializedAsset.current && !state.asset) {
+      setAsset(initialAsset);
+      hasInitializedAsset.current = true;
+    }
+  }, [initialAsset, setAsset, state.asset]);
 
   // Pre-fill from search params (scanner integration)
   useEffect(() => {
