@@ -4,7 +4,7 @@
  * 基于工厂模式的 React 集成
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { injectUseState } from './core'
 import type {
   KeyFetchInstance,
@@ -14,6 +14,24 @@ import type {
   UseKeyFetchResult,
   UseKeyFetchOptions,
 } from './types'
+
+/**
+ * 稳定化 params 对象，避免每次渲染产生新引用
+ * 使用 JSON.stringify 作为比较依据
+ */
+function useStableParams(params: FetchParams | undefined): FetchParams | undefined {
+  const paramsStringRef = useRef<string>('')
+  const stableParamsRef = useRef<FetchParams | undefined>(params)
+
+  const paramsString = JSON.stringify(params ?? {})
+
+  if (paramsString !== paramsStringRef.current) {
+    paramsStringRef.current = paramsString
+    stableParamsRef.current = params
+  }
+
+  return stableParamsRef.current
+}
 
 /**
  * 响应式数据获取 Hook
@@ -51,10 +69,16 @@ export function useKeyFetch<S extends AnyZodSchema>(
   const [isFetching, setIsFetching] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined)
 
-  const paramsRef = useRef(params)
-  paramsRef.current = params
+  // 稳定化 params，避免每次渲染产生新引用导致无限循环
+  const stableParams = useStableParams(params)
+  const paramsRef = useRef(stableParams)
+  paramsRef.current = stableParams
 
   const enabled = options?.enabled !== false
+
+  // 错误退避：连续错误时延迟重试
+  const errorCountRef = useRef(0)
+  const lastFetchTimeRef = useRef(0)
 
   const refetch = useCallback(async () => {
     if (!enabled) return
@@ -65,15 +89,21 @@ export function useKeyFetch<S extends AnyZodSchema>(
     try {
       const result = await kf.fetch(paramsRef.current ?? {}, { skipCache: true })
       setData(result)
+      errorCountRef.current = 0 // 成功时重置错误计数
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)))
+      errorCountRef.current++
     } finally {
       setIsFetching(false)
       setIsLoading(false)
     }
   }, [kf, enabled])
 
+  // 使用 stableParams 的字符串表示作为依赖
+  const paramsKey = useMemo(() => JSON.stringify(stableParams ?? {}), [stableParams])
+
   useEffect(() => {
+    console.log('[key-fetch] useEffect triggered:', kf.name, 'enabled:', enabled, 'paramsKey:', paramsKey)
     if (!enabled) {
       setData(undefined)
       setIsLoading(false)
@@ -82,39 +112,64 @@ export function useKeyFetch<S extends AnyZodSchema>(
       return
     }
 
+    // 防抖：如果距离上次请求太近，跳过
+    const now = Date.now()
+    const timeSinceLastFetch = now - lastFetchTimeRef.current
+    if (timeSinceLastFetch < 100 && errorCountRef.current > 0) {
+      // 在错误状态下，短时间内不重复请求
+      return
+    }
+    lastFetchTimeRef.current = now
+
+    // 捕获当前 params（避免闭包问题）
+    const currentParams = paramsRef.current ?? {}
+
     setIsLoading(true)
     setIsFetching(true)
     setError(undefined)
 
+    let isCancelled = false
+
     // 初始获取数据（带错误处理）
-    kf.fetch(params ?? {})
+    kf.fetch(currentParams)
       .then((result) => {
+        if (isCancelled) return
+        console.log('[key-fetch] fetch success:', kf.name, result)
         setData(result)
         setIsLoading(false)
         setIsFetching(false)
+        errorCountRef.current = 0
       })
       .catch((err) => {
+        if (isCancelled) return
+        console.error('[key-fetch] fetch error:', kf.name, err)
         setError(err instanceof Error ? err : new Error(String(err)))
         setIsLoading(false)
         setIsFetching(false)
+        errorCountRef.current++
       })
 
     // 订阅后续更新（带错误处理）
-    const unsubscribe = kf.subscribe(params ?? {}, (newData, _event) => {
+    const unsubscribe = kf.subscribe(currentParams, (newData, _event) => {
+      if (isCancelled) return
       try {
         setData(newData)
         setIsLoading(false)
         setIsFetching(false)
         setError(undefined)
+        errorCountRef.current = 0
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)))
       }
     })
 
     return () => {
+      isCancelled = true
       unsubscribe()
     }
-  }, [kf, enabled, JSON.stringify(params)])
+    // 只依赖 paramsKey（string），避免对象引用变化导致重复执行
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kf, enabled, paramsKey])
 
   return { data, isLoading, isFetching, error, refetch }
 }
@@ -144,15 +199,23 @@ export function useKeyFetchSubscribe<S extends AnyZodSchema>(
   const callbackRef = useRef(callback)
   callbackRef.current = callback
 
+  // 稳定化 params
+  const stableParams = useStableParams(params)
+  const paramsRef = useRef(stableParams)
+  paramsRef.current = stableParams
+  const paramsKey = useMemo(() => JSON.stringify(stableParams ?? {}), [stableParams])
+
   useEffect(() => {
-    const unsubscribe = kf.subscribe(params ?? {}, (data, event) => {
+    const currentParams = paramsRef.current ?? {}
+    const unsubscribe = kf.subscribe(currentParams, (data, event) => {
       callbackRef.current(data, event)
     })
 
     return () => {
       unsubscribe()
     }
-  }, [kf, JSON.stringify(params)])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kf, paramsKey])
 }
 
 // ==================== 注入 useState 实现 ====================
@@ -171,4 +234,3 @@ function useStateImpl<S extends AnyZodSchema>(
 
 // 注入到 KeyFetchInstance.prototype
 injectUseState(useStateImpl)
-

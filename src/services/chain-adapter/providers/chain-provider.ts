@@ -31,6 +31,13 @@ export class ChainProvider {
   readonly chainId: string
   private readonly providers: ApiProvider[]
 
+  // 缓存 - 避免每次访问 getter 时创建新实例（会导致 React 无限重渲染）
+  private _nativeBalance?: KeyFetchInstance<typeof BalanceOutputSchema>
+  private _tokenBalances?: KeyFetchInstance<typeof TokenBalancesOutputSchema>
+  private _transactionHistory?: KeyFetchInstance<typeof TransactionsOutputSchema>
+  private _transaction?: KeyFetchInstance<typeof TransactionOutputSchema>
+  private _blockHeight?: KeyFetchInstance<typeof BlockHeightOutputSchema>
+
   constructor(chainId: string, providers: ApiProvider[]) {
     this.chainId = chainId
     this.providers = providers
@@ -158,53 +165,68 @@ export class ChainProvider {
      * 使用 merge() 实现 auto-fallback，返回非可空类型
      */
   get nativeBalance(): KeyFetchInstance<typeof BalanceOutputSchema> {
-    const sources = this.providers
-      .map(p => p.nativeBalance)
-      .filter((f): f is NonNullable<typeof f> => f !== undefined)
-    return merge({
-      name: `${this.chainId}.nativeBalance`,
-      sources,
-    })
+    if (!this._nativeBalance) {
+      const sources = this.providers
+        .map(p => p.nativeBalance)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._nativeBalance = merge({
+        name: `${this.chainId}.nativeBalance`,
+        sources,
+      })
+    }
+    return this._nativeBalance
   }
 
   get tokenBalances(): KeyFetchInstance<typeof TokenBalancesOutputSchema> {
-    const sources = this.providers
-      .map(p => p.tokenBalances)
-      .filter((f): f is NonNullable<typeof f> => f !== undefined)
-    return merge({
-      name: `${this.chainId}.tokenBalances`,
-      sources,
-    })
+    if (!this._tokenBalances) {
+      const sources = this.providers
+        .map(p => p.tokenBalances)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._tokenBalances = merge({
+        name: `${this.chainId}.tokenBalances`,
+        sources,
+      })
+    }
+    return this._tokenBalances
   }
 
   get transactionHistory(): KeyFetchInstance<typeof TransactionsOutputSchema> {
-    const sources = this.providers
-      .map(p => p.transactionHistory)
-      .filter((f): f is NonNullable<typeof f> => f !== undefined)
-    return merge({
-      name: `${this.chainId}.transactionHistory`,
-      sources,
-    })
+    if (!this._transactionHistory) {
+      const sources = this.providers
+        .map(p => p.transactionHistory)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._transactionHistory = merge({
+        name: `${this.chainId}.transactionHistory`,
+        sources,
+      })
+    }
+    return this._transactionHistory
   }
 
   get transaction(): KeyFetchInstance<typeof TransactionOutputSchema> {
-    const sources = this.providers
-      .map(p => p.transaction)
-      .filter((f): f is NonNullable<typeof f> => f !== undefined)
-    return merge({
-      name: `${this.chainId}.transaction`,
-      sources,
-    })
+    if (!this._transaction) {
+      const sources = this.providers
+        .map(p => p.transaction)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._transaction = merge({
+        name: `${this.chainId}.transaction`,
+        sources,
+      })
+    }
+    return this._transaction
   }
 
   get blockHeight(): KeyFetchInstance<typeof BlockHeightOutputSchema> {
-    const sources = this.providers
-      .map(p => p.blockHeight)
-      .filter((f): f is NonNullable<typeof f> => f !== undefined)
-    return merge({
-      name: `${this.chainId}.blockHeight`,
-      sources,
-    })
+    if (!this._blockHeight) {
+      const sources = this.providers
+        .map(p => p.blockHeight)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._blockHeight = merge({
+        name: `${this.chainId}.blockHeight`,
+        sources,
+      })
+    }
+    return this._blockHeight
   }
 
   // 错误处理：

@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, pathParams } from '@biochain/key-fetch'
+import { keyFetch, ttl, derive, transform, pathParams, postBody } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import {
@@ -36,6 +36,7 @@ const TronNowBlockSchema = z.object({
 
 const TronTxSchema = z.object({
   txID: z.string(),
+  block_timestamp: z.number().optional(),
   raw_data: z.object({
     contract: z.array(z.object({
       parameter: z.object({
@@ -69,6 +70,61 @@ const AddressParamsSchema = z.object({
 })
 
 // ==================== 工具函数 ====================
+
+// Base58 字符表
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
+/**
+ * Base58 解码
+ */
+function base58Decode(input: string): Uint8Array {
+  const bytes = [0]
+  for (const char of input) {
+    const idx = BASE58_ALPHABET.indexOf(char)
+    if (idx === -1) throw new Error(`Invalid Base58 character: ${char}`)
+
+    let carry = idx
+    for (let i = 0; i < bytes.length; i++) {
+      carry += bytes[i] * 58
+      bytes[i] = carry & 0xff
+      carry >>= 8
+    }
+    while (carry > 0) {
+      bytes.push(carry & 0xff)
+      carry >>= 8
+    }
+  }
+
+  // 处理前导 '1'
+  for (const char of input) {
+    if (char !== '1') break
+    bytes.push(0)
+  }
+
+  return new Uint8Array(bytes.reverse())
+}
+
+/**
+ * 将 Tron Base58Check 地址转换为 Hex 格式
+ * T... -> 41... (不带 0x 前缀)
+ */
+function tronAddressToHex(address: string): string {
+  if (address.startsWith('41') && address.length === 42) {
+    return address // 已经是 hex 格式
+  }
+  if (!address.startsWith('T')) {
+    throw new Error(`Invalid Tron address: ${address}`)
+  }
+
+  // Base58Check 解码后取前 21 字节（去掉 4 字节校验和）
+  const decoded = base58Decode(address)
+  const addressBytes = decoded.slice(0, 21)
+
+  // 转为 hex
+  return Array.from(addressBytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
 
 function getDirection(from: string, to: string, address: string): Direction {
   const fromLower = from.toLowerCase()
@@ -121,9 +177,17 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     this.#accountApi = keyFetch.create({
       name: `tron-rpc.${chainId}.accountApi`,
       schema: TronAccountSchema,
+      paramsSchema: AddressParamsSchema,
       url: `${baseUrl}/wallet/getaccount`,
       method: 'POST',
-      use: [ttl(60_000)],
+      use: [
+        postBody({
+          transform: (params) => ({
+            address: tronAddressToHex(params.address as string),
+          }),
+        }),
+        ttl(60_000),
+      ],
     })
 
     this.#blockApi = keyFetch.create({
@@ -191,7 +255,7 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
                 hash: tx.txID,
                 from,
                 to,
-                timestamp: tx.raw_data?.timestamp ?? 0,
+                timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
                 status,
                 action: 'transfer' as const,
                 direction,
