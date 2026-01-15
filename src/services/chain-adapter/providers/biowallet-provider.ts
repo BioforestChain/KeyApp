@@ -561,7 +561,6 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     })
 
     // transaction: 使用 combine 合并 pendingTr 和 singleTx 的结果
-    // params 结构: { pending: { senderId }, confirmed: { txHash } }
     this.transaction = combine({
       name: `biowallet.${chainId}.transaction`,
       schema: TransactionOutputSchema,
@@ -569,6 +568,16 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
         pending: bioPendingTr,
         confirmed: singleTxApi,
       },
+      // 自定义 paramsSchema：外部只需要传 txHash 和 senderId
+      paramsSchema: z.object({
+        txHash: z.string(),
+        senderId: z.string().optional(),
+      }),
+      // 将外部 params 转换为各个 source 需要的格式
+      transformParams: (params) => ({
+        pending: { senderId: params.senderId ?? '' },
+        confirmed: { txHash: params.txHash },
+      }),
       use: [
         transform({
           transform: (results: {
