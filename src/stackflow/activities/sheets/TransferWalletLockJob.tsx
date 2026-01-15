@@ -23,8 +23,7 @@ import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 import { TxStatusDisplay, type TxStatus } from "@/components/transaction/tx-status-display";
 import { useClipboard, useToast } from "@/services";
 import { useSelectedChain, useChainConfigState, useCurrentWallet, chainConfigSelectors } from "@/stores";
-import { getPendingTxFetcher, pendingTxManager } from "@/services/transaction";
-import type { PendingTx } from "@/services/transaction/pending-tx";
+import { pendingTxManager } from "@/services/transaction";
 import { getChainProvider } from "@/services/chain-adapter/providers/chain-provider";
 
 // 回调类型
@@ -86,48 +85,30 @@ function TransferWalletLockJobContent() {
     initialized.current = true;
   }
 
-  // 使用 key-fetch 订阅 pending tx 状态变化（依赖 blockHeight 自动刷新）
-  const fetcher = walletId && selectedChain ? getPendingTxFetcher(selectedChain, walletId) : null;
-
+  // 订阅交易状态变化
   useEffect(() => {
-    if (!pendingTxId || !fetcher || !txHash) return;
+    if (!txHash || !selectedChain || !currentWallet?.address) return;
 
-    const unsubscribe = fetcher.subscribe({}, (txList) => {
-      const tx = (txList as PendingTx[])?.find(t => t.id === pendingTxId);
+    const chainProvider = getChainProvider(selectedChain);
+    if (!chainProvider?.transaction) return;
 
-      if (tx) {
-        // 找到 pending tx，更新状态
-        if (tx.status === 'confirmed') {
+    const unsubscribe = chainProvider.transaction.subscribe(
+      { txHash, senderId: currentWallet.address },
+      (transaction) => {
+        if (!transaction) return;
+
+        if (transaction.status === 'confirmed') {
           setTxStatus('confirmed');
-        } else if (tx.status === 'failed') {
+        } else if (transaction.status === 'failed') {
           setTxStatus('failed');
-          setError(tx.errorMessage);
-        } else if (tx.status === 'broadcasted') {
+        } else if (transaction.status === 'pending') {
           setTxStatus('broadcasted');
-          if (tx.txHash) {
-            setTxHash(tx.txHash);
-          }
-        }
-      } else if (txHash) {
-        // 找不到 pending tx，可能已经确认并从队列中移除
-        // 查询 transaction API 确认状态
-        const chainProvider = getChainProvider(selectedChain);
-        if (chainProvider?.transaction) {
-          chainProvider.transaction.fetch({ txHash, senderId: currentWallet?.address })
-            .then((transaction) => {
-              if (transaction?.status === 'confirmed') {
-                setTxStatus('confirmed');
-              }
-            })
-            .catch(() => {
-              // 查询失败，保持当前状态
-            });
         }
       }
-    });
+    );
 
     return unsubscribe;
-  }, [pendingTxId, fetcher, txHash, selectedChain, currentWallet?.address]);
+  }, [txHash, selectedChain, currentWallet?.address]);
 
   // 上链成功后 5 秒倒计时自动关闭
   useEffect(() => {
