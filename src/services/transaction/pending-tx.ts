@@ -474,10 +474,8 @@ export function getPendingTxFetcher(chainId: string, walletId: string) {
                   // 检查是否已上链
                   const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash })
                   if (txInfo?.status === 'confirmed') {
-                    await pendingTxService.updateStatus({
-                      id: tx.id,
-                      status: 'confirmed',
-                    })
+                    // 直接删除已确认的交易
+                    await pendingTxService.delete({ id: tx.id })
                   }
                 } catch (e) {
                   console.error('检查pending交易状态失败', e)
