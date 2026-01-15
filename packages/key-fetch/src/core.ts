@@ -328,9 +328,10 @@ let useStateImpl: (<S extends AnyZodSchema>(
  */
 export function injectUseState(impl: typeof useStateImpl): void {
   useStateImpl = impl
-    // 使用 any 绕过类型检查，因为注入是内部实现细节
-    ; (KeyFetchInstanceImpl.prototype as any).useState = function (
-      params?: any,
+    // 使用 unknown 绕过类型检查，因为注入是内部实现细节
+    ; (KeyFetchInstanceImpl.prototype as unknown as Record<string, unknown>).useState = function (
+      this: KeyFetchInstance<AnyZodSchema>,
+      params?: FetchParams,
       options?: { enabled?: boolean }
     ) {
       if (!useStateImpl) {

@@ -5,6 +5,7 @@
  */
 
 import type { z } from 'zod'
+import type superjsonDefault from 'superjson'
 
 // ==================== Schema Types ====================
 
@@ -69,7 +70,7 @@ export interface MiddlewareContext<P extends FetchParams = FetchParams> {
   // ==================== SuperJSON 工具 (核心标准) ====================
 
   /** SuperJSON 库实例（支持 BigInt、Date 等特殊类型的序列化） */
-  superjson: typeof import('superjson').default
+  superjson: typeof superjsonDefault
   /** 创建包含序列化数据的 Response 对象（自动添加 X-Superjson: true 头） */
   createResponse: <T>(data: T, init?: ResponseInit) => Response
   /** 创建包含序列化数据的 Request 对象（自动添加 X-Superjson: true 头） */

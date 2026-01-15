@@ -37,7 +37,7 @@ import { keyFetch } from './index'
 /** Combine 选项 */
 export interface CombineOptions<
     S extends AnyZodSchema,
-    Sources extends Record<string, KeyFetchInstance<any, any>>,
+    Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>,
     P extends AnyZodSchema = z.ZodType<InferCombinedParams<Sources>>
 > {
     /** 合并后的名称 */
@@ -55,8 +55,8 @@ export interface CombineOptions<
 }
 
 /** 从 Sources 推导出组合的 params 类型 */
-type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<any, any>>> = {
-    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<any, infer P>
+type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>> = {
+    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<AnyZodSchema, infer P>
     ? (P extends AnyZodSchema ? z.infer<P> : never)
     : never
 }
@@ -71,7 +71,7 @@ type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<any, an
  */
 export function combine<
     S extends AnyZodSchema,
-    Sources extends Record<string, KeyFetchInstance<any, any>>,
+    Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>,
     P extends AnyZodSchema = z.ZodType<InferCombinedParams<Sources>>
 >(
     options: CombineOptions<S, Sources, P>
@@ -89,8 +89,8 @@ export function combine<
         onFetch: async (_request, _next, context) => {
             // 转换 params：如果有 transformParams，使用它；否则直接使用 context.params
             const sourceParams = transformParams
-                ? transformParams(context.params as any)
-                : (context.params as any)
+                ? transformParams(context.params as unknown as z.infer<P>)
+                : (context.params as unknown as InferCombinedParams<Sources>)
 
             // 并行调用所有 sources
             const results = await Promise.all(
@@ -114,8 +114,8 @@ export function combine<
         onSubscribe: (context) => {
             // 转换 params（与 onFetch 保持一致）
             const sourceParams = transformParams
-                ? transformParams(context.params as any)
-                : (context.params as any)
+                ? transformParams(context.params as unknown as z.infer<P>)
+                : (context.params as unknown as InferCombinedParams<Sources>)
 
             // 订阅所有 sources，任何一个更新都触发 refetch
             const unsubscribes = sourceKeys.map((key) => {
@@ -147,7 +147,7 @@ export function combine<
             }
         }
         finalParamsSchema = Object.keys(combinedParamsShape).length > 0
-            ? z.object(combinedParamsShape as any)
+            ? z.object(combinedParamsShape as z.ZodRawShape)
             : undefined
     }
 

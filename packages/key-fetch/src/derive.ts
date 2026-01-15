@@ -32,6 +32,7 @@ import type {
     KeyFetchInstance,
     AnyZodSchema,
     FetchPlugin,
+    InferOutput,
 } from './types'
 import { keyFetch } from './index'
 
@@ -75,14 +76,14 @@ export function derive<
         name: 'derive',
         onFetch: async (_request, _next, context) => {
             // 调用 source 获取数据
-            const sourceData = await source.fetch(context.params as any)
+            const sourceData = await source.fetch(context.params as unknown as InferOutput<P>)
 
             // 返回 Response，让后续插件（如 transform）处理
             return context.createResponse(sourceData)
         },
         onSubscribe: (context) => {
             // 订阅 source，source 更新时触发 refetch
-            return source.subscribe(context.params as any, () => {
+            return source.subscribe(context.params as unknown as InferOutput<P>, () => {
                 context.refetch().catch((error) => {
                     // Error is already logged by core.ts, just need to prevent unhandled rejection
                     console.error(`[key-fetch] Error in derive refetch for ${name}:`, error)
