@@ -20,7 +20,7 @@ import { Amount } from '@/types/amount'
 import type { AssetInfo } from '@/types/asset'
 import { tokenBalancesToTokenInfoList, type TokenInfo } from '@/components/token'
 import { IconFlame } from '@tabler/icons-react'
-import { getChainProvider } from '@/services/chain-adapter/providers'
+import { ChainProviderGate, useChainProvider } from '@/contexts'
 import {
   useChainConfigState,
   chainConfigSelectors,
@@ -68,7 +68,7 @@ function assetToToken(asset: AssetInfo, chain: ChainType): TokenInfo {
   }
 }
 
-export function DestroyPage() {
+function DestroyPageContent() {
   const { t } = useTranslation(['transaction', 'common', 'security'])
   const { goBack: navGoBack } = useNavigation()
   const { push } = useFlow()
@@ -91,13 +91,18 @@ export function DestroyPage() {
     : null
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain
 
-  // 从 chainProvider 获取代币余额 (单一信源)
-  const chainProvider = getChainProvider(selectedChain)
-  const tokenBalancesResult = chainProvider?.tokenBalances?.useState?.({ address: currentChainAddress?.address ?? '' })
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
+
+  // 直接调用，不需要条件判断
+  const tokenBalancesState = chainProvider.tokenBalances.useState(
+    { address: currentChainAddress?.address ?? '' },
+    { enabled: !!currentChainAddress?.address }
+  );
   const tokens = useMemo(() => {
-    if (!tokenBalancesResult?.data) return []
-    return tokenBalancesToTokenInfoList(tokenBalancesResult.data, selectedChain)
-  }, [tokenBalancesResult?.data, selectedChain])
+    if (!tokenBalancesState?.data) return []
+    return tokenBalancesToTokenInfoList(tokenBalancesState.data, selectedChain)
+  }, [tokenBalancesState?.data, selectedChain])
 
   // Filter out main asset (cannot be destroyed)
   const destroyableTokens = useMemo(() => {
@@ -368,8 +373,8 @@ export function DestroyPage() {
           <GradientButton
             variant="mint"
             className="w-full"
-            data-testid="destroy-continue-button"
-            disabled={!canProceed || destroyableTokens.length === 0}
+            data-testid="destroy-confirm-button"
+            disabled={!canProceed}
             onClick={handleProceed}
           >
             <IconFlame className="-ml-4 mr-2 size-4" />
@@ -378,6 +383,30 @@ export function DestroyPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function DestroyPage() {
+  const { goBack } = useNavigation()
+  const selectedChain = useSelectedChain()
+  const { t } = useTranslation(['transaction', 'common'])
+
+  return (
+    <ChainProviderGate
+      chainId={selectedChain}
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <PageHeader title={t('destroyPage.title', '销毁资产')} onBack={goBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <DestroyPageContent />
+    </ChainProviderGate>
   )
 }
 

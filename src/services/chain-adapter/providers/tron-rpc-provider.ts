@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform } from '@biochain/key-fetch'
+import { keyFetch, ttl, derive, transform, pathParams } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction } from './types'
 import {
@@ -62,6 +62,11 @@ const TronTxListSchema = z.object({
 type TronAccount = z.infer<typeof TronAccountSchema>
 type TronNowBlock = z.infer<typeof TronNowBlockSchema>
 type TronTxList = z.infer<typeof TronTxListSchema>
+
+// Params Schema for validation
+const AddressParamsSchema = z.object({
+  address: z.string().min(1, 'Address is required'),
+})
 
 // ==================== 工具函数 ====================
 
@@ -132,8 +137,9 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     this.#txListApi = keyFetch.create({
       name: `tron-rpc.${chainId}.txListApi`,
       schema: TronTxListSchema,
+      paramsSchema: AddressParamsSchema,
       url: `${baseUrl}/v1/accounts/:address/transactions`,
-      use: [ttl(5 * 60_000)],
+      use: [pathParams(), ttl(5 * 60_000)],
     })
 
     // 派生视图

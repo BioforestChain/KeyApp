@@ -1,3 +1,9 @@
+/**
+ * Transaction Detail Page
+ * 
+ * 使用 ChainProviderGate 包裹确保 ChainProvider 存在
+ */
+
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams } from '@/stackflow';
@@ -12,7 +18,8 @@ import { AmountDisplay, TimeDisplay, CopyableText } from '@/components/common';
 import { TransactionStatus as TransactionStatusBadge } from '@/components/transaction/transaction-status';
 import { FeeDisplay } from '@/components/transaction/fee-display';
 import { SkeletonCard } from '@/components/common';
-import { getChainProvider, InvalidDataError, type Transaction } from '@/services/chain-adapter/providers';
+import { InvalidDataError, type Transaction } from '@/services/chain-adapter/providers';
+import { ChainProviderGate, useChainProvider } from '@/contexts';
 import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { cn } from '@/lib/utils';
 import { clipboardService } from '@/services/clipboard';
@@ -93,8 +100,6 @@ function getAssetAmount(asset: NonNullable<Transaction['assets']>[0] | undefined
   return { value: asset.value, decimals: asset.decimals, symbol: asset.symbol }
 }
 
-
-
 function parseTxId(id: string | undefined): { chainId: string; hash: string } | null {
   if (!id) return null;
   const [chainId, hash] = id.split('--');
@@ -102,28 +107,26 @@ function parseTxId(id: string | undefined): { chainId: string; hash: string } | 
   return { chainId, hash };
 }
 
-export function TransactionDetailPage() {
+// ==================== 内部组件：使用 ChainProvider 获取交易数据 ====================
+
+interface TransactionDetailContentProps {
+  hash: string
+  chainId: string
+  onBack: () => void
+}
+
+function TransactionDetailContent({ hash, chainId, onBack }: TransactionDetailContentProps) {
   const { t } = useTranslation(['transaction', 'common']);
-  const { goBack } = useNavigation();
-  const { txId } = useActivityParams<{ txId: string }>();
-  const currentWallet = useCurrentWallet();
   const chainConfigState = useChainConfigState();
 
-  // 解析 txId 获取 chainId 和 hash
-  const parsedTxId = useMemo(() => parseTxId(txId), [txId]);
-  const chainId = parsedTxId?.chainId;
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
 
-  // 获取 ChainProvider 用于查询交易详情
-  const chainProvider = useMemo(
-    () => (chainId ? getChainProvider(chainId) : null),
-    [chainId]
+  // 现在可以直接调用，不需要条件判断
+  const { data: rawTransaction, isLoading, error } = chainProvider.transaction.useState(
+    { hash },
+    { enabled: !!hash }
   );
-
-  // 使用 ChainProvider.transaction.useState() 获取交易详情
-  const { data: rawTransaction, isLoading, error } = chainProvider?.transaction.useState(
-    { hash: parsedTxId?.hash ?? '' },
-    { enabled: !!parsedTxId?.hash }
-  ) ?? {}
 
   // 转换为页面使用的格式
   const transaction = useMemo(
@@ -131,21 +134,19 @@ export function TransactionDetailPage() {
     [rawTransaction, chainId]
   )
 
-  const isPageLoading = isLoading
   // 获取链配置（用于构建浏览器 URL）
   const chainConfig = useMemo(() => {
-    const cid = transaction?.chain ?? parsedTxId?.chainId;
+    const cid = transaction?.chain ?? chainId;
     if (!cid) return null;
     return chainConfigSelectors.getChainById(chainConfigState, cid);
-  }, [chainConfigState, parsedTxId?.chainId, transaction?.chain]);
+  }, [chainConfigState, chainId, transaction?.chain]);
 
   // 构建交易浏览器 URL（没有配置则返回 null）
   const explorerTxUrl = useMemo(() => {
     const queryTx = chainConfig?.explorer?.queryTx;
-    const hash = transaction?.hash ?? parsedTxId?.hash;
     if (!queryTx || !hash) return null;
     return queryTx.replace(':signature', hash);
-  }, [chainConfig?.explorer?.queryTx, parsedTxId?.hash, transaction?.hash]);
+  }, [chainConfig?.explorer?.queryTx, hash]);
 
   // 在浏览器中打开
   const handleOpenInExplorer = useCallback(() => {
@@ -163,28 +164,11 @@ export function TransactionDetailPage() {
     setTimeout(() => setShared(false), 2000);
   }, [explorerTxUrl]);
 
-  // 返回
-  const handleBack = useCallback(() => {
-    goBack();
-  }, [goBack]);
-
-  // 无钱包
-  if (!currentWallet) {
-    return (
-      <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={t('detail.title')} onBack={handleBack} />
-        <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground">{t('history.noWallet')}</p>
-        </div>
-      </div>
-    );
-  }
-
   // 加载中
-  if (isPageLoading) {
+  if (isLoading) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <PageHeader title={t('detail.title')} onBack={onBack} />
         <div className="flex-1 space-y-4 p-4">
           <SkeletonCard className="h-48" />
           <SkeletonCard className="h-64" />
@@ -195,21 +179,19 @@ export function TransactionDetailPage() {
   }
 
   if (error instanceof InvalidDataError) {
-    const fallbackHash = parsedTxId?.hash;
-
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <PageHeader title={t('detail.title')} onBack={onBack} />
         <div className="flex-1 space-y-4 p-4">
           <div className="bg-card flex items-center justify-center rounded-xl p-6 shadow-sm">
             <p className="text-muted-foreground">{t('detail.invalidData')}</p>
           </div>
 
-          {fallbackHash && (
+          {hash && (
             <div className="bg-card space-y-3 rounded-xl p-4 shadow-sm">
               <h3 className="text-muted-foreground text-sm font-medium">{t('detail.hash')}</h3>
               <CopyableText
-                text={fallbackHash}
+                text={hash}
                 className="text-muted-foreground text-xs"
               />
 
@@ -262,7 +244,7 @@ export function TransactionDetailPage() {
   if (!transaction) {
     return (
       <div className="bg-muted/30 flex min-h-screen flex-col">
-        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <PageHeader title={t('detail.title')} onBack={onBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">{t('detail.notFound')}</p>
         </div>
@@ -294,7 +276,7 @@ export function TransactionDetailPage() {
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
-      <PageHeader title={t('detail.title')} onBack={handleBack} />
+      <PageHeader title={t('detail.title')} onBack={onBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {/* 状态头 */}
@@ -564,5 +546,66 @@ export function TransactionDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function TransactionDetailPage() {
+  const { t } = useTranslation(['transaction', 'common']);
+  const { goBack } = useNavigation();
+  const { txId } = useActivityParams<{ txId: string }>();
+  const currentWallet = useCurrentWallet();
+
+  // 解析 txId 获取 chainId 和 hash
+  const parsedTxId = useMemo(() => parseTxId(txId), [txId]);
+
+  const handleBack = useCallback(() => {
+    goBack();
+  }, [goBack]);
+
+  // 无钱包
+  if (!currentWallet) {
+    return (
+      <div className="bg-muted/30 flex min-h-screen flex-col">
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground">{t('history.noWallet')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 无效的 txId
+  if (!parsedTxId) {
+    return (
+      <div className="bg-muted/30 flex min-h-screen flex-col">
+        <PageHeader title={t('detail.title')} onBack={handleBack} />
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground">{t('detail.notFound')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 使用 ChainProviderGate 包裹内容
+  return (
+    <ChainProviderGate
+      chainId={parsedTxId.chainId}
+      fallback={
+        <div className="bg-muted/30 flex min-h-screen flex-col">
+          <PageHeader title={t('detail.title')} onBack={handleBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <TransactionDetailContent
+        hash={parsedTxId.hash}
+        chainId={parsedTxId.chainId}
+        onBack={handleBack}
+      />
+    </ChainProviderGate>
   );
 }

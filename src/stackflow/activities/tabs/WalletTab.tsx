@@ -8,9 +8,9 @@ import { MigrationRequiredView } from "@/components/common/migration-required-vi
 import { Button } from "@/components/ui/button";
 import { useWalletTheme } from "@/hooks/useWalletTheme";
 import { useClipboard, useToast, useHaptics } from "@/services";
-import { getChainProvider } from "@/services/chain-adapter/providers";
 import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { PendingTxList } from "@/components/transaction/pending-tx-list";
+import { ChainProviderGate, useChainProvider } from "@/contexts";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
   IconPlus,
@@ -50,78 +50,65 @@ const CHAIN_NAMES: Record<string, string> = {
   malibu: "Malibu",
 };
 
-export function WalletTab() {
+// ==================== 内部内容组件：使用 useChainProvider 获取确保非空的 provider ====================
+
+interface WalletTabContentProps {
+  address: string;
+  selectedChain: string;
+  selectedChainName: string;
+  mainAssetSymbol: string | undefined;
+  wallets: ReturnType<typeof useWallets>;
+  currentWalletId: string | null;
+  chainPreferences: ReturnType<typeof useChainPreferences>;
+  onWalletChange: (walletId: string) => void;
+  onCopyAddress: (address: string) => void;
+  onOpenChainSelector: (walletId: string) => void;
+  onOpenSettings: (walletId: string) => void;
+  onOpenWalletList: () => void;
+  onAddWallet: () => void;
+  onOpenAddressBalance: () => void;
+  onOpenAddressTransactions: () => void;
+}
+
+function WalletTabContent({
+  address,
+  selectedChain,
+  selectedChainName,
+  mainAssetSymbol,
+  wallets,
+  currentWalletId,
+  chainPreferences,
+  onWalletChange,
+  onCopyAddress,
+  onOpenChainSelector,
+  onOpenSettings,
+  onOpenWalletList,
+  onAddWallet,
+  onOpenAddressBalance,
+  onOpenAddressTransactions,
+}: WalletTabContentProps) {
   const { push } = useFlow();
-  const clipboard = useClipboard();
-  const toast = useToast();
   const haptics = useHaptics();
   const { t } = useTranslation(["home", "wallet", "common", "transaction"]);
 
-  const migrationRequired = useChainConfigMigrationRequired();
-  const isInitialized = useWalletInitialized();
-  const hasWallet = useHasWallet();
-  const wallets = useWallets();
-  const currentWallet = useCurrentWallet();
-  const currentWalletId = currentWallet?.id ?? null;
-  const selectedChain = useSelectedChain();
-  const chainPreferences = useChainPreferences();
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
-  const chainConfigState = useChainConfigState();
-  const chainConfig = chainConfigState.snapshot
-    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
-    : null;
-  const mainAssetSymbol = chainConfig?.symbol;
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
 
-  // 初始化钱包主题
-  useWalletTheme();
-
-  // 获取当前链地址
-  const currentChainAddress = currentWallet?.chainAddresses?.find(
-    (ca) => ca.chain === selectedChain
-  );
-  const address = currentChainAddress?.address;
-
-  // 获取 ChainProvider 的响应式 fetchers
-  const chainProvider = useMemo(
-    () => (selectedChain ? getChainProvider(selectedChain) : null),
-    [selectedChain]
+  // 现在可以直接调用，不需要条件判断
+  const { data: balanceResult, isFetching: isRefreshing } = chainProvider.nativeBalance.useState(
+    { address },
+    { enabled: !!address }
   );
 
-  // 余额查询（使用 fetcher.useState()）
-  const { data: balanceResult, isFetching: isRefreshing } = chainProvider?.nativeBalance.useState(
-    { address: address ?? "" },
+  const { data: tokensResult } = chainProvider.tokenBalances.useState(
+    { address },
     { enabled: !!address }
-  ) ?? {}
+  );
 
-  // 代币余额列表（使用 fetcher.useState()）
-  const { data: tokensResult } = chainProvider?.tokenBalances.useState(
-    { address: address ?? "" },
+  const { data: txResult, isLoading: txLoading } = chainProvider.transactionHistory.useState(
+    { address, limit: 50 },
     { enabled: !!address }
-  ) ?? {}
-
-  // 交易历史（使用 fetcher.useState()）
-  const { data: txResult, isLoading: txLoading } = chainProvider?.transactionHistory.useState(
-    { address: address ?? "", limit: 50 },
-    { enabled: !!address }
-  ) ?? {}
-
-  // Note: Support checks via NoSupportError are available via balanceError/txError if needed
-
-  // 转换代币数据（从 tokenBalances 使用 keyFetch 获取）
-  const tokens = useMemo(() => tokensResult ?? [], [tokensResult]);
-
-  // 转换余额数据格式
-  const balanceData = useMemo(() => ({
-    tokens: tokens,
-    supported: !!balanceResult || tokens.length > 0,
-    fallbackReason: !chainProvider?.nativeBalance ? "No balance provider" : undefined,
-  }), [balanceResult, chainProvider?.nativeBalance, tokens]);
-
-  // 转换交易历史格式（使用适配器将 API Transaction 转换为 UI TransactionInfo）
-  const transactions = useMemo(() => {
-    if (!txResult) return [];
-    return toTransactionInfoList(txResult, selectedChain);
-  }, [txResult, selectedChain]);
+  );
 
   // Pending Transactions
   const {
@@ -129,62 +116,23 @@ export function WalletTab() {
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
     clearAllFailed: clearAllFailedPendingTx,
-  } = usePendingTransactions(currentWallet?.id);
+  } = usePendingTransactions(currentWalletId ?? undefined);
 
-  // 复制地址
-  const handleCopyAddress = useCallback(
-    async (address: string) => {
-      await clipboard.write({ text: address });
-      await haptics.impact("light");
-      toast.show(t("home:wallet.addressCopied"));
-    },
-    [clipboard, haptics, toast, t]
-  );
+  // 转换代币数据
+  const tokens = useMemo(() => tokensResult ?? [], [tokensResult]);
 
-  // 打开链选择器（传入钱包ID以便选择后更新该钱包的偏好）
-  const handleOpenChainSelector = useCallback((walletId: string) => {
-    // 如果不是当前钱包，先切换到该钱包
-    if (walletId !== currentWalletId) {
-      walletActions.setCurrentWallet(walletId);
-    }
-    push("ChainSelectorJob", {});
-  }, [push, currentWalletId]);
+  // 转换余额数据格式
+  const balanceData = useMemo(() => ({
+    tokens: tokens,
+    supported: !!balanceResult || tokens.length > 0,
+    fallbackReason: undefined,
+  }), [balanceResult, tokens]);
 
-  // 打开钱包设置
-  const handleOpenWalletSettings = useCallback(
-    (walletId: string) => {
-      const wallet = wallets.find((w) => w.id === walletId);
-      if (wallet) {
-        push("WalletConfigActivity", { walletId, walletName: wallet.name });
-      }
-    },
-    [push, wallets]
-  );
-
-  // 切换钱包
-  const handleWalletChange = useCallback((walletId: string) => {
-    walletActions.setCurrentWallet(walletId);
-  }, []);
-
-  // 添加钱包
-  const handleAddWallet = useCallback(() => {
-    push("WalletAddJob", {});
-  }, [push]);
-
-  // 打开钱包列表
-  const handleOpenWalletList = useCallback(() => {
-    push("WalletListJob", {});
-  }, [push]);
-
-  // 地址余额查询
-  const handleOpenAddressBalance = useCallback(() => {
-    push("AddressBalanceActivity", {});
-  }, [push]);
-
-  // 地址交易查询
-  const handleOpenAddressTransactions = useCallback(() => {
-    push("AddressTransactionsActivity", {});
-  }, [push]);
+  // 转换交易历史格式
+  const transactions = useMemo(() => {
+    if (!txResult) return [];
+    return toTransactionInfoList(txResult, selectedChain);
+  }, [txResult, selectedChain]);
 
   // 交易点击
   const handleTransactionClick = useCallback(
@@ -221,23 +169,6 @@ export function WalletTab() {
     [haptics, push, t]
   );
 
-  // 需要迁移数据库
-  if (migrationRequired) {
-    return <MigrationRequiredView />;
-  }
-
-  if (!isInitialized) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (!hasWallet || !currentWallet) {
-    return <NoWalletView />;
-  }
-
   return (
     <div data-testid="wallet-home" className="flex h-full flex-col overflow-y-auto bg-background">
       {/* 钱包卡片轮播 */}
@@ -248,14 +179,14 @@ export function WalletTab() {
           selectedChain={selectedChain}
           chainPreferences={chainPreferences}
           chainNames={CHAIN_NAMES}
-          onWalletChange={handleWalletChange}
-          onCopyAddress={handleCopyAddress}
-          onOpenChainSelector={handleOpenChainSelector}
-          onOpenSettings={handleOpenWalletSettings}
-          onOpenWalletList={handleOpenWalletList}
-          onAddWallet={handleAddWallet}
-          onOpenAddressBalance={handleOpenAddressBalance}
-          onOpenAddressTransactions={handleOpenAddressTransactions}
+          onWalletChange={onWalletChange}
+          onCopyAddress={onCopyAddress}
+          onOpenChainSelector={onOpenChainSelector}
+          onOpenSettings={onOpenSettings}
+          onOpenWalletList={onOpenWalletList}
+          onAddWallet={onAddWallet}
+          onOpenAddressBalance={onOpenAddressBalance}
+          onOpenAddressTransactions={onOpenAddressTransactions}
         />
 
         {/* 快捷操作按钮 - 颜色跟随主题 */}
@@ -324,7 +255,7 @@ export function WalletTab() {
             chain: selectedChain,
             balance: token.amount.toFormatted(),
             decimals: token.decimals,
-            fiatValue: undefined, // Price data not in TokenBalance, handled separately
+            fiatValue: undefined,
             change24h: 0,
             icon: token.icon,
           }))}
@@ -358,6 +289,141 @@ export function WalletTab() {
       {/* TabBar spacer */}
       <div className="shrink-0 h-[var(--tab-bar-height)]" />
     </div>
+  );
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function WalletTab() {
+  const { push } = useFlow();
+  const clipboard = useClipboard();
+  const toast = useToast();
+  const haptics = useHaptics();
+  const { t } = useTranslation(["home", "wallet", "common", "transaction"]);
+
+  const migrationRequired = useChainConfigMigrationRequired();
+  const isInitialized = useWalletInitialized();
+  const hasWallet = useHasWallet();
+  const wallets = useWallets();
+  const currentWallet = useCurrentWallet();
+  const currentWalletId = currentWallet?.id ?? null;
+  const selectedChain = useSelectedChain();
+  const chainPreferences = useChainPreferences();
+  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const chainConfigState = useChainConfigState();
+  const chainConfig = chainConfigState.snapshot
+    ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
+    : null;
+  const mainAssetSymbol = chainConfig?.symbol;
+
+  // 初始化钱包主题
+  useWalletTheme();
+
+  // 获取当前链地址
+  const currentChainAddress = currentWallet?.chainAddresses?.find(
+    (ca) => ca.chain === selectedChain
+  );
+  const address = currentChainAddress?.address ?? "";
+
+  // 复制地址
+  const handleCopyAddress = useCallback(
+    async (addr: string) => {
+      await clipboard.write({ text: addr });
+      await haptics.impact("light");
+      toast.show(t("home:wallet.addressCopied"));
+    },
+    [clipboard, haptics, toast, t]
+  );
+
+  // 打开链选择器
+  const handleOpenChainSelector = useCallback((walletId: string) => {
+    if (walletId !== currentWalletId) {
+      walletActions.setCurrentWallet(walletId);
+    }
+    push("ChainSelectorJob", {});
+  }, [push, currentWalletId]);
+
+  // 打开钱包设置
+  const handleOpenWalletSettings = useCallback(
+    (walletId: string) => {
+      const wallet = wallets.find((w) => w.id === walletId);
+      if (wallet) {
+        push("WalletConfigActivity", { walletId, walletName: wallet.name });
+      }
+    },
+    [push, wallets]
+  );
+
+  // 切换钱包
+  const handleWalletChange = useCallback((walletId: string) => {
+    walletActions.setCurrentWallet(walletId);
+  }, []);
+
+  // 添加钱包
+  const handleAddWallet = useCallback(() => {
+    push("WalletAddJob", {});
+  }, [push]);
+
+  // 打开钱包列表
+  const handleOpenWalletList = useCallback(() => {
+    push("WalletListJob", {});
+  }, [push]);
+
+  // 地址余额查询
+  const handleOpenAddressBalance = useCallback(() => {
+    push("AddressBalanceActivity", {});
+  }, [push]);
+
+  // 地址交易查询
+  const handleOpenAddressTransactions = useCallback(() => {
+    push("AddressTransactionsActivity", {});
+  }, [push]);
+
+  // 需要迁移数据库
+  if (migrationRequired) {
+    return <MigrationRequiredView />;
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!hasWallet || !currentWallet) {
+    return <NoWalletView />;
+  }
+
+  // 使用 ChainProviderGate 包裹内容
+  return (
+    <ChainProviderGate
+      chainId={selectedChain}
+      fallback={
+        <div className="flex h-full items-center justify-center">
+          <p className="text-muted-foreground">Chain not supported</p>
+        </div>
+      }
+    >
+      <WalletTabContent
+        address={address}
+        selectedChain={selectedChain}
+        selectedChainName={selectedChainName}
+        mainAssetSymbol={mainAssetSymbol}
+        wallets={wallets}
+        currentWalletId={currentWalletId}
+        chainPreferences={chainPreferences}
+        onWalletChange={handleWalletChange}
+        onCopyAddress={handleCopyAddress}
+        onOpenChainSelector={handleOpenChainSelector}
+        onOpenSettings={handleOpenWalletSettings}
+        onOpenWalletList={handleOpenWalletList}
+        onAddWallet={handleAddWallet}
+        onOpenAddressBalance={handleOpenAddressBalance}
+        onOpenAddressTransactions={handleOpenAddressTransactions}
+      />
+    </ChainProviderGate>
   );
 }
 

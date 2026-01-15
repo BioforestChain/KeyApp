@@ -15,7 +15,7 @@ import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
 import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
-import { getChainProvider } from '@/services/chain-adapter/providers';
+import { ChainProviderGate, useChainProvider } from '@/contexts';
 import {
   useChainConfigState,
   chainConfigSelectors,
@@ -40,7 +40,9 @@ const CHAIN_NAMES: Record<ChainType, string> = {
   malibu: 'Malibu',
 };
 
-export function SendPage() {
+// ==================== 内部内容组件 ====================
+
+function SendPageContent() {
   const { t } = useTranslation(['transaction', 'common', 'security']);
   const { goBack: navGoBack } = useNavigation();
   const { push } = useFlow();
@@ -67,13 +69,18 @@ export function SendPage() {
     : null;
   const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
 
-  // 从 chainProvider 获取代币余额 (单一信源)
-  const chainProvider = getChainProvider(selectedChain);
-  const tokenBalances = chainProvider?.tokenBalances?.useState?.({ address: currentChainAddress?.address ?? '' });
+  // 使用 useChainProvider() 获取确保非空的 provider
+  const chainProvider = useChainProvider();
+
+  // 直接调用，不需要条件判断
+  const tokenBalancesState = chainProvider.tokenBalances.useState(
+    { address: currentChainAddress?.address ?? '' },
+    { enabled: !!currentChainAddress?.address }
+  );
   const tokens = useMemo(() => {
-    if (!tokenBalances?.data) return [];
-    return tokenBalancesToTokenInfoList(tokenBalances.data, selectedChain);
-  }, [tokenBalances?.data, selectedChain]);
+    if (!tokenBalancesState?.data) return [];
+    return tokenBalancesToTokenInfoList(tokenBalancesState.data, selectedChain);
+  }, [tokenBalancesState?.data, selectedChain]);
 
   // Find initial asset from params or use default
   const initialAsset = useMemo(() => {
@@ -368,5 +375,29 @@ export function SendPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ==================== 主组件：使用 ChainProviderGate 包裹 ====================
+
+export function SendPage() {
+  const { goBack } = useNavigation();
+  const selectedChain = useSelectedChain();
+  const { t } = useTranslation(['transaction', 'common']);
+
+  return (
+    <ChainProviderGate
+      chainId={selectedChain}
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <PageHeader title={t('sendPage.title')} onBack={goBack} />
+          <div className="flex flex-1 items-center justify-center p-4">
+            <p className="text-muted-foreground">Chain not supported</p>
+          </div>
+        </div>
+      }
+    >
+      <SendPageContent />
+    </ChainProviderGate>
   );
 }
