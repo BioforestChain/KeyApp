@@ -60,8 +60,7 @@
     "twoStepSecretDescription": "This address has a security password set. Please enter your security password to confirm the transfer.",
     "twoStepSecretPlaceholder": "Enter security password",
     "twoStepSecretError": "Incorrect security password",
-    "fee": "Fee",
-    "previewTitle": "Transaction Preview"
+    "fee": "Fee"
   },
   "destroyPage": {
     "title": "Destroy",

@@ -60,8 +60,7 @@
     "twoStepSecretDescription": "该地址已设置安全密码，请输入安全密码确认转账。",
     "twoStepSecretPlaceholder": "输入安全密码",
     "twoStepSecretError": "安全密码错误",
-    "fee": "手续费",
-    "previewTitle": "交易预览"
+    "fee": "手续费"
   },
   "destroyPage": {
     "title": "销毁",

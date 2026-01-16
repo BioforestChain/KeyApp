@@ -178,7 +178,7 @@ async function doTransfer(page: Page, toAddress: string, amount: string, needPay
   await expect(continueBtn).toBeEnabled({ timeout: 15000 })
   await continueBtn.click()
 
-  await page.locator('[data-testid="confirm-preview-button"]').click()
+  await page.locator('[data-testid="confirm-transfer-button"]').click()
 
   // 验证钱包锁
   const patternInput = page.locator('[data-testid="wallet-pattern-input"]')
