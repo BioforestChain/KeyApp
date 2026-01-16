@@ -4,6 +4,7 @@
  */
 
 import { QRCodeSVG } from 'qrcode.react';
+import { useTranslation } from 'react-i18next';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { detectAddressFormat } from '@/lib/address-format';
@@ -59,11 +60,15 @@ export interface ContactCardProps {
   address?: string | undefined;
   addresses: ContactAddressInfo[];
   qrContent: string;
+  /** Optional custom caption below QR code. Defaults to 'Scan to add contact' */
+  caption?: string;
 }
 
-export function ContactCard({ name, avatar, address, addresses, qrContent }: ContactCardProps) {
+export function ContactCard({ name, avatar, address, addresses, qrContent, caption }: ContactCardProps) {
+  const { t } = useTranslation('common');
   const effectiveAddress = address || addresses[0]?.address;
   const effectiveAvatar = avatar || (effectiveAddress ? generateAvatarFromAddress(effectiveAddress) : undefined);
+  const displayCaption = caption ?? t('contactCard.scanToAdd');
   return (
     <div className="w-[320px] overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
       <div className="mb-6 flex items-center gap-4">
@@ -95,7 +100,7 @@ export function ContactCard({ name, avatar, address, addresses, qrContent }: Con
       </div>
 
       <div className="mt-4 text-center">
-        <p className="text-sm text-slate-400">扫码添加联系人</p>
+        <p className="text-sm text-slate-400">{displayCaption}</p>
       </div>
     </div>
   );

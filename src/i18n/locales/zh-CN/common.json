@@ -4,6 +4,10 @@
   "confirm": "确认",
   "transfer": "转账",
   "receive": "收款",
+  "contactCard": {
+    "scanToAdd": "扫码添加联系人",
+    "transferToMe": "扫码向我转账"
+  },
   "paste": "粘贴",
   "addressPlaceholder": "输入或粘贴地址",
   "noAssets": "暂无资产",

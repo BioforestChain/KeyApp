@@ -252,6 +252,10 @@
   "publishDate": "發行時間",
   "quantity": "數量",
   "receive": "收款",
+  "contactCard": {
+    "scanToAdd": "掃碼添加聯絡人",
+    "transferToMe": "掃碼向我轉帳"
+  },
   "receivingGifts": "資產接收",
   "refuse": "拒絕",
   "reject": "拒絕",
