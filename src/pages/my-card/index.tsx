@@ -50,35 +50,19 @@ const CHAIN_NAMES: Record<ChainType, string> = {
     malibu: 'Malibu',
 };
 
-// Chain colors for wallet chips
-const CHAIN_COLORS: Record<ChainType, string> = {
-    ethereum: '#627EEA',
-    bitcoin: '#F7931A',
-    tron: '#FF0013',
-    binance: '#F3BA2F',
-    bfmeta: '#6366F1',
-    ccchain: '#10B981',
-    pmchain: '#8B5CF6',
-    bfchainv2: '#3B82F6',
-    btgmeta: '#EAB308',
-    biwmeta: '#EC4899',
-    ethmeta: '#14B8A6',
-    malibu: '#06B6D4',
-};
+/** Generate HSL background color from wallet themeHue */
+function getWalletColor(themeHue: number): string {
+    // Use HSL with fixed saturation and lightness for vibrant colors
+    return `hsl(${themeHue}, 65%, 55%)`;
+}
 
-/** Calculate relative luminance and return 'white' or 'black' for best contrast */
-function getContrastTextColor(hexColor: string): string {
-    // Parse hex color
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16) / 255;
-    const g = parseInt(hex.substring(2, 4), 16) / 255;
-    const b = parseInt(hex.substring(4, 6), 16) / 255;
-
-    // Calculate relative luminance (WCAG formula)
-    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-    // Return white for dark backgrounds, black for light backgrounds
-    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+/** Calculate text color for contrast against HSL background */
+function getContrastTextColor(hue: number): string {
+    // For HSL(hue, 65%, 55%), lightness is 55% which is relatively balanced
+    // Most colors at this saturation/lightness work better with white text
+    // except for very light yellows/greens (hue 50-90)
+    const needsDarkText = hue >= 40 && hue <= 100;
+    return needsDarkText ? '#000000' : '#FFFFFF';
 }
 
 export function MyCardPage() {
@@ -286,8 +270,8 @@ export function MyCardPage() {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {selectedWalletsWithAddresses.map(({ wallet, chain }) => {
-                            const bgColor = CHAIN_COLORS[chain] || '#6B7280';
-                            const textColor = getContrastTextColor(bgColor);
+                            const bgColor = getWalletColor(wallet.themeHue);
+                            const textColor = getContrastTextColor(wallet.themeHue);
                             return (
                                 <div
                                     key={wallet.id}

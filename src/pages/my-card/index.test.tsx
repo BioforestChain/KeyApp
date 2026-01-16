@@ -50,6 +50,7 @@ vi.mock('@/stores', () => ({
             id: 'wallet-1',
             name: 'Main Wallet',
             chain: 'ethereum',
+            themeHue: 220, // Blue theme
             chainAddresses: [
                 { chain: 'ethereum', address: '0x1234567890abcdef1234567890abcdef12345678' },
                 { chain: 'bitcoin', address: 'bc1qtest123' },
@@ -59,6 +60,7 @@ vi.mock('@/stores', () => ({
             id: 'wallet-2',
             name: 'Savings',
             chain: 'bitcoin',
+            themeHue: 30, // Orange theme
             chainAddresses: [
                 { chain: 'bitcoin', address: 'bc1qsavings456' },
             ],
@@ -167,11 +169,11 @@ describe('MyCardPage', () => {
             expect(screen.getByText('添加钱包')).toBeInTheDocument();
         });
 
-        it('wallet chips use chain colors', () => {
+        it('wallet chips use themeHue-based colors', () => {
             render(<MyCardPage />);
-            // Wallet chip should have inline styles for chain color
+            // Wallet chip should have HSL-based background from themeHue (220 = blue)
             const walletChip = screen.getByText('Main Wallet').closest('div');
-            expect(walletChip).toHaveStyle({ backgroundColor: '#627EEA' }); // Ethereum color
+            expect(walletChip).toHaveStyle({ backgroundColor: 'hsl(220, 65%, 55%)' });
         });
 
         it('shows max wallets message', () => {
