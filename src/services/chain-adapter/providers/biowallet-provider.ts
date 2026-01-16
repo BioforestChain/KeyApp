@@ -148,9 +148,9 @@ function getDirection(from: string, to: string, address: string): Direction {
   return 'in'
 }
 
-// BFM 链的 epoch 时间（2017-01-01T00:00:00Z 的毫秒时间戳）
-// BFM timestamp 是从这个时间点开始的秒数偏移量
-const BFM_EPOCH_MS = new Date('2017-01-01T00:00:00Z').getTime()
+// 默认 epoch 时间（用于未配置 genesis block 的链，此值不应该被使用）
+// 每个链的真实 epoch 应该从创世块的 beginEpochTime 读取
+const DEFAULT_EPOCH_MS = 0
 
 /** 
  * 检测 BioForest 交易类型并映射到标准 Action
@@ -267,17 +267,18 @@ function convertBioTransactionToTransaction(
     status: 'pending' | 'confirmed' | 'failed'
     createdTime?: string  // pending 交易的创建时间
     address?: string      // 当前钱包地址，用于判断方向
+    epochMs: number       // 链的创世时间（毫秒），从 genesis block 的 beginEpochTime 获取
   }
 ): Transaction {
-  const { signature, height, status, createdTime, address = '' } = options
+  const { signature, height, status, createdTime, address = '', epochMs } = options
 
   // 提取资产信息
   const { value, assetType } = extractAssetInfo(bioTx.asset, 'BFM')
 
-  // 计算时间戳
+  // 计算时间戳：使用链特定的 epoch 时间
   const timestamp = createdTime
     ? new Date(createdTime).getTime()
-    : BFM_EPOCH_MS + bioTx.timestamp * 1000
+    : epochMs + bioTx.timestamp * 1000
 
   // 判断方向
   const direction = address
@@ -325,6 +326,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
   private readonly symbol: string
   private readonly decimals: number
   private forgeInterval: number = 15000 // 默认 15s
+  private epochMs: number = DEFAULT_EPOCH_MS // 链的创世时间（毫秒），从 genesis block 的 beginEpochTime 获取
 
   // ==================== 私有基础 Fetcher ====================
 
@@ -350,16 +352,21 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
 
     // ==================== 链配置读取（创世块） ====================
 
-    // 从静态配置中读取创世块以获取 forgeInterval
+    // 从静态配置中读取创世块以获取 forgeInterval 和 beginEpochTime
     const genesisPath = chainConfigService.getBiowalletGenesisBlock(chainId)
     if (genesisPath) {
       fetchGenesisBlock(chainId, genesisPath)
         .then(genesis => {
-          // Genesis Block JSON 可能直接包含 forgeInterval
+          // Genesis Block JSON 包含 forgeInterval 和 beginEpochTime
           const interval = genesis.asset.genesisAsset.forgeInterval
           if (typeof interval === 'number') {
             this.forgeInterval = interval * 1000
             setForgeInterval(chainId, this.forgeInterval)
+          }
+          // 读取创世块的 beginEpochTime 作为 timestamp 的基准
+          const beginEpochTime = genesis.asset.genesisAsset.beginEpochTime
+          if (typeof beginEpochTime === 'number') {
+            this.epochMs = beginEpochTime
           }
         })
         .catch(err => {
@@ -498,6 +505,8 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
 
     // 交易历史：从 #txList 派生
     // 原版逻辑：使用 detectAction 和 extractAssetInfo
+    // 使用闭包捕获 this 以便在 transform 中访问动态获取的 epochMs
+    const provider = this
     this.transactionHistory = derive({
       name: `biowallet.${chainId}.transactionHistory`,
       source: this.#txList,
@@ -522,7 +531,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               hash: tx.signature ?? item.signature,
               from: tx.senderId,
               to: tx.recipientId ?? '',
-              timestamp: BFM_EPOCH_MS + tx.timestamp * 1000, // BFM timestamp 是从 2017-01-01 开始的秒数
+              timestamp: provider.epochMs + tx.timestamp * 1000, // 使用链特定的 epoch 时间
               status: 'confirmed',
               blockNumber: BigInt(item.height),
               action,
@@ -611,6 +620,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
               signature: pendingTx.trJson.signature ?? pendingTx.signature ?? '',
               status: 'pending',
               createdTime: pendingTx.createdTime,
+              epochMs: provider.epochMs,
             })
           }
         }
@@ -622,6 +632,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
             signature: item.transaction.signature ?? item.signature,
             height: item.height,
             status: 'confirmed',
+            epochMs: provider.epochMs,
           })
         }
 

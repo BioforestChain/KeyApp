@@ -56,6 +56,7 @@ export function TimeDisplay({ value, format = 'relative', className }: TimeDispl
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
+        timeZoneName: 'short', // 显示时区信息以避免歧义
       });
       break;
     case 'time':
@@ -72,6 +73,7 @@ export function TimeDisplay({ value, format = 'relative', className }: TimeDispl
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    timeZoneName: 'short',
   });
 
   return (
