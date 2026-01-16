@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerResultCallback } from '@/stackflow/activities/sheets';
+import { setTransferPreviewCallback, setTransferWalletLockCallback, setScannerResultCallback } from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
 import { addressBookStore, addressBookSelectors, preferencesActions } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
@@ -237,8 +237,8 @@ function SendPageContent() {
 
     haptics.impact('light');
 
-    // Set up callback: TransferConfirm -> TransferWalletLock (合并的钱包锁+二次签名)
-    setTransferConfirmCallback(
+    // Set up callback: TransferPreview -> TransferWalletLock (合并的钱包锁+二次签名)
+    setTransferPreviewCallback(
       async () => {
         if (isWalletLockSheetOpen.current) return;
         isWalletLockSheetOpen.current = true;
@@ -300,13 +300,17 @@ function SendPageContent() {
       }
     );
 
-    push('TransferConfirmJob', {
+    push('TransferPreviewJob', {
       amount: state.amount?.toFormatted() ?? '0',
       symbol,
+      decimals: String(state.asset?.decimals ?? chainConfig?.decimals ?? 8),
+      fromAddress: currentChainAddress?.address ?? '',
       toAddress: state.toAddress,
       feeAmount: state.feeAmount?.toFormatted() ?? '0',
       feeSymbol: state.feeSymbol,
       feeLoading: state.feeLoading ? 'true' : 'false',
+      chainId: selectedChain,
+      chainName: selectedChainName,
     });
   };
 
