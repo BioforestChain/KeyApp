@@ -167,14 +167,11 @@ describe('MyCardPage', () => {
             expect(screen.getByText('添加钱包')).toBeInTheDocument();
         });
 
-        it('removes wallet when X is clicked on chip', async () => {
-            const { userProfileActions } = await import('@/stores');
+        it('wallet chips use chain colors', () => {
             render(<MyCardPage />);
-
-            const removeButton = screen.getByLabelText('Remove Main Wallet');
-            await userEvent.click(removeButton);
-
-            expect(userProfileActions.toggleWalletSelection).toHaveBeenCalledWith('wallet-1');
+            // Wallet chip should have inline styles for chain color
+            const walletChip = screen.getByText('Main Wallet').closest('div');
+            expect(walletChip).toHaveStyle({ backgroundColor: '#627EEA' }); // Ethereum color
         });
 
         it('shows max wallets message', () => {

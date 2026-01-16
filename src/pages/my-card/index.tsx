@@ -31,7 +31,6 @@ import {
     IconShare as Share,
     IconLoader2 as Loader,
     IconPlus as Plus,
-    IconX as X,
     IconPencil as Pencil,
 } from '@tabler/icons-react';
 import { WalletPickerSheet } from './wallet-picker-sheet';
@@ -50,6 +49,37 @@ const CHAIN_NAMES: Record<ChainType, string> = {
     ethmeta: 'ETHMeta',
     malibu: 'Malibu',
 };
+
+// Chain colors for wallet chips
+const CHAIN_COLORS: Record<ChainType, string> = {
+    ethereum: '#627EEA',
+    bitcoin: '#F7931A',
+    tron: '#FF0013',
+    binance: '#F3BA2F',
+    bfmeta: '#6366F1',
+    ccchain: '#10B981',
+    pmchain: '#8B5CF6',
+    bfchainv2: '#3B82F6',
+    btgmeta: '#EAB308',
+    biwmeta: '#EC4899',
+    ethmeta: '#14B8A6',
+    malibu: '#06B6D4',
+};
+
+/** Calculate relative luminance and return 'white' or 'black' for best contrast */
+function getContrastTextColor(hexColor: string): string {
+    // Parse hex color
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    // Calculate relative luminance (WCAG formula)
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+    // Return white for dark backgrounds, black for light backgrounds
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+}
 
 export function MyCardPage() {
     const { t } = useTranslation(['common', 'settings']);
@@ -143,11 +173,6 @@ export function MyCardPage() {
             setIsEditingUsername(false);
         }
     }, [handleUsernameSave]);
-
-    // Handle wallet removal
-    const handleRemoveWallet = useCallback((walletId: string) => {
-        userProfileActions.toggleWalletSelection(walletId);
-    }, []);
 
     // Handle download
     const handleDownload = useCallback(async () => {
@@ -260,23 +285,20 @@ export function MyCardPage() {
                         {t('myCard.selectWallets')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                        {selectedWalletsWithAddresses.map(({ wallet, chain }) => (
-                            <div
-                                key={wallet.id}
-                                className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm"
-                            >
-                                <span>{wallet.name}</span>
-                                <span className="text-muted-foreground">({CHAIN_NAMES[chain] || chain})</span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveWallet(wallet.id)}
-                                    className="ml-1 rounded-full p-0.5 hover:bg-primary/20"
-                                    aria-label={`Remove ${wallet.name}`}
+                        {selectedWalletsWithAddresses.map(({ wallet, chain }) => {
+                            const bgColor = CHAIN_COLORS[chain] || '#6B7280';
+                            const textColor = getContrastTextColor(bgColor);
+                            return (
+                                <div
+                                    key={wallet.id}
+                                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+                                    style={{ backgroundColor: bgColor, color: textColor }}
                                 >
-                                    <X className="size-3" />
-                                </button>
-                            </div>
-                        ))}
+                                    <span>{wallet.name}</span>
+                                    <span style={{ opacity: 0.8 }}>({CHAIN_NAMES[chain] || chain})</span>
+                                </div>
+                            );
+                        })}
                         {profile.selectedWalletIds.length < 3 && (
                             <button
                                 type="button"
