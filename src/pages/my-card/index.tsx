@@ -31,6 +31,7 @@ import {
     IconShare as Share,
     IconLoader2 as Loader,
     IconPlus as Plus,
+    IconX as X,
     IconPencil as Pencil,
 } from '@tabler/icons-react';
 import { WalletPickerSheet } from './wallet-picker-sheet';
@@ -267,6 +268,14 @@ export function MyCardPage() {
                                 >
                                     <span>{wallet.name}</span>
                                     <span style={{ opacity: 0.8 }}>({CHAIN_NAMES[chain] || chain})</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => userProfileActions.toggleWalletSelection(wallet.id)}
+                                        className="ml-0.5 rounded-full p-0.5 transition-colors hover:bg-white/20"
+                                        aria-label={`Remove ${wallet.name}`}
+                                    >
+                                        <X className="size-3" />
+                                    </button>
                                 </div>
                             );
                         })}
