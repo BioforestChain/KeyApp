@@ -34,6 +34,7 @@ import {
     IconPencil as Pencil,
 } from '@tabler/icons-react';
 import { WalletPickerSheet } from './wallet-picker-sheet';
+import { resolveBackgroundStops } from '@/components/wallet/refraction';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
     ethereum: 'ETH',
@@ -50,20 +51,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
     malibu: 'Malibu',
 };
 
-/** Generate HSL background color from wallet themeHue */
-function getWalletColor(themeHue: number): string {
-    // Use HSL with fixed saturation and lightness for vibrant colors
-    return `hsl(${themeHue}, 65%, 55%)`;
-}
 
-/** Calculate text color for contrast against HSL background */
-function getContrastTextColor(hue: number): string {
-    // For HSL(hue, 65%, 55%), lightness is 55% which is relatively balanced
-    // Most colors at this saturation/lightness work better with white text
-    // except for very light yellows/greens (hue 50-90)
-    const needsDarkText = hue >= 40 && hue <= 100;
-    return needsDarkText ? '#000000' : '#FFFFFF';
-}
 
 export function MyCardPage() {
     const { t } = useTranslation(['common', 'settings']);
@@ -270,13 +258,12 @@ export function MyCardPage() {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {selectedWalletsWithAddresses.map(({ wallet, chain }) => {
-                            const bgColor = getWalletColor(wallet.themeHue);
-                            const textColor = getContrastTextColor(wallet.themeHue);
+                            const { c0 } = resolveBackgroundStops(wallet.themeHue);
                             return (
                                 <div
                                     key={wallet.id}
                                     className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-                                    style={{ backgroundColor: bgColor, color: textColor }}
+                                    style={{ backgroundColor: c0, color: '#FFFFFF' }}
                                 >
                                     <span>{wallet.name}</span>
                                     <span style={{ opacity: 0.8 }}>({CHAIN_NAMES[chain] || chain})</span>

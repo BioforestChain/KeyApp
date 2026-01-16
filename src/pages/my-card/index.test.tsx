@@ -99,6 +99,16 @@ vi.mock('@/components/common/contact-avatar', () => ({
     ),
 }));
 
+// Mock refraction module for wallet theme colors
+vi.mock('@/components/wallet/refraction', () => ({
+    resolveBackgroundStops: (themeHue: number) => ({
+        themeHue,
+        c0: `rgb(66, 115, ${themeHue})`,  // Predictable mock value
+        c1: 'rgb(60, 100, 180)',
+        c2: 'rgb(50, 80, 150)',
+    }),
+}));
+
 // Mock snapdom - inline
 vi.mock('@zumer/snapdom', () => ({
     snapdom: {
@@ -169,11 +179,12 @@ describe('MyCardPage', () => {
             expect(screen.getByText('添加钱包')).toBeInTheDocument();
         });
 
-        it('wallet chips use themeHue-based colors', () => {
+        it('wallet chips use themeHue-based colors from resolveBackgroundStops', () => {
             render(<MyCardPage />);
-            // Wallet chip should have HSL-based background from themeHue (220 = blue)
+            // Wallet chip uses mocked resolveBackgroundStops returning rgb(66, 115, themeHue)
             const walletChip = screen.getByText('Main Wallet').closest('div');
-            expect(walletChip).toHaveStyle({ backgroundColor: 'hsl(220, 65%, 55%)' });
+            // mock themeHue 220 -> c0 = rgb(66, 115, 220)
+            expect(walletChip).toHaveStyle({ backgroundColor: 'rgb(66, 115, 220)' });
         });
 
         it('shows max wallets message', () => {
