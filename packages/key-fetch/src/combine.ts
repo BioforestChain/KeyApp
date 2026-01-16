@@ -35,9 +35,9 @@ import { keyFetch } from './index'
 
 /** Combine 选项 */
 export interface CombineOptions<
-    TOUT extends unknown,
+    TOUT,
     Sources extends Record<string, KeyFetchInstance>,
-    TIN extends unknown = InferCombinedParams<Sources>
+    TIN = InferCombinedParams<Sources>
 > {
     /** 合并后的名称 */
     name: string
@@ -55,7 +55,8 @@ export interface CombineOptions<
 
 /** 从 Sources 推导出组合的 params 类型 */
 type InferCombinedParams<Sources extends Record<string, KeyFetchInstance>> = {
-    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<any, infer P> ? P : never
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type inference requires any
+    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<unknown, infer P> ? P : never
 }
 
 /**
@@ -67,9 +68,9 @@ type InferCombinedParams<Sources extends Record<string, KeyFetchInstance>> = {
  * - 自动订阅所有 sources
  */
 export function combine<
-    TOUT extends unknown,
+    TOUT,
     Sources extends Record<string, KeyFetchInstance>,
-    TIN extends unknown = InferCombinedParams<Sources>
+    TIN = InferCombinedParams<Sources>
 >(
     options: CombineOptions<TOUT, Sources, TIN>
 ): KeyFetchInstance<TOUT, TIN> {

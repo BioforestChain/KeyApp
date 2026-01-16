@@ -17,7 +17,7 @@ import type {
   KeyFetchInput,
 } from './types'
 import { globalCache, globalRegistry } from './registry'
-import z from 'zod'
+import type z from 'zod'
 import { SuperJSON } from 'superjson'
 export const superjson = new SuperJSON({ dedupe: true })
 
@@ -36,7 +36,8 @@ function buildUrl(template: string, params: FetchParams = {}): string {
 
 /** 构建缓存 key */
 function buildCacheKey(name: string, params: FetchParams = {}): string {
-  const sortedParams = typeof params === 'object' && params !== null ? Object.entries(params)
+  // eslint-disable-next-line unicorn/no-array-sort -- toSorted not available in ES2021 target
+  const sortedParams = typeof params === 'object' && params !== null ? [...Object.entries(params)]
     .filter(([, v]) => v !== undefined)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]: [string, string | number | boolean | undefined]) => `${k}=${encodeURIComponent(String(v))}`)
@@ -46,8 +47,8 @@ function buildCacheKey(name: string, params: FetchParams = {}): string {
 
 /** KeyFetch 实例实现 */
 class KeyFetchInstanceImpl<
-  TOUT extends unknown,
-  TIN extends unknown = unknown
+  TOUT,
+  TIN = unknown
 > implements KeyFetchInstance<TOUT, TIN> {
   readonly name: string
   readonly outputSchema: z.ZodType<TOUT>

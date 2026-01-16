@@ -33,13 +33,13 @@ import type {
     FetchPlugin,
 } from './types'
 import { keyFetch } from './index'
-import z from 'zod'
+import type { z } from 'zod'
 
 /** Derive 选项 */
 export interface KeyFetchDeriveOptions<
     TSourceOut,
     TOUT,
-    TIN extends unknown = unknown
+    TIN = unknown
 > {
     /** 派生实例名称 */
     name: string
@@ -61,7 +61,7 @@ export interface KeyFetchDeriveOptions<
 export function derive<
     TSourceOut,
     TOUT,
-    TIN extends unknown = unknown
+    TIN = unknown
 >(
     options: KeyFetchDeriveOptions<TSourceOut, TOUT, TIN>
 ): KeyFetchInstance<TOUT, TIN> {

@@ -74,8 +74,8 @@ export function walletApiUnwrap<T>(): FetchPlugin {
             } else if (wrapped.success === true) {
                 return wrapped.result
             }
-            console.warn(`[${ctx.name}]: should not use walletApiUnwarp plugin`)
-            return wrapped as T
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy support
+            return wrapped as any as T
         },
     })
 }
