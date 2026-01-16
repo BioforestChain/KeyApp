@@ -26,7 +26,8 @@ const TEST_WALLET_DATA = {
           chain: 'ethereum',
           address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
           tokens: [
-            { symbol: 'ETH', balance: '1.5', decimals: 18 },
+            // Mock a larger balance to ensure tests pass
+            { symbol: 'ETH', balance: '10', decimals: 18 },
             { symbol: 'USDT', balance: '1000', decimals: 6, contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
           ],
         },
@@ -325,7 +326,7 @@ test.describe('发送交易 - Job 弹窗流程', () => {
     const { addressInput, amountInput } = await getSendPageInputs(page)
 
     // 填写有效数据
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
+    await addressInput.fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045') // Use a valid address
     await amountInput.fill('0.1')
 
     // 等待费用估算
@@ -379,7 +380,7 @@ test.describe('发送交易 - Job 弹窗流程', () => {
     const { addressInput, amountInput } = await getSendPageInputs(page)
 
     // 填写有效数据
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
+    await addressInput.fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045') // Use a valid address
     await amountInput.fill('0.1')
 
     await page.waitForTimeout(1000)
