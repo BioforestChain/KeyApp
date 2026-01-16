@@ -19,7 +19,9 @@
     "share": "Share",
     "shareTitle": "BFM Pay Receive Address",
     "addressCopied": "Address copied",
-    "networkWarning": "Only {{chain}} network assets can be transferred in, assets from other networks cannot be recovered"
+    "networkWarning": "Only {{chain}} network assets can be transferred in, assets from other networks cannot be recovered",
+    "saveImage": "Save Image",
+    "imageSaved": "Image saved"
   },
   "sendResult": {
     "success": "Transfer Successful",

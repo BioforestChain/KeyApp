@@ -19,7 +19,9 @@
     "share": "分享",
     "shareTitle": "BFM Pay 收款地址",
     "addressCopied": "地址已复制",
-    "networkWarning": "仅支持 {{chain}} 网络资产转入，其他网络资产转入将无法找回"
+    "networkWarning": "仅支持 {{chain}} 网络资产转入，其他网络资产转入将无法找回",
+    "saveImage": "保存图片",
+    "imageSaved": "图片已保存"
   },
   "sendResult": {
     "success": "转账成功",
