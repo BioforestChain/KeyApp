@@ -344,14 +344,14 @@ test.describe('发送交易 - Job 弹窗流程', () => {
       await page.waitForTimeout(500)
       
       // 检查确认弹窗内容
-      const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
-      const cancelBtn = page.locator('[data-testid="cancel-transfer-button"]')
+      const confirmBtn = page.locator('[data-testid="confirm-preview-button"]')
+      const cancelBtn = page.locator('[data-testid="cancel-preview-button"]')
       
       // 至少一个按钮应该可见（确认或取消）
       const hasConfirmUI = await confirmBtn.isVisible() || await cancelBtn.isVisible()
       
       if (hasConfirmUI) {
-        console.log('TransferConfirmJob opened successfully')
+        console.log('TransferPreviewJob opened successfully')
         
         // 截图
         await expect(page).toHaveScreenshot('send-confirm-job.png')
@@ -365,7 +365,7 @@ test.describe('发送交易 - Job 弹窗流程', () => {
           await expect(page.locator('[data-testid="send-continue-button"]')).toBeVisible()
         }
       } else {
-        console.log('TransferConfirmJob may not have opened - check mock configuration')
+        console.log('TransferPreviewJob may not have opened - check mock configuration')
       }
     } else {
       console.log('Continue button not enabled - mock service may not be configured correctly')
@@ -390,7 +390,7 @@ test.describe('发送交易 - Job 弹窗流程', () => {
       await continueBtn.click()
       await page.waitForTimeout(500)
       
-      const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
+      const confirmBtn = page.locator('[data-testid="confirm-preview-button"]')
       
       if (await confirmBtn.isVisible()) {
         await confirmBtn.click()
