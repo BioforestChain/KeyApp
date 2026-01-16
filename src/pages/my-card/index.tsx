@@ -257,16 +257,15 @@ export function MyCardPage() {
                         {t('myCard.selectWallets')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                        {selectedWalletsWithAddresses.map(({ wallet, chain }) => {
+                        {selectedWalletsWithAddresses.map(({ wallet }) => {
                             const { c0 } = resolveBackgroundStops(wallet.themeHue);
                             return (
                                 <div
                                     key={wallet.id}
-                                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+                                    className="rounded-full px-3 py-1.5 text-sm font-medium"
                                     style={{ backgroundColor: c0, color: '#FFFFFF' }}
                                 >
-                                    <span>{wallet.name}</span>
-                                    <span style={{ opacity: 0.8 }}>({CHAIN_NAMES[chain] || chain})</span>
+                                    {wallet.name}
                                 </div>
                             );
                         })}
