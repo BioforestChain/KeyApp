@@ -106,9 +106,9 @@ export function MyCardPage() {
 
     // Generate addresses for QR code
     const addresses: ContactAddressInfo[] = useMemo(() => {
-        return selectedWalletsWithAddresses.map(({ wallet, chain, address }) => ({
+        return selectedWalletsWithAddresses.map(({ wallet, address }) => ({
             address: address!,
-            label: `${wallet.name} (${CHAIN_NAMES[chain] || chain})`,
+            label: wallet.name, // Only wallet name, color indicates address type
         }));
     }, [selectedWalletsWithAddresses]);
 
