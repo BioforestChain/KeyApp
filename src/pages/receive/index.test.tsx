@@ -26,6 +26,26 @@ const mockAddress = '0x1234567890abcdef1234567890abcdef12345678'
 vi.mock('@/stores', () => ({
   useCurrentChainAddress: () => ({ address: mockAddress }),
   useSelectedChain: () => 'ethereum',
+  useUserProfile: () => ({
+    username: 'Test User',
+    avatar: 'avatar:TESTDATA',
+    selectedWalletIds: [],
+  }),
+}))
+
+// Mock ContactCard and QR parser
+vi.mock('@/components/contact/contact-card', () => ({
+  ContactCard: ({ name, addresses }: { name: string; addresses: unknown[] }) => (
+    <div data-testid="contact-card">
+      <span data-testid="card-name">{name}</span>
+      <span data-testid="card-addresses">{JSON.stringify(addresses)}</span>
+      <svg data-testid="qr-code-svg" />
+    </div>
+  ),
+}))
+
+vi.mock('@/lib/qr-parser', () => ({
+  generateContactQRContent: vi.fn(() => '{"type":"contact"}'),
 }))
 
 // Mock snapdom for JSDOM environment
@@ -61,9 +81,11 @@ describe('ReceivePage', () => {
       expect(screen.getByText('Ethereum')).toBeInTheDocument()
     })
 
-    it('shows QR code instruction text', () => {
+    it('displays ContactCard with user profile', () => {
       renderWithProviders(<ReceivePage />)
-      expect(screen.getByText('扫描二维码向此地址转账')).toBeInTheDocument()
+      // ContactCard should be rendered
+      expect(screen.getByTestId('contact-card')).toBeInTheDocument()
+      expect(screen.getByTestId('card-name')).toHaveTextContent('Test User')
     })
 
     it('displays address label', () => {

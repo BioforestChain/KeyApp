@@ -1,13 +1,14 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { QRCodeSVG } from 'qrcode.react';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
-import { AddressQRCode, Alert, GradientButton } from '@/components/common';
+import { ContactCard } from '@/components/contact/contact-card';
+import { Alert, GradientButton } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { Button } from '@/components/ui/button';
 import { useClipboard, useToast, useHaptics } from '@/services';
+import { generateContactQRContent } from '@/lib/qr-parser';
 import {
   IconCopy as Copy,
   IconShare2 as Share2,
@@ -15,7 +16,7 @@ import {
   IconDownload as Download,
   IconLoader2 as Loader,
 } from '@tabler/icons-react';
-import { useCurrentChainAddress, useSelectedChain, type ChainType } from '@/stores';
+import { useCurrentChainAddress, useSelectedChain, useUserProfile, type ChainType } from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
   ethereum: 'Ethereum',
@@ -33,7 +34,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
-  const { t } = useTranslation('transaction');
+  const { t } = useTranslation(['transaction', 'common']);
   const { goBack } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
@@ -42,11 +43,26 @@ export function ReceivePage() {
   const chainAddress = useCurrentChainAddress();
   const selectedChain = useSelectedChain();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const profile = useUserProfile();
+
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const qrCardRef = useRef<HTMLDivElement>(null);
 
   const address = chainAddress?.address || '';
+
+  // Generate display name
+  const displayName = profile.username || t('common:myCard.defaultName');
+
+  // Generate QR content using contact protocol
+  const qrContent = useMemo(() => {
+    if (!address) return '';
+    return generateContactQRContent({
+      name: displayName,
+      addresses: [{ address, label: selectedChainName }],
+      avatar: profile.avatar,
+    });
+  }, [displayName, address, selectedChainName, profile.avatar]);
 
   const handleCopy = async () => {
     if (address) {
@@ -117,17 +133,14 @@ export function ReceivePage() {
           <span className="text-sm">{selectedChainName}</span>
         </div>
 
-        {/* QR code area - wrapped for screenshot */}
-        <div ref={qrCardRef} className="bg-card flex flex-col items-center gap-4 rounded-2xl p-6 shadow-sm">
-          <AddressQRCode
-            address={address}
-            chain={selectedChain}
-            size={200}
-            renderFn={({ value, size, level }) => (
-              <QRCodeSVG value={value} size={size} level={level as 'L' | 'M' | 'Q' | 'H'} bgColor="#ffffff" fgColor="#000000" />
-            )}
+        {/* QR code area using ContactCard - wrapped for screenshot */}
+        <div ref={qrCardRef} className="flex justify-center">
+          <ContactCard
+            name={displayName}
+            avatar={profile.avatar}
+            addresses={[{ address, label: selectedChainName }]}
+            qrContent={qrContent}
           />
-          <p className="text-muted-foreground text-center text-sm">{t('receivePage.scanQrCode')}</p>
         </div>
 
         {/* Address display */}

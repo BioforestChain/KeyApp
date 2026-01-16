@@ -33,7 +33,7 @@ export const Default: Story = {};
 export const WithUsername: Story = {
     play: async () => {
         // Pre-set username for testing
-        const { userProfileActions } = await import('@/stores/user-profile');
+        const { userProfileActions } = await import('@/stores');
         userProfileActions.setUsername('测试用户');
         userProfileActions.randomizeAvatar();
     },
