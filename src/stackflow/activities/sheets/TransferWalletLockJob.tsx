@@ -55,7 +55,7 @@ type Step = 'wallet_lock' | 'two_step_secret';
 
 function TransferWalletLockJobContent() {
   const { t } = useTranslation(["security", "transaction", "common"]);
-  const { pop, push, replace } = useFlow();
+  const { pop, push } = useFlow();
   const { title } = useActivityParams<TransferWalletLockJobParams>();
   const clipboard = useClipboard();
   const toast = useToast();
@@ -110,12 +110,7 @@ function TransferWalletLockJobContent() {
     return unsubscribe;
   }, [txHash, selectedChain, currentWallet?.address]);
 
-  // Navigate back to home (replace entire stack)
-  const goToHome = useCallback(() => {
-    replace('MainTabsActivity', {}, { animate: true });
-  }, [replace]);
-
-  // 上链成功后 5 秒倒计时自动关闭，返回首页
+  // 上链成功后 5 秒倒计时自动关闭
   useEffect(() => {
     if (txStatus !== 'confirmed') {
       setCountdown(null);
@@ -127,7 +122,7 @@ function TransferWalletLockJobContent() {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(timer);
-          goToHome();
+          pop();
           return null;
         }
         return prev - 1;
@@ -135,7 +130,7 @@ function TransferWalletLockJobContent() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [txStatus, goToHome]);
+  }, [txStatus, pop]);
 
   // Get chain config for explorer URL
   const chainConfig = useMemo(() => {
