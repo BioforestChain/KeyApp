@@ -148,7 +148,7 @@ export function MyCardPage() {
     }, [handleUsernameSave]);
 
     // Snapdom share hook
-    const { isProcessing: isDownloading, download: handleDownload, share: handleShare, canShare } = useSnapdomShare(
+    const { isProcessing: isDownloading, download: handleDownload, share: handleShare } = useSnapdomShare(
         cardRef,
         {
             filename: `my-card-${Date.now()}`,
@@ -197,7 +197,7 @@ export function MyCardPage() {
                         className="group mb-6 flex items-center gap-2 text-xl font-semibold"
                     >
                         <span>{displayName}</span>
-                        <Pencil className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        <Pencil className="size-4 text-muted-foreground opacity-50 group-hover:opacity-100" />
                     </button>
                 )}
 

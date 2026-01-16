@@ -17,8 +17,9 @@ import {
   IconCircleKey as KeyRound,
   IconCircleCheck as CheckCircle,
 } from '@tabler/icons-react';
-import { useChainConfigs, walletActions } from '@/stores';
+import { useChainConfigs, walletActions, useLanguage } from '@/stores';
 import { generateMnemonic } from '@/lib/crypto';
+import { generateWalletName } from '@/lib/wallet-utils';
 import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import type { ChainConfig } from '@/services/chain-config';
@@ -31,6 +32,7 @@ export function WalletCreatePage() {
   const { goBack, navigate } = useNavigation();
   const { t } = useTranslation('onboarding');
   const chainConfigs = useChainConfigs();
+  const currentLanguage = useLanguage();
   const [step, setStep] = useState<Step>('pattern');
   const [patternKey, setPatternKey] = useState('');
   const [mnemonic] = useState<string[]>(() => {
@@ -122,7 +124,7 @@ export function WalletCreatePage() {
 
       const wallet = await walletActions.createWallet(
         {
-          name: t('create.defaultWalletName'),
+          name: generateWalletName(currentLanguage, t('create.walletSuffix')),
           keyType: 'mnemonic',
           address: primaryChain.address,
           chain: primaryChain.chain,
@@ -138,7 +140,7 @@ export function WalletCreatePage() {
       setCreatedWalletId(wallet.id);
       setStep('theme');
     } catch (error) {
-      
+
     } finally {
       setIsCreating(false);
     }

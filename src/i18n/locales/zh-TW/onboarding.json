@@ -39,6 +39,7 @@
     "confirmWritten": "我已抄寫完成",
     "createFailed": "建立錢包失敗",
     "defaultWalletName": "主錢包",
+    "walletSuffix": "錢包",
     "enterWallet": "進入錢包",
     "form": {
       "agreementPrefix": "我已閱讀並同意",
