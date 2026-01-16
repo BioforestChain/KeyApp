@@ -254,7 +254,7 @@ test.describe('BioBridge UI', () => {
     await page.waitForLoadState('networkidle')
 
     // Wait for config to load - mode tabs should be visible since redemption is enabled
-    await expect(page.locator('text=充值')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=锻造')).toBeVisible({ timeout: 10000 })
     await expect(page.locator('text=赎回')).toBeVisible({ timeout: 5000 })
 
     await expect(page).toHaveScreenshot('09-mode-tabs.png')

@@ -10,7 +10,7 @@ export const UI_TEXT = {
     subtitle: { source: '跨链桥接', pattern: /跨链桥接|Cross-chain Bridge/i },
   },
   mode: {
-    recharge: { source: '充值', pattern: /充值|Recharge/i },
+    recharge: { source: '锻造', pattern: /锻造|Forge/i },
     redemption: { source: '赎回', pattern: /赎回|Redemption/i },
   },
   connect: {

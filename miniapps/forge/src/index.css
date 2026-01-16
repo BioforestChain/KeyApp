@@ -116,6 +116,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Noto Sans SC Variable', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

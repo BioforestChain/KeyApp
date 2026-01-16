@@ -5,7 +5,7 @@
     "description": "在外鏈與 Bio 生態之間橋接資產"
   },
   "mode": {
-    "recharge": "充值",
+    "recharge": "鍛造",
     "redemption": "贖回"
   },
   "connect": {

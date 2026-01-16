@@ -1,4 +1,5 @@
 import './index.css'
+import '@fontsource-variable/noto-sans-sc'
 import './i18n'
 import '@biochain/bio-sdk'
 import { StrictMode } from 'react'

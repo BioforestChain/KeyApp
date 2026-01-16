@@ -16,6 +16,20 @@ export type LanguageCode = keyof typeof languages
 
 export const defaultLanguage: LanguageCode = 'zh-CN'
 
+// Try to get language from local storage (aligns with shell/e2e)
+let savedLanguage: LanguageCode = defaultLanguage
+try {
+  const prefs = localStorage.getItem('bfm_preferences')
+  if (prefs) {
+    const parsed = JSON.parse(prefs)
+    if (parsed.language && Object.keys(languages).includes(parsed.language)) {
+      savedLanguage = parsed.language as LanguageCode
+    }
+  }
+} catch (e) {
+  // Ignore error
+}
+
 export function getLanguageDirection(lang: LanguageCode): 'ltr' | 'rtl' {
   return languages[lang]?.dir ?? 'ltr'
 }
@@ -31,7 +45,7 @@ i18n.use(initReactI18next).init({
     'zh-CN': { translation: zhCN },
     'zh-TW': { translation: zhTW },
   },
-  lng: defaultLanguage,
+  lng: savedLanguage,
   fallbackLng: {
     'zh-CN': ['zh'],
     'zh-TW': ['zh'],
