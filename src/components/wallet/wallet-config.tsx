@@ -4,15 +4,17 @@ import { cn } from '@/lib/utils';
 import { WALLET_THEME_COLORS } from '@/hooks/useWalletTheme';
 import { useChainIconUrls } from '@/hooks/useChainIconUrls';
 import { WalletCard } from '@/components/wallet/wallet-card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useWallets, useSelectedChain, walletActions, type ChainType } from '@/stores';
+import { useWallets, useSelectedChain, walletActions, type ChainType, useLanguage } from '@/stores';
+import { generateWalletName } from '@/lib/wallet-utils';
+import { InputGroup, InputGroupInput, InputGroupAddon, InputGroupButton } from '@/components/ui/input-group';
 import { useFlow } from '@/stackflow';
 import {
   IconCheck,
   IconCircleKey as KeyRound,
   IconTrash as Trash2,
   IconPencilMinus as Edit3,
+  IconDice5 as Dice,
 } from '@tabler/icons-react';
 
 /**
@@ -71,6 +73,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
   const wallet = wallets.find((w) => w.id === walletId);
   const selectedChain = useSelectedChain();
   const chainIconUrls = useChainIconUrls();
+  const currentLanguage = useLanguage();
 
   // 内部模式状态（default 和 edit 可以互相切换）
   const [internalMode, setInternalMode] = useState<'default' | 'edit'>(mode === 'edit-only' ? 'edit' : mode);
@@ -243,13 +246,25 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
           {/* 名称输入 */}
           <div className="space-y-2">
             <label className="text-muted-foreground text-sm">{t('onboarding:theme.walletName')}</label>
-            <Input
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder={t('wallet:defaultName')}
-              maxLength={20}
-              className="text-center"
-            />
+            <InputGroup>
+              <InputGroupInput
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder={t('wallet:defaultName')}
+                maxLength={20}
+                className="text-center"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  size="icon-xs"
+                  variant="ghost"
+                  onClick={() => setEditName(generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')))}
+                  title={t('wallet:randomName')}
+                >
+                  <Dice className="size-4" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </div>
 
           {/* 主题色选择 */}

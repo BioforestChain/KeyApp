@@ -3,6 +3,7 @@
   "1AllWalletDataInTheOriginal_{appName}": "1. 原 中的錢包資料將全部保留，並進行資料整理，規則如下：",
   "add": "添加錢包",
   "defaultName": "我的錢包",
+  "randomName": "隨機名稱",
   "chains": {
     "title": "管理錢包網路",
     "verifyTitle": "驗證錢包鎖",
