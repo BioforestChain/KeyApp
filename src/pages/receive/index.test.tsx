@@ -26,6 +26,38 @@ const mockAddress = '0x1234567890abcdef1234567890abcdef12345678'
 vi.mock('@/stores', () => ({
   useCurrentChainAddress: () => ({ address: mockAddress }),
   useSelectedChain: () => 'ethereum',
+  useUserProfile: () => ({
+    username: 'Test User',
+    avatar: 'avatar:TESTDATA',
+    selectedWalletIds: [],
+  }),
+}))
+
+// Mock ContactCard and QR parser
+vi.mock('@/components/contact/contact-card', () => ({
+  ContactCard: ({ name, addresses }: { name: string; addresses: unknown[] }) => (
+    <div data-testid="contact-card">
+      <span data-testid="card-name">{name}</span>
+      <span data-testid="card-addresses">{JSON.stringify(addresses)}</span>
+      <svg data-testid="qr-code-svg" />
+    </div>
+  ),
+}))
+
+vi.mock('@/lib/qr-parser', () => ({
+  generateContactQRContent: vi.fn(() => '{"type":"contact"}'),
+}))
+
+// Mock snapdom for JSDOM environment
+vi.mock('@zumer/snapdom', () => ({
+  snapdom: Object.assign(
+    vi.fn().mockResolvedValue({
+      toBlob: vi.fn().mockResolvedValue(new Blob(['test'], { type: 'image/png' })),
+    }),
+    {
+      download: vi.fn().mockResolvedValue(undefined),
+    }
+  ),
 }))
 
 // Wrapper with providers
@@ -49,9 +81,11 @@ describe('ReceivePage', () => {
       expect(screen.getByText('Ethereum')).toBeInTheDocument()
     })
 
-    it('shows QR code instruction text', () => {
+    it('displays ContactCard with user profile', () => {
       renderWithProviders(<ReceivePage />)
-      expect(screen.getByText('扫描二维码向此地址转账')).toBeInTheDocument()
+      // ContactCard should be rendered
+      expect(screen.getByTestId('contact-card')).toBeInTheDocument()
+      expect(screen.getByTestId('card-name')).toHaveTextContent('Test User')
     })
 
     it('displays address label', () => {
@@ -68,8 +102,8 @@ describe('ReceivePage', () => {
   describe('Address Display', () => {
     it('shows the wallet address', () => {
       renderWithProviders(<ReceivePage />)
-      // Address may be truncated in display
-      expect(screen.getByText(/0x1234/)).toBeInTheDocument()
+      // Address is displayed in AddressDisplay component
+      expect(screen.getByText(mockAddress)).toBeInTheDocument()
     })
   })
 
@@ -104,7 +138,7 @@ describe('ReceivePage', () => {
       expect(screen.getByText('分享')).toBeInTheDocument()
     })
 
-    it('calls navigator.share when available', async () => {
+    it('calls navigator.share with file when available', async () => {
       const mockShare = vi.fn().mockResolvedValue(undefined)
       Object.defineProperty(navigator, 'share', {
         value: mockShare,
@@ -116,20 +150,36 @@ describe('ReceivePage', () => {
 
       await userEvent.click(screen.getByText('分享'))
 
-      expect(mockShare).toHaveBeenCalledWith({
-        title: 'BFM Pay 收款地址',
-        text: mockAddress,
+      // Wait for async operations
+      await vi.waitFor(() => {
+        expect(mockShare).toHaveBeenCalled()
       })
-      expect(mockHapticsImpact).toHaveBeenCalledWith('success')
+
+      // Check that share was called with files array
+      const shareCall = mockShare.mock.calls[0][0]
+      expect(shareCall.title).toBe('BFM Pay 收款地址')
+      expect(shareCall.text).toBe(mockAddress)
+      expect(shareCall.files).toBeInstanceOf(Array)
+      expect(shareCall.files[0]).toBeInstanceOf(File)
+    })
+  })
+
+  describe('Save Image Functionality', () => {
+    it('renders save image button', () => {
+      renderWithProviders(<ReceivePage />)
+      expect(screen.getByText('保存图片')).toBeInTheDocument()
     })
   })
 
   describe('QR Code', () => {
-    it('renders QR code component', () => {
+    it('renders actual QR code SVG, not placeholder', () => {
       renderWithProviders(<ReceivePage />)
-      // QR code should render with the address
-      const qrContainer = screen.getByText('扫描二维码向此地址转账').parentElement
-      expect(qrContainer).toBeInTheDocument()
+      // QR code should render as SVG element from qrcode.react
+      const svg = document.querySelector('svg')
+      expect(svg).toBeInTheDocument()
+      // Placeholder text should NOT be present
+      expect(screen.queryByText(/^QR:/)).not.toBeInTheDocument()
     })
   })
 })
+

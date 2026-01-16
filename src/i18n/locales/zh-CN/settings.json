@@ -9,6 +9,7 @@
     "about": "关于"
   },
   "items": {
+    "myCard": "我的名片",
     "walletManagement": "钱包管理",
     "walletChains": "钱包网络",
     "addressBook": "地址簿",

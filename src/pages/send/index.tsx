@@ -220,6 +220,9 @@ function SendPageContent() {
       let address = content;
       if (parsed.type === 'address' || parsed.type === 'payment') {
         address = parsed.address;
+      } else if (parsed.type === 'contact' && parsed.addresses.length > 0) {
+        // 从名片中提取第一个地址
+        address = parsed.addresses[0].address;
       }
       setToAddress(address);
       haptics.impact('success');

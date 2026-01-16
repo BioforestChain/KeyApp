@@ -344,6 +344,20 @@
     "scanToAdd": "Scan to add contact",
     "changeAvatar": "Click to change avatar"
   },
+  "myCard": {
+    "title": "My Business Card",
+    "defaultName": "My Card",
+    "editUsername": "Tap to edit username",
+    "usernamePlaceholder": "Enter username",
+    "changeAvatar": "Tap to change avatar",
+    "selectWallets": "Select Wallets",
+    "addWallet": "Add Wallet",
+    "maxWallets": "Select up to {{max}} wallets",
+    "noWalletsSelected": "Please select at least one wallet",
+    "scanToAdd": "Scan to add me as contact",
+    "walletAddress": "{{wallet}} ({{chain}})",
+    "currentChain": "Current chain"
+  },
   "time": {
     "justNow": "Just now",
     "minutesAgo": "{{count}} min ago",

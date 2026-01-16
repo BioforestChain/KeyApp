@@ -8,19 +8,48 @@ import { ContactAvatar } from '@/components/common/contact-avatar';
 import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { detectAddressFormat } from '@/lib/address-format';
 import type { ContactAddressInfo } from '@/lib/qr-parser';
+import { isBioforestChain } from '@/lib/crypto';
 
-const CHAIN_COLORS: Record<string, string> = {
-  ethereum: '#627EEA',
-  bitcoin: '#F7931A',
-  tron: '#FF0013',
+/** Address format standard colors */
+const ADDRESS_FORMAT_COLORS = {
+  evm: '#627EEA',       // EVM (0x...) - ethereum, binance
+  bitcoin: '#F7931A',   // Bitcoin (1.../3.../bc1...)
+  tron: '#FF0013',      // TRON (T...)
+  bioforest: '#6366F1', // BioForest (all BioForest chains share same format)
 };
+
+/** Get color based on address format standard */
+function getAddressFormatColor(chainType: string | null): string {
+  if (!chainType) return '#6B7280';
+
+  // EVM-compatible chains
+  if (chainType === 'ethereum' || chainType === 'binance') {
+    return ADDRESS_FORMAT_COLORS.evm;
+  }
+
+  // Bitcoin
+  if (chainType === 'bitcoin') {
+    return ADDRESS_FORMAT_COLORS.bitcoin;
+  }
+
+  // TRON
+  if (chainType === 'tron') {
+    return ADDRESS_FORMAT_COLORS.tron;
+  }
+
+  // BioForest chains (all use same address format)
+  if (isBioforestChain(chainType)) {
+    return ADDRESS_FORMAT_COLORS.bioforest;
+  }
+
+  return '#6B7280';
+}
 
 /** 获取地址显示标签和颜色（只显示自定义 label） */
 function getAddressDisplay(addr: ContactAddressInfo): { label: string; color: string } | null {
   if (!addr.label) return null;
   const detected = detectAddressFormat(addr.address);
-  const chainType = detected.chainType;
-  const color = chainType ? CHAIN_COLORS[chainType] || '#6B7280' : '#6B7280';
+  const color = getAddressFormatColor(detected.chainType);
   return { label: addr.label, color };
 }
 

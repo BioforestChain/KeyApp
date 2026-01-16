@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/stackflow';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddressDisplay } from '@/components/wallet/address-display';
-import { AddressQRCode, Alert, GradientButton } from '@/components/common';
+import { ContactCard } from '@/components/contact/contact-card';
+import { Alert, GradientButton } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { Button } from '@/components/ui/button';
 import { useClipboard, useToast, useHaptics } from '@/services';
-import { IconCopy as Copy, IconShare2 as Share2, IconCheck as Check } from '@tabler/icons-react';
-import { useCurrentChainAddress, useSelectedChain, type ChainType } from '@/stores';
+import { generateContactQRContent } from '@/lib/qr-parser';
+import {
+  IconCopy as Copy,
+  IconShare2 as Share2,
+  IconCheck as Check,
+  IconDownload as Download,
+  IconLoader2 as Loader,
+} from '@tabler/icons-react';
+import { useCurrentChainAddress, useSelectedChain, useUserProfile, type ChainType } from '@/stores';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
   ethereum: 'Ethereum',
@@ -26,7 +34,7 @@ const CHAIN_NAMES: Record<ChainType, string> = {
 };
 
 export function ReceivePage() {
-  const { t } = useTranslation('transaction');
+  const { t } = useTranslation(['transaction', 'common']);
   const { goBack } = useNavigation();
   const clipboard = useClipboard();
   const toast = useToast();
@@ -35,9 +43,26 @@ export function ReceivePage() {
   const chainAddress = useCurrentChainAddress();
   const selectedChain = useSelectedChain();
   const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const profile = useUserProfile();
+
   const [copied, setCopied] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const qrCardRef = useRef<HTMLDivElement>(null);
 
   const address = chainAddress?.address || '';
+
+  // Generate display name
+  const displayName = profile.username || t('common:myCard.defaultName');
+
+  // Generate QR content using contact protocol
+  const qrContent = useMemo(() => {
+    if (!address) return '';
+    return generateContactQRContent({
+      name: displayName,
+      addresses: [{ address, label: selectedChainName }],
+      avatar: profile.avatar,
+    });
+  }, [displayName, address, selectedChainName, profile.avatar]);
 
   const handleCopy = async () => {
     if (address) {
@@ -49,19 +74,53 @@ export function ReceivePage() {
     }
   };
 
-  const handleShare = async () => {
-    if (navigator.share && address) {
-      try {
+  const handleDownload = useCallback(async () => {
+    const cardElement = qrCardRef.current;
+    if (!cardElement || isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      const { snapdom } = await import('@zumer/snapdom');
+      await snapdom.download(cardElement, {
+        type: 'png',
+        filename: `receive-${selectedChain}-${address.slice(0, 8)}.png`,
+        scale: 2,
+        quality: 1,
+      });
+      await haptics.impact('success');
+      toast.show(t('receivePage.imageSaved'));
+    } catch {
+      // Download failed silently
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [address, selectedChain, isProcessing, haptics, toast, t]);
+
+  const handleShare = useCallback(async () => {
+    const cardElement = qrCardRef.current;
+    if (!cardElement || isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      if (navigator.share) {
+        const { snapdom } = await import('@zumer/snapdom');
+        const result = await snapdom(cardElement, { scale: 2 });
+        const blob = await result.toBlob();
+        const file = new File([blob], `receive-${selectedChain}.png`, { type: 'image/png' });
+
         await navigator.share({
           title: t('receivePage.shareTitle'),
           text: address,
+          files: [file],
         });
         await haptics.impact('success');
-      } catch {
-        // User cancelled share
       }
+    } catch {
+      // User cancelled share
+    } finally {
+      setIsProcessing(false);
     }
-  };
+  }, [address, selectedChain, isProcessing, haptics, t]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen flex-col">
@@ -74,10 +133,14 @@ export function ReceivePage() {
           <span className="text-sm">{selectedChainName}</span>
         </div>
 
-        {/* QR code area */}
-        <div className="bg-card flex flex-col items-center gap-4 rounded-2xl p-6 shadow-sm">
-          <AddressQRCode address={address} chain={selectedChain} size={200} />
-          <p className="text-muted-foreground text-center text-sm">{t('receivePage.scanQrCode')}</p>
+        {/* QR code area using ContactCard - wrapped for screenshot */}
+        <div ref={qrCardRef} className="flex justify-center">
+          <ContactCard
+            name={displayName}
+            avatar={profile.avatar}
+            addresses={[{ address, label: selectedChainName }]}
+            qrContent={qrContent}
+          />
         </div>
 
         {/* Address display */}
@@ -103,11 +166,21 @@ export function ReceivePage() {
               </>
             )}
           </Button>
-          <GradientButton variant="mint" className="flex-1" onClick={handleShare}>
-            <Share2 className="mr-2 size-4" />
-            {t('receivePage.share')}
-          </GradientButton>
+          <Button variant="outline" className="flex-1" onClick={handleDownload} disabled={isProcessing}>
+            {isProcessing ? (
+              <Loader className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 size-4" />
+            )}
+            {t('receivePage.saveImage')}
+          </Button>
         </div>
+
+        {/* Share button - full width */}
+        <GradientButton variant="mint" className="w-full" onClick={handleShare} disabled={isProcessing}>
+          {isProcessing ? <Loader className="mr-2 size-4 animate-spin" /> : <Share2 className="mr-2 size-4" />}
+          {t('receivePage.share')}
+        </GradientButton>
 
         {/* Warning */}
         <Alert variant="info">{t('receivePage.networkWarning', { chain: selectedChainName })}</Alert>
