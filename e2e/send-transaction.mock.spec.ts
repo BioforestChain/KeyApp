@@ -26,7 +26,8 @@ const TEST_WALLET_DATA = {
           chain: 'ethereum',
           address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
           tokens: [
-            { symbol: 'ETH', balance: '1.5', decimals: 18 },
+            // Mock a larger balance to ensure tests pass
+            { symbol: 'ETH', balance: '10', decimals: 18 },
             { symbol: 'USDT', balance: '1000', decimals: 6, contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
           ],
         },
@@ -325,51 +326,39 @@ test.describe('发送交易 - Job 弹窗流程', () => {
     const { addressInput, amountInput } = await getSendPageInputs(page)
 
     // 填写有效数据
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
+    await addressInput.fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045') // Use a valid address
     await amountInput.fill('0.1')
 
     // 等待费用估算
     await page.waitForTimeout(1000)
 
     const continueBtn = page.locator('[data-testid="send-continue-button"]')
+
+    // Continue button should be enabled
+    await expect(continueBtn).toBeEnabled()
+    await continueBtn.click()
+
+    // 等待 TransferConfirmJob 出现
+    // Job 应该包含金额和确认按钮
+    await page.waitForTimeout(500)
+
+    // 检查确认弹窗内容 (use job-specific test-ids)
+    const confirmBtn = page.locator('[data-testid="job-confirm-transfer-button"]')
+    const cancelBtn = page.locator('[data-testid="job-cancel-transfer-button"]')
+
+    // 确认和取消按钮应该可见
+    await expect(confirmBtn).toBeVisible()
+    await expect(cancelBtn).toBeVisible()
     
-    // 检查按钮是否启用
-    const isEnabled = await continueBtn.isEnabled()
-    
-    if (isEnabled) {
-      await continueBtn.click()
-      
-      // 等待 TransferConfirmJob 出现
-      // Job 应该包含金额和确认按钮
-      await page.waitForTimeout(500)
-      
-      // 检查确认弹窗内容
-      const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
-      const cancelBtn = page.locator('[data-testid="cancel-transfer-button"]')
-      
-      // 至少一个按钮应该可见（确认或取消）
-      const hasConfirmUI = await confirmBtn.isVisible() || await cancelBtn.isVisible()
-      
-      if (hasConfirmUI) {
-        console.log('TransferConfirmJob opened successfully')
-        
-        // 截图
-        await expect(page).toHaveScreenshot('send-confirm-job.png')
-        
-        // 点击取消应该关闭弹窗
-        if (await cancelBtn.isVisible()) {
-          await cancelBtn.click()
-          await page.waitForTimeout(300)
-          
-          // 应该回到发送页面
-          await expect(page.locator('[data-testid="send-continue-button"]')).toBeVisible()
-        }
-      } else {
-        console.log('TransferConfirmJob may not have opened - check mock configuration')
-      }
-    } else {
-      console.log('Continue button not enabled - mock service may not be configured correctly')
-    }
+    // 截图
+    await expect(page).toHaveScreenshot('send-confirm-job.png')
+
+    // 点击取消应该关闭弹窗
+    await cancelBtn.click()
+    await page.waitForTimeout(300)
+
+    // 应该回到发送页面
+    await expect(page.locator('[data-testid="send-continue-button"]')).toBeVisible()
   })
 
   test('确认后显示钱包锁 Job', async ({ page }) => {
@@ -379,33 +368,29 @@ test.describe('发送交易 - Job 弹窗流程', () => {
     const { addressInput, amountInput } = await getSendPageInputs(page)
 
     // 填写有效数据
-    await addressInput.fill('0x1234567890abcdef1234567890abcdef12345678')
+    await addressInput.fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045') // Use a valid address
     await amountInput.fill('0.1')
 
     await page.waitForTimeout(1000)
 
     const continueBtn = page.locator('[data-testid="send-continue-button"]')
+
+    // Continue button should be enabled
+    await expect(continueBtn).toBeEnabled()
+    await continueBtn.click()
+    await page.waitForTimeout(500)
+
+    const confirmBtn = page.locator('[data-testid="job-confirm-transfer-button"]')
+    await expect(confirmBtn).toBeVisible()
+
+    await confirmBtn.click()
+    await page.waitForTimeout(500)
+
+    // 应该显示钱包锁
+    const patternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]')
+    await expect(patternInput).toBeVisible()
     
-    if (await continueBtn.isEnabled()) {
-      await continueBtn.click()
-      await page.waitForTimeout(500)
-      
-      const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
-      
-      if (await confirmBtn.isVisible()) {
-        await confirmBtn.click()
-        await page.waitForTimeout(500)
-        
-        // 应该显示钱包锁
-        const patternInput = page.locator('[data-testid="wallet-pattern-input"], input[type="password"]')
-        
-        if (await patternInput.isVisible()) {
-          console.log('WalletLockConfirmJob opened successfully')
-          await expect(page).toHaveScreenshot('send-wallet-lock-job.png')
-        } else {
-          console.log('WalletLockConfirmJob may not have opened')
-        }
-      }
-    }
+    // 截图
+    await expect(page).toHaveScreenshot('send-wallet-lock-job.png')
   })
 })

@@ -193,7 +193,7 @@ function TransferConfirmJobContent() {
           <div className="flex gap-3">
             <button
               type="button"
-              data-testid="cancel-transfer-button"
+              data-testid="job-cancel-transfer-button"
               onClick={handleClose}
               className="border-border hover:bg-muted flex-1 rounded-full border py-3 font-medium transition-colors"
               disabled={isConfirming}
@@ -202,7 +202,7 @@ function TransferConfirmJobContent() {
             </button>
             <button
               type="button"
-              data-testid="confirm-transfer-button"
+              data-testid="job-confirm-transfer-button"
               onClick={handleConfirm}
               disabled={isConfirming || feeLoading}
               className={cn(
