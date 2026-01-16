@@ -140,6 +140,7 @@ export function ReceivePage() {
             avatar={profile.avatar}
             addresses={[{ address, label: selectedChainName }]}
             qrContent={qrContent}
+            caption={t('common:contactCard.transferToMe')}
           />
         </div>
 

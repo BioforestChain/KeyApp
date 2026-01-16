@@ -252,6 +252,10 @@
   "publishDate": "Publish Date",
   "quantity": "[MISSING:ar] 数量",
   "receive": "استلام",
+  "contactCard": {
+    "scanToAdd": "امسح لإضافة جهة اتصال",
+    "transferToMe": "امسح للتحويل إليّ"
+  },
   "receivingGifts": "Receiving gifts",
   "refuse": "Refuse",
   "reject": "Reject",

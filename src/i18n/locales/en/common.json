@@ -225,6 +225,10 @@
   "publishDate": "Publish Date",
   "quantity": "[MISSING:en] 数量",
   "receive": "Receive",
+  "contactCard": {
+    "scanToAdd": "Scan to add contact",
+    "transferToMe": "Scan to transfer to me"
+  },
   "receivingGifts": "Receiving gifts",
   "refuse": "Refuse",
   "reject": "Reject",
