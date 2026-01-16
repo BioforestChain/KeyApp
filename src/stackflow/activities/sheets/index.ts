@@ -11,6 +11,7 @@ export { WalletAddJob } from "./WalletAddJob";
 export { WalletListJob } from "./WalletListJob";
 export { SecurityWarningJob, setSecurityWarningConfirmCallback } from "./SecurityWarningJob";
 export { TransferConfirmJob, setTransferConfirmCallback } from "./TransferConfirmJob";
+export { TransferPreviewJob, setTransferPreviewCallback } from "./TransferPreviewJob";
 export { TransferWalletLockJob, setTransferWalletLockCallback } from "./TransferWalletLockJob";
 export { FeeEditJob, setFeeEditCallback, type FeeEditConfig, type FeeEditResult } from "./FeeEditJob";
 export { ScannerJob, setScannerResultCallback, scanValidators, getValidatorForChain, type ScannerJobParams, type ScannerResultEvent, type ScanValidator } from "./ScannerJob";

@@ -201,9 +201,9 @@ describeOrSkip('BioForest 转账测试', () => {
     await continueBtn.click()
     console.log('   ✅ 继续到确认页')
 
-    // 7. 确认转账
+    // 7. 确认转账（TransferPreviewJob）
     console.log('7. 确认转账...')
-    const confirmBtn = page.locator('[data-testid="confirm-transfer-button"]')
+    const confirmBtn = page.locator('[data-testid="confirm-preview-button"]')
     await expect(confirmBtn).toBeVisible({ timeout: 5000 })
     await confirmBtn.click()
     console.log('   ✅ 点击确认')
