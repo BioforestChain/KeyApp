@@ -17,7 +17,8 @@ import { GradientButton, IconCircle, LoadingSpinner } from '@/components/common'
 import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
-import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions } from '@/stores';
+import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions, useLanguage } from '@/stores';
+import { generateWalletName } from '@/lib/wallet-utils';
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconCircleCheck as CheckCircle } from '@tabler/icons-react';
 import { ProgressSteps } from '@/components/common';
@@ -42,6 +43,7 @@ export function OnboardingRecoverPage() {
   const chainConfigs = useChainConfigs();
   const chainConfigSnapshot = useChainConfigState().snapshot;
   const enabledBioforestChainConfigs = useEnabledBioforestChainConfigs();
+  const currentLanguage = useLanguage();
   const [step, setStep] = useState<Step>('keyType');
   const [keyType, setKeyType] = useState<WalletKeyType>('mnemonic');
   const [securityAcknowledged, setSecurityAcknowledged] = useState(false);
@@ -53,7 +55,7 @@ export function OnboardingRecoverPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patternKey, setPatternKey] = useState('');
   const [createdWalletId, setCreatedWalletId] = useState<string | null>(null);
-  
+
   // 链选择状态
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [initializedSelection, setInitializedSelection] = useState(false);
@@ -151,7 +153,7 @@ export function OnboardingRecoverPage() {
         if (result.type === 'address') {
           // Simple duplicate - show error toast
           // Toast: "该助记词已导入"
-          
+
           return;
         } else if (result.type === 'privateKey') {
           // Private key collision - show confirmation dialog
@@ -207,7 +209,7 @@ export function OnboardingRecoverPage() {
 
         const wallet = await walletActions.createWallet(
           {
-            name: t('wallet:defaultName'),
+            name: generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')),
             keyType: 'mnemonic',
             address: primaryChain.address,
             chain: primaryChain.chain,
@@ -222,7 +224,7 @@ export function OnboardingRecoverPage() {
         setCreatedWalletId(wallet.id);
         setStep('theme');
       } catch (error) {
-        
+
       } finally {
         setIsSubmitting(false);
       }
@@ -251,7 +253,7 @@ export function OnboardingRecoverPage() {
 
         const wallet = await walletActions.createWallet(
           {
-            name: t('wallet:defaultName'),
+            name: generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')),
             keyType: 'arbitrary',
             address: primary.address,
             chain: primary.chainId,
@@ -266,7 +268,7 @@ export function OnboardingRecoverPage() {
         setCreatedWalletId(wallet.id);
         setStep('theme');
       } catch (error) {
-        
+
       } finally {
         setIsSubmitting(false);
       }
