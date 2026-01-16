@@ -36,6 +36,7 @@ import {
 } from '@tabler/icons-react';
 import { WalletPickerSheet } from './wallet-picker-sheet';
 import { resolveBackgroundStops } from '@/components/wallet/refraction';
+import { useSnapdomShare } from '@/hooks/useSnapdomShare';
 
 const CHAIN_NAMES: Record<ChainType, string> = {
     ethereum: 'ETH',
@@ -63,7 +64,6 @@ export function MyCardPage() {
     const wallets = useWallets();
     const chainPreferences = useChainPreferences();
 
-    const [isDownloading, setIsDownloading] = useState(false);
     const [isEditingUsername, setIsEditingUsername] = useState(false);
     const [usernameInput, setUsernameInput] = useState(profile.username);
     const [showWalletPicker, setShowWalletPicker] = useState(false);
@@ -147,50 +147,15 @@ export function MyCardPage() {
         }
     }, [handleUsernameSave]);
 
-    // Handle download
-    const handleDownload = useCallback(async () => {
-        const cardElement = cardRef.current;
-        if (!cardElement || isDownloading || addresses.length === 0) return;
-
-        setIsDownloading(true);
-        try {
-            const { snapdom } = await import('@zumer/snapdom');
-            await snapdom.download(cardElement, {
-                type: 'png',
-                filename: `my-card-${Date.now()}.png`,
-                scale: 2,
-                quality: 1,
-            });
-        } catch (error) {
-            console.error('Download failed:', error);
-        } finally {
-            setIsDownloading(false);
+    // Snapdom share hook
+    const { isProcessing: isDownloading, download: handleDownload, share: handleShare, canShare } = useSnapdomShare(
+        cardRef,
+        {
+            filename: `my-card-${Date.now()}`,
+            shareTitle: t('myCard.title'),
+            shareText: profile.username || t('myCard.defaultName'),
         }
-    }, [isDownloading, addresses.length]);
-
-    // Handle share
-    const handleShare = useCallback(async () => {
-        const cardElement = cardRef.current;
-        if (!cardElement || !navigator.share || addresses.length === 0) return;
-
-        setIsDownloading(true);
-        try {
-            const { snapdom } = await import('@zumer/snapdom');
-            const result = await snapdom(cardElement, { scale: 2 });
-            const blob = await result.toBlob();
-            const file = new File([blob], `my-card.png`, { type: 'image/png' });
-
-            await navigator.share({
-                title: t('myCard.title'),
-                text: profile.username || t('myCard.defaultName'),
-                files: [file],
-            });
-        } catch {
-            // User cancelled or share failed
-        } finally {
-            setIsDownloading(false);
-        }
-    }, [addresses.length, profile.username, t]);
+    );
 
     const displayName = profile.username || t('myCard.defaultName');
 
