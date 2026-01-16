@@ -5,8 +5,7 @@
  */
 
 import type {
-  AnyZodSchema,
-  InferOutput,
+  ZodUnknowSchema,
   KeyFetchDefineOptions,
   KeyFetchInstance,
   FetchParams,
@@ -14,16 +13,22 @@ import type {
   FetchPlugin,
   MiddlewareContext,
   SubscribeContext,
+  KeyFetchOutput,
+  KeyFetchInput,
 } from './types'
 import { globalCache, globalRegistry } from './registry'
-import superjson from 'superjson'
+import type z from 'zod'
+import { SuperJSON } from 'superjson'
+export const superjson = new SuperJSON({ dedupe: true })
 
 /** 构建 URL，替换 :param 占位符 */
 function buildUrl(template: string, params: FetchParams = {}): string {
   let url = template
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined) {
-      url = url.replace(`:${key}`, encodeURIComponent(String(value)))
+  if (typeof params === 'object' && params !== null) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        url = url.replace(`:${key}`, encodeURIComponent(String(value)))
+      }
     }
   }
   return url
@@ -31,46 +36,47 @@ function buildUrl(template: string, params: FetchParams = {}): string {
 
 /** 构建缓存 key */
 function buildCacheKey(name: string, params: FetchParams = {}): string {
-  const sortedParams = Object.entries(params)
+  // eslint-disable-next-line unicorn/no-array-sort -- toSorted not available in ES2021 target
+  const sortedParams = typeof params === 'object' && params !== null ? [...Object.entries(params)]
     .filter(([, v]) => v !== undefined)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]: [string, string | number | boolean | undefined]) => `${k}=${v}`)
-    .join('&')
+    .map(([k, v]: [string, string | number | boolean | undefined]) => `${k}=${encodeURIComponent(String(v))}`)
+    .join('&') : `#${JSON.stringify(params)}`
   return sortedParams ? `${name}?${sortedParams}` : name
 }
 
 /** KeyFetch 实例实现 */
 class KeyFetchInstanceImpl<
-  S extends AnyZodSchema,
-  P extends AnyZodSchema = AnyZodSchema
-> implements KeyFetchInstance<S, P> {
+  TOUT,
+  TIN = unknown
+> implements KeyFetchInstance<TOUT, TIN> {
   readonly name: string
-  readonly schema: S
-  readonly paramsSchema: P | undefined
-  readonly _output!: InferOutput<S>
-  readonly _params!: InferOutput<P>
+  readonly outputSchema: z.ZodType<TOUT>
+  readonly inputSchema: z.ZodType<TIN> | undefined
+  readonly _output!: TOUT
+  readonly _params!: TIN
 
   private urlTemplate: string
   private method: 'GET' | 'POST'
-  private plugins: FetchPlugin[]
-  private subscribers = new Map<string, Set<SubscribeCallback<InferOutput<S>>>>()
+  private plugins: FetchPlugin<TIN>[]
+  private subscribers = new Map<string, Set<SubscribeCallback<TOUT>>>()
   private subscriptionCleanups = new Map<string, (() => void)[]>()
-  private inFlight = new Map<string, Promise<InferOutput<S>>>()
+  private inFlight = new Map<string, Promise<TOUT>>()
 
-  constructor(options: KeyFetchDefineOptions<S, P>) {
+  constructor(options: KeyFetchDefineOptions<TOUT, TIN>) {
     this.name = options.name
-    this.schema = options.schema
-    this.paramsSchema = options.paramsSchema
+    this.outputSchema = options.outputSchema
+    this.inputSchema = options.inputSchema
     this.urlTemplate = options.url ?? ''
     this.method = options.method ?? 'GET'
     this.plugins = options.use ?? []
 
     // 注册到全局
-    globalRegistry.register(this as unknown as KeyFetchInstance<AnyZodSchema>)
+    globalRegistry.register(this as unknown as KeyFetchInstance<ZodUnknowSchema>)
   }
 
-  async fetch(params: InferOutput<P>, options?: { skipCache?: boolean }): Promise<InferOutput<S>> {
-    const cacheKey = buildCacheKey(this.name, params as FetchParams)
+  async fetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT> {
+    const cacheKey = buildCacheKey(this.name, params)
 
     // 检查进行中的请求（去重）
     const pending = this.inFlight.get(cacheKey)
@@ -79,7 +85,7 @@ class KeyFetchInstanceImpl<
     }
 
     // 发起请求（通过中间件链）
-    const task = this.doFetch((params ?? {}) as FetchParams, options)
+    const task = this.doFetch((params), options)
     this.inFlight.set(cacheKey, task)
 
     try {
@@ -89,7 +95,7 @@ class KeyFetchInstanceImpl<
     }
   }
 
-  private async doFetch(params: FetchParams, options?: { skipCache?: boolean }): Promise<InferOutput<S>> {
+  private async doFetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT> {
     // 创建基础 Request（只有 URL 模板，不做任何修改）
     const baseRequest = new Request(this.urlTemplate, {
       method: this.method,
@@ -97,7 +103,7 @@ class KeyFetchInstanceImpl<
     })
 
     // 中间件上下文（包含 superjson 工具）
-    const middlewareContext: MiddlewareContext = {
+    const middlewareContext: MiddlewareContext<TIN> = {
       name: this.name,
       params,
       skipCache: options?.skipCache ?? false,
@@ -105,7 +111,7 @@ class KeyFetchInstanceImpl<
       superjson,
       // 创建带 X-Superjson 头的 Response
       createResponse: <T>(data: T, init?: ResponseInit) => {
-        return new Response(superjson.stringify(data), {
+        return data instanceof Response ? data : new Response(superjson.stringify(data), {
           ...init,
           headers: {
             'Content-Type': 'application/json',
@@ -116,7 +122,7 @@ class KeyFetchInstanceImpl<
       },
       // 创建带 X-Superjson 头的 Request
       createRequest: <T>(data: T, url?: string, init?: RequestInit) => {
-        return new Request(url ?? baseRequest.url, {
+        return data instanceof Request ? data : new Request(url ?? baseRequest.url, {
           ...init,
           method: init?.method ?? 'POST',
           headers: {
@@ -128,14 +134,17 @@ class KeyFetchInstanceImpl<
         })
       },
       // 根据 X-Superjson 头自动选择解析方式
-      body: async <T>(input: Request | Response): Promise<T> => {
+      body: async <T>(input: Request | Response,): Promise<T> => {
         const text = await input.text()
         // 防护性检查：某些 mock 的 Response 可能没有 headers
         const isSuperjson = input.headers?.get?.('X-Superjson') === 'true'
+        return middlewareContext.parseBody<T>(text, isSuperjson)
+      },
+      parseBody: <T>(input: string, isSuperjson?: boolean): T => {
         if (isSuperjson) {
-          return superjson.parse(text) as T
+          return superjson.parse(input) as T
         }
-        return JSON.parse(text) as T
+        return JSON.parse(input) as T
       },
     }
 
@@ -171,37 +180,40 @@ class KeyFetchInstanceImpl<
 
     // 使用统一的 body 函数解析中间件链返回的响应
     // 这样 unwrap 等插件修改的响应内容能被正确处理
-    const json = await middlewareContext.body<unknown>(response)
+    const rawJson = await response.text()
+    const isSuperjson = response.headers.get('X-Superjson') === 'true'
+    const json = await middlewareContext.parseBody<unknown>(rawJson, isSuperjson)
 
     // Schema 验证（核心！）
     try {
-      const result = this.schema.parse(json) as InferOutput<S>
+      const result = this.outputSchema.parse(json) as TOUT
 
       // 通知 registry 更新
       globalRegistry.emitUpdate(this.name)
 
       return result
     } catch (err) {
+      console.error(this.name, err)
       // 包装 ZodError 为更可读的错误
       if (err && typeof err === 'object' && 'issues' in err) {
         const zodErr = err as { issues: Array<{ path: (string | number)[]; message: string }> }
-        const issuesSummary = zodErr.issues
+        const buildErrorMessage = () => `[${this.name}] Schema 验证失败:\n${zodErr.issues
           .slice(0, 3)
           .map(i => `  - ${i.path.join('.')}: ${i.message}`)
-          .join('\n')
-        throw new Error(
-          `[${this.name}] Schema 验证失败:\n${issuesSummary}` +
+          .join('\n')}` +
           (zodErr.issues.length > 3 ? `\n  ... 还有 ${zodErr.issues.length - 3} 个错误` : '') +
-          `\n\n原始数据预览: ${JSON.stringify(json).slice(0, 300)}...`
-        )
+          `\n\nResponseJson: ${rawJson.slice(0, 300)}...`
+          + `\nResponseHeaders: ${[...response.headers.entries()].map(item => item.join("=")).join("; ")}`
+        console.error(json, this.outputSchema)
+        throw new Error(buildErrorMessage())
       }
       throw err
     }
   }
 
   subscribe(
-    params: InferOutput<P>,
-    callback: SubscribeCallback<InferOutput<S>>
+    params: TIN,
+    callback: SubscribeCallback<TOUT>
   ): () => void {
     const cacheKey = buildCacheKey(this.name, params as FetchParams)
     const url = buildUrl(this.urlTemplate, params as FetchParams)
@@ -218,10 +230,10 @@ class KeyFetchInstanceImpl<
     if (subs.size === 1) {
       const cleanups: (() => void)[] = []
 
-      const subscribeCtx: SubscribeContext = {
+      const subscribeCtx: SubscribeContext<TIN> = {
         name: this.name,
         url,
-        params: params ?? {},
+        params: params,
         refetch: async () => {
           const data = await this.fetch(params, { skipCache: true })
           this.notify(cacheKey, data)
@@ -285,14 +297,14 @@ class KeyFetchInstanceImpl<
     }
   }
 
-  getCached(params?: InferOutput<P>): InferOutput<S> | undefined {
+  getCached(params?: TIN): TOUT | undefined {
     const cacheKey = buildCacheKey(this.name, params as FetchParams)
-    const entry = globalCache.get<InferOutput<S>>(cacheKey)
+    const entry = globalCache.get<TOUT>(cacheKey)
     return entry?.data
   }
 
   /** 通知特定 key 的订阅者 */
-  private notify(cacheKey: string, data: InferOutput<S>): void {
+  private notify(cacheKey: string, data: TOUT): void {
     const subs = this.subscribers.get(cacheKey)
     if (subs) {
       subs.forEach(cb => cb(data, 'update'))
@@ -304,23 +316,28 @@ class KeyFetchInstanceImpl<
    * 如果直接调用而没有导入 react 模块，会抛出错误
    */
   useState(
-    _params?: InferOutput<P>,
+    _params?: TIN,
     _options?: { enabled?: boolean }
-  ): { data: InferOutput<S> | undefined; isLoading: boolean; isFetching: boolean; error: Error | undefined; refetch: () => Promise<void> } {
+  ): { data: TOUT | undefined; isLoading: boolean; isFetching: boolean; error: Error | undefined; refetch: () => Promise<void> } {
     throw new Error(
       `[key-fetch] useState() requires React. Import from '@biochain/key-fetch' to enable React support.`
     )
+  }
+
+  use(...plugins: FetchPlugin<TIN>[]): KeyFetchInstance<TOUT, TIN> {
+    this.plugins.push(...plugins)
+    return this
   }
 }
 
 // ==================== React 注入机制 ====================
 
 /** 存储 useState 实现（由 react.ts 注入） */
-let useStateImpl: (<S extends AnyZodSchema>(
-  kf: KeyFetchInstance<S>,
-  params?: FetchParams,
+let useStateImpl: (<KF extends KeyFetchInstance>(
+  kf: KF,
+  params: KeyFetchInput<KF>,
   options?: { enabled?: boolean }
-) => { data: InferOutput<S> | undefined; isLoading: boolean; isFetching: boolean; error: Error | undefined; refetch: () => Promise<void> }) | null = null
+) => { data: KeyFetchOutput<KF> | undefined; isLoading: boolean; isFetching: boolean; error: Error | undefined; refetch: () => Promise<void> }) | null = null
 
 /**
  * 注入 React useState 实现
@@ -329,16 +346,18 @@ let useStateImpl: (<S extends AnyZodSchema>(
 export function injectUseState(impl: typeof useStateImpl): void {
   useStateImpl = impl
     // 使用 unknown 绕过类型检查，因为注入是内部实现细节
-    ; (KeyFetchInstanceImpl.prototype as unknown as Record<string, unknown>).useState = function (
-      this: KeyFetchInstance<AnyZodSchema>,
-      params?: FetchParams,
-      options?: { enabled?: boolean }
-    ) {
-      if (!useStateImpl) {
-        throw new Error('[key-fetch] useState implementation not injected')
+    ; Object.assign(KeyFetchInstanceImpl.prototype, {
+      useState(
+        this: KeyFetchInstance,
+        params?: FetchParams,
+        options?: { enabled?: boolean }
+      ) {
+        if (!useStateImpl) {
+          throw new Error('[key-fetch] useState implementation not injected')
+        }
+        return useStateImpl(this, params, options)
       }
-      return useStateImpl(this, params, options)
-    }
+    })
 }
 
 /**
@@ -379,15 +398,17 @@ export function getUseStateImpl() {
  * // data 类型自动推断，且已通过 Schema 验证
  * ```
  */
-export function create<S extends AnyZodSchema, P extends AnyZodSchema = AnyZodSchema>(
-  options: KeyFetchDefineOptions<S, P>
-): KeyFetchInstance<S, P> {
-  return new KeyFetchInstanceImpl(options) as unknown as KeyFetchInstance<S, P>
+export function create<TOUT, TIN extends unknown = unknown>(
+  options: KeyFetchDefineOptions<TOUT, TIN>
+): KeyFetchInstance<TOUT, TIN> {
+  return new KeyFetchInstanceImpl(options)
 }
 
+// Builder removed in favor of instance.use() pattern
+
 /** 获取已注册的实例 */
-export function get<S extends AnyZodSchema>(name: string): KeyFetchInstance<S> | undefined {
-  return globalRegistry.get<S>(name)
+export function get<TOUT extends unknown, TIN extends unknown = unknown>(name: string): KeyFetchInstance<TOUT, TIN> | undefined {
+  return globalRegistry.get(name) as unknown as KeyFetchInstance<TOUT, TIN> | undefined
 }
 
 /** 按名称失效 */

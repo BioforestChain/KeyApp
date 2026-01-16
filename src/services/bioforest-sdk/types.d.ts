@@ -78,7 +78,7 @@ export namespace BFChainCore {
     generatorEquity: string;
     generatorSecondPublicKey?: string;
     reward: string;
-    asset: AssetJSON;
+    asset: { genesisAsset: AssetJSON };
     numberOfTransactions: number;
     payloadLength: number;
     payloadHash: string;

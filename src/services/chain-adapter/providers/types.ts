@@ -80,6 +80,18 @@ export const TxHistoryParamsSchema = z.object({
 })
 export type TxHistoryParams = z.infer<typeof TxHistoryParamsSchema>
 
+/** 单笔交易查询参数 */
+export const TransactionParamsSchema = z.object({
+  txHash: z.string(),
+})
+export type TransactionParams = z.infer<typeof TransactionParamsSchema>
+
+/** 交易状态查询参数 */
+export const TransactionStatusParamsSchema = z.object({
+  txHash: z.string(),
+})
+export type TransactionStatusParams = z.infer<typeof TransactionStatusParamsSchema>
+
 // ==================== 数据类型 ====================
 
 /** 余额信息 */
@@ -134,7 +146,7 @@ export type {
 // ==================== 标准输出 Schema（强类型）====================
 
 /** Amount 的 Zod Schema */
-const AmountSchema = z.custom<Amount>((val) => val instanceof Amount || typeof val === 'object')
+const AmountSchema = z.custom<Amount>((val) => val instanceof Amount)
 
 /** 余额输出 Schema - ApiProvider 契约 */
 export const BalanceOutputSchema = z.object({
@@ -156,6 +168,7 @@ export const TokenBalancesOutputSchema = z.array(z.object({
 export type TokenBalancesOutput = z.infer<typeof TokenBalancesOutputSchema>
 
 /** 交易历史输出 Schema - ApiProvider 契约 */
+
 // 使用 transaction-schema.ts 中定义的 TransactionSchema
 import { TransactionSchema as TxSchema } from './transaction-schema'
 export const TransactionsOutputSchema = z.array(TxSchema)
@@ -205,22 +218,22 @@ export interface ApiProvider extends Partial<ITransactionService & IIdentityServ
   // ===== 响应式查询能力（强类型）=====
 
   /** 原生代币余额 - 参数: { address: string } */
-  nativeBalance?: KeyFetchInstance<typeof BalanceOutputSchema>
+  nativeBalance?: KeyFetchInstance<BalanceOutput, AddressParams>
 
   /** 所有代币余额 - 参数: { address: string } */
-  tokenBalances?: KeyFetchInstance<typeof TokenBalancesOutputSchema>
+  tokenBalances?: KeyFetchInstance<TokenBalancesOutput, AddressParams>
 
   /** 交易历史 - 参数: { address: string, limit?: number } */
-  transactionHistory?: KeyFetchInstance<typeof TransactionsOutputSchema>
+  transactionHistory?: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   /** 单笔交易详情 - 参数: { hash: string } */
-  transaction?: KeyFetchInstance<typeof TransactionOutputSchema>
+  transaction?: KeyFetchInstance<TransactionOutput, TransactionParams>
 
   /** 交易状态 - 参数: { hash: string } */
-  transactionStatus?: KeyFetchInstance<typeof TransactionStatusOutputSchema>
+  transactionStatus?: KeyFetchInstance<TransactionStatusOutput, TransactionStatusParams>
 
   /** 当前区块高度 - 参数: {} */
-  blockHeight?: KeyFetchInstance<typeof BlockHeightOutputSchema>
+  blockHeight?: KeyFetchInstance<BlockHeightOutput>
 
   // ===== 服务接口方法（通过 extends Partial<ITransactionService & IIdentityService & IAssetService> 继承）=====
   // - ITransactionService: buildTransaction, estimateFee, signTransaction, broadcastTransaction

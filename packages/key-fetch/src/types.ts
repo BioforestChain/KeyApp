@@ -5,15 +5,17 @@
  */
 
 import type { z } from 'zod'
-import type superjsonDefault from 'superjson'
+import type { SuperJSON } from 'superjson'
 
 // ==================== Schema Types ====================
 
 /** 任意 Zod Schema */
-export type AnyZodSchema = z.ZodType<unknown>
+export type ZodUnknowSchema = z.ZodType<unknown>
+export type ZodVoidSchema = z.ZodVoid
 
 /** 从 Schema 推断输出类型 */
-export type InferOutput<S extends AnyZodSchema> = z.infer<S>
+export type KeyFetchOutput<S extends KeyFetchInstance> = S extends KeyFetchInstance<infer T> ? T : never
+export type KeyFetchInput<S extends KeyFetchInstance> = S extends KeyFetchInstance<infer _, infer T> ? T : never
 
 // ==================== Cache Types ====================
 
@@ -70,13 +72,14 @@ export interface MiddlewareContext<P extends FetchParams = FetchParams> {
   // ==================== SuperJSON 工具 (核心标准) ====================
 
   /** SuperJSON 库实例（支持 BigInt、Date 等特殊类型的序列化） */
-  superjson: typeof superjsonDefault
+  superjson: SuperJSON
   /** 创建包含序列化数据的 Response 对象（自动添加 X-Superjson: true 头） */
   createResponse: <T>(data: T, init?: ResponseInit) => Response
   /** 创建包含序列化数据的 Request 对象（自动添加 X-Superjson: true 头） */
   createRequest: <T>(data: T, url?: string, init?: RequestInit) => Request
   /** 解析 Request/Response body（根据 X-Superjson 头自动选择 superjson.parse 或 JSON.parse） */
   body: <T>(input: Request | Response) => Promise<T>
+  parseBody: <T>(input: string, isSuperjson?: boolean) => Promise<T>
 }
 
 /**
@@ -120,32 +123,33 @@ export interface SubscribeContext<P extends FetchParams = FetchParams> {
 
 // 向后兼容别名
 /** @deprecated 使用 FetchPlugin 代替 */
-export type CachePlugin<_S extends AnyZodSchema = AnyZodSchema> = FetchPlugin
+export type CachePlugin<_S extends ZodUnknowSchema = ZodUnknowSchema> = FetchPlugin
 
 // ==================== KeyFetch Instance Types ====================
 
 /** 请求参数基础类型 */
-export interface FetchParams {
-  [key: string]: string | number | boolean | undefined
-}
+export type FetchParams = unknown
+// export interface FetchParams {
+//   [key: string]: string | number | boolean | undefined
+// }
 
 /** KeyFetch 定义选项 */
 export interface KeyFetchDefineOptions<
-  S extends AnyZodSchema,
-  P extends AnyZodSchema = AnyZodSchema
+  TOUT extends unknown,
+  TIN extends unknown = unknown,
 > {
   /** 唯一名称 */
   name: string
   /** 输出 Zod Schema（必选） */
-  schema: S
+  outputSchema: z.ZodType<TOUT>
   /** 参数 Zod Schema（可选，用于类型推断和运行时验证） */
-  paramsSchema?: P
+  inputSchema?: z.ZodType<TIN>
   /** 基础 URL 模板，支持 :param 占位符 */
   url?: string
   /** HTTP 方法 */
   method?: 'GET' | 'POST'
   /** 插件列表 */
-  use?: FetchPlugin[]
+  use?: FetchPlugin<TIN>[]
 }
 
 /** 订阅回调 */
@@ -153,26 +157,26 @@ export type SubscribeCallback<T> = (data: T, event: 'initial' | 'update') => voi
 
 /** KeyFetch 实例 - 工厂函数返回的对象 */
 export interface KeyFetchInstance<
-  S extends AnyZodSchema,
-  P extends AnyZodSchema = AnyZodSchema
+  TOUT extends unknown = unknown,
+  TIN extends unknown = unknown,
 > {
   /** 实例名称 */
   readonly name: string
   /** 输出 Schema */
-  readonly schema: S
+  readonly outputSchema: z.ZodType<TOUT>
   /** 参数 Schema */
-  readonly paramsSchema: P | undefined
+  readonly inputSchema: z.ZodType<TIN> | undefined
   /** 输出类型（用于类型推断） */
-  readonly _output: InferOutput<S>
+  readonly _output: TOUT
   /** 参数类型（用于类型推断） */
-  readonly _params: InferOutput<P>
+  readonly _params: TIN
 
   /**
    * 执行请求
    * @param params 请求参数（强类型）
    * @param options 额外选项
    */
-  fetch(params: InferOutput<P>, options?: { skipCache?: boolean }): Promise<InferOutput<S>>
+  fetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT>
 
   /**
    * 订阅数据变化
@@ -181,8 +185,8 @@ export interface KeyFetchInstance<
    * @returns 取消订阅函数
    */
   subscribe(
-    params: InferOutput<P>,
-    callback: SubscribeCallback<InferOutput<S>>
+    params: TIN,
+    callback: SubscribeCallback<TOUT>
   ): () => void
 
   /**
@@ -193,7 +197,7 @@ export interface KeyFetchInstance<
   /**
    * 获取当前缓存的数据（如果有）
    */
-  getCached(params?: InferOutput<P>): InferOutput<S> | undefined
+  getCached(params?: TIN): TOUT | undefined
 
   /**
    * React Hook - 响应式数据绑定
@@ -207,9 +211,11 @@ export interface KeyFetchInstance<
    * ```
    */
   useState(
-    params: InferOutput<P>,
+    params: TIN,
     options?: UseKeyFetchOptions
-  ): UseKeyFetchResult<InferOutput<S>>
+  ): UseKeyFetchResult<TOUT>
+
+  use(...plugins: FetchPlugin<TIN>[]): KeyFetchInstance<TOUT, TIN>
 }
 
 // ==================== Registry Types ====================
@@ -217,9 +223,9 @@ export interface KeyFetchInstance<
 /** 全局注册表 */
 export interface KeyFetchRegistry {
   /** 注册 KeyFetch 实例 */
-  register<S extends AnyZodSchema>(kf: KeyFetchInstance<S>): void
+  register<KF extends KeyFetchInstance>(kf: KF): void
   /** 获取实例 */
-  get<S extends AnyZodSchema>(name: string): KeyFetchInstance<S> | undefined
+  get<KF extends KeyFetchInstance>(name: string): KF | undefined
   /** 按名称失效 */
   invalidate(name: string): void
   /** 监听实例更新 */

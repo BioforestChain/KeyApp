@@ -44,7 +44,7 @@ describe('keyFetch useState in React component', () => {
 
         const instance = keyFetch.create({
             name: 'react.test.balance',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api.test.com/balance',
         })
 
@@ -69,7 +69,7 @@ describe('keyFetch useState in React component', () => {
 
         const instance = keyFetch.create({
             name: 'react.test.error',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api.test.com/balance',
         })
 
@@ -89,7 +89,7 @@ describe('keyFetch useState in React component', () => {
 
         const instance = keyFetch.create({
             name: 'react.test.disabled',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api.test.com/balance',
         })
 
@@ -116,7 +116,7 @@ describe('merge useState in React component', () => {
 
         const source = keyFetch.create({
             name: 'react.merge.source',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api.test.com/balance',
         })
 
@@ -168,7 +168,7 @@ describe('derive useState in React component', () => {
 
         const addressAsset = keyFetch.create({
             name: 'react.derive.source',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -176,7 +176,7 @@ describe('derive useState in React component', () => {
         const nativeBalance = derive({
             name: 'react.derive.balance',
             source: addressAsset,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -216,7 +216,7 @@ describe('derive useState in React component', () => {
 
         const addressAsset = keyFetch.create({
             name: 'react.derive.null.source',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -224,7 +224,7 @@ describe('derive useState in React component', () => {
         const nativeBalance = derive({
             name: 'react.derive.null.balance',
             source: addressAsset,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -283,7 +283,7 @@ describe('ChainProvider simulation with merge and derive', () => {
         // Simulates BiowalletProvider.nativeBalance (derived from addressAsset)
         const addressAsset = keyFetch.create({
             name: 'biowallet.bfmeta.addressAsset.react',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://walletapi.bfmeta.info/wallet/bfm/address/asset',
             method: 'POST',
         })
@@ -291,7 +291,7 @@ describe('ChainProvider simulation with merge and derive', () => {
         const nativeBalance = derive({
             name: 'biowallet.bfmeta.nativeBalance.react',
             source: addressAsset,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {

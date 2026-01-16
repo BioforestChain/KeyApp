@@ -10,6 +10,7 @@ vi.mock('@/services/chain-config', () => ({
   chainConfigService: {
     getSymbol: () => 'BFM',
     getDecimals: () => 8,
+    getBiowalletGenesisBlock: () => null,
   },
 }))
 
@@ -56,7 +57,7 @@ describe('BiowalletProvider (real fixtures)', () => {
       if (url.endsWith('/block/lastblock')) {
         return createMockResponse(lastblock)
       }
-      if (url.endsWith('/transaction/list')) {
+      if (url.endsWith('/transactions/query')) {
         expect(typeof input === 'string' ? 'POST' : input.method).toBe('POST')
         return createMockResponse(query)
       }

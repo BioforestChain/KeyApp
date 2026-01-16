@@ -8,11 +8,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { injectUseState } from './core'
 import type {
   KeyFetchInstance,
-  AnyZodSchema,
-  InferOutput,
   FetchParams,
   UseKeyFetchResult,
   UseKeyFetchOptions,
+  KeyFetchOutput,
+  KeyFetchInput,
 } from './types'
 
 /**
@@ -52,19 +52,15 @@ function useStableParams(params: FetchParams | undefined): FetchParams | undefin
  * function BlockHeight() {
  *   const { data, isLoading } = useKeyFetch(lastBlockFetch, { chainId: 'bfmeta' })
  *   
- *   if (isLoading) return <div>Loading...</div>
- *   return <div>Height: {data?.result.height}</div>
- * }
- * ```
  */
-export function useKeyFetch<S extends AnyZodSchema>(
-  kf: KeyFetchInstance<S>,
-  params?: FetchParams,
+export function useKeyFetch<KF extends KeyFetchInstance>(
+  kf: KF,
+  params: KeyFetchInput<KF>,
   options?: UseKeyFetchOptions
-): UseKeyFetchResult<InferOutput<S>> {
-  type T = InferOutput<S>
+): UseKeyFetchResult<KeyFetchOutput<KF>> {
+  type TOUT = KeyFetchOutput<KF>
 
-  const [data, setData] = useState<T | undefined>(undefined)
+  const [data, setData] = useState<TOUT | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [isFetching, setIsFetching] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined)
@@ -87,7 +83,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     setError(undefined)
 
     try {
-      const result = await kf.fetch(paramsRef.current ?? {}, { skipCache: true })
+      const result = await kf.fetch(paramsRef.current, { skipCache: true }) as TOUT
       setData(result)
       errorCountRef.current = 0 // 成功时重置错误计数
     } catch (err) {
@@ -121,7 +117,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     lastFetchTimeRef.current = now
 
     // 捕获当前 params（避免闭包问题）
-    const currentParams = paramsRef.current ?? {}
+    const currentParams = paramsRef.current
 
     setIsLoading(true)
     setIsFetching(true)
@@ -133,7 +129,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     kf.fetch(currentParams)
       .then((result) => {
         if (isCancelled) return
-        setData(result)
+        setData(result as TOUT)
         setIsLoading(false)
         setIsFetching(false)
         errorCountRef.current = 0
@@ -150,7 +146,7 @@ export function useKeyFetch<S extends AnyZodSchema>(
     const unsubscribe = kf.subscribe(currentParams, (newData, _event) => {
       if (isCancelled) return
       try {
-        setData(newData)
+        setData(newData as TOUT)
         setIsLoading(false)
         setIsFetching(false)
         setError(undefined)
@@ -188,10 +184,10 @@ export function useKeyFetch<S extends AnyZodSchema>(
  * }
  * ```
  */
-export function useKeyFetchSubscribe<S extends AnyZodSchema>(
-  kf: KeyFetchInstance<S>,
-  params: FetchParams | undefined,
-  callback: (data: InferOutput<S>, event: 'initial' | 'update') => void
+export function useKeyFetchSubscribe<KF extends KeyFetchInstance>(
+  kf: KF,
+  params: KeyFetchInput<KF>,
+  callback: (data: KeyFetchOutput<KF>, event: 'initial' | 'update') => void
 ): void {
   const callbackRef = useRef(callback)
   callbackRef.current = callback
@@ -205,7 +201,7 @@ export function useKeyFetchSubscribe<S extends AnyZodSchema>(
   useEffect(() => {
     const currentParams = paramsRef.current ?? {}
     const unsubscribe = kf.subscribe(currentParams, (data, event) => {
-      callbackRef.current(data, event)
+      callbackRef.current(data as KeyFetchOutput<KF>, event)
     })
 
     return () => {
@@ -221,11 +217,11 @@ export function useKeyFetchSubscribe<S extends AnyZodSchema>(
  * 内部 useState 实现
  * 复用 useKeyFetch 逻辑，供 KeyFetchInstance.useState() 调用
  */
-function useStateImpl<S extends AnyZodSchema>(
-  kf: KeyFetchInstance<S>,
-  params?: FetchParams,
+function useStateImpl<KF extends KeyFetchInstance>(
+  kf: KF,
+  params: KeyFetchInput<KF>,
   options?: { enabled?: boolean }
-): UseKeyFetchResult<InferOutput<S>> {
+): UseKeyFetchResult<KeyFetchOutput<KF>> {
   return useKeyFetch(kf, params, options)
 }
 

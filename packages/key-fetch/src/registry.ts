@@ -4,7 +4,7 @@
  * 全局注册表，管理所有 KeyFetch 实例和依赖关系
  */
 
-import type { KeyFetchRegistry, KeyFetchInstance, AnyZodSchema, CacheStore, CacheEntry } from './types'
+import type { KeyFetchRegistry, KeyFetchInstance, CacheStore, CacheEntry } from './types'
 
 /** 内存缓存实现 */
 class MemoryCacheStore implements CacheStore {
@@ -40,17 +40,17 @@ export const globalCache = new MemoryCacheStore()
 
 /** Registry 实现 */
 class KeyFetchRegistryImpl implements KeyFetchRegistry {
-  private instances = new Map<string, KeyFetchInstance<AnyZodSchema>>()
+  private instances = new Map<string, KeyFetchInstance>()
   private updateListeners = new Map<string, Set<() => void>>()
   private dependencies = new Map<string, Set<string>>() // dependent -> dependencies
   private dependents = new Map<string, Set<string>>() // dependency -> dependents
 
-  register<S extends AnyZodSchema>(kf: KeyFetchInstance<S>): void {
-    this.instances.set(kf.name, kf as KeyFetchInstance<AnyZodSchema>)
+  register<KF extends KeyFetchInstance>(kf: KF): void {
+    this.instances.set(kf.name, kf)
   }
 
-  get<S extends AnyZodSchema>(name: string): KeyFetchInstance<S> | undefined {
-    return this.instances.get(name) as KeyFetchInstance<S> | undefined
+  get<KF extends KeyFetchInstance>(name: string): KF | undefined {
+    return this.instances.get(name) as KF | undefined
   }
 
   invalidate(name: string): void {
@@ -67,7 +67,7 @@ class KeyFetchRegistryImpl implements KeyFetchRegistry {
       this.updateListeners.set(name, listeners)
     }
     listeners.add(callback)
-    
+
     return () => {
       listeners?.delete(callback)
     }

@@ -97,8 +97,8 @@ describe('BiowalletProvider exact structure', () => {
         // Create addressAsset exactly like biowallet-provider
         const addressAsset = keyFetch.create({
             name: `biowallet.${chainId}.addressAsset.test`,
-            schema: AssetResponseSchema,
-            paramsSchema: AddressParamsSchema,
+            outputSchema: AssetResponseSchema,
+            inputSchema: AddressParamsSchema,
             url: `${baseUrl}/address/asset`,
             method: 'POST',
             use: [postBody(), ttl(60_000)],
@@ -108,7 +108,7 @@ describe('BiowalletProvider exact structure', () => {
         const nativeBalance = derive({
             name: `biowallet.${chainId}.nativeBalance.test`,
             source: addressAsset,
-            schema: BalanceOutputSchema,
+            outputSchema: BalanceOutputSchema,
             use: [
                 transform<z.infer<typeof AssetResponseSchema>, z.infer<typeof BalanceOutputSchema>>({
                     transform: (raw) => {
@@ -170,8 +170,8 @@ describe('BiowalletProvider exact structure', () => {
         // Simulate BiowalletProvider
         const addressAsset = keyFetch.create({
             name: `biowallet.${chainId}.addressAsset.cp`,
-            schema: AssetResponseSchema,
-            paramsSchema: AddressParamsSchema,
+            outputSchema: AssetResponseSchema,
+            inputSchema: AddressParamsSchema,
             url: `${baseUrl}/address/asset`,
             method: 'POST',
             use: [postBody(), ttl(60_000)],
@@ -180,7 +180,7 @@ describe('BiowalletProvider exact structure', () => {
         const nativeBalance = derive({
             name: `biowallet.${chainId}.nativeBalance.cp`,
             source: addressAsset,
-            schema: BalanceOutputSchema,
+            outputSchema: BalanceOutputSchema,
             use: [
                 transform<z.infer<typeof AssetResponseSchema>, z.infer<typeof BalanceOutputSchema>>({
                     transform: (raw) => {
@@ -241,7 +241,7 @@ describe('BiowalletProvider exact structure', () => {
 
         const addressAsset = keyFetch.create({
             name: `biowallet.${chainId}.addressAsset.null`,
-            schema: AssetResponseSchema,
+            outputSchema: AssetResponseSchema,
             url: 'https://walletapi.bf-meta.org/wallet/bfmetav2/address/asset',
             method: 'POST',
             use: [postBody(), ttl(60_000)],
@@ -250,7 +250,7 @@ describe('BiowalletProvider exact structure', () => {
         const nativeBalance = derive({
             name: `biowallet.${chainId}.nativeBalance.null`,
             source: addressAsset,
-            schema: BalanceOutputSchema,
+            outputSchema: BalanceOutputSchema,
             use: [
                 transform<z.infer<typeof AssetResponseSchema>, z.infer<typeof BalanceOutputSchema>>({
                     transform: (raw) => {

@@ -29,36 +29,34 @@
 import { z } from 'zod'
 import type {
     KeyFetchInstance,
-    AnyZodSchema,
     FetchPlugin,
 } from './types'
 import { keyFetch } from './index'
 
 /** Combine 选项 */
 export interface CombineOptions<
-    S extends AnyZodSchema,
-    Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>,
-    P extends AnyZodSchema = z.ZodType<InferCombinedParams<Sources>>
+    TOUT,
+    Sources extends Record<string, KeyFetchInstance>,
+    TIN = InferCombinedParams<Sources>
 > {
     /** 合并后的名称 */
     name: string
     /** 输出 Schema */
-    schema: S
+    outputSchema: z.ZodType<TOUT>
     /** 源 fetcher 对象 */
     sources: Sources
     /** 自定义参数 Schema（可选，默认从 sources 推导） */
-    paramsSchema?: P
+    inputSchema?: z.ZodType<TIN>
     /** 参数转换函数：将外部 params 转换为各个 source 需要的 params */
-    transformParams?: (params: z.infer<P>) => InferCombinedParams<Sources>
+    transformParams?: (params: TIN) => InferCombinedParams<Sources>
     /** 插件列表 */
     use?: FetchPlugin[]
 }
 
 /** 从 Sources 推导出组合的 params 类型 */
-type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>> = {
-    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<AnyZodSchema, infer P>
-    ? (P extends AnyZodSchema ? z.infer<P> : never)
-    : never
+type InferCombinedParams<Sources extends Record<string, KeyFetchInstance>> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type inference requires any
+    [K in keyof Sources]: Sources[K] extends KeyFetchInstance<unknown, infer P> ? P : never
 }
 
 /**
@@ -70,13 +68,13 @@ type InferCombinedParams<Sources extends Record<string, KeyFetchInstance<AnyZodS
  * - 自动订阅所有 sources
  */
 export function combine<
-    S extends AnyZodSchema,
-    Sources extends Record<string, KeyFetchInstance<AnyZodSchema, AnyZodSchema>>,
-    P extends AnyZodSchema = z.ZodType<InferCombinedParams<Sources>>
+    TOUT,
+    Sources extends Record<string, KeyFetchInstance>,
+    TIN = InferCombinedParams<Sources>
 >(
-    options: CombineOptions<S, Sources, P>
-): KeyFetchInstance<S, P> {
-    const { name, schema, sources, paramsSchema: customParamsSchema, transformParams, use = [] } = options
+    options: CombineOptions<TOUT, Sources, TIN>
+): KeyFetchInstance<TOUT, TIN> {
+    const { name, outputSchema, sources, inputSchema, transformParams, use = [] } = options
 
     const sourceKeys = Object.keys(sources)
 
@@ -89,7 +87,7 @@ export function combine<
         onFetch: async (_request, _next, context) => {
             // 转换 params：如果有 transformParams，使用它；否则直接使用 context.params
             const sourceParams = transformParams
-                ? transformParams(context.params as unknown as z.infer<P>)
+                ? transformParams(context.params as unknown as TIN)
                 : (context.params as unknown as InferCombinedParams<Sources>)
 
             // 并行调用所有 sources
@@ -114,7 +112,7 @@ export function combine<
         onSubscribe: (context) => {
             // 转换 params（与 onFetch 保持一致）
             const sourceParams = transformParams
-                ? transformParams(context.params as unknown as z.infer<P>)
+                ? transformParams(context.params as unknown as TIN)
                 : (context.params as unknown as InferCombinedParams<Sources>)
 
             // 订阅所有 sources，任何一个更新都触发 refetch
@@ -132,33 +130,33 @@ export function combine<
         },
     }
 
-    // 确定最终的 paramsSchema
-    let finalParamsSchema: AnyZodSchema | undefined
-    if (customParamsSchema) {
-        // 使用自定义的 paramsSchema
-        finalParamsSchema = customParamsSchema
+    // 确定最终的 inputSchema
+    let finalParamsSchema: unknown | undefined
+    if (inputSchema) {
+        // 使用自定义的 inputSchema
+        finalParamsSchema = inputSchema
     } else {
         // 自动创建组合的 paramsSchema：{ sourceKey1: schema1, sourceKey2: schema2 }
-        const combinedParamsShape: Record<string, AnyZodSchema> = {}
+        const combinedParamsShape: Record<string, unknown> = {}
         for (const key of sourceKeys) {
-            const sourceParamsSchema = sources[key].paramsSchema
+            const sourceParamsSchema = sources[key].inputSchema
             if (sourceParamsSchema) {
                 combinedParamsShape[key] = sourceParamsSchema
             }
         }
         finalParamsSchema = Object.keys(combinedParamsShape).length > 0
-            ? z.object(combinedParamsShape as z.ZodRawShape)
+            ? z.object(combinedParamsShape)
             : undefined
     }
 
     // 使用 keyFetch.create 创建实例
     return keyFetch.create({
         name,
-        schema,
-        paramsSchema: finalParamsSchema,
+        outputSchema: outputSchema,
+        inputSchema: finalParamsSchema as z.ZodType<TIN>,
         url,
         method: 'GET',
         // 用户插件在前，combinePlugin 在后，这样 transform 可以处理 combined 结果
         use: [...use, combinePlugin],
-    }) as KeyFetchInstance<S, P>
+    }) as KeyFetchInstance<TOUT, TIN>
 }

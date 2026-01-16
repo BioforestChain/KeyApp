@@ -29,7 +29,8 @@ export interface IntervalOptions {
  */
 export function interval(ms: number | (() => number)): FetchPlugin {
   // 每个参数组合独立的轮询状态
-  const timers = new Map<string, ReturnType<typeof setInterval>>()
+  const timers = new Map<string, ReturnType<typeof setTimeout>>()
+  const active = new Map<string, boolean>()
   const subscriberCounts = new Map<string, number>()
 
   const getKey = (ctx: SubscribeContext): string => {
@@ -51,17 +52,26 @@ export function interval(ms: number | (() => number)): FetchPlugin {
 
       // 首个订阅者，启动轮询
       if (count === 1) {
-        const intervalMs = typeof ms === 'function' ? ms() : ms
+        active.set(key, true)
 
         const poll = async () => {
+          if (!active.get(key)) return
+
           try {
             await ctx.refetch()
           } catch (error) {
             // 静默处理轮询错误
+          } finally {
+            if (active.get(key)) {
+              const nextMs = typeof ms === 'function' ? ms() : ms
+              const timer = setTimeout(poll, nextMs)
+              timers.set(key, timer)
+            }
           }
         }
 
-        const timer = setInterval(poll, intervalMs)
+        const initialMs = typeof ms === 'function' ? ms() : ms
+        const timer = setTimeout(poll, initialMs)
         timers.set(key, timer)
       }
 
@@ -72,9 +82,10 @@ export function interval(ms: number | (() => number)): FetchPlugin {
 
         // 最后一个订阅者，停止轮询
         if (newCount === 0) {
+          active.set(key, false)
           const timer = timers.get(key)
           if (timer) {
-            clearInterval(timer)
+            clearTimeout(timer)
             timers.delete(key)
           }
           subscriberCounts.delete(key)

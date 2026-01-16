@@ -9,10 +9,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, walletApiUnwrap, postBody } from '@biochain/key-fetch'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction, Action } from './types'
-import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
+import { keyFetch, interval, deps, derive, transform, walletApiUnwrap, postBody } from '@biochain/key-fetch'
+import type { KeyFetchInstance, } from '@biochain/key-fetch'
+import type { ApiProvider, Balance, Transaction, Direction, Action, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
+import { BalanceOutputSchema, TransactionsOutputSchema, AddressParamsSchema, TxHistoryParamsSchema } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -41,6 +41,8 @@ const TxHistoryResultSchema = z.object({
   result: z.array(NativeTxSchema),
 }).passthrough()
 
+type BalanceResult = z.infer<typeof BalanceResultSchema>
+type TxHistoryResult = z.infer<typeof TxHistoryResultSchema>
 type NativeTx = z.infer<typeof NativeTxSchema>
 
 // ==================== 工具函数 ====================
@@ -81,11 +83,11 @@ export class EthWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(EthW
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #balanceApi: KeyFetchInstance<typeof BalanceResultSchema>
-  readonly #txHistoryApi: KeyFetchInstance<typeof TxHistoryResultSchema>
+  readonly #balanceApi: KeyFetchInstance<BalanceResult, AddressParams>
+  readonly #txHistoryApi: KeyFetchInstance<TxHistoryResult, TxHistoryParams>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -94,26 +96,47 @@ export class EthWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(EthW
 
     const { endpoint: base, symbol, decimals } = this
 
-    this.#balanceApi = keyFetch.create({
-      name: `ethwallet.${chainId}.balanceApi`,
-      schema: BalanceResultSchema,
-      url: `${base}/balance`,
-      method: 'POST',
-      use: [postBody(), walletApiUnwrap(), ttl(60_000)],
+    // 区块高度 - 使用简单的轮询机制（第三方 API 可能没有专门的 blockHeight 端点）
+    // 我们使用 interval 来驱动其他数据源的更新
+    const blockHeightTrigger = keyFetch.create({
+      name: `ethwallet.${chainId}.blockTrigger`,
+      outputSchema: z.object({ timestamp: z.number() }),
+      url: 'internal://trigger', // 虚拟 URL
+      use: [
+        interval(12_000), // EVM 链约 12s 出块
+        {
+          name: 'trigger',
+          onFetch: async (_req, _next, ctx) => {
+            return ctx.createResponse({ timestamp: Date.now() })
+          },
+        },
+      ],
     })
 
+    // 余额查询 - 由 blockHeightTrigger 驱动
+    this.#balanceApi = keyFetch.create({
+      name: `ethwallet.${chainId}.balanceApi`,
+      outputSchema: BalanceResultSchema,
+      inputSchema: AddressParamsSchema,
+      url: `${base}/balance`,
+      method: 'POST',
+      use: [deps(blockHeightTrigger), postBody(), walletApiUnwrap()],
+    })
+
+    // 交易历史 - 由 blockHeightTrigger 驱动
     this.#txHistoryApi = keyFetch.create({
       name: `ethwallet.${chainId}.txHistoryApi`,
-      schema: TxHistoryResultSchema,
+      outputSchema: TxHistoryResultSchema,
+      inputSchema: TxHistoryParamsSchema,
       url: `${base}/trans/normal/history`,
       method: 'POST',
-      use: [postBody(), walletApiUnwrap(), ttl(5 * 60_000)],
+      use: [deps(blockHeightTrigger), postBody(), walletApiUnwrap()],
     })
 
     this.nativeBalance = derive({
       name: `ethwallet.${chainId}.nativeBalance`,
       source: this.#balanceApi,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<string, Balance>({
         transform: (raw) => ({
           amount: Amount.fromRaw(raw, decimals, symbol),
@@ -122,13 +145,19 @@ export class EthWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(EthW
       })],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = keyFetch.create({
       name: `ethwallet.${chainId}.transactionHistory`,
-      source: this.#txHistoryApi,
-      schema: TransactionsOutputSchema,
-      use: [transform<z.infer<typeof TxHistoryResultSchema>, Transaction[]>({
-        transform: (raw, ctx) => {
-          const address = ((ctx.params.address as string) ?? '').toLowerCase()
+      inputSchema: TxHistoryParamsSchema,
+      outputSchema: TransactionsOutputSchema,
+      url: `${base}/trans/normal/history`,
+      method: 'POST',
+    }).use(
+      deps(this.#txHistoryApi),
+      postBody(),
+      transform({
+        transform: (raw: TxHistoryResult, ctx) => {
+          console.log('QAQ', raw)
+          const address = ctx.params.address.toLowerCase()
           return raw.result.map((tx): Transaction => ({
             hash: tx.hash,
             from: tx.from,
@@ -146,8 +175,9 @@ export class EthWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(EthW
             }],
           }))
         },
-      })],
-    })
+      }),
+      walletApiUnwrap(),
+    )
   }
 }
 

@@ -5,10 +5,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, pathParams } from '@biochain/key-fetch'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
-import { BalanceOutputSchema, TransactionsOutputSchema, BlockHeightOutputSchema } from './types'
+import { keyFetch, interval, deps, derive, transform, pathParams } from '@biochain/key-fetch'
+import type { KeyFetchInstance, } from '@biochain/key-fetch'
+import { BalanceOutputSchema, TransactionsOutputSchema, BlockHeightOutputSchema, AddressParamsSchema, TxHistoryParamsSchema } from './types'
+import type { ApiProvider, Balance, Direction, BalanceOutput, BlockHeightOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -31,6 +31,7 @@ const BlockHeightApiSchema = z.number()
 
 type AddressInfo = z.infer<typeof AddressInfoSchema>
 type TxList = z.infer<typeof TxListSchema>
+type BlockHeightApi = z.infer<typeof BlockHeightApiSchema>
 
 function getDirection(vin: any[], vout: any[], address: string): Direction {
   const isFrom = vin?.some(v => v.prevout?.scriptpubkey_address === address)
@@ -61,13 +62,13 @@ export class MempoolProvider extends BitcoinIdentityMixin(BitcoinTransactionMixi
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #addressInfo: KeyFetchInstance<typeof AddressInfoSchema>
-  readonly #txList: KeyFetchInstance<typeof TxListSchema>
-  readonly #blockHeight: KeyFetchInstance<typeof BlockHeightApiSchema>
+  readonly #addressInfo: KeyFetchInstance<AddressInfo, AddressParams>
+  readonly #txList: KeyFetchInstance<TxList, TxHistoryParams>
+  readonly #blockHeight: KeyFetchInstance<BlockHeightApi>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
-  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  readonly blockHeight: KeyFetchInstance<BlockHeightOutput>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -76,47 +77,71 @@ export class MempoolProvider extends BitcoinIdentityMixin(BitcoinTransactionMixi
 
     const { endpoint: base, symbol, decimals } = this
 
-    this.#addressInfo = keyFetch.create({ name: `mempool.${chainId}.addressInfo`, schema: AddressInfoSchema, url: `${base}/address/:address`, use: [pathParams(), ttl(60_000)] })
-    this.#txList = keyFetch.create({ name: `mempool.${chainId}.txList`, schema: TxListSchema, url: `${base}/address/:address/txs`, use: [pathParams(), ttl(5 * 60_000)] })
-    this.#blockHeight = keyFetch.create({ name: `mempool.${chainId}.blockHeightApi`, schema: BlockHeightApiSchema, url: `${base}/blocks/tip/height`, use: [ttl(30_000)] })
+    // 区块高度 - 使用 interval 轮询
+    this.#blockHeight = keyFetch.create({
+      name: `mempool.${chainId}.blockHeightApi`,
+      outputSchema: BlockHeightApiSchema,
+      url: `${base}/blocks/tip/height`,
+      use: [interval(60_000)] // Bitcoin 约 10 分钟出块，60s 轮询合理
+    })
+
+    // 地址信息 - 由 blockHeight 驱动
+    this.#addressInfo = keyFetch.create({
+      name: `mempool.${chainId}.addressInfo`,
+      outputSchema: AddressInfoSchema,
+      inputSchema: AddressParamsSchema,
+      url: `${base}/address/:address`,
+      use: [deps(this.#blockHeight), pathParams()]
+    })
+
+    // 交易列表 - 由 blockHeight 驱动
+    this.#txList = keyFetch.create({
+      name: `mempool.${chainId}.txList`,
+      outputSchema: TxListSchema,
+      inputSchema: TxHistoryParamsSchema,
+      url: `${base}/address/:address/txs`,
+      use: [deps(this.#blockHeight), pathParams()]
+    })
 
     this.nativeBalance = derive({
       name: `mempool.${chainId}.nativeBalance`,
       source: this.#addressInfo,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<AddressInfo, Balance>({
-        transform: (r) => {
+        transform: (r, ctx) => {
           const balance = r.chain_stats.funded_txo_sum - r.chain_stats.spent_txo_sum
-          return { amount: Amount.fromRaw(balance.toString(), decimals, symbol), symbol }
+          return ctx.createResponse({ amount: Amount.fromRaw(balance.toString(), decimals, symbol), symbol })
         },
       })],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = derive<TxList, TransactionsOutput, TxHistoryParams>({
       name: `mempool.${chainId}.transactionHistory`,
       source: this.#txList,
-      schema: TransactionsOutputSchema,
-      use: [transform<TxList, Transaction[]>({
-        transform: (r, ctx) => {
-          const addr = (ctx.params.address as string) ?? ''
-          return r.map(tx => ({
-            hash: tx.txid,
-            from: tx.vin[0]?.prevout?.scriptpubkey_address ?? '',
-            to: tx.vout[0]?.scriptpubkey_address ?? '',
-            timestamp: (tx.status.block_time ?? 0) * 1000,
-            status: tx.status.confirmed ? 'confirmed' as const : 'pending' as const,
-            action: 'transfer' as const,
-            direction: getDirection(tx.vin, tx.vout, addr),
-            assets: [{ assetType: 'native' as const, value: (tx.vout[0]?.value ?? 0).toString(), symbol, decimals }],
-          }))
-        },
-      })],
+      outputSchema: TransactionsOutputSchema,
+      use: [
+        transform({
+          transform: (r: TxList, ctx) => {
+            const addr = ctx.params.address
+            return r.map(tx => ({
+              hash: tx.txid,
+              from: tx.vin[0]?.prevout?.scriptpubkey_address ?? '',
+              to: tx.vout[0]?.scriptpubkey_address ?? '',
+              timestamp: (tx.status.block_time ?? 0) * 1000,
+              status: tx.status.confirmed ? 'confirmed' as const : 'pending' as const,
+              action: 'transfer' as const,
+              direction: getDirection(tx.vin, tx.vout, addr),
+              assets: [{ assetType: 'native' as const, value: (tx.vout[0]?.value ?? 0).toString(), symbol, decimals }],
+            }))
+          },
+        }),
+      ]
     })
 
     this.blockHeight = derive({
       name: `mempool.${chainId}.blockHeight`,
       source: this.#blockHeight,
-      schema: BlockHeightOutputSchema,
+      outputSchema: BlockHeightOutputSchema,
       use: [transform<number, bigint>({ transform: (r) => BigInt(r) })],
     })
   }

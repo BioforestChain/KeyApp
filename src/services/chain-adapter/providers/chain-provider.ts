@@ -17,13 +17,14 @@ import type {
   SignOptions,
   UnsignedTransaction,
   SignedTransaction,
+  BalanceOutput,
+  TokenBalancesOutput,
+  TransactionsOutput,
+  TransactionOutput,
+  BlockHeightOutput,
 } from './types'
 import {
-  BalanceOutputSchema,
   TokenBalancesOutputSchema,
-  TransactionsOutputSchema,
-  TransactionOutputSchema,
-  BlockHeightOutputSchema,
 } from './types'
 
 const SYNC_METHODS = new Set<ApiProviderMethod>(['isValidAddress', 'normalizeAddress'])
@@ -33,12 +34,12 @@ export class ChainProvider {
   private readonly providers: ApiProvider[]
 
   // 缓存 - 避免每次访问 getter 时创建新实例（会导致 React 无限重渲染）
-  private _nativeBalance?: KeyFetchInstance<typeof BalanceOutputSchema>
-  private _tokenBalances?: KeyFetchInstance<typeof TokenBalancesOutputSchema>
-  private _transactionHistory?: KeyFetchInstance<typeof TransactionsOutputSchema>
-  private _transaction?: KeyFetchInstance<typeof TransactionOutputSchema>
-  private _blockHeight?: KeyFetchInstance<typeof BlockHeightOutputSchema>
-  private _allBalances?: KeyFetchInstance<typeof TokenBalancesOutputSchema>
+  private _nativeBalance?: KeyFetchInstance<BalanceOutput>
+  private _tokenBalances?: KeyFetchInstance<TokenBalancesOutput>
+  private _transactionHistory?: KeyFetchInstance<TransactionsOutput>
+  private _transaction?: KeyFetchInstance<TransactionOutput>
+  private _blockHeight?: KeyFetchInstance<BlockHeightOutput>
+  private _allBalances?: KeyFetchInstance<TokenBalancesOutput>
 
   constructor(chainId: string, providers: ApiProvider[]) {
     this.chainId = chainId
@@ -166,7 +167,7 @@ export class ChainProvider {
      * 获取第一个支持 nativeBalance 的 Provider 的 KeyFetchInstance
      * 使用 merge() 实现 auto-fallback，返回非可空类型
      */
-  get nativeBalance(): KeyFetchInstance<typeof BalanceOutputSchema> {
+  get nativeBalance(): KeyFetchInstance<BalanceOutput> {
     if (!this._nativeBalance) {
       const sources = this.providers
         .map(p => p.nativeBalance)
@@ -179,7 +180,7 @@ export class ChainProvider {
     return this._nativeBalance
   }
 
-  get tokenBalances(): KeyFetchInstance<typeof TokenBalancesOutputSchema> {
+  get tokenBalances(): KeyFetchInstance<TokenBalancesOutput> {
     if (!this._tokenBalances) {
       const sources = this.providers
         .map(p => p.tokenBalances)
@@ -198,7 +199,7 @@ export class ChainProvider {
    * - 如果只有 nativeBalance，将其转换为 TokenBalance[] 格式
    * - 统一的 isLoading 状态
    */
-  get allBalances(): KeyFetchInstance<typeof TokenBalancesOutputSchema> {
+  get allBalances(): KeyFetchInstance<TokenBalancesOutput> {
     if (!this._allBalances) {
       const hasTokenBalances = this.supportsTokenBalances
       const hasNativeBalance = this.supportsNativeBalance
@@ -215,7 +216,7 @@ export class ChainProvider {
         this._allBalances = derive({
           name: `${chainId}.allBalances`,
           source: this.nativeBalance,
-          schema: TokenBalancesOutputSchema,
+          outputSchema: TokenBalancesOutputSchema,
           use: [
             transform({
               transform: (balance: { amount: import('@/types/amount').Amount; symbol: string } | null) => {
@@ -242,7 +243,7 @@ export class ChainProvider {
     return this._allBalances
   }
 
-  get transactionHistory(): KeyFetchInstance<typeof TransactionsOutputSchema> {
+  get transactionHistory(): KeyFetchInstance<TransactionsOutput> {
     if (!this._transactionHistory) {
       const sources = this.providers
         .map(p => p.transactionHistory)
@@ -255,7 +256,7 @@ export class ChainProvider {
     return this._transactionHistory
   }
 
-  get transaction(): KeyFetchInstance<typeof TransactionOutputSchema> {
+  get transaction(): KeyFetchInstance<TransactionOutput> {
     if (!this._transaction) {
       const sources = this.providers
         .map(p => p.transaction)
@@ -268,7 +269,7 @@ export class ChainProvider {
     return this._transaction
   }
 
-  get blockHeight(): KeyFetchInstance<typeof BlockHeightOutputSchema> {
+  get blockHeight(): KeyFetchInstance<BlockHeightOutput> {
     if (!this._blockHeight) {
       const sources = this.providers
         .map(p => p.blockHeight)

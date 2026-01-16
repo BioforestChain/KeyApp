@@ -7,16 +7,16 @@
  * 然后通过 transform 插件转换为 ApiProvider 标准输出类型
  */
 
-import type { FetchPlugin, MiddlewareContext } from '../types'
+import type { FetchParams, FetchPlugin, MiddlewareContext } from '../types'
 
-export interface TransformOptions<TInput, TOutput> {
+export interface TransformOptions<TInput, TOutput, TParams extends FetchParams = FetchParams> {
     /**
      * 转换函数
      * @param input 原始验证后的数据
      * @param context 中间件上下文（包含 params）
      * @returns 转换后的标准输出
      */
-    transform: (input: TInput, context: MiddlewareContext) => TOutput | Promise<TOutput>
+    transform: (input: TInput, context: MiddlewareContext<TParams>) => TOutput | Promise<TOutput> | Response | Promise<Response>
 }
 
 /**
@@ -45,9 +45,9 @@ export interface TransformOptions<TInput, TOutput> {
  * })
  * ```
  */
-export function transform<TInput, TOutput>(
-    options: TransformOptions<TInput, TOutput>
-): FetchPlugin {
+export function transform<TInput, TOutput, TParams extends FetchParams = FetchParams>(
+    options: TransformOptions<TInput, TOutput, TParams>
+): FetchPlugin<TParams> {
     return {
         name: 'transform',
 
@@ -75,17 +75,17 @@ export function transform<TInput, TOutput>(
     }
 }
 
-/**
- * 链式转换 - 组合多个转换步骤
- */
-export function pipeTransform<A, B, C>(
-    first: TransformOptions<A, B>,
-    second: TransformOptions<B, C>
-): TransformOptions<A, C> {
-    return {
-        transform: async (input, context) => {
-            const intermediate = await first.transform(input, context)
-            return second.transform(intermediate, context)
-        },
-    }
-}
+// /**
+//  * 链式转换 - 组合多个转换步骤
+//  */
+// export function pipeTransform<A, B, C>(
+//     first: TransformOptions<A, B>,
+//     second: TransformOptions<B, C>
+// ): TransformOptions<A, C> {
+//     return {
+//         transform: async (input, context) => {
+//             const intermediate = await first.transform(input, context)
+//             return second.transform(intermediate instanceof Response ? context.body(intermediate) as B : intermediate, context) 
+//         },
+//     }
+// }

@@ -96,10 +96,8 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
       // 预分配端口
       const portAssignments: Array<{ manifest: MiniappManifest; port: number }> = []
-      let currentPort = startPort
       for (const manifest of manifests) {
-        const port = await detectPort(currentPort)
-        currentPort = port + 1
+        const port = await detectPort(0)
         portAssignments.push({ manifest, port })
       }
 

@@ -5,10 +5,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, pathParams, walletApiUnwrap } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, pathParams, walletApiUnwrap } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
-import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
+import { BalanceOutputSchema, TransactionsOutputSchema, AddressParamsSchema, TxHistoryParamsSchema } from './types'
+import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -62,9 +62,10 @@ export class BtcWalletProvider extends BitcoinIdentityMixin(BitcoinTransactionMi
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #addressInfo: KeyFetchInstance<typeof AddressInfoSchema>
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly #addressInfo: KeyFetchInstance<AddressInfo, AddressParams>
+  readonly #addressTx: KeyFetchInstance<AddressInfo, TxHistoryParams>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -73,29 +74,55 @@ export class BtcWalletProvider extends BitcoinIdentityMixin(BitcoinTransactionMi
 
     const { endpoint: base, symbol, decimals } = this
 
+    // 区块高度触发器 - 使用 interval 驱动数据更新
+    const blockHeightTrigger = keyFetch.create({
+      name: `btcwallet.${chainId}.blockTrigger`,
+      outputSchema: z.object({ timestamp: z.number() }),
+      url: 'internal://trigger',
+      use: [
+        interval(60_000), // Bitcoin 约 10 分钟出块，60s 轮询合理
+        {
+          name: 'trigger',
+          onFetch: async (_req, _next, ctx) => {
+            return ctx.createResponse({ timestamp: Date.now() })
+          },
+        },
+      ],
+    })
+
     this.#addressInfo = keyFetch.create({
       name: `btcwallet.${chainId}.addressInfo`,
-      schema: AddressInfoSchema,
+      outputSchema: AddressInfoSchema,
+      inputSchema: AddressParamsSchema,
       url: `${base}/address/:address`,
-      use: [pathParams(), walletApiUnwrap(), ttl(60_000)],
+      use: [deps(blockHeightTrigger), pathParams(), walletApiUnwrap()],
+    })
+
+    this.#addressTx = keyFetch.create({
+      name: `btcwallet.${chainId}.addressTx`,
+      outputSchema: AddressInfoSchema,
+      inputSchema: TxHistoryParamsSchema,
+      url: `${base}/address/:address`,
+      use: [deps(blockHeightTrigger), pathParams()],
     })
 
     this.nativeBalance = derive({
       name: `btcwallet.${chainId}.nativeBalance`,
       source: this.#addressInfo,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<AddressInfo, Balance>({
         transform: (r) => ({ amount: Amount.fromRaw(r.balance, decimals, symbol), symbol }),
       })],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = derive<AddressInfo, TransactionsOutput, TxHistoryParams>({
       name: `btcwallet.${chainId}.transactionHistory`,
-      source: this.#addressInfo,
-      schema: TransactionsOutputSchema,
-      use: [transform<AddressInfo, Transaction[]>({
-        transform: (r, ctx) => {
-          const addr = (ctx.params.address as string) ?? ''
+      source: this.#addressTx,
+      outputSchema: TransactionsOutputSchema,
+    }).use(
+      transform({
+        transform: (r: AddressInfo, ctx) => {
+          const addr = ctx.params.address ?? ''
           return (r.transactions ?? []).map(tx => ({
             hash: tx.txid,
             from: tx.vin?.[0]?.addresses?.[0] ?? '',
@@ -105,10 +132,10 @@ export class BtcWalletProvider extends BitcoinIdentityMixin(BitcoinTransactionMi
             action: 'transfer' as const,
             direction: getDirection(tx.vin ?? [], tx.vout ?? [], addr),
             assets: [{ assetType: 'native' as const, value: tx.vout?.[0]?.value ?? '0', symbol, decimals }],
-          }))
+          })) as Transaction[]
         },
-      })],
-    })
+      }),
+    )
   }
 }
 

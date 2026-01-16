@@ -96,7 +96,7 @@ export function setGenesisImportOptions(importOptions?: object): void {
  * @param chainId - Chain ID for caching
  * @param genesisBlockPath - Path relative to configs directory (e.g., "./genesis/bfmeta.json")
  */
-async function fetchGenesisBlock(
+export async function fetchGenesisBlock(
   chainId: string,
   genesisBlockPath: string,
 ): Promise<BFChainCore.BlockJSON<BFChainCore.GenesisBlockAssetJSON>> {
@@ -284,6 +284,7 @@ export async function getAddressInfo(
 }
 
 /**
+ * @deprecated
  * Get account balance for the main asset type
  * @param baseUrl - Full wallet API URL
  * @param chainId - Chain ID for loading genesis/core
@@ -331,6 +332,7 @@ export interface CreateTransferParams {
 }
 
 /**
+ * @deprecated
  * Create a transfer transaction using the SDK
  */
 export async function createTransferTransaction(
