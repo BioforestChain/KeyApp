@@ -1,6 +1,7 @@
 {
   "add": "Add Wallet",
   "defaultName": "My Wallet",
+  "randomName": "Random Name",
   "chains": {
     "title": "Manage Wallet Networks",
     "verifyTitle": "Verify Wallet Lock",
