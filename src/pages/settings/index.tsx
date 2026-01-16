@@ -20,7 +20,8 @@ import {
   IconIdBadge2,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
+import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors, useUserProfile } from '@/stores';
+import { ContactAvatar } from '@/components/common/contact-avatar';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
 import { AppearanceSheet } from '@/components/settings/appearance-sheet';
@@ -51,6 +52,7 @@ export function SettingsPage() {
   const { push } = useFlow();
   const { t } = useTranslation(['settings', 'common', 'security']);
   const currentWallet = useCurrentWallet();
+  const profile = useUserProfile();
   const currentLanguage = useLanguage();
   const currentCurrency = useCurrency();
   const currentTheme = useTheme();
@@ -167,32 +169,23 @@ export function SettingsPage() {
   return (
     <div className="bg-muted/30 flex h-full flex-col overflow-y-auto">
       <PageHeader title={t('common:a11y.tabSettings')} />
-
       <div className="flex-1 space-y-4 p-4">
-        {/* 钱包信息头 */}
-        {currentWallet && (
-          <div className="bg-card flex items-center gap-4 rounded-xl p-4 shadow-sm">
-            <div className="bg-primary/10 flex size-14 items-center justify-center rounded-full text-2xl">
-              {currentWallet.name.slice(0, 1)}
-            </div>
-            <div className="flex-1">
-              <h2 className="font-semibold">{currentWallet.name}</h2>
-              <p className="text-muted-foreground text-sm">
-                {t('settings:chainAddressCount', { count: currentWallet.chainAddresses.length })}
-              </p>
-            </div>
+        {/* 我的名片 - 头部入口 */}
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/my-card' })}
+          className="bg-card flex w-full items-center gap-4 rounded-xl p-4 shadow-sm transition-colors hover:bg-accent"
+          data-testid="my-card-button"
+        >
+          <ContactAvatar src={profile.avatar} size={56} />
+          <div className="flex-1 text-left">
+            <h2 className="font-semibold">{profile.username || t('common:myCard.defaultName')}</h2>
+            <p className="text-muted-foreground text-sm">
+              {t('settings:items.myCard')}
+            </p>
           </div>
-        )}
-
-        {/* 我的名片 */}
-        <SettingsSection>
-          <SettingsItem
-            icon={<IconIdBadge2 size={20} />}
-            label={t('settings:items.myCard')}
-            onClick={() => navigate({ to: '/my-card' })}
-            testId="my-card-button"
-          />
-        </SettingsSection>
+          <IconIdBadge2 size={20} className="text-muted-foreground" />
+        </button>
 
         {/* 钱包管理 */}
         <SettingsSection title={t('settings:sections.walletManagement')}>
@@ -311,6 +304,6 @@ export function SettingsPage() {
         open={appearanceSheetOpen}
         onOpenChange={setAppearanceSheetOpen}
       />
-    </div>
+    </div >
   );
 }
