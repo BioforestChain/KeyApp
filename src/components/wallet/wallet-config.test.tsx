@@ -39,6 +39,7 @@ const mockSetCurrentWallet = vi.fn()
 vi.mock('@/stores', () => ({
   useWallets: () => mockWallets,
   useSelectedChain: () => 'ethereum',
+  useLanguage: () => 'zh-CN',
   walletActions: {
     updateWalletName: (...args: unknown[]) => mockUpdateWalletName(...args),
     updateWalletThemeHue: (...args: unknown[]) => mockUpdateWalletThemeHue(...args),
