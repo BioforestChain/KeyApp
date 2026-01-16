@@ -16,10 +16,10 @@
     "pay": "支付",
     "receive": "获得",
     "ratio": "兑换比例",
-    "depositAddress": "充值地址",
+    "depositAddress": "锻造地址",
     "network": "网络",
     "preview": "预览交易",
-    "confirm": "确认充值",
+    "confirm": "确认锻造",
     "continue": "继续"
   },
   "redemption": {

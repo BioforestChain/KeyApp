@@ -16,7 +16,7 @@ interface ModeTabsProps {
 export function ModeTabs({
   mode,
   onChange,
-  rechargeLabel = 'Recharge',
+  rechargeLabel = 'Forge',
   redemptionLabel = 'Redemption',
 }: ModeTabsProps) {
   return (
