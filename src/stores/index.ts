@@ -6,6 +6,20 @@ export type { Wallet, ChainType, ChainAddress, WalletState } from './wallet'
 export { addressBookStore, addressBookActions, addressBookSelectors } from './address-book'
 export type { Contact, ContactAddress, ContactSuggestion, AddressBookState } from './address-book'
 
+// User Profile Store
+export {
+  userProfileStore,
+  userProfileActions,
+  userProfileSelectors,
+  useUserProfile,
+  useUsername,
+  useAvatar,
+  useSelectedWalletIds,
+  useIsWalletSelected,
+  useCanAddMoreWallets,
+} from './user-profile'
+export type { UserProfile } from './user-profile'
+
 // Preferences Store
 export {
   preferencesStore,

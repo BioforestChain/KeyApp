@@ -20,6 +20,7 @@ const routeToActivityMap: Record<string, ActivityName> = {
   "/scanner": "ScannerActivity",
   "/onboarding/recover": "OnboardingRecoverActivity",
   "/address-book": "AddressBookActivity",
+  "/my-card": "MyCardActivity",
   "/notifications": "NotificationsActivity",
   "/staking": "StakingActivity",
   "/welcome": "WelcomeActivity",

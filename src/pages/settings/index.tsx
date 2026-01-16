@@ -17,6 +17,7 @@ import {
   IconInfoCircle as Info,
   IconDatabase as Database,
   IconWorld,
+  IconIdBadge2,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors } from '@/stores';
@@ -182,6 +183,16 @@ export function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* 我的名片 */}
+        <SettingsSection>
+          <SettingsItem
+            icon={<IconIdBadge2 size={20} />}
+            label={t('settings:items.myCard')}
+            onClick={() => navigate({ to: '/my-card' })}
+            testId="my-card-button"
+          />
+        </SettingsSection>
 
         {/* 钱包管理 */}
         <SettingsSection title={t('settings:sections.walletManagement')}>

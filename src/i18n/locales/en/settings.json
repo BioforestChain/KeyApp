@@ -9,6 +9,7 @@
     "about": "About"
   },
   "items": {
+    "myCard": "My Business Card",
     "walletManagement": "Wallet Management",
     "walletChains": "Wallet Networks",
     "addressBook": "Address Book",

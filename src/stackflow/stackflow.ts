@@ -25,6 +25,7 @@ import { AuthorizeSignatureActivity } from './activities/AuthorizeSignatureActiv
 import { OnboardingRecoverActivity } from './activities/OnboardingRecoverActivity';
 import { TokenDetailActivity } from './activities/TokenDetailActivity';
 import { AddressBookActivity } from './activities/AddressBookActivity';
+import { MyCardActivity } from './activities/MyCardActivity';
 import { NotificationsActivity } from './activities/NotificationsActivity';
 import { StakingActivity } from './activities/StakingActivity';
 import { WelcomeActivity } from './activities/WelcomeActivity';
@@ -95,6 +96,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         OnboardingRecoverActivity: '/onboarding/recover',
         TokenDetailActivity: '/token/:tokenId',
         AddressBookActivity: '/address-book',
+        MyCardActivity: '/my-card',
         NotificationsActivity: '/notifications',
         StakingActivity: '/staking',
         WelcomeActivity: '/welcome',
@@ -161,6 +163,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     OnboardingRecoverActivity,
     TokenDetailActivity,
     AddressBookActivity,
+    MyCardActivity,
     NotificationsActivity,
     StakingActivity,
     WelcomeActivity,

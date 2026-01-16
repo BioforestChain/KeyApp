@@ -322,6 +322,20 @@
     "scanToAdd": "扫码添加联系人",
     "changeAvatar": "点击切换头像"
   },
+  "myCard": {
+    "title": "我的名片",
+    "defaultName": "我的名片",
+    "editUsername": "点击编辑用户名",
+    "usernamePlaceholder": "输入用户名",
+    "changeAvatar": "点击换头像",
+    "selectWallets": "选择钱包",
+    "addWallet": "添加钱包",
+    "maxWallets": "最多选择 {{max}} 个钱包",
+    "noWalletsSelected": "请选择至少一个钱包",
+    "scanToAdd": "扫码添加我为联系人",
+    "walletAddress": "{{wallet}} ({{chain}})",
+    "currentChain": "当前链"
+  },
   "time": {
     "justNow": "刚刚",
     "minutesAgo": "{{count}} 分钟前",
