@@ -5,10 +5,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform } from '@biochain/key-fetch'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
-import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
+import { keyFetch, interval, deps, derive, transform } from '@biochain/key-fetch'
+import type { KeyFetchInstance, } from '@biochain/key-fetch'
+import { BalanceOutputSchema, TransactionsOutputSchema, AddressParamsSchema, TxHistoryParamsSchema } from './types'
+import type { ApiProvider, Balance, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams, Direction } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -54,10 +54,10 @@ export class BscWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(BscW
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #balanceApi: KeyFetchInstance<typeof BalanceApiSchema>
-  readonly #txApi: KeyFetchInstance<typeof TxApiSchema>
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly #balanceApi: KeyFetchInstance<BalanceApi, AddressParams>
+  readonly #txApi: KeyFetchInstance<TxApi, TxHistoryParams>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -66,23 +66,54 @@ export class BscWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(BscW
 
     const { endpoint: base, symbol, decimals } = this
 
-    this.#balanceApi = keyFetch.create({ name: `bscwallet.${chainId}.balanceApi`, schema: BalanceApiSchema, url: `${base}/balance`, use: [ttl(60_000)] })
-    this.#txApi = keyFetch.create({ name: `bscwallet.${chainId}.txApi`, schema: TxApiSchema, url: `${base}/transactions`, use: [ttl(5 * 60_000)] })
+    // 区块高度触发器 - 使用 interval 驱动数据更新
+    const blockHeightTrigger = keyFetch.create({
+      name: `bscwallet.${chainId}.blockTrigger`,
+      outputSchema: z.object({ timestamp: z.number() }),
+      url: 'internal://trigger',
+      use: [
+        interval(3_000), // BSC 约 3s 出块
+        {
+          name: 'trigger',
+          onFetch: async (_req, _next, ctx) => {
+            return ctx.createResponse({ timestamp: Date.now() })
+          },
+        },
+      ],
+    })
+
+    this.#balanceApi = keyFetch.create({
+      name: `bscwallet.${chainId}.balanceApi`,
+      outputSchema: BalanceApiSchema,
+      inputSchema: AddressParamsSchema,
+      url: `${base}/balance`,
+      use: [deps(blockHeightTrigger)]
+    })
+    this.#txApi = keyFetch.create({
+      name: `bscwallet.${chainId}.txApi`,
+      outputSchema: TxApiSchema,
+      inputSchema: TxHistoryParamsSchema,
+      url: `${base}/transactions`,
+      use: [deps(blockHeightTrigger)]
+    })
 
     this.nativeBalance = derive({
       name: `bscwallet.${chainId}.nativeBalance`,
       source: this.#balanceApi,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<BalanceApi, Balance>({ transform: (r) => ({ amount: Amount.fromRaw(r.balance, decimals, symbol), symbol }) })],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = keyFetch.create({
       name: `bscwallet.${chainId}.transactionHistory`,
-      source: this.#txApi,
-      schema: TransactionsOutputSchema,
-      use: [transform<TxApi, Transaction[]>({
-        transform: (r, ctx) => {
-          const addr = ((ctx.params.address as string) ?? '').toLowerCase()
+      inputSchema: TxHistoryParamsSchema,
+      outputSchema: TransactionsOutputSchema,
+      url: `${base}/transactions`,
+    }).use(
+      deps(this.#txApi),
+      transform({
+        transform: (r: z.output<typeof TxApiSchema>, ctx) => {
+          const addr = ctx.params.address.toLowerCase()
           return r.transactions.map(tx => ({
             hash: tx.hash, from: tx.from, to: tx.to, timestamp: tx.timestamp,
             status: tx.status === 'success' ? 'confirmed' as const : 'failed' as const,
@@ -90,8 +121,8 @@ export class BscWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(BscW
             assets: [{ assetType: 'native' as const, value: tx.value, symbol, decimals }],
           }))
         },
-      })],
-    })
+      }),
+    )
   }
 }
 

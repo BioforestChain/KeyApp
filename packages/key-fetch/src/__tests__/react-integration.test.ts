@@ -45,7 +45,7 @@ describe('key-fetch React useState injection', () => {
         test('should call injected useState implementation', () => {
             const instance = keyFetch.create({
                 name: 'test.instance',
-                schema: TestSchema,
+                outputSchema: TestSchema,
                 url: 'https://api.test.com/data',
             })
 
@@ -70,7 +70,7 @@ describe('key-fetch React useState injection', () => {
 
             const instance = keyFetch.create({
                 name: 'test.instance2',
-                schema: TestSchema,
+                outputSchema: TestSchema,
                 url: 'https://api.test.com/data',
             })
 
@@ -93,14 +93,14 @@ describe('key-fetch React useState injection', () => {
         test('should use injected useState implementation for derived instances', () => {
             const sourceInstance = keyFetch.create({
                 name: 'test.source',
-                schema: SourceSchema,
+                outputSchema: SourceSchema,
                 url: 'https://api.test.com/items',
             })
 
             const derivedInstance = derive({
                 name: 'test.derived',
                 source: sourceInstance,
-                schema: DerivedSchema,
+                outputSchema: DerivedSchema,
                 use: [
                     transform<z.infer<typeof SourceSchema>, z.infer<typeof DerivedSchema>>({
                         transform: (data) => data.items.map(item => item.name),

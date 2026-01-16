@@ -313,7 +313,7 @@ export class Amount {
    */
   toDecimals(newDecimals: number): Amount {
     if (newDecimals === this._decimals) return this
-    
+
     const diff = newDecimals - this._decimals
     if (diff > 0) {
       // 增加精度，乘以 10^diff
@@ -353,7 +353,7 @@ export class Amount {
     if (this._decimals !== other._decimals) {
       throw new Error(
         `Amount decimals mismatch: ${this._decimals} vs ${other._decimals}. ` +
-          `Cannot compare or operate on amounts with different decimals.`
+        `Cannot compare or operate on amounts with different decimals.`
       )
     }
   }

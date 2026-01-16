@@ -68,11 +68,14 @@ export function unwrap<TWrapper, TInner>(
  */
 export function walletApiUnwrap<T>(): FetchPlugin {
     return unwrap<{ success: boolean; result: T }, T>({
-        unwrap: (wrapped) => {
-            if (!wrapped.success) {
-                throw new Error('Wallet API returned success: false')
+        unwrap: (wrapped, ctx) => {
+            if (wrapped.success === false) {
+                throw new Error(`[${ctx.name}]: Wallet API returned success: false`)
+            } else if (wrapped.success === true) {
+                return wrapped.result
             }
-            return wrapped.result
+            console.warn(`[${ctx.name}]: should not use walletApiUnwarp plugin`)
+            return wrapped as T
         },
     })
 }

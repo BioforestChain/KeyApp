@@ -7,7 +7,7 @@
  * - pathParams: URL Path (/users/:id -> /users/123)（默认在 core.ts 中处理）
  */
 
-import type { FetchPlugin, FetchParams } from '../types'
+import type { FetchPlugin } from '../types'
 
 /**
  * SearchParams 插件
@@ -36,7 +36,7 @@ import type { FetchPlugin, FetchParams } from '../types'
  * })]
  * ```
  */
-export function searchParams<P extends FetchParams = FetchParams>(options?: {
+export function searchParams<P extends Record<string, unknown> = {}>(options?: {
     /** 额外固定参数（合并到 params） */
     defaults?: P
     /** 转换函数（自定义 query params 格式） */
@@ -103,12 +103,12 @@ export function searchParams<P extends FetchParams = FetchParams>(options?: {
  * // Body: { "address": "xxx", "page": 1 }
  * ```
  */
-export function postBody(options?: {
+export function postBody<TIN extends Record<string, unknown>>(options?: {
     /** 额外固定参数（合并到 params） */
-    defaults?: FetchParams
+    defaults?: Partial<TIN>
     /** 转换函数（自定义 body 格式） */
-    transform?: (params: FetchParams) => unknown
-}): FetchPlugin {
+    transform?: (params: TIN) => unknown
+}): FetchPlugin<TIN> {
     return {
         name: 'params:postBody',
         onFetch: async (request, next, context) => {
@@ -162,9 +162,11 @@ export function pathParams(): FetchPlugin {
             let url = request.url
 
             // 替换 :param 占位符
-            for (const [key, value] of Object.entries(context.params)) {
-                if (value !== undefined) {
-                    url = url.replace(`:${key}`, encodeURIComponent(String(value)))
+            if (typeof context.params === 'object' && context.params !== null) {
+                for (const [key, value] of Object.entries(context.params)) {
+                    if (value !== undefined) {
+                        url = url.replace(`:${key}`, encodeURIComponent(String(value)))
+                    }
                 }
             }
 

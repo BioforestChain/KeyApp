@@ -42,16 +42,14 @@
  * ```
  */
 
-import { create, get, invalidate, clear } from './core'
+import { create, get, invalidate, clear, superjson } from './core'
 import { getInstancesByTag } from './plugins/tag'
-import superjson from 'superjson'
 
 // ==================== 导出类型 ====================
 
 export type {
     // Schema types
-    AnyZodSchema,
-    InferOutput,
+    ZodUnknowSchema,
     // Cache types
     CacheEntry,
     CacheStore,
@@ -81,7 +79,7 @@ export { ttl } from './plugins/ttl'
 export { dedupe } from './plugins/dedupe'
 export { tag } from './plugins/tag'
 export { etag } from './plugins/etag'
-export { transform, pipeTransform } from './plugins/transform'
+export { transform } from './plugins/transform'
 export type { TransformOptions } from './plugins/transform'
 export { cache, MemoryCacheStorage, IndexedDBCacheStorage } from './plugins/cache'
 export type { CacheStorage, CachePluginOptions } from './plugins/cache'
@@ -138,6 +136,8 @@ export const keyFetch = {
      * 创建 KeyFetch 实例
      */
     create,
+
+
 
     /**
      * 合并多个 KeyFetch 实例（auto-fallback）

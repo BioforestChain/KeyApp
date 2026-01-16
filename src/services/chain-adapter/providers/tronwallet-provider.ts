@@ -9,10 +9,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, walletApiUnwrap, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, walletApiUnwrap, postBody } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
-import { BalanceOutputSchema, TransactionsOutputSchema } from './types'
+import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
+import { BalanceOutputSchema, TransactionsOutputSchema, AddressParamsSchema, TxHistoryParamsSchema } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -36,6 +36,9 @@ const TxHistoryApiSchema = z.object({
   success: z.boolean(),
   data: z.array(TronNativeTxSchema),
 }).passthrough()
+
+type BalanceResult = z.infer<typeof BalanceResultSchema>
+type TxHistoryApi = z.infer<typeof TxHistoryApiSchema>
 
 // ==================== 工具函数 ====================
 
@@ -68,11 +71,11 @@ export class TronWalletProvider extends TronIdentityMixin(TronTransactionMixin(T
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #balanceApi: KeyFetchInstance<typeof BalanceResultSchema>
-  readonly #txHistoryApi: KeyFetchInstance<typeof TxHistoryApiSchema>
+  readonly #balanceApi: KeyFetchInstance<BalanceResult, AddressParams>
+  readonly #txHistoryApi: KeyFetchInstance<TxHistoryApi, TxHistoryParams>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -81,25 +84,41 @@ export class TronWalletProvider extends TronIdentityMixin(TronTransactionMixin(T
 
     const { endpoint: base, symbol, decimals } = this
 
+    // 区块高度触发器 - 使用 interval 驱动数据更新
+    const blockHeightTrigger = keyFetch.create({
+      name: `tronwallet.${chainId}.blockTrigger`,
+      outputSchema: z.object({ timestamp: z.number() }),
+      url: 'internal://trigger',
+      use: [
+        interval(3_000), // Tron 约 3s 出块
+        {
+          name: 'trigger',
+          onFetch: async (_req, _next, ctx) => {
+            return ctx.createResponse({ timestamp: Date.now() })
+          },
+        },
+      ],
+    })
+
     this.#balanceApi = keyFetch.create({
       name: `tronwallet.${chainId}.balanceApi`,
-      schema: BalanceResultSchema,
+      outputSchema: BalanceResultSchema,
+      inputSchema: AddressParamsSchema,
       url: `${base}/balance`,
       method: 'POST',
-      use: [postBody(), walletApiUnwrap(), ttl(60_000)],
-    })
+    }).use(deps(blockHeightTrigger), postBody(), walletApiUnwrap())
 
     this.#txHistoryApi = keyFetch.create({
       name: `tronwallet.${chainId}.txHistoryApi`,
-      schema: TxHistoryApiSchema,
+      outputSchema: TxHistoryApiSchema,
       url: `${base}/transactions`,
-      use: [ttl(5 * 60_000)],
+      use: [deps(blockHeightTrigger)],
     })
 
     this.nativeBalance = derive({
       name: `tronwallet.${chainId}.nativeBalance`,
       source: this.#balanceApi,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<string, Balance>({
         transform: (raw) => ({
           amount: Amount.fromRaw(raw, decimals, symbol),
@@ -108,14 +127,18 @@ export class TronWalletProvider extends TronIdentityMixin(TronTransactionMixin(T
       })],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = keyFetch.create({
       name: `tronwallet.${chainId}.transactionHistory`,
-      source: this.#txHistoryApi,
-      schema: TransactionsOutputSchema,
-      use: [transform<z.infer<typeof TxHistoryApiSchema>, Transaction[]>({
-        transform: (raw, ctx) => {
+      inputSchema: TxHistoryParamsSchema,
+      outputSchema: TransactionsOutputSchema,
+      url: `${base}/transactions`,
+      method: 'POST',
+    }).use(
+      deps(this.#txHistoryApi),
+      transform({
+        transform: (raw: TxHistoryApi, ctx) => {
           if (!raw.success) return []
-          const addr = ((ctx.params.address as string) ?? '').toLowerCase()
+          const addr = ctx.params.address.toLowerCase()
           return raw.data.map((tx): Transaction => ({
             hash: tx.txID,
             from: tx.from,
@@ -132,8 +155,8 @@ export class TronWalletProvider extends TronIdentityMixin(TronTransactionMixin(T
             }],
           }))
         },
-      })],
-    })
+      }),
+    )
   }
 }
 

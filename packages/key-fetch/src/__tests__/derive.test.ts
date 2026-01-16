@@ -47,7 +47,7 @@ describe('keyFetch.create basic functionality', () => {
 
         const instance = keyFetch.create({
             name: 'test.basic',
-            schema: TestSchema,
+            outputSchema: TestSchema,
             url: 'https://api.test.com/data',
         })
 
@@ -63,7 +63,7 @@ describe('keyFetch.create basic functionality', () => {
 
         const instance = keyFetch.create({
             name: 'test.null',
-            schema: TestSchema,
+            outputSchema: TestSchema,
             url: 'https://api.test.com/data',
         })
 
@@ -79,7 +79,7 @@ describe('keyFetch.create basic functionality', () => {
 
         const instance = keyFetch.create({
             name: 'test.invalid',
-            schema: TestSchema,
+            outputSchema: TestSchema,
             url: 'https://api.test.com/data',
         })
 
@@ -98,7 +98,7 @@ describe('keyFetch subscribe functionality', () => {
 
         const instance = keyFetch.create({
             name: 'test.subscribe',
-            schema: TestSchema,
+            outputSchema: TestSchema,
             url: 'https://api.test.com/data',
         })
 
@@ -151,7 +151,7 @@ describe('derive functionality', () => {
 
         const source = keyFetch.create({
             name: 'test.source',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -159,7 +159,7 @@ describe('derive functionality', () => {
         const derived = derive({
             name: 'test.derived.balance',
             source,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -197,7 +197,7 @@ describe('derive functionality', () => {
 
         const source = keyFetch.create({
             name: 'test.source.null',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -205,7 +205,7 @@ describe('derive functionality', () => {
         const derived = derive({
             name: 'test.derived.null',
             source,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -239,7 +239,7 @@ describe('derive functionality', () => {
 
         const source = keyFetch.create({
             name: 'test.source.sub',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -247,7 +247,7 @@ describe('derive functionality', () => {
         const derived = derive({
             name: 'test.derived.sub',
             source,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -292,7 +292,7 @@ describe('derive functionality', () => {
 
         const source = keyFetch.create({
             name: 'test.source.err',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -300,7 +300,7 @@ describe('derive functionality', () => {
         const derived = derive({
             name: 'test.derived.err',
             source,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: () => {
@@ -383,7 +383,7 @@ describe('biowallet-provider simulation', () => {
 
         const addressAsset = keyFetch.create({
             name: 'biowallet.bfmeta.addressAsset',
-            schema: AssetResponseSchema,
+            outputSchema: AssetResponseSchema,
             url: 'https://walletapi.bfmeta.info/wallet/bfm/address/asset',
             method: 'POST',
         })
@@ -391,7 +391,7 @@ describe('biowallet-provider simulation', () => {
         const nativeBalance = derive({
             name: 'biowallet.bfmeta.nativeBalance',
             source: addressAsset,
-            schema: BalanceOutputSchema,
+            outputSchema: BalanceOutputSchema,
             use: [
                 transform<z.infer<typeof AssetResponseSchema>, z.infer<typeof BalanceOutputSchema>>({
                     transform: (raw) => {
@@ -440,7 +440,7 @@ describe('biowallet-provider simulation', () => {
 
         const addressAsset = keyFetch.create({
             name: 'biowallet.bfmeta.addressAsset.sub',
-            schema: AssetResponseSchema,
+            outputSchema: AssetResponseSchema,
             url: 'https://walletapi.bfmeta.info/wallet/bfm/address/asset',
             method: 'POST',
         })
@@ -448,7 +448,7 @@ describe('biowallet-provider simulation', () => {
         const nativeBalance = derive({
             name: 'biowallet.bfmeta.nativeBalance.sub',
             source: addressAsset,
-            schema: BalanceOutputSchema,
+            outputSchema: BalanceOutputSchema,
             use: [
                 transform<z.infer<typeof AssetResponseSchema>, z.infer<typeof BalanceOutputSchema>>({
                     transform: (raw) => {

@@ -5,9 +5,9 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, searchParams } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, searchParams } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
+import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
 import {
   BalanceOutputSchema,
   TransactionsOutputSchema,
@@ -84,11 +84,11 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #balanceApi: KeyFetchInstance<typeof ApiResponseSchema>
-  readonly #txListApi: KeyFetchInstance<typeof ApiResponseSchema>
+  readonly #balanceApi: KeyFetchInstance<ApiResponse, AddressParams>
+  readonly #txListApi: KeyFetchInstance<ApiResponse, TxHistoryParams>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -100,12 +100,30 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
     const symbol = this.symbol
     const decimals = this.decimals
 
-    this.#balanceApi = keyFetch.create({
-      name: `etherscan.${chainId}.balanceApi`,
-      schema: ApiResponseSchema,
-      paramsSchema: AddressParamsSchema,
+    // 区块高度 API - 使用 Etherscan 的 proxy 模块
+    const blockHeightApi = keyFetch.create({
+      name: `etherscan.${chainId}.blockHeight`,
+      outputSchema: ApiResponseSchema,
       url: `${baseUrl}`,
       use: [
+        interval(12_000), // EVM 链约 12s 出块
+        searchParams({
+          transform: () => ({
+            module: 'proxy',
+            action: 'eth_blockNumber',
+          }),
+        }),
+      ],
+    })
+
+    // 余额查询 - 由 blockHeightApi 驱动
+    this.#balanceApi = keyFetch.create({
+      name: `etherscan.${chainId}.balanceApi`,
+      outputSchema: ApiResponseSchema,
+      inputSchema: AddressParamsSchema,
+      url: `${baseUrl}`,
+      use: [
+        deps(blockHeightApi),
         searchParams({
           transform: ((params) => ({
             module: 'account',
@@ -114,16 +132,17 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
             tag: 'latest',
           })),
         }),
-        ttl(30_000),
       ],
     })
 
+    // 交易历史 - 由 blockHeightApi 驱动
     this.#txListApi = keyFetch.create({
       name: `etherscan.${chainId}.txListApi`,
-      schema: ApiResponseSchema,
-      paramsSchema: TxHistoryParamsSchema,
+      outputSchema: ApiResponseSchema,
+      inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}`,
       use: [
+        deps(blockHeightApi),
         searchParams({
           transform: ((params) => ({
             module: 'account',
@@ -134,14 +153,13 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
             sort: 'desc',
           })),
         }),
-        ttl(5 * 60_000),
       ],
     })
 
     this.nativeBalance = derive({
       name: `etherscan.${chainId}.nativeBalance`,
       source: this.#balanceApi,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [
         transform<ApiResponse, Balance>({
           transform: (raw) => {
@@ -156,45 +174,42 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
       ],
     })
 
-    this.transactionHistory = derive({
+    this.transactionHistory = derive<ApiResponse, TransactionsOutput, TxHistoryParams>({
       name: `etherscan.${chainId}.transactionHistory`,
       source: this.#txListApi,
-      schema: TransactionsOutputSchema,
-      use: [
-        transform<ApiResponse, Transaction[]>({
-          transform: (raw, ctx) => {
-            const result = raw.result
-            if (!Array.isArray(result)) return []
+      outputSchema: TransactionsOutputSchema,
+    }).use(transform({
+      transform: (raw: ApiResponse, ctx): Transaction[] => {
+        const result = raw.result
+        if (!Array.isArray(result)) return []
 
-            const address = ((ctx.params.address as string) ?? '').toLowerCase()
+        const address = ((ctx.params.address as string) ?? '').toLowerCase()
 
-            return result
-              .map(item => NativeTxSchema.safeParse(item))
-              .filter((r): r is z.ZodSafeParseSuccess<NativeTx> => r.success)
-              .map((r): Transaction => {
-                const tx = r.data
-                const direction = getDirection(tx.from, tx.to, address)
-                return {
-                  hash: tx.hash,
-                  from: tx.from,
-                  to: tx.to,
-                  timestamp: parseInt(tx.timeStamp, 10) * 1000,
-                  status: tx.isError === '0' ? 'confirmed' : 'failed',
-                  blockNumber: BigInt(tx.blockNumber),
-                  action: 'transfer' as const,
-                  direction,
-                  assets: [{
-                    assetType: 'native' as const,
-                    value: tx.value,
-                    symbol,
-                    decimals,
-                  }],
-                }
-              })
-          },
-        }),
-      ],
-    })
+        return result
+          .map(item => NativeTxSchema.safeParse(item))
+          .filter((r): r is z.ZodSafeParseSuccess<NativeTx> => r.success)
+          .map((r): Transaction => {
+            const tx = r.data
+            const direction = getDirection(tx.from, tx.to, address)
+            return {
+              hash: tx.hash,
+              from: tx.from,
+              to: tx.to,
+              timestamp: parseInt(tx.timeStamp, 10) * 1000,
+              status: tx.isError === '0' ? 'confirmed' : 'failed',
+              blockNumber: BigInt(tx.blockNumber),
+              action: 'transfer' as const,
+              direction,
+              assets: [{
+                assetType: 'native' as const,
+                value: tx.value,
+                symbol,
+                decimals,
+              }],
+            }
+          })
+      },
+    }),)
   }
 }
 

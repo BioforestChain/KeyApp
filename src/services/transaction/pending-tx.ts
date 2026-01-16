@@ -471,7 +471,7 @@ export function getPendingTxFetcher(chainId: string, walletId: string) {
     const fetcher = derive({
       name: `pendingTx.${chainId}.${walletId}`,
       source: chainProvider.blockHeight,
-      schema: z.array(PendingTxSchema),
+      outputSchema: z.array(PendingTxSchema),
       use: [
         transform({
           transform: async () => {

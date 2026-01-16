@@ -54,8 +54,7 @@ describe('BtcWalletProvider', () => {
     // BtcWallet API returns {success: true, result: AddressInfo}
     mockFetch.mockImplementation(async (_input: Request | string) => {
       return createMockResponse({
-        success: true,
-        result: { balance: '8' }, // walletApiUnwrap 会解包为 balance: '8'
+        balance: '8',
       })
     })
 
@@ -71,23 +70,20 @@ describe('BtcWalletProvider', () => {
 
     mockFetch.mockImplementation(async (_input: Request | string) => {
       return createMockResponse({
-        success: true,
-        result: {
-          balance: '0',
-          transactions: [
-            {
-              txid: 'tx1',
-              blockHeight: 100,
-              confirmations: 1,
-              blockTime: 1700000000,
-              vin: [{ addresses: [address], value: '5000' }],
-              vout: [
-                { addresses: ['bc1qother'], value: '3000' },
-                { addresses: ['bc1qchange'], value: '1900' },
-              ],
-            },
-          ],
-        },
+        balance: '0',
+        transactions: [
+          {
+            txid: 'tx1',
+            blockHeight: 100,
+            confirmations: 1,
+            blockTime: 1700000000,
+            vin: [{ addresses: [address], value: '5000' }],
+            vout: [
+              { addresses: ['bc1qother'], value: '3000' },
+              { addresses: ['bc1qchange'], value: '1900' },
+            ],
+          },
+        ],
       })
     })
 
@@ -108,20 +104,17 @@ describe('BtcWalletProvider', () => {
 
     mockFetch.mockImplementation(async () => {
       return createMockResponse({
-        success: true,
-        result: {
-          balance: '0',
-          transactions: [
-            {
-              txid: 'tx2',
-              blockHeight: 200,
-              confirmations: 6,
-              blockTime: 1700001000,
-              vin: [{ addresses: ['bc1qsender'], value: '10000' }],
-              vout: [{ addresses: [address], value: '9000' }],
-            },
-          ],
-        },
+        balance: '0',
+        transactions: [
+          {
+            txid: 'tx2',
+            blockHeight: 200,
+            confirmations: 6,
+            blockTime: 1700001000,
+            vin: [{ addresses: ['bc1qsender'], value: '10000' }],
+            vout: [{ addresses: [address], value: '9000' }],
+          },
+        ],
       })
     })
 

@@ -5,10 +5,10 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, combine, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, combine, postBody } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance } from './types'
-import { BalanceOutputSchema, BlockHeightOutputSchema, TransactionOutputSchema } from './types'
+import type { ApiProvider, Balance, BalanceOutput, BlockHeightOutput, TransactionOutput, AddressParams, TransactionParams } from './types'
+import { BalanceOutputSchema, BlockHeightOutputSchema, TransactionOutputSchema, AddressParamsSchema, TransactionParamsSchema } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
@@ -48,6 +48,8 @@ const EvmReceiptRpcSchema = z.object({
 })
 
 type RpcResponse = z.infer<typeof RpcResponseSchema>
+type EvmTxRpc = z.infer<typeof EvmTxRpcSchema>
+type EvmReceiptRpc = z.infer<typeof EvmReceiptRpcSchema>
 
 // ==================== Base Class for Mixins ====================
 
@@ -71,14 +73,14 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #balanceRpc: KeyFetchInstance<typeof RpcResponseSchema>
-  readonly #blockRpc: KeyFetchInstance<typeof RpcResponseSchema>
-  readonly #txByHashRpc: KeyFetchInstance<typeof EvmTxRpcSchema>
-  readonly #txReceiptRpc: KeyFetchInstance<typeof EvmReceiptRpcSchema>
+  readonly #balanceRpc: KeyFetchInstance<RpcResponse, AddressParams>
+  readonly #blockRpc: KeyFetchInstance<RpcResponse>
+  readonly #txByHashRpc: KeyFetchInstance<EvmTxRpc, TransactionParams>
+  readonly #txReceiptRpc: KeyFetchInstance<EvmReceiptRpc, TransactionParams>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
-  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly blockHeight: KeyFetchInstance<BlockHeightOutput>
+  readonly transaction: KeyFetchInstance<TransactionOutput, TransactionParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -87,30 +89,54 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
 
     const { endpoint: rpc, symbol, decimals } = this
 
-    this.#balanceRpc = keyFetch.create({
-      name: `evm-rpc.${chainId}.balanceRpc`,
-      schema: RpcResponseSchema,
-      url: rpc,
-      method: 'POST',
-      use: [ttl(10_000)],
-    })
-
+    // 区块高度 RPC - 使用 interval 轮询
     this.#blockRpc = keyFetch.create({
       name: `evm-rpc.${chainId}.blockRpc`,
-      schema: RpcResponseSchema,
-      url: rpc,
-      method: 'POST',
-      use: [ttl(10_000)],
-    })
-
-    // eth_getTransactionByHash
-    this.#txByHashRpc = keyFetch.create({
-      name: `evm-rpc.${chainId}.txByHash`,
-      schema: EvmTxRpcSchema,
-      paramsSchema: z.object({ txHash: z.string() }),
+      outputSchema: RpcResponseSchema,
       url: rpc,
       method: 'POST',
       use: [
+        interval(12_000), // EVM 链约 12-15s 出块
+        postBody({
+          transform: () => ({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_blockNumber',
+            params: [],
+          }),
+        }),
+      ],
+    })
+
+    // 余额查询 - 由 blockRpc 驱动
+    this.#balanceRpc = keyFetch.create({
+      name: `evm-rpc.${chainId}.balanceRpc`,
+      outputSchema: RpcResponseSchema,
+      inputSchema: AddressParamsSchema,
+      url: rpc,
+      method: 'POST',
+      use: [
+        deps(this.#blockRpc),
+        postBody({
+          transform: (params) => ({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getBalance',
+            params: [params.address, 'latest'],
+          }),
+        }),
+      ],
+    })
+
+    // eth_getTransactionByHash - 由 blockRpc 驱动
+    this.#txByHashRpc = keyFetch.create({
+      name: `evm-rpc.${chainId}.txByHash`,
+      outputSchema: EvmTxRpcSchema,
+      inputSchema: TransactionParamsSchema,
+      url: rpc,
+      method: 'POST',
+      use: [
+        deps(this.#blockRpc), // 交易状态会随区块变化
         postBody({
           transform: (params) => ({
             jsonrpc: '2.0',
@@ -119,18 +145,18 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [params.txHash],
           }),
         }),
-        ttl(10_000),
       ],
     })
 
-    // eth_getTransactionReceipt
+    // eth_getTransactionReceipt - 由 blockRpc 驱动
     this.#txReceiptRpc = keyFetch.create({
       name: `evm-rpc.${chainId}.txReceipt`,
-      schema: EvmReceiptRpcSchema,
-      paramsSchema: z.object({ txHash: z.string() }),
+      outputSchema: EvmReceiptRpcSchema,
+      inputSchema: TransactionParamsSchema,
       url: rpc,
       method: 'POST',
       use: [
+        deps(this.#blockRpc), // Receipt 状态会随区块变化
         postBody({
           transform: (params) => ({
             jsonrpc: '2.0',
@@ -139,14 +165,13 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [params.txHash],
           }),
         }),
-        ttl(10_000),
       ],
     })
 
     this.nativeBalance = derive({
       name: `evm-rpc.${chainId}.nativeBalance`,
       source: this.#balanceRpc,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [transform<RpcResponse, Balance>({
         transform: (r) => {
           const hex = r.result
@@ -159,19 +184,19 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
     this.blockHeight = derive({
       name: `evm-rpc.${chainId}.blockHeight`,
       source: this.#blockRpc,
-      schema: BlockHeightOutputSchema,
+      outputSchema: BlockHeightOutputSchema,
       use: [transform<RpcResponse, bigint>({ transform: (r) => BigInt(r.result) })],
     })
 
     // transaction: combine tx + receipt
     this.transaction = combine({
       name: `evm-rpc.${chainId}.transaction`,
-      schema: TransactionOutputSchema,
+      outputSchema: TransactionOutputSchema,
       sources: {
         tx: this.#txByHashRpc,
         receipt: this.#txReceiptRpc,
       },
-      paramsSchema: z.object({ txHash: z.string() }),
+      inputSchema: z.object({ txHash: z.string() }),
       transformParams: (params) => ({
         tx: { txHash: params.txHash },
         receipt: { txHash: params.txHash },

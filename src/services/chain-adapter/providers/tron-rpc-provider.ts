@@ -5,14 +5,16 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, ttl, derive, transform, pathParams, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, pathParams, postBody } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, Transaction, Direction } from './types'
+import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, BlockHeightOutput, TransactionOutput, TransactionsOutput, AddressParams, TxHistoryParams, TransactionParams } from './types'
 import {
   BalanceOutputSchema,
   TransactionsOutputSchema,
   TransactionOutputSchema,
   BlockHeightOutputSchema,
+  TxHistoryParamsSchema,
+  TransactionParamsSchema,
 } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
@@ -63,6 +65,7 @@ const TronTxListSchema = z.object({
 
 type TronAccount = z.infer<typeof TronAccountSchema>
 type TronNowBlock = z.infer<typeof TronNowBlockSchema>
+type TronTx = z.infer<typeof TronTxSchema>
 type TronTxList = z.infer<typeof TronTxListSchema>
 
 // Params Schema for validation
@@ -157,15 +160,15 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
   private readonly symbol: string
   private readonly decimals: number
 
-  readonly #accountApi: KeyFetchInstance<typeof TronAccountSchema>
-  readonly #blockApi: KeyFetchInstance<typeof TronNowBlockSchema>
-  readonly #txListApi: KeyFetchInstance<typeof TronTxListSchema>
-  readonly #txByIdApi: KeyFetchInstance<typeof TronTxSchema>
+  readonly #accountApi: KeyFetchInstance<TronAccount, AddressParams>
+  readonly #blockApi: KeyFetchInstance<TronNowBlock>
+  readonly #txListApi: KeyFetchInstance<TronTxList, TxHistoryParams>
+  readonly #txByIdApi: KeyFetchInstance<TronTx, TransactionParams>
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
-  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
-  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  readonly transaction: KeyFetchInstance<TransactionOutput, TransactionParams>
+  readonly blockHeight: KeyFetchInstance<BlockHeightOutput>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -177,43 +180,46 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     const decimals = this.decimals
 
     // 基础 API fetcher
+    // 区块 API - 使用 interval 轮询
+    this.#blockApi = keyFetch.create({
+      name: `tron-rpc.${chainId}.blockApi`,
+      outputSchema: TronNowBlockSchema,
+      url: `${baseUrl}/wallet/getnowblock`,
+      method: 'POST',
+      use: [interval(3_000)], // Tron 3s 出块
+    })
+
+    // 账户信息 - 由 blockApi 驱动
     this.#accountApi = keyFetch.create({
       name: `tron-rpc.${chainId}.accountApi`,
-      schema: TronAccountSchema,
-      paramsSchema: AddressParamsSchema,
+      outputSchema: TronAccountSchema,
+      inputSchema: AddressParamsSchema,
       url: `${baseUrl}/wallet/getaccount`,
       method: 'POST',
       use: [
+        deps(this.#blockApi),
         postBody({
           transform: (params) => ({
             address: tronAddressToHex(params.address as string),
           }),
         }),
-        ttl(60_000),
       ],
     })
 
-    this.#blockApi = keyFetch.create({
-      name: `tron-rpc.${chainId}.blockApi`,
-      schema: TronNowBlockSchema,
-      url: `${baseUrl}/wallet/getnowblock`,
-      method: 'POST',
-      use: [ttl(10_000)],
-    })
-
+    // 交易列表 - 由 blockApi 驱动
     this.#txListApi = keyFetch.create({
       name: `tron-rpc.${chainId}.txListApi`,
-      schema: TronTxListSchema,
-      paramsSchema: AddressParamsSchema,
+      outputSchema: TronTxListSchema,
+      inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/v1/accounts/:address/transactions`,
-      use: [pathParams(), ttl(5 * 60_000)],
+      use: [deps(this.#blockApi), pathParams()],
     })
 
     // 派生视图
     this.nativeBalance = derive({
       name: `tron-rpc.${chainId}.nativeBalance`,
       source: this.#accountApi,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [
         transform<TronAccount, Balance>({
           transform: (raw) => ({
@@ -227,7 +233,7 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     this.blockHeight = derive({
       name: `tron-rpc.${chainId}.blockHeight`,
       source: this.#blockApi,
-      schema: BlockHeightOutputSchema,
+      outputSchema: BlockHeightOutputSchema,
       use: [
         transform<TronNowBlock, bigint>({
           transform: (raw) => BigInt(raw.block_header?.raw_data?.number ?? 0),
@@ -238,62 +244,58 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     this.transactionHistory = derive({
       name: `tron-rpc.${chainId}.transactionHistory`,
       source: this.#txListApi,
-      schema: TransactionsOutputSchema,
-      use: [
-        transform<TronTxList, Transaction[]>({
-          transform: (raw, ctx) => {
-            if (!raw.success || !raw.data) return []
+      outputSchema: TransactionsOutputSchema,
 
-            const address = ((ctx.params.address as string) ?? '').toLowerCase()
+    }).use(transform({
+      transform: (raw: TronTxList, ctx): Transaction[] => {
+        if (!raw.success || !raw.data) return []
 
-            return raw.data.map((tx): Transaction => {
-              const contract = tx.raw_data?.contract?.[0]
-              const value = contract?.parameter?.value
-              const from = value?.owner_address ?? ''
-              const to = value?.to_address ?? ''
-              const direction = getDirection(from, to, address)
-              const status = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
+        const address = (ctx.params.address ?? '').toLowerCase()
 
-              return {
-                hash: tx.txID,
-                from,
-                to,
-                timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
-                status,
-                action: 'transfer' as const,
-                direction,
-                assets: [{
-                  assetType: 'native' as const,
-                  value: (value?.amount ?? 0).toString(),
-                  symbol,
-                  decimals,
-                }],
-              }
-            })
-          },
-        }),
-      ],
-    })
+        return raw.data.map((tx): Transaction => {
+          const contract = tx.raw_data?.contract?.[0]
+          const value = contract?.parameter?.value
+          const from = value?.owner_address ?? ''
+          const to = value?.to_address ?? ''
+          const direction = getDirection(from, to, address)
+          const status = tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed'
 
-    // transaction: 单笔交易查询
+          return {
+            hash: tx.txID,
+            from,
+            to,
+            timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
+            status,
+            action: 'transfer' as const,
+            direction,
+            assets: [{
+              assetType: 'native' as const,
+              value: (value?.amount ?? 0).toString(),
+              symbol,
+              decimals,
+            }],
+          }
+        })
+      },
+    }),)
+
+    // transaction: 单笔交易查询 - 由 blockApi 驱动
     this.#txByIdApi = keyFetch.create({
       name: `tron-rpc.${chainId}.txById`,
-      schema: TronTxSchema,
-      paramsSchema: z.object({ txHash: z.string() }),
+      outputSchema: TronTxSchema,
+      inputSchema: TransactionParamsSchema,
       url: `${baseUrl}/wallet/gettransactionbyid`,
       method: 'POST',
-      use: [
-        postBody({
-          transform: (params) => ({ value: params.txHash }),
-        }),
-        ttl(10_000),
-      ],
-    })
+
+    }).use(deps(this.#blockApi), // 交易状态会随区块变化
+      postBody({
+        transform: (params) => ({ value: params.txHash }),
+      }),)
 
     this.transaction = derive({
       name: `tron-rpc.${chainId}.transaction`,
       source: this.#txByIdApi,
-      schema: TransactionOutputSchema,
+      outputSchema: TransactionOutputSchema,
       use: [
         transform<z.infer<typeof TronTxSchema>, Transaction | null>({
           transform: (tx) => {

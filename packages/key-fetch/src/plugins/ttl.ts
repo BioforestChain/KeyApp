@@ -21,7 +21,7 @@ const cache = new Map<string, { data: Response; timestamp: number }>()
  * })
  * ```
  */
-export function ttl(ms: number): FetchPlugin {
+export function ttl(ms: number | (() => number)): FetchPlugin {
   return {
     name: 'ttl',
 
@@ -36,7 +36,8 @@ export function ttl(ms: number): FetchPlugin {
       const cached = cache.get(cacheKey)
 
       // 检查缓存是否有效
-      if (cached && Date.now() - cached.timestamp < ms) {
+      const ttlMs = typeof ms === 'function' ? ms() : ms
+      if (cached && Date.now() - cached.timestamp < ttlMs) {
         // 返回缓存的响应副本
         return cached.data.clone()
       }

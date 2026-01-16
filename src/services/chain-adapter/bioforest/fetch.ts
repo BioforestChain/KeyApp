@@ -79,7 +79,7 @@ const DEFAULT_FORGE_INTERVAL = 15_000
 
 export function setForgeInterval(chainId: string, intervalMs: number): void {
   forgeIntervals.set(chainId, intervalMs)
-  
+
 }
 
 export function getForgeInterval(chainId: string): number {
@@ -94,7 +94,7 @@ export function getForgeInterval(chainId: string): number {
 export function createLastBlockFetch(chainId: string, baseUrl: string) {
   return keyFetch.create({
     name: `${chainId}.lastblock`,
-    schema: LastBlockSchema,
+    outputSchema: LastBlockSchema,
     url: `${baseUrl}/lastblock`,
     method: 'GET',
     use: [
@@ -109,7 +109,7 @@ export function createLastBlockFetch(chainId: string, baseUrl: string) {
 export function createBalanceFetch(chainId: string, baseUrl: string, lastBlockFetch: ReturnType<typeof createLastBlockFetch>) {
   return keyFetch.create({
     name: `${chainId}.balance`,
-    schema: BalanceSchema,
+    outputSchema: BalanceSchema,
     url: `${baseUrl}/address/asset`,
     method: 'POST',
     use: [
@@ -124,7 +124,7 @@ export function createBalanceFetch(chainId: string, baseUrl: string, lastBlockFe
 export function createTransactionQueryFetch(chainId: string, baseUrl: string, lastBlockFetch: ReturnType<typeof createLastBlockFetch>) {
   return keyFetch.create({
     name: `${chainId}.txQuery`,
-    schema: TransactionQuerySchema,
+    outputSchema: TransactionQuerySchema,
     url: `${baseUrl}/transactions/query`,
     method: 'POST',
     use: [
@@ -152,11 +152,11 @@ export function getChainFetchInstances(chainId: string, baseUrl: string): ChainF
     const lastBlock = createLastBlockFetch(chainId, baseUrl)
     const balance = createBalanceFetch(chainId, baseUrl, lastBlock)
     const transactionQuery = createTransactionQueryFetch(chainId, baseUrl, lastBlock)
-    
+
     instances = { lastBlock, balance, transactionQuery }
     chainInstances.set(chainId, instances)
-    
-    
+
+
   }
   return instances
 }

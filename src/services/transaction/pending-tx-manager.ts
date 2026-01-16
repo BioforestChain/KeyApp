@@ -13,7 +13,7 @@ import { getChainProvider } from '@/services/chain-adapter/providers';
 import { ChainServiceError } from '@/services/chain-adapter/types';
 import { chainConfigSelectors, useChainConfigState } from '@/stores';
 import { notificationActions } from '@/stores/notification';
-import { queryClient } from '@/lib/query-client';
+
 import i18n from '@/i18n';
 
 // ==================== 配置 ====================
@@ -292,8 +292,12 @@ class PendingTxManagerImpl {
         // 发送交易确认通知
         this.sendNotification(updated, 'confirmed');
 
-        // 刷新余额
-        this.invalidateBalance(tx.walletId, tx.chainId);
+        // 发送交易确认通知
+        this.sendNotification(updated, 'confirmed');
+
+        // Note: 以前这里会调用 invalidateBalance (使用 React Query)。
+        // 现在系统完全依赖 key-fetch 的 deps (blockApi) 机制进行自动刷新。
+        // 当交易上链 -> blockApi 刷新 -> txList 和 pendingTr 自动刷新。
 
 
       } else {
@@ -380,25 +384,7 @@ class PendingTxManagerImpl {
     });
   }
 
-  /**
-   * 刷新余额和交易历史缓存
-   */
-  private invalidateBalance(walletId: string, chainId: string) {
-    try {
-      // 使 balance query 缓存失效，触发重新获取
-      // 使用内联 query key（src/queries 已废弃）
-      queryClient.invalidateQueries({
-        queryKey: ['balance', walletId, chainId],
-      });
-      // 使交易历史缓存失效
-      queryClient.invalidateQueries({
-        queryKey: ['transactionHistory', walletId],
-      });
 
-    } catch (error) {
-
-    }
-  }
 }
 
 /** 单例 */

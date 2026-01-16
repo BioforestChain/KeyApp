@@ -9,7 +9,7 @@
  * 3. 取消订阅时，自动取消对依赖的订阅（如果没有其他订阅者）
  */
 
-import type { FetchPlugin, KeyFetchInstance, AnyZodSchema, SubscribeContext } from '../types'
+import type { FetchPlugin, KeyFetchInstance, SubscribeContext, FetchParams } from '../types'
 import { globalRegistry } from '../registry'
 
 // 存储依赖订阅的清理函数
@@ -40,7 +40,7 @@ const subscriberCounts = new Map<string, number>()
  * })
  * ```
  */
-export function deps(...dependencies: KeyFetchInstance<AnyZodSchema>[]): FetchPlugin {
+export function deps<TParams extends FetchParams = FetchParams>(...dependencies: KeyFetchInstance[]): FetchPlugin<TParams> {
   // 用于生成唯一 key
   const getSubscriptionKey = (ctx: SubscribeContext): string => {
     return `${ctx.name}::${JSON.stringify(ctx.params)}`

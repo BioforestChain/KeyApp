@@ -7,36 +7,32 @@
 import { z } from 'zod'
 import { keyFetch, ttl, derive, transform, postBody, interval, deps, combine } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
-import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action } from './types'
+import type { ApiProvider, Balance, TokenBalance, Transaction, Direction, Action, BalanceOutput, BlockHeightOutput, TokenBalancesOutput, TransactionOutput, TransactionsOutput, AddressParams, TxHistoryParams, TransactionParams } from './types'
 import {
   BalanceOutputSchema,
   TokenBalancesOutputSchema,
   TransactionsOutputSchema,
   TransactionOutputSchema,
   BlockHeightOutputSchema,
+  AddressParamsSchema,
+  TxHistoryParamsSchema,
 } from './types'
+import {
+  setForgeInterval,
+} from '../bioforest/fetch'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { BioforestIdentityMixin } from '../bioforest/identity-mixin'
 import { BioforestTransactionMixin } from '../bioforest/transaction-mixin'
 import { BioforestAccountMixin } from '../bioforest/account-mixin'
+import { fetchGenesisBlock } from '@/services/bioforest-sdk'
 
 // ==================== 参数 Schema 定义 ====================
 
-/** 地址资产查询参数 Schema */
-export const AddressParamsSchema = z.object({
-  address: z.string(),
-})
-export type AddressParams = z.infer<typeof AddressParamsSchema>
+// ==================== 参数 Schema 定义 ====================
+// 使用 shared types 中的 Definitions
 
-/** 交易列表查询参数 Schema */
-export const TxListParamsSchema = z.object({
-  address: z.string(),
-  limit: z.number().optional(),
-  page: z.number().optional(),
-})
-export type TxListParams = z.infer<typeof TxListParamsSchema>
 
 // ==================== 内部 API Schema（原始响应格式，来自 main 分支）====================
 
@@ -328,19 +324,20 @@ class BiowalletBase {
 export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMixin(BioforestTransactionMixin(BiowalletBase))) implements ApiProvider {
   private readonly symbol: string
   private readonly decimals: number
+  private forgeInterval: number = 15000 // 默认 15s
 
   // ==================== 私有基础 Fetcher ====================
 
-  readonly #addressAsset: KeyFetchInstance<typeof AssetResponseSchema, typeof AddressParamsSchema>
-  readonly #txList: KeyFetchInstance<typeof TxListResponseSchema, typeof TxListParamsSchema>
+  readonly #addressAsset: KeyFetchInstance<AssetResponse, AddressParams>
+  readonly #txList: KeyFetchInstance<TxListResponse, TxHistoryParams>
 
   // ==================== 公开响应式数据源（派生视图）====================
 
-  readonly nativeBalance: KeyFetchInstance<typeof BalanceOutputSchema>
-  readonly tokenBalances: KeyFetchInstance<typeof TokenBalancesOutputSchema>
-  readonly transactionHistory: KeyFetchInstance<typeof TransactionsOutputSchema>
-  readonly blockHeight: KeyFetchInstance<typeof BlockHeightOutputSchema>
-  readonly transaction: KeyFetchInstance<typeof TransactionOutputSchema>
+  readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
+  readonly tokenBalances: KeyFetchInstance<TokenBalancesOutput, AddressParams>
+  readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  readonly blockHeight: KeyFetchInstance<BlockHeightOutput>
+  readonly transaction: KeyFetchInstance<TransactionOutput, TransactionParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -351,33 +348,55 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     const symbol = this.symbol
     const decimals = this.decimals
 
+    // ==================== 链配置读取（创世块） ====================
+
+    // 从静态配置中读取创世块以获取 forgeInterval
+    const genesisPath = chainConfigService.getBiowalletGenesisBlock(chainId)
+    if (genesisPath) {
+      fetchGenesisBlock(chainId, genesisPath)
+        .then(genesis => {
+          // Genesis Block JSON 可能直接包含 forgeInterval
+          const interval = genesis.asset.genesisAsset.forgeInterval
+          if (typeof interval === 'number') {
+            this.forgeInterval = interval * 1000
+            setForgeInterval(chainId, this.forgeInterval)
+          }
+        })
+        .catch(err => {
+          console.warn('Failed to fetch genesis block:', err)
+        })
+    }
+
     // ==================== 区块高度（必须先创建，供其他 fetcher 依赖）====================
 
     const blockApi = keyFetch.create({
       name: `biowallet.${chainId}.blockApi`,
-      schema: BlockResponseSchema,
+      outputSchema: BlockResponseSchema,
       url: `${baseUrl}/block/lastblock`,
-      use: [interval(15_000), ttl(10_000)],
+      // 动态获取 interval 和 TTL
+      use: [
+        interval(() => this.forgeInterval),
+        ttl(() => Math.max(1000, this.forgeInterval - 2000)) // TTL 略小于 interval，确保能触发重新获取
+      ],
     })
 
     // ==================== 基础 Fetcher（私有）====================
     // 使用 postBody 插件将 params 作为 JSON body 发送
-    // 使用 paramsSchema 进行类型推导
+    // 使用 inputSchema 进行类型推导
     // 使用 deps(blockApi) 在区块高度变化时自动刷新
 
     this.#addressAsset = keyFetch.create({
       name: `biowallet.${chainId}.addressAsset`,
-      schema: AssetResponseSchema,
-      paramsSchema: AddressParamsSchema,
+      outputSchema: AssetResponseSchema,
+      inputSchema: AddressParamsSchema,
       url: `${baseUrl}/address/asset`,
       method: 'POST',
-      use: [deps(blockApi), postBody(), ttl(30_000)], // 降低 TTL，依赖区块刷新
-    })
+    }).use(deps(blockApi), postBody())
 
     this.#txList = keyFetch.create({
       name: `biowallet.${chainId}.txList`,
-      schema: TxListResponseSchema,
-      paramsSchema: TxListParamsSchema,
+      outputSchema: TxListResponseSchema,
+      inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/transactions/query`,
       method: 'POST',
       use: [
@@ -391,7 +410,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
             sort: -1, // BioChain 需要 -1 表示逆序（最新在前）
           }),
         }),
-        ttl(30_000),
+        // 移除 TTL，确保与 blockApi 同步
       ],
     })
 
@@ -399,7 +418,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     this.blockHeight = derive({
       name: `biowallet.${chainId}.blockHeight`,
       source: blockApi,
-      schema: BlockHeightOutputSchema,
+      outputSchema: BlockHeightOutputSchema,
       use: [
         transform<z.infer<typeof BlockResponseSchema>, bigint>({
           transform: (raw) => {
@@ -417,7 +436,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     this.nativeBalance = derive({
       name: `biowallet.${chainId}.nativeBalance`,
       source: this.#addressAsset,
-      schema: BalanceOutputSchema,
+      outputSchema: BalanceOutputSchema,
       use: [
         transform<AssetResponse, Balance>({
           transform: (raw) => {
@@ -445,7 +464,7 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     this.tokenBalances = derive({
       name: `biowallet.${chainId}.tokenBalances`,
       source: this.#addressAsset,
-      schema: TokenBalancesOutputSchema,
+      outputSchema: TokenBalancesOutputSchema,
       use: [
         transform<AssetResponse, TokenBalance[]>({
           transform: (raw) => {
@@ -482,53 +501,50 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
     this.transactionHistory = derive({
       name: `biowallet.${chainId}.transactionHistory`,
       source: this.#txList,
-      schema: TransactionsOutputSchema,
-      use: [
-        transform<TxListResponse, Transaction[]>({
-          transform: (raw, ctx) => {
-            if (!raw.result?.trs) return []
-            const address = (ctx.params.address as string) ?? ''
-            const normalizedAddress = address.toLowerCase()
+      outputSchema: TransactionsOutputSchema,
+    }).use(transform({
+      transform: (raw: TxListResponse, ctx) => {
+        if (!raw.result?.trs) return []
+        const address = ctx.params.address
+        const normalizedAddress = address.toLowerCase()
 
-            return raw.result.trs
-              .map((item): Transaction | null => {
-                const tx = item.transaction
-                const action = detectAction(tx.type)
-                const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress)
+        return raw.result.trs
+          .map((item): Transaction | null => {
+            const tx = item.transaction
+            const action = detectAction(tx.type)
+            const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress)
 
-                const { value, assetType } = extractAssetInfo(tx.asset, symbol)
-                if (value === null) return null
+            const { value, assetType } = extractAssetInfo(tx.asset, symbol)
+            if (value === null) return null
 
-                return {
-                  // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
-                  hash: tx.signature ?? item.signature,
-                  from: tx.senderId,
-                  to: tx.recipientId ?? '',
-                  timestamp: BFM_EPOCH_MS + tx.timestamp * 1000, // BFM timestamp 是从 2017-01-01 开始的秒数
-                  status: 'confirmed',
-                  blockNumber: BigInt(item.height),
-                  action,
-                  direction,
-                  assets: [{
-                    assetType: 'native' as const,
-                    value,
-                    symbol: assetType,
-                    decimals,
-                  }],
-                }
-              })
-              .filter((tx): tx is Transaction => tx !== null)
-              .sort((a, b) => b.timestamp - a.timestamp) // 最新交易在前
-          },
-        }),
-      ],
-    })
+            return {
+              // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
+              hash: tx.signature ?? item.signature,
+              from: tx.senderId,
+              to: tx.recipientId ?? '',
+              timestamp: BFM_EPOCH_MS + tx.timestamp * 1000, // BFM timestamp 是从 2017-01-01 开始的秒数
+              status: 'confirmed',
+              blockNumber: BigInt(item.height),
+              action,
+              direction,
+              assets: [{
+                assetType: 'native' as const,
+                value,
+                symbol: assetType,
+                decimals,
+              }],
+            }
+          })
+          .filter((tx): tx is Transaction => tx !== null)
+          .sort((a, b) => b.timestamp - a.timestamp) as Transaction[]// 最新交易在前
+      },
+    }),)
 
     // Pending 交易列表（独立 fetcher）
     const bioPendingTr = keyFetch.create({
       name: `biowallet.${chainId}.pendingTr`,
-      schema: PendingTrResponseSchema,
-      paramsSchema: PendingTrParamsSchema,
+      outputSchema: PendingTrResponseSchema,
+      inputSchema: PendingTrParamsSchema,
       url: `${baseUrl}/pendingTr`,
       method: 'POST',
       use: [
@@ -539,39 +555,39 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
             sort: -1,
           }),
         }),
-        ttl(5_000), // 更短的 TTL，因为 pending 状态变化快
+        // 移除 TTL，确保与 blockApi/txList 同步
       ],
     })
 
     // 单笔交易查询内部 fetcher（使用 signature 参数）
     const singleTxApi = keyFetch.create({
       name: `biowallet.${chainId}.singleTx`,
-      schema: TxListResponseSchema,
-      paramsSchema: z.object({
+      outputSchema: TxListResponseSchema,
+      inputSchema: z.object({
         txHash: z.string().optional(),
       }),
       url: `${baseUrl}/transactions/query`,
       method: 'POST',
       use: [
+        deps(blockApi), // 由 blockApi 驱动，确保交易状态实时更新
         postBody({
           transform: (params) => ({
             signature: (params as { txHash?: string }).txHash,
           }),
         }),
-        ttl(10_000),
       ],
     })
 
     // transaction: 使用 combine 合并 pendingTr 和 singleTx 的结果
     this.transaction = combine({
       name: `biowallet.${chainId}.transaction`,
-      schema: TransactionOutputSchema,
+      outputSchema: TransactionOutputSchema,
       sources: {
         pending: bioPendingTr,
         confirmed: singleTxApi,
       },
-      // 自定义 paramsSchema：外部只需要传 txHash 和 senderId
-      paramsSchema: z.object({
+      // 自定义 inputSchema：外部只需要传 txHash 和 senderId
+      inputSchema: z.object({
         txHash: z.string(),
         senderId: z.string().optional(),
       }),
@@ -580,41 +596,39 @@ export class BiowalletProvider extends BioforestAccountMixin(BioforestIdentityMi
         pending: { senderId: params.senderId ?? '' },
         confirmed: { txHash: params.txHash },
       }),
-      use: [
-        transform({
-          transform: (results: {
-            pending?: z.infer<typeof PendingTrResponseSchema>,
-            confirmed?: TxListResponse
-          }, ctx) => {
-            // 返回 pending 状态的交易
-            if (results.pending?.result && results.pending.result.length > 0) {
-              const pendingTx = results.pending.result.find(tx => tx.signature === ctx.params.txHash)
-              if (pendingTx) {
-                return convertBioTransactionToTransaction(pendingTx.trJson, {
-                  // 使用 trJson.signature (交易签名)，而不是 pendingTx.signature
-                  signature: pendingTx.trJson.signature ?? pendingTx.signature ?? '',
-                  status: 'pending',
-                  createdTime: pendingTx.createdTime,
-                })
-              }
-            }
-            // 优先返回 confirmed 交易
-            if (results.confirmed?.result?.trs?.length) {
-              const item = results.confirmed.result.trs[0]
-              return convertBioTransactionToTransaction(item.transaction, {
-                // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
-                signature: item.transaction.signature ?? item.signature,
-                height: item.height,
-                status: 'confirmed',
-              })
-            }
 
-            // 都没找到
-            return null
-          },
-        }),
-      ],
-    })
+    }).use(transform({
+      transform: (results: {
+        pending?: z.infer<typeof PendingTrResponseSchema>,
+        confirmed?: TxListResponse
+      }, ctx) => {
+        // 返回 pending 状态的交易
+        if (results.pending?.result && results.pending.result.length > 0) {
+          const pendingTx = results.pending.result.find(tx => tx.signature === ctx.params.txHash)
+          if (pendingTx) {
+            return convertBioTransactionToTransaction(pendingTx.trJson, {
+              // 使用 trJson.signature (交易签名)，而不是 pendingTx.signature
+              signature: pendingTx.trJson.signature ?? pendingTx.signature ?? '',
+              status: 'pending',
+              createdTime: pendingTx.createdTime,
+            })
+          }
+        }
+        // 优先返回 confirmed 交易
+        if (results.confirmed?.result?.trs?.length) {
+          const item = results.confirmed.result.trs[0]
+          return convertBioTransactionToTransaction(item.transaction, {
+            // 使用 transaction.signature (交易签名)，而不是 item.signature (区块签名)
+            signature: item.transaction.signature ?? item.signature,
+            height: item.height,
+            status: 'confirmed',
+          })
+        }
+
+        // 都没找到
+        return null
+      },
+    }));
   }
 }
 

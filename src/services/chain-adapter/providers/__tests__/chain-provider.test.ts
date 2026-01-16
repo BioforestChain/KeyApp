@@ -29,10 +29,10 @@ afterAll(() => {
 })
 
 function createMockResponse<T>(data: T, ok = true, status = 200): Response {
-  return new Response(JSON.stringify(data), {
+  return new Response(keyFetch.superjson.stringify(data), {
     status,
     statusText: ok ? 'OK' : 'Error',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-SuperJson': 'true' },
   })
 }
 
@@ -40,7 +40,7 @@ function createMockResponse<T>(data: T, ok = true, status = 200): Response {
 function createMockKeyFetchInstance<T>(_mockData: T): KeyFetchInstance<any> {
   return keyFetch.create({
     name: `mock.${Date.now()}`,
-    schema: BalanceOutputSchema,
+    outputSchema: BalanceOutputSchema,
     url: 'https://mock.api/test',
     use: [],
   })
@@ -72,7 +72,7 @@ describe('ChainProvider', () => {
       // 创建一个带 nativeBalance 的 mock provider
       const nativeBalanceFetcher = keyFetch.create({
         name: 'test.nativeBalance',
-        schema: BalanceOutputSchema,
+        outputSchema: BalanceOutputSchema,
         url: 'https://mock.api/balance',
       })
 
@@ -96,7 +96,7 @@ describe('ChainProvider', () => {
 
       const txHistoryFetcher = keyFetch.create({
         name: 'test.transactionHistory',
-        schema: TransactionsOutputSchema,
+        outputSchema: TransactionsOutputSchema,
         url: 'https://mock.api/txs',
       })
 
@@ -120,7 +120,7 @@ describe('ChainProvider', () => {
 
       const nativeBalanceFetcher = keyFetch.create({
         name: 'test.nativeBalance',
-        schema: BalanceOutputSchema,
+        outputSchema: BalanceOutputSchema,
         url: 'https://mock.api/balance',
       })
 
@@ -158,7 +158,7 @@ describe('ChainProvider', () => {
 
       const txHistoryFetcher = keyFetch.create({
         name: 'test.transactionHistory',
-        schema: TransactionsOutputSchema,
+        outputSchema: TransactionsOutputSchema,
         url: 'https://mock.api/txs',
       })
 
@@ -187,7 +187,7 @@ describe('ChainProvider', () => {
     it('supportsNativeBalance reflects provider capabilities', () => {
       const nativeBalanceFetcher = keyFetch.create({
         name: 'test.nativeBalance.2',
-        schema: BalanceOutputSchema,
+        outputSchema: BalanceOutputSchema,
         url: 'https://mock.api/balance',
       })
 
@@ -203,7 +203,7 @@ describe('ChainProvider', () => {
     it('supportsTransactionHistory reflects provider capabilities', () => {
       const txHistoryFetcher = keyFetch.create({
         name: 'test.transactionHistory.2',
-        schema: TransactionsOutputSchema,
+        outputSchema: TransactionsOutputSchema,
         url: 'https://mock.api/txs',
       })
 

@@ -9,6 +9,7 @@ vi.mock('@/services/chain-config', () => ({
   chainConfigService: {
     getSymbol: () => 'BFM',
     getDecimals: () => 8,
+    getBiowalletGenesisBlock: () => null,
   },
 }));
 
@@ -29,14 +30,13 @@ function readFixture<T>(name: string): T {
 /** 创建模拟 Response 对象 */
 function createMockResponse(data: unknown, ok = true, status = 200): Response {
   const jsonData = JSON.stringify(data);
-  return {
-    ok,
+  return new Response(jsonData, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
     status,
     statusText: ok ? 'OK' : 'Not Found',
-    json: async () => data,
-    text: async () => jsonData,
-    clone: function () { return createMockResponse(data, ok, status); },
-  } as unknown as Response;
+  });
 }
 
 describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
@@ -82,7 +82,7 @@ describe('BiowalletProvider (BFMetaV2 real fixtures)', () => {
       if (url.endsWith('/block/lastblock')) {
         return createMockResponse(lastblock);
       }
-      if (url.endsWith('/transaction/list')) {
+      if (url.endsWith('/transactions/query')) {
         expect(method).toBe('POST');
         return createMockResponse(query);
       }

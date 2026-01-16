@@ -43,13 +43,13 @@ describe('merge functionality', () => {
 
         const source1 = keyFetch.create({
             name: 'merge.source1',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api1.test.com/balance',
         })
 
         const source2 = keyFetch.create({
             name: 'merge.source2',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api2.test.com/balance',
         })
 
@@ -74,13 +74,13 @@ describe('merge functionality', () => {
 
         const source1 = keyFetch.create({
             name: 'merge.fail.source1',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api1.test.com/balance',
         })
 
         const source2 = keyFetch.create({
             name: 'merge.fail.source2',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api2.test.com/balance',
         })
 
@@ -101,7 +101,7 @@ describe('merge functionality', () => {
 
         const source1 = keyFetch.create({
             name: 'merge.sub.source1',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api1.test.com/balance',
         })
 
@@ -128,7 +128,7 @@ describe('merge functionality', () => {
 
         const source1 = keyFetch.create({
             name: 'merge.useState.source1',
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             url: 'https://api1.test.com/balance',
         })
 
@@ -189,7 +189,7 @@ describe('merge with derived sources', () => {
         // Create a base fetcher (simulating addressAsset in biowallet-provider)
         const addressAsset = keyFetch.create({
             name: 'merge.derived.addressAsset',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://api.test.com/address/asset',
             method: 'POST',
         })
@@ -200,7 +200,7 @@ describe('merge with derived sources', () => {
         const nativeBalance = derive({
             name: 'merge.derived.nativeBalance',
             source: addressAsset,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
@@ -260,7 +260,7 @@ describe('merge with derived sources', () => {
 
         const addressAsset = keyFetch.create({
             name: 'real.addressAsset',
-            schema: SourceSchema,
+            outputSchema: SourceSchema,
             url: 'https://walletapi.bfmeta.info/wallet/bfm/address/asset',
             method: 'POST',
         })
@@ -268,7 +268,7 @@ describe('merge with derived sources', () => {
         const nativeBalance = derive({
             name: 'real.nativeBalance',
             source: addressAsset,
-            schema: BalanceSchema,
+            outputSchema: BalanceSchema,
             use: [
                 transform<z.infer<typeof SourceSchema>, z.infer<typeof BalanceSchema>>({
                     transform: (raw) => {
