@@ -41,6 +41,7 @@
     "confirmWritten": "I have written it down",
     "createFailed": "Failed to create wallet",
     "defaultWalletName": "Main Wallet",
+    "walletSuffix": "Wallet",
     "enterWallet": "Enter Wallet",
     "themeTitle": "Choose Card Theme",
     "themeSubtitle": "Select a theme color for your wallet card",

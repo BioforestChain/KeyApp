@@ -39,6 +39,7 @@
     "confirmWritten": "لقد كتبتها",
     "createFailed": "فشل في إنشاء المحفظة",
     "defaultWalletName": "المحفظة الرئيسية",
+    "walletSuffix": "محفظة",
     "enterWallet": "دخول المحفظة",
     "form": {
       "agreementPrefix": "لقد قرأت ووافقت على",
