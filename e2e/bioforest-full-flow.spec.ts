@@ -268,8 +268,8 @@ async function performTransfer(
   await continueBtn.click()
   await page.waitForTimeout(500)
 
-  // 点击确认转账 (TransferPreviewJob)
-  const confirmBtn = page.locator(`[data-testid="confirm-preview-button"], button:has-text("${UI_TEXT.confirm.source}")`).first()
+  // 点击确认转账
+  const confirmBtn = page.locator(`[data-testid="confirm-transfer-button"], button:has-text("${UI_TEXT.confirm.source}")`).first()
   await expect(confirmBtn).toBeVisible({ timeout: 5000 })
   await confirmBtn.click()
   await page.waitForTimeout(500)
