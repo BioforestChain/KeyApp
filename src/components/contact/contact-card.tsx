@@ -10,9 +10,20 @@ import { detectAddressFormat } from '@/lib/address-format';
 import type { ContactAddressInfo } from '@/lib/qr-parser';
 
 const CHAIN_COLORS: Record<string, string> = {
+  // External chains
   ethereum: '#627EEA',
   bitcoin: '#F7931A',
   tron: '#FF0013',
+  binance: '#F3BA2F',
+  // BioForest chains - use distinctive colors
+  bfmeta: '#6366F1',      // Indigo
+  ccchain: '#10B981',     // Emerald
+  pmchain: '#8B5CF6',     // Violet
+  bfchainv2: '#3B82F6',   // Blue
+  btgmeta: '#EAB308',     // Yellow
+  biwmeta: '#EC4899',     // Pink
+  ethmeta: '#14B8A6',     // Teal
+  malibu: '#06B6D4',      // Cyan
 };
 
 /** 获取地址显示标签和颜色（只显示自定义 label） */
