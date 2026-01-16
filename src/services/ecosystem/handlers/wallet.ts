@@ -6,6 +6,7 @@ import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
 import { getChainProvider } from '@/services/chain-adapter/providers'
+import { walletStore } from '@/stores/wallet'
 
 // 兼容旧 API，逐步迁移到 HandlerContext
 let _showWalletPicker: ((opts?: { chain?: string; exclude?: string }) => Promise<BioAccount | null>) | null = null
@@ -104,8 +105,7 @@ export const handlePickWallet: MethodHandler = async (params, context) => {
 
 /** bio_chainId - Get current chain ID */
 export const handleChainId: MethodHandler = async (_params, _context) => {
-  // TODO: Get from current selected chain
-  return 'bfmeta'
+  return walletStore.state.selectedChain
 }
 
 /** bio_getBalance - Get balance */
