@@ -183,6 +183,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     WalletListJob,
     SecurityWarningJob,
     TransferConfirmJob,
+    TransferPreviewJob,
     TransferWalletLockJob,
     FeeEditJob,
     ScannerJob,
