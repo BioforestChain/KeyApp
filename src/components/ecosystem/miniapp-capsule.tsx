@@ -8,6 +8,7 @@
 import { forwardRef } from 'react';
 import { IconDots, IconPointFilled } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { CapsuleTheme } from '@/services/miniapp-runtime';
 import styles from './miniapp-capsule.module.css';
 
@@ -30,6 +31,7 @@ export const MiniappCapsule = forwardRef<HTMLDivElement, MiniappCapsuleProps>(fu
   { theme = 'auto', actionIcon, onAction, onClose, visible = true, className },
   ref,
 ) {
+  const { t } = useTranslation('ecosystem');
   if (!visible) return null;
 
   const themeClassName = theme === 'dark' ? styles.themeDark : theme === 'light' ? styles.themeLight : styles.themeAuto;
@@ -39,7 +41,7 @@ export const MiniappCapsule = forwardRef<HTMLDivElement, MiniappCapsuleProps>(fu
       {/*<div className={styles.glassBg} />*/}
       <div ref={ref} className={cn(styles.capsule, themeClassName, className)} data-testid="miniapp-capsule">
         {/* 多功能按钮 */}
-        <button type="button" onClick={onAction} className={styles.button} aria-label="更多操作">
+        <button type="button" onClick={onAction} className={styles.button} aria-label={t('capsule.more')}>
           {actionIcon ?? <IconDots className={styles.icon} stroke={1.5} />}
         </button>
 
@@ -47,7 +49,7 @@ export const MiniappCapsule = forwardRef<HTMLDivElement, MiniappCapsuleProps>(fu
         <div className={styles.divider} />
 
         {/* 关闭按钮 - 使用 IconPointFilled 模拟国内小程序的关闭图标 */}
-        <button type="button" onClick={onClose} className={styles.button} aria-label="关闭应用">
+        <button type="button" onClick={onClose} className={styles.button} aria-label={t('capsule.close')}>
           <div className={styles.closeIcon}>
             <IconPointFilled className={styles.closeIconInner} />
           </div>

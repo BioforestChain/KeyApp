@@ -1,4 +1,5 @@
 import { IconSearch } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export interface IOSSearchCapsuleProps {
@@ -7,6 +8,7 @@ export interface IOSSearchCapsuleProps {
 }
 
 export function IOSSearchCapsule({ onClick, className }: IOSSearchCapsuleProps) {
+  const { t } = useTranslation('common');
   return (
     <button
       onClick={onClick}
@@ -21,7 +23,7 @@ export function IOSSearchCapsule({ onClick, className }: IOSSearchCapsuleProps) 
       )}
     >
       <IconSearch className="size-4" stroke={2} />
-      <span>搜索</span>
+      <span>{t('search')}</span>
     </button>
   );
 }

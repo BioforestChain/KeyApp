@@ -1,41 +1,58 @@
 {
+  "clear": "مسح",
+  "delete": "حذف",
+  "empty": {
+    "desc": "ستظهر جميع إشعاراتك هنا",
+    "title": "لا توجد إشعارات"
+  },
+  "markAllRead": "تحديد الكل كمقروء",
+  "noUnread": "لا توجد إشعارات غير مقروءة",
+  "pendingTx": {
+    "broadcasted": {
+      "message": "{{type}} {{amount}} {{symbol}} تم البث، في انتظار التأكيد",
+      "messageSimple": "تم بث المعاملة، في انتظار تأكيد الكتلة",
+      "title": "تم بث المعاملة"
+    },
+    "confirmed": {
+      "message": "{{type}} {{amount}} {{symbol}} تم التأكيد بنجاح",
+      "messageSimple": "تم تأكيد المعاملة بنجاح",
+      "title": "تم تأكيد المعاملة"
+    },
+    "failed": {
+      "message": "فشل البث，请重试",
+      "title": "فشلت المعاملة"
+    }
+  },
   "permission": {
-    "title": "تفعيل الإشعارات",
+    "benefits": {
+      "instant": {
+        "description": "كن أول من يعرف عند وصول المدفوعات واكتمال المعاملات",
+        "title": "تنبيهات فورية"
+      },
+      "security": {
+        "description": "لا تفوت إشعارات أمان الحساب المهمة",
+        "title": "تنبيهات الأمان"
+      },
+      "transaction": {
+        "description": "احصل على إشعارات فورية للتحويلات وتأكيدات المعاملات",
+        "title": "حالة المعاملات"
+      }
+    },
     "description": "استلام تحديثات حالة المعاملات وتنبيهات الأمان المهمة",
     "enable": "تفعيل الإشعارات",
     "skip": "ليس الآن",
-    "benefits": {
-      "transaction": {
-        "title": "حالة المعاملات",
-        "description": "احصل على إشعارات فورية للتحويلات وتأكيدات المعاملات"
-      },
-      "instant": {
-        "title": "تنبيهات فورية",
-        "description": "كن أول من يعرف عند وصول المدفوعات واكتمال المعاملات"
-      },
-      "security": {
-        "title": "تنبيهات الأمان",
-        "description": "لا تفوت إشعارات أمان الحساب المهمة"
-      }
-    }
-  },
-  "title": "مركز الإشعارات",
-  "markAllRead": "تحديد الكل كمقروء",
-  "unreadCount": "{{count}} غير مقروء",
-  "noUnread": "لا توجد إشعارات غير مقروءة",
-  "clear": "مسح",
-  "delete": "حذف",
-  "unread": "غير مقروء",
-  "empty": {
-    "title": "لا توجد إشعارات",
-    "desc": "ستظهر جميع إشعاراتك هنا"
+    "title": "تفعيل الإشعارات"
   },
   "time": {
+    "daysAgo": "منذ {{count}} يوم",
+    "hoursAgo": "منذ {{count}} ساعة",
     "justNow": "الآن",
     "minutesAgo": "منذ {{count}} دقيقة",
-    "hoursAgo": "منذ {{count}} ساعة",
-    "daysAgo": "منذ {{count}} يوم",
     "today": "اليوم",
     "yesterday": "أمس"
-  }
+  },
+  "title": "مركز الإشعارات",
+  "unread": "غير مقروء",
+  "unreadCount": "{{count}} غير مقروء",
+  "viewDetails": "عرض التفاصيل"
 }

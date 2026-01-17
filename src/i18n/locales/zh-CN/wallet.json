@@ -2,6 +2,13 @@
   "add": "添加钱包",
   "defaultName": "我的钱包",
   "randomName": "随机名称",
+  "carousel": {
+    "walletCount": "{{count}} 个钱包"
+  },
+  "menu": {
+    "addressBalanceQuery": "地址余额查询",
+    "addressTransactionsQuery": "地址交易查询"
+  },
   "chains": {
     "title": "管理钱包网络",
     "verifyTitle": "验证钱包锁",

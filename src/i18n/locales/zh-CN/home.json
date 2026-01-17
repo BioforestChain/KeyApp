@@ -7,12 +7,14 @@
   },
   "wallet": {
     "send": "转账",
-    "receive": "收款",
+    "receive": "接收",
     "assets": "资产",
     "noAssets": "暂无资产",
     "noAssetsOnChain": "{{chain}} 链上暂无代币",
+    "tokenBalance": "代币余额",
+    "transactionHistory": "交易历史",
     "selectNetwork": "选择网络",
-    "addressCopied": "地址已复制",
+    "addressCopied": "地址已复制到剪切板",
     "tokenActions": "资产操作",
     "transfer": "转账",
     "destroy": "销毁"

@@ -40,6 +40,7 @@
     "createFailed": "建立錢包失敗",
     "defaultWalletName": "主錢包",
     "walletSuffix": "錢包",
+    "generatedNamePattern": "{{word}}{{suffix}}",
     "enterWallet": "進入錢包",
     "form": {
       "agreementPrefix": "我已閱讀並同意",
@@ -122,9 +123,9 @@
     "invalidMnemonic": "助記詞無效，請檢查拼寫",
     "nextStep": "下一步",
     "success": {
-      "description": "[MISSING:zh-TW] 钱包 <bold>{{name}}</bold> 已成功导入",
-      "enterWallet": "[MISSING:zh-TW] 进入钱包",
-      "title": "[MISSING:zh-TW] 导入成功"
+      "description": "錢包 <bold>{{name}}</bold> 已成功導入",
+      "enterWallet": "進入錢包",
+      "title": "導入成功"
     },
     "title": "匯入錢包",
     "words12": "12 個單詞",

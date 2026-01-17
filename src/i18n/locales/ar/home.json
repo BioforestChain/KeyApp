@@ -2,14 +2,16 @@
   "wallet": {
     "addressCopied": "تم نسخ العنوان",
     "assets": "الأصول",
-    "destroy": "[MISSING:ar] 销毁",
+    "destroy": "حرق",
     "noAssets": "لا توجد أصول",
     "noAssetsOnChain": "لا توجد رموز على {{chain}}",
     "receive": "استلام",
     "selectNetwork": "اختر الشبكة",
     "send": "إرسال",
-    "tokenActions": "[MISSING:ar] 资产操作",
-    "transfer": "[MISSING:ar] 转账"
+    "tokenActions": "عمليات الأصول",
+    "tokenBalance": "رصيد التوكن",
+    "transactionHistory": "سجل المعاملات",
+    "transfer": "تحويل"
   },
   "welcome": {
     "createWallet": "إنشاء محفظة جديدة",

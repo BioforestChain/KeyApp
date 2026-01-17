@@ -2,14 +2,16 @@
   "wallet": {
     "addressCopied": "地址已複製",
     "assets": "資產",
-    "destroy": "[MISSING:zh-TW] 销毁",
+    "destroy": "銷毀",
     "noAssets": "暫無資產",
     "noAssetsOnChain": "{{chain}} 鏈上暫無代幣",
     "receive": "收款",
     "selectNetwork": "選擇網絡",
     "send": "轉賬",
-    "tokenActions": "[MISSING:zh-TW] 资产操作",
-    "transfer": "[MISSING:zh-TW] 转账"
+    "tokenActions": "資產操作",
+    "tokenBalance": "代幣餘額",
+    "transactionHistory": "交易歷史",
+    "transfer": "轉帳"
   },
   "welcome": {
     "createWallet": "創建新錢包",

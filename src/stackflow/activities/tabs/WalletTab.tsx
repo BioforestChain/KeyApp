@@ -37,20 +37,8 @@ import {
 import type { TransactionInfo } from "@/components/transaction/transaction-item";
 import { toTransactionInfoList } from "@/components/transaction/adapters";
 
-const CHAIN_NAMES: Record<string, string> = {
-  ethereum: "Ethereum",
-  bitcoin: "Bitcoin",
-  tron: "Tron",
-  binance: "BSC",
-  bfmeta: "BFMeta",
-  ccchain: "CCChain",
-  pmchain: "PMChain",
-  bfchainv2: "BFChain V2",
-  btgmeta: "BTGMeta",
-  biwmeta: "BIWMeta",
-  ethmeta: "ETHMeta",
-  malibu: "Malibu",
-};
+// Chain names are localized via t('common:chains.' + chainId)
+
 
 // ==================== 内部内容组件：使用 useChainProvider 获取确保非空的 provider ====================
 
@@ -171,7 +159,6 @@ function WalletTabContent({
           currentWalletId={currentWalletId}
           selectedChain={selectedChain}
           chainPreferences={chainPreferences}
-          chainNames={CHAIN_NAMES}
           onWalletChange={onWalletChange}
           onCopyAddress={onCopyAddress}
           onOpenChainSelector={onOpenChainSelector}
@@ -311,7 +298,7 @@ export function WalletTab() {
   const currentWalletId = currentWallet?.id ?? null;
   const selectedChain = useSelectedChain();
   const chainPreferences = useChainPreferences();
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const selectedChainName = t(`common:chains.${selectedChain}`, { defaultValue: selectedChain });
   const chainConfigState = useChainConfigState();
   const chainConfig = chainConfigState.snapshot
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
@@ -404,7 +391,7 @@ export function WalletTab() {
       chainId={selectedChain}
       fallback={
         <div className="flex h-full items-center justify-center">
-          <p className="text-muted-foreground">Chain not supported</p>
+          <p className="text-muted-foreground">{t("common:ecosystem.chainNotSupported")}</p>
         </div>
       }
     >

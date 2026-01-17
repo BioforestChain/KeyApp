@@ -1,4 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconSearch, IconSparkles, IconChevronRight, IconApps } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import styles from './discover-page.module.css';
@@ -9,10 +10,19 @@ import type { MiniappManifest } from '@/services/ecosystem';
 // ============================================
 // 工具函数
 // ============================================
-function getTodayDate() {
+// ============================================
+// 工具函数
+// ============================================
+// ============================================
+// 工具函数
+// ============================================
+function getTodayDate(t: (key: string, options?: Record<string, unknown>) => string) {
   const now = new Date();
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  return `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
+  return t('common:date.format', {
+    month: now.getMonth() + 1,
+    day: now.getDate(),
+    weekday: t(`common:weekdays.${now.getDay()}`),
+  });
 }
 
 // 默认渐变色
@@ -32,6 +42,7 @@ function getAppGradient(app: MiniappManifest, fallbackIndex: number = 0): string
 // 大型精选卡片
 // ============================================
 function FeaturedStoryCard({ app, onTap }: { app: MiniappManifest; onTap: () => void }) {
+  const { t } = useTranslation('ecosystem');
   const gradient = app.themeColor || 'from-violet-600 via-purple-600 to-indigo-700';
 
   return (
@@ -51,7 +62,7 @@ function FeaturedStoryCard({ app, onTap }: { app: MiniappManifest; onTap: () => 
       <div className="@container relative flex min-h-[300px] flex-col p-6">
         <div className="mb-auto flex items-center gap-2 text-xs font-semibold tracking-wider text-white/80 uppercase">
           <IconSparkles className="size-4" />
-          精选应用
+          {t('ecosystem:discover.featured')}
         </div>
 
         <div className="mt-auto">
@@ -123,6 +134,7 @@ function AppListItem({
   rank?: number;
   showRank?: boolean;
 }) {
+  const { t } = useTranslation('ecosystem');
   return (
     <div className="flex items-center gap-3 py-3">
       {showRank && rank !== undefined && (
@@ -138,7 +150,7 @@ function AppListItem({
           <h3 className="truncate font-semibold">{app.name}</h3>
           {app.beta && (
             <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-              Beta
+              {t('common:beta')}
             </span>
           )}
         </div>
@@ -154,7 +166,7 @@ function AppListItem({
           onOpen();
         }}
       >
-        获取
+        {t('ecosystem:discover.get')}
       </Button>
     </div>
   );
@@ -195,6 +207,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
   { apps, featuredApp, featuredApps, recommendedApps, hotApps, onAppDetail, onAppOpen },
   ref,
 ) {
+  const { t } = useTranslation(['ecosystem', 'common']);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -208,7 +221,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
       {/* BigHeader - sticky，scroll-driven background */}
       <header className={cn(styles.discoverHeader, 'sticky top-0 z-10 px-5 pt-12 pb-4')}>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-foreground text-sm font-medium">{getTodayDate()}</p>
+          <p className="text-foreground text-sm font-medium">{getTodayDate(t)}</p>
         </div>
 
         {/* 搜索框 */}
@@ -217,7 +230,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="搜索应用"
+            placeholder={t('ecosystem:discover.searchPlaceholder')}
             className={cn(
               'bg-muted/60 w-full rounded-xl py-3 pr-4 pl-12',
               'placeholder:text-muted-foreground/60 text-base',
@@ -231,7 +244,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
       {/* 内容区 */}
       <div className="space-y-8">
         {apps.length === 0 ? (
-          <EmptyState message="暂无应用" />
+          <EmptyState message={t('ecosystem:discover.empty')} />
         ) : (
           <>
             {featuredApp && (
@@ -243,9 +256,9 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
             {recommendedApps.length > 0 && (
               <section>
                 <div className="mb-3 flex items-center justify-between px-5">
-                  <h2 className="text-xl font-bold">推荐</h2>
+                  <h2 className="text-xl font-bold">{t('ecosystem:discover.recommended')}</h2>
                   <button className="text-primary flex items-center text-sm font-medium">
-                    查看全部
+                    {t('ecosystem:discover.viewAll')}
                     <IconChevronRight className="size-4" />
                   </button>
                 </div>
@@ -264,7 +277,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
             )}
 
             <section className="px-5">
-              <h2 className="mb-3 text-xl font-bold">热门应用</h2>
+              <h2 className="mb-3 text-xl font-bold">{t('ecosystem:discover.hotApps')}</h2>
               <div className="bg-card divide-y rounded-2xl border">
                 {hotApps.map((app, i) => (
                   <div key={app.id} className="px-4">

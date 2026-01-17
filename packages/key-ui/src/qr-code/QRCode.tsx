@@ -34,11 +34,11 @@ export function QRCode({
       {renderFn ? (
         renderFn({ value, size, level })
       ) : (
-        <div 
+        <div
           className="flex items-center justify-center bg-muted text-muted-foreground text-xs"
           style={{ width: size, height: size }}
         >
-          QR: {value.slice(0, 20)}...
+          {value.slice(0, 20)}...
         </div>
       )}
       {logoUrl && (

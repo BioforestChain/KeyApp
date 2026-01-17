@@ -14,6 +14,7 @@ import 'swiper/css'
 import 'swiper/css/effect-cards'
 import { useStore } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
@@ -39,6 +40,7 @@ export function MiniappStackView({
   onClose,
   className,
 }: MiniappStackViewProps) {
+  const { t } = useTranslation('ecosystem')
   const swiperRef = useRef<SwiperType | null>(null)
 
   // 获取所有运行中的应用
@@ -100,7 +102,7 @@ export function MiniappStackView({
 
       {/* 标题 */}
       <div className={styles.title}>
-        <span>正在运行的应用</span>
+        <span>{t('stack.runningApps')}</span>
         <span className={styles.count}>{apps.length}</span>
       </div>
 
@@ -135,7 +137,7 @@ export function MiniappStackView({
 
       {/* 操作提示 */}
       <div className={styles.hints}>
-        <span>左右滑动切换 · 点击打开 · 上滑关闭</span>
+        <span>{t('stack.hints')}</span>
       </div>
     </div>
   )

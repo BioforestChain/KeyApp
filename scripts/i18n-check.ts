@@ -68,6 +68,7 @@ interface CheckResult {
   locale: string
   missing: string[]
   extra: string[]
+  untranslated: string[]  // Keys with [MISSING:xx] placeholder
 }
 
 // ==================== Utilities ====================
@@ -90,6 +91,25 @@ function extractKeys(obj: TranslationFile, prefix = ''): string[] {
   }
 
   return keys
+}
+
+/**
+ * Find keys with [MISSING:xx] placeholder values
+ */
+function findUntranslatedKeys(obj: TranslationFile, prefix = ''): string[] {
+  const untranslated: string[] = []
+
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key
+
+    if (typeof value === 'object' && value !== null) {
+      untranslated.push(...findUntranslatedKeys(value as TranslationFile, fullKey))
+    } else if (typeof value === 'string' && value.startsWith('[MISSING:')) {
+      untranslated.push(fullKey)
+    }
+  }
+
+  return untranslated
 }
 
 /**
@@ -206,6 +226,7 @@ function checkNamespace(namespace: string, fix: boolean, verbose: boolean): Chec
         locale,
         missing: [...refKeys],
         extra: [],
+        untranslated: [],
       })
       continue
     }
@@ -214,21 +235,23 @@ function checkNamespace(namespace: string, fix: boolean, verbose: boolean): Chec
     const localeKeys = new Set(extractKeys(localeData))
 
     const diff = compareKeys(refKeys, localeKeys)
+    const untranslated = findUntranslatedKeys(localeData)
 
-    if (diff.missing.length > 0 || diff.extra.length > 0) {
+    if (diff.missing.length > 0 || diff.extra.length > 0 || untranslated.length > 0) {
       results.push({
         namespace,
         locale,
         missing: diff.missing,
         extra: diff.extra,
+        untranslated,
       })
 
       // Fix missing keys if requested
       if (fix && diff.missing.length > 0) {
         for (const key of diff.missing) {
           const refValue = getNestedValue(refData, key)
-          const placeholder = typeof refValue === 'string' 
-            ? `[MISSING:${locale}] ${refValue}` 
+          const placeholder = typeof refValue === 'string'
+            ? `[MISSING:${locale}] ${refValue}`
             : refValue
           setNestedValue(localeData, key, placeholder as TranslationValue)
         }
@@ -277,8 +300,9 @@ ${colors.cyan}╔═════════════════════
 
   const hasMissingKeys = allResults.some((r) => r.missing.length > 0)
   const hasExtraKeys = allResults.some((r) => r.extra.length > 0)
+  const hasUntranslated = allResults.some((r) => r.untranslated.length > 0)
 
-  if (!hasMissingKeys && !hasExtraKeys) {
+  if (!hasMissingKeys && !hasExtraKeys && !hasUntranslated) {
     log.success('All translations are complete!')
     console.log(`
 ${colors.green}✓ All ${namespaces.length} namespaces checked across ${LOCALES.length} locales${colors.reset}
@@ -297,15 +321,18 @@ ${colors.green}✓ All ${namespaces.length} namespaces checked across ${LOCALES.
 
   let totalMissing = 0
   let totalExtra = 0
+  let totalUntranslated = 0
 
   for (const [locale, results] of byLocale) {
     const missingCount = results.reduce((sum, r) => sum + r.missing.length, 0)
     const extraCount = results.reduce((sum, r) => sum + r.extra.length, 0)
+    const untranslatedCount = results.reduce((sum, r) => sum + r.untranslated.length, 0)
 
-    if (missingCount === 0 && extraCount === 0) continue
+    if (missingCount === 0 && extraCount === 0 && untranslatedCount === 0) continue
 
     totalMissing += missingCount
     totalExtra += extraCount
+    totalUntranslated += untranslatedCount
 
     console.log(`\n${colors.bold}${locale}${colors.reset}`)
 
@@ -329,18 +356,32 @@ ${colors.green}✓ All ${namespaces.length} namespaces checked across ${LOCALES.
           log.dim(`  ... and ${result.extra.length - 3} more`)
         }
       }
+
+      if (result.untranslated.length > 0) {
+        log.error(`${result.namespace}.json: ${result.untranslated.length} untranslated keys ([MISSING:] placeholders)`)
+        for (const key of result.untranslated.slice(0, 5)) {
+          log.dim(`! ${key}`)
+        }
+        if (result.untranslated.length > 5) {
+          log.dim(`  ... and ${result.untranslated.length - 5} more`)
+        }
+      }
     }
   }
 
-  if (totalMissing > 0) {
+  if (totalMissing > 0 || totalUntranslated > 0) {
     console.log(`
 ${colors.red}✗ Found issues:${colors.reset}
-  ${colors.red}Missing: ${totalMissing} keys${colors.reset}
+  ${totalMissing > 0 ? `${colors.red}Missing: ${totalMissing} keys${colors.reset}` : ''}
+  ${totalUntranslated > 0 ? `${colors.red}Untranslated: ${totalUntranslated} keys (have [MISSING:] placeholder)${colors.reset}` : ''}
   ${colors.yellow}Extra: ${totalExtra} keys${colors.reset}
 `)
 
-    if (!fix) {
+    if (!fix && totalMissing > 0) {
       log.info(`Run with ${colors.cyan}--fix${colors.reset} to add missing keys with placeholder values`)
+    }
+    if (totalUntranslated > 0) {
+      log.info(`Fix [MISSING:xx] placeholders by providing actual translations`)
     }
 
     process.exit(1)
@@ -348,7 +389,7 @@ ${colors.red}✗ Found issues:${colors.reset}
 
   // Only extra keys - warn but don't fail
   console.log(`
-${colors.green}✓ No missing translations${colors.reset}
+${colors.green}✓ No missing or untranslated keys${colors.reset}
   ${colors.yellow}Extra: ${totalExtra} keys (not in reference, can be cleaned up)${colors.reset}
 `)
 }

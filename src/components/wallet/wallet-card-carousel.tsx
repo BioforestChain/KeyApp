@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Priority } from './refraction';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCards } from 'swiper/modules';
@@ -25,7 +26,6 @@ interface WalletCardCarouselProps {
   selectedChain: ChainType;
   /** 每个钱包的链偏好 (walletId -> chainId) */
   chainPreferences?: Record<string, ChainType>;
-  chainNames: Record<string, string>;
   onWalletChange?: (walletId: string) => void;
   onCopyAddress?: (address: string) => void;
   onOpenChainSelector?: (walletId: string) => void;
@@ -46,7 +46,6 @@ export function WalletCardCarousel({
   currentWalletId,
   selectedChain,
   chainPreferences = {},
-  chainNames,
   onWalletChange,
   onCopyAddress,
   onOpenChainSelector,
@@ -57,9 +56,11 @@ export function WalletCardCarousel({
   onOpenAddressTransactions,
   className,
 }: WalletCardCarouselProps) {
+  const { t } = useTranslation(['home', 'wallet', 'common']);
   const swiperRef = useRef<SwiperType | null>(null);
   const { getWalletTheme } = useWalletTheme();
   const chainIconUrls = useChainIconUrls();
+  // ... rest of the component
 
   // 找到当前钱包的索引
   const currentIndex = wallets.findIndex((w) => w.id === currentWalletId);
@@ -117,7 +118,7 @@ export function WalletCardCarousel({
           className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-0 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors"
         >
           <IconWallet className="size-3.5" />
-          <span>{wallets.length} 个钱包</span>
+          <span>{t('wallet:carousel.walletCount', { count: wallets.length })}</span>
         </button>
       )}
 
@@ -142,13 +143,13 @@ export function WalletCardCarousel({
               {onOpenAddressBalance && (
                 <DropdownMenuItem onClick={onOpenAddressBalance}>
                   <IconSearch className="size-4" />
-                  地址余额查询
+                  {t('wallet:menu.addressBalanceQuery')}
                 </DropdownMenuItem>
               )}
               {onOpenAddressTransactions && (
                 <DropdownMenuItem onClick={onOpenAddressTransactions}>
                   <IconReceipt className="size-4" />
-                  地址交易查询
+                  {t('wallet:menu.addressTransactionsQuery')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -182,7 +183,7 @@ export function WalletCardCarousel({
               <WalletCard
                 wallet={wallet}
                 chain={walletChain}
-                chainName={chainNames[walletChain] ?? walletChain}
+                chainName={t(`common:chains.${walletChain}`, { defaultValue: walletChain })}
                 priority={getPriority(index)}
                 address={walletAddress}
                 chainIconUrl={chainIconUrls[walletChain]}
@@ -197,6 +198,6 @@ export function WalletCardCarousel({
           );
         })}
       </Swiper>
-    </div>
+    </div >
   );
 }

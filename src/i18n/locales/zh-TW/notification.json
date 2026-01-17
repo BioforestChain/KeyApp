@@ -1,41 +1,58 @@
 {
+  "clear": "清空",
+  "delete": "刪除",
+  "empty": {
+    "desc": "您的所有通知都會顯示在這裡",
+    "title": "暫無通知"
+  },
+  "markAllRead": "全部已讀",
+  "noUnread": "沒有未讀通知",
+  "pendingTx": {
+    "broadcasted": {
+      "message": "{{type}} {{amount}} {{symbol}} 已廣播，等待確認",
+      "messageSimple": "交易已廣播到網路，等待區塊確認",
+      "title": "交易已廣播"
+    },
+    "confirmed": {
+      "message": "{{type}} {{amount}} {{symbol}} 已成功上鏈",
+      "messageSimple": "交易已成功確認上鏈",
+      "title": "交易已確認"
+    },
+    "failed": {
+      "message": "廣播失敗，請重試",
+      "title": "交易失敗"
+    }
+  },
   "permission": {
-    "title": "開啟通知",
+    "benefits": {
+      "instant": {
+        "description": "收款到帳、交易完成時第一時間知曉",
+        "title": "即時提醒"
+      },
+      "security": {
+        "description": "帳戶安全相關的重要通知不會錯過",
+        "title": "安全提醒"
+      },
+      "transaction": {
+        "description": "即時收到轉帳和交易確認的通知",
+        "title": "交易狀態"
+      }
+    },
     "description": "接收交易狀態更新和重要安全提醒",
     "enable": "開啟通知",
     "skip": "暫不開啟",
-    "benefits": {
-      "transaction": {
-        "title": "交易狀態",
-        "description": "即時收到轉帳和交易確認的通知"
-      },
-      "instant": {
-        "title": "即時提醒",
-        "description": "收款到帳、交易完成時第一時間知曉"
-      },
-      "security": {
-        "title": "安全提醒",
-        "description": "帳戶安全相關的重要通知不會錯過"
-      }
-    }
-  },
-  "title": "通知中心",
-  "markAllRead": "全部已讀",
-  "unreadCount": "{{count}} 條未讀",
-  "noUnread": "沒有未讀通知",
-  "clear": "清空",
-  "delete": "刪除",
-  "unread": "未讀",
-  "empty": {
-    "title": "暫無通知",
-    "desc": "您的所有通知都會顯示在這裡"
+    "title": "開啟通知"
   },
   "time": {
+    "daysAgo": "{{count}}天前",
+    "hoursAgo": "{{count}}小時前",
     "justNow": "剛剛",
     "minutesAgo": "{{count}}分鐘前",
-    "hoursAgo": "{{count}}小時前",
-    "daysAgo": "{{count}}天前",
     "today": "今天",
     "yesterday": "昨天"
-  }
+  },
+  "title": "通知中心",
+  "unread": "未讀",
+  "unreadCount": "{{count}} 條未讀",
+  "viewDetails": "查看詳情"
 }

@@ -6,7 +6,7 @@ import { useChainIconUrls } from '@/hooks/useChainIconUrls';
 import { WalletCard } from '@/components/wallet/wallet-card';
 import { Button } from '@/components/ui/button';
 import { useWallets, useSelectedChain, walletActions, type ChainType, useLanguage } from '@/stores';
-import { generateWalletName } from '@/lib/wallet-utils';
+import { getRandomWalletWord } from '@/lib/wallet-utils';
 import { InputGroup, InputGroupInput, InputGroupAddon, InputGroupButton } from '@/components/ui/input-group';
 import { useFlow } from '@/stackflow';
 import {
@@ -258,7 +258,10 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
                 <InputGroupButton
                   size="icon-xs"
                   variant="ghost"
-                  onClick={() => setEditName(generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')))}
+                  onClick={() => setEditName(t('onboarding:create.generatedNamePattern', {
+                    word: getRandomWalletWord(currentLanguage),
+                    suffix: t('onboarding:create.walletSuffix'),
+                  }))}
                   title={t('wallet:randomName')}
                 >
                   <Dice className="size-4" />

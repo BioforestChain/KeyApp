@@ -4,6 +4,7 @@ import type authorize from './locales/zh-CN/authorize.json'
 import type common from './locales/zh-CN/common.json'
 import type currency from './locales/zh-CN/currency.json'
 import type dweb from './locales/zh-CN/dweb.json'
+import type ecosystem from './locales/zh-CN/ecosystem.json'
 import type empty from './locales/zh-CN/empty.json'
 import type error from './locales/zh-CN/error.json'
 import type guide from './locales/zh-CN/guide.json'
@@ -28,6 +29,7 @@ declare module 'i18next' {
       common: typeof common
       currency: typeof currency
       dweb: typeof dweb
+      ecosystem: typeof ecosystem
       empty: typeof empty
       error: typeof error
       guide: typeof guide

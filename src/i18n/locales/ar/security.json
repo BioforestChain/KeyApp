@@ -64,9 +64,9 @@
     "entered": "تم إدخال {{filled}}/{{total}} كلمات"
   },
   "noBackup": "لا نسخة احتياطية",
-  "password": "[MISSING:ar] 密码",
+  "password": "كلمة المرور",
   "passwordConfirm": {
-    "verifying": "[MISSING:ar] 验证中..."
+    "verifying": "جارٍ التحقق..."
   },
   "patternLock": {
     "clear": "مسح النمط",
@@ -114,7 +114,7 @@
     "broadcastSuccess": "تم البث بنجاح",
     "confirmDesc": "أدخل كلمة مرور الأمان مرة أخرى للتأكيد",
     "confirmPlaceholder": "تأكيد كلمة مرور الأمان",
-    "confirmTitle": "[MISSING:ar] 确认安全密码",
+    "confirmTitle": "تأكيد كلمة مرور الأمان",
     "feeInfo": "تعيين كلمة مرور الأمان يتطلب رسوم الشبكة",
     "inputDesc": "قم بتعيين كلمة مرور أمان لحماية تحويلاتك",
     "inputPlaceholder": "أدخل كلمة مرور الأمان",
@@ -139,7 +139,7 @@
     "error": "النمط غير صحيح، حاول مرة أخرى",
     "unlockDesc": "ارسم نمط قفل المحفظة",
     "unlockTitle": "فتح المحفظة",
-    "verifyTitle": "[MISSING:ar] 验证钱包",
+    "verifyTitle": "التحقق من المحفظة",
     "verifying": "جاري التحقق..."
   },
   "whenTurnesOnYouCanUseYourFingerprintInsteadOfPassword": "عند التشغيل، سيتم تفعيل قفل البصمة",

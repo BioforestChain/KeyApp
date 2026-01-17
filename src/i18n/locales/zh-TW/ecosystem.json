@@ -1,24 +1,59 @@
 {
-  "title": "[MISSING:zh-TW] 生态",
-  "empty": "[MISSING:zh-TW] 暂无小程序",
-  "loading": "[MISSING:zh-TW] 加载中...",
-  "notFound": "[MISSING:zh-TW] 小程序不存在",
-  "refresh": "[MISSING:zh-TW] 刷新",
+  "title": "生態",
+  "empty": "暫無小程式",
+  "loading": "載入中...",
+  "notFound": "小程式不存在",
+  "refresh": "重新整理",
   "sources": {
-    "title": "[MISSING:zh-TW] 可信源管理",
-    "add": "[MISSING:zh-TW] 添加订阅",
-    "remove": "[MISSING:zh-TW] 移除",
-    "empty": "[MISSING:zh-TW] 暂无订阅源"
+    "title": "可信源管理",
+    "add": "添加訂閱",
+    "remove": "移除",
+    "empty": "暫無訂閱源"
   },
   "permissions": {
-    "title": "[MISSING:zh-TW] 权限请求",
-    "grant": "[MISSING:zh-TW] 授权",
-    "deny": "[MISSING:zh-TW] 拒绝",
-    "bio_requestAccounts": "[MISSING:zh-TW] 访问钱包地址",
-    "bio_selectAccount": "[MISSING:zh-TW] 选择账户",
-    "bio_pickWallet": "[MISSING:zh-TW] 选择其他钱包",
-    "bio_signMessage": "[MISSING:zh-TW] 签名消息",
-    "bio_signTypedData": "[MISSING:zh-TW] 签名数据",
-    "bio_sendTransaction": "[MISSING:zh-TW] 发起交易"
+    "title": "權限請求",
+    "grant": "授權",
+    "deny": "拒絕",
+    "bio_requestAccounts": "存取錢包地址",
+    "bio_selectAccount": "選擇帳戶",
+    "bio_pickWallet": "選擇其他錢包",
+    "bio_signMessage": "簽名消息",
+    "bio_signTypedData": "簽名數據",
+    "bio_sendTransaction": "發起交易"
+  },
+  "discover": {
+    "featured": "精選應用",
+    "get": "獲取",
+    "searchPlaceholder": "搜尋應用",
+    "empty": "暫無應用",
+    "recommended": "推薦",
+    "viewAll": "查看全部",
+    "hotApps": "熱門應用"
+  },
+  "demo": {
+    "swiper": {
+      "method1": "方案一：Controller 模塊（官方推薦）",
+      "method3": "方案三：Context 封裝模式",
+      "method3Desc": "使用 SwiperSyncProvider + useSwiperMember + Controller 模塊實現跨組件同步",
+      "main": "主 Swiper",
+      "indicator": "指示器 Swiper",
+      "mainIndependent": "主 Swiper（獨立組件）",
+      "indicatorIndependent": "指示器 Swiper（獨立組件）",
+      "goTo": "跳轉到第 {{index}} 頁",
+      "progress": "進度",
+      "activeIndex": "當前索引",
+      "debugCombined": "進度: {{progress}} | 當前索引: {{index}}",
+      "debugProgress": "進度: {{value}}",
+      "debugActiveIndex": "當前索引: {{value}}"
+    }
+  },
+  "stack": {
+    "title": "應用堆棧",
+    "runningApps": "運行中的應用",
+    "hints": "向上滑動關閉"
+  },
+  "capsule": {
+    "more": "更多操作",
+    "close": "關閉應用"
   }
 }

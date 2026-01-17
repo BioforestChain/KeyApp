@@ -75,6 +75,7 @@
     "noDestroyableAssets": "暂无可销毁的资产"
   },
   "history": {
+    "loadFailed": "交易历史加载失败",
     "title": "交易记录",
     "noWallet": "请先创建或导入钱包",
     "totalRecords": "共 {{count}} 条记录",

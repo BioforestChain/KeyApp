@@ -20,5 +20,40 @@
     "bio_signMessage": "签名消息",
     "bio_signTypedData": "签名数据",
     "bio_sendTransaction": "发起交易"
+  },
+  "discover": {
+    "featured": "精选应用",
+    "get": "获取",
+    "searchPlaceholder": "搜索应用",
+    "empty": "暂无应用",
+    "recommended": "推荐",
+    "viewAll": "查看全部",
+    "hotApps": "热门应用"
+  },
+  "demo": {
+    "swiper": {
+      "method1": "方案一：Controller 模块（官方推荐）",
+      "method3": "方案三：Context 封装模式",
+      "method3Desc": "使用 SwiperSyncProvider + useSwiperMember + Controller 模块实现跨组件同步",
+      "main": "主 Swiper",
+      "indicator": "指示器 Swiper",
+      "mainIndependent": "主 Swiper（独立组件）",
+      "indicatorIndependent": "指示器 Swiper（独立组件）",
+      "goTo": "跳转到第 {{index}} 页",
+      "progress": "进度",
+      "activeIndex": "当前索引",
+      "debugCombined": "进度: {{progress}} | 当前索引: {{index}}",
+      "debugProgress": "进度: {{value}}",
+      "debugActiveIndex": "当前索引: {{value}}"
+    }
+  },
+  "stack": {
+    "title": "应用堆栈",
+    "runningApps": "运行中的应用",
+    "hints": "向上滑动关闭"
+  },
+  "capsule": {
+    "more": "更多操作",
+    "close": "关闭应用"
   }
 }
