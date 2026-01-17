@@ -40,6 +40,7 @@
     "createFailed": "فشل في إنشاء المحفظة",
     "defaultWalletName": "المحفظة الرئيسية",
     "walletSuffix": "محفظة",
+    "generatedNamePattern": "{{word}} {{suffix}}",
     "enterWallet": "دخول المحفظة",
     "form": {
       "agreementPrefix": "لقد قرأت ووافقت على",
@@ -122,9 +123,9 @@
     "invalidMnemonic": "العبارة السرية غير صالحة، يرجى التحقق من الإملاء",
     "nextStep": "التالي",
     "success": {
-      "description": "[MISSING:ar] 钱包 <bold>{{name}}</bold> 已成功导入",
-      "enterWallet": "[MISSING:ar] 进入钱包",
-      "title": "[MISSING:ar] 导入成功"
+      "description": "تم استيراد المحفظة <bold>{{name}}</bold> بنجاح",
+      "enterWallet": "الدخول للمحفظة",
+      "title": "تم الاستيراد بنجاح"
     },
     "title": "استيراد المحفظة",
     "words12": "12 كلمة",

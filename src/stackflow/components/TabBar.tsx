@@ -132,15 +132,15 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const storeAvailablePages = useStore(ecosystemStore, (s) => s.availableSubPages);
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
   const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
-  
+
   // Pending transactions count for wallet tab badge
   const currentWallet = useCurrentWallet();
   const { transactions: pendingTxs } = usePendingTransactions(currentWallet?.id);
   const pendingTxCount = pendingTxs.filter((tx) => tx.status !== 'confirmed').length;
-  
+
   // 生态 Tab 是否激活
   const isEcosystemActive = activeTab === 'ecosystem';
-  
+
   // 生态指示器（图标slider + 分页点）
   const availablePages = useMemo(() => {
     if (storeAvailablePages?.length) return storeAvailablePages;
@@ -165,7 +165,7 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
 
   const tabConfigs: Tab[] = useMemo(() => [
     { id: "wallet", label: t('a11y.tabWallet'), icon: IconWallet },
-    { id: "ecosystem", label: t('a11y.tabEcosystem', '生态'), icon: ecosystemIcon },
+    { id: "ecosystem", label: t('a11y.tabEcosystem'), icon: ecosystemIcon },
     { id: "settings", label: t('a11y.tabSettings'), icon: IconSettings },
   ], [t, ecosystemIcon]);
 

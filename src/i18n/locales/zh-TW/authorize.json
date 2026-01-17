@@ -13,7 +13,7 @@
       "main": "僅目前錢包",
       "network": "所有 {{chainName}} 地址"
     },
-    "selectNetwork": "[MISSING:zh-TW] 选择网络",
+    "selectNetwork": "選擇網路",
     "shareWith": "是否與該應用分享地址？"
   },
   "app": {

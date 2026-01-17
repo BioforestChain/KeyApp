@@ -18,7 +18,7 @@ import { useDuplicateDetection } from '@/hooks/use-duplicate-detection';
 import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import { useChainConfigs, useChainConfigState, useEnabledBioforestChainConfigs, walletActions, useLanguage } from '@/stores';
-import { generateWalletName } from '@/lib/wallet-utils';
+import { getRandomWalletWord } from '@/lib/wallet-utils';
 import type { IWalletQuery } from '@/services/wallet/types';
 import { IconAlertCircle as AlertCircle, IconLoader2 as Loader2, IconCircleCheck as CheckCircle } from '@tabler/icons-react';
 import { ProgressSteps } from '@/components/common';
@@ -209,7 +209,10 @@ export function OnboardingRecoverPage() {
 
         const wallet = await walletActions.createWallet(
           {
-            name: generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')),
+            name: t('onboarding:create.generatedNamePattern', {
+              word: getRandomWalletWord(currentLanguage),
+              suffix: t('onboarding:create.walletSuffix'),
+            }),
             keyType: 'mnemonic',
             address: primaryChain.address,
             chain: primaryChain.chain,
@@ -253,7 +256,10 @@ export function OnboardingRecoverPage() {
 
         const wallet = await walletActions.createWallet(
           {
-            name: generateWalletName(currentLanguage, t('onboarding:create.walletSuffix')),
+            name: t('onboarding:create.generatedNamePattern', {
+              word: getRandomWalletWord(currentLanguage),
+              suffix: t('onboarding:create.walletSuffix'),
+            }),
             keyType: 'arbitrary',
             address: primary.address,
             chain: primary.chainId,

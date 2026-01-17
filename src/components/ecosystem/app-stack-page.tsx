@@ -1,13 +1,7 @@
-/**
- * AppStackPage - 应用堆栈页面
- *
- * Swiper 的第三页，作为小程序窗口的背景板
- * 当没有激活应用时，此页禁用滑动
- */
-
 import { useCallback } from 'react'
 import { useStore } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
@@ -20,6 +14,7 @@ export interface AppStackPageProps {
 }
 
 export function AppStackPage({ className }: AppStackPageProps) {
+  const { t } = useTranslation('ecosystem')
   const hasRunningApps = useStore(
     miniappRuntimeStore,
     miniappRuntimeSelectors.hasRunningApps
@@ -48,7 +43,7 @@ export function AppStackPage({ className }: AppStackPageProps) {
       {/* 空状态提示（调试用，生产环境可移除） */}
       {!hasRunningApps && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0">
-          <p className="text-muted-foreground text-sm">应用堆栈</p>
+          <p className="text-muted-foreground text-sm">{t('stack.title')}</p>
         </div>
       )}
     </div>

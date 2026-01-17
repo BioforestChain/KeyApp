@@ -64,9 +64,9 @@
     "entered": "已輸入 {{filled}}/{{total}} 個單詞"
   },
   "noBackup": "未備份",
-  "password": "[MISSING:zh-TW] 密码",
+  "password": "密碼",
   "passwordConfirm": {
-    "verifying": "[MISSING:zh-TW] 验证中..."
+    "verifying": "驗證中..."
   },
   "patternLock": {
     "clear": "清除圖案",
@@ -114,7 +114,7 @@
     "broadcastSuccess": "廣播成功",
     "confirmDesc": "請再次輸入安全密碼以確認",
     "confirmPlaceholder": "請再次輸入安全密碼",
-    "confirmTitle": "[MISSING:zh-TW] 确认安全密码",
+    "confirmTitle": "確認安全密碼",
     "feeInfo": "設置安全密碼需要支付網路手續費",
     "inputDesc": "請設置一個安全密碼，用於保護您的轉賬安全",
     "inputPlaceholder": "請輸入安全密碼",
@@ -139,7 +139,7 @@
     "error": "圖案錯誤，請重試",
     "unlockDesc": "請繪製錢包鎖圖案",
     "unlockTitle": "解鎖錢包",
-    "verifyTitle": "[MISSING:zh-TW] 验证钱包",
+    "verifyTitle": "驗證錢包",
     "verifying": "驗證中..."
   },
   "whenTurnesOnYouCanUseYourFingerprintInsteadOfPassword": "開啟後，將启用指紋鎖",

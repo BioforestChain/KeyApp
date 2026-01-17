@@ -19,7 +19,7 @@ import {
 } from '@tabler/icons-react';
 import { useChainConfigs, walletActions, useLanguage } from '@/stores';
 import { generateMnemonic } from '@/lib/crypto';
-import { generateWalletName } from '@/lib/wallet-utils';
+import { getRandomWalletWord } from '@/lib/wallet-utils';
 import { deriveWalletChainAddresses } from '@/services/chain-adapter';
 import { deriveThemeHue } from '@/hooks/useWalletTheme';
 import type { ChainConfig } from '@/services/chain-config';
@@ -124,7 +124,10 @@ export function WalletCreatePage() {
 
       const wallet = await walletActions.createWallet(
         {
-          name: generateWalletName(currentLanguage, t('create.walletSuffix')),
+          name: t('create.generatedNamePattern', {
+            word: getRandomWalletWord(currentLanguage),
+            suffix: t('create.walletSuffix'),
+          }),
           keyType: 'mnemonic',
           address: primaryChain.address,
           chain: primaryChain.chain,

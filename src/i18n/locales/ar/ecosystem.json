@@ -1,24 +1,59 @@
 {
-  "title": "[MISSING:ar] 生态",
-  "empty": "[MISSING:ar] 暂无小程序",
-  "loading": "[MISSING:ar] 加载中...",
-  "notFound": "[MISSING:ar] 小程序不存在",
-  "refresh": "[MISSING:ar] 刷新",
+  "title": "النظام البيئي",
+  "empty": "لم يتم العثور على تطبيقات مصغرة",
+  "loading": "جاري التحميل...",
+  "notFound": "التطبيق المصغر غير موجود",
+  "refresh": "تحديث",
   "sources": {
-    "title": "[MISSING:ar] 可信源管理",
-    "add": "[MISSING:ar] 添加订阅",
-    "remove": "[MISSING:ar] 移除",
-    "empty": "[MISSING:ar] 暂无订阅源"
+    "title": "إدارة المصادر الموثوقة",
+    "add": "إضافة اشتراك",
+    "remove": "إزالة",
+    "empty": "لا توجد مصادر اشتراك"
   },
   "permissions": {
-    "title": "[MISSING:ar] 权限请求",
-    "grant": "[MISSING:ar] 授权",
-    "deny": "[MISSING:ar] 拒绝",
-    "bio_requestAccounts": "[MISSING:ar] 访问钱包地址",
-    "bio_selectAccount": "[MISSING:ar] 选择账户",
-    "bio_pickWallet": "[MISSING:ar] 选择其他钱包",
-    "bio_signMessage": "[MISSING:ar] 签名消息",
-    "bio_signTypedData": "[MISSING:ar] 签名数据",
-    "bio_sendTransaction": "[MISSING:ar] 发起交易"
+    "title": "طلب إذن",
+    "grant": "منح",
+    "deny": "رفض",
+    "bio_requestAccounts": "الوصول إلى عناوين المحفظة",
+    "bio_selectAccount": "حدد الحساب",
+    "bio_pickWallet": "اختر محفظة أخرى",
+    "bio_signMessage": "توقيع الرسالة",
+    "bio_signTypedData": "توقيع البيانات المكتوبة",
+    "bio_sendTransaction": "بدء المعاملة"
+  },
+  "discover": {
+    "featured": "التطبيقات المميزة",
+    "get": "الحصول",
+    "searchPlaceholder": "البحث عن التطبيقات",
+    "empty": "لا توجد تطبيقات",
+    "recommended": "الموصى بها",
+    "viewAll": "عرض الكل",
+    "hotApps": "التطبيقات الشائعة"
+  },
+  "demo": {
+    "swiper": {
+      "method1": "الطريقة 1: وحدة التحكم (موصى بها)",
+      "method3": "الطريقة 3: وضع غلاف السياق",
+      "method3Desc": "المزامنة عبر المكونات باستخدام SwiperSyncProvider + useSwiperMember + Controller",
+      "main": "Swiper الرئيسي",
+      "indicator": "Swiper المؤشر",
+      "mainIndependent": "Swiper الرئيسي (مكون مستقل)",
+      "indicatorIndependent": "Swiper المؤشر (مكون مستقل)",
+      "goTo": "اذهب إلى {{index}}",
+      "progress": "التقدم",
+      "activeIndex": "الفهرس النشط",
+      "debugCombined": "التقدم: {{progress}} | الفهرس النشط: {{index}}",
+      "debugProgress": "التقدم: {{value}}",
+      "debugActiveIndex": "الفهرس النشط: {{value}}"
+    }
+  },
+  "stack": {
+    "title": "مكدس التطبيقات",
+    "runningApps": "تطبيقات التشغيل",
+    "hints": "اسحب لأعلى للإغلاق"
+  },
+  "capsule": {
+    "more": "المزيد من الخيارات",
+    "close": "إغلاق التطبيق"
   }
 }

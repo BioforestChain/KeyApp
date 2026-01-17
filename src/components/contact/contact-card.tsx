@@ -4,12 +4,12 @@
  */
 
 import { QRCodeSVG } from 'qrcode.react';
-import { useTranslation } from 'react-i18next';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { generateAvatarFromAddress } from '@/lib/avatar-codec';
 import { detectAddressFormat } from '@/lib/address-format';
 import type { ContactAddressInfo } from '@/lib/qr-parser';
 import { isBioforestChain } from '@/lib/crypto';
+import { useTranslation } from 'react-i18next';
 
 /** Address format standard colors */
 const ADDRESS_FORMAT_COLORS = {

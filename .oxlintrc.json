@@ -1,7 +1,16 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
-  "jsPlugins": ["eslint-plugin-i18next", "eslint-plugin-file-component-constraints", "eslint-plugin-unused-imports"],
+  "plugins": [
+    "react",
+    "typescript",
+    "jsx-a11y",
+    "unicorn"
+  ],
+  "jsPlugins": [
+    "eslint-plugin-i18next",
+    "eslint-plugin-file-component-constraints",
+    "eslint-plugin-unused-imports"
+  ],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -19,7 +28,6 @@
     "eqeqeq": "error",
     "no-var": "error",
     "prefer-const": "warn",
-
     "react/react-in-jsx-scope": "off",
     "react/jsx-key": "error",
     "react/no-direct-mutation-state": "error",
@@ -28,40 +36,43 @@
     "react/jsx-no-useless-fragment": "warn",
     "react/jsx-curly-brace-presence": "warn",
     "react/no-array-index-key": "warn",
-
     "typescript/no-explicit-any": "error",
     "typescript/prefer-ts-expect-error": "warn",
     "typescript/no-non-null-assertion": "warn",
     "typescript/consistent-type-imports": "error",
-
     "jsx-a11y/alt-text": "warn",
     "jsx-a11y/anchor-is-valid": "warn",
-
     "unicorn/no-null": "off",
     "unicorn/prefer-query-selector": "off",
     "unicorn/require-module-specifiers": "off",
-
     "file-component-constraints/enforce": [
       "error",
       {
         "rules": [
           {
             "fileMatch": "**/sheets/Miniapp*.tsx",
-            "mustUse": ["MiniappSheetHeader"],
+            "mustUse": [
+              "MiniappSheetHeader"
+            ],
             "mustImportFrom": {
-              "MiniappSheetHeader": ["@/components/ecosystem"]
+              "MiniappSheetHeader": [
+                "@/components/ecosystem"
+              ]
             }
           }
         ]
       }
     ],
-
     "i18next/no-literal-string": [
-      "warn",
+      "error",
       {
         "mode": "jsx-only",
         "jsx-components": {
-          "exclude": ["Trans", "Icon", "TablerIcon"]
+          "exclude": [
+            "Trans",
+            "Icon",
+            "TablerIcon"
+          ]
         },
         "jsx-attributes": {
           "exclude": [
@@ -275,7 +286,18 @@
             "^：$",
             "^:$",
             "^daysAgo$",
-            "^yesterday$"
+            "^yesterday$",
+            "^°$",
+            "^9\\+$",
+            "two-step-error",
+            "two-step-secret-error",
+            "Chain not supported",
+            "^Chain:",
+            "^Address:",
+            "^loading$",
+            "loading...",
+            "^--$",
+            "^≈ --$"
           ]
         }
       }

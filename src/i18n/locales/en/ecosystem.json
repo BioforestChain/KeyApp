@@ -1,24 +1,59 @@
 {
-  "title": "[MISSING:en] 生态",
-  "empty": "[MISSING:en] 暂无小程序",
-  "loading": "[MISSING:en] 加载中...",
-  "notFound": "[MISSING:en] 小程序不存在",
-  "refresh": "[MISSING:en] 刷新",
+  "title": "Ecosystem",
+  "empty": "No miniapps found",
+  "loading": "Loading...",
+  "notFound": "Miniapp not found",
+  "refresh": "Refresh",
   "sources": {
-    "title": "[MISSING:en] 可信源管理",
-    "add": "[MISSING:en] 添加订阅",
-    "remove": "[MISSING:en] 移除",
-    "empty": "[MISSING:en] 暂无订阅源"
+    "title": "Trusted Sources",
+    "add": "Add Subscription",
+    "remove": "Remove",
+    "empty": "No subscription sources"
   },
   "permissions": {
-    "title": "[MISSING:en] 权限请求",
-    "grant": "[MISSING:en] 授权",
-    "deny": "[MISSING:en] 拒绝",
-    "bio_requestAccounts": "[MISSING:en] 访问钱包地址",
-    "bio_selectAccount": "[MISSING:en] 选择账户",
-    "bio_pickWallet": "[MISSING:en] 选择其他钱包",
-    "bio_signMessage": "[MISSING:en] 签名消息",
-    "bio_signTypedData": "[MISSING:en] 签名数据",
-    "bio_sendTransaction": "[MISSING:en] 发起交易"
+    "title": "Permission Request",
+    "grant": "Grant",
+    "deny": "Deny",
+    "bio_requestAccounts": "Access wallet addresses",
+    "bio_selectAccount": "Select account",
+    "bio_pickWallet": "Select another wallet",
+    "bio_signMessage": "Sign message",
+    "bio_signTypedData": "Sign typed data",
+    "bio_sendTransaction": "Send Transaction"
+  },
+  "discover": {
+    "featured": "Featured",
+    "get": "Get",
+    "searchPlaceholder": "Search apps",
+    "empty": "No apps found",
+    "recommended": "Recommended",
+    "viewAll": "View All",
+    "hotApps": "Hot Apps"
+  },
+  "demo": {
+    "swiper": {
+      "method1": "Method 1: Controller Module (Recommended)",
+      "method3": "Method 3: Context Wrapper Mode",
+      "method3Desc": "Synchronize across components using SwiperSyncProvider + useSwiperMember + Controller",
+      "main": "Main Swiper",
+      "indicator": "Indicator Swiper",
+      "mainIndependent": "Main Swiper (Independent Component)",
+      "indicatorIndependent": "Indicator Swiper (Independent Component)",
+      "goTo": "Go to {{index}}",
+      "progress": "Progress",
+      "activeIndex": "Active Index",
+      "debugCombined": "Progress: {{progress}} | Active Index: {{index}}",
+      "debugProgress": "Progress: {{value}}",
+      "debugActiveIndex": "Active Index: {{value}}"
+    }
+  },
+  "stack": {
+    "title": "App Stack",
+    "runningApps": "Running Apps",
+    "hints": "Swipe up to close"
+  },
+  "capsule": {
+    "more": "More Options",
+    "close": "Close App"
   }
 }

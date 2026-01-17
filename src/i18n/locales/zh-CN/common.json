@@ -8,6 +8,45 @@
     "scanToAdd": "扫码添加联系人",
     "transferToMe": "扫码向我转账"
   },
+  "ecosystem": {
+    "runningApps": "正在运行的应用",
+    "stackViewHints": "左右滑动切换 · 点击打开 · 上滑关闭",
+    "noAppsUsed": "还没有使用过的应用",
+    "goToDiscover": "去「发现」页面探索吧",
+    "appStack": "应用堆栈",
+    "chainNotSupported": "暂不支持此链",
+    "menu": {
+      "open": "打开",
+      "detail": "详情",
+      "remove": "移除"
+    }
+  },
+  "chains": {
+    "ethereum": "Ethereum",
+    "bitcoin": "Bitcoin",
+    "tron": "Tron",
+    "binance": "BSC",
+    "bfmeta": "BFMeta",
+    "ccchain": "CCChain",
+    "pmchain": "PMChain",
+    "bfchainv2": "BFChain V2",
+    "btgmeta": "BTGMeta",
+    "biwmeta": "BIWMeta",
+    "ethmeta": "ETHMeta",
+    "malibu": "Malibu"
+  },
+  "weekdays": {
+    "0": "周日",
+    "1": "周一",
+    "2": "周二",
+    "3": "周三",
+    "4": "周四",
+    "5": "周五",
+    "6": "周六"
+  },
+  "date": {
+    "format": "{{month}}月{{day}}日 {{weekday}}"
+  },
   "paste": "粘贴",
   "addressPlaceholder": "输入或粘贴地址",
   "noAssets": "暂无资产",
@@ -21,6 +60,7 @@
     "tabHome": "首页",
     "tabTransfer": "转账",
     "tabWallet": "钱包",
+    "tabEcosystem": "生态",
     "tabSettings": "设置",
     "tabHistory": "交易记录",
     "scan": "扫描二维码",
@@ -109,7 +149,6 @@
   "codeOfThePrivateKey": "私钥的十六进制码",
   "comingSoonStayTuned": "即将上线，敬请期待",
   "comprehensiveEncryption": "全面加密",
-  "confirm": "确认",
   "confirmBackedUp": "确认已备份",
   "confirmToDelete": "确定删除？",
   "confirmToTurnOffTouchId": "确定要关闭指纹锁吗？",
@@ -239,6 +278,11 @@
   "reset": "重置",
   "resubmit": "重新提交",
   "retry": "重试",
+  "providerFallback": {
+    "queryFailed": "{{feature}} 查询失败",
+    "desc": "所有配置的提供商都失败了，显示默认值。",
+    "technicalDetails": "技术详情"
+  },
   "save": "保存",
   "saving": "保存中...",
   "saved": "已保存",

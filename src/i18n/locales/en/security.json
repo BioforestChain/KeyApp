@@ -64,9 +64,9 @@
     "entered": "Entered {{filled}}/{{total}} words"
   },
   "noBackup": "No Backup",
-  "password": "[MISSING:en] 密码",
+  "password": "Password",
   "passwordConfirm": {
-    "verifying": "[MISSING:en] 验证中..."
+    "verifying": "Verifying..."
   },
   "patternLock": {
     "clear": "Clear pattern",
@@ -114,7 +114,7 @@
     "broadcastSuccess": "Broadcast Successful",
     "confirmDesc": "Enter security password again to confirm",
     "confirmPlaceholder": "Confirm security password",
-    "confirmTitle": "[MISSING:en] 确认安全密码",
+    "confirmTitle": "Confirm Security Password",
     "feeInfo": "Setting security password requires a network fee",
     "inputDesc": "Set a security password to protect your transfers",
     "inputPlaceholder": "Enter security password",
@@ -139,7 +139,7 @@
     "error": "Incorrect pattern, please try again",
     "unlockDesc": "Draw your wallet lock pattern",
     "unlockTitle": "Unlock Wallet",
-    "verifyTitle": "[MISSING:en] 验证钱包",
+    "verifyTitle": "Verify Wallet",
     "verifying": "Verifying..."
   },
   "whenTurnesOnYouCanUseYourFingerprintInsteadOfPassword": "When turned on, the fingerprint lock will be enabled",

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@tanstack/react-store';
 import { IconDownload, IconPlayerPlay, IconInfoCircle, IconTrash } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, LayoutGroup } from 'motion/react';
 import { MiniappIcon } from './miniapp-icon';
@@ -33,6 +34,7 @@ interface IOSDesktopIconProps {
 }
 
 function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIconProps) {
+  const { t } = useTranslation('common')
   const popoverRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -59,10 +61,10 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
     presentationState === null || presentationState === 'presenting' || presentationState === 'dismissing';
   const sharedLayoutIds = enableSharedLayout
     ? {
-        container: `miniapp:${app.id}:container`,
-        logo: `miniapp:${app.id}:logo`,
-        inner: `miniapp:${app.id}:inner`,
-      }
+      container: `miniapp:${app.id}:container`,
+      logo: `miniapp:${app.id}:logo`,
+      inner: `miniapp:${app.id}:inner`,
+    }
     : null;
 
   const ICON_STACKING_VARIANTS = {
@@ -268,9 +270,9 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
   };
 
   const menuItems = [
-    { icon: IconPlayerPlay, label: '打开', action: onOpen },
-    { icon: IconInfoCircle, label: '详情', action: onDetail },
-    { icon: IconTrash, label: '移除', action: onRemove, destructive: true },
+    { icon: IconPlayerPlay, label: t('ecosystem.menu.open'), action: onOpen },
+    { icon: IconInfoCircle, label: t('ecosystem.menu.detail'), action: onDetail },
+    { icon: IconTrash, label: t('ecosystem.menu.remove'), action: onRemove, destructive: true },
   ];
 
   return (
@@ -302,9 +304,9 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
             <motion.div
               {...(sharedLayoutIds
                 ? {
-                    layoutId: sharedLayoutIds.container,
-                    'data-layoutid': sharedLayoutIds.container,
-                  }
+                  layoutId: sharedLayoutIds.container,
+                  'data-layoutid': sharedLayoutIds.container,
+                }
                 : {})}
               transition={motionPresets.sharedLayout}
               variants={ICON_STACKING_VARIANTS}
@@ -320,20 +322,20 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
               <motion.div
                 {...(sharedLayoutIds
                   ? {
-                      layoutId: sharedLayoutIds.inner,
-                      'data-layoutid': sharedLayoutIds.inner,
-                    }
+                    layoutId: sharedLayoutIds.inner,
+                    'data-layoutid': sharedLayoutIds.inner,
+                  }
                   : {})}
                 transition={motionPresets.sharedLayout}
                 className="absolute inset-0 flex items-center justify-center"
-               />
+              />
               <motion.div
                 ref={iconRef}
                 {...(sharedLayoutIds
                   ? {
-                      layoutId: sharedLayoutIds.logo,
-                      'data-layoutid': sharedLayoutIds.logo,
-                    }
+                    layoutId: sharedLayoutIds.logo,
+                    'data-layoutid': sharedLayoutIds.logo,
+                  }
                   : {})}
                 transition={motionPresets.sharedLayout}
                 className="absolute inset-0 flex size-15 items-center justify-center"
@@ -405,13 +407,14 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
 // 空状态
 // ============================================
 function EmptyState() {
+  const { t } = useTranslation('common')
   return (
     <div className="flex flex-col items-center justify-center px-5 py-20 text-center">
       <div className="bg-muted/50 mb-4 flex size-20 items-center justify-center rounded-full">
         <IconDownload className="text-muted-foreground size-10" stroke={1.5} />
       </div>
-      <h2 className="mb-1 text-lg font-semibold">还没有使用过的应用</h2>
-      <p className="text-muted-foreground text-sm">去「发现」页面探索吧</p>
+      <h2 className="mb-1 text-lg font-semibold">{t('ecosystem.noAppsUsed')}</h2>
+      <p className="text-muted-foreground text-sm">{t('ecosystem.goToDiscover')}</p>
     </div>
   );
 }

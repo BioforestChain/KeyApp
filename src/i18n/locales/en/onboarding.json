@@ -42,6 +42,7 @@
     "createFailed": "Failed to create wallet",
     "defaultWalletName": "Main Wallet",
     "walletSuffix": "Wallet",
+    "generatedNamePattern": "{{word}} {{suffix}}",
     "enterWallet": "Enter Wallet",
     "themeTitle": "Choose Card Theme",
     "themeSubtitle": "Select a theme color for your wallet card",

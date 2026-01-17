@@ -1,20 +1,22 @@
 {
-  "welcome": {
-    "title": "Welcome to BFM Pay",
-    "subtitle": "Create or import a wallet to get started",
-    "createWallet": "Create New Wallet",
-    "importWallet": "Import Existing Wallet"
-  },
   "wallet": {
-    "send": "Send",
-    "receive": "Receive",
+    "addressCopied": "Address copied",
     "assets": "Assets",
+    "destroy": "Destroy",
     "noAssets": "No Assets",
     "noAssetsOnChain": "No tokens on {{chain}}",
+    "receive": "Receive",
     "selectNetwork": "Select Network",
-    "addressCopied": "Address copied",
+    "send": "Send",
     "tokenActions": "Token Actions",
-    "transfer": "Transfer",
-    "destroy": "Destroy"
+    "tokenBalance": "Token Balance",
+    "transactionHistory": "Transaction History",
+    "transfer": "Transfer"
+  },
+  "welcome": {
+    "createWallet": "Create New Wallet",
+    "importWallet": "Import Existing Wallet",
+    "subtitle": "Create or import a wallet to get started",
+    "title": "Welcome to BFM Pay"
   }
 }

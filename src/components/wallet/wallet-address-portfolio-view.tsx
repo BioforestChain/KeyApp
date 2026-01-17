@@ -78,7 +78,7 @@ export function WalletAddressPortfolioView({
             <div className="p-4" data-testid={`${testId}-assets-panel`}>
               {!tokensSupported && !tokensLoading && (
                 <ProviderFallbackWarning
-                  feature="Token balance"
+                  feature={t('home:wallet.tokenBalance')}
                   reason={tokensFallbackReason}
                   className="mb-4"
                 />
@@ -101,7 +101,7 @@ export function WalletAddressPortfolioView({
             <div className="p-4" data-testid={`${testId}-history-panel`}>
               {!transactionsSupported && !transactionsLoading && (
                 <ProviderFallbackWarning
-                  feature="Transaction history"
+                  feature={t('home:wallet.transactionHistory')}
                   reason={transactionsFallbackReason}
                   className="mb-4"
                 />
@@ -109,13 +109,13 @@ export function WalletAddressPortfolioView({
               <ErrorBoundary
                 fallback={(error, reset) => (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <p className="text-sm text-destructive mb-2">交易历史加载失败</p>
+                    <p className="text-sm text-destructive mb-2">{t('transaction:history.loadFailed')}</p>
                     <p className="text-xs text-muted-foreground mb-3">{error.message}</p>
                     <button
                       onClick={reset}
                       className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground"
                     >
-                      重试
+                      {t('common:retry')}
                     </button>
                   </div>
                 )}
