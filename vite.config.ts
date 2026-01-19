@@ -95,12 +95,10 @@ export default defineConfig(({ mode }) => {
     remoteMiniappsPlugin({
       miniapps: [
         // RWA Hub - 从远程下载
-        // TODO: 配置实际的远程 URL
-        // {
-        //   manifestUrl: 'https://iweb.xin/rwahub-miniapp/manifest.json',
-        //   zipUrl: 'https://iweb.xin/rwahub-miniapp/com.bioforest.rwa-hub-1.1.30.miniapp.zip',
-        //   dirName: 'rwa-hub',
-        // },
+        {
+          metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+          dirName: 'rwa-hub',
+        },
       ],
     }),
     miniappsPlugin(),

@@ -201,6 +201,13 @@ function scanMiniapps(miniappsPath: string): MiniappManifest[] {
       continue
     }
 
+    // 跳过远程 miniapps (没有 vite.config.ts 的是已构建的远程 miniapp)
+    const viteConfigPath = join(miniappsPath, entry.name, 'vite.config.ts')
+    if (!existsSync(viteConfigPath)) {
+      // 远程 miniapp，由 vite-plugin-remote-miniapps 处理
+      continue
+    }
+
     try {
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as MiniappManifest
       manifests.push({ ...manifest, dirName: entry.name })

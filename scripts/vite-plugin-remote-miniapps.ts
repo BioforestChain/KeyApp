@@ -18,12 +18,19 @@ import { fetchWithEtag } from './utils/fetch-with-etag'
 // ==================== Types ====================
 
 interface RemoteMiniappConfig {
-  /** 远程 manifest.json URL */
-  manifestUrl: string
-  /** 远程 zip URL */
-  zipUrl: string
+  /** 远程 metadata.json URL (包含 version, zipUrl, manifestUrl) */
+  metadataUrl: string
   /** 解压到 miniapps/ 下的目录名 */
   dirName: string
+}
+
+interface RemoteMetadata {
+  id: string
+  name: string
+  version: string
+  zipUrl: string
+  manifestUrl: string
+  updatedAt: string
 }
 
 interface RemoteMiniappsPluginOptions {
@@ -180,30 +187,43 @@ async function downloadAndExtract(
 
   console.log(`[remote-miniapps] Syncing ${config.dirName}...`)
 
-  // 1. 下载 manifest.json
-  const manifestBuffer = await fetchWithEtag(config.manifestUrl)
-  const manifest = JSON.parse(manifestBuffer.toString('utf-8')) as MiniappManifest
+  // 1. 下载 metadata.json (获取最新版本信息)
+  const metadataBuffer = await fetchWithEtag(config.metadataUrl)
+  const metadata = JSON.parse(metadataBuffer.toString('utf-8')) as RemoteMetadata
 
   // 检查是否需要更新
   const localManifestPath = join(targetDir, 'manifest.json')
   if (existsSync(localManifestPath)) {
     const localManifest = JSON.parse(readFileSync(localManifestPath, 'utf-8')) as MiniappManifest
-    if (localManifest.version === manifest.version) {
-      console.log(`[remote-miniapps] ${config.dirName} is up-to-date (v${manifest.version})`)
+    if (localManifest.version === metadata.version) {
+      console.log(`[remote-miniapps] ${config.dirName} is up-to-date (v${metadata.version})`)
       return
     }
   }
 
-  // 2. 下载 zip
-  const zipBuffer = await fetchWithEtag(config.zipUrl)
+  // 2. 解析相对 URL
+  const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '')
+  const manifestUrl = metadata.manifestUrl.startsWith('.')
+    ? `${baseUrl}/${metadata.manifestUrl.slice(2)}`
+    : metadata.manifestUrl
+  const zipUrl = metadata.zipUrl.startsWith('.')
+    ? `${baseUrl}/${metadata.zipUrl.slice(2)}`
+    : metadata.zipUrl
 
-  // 3. 清理旧目录
+  // 3. 下载 manifest.json
+  const manifestBuffer = await fetchWithEtag(manifestUrl)
+  const manifest = JSON.parse(manifestBuffer.toString('utf-8')) as MiniappManifest
+
+  // 4. 下载 zip
+  const zipBuffer = await fetchWithEtag(zipUrl)
+
+  // 5. 清理旧目录
   if (existsSync(targetDir)) {
     rmSync(targetDir, { recursive: true })
   }
   mkdirSync(targetDir, { recursive: true })
 
-  // 4. 解压 zip
+  // 6. 解压 zip
   const JSZip = (await import('jszip')).default
   const zip = await JSZip.loadAsync(zipBuffer)
   for (const [relativePath, file] of Object.entries(zip.files) as [
@@ -220,7 +240,7 @@ async function downloadAndExtract(
     }
   }
 
-  // 5. 写入 manifest.json (确保包含 dirName)
+  // 7. 写入 manifest.json (确保包含 dirName)
   const manifestWithDir = { ...manifest, dirName: config.dirName }
   writeFileSync(localManifestPath, JSON.stringify(manifestWithDir, null, 2))
 
