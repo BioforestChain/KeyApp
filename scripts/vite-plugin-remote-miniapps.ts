@@ -193,16 +193,32 @@ async function downloadAndExtract(
   console.log(`[remote-miniapps] Syncing ${config.dirName}...`)
 
   // 1. 下载 metadata.json (获取最新版本信息)
+  // fetchWithEtag 会根据 ETag 决定是否使用缓存
   const metadataBuffer = await fetchWithEtag(config.metadataUrl)
   const metadata = JSON.parse(metadataBuffer.toString('utf-8')) as RemoteMetadata
 
-  // 检查是否需要更新
+  // 检查本地是否已有相同版本且 zip 的 ETag 没变
+  // 通过比较本地 manifest 中存储的 zipEtag 来判断
   const localManifestPath = join(targetDir, 'manifest.json')
   if (existsSync(localManifestPath)) {
-    const localManifest = JSON.parse(readFileSync(localManifestPath, 'utf-8')) as MiniappManifest
-    if (localManifest.version === metadata.version) {
-      console.log(`[remote-miniapps] ${config.dirName} is up-to-date (v${metadata.version})`)
-      return
+    const localManifest = JSON.parse(readFileSync(localManifestPath, 'utf-8')) as MiniappManifest & { _zipEtag?: string }
+    if (localManifest.version === metadata.version && localManifest._zipEtag) {
+      // 检查远程 zip 的 ETag 是否变化
+      const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '')
+      const zipUrl = metadata.zipUrl.startsWith('.')
+        ? `${baseUrl}/${metadata.zipUrl.slice(2)}`
+        : metadata.zipUrl
+      try {
+        const headResponse = await fetch(zipUrl, { method: 'HEAD' })
+        const remoteEtag = headResponse.headers.get('etag') || ''
+        if (remoteEtag === localManifest._zipEtag) {
+          console.log(`[remote-miniapps] ${config.dirName} is up-to-date (v${metadata.version}, etag match)`)
+          return
+        }
+        console.log(`[remote-miniapps] ${config.dirName} zip changed (etag: ${localManifest._zipEtag} -> ${remoteEtag})`)
+      } catch {
+        // HEAD 请求失败，继续下载
+      }
     }
   }
 
@@ -219,7 +235,9 @@ async function downloadAndExtract(
   const manifestBuffer = await fetchWithEtag(manifestUrl)
   const manifest = JSON.parse(manifestBuffer.toString('utf-8')) as MiniappManifest
 
-  // 4. 下载 zip
+  // 4. 下载 zip 并获取 ETag
+  const zipHeadResponse = await fetch(zipUrl, { method: 'HEAD' })
+  const zipEtag = zipHeadResponse.headers.get('etag') || ''
   const zipBuffer = await fetchWithEtag(zipUrl)
 
   // 5. 清理旧目录
@@ -245,11 +263,11 @@ async function downloadAndExtract(
     }
   }
 
-  // 7. 写入 manifest.json (确保包含 dirName)
-  const manifestWithDir = { ...manifest, dirName: config.dirName }
+  // 7. 写入 manifest.json (确保包含 dirName 和 _zipEtag 用于增量更新检测)
+  const manifestWithDir = { ...manifest, dirName: config.dirName, _zipEtag: zipEtag }
   writeFileSync(localManifestPath, JSON.stringify(manifestWithDir, null, 2))
 
-  console.log(`[remote-miniapps] ${config.dirName} updated to v${manifest.version}`)
+  console.log(`[remote-miniapps] ${config.dirName} updated to v${manifest.version} (etag: ${zipEtag})`)
 }
 
 /**
