@@ -11,6 +11,7 @@ import { resolve, join } from 'node:path'
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs'
 import detectPort from 'detect-port'
 import https from 'node:https'
+import { getRemoteMiniappsForEcosystem } from './vite-plugin-remote-miniapps'
 
 // ==================== Types ====================
 
@@ -55,13 +56,12 @@ interface MiniappServer {
 
 interface MiniappsPluginOptions {
   miniappsDir?: string
-  startPort?: number
 }
 
 // ==================== Plugin ====================
 
 export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
-  const { miniappsDir = 'miniapps', startPort = 5180 } = options
+  const { miniappsDir = 'miniapps' } = options
 
   let root: string
   let isBuild = false
@@ -121,7 +121,8 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
-        const apps = await Promise.all(
+        // 本地 miniapps
+        const localApps = await Promise.all(
           miniappServers.map(async (s) => {
             try {
               const manifest = await fetchManifest(s.port)
@@ -139,12 +140,18 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           }),
         )
 
+        // 远程 miniapps (从 vite-plugin-remote-miniapps 获取)
+        const remoteApps = getRemoteMiniappsForEcosystem()
+
         return {
           name: 'Bio 官方生态',
           version: '1.0.0',
           updated: new Date().toISOString().split('T')[0],
           icon: '/logos/logo-256.webp',
-          apps: apps.filter((a): a is NonNullable<typeof a> => a !== null),
+          apps: [
+            ...localApps.filter((a): a is NonNullable<typeof a> => a !== null),
+            ...remoteApps,
+          ],
         }
       }
 
