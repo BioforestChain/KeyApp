@@ -11,7 +11,8 @@ import { ChainIcon } from '@/components/wallet/chain-icon'
 import { MiniappSheetHeader } from '@/components/ecosystem'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
-import { parseHexChainId, getKeyAppChainId, CHAIN_DISPLAY_NAMES } from '@biochain/bio-sdk'
+import { parseHexChainId, getKeyAppChainId } from '@biochain/bio-sdk'
+import { chainConfigService } from '@/services/chain-config'
 import type { ChainType } from '@/stores'
 
 type ChainSwitchConfirmJobParams = {
@@ -28,8 +29,8 @@ type ChainSwitchConfirmJobParams = {
 /** 获取链的显示名称 */
 function getChainDisplayName(hexChainId: string): string {
   const keyAppId = getKeyAppChainId(hexChainId)
-  if (keyAppId && CHAIN_DISPLAY_NAMES[keyAppId]) {
-    return CHAIN_DISPLAY_NAMES[keyAppId]
+  if (keyAppId) {
+    return chainConfigService.getName(keyAppId)
   }
   // Fallback: 显示 decimal chainId
   try {

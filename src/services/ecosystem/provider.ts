@@ -23,6 +23,11 @@ import {
   registerEvmHandlers,
   registerTronHandlers,
 } from './handlers'
+import {
+  handleRequestCryptoToken,
+  handleCryptoExecute,
+  setCryptoAuthorizeDialog,
+} from './handlers/crypto'
 
 /** Track if handlers have been registered */
 let initialized = false
@@ -57,13 +62,17 @@ export function initBioProvider(): void {
   // Destroy asset (BioForest chains only)
   bridge.registerHandler('bio_destroyAsset', handleDestroyAsset)
 
+  // Crypto box (Token-based crypto operations)
+  bridge.registerHandler('bio_requestCryptoToken', handleRequestCryptoToken)
+  bridge.registerHandler('bio_cryptoExecute', handleCryptoExecute)
+
   // EVM methods (Ethereum/BSC via window.ethereum)
   registerEvmHandlers((method, handler) => bridge.registerHandler(method, handler))
 
   // TRON methods (via window.tronLink/tronWeb)
   registerTronHandlers((method, handler) => bridge.registerHandler(method, handler))
 
-  
+
 }
 
 // Auto-initialize handlers at module load time to prevent race conditions
@@ -92,3 +101,6 @@ export {
   setTronWalletPicker,
   setTronSigningDialog,
 } from './handlers'
+
+// Crypto box setters
+export { setCryptoAuthorizeDialog } from './handlers/crypto'

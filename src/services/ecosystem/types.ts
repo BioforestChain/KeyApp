@@ -29,6 +29,8 @@ export interface BioAccount {
   address: string
   chain: string
   name?: string
+  /** Public key (optional, for dweb-compat) */
+  publicKey?: string
 }
 
 /**

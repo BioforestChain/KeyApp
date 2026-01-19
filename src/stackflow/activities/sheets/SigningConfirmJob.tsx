@@ -15,7 +15,7 @@ import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
 import { useCurrentWallet } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 import { MiniappSheetHeader } from '@/components/ecosystem'
-import { AddressDisplay } from '@/components/wallet/address-display'
+import { ChainAddressDisplay } from '@/components/wallet/chain-address-display'
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -43,11 +43,11 @@ function SigningConfirmJobContent() {
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
       setIsSubmitting(true)
-      
+
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
         if (!encryptedSecret) {
-          
+
           return false
         }
 
@@ -68,18 +68,18 @@ function SigningConfirmJobContent() {
 
         // 发送成功事件（包含 signature 和 publicKey）
         const event = new CustomEvent('signing-confirm', {
-          detail: { 
-            confirmed: true, 
+          detail: {
+            confirmed: true,
             signature: signResult.signature,
             publicKey: signResult.publicKey,
           },
         })
         window.dispatchEvent(event)
-        
+
         pop()
         return true
       } catch (error) {
-        
+
         return false
       } finally {
         setIsSubmitting(false)
@@ -117,6 +117,7 @@ function SigningConfirmJobContent() {
           description={appName || t('unknownDApp', '未知 DApp')}
           appName={appName}
           appIcon={appIcon}
+          chainId={chainName}
         />
 
         {/* Content */}
@@ -126,7 +127,7 @@ function SigningConfirmJobContent() {
             <p className="text-muted-foreground mb-1 text-xs">
               {t('signingAddress', '签名地址')}
             </p>
-            <AddressDisplay address={address} copyable={false} className="text-sm" />
+            <ChainAddressDisplay chainId={chainName || 'bfmeta'} address={address} copyable={false} size="sm" />
           </div>
 
           {/* Message */}

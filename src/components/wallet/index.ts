@@ -19,7 +19,7 @@ export interface WalletInfo {
   chainIconUrl?: string | undefined
 }
 export { AddressDisplay } from './address-display'
-export { ChainIcon, ChainBadge, ChainIconProvider, type ChainType } from './chain-icon'
+export { ChainIcon, ChainBadge, type ChainType } from './chain-icon'
 export { ChainAddressDisplay } from './chain-address-display'
 export { TokenIcon, TokenBadge, TokenIconProvider } from './token-icon'
 export { WalletAddressPortfolioView, type WalletAddressPortfolioViewProps } from './wallet-address-portfolio-view'

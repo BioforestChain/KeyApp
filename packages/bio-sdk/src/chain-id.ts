@@ -33,15 +33,6 @@ export const API_CHAIN_TO_KEYAPP: Record<string, string> = {
   bfchain: 'bfchain',
 } as const
 
-/** KeyApp chain ID to display name */
-export const CHAIN_DISPLAY_NAMES: Record<string, string> = {
-  ethereum: 'Ethereum',
-  binance: 'BNB Smart Chain',
-  tron: 'Tron',
-  bfmeta: 'BFMeta',
-  bfchain: 'BFChain',
-} as const
-
 /**
  * Convert decimal chain ID to hex string (EIP-155 format)
  * @example toHexChainId(56) => '0x38'

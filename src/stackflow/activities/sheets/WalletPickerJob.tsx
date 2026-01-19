@@ -13,7 +13,9 @@ import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { WalletList, type WalletListItem } from '@/components/wallet/wallet-list'
 import { MiniappSheetHeader } from '@/components/ecosystem'
-import { getKeyAppChainId, normalizeChainId, CHAIN_DISPLAY_NAMES } from '@biochain/bio-sdk'
+import { getKeyAppChainId, normalizeChainId } from '@biochain/bio-sdk'
+import { useChainConfigs } from '@/stores/chain-config'
+import { chainConfigService } from '@/services/chain-config'
 
 type WalletPickerJobParams = {
   /** 限定链类型 (支持: KeyApp 内部 ID, EVM hex chainId, API 名称如 BSC) */
@@ -45,8 +47,8 @@ function resolveChainId(chain: string | undefined): string | undefined {
   // Try API name normalization (e.g., 'BSC' -> 'binance', 'BFMCHAIN' -> 'bfmeta')
   const normalized = normalizeChainId(chain)
 
-  // Check if it's a known chain
-  if (CHAIN_DISPLAY_NAMES[normalized]) {
+  // Check if it's a known chain (using chainConfigService)
+  if (chainConfigService.getConfig(normalized)) {
     return normalized
   }
 
@@ -61,9 +63,17 @@ function WalletPickerJobContent() {
   const { t } = useTranslation('common')
   const { pop } = useFlow()
   const { chain: rawChain, exclude, appName, appIcon } = useActivityParams<WalletPickerJobParams>()
+  const chainConfigs = useChainConfigs()
 
   // Resolve chain to KeyApp internal ID
   const chain = useMemo(() => resolveChainId(rawChain), [rawChain])
+
+  // 获取链配置（用于显示名称和图标）
+  const chainConfig = useMemo(
+    () => chain ? chainConfigs.find(c => c.id === chain) : null,
+    [chain, chainConfigs]
+  )
+  const chainDisplayName = chainConfig?.name ?? CHAIN_DISPLAY_NAMES[chain ?? ''] ?? chain
 
   const walletState = useStore(walletStore)
   const currentWallet = walletSelectors.getCurrentWallet(walletState)
@@ -90,7 +100,7 @@ function WalletPickerJobContent() {
         name: wallet.name,
         address: chainAddress.address,
         themeHue: wallet.themeHue,
-        chainIconUrl: undefined, // TODO: 从链配置获取图标
+        chainIconUrl: chainConfig?.icon,
       })
     }
 
@@ -143,10 +153,11 @@ function WalletPickerJobContent() {
 
         {/* Title with App Icon */}
         <MiniappSheetHeader
-          title={t('selectWallet', '选择钱包')}
+          title={chain ? t('selectChainWallet', '选择 {{chain}} 钱包', { chain: chainDisplayName }) : t('selectWallet', '选择钱包')}
           description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsAccess', '请求访问')}`}
           appName={appName}
           appIcon={appIcon}
+          chainId={chain}
         />
 
         {/* Wallet List */}

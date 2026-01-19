@@ -1,0 +1,34 @@
+{
+    "name": "@biochain/dweb-compat",
+    "version": "0.1.0",
+    "description": "dweb-plaoc 到 KeyApp bio provider 的兼容适配器",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+        },
+        "./is-dweb": {
+            "types": "./src/is-dweb.ts",
+            "import": "./src/is-dweb.ts"
+        },
+        "./plugins-stub": {
+            "types": "./src/plugins-stub.ts",
+            "import": "./src/plugins-stub.ts"
+        }
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "typecheck:run": "tsc --noEmit",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:storybook": "echo 'SDK has no storybook'"
+    },
+    "peerDependencies": {},
+    "devDependencies": {
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.0"
+    }
+}

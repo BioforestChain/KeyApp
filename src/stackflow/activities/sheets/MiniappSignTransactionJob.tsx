@@ -16,6 +16,8 @@ import { walletStore } from '@/stores'
 import type { UnsignedTransaction } from '@/services/ecosystem'
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers'
 import { MiniappSheetHeader } from '@/components/ecosystem'
+import { ChainBadge } from '@/components/wallet/chain-icon'
+import { ChainAddressDisplay } from '@/components/wallet/chain-address-display'
 
 type MiniappSignTransactionJobParams = {
   /** 来源小程序名称 */
@@ -133,6 +135,7 @@ function MiniappSignTransactionJobContent() {
           description={appName || t('unknownDApp', '未知 DApp')}
           appName={appName}
           appIcon={appIcon}
+          chainId={chain}
         />
 
         <div className="space-y-4 p-4">
@@ -150,12 +153,12 @@ function MiniappSignTransactionJobContent() {
 
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">{t('network', '网络')}</p>
-            <p className="text-sm font-medium">{chain}</p>
+            <ChainBadge chainId={chain} />
           </div>
 
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">{t('signingAddress', '签名地址')}</p>
-            <p className="text-sm font-mono break-all">{from}</p>
+            <ChainAddressDisplay chainId={chain} address={from} copyable={false} size="sm" />
           </div>
 
           <div className="bg-muted/50 rounded-xl p-3">

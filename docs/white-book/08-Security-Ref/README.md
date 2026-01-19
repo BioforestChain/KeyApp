@@ -10,6 +10,7 @@
 | [02-Authentication](./02-Authentication.md) | 图案锁、生物识别、自动锁定 |
 | [03-DWEB-Authorization](./03-DWEB-Authorization.md) | Plaoc 协议、地址授权、签名授权 |
 | [04-Security-Audit](./04-Security-Audit.md) | 审计清单、攻击防护、合规要求 |
+| [05-CryptoBox-Authorization](./05-CryptoBox-Authorization.md) | Crypto Box 黑盒授权、Token 机制 |
 
 ---
 

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptoBox 测试报告</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .header p { color: #888; font-size: 1.1rem; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-card .value {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #00ff88;
+    }
+    .stat-card .label {
+      color: #aaa;
+      margin-top: 8px;
+    }
+    .test-suite {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .suite-header {
+      background: rgba(255,255,255,0.05);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .suite-header .icon {
+      width: 32px;
+      height: 32px;
+      background: #00ff88;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .suite-header .name { font-weight: 600; font-size: 1.1rem; }
+    .suite-header .count { color: #888; margin-left: auto; }
+    .test-list { padding: 12px 24px; }
+    .test-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .test-item:last-child { border-bottom: none; }
+    .test-item .check {
+      color: #00ff88;
+      margin-right: 12px;
+      font-size: 18px;
+    }
+    .test-item .title { flex: 1; }
+    .test-item .duration { color: #666; font-size: 0.9rem; }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 CryptoBox 测试报告</h1>
+      <p>Crypto 黑盒 Token 授权系统 - 单元测试</p>
+    </div>
+
+    <div class="summary">
+      <div class="stat-card">
+        <div class="value">37</div>
+        <div class="label">总测试数</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" style="color: #00ff88;">37</div>
+        <div class="label">通过</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" style="color: #888;">0</div>
+        <div class="label">失败</div>
+      </div>
+    </div>
+
+    <div class="test-suite">
+      <div class="suite-header">
+        <div class="icon">📦</div>
+        <div class="name">TokenStore</div>
+        <div class="count">21 tests</div>
+      </div>
+      <div class="test-list">
+        <div class="test-item"><span class="check">✓</span><span class="title">initialize › should initialize without error</span><span class="duration">3.4ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">initialize › should be idempotent</span><span class="duration">0.3ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">generateTokenId › should generate a valid UUID</span><span class="duration">0.7ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">generateTokenId › should generate unique IDs</span><span class="duration">0.6ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">hashPattern › should generate SHA-256 hash</span><span class="duration">1.4ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">hashPattern › should generate consistent hash</span><span class="duration">0.3ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">hashPattern › should generate different hashes</span><span class="duration">0.3ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">createToken › should create token with correct properties</span><span class="duration">1.9ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">createToken › should set correct expiry for 5min</span><span class="duration">0.8ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">createToken › should not include patternHash</span><span class="duration">0.5ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">getToken › should retrieve a stored token</span><span class="duration">0.5ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">getToken › should return null for non-existent</span><span class="duration">0.2ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">deleteToken › should delete a token</span><span class="duration">0.6ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">deleteToken › should not throw for non-existent</span><span class="duration">0.3ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">validateToken › should return valid for correct token</span><span class="duration">0.3ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">validateToken › should return TOKEN_NOT_FOUND</span><span class="duration">0.2ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">validateToken › should return MINIAPP_MISMATCH</span><span class="duration">0.4ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">validateToken › should return TOKEN_EXPIRED</span><span class="duration">1.0ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">validateToken › should return ACTION_NOT_PERMITTED</span><span class="duration">0.4ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">getTokensByMiniapp › should return all tokens</span><span class="duration">0.9ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">getTokensByMiniapp › should return empty array</span><span class="duration">0.2ms</span></div>
+      </div>
+    </div>
+
+    <div class="test-suite">
+      <div class="suite-header">
+        <div class="icon">📐</div>
+        <div class="name">CryptoBox Types</div>
+        <div class="count">16 tests</div>
+      </div>
+      <div class="test-list">
+        <div class="test-item"><span class="check">✓</span><span class="title">TOKEN_DURATION_MS › 5min = 300000ms</span><span class="duration">0.6ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">TOKEN_DURATION_MS › 15min = 900000ms</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">TOKEN_DURATION_MS › 1hour = 3600000ms</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">TOKEN_DURATION_MS › 1day = 86400000ms</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">CryptoBoxErrorCodes › TOKEN_NOT_FOUND = 4100</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">CryptoBoxErrorCodes › MINIAPP_MISMATCH = 4101</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">CryptoBoxErrorCodes › TOKEN_EXPIRED = 4102</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">CryptoBoxErrorCodes › ACTION_NOT_PERMITTED = 4103</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">CryptoBoxErrorCodes › USER_REJECTED = 4001</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid CryptoAction values</span><span class="duration">0.5ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid TokenDuration values</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid CryptoToken</span><span class="duration">0.4ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid StoredToken with patternHash</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid RequestCryptoTokenParams</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid CryptoExecuteParams asymmetricEncrypt</span><span class="duration">0.1ms</span></div>
+        <div class="test-item"><span class="check">✓</span><span class="title">Type guards › valid CryptoExecuteParams sign</span><span class="duration">0.1ms</span></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Generated at 2026-01-18 13:25 • Duration: 1.01s</p>
+    </div>
+  </div>
+</body>
+</html>
