@@ -108,6 +108,8 @@ export interface RequestCryptoTokenResponse {
     expiresAt: number
     /** 授权的操作 */
     grantedActions: CryptoAction[]
+    /** Token 绑定的地址（miniapp 应缓存此地址，地址变化时需重新请求 Token） */
+    address: string
 }
 
 /**

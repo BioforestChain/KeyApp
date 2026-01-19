@@ -117,6 +117,7 @@ export const handleRequestCryptoToken: MethodHandler = async (params, context) =
         sessionSecret,
         expiresAt: token.expiresAt,
         grantedActions: token.actions,
+        address: token.address,  // 返回 Token 绑定的地址，miniapp 应缓存此地址
     }
 
     return response
