@@ -73,7 +73,7 @@ function WalletPickerJobContent() {
     () => chain ? chainConfigs.find(c => c.id === chain) : null,
     [chain, chainConfigs]
   )
-  const chainDisplayName = chainConfig?.name ?? CHAIN_DISPLAY_NAMES[chain ?? ''] ?? chain
+  const chainDisplayName = chain ? chainConfigService.getName(chain) : undefined
 
   const walletState = useStore(walletStore)
   const currentWallet = walletSelectors.getCurrentWallet(walletState)

@@ -26,7 +26,6 @@ import {
 import {
   handleRequestCryptoToken,
   handleCryptoExecute,
-  setCryptoAuthorizeDialog,
 } from './handlers/crypto'
 
 /** Track if handlers have been registered */

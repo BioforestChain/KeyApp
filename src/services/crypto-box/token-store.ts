@@ -53,7 +53,7 @@ class TokenStore {
         if (this.initialized) return
 
         this.db = await openDB<CryptoBoxDBSchema>(DB_NAME, DB_VERSION, {
-            upgrade(db, oldVersion) {
+            upgrade(db, _oldVersion) {
                 // 删除旧版本的 store
                 if (db.objectStoreNames.contains(STORE_NAME)) {
                     db.deleteObjectStore(STORE_NAME)
