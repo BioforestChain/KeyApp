@@ -9,7 +9,7 @@ import { bioRequest } from './bridge'
 // ==================== 类型定义 ====================
 
 export type CryptoAction = 'asymmetricEncrypt' | 'sign'
-export type TokenDuration = '5min' | '15min' | '1hour' | '1day'
+export type TokenDuration = '5min' | '30min' | '2hour' | '1day'
 
 export interface RequestCryptoTokenParams {
     actions: CryptoAction[]
@@ -207,7 +207,7 @@ export async function rwaLogin(
     // 2. 请求加密授权（用户输入手势密码）- 使用实际选中的链 ID
     const { tokenId, sessionSecret } = await requestCryptoToken(
         ['asymmetricEncrypt'],
-        '5min',
+        '1day',  // 默认使用 1 天授权
         account.address,
         account.chain  // 使用账户实际的链 ID
     )
