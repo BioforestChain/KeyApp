@@ -313,7 +313,7 @@ export function getRemoteMiniappsForEcosystem(): Array<MiniappManifest & { url: 
     ...s.manifest,
     dirName: s.dirName,
     icon: new URL(s.manifest.icon, s.baseUrl).href,
-    url: `${s.baseUrl}/`,
+    url: new URL('/', s.baseUrl).href,
     screenshots: s.manifest.screenshots?.map((sc) => new URL(sc, s.baseUrl).href) ?? [],
   }))
 }

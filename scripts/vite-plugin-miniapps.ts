@@ -129,9 +129,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
               return {
                 ...manifest,
                 dirName: s.dirName,
-                icon: `${s.baseUrl}/${manifest.icon}`,
-                url: `${s.baseUrl}/`,
-                screenshots: manifest.screenshots.map((sc) => `${s.baseUrl}/${sc}`),
+                icon: new URL(manifest.icon, s.baseUrl).href,
+                url: new URL('/', s.baseUrl).href,
+                screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
               }
             } catch (e) {
               console.error(`[miniapps] Failed to fetch manifest for ${s.id}:`, e)
