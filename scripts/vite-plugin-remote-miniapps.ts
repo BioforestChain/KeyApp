@@ -124,6 +124,11 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
       const miniappsPath = resolve(root, miniappsDir)
 
+      // 先下载所有远程 miniapps (dev 模式下 buildStart 之后才执行 configureServer)
+      for (const config of miniapps) {
+        await downloadAndExtract(config, miniappsPath)
+      }
+
       // 启动静态服务器为每个远程 miniapp
       for (const config of miniapps) {
         const miniappDir = join(miniappsPath, config.dirName)
@@ -307,9 +312,9 @@ export function getRemoteMiniappsForEcosystem(): Array<MiniappManifest & { url: 
   return globalRemoteServers.map((s) => ({
     ...s.manifest,
     dirName: s.dirName,
-    icon: `${s.baseUrl}/${s.manifest.icon}`,
+    icon: new URL(s.manifest.icon, s.baseUrl).href,
     url: `${s.baseUrl}/`,
-    screenshots: s.manifest.screenshots?.map((sc) => `${s.baseUrl}/${sc}`) ?? [],
+    screenshots: s.manifest.screenshots?.map((sc) => new URL(sc, s.baseUrl).href) ?? [],
   }))
 }
 
