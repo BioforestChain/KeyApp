@@ -14,6 +14,7 @@ export { getExternalAppData } from './signature'
 // Crypto Token API
 export {
     requestCryptoToken,
+    getCryptoTokenInfo,
     asymmetricEncrypt,
     signData,
     rwaLogin,
@@ -23,6 +24,7 @@ export type {
     TokenDuration,
     RequestCryptoTokenParams,
     RequestCryptoTokenResponse,
+    GetCryptoTokenInfoResponse,
     AsymmetricEncryptParams,
     SignParams,
     CryptoExecuteResponse,

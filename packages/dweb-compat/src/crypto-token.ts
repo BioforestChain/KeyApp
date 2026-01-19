@@ -22,6 +22,8 @@ export interface RequestCryptoTokenResponse {
     sessionSecret: string
     expiresAt: number
     grantedActions: CryptoAction[]
+    /** Token 绑定的地址 */
+    address: string
 }
 
 export interface AsymmetricEncryptParams {
@@ -36,6 +38,8 @@ export interface SignParams {
 export interface CryptoExecuteResponse {
     result: string
     publicKey: string
+    /** Token 绑定的地址 */
+    address: string
 }
 
 // ==================== Token 操作 ====================
@@ -61,6 +65,36 @@ export async function requestCryptoToken(
         duration,
         address,
         chainId,
+    })
+}
+
+// ==================== Token 查询 ====================
+
+export interface GetCryptoTokenInfoResponse {
+    /** Token 是否有效 */
+    valid: boolean
+    /** Token 绑定的地址 */
+    address: string
+    /** 过期时间戳 */
+    expiresAt: number
+    /** 授权的操作列表 */
+    actions: CryptoAction[]
+    /** 无效原因（仅当 valid=false 时） */
+    invalidReason?: 'TOKEN_NOT_FOUND' | 'TOKEN_EXPIRED' | 'INVALID_SESSION_SECRET' | 'MINIAPP_MISMATCH'
+}
+
+/**
+ * 查询 Token 信息
+ * 
+ * 用于检查缓存的 Token 是否有效，以及获取 Token 绑定的地址
+ */
+export async function getCryptoTokenInfo(
+    tokenId: string,
+    sessionSecret: string
+): Promise<GetCryptoTokenInfoResponse> {
+    return bioRequest<GetCryptoTokenInfoResponse>('bio_getCryptoTokenInfo', {
+        tokenId,
+        sessionSecret,
     })
 }
 
@@ -180,7 +214,7 @@ export async function rwaLogin(
 
     // 3. 执行非对称加密生成 signcode
     const timestamp = Date.now().toString()
-    const { result, publicKey } = await asymmetricEncrypt(
+    const { result, publicKey, address } = await asymmetricEncrypt(
         tokenId,
         sessionSecret,
         timestamp,
@@ -188,8 +222,10 @@ export async function rwaLogin(
     )
 
     // 返回 Buffer 格式，与 RWA 后端期望一致
+    // 注意：使用 asymmetricEncrypt 返回的 address，而不是 account.address
+    // 这确保了返回的地址与 Token 绑定的地址一致
     return {
-        address: account.address,
+        address,
         publicKey: Buffer.from(publicKey, 'hex'),
         signcode: Buffer.from(result, 'hex'),
     }
