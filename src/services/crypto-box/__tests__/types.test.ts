@@ -20,12 +20,12 @@ describe('CryptoBox Types', () => {
             expect(TOKEN_DURATION_MS['5min']).toBe(5 * 60 * 1000)
         })
 
-        it('should have correct milliseconds for 15min', () => {
-            expect(TOKEN_DURATION_MS['15min']).toBe(15 * 60 * 1000)
+        it('should have correct milliseconds for 30min', () => {
+            expect(TOKEN_DURATION_MS['30min']).toBe(30 * 60 * 1000)
         })
 
-        it('should have correct milliseconds for 1hour', () => {
-            expect(TOKEN_DURATION_MS['1hour']).toBe(60 * 60 * 1000)
+        it('should have correct milliseconds for 2hour', () => {
+            expect(TOKEN_DURATION_MS['2hour']).toBe(2 * 60 * 60 * 1000)
         })
 
         it('should have correct milliseconds for 1day', () => {
@@ -53,6 +53,10 @@ describe('CryptoBox Types', () => {
         it('should have USER_REJECTED code', () => {
             expect(CryptoBoxErrorCodes.USER_REJECTED).toBe(4001)
         })
+
+        it('should have ADDRESS_MISMATCH code', () => {
+            expect(CryptoBoxErrorCodes.ADDRESS_MISMATCH).toBe(4105)
+        })
     })
 
     describe('Type guards', () => {
@@ -62,7 +66,7 @@ describe('CryptoBox Types', () => {
         })
 
         it('should accept valid TokenDuration values', () => {
-            const durations: TokenDuration[] = ['5min', '15min', '1hour', '1day']
+            const durations: TokenDuration[] = ['5min', '30min', '2hour', '1day']
             expect(durations).toHaveLength(4)
         })
 
@@ -70,6 +74,7 @@ describe('CryptoBox Types', () => {
             const token: CryptoToken = {
                 tokenId: 'test-uuid',
                 miniappId: 'app.test.dweb',
+                walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['asymmetricEncrypt'],
                 expiresAt: Date.now() + 300000,
@@ -79,31 +84,33 @@ describe('CryptoBox Types', () => {
             expect(token.actions).toContain('asymmetricEncrypt')
         })
 
-        it('should create valid StoredToken with patternHash', () => {
+        it('should create valid StoredToken with encryptedPayload', () => {
             const storedToken: StoredToken = {
                 tokenId: 'test-uuid',
                 miniappId: 'app.test.dweb',
+                walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'],
                 expiresAt: Date.now() + 300000,
                 createdAt: Date.now(),
-                patternHash: 'abc123hash',
+                encryptedPayload: 'encrypted-json-data',
             }
-            expect(storedToken.patternHash).toBe('abc123hash')
+            expect(storedToken.encryptedPayload).toBe('encrypted-json-data')
         })
 
         it('should create valid RequestCryptoTokenParams', () => {
             const params: RequestCryptoTokenParams = {
                 actions: ['asymmetricEncrypt', 'sign'],
-                duration: '15min',
+                duration: '30min',
                 address: 'bfm1test',
             }
-            expect(params.duration).toBe('15min')
+            expect(params.duration).toBe('30min')
         })
 
         it('should create valid CryptoExecuteParams for asymmetricEncrypt', () => {
             const params: CryptoExecuteParams = {
                 tokenId: 'test-uuid',
+                sessionSecret: 'secret-123',
                 action: 'asymmetricEncrypt',
                 params: {
                     data: 'hello',
@@ -116,12 +123,26 @@ describe('CryptoBox Types', () => {
         it('should create valid CryptoExecuteParams for sign', () => {
             const params: CryptoExecuteParams = {
                 tokenId: 'test-uuid',
+                sessionSecret: 'secret-123',
                 action: 'sign',
                 params: {
                     data: 'message to sign',
                 },
             }
             expect(params.action).toBe('sign')
+        })
+
+        it('should create valid CryptoExecuteParams with address for validation', () => {
+            const params: CryptoExecuteParams = {
+                tokenId: 'test-uuid',
+                sessionSecret: 'secret-123',
+                action: 'sign',
+                params: {
+                    data: 'message to sign',
+                },
+                address: 'bfm1test',  // 用于安全验证
+            }
+            expect(params.address).toBe('bfm1test')
         })
     })
 })

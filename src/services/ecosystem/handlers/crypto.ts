@@ -21,7 +21,7 @@ let getCryptoAuthorizeDialog: ((appId: string) => ((params: {
     address: string
     chainId?: string
     app: { name: string; icon?: string }
-}) => Promise<{ approved: boolean; patternKey?: string; walletId?: string }>) | null) | null = null
+}) => Promise<{ approved: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }>) | null) | null = null
 
 /**
  * 注册 Crypto 授权对话框获取器
@@ -33,7 +33,7 @@ export function setCryptoAuthorizeDialog(
         address: string
         chainId?: string
         app: { name: string; icon?: string }
-    }) => Promise<{ approved: boolean; patternKey?: string; walletId?: string }>) | null) | null
+    }) => Promise<{ approved: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }>) | null) | null
 ): void {
     getCryptoAuthorizeDialog = getter
 }
@@ -96,6 +96,9 @@ export const handleRequestCryptoToken: MethodHandler = async (params, context) =
         )
     }
 
+    // 使用用户选择的时长（如果有），否则使用默认请求时长
+    const finalDuration = (result.selectedDuration as TokenDuration) || opts.duration
+
     // 确保 TokenStore 已初始化
     await tokenStore.initialize()
 
@@ -105,7 +108,7 @@ export const handleRequestCryptoToken: MethodHandler = async (params, context) =
         walletId: result.walletId,
         address: opts.address,
         actions: opts.actions,
-        duration: opts.duration,
+        duration: finalDuration,
         patternKey: result.patternKey,
     })
 

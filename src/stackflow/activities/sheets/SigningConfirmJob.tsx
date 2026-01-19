@@ -12,10 +12,9 @@ import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet } from '@/stores'
+import { useCurrentWallet, walletStore } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 import { MiniappSheetHeader } from '@/components/ecosystem'
-import { ChainAddressDisplay } from '@/components/wallet/chain-address-display'
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -36,6 +35,12 @@ function SigningConfirmJobContent() {
   const { message, address, appName, appIcon, chainName } = useActivityParams<SigningConfirmJobParams>()
   const currentWallet = useCurrentWallet()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 查找使用该地址的钱包
+  const targetWallet = walletStore.state.wallets.find(
+    w => w.chainAddresses.some(ca => ca.address === address)
+  )
+  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
 
   const handleConfirm = useCallback(() => {
     if (isSubmitting) return
@@ -117,19 +122,15 @@ function SigningConfirmJobContent() {
           description={appName || t('unknownDApp', '未知 DApp')}
           appName={appName}
           appIcon={appIcon}
-          chainId={chainName}
+          walletInfo={{
+            name: walletName,
+            address,
+            chainId: chainName || 'bfmeta',
+          }}
         />
 
         {/* Content */}
         <div className="space-y-4 p-4">
-          {/* Address */}
-          <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">
-              {t('signingAddress', '签名地址')}
-            </p>
-            <ChainAddressDisplay chainId={chainName || 'bfmeta'} address={address} copyable={false} size="sm" />
-          </div>
-
           {/* Message */}
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">

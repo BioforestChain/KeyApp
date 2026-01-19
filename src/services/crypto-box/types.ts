@@ -16,17 +16,22 @@ export type CryptoAction = 'asymmetricEncrypt' | 'sign'
 /**
  * Token 授权时长
  */
-export type TokenDuration = '5min' | '15min' | '1hour' | '1day'
+export type TokenDuration = '5min' | '30min' | '2hour' | '1day'
 
 /**
  * Token 时长映射（毫秒）
  */
 export const TOKEN_DURATION_MS: Record<TokenDuration, number> = {
     '5min': 5 * 60 * 1000,
-    '15min': 15 * 60 * 1000,
-    '1hour': 60 * 60 * 1000,
+    '30min': 30 * 60 * 1000,
+    '2hour': 2 * 60 * 60 * 1000,
     '1day': 24 * 60 * 60 * 1000,
 }
+
+/**
+ * Token 时长选项列表（用于 UI Select）
+ */
+export const TOKEN_DURATION_OPTIONS: TokenDuration[] = ['5min', '30min', '2hour', '1day']
 
 /**
  * Crypto Token 结构（明文副本，用于查询展示）
@@ -135,6 +140,8 @@ export interface CryptoExecuteParams {
     action: CryptoAction
     /** 操作参数 */
     params: AsymmetricEncryptParams | SignParams
+    /** 期望使用的地址（安全验证：必须与 Token 中的地址匹配） */
+    address?: string
 }
 
 /**
@@ -179,6 +186,8 @@ export const CryptoBoxErrorCodes = {
     ACTION_NOT_PERMITTED: 4103,
     /** Session Secret 无效 */
     INVALID_SESSION_SECRET: 4104,
+    /** 地址不匹配（请求地址与 Token 绑定地址不一致） */
+    ADDRESS_MISMATCH: 4105,
     /** 用户拒绝授权 */
     USER_REJECTED: 4001,
     /** 内部错误 */
@@ -206,7 +215,7 @@ export const CRYPTO_ACTION_LABELS: Record<CryptoAction, { name: string; descript
  */
 export const TOKEN_DURATION_LABELS: Record<TokenDuration, string> = {
     '5min': '5 分钟',
-    '15min': '15 分钟',
-    '1hour': '1 小时',
+    '30min': '30 分钟',
+    '2hour': '2 小时',
     '1day': '1 天',
 }

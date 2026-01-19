@@ -13,12 +13,20 @@ import {
     type TokenDuration,
     CRYPTO_ACTION_LABELS,
     TOKEN_DURATION_LABELS,
+    TOKEN_DURATION_OPTIONS,
 } from '@/services/crypto-box'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 
 export interface CryptoAuthorizeProps {
     /** 请求的操作权限 */
     actions: CryptoAction[]
-    /** 授权时长 */
+    /** 默认授权时长 */
     duration: TokenDuration
     /** 使用的地址 */
     address: string
@@ -27,8 +35,8 @@ export interface CryptoAuthorizeProps {
         name: string
         icon?: string
     }
-    /** 确认回调 */
-    onConfirm: (patternKey: string) => void
+    /** 确认回调，返回选择的时长 */
+    onConfirm: (patternKey: string, selectedDuration: TokenDuration) => void
     /** 取消回调 */
     onCancel: () => void
 }
@@ -48,6 +56,7 @@ export function CryptoAuthorize({
     const [pattern, setPattern] = useState<number[]>([])
     const [error, setError] = useState(false)
     const [verifying, setVerifying] = useState(false)
+    const [selectedDuration, setSelectedDuration] = useState<TokenDuration>(duration)
 
     const handlePatternComplete = useCallback(
         async (nodes: number[]) => {
@@ -77,7 +86,7 @@ export function CryptoAuthorize({
                 }
 
                 if (isValid) {
-                    onConfirm(patternKey)
+                    onConfirm(patternKey, selectedDuration)
                 } else {
                     setError(true)
                     setPattern([])
@@ -89,7 +98,7 @@ export function CryptoAuthorize({
                 setVerifying(false)
             }
         },
-        [onConfirm]
+        [onConfirm, selectedDuration]
     )
 
     return (
@@ -133,11 +142,25 @@ export function CryptoAuthorize({
 
                 {/* 授权时长和地址 */}
                 <div className="mb-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
+                    <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">
                             {t('crypto.authorize.duration', { defaultValue: '授权时长' })}
                         </span>
-                        <span className="font-medium">{TOKEN_DURATION_LABELS[duration]}</span>
+                        <Select
+                            value={selectedDuration}
+                            onValueChange={(value) => setSelectedDuration(value as TokenDuration)}
+                        >
+                            <SelectTrigger className="h-8 w-28">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {TOKEN_DURATION_OPTIONS.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                        {TOKEN_DURATION_LABELS[option]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">

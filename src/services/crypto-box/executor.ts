@@ -61,6 +61,7 @@ class CryptoExecutor {
                 'TOKEN_EXPIRED': CryptoBoxErrorCodes.TOKEN_EXPIRED,
                 'ACTION_NOT_PERMITTED': CryptoBoxErrorCodes.ACTION_NOT_PERMITTED,
                 'INVALID_SESSION_SECRET': CryptoBoxErrorCodes.INVALID_SESSION_SECRET,
+                'ADDRESS_MISMATCH': CryptoBoxErrorCodes.ADDRESS_MISMATCH,
             }
             throw Object.assign(
                 new Error(`Token validation failed: ${validation.error}`),
@@ -70,8 +71,19 @@ class CryptoExecutor {
 
         const { payload } = validation
 
-        // 2. 从 Payload 获取 patternKey 并解密钱包私钥
-        const keypair = await this.getKeypairForAddress(payload.address, payload.patternKey)
+        // 2. 安全验证：如果调用方提供了地址，必须与 Token 中的地址匹配
+        // 这可以防止 miniapp 使用旧 Token 操作新地址
+        if (params.address && params.address !== payload.address) {
+            const { CryptoBoxErrorCodes } = await import('./types')
+            throw Object.assign(
+                new Error(`Address mismatch: requested ${params.address} but token is for ${payload.address}`),
+                { code: CryptoBoxErrorCodes.ADDRESS_MISMATCH }
+            )
+        }
+
+        // 3. 从 Payload 获取 patternKey 并解密钱包私钥
+        // 注意：必须使用 walletId 限制查找范围，防止跨钱包使用 Token
+        const keypair = await this.getKeypairForWallet(payload.walletId, payload.address, payload.patternKey)
 
         // 3. 执行操作
         let result: CryptoExecuteResponse
@@ -97,36 +109,36 @@ class CryptoExecutor {
     }
 
     /**
-     * 获取地址对应的密钥对
+     * 获取指定钱包和地址对应的密钥对
+     * 
+     * 安全：必须同时验证 walletId 和 address，防止 Token 被用于其他钱包
      */
-    private async getKeypairForAddress(
+    private async getKeypairForWallet(
+        walletId: string,
         address: string,
         patternKey: string
     ): Promise<{ secretKey: Uint8Array; publicKey: Uint8Array }> {
-        // 从钱包存储获取 mnemonic
-        const wallets = await walletStorageService.getAllWallets()
+        // 只从指定的钱包获取 mnemonic
+        try {
+            const mnemonic = await walletStorageService.getMnemonic(walletId, patternKey)
+            const keypair = createBioforestKeypair(mnemonic)
 
-        // 地址前缀（b 或 c）
-        const prefix = address.charAt(0)
+            // 地址前缀（b 或 c）
+            const prefix = address.charAt(0)
 
-        // 找到包含该地址的钱包
-        for (const wallet of wallets) {
-            try {
-                const mnemonic = await walletStorageService.getMnemonic(wallet.id, patternKey)
-                const keypair = createBioforestKeypair(mnemonic)
-
-                // 验证派生的地址是否与目标地址匹配
-                const derivedAddress = publicKeyToBioforestAddress(keypair.publicKey, prefix)
-                if (derivedAddress === address) {
-                    return keypair
-                }
-            } catch {
-                // 密码错误或其他问题，继续尝试下一个钱包
-                continue
+            // 验证派生的地址是否与 Token 中的目标地址匹配
+            const derivedAddress = publicKeyToBioforestAddress(keypair.publicKey, prefix)
+            if (derivedAddress !== address) {
+                throw new Error(`Address mismatch: token address ${address} does not match wallet`)
             }
-        }
 
-        throw new Error(`No wallet found for address: ${address}`)
+            return keypair
+        } catch (err) {
+            if (err instanceof Error && err.message.includes('Address mismatch')) {
+                throw err
+            }
+            throw new Error(`Failed to get keypair for wallet ${walletId}: invalid patternKey or wallet not found`)
+        }
     }
 
     /**

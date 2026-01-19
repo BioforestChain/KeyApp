@@ -12,7 +12,6 @@ import { IconLock, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { MiniappSheetHeader } from '@/components/ecosystem'
-import { ChainAddressDisplay } from '@/components/wallet/chain-address-display'
 import { PatternLock, patternToString } from '@/components/security/pattern-lock'
 import { walletStorageService } from '@/services/wallet-storage'
 import {
@@ -20,7 +19,15 @@ import {
     type TokenDuration,
     CRYPTO_ACTION_LABELS,
     TOKEN_DURATION_LABELS,
+    TOKEN_DURATION_OPTIONS,
 } from '@/services/crypto-box'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { walletStore } from '@/stores'
 
 type CryptoAuthorizeJobParams = {
@@ -57,6 +64,7 @@ function CryptoAuthorizeJobContent() {
     const [pattern, setPattern] = useState<number[]>([])
     const [error, setError] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
+    const [selectedDuration, setSelectedDuration] = useState<TokenDuration>(duration)
 
     const handlePatternComplete = useCallback(
         async (nodes: number[]) => {
@@ -87,9 +95,9 @@ function CryptoAuthorizeJobContent() {
                 }
 
                 if (isValid && walletId) {
-                    // 发送成功事件（包含 walletId 用于 Token 创建）
+                    // 发送成功事件（包含 walletId 和 selectedDuration 用于 Token 创建）
                     const event = new CustomEvent('crypto-authorize-confirm', {
-                        detail: { approved: true, patternKey, walletId },
+                        detail: { approved: true, patternKey, walletId, selectedDuration },
                     })
                     window.dispatchEvent(event)
                     pop()
@@ -104,7 +112,7 @@ function CryptoAuthorizeJobContent() {
                 setIsVerifying(false)
             }
         },
-        [pop]
+        [pop, selectedDuration]
     )
 
     const handleCancel = useCallback(() => {
@@ -123,23 +131,27 @@ function CryptoAuthorizeJobContent() {
                     <div className="bg-muted h-1 w-10 rounded-full" />
                 </div>
 
-                {/* Header - 使用通用组件保持一致性 */}
+                {/* Header - 左侧 miniapp 信息，右侧钱包信息 */}
                 <MiniappSheetHeader
                     title={t('cryptoAuthorize', '加密授权')}
                     description={appName || t('unknownDApp', '未知 DApp')}
                     appName={appName}
                     appIcon={appIcon}
-                    chainId={chainId}
+                    walletInfo={{
+                        name: walletName || t('unknownWallet', '未知钱包'),
+                        address,
+                        chainId: chainId || 'bfmeta',
+                    }}
                 />
 
                 {/* Content - 可滚动区域 */}
                 <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 space-y-3">
-                    {/* 权限和授权信息合并为紧凑布局 */}
+                    {/* 权限和授权时长 */}
                     <div className="bg-muted/50 rounded-xl p-3 space-y-2 text-sm">
                         {/* 请求权限 - 水平排列 */}
                         <div className="flex items-center gap-2">
                             <IconLock className="text-primary size-4 flex-shrink-0" />
-                            <span className="text-muted-foreground">权限：</span>
+                            <span className="text-muted-foreground">{t('permissions', '权限')}：</span>
                             <span className="font-medium truncate">
                                 {actions.map(a => CRYPTO_ACTION_LABELS[a]?.name || a).join('、')}
                             </span>
@@ -147,22 +159,22 @@ function CryptoAuthorizeJobContent() {
 
                         {/* 授权时长 */}
                         <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground ml-6">时长：</span>
-                            <span className="font-medium">{TOKEN_DURATION_LABELS[duration] || duration}</span>
-                        </div>
-
-                        {/* 钱包和地址 */}
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground ml-6">钱包：</span>
-                                <span className="font-medium">{walletName || '-'}</span>
-                            </div>
-                            <ChainAddressDisplay
-                                chainId={chainId || 'bfmeta'}
-                                address={address}
-                                copyable={false}
-                                size="sm"
-                            />
+                            <span className="text-muted-foreground ml-6">{t('duration', '时长')}：</span>
+                            <Select
+                                value={selectedDuration}
+                                onValueChange={(value) => setSelectedDuration(value as TokenDuration)}
+                            >
+                                <SelectTrigger className="h-7 w-24 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {TOKEN_DURATION_OPTIONS.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                            {TOKEN_DURATION_LABELS[option]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>

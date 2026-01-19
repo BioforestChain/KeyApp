@@ -67,6 +67,10 @@ function MiniappSignTransactionJobContent() {
     return findWalletIdByAddress(chain, from)
   }, [chain, from])
 
+  // 查找钱包名称
+  const targetWallet = walletStore.state.wallets.find(w => w.id === walletId)
+  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
+
   const handleConfirm = useCallback(() => {
     if (isSubmitting) return
     if (!unsignedTx) return
@@ -135,7 +139,11 @@ function MiniappSignTransactionJobContent() {
           description={appName || t('unknownDApp', '未知 DApp')}
           appName={appName}
           appIcon={appIcon}
-          chainId={chain}
+          walletInfo={{
+            name: walletName,
+            address: from,
+            chainId: chain,
+          }}
         />
 
         <div className="space-y-4 p-4">

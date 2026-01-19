@@ -343,16 +343,16 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
 
     // Crypto 黑盒授权对话框
     setCryptoAuthorizeDialog((_appId: string) => async (params) => {
-      return new Promise<{ approved: boolean; patternKey?: string; walletId?: string }>((resolve) => {
+      return new Promise<{ approved: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }>((resolve) => {
         const timeout = window.setTimeout(() => resolve({ approved: false }), 60_000);
 
         const handleResult = (e: Event) => {
           window.clearTimeout(timeout);
           const detail = (e as CustomEvent).detail as
-            | { approved?: boolean; patternKey?: string; walletId?: string }
+            | { approved?: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }
             | undefined;
           if (detail?.approved && detail.patternKey && detail.walletId) {
-            resolve({ approved: true, patternKey: detail.patternKey, walletId: detail.walletId });
+            resolve({ approved: true, patternKey: detail.patternKey, walletId: detail.walletId, selectedDuration: detail.selectedDuration });
             return;
           }
           resolve({ approved: false });

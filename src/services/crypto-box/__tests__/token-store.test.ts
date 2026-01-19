@@ -105,7 +105,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1testaddress',
                 actions: ['asymmetricEncrypt'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: '0-1-2-5-8',
             })
 
@@ -142,7 +142,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['asymmetricEncrypt'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'secret-pattern',
             })
 
@@ -158,7 +158,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['asymmetricEncrypt'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -182,7 +182,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -204,7 +204,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['asymmetricEncrypt', 'sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -242,7 +242,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -265,7 +265,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -318,7 +318,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['asymmetricEncrypt'] as CryptoAction[], // Only asymmetricEncrypt
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern',
             })
 
@@ -348,7 +348,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test1',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern1',
             })
 
@@ -357,7 +357,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test2',
                 actions: ['asymmetricEncrypt'] as CryptoAction[],
-                duration: '1hour' as TokenDuration,
+                duration: '2hour' as TokenDuration,
                 patternKey: 'pattern2',
             })
 
@@ -366,7 +366,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-2',
                 address: 'bfm1other',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'pattern3',
             })
 
@@ -393,7 +393,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'my-secret-pattern',
             })
 
@@ -412,7 +412,7 @@ describe('TokenStore', () => {
                 walletId: 'wallet-1',
                 address: 'bfm1test',
                 actions: ['sign'] as CryptoAction[],
-                duration: '15min' as TokenDuration,
+                duration: '30min' as TokenDuration,
                 patternKey: 'my-secret-pattern',
             })
 

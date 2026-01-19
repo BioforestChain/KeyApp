@@ -12,7 +12,7 @@ import { IconArrowDown, IconAlertTriangle, IconLoader2 } from '@tabler/icons-rea
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet } from '@/stores'
+import { useCurrentWallet, walletStore } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 import { AddressDisplay } from '@/components/wallet/address-display'
 import { AmountDisplay } from '@/components/common/amount-display'
@@ -44,6 +44,12 @@ function MiniappTransferConfirmJobContent() {
   const currentWallet = useCurrentWallet()
 
   const [isConfirming, setIsConfirming] = useState(false)
+
+  // 查找使用该地址的钱包
+  const targetWallet = walletStore.state.wallets.find(
+    w => w.chainAddresses.some(ca => ca.address === from)
+  )
+  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
 
   const handleConfirm = useCallback(() => {
     if (isConfirming) return
@@ -139,7 +145,11 @@ function MiniappTransferConfirmJobContent() {
           description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsTransfer', '请求发送转账')}`}
           appName={appName}
           appIcon={appIcon}
-          chainId={chain}
+          walletInfo={{
+            name: walletName,
+            address: from,
+            chainId: chain,
+          }}
         />
 
         {/* Content */}
