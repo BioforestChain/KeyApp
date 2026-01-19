@@ -26,6 +26,7 @@ import {
 import {
   handleRequestCryptoToken,
   handleCryptoExecute,
+  handleGetCryptoTokenInfo,
 } from './handlers/crypto'
 
 /** Track if handlers have been registered */
@@ -64,6 +65,7 @@ export function initBioProvider(): void {
   // Crypto box (Token-based crypto operations)
   bridge.registerHandler('bio_requestCryptoToken', handleRequestCryptoToken)
   bridge.registerHandler('bio_cryptoExecute', handleCryptoExecute)
+  bridge.registerHandler('bio_getCryptoTokenInfo', handleGetCryptoTokenInfo)
 
   // EVM methods (Ethereum/BSC via window.ethereum)
   registerEvmHandlers((method, handler) => bridge.registerHandler(method, handler))

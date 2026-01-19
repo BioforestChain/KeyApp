@@ -10,6 +10,8 @@ import type {
     RequestCryptoTokenParams,
     RequestCryptoTokenResponse,
     CryptoExecuteParams,
+    GetCryptoTokenInfoParams,
+    GetCryptoTokenInfoResponse,
     CryptoAction,
     TokenDuration,
 } from '../../crypto-box'
@@ -143,4 +145,40 @@ export const handleCryptoExecute: MethodHandler = async (params, context) => {
     const result = await cryptoExecutor.execute(opts, context.appId)
 
     return result
+}
+
+/**
+ * bio_getCryptoTokenInfo - 查询 Token 信息
+ * 
+ * 用于 miniapp 检查缓存的 Token 是否有效，以及获取 Token 绑定的地址
+ */
+export const handleGetCryptoTokenInfo: MethodHandler = async (params, context) => {
+    const opts = params as GetCryptoTokenInfoParams | undefined
+
+    if (!opts?.tokenId || !opts?.sessionSecret) {
+        throw Object.assign(
+            new Error('Missing required parameters: tokenId, sessionSecret'),
+            { code: CryptoBoxErrorCodes.INTERNAL_ERROR }
+        )
+    }
+
+    // 确保 TokenStore 已初始化
+    await tokenStore.initialize()
+
+    // 查询 Token 信息
+    const info = await tokenStore.getTokenInfo(
+        opts.tokenId,
+        opts.sessionSecret,
+        context.appId
+    )
+
+    const response: GetCryptoTokenInfoResponse = {
+        valid: info.valid,
+        address: info.address,
+        expiresAt: info.expiresAt,
+        actions: info.actions,
+        invalidReason: info.invalidReason,
+    }
+
+    return response
 }

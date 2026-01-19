@@ -85,8 +85,8 @@ class CryptoExecutor {
         // 注意：必须使用 walletId 限制查找范围，防止跨钱包使用 Token
         const keypair = await this.getKeypairForWallet(payload.walletId, payload.address, payload.patternKey)
 
-        // 3. 执行操作
-        let result: CryptoExecuteResponse
+        // 4. 执行操作
+        let result: { result: string; publicKey: string }
 
         switch (params.action) {
             case 'asymmetricEncrypt':
@@ -105,7 +105,11 @@ class CryptoExecutor {
                 throw new Error(`Unknown action: ${params.action}`)
         }
 
-        return result
+        // 5. 返回结果，附带 Token 绑定的地址（让 miniapp 知道这个操作使用的是哪个地址）
+        return {
+            ...result,
+            address: payload.address,
+        }
     }
 
     /**
@@ -170,7 +174,7 @@ class CryptoExecutor {
     private async executeAsymmetricEncrypt(
         params: AsymmetricEncryptParams,
         keypair: { secretKey: Uint8Array; publicKey: Uint8Array }
-    ): Promise<CryptoExecuteResponse> {
+    ): Promise<Omit<CryptoExecuteResponse, 'address'>> {
         const recipientPubKey = hexToBytes(this.normalizePublicKey(params.recipientPublicKey))
         const messageBytes = new TextEncoder().encode(params.data)
 
@@ -210,7 +214,7 @@ class CryptoExecutor {
     private async executeSign(
         params: SignParams,
         keypair: { secretKey: Uint8Array; publicKey: Uint8Array }
-    ): Promise<CryptoExecuteResponse> {
+    ): Promise<Omit<CryptoExecuteResponse, 'address'>> {
         const messageBytes = new TextEncoder().encode(params.data)
 
         // 使用 Ed25519 签名

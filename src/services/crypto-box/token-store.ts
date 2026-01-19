@@ -243,6 +243,81 @@ class TokenStore {
     }
 
     /**
+     * 获取 Token 信息（用于 bio_getCryptoTokenInfo）
+     * 
+     * 验证 Token 并返回绑定的地址等信息，不检查 action
+     */
+    async getTokenInfo(
+        tokenId: string,
+        sessionSecret: string,
+        callerMiniappId: string
+    ): Promise<{
+        valid: boolean
+        address: string
+        expiresAt: number
+        actions: CryptoAction[]
+        invalidReason?: 'TOKEN_NOT_FOUND' | 'TOKEN_EXPIRED' | 'INVALID_SESSION_SECRET' | 'MINIAPP_MISMATCH'
+    }> {
+        this.ensureInitialized()
+
+        const token = await this.getToken(tokenId)
+
+        // 1. Token 不存在
+        if (!token) {
+            return {
+                valid: false,
+                address: '',
+                expiresAt: 0,
+                actions: [],
+                invalidReason: 'TOKEN_NOT_FOUND',
+            }
+        }
+
+        // 2. 解密 Payload
+        const payload = await this.decryptPayload(token, sessionSecret)
+        if (!payload) {
+            return {
+                valid: false,
+                address: '',
+                expiresAt: 0,
+                actions: [],
+                invalidReason: 'INVALID_SESSION_SECRET',
+            }
+        }
+
+        // 3. 验证 miniappId
+        if (payload.miniappId !== callerMiniappId) {
+            return {
+                valid: false,
+                address: '',
+                expiresAt: 0,
+                actions: [],
+                invalidReason: 'MINIAPP_MISMATCH',
+            }
+        }
+
+        // 4. 检查过期
+        if (Date.now() > payload.expiresAt) {
+            await this.deleteToken(tokenId)
+            return {
+                valid: false,
+                address: payload.address,
+                expiresAt: payload.expiresAt,
+                actions: payload.actions,
+                invalidReason: 'TOKEN_EXPIRED',
+            }
+        }
+
+        // Token 有效
+        return {
+            valid: true,
+            address: payload.address,
+            expiresAt: payload.expiresAt,
+            actions: payload.actions,
+        }
+    }
+
+    /**
      * 清理过期 Token
      */
     async cleanupExpired(): Promise<number> {

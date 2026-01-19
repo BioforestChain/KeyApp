@@ -154,6 +154,34 @@ export interface CryptoExecuteResponse {
     result: string
     /** 执行时使用的公钥（hex 编码）*/
     publicKey: string
+    /** Token 绑定的地址（miniapp 应使用此地址，而非自己缓存的地址） */
+    address: string
+}
+
+/**
+ * bio_getCryptoTokenInfo 请求参数
+ */
+export interface GetCryptoTokenInfoParams {
+    /** Token ID */
+    tokenId: string
+    /** Session Secret（用于解密和验证） */
+    sessionSecret: string
+}
+
+/**
+ * bio_getCryptoTokenInfo 响应
+ */
+export interface GetCryptoTokenInfoResponse {
+    /** Token 是否有效 */
+    valid: boolean
+    /** Token 绑定的地址 */
+    address: string
+    /** 过期时间戳 */
+    expiresAt: number
+    /** 授权的操作列表 */
+    actions: CryptoAction[]
+    /** 无效原因（仅当 valid=false 时） */
+    invalidReason?: 'TOKEN_NOT_FOUND' | 'TOKEN_EXPIRED' | 'INVALID_SESSION_SECRET' | 'MINIAPP_MISMATCH'
 }
 
 // ==================== 验证相关类型 ====================
