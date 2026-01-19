@@ -1,23 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { handleGetBalance } from '../handlers/wallet'
 import { BioErrorCodes } from '../types'
-
-// Mock dependencies
-vi.mock('@/services/chain-config', () => ({
-  chainConfigService: {
-    getBiowalletApi: vi.fn(),
-  },
-}))
-
-vi.mock('@/services/bioforest-sdk', () => ({
-  getAccountBalance: vi.fn(),
-}))
-
-import { chainConfigService } from '@/services/chain-config'
-import { getAccountBalance } from '@/services/bioforest-sdk'
-
-const mockGetBiowalletApi = vi.mocked(chainConfigService.getBiowalletApi)
-const mockGetAccountBalance = vi.mocked(getAccountBalance)
 
 describe('handleGetBalance', () => {
   const mockContext = {
@@ -27,12 +9,34 @@ describe('handleGetBalance', () => {
     permissions: ['bio_getBalance'],
   }
 
-  beforeEach(() => {
-    vi.clearAllMocks()
+  let handleGetBalance: typeof import('../handlers/wallet').handleGetBalance
+  let mockFetch: ReturnType<typeof vi.fn>
+  let mockGetChainProvider: ReturnType<typeof vi.fn>
+
+  beforeEach(async () => {
+    // Reset modules for clean state
+    vi.resetModules()
+    
+    // Create fresh mocks
+    mockFetch = vi.fn()
+    mockGetChainProvider = vi.fn(() => ({
+      nativeBalance: {
+        fetch: mockFetch,
+      },
+    }))
+    
+    // Mock chain-adapter/providers (the actual import path used by handler)
+    vi.doMock('@/services/chain-adapter/providers', () => ({
+      getChainProvider: mockGetChainProvider,
+    }))
+    
+    // Now import the handler module
+    const walletModule = await import('../handlers/wallet')
+    handleGetBalance = walletModule.handleGetBalance
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
+    vi.doUnmock('@/services/chain-adapter/providers')
   })
 
   describe('parameter validation', () => {
@@ -65,25 +69,11 @@ describe('handleGetBalance', () => {
     })
   })
 
-  describe('chain without biowallet API', () => {
-    it('returns "0" when chain has no biowallet API configured', async () => {
-      mockGetBiowalletApi.mockReturnValue(null)
-
-      const result = await handleGetBalance(
-        { address: 'b123', chain: 'unknown-chain' },
-        mockContext
-      )
-
-      expect(result).toBe('0')
-      expect(mockGetBiowalletApi).toHaveBeenCalledWith('unknown-chain')
-      expect(mockGetAccountBalance).not.toHaveBeenCalled()
-    })
-  })
-
   describe('successful balance query', () => {
-    it('returns balance from bioforest SDK', async () => {
-      mockGetBiowalletApi.mockReturnValue('https://walletapi.bfmeta.info/wallet/bfm')
-      mockGetAccountBalance.mockResolvedValue('1000000000')
+    it('returns balance from chain provider', async () => {
+      mockFetch.mockResolvedValue({
+        amount: { toRawString: () => '1000000000' },
+      })
 
       const result = await handleGetBalance(
         { address: 'b123456789', chain: 'bfmeta' },
@@ -91,17 +81,14 @@ describe('handleGetBalance', () => {
       )
 
       expect(result).toBe('1000000000')
-      expect(mockGetBiowalletApi).toHaveBeenCalledWith('bfmeta')
-      expect(mockGetAccountBalance).toHaveBeenCalledWith(
-        'https://walletapi.bfmeta.info/wallet/bfm',
-        'bfmeta',
-        'b123456789'
-      )
+      expect(mockGetChainProvider).toHaveBeenCalledWith('bfmeta')
+      expect(mockFetch).toHaveBeenCalledWith({ address: 'b123456789' })
     })
 
     it('returns "0" for account with no balance', async () => {
-      mockGetBiowalletApi.mockReturnValue('https://walletapi.bfmeta.info/wallet/bfm')
-      mockGetAccountBalance.mockResolvedValue('0')
+      mockFetch.mockResolvedValue({
+        amount: { toRawString: () => '0' },
+      })
 
       const result = await handleGetBalance(
         { address: 'b_new_account', chain: 'bfmeta' },
@@ -110,13 +97,9 @@ describe('handleGetBalance', () => {
 
       expect(result).toBe('0')
     })
-  })
 
-  describe('error handling', () => {
-    it('returns "0" and logs warning when SDK throws error', async () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      mockGetBiowalletApi.mockReturnValue('https://walletapi.bfmeta.info/wallet/bfm')
-      mockGetAccountBalance.mockRejectedValue(new Error('Network error'))
+    it('returns "0" when balance is null', async () => {
+      mockFetch.mockResolvedValue(null)
 
       const result = await handleGetBalance(
         { address: 'b123', chain: 'bfmeta' },
@@ -124,26 +107,60 @@ describe('handleGetBalance', () => {
       )
 
       expect(result).toBe('0')
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[bio_getBalance] Failed to query balance:',
-        expect.any(Error)
-      )
-
-      consoleWarnSpy.mockRestore()
     })
+  })
 
-    it('returns "0" when SDK returns undefined', async () => {
-      mockGetBiowalletApi.mockReturnValue('https://walletapi.bfmeta.info/wallet/bfm')
-      // @ts-expect-error - testing edge case
-      mockGetAccountBalance.mockResolvedValue(undefined)
+  describe('error handling', () => {
+    it('returns "0" when provider throws error', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'))
 
       const result = await handleGetBalance(
         { address: 'b123', chain: 'bfmeta' },
         mockContext
       )
 
-      // undefined will be returned as-is, but in practice SDK always returns string
-      expect(result).toBeUndefined()
+      expect(result).toBe('0')
+    })
+
+    it('returns "0" when amount is undefined', async () => {
+      mockFetch.mockResolvedValue({ amount: undefined })
+
+      const result = await handleGetBalance(
+        { address: 'b123', chain: 'bfmeta' },
+        mockContext
+      )
+
+      expect(result).toBe('0')
+    })
+  })
+
+  describe('different chains', () => {
+    it('works with ethereum chain', async () => {
+      mockFetch.mockResolvedValue({
+        amount: { toRawString: () => '5000000000000000000' },
+      })
+
+      const result = await handleGetBalance(
+        { address: '0x1234567890abcdef', chain: 'ethereum' },
+        mockContext
+      )
+
+      expect(result).toBe('5000000000000000000')
+      expect(mockGetChainProvider).toHaveBeenCalledWith('ethereum')
+    })
+
+    it('works with tron chain', async () => {
+      mockFetch.mockResolvedValue({
+        amount: { toRawString: () => '100000000' },
+      })
+
+      const result = await handleGetBalance(
+        { address: 'TXyz123', chain: 'tron' },
+        mockContext
+      )
+
+      expect(result).toBe('100000000')
+      expect(mockGetChainProvider).toHaveBeenCalledWith('tron')
     })
   })
 })
