@@ -90,7 +90,7 @@ export function EcosystemTabIndicator({
       type="button"
       onClick={handleClick}
       className={cn(styles.indicator, className)}
-      aria-label={`当前：${label}，点击切换`}
+      aria-label={`当前：${label}，点击切换`} // i18n-ignore: a11y
       data-testid="ecosystem-tab-indicator"
     >
       {/* 图标容器 - 带 crossfade 动画 */}

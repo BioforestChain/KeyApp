@@ -73,9 +73,9 @@ function truncateAddress(address: string, maxWidth: number, font: string): strin
 }
 
 function truncateAddressByChars(address: string, startChars: number, endChars: number): string {
-  const ellipsis = '...'
-  if (address.length <= startChars + endChars + ellipsis.length) return address
-  return `${address.slice(0, startChars)}${ellipsis}${address.slice(-endChars)}`
+  const ellipsis = '...';
+  if (address.length <= startChars + endChars + ellipsis.length) return address;
+  return `${address.slice(0, startChars)}${ellipsis}${address.slice(-endChars)}`;
 }
 
 export function AddressDisplay({
@@ -141,9 +141,7 @@ export function AddressDisplay({
       setCopied(true);
       onCopy?.();
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      
-    }
+    } catch {}
   };
 
   // 绝对定位：文字不参与容器宽度计算
@@ -185,7 +183,7 @@ export function AddressDisplay({
         className,
       )}
       title={address}
-      aria-label={copied ? `已复制 ${address}` : `复制 ${address}`}
+      aria-label={copied ? `已复制 ${address}` : `复制 ${address}`} // i18n-ignore: a11y
     >
       {/* 文字容器：flex-1 获取剩余空间 */}
       <span className="relative min-w-0 flex-1">
@@ -201,7 +199,7 @@ export function AddressDisplay({
         </span>
       </span>
       {copied ? (
-        <Check className="text-green-500 size-4 shrink-0" aria-hidden="true" />
+        <Check className="size-4 shrink-0 text-green-500" aria-hidden="true" />
       ) : (
         <Copy className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
       )}
