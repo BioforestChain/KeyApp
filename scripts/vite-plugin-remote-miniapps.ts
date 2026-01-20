@@ -328,8 +328,12 @@ function rewriteHtmlBase(targetDir: string, basePath: string): void {
     html = html.replace(/<html[^>]*>/i, `$&\n  <head>\n    ${baseTag}\n  </head>`);
   }
 
+  // Convert absolute paths to relative paths (base tag only works with relative paths)
+  // /assets/xxx -> assets/xxx, /css/xxx -> css/xxx, /images/xxx -> images/xxx
+  html = html.replace(/(src|href)="\/(?!\/)/g, '$1="');
+
   writeFileSync(indexPath, html);
-  console.log(`[remote-miniapps] Rewrote <base> to "${normalizedBase}" in ${indexPath}`);
+  console.log(`[remote-miniapps] Rewrote <base> and converted absolute paths to relative in ${indexPath}`);
 }
 
 /**
