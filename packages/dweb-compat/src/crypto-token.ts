@@ -131,6 +131,35 @@ export async function signData(
     })
 }
 
+// ==================== Token 缓存 ====================
+
+const CRYPTO_TOKEN_CACHE_KEY = 'bio_crypto_token_cache'
+
+interface CachedToken {
+    tokenId: string
+    sessionSecret: string
+    address: string
+    expiresAt: number
+}
+
+function getCachedToken(): CachedToken | null {
+    try {
+        const cached = localStorage.getItem(CRYPTO_TOKEN_CACHE_KEY)
+        if (!cached) return null
+        return JSON.parse(cached)
+    } catch {
+        return null
+    }
+}
+
+function setCachedToken(token: CachedToken): void {
+    localStorage.setItem(CRYPTO_TOKEN_CACHE_KEY, JSON.stringify(token))
+}
+
+function clearCachedToken(): void {
+    localStorage.removeItem(CRYPTO_TOKEN_CACHE_KEY)
+}
+
 // ==================== RWA 登录便捷函数 ====================
 
 export interface RwaLoginResult {
@@ -171,9 +200,10 @@ function normalizeToHex(input: unknown): string {
  * RWA Hub 登录
  * 
  * 封装了完整的 RWA 登录流程：
- * 1. 获取钱包地址
- * 2. 请求加密授权
- * 3. 执行非对称加密生成 signcode
+ * 1. 检查缓存的 Token 是否有效且地址匹配
+ * 2. 如果缓存有效，直接使用
+ * 3. 否则请求新的加密授权
+ * 4. 执行非对称加密生成 signcode
  * 
  * @param systemPublicKey 系统公钥，支持 hex 字符串、Buffer 对象或字节数组
  */
@@ -204,13 +234,50 @@ export async function rwaLogin(
         throw new Error(`BFMeta account not found. Available chains: ${chains}`)
     }
 
-    // 2. 请求加密授权（用户输入手势密码）- 使用实际选中的链 ID
-    const { tokenId, sessionSecret } = await requestCryptoToken(
-        ['asymmetricEncrypt'],
-        '1day',  // 默认使用 1 天授权
-        account.address,
-        account.chain  // 使用账户实际的链 ID
-    )
+    // 2. 检查缓存的 Token
+    let tokenId: string
+    let sessionSecret: string
+    
+    const cached = getCachedToken()
+    let needNewToken = true
+    
+    if (cached && cached.address === account.address && cached.expiresAt > Date.now()) {
+        // 缓存存在且地址匹配，验证 Token 是否仍然有效
+        try {
+            const info = await getCryptoTokenInfo(cached.tokenId, cached.sessionSecret)
+            if (info.valid && info.address === account.address) {
+                // Token 有效且地址匹配，复用缓存
+                tokenId = cached.tokenId
+                sessionSecret = cached.sessionSecret
+                needNewToken = false
+            }
+        } catch {
+            // 验证失败，需要新 Token
+        }
+    }
+    
+    if (needNewToken) {
+        // 需要新 Token：地址不匹配、Token 过期或无效
+        clearCachedToken()
+        
+        // 请求加密授权（用户输入手势密码）
+        const response = await requestCryptoToken(
+            ['asymmetricEncrypt'],
+            '1day',  // 默认使用 1 天授权
+            account.address,
+            account.chain
+        )
+        tokenId = response.tokenId
+        sessionSecret = response.sessionSecret
+        
+        // 缓存新 Token
+        setCachedToken({
+            tokenId,
+            sessionSecret,
+            address: response.address,
+            expiresAt: response.expiresAt,
+        })
+    }
 
     // 3. 执行非对称加密生成 signcode
     const timestamp = Date.now().toString()
