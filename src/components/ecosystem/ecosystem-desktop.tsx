@@ -1,6 +1,6 @@
 /**
  * EcosystemDesktop - 生态系统桌面组件
- * 
+ *
  * 灵活配置的三页式桌面：发现页 | 我的页 | 应用堆栈页
  * 支持动态开关页面，壁纸宽度自适应
  */
@@ -14,7 +14,7 @@ import { useSwiperMember } from '@/components/common/swiper-sync-context';
 import { DiscoverPage, MyAppsPage, IOSWallpaper, type DiscoverPageRef } from '@/components/ecosystem';
 import { AppStackPage } from '@/components/ecosystem/app-stack-page';
 import { MiniappWindowStack } from '@/components/ecosystem/miniapp-window-stack';
-import { ecosystemActions, type EcosystemSubPage } from '@/stores/ecosystem';
+import { ecosystemActions, ecosystemStore, type EcosystemSubPage } from '@/stores/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors } from '@/services/miniapp-runtime';
 import type { MiniappManifest } from '@/services/ecosystem';
 
@@ -59,7 +59,8 @@ export interface EcosystemDesktopCallbacks {
   onAppRemove: (appId: string) => void;
 }
 
-export interface EcosystemDesktopProps extends EcosystemDesktopConfig, EcosystemDesktopData, EcosystemDesktopCallbacks {}
+export interface EcosystemDesktopProps
+  extends EcosystemDesktopConfig, EcosystemDesktopData, EcosystemDesktopCallbacks {}
 
 /** 桌面控制句柄 */
 export interface EcosystemDesktopHandle {
@@ -136,26 +137,42 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
 
     const pageCount = availablePages.length;
 
-    // 计算初始滑动索引
+    // 从 store 读取上次保存的 activeSubPage
+    const savedActiveSubPage = useStore(ecosystemStore, (state) => state.activeSubPage);
+
+    // 计算初始滑动索引（优先级：props > store 保存的 > 默认值）
     const initialSlideIndex = useMemo(() => {
-      const page = initialPage ?? (showDiscoverPage ? 'discover' : 'mine');
+      const page = initialPage ?? savedActiveSubPage ?? (showDiscoverPage ? 'discover' : 'mine');
       const idx = availablePages.indexOf(page);
       return idx >= 0 ? idx : 0;
-    }, [initialPage, showDiscoverPage, availablePages]);
+    }, [initialPage, savedActiveSubPage, showDiscoverPage, availablePages]);
 
     // 使用 Swiper 同步 hook
-    const { onSwiper: syncOnSwiper, controlledSwiper } = useSwiperMember('ecosystem-main', 'ecosystem-indicator');
+    const { onSwiper: syncOnSwiper, onSlideChange: syncOnSlideChange } = useSwiperMember(
+      'ecosystem-main',
+      'ecosystem-indicator',
+      {
+        initialIndex: initialSlideIndex,
+        onSlideChange: (swiper) => {
+          const newPage = availablePages[swiper.activeIndex] ?? 'mine';
+          currentPageRef.current = newPage;
+          ecosystemActions.setActiveSubPage(newPage);
+        },
+      },
+    );
 
     // 注册主 Swiper
-    const handleMainSwiper = useCallback((swiper: SwiperType) => {
-      swiperRef.current = swiper;
-      syncOnSwiper(swiper);
+    const handleMainSwiper = useCallback(
+      (swiper: SwiperType) => {
+        swiperRef.current = swiper;
+        syncOnSwiper(swiper);
 
-      const page = availablePages[swiper.activeIndex] ?? 'mine';
-      currentPageRef.current = page;
-      ecosystemActions.setActiveSubPage(page);
-      ecosystemActions.setAvailableSubPages(availablePages);
-    }, [syncOnSwiper, availablePages]);
+        const page = availablePages[initialSlideIndex] ?? 'mine';
+        currentPageRef.current = page;
+        ecosystemActions.setAvailableSubPages(availablePages);
+      },
+      [syncOnSwiper, availablePages, initialSlideIndex],
+    );
 
     // 当可用页面列表变化时，同步到 store，避免指示器与页面不一致
     useEffect(() => {
@@ -173,16 +190,12 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     }, [forcedSubPage, availablePages]);
 
     // 更新进度到 Store
-    const handleProgress = useCallback((_: SwiperType, progress: number) => {
-      ecosystemActions.setSwiperProgress(progress * (pageCount - 1));
-    }, [pageCount]);
-
-    // Swiper 滑动事件
-    const handleSlideChange = useCallback((swiper: SwiperType) => {
-      const newPage = availablePages[swiper.activeIndex] ?? 'mine';
-      currentPageRef.current = newPage;
-      ecosystemActions.setActiveSubPage(newPage);
-    }, [availablePages]);
+    const handleProgress = useCallback(
+      (_: SwiperType, progress: number) => {
+        ecosystemActions.setSwiperProgress(progress * (pageCount - 1));
+      },
+      [pageCount],
+    );
 
     // 搜索胶囊点击：滑到发现页 + 聚焦搜索框
     const handleSearchClick = useCallback(() => {
@@ -195,19 +208,23 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
     }, [showDiscoverPage, availablePages]);
 
     // 暴露控制句柄
-    useImperativeHandle(ref, () => ({
-      slideTo: (page: EcosystemSubPage) => {
-        const idx = availablePages.indexOf(page);
-        if (idx >= 0) swiperRef.current?.slideTo(idx);
-      },
-      focusSearch: () => {
-        if (showDiscoverPage) {
-          discoverPageRef.current?.focusSearch();
-        }
-      },
-      getCurrentPage: () => currentPageRef.current,
-      getSwiper: () => swiperRef.current,
-    }), [availablePages, showDiscoverPage]);
+    useImperativeHandle(
+      ref,
+      () => ({
+        slideTo: (page: EcosystemSubPage) => {
+          const idx = availablePages.indexOf(page);
+          if (idx >= 0) swiperRef.current?.slideTo(idx);
+        },
+        focusSearch: () => {
+          if (showDiscoverPage) {
+            discoverPageRef.current?.focusSearch();
+          }
+        },
+        getCurrentPage: () => currentPageRef.current,
+        getSwiper: () => swiperRef.current,
+      }),
+      [availablePages, showDiscoverPage],
+    );
 
     // 精选应用第一个
     const featuredApp = featuredApps[0];
@@ -217,11 +234,9 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
         <Swiper
           className="h-full w-full"
           modules={[Parallax, Controller]}
-          controller={{ control: controlledSwiper }}
           parallax={true}
-          initialSlide={initialSlideIndex}
           onSwiper={handleMainSwiper}
-          onSlideChange={handleSlideChange}
+          onSlideChange={syncOnSlideChange}
           onProgress={handleProgress}
           resistanceRatio={0.5}
         >
@@ -279,5 +294,5 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
         </Swiper>
       </div>
     );
-  }
+  },
 );
