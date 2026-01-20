@@ -1,0 +1,1 @@
+import{j as e}from"./index-CQoRotV0.js";import{P as s}from"./preloader-D58IadfG.js";const i=r=>e.jsx("div",{className:"flex h-32 w-full items-center justify-center",children:e.jsx(s,{size:32,...r})});export{i as L};

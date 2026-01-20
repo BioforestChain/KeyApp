@@ -1,0 +1,1 @@
+import{B as n}from"./big-Dt19vo1Q.js";const o=(t,e=8)=>{if(isNaN(+t))return t;const[r,a=""]=String(t).split("."),s=a.slice(0,e);return(s.length>0?`${r}.${s}`:r).replace(/(?:\.0*|(\.\d+?)0+)$/,"$1")},l=(t,e,r)=>{if(r)return"********";try{return new n(t).div(Math.pow(10,e)).toFixed(e)}catch{return t}};export{l as a,o as f};
