@@ -35,16 +35,9 @@
       "#authorize-impl": ["./src/services/authorize/web.ts"],
       "#currency-exchange-impl": ["./src/services/currency-exchange/web.ts"],
       "#staking-impl": ["./src/services/staking/web.ts"],
-      "#transaction-impl": ["./src/services/transaction/web.ts"],
-    },
+      "#transaction-impl": ["./src/services/transaction/web.ts"]
+    }
   },
   "include": ["src"],
-  "exclude": [
-    "src/**/*.test.ts",
-    "src/i18n/**",
-    "src/**/*.test.tsx",
-    "src/**/*.stories.ts",
-    "src/**/*.stories.tsx",
-    "packages/**/*",
-  ],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.ts", "src/**/*.stories.tsx", "packages/**/*"]
 }
