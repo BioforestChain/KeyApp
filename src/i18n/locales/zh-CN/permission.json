@@ -1,0 +1,30 @@
+{
+  "bio_requestAccounts": {
+    "label": "查看账户",
+    "description": "查看您的钱包地址"
+  },
+  "bio_createTransaction": {
+    "label": "创建交易",
+    "description": "构造未签名交易（不做签名/不做广播）"
+  },
+  "bio_signMessage": {
+    "label": "签名消息",
+    "description": "请求签名消息（需要您确认）"
+  },
+  "bio_signTypedData": {
+    "label": "签名数据",
+    "description": "请求签名结构化数据（需要您确认）"
+  },
+  "bio_signTransaction": {
+    "label": "签名交易",
+    "description": "请求签名交易（需要您确认）"
+  },
+  "bio_sendTransaction": {
+    "label": "发送交易",
+    "description": "请求发送转账（需要您确认）"
+  },
+  "requestsPermissions": "请求以下权限",
+  "permissionNote": "敏感操作需要您的确认",
+  "reject": "拒绝",
+  "approve": "允许"
+}

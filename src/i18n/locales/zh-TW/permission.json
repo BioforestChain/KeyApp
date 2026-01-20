@@ -1,0 +1,30 @@
+{
+  "bio_requestAccounts": {
+    "label": "查看帳戶",
+    "description": "查看您的錢包地址"
+  },
+  "bio_createTransaction": {
+    "label": "建立交易",
+    "description": "建構未簽名交易（不做簽名/不做廣播）"
+  },
+  "bio_signMessage": {
+    "label": "簽名訊息",
+    "description": "請求簽名訊息（需要您確認）"
+  },
+  "bio_signTypedData": {
+    "label": "簽名資料",
+    "description": "請求簽名結構化資料（需要您確認）"
+  },
+  "bio_signTransaction": {
+    "label": "簽名交易",
+    "description": "請求簽名交易（需要您確認）"
+  },
+  "bio_sendTransaction": {
+    "label": "發送交易",
+    "description": "請求發送轉帳（需要您確認）"
+  },
+  "requestsPermissions": "請求以下權限",
+  "permissionNote": "敏感操作需要您的確認",
+  "reject": "拒絕",
+  "approve": "允許"
+}
