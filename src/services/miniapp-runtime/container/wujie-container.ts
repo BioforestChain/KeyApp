@@ -1,11 +1,6 @@
 import { startApp, destroyApp, bus } from 'wujie';
 import type { ContainerManager, ContainerHandle, ContainerCreateOptions } from './types';
 
-/**
- * Patch document.adoptedStyleSheets to proxy to shadowRoot.adoptedStyleSheets
- * Must be called after shadowRoot is created (e.g., in afterMount)
- * TODO: Submit PR to wujie upstream and remove this workaround
- */
 function patchAdoptedStyleSheets(appId: string) {
   const iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${appId}"]`);
   if (!iframe?.contentWindow) return;
@@ -41,6 +36,52 @@ function patchAdoptedStyleSheets(appId: string) {
   } catch {
     /* empty */
   }
+}
+
+function rewriteHtmlAbsolutePaths(html: string, baseUrl: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const elements = doc.querySelectorAll('[href], [src]');
+  elements.forEach((el) => {
+    if (el.hasAttribute('href')) {
+      const original = el.getAttribute('href')!;
+      if (original.startsWith('/') && !original.startsWith('//')) {
+        el.setAttribute('href', new URL(original.slice(1), baseUrl).href);
+      }
+    }
+    if (el.hasAttribute('src')) {
+      const original = el.getAttribute('src')!;
+      if (original.startsWith('/') && !original.startsWith('//')) {
+        el.setAttribute('src', new URL(original.slice(1), baseUrl).href);
+      }
+    }
+  });
+
+  return doc.documentElement.outerHTML;
+}
+
+function createAbsolutePathRewriter(baseUrl: string) {
+  const parsedUrl = new URL(baseUrl);
+  const origin = parsedUrl.origin + parsedUrl.pathname.replace(/\/$/, '');
+
+  return {
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+      const req = new Request(input, init);
+      const parsedReqUrl = new URL(req.url);
+
+      if (parsedReqUrl.origin === window.location.origin) {
+        const rewrittenUrl = `${origin}${parsedReqUrl.pathname}${parsedReqUrl.search}${parsedReqUrl.hash}`;
+        return window.fetch(rewrittenUrl, init);
+      }
+      return window.fetch(req);
+    },
+    plugins: [
+      {
+        htmlLoader: (html: string) => rewriteHtmlAbsolutePaths(html, baseUrl),
+      },
+    ],
+  };
 }
 
 class WujieContainerHandle implements ContainerHandle {
@@ -87,11 +128,10 @@ export class WujieContainerManager implements ContainerManager {
   readonly type = 'wujie' as const;
 
   async create(options: ContainerCreateOptions): Promise<WujieContainerHandle> {
-    const { appId, url, mountTarget, contextParams, onLoad } = options;
+    const { appId, url, mountTarget, contextParams, onLoad, wujieConfig } = options;
 
     const container = document.createElement('div');
     container.id = `miniapp-wujie-${appId}`;
-    // container.style.cssText = 'width: 100%; height: 100%;';
     container.className = 'size-full *:size-full *:block *:overflow-auto';
 
     mountTarget.appendChild(container);
@@ -103,17 +143,25 @@ export class WujieContainerManager implements ContainerManager {
       });
     }
 
-    await startApp({
+    const startAppOptions: Parameters<typeof startApp>[0] = {
       name: appId,
       url: urlWithParams.toString(),
       el: container,
-      alive: true,
-      fiber: true,
-      sync: false,
+      alive: wujieConfig?.alive ?? true,
+      fiber: wujieConfig?.fiber ?? true,
+      sync: wujieConfig?.sync ?? false,
       afterMount: () => {
         onLoad?.();
       },
-    });
+    };
+
+    if (wujieConfig?.rewriteAbsolutePaths) {
+      const rewriter = createAbsolutePathRewriter(urlWithParams.toString());
+      startAppOptions.fetch = rewriter.fetch;
+      startAppOptions.plugins = rewriter.plugins;
+    }
+
+    await startApp(startAppOptions);
 
     patchAdoptedStyleSheets(appId);
 

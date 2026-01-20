@@ -668,6 +668,7 @@ export function launchApp(
     url: manifest.url,
     mountTarget: document.body,
     contextParams,
+    wujieConfig: manifest.wujieConfig,
     onLoad: () => {
       updateAppProcessStatus(appId, 'loaded');
       if (!manifest.splashScreen) {
