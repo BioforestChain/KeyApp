@@ -322,6 +322,15 @@ async function createReleaseArtifacts(webDir: string, dwebDir: string) {
   const dwebVersionZipPath = join(releaseDir, `bfmpay-dweb-${version}${suffix}.zip`)
   cpSync(dwebZipPath, dwebVersionZipPath)
 
+  // 复制 metadata.json 到 release 目录（plaoc bundle 自动生成）
+  const metadataSrc = join(DISTS_DIR, 'metadata.json')
+  if (existsSync(metadataSrc)) {
+    cpSync(metadataSrc, join(releaseDir, 'metadata.json'))
+    log.info(`  - metadata.json`)
+  } else {
+    log.warn('metadata.json 未找到，dweb://install 链接可能无法正常工作')
+  }
+
   log.success(`Release 产物创建完成: ${releaseDir}`)
   log.info(`  - ${webZipName}`)
   log.info(`  - ${dwebZipName}`)

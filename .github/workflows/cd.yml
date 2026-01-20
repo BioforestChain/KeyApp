@@ -167,6 +167,11 @@ jobs:
             fi
             cp release/bfmpay-dweb-beta.zip "release/bfmpay-dweb-${VERSION}-beta.zip"
           fi
+          
+          # Copy metadata.json for dweb://install link
+          if [ -f "dists/metadata.json" ]; then
+            cp dists/metadata.json release/metadata.json
+          fi
 
       # 上传 DWEB 到 SFTP 服务器
       - name: Upload DWEB to SFTP
@@ -234,7 +239,7 @@ jobs:
             ### DWEB 安装
             在 DWEB 浏览器中打开以下链接安装：
             ```
-            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}/bfmpay-dweb${{ steps.channel.outputs.channel == 'beta' && '-beta' || '' }}.zip
+            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}/metadata.json
             ```
 
   # ==================== GitHub-hosted 标准构建 ====================
@@ -442,6 +447,11 @@ jobs:
             cp release/bfmpay-dweb-beta.zip "release/bfmpay-dweb-${VERSION}-beta.zip"
           fi
 
+          # Copy metadata.json for dweb://install link
+          if [ -f "dists/metadata.json" ]; then
+            cp dists/metadata.json release/metadata.json
+          fi
+
           echo "=== Release artifacts ==="
           ls -la release/
 
@@ -530,5 +540,5 @@ jobs:
             ### DWEB 安装
             在 DWEB 浏览器中打开以下链接安装：
             ```
-            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}/bfmpay-dweb${{ needs.build-standard.outputs.channel == 'beta' && '-beta' || '' }}.zip
+            dweb://install?url=https://github.com/${{ github.repository }}/releases/download/${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}/metadata.json
             ```
