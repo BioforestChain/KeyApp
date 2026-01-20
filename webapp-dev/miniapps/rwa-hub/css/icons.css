@@ -1,0 +1,163 @@
+@font-face {
+  font-family: "Material Icons";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Material Icons"), local("MaterialIcons-Regular"),
+    url(../fonts/MaterialIcons-Regular.woff2) format("woff2");
+}
+
+body .page {
+ background: linear-gradient(180deg, rgba(246, 247, 252, 0) 38%, #F6F7FC 98%), linear-gradient(180deg, rgba(255, 255, 255, 0) 50%, rgba(218, 208, 255, 0.8) 64%, rgba(255, 228, 228, 0.8863) 77%, #FFFFFF 96%), linear-gradient(94deg, #4E00FF 4%, #7928FF 95%) !important;
+}
+body #paradise .page {
+  background: white !important;
+}
+
+.material-icons {
+  font-family: "Material Icons";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px; /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: "liga";
+}
+
+@font-face {
+  font-family: "Framework7 Icons";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/Framework7Icons-Regular.woff2") format("woff2");
+}
+
+.f7-icons {
+  font-family: "Framework7 Icons";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-feature-settings: "liga";
+  -moz-font-feature-settings: "liga=1";
+  -moz-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  text-align: center;
+}
+.demo-list-icon,
+.icon-f7 {
+  background: #ccc;
+  display: block;
+  position: relative;
+}
+.dark .demo-list-icon {
+  background-color: #555;
+}
+.icon-f7 {
+  background: url(../img/f7-icon.png) no-repeat center;
+  background-size: cover;
+}
+.icon-vi {
+  background: url(../img/vi-icon.png) no-repeat center;
+  background-size: cover;
+}
+
+.ios .demo-list-icon,
+.ios .icon-f7,
+.ios .icon-vi {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.md .demo-list-icon,
+.md .icon-f7,
+.md .icon-vi {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+/* FAB Morph */
+.demo-fab-sheet {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 140px;
+  box-shadow: 0px 3px 30px rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  z-index: 1600;
+  margin: 0 !important;
+}
+
+.demo-fab-fullscreen-sheet {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: calc(64px + var(--f7-safe-area-top));
+  bottom: 0;
+  background: #fff;
+  z-index: 1600;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0px 3px 30px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+.ios .demo-fab-sheet,
+.ios .demo-fab-fullscreen-sheet {
+  background: var(--f7-page-bg-color);
+}
+.md .demo-fab-sheet,
+.md .demo-fab-fullscreen-sheet {
+  background: var(--f7-popover-bg-color);
+}
+@media (min-width: 768px) {
+  .demo-fab-fullscreen-sheet {
+    left: 20%;
+    width: 60%;
+    right: auto;
+    height: 80%;
+    top: auto;
+  }
+}
+
+
+
+/* 导入自身图标库 */
+@font-face {
+  font-family: "NiLaiFont Icons"; /* 自定义字体名称 */
+  src:  url("../fonts/font-icon.woff") format("woff"); /* 引入字体文件 */
+  font-weight: normal;
+  font-style: normal;
+}
+
+.nl-icon {
+  font-family: "NiLaiFont Icons"; /* 使用自定义字体 */
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
