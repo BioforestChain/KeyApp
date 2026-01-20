@@ -87,5 +87,14 @@
   },
   "wallet": {
     "incompleteInfo": "Wallet information is incomplete"
+  },
+  "destroy": {
+    "failed": "Destroy failed"
+  },
+  "security": {
+    "passwordInvalid": "Security password is incorrect"
+  },
+  "transfer": {
+    "failed": "Transfer failed"
   }
 }

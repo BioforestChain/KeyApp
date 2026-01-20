@@ -11,7 +11,7 @@
   "saveFailed": "Save Failed",
   "scanErrorFromImage": "Scan error from image",
   "shareFailed": "Sharing Failed",
-  "unknown": "Unknown error",
+  "unknown": "خطأ غير معروف",
   "validation": {
     "enterRecipientAddress": "Please enter recipient address",
     "invalidAddressFormat": "Invalid address format",
@@ -87,5 +87,14 @@
   },
   "wallet": {
     "incompleteInfo": "معلومات المحفظة غير مكتملة"
+  },
+  "destroy": {
+    "failed": "فشل التدمير"
+  },
+  "security": {
+    "passwordInvalid": "كلمة المرور الأمنية غير صحيحة"
+  },
+  "transfer": {
+    "failed": "فشل التحويل"
   }
 }

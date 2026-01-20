@@ -22,7 +22,8 @@
     "appearance": "外观",
     "aboutApp": "关于 BFM Pay",
     "clearData": "清空应用数据",
-    "storage": "存储空间"
+    "storage": "存储空间",
+    "miniappSources": "小程序可信源"
   },
   "appearance": {
     "title": "外观设置",

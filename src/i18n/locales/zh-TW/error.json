@@ -87,5 +87,14 @@
   },
   "wallet": {
     "incompleteInfo": "錢包信息不完整"
+  },
+  "destroy": {
+    "failed": "銷毀失敗"
+  },
+  "security": {
+    "passwordInvalid": "安全密碼錯誤"
+  },
+  "transfer": {
+    "failed": "轉賬失敗"
   }
 }

@@ -84,7 +84,7 @@ function loadState(): EcosystemState {
         sources: parsed.sources ?? [
           {
             url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
-            name: 'Bio 官方生态',
+            name: 'Bio 官方生态', // i18n-ignore: config data
             lastUpdated: new Date().toISOString(),
             enabled: true,
           },
@@ -104,7 +104,7 @@ function loadState(): EcosystemState {
     sources: [
       {
         url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
-        name: 'Bio 官方生态',
+        name: 'Bio 官方生态', // i18n-ignore: config data
         lastUpdated: new Date().toISOString(),
         enabled: true,
       },
@@ -303,9 +303,11 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => {
       const next = subPages.length > 0 ? subPages : DEFAULT_AVAILABLE_SUBPAGES;
       if (arraysEqual(state.availableSubPages, next)) return state;
+      const activeSubPage = next.includes(state.activeSubPage) ? state.activeSubPage : (next[0] ?? 'mine');
       return {
         ...state,
         availableSubPages: next,
+        activeSubPage,
       };
     });
   },

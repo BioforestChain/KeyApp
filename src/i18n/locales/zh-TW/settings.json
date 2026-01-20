@@ -98,7 +98,8 @@
     "storage": "儲存空間",
     "viewMnemonic": "查看助記詞",
     "walletChains": "錢包網路",
-    "walletManagement": "錢包管理"
+    "walletManagement": "錢包管理",
+    "miniappSources": "小程序可信源"
   },
   "language": "語言",
   "languagePage": {

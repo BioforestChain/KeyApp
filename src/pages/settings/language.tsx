@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 
 /** 语言显示名称映射 - 使用原文 */
 const LANGUAGE_DISPLAY: Record<LanguageCode, string> = {
-  'zh-CN': '简体中文',
-  'zh-TW': '中文（繁體）',
+  'zh-CN': '简体中文', // i18n-ignore: native language name
+  'zh-TW': '中文（繁體）', // i18n-ignore: native language name
   en: 'English',
   ar: 'العربية',
 };
