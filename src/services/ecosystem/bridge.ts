@@ -126,7 +126,7 @@ export class PostMessageBridge {
     this.messageHandler = this.handleMessage.bind(this)
     window.addEventListener('message', this.messageHandler)
 
-    
+
   }
 
   /** Detach from iframe */
@@ -170,20 +170,56 @@ export class PostMessageBridge {
   }
 
   private handleMessage(event: MessageEvent): void {
-    // Validate origin
-    if (this.origin !== '*' && event.origin !== this.origin) {
-      return
-    }
-
-    // Validate source
-    if (event.source !== this.iframe?.contentWindow) {
-      return
-    }
-
     const data = event.data as RequestMessage
+
+    // Early exit for non-bio messages that we don't care about
     if (!data || typeof data !== 'object' || !('type' in data)) {
       return
     }
+
+    // Only process bio/eth/tron requests
+    const isBioRequest = data.type === 'bio_request' || data.type === 'eth_request' || data.type === 'tron_request'
+    if (!isBioRequest) {
+      return
+    }
+
+    // Debug: Log bio messages received
+    console.log('[BioBridge] Received bio message:', {
+      origin: event.origin,
+      expectedOrigin: this.origin,
+      type: data.type,
+      method: (data as { method?: string }).method,
+    })
+
+    // Validate origin
+    // For development with mixed content (HTTP miniapp in HTTPS host),
+    // allow localhost with different protocols
+    const isLocalhostDev =
+      this.origin.includes('localhost') &&
+      event.origin.includes('localhost')
+    const originMatches =
+      this.origin === '*' ||
+      event.origin === this.origin ||
+      isLocalhostDev
+
+    if (!originMatches) {
+      console.warn('[BioBridge] Origin mismatch, ignoring message')
+      return
+    }
+
+    // Validate source - for localhost dev, use relaxed check
+    // In cross-origin scenarios, both event.source and iframe.contentWindow 
+    // may be opaque Window objects that don't compare as equal
+    const sourceMatches =
+      event.source === this.iframe?.contentWindow ||
+      (isLocalhostDev && event.source instanceof Window)
+
+    if (!sourceMatches) {
+      console.warn('[BioBridge] Source mismatch, ignoring message')
+      return
+    }
+
+    console.log('[BioBridge] Processing message:', data.type)
 
     // Route to appropriate handler based on protocol
     if (data.type === 'bio_request') {
@@ -195,10 +231,12 @@ export class PostMessageBridge {
     }
   }
 
+
+
   private async processRequest(request: RequestMessage, protocol: Protocol): Promise<void> {
     const { id, method, params } = request
 
-    
+
 
     // Check if handler exists
     const handler = this.handlers.get(method)
@@ -289,7 +327,7 @@ export class PostMessageBridge {
   /** 请求用户授权权限 */
   private async requestPermission(permissions: string[]): Promise<boolean> {
     if (!this.permissionRequestCallback) {
-      
+
       return false
     }
 
@@ -304,7 +342,7 @@ export class PostMessageBridge {
       }
       return approved
     } catch (error) {
-      
+
       return false
     }
   }
@@ -312,7 +350,7 @@ export class PostMessageBridge {
   private sendResponse(_protocol: Protocol, response: BioResponseMessage | EthResponseMessage | TronResponseMessage): void {
     if (!this.iframe?.contentWindow) return
 
-    
+
     this.iframe.contentWindow.postMessage(response, this.origin)
   }
 }

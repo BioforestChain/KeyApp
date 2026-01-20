@@ -7,6 +7,7 @@ import { networkInterfaces } from 'node:os'
 import { resolve } from 'node:path'
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools'
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps'
+import { remoteMiniappsPlugin } from './scripts/vite-plugin-remote-miniapps'
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check'
 
 function getPreferredLanIPv4(): string | undefined {
@@ -90,6 +91,16 @@ export default defineConfig(({ mode }) => {
     react(),
     tailwindcss(),
     mockDevToolsPlugin(),
+    // 远程 miniapps (必须在 miniappsPlugin 之前，以便注册到全局状态)
+    remoteMiniappsPlugin({
+      miniapps: [
+        // RWA Hub - 从远程下载
+        {
+          metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+          dirName: 'rwa-hub',
+        },
+      ],
+    }),
     miniappsPlugin(),
     buildCheckPlugin(),
   ],

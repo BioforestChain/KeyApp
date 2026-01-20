@@ -8,7 +8,7 @@ import { resolveAssetUrl } from './lib/asset-url'
 import { ServiceProvider } from './services'
 import { MigrationProvider } from './contexts/MigrationContext'
 import { StackflowApp } from './StackflowApp'
-import { ChainIconProvider, TokenIconProvider } from './components/wallet'
+import { TokenIconProvider } from './components/wallet'
 import { useChainConfigs } from './stores/chain-config'
 import { AppInitializer } from './providers'
 import './styles/globals.css'
@@ -31,22 +31,16 @@ const MockDevTools = __MOCK_MODE__
   ? lazy(() => import('./services/mock-devtools').then((m) => ({ default: m.MockDevTools })))
   : null
 
-function IconProvidersWrapper({ children }: { children: React.ReactNode }) {
+function TokenIconProviderWrapper({ children }: { children: React.ReactNode }) {
   const configs = useChainConfigs()
 
   // 预处理配置：解析所有相对路径为完整 URL
   const resolvedConfigs = useMemo(() => {
     return configs.map((config) => ({
       ...config,
-      icon: config.icon ? resolveAssetUrl(config.icon) : undefined,
       tokenIconBase: config.tokenIconBase?.map(resolveAssetUrl),
     }))
   }, [configs])
-
-  const getIconUrl = useCallback(
-    (chainId: string) => resolvedConfigs.find((c) => c.id === chainId)?.icon,
-    [resolvedConfigs],
-  )
 
   const getTokenIconBases = useCallback(
     (chainId: string) => resolvedConfigs.find((c) => c.id === chainId)?.tokenIconBase ?? [],
@@ -54,11 +48,9 @@ function IconProvidersWrapper({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <ChainIconProvider getIconUrl={getIconUrl}>
-      <TokenIconProvider getTokenIconBases={getTokenIconBases}>
-        {children}
-      </TokenIconProvider>
-    </ChainIconProvider>
+    <TokenIconProvider getTokenIconBases={getTokenIconBases}>
+      {children}
+    </TokenIconProvider>
   )
 }
 
@@ -70,9 +62,9 @@ export function startFrontendMain(rootElement: HTMLElement): void {
           <ServiceProvider>
             <MigrationProvider>
               <AppInitializer>
-                <IconProvidersWrapper>
+                <TokenIconProviderWrapper>
                   <StackflowApp />
-                </IconProvidersWrapper>
+                </TokenIconProviderWrapper>
                 {/* Mock DevTools - 仅在 mock 模式下显示 */}
                 {MockDevTools && (
                   <Suspense fallback={null}>

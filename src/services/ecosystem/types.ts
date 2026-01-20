@@ -29,6 +29,8 @@ export interface BioAccount {
   address: string
   chain: string
   name?: string
+  /** Public key (optional, for dweb-compat) */
+  publicKey?: string
 }
 
 /**
@@ -156,6 +158,24 @@ export const KNOWN_PERMISSIONS: Record<string, PermissionDefinition> = {
     name: '销毁资产',
     description: '请求销毁资产（需要您确认，不可撤销）',
     risk: 'high',
+  },
+  bio_requestCryptoToken: {
+    id: 'bio_requestCryptoToken',
+    name: '请求加密授权',
+    description: '请求授权进行加密操作（需要您确认）',
+    risk: 'high',
+  },
+  bio_cryptoExecute: {
+    id: 'bio_cryptoExecute',
+    name: '执行加密操作',
+    description: '使用已授权的 Token 执行加密操作',
+    risk: 'low',
+  },
+  bio_getCryptoTokenInfo: {
+    id: 'bio_getCryptoTokenInfo',
+    name: '查询授权信息',
+    description: '查询已授权 Token 的信息',
+    risk: 'low',
   },
 }
 

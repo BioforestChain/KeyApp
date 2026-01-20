@@ -12,11 +12,12 @@ import { IconArrowDown, IconAlertTriangle, IconLoader2 } from '@tabler/icons-rea
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet } from '@/stores'
+import { useCurrentWallet, walletStore } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 import { AddressDisplay } from '@/components/wallet/address-display'
 import { AmountDisplay } from '@/components/common/amount-display'
 import { MiniappSheetHeader } from '@/components/ecosystem'
+import { ChainBadge } from '@/components/wallet/chain-icon'
 
 type MiniappTransferConfirmJobParams = {
   /** 来源小程序名称 */
@@ -44,17 +45,23 @@ function MiniappTransferConfirmJobContent() {
 
   const [isConfirming, setIsConfirming] = useState(false)
 
+  // 查找使用该地址的钱包
+  const targetWallet = walletStore.state.wallets.find(
+    w => w.chainAddresses.some(ca => ca.address === from)
+  )
+  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
+
   const handleConfirm = useCallback(() => {
     if (isConfirming) return
 
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
       setIsConfirming(true)
-      
+
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
         if (!encryptedSecret) {
-          
+
           return false
         }
 
@@ -78,7 +85,7 @@ function MiniappTransferConfirmJobContent() {
         if (asset) {
           transferPayload.assetType = asset
         }
-        
+
         const signature = await authService.handleTransferSign(
           transferPayload,
           encryptedSecret,
@@ -97,11 +104,11 @@ function MiniappTransferConfirmJobContent() {
           },
         })
         window.dispatchEvent(event)
-        
+
         pop()
         return true
       } catch (error) {
-        
+
         return false
       } finally {
         setIsConfirming(false)
@@ -138,16 +145,21 @@ function MiniappTransferConfirmJobContent() {
           description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsTransfer', '请求发送转账')}`}
           appName={appName}
           appIcon={appIcon}
+          walletInfo={{
+            name: walletName,
+            address: from,
+            chainId: chain,
+          }}
         />
 
         {/* Content */}
         <div className="space-y-4 p-4">
           {/* Amount */}
           <div className="bg-muted/50 rounded-xl p-4 text-center">
-            <AmountDisplay 
-              value={amount} 
-              symbol={displayAsset} 
-              size="xl" 
+            <AmountDisplay
+              value={amount}
+              symbol={displayAsset}
+              size="xl"
               weight="bold"
               decimals={8}
               fixedDecimals={true}
@@ -183,7 +195,7 @@ function MiniappTransferConfirmJobContent() {
             <span className="text-muted-foreground text-sm">
               {t('network', '网络')}
             </span>
-            <span className="text-sm font-medium">{chain}</span>
+            <ChainBadge chainId={chain} />
           </div>
 
           {/* Warning */}

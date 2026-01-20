@@ -62,7 +62,7 @@ function FeaturedStoryCard({ app, onTap }: { app: MiniappManifest; onTap: () => 
       <div className="@container relative flex min-h-[300px] flex-col p-6">
         <div className="mb-auto flex items-center gap-2 text-xs font-semibold tracking-wider text-white/80 uppercase">
           <IconSparkles className="size-4" />
-          {t('ecosystem:discover.featured')}
+          {t('discover.featured')}
         </div>
 
         <div className="mt-auto">
@@ -166,7 +166,7 @@ function AppListItem({
           onOpen();
         }}
       >
-        {t('ecosystem:discover.get')}
+        {t('discover.get')}
       </Button>
     </div>
   );
@@ -230,7 +230,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
           <input
             ref={searchInputRef}
             type="text"
-            placeholder={t('ecosystem:discover.searchPlaceholder')}
+            placeholder={t('discover.searchPlaceholder')}
             className={cn(
               'bg-muted/60 w-full rounded-xl py-3 pr-4 pl-12',
               'placeholder:text-muted-foreground/60 text-base',
@@ -244,7 +244,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
       {/* 内容区 */}
       <div className="space-y-8">
         {apps.length === 0 ? (
-          <EmptyState message={t('ecosystem:discover.empty')} />
+          <EmptyState message={t('discover.empty')} />
         ) : (
           <>
             {featuredApp && (
@@ -256,9 +256,9 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
             {recommendedApps.length > 0 && (
               <section>
                 <div className="mb-3 flex items-center justify-between px-5">
-                  <h2 className="text-xl font-bold">{t('ecosystem:discover.recommended')}</h2>
+                  <h2 className="text-xl font-bold">{t('discover.recommended')}</h2>
                   <button className="text-primary flex items-center text-sm font-medium">
-                    {t('ecosystem:discover.viewAll')}
+                    {t('discover.viewAll')}
                     <IconChevronRight className="size-4" />
                   </button>
                 </div>
@@ -277,7 +277,7 @@ export const DiscoverPage = forwardRef<DiscoverPageRef, DiscoverPageProps>(funct
             )}
 
             <section className="px-5">
-              <h2 className="mb-3 text-xl font-bold">{t('ecosystem:discover.hotApps')}</h2>
+              <h2 className="mb-3 text-xl font-bold">{t('discover.hotApps')}</h2>
               <div className="bg-card divide-y rounded-2xl border">
                 {hotApps.map((app, i) => (
                   <div key={app.id} className="px-4">

@@ -59,6 +59,9 @@ migrations.json
 .DS_Store
 Thumbs.db
 
+# Remote miniapps (downloaded at dev/build time)
+miniapps/rwa-hub/
+
 # Playwright
 e2e/test-results/
 e2e/report/

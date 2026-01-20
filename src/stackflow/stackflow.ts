@@ -62,6 +62,7 @@ import {
   MiniappDestroyConfirmJob,
   MiniappSignTransactionJob,
   ChainSwitchConfirmJob,
+  CryptoAuthorizeJob,
 } from './activities/sheets';
 
 export const { Stack, useFlow, useStepFlow, activities } = stackflow({
@@ -130,6 +131,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
         MiniappDestroyConfirmJob: '/job/miniapp-destroy-confirm',
         MiniappSignTransactionJob: '/job/miniapp-sign-transaction',
         ChainSwitchConfirmJob: '/job/chain-switch-confirm',
+        CryptoAuthorizeJob: '/job/crypto-authorize',
       },
       fallbackActivity: () => 'MainTabsActivity',
       useHash: true,
@@ -197,6 +199,7 @@ export const { Stack, useFlow, useStepFlow, activities } = stackflow({
     MiniappDestroyConfirmJob,
     MiniappSignTransactionJob,
     ChainSwitchConfirmJob,
+    CryptoAuthorizeJob,
   },
   // Note: Don't set initialActivity when using historySyncPlugin
   // The plugin will determine the initial activity based on the URL

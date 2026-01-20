@@ -11,6 +11,7 @@ import { resolve, join } from 'node:path'
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs'
 import detectPort from 'detect-port'
 import https from 'node:https'
+import { getRemoteMiniappsForEcosystem } from './vite-plugin-remote-miniapps'
 
 // ==================== Types ====================
 
@@ -55,13 +56,12 @@ interface MiniappServer {
 
 interface MiniappsPluginOptions {
   miniappsDir?: string
-  startPort?: number
 }
 
 // ==================== Plugin ====================
 
 export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
-  const { miniappsDir = 'miniapps', startPort = 5180 } = options
+  const { miniappsDir = 'miniapps' } = options
 
   let root: string
   let isBuild = false
@@ -121,16 +121,17 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
-        const apps = await Promise.all(
+        // 本地 miniapps
+        const localApps = await Promise.all(
           miniappServers.map(async (s) => {
             try {
               const manifest = await fetchManifest(s.port)
               return {
                 ...manifest,
                 dirName: s.dirName,
-                icon: `${s.baseUrl}/${manifest.icon}`,
-                url: `${s.baseUrl}/`,
-                screenshots: manifest.screenshots.map((sc) => `${s.baseUrl}/${sc}`),
+                icon: new URL(manifest.icon, s.baseUrl).href,
+                url: new URL('/', s.baseUrl).href,
+                screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
               }
             } catch (e) {
               console.error(`[miniapps] Failed to fetch manifest for ${s.id}:`, e)
@@ -139,12 +140,18 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           }),
         )
 
+        // 远程 miniapps (从 vite-plugin-remote-miniapps 获取)
+        const remoteApps = getRemoteMiniappsForEcosystem()
+
         return {
           name: 'Bio 官方生态',
           version: '1.0.0',
           updated: new Date().toISOString().split('T')[0],
           icon: '/logos/logo-256.webp',
-          apps: apps.filter((a): a is NonNullable<typeof a> => a !== null),
+          apps: [
+            ...localApps.filter((a): a is NonNullable<typeof a> => a !== null),
+            ...remoteApps,
+          ],
         }
       }
 
@@ -191,6 +198,13 @@ function scanMiniapps(miniappsPath: string): MiniappManifest[] {
     const manifestPath = join(miniappsPath, entry.name, 'manifest.json')
     if (!existsSync(manifestPath)) {
       console.warn(`[miniapps] ${entry.name}: missing manifest.json, skipping`)
+      continue
+    }
+
+    // 跳过远程 miniapps (没有 vite.config.ts 的是已构建的远程 miniapp)
+    const viteConfigPath = join(miniappsPath, entry.name, 'vite.config.ts')
+    if (!existsSync(viteConfigPath)) {
+      // 远程 miniapp，由 vite-plugin-remote-miniapps 处理
       continue
     }
 

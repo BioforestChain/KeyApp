@@ -12,12 +12,13 @@ import { IconFlame, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet, useChainConfigState, chainConfigSelectors } from '@/stores'
+import { useCurrentWallet, useChainConfigState, chainConfigSelectors, walletStore } from '@/stores'
 import { submitBioforestBurn } from '@/hooks/use-burn.bioforest'
 import { Amount } from '@/types/amount'
-import { AddressDisplay } from '@/components/wallet/address-display'
 import { AmountDisplay } from '@/components/common/amount-display'
 import { MiniappSheetHeader } from '@/components/ecosystem'
+import { ChainBadge } from '@/components/wallet/chain-icon'
+import { ChainAddressDisplay } from '@/components/wallet/chain-address-display'
 
 type MiniappDestroyConfirmJobParams = {
   /** 来源小程序名称 */
@@ -47,6 +48,12 @@ function MiniappDestroyConfirmJobContent() {
     : null
 
   const [isConfirming, setIsConfirming] = useState(false)
+
+  // 查找使用该地址的钱包
+  const targetWallet = walletStore.state.wallets.find(
+    w => w.chainAddresses.some(ca => ca.address === from)
+  )
+  const walletName = targetWallet?.name || t('common:unknownWallet', '未知钱包')
 
   const handleConfirm = useCallback(() => {
     if (isConfirming) return
@@ -139,6 +146,11 @@ function MiniappDestroyConfirmJobContent() {
           description={`${appName || t('common:unknownDApp', 'Unknown App')} ${t('common:requestsDestroy', '请求销毁资产')}`}
           appName={appName}
           appIcon={appIcon}
+          walletInfo={{
+            name: walletName,
+            address: from,
+            chainId: chain,
+          }}
         />
 
         {/* Content */}
@@ -161,7 +173,7 @@ function MiniappDestroyConfirmJobContent() {
               <span className="text-muted-foreground text-xs w-10 shrink-0">
                 {t('common:from', '来自')}
               </span>
-              <AddressDisplay address={from} copyable className="flex-1 text-sm" />
+              <ChainAddressDisplay chainId={chain} address={from} copyable size="sm" />
             </div>
           </div>
 
@@ -170,7 +182,7 @@ function MiniappDestroyConfirmJobContent() {
             <span className="text-muted-foreground text-sm">
               {t('common:network', '网络')}
             </span>
-            <span className="text-sm font-medium">{chain}</span>
+            <ChainBadge chainId={chain} />
           </div>
 
           {/* Warning */}

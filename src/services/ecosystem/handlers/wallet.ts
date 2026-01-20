@@ -40,13 +40,17 @@ export const handleConnect: MethodHandler = async (_params, _context) => {
 }
 
 /** bio_requestAccounts - Request wallet connection (shows UI) */
-export const handleRequestAccounts: MethodHandler = async (_params, context) => {
+export const handleRequestAccounts: MethodHandler = async (params, context) => {
   const showWalletPicker = getWalletPicker(context.appId)
   if (!showWalletPicker) {
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
+  // 支持 chain 参数过滤钱包
+  const opts = params as { chain?: string } | undefined
+
   const wallet = await showWalletPicker({
+    chain: opts?.chain,
     app: { name: context.appName, icon: context.appIcon },
   })
   if (!wallet) {

@@ -12,6 +12,7 @@ import {
   getBridge,
   initBioProvider,
   setChainSwitchConfirm,
+  setCryptoAuthorizeDialog,
   setEvmSigningDialog,
   setEvmTransactionDialog,
   setEvmWalletPicker,
@@ -340,6 +341,35 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       });
     });
 
+    // Crypto 黑盒授权对话框
+    setCryptoAuthorizeDialog((_appId: string) => async (params) => {
+      return new Promise<{ approved: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }>((resolve) => {
+        const timeout = window.setTimeout(() => resolve({ approved: false }), 60_000);
+
+        const handleResult = (e: Event) => {
+          window.clearTimeout(timeout);
+          const detail = (e as CustomEvent).detail as
+            | { approved?: boolean; patternKey?: string; walletId?: string; selectedDuration?: string }
+            | undefined;
+          if (detail?.approved && detail.patternKey && detail.walletId) {
+            resolve({ approved: true, patternKey: detail.patternKey, walletId: detail.walletId, selectedDuration: detail.selectedDuration });
+            return;
+          }
+          resolve({ approved: false });
+        };
+
+        window.addEventListener("crypto-authorize-confirm", handleResult, { once: true });
+        push("CryptoAuthorizeJob", {
+          actions: JSON.stringify(params.actions),
+          duration: params.duration,
+          address: params.address,
+          chainId: params.chainId,
+          appName: params.app.name,
+          appIcon: params.app.icon,
+        });
+      });
+    });
+
     return () => {
       getBridge().setPermissionRequestCallback(null);
       setWalletPicker(null);
@@ -348,6 +378,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       setEvmSigningDialog(null);
       setEvmTransactionDialog(null);
       setTronWalletPicker(null);
+      setCryptoAuthorizeDialog(null);
       setGetAccounts(null);
       setSigningDialog(null);
       setTransferDialog(null);

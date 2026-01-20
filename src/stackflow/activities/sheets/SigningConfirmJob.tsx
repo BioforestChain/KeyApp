@@ -12,10 +12,9 @@ import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { useFlow } from '../../stackflow'
 import { ActivityParamsProvider, useActivityParams } from '../../hooks'
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet } from '@/stores'
+import { useCurrentWallet, walletStore } from '@/stores'
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
 import { MiniappSheetHeader } from '@/components/ecosystem'
-import { AddressDisplay } from '@/components/wallet/address-display'
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -37,17 +36,23 @@ function SigningConfirmJobContent() {
   const currentWallet = useCurrentWallet()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // 查找使用该地址的钱包
+  const targetWallet = walletStore.state.wallets.find(
+    w => w.chainAddresses.some(ca => ca.address === address)
+  )
+  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
+
   const handleConfirm = useCallback(() => {
     if (isSubmitting) return
 
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
       setIsSubmitting(true)
-      
+
       try {
         const encryptedSecret = currentWallet?.encryptedMnemonic
         if (!encryptedSecret) {
-          
+
           return false
         }
 
@@ -68,18 +73,18 @@ function SigningConfirmJobContent() {
 
         // 发送成功事件（包含 signature 和 publicKey）
         const event = new CustomEvent('signing-confirm', {
-          detail: { 
-            confirmed: true, 
+          detail: {
+            confirmed: true,
             signature: signResult.signature,
             publicKey: signResult.publicKey,
           },
         })
         window.dispatchEvent(event)
-        
+
         pop()
         return true
       } catch (error) {
-        
+
         return false
       } finally {
         setIsSubmitting(false)
@@ -117,18 +122,15 @@ function SigningConfirmJobContent() {
           description={appName || t('unknownDApp', '未知 DApp')}
           appName={appName}
           appIcon={appIcon}
+          walletInfo={{
+            name: walletName,
+            address,
+            chainId: chainName || 'bfmeta',
+          }}
         />
 
         {/* Content */}
         <div className="space-y-4 p-4">
-          {/* Address */}
-          <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">
-              {t('signingAddress', '签名地址')}
-            </p>
-            <AddressDisplay address={address} copyable={false} className="text-sm" />
-          </div>
-
           {/* Message */}
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">

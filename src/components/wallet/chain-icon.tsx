@@ -1,51 +1,13 @@
-import { useState, createContext, useContext, type ReactNode } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { chainConfigService } from '@/services/chain-config';
 
 export type ChainType = string;
 
-/**
- * ChainIcon Context - 提供 chainId -> iconUrl 的映射
- */
-interface ChainIconContextValue {
-  getIconUrl: (chainId: string) => string | undefined;
-}
-
-const ChainIconContext = createContext<ChainIconContextValue | null>(null);
-
-interface ChainIconProviderProps {
-  /** 获取链图标 URL 的函数 */
-  getIconUrl: (chainId: string) => string | undefined;
-  children: ReactNode;
-}
-
-/**
- * ChainIcon Provider
- * 
- * 在应用根部注入，提供 chainId -> iconUrl 的自动解析
- * 
- * @example
- * const { configs } = useChainConfig();
- * 
- * <ChainIconProvider getIconUrl={(id) => configs.find(c => c.id === id)?.icon}>
- *   <App />
- * </ChainIconProvider>
- */
-export function ChainIconProvider({ getIconUrl, children }: ChainIconProviderProps) {
-  return (
-    <ChainIconContext.Provider value={{ getIconUrl }}>
-      {children}
-    </ChainIconContext.Provider>
-  );
-}
-
-function useChainIconContext() {
-  return useContext(ChainIconContext);
-}
-
 interface ChainIconProps {
-  /** 链 ID，用于 fallback 显示和从 context 获取 iconUrl */
+  /** 链 ID，用于从 chainConfigService 获取图标和符号 */
   chainId?: ChainType | undefined;
-  /** 图标 URL（优先使用，覆盖 context） */
+  /** 图标 URL（优先使用，覆盖 service） */
   iconUrl?: string | undefined;
   /** 链符号，用于 fallback 显示 */
   symbol?: string | undefined;
@@ -54,40 +16,6 @@ interface ChainIconProps {
   /** @deprecated 使用 chainId 代替 */
   chain?: ChainType | undefined;
 }
-
-const chainColors: Record<string, string> = {
-  ethereum: 'bg-chain-ethereum',
-  tron: 'bg-chain-tron',
-  bitcoin: 'bg-chain-bitcoin',
-  binance: 'bg-chain-binance',
-  bsc: 'bg-chain-binance',
-  bfmeta: 'bg-chain-bfmeta',
-  ccchain: 'bg-emerald-500',
-  pmchain: 'bg-violet-500',
-  bfchainv2: 'bg-chain-bfmeta',
-  btgmeta: 'bg-amber-500',
-  biwmeta: 'bg-cyan-500',
-  ethmeta: 'bg-indigo-500',
-  malibu: 'bg-pink-500',
-  ccc: 'bg-emerald-500',
-};
-
-const chainLabels: Record<string, string> = {
-  ethereum: 'ETH',
-  tron: 'TRX',
-  bitcoin: 'BTC',
-  binance: 'BNB',
-  bsc: 'BNB',
-  bfmeta: 'BFM',
-  ccchain: 'CCC',
-  pmchain: 'PMC',
-  bfchainv2: 'BFT',
-  btgmeta: 'BTGM',
-  biwmeta: 'BIW',
-  ethmeta: 'ETHM',
-  malibu: 'MLB',
-  ccc: 'CCC',
-};
 
 const sizeClasses = {
   sm: 'size-5',
@@ -101,38 +29,30 @@ const textSizeClasses = {
   lg: 'text-sm',
 };
 
-function toFallbackLabel(chainId?: string, symbol?: string): string {
-  if (symbol) return symbol.slice(0, 4).toUpperCase();
-  if (chainId) {
-    const label = chainLabels[chainId];
-    if (label) return label;
-    return chainId.slice(0, 4).toUpperCase();
-  }
-  return '?';
-}
-
 /**
  * 链图标组件
  * 
- * 优先级：iconUrl prop > context > 首字母 + 背景色
+ * 优先级：iconUrl prop > chainConfigService > 首字母 fallback
  * 
  * @example
- * // 自动从 context 获取图标
+ * // 自动从 chainConfigService 获取图标
  * <ChainIcon chainId="ethereum" />
  * 
- * // 手动指定图标 URL（覆盖 context）
+ * // 手动指定图标 URL
  * <ChainIcon chainId="ethereum" iconUrl="/custom-icon.svg" />
  */
 export function ChainIcon({ chainId, iconUrl, symbol, size = 'md', className, chain }: ChainIconProps) {
   const [imgError, setImgError] = useState(false);
-  const context = useChainIconContext();
   
   // 兼容旧的 chain prop
   const resolvedChainId = chainId ?? chain;
-  const label = toFallbackLabel(resolvedChainId, symbol);
   
-  // 解析图标 URL
-  const resolvedIconUrl = iconUrl ?? (resolvedChainId ? context?.getIconUrl(resolvedChainId) : undefined);
+  // 从 service 获取图标和符号
+  const serviceIcon = resolvedChainId ? chainConfigService.getIcon(resolvedChainId) : null;
+  const serviceSymbol = resolvedChainId ? chainConfigService.getSymbol(resolvedChainId) : '';
+  
+  const resolvedIconUrl = iconUrl ?? serviceIcon;
+  const label = symbol ?? serviceSymbol ?? resolvedChainId?.slice(0, 4).toUpperCase() ?? '?';
   
   // 有图标 URL 且未加载失败时，使用图片
   if (resolvedIconUrl && !imgError) {
@@ -147,15 +67,11 @@ export function ChainIcon({ chainId, iconUrl, symbol, size = 'md', className, ch
   }
   
   // Fallback: 首字母 + 背景色
-  const bgColor = resolvedChainId ? chainColors[resolvedChainId] : undefined;
-  const isKnown = resolvedChainId ? resolvedChainId in chainColors : false;
-  
   return (
     <div
       className={cn(
         'flex shrink-0 items-center justify-center rounded-full font-bold',
-        bgColor ?? 'bg-muted',
-        isKnown ? 'text-white' : 'text-muted-foreground',
+        'bg-muted text-muted-foreground',
         sizeClasses[size],
         textSizeClasses[size],
         className,
@@ -177,9 +93,18 @@ interface ChainBadgeProps {
   chain?: ChainType | undefined;
 }
 
+/**
+ * 链徽章组件 - 显示链图标和名称
+ * 
+ * @example
+ * <ChainBadge chainId="bfmeta" />  // 显示 BFMeta 图标和名称
+ */
 export function ChainBadge({ chainId, iconUrl, symbol, className, chain }: ChainBadgeProps) {
   const resolvedChainId = chainId ?? chain ?? '';
-  const label = symbol ?? chainLabels[resolvedChainId] ?? resolvedChainId;
+  
+  // 使用 chainConfigService 获取完整链名
+  const label = symbol ?? (resolvedChainId ? chainConfigService.getName(resolvedChainId) : resolvedChainId);
+  
   return (
     <span
       className={cn(
@@ -188,7 +113,7 @@ export function ChainBadge({ chainId, iconUrl, symbol, className, chain }: Chain
         className,
       )}
     >
-      <ChainIcon chainId={resolvedChainId} iconUrl={iconUrl} symbol={symbol} size="sm" className="size-4" />
+      <ChainIcon chainId={resolvedChainId} iconUrl={iconUrl} size="sm" className="size-4" />
       {label}
     </span>
   );

@@ -132,6 +132,22 @@ class ChainConfigService {
     if (!template) return null
     return template.replace(':address', address)
   }
+
+  /**
+   * 获取链名称
+   */
+  getName(chainId: string): string {
+    const config = this.getConfig(chainId)
+    return config?.name ?? chainId
+  }
+
+  /**
+   * 获取链图标 URL (已解析为完整 URL)
+   */
+  getIcon(chainId: string): string | null {
+    const config = this.getConfig(chainId)
+    return config?.icon ?? null
+  }
 }
 
 export const chainConfigService = new ChainConfigService()

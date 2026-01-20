@@ -16,6 +16,7 @@ const routeToActivityMap: Record<string, ActivityName> = {
   "/settings/wallet-lock": "SettingsWalletLockActivity",
   "/settings/wallet-chains": "SettingsWalletChainsActivity",
   "/settings/storage": "SettingsStorageActivity",
+  "/settings/sources": "SettingsSourcesActivity",
   "/history": "HistoryActivity",
   "/scanner": "ScannerActivity",
   "/onboarding/recover": "OnboardingRecoverActivity",
