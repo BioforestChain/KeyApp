@@ -434,5 +434,10 @@
     "strong": "強"
   },
   "unknownWallet": "未知錢包",
-  "unknownDApp": "未知 DApp"
+  "unknownDApp": "未知 DApp",
+  "biometric": {
+    "verifyIdentity": "驗證身份",
+    "protectWallet": "使用生物識別保護錢包",
+    "accessMnemonic": "訪問錢包助記詞"
+  }
 }

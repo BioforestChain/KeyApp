@@ -35,7 +35,10 @@
     "issuerAddressNotFound": "Unable to get asset issuer address",
     "issuerAddressNotReady": "Asset issuer address not ready",
     "insufficientGas": "Insufficient gas fee",
-    "retryLater": "Transaction failed, please try again later"
+    "retryLater": "Transaction failed, please try again later",
+    "transferFailed": "Transfer failed",
+    "securityPasswordWrong": "Security password incorrect",
+    "unknownError": "Unknown error"
   },
   "crypto": {
     "keyDerivationFailed": "Key derivation failed",
@@ -96,5 +99,11 @@
   },
   "transfer": {
     "failed": "Transfer failed"
+  },
+  "secureStorage": {
+    "webPasswordRequired": "Password required for web mode",
+    "dwebRequired": "DWEB environment required",
+    "passwordRequired": "Password required for decryption",
+    "passwordRequiredForMnemonic": "Password required"
   }
 }

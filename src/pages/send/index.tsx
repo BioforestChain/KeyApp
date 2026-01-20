@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
-import { setTransferConfirmCallback, setTransferWalletLockCallback, setScannerResultCallback } from '@/stackflow/activities/sheets';
+import {
+  setTransferConfirmCallback,
+  setTransferWalletLockCallback,
+  setScannerResultCallback,
+} from '@/stackflow/activities/sheets';
 import type { Contact, ContactAddress } from '@/stores';
 import { addressBookStore, addressBookSelectors, preferencesActions } from '@/stores';
 import { PageHeader } from '@/components/layout/page-header';
@@ -51,7 +55,12 @@ function SendPageContent() {
   const isWalletLockSheetOpen = useRef(false);
 
   // Read params for pre-fill from scanner
-  const { address: initialAddress, amount: initialAmount, assetType: initialAssetType, assetLocked: assetLockedParam } = useActivityParams<{
+  const {
+    address: initialAddress,
+    amount: initialAmount,
+    assetType: initialAssetType,
+    assetLocked: assetLockedParam,
+  } = useActivityParams<{
     address?: string;
     amount?: string;
     assetType?: string;
@@ -75,7 +84,7 @@ function SendPageContent() {
   // 直接调用，不需要条件判断
   const tokenBalancesState = chainProvider.tokenBalances.useState(
     { address: currentChainAddress?.address ?? '' },
-    { enabled: !!currentChainAddress?.address }
+    { enabled: !!currentChainAddress?.address },
   );
   const tokens = useMemo(() => {
     if (!tokenBalancesState?.data) return [];
@@ -114,21 +123,25 @@ function SendPageContent() {
   }, [chainConfig, tokens, initialAssetType]);
 
   // getBalance callback - single source of truth from tokens
-  const getBalance = useCallback((assetType: string): Amount | null => {
-    const token = tokens.find(t => t.symbol === assetType);
-    if (!token) return null;
-    return Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol);
-  }, [tokens, chainConfig?.decimals]);
+  const getBalance = useCallback(
+    (assetType: string): Amount | null => {
+      const token = tokens.find((t) => t.symbol === assetType);
+      if (!token) return null;
+      return Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol);
+    },
+    [tokens, chainConfig?.decimals],
+  );
 
   // useSend hook with getBalance for real-time balance validation
-  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } = useSend({
-    initialAsset: initialAsset ?? undefined,
-    useMock: false,
-    walletId: currentWallet?.id,
-    fromAddress: currentChainAddress?.address,
-    chainConfig,
-    getBalance,
-  });
+  const { state, setToAddress, setAmount, setAsset, setFee, goToConfirm, submit, submitWithTwoStepSecret, canProceed } =
+    useSend({
+      initialAsset: initialAsset ?? undefined,
+      useMock: false,
+      walletId: currentWallet?.id,
+      fromAddress: currentChainAddress?.address,
+      chainConfig,
+      getBalance,
+    });
 
   // Selected token for AssetSelector (convert from state.asset)
   const selectedToken = useMemo((): TokenInfo | null => {
@@ -146,16 +159,19 @@ function SendPageContent() {
   }, [state.asset, selectedChain, getBalance]);
 
   // Handle asset selection from AssetSelector
-  const handleAssetSelect = useCallback((token: TokenInfo) => {
-    const asset = {
-      assetType: token.symbol,
-      name: token.name,
-      amount: Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol),
-      decimals: token.decimals ?? chainConfig?.decimals ?? 8,
-      logoUrl: token.icon,
-    };
-    setAsset(asset);
-  }, [chainConfig?.decimals, setAsset]);
+  const handleAssetSelect = useCallback(
+    (token: TokenInfo) => {
+      const asset = {
+        assetType: token.symbol,
+        name: token.name,
+        amount: Amount.fromFormatted(token.balance, token.decimals ?? chainConfig?.decimals ?? 8, token.symbol),
+        decimals: token.decimals ?? chainConfig?.decimals ?? 8,
+        logoUrl: token.icon,
+      };
+      setAsset(asset);
+    },
+    [chainConfig?.decimals, setAsset],
+  );
 
   // Sync initialAsset to useSend state only once (when first loading)
   const hasInitializedAsset = useRef(false);
@@ -204,13 +220,20 @@ function SendPageContent() {
   }, [push, selectedChain]);
 
   // Derive formatted values for display - get balance from tokens (single source of truth)
-  const currentToken = useMemo(() =>
-    state.asset ? tokens.find(t => t.symbol === state.asset?.assetType) : null,
-    [state.asset, tokens]
+  const currentToken = useMemo(
+    () => (state.asset ? tokens.find((t) => t.symbol === state.asset?.assetType) : null),
+    [state.asset, tokens],
   );
-  const balance = useMemo(() =>
-    currentToken ? Amount.fromFormatted(currentToken.balance, currentToken.decimals ?? state.asset?.decimals ?? 8, currentToken.symbol) : null,
-    [currentToken, state.asset?.decimals]
+  const balance = useMemo(
+    () =>
+      currentToken
+        ? Amount.fromFormatted(
+            currentToken.balance,
+            currentToken.decimals ?? state.asset?.decimals ?? 8,
+            currentToken.symbol,
+          )
+        : null,
+    [currentToken, state.asset?.decimals],
   );
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
@@ -271,7 +294,7 @@ function SendPageContent() {
               return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
             }
 
-            return { status: 'error' as const, message: '转账失败' };
+            return { status: 'error' as const, message: t('error:transaction.transferFailed') };
           }
 
           // 第二次调用：有钱包锁和二次签名
@@ -283,14 +306,17 @@ function SendPageContent() {
           }
 
           if (result.status === 'password') {
-            return { status: 'two_step_secret_invalid' as const, message: '安全密码错误' };
+            return {
+              status: 'two_step_secret_invalid' as const,
+              message: t('error:transaction.securityPasswordWrong'),
+            };
           }
 
           if (result.status === 'error') {
             return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
           }
 
-          return { status: 'error' as const, message: '未知错误' };
+          return { status: 'error' as const, message: t('error:transaction.unknownError') };
         });
 
         push('TransferWalletLockJob', {
@@ -300,7 +326,7 @@ function SendPageContent() {
       {
         minFee: state.feeMinAmount?.toFormatted() ?? state.feeAmount?.toFormatted() ?? '0',
         onFeeChange: setFee,
-      }
+      },
     );
 
     push('TransferConfirmJob', {
@@ -333,13 +359,13 @@ function SendPageContent() {
 
       <div className="flex-1 space-y-6 p-4">
         {/* Current chain info & sender address */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+        <div className="bg-muted/50 space-y-2 rounded-lg p-3">
           <div className="flex items-center justify-center gap-2">
             <ChainIcon chain={selectedChain} size="sm" />
             <span className="text-sm font-medium">{selectedChainName}</span>
           </div>
           {currentChainAddress?.address && (
-            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+            <div className="text-muted-foreground flex items-center justify-center gap-1 text-xs">
               <span>{t('sendPage.from')}:</span>
               <span className="font-mono">
                 {currentChainAddress.address.slice(0, 8)}...{currentChainAddress.address.slice(-6)}
@@ -351,9 +377,7 @@ function SendPageContent() {
         {/* Asset selector (only show if multiple tokens available) */}
         {tokens.length > 1 && (
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t('sendPage.assetLabel', '转账资产')}
-            </label>
+            <label className="text-sm font-medium">{t('sendPage.assetLabel', '转账资产')}</label>
             <AssetSelector
               selectedAsset={selectedToken}
               assets={tokens}
@@ -392,7 +416,13 @@ function SendPageContent() {
 
         {/* Continue button */}
         <div className="pt-4">
-          <GradientButton variant="mint" className="w-full" data-testid="send-continue-button" disabled={!canProceed} onClick={handleProceed}>
+          <GradientButton
+            variant="mint"
+            className="w-full"
+            data-testid="send-continue-button"
+            disabled={!canProceed}
+            onClick={handleProceed}
+          >
             {t('sendPage.continue')}
             <ArrowRight className="-mr-4 ml-2 size-4" />
           </GradientButton>

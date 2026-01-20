@@ -53,5 +53,9 @@
     "goHome": "Enter Wallet",
     "skip": "Skip, create new wallet",
     "retry": "Retry"
+  },
+  "pattern": {
+    "title": "Verify Wallet Lock",
+    "description": "Please draw the wallet lock pattern to continue migration"
   }
 }

@@ -35,7 +35,10 @@
     "issuerAddressNotFound": "无法获取资产发行地址",
     "issuerAddressNotReady": "资产发行地址未获取",
     "insufficientGas": "手续费不足",
-    "retryLater": "交易失败，请稍后重试"
+    "retryLater": "交易失败，请稍后重试",
+    "transferFailed": "转账失败",
+    "securityPasswordWrong": "安全密码错误",
+    "unknownError": "未知错误"
   },
   "crypto": {
     "keyDerivationFailed": "密钥派生失败",
@@ -96,5 +99,11 @@
   },
   "transfer": {
     "failed": "转账失败"
+  },
+  "secureStorage": {
+    "webPasswordRequired": "Web 模式需要提供密码",
+    "dwebRequired": "需要在 DWEB 环境中访问",
+    "passwordRequired": "需要提供密码解密",
+    "passwordRequiredForMnemonic": "需要提供密码"
   }
 }

@@ -434,5 +434,10 @@
     "strong": "Strong"
   },
   "unknownWallet": "Unknown Wallet",
-  "unknownDApp": "Unknown DApp"
+  "unknownDApp": "Unknown DApp",
+  "biometric": {
+    "verifyIdentity": "Verify Identity",
+    "protectWallet": "Protect wallet with biometrics",
+    "accessMnemonic": "Access wallet mnemonic"
+  }
 }

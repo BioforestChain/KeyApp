@@ -35,7 +35,10 @@
     "issuerAddressNotFound": "無法獲取資產發行地址",
     "issuerAddressNotReady": "資產發行地址未獲取",
     "insufficientGas": "手續費不足",
-    "retryLater": "交易失敗，請稍後重試"
+    "retryLater": "交易失敗，請稍後重試",
+    "transferFailed": "轉帳失敗",
+    "securityPasswordWrong": "安全密碼錯誤",
+    "unknownError": "未知錯誤"
   },
   "crypto": {
     "keyDerivationFailed": "密鑰派生失敗",
@@ -96,5 +99,11 @@
   },
   "transfer": {
     "failed": "轉賬失敗"
+  },
+  "secureStorage": {
+    "webPasswordRequired": "Web 模式需要提供密碼",
+    "dwebRequired": "需要在 DWEB 環境中訪問",
+    "passwordRequired": "需要提供密碼解密",
+    "passwordRequiredForMnemonic": "需要提供密碼"
   }
 }

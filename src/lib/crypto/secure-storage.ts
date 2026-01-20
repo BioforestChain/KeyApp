@@ -151,7 +151,7 @@ export const SecureStorage = {
 
     // Web 模式：使用密码加密
     if (!options.password) {
-      throw new Error('Web 模式需要提供密码');
+      throw new Error(t('error:secureStorage.webPasswordRequired'));
     }
 
     const encrypted = await encrypt(data, options.password);
@@ -172,7 +172,7 @@ export const SecureStorage = {
       // DWEB 模式
       if (stored.type === 'dweb-biometric') {
         if (!isDwebEnvironment()) {
-          throw new Error('需要在 DWEB 环境中访问');
+          throw new Error(t('error:secureStorage.dwebRequired'));
         }
 
         const authResult = await BiometricAuth.authenticate(options.biometricOptions);
@@ -186,7 +186,7 @@ export const SecureStorage = {
       // Web 模式
       if (stored.type === 'web-encrypted' && stored.encrypted) {
         if (!options.password) {
-          throw new Error('需要提供密码解密');
+          throw new Error(t('error:secureStorage.passwordRequired'));
         }
         return await decrypt(stored.encrypted, options.password);
       }
@@ -243,8 +243,8 @@ export async function storeMnemonic(
     await SecureStorage.store(`mnemonic:${walletId}`, mnemonic, {
       useBiometric: true,
       biometricOptions: {
-        title: '验证身份',
-        subtitle: '使用生物识别保护钱包',
+        title: t('common:biometric.verifyIdentity'),
+        subtitle: t('common:biometric.protectWallet'),
       },
     });
     return;
@@ -252,7 +252,7 @@ export async function storeMnemonic(
 
   // 否则使用密码加密
   if (!options.password) {
-    throw new Error('需要提供密码');
+    throw new Error(t('error:secureStorage.passwordRequiredForMnemonic'));
   }
 
   await SecureStorage.store(`mnemonic:${walletId}`, mnemonic, {
@@ -268,8 +268,8 @@ export async function retrieveMnemonic(walletId: string, options: { password?: s
     return SecureStorage.retrieve(`mnemonic:${walletId}`, {
       useBiometric: true,
       biometricOptions: {
-        title: '验证身份',
-        subtitle: '访问钱包助记词',
+        title: t('common:biometric.verifyIdentity'),
+        subtitle: t('common:biometric.accessMnemonic'),
       },
     });
   }

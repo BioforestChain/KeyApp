@@ -35,7 +35,10 @@
     "issuerAddressNotFound": "Unable to get asset issuer address",
     "issuerAddressNotReady": "Asset issuer address not ready",
     "insufficientGas": "رسوم الغاز غير كافية",
-    "retryLater": "فشلت المعاملة، يرجى المحاولة لاحقاً"
+    "retryLater": "فشلت المعاملة، يرجى المحاولة لاحقاً",
+    "transferFailed": "فشل التحويل",
+    "securityPasswordWrong": "كلمة مرور الأمان غير صحيحة",
+    "unknownError": "خطأ غير معروف"
   },
   "crypto": {
     "keyDerivationFailed": "فشل اشتقاق المفتاح",
@@ -96,5 +99,11 @@
   },
   "transfer": {
     "failed": "فشل التحويل"
+  },
+  "secureStorage": {
+    "webPasswordRequired": "كلمة المرور مطلوبة لوضع الويب",
+    "dwebRequired": "مطلوب بيئة DWEB",
+    "passwordRequired": "كلمة المرور مطلوبة لفك التشفير",
+    "passwordRequiredForMnemonic": "كلمة المرور مطلوبة"
   }
 }
