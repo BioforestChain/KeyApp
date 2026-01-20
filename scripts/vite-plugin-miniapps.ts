@@ -305,12 +305,13 @@ function scanRemoteMiniappsForBuild(miniappsPath: string): Array<MiniappManifest
 
     try {
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as MiniappManifest;
+      const baseUrl = `./${entry.name}/`;
       remoteApps.push({
         ...manifest,
         dirName: entry.name,
-        url: `./${entry.name}/`,
-        icon: `./${entry.name}/${manifest.icon}`,
-        screenshots: manifest.screenshots?.map((s) => `./${entry.name}/${s}`) ?? [],
+        url: baseUrl,
+        icon: manifest.icon.startsWith('http') ? manifest.icon : new URL(manifest.icon, baseUrl).href,
+        screenshots: manifest.screenshots?.map((s) => (s.startsWith('http') ? s : new URL(s, baseUrl).href)) ?? [],
       });
     } catch {
       console.warn(`[miniapps] ${entry.name}: invalid remote manifest.json, skipping`);
