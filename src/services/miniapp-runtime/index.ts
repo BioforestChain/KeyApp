@@ -50,15 +50,7 @@ import {
   mergeMiniappVisualConfig,
   type MiniappVisualConfigUpdate,
 } from './visual-config';
-import {
-  createIframe,
-  mountIframeVisible,
-  moveIframeToBackground,
-  moveIframeToForeground,
-  removeIframe,
-  enforceBackgroundLimit,
-  cleanupAllIframes,
-} from './iframe-manager';
+import { createContainer, cleanupAllIframeContainers, type ContainerType, type ContainerHandle } from './container';
 import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types';
 import { getBridge } from '../ecosystem/provider';
 import { toastService } from '../toast';
@@ -118,13 +110,17 @@ const initialState: MiniappRuntimeState = {
 
 function attachBioProvider(appId: string): void {
   const app = miniappRuntimeStore.state.apps.get(appId);
-  const iframe = app?.iframeRef;
-  if (!app || !iframe) return;
+  if (!app) return;
+
+  const iframe = app.iframeRef ?? (app.containerHandle?.element as HTMLIFrameElement | undefined);
+  if (!iframe || !(iframe instanceof HTMLIFrameElement)) return;
 
   getBridge().attach(iframe, appId, app.manifest.name, app.manifest.permissions ?? []);
 }
 
-function attachBioProviderToIframe(appId: string, iframe: HTMLIFrameElement, manifest: MiniappManifest): void {
+function attachBioProviderToContainer(appId: string, handle: ContainerHandle, manifest: MiniappManifest): void {
+  if (handle.type !== 'iframe') return;
+  const iframe = handle.element as HTMLIFrameElement;
   getBridge().attach(iframe, appId, manifest.name, manifest.permissions ?? []);
 }
 
@@ -336,8 +332,8 @@ function isElementRectReady(el: HTMLElement | null): boolean {
   return rect.width > 0 && rect.height > 0;
 }
 
-function isIframeReady(iframe: HTMLIFrameElement | null): boolean {
-  return !!iframe && iframe.isConnected;
+function isContainerReady(app: MiniappInstance): boolean {
+  return app.containerHandle?.isConnected() ?? false;
 }
 
 function clearSplashTimeout(appId: string): void {
@@ -429,8 +425,8 @@ function failPreparing(appId: string, message: string): void {
 
   const app = miniappRuntimeStore.state.apps.get(appId);
 
-  if (app?.iframeRef) {
-    removeIframe(app.iframeRef);
+  if (app?.containerHandle) {
+    app.containerHandle.destroy();
   }
 
   miniappRuntimeStore.setState((s) => {
@@ -504,9 +500,9 @@ function startPreparing(appId: string, targetDesktop: MiniappTargetDesktop, hasS
 
     const iconReady = isElementRectReady(getIconRef(appId));
     const slotReady = !!getDesktopAppSlotRect(targetDesktop, appId);
-    const iframeReady = isIframeReady(app.iframeRef);
+    const containerReady = isContainerReady(app);
 
-    if (iconReady && slotReady && iframeReady) {
+    if (iconReady && slotReady && containerReady) {
       cancelPreparing(appId);
       beginLaunchSequence(appId, hasSplash);
       return;
@@ -553,9 +549,8 @@ export function finalizeCloseApp(appId: string): void {
     const app = s.apps.get(appId);
     if (!app) return s;
 
-    // 移除 iframe（在动画完成后才执行）
-    if (app.iframeRef) {
-      removeIframe(app.iframeRef);
+    if (app.containerHandle) {
+      app.containerHandle.destroy();
     }
 
     const newApps = new Map(s.apps);
@@ -596,7 +591,6 @@ export function launchApp(
   const state = miniappRuntimeStore.state;
   const existingApp = state.apps.get(appId);
 
-  // 如果已存在，直接激活
   if (existingApp) {
     attachBioProvider(appId);
     const targetDesktop = existingApp.manifest.targetDesktop ?? 'stack';
@@ -611,8 +605,8 @@ export function launchApp(
   }
 
   const hasSplash = !!manifest.splashScreen;
+  const containerType: ContainerType = manifest.runtime ?? 'iframe';
 
-  // 创建新实例
   const instance: MiniappInstance = {
     appId,
     manifest,
@@ -625,26 +619,29 @@ export function launchApp(
     readiness: 'notReady',
     launchedAt: Date.now(),
     lastActiveAt: Date.now(),
+    containerType,
+    containerHandle: null,
     iframeRef: null,
     iconRef: getIconRef(appId),
   };
 
-  // 创建 iframe
-  instance.iframeRef = createIframe(appId, manifest.url, contextParams);
-
-  // 绑定 BioProvider bridge（用于 window.bio.request + 权限弹窗）
-  attachBioProviderToIframe(appId, instance.iframeRef, manifest);
-
-  // iframe load：无 splash 时作为 ready 信号；有 splash 时只记录 loaded
-  instance.iframeRef.addEventListener('load', () => {
-    updateAppProcessStatus(appId, 'loaded');
-    if (!manifest.splashScreen) {
-      readyGateOpened(appId);
+  createContainer(containerType, {
+    appId,
+    url: manifest.url,
+    contextParams,
+    onLoad: () => {
+      updateAppProcessStatus(appId, 'loaded');
+      if (!manifest.splashScreen) {
+        readyGateOpened(appId);
+      }
+    },
+  }).then((handle) => {
+    instance.containerHandle = handle;
+    if (handle.type === 'iframe') {
+      instance.iframeRef = handle.element as HTMLIFrameElement;
     }
+    attachBioProviderToContainer(appId, handle, manifest);
   });
-
-  // 先挂到可见容器，确保 iframe 一定进入 DOM；MiniappWindow 会再把它移动到自己的容器
-  mountIframeVisible(instance.iframeRef);
 
   const targetDesktop = manifest.targetDesktop ?? 'stack';
   const presentTransition = createTransition('present', appId);
@@ -677,7 +674,6 @@ export function launchApp(
 
   emit({ type: 'app:launch', appId, manifest });
 
-  // 内核准备：等待 icon/slot/iframe 就绪后再进入 launching
   startPreparing(appId, targetDesktop, hasSplash);
 
   return instance;
@@ -699,20 +695,16 @@ export function activateApp(appId: string): void {
   const app = state.apps.get(appId);
   if (!app) return;
 
-  // preparing 阶段只用于资源就绪检查，不允许提前进入 active
   if (app.state === 'preparing') return;
 
-  // 当前激活的应用切换到后台
   if (state.activeAppId && state.activeAppId !== appId) {
     deactivateApp(state.activeAppId);
   }
 
-  // 如果 iframe 在后台，移到前台
-  if (app.iframeRef && app.state === 'background') {
-    moveIframeToForeground(app.iframeRef);
+  if (app.containerHandle && app.state === 'background') {
+    app.containerHandle.moveToForeground();
   }
 
-  // 更新状态
   updateAppState(appId, 'active');
 
   attachBioProvider(appId);
@@ -739,22 +731,30 @@ export function deactivateApp(appId: string): void {
 
   if (app.state === 'preparing') return;
 
-  // 移动 iframe 到后台
-  if (app.iframeRef) {
-    moveIframeToBackground(app.iframeRef);
+  if (app.containerHandle) {
+    app.containerHandle.moveToBackground();
   }
 
-  // 更新状态
   updateAppState(appId, 'background');
 
-  // 检查后台数量限制
-  enforceBackgroundLimit(
-    miniappRuntimeStore.state.apps,
-    miniappRuntimeStore.state.activeAppId,
-    state.maxBackgroundApps,
-  );
+  enforceBackgroundLimitInternal(state.maxBackgroundApps);
 
   emit({ type: 'app:deactivate', appId });
+}
+
+function enforceBackgroundLimitInternal(maxBackground: number): void {
+  const state = miniappRuntimeStore.state;
+  const backgroundApps = Array.from(state.apps.values())
+    .filter((app) => app.appId !== state.activeAppId && app.state === 'background')
+    .toSorted((a, b) => a.lastActiveAt - b.lastActiveAt);
+
+  while (backgroundApps.length > maxBackground) {
+    const oldest = backgroundApps.shift();
+    if (oldest?.containerHandle) {
+      oldest.containerHandle.destroy();
+      oldest.containerHandle = null;
+    }
+  }
 }
 
 /**
@@ -834,7 +834,7 @@ export function closeAllApps(): void {
     closeApp(appId);
     finalizeCloseApp(appId);
   });
-  cleanupAllIframes();
+  cleanupAllIframeContainers();
 }
 
 /**
