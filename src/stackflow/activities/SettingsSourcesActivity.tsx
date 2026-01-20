@@ -3,111 +3,98 @@
  * 管理小程序订阅源
  */
 
-import { useState } from 'react'
-import type { ActivityComponentType } from '@stackflow/react'
-import { AppScreen } from '@stackflow/plugin-basic-ui'
-import { useTranslation } from 'react-i18next'
-import { useStore } from '@tanstack/react-store'
-import { cn } from '@/lib/utils'
-import {
-  IconPlus,
-  IconTrash,
-  IconRefresh,
-  IconCheck,
-  IconX,
-  IconWorld,
-  IconArrowLeft,
-} from '@tabler/icons-react'
-import { ecosystemStore, ecosystemActions, type SourceRecord } from '@/stores/ecosystem'
-import { refreshSources } from '@/services/ecosystem/registry'
-import { useFlow } from '../stackflow'
+import { useState } from 'react';
+import type { ActivityComponentType } from '@stackflow/react';
+import { AppScreen } from '@stackflow/plugin-basic-ui';
+import { useTranslation } from 'react-i18next';
+import { useStore } from '@tanstack/react-store';
+import { cn } from '@/lib/utils';
+import { IconPlus, IconTrash, IconRefresh, IconCheck, IconX, IconWorld, IconArrowLeft } from '@tabler/icons-react';
+import { ecosystemStore, ecosystemActions, type SourceRecord } from '@/stores/ecosystem';
+import { refreshSources } from '@/services/ecosystem/registry';
+import { useFlow } from '../stackflow';
 
 export const SettingsSourcesActivity: ActivityComponentType = () => {
-  const { t } = useTranslation('common')
-  const { pop } = useFlow()
-  const state = useStore(ecosystemStore)
+  const { t } = useTranslation('common');
+  const { pop } = useFlow();
+  const state = useStore(ecosystemStore);
 
-  const [isAdding, setIsAdding] = useState(false)
-  const [newUrl, setNewUrl] = useState('')
-  const [newName, setNewName] = useState('')
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false);
+  const [newUrl, setNewUrl] = useState('');
+  const [newName, setNewName] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = async () => {
     if (!newUrl.trim()) {
-      setError('请输入订阅 URL')
-      return
+      setError(t('sources.enterUrl'));
+      return;
     }
 
     // 验证 URL
     try {
-      new URL(newUrl)
+      new URL(newUrl);
     } catch {
-      setError('无效的 URL 格式')
-      return
+      setError(t('sources.invalidUrl'));
+      return;
     }
 
     // 检查是否已存在
     if (state.sources.some((s) => s.url === newUrl)) {
-      setError('该订阅源已存在')
-      return
+      setError(t('sources.alreadyExists'));
+      return;
     }
 
-    ecosystemActions.addSource(newUrl, newName || '自定义源')
-    setNewUrl('')
-    setNewName('')
-    setIsAdding(false)
-    setError(null)
-  }
+    ecosystemActions.addSource(newUrl, newName || t('sources.customSource'));
+    setNewUrl('');
+    setNewName('');
+    setIsAdding(false);
+    setError(null);
+  };
 
   const handleRemove = (url: string) => {
-    ecosystemActions.removeSource(url)
-  }
+    ecosystemActions.removeSource(url);
+  };
 
   const handleToggle = (url: string) => {
-    ecosystemActions.toggleSource(url)
-  }
+    ecosystemActions.toggleSource(url);
+  };
 
   const handleRefresh = async () => {
-    setIsRefreshing(true)
+    setIsRefreshing(true);
     try {
-      await refreshSources()
-    } catch (e) {
-      
-    }
-    setIsRefreshing(false)
-  }
+      await refreshSources();
+    } catch (e) {}
+    setIsRefreshing(false);
+  };
 
   return (
     <AppScreen>
-      <div className="flex flex-col min-h-full bg-background">
+      <div className="bg-background flex min-h-full flex-col">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="bg-background sticky top-0 z-10 border-b">
           <div className="flex items-center gap-3 px-4 py-3">
             <button
               onClick={() => pop()}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              aria-label={t('back', '返回')}
+              className="hover:bg-muted rounded-full p-1.5 transition-colors"
+              aria-label={t('back')}
             >
               <IconArrowLeft className="size-5" stroke={1.5} />
             </button>
-            <h1 className="flex-1 text-lg font-semibold">可信源管理</h1>
+            <h1 className="flex-1 text-lg font-semibold">{t('sources.title')}</h1>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              aria-label={t('refresh', '刷新')}
+              className="hover:bg-muted rounded-full p-1.5 transition-colors"
+              aria-label={t('refresh')}
             >
-              <IconRefresh
-                className={cn('size-5', isRefreshing && 'animate-spin')}
-                stroke={1.5}
-              />
+              <IconRefresh className={cn('size-5', isRefreshing && 'animate-spin')} stroke={1.5} />
             </button>
           </div>
         </div>
 
         {/* Sources List */}
-        <div className="flex-1 p-4 space-y-3">
+        <div className="flex-1 space-y-3 p-4">
           {state.sources.map((source) => (
             <SourceItem
               key={source.url}
@@ -117,54 +104,47 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
             />
           ))}
 
-          {state.sources.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              暂无订阅源
-            </div>
-          )}
+          {state.sources.length === 0 && <div className="text-muted-foreground py-12 text-center">暂无订阅源</div>}
         </div>
 
         {/* Add Source */}
         {isAdding ? (
-          <div className="border-t p-4 bg-background space-y-3">
+          <div className="bg-background space-y-3 border-t p-4">
             <input
               type="url"
               value={newUrl}
               onChange={(e) => {
-                setNewUrl(e.target.value)
-                setError(null)
+                setNewUrl(e.target.value);
+                setError(null);
               }}
-              placeholder="订阅 URL (https://...)"
-              className="w-full px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              
+              placeholder={t('sources.urlPlaceholder')}
+              className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
             />
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="名称 (可选)"
-              className="w-full px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t('sources.namePlaceholder')}
+              className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  setIsAdding(false)
-                  setNewUrl('')
-                  setNewName('')
-                  setError(null)
+                  setIsAdding(false);
+                  setNewUrl('');
+                  setNewName('');
+                  setError(null);
                 }}
-                className="flex-1 py-2 rounded-lg bg-muted hover:bg-muted/80 font-medium"
+                className="bg-muted hover:bg-muted/80 flex-1 rounded-lg py-2 font-medium"
               >
-                取消
+                {t('cancel')}
               </button>
               <button
                 onClick={handleAdd}
-                className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-lg py-2 font-medium"
               >
-                添加
+                {t('add')}
               </button>
             </div>
           </div>
@@ -172,10 +152,10 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
           <div className="border-t p-4">
             <button
               onClick={() => setIsAdding(true)}
-              className="w-full py-3 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+              className="border-muted-foreground/30 hover:border-primary hover:bg-primary/5 text-muted-foreground hover:text-primary flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 transition-colors"
             >
               <IconPlus className="size-5" stroke={1.5} />
-              <span>添加订阅源</span>
+              <span>{t('sources.addSource')}</span>
             </button>
           </div>
         )}
@@ -184,74 +164,61 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
     </AppScreen>
-  )
-}
+  );
+};
 
 interface SourceItemProps {
-  source: SourceRecord
-  onToggle: () => void
-  onRemove: () => void
+  source: SourceRecord;
+  onToggle: () => void;
+  onRemove: () => void;
 }
 
 function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
-  const isDefault = source.url === '/ecosystem.json'
+  const isDefault = source.url === '/ecosystem.json';
 
   return (
     <div
-      className={cn(
-        'rounded-xl border p-4 transition-colors',
-        source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60'
-      )}
+      className={cn('rounded-xl border p-4 transition-colors', source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60')}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className="rounded-full bg-primary/10 p-2 shrink-0">
-          <IconWorld className="size-5 text-primary" />
+        <div className="bg-primary/10 shrink-0 rounded-full p-2">
+          <IconWorld className="text-primary size-5" />
         </div>
 
         {/* Info */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium truncate">{source.name}</h3>
-            {isDefault && (
-              <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                官方
-              </span>
-            )}
+            <h3 className="truncate font-medium">{source.name}</h3>
+            {isDefault && <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">官方</span>}
           </div>
-          <p className="text-sm text-muted-foreground truncate mt-0.5">
-            {source.url}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-0.5 truncate text-sm">{source.url}</p>
+          <p className="text-muted-foreground mt-1 text-xs">
             更新于 {new Date(source.lastUpdated).toLocaleDateString()}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex shrink-0 items-center gap-1">
           {/* Toggle */}
           <button
             onClick={onToggle}
             className={cn(
-              'p-2 rounded-full transition-colors',
+              'rounded-full p-2 transition-colors',
               source.enabled
                 ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
             aria-label={source.enabled ? '禁用' : '启用'}
           >
-            {source.enabled ? (
-              <IconCheck className="size-4" stroke={2} />
-            ) : (
-              <IconX className="size-4" stroke={2} />
-            )}
+            {source.enabled ? <IconCheck className="size-4" stroke={2} /> : <IconX className="size-4" stroke={2} />}
           </button>
 
           {/* Remove (not for default) */}
           {!isDefault && (
             <button
               onClick={onRemove}
-              className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full p-2 transition-colors"
               aria-label="删除"
             >
               <IconTrash className="size-4" stroke={1.5} />
@@ -260,5 +227,5 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

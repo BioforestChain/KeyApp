@@ -464,5 +464,25 @@
   "requestsAccess": "requests access",
   "noWalletsForChain": "No wallets support {{chain}}",
   "noWallets": "No wallets",
-  "requestsDestroy": "requests destruction"
+  "requestsDestroy": "requests destruction",
+  "transferWarning": "Please verify the recipient address and amount. Transfers cannot be reversed.",
+  "confirming": "Confirming...",
+  "drawPatternToConfirm": "Draw pattern to confirm",
+  "selectWallet": "Select Wallet",
+  "sources": {
+    "title": "Trusted Sources",
+    "noSources": "No sources",
+    "urlPlaceholder": "Subscription URL (https://...)",
+    "namePlaceholder": "Name (optional)",
+    "addSource": "Add source",
+    "official": "Official",
+    "updatedAt": "Updated {{date}}",
+    "enterUrl": "Please enter subscription URL",
+    "invalidUrl": "Invalid URL format",
+    "alreadyExists": "This source already exists",
+    "customSource": "Custom source"
+  },
+  "enable": "Enable",
+  "disable": "Disable",
+  "refresh": "Refresh"
 }

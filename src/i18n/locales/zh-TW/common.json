@@ -43,7 +43,7 @@
   "accountFromMime": "account from mime",
   "accountWorks": "account works!",
   "acquisitionTime": "入手時間",
-  "add": "新增",
+  "add": "添加",
   "addressBook": {
     "addContact": "新增聯繫人",
     "addresses": "地址",
@@ -464,5 +464,25 @@
   "requestsAccess": "請求訪問",
   "noWalletsForChain": "暫無支援 {{chain}} 的錢包",
   "noWallets": "暫無錢包",
-  "requestsDestroy": "請求銷毀"
+  "requestsDestroy": "請求銷毀",
+  "transferWarning": "請仔細核對收款地址和金額，轉帳後無法撤回。",
+  "confirming": "確認中...",
+  "drawPatternToConfirm": "請繪製手勢密碼確認",
+  "selectWallet": "選擇錢包",
+  "sources": {
+    "title": "可信源管理",
+    "noSources": "暫無訂閱源",
+    "urlPlaceholder": "訂閱 URL (https://...)",
+    "namePlaceholder": "名稱 (可選)",
+    "addSource": "添加訂閱源",
+    "official": "官方",
+    "updatedAt": "更新於 {{date}}",
+    "enterUrl": "請輸入訂閱 URL",
+    "invalidUrl": "無效的 URL 格式",
+    "alreadyExists": "該訂閱源已存在",
+    "customSource": "自定義源"
+  },
+  "enable": "啟用",
+  "disable": "禁用",
+  "refresh": "刷新"
 }

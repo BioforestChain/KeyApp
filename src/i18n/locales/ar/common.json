@@ -43,7 +43,7 @@
   "accountFromMime": "account from mime",
   "accountWorks": "account works!",
   "acquisitionTime": "Acquisition time",
-  "add": "Add",
+  "add": "إضافة",
   "addressBook": {
     "addContact": "إضافة جهة اتصال",
     "addresses": "العناوين",
@@ -174,7 +174,7 @@
     "today": "اليوم",
     "yesterday": "أمس"
   },
-  "delete": "Delete",
+  "delete": "حذف",
   "destroy": "Destroy",
   "done": "Done",
   "download": "تحميل",
@@ -464,5 +464,25 @@
   "requestsAccess": "يطلب الوصول",
   "noWalletsForChain": "لا توجد محافظ تدعم {{chain}}",
   "noWallets": "لا توجد محافظ",
-  "requestsDestroy": "يطلب التدمير"
+  "requestsDestroy": "يطلب التدمير",
+  "transferWarning": "يرجى التحقق من عنوان المستلم والمبلغ. لا يمكن إلغاء التحويلات.",
+  "confirming": "جاري التأكيد...",
+  "drawPatternToConfirm": "ارسم النمط للتأكيد",
+  "selectWallet": "اختر المحفظة",
+  "sources": {
+    "title": "إدارة المصادر الموثوقة",
+    "noSources": "لا توجد مصادر",
+    "urlPlaceholder": "عنوان URL للاشتراك (https://...)",
+    "namePlaceholder": "الاسم (اختياري)",
+    "addSource": "إضافة مصدر",
+    "official": "رسمي",
+    "updatedAt": "تم التحديث {{date}}",
+    "enterUrl": "يرجى إدخال عنوان URL للاشتراك",
+    "invalidUrl": "تنسيق URL غير صالح",
+    "alreadyExists": "هذا المصدر موجود بالفعل",
+    "customSource": "مصدر مخصص"
+  },
+  "enable": "تمكين",
+  "disable": "تعطيل",
+  "refresh": "تحديث"
 }

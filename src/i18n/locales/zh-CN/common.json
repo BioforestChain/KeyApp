@@ -126,7 +126,7 @@
   "accountFromMime": "account from mime",
   "accountWorks": "account works!",
   "acquisitionTime": "入手时间",
-  "add": "新增",
+  "add": "添加",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "先进加密技术 &lt;br /&gt; 数字财富更安全",
   "afterConfirmation_{appName}WillDeleteAllLocalDataTips": "确定后，将删除所有本地钱包数据，所有钱包将从本地移除，确定退出？",
   "album": "相册",
@@ -464,5 +464,25 @@
   "requestsAccess": "请求访问",
   "noWalletsForChain": "暂无支持 {{chain}} 的钱包",
   "noWallets": "暂无钱包",
-  "requestsDestroy": "请求销毁"
+  "requestsDestroy": "请求销毁",
+  "transferWarning": "请仔细核对收款地址和金额，转账后无法撤回。",
+  "confirming": "确认中...",
+  "drawPatternToConfirm": "请绘制手势密码确认",
+  "selectWallet": "选择钱包",
+  "sources": {
+    "title": "可信源管理",
+    "noSources": "暂无订阅源",
+    "urlPlaceholder": "订阅 URL (https://...)",
+    "namePlaceholder": "名称 (可选)",
+    "addSource": "添加订阅源",
+    "official": "官方",
+    "updatedAt": "更新于 {{date}}",
+    "enterUrl": "请输入订阅 URL",
+    "invalidUrl": "无效的 URL 格式",
+    "alreadyExists": "该订阅源已存在",
+    "customSource": "自定义源"
+  },
+  "enable": "启用",
+  "disable": "禁用",
+  "refresh": "刷新"
 }
