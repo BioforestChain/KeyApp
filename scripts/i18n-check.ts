@@ -42,9 +42,14 @@ const SOURCE_EXCLUDE_PATTERNS = [
   '**/*.test.tsx',
   '**/*.spec.ts', // 规格测试
   '**/*.spec.tsx',
+  '**/*.stories.ts', // Storybook 故事
+  '**/*.stories.tsx',
   '**/test/**', // 测试工具目录
   '**/__tests__/**', // Jest 测试目录
   '**/__mocks__/**', // Mock 目录
+  '**/services/*/types.ts', // Zod schema 描述 (开发者文档)
+  '**/services/*/types.*.ts', // Zod schema 描述变体
+  '**/mock-devtools/**', // 开发工具
 ];
 
 // Reference locale (source of truth for keys)
