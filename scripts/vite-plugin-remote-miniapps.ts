@@ -13,14 +13,12 @@ import { resolve, join } from 'node:path'
 import { existsSync, readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } from 'node:fs'
 import { createServer } from 'node:http'
 import type JSZipType from 'jszip'
-import { fetchWithEtag } from './utils/fetch-with-etag'
+import { fetchWithEtag, type FetchWithEtagOptions } from './utils/fetch-with-etag'
 
 // ==================== Types ====================
 
 interface RemoteMiniappConfig {
-  /** 远程 metadata.json URL (包含 version, zipUrl, manifestUrl) */
   metadataUrl: string
-  /** 解压到 miniapps/ 下的目录名 */
   dirName: string
 }
 
@@ -34,10 +32,10 @@ interface RemoteMetadata {
 }
 
 interface RemoteMiniappsPluginOptions {
-  /** 远程 miniapp 配置列表 */
   miniapps: RemoteMiniappConfig[]
-  /** miniapps 目录 (相对于项目根目录) */
   miniappsDir?: string
+  timeout?: number
+  retries?: number
 }
 
 interface MiniappManifest {
@@ -75,11 +73,13 @@ interface RemoteMiniappServer {
 // ==================== Plugin ====================
 
 export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plugin {
-  const { miniapps, miniappsDir = 'miniapps' } = options
+  const { miniapps, miniappsDir = 'miniapps', timeout = 60000, retries = 3 } = options
+  const fetchOptions: FetchWithEtagOptions = { timeout, retries }
 
   let root: string
   let isBuild = false
   const servers: RemoteMiniappServer[] = []
+  const downloadFailures: string[] = []
 
   return {
     name: 'vite-plugin-remote-miniapps',
@@ -94,9 +94,21 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
       const miniappsPath = resolve(root, miniappsDir)
 
-      // 下载并解压所有远程 miniapps
       for (const config of miniapps) {
-        await downloadAndExtract(config, miniappsPath)
+        try {
+          await downloadAndExtract(config, miniappsPath, fetchOptions)
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : String(err)
+          console.error(`[remote-miniapps] ❌ Failed to download ${config.dirName}: ${errorMsg}`)
+          downloadFailures.push(config.dirName)
+        }
+      }
+
+      if (downloadFailures.length > 0 && isBuild) {
+        throw new Error(
+          `[remote-miniapps] Build aborted: failed to download remote miniapps: ${downloadFailures.join(', ')}. ` +
+          `Check network connectivity to remote servers.`
+        )
       }
     },
 
@@ -105,8 +117,8 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
       const miniappsPath = resolve(root, miniappsDir)
       const miniappsOutputDir = resolve(outputOptions.dir, 'miniapps')
+      const missing: string[] = []
 
-      // 复制远程 miniapps 到 dist
       for (const config of miniapps) {
         const srcDir = join(miniappsPath, config.dirName)
         const destDir = join(miniappsOutputDir, config.dirName)
@@ -114,8 +126,17 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
         if (existsSync(srcDir)) {
           mkdirSync(destDir, { recursive: true })
           cpSync(srcDir, destDir, { recursive: true })
-          console.log(`[remote-miniapps] Copied ${config.dirName} to dist`)
+          console.log(`[remote-miniapps] ✅ Copied ${config.dirName} to dist`)
+        } else {
+          missing.push(config.dirName)
         }
+      }
+
+      if (missing.length > 0) {
+        throw new Error(
+          `[remote-miniapps] Build failed: missing miniapps in output: ${missing.join(', ')}. ` +
+          `Remote miniapps were not downloaded successfully.`
+        )
       }
     },
 
@@ -124,9 +145,14 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
       const miniappsPath = resolve(root, miniappsDir)
 
-      // 先下载所有远程 miniapps (dev 模式下 buildStart 之后才执行 configureServer)
       for (const config of miniapps) {
-        await downloadAndExtract(config, miniappsPath)
+        try {
+          await downloadAndExtract(config, miniappsPath, fetchOptions)
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : String(err)
+          console.warn(`[remote-miniapps] ⚠️ Failed to download ${config.dirName} (dev mode): ${errorMsg}`)
+          continue
+        }
       }
 
       // 启动静态服务器为每个远程 miniapp
@@ -181,29 +207,22 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
 // ==================== Helpers ====================
 
-/**
- * 下载并解压远程 miniapp
- */
 async function downloadAndExtract(
   config: RemoteMiniappConfig,
-  miniappsPath: string
+  miniappsPath: string,
+  fetchOptions: FetchWithEtagOptions = {}
 ): Promise<void> {
   const targetDir = join(miniappsPath, config.dirName)
 
   console.log(`[remote-miniapps] Syncing ${config.dirName}...`)
 
-  // 1. 下载 metadata.json (获取最新版本信息)
-  // fetchWithEtag 会根据 ETag 决定是否使用缓存
-  const metadataBuffer = await fetchWithEtag(config.metadataUrl)
+  const metadataBuffer = await fetchWithEtag(config.metadataUrl, fetchOptions)
   const metadata = JSON.parse(metadataBuffer.toString('utf-8')) as RemoteMetadata
 
-  // 检查本地是否已有相同版本且 zip 的 ETag 没变
-  // 通过比较本地 manifest 中存储的 zipEtag 来判断
   const localManifestPath = join(targetDir, 'manifest.json')
   if (existsSync(localManifestPath)) {
     const localManifest = JSON.parse(readFileSync(localManifestPath, 'utf-8')) as MiniappManifest & { _zipEtag?: string }
     if (localManifest.version === metadata.version && localManifest._zipEtag) {
-      // 检查远程 zip 的 ETag 是否变化
       const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '')
       const zipUrl = metadata.zipUrl.startsWith('.')
         ? `${baseUrl}/${metadata.zipUrl.slice(2)}`
@@ -217,12 +236,11 @@ async function downloadAndExtract(
         }
         console.log(`[remote-miniapps] ${config.dirName} zip changed (etag: ${localManifest._zipEtag} -> ${remoteEtag})`)
       } catch {
-        // HEAD 请求失败，继续下载
+        // HEAD request failed, continue with download
       }
     }
   }
 
-  // 2. 解析相对 URL
   const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '')
   const manifestUrl = metadata.manifestUrl.startsWith('.')
     ? `${baseUrl}/${metadata.manifestUrl.slice(2)}`
@@ -231,22 +249,18 @@ async function downloadAndExtract(
     ? `${baseUrl}/${metadata.zipUrl.slice(2)}`
     : metadata.zipUrl
 
-  // 3. 下载 manifest.json
-  const manifestBuffer = await fetchWithEtag(manifestUrl)
+  const manifestBuffer = await fetchWithEtag(manifestUrl, fetchOptions)
   const manifest = JSON.parse(manifestBuffer.toString('utf-8')) as MiniappManifest
 
-  // 4. 下载 zip 并获取 ETag
   const zipHeadResponse = await fetch(zipUrl, { method: 'HEAD' })
   const zipEtag = zipHeadResponse.headers.get('etag') || ''
-  const zipBuffer = await fetchWithEtag(zipUrl)
+  const zipBuffer = await fetchWithEtag(zipUrl, fetchOptions)
 
-  // 5. 清理旧目录
   if (existsSync(targetDir)) {
     rmSync(targetDir, { recursive: true })
   }
   mkdirSync(targetDir, { recursive: true })
 
-  // 6. 解压 zip
   const JSZip = (await import('jszip')).default
   const zip = await JSZip.loadAsync(zipBuffer)
   for (const [relativePath, file] of Object.entries(zip.files) as [
@@ -263,7 +277,6 @@ async function downloadAndExtract(
     }
   }
 
-  // 7. 写入 manifest.json (确保包含 dirName 和 _zipEtag 用于增量更新检测)
   const manifestWithDir = { ...manifest, dirName: config.dirName, _zipEtag: zipEtag }
   writeFileSync(localManifestPath, JSON.stringify(manifestWithDir, null, 2))
 
