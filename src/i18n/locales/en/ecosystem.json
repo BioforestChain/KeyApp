@@ -14,12 +14,68 @@
     "title": "Permission Request",
     "grant": "Grant",
     "deny": "Deny",
-    "bio_requestAccounts": "Access wallet addresses",
-    "bio_selectAccount": "Select account",
-    "bio_pickWallet": "Select another wallet",
-    "bio_signMessage": "Sign message",
-    "bio_signTypedData": "Sign typed data",
-    "bio_sendTransaction": "Send Transaction"
+    "defaultDescription": "This app may access this feature",
+    "unknown": "Unknown permission",
+    "bio_requestAccounts": {
+      "name": "Request Accounts",
+      "description": "Access your wallet address list"
+    },
+    "bio_accounts": {
+      "name": "Get Accounts",
+      "description": "Get connected account list"
+    },
+    "bio_selectAccount": {
+      "name": "Select Account",
+      "description": "Let you select an account"
+    },
+    "bio_pickWallet": {
+      "name": "Select Wallet",
+      "description": "Let you select a wallet"
+    },
+    "bio_chainId": {
+      "name": "Get Chain ID",
+      "description": "Get current blockchain network"
+    },
+    "bio_getBalance": {
+      "name": "Query Balance",
+      "description": "Query account balance"
+    },
+    "bio_createTransaction": {
+      "name": "Create Transaction",
+      "description": "Construct unsigned transaction (no signing/broadcasting)"
+    },
+    "bio_signMessage": {
+      "name": "Sign Message",
+      "description": "Sign message with your private key (requires confirmation)"
+    },
+    "bio_signTypedData": {
+      "name": "Sign Typed Data",
+      "description": "Sign structured data (requires confirmation)"
+    },
+    "bio_signTransaction": {
+      "name": "Sign Transaction",
+      "description": "Sign unsigned transaction (requires confirmation)"
+    },
+    "bio_sendTransaction": {
+      "name": "Send Transaction",
+      "description": "Request to send transfer (requires confirmation)"
+    },
+    "bio_destroyAsset": {
+      "name": "Destroy Asset",
+      "description": "Request to destroy asset (requires confirmation, irreversible)"
+    },
+    "bio_requestCryptoToken": {
+      "name": "Request Crypto Authorization",
+      "description": "Request authorization for crypto operations (requires confirmation)"
+    },
+    "bio_cryptoExecute": {
+      "name": "Execute Crypto Operation",
+      "description": "Execute crypto operation with authorized token"
+    },
+    "bio_getCryptoTokenInfo": {
+      "name": "Query Authorization Info",
+      "description": "Query authorized token information"
+    }
   },
   "discover": {
     "featured": "Featured",
@@ -55,5 +111,36 @@
   "capsule": {
     "more": "More Options",
     "close": "Close App"
+  },
+  "detail": {
+    "notFound": "App not found",
+    "back": "Back",
+    "open": "Open",
+    "get": "Get",
+    "unknownDeveloper": "Unknown Developer",
+    "preview": "Preview",
+    "supportedChains": "Supported Blockchains",
+    "privacy": "App Privacy",
+    "privacyHint": "The developer indicates this app may request the following permissions",
+    "tags": "Tags",
+    "info": "Information",
+    "developer": "Developer",
+    "version": "Version",
+    "category": "Category",
+    "publishedAt": "Published",
+    "updatedAt": "Updated",
+    "website": "Developer Website",
+    "visit": "Visit",
+    "more": "More",
+    "collapse": "Less",
+    "categories": {
+      "defi": "DeFi",
+      "nft": "NFT",
+      "tools": "Tools",
+      "games": "Games",
+      "social": "Social",
+      "exchange": "Exchange",
+      "other": "Other"
+    }
   }
 }

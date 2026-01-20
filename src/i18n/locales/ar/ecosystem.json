@@ -14,12 +14,68 @@
     "title": "طلب إذن",
     "grant": "منح",
     "deny": "رفض",
-    "bio_requestAccounts": "الوصول إلى عناوين المحفظة",
-    "bio_selectAccount": "حدد الحساب",
-    "bio_pickWallet": "اختر محفظة أخرى",
-    "bio_signMessage": "توقيع الرسالة",
-    "bio_signTypedData": "توقيع البيانات المكتوبة",
-    "bio_sendTransaction": "بدء المعاملة"
+    "defaultDescription": "قد يصل هذا التطبيق إلى هذه الميزة",
+    "unknown": "إذن غير معروف",
+    "bio_requestAccounts": {
+      "name": "طلب الحسابات",
+      "description": "الوصول إلى قائمة عناوين محفظتك"
+    },
+    "bio_accounts": {
+      "name": "الحصول على الحسابات",
+      "description": "الحصول على قائمة الحسابات المتصلة"
+    },
+    "bio_selectAccount": {
+      "name": "اختيار الحساب",
+      "description": "السماح لك باختيار حساب"
+    },
+    "bio_pickWallet": {
+      "name": "اختيار المحفظة",
+      "description": "السماح لك باختيار محفظة"
+    },
+    "bio_chainId": {
+      "name": "الحصول على معرف السلسلة",
+      "description": "الحصول على شبكة البلوكشين الحالية"
+    },
+    "bio_getBalance": {
+      "name": "الاستعلام عن الرصيد",
+      "description": "الاستعلام عن رصيد الحساب"
+    },
+    "bio_createTransaction": {
+      "name": "إنشاء معاملة",
+      "description": "إنشاء معاملة غير موقعة (بدون توقيع/بث)"
+    },
+    "bio_signMessage": {
+      "name": "توقيع الرسالة",
+      "description": "توقيع رسالة بمفتاحك الخاص (يتطلب التأكيد)"
+    },
+    "bio_signTypedData": {
+      "name": "توقيع البيانات",
+      "description": "توقيع البيانات المهيكلة (يتطلب التأكيد)"
+    },
+    "bio_signTransaction": {
+      "name": "توقيع المعاملة",
+      "description": "توقيع معاملة غير موقعة (يتطلب التأكيد)"
+    },
+    "bio_sendTransaction": {
+      "name": "إرسال المعاملة",
+      "description": "طلب إرسال تحويل (يتطلب التأكيد)"
+    },
+    "bio_destroyAsset": {
+      "name": "تدمير الأصول",
+      "description": "طلب تدمير الأصول (يتطلب التأكيد، لا رجعة فيه)"
+    },
+    "bio_requestCryptoToken": {
+      "name": "طلب تفويض التشفير",
+      "description": "طلب التفويض لعمليات التشفير (يتطلب التأكيد)"
+    },
+    "bio_cryptoExecute": {
+      "name": "تنفيذ عملية التشفير",
+      "description": "تنفيذ عملية التشفير باستخدام الرمز المفوض"
+    },
+    "bio_getCryptoTokenInfo": {
+      "name": "الاستعلام عن معلومات التفويض",
+      "description": "الاستعلام عن معلومات الرمز المفوض"
+    }
   },
   "discover": {
     "featured": "التطبيقات المميزة",
@@ -55,5 +111,36 @@
   "capsule": {
     "more": "المزيد من الخيارات",
     "close": "إغلاق التطبيق"
+  },
+  "detail": {
+    "notFound": "التطبيق غير موجود",
+    "back": "رجوع",
+    "open": "فتح",
+    "get": "الحصول",
+    "unknownDeveloper": "مطور غير معروف",
+    "preview": "معاينة",
+    "supportedChains": "سلاسل الكتل المدعومة",
+    "privacy": "خصوصية التطبيق",
+    "privacyHint": "يشير المطور إلى أن هذا التطبيق قد يطلب الأذونات التالية",
+    "tags": "العلامات",
+    "info": "معلومات",
+    "developer": "المطور",
+    "version": "الإصدار",
+    "category": "الفئة",
+    "publishedAt": "تاريخ النشر",
+    "updatedAt": "تاريخ التحديث",
+    "website": "موقع المطور",
+    "visit": "زيارة",
+    "more": "المزيد",
+    "collapse": "أقل",
+    "categories": {
+      "defi": "DeFi",
+      "nft": "NFT",
+      "tools": "أدوات",
+      "games": "ألعاب",
+      "social": "اجتماعي",
+      "exchange": "تبادل",
+      "other": "أخرى"
+    }
   }
 }

@@ -14,12 +14,68 @@
     "title": "權限請求",
     "grant": "授權",
     "deny": "拒絕",
-    "bio_requestAccounts": "存取錢包地址",
-    "bio_selectAccount": "選擇帳戶",
-    "bio_pickWallet": "選擇其他錢包",
-    "bio_signMessage": "簽名消息",
-    "bio_signTypedData": "簽名數據",
-    "bio_sendTransaction": "發起交易"
+    "defaultDescription": "此應用可能存取此功能",
+    "unknown": "未知權限",
+    "bio_requestAccounts": {
+      "name": "請求帳戶",
+      "description": "獲取您的錢包地址列表"
+    },
+    "bio_accounts": {
+      "name": "獲取帳戶",
+      "description": "獲取已連接的帳戶列表"
+    },
+    "bio_selectAccount": {
+      "name": "選擇帳戶",
+      "description": "讓您選擇一個帳戶"
+    },
+    "bio_pickWallet": {
+      "name": "選擇錢包",
+      "description": "讓您選擇一個錢包"
+    },
+    "bio_chainId": {
+      "name": "獲取鏈 ID",
+      "description": "獲取當前區塊鏈網路"
+    },
+    "bio_getBalance": {
+      "name": "查詢餘額",
+      "description": "查詢帳戶餘額"
+    },
+    "bio_createTransaction": {
+      "name": "建立交易",
+      "description": "構造未簽名交易（不做簽名/不做廣播）"
+    },
+    "bio_signMessage": {
+      "name": "簽名消息",
+      "description": "使用您的私鑰簽名消息（需要您確認）"
+    },
+    "bio_signTypedData": {
+      "name": "簽名數據",
+      "description": "簽名結構化數據（需要您確認）"
+    },
+    "bio_signTransaction": {
+      "name": "簽名交易",
+      "description": "對未簽名交易進行簽名（需要您確認）"
+    },
+    "bio_sendTransaction": {
+      "name": "發送交易",
+      "description": "請求發送轉帳（需要您確認）"
+    },
+    "bio_destroyAsset": {
+      "name": "銷毀資產",
+      "description": "請求銷毀資產（需要您確認，不可撤銷）"
+    },
+    "bio_requestCryptoToken": {
+      "name": "請求加密授權",
+      "description": "請求授權進行加密操作（需要您確認）"
+    },
+    "bio_cryptoExecute": {
+      "name": "執行加密操作",
+      "description": "使用已授權的 Token 執行加密操作"
+    },
+    "bio_getCryptoTokenInfo": {
+      "name": "查詢授權資訊",
+      "description": "查詢已授權 Token 的資訊"
+    }
   },
   "discover": {
     "featured": "精選應用",
@@ -55,5 +111,36 @@
   "capsule": {
     "more": "更多操作",
     "close": "關閉應用"
+  },
+  "detail": {
+    "notFound": "應用不存在",
+    "back": "返回",
+    "open": "開啟",
+    "get": "獲取",
+    "unknownDeveloper": "未知開發者",
+    "preview": "預覽",
+    "supportedChains": "支援的區塊鏈",
+    "privacy": "應用隱私",
+    "privacyHint": "開發者聲明此應用可能會請求以下權限",
+    "tags": "標籤",
+    "info": "資訊",
+    "developer": "開發者",
+    "version": "版本",
+    "category": "類別",
+    "publishedAt": "發布日期",
+    "updatedAt": "更新日期",
+    "website": "開發者網站",
+    "visit": "訪問",
+    "more": "更多",
+    "collapse": "收起",
+    "categories": {
+      "defi": "DeFi",
+      "nft": "NFT",
+      "tools": "工具",
+      "games": "遊戲",
+      "social": "社交",
+      "exchange": "交易所",
+      "other": "其他"
+    }
   }
 }
