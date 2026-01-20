@@ -1,14 +1,7 @@
-/**
- * Swiper 同步 Context
- * 
- * 简单存储 Swiper 实例，让组件使用 Controller 模块自动同步
- */
-
 import {
   createContext,
   useContext,
   useRef,
-  useState,
   useCallback,
   useEffect,
   type ReactNode,
@@ -16,18 +9,18 @@ import {
 } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
 
-/** Swiper 同步 Context 值 */
+interface SwiperMemberState {
+  swiper: SwiperType;
+  initialIndex: number;
+}
+
 interface SwiperSyncContextValue {
-  /** Swiper 实例注册表 */
-  swipersRef: MutableRefObject<Map<string, SwiperType>>;
-  /** 监听器注册表 */
-  listenersRef: MutableRefObject<Set<() => void>>;
-  /** 注册 Swiper */
-  register: (id: string, swiper: SwiperType) => void;
-  /** 注销 Swiper */
+  membersRef: MutableRefObject<Map<string, SwiperMemberState>>;
+  readyPairsRef: MutableRefObject<Set<string>>;
+  register: (id: string, state: SwiperMemberState) => void;
   unregister: (id: string) => void;
-  /** 订阅变更 */
-  subscribe: (listener: () => void) => () => void;
+  tryConnect: (selfId: string, targetId: string) => void;
+  isReady: (selfId: string, targetId: string) => boolean;
 }
 
 const SwiperSyncContext = createContext<SwiperSyncContextValue | null>(null);
@@ -36,87 +29,100 @@ interface SwiperSyncProviderProps {
   children: ReactNode;
 }
 
-/**
- * Swiper 同步 Provider
- */
-export function SwiperSyncProvider({ children }: SwiperSyncProviderProps) {
-  const swipersRef = useRef<Map<string, SwiperType>>(new Map());
-  const listenersRef = useRef<Set<() => void>>(new Set());
+const getPairKey = (id1: string, id2: string) => [id1, id2].sort().join(':');
 
-  const notify = useCallback(() => {
-    listenersRef.current.forEach(listener => listener());
+export function SwiperSyncProvider({ children }: SwiperSyncProviderProps) {
+  const membersRef = useRef<Map<string, SwiperMemberState>>(new Map());
+  const readyPairsRef = useRef<Set<string>>(new Set());
+
+  const register = useCallback((id: string, state: SwiperMemberState) => {
+    membersRef.current.set(id, state);
   }, []);
 
-  const register = useCallback((id: string, swiper: SwiperType) => {
-    swipersRef.current.set(id, swiper);
-    notify();
-  }, [notify]);
-
   const unregister = useCallback((id: string) => {
-    swipersRef.current.delete(id);
-    notify();
-  }, [notify]);
+    const state = membersRef.current.get(id);
+    if (state?.swiper && !state.swiper.destroyed && state.swiper.controller) {
+      state.swiper.controller.control = undefined;
+    }
+    membersRef.current.delete(id);
+    readyPairsRef.current.forEach((key) => {
+      if (key.includes(id)) readyPairsRef.current.delete(key);
+    });
+  }, []);
 
-  const subscribe = useCallback((listener: () => void) => {
-    listenersRef.current.add(listener);
-    return () => listenersRef.current.delete(listener);
+  const tryConnect = useCallback((selfId: string, targetId: string) => {
+    const pairKey = getPairKey(selfId, targetId);
+    if (readyPairsRef.current.has(pairKey)) return;
+
+    const self = membersRef.current.get(selfId);
+    const target = membersRef.current.get(targetId);
+
+    if (!self || !target) return;
+    if (self.swiper.destroyed || target.swiper.destroyed) return;
+
+    // 先标记 ready，再执行操作，这样 slideTo 触发的 onSlideChange 能通过 isReady 检查
+    readyPairsRef.current.add(pairKey);
+
+    self.swiper.controller.control = target.swiper;
+    target.swiper.controller.control = self.swiper;
+
+    self.swiper.slideTo(self.initialIndex, 0, false);
+    target.swiper.slideTo(target.initialIndex, 0, false);
+  }, []);
+
+  const isReady = useCallback((selfId: string, targetId: string) => {
+    return readyPairsRef.current.has(getPairKey(selfId, targetId));
   }, []);
 
   return (
-    <SwiperSyncContext.Provider value={{ swipersRef, listenersRef, register, unregister, subscribe }}>
+    <SwiperSyncContext.Provider value={{ membersRef, readyPairsRef, register, unregister, tryConnect, isReady }}>
       {children}
     </SwiperSyncContext.Provider>
   );
 }
 
-/**
- * 注册 Swiper 并获取要控制的其他 Swiper
- * 
- * 用法：
- * ```tsx
- * const { onSwiper, controlledSwiper } = useSwiperMember('main', 'indicator');
- * 
- * <Swiper
- *   modules={[Controller]}
- *   controller={{ control: controlledSwiper }}
- *   onSwiper={onSwiper}
- * >
- * ```
- */
-export function useSwiperMember(selfId: string, targetId: string) {
+interface UseSwiperMemberOptions {
+  initialIndex: number;
+  onSlideChange?: (swiper: SwiperType) => void;
+}
+
+export function useSwiperMember(selfId: string, targetId: string, options: UseSwiperMemberOptions) {
   const ctx = useContext(SwiperSyncContext);
   if (!ctx) {
     throw new Error('useSwiperMember must be used within SwiperSyncProvider');
   }
 
-  const [controlledSwiper, setControlledSwiper] = useState<SwiperType | undefined>(() => {
-    const target = ctx.swipersRef.current.get(targetId);
-    return target && !target.destroyed ? target : undefined;
-  });
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
-  const onSwiper = useCallback((swiper: SwiperType) => {
-    ctx.register(selfId, swiper);
-  }, [ctx, selfId]);
+  const ctxRef = useRef(ctx);
+  ctxRef.current = ctx;
 
-  // 订阅变更，当目标 Swiper 注册时更新
+  const selfIdRef = useRef(selfId);
+  selfIdRef.current = selfId;
+
+  const onSwiper = useCallback(
+    (swiper: SwiperType) => {
+      ctx.register(selfId, {
+        swiper,
+        initialIndex: optionsRef.current.initialIndex,
+      });
+      ctx.tryConnect(selfId, targetId);
+    },
+    [ctx, selfId, targetId],
+  );
+
+  const onSlideChange = useCallback(
+    (swiper: SwiperType) => {
+      if (!ctx.isReady(selfId, targetId)) return;
+      optionsRef.current.onSlideChange?.(swiper);
+    },
+    [ctx, selfId, targetId],
+  );
+
   useEffect(() => {
-    const updateTarget = () => {
-      const target = ctx.swipersRef.current.get(targetId);
-      const validTarget = target && !target.destroyed ? target : undefined;
-      setControlledSwiper(prev => prev !== validTarget ? validTarget : prev);
-    };
-    
-    // 初始检查
-    updateTarget();
-    
-    // 订阅变更
-    return ctx.subscribe(updateTarget);
-  }, [ctx, targetId]);
+    return () => ctxRef.current.unregister(selfIdRef.current);
+  }, []);
 
-  return {
-    onSwiper,
-    controlledSwiper,
-  };
+  return { onSwiper, onSlideChange };
 }
-
-export type { SwiperSyncContextValue };

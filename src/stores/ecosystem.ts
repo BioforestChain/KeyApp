@@ -3,76 +3,81 @@
  * 存储小程序生态系统状态：权限、订阅源等
  */
 
-import { Store } from '@tanstack/react-store'
-import { type MyAppRecord } from '@/services/ecosystem/types'
-import { loadMyApps, normalizeAppId, saveMyApps } from '@/services/ecosystem/my-apps'
+import { Store } from '@tanstack/react-store';
+import { type MyAppRecord } from '@/services/ecosystem/types';
+import { loadMyApps, normalizeAppId, saveMyApps } from '@/services/ecosystem/my-apps';
 
 /** 权限记录 */
 export interface PermissionRecord {
-  appId: string
-  granted: string[]
-  grantedAt: number
+  appId: string;
+  granted: string[];
+  grantedAt: number;
 }
 
 /** 订阅源记录 */
 export interface SourceRecord {
-  url: string
-  name: string
-  lastUpdated: string
-  enabled: boolean
+  url: string;
+  name: string;
+  lastUpdated: string;
+  enabled: boolean;
 }
 
 /** Ecosystem 子页面类型 */
-export type EcosystemSubPage = 'discover' | 'mine' | 'stack'
+export type EcosystemSubPage = 'discover' | 'mine' | 'stack';
 
 /** 默认可用子页面（不包含 stack，由桌面根据运行态启用） */
-const DEFAULT_AVAILABLE_SUBPAGES: EcosystemSubPage[] = ['discover', 'mine']
+const DEFAULT_AVAILABLE_SUBPAGES: EcosystemSubPage[] = ['discover', 'mine'];
 
 /** 子页面索引映射 */
 export const ECOSYSTEM_SUBPAGE_INDEX: Record<EcosystemSubPage, number> = {
   discover: 0,
   mine: 1,
   stack: 2,
-}
+};
 
 /** 索引到子页面映射 */
-export const ECOSYSTEM_INDEX_SUBPAGE: EcosystemSubPage[] = ['discover', 'mine', 'stack']
+export const ECOSYSTEM_INDEX_SUBPAGE: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
 
 /** 同步控制源 */
-export type SyncSource = 'swiper' | 'indicator' | null
+export type SyncSource = 'swiper' | 'indicator' | null;
 
 /** Ecosystem 状态 */
 export interface EcosystemState {
-  permissions: PermissionRecord[]
-  sources: SourceRecord[]
-  myApps: MyAppRecord[]
+  permissions: PermissionRecord[];
+  sources: SourceRecord[];
+  myApps: MyAppRecord[];
   /** 当前可用子页面（由 EcosystemDesktop 根据配置/运行态写入） */
-  availableSubPages: EcosystemSubPage[]
+  availableSubPages: EcosystemSubPage[];
   /** 当前子页面（发现/我的） */
-  activeSubPage: EcosystemSubPage
+  activeSubPage: EcosystemSubPage;
   /** Swiper 滑动进度 (0-2 for 3 pages) */
-  swiperProgress: number
+  swiperProgress: number;
   /** 当前同步控制源（用于双向绑定） */
-  syncSource: SyncSource
+  syncSource: SyncSource;
 }
 
-const STORAGE_KEY = 'ecosystem_store'
+const STORAGE_KEY = 'ecosystem_store';
+
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
 
 /** 从 localStorage 加载状态 */
 function loadState(): EcosystemState {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored) as Partial<EcosystemState>
+      const parsed = JSON.parse(stored) as Partial<EcosystemState>;
 
-      const availableSubPages = Array.isArray(parsed.availableSubPages) && parsed.availableSubPages.length > 0
-        ? (parsed.availableSubPages as EcosystemSubPage[])
-        : DEFAULT_AVAILABLE_SUBPAGES
+      const availableSubPages =
+        Array.isArray(parsed.availableSubPages) && parsed.availableSubPages.length > 0
+          ? (parsed.availableSubPages as EcosystemSubPage[])
+          : DEFAULT_AVAILABLE_SUBPAGES;
 
-      const activeSubPage = (parsed.activeSubPage ?? 'discover') as EcosystemSubPage
+      const activeSubPage = (parsed.activeSubPage ?? 'discover') as EcosystemSubPage;
       const fixedAvailableSubPages = availableSubPages.includes(activeSubPage)
         ? availableSubPages
-        : [...availableSubPages, activeSubPage]
+        : [...availableSubPages, activeSubPage];
 
       return {
         permissions: parsed.permissions ?? [],
@@ -89,7 +94,7 @@ function loadState(): EcosystemState {
         activeSubPage,
         swiperProgress: 0,
         syncSource: null,
-      }
+      };
     }
   } catch {
     // ignore
@@ -109,128 +114,123 @@ function loadState(): EcosystemState {
     activeSubPage: 'discover',
     swiperProgress: 0,
     syncSource: null,
-  }
+  };
 }
 
 /** 保存状态到 localStorage */
 function saveState(state: EcosystemState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      permissions: state.permissions,
-      sources: state.sources,
-      availableSubPages: state.availableSubPages,
-      activeSubPage: state.activeSubPage,
-      // myApps is saved separately
-    }))
-    saveMyApps(state.myApps)
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        permissions: state.permissions,
+        sources: state.sources,
+        availableSubPages: state.availableSubPages,
+        activeSubPage: state.activeSubPage,
+        // myApps is saved separately
+      }),
+    );
+    saveMyApps(state.myApps);
   } catch {
     // ignore
   }
 }
 
 /** Store 实例 */
-export const ecosystemStore = new Store<EcosystemState>(loadState())
+export const ecosystemStore = new Store<EcosystemState>(loadState());
 
 // 自动保存
 ecosystemStore.subscribe(() => {
-  saveState(ecosystemStore.state)
-})
+  saveState(ecosystemStore.state);
+});
 
 /** Selectors */
 export const ecosystemSelectors = {
   /** 获取应用的已授权权限 */
   getGrantedPermissions: (state: EcosystemState, appId: string): string[] => {
-    return state.permissions.find((p) => p.appId === appId)?.granted ?? []
+    return state.permissions.find((p) => p.appId === appId)?.granted ?? [];
   },
 
   /** 检查是否有特定权限 */
   hasPermission: (state: EcosystemState, appId: string, permission: string): boolean => {
-    const granted = ecosystemSelectors.getGrantedPermissions(state, appId)
-    return granted.includes(permission)
+    const granted = ecosystemSelectors.getGrantedPermissions(state, appId);
+    return granted.includes(permission);
   },
 
   /** 获取启用的订阅源 */
   getEnabledSources: (state: EcosystemState): SourceRecord[] => {
-    return state.sources.filter((s) => s.enabled)
+    return state.sources.filter((s) => s.enabled);
   },
 
   /** 检查应用是否已安装 */
   isAppInstalled: (state: EcosystemState, appId: string): boolean => {
-    const normalized = normalizeAppId(appId)
-    return state.myApps.some((a) => a.appId === normalized)
+    const normalized = normalizeAppId(appId);
+    return state.myApps.some((a) => a.appId === normalized);
   },
-}
+};
 
 /** Actions */
 export const ecosystemActions = {
   /** 安装应用 */
   installApp: (appId: string): void => {
     ecosystemStore.setState((state) => {
-      const normalized = normalizeAppId(appId)
+      const normalized = normalizeAppId(appId);
       if (state.myApps.some((a) => a.appId === normalized)) {
-        return state // 已安装
+        return state; // 已安装
       }
       return {
         ...state,
-        myApps: [
-          { appId: normalized, installedAt: Date.now(), lastUsedAt: Date.now() },
-          ...state.myApps,
-        ],
-      }
-    })
+        myApps: [{ appId: normalized, installedAt: Date.now(), lastUsedAt: Date.now() }, ...state.myApps],
+      };
+    });
   },
 
   /** 卸载应用 */
   uninstallApp: (appId: string): void => {
     ecosystemStore.setState((state) => {
-      const normalized = normalizeAppId(appId)
+      const normalized = normalizeAppId(appId);
       return {
         ...state,
         myApps: state.myApps.filter((a) => a.appId !== normalized),
-      }
-    })
+      };
+    });
   },
 
   /** 更新应用最后使用时间 */
   updateAppLastUsed: (appId: string): void => {
     ecosystemStore.setState((state) => {
-      const normalized = normalizeAppId(appId)
-      const existing = state.myApps.find((a) => a.appId === normalized)
-      if (!existing) return state
+      const normalized = normalizeAppId(appId);
+      const existing = state.myApps.find((a) => a.appId === normalized);
+      if (!existing) return state;
 
       return {
         ...state,
-        myApps: state.myApps.map((a) =>
-          a.appId === normalized ? { ...a, lastUsedAt: Date.now() } : a
-        ),
-      }
-    })
+        myApps: state.myApps.map((a) => (a.appId === normalized ? { ...a, lastUsedAt: Date.now() } : a)),
+      };
+    });
   },
 
   /** 授予权限 */
   grantPermissions: (appId: string, permissions: string[]): void => {
     ecosystemStore.setState((state) => {
-      const existing = state.permissions.find((p) => p.appId === appId)
+      const existing = state.permissions.find((p) => p.appId === appId);
       if (existing) {
         // 合并权限
-        const newGranted = [...new Set([...existing.granted, ...permissions])]
+        const newGranted = [...new Set([...existing.granted, ...permissions])];
         return {
           ...state,
           permissions: state.permissions.map((p) =>
-            p.appId === appId ? { ...p, granted: newGranted, grantedAt: Date.now() } : p
+            p.appId === appId ? { ...p, granted: newGranted, grantedAt: Date.now() } : p,
           ),
-        }
+        };
       } else {
         // 新增记录
         return {
           ...state,
-          permissions: [
-            ...state.permissions,
-            { appId, granted: permissions, grantedAt: Date.now() },
-          ],
-        }
+          permissions: [...state.permissions, { appId, granted: permissions, grantedAt: Date.now() }],
+        };
       }
-    })
+    });
   },
 
   /** 撤销权限 */
@@ -241,34 +241,29 @@ export const ecosystemActions = {
         return {
           ...state,
           permissions: state.permissions.filter((p) => p.appId !== appId),
-        }
+        };
       }
       // 撤销指定权限
       return {
         ...state,
         permissions: state.permissions.map((p) =>
-          p.appId === appId
-            ? { ...p, granted: p.granted.filter((g) => !permissions.includes(g)) }
-            : p
+          p.appId === appId ? { ...p, granted: p.granted.filter((g) => !permissions.includes(g)) } : p,
         ),
-      }
-    })
+      };
+    });
   },
 
   /** 添加订阅源 */
   addSource: (url: string, name: string): void => {
     ecosystemStore.setState((state) => {
       if (state.sources.some((s) => s.url === url)) {
-        return state // 已存在
+        return state; // 已存在
       }
       return {
         ...state,
-        sources: [
-          ...state.sources,
-          { url, name, lastUpdated: new Date().toISOString(), enabled: true },
-        ],
-      }
-    })
+        sources: [...state.sources, { url, name, lastUpdated: new Date().toISOString(), enabled: true }],
+      };
+    });
   },
 
   /** 移除订阅源 */
@@ -276,27 +271,23 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       sources: state.sources.filter((s) => s.url !== url),
-    }))
+    }));
   },
 
   /** 切换订阅源启用状态 */
   toggleSource: (url: string): void => {
     ecosystemStore.setState((state) => ({
       ...state,
-      sources: state.sources.map((s) =>
-        s.url === url ? { ...s, enabled: !s.enabled } : s
-      ),
-    }))
+      sources: state.sources.map((s) => (s.url === url ? { ...s, enabled: !s.enabled } : s)),
+    }));
   },
 
   /** 更新订阅源时间 */
   updateSourceTimestamp: (url: string): void => {
     ecosystemStore.setState((state) => ({
       ...state,
-      sources: state.sources.map((s) =>
-        s.url === url ? { ...s, lastUpdated: new Date().toISOString() } : s
-      ),
-    }))
+      sources: state.sources.map((s) => (s.url === url ? { ...s, lastUpdated: new Date().toISOString() } : s)),
+    }));
   },
 
   /** 设置当前子页面 */
@@ -304,20 +295,19 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       activeSubPage: subPage,
-    }))
+    }));
   },
 
   /** 设置当前可用子页面（由桌面配置驱动） */
   setAvailableSubPages: (subPages: EcosystemSubPage[]): void => {
     ecosystemStore.setState((state) => {
-      const next = subPages.length > 0 ? subPages : DEFAULT_AVAILABLE_SUBPAGES
-      const activeSubPage = next.includes(state.activeSubPage) ? state.activeSubPage : next[0] ?? 'mine'
+      const next = subPages.length > 0 ? subPages : DEFAULT_AVAILABLE_SUBPAGES;
+      if (arraysEqual(state.availableSubPages, next)) return state;
       return {
         ...state,
         availableSubPages: next,
-        activeSubPage,
-      }
-    })
+      };
+    });
   },
 
   /** 更新 Swiper 进度 */
@@ -325,7 +315,7 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       swiperProgress: progress,
-    }))
+    }));
   },
 
   /** 设置同步控制源 */
@@ -333,6 +323,6 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       syncSource: source,
-    }))
+    }));
   },
-}
+};
