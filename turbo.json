@@ -21,7 +21,7 @@
       "cache": true
     },
     "test:storybook": {
-      "dependsOn": [],
+      "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts", ".storybook/**", "package.json"],
       "outputs": [],
       "cache": true
