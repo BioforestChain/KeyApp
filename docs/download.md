@@ -41,7 +41,7 @@
       <h3>DWEB 稳定版</h3>
     </div>
     <p>经过充分测试的稳定版本，推荐日常使用。</p>
-    <a href="dweb://install?url=https://github.com/BioforestChain/KeyApp/releases/latest/download/bfmpay-dweb.zip" class="download-btn">安装到 DWEB</a>
+    <a href="dweb://install?url=https://github.com/BioforestChain/KeyApp/releases/latest/download/metadata.json" class="download-btn">安装到 DWEB</a>
     <a href="https://github.com/BioforestChain/KeyApp/releases/latest/download/bfmpay-dweb.zip" class="download-link">下载 ZIP 文件</a>
   </div>
   
@@ -51,7 +51,7 @@
       <h3>DWEB 测试版</h3>
     </div>
     <p>包含最新功能，每次代码更新自动发布。</p>
-    <a href="dweb://install?url=https://github.com/BioforestChain/KeyApp/releases/download/beta/bfmpay-dweb-beta.zip" class="download-btn secondary">安装 Beta 版</a>
+    <a href="dweb://install?url=https://github.com/BioforestChain/KeyApp/releases/download/beta/metadata.json" class="download-btn secondary">安装 Beta 版</a>
     <a href="https://github.com/BioforestChain/KeyApp/releases/download/beta/bfmpay-dweb-beta.zip" class="download-link">下载 ZIP 文件</a>
   </div>
 </div>
