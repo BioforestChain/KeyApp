@@ -235,11 +235,10 @@ export async function rwaLogin(
     }
 
     // 2. 检查缓存的 Token
-    let tokenId: string
-    let sessionSecret: string
+    let tokenId: string | undefined
+    let sessionSecret: string | undefined
     
     const cached = getCachedToken()
-    let needNewToken = true
     
     if (cached && cached.address === account.address && cached.expiresAt > Date.now()) {
         // 缓存存在且地址匹配，验证 Token 是否仍然有效
@@ -249,14 +248,13 @@ export async function rwaLogin(
                 // Token 有效且地址匹配，复用缓存
                 tokenId = cached.tokenId
                 sessionSecret = cached.sessionSecret
-                needNewToken = false
             }
         } catch {
             // 验证失败，需要新 Token
         }
     }
     
-    if (needNewToken) {
+    if (!tokenId || !sessionSecret) {
         // 需要新 Token：地址不匹配、Token 过期或无效
         clearCachedToken()
         
