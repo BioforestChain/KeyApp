@@ -97,7 +97,9 @@ export default defineConfig(({ mode }) => {
           {
             metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
             dirName: 'rwa-hub',
+            server: { runtime: 'iframe' },
             build: {
+              runtime: 'wujie',
               rewriteBase: true,
             },
           },
@@ -105,7 +107,18 @@ export default defineConfig(({ mode }) => {
         timeout: 60000,
         retries: 3,
       }),
-      miniappsPlugin(),
+      miniappsPlugin({
+        apps: {
+          'com.bfmeta.teleport': {
+            server: 'iframe',
+            build: 'wujie',
+          },
+          'com.bfmeta.forge': {
+            server: 'iframe',
+            build: 'wujie',
+          },
+        },
+      }),
       buildCheckPlugin(),
     ],
     resolve: {

@@ -87,6 +87,7 @@ interface RemoteMiniappServer {
   server: ReturnType<typeof createServer>;
   baseUrl: string;
   manifest: MiniappManifest;
+  config: RemoteMiniappConfig;
 }
 
 // ==================== Plugin ====================
@@ -203,6 +204,7 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
           server: httpServer,
           baseUrl,
           manifest,
+          config,
         };
 
         servers.push(serverInfo);
@@ -384,13 +386,16 @@ export function getRemoteMiniappServers(): RemoteMiniappServer[] {
 /**
  * 获取远程 miniapps 用于 ecosystem.json 的数据
  */
-export function getRemoteMiniappsForEcosystem(): Array<MiniappManifest & { url: string }> {
+export function getRemoteMiniappsForEcosystem(): Array<
+  MiniappManifest & { url: string; runtime?: 'iframe' | 'wujie' }
+> {
   return globalRemoteServers.map((s) => ({
     ...s.manifest,
     dirName: s.dirName,
     icon: new URL(s.manifest.icon, s.baseUrl).href,
     url: new URL('/', s.baseUrl).href,
     screenshots: s.manifest.screenshots?.map((sc) => new URL(sc, s.baseUrl).href) ?? [],
+    runtime: s.config.server?.runtime ?? 'iframe',
   }));
 }
 

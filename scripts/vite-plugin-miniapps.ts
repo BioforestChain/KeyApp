@@ -15,6 +15,13 @@ import { getRemoteMiniappsForEcosystem } from './vite-plugin-remote-miniapps';
 
 // ==================== Types ====================
 
+type MiniappRuntime = 'iframe' | 'wujie';
+
+interface MiniappRuntimeConfig {
+  server?: MiniappRuntime;
+  build?: MiniappRuntime;
+}
+
 interface MiniappManifest {
   id: string;
   dirName: string;
@@ -36,6 +43,7 @@ interface MiniappManifest {
   themeColor: string;
   officialScore?: number;
   communityScore?: number;
+  runtime?: MiniappRuntime;
 }
 
 interface EcosystemJson {
@@ -56,12 +64,13 @@ interface MiniappServer {
 
 interface MiniappsPluginOptions {
   miniappsDir?: string;
+  apps?: Record<string, MiniappRuntimeConfig>;
 }
 
 // ==================== Plugin ====================
 
 export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
-  const { miniappsDir = 'miniapps' } = options;
+  const { miniappsDir = 'miniapps', apps = {} } = options;
 
   let root: string;
   let isBuild = false;
@@ -77,11 +86,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
     async writeBundle(options) {
       if (isBuild && options.dir) {
-        // 构建完成后构建 miniapps
         await buildAllMiniapps(root, miniappsDir, options.dir);
 
-        // 生成 ecosystem.json 到 miniapps/ 目录
-        const ecosystem = generateEcosystemDataForBuild(root, miniappsDir);
+        const ecosystem = generateEcosystemDataForBuild(root, miniappsDir, apps);
         const miniappsOutputDir = resolve(options.dir, 'miniapps');
         mkdirSync(miniappsOutputDir, { recursive: true });
         const outputPath = resolve(miniappsOutputDir, 'ecosystem.json');
@@ -121,17 +128,19 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
-        // 本地 miniapps
         const localApps = await Promise.all(
           miniappServers.map(async (s) => {
             try {
               const manifest = await fetchManifest(s.port);
+              const appConfig = apps[manifest.id];
+              const runtime = appConfig?.server ?? 'iframe';
               return {
                 ...manifest,
                 dirName: s.dirName,
                 icon: new URL(manifest.icon, s.baseUrl).href,
                 url: new URL('/', s.baseUrl).href,
                 screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
+                runtime,
               };
             } catch (e) {
               console.error(`[miniapps] Failed to fetch manifest for ${s.id}:`, e);
@@ -140,7 +149,6 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           }),
         );
 
-        // 远程 miniapps (从 vite-plugin-remote-miniapps 获取)
         const remoteApps = getRemoteMiniappsForEcosystem();
 
         return {
@@ -259,13 +267,19 @@ function scanScreenshots(root: string, shortId: string): string[] {
     .map((f) => `screenshots/${f}`);
 }
 
-function generateEcosystemDataForBuild(root: string, miniappsDir: string): EcosystemJson {
+function generateEcosystemDataForBuild(
+  root: string,
+  miniappsDir: string,
+  apps: Record<string, MiniappRuntimeConfig>,
+): EcosystemJson {
   const miniappsPath = resolve(root, miniappsDir);
   const manifests = scanMiniapps(miniappsPath);
 
   const localApps = manifests.map((manifest) => {
     const shortId = manifest.id.split('.').pop() || '';
     const screenshots = scanScreenshots(root, shortId);
+    const appConfig = apps[manifest.id];
+    const runtime = appConfig?.build ?? 'iframe';
 
     const { dirName, ...rest } = manifest;
     return {
@@ -274,6 +288,7 @@ function generateEcosystemDataForBuild(root: string, miniappsDir: string): Ecosy
       url: `./${dirName}/`,
       icon: `./${dirName}/icon.svg`,
       screenshots: screenshots.map((s) => `./${dirName}/${s}`),
+      runtime,
     };
   });
 
