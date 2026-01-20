@@ -21,6 +21,7 @@ import enCurrency from './locales/en/currency.json'
 import enOnboarding from './locales/en/onboarding.json'
 import enNotification from './locales/en/notification.json'
 import enHome from './locales/en/home.json'
+import enEcosystem from './locales/en/ecosystem.json'
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json'
@@ -42,6 +43,7 @@ import zhCNCurrency from './locales/zh-CN/currency.json'
 import zhCNOnboarding from './locales/zh-CN/onboarding.json'
 import zhCNNotification from './locales/zh-CN/notification.json'
 import zhCNHome from './locales/zh-CN/home.json'
+import zhCNEcosystem from './locales/zh-CN/ecosystem.json'
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json'
@@ -63,6 +65,7 @@ import zhTWCurrency from './locales/zh-TW/currency.json'
 import zhTWOnboarding from './locales/zh-TW/onboarding.json'
 import zhTWNotification from './locales/zh-TW/notification.json'
 import zhTWHome from './locales/zh-TW/home.json'
+import zhTWEcosystem from './locales/zh-TW/ecosystem.json'
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json'
@@ -84,6 +87,7 @@ import arCurrency from './locales/ar/currency.json'
 import arOnboarding from './locales/ar/onboarding.json'
 import arNotification from './locales/ar/notification.json'
 import arHome from './locales/ar/home.json'
+import arEcosystem from './locales/ar/ecosystem.json'
 
 // 语言配置
 export const languages = {
@@ -118,6 +122,7 @@ export const namespaces = [
   'currency',
   'notification',
   'home',
+  'ecosystem',
 ] as const
 
 export type Namespace = (typeof namespaces)[number]
@@ -156,6 +161,7 @@ i18n.use(initReactI18next).init({
       currency: enCurrency,
       notification: enNotification,
       home: enHome,
+      ecosystem: enEcosystem,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -177,6 +183,7 @@ i18n.use(initReactI18next).init({
       currency: zhCNCurrency,
       notification: zhCNNotification,
       home: zhCNHome,
+      ecosystem: zhCNEcosystem,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -198,6 +205,7 @@ i18n.use(initReactI18next).init({
       currency: zhTWCurrency,
       notification: zhTWNotification,
       home: zhTWHome,
+      ecosystem: zhTWEcosystem,
     },
     ar: {
       common: arCommon,
@@ -219,6 +227,7 @@ i18n.use(initReactI18next).init({
       currency: arCurrency,
       notification: arNotification,
       home: arHome,
+      ecosystem: arEcosystem,
     },
   },
   lng: defaultLanguage,

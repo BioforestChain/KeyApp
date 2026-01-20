@@ -8,6 +8,7 @@
  * - Checks all namespaces across all locales
  * - Reports missing keys per locale
  * - Reports extra keys (keys only in one locale)
+ * - Checks if namespaces are registered in i18n/index.ts
  * - Supports --fix to add missing keys with placeholder values
  * - Exit code 1 if issues found (for CI)
  *
@@ -24,6 +25,7 @@ import { resolve, join } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const LOCALES_DIR = join(ROOT, 'src/i18n/locales')
+const I18N_INDEX_PATH = join(ROOT, 'src/i18n/index.ts')
 
 // Reference locale (source of truth for keys)
 const REFERENCE_LOCALE = 'zh-CN'
@@ -190,6 +192,28 @@ function sortObjectKeys(obj: TranslationFile): TranslationFile {
 
 // ==================== Main Logic ====================
 
+/**
+ * Get registered namespaces from src/i18n/index.ts
+ */
+function getRegisteredNamespaces(): string[] {
+  const content = readFileSync(I18N_INDEX_PATH, 'utf-8')
+  // Match: export const namespaces = [...] as const
+  const match = content.match(/export\s+const\s+namespaces\s*=\s*\[([\s\S]*?)\]\s*as\s+const/)
+  if (!match) {
+    log.warn('Could not parse namespaces from src/i18n/index.ts')
+    return []
+  }
+  // Extract string literals from the array
+  const arrayContent = match[1]
+  const namespaces: string[] = []
+  const regex = /'([^']+)'|"([^"]+)"/g
+  let m
+  while ((m = regex.exec(arrayContent)) !== null) {
+    namespaces.push(m[1] || m[2])
+  }
+  return namespaces
+}
+
 function getNamespaces(): string[] {
   const refDir = join(LOCALES_DIR, REFERENCE_LOCALE)
   return readdirSync(refDir)
@@ -287,6 +311,23 @@ ${colors.cyan}╔═════════════════════
 
   const namespaces = getNamespaces()
   log.info(`Found ${namespaces.length} namespaces`)
+
+  // Check for unregistered namespaces
+  log.step('Checking namespace registration')
+  const registeredNamespaces = getRegisteredNamespaces()
+  const unregisteredNamespaces = namespaces.filter((ns) => !registeredNamespaces.includes(ns))
+
+  if (unregisteredNamespaces.length > 0) {
+    log.error(`Found ${unregisteredNamespaces.length} unregistered namespace(s) in src/i18n/index.ts:`)
+    for (const ns of unregisteredNamespaces) {
+      log.dim(`- ${ns}`)
+    }
+    console.log(`\n${colors.red}✗ These namespaces have JSON files but are NOT registered in src/i18n/index.ts${colors.reset}`)
+    log.info(`Add them to the 'namespaces' array and 'resources' object in src/i18n/index.ts`)
+    process.exit(1)
+  } else {
+    log.success(`All ${namespaces.length} namespaces are registered`)
+  }
 
   const allResults: CheckResult[] = []
 
