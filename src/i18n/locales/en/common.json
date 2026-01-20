@@ -275,7 +275,9 @@
     "6": "Saturday"
   },
   "date": {
-    "format": "{{weekday}}, {{month}} {{day}}"
+    "format": "{{weekday}}, {{month}} {{day}}",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "providerFallback": {
     "queryFailed": "{{feature}} query failed",
@@ -412,5 +414,15 @@
     "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "openExplorer": "Open {{name}} Explorer",
     "viewOnExplorer": "View on {{name}}"
+  },
+  "tabs": {
+    "assets": "Assets",
+    "history": "History"
+  },
+  "empty": {
+    "noTransactions": "No transactions yet",
+    "transactionsWillAppear": "Your transactions will appear here",
+    "noAssets": "No assets yet",
+    "assetsWillAppear": "Your assets will appear here after transfer"
   }
 }

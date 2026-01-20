@@ -170,7 +170,9 @@
   "couldBeWithin_30Seconds": "預計30秒",
   "creator": "創作者",
   "date": {
-    "format": "{{month}}月{{day}}日 {{weekday}}"
+    "format": "{{month}}月{{day}}日 {{weekday}}",
+    "today": "今天",
+    "yesterday": "昨天"
   },
   "delete": "刪除",
   "destroy": "銷毀",
@@ -412,5 +414,15 @@
   "{{item}}Words": "個字",
   "{{length}}Words": "個字",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "tabs": {
+    "assets": "資產",
+    "history": "交易"
+  },
+  "empty": {
+    "noTransactions": "暫無交易記錄",
+    "transactionsWillAppear": "您的交易記錄將顯示在這裡",
+    "noAssets": "暫無資產",
+    "assetsWillAppear": "轉入資產後將顯示在這裡"
+  }
 }

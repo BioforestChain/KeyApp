@@ -170,7 +170,9 @@
   "couldBeWithin_30Seconds": "Could be within 30 seconds",
   "creator": "Creator",
   "date": {
-    "format": "{{weekday}}، {{day}} {{month}}"
+    "format": "{{weekday}}، {{day}} {{month}}",
+    "today": "اليوم",
+    "yesterday": "أمس"
   },
   "delete": "Delete",
   "destroy": "Destroy",
@@ -412,5 +414,15 @@
   "{{item}}Words": "words",
   "{{length}}Words": "words",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "tabs": {
+    "assets": "الأصول",
+    "history": "السجل"
+  },
+  "empty": {
+    "noTransactions": "لا توجد معاملات بعد",
+    "transactionsWillAppear": "ستظهر معاملاتك هنا",
+    "noAssets": "لا توجد أصول بعد",
+    "assetsWillAppear": "ستظهر أصولك هنا بعد التحويل"
+  }
 }
