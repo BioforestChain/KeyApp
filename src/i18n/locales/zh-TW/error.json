@@ -10,5 +10,50 @@
   "qrCodeNotFound": "未找到二維碼",
   "saveFailed": "保存失敗",
   "scanErrorFromImage": "掃描圖片失敗",
-  "shareFailed": "分享失敗"
+  "shareFailed": "分享失敗",
+  "unknown": "未知錯誤",
+  "validation": {
+    "enterRecipientAddress": "請輸入收款地址",
+    "invalidAddressFormat": "無效的地址格式",
+    "cannotTransferToSelf": "不能轉帳給自己",
+    "enterAmount": "請輸入金額",
+    "enterValidAmount": "請輸入有效金額",
+    "exceedsBalance": "銷毀數量不能大於餘額"
+  },
+  "transaction": {
+    "failed": "交易失敗，請稍後重試",
+    "burnFailed": "銷毀失敗，請稍後重試",
+    "chainNotSupported": "該鏈不支持完整交易流程",
+    "chainNotSupportedWithId": "該鏈不支持完整交易流程: {{chainId}}",
+    "securityPasswordFailed": "安全密碼驗證失敗",
+    "feeEstimateFailed": "獲取手續費失敗",
+    "walletInfoIncomplete": "錢包資訊不完整",
+    "chainConfigMissing": "鏈配置缺失",
+    "unsupportedChainType": "不支持的鏈類型: {{chain}}",
+    "issuerAddressNotFound": "無法獲取資產發行地址",
+    "issuerAddressNotReady": "資產發行地址未獲取"
+  },
+  "crypto": {
+    "keyDerivationFailed": "密鑰派生失敗",
+    "decryptionFailed": "解密失敗：密碼錯誤或資料損壞",
+    "decryptionKeyFailed": "解密失敗：密鑰錯誤或資料損壞",
+    "biometricNotAvailable": "生物識別不可用",
+    "biometricVerificationFailed": "生物識別驗證失敗",
+    "webModeRequiresPassword": "Web 模式需要提供密碼",
+    "dwebEnvironmentRequired": "需要在 DWEB 環境中訪問",
+    "mpayDecryptionFailed": "mpay 資料解密失敗：密碼錯誤或資料損壞"
+  },
+  "address": {
+    "generationFailed": "地址生成失敗"
+  },
+  "securityPassword": {
+    "chainNotSupported": "該鏈不支持安全密碼",
+    "queryFailed": "查詢失敗"
+  },
+  "history": {
+    "loadFailed": "載入交易歷史失敗"
+  },
+  "duplicate": {
+    "detectionFailed": "重複檢測失敗"
+  }
 }

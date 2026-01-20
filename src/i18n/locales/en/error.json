@@ -5,10 +5,55 @@
   "failed": "Failed",
   "incorrectOrderPleaseTryAgain": "Incorrect order, please try again!",
   "informationVerificationFailed": "Information verification failed",
-  "insufficientFunds": "insufficient funds",
+  "insufficientFunds": "Insufficient funds",
   "privatekeyInputError": "PrivateKey input error",
   "qrCodeNotFound": "QR code not found",
   "saveFailed": "Save Failed",
   "scanErrorFromImage": "Scan error from image",
-  "shareFailed": "Sharing Failed"
+  "shareFailed": "Sharing Failed",
+  "unknown": "Unknown error",
+  "validation": {
+    "enterRecipientAddress": "Please enter recipient address",
+    "invalidAddressFormat": "Invalid address format",
+    "cannotTransferToSelf": "Cannot transfer to yourself",
+    "enterAmount": "Please enter amount",
+    "enterValidAmount": "Please enter a valid amount",
+    "exceedsBalance": "Amount exceeds balance"
+  },
+  "transaction": {
+    "failed": "Transaction failed, please try again later",
+    "burnFailed": "Burn failed, please try again later",
+    "chainNotSupported": "This chain does not support full transaction flow",
+    "chainNotSupportedWithId": "This chain does not support full transaction flow: {{chainId}}",
+    "securityPasswordFailed": "Security password verification failed",
+    "feeEstimateFailed": "Failed to estimate fee",
+    "walletInfoIncomplete": "Wallet information incomplete",
+    "chainConfigMissing": "Chain configuration missing",
+    "unsupportedChainType": "Unsupported chain type: {{chain}}",
+    "issuerAddressNotFound": "Unable to get asset issuer address",
+    "issuerAddressNotReady": "Asset issuer address not ready"
+  },
+  "crypto": {
+    "keyDerivationFailed": "Key derivation failed",
+    "decryptionFailed": "Decryption failed: wrong password or corrupted data",
+    "decryptionKeyFailed": "Decryption failed: wrong key or corrupted data",
+    "biometricNotAvailable": "Biometric not available",
+    "biometricVerificationFailed": "Biometric verification failed",
+    "webModeRequiresPassword": "Web mode requires password",
+    "dwebEnvironmentRequired": "DWEB environment required",
+    "mpayDecryptionFailed": "mpay data decryption failed: wrong password or corrupted data"
+  },
+  "address": {
+    "generationFailed": "Address generation failed"
+  },
+  "securityPassword": {
+    "chainNotSupported": "This chain does not support security password",
+    "queryFailed": "Query failed"
+  },
+  "history": {
+    "loadFailed": "Failed to load transaction history"
+  },
+  "duplicate": {
+    "detectionFailed": "Duplicate detection failed"
+  }
 }

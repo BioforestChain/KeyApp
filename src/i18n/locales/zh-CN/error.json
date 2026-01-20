@@ -10,5 +10,50 @@
   "qrCodeNotFound": "未找到二维码",
   "saveFailed": "保存失败",
   "scanErrorFromImage": "扫描图片失败",
-  "shareFailed": "分享失败"
+  "shareFailed": "分享失败",
+  "unknown": "未知错误",
+  "validation": {
+    "enterRecipientAddress": "请输入收款地址",
+    "invalidAddressFormat": "无效的地址格式",
+    "cannotTransferToSelf": "不能转账给自己",
+    "enterAmount": "请输入金额",
+    "enterValidAmount": "请输入有效金额",
+    "exceedsBalance": "销毁数量不能大于余额"
+  },
+  "transaction": {
+    "failed": "交易失败，请稍后重试",
+    "burnFailed": "销毁失败，请稍后重试",
+    "chainNotSupported": "该链不支持完整交易流程",
+    "chainNotSupportedWithId": "该链不支持完整交易流程: {{chainId}}",
+    "securityPasswordFailed": "安全密码验证失败",
+    "feeEstimateFailed": "获取手续费失败",
+    "walletInfoIncomplete": "钱包信息不完整",
+    "chainConfigMissing": "链配置缺失",
+    "unsupportedChainType": "不支持的链类型: {{chain}}",
+    "issuerAddressNotFound": "无法获取资产发行地址",
+    "issuerAddressNotReady": "资产发行地址未获取"
+  },
+  "crypto": {
+    "keyDerivationFailed": "密钥派生失败",
+    "decryptionFailed": "解密失败：密码错误或数据损坏",
+    "decryptionKeyFailed": "解密失败：密钥错误或数据损坏",
+    "biometricNotAvailable": "生物识别不可用",
+    "biometricVerificationFailed": "生物识别验证失败",
+    "webModeRequiresPassword": "Web 模式需要提供密码",
+    "dwebEnvironmentRequired": "需要在 DWEB 环境中访问",
+    "mpayDecryptionFailed": "mpay 数据解密失败：密码错误或数据损坏"
+  },
+  "address": {
+    "generationFailed": "地址生成失败"
+  },
+  "securityPassword": {
+    "chainNotSupported": "该链不支持安全密码",
+    "queryFailed": "查询失败"
+  },
+  "history": {
+    "loadFailed": "加载交易历史失败"
+  },
+  "duplicate": {
+    "detectionFailed": "重复检测失败"
+  }
 }
