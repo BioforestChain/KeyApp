@@ -25,8 +25,8 @@ export const UI_TEXT = {
     preview: { source: '预览交易', pattern: /预览交易|Preview/i },
   },
   confirm: {
-    title: { source: '确认充值', pattern: /确认充值|Confirm Recharge/i },
-    button: { source: '确认充值', pattern: /确认充值|Confirm/i },
+    title: { source: '确认锻造', pattern: /确认锻造|Confirm Forge/i },
+    button: { source: '确认锻造', pattern: /确认锻造|Confirm/i },
   },
   success: {
     title: { source: '完成', pattern: /完成|Complete/i },
