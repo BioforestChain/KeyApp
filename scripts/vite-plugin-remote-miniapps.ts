@@ -87,6 +87,7 @@ interface RemoteMiniappServer {
   server: ReturnType<typeof createServer>;
   baseUrl: string;
   manifest: MiniappManifest;
+  config: RemoteMiniappConfig;
 }
 
 // ==================== Plugin ====================
@@ -203,6 +204,7 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
           server: httpServer,
           baseUrl,
           manifest,
+          config,
         };
 
         servers.push(serverInfo);
@@ -326,8 +328,12 @@ function rewriteHtmlBase(targetDir: string, basePath: string): void {
     html = html.replace(/<html[^>]*>/i, `$&\n  <head>\n    ${baseTag}\n  </head>`);
   }
 
+  // Convert absolute paths to relative paths (base tag only works with relative paths)
+  // /assets/xxx -> assets/xxx, /css/xxx -> css/xxx, /images/xxx -> images/xxx
+  html = html.replace(/(src|href)="\/(?!\/)/g, '$1="');
+
   writeFileSync(indexPath, html);
-  console.log(`[remote-miniapps] Rewrote <base> to "${normalizedBase}" in ${indexPath}`);
+  console.log(`[remote-miniapps] Rewrote <base> and converted absolute paths to relative in ${indexPath}`);
 }
 
 /**
@@ -384,13 +390,16 @@ export function getRemoteMiniappServers(): RemoteMiniappServer[] {
 /**
  * 获取远程 miniapps 用于 ecosystem.json 的数据
  */
-export function getRemoteMiniappsForEcosystem(): Array<MiniappManifest & { url: string }> {
+export function getRemoteMiniappsForEcosystem(): Array<
+  MiniappManifest & { url: string; runtime?: 'iframe' | 'wujie' }
+> {
   return globalRemoteServers.map((s) => ({
     ...s.manifest,
     dirName: s.dirName,
     icon: new URL(s.manifest.icon, s.baseUrl).href,
     url: new URL('/', s.baseUrl).href,
     screenshots: s.manifest.screenshots?.map((sc) => new URL(sc, s.baseUrl).href) ?? [],
+    runtime: s.config.server?.runtime ?? 'iframe',
   }));
 }
 

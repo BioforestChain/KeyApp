@@ -225,6 +225,8 @@ export interface MiniappManifest {
   sourceIcon?: string;
   /** 来源名称（运行时填充） */
   sourceName?: string;
+  /** 运行时容器类型（由宿主注入，默认 'iframe'） */
+  runtime?: 'iframe' | 'wujie';
 }
 
 /** Ecosystem source - JSON 文件格式 */
