@@ -1,0 +1,1 @@
+import{r as s}from"./index-CQoRotV0.js";import{S as u}from"./page-C3-Jo2og.js";import{e as i}from"./use_easy_state-9wGY1NnM.js";const m=t=>{const r=s.useState(t instanceof u?t.value:void 0),[o,n]=r,a=e=>{t.emit(typeof e=="function"?e(o):e)};return s.useInsertionEffect(()=>{const e=t.on(n);return()=>void e()},[t]),Object.setPrototypeOf([o,a],i)};export{m as u};

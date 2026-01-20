@@ -1,0 +1,1 @@
+import{p}from"./_setup-cNJ3QbxY.js";import"./sha256-DIi67vjr.js";import"./WASMInterface-u96uWOK2.js";import"./page-C3-Jo2og.js";import"./index-CQoRotV0.js";import"./bioforestChainBundle-C9za-Hm3.js";const r=async()=>{await p()},m=async()=>{await r()};export{m as prepareEcpair};

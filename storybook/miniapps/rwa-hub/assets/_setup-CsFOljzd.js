@@ -1,0 +1,1 @@
+import{p}from"./sha256-DIi67vjr.js";import{p as r}from"./sha512-36K92cF_.js";import"./WASMInterface-u96uWOK2.js";import"./page-C3-Jo2og.js";import"./index-CQoRotV0.js";import"./bioforestChainBundle-C9za-Hm3.js";const s=async()=>{await p.prepare(),await r.prepare()};export{s as prepareBip39};

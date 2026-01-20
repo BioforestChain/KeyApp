@@ -1,0 +1,39 @@
+{
+  "id": "xin.dweb.rwahub",
+  "name": "RWA Hub",
+  "description": "RWA 资产管理中心，支持 RWA 资产的查看、交易和管理",
+  "longDescription": "BFM RWA Hub 是一个综合性的 RWA（真实世界资产）管理平台。\n\n## 功能特点\n- RWA 资产查看和管理\n- 资产交易功能\n- 授权签名支持",
+  "icon": "https://source.dwebdapp.com/dweb-browser-apps/dweb-app-assets/rwahub/logo.png",
+  "version": "1.1.30",
+  "author": "Bioforest Chain",
+  "website": "https://rwahub.dweb.xin",
+  "category": "tools",
+  "tags": [
+    "RWA",
+    "资产管理",
+    "交易"
+  ],
+  "permissions": [
+    "bio_requestAccounts",
+    "bio_selectAccount",
+    "bio_pickWallet",
+    "bio_signMessage",
+    "bio_sendTransaction",
+    "bio_requestCryptoToken",
+    "bio_cryptoExecute"
+  ],
+  "chains": [
+    "bfmeta"
+  ],
+  "officialScore": 80,
+  "communityScore": 70,
+  "screenshots": [],
+  "publishedAt": "2026-01-20",
+  "updatedAt": "2026-01-20",
+  "beta": true,
+  "themeColor": "from-cyan-800 via-blue-900 to-indigo-950",
+  "themeColorFrom": "#0e7490",
+  "splashScreen": true,
+  "dirName": "rwa-hub",
+  "_zipEtag": "\"696f3f6c-4a05d6\""
+}

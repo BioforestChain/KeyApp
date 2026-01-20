@@ -1,0 +1,1 @@
+const i=t=>{const e=new Date(t);return new Intl.DateTimeFormat(navigator.language,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:"Asia/Shanghai",timeZoneName:"short",hour12:!1}).format(e).replace(/[-]/g,".").replace(/,/,"")};export{i as f};
