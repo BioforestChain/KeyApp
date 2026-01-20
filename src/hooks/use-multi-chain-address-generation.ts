@@ -1,18 +1,21 @@
-import { useState, useCallback } from 'react'
-import { deriveAllAddresses, type DerivedKey } from '@/lib/crypto/derivation'
-import { validateMnemonic } from '@/lib/crypto/mnemonic'
+import { useState, useCallback } from 'react';
+import { deriveAllAddresses, type DerivedKey } from '@/lib/crypto/derivation';
+import { validateMnemonic } from '@/lib/crypto/mnemonic';
+import i18n from '@/i18n';
+
+const t = i18n.t.bind(i18n);
 
 export interface MultiChainAddressResult {
   /** All generated addresses */
-  addresses: DerivedKey[]
+  addresses: DerivedKey[];
   /** Whether generation is in progress */
-  isGenerating: boolean
+  isGenerating: boolean;
   /** Error message if generation failed */
-  error: string | null
+  error: string | null;
   /** Generate addresses from mnemonic */
-  generate: (mnemonic: string[]) => Promise<DerivedKey[]>
+  generate: (mnemonic: string[]) => Promise<DerivedKey[]>;
   /** Clear results */
-  clear: () => void
+  clear: () => void;
 }
 
 /**
@@ -20,41 +23,41 @@ export interface MultiChainAddressResult {
  * Used for duplicate detection during wallet recovery
  */
 export function useMultiChainAddressGeneration(): MultiChainAddressResult {
-  const [addresses, setAddresses] = useState<DerivedKey[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [addresses, setAddresses] = useState<DerivedKey[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const generate = useCallback(async (mnemonic: string[]): Promise<DerivedKey[]> => {
-    setIsGenerating(true)
-    setError(null)
+    setIsGenerating(true);
+    setError(null);
 
     try {
       // Validate mnemonic first
       if (!validateMnemonic(mnemonic)) {
-        throw new Error('Invalid mnemonic')
+        throw new Error('Invalid mnemonic');
       }
 
-      const mnemonicString = mnemonic.join(' ')
+      const mnemonicString = mnemonic.join(' ');
 
       // Generate addresses for all chains
       // This is done synchronously but wrapped in promise for consistency
-      const results = deriveAllAddresses(mnemonicString)
+      const results = deriveAllAddresses(mnemonicString);
 
-      setAddresses(results)
-      return results
+      setAddresses(results);
+      return results;
     } catch (err) {
-      const message = err instanceof Error ? err.message : '地址生成失败'
-      setError(message)
-      return []
+      const message = err instanceof Error ? err.message : t('error:address.generationFailed');
+      setError(message);
+      return [];
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }, [])
+  }, []);
 
   const clear = useCallback(() => {
-    setAddresses([])
-    setError(null)
-  }, [])
+    setAddresses([]);
+    setError(null);
+  }, []);
 
   return {
     addresses,
@@ -62,7 +65,7 @@ export function useMultiChainAddressGeneration(): MultiChainAddressResult {
     error,
     generate,
     clear,
-  }
+  };
 }
 
 /**
@@ -70,14 +73,14 @@ export function useMultiChainAddressGeneration(): MultiChainAddressResult {
  */
 export function generateAllAddresses(mnemonic: string[]): DerivedKey[] {
   if (!validateMnemonic(mnemonic)) {
-    throw new Error('Invalid mnemonic')
+    throw new Error('Invalid mnemonic');
   }
-  return deriveAllAddresses(mnemonic.join(' '))
+  return deriveAllAddresses(mnemonic.join(' '));
 }
 
 /**
  * Get all addresses as a Set for efficient lookup
  */
 export function getAddressSet(keys: DerivedKey[]): Set<string> {
-  return new Set(keys.map((k) => k.address.toLowerCase()))
+  return new Set(keys.map((k) => k.address.toLowerCase()));
 }

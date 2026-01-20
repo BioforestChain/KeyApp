@@ -302,7 +302,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
           isSubmitting: false,
           resultStatus: 'failed',
           txHash: null,
-          errorMessage: '钱包信息不完整',
+          errorMessage: t('error:wallet.incompleteInfo'),
         }));
         return { status: 'error' as const };
       }

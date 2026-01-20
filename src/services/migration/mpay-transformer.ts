@@ -4,25 +4,24 @@
  * 将 mpay 数据格式转换为 KeyApp 格式
  */
 
-import type { Wallet, ChainAddress, ChainType } from '@/stores/wallet'
-import type { EncryptedData } from '@/lib/crypto'
-import { encrypt } from '@/lib/crypto'
-import type {
-  MpayMainWallet,
-  MpayChainAddressInfo,
-  MpayAddressBookEntry,
-} from './types'
-import type { Contact } from '@/stores/address-book'
-import { decryptMpayData } from './mpay-crypto'
+import type { Wallet, ChainAddress, ChainType } from '@/stores/wallet';
+import type { EncryptedData } from '@/lib/crypto';
+import { encrypt } from '@/lib/crypto';
+import type { MpayMainWallet, MpayChainAddressInfo, MpayAddressBookEntry } from './types';
+import type { Contact } from '@/stores/address-book';
+import { decryptMpayData } from './mpay-crypto';
+import i18n from '@/i18n';
+
+const t = i18n.t.bind(i18n);
 
 function deriveThemeHue(secret: string): number {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < secret.length; i++) {
-    const char = secret.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
+    const char = secret.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
   }
-  return Math.abs(hash) % 360
+  return Math.abs(hash) % 360;
 }
 
 /**
@@ -38,13 +37,13 @@ const CHAIN_NAME_MAP: Record<string, ChainType> = {
   Tron: 'tron',
   BTC: 'bitcoin',
   BSC: 'binance',
-}
+};
 
 /**
  * 转换 mpay 链名为 KeyApp ChainType
  */
 function mapChainName(mpayChain: string): ChainType | null {
-  return CHAIN_NAME_MAP[mpayChain] ?? null
+  return CHAIN_NAME_MAP[mpayChain] ?? null;
 }
 
 /**
@@ -56,13 +55,10 @@ function mapChainName(mpayChain: string): ChainType | null {
 /**
  * 转换 mpay ChainAddressInfo 为 KeyApp ChainAddress
  */
-function transformChainAddress(
-  mpayAddress: MpayChainAddressInfo
-): ChainAddress | null {
-  const chain = mapChainName(mpayAddress.chain)
+function transformChainAddress(mpayAddress: MpayChainAddressInfo): ChainAddress | null {
+  const chain = mapChainName(mpayAddress.chain);
   if (!chain) {
-
-    return null
+    return null;
   }
 
   return {
@@ -70,7 +66,7 @@ function transformChainAddress(
     address: mpayAddress.address,
     publicKey: '', // Will be derived on wallet unlock
     // tokens 已从 ChainAddress 移除 - 余额数据从 chain-provider 获取
-  }
+  };
 }
 
 /**
@@ -81,17 +77,17 @@ function transformChainAddress(
  */
 function determineChainFromList(chainList?: string[]): ChainType | undefined {
   if (!chainList || chainList.length === 0) {
-    return undefined
+    return undefined;
   }
 
   for (const mpayChain of chainList) {
-    const chain = mapChainName(mpayChain)
+    const chain = mapChainName(mpayChain);
     if (chain) {
-      return chain
+      return chain;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -101,8 +97,8 @@ function determineChainFromList(chainList?: string[]): ChainType | undefined {
  * @returns KeyApp 联系人
  */
 export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact {
-  const now = Date.now()
-  const chain = determineChainFromList(entry.chainList) ?? 'ethereum'
+  const now = Date.now();
+  const chain = determineChainFromList(entry.chainList) ?? 'ethereum';
 
   const contact: Contact = {
     id: entry.addressBookId,
@@ -117,13 +113,13 @@ export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact 
     ],
     createdAt: now,
     updatedAt: now,
-  }
+  };
 
   if (entry.remarks) {
-    contact.memo = entry.remarks
+    contact.memo = entry.remarks;
   }
 
-  return contact
+  return contact;
 }
 
 /**
@@ -131,19 +127,19 @@ export function transformAddressBookEntry(entry: MpayAddressBookEntry): Contact 
  */
 export interface TransformResult {
   /** 转换后的钱包列表 */
-  wallets: Wallet[]
+  wallets: Wallet[];
   /** 跳过的地址（不支持的链） */
   skippedAddresses: Array<{
-    address: string
-    chain: string
-    reason: string
-  }>
+    address: string;
+    chain: string;
+    reason: string;
+  }>;
   /** 转换统计 */
   stats: {
-    totalWallets: number
-    totalAddresses: number
-    skippedAddresses: number
-  }
+    totalWallets: number;
+    totalAddresses: number;
+    skippedAddresses: number;
+  };
 }
 
 /**
@@ -157,42 +153,42 @@ export interface TransformResult {
 export async function transformMpayData(
   mpayWallets: MpayMainWallet[],
   mpayAddresses: MpayChainAddressInfo[],
-  password: string
+  password: string,
 ): Promise<TransformResult> {
-  const wallets: Wallet[] = []
-  const skippedAddresses: TransformResult['skippedAddresses'] = []
+  const wallets: Wallet[] = [];
+  const skippedAddresses: TransformResult['skippedAddresses'] = [];
 
   // 按 mainWalletId 分组地址
-  const addressesByWallet = new Map<string, MpayChainAddressInfo[]>()
+  const addressesByWallet = new Map<string, MpayChainAddressInfo[]>();
   for (const addr of mpayAddresses) {
-    const list = addressesByWallet.get(addr.mainWalletId) ?? []
-    list.push(addr)
-    addressesByWallet.set(addr.mainWalletId, list)
+    const list = addressesByWallet.get(addr.mainWalletId) ?? [];
+    list.push(addr);
+    addressesByWallet.set(addr.mainWalletId, list);
   }
 
   for (const mpayWallet of mpayWallets) {
     try {
       // 解密助记词
-      const mnemonic = await decryptMpayData(password, mpayWallet.importPhrase)
+      const mnemonic = await decryptMpayData(password, mpayWallet.importPhrase);
 
       // 用 KeyApp 格式重新加密
-      const encryptedMnemonic: EncryptedData = await encrypt(mnemonic, password)
+      const encryptedMnemonic: EncryptedData = await encrypt(mnemonic, password);
 
       // 获取该钱包的所有地址
-      const walletAddresses = addressesByWallet.get(mpayWallet.mainWalletId) ?? []
+      const walletAddresses = addressesByWallet.get(mpayWallet.mainWalletId) ?? [];
 
       // 转换地址
-      const chainAddresses: ChainAddress[] = []
+      const chainAddresses: ChainAddress[] = [];
       for (const mpayAddr of walletAddresses) {
-        const converted = transformChainAddress(mpayAddr)
+        const converted = transformChainAddress(mpayAddr);
         if (converted) {
-          chainAddresses.push(converted)
+          chainAddresses.push(converted);
         } else {
           skippedAddresses.push({
             address: mpayAddr.address,
             chain: mpayAddr.chain,
-            reason: `不支持的链类型: ${mpayAddr.chain}`,
-          })
+            reason: t('error:chain.unsupportedType', { chain: mpayAddr.chain }),
+          });
         }
       }
 
@@ -202,10 +198,9 @@ export async function transformMpayData(
         chainAddresses.find((ca) => ca.chain === 'bfmeta')?.chain ??
         chainAddresses.find((ca) => ca.chain === 'ethereum')?.chain ??
         chainAddresses[0]?.chain ??
-        'ethereum'
+        'ethereum';
 
-      const primaryAddress =
-        chainAddresses.find((ca) => ca.chain === primaryChain)?.address ?? ''
+      const primaryAddress = chainAddresses.find((ca) => ca.chain === primaryChain)?.address ?? '';
 
       // 创建 KeyApp 钱包 (不包含 tokens，余额从 chain-provider 获取)
       const wallet = {
@@ -218,11 +213,10 @@ export async function transformMpayData(
         createdAt: mpayWallet.createTimestamp,
         themeHue: deriveThemeHue(mpayWallet.mainWalletId),
         // tokens 已移除 - 从 chain-provider.tokenBalances 获取
-      }
+      };
 
-      wallets.push(wallet)
+      wallets.push(wallet);
     } catch (error) {
-
       // 继续处理其他钱包
     }
   }
@@ -235,7 +229,7 @@ export async function transformMpayData(
       totalAddresses: mpayAddresses.length,
       skippedAddresses: skippedAddresses.length,
     },
-  }
+  };
 }
 
-export { mapChainName, transformChainAddress, determineChainFromList }
+export { mapChainName, transformChainAddress, determineChainFromList };

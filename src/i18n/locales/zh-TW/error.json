@@ -18,7 +18,9 @@
     "cannotTransferToSelf": "不能轉帳給自己",
     "enterAmount": "請輸入金額",
     "enterValidAmount": "請輸入有效金額",
-    "exceedsBalance": "銷毀數量不能大於餘額"
+    "exceedsBalance": "銷毀數量不能大於餘額",
+    "enterReceiverAddress": "請輸入收款地址",
+    "invalidAddress": "無效的地址格式"
   },
   "transaction": {
     "failed": "交易失敗，請稍後重試",
@@ -31,7 +33,9 @@
     "chainConfigMissing": "鏈配置缺失",
     "unsupportedChainType": "不支持的鏈類型: {{chain}}",
     "issuerAddressNotFound": "無法獲取資產發行地址",
-    "issuerAddressNotReady": "資產發行地址未獲取"
+    "issuerAddressNotReady": "資產發行地址未獲取",
+    "insufficientGas": "手續費不足",
+    "retryLater": "交易失敗，請稍後重試"
   },
   "crypto": {
     "keyDerivationFailed": "密鑰派生失敗",
@@ -41,7 +45,10 @@
     "biometricVerificationFailed": "生物識別驗證失敗",
     "webModeRequiresPassword": "Web 模式需要提供密碼",
     "dwebEnvironmentRequired": "需要在 DWEB 環境中訪問",
-    "mpayDecryptionFailed": "mpay 資料解密失敗：密碼錯誤或資料損壞"
+    "mpayDecryptionFailed": "mpay 資料解密失敗：密碼錯誤或資料損壞",
+    "unsupportedBitcoinPurpose": "不支援的 Bitcoin purpose: {{purpose}}",
+    "decryptFailed": "解密失敗：密碼錯誤或資料損壞",
+    "decryptKeyFailed": "解密失敗：密鑰錯誤或資料損壞"
   },
   "address": {
     "generationFailed": "地址生成失敗"
@@ -55,5 +62,30 @@
   },
   "duplicate": {
     "detectionFailed": "重複檢測失敗"
+  },
+  "chain": {
+    "unsupportedType": "不支援的鏈類型: {{chain}}",
+    "notSupportSecurityPassword": "該鏈不支持安全密碼",
+    "transferNotImplemented": "該鏈轉賬功能尚未完全實現"
+  },
+  "mpay": {
+    "decryptFailed": "mpay 資料解密失敗：密碼錯誤或資料損壞"
+  },
+  "miniapp": {
+    "launchFailed": {
+      "stayOnDesktop": "啟動失敗：請停留在目標桌面頁後重試",
+      "iconNotReady": "啟動失敗：圖標未就緒，請返回桌面重試",
+      "containerNotReady": "啟動失敗：加載容器未就緒，請重試"
+    }
+  },
+  "biometric": {
+    "unavailable": "生物識別不可用",
+    "verificationFailed": "生物識別驗證失敗"
+  },
+  "query": {
+    "failed": "查詢失敗"
+  },
+  "wallet": {
+    "incompleteInfo": "錢包信息不完整"
   }
 }

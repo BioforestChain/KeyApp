@@ -18,7 +18,9 @@
     "cannotTransferToSelf": "Cannot transfer to yourself",
     "enterAmount": "Please enter amount",
     "enterValidAmount": "Please enter a valid amount",
-    "exceedsBalance": "Amount exceeds balance"
+    "exceedsBalance": "Amount exceeds balance",
+    "enterReceiverAddress": "Please enter recipient address",
+    "invalidAddress": "Invalid address format"
   },
   "transaction": {
     "failed": "Transaction failed, please try again later",
@@ -31,7 +33,9 @@
     "chainConfigMissing": "Chain configuration missing",
     "unsupportedChainType": "Unsupported chain type: {{chain}}",
     "issuerAddressNotFound": "Unable to get asset issuer address",
-    "issuerAddressNotReady": "Asset issuer address not ready"
+    "issuerAddressNotReady": "Asset issuer address not ready",
+    "insufficientGas": "Insufficient gas fee",
+    "retryLater": "Transaction failed, please try again later"
   },
   "crypto": {
     "keyDerivationFailed": "Key derivation failed",
@@ -41,7 +45,10 @@
     "biometricVerificationFailed": "Biometric verification failed",
     "webModeRequiresPassword": "Web mode requires password",
     "dwebEnvironmentRequired": "DWEB environment required",
-    "mpayDecryptionFailed": "mpay data decryption failed: wrong password or corrupted data"
+    "mpayDecryptionFailed": "mpay data decryption failed: wrong password or corrupted data",
+    "unsupportedBitcoinPurpose": "Unsupported Bitcoin purpose: {{purpose}}",
+    "decryptFailed": "Decryption failed: wrong password or corrupted data",
+    "decryptKeyFailed": "Decryption failed: wrong key or corrupted data"
   },
   "address": {
     "generationFailed": "Address generation failed"
@@ -55,5 +62,30 @@
   },
   "duplicate": {
     "detectionFailed": "Duplicate detection failed"
+  },
+  "chain": {
+    "unsupportedType": "Unsupported chain type: {{chain}}",
+    "notSupportSecurityPassword": "This chain does not support security password",
+    "transferNotImplemented": "Transfer function for this chain is not fully implemented"
+  },
+  "mpay": {
+    "decryptFailed": "Failed to decrypt mpay data: wrong password or corrupted data"
+  },
+  "miniapp": {
+    "launchFailed": {
+      "stayOnDesktop": "Launch failed: please stay on the target desktop page and retry",
+      "iconNotReady": "Launch failed: icon not ready, please return to desktop and retry",
+      "containerNotReady": "Launch failed: container not ready, please retry"
+    }
+  },
+  "biometric": {
+    "unavailable": "Biometric authentication unavailable",
+    "verificationFailed": "Biometric verification failed"
+  },
+  "query": {
+    "failed": "Query failed"
+  },
+  "wallet": {
+    "incompleteInfo": "Wallet information is incomplete"
   }
 }

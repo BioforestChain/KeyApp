@@ -18,7 +18,9 @@
     "cannotTransferToSelf": "不能转账给自己",
     "enterAmount": "请输入金额",
     "enterValidAmount": "请输入有效金额",
-    "exceedsBalance": "销毁数量不能大于余额"
+    "exceedsBalance": "销毁数量不能大于余额",
+    "enterReceiverAddress": "请输入收款地址",
+    "invalidAddress": "无效的地址格式"
   },
   "transaction": {
     "failed": "交易失败，请稍后重试",
@@ -31,7 +33,9 @@
     "chainConfigMissing": "链配置缺失",
     "unsupportedChainType": "不支持的链类型: {{chain}}",
     "issuerAddressNotFound": "无法获取资产发行地址",
-    "issuerAddressNotReady": "资产发行地址未获取"
+    "issuerAddressNotReady": "资产发行地址未获取",
+    "insufficientGas": "手续费不足",
+    "retryLater": "交易失败，请稍后重试"
   },
   "crypto": {
     "keyDerivationFailed": "密钥派生失败",
@@ -41,7 +45,10 @@
     "biometricVerificationFailed": "生物识别验证失败",
     "webModeRequiresPassword": "Web 模式需要提供密码",
     "dwebEnvironmentRequired": "需要在 DWEB 环境中访问",
-    "mpayDecryptionFailed": "mpay 数据解密失败：密码错误或数据损坏"
+    "mpayDecryptionFailed": "mpay 数据解密失败：密码错误或数据损坏",
+    "unsupportedBitcoinPurpose": "不支持的 Bitcoin purpose: {{purpose}}",
+    "decryptFailed": "解密失败：密码错误或数据损坏",
+    "decryptKeyFailed": "解密失败：密钥错误或数据损坏"
   },
   "address": {
     "generationFailed": "地址生成失败"
@@ -55,5 +62,30 @@
   },
   "duplicate": {
     "detectionFailed": "重复检测失败"
+  },
+  "chain": {
+    "unsupportedType": "不支持的链类型: {{chain}}",
+    "notSupportSecurityPassword": "该链不支持安全密码",
+    "transferNotImplemented": "该链转账功能尚未完全实现"
+  },
+  "mpay": {
+    "decryptFailed": "mpay 数据解密失败：密码错误或数据损坏"
+  },
+  "miniapp": {
+    "launchFailed": {
+      "stayOnDesktop": "启动失败：请停留在目标桌面页后重试",
+      "iconNotReady": "启动失败：图标未就绪，请返回桌面重试",
+      "containerNotReady": "启动失败：加载容器未就绪，请重试"
+    }
+  },
+  "biometric": {
+    "unavailable": "生物识别不可用",
+    "verificationFailed": "生物识别验证失败"
+  },
+  "query": {
+    "failed": "查询失败"
+  },
+  "wallet": {
+    "incompleteInfo": "钱包信息不完整"
   }
 }

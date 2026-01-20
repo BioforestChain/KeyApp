@@ -63,6 +63,9 @@ import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types';
 import { getBridge } from '../ecosystem/provider';
 import { toastService } from '../toast';
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs';
+import i18n from '@/i18n';
+
+const t = i18n.t.bind(i18n);
 export {
   getDesktopContainerRef,
   getDesktopAppSlotRect,
@@ -511,11 +514,11 @@ function startPreparing(appId: string, targetDesktop: MiniappTargetDesktop, hasS
 
     if (performance.now() - startAt > PREPARING_TIMEOUT) {
       if (!slotReady) {
-        failPreparing(appId, '启动失败：请停留在目标桌面页后重试');
+        failPreparing(appId, t('error:miniapp.launchFailed.stayOnDesktop'));
       } else if (!iconReady) {
-        failPreparing(appId, '启动失败：图标未就绪，请返回桌面重试');
+        failPreparing(appId, t('error:miniapp.launchFailed.iconNotReady'));
       } else {
-        failPreparing(appId, '启动失败：加载容器未就绪，请重试');
+        failPreparing(appId, t('error:miniapp.launchFailed.containerNotReady'));
       }
       return;
     }

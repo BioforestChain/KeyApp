@@ -7,54 +7,51 @@
  * 此模块提供 mpay 数据解密能力
  */
 
-import { validateMnemonic } from '@/lib/crypto/mnemonic'
+import { validateMnemonic } from '@/lib/crypto/mnemonic';
+import i18n from '@/i18n';
+
+const t = i18n.t.bind(i18n);
 
 /**
  * SHA256 哈希
  */
 async function sha256Binary(data: ArrayBuffer): Promise<ArrayBuffer> {
-  return crypto.subtle.digest('SHA-256', data)
+  return crypto.subtle.digest('SHA-256', data);
 }
 
 /**
  * UTF8 字符串转 ArrayBuffer
  */
 function encodeUTF8(text: string): ArrayBuffer {
-  return new TextEncoder().encode(text).buffer as ArrayBuffer
+  return new TextEncoder().encode(text).buffer as ArrayBuffer;
 }
 
 /**
  * ArrayBuffer 转 UTF8 字符串
  */
 function decodeUTF8(data: ArrayBuffer): string {
-  return new TextDecoder().decode(data)
+  return new TextDecoder().decode(data);
 }
 
 /**
  * Base64 转 ArrayBuffer
  */
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
+    bytes[i] = binary.charCodeAt(i);
   }
-  return bytes.buffer as ArrayBuffer
+  return bytes.buffer as ArrayBuffer;
 }
 
 /**
  * 获取 mpay 格式的 AES-CTR 密钥
  */
 async function getMpayCryptoKey(password: string): Promise<CryptoKey> {
-  const passwordBuffer = encodeUTF8(password)
-  const keyMaterial = await sha256Binary(passwordBuffer)
-  return crypto.subtle.importKey(
-    'raw',
-    keyMaterial,
-    { name: 'AES-CTR', length: 256 },
-    false,
-    ['decrypt']
-  )
+  const passwordBuffer = encodeUTF8(password);
+  const keyMaterial = await sha256Binary(passwordBuffer);
+  return crypto.subtle.importKey('raw', keyMaterial, { name: 'AES-CTR', length: 256 }, false, ['decrypt']);
 }
 
 /**
@@ -67,23 +64,16 @@ async function getMpayCryptoKey(password: string): Promise<CryptoKey> {
  * @returns 解密后的明文
  * @throws 密码错误时抛出异常
  */
-export async function decryptMpayData(
-  password: string,
-  encryptedBase64: string
-): Promise<string> {
-  const key = await getMpayCryptoKey(password)
-  const encrypted = base64ToArrayBuffer(encryptedBase64)
-  const counter = new Uint8Array(16) // mpay 使用全零 counter
+export async function decryptMpayData(password: string, encryptedBase64: string): Promise<string> {
+  const key = await getMpayCryptoKey(password);
+  const encrypted = base64ToArrayBuffer(encryptedBase64);
+  const counter = new Uint8Array(16); // mpay 使用全零 counter
 
   try {
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-CTR', counter, length: 128 },
-      key,
-      encrypted
-    )
-    return decodeUTF8(decrypted)
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-CTR', counter, length: 128 }, key, encrypted);
+    return decodeUTF8(decrypted);
   } catch {
-    throw new Error('mpay 数据解密失败：密码错误或数据损坏')
+    throw new Error(t('error:mpay.decryptFailed'));
   }
 }
 
@@ -94,15 +84,12 @@ export async function decryptMpayData(
  * @param encryptedBase64 mpay 加密的数据（通常是 importPhrase）
  * @returns 密码是否正确
  */
-export async function verifyMpayPassword(
-  password: string,
-  encryptedBase64: string
-): Promise<boolean> {
+export async function verifyMpayPassword(password: string, encryptedBase64: string): Promise<boolean> {
   try {
-    const decrypted = await decryptMpayData(password, encryptedBase64)
-    const words = decrypted.trim().split(/\s+/)
-    return validateMnemonic(words)
+    const decrypted = await decryptMpayData(password, encryptedBase64);
+    const words = decrypted.trim().split(/\s+/);
+    return validateMnemonic(words);
   } catch {
-    return false
+    return false;
   }
 }

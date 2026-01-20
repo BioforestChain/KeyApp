@@ -141,16 +141,17 @@ export async function submitWeb3Transfer({
     };
 
     if (errorMessage.includes('fee') || errorMessage.includes('手续费') || errorMessage.includes('gas')) {
-      return { status: 'error', message: '手续费不足' };
+      // i18n-ignore
+      return { status: 'error', message: t('error:transaction.insufficientGas') };
     }
 
     if (errorMessage.includes('not yet implemented') || errorMessage.includes('not supported')) {
-      return { status: 'error', message: '该链转账功能尚未完全实现' };
+      return { status: 'error', message: t('error:chain.transferNotImplemented') };
     }
 
     return {
       status: 'error',
-      message: errorMessage || '交易失败，请稍后重试',
+      message: errorMessage || t('error:transaction.retryLater'),
     };
   }
 }
@@ -174,11 +175,11 @@ export function validateWeb3Address(chainConfig: ChainConfig, address: string): 
   }
 
   if (!address || address.trim() === '') {
-    return '请输入收款地址';
+    return t('error:validation.enterReceiverAddress');
   }
 
   if (!chainProvider.isValidAddress!(address)) {
-    return '无效的地址格式';
+    return t('error:validation.invalidAddress');
   }
 
   return null;
