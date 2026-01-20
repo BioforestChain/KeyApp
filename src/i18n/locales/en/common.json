@@ -447,5 +447,22 @@
   "transaction": "Transaction",
   "signTxWarning": "Please confirm you trust this app and carefully verify the transaction.",
   "signing": "Signing...",
-  "sign": "Sign"
+  "sign": "Sign",
+  "signMessage": "Sign Request",
+  "hexDataWarning": "This message contains hex data. Please confirm you trust this app.",
+  "switchNetwork": "Switch Network",
+  "requestsNetworkSwitch": "requests network switch",
+  "chainSwitchWarning": "After switching networks, your transactions will be on the new network. Please make sure you understand the implications.",
+  "confirmTransfer": "Confirm Transfer",
+  "requestsTransfer": "requests transfer",
+  "to": "To",
+  "amount": "Amount",
+  "cryptoAuthorize": "Crypto Authorize",
+  "permissions": "Permissions",
+  "duration": "Duration",
+  "selectChainWallet": "Select {{chain}} Wallet",
+  "requestsAccess": "requests access",
+  "noWalletsForChain": "No wallets support {{chain}}",
+  "noWallets": "No wallets",
+  "requestsDestroy": "requests destruction"
 }

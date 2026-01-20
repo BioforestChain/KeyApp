@@ -3,62 +3,59 @@
  * 用于小程序请求用户签名消息
  */
 
-import { useCallback, useState } from 'react'
-import type { ActivityComponentType } from '@stackflow/react'
-import { BottomSheet } from '@/components/layout/bottom-sheet'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
-import { useFlow } from '../../stackflow'
-import { ActivityParamsProvider, useActivityParams } from '../../hooks'
-import { setWalletLockConfirmCallback } from './WalletLockConfirmJob'
-import { useCurrentWallet, walletStore } from '@/stores'
-import { SignatureAuthService, plaocAdapter } from '@/services/authorize'
-import { MiniappSheetHeader } from '@/components/ecosystem'
+import { useCallback, useState } from 'react';
+import type { ActivityComponentType } from '@stackflow/react';
+import { BottomSheet } from '@/components/layout/bottom-sheet';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react';
+import { useFlow } from '../../stackflow';
+import { ActivityParamsProvider, useActivityParams } from '../../hooks';
+import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
+import { useCurrentWallet, walletStore } from '@/stores';
+import { SignatureAuthService, plaocAdapter } from '@/services/authorize';
+import { MiniappSheetHeader } from '@/components/ecosystem';
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
-  message: string
+  message: string;
   /** 签名地址 */
-  address: string
+  address: string;
   /** 请求来源小程序名称 */
-  appName?: string
+  appName?: string;
   /** 请求来源小程序图标 */
-  appIcon?: string
+  appIcon?: string;
   /** 链名称（用于签名） */
-  chainName?: string
-}
+  chainName?: string;
+};
 
 function SigningConfirmJobContent() {
-  const { t } = useTranslation('common')
-  const { pop, push } = useFlow()
-  const { message, address, appName, appIcon, chainName } = useActivityParams<SigningConfirmJobParams>()
-  const currentWallet = useCurrentWallet()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t } = useTranslation('common');
+  const { pop, push } = useFlow();
+  const { message, address, appName, appIcon, chainName } = useActivityParams<SigningConfirmJobParams>();
+  const currentWallet = useCurrentWallet();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 查找使用该地址的钱包
-  const targetWallet = walletStore.state.wallets.find(
-    w => w.chainAddresses.some(ca => ca.address === address)
-  )
-  const walletName = targetWallet?.name || t('unknownWallet', '未知钱包')
+  const targetWallet = walletStore.state.wallets.find((w) => w.chainAddresses.some((ca) => ca.address === address));
+  const walletName = targetWallet?.name || t('unknownWallet');
 
   const handleConfirm = useCallback(() => {
-    if (isSubmitting) return
+    if (isSubmitting) return;
 
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
 
       try {
-        const encryptedSecret = currentWallet?.encryptedMnemonic
+        const encryptedSecret = currentWallet?.encryptedMnemonic;
         if (!encryptedSecret) {
-
-          return false
+          return false;
         }
 
         // 创建签名服务 (使用临时 eventId)
-        const eventId = `miniapp_sign_${Date.now()}`
-        const authService = new SignatureAuthService(plaocAdapter, eventId)
+        const eventId = `miniapp_sign_${Date.now()}`;
+        const authService = new SignatureAuthService(plaocAdapter, eventId);
 
         // 执行真实签名（返回 { signature, publicKey }）
         const signResult = await authService.handleMessageSign(
@@ -68,8 +65,8 @@ function SigningConfirmJobContent() {
             message,
           },
           encryptedSecret,
-          password
-        )
+          password,
+        );
 
         // 发送成功事件（包含 signature 和 publicKey）
         const event = new CustomEvent('signing-confirm', {
@@ -78,35 +75,34 @@ function SigningConfirmJobContent() {
             signature: signResult.signature,
             publicKey: signResult.publicKey,
           },
-        })
-        window.dispatchEvent(event)
+        });
+        window.dispatchEvent(event);
 
-        pop()
-        return true
+        pop();
+        return true;
       } catch (error) {
-
-        return false
+        return false;
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
-    })
+    });
 
     // 打开钱包锁验证
     push('WalletLockConfirmJob', {
-      title: t('sign', '签名'),
-    })
-  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t])
+      title: t('sign'),
+    });
+  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('signing-confirm', {
       detail: { confirmed: false },
-    })
-    window.dispatchEvent(event)
-    pop()
-  }, [pop])
+    });
+    window.dispatchEvent(event);
+    pop();
+  }, [pop]);
 
   // Check if message looks like hex data (potential risk)
-  const isHexData = message.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(message)
+  const isHexData = message.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(message);
 
   return (
     <BottomSheet>
@@ -118,8 +114,8 @@ function SigningConfirmJobContent() {
 
         {/* Header */}
         <MiniappSheetHeader
-          title={t('signMessage', '签名请求')}
-          description={appName || t('unknownDApp', '未知 DApp')}
+          title={t('signMessage')}
+          description={appName || t('unknownDApp')}
           appName={appName}
           appIcon={appIcon}
           walletInfo={{
@@ -133,13 +129,9 @@ function SigningConfirmJobContent() {
         <div className="space-y-4 p-4">
           {/* Message */}
           <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">
-              {t('message', '消息内容')}
-            </p>
+            <p className="text-muted-foreground mb-1 text-xs"> {t('message')}</p>
             <div className="max-h-40 overflow-y-auto">
-              <pre className="whitespace-pre-wrap break-all font-mono text-sm">
-                {message}
-              </pre>
+              <pre className="font-mono text-sm break-all whitespace-pre-wrap">{message}</pre>
             </div>
           </div>
 
@@ -147,9 +139,7 @@ function SigningConfirmJobContent() {
           {isHexData && (
             <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
               <IconAlertTriangle className="size-5 shrink-0 text-amber-600" />
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                {t('hexDataWarning', '此消息包含十六进制数据，请确认您信任此应用。')}
-              </p>
+              <p className="text-sm text-amber-800 dark:text-amber-200">{t('hexDataWarning')}</p>
             </div>
           )}
         </div>
@@ -159,9 +149,9 @@ function SigningConfirmJobContent() {
           <button
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="bg-muted hover:bg-muted/80 disabled:opacity-50 flex-1 rounded-xl py-3 font-medium transition-colors"
+            className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
           >
-            {t('cancel', '取消')}
+            {t('cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -169,16 +159,16 @@ function SigningConfirmJobContent() {
             className={cn(
               'flex-1 rounded-xl py-3 font-medium transition-colors',
               'bg-primary text-primary-foreground hover:bg-primary/90',
-              'disabled:opacity-50 flex items-center justify-center gap-2'
+              'flex items-center justify-center gap-2 disabled:opacity-50',
             )}
           >
             {isSubmitting ? (
               <>
                 <IconLoader2 className="size-4 animate-spin" />
-                {t('signing', '签名中...')}
+                {t('signing')}
               </>
             ) : (
-              t('sign', '签名')
+              t('sign')
             )}
           </button>
         </div>
@@ -187,7 +177,7 @@ function SigningConfirmJobContent() {
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
     </BottomSheet>
-  )
+  );
 }
 
 export const SigningConfirmJob: ActivityComponentType<SigningConfirmJobParams> = ({ params }) => {
@@ -195,5 +185,5 @@ export const SigningConfirmJob: ActivityComponentType<SigningConfirmJobParams> =
     <ActivityParamsProvider params={params}>
       <SigningConfirmJobContent />
     </ActivityParamsProvider>
-  )
-}
+  );
+};

@@ -3,75 +3,75 @@
  * 当 DApp 请求 wallet_switchEthereumChain 时显示
  */
 
-import type { ActivityComponentType } from '@stackflow/react'
-import { BottomSheet } from '@/components/layout/bottom-sheet'
-import { useTranslation } from 'react-i18next'
-import { IconArrowRight, IconAlertTriangle } from '@tabler/icons-react'
-import { ChainIcon } from '@/components/wallet/chain-icon'
-import { MiniappSheetHeader } from '@/components/ecosystem'
-import { useFlow } from '../../stackflow'
-import { ActivityParamsProvider, useActivityParams } from '../../hooks'
-import { parseHexChainId, getKeyAppChainId } from '@biochain/bio-sdk'
-import { chainConfigService } from '@/services/chain-config'
-import type { ChainType } from '@/stores'
+import type { ActivityComponentType } from '@stackflow/react';
+import { BottomSheet } from '@/components/layout/bottom-sheet';
+import { useTranslation } from 'react-i18next';
+import { IconArrowRight, IconAlertTriangle } from '@tabler/icons-react';
+import { ChainIcon } from '@/components/wallet/chain-icon';
+import { MiniappSheetHeader } from '@/components/ecosystem';
+import { useFlow } from '../../stackflow';
+import { ActivityParamsProvider, useActivityParams } from '../../hooks';
+import { parseHexChainId, getKeyAppChainId } from '@biochain/bio-sdk';
+import { chainConfigService } from '@/services/chain-config';
+import type { ChainType } from '@/stores';
 
 type ChainSwitchConfirmJobParams = {
   /** 当前链 ID (hex, e.g., '0x38') */
-  fromChainId: string
+  fromChainId: string;
   /** 目标链 ID (hex, e.g., '0x1') */
-  toChainId: string
+  toChainId: string;
   /** 请求来源小程序名称 */
-  appName?: string
+  appName?: string;
   /** 请求来源小程序图标 */
-  appIcon?: string
-}
+  appIcon?: string;
+};
 
 /** 获取链的显示名称 */
 function getChainDisplayName(hexChainId: string): string {
-  const keyAppId = getKeyAppChainId(hexChainId)
+  const keyAppId = getKeyAppChainId(hexChainId);
   if (keyAppId) {
-    return chainConfigService.getName(keyAppId)
+    return chainConfigService.getName(keyAppId);
   }
   // Fallback: 显示 decimal chainId
   try {
-    const decimal = parseHexChainId(hexChainId)
-    return `Chain ${decimal}`
+    const decimal = parseHexChainId(hexChainId);
+    return `Chain ${decimal}`;
   } catch {
-    return hexChainId
+    return hexChainId;
   }
 }
 
 /** 获取 KeyApp 链类型 */
 function getChainType(hexChainId: string): ChainType | null {
-  const keyAppId = getKeyAppChainId(hexChainId)
-  return keyAppId as ChainType | null
+  const keyAppId = getKeyAppChainId(hexChainId);
+  return keyAppId as ChainType | null;
 }
 
 function ChainSwitchConfirmJobContent() {
-  const { t } = useTranslation('common')
-  const { pop } = useFlow()
-  const { fromChainId, toChainId, appName, appIcon } = useActivityParams<ChainSwitchConfirmJobParams>()
+  const { t } = useTranslation('common');
+  const { pop } = useFlow();
+  const { fromChainId, toChainId, appName, appIcon } = useActivityParams<ChainSwitchConfirmJobParams>();
 
-  const fromChainName = getChainDisplayName(fromChainId)
-  const toChainName = getChainDisplayName(toChainId)
-  const fromChainType = getChainType(fromChainId)
-  const toChainType = getChainType(toChainId)
+  const fromChainName = getChainDisplayName(fromChainId);
+  const toChainName = getChainDisplayName(toChainId);
+  const fromChainType = getChainType(fromChainId);
+  const toChainType = getChainType(toChainId);
 
   const handleConfirm = () => {
     const event = new CustomEvent('chain-switch-confirm', {
       detail: { approved: true, toChainId },
-    })
-    window.dispatchEvent(event)
-    pop()
-  }
+    });
+    window.dispatchEvent(event);
+    pop();
+  };
 
   const handleCancel = () => {
     const event = new CustomEvent('chain-switch-confirm', {
       detail: { approved: false },
-    })
-    window.dispatchEvent(event)
-    pop()
-  }
+    });
+    window.dispatchEvent(event);
+    pop();
+  };
 
   return (
     <BottomSheet>
@@ -83,8 +83,8 @@ function ChainSwitchConfirmJobContent() {
 
         {/* App Info */}
         <MiniappSheetHeader
-          title={t('switchNetwork', '切换网络')}
-          description={`${appName || t('unknownDApp', '未知 DApp')} ${t('requestsNetworkSwitch', '请求切换网络')}`}
+          title={t('switchNetwork')}
+          description={`${appName || t('unknownDApp')} ${t('requestsNetworkSwitch')}`}
           appName={appName}
           appIcon={appIcon}
         />
@@ -121,9 +121,7 @@ function ChainSwitchConfirmJobContent() {
 
         {/* Warning */}
         <div className="bg-warning/10 border-warning/20 mx-4 mb-4 rounded-lg border p-3">
-          <p className="text-warning text-sm">
-            {t('chainSwitchWarning', '切换网络后，您的交易将在新网络上进行。请确保您了解此操作的影响。')}
-          </p>
+          <p className="text-warning text-sm">{t('chainSwitchWarning')}</p>
         </div>
 
         {/* Buttons */}
@@ -132,13 +130,13 @@ function ChainSwitchConfirmJobContent() {
             onClick={handleCancel}
             className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors"
           >
-            {t('cancel', '取消')}
+            {t('cancel')}
           </button>
           <button
             onClick={handleConfirm}
             className="bg-primary hover:bg-primary/90 text-primary-foreground flex-1 rounded-xl py-3 font-medium transition-colors"
           >
-            {t('confirm', '确认')}
+            {t('confirm')}
           </button>
         </div>
 
@@ -146,7 +144,7 @@ function ChainSwitchConfirmJobContent() {
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
     </BottomSheet>
-  )
+  );
 }
 
 export const ChainSwitchConfirmJob: ActivityComponentType<ChainSwitchConfirmJobParams> = ({ params }) => {
@@ -154,5 +152,5 @@ export const ChainSwitchConfirmJob: ActivityComponentType<ChainSwitchConfirmJobP
     <ActivityParamsProvider params={params}>
       <ChainSwitchConfirmJobContent />
     </ActivityParamsProvider>
-  )
-}
+  );
+};
