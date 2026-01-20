@@ -439,5 +439,13 @@
     "verifyIdentity": "التحقق من الهوية",
     "protectWallet": "حماية المحفظة بالقياسات الحيوية",
     "accessMnemonic": "الوصول إلى عبارة الاسترداد"
-  }
+  },
+  "signTransaction": "توقيع المعاملة",
+  "invalidTransaction": "بيانات معاملة غير صالحة",
+  "signingAddressNotFound": "لم يتم العثور على عنوان التوقيع في المحافظ",
+  "signingAddress": "عنوان التوقيع",
+  "transaction": "المعاملة",
+  "signTxWarning": "يرجى التأكد من أنك تثق بهذا التطبيق والتحقق من المعاملة بعناية.",
+  "signing": "جاري التوقيع...",
+  "sign": "توقيع"
 }

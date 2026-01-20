@@ -439,5 +439,13 @@
     "verifyIdentity": "验证身份",
     "protectWallet": "使用生物识别保护钱包",
     "accessMnemonic": "访问钱包助记词"
-  }
+  },
+  "signTransaction": "签名交易",
+  "invalidTransaction": "无效的交易数据",
+  "signingAddressNotFound": "找不到对应的钱包地址，无法签名",
+  "signingAddress": "签名地址",
+  "transaction": "交易内容",
+  "signTxWarning": "请确认您信任此应用，并仔细核对交易内容。",
+  "signing": "签名中...",
+  "sign": "签名"
 }

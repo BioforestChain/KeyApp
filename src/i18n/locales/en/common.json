@@ -439,5 +439,13 @@
     "verifyIdentity": "Verify Identity",
     "protectWallet": "Protect wallet with biometrics",
     "accessMnemonic": "Access wallet mnemonic"
-  }
+  },
+  "signTransaction": "Sign Transaction",
+  "invalidTransaction": "Invalid transaction data",
+  "signingAddressNotFound": "Signing address not found in wallets",
+  "signingAddress": "Signing Address",
+  "transaction": "Transaction",
+  "signTxWarning": "Please confirm you trust this app and carefully verify the transaction.",
+  "signing": "Signing...",
+  "sign": "Sign"
 }

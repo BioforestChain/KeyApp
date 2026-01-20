@@ -268,7 +268,7 @@
   },
   "name": "名稱",
   "navOverview": "概覽",
-  "network": "網絡",
+  "network": "網路",
   "networkNotConnected": "當前的網絡未連接",
   "newFinish": "完成",
   "next": "下一步",
@@ -439,5 +439,13 @@
     "verifyIdentity": "驗證身份",
     "protectWallet": "使用生物識別保護錢包",
     "accessMnemonic": "訪問錢包助記詞"
-  }
+  },
+  "signTransaction": "簽名交易",
+  "invalidTransaction": "無效的交易資料",
+  "signingAddressNotFound": "找不到對應的錢包地址，無法簽名",
+  "signingAddress": "簽名地址",
+  "transaction": "交易內容",
+  "signTxWarning": "請確認您信任此應用，並仔細核對交易內容。",
+  "signing": "簽名中...",
+  "sign": "簽名"
 }
