@@ -102,7 +102,7 @@
   "bgPrimary": "bg-primary",
   "bip39Index": "Index",
   "byContinuingToUseItYouAgreeToTheUserAgreement": "By continuing to use it, you agree to the 《User Agreement》",
-  "cancel": "Cancel",
+  "cancel": "إلغاء",
   "cardWorks": "card works!",
   "certificate": "Certificate",
   "chains": {
@@ -126,7 +126,7 @@
   "codeOfThePrivateKey": "الشفرة السداسية للمفتاح الخاص",
   "comingSoonStayTuned": "قريبًا",
   "comprehensiveEncryption": "Comprehensive &lt;br /&gt; encryption",
-  "confirm": "Confirm",
+  "confirm": "تأكيد",
   "confirmBackedUp": "Confirm Backed Up",
   "confirmToDelete": "Confirm to delete ?",
   "confirmToTurnOffTouchId": "Confirm to turn off Touch ID?",
@@ -193,7 +193,10 @@
     },
     "noAppsUsed": "لم تستخدم أي تطبيقات بعد",
     "runningApps": "التطبيقات قيد التشغيل",
-    "stackViewHints": "اسحب للتبديل · اضغط للفتح · اسحب للأعلى للإغلاق"
+    "stackViewHints": "اسحب للتبديل · اضغط للفتح · اسحب للأعلى للإغلاق",
+    "discover": "اكتشف",
+    "mine": "لي",
+    "stack": "مكدس"
   },
   "edit": "Edit",
   "energy": "Energy",
@@ -217,7 +220,7 @@
   "finish": "تم",
   "firstTimeToUse": "First time to use",
   "freeze": "Freeze",
-  "from": "From",
+  "from": "من",
   "frozen": "Frozen",
   "get_(estimate)": "Get(estimate)",
   "goHome": "الرئيسية",
@@ -265,7 +268,7 @@
   },
   "name": "Name",
   "navOverview": "Overview",
-  "network": "Network",
+  "network": "الشبكة",
   "networkNotConnected": "Network not connected",
   "newFinish": "Finish",
   "next": "Next",
@@ -424,5 +427,12 @@
     "transactionsWillAppear": "ستظهر معاملاتك هنا",
     "noAssets": "لا توجد أصول بعد",
     "assetsWillAppear": "ستظهر أصولك هنا بعد التحويل"
-  }
+  },
+  "password": {
+    "weak": "ضعيف",
+    "medium": "متوسط",
+    "strong": "قوي"
+  },
+  "unknownWallet": "محفظة غير معروفة",
+  "unknownDApp": "تطبيق غير معروف"
 }

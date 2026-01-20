@@ -19,7 +19,10 @@
       "open": "打开",
       "detail": "详情",
       "remove": "移除"
-    }
+    },
+    "discover": "发现",
+    "mine": "我的",
+    "stack": "堆栈"
   },
   "chains": {
     "ethereum": "Ethereum",
@@ -424,5 +427,12 @@
     "transactionsWillAppear": "您的交易记录将显示在这里",
     "noAssets": "暂无资产",
     "assetsWillAppear": "转入资产后将显示在这里"
-  }
+  },
+  "password": {
+    "weak": "弱",
+    "medium": "中",
+    "strong": "强"
+  },
+  "unknownWallet": "未知钱包",
+  "unknownDApp": "未知 DApp"
 }

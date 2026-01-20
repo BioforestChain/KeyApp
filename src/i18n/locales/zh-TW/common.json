@@ -126,7 +126,7 @@
   "codeOfThePrivateKey": "code of the private key",
   "comingSoonStayTuned": "即將上綫，敬請期待",
   "comprehensiveEncryption": "全面加密",
-  "confirm": "確定",
+  "confirm": "確認",
   "confirmBackedUp": "確認已備份",
   "confirmToDelete": "確認刪除？",
   "confirmToTurnOffTouchId": "確定要關閉指紋鎖嗎？",
@@ -193,7 +193,10 @@
     },
     "noAppsUsed": "還沒有使用過的應用",
     "runningApps": "正在執行的應用",
-    "stackViewHints": "左右滑動切換 · 點擊開啟 · 上滑關閉"
+    "stackViewHints": "左右滑動切換 · 點擊開啟 · 上滑關閉",
+    "discover": "發現",
+    "mine": "我的",
+    "stack": "堆棧"
   },
   "edit": "編輯",
   "energy": "能量",
@@ -424,5 +427,12 @@
     "transactionsWillAppear": "您的交易記錄將顯示在這裡",
     "noAssets": "暫無資產",
     "assetsWillAppear": "轉入資產後將顯示在這裡"
-  }
+  },
+  "password": {
+    "weak": "弱",
+    "medium": "中",
+    "strong": "強"
+  },
+  "unknownWallet": "未知錢包",
+  "unknownDApp": "未知 DApp"
 }

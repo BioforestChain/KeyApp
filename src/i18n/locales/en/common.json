@@ -249,7 +249,10 @@
       "open": "Open",
       "detail": "Details",
       "remove": "Remove"
-    }
+    },
+    "discover": "Discover",
+    "mine": "Mine",
+    "stack": "Stack"
   },
   "chains": {
     "ethereum": "Ethereum",
@@ -424,5 +427,12 @@
     "transactionsWillAppear": "Your transactions will appear here",
     "noAssets": "No assets yet",
     "assetsWillAppear": "Your assets will appear here after transfer"
-  }
+  },
+  "password": {
+    "weak": "Weak",
+    "medium": "Medium",
+    "strong": "Strong"
+  },
+  "unknownWallet": "Unknown Wallet",
+  "unknownDApp": "Unknown DApp"
 }
