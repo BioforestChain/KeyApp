@@ -14,12 +14,68 @@
     "title": "权限请求",
     "grant": "授权",
     "deny": "拒绝",
-    "bio_requestAccounts": "访问钱包地址",
-    "bio_selectAccount": "选择账户",
-    "bio_pickWallet": "选择其他钱包",
-    "bio_signMessage": "签名消息",
-    "bio_signTypedData": "签名数据",
-    "bio_sendTransaction": "发起交易"
+    "defaultDescription": "此应用可能访问此功能",
+    "unknown": "未知权限",
+    "bio_requestAccounts": {
+      "name": "请求账户",
+      "description": "获取您的钱包地址列表"
+    },
+    "bio_accounts": {
+      "name": "获取账户",
+      "description": "获取已连接的账户列表"
+    },
+    "bio_selectAccount": {
+      "name": "选择账户",
+      "description": "让您选择一个账户"
+    },
+    "bio_pickWallet": {
+      "name": "选择钱包",
+      "description": "让您选择一个钱包"
+    },
+    "bio_chainId": {
+      "name": "获取链 ID",
+      "description": "获取当前区块链网络"
+    },
+    "bio_getBalance": {
+      "name": "查询余额",
+      "description": "查询账户余额"
+    },
+    "bio_createTransaction": {
+      "name": "创建交易",
+      "description": "构造未签名交易（不做签名/不做广播）"
+    },
+    "bio_signMessage": {
+      "name": "签名消息",
+      "description": "使用您的私钥签名消息（需要您确认）"
+    },
+    "bio_signTypedData": {
+      "name": "签名数据",
+      "description": "签名结构化数据（需要您确认）"
+    },
+    "bio_signTransaction": {
+      "name": "签名交易",
+      "description": "对未签名交易进行签名（需要您确认）"
+    },
+    "bio_sendTransaction": {
+      "name": "发送交易",
+      "description": "请求发送转账（需要您确认）"
+    },
+    "bio_destroyAsset": {
+      "name": "销毁资产",
+      "description": "请求销毁资产（需要您确认，不可撤销）"
+    },
+    "bio_requestCryptoToken": {
+      "name": "请求加密授权",
+      "description": "请求授权进行加密操作（需要您确认）"
+    },
+    "bio_cryptoExecute": {
+      "name": "执行加密操作",
+      "description": "使用已授权的 Token 执行加密操作"
+    },
+    "bio_getCryptoTokenInfo": {
+      "name": "查询授权信息",
+      "description": "查询已授权 Token 的信息"
+    }
   },
   "discover": {
     "featured": "精选应用",
@@ -55,5 +111,36 @@
   "capsule": {
     "more": "更多操作",
     "close": "关闭应用"
+  },
+  "detail": {
+    "notFound": "应用不存在",
+    "back": "返回",
+    "open": "打开",
+    "get": "获取",
+    "unknownDeveloper": "未知开发者",
+    "preview": "预览",
+    "supportedChains": "支持的区块链",
+    "privacy": "应用隐私",
+    "privacyHint": "开发者声明此应用可能会请求以下权限",
+    "tags": "标签",
+    "info": "信息",
+    "developer": "开发者",
+    "version": "版本",
+    "category": "类别",
+    "publishedAt": "发布日期",
+    "updatedAt": "更新日期",
+    "website": "开发者网站",
+    "visit": "访问",
+    "more": "更多",
+    "collapse": "收起",
+    "categories": {
+      "defi": "DeFi",
+      "nft": "NFT",
+      "tools": "工具",
+      "games": "游戏",
+      "social": "社交",
+      "exchange": "交易所",
+      "other": "其他"
+    }
   }
 }
