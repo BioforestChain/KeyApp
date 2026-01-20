@@ -46,7 +46,8 @@
       "themeColorFrom": "#1e40af",
       "splashScreen": true,
       "dirName": "forge",
-      "url": "./forge/"
+      "url": "./forge/",
+      "runtime": "iframe"
     },
     {
       "id": "xin.dweb.teleport",
@@ -89,7 +90,8 @@
       "themeColorFrom": "#3730a3",
       "splashScreen": true,
       "dirName": "teleport",
-      "url": "./teleport/"
+      "url": "./teleport/",
+      "runtime": "iframe"
     },
     {
       "id": "xin.dweb.rwahub",
