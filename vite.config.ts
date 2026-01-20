@@ -94,10 +94,12 @@ export default defineConfig(({ mode }) => {
     // 远程 miniapps (必须在 miniappsPlugin 之前，以便注册到全局状态)
     remoteMiniappsPlugin({
       miniapps: [
-        // RWA Hub - 从远程下载
         {
           metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
           dirName: 'rwa-hub',
+          build: {
+            rewriteBase: true,
+          },
         },
       ],
     }),

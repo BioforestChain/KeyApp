@@ -17,11 +17,35 @@ import { fetchWithEtag } from './utils/fetch-with-etag'
 
 // ==================== Types ====================
 
+/** 运行时容器类型 */
+type MiniappRuntime = 'iframe' | 'wujie'
+
+/** Server 模式配置 */
+interface MiniappServerConfig {
+  runtime?: MiniappRuntime
+}
+
+/** Build 模式配置 */
+interface MiniappBuildConfig {
+  runtime?: MiniappRuntime
+  /**
+   * 重写 index.html 的 <base> 标签
+   * - true: 自动推断为 '/miniapps/{dirName}/'
+   * - string: 自定义路径
+   * - undefined/false: 不重写
+   */
+  rewriteBase?: boolean | string
+}
+
 interface RemoteMiniappConfig {
   /** 远程 metadata.json URL (包含 version, zipUrl, manifestUrl) */
   metadataUrl: string
   /** 解压到 miniapps/ 下的目录名 */
   dirName: string
+  /** Dev server 模式配置 */
+  server?: MiniappServerConfig
+  /** Build 模式配置 */
+  build?: MiniappBuildConfig
 }
 
 interface RemoteMetadata {
@@ -106,7 +130,6 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
       const miniappsPath = resolve(root, miniappsDir)
       const miniappsOutputDir = resolve(outputOptions.dir, 'miniapps')
 
-      // 复制远程 miniapps 到 dist
       for (const config of miniapps) {
         const srcDir = join(miniappsPath, config.dirName)
         const destDir = join(miniappsOutputDir, config.dirName)
@@ -115,6 +138,13 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
           mkdirSync(destDir, { recursive: true })
           cpSync(srcDir, destDir, { recursive: true })
           console.log(`[remote-miniapps] Copied ${config.dirName} to dist`)
+
+          if (config.build?.rewriteBase) {
+            const basePath = typeof config.build.rewriteBase === 'string'
+              ? config.build.rewriteBase
+              : `/miniapps/${config.dirName}/`
+            rewriteHtmlBase(destDir, basePath)
+          }
         }
       }
     },
@@ -309,6 +339,32 @@ async function startStaticServer(
 
     server.on('error', reject)
   })
+}
+
+function rewriteHtmlBase(targetDir: string, basePath: string): void {
+  const indexPath = join(targetDir, 'index.html')
+  if (!existsSync(indexPath)) {
+    console.warn(`[remote-miniapps] index.html not found in ${targetDir}, skipping base rewrite`)
+    return
+  }
+
+  let html = readFileSync(indexPath, 'utf-8')
+
+  html = html.replace(/<base[^>]*>/gi, '')
+
+  const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`
+  const baseTag = `<base href="${normalizedBase}">`
+
+  if (html.includes('<head>')) {
+    html = html.replace(/<head>/i, `<head>\n    ${baseTag}`)
+  } else if (html.includes('<HEAD>')) {
+    html = html.replace(/<HEAD>/i, `<HEAD>\n    ${baseTag}`)
+  } else {
+    html = html.replace(/<html[^>]*>/i, `$&\n  <head>\n    ${baseTag}\n  </head>`)
+  }
+
+  writeFileSync(indexPath, html)
+  console.log(`[remote-miniapps] Rewrote <base> to "${normalizedBase}" in ${indexPath}`)
 }
 
 // ==================== 共享状态 ====================
