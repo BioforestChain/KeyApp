@@ -652,6 +652,7 @@ ${colors.green}✓ No missing or untranslated keys${colors.reset}
     console.log(`
 ${colors.red}✗ Chinese literals found in source code${colors.reset}
 
+<<<<<<< HEAD
 ${colors.bold}To fix:${colors.reset}
   1. Move strings to i18n locale files (src/i18n/locales/)
   2. Use useTranslation() hook or t() function
@@ -666,6 +667,12 @@ ${colors.bold}Quick tools:${colors.reset}
 
   ${colors.cyan}# Example:${colors.reset}
   bun scripts/i18n-set.ts -n error -k validation.required -v '{"zh":"必填项","en":"Required","tw":"必填項"}'
+=======
+To fix:
+  1. Move strings to i18n locale files (src/i18n/locales/)
+  2. Use useTranslation() hook or t() function
+  3. For intentional exceptions, add ${colors.cyan}// i18n-ignore${colors.reset} comment
+>>>>>>> b83ec4455 (feat(i18n): add Chinese literal detection and refactor KNOWN_PERMISSIONS to use i18n)
 `);
 
     process.exit(1);
