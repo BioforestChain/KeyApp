@@ -12,14 +12,24 @@ import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync
 import detectPort from 'detect-port';
 import https from 'node:https';
 import { getRemoteMiniappsForEcosystem } from './vite-plugin-remote-miniapps';
+import type { WujieRuntimeConfig } from '../src/services/ecosystem/types';
 
 // ==================== Types ====================
 
 type MiniappRuntime = 'iframe' | 'wujie';
 
 interface MiniappRuntimeConfig {
-  server?: MiniappRuntime;
-  build?: MiniappRuntime;
+  server?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig };
+  build?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig };
+}
+
+function parseRuntimeConfig(config?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }): {
+  runtime: MiniappRuntime;
+  wujieConfig?: WujieRuntimeConfig;
+} {
+  if (!config) return { runtime: 'iframe' };
+  if (typeof config === 'string') return { runtime: config };
+  return { runtime: config.runtime, wujieConfig: config.wujieConfig };
 }
 
 interface MiniappManifest {
@@ -133,7 +143,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             try {
               const manifest = await fetchManifest(s.port);
               const appConfig = apps[manifest.id];
-              const runtime = appConfig?.server ?? 'iframe';
+              const { runtime, wujieConfig } = parseRuntimeConfig(appConfig?.server);
               return {
                 ...manifest,
                 dirName: s.dirName,
@@ -141,6 +151,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
                 url: new URL('/', s.baseUrl).href,
                 screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
                 runtime,
+                wujieConfig,
               };
             } catch (e) {
               console.error(`[miniapps] Failed to fetch manifest for ${s.id}:`, e);
@@ -280,7 +291,7 @@ function generateEcosystemDataForBuild(
     const shortId = manifest.id.split('.').pop() || '';
     const screenshots = scanScreenshots(root, shortId);
     const appConfig = apps[manifest.id];
-    const runtime = appConfig?.build ?? 'iframe';
+    const { runtime, wujieConfig } = parseRuntimeConfig(appConfig?.build);
 
     const { dirName, ...rest } = manifest;
     return {
@@ -290,6 +301,7 @@ function generateEcosystemDataForBuild(
       icon: `./${dirName}/icon.svg`,
       screenshots: screenshots.map((s) => `./${dirName}/${s}`),
       runtime,
+      wujieConfig,
     };
   });
 

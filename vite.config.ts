@@ -97,10 +97,13 @@ export default defineConfig(({ mode }) => {
           {
             metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
             dirName: 'rwa-hub',
-            server: { runtime: 'wujie' },
+            server: {
+              runtime: 'wujie',
+              wujieConfig: { rewriteAbsolutePaths: true },
+            },
             build: {
               runtime: 'wujie',
-              rewriteBase: true,
+              wujieConfig: { rewriteAbsolutePaths: true },
             },
           },
         ],

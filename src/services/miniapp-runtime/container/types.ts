@@ -1,3 +1,5 @@
+import type { WujieRuntimeConfig } from '@/services/ecosystem/types';
+
 export type ContainerType = 'iframe' | 'wujie';
 
 export interface ContainerHandle {
@@ -16,6 +18,7 @@ export interface ContainerCreateOptions {
   mountTarget: HTMLElement;
   contextParams?: Record<string, string>;
   onLoad?: () => void;
+  wujieConfig?: WujieRuntimeConfig;
 }
 
 export interface ContainerManager {

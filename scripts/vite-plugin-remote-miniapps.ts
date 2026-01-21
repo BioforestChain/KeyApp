@@ -14,6 +14,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } fr
 import { createServer } from 'node:http';
 import type JSZipType from 'jszip';
 import { fetchWithEtag, type FetchWithEtagOptions } from './utils/fetch-with-etag';
+import type { WujieRuntimeConfig } from '../src/services/ecosystem/types';
 
 // ==================== Types ====================
 
@@ -21,17 +22,20 @@ type MiniappRuntime = 'iframe' | 'wujie';
 
 interface MiniappServerConfig {
   runtime?: MiniappRuntime;
+  wujieConfig?: WujieRuntimeConfig;
 }
 
 interface MiniappBuildConfig {
   runtime?: MiniappRuntime;
+  wujieConfig?: WujieRuntimeConfig;
   /**
-   * 重写 index.html 的 <base> 标签
+   * 插入 <base> 标签重写 HTML 路径
+   * 仅在 runtime: 'iframe' 时有意义
    * - true: 自动推断为 '/miniapps/{dirName}/'
    * - string: 自定义路径
-   * - undefined/false: 不重写
+   * - undefined/false: 不插入
    */
-  rewriteBase?: boolean | string;
+  injectBaseTag?: boolean | string;
 }
 
 interface RemoteMiniappConfig {
@@ -148,10 +152,21 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
           cpSync(srcDir, destDir, { recursive: true });
           console.log(`[remote-miniapps] ✅ Copied ${config.dirName} to dist`);
 
-          if (config.build?.rewriteBase) {
+          if (config.build?.injectBaseTag) {
             const basePath =
-              typeof config.build.rewriteBase === 'string' ? config.build.rewriteBase : `/miniapps/${config.dirName}/`;
+              typeof config.build.injectBaseTag === 'string'
+                ? config.build.injectBaseTag
+                : `/miniapps/${config.dirName}/`;
             rewriteHtmlBase(destDir, basePath);
+          }
+
+          if (config.build?.wujieConfig) {
+            const manifestPath = join(destDir, 'manifest.json');
+            if (existsSync(manifestPath)) {
+              const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+              manifest.wujieConfig = config.build.wujieConfig;
+              writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+            }
           }
         } else {
           missing.push(config.dirName);
@@ -391,7 +406,7 @@ export function getRemoteMiniappServers(): RemoteMiniappServer[] {
  * 获取远程 miniapps 用于 ecosystem.json 的数据
  */
 export function getRemoteMiniappsForEcosystem(): Array<
-  MiniappManifest & { url: string; runtime?: 'iframe' | 'wujie' }
+  MiniappManifest & { url: string; runtime?: 'iframe' | 'wujie'; wujieConfig?: WujieRuntimeConfig }
 > {
   return globalRemoteServers.map((s) => ({
     ...s.manifest,
@@ -400,6 +415,7 @@ export function getRemoteMiniappsForEcosystem(): Array<
     url: new URL('/', s.baseUrl).href,
     screenshots: s.manifest.screenshots?.map((sc) => new URL(sc, s.baseUrl).href) ?? [],
     runtime: s.config.server?.runtime ?? 'iframe',
+    wujieConfig: s.config.server?.wujieConfig,
   }));
 }
 
