@@ -209,7 +209,7 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
                 ? 'bg-green-100 text-green-600 hover:bg-green-200'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
-            aria-label={source.enabled ? '禁用' : '启用'}
+            aria-label={source.enabled ? t('disable') : t('enable')}
           >
             {source.enabled ? <IconCheck className="size-4" stroke={2} /> : <IconX className="size-4" stroke={2} />}
           </button>
@@ -219,7 +219,7 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
             <button
               onClick={onRemove}
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full p-2 transition-colors"
-              aria-label="删除"
+              aria-label={t('delete')}
             >
               <IconTrash className="size-4" stroke={1.5} />
             </button>

@@ -36,7 +36,8 @@
     "tabWallet": "المحفظة",
     "tokenDetails": "عرض تفاصيل {{token}}",
     "transactionDetails": "تفاصيل المعاملة",
-    "unknownApp": "تطبيق غير معروف"
+    "unknownApp": "تطبيق غير معروف",
+    "more": "المزيد من الإجراءات"
   },
   "acceptExchange": "Accept exchange",
   "account": "المستخدم",
@@ -484,5 +485,9 @@
   },
   "enable": "تمكين",
   "disable": "تعطيل",
-  "refresh": "تحديث"
+  "refresh": "تحديث",
+  "assetSelector": {
+    "selectAsset": "اختر الأصل",
+    "balance": "الرصيد"
+  }
 }

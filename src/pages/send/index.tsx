@@ -377,7 +377,7 @@ function SendPageContent() {
         {/* Asset selector (only show if multiple tokens available) */}
         {tokens.length > 1 && (
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t('sendPage.assetLabel', '转账资产')}</label>
+            <label className="text-sm font-medium">{t('sendPage.assetLabel')}</label>
             <AssetSelector
               selectedAsset={selectedToken}
               assets={tokens}

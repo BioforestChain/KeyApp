@@ -248,7 +248,7 @@ function DestroyPageContent() {
   if (!currentWallet || !currentChainAddress) {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title={t('destroyPage.title', '销毁')} onBack={navGoBack} />
+        <PageHeader title={t('destroyPage.title')} onBack={navGoBack} />
         <div className="flex flex-1 items-center justify-center p-4">
           <p className="text-muted-foreground">{t('history.noWallet')}</p>
         </div>
@@ -259,10 +259,10 @@ function DestroyPageContent() {
   if (!isBioforestChain) {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title={t('destroyPage.title', '销毁')} onBack={navGoBack} />
+        <PageHeader title={t('destroyPage.title')} onBack={navGoBack} />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
           <IconFlame className="text-muted-foreground size-16" />
-          <p className="text-muted-foreground text-center">{t('destroyPage.notSupported', '当前链不支持资产销毁')}</p>
+          <p className="text-muted-foreground text-center">{t('destroyPage.notSupported')}</p>
         </div>
       </div>
     );
@@ -272,7 +272,7 @@ function DestroyPageContent() {
   if (state.step === 'result' || state.step === 'burning') {
     return (
       <div className="flex min-h-screen flex-col">
-        <PageHeader title={t('destroyPage.resultTitle', '销毁结果')} />
+        <PageHeader title={t('destroyPage.resultTitle')} />
         <SendResult
           status={state.step === 'burning' ? 'pending' : (state.resultStatus ?? 'pending')}
           amount={state.amount?.toFormatted() ?? '0'}
@@ -292,7 +292,7 @@ function DestroyPageContent() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={t('destroyPage.title', '销毁')} onBack={navGoBack} />
+      <PageHeader title={t('destroyPage.title')} onBack={navGoBack} />
 
       <div className="flex-1 space-y-6 p-4">
         {/* Current chain info & sender address */}
@@ -313,7 +313,7 @@ function DestroyPageContent() {
 
         {/* Asset selector */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t('destroyPage.assetLabel', '销毁资产')}</label>
+          <label className="text-sm font-medium">{t('destroyPage.assetLabel')}</label>
           <AssetSelector
             selectedAsset={selectedToken}
             assets={destroyableTokens}
@@ -323,14 +323,14 @@ function DestroyPageContent() {
             testId="destroy-asset-selector"
           />
           {destroyableTokens.length === 0 && (
-            <p className="text-muted-foreground text-xs">{t('destroyPage.noDestroyableAssets', '暂无可销毁的资产')}</p>
+            <p className="text-muted-foreground text-xs">{t('destroyPage.noDestroyableAssets')}</p>
           )}
         </div>
 
         {/* Amount input */}
         {state.asset && (
           <AmountInput
-            label={t('destroyPage.amountLabel', '销毁数量')}
+            label={t('destroyPage.amountLabel')}
             value={state.amount ?? undefined}
             onChange={setAmount}
             balance={balance ?? undefined}

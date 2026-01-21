@@ -36,7 +36,8 @@
     "tabWallet": "錢包",
     "tokenDetails": "查看 {{token}} 詳情",
     "transactionDetails": "交易詳情",
-    "unknownApp": "未知應用程式"
+    "unknownApp": "未知應用程式",
+    "more": "更多操作"
   },
   "acceptExchange": "接受交換",
   "account": "賬戶",
@@ -484,5 +485,9 @@
   },
   "enable": "啟用",
   "disable": "禁用",
-  "refresh": "刷新"
+  "refresh": "刷新",
+  "assetSelector": {
+    "selectAsset": "選擇資產",
+    "balance": "餘額"
+  }
 }

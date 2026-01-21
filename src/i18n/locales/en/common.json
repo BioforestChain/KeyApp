@@ -36,7 +36,8 @@
     "tabEcosystem": "Ecosystem",
     "tokenDetails": "View {{token}} details",
     "transactionDetails": "Transaction details",
-    "unknownApp": "Unknown app"
+    "unknownApp": "Unknown app",
+    "more": "More actions"
   },
   "acceptExchange": "Accept exchange",
   "account": "User",
@@ -484,5 +485,9 @@
   },
   "enable": "Enable",
   "disable": "Disable",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "assetSelector": {
+    "selectAsset": "Select asset",
+    "balance": "Balance"
+  }
 }
