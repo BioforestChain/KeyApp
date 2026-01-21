@@ -11,7 +11,7 @@ import { resolve, join } from 'node:path';
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import detectPort from 'detect-port';
 import https from 'node:https';
-import { getRemoteMiniappsForEcosystem } from './vite-plugin-remote-miniapps';
+import { getRemoteMiniappsForEcosystem, type RemoteMiniappConfig } from './vite-plugin-remote-miniapps';
 import type { WujieRuntimeConfig } from '../src/services/ecosystem/types';
 
 // ==================== Types ====================
@@ -75,12 +75,13 @@ interface MiniappServer {
 interface MiniappsPluginOptions {
   miniappsDir?: string;
   apps?: Record<string, MiniappRuntimeConfig>;
+  remoteMiniapps?: RemoteMiniappConfig[];
 }
 
 // ==================== Plugin ====================
 
 export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
-  const { miniappsDir = 'miniapps', apps = {} } = options;
+  const { miniappsDir = 'miniapps', apps = {}, remoteMiniapps = [] } = options;
 
   let root: string;
   let isBuild = false;
@@ -98,7 +99,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       if (isBuild && options.dir) {
         await buildAllMiniapps(root, miniappsDir, options.dir);
 
-        const ecosystem = generateEcosystemDataForBuild(root, miniappsDir, apps);
+        const ecosystem = generateEcosystemDataForBuild(root, miniappsDir, apps, remoteMiniapps);
         const miniappsOutputDir = resolve(options.dir, 'miniapps');
         mkdirSync(miniappsOutputDir, { recursive: true });
         const outputPath = resolve(miniappsOutputDir, 'ecosystem.json');
@@ -283,6 +284,7 @@ function generateEcosystemDataForBuild(
   root: string,
   miniappsDir: string,
   apps: Record<string, MiniappRuntimeConfig>,
+  remoteConfigs: RemoteMiniappConfig[],
 ): EcosystemJson {
   const miniappsPath = resolve(root, miniappsDir);
   const manifests = scanMiniapps(miniappsPath);
@@ -305,7 +307,7 @@ function generateEcosystemDataForBuild(
     };
   });
 
-  const remoteApps = scanRemoteMiniappsForBuild(miniappsPath);
+  const remoteApps = scanRemoteMiniappsForBuild(miniappsPath, remoteConfigs);
 
   return {
     name: 'Bio 官方生态',
@@ -316,10 +318,16 @@ function generateEcosystemDataForBuild(
   };
 }
 
-function scanRemoteMiniappsForBuild(miniappsPath: string): Array<MiniappManifest & { url: string }> {
+function scanRemoteMiniappsForBuild(
+  miniappsPath: string,
+  remoteConfigs: RemoteMiniappConfig[],
+): Array<MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }> {
   if (!existsSync(miniappsPath)) return [];
 
-  const remoteApps: Array<MiniappManifest & { url: string }> = [];
+  const configByDirName = new Map(remoteConfigs.map((c) => [c.dirName, c]));
+  const remoteApps: Array<
+    MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }
+  > = [];
   const entries = readdirSync(miniappsPath, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -334,12 +342,15 @@ function scanRemoteMiniappsForBuild(miniappsPath: string): Array<MiniappManifest
     try {
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as MiniappManifest;
       const baseUrl = `./${entry.name}/`;
+      const config = configByDirName.get(entry.name);
       remoteApps.push({
         ...manifest,
         dirName: entry.name,
         url: baseUrl,
         icon: manifest.icon.startsWith('http') ? manifest.icon : new URL(manifest.icon, baseUrl).href,
         screenshots: manifest.screenshots?.map((s) => (s.startsWith('http') ? s : new URL(s, baseUrl).href)) ?? [],
+        runtime: config?.build?.runtime ?? 'wujie',
+        wujieConfig: config?.build?.wujieConfig,
       });
     } catch {
       console.warn(`[miniapps] ${entry.name}: invalid remote manifest.json, skipping`);
