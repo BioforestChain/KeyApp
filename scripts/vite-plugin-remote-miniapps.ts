@@ -38,7 +38,7 @@ interface MiniappBuildConfig {
   injectBaseTag?: boolean | string;
 }
 
-interface RemoteMiniappConfig {
+export interface RemoteMiniappConfig {
   metadataUrl: string;
   dirName: string;
   server?: MiniappServerConfig;
