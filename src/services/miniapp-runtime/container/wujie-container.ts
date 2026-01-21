@@ -64,13 +64,19 @@ function rewriteHtmlAbsolutePaths(html: string, baseUrl: string): string {
 const PLACEHOLDER_ORIGIN = 'https://placeholder.local/';
 
 function createAbsolutePathRewriter(baseUrl: string) {
-  const targetBase = new URL(baseUrl).href;
+  const targetBase = new URL(baseUrl);
+  const targetBaseHref = targetBase.href;
 
   return {
     fetch: (input: RequestInfo | URL, init?: RequestInit) => {
       const req = new Request(input, init);
-      const normalized = new URL(req.url, PLACEHOLDER_ORIGIN);
-      const rewrittenUrl = normalized.href.replace(PLACEHOLDER_ORIGIN, targetBase);
+      let normalized = new URL(req.url, PLACEHOLDER_ORIGIN);
+      // 越界访问，强制控制越界
+      if (normalized.origin === targetBase.origin && normalized.href.startsWith(targetBaseHref) === false) {
+        normalized = new URL(normalized.href.replace(normalized.origin, ''), PLACEHOLDER_ORIGIN);
+      }
+      const rewrittenUrl = normalized.href.replace(PLACEHOLDER_ORIGIN, targetBaseHref);
+
       return window.fetch(rewrittenUrl, init);
     },
     plugins: [
