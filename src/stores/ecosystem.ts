@@ -14,12 +14,18 @@ export interface PermissionRecord {
   grantedAt: number;
 }
 
+/** 订阅源状态 */
+export type SourceStatus = 'idle' | 'loading' | 'success' | 'error';
+
 /** 订阅源记录 */
 export interface SourceRecord {
   url: string;
   name: string;
   lastUpdated: string;
   enabled: boolean;
+  status: SourceStatus;
+  errorMessage?: string;
+  icon?: string;
 }
 
 /** Ecosystem 子页面类型 */
@@ -87,6 +93,7 @@ function loadState(): EcosystemState {
             name: 'Bio 官方生态', // i18n-ignore: config data
             lastUpdated: new Date().toISOString(),
             enabled: true,
+            status: 'idle' as const,
           },
         ],
         myApps: loadMyApps(),
@@ -107,6 +114,7 @@ function loadState(): EcosystemState {
         name: 'Bio 官方生态', // i18n-ignore: config data
         lastUpdated: new Date().toISOString(),
         enabled: true,
+        status: 'idle' as const,
       },
     ],
     myApps: loadMyApps(),
@@ -261,7 +269,10 @@ export const ecosystemActions = {
       }
       return {
         ...state,
-        sources: [...state.sources, { url, name, lastUpdated: new Date().toISOString(), enabled: true }],
+        sources: [
+          ...state.sources,
+          { url, name, lastUpdated: new Date().toISOString(), enabled: true, status: 'idle' as const },
+        ],
       };
     });
   },
@@ -287,6 +298,23 @@ export const ecosystemActions = {
     ecosystemStore.setState((state) => ({
       ...state,
       sources: state.sources.map((s) => (s.url === url ? { ...s, lastUpdated: new Date().toISOString() } : s)),
+    }));
+  },
+
+  /** 更新订阅源状态 */
+  updateSourceStatus: (url: string, status: SourceStatus, errorMessage?: string): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      sources: state.sources.map((s) =>
+        s.url === url
+          ? {
+              ...s,
+              status,
+              errorMessage: status === 'error' ? errorMessage : undefined,
+              ...(status === 'success' ? { lastUpdated: new Date().toISOString() } : {}),
+            }
+          : s,
+      ),
     }));
   },
 
