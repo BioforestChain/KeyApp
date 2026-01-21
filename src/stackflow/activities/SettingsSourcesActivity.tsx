@@ -9,9 +9,19 @@ import { AppScreen } from '@stackflow/plugin-basic-ui';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
 import { cn } from '@/lib/utils';
-import { IconPlus, IconTrash, IconRefresh, IconCheck, IconX, IconWorld, IconArrowLeft } from '@tabler/icons-react';
+import {
+  IconPlus,
+  IconTrash,
+  IconRefresh,
+  IconCheck,
+  IconX,
+  IconWorld,
+  IconArrowLeft,
+  IconLoader2,
+  IconAlertCircle,
+} from '@tabler/icons-react';
 import { ecosystemStore, ecosystemActions, type SourceRecord } from '@/stores/ecosystem';
-import { refreshSources } from '@/services/ecosystem/registry';
+import { refreshSources, refreshSource } from '@/services/ecosystem/registry';
 import { useFlow } from '../stackflow';
 
 export const SettingsSourcesActivity: ActivityComponentType = () => {
@@ -50,6 +60,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
     setNewName('');
     setIsAdding(false);
     setError(null);
+    void refreshSource(newUrl);
   };
 
   const handleRemove = (url: string) => {
@@ -174,33 +185,45 @@ interface SourceItemProps {
 }
 
 function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
-  const isDefault = source.url === '/ecosystem.json';
+  const { t } = useTranslation('common');
+  const isDefault = source.url.includes('ecosystem.json');
+
+  const statusIcon = {
+    idle: null,
+    loading: <IconLoader2 className="text-muted-foreground size-3 animate-spin" />,
+    success: <IconCheck className="size-3 text-green-500" />,
+    error: <IconAlertCircle className="size-3 text-red-500" />,
+  }[source.status];
 
   return (
     <div
       className={cn('rounded-xl border p-4 transition-colors', source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60')}
     >
       <div className="flex items-start gap-3">
-        {/* Icon */}
         <div className="bg-primary/10 shrink-0 rounded-full p-2">
           <IconWorld className="text-primary size-5" />
         </div>
 
-        {/* Info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate font-medium">{source.name}</h3>
-            {isDefault && <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">官方</span>}
+            {isDefault && (
+              <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">{t('sources.official')}</span>
+            )}
+            {statusIcon}
           </div>
           <p className="text-muted-foreground mt-0.5 truncate text-sm">{source.url}</p>
-          <p className="text-muted-foreground mt-1 text-xs">
-            更新于 {new Date(source.lastUpdated).toLocaleDateString()}
-          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-muted-foreground text-xs">
+              {t('sources.updatedAt', { date: new Date(source.lastUpdated).toLocaleString() })}
+            </p>
+            {source.status === 'error' && source.errorMessage && (
+              <p className="truncate text-xs text-red-500">{source.errorMessage}</p>
+            )}
+          </div>
         </div>
 
-        {/* Actions */}
         <div className="flex shrink-0 items-center gap-1">
-          {/* Toggle */}
           <button
             onClick={onToggle}
             className={cn(
@@ -214,7 +237,6 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
             {source.enabled ? <IconCheck className="size-4" stroke={2} /> : <IconX className="size-4" stroke={2} />}
           </button>
 
-          {/* Remove (not for default) */}
           {!isDefault && (
             <button
               onClick={onRemove}
