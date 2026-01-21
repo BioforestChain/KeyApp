@@ -61,9 +61,11 @@ function rewriteHtmlAbsolutePaths(html: string, baseUrl: string): string {
   return doc.documentElement.outerHTML;
 }
 
+const PLACEHOLDER_ORIGIN = 'https://placeholder.local';
+
 function createAbsolutePathRewriter(baseUrl: string) {
   const parsedUrl = new URL(baseUrl);
-  const origin = parsedUrl.origin + parsedUrl.pathname.replace(/\/$/, '');
+  const targetBase = parsedUrl.origin + parsedUrl.pathname;
 
   return {
     fetch: (input: RequestInfo | URL, init?: RequestInit) => {
@@ -71,7 +73,11 @@ function createAbsolutePathRewriter(baseUrl: string) {
       const parsedReqUrl = new URL(req.url);
 
       if (parsedReqUrl.origin === window.location.origin) {
-        const rewrittenUrl = `${origin}${parsedReqUrl.pathname}${parsedReqUrl.search}${parsedReqUrl.hash}`;
+        const normalized = new URL(
+          parsedReqUrl.pathname + parsedReqUrl.search + parsedReqUrl.hash,
+          PLACEHOLDER_ORIGIN + '/',
+        );
+        const rewrittenUrl = normalized.href.replace(PLACEHOLDER_ORIGIN + '/', targetBase);
         return window.fetch(rewrittenUrl, init);
       }
       return window.fetch(req);
