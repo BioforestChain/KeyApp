@@ -1,7 +1,7 @@
 {
   "name": "Bio 官方生态",
   "version": "1.0.0",
-  "updated": "2026-01-20",
+  "updated": "2026-01-21",
   "icon": "../logos/logo-256.webp",
   "apps": [
     {
@@ -46,7 +46,8 @@
       "themeColorFrom": "#1e40af",
       "splashScreen": true,
       "dirName": "forge",
-      "url": "./forge/"
+      "url": "./forge/",
+      "runtime": "wujie"
     },
     {
       "id": "xin.dweb.teleport",
@@ -89,7 +90,8 @@
       "themeColorFrom": "#3730a3",
       "splashScreen": true,
       "dirName": "teleport",
-      "url": "./teleport/"
+      "url": "./teleport/",
+      "runtime": "wujie"
     },
     {
       "id": "xin.dweb.rwahub",
@@ -121,15 +123,19 @@
       "officialScore": 80,
       "communityScore": 70,
       "screenshots": [],
-      "publishedAt": "2026-01-20",
-      "updatedAt": "2026-01-20",
+      "publishedAt": "2026-01-21",
+      "updatedAt": "2026-01-21",
       "beta": true,
       "themeColor": "from-cyan-800 via-blue-900 to-indigo-950",
       "themeColorFrom": "#0e7490",
       "splashScreen": true,
       "dirName": "rwa-hub",
-      "_zipEtag": "\"696f3f6c-4a05d6\"",
-      "url": "./rwa-hub/"
+      "_zipEtag": "\"69707699-4a06b3\"",
+      "url": "./rwa-hub/",
+      "runtime": "wujie",
+      "wujieConfig": {
+        "rewriteAbsolutePaths": true
+      }
     }
   ]
 }

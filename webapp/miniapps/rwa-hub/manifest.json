@@ -28,12 +28,15 @@
   "officialScore": 80,
   "communityScore": 70,
   "screenshots": [],
-  "publishedAt": "2026-01-20",
-  "updatedAt": "2026-01-20",
+  "publishedAt": "2026-01-21",
+  "updatedAt": "2026-01-21",
   "beta": true,
   "themeColor": "from-cyan-800 via-blue-900 to-indigo-950",
   "themeColorFrom": "#0e7490",
   "splashScreen": true,
   "dirName": "rwa-hub",
-  "_zipEtag": "\"696f3f6c-4a05d6\""
+  "_zipEtag": "\"69707699-4a06b3\"",
+  "wujieConfig": {
+    "rewriteAbsolutePaths": true
+  }
 }
