@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -124,7 +124,10 @@
 
 /* 移动端优化 */
 html,
-body {
+body,
+#root {
+  height: 100%;
+  width: 100%;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;

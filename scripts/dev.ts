@@ -129,19 +129,37 @@ async function cleanup() {
 }
 
 async function main() {
-  if (!process.stdin.isTTY) {
-    console.error('\x1b[31mError: Dev Runner requires a TTY. Run directly in terminal.\x1b[0m');
-    process.exit(1);
-  }
+  const isHeadless = !process.stdin.isTTY || process.env.CI === 'true';
 
   console.clear();
-  console.log('\x1b[36mStarting Dev Runner...\x1b[0m\n');
+  console.log('\x1b[36mStarting Dev Runner...\\x1b[0m\n');
 
   for (const cmd of commands) {
     if (cmd.autoStart) {
       console.log(`Starting ${cmd.name}...`);
       await processManager.start(cmd);
     }
+  }
+
+  if (isHeadless) {
+    console.log('\x1b[33mRunning in headless mode (no TTY). Press Ctrl+C to stop.\x1b[0m\n');
+
+    processManager.onOutput = (_commandId, text) => {
+      process.stdout.write(text);
+    };
+
+    await new Promise<void>((resolve) => {
+      process.on('SIGINT', async () => {
+        await cleanup();
+        resolve();
+      });
+      process.on('SIGTERM', async () => {
+        await cleanup();
+        resolve();
+      });
+    });
+
+    process.exit(0);
   }
 
   process.stdin.setRawMode(true);
