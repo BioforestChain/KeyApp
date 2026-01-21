@@ -7,8 +7,23 @@ import { networkInterfaces } from 'node:os';
 import { resolve } from 'node:path';
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools';
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps';
-import { remoteMiniappsPlugin } from './scripts/vite-plugin-remote-miniapps';
+import { remoteMiniappsPlugin, type RemoteMiniappConfig } from './scripts/vite-plugin-remote-miniapps';
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check';
+
+const remoteMiniappsConfig: RemoteMiniappConfig[] = [
+  {
+    metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+    dirName: 'rwa-hub',
+    server: {
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+    build: {
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+  },
+];
 
 function getPreferredLanIPv4(): string | undefined {
   const ifaces = networkInterfaces();
@@ -93,27 +108,14 @@ export default defineConfig(({ mode }) => {
       mockDevToolsPlugin(),
       // 远程 miniapps (必须在 miniappsPlugin 之前，以便注册到全局状态)
       remoteMiniappsPlugin({
-        miniapps: [
-          {
-            metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
-            dirName: 'rwa-hub',
-            server: {
-              runtime: 'wujie',
-              wujieConfig: { rewriteAbsolutePaths: true },
-            },
-            build: {
-              runtime: 'wujie',
-              wujieConfig: { rewriteAbsolutePaths: true },
-            },
-          },
-        ],
+        miniapps: remoteMiniappsConfig,
         timeout: 60000,
         retries: 3,
       }),
       miniappsPlugin({
         apps: {
           'xin.dweb.teleport': {
-            server: 'iframe',
+            server: 'wujie',
             build: 'wujie',
           },
           'xin.dweb.biobridge': {
@@ -121,6 +123,7 @@ export default defineConfig(({ mode }) => {
             build: 'wujie',
           },
         },
+        remoteMiniapps: remoteMiniappsConfig,
       }),
       buildCheckPlugin(),
     ],
