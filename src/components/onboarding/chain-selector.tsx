@@ -38,33 +38,15 @@ export interface ChainSelectorProps {
   'data-testid'?: string;
 }
 
-/** 链类型分组配置（基于 chainKind） */
-const CHAIN_KIND_GROUPS: Record<string, { name: string; description: string }> = {
-  bioforest: {
-    name: '生物链林',
-    description: 'BioForest 生态链',
-  },
-  evm: {
-    name: 'EVM 兼容链',
-    description: '以太坊虚拟机兼容链',
-  },
-  bitcoin: {
-    name: 'Bitcoin',
-    description: 'Bitcoin 网络',
-  },
-  tron: {
-    name: 'Tron',
-    description: 'Tron 网络',
-  },
-  custom: {
-    name: '自定义链',
-    description: '用户添加的自定义链',
-  },
-};
+/** 链类型分组配置（基于 chainKind） - 返回翻译键 */
+const getChainKindConfig = (kind: string, t: (key: string) => string): { name: string; description: string } => ({
+  name: t(`common:chainKind.${kind}.name`),
+  description: t(`common:chainKind.${kind}.description`),
+});
 
 /**
  * 区块链网络选择器
- * 
+ *
  * 二级结构：
  * - 第一级：技术类型（生物链林、EVM、BIP39）
  * - 第二级：具体网络
@@ -87,7 +69,7 @@ export function ChainSelector({
   // 按 chainKind 分组
   const chainGroups = useMemo<ChainGroup[]>(() => {
     const grouped = new Map<string, ChainConfig[]>();
-    
+
     for (const chain of chains) {
       const kind = chain.chainKind || 'custom';
       if (!grouped.has(kind)) {
@@ -99,14 +81,17 @@ export function ChainSelector({
     // 按预定义顺序返回
     const orderedKinds = ['bioforest', 'evm', 'bitcoin', 'tron', 'custom'];
     return orderedKinds
-      .filter(kind => grouped.has(kind))
-      .map(kind => ({
-        id: kind,
-        name: CHAIN_KIND_GROUPS[kind]?.name || kind,
-        description: CHAIN_KIND_GROUPS[kind]?.description,
-        chains: grouped.get(kind)!,
-      }));
-  }, [chains]);
+      .filter((kind) => grouped.has(kind))
+      .map((kind) => {
+        const config = getChainKindConfig(kind, t);
+        return {
+          id: kind,
+          name: config.name || kind,
+          description: config.description,
+          chains: grouped.get(kind)!,
+        };
+      });
+  }, [chains, t]);
 
   // 过滤搜索结果
   const filteredGroups = useMemo(() => {
@@ -114,21 +99,22 @@ export function ChainSelector({
 
     const query = searchQuery.toLowerCase();
     return chainGroups
-      .map(group => ({
+      .map((group) => ({
         ...group,
-        chains: group.chains.filter(chain =>
-          chain.name.toLowerCase().includes(query) ||
-          chain.symbol.toLowerCase().includes(query) ||
-          chain.id.toLowerCase().includes(query)
+        chains: group.chains.filter(
+          (chain) =>
+            chain.name.toLowerCase().includes(query) ||
+            chain.symbol.toLowerCase().includes(query) ||
+            chain.id.toLowerCase().includes(query),
         ),
       }))
-      .filter(group => group.chains.length > 0);
+      .filter((group) => group.chains.length > 0);
   }, [chainGroups, searchQuery]);
 
   const favoriteSet = useMemo(() => new Set(favoriteChains), [favoriteChains]);
 
   const sortedGroups = useMemo(() => {
-    return filteredGroups.map(group => ({
+    return filteredGroups.map((group) => ({
       ...group,
       chains: [...group.chains].toSorted((a, b) => {
         const aFav = favoriteSet.has(a.id);
@@ -141,7 +127,7 @@ export function ChainSelector({
 
   // 切换组展开/折叠
   const toggleGroup = useCallback((groupId: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) {
         next.delete(groupId);
@@ -153,59 +139,71 @@ export function ChainSelector({
   }, []);
 
   // 选择/取消选择单个链
-  const toggleChain = useCallback((chainId: string) => {
-    const isSelected = selectedChains.includes(chainId);
-    if (isSelected) {
-      onSelectionChange(selectedChains.filter(id => id !== chainId));
-    } else {
-      onSelectionChange([...selectedChains, chainId]);
-    }
-  }, [selectedChains, onSelectionChange]);
+  const toggleChain = useCallback(
+    (chainId: string) => {
+      const isSelected = selectedChains.includes(chainId);
+      if (isSelected) {
+        onSelectionChange(selectedChains.filter((id) => id !== chainId));
+      } else {
+        onSelectionChange([...selectedChains, chainId]);
+      }
+    },
+    [selectedChains, onSelectionChange],
+  );
 
   // 选择/取消选择整个组
-  const toggleGroup选择 = useCallback((group: ChainGroup) => {
-    const groupChainIds = group.chains.map(c => c.id);
-    const allSelected = groupChainIds.every(id => selectedChains.includes(id));
-    
-    if (allSelected) {
-      // 取消选择整个组
-      onSelectionChange(selectedChains.filter(id => !groupChainIds.includes(id)));
-    } else {
-      // 选择整个组
-      const newSelection = new Set(selectedChains);
-      groupChainIds.forEach(id => newSelection.add(id));
-      onSelectionChange(Array.from(newSelection));
-    }
-  }, [selectedChains, onSelectionChange]);
+  const toggleGroup选择 = useCallback(
+    (group: ChainGroup) => {
+      const groupChainIds = group.chains.map((c) => c.id);
+      const allSelected = groupChainIds.every((id) => selectedChains.includes(id));
+
+      if (allSelected) {
+        // 取消选择整个组
+        onSelectionChange(selectedChains.filter((id) => !groupChainIds.includes(id)));
+      } else {
+        // 选择整个组
+        const newSelection = new Set(selectedChains);
+        groupChainIds.forEach((id) => newSelection.add(id));
+        onSelectionChange(Array.from(newSelection));
+      }
+    },
+    [selectedChains, onSelectionChange],
+  );
 
   // 切换收藏
-  const toggleFavorite = useCallback((chainId: string) => {
-    if (!onFavoriteChange) return;
-    
-    const isFavorite = favoriteChains.includes(chainId);
-    if (isFavorite) {
-      onFavoriteChange(favoriteChains.filter(id => id !== chainId));
-    } else {
-      onFavoriteChange([...favoriteChains, chainId]);
-    }
-  }, [favoriteChains, onFavoriteChange]);
+  const toggleFavorite = useCallback(
+    (chainId: string) => {
+      if (!onFavoriteChange) return;
+
+      const isFavorite = favoriteChains.includes(chainId);
+      if (isFavorite) {
+        onFavoriteChange(favoriteChains.filter((id) => id !== chainId));
+      } else {
+        onFavoriteChange([...favoriteChains, chainId]);
+      }
+    },
+    [favoriteChains, onFavoriteChange],
+  );
 
   // 检查组的选择状态
-  const getGroupSelectionState = useCallback((group: ChainGroup) => {
-    const groupChainIds = group.chains.map(c => c.id);
-    const selectedCount = groupChainIds.filter(id => selectedChains.includes(id)).length;
-    
-    if (selectedCount === 0) return 'none';
-    if (selectedCount === groupChainIds.length) return 'all';
-    return 'partial';
-  }, [selectedChains]);
+  const getGroupSelectionState = useCallback(
+    (group: ChainGroup) => {
+      const groupChainIds = group.chains.map((c) => c.id);
+      const selectedCount = groupChainIds.filter((id) => selectedChains.includes(id)).length;
+
+      if (selectedCount === 0) return 'none';
+      if (selectedCount === groupChainIds.length) return 'all';
+      return 'partial';
+    },
+    [selectedChains],
+  );
 
   return (
     <div className={cn('space-y-4', className)} data-testid={baseTestId}>
       {/* 搜索框 */}
       {showSearch && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -218,18 +216,22 @@ export function ChainSelector({
 
       {/* 链组列表 */}
       <div className="space-y-2">
-        {sortedGroups.map(group => {
+        {sortedGroups.map((group) => {
           const isExpanded = searchQuery.trim().length > 0 ? true : expandedGroups.has(group.id);
           const selectionState = getGroupSelectionState(group);
-          
+
           return (
-            <div key={group.id} className="rounded-lg border overflow-hidden" data-testid={baseTestId ? `${baseTestId}-group-${group.id}` : undefined}>
+            <div
+              key={group.id}
+              className="overflow-hidden rounded-lg border"
+              data-testid={baseTestId ? `${baseTestId}-group-${group.id}` : undefined}
+            >
               {/* 组标题 */}
               <button
                 type="button"
                 onClick={() => toggleGroup(group.id)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 text-left',
+                  'flex w-full items-center gap-3 px-4 py-3 text-left',
                   'hover:bg-muted/50 transition-colors',
                 )}
                 aria-expanded={isExpanded}
@@ -237,9 +239,9 @@ export function ChainSelector({
               >
                 {/* 展开/折叠图标 */}
                 {isExpanded ? (
-                  <ChevronDown className="size-4 text-muted-foreground" />
+                  <ChevronDown className="text-muted-foreground size-4" />
                 ) : (
-                  <ChevronRight className="size-4 text-muted-foreground" />
+                  <ChevronRight className="text-muted-foreground size-4" />
                 )}
 
                 {/* 组复选框 */}
@@ -255,24 +257,25 @@ export function ChainSelector({
                 {/* 组信息 */}
                 <div className="flex-1">
                   <div className="font-medium">{group.name}</div>
-                  {group.description && (
-                    <div className="text-xs text-muted-foreground">{group.description}</div>
-                  )}
+                  {group.description && <div className="text-muted-foreground text-xs">{group.description}</div>}
                 </div>
 
                 {/* 选择计数 */}
-                <span className="text-sm text-muted-foreground">
-                  {group.chains.filter(c => selectedChains.includes(c.id)).length}/{group.chains.length}
+                <span className="text-muted-foreground text-sm">
+                  {group.chains.filter((c) => selectedChains.includes(c.id)).length}/{group.chains.length}
                 </span>
               </button>
 
               {/* 组内链列表 */}
               {isExpanded && (
-                <div className="border-t" data-testid={baseTestId ? `${baseTestId}-group-content-${group.id}` : undefined}>
-                  {group.chains.map(chain => {
+                <div
+                  className="border-t"
+                  data-testid={baseTestId ? `${baseTestId}-group-content-${group.id}` : undefined}
+                >
+                  {group.chains.map((chain) => {
                     const isSelected = selectedChains.includes(chain.id);
                     const isFavorite = favoriteChains.includes(chain.id);
-                    
+
                     return (
                       <div
                         key={chain.id}
@@ -302,14 +305,14 @@ export function ChainSelector({
                         />
 
                         {/* 链图标 (placeholder) */}
-                        <div className="size-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
+                        <div className="bg-muted flex size-8 items-center justify-center rounded-full text-xs font-bold">
                           {chain.symbol.slice(0, 2)}
                         </div>
 
                         {/* 链信息 */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{chain.name}</div>
-                          <div className="text-xs text-muted-foreground">{chain.symbol}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium">{chain.name}</div>
+                          <div className="text-muted-foreground text-xs">{chain.symbol}</div>
                         </div>
 
                         {/* 收藏按钮 */}
@@ -320,14 +323,14 @@ export function ChainSelector({
                               e.stopPropagation();
                               toggleFavorite(chain.id);
                             }}
-                            className="p-1 hover:bg-muted rounded transition-colors"
+                            className="hover:bg-muted rounded p-1 transition-colors"
                             aria-label={isFavorite ? t('common:unfavorite') : t('common:favorite')}
                             data-testid={baseTestId ? `${baseTestId}-favorite-${chain.id}` : undefined}
                           >
                             {isFavorite ? (
                               <StarFilled className="size-4 text-yellow-500" />
                             ) : (
-                              <Star className="size-4 text-muted-foreground" />
+                              <Star className="text-muted-foreground size-4" />
                             )}
                           </button>
                         )}
@@ -343,7 +346,10 @@ export function ChainSelector({
 
       {/* 空状态 */}
       {sortedGroups.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground" data-testid={baseTestId ? `${baseTestId}-empty` : undefined}>
+        <div
+          className="text-muted-foreground py-8 text-center"
+          data-testid={baseTestId ? `${baseTestId}-empty` : undefined}
+        >
           {t('chainSelector.noResults')}
         </div>
       )}
@@ -355,5 +361,5 @@ export function ChainSelector({
  * 获取默认选择的链（全选）
  */
 export function getDefaultSelectedChains(chains: ChainConfig[]): string[] {
-  return chains.map(chain => chain.id);
+  return chains.map((chain) => chain.id);
 }

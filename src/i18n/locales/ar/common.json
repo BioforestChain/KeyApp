@@ -36,14 +36,15 @@
     "tabWallet": "المحفظة",
     "tokenDetails": "عرض تفاصيل {{token}}",
     "transactionDetails": "تفاصيل المعاملة",
-    "unknownApp": "تطبيق غير معروف"
+    "unknownApp": "تطبيق غير معروف",
+    "more": "المزيد من الإجراءات"
   },
   "acceptExchange": "Accept exchange",
   "account": "المستخدم",
   "accountFromMime": "account from mime",
   "accountWorks": "account works!",
   "acquisitionTime": "Acquisition time",
-  "add": "Add",
+  "add": "إضافة",
   "addressBook": {
     "addContact": "إضافة جهة اتصال",
     "addresses": "العناوين",
@@ -102,7 +103,7 @@
   "bgPrimary": "bg-primary",
   "bip39Index": "Index",
   "byContinuingToUseItYouAgreeToTheUserAgreement": "By continuing to use it, you agree to the 《User Agreement》",
-  "cancel": "Cancel",
+  "cancel": "إلغاء",
   "cardWorks": "card works!",
   "certificate": "Certificate",
   "chains": {
@@ -126,7 +127,7 @@
   "codeOfThePrivateKey": "الشفرة السداسية للمفتاح الخاص",
   "comingSoonStayTuned": "قريبًا",
   "comprehensiveEncryption": "Comprehensive &lt;br /&gt; encryption",
-  "confirm": "Confirm",
+  "confirm": "تأكيد",
   "confirmBackedUp": "Confirm Backed Up",
   "confirmToDelete": "Confirm to delete ?",
   "confirmToTurnOffTouchId": "Confirm to turn off Touch ID?",
@@ -170,9 +171,11 @@
   "couldBeWithin_30Seconds": "Could be within 30 seconds",
   "creator": "Creator",
   "date": {
-    "format": "{{weekday}}، {{day}} {{month}}"
+    "format": "{{weekday}}، {{day}} {{month}}",
+    "today": "اليوم",
+    "yesterday": "أمس"
   },
-  "delete": "Delete",
+  "delete": "حذف",
   "destroy": "Destroy",
   "done": "Done",
   "download": "تحميل",
@@ -191,7 +194,10 @@
     },
     "noAppsUsed": "لم تستخدم أي تطبيقات بعد",
     "runningApps": "التطبيقات قيد التشغيل",
-    "stackViewHints": "اسحب للتبديل · اضغط للفتح · اسحب للأعلى للإغلاق"
+    "stackViewHints": "اسحب للتبديل · اضغط للفتح · اسحب للأعلى للإغلاق",
+    "discover": "اكتشف",
+    "mine": "لي",
+    "stack": "مكدس"
   },
   "edit": "Edit",
   "energy": "Energy",
@@ -215,7 +221,7 @@
   "finish": "تم",
   "firstTimeToUse": "First time to use",
   "freeze": "Freeze",
-  "from": "From",
+  "from": "من",
   "frozen": "Frozen",
   "get_(estimate)": "Get(estimate)",
   "goHome": "الرئيسية",
@@ -239,7 +245,7 @@
   "manage": "Manage",
   "me": "Me",
   "memo": "Memo",
-  "message": "Message",
+  "message": "محتوى الرسالة",
   "methodsParams": "Methods params",
   "mimeInTab": "لي",
   "mine": "لي",
@@ -263,7 +269,7 @@
   },
   "name": "Name",
   "navOverview": "Overview",
-  "network": "Network",
+  "network": "الشبكة",
   "networkNotConnected": "Network not connected",
   "newFinish": "Finish",
   "next": "Next",
@@ -412,5 +418,106 @@
   "{{item}}Words": "words",
   "{{length}}Words": "words",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "tabs": {
+    "assets": "الأصول",
+    "history": "السجل"
+  },
+  "empty": {
+    "noTransactions": "لا توجد معاملات بعد",
+    "transactionsWillAppear": "ستظهر معاملاتك هنا",
+    "noAssets": "لا توجد أصول بعد",
+    "assetsWillAppear": "ستظهر أصولك هنا بعد التحويل"
+  },
+  "password": {
+    "weak": "ضعيف",
+    "medium": "متوسط",
+    "strong": "قوي"
+  },
+  "unknownWallet": "محفظة غير معروفة",
+  "unknownDApp": "تطبيق غير معروف",
+  "biometric": {
+    "verifyIdentity": "التحقق من الهوية",
+    "protectWallet": "حماية المحفظة بالقياسات الحيوية",
+    "accessMnemonic": "الوصول إلى عبارة الاسترداد"
+  },
+  "signTransaction": "توقيع المعاملة",
+  "invalidTransaction": "بيانات معاملة غير صالحة",
+  "signingAddressNotFound": "لم يتم العثور على عنوان التوقيع في المحافظ",
+  "signingAddress": "عنوان التوقيع",
+  "transaction": "المعاملة",
+  "signTxWarning": "يرجى التأكد من أنك تثق بهذا التطبيق والتحقق من المعاملة بعناية.",
+  "signing": "جاري التوقيع...",
+  "sign": "توقيع",
+  "signMessage": "طلب التوقيع",
+  "hexDataWarning": "تحتوي هذه الرسالة على بيانات سداسية عشرية. يرجى التأكد من أنك تثق بهذا التطبيق.",
+  "switchNetwork": "تبديل الشبكة",
+  "requestsNetworkSwitch": "يطلب تبديل الشبكة",
+  "chainSwitchWarning": "بعد تبديل الشبكات، ستكون معاملاتك على الشبكة الجديدة. يرجى التأكد من فهمك للتأثيرات.",
+  "confirmTransfer": "تأكيد التحويل",
+  "requestsTransfer": "يطلب التحويل",
+  "to": "إلى",
+  "amount": "المبلغ",
+  "cryptoAuthorize": "تفويض التشفير",
+  "permissions": "الأذونات",
+  "duration": "المدة",
+  "selectChainWallet": "اختر محفظة {{chain}}",
+  "requestsAccess": "يطلب الوصول",
+  "noWalletsForChain": "لا توجد محافظ تدعم {{chain}}",
+  "noWallets": "لا توجد محافظ",
+  "requestsDestroy": "يطلب التدمير",
+  "transferWarning": "يرجى التحقق من عنوان المستلم والمبلغ. لا يمكن إلغاء التحويلات.",
+  "confirming": "جاري التأكيد...",
+  "drawPatternToConfirm": "ارسم النمط للتأكيد",
+  "selectWallet": "اختر المحفظة",
+  "sources": {
+    "title": "إدارة المصادر الموثوقة",
+    "noSources": "لا توجد مصادر",
+    "urlPlaceholder": "عنوان URL للاشتراك (https://...)",
+    "namePlaceholder": "الاسم (اختياري)",
+    "addSource": "إضافة مصدر",
+    "official": "رسمي",
+    "updatedAt": "تم التحديث {{date}}",
+    "enterUrl": "يرجى إدخال عنوان URL للاشتراك",
+    "invalidUrl": "تنسيق URL غير صالح",
+    "alreadyExists": "هذا المصدر موجود بالفعل",
+    "customSource": "مصدر مخصص"
+  },
+  "enable": "تمكين",
+  "disable": "تعطيل",
+  "refresh": "تحديث",
+  "assetSelector": {
+    "selectAsset": "اختر الأصل",
+    "balance": "الرصيد"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "BioForest",
+      "description": "نظام BioForest البيئي"
+    },
+    "evm": {
+      "name": "متوافق مع EVM",
+      "description": "سلاسل متوافقة مع آلة إيثريوم الافتراضية"
+    },
+    "bitcoin": {
+      "description": "شبكة Bitcoin"
+    },
+    "tron": {
+      "description": "شبكة Tron"
+    },
+    "custom": {
+      "name": "سلاسل مخصصة",
+      "description": "سلاسل مخصصة أضافها المستخدم"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "طلب تفويض التشفير",
+      "permissions": "الأذونات المطلوبة",
+      "duration": "مدة التفويض",
+      "address": "العنوان المستخدم",
+      "pattern": "ارسم النمط للتأكيد",
+      "error": "النمط غير صحيح، يرجى المحاولة مرة أخرى"
+    }
+  }
 }

@@ -69,7 +69,7 @@ export function AssetSelector({
     }
   };
 
-  const displayPlaceholder = placeholder ?? t('assetSelector.selectAsset', '选择资产');
+  const displayPlaceholder = placeholder ?? t('assetSelector.selectAsset');
   // 使用空字符串代替 undefined，确保 Select 始终是受控的
   const selectedValue = selectedAsset ? getAssetKey(selectedAsset) : '';
 
@@ -91,7 +91,7 @@ export function AssetSelector({
           <span className="text-sm font-medium">{selectedAsset.symbol}</span>
           {showBalance && (
             <span className="text-muted-foreground text-xs">
-              {t('assetSelector.balance', '余额')}:{' '}
+              {t('assetSelector.balance')}:{' '}
               <AmountDisplay
                 value={selectedAsset.balance}
                 size="xs"
@@ -115,7 +115,7 @@ export function AssetSelector({
       <SelectContent>
         {availableAssets.length === 0 ? (
           <div className="text-muted-foreground flex flex-col items-center py-4 text-sm">
-            <p>{t('assetSelector.noAssets', '暂无可选资产')}</p>
+            <p>{t('assetSelector.noAssets')}</p>
           </div>
         ) : (
           availableAssets.map((asset) => (

@@ -1,0 +1,30 @@
+{
+  "bio_requestAccounts": {
+    "label": "View Accounts",
+    "description": "View your wallet addresses"
+  },
+  "bio_createTransaction": {
+    "label": "Create Transaction",
+    "description": "Create unsigned transaction (no signing/broadcasting)"
+  },
+  "bio_signMessage": {
+    "label": "Sign Message",
+    "description": "Request to sign a message (requires your confirmation)"
+  },
+  "bio_signTypedData": {
+    "label": "Sign Data",
+    "description": "Request to sign structured data (requires your confirmation)"
+  },
+  "bio_signTransaction": {
+    "label": "Sign Transaction",
+    "description": "Request to sign a transaction (requires your confirmation)"
+  },
+  "bio_sendTransaction": {
+    "label": "Send Transaction",
+    "description": "Request to send a transfer (requires your confirmation)"
+  },
+  "requestsPermissions": "Requests the following permissions",
+  "permissionNote": "Sensitive operations require your confirmation",
+  "reject": "Reject",
+  "approve": "Allow"
+}

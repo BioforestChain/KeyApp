@@ -7,7 +7,11 @@
 import { useState, useCallback } from 'react';
 import { useNavigation } from '@/stackflow';
 import { useTranslation } from 'react-i18next';
-import { IconArrowLeft as ArrowLeft, IconDownload as Download, IconAlertCircle as AlertCircle } from '@tabler/icons-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconDownload as Download,
+  IconAlertCircle as AlertCircle,
+} from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { useMigration } from '@/contexts/MigrationContext';
 import { PatternLock, patternToString } from '@/components/security/pattern-lock';
@@ -139,17 +143,15 @@ export function MigrationPage() {
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="size-5" />
           </Button>
-          <h1 className="text-lg font-semibold">{t('title', { defaultValue: '钱包迁移' })}</h1>
+          <h1 className="text-lg font-semibold">{t('title')}</h1>
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center px-8">
           <div className="bg-muted mb-4 flex size-16 items-center justify-center rounded-full">
             <AlertCircle className="text-muted-foreground size-8" />
           </div>
-          <p className="text-muted-foreground mb-8 text-center">
-            {t('noDataFound', { defaultValue: '未检测到 mpay 钱包数据' })}
-          </p>
-          <Button onClick={handleBack}>{t('goBack', { defaultValue: '返回' })}</Button>
+          <p className="text-muted-foreground mb-8 text-center">{t('noDataFound')}</p>
+          <Button onClick={handleBack}>{t('goBack')}</Button>
         </div>
       </div>
     );
@@ -164,17 +166,14 @@ export function MigrationPage() {
             <div className="bg-primary/10 mb-4 flex size-16 items-center justify-center rounded-full">
               <Download className="text-primary size-8" />
             </div>
-            <h2 className="mb-2 text-xl font-semibold">{t('detected.title', { defaultValue: '检测到 mpay 钱包' })}</h2>
+            <h2 className="mb-2 text-xl font-semibold">{t('detected.title')}</h2>
             <p className="text-muted-foreground mb-8 text-center">
-              {t('detected.description', {
-                defaultValue: '发现 {{count}} 个钱包可以迁移到 KeyApp',
-                count: detection?.walletCount ?? 0,
-              })}
+              {t('detected.description', { count: detection?.walletCount ?? 0 })}
             </p>
 
             <div className="w-full max-w-sm space-y-3">
               <Button className="w-full" size="lg" onClick={handleStartMigration} data-testid="migration-start-btn">
-                {t('startMigration', { defaultValue: '开始迁移' })}
+                {t('startMigration')}
               </Button>
               <Button
                 variant="outline"
@@ -183,7 +182,7 @@ export function MigrationPage() {
                 onClick={handleSkip}
                 data-testid="migration-skip-btn"
               >
-                {t('skipMigration', { defaultValue: '跳过，创建新钱包' })}
+                {t('skipMigration')}
               </Button>
             </div>
           </div>
@@ -192,10 +191,8 @@ export function MigrationPage() {
       case 'pattern':
         return (
           <div className="flex flex-1 flex-col items-center justify-center px-8" data-testid="migration-pattern-step">
-            <h2 className="mb-2 text-xl font-semibold">{t('pattern.title', { defaultValue: '验证钱包锁' })}</h2>
-            <p className="text-muted-foreground mb-8 text-center">
-              {t('pattern.description', { defaultValue: '请绘制钱包锁图案以继续迁移' })}
-            </p>
+            <h2 className="mb-2 text-xl font-semibold">{t('pattern.title')}</h2>
+            <p className="text-muted-foreground mb-8 text-center">{t('pattern.description')}</p>
             <PatternLock
               value={pattern}
               onChange={setPattern}
@@ -212,7 +209,7 @@ export function MigrationPage() {
               disabled={isVerifying}
               data-testid="migration-skip-btn"
             >
-              {t('skipMigration', { defaultValue: '跳过，创建新钱包' })}
+              {t('skipMigration')}
             </Button>
           </div>
         );
@@ -244,7 +241,7 @@ export function MigrationPage() {
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="size-5" />
           </Button>
-          <h1 className="text-lg font-semibold">{t('title', { defaultValue: '钱包迁移' })}</h1>
+          <h1 className="text-lg font-semibold">{t('title')}</h1>
         </div>
       )}
 

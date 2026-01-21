@@ -38,23 +38,26 @@ export function WelcomeScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const migration = useMigrationOptional();
 
-  const slides: WelcomeSlide[] = useMemo(() => [
-    {
-      icon: <Send className="text-primary size-16" />,
-      title: t('welcome.slides.transfer.title'),
-      description: t('welcome.slides.transfer.description'),
-    },
-    {
-      icon: <Link2 className="text-primary size-16" />,
-      title: t('welcome.slides.multichain.title'),
-      description: t('welcome.slides.multichain.description'),
-    },
-    {
-      icon: <Shield className="text-primary size-16" />,
-      title: t('welcome.slides.security.title'),
-      description: t('welcome.slides.security.description'),
-    },
-  ], [t]);
+  const slides: WelcomeSlide[] = useMemo(
+    () => [
+      {
+        icon: <Send className="text-primary size-16" />,
+        title: t('welcome.slides.transfer.title'),
+        description: t('welcome.slides.transfer.description'),
+      },
+      {
+        icon: <Link2 className="text-primary size-16" />,
+        title: t('welcome.slides.multichain.title'),
+        description: t('welcome.slides.multichain.description'),
+      },
+      {
+        icon: <Shield className="text-primary size-16" />,
+        title: t('welcome.slides.security.title'),
+        description: t('welcome.slides.security.description'),
+      },
+    ],
+    [t],
+  );
 
   const currentSlideData = slides[currentSlide];
   if (!currentSlideData) return null;
@@ -128,9 +131,15 @@ export function WelcomeScreen() {
           <div className="flex flex-col gap-3">
             {/* Migration button - shown when mpay data detected */}
             {shouldShowMigration && (
-              <Button data-testid="migrate-button" onClick={handleMigrate} className="w-full" size="lg" variant="default">
+              <Button
+                data-testid="migrate-button"
+                onClick={handleMigrate}
+                className="w-full"
+                size="lg"
+                variant="default"
+              >
                 <Download className="mr-2 size-4" />
-                {t('welcome.migrateFromMpay', { defaultValue: '从 mpay 迁移钱包' })}
+                {t('welcome.migrateFromMpay')}
               </Button>
             )}
             <Button
@@ -142,7 +151,13 @@ export function WelcomeScreen() {
             >
               {t('welcome.getStarted')}
             </Button>
-            <Button data-testid="have-wallet-button" onClick={handleHaveWallet} variant="outline" className="w-full" size="lg">
+            <Button
+              data-testid="have-wallet-button"
+              onClick={handleHaveWallet}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
               {t('welcome.haveWallet')}
             </Button>
           </div>

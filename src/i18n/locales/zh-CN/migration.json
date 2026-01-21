@@ -53,5 +53,9 @@
     "goHome": "进入钱包",
     "skip": "跳过，创建新钱包",
     "retry": "重试"
+  },
+  "pattern": {
+    "title": "验证钱包锁",
+    "description": "请绘制钱包锁图案以继续迁移"
   }
 }

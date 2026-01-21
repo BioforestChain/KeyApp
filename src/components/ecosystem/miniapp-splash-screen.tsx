@@ -5,35 +5,35 @@
  * 参考 IOSWallpaper 的实现，提供更柔和的启动体验
  */
 
-import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'motion/react'
-import { cn } from '@/lib/utils'
-import styles from './miniapp-splash-screen.module.css'
+import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
+import { cn } from '@/lib/utils';
+import styles from './miniapp-splash-screen.module.css';
 
 export interface MiniappSplashScreenProps {
   /** 可选：用于埋点/调试/定位元素 */
-  appId?: string
+  appId?: string;
   /** 应用信息 */
   app: {
-    name: string
-    icon: string
+    name: string;
+    icon: string;
     /** 主题色，支持 hex、rgb、oklch 或直接传 hue 数值 */
-    themeColor?: string | number
-  }
+    themeColor?: string | number;
+  };
   /** 是否可见 */
-  visible: boolean
+  visible: boolean;
   /** 是否播放呼吸动画 */
-  animating?: boolean
+  animating?: boolean;
   /** 关闭回调 */
-  onClose?: () => void
+  onClose?: () => void;
   /** 可选：共享元素动画 layoutId（用于 icon <-> splash.icon） */
-  iconLayoutId?: string
+  iconLayoutId?: string;
   /** 是否渲染图标（默认 true） */
-  showIcon?: boolean
+  showIcon?: boolean;
   /** 是否渲染加载指示器（默认 true） */
-  showSpinner?: boolean
+  showSpinner?: boolean;
   /** 自定义类名 */
-  className?: string
+  className?: string;
 }
 
 /**
@@ -45,94 +45,86 @@ export interface MiniappSplashScreenProps {
  * - oklch: oklch(0.6 0.2 30)
  */
 export function extractHue(color: string | number | undefined): number {
-  if (color === undefined) return 280 // 默认紫色
+  if (color === undefined) return 280; // 默认紫色
 
   // 直接传数字
   if (typeof color === 'number') {
-    return normalizeHue(color)
+    return normalizeHue(color);
   }
 
-  const str = color.trim().toLowerCase()
+  const str = color.trim().toLowerCase();
 
   // oklch(l c h) 格式
   if (str.startsWith('oklch')) {
-    const match = str.match(/oklch\s*\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/)
+    const match = str.match(/oklch\s*\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/);
     if (match?.[1]) {
-      return normalizeHue(parseFloat(match[1]))
+      return normalizeHue(parseFloat(match[1]));
     }
   }
 
   // hsl(h, s%, l%) 格式
   if (str.startsWith('hsl')) {
-    const match = str.match(/hsl\s*\(\s*([\d.]+)/)
+    const match = str.match(/hsl\s*\(\s*([\d.]+)/);
     if (match?.[1]) {
-      return normalizeHue(parseFloat(match[1]))
+      return normalizeHue(parseFloat(match[1]));
     }
   }
 
   // hex 格式
   if (str.startsWith('#')) {
-    return hexToHue(str)
+    return hexToHue(str);
   }
 
   // rgb 格式
   if (str.startsWith('rgb')) {
-    const match = str.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+    const match = str.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
     if (match?.[1] && match[2] && match[3]) {
-      return rgbToHue(
-        parseInt(match[1]),
-        parseInt(match[2]),
-        parseInt(match[3])
-      )
+      return rgbToHue(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
     }
   }
 
-  return 280 // 默认
+  return 280; // 默认
 }
 
 /** 将 hue 标准化到 0-360 范围 */
 function normalizeHue(hue: number): number {
-  return ((hue % 360) + 360) % 360
+  return ((hue % 360) + 360) % 360;
 }
 
 /** hex 转 hue */
 function hexToHue(hex: string): number {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  if (!result?.[1] || !result[2] || !result[3]) return 280
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result?.[1] || !result[2] || !result[3]) return 280;
 
-  return rgbToHue(
-    parseInt(result[1], 16),
-    parseInt(result[2], 16),
-    parseInt(result[3], 16)
-  )
+  return rgbToHue(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16));
 }
 
 /** RGB 转 hue */
 function rgbToHue(r: number, g: number, b: number): number {
-  r /= 255
-  g /= 255
-  b /= 255
+  r /= 255;
+  g /= 255;
+  b /= 255;
 
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const d = max - min
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
 
-  if (d === 0) return 0
+  if (d === 0) return 0;
 
-  let h = 0
+  let h = 0;
   switch (max) {
     case r:
-      h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-      break
+      h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      break;
     case g:
-      h = ((b - r) / d + 2) / 6
-      break
+      h = ((b - r) / d + 2) / 6;
+      break;
     case b:
-      h = ((r - g) / d + 4) / 6
-      break
+      h = ((r - g) / d + 4) / 6;
+      break;
   }
 
-  return Math.round(h * 360)
+  return Math.round(h * 360);
 }
 
 /**
@@ -141,11 +133,7 @@ function rgbToHue(r: number, g: number, b: number): number {
  * @returns [主色, 邻近色1(+30°), 邻近色2(-30°)]
  */
 export function generateGlowHues(baseHue: number): [number, number, number] {
-  return [
-    normalizeHue(baseHue),
-    normalizeHue(baseHue + 30),
-    normalizeHue(baseHue - 30),
-  ]
+  return [normalizeHue(baseHue), normalizeHue(baseHue + 30), normalizeHue(baseHue - 30)];
 }
 
 export function MiniappSplashScreen({
@@ -159,27 +147,27 @@ export function MiniappSplashScreen({
   showSpinner = true,
   className,
 }: MiniappSplashScreenProps) {
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // 计算光晕颜色
   const [huePrimary, hueSecondary, hueTertiary] = useMemo(() => {
-    const baseHue = extractHue(app.themeColor)
-    return generateGlowHues(baseHue)
-  }, [app.themeColor])
+    const baseHue = extractHue(app.themeColor);
+    return generateGlowHues(baseHue);
+  }, [app.themeColor]);
 
   // 重置图片状态
   useEffect(() => {
-    setImageLoaded(false)
-    setImageError(false)
-  }, [app.icon])
+    setImageLoaded(false);
+    setImageError(false);
+  }, [app.icon]);
 
   // CSS 变量样式
   const cssVars = {
     '--splash-hue-primary': huePrimary,
     '--splash-hue-secondary': hueSecondary,
     '--splash-hue-tertiary': hueTertiary,
-  } as React.CSSProperties
+  } as React.CSSProperties;
 
   return (
     <div
@@ -190,7 +178,7 @@ export function MiniappSplashScreen({
       data-animating={animating}
       data-testid="miniapp-splash-screen"
       role="status"
-      aria-label={`${app.name} 正在加载`}
+      aria-label={`${app.name} 正在加载`} // i18n-ignore: a11y
       aria-hidden={!visible}
     >
       {/* 光晕背景层 */}
@@ -224,7 +212,7 @@ export function MiniappSplashScreen({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default MiniappSplashScreen
+export default MiniappSplashScreen;

@@ -53,16 +53,13 @@ export function MigrationCompleteStep({
       </div>
 
       <div className="space-y-2 text-center">
-        <h2 className="text-xl font-semibold">
-          {success ? t('welcome_title') : t('complete.error.title', { defaultValue: '迁移失败' })}
-        </h2>
+        <h2 className="text-xl font-semibold">{success ? t('welcome_title') : t('complete.error.title')}</h2>
 
         {success ? (
           <>
             <p className="text-muted-foreground text-sm">{t('welcome_subtitle')}</p>
             <p className="text-muted-foreground">
               {t('complete.success.description', {
-                defaultValue: '已成功导入 {{count}} 个钱包',
                 count: walletCount,
               })}
             </p>
@@ -71,7 +68,6 @@ export function MigrationCompleteStep({
                 <AlertTriangle className="size-4" />
                 <span>
                   {t('complete.success.skipped', {
-                    defaultValue: '{{count}} 个地址因不支持的链类型被跳过',
                     count: skippedCount,
                   })}
                 </span>
@@ -79,20 +75,13 @@ export function MigrationCompleteStep({
             )}
           </>
         ) : (
-          <p className="text-muted-foreground">
-            {errorMessage ||
-              t('complete.error.description', {
-                defaultValue: '迁移过程中发生错误，请重试',
-              })}
-          </p>
+          <p className="text-muted-foreground">{errorMessage || t('complete.error.description')}</p>
         )}
       </div>
 
       <div className="flex w-full flex-col gap-3">
         <Button onClick={onGoHome} size="lg" data-testid="migration-go-home-btn">
-          {success
-            ? t('complete.goHome', { defaultValue: '进入钱包' })
-            : t('complete.skip', { defaultValue: '跳过，创建新钱包' })}
+          {success ? t('complete.goHome') : t('complete.skip')}
         </Button>
         {success && (
           <Button
@@ -106,7 +95,7 @@ export function MigrationCompleteStep({
         )}
         {!success && onRetry && (
           <Button variant="outline" onClick={onRetry} size="lg" data-testid="migration-retry-btn">
-            {t('complete.retry', { defaultValue: '重试' })}
+            {t('complete.retry')}
           </Button>
         )}
       </div>

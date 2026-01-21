@@ -221,9 +221,9 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
           step: 'result',
           isSubmitting: false,
           resultStatus: 'failed',
-          errorMessage: '仅支持 BioForest 链的资产销毁',
+          errorMessage: t('error:burn.bioforestOnly'),
         }));
-        return { status: 'error', message: '仅支持 BioForest 链' };
+        return { status: 'error', message: t('error:burn.bioforestOnly') };
       }
 
       if (!walletId || !fromAddress || !state.asset || !state.amount || !state.recipientAddress) {
@@ -232,9 +232,9 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
           step: 'result',
           isSubmitting: false,
           resultStatus: 'failed',
-          errorMessage: '参数不完整',
+          errorMessage: t('error:transaction.paramsIncomplete'),
         }));
-        return { status: 'error', message: '参数不完整' };
+        return { status: 'error', message: t('error:transaction.paramsIncomplete') };
       }
 
       setState((prev) => ({
@@ -301,7 +301,7 @@ export function useBurn(options: UseBurnOptions = {}): UseBurnReturn {
   const submitWithTwoStepSecret = useCallback(
     async (password: string, twoStepSecret: string): Promise<BurnSubmitResult> => {
       if (!chainConfig || !walletId || !fromAddress || !state.asset || !state.amount || !state.recipientAddress) {
-        return { status: 'error', message: '参数不完整' };
+        return { status: 'error', message: t('error:transaction.paramsIncomplete') };
       }
 
       setState((prev) => ({

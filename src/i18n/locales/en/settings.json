@@ -22,7 +22,8 @@
     "appearance": "Appearance",
     "aboutApp": "About BFM Pay",
     "clearData": "Clear App Data",
-    "storage": "Storage"
+    "storage": "Storage",
+    "miniappSources": "Miniapp Trusted Sources"
   },
   "appearance": {
     "title": "Appearance",

@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigation, useActivityParams, useFlow } from '@/stackflow'
-import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets'
-import { useTranslation } from 'react-i18next'
-import { useStore } from '@tanstack/react-store'
-import { PageHeader } from '@/components/layout/page-header'
-import { AppInfoCard } from '@/components/authorize/AppInfoCard'
-import { TransactionDetails } from '@/components/authorize/TransactionDetails'
-import { BalanceWarning } from '@/components/authorize/BalanceWarning'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigation, useActivityParams, useFlow } from '@/stackflow';
+import { setWalletLockConfirmCallback } from '@/stackflow/activities/sheets';
+import { useTranslation } from 'react-i18next';
+import { useStore } from '@tanstack/react-store';
+import { PageHeader } from '@/components/layout/page-header';
+import { AppInfoCard } from '@/components/authorize/AppInfoCard';
+import { TransactionDetails } from '@/components/authorize/TransactionDetails';
+import { BalanceWarning } from '@/components/authorize/BalanceWarning';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   SignatureAuthService,
   plaocAdapter,
@@ -17,113 +17,127 @@ import {
   type SignatureRequest,
   type TransferPayload,
   type MessagePayload,
-} from '@/services/authorize'
-import { useToast } from '@/services'
-import { walletStore, walletSelectors } from '@/stores'
+} from '@/services/authorize';
+import { useToast } from '@/services';
+import { walletStore, walletSelectors } from '@/stores';
 
-const REQUEST_TIMEOUT_MS = 5 * 60 * 1000
+const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 
 type ParsedSignatureItem =
   | { type: 'message'; payload: MessagePayload }
   | { type: 'transfer'; payload: TransferPayload }
-  | { type: 'destory'; payload: DestroyPayload }
+  | { type: 'destory'; payload: DestroyPayload };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
+  return typeof value === 'object' && value !== null;
 }
 
 function readOptionalStringLike(obj: Record<string, unknown>, key: string): string | undefined {
-  const v = obj[key]
-  if (typeof v === 'string') return v
-  if (typeof v === 'number' && Number.isFinite(v)) return String(v)
-  return undefined
+  const v = obj[key];
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  return undefined;
 }
 
 function readRequiredStringLike(
   obj: Record<string, unknown>,
   key: string,
-  label: string
+  label: string,
 ): { ok: true; value: string } | { ok: false; error: string } {
-  const value = readOptionalStringLike(obj, key)?.trim()
-  if (!value) return { ok: false, error: `signaturedata 缺少字段：${label}` }
-  return { ok: true, value }
+  const value = readOptionalStringLike(obj, key)?.trim();
+  // i18n-ignore: Technical error message for developers
+  if (!value) return { ok: false, error: `signaturedata missing field: ${label}` };
+  return { ok: true, value };
 }
 
 function readFirstStringLike(
   obj: Record<string, unknown>,
-  keys: Array<{ key: string; label: string }>
+  keys: Array<{ key: string; label: string }>,
 ): { ok: true; value: string } | { ok: false; error: string } {
   for (const k of keys) {
-    const value = readOptionalStringLike(obj, k.key)?.trim()
-    if (value) return { ok: true, value }
+    const value = readOptionalStringLike(obj, k.key)?.trim();
+    if (value) return { ok: true, value };
   }
-  return { ok: false, error: `signaturedata 缺少字段：${keys.map((k) => k.label).join(' / ')}` }
+  // i18n-ignore: Technical error message for developers
+  return { ok: false, error: `signaturedata missing field: ${keys.map((k) => k.label).join(' / ')}` };
 }
 
-function parseSignatureType(rawType: unknown): { ok: true; value: ParsedSignatureItem['type'] } | { ok: false; error: string } {
+function parseSignatureType(
+  rawType: unknown,
+): { ok: true; value: ParsedSignatureItem['type'] } | { ok: false; error: string } {
   if (typeof rawType === 'string') {
-    const v = rawType.trim().toLowerCase()
-    if (v === 'message') return { ok: true, value: 'message' }
-    if (v === 'transfer') return { ok: true, value: 'transfer' }
-    if (v === 'destroy' || v === 'destory') return { ok: true, value: 'destory' }
-    return { ok: false, error: `不支持的签名类型：${rawType}` }
+    const v = rawType.trim().toLowerCase();
+    if (v === 'message') return { ok: true, value: 'message' };
+    if (v === 'transfer') return { ok: true, value: 'transfer' };
+    if (v === 'destroy' || v === 'destory') return { ok: true, value: 'destory' };
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: `Unsupported signature type: ${rawType}` };
   }
 
   if (typeof rawType === 'number' && Number.isInteger(rawType)) {
     // mpay legacy enum: message=0, transfer=1, ..., destory=7
-    if (rawType === 0) return { ok: true, value: 'message' }
-    if (rawType === 1) return { ok: true, value: 'transfer' }
-    if (rawType === 7) return { ok: true, value: 'destory' }
-    return { ok: false, error: `不支持的签名类型：${rawType}` }
+    if (rawType === 0) return { ok: true, value: 'message' };
+    if (rawType === 1) return { ok: true, value: 'transfer' };
+    if (rawType === 7) return { ok: true, value: 'destory' };
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: `Unsupported signature type: ${rawType}` };
   }
 
-  return { ok: false, error: 'signaturedata.type 必须是字符串或数字' }
+  // i18n-ignore: Technical error message for developers
+  return { ok: false, error: 'signaturedata.type must be string or number' };
 }
 
-function parseSignaturedataParam(signaturedata: string | undefined): { ok: true; item: ParsedSignatureItem } | { ok: false; error: string } {
+function parseSignaturedataParam(
+  signaturedata: string | undefined,
+): { ok: true; item: ParsedSignatureItem } | { ok: false; error: string } {
   if (signaturedata === undefined || signaturedata.trim() === '') {
-    return { ok: false, error: '缺少 signaturedata 参数' }
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: 'Missing signaturedata parameter' };
   }
 
-  let parsed: unknown
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(signaturedata)
+    parsed = JSON.parse(signaturedata);
   } catch {
-    return { ok: false, error: 'signaturedata 不是合法的 JSON' }
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: 'signaturedata is not valid JSON' };
   }
 
   if (!Array.isArray(parsed)) {
-    return { ok: false, error: 'signaturedata 必须是 JSON 数组' }
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: 'signaturedata must be a JSON array' };
   }
 
   if (parsed.length === 0) {
-    return { ok: false, error: 'signaturedata 不能为空数组' }
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: 'signaturedata cannot be an empty array' };
   }
 
-  const first = parsed[0]
+  const first = parsed[0];
   if (!isRecord(first)) {
-    return { ok: false, error: 'signaturedata[0] 必须是对象' }
+    // i18n-ignore: Technical error message for developers
+    return { ok: false, error: 'signaturedata[0] must be an object' };
   }
 
-  const typeRes = parseSignatureType(first.type)
-  if (!typeRes.ok) return typeRes
+  const typeRes = parseSignatureType(first.type);
+  if (!typeRes.ok) return typeRes;
 
   const chainNameRes = readFirstStringLike(first, [
     { key: 'chainName', label: 'chainName' },
     { key: 'chain', label: 'chain' },
-  ])
-  if (!chainNameRes.ok) return chainNameRes
-  const chainName = chainNameRes.value
+  ]);
+  if (!chainNameRes.ok) return chainNameRes;
+  const chainName = chainNameRes.value;
 
   if (typeRes.value === 'message') {
     const senderRes = readFirstStringLike(first, [
       { key: 'senderAddress', label: 'senderAddress' },
       { key: 'from', label: 'from' },
-    ])
-    if (!senderRes.ok) return senderRes
+    ]);
+    if (!senderRes.ok) return senderRes;
 
-    const messageRes = readRequiredStringLike(first, 'message', 'message')
-    if (!messageRes.ok) return messageRes
+    const messageRes = readRequiredStringLike(first, 'message', 'message');
+    if (!messageRes.ok) return messageRes;
 
     return {
       ok: true,
@@ -135,50 +149,50 @@ function parseSignaturedataParam(signaturedata: string | undefined): { ok: true;
           message: messageRes.value,
         },
       },
-    }
+    };
   }
 
   if (typeRes.value === 'transfer') {
     const senderRes = readFirstStringLike(first, [
       { key: 'senderAddress', label: 'senderAddress' },
       { key: 'from', label: 'from' },
-    ])
-    if (!senderRes.ok) return senderRes
+    ]);
+    if (!senderRes.ok) return senderRes;
 
     const receiveRes = readFirstStringLike(first, [
       { key: 'receiveAddress', label: 'receiveAddress' },
       { key: 'to', label: 'to' },
-    ])
-    if (!receiveRes.ok) return receiveRes
+    ]);
+    if (!receiveRes.ok) return receiveRes;
 
     const amountRes = readFirstStringLike(first, [
       { key: 'balance', label: 'balance' },
       { key: 'amount', label: 'amount' },
-    ])
-    if (!amountRes.ok) return amountRes
+    ]);
+    if (!amountRes.ok) return amountRes;
 
-    const fee = readOptionalStringLike(first, 'fee')?.trim()
-    const assetType = readOptionalStringLike(first, 'assetType')?.trim()
+    const fee = readOptionalStringLike(first, 'fee')?.trim();
+    const assetType = readOptionalStringLike(first, 'assetType')?.trim();
 
-    let contractInfo: TransferPayload['contractInfo'] | undefined
-    const rawContractInfo = first.contractInfo
+    let contractInfo: TransferPayload['contractInfo'] | undefined;
+    const rawContractInfo = first.contractInfo;
     if (isRecord(rawContractInfo)) {
-      const ciAssetType = readOptionalStringLike(rawContractInfo, 'assetType')?.trim()
-      const ciDecimalsRaw = rawContractInfo.decimals
-      const ciContractAddress = readOptionalStringLike(rawContractInfo, 'contractAddress')?.trim()
+      const ciAssetType = readOptionalStringLike(rawContractInfo, 'assetType')?.trim();
+      const ciDecimalsRaw = rawContractInfo.decimals;
+      const ciContractAddress = readOptionalStringLike(rawContractInfo, 'contractAddress')?.trim();
       const ciDecimals =
         typeof ciDecimalsRaw === 'number' && Number.isFinite(ciDecimalsRaw)
           ? ciDecimalsRaw
           : typeof ciDecimalsRaw === 'string' && ciDecimalsRaw.trim() !== ''
             ? Number(ciDecimalsRaw)
-            : undefined
+            : undefined;
 
       if (ciAssetType && ciContractAddress && typeof ciDecimals === 'number' && Number.isFinite(ciDecimals)) {
         contractInfo = {
           assetType: ciAssetType,
           contractAddress: ciContractAddress,
           decimals: ciDecimals,
-        }
+        };
       }
     }
 
@@ -196,29 +210,29 @@ function parseSignaturedataParam(signaturedata: string | undefined): { ok: true;
           ...(contractInfo ? { contractInfo } : {}),
         },
       },
-    }
+    };
   }
 
   {
     const senderRes = readFirstStringLike(first, [
       { key: 'senderAddress', label: 'senderAddress' },
       { key: 'from', label: 'from' },
-    ])
-    if (!senderRes.ok) return senderRes
+    ]);
+    if (!senderRes.ok) return senderRes;
 
     const amountRes = readFirstStringLike(first, [
       { key: 'destoryAmount', label: 'destoryAmount' },
       { key: 'amount', label: 'amount' },
-    ])
-    if (!amountRes.ok) return amountRes
+    ]);
+    if (!amountRes.ok) return amountRes;
 
     const destoryAddress =
       readOptionalStringLike(first, 'destoryAddress')?.trim() ??
       readOptionalStringLike(first, 'to')?.trim() ??
-      senderRes.value
+      senderRes.value;
 
-    const fee = readOptionalStringLike(first, 'fee')?.trim()
-    const assetType = readOptionalStringLike(first, 'assetType')?.trim()
+    const fee = readOptionalStringLike(first, 'fee')?.trim();
+    const assetType = readOptionalStringLike(first, 'assetType')?.trim();
 
     return {
       ok: true,
@@ -233,7 +247,7 @@ function parseSignaturedataParam(signaturedata: string | undefined): { ok: true;
           ...(assetType ? { assetType } : {}),
         },
       },
-    }
+    };
   }
 }
 
@@ -247,7 +261,7 @@ function isTransferPayload(payload: unknown): payload is TransferPayload {
     'senderAddress' in payload &&
     'receiveAddress' in payload &&
     'balance' in payload
-  )
+  );
 }
 
 /**
@@ -260,7 +274,7 @@ function isMessagePayload(payload: unknown): payload is MessagePayload {
     'senderAddress' in payload &&
     'message' in payload &&
     !('receiveAddress' in payload)
-  )
+  );
 }
 
 /**
@@ -273,15 +287,19 @@ function isDestroyPayload(payload: unknown): payload is DestroyPayload {
     'senderAddress' in payload &&
     'destoryAddress' in payload &&
     'destoryAmount' in payload
-  )
+  );
 }
 
 /**
  * Format token symbol from asset type or chain name
  */
-function getTokenSymbol(payload: { contractInfo?: { assetType: string }; assetType?: string; chainName?: string }): string {
-  if (payload.contractInfo?.assetType) return payload.contractInfo.assetType.toUpperCase()
-  if (payload.assetType) return payload.assetType.toUpperCase()
+function getTokenSymbol(payload: {
+  contractInfo?: { assetType: string };
+  assetType?: string;
+  chainName?: string;
+}): string {
+  if (payload.contractInfo?.assetType) return payload.contractInfo.assetType.toUpperCase();
+  if (payload.assetType) return payload.assetType.toUpperCase();
 
   // Default to chain native token (best-effort).
   const chainSymbols: Record<string, string> = {
@@ -290,8 +308,8 @@ function getTokenSymbol(payload: { contractInfo?: { assetType: string }; assetTy
     tron: 'TRX',
     binance: 'BNB',
     bsc: 'BNB',
-  }
-  return chainSymbols[payload.chainName?.toLowerCase() ?? ''] ?? 'TOKEN'
+  };
+  return chainSymbols[payload.chainName?.toLowerCase() ?? ''] ?? 'TOKEN';
 }
 
 /**
@@ -300,55 +318,55 @@ function getTokenSymbol(payload: { contractInfo?: { assetType: string }; assetTy
 function checkBalance(
   walletBalance: string,
   amount: string,
-  fee: string | undefined
+  fee: string | undefined,
 ): { sufficient: boolean; required: string } {
-  const balanceNum = parseFloat(walletBalance) || 0
-  const amountNum = parseFloat(amount) || 0
-  const feeNum = parseFloat(fee ?? '0') || 0
-  const required = amountNum + feeNum
+  const balanceNum = parseFloat(walletBalance) || 0;
+  const amountNum = parseFloat(amount) || 0;
+  const feeNum = parseFloat(fee ?? '0') || 0;
+  const required = amountNum + feeNum;
   return {
     sufficient: balanceNum >= required,
     required: required.toString(),
-  }
+  };
 }
 
 export function SignatureAuthPage() {
-  const { t: tAuthorize } = useTranslation('authorize')
-  const { t: tCommon } = useTranslation('common')
-  const { navigate, goBack } = useNavigation()
-  const { push } = useFlow()
-  const toast = useToast()
+  const { t: tAuthorize } = useTranslation('authorize');
+  const { t: tCommon } = useTranslation('common');
+  const { navigate, goBack } = useNavigation();
+  const { push } = useFlow();
+  const toast = useToast();
 
   const { id: eventId, signaturedata } = useActivityParams<{
-    id: string
-    signaturedata?: string
-  }>()
+    id: string;
+    signaturedata?: string;
+  }>();
 
-  const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet)
+  const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet);
 
-  const [appInfo, setAppInfo] = useState<CallerAppInfo | null>(null)
-  const [signatureRequest, setSignatureRequest] = useState<SignatureRequest | null>(null)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [appInfo, setAppInfo] = useState<CallerAppInfo | null>(null);
+  const [signatureRequest, setSignatureRequest] = useState<SignatureRequest | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const authService = useMemo(() => new SignatureAuthService(plaocAdapter, eventId), [eventId])
+  const authService = useMemo(() => new SignatureAuthService(plaocAdapter, eventId), [eventId]);
 
   // Load app info and signature request
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function run() {
-      setLoadError(null)
+      setLoadError(null);
       try {
-        const parsed = parseSignaturedataParam(signaturedata)
+        const parsed = parseSignaturedataParam(signaturedata);
         if (!parsed.ok) {
-          setLoadError(parsed.error)
-          return
+          setLoadError(parsed.error);
+          return;
         }
 
-        const info = await plaocAdapter.getCallerAppInfo(eventId)
-        if (cancelled) return
-        setAppInfo(info)
+        const info = await plaocAdapter.getCallerAppInfo(eventId);
+        if (cancelled) return;
+        setAppInfo(info);
 
         const req: SignatureRequest = {
           eventId,
@@ -357,156 +375,167 @@ export function SignatureAuthPage() {
           appName: info.appName,
           appHome: info.origin,
           appLogo: info.appIcon,
-        }
+        };
 
-        setSignatureRequest(req)
+        setSignatureRequest(req);
       } catch {
-        if (cancelled) return
-        setLoadError(tAuthorize('error.authFailed'))
+        if (cancelled) return;
+        setLoadError(tAuthorize('error.authFailed'));
       }
     }
 
-    run()
+    run();
     return () => {
-      cancelled = true
-    }
-  }, [eventId, signaturedata, tAuthorize])
+      cancelled = true;
+    };
+  }, [eventId, signaturedata, tAuthorize]);
 
   // Timeout handler
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void (async () => {
-        await authService.reject('timeout')
-        toast.show({ message: tAuthorize('error.timeout'), position: 'center' })
-        navigate({ to: '/' })
-      })()
-    }, REQUEST_TIMEOUT_MS)
+        await authService.reject('timeout');
+        toast.show({ message: tAuthorize('error.timeout'), position: 'center' });
+        navigate({ to: '/' });
+      })();
+    }, REQUEST_TIMEOUT_MS);
 
     return () => {
-      window.clearTimeout(timer)
-    }
-  }, [authService, navigate, tAuthorize, toast])
+      window.clearTimeout(timer);
+    };
+  }, [authService, navigate, tAuthorize, toast]);
 
   // Derived state for transfer payload
   const transferPayload = useMemo(() => {
     if (!signatureRequest || !isTransferPayload(signatureRequest.payload)) {
-      return null
+      return null;
     }
-    return signatureRequest.payload
-  }, [signatureRequest])
+    return signatureRequest.payload;
+  }, [signatureRequest]);
 
   // Derived state for message payload
   const messagePayload = useMemo(() => {
     if (!signatureRequest || !isMessagePayload(signatureRequest.payload)) {
-      return null
+      return null;
     }
-    return signatureRequest.payload
-  }, [signatureRequest])
+    return signatureRequest.payload;
+  }, [signatureRequest]);
 
   // Derived state for destroy payload
   const destroyPayload = useMemo(() => {
     if (!signatureRequest || !isDestroyPayload(signatureRequest.payload)) {
-      return null
+      return null;
     }
-    return signatureRequest.payload
-  }, [signatureRequest])
+    return signatureRequest.payload;
+  }, [signatureRequest]);
 
   // Check balance for transfer
   const balanceCheck = useMemo(() => {
-    if (!currentWallet) return { sufficient: true, required: '0', walletBalance: '0' }
+    if (!currentWallet) return { sufficient: true, required: '0', walletBalance: '0' };
 
-    const spend =
-      transferPayload
-        ? { chainName: transferPayload.chainName, amount: transferPayload.balance, fee: transferPayload.fee }
-        : destroyPayload
-          ? { chainName: destroyPayload.chainName, amount: destroyPayload.destoryAmount, fee: destroyPayload.fee }
-          : null
+    const spend = transferPayload
+      ? { chainName: transferPayload.chainName, amount: transferPayload.balance, fee: transferPayload.fee }
+      : destroyPayload
+        ? { chainName: destroyPayload.chainName, amount: destroyPayload.destoryAmount, fee: destroyPayload.fee }
+        : null;
 
-    if (!spend) return { sufficient: true, required: '0', walletBalance: '0' }
+    if (!spend) return { sufficient: true, required: '0', walletBalance: '0' };
 
     const chainAddress = currentWallet.chainAddresses.find(
-      (ca) => ca.chain.toLowerCase() === spend.chainName?.toLowerCase()
-    )
+      (ca) => ca.chain.toLowerCase() === spend.chainName?.toLowerCase(),
+    );
 
     // For now, use a mock balance - in real implementation, this would come from the wallet
-    const walletBalance = chainAddress ? '1.0' : '0'
-    const result = checkBalance(walletBalance, spend.amount, spend.fee)
-    return { ...result, walletBalance }
-  }, [currentWallet, destroyPayload, transferPayload])
+    const walletBalance = chainAddress ? '1.0' : '0';
+    const result = checkBalance(walletBalance, spend.amount, spend.fee);
+    return { ...result, walletBalance };
+  }, [currentWallet, destroyPayload, transferPayload]);
 
   const tokenSymbol = useMemo(() => {
-    if (transferPayload) return getTokenSymbol(transferPayload)
-    if (destroyPayload) return getTokenSymbol(destroyPayload)
-    return 'TOKEN'
-  }, [destroyPayload, transferPayload])
+    if (transferPayload) return getTokenSymbol(transferPayload);
+    if (destroyPayload) return getTokenSymbol(destroyPayload);
+    return 'TOKEN';
+  }, [destroyPayload, transferPayload]);
 
   const handleBack = useCallback(() => {
-    goBack()
-  }, [goBack])
+    goBack();
+  }, [goBack]);
 
   const handleReject = useCallback(async () => {
-    if (isSubmitting) return
-    setIsSubmitting(true)
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      await authService.reject(balanceCheck.sufficient ? 'rejected' : 'insufficient_balance')
-      navigate({ to: '/' })
+      await authService.reject(balanceCheck.sufficient ? 'rejected' : 'insufficient_balance');
+      navigate({ to: '/' });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }, [authService, balanceCheck.sufficient, isSubmitting, navigate])
+  }, [authService, balanceCheck.sufficient, isSubmitting, navigate]);
 
   const handleSign = useCallback(() => {
-    if (!balanceCheck.sufficient) return
-    if (isSubmitting) return
+    if (!balanceCheck.sufficient) return;
+    if (isSubmitting) return;
 
     setWalletLockConfirmCallback(async (password: string) => {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
 
       try {
-        const encryptedSecret = currentWallet?.encryptedMnemonic
-        if (!encryptedSecret) return false
-        if (!signatureRequest) return false
+        const encryptedSecret = currentWallet?.encryptedMnemonic;
+        if (!encryptedSecret) return false;
+        if (!signatureRequest) return false;
 
-        let signature: string = ''
+        let signature: string = '';
         if (signatureRequest.type === 'message') {
-          if (!messagePayload) return false
-          const result = await authService.handleMessageSign(messagePayload, encryptedSecret, password)
-          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
+          if (!messagePayload) return false;
+          const result = await authService.handleMessageSign(messagePayload, encryptedSecret, password);
+          signature = typeof result === 'string' ? result : ((result as { signature?: string }).signature ?? '');
         } else if (signatureRequest.type === 'transfer') {
-          if (!transferPayload) return false
-          const result = await authService.handleTransferSign(transferPayload, encryptedSecret, password)
-          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
+          if (!transferPayload) return false;
+          const result = await authService.handleTransferSign(transferPayload, encryptedSecret, password);
+          signature = typeof result === 'string' ? result : ((result as { signature?: string }).signature ?? '');
         } else if (signatureRequest.type === 'destory') {
-          if (!destroyPayload) return false
-          const result = await authService.handleDestroySign(destroyPayload, encryptedSecret, password)
-          signature = typeof result === 'string' ? result : (result as { signature?: string }).signature ?? ''
+          if (!destroyPayload) return false;
+          const result = await authService.handleDestroySign(destroyPayload, encryptedSecret, password);
+          signature = typeof result === 'string' ? result : ((result as { signature?: string }).signature ?? '');
         } else {
-          return false
+          return false;
         }
 
-        await authService.approve(signature)
-        navigate({ to: '/' })
-        return true
+        await authService.approve(signature);
+        navigate({ to: '/' });
+        return true;
       } catch {
-        return false
+        return false;
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
-    })
+    });
 
-    push("WalletLockConfirmJob", {
+    push('WalletLockConfirmJob', {
       title: tAuthorize('button.confirm'),
-    })
-  }, [authService, balanceCheck.sufficient, currentWallet?.encryptedMnemonic, destroyPayload, isSubmitting, messagePayload, navigate, push, signatureRequest, tAuthorize, transferPayload])
+    });
+  }, [
+    authService,
+    balanceCheck.sufficient,
+    currentWallet?.encryptedMnemonic,
+    destroyPayload,
+    isSubmitting,
+    messagePayload,
+    navigate,
+    push,
+    signatureRequest,
+    tAuthorize,
+    transferPayload,
+  ]);
 
   // Error state
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col bg-muted/30">
+      <div className="bg-muted/30 flex min-h-screen flex-col">
         <PageHeader title={tAuthorize('title.signature')} onBack={handleBack} />
         <div className="flex-1 p-4">
-          <div className="rounded-xl bg-card p-4 shadow-sm">
-            <p className="text-sm text-destructive">{loadError}</p>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <p className="text-destructive text-sm">{loadError}</p>
             <div className="mt-4">
               <Button onClick={() => navigate({ to: '/' })} className="w-full">
                 {tCommon('back')}
@@ -515,7 +544,7 @@ export function SignatureAuthPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Determine page title based on request type
@@ -524,18 +553,16 @@ export function SignatureAuthPage() {
       ? tAuthorize('signature.type.message')
       : signatureRequest?.type === 'destory'
         ? tAuthorize('signature.type.destroy')
-        : tAuthorize('title.signature')
+        : tAuthorize('title.signature');
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="bg-muted/30 flex min-h-screen flex-col">
       <PageHeader title={pageTitle} onBack={handleBack} />
 
       <div className="flex-1 space-y-4 p-4">
         {appInfo && <AppInfoCard appInfo={appInfo} />}
 
-        <div className="px-1 text-sm text-foreground">
-          {tAuthorize('signature.reviewTransaction')}
-        </div>
+        <div className="text-foreground px-1 text-sm">{tAuthorize('signature.reviewTransaction')}</div>
 
         {/* Transfer type display */}
         {transferPayload && (
@@ -560,15 +587,15 @@ export function SignatureAuthPage() {
 
         {/* Message type display */}
         {messagePayload && (
-          <div className="rounded-xl bg-card p-4 shadow-sm">
-            <div className="text-sm text-muted-foreground mb-2">
-              {tAuthorize('signature.messageToSign')}
-            </div>
-            <div className={cn(
-              'rounded-lg bg-muted/50 p-3',
-              'font-mono text-sm whitespace-pre-wrap break-all',
-              'max-h-48 overflow-y-auto'
-            )}>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <div className="text-muted-foreground mb-2 text-sm">{tAuthorize('signature.messageToSign')}</div>
+            <div
+              className={cn(
+                'bg-muted/50 rounded-lg p-3',
+                'font-mono text-sm break-all whitespace-pre-wrap',
+                'max-h-48 overflow-y-auto',
+              )}
+            >
               {messagePayload.message}
             </div>
           </div>
@@ -597,8 +624,8 @@ export function SignatureAuthPage() {
 
         {/* Signature type badge */}
         {signatureRequest && (
-          <div className="rounded-xl bg-card p-4 shadow-sm">
-            <div className="text-sm text-muted-foreground">
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <div className="text-muted-foreground text-sm">
               {signatureRequest.type === 'transfer' && tAuthorize('signature.type.transfer')}
               {signatureRequest.type === 'message' && tAuthorize('signature.type.message')}
               {signatureRequest.type === 'destory' && tAuthorize('signature.type.destroy')}
@@ -608,15 +635,9 @@ export function SignatureAuthPage() {
       </div>
 
       {/* Action buttons */}
-      <div className="sticky bottom-0 border-t border-border bg-background p-4 safe-area-inset-bottom">
+      <div className="border-border bg-background safe-area-inset-bottom sticky bottom-0 border-t p-4">
         <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="flex-1"
-            onClick={handleReject}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="outline" className="flex-1" onClick={handleReject} disabled={isSubmitting}>
             {tAuthorize('button.reject')}
           </Button>
           <Button
@@ -630,5 +651,5 @@ export function SignatureAuthPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

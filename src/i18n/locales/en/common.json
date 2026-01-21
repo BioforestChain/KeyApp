@@ -36,7 +36,8 @@
     "tabEcosystem": "Ecosystem",
     "tokenDetails": "View {{token}} details",
     "transactionDetails": "Transaction details",
-    "unknownApp": "Unknown app"
+    "unknownApp": "Unknown app",
+    "more": "More actions"
   },
   "acceptExchange": "Accept exchange",
   "account": "User",
@@ -249,7 +250,10 @@
       "open": "Open",
       "detail": "Details",
       "remove": "Remove"
-    }
+    },
+    "discover": "Discover",
+    "mine": "Mine",
+    "stack": "Stack"
   },
   "chains": {
     "ethereum": "Ethereum",
@@ -275,7 +279,9 @@
     "6": "Saturday"
   },
   "date": {
-    "format": "{{weekday}}, {{month}} {{day}}"
+    "format": "{{weekday}}, {{month}} {{day}}",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "providerFallback": {
     "queryFailed": "{{feature}} query failed",
@@ -412,5 +418,106 @@
     "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "openExplorer": "Open {{name}} Explorer",
     "viewOnExplorer": "View on {{name}}"
+  },
+  "tabs": {
+    "assets": "Assets",
+    "history": "History"
+  },
+  "empty": {
+    "noTransactions": "No transactions yet",
+    "transactionsWillAppear": "Your transactions will appear here",
+    "noAssets": "No assets yet",
+    "assetsWillAppear": "Your assets will appear here after transfer"
+  },
+  "password": {
+    "weak": "Weak",
+    "medium": "Medium",
+    "strong": "Strong"
+  },
+  "unknownWallet": "Unknown Wallet",
+  "unknownDApp": "Unknown DApp",
+  "biometric": {
+    "verifyIdentity": "Verify Identity",
+    "protectWallet": "Protect wallet with biometrics",
+    "accessMnemonic": "Access wallet mnemonic"
+  },
+  "signTransaction": "Sign Transaction",
+  "invalidTransaction": "Invalid transaction data",
+  "signingAddressNotFound": "Signing address not found in wallets",
+  "signingAddress": "Signing Address",
+  "transaction": "Transaction",
+  "signTxWarning": "Please confirm you trust this app and carefully verify the transaction.",
+  "signing": "Signing...",
+  "sign": "Sign",
+  "signMessage": "Sign Request",
+  "hexDataWarning": "This message contains hex data. Please confirm you trust this app.",
+  "switchNetwork": "Switch Network",
+  "requestsNetworkSwitch": "requests network switch",
+  "chainSwitchWarning": "After switching networks, your transactions will be on the new network. Please make sure you understand the implications.",
+  "confirmTransfer": "Confirm Transfer",
+  "requestsTransfer": "requests transfer",
+  "to": "To",
+  "amount": "Amount",
+  "cryptoAuthorize": "Crypto Authorize",
+  "permissions": "Permissions",
+  "duration": "Duration",
+  "selectChainWallet": "Select {{chain}} Wallet",
+  "requestsAccess": "requests access",
+  "noWalletsForChain": "No wallets support {{chain}}",
+  "noWallets": "No wallets",
+  "requestsDestroy": "requests destruction",
+  "transferWarning": "Please verify the recipient address and amount. Transfers cannot be reversed.",
+  "confirming": "Confirming...",
+  "drawPatternToConfirm": "Draw pattern to confirm",
+  "selectWallet": "Select Wallet",
+  "sources": {
+    "title": "Trusted Sources",
+    "noSources": "No sources",
+    "urlPlaceholder": "Subscription URL (https://...)",
+    "namePlaceholder": "Name (optional)",
+    "addSource": "Add source",
+    "official": "Official",
+    "updatedAt": "Updated {{date}}",
+    "enterUrl": "Please enter subscription URL",
+    "invalidUrl": "Invalid URL format",
+    "alreadyExists": "This source already exists",
+    "customSource": "Custom source"
+  },
+  "enable": "Enable",
+  "disable": "Disable",
+  "refresh": "Refresh",
+  "assetSelector": {
+    "selectAsset": "Select asset",
+    "balance": "Balance"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "BioForest",
+      "description": "BioForest ecosystem"
+    },
+    "evm": {
+      "name": "EVM Compatible",
+      "description": "Ethereum Virtual Machine compatible chains"
+    },
+    "bitcoin": {
+      "description": "Bitcoin network"
+    },
+    "tron": {
+      "description": "Tron network"
+    },
+    "custom": {
+      "name": "Custom chains",
+      "description": "User-added custom chains"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "Request Crypto Authorization",
+      "permissions": "Requested Permissions",
+      "duration": "Authorization Duration",
+      "address": "Using Address",
+      "pattern": "Draw pattern to confirm",
+      "error": "Pattern incorrect, please try again"
+    }
   }
 }

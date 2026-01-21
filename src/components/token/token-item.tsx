@@ -180,12 +180,7 @@ export function TokenItem({
       {/* Balance and Actions */}
       <ItemActions>
         <div className="text-right">
-          <AnimatedAmount
-            value={token.balance}
-            loading={loading}
-            decimals={token.decimals ?? 8}
-            className="text-sm"
-          />
+          <AnimatedAmount value={token.balance} loading={loading} decimals={token.decimals ?? 8} className="text-sm" />
           {displayFiatValue && !loading && (
             <p className="text-muted-foreground text-xs" title={exchangeStatusMessage ?? undefined}>
               ≈ {fiatSymbol}
@@ -204,7 +199,7 @@ export function TokenItem({
 
   // Get menu items if provided
   const items = menuItems?.(token, context).filter((item) => item.show !== false) ?? [];
-  
+
   // When there are menu items (which render as buttons), Item cannot be a button
   // to avoid button nesting hydration errors
   const hasMenuItems = items.length > 0;
@@ -246,14 +241,8 @@ export function TokenItem({
       {items.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger
-            aria-label={t('common:a11y.more', '更多操作')}
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-11 rounded-lg"
-              />
-            }
+            aria-label={t('common:a11y.more')}
+            render={<Button variant="ghost" size="icon" className="size-11 rounded-lg" />}
           >
             <IconDotsVertical className="text-muted-foreground size-5" />
           </DropdownMenuTrigger>

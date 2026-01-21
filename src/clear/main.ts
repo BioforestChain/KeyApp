@@ -1,6 +1,6 @@
-import "./styles.css";
+import './styles.css';
 
-const baseUri = new URL("./", window.location.href).href;
+const baseUri = new URL('./', window.location.href).href;
 
 interface StepElement {
   id: string;
@@ -10,22 +10,22 @@ interface StepElement {
 
 const steps: StepElement[] = [
   {
-    id: "step-local",
-    label: "本地存储 (localStorage)",
+    id: 'step-local',
+    label: '本地存储 (localStorage)', // i18n-ignore: standalone page
     action: async () => {
       localStorage.clear();
     },
   },
   {
-    id: "step-session",
-    label: "会话存储 (sessionStorage)",
+    id: 'step-session',
+    label: '会话存储 (sessionStorage)', // i18n-ignore: standalone page
     action: async () => {
       sessionStorage.clear();
     },
   },
   {
-    id: "step-indexeddb",
-    label: "数据库 (IndexedDB)",
+    id: 'step-indexeddb',
+    label: '数据库 (IndexedDB)', // i18n-ignore: standalone page
     action: async () => {
       if (indexedDB.databases) {
         const databases = await indexedDB.databases();
@@ -43,10 +43,10 @@ const steps: StepElement[] = [
     },
   },
   {
-    id: "step-cache",
-    label: "缓存 (Cache Storage)",
+    id: 'step-cache',
+    label: '缓存 (Cache Storage)', // i18n-ignore: standalone page
     action: async () => {
-      if ("caches" in window) {
+      if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
@@ -55,7 +55,7 @@ const steps: StepElement[] = [
 ];
 
 function createUI() {
-  const root = document.getElementById("root")!;
+  const root = document.getElementById('root')!;
   root.innerHTML = `
     <div class="container fade-in">
       <div class="progress-ring" id="progressRing">
@@ -70,8 +70,8 @@ function createUI() {
         </div>
       </div>
 
-      <h1 id="title">正在清理数据</h1>
-      <p class="status" id="status">请稍候...</p>
+      <h1 id="title">正在清理数据</h1><!-- i18n-ignore: standalone page -->
+      <p class="status" id="status">请稍候...</p><!-- i18n-ignore: standalone page -->
 
       <div class="steps" id="steps">
         ${steps
@@ -85,9 +85,9 @@ function createUI() {
             </span>
             <span>${step.label}</span>
           </div>
-        `
+        `,
           )
-          .join("")}
+          .join('')}
       </div>
 
       <p class="error-message" id="error"></p>
@@ -100,7 +100,7 @@ function delay(ms: number) {
 }
 
 function updateProgress(completed: number, total: number) {
-  const progressCircle = document.getElementById("progressCircle");
+  const progressCircle = document.getElementById('progressCircle');
   if (progressCircle) {
     const percent = (completed / total) * 100;
     const offset = 226 - (226 * percent) / 100;
@@ -109,13 +109,13 @@ function updateProgress(completed: number, total: number) {
 }
 
 function setStepActive(stepId: string) {
-  document.getElementById(stepId)?.classList.add("active");
+  document.getElementById(stepId)?.classList.add('active');
 }
 
 function setStepDone(stepId: string) {
   const step = document.getElementById(stepId);
-  step?.classList.remove("active");
-  step?.classList.add("done");
+  step?.classList.remove('active');
+  step?.classList.add('done');
 }
 
 async function clearAllData() {
@@ -127,9 +127,7 @@ async function clearAllData() {
 
     try {
       await step.action();
-    } catch (e) {
-      
-    }
+    } catch (e) {}
 
     setStepDone(step.id);
     completed++;
@@ -140,28 +138,28 @@ async function clearAllData() {
 async function main() {
   createUI();
 
-  const title = document.getElementById("title")!;
-  const status = document.getElementById("status")!;
-  const error = document.getElementById("error")!;
-  const checkIcon = document.getElementById("checkIcon")!;
-  const container = document.querySelector(".container")!;
+  const title = document.getElementById('title')!;
+  const status = document.getElementById('status')!;
+  const error = document.getElementById('error')!;
+  const checkIcon = document.getElementById('checkIcon')!;
+  const container = document.querySelector('.container')!;
 
   try {
     await clearAllData();
 
     await delay(300);
-    checkIcon.classList.add("visible");
-    container.classList.add("success-state");
-    title.textContent = "清理完成";
-    status.textContent = "正在返回应用...";
+    checkIcon.classList.add('visible');
+    container.classList.add('success-state');
+    title.textContent = '清理完成'; // i18n-ignore: standalone page
+    status.textContent = '正在返回应用...'; // i18n-ignore: standalone page
 
     await delay(1200);
     window.location.href = baseUri;
   } catch (e) {
-    title.textContent = "清理失败";
-    status.textContent = "";
-    error.style.display = "block";
-    error.textContent = e instanceof Error ? e.message : "发生未知错误";
+    title.textContent = '清理失败'; // i18n-ignore: standalone page
+    status.textContent = '';
+    error.style.display = 'block';
+    error.textContent = e instanceof Error ? e.message : '发生未知错误'; // i18n-ignore: standalone page
 
     await delay(3000);
     window.location.href = baseUri;

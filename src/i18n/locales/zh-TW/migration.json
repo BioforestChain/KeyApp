@@ -53,5 +53,9 @@
     "goHome": "進入錢包",
     "skip": "跳過，創建新錢包",
     "retry": "重試"
+  },
+  "pattern": {
+    "title": "驗證錢包鎖",
+    "description": "請繪製錢包鎖圖案以繼續遷移"
   }
 }

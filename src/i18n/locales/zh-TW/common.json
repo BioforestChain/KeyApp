@@ -36,14 +36,15 @@
     "tabWallet": "錢包",
     "tokenDetails": "查看 {{token}} 詳情",
     "transactionDetails": "交易詳情",
-    "unknownApp": "未知應用程式"
+    "unknownApp": "未知應用程式",
+    "more": "更多操作"
   },
   "acceptExchange": "接受交換",
   "account": "賬戶",
   "accountFromMime": "account from mime",
   "accountWorks": "account works!",
   "acquisitionTime": "入手時間",
-  "add": "新增",
+  "add": "添加",
   "addressBook": {
     "addContact": "新增聯繫人",
     "addresses": "地址",
@@ -126,7 +127,7 @@
   "codeOfThePrivateKey": "code of the private key",
   "comingSoonStayTuned": "即將上綫，敬請期待",
   "comprehensiveEncryption": "全面加密",
-  "confirm": "確定",
+  "confirm": "確認",
   "confirmBackedUp": "確認已備份",
   "confirmToDelete": "確認刪除？",
   "confirmToTurnOffTouchId": "確定要關閉指紋鎖嗎？",
@@ -170,7 +171,9 @@
   "couldBeWithin_30Seconds": "預計30秒",
   "creator": "創作者",
   "date": {
-    "format": "{{month}}月{{day}}日 {{weekday}}"
+    "format": "{{month}}月{{day}}日 {{weekday}}",
+    "today": "今天",
+    "yesterday": "昨天"
   },
   "delete": "刪除",
   "destroy": "銷毀",
@@ -191,7 +194,10 @@
     },
     "noAppsUsed": "還沒有使用過的應用",
     "runningApps": "正在執行的應用",
-    "stackViewHints": "左右滑動切換 · 點擊開啟 · 上滑關閉"
+    "stackViewHints": "左右滑動切換 · 點擊開啟 · 上滑關閉",
+    "discover": "發現",
+    "mine": "我的",
+    "stack": "堆棧"
   },
   "edit": "編輯",
   "energy": "能量",
@@ -239,7 +245,7 @@
   "manage": "管理",
   "me": "我",
   "memo": "附言",
-  "message": "信息",
+  "message": "訊息內容",
   "methodsParams": "合約參數",
   "mimeInTab": "mime-in-tab",
   "mine": "我的",
@@ -263,7 +269,7 @@
   },
   "name": "名稱",
   "navOverview": "概覽",
-  "network": "網絡",
+  "network": "網路",
   "networkNotConnected": "當前的網絡未連接",
   "newFinish": "完成",
   "next": "下一步",
@@ -412,5 +418,106 @@
   "{{item}}Words": "個字",
   "{{length}}Words": "個字",
   "中文（简体）": "中文（简体）",
-  "中文（繁體）": "中文（繁體）"
+  "中文（繁體）": "中文（繁體）",
+  "tabs": {
+    "assets": "資產",
+    "history": "交易"
+  },
+  "empty": {
+    "noTransactions": "暫無交易記錄",
+    "transactionsWillAppear": "您的交易記錄將顯示在這裡",
+    "noAssets": "暫無資產",
+    "assetsWillAppear": "轉入資產後將顯示在這裡"
+  },
+  "password": {
+    "weak": "弱",
+    "medium": "中",
+    "strong": "強"
+  },
+  "unknownWallet": "未知錢包",
+  "unknownDApp": "未知 DApp",
+  "biometric": {
+    "verifyIdentity": "驗證身份",
+    "protectWallet": "使用生物識別保護錢包",
+    "accessMnemonic": "訪問錢包助記詞"
+  },
+  "signTransaction": "簽名交易",
+  "invalidTransaction": "無效的交易資料",
+  "signingAddressNotFound": "找不到對應的錢包地址，無法簽名",
+  "signingAddress": "簽名地址",
+  "transaction": "交易內容",
+  "signTxWarning": "請確認您信任此應用，並仔細核對交易內容。",
+  "signing": "簽名中...",
+  "sign": "簽名",
+  "signMessage": "簽名請求",
+  "hexDataWarning": "此訊息包含十六進位資料，請確認您信任此應用。",
+  "switchNetwork": "切換網路",
+  "requestsNetworkSwitch": "請求切換網路",
+  "chainSwitchWarning": "切換網路後，您的交易將在新網路上進行。請確保您了解此操作的影響。",
+  "confirmTransfer": "確認轉帳",
+  "requestsTransfer": "請求轉帳",
+  "to": "到",
+  "amount": "金額",
+  "cryptoAuthorize": "加密授權",
+  "permissions": "權限",
+  "duration": "時長",
+  "selectChainWallet": "選擇 {{chain}} 錢包",
+  "requestsAccess": "請求訪問",
+  "noWalletsForChain": "暫無支援 {{chain}} 的錢包",
+  "noWallets": "暫無錢包",
+  "requestsDestroy": "請求銷毀",
+  "transferWarning": "請仔細核對收款地址和金額，轉帳後無法撤回。",
+  "confirming": "確認中...",
+  "drawPatternToConfirm": "請繪製手勢密碼確認",
+  "selectWallet": "選擇錢包",
+  "sources": {
+    "title": "可信源管理",
+    "noSources": "暫無訂閱源",
+    "urlPlaceholder": "訂閱 URL (https://...)",
+    "namePlaceholder": "名稱 (可選)",
+    "addSource": "添加訂閱源",
+    "official": "官方",
+    "updatedAt": "更新於 {{date}}",
+    "enterUrl": "請輸入訂閱 URL",
+    "invalidUrl": "無效的 URL 格式",
+    "alreadyExists": "該訂閱源已存在",
+    "customSource": "自定義源"
+  },
+  "enable": "啟用",
+  "disable": "禁用",
+  "refresh": "刷新",
+  "assetSelector": {
+    "selectAsset": "選擇資產",
+    "balance": "餘額"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "生物鏈林",
+      "description": "BioForest 生態鏈"
+    },
+    "evm": {
+      "name": "EVM 兼容鏈",
+      "description": "以太坊虛擬機兼容鏈"
+    },
+    "bitcoin": {
+      "description": "Bitcoin 網絡"
+    },
+    "tron": {
+      "description": "Tron 網絡"
+    },
+    "custom": {
+      "name": "自定義鏈",
+      "description": "用戶添加的自定義鏈"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "請求加密授權",
+      "permissions": "請求權限",
+      "duration": "授權時長",
+      "address": "使用地址",
+      "pattern": "請輸入手勢密碼確認",
+      "error": "手勢密碼錯誤，請重試"
+    }
+  }
 }

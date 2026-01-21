@@ -11,14 +11,16 @@
   "saveFailed": "Save Failed",
   "scanErrorFromImage": "Scan error from image",
   "shareFailed": "Sharing Failed",
-  "unknown": "Unknown error",
+  "unknown": "خطأ غير معروف",
   "validation": {
     "enterRecipientAddress": "Please enter recipient address",
     "invalidAddressFormat": "Invalid address format",
     "cannotTransferToSelf": "Cannot transfer to yourself",
     "enterAmount": "Please enter amount",
     "enterValidAmount": "Please enter a valid amount",
-    "exceedsBalance": "Amount exceeds balance"
+    "exceedsBalance": "Amount exceeds balance",
+    "enterReceiverAddress": "يرجى إدخال عنوان المستلم",
+    "invalidAddress": "تنسيق العنوان غير صالح"
   },
   "transaction": {
     "failed": "Transaction failed, please try again later",
@@ -31,20 +33,28 @@
     "chainConfigMissing": "Chain configuration missing",
     "unsupportedChainType": "Unsupported chain type: {{chain}}",
     "issuerAddressNotFound": "Unable to get asset issuer address",
-    "issuerAddressNotReady": "Asset issuer address not ready"
+    "issuerAddressNotReady": "Asset issuer address not ready",
+    "insufficientGas": "رسوم الغاز غير كافية",
+    "retryLater": "فشلت المعاملة، يرجى المحاولة لاحقاً",
+    "transferFailed": "فشل التحويل",
+    "securityPasswordWrong": "كلمة مرور الأمان غير صحيحة",
+    "unknownError": "خطأ غير معروف"
   },
   "crypto": {
-    "keyDerivationFailed": "Key derivation failed",
+    "keyDerivationFailed": "فشل اشتقاق المفتاح",
     "decryptionFailed": "Decryption failed: wrong password or corrupted data",
     "decryptionKeyFailed": "Decryption failed: wrong key or corrupted data",
     "biometricNotAvailable": "Biometric not available",
     "biometricVerificationFailed": "Biometric verification failed",
     "webModeRequiresPassword": "Web mode requires password",
     "dwebEnvironmentRequired": "DWEB environment required",
-    "mpayDecryptionFailed": "mpay data decryption failed: wrong password or corrupted data"
+    "mpayDecryptionFailed": "mpay data decryption failed: wrong password or corrupted data",
+    "unsupportedBitcoinPurpose": "غرض Bitcoin غير مدعوم: {{purpose}}",
+    "decryptFailed": "فشل فك التشفير: كلمة مرور خاطئة أو بيانات تالفة",
+    "decryptKeyFailed": "فشل فك التشفير: مفتاح خاطئ أو بيانات تالفة"
   },
   "address": {
-    "generationFailed": "Address generation failed"
+    "generationFailed": "فشل إنشاء العنوان"
   },
   "securityPassword": {
     "chainNotSupported": "This chain does not support security password",
@@ -55,5 +65,55 @@
   },
   "duplicate": {
     "detectionFailed": "Duplicate detection failed"
+  },
+  "chain": {
+    "unsupportedType": "نوع سلسلة غير مدعوم: {{chain}}",
+    "notSupportSecurityPassword": "هذه السلسلة لا تدعم كلمة المرور الأمنية",
+    "transferNotImplemented": "وظيفة التحويل لهذه السلسلة غير مطبقة بالكامل"
+  },
+  "mpay": {
+    "decryptFailed": "فشل فك تشفير بيانات mpay: كلمة مرور خاطئة أو بيانات تالفة"
+  },
+  "miniapp": {
+    "launchFailed": {
+      "stayOnDesktop": "فشل الإطلاق: يرجى البقاء على صفحة سطح المكتب المستهدفة وإعادة المحاولة",
+      "iconNotReady": "فشل الإطلاق: الأيقونة غير جاهزة، يرجى العودة إلى سطح المكتب وإعادة المحاولة",
+      "containerNotReady": "فشل الإطلاق: الحاوية غير جاهزة، يرجى إعادة المحاولة"
+    }
+  },
+  "biometric": {
+    "unavailable": "المصادقة البيومترية غير متوفرة",
+    "verificationFailed": "فشل التحقق البيومتري"
+  },
+  "query": {
+    "failed": "فشل الاستعلام"
+  },
+  "wallet": {
+    "incompleteInfo": "معلومات المحفظة غير مكتملة"
+  },
+  "destroy": {
+    "failed": "فشل التدمير"
+  },
+  "security": {
+    "passwordInvalid": "كلمة المرور الأمنية غير صحيحة"
+  },
+  "transfer": {
+    "failed": "فشل التحويل"
+  },
+  "secureStorage": {
+    "webPasswordRequired": "كلمة المرور مطلوبة لوضع الويب",
+    "dwebRequired": "مطلوب بيئة DWEB",
+    "passwordRequired": "كلمة المرور مطلوبة لفك التشفير",
+    "passwordRequiredForMnemonic": "كلمة المرور مطلوبة"
+  },
+  "signature": {
+    "missingField": "signaturedata حقل مفقود: {{field}}",
+    "unsupportedType": "نوع التوقيع غير مدعوم: {{type}}",
+    "typeMustBeStringOrNumber": "signaturedata.type يجب أن يكون سلسلة أو رقم",
+    "missingParam": "معلمة signaturedata مفقودة",
+    "invalidJson": "signaturedata ليس JSON صالحًا",
+    "mustBeArray": "signaturedata يجب أن يكون مصفوفة JSON",
+    "emptyArray": "signaturedata لا يمكن أن يكون مصفوفة فارغة",
+    "firstMustBeObject": "signaturedata[0] يجب أن يكون كائنًا"
   }
 }

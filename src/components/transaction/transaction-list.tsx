@@ -23,16 +23,14 @@ function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionIn
 
   transactions.forEach((tx) => {
     // timestamp 可能是 number (毫秒), string, 或 Date 对象
-    const date = tx.timestamp instanceof Date
-      ? tx.timestamp
-      : new Date(tx.timestamp);
+    const date = tx.timestamp instanceof Date ? tx.timestamp : new Date(tx.timestamp);
     const dateStr = date.toDateString();
 
     let key: string;
     if (dateStr === today) {
-      key = '今天';
+      key = '今天'; // i18n-ignore: date grouping
     } else if (dateStr === yesterday) {
-      key = '昨天';
+      key = '昨天'; // i18n-ignore: date grouping
     } else {
       key = date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
     }
@@ -50,8 +48,8 @@ export function TransactionList({
   transactions,
   loading = false,
   onTransactionClick,
-  emptyTitle = '暂无交易记录',
-  emptyDescription = '您的交易记录将显示在这里',
+  emptyTitle = '暂无交易记录', // i18n-ignore: default prop
+  emptyDescription = '您的交易记录将显示在这里', // i18n-ignore: default prop
   emptyAction,
   className,
   showChainIcon = false,

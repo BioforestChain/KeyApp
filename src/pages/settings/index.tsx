@@ -20,7 +20,15 @@ import {
   IconIdBadge2,
 } from '@tabler/icons-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { useCurrentWallet, useLanguage, useCurrency, useTheme, chainConfigStore, chainConfigSelectors, useUserProfile } from '@/stores';
+import {
+  useCurrentWallet,
+  useLanguage,
+  useCurrency,
+  useTheme,
+  chainConfigStore,
+  chainConfigSelectors,
+  useUserProfile,
+} from '@/stores';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
@@ -30,10 +38,10 @@ import { setSetTwoStepSecretCallback } from '@/stackflow/activities/sheets';
 
 /** 支持的语言显示名称映射 */
 const LANGUAGE_NAMES: Record<string, string> = {
-  'zh-CN': '简体中文',
-  'zh-TW': '繁體中文',
+  'zh-CN': '简体中文', // i18n-ignore: native language name
+  'zh-TW': '繁體中文', // i18n-ignore: native language name
   en: 'English',
-  ja: '日本語',
+  ja: '日本語', // i18n-ignore: native language name
   ko: '한국어',
   ar: 'العربية',
 };
@@ -57,7 +65,9 @@ export function SettingsPage() {
   const currentCurrency = useCurrency();
   const currentTheme = useTheme();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
-  const [twoStepSecretStatus, setTwoStepSecretStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>('loading');
+  const [twoStepSecretStatus, setTwoStepSecretStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>(
+    'loading',
+  );
 
   // Check if pay password is set for BioForest chain
   useEffect(() => {
@@ -68,9 +78,7 @@ export function SettingsPage() {
       }
 
       // Find BioForest chain address
-      const bfmAddress = currentWallet.chainAddresses.find(
-        (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
-      );
+      const bfmAddress = currentWallet.chainAddresses.find((ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm');
 
       if (!bfmAddress) {
         setTwoStepSecretStatus('unavailable');
@@ -114,9 +122,7 @@ export function SettingsPage() {
   const handleSetTwoStepSecret = async () => {
     if (twoStepSecretStatus !== 'not_set' || !currentWallet) return;
 
-    const bfmAddress = currentWallet.chainAddresses.find(
-      (ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm'
-    );
+    const bfmAddress = currentWallet.chainAddresses.find((ca) => ca.chain === 'bfmeta' || ca.chain === 'bfm');
     if (!bfmAddress) return;
 
     const chainConfig = chainConfigSelectors.getChainById(chainConfigStore.state, 'bfmeta');
@@ -160,7 +166,7 @@ export function SettingsPage() {
         } catch {
           return false;
         }
-      }
+      },
     );
 
     push('SetTwoStepSecretJob', { chainName: 'BioForest Chain' });
@@ -174,15 +180,13 @@ export function SettingsPage() {
         <button
           type="button"
           onClick={() => navigate({ to: '/my-card' })}
-          className="bg-card flex w-full items-center gap-4 rounded-xl p-4 shadow-sm transition-colors hover:bg-accent"
+          className="bg-card hover:bg-accent flex w-full items-center gap-4 rounded-xl p-4 shadow-sm transition-colors"
           data-testid="my-card-button"
         >
           <ContactAvatar src={profile.avatar} size={56} />
           <div className="flex-1 text-left">
             <h2 className="font-semibold">{profile.username || t('common:myCard.defaultName')}</h2>
-            <p className="text-muted-foreground text-sm">
-              {t('settings:items.myCard')}
-            </p>
+            <p className="text-muted-foreground text-sm">{t('settings:items.myCard')}</p>
           </div>
           <IconIdBadge2 size={20} className="text-muted-foreground" />
         </button>
@@ -272,7 +276,7 @@ export function SettingsPage() {
           <div className="bg-border mx-4 h-px" />
           <SettingsItem
             icon={<IconWorld size={20} />}
-            label="小程序可信源"
+            label={t('settings:items.miniappSources')}
             onClick={() => navigate({ to: '/settings/sources' })}
           />
         </SettingsSection>
@@ -300,10 +304,7 @@ export function SettingsPage() {
         <div className="h-[var(--tab-bar-height)]" />
       </div>
 
-      <AppearanceSheet
-        open={appearanceSheetOpen}
-        onOpenChange={setAppearanceSheetOpen}
-      />
-    </div >
+      <AppearanceSheet open={appearanceSheetOpen} onOpenChange={setAppearanceSheetOpen} />
+    </div>
   );
 }

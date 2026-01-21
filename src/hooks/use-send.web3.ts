@@ -1,26 +1,29 @@
 /**
  * Web3 Transfer Implementation
- * 
+ *
  * Handles transfers for EVM, Tron, and Bitcoin chains using ChainProvider.
  */
 
-import type { AssetInfo } from '@/types/asset'
-import type { ChainConfig } from '@/services/chain-config'
-import { Amount } from '@/types/amount'
-import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage'
-import { getChainProvider } from '@/services/chain-adapter/providers'
-import { mnemonicToSeedSync } from '@scure/bip39'
+import type { AssetInfo } from '@/types/asset';
+import type { ChainConfig } from '@/services/chain-config';
+import { Amount } from '@/types/amount';
+import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage';
+import { getChainProvider } from '@/services/chain-adapter/providers';
+import { mnemonicToSeedSync } from '@scure/bip39';
+import i18n from '@/i18n';
+
+const t = i18n.t.bind(i18n);
 
 export interface Web3FeeResult {
-  amount: Amount
-  symbol: string
+  amount: Amount;
+  symbol: string;
 }
 
 export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string): Promise<Web3FeeResult> {
-  const chainProvider = getChainProvider(chainConfig.id)
+  const chainProvider = getChainProvider(chainConfig.id);
 
   if (!chainProvider.supportsFeeEstimate || !chainProvider.supportsBuildTransaction) {
-    throw new Error(`Chain ${chainConfig.id} does not support fee estimation`)
+    throw new Error(`Chain ${chainConfig.id} does not support fee estimation`);
   }
 
   // 新流程：先构建交易，再估算手续费
@@ -29,40 +32,40 @@ export async function fetchWeb3Fee(chainConfig: ChainConfig, fromAddress: string
     from: fromAddress,
     to: fromAddress,
     amount: Amount.fromRaw('1', chainConfig.decimals, chainConfig.symbol),
-  })
+  });
 
-  const feeEstimate = await chainProvider.estimateFee!(unsignedTx)
+  const feeEstimate = await chainProvider.estimateFee!(unsignedTx);
 
   return {
     amount: feeEstimate.standard.amount,
     symbol: chainConfig.symbol,
-  }
+  };
 }
 
 export async function fetchWeb3Balance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
-  const chainProvider = getChainProvider(chainConfig.id)
-  const balance = await chainProvider.nativeBalance.fetch({ address: fromAddress })
+  const chainProvider = getChainProvider(chainConfig.id);
+  const balance = await chainProvider.nativeBalance.fetch({ address: fromAddress });
 
   return {
     assetType: balance.symbol,
     name: chainConfig.name,
     amount: balance.amount,
     decimals: balance.amount.decimals,
-  }
+  };
 }
 
 export type SubmitWeb3Result =
   | { status: 'ok'; txHash: string }
   | { status: 'password' }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string };
 
 export interface SubmitWeb3Params {
-  chainConfig: ChainConfig
-  walletId: string
-  password: string
-  fromAddress: string
-  toAddress: string
-  amount: Amount
+  chainConfig: ChainConfig;
+  walletId: string;
+  password: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: Amount;
 }
 
 export async function submitWeb3Transfer({
@@ -74,34 +77,32 @@ export async function submitWeb3Transfer({
   amount,
 }: SubmitWeb3Params): Promise<SubmitWeb3Result> {
   // Get mnemonic from wallet storage
-  let mnemonic: string
+  let mnemonic: string;
   try {
-    mnemonic = await walletStorageService.getMnemonic(walletId, password)
+    mnemonic = await walletStorageService.getMnemonic(walletId, password);
   } catch (error) {
     if (error instanceof WalletStorageError && error.code === WalletStorageErrorCode.DECRYPTION_FAILED) {
-      return { status: 'password' }
+      return { status: 'password' };
     }
     return {
       status: 'error',
-      message: error instanceof Error ? error.message : '未知错误',
-    }
+      message: error instanceof Error ? error.message : t('error:transaction.unknownError'),
+    };
   }
 
   if (!amount.isPositive()) {
-    return { status: 'error', message: '请输入有效金额' }
+    return { status: 'error', message: t('error:validation.enterValidAmount') };
   }
 
   try {
-    const chainProvider = getChainProvider(chainConfig.id)
+    const chainProvider = getChainProvider(chainConfig.id);
 
     if (!chainProvider.supportsFullTransaction) {
-      return { status: 'error', message: `该链不支持完整交易流程: ${chainConfig.id}` }
+      return { status: 'error', message: t('error:transaction.chainNotSupported', { chainId: chainConfig.id }) };
     }
 
-
-
     // Derive private key from mnemonic
-    const seed = mnemonicToSeedSync(mnemonic)
+    const seed = mnemonicToSeedSync(mnemonic);
 
     // Build unsigned transaction
     const unsignedTx = await chainProvider.buildTransaction!({
@@ -109,38 +110,49 @@ export async function submitWeb3Transfer({
       from: fromAddress,
       to: toAddress,
       amount,
-    })
+    });
 
     // Sign transaction
-    const signedTx = await chainProvider.signTransaction!(unsignedTx, { privateKey: seed })
+    const signedTx = await chainProvider.signTransaction!(unsignedTx, { privateKey: seed });
 
     // Broadcast transaction
-    const txHash = await chainProvider.broadcastTransaction!(signedTx)
+    const txHash = await chainProvider.broadcastTransaction!(signedTx);
 
-
-    return { status: 'ok', txHash }
+    return { status: 'ok', txHash };
   } catch (error) {
-
-
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Handle specific error cases
-    if (errorMessage.includes('insufficient') || errorMessage.includes('余额不足')) {
-      return { status: 'error', message: '余额不足' }
+    if (errorMessage.includes('insufficient') || errorMessage.includes('balance')) {
+      return { status: 'error', message: t('error:transaction.insufficientBalance') };
     }
 
-    if (errorMessage.includes('fee') || errorMessage.includes('手续费') || errorMessage.includes('gas')) {
-      return { status: 'error', message: '手续费不足' }
+    if (errorMessage.includes('fee') || errorMessage.includes('gas')) {
+      return { status: 'error', message: t('error:transaction.insufficientFee') };
     }
 
     if (errorMessage.includes('not yet implemented') || errorMessage.includes('not supported')) {
-      return { status: 'error', message: '该链转账功能尚未完全实现' }
+      return { status: 'error', message: t('error:transaction.featureNotImplemented') };
     }
 
     return {
       status: 'error',
-      message: errorMessage || '交易失败，请稍后重试',
+      message: errorMessage || t('error:transaction.transactionFailed'),
+    };
+
+    if (errorMessage.includes('fee') || errorMessage.includes('手续费') || errorMessage.includes('gas')) {
+      // i18n-ignore
+      return { status: 'error', message: t('error:transaction.insufficientGas') };
     }
+
+    if (errorMessage.includes('not yet implemented') || errorMessage.includes('not supported')) {
+      return { status: 'error', message: t('error:chain.transferNotImplemented') };
+    }
+
+    return {
+      status: 'error',
+      message: errorMessage || t('error:transaction.retryLater'),
+    };
   }
 }
 
@@ -148,19 +160,27 @@ export async function submitWeb3Transfer({
  * Validate address for Web3 chains
  */
 export function validateWeb3Address(chainConfig: ChainConfig, address: string): string | null {
-  const chainProvider = getChainProvider(chainConfig.id)
+  const chainProvider = getChainProvider(chainConfig.id);
 
   if (!chainProvider.supportsAddressValidation) {
-    return '不支持的链类型'
+    return t('error:validation.unsupportedChainType');
   }
 
   if (!address || address.trim() === '') {
-    return '请输入收款地址'
+    return t('error:validation.enterRecipientAddress');
   }
 
   if (!chainProvider.isValidAddress!(address)) {
-    return '无效的地址格式'
+    return t('error:validation.invalidAddressFormat');
   }
 
-  return null
+  if (!address || address.trim() === '') {
+    return t('error:validation.enterReceiverAddress');
+  }
+
+  if (!chainProvider.isValidAddress!(address)) {
+    return t('error:validation.invalidAddress');
+  }
+
+  return null;
 }

@@ -1,47 +1,71 @@
 /**
  * Pending Transaction Service
- * 
+ *
  * 未上链交易管理 - IndexedDB 存储实现
  * 专注状态管理，不关心交易内容本身
  */
 
-import { z } from 'zod'
-import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { derive, transform } from '@biochain/key-fetch'
-import { getChainProvider } from '@/services/chain-adapter/providers'
-import { defineServiceMeta } from '@/lib/service-meta'
-import { SignedTransactionSchema } from '@/services/chain-adapter/types'
+import { z } from 'zod';
+import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { derive, transform } from '@biochain/key-fetch';
+import { getChainProvider } from '@/services/chain-adapter/providers';
+import { defineServiceMeta } from '@/lib/service-meta';
+import { SignedTransactionSchema } from '@/services/chain-adapter/types';
 
 // ==================== Schema ====================
 
 /** 未上链交易状态 */
 export const PendingTxStatusSchema = z.enum([
-  'created',      // 交易已创建，待广播
+  'created', // 交易已创建，待广播
   'broadcasting', // 广播中
-  'broadcasted',  // 广播成功，待上链
-  'confirmed',    // 已上链确认
-  'failed',       // 广播失败
-])
+  'broadcasted', // 广播成功，待上链
+  'confirmed', // 已上链确认
+  'failed', // 广播失败
+]);
 
 // TransactionType as zod schema for validation
 const TransactionTypeSchema = z.enum([
-  'send', 'receive', 'signature', 'stake', 'unstake', 'destroy', 'gift', 'grab',
-  'trust', 'signFor', 'emigrate', 'immigrate', 'exchange', 'swap', 'issueAsset',
-  'increaseAsset', 'mint', 'issueEntity', 'destroyEntity', 'locationName', 'dapp',
-  'certificate', 'mark', 'approve', 'interaction', 'other'
-])
+  'send',
+  'receive',
+  'signature',
+  'stake',
+  'unstake',
+  'destroy',
+  'gift',
+  'grab',
+  'trust',
+  'signFor',
+  'emigrate',
+  'immigrate',
+  'exchange',
+  'swap',
+  'issueAsset',
+  'increaseAsset',
+  'mint',
+  'issueEntity',
+  'destroyEntity',
+  'locationName',
+  'dapp',
+  'certificate',
+  'mark',
+  'approve',
+  'interaction',
+  'other',
+]);
 
 /** 用于 UI 展示的最小元数据（可选，由调用方提供） */
-export const PendingTxMetaSchema = z.object({
-  /** 交易类型标识，用于 UI 展示，必须是 TransactionType */
-  type: TransactionTypeSchema.optional(),
-  /** 展示用的金额 */
-  displayAmount: z.string().optional(),
-  /** 展示用的符号 */
-  displaySymbol: z.string().optional(),
-  /** 展示用的目标地址 */
-  displayToAddress: z.string().optional(),
-}).passthrough()  // 允许扩展字段
+export const PendingTxMetaSchema = z
+  .object({
+    /** 交易类型标识，用于 UI 展示，必须是 TransactionType */
+    type: TransactionTypeSchema.optional(),
+    /** 展示用的金额 */
+    displayAmount: z.string().optional(),
+    /** 展示用的符号 */
+    displaySymbol: z.string().optional(),
+    /** 展示用的目标地址 */
+    displayToAddress: z.string().optional(),
+  })
+  .passthrough(); // 允许扩展字段
 
 /** 未上链交易记录 - 专注状态管理 */
 export const PendingTxSchema = z.object({
@@ -81,11 +105,11 @@ export const PendingTxSchema = z.object({
   rawTx: SignedTransactionSchema,
   /** UI 展示用的元数据（可选） */
   meta: PendingTxMetaSchema.optional(),
-})
+});
 
-export type PendingTx = z.infer<typeof PendingTxSchema>
-export type PendingTxStatus = z.infer<typeof PendingTxStatusSchema>
-export type PendingTxMeta = z.infer<typeof PendingTxMetaSchema>
+export type PendingTx = z.infer<typeof PendingTxSchema>;
+export type PendingTxStatus = z.infer<typeof PendingTxStatusSchema>;
+export type PendingTxMeta = z.infer<typeof PendingTxMetaSchema>;
 
 /** 创建 pending tx 的输入 */
 export const CreatePendingTxInputSchema = z.object({
@@ -94,9 +118,9 @@ export const CreatePendingTxInputSchema = z.object({
   fromAddress: z.string(),
   rawTx: SignedTransactionSchema,
   meta: PendingTxMetaSchema.optional(),
-})
+});
 
-export type CreatePendingTxInput = z.infer<typeof CreatePendingTxInputSchema>
+export type CreatePendingTxInput = z.infer<typeof CreatePendingTxInputSchema>;
 
 /** 更新状态的输入 */
 export const UpdatePendingTxStatusInputSchema = z.object({
@@ -107,22 +131,27 @@ export const UpdatePendingTxStatusInputSchema = z.object({
   errorMessage: z.string().optional(),
   confirmedBlockHeight: z.number().optional(),
   confirmedAt: z.number().optional(),
-})
+});
 
-export type UpdatePendingTxStatusInput = z.infer<typeof UpdatePendingTxStatusInputSchema>
+export type UpdatePendingTxStatusInput = z.infer<typeof UpdatePendingTxStatusInputSchema>;
 
 // ==================== Service Meta ====================
 
 export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
-  s.description('未上链交易管理服务 - 专注状态管理，不关心交易内容')
+  s
+    .description('未上链交易管理服务 - 专注状态管理，不关心交易内容') // i18n-ignore
 
     // ===== 查询 =====
     .api('getAll', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
     .api('getById', z.object({ id: z.string() }), PendingTxSchema.nullable())
-    .api('getByStatus', z.object({
-      walletId: z.string(),
-      status: PendingTxStatusSchema,
-    }), z.array(PendingTxSchema))
+    .api(
+      'getByStatus',
+      z.object({
+        walletId: z.string(),
+        status: PendingTxStatusSchema,
+      }),
+      z.array(PendingTxSchema),
+    )
     .api('getPending', z.object({ walletId: z.string() }), z.array(PendingTxSchema))
 
     // ===== 生命周期管理 =====
@@ -133,10 +162,10 @@ export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
     // ===== 清理 =====
     .api('delete', z.object({ id: z.string() }), z.void())
     .api('deleteConfirmed', z.object({ walletId: z.string() }), z.void())
-    .api('deleteAll', z.object({ walletId: z.string() }), z.void())
-)
+    .api('deleteAll', z.object({ walletId: z.string() }), z.void()),
+);
 
-export type IPendingTxService = typeof pendingTxServiceMeta.Type
+export type IPendingTxService = typeof pendingTxServiceMeta.Type;
 
 // ==================== 过期检查器接口 ====================
 
@@ -151,7 +180,7 @@ export interface ExpirationChecker {
    * @param currentBlockHeight 当前区块高度
    * @returns 是否已过期
    */
-  isExpired(rawTx: unknown, currentBlockHeight: number): boolean
+  isExpired(rawTx: unknown, currentBlockHeight: number): boolean;
 }
 
 /**
@@ -160,13 +189,13 @@ export interface ExpirationChecker {
  */
 export const bioChainExpirationChecker: ExpirationChecker = {
   isExpired(rawTx: unknown, currentBlockHeight: number): boolean {
-    const tx = rawTx as { effectiveBlockHeight?: number }
+    const tx = rawTx as { effectiveBlockHeight?: number };
     if (typeof tx?.effectiveBlockHeight === 'number') {
-      return currentBlockHeight > tx.effectiveBlockHeight
+      return currentBlockHeight > tx.effectiveBlockHeight;
     }
-    return false // 无 effectiveBlockHeight 时不判定过期
-  }
-}
+    return false; // 无 effectiveBlockHeight 时不判定过期
+  },
+};
 
 /**
  * 获取链对应的过期检查器
@@ -176,9 +205,9 @@ export const bioChainExpirationChecker: ExpirationChecker = {
 export function getExpirationChecker(chainId: string): ExpirationChecker | undefined {
   // BioChain 系列链使用 bioChainExpirationChecker
   if (chainId.startsWith('bfmeta') || chainId.startsWith('bfm') || chainId === 'bioforest') {
-    return bioChainExpirationChecker
+    return bioChainExpirationChecker;
   }
-  return undefined
+  return undefined;
 }
 
 /**
@@ -191,49 +220,49 @@ export function getExpirationChecker(chainId: string): ExpirationChecker | undef
 export function isPendingTxExpired(
   pendingTx: PendingTx,
   currentBlockHeight?: number,
-  maxAge: number = 24 * 60 * 60 * 1000
+  maxAge: number = 24 * 60 * 60 * 1000,
 ): boolean {
   // 1. 基于时间的过期检查（适用于所有链）
-  const now = Date.now()
+  const now = Date.now();
   if (now - pendingTx.createdAt > maxAge) {
-    return true
+    return true;
   }
 
   // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
   if (currentBlockHeight !== undefined) {
-    const checker = getExpirationChecker(pendingTx.chainId)
+    const checker = getExpirationChecker(pendingTx.chainId);
     if (checker?.isExpired(pendingTx.rawTx, currentBlockHeight)) {
-      return true
+      return true;
     }
   }
 
-  return false
+  return false;
 }
 
 // ==================== IndexedDB 实现 ====================
 
-const DB_NAME = 'bfm-pending-tx-db'
-const DB_VERSION = 1
-const STORE_NAME = 'pendingTx'
+const DB_NAME = 'bfm-pending-tx-db';
+const DB_VERSION = 1;
+const STORE_NAME = 'pendingTx';
 
 interface PendingTxDBSchema extends DBSchema {
   pendingTx: {
-    key: string
-    value: PendingTx
+    key: string;
+    value: PendingTx;
     indexes: {
-      'by-wallet': string
-      'by-status': string
-      'by-wallet-status': [string, string]
-    }
-  }
+      'by-wallet': string;
+      'by-status': string;
+      'by-wallet-status': [string, string];
+    };
+  };
 }
 
-type PendingTxChangeCallback = (tx: PendingTx, event: 'created' | 'updated' | 'deleted') => void
+type PendingTxChangeCallback = (tx: PendingTx, event: 'created' | 'updated' | 'deleted') => void;
 
 class PendingTxServiceImpl implements IPendingTxService {
-  private db: IDBPDatabase<PendingTxDBSchema> | null = null
-  private initialized = false
-  private subscribers = new Set<PendingTxChangeCallback>()
+  private db: IDBPDatabase<PendingTxDBSchema> | null = null;
+  private initialized = false;
+  private subscribers = new Set<PendingTxChangeCallback>();
 
   /**
    * 订阅 pending tx 变化
@@ -241,10 +270,10 @@ class PendingTxServiceImpl implements IPendingTxService {
    * @returns 取消订阅函数
    */
   subscribe(callback: PendingTxChangeCallback): () => void {
-    this.subscribers.add(callback)
+    this.subscribers.add(callback);
     return () => {
-      this.subscribers.delete(callback)
-    }
+      this.subscribers.delete(callback);
+    };
   }
 
   /**
@@ -253,74 +282,72 @@ class PendingTxServiceImpl implements IPendingTxService {
   private notify(tx: PendingTx, event: 'created' | 'updated' | 'deleted') {
     this.subscribers.forEach((callback) => {
       try {
-        callback(tx, event)
-      } catch (error) {
-
-      }
-    })
+        callback(tx, event);
+      } catch (error) {}
+    });
   }
 
   private async ensureDb(): Promise<IDBPDatabase<PendingTxDBSchema>> {
     if (this.db && this.initialized) {
-      return this.db
+      return this.db;
     }
 
     this.db = await openDB<PendingTxDBSchema>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-          store.createIndex('by-wallet', 'walletId')
-          store.createIndex('by-status', 'status')
-          store.createIndex('by-wallet-status', ['walletId', 'status'])
+          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          store.createIndex('by-wallet', 'walletId');
+          store.createIndex('by-status', 'status');
+          store.createIndex('by-wallet-status', ['walletId', 'status']);
         }
       },
-    })
-    this.initialized = true
-    return this.db
+    });
+    this.initialized = true;
+    return this.db;
   }
 
   // ===== 查询 =====
 
   async getAll({ walletId }: { walletId: string }): Promise<PendingTx[]> {
-    const db = await this.ensureDb()
-    const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet', walletId)
+    const db = await this.ensureDb();
+    const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet', walletId);
     return records
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
-      .sort((a, b) => b.createdAt - a.createdAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async getById({ id }: { id: string }): Promise<PendingTx | null> {
-    const db = await this.ensureDb()
-    const record = await db.get(STORE_NAME, id)
-    if (!record) return null
-    const parsed = PendingTxSchema.safeParse(record)
-    return parsed.success ? parsed.data : null
+    const db = await this.ensureDb();
+    const record = await db.get(STORE_NAME, id);
+    if (!record) return null;
+    const parsed = PendingTxSchema.safeParse(record);
+    return parsed.success ? parsed.data : null;
   }
 
   async getByStatus({ walletId, status }: { walletId: string; status: PendingTxStatus }): Promise<PendingTx[]> {
-    const db = await this.ensureDb()
-    const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet-status', [walletId, status])
+    const db = await this.ensureDb();
+    const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet-status', [walletId, status]);
     return records
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
-      .sort((a, b) => b.createdAt - a.createdAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async getPending({ walletId }: { walletId: string }): Promise<PendingTx[]> {
-    const all = await this.getAll({ walletId })
-    return all.filter((tx) => tx.status !== 'confirmed')
+    const all = await this.getAll({ walletId });
+    return all.filter((tx) => tx.status !== 'confirmed');
   }
 
   // ===== 生命周期管理 =====
 
   async create(input: CreatePendingTxInput): Promise<PendingTx> {
-    const db = await this.ensureDb()
-    const now = Date.now()
+    const db = await this.ensureDb();
+    const now = Date.now();
     // 使用区块链签名作为 ID（即交易哈希）
-    const txHash = input.rawTx.signature
+    const txHash = input.rawTx.signature;
 
     const pendingTx: PendingTx = {
       id: txHash,
@@ -334,19 +361,19 @@ class PendingTxServiceImpl implements IPendingTxService {
       updatedAt: now,
       rawTx: input.rawTx,
       meta: input.meta,
-    }
+    };
 
-    await db.put(STORE_NAME, pendingTx)
-    this.notify(pendingTx, 'created')
-    return pendingTx
+    await db.put(STORE_NAME, pendingTx);
+    this.notify(pendingTx, 'created');
+    return pendingTx;
   }
 
   async updateStatus(input: UpdatePendingTxStatusInput): Promise<PendingTx> {
-    const db = await this.ensureDb()
-    const existing = await db.get(STORE_NAME, input.id)
+    const db = await this.ensureDb();
+    const existing = await db.get(STORE_NAME, input.id);
 
     if (!existing) {
-      throw new Error(`PendingTx not found: ${input.id}`)
+      throw new Error(`PendingTx not found: ${input.id}`);
     }
 
     const updated: PendingTx = {
@@ -358,114 +385,118 @@ class PendingTxServiceImpl implements IPendingTxService {
       ...(input.errorMessage !== undefined && { errorMessage: input.errorMessage }),
       ...(input.confirmedBlockHeight !== undefined && { confirmedBlockHeight: input.confirmedBlockHeight }),
       ...(input.confirmedAt !== undefined && { confirmedAt: input.confirmedAt }),
-    }
+    };
 
-    await db.put(STORE_NAME, updated)
-    this.notify(updated, 'updated')
-    return updated
+    await db.put(STORE_NAME, updated);
+    this.notify(updated, 'updated');
+    return updated;
   }
 
   async incrementRetry({ id }: { id: string }): Promise<PendingTx> {
-    const db = await this.ensureDb()
-    const existing = await db.get(STORE_NAME, id)
+    const db = await this.ensureDb();
+    const existing = await db.get(STORE_NAME, id);
 
     if (!existing) {
-      throw new Error(`PendingTx not found: ${id}`)
+      throw new Error(`PendingTx not found: ${id}`);
     }
 
     const updated: PendingTx = {
       ...existing,
       retryCount: (existing.retryCount ?? 0) + 1,
       updatedAt: Date.now(),
-    }
+    };
 
-    await db.put(STORE_NAME, updated)
-    this.notify(updated, 'updated')
-    return updated
+    await db.put(STORE_NAME, updated);
+    this.notify(updated, 'updated');
+    return updated;
   }
 
   // ===== 清理 =====
 
   async delete({ id }: { id: string }): Promise<void> {
-    const db = await this.ensureDb()
-    const existing = await db.get(STORE_NAME, id)
-    await db.delete(STORE_NAME, id)
+    const db = await this.ensureDb();
+    const existing = await db.get(STORE_NAME, id);
+    await db.delete(STORE_NAME, id);
     if (existing) {
-      this.notify(existing, 'deleted')
+      this.notify(existing, 'deleted');
     }
   }
 
   async deleteConfirmed({ walletId }: { walletId: string }): Promise<void> {
-    const confirmed = await this.getByStatus({ walletId, status: 'confirmed' })
-    const db = await this.ensureDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    await Promise.all(confirmed.map((item) => tx.store.delete(item.id)))
-    await tx.done
+    const confirmed = await this.getByStatus({ walletId, status: 'confirmed' });
+    const db = await this.ensureDb();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    await Promise.all(confirmed.map((item) => tx.store.delete(item.id)));
+    await tx.done;
   }
 
-  async deleteExpired({ walletId, maxAge, currentBlockHeight }: {
-    walletId: string
-    maxAge: number
-    currentBlockHeight?: number
+  async deleteExpired({
+    walletId,
+    maxAge,
+    currentBlockHeight,
+  }: {
+    walletId: string;
+    maxAge: number;
+    currentBlockHeight?: number;
   }): Promise<number> {
-    const all = await this.getAll({ walletId })
-    const now = Date.now()
+    const all = await this.getAll({ walletId });
+    const now = Date.now();
     const expired = all.filter((pendingTx) => {
       // 1. 已确认或失败超过 maxAge 的交易
       if (pendingTx.status === 'confirmed' || pendingTx.status === 'failed') {
-        return now - pendingTx.updatedAt > maxAge
+        return now - pendingTx.updatedAt > maxAge;
       }
 
       // 2. 基于区块高度的过期检查（针对 BioChain 等支持的链）
       if (currentBlockHeight !== undefined) {
-        const checker = getExpirationChecker(pendingTx.chainId)
+        const checker = getExpirationChecker(pendingTx.chainId);
         if (checker?.isExpired(pendingTx.rawTx, currentBlockHeight)) {
-          return true
+          return true;
         }
       }
 
-      return false
-    })
+      return false;
+    });
 
-    if (expired.length === 0) return 0
+    if (expired.length === 0) return 0;
 
-    const db = await this.ensureDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    await Promise.all(expired.map((item) => tx.store.delete(item.id)))
-    await tx.done
+    const db = await this.ensureDb();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    await Promise.all(expired.map((item) => tx.store.delete(item.id)));
+    await tx.done;
 
-    return expired.length
+    return expired.length;
   }
 
   async deleteAll({ walletId }: { walletId: string }): Promise<void> {
-    const all = await this.getAll({ walletId })
-    const db = await this.ensureDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    await Promise.all(all.map((item) => tx.store.delete(item.id)))
-    await tx.done
+    const all = await this.getAll({ walletId });
+    const db = await this.ensureDb();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    await Promise.all(all.map((item) => tx.store.delete(item.id)));
+    await tx.done;
   }
 }
 
 /** 单例服务实例 */
-export const pendingTxService = new PendingTxServiceImpl()
+export const pendingTxService = new PendingTxServiceImpl();
 
 // ==================== Key-Fetch Instance Factory ====================
 
 // 缓存已创建的 fetcher 实例
-const pendingTxFetchers = new Map<string, ReturnType<typeof derive>>()
+const pendingTxFetchers = new Map<string, ReturnType<typeof derive>>();
 
 /**
  * 获取 pending tx 的 key-fetch 实例
  * 依赖 blockHeight 自动刷新
  */
 export function getPendingTxFetcher(chainId: string, walletId: string) {
-  const key = `${chainId}:${walletId}`
+  const key = `${chainId}:${walletId}`;
 
   if (!pendingTxFetchers.has(key)) {
-    const chainProvider = getChainProvider(chainId)
+    const chainProvider = getChainProvider(chainId);
 
     if (!chainProvider?.supports('blockHeight')) {
-      return null
+      return null;
     }
 
     const fetcher = derive({
@@ -476,33 +507,33 @@ export function getPendingTxFetcher(chainId: string, walletId: string) {
         transform({
           transform: async () => {
             // 检查 pending 交易状态，更新/移除已上链的
-            const pending = await pendingTxService.getPending({ walletId })
+            const pending = await pendingTxService.getPending({ walletId });
 
             for (const tx of pending) {
               if (tx.status === 'broadcasted' && tx.txHash) {
                 try {
                   // 检查是否已上链
-                  const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash })
+                  const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash });
                   if (txInfo?.status === 'confirmed') {
                     // 直接删除已确认的交易
-                    await pendingTxService.delete({ id: tx.id })
+                    await pendingTxService.delete({ id: tx.id });
                   }
                 } catch (e) {
-                  console.error('检查pending交易状态失败', e)
+                  console.error('检查pending交易状态失败', e); // i18n-ignore;
                   // 查询失败，跳过
                 }
               }
             }
 
             // 返回最新的 pending 列表
-            return await pendingTxService.getPending({ walletId })
+            return await pendingTxService.getPending({ walletId });
           },
         }),
       ],
-    })
+    });
 
-    pendingTxFetchers.set(key, fetcher)
+    pendingTxFetchers.set(key, fetcher);
   }
 
-  return pendingTxFetchers.get(key)!
+  return pendingTxFetchers.get(key)!;
 }

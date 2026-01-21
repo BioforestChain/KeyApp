@@ -1,0 +1,30 @@
+{
+  "bio_requestAccounts": {
+    "label": "عرض الحسابات",
+    "description": "عرض عناوين محفظتك"
+  },
+  "bio_createTransaction": {
+    "label": "إنشاء معاملة",
+    "description": "إنشاء معاملة غير موقعة (بدون توقيع/بث)"
+  },
+  "bio_signMessage": {
+    "label": "توقيع رسالة",
+    "description": "طلب توقيع رسالة (يتطلب تأكيدك)"
+  },
+  "bio_signTypedData": {
+    "label": "توقيع البيانات",
+    "description": "طلب توقيع بيانات منظمة (يتطلب تأكيدك)"
+  },
+  "bio_signTransaction": {
+    "label": "توقيع معاملة",
+    "description": "طلب توقيع معاملة (يتطلب تأكيدك)"
+  },
+  "bio_sendTransaction": {
+    "label": "إرسال معاملة",
+    "description": "طلب إرسال تحويل (يتطلب تأكيدك)"
+  },
+  "requestsPermissions": "يطلب الأذونات التالية",
+  "permissionNote": "تتطلب العمليات الحساسة تأكيدك",
+  "reject": "رفض",
+  "approve": "سماح"
+}
