@@ -1,0 +1,1 @@
+import{t as e,r as a}from"./index-Dk9SKzm0.js";const r=e([],{get value(){return this[0]},set value(t){this[1](this[3]=t)},get nextvalue(){return this[3]??this[0]}}),u=t=>{const s=a.useState(t);return Object.setPrototypeOf(s,r),s};export{r as e,u};

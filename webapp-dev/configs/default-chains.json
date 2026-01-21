@@ -121,7 +121,7 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.biw-meta.com/wallet/biwmeta", "config": { "genesisBlock": "./genesis/biwmeta.json" } }],
+      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/biwmeta", "config": { "genesisBlock": "./genesis/biwmeta.json" } }],
       "explorer": {
         "url": "https://tracker.biw-meta.info",
         "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
