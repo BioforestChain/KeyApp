@@ -199,18 +199,19 @@ function MiniappWindowPortal({
   }, [portalHost]);
 
   useEffect(() => {
-    const iframe = presentApp?.iframeRef;
+    const containerHandle = presentApp?.containerHandle;
     const container = iframeContainerRef.current;
-    if (!iframe || !container) return;
+    if (!containerHandle || !container) return;
 
-    if (iframe.parentElement !== container) {
-      container.appendChild(iframe);
+    const element = containerHandle.element;
+    if (element.parentElement !== container) {
+      container.appendChild(element);
     }
 
-    if (iframe.style.display === 'none') {
-      iframe.style.display = '';
+    if (element.style.display === 'none') {
+      element.style.display = '';
     }
-  }, [presentApp?.iframeRef, presentApp?.appId, portalHost]);
+  }, [presentApp?.containerHandle, presentApp?.appId, portalHost]);
 
   const handleClose = useCallback(() => {
     requestDismiss(appId);

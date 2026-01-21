@@ -1,16 +1,46 @@
 import { startApp, destroyApp, bus } from 'wujie';
 import type { ContainerManager, ContainerHandle, ContainerCreateOptions } from './types';
 
-const VISIBLE_CONTAINER_ID = 'miniapp-iframe-container';
+/**
+ * Patch document.adoptedStyleSheets to proxy to shadowRoot.adoptedStyleSheets
+ * Must be called after shadowRoot is created (e.g., in afterMount)
+ * TODO: Submit PR to wujie upstream and remove this workaround
+ */
+function patchAdoptedStyleSheets(appId: string) {
+  const iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${appId}"]`);
+  if (!iframe?.contentWindow) return;
 
-function getOrCreateVisibleContainer(): HTMLElement {
-  let container = document.getElementById(VISIBLE_CONTAINER_ID);
-  if (!container) {
-    container = document.createElement('div');
-    container.id = VISIBLE_CONTAINER_ID;
-    document.body.appendChild(container);
+  const iframeWindow = iframe.contentWindow;
+  const sandbox = (iframeWindow as Window & { __WUJIE?: { degrade?: boolean; shadowRoot?: ShadowRoot } }).__WUJIE;
+  if (!sandbox?.shadowRoot || sandbox.degrade) return;
+
+  const { shadowRoot } = sandbox;
+  const descriptor: PropertyDescriptor = {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return shadowRoot.adoptedStyleSheets;
+    },
+    set(sheets: CSSStyleSheet[]) {
+      shadowRoot.adoptedStyleSheets = Array.isArray(sheets) ? [...sheets] : sheets;
+    },
+  };
+
+  try {
+    Object.defineProperty(
+      (iframeWindow as Window & { Document: typeof Document }).Document.prototype,
+      'adoptedStyleSheets',
+      descriptor,
+    );
+  } catch {
+    /* empty */
   }
-  return container;
+
+  try {
+    Object.defineProperty(iframeWindow.document, 'adoptedStyleSheets', descriptor);
+  } catch {
+    /* empty */
+  }
 }
 
 class WujieContainerHandle implements ContainerHandle {
@@ -47,20 +77,24 @@ class WujieContainerHandle implements ContainerHandle {
   isConnected(): boolean {
     return this.container.isConnected && !this.destroyed;
   }
+
+  getIframe(): HTMLIFrameElement | null {
+    return document.querySelector(`iframe[name="${this.appId}"]`);
+  }
 }
 
 export class WujieContainerManager implements ContainerManager {
   readonly type = 'wujie' as const;
 
   async create(options: ContainerCreateOptions): Promise<WujieContainerHandle> {
-    const { appId, url, contextParams, onLoad } = options;
+    const { appId, url, mountTarget, contextParams, onLoad } = options;
 
     const container = document.createElement('div');
     container.id = `miniapp-wujie-${appId}`;
-    container.style.cssText = 'width: 100%; height: 100%;';
+    // container.style.cssText = 'width: 100%; height: 100%;';
+    container.className = 'size-full *:size-full *:block *:overflow-auto';
 
-    const visibleContainer = getOrCreateVisibleContainer();
-    visibleContainer.appendChild(container);
+    mountTarget.appendChild(container);
 
     const urlWithParams = new URL(url, window.location.origin);
     if (contextParams) {
@@ -80,6 +114,8 @@ export class WujieContainerManager implements ContainerManager {
         onLoad?.();
       },
     });
+
+    patchAdoptedStyleSheets(appId);
 
     return new WujieContainerHandle(appId, container);
   }

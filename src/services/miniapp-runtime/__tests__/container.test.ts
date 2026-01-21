@@ -4,10 +4,14 @@ import type { ContainerCreateOptions } from '../container/types';
 
 describe('IframeContainerManager', () => {
   let manager: IframeContainerManager;
+  let mountTarget: HTMLDivElement;
 
   beforeEach(() => {
     manager = new IframeContainerManager();
     document.body.innerHTML = '';
+    mountTarget = document.createElement('div');
+    mountTarget.id = 'test-mount-target';
+    document.body.appendChild(mountTarget);
   });
 
   afterEach(() => {
@@ -19,6 +23,7 @@ describe('IframeContainerManager', () => {
       const options: ContainerCreateOptions = {
         appId: 'test-app',
         url: 'https://example.com',
+        mountTarget,
       };
 
       const handle = await manager.create(options);
@@ -27,12 +32,14 @@ describe('IframeContainerManager', () => {
       expect(handle.element).toBeInstanceOf(HTMLIFrameElement);
       expect(handle.element.id).toBe('miniapp-iframe-test-app');
       expect(handle.isConnected()).toBe(true);
+      expect(mountTarget.contains(handle.element)).toBe(true);
     });
 
     it('should append context params to URL', async () => {
       const options: ContainerCreateOptions = {
         appId: 'test-app',
         url: 'https://example.com',
+        mountTarget,
         contextParams: { foo: 'bar', baz: 'qux' },
       };
 
@@ -48,6 +55,7 @@ describe('IframeContainerManager', () => {
       const options: ContainerCreateOptions = {
         appId: 'test-app',
         url: 'about:blank',
+        mountTarget,
         onLoad,
       };
 
@@ -64,6 +72,7 @@ describe('IframeContainerManager', () => {
       const options: ContainerCreateOptions = {
         appId: 'test-app',
         url: 'about:blank',
+        mountTarget,
         onLoad,
       };
 
@@ -79,7 +88,7 @@ describe('IframeContainerManager', () => {
 
   describe('ContainerHandle', () => {
     it('should destroy iframe correctly', async () => {
-      const handle = await manager.create({ appId: 'test-app', url: 'about:blank' });
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
 
       expect(handle.isConnected()).toBe(true);
 
@@ -89,14 +98,14 @@ describe('IframeContainerManager', () => {
     });
 
     it('should not throw when destroy called multiple times', async () => {
-      const handle = await manager.create({ appId: 'test-app', url: 'about:blank' });
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
 
       handle.destroy();
       expect(() => handle.destroy()).not.toThrow();
     });
 
     it('should move to background', async () => {
-      const handle = await manager.create({ appId: 'test-app', url: 'about:blank' });
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
 
       handle.moveToBackground();
 
@@ -106,17 +115,16 @@ describe('IframeContainerManager', () => {
     });
 
     it('should move to foreground', async () => {
-      const handle = await manager.create({ appId: 'test-app', url: 'about:blank' });
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
 
       handle.moveToBackground();
       handle.moveToForeground();
 
-      const visibleContainer = document.getElementById('miniapp-iframe-container');
-      expect(visibleContainer?.contains(handle.element)).toBe(true);
+      expect(mountTarget.contains(handle.element)).toBe(true);
     });
 
     it('should not move after destroyed', async () => {
-      const handle = await manager.create({ appId: 'test-app', url: 'about:blank' });
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
 
       handle.destroy();
 
@@ -127,14 +135,18 @@ describe('IframeContainerManager', () => {
 });
 
 describe('cleanupAllIframeContainers', () => {
-  it('should remove all containers from DOM', async () => {
+  it('should remove hidden container from DOM', async () => {
     const manager = new IframeContainerManager();
-    await manager.create({ appId: 'app1', url: 'about:blank' });
-    await manager.create({ appId: 'app2', url: 'about:blank' });
+    const mountTarget = document.createElement('div');
+    document.body.appendChild(mountTarget);
+
+    const handle1 = await manager.create({ appId: 'app1', url: 'about:blank', mountTarget });
+    const handle2 = await manager.create({ appId: 'app2', url: 'about:blank', mountTarget });
+
+    handle1.moveToBackground();
 
     cleanupAllIframeContainers();
 
-    expect(document.getElementById('miniapp-iframe-container')).toBeNull();
     expect(document.getElementById('miniapp-hidden-container')).toBeNull();
   });
 });

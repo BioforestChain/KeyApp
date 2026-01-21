@@ -7,11 +7,13 @@ export interface ContainerHandle {
   moveToBackground(): void;
   moveToForeground(): void;
   isConnected(): boolean;
+  getIframe(): HTMLIFrameElement | null;
 }
 
 export interface ContainerCreateOptions {
   appId: string;
   url: string;
+  mountTarget: HTMLElement;
   contextParams?: Record<string, string>;
   onLoad?: () => void;
 }

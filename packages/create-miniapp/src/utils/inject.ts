@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { resolve } from 'path'
-import type { FinalOptions } from '../types'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { resolve } from 'path';
+import type { FinalOptions } from '../types';
 
 /**
  * 生成 manifest.json
@@ -29,12 +29,9 @@ export function generateManifest(projectDir: string, options: FinalOptions): voi
     themeColorFrom: '#1e40af',
     // 启动屏配置 - 自动使用 icon 和 themeColorFrom 作为背景
     ...(options.noSplash ? {} : { splashScreen: true }),
-  }
+  };
 
-  writeFileSync(
-    resolve(projectDir, 'manifest.json'),
-    JSON.stringify(manifest, null, 2)
-  )
+  writeFileSync(resolve(projectDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 }
 
 /**
@@ -76,47 +73,80 @@ export function generateOxlintConfig(projectDir: string): void {
       'unicorn/no-null': 'off',
       'unicorn/prefer-query-selector': 'off',
       'unicorn/require-module-specifiers': 'off',
-      'i18next/no-literal-string': ['warn', {
-        mode: 'jsx-only',
-        'jsx-components': { exclude: ['Trans', 'Icon', 'TablerIcon'] },
-        'jsx-attributes': {
-          exclude: [
-            'className', 'styleName', 'style', 'type', 'key', 'id', 'name', 'role', 'as', 'asChild',
-            'data-testid', 'data-test', 'data-slot', 'data-state', 'data-side', 'data-align',
-            'to', 'href', 'src', 'alt', 'target', 'rel', 'method', 'action',
-            'variant', 'size', 'color', 'weight', 'sign', 'align', 'justify', 'direction', 'orientation',
-          ],
+      'i18next/no-literal-string': [
+        'warn',
+        {
+          mode: 'jsx-only',
+          'jsx-components': { exclude: ['Trans', 'Icon', 'TablerIcon'] },
+          'jsx-attributes': {
+            exclude: [
+              'className',
+              'styleName',
+              'style',
+              'type',
+              'key',
+              'id',
+              'name',
+              'role',
+              'as',
+              'asChild',
+              'data-testid',
+              'data-test',
+              'data-slot',
+              'data-state',
+              'data-side',
+              'data-align',
+              'to',
+              'href',
+              'src',
+              'alt',
+              'target',
+              'rel',
+              'method',
+              'action',
+              'variant',
+              'size',
+              'color',
+              'weight',
+              'sign',
+              'align',
+              'justify',
+              'direction',
+              'orientation',
+            ],
+          },
+          callees: {
+            exclude: [
+              't',
+              'i18n.t',
+              'useTranslation',
+              'Trans',
+              'console.*',
+              'require',
+              'import',
+              'Error',
+              'TypeError',
+              'describe',
+              'it',
+              'test',
+              'expect',
+              'vi.*',
+            ],
+          },
+          words: {
+            exclude: ['[A-Z_-]+', '[0-9.]+', '^\\s*$', '^[a-z]+$', '^https?://'],
+          },
         },
-        callees: {
-          exclude: [
-            't', 'i18n.t', 'useTranslation', 'Trans',
-            'console.*', 'require', 'import', 'Error', 'TypeError',
-            'describe', 'it', 'test', 'expect', 'vi.*',
-          ],
-        },
-        words: {
-          exclude: ['[A-Z_-]+', '[0-9.]+', '^\\s*$', '^[a-z]+$', '^https?://'],
-        },
-      }],
+      ],
     },
     env: {
       browser: true,
       es2024: true,
     },
-    ignorePatterns: [
-      'node_modules',
-      'dist',
-      'coverage',
-      '*.config.ts',
-      '**/*.test.ts',
-      '**/*.test.tsx',
-    ],
-  }
+    ignorePatterns: ['node_modules', 'dist', 'coverage', '*.config.ts', '**/*.test.ts', '**/*.test.tsx'],
+  };
 
-  writeFileSync(
-    resolve(projectDir, '.oxlintrc.json'),
-    JSON.stringify(config, null, 2)
-  )
+  writeFileSync(resolve(projectDir, '.oxlintrc.json'), JSON.stringify(config, null, 2));
 }
 
 /**
@@ -169,8 +199,8 @@ export default defineConfig({
     ],
   },
 })
-`
-  writeFileSync(resolve(projectDir, 'vitest.config.ts'), content)
+`;
+  writeFileSync(resolve(projectDir, 'vitest.config.ts'), content);
 }
 
 /**
@@ -204,45 +234,45 @@ export default defineConfig({
 
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
 })
-`
-  writeFileSync(resolve(projectDir, 'playwright.config.ts'), content)
+`;
+  writeFileSync(resolve(projectDir, 'playwright.config.ts'), content);
 }
 
 /**
  * 生成 src/bio.d.ts
  */
 export function generateBioTypes(projectDir: string): void {
-  const srcDir = resolve(projectDir, 'src')
+  const srcDir = resolve(projectDir, 'src');
   if (!existsSync(srcDir)) {
-    mkdirSync(srcDir, { recursive: true })
+    mkdirSync(srcDir, { recursive: true });
   }
 
   const content = `/// <reference types="@biochain/bio-sdk/types" />
-`
-  writeFileSync(resolve(srcDir, 'bio.d.ts'), content)
+`;
+  writeFileSync(resolve(srcDir, 'bio.d.ts'), content);
 }
 
 /**
  * 生成 src/test-setup.ts
  */
 export function generateTestSetup(projectDir: string): void {
-  const srcDir = resolve(projectDir, 'src')
+  const srcDir = resolve(projectDir, 'src');
   if (!existsSync(srcDir)) {
-    mkdirSync(srcDir, { recursive: true })
+    mkdirSync(srcDir, { recursive: true });
   }
 
   const content = `import '@testing-library/jest-dom/vitest'
-`
-  writeFileSync(resolve(srcDir, 'test-setup.ts'), content)
+`;
+  writeFileSync(resolve(srcDir, 'test-setup.ts'), content);
 }
 
 /**
  * 生成 e2e 目录和基础测试
  */
 export function generateE2ESetup(projectDir: string, name: string): void {
-  const e2eDir = resolve(projectDir, 'e2e')
+  const e2eDir = resolve(projectDir, 'e2e');
   if (!existsSync(e2eDir)) {
-    mkdirSync(e2eDir, { recursive: true })
+    mkdirSync(e2eDir, { recursive: true });
   }
 
   const content = `import { test, expect } from '@playwright/test'
@@ -251,50 +281,50 @@ test('${name} loads correctly', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/${name}/i)
 })
-`
-  writeFileSync(resolve(e2eDir, `${name}.spec.ts`), content)
+`;
+  writeFileSync(resolve(e2eDir, `${name}.spec.ts`), content);
 
-  const scriptsDir = resolve(projectDir, 'scripts')
+  const scriptsDir = resolve(projectDir, 'scripts');
   if (!existsSync(scriptsDir)) {
-    mkdirSync(scriptsDir, { recursive: true })
+    mkdirSync(scriptsDir, { recursive: true });
   }
 
   const e2eScript = `import { execSync } from 'child_process'
 
 const args = process.argv.slice(2).join(' ')
 execSync(\`playwright test \${args}\`, { stdio: 'inherit' })
-`
-  writeFileSync(resolve(scriptsDir, 'e2e.ts'), e2eScript)
+`;
+  writeFileSync(resolve(scriptsDir, 'e2e.ts'), e2eScript);
 }
 
 /**
  * 更新 package.json 添加依赖和脚本
  */
 export function updatePackageJson(projectDir: string, name: string, port: number): void {
-  const pkgPath = resolve(projectDir, 'package.json')
-  if (!existsSync(pkgPath)) return
+  const pkgPath = resolve(projectDir, 'package.json');
+  if (!existsSync(pkgPath)) return;
 
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 
-  pkg.name = `@biochain/miniapp-${name}`
-  pkg.private = true
-  pkg.description = `${name} - Bio 生态小程序`
+  pkg.name = `@biochain/miniapp-${name}`;
+  pkg.private = true;
+  pkg.description = `${name} - Bio 生态小程序`;
 
   // Storybook 端口: 6007 + (port - 5184)
-  const storybookPort = 6007 + (port - 5184)
+  const storybookPort = 6007 + (port - 5184);
 
   pkg.scripts = {
     ...pkg.scripts,
-    'lint': 'oxlint .',
+    lint: 'oxlint .',
     'lint:run': 'oxlint .',
-    'typecheck': 'tsc --noEmit',
+    typecheck: 'tsc --noEmit',
     'typecheck:run': 'tsc --noEmit',
-    'test': 'vitest',
+    test: 'vitest',
     'test:run': 'vitest run --project=unit',
     'test:storybook': 'vitest run --project=storybook',
-    'storybook': `storybook dev -p ${storybookPort}`,
+    storybook: `storybook dev -p ${storybookPort}`,
     'build-storybook': 'storybook build',
-    'e2e': 'bun scripts/e2e.ts',
+    e2e: 'bun scripts/e2e.ts',
     'e2e:run': 'bun scripts/e2e.ts',
     'e2e:update': 'bun scripts/e2e.ts --update-snapshots',
     'e2e:ui': 'playwright test --ui',
@@ -302,15 +332,15 @@ export function updatePackageJson(projectDir: string, name: string, port: number
     'gen-logo': 'bun scripts/gen-logo.ts',
     'i18n:run': 'bunx @biochain/i18n-tools',
     'theme:run': 'bunx @biochain/theme-tools',
-  }
+  };
 
   pkg.dependencies = {
     ...pkg.dependencies,
     '@biochain/bio-sdk': 'workspace:*',
     '@biochain/keyapp-sdk': 'workspace:*',
-    'i18next': '^25.2.1',
+    i18next: '^25.2.1',
     'react-i18next': '^15.5.2',
-  }
+  };
 
   pkg.devDependencies = {
     ...pkg.devDependencies,
@@ -327,24 +357,24 @@ export function updatePackageJson(projectDir: string, name: string, port: number
     '@vitest/browser': '^4.0.15',
     '@vitest/browser-playwright': '^4.0.15',
     'eslint-plugin-i18next': '^6.1.3',
-    'jsdom': '^26.1.0',
-    'oxlint': '^1.32.0',
-    'playwright': '^1.57.0',
-    'sharp': '^0.34.0',
-    'storybook': '^10.1.4',
+    jsdom: '^26.1.0',
+    oxlint: '^1.32.0',
+    playwright: '^1.57.0',
+    sharp: '^0.34.0',
+    storybook: '^10.1.4',
     'vite-plugin-mkcert': '^1.17.9',
     'vite-tsconfig-paths': '^5.1.0',
-  }
+  };
 
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 }
 
 /**
  * 更新 vite.config.ts 添加 miniapp 插件
  */
 export function updateViteConfig(projectDir: string, port: number): void {
-  const configPath = resolve(projectDir, 'vite.config.ts')
-  if (!existsSync(configPath)) return
+  const configPath = resolve(projectDir, 'vite.config.ts');
+  if (!existsSync(configPath)) return;
 
   const content = `import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -418,32 +448,32 @@ export default defineConfig({
     },
   },
 })
-`
-  writeFileSync(configPath, content)
+`;
+  writeFileSync(configPath, content);
 }
 
 /**
  * 更新 main.tsx 添加 bio-sdk 和 i18n 导入
  */
 export function updateMainTsx(projectDir: string): void {
-  const mainPath = resolve(projectDir, 'src/main.tsx')
-  if (!existsSync(mainPath)) return
+  const mainPath = resolve(projectDir, 'src/main.tsx');
+  if (!existsSync(mainPath)) return;
 
-  let content = readFileSync(mainPath, 'utf-8')
+  let content = readFileSync(mainPath, 'utf-8');
 
-  const imports: string[] = []
+  const imports: string[] = [];
 
   if (!content.includes('@biochain/bio-sdk')) {
-    imports.push("import '@biochain/bio-sdk'")
+    imports.push("import '@biochain/bio-sdk'");
   }
 
   if (!content.includes('./i18n')) {
-    imports.push("import './i18n'")
+    imports.push("import './i18n'");
   }
 
   if (imports.length > 0) {
-    content = imports.join('\n') + '\n' + content
-    writeFileSync(mainPath, content)
+    content = imports.join('\n') + '\n' + content;
+    writeFileSync(mainPath, content);
   }
 }
 
@@ -451,20 +481,17 @@ export function updateMainTsx(projectDir: string): void {
  * 更新 App.tsx 添加 closeSplashScreen 调用
  */
 export function updateAppTsx(projectDir: string, options: FinalOptions): void {
-  if (options.noSplash) return
+  if (options.noSplash) return;
 
-  const appPath = resolve(projectDir, 'src/App.tsx')
-  if (!existsSync(appPath)) return
+  const appPath = resolve(projectDir, 'src/App.tsx');
+  if (!existsSync(appPath)) return;
 
-  let content = readFileSync(appPath, 'utf-8')
+  let content = readFileSync(appPath, 'utf-8');
 
   // 检查是否已有 useEffect 导入
   if (!content.includes('useEffect')) {
     // 添加 useEffect 导入
-    content = content.replace(
-      /import \{ ([^}]+) \} from ['"]react['"]/,
-      "import { $1, useEffect } from 'react'"
-    )
+    content = content.replace(/import \{ ([^}]+) \} from ['"]react['"]/, "import { $1, useEffect } from 'react'");
   }
 
   // 在 App 函数开始处添加 closeSplashScreen 调用
@@ -473,27 +500,27 @@ export function updateAppTsx(projectDir: string, options: FinalOptions): void {
   useEffect(() => {
     window.bio?.request({ method: 'bio_closeSplashScreen' })
   }, [])
-`
+`;
 
   // 找到 function App 或 export default function App 并在其后插入
   if (!content.includes('closeSplashScreen')) {
     // 尝试匹配 function App() { 或 export default function App() {
-    const functionMatch = content.match(/((?:export\s+default\s+)?function\s+App\s*\([^)]*\)\s*\{)/)
+    const functionMatch = content.match(/((?:export\s+default\s+)?function\s+App\s*\([^)]*\)\s*\{)/);
     if (functionMatch) {
-      content = content.replace(functionMatch[1], functionMatch[1] + splashEffect)
+      content = content.replace(functionMatch[1], functionMatch[1] + splashEffect);
     }
   }
 
-  writeFileSync(appPath, content)
+  writeFileSync(appPath, content);
 }
 
 /**
  * 生成 i18n 国际化配置
  */
 export function generateI18nSetup(projectDir: string, name: string): void {
-  const i18nDir = resolve(projectDir, 'src/i18n')
-  const localesDir = resolve(i18nDir, 'locales')
-  mkdirSync(localesDir, { recursive: true })
+  const i18nDir = resolve(projectDir, 'src/i18n');
+  const localesDir = resolve(i18nDir, 'locales');
+  mkdirSync(localesDir, { recursive: true });
 
   // src/i18n/index.ts
   const indexContent = `import i18n from 'i18next'
@@ -545,8 +572,8 @@ i18n.use(initReactI18next).init({
 })
 
 export default i18n
-`
-  writeFileSync(resolve(i18nDir, 'index.ts'), indexContent)
+`;
+  writeFileSync(resolve(i18nDir, 'index.ts'), indexContent);
 
   // src/i18n/i18next.d.ts
   const typesContent = `import 'i18next'
@@ -560,8 +587,8 @@ declare module 'i18next' {
     }
   }
 }
-`
-  writeFileSync(resolve(i18nDir, 'i18next.d.ts'), typesContent)
+`;
+  writeFileSync(resolve(i18nDir, 'i18next.d.ts'), typesContent);
 
   // Locale files
   const enLocale = {
@@ -588,7 +615,7 @@ declare module 'i18next' {
       sdkNotInit: 'Bio SDK not initialized',
       connectionFailed: 'Connection failed',
     },
-  }
+  };
 
   const zhLocale = {
     app: {
@@ -614,9 +641,9 @@ declare module 'i18next' {
       sdkNotInit: 'Bio SDK 未初始化',
       connectionFailed: '连接失败',
     },
-  }
+  };
 
-  const zhCNLocale = { ...zhLocale }
+  const zhCNLocale = { ...zhLocale };
   const zhTWLocale = {
     app: {
       title: name,
@@ -641,12 +668,12 @@ declare module 'i18next' {
       sdkNotInit: 'Bio SDK 未初始化',
       connectionFailed: '連接失敗',
     },
-  }
+  };
 
-  writeFileSync(resolve(localesDir, 'en.json'), JSON.stringify(enLocale, null, 2))
-  writeFileSync(resolve(localesDir, 'zh.json'), JSON.stringify(zhLocale, null, 2))
-  writeFileSync(resolve(localesDir, 'zh-CN.json'), JSON.stringify(zhCNLocale, null, 2))
-  writeFileSync(resolve(localesDir, 'zh-TW.json'), JSON.stringify(zhTWLocale, null, 2))
+  writeFileSync(resolve(localesDir, 'en.json'), JSON.stringify(enLocale, null, 2));
+  writeFileSync(resolve(localesDir, 'zh.json'), JSON.stringify(zhLocale, null, 2));
+  writeFileSync(resolve(localesDir, 'zh-CN.json'), JSON.stringify(zhCNLocale, null, 2));
+  writeFileSync(resolve(localesDir, 'zh-TW.json'), JSON.stringify(zhTWLocale, null, 2));
 }
 
 /**
@@ -677,8 +704,8 @@ describe('i18n configuration', () => {
     expect(i18n.language).toBe(defaultLanguage)
   })
 })
-`
-  writeFileSync(resolve(projectDir, 'src/i18n/index.test.ts'), content)
+`;
+  writeFileSync(resolve(projectDir, 'src/i18n/index.test.ts'), content);
 }
 
 /**
@@ -715,16 +742,16 @@ describe('${name} App', () => {
     })
   })
 })
-`
-  writeFileSync(resolve(projectDir, 'src/App.test.tsx'), content)
+`;
+  writeFileSync(resolve(projectDir, 'src/App.test.tsx'), content);
 }
 
 /**
  * 生成 E2E 测试辅助工具
  */
 export function generateE2EHelpers(projectDir: string, name: string): void {
-  const helpersDir = resolve(projectDir, 'e2e/helpers')
-  mkdirSync(helpersDir, { recursive: true })
+  const helpersDir = resolve(projectDir, 'e2e/helpers');
+  mkdirSync(helpersDir, { recursive: true });
 
   const content = `/**
  * ${name} E2E 测试国际化辅助
@@ -782,16 +809,16 @@ export const mockBioSDK = \`
     isConnected: () => true,
   }
 \`
-`
-  writeFileSync(resolve(helpersDir, 'i18n.ts'), content)
+`;
+  writeFileSync(resolve(helpersDir, 'i18n.ts'), content);
 }
 
 /**
  * 生成 Logo 处理脚本
  */
 export function generateLogoScript(projectDir: string): void {
-  const scriptsDir = resolve(projectDir, 'scripts')
-  mkdirSync(scriptsDir, { recursive: true })
+  const scriptsDir = resolve(projectDir, 'scripts');
+  mkdirSync(scriptsDir, { recursive: true });
 
   const content = `import sharp from 'sharp'
 import path from 'path'
@@ -854,16 +881,16 @@ async function main() {
 }
 
 main().catch(console.error)
-`
-  writeFileSync(resolve(scriptsDir, 'gen-logo.ts'), content)
+`;
+  writeFileSync(resolve(scriptsDir, 'gen-logo.ts'), content);
 }
 
 /**
  * 更新 E2E spec 使用 helpers
  */
 export function generateE2ESpec(projectDir: string, name: string): void {
-  const e2eDir = resolve(projectDir, 'e2e')
-  mkdirSync(e2eDir, { recursive: true })
+  const e2eDir = resolve(projectDir, 'e2e');
+  mkdirSync(e2eDir, { recursive: true });
 
   const content = `import { test, expect } from '@playwright/test'
 import { UI_TEXT, mockBioSDK } from './helpers/i18n'
@@ -892,16 +919,16 @@ test.describe('${name} UI', () => {
     await expect(page).toHaveScreenshot('02-connected.png')
   })
 })
-`
-  writeFileSync(resolve(e2eDir, `${name}.spec.ts`), content)
+`;
+  writeFileSync(resolve(e2eDir, `${name}.spec.ts`), content);
 }
 
 /**
  * 生成 Storybook 配置
  */
 export function generateStorybookConfig(projectDir: string): void {
-  const storybookDir = resolve(projectDir, '.storybook')
-  mkdirSync(storybookDir, { recursive: true })
+  const storybookDir = resolve(projectDir, '.storybook');
+  mkdirSync(storybookDir, { recursive: true });
 
   // .storybook/main.ts
   const mainContent = `import type { StorybookConfig } from '@storybook/react-vite'
@@ -916,8 +943,8 @@ const config: StorybookConfig = {
 }
 
 export default config
-`
-  writeFileSync(resolve(storybookDir, 'main.ts'), mainContent)
+`;
+  writeFileSync(resolve(storybookDir, 'main.ts'), mainContent);
 
   // .storybook/preview.tsx
   const previewContent = `import type { Preview, ReactRenderer } from '@storybook/react-vite'
@@ -1025,13 +1052,13 @@ const preview: Preview = {
       const isDark = theme === 'dark'
 
       return (
-        <div className={\`min-h-screen bg-background text-foreground transition-colors \${isDark ? 'dark' : ''}\`}>
+        <div className={\`min-h-full bg-background text-foreground transition-colors \${isDark ? 'dark' : ''}\`}>
           <div
             className="mx-auto"
             dir={direction}
             style={{
               maxWidth: 428,
-              minHeight: '100vh',
+              minHeight: '100%',
             }}
           >
             <Story />
@@ -1043,8 +1070,8 @@ const preview: Preview = {
 }
 
 export default preview
-`
-  writeFileSync(resolve(storybookDir, 'preview.tsx'), previewContent)
+`;
+  writeFileSync(resolve(storybookDir, 'preview.tsx'), previewContent);
 
   // .storybook/vitest.setup.ts
   const vitestSetupContent = `import { beforeAll } from 'vitest'
@@ -1054,8 +1081,8 @@ import * as previewAnnotations from './preview'
 const annotations = setProjectAnnotations([previewAnnotations])
 
 beforeAll(annotations.beforeAll)
-`
-  writeFileSync(resolve(storybookDir, 'vitest.setup.ts'), vitestSetupContent)
+`;
+  writeFileSync(resolve(storybookDir, 'vitest.setup.ts'), vitestSetupContent);
 }
 
 /**

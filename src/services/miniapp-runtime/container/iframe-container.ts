@@ -1,25 +1,22 @@
 import type { ContainerManager, ContainerHandle, ContainerCreateOptions } from './types';
 
-const VISIBLE_CONTAINER_ID = 'miniapp-iframe-container';
 const HIDDEN_CONTAINER_ID = 'miniapp-hidden-container';
 
-function getOrCreateContainer(id: string, hidden: boolean): HTMLElement {
-  let container = document.getElementById(id);
+function getOrCreateHiddenContainer(): HTMLElement {
+  let container = document.getElementById(HIDDEN_CONTAINER_ID);
   if (!container) {
     container = document.createElement('div');
-    container.id = id;
-    if (hidden) {
-      container.style.cssText = `
-        position: fixed;
-        top: -9999px;
-        left: -9999px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        visibility: hidden;
-        pointer-events: none;
-      `;
-    }
+    container.id = HIDDEN_CONTAINER_ID;
+    container.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      visibility: hidden;
+      pointer-events: none;
+    `;
     document.body.appendChild(container);
   }
   return container;
@@ -30,7 +27,10 @@ class IframeContainerHandle implements ContainerHandle {
   readonly element: HTMLIFrameElement;
   private destroyed = false;
 
-  constructor(private iframe: HTMLIFrameElement) {
+  constructor(
+    private iframe: HTMLIFrameElement,
+    private mountTarget: HTMLElement,
+  ) {
     this.element = iframe;
   }
 
@@ -43,14 +43,13 @@ class IframeContainerHandle implements ContainerHandle {
 
   moveToBackground(): void {
     if (this.destroyed) return;
-    const container = getOrCreateContainer(HIDDEN_CONTAINER_ID, true);
+    const container = getOrCreateHiddenContainer();
     container.appendChild(this.iframe);
   }
 
   moveToForeground(): void {
     if (this.destroyed) return;
-    const container = getOrCreateContainer(VISIBLE_CONTAINER_ID, false);
-    container.appendChild(this.iframe);
+    this.mountTarget.appendChild(this.iframe);
   }
 
   isConnected(): boolean {
@@ -66,7 +65,7 @@ export class IframeContainerManager implements ContainerManager {
   readonly type = 'iframe' as const;
 
   async create(options: ContainerCreateOptions): Promise<IframeContainerHandle> {
-    const { appId, url, contextParams, onLoad } = options;
+    const { appId, url, mountTarget, contextParams, onLoad } = options;
 
     const iframe = document.createElement('iframe');
     iframe.id = `miniapp-iframe-${appId}`;
@@ -96,21 +95,14 @@ export class IframeContainerManager implements ContainerManager {
       iframe.addEventListener('load', onLoad, { once: true });
     }
 
-    const container = getOrCreateContainer(VISIBLE_CONTAINER_ID, false);
-    container.appendChild(iframe);
+    mountTarget.appendChild(iframe);
 
-    return new IframeContainerHandle(iframe);
+    return new IframeContainerHandle(iframe, mountTarget);
   }
 }
 
 export function cleanupAllIframeContainers(): void {
-  const visibleContainer = document.getElementById(VISIBLE_CONTAINER_ID);
   const hiddenContainer = document.getElementById(HIDDEN_CONTAINER_ID);
-
-  if (visibleContainer) {
-    visibleContainer.innerHTML = '';
-    visibleContainer.remove();
-  }
 
   if (hiddenContainer) {
     hiddenContainer.innerHTML = '';

@@ -6,8 +6,10 @@
 
 ## 📖 目录
 
-*   [00-Overview.md](./00-Overview.md) - 生态架构
-*   **01-Runtime-Env (运行环境)**
-    *   [02-Miniapp-Manifest.md](./01-Runtime-Env/02-Miniapp-Manifest.md) - 清单文件规范
-*   **02-Connectivity (连接性)**
-    *   [README.md](./02-Connectivity/README.md) - 连接性概述
+- [00-Overview.md](./00-Overview.md) - 生态架构
+- **01-Runtime-Env (运行环境)**
+  - [01-Container-Architecture.md](./01-Runtime-Env/01-Container-Architecture.md) - Container 抽象层 (iframe/Wujie 双模式)
+  - [02-Miniapp-Manifest.md](./01-Runtime-Env/02-Miniapp-Manifest.md) - 清单文件规范 & 样式规范
+- **02-Connectivity (连接性)**
+  - [README.md](./02-Connectivity/README.md) - 连接性概述
+  - [01-Bio-SDK-Communication.md](./02-Connectivity/01-Bio-SDK-Communication.md) - Bio-SDK 通讯机制

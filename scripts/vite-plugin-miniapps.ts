@@ -229,6 +229,7 @@ async function createMiniappServer(_id: string, root: string, port: number): Pro
     root,
     configFile: join(root, 'vite.config.ts'),
     server: {
+      cors: true,
       port,
       strictPort: true,
       https: true as any, // Type compatibility workaround

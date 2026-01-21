@@ -112,16 +112,54 @@ function attachBioProvider(appId: string): void {
   const app = miniappRuntimeStore.state.apps.get(appId);
   if (!app) return;
 
-  const iframe = app.iframeRef ?? (app.containerHandle?.element as HTMLIFrameElement | undefined);
-  if (!iframe || !(iframe instanceof HTMLIFrameElement)) return;
+  const iframe = app.containerHandle?.getIframe() ?? app.iframeRef;
+  if (!iframe) return;
 
   getBridge().attach(iframe, appId, app.manifest.name, app.manifest.permissions ?? []);
 }
 
 function attachBioProviderToContainer(appId: string, handle: ContainerHandle, manifest: MiniappManifest): void {
-  if (handle.type !== 'iframe') return;
-  const iframe = handle.element as HTMLIFrameElement;
+  const iframe = handle.getIframe();
+  if (!iframe) return;
+
   getBridge().attach(iframe, appId, manifest.name, manifest.permissions ?? []);
+  sendKeyAppContext(iframe);
+}
+
+function getCapsuleSafeAreaTop(): number {
+  const testEl = document.createElement('div');
+  testEl.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);visibility:hidden;';
+  document.body.appendChild(testEl);
+  const safeAreaTop = testEl.offsetTop;
+  document.body.removeChild(testEl);
+
+  const capsuleTop = Math.max(safeAreaTop, 8);
+  const capsuleHeight = 32;
+  const padding = 8;
+  return capsuleTop + capsuleHeight + padding;
+}
+
+function sendKeyAppContext(iframe: HTMLIFrameElement): void {
+  const safeAreaTop = getCapsuleSafeAreaTop();
+  const colorMode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+
+  const context = {
+    type: 'keyapp:context-update',
+    payload: {
+      theme: { colorMode },
+      env: {
+        platform: 'web',
+        safeAreaInsets: {
+          top: safeAreaTop,
+          bottom: 0,
+          left: 0,
+          right: 0,
+        },
+      },
+    },
+  };
+
+  iframe.contentWindow?.postMessage(context, '*');
 }
 
 /** Store 实例 */
@@ -628,6 +666,7 @@ export function launchApp(
   createContainer(containerType, {
     appId,
     url: manifest.url,
+    mountTarget: document.body,
     contextParams,
     onLoad: () => {
       updateAppProcessStatus(appId, 'loaded');

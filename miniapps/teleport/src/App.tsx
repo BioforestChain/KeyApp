@@ -1,17 +1,29 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { AuroraBackground } from './components/AuroraBackground'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { ChevronLeft, Zap, ArrowDown, Check, Coins, Leaf, DollarSign, Wallet, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
-import './i18n'
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AuroraBackground } from './components/AuroraBackground';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import {
+  ChevronLeft,
+  Zap,
+  ArrowDown,
+  Check,
+  Coins,
+  Leaf,
+  DollarSign,
+  Wallet,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
+import './i18n';
 import {
   useTransmitAssetTypeList,
   useTransmit,
@@ -22,9 +34,17 @@ import {
   type InternalChainName,
   type TransferAssetTransaction,
   SWAP_ORDER_STATE_ID,
-} from './api'
+} from './api';
 
-type Step = 'connect' | 'select-asset' | 'input-amount' | 'select-target' | 'confirm' | 'processing' | 'success' | 'error'
+type Step =
+  | 'connect'
+  | 'select-asset'
+  | 'input-amount'
+  | 'select-target'
+  | 'confirm'
+  | 'processing'
+  | 'success'
+  | 'error';
 
 const CHAIN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
@@ -33,176 +53,180 @@ const CHAIN_COLORS: Record<string, string> = {
   BFMCHAIN: 'bg-emerald-600',
   ETHMETA: 'bg-purple-600',
   PMCHAIN: 'bg-cyan-600',
-}
+};
 
 export default function App() {
-  const { t } = useTranslation()
-  const [step, setStep] = useState<Step>('connect')
-  const [sourceAccount, setSourceAccount] = useState<BioAccount | null>(null)
-  const [targetAccount, setTargetAccount] = useState<BioAccount | null>(null)
-  const [selectedAsset, setSelectedAsset] = useState<DisplayAsset | null>(null)
-  const [amount, setAmount] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [orderId, setOrderId] = useState<string | null>(null)
+  const { t } = useTranslation();
+  const [step, setStep] = useState<Step>('connect');
+  const [sourceAccount, setSourceAccount] = useState<BioAccount | null>(null);
+  const [targetAccount, setTargetAccount] = useState<BioAccount | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<DisplayAsset | null>(null);
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   // API Hooks
-  const { data: assets, isLoading: assetsLoading, error: assetsError } = useTransmitAssetTypeList()
-  const transmitMutation = useTransmit()
-  const { data: recordDetail } = useTransmitRecordDetail(orderId || '', { enabled: !!orderId })
+  const { data: assets, isLoading: assetsLoading, error: assetsError } = useTransmitAssetTypeList();
+  const transmitMutation = useTransmit();
+  const { data: recordDetail } = useTransmitRecordDetail(orderId || '', { enabled: !!orderId });
 
   // 监听订单状态变化
   useEffect(() => {
-    if (!recordDetail) return
-    
+    if (!recordDetail) return;
+
     if (recordDetail.orderState === SWAP_ORDER_STATE_ID.SUCCESS) {
-      setStep('success')
+      setStep('success');
     } else if (
       recordDetail.orderState === SWAP_ORDER_STATE_ID.FROM_TX_ON_CHAIN_FAIL ||
       recordDetail.orderState === SWAP_ORDER_STATE_ID.TO_TX_ON_CHAIN_FAIL
     ) {
-      setError(recordDetail.orderFailReason || '交易失败')
-      setStep('error')
+      setError(recordDetail.orderFailReason || '交易失败');
+      setStep('error');
     }
-  }, [recordDetail])
+  }, [recordDetail]);
 
   // 关闭启动屏
   useEffect(() => {
-    window.bio?.request({ method: 'bio_closeSplashScreen' })
-  }, [])
+    window.bio?.request({ method: 'bio_closeSplashScreen' });
+  }, []);
 
   // 过滤可用资产（根据源账户的链）
   const availableAssets = useMemo(() => {
-    if (!assets || !sourceAccount) return []
-    return assets.filter(asset => {
+    if (!assets || !sourceAccount) return [];
+    return assets.filter((asset) => {
       // 匹配链名（大小写不敏感）
-      return asset.chain.toLowerCase() === sourceAccount.chain.toLowerCase()
-    })
-  }, [assets, sourceAccount])
+      return asset.chain.toLowerCase() === sourceAccount.chain.toLowerCase();
+    });
+  }, [assets, sourceAccount]);
 
   const handleConnect = useCallback(async () => {
     if (!window.bio) {
-      setError('Bio SDK 未初始化')
-      return
+      setError('Bio SDK 未初始化');
+      return;
     }
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
         params: [{}],
-      })
-      setSourceAccount(account)
-      setStep('select-asset')
+      });
+      setSourceAccount(account);
+      setStep('select-asset');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '连接失败')
+      setError(err instanceof Error ? err.message : '连接失败');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   const handleSelectAsset = async (asset: DisplayAsset) => {
-    setSelectedAsset(asset)
-    
+    setSelectedAsset(asset);
+
     // 获取该资产的余额
     if (window.bio && sourceAccount) {
       try {
         const balance = await window.bio.request<string>({
           method: 'bio_getBalance',
           params: [{ address: sourceAccount.address, chain: sourceAccount.chain }],
-        })
-        setSelectedAsset({ ...asset, balance })
+        });
+        setSelectedAsset({ ...asset, balance });
       } catch {
         // 如果获取余额失败，使用默认值
       }
     }
-    
-    setStep('input-amount')
-  }
+
+    setStep('input-amount');
+  };
 
   const handleAmountNext = () => {
     if (!amount || parseFloat(amount) <= 0) {
-      setError('请输入有效金额')
-      return
+      setError('请输入有效金额');
+      return;
     }
-    setError(null)
-    setStep('select-target')
-  }
+    setError(null);
+    setStep('select-target');
+  };
 
   const handleSelectTarget = useCallback(async () => {
-    if (!window.bio || !sourceAccount) return
-    setLoading(true)
-    setError(null)
+    if (!window.bio || !sourceAccount) return;
+    setLoading(true);
+    setError(null);
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_pickWallet',
-        params: [{
-          chain: selectedAsset?.targetChain,
-          exclude: sourceAccount.address,
-        }],
-      })
-      setTargetAccount(account)
-      setStep('confirm')
+        params: [
+          {
+            chain: selectedAsset?.targetChain,
+            exclude: sourceAccount.address,
+          },
+        ],
+      });
+      setTargetAccount(account);
+      setStep('confirm');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '选择失败')
+      setError(err instanceof Error ? err.message : '选择失败');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [sourceAccount, selectedAsset])
+  }, [sourceAccount, selectedAsset]);
 
   const handleConfirm = useCallback(async () => {
-    if (!window.bio || !sourceAccount || !selectedAsset || !targetAccount) return
-    setLoading(true)
-    setError(null)
-    
+    if (!window.bio || !sourceAccount || !selectedAsset || !targetAccount) return;
+    setLoading(true);
+    setError(null);
+
     try {
       // 1. 创建未签名交易（转账到 recipientAddress）
       const unsignedTx = await window.bio.request({
         method: 'bio_createTransaction',
-        params: [{
-          from: sourceAccount.address,
-          to: selectedAsset.recipientAddress,
-          amount: amount,
-          chain: sourceAccount.chain,
-          asset: selectedAsset.assetType,
-        }],
-      })
+        params: [
+          {
+            from: sourceAccount.address,
+            to: selectedAsset.recipientAddress,
+            amount: amount,
+            chain: sourceAccount.chain,
+            asset: selectedAsset.assetType,
+          },
+        ],
+      });
 
       // 2. 签名交易
       const signedTx = await window.bio.request<BioSignedTransaction>({
         method: 'bio_signTransaction',
-        params: [{
-          from: sourceAccount.address,
-          chain: sourceAccount.chain,
-          unsignedTx,
-        }],
-      })
+        params: [
+          {
+            from: sourceAccount.address,
+            chain: sourceAccount.chain,
+            unsignedTx,
+          },
+        ],
+      });
 
       // 3. 构造 fromTrJson（根据链类型）
       // 注意：signTransData 需要使用 signedTx.data（RLP/Protobuf encoded raw signed tx），
       // 而非 signedTx.signature（仅包含签名数据，不是可广播的 rawTx）
-      const fromTrJson: FromTrJson = {}
-      const chainLower = sourceAccount.chain.toLowerCase()
-      const signTransData = typeof signedTx.data === 'string' 
-        ? signedTx.data 
-        : JSON.stringify(signedTx.data)
-      
+      const fromTrJson: FromTrJson = {};
+      const chainLower = sourceAccount.chain.toLowerCase();
+      const signTransData = typeof signedTx.data === 'string' ? signedTx.data : JSON.stringify(signedTx.data);
+
       if (chainLower === 'eth') {
-        fromTrJson.eth = { signTransData }
+        fromTrJson.eth = { signTransData };
       } else if (chainLower === 'bsc') {
-        fromTrJson.bsc = { signTransData }
+        fromTrJson.bsc = { signTransData };
       } else if (chainLower === 'tron') {
         // TRON 原生 TRX 转账
-        fromTrJson.tron = { signTransData }
+        fromTrJson.tron = { signTransData };
       } else if (chainLower === 'trc20') {
         // TRON TRC20 代币转账
-        fromTrJson.trc20 = { signTransData }
+        fromTrJson.trc20 = { signTransData };
       } else {
         // 内链交易（BioForest 链）
         fromTrJson.bcf = {
           chainName: sourceAccount.chain as InternalChainName,
           trJson: signedTx.data as TransferAssetTransaction,
-        }
+        };
       }
 
       // 4. 构造 toTrInfo
@@ -210,84 +234,83 @@ export default function App() {
         chainName: selectedAsset.targetChain,
         address: targetAccount.address,
         assetType: selectedAsset.targetAsset,
-      }
+      };
 
       // 5. 发起传送请求
-      setStep('processing')
+      setStep('processing');
       const result = await transmitMutation.mutateAsync({
         fromTrJson,
         toTrInfo,
-      })
+      });
 
-      setOrderId(result.orderId)
+      setOrderId(result.orderId);
       // 状态变化由 useEffect 监听 recordDetail 来处理
     } catch (err) {
-      setError(err instanceof Error ? err.message : '传送失败')
-      setStep('error')
+      setError(err instanceof Error ? err.message : '传送失败');
+      setStep('error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [sourceAccount, targetAccount, selectedAsset, amount, transmitMutation])
+  }, [sourceAccount, targetAccount, selectedAsset, amount, transmitMutation]);
 
   const handleReset = useCallback(() => {
-    setStep('connect')
-    setSourceAccount(null)
-    setTargetAccount(null)
-    setSelectedAsset(null)
-    setAmount('')
-    setError(null)
-    setOrderId(null)
-  }, [])
+    setStep('connect');
+    setSourceAccount(null);
+    setTargetAccount(null);
+    setSelectedAsset(null);
+    setAmount('');
+    setError(null);
+    setOrderId(null);
+  }, []);
 
   const handleBack = () => {
     const backMap: Record<Step, Step> = {
       'select-asset': 'connect',
       'input-amount': 'select-asset',
       'select-target': 'input-amount',
-      'confirm': 'select-target',
-      'connect': 'connect',
-      'processing': 'processing',
-      'success': 'success',
-      'error': 'confirm',
-    }
-    setStep(backMap[step])
-    setError(null)
-  }
+      confirm: 'select-target',
+      connect: 'connect',
+      processing: 'processing',
+      success: 'success',
+      error: 'confirm',
+    };
+    setStep(backMap[step]);
+    setError(null);
+  };
 
   // 计算预期接收金额
   const expectedReceive = useMemo(() => {
-    if (!selectedAsset || !amount) return '0'
-    const { numerator, denominator } = selectedAsset.ratio
-    const amountNum = parseFloat(amount)
-    const ratioNum = Number(numerator) / Number(denominator)
-    return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '')
-  }, [selectedAsset, amount])
+    if (!selectedAsset || !amount) return '0';
+    const { numerator, denominator } = selectedAsset.ratio;
+    const amountNum = parseFloat(amount);
+    const ratioNum = Number(numerator) / Number(denominator);
+    return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '');
+  }, [selectedAsset, amount]);
 
   return (
-    <AuroraBackground className="min-h-screen">
-      <div className="relative z-10 w-full max-w-md mx-auto min-h-screen flex flex-col">
+    <AuroraBackground className="min-h-full">
+      <div className="relative z-10 mx-auto flex min-h-full w-full max-w-md flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b border-border">
-          <div className="flex items-center h-14 px-4">
+        <header className="bg-background/80 border-border sticky top-0 z-20 border-b backdrop-blur-md">
+          <div className="flex h-14 items-center px-4">
             {!['connect', 'success', 'processing'].includes(step) ? (
               <Button variant="ghost" size="icon-sm" onClick={handleBack}>
                 <ChevronLeft className="size-5" />
               </Button>
-            ) : <div className="w-7" />}
+            ) : (
+              <div className="w-7" />
+            )}
             <h1 className="flex-1 text-center font-bold">{t('app.title')}</h1>
             <div className="w-7" />
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 flex flex-col p-4">
+        <main className="flex flex-1 flex-col p-4">
           {error && step !== 'error' && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="mb-4 border-destructive/50 bg-destructive/10">
-                <CardContent className="py-3 text-destructive text-sm flex items-center gap-2">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="border-destructive/50 bg-destructive/10 mb-4">
+                <CardContent className="text-destructive flex items-center gap-2 py-3 text-sm">
                   <AlertCircle className="size-4" />
                   {error}
                 </CardContent>
@@ -303,36 +326,34 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
+                className="flex flex-1 flex-col items-center justify-center gap-8 pb-20"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full" />
+                  <div className="bg-primary/30 absolute inset-0 rounded-full blur-3xl" />
                   <Avatar className="relative size-24 rounded-2xl border border-white/20">
                     <AvatarFallback className="rounded-2xl bg-white/10 backdrop-blur">
                       <Zap className="size-12 text-white" strokeWidth={1.5} />
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                
-                <div className="text-center space-y-2">
+
+                <div className="space-y-2 text-center">
                   <h2 className="text-2xl font-bold">{t('app.subtitle')}</h2>
                   <p className="text-muted-foreground text-sm">{t('app.description')}</p>
                 </div>
-                
-                <Button 
+
+                <Button
                   data-testid="connect-button"
-                  size="lg" 
-                  className="w-full max-w-xs h-12"
-                  onClick={handleConnect} 
+                  size="lg"
+                  className="h-12 w-full max-w-xs"
+                  onClick={handleConnect}
                   disabled={loading || assetsLoading}
                 >
-                  {(loading || assetsLoading) && <Loader2 className="size-4 animate-spin mr-2" />}
+                  {(loading || assetsLoading) && <Loader2 className="mr-2 size-4 animate-spin" />}
                   {assetsLoading ? t('connect.loadingConfig') : loading ? t('connect.loading') : t('connect.button')}
                 </Button>
-                
-                {assetsError && (
-                  <p className="text-sm text-destructive">{t('connect.configError')}</p>
-                )}
+
+                {assetsError && <p className="text-destructive text-sm">{t('connect.configError')}</p>}
               </motion.div>
             )}
 
@@ -343,24 +364,33 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col gap-4"
+                className="flex flex-1 flex-col gap-4"
               >
-                <WalletCard label={t('wallet.source')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} />
-                
+                <WalletCard
+                  label={t('wallet.source')}
+                  address={sourceAccount?.address}
+                  name={sourceAccount?.name}
+                  chain={sourceAccount?.chain}
+                />
+
                 <div className="space-y-3">
                   <div className="px-1">
                     <CardDescription>{t('asset.select')}</CardDescription>
-                    <CardDescription className="text-xs text-muted-foreground/70">{t('asset.selectDesc')}</CardDescription>
+                    <CardDescription className="text-muted-foreground/70 text-xs">
+                      {t('asset.selectDesc')}
+                    </CardDescription>
                   </div>
                   {availableAssets.length === 0 ? (
                     <Card>
-                      <CardContent className="py-8 text-center text-muted-foreground">
+                      <CardContent className="text-muted-foreground py-8 text-center">
                         {t('asset.noAssets')}
                       </CardContent>
                     </Card>
                   ) : (
                     availableAssets.map((asset, i) => {
-                      const rate = (Number(asset.ratio.numerator) / Number(asset.ratio.denominator)).toFixed(4).replace(/\.?0+$/, '')
+                      const rate = (Number(asset.ratio.numerator) / Number(asset.ratio.denominator))
+                        .toFixed(4)
+                        .replace(/\.?0+$/, '');
                       return (
                         <motion.div
                           key={asset.id}
@@ -368,16 +398,20 @@ export default function App() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.05 }}
                         >
-                          <Card 
+                          <Card
                             data-testid={`asset-card-${asset.symbol}`}
-                            className="cursor-pointer transition-colors hover:bg-accent"
+                            className="hover:bg-accent cursor-pointer transition-colors"
                             onClick={() => handleSelectAsset(asset)}
                           >
-                            <CardContent className="py-3 flex items-center gap-3">
+                            <CardContent className="flex items-center gap-3 py-3">
                               <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
-                              <div className="flex-1 min-w-0">
-                                <CardTitle className="text-base">{asset.symbol} {t('common.arrow')} {asset.targetAsset}</CardTitle>
-                                <CardDescription>{t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}</CardDescription>
+                              <div className="min-w-0 flex-1">
+                                <CardTitle className="text-base">
+                                  {asset.symbol} {t('common.arrow')} {asset.targetAsset}
+                                </CardTitle>
+                                <CardDescription>
+                                  {t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}
+                                </CardDescription>
                               </div>
                               <div className="text-right">
                                 <div className="font-semibold">{asset.balance || '-'}</div>
@@ -386,7 +420,7 @@ export default function App() {
                             </CardContent>
                           </Card>
                         </motion.div>
-                      )
+                      );
                     })
                   )}
                 </div>
@@ -400,31 +434,38 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col gap-4"
+                className="flex flex-1 flex-col gap-4"
               >
-                <WalletCard label={t('wallet.source')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} />
+                <WalletCard
+                  label={t('wallet.source')}
+                  address={sourceAccount?.address}
+                  name={sourceAccount?.name}
+                  chain={sourceAccount?.chain}
+                />
 
                 <Card className="flex-1">
-                  <CardContent className="h-full flex flex-col items-center justify-center gap-4 py-8">
+                  <CardContent className="flex h-full flex-col items-center justify-center gap-4 py-8">
                     <AssetAvatar symbol={selectedAsset.symbol} chain={selectedAsset.chain} size="lg" />
                     <div className="text-center">
                       <CardTitle>{selectedAsset.symbol}</CardTitle>
-                      <CardDescription>{t('common.labelValue', { label: t('asset.balance'), value: selectedAsset.balance || '-' })}</CardDescription>
+                      <CardDescription>
+                        {t('common.labelValue', { label: t('asset.balance'), value: selectedAsset.balance || '-' })}
+                      </CardDescription>
                     </div>
-                    <div className="w-full max-w-xs relative">
+                    <div className="relative w-full max-w-xs">
                       <Input
                         data-testid="amount-input"
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0.00"
-                        className="text-center text-3xl font-bold h-14 border-0 border-b-2 border-primary/50 rounded-none focus-visible:ring-0 focus-visible:border-primary"
+                        className="border-primary/50 focus-visible:border-primary h-14 rounded-none border-0 border-b-2 text-center text-3xl font-bold focus-visible:ring-0"
                       />
                       {selectedAsset.balance && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 text-xs"
+                          className="absolute top-1/2 right-0 h-7 -translate-y-1/2 text-xs"
                           onClick={() => setAmount(selectedAsset.balance.replace(/,/g, ''))}
                         >
                           MAX
@@ -432,14 +473,22 @@ export default function App() {
                       )}
                     </div>
                     {amount && (
-                      <p className="text-sm text-muted-foreground">
-                        {t('common.labelValue', { label: t('amount.expected'), value: '' })}<span className="text-foreground font-medium">{expectedReceive} {selectedAsset.targetAsset}</span>
+                      <p className="text-muted-foreground text-sm">
+                        {t('common.labelValue', { label: t('amount.expected'), value: '' })}
+                        <span className="text-foreground font-medium">
+                          {expectedReceive} {selectedAsset.targetAsset}
+                        </span>
                       </p>
                     )}
                   </CardContent>
                 </Card>
 
-                <Button data-testid="next-button" className="w-full h-12" onClick={handleAmountNext} disabled={!amount || parseFloat(amount) <= 0}>
+                <Button
+                  data-testid="next-button"
+                  className="h-12 w-full"
+                  onClick={handleAmountNext}
+                  disabled={!amount || parseFloat(amount) <= 0}
+                >
                   {t('amount.next')}
                 </Button>
               </motion.div>
@@ -452,43 +501,50 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col items-center justify-center gap-8 pb-20"
+                className="flex flex-1 flex-col items-center justify-center gap-8 pb-20"
               >
                 <Card className="w-full">
                   <CardContent className="py-4 text-center">
                     <CardDescription className="mb-1">{t('target.willTransfer')}</CardDescription>
-                    <div className="text-2xl font-bold flex items-center justify-center gap-2">
-                      <AssetAvatar symbol={selectedAsset?.symbol ?? ''} chain={selectedAsset?.chain ?? 'ETH'} size="sm" />
+                    <div className="flex items-center justify-center gap-2 text-2xl font-bold">
+                      <AssetAvatar
+                        symbol={selectedAsset?.symbol ?? ''}
+                        chain={selectedAsset?.chain ?? 'ETH'}
+                        size="sm"
+                      />
                       {amount} <span className="text-muted-foreground">{selectedAsset?.symbol}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-muted-foreground mt-2 text-sm">
                       {t('common.arrow')} {expectedReceive} {selectedAsset?.targetAsset}
                     </p>
                   </CardContent>
                 </Card>
 
                 <div className="relative">
-                  <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full animate-pulse" />
-                  <Avatar className="relative size-16 bg-primary">
+                  <div className="bg-primary/30 absolute inset-0 animate-pulse rounded-full blur-2xl" />
+                  <Avatar className="bg-primary relative size-16">
                     <AvatarFallback className="bg-transparent">
-                      <ArrowDown className="size-8 text-primary-foreground" />
+                      <ArrowDown className="text-primary-foreground size-8" />
                     </AvatarFallback>
                   </Avatar>
                 </div>
 
-                <div className="text-center space-y-2">
-                  <p className="text-muted-foreground">{t('target.selectOn')} <Badge variant="outline">{selectedAsset?.targetChain}</Badge> {t('target.chainTarget')}</p>
+                <div className="space-y-2 text-center">
+                  <p className="text-muted-foreground">
+                    {t('target.selectOn')} <Badge variant="outline">{selectedAsset?.targetChain}</Badge>{' '}
+                    {t('target.chainTarget')}
+                  </p>
                   <p className="font-semibold">{t('wallet.target')}</p>
                 </div>
 
-                <Button 
+                <Button
                   data-testid="target-button"
-                  size="lg" 
-                  className="w-full max-w-xs h-12" 
-                  onClick={handleSelectTarget} 
+                  size="lg"
+                  className="h-12 w-full max-w-xs"
+                  onClick={handleSelectTarget}
                   disabled={loading}
                 >
-                  {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                  {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
                   {loading ? t('target.loading') : t('target.button')}
                 </Button>
               </motion.div>
@@ -501,39 +557,57 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex-1 flex flex-col gap-4"
+                className="flex flex-1 flex-col gap-4"
               >
                 <Card>
-                  <CardContent className="py-6 text-center space-y-4">
+                  <CardContent className="space-y-4 py-6 text-center">
                     <div>
                       <CardDescription className="mb-1">{t('confirm.send')}</CardDescription>
-                      <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                        <AssetAvatar symbol={selectedAsset?.symbol ?? ''} chain={selectedAsset?.chain ?? 'ETH'} size="sm" />
-                        {amount} <span className="text-lg text-muted-foreground">{selectedAsset?.symbol}</span>
+                      <div className="flex items-center justify-center gap-2 text-3xl font-bold">
+                        <AssetAvatar
+                          symbol={selectedAsset?.symbol ?? ''}
+                          chain={selectedAsset?.chain ?? 'ETH'}
+                          size="sm"
+                        />
+                        {amount} <span className="text-muted-foreground text-lg">{selectedAsset?.symbol}</span>
                       </div>
                     </div>
                     <div className="flex justify-center">
-                      <Avatar className="size-10 border border-primary/30 bg-primary/10">
+                      <Avatar className="border-primary/30 bg-primary/10 size-10 border">
                         <AvatarFallback className="bg-transparent">
-                          <ArrowDown className="size-5 text-primary" />
+                          <ArrowDown className="text-primary size-5" />
                         </AvatarFallback>
                       </Avatar>
                     </div>
                     <div>
                       <CardDescription className="mb-1">{t('confirm.receive')}</CardDescription>
                       <div className="text-2xl font-bold text-emerald-400">
-                        {expectedReceive} <span className="text-lg text-muted-foreground">{selectedAsset?.targetAsset}</span>
+                        {expectedReceive}{' '}
+                        <span className="text-muted-foreground text-lg">{selectedAsset?.targetAsset}</span>
                       </div>
                     </div>
                     <div className="space-y-2 pt-2">
-                      <WalletCard label={t('wallet.sender')} address={sourceAccount?.address} name={sourceAccount?.name} chain={sourceAccount?.chain} compact />
-                      <WalletCard label={t('wallet.receiver')} address={targetAccount?.address} name={targetAccount?.name} chain={selectedAsset?.targetChain} compact highlight />
+                      <WalletCard
+                        label={t('wallet.sender')}
+                        address={sourceAccount?.address}
+                        name={sourceAccount?.name}
+                        chain={sourceAccount?.chain}
+                        compact
+                      />
+                      <WalletCard
+                        label={t('wallet.receiver')}
+                        address={targetAccount?.address}
+                        name={targetAccount?.name}
+                        chain={selectedAsset?.targetChain}
+                        compact
+                        highlight
+                      />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="py-4 space-y-3 text-sm">
+                  <CardContent className="space-y-3 py-4 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.sourceChain')}</span>
                       <Badge variant="outline">{selectedAsset?.chain}</Badge>
@@ -551,14 +625,21 @@ export default function App() {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.fee')}</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">{t('confirm.free')}</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
+                        {t('confirm.free')}
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
 
                 <div className="mt-auto pt-4">
-                  <Button data-testid="confirm-button" className="w-full h-12" onClick={handleConfirm} disabled={loading}>
-                    {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                  <Button
+                    data-testid="confirm-button"
+                    className="h-12 w-full"
+                    onClick={handleConfirm}
+                    disabled={loading}
+                  >
+                    {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
                     {loading ? t('confirm.loading') : t('confirm.button')}
                   </Button>
                 </div>
@@ -571,26 +652,29 @@ export default function App() {
                 key="processing"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+                className="flex flex-1 flex-col items-center justify-center gap-6 pb-20"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full animate-pulse" />
-                  <Avatar className="relative size-20 bg-primary/20">
+                  <div className="bg-primary/30 absolute inset-0 animate-pulse rounded-full blur-3xl" />
+                  <Avatar className="bg-primary/20 relative size-20">
                     <AvatarFallback className="bg-transparent">
-                      <RefreshCw className="size-10 text-primary animate-spin" />
+                      <RefreshCw className="text-primary size-10 animate-spin" />
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="text-center space-y-2">
+                <div className="space-y-2 text-center">
                   <h2 className="text-xl font-bold">{t('processing.title')}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {recordDetail?.orderState === SWAP_ORDER_STATE_ID.FROM_TX_WAIT_ON_CHAIN && t('processing.waitingFrom')}
+                  <p className="text-muted-foreground text-sm">
+                    {recordDetail?.orderState === SWAP_ORDER_STATE_ID.FROM_TX_WAIT_ON_CHAIN &&
+                      t('processing.waitingFrom')}
                     {recordDetail?.orderState === SWAP_ORDER_STATE_ID.TO_TX_WAIT_ON_CHAIN && t('processing.waitingTo')}
                     {!recordDetail && t('processing.processing')}
                   </p>
                 </div>
                 {orderId && (
-                  <p className="text-xs text-muted-foreground">{t('common.labelValue', { label: t('processing.orderId'), value: orderId })}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('common.labelValue', { label: t('processing.orderId'), value: orderId })}
+                  </p>
                 )}
               </motion.div>
             )}
@@ -601,17 +685,19 @@ export default function App() {
                 key="success"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+                className="flex flex-1 flex-col items-center justify-center gap-6 pb-20"
               >
                 <Avatar className="size-20 border border-emerald-500/30 bg-emerald-500/10">
                   <AvatarFallback className="bg-transparent">
                     <Check className="size-10 text-emerald-500" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-center space-y-2">
+                <div className="space-y-2 text-center">
                   <h2 className="text-xl font-bold">{t('success.title')}</h2>
-                  <p className="text-2xl font-bold text-emerald-400">{expectedReceive} {selectedAsset?.targetAsset}</p>
-                  <p className="text-sm text-muted-foreground">{t('success.sentTo')}</p>
+                  <p className="text-2xl font-bold text-emerald-400">
+                    {expectedReceive} {selectedAsset?.targetAsset}
+                  </p>
+                  <p className="text-muted-foreground text-sm">{t('success.sentTo')}</p>
                 </div>
                 <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
                   {t('success.newTransfer')}
@@ -625,18 +711,18 @@ export default function App() {
                 key="error"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex-1 flex flex-col items-center justify-center gap-6 pb-20"
+                className="flex flex-1 flex-col items-center justify-center gap-6 pb-20"
               >
-                <Avatar className="size-20 border border-destructive/30 bg-destructive/10">
+                <Avatar className="border-destructive/30 bg-destructive/10 size-20 border">
                   <AvatarFallback className="bg-transparent">
-                    <AlertCircle className="size-10 text-destructive" />
+                    <AlertCircle className="text-destructive size-10" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-center space-y-2">
+                <div className="space-y-2 text-center">
                   <h2 className="text-xl font-bold">{t('error.title')}</h2>
-                  <p className="text-sm text-muted-foreground max-w-xs">{error || t('error.unknown')}</p>
+                  <p className="text-muted-foreground max-w-xs text-sm">{error || t('error.unknown')}</p>
                 </div>
-                <div className="flex gap-3 w-full max-w-xs">
+                <div className="flex w-full max-w-xs gap-3">
                   <Button variant="outline" className="flex-1" onClick={handleReset}>
                     {t('error.restart')}
                   </Button>
@@ -650,52 +736,78 @@ export default function App() {
         </main>
       </div>
     </AuroraBackground>
-  )
+  );
 }
 
-function WalletCard({ label, address, name, chain, compact, highlight }: { 
-  label: string
-  address?: string
-  name?: string
-  chain?: string
-  compact?: boolean
-  highlight?: boolean
+function WalletCard({
+  label,
+  address,
+  name,
+  chain,
+  compact,
+  highlight,
+}: {
+  label: string;
+  address?: string;
+  name?: string;
+  chain?: string;
+  compact?: boolean;
+  highlight?: boolean;
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   if (compact) {
     return (
-      <Card className={cn("border-0", highlight ? "bg-primary/10" : "bg-muted/50")}>
-        <CardContent className="py-2 flex items-center gap-3">
-          <Avatar className={cn("size-8", highlight ? "bg-primary/20 text-primary-foreground" : "bg-muted text-muted-foreground")}>
+      <Card className={cn('border-0', highlight ? 'bg-primary/10' : 'bg-muted/50')}>
+        <CardContent className="flex items-center gap-3 py-2">
+          <Avatar
+            className={cn(
+              'size-8',
+              highlight ? 'bg-primary/20 text-primary-foreground' : 'bg-muted text-muted-foreground',
+            )}
+          >
             <AvatarFallback className="bg-transparent">
               <Wallet className="size-4" />
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0 text-left">
-            <CardDescription className="text-xs">{label} {chain && <Badge variant="outline" className="ml-1 text-xs">{chain}</Badge>}</CardDescription>
-            <div className="text-sm font-medium truncate">{name || truncateAddress(address)}</div>
+          <div className="min-w-0 flex-1 text-left">
+            <CardDescription className="text-xs">
+              {label}{' '}
+              {chain && (
+                <Badge variant="outline" className="ml-1 text-xs">
+                  {chain}
+                </Badge>
+              )}
+            </CardDescription>
+            <div className="truncate text-sm font-medium">{name || truncateAddress(address)}</div>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
-  
+
   return (
     <Card>
-      <CardContent className="py-3 flex items-center gap-3">
-        <Avatar className="size-10 bg-primary/20">
+      <CardContent className="flex items-center gap-3 py-3">
+        <Avatar className="bg-primary/20 size-10">
           <AvatarFallback className="bg-transparent">
-            <Wallet className="size-5 text-primary" />
+            <Wallet className="text-primary size-5" />
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0">
-          <CardDescription>{label} {chain && <Badge variant="outline" className="ml-1">{chain}</Badge>}</CardDescription>
-          <CardTitle className="text-base truncate">{name || t('common.unknown')}</CardTitle>
+        <div className="min-w-0 flex-1">
+          <CardDescription>
+            {label}{' '}
+            {chain && (
+              <Badge variant="outline" className="ml-1">
+                {chain}
+              </Badge>
+            )}
+          </CardDescription>
+          <CardTitle className="truncate text-base">{name || t('common.unknown')}</CardTitle>
           <CardDescription className="truncate">{address}</CardDescription>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function AssetAvatar({ symbol, chain, size = 'md' }: { symbol: string; chain: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -703,20 +815,19 @@ function AssetAvatar({ symbol, chain, size = 'md' }: { symbol: string; chain: st
     BFM: <Leaf />,
     ETH: <Coins />,
     USDT: <DollarSign />,
-  }
-  const sizeClass = size === 'lg' ? 'size-16 [&_svg]:size-8' : size === 'md' ? 'size-10 [&_svg]:size-5' : 'size-6 [&_svg]:size-3'
-  
+  };
+  const sizeClass =
+    size === 'lg' ? 'size-16 [&_svg]:size-8' : size === 'md' ? 'size-10 [&_svg]:size-5' : 'size-6 [&_svg]:size-3';
+
   return (
     <Avatar className={cn(sizeClass, CHAIN_COLORS[chain] || 'bg-muted')}>
-      <AvatarFallback className="bg-transparent text-white">
-        {icons[symbol] || <Coins />}
-      </AvatarFallback>
+      <AvatarFallback className="bg-transparent text-white">{icons[symbol] || <Coins />}</AvatarFallback>
     </Avatar>
-  )
+  );
 }
 
 function truncateAddress(address?: string): string {
-  if (!address) return ''
-  if (address.length <= 12) return address
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
+  if (!address) return '';
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
