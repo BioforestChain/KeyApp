@@ -1,0 +1,1 @@
+import{p}from"./_setup-DOGScLNp.js";import"./sha256-ee5_68YR.js";import"./WASMInterface-CIe9o4E6.js";import"./page-BL_iZuG4.js";import"./index-15D1tlVU.js";import"./polyfills-BATEtbik.js";import"./bioforestChainBundle-CAVzb9HK.js";const r=async()=>{await p()},s=async()=>{await r()};export{s as prepareEcpair};

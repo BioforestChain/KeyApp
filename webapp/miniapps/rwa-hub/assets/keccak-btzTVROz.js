@@ -1,0 +1,1 @@
+import{g as r}from"./sha3-DdZOXJgg.js";const i=async(e,t=512)=>(await r(t)()).calculate(e,t,1),d=async(e=512)=>o(e,await r(e)()),o=(e=512,t=r(e).wasm)=>{const n=e/8;t.init(e);const c={init:()=>(t.init(e),c),update:a=>(t.update(a),c),digest:a=>t.digest(a,1),save:()=>t.save(),load:a=>(t.load(a),c),blockSize:200-2*n,digestSize:n};return c};export{d as a,o as c,i as k};

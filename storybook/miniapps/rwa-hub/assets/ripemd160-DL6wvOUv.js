@@ -1,0 +1,1 @@
+import{c as n}from"./WASMInterface-CIe9o4E6.js";const a=n("ripemd160",20),s=async e=>(await a()).calculate(e),o=async()=>c(await a()),c=(e=a.wasm)=>{e.init();const r={init:()=>(e.init(),r),update:t=>(e.update(t),r),digest:t=>e.digest(t),save:()=>e.save(),load:t=>(e.load(t),r),blockSize:64,digestSize:20};return r};export{o as a,c,a as p,s as r};
