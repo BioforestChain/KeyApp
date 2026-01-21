@@ -1,11 +1,6 @@
 import { startApp, destroyApp, bus } from 'wujie';
 import type { ContainerManager, ContainerHandle, ContainerCreateOptions } from './types';
 
-/**
- * Patch document.adoptedStyleSheets to proxy to shadowRoot.adoptedStyleSheets
- * Must be called after shadowRoot is created (e.g., in afterMount)
- * TODO: Submit PR to wujie upstream and remove this workaround
- */
 function patchAdoptedStyleSheets(appId: string) {
   const iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${appId}"]`);
   if (!iframe?.contentWindow) return;

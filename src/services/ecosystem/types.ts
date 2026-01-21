@@ -227,6 +227,15 @@ export interface MiniappManifest {
   sourceName?: string;
   /** 运行时容器类型（由宿主注入，默认 'iframe'） */
   runtime?: 'iframe' | 'wujie';
+  /** wujie 运行时配置 (仅当 runtime: 'wujie' 时有效) */
+  wujieConfig?: WujieRuntimeConfig;
+}
+
+export interface WujieRuntimeConfig {
+  rewriteAbsolutePaths?: boolean;
+  alive?: boolean;
+  fiber?: boolean;
+  sync?: boolean;
 }
 
 /** Ecosystem source - JSON 文件格式 */
