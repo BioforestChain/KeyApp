@@ -77,7 +77,9 @@ function createAbsolutePathRewriter(baseUrl: string) {
       }
       const rewrittenUrl = normalized.href.replace(PLACEHOLDER_ORIGIN, targetBaseHref);
 
-      return window.fetch(rewrittenUrl, init);
+      // 使用原始 Request 对象的完整配置（包括 headers），仅替换 URL
+      // 这确保 tRPC 的 trpc-accept 等自定义头不会丢失
+      return window.fetch(new Request(rewrittenUrl, req));
     },
     plugins: [
       {
