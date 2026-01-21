@@ -252,17 +252,8 @@ export interface EcosystemSource {
   apps: MiniappManifest[];
 }
 
-/** 订阅源记录 - 本地存储格式 */
-export interface SourceRecord {
-  url: string;
-  name: string;
-  enabled: boolean;
-  lastUpdated: string;
-  /** 图标 URL，默认使用 https 锁图标 */
-  icon?: string;
-  /** 是否为内置源 */
-  builtin?: boolean;
-}
+/** 订阅源记录 - 从 store 重新导出 */
+export type { SourceRecord, SourceStatus } from '@/stores/ecosystem';
 
 /**
  * My Apps - Local installed app record
