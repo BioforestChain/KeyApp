@@ -194,6 +194,9 @@ importers:
       viem:
         specifier: ^2.43.3
         version: 2.43.3(typescript@5.9.3)(zod@4.2.1)
+      wujie:
+        specifier: ^1.0.29
+        version: 1.0.29
       wujie-react:
         specifier: ^1.0.29
         version: 1.0.29(react@19.2.3)

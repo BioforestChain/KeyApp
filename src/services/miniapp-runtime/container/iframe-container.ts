@@ -80,7 +80,11 @@ export class IframeContainerManager implements ContainerManager {
     }
     iframe.src = iframeUrl.toString();
 
-    iframe.sandbox.add('allow-scripts', 'allow-forms', 'allow-same-origin');
+    if (iframe.sandbox?.add) {
+      iframe.sandbox.add('allow-scripts', 'allow-forms', 'allow-same-origin');
+    } else {
+      iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin');
+    }
     iframe.style.cssText = `
       width: 100%;
       height: 100%;
