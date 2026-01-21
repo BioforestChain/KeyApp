@@ -33,11 +33,13 @@ class WujieContainerHandle implements ContainerHandle {
   }
 
   moveToBackground(): void {
+    if (this.destroyed) return;
     this.container.style.visibility = 'hidden';
     this.container.style.pointerEvents = 'none';
   }
 
   moveToForeground(): void {
+    if (this.destroyed) return;
     this.container.style.visibility = 'visible';
     this.container.style.pointerEvents = 'auto';
   }

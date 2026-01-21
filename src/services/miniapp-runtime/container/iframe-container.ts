@@ -28,28 +28,33 @@ function getOrCreateContainer(id: string, hidden: boolean): HTMLElement {
 class IframeContainerHandle implements ContainerHandle {
   readonly type = 'iframe' as const;
   readonly element: HTMLIFrameElement;
+  private destroyed = false;
 
   constructor(private iframe: HTMLIFrameElement) {
     this.element = iframe;
   }
 
   destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
     this.iframe.src = 'about:blank';
     this.iframe.remove();
   }
 
   moveToBackground(): void {
+    if (this.destroyed) return;
     const container = getOrCreateContainer(HIDDEN_CONTAINER_ID, true);
     container.appendChild(this.iframe);
   }
 
   moveToForeground(): void {
+    if (this.destroyed) return;
     const container = getOrCreateContainer(VISIBLE_CONTAINER_ID, false);
     container.appendChild(this.iframe);
   }
 
   isConnected(): boolean {
-    return this.iframe.isConnected;
+    return this.iframe.isConnected && !this.destroyed;
   }
 
   getIframe(): HTMLIFrameElement {
