@@ -1,0 +1,1 @@
+import{c as n}from"./WASMInterface-DAdCfnXY.js";const r=n("sha512",64),i=async e=>(await r()).calculate(e,512),o=async()=>s(await r()),s=(e=r.wasm)=>{e.init(512);const a={init:()=>(e.init(512),a),update:t=>(e.update(t),a),digest:t=>e.digest(t),save:()=>e.save(),load:t=>(e.load(t),a),blockSize:128,digestSize:64};return a};export{o as a,s as c,r as p,i as s};
