@@ -18,19 +18,23 @@ const SUPPORTED_SEARCH_RESPONSE_VERSIONS = new Set(['1', '1.0.0']);
 
 const ecosystemSourceStorage = new IndexedDBCacheStorage('ecosystem-sources', 'sources');
 
-const ecosystemSourceFetch = keyFetch.create({
-  name: 'ecosystem.source',
-  outputSchema: EcosystemSourceSchema,
-  url: ':url',
-  use: [etag(), cache({ storage: ecosystemSourceStorage }), ttl(5 * 60 * 1000)],
-});
+function createSourceFetcher(url: string) {
+  return keyFetch.create({
+    name: `ecosystem.source.${url}`,
+    outputSchema: EcosystemSourceSchema,
+    url,
+    use: [etag(), cache({ storage: ecosystemSourceStorage }), ttl(5 * 60 * 1000)],
+  });
+}
 
-const ecosystemSearchFetch = keyFetch.create({
-  name: 'ecosystem.search',
-  outputSchema: EcosystemSearchResponseSchema,
-  url: ':url',
-  use: [ttl(30 * 1000)],
-});
+function createSearchFetcher(url: string) {
+  return keyFetch.create({
+    name: `ecosystem.search.${url}`,
+    outputSchema: EcosystemSearchResponseSchema,
+    url,
+    use: [ttl(30 * 1000)],
+  });
+}
 
 let cachedApps: MiniappManifest[] = [];
 
@@ -79,7 +83,8 @@ function normalizeAppFromSource(
 
 async function fetchSourceWithCache(url: string): Promise<EcosystemSource | null> {
   try {
-    return await ecosystemSourceFetch.fetch({ url });
+    const fetcher = createSourceFetcher(url);
+    return await fetcher.fetch({});
   } catch {
     return null;
   }
@@ -153,7 +158,8 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
     enabledSources.map(async (source) => {
       ecosystemActions.updateSourceStatus(source.url, 'loading');
       try {
-        const payload = await ecosystemSourceFetch.fetch({ url: source.url });
+        const fetcher = createSourceFetcher(source.url);
+        const payload = await fetcher.fetch({});
         ecosystemActions.updateSourceStatus(source.url, 'success');
         return { source, payload };
       } catch (error) {
@@ -171,8 +177,9 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
 export async function refreshSource(url: string): Promise<void> {
   ecosystemActions.updateSourceStatus(url, 'loading');
   try {
-    keyFetch.invalidate('ecosystem.source');
-    const payload = await ecosystemSourceFetch.fetch({ url });
+    keyFetch.invalidate(`ecosystem.source.${url}`);
+    const fetcher = createSourceFetcher(url);
+    const payload = await fetcher.fetch({});
     if (payload) {
       ecosystemActions.updateSourceStatus(url, 'success');
       await rebuildCachedAppsFromCache();
@@ -228,7 +235,8 @@ async function fetchRemoteSearch(source: SourceRecord, urlTemplate: string, quer
   const url = urlTemplate.replace(/%s/g, encoded);
 
   try {
-    const response = await ecosystemSearchFetch.fetch({ url });
+    const fetcher = createSearchFetcher(url);
+    const response = await fetcher.fetch({});
     const { version, data } = response as { version: string; data: MiniappManifest[] };
 
     if (!isSupportedSearchResponseVersion(version)) {
