@@ -105,5 +105,15 @@
     "dwebRequired": "مطلوب بيئة DWEB",
     "passwordRequired": "كلمة المرور مطلوبة لفك التشفير",
     "passwordRequiredForMnemonic": "كلمة المرور مطلوبة"
+  },
+  "signature": {
+    "missingField": "signaturedata حقل مفقود: {{field}}",
+    "unsupportedType": "نوع التوقيع غير مدعوم: {{type}}",
+    "typeMustBeStringOrNumber": "signaturedata.type يجب أن يكون سلسلة أو رقم",
+    "missingParam": "معلمة signaturedata مفقودة",
+    "invalidJson": "signaturedata ليس JSON صالحًا",
+    "mustBeArray": "signaturedata يجب أن يكون مصفوفة JSON",
+    "emptyArray": "signaturedata لا يمكن أن يكون مصفوفة فارغة",
+    "firstMustBeObject": "signaturedata[0] يجب أن يكون كائنًا"
   }
 }

@@ -489,5 +489,35 @@
   "assetSelector": {
     "selectAsset": "Select asset",
     "balance": "Balance"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "BioForest",
+      "description": "BioForest ecosystem"
+    },
+    "evm": {
+      "name": "EVM Compatible",
+      "description": "Ethereum Virtual Machine compatible chains"
+    },
+    "bitcoin": {
+      "description": "Bitcoin network"
+    },
+    "tron": {
+      "description": "Tron network"
+    },
+    "custom": {
+      "name": "Custom chains",
+      "description": "User-added custom chains"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "Request Crypto Authorization",
+      "permissions": "Requested Permissions",
+      "duration": "Authorization Duration",
+      "address": "Using Address",
+      "pattern": "Draw pattern to confirm",
+      "error": "Pattern incorrect, please try again"
+    }
   }
 }

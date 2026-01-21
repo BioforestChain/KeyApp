@@ -340,13 +340,13 @@ function DestroyPageContent() {
         )}
 
         {/* Warning */}
-        <Alert variant="warning">{t('destroyPage.warning', '销毁操作不可撤销，请仔细核对销毁数量。')}</Alert>
+        <Alert variant="warning">{t('destroyPage.warning')}</Alert>
 
         {/* Fee info */}
         {state.feeAmount && (
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{t('sendPage.fee', '手续费')}</span>
+              <span className="text-muted-foreground">{t('sendPage.fee')}</span>
               <span className="font-medium">
                 {state.feeAmount.toFormatted()} {state.feeSymbol}
               </span>
@@ -364,7 +364,7 @@ function DestroyPageContent() {
             onClick={handleProceed}
           >
             <IconFlame className="mr-2 -ml-4 size-4" />
-            {t('destroyPage.confirm', '确认销毁')}
+            {t('destroyPage.confirm')}
           </GradientButton>
         </div>
       </div>
@@ -384,7 +384,7 @@ export function DestroyPage() {
       chainId={selectedChain}
       fallback={
         <div className="flex min-h-screen flex-col">
-          <PageHeader title={t('destroyPage.title', '销毁资产')} onBack={goBack} />
+          <PageHeader title={t('destroyPage.title')} onBack={goBack} />
           <div className="flex flex-1 items-center justify-center p-4">
             <p className="text-muted-foreground">Chain not supported</p>
           </div>

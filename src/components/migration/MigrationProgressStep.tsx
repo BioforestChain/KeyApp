@@ -22,22 +22,10 @@ const STEP_LABELS: Record<MigrationProgress['step'], string> = {
   complete: 'progress.complete',
 };
 
-const STEP_DEFAULTS: Record<MigrationProgress['step'], string> = {
-  detecting: '检测数据...',
-  verifying: '验证密码...',
-  reading: '读取钱包数据...',
-  transforming: '转换数据格式...',
-  importing: '导入钱包...',
-  importing_contacts: '导入联系人...',
-  complete: '迁移完成',
-};
-
 export function MigrationProgressStep({ progress }: MigrationProgressStepProps) {
   const { t } = useTranslation('migration');
 
-  const stepLabel = t(STEP_LABELS[progress.step], {
-    defaultValue: STEP_DEFAULTS[progress.step],
-  });
+  const stepLabel = t(STEP_LABELS[progress.step]);
 
   const isComplete = progress.step === 'complete';
 
@@ -53,9 +41,7 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
 
       <div className="w-full space-y-4 text-center">
         <h2 className="text-xl font-semibold">
-          {isComplete
-            ? t('progress.title.complete', { defaultValue: '迁移完成' })
-            : t('progress.title.migrating', { defaultValue: '正在迁移...' })}
+          {isComplete ? t('progress.title.complete') : t('progress.title.migrating')}
         </h2>
 
         <p className="text-muted-foreground text-sm">{stepLabel}</p>
@@ -63,7 +49,6 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
         {progress.currentWallet && (
           <p className="text-muted-foreground text-sm">
             {t('progress.currentWallet', {
-              defaultValue: '当前: {{name}}',
               name: progress.currentWallet,
             })}
           </p>
@@ -72,7 +57,6 @@ export function MigrationProgressStep({ progress }: MigrationProgressStepProps) 
         {progress.totalWallets !== undefined && progress.processedWallets !== undefined && (
           <p className="text-muted-foreground text-sm">
             {t('progress.walletCount', {
-              defaultValue: '{{processed}} / {{total}} 个钱包',
               processed: progress.processedWallets,
               total: progress.totalWallets,
             })}

@@ -489,5 +489,35 @@
   "assetSelector": {
     "selectAsset": "选择资产",
     "balance": "余额"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "生物链林",
+      "description": "BioForest 生态链"
+    },
+    "evm": {
+      "name": "EVM 兼容链",
+      "description": "以太坊虚拟机兼容链"
+    },
+    "bitcoin": {
+      "description": "Bitcoin 网络"
+    },
+    "tron": {
+      "description": "Tron 网络"
+    },
+    "custom": {
+      "name": "自定义链",
+      "description": "用户添加的自定义链"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "请求加密授权",
+      "permissions": "请求权限",
+      "duration": "授权时长",
+      "address": "使用地址",
+      "pattern": "请输入手势密码确认",
+      "error": "手势密码错误，请重试"
+    }
   }
 }

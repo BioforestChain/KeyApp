@@ -105,5 +105,15 @@
     "dwebRequired": "DWEB environment required",
     "passwordRequired": "Password required for decryption",
     "passwordRequiredForMnemonic": "Password required"
+  },
+  "signature": {
+    "missingField": "signaturedata missing field: {{field}}",
+    "unsupportedType": "Unsupported signature type: {{type}}",
+    "typeMustBeStringOrNumber": "signaturedata.type must be string or number",
+    "missingParam": "Missing signaturedata parameter",
+    "invalidJson": "signaturedata is not valid JSON",
+    "mustBeArray": "signaturedata must be a JSON array",
+    "emptyArray": "signaturedata cannot be an empty array",
+    "firstMustBeObject": "signaturedata[0] must be an object"
   }
 }

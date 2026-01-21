@@ -105,5 +105,15 @@
     "dwebRequired": "需要在 DWEB 環境中訪問",
     "passwordRequired": "需要提供密碼解密",
     "passwordRequiredForMnemonic": "需要提供密碼"
+  },
+  "signature": {
+    "missingField": "signaturedata 缺少字段：{{field}}",
+    "unsupportedType": "不支持的簽名類型：{{type}}",
+    "typeMustBeStringOrNumber": "signaturedata.type 必須是字符串或數字",
+    "missingParam": "缺少 signaturedata 參數",
+    "invalidJson": "signaturedata 不是合法的 JSON",
+    "mustBeArray": "signaturedata 必須是 JSON 數組",
+    "emptyArray": "signaturedata 不能為空數組",
+    "firstMustBeObject": "signaturedata[0] 必須是對象"
   }
 }

@@ -489,5 +489,35 @@
   "assetSelector": {
     "selectAsset": "اختر الأصل",
     "balance": "الرصيد"
+  },
+  "chainKind": {
+    "bioforest": {
+      "name": "BioForest",
+      "description": "نظام BioForest البيئي"
+    },
+    "evm": {
+      "name": "متوافق مع EVM",
+      "description": "سلاسل متوافقة مع آلة إيثريوم الافتراضية"
+    },
+    "bitcoin": {
+      "description": "شبكة Bitcoin"
+    },
+    "tron": {
+      "description": "شبكة Tron"
+    },
+    "custom": {
+      "name": "سلاسل مخصصة",
+      "description": "سلاسل مخصصة أضافها المستخدم"
+    }
+  },
+  "crypto": {
+    "authorize": {
+      "title": "طلب تفويض التشفير",
+      "permissions": "الأذونات المطلوبة",
+      "duration": "مدة التفويض",
+      "address": "العنوان المستخدم",
+      "pattern": "ارسم النمط للتأكيد",
+      "error": "النمط غير صحيح، يرجى المحاولة مرة أخرى"
+    }
   }
 }
