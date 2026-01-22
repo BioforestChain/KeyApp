@@ -122,9 +122,12 @@ export class EtherscanV2Provider extends EvmIdentityMixin(EvmTransactionMixin(Et
       },
     }
 
-    // 共享 400/429 节流
+    // 共享 400/429/Schema错误 节流
     const etherscanThrottleError = throttleError({
-      match: errorMatchers.httpStatus(400, 429),
+      match: errorMatchers.any(
+        errorMatchers.httpStatus(400, 429),
+        errorMatchers.contains('Schema 验证失败'),
+      ),
     })
 
     // 区块高度 API - 使用 Etherscan 的 proxy 模块 (返回 JSON-RPC 格式)

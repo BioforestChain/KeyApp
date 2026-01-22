@@ -203,21 +203,40 @@ class KeyFetchInstanceImpl<
 
       return result
     } catch (err) {
-      console.error(this.name, err)
       // 包装 ZodError 为更可读的错误
+      let schemaError: Error
       if (err && typeof err === 'object' && 'issues' in err) {
         const zodErr = err as { issues: Array<{ path: (string | number)[]; message: string }> }
-        const buildErrorMessage = () => `[${this.name}] Schema 验证失败:\n${zodErr.issues
+        const errorMessage = `[${this.name}] Schema 验证失败:\n${zodErr.issues
           .slice(0, 3)
           .map(i => `  - ${i.path.join('.')}: ${i.message}`)
           .join('\n')}` +
           (zodErr.issues.length > 3 ? `\n  ... 还有 ${zodErr.issues.length - 3} 个错误` : '') +
-          `\n\nResponseJson: ${rawJson.slice(0, 300)}...`
-          + `\nResponseHeaders: ${[...response.headers.entries()].map(item => item.join("=")).join("; ")}`
-        console.error(json, this.outputSchema)
-        throw new Error(buildErrorMessage())
+          `\n\nResponseJson: ${rawJson.slice(0, 300)}...` +
+          `\nResponseHeaders: ${[...response.headers.entries()].map(item => item.join("=")).join("; ")}`
+        schemaError = new Error(errorMessage)
+      } else {
+        schemaError = err instanceof Error ? err : new Error(String(err))
       }
-      throw err
+
+      // 让插件有机会处理错误日志（如 throttleError 节流）
+      let errorHandled = false
+      for (const plugin of this.plugins) {
+        if (plugin.onError?.(schemaError, response, middlewareContext)) {
+          errorHandled = true
+          ;(schemaError as Error & { __errorHandled?: boolean }).__errorHandled = true
+          break
+        }
+      }
+
+      // 未被插件处理时，输出完整日志便于调试
+      if (!errorHandled) {
+        console.error(this.name, err)
+        console.error(json, this.outputSchema)
+      }
+
+      // 始终抛出错误（不吞掉）
+      throw schemaError
     }
   }
 
