@@ -47,29 +47,6 @@ const MORALIS_CHAIN_MAP: Record<string, string> = {
   'base': 'base',
 }
 
-// TrustWallet Assets 链名映射
-const TRUSTWALLET_CHAIN_MAP: Record<string, string> = {
-  'ethereum': 'ethereum',
-  'binance': 'smartchain',
-  'polygon': 'polygon',
-  'avalanche': 'avalanchec',
-  'fantom': 'fantom',
-  'arbitrum': 'arbitrum',
-  'optimism': 'optimism',
-  'base': 'base',
-}
-
-/**
- * 获取 EVM 代币图标回退 URL (TrustWallet Assets)
- * 基于合约地址从 TrustWallet Assets 获取图标
- */
-function getEvmTokenIconFallback(chainId: string, contractAddress: string): string | null {
-  const chain = TRUSTWALLET_CHAIN_MAP[chainId]
-  if (!chain) return null
-  // TrustWallet 使用 checksum 地址，contractAddress 已经是正确格式
-  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chain}/assets/${contractAddress}/logo.png`
-}
-
 // ==================== Schema 定义 ====================
 
 // 原生余额响应
@@ -345,10 +322,10 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
 
             // 添加 ERC20 代币
             for (const token of filteredTokens) {
-              // 图标回退：Moralis logo > thumbnail > TrustWallet Assets
+              // 图标优先级：Moralis logo > thumbnail > tokenIconContract 配置
               const icon = token.logo 
                 ?? token.thumbnail 
-                ?? getEvmTokenIconFallback(chainId, token.token_address)
+                ?? chainConfigService.getTokenIconByContract(chainId, token.token_address)
                 ?? undefined
 
               result.push({

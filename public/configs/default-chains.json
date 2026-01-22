@@ -152,10 +152,8 @@
       "name": "Ethereum",
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
-      "tokenIconBase": [
-        "../icons/ethereum/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/$address/logo.png"
       ],
       "decimals": 18,
       "apis": [
@@ -190,10 +188,8 @@
       "name": "BNB Smart Chain",
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
-      "tokenIconBase": [
-        "../icons/binance/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/$address/logo.png"
       ],
       "decimals": 18,
       "apis": [

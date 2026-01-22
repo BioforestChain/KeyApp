@@ -68,28 +68,30 @@ function buildIconUrl(template: string, symbol: string): string {
 /**
  * Token 图标组件
  * 
- * 加载优先级：
- * 1. imageUrl prop（手动指定）
- * 2. TokenIconProvider + chainId（多层 fallback）
- * 3. 首字母 fallback
+ * 加载策略：首字母常驻 + 图片叠加
+ * - 首字母始终渲染作为底层
+ * - 图片加载成功后叠加显示，隐藏首字母
+ * - 避免加载过程中的闪烁
  * 
  * @example
  * // 手动指定图标
  * <TokenIcon symbol="BFM" imageUrl="/path/to/icon.svg" />
  * 
- * // 自动从 Provider 获取（需要 chainId）
+ * // 自动从 Provider 获取（需要 chainId，仅 BioForest 链）
  * <TokenIcon symbol="BFM" chainId="bfmeta" />
  * 
  * // 仅显示首字母
  * <TokenIcon symbol="UNKNOWN" />
  */
 export function TokenIcon({ symbol, chainId, imageUrl, size = 'md', className }: TokenIconProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [baseIndex, setBaseIndex] = useState(0);
   const context = useTokenIconContext();
   
   // 当 props 变化时重置状态
   useEffect(() => {
+    setImageLoaded(false);
     setImageError(false);
     setBaseIndex(0);
   }, [symbol, chainId, imageUrl]);
@@ -97,70 +99,63 @@ export function TokenIcon({ symbol, chainId, imageUrl, size = 'md', className }:
   const label = symbol.toUpperCase();
   const firstLetter = label.charAt(0);
   
-  // 优先级 1: imageUrl prop
-  if (imageUrl && !imageError) {
-    return (
-      <div
-        className={cn(
-          'flex shrink-0 items-center justify-center overflow-hidden rounded-full',
-          sizeClasses[size],
-          className,
-        )}
-        aria-label={label}
-      >
-        <img
-          src={imageUrl}
-          alt={label}
-          className="size-full object-cover"
-          onError={() => setImageError(true)}
-        />
-      </div>
-    );
+  // 确定图片 URL：优先使用 imageUrl prop，否则尝试从 Provider 获取
+  let finalImageUrl: string | undefined = imageUrl ?? undefined;
+  
+  // 只有在没有 imageUrl 且有 chainId 时才使用 tokenIconBase
+  if (!finalImageUrl && chainId) {
+    const bases = context?.getTokenIconBases(chainId) ?? [];
+    const currentBase = bases[baseIndex];
+    if (currentBase && baseIndex >= 0 && baseIndex < bases.length) {
+      finalImageUrl = buildIconUrl(currentBase, symbol);
+    }
   }
   
-  // 优先级 2: Provider + chainId
-  const bases = chainId ? context?.getTokenIconBases(chainId) ?? [] : [];
-  const currentBase = bases[baseIndex];
-  const providerUrl = currentBase ? buildIconUrl(currentBase, symbol) : undefined;
+  const handleImageError = () => {
+    // 如果还有更多 base 可以尝试，继续尝试下一个
+    if (chainId && !imageUrl) {
+      const bases = context?.getTokenIconBases(chainId) ?? [];
+      if (baseIndex < bases.length - 1) {
+        setBaseIndex(baseIndex + 1);
+        setImageLoaded(false);
+        return;
+      }
+    }
+    setImageError(true);
+  };
   
-  if (providerUrl && baseIndex >= 0 && baseIndex < bases.length) {
-    return (
-      <div
-        className={cn(
-          'flex shrink-0 items-center justify-center overflow-hidden rounded-full',
-          sizeClasses[size],
-          className,
-        )}
-        aria-label={label}
-      >
-        <img
-          src={providerUrl}
-          alt={label}
-          className="size-full object-cover"
-          onError={() => {
-            if (baseIndex < bases.length - 1) {
-              setBaseIndex(baseIndex + 1);
-            } else {
-              setBaseIndex(-1); // 触发 fallback
-            }
-          }}
-        />
-      </div>
-    );
-  }
-  
-  // 优先级 3: 首字母 fallback
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center overflow-hidden rounded-full',
-        'bg-muted font-bold text-muted-foreground',
+        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full',
         sizeClasses[size],
         className,
       )}
       aria-label={label}
     >
-      {firstLetter}
+      {/* 首字母始终渲染（底层） */}
+      <span
+        className={cn(
+          'flex size-full items-center justify-center bg-muted font-bold text-muted-foreground transition-opacity',
+          imageLoaded && 'opacity-0'
+        )}
+      >
+        {firstLetter}
+      </span>
+      
+      {/* 图片叠加（顶层），成功加载后显示 */}
+      {finalImageUrl && !imageError && (
+        <img
+          src={finalImageUrl}
+          alt={label}
+          className={cn(
+            'absolute inset-0 size-full object-cover transition-opacity',
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          )}
+          onLoad={() => setImageLoaded(true)}
+          onError={handleImageError}
+        />
+      )}
     </div>
   );
 }

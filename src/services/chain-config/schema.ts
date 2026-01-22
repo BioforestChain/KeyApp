@@ -64,8 +64,10 @@ export const ChainConfigSchema = z
     symbol: z.string().min(1).max(10),
     /** 链图标 URL */
     icon: z.string().min(1).optional(),
-    /** Token 图标基础路径数组，支持多层 fallback [本地, CDN, GitHub] */
+    /** Token 图标基础路径数组，基于 symbol 查找，支持 $symbol/$SYMBOL 占位符 */
     tokenIconBase: z.array(z.string().min(1)).optional(),
+    /** Token 图标路径数组，基于合约地址查找，支持 $address 占位符（EVM 链使用） */
+    tokenIconContract: z.array(z.string().min(1)).optional(),
 
     prefix: z.string().min(1).max(10).optional(), // BioForest 特有
     decimals: z.number().int().min(0).max(18),

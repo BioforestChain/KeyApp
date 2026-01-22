@@ -6,6 +6,7 @@
  */
 
 import { chainConfigStore, chainConfigSelectors } from '@/stores/chain-config'
+import { toChecksumAddress } from '@/lib/crypto'
 import type { ChainConfig, ParsedApiEntry } from './types'
 
 class ChainConfigService {
@@ -147,6 +148,27 @@ class ChainConfigService {
   getIcon(chainId: string): string | null {
     const config = this.getConfig(chainId)
     return config?.icon ?? null
+  }
+
+  /**
+   * 根据合约地址获取代币图标 URL
+   * 使用 tokenIconContract 配置模板，替换 $address 占位符
+   * 
+   * @param chainId 链 ID
+   * @param contractAddress 合约地址（会自动转换为 checksum 格式）
+   * @returns 图标 URL 或 null
+   */
+  getTokenIconByContract(chainId: string, contractAddress: string): string | null {
+    const config = this.getConfig(chainId)
+    const templates = config?.tokenIconContract
+    if (!templates || templates.length === 0) return null
+
+    try {
+      const checksumAddress = toChecksumAddress(contractAddress)
+      return templates[0].replace('$address', checksumAddress)
+    } catch {
+      return null
+    }
   }
 }
 

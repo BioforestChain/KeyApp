@@ -1614,6 +1614,8 @@ at KeyFetchInstanceImpl.doFetch (core.ts:119:13)
 - /Users/kzf/.factory/specs/2026-01-22-ui-servicelimitederror.md
 - /Users/kzf/.factory/specs/2026-01-22-blockheight-schema.md
 - /Users/kzf/.factory/specs/2026-01-22-moralis-provider.md
+- /Users/kzf/.factory/specs/2026-01-22-moralis-provider-1.md
+- /Users/kzf/.factory/specs/2026-01-22-tokeniconcontract-ui.md
 
 review 的具体方向：
 
