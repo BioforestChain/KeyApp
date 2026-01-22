@@ -69,9 +69,9 @@ export function deps<TParams extends FetchParams = FetchParams>(...dependencies:
         const cleanups: (() => void)[] = []
 
         for (const dep of dependencies) {
-          // 订阅依赖的 fetcher，传递当前 context 的 params
-          // 这样依赖的 pathParams 等插件可以正确替换 URL 参数
-          const unsubDep = dep.subscribe(ctx.params, (_data, event) => {
+          // 订阅依赖的 fetcher（使用空 params，因为依赖通常是全局的如 blockApi）
+          // 当依赖数据更新时，触发当前 fetcher 的 refetch
+          const unsubDep = dep.subscribe({}, (_data, event) => {
             // 依赖数据更新时，触发当前 fetcher 重新获取
             if (event === 'update') {
               ctx.refetch()
