@@ -99,6 +99,10 @@ export type { KeyFetchDeriveOptions } from './derive'
 export { fallback, NoSupportError } from './fallback'
 export type { FallbackOptions as MergeOptions } from './fallback'
 
+// ==================== 导出错误类型 ====================
+
+export { ServiceLimitedError } from './errors'
+
 // ==================== 导出 Combine 工具 ====================
 
 export { combine } from './combine'

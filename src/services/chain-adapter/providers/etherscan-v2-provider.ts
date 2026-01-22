@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, searchParams, throttleError, errorMatchers } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, searchParams, throttleError, errorMatchers, ServiceLimitedError } from '@biochain/key-fetch'
 import type { KeyFetchInstance, FetchPlugin } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
 import {
@@ -200,13 +200,13 @@ export class EtherscanV2Provider extends EvmIdentityMixin(EvmTransactionMixin(Et
         transform<ApiResponse, Balance>({
           transform: (raw) => {
             const result = raw.result
+            // 检查 API 错误状态
+            if (raw.status === '0') {
+              throw new ServiceLimitedError()
+            }
             // API 可能返回错误消息而非余额
             if (typeof result !== 'string') {
-              throw new Error(`Invalid balance result: ${JSON.stringify(result)}`)
-            }
-            // 检查是否为错误消息 (如 "Missing/Invalid API Key")
-            if (raw.status === '0') {
-              throw new Error(`API error: ${result}`)
+              throw new ServiceLimitedError()
             }
             // V2 API 可能返回十六进制或十进制字符串
             const balanceValue = result.startsWith('0x')
@@ -228,7 +228,13 @@ export class EtherscanV2Provider extends EvmIdentityMixin(EvmTransactionMixin(Et
     }).use(transform({
       transform: (raw: ApiResponse, ctx): Transaction[] => {
         const result = raw.result
-        if (!Array.isArray(result)) return []
+        // 检查 API 错误状态
+        if (raw.status === '0') {
+          throw new ServiceLimitedError()
+        }
+        if (!Array.isArray(result)) {
+          throw new ServiceLimitedError()
+        }
 
         const address = ((ctx.params.address as string) ?? '').toLowerCase()
 
