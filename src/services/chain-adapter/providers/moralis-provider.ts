@@ -6,8 +6,9 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers, searchParams, pathParams } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers, searchParams, pathParams, postBody } from '@biochain/key-fetch'
 import type { KeyFetchInstance, FetchPlugin } from '@biochain/key-fetch'
+import { globalRegistry } from '@biochain/key-fetch'
 import type {
   ApiProvider,
   TokenBalance,
@@ -17,15 +18,19 @@ import type {
   BalanceOutput,
   TokenBalancesOutput,
   TransactionsOutput,
+  TransactionStatusOutput,
   AddressParams,
   TxHistoryParams,
+  TransactionStatusParams,
 } from './types'
 import {
   BalanceOutputSchema,
   TokenBalancesOutputSchema,
   TransactionsOutputSchema,
+  TransactionStatusOutputSchema,
   AddressParamsSchema,
   TxHistoryParamsSchema,
+  TransactionStatusParamsSchema,
 } from './types'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
@@ -52,6 +57,17 @@ const MORALIS_CHAIN_MAP: Record<string, string> = {
 // 原生余额响应
 const NativeBalanceResponseSchema = z.object({
   balance: z.string(),
+})
+
+// RPC 交易回执响应（用于 transactionStatus）
+const TxReceiptRpcResponseSchema = z.object({
+  jsonrpc: z.string(),
+  id: z.number(),
+  result: z.object({
+    transactionHash: z.string(),
+    blockNumber: z.string(),
+    status: z.string().optional(), // "0x1" = success, "0x0" = failed
+  }).nullable(),
 })
 
 // Token 余额响应
@@ -120,6 +136,7 @@ const WalletHistoryResponseSchema = z.object({
 })
 
 type NativeBalanceResponse = z.infer<typeof NativeBalanceResponseSchema>
+type TxReceiptRpcResponse = z.infer<typeof TxReceiptRpcResponseSchema>
 type TokenBalanceItem = z.infer<typeof TokenBalanceItemSchema>
 type WalletHistoryResponse = z.infer<typeof WalletHistoryResponseSchema>
 type WalletHistoryItem = z.infer<typeof WalletHistoryItemSchema>
@@ -181,10 +198,12 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
   readonly #nativeBalanceApi: KeyFetchInstance<NativeBalanceResponse, AddressParams>
   readonly #tokenBalancesApi: KeyFetchInstance<TokenBalanceItem[], AddressParams>
   readonly #walletHistoryApi: KeyFetchInstance<WalletHistoryResponse, TxHistoryParams>
+  readonly #txStatusApi: KeyFetchInstance<TxReceiptRpcResponse, TransactionStatusParams>
 
   readonly nativeBalance: KeyFetchInstance<BalanceOutput, AddressParams>
   readonly tokenBalances: KeyFetchInstance<TokenBalancesOutput, AddressParams>
   readonly transactionHistory: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  readonly transactionStatus: KeyFetchInstance<TransactionStatusOutput, TransactionStatusParams>
 
   constructor(entry: ParsedApiEntry, chainId: string) {
     super(entry, chainId)
@@ -245,14 +264,14 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       ],
     })
 
-    // Token 余额 API
+    // Token 余额 API（不再独立轮询，由 transactionHistory 驱动）
     this.#tokenBalancesApi = keyFetch.create({
       name: `moralis.${chainId}.tokenBalancesApi`,
       outputSchema: TokenBalancesResponseSchema,
       inputSchema: AddressParamsSchema,
       url: `${baseUrl}/:address/erc20?chain=${moralisChain}`,
       use: [
-        interval(30_000), // Token 余额变化较慢
+        // 移除 interval，改为依赖驱动
         pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
@@ -266,7 +285,7 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/wallets/:address/history`,
       use: [
-        interval(30_000), // 节约 API 费用，至少 30s 轮询
+        interval(120_000), // 2分钟轮询，大幅降低 API 费用
         pathParams(),
         searchParams({
           transform: (params: TxHistoryParams) => ({
@@ -295,12 +314,16 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
     })
 
     // 派生：Token 余额列表（含原生代币）
+    // 依赖 nativeBalance 和 transactionHistory，只有交易变化时才触发代币余额更新
     this.tokenBalances = derive({
       name: `moralis.${chainId}.tokenBalances`,
       source: this.#tokenBalancesApi,
       outputSchema: TokenBalancesOutputSchema,
       use: [
-        deps([{ source: this.#nativeBalanceApi, params: ctx => ctx.params }]), // 依赖原生余额，传递 address 参数
+        deps([
+          { source: this.#nativeBalanceApi, params: ctx => ctx.params },
+          { source: this.#walletHistoryApi, params: ctx => ({ address: ctx.params.address, limit: 1 }) },
+        ]),
         transform<TokenBalanceItem[], TokenBalance[]>({
           transform: (tokens, ctx) => {
             const result: TokenBalance[] = []
@@ -422,6 +445,58 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
           })
       },
     }))
+
+    // 获取 RPC URL 用于交易状态查询
+    const rpcUrl = chainConfigService.getRpcUrl(chainId)
+
+    // 交易状态 API（通过 RPC 查询交易回执）
+    this.#txStatusApi = keyFetch.create({
+      name: `moralis.${chainId}.txStatusApi`,
+      outputSchema: TxReceiptRpcResponseSchema,
+      inputSchema: TransactionStatusParamsSchema,
+      url: rpcUrl,
+      method: 'POST',
+      use: [
+        interval(3_000), // 等待上链时 3s 轮询
+        postBody({
+          transform: (params: TransactionStatusParams) => ({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getTransactionReceipt',
+            params: [params.txHash],
+          }),
+        }),
+        moralisThrottleError,
+      ],
+    })
+
+    // 派生：交易状态（交易确认后触发余额和历史刷新）
+    this.transactionStatus = derive<TxReceiptRpcResponse, TransactionStatusOutput, TransactionStatusParams>({
+      name: `moralis.${chainId}.transactionStatus`,
+      source: this.#txStatusApi,
+      outputSchema: TransactionStatusOutputSchema,
+      use: [
+        transform<TxReceiptRpcResponse, TransactionStatusOutput>({
+          transform: (raw): TransactionStatusOutput => {
+            const receipt = raw.result
+            if (!receipt || !receipt.blockNumber) {
+              return { status: 'pending', confirmations: 0, requiredConfirmations: 1 }
+            }
+
+            // 交易已上链，触发余额和历史刷新
+            globalRegistry.emitUpdate(`moralis.${chainId}.nativeBalanceApi`)
+            globalRegistry.emitUpdate(`moralis.${chainId}.walletHistoryApi`)
+
+            const isSuccess = receipt.status === '0x1' || receipt.status === undefined // 旧版交易无 status
+            return {
+              status: isSuccess ? 'confirmed' : 'failed',
+              confirmations: 1,
+              requiredConfirmations: 1,
+            }
+          },
+        }),
+      ],
+    })
   }
 }
 
