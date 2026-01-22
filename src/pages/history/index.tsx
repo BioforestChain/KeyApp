@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChainProviderGate, useChainProvider } from '@/contexts';
 import { useCurrentWallet, useEnabledChains, useSelectedChain, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
+import { useServiceStatus } from '@/hooks/use-service-status';
+import { ServiceStatusAlert } from '@/components/common/service-status-alert';
 import { cn } from '@/lib/utils';
 import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
 import type { ChainType } from '@/stores';
@@ -45,10 +47,13 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
   const chainProvider = useChainProvider();
 
   // 直接调用，不需要条件判断
-  const { data: rawTransactions, isLoading, isFetching, refetch } = chainProvider.transactionHistory.useState(
+  const { data: rawTransactions, isLoading, isFetching, error, refetch } = chainProvider.transactionHistory.useState(
     { address, limit: 50 },
     { enabled: !!address }
   );
+
+  // 获取服务状态
+  const txStatus = useServiceStatus(error, t);
 
   // 获取 pending transactions
   const {
@@ -216,6 +221,14 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
         )}
 
         {/* Confirmed Transactions */}
+        {(txStatus.limited || !txStatus.supported) && !isLoading && (
+          <ServiceStatusAlert
+            type={txStatus.limited ? 'limited' : 'notSupported'}
+            feature={t('home:wallet.transactionHistory')}
+            reason={txStatus.reason}
+            className="mb-4"
+          />
+        )}
         <TransactionList
           transactions={toTransactionInfoList(transactions ?? [], targetChain)}
           loading={isLoading}

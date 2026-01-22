@@ -519,5 +519,15 @@
       "pattern": "請輸入手勢密碼確認",
       "error": "手勢密碼錯誤，請重試"
     }
+  },
+  "service": {
+    "notSupported": "暫不支援",
+    "notSupportedDesc": "當前鏈不支援{{feature}}功能",
+    "notSupportedDescGeneric": "當前鏈不支援此功能",
+    "limited": "服務受限",
+    "limitedDesc": "當前 API 服務暫時不可用，請稍後重試或使用區塊瀏覽器查看",
+    "queryFailed": "查詢失敗",
+    "queryFailedDesc": "資料載入失敗，請檢查網路後重試",
+    "technicalDetails": "技術詳情"
   }
 }

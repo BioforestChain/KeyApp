@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { TokenList } from '@/components/token/token-list'
 import { TransactionList } from '@/components/transaction/transaction-list'
 import { SwipeableTabs } from '@/components/layout/swipeable-tabs'
-import { ProviderFallbackWarning } from '@/components/common/provider-fallback-warning'
+import { ServiceStatusAlert } from '@/components/common/service-status-alert'
 import { ErrorBoundary } from '@/components/common/error-boundary'
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from '@/components/token/token-item'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
@@ -77,7 +77,8 @@ export function WalletAddressPortfolioView({
           tab === 'assets' ? (
             <div className="p-4" data-testid={`${testId}-assets-panel`}>
               {!tokensSupported && !tokensLoading && (
-                <ProviderFallbackWarning
+                <ServiceStatusAlert
+                  type="notSupported"
                   feature={t('home:wallet.tokenBalance')}
                   reason={tokensFallbackReason}
                   className="mb-4"
@@ -100,7 +101,8 @@ export function WalletAddressPortfolioView({
           ) : (
             <div className="p-4" data-testid={`${testId}-history-panel`}>
               {!transactionsSupported && !transactionsLoading && (
-                <ProviderFallbackWarning
+                <ServiceStatusAlert
+                  type="notSupported"
                   feature={t('home:wallet.transactionHistory')}
                   reason={transactionsFallbackReason}
                   className="mb-4"

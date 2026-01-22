@@ -42,3 +42,4 @@ export { TimeDisplay, formatDate, formatDateTime, formatTime, toDate } from './t
 export { FormField } from './form-field'
 export { ErrorBoundary } from './error-boundary'
 export { CopyableText } from './copyable-text'
+export { ServiceStatusAlert, type ServiceStatusAlertProps, type ServiceAlertType } from './service-status-alert'

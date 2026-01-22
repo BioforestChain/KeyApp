@@ -519,5 +519,15 @@
       "pattern": "Draw pattern to confirm",
       "error": "Pattern incorrect, please try again"
     }
+  },
+  "service": {
+    "notSupported": "Not Supported",
+    "notSupportedDesc": "This chain does not support {{feature}}",
+    "notSupportedDescGeneric": "This chain does not support this feature",
+    "limited": "Service Limited",
+    "limitedDesc": "API service is temporarily unavailable. Please try again later or use block explorer.",
+    "queryFailed": "Query Failed",
+    "queryFailedDesc": "Failed to load data. Please check your network and try again.",
+    "technicalDetails": "Technical details"
   }
 }
