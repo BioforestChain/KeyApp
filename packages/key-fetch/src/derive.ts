@@ -84,8 +84,10 @@ export function derive<
             // 订阅 source，source 更新时触发 refetch
             return source.subscribe(context.params, () => {
                 context.refetch().catch((error) => {
-                    // Error is already logged by core.ts, just need to prevent unhandled rejection
-                    console.error(`[key-fetch] Error in derive refetch for ${name}:`, error)
+                    // 如果插件已处理错误（如 throttleError），跳过日志
+                    if (!(error as Error & { __errorHandled?: boolean }).__errorHandled) {
+                        console.error(`[key-fetch] Error in derive refetch for ${name}:`, error)
+                    }
                 })
             })
         },

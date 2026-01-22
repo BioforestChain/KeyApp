@@ -80,6 +80,9 @@ export interface MiddlewareContext<P extends FetchParams = FetchParams> {
   /** 解析 Request/Response body（根据 X-Superjson 头自动选择 superjson.parse 或 JSON.parse） */
   body: <T>(input: Request | Response) => Promise<T>
   parseBody: <T>(input: string, isSuperjson?: boolean) => Promise<T>
+
+  /** 标记错误已被插件处理（如 throttleError），core.ts 将跳过默认日志 */
+  errorHandled?: boolean
 }
 
 /**
@@ -99,7 +102,17 @@ export interface FetchPlugin<P extends FetchParams = FetchParams> {
    * - 可以修改 next() 返回的 response
    * - 可以不调用 next() 直接返回缓存的 response
    */
-  onFetch: FetchMiddleware<P>
+  onFetch?: FetchMiddleware<P>
+
+  /**
+   * 错误处理钩子（可选）
+   * 在 HTTP 错误抛出前调用，可用于节流、重试等
+   * @param error 即将抛出的错误
+   * @param response 原始 Response（如果有）
+   * @param context 中间件上下文
+   * @returns 返回 true 表示错误已处理，跳过默认日志
+   */
+  onError?: (error: Error, response: Response | undefined, context: MiddlewareContext<P>) => boolean
 
   /**
    * 订阅时调用（可选）

@@ -216,12 +216,12 @@
       ],
       "decimals": 6,
       "apis": [
-        { "type": "tron-rpc", "endpoint": "https://api.trongrid.io" },
         {
           "type": "tron-rpc-pro",
           "endpoint": "https://api.trongrid.io",
           "config": { "apiKeyEnv": "TRONGRID_API_KEY" }
         },
+        { "type": "tron-rpc", "endpoint": "https://api.trongrid.io" },
         { "type": "tronwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/tron" }
       ],
       "explorer": {

@@ -172,10 +172,20 @@ class KeyFetchInstanceImpl<
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '')
-      throw new Error(
+      const error = new Error(
         `[${this.name}] HTTP ${response.status}: ${response.statusText}` +
         (errorText ? `\n响应内容: ${errorText.slice(0, 200)}` : '')
       )
+
+      // 让插件有机会处理错误（如 throttleError 节流）
+      for (const plugin of this.plugins) {
+        if (plugin.onError?.(error, response, middlewareContext)) {
+          ;(error as Error & { __errorHandled?: boolean }).__errorHandled = true
+          break
+        }
+      }
+
+      throw error
     }
 
     // 使用统一的 body 函数解析中间件链返回的响应
@@ -235,8 +245,15 @@ class KeyFetchInstanceImpl<
         url,
         params: params,
         refetch: async () => {
-          const data = await this.fetch(params, { skipCache: true })
-          this.notify(cacheKey, data)
+          try {
+            const data = await this.fetch(params, { skipCache: true })
+            this.notify(cacheKey, data)
+          } catch (error) {
+            // 如果插件已处理错误（如 throttleError），静默
+            if (!(error as Error & { __errorHandled?: boolean }).__errorHandled) {
+              console.error(`[key-fetch] Error in refetch for ${this.name}:`, error)
+            }
+          }
         },
       }
 
@@ -257,7 +274,10 @@ class KeyFetchInstanceImpl<
           const data = await this.fetch(params, { skipCache: true })
           this.notify(cacheKey, data)
         } catch (error) {
-          console.error(`[key-fetch] Error refetching ${this.name}:`, error)
+          // 如果插件已处理错误（如 throttleError），跳过默认日志
+          if (!(error as Error & { __errorHandled?: boolean }).__errorHandled) {
+            console.error(`[key-fetch] Error refetching ${this.name}:`, error)
+          }
         }
       })
       cleanups.push(unsubRegistry)
@@ -269,7 +289,10 @@ class KeyFetchInstanceImpl<
         callback(data, 'initial')
       })
       .catch(error => {
-        console.error(`[key-fetch] Error fetching ${this.name}:`, error)
+        // 如果插件已处理错误（如 throttleError），跳过默认日志
+        if (!(error as Error & { __errorHandled?: boolean }).__errorHandled) {
+          console.error(`[key-fetch] Error fetching ${this.name}:`, error)
+        }
       })
 
     // 返回取消订阅函数

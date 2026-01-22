@@ -73,7 +73,12 @@ export function fallback<TOUT extends unknown, TPIN extends unknown = unknown>(
 
     // 全部失败错误处理
     const handleAllFailed = onAllFailed ?? ((errors: Error[]) => {
-        throw new AggregateError(errors, `All ${errors.length} provider(s) failed for: ${name}`)
+        const aggError = new AggregateError(errors, `All ${errors.length} provider(s) failed for: ${name}`)
+        // 如果任一子错误已被处理（如 throttleError），传递标记
+        if (errors.some(e => (e as Error & { __errorHandled?: boolean }).__errorHandled)) {
+            ;(aggError as Error & { __errorHandled?: boolean }).__errorHandled = true
+        }
+        throw aggError
     })
 
     // 如果没有 source，创建一个总是失败的实例

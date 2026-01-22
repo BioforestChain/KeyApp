@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, pathParams, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, pathParams, postBody, throttleError, errorMatchers, apiKey } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, BlockHeightOutput, TransactionOutput, TransactionsOutput, AddressParams, TxHistoryParams, TransactionParams } from './types'
 import {
@@ -21,6 +21,7 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { TronIdentityMixin } from '../tron/identity-mixin'
 import { TronTransactionMixin } from '../tron/transaction-mixin'
+import { pickApiKey, getApiKey } from './api-key-picker'
 
 // ==================== Schema 定义 ====================
 
@@ -179,6 +180,20 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
     const symbol = this.symbol
     const decimals = this.decimals
 
+    // 读取 API Key
+    const tronApiKey = getApiKey(this.config?.apiKeyEnv as string, `trongrid-${chainId}`)
+
+    // API Key 插件（TronGrid 使用 TRON-PRO-API-KEY 头）
+    const tronApiKeyPlugin = apiKey({
+      header: 'TRON-PRO-API-KEY',
+      key: tronApiKey,
+    })
+
+    // 共享的 429 错误节流插件
+    const tronThrottleError = throttleError({
+      match: errorMatchers.httpStatus(429),
+    })
+
     // 基础 API fetcher
     // 区块 API - 使用 interval 轮询
     this.#blockApi = keyFetch.create({
@@ -186,7 +201,7 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
       outputSchema: TronNowBlockSchema,
       url: `${baseUrl}/wallet/getnowblock`,
       method: 'POST',
-      use: [interval(3_000)], // Tron 3s 出块
+      use: [interval(3_000), tronApiKeyPlugin, tronThrottleError],
     })
 
     // 账户信息 - 由 blockApi 驱动
@@ -203,6 +218,8 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
             address: tronAddressToHex(params.address as string),
           }),
         }),
+        tronApiKeyPlugin,
+        tronThrottleError,
       ],
     })
 
@@ -212,7 +229,7 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
       outputSchema: TronTxListSchema,
       inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/v1/accounts/:address/transactions`,
-      use: [deps(this.#blockApi), pathParams()],
+      use: [deps(this.#blockApi), pathParams(), tronApiKeyPlugin, tronThrottleError],
     })
 
     // 派生视图
@@ -287,10 +304,13 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
       url: `${baseUrl}/wallet/gettransactionbyid`,
       method: 'POST',
 
-    }).use(deps(this.#blockApi), // 交易状态会随区块变化
+    }).use(deps(this.#blockApi),
       postBody({
         transform: (params) => ({ value: params.txHash }),
-      }),)
+      }),
+      tronApiKeyPlugin,
+      tronThrottleError,
+    )
 
     this.transaction = derive({
       name: `tron-rpc.${chainId}.transaction`,
