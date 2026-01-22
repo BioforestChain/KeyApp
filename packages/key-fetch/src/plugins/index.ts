@@ -7,7 +7,7 @@
 export { interval } from './interval'
 export { deps } from './deps'
 export { ttl } from './ttl'
-export { dedupe } from './dedupe'
+export { dedupe, DedupeThrottledError } from './dedupe'
 export { tag } from './tag'
 export { etag } from './etag'
 export { throttleError, errorMatchers } from './throttle-error'

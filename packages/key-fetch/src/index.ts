@@ -76,7 +76,7 @@ export type {
 export { interval } from './plugins/interval'
 export { deps } from './plugins/deps'
 export { ttl } from './plugins/ttl'
-export { dedupe } from './plugins/dedupe'
+export { dedupe, DedupeThrottledError } from './plugins/dedupe'
 export { tag } from './plugins/tag'
 export { etag } from './plugins/etag'
 export { throttleError, errorMatchers } from './plugins/throttle-error'

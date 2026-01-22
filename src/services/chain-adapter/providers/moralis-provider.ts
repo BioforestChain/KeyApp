@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers, searchParams, pathParams, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers, searchParams, pathParams, postBody, dedupe } from '@biochain/key-fetch'
 import type { KeyFetchInstance, FetchPlugin } from '@biochain/key-fetch'
 import { globalRegistry } from '@biochain/key-fetch'
 import type {
@@ -227,6 +227,11 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       throw new Error(`[MoralisProvider] MORALIS_API_KEY is required`)
     }
 
+    // 从配置读取轮询间隔
+    const txStatusInterval = (this.config?.txStatusInterval as number) ?? 3000
+    const balanceInterval = (this.config?.balanceInterval as number) ?? 30000
+    const erc20Interval = (this.config?.erc20Interval as number) ?? 120000
+
     // API Key Header 插件
     const moralisApiKeyPlugin: FetchPlugin = {
       name: 'moralis-api-key',
@@ -242,10 +247,12 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       },
     }
 
-    // 429 节流
+    // 429/401 节流
     const moralisThrottleError = throttleError({
       match: errorMatchers.any(
         errorMatchers.httpStatus(429),
+        errorMatchers.httpStatus(401),
+        errorMatchers.contains('usage has been consumed'),
         errorMatchers.contains('Schema 验证失败'),
       ),
     })
@@ -257,7 +264,8 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: AddressParamsSchema,
       url: `${baseUrl}/:address/balance?chain=${moralisChain}`,
       use: [
-        interval(30_000), // 节约 API 费用，至少 30s 轮询
+        dedupe({ minInterval: balanceInterval }),
+        interval(balanceInterval),
         pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
@@ -271,7 +279,7 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: AddressParamsSchema,
       url: `${baseUrl}/:address/erc20?chain=${moralisChain}`,
       use: [
-        // 移除 interval，改为依赖驱动
+        dedupe({ minInterval: erc20Interval }),
         pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
@@ -285,7 +293,8 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/wallets/:address/history`,
       use: [
-        interval(120_000), // 2分钟轮询，大幅降低 API 费用
+        dedupe({ minInterval: erc20Interval }),
+        interval(erc20Interval),
         pathParams(),
         searchParams({
           transform: (params: TxHistoryParams) => ({
@@ -457,7 +466,8 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       url: rpcUrl,
       method: 'POST',
       use: [
-        interval(3_000), // 等待上链时 3s 轮询
+        dedupe({ minInterval: txStatusInterval }),
+        interval(txStatusInterval),
         postBody({
           transform: (params: TransactionStatusParams) => ({
             jsonrpc: '2.0',

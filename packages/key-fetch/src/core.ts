@@ -78,14 +78,14 @@ class KeyFetchInstanceImpl<
   async fetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT> {
     const cacheKey = buildCacheKey(this.name, params)
 
-    // 检查进行中的请求（去重）
+    // 检查进行中的请求（基础去重）
     const pending = this.inFlight.get(cacheKey)
     if (pending) {
       return pending
     }
 
     // 发起请求（通过中间件链）
-    const task = this.doFetch((params), options)
+    const task = this.doFetch(params, options)
     this.inFlight.set(cacheKey, task)
 
     try {

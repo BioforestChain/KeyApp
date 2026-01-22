@@ -159,7 +159,12 @@
       "apis": [
         {
           "type": "moralis",
-          "endpoint": "https://deep-index.moralis.io/api/v2.2"
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 12000,
+            "balanceInterval": 36000,
+            "erc20Interval": 150000
+          }
         },
         {
           "type": "etherscan-v2",
@@ -195,7 +200,12 @@
       "apis": [
         {
           "type": "moralis",
-          "endpoint": "https://deep-index.moralis.io/api/v2.2"
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 15000,
+            "balanceInterval": 30000,
+            "erc20Interval": 120000
+          }
         },
         { "type": "bsc-rpc", "endpoint": "https://bsc-rpc.publicnode.com" },
         {
