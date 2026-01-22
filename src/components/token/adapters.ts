@@ -22,6 +22,7 @@ export function tokenBalanceToTokenInfo(token: TokenBalance, chain: string): Tok
         chain,
         icon: token.icon,
         change24h: 0, // Price change not available in TokenBalance
+        contractAddress: token.contractAddress,
     }
 }
 

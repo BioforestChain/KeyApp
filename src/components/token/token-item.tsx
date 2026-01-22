@@ -33,6 +33,8 @@ export interface TokenInfo {
   chain: ChainType;
   icon?: string | undefined;
   change24h?: number | undefined;
+  /** Contract address for ERC20/BEP20 tokens, undefined for native tokens */
+  contractAddress?: string | undefined;
 }
 
 /** Context passed to renderActions for conditional rendering */
