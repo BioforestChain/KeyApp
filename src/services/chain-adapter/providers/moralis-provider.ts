@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, throttleError, errorMatchers, searchParams, pathParams } from '@biochain/key-fetch'
 import type { KeyFetchInstance, FetchPlugin } from '@biochain/key-fetch'
 import type {
   ApiProvider,
@@ -37,14 +37,14 @@ import { getApiKey } from './api-key-picker'
 // ==================== 链 ID 映射 ====================
 
 const MORALIS_CHAIN_MAP: Record<string, string> = {
-  'eth-mainnet': 'eth',
-  'bsc-mainnet': 'bsc',
-  'polygon-mainnet': 'polygon',
-  'avalanche-mainnet': 'avalanche',
-  'fantom-mainnet': 'fantom',
-  'arbitrum-mainnet': 'arbitrum',
-  'optimism-mainnet': 'optimism',
-  'base-mainnet': 'base',
+  'ethereum': 'eth',
+  'binance': 'bsc',
+  'polygon': 'polygon',
+  'avalanche': 'avalanche',
+  'fantom': 'fantom',
+  'arbitrum': 'arbitrum',
+  'optimism': 'optimism',
+  'base': 'base',
 }
 
 // ==================== Schema 定义 ====================
@@ -215,7 +215,11 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
         const headers = new Headers(request.headers)
         headers.set('X-API-Key', apiKey)
         headers.set('accept', 'application/json')
-        return next(new Request(request.url, { ...request, headers }))
+        return next(new Request(request.url, {
+          method: request.method,
+          headers,
+          body: request.body,
+        }))
       },
     }
 
@@ -232,9 +236,10 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       name: `moralis.${chainId}.nativeBalanceApi`,
       outputSchema: NativeBalanceResponseSchema,
       inputSchema: AddressParamsSchema,
-      url: (params) => `${baseUrl}/${params.address}/balance?chain=${moralisChain}`,
+      url: `${baseUrl}/:address/balance?chain=${moralisChain}`,
       use: [
         interval(15_000),
+        pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
       ],
@@ -245,9 +250,10 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       name: `moralis.${chainId}.tokenBalancesApi`,
       outputSchema: TokenBalancesResponseSchema,
       inputSchema: AddressParamsSchema,
-      url: (params) => `${baseUrl}/${params.address}/erc20?chain=${moralisChain}`,
+      url: `${baseUrl}/:address/erc20?chain=${moralisChain}`,
       use: [
         interval(30_000), // Token 余额变化较慢
+        pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
       ],
@@ -258,9 +264,16 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       name: `moralis.${chainId}.walletHistoryApi`,
       outputSchema: WalletHistoryResponseSchema,
       inputSchema: TxHistoryParamsSchema,
-      url: (params) => `${baseUrl}/wallets/${params.address}/history?chain=${moralisChain}&limit=${params.limit ?? 20}`,
+      url: `${baseUrl}/wallets/:address/history`,
       use: [
         interval(15_000),
+        pathParams(),
+        searchParams({
+          transform: (params: TxHistoryParams) => ({
+            chain: moralisChain,
+            limit: String(params.limit ?? 20),
+          }),
+        }),
         moralisApiKeyPlugin,
         moralisThrottleError,
       ],
