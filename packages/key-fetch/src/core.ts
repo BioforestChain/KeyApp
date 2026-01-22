@@ -62,6 +62,10 @@ class KeyFetchInstanceImpl<
   private subscribers = new Map<string, Set<SubscribeCallback<TOUT>>>()
   private subscriptionCleanups = new Map<string, (() => void)[]>()
   private inFlight = new Map<string, Promise<TOUT>>()
+  
+  // Auto dedupe: time-based deduplication
+  private lastFetchTime = new Map<string, number>()
+  private lastResult = new Map<string, TOUT>()
 
   constructor(options: KeyFetchDefineOptions<TOUT, TIN>) {
     this.name = options.name
@@ -84,15 +88,66 @@ class KeyFetchInstanceImpl<
       return pending
     }
 
+    // Auto dedupe: 基于插件计算去重间隔
+    const dedupeInterval = this.calculateDedupeInterval()
+    if (dedupeInterval > 0) {
+      const lastTime = this.lastFetchTime.get(cacheKey)
+      const lastData = this.lastResult.get(cacheKey)
+      if (lastTime && lastData !== undefined) {
+        const elapsed = Date.now() - lastTime
+        if (elapsed < dedupeInterval) {
+          return lastData
+        }
+      }
+    }
+
     // 发起请求（通过中间件链）
     const task = this.doFetch(params, options)
     this.inFlight.set(cacheKey, task)
 
     try {
-      return await task
+      const result = await task
+      // Auto dedupe: 记录成功请求的时间和结果
+      if (dedupeInterval > 0) {
+        this.lastFetchTime.set(cacheKey, Date.now())
+        this.lastResult.set(cacheKey, result)
+      }
+      return result
     } finally {
       this.inFlight.delete(cacheKey)
     }
+  }
+
+  /** 基于插件计算自动去重间隔 */
+  private calculateDedupeInterval(): number {
+    let intervalMs: number | undefined
+
+    for (const plugin of this.plugins) {
+      // 检查 interval 插件
+      if ('_intervalMs' in plugin) {
+        const ms = plugin._intervalMs as number | (() => number)
+        const value = typeof ms === 'function' ? ms() : ms
+        intervalMs = intervalMs !== undefined ? Math.min(intervalMs, value) : value
+      }
+      
+      // 检查 deps 插件 - 取依赖源的最小间隔
+      if ('_sources' in plugin) {
+        const sources = plugin._sources as KeyFetchInstance[]
+        for (const source of sources) {
+          // 递归获取依赖的间隔（通过检查其插件）
+          const sourceImpl = source as unknown as KeyFetchInstanceImpl<unknown, unknown>
+          if (sourceImpl.calculateDedupeInterval) {
+            const depInterval = sourceImpl.calculateDedupeInterval()
+            if (depInterval > 0) {
+              intervalMs = intervalMs !== undefined ? Math.min(intervalMs, depInterval) : depInterval
+            }
+          }
+        }
+      }
+    }
+
+    // 返回间隔的一半作为去重窗口（确保在下次轮询前不重复请求）
+    return intervalMs !== undefined ? Math.floor(intervalMs / 2) : 0
   }
 
   private async doFetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT> {

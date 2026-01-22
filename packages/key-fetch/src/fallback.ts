@@ -151,6 +151,10 @@ function createFallbackFetcher<TOUT extends unknown, TPIN extends unknown = unkn
     handleAllFailed: (errors: Error[]) => never
 ): KeyFetchInstance<TOUT, TPIN> {
     const first = sources[0]
+    
+    // Cooldown: 记录失败源及其冷却结束时间
+    const COOLDOWN_MS = 60_000 // 60秒冷却
+    const failedSources = new Map<KeyFetchInstance<TOUT, TPIN>, number>()
 
     const merged: KeyFetchInstance<TOUT, TPIN> = {
         name,
@@ -161,12 +165,24 @@ function createFallbackFetcher<TOUT extends unknown, TPIN extends unknown = unkn
 
         async fetch(params: TPIN, options?: { skipCache?: boolean }): Promise<TOUT> {
             const errors: Error[] = []
+            const now = Date.now()
 
             for (const source of sources) {
+                // 检查是否在冷却期
+                const cooldownEnd = failedSources.get(source)
+                if (cooldownEnd && now < cooldownEnd) {
+                    continue // 跳过冷却中的源
+                }
+                
                 try {
-                    return await source.fetch(params, options)
+                    const result = await source.fetch(params, options)
+                    // 成功后清除冷却
+                    failedSources.delete(source)
+                    return result
                 } catch (error) {
                     errors.push(error instanceof Error ? error : new Error(String(error)))
+                    // 失败后进入冷却期
+                    failedSources.set(source, now + COOLDOWN_MS)
                 }
             }
 

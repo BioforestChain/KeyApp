@@ -11,6 +11,12 @@ export interface IntervalOptions {
   ms: number | (() => number)
 }
 
+/** Interval 插件扩展接口 */
+export interface IntervalPlugin extends FetchPlugin {
+  /** 暴露间隔时间供 core 读取（用于自动 dedupe 计算） */
+  _intervalMs: number | (() => number)
+}
+
 /**
  * 定时轮询插件
  * 
@@ -27,7 +33,7 @@ export interface IntervalOptions {
  * use: [interval(() => getForgeInterval())]
  * ```
  */
-export function interval(ms: number | (() => number)): FetchPlugin {
+export function interval(ms: number | (() => number)): IntervalPlugin {
   // 每个参数组合独立的轮询状态
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
   const active = new Map<string, boolean>()
@@ -39,6 +45,9 @@ export function interval(ms: number | (() => number)): FetchPlugin {
 
   return {
     name: 'interval',
+    
+    // 暴露间隔时间供 core 读取
+    _intervalMs: ms,
 
     // 透传请求（不修改）
     async onFetch(request, next) {

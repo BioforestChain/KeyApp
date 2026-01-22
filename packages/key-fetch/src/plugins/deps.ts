@@ -36,6 +36,12 @@ function normalizeDepInput<TParams extends FetchParams>(input: DepInput<TParams>
   return { source: input as KeyFetchInstance }
 }
 
+/** Deps 插件扩展接口 */
+export interface DepsPlugin<TParams extends FetchParams = FetchParams> extends FetchPlugin<TParams> {
+  /** 暴露依赖源供 core 读取（用于自动 dedupe 计算） */
+  _sources: KeyFetchInstance[]
+}
+
 /**
  * 依赖插件
  * 
@@ -65,7 +71,7 @@ function normalizeDepInput<TParams extends FetchParams>(input: DepInput<TParams>
  */
 export function deps<TParams extends FetchParams = FetchParams>(
   ...args: DepInput<TParams>[] | [DepInput<TParams>[]]
-): FetchPlugin<TParams> {
+): DepsPlugin<TParams> {
   // 支持 deps(a, b, c) 和 deps([a, b, c]) 两种调用方式
   const inputs: DepInput<TParams>[] = args.length === 1 && Array.isArray(args[0])
     ? args[0]
@@ -81,6 +87,9 @@ export function deps<TParams extends FetchParams = FetchParams>(
 
   return {
     name: 'deps',
+    
+    // 暴露依赖源供 core 读取
+    _sources: depConfigs.map(d => d.source),
 
     // onFetch: 注册依赖关系（用于 registry 追踪）
     async onFetch(request, next, context) {
