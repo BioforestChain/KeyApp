@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, combine, postBody } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, combine, postBody, throttleError, errorMatchers } from '@biochain/key-fetch'
 import type { KeyFetchInstance } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, BalanceOutput, BlockHeightOutput, TransactionOutput, AddressParams, TransactionParams } from './types'
 import { BalanceOutputSchema, BlockHeightOutputSchema, TransactionOutputSchema, AddressParamsSchema, TransactionParamsSchema } from './types'
@@ -89,6 +89,11 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
 
     const { endpoint: rpc, symbol, decimals } = this
 
+    // 共享 429 节流
+    const evmThrottleError = throttleError({
+      match: errorMatchers.httpStatus(429),
+    })
+
     // 区块高度 RPC - 使用 interval 轮询
     this.#blockRpc = keyFetch.create({
       name: `evm-rpc.${chainId}.blockRpc`,
@@ -105,6 +110,7 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [],
           }),
         }),
+        evmThrottleError,
       ],
     })
 
@@ -125,6 +131,7 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [params.address, 'latest'],
           }),
         }),
+        evmThrottleError,
       ],
     })
 
@@ -145,6 +152,7 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [params.txHash],
           }),
         }),
+        evmThrottleError,
       ],
     })
 
@@ -165,6 +173,7 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
             params: [params.txHash],
           }),
         }),
+        evmThrottleError,
       ],
     })
 

@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod'
-import { keyFetch, interval, deps, derive, transform, searchParams } from '@biochain/key-fetch'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
+import { keyFetch, interval, deps, derive, transform, searchParams, throttleError, errorMatchers } from '@biochain/key-fetch'
+import type { KeyFetchInstance, FetchPlugin } from '@biochain/key-fetch'
 import type { ApiProvider, Balance, Transaction, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from './types'
 import {
   BalanceOutputSchema,
@@ -19,6 +19,7 @@ import { chainConfigService } from '@/services/chain-config'
 import { Amount } from '@/types/amount'
 import { EvmIdentityMixin } from '../evm/identity-mixin'
 import { EvmTransactionMixin } from '../evm/transaction-mixin'
+import { getApiKey } from './api-key-picker'
 
 // ==================== Schema 定义 ====================
 
@@ -100,6 +101,27 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
     const symbol = this.symbol
     const decimals = this.decimals
 
+    // 读取 API Key
+    const etherscanApiKey = getApiKey(this.config?.apiKeyEnv as string, `etherscan-${chainId}`)
+
+    // API Key 插件（Etherscan 使用 apikey 查询参数）
+    const etherscanApiKeyPlugin: FetchPlugin = {
+      name: 'etherscan-api-key',
+      onFetch: async (request, next) => {
+        if (etherscanApiKey) {
+          const url = new URL(request.url)
+          url.searchParams.set('apikey', etherscanApiKey)
+          return next(new Request(url.toString(), request))
+        }
+        return next(request)
+      },
+    }
+
+    // 共享 429 节流
+    const etherscanThrottleError = throttleError({
+      match: errorMatchers.httpStatus(429),
+    })
+
     // 区块高度 API - 使用 Etherscan 的 proxy 模块
     const blockHeightApi = keyFetch.create({
       name: `etherscan.${chainId}.blockHeight`,
@@ -113,6 +135,8 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
             action: 'eth_blockNumber',
           }),
         }),
+        etherscanApiKeyPlugin,
+        etherscanThrottleError,
       ],
     })
 
@@ -132,6 +156,8 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
             tag: 'latest',
           })),
         }),
+        etherscanApiKeyPlugin,
+        etherscanThrottleError,
       ],
     })
 
@@ -153,6 +179,8 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
             sort: 'desc',
           })),
         }),
+        etherscanApiKeyPlugin,
+        etherscanThrottleError,
       ],
     })
 
