@@ -323,7 +323,7 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       source: this.#tokenBalancesApi,
       outputSchema: TokenBalancesOutputSchema,
       use: [
-        deps(this.#nativeBalanceApi), // 依赖原生余额
+        deps([{ source: this.#nativeBalanceApi, params: ctx => ctx.params }]), // 依赖原生余额，传递 address 参数
         transform<TokenBalanceItem[], TokenBalance[]>({
           transform: (tokens, ctx) => {
             const result: TokenBalance[] = []
