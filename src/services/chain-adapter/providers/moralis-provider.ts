@@ -238,7 +238,7 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: AddressParamsSchema,
       url: `${baseUrl}/:address/balance?chain=${moralisChain}`,
       use: [
-        interval(15_000),
+        interval(30_000), // 节约 API 费用，至少 30s 轮询
         pathParams(),
         moralisApiKeyPlugin,
         moralisThrottleError,
@@ -266,7 +266,7 @@ export class MoralisProvider extends EvmIdentityMixin(EvmTransactionMixin(Morali
       inputSchema: TxHistoryParamsSchema,
       url: `${baseUrl}/wallets/:address/history`,
       use: [
-        interval(15_000),
+        interval(30_000), // 节约 API 费用，至少 30s 轮询
         pathParams(),
         searchParams({
           transform: (params: TxHistoryParams) => ({

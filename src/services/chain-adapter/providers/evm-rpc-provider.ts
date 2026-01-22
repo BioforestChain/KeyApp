@@ -101,7 +101,7 @@ export class EvmRpcProvider extends EvmIdentityMixin(EvmTransactionMixin(EvmRpcB
       url: rpc,
       method: 'POST',
       use: [
-        interval(12_000), // EVM 链约 12-15s 出块
+        interval(30_000), // 节约 API 费用，至少 30s 轮询
         postBody({
           transform: () => ({
             jsonrpc: '2.0',

@@ -136,7 +136,7 @@ export class EtherscanV2Provider extends EvmIdentityMixin(EvmTransactionMixin(Et
       outputSchema: JsonRpcResponseSchema,
       url: `${baseUrl}`,
       use: [
-        interval(12_000), // EVM 链约 12s 出块
+        interval(30_000), // 节约 API 费用，至少 30s 轮询
         searchParams({
           transform: () => ({
             chainid: evmChainId.toString(),

@@ -72,7 +72,7 @@ export class BscWalletProvider extends EvmIdentityMixin(EvmTransactionMixin(BscW
       outputSchema: z.object({ timestamp: z.number() }),
       url: 'internal://trigger',
       use: [
-        interval(3_000), // BSC 约 3s 出块
+        interval(30_000), // 节约 API 费用，至少 30s 轮询
         {
           name: 'trigger',
           onFetch: async (_req, _next, ctx) => {

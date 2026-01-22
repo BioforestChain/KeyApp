@@ -201,7 +201,7 @@ export class TronRpcProvider extends TronIdentityMixin(TronTransactionMixin(Tron
       outputSchema: TronNowBlockSchema,
       url: `${baseUrl}/wallet/getnowblock`,
       method: 'POST',
-      use: [interval(3_000), tronApiKeyPlugin, tronThrottleError],
+      use: [interval(30_000), tronApiKeyPlugin, tronThrottleError], // 节约 API 费用，至少 30s 轮询
     })
 
     // 账户信息 - 由 blockApi 驱动
