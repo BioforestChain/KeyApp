@@ -1,7 +1,8 @@
 /**
- * Etherscan API Provider
+ * Etherscan V1 API Provider
  * 
  * 使用 Mixin 继承模式组合 Identity 和 Transaction 能力
+ * V1 API 作为 V2 的兜底方案
  */
 
 import { z } from 'zod'
@@ -81,7 +82,7 @@ class EtherscanBase {
 
 // ==================== Provider 实现 (使用 Mixin 继承) ====================
 
-export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(EtherscanBase)) implements ApiProvider {
+export class EtherscanV1Provider extends EvmIdentityMixin(EvmTransactionMixin(EtherscanBase)) implements ApiProvider {
   private readonly symbol: string
   private readonly decimals: number
 
@@ -241,9 +242,9 @@ export class EtherscanProvider extends EvmIdentityMixin(EvmTransactionMixin(Ethe
   }
 }
 
-export function createEtherscanProvider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
-  if (entry.type.includes('etherscan') || entry.type.includes('blockscout') || entry.type.includes('scan')) {
-    return new EtherscanProvider(entry, chainId)
+export function createEtherscanV1Provider(entry: ParsedApiEntry, chainId: string): ApiProvider | null {
+  if (entry.type === 'etherscan-v1' || entry.type.includes('blockscout')) {
+    return new EtherscanV1Provider(entry, chainId)
   }
   return null
 }

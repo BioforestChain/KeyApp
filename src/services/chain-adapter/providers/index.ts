@@ -12,7 +12,8 @@ export { InvalidDataError } from './errors';
 
 // 导出所有 Provider 实现
 export { ChainProvider } from './chain-provider';
-export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider';
+export { EtherscanV1Provider, createEtherscanV1Provider } from './etherscan-v1-provider';
+export { EtherscanV2Provider, createEtherscanV2Provider } from './etherscan-v2-provider';
 export { EvmRpcProvider, createEvmRpcProvider } from './evm-rpc-provider';
 export { BiowalletProvider, createBiowalletProvider } from './biowallet-provider';
 export { BscWalletProvider, createBscWalletProvider } from './bscwallet-provider';
@@ -28,7 +29,8 @@ import type { ParsedApiEntry } from '@/services/chain-config';
 import { chainConfigService } from '@/services/chain-config';
 import { ChainProvider } from './chain-provider';
 
-import { createEtherscanProvider } from './etherscan-provider';
+import { createEtherscanV1Provider } from './etherscan-v1-provider';
+import { createEtherscanV2Provider } from './etherscan-v2-provider';
 import { createEvmRpcProvider } from './evm-rpc-provider';
 import { createBiowalletProvider } from './biowallet-provider';
 import { createBscWalletProvider } from './bscwallet-provider';
@@ -42,7 +44,8 @@ import { createBtcwalletProvider } from './btcwallet-provider';
 const PROVIDER_FACTORIES: ApiProviderFactory[] = [
   createBiowalletProvider,
   createBscWalletProvider,
-  createEtherscanProvider,
+  createEtherscanV2Provider,
+  createEtherscanV1Provider,
   createEvmRpcProvider,
   createTronRpcProvider,
   createMempoolProvider,

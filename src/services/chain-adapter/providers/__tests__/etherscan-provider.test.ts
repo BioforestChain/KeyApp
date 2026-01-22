@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { EtherscanProvider, createEtherscanProvider } from '../etherscan-provider'
+import { EtherscanV1Provider, createEtherscanV1Provider } from '../etherscan-v1-provider'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import { keyFetch } from '@biochain/key-fetch'
 
@@ -45,7 +45,7 @@ function createMockResponse<T>(data: T, ok = true, status = 200): Response {
   })
 }
 
-describe('EtherscanProvider', () => {
+describe('EtherscanV1Provider', () => {
   const mockEntry: ParsedApiEntry = {
     type: 'blockscout-eth',
     endpoint: 'https://eth.blockscout.com/api',
@@ -56,19 +56,23 @@ describe('EtherscanProvider', () => {
     keyFetch.clear()
   })
 
-  describe('createEtherscanProvider', () => {
-    it('creates provider for etherscan-* type', () => {
-      const provider = createEtherscanProvider(mockEntry, 'ethereum')
-      expect(provider).toBeInstanceOf(EtherscanProvider)
+  describe('createEtherscanV1Provider', () => {
+    it('creates provider for etherscan-v1 type', () => {
+      const entry: ParsedApiEntry = {
+        type: 'etherscan-v1',
+        endpoint: 'https://api.etherscan.io/api',
+      }
+      const provider = createEtherscanV1Provider(entry, 'ethereum')
+      expect(provider).toBeInstanceOf(EtherscanV1Provider)
     })
 
-    it('creates provider for *scan-* type', () => {
-      const bscEntry: ParsedApiEntry = {
-        type: 'bscscan-v1',
-        endpoint: 'https://api.bscscan.com/api',
+    it('creates provider for blockscout-v1 type', () => {
+      const blockscoutEntry: ParsedApiEntry = {
+        type: 'blockscout-v1',
+        endpoint: 'https://eth.blockscout.com/api',
       }
-      const provider = createEtherscanProvider(bscEntry, 'binance')
-      expect(provider).toBeInstanceOf(EtherscanProvider)
+      const provider = createEtherscanV1Provider(blockscoutEntry, 'ethereum')
+      expect(provider).toBeInstanceOf(EtherscanV1Provider)
     })
 
     it('returns null for non-scan type', () => {
@@ -76,7 +80,7 @@ describe('EtherscanProvider', () => {
         type: 'ethereum-rpc',
         endpoint: 'https://rpc.example.com',
       }
-      const provider = createEtherscanProvider(rpcEntry, 'ethereum')
+      const provider = createEtherscanV1Provider(rpcEntry, 'ethereum')
       expect(provider).toBeNull()
     })
   })
@@ -101,7 +105,7 @@ describe('EtherscanProvider', () => {
         return createMockResponse(balanceResponse)
       })
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const provider = new EtherscanV1Provider(mockEntry, 'ethereum')
       const balance = await provider.nativeBalance.fetch({ address: '0x1234' })
 
       expect(mockFetch).toHaveBeenCalled()
@@ -126,7 +130,7 @@ describe('EtherscanProvider', () => {
         return createMockResponse({ status: '1', message: 'OK', result: [] })
       })
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const provider = new EtherscanV1Provider(mockEntry, 'ethereum')
       const txs = await provider.transactionHistory.fetch({ address: receiver })
 
       expect(txs).toHaveLength(1)
@@ -161,7 +165,7 @@ describe('EtherscanProvider', () => {
         return createMockResponse(txListResponse)
       })
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const provider = new EtherscanV1Provider(mockEntry, 'ethereum')
       await provider.transactionHistory.fetch({ address: '0xTestLimit', limit: 10 })
 
       expect(mockFetch).toHaveBeenCalled()
@@ -183,7 +187,7 @@ describe('EtherscanProvider', () => {
         return createMockResponse(txListResponse)
       })
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const provider = new EtherscanV1Provider(mockEntry, 'ethereum')
       await provider.transactionHistory.fetch({ address: '0xDefaultLimit' })
 
       expect(mockFetch).toHaveBeenCalled()
@@ -227,7 +231,7 @@ describe('EtherscanProvider', () => {
 
       mockFetch.mockResolvedValue(createMockResponse(txListResponse))
 
-      const provider = new EtherscanProvider(mockEntry, 'ethereum')
+      const provider = new EtherscanV1Provider(mockEntry, 'ethereum')
       const txs = await provider.transactionHistory.fetch(
         { address: testAddress },
         { skipCache: true }
