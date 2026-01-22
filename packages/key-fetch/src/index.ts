@@ -103,6 +103,10 @@ export type { FallbackOptions as MergeOptions } from './fallback'
 
 export { ServiceLimitedError } from './errors'
 
+// ==================== 导出 Registry ====================
+
+export { globalRegistry } from './registry'
+
 // ==================== 导出 Combine 工具 ====================
 
 export { combine } from './combine'
