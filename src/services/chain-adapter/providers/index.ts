@@ -22,6 +22,7 @@ export { MempoolProvider, createMempoolProvider } from './mempool-provider';
 export { EthWalletProvider, createEthwalletProvider } from './ethwallet-provider';
 export { TronWalletProvider, createTronwalletProvider } from './tronwallet-provider';
 export { BtcWalletProvider, createBtcwalletProvider } from './btcwallet-provider';
+export { MoralisProvider, createMoralisProvider } from './moralis-provider';
 
 // 工厂函数
 import type { ApiProvider, ApiProviderFactory } from './types';
@@ -39,9 +40,11 @@ import { createMempoolProvider } from './mempool-provider';
 import { createEthwalletProvider } from './ethwallet-provider';
 import { createTronwalletProvider } from './tronwallet-provider';
 import { createBtcwalletProvider } from './btcwallet-provider';
+import { createMoralisProvider } from './moralis-provider';
 
 /** 所有 Provider 工厂函数 */
 const PROVIDER_FACTORIES: ApiProviderFactory[] = [
+  createMoralisProvider,  // Moralis 优先（支持 tokenBalances）
   createBiowalletProvider,
   createBscWalletProvider,
   createEtherscanV2Provider,

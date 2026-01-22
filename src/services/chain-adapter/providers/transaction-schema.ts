@@ -151,6 +151,11 @@ export const TransactionSchema = z.object({
   
   // 合约信息 (合约调用时，可选)
   contract: ContractInfoSchema.optional(),
+  
+  // 扩展信息 (来自 Moralis 等高级 API)
+  fromEntity: z.string().optional(),  // 如 "Binance"
+  toEntity: z.string().optional(),
+  summary: z.string().optional(),     // 如 "Received 0.1 ETH from Binance"
 })
 
 // ==================== 类型导出 ====================

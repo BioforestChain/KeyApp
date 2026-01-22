@@ -160,6 +160,10 @@
       "decimals": 18,
       "apis": [
         {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2"
+        },
+        {
           "type": "etherscan-v2",
           "endpoint": "https://api.etherscan.io/v2/api",
           "config": { "apiKeyEnv": "ETHERSCAN_API_KEY", "evmChainId": 1 }
@@ -193,6 +197,10 @@
       ],
       "decimals": 18,
       "apis": [
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2"
+        },
         { "type": "bsc-rpc", "endpoint": "https://bsc-rpc.publicnode.com" },
         {
           "type": "etherscan-v2",

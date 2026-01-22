@@ -100,6 +100,18 @@ export interface Balance {
   symbol: string
 }
 
+/** 代币扩展元数据（来自 Moralis 等高级 API） */
+export interface TokenMetadata {
+  /** 是否为垃圾代币 */
+  possibleSpam?: boolean
+  /** 安全评分 (0-100) */
+  securityScore?: number | null
+  /** 是否已验证合约 */
+  verified?: boolean
+  /** 总供应量 */
+  totalSupply?: string
+}
+
 /** 代币余额（含 native + 所有资产）
  * 
  * 继承自老代码 Token 类型的核心字段：
@@ -119,6 +131,8 @@ export interface TokenBalance {
   icon?: string
   /** 合约地址（ERC20/TRC20 等）*/
   contractAddress?: string
+  /** 扩展元数据（来自 Moralis 等高级 API）*/
+  metadata?: TokenMetadata
 }
 
 // ==================== 从 ../types 统一导入交易相关类型 ====================
@@ -155,6 +169,14 @@ export const BalanceOutputSchema = z.object({
 })
 export type BalanceOutput = z.infer<typeof BalanceOutputSchema>
 
+/** TokenMetadata 的 Zod Schema */
+const TokenMetadataSchema = z.object({
+  possibleSpam: z.boolean().optional(),
+  securityScore: z.number().nullable().optional(),
+  verified: z.boolean().optional(),
+  totalSupply: z.string().optional(),
+})
+
 /** 代币余额列表输出 Schema - ApiProvider 契约 */
 export const TokenBalancesOutputSchema = z.array(z.object({
   symbol: z.string(),
@@ -164,6 +186,7 @@ export const TokenBalancesOutputSchema = z.array(z.object({
   decimals: z.number(),
   icon: z.string().optional(),
   contractAddress: z.string().optional(),
+  metadata: TokenMetadataSchema.optional(),
 }))
 export type TokenBalancesOutput = z.infer<typeof TokenBalancesOutputSchema>
 
