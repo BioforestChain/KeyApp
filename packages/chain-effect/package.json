@@ -35,7 +35,8 @@
     "oxlint": "^1.32.0",
     "react": "^19.0.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "vite-plugin-dts": "^4.5.4"
   },
   "keywords": [
     "biochain",

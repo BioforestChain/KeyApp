@@ -10369,6 +10369,7 @@
             "npm:react@19",
             "npm:superjson@^2.2.6",
             "npm:typescript@^5.9.3",
+            "npm:vite-plugin-dts@^4.5.4",
             "npm:vitest@4"
           ]
         }
