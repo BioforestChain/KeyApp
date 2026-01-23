@@ -2,7 +2,7 @@
   "name": "@biochain/miniapp-biobridge",
   "private": true,
   "version": "1.0.0",
-  "description": "跨链通 - BioBridge 跨链资产桥接，支持充值和赎回",
+  "description": "跨链通 - BioBridge 跨链资产桥接，支持锻造和赎回",
   "type": "module",
   "scripts": {
     "dev": "vite",
