@@ -13,6 +13,8 @@ import { getChainProvider } from '@/services/chain-adapter/providers';
 import { getWalletEventBus } from '@/services/chain-adapter/wallet-event-bus';
 import { defineServiceMeta } from '@/lib/service-meta';
 import { SignedTransactionSchema } from '@/services/chain-adapter/types';
+import { chainConfigService, type ChainConfig, type ChainKind } from '@/services/chain-config';
+import { getForgeInterval } from '@/services/chain-adapter/bioforest/fetch';
 
 // ==================== Schema ====================
 
@@ -486,11 +488,69 @@ export const pendingTxService = new PendingTxServiceImpl();
 
 // 缓存已创建的 Effect 数据源实例
 const pendingTxSources = new Map<string, DataSource<PendingTx[]>>();
-const PENDING_TX_POLL_INTERVAL = Duration.seconds(30);
+const MIN_PENDING_TX_POLL_MS = 15_000;
+
+type ChainConfigWithBlockTime = ChainConfig & {
+  // 约定：blockTime/blockTimeSeconds 为秒，blockTimeMs 为毫秒
+  blockTime?: number;
+  blockTimeSeconds?: number;
+  blockTimeMs?: number;
+};
+
+function getDefaultBlockTimeMs(chainKind: ChainKind): number {
+  switch (chainKind) {
+    case 'evm':
+      return 12_000;
+    case 'tron':
+      return 3_000;
+    case 'bitcoin':
+      return 600_000;
+    case 'bioforest':
+      return MIN_PENDING_TX_POLL_MS;
+    default:
+      return MIN_PENDING_TX_POLL_MS;
+  }
+}
+
+function resolveGenesisBlockTimeMs(chainId: string): number {
+  const config = chainConfigService.getConfig(chainId);
+  if (!config) return MIN_PENDING_TX_POLL_MS;
+
+  if (config.chainKind === 'bioforest') {
+    return getForgeInterval(chainId);
+  }
+
+  const configWithBlockTime = config as ChainConfigWithBlockTime;
+  if (typeof configWithBlockTime.blockTimeMs === 'number' && configWithBlockTime.blockTimeMs > 0) {
+    return configWithBlockTime.blockTimeMs;
+  }
+  if (typeof configWithBlockTime.blockTimeSeconds === 'number' && configWithBlockTime.blockTimeSeconds > 0) {
+    return configWithBlockTime.blockTimeSeconds * 1000;
+  }
+  if (typeof configWithBlockTime.blockTime === 'number' && configWithBlockTime.blockTime > 0) {
+    return configWithBlockTime.blockTime * 1000;
+  }
+
+  return getDefaultBlockTimeMs(config.chainKind);
+}
+
+function getPendingTxPollInterval(chainId: string): Duration.Duration {
+  const chainKind = chainConfigService.getConfig(chainId)?.chainKind;
+  const genesisMs = Math.max(1, resolveGenesisBlockTimeMs(chainId));
+
+  if (chainKind === 'bioforest') {
+    // BioChain: pending 轮询频率为创世块时间的 1/2
+    return Duration.millis(Math.max(1, Math.floor(genesisMs / 2)));
+  }
+
+  // 其它链：>=15s 且为创世块时间的整数倍
+  const multiple = Math.max(1, Math.ceil(MIN_PENDING_TX_POLL_MS / genesisMs));
+  return Duration.millis(genesisMs * multiple);
+}
 
 /**
  * 获取 pending tx 的 Effect 数据源
- * 依赖 blockHeight 变化自动刷新
+ * 独立轮询 + 确认事件触发 txHistory 刷新
  */
 export function getPendingTxSource(
   chainId: string,
@@ -506,9 +566,11 @@ export function getPendingTxSource(
   const chainProvider = getChainProvider(chainId);
 
   // 使用独立轮询（频率不同于出块）
+  const interval = getPendingTxPollInterval(chainId);
+
   return createPollingSource({
     name: `pendingTx.${chainId}.${walletId}`,
-    interval: PENDING_TX_POLL_INTERVAL,
+    interval,
     fetch: () =>
       Effect.tryPromise({
         try: async () => {

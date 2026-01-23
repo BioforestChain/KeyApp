@@ -2,7 +2,7 @@
  * 链配置 Zod Schema
  *
  * 设计原则：分离链属性与提供商配置
- * - 链属性：id, chainKind, name, symbol, prefix, decimals（链的固有属性）
+ * - 链属性：id, chainKind, name, symbol, prefix, decimals, blockTime（链的固有属性）
  * - 提供商配置：apis, explorer（外部依赖，可替换）
  *
  * 说明：
@@ -71,6 +71,8 @@ export const ChainConfigSchema = z
 
     prefix: z.string().min(1).max(10).optional(), // BioForest 特有
     decimals: z.number().int().min(0).max(18),
+    /** 平均出块时间（秒），用于轮询调度 */
+    blockTime: z.number().positive().optional(),
 
     // ===== 提供商配置（外部依赖） =====
     apis: ApiProvidersSchema.optional(),
@@ -100,4 +102,3 @@ export const ChainConfigSubscriptionSchema = z
     etag: z.string().optional(),
   })
   .strict()
-
