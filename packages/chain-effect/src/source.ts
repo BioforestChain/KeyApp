@@ -235,7 +235,10 @@ export const createDependentSource = <TDep, T>(
     const currentDep = yield* SubscriptionRef.get(dependsOn)
     if (currentDep !== null && hasChanged(null, currentDep)) {
       prevDep = currentDep
-      const initialValue = yield* Effect.catchAll(fetch(currentDep), () => Effect.succeed(null as T | null))
+      const initialValue = yield* Effect.catchAll(fetch(currentDep), (error) => {
+        console.error(`[DependentSource] Initial fetch error for ${name}:`, error)
+        return Effect.succeed(null as T | null)
+      })
       if (initialValue !== null) {
         yield* SubscriptionRef.set(ref, initialValue)
       }

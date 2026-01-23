@@ -118,9 +118,10 @@ async function createSourceInternal<T>(
       // 开始轮询循环
       yield* Stream.repeatEffect(
         Effect.gen(function* () {
-          const result = yield* Effect.catchAll(options.fetch, () => 
-            Effect.succeed(null as T | null)
-          )
+          const result = yield* Effect.catchAll(options.fetch, (error) => {
+            console.error(`[SourceRegistry] Poll error for ${pollKey}:`, error)
+            return Effect.succeed(null as T | null)
+          })
           
           if (result !== null) {
             yield* SubscriptionRef.set(ref, result)
@@ -138,9 +139,10 @@ async function createSourceInternal<T>(
     const pollFiber = yield* Effect.fork(pollEffect)
     
     // 执行立即获取
-    const immediateResult = yield* Effect.catchAll(options.fetch, () => 
-      Effect.succeed(null as T | null)
-    )
+    const immediateResult = yield* Effect.catchAll(options.fetch, (error) => {
+      console.error(`[SourceRegistry] Immediate fetch error for ${key}:`, error)
+      return Effect.succeed(null as T | null)
+    })
     if (immediateResult !== null) {
       yield* SubscriptionRef.set(ref, immediateResult)
       yield* updateNextPollTime(pollKey, intervalMs)

@@ -275,9 +275,14 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
           return cached.value.data;
         }
         console.log(`[httpFetchCached] CACHE-FIRST MISS: ${options.url}`);
-        const result = await Effect.runPromise(httpFetch(fetchOptions));
-        await Effect.runPromise(putToCache(options.url, options.body, result));
-        return result;
+        try {
+          const result = await Effect.runPromise(httpFetch(fetchOptions));
+          await Effect.runPromise(putToCache(options.url, options.body, result));
+          return result;
+        } catch (error) {
+          console.error(`[httpFetchCached] CACHE-FIRST FETCH ERROR: ${options.url}`, error);
+          throw error;
+        }
       }
 
       if (cacheStrategy === 'network-first') {
@@ -288,6 +293,7 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
           await Effect.runPromise(putToCache(options.url, options.body, result));
           return result;
         } catch (error) {
+          console.error(`[httpFetchCached] NETWORK-FIRST FETCH ERROR: ${options.url}`, error);
           if (Option.isSome(cached)) {
             console.log(`[httpFetchCached] NETWORK-FIRST FALLBACK: ${options.url}`);
             return cached.value.data;
@@ -308,9 +314,14 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
         console.log(`[httpFetchCached] TTL MISS: ${options.url}`);
       }
 
-      const result = await Effect.runPromise(httpFetch(fetchOptions));
-      await Effect.runPromise(putToCache(options.url, options.body, result));
-      return result;
+      try {
+        const result = await Effect.runPromise(httpFetch(fetchOptions));
+        await Effect.runPromise(putToCache(options.url, options.body, result));
+        return result;
+      } catch (error) {
+        console.error(`[httpFetchCached] TTL FETCH ERROR: ${options.url}`, error);
+        throw error;
+      }
     } finally {
       pendingRequests.delete(cacheKey);
     }
