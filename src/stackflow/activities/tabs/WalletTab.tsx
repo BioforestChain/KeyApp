@@ -12,7 +12,7 @@ import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { pendingTxToTransactionInfo } from "@/services/transaction/convert";
 import { ChainProviderGate, useChainProvider } from "@/contexts";
-import keyFetch from "@biochain/key-fetch";
+import { superjson } from "@biochain/chain-effect";
 import { useServiceStatus } from "@/hooks/use-service-status";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
@@ -123,7 +123,7 @@ function WalletTabContent({
       if (tx.id) {
         // 从原始数据中找到对应的交易（通过 hash 匹配）
         const originalTx = txResult?.find(t => t.hash === tx.hash);
-        const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+        const txData = originalTx ? superjson.stringify(originalTx) : undefined;
         push("TransactionDetailActivity", { txId: tx.id, txData });
       }
     },

@@ -1616,6 +1616,15 @@ at KeyFetchInstanceImpl.doFetch (core.ts:119:13)
 - /Users/kzf/.factory/specs/2026-01-22-moralis-provider.md
 - /Users/kzf/.factory/specs/2026-01-22-moralis-provider-1.md
 - /Users/kzf/.factory/specs/2026-01-22-tokeniconcontract-ui.md
+- /Users/kzf/.factory/specs/2026-01-22-moralis-provider-2.md
+- /Users/kzf/.factory/specs/2026-01-22-enhanced-dedupe-plugin-with-time-window.md
+- /Users/kzf/.factory/specs/2026-01-22-auto-dedupe-fallback-cooldown.md
+- /Users/kzf/.factory/specs/2026-01-22-key-fetch-v2-core-refactoring-final.md
+- /Users/kzf/.factory/specs/2026-01-22-key-fetch-v2.md
+- /Users/kzf/.factory/specs/2026-01-23-key-fetch-rxjs-vs-effect-ts.md
+- /Users/kzf/.factory/specs/2026-01-23-effect-ts-throttle-dedupe.md
+- /Users/kzf/.factory/specs/2026-01-23-effect-subscriptionref-stream-changes.md
+- /Users/kzf/.factory/specs/2026-01-23-eventbus-service.md
 
 review 的具体方向：
 

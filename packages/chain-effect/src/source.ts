@@ -104,7 +104,7 @@ export const createPollingSource = <T>(
   options: PollingSourceOptions<T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { name, fetch, interval, events, walletEvents, immediate = true } = options
+    const { fetch, interval, events, walletEvents, immediate = true } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     
@@ -200,7 +200,7 @@ export const createDependentSource = <TDep, T>(
   options: DependentSourceOptions<TDep, T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { name, dependsOn, hasChanged, fetch } = options
+    const { dependsOn, hasChanged, fetch } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     let prevDep: TDep | null = null
@@ -279,7 +279,7 @@ export const createHybridSource = <TDep, T>(
   options: HybridSourceOptions<TDep, T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { name, dependsOn, interval, events, fetch } = options
+    const { dependsOn, interval, events, fetch } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     let prevDep: TDep | null = null

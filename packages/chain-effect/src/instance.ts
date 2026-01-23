@@ -4,7 +4,7 @@
  * 将 Effect 的 SubscriptionRef 桥接到 React Hook
  */
 
-import { Effect, SubscriptionRef, Stream, Fiber } from "effect"
+import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
 
@@ -169,7 +169,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         let isCancelled = false
         const unsubscribe = instanceRef.current.subscribe(
           inputRef.current,
-          (newData: TOutput, event: "initial" | "update") => {
+          (newData: TOutput, _event: "initial" | "update") => {
             if (isCancelled) return
             setData(newData)
             setIsLoading(false)
@@ -189,7 +189,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
 
     invalidate(): void {
       // 停止所有 sources，下次订阅时会重新创建
-      for (const [key, cached] of sources) {
+      for (const [_key, cached] of sources) {
         Effect.runFork(cached.source.stop)
       }
       sources.clear()

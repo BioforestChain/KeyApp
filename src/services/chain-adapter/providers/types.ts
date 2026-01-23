@@ -13,22 +13,8 @@
 
 import { Amount, type AmountJSON } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
-import { keyFetch } from '@biochain/key-fetch'
+import type { StreamInstance } from '@biochain/chain-effect'
 import { z } from 'zod'
-
-// ==================== 注册 Amount 类型序列化 ====================
-// 使用 superjson 的 registerCustom 使 Amount 对象能正确序列化/反序列化
-// 注：Amount 使用 private constructor，所以用 registerCustom 而非 registerClass
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- superjson 内部处理 JSON 序列化
-keyFetch.superjson.registerCustom<Amount, any>(
-  {
-    isApplicable: (v): v is Amount => v instanceof Amount,
-    serialize: (v) => v.toJSON(),
-    deserialize: (v) => Amount.fromJSON(v as AmountJSON),
-  },
-  'Amount'
-)
 
 // 导出 ProviderResult 类型
 export {
@@ -241,22 +227,22 @@ export interface ApiProvider extends Partial<ITransactionService & IIdentityServ
   // ===== 响应式查询能力（强类型）=====
 
   /** 原生代币余额 - 参数: { address: string } */
-  nativeBalance?: KeyFetchInstance<BalanceOutput, AddressParams>
+  nativeBalance?: StreamInstance<AddressParams, BalanceOutput>
 
   /** 所有代币余额 - 参数: { address: string } */
-  tokenBalances?: KeyFetchInstance<TokenBalancesOutput, AddressParams>
+  tokenBalances?: StreamInstance<AddressParams, TokenBalancesOutput>
 
   /** 交易历史 - 参数: { address: string, limit?: number } */
-  transactionHistory?: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  transactionHistory?: StreamInstance<TxHistoryParams, TransactionsOutput>
 
   /** 单笔交易详情 - 参数: { hash: string } */
-  transaction?: KeyFetchInstance<TransactionOutput, TransactionParams>
+  transaction?: StreamInstance<TransactionParams, TransactionOutput>
 
   /** 交易状态 - 参数: { hash: string } */
-  transactionStatus?: KeyFetchInstance<TransactionStatusOutput, TransactionStatusParams>
+  transactionStatus?: StreamInstance<TransactionStatusParams, TransactionStatusOutput>
 
   /** 当前区块高度 - 参数: {} */
-  blockHeight?: KeyFetchInstance<BlockHeightOutput>
+  blockHeight?: StreamInstance<void, BlockHeightOutput>
 
   // ===== 服务接口方法（通过 extends Partial<ITransactionService & IIdentityService & IAssetService> 继承）=====
   // - ITransactionService: buildTransaction, estimateFee, signTransaction, broadcastTransaction

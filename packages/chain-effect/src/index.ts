@@ -8,6 +8,11 @@
 export { Effect, Stream, Schedule, Duration, Ref, SubscriptionRef, PubSub, Fiber } from "effect"
 export { Schema } from "effect"
 
+// SuperJSON for serialization (handles BigInt, Amount, etc.)
+import { SuperJSON } from "superjson"
+export const superjson = new SuperJSON({ dedupe: true })
+export { SuperJSON } from "superjson"
+
 // Schema definitions
 export * from "./schema"
 
@@ -20,6 +25,8 @@ export {
   HttpError,
   RateLimitError,
   SchemaError,
+  NoSupportError,
+  ServiceLimitedError,
   type FetchOptions,
   type FetchError,
 } from "./http"

@@ -37,6 +37,27 @@ export class SchemaError {
   ) {}
 }
 
+/** Provider 不支持此功能 */
+export class NoSupportError extends Error {
+  readonly _tag = 'NoSupportError' as const;
+  constructor(message = 'This feature is not supported by the provider') {
+    super(message);
+    this.name = 'NoSupportError';
+  }
+}
+
+/** 服务受限（如免费版不支持） */
+export class ServiceLimitedError extends Error {
+  readonly _tag = 'ServiceLimitedError' as const;
+  constructor(
+    message = 'This service is limited',
+    readonly reason?: string,
+  ) {
+    super(message);
+    this.name = 'ServiceLimitedError';
+  }
+}
+
 export type FetchError = HttpError | RateLimitError | SchemaError;
 
 // ==================== HTTP Client ====================
@@ -106,7 +127,7 @@ export function httpFetch<T>(options: FetchOptions<T>): Effect.Effect<T, FetchEr
   finalUrl = appendSearchParams(finalUrl, searchParams);
 
   return Effect.tryPromise({
-    try: async (signal) => {
+    try: async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 

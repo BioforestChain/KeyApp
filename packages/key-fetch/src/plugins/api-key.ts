@@ -1,51 +1,36 @@
 /**
  * API Key Plugin
  * 
- * 通用 API Key 插件，支持自定义请求头和前缀
+ * 通用 API Key 插件
  */
 
-import type { FetchPlugin } from '../types'
+import type { Plugin } from '../types'
 
 export interface ApiKeyOptions {
-  /** 请求头名称，如 'TRON-PRO-API-KEY', 'Authorization', 'X-API-Key' */
+  /** 请求头名称 */
   header: string
-  /** API Key 值，如果为空则不添加头 */
+  /** API Key 值 */
   key: string | undefined
-  /** 可选前缀，如 'Bearer ' */
+  /** 可选前缀 */
   prefix?: string
 }
 
 /**
  * API Key 插件
- * 
- * @example
- * ```ts
- * import { apiKey } from '@biochain/key-fetch'
- * 
- * // TronGrid
- * keyFetch.create({
- *   use: [apiKey({ header: 'TRON-PRO-API-KEY', key: 'xxx' })],
- * })
- * 
- * // Bearer Token
- * keyFetch.create({
- *   use: [apiKey({ header: 'Authorization', key: 'token', prefix: 'Bearer ' })],
- * })
- * ```
  */
-export function apiKey(options: ApiKeyOptions): FetchPlugin {
+export function apiKey(options: ApiKeyOptions): Plugin {
   const { header, key, prefix = '' } = options
 
   return {
     name: 'api-key',
 
-    onFetch: async (request, next) => {
+    async onFetch(ctx, next) {
       if (key) {
-        const headers = new Headers(request.headers)
+        const headers = new Headers(ctx.req.headers)
         headers.set(header, `${prefix}${key}`)
-        return next(new Request(request, { headers }))
+        ctx.req = new Request(ctx.req, { headers })
       }
-      return next(request)
+      return next()
     },
   }
 }

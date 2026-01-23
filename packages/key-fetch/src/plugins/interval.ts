@@ -1,60 +1,47 @@
 /**
- * Interval Plugin
+ * useInterval Plugin
  * 
- * 定时轮询插件 - 中间件模式
+ * 定时轮询插件 - 在 onSubscribe 阶段启动定时器
  */
 
-import type { FetchPlugin, SubscribeContext } from '../types'
-
-export interface IntervalOptions {
-  /** 轮询间隔（毫秒）或动态获取函数 */
-  ms: number | (() => number)
-}
-
-/** Interval 插件扩展接口 */
-export interface IntervalPlugin extends FetchPlugin {
-  /** 暴露间隔时间供 core 读取（用于自动 dedupe 计算） */
-  _intervalMs: number | (() => number)
-}
+import type { Context, Plugin } from '../types'
 
 /**
- * 定时轮询插件
+ * useInterval - 定时轮询插件
+ * 
+ * @param ms 轮询间隔（毫秒）或动态获取函数
  * 
  * @example
  * ```ts
- * const lastBlockFetch = keyFetch.create({
- *   name: 'bfmeta.lastblock',
- *   schema: LastBlockSchema,
- *   url: 'https://api.bfmeta.info/wallet/:chainId/lastblock',
- *   use: [interval(15_000)],
+ * // 固定间隔
+ * keyFetch.create({
+ *   name: 'blockHeight',
+ *   outputSchema: BlockSchema,
+ *   use: [useHttp(url), useInterval(30_000)],
  * })
  * 
- * // 或动态间隔
- * use: [interval(() => getForgeInterval())]
+ * // 动态间隔
+ * keyFetch.create({
+ *   name: 'blockHeight',
+ *   outputSchema: BlockSchema,
+ *   use: [useHttp(url), useInterval(() => getPollingInterval())],
+ * })
  * ```
  */
-export function interval(ms: number | (() => number)): IntervalPlugin {
-  // 每个参数组合独立的轮询状态
+export function useInterval(ms: number | (() => number)): Plugin {
+  // 每个 input 独立的轮询状态
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
   const active = new Map<string, boolean>()
   const subscriberCounts = new Map<string, number>()
 
-  const getKey = (ctx: SubscribeContext): string => {
-    return JSON.stringify(ctx.params)
+  const getKey = (ctx: Context<unknown, unknown>): string => {
+    return `${ctx.name}::${JSON.stringify(ctx.input)}`
   }
 
   return {
     name: 'interval',
-    
-    // 暴露间隔时间供 core 读取
-    _intervalMs: ms,
 
-    // 透传请求（不修改）
-    async onFetch(request, next) {
-      return next(request)
-    },
-
-    onSubscribe(ctx) {
+    onSubscribe(ctx, emit) {
       const key = getKey(ctx)
       const count = (subscriberCounts.get(key) ?? 0) + 1
       subscriberCounts.set(key, count)
@@ -67,8 +54,9 @@ export function interval(ms: number | (() => number)): IntervalPlugin {
           if (!active.get(key)) return
 
           try {
-            await ctx.refetch()
-          } catch (error) {
+            const data = await ctx.self.fetch(ctx.input)
+            emit(data)
+          } catch {
             // 静默处理轮询错误
           } finally {
             if (active.get(key)) {

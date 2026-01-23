@@ -1,37 +1,23 @@
 /**
  * Tag Plugin
  * 
- * 标签插件 - 用于批量失效（中间件模式）
+ * 标签插件 - 用于批量失效
  */
 
-import type { FetchPlugin } from '../types'
+import type { Plugin } from '../types'
 
-// 全局标签映射
 const tagToInstances = new Map<string, Set<string>>()
 
 /**
  * 标签插件
- * 
- * @example
- * ```ts
- * const balanceFetch = keyFetch.create({
- *   name: 'bfmeta.balance',
- *   schema: BalanceSchema,
- *   use: [tag('wallet-data')],
- * })
- * 
- * // 批量失效
- * keyFetch.invalidateByTag('wallet-data')
- * ```
  */
-export function tag(...tags: string[]): FetchPlugin {
+export function tag(...tags: string[]): Plugin {
   let initialized = false
 
   return {
     name: 'tag',
 
-    async onFetch(request, next, context) {
-      // 首次请求时注册标签
+    async onFetch(ctx, next) {
       if (!initialized) {
         initialized = true
         for (const t of tags) {
@@ -40,23 +26,12 @@ export function tag(...tags: string[]): FetchPlugin {
             instances = new Set()
             tagToInstances.set(t, instances)
           }
-          instances.add(context.name)
+          instances.add(ctx.name)
         }
       }
 
-      return next(request)
+      return next()
     },
-  }
-}
-
-/**
- * 按标签失效所有相关实例
- */
-export function invalidateByTag(tagName: string): void {
-  const instances = tagToInstances.get(tagName)
-  if (instances) {
-    // 需要通过 registry 失效
-    // 这里仅提供辅助函数，实际失效需要在外部调用
   }
 }
 

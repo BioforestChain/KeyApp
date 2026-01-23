@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from 'react'
-import { NoSupportError, ServiceLimitedError } from '@biochain/key-fetch'
+import { NoSupportError, ServiceLimitedError } from '@biochain/chain-effect'
 import type { TFunction } from 'i18next'
 
 export interface ServiceStatus {

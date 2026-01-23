@@ -1,51 +1,31 @@
 /**
  * TTL Plugin
  * 
- * 缓存生存时间插件（中间件模式）
+ * 缓存生存时间插件
  */
 
-import type { FetchPlugin } from '../types'
+import type { Plugin } from '../types'
 
-// 简单内存缓存
 const cache = new Map<string, { data: Response; timestamp: number }>()
 
 /**
  * TTL 缓存插件
- * 
- * @example
- * ```ts
- * const configFetch = keyFetch.create({
- *   name: 'chain.config',
- *   schema: ConfigSchema,
- *   use: [ttl(5 * 60 * 1000)], // 5 分钟缓存
- * })
- * ```
  */
-export function ttl(ms: number | (() => number)): FetchPlugin {
+export function ttl(ms: number | (() => number)): Plugin {
   return {
     name: 'ttl',
 
-    async onFetch(request, next, context) {
-      // 如果跳过缓存，直接请求
-      if (context.skipCache) {
-        return next(request)
-      }
-
-      // 生成缓存 key
-      const cacheKey = `${context.name}:${JSON.stringify(context.params)}`
+    async onFetch(ctx, next) {
+      const cacheKey = `${ctx.name}:${JSON.stringify(ctx.input)}`
       const cached = cache.get(cacheKey)
 
-      // 检查缓存是否有效
       const ttlMs = typeof ms === 'function' ? ms() : ms
       if (cached && Date.now() - cached.timestamp < ttlMs) {
-        // 返回缓存的响应副本
         return cached.data.clone()
       }
 
-      // 发起请求
-      const response = await next(request)
+      const response = await next()
 
-      // 缓存成功的响应
       if (response.ok) {
         cache.set(cacheKey, {
           data: response.clone(),

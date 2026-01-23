@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "effect": "^3.19.15",
-    "@effect/platform": "^0.94.2"
+    "@effect/platform": "^0.94.2",
+    "superjson": "^2.2.6"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

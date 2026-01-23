@@ -1,5 +1,5 @@
 /**
- * Key-Fetch Types
+ * Key-Fetch v2 Types
  * 
  * Schema-first 插件化响应式 Fetch 类型定义
  */
@@ -7,254 +7,144 @@
 import type { z } from 'zod'
 import type { SuperJSON } from 'superjson'
 
-// ==================== Schema Types ====================
-
-/** 任意 Zod Schema */
-export type ZodUnknowSchema = z.ZodType<unknown>
-export type ZodVoidSchema = z.ZodVoid
-
-/** 从 Schema 推断输出类型 */
-export type KeyFetchOutput<S extends KeyFetchInstance> = S extends KeyFetchInstance<infer T> ? T : never
-export type KeyFetchInput<S extends KeyFetchInstance> = S extends KeyFetchInstance<infer _, infer T> ? T : never
-
-// ==================== Cache Types ====================
-
-/** 缓存条目 */
-export interface CacheEntry<T = unknown> {
-  data: T
-  timestamp: number
-  etag?: string
-}
-
-/** 缓存存储接口 */
-export interface CacheStore {
-  get<T>(key: string): CacheEntry<T> | undefined
-  set<T>(key: string, entry: CacheEntry<T>): void
-  delete(key: string): boolean
-  has(key: string): boolean
-  clear(): void
-  keys(): IterableIterator<string>
-}
-
-// ==================== Plugin Types (Middleware Pattern) ====================
+// ==================== Core Types ====================
 
 /**
- * 中间件函数类型
+ * Context - 贯穿整个生命周期的核心对象
  * 
- * 插件核心：接收 Request，调用 next() 获取 Response，可以修改两者
- * 
- * @example
- * ```ts
- * const myMiddleware: FetchMiddleware<{ address: string }> = async (request, next, context) => {
- *   // context.params.address 是强类型
- *   const url = new URL(request.url)
- *   url.searchParams.set('address', context.params.address)
- *   const modifiedRequest = new Request(url.toString(), request)
- *   return next(modifiedRequest)
- * }
- * ```
+ * 严格类型化，无 options: any 模糊字段
  */
-export type FetchMiddleware<P extends FetchParams = FetchParams> = (
-  request: Request,
-  next: (request: Request) => Promise<Response>,
-  context: MiddlewareContext<P>
-) => Promise<Response>
-
-/** 中间件上下文 - 提供额外信息和工具 */
-export interface MiddlewareContext<P extends FetchParams = FetchParams> {
+export interface Context<TInput, TOutput> {
+  /** 当前输入参数（类型安全） */
+  readonly input: TInput
+  /** 标准 Request 对象（由插件构建/修改） */
+  req: Request
+  /** SuperJSON 库实例（核心标准） */
+  readonly superjson: SuperJSON
+  /** 允许插件反向操作实例 */
+  readonly self: KeyFetchInstance<TInput, TOutput>
+  /** 插件间共享状态 */
+  readonly state: Map<string, unknown>
   /** KeyFetch 实例名称 */
-  name: string
-  /** 原始请求参数（强类型） */
-  params: P
-  /** 是否跳过缓存 */
-  skipCache: boolean
-
-  // ==================== SuperJSON 工具 (核心标准) ====================
-
-  /** SuperJSON 库实例（支持 BigInt、Date 等特殊类型的序列化） */
-  superjson: SuperJSON
-  /** 创建包含序列化数据的 Response 对象（自动添加 X-Superjson: true 头） */
-  createResponse: <T>(data: T, init?: ResponseInit) => Response
-  /** 创建包含序列化数据的 Request 对象（自动添加 X-Superjson: true 头） */
-  createRequest: <T>(data: T, url?: string, init?: RequestInit) => Request
-  /** 解析 Request/Response body（根据 X-Superjson 头自动选择 superjson.parse 或 JSON.parse） */
-  body: <T>(input: Request | Response) => Promise<T>
-  parseBody: <T>(input: string, isSuperjson?: boolean) => Promise<T>
-
-  /** 标记错误已被插件处理（如 throttleError），core.ts 将跳过默认日志 */
-  errorHandled?: boolean
+  readonly name: string
 }
 
 /**
- * 插件接口
- * 
- * 使用 onFetch 中间件处理请求/响应
+ * Plugin - 完整生命周期控制器
  */
-export interface FetchPlugin<P extends FetchParams = FetchParams> {
-  /** 插件名称（用于调试和错误追踪） */
+export interface Plugin<TInput = unknown, TOutput = unknown> {
+  /** 插件名称（用于调试） */
   name: string
 
   /**
-   * 中间件函数
-   * 
-   * 接收 Request 和 next 函数，返回 Response
-   * - 可以修改 request 后传给 next()
-   * - 可以修改 next() 返回的 response
-   * - 可以不调用 next() 直接返回缓存的 response
+   * 阶段 1: 实例创建时触发
+   * 用于设置全局定时器、全局事件监听等
+   * 极少使用，通常用于"没人订阅也要跑"的特殊热流
+   * @returns cleanup 函数
    */
-  onFetch?: FetchMiddleware<P>
+  onInit?: (self: KeyFetchInstance<TInput, TOutput>) => void | (() => void)
+
+  /**
+   * 阶段 2: 有人订阅时触发
+   * 用于实现"热流"、轮询、依赖监听
+   * @param ctx 上下文
+   * @param emit 发射数据到订阅者
+   * @returns cleanup 函数
+   */
+  onSubscribe?: (
+    ctx: Context<TInput, TOutput>,
+    emit: (data: TOutput) => void
+  ) => void | (() => void)
+
+  /**
+   * 阶段 3: 执行 Fetch 时触发（洋葱模型中间件）
+   * 负责构建 Request -> 执行(或Mock) -> 处理 Response
+   * @param ctx 上下文
+   * @param next 调用下一个中间件
+   * @returns Response
+   */
+  onFetch?: (
+    ctx: Context<TInput, TOutput>,
+    next: () => Promise<Response>
+  ) => Promise<Response>
 
   /**
    * 错误处理钩子（可选）
-   * 在 HTTP 错误抛出前调用，可用于节流、重试等
-   * @param error 即将抛出的错误
-   * @param response 原始 Response（如果有）
-   * @param context 中间件上下文
-   * @returns 返回 true 表示错误已处理，跳过默认日志
+   * 在 HTTP 错误抛出前调用
+   * @returns 返回 true 表示错误已处理
    */
-  onError?: (error: Error, response: Response | undefined, context: MiddlewareContext<P>) => boolean
-
-  /**
-   * 订阅时调用（可选）
-   * 用于启动轮询等后台任务
-   * @returns 清理函数
-   */
-  onSubscribe?: (context: SubscribeContext<P>) => (() => void) | void
+  onError?: (error: Error, response: Response | undefined, ctx: Context<TInput, TOutput>) => boolean
 }
 
-/** 订阅上下文 */
-export interface SubscribeContext<P extends FetchParams = FetchParams> {
-  /** KeyFetch 实例名称 */
-  name: string
-  /** 请求参数（强类型） */
-  params: P
-  /** 完整 URL */
-  url: string
-  /** 触发数据更新 */
-  refetch: () => Promise<void>
-}
+// ==================== KeyFetch Instance ====================
 
-// 向后兼容别名
-/** @deprecated 使用 FetchPlugin 代替 */
-export type CachePlugin<_S extends ZodUnknowSchema = ZodUnknowSchema> = FetchPlugin
-
-// ==================== KeyFetch Instance Types ====================
-
-/** 请求参数基础类型 */
-export type FetchParams = unknown
-// export interface FetchParams {
-//   [key: string]: string | number | boolean | undefined
-// }
-
-/** KeyFetch 定义选项 */
-export interface KeyFetchDefineOptions<
-  TOUT extends unknown,
-  TIN extends unknown = unknown,
-> {
+/**
+ * KeyFetch 定义选项
+ */
+export interface KeyFetchDefineOptions<TInput, TOutput> {
   /** 唯一名称 */
   name: string
-  /** 输出 Zod Schema（必选） */
-  outputSchema: z.ZodType<TOUT>
-  /** 参数 Zod Schema（可选，用于类型推断和运行时验证） */
-  inputSchema?: z.ZodType<TIN>
-  /** 基础 URL 模板，支持 :param 占位符 */
-  url?: string
-  /** HTTP 方法 */
-  method?: 'GET' | 'POST'
+  /** 输入参数 Zod Schema */
+  inputSchema?: z.ZodType<TInput>
+  /** 输出结果 Zod Schema（必选） */
+  outputSchema: z.ZodType<TOutput>
   /** 插件列表 */
-  use?: FetchPlugin<TIN>[]
+  use?: Plugin<TInput, TOutput>[]
 }
 
-/** 订阅回调 */
-export type SubscribeCallback<T> = (data: T, event: 'initial' | 'update') => void
-
-/** KeyFetch 实例 - 工厂函数返回的对象 */
-export interface KeyFetchInstance<
-  TOUT extends unknown = unknown,
-  TIN extends unknown = unknown,
-> {
+/**
+ * KeyFetch 实例 - 工厂函数返回的对象
+ */
+export interface KeyFetchInstance<TInput = unknown, TOutput = unknown> {
   /** 实例名称 */
   readonly name: string
+  /** 输入 Schema */
+  readonly inputSchema: z.ZodType<TInput> | undefined
   /** 输出 Schema */
-  readonly outputSchema: z.ZodType<TOUT>
-  /** 参数 Schema */
-  readonly inputSchema: z.ZodType<TIN> | undefined
-  /** 输出类型（用于类型推断） */
-  readonly _output: TOUT
-  /** 参数类型（用于类型推断） */
-  readonly _params: TIN
+  readonly outputSchema: z.ZodType<TOutput>
 
   /**
-   * 执行请求
-   * @param params 请求参数（强类型）
-   * @param options 额外选项
+   * 冷流：单次请求
+   * @param input 输入参数（类型安全）
    */
-  fetch(params: TIN, options?: { skipCache?: boolean }): Promise<TOUT>
+  fetch(input: TInput): Promise<TOutput>
 
   /**
-   * 订阅数据变化
-   * @param params 请求参数（强类型）
+   * 热流：订阅数据变化
+   * @param input 输入参数
    * @param callback 回调函数
    * @returns 取消订阅函数
    */
   subscribe(
-    params: TIN,
-    callback: SubscribeCallback<TOUT>
+    input: TInput,
+    callback: SubscribeCallback<TOutput>
   ): () => void
 
   /**
-   * 手动失效缓存
-   */
-  invalidate(): void
-
-  /**
-   * 获取当前缓存的数据（如果有）
-   */
-  getCached(params?: TIN): TOUT | undefined
-
-  /**
    * React Hook - 响应式数据绑定
-   * 
-   * @example
-   * ```tsx
-   * const { data, isLoading, error } = balanceFetcher.useState({ address })
-   * if (isLoading) return <Loading />
-   * if (error) return <Error error={error} />
-   * return <Balance amount={data.amount} />
-   * ```
+   * 内部判断 React 环境，无需额外注入
    */
   useState(
-    params: TIN,
-    options?: UseKeyFetchOptions
-  ): UseKeyFetchResult<TOUT>
-
-  use(...plugins: FetchPlugin<TIN>[]): KeyFetchInstance<TOUT, TIN>
+    input: TInput,
+    options?: UseStateOptions
+  ): UseStateResult<TOutput>
 }
 
-// ==================== Registry Types ====================
+// ==================== Subscribe Types ====================
 
-/** 全局注册表 */
-export interface KeyFetchRegistry {
-  /** 注册 KeyFetch 实例 */
-  register<KF extends KeyFetchInstance>(kf: KF): void
-  /** 获取实例 */
-  get<KF extends KeyFetchInstance>(name: string): KF | undefined
-  /** 按名称失效 */
-  invalidate(name: string): void
-  /** 监听实例更新 */
-  onUpdate(name: string, callback: () => void): () => void
-  /** 触发更新通知 */
-  emitUpdate(name: string): void
-  /** 添加依赖关系 */
-  addDependency(dependent: string, dependency: string): void
-  /** 清理所有 */
-  clear(): void
-}
+/** 订阅回调 */
+export type SubscribeCallback<T> = (data: T, event: 'initial' | 'update') => void
 
 // ==================== React Types ====================
 
-/** useKeyFetch 返回值 */
-export interface UseKeyFetchResult<T> {
+/** useState 选项 */
+export interface UseStateOptions {
+  /** 是否启用（默认 true） */
+  enabled?: boolean
+}
+
+/** useState 返回值 */
+export interface UseStateResult<T> {
   /** 数据 */
   data: T | undefined
   /** 是否正在加载（首次） */
@@ -267,8 +157,70 @@ export interface UseKeyFetchResult<T> {
   refetch: () => Promise<void>
 }
 
-/** useKeyFetch 选项 */
-export interface UseKeyFetchOptions {
-  /** 是否启用（默认 true） */
-  enabled?: boolean
+// ==================== Utility Types ====================
+
+/** 从 KeyFetchInstance 推断输出类型 */
+export type InferOutput<T> = T extends KeyFetchInstance<unknown, infer O> ? O : never
+
+/** 从 KeyFetchInstance 推断输入类型 */
+export type InferInput<T> = T extends KeyFetchInstance<infer I, unknown> ? I : never
+
+// ==================== 兼容类型（供旧插件使用）====================
+
+/** @deprecated 使用 Plugin 代替 */
+export type FetchPlugin<TInput = unknown> = Plugin<TInput, unknown>
+
+/** 请求参数基础类型 */
+export type FetchParams = Record<string, unknown>
+
+/** 中间件上下文（兼容旧插件） */
+export interface MiddlewareContext<TInput = unknown> {
+  name: string
+  params: TInput
+  skipCache: boolean
+  superjson: SuperJSON
+  createResponse: <T>(data: T, init?: ResponseInit) => Response
+  createRequest: <T>(data: T, url?: string, init?: RequestInit) => Request
+  body: <T>(input: Request | Response) => Promise<T>
+  parseBody: <T>(input: string, isSuperjson?: boolean) => T
+}
+
+// ==================== Combine Types ====================
+
+/** Combine 源配置 */
+export interface CombineSource<TInput, TSourceInput, TSourceOutput> {
+  /** 源 KeyFetch 实例 */
+  source: KeyFetchInstance<TSourceInput, TSourceOutput>
+  /** 从外部 input 生成源的 params */
+  params: (input: TInput) => TSourceInput
+  /** 源的 key（用于 results 对象），默认使用 source.name */
+  key?: string
+}
+
+/** Combine 选项（简化版） */
+export interface CombineOptions<TInput, TOutput> {
+  /** 合并后的名称 */
+  name: string
+  /** 输出 Schema */
+  outputSchema: import('zod').ZodType<TOutput>
+  /** 源配置数组 */
+  sources: CombineSource<TInput, unknown, unknown>[]
+  /** 转换函数：将所有源的结果转换为最终输出 */
+  transform: (results: Record<string, unknown>, input: TInput) => TOutput
+  /** 额外插件 */
+  use?: Plugin<TInput, TOutput>[]
+}
+
+// ==================== Fallback Types ====================
+
+/** Fallback 选项 */
+export interface FallbackOptions<TInput, TOutput> {
+  /** 合并后的名称 */
+  name: string
+  /** 源 fetcher 数组（可以是空数组） */
+  sources: KeyFetchInstance<TInput, TOutput>[]
+  /** 当 sources 为空时调用 */
+  onEmpty?: () => never
+  /** 当所有 sources 都失败时调用 */
+  onAllFailed?: (errors: Error[]) => never
 }

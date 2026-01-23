@@ -1,14 +1,14 @@
 /**
- * Chain Provider
+ * Chain Provider (Effect TS)
  * 
  * 聚合多个 ApiProvider，通过能力发现动态代理方法调用。
- * 
- * 响应式设计：使用 KeyFetchInstance 属性替代异步方法
- * 错误处理：NoSupportError 表示不支持，AggregateError 表示全部失败
+ * 使用 Effect TS 实现 fallback 和流式数据聚合。
  */
 
-import { fallback, derive, transform, type KeyFetchInstance } from '@biochain/key-fetch'
-import { chainConfigService } from '@/services/chain-config'
+import { Effect, Stream } from "effect"
+import { createStreamInstance, type StreamInstance, type FetchError } from "@biochain/chain-effect"
+import { chainConfigService } from "@/services/chain-config"
+import { Amount } from "@/types/amount"
 import type {
   ApiProvider,
   ApiProviderMethod,
@@ -22,62 +22,104 @@ import type {
   TransactionsOutput,
   TransactionOutput,
   BlockHeightOutput,
-} from './types'
-import {
-  TokenBalancesOutputSchema,
-} from './types'
+  AddressParams,
+  TxHistoryParams,
+  TransactionParams,
+  TransactionStatusParams,
+  TransactionStatusOutput,
+  TokenBalance,
+} from "./types"
 
-const SYNC_METHODS = new Set<ApiProviderMethod>(['isValidAddress', 'normalizeAddress'])
+const SYNC_METHODS = new Set<ApiProviderMethod>(["isValidAddress", "normalizeAddress"])
+
+/**
+ * 创建 fallback StreamInstance - 依次尝试多个 source，返回第一个成功的
+ */
+function createFallbackStream<TInput, TOutput>(
+  name: string,
+  sources: StreamInstance<TInput, TOutput>[]
+): StreamInstance<TInput, TOutput> {
+  if (sources.length === 0) {
+    // 空 sources - 返回一个总是失败的 stream
+    return createStreamInstance<TInput, TOutput>(name, () =>
+      Stream.fail({ _tag: "HttpError", message: "No providers available" } as FetchError)
+    )
+  }
+
+  if (sources.length === 1) {
+    return sources[0]
+  }
+
+  return createStreamInstance<TInput, TOutput>(name, (input) => {
+    // 创建一个 fallback stream：尝试第一个，失败则尝试下一个
+    const trySource = (index: number): Stream.Stream<TOutput, FetchError> => {
+      if (index >= sources.length) {
+        return Stream.fail({ _tag: "HttpError", message: "All providers failed" } as FetchError)
+      }
+
+      const source = sources[index]
+      // 获取 source 的 stream，使用 subscribe 内部逻辑
+      return Stream.fromEffect(
+        Effect.tryPromise({
+          try: () => source.fetch(input),
+          catch: (e) => ({ _tag: "HttpError", message: String(e) }) as FetchError,
+        })
+      ).pipe(
+        Stream.catchAll(() => trySource(index + 1))
+      )
+    }
+
+    return trySource(0)
+  })
+}
 
 export class ChainProvider {
   readonly chainId: string
   private readonly providers: ApiProvider[]
 
-  // 缓存 - 避免每次访问 getter 时创建新实例（会导致 React 无限重渲染）
-  private _nativeBalance?: KeyFetchInstance<BalanceOutput>
-  private _tokenBalances?: KeyFetchInstance<TokenBalancesOutput>
-  private _transactionHistory?: KeyFetchInstance<TransactionsOutput>
-  private _transaction?: KeyFetchInstance<TransactionOutput>
-  private _blockHeight?: KeyFetchInstance<BlockHeightOutput>
-  private _allBalances?: KeyFetchInstance<TokenBalancesOutput>
+  // 缓存
+  private _nativeBalance?: StreamInstance<AddressParams, BalanceOutput>
+  private _tokenBalances?: StreamInstance<AddressParams, TokenBalancesOutput>
+  private _transactionHistory?: StreamInstance<TxHistoryParams, TransactionsOutput>
+  private _transaction?: StreamInstance<TransactionParams, TransactionOutput>
+  private _transactionStatus?: StreamInstance<TransactionStatusParams, TransactionStatusOutput>
+  private _blockHeight?: StreamInstance<void, BlockHeightOutput>
+  private _allBalances?: StreamInstance<AddressParams, TokenBalancesOutput>
 
   constructor(chainId: string, providers: ApiProvider[]) {
     this.chainId = chainId
     this.providers = providers
   }
-  /**
-   * 检查是否有 Provider 支持某能力
-   */
-  supports(capability: 'nativeBalance' | 'tokenBalances' | 'transactionHistory' | 'blockHeight' | ApiProviderMethod): boolean {
-    // 响应式属性检查
-    if (capability === 'nativeBalance') {
-      return this.providers.some(p => p.nativeBalance !== undefined)
+
+  supports(
+    capability: "nativeBalance" | "tokenBalances" | "transactionHistory" | "blockHeight" | "transactionStatus" | ApiProviderMethod
+  ): boolean {
+    if (capability === "nativeBalance") {
+      return this.providers.some((p) => p.nativeBalance !== undefined)
     }
-    if (capability === 'tokenBalances') {
-      return this.providers.some(p => p.tokenBalances !== undefined)
+    if (capability === "tokenBalances") {
+      return this.providers.some((p) => p.tokenBalances !== undefined)
     }
-    if (capability === 'transactionHistory') {
-      return this.providers.some(p => p.transactionHistory !== undefined)
+    if (capability === "transactionHistory") {
+      return this.providers.some((p) => p.transactionHistory !== undefined)
     }
-    if (capability === 'blockHeight') {
-      return this.providers.some(p => p.blockHeight !== undefined)
+    if (capability === "blockHeight") {
+      return this.providers.some((p) => p.blockHeight !== undefined)
+    }
+    if (capability === "transactionStatus") {
+      return this.providers.some((p) => p.transactionStatus !== undefined)
     }
 
-    // 方法检查（包括 ITransactionService 方法，通过 extends Partial 继承）
-    return this.providers.some(p => typeof p[capability as ApiProviderMethod] === 'function')
+    return this.providers.some((p) => typeof p[capability as ApiProviderMethod] === "function")
   }
 
-
-  /**
-   * 查找实现了某方法的 Provider，返回自动 fallback 的方法
-   */
   private getMethod<K extends ApiProviderMethod>(method: K): ApiProvider[K] | undefined {
-    const candidates = this.providers.filter((p) => typeof p[method] === 'function')
+    const candidates = this.providers.filter((p) => typeof p[method] === "function")
     if (candidates.length === 0) return undefined
 
     const first = candidates[0]
     const firstFn = first[method]
-    if (typeof firstFn !== 'function') return undefined
+    if (typeof firstFn !== "function") return undefined
 
     if (SYNC_METHODS.has(method)) {
       return firstFn.bind(first) as ApiProvider[K]
@@ -88,7 +130,7 @@ export class ChainProvider {
 
       for (const provider of candidates) {
         const impl = provider[method]
-        if (typeof impl !== 'function') continue
+        if (typeof impl !== "function") continue
         try {
           return await (impl as (...args: unknown[]) => Promise<unknown>).apply(provider, args)
         } catch (error) {
@@ -96,57 +138,44 @@ export class ChainProvider {
         }
       }
 
-      throw lastError instanceof Error ? lastError : new Error('All providers failed')
+      throw lastError instanceof Error ? lastError : new Error("All providers failed")
     }) as ApiProvider[K]
 
     return fn
   }
 
-  // ===== 默认值 =====
-
-  // Preserved for potential future use
-  // private _getDefaultBalance(): Balance {
-  //   const decimals = chainConfigService.getDecimals(this.chainId)
-  //   const symbol = chainConfigService.getSymbol(this.chainId)
-  //   return {
-  //     amount: Amount.zero(decimals, symbol),
-  //     symbol,
-  //   }
-  // }
-
-
-  // ===== 便捷属性：检查能力 =====
+  // ===== 便捷属性 =====
 
   get supportsNativeBalance(): boolean {
-    return this.supports('nativeBalance')
+    return this.supports("nativeBalance")
   }
 
   get supportsTokenBalances(): boolean {
-    return this.supports('tokenBalances')
+    return this.supports("tokenBalances")
   }
 
   get supportsTransactionHistory(): boolean {
-    return this.supports('transactionHistory')
+    return this.supports("transactionHistory")
   }
 
   get supportsBlockHeight(): boolean {
-    return this.supports('blockHeight')
+    return this.supports("blockHeight")
   }
 
   get supportsFeeEstimate(): boolean {
-    return this.supports('estimateFee')
+    return this.supports("estimateFee")
   }
 
   get supportsBuildTransaction(): boolean {
-    return this.supports('buildTransaction')
+    return this.supports("buildTransaction")
   }
 
   get supportsSignTransaction(): boolean {
-    return this.supports('signTransaction')
+    return this.supports("signTransaction")
   }
 
   get supportsBroadcast(): boolean {
-    return this.supports('broadcastTransaction')
+    return this.supports("broadcastTransaction")
   }
 
   get supportsFullTransaction(): boolean {
@@ -154,190 +183,171 @@ export class ChainProvider {
   }
 
   get supportsDeriveAddress(): boolean {
-    return this.supports('deriveAddress')
+    return this.supports("deriveAddress")
   }
 
   get supportsAddressValidation(): boolean {
-    return this.supports('isValidAddress')
+    return this.supports("isValidAddress")
   }
 
-  // ===== 响应式查询：获取 KeyFetchInstance =====
+  // ===== 响应式查询 =====
 
-  /**
-     * 获取第一个支持 nativeBalance 的 Provider 的 KeyFetchInstance
-     * 使用 merge() 实现 auto-fallback，返回非可空类型
-     */
-  get nativeBalance(): KeyFetchInstance<BalanceOutput> {
+  get nativeBalance(): StreamInstance<AddressParams, BalanceOutput> {
     if (!this._nativeBalance) {
       const sources = this.providers
-        .map(p => p.nativeBalance)
+        .map((p) => p.nativeBalance)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._nativeBalance = fallback({
-        name: `${this.chainId}.nativeBalance`,
-        sources,
-      })
+      this._nativeBalance = createFallbackStream(`${this.chainId}.nativeBalance`, sources)
     }
     return this._nativeBalance
   }
 
-  get tokenBalances(): KeyFetchInstance<TokenBalancesOutput> {
+  get tokenBalances(): StreamInstance<AddressParams, TokenBalancesOutput> {
     if (!this._tokenBalances) {
       const sources = this.providers
-        .map(p => p.tokenBalances)
+        .map((p) => p.tokenBalances)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._tokenBalances = fallback({
-        name: `${this.chainId}.tokenBalances`,
-        sources,
-      })
+      this._tokenBalances = createFallbackStream(`${this.chainId}.tokenBalances`, sources)
     }
     return this._tokenBalances
   }
 
-  /**
-   * 统一资产列表（合并 nativeBalance 和 tokenBalances）
-   * - 如果有 tokenBalances，使用 tokenBalances（通常已包含 native）
-   * - 如果只有 nativeBalance，将其转换为 TokenBalance[] 格式
-   * - 统一的 isLoading 状态
-   */
-  get allBalances(): KeyFetchInstance<TokenBalancesOutput> {
+  get allBalances(): StreamInstance<AddressParams, TokenBalancesOutput> {
     if (!this._allBalances) {
       const hasTokenBalances = this.supportsTokenBalances
       const hasNativeBalance = this.supportsNativeBalance
 
       if (hasTokenBalances) {
-        // 直接使用 tokenBalances（通常已包含 native）
         this._allBalances = this.tokenBalances
       } else if (hasNativeBalance) {
-        // 只有 nativeBalance，使用 derive 转换为 TokenBalance[]
         const { chainId } = this
         const symbol = chainConfigService.getSymbol(chainId)
         const decimals = chainConfigService.getDecimals(chainId)
 
-        this._allBalances = derive({
-          name: `${chainId}.allBalances`,
-          source: this.nativeBalance,
-          outputSchema: TokenBalancesOutputSchema,
-          use: [
-            transform({
-              transform: (balance: { amount: import('@/types/amount').Amount; symbol: string } | null) => {
+        this._allBalances = createStreamInstance<AddressParams, TokenBalancesOutput>(
+          `${chainId}.allBalances`,
+          (params) => {
+            const nativeStream = this.nativeBalance
+            return Stream.fromEffect(
+              Effect.tryPromise({
+                try: () => nativeStream.fetch(params),
+                catch: (e) => ({ _tag: "HttpError", message: String(e) }) as FetchError,
+              })
+            ).pipe(
+              Stream.map((balance): TokenBalancesOutput => {
                 if (!balance) return []
-                return [{
-                  symbol: balance.symbol || symbol,
-                  name: balance.symbol || symbol,
-                  amount: balance.amount,
-                  isNative: true,
-                  decimals,
-                }]
-              },
-            }),
-          ],
-        })
+                return [
+                  {
+                    symbol: balance.symbol || symbol,
+                    name: balance.symbol || symbol,
+                    amount: balance.amount,
+                    isNative: true,
+                    decimals,
+                  },
+                ]
+              })
+            )
+          }
+        )
       } else {
-        // 无任何 balance 能力，返回空 fallback
-        this._allBalances = fallback({
-          name: `${this.chainId}.allBalances`,
-          sources: [],
-        })
+        this._allBalances = createFallbackStream(`${this.chainId}.allBalances`, [])
       }
     }
     return this._allBalances
   }
 
-  get transactionHistory(): KeyFetchInstance<TransactionsOutput> {
+  get transactionHistory(): StreamInstance<TxHistoryParams, TransactionsOutput> {
     if (!this._transactionHistory) {
       const sources = this.providers
-        .map(p => p.transactionHistory)
+        .map((p) => p.transactionHistory)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._transactionHistory = fallback({
-        name: `${this.chainId}.transactionHistory`,
-        sources,
-      })
+      this._transactionHistory = createFallbackStream(`${this.chainId}.transactionHistory`, sources)
     }
     return this._transactionHistory
   }
 
-  get transaction(): KeyFetchInstance<TransactionOutput> {
+  get transaction(): StreamInstance<TransactionParams, TransactionOutput> {
     if (!this._transaction) {
       const sources = this.providers
-        .map(p => p.transaction)
+        .map((p) => p.transaction)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._transaction = fallback({
-        name: `${this.chainId}.transaction`,
-        sources,
-      })
+      this._transaction = createFallbackStream(`${this.chainId}.transaction`, sources)
     }
     return this._transaction
   }
 
-  get blockHeight(): KeyFetchInstance<BlockHeightOutput> {
+  get transactionStatus(): StreamInstance<TransactionStatusParams, TransactionStatusOutput> {
+    if (!this._transactionStatus) {
+      const sources = this.providers
+        .map((p) => p.transactionStatus)
+        .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      this._transactionStatus = createFallbackStream(`${this.chainId}.transactionStatus`, sources)
+    }
+    return this._transactionStatus
+  }
+
+  get blockHeight(): StreamInstance<void, BlockHeightOutput> {
     if (!this._blockHeight) {
       const sources = this.providers
-        .map(p => p.blockHeight)
+        .map((p) => p.blockHeight)
         .filter((f): f is NonNullable<typeof f> => f !== undefined)
-      this._blockHeight = fallback({
-        name: `${this.chainId}.blockHeight`,
-        sources,
-      })
+      this._blockHeight = createFallbackStream(`${this.chainId}.blockHeight`, sources)
     }
     return this._blockHeight
   }
 
-  // 错误处理：
-  // - 空数组 → NoSupportError (isSupported = !(error instanceof NoSupportError))
-  // - 全部失败 → AggregateError (错误列表显示)
-
-  // ===== 代理方法：交易（ITransactionService）=====
+  // ===== 代理方法 =====
 
   get buildTransaction(): ((intent: TransactionIntent) => Promise<UnsignedTransaction>) | undefined {
-    return this.getMethod('buildTransaction')
+    return this.getMethod("buildTransaction")
   }
 
   get estimateFee(): ((unsignedTx: UnsignedTransaction) => Promise<FeeEstimate>) | undefined {
-    return this.getMethod('estimateFee')
+    return this.getMethod("estimateFee")
   }
 
-  get signTransaction(): ((unsignedTx: UnsignedTransaction, options: SignOptions) => Promise<SignedTransaction>) | undefined {
-    return this.getMethod('signTransaction')
+  get signTransaction():
+    | ((unsignedTx: UnsignedTransaction, options: SignOptions) => Promise<SignedTransaction>)
+    | undefined {
+    return this.getMethod("signTransaction")
   }
 
   get broadcastTransaction(): ((signedTx: SignedTransaction) => Promise<string>) | undefined {
-    return this.getMethod('broadcastTransaction')
+    return this.getMethod("broadcastTransaction")
   }
 
-  // ===== 代理方法：身份 =====
-
   get deriveAddress(): ((seed: Uint8Array, index?: number) => Promise<string>) | undefined {
-    return this.getMethod('deriveAddress')
+    return this.getMethod("deriveAddress")
   }
 
   get deriveAddresses(): ((seed: Uint8Array, startIndex: number, count: number) => Promise<string[]>) | undefined {
-    return this.getMethod('deriveAddresses')
+    return this.getMethod("deriveAddresses")
   }
 
   get isValidAddress(): ((address: string) => boolean) | undefined {
-    return this.getMethod('isValidAddress')
+    return this.getMethod("isValidAddress")
   }
 
   get normalizeAddress(): ((address: string) => string) | undefined {
-    return this.getMethod('normalizeAddress')
+    return this.getMethod("normalizeAddress")
   }
 
-  // ===== IBioAccountService 代理（BioChain 专属）=====
+  // ===== BioChain 专属 =====
 
   get bioGetAccountInfo() {
-    return this.getMethod('bioGetAccountInfo')
+    return this.getMethod("bioGetAccountInfo")
   }
 
   get bioVerifyPayPassword() {
-    return this.getMethod('bioVerifyPayPassword')
+    return this.getMethod("bioVerifyPayPassword")
   }
 
   get bioGetAssetDetail() {
-    return this.getMethod('bioGetAssetDetail')
+    return this.getMethod("bioGetAssetDetail")
   }
 
   get supportsBioAccountInfo(): boolean {
-    return this.supports('bioGetAccountInfo')
+    return this.supports("bioGetAccountInfo")
   }
 
   // ===== 工具方法 =====
@@ -347,6 +357,6 @@ export class ChainProvider {
   }
 
   getProviderByType(type: string): ApiProvider | undefined {
-    return this.providers.find(p => p.type === type)
+    return this.providers.find((p) => p.type === type)
   }
 }
