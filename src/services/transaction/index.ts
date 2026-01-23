@@ -27,7 +27,9 @@ export {
   PendingTxMetaSchema,
   CreatePendingTxInputSchema,
   UpdatePendingTxStatusInputSchema,
-  getPendingTxFetcher,
+  getPendingTxSource,
+  subscribePendingTxChanges,
+  clearPendingTxSources,
 } from './pending-tx'
 export type {
   PendingTx,

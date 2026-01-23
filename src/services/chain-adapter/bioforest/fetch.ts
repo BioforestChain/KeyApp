@@ -1,76 +1,78 @@
 /**
- * BioForest KeyFetch 定义
+ * BioForest Effect-TS 数据源
  * 
- * Schema-first 响应式数据获取实例
+ * Schema-first 响应式数据获取 - Effect Native
  */
 
-import { z } from 'zod'
-import { keyFetch, interval, deps } from '@biochain/key-fetch'
+import { Effect, Duration } from 'effect'
+import { Schema } from 'effect'
+import { httpFetch, type FetchError } from '@biochain/chain-effect'
+import { createPollingSource, createDependentSource, type DataSource } from '@biochain/chain-effect'
 
-// ==================== Schemas ====================
+// ==================== Schemas (Effect Schema) ====================
 
 /** 最新区块响应 Schema */
-export const LastBlockSchema = z.object({
-  success: z.boolean(),
-  result: z.object({
-    height: z.number(),
-    timestamp: z.number(),
-    signature: z.string().optional(),
+export const LastBlockSchema = Schema.Struct({
+  success: Schema.Boolean,
+  result: Schema.Struct({
+    height: Schema.Number,
+    timestamp: Schema.Number,
+    signature: Schema.optional(Schema.String),
   }),
 })
 
 /** 余额响应 Schema */
-export const BalanceSchema = z.object({
-  success: z.boolean(),
-  result: z.object({
-    assets: z.array(z.object({
-      symbol: z.string(),
-      balance: z.string(),
-    })).optional(),
-  }).optional(),
+export const BalanceSchema = Schema.Struct({
+  success: Schema.Boolean,
+  result: Schema.optional(Schema.Struct({
+    assets: Schema.optional(Schema.Array(Schema.Struct({
+      symbol: Schema.String,
+      balance: Schema.String,
+    }))),
+  })),
 })
 
 /** 交易查询响应 Schema */
-export const TransactionQuerySchema = z.object({
-  success: z.boolean(),
-  result: z.object({
-    trs: z.array(z.object({
-      height: z.number(),
-      signature: z.string(),
-      tIndex: z.number(),
-      transaction: z.object({
-        signature: z.string(),
-        senderId: z.string(),
-        recipientId: z.string().optional(),
-        fee: z.string(),
-        timestamp: z.number(),
-        type: z.string().optional(),
-        asset: z.object({
-          transferAsset: z.object({
-            amount: z.string(),
-            assetType: z.string().optional(),
-          }).optional(),
-        }).optional(),
+export const TransactionQuerySchema = Schema.Struct({
+  success: Schema.Boolean,
+  result: Schema.optional(Schema.Struct({
+    trs: Schema.optional(Schema.Array(Schema.Struct({
+      height: Schema.Number,
+      signature: Schema.String,
+      tIndex: Schema.Number,
+      transaction: Schema.Struct({
+        signature: Schema.String,
+        senderId: Schema.String,
+        recipientId: Schema.optional(Schema.String),
+        fee: Schema.String,
+        timestamp: Schema.Number,
+        type: Schema.optional(Schema.String),
+        asset: Schema.optional(Schema.Struct({
+          transferAsset: Schema.optional(Schema.Struct({
+            amount: Schema.String,
+            assetType: Schema.optional(Schema.String),
+          })),
+        })),
       }),
-    })).optional(),
-    count: z.number().optional(),
-  }).optional(),
+    }))),
+    count: Schema.optional(Schema.Number),
+  })),
 })
 
 /** Genesis Block Schema */
-export const GenesisBlockSchema = z.object({
-  genesisBlock: z.object({
-    forgeInterval: z.number(),
-    beginEpochTime: z.number().optional(),
+export const GenesisBlockSchema = Schema.Struct({
+  genesisBlock: Schema.Struct({
+    forgeInterval: Schema.Number,
+    beginEpochTime: Schema.optional(Schema.Number),
   }),
 })
 
 // ==================== 类型导出 ====================
 
-export type LastBlockResponse = z.infer<typeof LastBlockSchema>
-export type BalanceResponse = z.infer<typeof BalanceSchema>
-export type TransactionQueryResponse = z.infer<typeof TransactionQuerySchema>
-export type GenesisBlockResponse = z.infer<typeof GenesisBlockSchema>
+export type LastBlockResponse = Schema.Schema.Type<typeof LastBlockSchema>
+export type BalanceResponse = Schema.Schema.Type<typeof BalanceSchema>
+export type TransactionQueryResponse = Schema.Schema.Type<typeof TransactionQuerySchema>
+export type GenesisBlockResponse = Schema.Schema.Type<typeof GenesisBlockSchema>
 
 // ==================== 出块间隔管理 ====================
 
@@ -79,91 +81,159 @@ const DEFAULT_FORGE_INTERVAL = 15_000
 
 export function setForgeInterval(chainId: string, intervalMs: number): void {
   forgeIntervals.set(chainId, intervalMs)
-
 }
 
 export function getForgeInterval(chainId: string): number {
   return forgeIntervals.get(chainId) ?? DEFAULT_FORGE_INTERVAL
 }
 
-// ==================== KeyFetch 实例工厂 ====================
+// ==================== Effect Data Source 工厂 ====================
 
 /**
- * 创建链的 lastBlock KeyFetch 实例
+ * 创建 lastBlock 的 fetch Effect
  */
-export function createLastBlockFetch(chainId: string, baseUrl: string) {
-  return keyFetch.create({
-    name: `${chainId}.lastblock`,
-    outputSchema: LastBlockSchema,
+function createLastBlockFetch(baseUrl: string): Effect.Effect<LastBlockResponse, FetchError> {
+  return httpFetch({
     url: `${baseUrl}/lastblock`,
     method: 'GET',
-    use: [
-      interval(() => getForgeInterval(chainId)),
-    ],
+    schema: LastBlockSchema,
   })
 }
 
 /**
- * 创建链的余额查询 KeyFetch 实例
+ * 创建余额查询 fetch Effect
  */
-export function createBalanceFetch(chainId: string, baseUrl: string, lastBlockFetch: ReturnType<typeof createLastBlockFetch>) {
-  return keyFetch.create({
-    name: `${chainId}.balance`,
-    outputSchema: BalanceSchema,
+function createBalanceFetch(baseUrl: string, address: string): Effect.Effect<BalanceResponse, FetchError> {
+  return httpFetch({
     url: `${baseUrl}/address/asset`,
     method: 'POST',
-    use: [
-      deps(lastBlockFetch),
-    ],
+    body: { address },
+    schema: BalanceSchema,
   })
 }
 
 /**
- * 创建链的交易查询 KeyFetch 实例
+ * 创建交易查询 fetch Effect
  */
-export function createTransactionQueryFetch(chainId: string, baseUrl: string, lastBlockFetch: ReturnType<typeof createLastBlockFetch>) {
-  return keyFetch.create({
-    name: `${chainId}.txQuery`,
-    outputSchema: TransactionQuerySchema,
+function createTransactionQueryFetch(
+  baseUrl: string,
+  address: string,
+  limit = 20
+): Effect.Effect<TransactionQueryResponse, FetchError> {
+  return httpFetch({
     url: `${baseUrl}/transactions/query`,
     method: 'POST',
-    use: [
-      deps(lastBlockFetch),
-    ],
+    body: { address, limit },
+    schema: TransactionQuerySchema,
+  })
+}
+
+// ==================== Effect Data Source 实例 ====================
+
+export interface ChainEffectSources {
+  /** lastBlock 轮询源 */
+  lastBlock: DataSource<LastBlockResponse>
+  /** 余额依赖源 */
+  balance: DataSource<BalanceResponse>
+  /** 交易查询依赖源 */
+  transactionQuery: DataSource<TransactionQueryResponse>
+  /** 停止所有源 */
+  stopAll: Effect.Effect<void>
+}
+
+/**
+ * 创建链的 Effect 数据源集合
+ * 
+ * - lastBlock: 按出块间隔轮询
+ * - balance: 依赖 lastBlock 变化
+ * - transactionQuery: 依赖 lastBlock 变化
+ */
+export function createChainEffectSources(
+  chainId: string,
+  baseUrl: string,
+  address: string
+): Effect.Effect<ChainEffectSources> {
+  return Effect.gen(function* () {
+    const interval = Duration.millis(getForgeInterval(chainId))
+    
+    // lastBlock 轮询源
+    const lastBlock = yield* createPollingSource({
+      name: `${chainId}.lastBlock`,
+      fetch: createLastBlockFetch(baseUrl),
+      interval,
+    })
+    
+    // balance 依赖 lastBlock
+    const balance = yield* createDependentSource({
+      name: `${chainId}.balance`,
+      dependsOn: lastBlock.ref,
+      hasChanged: (prev, next) => prev?.result.height !== next.result.height,
+      fetch: () => createBalanceFetch(baseUrl, address),
+    })
+    
+    // transactionQuery 依赖 lastBlock
+    const transactionQuery = yield* createDependentSource({
+      name: `${chainId}.transactionQuery`,
+      dependsOn: lastBlock.ref,
+      hasChanged: (prev, next) => prev?.result.height !== next.result.height,
+      fetch: () => createTransactionQueryFetch(baseUrl, address),
+    })
+    
+    return {
+      lastBlock,
+      balance,
+      transactionQuery,
+      stopAll: Effect.all([
+        lastBlock.stop,
+        balance.stop,
+        transactionQuery.stop,
+      ]).pipe(Effect.asVoid),
+    }
   })
 }
 
 // ==================== 链实例缓存 ====================
 
-interface ChainFetchInstances {
-  lastBlock: ReturnType<typeof createLastBlockFetch>
-  balance: ReturnType<typeof createBalanceFetch>
-  transactionQuery: ReturnType<typeof createTransactionQueryFetch>
-}
-
-const chainInstances = new Map<string, ChainFetchInstances>()
+const chainSourcesCache = new Map<string, ChainEffectSources>()
 
 /**
- * 获取或创建链的 KeyFetch 实例集合
+ * 获取或创建链的 Effect 数据源（缓存）
  */
-export function getChainFetchInstances(chainId: string, baseUrl: string): ChainFetchInstances {
-  let instances = chainInstances.get(chainId)
-  if (!instances) {
-    const lastBlock = createLastBlockFetch(chainId, baseUrl)
-    const balance = createBalanceFetch(chainId, baseUrl, lastBlock)
-    const transactionQuery = createTransactionQueryFetch(chainId, baseUrl, lastBlock)
-
-    instances = { lastBlock, balance, transactionQuery }
-    chainInstances.set(chainId, instances)
-
-
+export function getChainEffectSources(
+  chainId: string,
+  baseUrl: string,
+  address: string
+): Effect.Effect<ChainEffectSources> {
+  const cacheKey = `${chainId}:${address}`
+  const cached = chainSourcesCache.get(cacheKey)
+  
+  if (cached) {
+    return Effect.succeed(cached)
   }
-  return instances
+  
+  return createChainEffectSources(chainId, baseUrl, address).pipe(
+    Effect.tap((sources) => Effect.sync(() => {
+      chainSourcesCache.set(cacheKey, sources)
+    }))
+  )
 }
 
 /**
- * 清理链的 KeyFetch 实例（用于测试）
+ * 清理链的数据源实例
+ */
+export function clearChainEffectSources(): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    for (const sources of chainSourcesCache.values()) {
+      yield* sources.stopAll
+    }
+    chainSourcesCache.clear()
+  })
+}
+
+/**
+ * 清理链的 KeyFetch 实例（用于测试 - 兼容旧 API）
+ * @deprecated Use clearChainEffectSources instead
  */
 export function clearChainFetchInstances(): void {
-  chainInstances.clear()
+  Effect.runSync(clearChainEffectSources())
 }

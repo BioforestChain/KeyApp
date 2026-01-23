@@ -296,8 +296,8 @@ class PendingTxManagerImpl {
         this.sendNotification(updated, 'confirmed');
 
         // Note: 以前这里会调用 invalidateBalance (使用 React Query)。
-        // 现在系统完全依赖 key-fetch 的 deps (blockApi) 机制进行自动刷新。
-        // 当交易上链 -> blockApi 刷新 -> txList 和 pendingTr 自动刷新。
+        // 现在系统完全依赖 Effect 数据源的 deps 机制进行自动刷新。
+        // 当交易上链 -> blockApi 刷新 -> txList 和 pendingTx 自动刷新。
 
 
       } else {

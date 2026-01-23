@@ -5,6 +5,8 @@
  * - createPollingSource: 定时轮询 + 事件触发
  * - createDependentSource: 依赖变化触发
  * - createEventBus: 外部事件总线
+ * 
+ * @see https://context7.com/effect-ts/effect/llms.txt - Effect Stream 创建和转换
  */
 
 import { Effect, Stream, Schedule, SubscriptionRef, Duration, PubSub, Fiber } from "effect"

@@ -2,6 +2,9 @@
  * @biochain/chain-effect
  *
  * Effect TS based reactive chain data fetching
+ * 
+ * @see https://context7.com/effect-ts/effect/llms.txt - Effect 官方文档
+ * @see https://context7.com/tim-smart/effect-atom/llms.txt - Effect Atom React 集成参考
  */
 
 // Re-export Effect core types for convenience

@@ -7,7 +7,8 @@
  * - Provide merged app catalog + helpers (ranking/search)
  */
 
-import { keyFetch, etag, cache, IndexedDBCacheStorage, ttl } from '@biochain/key-fetch';
+import { Effect } from 'effect';
+import { httpFetch, type FetchError } from '@biochain/chain-effect';
 import { ecosystemStore, ecosystemSelectors, ecosystemActions } from '@/stores/ecosystem';
 import type { EcosystemSource, MiniappManifest, SourceRecord } from './types';
 import { EcosystemSearchResponseSchema, EcosystemSourceSchema } from './schema';
@@ -16,24 +17,163 @@ import { createResolver } from '@/lib/url-resolver';
 
 const SUPPORTED_SEARCH_RESPONSE_VERSIONS = new Set(['1', '1.0.0']);
 
-const ecosystemSourceStorage = new IndexedDBCacheStorage('ecosystem-sources', 'sources');
+// ==================== IndexedDB Cache ====================
 
-function createSourceFetcher(url: string) {
-  return keyFetch.create({
-    name: `ecosystem.source.${url}`,
-    outputSchema: EcosystemSourceSchema,
-    url,
-    use: [etag(), cache({ storage: ecosystemSourceStorage }), ttl(5 * 60 * 1000)],
+const DB_NAME = 'ecosystem-sources';
+const STORE_NAME = 'sources';
+
+interface CacheEntry {
+  url: string;
+  data: EcosystemSource;
+  etag?: string;
+  cachedAt: number;
+}
+
+async function openCacheDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'url' });
+      }
+    };
   });
 }
 
-function createSearchFetcher(url: string) {
-  return keyFetch.create({
-    name: `ecosystem.search.${url}`,
-    outputSchema: EcosystemSearchResponseSchema,
+async function getCachedSource(url: string): Promise<CacheEntry | null> {
+  try {
+    const db = await openCacheDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.get(url);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result ?? null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function setCachedSource(entry: CacheEntry): Promise<void> {
+  try {
+    const db = await openCacheDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.put(entry);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  } catch {
+    // Ignore cache errors
+  }
+}
+
+// ==================== TTL Cache ====================
+
+const TTL_MS = 5 * 60 * 1000; // 5 minutes
+const SEARCH_TTL_MS = 30 * 1000; // 30 seconds
+const ttlCache = new Map<string, { data: unknown; expiresAt: number }>();
+
+function getTTLCached<T>(key: string): T | null {
+  const entry = ttlCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    ttlCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setTTLCached<T>(key: string, data: T, ttlMs: number): void {
+  ttlCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
+
+function invalidateTTLCache(prefix: string): void {
+  for (const key of ttlCache.keys()) {
+    if (key.startsWith(prefix)) {
+      ttlCache.delete(key);
+    }
+  }
+}
+
+// ==================== Fetch with ETag/Cache ====================
+
+async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null> {
+  // Check TTL cache first
+  const ttlCached = getTTLCached<EcosystemSource>(`source:${url}`);
+  if (ttlCached) return ttlCached;
+
+  // Get cached entry for ETag
+  const cached = await getCachedSource(url);
+  const headers: Record<string, string> = {};
+  if (cached?.etag) {
+    headers['If-None-Match'] = cached.etag;
+  }
+
+  try {
+    const response = await fetch(url, { headers });
+
+    // 304 Not Modified - use cache
+    if (response.status === 304 && cached) {
+      setTTLCached(`source:${url}`, cached.data, TTL_MS);
+      return cached.data;
+    }
+
+    if (!response.ok) {
+      // Fall back to cache on error
+      if (cached) {
+        setTTLCached(`source:${url}`, cached.data, TTL_MS);
+        return cached.data;
+      }
+      return null;
+    }
+
+    const json = await response.json();
+    const parsed = EcosystemSourceSchema.safeParse(json);
+    if (!parsed.success) {
+      if (cached) return cached.data;
+      return null;
+    }
+
+    const data = parsed.data;
+    const etag = response.headers.get('etag') ?? undefined;
+
+    // Update cache
+    await setCachedSource({ url, data, etag, cachedAt: Date.now() });
+    setTTLCached(`source:${url}`, data, TTL_MS);
+
+    return data;
+  } catch {
+    // Fall back to cache on error
+    if (cached) {
+      setTTLCached(`source:${url}`, cached.data, TTL_MS);
+      return cached.data;
+    }
+    return null;
+  }
+}
+
+function fetchSearchResults(url: string): Effect.Effect<{ version: string; data: MiniappManifest[] }, FetchError> {
+  // Check TTL cache first
+  const ttlCached = getTTLCached<{ version: string; data: MiniappManifest[] }>(`search:${url}`);
+  if (ttlCached) return Effect.succeed(ttlCached);
+
+  return httpFetch({
     url,
-    use: [ttl(30 * 1000)],
-  });
+    method: 'GET',
+    schema: EcosystemSearchResponseSchema,
+  }).pipe(
+    Effect.tap((result) =>
+      Effect.sync(() => {
+        setTTLCached(`search:${url}`, result, SEARCH_TTL_MS);
+      })
+    )
+  );
 }
 
 let cachedApps: MiniappManifest[] = [];
@@ -82,12 +222,7 @@ function normalizeAppFromSource(
 }
 
 async function fetchSourceWithCache(url: string): Promise<EcosystemSource | null> {
-  try {
-    const fetcher = createSourceFetcher(url);
-    return await fetcher.fetch({});
-  } catch {
-    return null;
-  }
+  return fetchSourceWithEtag(url);
 }
 
 async function rebuildCachedAppsFromSources(
@@ -151,15 +286,14 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
   const enabledSources = ecosystemSelectors.getEnabledSources(ecosystemStore.state);
 
   if (force) {
-    keyFetch.invalidate('ecosystem.source');
+    invalidateTTLCache('source:');
   }
 
   const results = await Promise.all(
     enabledSources.map(async (source) => {
       ecosystemActions.updateSourceStatus(source.url, 'loading');
       try {
-        const fetcher = createSourceFetcher(source.url);
-        const payload = await fetcher.fetch({});
+        const payload = await fetchSourceWithEtag(source.url);
         ecosystemActions.updateSourceStatus(source.url, 'success');
         return { source, payload };
       } catch (error) {
@@ -177,9 +311,8 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
 export async function refreshSource(url: string): Promise<void> {
   ecosystemActions.updateSourceStatus(url, 'loading');
   try {
-    keyFetch.invalidate(`ecosystem.source.${url}`);
-    const fetcher = createSourceFetcher(url);
-    const payload = await fetcher.fetch({});
+    invalidateTTLCache(`source:${url}`);
+    const payload = await fetchSourceWithEtag(url);
     if (payload) {
       ecosystemActions.updateSourceStatus(url, 'success');
       await rebuildCachedAppsFromCache();
@@ -235,9 +368,8 @@ async function fetchRemoteSearch(source: SourceRecord, urlTemplate: string, quer
   const url = urlTemplate.replace(/%s/g, encoded);
 
   try {
-    const fetcher = createSearchFetcher(url);
-    const response = await fetcher.fetch({});
-    const { version, data } = response as { version: string; data: MiniappManifest[] };
+    const result = await Effect.runPromise(fetchSearchResults(url));
+    const { version, data } = result;
 
     if (!isSupportedSearchResponseVersion(version)) {
       return [];

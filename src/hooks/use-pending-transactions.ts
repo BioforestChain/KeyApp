@@ -2,55 +2,85 @@
  * usePendingTransactions Hook
  * 
  * 获取当前钱包的未上链交易列表
- * 使用 key-fetch 的 useState，依赖 blockHeight 自动刷新
+ * 使用 Effect 数据源，依赖 blockHeight 自动刷新
  */
 
 import { useCallback, useMemo, useState, useEffect } from 'react'
-import { getPendingTxFetcher, pendingTxService, pendingTxManager, type PendingTx } from '@/services/transaction'
+import { Effect } from 'effect'
+import { pendingTxService, pendingTxManager, getPendingTxSource, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
 
 export function usePendingTransactions(walletId: string | undefined, chainId?: string) {
   const chainConfigState = useChainConfigState()
 
-  // 获取 key-fetch 实例（使用 useMemo 保持稳定引用）
-  const fetcher = useMemo(() => {
-    if (!walletId || !chainId) return null
-    return getPendingTxFetcher(chainId, walletId)
-  }, [walletId, chainId])
-
-  // 手动管理状态，避免条件调用 Hook
+  // 手动管理状态
   const [transactions, setTransactions] = useState<PendingTx[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (!fetcher) {
+    if (!walletId || !chainId) {
       setTransactions([])
       setIsLoading(false)
       return
     }
 
+    const sourceEffect = getPendingTxSource(chainId, walletId)
+    if (!sourceEffect) {
+      // 如果链不支持 blockHeight，回退到直接查询
+      pendingTxService.getPending({ walletId }).then(setTransactions)
+      return
+    }
+
     setIsLoading(true)
 
-    // 初始获取
-    fetcher.fetch({}).then((result) => {
-      setTransactions(result as PendingTx[])
-      setIsLoading(false)
+    // 运行 Effect 获取数据源并订阅变化
+    let cleanup: (() => void) | undefined
+
+    Effect.runPromise(sourceEffect).then((source) => {
+      // 获取初始值
+      Effect.runPromise(source.get).then((result) => {
+        if (result) setTransactions(result)
+        setIsLoading(false)
+      })
+
+      // 订阅变化流
+      const fiber = Effect.runFork(
+        source.changes.pipe(
+          Effect.tap((newData) => Effect.sync(() => setTransactions(newData)))
+        )
+      )
+
+      cleanup = () => {
+        Effect.runPromise(Effect.fiberId.pipe(Effect.flatMap(() => source.stop)))
+      }
     }).catch(() => {
       setIsLoading(false)
     })
 
-    // 订阅更新
-    const unsubscribe = fetcher.subscribe({}, (newData) => {
-      setTransactions(newData as PendingTx[])
+    return () => cleanup?.()
+  }, [walletId, chainId])
+
+  // 订阅 pendingTxService 的变化（用于即时更新）
+  useEffect(() => {
+    if (!walletId) return
+
+    const unsubscribe = pendingTxService.subscribe((tx, event) => {
+      if (tx.walletId !== walletId) return
+      
+      if (event === 'created') {
+        setTransactions(prev => [tx, ...prev])
+      } else if (event === 'updated') {
+        setTransactions(prev => prev.map(t => t.id === tx.id ? tx : t))
+      } else if (event === 'deleted') {
+        setTransactions(prev => prev.filter(t => t.id !== tx.id))
+      }
     })
 
     return unsubscribe
-  }, [fetcher])
+  }, [walletId])
 
   const deleteTransaction = useCallback(async (tx: PendingTx) => {
     await pendingTxService.delete({ id: tx.id })
-    // 立即更新本地状态，提供即时 UI 反馈
-    setTransactions(prev => prev.filter(t => t.id !== tx.id))
   }, [])
 
   const retryTransaction = useCallback(async (tx: PendingTx) => {

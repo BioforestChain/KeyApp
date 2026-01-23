@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { derive, transform } from '@biochain/key-fetch';
+import { Effect, Stream } from 'effect';
+import { createDependentSource, type DataSource } from '@biochain/chain-effect';
 import { getChainProvider } from '@/services/chain-adapter/providers';
 import { defineServiceMeta } from '@/lib/service-meta';
 import { SignedTransactionSchema } from '@/services/chain-adapter/types';
@@ -480,60 +481,95 @@ class PendingTxServiceImpl implements IPendingTxService {
 /** 单例服务实例 */
 export const pendingTxService = new PendingTxServiceImpl();
 
-// ==================== Key-Fetch Instance Factory ====================
+// ==================== Effect Data Source Factory ====================
 
-// 缓存已创建的 fetcher 实例
-const pendingTxFetchers = new Map<string, ReturnType<typeof derive>>();
+// 缓存已创建的 Effect 数据源实例
+const pendingTxSources = new Map<string, DataSource<PendingTx[]>>();
 
 /**
- * 获取 pending tx 的 key-fetch 实例
- * 依赖 blockHeight 自动刷新
+ * 获取 pending tx 的 Effect 数据源
+ * 依赖 blockHeight 变化自动刷新
  */
-export function getPendingTxFetcher(chainId: string, walletId: string) {
+export function getPendingTxSource(
+  chainId: string,
+  walletId: string
+): Effect.Effect<DataSource<PendingTx[]>> | null {
   const key = `${chainId}:${walletId}`;
 
-  if (!pendingTxFetchers.has(key)) {
-    const chainProvider = getChainProvider(chainId);
-
-    if (!chainProvider?.supports('blockHeight')) {
-      return null;
-    }
-
-    const fetcher = derive({
-      name: `pendingTx.${chainId}.${walletId}`,
-      source: chainProvider.blockHeight,
-      outputSchema: z.array(PendingTxSchema),
-      use: [
-        transform({
-          transform: async () => {
-            // 检查 pending 交易状态，更新/移除已上链的
-            const pending = await pendingTxService.getPending({ walletId });
-
-            for (const tx of pending) {
-              if (tx.status === 'broadcasted' && tx.txHash) {
-                try {
-                  // 检查是否已上链
-                  const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash });
-                  if (txInfo?.status === 'confirmed') {
-                    // 直接删除已确认的交易
-                    await pendingTxService.delete({ id: tx.id });
-                  }
-                } catch (e) {
-                  console.error('检查pending交易状态失败', e); // i18n-ignore;
-                  // 查询失败，跳过
-                }
-              }
-            }
-
-            // 返回最新的 pending 列表
-            return await pendingTxService.getPending({ walletId });
-          },
-        }),
-      ],
-    });
-
-    pendingTxFetchers.set(key, fetcher);
+  const cached = pendingTxSources.get(key);
+  if (cached) {
+    return Effect.succeed(cached);
   }
 
-  return pendingTxFetchers.get(key)!;
+  const chainProvider = getChainProvider(chainId);
+
+  if (!chainProvider?.supports('blockHeight')) {
+    return null;
+  }
+
+  // 创建依赖 blockHeight 的数据源
+  return createDependentSource({
+    name: `pendingTx.${chainId}.${walletId}`,
+    dependsOn: chainProvider.blockHeight.ref,
+    hasChanged: (prev, next) => prev !== next,
+    fetch: () =>
+      Effect.tryPromise({
+        try: async () => {
+          // 检查 pending 交易状态，更新/移除已上链的
+          const pending = await pendingTxService.getPending({ walletId });
+
+          for (const tx of pending) {
+            if (tx.status === 'broadcasted' && tx.txHash) {
+              try {
+                // 检查是否已上链
+                const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash });
+                if (txInfo?.status === 'confirmed') {
+                  // 直接删除已确认的交易
+                  await pendingTxService.delete({ id: tx.id });
+                }
+              } catch {
+                // 查询失败，跳过
+              }
+            }
+          }
+
+          // 返回最新的 pending 列表
+          return await pendingTxService.getPending({ walletId });
+        },
+        catch: (error) => error as Error,
+      }),
+  }).pipe(
+    Effect.tap((source) =>
+      Effect.sync(() => {
+        pendingTxSources.set(key, source);
+      })
+    )
+  );
+}
+
+/**
+ * 订阅 pending tx 变化流
+ */
+export function subscribePendingTxChanges(
+  chainId: string,
+  walletId: string
+): Stream.Stream<PendingTx[]> | null {
+  const sourceEffect = getPendingTxSource(chainId, walletId);
+  if (!sourceEffect) return null;
+
+  return Stream.fromEffect(sourceEffect).pipe(
+    Stream.flatMap((source) => source.changes)
+  );
+}
+
+/**
+ * 清理 pending tx 数据源缓存
+ */
+export function clearPendingTxSources(): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    for (const source of pendingTxSources.values()) {
+      yield* source.stop;
+    }
+    pendingTxSources.clear();
+  });
 }

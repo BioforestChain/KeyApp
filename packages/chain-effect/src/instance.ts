@@ -2,8 +2,13 @@
  * React 桥接层
  * 
  * 将 Effect 的 SubscriptionRef 桥接到 React Hook
+ * 
+ * @see https://context7.com/effect-ts/effect/llms.txt - Effect Stream 官方文档
+ * @see https://context7.com/tim-smart/effect-atom/llms.txt - Effect Atom React 集成参考
+ * @see https://react.dev/reference/react/useSyncExternalStore - React 18 外部订阅最佳实践
  */
 
+import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from "react"
 import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
@@ -121,11 +126,6 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
     },
 
     useState(input: TInput, options?: { enabled?: boolean }) {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const React = require("react") as typeof import("react")
-      const { useState, useEffect, useCallback, useRef, useMemo } = React
-
-      const [data, setData] = useState<TOutput | undefined>(undefined)
       const [isLoading, setIsLoading] = useState(true)
       const [isFetching, setIsFetching] = useState(false)
       const [error, setError] = useState<Error | undefined>(undefined)
@@ -136,6 +136,39 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
 
       const enabled = options?.enabled !== false
       const instanceRef = useRef(this)
+      
+      // 使用 ref 存储最新值供 useSyncExternalStore 使用
+      const snapshotRef = useRef<TOutput | undefined>(undefined)
+
+      // useSyncExternalStore 订阅函数
+      const subscribe = useCallback((onStoreChange: () => void) => {
+        if (!enabled) {
+          snapshotRef.current = undefined
+          return () => {}
+        }
+        
+        setIsLoading(true)
+        setIsFetching(true)
+        setError(undefined)
+
+        const unsubscribe = instanceRef.current.subscribe(
+          inputRef.current,
+          (newData: TOutput) => {
+            snapshotRef.current = newData
+            setIsLoading(false)
+            setIsFetching(false)
+            setError(undefined)
+            onStoreChange()
+          }
+        )
+
+        return unsubscribe
+      }, [enabled, inputKey])
+
+      const getSnapshot = useCallback(() => snapshotRef.current, [])
+
+      // 使用 useSyncExternalStore 订阅外部状态 (React 18+ 推荐)
+      const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
       const refetch = useCallback(async () => {
         if (!enabled) return
@@ -144,7 +177,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         try {
           const source = await getOrCreateSource(inputRef.current)
           const result = await Effect.runPromise(source.refresh)
-          setData(result)
+          snapshotRef.current = result
         } catch (err) {
           setError(err instanceof Error ? err : new Error(String(err)))
         } finally {
@@ -153,36 +186,15 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         }
       }, [enabled])
 
+      // 处理 disabled 状态
       useEffect(() => {
         if (!enabled) {
-          setData(undefined)
+          snapshotRef.current = undefined
           setIsLoading(false)
           setIsFetching(false)
           setError(undefined)
-          return
         }
-
-        setIsLoading(true)
-        setIsFetching(true)
-        setError(undefined)
-
-        let isCancelled = false
-        const unsubscribe = instanceRef.current.subscribe(
-          inputRef.current,
-          (newData: TOutput, _event: "initial" | "update") => {
-            if (isCancelled) return
-            setData(newData)
-            setIsLoading(false)
-            setIsFetching(false)
-            setError(undefined)
-          }
-        )
-
-        return () => {
-          isCancelled = true
-          unsubscribe()
-        }
-      }, [enabled, inputKey])
+      }, [enabled])
 
       return { data, isLoading, isFetching, error, refetch }
     },
@@ -271,18 +283,11 @@ export function createStreamInstance<TInput, TOutput>(
 
       return () => {
         cancelled = true
-        import("effect").then(({ Fiber }) => {
-          Effect.runFork(Fiber.interrupt(fiber))
-        })
+        Effect.runFork(Fiber.interrupt(fiber))
       }
     },
 
     useState(input: TInput, options?: { enabled?: boolean }) {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const React = require("react") as typeof import("react")
-      const { useState, useEffect, useCallback, useRef, useMemo } = React
-
-      const [data, setData] = useState<TOutput | undefined>(undefined)
       const [isLoading, setIsLoading] = useState(true)
       const [isFetching, setIsFetching] = useState(false)
       const [error, setError] = useState<Error | undefined>(undefined)
@@ -293,6 +298,47 @@ export function createStreamInstance<TInput, TOutput>(
 
       const enabled = options?.enabled !== false
       const instanceRef = useRef(this)
+      
+      // 使用 ref 存储最新值供 useSyncExternalStore 使用
+      const snapshotRef = useRef<TOutput | undefined>(undefined)
+
+      // useSyncExternalStore 订阅函数
+      const subscribe = useCallback((onStoreChange: () => void) => {
+        if (!enabled) {
+          snapshotRef.current = undefined
+          return () => {}
+        }
+
+        // 检查缓存
+        const key = getInputKey(inputRef.current)
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < ttl) {
+          snapshotRef.current = cached.value
+          setIsLoading(false)
+        } else {
+          setIsLoading(true)
+        }
+        setIsFetching(true)
+        setError(undefined)
+
+        const unsubscribe = instanceRef.current.subscribe(
+          inputRef.current,
+          (newData: TOutput) => {
+            snapshotRef.current = newData
+            setIsLoading(false)
+            setIsFetching(false)
+            setError(undefined)
+            onStoreChange()
+          }
+        )
+
+        return unsubscribe
+      }, [enabled, inputKey])
+
+      const getSnapshot = useCallback(() => snapshotRef.current, [])
+
+      // 使用 useSyncExternalStore 订阅外部状态 (React 18+ 推荐)
+      const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
       const refetch = useCallback(async () => {
         if (!enabled) return
@@ -301,7 +347,7 @@ export function createStreamInstance<TInput, TOutput>(
         try {
           cache.delete(getInputKey(inputRef.current))
           const result = await instanceRef.current.fetch(inputRef.current)
-          setData(result)
+          snapshotRef.current = result
         } catch (err) {
           setError(err instanceof Error ? err : new Error(String(err)))
         } finally {
@@ -310,44 +356,15 @@ export function createStreamInstance<TInput, TOutput>(
         }
       }, [enabled])
 
+      // 处理 disabled 状态
       useEffect(() => {
         if (!enabled) {
-          setData(undefined)
+          snapshotRef.current = undefined
           setIsLoading(false)
           setIsFetching(false)
           setError(undefined)
-          return
         }
-
-        // 检查缓存
-        const key = getInputKey(inputRef.current)
-        const cached = cache.get(key)
-        if (cached && Date.now() - cached.timestamp < ttl) {
-          setData(cached.value)
-          setIsLoading(false)
-        } else {
-          setIsLoading(true)
-        }
-        setIsFetching(true)
-        setError(undefined)
-
-        let isCancelled = false
-        const unsubscribe = instanceRef.current.subscribe(
-          inputRef.current,
-          (newData: TOutput) => {
-            if (isCancelled) return
-            setData(newData)
-            setIsLoading(false)
-            setIsFetching(false)
-            setError(undefined)
-          }
-        )
-
-        return () => {
-          isCancelled = true
-          unsubscribe()
-        }
-      }, [enabled, inputKey])
+      }, [enabled])
 
       return { data, isLoading, isFetching, error, refetch }
     },
