@@ -11,9 +11,11 @@ import { Schema as S } from "effect"
 import {
   httpFetch,
   createStreamInstanceFromSource,
-  createPollingSource,
   createDependentSource,
   createEventBusService,
+  acquireSource,
+  releaseSource,
+  makeRegistryKey,
 
   type FetchError,
   type DataSource,
@@ -402,74 +404,72 @@ export class BiowalletProviderEffect
 
   // ==================== Source 创建方法 ====================
 
+  /**
+   * 获取共享的 transactionHistory source（全局单例 + 引用计数）
+   */
+  private getSharedTxHistorySource(
+    address: string,
+    symbol: string,
+    decimals: number
+  ): Effect.Effect<DataSource<TransactionsOutput>> {
+    const provider = this
+    const normalizedAddress = address.toLowerCase()
+    const registryKey = makeRegistryKey(this.chainId, normalizedAddress, "txHistory")
+    const cacheUrl = `${this.baseUrl}/transactions/query`
+    const cacheBody = { address: normalizedAddress, limit: 50 }
+
+    const fetchEffect = provider.fetchTransactionList({ address, limit: 50 }).pipe(
+      Effect.map((raw): TransactionsOutput => {
+        if (!raw.result?.trs) return []
+
+        return raw.result.trs
+          .map((item): Transaction | null => {
+            const tx = item.transaction
+            const action = detectAction(tx.type)
+            const direction = getDirection(tx.senderId, tx.recipientId ?? "", normalizedAddress)
+            const { value, assetType } = extractAssetInfo(tx.asset, symbol)
+            if (value === null) return null
+
+            return {
+              hash: tx.signature ?? item.signature,
+              from: tx.senderId,
+              to: tx.recipientId ?? "",
+              timestamp: provider.epochMs + tx.timestamp * 1000,
+              status: "confirmed",
+              blockNumber: BigInt(item.height),
+              action,
+              direction,
+              assets: [
+                {
+                  assetType: "native" as const,
+                  value,
+                  symbol: assetType,
+                  decimals,
+                },
+              ],
+            }
+          })
+          .filter((tx): tx is Transaction => tx !== null)
+          .sort((a, b) => b.timestamp - a.timestamp)
+      })
+    )
+
+    // 使用全局 acquireSource 获取共享的 source
+    return acquireSource<TransactionsOutput>(registryKey, {
+      fetch: fetchEffect,
+      interval: Duration.millis(this.forgeInterval),
+      cacheUrl,
+      cacheBody,
+    })
+  }
+
   private createTransactionHistorySource(
     params: TxHistoryParams,
     symbol: string,
     decimals: number
   ): Effect.Effect<DataSource<TransactionsOutput>> {
-    const provider = this
-    const address = params.address.toLowerCase()
-    const chainId = this.chainId
-
-    return Effect.gen(function* () {
-      // 获取或创建 Provider 级别共享的 EventBus
-      if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
-      }
-      const eventBus = provider._eventBus
-
-      const fetchEffect = provider.fetchTransactionList(params).pipe(
-        Effect.map((raw): TransactionsOutput => {
-          if (!raw.result?.trs) return []
-
-          return raw.result.trs
-            .map((item): Transaction | null => {
-              const tx = item.transaction
-              const action = detectAction(tx.type)
-              const direction = getDirection(tx.senderId, tx.recipientId ?? "", address)
-              const { value, assetType } = extractAssetInfo(tx.asset, symbol)
-              if (value === null) return null
-
-              return {
-                hash: tx.signature ?? item.signature,
-                from: tx.senderId,
-                to: tx.recipientId ?? "",
-                timestamp: provider.epochMs + tx.timestamp * 1000,
-                status: "confirmed",
-                blockNumber: BigInt(item.height),
-                action,
-                direction,
-                assets: [
-                  {
-                    assetType: "native" as const,
-                    value,
-                    symbol: assetType,
-                    decimals,
-                  },
-                ],
-              }
-            })
-            .filter((tx): tx is Transaction => tx !== null)
-            .sort((a, b) => b.timestamp - a.timestamp)
-        })
-      )
-
-      // 使用 createPollingSource 实现定时轮询 + 事件触发
-      const source = yield* createPollingSource({
-        name: `biowallet.${provider.chainId}.txHistory`,
-        fetch: fetchEffect,
-        interval: Duration.millis(provider.forgeInterval),
-        // 使用 walletEvents 配置，按 chainId + address 过滤事件
-        walletEvents: {
-          eventBus,
-          chainId,
-          address: params.address,
-          types: ["tx:confirmed", "tx:sent"],
-        },
-      })
-
-      return source
-    })
+    // 直接使用共享的 txHistory source
+    return this.getSharedTxHistorySource(params.address, symbol, decimals)
   }
 
   private createBalanceSource(

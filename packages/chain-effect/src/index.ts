@@ -76,3 +76,36 @@ export {
   createStreamInstanceFromSource,
   type StreamInstance,
 } from "./instance"
+
+// HTTP Cache (Cache API wrapper)
+export {
+  getFromCache,
+  putToCache,
+  deleteFromCache,
+  clearCache,
+  makeCacheKeyFromRequest,
+  type CachedResponse,
+  type HttpCacheOptions,
+} from "./http-cache"
+
+// Poll Meta (IndexedDB persistence)
+export {
+  getPollMeta,
+  setPollMeta,
+  deletePollMeta,
+  updateNextPollTime,
+  getDelayUntilNextPoll,
+  makePollKey,
+  type PollMeta,
+} from "./poll-meta"
+
+// Source Registry (global singleton + ref counting)
+export {
+  acquireSource,
+  releaseSource,
+  makeRegistryKey,
+  getRegistryStatus,
+  clearRegistry,
+  type SourceEntry,
+  type AcquireSourceOptions,
+} from "./source-registry"
