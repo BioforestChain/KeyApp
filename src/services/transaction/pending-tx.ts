@@ -180,6 +180,14 @@ export const pendingTxServiceMeta = defineServiceMeta('pendingTx', (s) =>
 
     // ===== 清理 =====
     .api('delete', z.object({ id: z.string() }), z.void())
+    .api(
+      'deleteByTxHash',
+      z.object({
+        walletId: z.string(),
+        txHashes: z.array(z.string()),
+      }),
+      z.void(),
+    )
     .api('deleteConfirmed', z.object({ walletId: z.string() }), z.void())
     .api('deleteAll', z.object({ walletId: z.string() }), z.void()),
 );
@@ -456,6 +464,30 @@ class PendingTxServiceImpl implements IPendingTxService {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     await Promise.all(confirmed.map((item) => tx.store.delete(item.id)));
     await tx.done;
+  }
+
+  async deleteByTxHash({ walletId, txHashes }: { walletId: string; txHashes: string[] }): Promise<void> {
+    if (txHashes.length === 0) return;
+    const normalized = new Set(txHashes.map((hash) => hash.trim().toLowerCase()).filter(Boolean));
+    if (normalized.size === 0) return;
+
+    const all = await this.getAll({ walletId });
+    const matched = all.filter((item) => {
+      if (!item.txHash) return false;
+      return normalized.has(item.txHash.toLowerCase());
+    });
+
+    if (matched.length === 0) return;
+
+    const db = await this.ensureDb();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    await Promise.all(matched.map((item) => tx.store.delete(item.id)));
+    await tx.done;
+
+    for (const item of matched) {
+      pendingTxDebugLog('delete', item.walletId, item.status, item.id);
+      this.notify(item, 'deleted');
+    }
   }
 
   async deleteExpired({

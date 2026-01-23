@@ -77,7 +77,7 @@ export interface FetchOptions<T> {
   /** 请求体（POST）*/
   body?: unknown;
   /** 响应 Schema */
-  schema?: Schema.Schema<T, any, never>;
+  schema?: Schema.Schema<T, unknown, never>;
   /** 超时时间（毫秒）*/
   timeout?: number;
   /** 缓存策略（浏览器层面的 Request cache）*/

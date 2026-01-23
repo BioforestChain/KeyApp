@@ -5,10 +5,11 @@
  * 使用 Effect 数据源，依赖 blockHeight 自动刷新
  */
 
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useMemo } from 'react'
 import { Effect, Stream, Fiber } from 'effect'
 import { pendingTxService, pendingTxManager, getPendingTxSource, getPendingTxWalletKey, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
+import type { Transaction } from '@/services/chain-adapter/providers'
 
 function isPendingTxDebugEnabled(): boolean {
   if (typeof globalThis === 'undefined') return false
@@ -21,10 +22,26 @@ function pendingTxDebugLog(...args: Array<string | number | boolean>): void {
   console.log('[chain-effect]', 'pending-tx', ...args)
 }
 
-export function usePendingTransactions(walletId: string | undefined, chainId?: string, address?: string) {
+export function usePendingTransactions(
+  walletId: string | undefined,
+  chainId?: string,
+  address?: string,
+  txHistory?: ReadonlyArray<Transaction>,
+) {
   const chainConfigState = useChainConfigState()
   const walletKey = chainId && address ? getPendingTxWalletKey(chainId, address) : walletId
   const legacyWalletId = walletId && walletId !== walletKey ? walletId : undefined
+  const confirmedTxHashes = useMemo(() => {
+    if (!txHistory?.length) return []
+    const set = new Set<string>()
+    for (const tx of txHistory) {
+      if (tx?.hash) {
+        set.add(tx.hash.toLowerCase())
+      }
+    }
+    return Array.from(set).sort()
+  }, [txHistory])
+  const confirmedTxHashKey = useMemo(() => confirmedTxHashes.join('|'), [confirmedTxHashes])
 
   // 手动管理状态
   const [transactions, setTransactions] = useState<PendingTx[]>([])
@@ -163,6 +180,16 @@ export function usePendingTransactions(walletId: string | undefined, chainId?: s
       void pendingTxManager.syncWalletPendingTransactions(legacyWalletId, chainConfigState)
     }
   }, [walletKey, legacyWalletId, chainConfigState])
+
+  useEffect(() => {
+    if (!walletKey || confirmedTxHashes.length === 0) return
+    void (async () => {
+      await pendingTxService.deleteByTxHash({ walletId: walletKey, txHashes: confirmedTxHashes })
+      if (legacyWalletId) {
+        await pendingTxService.deleteByTxHash({ walletId: legacyWalletId, txHashes: confirmedTxHashes })
+      }
+    })()
+  }, [walletKey, legacyWalletId, confirmedTxHashKey])
 
   // 订阅 pendingTxService 的变化（用于即时更新）
   useEffect(() => {

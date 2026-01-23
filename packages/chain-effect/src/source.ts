@@ -9,7 +9,8 @@
  * @see https://context7.com/effect-ts/effect/llms.txt - Effect Stream 创建和转换
  */
 
-import { Effect, Stream, Schedule, SubscriptionRef, Duration, PubSub, Fiber } from "effect"
+import { Effect, Stream, Schedule, SubscriptionRef, PubSub, Fiber } from "effect"
+import type { Duration } from "effect"
 import type { FetchError } from "./http"
 import type { EventBusService, WalletEventType } from "./event-bus"
 
