@@ -153,7 +153,7 @@ export const transactionService = transactionServiceMeta.impl({
       const provider = getChainProvider(config.id)
       if (!provider.supports('transaction')) return null
 
-      const tx = await provider.transaction.fetch({ hash: parsed.hash })
+      const tx = await provider.transaction.fetch({ txHash: parsed.hash })
       if (!tx) return null
 
       const record = mapProviderTransaction(tx, config)

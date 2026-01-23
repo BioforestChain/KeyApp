@@ -2,14 +2,16 @@
  * BioForest Chain Service
  */
 
+import { Effect } from 'effect'
 import type { ChainConfig } from '@/services/chain-config'
 import { chainConfigService } from '@/services/chain-config'
+import { httpFetch } from '@biochain/chain-effect'
 import { Amount } from '@/types/amount'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { ChainServiceError, ChainErrorCodes } from '../types'
 import type { BioforestBlockInfo } from './types'
 import { getTransferMinFee } from '@/services/bioforest-sdk'
-import { getChainFetchInstances } from './fetch'
+import { LastBlockSchema } from './fetch'
 
 export class BioforestChainService implements IChainService {
   private readonly chainId: string
@@ -58,9 +60,13 @@ export class BioforestChainService implements IChainService {
     }
 
     try {
-      // 使用 keyFetch 实例获取区块高度（Schema 验证 + 响应式轮询）
-      const instances = getChainFetchInstances(this.chainId, this.baseUrl)
-      const json = await instances.lastBlock.fetch({})
+      const json = await Effect.runPromise(
+        httpFetch({
+          url: `${this.baseUrl}/lastblock`,
+          method: 'GET',
+          schema: LastBlockSchema,
+        })
+      )
 
       if (!json.success) {
         throw new ChainServiceError(ChainErrorCodes.NETWORK_ERROR, 'API returned success=false')

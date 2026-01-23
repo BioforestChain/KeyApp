@@ -6,7 +6,7 @@
  * - balance/tokenBalances: 依赖 transactionHistory 变化
  */
 
-import { Effect, Stream, Schedule, Duration } from "effect"
+import { Effect, Schedule, Duration } from "effect"
 import { Schema as S } from "effect"
 import {
   httpFetch,
@@ -218,7 +218,6 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
   private readonly baseUrl: string
 
   private readonly txStatusInterval: number
-  private readonly balanceInterval: number
   private readonly erc20Interval: number
 
   private readonly rpcUrl: string
@@ -250,7 +249,6 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
     this.apiKey = apiKey
 
     this.txStatusInterval = (this.config?.txStatusInterval as number) ?? 3000
-    this.balanceInterval = (this.config?.balanceInterval as number) ?? 30000
     this.erc20Interval = (this.config?.erc20Interval as number) ?? 120000
 
     this.rpcUrl = chainConfigService.getRpcUrl(chainId)
@@ -492,13 +490,17 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
       }
       const eventBus = provider._eventBus
 
-      const fetchEffect = provider.fetchTransactionReceipt(params.txHash).pipe(
+      const fetchEffect: Effect.Effect<TransactionStatusOutput, FetchError> = provider.fetchTransactionReceipt(
+        params.txHash
+      ).pipe(
         Effect.retry(rateLimitRetrySchedule),
         Effect.flatMap((raw) =>
           Effect.gen(function* () {
             const receipt = raw.result
-            if (!receipt || !receipt.blockNumber) {
-              return { status: "pending" as const, confirmations: 0, requiredConfirmations: 1 }
+            const isConfirmed = !!receipt?.blockNumber
+            if (!isConfirmed) {
+              const status: TransactionStatusOutput["status"] = "pending"
+              return { status, confirmations: 0, requiredConfirmations: 1 }
             }
 
             // 交易已确认，发送事件通知（带钱包标识）
@@ -507,8 +509,9 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
             }
 
             const isSuccess = receipt.status === "0x1" || receipt.status === undefined
+            const status: TransactionStatusOutput["status"] = isSuccess ? "confirmed" : "failed"
             return {
-              status: isSuccess ? ("confirmed" as const) : ("failed" as const),
+              status,
               confirmations: 1,
               requiredConfirmations: 1,
             }
@@ -549,7 +552,9 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
         accept: "application/json",
       },
       schema: TokenBalancesResponseSchema,
-    })
+    }).pipe(
+      Effect.map((tokens) => tokens.slice())
+    )
   }
 
   private fetchWalletHistory(params: TxHistoryParams): Effect.Effect<WalletHistoryResponse, FetchError> {

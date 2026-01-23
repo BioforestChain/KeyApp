@@ -28,13 +28,43 @@ export interface HttpCacheOptions {
 
 const DEFAULT_CACHE_NAME = "chain-effect-http-cache"
 
+type UnknownRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null
+}
+
+function toStableJson(value: unknown): unknown {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+  if (!isRecord(value)) {
+    if (Array.isArray(value)) {
+      return value.map(toStableJson)
+    }
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map(toStableJson)
+  }
+  const sorted: UnknownRecord = {}
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = toStableJson(value[key])
+  }
+  return sorted
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(toStableJson(value))
+}
+
 /**
  * 将 POST 请求转换为可缓存的 GET 请求
  * Cache API 只能缓存 GET 请求，所以需要将 body 编码到 URL 中
  */
 function makeCacheKey(url: string, body?: unknown): string {
   if (!body) return url
-  const bodyHash = btoa(JSON.stringify(body)).replace(/[+/=]/g, (c) => 
+  const bodyHash = btoa(stableStringify(body)).replace(/[+/=]/g, (c) => 
     c === '+' ? '-' : c === '/' ? '_' : ''
   )
   return `${url}?__body=${bodyHash}`

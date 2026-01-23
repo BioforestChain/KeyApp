@@ -60,7 +60,7 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
-  } = usePendingTransactions(walletId);
+  } = usePendingTransactions(walletId, targetChain, address);
 
   // 客户端过滤：按时间段
   const transactions = useMemo(() => {

@@ -9,13 +9,11 @@
 import { Effect, Duration, Stream, Fiber } from 'effect';
 import { Schema as S } from 'effect';
 import {
-  httpFetch,
   httpFetchCached,
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
   acquireSource,
-  releaseSource,
   makeRegistryKey,
   type FetchError,
   type DataSource,
@@ -288,16 +286,6 @@ function convertBioTransactionToTransaction(
   };
 }
 
-// ==================== 判断交易列表是否变化 ====================
-
-function hasTransactionListChanged(prev: TransactionsOutput | null, next: TransactionsOutput): boolean {
-  if (!prev) return true;
-  if (prev.length !== next.length) return true;
-  if (prev.length === 0 && next.length === 0) return false;
-  // 比较第一条交易的 hash
-  return prev[0]?.hash !== next[0]?.hash;
-}
-
 // ==================== Base Class for Mixins ====================
 
 class BiowalletBase {
@@ -326,13 +314,40 @@ export class BiowalletProviderEffect
   private forgeInterval: number = 15000;
   private epochMs: number = DEFAULT_EPOCH_MS;
 
-  // 缓存 TTL = 出块时间 / 2
-  private get cacheTtl(): number {
-    return this.forgeInterval / 2;
+  // pendingTx 轮询去重 TTL = pendingTxInterval / 2（BioChain: forgeInterval/4）
+  private get pendingTxCacheTtl(): number {
+    return Math.max(1000, Math.floor(this.forgeInterval / 4));
   }
 
   // Provider 级别共享的 EventBus（延迟初始化）
   private _eventBus: EventBusService | null = null;
+  private _txHistorySources = new Map<
+    string,
+    {
+      source: DataSource<TransactionsOutput>;
+      refCount: number;
+      stopAll: Effect.Effect<void>;
+    }
+  >();
+  private _txHistoryCreations = new Map<string, Promise<DataSource<TransactionsOutput>>>();
+  private _balanceSources = new Map<
+    string,
+    {
+      source: DataSource<BalanceOutput>;
+      refCount: number;
+      stopAll: Effect.Effect<void>;
+    }
+  >();
+  private _balanceCreations = new Map<string, Promise<DataSource<BalanceOutput>>>();
+  private _tokenBalanceSources = new Map<
+    string,
+    {
+      source: DataSource<TokenBalancesOutput>;
+      refCount: number;
+      stopAll: Effect.Effect<void>;
+    }
+  >();
+  private _tokenBalanceCreations = new Map<string, Promise<DataSource<TokenBalancesOutput>>>();
 
   // StreamInstance 接口（React 兼容层）
   readonly nativeBalance: StreamInstance<AddressParams, BalanceOutput>;
@@ -434,73 +449,338 @@ export class BiowalletProviderEffect
   ): Effect.Effect<DataSource<TransactionsOutput>> {
     const provider = this;
     const normalizedAddress = address.toLowerCase();
+    const cacheKey = normalizedAddress;
 
-    return Effect.gen(function* () {
-      // 获取共享的 blockHeight source 作为依赖
-      const blockHeightSource = yield* provider.getSharedBlockHeightSource();
+    const wrapSharedSource = (source: DataSource<TransactionsOutput>): DataSource<TransactionsOutput> => ({
+      ...source,
+      stop: provider.releaseSharedTxHistorySource(cacheKey),
+    });
 
-      // 依赖 blockHeight 变化触发刷新
-      const source = yield* createDependentSource({
-        name: `biowallet.${provider.chainId}.txHistory.${normalizedAddress}`,
-        dependsOn: blockHeightSource.ref,
-        hasChanged: (prev, curr) => prev !== curr,
-        fetch: (_dep: BlockHeightOutput, _forceRefresh?: boolean) =>
-          provider.fetchTransactionList({ address, limit: 50 }, true).pipe(
-            Effect.map((raw): TransactionsOutput => {
-              if (!raw.result?.trs) return [];
+    const cached = provider._txHistorySources.get(cacheKey);
+    if (cached) {
+      cached.refCount += 1;
+      return Effect.succeed(wrapSharedSource(cached.source));
+    }
 
-              return raw.result.trs
-                .map((item): Transaction | null => {
-                  const tx = item.transaction;
-                  const action = detectAction(tx.type);
-                  const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress);
-                  const { value, assetType } = extractAssetInfo(tx.asset, symbol);
-                  if (value === null) return null;
-
-                  return {
-                    hash: tx.signature ?? item.signature,
-                    from: tx.senderId,
-                    to: tx.recipientId ?? '',
-                    timestamp: provider.epochMs + tx.timestamp * 1000,
-                    status: 'confirmed',
-                    blockNumber: BigInt(item.height),
-                    action,
-                    direction,
-                    assets: [
-                      {
-                        assetType: 'native' as const,
-                        value,
-                        symbol: assetType,
-                        decimals,
-                      },
-                    ],
-                  };
-                })
-                .filter((tx): tx is Transaction => tx !== null)
-                .sort((a, b) => b.timestamp - a.timestamp);
-            }),
-          ),
+    const pending = provider._txHistoryCreations.get(cacheKey);
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending;
+        const entry = provider._txHistorySources.get(cacheKey);
+        if (entry) {
+          entry.refCount += 1;
+        }
+        return wrapSharedSource(source);
       });
+    }
 
-      // pendingTx 确认事件需要触发 txHistory 刷新（即使高度未变化）
-      if (!provider._eventBus) {
-        provider._eventBus = yield* getWalletEventBus();
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          // 获取共享的 blockHeight source 作为依赖
+          const blockHeightSource = yield* provider.getSharedBlockHeightSource();
+
+          // 依赖 blockHeight 变化触发刷新
+          const source = yield* createDependentSource({
+            name: `biowallet.${provider.chainId}.txHistory.${normalizedAddress}`,
+            dependsOn: blockHeightSource.ref,
+            hasChanged: () => true,
+            fetch: (_dep: BlockHeightOutput, _forceRefresh?: boolean) =>
+              provider.fetchTransactionList({ address, limit: 50 }, true).pipe(
+                Effect.map((raw): TransactionsOutput => {
+                  if (!raw.result?.trs) return [];
+
+                  return raw.result.trs
+                    .map((item): Transaction | null => {
+                      const tx = item.transaction;
+                      const action = detectAction(tx.type);
+                      const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress);
+                      const { value, assetType } = extractAssetInfo(tx.asset, symbol);
+                      if (value === null) return null;
+
+                      return {
+                        hash: tx.signature ?? item.signature,
+                        from: tx.senderId,
+                        to: tx.recipientId ?? '',
+                        timestamp: provider.epochMs + tx.timestamp * 1000,
+                        status: 'confirmed',
+                        blockNumber: BigInt(item.height),
+                        action,
+                        direction,
+                        assets: [
+                          {
+                            assetType: 'native' as const,
+                            value,
+                            symbol: assetType,
+                            decimals,
+                          },
+                        ],
+                      };
+                    })
+                    .filter((tx): tx is Transaction => tx !== null)
+                    .sort((a, b) => b.timestamp - a.timestamp);
+                }),
+              ),
+          });
+
+          // pendingTx 确认事件需要触发 txHistory 刷新（即使高度未变化）
+          if (!provider._eventBus) {
+            provider._eventBus = yield* getWalletEventBus();
+          }
+          const eventBus = provider._eventBus;
+
+          const eventFiber = yield* eventBus
+            .forWalletEvents(provider.chainId, normalizedAddress, ['tx:confirmed'])
+            .pipe(
+              Stream.runForEach(() =>
+                Effect.catchAll(source.refresh, () => Effect.void),
+              ),
+              Effect.forkDaemon,
+            );
+
+          const stopAll = Effect.all([source.stop, Fiber.interrupt(eventFiber)]).pipe(Effect.asVoid);
+
+          provider._txHistorySources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          });
+
+          return source;
+        })
+      );
+
+      provider._txHistoryCreations.set(cacheKey, createPromise);
+
+      try {
+        const source = await createPromise;
+        return wrapSharedSource(source);
+      } finally {
+        provider._txHistoryCreations.delete(cacheKey);
       }
-      const eventBus = provider._eventBus;
+    });
+  }
 
-      const eventFiber = yield* eventBus
-        .forWalletEvents(provider.chainId, normalizedAddress, ['tx:confirmed'])
-        .pipe(
-          Stream.runForEach(() =>
-            Effect.catchAll(source.refresh, () => Effect.void),
-          ),
-          Effect.forkDaemon,
-        );
+  private releaseSharedTxHistorySource(key: string): Effect.Effect<void> {
+    const provider = this;
+    return Effect.gen(function* () {
+      const entry = provider._txHistorySources.get(key);
+      if (!entry) return;
 
-      return {
-        ...source,
-        stop: Effect.all([source.stop, Fiber.interrupt(eventFiber)]).pipe(Effect.asVoid),
-      };
+      entry.refCount -= 1;
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll;
+        provider._txHistorySources.delete(key);
+      }
+    });
+  }
+
+  private getSharedBalanceSource(
+    address: string,
+    symbol: string,
+    decimals: number,
+  ): Effect.Effect<DataSource<BalanceOutput>> {
+    const provider = this;
+    const normalizedAddress = address.toLowerCase();
+    const cacheKey = normalizedAddress;
+
+    const wrapSharedSource = (source: DataSource<BalanceOutput>): DataSource<BalanceOutput> => ({
+      ...source,
+      stop: provider.releaseSharedBalanceSource(cacheKey),
+    });
+
+    const cached = provider._balanceSources.get(cacheKey);
+    if (cached) {
+      cached.refCount += 1;
+      return Effect.succeed(wrapSharedSource(cached.source));
+    }
+
+    const pending = provider._balanceCreations.get(cacheKey);
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending;
+        const entry = provider._balanceSources.get(cacheKey);
+        if (entry) {
+          entry.refCount += 1;
+        }
+        return wrapSharedSource(source);
+      });
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          const txHistorySource = yield* provider.getSharedTxHistorySource(address, symbol, decimals);
+
+          const source = yield* createDependentSource<TransactionsOutput, BalanceOutput>({
+            name: `biowallet.${provider.chainId}.balance`,
+            dependsOn: txHistorySource.ref,
+            // 强制跟随 txHistory 刷新，避免余额卡住
+            hasChanged: () => true,
+            fetch: (_dep, forceRefresh?: boolean) =>
+              provider.fetchAddressAsset(address, forceRefresh ?? false).pipe(
+                Effect.map((raw): BalanceOutput => {
+                  if (!raw.result?.assets) {
+                    return { amount: Amount.zero(decimals, symbol), symbol };
+                  }
+                  for (const magic of Object.values(raw.result.assets)) {
+                    for (const asset of Object.values(magic)) {
+                      if (asset.assetType === symbol) {
+                        return {
+                          amount: Amount.fromRaw(asset.assetNumber, decimals, symbol),
+                          symbol,
+                        };
+                      }
+                    }
+                  }
+                  return { amount: Amount.zero(decimals, symbol), symbol };
+                }),
+              ),
+          });
+
+          const stopAll = Effect.all([source.stop, txHistorySource.stop]).pipe(Effect.asVoid);
+
+          provider._balanceSources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          });
+
+          return source;
+        })
+      );
+
+      provider._balanceCreations.set(cacheKey, createPromise);
+
+      try {
+        const source = await createPromise;
+        return wrapSharedSource(source);
+      } finally {
+        provider._balanceCreations.delete(cacheKey);
+      }
+    });
+  }
+
+  private releaseSharedBalanceSource(key: string): Effect.Effect<void> {
+    const provider = this;
+    return Effect.gen(function* () {
+      const entry = provider._balanceSources.get(key);
+      if (!entry) return;
+
+      entry.refCount -= 1;
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll;
+        provider._balanceSources.delete(key);
+      }
+    });
+  }
+
+  private getSharedTokenBalancesSource(
+    address: string,
+    symbol: string,
+    decimals: number,
+  ): Effect.Effect<DataSource<TokenBalancesOutput>> {
+    const provider = this;
+    const normalizedAddress = address.toLowerCase();
+    const cacheKey = normalizedAddress;
+
+    const wrapSharedSource = (source: DataSource<TokenBalancesOutput>): DataSource<TokenBalancesOutput> => ({
+      ...source,
+      stop: provider.releaseSharedTokenBalancesSource(cacheKey),
+    });
+
+    const cached = provider._tokenBalanceSources.get(cacheKey);
+    if (cached) {
+      cached.refCount += 1;
+      return Effect.succeed(wrapSharedSource(cached.source));
+    }
+
+    const pending = provider._tokenBalanceCreations.get(cacheKey);
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending;
+        const entry = provider._tokenBalanceSources.get(cacheKey);
+        if (entry) {
+          entry.refCount += 1;
+        }
+        return wrapSharedSource(source);
+      });
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          const txHistorySource = yield* provider.getSharedTxHistorySource(address, symbol, decimals);
+
+          const source = yield* createDependentSource<TransactionsOutput, TokenBalancesOutput>({
+            name: `biowallet.${provider.chainId}.tokenBalances`,
+            dependsOn: txHistorySource.ref,
+            // 强制跟随 txHistory 刷新，避免余额卡住
+            hasChanged: () => true,
+            fetch: (_dep, forceRefresh?: boolean) =>
+              provider.fetchAddressAsset(address, forceRefresh ?? false).pipe(
+                Effect.map((raw): TokenBalancesOutput => {
+                  if (!raw.result?.assets) return [];
+                  const tokens: TokenBalance[] = [];
+
+                  for (const magic of Object.values(raw.result.assets)) {
+                    for (const asset of Object.values(magic)) {
+                      const isNative = asset.assetType === symbol;
+                      tokens.push({
+                        symbol: asset.assetType,
+                        name: asset.assetType,
+                        amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
+                        isNative,
+                        decimals,
+                      });
+                    }
+                  }
+
+                  tokens.sort((a, b) => {
+                    if (a.isNative && !b.isNative) return -1;
+                    if (!a.isNative && b.isNative) return 1;
+                    return b.amount.toNumber() - a.amount.toNumber();
+                  });
+
+                  return tokens;
+                }),
+              ),
+          });
+
+          const stopAll = Effect.all([source.stop, txHistorySource.stop]).pipe(Effect.asVoid);
+
+          provider._tokenBalanceSources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          });
+
+          return source;
+        })
+      );
+
+      provider._tokenBalanceCreations.set(cacheKey, createPromise);
+
+      try {
+        const source = await createPromise;
+        return wrapSharedSource(source);
+      } finally {
+        provider._tokenBalanceCreations.delete(cacheKey);
+      }
+    });
+  }
+
+  private releaseSharedTokenBalancesSource(key: string): Effect.Effect<void> {
+    const provider = this;
+    return Effect.gen(function* () {
+      const entry = provider._tokenBalanceSources.get(key);
+      if (!entry) return;
+
+      entry.refCount -= 1;
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll;
+        provider._tokenBalanceSources.delete(key);
+      }
     });
   }
 
@@ -518,44 +798,7 @@ export class BiowalletProviderEffect
     symbol: string,
     decimals: number,
   ): Effect.Effect<DataSource<BalanceOutput>> {
-    const provider = this;
-
-    return Effect.gen(function* () {
-      // 先创建 transactionHistory source 作为依赖
-      const txHistorySource = yield* provider.createTransactionHistorySource(
-        { address: params.address, limit: 1 },
-        symbol,
-        decimals,
-      );
-
-      // 依赖 transactionHistory 变化
-      const source = yield* createDependentSource({
-        name: `biowallet.${provider.chainId}.balance`,
-        dependsOn: txHistorySource.ref,
-        hasChanged: hasTransactionListChanged,
-        fetch: (_dep, forceRefresh: boolean) =>
-          provider.fetchAddressAsset(params.address, forceRefresh).pipe(
-            Effect.map((raw): BalanceOutput => {
-              if (!raw.result?.assets) {
-                return { amount: Amount.zero(decimals, symbol), symbol };
-              }
-              for (const magic of Object.values(raw.result.assets)) {
-                for (const asset of Object.values(magic)) {
-                  if (asset.assetType === symbol) {
-                    return {
-                      amount: Amount.fromRaw(asset.assetNumber, decimals, symbol),
-                      symbol,
-                    };
-                  }
-                }
-              }
-              return { amount: Amount.zero(decimals, symbol), symbol };
-            }),
-          ),
-      });
-
-      return source;
-    });
+    return this.getSharedBalanceSource(params.address, symbol, decimals);
   }
 
   private createTokenBalancesSource(
@@ -563,53 +806,7 @@ export class BiowalletProviderEffect
     symbol: string,
     decimals: number,
   ): Effect.Effect<DataSource<TokenBalancesOutput>> {
-    const provider = this;
-
-    return Effect.gen(function* () {
-      // 先创建 transactionHistory source 作为依赖
-      const txHistorySource = yield* provider.createTransactionHistorySource(
-        { address: params.address, limit: 1 },
-        symbol,
-        decimals,
-      );
-
-      // 依赖 transactionHistory 变化
-      const source = yield* createDependentSource({
-        name: `biowallet.${provider.chainId}.tokenBalances`,
-        dependsOn: txHistorySource.ref,
-        hasChanged: hasTransactionListChanged,
-        fetch: (_dep, forceRefresh: boolean) =>
-          provider.fetchAddressAsset(params.address, forceRefresh).pipe(
-            Effect.map((raw): TokenBalancesOutput => {
-              if (!raw.result?.assets) return [];
-              const tokens: TokenBalance[] = [];
-
-              for (const magic of Object.values(raw.result.assets)) {
-                for (const asset of Object.values(magic)) {
-                  const isNative = asset.assetType === symbol;
-                  tokens.push({
-                    symbol: asset.assetType,
-                    name: asset.assetType,
-                    amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
-                    isNative,
-                    decimals,
-                  });
-                }
-              }
-
-              tokens.sort((a, b) => {
-                if (a.isNative && !b.isNative) return -1;
-                if (!a.isNative && b.isNative) return 1;
-                return b.amount.toNumber() - a.amount.toNumber();
-              });
-
-              return tokens;
-            }),
-          ),
-      });
-
-      return source;
-    });
+    return this.getSharedTokenBalancesSource(params.address, symbol, decimals);
   }
 
   private createBlockHeightSource(): Effect.Effect<DataSource<BlockHeightOutput>> {
@@ -626,6 +823,16 @@ export class BiowalletProviderEffect
         confirmed: provider.fetchSingleTransaction(params.txHash),
       }).pipe(
         Effect.map(({ pending, confirmed }): TransactionOutput => {
+          if (confirmed.result?.trs?.length) {
+            const item = confirmed.result.trs[0];
+            return convertBioTransactionToTransaction(item.transaction, {
+              signature: item.transaction.signature ?? item.signature,
+              height: item.height,
+              status: 'confirmed',
+              epochMs: provider.epochMs,
+            });
+          }
+
           if (pending.result && pending.result.length > 0) {
             const pendingTx = pending.result.find((tx) => tx.signature === params.txHash);
             if (pendingTx) {
@@ -636,16 +843,6 @@ export class BiowalletProviderEffect
                 epochMs: provider.epochMs,
               });
             }
-          }
-
-          if (confirmed.result?.trs?.length) {
-            const item = confirmed.result.trs[0];
-            return convertBioTransactionToTransaction(item.transaction, {
-              signature: item.transaction.signature ?? item.signature,
-              height: item.height,
-              status: 'confirmed',
-              epochMs: provider.epochMs,
-            });
           }
 
           return null;
@@ -704,20 +901,24 @@ export class BiowalletProviderEffect
   }
 
   private fetchSingleTransaction(txHash: string): Effect.Effect<TxListResponse, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/transactions/query`,
       method: 'POST',
       body: { signature: txHash },
       schema: TxListResponseSchema,
+      cacheStrategy: 'ttl',
+      cacheTtl: this.pendingTxCacheTtl,
     });
   }
 
   private fetchPendingTransactions(senderId: string): Effect.Effect<PendingTrResponse, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/pendingTr`,
       method: 'POST',
       body: { senderId, sort: -1 },
       schema: PendingTrResponseSchema,
+      cacheStrategy: 'ttl',
+      cacheTtl: this.pendingTxCacheTtl,
     });
   }
 }

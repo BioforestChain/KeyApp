@@ -239,9 +239,39 @@ export interface CachedFetchOptions<T> extends FetchOptions<T> {
 // 用于防止并发请求的 Promise 锁
 const pendingRequests = new Map<string, Promise<unknown>>();
 
+type UnknownRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function toStableJson(value: unknown): unknown {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  if (!isRecord(value)) {
+    if (Array.isArray(value)) {
+      return value.map(toStableJson);
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(toStableJson);
+  }
+  const sorted: UnknownRecord = {};
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = toStableJson(value[key]);
+  }
+  return sorted;
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(toStableJson(value));
+}
+
 function makeCacheKeyForRequest(url: string, body?: unknown): string {
   if (!body) return url;
-  const bodyHash = btoa(JSON.stringify(body)).replace(/[+/=]/g, (c) =>
+  const bodyHash = btoa(stableStringify(body)).replace(/[+/=]/g, (c) =>
     c === '+' ? '-' : c === '/' ? '_' : ''
   );
   return `${url}?__body=${bodyHash}`;

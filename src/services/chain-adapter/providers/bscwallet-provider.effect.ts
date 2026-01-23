@@ -47,7 +47,6 @@ const TxItemSchema = S.Struct({
   timestamp: S.Number,
   status: S.optional(S.String),
 })
-type TxItem = S.Schema.Type<typeof TxItemSchema>
 
 const TxApiSchema = S.Struct({
   transactions: S.Array(TxItemSchema),

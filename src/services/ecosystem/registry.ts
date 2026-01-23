@@ -8,7 +8,7 @@
  */
 
 import { Effect } from 'effect';
-import { httpFetch, type FetchError } from '@biochain/chain-effect';
+import { HttpError, SchemaError, type FetchError } from '@biochain/chain-effect';
 import { ecosystemStore, ecosystemSelectors, ecosystemActions } from '@/stores/ecosystem';
 import type { EcosystemSource, MiniappManifest, SourceRecord } from './types';
 import { EcosystemSearchResponseSchema, EcosystemSourceSchema } from './schema';
@@ -163,10 +163,24 @@ function fetchSearchResults(url: string): Effect.Effect<{ version: string; data:
   const ttlCached = getTTLCached<{ version: string; data: MiniappManifest[] }>(`search:${url}`);
   if (ttlCached) return Effect.succeed(ttlCached);
 
-  return httpFetch({
-    url,
-    method: 'GET',
-    schema: EcosystemSearchResponseSchema,
+  return Effect.tryPromise({
+    try: async () => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new HttpError(`Search request failed: ${response.status}`, response.status);
+      }
+      const json = await response.json();
+      const parsed = EcosystemSearchResponseSchema.safeParse(json);
+      if (!parsed.success) {
+        throw new SchemaError('Invalid ecosystem search response', parsed.error);
+      }
+      return parsed.data;
+    },
+    catch: (error) => {
+      if (error instanceof HttpError || error instanceof SchemaError) return error;
+      if (error instanceof Error) return new HttpError(error.message);
+      return new HttpError('Unknown search error');
+    },
   }).pipe(
     Effect.tap((result) =>
       Effect.sync(() => {

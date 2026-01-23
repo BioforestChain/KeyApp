@@ -11,7 +11,7 @@ import { z } from "zod";
 import {
   createMcpServer,
   defineTool,
-} from "../../../packages/flow/src/common/mcp/base-mcp.js";
+} from "../../../packages/flow/src/common/mcp/base-mcp.ts";
 
 // =============================================================================
 // Constants

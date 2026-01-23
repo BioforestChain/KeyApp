@@ -109,7 +109,7 @@ function WalletTabContent({
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
-  } = usePendingTransactions(currentWalletId ?? undefined, selectedChain);
+  } = usePendingTransactions(currentWalletId ?? undefined, selectedChain, address);
 
   // 转换交易历史格式
   const transactions = useMemo(() => {

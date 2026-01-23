@@ -27,6 +27,7 @@ export {
   PendingTxMetaSchema,
   CreatePendingTxInputSchema,
   UpdatePendingTxStatusInputSchema,
+  getPendingTxWalletKey,
   getPendingTxSource,
   subscribePendingTxChanges,
   clearPendingTxSources,

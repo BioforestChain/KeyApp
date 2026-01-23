@@ -11,7 +11,7 @@
  * Provider 内部通过 transform 插件转换为标准输出类型
  */
 
-import { Amount, type AmountJSON } from '@/types/amount'
+import { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
 import type { StreamInstance } from '@biochain/chain-effect'
 import { z } from 'zod'
@@ -69,12 +69,14 @@ export type TxHistoryParams = z.infer<typeof TxHistoryParamsSchema>
 /** 单笔交易查询参数 */
 export const TransactionParamsSchema = z.object({
   txHash: z.string(),
+  senderId: z.string().optional(),
 })
 export type TransactionParams = z.infer<typeof TransactionParamsSchema>
 
 /** 交易状态查询参数 */
 export const TransactionStatusParamsSchema = z.object({
   txHash: z.string(),
+  address: z.string().optional(),
 })
 export type TransactionStatusParams = z.infer<typeof TransactionStatusParamsSchema>
 
@@ -256,4 +258,3 @@ export type ApiProviderMethod = keyof Omit<ApiProvider, 'type' | 'endpoint' | 'c
 
 /** ApiProvider 工厂函数 */
 export type ApiProviderFactory = (entry: ParsedApiEntry, chainId: string) => ApiProvider | null
-

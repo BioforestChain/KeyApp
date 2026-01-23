@@ -161,12 +161,7 @@ async function createSourceInternal<T>(
       ref,
       fiber: pollFiber as Fiber.RuntimeFiber<void, FetchError>,
       get: SubscriptionRef.get(ref),
-      changes: Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(ref)),
-        ref.changes
-      ).pipe(
-        Stream.filter((v): v is T => v !== null)
-      ),
+      changes: ref.changes.pipe(Stream.filter((v): v is T => v !== null)),
       refresh: Effect.gen(function* () {
         const value = yield* options.fetch
         yield* SubscriptionRef.set(ref, value)
@@ -229,7 +224,7 @@ export function getRegistryStatus(): Map<string, { refCount: number }> {
  */
 export function clearRegistry(): Effect.Effect<void> {
   return Effect.gen(function* () {
-    for (const [key, entry] of registry) {
+    for (const entry of registry.values()) {
       if (entry.pollFiber) {
         yield* Fiber.interrupt(entry.pollFiber)
       }

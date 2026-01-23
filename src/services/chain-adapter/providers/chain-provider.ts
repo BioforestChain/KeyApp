@@ -6,9 +6,9 @@
  */
 
 import { Effect, Stream } from "effect"
+import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from "react"
 import { createStreamInstance, type StreamInstance, type FetchError } from "@biochain/chain-effect"
 import { chainConfigService } from "@/services/chain-config"
-import { Amount } from "@/types/amount"
 import type {
   ApiProvider,
   ApiProviderMethod,
@@ -27,10 +27,66 @@ import type {
   TransactionParams,
   TransactionStatusParams,
   TransactionStatusOutput,
-  TokenBalance,
 } from "./types"
 
 const SYNC_METHODS = new Set<ApiProviderMethod>(["isValidAddress", "normalizeAddress"])
+
+type UnknownRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null
+}
+
+function toStableJson(value: unknown): unknown {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+  if (!isRecord(value)) {
+    if (Array.isArray(value)) {
+      return value.map(toStableJson)
+    }
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map(toStableJson)
+  }
+  const sorted: UnknownRecord = {}
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = toStableJson(value[key])
+  }
+  return sorted
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(toStableJson(value))
+}
+
+function isDebugEnabled(): boolean {
+  if (typeof globalThis === "undefined") return false
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
+  return store.__CHAIN_EFFECT_DEBUG__ === true
+}
+
+function debugLog(...args: string[]): void {
+  if (!isDebugEnabled()) return
+  console.log("[chain-provider]", ...args)
+}
+
+function summarizeValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    const first = value[0]
+    if (isRecord(first) && "hash" in first) {
+      return `array(len=${value.length}, firstHash=${String(first.hash)})`
+    }
+    return `array(len=${value.length})`
+  }
+  if (isRecord(value)) {
+    if ("hash" in value) return `object(hash=${String(value.hash)})`
+    if ("symbol" in value) return `object(symbol=${String(value.symbol)})`
+    return "object"
+  }
+  return String(value)
+}
 
 /**
  * 创建 fallback StreamInstance - 依次尝试多个 source，返回第一个成功的
@@ -50,27 +106,151 @@ function createFallbackStream<TInput, TOutput>(
     return sources[0]
   }
 
-  return createStreamInstance<TInput, TOutput>(name, (input) => {
-    // 创建一个 fallback stream：尝试第一个，失败则尝试下一个
-    const trySource = (index: number): Stream.Stream<TOutput, FetchError> => {
-      if (index >= sources.length) {
-        return Stream.fail({ _tag: "HttpError", message: "All providers failed" } as FetchError)
-      }
+  debugLog(`${name} fallback`, `sources=${sources.map((s) => s.name).join(",")}`)
 
-      const source = sources[index]
-      // 获取 source 的 stream，使用 subscribe 内部逻辑
-      return Stream.fromEffect(
-        Effect.tryPromise({
-          try: () => source.fetch(input),
-          catch: (e) => ({ _tag: "HttpError", message: String(e) }) as FetchError,
-        })
-      ).pipe(
-        Stream.catchAll(() => trySource(index + 1))
-      )
+  let resolvedSource: StreamInstance<TInput, TOutput> | null = null
+
+  const resolveSource = async (input: TInput): Promise<StreamInstance<TInput, TOutput>> => {
+    if (resolvedSource) return resolvedSource
+
+    for (const source of sources) {
+      try {
+        await source.fetch(input)
+        resolvedSource = source
+        debugLog(`${name} resolved`, source.name)
+        return source
+      } catch {
+        // try next
+      }
     }
 
-    return trySource(0)
-  })
+    // fallback to first source to keep behavior stable
+    resolvedSource = sources[0]
+    debugLog(`${name} resolved`, sources[0].name)
+    return sources[0]
+  }
+
+  const fetch = async (input: TInput): Promise<TOutput> => {
+    for (const source of sources) {
+      try {
+        const result = await source.fetch(input)
+        resolvedSource = source
+        return result
+      } catch {
+        // try next
+      }
+    }
+    throw new Error("All providers failed")
+  }
+
+  const subscribe = (
+    input: TInput,
+    callback: (data: TOutput, event: "initial" | "update") => void
+  ): (() => void) => {
+    let cancelled = false
+    let cleanup: (() => void) | null = null
+
+    const key = input === undefined || input === null ? "__empty__" : stableStringify(input)
+    debugLog(`${name} subscribe`, key)
+    resolveSource(input)
+      .then((source) => {
+        if (cancelled) return
+        cleanup = source.subscribe(input, (data, event) => {
+          debugLog(`${name} emit`, event, summarizeValue(data))
+          callback(data, event)
+        })
+      })
+      .catch((err) => {
+        console.error(`[${name}] resolveSource failed:`, err)
+      })
+
+    return () => {
+      cancelled = true
+      cleanup?.()
+    }
+  }
+
+  return {
+    name,
+    fetch,
+    subscribe,
+    useState(input: TInput, options?: { enabled?: boolean }) {
+      const [isLoading, setIsLoading] = useState(true)
+      const [isFetching, setIsFetching] = useState(false)
+      const [error, setError] = useState<Error | undefined>(undefined)
+
+      const getInputKey = (value: TInput): string => {
+        if (value === undefined || value === null) return "__empty__"
+        return stableStringify(value)
+      }
+
+      const inputKey = useMemo(() => getInputKey(input), [input])
+      const inputRef = useRef(input)
+      inputRef.current = input
+
+      const enabled = options?.enabled !== false
+
+      const snapshotRef = useRef<TOutput | undefined>(undefined)
+
+      const subscribeFn = useCallback((onStoreChange: () => void) => {
+        if (!enabled) {
+          snapshotRef.current = undefined
+          return () => {}
+        }
+
+        setIsLoading(true)
+        setIsFetching(true)
+        setError(undefined)
+
+        const unsubscribe = subscribe(inputRef.current, (newData: TOutput) => {
+          snapshotRef.current = newData
+          setIsLoading(false)
+          setIsFetching(false)
+          setError(undefined)
+          debugLog(`${name} storeChange`, summarizeValue(newData))
+          onStoreChange()
+        })
+
+        return unsubscribe
+      }, [enabled, inputKey])
+
+      const getSnapshot = useCallback(() => snapshotRef.current, [])
+
+      const data = useSyncExternalStore(subscribeFn, getSnapshot, getSnapshot)
+
+      const refetch = useCallback(async () => {
+        if (!enabled) return
+        setIsFetching(true)
+        setError(undefined)
+        try {
+          const result = await fetch(inputRef.current)
+          snapshotRef.current = result
+        } catch (err) {
+          setError(err instanceof Error ? err : new Error(String(err)))
+        } finally {
+          setIsFetching(false)
+          setIsLoading(false)
+        }
+      }, [enabled])
+
+      useEffect(() => {
+        if (!enabled) {
+          snapshotRef.current = undefined
+          setIsLoading(false)
+          setIsFetching(false)
+          setError(undefined)
+        }
+      }, [enabled])
+
+      return { data, isLoading, isFetching, error, refetch }
+    },
+    invalidate(): void {
+      resolvedSource = null
+      for (const source of sources) {
+        source.invalidate()
+      }
+    },
+  }
 }
 
 export class ChainProvider {

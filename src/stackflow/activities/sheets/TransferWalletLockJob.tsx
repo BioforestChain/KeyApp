@@ -184,17 +184,19 @@ function TransferWalletLockJobContent() {
       if (result.status === 'wallet_lock_invalid') {
         setPatternError(true);
         setPattern([]);
+        setTxStatus("idle");
         return;
       }
 
       if (result.status === 'two_step_secret_required') {
         setStep('two_step_secret');
         setError(undefined);
+        setTxStatus("idle");
         return;
       }
 
       if (result.status === 'error') {
-        setError(result.message ?? t("security:walletLock.error"));
+        setError(result.message ?? t("transaction:broadcast.unknown"));
         setTxStatus("failed");
         if (result.pendingTxId) {
           setPendingTxId(result.pendingTxId);
@@ -202,8 +204,8 @@ function TransferWalletLockJobContent() {
         return;
       }
     } catch {
-      setPatternError(true);
-      setPattern([]);
+      setError(t("transaction:broadcast.unknown"));
+      setTxStatus("failed");
     } finally {
       setIsVerifying(false);
     }

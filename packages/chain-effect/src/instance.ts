@@ -13,6 +13,70 @@ import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
 
+type UnknownRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null
+}
+
+function toStableJson(value: unknown): unknown {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+  if (!isRecord(value)) {
+    if (Array.isArray(value)) {
+      return value.map(toStableJson)
+    }
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map(toStableJson)
+  }
+  const sorted: UnknownRecord = {}
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = toStableJson(value[key])
+  }
+  return sorted
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(toStableJson(value))
+}
+
+function summarizeValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    const first = value[0]
+    if (isRecord(first) && "hash" in first) {
+      const hash = typeof first.hash === "string" ? first.hash : String(first.hash)
+      return `array(len=${value.length}, firstHash=${hash})`
+    }
+    return `array(len=${value.length})`
+  }
+  if (isRecord(value)) {
+    if ("hash" in value) {
+      const hash = typeof value.hash === "string" ? value.hash : String(value.hash)
+      return `object(hash=${hash})`
+    }
+    if ("symbol" in value) {
+      const symbol = typeof value.symbol === "string" ? value.symbol : String(value.symbol)
+      return `object(symbol=${symbol})`
+    }
+    return "object"
+  }
+  return String(value)
+}
+
+function isDebugEnabled(): boolean {
+  if (typeof globalThis === "undefined") return false
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
+  return store.__CHAIN_EFFECT_DEBUG__ === true
+}
+
+function debugLog(...args: Array<string | number | boolean>): void {
+  if (!isDebugEnabled()) return
+  console.log("[chain-effect]", ...args)
+}
+
 /** 兼容旧 API 的 StreamInstance 接口 */
 export interface StreamInstance<TInput, TOutput> {
   readonly name: string
@@ -48,7 +112,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
 
   const getInputKey = (input: TInput): string => {
     if (input === undefined || input === null) return "__empty__"
-    return JSON.stringify(input)
+    return stableStringify(input)
   }
 
   const getOrCreateSource = async (input: TInput): Promise<DataSource<TOutput>> => {
@@ -56,9 +120,11 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
     const cached = sources.get(key)
     if (cached) {
       cached.refCount++
+      debugLog(`${name} reuse source`, key, `refs=${cached.refCount}`)
       return cached.source
     }
 
+    debugLog(`${name} create source`, key)
     const source = await Effect.runPromise(createSource(input))
     sources.set(key, { source, refCount: 1 })
     return source
@@ -81,12 +147,16 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
 
     async fetch(input: TInput): Promise<TOutput> {
       const source = await getOrCreateSource(input)
-      const value = await Effect.runPromise(source.get)
-      if (value === null) {
-        // 强制刷新获取
-        return Effect.runPromise(source.refresh)
+      try {
+        const value = await Effect.runPromise(source.get)
+        if (value === null) {
+          // 强制刷新获取
+          return Effect.runPromise(source.refresh)
+        }
+        return value
+      } finally {
+        releaseSource(input)
       }
-      return value
     },
 
     subscribe(
@@ -96,6 +166,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
       let cancelled = false
       let cleanup: (() => void) | null = null
 
+      debugLog(`${name} subscribe`, getInputKey(input))
       getOrCreateSource(input).then((source) => {
         if (cancelled) {
           releaseSource(input)
@@ -106,6 +177,11 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         const program = Stream.runForEach(source.changes, (value) =>
           Effect.sync(() => {
             if (cancelled) return
+            debugLog(
+              `${name} emit`,
+              isFirst ? "initial" : "update",
+              summarizeValue(value)
+            )
             callback(value, isFirst ? "initial" : "update")
             isFirst = false
           })
@@ -160,6 +236,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
             setIsLoading(false)
             setIsFetching(false)
             setError(undefined)
+            debugLog(`${name} storeChange`, summarizeValue(newData))
             onStoreChange()
           }
         )
@@ -230,7 +307,7 @@ export function createStreamInstance<TInput, TOutput>(
 
   const getInputKey = (input: TInput): string => {
     if (input === undefined || input === null) return "__empty__"
-    return JSON.stringify(input)
+    return stableStringify(input)
   }
 
   return {

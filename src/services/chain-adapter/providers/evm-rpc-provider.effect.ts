@@ -18,7 +18,7 @@ import {
   type DataSource,
 } from "@biochain/chain-effect"
 import type { StreamInstance } from "@biochain/chain-effect"
-import type { ApiProvider, BalanceOutput, BlockHeightOutput, TransactionOutput, AddressParams, TransactionParams, Action } from "./types"
+import type { ApiProvider, BalanceOutput, BlockHeightOutput, TransactionOutput, AddressParams, TransactionParams, Action, Transaction } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
 import { chainConfigService } from "@/services/chain-config"
 import { Amount } from "@/types/amount"
@@ -205,13 +205,14 @@ export class EvmRpcProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(E
 
         const value = BigInt(tx.value || "0x0").toString()
 
-        return {
+        const blockNumber = receipt?.blockNumber ? BigInt(receipt.blockNumber) : undefined
+
+        const base: Transaction = {
           hash: tx.hash,
           from: tx.from,
           to: tx.to ?? "",
           timestamp: Date.now(),
           status,
-          blockNumber: receipt?.blockNumber ? BigInt(receipt.blockNumber) : undefined,
           action: (tx.to ? "transfer" : "contract") as Action,
           direction: "out" as const,
           assets: [{
@@ -221,6 +222,8 @@ export class EvmRpcProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(E
             decimals,
           }],
         }
+
+        return blockNumber === undefined ? base : { ...base, blockNumber }
       })
 
       const source = yield* createDependentSource({

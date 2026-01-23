@@ -13,6 +13,35 @@ import { Effect, Stream, Schedule, SubscriptionRef, Duration, PubSub, Fiber } fr
 import type { FetchError } from "./http"
 import type { EventBusService, WalletEventType } from "./event-bus"
 
+type UnknownRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null
+}
+
+function summarizeValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `array(len=${value.length})`
+  }
+  if (isRecord(value)) {
+    if ("hash" in value) return `object(hash=${String(value.hash)})`
+    if ("symbol" in value) return `object(symbol=${String(value.symbol)})`
+    return "object"
+  }
+  return String(value)
+}
+
+function isDebugEnabled(): boolean {
+  if (typeof globalThis === "undefined") return false
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
+  return store.__CHAIN_EFFECT_DEBUG__ === true
+}
+
+function debugLog(...args: Array<string | number | boolean>): void {
+  if (!isDebugEnabled()) return
+  console.log("[chain-effect]", ...args)
+}
+
 // ==================== Event Bus ====================
 
 export interface EventBus {
@@ -106,7 +135,7 @@ export const createPollingSource = <T>(
   options: PollingSourceOptions<T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { name, fetch, interval, events, walletEvents, immediate = true } = options
+    const { fetch, interval, events, walletEvents, immediate = true } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     
@@ -138,7 +167,12 @@ export const createPollingSource = <T>(
     
     // 驱动 ref 更新
     const fiber = yield* driver.pipe(
-      Stream.runForEach((value) => SubscriptionRef.set(ref, value)),
+      Stream.runForEach((value) =>
+        Effect.gen(function* () {
+          debugLog(`${options.name} poll`, summarizeValue(value))
+          yield* SubscriptionRef.set(ref, value)
+        })
+      ),
       Effect.forkDaemon
     )
     
@@ -146,6 +180,7 @@ export const createPollingSource = <T>(
     if (immediate) {
       const initialValue = yield* Effect.catchAll(fetch, () => Effect.succeed(null as T | null))
       if (initialValue !== null) {
+        debugLog(`${options.name} initial`, summarizeValue(initialValue))
         yield* SubscriptionRef.set(ref, initialValue)
       }
     }
@@ -154,13 +189,8 @@ export const createPollingSource = <T>(
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      // 先发射当前值，再发射后续变化（SubscriptionRef.changes 只发射未来变化）
-      changes: Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(ref)),
-        ref.changes
-      ).pipe(
-        Stream.filter((v): v is T => v !== null)
-      ),
+      // SubscriptionRef.changes 已包含当前值，避免重复发射
+      changes: ref.changes.pipe(Stream.filter((v): v is T => v !== null)),
       refresh: Effect.gen(function* () {
         const value = yield* fetch
         yield* SubscriptionRef.set(ref, value)
@@ -246,19 +276,24 @@ export const createDependentSource = <TDep, T>(
         { prev: currentDep as TDep | null },
         (acc, next) =>
           Effect.gen(function* () {
+            debugLog(`${name} dep`, summarizeValue(next))
             const changed = hasChanged(acc.prev, next)
             
             if (changed) {
               // acc.prev !== null 说明是依赖变化触发，需要强制刷新（network-first）
               // acc.prev === null 说明是首次，可以用缓存（cache-first）
               const forceRefresh = acc.prev !== null
+              debugLog(`${name} fetch`, forceRefresh ? "force" : "cache")
               const result = yield* Effect.catchAll(fetch(next, forceRefresh), (error) => {
                 console.error(`[DependentSource] ${name} fetch error:`, error)
                 return Effect.succeed(null as T | null)
               })
               if (result !== null) {
+                debugLog(`${name} set`, summarizeValue(result))
                 yield* SubscriptionRef.set(ref, result)
               }
+            } else {
+              debugLog(`${name} skip`, "unchanged")
             }
             
             // 总是更新 prev，确保状态追踪正确
@@ -279,6 +314,7 @@ export const createDependentSource = <TDep, T>(
         return Effect.succeed(null as T | null)
       })
       if (initialValue !== null) {
+        debugLog(`${name} initial`, summarizeValue(initialValue))
         yield* SubscriptionRef.set(ref, initialValue)
       }
     }
@@ -287,13 +323,8 @@ export const createDependentSource = <TDep, T>(
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      // 先发射当前值，再发射后续变化
-      changes: Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(ref)),
-        ref.changes
-      ).pipe(
-        Stream.filter((v): v is T => v !== null)
-      ),
+      // SubscriptionRef.changes 已包含当前值，避免重复发射
+      changes: ref.changes.pipe(Stream.filter((v): v is T => v !== null)),
       refresh: Effect.gen(function* () {
         const dep = yield* SubscriptionRef.get(dependsOn)
         if (dep === null) {
@@ -393,13 +424,8 @@ export const createHybridSource = <TDep, T>(
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      // 先发射当前值，再发射后续变化
-      changes: Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(ref)),
-        ref.changes
-      ).pipe(
-        Stream.filter((v): v is T => v !== null)
-      ),
+      // SubscriptionRef.changes 已包含当前值，避免重复发射
+      changes: ref.changes.pipe(Stream.filter((v): v is T => v !== null)),
       refresh: Effect.gen(function* () {
         const value = yield* fetch
         yield* SubscriptionRef.set(ref, value)

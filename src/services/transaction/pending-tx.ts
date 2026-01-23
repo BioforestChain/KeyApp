@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { Effect, Stream, Duration } from 'effect';
-import { createPollingSource, txConfirmedEvent, type DataSource } from '@biochain/chain-effect';
+import { createPollingSource, txConfirmedEvent, HttpError, type FetchError, type DataSource } from '@biochain/chain-effect';
 import { getChainProvider } from '@/services/chain-adapter/providers';
 import { getWalletEventBus } from '@/services/chain-adapter/wallet-event-bus';
 import { defineServiceMeta } from '@/lib/service-meta';
@@ -17,6 +17,17 @@ import { chainConfigService, type ChainConfig, type ChainKind } from '@/services
 import { getForgeInterval } from '@/services/chain-adapter/bioforest/fetch';
 
 // ==================== Schema ====================
+
+function isPendingTxDebugEnabled(): boolean {
+  if (typeof globalThis === 'undefined') return false;
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean };
+  return store.__CHAIN_EFFECT_DEBUG__ === true;
+}
+
+function pendingTxDebugLog(...args: Array<string | number | boolean>): void {
+  if (!isPendingTxDebugEnabled()) return;
+  console.log('[chain-effect]', 'pending-tx', ...args);
+}
 
 /** 未上链交易状态 */
 export const PendingTxStatusSchema = z.enum([
@@ -114,6 +125,10 @@ export const PendingTxSchema = z.object({
 export type PendingTx = z.infer<typeof PendingTxSchema>;
 export type PendingTxStatus = z.infer<typeof PendingTxStatusSchema>;
 export type PendingTxMeta = z.infer<typeof PendingTxMetaSchema>;
+
+export function getPendingTxWalletKey(chainId: string, address: string): string {
+  return `${chainId}:${address.trim().toLowerCase()}`;
+}
 
 /** 创建 pending tx 的输入 */
 export const CreatePendingTxInputSchema = z.object({
@@ -315,11 +330,13 @@ class PendingTxServiceImpl implements IPendingTxService {
   async getAll({ walletId }: { walletId: string }): Promise<PendingTx[]> {
     const db = await this.ensureDb();
     const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet', walletId);
-    return records
+    const list = records
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
       .sort((a, b) => b.createdAt - a.createdAt);
+    pendingTxDebugLog('getAll', walletId, `len=${list.length}`);
+    return list;
   }
 
   async getById({ id }: { id: string }): Promise<PendingTx | null> {
@@ -333,16 +350,20 @@ class PendingTxServiceImpl implements IPendingTxService {
   async getByStatus({ walletId, status }: { walletId: string; status: PendingTxStatus }): Promise<PendingTx[]> {
     const db = await this.ensureDb();
     const records = await db.getAllFromIndex(STORE_NAME, 'by-wallet-status', [walletId, status]);
-    return records
+    const list = records
       .map((r) => PendingTxSchema.safeParse(r))
       .filter((r) => r.success)
       .map((r) => r.data)
       .sort((a, b) => b.createdAt - a.createdAt);
+    pendingTxDebugLog('getByStatus', walletId, status, `len=${list.length}`);
+    return list;
   }
 
   async getPending({ walletId }: { walletId: string }): Promise<PendingTx[]> {
     const all = await this.getAll({ walletId });
-    return all.filter((tx) => tx.status !== 'confirmed');
+    const list = all.filter((tx) => tx.status !== 'confirmed');
+    pendingTxDebugLog('getPending', walletId, `len=${list.length}`);
+    return list;
   }
 
   // ===== 生命周期管理 =====
@@ -368,6 +389,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     };
 
     await db.put(STORE_NAME, pendingTx);
+    pendingTxDebugLog('create', pendingTx.walletId, pendingTx.status, pendingTx.id);
     this.notify(pendingTx, 'created');
     return pendingTx;
   }
@@ -392,6 +414,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     };
 
     await db.put(STORE_NAME, updated);
+    pendingTxDebugLog('updateStatus', updated.walletId, `${existing.status}->${updated.status}`, updated.id);
     this.notify(updated, 'updated');
     return updated;
   }
@@ -422,6 +445,7 @@ class PendingTxServiceImpl implements IPendingTxService {
     const existing = await db.get(STORE_NAME, id);
     await db.delete(STORE_NAME, id);
     if (existing) {
+      pendingTxDebugLog('delete', existing.walletId, existing.status, existing.id);
       this.notify(existing, 'deleted');
     }
   }
@@ -479,6 +503,38 @@ class PendingTxServiceImpl implements IPendingTxService {
     await Promise.all(all.map((item) => tx.store.delete(item.id)));
     await tx.done;
   }
+
+  async normalizeWalletKeyByAddress({
+    chainId,
+    address,
+    walletId,
+  }: {
+    chainId: string;
+    address: string;
+    walletId: string;
+  }): Promise<number> {
+    const db = await this.ensureDb();
+    const normalizedAddress = address.trim().toLowerCase();
+    const records = await db.getAll(STORE_NAME);
+    let updatedCount = 0;
+
+    for (const record of records) {
+      if (record.chainId !== chainId) continue;
+      if (record.fromAddress?.toLowerCase() !== normalizedAddress) continue;
+      if (record.walletId === walletId) continue;
+
+      const updated: PendingTx = {
+        ...(record as PendingTx),
+        walletId,
+        updatedAt: Date.now(),
+      };
+      await db.put(STORE_NAME, updated);
+      this.notify(updated, 'updated');
+      updatedCount += 1;
+    }
+
+    return updatedCount;
+  }
 }
 
 /** 单例服务实例 */
@@ -487,7 +543,15 @@ export const pendingTxService = new PendingTxServiceImpl();
 // ==================== Effect Data Source Factory ====================
 
 // 缓存已创建的 Effect 数据源实例
-const pendingTxSources = new Map<string, DataSource<PendingTx[]>>();
+type PendingTxSourceEntry = {
+  source: DataSource<PendingTx[]>;
+  refCount: number;
+  walletIds: Set<string>;
+};
+
+const pendingTxSources = new Map<string, PendingTxSourceEntry>();
+const pendingTxCreations = new Map<string, Promise<DataSource<PendingTx[]>>>();
+const pendingTxCreationWalletIds = new Map<string, Set<string>>();
 const MIN_PENDING_TX_POLL_MS = 15_000;
 
 type ChainConfigWithBlockTime = ChainConfig & {
@@ -554,61 +618,133 @@ function getPendingTxPollInterval(chainId: string): Duration.Duration {
  */
 export function getPendingTxSource(
   chainId: string,
-  walletId: string
+  walletId: string,
+  legacyWalletId?: string
 ): Effect.Effect<DataSource<PendingTx[]>> | null {
   const key = `${chainId}:${walletId}`;
+  const normalizedLegacy =
+    legacyWalletId && legacyWalletId !== walletId ? legacyWalletId : undefined;
+
+  const mergePendingLists = (lists: PendingTx[][]): PendingTx[] => {
+    const map = new Map<string, PendingTx>();
+    for (const list of lists) {
+      for (const tx of list) {
+        map.set(tx.id, tx);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  };
+
+  const wrapSharedSource = (source: DataSource<PendingTx[]>): DataSource<PendingTx[]> => ({
+    ...source,
+    stop: releasePendingTxSource(key),
+  });
 
   const cached = pendingTxSources.get(key);
   if (cached) {
-    return Effect.succeed(cached);
+    if (normalizedLegacy) {
+      cached.walletIds.add(normalizedLegacy);
+    }
+    cached.refCount += 1;
+    return Effect.succeed(wrapSharedSource(cached.source));
+  }
+
+  const pending = pendingTxCreations.get(key);
+  if (pending) {
+    const walletIds = pendingTxCreationWalletIds.get(key);
+    if (walletIds && normalizedLegacy) {
+      walletIds.add(normalizedLegacy);
+    }
+    return Effect.promise(async () => {
+      const source = await pending;
+      const entry = pendingTxSources.get(key);
+      if (entry) {
+        if (normalizedLegacy) {
+          entry.walletIds.add(normalizedLegacy);
+        }
+        entry.refCount += 1;
+      }
+      return wrapSharedSource(source);
+    });
   }
 
   const chainProvider = getChainProvider(chainId);
 
   // 使用独立轮询（频率不同于出块）
   const interval = getPendingTxPollInterval(chainId);
+  const walletIds = new Set<string>([walletId]);
+  if (normalizedLegacy) {
+    walletIds.add(normalizedLegacy);
+  }
+  pendingTxCreationWalletIds.set(key, walletIds);
 
-  return createPollingSource({
-    name: `pendingTx.${chainId}.${walletId}`,
-    interval,
-    fetch: () =>
-      Effect.tryPromise({
-        try: async () => {
-          // pending 确认后需触发 txHistory 刷新（不依赖区块高度变化）
-          const eventBus = await Effect.runPromise(getWalletEventBus());
-          // 检查 pending 交易状态，更新/移除已上链的
-          const pending = await pendingTxService.getPending({ walletId });
+  const fetchEffect: Effect.Effect<PendingTx[], FetchError> = Effect.tryPromise({
+    try: async () => {
+      // pending 确认后需触发 txHistory 刷新（不依赖区块高度变化）
+      const eventBus = await Effect.runPromise(getWalletEventBus());
+      // 检查 pending 交易状态，更新/移除已上链的
+      const walletIdList = Array.from(walletIds);
+      const pendingLists = await Promise.all(
+        walletIdList.map((id) => pendingTxService.getPending({ walletId: id }))
+      );
+      const pending = mergePendingLists(pendingLists);
+      pendingTxDebugLog('poll', `walletIds=${walletIdList.join(',')}`, `len=${pending.length}`);
+      const deletedIds = new Set<string>();
 
-          for (const tx of pending) {
-            if (tx.status === 'broadcasted' && tx.txHash) {
-              try {
-                // 检查是否已上链
-                const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash });
-                if (txInfo?.status === 'confirmed') {
-                  await Effect.runPromise(
-                    eventBus.emit(txConfirmedEvent(chainId, tx.fromAddress, tx.txHash)),
-                  );
-                  // 直接删除已确认的交易
-                  await pendingTxService.delete({ id: tx.id });
-                }
-              } catch {
-                // 查询失败，跳过
-              }
+      for (const tx of pending) {
+        if (tx.status === 'broadcasted' && tx.txHash) {
+          try {
+            // 检查是否已上链
+            const txInfo = await chainProvider.transaction.fetch({
+              txHash: tx.txHash,
+              senderId: tx.fromAddress,
+            });
+            if (txInfo?.status === 'confirmed') {
+              await Effect.runPromise(
+                eventBus.emit(txConfirmedEvent(chainId, tx.fromAddress, tx.txHash)),
+              );
+              // 直接删除已确认的交易
+              await pendingTxService.delete({ id: tx.id });
+              deletedIds.add(tx.id);
             }
+          } catch {
+            // 查询失败，跳过
           }
+        }
+      }
 
-          // 返回最新的 pending 列表
-          return await pendingTxService.getPending({ walletId });
-        },
-        catch: (error) => error as Error,
-      }),
-  }).pipe(
-    Effect.tap((source) =>
-      Effect.sync(() => {
-        pendingTxSources.set(key, source);
-      })
-    )
+      // 返回最新的 pending 列表
+      if (deletedIds.size === 0) {
+        return pending;
+      }
+      pendingTxDebugLog('poll', 'confirmed-removed', `count=${deletedIds.size}`);
+      return pending.filter((tx) => !deletedIds.has(tx.id));
+    },
+    catch: (error) =>
+      new HttpError(
+        error instanceof Error ? error.message : 'Pending transaction fetch failed'
+      ),
+  });
+
+  const createPromise = Effect.runPromise(
+    createPollingSource({
+      name: `pendingTx.${chainId}.${walletId}`,
+      interval,
+      fetch: fetchEffect,
+    })
   );
+  pendingTxCreations.set(key, createPromise);
+
+  return Effect.promise(async () => {
+    try {
+      const source = await createPromise;
+      pendingTxSources.set(key, { source, refCount: 1, walletIds });
+      return wrapSharedSource(source);
+    } finally {
+      pendingTxCreations.delete(key);
+      pendingTxCreationWalletIds.delete(key);
+    }
+  });
 }
 
 /**
@@ -616,9 +752,10 @@ export function getPendingTxSource(
  */
 export function subscribePendingTxChanges(
   chainId: string,
-  walletId: string
+  walletId: string,
+  legacyWalletId?: string
 ): Stream.Stream<PendingTx[]> | null {
-  const sourceEffect = getPendingTxSource(chainId, walletId);
+  const sourceEffect = getPendingTxSource(chainId, walletId, legacyWalletId);
   if (!sourceEffect) return null;
 
   return Stream.fromEffect(sourceEffect).pipe(
@@ -631,9 +768,24 @@ export function subscribePendingTxChanges(
  */
 export function clearPendingTxSources(): Effect.Effect<void> {
   return Effect.gen(function* () {
-    for (const source of pendingTxSources.values()) {
-      yield* source.stop;
+    for (const entry of pendingTxSources.values()) {
+      yield* entry.source.stop;
     }
     pendingTxSources.clear();
+    pendingTxCreations.clear();
+    pendingTxCreationWalletIds.clear();
+  });
+}
+
+function releasePendingTxSource(key: string): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    const entry = pendingTxSources.get(key);
+    if (!entry) return;
+
+    entry.refCount -= 1;
+    if (entry.refCount <= 0) {
+      yield* entry.source.stop;
+      pendingTxSources.delete(key);
+    }
   });
 }

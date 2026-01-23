@@ -324,7 +324,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
                       isLowWeight && 'opacity-50',
                     )}
                     style={{ backgroundColor: color.color }}
-                    title={color.name}
+                    title={t(color.nameKey)}
                   >
                     {isSelected && <IconCheck className="absolute inset-0 m-auto size-5 text-white drop-shadow-md" />}
                   </button>
