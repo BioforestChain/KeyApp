@@ -152,18 +152,31 @@
       "name": "Ethereum",
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
-      "tokenIconBase": [
-        "../icons/ethereum/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/$address/logo.png"
       ],
       "decimals": 18,
+      "blockTime": 12,
       "apis": [
-        { "type": "blockscout-v1", "endpoint": "https://eth.blockscout.com/api" },
-        { "type": "ethereum-rpc", "endpoint": "https://ethereum-rpc.publicnode.com" },
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 12000,
+            "balanceInterval": 36000,
+            "erc20Interval": 150000
+          }
+        },
         {
           "type": "etherscan-v2",
           "endpoint": "https://api.etherscan.io/v2/api",
+          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY", "evmChainId": 1 }
+        },
+        { "type": "blockscout-v1", "endpoint": "https://eth.blockscout.com/api" },
+        { "type": "ethereum-rpc", "endpoint": "https://ethereum-rpc.publicnode.com" },
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.etherscan.io/api",
           "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
         },
         { "type": "ethwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/eth" }
@@ -181,17 +194,30 @@
       "name": "BNB Smart Chain",
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
-      "tokenIconBase": [
-        "../icons/binance/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/$address/logo.png"
       ],
       "decimals": 18,
+      "blockTime": 3,
       "apis": [
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 15000,
+            "balanceInterval": 30000,
+            "erc20Interval": 120000
+          }
+        },
         { "type": "bsc-rpc", "endpoint": "https://bsc-rpc.publicnode.com" },
         {
           "type": "etherscan-v2",
           "endpoint": "https://api.etherscan.io/v2/api",
+          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY", "evmChainId": 56 }
+        },
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.bscscan.com/api",
           "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
         },
         { "type": "bscwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bsc" }
@@ -215,13 +241,14 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron/icon-$SYMBOL.png"
       ],
       "decimals": 6,
+      "blockTime": 3,
       "apis": [
-        { "type": "tron-rpc", "endpoint": "https://api.trongrid.io" },
         {
           "type": "tron-rpc-pro",
           "endpoint": "https://api.trongrid.io",
           "config": { "apiKeyEnv": "TRONGRID_API_KEY" }
         },
+        { "type": "tron-rpc", "endpoint": "https://api.trongrid.io" },
         { "type": "tronwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/tron" }
       ],
       "explorer": {
@@ -243,6 +270,7 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm/icon-$SYMBOL.png"
       ],
       "decimals": 8,
+      "blockTime": 600,
       "apis": [
         { "type": "mempool-v1", "endpoint": "https://mempool.space/api" },
         { "type": "btcwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btc/blockbook" }
