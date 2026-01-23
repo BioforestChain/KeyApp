@@ -6,7 +6,7 @@
  * - balance/tokenBalances: 依赖 transactionHistory 变化
  */
 
-import { Effect, Duration } from 'effect';
+import { Effect, Duration, Stream, Fiber } from 'effect';
 import { Schema as S } from 'effect';
 import {
   httpFetch,
@@ -14,7 +14,6 @@ import {
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  createEventBusService,
   acquireSource,
   releaseSource,
   makeRegistryKey,
@@ -22,6 +21,7 @@ import {
   type DataSource,
   type EventBusService,
 } from '@biochain/chain-effect';
+import { getWalletEventBus } from '@/services/chain-adapter/wallet-event-bus';
 import type { StreamInstance } from '@biochain/chain-effect';
 import type {
   ApiProvider,
@@ -439,51 +439,68 @@ export class BiowalletProviderEffect
       // 获取共享的 blockHeight source 作为依赖
       const blockHeightSource = yield* provider.getSharedBlockHeightSource();
 
-      const fetchEffect = provider.fetchTransactionList({ address, limit: 50 }).pipe(
-        Effect.map((raw): TransactionsOutput => {
-          if (!raw.result?.trs) return [];
-
-          return raw.result.trs
-            .map((item): Transaction | null => {
-              const tx = item.transaction;
-              const action = detectAction(tx.type);
-              const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress);
-              const { value, assetType } = extractAssetInfo(tx.asset, symbol);
-              if (value === null) return null;
-
-              return {
-                hash: tx.signature ?? item.signature,
-                from: tx.senderId,
-                to: tx.recipientId ?? '',
-                timestamp: provider.epochMs + tx.timestamp * 1000,
-                status: 'confirmed',
-                blockNumber: BigInt(item.height),
-                action,
-                direction,
-                assets: [
-                  {
-                    assetType: 'native' as const,
-                    value,
-                    symbol: assetType,
-                    decimals,
-                  },
-                ],
-              };
-            })
-            .filter((tx): tx is Transaction => tx !== null)
-            .sort((a, b) => b.timestamp - a.timestamp);
-        }),
-      );
-
       // 依赖 blockHeight 变化触发刷新
       const source = yield* createDependentSource({
         name: `biowallet.${provider.chainId}.txHistory.${normalizedAddress}`,
         dependsOn: blockHeightSource.ref,
         hasChanged: (prev, curr) => prev !== curr,
-        fetch: (_: BlockHeightOutput) => fetchEffect,
+        fetch: (_dep: BlockHeightOutput, _forceRefresh?: boolean) =>
+          provider.fetchTransactionList({ address, limit: 50 }, true).pipe(
+            Effect.map((raw): TransactionsOutput => {
+              if (!raw.result?.trs) return [];
+
+              return raw.result.trs
+                .map((item): Transaction | null => {
+                  const tx = item.transaction;
+                  const action = detectAction(tx.type);
+                  const direction = getDirection(tx.senderId, tx.recipientId ?? '', normalizedAddress);
+                  const { value, assetType } = extractAssetInfo(tx.asset, symbol);
+                  if (value === null) return null;
+
+                  return {
+                    hash: tx.signature ?? item.signature,
+                    from: tx.senderId,
+                    to: tx.recipientId ?? '',
+                    timestamp: provider.epochMs + tx.timestamp * 1000,
+                    status: 'confirmed',
+                    blockNumber: BigInt(item.height),
+                    action,
+                    direction,
+                    assets: [
+                      {
+                        assetType: 'native' as const,
+                        value,
+                        symbol: assetType,
+                        decimals,
+                      },
+                    ],
+                  };
+                })
+                .filter((tx): tx is Transaction => tx !== null)
+                .sort((a, b) => b.timestamp - a.timestamp);
+            }),
+          ),
       });
 
-      return source;
+      // pendingTx 确认事件需要触发 txHistory 刷新（即使高度未变化）
+      if (!provider._eventBus) {
+        provider._eventBus = yield* getWalletEventBus();
+      }
+      const eventBus = provider._eventBus;
+
+      const eventFiber = yield* eventBus
+        .forWalletEvents(provider.chainId, normalizedAddress, ['tx:confirmed'])
+        .pipe(
+          Stream.runForEach(() =>
+            Effect.catchAll(source.refresh, () => Effect.void),
+          ),
+          Effect.forkDaemon,
+        );
+
+      return {
+        ...source,
+        stop: Effect.all([source.stop, Fiber.interrupt(eventFiber)]).pipe(Effect.asVoid),
+      };
     });
   }
 
@@ -511,31 +528,30 @@ export class BiowalletProviderEffect
         decimals,
       );
 
-      const fetchEffect = provider.fetchAddressAsset(params.address).pipe(
-        Effect.map((raw): BalanceOutput => {
-          if (!raw.result?.assets) {
-            return { amount: Amount.zero(decimals, symbol), symbol };
-          }
-          for (const magic of Object.values(raw.result.assets)) {
-            for (const asset of Object.values(magic)) {
-              if (asset.assetType === symbol) {
-                return {
-                  amount: Amount.fromRaw(asset.assetNumber, decimals, symbol),
-                  symbol,
-                };
-              }
-            }
-          }
-          return { amount: Amount.zero(decimals, symbol), symbol };
-        }),
-      );
-
       // 依赖 transactionHistory 变化
       const source = yield* createDependentSource({
         name: `biowallet.${provider.chainId}.balance`,
         dependsOn: txHistorySource.ref,
         hasChanged: hasTransactionListChanged,
-        fetch: () => fetchEffect,
+        fetch: (_dep, forceRefresh: boolean) =>
+          provider.fetchAddressAsset(params.address, forceRefresh).pipe(
+            Effect.map((raw): BalanceOutput => {
+              if (!raw.result?.assets) {
+                return { amount: Amount.zero(decimals, symbol), symbol };
+              }
+              for (const magic of Object.values(raw.result.assets)) {
+                for (const asset of Object.values(magic)) {
+                  if (asset.assetType === symbol) {
+                    return {
+                      amount: Amount.fromRaw(asset.assetNumber, decimals, symbol),
+                      symbol,
+                    };
+                  }
+                }
+              }
+              return { amount: Amount.zero(decimals, symbol), symbol };
+            }),
+          ),
       });
 
       return source;
@@ -557,40 +573,39 @@ export class BiowalletProviderEffect
         decimals,
       );
 
-      const fetchEffect = provider.fetchAddressAsset(params.address).pipe(
-        Effect.map((raw): TokenBalancesOutput => {
-          if (!raw.result?.assets) return [];
-          const tokens: TokenBalance[] = [];
-
-          for (const magic of Object.values(raw.result.assets)) {
-            for (const asset of Object.values(magic)) {
-              const isNative = asset.assetType === symbol;
-              tokens.push({
-                symbol: asset.assetType,
-                name: asset.assetType,
-                amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
-                isNative,
-                decimals,
-              });
-            }
-          }
-
-          tokens.sort((a, b) => {
-            if (a.isNative && !b.isNative) return -1;
-            if (!a.isNative && b.isNative) return 1;
-            return b.amount.toNumber() - a.amount.toNumber();
-          });
-
-          return tokens;
-        }),
-      );
-
       // 依赖 transactionHistory 变化
       const source = yield* createDependentSource({
         name: `biowallet.${provider.chainId}.tokenBalances`,
         dependsOn: txHistorySource.ref,
         hasChanged: hasTransactionListChanged,
-        fetch: () => fetchEffect,
+        fetch: (_dep, forceRefresh: boolean) =>
+          provider.fetchAddressAsset(params.address, forceRefresh).pipe(
+            Effect.map((raw): TokenBalancesOutput => {
+              if (!raw.result?.assets) return [];
+              const tokens: TokenBalance[] = [];
+
+              for (const magic of Object.values(raw.result.assets)) {
+                for (const asset of Object.values(magic)) {
+                  const isNative = asset.assetType === symbol;
+                  tokens.push({
+                    symbol: asset.assetType,
+                    name: asset.assetType,
+                    amount: Amount.fromRaw(asset.assetNumber, decimals, asset.assetType),
+                    isNative,
+                    decimals,
+                  });
+                }
+              }
+
+              tokens.sort((a, b) => {
+                if (a.isNative && !b.isNative) return -1;
+                if (!a.isNative && b.isNative) return 1;
+                return b.amount.toNumber() - a.amount.toNumber();
+              });
+
+              return tokens;
+            }),
+          ),
       });
 
       return source;
@@ -654,22 +669,26 @@ export class BiowalletProviderEffect
     return httpFetchCached({
       url: `${this.baseUrl}/lastblock`,
       schema: BlockResponseSchema,
-      cacheStrategy: 'ttl',
-      cacheTtl: this.cacheTtl,
+      // 轮询必须走网络，失败时允许缓存兜底
+      cacheStrategy: 'network-first',
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
     });
   }
 
-  private fetchAddressAsset(address: string): Effect.Effect<AssetResponse, FetchError> {
+  private fetchAddressAsset(address: string, forceRefresh = false): Effect.Effect<AssetResponse, FetchError> {
     return httpFetchCached({
       url: `${this.baseUrl}/address/asset`,
       method: 'POST',
       body: { address },
       schema: AssetResponseSchema,
-      cacheStrategy: 'cache-first',
+      cacheStrategy: forceRefresh ? 'network-first' : 'cache-first',
     });
   }
 
-  private fetchTransactionList(params: TxHistoryParams): Effect.Effect<TxListResponse, FetchError> {
+  private fetchTransactionList(params: TxHistoryParams, forceRefresh = false): Effect.Effect<TxListResponse, FetchError> {
     return httpFetchCached({
       url: `${this.baseUrl}/transactions/query`,
       method: 'POST',
@@ -680,7 +699,7 @@ export class BiowalletProviderEffect
         sort: -1,
       },
       schema: TxListResponseSchema,
-      cacheStrategy: 'cache-first',
+      cacheStrategy: forceRefresh ? 'network-first' : 'cache-first',
     });
   }
 

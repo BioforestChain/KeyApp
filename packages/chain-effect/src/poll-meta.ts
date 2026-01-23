@@ -136,13 +136,19 @@ export const updateNextPollTime = (
  * - 如果有持久化的 nextPollTime 且未过期，返回剩余延迟
  * - 否则返回 0（立即执行）
  */
-export const getDelayUntilNextPoll = (key: string): Effect.Effect<number> =>
+export const getDelayUntilNextPoll = (
+  key: string,
+  currentInterval?: number
+): Effect.Effect<number> =>
   Effect.gen(function* () {
     const meta = yield* getPollMeta(key)
     if (!meta) return 0
     
     const now = Date.now()
     const delay = meta.nextPollTime - now
+    // 若持久化的 nextPollTime 异常偏大（例如时钟漂移），直接触发轮询
+    const interval = currentInterval ?? meta.interval
+    if (delay > interval) return 0
     return Math.max(0, delay)
   })
 

@@ -80,6 +80,8 @@ export interface FetchOptions<T> {
   schema?: Schema.Schema<T, any, never>;
   /** 超时时间（毫秒）*/
   timeout?: number;
+  /** 缓存策略（浏览器层面的 Request cache）*/
+  cache?: RequestCache;
 }
 
 /**
@@ -121,7 +123,7 @@ function appendSearchParams(url: string, params?: Record<string, string | number
  * ```
  */
 export function httpFetch<T>(options: FetchOptions<T>): Effect.Effect<T, FetchError> {
-  const { url, method = 'GET', pathParams, searchParams, headers = {}, body, schema, timeout = 30000 } = options;
+  const { url, method = 'GET', pathParams, searchParams, headers = {}, body, schema, timeout = 30000, cache } = options;
 
   // 构建最终 URL
   let finalUrl = replacePathParams(url, pathParams);
@@ -140,6 +142,7 @@ export function httpFetch<T>(options: FetchOptions<T>): Effect.Effect<T, FetchEr
             ...headers,
           },
           signal: controller.signal,
+          cache,
         };
 
         if (method === 'POST' && body !== undefined) {
@@ -256,16 +259,16 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
   const { cacheStrategy = 'ttl', cacheTtl = 5000, ...fetchOptions } = options;
   const cacheKey = makeCacheKeyForRequest(options.url, options.body);
 
-  // 同步检查是否有正在进行的相同请求
-  const pending = pendingRequests.get(cacheKey);
-  if (pending) {
-    console.log(`[httpFetchCached] PENDING: ${options.url}`);
-    return Effect.promise(() => pending as Promise<T>);
-  }
+  // 重要：请求必须在 Effect 执行时惰性创建，避免首次构建就触发 fetch，
+  // 否则会导致轮询重复复用同一个 Promise，从而看起来“只有第一次发请求”。
+  return Effect.promise(async () => {
+    const pending = pendingRequests.get(cacheKey);
+    if (pending) {
+      console.log(`[httpFetchCached] PENDING: ${options.url}`);
+      return pending as Promise<T>;
+    }
 
-  // 创建请求 Promise
-  const requestPromise = (async () => {
-    try {
+    const requestPromise = (async () => {
       const cached = await Effect.runPromise(getFromCache<T>(options.url, options.body));
 
       if (cacheStrategy === 'cache-first') {
@@ -322,13 +325,14 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
         console.error(`[httpFetchCached] TTL FETCH ERROR: ${options.url}`, error);
         throw error;
       }
+    })();
+
+    pendingRequests.set(cacheKey, requestPromise);
+
+    try {
+      return await requestPromise;
     } finally {
       pendingRequests.delete(cacheKey);
     }
-  })();
-
-  // 同步设置锁
-  pendingRequests.set(cacheKey, requestPromise);
-
-  return Effect.promise(() => requestPromise);
+  });
 }

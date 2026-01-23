@@ -7,9 +7,10 @@
 
 import { z } from 'zod';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { Effect, Stream } from 'effect';
-import { createDependentSource, type DataSource } from '@biochain/chain-effect';
+import { Effect, Stream, Duration } from 'effect';
+import { createPollingSource, txConfirmedEvent, type DataSource } from '@biochain/chain-effect';
 import { getChainProvider } from '@/services/chain-adapter/providers';
+import { getWalletEventBus } from '@/services/chain-adapter/wallet-event-bus';
 import { defineServiceMeta } from '@/lib/service-meta';
 import { SignedTransactionSchema } from '@/services/chain-adapter/types';
 
@@ -485,6 +486,7 @@ export const pendingTxService = new PendingTxServiceImpl();
 
 // 缓存已创建的 Effect 数据源实例
 const pendingTxSources = new Map<string, DataSource<PendingTx[]>>();
+const PENDING_TX_POLL_INTERVAL = Duration.seconds(30);
 
 /**
  * 获取 pending tx 的 Effect 数据源
@@ -503,18 +505,15 @@ export function getPendingTxSource(
 
   const chainProvider = getChainProvider(chainId);
 
-  if (!chainProvider?.supports('blockHeight')) {
-    return null;
-  }
-
-  // 创建依赖 blockHeight 的数据源
-  return createDependentSource({
+  // 使用独立轮询（频率不同于出块）
+  return createPollingSource({
     name: `pendingTx.${chainId}.${walletId}`,
-    dependsOn: chainProvider.blockHeight.ref,
-    hasChanged: (prev, next) => prev !== next,
+    interval: PENDING_TX_POLL_INTERVAL,
     fetch: () =>
       Effect.tryPromise({
         try: async () => {
+          // pending 确认后需触发 txHistory 刷新（不依赖区块高度变化）
+          const eventBus = await Effect.runPromise(getWalletEventBus());
           // 检查 pending 交易状态，更新/移除已上链的
           const pending = await pendingTxService.getPending({ walletId });
 
@@ -524,6 +523,9 @@ export function getPendingTxSource(
                 // 检查是否已上链
                 const txInfo = await chainProvider.transaction.fetch({ txHash: tx.txHash });
                 if (txInfo?.status === 'confirmed') {
+                  await Effect.runPromise(
+                    eventBus.emit(txConfirmedEvent(chainId, tx.fromAddress, tx.txHash)),
+                  );
                   // 直接删除已确认的交易
                   await pendingTxService.delete({ id: tx.id });
                 }

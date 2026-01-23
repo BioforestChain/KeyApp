@@ -7,7 +7,7 @@
  * - 支持恢复轮询计划（从 IndexedDB 读取 nextPollTime）
  */
 
-import { Effect, Fiber, Duration, SubscriptionRef, Stream, Schedule } from "effect"
+import { Effect, Fiber, FiberStatus, Duration, SubscriptionRef, Stream, Schedule } from "effect"
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
 import { updateNextPollTime, getDelayUntilNextPoll } from "./poll-meta"
@@ -59,26 +59,31 @@ export function acquireSource<T>(
     // 1. 检查是否已存在
     const existing = registry.get(key) as SourceEntry<T> | undefined
     if (existing) {
-      existing.refCount++
-      console.log(`[SourceRegistry] acquireSource existing: ${key}, refCount: ${existing.refCount}`)
-      return existing.source
+      if (existing.pollFiber) {
+        const status = await Effect.runPromise(Fiber.status(existing.pollFiber))
+        if (!FiberStatus.isDone(status)) {
+          existing.refCount++
+          return existing.source
+        }
+        // 轮询 fiber 已结束，清理后重建
+        registry.delete(key)
+      } else {
+        existing.refCount++
+        return existing.source
+      }
     }
     
     // 2. 检查是否有正在创建的 Promise（防止并发）
     const pending = pendingCreations.get(key)
     if (pending) {
-      console.log(`[SourceRegistry] acquireSource waiting for pending: ${key}`)
       const source = await pending as DataSource<T>
       // 增加引用计数
       const entry = registry.get(key) as SourceEntry<T>
       if (entry) {
         entry.refCount++
-        console.log(`[SourceRegistry] acquireSource after wait: ${key}, refCount: ${entry.refCount}`)
       }
       return source
     }
-    
-    console.log(`[SourceRegistry] acquireSource NEW: ${key}`)
     
     // 3. 创建 Promise 锁
     const createPromise = createSourceInternal<T>(key, options)
@@ -110,7 +115,8 @@ async function createSourceInternal<T>(
     
     const pollEffect = Effect.gen(function* () {
       // 计算初始延迟（基于持久化的 nextPollTime）
-      const delay = yield* getDelayUntilNextPoll(pollKey)
+      const delay = yield* getDelayUntilNextPoll(pollKey, intervalMs)
+      console.log(`[SourceRegistry] Poll fiber started for ${pollKey}, delay: ${delay}ms, interval: ${intervalMs}ms`)
       if (delay > 0) {
         yield* Effect.sleep(Duration.millis(delay))
       }
@@ -118,12 +124,14 @@ async function createSourceInternal<T>(
       // 开始轮询循环
       yield* Stream.repeatEffect(
         Effect.gen(function* () {
+          console.log(`[SourceRegistry] Polling ${pollKey}...`)
           const result = yield* Effect.catchAll(options.fetch, (error) => {
             console.error(`[SourceRegistry] Poll error for ${pollKey}:`, error)
             return Effect.succeed(null as T | null)
           })
           
           if (result !== null) {
+            console.log(`[SourceRegistry] Poll success for ${pollKey}, updating ref`)
             yield* SubscriptionRef.set(ref, result)
             yield* updateNextPollTime(pollKey, intervalMs)
           }
@@ -136,7 +144,7 @@ async function createSourceInternal<T>(
       )
     })
     
-    const pollFiber = yield* Effect.fork(pollEffect)
+    const pollFiber = yield* Effect.forkDaemon(pollEffect)
     
     // 执行立即获取
     const immediateResult = yield* Effect.catchAll(options.fetch, (error) => {
@@ -165,7 +173,8 @@ async function createSourceInternal<T>(
         yield* updateNextPollTime(pollKey, intervalMs)
         return value
       }),
-      stop: Fiber.interrupt(pollFiber).pipe(Effect.asVoid),
+      // stop 统一走 releaseSource，确保引用计数正确，避免误停共享轮询
+      stop: releaseSource(key),
     }
     
     // 注册到全局表

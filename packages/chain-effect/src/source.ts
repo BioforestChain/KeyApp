@@ -139,7 +139,7 @@ export const createPollingSource = <T>(
     // 驱动 ref 更新
     const fiber = yield* driver.pipe(
       Stream.runForEach((value) => SubscriptionRef.set(ref, value)),
-      Effect.fork
+      Effect.forkDaemon
     )
     
     // 立即执行第一次并等待完成（同步）
@@ -179,8 +179,12 @@ export interface DependentSourceOptions<TDep, T, E = FetchError> {
   dependsOn: SubscriptionRef.SubscriptionRef<TDep | null>
   /** 判断依赖是否真的变化了 */
   hasChanged: (prev: TDep | null, next: TDep) => boolean
-  /** 根据依赖值获取数据 */
-  fetch: (dep: TDep) => Effect.Effect<T, E>
+  /** 
+   * 根据依赖值获取数据
+   * @param dep 依赖的当前值
+   * @param forceRefresh 是否强制刷新（true=依赖变化触发应使用network-first，false=首次加载可使用cache-first）
+   */
+  fetch: (dep: TDep, forceRefresh?: boolean) => Effect.Effect<T, E>
 }
 
 /**
@@ -189,6 +193,22 @@ export interface DependentSourceOptions<TDep, T, E = FetchError> {
  * - 监听依赖变化，只有 hasChanged 返回 true 时才触发请求
  * - 依赖不变则永远命中缓存
  * 
+ * ## 重要：竞态条件避免
+ * 
+ * 官方文档说明：SubscriptionRef.changes 会在订阅时发射当前值。
+ * 但 Effect.fork 会导致 fiber 调度延迟，造成以下竞态：
+ * 
+ * 1. Effect.fork(driver) 创建 fiber，但 fiber 还没开始执行
+ * 2. Initial fetch 先执行，设置 prevDep = currentValue
+ * 3. Fiber 开始后，changes 发射 currentValue
+ * 4. hasChanged(currentValue, currentValue) → false（错误地跳过更新）
+ * 
+ * 解决方案：使用 Stream.scanEffect 将状态追踪内化到 Stream 中，
+ * 不依赖外部 mutable 变量（let prevDep），避免竞态条件。
+ * 
+ * @see https://effect.website/docs/state-management/subscriptionref
+ * @see https://github.com/pauljphilp/effectpatterns - Race Condition with Plain Variables
+ * 
  * @example
  * ```ts
  * const balance = yield* createDependentSource({
@@ -196,7 +216,7 @@ export interface DependentSourceOptions<TDep, T, E = FetchError> {
  *   dependsOn: txHistory.ref,
  *   hasChanged: (prev, next) => 
  *     prev?.length !== next.length || prev?.[0]?.hash !== next[0]?.hash,
- *   fetch: (txList) => fetchBalance(txList[0]?.from),
+ *   fetch: (txList, _forceRefresh) => fetchBalance(txList[0]?.from),
  * })
  * ```
  */
@@ -207,35 +227,54 @@ export const createDependentSource = <TDep, T>(
     const { name, dependsOn, hasChanged, fetch } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
-    let prevDep: TDep | null = null
     
-    // 监听依赖变化
-    const driver = dependsOn.changes.pipe(
-      // 过滤掉 null
-      Stream.filter((value): value is TDep => value !== null),
-      // 检查是否真的变化了
-      Stream.filter((next) => {
-        const changed = hasChanged(prevDep, next)
-        if (changed) {
-          prevDep = next
-        }
-        return changed
-      }),
-      // 获取数据
-      Stream.mapEffect((dep) => fetch(dep))
-    )
-    
-    // 驱动 ref 更新
-    const fiber = yield* driver.pipe(
-      Stream.runForEach((value) => SubscriptionRef.set(ref, value)),
-      Effect.fork
-    )
-    
-    // 立即检查依赖的当前值，如果有值则执行 fetch
     const currentDep = yield* SubscriptionRef.get(dependsOn)
-    if (currentDep !== null && hasChanged(null, currentDep)) {
-      prevDep = currentDep
-      const initialValue = yield* Effect.catchAll(fetch(currentDep), (error) => {
+
+    // 使用 Stream.scanEffect 内化状态追踪
+    // 关键：不使用外部 mutable 变量（let prevDep），避免与 Effect.fork 的竞态
+    // 
+    // ## 重要：Effect.fork 调度延迟问题
+    // 官方文档说明：Effect.fork 后 fiber 不会立即执行，需要等待调度。
+    // 但 SubscriptionRef.changes 只有在 stream 真正运行时才发射当前值。
+    // 所以我们需要：
+    // 1. 保留 initial fetch 确保首次数据加载
+    // 2. 用 scanEffect 内化状态追踪，让 stream 独立管理 prev 状态
+    // 3. initial fetch 不影响 stream 的状态（stream 从 null 开始）
+    const driver = dependsOn.changes.pipe(
+      Stream.filter((value): value is TDep => value !== null),
+      Stream.scanEffect(
+        { prev: currentDep as TDep | null },
+        (acc, next) =>
+          Effect.gen(function* () {
+            const changed = hasChanged(acc.prev, next)
+            
+            if (changed) {
+              // acc.prev !== null 说明是依赖变化触发，需要强制刷新（network-first）
+              // acc.prev === null 说明是首次，可以用缓存（cache-first）
+              const forceRefresh = acc.prev !== null
+              const result = yield* Effect.catchAll(fetch(next, forceRefresh), (error) => {
+                console.error(`[DependentSource] ${name} fetch error:`, error)
+                return Effect.succeed(null as T | null)
+              })
+              if (result !== null) {
+                yield* SubscriptionRef.set(ref, result)
+              }
+            }
+            
+            // 总是更新 prev，确保状态追踪正确
+            return { prev: next }
+          })
+      ),
+      Stream.runDrain
+    )
+    
+    // Fork driver - 状态在 stream 内部，不受 initial fetch 影响
+    const fiber = yield* Effect.forkDaemon(driver)
+    
+    // Initial fetch：确保首次数据加载（forceRefresh=false，可使用缓存）
+    // Stream 的 scanEffect 会从当前依赖值开始追踪，避免首个 changes 触发重复拉取
+    if (currentDep !== null) {
+      const initialValue = yield* Effect.catchAll(fetch(currentDep, false), (error) => {
         console.error(`[DependentSource] Initial fetch error for ${name}:`, error)
         return Effect.succeed(null as T | null)
       })
@@ -260,7 +299,8 @@ export const createDependentSource = <TDep, T>(
         if (dep === null) {
           return yield* Effect.fail(new Error("Dependency not available") as unknown as FetchError)
         }
-        const value = yield* fetch(dep)
+        // refresh 是用户主动触发，应该强制刷新
+        const value = yield* fetch(dep, true)
         yield* SubscriptionRef.set(ref, value)
         return value
       }),
