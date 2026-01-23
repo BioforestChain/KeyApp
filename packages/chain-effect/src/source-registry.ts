@@ -10,9 +10,7 @@
 import { Effect, Fiber, Duration, SubscriptionRef, Stream, Schedule } from "effect"
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
-import { getPollMeta, updateNextPollTime, makePollKey, getDelayUntilNextPoll } from "./poll-meta"
-import { getFromCache, putToCache } from "./http-cache"
-import { Option } from "effect"
+import { updateNextPollTime, getDelayUntilNextPoll } from "./poll-meta"
 
 // ==================== 类型定义 ====================
 
@@ -23,19 +21,17 @@ export interface SourceEntry<T> {
 }
 
 export interface AcquireSourceOptions<T> {
-  /** 获取数据的 Effect */
+  /** 获取数据的 Effect（建议使用 httpFetchCached 以自动缓存） */
   fetch: Effect.Effect<T, FetchError>
   /** 轮询间隔 */
   interval: Duration.DurationInput
-  /** 缓存 URL（用于 Cache API） */
-  cacheUrl?: string
-  /** 缓存 body（用于 Cache API） */
-  cacheBody?: unknown
 }
 
 // ==================== 全局注册表 ====================
 
 const registry = new Map<string, SourceEntry<unknown>>()
+// 用于防止并发创建的 Promise 锁
+const pendingCreations = new Map<string, Promise<DataSource<unknown>>>()
 
 /**
  * 生成注册表 key
@@ -53,31 +49,60 @@ export function makeRegistryKey(
  * 
  * - 首次调用：创建 source，启动轮询 fiber，refCount = 1
  * - 后续调用：返回已有 source，refCount++
- * - 支持从 IndexedDB 恢复轮询计划
- * - 支持从 Cache API 返回缓存值
+ * - 使用 Promise 锁防止并发创建
  */
 export function acquireSource<T>(
   key: string,
   options: AcquireSourceOptions<T>
 ): Effect.Effect<DataSource<T>> {
-  return Effect.gen(function* () {
+  return Effect.promise(async () => {
+    // 1. 检查是否已存在
     const existing = registry.get(key) as SourceEntry<T> | undefined
-    
     if (existing) {
       existing.refCount++
+      console.log(`[SourceRegistry] acquireSource existing: ${key}, refCount: ${existing.refCount}`)
       return existing.source
     }
     
+    // 2. 检查是否有正在创建的 Promise（防止并发）
+    const pending = pendingCreations.get(key)
+    if (pending) {
+      console.log(`[SourceRegistry] acquireSource waiting for pending: ${key}`)
+      const source = await pending as DataSource<T>
+      // 增加引用计数
+      const entry = registry.get(key) as SourceEntry<T>
+      if (entry) {
+        entry.refCount++
+        console.log(`[SourceRegistry] acquireSource after wait: ${key}, refCount: ${entry.refCount}`)
+      }
+      return source
+    }
+    
+    console.log(`[SourceRegistry] acquireSource NEW: ${key}`)
+    
+    // 3. 创建 Promise 锁
+    const createPromise = createSourceInternal<T>(key, options)
+    pendingCreations.set(key, createPromise as Promise<DataSource<unknown>>)
+    
+    try {
+      const source = await createPromise
+      return source
+    } finally {
+      pendingCreations.delete(key)
+    }
+  })
+}
+
+/**
+ * 内部创建函数
+ */
+async function createSourceInternal<T>(
+  key: string,
+  options: AcquireSourceOptions<T>
+): Promise<DataSource<T>> {
+  return Effect.runPromise(Effect.gen(function* () {
     // 创建新的 SubscriptionRef
     const ref = yield* SubscriptionRef.make<T | null>(null)
-    
-    // 尝试从缓存恢复初始值
-    if (options.cacheUrl) {
-      const cached = yield* getFromCache<T>(options.cacheUrl, options.cacheBody)
-      if (Option.isSome(cached)) {
-        yield* SubscriptionRef.set(ref, cached.value.data)
-      }
-    }
     
     // 创建轮询 fiber（延迟启动，基于持久化的 nextPollTime）
     const intervalMs = Duration.toMillis(Duration.decode(options.interval))
@@ -99,12 +124,7 @@ export function acquireSource<T>(
           
           if (result !== null) {
             yield* SubscriptionRef.set(ref, result)
-            // 更新持久化的下次轮询时间
             yield* updateNextPollTime(pollKey, intervalMs)
-            // 更新缓存
-            if (options.cacheUrl) {
-              yield* putToCache(options.cacheUrl, options.cacheBody, result)
-            }
           }
           
           return result
@@ -124,9 +144,6 @@ export function acquireSource<T>(
     if (immediateResult !== null) {
       yield* SubscriptionRef.set(ref, immediateResult)
       yield* updateNextPollTime(pollKey, intervalMs)
-      if (options.cacheUrl) {
-        yield* putToCache(options.cacheUrl, options.cacheBody, immediateResult)
-      }
     }
     
     // 构建 DataSource
@@ -144,9 +161,6 @@ export function acquireSource<T>(
         const value = yield* options.fetch
         yield* SubscriptionRef.set(ref, value)
         yield* updateNextPollTime(pollKey, intervalMs)
-        if (options.cacheUrl) {
-          yield* putToCache(options.cacheUrl, options.cacheBody, value)
-        }
         return value
       }),
       stop: Fiber.interrupt(pollFiber).pipe(Effect.asVoid),
@@ -161,7 +175,7 @@ export function acquireSource<T>(
     registry.set(key, entry as SourceEntry<unknown>)
     
     return source
-  })
+  }))
 }
 
 /**

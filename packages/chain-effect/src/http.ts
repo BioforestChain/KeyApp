@@ -4,8 +4,9 @@
  * 封装 fetch API，提供类型安全的 HTTP 请求
  */
 
-import { Effect, Schedule, Duration } from 'effect';
+import { Effect, Schedule, Duration, Option } from 'effect';
 import { Schema } from 'effect';
+import { getFromCache, putToCache } from './http-cache';
 
 // ==================== Error Types ====================
 
@@ -216,4 +217,41 @@ export function httpFetchWithRetry<T>(
       }),
     ),
   );
+}
+
+// ==================== Cached HTTP Client ====================
+
+export interface CachedFetchOptions<T> extends FetchOptions<T> {
+  /** 缓存 TTL（毫秒），在此时间内不发起重复请求 */
+  cacheTtl?: number;
+}
+
+/**
+ * 带缓存拦截的 HTTP 请求
+ *
+ * - 缓存未过期：直接返回缓存，不发网络请求
+ * - 缓存过期/不存在：发起请求，成功后更新缓存
+ */
+export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effect<T, FetchError> {
+  const { cacheTtl = 5000, ...fetchOptions } = options;
+
+  return Effect.gen(function* () {
+    // 1. 检查缓存
+    const cached = yield* getFromCache<T>(options.url, options.body);
+    if (Option.isSome(cached)) {
+      const age = Date.now() - cached.value.timestamp;
+      if (age < cacheTtl) {
+        // 缓存未过期，直接返回
+        return cached.value.data;
+      }
+    }
+
+    // 2. 发起真实请求
+    const result = yield* httpFetch(fetchOptions);
+
+    // 3. 更新缓存
+    yield* putToCache(options.url, options.body, result);
+
+    return result;
+  });
 }

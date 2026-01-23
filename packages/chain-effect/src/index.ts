@@ -22,6 +22,7 @@ export * from "./schema"
 // HTTP utilities
 export {
   httpFetch,
+  httpFetchCached,
   httpFetchWithRetry,
   defaultRetrySchedule,
   rateLimitRetrySchedule,
@@ -31,6 +32,7 @@ export {
   NoSupportError,
   ServiceLimitedError,
   type FetchOptions,
+  type CachedFetchOptions,
   type FetchError,
 } from "./http"
 

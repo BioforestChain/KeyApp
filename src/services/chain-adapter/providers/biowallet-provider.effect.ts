@@ -10,6 +10,7 @@ import { Effect, Duration } from "effect"
 import { Schema as S } from "effect"
 import {
   httpFetch,
+  httpFetchCached,
   createStreamInstanceFromSource,
   createDependentSource,
   createEventBusService,
@@ -415,8 +416,6 @@ export class BiowalletProviderEffect
     const provider = this
     const normalizedAddress = address.toLowerCase()
     const registryKey = makeRegistryKey(this.chainId, normalizedAddress, "txHistory")
-    const cacheUrl = `${this.baseUrl}/transactions/query`
-    const cacheBody = { address: normalizedAddress, limit: 50 }
 
     const fetchEffect = provider.fetchTransactionList({ address, limit: 50 }).pipe(
       Effect.map((raw): TransactionsOutput => {
@@ -458,8 +457,6 @@ export class BiowalletProviderEffect
     return acquireSource<TransactionsOutput>(registryKey, {
       fetch: fetchEffect,
       interval: Duration.millis(this.forgeInterval),
-      cacheUrl,
-      cacheBody,
     })
   }
 
@@ -652,16 +649,17 @@ export class BiowalletProviderEffect
   }
 
   private fetchAddressAsset(address: string): Effect.Effect<AssetResponse, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/address/asset`,
       method: "POST",
       body: { address },
       schema: AssetResponseSchema,
+      cacheTtl: this.forgeInterval,
     })
   }
 
   private fetchTransactionList(params: TxHistoryParams): Effect.Effect<TxListResponse, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/transactions/query`,
       method: "POST",
       body: {
@@ -671,6 +669,7 @@ export class BiowalletProviderEffect
         sort: -1,
       },
       schema: TxListResponseSchema,
+      cacheTtl: this.forgeInterval,
     })
   }
 
