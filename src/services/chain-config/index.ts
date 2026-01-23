@@ -154,13 +154,13 @@ function resolveRelativePath(path: string, jsonFileUrl: string): string {
 }
 
 /**
- * 解析配置中的 icon 和 tokenIconBase 相对路径
+ * 解析配置中的 icon、tokenIconBase 和 tokenIconContract 相对路径
  */
 function resolveIconPaths(
-  config: { icon?: string | undefined; tokenIconBase?: string[] | undefined },
+  config: { icon?: string | undefined; tokenIconBase?: string[] | undefined; tokenIconContract?: string[] | undefined },
   jsonFileUrl: string
-): { icon?: string; tokenIconBase?: string[] } {
-  const result: { icon?: string; tokenIconBase?: string[] } = {}
+): { icon?: string; tokenIconBase?: string[]; tokenIconContract?: string[] } {
+  const result: { icon?: string; tokenIconBase?: string[]; tokenIconContract?: string[] } = {}
 
   if (config.icon !== undefined) {
     result.icon = resolveRelativePath(config.icon, jsonFileUrl)
@@ -168,6 +168,12 @@ function resolveIconPaths(
 
   if (config.tokenIconBase !== undefined) {
     result.tokenIconBase = config.tokenIconBase.map((base) =>
+      resolveRelativePath(base, jsonFileUrl)
+    )
+  }
+
+  if (config.tokenIconContract !== undefined) {
+    result.tokenIconContract = config.tokenIconContract.map((base) =>
       resolveRelativePath(base, jsonFileUrl)
     )
   }

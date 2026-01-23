@@ -1,5 +1,5 @@
 /**
- * Chain Provider Factory
+ * Chain Provider Factory (Effect TS)
  * 
  * 为不同链创建对应的 ChainProvider，聚合多个 ApiProvider。
  */
@@ -10,17 +10,21 @@ export type { Transaction, Balance, TokenBalance, Direction, Action, ApiProvider
 // 导出错误类
 export { InvalidDataError } from './errors';
 
-// 导出所有 Provider 实现
+// 导出 ChainProvider
 export { ChainProvider } from './chain-provider';
-export { EtherscanProvider, createEtherscanProvider } from './etherscan-provider';
-export { EvmRpcProvider, createEvmRpcProvider } from './evm-rpc-provider';
-export { BiowalletProvider, createBiowalletProvider } from './biowallet-provider';
-export { BscWalletProvider, createBscWalletProvider } from './bscwallet-provider';
-export { TronRpcProvider, createTronRpcProvider } from './tron-rpc-provider';
-export { MempoolProvider, createMempoolProvider } from './mempool-provider';
-export { EthWalletProvider, createEthwalletProvider } from './ethwallet-provider';
-export { TronWalletProvider, createTronwalletProvider } from './tronwallet-provider';
-export { BtcWalletProvider, createBtcwalletProvider } from './btcwallet-provider';
+
+// 导出 Effect 版本的 Providers
+export { EtherscanV1ProviderEffect, createEtherscanV1ProviderEffect } from './etherscan-v1-provider.effect';
+export { EtherscanV2ProviderEffect, createEtherscanV2ProviderEffect } from './etherscan-v2-provider.effect';
+export { EvmRpcProviderEffect, createEvmRpcProviderEffect } from './evm-rpc-provider.effect';
+export { BiowalletProviderEffect, createBiowalletProviderEffect } from './biowallet-provider.effect';
+export { BscWalletProviderEffect, createBscWalletProviderEffect } from './bscwallet-provider.effect';
+export { TronRpcProviderEffect, createTronRpcProviderEffect } from './tron-rpc-provider.effect';
+export { MempoolProviderEffect, createMempoolProviderEffect } from './mempool-provider.effect';
+export { EthWalletProviderEffect, createEthwalletProviderEffect } from './ethwallet-provider.effect';
+export { TronWalletProviderEffect, createTronwalletProviderEffect } from './tronwallet-provider.effect';
+export { BtcWalletProviderEffect, createBtcwalletProviderEffect } from './btcwallet-provider.effect';
+export { MoralisProviderEffect, createMoralisProviderEffect } from './moralis-provider.effect';
 
 // 工厂函数
 import type { ApiProvider, ApiProviderFactory } from './types';
@@ -28,27 +32,31 @@ import type { ParsedApiEntry } from '@/services/chain-config';
 import { chainConfigService } from '@/services/chain-config';
 import { ChainProvider } from './chain-provider';
 
-import { createEtherscanProvider } from './etherscan-provider';
-import { createEvmRpcProvider } from './evm-rpc-provider';
-import { createBiowalletProvider } from './biowallet-provider';
-import { createBscWalletProvider } from './bscwallet-provider';
-import { createTronRpcProvider } from './tron-rpc-provider';
-import { createMempoolProvider } from './mempool-provider';
-import { createEthwalletProvider } from './ethwallet-provider';
-import { createTronwalletProvider } from './tronwallet-provider';
-import { createBtcwalletProvider } from './btcwallet-provider';
+import { createEtherscanV1ProviderEffect } from './etherscan-v1-provider.effect';
+import { createEtherscanV2ProviderEffect } from './etherscan-v2-provider.effect';
+import { createEvmRpcProviderEffect } from './evm-rpc-provider.effect';
+import { createBiowalletProviderEffect } from './biowallet-provider.effect';
+import { createBscWalletProviderEffect } from './bscwallet-provider.effect';
+import { createTronRpcProviderEffect } from './tron-rpc-provider.effect';
+import { createMempoolProviderEffect } from './mempool-provider.effect';
+import { createEthwalletProviderEffect } from './ethwallet-provider.effect';
+import { createTronwalletProviderEffect } from './tronwallet-provider.effect';
+import { createBtcwalletProviderEffect } from './btcwallet-provider.effect';
+import { createMoralisProviderEffect } from './moralis-provider.effect';
 
 /** 所有 Provider 工厂函数 */
 const PROVIDER_FACTORIES: ApiProviderFactory[] = [
-  createBiowalletProvider,
-  createBscWalletProvider,
-  createEtherscanProvider,
-  createEvmRpcProvider,
-  createTronRpcProvider,
-  createMempoolProvider,
-  createEthwalletProvider,
-  createTronwalletProvider,
-  createBtcwalletProvider,
+  createMoralisProviderEffect,
+  createBiowalletProviderEffect,
+  createBscWalletProviderEffect,
+  createEtherscanV2ProviderEffect,
+  createEtherscanV1ProviderEffect,
+  createEvmRpcProviderEffect,
+  createTronRpcProviderEffect,
+  createMempoolProviderEffect,
+  createEthwalletProviderEffect,
+  createTronwalletProviderEffect,
+  createBtcwalletProviderEffect,
 ];
 
 /**
@@ -64,17 +72,11 @@ function createApiProvider(entry: ParsedApiEntry, chainId: string): ApiProvider 
 
 /**
  * 为指定链创建 ChainProvider
- *
- * 根据链配置中的 api 条目，创建对应的 ApiProvider 并聚合到 ChainProvider。
- * 
- * 注意：TronRpcProvider 已通过 Mixin 继承方式内置 Identity 和 Transaction 能力。
- * 其他链的 Provider 后续将逐步迁移到同样的模式。
  */
 export function createChainProvider(chainId: string): ChainProvider {
   const entries = chainConfigService.getApi(chainId);
   const providers: ApiProvider[] = [];
 
-  // 添加 API Providers
   for (const entry of entries) {
     const provider = createApiProvider(entry, chainId);
     if (provider) {

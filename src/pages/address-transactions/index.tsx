@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useEnabledChains } from '@/stores'
 import { ChainProviderGate, useChainProvider } from '@/contexts'
 import type { Transaction } from '@/services/chain-adapter/providers'
-import { NoSupportError } from '@biochain/key-fetch'
+import { NoSupportError } from '@biochain/chain-effect'
 import { IconSearch, IconExternalLink, IconArrowUpRight, IconArrowDownLeft, IconLoader2 } from '@tabler/icons-react'
 
 function formatAmount(amount: string, decimals: number): string {

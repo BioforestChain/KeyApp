@@ -26,7 +26,7 @@ import { clipboardService } from '@/services/clipboard';
 import type { TransactionType } from '@/components/transaction/transaction-item';
 import { getTransactionStatusMeta, getTransactionVisualMeta } from '@/components/transaction/transaction-meta';
 import { Amount } from '@/types/amount';
-import keyFetch from '@biochain/key-fetch';
+import { superjson } from '@biochain/chain-effect';
 
 // Action 到 TransactionType 的映射
 const ACTION_TO_TYPE: Record<string, TransactionType> = {
@@ -127,7 +127,7 @@ function TransactionDetailContent({ hash, chainId, txData, onBack }: Transaction
 
   // 解析传入的初始数据（用于即时显示，避免加载闪烁）
   const initialTransaction = useMemo(
-    () => txData ? keyFetch.superjson.parse<Transaction>(txData) : null,
+    () => txData ? superjson.parse<Transaction>(txData) : null,
     [txData]
   );
 

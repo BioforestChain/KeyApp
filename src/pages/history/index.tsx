@@ -10,10 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChainProviderGate, useChainProvider } from '@/contexts';
 import { useCurrentWallet, useEnabledChains, useSelectedChain, useChainConfigState, chainConfigSelectors } from '@/stores';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
+import { useServiceStatus } from '@/hooks/use-service-status';
+import { ServiceStatusAlert } from '@/components/common/service-status-alert';
 import { cn } from '@/lib/utils';
 import { toTransactionInfoList, type TransactionInfo } from '@/components/transaction';
 import type { ChainType } from '@/stores';
-import keyFetch from '@biochain/key-fetch';
+import { superjson } from '@biochain/chain-effect';
 
 /** 交易历史过滤器 */
 interface TransactionFilter {
@@ -45,17 +47,20 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
   const chainProvider = useChainProvider();
 
   // 直接调用，不需要条件判断
-  const { data: rawTransactions, isLoading, isFetching, refetch } = chainProvider.transactionHistory.useState(
+  const { data: rawTransactions, isLoading, isFetching, error, refetch } = chainProvider.transactionHistory.useState(
     { address, limit: 50 },
     { enabled: !!address }
   );
+
+  // 获取服务状态
+  const txStatus = useServiceStatus(error, t);
 
   // 获取 pending transactions
   const {
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
-  } = usePendingTransactions(walletId);
+  } = usePendingTransactions(walletId, targetChain, address, rawTransactions);
 
   // 客户端过滤：按时间段
   const transactions = useMemo(() => {
@@ -89,7 +94,7 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
       if (!tx.id) return;
       // 从原始数据中找到对应的交易（通过 hash 匹配）
       const originalTx = rawTransactions?.find(t => t.hash === tx.hash);
-      const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+      const txData = originalTx ? superjson.stringify(originalTx) : undefined;
       navigate({ to: `/transaction/${tx.id}`, search: { txData } });
     },
     [navigate, rawTransactions],
@@ -216,6 +221,14 @@ function HistoryContent({ targetChain, address, filter, setFilter, walletId, dec
         )}
 
         {/* Confirmed Transactions */}
+        {(txStatus.limited || !txStatus.supported) && !isLoading && (
+          <ServiceStatusAlert
+            type={txStatus.limited ? 'limited' : 'notSupported'}
+            feature={t('home:wallet.transactionHistory')}
+            reason={txStatus.reason}
+            className="mb-4"
+          />
+        )}
         <TransactionList
           transactions={toTransactionInfoList(transactions ?? [], targetChain)}
           loading={isLoading}

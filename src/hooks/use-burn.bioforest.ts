@@ -8,7 +8,7 @@ import type { ChainConfig } from '@/services/chain-config';
 import { Amount } from '@/types/amount';
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage';
 import { getChainProvider } from '@/services/chain-adapter/providers';
-import { pendingTxService } from '@/services/transaction';
+import { pendingTxService, getPendingTxWalletKey } from '@/services/transaction';
 import i18n from '@/i18n';
 
 const t = i18n.t.bind(i18n);
@@ -180,7 +180,7 @@ export async function submitBioforestBurn({
 
     // 存储到 pendingTxService（使用 ChainProvider 标准格式）
     const pendingTx = await pendingTxService.create({
-      walletId,
+      walletId: getPendingTxWalletKey(chainConfig.id, fromAddress),
       chainId: chainConfig.id,
       fromAddress,
       rawTx: signedTx,

@@ -8,7 +8,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { z } from "zod";
-import { createMcpServer, defineTool } from "../../../packages/flow/src/common/mcp/base-mcp.js";
+import { createMcpServer, defineTool } from "../../../packages/flow/src/common/mcp/base-mcp.ts";
 
 // =============================================================================
 // Constants

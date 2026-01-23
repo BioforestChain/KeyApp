@@ -519,5 +519,15 @@
       "pattern": "请输入手势密码确认",
       "error": "手势密码错误，请重试"
     }
+  },
+  "service": {
+    "notSupported": "暂不支持",
+    "notSupportedDesc": "当前链不支持{{feature}}功能",
+    "notSupportedDescGeneric": "当前链不支持此功能",
+    "limited": "服务受限",
+    "limitedDesc": "当前 API 服务暂时不可用，请稍后重试或使用区块浏览器查看",
+    "queryFailed": "查询失败",
+    "queryFailedDesc": "数据加载失败，请检查网络后重试",
+    "technicalDetails": "技术详情"
   }
 }

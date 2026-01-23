@@ -44,6 +44,7 @@ const FIELDS: SecretField[] = [
   { key: 'E2E_TEST_SECOND_SECRET', label: 'E2E 安全密码', isPassword: true, required: false },
   { key: 'TRONGRID_API_KEY', label: 'TronGrid API Key', isPassword: true, required: false },
   { key: 'ETHERSCAN_API_KEY', label: 'Etherscan API Key', isPassword: true, required: false },
+  { key: 'MORALIS_API_KEY', label: 'Moralis API Key', isPassword: true, required: false },
 ]
 
 function validateMnemonic(v: string): string | null {

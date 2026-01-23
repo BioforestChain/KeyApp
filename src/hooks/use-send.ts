@@ -135,7 +135,10 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
   // Create asset with current balance for validation
   const assetWithCurrentBalance = useMemo((): AssetInfo | null => {
     if (!state.asset || !currentBalance) return state.asset;
-    return { ...state.asset, amount: currentBalance };
+    if (currentBalance.decimals === state.asset.decimals) {
+      return { ...state.asset, amount: currentBalance };
+    }
+    return { ...state.asset, amount: currentBalance, decimals: currentBalance.decimals };
   }, [state.asset, currentBalance]);
 
   // Check if can proceed
@@ -145,9 +148,10 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       amount: state.amount,
       asset: assetWithCurrentBalance,
       isBioforestChain,
+      feeAmount: state.feeAmount,
       feeLoading: state.feeLoading,
     });
-  }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeLoading]);
+  }, [isBioforestChain, state.amount, assetWithCurrentBalance, state.toAddress, state.feeAmount, state.feeLoading]);
 
   // Validate and go to confirm
   const goToConfirm = useCallback((): boolean => {
@@ -204,7 +208,9 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     async (password: string) => {
       if (useMock) {
         const result = await submitMockTransfer(setState);
-        return result.status === 'ok' ? { status: 'ok' as const } : { status: 'error' as const };
+        return result.status === 'ok'
+          ? { status: 'ok' as const }
+          : { status: 'error' as const, message: t('transaction:broadcast.unknown') };
       }
 
       if (!chainConfig) {

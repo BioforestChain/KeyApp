@@ -60,3 +60,21 @@ export function clearApiKeyCache(): void {
 export function getLockedApiKey(cacheKey: string): string | undefined {
   return lockedKeys.get(cacheKey)
 }
+
+/**
+ * 从环境变量获取 API Key
+ * 
+ * 封装了 __API_KEYS__ 全局变量的读取逻辑，简化 Provider 中的 API Key 获取。
+ * 
+ * @param envKey - 环境变量名，如 'TRONGRID_API_KEY', 'ETHERSCAN_API_KEY'
+ * @param cacheKey - 缓存键，用于锁定随机选择的 key
+ * @returns API Key 或 undefined
+ * 
+ * @example
+ * const apiKey = getApiKey('TRONGRID_API_KEY', `trongrid-${chainId}`)
+ */
+export function getApiKey(envKey: string | undefined, cacheKey: string): string | undefined {
+  if (!envKey) return undefined
+  const apiKeys = (globalThis as unknown as Record<string, Record<string, string>>).__API_KEYS__
+  return pickApiKey(apiKeys?.[envKey], cacheKey)
+}

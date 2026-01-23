@@ -1,9 +1,11 @@
 import type { AssetInfo } from '@/types/asset';
 import type { ChainConfig } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config';
 import { Amount } from '@/types/amount';
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage';
 import { getChainProvider } from '@/services/chain-adapter/providers';
-import { pendingTxService } from '@/services/transaction';
+import { pendingTxService, getPendingTxWalletKey } from '@/services/transaction';
+import { getTransferMinFee } from '@/services/bioforest-sdk';
 import i18n from '@/i18n';
 
 const t = i18n.t.bind(i18n);
@@ -16,9 +18,13 @@ export interface BioforestFeeResult {
 export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: string): Promise<BioforestFeeResult> {
   const provider = getChainProvider(chainConfig.id);
   if (!provider.estimateFee || !provider.buildTransaction) {
-    // Fallback to zero fee if provider doesn't support estimateFee
+    const apiUrl = chainConfigService.getBiowalletApi(chainConfig.id);
+    if (!apiUrl) {
+      throw new Error(t('error:transaction.feeEstimateFailed'));
+    }
+    const minFeeRaw = await getTransferMinFee(apiUrl, chainConfig.id, fromAddress, '1');
     return {
-      amount: Amount.fromRaw('0', chainConfig.decimals, chainConfig.symbol),
+      amount: Amount.fromRaw(minFeeRaw, chainConfig.decimals, chainConfig.symbol),
       symbol: chainConfig.symbol,
     };
   }
@@ -32,12 +38,23 @@ export async function fetchBioforestFee(chainConfig: ChainConfig, fromAddress: s
     amount: Amount.fromRaw('1', chainConfig.decimals, chainConfig.symbol),
   });
 
-  const feeEstimate = await provider.estimateFee(unsignedTx);
-
-  return {
-    amount: feeEstimate.standard.amount,
-    symbol: chainConfig.symbol,
-  };
+  try {
+    const feeEstimate = await provider.estimateFee(unsignedTx);
+    return {
+      amount: feeEstimate.standard.amount,
+      symbol: chainConfig.symbol,
+    };
+  } catch {
+    const apiUrl = chainConfigService.getBiowalletApi(chainConfig.id);
+    if (!apiUrl) {
+      throw new Error(t('error:transaction.feeEstimateFailed'));
+    }
+    const minFeeRaw = await getTransferMinFee(apiUrl, chainConfig.id, fromAddress, '1');
+    return {
+      amount: Amount.fromRaw(minFeeRaw, chainConfig.decimals, chainConfig.symbol),
+      symbol: chainConfig.symbol,
+    };
+  }
 }
 
 export async function fetchBioforestBalance(chainConfig: ChainConfig, fromAddress: string): Promise<AssetInfo> {
@@ -205,7 +222,7 @@ export async function submitBioforestTransfer({
 
     // 存储到 pendingTxService（使用 ChainProvider 标准格式）
     const pendingTx = await pendingTxService.create({
-      walletId,
+      walletId: getPendingTxWalletKey(chainConfig.id, fromAddress),
       chainId: chainConfig.id,
       fromAddress,
       rawTx: signedTx,

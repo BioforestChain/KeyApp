@@ -220,21 +220,10 @@ function SendPageContent() {
   }, [push, selectedChain]);
 
   // Derive formatted values for display - get balance from tokens (single source of truth)
-  const currentToken = useMemo(
-    () => (state.asset ? tokens.find((t) => t.symbol === state.asset?.assetType) : null),
-    [state.asset, tokens],
-  );
-  const balance = useMemo(
-    () =>
-      currentToken
-        ? Amount.fromFormatted(
-            currentToken.balance,
-            currentToken.decimals ?? state.asset?.decimals ?? 8,
-            currentToken.symbol,
-          )
-        : null,
-    [currentToken, state.asset?.decimals],
-  );
+  const balance = useMemo(() => {
+    if (!state.asset) return null;
+    return getBalance(state.asset.assetType);
+  }, [getBalance, state.asset]);
   const symbol = state.asset?.assetType ?? 'TOKEN';
 
   const handleOpenScanner = useCallback(() => {
@@ -291,10 +280,14 @@ function SendPageContent() {
             }
 
             if (result.status === 'error') {
-              return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
+              return {
+                status: 'error' as const,
+                message: result.message ?? t('transaction:broadcast.unknown'),
+                pendingTxId: result.pendingTxId,
+              };
             }
 
-            return { status: 'error' as const, message: t('error:transaction.transferFailed') };
+            return { status: 'error' as const, message: t('transaction:broadcast.unknown') };
           }
 
           // 第二次调用：有钱包锁和二次签名
@@ -313,10 +306,14 @@ function SendPageContent() {
           }
 
           if (result.status === 'error') {
-            return { status: 'error' as const, message: result.message, pendingTxId: result.pendingTxId };
+            return {
+              status: 'error' as const,
+              message: result.message ?? t('transaction:broadcast.unknown'),
+              pendingTxId: result.pendingTxId,
+            };
           }
 
-          return { status: 'error' as const, message: t('error:transaction.unknownError') };
+          return { status: 'error' as const, message: t('transaction:broadcast.unknown') };
         });
 
         push('TransferWalletLockJob', {

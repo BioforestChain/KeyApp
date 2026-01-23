@@ -17,7 +17,7 @@ import { useSwiperMember } from '@/components/common/swiper-sync-context';
 import { ecosystemStore, type EcosystemSubPage } from '@/stores/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors, openStackView } from '@/services/miniapp-runtime';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
-import { useCurrentWallet } from '@/stores';
+import { useCurrentWallet, useCurrentChainAddress, useSelectedChain } from '@/stores';
 
 /** 生态页面顺序 */
 const ECOSYSTEM_PAGE_ORDER: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
@@ -139,7 +139,13 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
 
   // Pending transactions count for wallet tab badge
   const currentWallet = useCurrentWallet();
-  const { transactions: pendingTxs } = usePendingTransactions(currentWallet?.id);
+  const currentChainAddress = useCurrentChainAddress();
+  const selectedChain = useSelectedChain();
+  const { transactions: pendingTxs } = usePendingTransactions(
+    currentWallet?.id,
+    selectedChain,
+    currentChainAddress?.address,
+  );
   const pendingTxCount = pendingTxs.filter((tx) => tx.status !== 'confirmed').length;
 
   // 生态 Tab 是否激活

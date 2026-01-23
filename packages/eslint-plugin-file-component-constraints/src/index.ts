@@ -5,9 +5,10 @@
  * 根据文件路径模式，强制要求或禁止使用特定组件
  */
 
+import type { ESLint } from 'eslint'
 import { enforceRule } from './rules/enforce'
 
-const plugin = {
+const plugin: ESLint.Plugin = {
   meta: {
     name: 'eslint-plugin-file-component-constraints',
     version: '0.1.0',

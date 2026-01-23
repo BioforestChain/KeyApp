@@ -1,7 +1,5 @@
 // Global error capture - MUST be first to catch all errors!
 import './lib/error-capture'
-// Enable React useState support for @biochain/key-fetch
-import '@biochain/key-fetch/react'
 import './polyfills'
 import { startServiceMain } from './service-main'
 import { startFrontendMain } from './frontend-main'

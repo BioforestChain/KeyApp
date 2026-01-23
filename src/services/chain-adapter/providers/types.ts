@@ -11,24 +11,10 @@
  * Provider 内部通过 transform 插件转换为标准输出类型
  */
 
-import { Amount, type AmountJSON } from '@/types/amount'
+import { Amount } from '@/types/amount'
 import type { ParsedApiEntry } from '@/services/chain-config'
-import type { KeyFetchInstance } from '@biochain/key-fetch'
-import { keyFetch } from '@biochain/key-fetch'
+import type { StreamInstance } from '@biochain/chain-effect'
 import { z } from 'zod'
-
-// ==================== 注册 Amount 类型序列化 ====================
-// 使用 superjson 的 registerCustom 使 Amount 对象能正确序列化/反序列化
-// 注：Amount 使用 private constructor，所以用 registerCustom 而非 registerClass
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- superjson 内部处理 JSON 序列化
-keyFetch.superjson.registerCustom<Amount, any>(
-  {
-    isApplicable: (v): v is Amount => v instanceof Amount,
-    serialize: (v) => v.toJSON(),
-    deserialize: (v) => Amount.fromJSON(v as AmountJSON),
-  },
-  'Amount'
-)
 
 // 导出 ProviderResult 类型
 export {
@@ -83,12 +69,14 @@ export type TxHistoryParams = z.infer<typeof TxHistoryParamsSchema>
 /** 单笔交易查询参数 */
 export const TransactionParamsSchema = z.object({
   txHash: z.string(),
+  senderId: z.string().optional(),
 })
 export type TransactionParams = z.infer<typeof TransactionParamsSchema>
 
 /** 交易状态查询参数 */
 export const TransactionStatusParamsSchema = z.object({
   txHash: z.string(),
+  address: z.string().optional(),
 })
 export type TransactionStatusParams = z.infer<typeof TransactionStatusParamsSchema>
 
@@ -98,6 +86,18 @@ export type TransactionStatusParams = z.infer<typeof TransactionStatusParamsSche
 export interface Balance {
   amount: Amount
   symbol: string
+}
+
+/** 代币扩展元数据（来自 Moralis 等高级 API） */
+export interface TokenMetadata {
+  /** 是否为垃圾代币 */
+  possibleSpam?: boolean
+  /** 安全评分 (0-100) */
+  securityScore?: number | null
+  /** 是否已验证合约 */
+  verified?: boolean
+  /** 总供应量 */
+  totalSupply?: string
 }
 
 /** 代币余额（含 native + 所有资产）
@@ -119,6 +119,8 @@ export interface TokenBalance {
   icon?: string
   /** 合约地址（ERC20/TRC20 等）*/
   contractAddress?: string
+  /** 扩展元数据（来自 Moralis 等高级 API）*/
+  metadata?: TokenMetadata
 }
 
 // ==================== 从 ../types 统一导入交易相关类型 ====================
@@ -155,6 +157,14 @@ export const BalanceOutputSchema = z.object({
 })
 export type BalanceOutput = z.infer<typeof BalanceOutputSchema>
 
+/** TokenMetadata 的 Zod Schema */
+const TokenMetadataSchema = z.object({
+  possibleSpam: z.boolean().optional(),
+  securityScore: z.number().nullable().optional(),
+  verified: z.boolean().optional(),
+  totalSupply: z.string().optional(),
+})
+
 /** 代币余额列表输出 Schema - ApiProvider 契约 */
 export const TokenBalancesOutputSchema = z.array(z.object({
   symbol: z.string(),
@@ -164,6 +174,7 @@ export const TokenBalancesOutputSchema = z.array(z.object({
   decimals: z.number(),
   icon: z.string().optional(),
   contractAddress: z.string().optional(),
+  metadata: TokenMetadataSchema.optional(),
 }))
 export type TokenBalancesOutput = z.infer<typeof TokenBalancesOutputSchema>
 
@@ -218,22 +229,22 @@ export interface ApiProvider extends Partial<ITransactionService & IIdentityServ
   // ===== 响应式查询能力（强类型）=====
 
   /** 原生代币余额 - 参数: { address: string } */
-  nativeBalance?: KeyFetchInstance<BalanceOutput, AddressParams>
+  nativeBalance?: StreamInstance<AddressParams, BalanceOutput>
 
   /** 所有代币余额 - 参数: { address: string } */
-  tokenBalances?: KeyFetchInstance<TokenBalancesOutput, AddressParams>
+  tokenBalances?: StreamInstance<AddressParams, TokenBalancesOutput>
 
   /** 交易历史 - 参数: { address: string, limit?: number } */
-  transactionHistory?: KeyFetchInstance<TransactionsOutput, TxHistoryParams>
+  transactionHistory?: StreamInstance<TxHistoryParams, TransactionsOutput>
 
   /** 单笔交易详情 - 参数: { hash: string } */
-  transaction?: KeyFetchInstance<TransactionOutput, TransactionParams>
+  transaction?: StreamInstance<TransactionParams, TransactionOutput>
 
   /** 交易状态 - 参数: { hash: string } */
-  transactionStatus?: KeyFetchInstance<TransactionStatusOutput, TransactionStatusParams>
+  transactionStatus?: StreamInstance<TransactionStatusParams, TransactionStatusOutput>
 
   /** 当前区块高度 - 参数: {} */
-  blockHeight?: KeyFetchInstance<BlockHeightOutput>
+  blockHeight?: StreamInstance<void, BlockHeightOutput>
 
   // ===== 服务接口方法（通过 extends Partial<ITransactionService & IIdentityService & IAssetService> 继承）=====
   // - ITransactionService: buildTransaction, estimateFee, signTransaction, broadcastTransaction
@@ -247,4 +258,3 @@ export type ApiProviderMethod = keyof Omit<ApiProvider, 'type' | 'endpoint' | 'c
 
 /** ApiProvider 工厂函数 */
 export type ApiProviderFactory = (entry: ParsedApiEntry, chainId: string) => ApiProvider | null
-

@@ -70,7 +70,7 @@ export function TokenList({
     <div {...(testId && { 'data-testid': testId })} className={cn('space-y-1', className)}>
       {tokens.map((token) => (
         <TokenItem
-          key={`${token.chain}-${token.symbol}`}
+          key={token.contractAddress ?? `${token.chain}-${token.symbol}-native`}
           token={token}
           testId={testId ? `token-item-${token.chain}-${token.symbol}` : undefined}
           showChange={showChange}

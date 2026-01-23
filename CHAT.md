@@ -1394,6 +1394,7 @@ review 的具体方向：
    1. vitest进行单元测试 / storybook+vitest进行真实 DOM 测试 / e2e进行真实流程测试；
    2. storybook-e2e / e2e 测试所生成截图是否覆盖了我们的变更；
    3. 审查截图是否符合预期
+   4. 测试代码是否过于冗余？
 5. 白皮书是否更新
 
 ---
@@ -1500,3 +1501,141 @@ All configured providers failed. Showing default value.
 ```
 
 等数据加载下来，这个错误提示就不见了。说明程序错误地处理了“isLoading” 的逻辑，需要修复。然后找到同类的问题，继续统一修复。
+
+---
+
+CODE-JOB：
+首先，统一一下：
+interface ITransactionService 和 interface ApiProvider 存在重复，所以需要合并，把 src/services/chain-adapter/types.ts 这里面属于是真确的设计，全部规整一下，比如可以改成： interface ApiProvider extends Partial<ITransactionService>。不要 再让我看到出现重复的代码。
+
+接着把接口做对了，就是 estimateFee/ buildTransaction ，它们的参数需要重新设计。但具体的实现上，可以先保持 只实现 TransferParams，其他的交易类型可以抛出不支持，不过 bioChain 的几种交易（转账、销毁、支付密码），都应该支持起来。其他链的可以只支持基本转账。
+
+再然后，清理一下代码，确定 ChainProvider 已经统一了所有的标准，不再存在额外的标准或者专用标准。如果还发现存在额外标准，就继续做整合。
+
+REVIEW-JOB:
+签名面板是否已经统一使用 ChainProvider ？
+资产、交易列表、pending交易列表、交易详情列表 等等页面，是否已经统一使用 ChainProvider ？
+src/queries 这个文件夹里面的老代码还有谁在用？能不能升级成用 chain-provider？
+
+---
+
+fetchGenesisBlock 这个函数的实现有问题.
+首先 chain-config 针对 biowallet-v1 已经提供了 config.genesisBlock，
+而 chain-config 已经提供了 chain-adapter。
+所以本质上应该有 chain-adapter 直接提供 genesisBlock-url
+
+---
+
+这些 query 依赖了 react-query。 统一升级成我们的 key-fetch。目的是可以做成 service，使得更容易测试。
+链配置：use-chain-config-query.ts
+汇率：use-exchange-rate-query.ts
+价格：use-price-query.ts
+质押：use-staking-query.ts
+
+---
+
+export interface IChainService 这个应该被重构，它本身的很多功能可以用 key-fetch 来实现
+
+---
+
+1. 预览页面，它不该用 BottomSheet 来进行展示，它应该是一个独立的 Activity，不能影响目前的交易签名面板
+2. 预览交易是一个组件，不是页面，它是渲染在 send 页面中的，send 页面中的顶部会有一个步骤进度条，一共四步：填写表单、预览交易、广播中、结果展示
+3. 广播中、结果展示：这里的组件，本质上和“交易详情”页面，是同一个组件
+4. 预览交易：和“交易详情”页面类似，但是是一个简化版本，因为这时候还没有签名
+5. 填写表单页面，点击发送，这时候
+
+---
+
+继续收尾工作
+
+1. 默认使用 1 天的授权
+2. 提交代码后，检查我们 KeyApp 的 CI，直到它能通过。
+3. 对 [chain-services](/Users/kzf/Dev/GitHub/chain-services) 项目的代码做整理和提交，有一些没用的残留的文件可以删掉。
+
+BUG：
+
+- 我第一次登录，执行 login.signin 之前需要进行授权，授权了b9gB9NzHKWsDKGYFCaNva6xRnxPwFfGcfx的账号。
+- 这时候 RWA-HUB 有了 Token
+- 退出后，第二次登录，这次执行 login.signin 报错，发现它使用了 address: "bJ52cfZfhtVG6upHsDSpGi9L9QGqiimicM"
+- 说明 cryptoBox 存在严重的安全问题。
+
+---
+
+i18n check 补充代码字符串中不可以有中文的检查
+统一处理 KNOWN_PERMISSIONS 的 i18n
+
+---
+
+我们的 docs 网站上的 dweb 安装链接有问题，应该是`dweb://install?url=xxx.json`，现在却只想了 zip 文件。json 文件可以参考 https://iweb.xin/rwahub.bfmeta.com.dweb/metadata.json，确定符合标准。
+
+你的目标是修复 dweb 的安装链接
+
+---
+
+目前 i18n 文件夹是被我们 exclude 的，因为如果开启，会遇到 tsc 的 bug。我怀疑是 json 太多导致动态生成类型存在一些问题。请你验证是不是 i18next.d.ts 引用了太多 json 导致的tsc-bug。
+如果是，我个人的方案是：编写一个插件，能替代 i18next.d.ts：
+
+1. gitignore i18next.d.ts
+2. 执行 typecheck 之前，会使用这个插件更新生成 i18next.d.ts
+3. 包装成 vite 插件，支持 vite-dev/build 都更新 i18next.d.ts，并且 dev 支持相关的 json 变更，就自动更新 i18next.d.ts
+
+以上是我个人的想法，如果社区中有类似的或者更好的方案，请与我讨论。
+
+---
+
+深入调查并修复：我们明明已经配置 remoteMiniapps，为什么最终 cd 构建出来的 webapp 没有 rwa-hub？
+
+---
+
+接着我们需要改进 rwa-hub的样式适配。
+方案一：我记得我们的 bio-sdk 是有提供 Context，其中包含了 safe-area 相关的配置，因为我们向页面注入了一个“胶囊”。所以我们需要在 [raw-hub](/Users/kzf/Dev/GitHub/chain-services/bfm-rwa-hub-app) 的源码中，注入css: `html{--f7-safe-area-top: ${safeAreaInsetTop}px }`。
+方案二：让胶囊可以临时拖动，但是拖动的范围有限。并且拖动结束的 3s 后，会自动归位。自动归位的目的，是因为我们不能动态修改 胶囊对页面的影响，如果可以永久拖动，那么开发者适配胶囊的意义就没有了。拖动只是一个不得已的选择
+
+目前来说 方案一 是可以立刻见效可以直接做的。你先执行方案一，然后我们再来讨论有什么更好的长期方案
+
+---
+
+深入调研我们的 Provider
+
+[key-fetch] Error refetching tron-rpc.tron.txListApi: Error: [tron-rpc.tron.txListApi] HTTP 429:
+响应内容: {"Error":"request rate exceeded the allowed_rps(3), and the query server is suspended for 4 s. To obtain higher request quotas and a more stable service, it is recommended to authenticate with an API
+at KeyFetchInstanceImpl.doFetch (core.ts:119:13)
+
+这种报错属于预期之中，不该在终端中疯狂显示，而是应该通过截流或者防抖来在终端打印警告。现在打印的是 error.
+除了 tron，其它知名的 Provider 也应该有提供一定的错误处理的插件
+
+---
+
+基于 spec 文件，基于与 main 分支的差异，开始self-review。
+
+相关 spec（基于时间从旧到新排序），每一个 spec 文件都是一次迭代后的计划产出：
+
+- /Users/kzf/.factory/specs/2026-01-22-etherscan-v1-v2-provider-separation-plan.md
+- /Users/kzf/.factory/specs/2026-01-22-ui-servicelimitederror.md
+- /Users/kzf/.factory/specs/2026-01-22-blockheight-schema.md
+- /Users/kzf/.factory/specs/2026-01-22-moralis-provider.md
+- /Users/kzf/.factory/specs/2026-01-22-moralis-provider-1.md
+- /Users/kzf/.factory/specs/2026-01-22-tokeniconcontract-ui.md
+- /Users/kzf/.factory/specs/2026-01-22-moralis-provider-2.md
+- /Users/kzf/.factory/specs/2026-01-22-enhanced-dedupe-plugin-with-time-window.md
+- /Users/kzf/.factory/specs/2026-01-22-auto-dedupe-fallback-cooldown.md
+- /Users/kzf/.factory/specs/2026-01-22-key-fetch-v2-core-refactoring-final.md
+- /Users/kzf/.factory/specs/2026-01-22-key-fetch-v2.md
+- /Users/kzf/.factory/specs/2026-01-23-key-fetch-rxjs-vs-effect-ts.md
+- /Users/kzf/.factory/specs/2026-01-23-effect-ts-throttle-dedupe.md
+- /Users/kzf/.factory/specs/2026-01-23-effect-subscriptionref-stream-changes.md
+- /Users/kzf/.factory/specs/2026-01-23-eventbus-service.md
+
+review 的具体方向：
+
+1. 功能是否开发完全？
+2. 代码架构是否合理？
+   1. 代码是否在正确的文件文件夹内？
+   2. 是否有和原项目重复代码？
+3. 是否有遵守白皮书提供的最佳实践
+4. 测试是否完善：
+   1. vitest进行单元测试 / storybook+vitest进行真实 DOM 测试 / e2e进行真实流程测试；
+   2. storybook-e2e / e2e 测试所生成截图是否覆盖了我们的变更；
+   3. 审查截图是否符合预期
+   4. 测试代码是否过于冗余？
+5. 白皮书是否更新

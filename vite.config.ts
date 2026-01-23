@@ -73,6 +73,7 @@ export default defineConfig(({ mode }) => {
 
   const tronGridApiKey = env.TRONGRID_API_KEY ?? process.env.TRONGRID_API_KEY ?? '';
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
+  const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
 
   return {
     base: BASE_URL,
@@ -162,6 +163,7 @@ export default defineConfig(({ mode }) => {
       __API_KEYS__: JSON.stringify({
         TRONGRID_API_KEY: tronGridApiKey,
         ETHERSCAN_API_KEY: etherscanApiKey,
+        MORALIS_API_KEY: moralisApiKey,
       }),
     },
     optimizeDeps: {

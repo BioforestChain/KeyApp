@@ -164,8 +164,7 @@ class PendingTxManagerImpl {
         break;
 
       case 'broadcasted':
-        // 已广播，检查是否已上链
-        await this.checkConfirmation(tx, chainConfigState);
+        // 已广播的确认检查由 pendingTx polling source 统一处理，避免重复查询
         break;
 
       case 'broadcasting':
@@ -243,73 +242,6 @@ class PendingTxManagerImpl {
 
       // 发送广播失败通知
       this.sendNotification(updated, 'failed');
-    }
-  }
-
-  /**
-   * 检查交易是否已上链
-   */
-  private async checkConfirmation(tx: PendingTx, chainConfigState: ReturnType<typeof useChainConfigState>) {
-    if (!tx.txHash) return;
-
-    const chainConfig = chainConfigSelectors.getChainById(chainConfigState, tx.chainId);
-    if (!chainConfig) return;
-
-    const biowallet = chainConfig.apis?.find((p) => p.type === 'biowallet-v1');
-    const apiUrl = biowallet?.endpoint;
-    if (!apiUrl) return;
-
-    try {
-      // 查询交易状态
-      const queryUrl = `${apiUrl}/transactions/query`;
-      const queryBody = {
-        signature: tx.txHash,
-        page: 1,
-        pageSize: 1,
-        maxHeight: Number.MAX_SAFE_INTEGER,
-      };
-
-      const response = await fetch(queryUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(queryBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const json = (await response.json()) as { success: boolean; result?: { count: number } };
-
-      if (json.success && json.result && json.result.count > 0) {
-        // 交易已上链
-        const updated = await pendingTxService.updateStatus({
-          id: tx.id,
-          status: 'confirmed',
-        });
-        this.notifySubscribers(updated);
-
-        // 发送交易确认通知
-        this.sendNotification(updated, 'confirmed');
-
-        // 发送交易确认通知
-        this.sendNotification(updated, 'confirmed');
-
-        // Note: 以前这里会调用 invalidateBalance (使用 React Query)。
-        // 现在系统完全依赖 key-fetch 的 deps (blockApi) 机制进行自动刷新。
-        // 当交易上链 -> blockApi 刷新 -> txList 和 pendingTr 自动刷新。
-
-
-      } else {
-        // 检查是否超时
-        const elapsed = Date.now() - tx.updatedAt;
-        if (elapsed > CONFIG.CONFIRM_TIMEOUT) {
-
-          // 不自动标记失败，只记录日志，让用户决定
-        }
-      }
-    } catch (error) {
-
     }
   }
 

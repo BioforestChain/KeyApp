@@ -7,7 +7,7 @@
 
 import { execSync } from "node:child_process";
 import { z } from "zod";
-import { createMcpServer, defineTool } from "../../../packages/flow/src/common/mcp/base-mcp.js";
+import { createMcpServer, defineTool } from "../../../packages/flow/src/common/mcp/base-mcp.ts";
 
 // =============================================================================
 // Types

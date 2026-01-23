@@ -148,6 +148,10 @@ describe('useSend', () => {
       act(() => {
         result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
         result.current.setAmount(amount)
+        result.current.setAsset(mockAsset)
+      })
+      act(() => {
+        vi.advanceTimersByTime(300)
       })
       expect(result.current.canProceed).toBe(true)
     })

@@ -12,7 +12,8 @@ import { usePendingTransactions } from "@/hooks/use-pending-transactions";
 import { TransactionItem } from "@/components/transaction/transaction-item";
 import { pendingTxToTransactionInfo } from "@/services/transaction/convert";
 import { ChainProviderGate, useChainProvider } from "@/contexts";
-import keyFetch from "@biochain/key-fetch";
+import { superjson } from "@biochain/chain-effect";
+import { useServiceStatus } from "@/hooks/use-service-status";
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from "@/components/token/token-item";
 import {
   IconPlus,
@@ -89,22 +90,26 @@ function WalletTabContent({
   const chainProvider = useChainProvider();
 
   // 统一资产查询（合并 nativeBalance 和 tokenBalances）
-  const { data: tokens = [], isLoading: tokensLoading } = chainProvider.allBalances.useState(
+  const { data: tokens = [], isLoading: tokensLoading, error: tokensError } = chainProvider.allBalances.useState(
     { address },
     { enabled: !!address }
   );
 
-  const { data: txResult, isLoading: txLoading } = chainProvider.transactionHistory.useState(
+  const { data: txResult, isLoading: txLoading, error: txError } = chainProvider.transactionHistory.useState(
     { address, limit: 50 },
     { enabled: !!address }
   );
+
+  // 获取服务状态（区分 NoSupportError / ServiceLimitedError / 其他错误）
+  const tokensStatus = useServiceStatus(tokensError, t);
+  const txStatus = useServiceStatus(txError, t);
 
   // Pending Transactions (uses key-fetch subscription for block height changes)
   const {
     transactions: pendingTransactions,
     deleteTransaction: deletePendingTx,
     retryTransaction: retryPendingTx,
-  } = usePendingTransactions(currentWalletId ?? undefined, selectedChain);
+  } = usePendingTransactions(currentWalletId ?? undefined, selectedChain, address, txResult);
 
   // 转换交易历史格式
   const transactions = useMemo(() => {
@@ -118,7 +123,7 @@ function WalletTabContent({
       if (tx.id) {
         // 从原始数据中找到对应的交易（通过 hash 匹配）
         const originalTx = txResult?.find(t => t.hash === tx.hash);
-        const txData = originalTx ? keyFetch.superjson.stringify(originalTx) : undefined;
+        const txData = originalTx ? superjson.stringify(originalTx) : undefined;
         push("TransactionDetailActivity", { txId: tx.id, txData });
       }
     },
@@ -253,6 +258,10 @@ function WalletTabContent({
           transactions={transactions.slice(0, 5)}
           tokensLoading={tokensLoading}
           transactionsLoading={txLoading}
+          tokensSupported={tokensStatus.type !== 'notSupported'}
+          tokensFallbackReason={tokensStatus.type !== 'ok' ? tokensStatus.reason : undefined}
+          transactionsSupported={txStatus.type !== 'notSupported' && txStatus.type !== 'limited'}
+          transactionsFallbackReason={txStatus.type !== 'ok' ? txStatus.reason : undefined}
           onTokenClick={(_token) => {
             // Token click handler
           }}
