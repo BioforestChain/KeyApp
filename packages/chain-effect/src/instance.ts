@@ -117,6 +117,8 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
           Effect.runFork(Fiber.interrupt(fiber))
           releaseSource(input)
         }
+      }).catch((err) => {
+        console.error(`[${name}] getOrCreateSource failed:`, err)
       })
 
       return () => {

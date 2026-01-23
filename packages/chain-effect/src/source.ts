@@ -106,7 +106,7 @@ export const createPollingSource = <T>(
   options: PollingSourceOptions<T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { fetch, interval, events, walletEvents, immediate = true } = options
+    const { name, fetch, interval, events, walletEvents, immediate = true } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     
@@ -114,11 +114,6 @@ export const createPollingSource = <T>(
     const pollingStream = Stream.repeatEffect(fetch).pipe(
       Stream.schedule(Schedule.spaced(interval))
     )
-    
-    // 立即执行第一次
-    const immediateStream = immediate
-      ? Stream.fromEffect(fetch)
-      : Stream.empty
     
     // 简单字符串事件触发流
     const simpleEventStream = events
@@ -132,19 +127,14 @@ export const createPollingSource = <T>(
           .pipe(Stream.mapEffect(() => fetch))
       : Stream.empty
     
-    // 合并所有触发源
-    const combinedStream = Stream.merge(
-      Stream.merge(
-        Stream.concat(immediateStream, pollingStream),
-        simpleEventStream
-      ),
+    // 合并所有触发源（不包括 immediate，因为我们会同步执行）
+    const ongoingStream = Stream.merge(
+      Stream.merge(pollingStream, simpleEventStream),
       walletEventStream
     )
     
     // 使用 Stream.changes 去重（只有值变化才继续）
-    const driver = combinedStream.pipe(
-      Stream.changes
-    )
+    const driver = ongoingStream.pipe(Stream.changes)
     
     // 驱动 ref 更新
     const fiber = yield* driver.pipe(
@@ -152,11 +142,23 @@ export const createPollingSource = <T>(
       Effect.fork
     )
     
+    // 立即执行第一次并等待完成（同步）
+    if (immediate) {
+      const initialValue = yield* Effect.catchAll(fetch, () => Effect.succeed(null as T | null))
+      if (initialValue !== null) {
+        yield* SubscriptionRef.set(ref, initialValue)
+      }
+    }
+    
     return {
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      changes: ref.changes.pipe(
+      // 先发射当前值，再发射后续变化（SubscriptionRef.changes 只发射未来变化）
+      changes: Stream.concat(
+        Stream.fromEffect(SubscriptionRef.get(ref)),
+        ref.changes
+      ).pipe(
         Stream.filter((v): v is T => v !== null)
       ),
       refresh: Effect.gen(function* () {
@@ -171,7 +173,7 @@ export const createPollingSource = <T>(
 // ==================== Dependent Source ====================
 
 export interface DependentSourceOptions<TDep, T, E = FetchError> {
-  /** 数据源名称 */
+  /** 数据源名称（用于调试） */
   name: string
   /** 依赖的数据源 */
   dependsOn: SubscriptionRef.SubscriptionRef<TDep | null>
@@ -202,7 +204,7 @@ export const createDependentSource = <TDep, T>(
   options: DependentSourceOptions<TDep, T>
 ): Effect.Effect<DataSource<T>, never, never> =>
   Effect.gen(function* () {
-    const { dependsOn, hasChanged, fetch } = options
+    const { name, dependsOn, hasChanged, fetch } = options
     
     const ref = yield* SubscriptionRef.make<T | null>(null)
     let prevDep: TDep | null = null
@@ -229,11 +231,25 @@ export const createDependentSource = <TDep, T>(
       Effect.fork
     )
     
+    // 立即检查依赖的当前值，如果有值则执行 fetch
+    const currentDep = yield* SubscriptionRef.get(dependsOn)
+    if (currentDep !== null && hasChanged(null, currentDep)) {
+      prevDep = currentDep
+      const initialValue = yield* Effect.catchAll(fetch(currentDep), () => Effect.succeed(null as T | null))
+      if (initialValue !== null) {
+        yield* SubscriptionRef.set(ref, initialValue)
+      }
+    }
+    
     return {
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      changes: ref.changes.pipe(
+      // 先发射当前值，再发射后续变化
+      changes: Stream.concat(
+        Stream.fromEffect(SubscriptionRef.get(ref)),
+        ref.changes
+      ).pipe(
         Stream.filter((v): v is T => v !== null)
       ),
       refresh: Effect.gen(function* () {
@@ -334,7 +350,11 @@ export const createHybridSource = <TDep, T>(
       ref,
       fiber,
       get: SubscriptionRef.get(ref),
-      changes: ref.changes.pipe(
+      // 先发射当前值，再发射后续变化
+      changes: Stream.concat(
+        Stream.fromEffect(SubscriptionRef.get(ref)),
+        ref.changes
+      ).pipe(
         Stream.filter((v): v is T => v !== null)
       ),
       refresh: Effect.gen(function* () {
