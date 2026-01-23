@@ -33,6 +33,7 @@ export {
   ServiceLimitedError,
   type FetchOptions,
   type CachedFetchOptions,
+  type CacheStrategy,
   type FetchError,
 } from "./http"
 

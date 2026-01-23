@@ -221,37 +221,103 @@ export function httpFetchWithRetry<T>(
 
 // ==================== Cached HTTP Client ====================
 
+export type CacheStrategy = 
+  | 'ttl'           // 基于时间过期（默认）
+  | 'cache-first'   // 有缓存就用，没有才 fetch
+  | 'network-first' // 尝试 fetch，成功更新缓存，失败用缓存
+
 export interface CachedFetchOptions<T> extends FetchOptions<T> {
-  /** 缓存 TTL（毫秒），在此时间内不发起重复请求 */
+  /** 缓存策略 */
+  cacheStrategy?: CacheStrategy;
+  /** 缓存 TTL（毫秒），仅 ttl 策略使用 */
   cacheTtl?: number;
+}
+
+// 用于防止并发请求的 Promise 锁
+const pendingRequests = new Map<string, Promise<unknown>>();
+
+function makeCacheKeyForRequest(url: string, body?: unknown): string {
+  if (!body) return url;
+  const bodyHash = btoa(JSON.stringify(body)).replace(/[+/=]/g, (c) =>
+    c === '+' ? '-' : c === '/' ? '_' : ''
+  );
+  return `${url}?__body=${bodyHash}`;
 }
 
 /**
  * 带缓存拦截的 HTTP 请求
  *
- * - 缓存未过期：直接返回缓存，不发网络请求
- * - 缓存过期/不存在：发起请求，成功后更新缓存
+ * 策略说明：
+ * - ttl: 缓存未过期直接返回，过期才 fetch
+ * - cache-first: 有缓存就返回，没有才 fetch
+ * - network-first: 尝试 fetch，成功更新缓存，失败用缓存
  */
 export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effect<T, FetchError> {
-  const { cacheTtl = 5000, ...fetchOptions } = options;
+  const { cacheStrategy = 'ttl', cacheTtl = 5000, ...fetchOptions } = options;
+  const cacheKey = makeCacheKeyForRequest(options.url, options.body);
 
-  return Effect.gen(function* () {
-    // 1. 检查缓存
-    const cached = yield* getFromCache<T>(options.url, options.body);
-    if (Option.isSome(cached)) {
-      const age = Date.now() - cached.value.timestamp;
-      if (age < cacheTtl) {
-        // 缓存未过期，直接返回
-        return cached.value.data;
+  // 同步检查是否有正在进行的相同请求
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) {
+    console.log(`[httpFetchCached] PENDING: ${options.url}`);
+    return Effect.promise(() => pending as Promise<T>);
+  }
+
+  // 创建请求 Promise
+  const requestPromise = (async () => {
+    try {
+      const cached = await Effect.runPromise(getFromCache<T>(options.url, options.body));
+
+      if (cacheStrategy === 'cache-first') {
+        // Cache-First: 有缓存就返回
+        if (Option.isSome(cached)) {
+          console.log(`[httpFetchCached] CACHE-FIRST HIT: ${options.url}`);
+          return cached.value.data;
+        }
+        console.log(`[httpFetchCached] CACHE-FIRST MISS: ${options.url}`);
+        const result = await Effect.runPromise(httpFetch(fetchOptions));
+        await Effect.runPromise(putToCache(options.url, options.body, result));
+        return result;
       }
+
+      if (cacheStrategy === 'network-first') {
+        // Network-First: 尝试 fetch，失败用缓存
+        try {
+          console.log(`[httpFetchCached] NETWORK-FIRST FETCH: ${options.url}`);
+          const result = await Effect.runPromise(httpFetch(fetchOptions));
+          await Effect.runPromise(putToCache(options.url, options.body, result));
+          return result;
+        } catch (error) {
+          if (Option.isSome(cached)) {
+            console.log(`[httpFetchCached] NETWORK-FIRST FALLBACK: ${options.url}`);
+            return cached.value.data;
+          }
+          throw error;
+        }
+      }
+
+      // TTL 策略（默认）
+      if (Option.isSome(cached)) {
+        const age = Date.now() - cached.value.timestamp;
+        if (age < cacheTtl) {
+          console.log(`[httpFetchCached] TTL HIT: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
+          return cached.value.data;
+        }
+        console.log(`[httpFetchCached] TTL EXPIRED: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
+      } else {
+        console.log(`[httpFetchCached] TTL MISS: ${options.url}`);
+      }
+
+      const result = await Effect.runPromise(httpFetch(fetchOptions));
+      await Effect.runPromise(putToCache(options.url, options.body, result));
+      return result;
+    } finally {
+      pendingRequests.delete(cacheKey);
     }
+  })();
 
-    // 2. 发起真实请求
-    const result = yield* httpFetch(fetchOptions);
+  // 同步设置锁
+  pendingRequests.set(cacheKey, requestPromise);
 
-    // 3. 更新缓存
-    yield* putToCache(options.url, options.body, result);
-
-    return result;
-  });
+  return Effect.promise(() => requestPromise);
 }

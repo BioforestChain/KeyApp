@@ -12,6 +12,7 @@ import {
   httpFetch,
   httpFetchCached,
   createStreamInstanceFromSource,
+  createPollingSource,
   createDependentSource,
   createEventBusService,
   acquireSource,
@@ -333,6 +334,11 @@ export class BiowalletProviderEffect
   private forgeInterval: number = 15000
   private epochMs: number = DEFAULT_EPOCH_MS
 
+  // 缓存 TTL = 出块时间 / 2
+  private get cacheTtl(): number {
+    return this.forgeInterval / 2
+  }
+
   // Provider 级别共享的 EventBus（延迟初始化）
   private _eventBus: EventBusService | null = null
 
@@ -406,7 +412,29 @@ export class BiowalletProviderEffect
   // ==================== Source 创建方法 ====================
 
   /**
+   * 获取共享的 blockHeight source（全局单例 + 引用计数）
+   * 作为依赖链的根节点
+   */
+  private getSharedBlockHeightSource(): Effect.Effect<DataSource<BlockHeightOutput>> {
+    const provider = this
+    const registryKey = makeRegistryKey(this.chainId, 'global', 'blockHeight')
+
+    const fetchEffect = provider.fetchBlockHeight().pipe(
+      Effect.map((raw): BlockHeightOutput => {
+        if (!raw.result?.height) return BigInt(0)
+        return BigInt(raw.result.height)
+      })
+    )
+
+    return acquireSource<BlockHeightOutput>(registryKey, {
+      fetch: fetchEffect,
+      interval: Duration.millis(this.forgeInterval),
+    })
+  }
+
+  /**
    * 获取共享的 transactionHistory source（全局单例 + 引用计数）
+   * 依赖 blockHeight 变化触发刷新
    */
   private getSharedTxHistorySource(
     address: string,
@@ -415,48 +443,56 @@ export class BiowalletProviderEffect
   ): Effect.Effect<DataSource<TransactionsOutput>> {
     const provider = this
     const normalizedAddress = address.toLowerCase()
-    const registryKey = makeRegistryKey(this.chainId, normalizedAddress, "txHistory")
 
-    const fetchEffect = provider.fetchTransactionList({ address, limit: 50 }).pipe(
-      Effect.map((raw): TransactionsOutput => {
-        if (!raw.result?.trs) return []
+    return Effect.gen(function* () {
+      // 获取共享的 blockHeight source 作为依赖
+      const blockHeightSource = yield* provider.getSharedBlockHeightSource()
 
-        return raw.result.trs
-          .map((item): Transaction | null => {
-            const tx = item.transaction
-            const action = detectAction(tx.type)
-            const direction = getDirection(tx.senderId, tx.recipientId ?? "", normalizedAddress)
-            const { value, assetType } = extractAssetInfo(tx.asset, symbol)
-            if (value === null) return null
+      const fetchEffect = provider.fetchTransactionList({ address, limit: 50 }).pipe(
+        Effect.map((raw): TransactionsOutput => {
+          if (!raw.result?.trs) return []
 
-            return {
-              hash: tx.signature ?? item.signature,
-              from: tx.senderId,
-              to: tx.recipientId ?? "",
-              timestamp: provider.epochMs + tx.timestamp * 1000,
-              status: "confirmed",
-              blockNumber: BigInt(item.height),
-              action,
-              direction,
-              assets: [
-                {
-                  assetType: "native" as const,
-                  value,
-                  symbol: assetType,
-                  decimals,
-                },
-              ],
-            }
-          })
-          .filter((tx): tx is Transaction => tx !== null)
-          .sort((a, b) => b.timestamp - a.timestamp)
+          return raw.result.trs
+            .map((item): Transaction | null => {
+              const tx = item.transaction
+              const action = detectAction(tx.type)
+              const direction = getDirection(tx.senderId, tx.recipientId ?? "", normalizedAddress)
+              const { value, assetType } = extractAssetInfo(tx.asset, symbol)
+              if (value === null) return null
+
+              return {
+                hash: tx.signature ?? item.signature,
+                from: tx.senderId,
+                to: tx.recipientId ?? "",
+                timestamp: provider.epochMs + tx.timestamp * 1000,
+                status: "confirmed",
+                blockNumber: BigInt(item.height),
+                action,
+                direction,
+                assets: [
+                  {
+                    assetType: "native" as const,
+                    value,
+                    symbol: assetType,
+                    decimals,
+                  },
+                ],
+              }
+            })
+            .filter((tx): tx is Transaction => tx !== null)
+            .sort((a, b) => b.timestamp - a.timestamp)
+        })
+      )
+
+      // 依赖 blockHeight 变化触发刷新
+      const source = yield* createDependentSource({
+        name: `biowallet.${provider.chainId}.txHistory.${normalizedAddress}`,
+        dependsOn: blockHeightSource.ref,
+        hasChanged: (prev, curr) => prev !== curr,
+        fetch: () => fetchEffect,
       })
-    )
 
-    // 使用全局 acquireSource 获取共享的 source
-    return acquireSource<TransactionsOutput>(registryKey, {
-      fetch: fetchEffect,
-      interval: Duration.millis(this.forgeInterval),
+      return source
     })
   }
 
@@ -571,24 +607,8 @@ export class BiowalletProviderEffect
   }
 
   private createBlockHeightSource(): Effect.Effect<DataSource<BlockHeightOutput>> {
-    const provider = this
-
-    return Effect.gen(function* () {
-      const fetchEffect = provider.fetchBlockHeight().pipe(
-        Effect.map((raw): BlockHeightOutput => {
-          if (!raw.result?.height) return BigInt(0)
-          return BigInt(raw.result.height)
-        })
-      )
-
-      const source = yield* createPollingSource({
-        name: `biowallet.${provider.chainId}.blockHeight`,
-        fetch: fetchEffect,
-        interval: Duration.millis(provider.forgeInterval),
-      })
-
-      return source
-    })
+    // 使用共享的 blockHeight source
+    return this.getSharedBlockHeightSource()
   }
 
   private createTransactionSource(
@@ -642,9 +662,11 @@ export class BiowalletProviderEffect
   // ==================== HTTP Fetch 方法 ====================
 
   private fetchBlockHeight(): Effect.Effect<BlockResponse, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/block/lastblock`,
       schema: BlockResponseSchema,
+      cacheStrategy: 'ttl',
+      cacheTtl: this.cacheTtl,
     })
   }
 
@@ -654,7 +676,7 @@ export class BiowalletProviderEffect
       method: "POST",
       body: { address },
       schema: AssetResponseSchema,
-      cacheTtl: this.forgeInterval,
+      cacheStrategy: 'cache-first',
     })
   }
 
@@ -669,7 +691,7 @@ export class BiowalletProviderEffect
         sort: -1,
       },
       schema: TxListResponseSchema,
-      cacheTtl: this.forgeInterval,
+      cacheStrategy: 'cache-first',
     })
   }
 
