@@ -1,0 +1,46 @@
+{
+  "name": "@biochain/chain-effect",
+  "version": "0.1.0",
+  "description": "Effect TS based reactive chain data fetching",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests",
+    "lint:run": "oxlint ."
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "effect": "^3.19.15",
+    "@effect/platform": "^0.94.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "oxlint": "^1.32.0",
+    "react": "^19.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "keywords": [
+    "biochain",
+    "effect",
+    "reactive",
+    "stream"
+  ],
+  "license": "MIT"
+}
