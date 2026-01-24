@@ -60,10 +60,21 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             return chainConfigService.getSymbol(this.chainId)
         }
 
-        get #evmId(): number {
-            if (this.#evmChainId === null) {
-                this.#evmChainId = EVM_CHAIN_IDS[this.chainId] ?? 1
+        async #getChainId(): Promise<number> {
+            if (this.#evmChainId !== null) {
+                return this.#evmChainId
             }
+            try {
+                const rpcChainId = await this.#rpc<string>('eth_chainId')
+                const parsed = parseInt(rpcChainId, 16)
+                if (Number.isFinite(parsed)) {
+                    this.#evmChainId = parsed
+                    return parsed
+                }
+            } catch {
+                // ignore and fallback
+            }
+            this.#evmChainId = EVM_CHAIN_IDS[this.chainId] ?? 1
             return this.#evmChainId
         }
 
@@ -111,6 +122,7 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             const nonceHex = await this.#rpc<string>('eth_getTransactionCount', [transferIntent.from, 'pending'])
             const nonce = parseInt(nonceHex, 16)
             const gasPriceHex = await this.#rpc<string>('eth_gasPrice')
+            const chainId = await this.#getChainId()
             const tokenAddress = transferIntent.tokenAddress?.toLowerCase()
             const isTokenTransfer = Boolean(tokenAddress)
 
@@ -141,7 +153,7 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                     to,
                     value,
                     data,
-                    chainId: this.#evmId,
+                    chainId,
                 },
             }
         }
@@ -187,8 +199,9 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 to: string
                 value: string
                 data: string
-                chainId: number
+                chainId: number | string
             }
+            const chainId = await this.#resolveChainId(txData.chainId)
 
             const rawTx = this.#rlpEncode([
                 this.#toRlpHex(txData.nonce),
@@ -197,19 +210,18 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 txData.to.toLowerCase(),
                 txData.value,
                 txData.data,
-                this.#toRlpHex(txData.chainId),
+                this.#toRlpHex(chainId),
                 '0x',
                 '0x',
             ])
 
             const msgHash = keccak_256(hexToBytes(rawTx.slice(2)))
             const sigBytes = secp256k1.sign(msgHash, options.privateKey, { prehash: false, format: 'recovered' })
+            const recovery = sigBytes[0]!
+            const r = BigInt('0x' + bytesToHex(sigBytes.slice(1, 33)))
+            const s = BigInt('0x' + bytesToHex(sigBytes.slice(33, 65)))
 
-            const r = BigInt('0x' + bytesToHex(sigBytes.slice(0, 32)))
-            const s = BigInt('0x' + bytesToHex(sigBytes.slice(32, 64)))
-            const recovery = sigBytes[64]!
-
-            const v = txData.chainId * 2 + 35 + recovery
+            const v = chainId * 2 + 35 + recovery
 
             const rHex = r.toString(16).padStart(64, '0')
             const sHex = s.toString(16).padStart(64, '0')
@@ -290,6 +302,24 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             const address = to.toLowerCase().replace(/^0x/, '').padStart(64, '0')
             const value = amount.toString(16).padStart(64, '0')
             return `0x${ERC20_TRANSFER_SELECTOR}${address}${value}`
+        }
+
+        async #resolveChainId(value: number | string): Promise<number> {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return value
+            }
+            if (typeof value === 'string') {
+                const trimmed = value.trim()
+                if (trimmed) {
+                    const parsed = trimmed.startsWith('0x')
+                        ? parseInt(trimmed, 16)
+                        : parseInt(trimmed, 10)
+                    if (Number.isFinite(parsed)) {
+                        return parsed
+                    }
+                }
+            }
+            return this.#getChainId()
         }
 
         async #estimateGasSafe(params: { from: string; to: string; data: string; value: string }): Promise<string> {
