@@ -25,11 +25,20 @@ export function EcosystemTab() {
 
   // 初始化数据
   useEffect(() => {
-    const unsubscribe = subscribeApps((nextApps) => setApps(nextApps));
+    let receivedUpdate = false;
+    const unsubscribe = subscribeApps((nextApps) => {
+      setApps(nextApps);
+      if (!receivedUpdate) {
+        receivedUpdate = true;
+        setLoading(false);
+      }
+    });
 
     initRegistry({ refresh: true }).then(() => {
-      setApps(getApps());
-      setLoading(false);
+      if (!receivedUpdate) {
+        setApps(getApps());
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -118,4 +127,3 @@ export function EcosystemTab() {
     />
   );
 }
-

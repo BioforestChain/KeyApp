@@ -254,25 +254,26 @@ const syncWorkflow = defineWorkflow({
   name: "sync",
   description: "同步进度到 Issue (更新 Issue Description)",
   args: {
-    content: { type: "string", description: "新的任务列表/进度 (Markdown)", required: true },
+    content: { type: "string", description: "新的任务列表/进度 (Markdown)", required: false },
+    issue: { type: "string", description: "Issue 编号（可在非 worktree 目录中使用）", required: false },
   },
   handler: async (args) => {
-    const wt = getCurrentWorktreeInfo();
-    if (!wt || !wt.issueId) {
-      console.error("❌ 错误: 必须在 issue worktree 中运行");
-      Deno.exit(1);
-    }
-
     const content = args.content || args._.join(" ");
     if (!content) {
       console.error("❌ 错误: 请提供同步内容");
       Deno.exit(1);
     }
 
-    console.log(`🔄 同步进度到 Issue #${wt.issueId}...`);
+    const issueId = resolveIssueId(args.issue);
+    if (!issueId) {
+      console.error("❌ 错误: 无法定位 Issue。请在 issue worktree 中运行，或传入 --issue <id>");
+      Deno.exit(1);
+    }
+
+    console.log(`🔄 同步进度到 Issue #${issueId}...`);
     
     await updateIssue({
-      issueId: wt.issueId,
+      issueId,
       body: content,
     });
     
@@ -332,6 +333,39 @@ function getCurrentWorktreeInfo() {
     }
   }
   return null;
+}
+
+function resolveIssueId(explicitIssue?: string): string | null {
+  if (explicitIssue && explicitIssue.trim().length > 0) {
+    return explicitIssue.trim();
+  }
+
+  const wt = getCurrentWorktreeInfo();
+  if (wt?.issueId) return wt.issueId;
+
+  const branch = getGitBranchName();
+  if (branch) {
+    const match = branch.match(/issue-(\d+)/);
+    if (match?.[1]) return match[1];
+  }
+
+  return null;
+}
+
+function getGitBranchName(): string | null {
+  try {
+    const p = new Deno.Command("git", {
+      args: ["branch", "--show-current"],
+      stdout: "piped",
+      stderr: "null",
+    });
+    const { code, stdout } = p.outputSync();
+    if (code !== 0) return null;
+    const branch = new TextDecoder().decode(stdout).trim();
+    return branch.length > 0 ? branch : null;
+  } catch {
+    return null;
+  }
 }
 
 // =============================================================================
