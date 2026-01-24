@@ -23,9 +23,10 @@ import {
 } from '@/services/crypto-box';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { walletStore } from '@/stores';
+import { superjson } from '@biochain/chain-effect';
 
 type CryptoAuthorizeJobParams = {
-  /** 请求的操作权限 (JSON 字符串) */
+  /** 请求的操作权限 (superjson 字符串) */
   actions: string;
   /** 授权时长 */
   duration: string;
@@ -44,7 +45,7 @@ function CryptoAuthorizeJobContent() {
   const { pop } = useFlow();
   const params = useActivityParams<CryptoAuthorizeJobParams>();
 
-  const actions = JSON.parse(params.actions) as CryptoAction[];
+  const actions = superjson.parse<CryptoAction[]>(params.actions);
   const duration = params.duration as TokenDuration;
   const { address, chainId, appName, appIcon } = params;
 

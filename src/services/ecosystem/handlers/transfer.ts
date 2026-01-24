@@ -45,6 +45,9 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
   if (opts.asset) {
     transferParams.asset = opts.asset
   }
+  if (opts.tokenAddress) {
+    transferParams.tokenAddress = opts.tokenAddress
+  }
 
   const result = await showTransferDialog(transferParams)
 

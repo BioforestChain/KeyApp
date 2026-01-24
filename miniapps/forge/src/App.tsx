@@ -229,6 +229,7 @@ export default function App() {
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
       depositAddress: selectedOption.externalInfo.depositAddress,
+      externalContract: selectedOption.externalInfo.contract,
       amount,
       externalAccount,
       internalChain: selectedOption.internalChain,

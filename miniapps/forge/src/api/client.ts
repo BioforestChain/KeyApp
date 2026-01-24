@@ -17,18 +17,31 @@ export class ApiError extends Error {
 
 type WrappedResponse = {
   success: boolean
-  result: unknown
+  result?: unknown
+  error?: unknown
   message?: string
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function isWrappedResponse(value: unknown): value is WrappedResponse {
   return (
-    typeof value === 'object' &&
-    value !== null &&
+    isRecord(value) &&
     'success' in value &&
-    'result' in value &&
     typeof (value as { success: unknown }).success === 'boolean'
   )
+}
+
+function extractWrappedErrorMessage(data: WrappedResponse): string {
+  if (data.message) return data.message
+  if (isRecord(data.error) && 'message' in data.error) {
+    const message = (data.error as { message?: unknown }).message
+    if (Array.isArray(message)) return message.join('; ')
+    if (typeof message === 'string') return message
+  }
+  return 'Request failed'
 }
 
 interface RequestOptions extends RequestInit {
@@ -75,7 +88,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   const data: unknown = await response.json()
   if (isWrappedResponse(data)) {
     if (data.success) return data.result as T
-    throw new ApiError(data.message || 'Request failed', response.status, data)
+    throw new ApiError(extractWrappedErrorMessage(data), response.status, data.error ?? data)
   }
 
   return data as T

@@ -105,6 +105,12 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
             }
 
             const transferIntent = intent as TransferIntent
+            if (transferIntent.tokenAddress) {
+                throw new ChainServiceError(
+                    ChainErrorCodes.NOT_SUPPORTED,
+                    'TRC20 transaction builder not available',
+                )
+            }
             const config = this.#getConfig()
             const ownerAddressHex = this.#base58ToHex(transferIntent.from)
             const toAddressHex = this.#base58ToHex(transferIntent.to)

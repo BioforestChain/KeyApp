@@ -29,6 +29,7 @@ import type {
   TransactionStatusParams,
   TransactionStatusOutput,
 } from "./types"
+import { ChainServiceError, ChainErrorCodes } from "../types"
 
 const SYNC_METHODS = new Set<ApiProviderMethod>(["isValidAddress", "normalizeAddress"])
 
@@ -308,6 +309,7 @@ export class ChainProvider {
 
     const fn = (async (...args: unknown[]) => {
       let lastError: unknown = null
+      let firstNonNotSupported: Error | null = null
 
       for (const provider of candidates) {
         const impl = provider[method]
@@ -316,9 +318,21 @@ export class ChainProvider {
           return await (impl as (...args: unknown[]) => Promise<unknown>).apply(provider, args)
         } catch (error) {
           lastError = error
+          if (
+            error instanceof ChainServiceError &&
+            error.code === ChainErrorCodes.NOT_SUPPORTED
+          ) {
+            continue
+          }
+          if (!firstNonNotSupported) {
+            firstNonNotSupported = error instanceof Error ? error : new Error(String(error))
+          }
         }
       }
 
+      if (firstNonNotSupported) {
+        throw firstNonNotSupported
+      }
       throw lastError instanceof Error ? lastError : new Error("All providers failed")
     }) as ApiProvider[K]
 

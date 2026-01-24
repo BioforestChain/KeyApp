@@ -14,6 +14,7 @@ import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
 import { walletStore } from '@/stores';
 import type { UnsignedTransaction } from '@/services/ecosystem';
+import { superjson } from '@biochain/chain-effect';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { MiniappSheetHeader } from '@/components/ecosystem';
 import { ChainBadge } from '@/components/wallet/chain-icon';
@@ -28,7 +29,7 @@ type MiniappSignTransactionJobParams = {
   from: string;
   /** 链 ID */
   chain: string;
-  /** 未签名交易（JSON 字符串） */
+  /** 未签名交易（superjson 字符串） */
   unsignedTx: string;
 };
 
@@ -57,7 +58,7 @@ function MiniappSignTransactionJobContent() {
 
   const unsignedTx = useMemo((): UnsignedTransaction | null => {
     try {
-      return JSON.parse(unsignedTxJson) as UnsignedTransaction;
+      return superjson.parse<UnsignedTransaction>(unsignedTxJson);
     } catch {
       return null;
     }
@@ -97,7 +98,8 @@ function MiniappSignTransactionJobContent() {
         pop();
         return true;
       } catch (error) {
-        return false;
+        console.error("[miniapp-sign-transaction]", error);
+        throw error instanceof Error ? error : new Error("Sign transaction failed");
       } finally {
         setIsSubmitting(false);
       }

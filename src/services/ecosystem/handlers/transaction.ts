@@ -11,10 +11,11 @@ import { HandlerContext, type MiniappInfo, type SignTransactionParams } from './
 
 import { Amount } from '@/types/amount'
 import { chainConfigActions, chainConfigSelectors, chainConfigStore, walletStore } from '@/stores'
-import { getChainProvider } from '@/services/chain-adapter/providers'
+import { createChainProvider, getChainProvider } from '@/services/chain-adapter/providers'
 import { hexToBytes } from '@noble/hashes/utils.js'
 import { deriveKey } from '@/lib/crypto/derivation'
 import { createBioforestKeypair, publicKeyToBioforestAddress } from '@/lib/crypto'
+import { normalizeTronAddress } from '@/services/chain-adapter/tron/address'
 
 function findWalletIdByAddress(chainId: string, address: string): string | null {
   const wallets = walletStore.state.wallets
@@ -73,17 +74,32 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
   const chainConfig = await getChainConfigOrThrow(opts.chain)
   const amount = Amount.parse(opts.amount, chainConfig.decimals, chainConfig.symbol)
 
-  const chainProvider = getChainProvider(chainConfig.id)
-  if (!chainProvider.supportsBuildTransaction) {
+  const tokenAddress = opts.tokenAddress?.trim() || undefined
+  const chainProvider = tokenAddress && chainConfig.chainKind === 'tron'
+    ? createChainProvider(chainConfig.id)
+    : getChainProvider(chainConfig.id)
+  const buildTransaction = chainProvider.buildTransaction
+  if (!chainProvider.supportsBuildTransaction || !buildTransaction) {
     throw Object.assign(new Error(`Chain ${chainConfig.id} does not support transaction building`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
-  const unsignedTx = await chainProvider.buildTransaction!({
+  const unsignedTx = await buildTransaction({
     type: 'transfer',
     from: opts.from,
     to: opts.to,
     amount,
+    tokenAddress,
   })
+
+  if (tokenAddress && chainConfig.chainKind === 'tron') {
+    const data = unsignedTx.data as Record<string, unknown> | null
+    if (!data || typeof data !== 'object' || !('rawTx' in data)) {
+      throw Object.assign(
+        new Error('TRC20 transaction builder not available'),
+        { code: BioErrorCodes.UNSUPPORTED_METHOD },
+      )
+    }
+  }
 
   const result: UnsignedTransaction = {
     chainId: unsignedTx.chainId,
@@ -147,7 +163,8 @@ export async function signUnsignedTransaction(params: {
   const chainConfig = await getChainConfigOrThrow(params.chainId)
 
   const chainProvider = getChainProvider(chainConfig.id)
-  if (!chainProvider.supportsSignTransaction) {
+  const signTransaction = chainProvider.signTransaction
+  if (!chainProvider.supportsSignTransaction || !signTransaction) {
     throw Object.assign(new Error(`Chain ${chainConfig.id} does not support transaction signing`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
@@ -168,11 +185,19 @@ export async function signUnsignedTransaction(params: {
       throw Object.assign(new Error('Signing address mismatch'), { code: BioErrorCodes.INVALID_PARAMS })
     }
     privateKeyBytes = keypair.secretKey
+  } else if (chainConfig.chainKind === 'tron') {
+    const derived = deriveKey(mnemonic, 'tron', 0, 0)
+    const fromNormalized = normalizeTronAddress(params.from)
+    const derivedNormalized = normalizeTronAddress(derived.address)
+    if (fromNormalized !== derivedNormalized) {
+      throw Object.assign(new Error('Signing address mismatch'), { code: BioErrorCodes.INVALID_PARAMS })
+    }
+    privateKeyBytes = hexToBytes(derived.privateKey)
   } else {
     throw Object.assign(new Error(`Unsupported chain kind: ${chainConfig.chainKind}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
-  const signed = await chainProvider.signTransaction!(
+  const signed = await signTransaction(
     { chainId: params.unsignedTx.chainId, intentType: params.unsignedTx.intentType ?? 'transfer', data: params.unsignedTx.data },
     chainConfig.chainKind === 'bioforest'
       ? { bioSecret: mnemonic, privateKey: privateKeyBytes }

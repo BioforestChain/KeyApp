@@ -8,11 +8,13 @@ import { normalizeChainId } from '@biochain/bio-sdk'
 import { rechargeApi } from '@/api'
 import { encodeRechargeV2ToTrInfoData, createRechargeMessage } from '@/api/helpers'
 import { validateDepositAddress } from '@/lib/chain'
+import { superjson } from '@biochain/chain-effect'
 import type {
   ExternalChainName,
   FromTrJson,
   RechargeV2ReqDto,
   SignatureInfo,
+  TronTransaction,
 } from '@/api/types'
 
 export type ForgeStep = 'idle' | 'signing_external' | 'signing_internal' | 'submitting' | 'success' | 'error'
@@ -30,6 +32,8 @@ export interface ForgeParams {
   externalAsset: string
   /** 外链转账地址（depositAddress） */
   depositAddress: string
+  /** 外链合约地址（TRC20） */
+  externalContract?: string
   /** 转账金额 */
   amount: string
   /** 外链账户（已连接） */
@@ -42,13 +46,49 @@ export interface ForgeParams {
   internalAccount: BioAccount
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isTronPayload(value: unknown): value is TronTransaction {
+  return isRecord(value)
+}
+
+function extractTronSignedTx(
+  data: unknown,
+  label: string,
+): TronTransaction {
+  if (isRecord(data) && 'signedTx' in data) {
+    const maybeSigned = (data as { signedTx?: unknown }).signedTx
+    if (isTronPayload(maybeSigned)) {
+      return maybeSigned
+    }
+  }
+  return getTronTransaction(data, label)
+}
+
+function getTronTransaction(data: unknown, label: string): TronTransaction {
+  if (!isTronPayload(data)) {
+    throw new Error(`Invalid ${label} transaction payload`)
+  }
+  return data
+}
+
+function toJsonSafe(value: unknown): unknown {
+  return superjson.serialize(value).json
+}
+
 /**
  * Build FromTrJson from signed transaction
  */
-function buildFromTrJson(chain: ExternalChainName, signedTx: BioSignedTransaction): FromTrJson {
+function buildFromTrJson(
+  chain: ExternalChainName,
+  signedTx: BioSignedTransaction,
+  isTrc20: boolean,
+): FromTrJson {
   const signTransData = typeof signedTx.data === 'string'
     ? signedTx.data
-    : JSON.stringify(signedTx.data)
+    : superjson.stringify(signedTx.data)
 
   switch (chain) {
     case 'ETH':
@@ -56,7 +96,10 @@ function buildFromTrJson(chain: ExternalChainName, signedTx: BioSignedTransactio
     case 'BSC':
       return { bsc: { signTransData } }
     case 'TRON':
-      return { tron: signedTx.data }
+      if (isTrc20) {
+        return { trc20: extractTronSignedTx(signedTx.data, 'TRC20') }
+      }
+      return { tron: extractTronSignedTx(signedTx.data, 'TRON') }
     default:
       throw new Error(`Unsupported chain: ${chain}`)
   }
@@ -78,6 +121,7 @@ export function useForge() {
       externalChain,
       externalAsset,
       depositAddress,
+      externalContract,
       amount,
       externalAccount,
       internalChain,
@@ -98,6 +142,8 @@ export function useForge() {
     }
 
     try {
+      const tokenAddress = externalContract?.trim() || undefined
+
       // Step 1: Create and sign external chain transaction
       setState({ step: 'signing_external', orderId: null, error: null })
 
@@ -111,15 +157,18 @@ export function useForge() {
           amount,
           chain: externalKeyAppChainId,
           asset: externalAsset,
+          tokenAddress,
         }],
       })
+
+      const unsignedTxSafe = toJsonSafe(unsignedTx)
 
       const signedTx = await window.bio.request<BioSignedTransaction>({
         method: 'bio_signTransaction',
         params: [{
           from: externalAccount.address,
           chain: externalKeyAppChainId,
-          unsignedTx,
+          unsignedTx: unsignedTxSafe,
         }],
       })
 
@@ -147,16 +196,23 @@ export function useForge() {
         }],
       })
 
+      const signature = signResult.signature.startsWith('0x')
+        ? signResult.signature.slice(2)
+        : signResult.signature
+      const publicKey = signResult.publicKey.startsWith('0x')
+        ? signResult.publicKey.slice(2)
+        : signResult.publicKey
+
       const signatureInfo: SignatureInfo = {
         timestamp: rechargeMessage.timestamp,
-        signature: signResult.signature,
-        publicKey: signResult.publicKey,
+        signature,
+        publicKey,
       }
 
       // Step 3: Submit recharge request
       setState({ step: 'submitting', orderId: null, error: null })
 
-      const fromTrJson = buildFromTrJson(externalChain, signedTx)
+      const fromTrJson = buildFromTrJson(externalChain, signedTx, Boolean(tokenAddress))
 
       const reqData: RechargeV2ReqDto = {
         fromTrJson,
@@ -168,6 +224,7 @@ export function useForge() {
 
       setState({ step: 'success', orderId: res.orderId, error: null })
     } catch (err) {
+      console.error('[forge] submit failed', err)
       setState({
         step: 'error',
         orderId: null,

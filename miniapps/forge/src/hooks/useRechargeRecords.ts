@@ -45,7 +45,7 @@ export function useRechargeRecords() {
         recordState: params.recordState,
       })
       setState({
-        records: res.list,
+        records: res.dataList,
         total: res.total,
         isLoading: false,
         error: null,

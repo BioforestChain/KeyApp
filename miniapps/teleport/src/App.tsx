@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AuroraBackground } from './components/AuroraBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { superjson } from '@biochain/chain-effect';
 import {
   ChevronLeft,
   Zap,
@@ -33,6 +34,7 @@ import {
   type ToTrInfo,
   type InternalChainName,
   type TransferAssetTransaction,
+  type TronTransaction,
   SWAP_ORDER_STATE_ID,
 } from './api';
 
@@ -45,6 +47,56 @@ type Step =
   | 'processing'
   | 'success'
   | 'error';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isTronPayload(value: unknown): value is TronTransaction {
+  return isRecord(value)
+}
+
+function getTronSignedPayload(data: unknown, label: string): TronTransaction {
+  if (isRecord(data) && 'signedTx' in data) {
+    const maybeSigned = (data as { signedTx?: unknown }).signedTx
+    if (isTronPayload(maybeSigned)) {
+      return maybeSigned
+    }
+  }
+  if (!isTronPayload(data)) {
+    throw new Error(`Invalid ${label} transaction payload`)
+  }
+  return data
+}
+
+function isTransferAssetTransaction(value: unknown): value is TransferAssetTransaction {
+  if (!isRecord(value)) return false
+  if (typeof value.senderId !== 'string') return false
+  if (typeof value.recipientId !== 'string') return false
+  if (typeof value.amount !== 'string') return false
+  if (typeof value.fee !== 'string') return false
+  if (typeof value.timestamp !== 'number') return false
+  if (typeof value.signature !== 'string') return false
+  const asset = value.asset
+  if (!isRecord(asset) || !isRecord(asset.transferAsset)) return false
+  const transferAsset = asset.transferAsset as Record<string, unknown>
+  return typeof transferAsset.amount === 'string' && typeof transferAsset.assetType === 'string'
+}
+
+function getInternalTrJson(signedTx: BioSignedTransaction): TransferAssetTransaction | undefined {
+  if (isRecord(signedTx) && 'trJson' in signedTx) {
+    const trJson = signedTx.trJson
+    return isTransferAssetTransaction(trJson) ? trJson : undefined
+  }
+  if (isRecord(signedTx.data)) {
+    return isTransferAssetTransaction(signedTx.data) ? signedTx.data : undefined
+  }
+  return undefined
+}
+
+function toJsonSafe(value: unknown): unknown {
+  return superjson.serialize(value).json;
+}
 
 const CHAIN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
@@ -193,13 +245,14 @@ export default function App() {
       });
 
       // 2. 签名交易
+      const unsignedTxSafe = toJsonSafe(unsignedTx);
       const signedTx = await window.bio.request<BioSignedTransaction>({
         method: 'bio_signTransaction',
         params: [
           {
             from: sourceAccount.address,
             chain: sourceAccount.chain,
-            unsignedTx,
+            unsignedTx: unsignedTxSafe,
           },
         ],
       });
@@ -209,23 +262,32 @@ export default function App() {
       // 而非 signedTx.signature（仅包含签名数据，不是可广播的 rawTx）
       const fromTrJson: FromTrJson = {};
       const chainLower = sourceAccount.chain.toLowerCase();
-      const signTransData = typeof signedTx.data === 'string' ? signedTx.data : JSON.stringify(signedTx.data);
+      const signTransData = typeof signedTx.data === 'string'
+        ? signedTx.data
+        : superjson.stringify(signedTx.data);
+      const isTronChain = chainLower === 'tron' || chainLower === 'trc20';
+      const isTrc20 = chainLower === 'trc20' || (chainLower === 'tron' && !!selectedAsset.contractAddress);
 
       if (chainLower === 'eth') {
         fromTrJson.eth = { signTransData };
       } else if (chainLower === 'bsc') {
         fromTrJson.bsc = { signTransData };
-      } else if (chainLower === 'tron') {
-        // TRON 原生 TRX 转账
-        fromTrJson.tron = { signTransData };
-      } else if (chainLower === 'trc20') {
-        // TRON TRC20 代币转账
-        fromTrJson.trc20 = { signTransData };
+      } else if (isTronChain) {
+        const tronPayload = getTronSignedPayload(signedTx.data, isTrc20 ? 'TRC20' : 'TRON');
+        if (isTrc20) {
+          fromTrJson.trc20 = tronPayload;
+        } else {
+          fromTrJson.tron = tronPayload;
+        }
       } else {
         // 内链交易（BioForest 链）
+        const internalTrJson = getInternalTrJson(signedTx);
+        if (!internalTrJson) {
+          throw new Error('Invalid internal signed transaction payload');
+        }
         fromTrJson.bcf = {
           chainName: sourceAccount.chain as InternalChainName,
-          trJson: signedTx.data as TransferAssetTransaction,
+          trJson: internalTrJson,
         };
       }
 

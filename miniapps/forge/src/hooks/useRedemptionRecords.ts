@@ -42,7 +42,7 @@ export function useRedemptionRecords() {
         internalAddress: params.internalAddress,
       })
       setState({
-        records: res.list,
+        records: res.dataList,
         total: res.total,
         isLoading: false,
         error: null,

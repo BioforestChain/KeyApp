@@ -2,9 +2,15 @@
  * COT Recharge API
  */
 
-import { apiClient } from './client'
+import { apiClient, ApiError } from './client'
 import { API_ENDPOINTS } from './config'
 import { tronHexToBase58, isTronHexAddress } from '@/lib/tron-address'
+import {
+  rechargeSupportSchema,
+  rechargeSubmitSchema,
+  rechargeRecordsSchema,
+  rechargeRecordDetailSchema,
+} from './schemas'
 import type {
   RechargeSupportResDto,
   RechargeV2ReqDto,
@@ -63,13 +69,22 @@ async function transformSupportResponse(response: RechargeSupportResDto): Promis
 export const rechargeApi = {
   /** 获取支持的充值配置 (TRON addresses converted to Base58) */
   async getSupport(): Promise<RechargeSupportResDto> {
-    const response = await apiClient.get<RechargeSupportResDto>(API_ENDPOINTS.RECHARGE_SUPPORT)
-    return transformSupportResponse(response)
+    const raw = await apiClient.get<unknown>(API_ENDPOINTS.RECHARGE_SUPPORT)
+    const parsed = rechargeSupportSchema.safeParse(raw)
+    if (!parsed.success) {
+      throw new ApiError('Invalid recharge support response', 0, parsed.error.flatten())
+    }
+    return transformSupportResponse(parsed.data)
   },
 
   /** 发起充值（锻造） */
-  submitRecharge(data: RechargeV2ReqDto): Promise<RechargeResDto> {
-    return apiClient.post(API_ENDPOINTS.RECHARGE_V2, data)
+  async submitRecharge(data: RechargeV2ReqDto): Promise<RechargeResDto> {
+    const raw = await apiClient.post<unknown>(API_ENDPOINTS.RECHARGE_V2, data)
+    const parsed = rechargeSubmitSchema.safeParse(raw)
+    if (!parsed.success) {
+      throw new ApiError('Invalid recharge response', 0, parsed.error.flatten())
+    }
+    return parsed.data
   },
 
   /** 获取合约池信息 */
@@ -78,19 +93,29 @@ export const rechargeApi = {
   },
 
   /** 获取充值记录列表 */
-  getRecords(params: RechargeRecordsReqDto): Promise<RechargeRecordsResDto> {
-    return apiClient.get(API_ENDPOINTS.RECORDS, {
+  async getRecords(params: RechargeRecordsReqDto): Promise<RechargeRecordsResDto> {
+    const raw = await apiClient.get<unknown>(API_ENDPOINTS.RECHARGE_RECORDS, {
       page: params.page,
       pageSize: params.pageSize,
       internalChain: params.internalChain,
       internalAddress: params.internalAddress,
       recordState: params.recordState,
     })
+    const parsed = rechargeRecordsSchema.safeParse(raw)
+    if (!parsed.success) {
+      throw new ApiError('Invalid recharge records response', 0, parsed.error.flatten())
+    }
+    return parsed.data
   },
 
   /** 获取充值记录详情 */
-  getRecordDetail(params: RechargeRecordDetailReqDto): Promise<RechargeRecordDetailResDto> {
-    return apiClient.get(API_ENDPOINTS.RECORD_DETAIL, { orderId: params.orderId })
+  async getRecordDetail(params: RechargeRecordDetailReqDto): Promise<RechargeRecordDetailResDto> {
+    const raw = await apiClient.get<unknown>(API_ENDPOINTS.RECHARGE_RECORD_DETAIL, { orderId: params.orderId })
+    const parsed = rechargeRecordDetailSchema.safeParse(raw)
+    if (!parsed.success) {
+      throw new ApiError('Invalid recharge record detail response', 0, parsed.error.flatten())
+    }
+    return parsed.data
   },
 
   /** 外链上链重试 */

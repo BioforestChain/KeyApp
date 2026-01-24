@@ -29,11 +29,13 @@ describe('Teleport API Client', () => {
           ETH: {
             ETH: {
               enable: true,
+              isAirdrop: false,
               assetType: 'ETH',
               recipientAddress: '0x123',
               targetChain: 'BFMCHAIN',
               targetAsset: 'BFM',
               ratio: { numerator: 1, denominator: 1 },
+              transmitDate: { startDate: '2024-01-01', endDate: '2025-01-01' },
             },
           },
         },
@@ -67,6 +69,17 @@ describe('Teleport API Client', () => {
       })
 
       await expect(getTransmitAssetTypeList()).rejects.toThrow(ApiError)
+    })
+
+    it('should throw ApiError when success is false without result', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ success: false, message: 'Not allowed', error: { code: 403 } }),
+      })
+
+      const promise = getTransmitAssetTypeList()
+      await expect(promise).rejects.toThrow(ApiError)
+      await expect(promise).rejects.toThrow('Not allowed')
     })
   })
 
@@ -105,7 +118,7 @@ describe('Teleport API Client', () => {
       const mockResponse = {
         page: 1,
         pageSize: 10,
-        dataList: [{ orderId: '1', state: 1, orderState: 4 }],
+        dataList: [{ orderId: '1', state: 1, orderState: 4, createdTime: '2024-01-01T00:00:00Z' }],
       }
 
       mockFetch.mockResolvedValueOnce({
@@ -146,6 +159,9 @@ describe('Teleport API Client', () => {
         state: 3,
         orderState: 4,
         swapRatio: 1,
+        updatedTime: '2024-01-01T00:00:00Z',
+        fromTxInfo: { chainName: 'ETH', address: '0x123' },
+        toTxInfo: { chainName: 'BFMCHAIN', address: 'bfmeta123' },
       }
 
       mockFetch.mockResolvedValueOnce({
