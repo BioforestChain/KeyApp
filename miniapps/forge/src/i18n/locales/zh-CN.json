@@ -20,7 +20,10 @@
     "network": "网络",
     "preview": "预览交易",
     "confirm": "确认充值",
-    "continue": "继续"
+    "continue": "继续",
+    "amountHint": "数量单位：{{symbol}}",
+    "decimalsHint": "精度：{{decimals}} 位",
+    "contractHint": "合约：{{address}}"
   },
   "redemption": {
     "title": "赎回",

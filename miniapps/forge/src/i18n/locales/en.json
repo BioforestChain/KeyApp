@@ -20,7 +20,10 @@
     "network": "Network",
     "preview": "Preview Transaction",
     "confirm": "Confirm Recharge",
-    "continue": "Continue"
+    "continue": "Continue",
+    "amountHint": "Amount is in {{symbol}}",
+    "decimalsHint": "Token decimals: {{decimals}}",
+    "contractHint": "Contract: {{address}}"
   },
   "redemption": {
     "title": "Redemption",
