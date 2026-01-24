@@ -71,7 +71,9 @@ async function syncEnvFiles(root: string, worktreePath: string): Promise<string[
 
     const src = join(root, entry.name);
     const dest = join(worktreePath, entry.name);
-    if (await exists(dest)) continue;
+    if (await exists(dest)) {
+      await Deno.remove(dest);
+    }
 
     await Deno.copyFile(src, dest);
     copied.push(entry.name);
