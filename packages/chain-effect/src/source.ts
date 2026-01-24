@@ -13,6 +13,7 @@ import { Effect, Stream, Schedule, SubscriptionRef, PubSub, Fiber } from "effect
 import type { Duration } from "effect"
 import type { FetchError } from "./http"
 import type { EventBusService, WalletEventType } from "./event-bus"
+import { isChainEffectDebugEnabled } from "./debug"
 
 type UnknownRecord = Record<string, unknown>
 
@@ -32,14 +33,9 @@ function summarizeValue(value: unknown): string {
   return String(value)
 }
 
-function isDebugEnabled(): boolean {
-  if (typeof globalThis === "undefined") return false
-  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
-  return store.__CHAIN_EFFECT_DEBUG__ === true
-}
-
 function debugLog(...args: Array<string | number | boolean>): void {
-  if (!isDebugEnabled()) return
+  const message = `[chain-effect] ${args.join(" ")}`
+  if (!isChainEffectDebugEnabled(message)) return
   console.log("[chain-effect]", ...args)
 }
 

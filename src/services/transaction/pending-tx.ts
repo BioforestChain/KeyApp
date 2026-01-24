@@ -15,17 +15,13 @@ import { defineServiceMeta } from '@/lib/service-meta';
 import { SignedTransactionSchema } from '@/services/chain-adapter/types';
 import { chainConfigService, type ChainConfig, type ChainKind } from '@/services/chain-config';
 import { getForgeInterval } from '@/services/chain-adapter/bioforest/fetch';
+import { isChainDebugEnabled } from '@/services/chain-adapter/debug';
 
 // ==================== Schema ====================
 
-function isPendingTxDebugEnabled(): boolean {
-  if (typeof globalThis === 'undefined') return false;
-  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean };
-  return store.__CHAIN_EFFECT_DEBUG__ === true;
-}
-
 function pendingTxDebugLog(...args: Array<string | number | boolean>): void {
-  if (!isPendingTxDebugEnabled()) return;
+  const message = `[chain-effect] pending-tx ${args.join(' ')}`;
+  if (!isChainDebugEnabled(message)) return;
   console.log('[chain-effect]', 'pending-tx', ...args);
 }
 

@@ -9,17 +9,17 @@
 import { Effect, Duration } from "effect"
 import { Schema as S } from "effect"
 import {
-  httpFetch,
+  httpFetchCached,
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  
+  acquireSource,
+  makeRegistryKey,
   type FetchError,
   type DataSource,
   type EventBusService,
 } from "@biochain/chain-effect"
 import type { StreamInstance } from "@biochain/chain-effect"
-import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
 import type {
   ApiProvider,
   Direction,
@@ -37,6 +37,8 @@ import { chainConfigService } from "@/services/chain-config"
 import { Amount } from "@/types/amount"
 import { TronIdentityMixin } from "../tron/identity-mixin"
 import { TronTransactionMixin } from "../tron/transaction-mixin"
+import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
+import { normalizeTronAddress, normalizeTronHex, tronAddressToHex } from "../tron/address"
 import { getApiKey } from "./api-key-picker"
 
 // ==================== Effect Schema 定义 ====================
@@ -90,45 +92,20 @@ type TronTxList = S.Schema.Type<typeof TronTxListSchema>
 
 // ==================== 工具函数 ====================
 
-const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
-function base58Decode(input: string): Uint8Array {
-  const bytes = [0]
-  for (const char of input) {
-    const idx = BASE58_ALPHABET.indexOf(char)
-    if (idx === -1) throw new Error(`Invalid Base58 character: ${char}`)
-    let carry = idx
-    for (let i = 0; i < bytes.length; i++) {
-      carry += bytes[i] * 58
-      bytes[i] = carry & 0xff
-      carry >>= 8
-    }
-    while (carry > 0) {
-      bytes.push(carry & 0xff)
-      carry >>= 8
-    }
+function safeNormalizeHex(value: string): string {
+  try {
+    return normalizeTronHex(value)
+  } catch {
+    return value.toLowerCase()
   }
-  for (const char of input) {
-    if (char !== "1") break
-    bytes.push(0)
-  }
-  return new Uint8Array(bytes.reverse())
-}
-
-function tronAddressToHex(address: string): string {
-  if (address.startsWith("41") && address.length === 42) return address
-  if (!address.startsWith("T")) throw new Error(`Invalid Tron address: ${address}`)
-  const decoded = base58Decode(address)
-  const addressBytes = decoded.slice(0, 21)
-  return Array.from(addressBytes).map((b) => b.toString(16).padStart(2, "0")).join("")
 }
 
 function getDirection(from: string, to: string, address: string): Direction {
-  const fromLower = from.toLowerCase()
-  const toLower = to.toLowerCase()
-  const addrLower = address.toLowerCase()
-  if (fromLower === addrLower && toLower === addrLower) return "self"
-  if (fromLower === addrLower) return "out"
+  const fromHex = safeNormalizeHex(from)
+  const toHex = safeNormalizeHex(to)
+  const addrHex = safeNormalizeHex(address)
+  if (fromHex === addrHex && toHex === addrHex) return "self"
+  if (fromHex === addrHex) return "out"
   return "in"
 }
 
@@ -172,6 +149,24 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
 
   // Provider 级别共享的 EventBus（延迟初始化）
   private _eventBus: EventBusService | null = null
+  private _txHistorySources = new Map<
+    string,
+    {
+      source: DataSource<TransactionsOutput>
+      refCount: number
+      stopAll: Effect.Effect<void>
+    }
+  >()
+  private _txHistoryCreations = new Map<string, Promise<DataSource<TransactionsOutput>>>()
+  private _balanceSources = new Map<
+    string,
+    {
+      source: DataSource<BalanceOutput>
+      refCount: number
+      stopAll: Effect.Effect<void>
+    }
+  >()
+  private _balanceCreations = new Map<string, Promise<DataSource<BalanceOutput>>>()
 
   readonly nativeBalance: StreamInstance<AddressParams, BalanceOutput>
   readonly transactionHistory: StreamInstance<TxHistoryParams, TransactionsOutput>
@@ -218,118 +213,235 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
   // ==================== Source 创建方法 ====================
 
   private createBlockHeightSource(): Effect.Effect<DataSource<BlockHeightOutput>> {
+    return this.getSharedBlockHeightSource()
+  }
+
+  private getSharedBlockHeightSource(): Effect.Effect<DataSource<BlockHeightOutput>> {
     const provider = this
-
-    return Effect.gen(function* () {
-      const fetchEffect = provider.fetchNowBlock().pipe(
-        Effect.map((raw): BlockHeightOutput =>
-          BigInt(raw.block_header?.raw_data?.number ?? 0)
-        )
+    const registryKey = makeRegistryKey(this.chainId, "global", "blockHeight")
+    const fetchEffect = provider.fetchNowBlock(true).pipe(
+      Effect.map((raw): BlockHeightOutput =>
+        BigInt(raw.block_header?.raw_data?.number ?? 0)
       )
+    )
 
-      const source = yield* createPollingSource({
-        name: `tron-rpc.${provider.chainId}.blockHeight`,
-        fetch: fetchEffect,
-        interval: Duration.millis(provider.pollingInterval),
-      })
-
-      return source
+    return acquireSource(registryKey, {
+      fetch: fetchEffect,
+      interval: Duration.millis(provider.pollingInterval),
     })
   }
 
   private createTransactionHistorySource(
     params: TxHistoryParams
   ): Effect.Effect<DataSource<TransactionsOutput>> {
-    const provider = this
-    const address = params.address.toLowerCase()
-    const symbol = this.symbol
-    const decimals = this.decimals
-    const chainId = this.chainId
-
-    return Effect.gen(function* () {
-      // 获取或创建 Provider 级别共享的 EventBus
-      if (!provider._eventBus) {
-        provider._eventBus = yield* getWalletEventBus()
-      }
-      const eventBus = provider._eventBus
-
-      const fetchEffect = provider.fetchTransactionList(params.address).pipe(
-        Effect.map((raw): TransactionsOutput => {
-          if (!raw.success || !raw.data) return []
-
-          return raw.data.map((tx): Transaction => {
-            const contract = tx.raw_data?.contract?.[0]
-            const value = contract?.parameter?.value
-            const from = value?.owner_address ?? ""
-            const to = value?.to_address ?? ""
-            const status = tx.ret?.[0]?.contractRet === "SUCCESS" ? "confirmed" : "failed"
-
-            return {
-              hash: tx.txID,
-              from,
-              to,
-              timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
-              status: status as "confirmed" | "failed",
-              action: "transfer" as const,
-              direction: getDirection(from, to, address),
-              assets: [{
-                assetType: "native" as const,
-                value: (value?.amount ?? 0).toString(),
-                symbol,
-                decimals,
-              }],
-            }
-          })
-        })
-      )
-
-      const source = yield* createPollingSource({
-        name: `tron-rpc.${provider.chainId}.txHistory`,
-        fetch: fetchEffect,
-        interval: Duration.millis(provider.pollingInterval),
-        // 使用 walletEvents 配置，按 chainId + address 过滤事件
-        walletEvents: {
-          eventBus,
-          chainId,
-          address: params.address,
-          types: ["tx:confirmed", "tx:sent"],
-        },
-      })
-
-      return source
-    })
+    return this.getSharedTxHistorySource(params.address)
   }
 
   private createBalanceSource(
     params: AddressParams
   ): Effect.Effect<DataSource<BalanceOutput>> {
+    return this.getSharedBalanceSource(params.address)
+  }
+
+  private getSharedTxHistorySource(address: string): Effect.Effect<DataSource<TransactionsOutput>> {
     const provider = this
+    const eventAddress = normalizeTronAddress(address)
+    const cacheKey = normalizeTronHex(address)
     const symbol = this.symbol
     const decimals = this.decimals
 
-    return Effect.gen(function* () {
-      // 先创建 transactionHistory source 作为依赖
-      const txHistorySource = yield* provider.createTransactionHistorySource({
-        address: params.address,
-        limit: 1,
-      })
+    const wrapSharedSource = (source: DataSource<TransactionsOutput>): DataSource<TransactionsOutput> => ({
+      ...source,
+      stop: provider.releaseSharedTxHistorySource(cacheKey),
+    })
 
-      const fetchEffect = provider.fetchAccount(params.address).pipe(
-        Effect.map((raw): BalanceOutput => ({
-          amount: Amount.fromRaw((raw.balance ?? 0).toString(), decimals, symbol),
-          symbol,
-        }))
+    const cached = provider._txHistorySources.get(cacheKey)
+    if (cached) {
+      cached.refCount += 1
+      return Effect.succeed(wrapSharedSource(cached.source))
+    }
+
+    const pending = provider._txHistoryCreations.get(cacheKey)
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending
+        const entry = provider._txHistorySources.get(cacheKey)
+        if (entry) {
+          entry.refCount += 1
+        }
+        return wrapSharedSource(source)
+      })
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          if (!provider._eventBus) {
+            provider._eventBus = yield* getWalletEventBus()
+          }
+          const eventBus = provider._eventBus
+
+          const fetchEffect = provider.fetchTransactionList(eventAddress, true).pipe(
+            Effect.map((raw): TransactionsOutput => {
+              if (!raw.success || !raw.data) return []
+
+              return raw.data.map((tx): Transaction => {
+                const contract = tx.raw_data?.contract?.[0]
+                const value = contract?.parameter?.value
+                const fromRaw = value?.owner_address ?? ""
+                const toRaw = value?.to_address ?? ""
+                const from = normalizeTronAddress(fromRaw)
+                const to = normalizeTronAddress(toRaw)
+                const status = tx.ret?.[0]?.contractRet === "SUCCESS" ? "confirmed" : "failed"
+
+                return {
+                  hash: tx.txID,
+                  from,
+                  to,
+                  timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
+                  status: status as "confirmed" | "failed",
+                  action: "transfer" as const,
+                  direction: getDirection(fromRaw, toRaw, eventAddress),
+                  assets: [{
+                    assetType: "native" as const,
+                    value: (value?.amount ?? 0).toString(),
+                    symbol,
+                    decimals,
+                  }],
+                }
+              })
+            })
+          )
+
+          const source = yield* createPollingSource({
+            name: `tron-rpc.${provider.chainId}.txHistory.${cacheKey}`,
+            fetch: fetchEffect,
+            interval: Duration.millis(provider.pollingInterval),
+            walletEvents: {
+              eventBus,
+              chainId: provider.chainId,
+              address: eventAddress,
+              types: ["tx:confirmed", "tx:sent"],
+            },
+          })
+
+          const stopAll = source.stop
+          provider._txHistorySources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          })
+
+          return source
+        })
       )
 
-      // 依赖 transactionHistory 变化
-      const source = yield* createDependentSource({
-        name: `tron-rpc.${provider.chainId}.balance`,
-        dependsOn: txHistorySource.ref,
-        hasChanged: hasTransactionListChanged,
-        fetch: () => fetchEffect,
-      })
+      provider._txHistoryCreations.set(cacheKey, createPromise)
 
-      return source
+      try {
+        const source = await createPromise
+        return wrapSharedSource(source)
+      } finally {
+        provider._txHistoryCreations.delete(cacheKey)
+      }
+    })
+  }
+
+  private releaseSharedTxHistorySource(key: string): Effect.Effect<void> {
+    const provider = this
+    return Effect.gen(function* () {
+      const entry = provider._txHistorySources.get(key)
+      if (!entry) return
+
+      entry.refCount -= 1
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll
+        provider._txHistorySources.delete(key)
+      }
+    })
+  }
+
+  private getSharedBalanceSource(address: string): Effect.Effect<DataSource<BalanceOutput>> {
+    const provider = this
+    const cacheKey = normalizeTronHex(address)
+    const symbol = this.symbol
+    const decimals = this.decimals
+
+    const wrapSharedSource = (source: DataSource<BalanceOutput>): DataSource<BalanceOutput> => ({
+      ...source,
+      stop: provider.releaseSharedBalanceSource(cacheKey),
+    })
+
+    const cached = provider._balanceSources.get(cacheKey)
+    if (cached) {
+      cached.refCount += 1
+      return Effect.succeed(wrapSharedSource(cached.source))
+    }
+
+    const pending = provider._balanceCreations.get(cacheKey)
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending
+        const entry = provider._balanceSources.get(cacheKey)
+        if (entry) {
+          entry.refCount += 1
+        }
+        return wrapSharedSource(source)
+      })
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          const txHistorySource = yield* provider.getSharedTxHistorySource(address)
+
+          const source = yield* createDependentSource({
+            name: `tron-rpc.${provider.chainId}.balance`,
+            dependsOn: txHistorySource.ref,
+            hasChanged: hasTransactionListChanged,
+            fetch: (_dep, forceRefresh) =>
+              provider.fetchAccount(address, forceRefresh).pipe(
+                Effect.map((raw): BalanceOutput => ({
+                  amount: Amount.fromRaw((raw.balance ?? 0).toString(), decimals, symbol),
+                  symbol,
+                }))
+              ),
+          })
+
+          const stopAll = Effect.all([source.stop, txHistorySource.stop]).pipe(Effect.asVoid)
+
+          provider._balanceSources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          })
+
+          return source
+        })
+      )
+
+      provider._balanceCreations.set(cacheKey, createPromise)
+
+      try {
+        const source = await createPromise
+        return wrapSharedSource(source)
+      } finally {
+        provider._balanceCreations.delete(cacheKey)
+      }
+    })
+  }
+
+  private releaseSharedBalanceSource(key: string): Effect.Effect<void> {
+    const provider = this
+    return Effect.gen(function* () {
+      const entry = provider._balanceSources.get(key)
+      if (!entry) return
+
+      entry.refCount -= 1
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll
+        provider._balanceSources.delete(key)
+      }
     })
   }
 
@@ -347,8 +459,10 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
 
           const contract = tx.raw_data?.contract?.[0]
           const value = contract?.parameter?.value
-          const from = value?.owner_address ?? ""
-          const to = value?.to_address ?? ""
+          const fromRaw = value?.owner_address ?? ""
+          const toRaw = value?.to_address ?? ""
+          const from = normalizeTronAddress(fromRaw)
+          const to = normalizeTronAddress(toRaw)
 
           let status: "pending" | "confirmed" | "failed"
           if (!tx.ret || tx.ret.length === 0) {
@@ -357,6 +471,8 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
             status = tx.ret[0]?.contractRet === "SUCCESS" ? "confirmed" : "failed"
           }
 
+          const directionAddress = params.senderId ?? from
+
           return {
             hash: tx.txID,
             from,
@@ -364,7 +480,7 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
             timestamp: tx.block_timestamp ?? tx.raw_data?.timestamp ?? 0,
             status,
             action: "transfer" as const,
-            direction: "out",
+            direction: getDirection(fromRaw, toRaw, directionAddress),
             assets: [{
               assetType: "native" as const,
               value: (value?.amount ?? 0).toString(),
@@ -388,40 +504,47 @@ export class TronRpcProviderEffect extends TronIdentityMixin(TronTransactionMixi
 
   // ==================== HTTP Fetch Effects ====================
 
-  private fetchNowBlock(): Effect.Effect<TronNowBlock, FetchError> {
-    return httpFetch({
+  private fetchNowBlock(forceRefresh = false): Effect.Effect<TronNowBlock, FetchError> {
+    return httpFetchCached({
       url: `${this.baseUrl}/wallet/getnowblock`,
       method: "POST",
       headers: this.headers,
       schema: TronNowBlockSchema,
+      cacheStrategy: forceRefresh ? "network-first" : "cache-first",
+      cache: "no-store",
     })
   }
 
-  private fetchAccount(address: string): Effect.Effect<TronAccount, FetchError> {
-    return httpFetch({
+  private fetchAccount(address: string, forceRefresh = false): Effect.Effect<TronAccount, FetchError> {
+    return httpFetchCached({
       url: `${this.baseUrl}/wallet/getaccount`,
       method: "POST",
       headers: this.headers,
       body: { address: tronAddressToHex(address) },
       schema: TronAccountSchema,
+      cacheStrategy: forceRefresh ? "network-first" : "cache-first",
     })
   }
 
-  private fetchTransactionList(address: string): Effect.Effect<TronTxList, FetchError> {
-    return httpFetch({
-      url: `${this.baseUrl}/v1/accounts/${address}/transactions`,
+  private fetchTransactionList(address: string, forceRefresh = false): Effect.Effect<TronTxList, FetchError> {
+    const targetAddress = normalizeTronAddress(address)
+    return httpFetchCached({
+      url: `${this.baseUrl}/v1/accounts/${targetAddress}/transactions`,
       headers: this.headers,
       schema: TronTxListSchema,
+      cacheStrategy: forceRefresh ? "network-first" : "cache-first",
     })
   }
 
   private fetchTransactionById(txHash: string): Effect.Effect<TronTx, FetchError> {
-    return httpFetch({
+    return httpFetchCached({
       url: `${this.baseUrl}/wallet/gettransactionbyid`,
       method: "POST",
       headers: this.headers,
       body: { value: txHash },
       schema: TronTxSchema,
+      cacheStrategy: "ttl",
+      cacheTtl: Math.max(1000, Math.floor(this.pollingInterval / 4)),
     })
   }
 }

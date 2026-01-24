@@ -27,7 +27,8 @@
  */
 
 import { execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { copyFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { z } from "zod";
 import {
   defineTool,
@@ -222,6 +223,25 @@ export async function createWorktree(args: { name: string; baseBranch?: string }
   }
   
   exec(`git worktree add -b ${branchName} ${worktreePath} ${baseBranch}`);
+
+  const repoRoot = exec("git rev-parse --show-toplevel");
+  const envFiles = readdirSync(repoRoot).filter((file) =>
+    file.startsWith(".env") && file !== ".env.example"
+  );
+  for (const file of envFiles) {
+    const src = join(repoRoot, file);
+    const dest = join(worktreePath, file);
+    if (existsSync(dest)) {
+      rmSync(dest, { force: true });
+    }
+    copyFileSync(src, dest);
+  }
+
+  const nodeModulesPath = join(worktreePath, "node_modules");
+  if (!existsSync(nodeModulesPath)) {
+    exec("pnpm install", worktreePath);
+  }
+
   return { path: worktreePath, branch: branchName };
 }
 

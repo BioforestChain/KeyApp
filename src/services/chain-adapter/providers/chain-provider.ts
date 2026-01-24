@@ -8,6 +8,7 @@
 import { Effect, Stream } from "effect"
 import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from "react"
 import { createStreamInstance, type StreamInstance, type FetchError } from "@biochain/chain-effect"
+import { isChainDebugEnabled } from "@/services/chain-adapter/debug"
 import { chainConfigService } from "@/services/chain-config"
 import type {
   ApiProvider,
@@ -61,14 +62,9 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(toStableJson(value))
 }
 
-function isDebugEnabled(): boolean {
-  if (typeof globalThis === "undefined") return false
-  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
-  return store.__CHAIN_EFFECT_DEBUG__ === true
-}
-
 function debugLog(...args: string[]): void {
-  if (!isDebugEnabled()) return
+  const message = `[chain-provider] ${args.join(" ")}`
+  if (!isChainDebugEnabled(message)) return
   console.log("[chain-provider]", ...args)
 }
 
@@ -110,26 +106,6 @@ function createFallbackStream<TInput, TOutput>(
 
   let resolvedSource: StreamInstance<TInput, TOutput> | null = null
 
-  const resolveSource = async (input: TInput): Promise<StreamInstance<TInput, TOutput>> => {
-    if (resolvedSource) return resolvedSource
-
-    for (const source of sources) {
-      try {
-        await source.fetch(input)
-        resolvedSource = source
-        debugLog(`${name} resolved`, source.name)
-        return source
-      } catch {
-        // try next
-      }
-    }
-
-    // fallback to first source to keep behavior stable
-    resolvedSource = sources[0]
-    debugLog(`${name} resolved`, sources[0].name)
-    return sources[0]
-  }
-
   const fetch = async (input: TInput): Promise<TOutput> => {
     for (const source of sources) {
       try {
@@ -145,24 +121,49 @@ function createFallbackStream<TInput, TOutput>(
 
   const subscribe = (
     input: TInput,
-    callback: (data: TOutput, event: "initial" | "update") => void
+    callback: (data: TOutput, event: "initial" | "update") => void,
+    onError?: (error: unknown) => void
   ): (() => void) => {
     let cancelled = false
     let cleanup: (() => void) | null = null
 
     const key = input === undefined || input === null ? "__empty__" : stableStringify(input)
     debugLog(`${name} subscribe`, key)
-    resolveSource(input)
-      .then((source) => {
-        if (cancelled) return
-        cleanup = source.subscribe(input, (data, event) => {
+
+    const subscribeToSource = (index: number) => {
+      if (cancelled) return
+      if (index >= sources.length) {
+        onError?.(new Error(`[${name}] all providers failed`))
+        return
+      }
+
+      const source = sources[index]
+      debugLog(`${name} probe`, source.name)
+      let received = false
+      cleanup = source.subscribe(
+        input,
+        (data, event) => {
+          if (cancelled) return
+          if (!received) {
+            received = true
+            resolvedSource = source
+            debugLog(`${name} resolved`, source.name)
+          }
           debugLog(`${name} emit`, event, summarizeValue(data))
           callback(data, event)
-        })
-      })
-      .catch((err) => {
-        console.error(`[${name}] resolveSource failed:`, err)
-      })
+        },
+        (error) => {
+          if (cancelled || received) return
+          debugLog(`${name} error`, source.name, String(error))
+          cleanup?.()
+          cleanup = null
+          subscribeToSource(index + 1)
+        }
+      )
+    }
+
+    const resolvedIndex = resolvedSource ? sources.indexOf(resolvedSource) : -1
+    subscribeToSource(resolvedIndex >= 0 ? resolvedIndex : 0)
 
     return () => {
       cancelled = true

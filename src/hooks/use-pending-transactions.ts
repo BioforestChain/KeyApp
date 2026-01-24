@@ -10,15 +10,11 @@ import { Effect, Stream, Fiber } from 'effect'
 import { pendingTxService, pendingTxManager, getPendingTxSource, getPendingTxWalletKey, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
 import type { Transaction } from '@/services/chain-adapter/providers'
-
-function isPendingTxDebugEnabled(): boolean {
-  if (typeof globalThis === 'undefined') return false
-  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
-  return store.__CHAIN_EFFECT_DEBUG__ === true
-}
+import { isChainDebugEnabled } from '@/services/chain-adapter/debug'
 
 function pendingTxDebugLog(...args: Array<string | number | boolean>): void {
-  if (!isPendingTxDebugEnabled()) return
+  const message = `[chain-effect] pending-tx ${args.join(' ')}`
+  if (!isChainDebugEnabled(message)) return
   console.log('[chain-effect]', 'pending-tx', ...args)
 }
 

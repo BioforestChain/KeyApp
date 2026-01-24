@@ -223,6 +223,10 @@
       "blockTime": 12,
       "apis": [
         {
+          "type": "ethwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/eth"
+        },
+        {
           "type": "moralis",
           "endpoint": "https://deep-index.moralis.io/api/v2.2",
           "config": {
@@ -253,10 +257,6 @@
           "config": {
             "apiKeyEnv": "ETHERSCAN_API_KEY"
           }
-        },
-        {
-          "type": "ethwallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/eth"
         }
       ],
       "explorer": {
@@ -278,6 +278,10 @@
       "decimals": 18,
       "blockTime": 3,
       "apis": [
+        {
+          "type": "bscwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/bsc"
+        },
         {
           "type": "moralis",
           "endpoint": "https://deep-index.moralis.io/api/v2.2",
@@ -305,10 +309,6 @@
           "config": {
             "apiKeyEnv": "ETHERSCAN_API_KEY"
           }
-        },
-        {
-          "type": "bscwallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/bsc"
         }
       ],
       "explorer": {
@@ -370,12 +370,12 @@
       "blockTime": 600,
       "apis": [
         {
-          "type": "mempool-v1",
-          "endpoint": "https://mempool.space/api"
-        },
-        {
           "type": "btcwallet-v1",
           "endpoint": "https://walletapi.bfmeta.info/wallet/btc/blockbook"
+        },
+        {
+          "type": "mempool-v1",
+          "endpoint": "https://mempool.space/api"
         }
       ],
       "explorer": {

@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from "react"
 import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
+import { isChainEffectDebugEnabled } from "./debug"
 import type { DataSource } from "./source"
 
 type UnknownRecord = Record<string, unknown>
@@ -66,14 +67,9 @@ function summarizeValue(value: unknown): string {
   return String(value)
 }
 
-function isDebugEnabled(): boolean {
-  if (typeof globalThis === "undefined") return false
-  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_DEBUG__?: boolean }
-  return store.__CHAIN_EFFECT_DEBUG__ === true
-}
-
 function debugLog(...args: Array<string | number | boolean>): void {
-  if (!isDebugEnabled()) return
+  const message = `[chain-effect] ${args.join(" ")}`
+  if (!isChainEffectDebugEnabled(message)) return
   console.log("[chain-effect]", ...args)
 }
 
@@ -81,7 +77,11 @@ function debugLog(...args: Array<string | number | boolean>): void {
 export interface StreamInstance<TInput, TOutput> {
   readonly name: string
   fetch(input: TInput): Promise<TOutput>
-  subscribe(input: TInput, callback: (data: TOutput, event: "initial" | "update") => void): () => void
+  subscribe(
+    input: TInput,
+    callback: (data: TOutput, event: "initial" | "update") => void,
+    onError?: (error: unknown) => void
+  ): () => void
   useState(
     input: TInput,
     options?: { enabled?: boolean }
@@ -161,7 +161,8 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
 
     subscribe(
       input: TInput,
-      callback: (data: TOutput, event: "initial" | "update") => void
+      callback: (data: TOutput, event: "initial" | "update") => void,
+      onError?: (error: unknown) => void
     ): () => void {
       let cancelled = false
       let cleanup: (() => void) | null = null
@@ -185,6 +186,14 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
             callback(value, isFirst ? "initial" : "update")
             isFirst = false
           })
+        ).pipe(
+          Effect.catchAllCause((cause) =>
+            Effect.sync(() => {
+              if (cancelled) return
+              console.error(`[${name}] changes stream failed:`, cause)
+              onError?.(cause)
+            })
+          )
         )
 
         const fiber = Effect.runFork(program)
@@ -195,6 +204,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         }
       }).catch((err) => {
         console.error(`[${name}] getOrCreateSource failed:`, err)
+        onError?.(err)
       })
 
       return () => {
