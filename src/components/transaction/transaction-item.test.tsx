@@ -10,6 +10,17 @@ function renderWithProvider(ui: React.ReactElement) {
   return render(<TestI18nProvider>{ui}</TestI18nProvider>)
 }
 
+const LOCALE = 'zh-CN'
+const FIXED_TIME = new Date('2024-01-15T14:30:45')
+const formatMonthDayTime = (date: Date) =>
+  date.toLocaleString(LOCALE, {
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+
 const mockTransaction: TransactionInfo = {
   id: '1',
   type: 'send',
@@ -17,7 +28,7 @@ const mockTransaction: TransactionInfo = {
   amount: Amount.fromFormatted('100', 6, 'USDT'),
   symbol: 'USDT',
   address: '0x1234567890abcdef1234567890abcdef12345678',
-  timestamp: new Date(),
+  timestamp: FIXED_TIME,
 }
 
 describe('TransactionItem', () => {
@@ -98,8 +109,8 @@ describe('TransactionItem', () => {
     expect(screen.getByText(t('transaction:type.exchange'))).toBeInTheDocument()
   })
 
-  it('formats recent timestamp', () => {
+  it('formats timestamp with month/day and seconds', () => {
     renderWithProvider(<TransactionItem transaction={mockTransaction} />)
-    expect(screen.getByText(t('time.justNow'))).toBeInTheDocument()
+    expect(screen.getByText(formatMonthDayTime(FIXED_TIME))).toBeInTheDocument()
   })
 })

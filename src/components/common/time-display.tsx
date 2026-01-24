@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 
-type TimeFormat = 'relative' | 'date' | 'datetime' | 'time';
+type TimeFormat = 'relative' | 'date' | 'datetime' | 'time' | 'monthDayTime';
 
 interface TimeDisplayProps {
   value: Date | string | number;
@@ -17,7 +17,7 @@ function toDate(value: Date | string | number): Date {
 }
 
 // 获取当前语言的 locale
-function getLocale(lang: string): string {
+export function getLocale(lang: string): string {
   const localeMap: Record<string, string> = {
     'zh-CN': 'zh-CN',
     en: 'en-US',
@@ -40,7 +40,7 @@ export function TimeDisplay({ value, format = 'relative', className }: TimeDispl
 
   switch (format) {
     case 'relative':
-      formatted = formatRelativeTime(date, t);
+      formatted = formatRelativeTime(date, t, locale);
       break;
     case 'date':
       formatted = date.toLocaleDateString(locale, {
@@ -65,6 +65,15 @@ export function TimeDisplay({ value, format = 'relative', className }: TimeDispl
         minute: '2-digit',
       });
       break;
+    case 'monthDayTime':
+      formatted = date.toLocaleString(locale, {
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      break;
   }
 
   const titleText = date.toLocaleString(locale, {
@@ -84,7 +93,7 @@ export function TimeDisplay({ value, format = 'relative', className }: TimeDispl
 }
 
 // 相对时间格式化（支持 i18n）
-function formatRelativeTime(date: Date, t: TFunction): string {
+function formatRelativeTime(date: Date, t: TFunction, locale: string): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const absDiff = Math.abs(diff);
@@ -108,7 +117,7 @@ function formatRelativeTime(date: Date, t: TFunction): string {
   }
 
   // 超过一周显示日期
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
 // 导出工具函数（用于非组件场景）

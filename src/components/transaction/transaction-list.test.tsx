@@ -12,8 +12,11 @@ function renderWithProvider(ui: React.ReactElement) {
 }
 
 // Use fixed date to avoid timezone/midnight flakiness
-// Set to noon on a specific date so "today" and "yesterday" are stable
+// Set to noon on a specific date so local date grouping is stable
 const FIXED_NOW = new Date('2025-06-15T12:00:00Z').getTime()
+const LOCALE = 'zh-CN'
+const formatGroupDate = (date: Date) =>
+  date.toLocaleDateString(LOCALE, { year: 'numeric', month: 'long', day: 'numeric' })
 
 const mockTransactions: TransactionInfo[] = [
   {
@@ -55,8 +58,8 @@ describe('TransactionList', () => {
 
   it('groups transactions by date', () => {
     renderWithProvider(<TransactionList transactions={mockTransactions} />)
-    expect(screen.getByText('今天')).toBeInTheDocument()
-    expect(screen.getByText('昨天')).toBeInTheDocument()
+    expect(screen.getByText(formatGroupDate(mockTransactions[0]!.timestamp as Date))).toBeInTheDocument()
+    expect(screen.getByText(formatGroupDate(mockTransactions[1]!.timestamp as Date))).toBeInTheDocument()
   })
 
   it('shows loading skeleton', () => {

@@ -68,6 +68,64 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
+function getDefaultSources(): SourceRecord[] {
+  return [
+    {
+      url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
+      name: 'Bio 官方生态', // i18n-ignore: config data
+      lastUpdated: new Date().toISOString(),
+      enabled: true,
+      status: 'idle' as const,
+    },
+  ];
+}
+
+function mergeSourcesWithDefault(sources: SourceRecord[]): SourceRecord[] {
+  const defaults = getDefaultSources();
+  const merged = [...sources];
+
+  for (const fallback of defaults) {
+    if (!merged.some((source) => source.url === fallback.url)) {
+      merged.push(fallback);
+    }
+  }
+
+  return merged;
+}
+
+function normalizeSources(input: unknown): SourceRecord[] {
+  if (!Array.isArray(input)) return [];
+  const now = new Date().toISOString();
+
+  return input
+    .map((item): SourceRecord | null => {
+      if (typeof item === 'string') {
+        return {
+          url: item,
+          name: 'Bio 官方生态', // i18n-ignore: migration fallback
+          lastUpdated: now,
+          enabled: true,
+          status: 'idle',
+        };
+      }
+      if (!item || typeof item !== 'object') return null;
+
+      const record = item as Partial<SourceRecord> & { url?: unknown };
+      if (typeof record.url !== 'string' || record.url.length === 0) return null;
+
+      return {
+        url: record.url,
+        name: typeof record.name === 'string' && record.name.length > 0 ? record.name : 'Bio 官方生态',
+        lastUpdated: typeof record.lastUpdated === 'string' && record.lastUpdated.length > 0 ? record.lastUpdated : now,
+        enabled: typeof record.enabled === 'boolean' ? record.enabled : true,
+        status: record.status ?? 'idle',
+        errorMessage: record.errorMessage,
+        icon: record.icon,
+      };
+    })
+    .filter((item): item is SourceRecord => item !== null);
+}
+
 /** 从 localStorage 加载状态 */
 function loadState(): EcosystemState {
   try {
@@ -85,17 +143,11 @@ function loadState(): EcosystemState {
         ? availableSubPages
         : [...availableSubPages, activeSubPage];
 
+      const normalizedSources = normalizeSources(parsed.sources);
+      const mergedSources = mergeSourcesWithDefault(normalizedSources);
       return {
         permissions: parsed.permissions ?? [],
-        sources: parsed.sources ?? [
-          {
-            url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
-            name: 'Bio 官方生态', // i18n-ignore: config data
-            lastUpdated: new Date().toISOString(),
-            enabled: true,
-            status: 'idle' as const,
-          },
-        ],
+        sources: mergedSources.length > 0 ? mergedSources : getDefaultSources(),
         myApps: loadMyApps(),
         availableSubPages: fixedAvailableSubPages,
         activeSubPage,
@@ -108,15 +160,7 @@ function loadState(): EcosystemState {
   }
   return {
     permissions: [],
-    sources: [
-      {
-        url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
-        name: 'Bio 官方生态', // i18n-ignore: config data
-        lastUpdated: new Date().toISOString(),
-        enabled: true,
-        status: 'idle' as const,
-      },
-    ],
+    sources: mergeSourcesWithDefault([]),
     myApps: loadMyApps(),
     availableSubPages: DEFAULT_AVAILABLE_SUBPAGES,
     activeSubPage: 'discover',
