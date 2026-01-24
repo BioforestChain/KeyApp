@@ -122,7 +122,7 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             if (isTokenTransfer && tokenAddress) {
                 data = this.#encodeErc20TransferData(transferIntent.to, transferIntent.amount.raw)
                 to = tokenAddress
-                value = '0x0'
+                value = '0x'
                 gasLimit = await this.#estimateGasSafe({
                     from: transferIntent.from,
                     to,
@@ -252,7 +252,11 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 if (item === '0x' || item === '') {
                     return new Uint8Array([0x80])
                 }
-                const bytes = hexToBytes(item.startsWith('0x') ? item.slice(2) : item)
+                let hex = item.startsWith('0x') ? item.slice(2) : item
+                if (hex.length % 2 === 1) {
+                    hex = '0' + hex
+                }
+                const bytes = hexToBytes(hex)
                 if (bytes.length === 1 && bytes[0]! < 0x80) {
                     return bytes
                 }
