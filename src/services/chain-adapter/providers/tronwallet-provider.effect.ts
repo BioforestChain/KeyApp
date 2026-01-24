@@ -34,17 +34,28 @@ import { TronTransactionMixin } from "../tron/transaction-mixin"
 
 // ==================== Effect Schema 定义 ====================
 
-const BalanceResponseSchema = S.Struct({
-  success: S.Boolean,
-  result: S.Union(S.String, S.Number),
-})
+const BalanceResponseSchema = S.Union(
+  S.Struct({
+    success: S.Boolean,
+    result: S.Union(S.String, S.Number),
+  }),
+  S.Struct({
+    success: S.Boolean,
+    data: S.Union(S.String, S.Number),
+  }),
+  S.Struct({
+    balance: S.Union(S.String, S.Number),
+  }),
+  S.String,
+  S.Number,
+)
 type BalanceResponse = S.Schema.Type<typeof BalanceResponseSchema>
 
 const TronNativeTxSchema = S.Struct({
   txID: S.String,
   from: S.String,
   to: S.String,
-  amount: S.Number,
+  amount: S.Union(S.Number, S.String),
   timestamp: S.Number,
   contractRet: S.optional(S.String),
 })
@@ -57,11 +68,72 @@ type TxHistoryResponse = S.Schema.Type<typeof TxHistoryResponseSchema>
 
 // ==================== 工具函数 ====================
 
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+function base58Decode(input: string): Uint8Array {
+  const bytes = [0]
+  for (const char of input) {
+    const idx = BASE58_ALPHABET.indexOf(char)
+    if (idx === -1) throw new Error(`Invalid Base58 character: ${char}`)
+    let carry = idx
+    for (let i = 0; i < bytes.length; i++) {
+      carry += bytes[i] * 58
+      bytes[i] = carry & 0xff
+      carry >>= 8
+    }
+    while (carry > 0) {
+      bytes.push(carry & 0xff)
+      carry >>= 8
+    }
+  }
+  for (const char of input) {
+    if (char !== "1") break
+    bytes.push(0)
+  }
+  return new Uint8Array(bytes.reverse())
+}
+
+function base58Encode(bytes: Uint8Array): string {
+  let num = 0n
+  for (const byte of bytes) {
+    num = num * 256n + BigInt(byte)
+  }
+  let result = ""
+  while (num > 0n) {
+    const rem = Number(num % 58n)
+    num = num / 58n
+    result = BASE58_ALPHABET[rem] + result
+  }
+  for (const byte of bytes) {
+    if (byte === 0) {
+      result = BASE58_ALPHABET[0] + result
+    } else {
+      break
+    }
+  }
+  return result
+}
+
+function tronAddressToHex(address: string): string {
+  if (address.startsWith("41") && address.length === 42) return address
+  if (!address.startsWith("T")) throw new Error(`Invalid Tron address: ${address}`)
+  const decoded = base58Decode(address)
+  const addressBytes = decoded.slice(0, 21)
+  return Array.from(addressBytes).map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+
+function tronAddressFromHex(address: string): string {
+  if (address.startsWith("T")) return address
+  const normalized = address.startsWith("0x") ? address.slice(2) : address
+  const hex = normalized.startsWith("41") ? normalized : `41${normalized}`
+  if (hex.length !== 42) throw new Error(`Invalid Tron hex address: ${address}`)
+  const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map((b) => Number.parseInt(b, 16)))
+  return base58Encode(bytes)
+}
+
 function getDirection(from: string, to: string, address: string): Direction {
-  const f = from.toLowerCase()
-  const t = to.toLowerCase()
-  if (f === address && t === address) return "self"
-  if (f === address) return "out"
+  if (from === address && to === address) return "self"
+  if (from === address) return "out"
   return "in"
 }
 
@@ -73,6 +145,14 @@ function hasTransactionListChanged(
   if (prev.length !== next.length) return true
   if (prev.length === 0 && next.length === 0) return false
   return prev[0]?.hash !== next[0]?.hash
+}
+
+function normalizeBalanceResponse(raw: BalanceResponse): string {
+  if (typeof raw === "string" || typeof raw === "number") return String(raw)
+  if ("balance" in raw) return String(raw.balance)
+  if ("result" in raw) return String(raw.result)
+  if ("data" in raw) return String(raw.data)
+  return "0"
 }
 
 // ==================== Base Class ====================
@@ -127,7 +207,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
     params: TxHistoryParams
   ): Effect.Effect<DataSource<TransactionsOutput>> {
     const provider = this
-    const address = params.address.toLowerCase()
+    const address = params.address
     const symbol = this.symbol
     const decimals = this.decimals
     const chainId = this.chainId
@@ -140,22 +220,26 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
 
       const fetchEffect = provider.fetchTransactions(params).pipe(
         Effect.map((raw): TransactionsOutput => {
-          if (!raw.success) return []
-          return raw.data.map((tx): Transaction => ({
-            hash: tx.txID,
-            from: tx.from,
-            to: tx.to,
-            timestamp: tx.timestamp,
-            status: tx.contractRet === "SUCCESS" ? "confirmed" : "failed",
-            action: "transfer" as const,
-            direction: getDirection(tx.from, tx.to, address),
-            assets: [{
-              assetType: "native" as const,
-              value: String(tx.amount),
-              symbol,
-              decimals,
-            }],
-          }))
+          if (typeof raw === "object" && "success" in raw && raw.success === false) return []
+          return raw.data.map((tx): Transaction => {
+            const from = tronAddressFromHex(tx.from)
+            const to = tronAddressFromHex(tx.to)
+            return {
+              hash: tx.txID,
+              from,
+              to,
+              timestamp: tx.timestamp,
+              status: tx.contractRet ? (tx.contractRet === "SUCCESS" ? "confirmed" : "failed") : "confirmed",
+              action: "transfer" as const,
+              direction: getDirection(from, to, address),
+              assets: [{
+                assetType: "native" as const,
+                value: String(tx.amount),
+                symbol,
+                decimals,
+              }],
+            }
+          })
         })
       )
 
@@ -190,7 +274,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
 
       const fetchEffect = provider.fetchBalance(params.address).pipe(
         Effect.map((raw): BalanceOutput => ({
-          amount: Amount.fromRaw(String(raw.result), decimals, symbol),
+          amount: Amount.fromRaw(normalizeBalanceResponse(raw), decimals, symbol),
           symbol,
         }))
       )
@@ -208,18 +292,19 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
 
   private fetchBalance(address: string): Effect.Effect<BalanceResponse, FetchError> {
     return httpFetch({
-      url: `${this.baseUrl}/balance`,
-      method: "POST",
-      body: { address },
+      url: `${this.baseUrl}/balance?address=${tronAddressToHex(address)}`,
       schema: BalanceResponseSchema,
     })
   }
 
   private fetchTransactions(params: TxHistoryParams): Effect.Effect<TxHistoryResponse, FetchError> {
     return httpFetch({
-      url: `${this.baseUrl}/transactions`,
+      url: `${this.baseUrl}/trans/common/history`,
       method: "POST",
-      body: { address: params.address, limit: params.limit ?? 20 },
+      body: {
+        address: tronAddressToHex(params.address),
+        limit: params.limit ?? 20,
+      },
       schema: TxHistoryResponseSchema,
     })
   }
