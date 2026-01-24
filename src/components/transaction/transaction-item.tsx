@@ -132,7 +132,11 @@ export function TransactionItem({
             size="sm"
             className={cn('@xs:text-base', typeMeta.color)}
           />
-          <TimeDisplay value={transaction.timestamp} className="text-muted-foreground block text-xs" />
+          <TimeDisplay
+            value={transaction.timestamp}
+            format="monthDayTime"
+            className="text-muted-foreground block text-xs"
+          />
         </div>
       )}
     </div>
