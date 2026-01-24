@@ -52,12 +52,52 @@ import {
   getLabels,
 } from "../mcps/git-workflow.mcp.ts";
 import { getRelatedChapters } from "../mcps/whitebook.mcp.ts";
+import { join } from "jsr:@std/path";
+import { exists } from "jsr:@std/fs";
 
 // =============================================================================
 // Constants
 // =============================================================================
 
 const WORKTREE_BASE = ".git-worktree";
+const ENV_EXCLUDES = new Set([".env.example"]);
+
+async function syncEnvFiles(root: string, worktreePath: string): Promise<string[]> {
+  const copied: string[] = [];
+  for await (const entry of Deno.readDir(root)) {
+    if (!entry.isFile) continue;
+    if (!entry.name.startsWith(".env")) continue;
+    if (ENV_EXCLUDES.has(entry.name)) continue;
+
+    const src = join(root, entry.name);
+    const dest = join(worktreePath, entry.name);
+    if (await exists(dest)) continue;
+
+    await Deno.copyFile(src, dest);
+    copied.push(entry.name);
+  }
+  return copied;
+}
+
+async function ensurePnpmInstall(path: string) {
+  const nodeModules = join(path, "node_modules");
+  if (await exists(nodeModules)) {
+    console.log("   ℹ️  node_modules 已存在，跳过 pnpm install");
+    return;
+  }
+
+  const command = new Deno.Command("pnpm", {
+    args: ["install"],
+    cwd: path,
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const { code } = await command.output();
+  if (code !== 0) {
+    throw new Error("pnpm install failed");
+  }
+}
 
 // =============================================================================
 // Templates
@@ -224,8 +264,19 @@ const startWorkflow = defineWorkflow({
         message: `chore: start issue #${issueId} [skip ci]`,
       });
 
-      // 7. 创建 Draft PR
-      console.log("\n4️⃣  创建 Draft PR...");
+      // 7. 同步 env 与安装依赖
+      console.log("\n4️⃣  同步开发环境...");
+      const copiedEnv = await syncEnvFiles(Deno.cwd(), path);
+      if (copiedEnv.length > 0) {
+        console.log(`   ✅ 已同步 env 文件: ${copiedEnv.join(", ")}`);
+      } else {
+        console.log("   ℹ️  未发现可同步的 env 文件");
+      }
+      console.log("   🔧 安装依赖...");
+      await ensurePnpmInstall(path);
+
+      // 8. 创建 Draft PR
+      console.log("\n5️⃣  创建 Draft PR...");
       const { url: prUrl } = await createPr({
         title,
         body: `Closes #${issueId}\n\n${description}`,
