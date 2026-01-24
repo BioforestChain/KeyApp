@@ -13,12 +13,12 @@ import {
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  createEventBusService,
   type FetchError,
   type DataSource,
   type EventBusService,
 } from "@biochain/chain-effect"
 import type { StreamInstance } from "@biochain/chain-effect"
+import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
 import type { ApiProvider, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
 import { chainConfigService } from "@/services/chain-config"
@@ -134,7 +134,7 @@ export class BtcWalletProviderEffect extends BitcoinIdentityMixin(BitcoinTransac
 
     return Effect.gen(function* () {
       if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
+        provider._eventBus = yield* getWalletEventBus()
       }
       const eventBus = provider._eventBus
 

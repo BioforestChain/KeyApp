@@ -13,13 +13,13 @@ import {
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  createEventBusService,
-  txConfirmedEvent,
+    txConfirmedEvent,
   type FetchError,
   type DataSource,
   type EventBusService,
 } from "@biochain/chain-effect"
 import type { StreamInstance } from "@biochain/chain-effect"
+import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
 import type {
   ApiProvider,
   TokenBalance,
@@ -294,7 +294,7 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
     return Effect.gen(function* () {
       // 获取或创建 Provider 级别共享的 EventBus
       if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
+        provider._eventBus = yield* getWalletEventBus()
       }
       const eventBus = provider._eventBus
 
@@ -486,7 +486,7 @@ export class MoralisProviderEffect extends EvmIdentityMixin(EvmTransactionMixin(
     return Effect.gen(function* () {
       // 获取或创建 Provider 级别共享的 EventBus
       if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
+        provider._eventBus = yield* getWalletEventBus()
       }
       const eventBus = provider._eventBus
 

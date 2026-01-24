@@ -11,12 +11,12 @@ import {
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  createEventBusService,
   type FetchError,
   type DataSource,
   type EventBusService,
 } from "@biochain/chain-effect"
 import type { StreamInstance } from "@biochain/chain-effect"
+import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
 import type {
   ApiProvider,
   Transaction,
@@ -131,7 +131,7 @@ export class BscWalletProviderEffect extends EvmIdentityMixin(EvmTransactionMixi
 
     return Effect.gen(function* () {
       if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
+        provider._eventBus = yield* getWalletEventBus()
       }
       const eventBus = provider._eventBus
 
