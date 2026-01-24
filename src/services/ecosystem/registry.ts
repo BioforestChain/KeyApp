@@ -61,11 +61,12 @@ async function getCachedSource(url: string): Promise<CacheEntry | null> {
 async function setCachedSource(entry: CacheEntry): Promise<void> {
   try {
     const db = await openCacheDB();
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const request = store.put(entry);
-      request.onerror = () => reject(request.error);
+      const key = entry.url;
+      const request = store.keyPath ? store.put(entry) : store.put(entry, key);
+      request.onerror = () => resolve();
       request.onsuccess = () => resolve();
     });
   } catch {
@@ -78,6 +79,37 @@ async function setCachedSource(entry: CacheEntry): Promise<void> {
 const TTL_MS = 5 * 60 * 1000; // 5 minutes
 const SEARCH_TTL_MS = 30 * 1000; // 30 seconds
 const ttlCache = new Map<string, { data: unknown; expiresAt: number }>();
+const DEBUG_ECOSYSTEM = import.meta.env.DEV || __DEV_MODE__;
+
+function debugLog(message: string, data?: Record<string, unknown>): void {
+  if (!DEBUG_ECOSYSTEM) return;
+  if (data) {
+    console.log(`[ecosystem] ${message}`, data);
+  } else {
+    console.log(`[ecosystem] ${message}`);
+  }
+}
+
+function normalizeFetchUrl(rawUrl: string): string {
+  if (typeof window === 'undefined') return rawUrl;
+  const trimmed = rawUrl.trim();
+  if (trimmed.length === 0) return rawUrl;
+
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('//')) {
+    return `${window.location.protocol}${trimmed}`;
+  }
+
+  try {
+    const baseUrl = typeof document !== 'undefined' ? document.baseURI : window.location.origin;
+    return new URL(trimmed, baseUrl).toString();
+  } catch {
+    return rawUrl;
+  }
+}
 
 function getTTLCached<T>(key: string): T | null {
   const entry = ttlCache.get(key);
@@ -104,38 +136,61 @@ function invalidateTTLCache(prefix: string): void {
 // ==================== Fetch with ETag/Cache ====================
 
 async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null> {
+  const fetchUrl = normalizeFetchUrl(url);
+  const cacheKey = fetchUrl;
   // Check TTL cache first
-  const ttlCached = getTTLCached<EcosystemSource>(`source:${url}`);
+  const ttlCached = getTTLCached<EcosystemSource>(`source:${cacheKey}`);
   if (ttlCached) return ttlCached;
 
   // Get cached entry for ETag
-  const cached = await getCachedSource(url);
+  const cached = await getCachedSource(cacheKey);
   const headers: Record<string, string> = {};
-  if (cached?.etag) {
+  if (cached?.etag && (typeof window === 'undefined' || new URL(fetchUrl).origin === window.location.origin)) {
     headers['If-None-Match'] = cached.etag;
   }
 
   try {
-    const response = await fetch(url, { headers });
+    debugLog('fetch source start', { url, fetchUrl });
+    const response = await fetch(fetchUrl, { headers });
 
     // 304 Not Modified - use cache
     if (response.status === 304 && cached) {
-      setTTLCached(`source:${url}`, cached.data, TTL_MS);
+      debugLog('fetch source not modified', { url, fetchUrl });
+      setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
       return cached.data;
     }
 
     if (!response.ok) {
+      debugLog('fetch source failed', { url, fetchUrl, status: response.status });
       // Fall back to cache on error
       if (cached) {
-        setTTLCached(`source:${url}`, cached.data, TTL_MS);
+        setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
         return cached.data;
       }
       return null;
     }
 
-    const json = await response.json();
+    const contentType = response.headers.get('content-type') ?? '';
+    let json: unknown;
+    try {
+      json = await response.json();
+    } catch (error) {
+      debugLog('fetch source parse error', {
+        url,
+        fetchUrl,
+        contentType,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      if (cached) return cached.data;
+      return null;
+    }
     const parsed = EcosystemSourceSchema.safeParse(json);
     if (!parsed.success) {
+      debugLog('fetch source invalid payload', {
+        url,
+        fetchUrl,
+        issues: parsed.error.issues.map((issue) => issue.path.join('.')),
+      });
       if (cached) return cached.data;
       return null;
     }
@@ -144,14 +199,20 @@ async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null>
     const etag = response.headers.get('etag') ?? undefined;
 
     // Update cache
-    await setCachedSource({ url, data, etag, cachedAt: Date.now() });
-    setTTLCached(`source:${url}`, data, TTL_MS);
+    await setCachedSource({ url: cacheKey, data, etag, cachedAt: Date.now() });
+    setTTLCached(`source:${cacheKey}`, data, TTL_MS);
+    debugLog('fetch source success', { url, fetchUrl, apps: data.apps?.length ?? 0 });
 
     return data;
-  } catch {
+  } catch (error) {
+    debugLog('fetch source error', {
+      url,
+      fetchUrl,
+      message: error instanceof Error ? error.message : String(error),
+    });
     // Fall back to cache on error
     if (cached) {
-      setTTLCached(`source:${url}`, cached.data, TTL_MS);
+      setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
       return cached.data;
     }
     return null;
@@ -191,6 +252,7 @@ function fetchSearchResults(url: string): Effect.Effect<{ version: string; data:
 }
 
 let cachedApps: MiniappManifest[] = [];
+const sourcePayloads = new Map<string, EcosystemSource | null>();
 
 type AppsSubscriber = (apps: MiniappManifest[]) => void;
 const appSubscribers: AppsSubscriber[] = [];
@@ -198,6 +260,88 @@ const appSubscribers: AppsSubscriber[] = [];
 function notifyApps(): void {
   const snapshot = [...cachedApps];
   appSubscribers.forEach((fn) => fn(snapshot));
+}
+
+function computeGaussianWeightedAverage(values: number[]): number {
+  if (values.length === 0) return 0;
+  if (values.length === 1) return values[0] ?? 0;
+
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const variance =
+    values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / Math.max(1, values.length - 1);
+  const sigma = Math.sqrt(variance);
+  const sigmaSafe = sigma > 0 ? sigma : 1;
+  const minWeight = 0.05;
+
+  let weightedSum = 0;
+  let weightTotal = 0;
+
+  for (const v of values) {
+    const z = (v - mean) / sigmaSafe;
+    const gaussianWeight = Math.exp(-0.5 * z * z);
+    const weight = Math.max(minWeight, gaussianWeight);
+    weightedSum += v * weight;
+    weightTotal += weight;
+  }
+
+  if (weightTotal === 0) return mean;
+  return weightedSum / weightTotal;
+}
+
+function mergeAppsFromSources(
+  sources: SourceRecord[],
+  payloadsByUrl: Map<string, EcosystemSource | null>,
+): MiniappManifest[] {
+  const merged: MiniappManifest[] = [];
+  const indexById = new Map<string, number>();
+  const officialScoresById = new Map<string, number[]>();
+  const communityScoresById = new Map<string, number[]>();
+
+  for (const source of sources) {
+    const payload = payloadsByUrl.get(source.url);
+    if (!payload) continue;
+
+    for (const app of payload.apps ?? []) {
+      const normalized = normalizeAppFromSource(app, source, payload);
+      if (!normalized) continue;
+
+      const id = normalized.id;
+      if (!indexById.has(id)) {
+        indexById.set(id, merged.length);
+        merged.push(normalized);
+      }
+
+      if (typeof normalized.officialScore === 'number') {
+        const list = officialScoresById.get(id) ?? [];
+        list.push(normalized.officialScore);
+        officialScoresById.set(id, list);
+      }
+
+      if (typeof normalized.communityScore === 'number') {
+        const list = communityScoresById.get(id) ?? [];
+        list.push(normalized.communityScore);
+        communityScoresById.set(id, list);
+      }
+    }
+  }
+
+  for (const [id, index] of indexById) {
+    const base = merged[index];
+    if (!base) continue;
+
+    const officialScores = officialScoresById.get(id);
+    if (officialScores && officialScores.length > 0) {
+      base.officialScore = computeGaussianWeightedAverage(officialScores);
+    }
+
+    const communityScores = communityScoresById.get(id);
+    if (communityScores && communityScores.length > 0) {
+      base.communityScore = computeGaussianWeightedAverage(communityScores);
+    }
+  }
+
+  debugLog('merge apps', { sources: sources.length, apps: merged.length });
+  return merged;
 }
 
 export function subscribeApps(listener: AppsSubscriber): () => void {
@@ -239,45 +383,32 @@ async function fetchSourceWithCache(url: string): Promise<EcosystemSource | null
   return fetchSourceWithEtag(url);
 }
 
-async function rebuildCachedAppsFromSources(
-  sources: Array<{ source: SourceRecord; payload: EcosystemSource | null }>,
-): Promise<void> {
-  const next: MiniappManifest[] = [];
-  const seen = new Set<string>();
-
-  for (const { source, payload } of sources) {
-    if (!payload) continue;
-
-    for (const app of payload.apps ?? []) {
-      const normalized = normalizeAppFromSource(app, source, payload);
-      if (!normalized) continue;
-
-      if (seen.has(normalized.id)) continue;
-      seen.add(normalized.id);
-      next.push(normalized);
-    }
-  }
-
-  cachedApps = next;
-  notifyApps();
-}
-
 async function rebuildCachedAppsFromCache(): Promise<void> {
   const enabledSources = ecosystemSelectors.getEnabledSources(ecosystemStore.state);
+  if (enabledSources.length === 0) {
+    debugLog('no enabled sources');
+  }
 
-  const entries = await Promise.all(
+  await Promise.all(
     enabledSources.map(async (source) => {
       const payload = await fetchSourceWithCache(source.url);
-      return { source, payload };
+      sourcePayloads.set(source.url, payload);
+      cachedApps = mergeAppsFromSources(enabledSources, sourcePayloads);
+      notifyApps();
     }),
   );
+}
 
-  await rebuildCachedAppsFromSources(entries);
+function getSourcesSignature(sources: SourceRecord[]): string {
+  return sources
+    .map((source) => `${source.url}|${source.enabled ? '1' : '0'}`)
+    .sort()
+    .join(',');
 }
 
 let lastSourcesSignature = '';
 ecosystemStore.subscribe(() => {
-  const nextSignature = JSON.stringify(ecosystemStore.state.sources);
+  const nextSignature = getSourcesSignature(ecosystemStore.state.sources);
   if (nextSignature === lastSourcesSignature) return;
   lastSourcesSignature = nextSignature;
   void rebuildCachedAppsFromCache();
@@ -298,27 +429,31 @@ export function getSources(): SourceRecord[] {
 export async function refreshSources(options?: { force?: boolean }): Promise<MiniappManifest[]> {
   const force = options?.force === true;
   const enabledSources = ecosystemSelectors.getEnabledSources(ecosystemStore.state);
+  if (enabledSources.length === 0) {
+    debugLog('refresh skipped: no enabled sources');
+  }
 
   if (force) {
     invalidateTTLCache('source:');
   }
 
-  const results = await Promise.all(
+  await Promise.all(
     enabledSources.map(async (source) => {
       ecosystemActions.updateSourceStatus(source.url, 'loading');
       try {
         const payload = await fetchSourceWithEtag(source.url);
         ecosystemActions.updateSourceStatus(source.url, 'success');
-        return { source, payload };
+        sourcePayloads.set(source.url, payload);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         ecosystemActions.updateSourceStatus(source.url, 'error', message);
-        return { source, payload: null };
+        sourcePayloads.set(source.url, null);
+      } finally {
+        cachedApps = mergeAppsFromSources(enabledSources, sourcePayloads);
+        notifyApps();
       }
     }),
   );
-
-  await rebuildCachedAppsFromSources(results);
   return [...cachedApps];
 }
 
