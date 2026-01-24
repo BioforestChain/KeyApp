@@ -72,9 +72,13 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
   }
 
   const chainConfig = await getChainConfigOrThrow(opts.chain)
-  const amount = Amount.parse(opts.amount, chainConfig.decimals, chainConfig.symbol)
-
   const tokenAddress = opts.tokenAddress?.trim() || undefined
+  const assetSymbol = opts.asset ?? chainConfig.symbol
+  const assetDecimals = tokenAddress && typeof opts.assetDecimals === 'number'
+    ? opts.assetDecimals
+    : chainConfig.decimals
+  const amount = Amount.parse(opts.amount, assetDecimals, assetSymbol)
+
   const chainProvider = tokenAddress && chainConfig.chainKind === 'tron'
     ? createChainProvider(chainConfig.id)
     : getChainProvider(chainConfig.id)

@@ -48,6 +48,8 @@ export interface EcosystemTransferParams {
   asset?: string;
   /** 代币合约地址（用于 EVM/TRON Token 转账） */
   tokenAddress?: string;
+  /** 资产精度（用于 EVM/TRON Token 转账） */
+  assetDecimals?: number;
 }
 
 /**

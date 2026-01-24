@@ -35,6 +35,10 @@ const EVM_CHAIN_IDS: Record<string, number> = {
     'bsc-testnet': 97,
 }
 
+const ERC20_TRANSFER_SELECTOR = bytesToHex(
+    keccak_256(new TextEncoder().encode('transfer(address,uint256)')),
+).slice(0, 8)
+
 /**
  * EVM Transaction Mixin - 为任意类添加 EVM 交易能力
  * 
@@ -107,6 +111,25 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
             const nonceHex = await this.#rpc<string>('eth_getTransactionCount', [transferIntent.from, 'pending'])
             const nonce = parseInt(nonceHex, 16)
             const gasPriceHex = await this.#rpc<string>('eth_gasPrice')
+            const tokenAddress = transferIntent.tokenAddress?.toLowerCase()
+            const isTokenTransfer = Boolean(tokenAddress)
+
+            let to = transferIntent.to
+            let value = '0x' + transferIntent.amount.raw.toString(16)
+            let data = '0x'
+            let gasLimit = '0x5208'
+
+            if (isTokenTransfer && tokenAddress) {
+                data = this.#encodeErc20TransferData(transferIntent.to, transferIntent.amount.raw)
+                to = tokenAddress
+                value = '0x0'
+                gasLimit = await this.#estimateGasSafe({
+                    from: transferIntent.from,
+                    to,
+                    data,
+                    value,
+                })
+            }
 
             return {
                 chainId: this.chainId,
@@ -114,10 +137,10 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 data: {
                     nonce,
                     gasPrice: gasPriceHex,
-                    gasLimit: '0x5208',
-                    to: transferIntent.to,
-                    value: '0x' + transferIntent.amount.raw.toString(16),
-                    data: '0x',
+                    gasLimit,
+                    to,
+                    value,
+                    data,
                     chainId: this.#evmId,
                 },
             }
@@ -257,6 +280,20 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 offset += e.length
             }
             return '0x' + bytesToHex(result)
+        }
+
+        #encodeErc20TransferData(to: string, amount: bigint): string {
+            const address = to.toLowerCase().replace(/^0x/, '').padStart(64, '0')
+            const value = amount.toString(16).padStart(64, '0')
+            return `0x${ERC20_TRANSFER_SELECTOR}${address}${value}`
+        }
+
+        async #estimateGasSafe(params: { from: string; to: string; data: string; value: string }): Promise<string> {
+            try {
+                return await this.#rpc<string>('eth_estimateGas', [params])
+            } catch {
+                return '0x186a0'
+            }
         }
 
         #numberToBytes(n: number): Uint8Array {

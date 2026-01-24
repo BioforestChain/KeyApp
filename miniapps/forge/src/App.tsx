@@ -228,6 +228,7 @@ export default function App() {
     await forgeHook.forge({
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
+      externalDecimals: selectedOption.externalInfo.decimals,
       depositAddress: selectedOption.externalInfo.depositAddress,
       externalContract: selectedOption.externalInfo.contract,
       amount,

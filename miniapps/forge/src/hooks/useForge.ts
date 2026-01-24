@@ -30,6 +30,8 @@ export interface ForgeParams {
   externalChain: ExternalChainName
   /** 外链资产类型 */
   externalAsset: string
+  /** 外链资产精度 */
+  externalDecimals?: number
   /** 外链转账地址（depositAddress） */
   depositAddress: string
   /** 外链合约地址（TRC20） */
@@ -120,6 +122,7 @@ export function useForge() {
     const {
       externalChain,
       externalAsset,
+      externalDecimals,
       depositAddress,
       externalContract,
       amount,
@@ -158,6 +161,7 @@ export function useForge() {
           chain: externalKeyAppChainId,
           asset: externalAsset,
           tokenAddress,
+          assetDecimals: externalDecimals,
         }],
       })
 
