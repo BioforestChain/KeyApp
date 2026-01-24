@@ -6,7 +6,7 @@
 
 import { Effect, Schedule, Duration, Option } from 'effect';
 import { Schema } from 'effect';
-import { getFromCache, putToCache } from './http-cache';
+import { getFromCache, putToCache, deleteFromCache } from './http-cache';
 
 // ==================== Error Types ====================
 
@@ -234,6 +234,8 @@ export interface CachedFetchOptions<T> extends FetchOptions<T> {
   cacheStrategy?: CacheStrategy;
   /** 缓存 TTL（毫秒），仅 ttl 策略使用 */
   cacheTtl?: number;
+  /** 是否允许缓存当前响应（network-first 场景） */
+  canCache?: (result: T) => Promise<boolean>;
 }
 
 // 用于防止并发请求的 Promise 锁
@@ -286,7 +288,7 @@ function makeCacheKeyForRequest(url: string, body?: unknown): string {
  * - network-first: 尝试 fetch，成功更新缓存，失败用缓存
  */
 export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effect<T, FetchError> {
-  const { cacheStrategy = 'ttl', cacheTtl = 5000, ...fetchOptions } = options;
+  const { cacheStrategy = 'ttl', cacheTtl = 5000, canCache, ...fetchOptions } = options;
   const cacheKey = makeCacheKeyForRequest(options.url, options.body);
 
   // 重要：请求必须在 Effect 执行时惰性创建，避免首次构建就触发 fetch，
@@ -298,19 +300,36 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
       return pending as Promise<T>;
     }
 
+    const shouldCache = async (result: T): Promise<boolean> => {
+      if (!canCache) return true;
+      try {
+        return await canCache(result);
+      } catch (error) {
+        console.error(`[httpFetchCached] CAN-CACHE ERROR: ${options.url}`, error);
+        return false;
+      }
+    };
+
     const requestPromise = (async () => {
       const cached = await Effect.runPromise(getFromCache<T>(options.url, options.body));
+      const cachedValue = Option.isSome(cached) ? cached.value.data : null;
+      const cachedUsable = Option.isSome(cached) ? await shouldCache(cached.value.data) : false;
+      if (Option.isSome(cached) && !cachedUsable) {
+        await Effect.runPromise(deleteFromCache(options.url, options.body));
+      }
 
       if (cacheStrategy === 'cache-first') {
         // Cache-First: 有缓存就返回
-        if (Option.isSome(cached)) {
+        if (Option.isSome(cached) && cachedUsable && cachedValue !== null) {
           console.log(`[httpFetchCached] CACHE-FIRST HIT: ${options.url}`);
-          return cached.value.data;
+          return cachedValue;
         }
         console.log(`[httpFetchCached] CACHE-FIRST MISS: ${options.url}`);
         try {
           const result = await Effect.runPromise(httpFetch(fetchOptions));
-          await Effect.runPromise(putToCache(options.url, options.body, result));
+          if (await shouldCache(result)) {
+            await Effect.runPromise(putToCache(options.url, options.body, result));
+          }
           return result;
         } catch (error) {
           console.error(`[httpFetchCached] CACHE-FIRST FETCH ERROR: ${options.url}`, error);
@@ -323,24 +342,26 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
         try {
           console.log(`[httpFetchCached] NETWORK-FIRST FETCH: ${options.url}`);
           const result = await Effect.runPromise(httpFetch(fetchOptions));
-          await Effect.runPromise(putToCache(options.url, options.body, result));
+          if (await shouldCache(result)) {
+            await Effect.runPromise(putToCache(options.url, options.body, result));
+          }
           return result;
         } catch (error) {
           console.error(`[httpFetchCached] NETWORK-FIRST FETCH ERROR: ${options.url}`, error);
-          if (Option.isSome(cached)) {
+          if (Option.isSome(cached) && cachedUsable && cachedValue !== null) {
             console.log(`[httpFetchCached] NETWORK-FIRST FALLBACK: ${options.url}`);
-            return cached.value.data;
+            return cachedValue;
           }
           throw error;
         }
       }
 
       // TTL 策略（默认）
-      if (Option.isSome(cached)) {
+      if (Option.isSome(cached) && cachedUsable) {
         const age = Date.now() - cached.value.timestamp;
         if (age < cacheTtl) {
           console.log(`[httpFetchCached] TTL HIT: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
-          return cached.value.data;
+          return cachedValue as T;
         }
         console.log(`[httpFetchCached] TTL EXPIRED: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
       } else {
@@ -349,7 +370,9 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
 
       try {
         const result = await Effect.runPromise(httpFetch(fetchOptions));
-        await Effect.runPromise(putToCache(options.url, options.body, result));
+        if (await shouldCache(result)) {
+          await Effect.runPromise(putToCache(options.url, options.body, result));
+        }
         return result;
       } catch (error) {
         console.error(`[httpFetchCached] TTL FETCH ERROR: ${options.url}`, error);

@@ -11,6 +11,9 @@
 export { Effect, Stream, Schedule, Duration, Ref, SubscriptionRef, PubSub, Fiber } from "effect"
 export { Schema } from "effect"
 
+// Debug utilities
+export { isChainEffectDebugEnabled } from "./debug"
+
 // SuperJSON for serialization (handles BigInt, Amount, etc.)
 import { SuperJSON } from "superjson"
 export const superjson = new SuperJSON({ dedupe: true })

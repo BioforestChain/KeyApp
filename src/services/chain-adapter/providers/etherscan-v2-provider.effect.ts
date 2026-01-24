@@ -9,11 +9,10 @@
 import { Effect, Duration } from "effect"
 import { Schema as S } from "effect"
 import {
-  httpFetch,
+  httpFetchCached,
   createStreamInstanceFromSource,
   createPollingSource,
   createDependentSource,
-  createEventBusService,
   HttpError,
   type FetchError,
   type DataSource,
@@ -27,6 +26,7 @@ import { Amount } from "@/types/amount"
 import { EvmIdentityMixin } from "../evm/identity-mixin"
 import { EvmTransactionMixin } from "../evm/transaction-mixin"
 import { getApiKey } from "./api-key-picker"
+import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
 
 // ==================== Effect Schema 定义 ====================
 
@@ -110,6 +110,24 @@ export class EtherscanV2ProviderEffect extends EvmIdentityMixin(EvmTransactionMi
   private readonly pollingInterval: number = 30000
 
   private _eventBus: EventBusService | null = null
+  private _txHistorySources = new Map<
+    string,
+    {
+      source: DataSource<TransactionsOutput>
+      refCount: number
+      stopAll: Effect.Effect<void>
+    }
+  >()
+  private _txHistoryCreations = new Map<string, Promise<DataSource<TransactionsOutput>>>()
+  private _balanceSources = new Map<
+    string,
+    {
+      source: DataSource<BalanceOutput>
+      refCount: number
+      stopAll: Effect.Effect<void>
+    }
+  >()
+  private _balanceCreations = new Map<string, Promise<DataSource<BalanceOutput>>>()
 
   readonly nativeBalance: StreamInstance<AddressParams, BalanceOutput>
   readonly transactionHistory: StreamInstance<TxHistoryParams, TransactionsOutput>
@@ -161,104 +179,222 @@ export class EtherscanV2ProviderEffect extends EvmIdentityMixin(EvmTransactionMi
   private createTransactionHistorySource(
     params: TxHistoryParams
   ): Effect.Effect<DataSource<TransactionsOutput>> {
-    const provider = this
-    const address = params.address.toLowerCase()
-    const symbol = this.symbol
-    const decimals = this.decimals
-    const chainId = this.chainId
-
-    return Effect.gen(function* () {
-      if (!provider._eventBus) {
-        provider._eventBus = yield* createEventBusService
-      }
-      const eventBus = provider._eventBus
-
-      const fetchEffect = provider.fetchTransactionHistory(params).pipe(
-        Effect.map((raw): TransactionsOutput => {
-          if (raw.status === "0" || !Array.isArray(raw.result)) {
-            throw new HttpError("API rate limited", 429)
-          }
-          return (raw.result as unknown[])
-            .map(parseNativeTx)
-            .filter((tx): tx is NativeTx => tx !== null)
-            .map((tx): Transaction => ({
-              hash: tx.hash,
-              from: tx.from,
-              to: tx.to,
-              timestamp: parseInt(tx.timeStamp, 10) * 1000,
-              status: tx.isError === "0" ? ("confirmed" as const) : ("failed" as const),
-              blockNumber: BigInt(tx.blockNumber),
-              action: "transfer" as const,
-              direction: getDirection(tx.from, tx.to, address),
-              assets: [{
-                assetType: "native" as const,
-                value: tx.value,
-                symbol,
-                decimals,
-              }],
-            }))
-        })
-      )
-
-      const source = yield* createPollingSource({
-        name: `etherscan-v2.${provider.chainId}.txHistory`,
-        fetch: fetchEffect,
-        interval: Duration.millis(provider.pollingInterval),
-        walletEvents: {
-          eventBus,
-          chainId,
-          address: params.address,
-          types: ["tx:confirmed", "tx:sent"],
-        },
-      })
-
-      return source
-    })
+    return this.getSharedTxHistorySource(params.address)
   }
 
   private createBalanceSource(
     params: AddressParams
   ): Effect.Effect<DataSource<BalanceOutput>> {
+    return this.getSharedBalanceSource(params.address)
+  }
+
+  private getSharedTxHistorySource(address: string): Effect.Effect<DataSource<TransactionsOutput>> {
     const provider = this
+    const normalizedAddress = address.toLowerCase()
+    const cacheKey = normalizedAddress
     const symbol = this.symbol
     const decimals = this.decimals
 
-    return Effect.gen(function* () {
-      const txHistorySource = yield* provider.createTransactionHistorySource({
-        address: params.address,
-        limit: 1,
-      })
+    const wrapSharedSource = (source: DataSource<TransactionsOutput>): DataSource<TransactionsOutput> => ({
+      ...source,
+      stop: provider.releaseSharedTxHistorySource(cacheKey),
+    })
 
-      const fetchEffect = provider.fetchBalance(params.address).pipe(
-        Effect.map((raw): BalanceOutput => {
-          if (raw.status === "0" || typeof raw.result !== "string") {
-            throw new HttpError("API rate limited", 429)
+    const cached = provider._txHistorySources.get(cacheKey)
+    if (cached) {
+      cached.refCount += 1
+      return Effect.succeed(wrapSharedSource(cached.source))
+    }
+
+    const pending = provider._txHistoryCreations.get(cacheKey)
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending
+        const entry = provider._txHistorySources.get(cacheKey)
+        if (entry) {
+          entry.refCount += 1
+        }
+        return wrapSharedSource(source)
+      })
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          if (!provider._eventBus) {
+            provider._eventBus = yield* getWalletEventBus()
           }
-          const balanceValue = (raw.result as string).startsWith("0x")
-            ? BigInt(raw.result as string).toString()
-            : raw.result as string
-          return {
-            amount: Amount.fromRaw(balanceValue, decimals, symbol),
-            symbol,
-          }
+          const eventBus = provider._eventBus
+
+          const fetchEffect = provider.fetchTransactionHistory({ address, limit: 50 }, true).pipe(
+            Effect.map((raw): TransactionsOutput => {
+              if (raw.status === "0" || !Array.isArray(raw.result)) {
+                throw new HttpError("API rate limited", 429)
+              }
+              return (raw.result as unknown[])
+                .map(parseNativeTx)
+                .filter((tx): tx is NativeTx => tx !== null)
+                .map((tx): Transaction => ({
+                  hash: tx.hash,
+                  from: tx.from,
+                  to: tx.to,
+                  timestamp: parseInt(tx.timeStamp, 10) * 1000,
+                  status: tx.isError === "0" ? ("confirmed" as const) : ("failed" as const),
+                  blockNumber: BigInt(tx.blockNumber),
+                  action: "transfer" as const,
+                  direction: getDirection(tx.from, tx.to, normalizedAddress),
+                  assets: [{
+                    assetType: "native" as const,
+                    value: tx.value,
+                    symbol,
+                    decimals,
+                  }],
+                }))
+            })
+          )
+
+          const source = yield* createPollingSource({
+            name: `etherscan-v2.${provider.chainId}.txHistory.${cacheKey}`,
+            fetch: fetchEffect,
+            interval: Duration.millis(provider.pollingInterval),
+            walletEvents: {
+              eventBus,
+              chainId: provider.chainId,
+              address,
+              types: ["tx:confirmed", "tx:sent"],
+            },
+          })
+
+          const stopAll = source.stop
+          provider._txHistorySources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          })
+
+          return source
         })
       )
 
-      const source = yield* createDependentSource({
-        name: `etherscan-v2.${provider.chainId}.balance`,
-        dependsOn: txHistorySource.ref,
-        hasChanged: hasTransactionListChanged,
-        fetch: () => fetchEffect,
-      })
+      provider._txHistoryCreations.set(cacheKey, createPromise)
 
-      return source
+      try {
+        const source = await createPromise
+        return wrapSharedSource(source)
+      } finally {
+        provider._txHistoryCreations.delete(cacheKey)
+      }
+    })
+  }
+
+  private releaseSharedTxHistorySource(key: string): Effect.Effect<void> {
+    const provider = this
+    return Effect.gen(function* () {
+      const entry = provider._txHistorySources.get(key)
+      if (!entry) return
+      entry.refCount -= 1
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll
+        provider._txHistorySources.delete(key)
+      }
+    })
+  }
+
+  private getSharedBalanceSource(address: string): Effect.Effect<DataSource<BalanceOutput>> {
+    const provider = this
+    const cacheKey = address.toLowerCase()
+    const symbol = this.symbol
+    const decimals = this.decimals
+
+    const wrapSharedSource = (source: DataSource<BalanceOutput>): DataSource<BalanceOutput> => ({
+      ...source,
+      stop: provider.releaseSharedBalanceSource(cacheKey),
+    })
+
+    const cached = provider._balanceSources.get(cacheKey)
+    if (cached) {
+      cached.refCount += 1
+      return Effect.succeed(wrapSharedSource(cached.source))
+    }
+
+    const pending = provider._balanceCreations.get(cacheKey)
+    if (pending) {
+      return Effect.promise(async () => {
+        const source = await pending
+        const entry = provider._balanceSources.get(cacheKey)
+        if (entry) {
+          entry.refCount += 1
+        }
+        return wrapSharedSource(source)
+      })
+    }
+
+    return Effect.promise(async () => {
+      const createPromise = Effect.runPromise(
+        Effect.gen(function* () {
+          const txHistorySource = yield* provider.getSharedTxHistorySource(address)
+
+          const source = yield* createDependentSource({
+            name: `etherscan-v2.${provider.chainId}.balance`,
+            dependsOn: txHistorySource.ref,
+            hasChanged: hasTransactionListChanged,
+            fetch: (_dep, forceRefresh) =>
+              provider.fetchBalance(address, forceRefresh).pipe(
+                Effect.map((raw): BalanceOutput => {
+                  if (raw.status === "0" || typeof raw.result !== "string") {
+                    throw new HttpError("API rate limited", 429)
+                  }
+                  const balanceValue = (raw.result as string).startsWith("0x")
+                    ? BigInt(raw.result as string).toString()
+                    : raw.result as string
+                  return {
+                    amount: Amount.fromRaw(balanceValue, decimals, symbol),
+                    symbol,
+                  }
+                })
+              ),
+          })
+
+          const stopAll = Effect.all([source.stop, txHistorySource.stop]).pipe(Effect.asVoid)
+
+          provider._balanceSources.set(cacheKey, {
+            source,
+            refCount: 1,
+            stopAll,
+          })
+
+          return source
+        })
+      )
+
+      provider._balanceCreations.set(cacheKey, createPromise)
+
+      try {
+        const source = await createPromise
+        return wrapSharedSource(source)
+      } finally {
+        provider._balanceCreations.delete(cacheKey)
+      }
+    })
+  }
+
+  private releaseSharedBalanceSource(key: string): Effect.Effect<void> {
+    const provider = this
+    return Effect.gen(function* () {
+      const entry = provider._balanceSources.get(key)
+      if (!entry) return
+      entry.refCount -= 1
+      if (entry.refCount <= 0) {
+        yield* entry.stopAll
+        provider._balanceSources.delete(key)
+      }
     })
   }
 
   // ==================== HTTP Fetch Effects ====================
 
-  private fetchBalance(address: string): Effect.Effect<ApiResponse, FetchError> {
-    return httpFetch({
+  private fetchBalance(address: string, forceRefresh = false): Effect.Effect<ApiResponse, FetchError> {
+    return httpFetchCached({
       url: this.buildUrl({
         module: "account",
         action: "balance",
@@ -266,11 +402,12 @@ export class EtherscanV2ProviderEffect extends EvmIdentityMixin(EvmTransactionMi
         tag: "latest",
       }),
       schema: ApiResponseSchema,
+      cacheStrategy: forceRefresh ? "network-first" : "cache-first",
     })
   }
 
-  private fetchTransactionHistory(params: TxHistoryParams): Effect.Effect<ApiResponse, FetchError> {
-    return httpFetch({
+  private fetchTransactionHistory(params: TxHistoryParams, forceRefresh = false): Effect.Effect<ApiResponse, FetchError> {
+    return httpFetchCached({
       url: this.buildUrl({
         module: "account",
         action: "txlist",
@@ -280,6 +417,7 @@ export class EtherscanV2ProviderEffect extends EvmIdentityMixin(EvmTransactionMi
         sort: "desc",
       }),
       schema: ApiResponseSchema,
+      cacheStrategy: forceRefresh ? "network-first" : "cache-first",
     })
   }
 }

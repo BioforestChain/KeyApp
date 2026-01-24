@@ -63,6 +63,7 @@ export const TxHistoryParamsSchema = z.object({
   address: z.string(),
   limit: z.number().optional().default(20),
   page: z.number().optional(),
+  contractAddress: z.string().optional(),
 })
 export type TxHistoryParams = z.infer<typeof TxHistoryParamsSchema>
 
