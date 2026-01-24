@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import { TransactionItem, type TransactionInfo } from './transaction-item';
 import { EmptyState, SkeletonList } from '@biochain/key-ui';
+import { getLocale } from '../common';
 
 interface TransactionListProps {
   transactions: TransactionInfo[];
@@ -15,25 +17,17 @@ interface TransactionListProps {
   testId?: string | undefined;
 }
 
-function groupByDate(transactions: TransactionInfo[]): Map<string, TransactionInfo[]> {
+function groupByDate(transactions: TransactionInfo[], locale: string): Map<string, TransactionInfo[]> {
   const groups = new Map<string, TransactionInfo[]>();
-  const now = new Date();
-  const today = now.toDateString();
-  const yesterday = new Date(now.getTime() - 86400000).toDateString();
 
   transactions.forEach((tx) => {
     // timestamp 可能是 number (毫秒), string, 或 Date 对象
     const date = tx.timestamp instanceof Date ? tx.timestamp : new Date(tx.timestamp);
-    const dateStr = date.toDateString();
-
-    let key: string;
-    if (dateStr === today) {
-      key = '今天'; // i18n-ignore: date grouping
-    } else if (dateStr === yesterday) {
-      key = '昨天'; // i18n-ignore: date grouping
-    } else {
-      key = date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-    }
+    const key = date.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 
     if (!groups.has(key)) {
       groups.set(key, []);
@@ -55,6 +49,9 @@ export function TransactionList({
   showChainIcon = false,
   testId,
 }: TransactionListProps) {
+  const { i18n } = useTranslation();
+  const locale = getLocale(i18n.language);
+
   if (loading) {
     return <SkeletonList count={5} {...(className && { className })} />;
   }
@@ -80,7 +77,7 @@ export function TransactionList({
     );
   }
 
-  const grouped = groupByDate(transactions);
+  const grouped = groupByDate(transactions, locale);
 
   return (
     <div {...(testId && { 'data-testid': testId })} className={cn('space-y-4', className)}>
