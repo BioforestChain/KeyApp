@@ -53,14 +53,20 @@ export interface TransmitAssetTypeListResponse {
   }
 }
 
+// TRON 交易体
+export interface TronTransaction {
+  txID: string
+  raw_data: unknown
+  raw_data_hex: string
+  signature?: string[]
+}
+
 // 外链发起方交易体
 export interface ExternalFromTrJson {
   eth?: { signTransData: string }
   bsc?: { signTransData: string }
-  /** TRON TRX 转账的签名交易数据 */
-  tron?: { signTransData: string }
-  /** TRON TRC20 代币转账的签名交易数据 */
-  trc20?: { signTransData: string }
+  tron?: TronTransaction
+  trc20?: TronTransaction
 }
 
 // 内链发起方交易体
@@ -128,7 +134,7 @@ export enum SWAP_RECORD_STATE {
 
 // 交易信息
 export interface RecordTxInfo {
-  chainName: ChainName
+  chainName: string
   amount: string
   asset: string
   decimals: number
@@ -137,7 +143,7 @@ export interface RecordTxInfo {
 
 // 交易详情信息
 export interface RecordDetailTxInfo {
-  chainName: ChainName
+  chainName: string
   address: string
   txId?: string
   txHash?: string
@@ -151,7 +157,7 @@ export interface TransmitRecord {
   orderState: SWAP_ORDER_STATE_ID
   fromTxInfo?: RecordTxInfo
   toTxInfo?: RecordTxInfo
-  createdTime: string
+  createdTime: string | number
 }
 
 // 传送记录详情
@@ -161,7 +167,7 @@ export interface TransmitRecordDetail {
   fromTxInfo?: RecordDetailTxInfo
   toTxInfo?: RecordDetailTxInfo
   orderFailReason?: string
-  updatedTime: string
+  updatedTime: string | number
   swapRatio: number
 }
 

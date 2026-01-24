@@ -320,6 +320,14 @@ class TronWalletBase {
   }
 }
 
+function estimateTronFee(rawTxHex: string, isToken: boolean): string {
+  const rawLength = Math.max(rawTxHex.length, 0)
+  const bandwidth = BigInt(Math.floor(rawLength / 2) + 68)
+  const bandwidthFee = bandwidth * 1000n // 1 bandwidth = 0.001 TRX = 1000 sun
+  const tokenExtra = isToken ? 10_000_000n : 0n // TRC20 预估额外能量消耗
+  return (bandwidthFee + tokenExtra).toString()
+}
+
 // ==================== Provider 实现 ====================
 
 export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionMixin(TronWalletBase)) implements ApiProvider {
@@ -505,14 +513,25 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
     const transferIntent = intent as TransferIntent
     const fromHex = tronAddressToHex(transferIntent.from)
     const toHex = tronAddressToHex(transferIntent.to)
+    const hasCustomFee = Boolean(transferIntent.fee)
     const feeRaw = transferIntent.fee?.raw ?? "0"
-    const isToken = Boolean(transferIntent.tokenAddress)
-    const assetSymbol = transferIntent.tokenAddress
-      ? await this.resolveTokenSymbol(transferIntent.tokenAddress)
-      : this.symbol
+    const tokenAddress = transferIntent.tokenAddress?.trim()
+    const isToken = Boolean(tokenAddress)
+    let assetSymbol = this.symbol
+    if (tokenAddress) {
+      try {
+        assetSymbol = await this.resolveTokenSymbol(tokenAddress)
+      } catch (error) {
+        console.warn("[tronwallet] resolveTokenSymbol failed", error)
+        assetSymbol = tokenAddress
+      }
+    }
 
-    if (isToken && transferIntent.tokenAddress) {
-      const contractHex = tronAddressToHex(transferIntent.tokenAddress)
+    if (isToken && tokenAddress) {
+      const contractHex = tronAddressToHex(tokenAddress)
+      const feeLimit = hasCustomFee && Number.isFinite(Number(feeRaw))
+        ? Number(feeRaw)
+        : 100_000_000
       const raw = await Effect.runPromise(
         httpFetch({
           url: `${this.baseUrl}/trans/contract`,
@@ -523,20 +542,23 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
             function_selector: "transfer(address,uint256)",
             input: [
               { type: "address", value: toHex },
-              { type: "uint256", value: transferIntent.amount.raw },
+              { type: "uint256", value: transferIntent.amount.toRawString() },
             ],
-            fee_limit: 100_000_000,
+            fee_limit: feeLimit,
             call_value: 0,
           },
         })
       )
 
       const rawTx = this.extractTrc20Transaction(raw)
+      const estimatedFeeRaw = hasCustomFee
+        ? feeRaw
+        : estimateTronFee(rawTx.raw_data_hex ?? "", true)
       const detail: TronWalletBroadcastDetail = {
         from: fromHex,
         to: toHex,
         amount: transferIntent.amount.raw,
-        fee: feeRaw,
+        fee: estimatedFeeRaw,
         assetSymbol,
       }
 
@@ -564,11 +586,14 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
       })
     )
 
+    const estimatedFeeRaw = hasCustomFee
+      ? feeRaw
+      : estimateTronFee(rawTx.raw_data_hex ?? "", false)
     const detail: TronWalletBroadcastDetail = {
       from: fromHex,
       to: toHex,
       amount: transferIntent.amount.raw,
-      fee: feeRaw,
+      fee: estimatedFeeRaw,
       assetSymbol,
     }
 
@@ -1319,18 +1344,30 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
   }
 
   private async resolveTokenSymbol(contractAddress: string): Promise<string> {
-    const hex = normalizeTronHex(contractAddress)
+    const trimmed = contractAddress.trim()
+    if (!trimmed) return contractAddress
+    const hex = normalizeTronHex(trimmed)
     const response = await Effect.runPromise(this.fetchTokenList(false))
-    const match = response.result.data.find((item) => normalizeTronHex(item.address) === hex)
+    const match = response.result.data.find((item) => item.address && normalizeTronHex(item.address) === hex)
     return match?.symbol ?? contractAddress
   }
 
   private extractTrc20Transaction(raw: unknown): TronRawTransaction {
     if (raw && typeof raw === "object") {
       const record = raw as Record<string, unknown>
+      if ("success" in record && record.success === false) {
+        throw new ChainServiceError(ChainErrorCodes.TX_BUILD_FAILED, "TRC20 transaction build failed")
+      }
       const transaction = record["transaction"]
       if (transaction && typeof transaction === "object" && "txID" in transaction) {
         return transaction as TronRawTransaction
+      }
+      const result = record["result"]
+      if (result && typeof result === "object") {
+        const nested = (result as Record<string, unknown>)["transaction"]
+        if (nested && typeof nested === "object" && "txID" in nested) {
+          return nested as TronRawTransaction
+        }
       }
       if ("txID" in record) {
         return record as TronRawTransaction

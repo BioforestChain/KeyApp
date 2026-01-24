@@ -228,7 +228,9 @@ export default function App() {
     await forgeHook.forge({
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
+      externalDecimals: selectedOption.externalInfo.decimals,
       depositAddress: selectedOption.externalInfo.depositAddress,
+      externalContract: selectedOption.externalInfo.contract,
       amount,
       externalAccount,
       internalChain: selectedOption.internalChain,
@@ -254,6 +256,12 @@ export default function App() {
     }
     return groups;
   }, [forgeOptions]);
+
+  const externalDecimals = selectedOption?.externalInfo.decimals;
+  const contractAddress = selectedOption?.externalInfo.contract?.trim();
+  const contractDisplay = contractAddress
+    ? `${contractAddress.slice(0, 6)}...${contractAddress.slice(-4)}`
+    : null;
 
   const handleSelectOption = (option: ForgeOption) => {
     setSelectedOption(option);
@@ -442,6 +450,17 @@ export default function App() {
                       <div className="text-muted-foreground font-mono text-xs break-all">
                         {externalAccount?.address}
                       </div>
+                      <div className="text-muted-foreground space-y-1 text-xs">
+                        <div>{t('forge.amountHint', { symbol: selectedOption.externalAsset })}</div>
+                        {typeof externalDecimals === 'number' && (
+                          <div>{t('forge.decimalsHint', { decimals: externalDecimals })}</div>
+                        )}
+                        {contractDisplay && (
+                          <div title={contractAddress ?? undefined}>
+                            {t('forge.contractHint', { address: contractDisplay })}
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -568,6 +587,17 @@ export default function App() {
                         <span className="max-w-32 truncate font-mono text-xs">
                           {selectedOption.externalInfo.depositAddress.slice(0, 10)}...
                         </span>
+                      </div>
+                      <div className="text-muted-foreground space-y-1 text-xs">
+                        <div>{t('forge.amountHint', { symbol: selectedOption.externalAsset })}</div>
+                        {typeof externalDecimals === 'number' && (
+                          <div>{t('forge.decimalsHint', { decimals: externalDecimals })}</div>
+                        )}
+                        {contractDisplay && (
+                          <div title={contractAddress ?? undefined}>
+                            {t('forge.contractHint', { address: contractDisplay })}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

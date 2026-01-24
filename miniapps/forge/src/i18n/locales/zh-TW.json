@@ -20,7 +20,10 @@
     "network": "網絡",
     "preview": "預覽交易",
     "confirm": "確認充值",
-    "continue": "繼續"
+    "continue": "繼續",
+    "amountHint": "數量單位：{{symbol}}",
+    "decimalsHint": "精度：{{decimals}} 位",
+    "contractHint": "合約：{{address}}"
   },
   "redemption": {
     "title": "贖回",

@@ -6,8 +6,8 @@
 /** 外链名称 */
 export type ExternalChainName = 'ETH' | 'BSC' | 'TRON'
 
-/** 内链名称 */
-export type InternalChainName = 'bfmeta' | 'bfchain' | 'ccchain' | 'pmchain'
+/** 内链名称（后端可能返回新增链名，保持开放） */
+export type InternalChainName = 'bfmeta' | 'bfchain' | 'ccchain' | 'pmchain' | (string & {})
 
 /** 外链资产信息 */
 export interface ExternalAssetInfoItem {
@@ -29,9 +29,9 @@ export interface ExternalAssetInfoItem {
 export interface RedemptionConfig {
   enable: boolean
   /** 单笔赎回下限（内链最小单位） */
-  min: string
+  min: string | number
   /** 单笔赎回上限（内链最小单位） */
-  max: string
+  max: string | number
   /** 不同链的手续费 */
   fee: Record<string, string>
   /** 手续费比例 */
@@ -68,12 +68,23 @@ export interface RechargeSupportResDto {
   recharge: RechargeConfig
 }
 
+/** TRON 交易体 */
+export interface TronTransaction {
+  txID: string
+  raw_data: unknown
+  raw_data_hex: string
+  signature?: string[]
+}
+
+/** TRC20 交易体（与 TRON 结构一致） */
+export type Trc20Transaction = TronTransaction
+
 /** 外链交易体 */
 export interface FromTrJson {
   eth?: { signTransData: string }
   bsc?: { signTransData: string }
-  tron?: unknown
-  trc20?: unknown
+  tron?: TronTransaction
+  trc20?: Trc20Transaction
 }
 
 /** 内链接收方信息 */
@@ -166,7 +177,7 @@ export interface RechargeRecord {
   orderId: string
   state: RECHARGE_RECORD_STATE
   orderState: RECHARGE_ORDER_STATE_ID
-  createdTime: string
+  createdTime: string | number
   fromTxInfo: RecordTxInfo
   toTxInfoArray: RecordTxInfo[]
 }
@@ -182,10 +193,12 @@ export interface RechargeRecordsReqDto {
 
 /** 分页数据 */
 export interface PageData<T> {
-  list: T[]
+  dataList: T[]
   total: number
   page: number
   pageSize: number
+  hasMore: boolean
+  skip: number
 }
 
 /** 充值记录响应 */
@@ -209,7 +222,7 @@ export interface RechargeRecordDetailResDto {
   orderId: string
   state: RECHARGE_RECORD_STATE
   orderState: RECHARGE_ORDER_STATE_ID
-  createdTime: string
+  createdTime: string | number
   fromTxInfo: RecordDetailTxInfo
   toTxInfos: Record<string, RecordDetailTxInfo>
 }
@@ -294,10 +307,10 @@ export interface RedemptionRecord {
   orderId: string
   state: REDEMPTION_RECORD_STATE
   orderState: REDEMPTION_ORDER_STATE_ID
-  fromTxInfo: RecordTxInfo
-  toTxInfo: RecordTxInfo
-  redemptionFee: string
-  createdTime: string
+  fromTxInfo: RedemptionRecordTxInfo
+  toTxInfo: RedemptionRecordTxInfo
+  redemptionFee?: string
+  createdTime: string | number
 }
 
 /** 赎回记录响应 */
@@ -309,14 +322,30 @@ export interface RedemptionRecordDetailReqDto {
 }
 
 /** 赎回记录详情响应 */
+export interface RedemptionRecordTxInfo {
+  chainName: string
+  amount: string
+  asset: string
+  decimals: number
+  assetLogoUrl?: string
+}
+
+export interface RedemptionRecordDetailTxInfo {
+  chainName: string
+  address: string
+  txId?: string
+  txHash?: string
+  contractAddress?: string
+}
+
 export interface RedemptionRecordDetailResDto {
   state: REDEMPTION_RECORD_STATE
   orderState: REDEMPTION_ORDER_STATE_ID
   redemptionRatio: number
-  fromTxInfo: RecordDetailTxInfo
-  toTxInfo: RecordDetailTxInfo
+  fromTxInfo: RedemptionRecordDetailTxInfo
+  toTxInfo: RedemptionRecordDetailTxInfo
   orderFailReason?: string
-  updatedTime: string
+  updatedTime?: string | number
 }
 
 // ============================================================================

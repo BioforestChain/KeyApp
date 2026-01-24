@@ -46,6 +46,10 @@ export interface EcosystemTransferParams {
   amount: string; // RPC 参数是字符串
   chain: string;
   asset?: string;
+  /** 代币合约地址（用于 EVM/TRON Token 转账） */
+  tokenAddress?: string;
+  /** 资产精度（用于 EVM/TRON Token 转账） */
+  assetDecimals?: number;
 }
 
 /**

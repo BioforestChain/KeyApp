@@ -18,6 +18,7 @@ const mockForgeParams: ForgeParams = {
   externalChain: 'ETH',
   externalAsset: 'ETH',
   depositAddress: '0x1234567890abcdef1234567890abcdef12345678',
+  externalContract: undefined,
   amount: '1.5',
   externalAccount: { address: '0xabcdef1234567890abcdef1234567890abcdef12', chain: 'eth', publicKey: '0x' },
   internalChain: 'bfmeta',
@@ -231,6 +232,7 @@ describe('useForge', () => {
       externalChain: 'TRON',
       externalAsset: 'TRX',
       depositAddress: tronDepositAddress,
+      externalContract: undefined,
       externalAccount: { address: 'TUserAddress123456789012345678901234', chain: 'tron', publicKey: '' },
     }
 
@@ -249,6 +251,39 @@ describe('useForge', () => {
 
     const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
     expect(submitCall.fromTrJson).toHaveProperty('tron')
+  })
+
+  it('should build correct fromTrJson for TRC20 when contract is provided', async () => {
+    const tronDepositAddress = 'TZ4UXDV5ZhNW7fb2AMSbgfAEZ7hWsnYS2g'
+
+    mockBio.request
+      .mockResolvedValueOnce({ txHash: 'unsigned' })
+      .mockResolvedValueOnce({ data: { txID: 'tronTxId123', signature: ['sig'] } })
+      .mockResolvedValueOnce({ signature: 'sig', publicKey: 'pubkey' })
+
+    vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
+
+    const { result } = renderHook(() => useForge())
+
+    const tronParams: ForgeParams = {
+      ...mockForgeParams,
+      externalChain: 'TRON',
+      externalAsset: 'USDT',
+      depositAddress: tronDepositAddress,
+      externalContract: 'TABCDEF1234567890abcdef1234567890abcd',
+      externalAccount: { address: 'TUserAddress123456789012345678901234', chain: 'tron', publicKey: '' },
+    }
+
+    act(() => {
+      result.current.forge(tronParams)
+    })
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('success')
+    })
+
+    const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
+    expect(submitCall.fromTrJson).toHaveProperty('trc20')
   })
 
   it('should handle TRON transaction with 0x address format error', async () => {

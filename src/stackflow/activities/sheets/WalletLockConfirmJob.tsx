@@ -44,6 +44,7 @@ function WalletLockConfirmJobContent() {
 
   const [pattern, setPattern] = useState<number[]>([]);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const errorResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -70,6 +71,7 @@ function WalletLockConfirmJobContent() {
       errorResetTimerRef.current = null;
     }
     setError(false);
+    setErrorMessage(null);
   }, []);
 
   // 图案变化时，如果处于错误状态则立即清除
@@ -97,16 +99,20 @@ function WalletLockConfirmJobContent() {
           pop();
         } else {
           setError(true);
+          setErrorMessage(t("walletLock.error"));
           setPattern([]);
           errorResetTimerRef.current = setTimeout(() => {
             setError(false);
+            setErrorMessage(null);
           }, 1500);
         }
-      } catch {
+      } catch (err) {
         setError(true);
+        setErrorMessage(err instanceof Error ? err.message : t("walletLock.error"));
         setPattern([]);
         errorResetTimerRef.current = setTimeout(() => {
           setError(false);
+          setErrorMessage(null);
         }, 1500);
       } finally {
         setIsVerifying(false);
@@ -169,6 +175,11 @@ function WalletLockConfirmJobContent() {
             disabled={isVerifying}
             data-testid="wallet-lock-pattern"
           />
+          {error && errorMessage && (
+            <p className="mt-2 text-center text-sm text-destructive">
+              {errorMessage}
+            </p>
+          )}
         </div>
 
         {/* Biometric & Cancel */}

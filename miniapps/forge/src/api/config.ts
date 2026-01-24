@@ -1,12 +1,12 @@
 /**
  * API Configuration
  *
- * Default base URL is https://walletapi.bfmeta.info (same as other BioForest services).
+ * Official COT base URL: https://walletapi.bf-meta.org/cot
  * Can be overridden via VITE_COT_API_BASE_URL environment variable.
  */
 
-/** Default API Base URL (used by all BioForest chain services) */
-const DEFAULT_API_BASE_URL = 'https://walletapi.bfmeta.info'
+/** Default API Base URL (official COT host) */
+const DEFAULT_API_BASE_URL = 'https://walletapi.bf-meta.org'
 
 /** API Base URL - uses default or environment override */
 export const API_BASE_URL =
@@ -23,19 +23,19 @@ export const API_ENDPOINTS = {
   // Recharge Endpoints (充值)
   // ============================================================================
   /** 获取支持的充值配置 */
-  RECHARGE_SUPPORT: '/cotbfm/recharge/support',
+  RECHARGE_SUPPORT: '/cot/recharge/support',
   /** 发起充值（锻造） */
-  RECHARGE_V2: '/cotbfm/recharge/V2',
+  RECHARGE_V2: '/cot/recharge/V2',
   /** 获取合约池信息 */
-  CONTRACT_POOL_INFO: '/cotbfm/recharge/contractPoolInfo',
+  CONTRACT_POOL_INFO: '/cot/recharge/contractPoolInfo',
   /** 获取充值记录列表 */
-  RECHARGE_RECORDS: '/cotbfm/recharge/records',
+  RECHARGE_RECORDS: '/cot/recharge/records',
   /** 获取充值记录详情 */
-  RECHARGE_RECORD_DETAIL: '/cotbfm/recharge/recordDetail',
+  RECHARGE_RECORD_DETAIL: '/cot/recharge/recordDetail',
   /** 充值外链上链重试 */
-  RECHARGE_RETRY_EXTERNAL: '/cotbfm/recharge/retryExternalOnChain',
+  RECHARGE_RETRY_EXTERNAL: '/cot/recharge/retryExternalOnChain',
   /** 充值内链上链重试 */
-  RECHARGE_RETRY_INTERNAL: '/cotbfm/recharge/retryInternalOnChain',
+  RECHARGE_RETRY_INTERNAL: '/cot/recharge/retryInternalOnChain',
 
   // ============================================================================
   // Redemption Endpoints (赎回)
@@ -55,11 +55,11 @@ export const API_ENDPOINTS = {
   // Legacy aliases (向后兼容)
   // ============================================================================
   /** @deprecated Use RECHARGE_RECORDS */
-  RECORDS: '/cotbfm/recharge/records',
+  RECORDS: '/cot/recharge/records',
   /** @deprecated Use RECHARGE_RECORD_DETAIL */
-  RECORD_DETAIL: '/cotbfm/recharge/recordDetail',
+  RECORD_DETAIL: '/cot/recharge/recordDetail',
   /** @deprecated Use RECHARGE_RETRY_EXTERNAL */
-  RETRY_EXTERNAL: '/cotbfm/recharge/retryExternalOnChain',
+  RETRY_EXTERNAL: '/cot/recharge/retryExternalOnChain',
   /** @deprecated Use RECHARGE_RETRY_INTERNAL */
-  RETRY_INTERNAL: '/cotbfm/recharge/retryInternalOnChain',
+  RETRY_INTERNAL: '/cot/recharge/retryInternalOnChain',
 } as const

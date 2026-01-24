@@ -7,6 +7,7 @@ import { WalletTab } from "./tabs/WalletTab";
 import { EcosystemTab } from "./tabs/EcosystemTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { useFlow } from "../stackflow";
+import { superjson } from "@biochain/chain-effect";
 import type { BioAccount, EcosystemTransferParams, SignedTransaction } from "@/services/ecosystem";
 import {
   getBridge,
@@ -110,6 +111,10 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
     });
 
     setSigningDialog(async (params) => {
+      const resolvedChain = walletStore.state.wallets
+        .flatMap((wallet) => wallet.chainAddresses)
+        .find((ca) => ca.address === params.address)?.chain
+
       return new Promise<{ signature: string; publicKey: string } | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 
@@ -131,7 +136,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
           address: params.address,
           appName: params.app.name,
           appIcon: params.app.icon ?? "",
-          chainName: "bioforest",
+          chainName: resolvedChain ?? "bioforest",
         });
       });
     });
@@ -185,7 +190,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
           appIcon: params.app.icon ?? "",
           from: params.from,
           chain: params.chain,
-          unsignedTx: JSON.stringify(params.unsignedTx),
+          unsignedTx: superjson.stringify(params.unsignedTx),
         });
       });
     });
@@ -360,7 +365,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
 
         window.addEventListener("crypto-authorize-confirm", handleResult, { once: true });
         push("CryptoAuthorizeJob", {
-          actions: JSON.stringify(params.actions),
+          actions: superjson.stringify(params.actions),
           duration: params.duration,
           address: params.address,
           chainId: params.chainId,

@@ -48,9 +48,9 @@ function SigningConfirmJobContent() {
       setIsSubmitting(true);
 
       try {
-        const encryptedSecret = currentWallet?.encryptedMnemonic;
-        if (!encryptedSecret) {
-          return false;
+        const encryptedSecret = targetWallet?.encryptedMnemonic ?? currentWallet?.encryptedMnemonic;
+        if (!encryptedSecret || !targetWallet) {
+          throw new Error(t('signingAddressNotFound'));
         }
 
         // 创建签名服务 (使用临时 eventId)
@@ -81,7 +81,7 @@ function SigningConfirmJobContent() {
         pop();
         return true;
       } catch (error) {
-        return false;
+        throw error instanceof Error ? error : new Error(t('walletLock.error'));
       } finally {
         setIsSubmitting(false);
       }
@@ -91,7 +91,7 @@ function SigningConfirmJobContent() {
     push('WalletLockConfirmJob', {
       title: t('sign'),
     });
-  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t]);
+  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t, targetWallet]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('signing-confirm', {

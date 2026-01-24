@@ -11,6 +11,7 @@ import type {
   RedemptionV2ReqDto,
   RedemptionTransRemark,
 } from '@/api/types'
+import { superjson } from '@biochain/chain-effect'
 
 export type RedemptionStep = 
   | 'idle' 
@@ -43,6 +44,10 @@ export interface RedemptionParams {
   externalAsset: string
   /** 内链币发行地址 (recipientId for DestroyAsset) */
   applyAddress: string
+}
+
+function toJsonSafe(value: unknown): unknown {
+  return superjson.serialize(value).json
 }
 
 export function useRedemption() {
@@ -101,12 +106,14 @@ export function useRedemption() {
       // Step 2: Sign transaction
       setState({ step: 'signing', orderId: null, error: null })
 
+      const unsignedTxSafe = toJsonSafe(unsignedTx)
+
       const signedTx = await window.bio.request<{ trJson: unknown }>({
         method: 'bio_signTransaction',
         params: [{
           from: internalAccount.address,
           chain: internalChain,
-          unsignedTx,
+          unsignedTx: unsignedTxSafe,
         }],
       })
 

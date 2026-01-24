@@ -300,7 +300,7 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
               </div>
               {selectedOption.rechargeItem.redemption && (
                 <div className="text-xs text-muted-foreground">
-                  {t('redemption.limits')}: {formatAmount(selectedOption.rechargeItem.redemption.min)} - {formatAmount(selectedOption.rechargeItem.redemption.max)}
+                  {t('redemption.limits')}: {formatAmount(String(selectedOption.rechargeItem.redemption.min))} - {formatAmount(String(selectedOption.rechargeItem.redemption.max))}
                 </div>
               )}
             </CardContent>

@@ -7,6 +7,8 @@ const mockConfig = {
   bfmeta: {
     BFM: {
       enable: true,
+      chainName: 'bfmeta',
+      assetType: 'BFM',
       logo: '',
       applyAddress: 'b0000000000000000000000000000000000000000',
       supportChain: {

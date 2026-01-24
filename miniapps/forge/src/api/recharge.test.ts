@@ -8,7 +8,7 @@ global.fetch = mockFetch
 describe('Forge rechargeApi', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubEnv('VITE_COT_API_BASE_URL', 'https://walletapi.bfmeta.info')
+    vi.stubEnv('VITE_COT_API_BASE_URL', 'https://walletapi.bf-meta.org')
   })
 
   afterEach(() => {
@@ -38,7 +38,7 @@ describe('Forge rechargeApi', () => {
     const result = await rechargeApi.getSupport()
     expect(result).toEqual(mockResult)
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://walletapi.bfmeta.info/cotbfm/recharge/support',
+      'https://walletapi.bf-meta.org/cot/recharge/support',
       expect.any(Object),
     )
   })
@@ -52,5 +52,16 @@ describe('Forge rechargeApi', () => {
     const promise = rechargeApi.getSupport()
     await expect(promise).rejects.toThrow(ApiError)
     await expect(promise).rejects.toThrow('Not allowed')
+  })
+
+  it('should throw ApiError when success is false without result', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ success: false, message: 'Bad Request', error: { code: 400 } }),
+    })
+
+    const promise = rechargeApi.getSupport()
+    await expect(promise).rejects.toThrow(ApiError)
+    await expect(promise).rejects.toThrow('Bad Request')
   })
 })

@@ -28,6 +28,7 @@
   "dependencies": {
     "@base-ui/react": "^1.0.0",
     "@biochain/bio-sdk": "workspace:*",
+    "@biochain/chain-effect": "workspace:*",
     "@biochain/key-ui": "workspace:*",
     "@biochain/key-utils": "workspace:*",
     "@biochain/keyapp-sdk": "workspace:*",
