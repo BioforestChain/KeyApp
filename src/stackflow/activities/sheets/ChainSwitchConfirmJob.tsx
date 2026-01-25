@@ -12,7 +12,7 @@ import { MiniappSheetHeader } from '@/components/ecosystem';
 import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { parseHexChainId, getKeyAppChainId } from '@biochain/bio-sdk';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service';
 import type { ChainType } from '@/stores';
 
 type ChainSwitchConfirmJobParams = {

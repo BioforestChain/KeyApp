@@ -23,7 +23,7 @@ import {
 import type { StreamInstance } from "@biochain/chain-effect"
 import type { ApiProvider, Direction, BalanceOutput, BlockHeightOutput, TransactionsOutput, AddressParams, TxHistoryParams } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
 import { BitcoinIdentityMixin } from "../bitcoin/identity-mixin"
 import { BitcoinTransactionMixin } from "../bitcoin/transaction-mixin"

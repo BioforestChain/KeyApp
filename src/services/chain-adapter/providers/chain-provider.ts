@@ -9,7 +9,7 @@ import { Effect, Stream } from "effect"
 import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from "react"
 import { createStreamInstance, type StreamInstance, type FetchError } from "@biochain/chain-effect"
 import { isChainDebugEnabled } from "@/services/chain-adapter/debug"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import type {
   ApiProvider,
   ApiProviderMethod,

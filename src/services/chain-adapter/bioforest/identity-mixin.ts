@@ -10,7 +10,7 @@ import {
     isValidBioforestAddress,
     signMessage as bioforestSign,
 } from '@/lib/crypto'
-import { chainConfigService } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service';
 import type { IIdentityService, Address, Signature } from '../types'
 
 function bytesToHex(bytes: Uint8Array): string {

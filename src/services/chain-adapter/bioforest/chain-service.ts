@@ -4,7 +4,7 @@
 
 import { Effect } from 'effect'
 import type { ChainConfig } from '@/services/chain-config'
-import { chainConfigService } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service';
 import { httpFetch } from '@biochain/chain-effect'
 import { Amount } from '@/types/amount'
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'

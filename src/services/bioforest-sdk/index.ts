@@ -219,7 +219,7 @@ async function loadBundle(): Promise<BioforestChainBundle> {
  */
 export async function getBioforestCore(chainId: string): Promise<BioforestChainBundleCore> {
   // 使用 chain-config 作为唯一可信源获取 genesisBlock 路径
-  const { chainConfigService } = await import('@/services/chain-config')
+  const { chainConfigService } = await import('@/services/chain-config/service')
   const genesisBlockPath = chainConfigService.getBiowalletGenesisBlock(chainId)
 
   if (!genesisBlockPath) {

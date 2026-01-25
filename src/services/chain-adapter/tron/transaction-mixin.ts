@@ -9,7 +9,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
-import { chainConfigService } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service';
 import type {
     ITransactionService,
     TransactionIntent,

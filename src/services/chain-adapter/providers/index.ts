@@ -29,7 +29,7 @@ export { MoralisProviderEffect, createMoralisProviderEffect } from './moralis-pr
 // 工厂函数
 import type { ApiProvider, ApiProviderFactory } from './types';
 import type { ParsedApiEntry } from '@/services/chain-config';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service';
 import { ChainProvider } from './chain-provider';
 
 import { createEtherscanV1ProviderEffect } from './etherscan-v1-provider.effect';

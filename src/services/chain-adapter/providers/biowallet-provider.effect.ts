@@ -38,7 +38,7 @@ import type {
 } from './types';
 import { setForgeInterval } from '../bioforest/fetch';
 import type { ParsedApiEntry } from '@/services/chain-config';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service';
 import { Amount } from '@/types/amount';
 import { BioforestIdentityMixin } from '../bioforest/identity-mixin';
 import { BioforestTransactionMixin } from '../bioforest/transaction-mixin';

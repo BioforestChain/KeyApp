@@ -33,7 +33,7 @@ import type {
   Transaction,
 } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
 import { TronIdentityMixin } from "../tron/identity-mixin"
 import { TronTransactionMixin } from "../tron/transaction-mixin"

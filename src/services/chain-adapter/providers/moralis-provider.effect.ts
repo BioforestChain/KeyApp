@@ -34,7 +34,7 @@ import type {
   TransactionStatusParams,
 } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
 import { EvmIdentityMixin } from "../evm/identity-mixin"
 import { EvmTransactionMixin } from "../evm/transaction-mixin"

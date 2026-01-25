@@ -13,7 +13,8 @@ import { getChainProvider } from '@/services/chain-adapter/providers';
 import { getWalletEventBus } from '@/services/chain-adapter/wallet-event-bus';
 import { defineServiceMeta } from '@/lib/service-meta';
 import { SignedTransactionSchema } from '@/services/chain-adapter/types';
-import { chainConfigService, type ChainConfig, type ChainKind } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service';
+import type { ChainConfig, ChainKind } from '@/services/chain-config';
 import { getForgeInterval } from '@/services/chain-adapter/bioforest/fetch';
 import { isChainDebugEnabled } from '@/services/chain-adapter/debug';
 
