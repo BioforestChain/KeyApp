@@ -35,6 +35,7 @@ import {
   type InternalChainName,
   type TransferAssetTransaction,
   type TronTransaction,
+  type Trc20Transaction,
   SWAP_ORDER_STATE_ID,
 } from './api';
 
@@ -53,20 +54,68 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isTronPayload(value: unknown): value is TronTransaction {
-  return isRecord(value)
+  if (!isRecord(value)) return false
+  if (typeof value.txID !== 'string') return false
+  if (typeof value.raw_data_hex !== 'string') return false
+  if (!('raw_data' in value)) return false
+  const rawData = value.raw_data
+  if (!isRecord(rawData)) return false
+  if (!Array.isArray(rawData.contract)) return false
+  const contract = rawData.contract[0]
+  if (!isRecord(contract)) return false
+  const parameter = contract.parameter
+  if (!isRecord(parameter)) return false
+  const paramValue = parameter.value
+  if (!isRecord(paramValue)) return false
+  return (
+    typeof paramValue.owner_address === 'string' &&
+    typeof paramValue.to_address === 'string' &&
+    typeof paramValue.amount === 'number'
+  )
 }
 
-function getTronSignedPayload(data: unknown, label: string): TronTransaction {
+function isTrc20Payload(value: unknown): value is Trc20Transaction {
+  if (!isRecord(value)) return false
+  if (typeof value.txID !== 'string') return false
+  if (typeof value.raw_data_hex !== 'string') return false
+  if (!('raw_data' in value)) return false
+  const rawData = value.raw_data
+  if (!isRecord(rawData)) return false
+  if (!Array.isArray(rawData.contract)) return false
+  const contract = rawData.contract[0]
+  if (!isRecord(contract)) return false
+  const parameter = contract.parameter
+  if (!isRecord(parameter)) return false
+  const paramValue = parameter.value
+  if (!isRecord(paramValue)) return false
+  return (
+    typeof paramValue.owner_address === 'string' &&
+    typeof paramValue.contract_address === 'string'
+  )
+}
+
+function getTronSignedPayload(data: unknown, label: 'TRON'): TronTransaction
+function getTronSignedPayload(data: unknown, label: 'TRC20'): Trc20Transaction
+function getTronSignedPayload(
+  data: unknown,
+  label: 'TRON' | 'TRC20',
+): TronTransaction | Trc20Transaction {
   if (isRecord(data) && 'signedTx' in data) {
     const maybeSigned = (data as { signedTx?: unknown }).signedTx
-    if (isTronPayload(maybeSigned)) {
+    if (label === 'TRC20' && isTrc20Payload(maybeSigned)) {
+      return maybeSigned
+    }
+    if (label === 'TRON' && isTronPayload(maybeSigned)) {
       return maybeSigned
     }
   }
-  if (!isTronPayload(data)) {
-    throw new Error(`Invalid ${label} transaction payload`)
+  if (label === 'TRC20' && isTrc20Payload(data)) {
+    return data
   }
-  return data
+  if (label === 'TRON' && isTronPayload(data)) {
+    return data
+  }
+  throw new Error(`Invalid ${label} transaction payload`)
 }
 
 function isTransferAssetTransaction(value: unknown): value is TransferAssetTransaction {
@@ -320,10 +369,11 @@ export default function App() {
       } else if (chainLower === 'bsc') {
         fromTrJson.bsc = { signTransData };
       } else if (isTronChain) {
-        const tronPayload = getTronSignedPayload(signedTx.data, isTrc20 ? 'TRC20' : 'TRON');
         if (isTrc20) {
+          const tronPayload = getTronSignedPayload(signedTx.data, 'TRC20');
           fromTrJson.trc20 = tronPayload;
         } else {
+          const tronPayload = getTronSignedPayload(signedTx.data, 'TRON');
           fromTrJson.tron = tronPayload;
         }
       } else {

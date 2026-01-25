@@ -3,80 +3,101 @@
  */
 
 import { z } from 'zod'
+import type {
+  ChainName,
+  InternalAssetType,
+  InternalChainName,
+} from './types'
+import { SWAP_ORDER_STATE_ID, SWAP_RECORD_STATE } from './types'
 
 const stringNumber = z.union([z.string(), z.number()])
+
+const chainNameSchema = z.custom<ChainName>((value) => typeof value === 'string')
+const internalChainNameSchema = z.custom<InternalChainName>(
+  (value) => typeof value === 'string',
+)
+const internalAssetTypeSchema = z.custom<InternalAssetType>(
+  (value) => typeof value === 'string',
+)
 
 const fractionSchema = z.object({
   numerator: stringNumber,
   denominator: stringNumber,
-}).passthrough()
+})
+
+const snapshotHeightSchema = z.preprocess((value) => {
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? value : parsed
+  }
+  return value
+}, z.number())
 
 const transmitSupportSchema = z.object({
   enable: z.boolean(),
   isAirdrop: z.boolean(),
   assetType: z.string(),
   recipientAddress: z.string(),
-  targetChain: z.string(),
-  targetAsset: z.string(),
+  targetChain: internalChainNameSchema,
+  targetAsset: internalAssetTypeSchema,
   ratio: fractionSchema,
   transmitDate: z.object({
     startDate: z.string(),
     endDate: z.string(),
-  }).passthrough(),
-  snapshotHeight: stringNumber.optional(),
+  }),
+  snapshotHeight: snapshotHeightSchema.optional(),
   contractAddress: z.string().optional(),
-}).passthrough()
+})
 
 export const transmitAssetTypeListSchema = z.object({
   transmitSupport: z.record(z.string(), z.record(z.string(), transmitSupportSchema)),
-}).passthrough()
+})
 
 export const transmitSubmitSchema = z.object({
   orderId: z.string(),
-}).passthrough()
+})
 
 const recordTxInfoSchema = z.object({
-  chainName: z.string(),
+  chainName: chainNameSchema,
   amount: z.string(),
   asset: z.string(),
   decimals: z.number(),
   assetLogoUrl: z.string().optional(),
-}).passthrough()
+})
 
 export const transmitRecordsSchema = z.object({
   page: z.number(),
   pageSize: z.number(),
   dataList: z.array(z.object({
     orderId: z.string(),
-    state: z.number(),
-    orderState: z.number(),
+    state: z.nativeEnum(SWAP_RECORD_STATE),
+    orderState: z.nativeEnum(SWAP_ORDER_STATE_ID),
     createdTime: stringNumber,
     fromTxInfo: recordTxInfoSchema.optional(),
     toTxInfo: recordTxInfoSchema.optional(),
-  }).passthrough()),
-}).passthrough()
+  })),
+})
 
 export const transmitRecordDetailSchema = z.object({
-  state: z.number(),
-  orderState: z.number(),
+  state: z.nativeEnum(SWAP_RECORD_STATE),
+  orderState: z.nativeEnum(SWAP_ORDER_STATE_ID),
   updatedTime: stringNumber,
   swapRatio: z.number(),
   orderFailReason: z.string().optional(),
   fromTxInfo: z.object({
-    chainName: z.string(),
+    chainName: chainNameSchema,
     address: z.string(),
     txId: z.string().optional(),
     txHash: z.string().optional(),
     contractAddress: z.string().optional(),
-  }).passthrough(),
+  }).optional(),
   toTxInfo: z.object({
-    chainName: z.string(),
+    chainName: chainNameSchema,
     address: z.string(),
     txId: z.string().optional(),
     txHash: z.string().optional(),
     contractAddress: z.string().optional(),
-  }).passthrough(),
-}).passthrough()
+  }).optional(),
+})
 
 export const retrySchema = z.boolean()
-

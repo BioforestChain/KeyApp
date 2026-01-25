@@ -49,19 +49,15 @@ export type TransmitAssetTypeListResponse = Omit<
 }
 
 // TRON 交易体
-export interface TronTransaction {
-  txID: string
-  raw_data: unknown
-  raw_data_hex: string
-  signature?: string[]
-}
+export type TronTransaction = BFChainWallet.TRON.TronTransaction
+export type Trc20Transaction = BFChainWallet.TRON.Trc20Transaction
 
 // 外链发起方交易体
 export interface ExternalFromTrJson {
   eth?: { signTransData: string }
   bsc?: { signTransData: string }
   tron?: TronTransaction
-  trc20?: TronTransaction
+  trc20?: Trc20Transaction
 }
 
 // 内链发起方交易体
