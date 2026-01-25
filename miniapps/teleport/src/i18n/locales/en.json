@@ -35,7 +35,10 @@
     "placeholder": "0.00",
     "max": "MAX",
     "next": "Next",
-    "expected": "Expected to receive"
+    "expected": "Expected to receive",
+    "precision": "Precision",
+    "precisionValue": "{{decimals}} decimals (min {{min}})",
+    "precisionHint": "Precision {{decimals}} decimals, min {{min}}"
   },
   "target": {
     "title": "Select Target Wallet",

@@ -58,6 +58,7 @@ export interface TransferIntent extends TransactionIntentBase {
   amount: Amount
   tokenAddress?: Address
   memo?: string
+  remark?: Record<string, string>
   // BioChain 扩展
   bioAssetType?: string
 }

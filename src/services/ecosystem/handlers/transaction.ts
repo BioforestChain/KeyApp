@@ -93,6 +93,8 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
     to: opts.to,
     amount,
     tokenAddress,
+    ...(opts.asset ? { bioAssetType: opts.asset } : {}),
+    ...(opts.remark ? { remark: opts.remark } : {}),
   })
 
   if (tokenAddress && chainConfig.chainKind === 'tron') {

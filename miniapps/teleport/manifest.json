@@ -9,7 +9,13 @@
   "website": "https://teleport.dweb.xin",
   "category": "tools",
   "tags": ["转账", "跨链", "资产管理"],
-  "permissions": ["bio_requestAccounts", "bio_selectAccount", "bio_pickWallet", "bio_signMessage"],
+  "permissions": [
+    "bio_selectAccount",
+    "bio_pickWallet",
+    "bio_getBalance",
+    "bio_createTransaction",
+    "bio_signTransaction"
+  ],
   "chains": ["bfmeta", "bfchainv2", "biwmeta", "ccchain", "pmchain"],
   "officialScore": 90,
   "communityScore": 80,

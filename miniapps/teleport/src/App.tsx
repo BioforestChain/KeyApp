@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { BioAccount, BioSignedTransaction } from '@biochain/bio-sdk';
+import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction } from '@biochain/bio-sdk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -107,6 +107,17 @@ const CHAIN_COLORS: Record<string, string> = {
   PMCHAIN: 'bg-cyan-600',
 };
 
+const normalizeInternalChainName = (value: string): InternalChainName =>
+  value.toUpperCase() as InternalChainName;
+
+const normalizeInputAmount = (value: string) =>
+  value.includes('.') ? value : `${value}.0`;
+
+const formatMinAmount = (decimals: number) => {
+  if (decimals <= 0) return '1';
+  return `0.${'0'.repeat(decimals - 1)}1`;
+};
+
 export default function App() {
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('connect');
@@ -119,7 +130,13 @@ export default function App() {
   const [orderId, setOrderId] = useState<string | null>(null);
 
   // API Hooks
-  const { data: assets, isLoading: assetsLoading, error: assetsError } = useTransmitAssetTypeList();
+  const {
+    data: assets,
+    isLoading: assetsLoading,
+    isFetching: assetsFetching,
+    error: assetsError,
+    refetch: refetchAssets,
+  } = useTransmitAssetTypeList();
   const transmitMutation = useTransmit();
   const { data: recordDetail } = useTransmitRecordDetail(orderId || '', { enabled: !!orderId });
 
@@ -137,6 +154,15 @@ export default function App() {
       setStep('error');
     }
   }, [recordDetail]);
+
+  useEffect(() => {
+    if (step !== 'processing') return;
+    if (!transmitMutation.isError) return;
+    const err = transmitMutation.error;
+    setError(err instanceof Error ? err.message : String(err));
+    setStep('error');
+    setLoading(false);
+  }, [step, transmitMutation.isError, transmitMutation.error]);
 
   // 关闭启动屏
   useEffect(() => {
@@ -230,16 +256,39 @@ export default function App() {
     setError(null);
 
     try {
-      // 1. 创建未签名交易（转账到 recipientAddress）
-      const unsignedTx = await window.bio.request({
+      // 1. 构造 toTrInfo
+      const toTrInfo: ToTrInfo = {
+        chainName: normalizeInternalChainName(selectedAsset.targetChain),
+        address: targetAccount.address,
+        assetType: selectedAsset.targetAsset,
+      };
+
+      const chainLower = sourceAccount.chain.toLowerCase();
+      const isInternalChain =
+        chainLower !== 'eth' &&
+        chainLower !== 'bsc' &&
+        chainLower !== 'tron' &&
+        chainLower !== 'trc20';
+
+      const remark = isInternalChain
+        ? {
+            chainName: toTrInfo.chainName,
+            address: toTrInfo.address,
+            assetType: toTrInfo.assetType,
+          }
+        : undefined;
+
+      // 2. 创建未签名交易（转账到 recipientAddress）
+      const unsignedTx = await window.bio.request<BioUnsignedTransaction>({
         method: 'bio_createTransaction',
         params: [
           {
             from: sourceAccount.address,
             to: selectedAsset.recipientAddress,
-            amount: amount,
+            amount: normalizeInputAmount(amount),
             chain: sourceAccount.chain,
             asset: selectedAsset.assetType,
+            ...(remark ? { remark } : {}),
           },
         ],
       });
@@ -257,11 +306,9 @@ export default function App() {
         ],
       });
 
-      // 3. 构造 fromTrJson（根据链类型）
-      // 注意：signTransData 需要使用 signedTx.data（RLP/Protobuf encoded raw signed tx），
-      // 而非 signedTx.signature（仅包含签名数据，不是可广播的 rawTx）
+      // 4. 构造 fromTrJson（根据链类型）
+      // 注意：EVM 需要 raw signed tx 的 hex；TRON/内链需要结构化交易体
       const fromTrJson: FromTrJson = {};
-      const chainLower = sourceAccount.chain.toLowerCase();
       const signTransData = typeof signedTx.data === 'string'
         ? signedTx.data
         : superjson.stringify(signedTx.data);
@@ -286,19 +333,15 @@ export default function App() {
           throw new Error('Invalid internal signed transaction payload');
         }
         fromTrJson.bcf = {
-          chainName: sourceAccount.chain as InternalChainName,
+          chainName: normalizeInternalChainName(sourceAccount.chain),
           trJson: internalTrJson,
         };
       }
 
-      // 4. 构造 toTrInfo
-      const toTrInfo: ToTrInfo = {
-        chainName: selectedAsset.targetChain,
-        address: targetAccount.address,
-        assetType: selectedAsset.targetAsset,
-      };
-
-      // 5. 发起传送请求
+      // 6. 发起传送请求
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        throw new Error('网络不可用')
+      }
       setStep('processing');
       const result = await transmitMutation.mutateAsync({
         fromTrJson,
@@ -409,13 +452,34 @@ export default function App() {
                   size="lg"
                   className="h-12 w-full max-w-xs"
                   onClick={handleConnect}
-                  disabled={loading || assetsLoading}
+                  disabled={loading || assetsLoading || assetsFetching || !!assetsError}
                 >
-                  {(loading || assetsLoading) && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  {assetsLoading ? t('connect.loadingConfig') : loading ? t('connect.loading') : t('connect.button')}
+                  {(loading || assetsLoading || assetsFetching) && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {assetsLoading || assetsFetching
+                    ? t('connect.loadingConfig')
+                    : loading
+                      ? t('connect.loading')
+                      : t('connect.button')}
                 </Button>
 
-                {assetsError && <p className="text-destructive text-sm">{t('connect.configError')}</p>}
+                {assetsError && (
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <p className="text-destructive text-sm">{t('connect.configError')}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => refetchAssets()}
+                      disabled={assetsFetching}
+                    >
+                      <RefreshCw className={cn('size-4', assetsFetching && 'animate-spin')} />
+                      {t('error.retry')}
+                    </Button>
+                    <p className="text-muted-foreground text-xs">
+                      {assetsError instanceof Error ? assetsError.message : String(assetsError)}
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -542,6 +606,12 @@ export default function App() {
                         </span>
                       </p>
                     )}
+                    <p className="text-muted-foreground text-xs">
+                      {t('amount.precisionHint', {
+                        decimals: selectedAsset.decimals,
+                        min: formatMinAmount(selectedAsset.decimals),
+                      })}
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -683,6 +753,16 @@ export default function App() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.ratio')}</span>
                       <span>{`${selectedAsset?.ratio.numerator}:${selectedAsset?.ratio.denominator}`}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('amount.precision')}</span>
+                      <span>
+                        {t('amount.precisionValue', {
+                          decimals: selectedAsset?.decimals ?? 0,
+                          min: formatMinAmount(selectedAsset?.decimals ?? 0),
+                        })}
+                      </span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">

@@ -41,7 +41,7 @@ describe('Teleport API Hooks', () => {
               assetType: 'ETH',
               recipientAddress: '0x123',
               targetChain: 'BFMCHAIN' as const,
-              targetAsset: 'BFM',
+              targetAsset: 'BFM' as const,
               ratio: { numerator: 1, denominator: 1 },
               transmitDate: {
                 startDate: '2020-01-01',
@@ -78,7 +78,7 @@ describe('Teleport API Hooks', () => {
               assetType: 'ETH',
               recipientAddress: '0x123',
               targetChain: 'BFMCHAIN' as const,
-              targetAsset: 'BFM',
+              targetAsset: 'BFM' as const,
               ratio: { numerator: 1, denominator: 1 },
               transmitDate: {
                 startDate: '2020-01-01',
@@ -110,7 +110,7 @@ describe('Teleport API Hooks', () => {
               assetType: 'ETH',
               recipientAddress: '0x123',
               targetChain: 'BFMCHAIN' as const,
-              targetAsset: 'BFM',
+              targetAsset: 'BFM' as const,
               ratio: { numerator: 1, denominator: 1 },
               transmitDate: {
                 startDate: '2020-01-01',
@@ -167,7 +167,19 @@ describe('Teleport API Hooks', () => {
             orderId: '1',
             state: 3,
             orderState: 4,
-            createdTime: '2024-01-01',
+            createdTime: '2024-01-01T00:00:00.000Z',
+            fromTxInfo: {
+              chainName: 'ETH' as const,
+              amount: '0.1',
+              asset: 'ETH',
+              decimals: 18,
+            },
+            toTxInfo: {
+              chainName: 'BFMCHAIN' as const,
+              amount: '0.1',
+              asset: 'BFM',
+              decimals: 8,
+            },
           },
         ],
       }
@@ -191,7 +203,15 @@ describe('Teleport API Hooks', () => {
         state: 3,
         orderState: 4,
         swapRatio: 1,
-        updatedTime: '2024-01-01',
+        updatedTime: '2024-01-01T00:00:00.000Z',
+        fromTxInfo: {
+          chainName: 'ETH' as const,
+          address: '0x123',
+        },
+        toTxInfo: {
+          chainName: 'BFMCHAIN' as const,
+          address: 'bfm123',
+        },
       }
 
       vi.mocked(client.getTransmitRecordDetail).mockResolvedValue(mockData)

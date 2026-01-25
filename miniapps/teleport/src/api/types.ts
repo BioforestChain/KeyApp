@@ -1,56 +1,51 @@
 /**
  * Teleport API Types
- * 
- * 类型定义参考 @bnqkl/metabox-core@0.5.2 和 @bnqkl/wallet-typings@0.23.8
- * 注意：这些包在 package.json 中作为依赖存在，但当前未被直接 import 使用。
- * 如果不需要运行时依赖，可以考虑移至 devDependencies 或移除。
+ *
+ * 类型以 @bnqkl/metabox-core 与 @bnqkl/wallet-typings 为唯一可信来源，
+ * 并对 JSON 序列化后的字段做必要的结构适配。
  */
 
+import type {} from '@bnqkl/metabox-core'
+import type {
+  ExternalAssetType as WalletExternalAssetType,
+  ExternalChainName as WalletExternalChainName,
+  InternalAssetType as WalletInternalAssetType,
+  InternalChainName as WalletInternalChainName,
+} from '@bnqkl/wallet-typings'
+
 // 链名类型
-export type ExternalChainName = 'ETH' | 'BSC' | 'TRON'
-export type InternalChainName = 'BFMCHAIN' | 'ETHMETA' | 'PMCHAIN' | 'CCCHAIN' | 'BTGMETA' | 'BFCHAINV2'
+export type ExternalChainName = WalletExternalChainName | `${WalletExternalChainName}`
+export type InternalChainName = WalletInternalChainName | `${WalletInternalChainName}`
 export type ChainName = ExternalChainName | InternalChainName
 
 // 资产类型
-export type InternalAssetType = string
-export type ExternalAssetType = string
+export type InternalAssetType = WalletInternalAssetType | `${WalletInternalAssetType}`
+export type ExternalAssetType = WalletExternalAssetType | `${WalletExternalAssetType}`
 
 // 分数类型
-export interface Fraction {
-  numerator: string | number
-  denominator: string | number
-}
+export type Fraction = MetaBoxCore.Fraction
 
-// 传送支持配置
-export interface TransmitSupport {
-  enable: boolean
-  isAirdrop: boolean
-  assetType: string
-  recipientAddress: string
+// 传送支持配置（API 序列化后 transmitDate 为字符串）
+export type TransmitSupport = Omit<
+  MetaBoxCore.Config.TransmitSupport,
+  'transmitDate' | 'targetChain' | 'targetAsset'
+> & {
   targetChain: InternalChainName
   targetAsset: InternalAssetType
-  ratio: Fraction
   transmitDate: {
     startDate: string
     endDate: string
   }
-  snapshotHeight?: number
-  contractAddress?: string
 }
 
 export type TransmitSupportItem = Record<string, TransmitSupport>
 
 // 传送配置响应
-export interface TransmitAssetTypeListResponse {
-  transmitSupport: {
-    BFCHAIN?: TransmitSupportItem
-    CCCHAIN?: TransmitSupportItem
-    BFMCHAIN?: TransmitSupportItem
-    ETHMETA?: TransmitSupportItem
-    BTGMETA?: TransmitSupportItem
-    PMCHAIN?: TransmitSupportItem
-    ETH?: TransmitSupportItem
-  }
+export type TransmitAssetTypeListResponse = Omit<
+  MetaBoxCore.Api.TransmitAssetTypeListResDto,
+  'transmitSupport'
+> & {
+  transmitSupport: Record<string, TransmitSupportItem | undefined>
 }
 
 // TRON 交易体
@@ -70,7 +65,7 @@ export interface ExternalFromTrJson {
 }
 
 // 内链发起方交易体
-export interface InternalFromTrJson {
+export type InternalFromTrJson = Omit<WalletTypings.InternalChain.FromTrJson, 'bcf'> & {
   bcf?: {
     chainName: InternalChainName
     trJson: TransferAssetTransaction
@@ -78,41 +73,25 @@ export interface InternalFromTrJson {
 }
 
 // 转账交易体
-export interface TransferAssetTransaction {
-  senderId: string
-  recipientId: string
-  amount: string
-  fee: string
-  timestamp: number
-  signature: string
-  asset: {
-    transferAsset: {
-      amount: string
-      assetType: string
-    }
-  }
-}
+export type TransferAssetTransaction = WalletTypings.InternalChain.TransferAssetTransaction
 
 // 发起方交易体（合并外链和内链）
-export type FromTrJson = ExternalFromTrJson & InternalFromTrJson
+export type FromTrJson = Omit<MetaBoxCore.Transmit.FromTrJson, 'bcf'> & InternalFromTrJson
 
 // 接收方交易信息
-export interface ToTrInfo {
+export type ToTrInfo = Omit<MetaBoxCore.Transmit.ToTrInfo, 'chainName' | 'assetType'> & {
   chainName: InternalChainName
-  address: string
   assetType: InternalAssetType
 }
 
 // 传送请求
-export interface TransmitRequest {
+export type TransmitRequest = Omit<MetaBoxCore.Api.TransmitReqDto, 'fromTrJson' | 'toTrInfo'> & {
   fromTrJson: FromTrJson
   toTrInfo?: ToTrInfo
 }
 
 // 传送响应
-export interface TransmitResponse {
-  orderId: string
-}
+export type TransmitResponse = MetaBoxCore.Api.TransmitResDto
 
 // 订单状态
 export enum SWAP_ORDER_STATE_ID {
@@ -133,66 +112,56 @@ export enum SWAP_RECORD_STATE {
 }
 
 // 交易信息
-export interface RecordTxInfo {
-  chainName: string
-  amount: string
-  asset: string
-  decimals: number
-  assetLogoUrl?: string
+export type RecordTxInfo = Omit<WalletTypings.Order.RecordTxInfo, 'chainName'> & {
+  chainName: ChainName
 }
 
 // 交易详情信息
-export interface RecordDetailTxInfo {
-  chainName: string
-  address: string
-  txId?: string
-  txHash?: string
-  contractAddress?: string
+export type RecordDetailTxInfo = Omit<WalletTypings.Order.RecordDetailTxInfo, 'chainName'> & {
+  chainName: ChainName
 }
 
 // 传送记录
-export interface TransmitRecord {
-  orderId: string
+export type TransmitRecord = Omit<
+  MetaBoxCore.Swap.SwapRecord,
+  'createdTime' | 'fromTxInfo' | 'toTxInfo' | 'orderState' | 'state'
+> & {
+  createdTime: string | number
   state: SWAP_RECORD_STATE
   orderState: SWAP_ORDER_STATE_ID
   fromTxInfo?: RecordTxInfo
   toTxInfo?: RecordTxInfo
-  createdTime: string | number
 }
 
 // 传送记录详情
-export interface TransmitRecordDetail {
+export type TransmitRecordDetail = Omit<
+  MetaBoxCore.Api.TransmitRecordDetailResDto,
+  'updatedTime' | 'fromTxInfo' | 'toTxInfo' | 'orderState' | 'state'
+> & {
+  updatedTime: string | number
   state: SWAP_RECORD_STATE
   orderState: SWAP_ORDER_STATE_ID
   fromTxInfo?: RecordDetailTxInfo
   toTxInfo?: RecordDetailTxInfo
   orderFailReason?: string
-  updatedTime: string | number
   swapRatio: number
 }
 
 // 分页请求
-export interface PageRequest {
-  page: number
-  pageSize: number
-}
+export type PageRequest = MetaBoxCore.PageRequest
 
 // 记录列表请求
-export interface TransmitRecordsRequest extends PageRequest {
+export type TransmitRecordsRequest = Omit<MetaBoxCore.Api.TransmitRecordsReqDto, 'fromChain'> & {
   fromChain?: ChainName
-  fromAddress?: string
-  fromAsset?: string
 }
 
 // 记录列表响应
-export interface TransmitRecordsResponse {
-  page: number
-  pageSize: number
+export type TransmitRecordsResponse = Omit<MetaBoxCore.Api.TransmitRecordsResDto, 'dataList'> & {
   dataList: TransmitRecord[]
 }
 
 // 重试响应
-export type RetryResponse = boolean
+export type RetryResponse = MetaBoxCore.Api.TransmitRetryFromTxOnChainResDto
 
 // UI 用的资产展示类型
 export interface DisplayAsset {

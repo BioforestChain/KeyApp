@@ -50,6 +50,7 @@ export interface EcosystemTransferParams {
   tokenAddress?: string;
   /** 资产精度（用于 EVM/TRON Token 转账） */
   assetDecimals?: number;
+  remark?: Record<string, string>;
 }
 
 /**

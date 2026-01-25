@@ -48,14 +48,16 @@ export function useTransmitAssetTypeList() {
           const now = new Date()
           const startDate = new Date(config.transmitDate.startDate)
           const endDate = new Date(config.transmitDate.endDate)
+          if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) continue
           if (now < startDate || now > endDate) continue
 
+          const assetSymbol = config.assetType || assetKey
           assets.push({
-            id: `${chainKey}-${assetKey}`,
+            id: `${chainKey}-${assetSymbol}`,
             chain: chainKey as ChainName,
-            assetType: assetKey,
-            symbol: assetKey,
-            name: assetKey,
+            assetType: assetSymbol,
+            symbol: assetSymbol,
+            name: assetSymbol,
             balance: '0', // 余额需要从钱包获取
             decimals: 8, // 默认精度，实际需要从链上获取
             recipientAddress: config.recipientAddress,
@@ -81,6 +83,8 @@ export function useTransmit() {
 
   return useMutation({
     mutationFn: (data: TransmitRequest) => transmit(data),
+    networkMode: 'always',
+    retry: 0,
     onSuccess: () => {
       // 传送成功后刷新记录列表
       queryClient.invalidateQueries({ queryKey: ['transmit', 'records'] })
