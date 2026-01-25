@@ -28,6 +28,7 @@ import {
   useCurrentWallet,
   useSelectedChain,
   useChainPreferences,
+  useCurrentChainAddress,
   useHasWallet,
   useWalletInitialized,
   useChainConfigMigrationRequired,
@@ -90,15 +91,27 @@ function WalletTabContent({
   const chainProvider = useChainProvider();
 
   // 统一资产查询（合并 nativeBalance 和 tokenBalances）
-  const { data: tokens = [], isLoading: tokensLoading, error: tokensError } = chainProvider.allBalances.useState(
+  const {
+    data: tokens = [],
+    isLoading: tokensLoading,
+    isFetching: tokensFetching,
+    error: tokensError,
+  } = chainProvider.allBalances.useState(
     { address },
     { enabled: !!address }
   );
 
-  const { data: txResult, isLoading: txLoading, error: txError } = chainProvider.transactionHistory.useState(
+  const {
+    data: txResult,
+    isLoading: txLoading,
+    isFetching: txFetching,
+    error: txError,
+  } = chainProvider.transactionHistory.useState(
     { address, limit: 50 },
     { enabled: !!address }
   );
+
+  const tokensLoadingUI = tokensLoading || (tokensFetching && tokens.length === 0);
 
   // 获取服务状态（区分 NoSupportError / ServiceLimitedError / 其他错误）
   const tokensStatus = useServiceStatus(tokensError, t);
@@ -116,6 +129,8 @@ function WalletTabContent({
     if (!txResult) return [];
     return toTransactionInfoList(txResult, selectedChain);
   }, [txResult, selectedChain]);
+
+  const transactionsLoadingUI = txLoading || (txFetching && transactions.length === 0);
 
   // 交易点击 - 传递原始交易数据以避免重复网络请求
   const handleTransactionClick = useCallback(
@@ -256,8 +271,10 @@ function WalletTabContent({
             icon: token.icon,
           }))}
           transactions={transactions.slice(0, 5)}
-          tokensLoading={tokensLoading}
-          transactionsLoading={txLoading}
+          tokensLoading={tokensLoadingUI}
+          tokensRefreshing={tokensFetching && tokens.length > 0}
+          transactionsLoading={transactionsLoadingUI}
+          transactionsRefreshing={txFetching && transactions.length > 0}
           tokensSupported={tokensStatus.type !== 'notSupported'}
           tokensFallbackReason={tokensStatus.type !== 'ok' ? tokensStatus.reason : undefined}
           transactionsSupported={txStatus.type !== 'notSupported' && txStatus.type !== 'limited'}
@@ -304,6 +321,7 @@ export function WalletTab() {
   const hasWallet = useHasWallet();
   const wallets = useWallets();
   const currentWallet = useCurrentWallet();
+  const currentChainAddress = useCurrentChainAddress();
   const currentWalletId = currentWallet?.id ?? null;
   const selectedChain = useSelectedChain();
   const chainPreferences = useChainPreferences();
@@ -317,10 +335,6 @@ export function WalletTab() {
   // 初始化钱包主题
   useWalletTheme();
 
-  // 获取当前链地址
-  const currentChainAddress = currentWallet?.chainAddresses?.find(
-    (ca) => ca.chain === selectedChain
-  );
   const address = currentChainAddress?.address ?? "";
 
   // 复制地址

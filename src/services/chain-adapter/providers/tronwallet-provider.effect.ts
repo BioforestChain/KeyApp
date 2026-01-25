@@ -275,6 +275,18 @@ function getContractAddressesFromHistory(txs: TransactionsOutput): string[] {
   return [...contracts].sort()
 }
 
+// ==================== 判断交易列表是否变化 ====================
+
+function hasTransactionListChanged(
+  prev: TransactionsOutput | null,
+  next: TransactionsOutput
+): boolean {
+  if (!prev) return true
+  if (prev.length !== next.length) return true
+  if (prev.length === 0 && next.length === 0) return false
+  return prev[0]?.hash !== next[0]?.hash
+}
+
 function normalizeTokenContracts(result: TokenListResponse): string[] {
   if (!result.success) return []
   return result.result.data

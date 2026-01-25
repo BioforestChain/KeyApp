@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useCallback } from 'react'
+import { useEffect, useId, useRef, useCallback, useMemo } from 'react'
 import { hologramScheduler } from './scheduler'
 import type { Priority } from './types'
+import { getHologramCanvasEntry } from './canvas-pool'
 
 type RenderMode = 'dynamic' | 'static'
 
@@ -16,6 +17,11 @@ export interface HologramCanvasProps {
   watermarkMaskUrl?: string | null
   watermarkCellSize?: number
   watermarkIconSize?: number
+  /**
+   * Optional pool key to reuse a canvas between mounts.
+   * Use a stable key (e.g. walletId or walletId:slot).
+   */
+  poolKey?: string
 }
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
@@ -32,9 +38,16 @@ export function HologramCanvas({
   watermarkMaskUrl,
   watermarkCellSize,
   watermarkIconSize,
+  poolKey,
 }: HologramCanvasProps) {
-  const cardId = useId()
+  const fallbackId = useId()
+  const poolEntry = useMemo(() => {
+    if (!poolKey || typeof document === 'undefined') return null
+    return getHologramCanvasEntry(poolKey)
+  }, [poolKey])
+  const cardId = poolEntry?.cardId ?? fallbackId
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
   const transferredRef = useRef(false) // Track if canvas was transferred (can only happen once)
   const registeredRef = useRef(false)
@@ -95,9 +108,21 @@ export function HologramCanvas({
 
   // Register canvas with scheduler (only once - canvas can only be transferred once)
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || transferredRef.current) return
+    const canvas = poolEntry?.canvas ?? canvasRef.current
+    if (!canvas) return
 
+    if (poolEntry) {
+      if (poolEntry.registered) {
+        registeredRef.current = true
+        return
+      }
+      poolEntry.registered = true
+      registeredRef.current = true
+      hologramScheduler.register(cardId, canvas)
+      return
+    }
+
+    if (transferredRef.current) return
     transferredRef.current = true
     registeredRef.current = true
     hologramScheduler.register(cardId, canvas)
@@ -106,11 +131,28 @@ export function HologramCanvas({
     // 1. canvas 只能 transfer 一次，cleanup 后无法重新注册
     // 2. React Strict Mode 会 mount → unmount → mount
     // 3. Worker 会保持引用，但组件卸载后不再收到 state 更新，自然停止渲染
-  }, [cardId])
+  }, [cardId, poolEntry])
+
+  // Attach pooled canvas to DOM
+  useEffect(() => {
+    if (!poolEntry) return
+    const container = containerRef.current
+    if (!container) return
+    const canvas = poolEntry.canvas
+    canvas.className = 'pointer-events-none absolute inset-0 size-full'
+    if (canvas.parentElement !== container) {
+      container.appendChild(canvas)
+    }
+    return () => {
+      if (canvas.parentElement === container) {
+        container.removeChild(canvas)
+      }
+    }
+  }, [poolEntry])
 
   // Observe size changes
   useEffect(() => {
-    const parent = canvasRef.current?.parentElement
+    const parent = poolEntry?.canvas.parentElement ?? canvasRef.current?.parentElement
     if (!parent) return
 
     const updateSize = () => {
@@ -159,6 +201,20 @@ export function HologramCanvas({
     watermarkCellSize,
     watermarkIconSize,
   ])
+
+  if (poolEntry) {
+    return (
+      <div
+        ref={containerRef}
+        className="pointer-events-none absolute inset-0 size-full"
+        data-testid="wallet-card-hologram-canvas"
+        data-pattern-enabled={enabledPattern ? 'true' : 'false'}
+        data-watermark-enabled={enabledWatermark ? 'true' : 'false'}
+        data-mode={mode}
+        data-priority={priority}
+      />
+    )
+  }
 
   return (
     <canvas

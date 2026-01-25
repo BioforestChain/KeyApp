@@ -39,6 +39,8 @@ export interface WalletCardProps {
   chain: ChainType;
   chainName: string;
   walletNameTestId?: string | undefined;
+  /** Canvas pool key (defaults to wallet.id) */
+  canvasKey?: string | undefined;
   /** 渲染优先级，影响帧率和分辨率 */
   priority?: Priority;
   address?: string | undefined;
@@ -78,6 +80,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
     chain,
     chainName,
     walletNameTestId = 'wallet-name',
+    canvasKey,
     priority = 'high',
     address,
     chainIconUrl,
@@ -107,6 +110,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   const enableGyroEffective = enableGyro ?? !prefersReducedMotion;
 
   const refractionMode = prefersReducedMotion ? ('static' as const) : ('dynamic' as const);
+  const pooledCanvasKey = canvasKey ?? wallet.id;
 
   // 将链图标转为单色遮罩（黑白 -> 透明）
   // 使用 devicePixelRatio 确保高清
@@ -168,6 +172,17 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
   // 动画配置 - 统一用于 transform 和光影
   const transitionConfig = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ease-out-back 回弹效果
 
+  const fallbackBackground = useMemo(
+    () => ({
+      background:
+        `radial-gradient(120% 120% at 20% 10%, ` +
+        `oklch(88% 0.12 ${themeHue}) 0%, ` +
+        `oklch(62% 0.18 ${themeHue}) 45%, ` +
+        `oklch(38% 0.12 ${themeHue}) 100%)`,
+    }),
+    [themeHue]
+  )
+
   return (
     <div
       ref={ref}
@@ -192,6 +207,11 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           willChange: 'transform, --tilt-x, --tilt-y, --tilt-intensity',
         }}
       >
+        {/* 0. 背景底色（Canvas 未就绪时的兜底） */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={fallbackBackground}
+        />
         {/* 1~4. 背景 + Pattern/Watermark + Spotlight 全部由 Canvas 完成（不依赖 DOM mix-blend-mode） */}
         <HologramCanvas
           priority={priority}
@@ -205,6 +225,7 @@ export const WalletCard = forwardRef<HTMLDivElement, WalletCardProps>(function W
           watermarkMaskUrl={monoMaskUrl}
           watermarkCellSize={watermarkLogoSize}
           watermarkIconSize={watermarkLogoActualSize}
+          poolKey={pooledCanvasKey}
         />
 
         {/* 5. 边框装饰 */}

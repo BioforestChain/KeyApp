@@ -7,7 +7,17 @@
 
 import { Effect, Stream } from "effect"
 import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from "react"
-import { createStreamInstance, type StreamInstance, type FetchError } from "@biochain/chain-effect"
+import {
+  createStreamInstance,
+  readSnapshot,
+  writeSnapshot,
+  deleteSnapshot,
+  readMemorySnapshot,
+  deleteMemorySnapshot,
+  type SnapshotEntry,
+  type StreamInstance,
+  type FetchError,
+} from "@biochain/chain-effect"
 import { isChainDebugEnabled } from "@/services/chain-adapter/debug"
 import { chainConfigService } from "@/services/chain-config/service";
 import type {
@@ -61,6 +71,27 @@ function toStableJson(value: unknown): unknown {
 
 function stableStringify(value: unknown): string {
   return JSON.stringify(toStableJson(value))
+}
+
+const SNAPSHOT_KEY_PREFIX = "chain-effect:snapshot"
+
+function makeSnapshotKey(name: string, inputKey: string): string {
+  return `${SNAPSHOT_KEY_PREFIX}:${name}:${inputKey}`
+}
+
+function isSnapshotExpired(timestamp: number, maxAgeMs: number): boolean {
+  if (!Number.isFinite(maxAgeMs)) return false
+  return Date.now() - timestamp > maxAgeMs
+}
+
+function getValidMemorySnapshot<T>(key: string, maxAgeMs: number): SnapshotEntry<T> | null {
+  const entry = readMemorySnapshot<T>(key)
+  if (!entry) return null
+  if (isSnapshotExpired(entry.timestamp, maxAgeMs)) {
+    deleteMemorySnapshot(key)
+    return null
+  }
+  return entry
 }
 
 function debugLog(...args: string[]): void {
@@ -176,10 +207,13 @@ function createFallbackStream<TInput, TOutput>(
     name,
     fetch,
     subscribe,
-    useState(input: TInput, options?: { enabled?: boolean }) {
-      const [isLoading, setIsLoading] = useState(true)
-      const [isFetching, setIsFetching] = useState(false)
-      const [error, setError] = useState<Error | undefined>(undefined)
+    useState(
+      input: TInput,
+      options?: { enabled?: boolean; useSnapshot?: boolean; snapshotMaxAgeMs?: number }
+    ) {
+      const enabled = options?.enabled !== false
+      const useSnapshot = options?.useSnapshot !== false
+      const snapshotMaxAgeMs = options?.snapshotMaxAgeMs ?? Number.POSITIVE_INFINITY
 
       const getInputKey = (value: TInput): string => {
         if (value === undefined || value === null) return "__empty__"
@@ -187,34 +221,99 @@ function createFallbackStream<TInput, TOutput>(
       }
 
       const inputKey = useMemo(() => getInputKey(input), [input])
+      const snapshotKey = useMemo(() => makeSnapshotKey(name, inputKey), [inputKey])
+      const memorySnapshot = useMemo(
+        () => (useSnapshot ? getValidMemorySnapshot<TOutput>(snapshotKey, snapshotMaxAgeMs) : null),
+        [snapshotKey, snapshotMaxAgeMs, useSnapshot]
+      )
+      const [isLoading, setIsLoading] = useState(() => (enabled ? !memorySnapshot : false))
+      const [isFetching, setIsFetching] = useState(false)
+      const [error, setError] = useState<Error | undefined>(undefined)
       const inputRef = useRef(input)
       inputRef.current = input
 
-      const enabled = options?.enabled !== false
+      const snapshotRef = useRef<TOutput | undefined>(memorySnapshot?.data)
+      const snapshotMetaRef = useRef<{ key: string; timestamp: number } | null>(
+        memorySnapshot ? { key: snapshotKey, timestamp: memorySnapshot.timestamp } : null
+      )
+      const onStoreChangeRef = useRef<(() => void) | null>(null)
+      const lastSnapshotKeyRef = useRef<string | null>(snapshotKey)
 
-      const snapshotRef = useRef<TOutput | undefined>(undefined)
+      if (lastSnapshotKeyRef.current !== snapshotKey) {
+        lastSnapshotKeyRef.current = snapshotKey
+        if (memorySnapshot) {
+          snapshotRef.current = memorySnapshot.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: memorySnapshot.timestamp }
+        } else {
+          snapshotRef.current = undefined
+          snapshotMetaRef.current = null
+        }
+      }
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        let active = true
+
+        void (async () => {
+          const entry = await readSnapshot<TOutput>(snapshotKey)
+          if (!active || !entry) return
+          if (isSnapshotExpired(entry.timestamp, snapshotMaxAgeMs)) {
+            await deleteSnapshot(snapshotKey)
+            return
+          }
+          const current = snapshotMetaRef.current
+          if (current && current.key === snapshotKey && current.timestamp >= entry.timestamp) return
+          snapshotRef.current = entry.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: entry.timestamp }
+          setIsLoading(false)
+          onStoreChangeRef.current?.()
+        })()
+
+        return () => {
+          active = false
+        }
+      }, [enabled, snapshotKey, snapshotMaxAgeMs, useSnapshot])
 
       const subscribeFn = useCallback((onStoreChange: () => void) => {
+        onStoreChangeRef.current = onStoreChange
+
         if (!enabled) {
           snapshotRef.current = undefined
           return () => {}
         }
 
-        setIsLoading(true)
+        const hasSnapshot = snapshotRef.current !== undefined
+        setIsLoading(!hasSnapshot)
         setIsFetching(true)
         setError(undefined)
 
-        const unsubscribe = subscribe(inputRef.current, (newData: TOutput) => {
-          snapshotRef.current = newData
-          setIsLoading(false)
-          setIsFetching(false)
-          setError(undefined)
-          debugLog(`${name} storeChange`, summarizeValue(newData))
-          onStoreChange()
-        })
+        const unsubscribe = subscribe(
+          inputRef.current,
+          (newData: TOutput) => {
+            const timestamp = Date.now()
+            snapshotRef.current = newData
+            snapshotMetaRef.current = { key: snapshotKey, timestamp }
+            if (useSnapshot) {
+              void writeSnapshot({ key: snapshotKey, data: newData, timestamp })
+            }
+            setIsLoading(false)
+            setIsFetching(false)
+            setError(undefined)
+            debugLog(`${name} storeChange`, summarizeValue(newData))
+            onStoreChange()
+          },
+          (err) => {
+            setError(err instanceof Error ? err : new Error(String(err)))
+            setIsFetching(false)
+            setIsLoading(false)
+          }
+        )
 
-        return unsubscribe
-      }, [enabled, inputKey])
+        return () => {
+          onStoreChangeRef.current = null
+          unsubscribe()
+        }
+      }, [enabled, inputKey, snapshotKey, useSnapshot])
 
       const getSnapshot = useCallback(() => snapshotRef.current, [])
 
@@ -226,14 +325,19 @@ function createFallbackStream<TInput, TOutput>(
         setError(undefined)
         try {
           const result = await fetch(inputRef.current)
+          const timestamp = Date.now()
           snapshotRef.current = result
+          snapshotMetaRef.current = { key: snapshotKey, timestamp }
+          if (useSnapshot) {
+            void writeSnapshot({ key: snapshotKey, data: result, timestamp })
+          }
         } catch (err) {
           setError(err instanceof Error ? err : new Error(String(err)))
         } finally {
           setIsFetching(false)
           setIsLoading(false)
         }
-      }, [enabled])
+      }, [enabled, snapshotKey, useSnapshot])
 
       useEffect(() => {
         if (!enabled) {
@@ -243,6 +347,11 @@ function createFallbackStream<TInput, TOutput>(
           setError(undefined)
         }
       }, [enabled])
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        setIsLoading(!memorySnapshot)
+      }, [enabled, memorySnapshot, useSnapshot])
 
       return { data, isLoading, isFetching, error, refetch }
     },

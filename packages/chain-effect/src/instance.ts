@@ -13,6 +13,14 @@ import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
 import { formatChainEffectError, logChainEffectDebug } from "./debug"
 import type { DataSource } from "./source"
+import {
+  deleteMemorySnapshot,
+  deleteSnapshot,
+  readMemorySnapshot,
+  readSnapshot,
+  writeSnapshot,
+  type SnapshotEntry,
+} from "./snapshot-store"
 
 type UnknownRecord = Record<string, unknown>
 
@@ -71,6 +79,36 @@ function debugLog(message: string, ...args: Array<string | number | boolean>): v
   logChainEffectDebug(message, ...args)
 }
 
+export interface StreamInstanceUseStateOptions {
+  /** 是否启用（默认 true） */
+  enabled?: boolean
+  /** 是否使用快照（默认 true） */
+  useSnapshot?: boolean
+  /** 快照最大有效期（毫秒，默认 Infinity） */
+  snapshotMaxAgeMs?: number
+}
+
+const SNAPSHOT_KEY_PREFIX = "chain-effect:snapshot"
+
+function makeSnapshotKey(name: string, inputKey: string): string {
+  return `${SNAPSHOT_KEY_PREFIX}:${name}:${inputKey}`
+}
+
+function isSnapshotExpired(timestamp: number, maxAgeMs: number): boolean {
+  if (!Number.isFinite(maxAgeMs)) return false
+  return Date.now() - timestamp > maxAgeMs
+}
+
+function getValidMemorySnapshot<T>(key: string, maxAgeMs: number): SnapshotEntry<T> | null {
+  const entry = readMemorySnapshot<T>(key)
+  if (!entry) return null
+  if (isSnapshotExpired(entry.timestamp, maxAgeMs)) {
+    deleteMemorySnapshot(key)
+    return null
+  }
+  return entry
+}
+
 /** 兼容旧 API 的 StreamInstance 接口 */
 export interface StreamInstance<TInput, TOutput> {
   readonly name: string
@@ -82,7 +120,7 @@ export interface StreamInstance<TInput, TOutput> {
   ): () => void
   useState(
     input: TInput,
-    options?: { enabled?: boolean }
+    options?: StreamInstanceUseStateOptions
   ): {
     data: TOutput | undefined
     isLoading: boolean
@@ -211,38 +249,92 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
       }
     },
 
-    useState(input: TInput, options?: { enabled?: boolean }) {
-      const [isLoading, setIsLoading] = useState(true)
+    useState(input: TInput, options?: StreamInstanceUseStateOptions) {
+      const enabled = options?.enabled !== false
+      const useSnapshot = options?.useSnapshot !== false
+      const snapshotMaxAgeMs = options?.snapshotMaxAgeMs ?? Number.POSITIVE_INFINITY
+
+      const inputKey = useMemo(() => getInputKey(input), [input])
+      const snapshotKey = useMemo(() => makeSnapshotKey(name, inputKey), [inputKey])
+      const memorySnapshot = useMemo(
+        () => (useSnapshot ? getValidMemorySnapshot<TOutput>(snapshotKey, snapshotMaxAgeMs) : null),
+        [snapshotKey, snapshotMaxAgeMs, useSnapshot]
+      )
+
+      const [isLoading, setIsLoading] = useState(() => (enabled ? !memorySnapshot : false))
       const [isFetching, setIsFetching] = useState(false)
       const [error, setError] = useState<Error | undefined>(undefined)
 
-      const inputKey = useMemo(() => getInputKey(input), [input])
       const inputRef = useRef(input)
       inputRef.current = input
 
-      const enabled = options?.enabled !== false
       const instanceRef = useRef(this)
-      
-      // 使用 ref 存储最新值供 useSyncExternalStore 使用
-      const snapshotRef = useRef<TOutput | undefined>(undefined)
+      const snapshotRef = useRef<TOutput | undefined>(memorySnapshot?.data)
+      const snapshotMetaRef = useRef<{ key: string; timestamp: number } | null>(
+        memorySnapshot ? { key: snapshotKey, timestamp: memorySnapshot.timestamp } : null
+      )
+      const onStoreChangeRef = useRef<(() => void) | null>(null)
+      const lastSnapshotKeyRef = useRef<string | null>(snapshotKey)
+
+      if (lastSnapshotKeyRef.current !== snapshotKey) {
+        lastSnapshotKeyRef.current = snapshotKey
+        if (memorySnapshot) {
+          snapshotRef.current = memorySnapshot.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: memorySnapshot.timestamp }
+        } else {
+          snapshotRef.current = undefined
+          snapshotMetaRef.current = null
+        }
+      }
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        let active = true
+
+        void (async () => {
+          const entry = await readSnapshot<TOutput>(snapshotKey)
+          if (!active || !entry) return
+          if (isSnapshotExpired(entry.timestamp, snapshotMaxAgeMs)) {
+            await deleteSnapshot(snapshotKey)
+            return
+          }
+          const current = snapshotMetaRef.current
+          if (current && current.key === snapshotKey && current.timestamp >= entry.timestamp) return
+          snapshotRef.current = entry.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: entry.timestamp }
+          setIsLoading(false)
+          onStoreChangeRef.current?.()
+        })()
+
+        return () => {
+          active = false
+        }
+      }, [enabled, snapshotKey, snapshotMaxAgeMs, useSnapshot])
 
       // useSyncExternalStore 订阅函数
       const subscribe = useCallback((onStoreChange: () => void) => {
+        onStoreChangeRef.current = onStoreChange
+
         if (!enabled) {
           snapshotRef.current = undefined
           return () => {}
         }
-        
-        setIsLoading(true)
+
+        const hasSnapshot = snapshotRef.current !== undefined
+        setIsLoading(!hasSnapshot)
         setIsFetching(true)
         setError(undefined)
 
         debugLog(`${name} subscribe`, inputKey)
-        debugLog(`${name} subscribe`, inputKey)
         const unsubscribe = instanceRef.current.subscribe(
           inputRef.current,
           (newData: TOutput) => {
+            const timestamp = Date.now()
             snapshotRef.current = newData
+            snapshotMetaRef.current = { key: snapshotKey, timestamp }
+            if (useSnapshot) {
+              void writeSnapshot({ key: snapshotKey, data: newData, timestamp })
+            }
             setIsLoading(false)
             setIsFetching(false)
             setError(undefined)
@@ -251,8 +343,11 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
           }
         )
 
-        return unsubscribe
-      }, [enabled, inputKey])
+        return () => {
+          onStoreChangeRef.current = null
+          unsubscribe()
+        }
+      }, [enabled, inputKey, snapshotKey, useSnapshot])
 
       const getSnapshot = useCallback(() => snapshotRef.current, [])
 
@@ -266,14 +361,19 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         try {
           const source = await getOrCreateSource(inputRef.current)
           const result = await Effect.runPromise(source.refresh)
+          const timestamp = Date.now()
           snapshotRef.current = result
+          snapshotMetaRef.current = { key: snapshotKey, timestamp }
+          if (useSnapshot) {
+            void writeSnapshot({ key: snapshotKey, data: result, timestamp })
+          }
         } catch (err) {
           setError(err instanceof Error ? err : new Error(String(err)))
         } finally {
           setIsFetching(false)
           setIsLoading(false)
         }
-      }, [enabled])
+      }, [enabled, snapshotKey, useSnapshot])
 
       // 处理 disabled 状态
       useEffect(() => {
@@ -284,6 +384,11 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
           setError(undefined)
         }
       }, [enabled])
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        setIsLoading(!memorySnapshot)
+      }, [enabled, memorySnapshot, useSnapshot])
 
       return { data, isLoading, isFetching, error, refetch }
     },
@@ -376,44 +481,103 @@ export function createStreamInstance<TInput, TOutput>(
       }
     },
 
-    useState(input: TInput, options?: { enabled?: boolean }) {
-      const [isLoading, setIsLoading] = useState(true)
+    useState(input: TInput, options?: StreamInstanceUseStateOptions) {
+      const enabled = options?.enabled !== false
+      const useSnapshot = options?.useSnapshot !== false
+      const snapshotMaxAgeMs = options?.snapshotMaxAgeMs ?? Number.POSITIVE_INFINITY
+
+      const inputKey = useMemo(() => getInputKey(input), [input])
+      const snapshotKey = useMemo(() => makeSnapshotKey(name, inputKey), [inputKey])
+      const cachedEntry = useMemo(() => {
+        const cached = cache.get(inputKey)
+        if (!cached) return null
+        if (Date.now() - cached.timestamp >= ttl) return null
+        return { key: snapshotKey, data: cached.value, timestamp: cached.timestamp }
+      }, [inputKey, snapshotKey])
+      const memorySnapshot = useMemo(
+        () => (useSnapshot ? getValidMemorySnapshot<TOutput>(snapshotKey, snapshotMaxAgeMs) : null),
+        [snapshotKey, snapshotMaxAgeMs, useSnapshot]
+      )
+      const initialSnapshot = useMemo(() => {
+        if (!useSnapshot) return cachedEntry
+        if (!cachedEntry) return memorySnapshot
+        if (!memorySnapshot) return cachedEntry
+        return cachedEntry.timestamp >= memorySnapshot.timestamp ? cachedEntry : memorySnapshot
+      }, [cachedEntry, memorySnapshot, useSnapshot])
+
+      const [isLoading, setIsLoading] = useState(() => (enabled ? !initialSnapshot : false))
       const [isFetching, setIsFetching] = useState(false)
       const [error, setError] = useState<Error | undefined>(undefined)
 
-      const inputKey = useMemo(() => getInputKey(input), [input])
       const inputRef = useRef(input)
       inputRef.current = input
 
-      const enabled = options?.enabled !== false
       const instanceRef = useRef(this)
-      
-      // 使用 ref 存储最新值供 useSyncExternalStore 使用
-      const snapshotRef = useRef<TOutput | undefined>(undefined)
+      const snapshotRef = useRef<TOutput | undefined>(initialSnapshot?.data)
+      const snapshotMetaRef = useRef<{ key: string; timestamp: number } | null>(
+        initialSnapshot ? { key: snapshotKey, timestamp: initialSnapshot.timestamp } : null
+      )
+      const onStoreChangeRef = useRef<(() => void) | null>(null)
+      const lastSnapshotKeyRef = useRef<string | null>(snapshotKey)
+
+      if (lastSnapshotKeyRef.current !== snapshotKey) {
+        lastSnapshotKeyRef.current = snapshotKey
+        if (initialSnapshot) {
+          snapshotRef.current = initialSnapshot.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: initialSnapshot.timestamp }
+        } else {
+          snapshotRef.current = undefined
+          snapshotMetaRef.current = null
+        }
+      }
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        let active = true
+
+        void (async () => {
+          const entry = await readSnapshot<TOutput>(snapshotKey)
+          if (!active || !entry) return
+          if (isSnapshotExpired(entry.timestamp, snapshotMaxAgeMs)) {
+            await deleteSnapshot(snapshotKey)
+            return
+          }
+          const current = snapshotMetaRef.current
+          if (current && current.key === snapshotKey && current.timestamp >= entry.timestamp) return
+          snapshotRef.current = entry.data
+          snapshotMetaRef.current = { key: snapshotKey, timestamp: entry.timestamp }
+          setIsLoading(false)
+          onStoreChangeRef.current?.()
+        })()
+
+        return () => {
+          active = false
+        }
+      }, [enabled, snapshotKey, snapshotMaxAgeMs, useSnapshot])
 
       // useSyncExternalStore 订阅函数
       const subscribe = useCallback((onStoreChange: () => void) => {
+        onStoreChangeRef.current = onStoreChange
+
         if (!enabled) {
           snapshotRef.current = undefined
           return () => {}
         }
 
-        // 检查缓存
-        const key = inputKey
-        const cached = cache.get(key)
-        if (cached && Date.now() - cached.timestamp < ttl) {
-          snapshotRef.current = cached.value
-          setIsLoading(false)
-        } else {
-          setIsLoading(true)
-        }
+        const hasSnapshot = snapshotRef.current !== undefined
+        setIsLoading(!hasSnapshot)
         setIsFetching(true)
         setError(undefined)
 
         const unsubscribe = instanceRef.current.subscribe(
           inputRef.current,
           (newData: TOutput) => {
+            const timestamp = Date.now()
             snapshotRef.current = newData
+            snapshotMetaRef.current = { key: snapshotKey, timestamp }
+            if (useSnapshot) {
+              void writeSnapshot({ key: snapshotKey, data: newData, timestamp })
+            }
             setIsLoading(false)
             setIsFetching(false)
             setError(undefined)
@@ -421,8 +585,11 @@ export function createStreamInstance<TInput, TOutput>(
           }
         )
 
-        return unsubscribe
-      }, [enabled, inputKey])
+        return () => {
+          onStoreChangeRef.current = null
+          unsubscribe()
+        }
+      }, [enabled, snapshotKey, useSnapshot])
 
       const getSnapshot = useCallback(() => snapshotRef.current, [])
 
@@ -436,14 +603,19 @@ export function createStreamInstance<TInput, TOutput>(
         try {
           cache.delete(getInputKey(inputRef.current))
           const result = await instanceRef.current.fetch(inputRef.current)
+          const timestamp = Date.now()
           snapshotRef.current = result
+          snapshotMetaRef.current = { key: snapshotKey, timestamp }
+          if (useSnapshot) {
+            void writeSnapshot({ key: snapshotKey, data: result, timestamp })
+          }
         } catch (err) {
           setError(err instanceof Error ? err : new Error(String(err)))
         } finally {
           setIsFetching(false)
           setIsLoading(false)
         }
-      }, [enabled])
+      }, [enabled, snapshotKey, useSnapshot])
 
       // 处理 disabled 状态
       useEffect(() => {
@@ -454,6 +626,11 @@ export function createStreamInstance<TInput, TOutput>(
           setError(undefined)
         }
       }, [enabled])
+
+      useEffect(() => {
+        if (!enabled || !useSnapshot) return
+        setIsLoading(!initialSnapshot)
+      }, [enabled, initialSnapshot, useSnapshot])
 
       return { data, isLoading, isFetching, error, refetch }
     },

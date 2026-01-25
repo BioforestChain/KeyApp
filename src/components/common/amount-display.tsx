@@ -239,7 +239,7 @@ export function AmountDisplay({
     );
   }
 
-  // 加载状态：显示 0 配合呼吸动画
+  // 加载状态：显示当前值 + 呼吸动画（避免跳到 0）
   if (loading) {
     return (
       <span
@@ -248,7 +248,7 @@ export function AmountDisplay({
         aria-label="Loading..."
       >
         <NumberFlow
-          value={0}
+          value={numValue}
           format={format}
           locales="en-US"
           aria-hidden="true"

@@ -106,6 +106,15 @@ function saveChainPreferences(preferences: Record<string, ChainType>): void {
   }
 }
 
+function resolvePreferredChain(
+  wallet: Wallet | null | undefined,
+  preferredChain: ChainType
+): ChainType {
+  if (!wallet) return preferredChain
+  if (wallet.chainAddresses.some((ca) => ca.chain === preferredChain)) return preferredChain
+  return wallet.chainAddresses[0]?.chain ?? wallet.chain ?? preferredChain
+}
+
 // 初始状态
 const initialState: WalletState = {
   wallets: [],
@@ -187,18 +196,35 @@ export const walletActions = {
       const chainPreferences = loadChainPreferences()
       const currentWalletId = walleterInfo?.activeWalletId ?? wallets[0]?.id ?? null
 
+      const resolvedPreferences: Record<string, ChainType> = { ...chainPreferences }
+      let preferencesChanged = false
+
+      for (const wallet of wallets) {
+        const preferred = resolvedPreferences[wallet.id] ?? wallet.chain ?? 'bfmeta'
+        const resolved = resolvePreferredChain(wallet, preferred)
+        if (resolvedPreferences[wallet.id] !== resolved) {
+          resolvedPreferences[wallet.id] = resolved
+          preferencesChanged = true
+        }
+      }
+
+      if (preferencesChanged) {
+        saveChainPreferences(resolvedPreferences)
+      }
+
       // 获取当前钱包的偏好链，或使用钱包的主链，或默认
       const currentWallet = wallets.find(w => w.id === currentWalletId)
       const preferredChain = currentWalletId
-        ? (chainPreferences[currentWalletId] ?? currentWallet?.chain ?? 'bfmeta')
+        ? (resolvedPreferences[currentWalletId] ?? currentWallet?.chain ?? 'bfmeta')
         : 'bfmeta'
+      const resolvedChain = resolvePreferredChain(currentWallet, preferredChain)
 
       walletStore.setState((state) => ({
         ...state,
         wallets,
         currentWalletId,
-        selectedChain: preferredChain,
-        chainPreferences,
+        selectedChain: resolvedChain,
+        chainPreferences: resolvedPreferences,
         isInitialized: true,
         isLoading: false,
       }))
@@ -291,11 +317,18 @@ export const walletActions = {
       ...(savedWalletInfo.encryptedMnemonic ? { encryptedMnemonic: savedWalletInfo.encryptedMnemonic } : {}),
     }
 
-    walletStore.setState((state) => ({
-      ...state,
-      wallets: [...state.wallets, newWallet],
-      currentWalletId: walletId,
-    }))
+    walletStore.setState((state) => {
+      const resolvedChain = resolvePreferredChain(newWallet, newWallet.chain)
+      const nextPreferences = { ...state.chainPreferences, [walletId]: resolvedChain }
+      saveChainPreferences(nextPreferences)
+      return {
+        ...state,
+        wallets: [...state.wallets, newWallet],
+        currentWalletId: walletId,
+        selectedChain: resolvedChain,
+        chainPreferences: nextPreferences,
+      }
+    })
 
     return newWallet
   },
@@ -325,22 +358,50 @@ export const walletActions = {
 
       // 如果切换到新钱包，使用其偏好链
       const newWallet = wallets.find(w => w.id === currentWalletId)
-      const selectedChain = currentWalletId
+      const preferredChain = currentWalletId
         ? (remainingPreferences[currentWalletId] ?? newWallet?.chain ?? 'bfmeta')
         : state.selectedChain
+      const resolvedChain = resolvePreferredChain(newWallet, preferredChain)
+      const resolvedPreferences = currentWalletId && remainingPreferences[currentWalletId] !== resolvedChain
+        ? { ...remainingPreferences, [currentWalletId]: resolvedChain }
+        : remainingPreferences
+      if (resolvedPreferences !== remainingPreferences) {
+        saveChainPreferences(resolvedPreferences)
+      }
 
       return {
         ...state,
         wallets,
         currentWalletId,
-        selectedChain,
-        chainPreferences: remainingPreferences,
+        selectedChain: resolvedChain,
+        chainPreferences: resolvedPreferences,
       }
     })
   },
 
   /** 切换当前钱包 */
   setCurrentWallet: async (walletId: string): Promise<void> => {
+    walletStore.setState((state) => {
+      // 获取目标钱包的偏好链
+      const targetWallet = state.wallets.find(w => w.id === walletId)
+      if (!targetWallet) return state
+      const preferredChain = state.chainPreferences[walletId] ?? targetWallet.chain ?? 'bfmeta'
+      const resolvedChain = resolvePreferredChain(targetWallet, preferredChain)
+      const resolvedPreferences = state.chainPreferences[walletId] !== resolvedChain
+        ? { ...state.chainPreferences, [walletId]: resolvedChain }
+        : state.chainPreferences
+      if (resolvedPreferences !== state.chainPreferences) {
+        saveChainPreferences(resolvedPreferences)
+      }
+
+      return {
+        ...state,
+        currentWalletId: walletId,
+        selectedChain: resolvedChain,
+        chainPreferences: resolvedPreferences,
+      }
+    })
+
     const walleterInfo = await walletStorageService.getWalleterInfo()
     if (walleterInfo) {
       await walletStorageService.saveWalleterInfo({
@@ -349,18 +410,6 @@ export const walletActions = {
         updatedAt: Date.now(),
       })
     }
-
-    walletStore.setState((state) => {
-      // 获取目标钱包的偏好链
-      const targetWallet = state.wallets.find(w => w.id === walletId)
-      const preferredChain = state.chainPreferences[walletId] ?? targetWallet?.chain ?? 'bfmeta'
-
-      return {
-        ...state,
-        currentWalletId: walletId,
-        selectedChain: preferredChain,
-      }
-    })
   },
 
   /** 切换当前链 */
@@ -631,7 +680,8 @@ export const walletSelectors = {
   getCurrentChainAddress: (state: WalletState): ChainAddress | null => {
     const wallet = walletSelectors.getCurrentWallet(state)
     if (!wallet) return null
-    return wallet.chainAddresses.find((ca) => ca.chain === state.selectedChain) || null
+    const resolvedChain = resolvePreferredChain(wallet, state.selectedChain)
+    return wallet.chainAddresses.find((ca) => ca.chain === resolvedChain) || null
   },
 
   // getCurrentChainTokens 已移除 - 使用 getChainProvider(chain).tokenBalances.useState() 代替

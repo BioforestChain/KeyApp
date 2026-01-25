@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useState } from 'react';
+import { useCallback, useRef, useEffect, useState, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Priority } from './refraction';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -19,6 +19,8 @@ import {
 
 import 'swiper/css';
 import 'swiper/css/effect-cards';
+
+const MemoWalletCard = memo(WalletCard);
 
 interface WalletCardCarouselProps {
   wallets: Wallet[];
@@ -67,6 +69,7 @@ export function WalletCardCarousel({
 
   // Track active slide index for priority calculation
   const [activeIndex, setActiveIndex] = useState(currentIndex >= 0 ? currentIndex : 0);
+  const initialSlideRef = useRef(currentIndex >= 0 ? currentIndex : 0);
 
   // Calculate card priority based on distance from active slide
   const getPriority = (index: number): Priority => {
@@ -96,6 +99,9 @@ export function WalletCardCarousel({
 
   // 获取钱包的链偏好（每个钱包可以有不同的链偏好）
   const getWalletChain = (wallet: Wallet): ChainType => {
+    if (wallet.id === currentWalletId) {
+      return selectedChain;
+    }
     return chainPreferences[wallet.id] ?? wallet.chain ?? selectedChain;
   };
 
@@ -172,7 +178,7 @@ export function WalletCardCarousel({
           setActiveIndex(swiper.activeIndex);
         }}
         onSlideChange={handleSlideChange}
-        initialSlide={currentIndex >= 0 ? currentIndex : 0}
+        initialSlide={initialSlideRef.current}
         className="mx-auto h-[212px] w-[min(92vw,360px)] overflow-visible [&_.swiper-slide]:size-full [&_.swiper-slide]:overflow-visible! [&_.swiper-slide]:rounded-2xl"
       >
         {wallets.map((wallet, index) => {
@@ -180,7 +186,7 @@ export function WalletCardCarousel({
           const walletAddress = getWalletAddress(wallet, walletChain);
           return (
             <SwiperSlide key={wallet.id}>
-              <WalletCard
+              <MemoWalletCard
                 wallet={wallet}
                 chain={walletChain}
                 chainName={t(`common:chains.${walletChain}`, { defaultValue: walletChain })}
@@ -188,6 +194,7 @@ export function WalletCardCarousel({
                 address={walletAddress}
                 chainIconUrl={chainIconUrls[walletChain]}
                 themeHue={getWalletTheme(wallet.id)}
+                canvasKey={`${wallet.id}:carousel`}
                 onCopyAddress={() => {
                   if (walletAddress) onCopyAddress?.(walletAddress);
                 }}

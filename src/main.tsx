@@ -1,5 +1,6 @@
 // Global error capture - MUST be first to catch all errors!
 import './lib/error-capture'
+import './lib/superjson'
 import './polyfills'
 import { startServiceMain } from './service-main'
 import { startFrontendMain } from './frontend-main'
