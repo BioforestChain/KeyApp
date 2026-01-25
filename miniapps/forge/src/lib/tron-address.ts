@@ -35,7 +35,7 @@ function encodeBase58(buffer: Uint8Array): string {
     }
   }
 
-  return leadingZeros + digits.toReversed().map((d: number) => BASE58_ALPHABET[d]).join('')
+  return leadingZeros + digits.slice().reverse().map((d: number) => BASE58_ALPHABET[d]).join('')
 }
 
 /**
