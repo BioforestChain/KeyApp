@@ -201,5 +201,8 @@
   "walletsUnderIdentity": "Identity Wallets",
   "willSynchronizeImportIntoThe_{chainname}ChainWithTheSamePrivateKey": "Will synchronize import into the chain with the same private key",
   "{assetType}Details": "Details",
-  "{asset}TotalCirculation": "total circulation"
+  "{asset}TotalCirculation": "total circulation",
+  "miniCard": {
+    "label": "Wallet card"
+  }
 }

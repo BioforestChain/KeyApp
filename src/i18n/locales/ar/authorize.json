@@ -59,5 +59,6 @@
   },
   "passwordConfirm": {
     "title": "Confirm Password"
-  }
+  },
+  "unknownApp": "Unknown"
 }

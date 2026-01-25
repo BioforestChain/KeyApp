@@ -59,5 +59,6 @@
   "title": {
     "address": "地址授權",
     "signature": "交易授權"
-  }
+  },
+  "unknownApp": "未知應用"
 }

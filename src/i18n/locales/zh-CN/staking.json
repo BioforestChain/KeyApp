@@ -17,6 +17,7 @@
   "burnDescription": "将内链代币转换为外链代币",
   "sourceChain": "源链",
   "targetChain": "目标链",
+  "targetChainLabel": "→ {{chain}}（{{asset}}）",
   "estimatedFee": "预估手续费",
   "transactionPending": "交易待处理",
   "transactionConfirming": "确认中",

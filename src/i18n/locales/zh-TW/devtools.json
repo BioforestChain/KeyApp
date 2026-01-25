@@ -1,0 +1,130 @@
+{
+  "title": "Mock DevTools",
+  "tabs": {
+    "logs": "日誌",
+    "breakpoints": "斷點",
+    "console": "Console",
+    "settings": "設定"
+  },
+  "button": {
+    "open": "開啟 Mock DevTools（可拖動）"
+  },
+  "footer": {
+    "mode": "Mock 模式",
+    "logs": "{{count}} 條日誌",
+    "paused": "暫停 {{count}}"
+  },
+  "logs": {
+    "filterPlaceholder": "過濾 service.method...",
+    "clear": "清除日誌",
+    "empty": "暫無請求日誌",
+    "input": "輸入：",
+    "output": "輸出：",
+    "error": "錯誤：",
+    "intercepted": "已被攔截修改"
+  },
+  "settings": {
+    "defaultError": "模擬錯誤",
+    "globalDelay": "全域延遲",
+    "ms": "ms",
+    "delayMarks": {
+      "zero": "0",
+      "one": "1s",
+      "two": "2s",
+      "three": "3s+"
+    },
+    "mockError": "模擬錯誤",
+    "errorPlaceholder": "錯誤訊息（選填）",
+    "errorNotice": "所有請求將返回錯誤",
+    "resetAll": "重置所有設定",
+    "clearLogs": "清除日誌",
+    "clearBreakpoints": "清除斷點",
+    "tipTitle": "提示",
+    "tipDelay": "全域延遲會套用到所有 Mock 服務請求",
+    "tipError": "模擬錯誤會讓所有請求拋出指定錯誤",
+    "tipBreakpoint": "斷點可在「斷點」面板中單獨設定"
+  },
+  "breakpoints": {
+    "consoleLabel": "Console:",
+    "consoleView": "在 Console 中查看",
+    "resume": "繼續",
+    "abort": "中止",
+    "ms": "ms",
+    "input": "input",
+    "output": "output",
+    "inputHint": "($input 可用)",
+    "outputHint": "($input, $output 可用)",
+    "pause": "暫停",
+    "pauseConditionPlaceholder": "條件表達式（選填）",
+    "inject": "注入",
+    "injectInputPlaceholder": "$input.text = 'modified'",
+    "injectOutputPlaceholder": "return { success: true }\n// 或 throw new Error('test')",
+    "summary": {
+      "delay": "延遲：{{ms}}ms",
+      "inputPause": "input:暫停",
+      "inputInject": "input:注入",
+      "outputPause": "output:暫停",
+      "outputInject": "output:注入"
+    },
+    "addDialogTitle": "新增斷點",
+    "add": "新增",
+    "title": "斷點",
+    "pausedCount": "暫停中（{{count}}）",
+    "emptyTitle": "暫無斷點",
+    "emptyHint": "點擊「新增」建立斷點"
+  },
+  "console": {
+    "help": {
+      "sections": {
+        "commands": "命令",
+        "variables": "變數",
+        "methods": "方法",
+        "examples": "範例"
+      },
+      "commands": {
+        "help": "顯示說明",
+        "clear": "清空 Console",
+        "vars": "顯示可用變數",
+        "copy": "複製表達式結果到剪貼簿"
+      },
+      "variables": {
+        "paused": "暫停請求陣列",
+        "indexed": "依索引訪問暫停請求",
+        "latest": "最新的暫停請求",
+        "byId": "依 ID 訪問，例如 $p1, $p2"
+      },
+      "methods": {
+        "resume": "繼續執行，可傳入修改後的值",
+        "abort": "中止請求"
+      },
+      "examples": {
+        "latest": "查看最新暫停請求",
+        "input": "查看請求的輸入",
+        "copy": "複製輸入到剪貼簿",
+        "resume": "繼續執行"
+      }
+    },
+    "vars": {
+      "available": "可用變數",
+      "pausedCount": "暫停數量"
+    },
+    "copy": {
+      "usage": "用法: /copy <expr>，例如: /copy $p1.$input",
+      "success": "已複製到剪貼簿 ({{count}} 字元)",
+      "failure": "複製失敗: {{message}}",
+      "expressionError": "表達式錯誤: {{message}}"
+    },
+    "unknownCommand": "未知命令: {{command}}。輸入 /help 查看說明。",
+    "title": "Console",
+    "pausedCount": "暫停 {{count}}",
+    "clearTitle": "清空 Console (/clear)",
+    "empty": {
+      "titlePrefix": "Console 面板 - 輸入",
+      "titleSuffix": "查看說明",
+      "varsLabel": "變數：",
+      "vars": "變數：<code>$paused</code>, <code>$0</code>, <code>$_</code>, <code>$p{id}</code>"
+    },
+    "inputPlaceholder": "輸入表達式... (↑↓ 歷史)",
+    "runTitle": "執行 (Enter)"
+  }
+}

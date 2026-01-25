@@ -1,0 +1,130 @@
+{
+  "title": "Mock DevTools",
+  "tabs": {
+    "logs": "日志",
+    "breakpoints": "断点",
+    "console": "Console",
+    "settings": "设置"
+  },
+  "button": {
+    "open": "打开 Mock DevTools（可拖动）"
+  },
+  "footer": {
+    "mode": "Mock 模式",
+    "logs": "{{count}} 条日志",
+    "paused": "暂停 {{count}}"
+  },
+  "logs": {
+    "filterPlaceholder": "过滤 service.method...",
+    "clear": "清除日志",
+    "empty": "暂无请求日志",
+    "input": "输入：",
+    "output": "输出：",
+    "error": "错误：",
+    "intercepted": "已被拦截修改"
+  },
+  "settings": {
+    "defaultError": "模拟错误",
+    "globalDelay": "全局延迟",
+    "ms": "ms",
+    "delayMarks": {
+      "zero": "0",
+      "one": "1s",
+      "two": "2s",
+      "three": "3s+"
+    },
+    "mockError": "模拟错误",
+    "errorPlaceholder": "错误信息（可选）",
+    "errorNotice": "所有请求将返回错误",
+    "resetAll": "重置所有设置",
+    "clearLogs": "清除日志",
+    "clearBreakpoints": "清除断点",
+    "tipTitle": "提示",
+    "tipDelay": "全局延迟会应用到所有 Mock 服务请求",
+    "tipError": "模拟错误会让所有请求抛出指定错误",
+    "tipBreakpoint": "断点可以在“断点”面板中单独配置"
+  },
+  "breakpoints": {
+    "consoleLabel": "Console:",
+    "consoleView": "在 Console 中查看",
+    "resume": "继续",
+    "abort": "中止",
+    "ms": "ms",
+    "input": "input",
+    "output": "output",
+    "inputHint": "($input 可用)",
+    "outputHint": "($input, $output 可用)",
+    "pause": "暂停",
+    "pauseConditionPlaceholder": "条件表达式（可选）",
+    "inject": "注入",
+    "injectInputPlaceholder": "$input.text = 'modified'",
+    "injectOutputPlaceholder": "return { success: true }\n// 或 throw new Error('test')",
+    "summary": {
+      "delay": "延迟：{{ms}}ms",
+      "inputPause": "input:暂停",
+      "inputInject": "input:注入",
+      "outputPause": "output:暂停",
+      "outputInject": "output:注入"
+    },
+    "addDialogTitle": "添加断点",
+    "add": "添加",
+    "title": "断点",
+    "pausedCount": "暂停中（{{count}}）",
+    "emptyTitle": "暂无断点",
+    "emptyHint": "点击“添加”创建断点"
+  },
+  "console": {
+    "help": {
+      "sections": {
+        "commands": "命令",
+        "variables": "变量",
+        "methods": "方法",
+        "examples": "示例"
+      },
+      "commands": {
+        "help": "显示帮助信息",
+        "clear": "清空 Console",
+        "vars": "显示可用变量",
+        "copy": "复制表达式结果到剪贴板"
+      },
+      "variables": {
+        "paused": "暂停请求数组",
+        "indexed": "按索引访问暂停请求",
+        "latest": "最新的暂停请求",
+        "byId": "按 ID 访问，如 $p1, $p2"
+      },
+      "methods": {
+        "resume": "继续执行，可传入修改后的值",
+        "abort": "中止请求"
+      },
+      "examples": {
+        "latest": "查看最新暂停请求",
+        "input": "查看请求的输入",
+        "copy": "复制输入到剪贴板",
+        "resume": "继续执行"
+      }
+    },
+    "vars": {
+      "available": "可用变量",
+      "pausedCount": "暂停数量"
+    },
+    "copy": {
+      "usage": "用法: /copy <expr>，例如: /copy $p1.$input",
+      "success": "已复制到剪贴板 ({{count}} 字符)",
+      "failure": "复制失败: {{message}}",
+      "expressionError": "表达式错误: {{message}}"
+    },
+    "unknownCommand": "未知命令: {{command}}。输入 /help 查看帮助。",
+    "title": "Console",
+    "pausedCount": "暂停 {{count}}",
+    "clearTitle": "清空 Console (/clear)",
+    "empty": {
+      "titlePrefix": "Console 面板 - 输入",
+      "titleSuffix": "查看帮助",
+      "varsLabel": "变量：",
+      "vars": "变量：<code>$paused</code>, <code>$0</code>, <code>$_</code>, <code>$p{id}</code>"
+    },
+    "inputPlaceholder": "输入表达式... (↑↓ 历史)",
+    "runTitle": "执行 (Enter)"
+  }
+}

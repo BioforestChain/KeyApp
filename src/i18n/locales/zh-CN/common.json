@@ -120,7 +120,9 @@
     "addAddress": "添加地址",
     "viewAll": "查看全部联系人",
     "selectContact": "选择联系人",
-    "selectAddress": "选择地址"
+    "selectAddress": "选择地址",
+    "addressCount": "{{count}}/{{max}}",
+    "defaultLabel": "默认"
   },
   "acceptExchange": "接收交换",
   "account": "用户",
@@ -388,7 +390,9 @@
     "noWalletsSelected": "请选择至少一个钱包",
     "scanToAdd": "扫码添加我为联系人",
     "walletAddress": "{{wallet}} ({{chain}})",
-    "currentChain": "当前链"
+    "currentChain": "当前链",
+    "chainLabel": "（{{chain}}）",
+    "removeWallet": "移除 {{name}}"
   },
   "time": {
     "justNow": "刚刚",
@@ -406,6 +410,8 @@
     "transactionsTitle": "地址交易查询",
     "chain": "链",
     "address": "地址",
+    "fromLabel": "来自：",
+    "toLabel": "发送至：",
     "addressPlaceholder": "输入钱包地址",
     "addressOrHash": "地址或交易哈希",
     "addressOrHashPlaceholder": "输入地址或交易哈希",
@@ -418,6 +424,10 @@
     "useExplorerHint": "该链不支持直接查询交易历史，请使用浏览器查看",
     "openExplorer": "打开 {{name}} 浏览器",
     "viewOnExplorer": "在 {{name}} 浏览器中查看"
+  },
+  "sign": {
+    "plus": "+",
+    "minus": "-"
   },
   "tabs": {
     "assets": "资产",

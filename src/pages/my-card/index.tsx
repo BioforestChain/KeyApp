@@ -23,6 +23,7 @@ import {
     userProfileActions,
     useWallets,
     useChainPreferences,
+    useChainNameMap,
     type Wallet,
     type ChainType,
 } from '@/stores';
@@ -38,31 +39,16 @@ import { WalletPickerSheet } from './wallet-picker-sheet';
 import { resolveBackgroundStops } from '@/components/wallet/refraction';
 import { useSnapdomShare } from '@/hooks/useSnapdomShare';
 
-const CHAIN_NAMES: Record<ChainType, string> = {
-    ethereum: 'ETH',
-    bitcoin: 'BTC',
-    tron: 'TRX',
-    binance: 'BSC',
-    bfmeta: 'BFMeta',
-    ccchain: 'CCChain',
-    pmchain: 'PMChain',
-    bfchainv2: 'BFChain V2',
-    btgmeta: 'BTGMeta',
-    biwmeta: 'BIWMeta',
-    ethmeta: 'ETHMeta',
-    malibu: 'Malibu',
-};
-
-
-
 export function MyCardPage() {
     const { t } = useTranslation(['common', 'settings']);
     const { goBack } = useNavigation();
+    const inputRef = useRef<HTMLInputElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
 
     const profile = useUserProfile();
     const wallets = useWallets();
     const chainPreferences = useChainPreferences();
+    const chainNameMap = useChainNameMap();
 
     const [isEditingUsername, setIsEditingUsername] = useState(false);
     const [usernameInput, setUsernameInput] = useState(profile.username);
@@ -107,10 +93,12 @@ export function MyCardPage() {
 
     // Generate addresses for QR code
     const addresses: ContactAddressInfo[] = useMemo(() => {
-        return selectedWalletsWithAddresses.map(({ wallet, address }) => ({
-            address: address!,
-            label: wallet.name, // Only wallet name, color indicates address type
-        }));
+        return selectedWalletsWithAddresses
+            .filter((item): item is { wallet: Wallet; chain: ChainType; address: string } => !!item.address)
+            .map(({ wallet, address }) => ({
+                address,
+                label: wallet.name, // Only wallet name, color indicates address type
+            }));
     }, [selectedWalletsWithAddresses]);
 
     // Generate QR content
@@ -147,6 +135,12 @@ export function MyCardPage() {
         }
     }, [handleUsernameSave]);
 
+    useEffect(() => {
+        if (isEditingUsername) {
+            inputRef.current?.focus();
+        }
+    }, [isEditingUsername]);
+
     // Snapdom share hook
     const { isProcessing: isDownloading, download: handleDownload, share: handleShare } = useSnapdomShare(
         cardRef,
@@ -181,13 +175,13 @@ export function MyCardPage() {
                 {isEditingUsername ? (
                     <div className="mb-6 flex items-center gap-2">
                         <Input
+                            ref={inputRef}
                             value={usernameInput}
                             onChange={(e) => setUsernameInput(e.target.value)}
                             onBlur={handleUsernameSave}
                             onKeyDown={handleUsernameKeyDown}
                             placeholder={t('myCard.usernamePlaceholder')}
                             className="w-48 text-center"
-                            autoFocus
                         />
                     </div>
                 ) : (
@@ -232,12 +226,14 @@ export function MyCardPage() {
                                     style={{ backgroundColor: c0, color: '#FFFFFF' }}
                                 >
                                     <span>{wallet.name}</span>
-                                    <span style={{ opacity: 0.8 }}>({CHAIN_NAMES[chain] || chain})</span>
+                                    <span style={{ opacity: 0.8 }}>
+                                      {t('myCard.chainLabel', { chain: chainNameMap[chain] || chain })}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => userProfileActions.toggleWalletSelection(wallet.id)}
                                         className="ml-0.5 rounded-full p-0.5 transition-colors hover:bg-white/20"
-                                        aria-label={`Remove ${wallet.name}`}
+                                        aria-label={t('myCard.removeWallet', { name: wallet.name })}
                                     >
                                         <X className="size-3" />
                                     </button>

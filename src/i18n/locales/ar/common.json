@@ -72,6 +72,7 @@
     "addressPlaceholder": "Enter wallet address",
     "balanceTitle": "Address Balance",
     "chain": "Chain",
+    "fromLabel": "From:",
     "error": "Query Failed",
     "explorerHint": "Transaction history requires block explorer",
     "noTransactions": "No transactions found",
@@ -79,9 +80,14 @@
     "openExplorer": "Open {{name}} Explorer",
     "otherChains": "Other Chains",
     "queryError": "Failed to query transactions, please try again",
+    "toLabel": "To:",
     "transactionsTitle": "Address Transactions",
     "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "viewOnExplorer": "View on {{name}}"
+  },
+  "sign": {
+    "plus": "+",
+    "minus": "-"
   },
   "addressPlaceholder": "أدخل أو الصق العنوان",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "Advanced encryption technology &lt;br /&gt; Digital wealth is more secure",
@@ -152,7 +158,9 @@
     "save": "حفظ",
     "selectAddress": "اختر العنوان",
     "selectContact": "اختر جهة اتصال",
-    "viewAll": "عرض جميع جهات الاتصال"
+    "viewAll": "عرض جميع جهات الاتصال",
+    "addressCount": "{{count}}/{{max}}",
+    "defaultLabel": "افتراضي"
   },
   "contactCard": {
     "scanToAdd": "امسح لإضافة جهة اتصال",
@@ -265,7 +273,9 @@
     "selectWallets": "اختر المحفظة",
     "title": "بطاقتي",
     "usernamePlaceholder": "أدخل اسم المستخدم",
-    "walletAddress": "{{wallet}} ({{chain}})"
+    "walletAddress": "{{wallet}} ({{chain}})",
+    "chainLabel": "({{chain}})",
+    "removeWallet": "إزالة {{name}}"
   },
   "name": "Name",
   "navOverview": "Overview",

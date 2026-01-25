@@ -188,7 +188,8 @@
     "searchPlaceholder": "搜尋鏈名稱或符號",
     "noResults": "未找到匹配的鏈",
     "selectAll": "全選",
-    "deselectAll": "取消全選"
+    "deselectAll": "取消全選",
+    "selectionCount": "{{selected}}/{{total}}"
   },
   "theme": {
     "walletName": "錢包名稱",

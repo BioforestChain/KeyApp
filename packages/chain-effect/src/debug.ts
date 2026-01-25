@@ -1,4 +1,5 @@
 type DebugSetting = boolean | string | undefined
+type DebugLogger = (...args: Array<string | number | boolean>) => void
 
 function readLocalStorageSetting(): DebugSetting {
   if (typeof globalThis === "undefined") return undefined
@@ -46,4 +47,31 @@ export function isChainEffectDebugEnabled(message: string): boolean {
   const regex = parseRegex(setting)
   if (regex) return regex.test(message)
   return message.includes(setting)
+}
+
+function readDebugLogger(): DebugLogger | null {
+  if (typeof globalThis === "undefined") return null
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_LOG__?: unknown }
+  const value = store.__CHAIN_EFFECT_LOG__
+  return typeof value === "function" ? (value as DebugLogger) : null
+}
+
+export function formatChainEffectError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return String(error)
+  }
+}
+
+export function logChainEffectDebug(
+  message: string,
+  ...args: Array<string | number | boolean>
+): void {
+  if (!isChainEffectDebugEnabled(message)) return
+  const logger = readDebugLogger()
+  if (!logger) return
+  logger("[chain-effect]", message, ...args)
 }

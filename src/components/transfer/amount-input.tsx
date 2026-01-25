@@ -16,6 +16,8 @@ interface AmountInputProps {
   balance?: Amount | undefined;
   /** Max allowed amount (defaults to balance) */
   max?: Amount | undefined;
+  /** Disable max button */
+  maxDisabled?: boolean | undefined;
   /** Fiat value to display */
   fiatValue?: string | undefined;
   /** Fiat symbol (default: $) */
@@ -62,6 +64,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
       fiatValue,
       fiatSymbol = '$',
       max,
+      maxDisabled = false,
       error,
       label,
       className,
@@ -77,6 +80,7 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
     const decimals = propDecimals ?? balance?.decimals ?? 18;
     const symbol = propSymbol ?? balance?.symbol ?? '';
     const effectiveMax = max ?? balance;
+    const isMaxDisabled = disabled || maxDisabled;
 
     // Sync input value when controlled value changes from parent
     useEffect(() => {
@@ -175,11 +179,15 @@ const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             />
 
             <div className="flex items-center gap-2">
-              {effectiveMax && !disabled && (
+              {effectiveMax && (
                 <button
                   type="button"
                   onClick={handleMax}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-2 py-1 text-xs font-medium transition-colors"
+                  disabled={isMaxDisabled}
+                  className={cn(
+                    'bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                    isMaxDisabled && 'cursor-not-allowed opacity-50',
+                  )}
                 >
                   MAX
                 </button>

@@ -110,7 +110,9 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
   useEffect(() => {
     if (redemption.step === 'success') {
       setStep('success')
-      onSuccess?.(redemption.orderId!)
+      if (redemption.orderId) {
+        onSuccess?.(redemption.orderId)
+      }
     } else if (redemption.step === 'error') {
       setError(redemption.error)
       setStep('confirm')
@@ -255,7 +257,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
                 )}
               >
                 <button type="button" onClick={() => setSelectedOption(opt)}>
-                  {opt.internalAsset} → {getChainName(opt.externalChain)}
+                  {t('redemption.optionLabel', {
+                    asset: opt.internalAsset,
+                    chain: getChainName(opt.externalChain),
+                  })}
                 </button>
               </Badge>
             ))}
@@ -278,7 +283,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>
-                {t('redemption.from')} ({getChainName(selectedOption.internalChain)})
+                {t('common.chainLabel', {
+                  label: t('redemption.from'),
+                  chain: getChainName(selectedOption.internalChain),
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -300,7 +308,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
               </div>
               {selectedOption.rechargeItem.redemption && (
                 <div className="text-xs text-muted-foreground">
-                  {t('redemption.limits')}: {formatAmount(String(selectedOption.rechargeItem.redemption.min))} - {formatAmount(String(selectedOption.rechargeItem.redemption.max))}
+                  {t('redemption.limitsRange', {
+                    min: formatAmount(String(selectedOption.rechargeItem.redemption.min)),
+                    max: formatAmount(String(selectedOption.rechargeItem.redemption.max)),
+                  })}
                 </div>
               )}
             </CardContent>
@@ -319,7 +330,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>
-                {t('redemption.to')} ({getChainName(selectedOption.externalChain)})
+                {t('common.chainLabel', {
+                  label: t('redemption.to'),
+                  chain: getChainName(selectedOption.externalChain),
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -379,7 +393,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             <CardContent className="py-6 text-center space-y-4">
               <div>
                 <CardDescription className="mb-1">
-                  {t('redemption.from')} ({getChainName(selectedOption.internalChain)})
+                  {t('common.chainLabel', {
+                    label: t('redemption.from'),
+                    chain: getChainName(selectedOption.internalChain),
+                  })}
                 </CardDescription>
                 <div className="text-3xl font-bold flex items-center justify-center gap-2">
                   <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
@@ -395,7 +412,10 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
               </div>
               <div>
                 <CardDescription className="mb-1">
-                  {t('redemption.to')} ({getChainName(selectedOption.externalChain)})
+                  {t('common.chainLabel', {
+                    label: t('redemption.to'),
+                    chain: getChainName(selectedOption.externalChain),
+                  })}
                 </CardDescription>
                 <div className="text-3xl font-bold text-blue-500 flex items-center justify-center gap-2">
                   <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
@@ -471,7 +491,9 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             </p>
             {redemption.orderId && (
               <p className="text-xs text-muted-foreground font-mono">
-                {t('success.orderId')}: {redemption.orderId.slice(0, 16)}...
+                {t('success.orderIdLabel', {
+                  id: `${redemption.orderId.slice(0, 16)}...`,
+                })}
               </p>
             )}
           </div>

@@ -185,7 +185,9 @@ function ContactEditJobContent() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{t("contact.addresses")}</span>
-                <span className="text-muted-foreground text-xs">{addresses.length}/{MAX_ADDRESSES}</span>
+                <span className="text-muted-foreground text-xs">
+                  {t("contact.addressCount", { count: addresses.length, max: MAX_ADDRESSES })}
+                </span>
               </div>
 
               {addresses.map((addr, index) => (
@@ -215,7 +217,7 @@ function ContactEditJobContent() {
                     )}
                     {index === 0 && (
                       <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs">
-                        Default
+                        {t("contact.defaultLabel")}
                       </span>
                     )}
                   </div>

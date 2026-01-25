@@ -119,7 +119,9 @@
     "save": "Save",
     "selectAddress": "Select address",
     "selectContact": "Select Contact",
-    "viewAll": "View all contacts"
+    "viewAll": "View all contacts",
+    "addressCount": "{{count}}/{{max}}",
+    "defaultLabel": "Default"
   },
   "continue": "Continue",
   "contractMethods": "Contract methods",
@@ -399,13 +401,17 @@
     "noWalletsSelected": "Please select at least one wallet",
     "scanToAdd": "Scan to add me as contact",
     "walletAddress": "{{wallet}} ({{chain}})",
-    "currentChain": "Current chain"
+    "currentChain": "Current chain",
+    "chainLabel": "({{chain}})",
+    "removeWallet": "Remove {{name}}"
   },
   "addressLookup": {
     "balanceTitle": "Address Balance",
     "transactionsTitle": "Address Transactions",
     "chain": "Chain",
     "address": "Address",
+    "fromLabel": "From:",
+    "toLabel": "To:",
     "addressPlaceholder": "Enter wallet address",
     "addressOrHash": "Address or Transaction Hash",
     "addressOrHashPlaceholder": "Enter address or tx hash",
@@ -418,6 +424,10 @@
     "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "openExplorer": "Open {{name}} Explorer",
     "viewOnExplorer": "View on {{name}}"
+  },
+  "sign": {
+    "plus": "+",
+    "minus": "-"
   },
   "tabs": {
     "assets": "Assets",

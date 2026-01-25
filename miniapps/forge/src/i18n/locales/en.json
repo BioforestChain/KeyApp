@@ -16,9 +16,11 @@
     "pay": "Pay",
     "receive": "Receive",
     "ratio": "Exchange Ratio",
+    "ratioValue": "1:1",
     "depositAddress": "Deposit Address",
     "network": "Network",
     "preview": "Preview Transaction",
+    "start": "Start Forge",
     "confirm": "Confirm Recharge",
     "continue": "Continue",
     "amountHint": "Amount is in {{symbol}}",
@@ -31,7 +33,9 @@
     "connect": "Connect Wallet",
     "from": "From",
     "to": "To",
+    "optionLabel": "{{asset}} → {{chain}}",
     "limits": "Limits",
+    "limitsRange": "Limits: {{min}} - {{max}}",
     "fee": "Fee",
     "receivable": "You will receive",
     "addressPlaceholder": "Enter external chain address",
@@ -64,7 +68,8 @@
   },
   "success": {
     "title": "Complete",
-    "orderId": "Order"
+    "orderId": "Order",
+    "orderIdLabel": "Order: {{id}}"
   },
   "error": {
     "sdkNotInit": "Bio SDK not initialized",
@@ -74,10 +79,15 @@
   },
   "picker": {
     "title": "Select Token",
-    "selected": "Selected"
+    "selected": "Selected",
+    "close": "Close",
+    "optionAssets": "{{from}} → {{to}}",
+    "optionChains": "{{from}} → {{to}}"
   },
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "arrow": "→",
+    "chainLabel": "{{label}} ({{chain}})"
   },
   "chain": {
     "ETH": "Ethereum",

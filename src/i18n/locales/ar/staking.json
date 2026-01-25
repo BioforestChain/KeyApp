@@ -27,6 +27,7 @@
   "sourceChain": "السلسلة المصدر",
   "stakedAmount": "المبلغ المخزن",
   "targetChain": "السلسلة الهدف",
+  "targetChainLabel": "→ {{chain}} ({{asset}})",
   "title": "التخزين",
   "totalBurned": "إجمالي {{asset}} المستردة",
   "totalCirculation": "{{asset}} المتداولة",

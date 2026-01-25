@@ -17,32 +17,18 @@ import { GradientButton, Alert } from '@/components/common';
 import { ChainIcon } from '@/components/wallet/chain-icon';
 import { useToast, useHaptics } from '@/services';
 import { useSend } from '@/hooks/use-send';
+import { adjustAmountForFee } from '@/hooks/use-send.logic';
 import { Amount } from '@/types/amount';
 import { IconChevronRight as ArrowRight } from '@tabler/icons-react';
 import { ChainProviderGate, useChainProvider } from '@/contexts';
 import {
   useChainConfigState,
   chainConfigSelectors,
+  useChainDisplayName,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
-  type ChainType,
 } from '@/stores';
-
-const CHAIN_NAMES: Record<ChainType, string> = {
-  ethereum: 'Ethereum',
-  bitcoin: 'Bitcoin',
-  tron: 'Tron',
-  binance: 'BSC',
-  bfmeta: 'BFMeta',
-  ccchain: 'CCChain',
-  pmchain: 'PMChain',
-  bfchainv2: 'BFChain V2',
-  btgmeta: 'BTGMeta',
-  biwmeta: 'BIWMeta',
-  ethmeta: 'ETHMeta',
-  malibu: 'Malibu',
-};
 
 // ==================== 内部内容组件 ====================
 
@@ -76,7 +62,7 @@ function SendPageContent() {
   const chainConfig = chainConfigState.snapshot
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null;
-  const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const selectedChainName = useChainDisplayName(selectedChain);
 
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();
@@ -225,6 +211,19 @@ function SendPageContent() {
     return getBalance(state.asset.assetType);
   }, [getBalance, state.asset]);
   const symbol = state.asset?.assetType ?? 'TOKEN';
+  const feeSymbol = state.feeSymbol || chainConfig?.symbol;
+  const isFeeSameAsset = !!feeSymbol && feeSymbol === symbol;
+  const maxAmount = useMemo(() => {
+    if (!state.asset || !balance) return undefined;
+    if (!state.feeAmount) return balance;
+    const assetForMax = { ...state.asset, amount: balance, decimals: balance.decimals };
+    const result = adjustAmountForFee(balance, assetForMax, state.feeAmount);
+    if (result.status === 'ok') {
+      return result.adjustedAmount ?? balance;
+    }
+    return Amount.zero(balance.decimals, assetForMax.assetType);
+  }, [balance, state.asset, state.feeAmount]);
+  const maxDisabled = isFeeSameAsset && (!state.feeAmount || state.feeLoading);
 
   const handleOpenScanner = useCallback(() => {
     // 设置扫描结果回调
@@ -403,10 +402,24 @@ function SendPageContent() {
           value={state.amount ?? undefined}
           onChange={setAmount}
           balance={balance ?? undefined}
+          max={maxAmount}
+          maxDisabled={maxDisabled}
           symbol={symbol}
           error={state.amountError ?? undefined}
           fiatValue={state.amount ? state.amount.toNumber().toFixed(2) : undefined}
         />
+
+        {/* Fee estimate */}
+        <div className="text-muted-foreground flex items-center justify-between text-xs">
+          <span>{t('sendPage.fee')}</span>
+          <span>
+            {state.feeLoading
+              ? t('sendPage.feeEstimating')
+              : state.feeAmount
+                ? `${state.feeAmount.toFormatted()} ${state.feeSymbol || symbol}`
+                : t('sendPage.feeUnavailable')}
+          </span>
+        </div>
 
         {/* Network warning */}
         <Alert variant="info">{t('sendPage.networkWarning', { chain: selectedChainName })}</Alert>

@@ -16,22 +16,7 @@ import {
   IconDownload as Download,
   IconLoader2 as Loader,
 } from '@tabler/icons-react';
-import { useCurrentChainAddress, useSelectedChain, useUserProfile, type ChainType } from '@/stores';
-
-const CHAIN_NAMES: Record<ChainType, string> = {
-  ethereum: 'Ethereum',
-  bitcoin: 'Bitcoin',
-  tron: 'Tron',
-  binance: 'BSC',
-  bfmeta: 'BFMeta',
-  ccchain: 'CCChain',
-  pmchain: 'PMChain',
-  bfchainv2: 'BFChain V2',
-  btgmeta: 'BTGMeta',
-  biwmeta: 'BIWMeta',
-  ethmeta: 'ETHMeta',
-  malibu: 'Malibu',
-};
+import { useChainDisplayName, useCurrentChainAddress, useSelectedChain, useUserProfile } from '@/stores';
 
 export function ReceivePage() {
   const { t } = useTranslation(['transaction', 'common']);
@@ -42,7 +27,7 @@ export function ReceivePage() {
 
   const chainAddress = useCurrentChainAddress();
   const selectedChain = useSelectedChain();
-  const selectedChainName = CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const selectedChainName = useChainDisplayName(selectedChain);
   const profile = useUserProfile();
 
   const [copied, setCopied] = useState(false);

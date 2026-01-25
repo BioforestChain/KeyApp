@@ -145,6 +145,7 @@ export function useEffectOnce<T, E>(
   const depsKey = useMemo(() => JSON.stringify(deps), [deps])
 
   const run = useCallback(async () => {
+    void depsKey
     if (!enabled) {
       setData(undefined)
       setIsLoading(false)
@@ -167,11 +168,11 @@ export function useEffectOnce<T, E>(
       setError(firstError as E)
     }
     setIsLoading(false)
-  }, [effect, enabled])
+  }, [effect, enabled, depsKey])
 
   useEffect(() => {
     run()
-  }, [depsKey, enabled])
+  }, [run])
 
   return { data, isLoading, error, refetch: run }
 }
@@ -196,8 +197,7 @@ export function createStreamHook<TParams, TOutput, TError = unknown>(
     params: TParams,
     options?: UseStreamOptions
   ): UseStreamResult<TOutput, TError> {
-    const paramsKey = useMemo(() => JSON.stringify(params), [params])
-    const stream = useMemo(() => factory(params), [paramsKey])
+    const stream = useMemo(() => factory(params), [params])
     return useStream(stream, options)
   }
 }

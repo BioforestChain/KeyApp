@@ -27,12 +27,11 @@ import {
 } from '../utils/inject'
 
 const log = {
-  info: (msg: string) => {},
-  success: (msg: string) => {},
-  warn: (msg: string) => {},
-  error: (msg: string) => {},
-  step: (step: number, total: number, msg: string) =>
-    {},
+  info: (_msg: string) => {},
+  success: (_msg: string) => {},
+  warn: (_msg: string) => {},
+  error: (_msg: string) => {},
+  step: (_step: number, _total: number, _msg: string) => {},
 }
 
 function getNextPort(outputDir: string): number {

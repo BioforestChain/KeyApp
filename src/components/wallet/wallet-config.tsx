@@ -53,6 +53,8 @@ function getWeightedPresetColors(existingHues: number[]) {
 
 type WalletConfigMode = 'edit-only' | 'default' | 'edit';
 
+const WALLET_CONFIG_PREVIEW_NAME_TEST_ID = 'wallet-config-preview-name';
+
 interface WalletConfigProps {
   mode: WalletConfigMode;
   walletId: string;
@@ -231,7 +233,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
           <WalletCard
             wallet={{ ...wallet, name: isEditMode ? editName : wallet.name, themeHue: displayThemeHue }}
             themeHue={displayThemeHue}
-            walletNameTestId="wallet-config-preview-name"
+            walletNameTestId={WALLET_CONFIG_PREVIEW_NAME_TEST_ID}
             chain={currentChainAddr?.chain as ChainType}
             chainName={currentChainAddr?.chain || ''}
             address={currentChainAddr?.address || wallet.address}

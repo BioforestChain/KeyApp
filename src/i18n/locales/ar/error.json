@@ -115,5 +115,14 @@
     "mustBeArray": "signaturedata يجب أن يكون مصفوفة JSON",
     "emptyArray": "signaturedata لا يمكن أن يكون مصفوفة فارغة",
     "firstMustBeObject": "signaturedata[0] يجب أن يكون كائنًا"
+  },
+  "providerFallback": {
+    "title": "فشل استعلام {{feature}}",
+    "description": "فشلت جميع المزوّدات المُكوّنة، يتم عرض القيمة الافتراضية.",
+    "details": "تفاصيل تقنية"
+  },
+  "boundary": {
+    "title": "حدث خطأ ما",
+    "retry": "إعادة المحاولة"
   }
 }

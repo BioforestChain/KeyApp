@@ -229,6 +229,8 @@
     "continue": "繼續",
     "explorerNotImplemented": "區塊瀏覽器功能待實現",
     "fee": "手續費",
+    "feeEstimating": "預估中...",
+    "feeUnavailable": "手續費不可用",
     "from": "發送地址",
     "networkWarning": "請確保收款地址為 {{chain}} 網絡地址，發送到錯誤網絡將無法找回",
     "resultTitle": "發送結果",

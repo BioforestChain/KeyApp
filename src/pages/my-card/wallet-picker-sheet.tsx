@@ -15,24 +15,9 @@ import {
     useChainPreferences,
     useSelectedWalletIds,
     useCanAddMoreWallets,
+    useChainNameMap,
     userProfileActions,
-    type ChainType,
 } from '@/stores';
-
-const CHAIN_NAMES: Record<ChainType, string> = {
-    ethereum: 'Ethereum',
-    bitcoin: 'Bitcoin',
-    tron: 'Tron',
-    binance: 'BSC',
-    bfmeta: 'BFMeta',
-    ccchain: 'CCChain',
-    pmchain: 'PMChain',
-    bfchainv2: 'BFChain V2',
-    btgmeta: 'BTGMeta',
-    biwmeta: 'BIWMeta',
-    ethmeta: 'ETHMeta',
-    malibu: 'Malibu',
-};
 
 interface WalletPickerSheetProps {
     open: boolean;
@@ -45,6 +30,7 @@ export function WalletPickerSheet({ open, onOpenChange }: WalletPickerSheetProps
     const chainPreferences = useChainPreferences();
     const selectedWalletIds = useSelectedWalletIds();
     const canAddMore = useCanAddMoreWallets();
+    const chainNameMap = useChainNameMap();
 
     const handleWalletToggle = useCallback((walletId: string) => {
         const isSelected = selectedWalletIds.includes(walletId);
@@ -87,7 +73,7 @@ export function WalletPickerSheet({ open, onOpenChange }: WalletPickerSheetProps
                                 <div className="flex-1 min-w-0">
                                     <div className="font-medium">{wallet.name}</div>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <span>{CHAIN_NAMES[selectedChain] || selectedChain}</span>
+                                        <span>{chainNameMap[selectedChain] || selectedChain}</span>
                                         <span className="truncate font-mono text-xs">
                                             {chainAddress?.address.slice(0, 8)}...{chainAddress?.address.slice(-6)}
                                         </span>

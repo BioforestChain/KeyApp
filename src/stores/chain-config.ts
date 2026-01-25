@@ -179,3 +179,23 @@ export function useChainConfigError(): string | null {
 export function useChainConfigMigrationRequired(): boolean {
   return useStore(chainConfigStore, (state) => state.migrationRequired)
 }
+
+export function useChainNameMap(): Record<string, string> {
+  return useStore(chainConfigStore, (state) => {
+    const configs = chainConfigSelectors.getConfigs(state)
+    return Object.fromEntries(configs.map((config) => [config.id, config.name]))
+  })
+}
+
+export function useChainDisplayName(chainId?: string): string {
+  return useStore(chainConfigStore, (state) => {
+    if (!chainId) return ''
+    const config = chainConfigSelectors.getChainById(state, chainId)
+    return config?.name ?? chainId
+  })
+}
+
+export function getChainDisplayName(chainId: string): string {
+  const config = chainConfigSelectors.getChainById(chainConfigStore.state, chainId)
+  return config?.name ?? chainId
+}

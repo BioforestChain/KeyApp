@@ -42,25 +42,26 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
     }
 
     // 验证 URL
+    let normalizedUrl: string;
     try {
-      new URL(newUrl);
+      normalizedUrl = new URL(newUrl).toString();
     } catch {
       setError(t('sources.invalidUrl'));
       return;
     }
 
     // 检查是否已存在
-    if (state.sources.some((s) => s.url === newUrl)) {
+    if (state.sources.some((s) => s.url === normalizedUrl)) {
       setError(t('sources.alreadyExists'));
       return;
     }
 
-    ecosystemActions.addSource(newUrl, newName || t('sources.customSource'));
+    ecosystemActions.addSource(normalizedUrl, newName || t('sources.customSource'));
     setNewUrl('');
     setNewName('');
     setIsAdding(false);
     setError(null);
-    void refreshSource(newUrl);
+    void refreshSource(normalizedUrl);
   };
 
   const handleRemove = (url: string) => {
@@ -115,7 +116,9 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
             />
           ))}
 
-          {state.sources.length === 0 && <div className="text-muted-foreground py-12 text-center">暂无订阅源</div>}
+          {state.sources.length === 0 && (
+            <div className="text-muted-foreground py-12 text-center">{t('sources.noSources')}</div>
+          )}
         </div>
 
         {/* Add Source */}

@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   IconBug as Bug,
   IconX as X,
@@ -108,6 +109,13 @@ function StatusIcon({ status }: { status: RequestLogEntry['status'] }) {
   }
 }
 
+function formatDuration(ms: number): string {
+  if (ms >= 1000) {
+    return `${(ms / 1000).toFixed(1)}s`
+  }
+  return `${ms}ms`
+}
+
 /** 显示耗时的组件 - 支持 pending 状态实时更新 */
 function DurationDisplay({ log }: { log: RequestLogEntry }) {
   const [elapsed, setElapsed] = useState(() =>
@@ -126,13 +134,6 @@ function DurationDisplay({ log }: { log: RequestLogEntry }) {
     return () => clearInterval(timer)
   }, [log.status, log.duration, log.timestamp])
 
-  const formatDuration = (ms: number) => {
-    if (ms >= 1000) {
-      return `${(ms / 1000).toFixed(1)}s`
-    }
-    return `${ms}ms`
-  }
-
   return (
     <span className={cn('font-mono text-gray-400', log.status === 'pending' && 'text-blue-500')}>
       {formatDuration(elapsed)}
@@ -148,6 +149,7 @@ function LogsPanel({
   filter: string
   onFilterChange: (f: string) => void
 }) {
+  const { t } = useTranslation('devtools')
   const [logs, setLogs] = useState<RequestLogEntry[]>(() => getLogs())
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -182,13 +184,13 @@ function LogsPanel({
           type="text"
           value={filter}
           onChange={(e) => onFilterChange(e.target.value)}
-          placeholder="过滤 service.method..."
+          placeholder={t('logs.filterPlaceholder')}
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
         />
         <button
           onClick={() => clearLogs()}
           className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
-          title="清除日志"
+          title={t('logs.clear')}
         >
           <Trash className="size-4" />
         </button>
@@ -199,7 +201,7 @@ function LogsPanel({
         {filteredLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-gray-400">
             <Clock className="size-8" />
-            <p className="mt-2 text-sm">暂无请求日志</p>
+            <p className="mt-2 text-sm">{t('logs.empty')}</p>
           </div>
         ) : (
           <div className="divide-y dark:divide-gray-700">
@@ -230,14 +232,14 @@ function LogsPanel({
                 {expandedId === log.id && (
                   <div className="space-y-2 bg-gray-50 px-3 py-2 dark:bg-gray-800/50">
                     <div>
-                      <span className="text-gray-500">Input:</span>
+                      <span className="text-gray-500">{t('logs.input')}</span>
                       <pre className="mt-1 overflow-auto rounded bg-gray-100 p-2 text-[10px] dark:bg-gray-900">
                         {JSON.stringify(log.input, null, 2)}
                       </pre>
                     </div>
                     {log.output !== undefined && (
                       <div>
-                        <span className="text-gray-500">Output:</span>
+                        <span className="text-gray-500">{t('logs.output')}</span>
                         <pre className="mt-1 overflow-auto rounded bg-gray-100 p-2 text-[10px] dark:bg-gray-900">
                           {JSON.stringify(log.output, null, 2)}
                         </pre>
@@ -245,13 +247,13 @@ function LogsPanel({
                     )}
                     {log.error && (
                       <div className="text-red-500">
-                        <span>Error:</span> {log.error}
+                        <span>{t('logs.error')}</span> {log.error}
                       </div>
                     )}
                     {log.intercepted && (
                       <div className="flex items-center gap-1 text-orange-500">
                         <AlertTriangle className="size-3" />
-                        已被拦截修改
+                        {t('logs.intercepted')}
                       </div>
                     )}
                   </div>
@@ -269,6 +271,7 @@ function LogsPanel({
 
 /** 设置面板 */
 function SettingsPanel() {
+  const { t } = useTranslation('devtools')
   const [globalDelay, setDelay] = useState(() => getGlobalDelay())
   const [hasError, setHasError] = useState(() => getGlobalError() !== null)
   const [errorMessage, setErrorMessage] = useState(() => getGlobalError()?.message || '')
@@ -294,18 +297,18 @@ function SettingsPanel() {
     if (currentError) {
       setGlobalError(null)
     } else {
-      setGlobalError(new Error(errorMessage || 'Mock Error'))
+      setGlobalError(new Error(errorMessage || t('settings.defaultError')))
     }
-  }, [errorMessage])
+  }, [errorMessage, t])
 
   // 错误信息变化时，如果已启用错误则同步更新
   const handleErrorMessageChange = useCallback((message: string) => {
     setErrorMessage(message)
     // 如果错误已启用，同步更新错误对象
     if (getGlobalError()) {
-      setGlobalError(new Error(message || 'Mock Error'))
+      setGlobalError(new Error(message || t('settings.defaultError')))
     }
-  }, [])
+  }, [t])
 
   const handleResetAll = useCallback(() => {
     resetSettings()
@@ -320,7 +323,7 @@ function SettingsPanel() {
         {/* 全局延迟 */}
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
           <label className="mb-2 flex items-center justify-between text-sm font-medium">
-            <span>全局延迟</span>
+            <span>{t('settings.globalDelay')}</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -331,7 +334,7 @@ function SettingsPanel() {
                 onChange={(e) => handleDelayChange(Number(e.target.value))}
                 className="w-20 rounded border bg-transparent px-2 py-0.5 text-right font-mono text-blue-500 dark:border-gray-600"
               />
-              <span className="text-gray-500">ms</span>
+              <span className="text-gray-500">{t('settings.ms')}</span>
             </div>
           </label>
           <input
@@ -344,17 +347,17 @@ function SettingsPanel() {
             className="w-full"
           />
           <div className="mt-1 flex justify-between text-[10px] text-gray-400">
-            <span>0</span>
-            <span>1s</span>
-            <span>2s</span>
-            <span>3s+</span>
+            <span>{t('settings.delayMarks.zero')}</span>
+            <span>{t('settings.delayMarks.one')}</span>
+            <span>{t('settings.delayMarks.two')}</span>
+            <span>{t('settings.delayMarks.three')}</span>
           </div>
         </div>
 
         {/* 模拟错误 */}
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">模拟错误</label>
+            <label className="text-sm font-medium">{t('settings.mockError')}</label>
             <button
               onClick={handleErrorToggle}
               className={cn(
@@ -374,13 +377,13 @@ function SettingsPanel() {
             type="text"
             value={errorMessage}
             onChange={(e) => handleErrorMessageChange(e.target.value)}
-            placeholder="错误信息 (可选)"
+            placeholder={t('settings.errorPlaceholder')}
             className="mt-2 w-full rounded border bg-transparent px-2 py-1 text-xs dark:border-gray-600"
           />
           {hasError && (
             <div className="mt-2 flex items-center gap-1 text-xs text-red-500">
               <AlertTriangle className="size-3" />
-              所有请求将返回错误
+              {t('settings.errorNotice')}
             </div>
           )}
         </div>
@@ -392,31 +395,31 @@ function SettingsPanel() {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 py-2 text-sm font-medium text-white hover:bg-blue-600"
           >
             <RefreshCw className="size-4" />
-            重置所有设置
+            {t('settings.resetAll')}
           </button>
           <button
             onClick={() => clearLogs()}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-500 py-2 text-sm font-medium text-white hover:bg-gray-600"
           >
             <Trash className="size-4" />
-            清除日志
+            {t('settings.clearLogs')}
           </button>
           <button
             onClick={() => clearBreakpoints()}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-500 py-2 text-sm font-medium text-white hover:bg-gray-600"
           >
             <Trash className="size-4" />
-            清除断点
+            {t('settings.clearBreakpoints')}
           </button>
         </div>
 
         {/* 说明 */}
         <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-          <p className="font-medium">提示</p>
+          <p className="font-medium">{t('settings.tipTitle')}</p>
           <ul className="mt-1 list-inside list-disc space-y-0.5 text-[10px]">
-            <li>全局延迟会应用到所有 Mock 服务请求</li>
-            <li>模拟错误会让所有请求抛出指定错误</li>
-            <li>断点可以在"断点"面板中单独配置</li>
+            <li>{t('settings.tipDelay')}</li>
+            <li>{t('settings.tipError')}</li>
+            <li>{t('settings.tipBreakpoint')}</li>
           </ul>
         </div>
       </div>
@@ -493,6 +496,7 @@ function getInitialRelativePos(position: MockDevToolsProps['position']): { x: nu
 
 /** MockDevTools 主组件 */
 export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }: MockDevToolsProps) {
+  const { t } = useTranslation('devtools')
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [activeTab, setActiveTab] = useState<TabId>('logs')
   const [logFilter, setLogFilter] = useState('')
@@ -663,10 +667,10 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
   }, [])
 
   const tabs: { id: TabId; icon: typeof List; label: string; badge: number | undefined }[] = [
-    { id: 'logs', icon: List, label: '日志', badge: logCount > 0 ? logCount : undefined },
-    { id: 'intercept', icon: Terminal, label: '断点', badge: pausedCount > 0 ? pausedCount : undefined },
-    { id: 'console', icon: Code, label: 'Console', badge: undefined },
-    { id: 'settings', icon: Settings, label: '设置', badge: undefined },
+    { id: 'logs', icon: List, label: t('tabs.logs'), badge: logCount > 0 ? logCount : undefined },
+    { id: 'intercept', icon: Terminal, label: t('tabs.breakpoints'), badge: pausedCount > 0 ? pausedCount : undefined },
+    { id: 'console', icon: Code, label: t('tabs.console'), badge: undefined },
+    { id: 'settings', icon: Settings, label: t('tabs.settings'), badge: undefined },
   ]
 
   if (!isOpen) {
@@ -681,7 +685,7 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
           pausedCount > 0 && 'animate-pulse',
         )}
         style={{ left: buttonPos.x, top: buttonPos.y, touchAction: 'none' }}
-        title="打开 Mock DevTools (可拖动)"
+        title={t('button.open')}
       >
         <Bug className="size-6" />
         {pausedCount > 0 && (
@@ -712,7 +716,7 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
       >
         <div className="flex items-center gap-2 pointer-events-none">
           <Bug className="size-5" />
-          <span className="font-semibold">Mock DevTools</span>
+          <span className="font-semibold">{t('title')}</span>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); setIsOpen(false) }}
@@ -758,8 +762,8 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
 
       {/* Footer */}
       <div className="border-t px-3 py-1.5 text-center text-[10px] text-gray-400 dark:border-gray-700">
-        Mock Mode • {logCount} logs
-        {pausedCount > 0 && <span className="text-orange-500"> • {pausedCount} paused</span>}
+        {t('footer.mode')} • {t('footer.logs', { count: logCount })}
+        {pausedCount > 0 && <span className="text-orange-500"> • {t('footer.paused', { count: pausedCount })}</span>}
       </div>
     </div>
   )

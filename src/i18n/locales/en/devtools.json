@@ -1,0 +1,130 @@
+{
+  "title": "Mock DevTools",
+  "tabs": {
+    "logs": "Logs",
+    "breakpoints": "Breakpoints",
+    "console": "Console",
+    "settings": "Settings"
+  },
+  "button": {
+    "open": "Open Mock DevTools (draggable)"
+  },
+  "footer": {
+    "mode": "Mock Mode",
+    "logs": "{{count}} logs",
+    "paused": "{{count}} paused"
+  },
+  "logs": {
+    "filterPlaceholder": "Filter service.method...",
+    "clear": "Clear logs",
+    "empty": "No request logs",
+    "input": "Input:",
+    "output": "Output:",
+    "error": "Error:",
+    "intercepted": "Intercepted and modified"
+  },
+  "settings": {
+    "defaultError": "Mock Error",
+    "globalDelay": "Global delay",
+    "ms": "ms",
+    "delayMarks": {
+      "zero": "0",
+      "one": "1s",
+      "two": "2s",
+      "three": "3s+"
+    },
+    "mockError": "Mock error",
+    "errorPlaceholder": "Error message (optional)",
+    "errorNotice": "All requests will return error",
+    "resetAll": "Reset all settings",
+    "clearLogs": "Clear logs",
+    "clearBreakpoints": "Clear breakpoints",
+    "tipTitle": "Tip",
+    "tipDelay": "Global delay applies to all mock service requests",
+    "tipError": "Mock error makes all requests throw the specified error",
+    "tipBreakpoint": "Breakpoints can be configured in the \"Breakpoints\" panel"
+  },
+  "breakpoints": {
+    "consoleLabel": "Console:",
+    "consoleView": "View in Console",
+    "resume": "Resume",
+    "abort": "Abort",
+    "ms": "ms",
+    "input": "input",
+    "output": "output",
+    "inputHint": "($input available)",
+    "outputHint": "($input, $output available)",
+    "pause": "Pause",
+    "pauseConditionPlaceholder": "Condition expression (optional)",
+    "inject": "Inject",
+    "injectInputPlaceholder": "$input.text = 'modified'",
+    "injectOutputPlaceholder": "return { success: true }\n// or throw new Error('test')",
+    "summary": {
+      "delay": "delay: {{ms}}ms",
+      "inputPause": "input:pause",
+      "inputInject": "input:inject",
+      "outputPause": "output:pause",
+      "outputInject": "output:inject"
+    },
+    "addDialogTitle": "Add breakpoint",
+    "add": "Add",
+    "title": "Breakpoints",
+    "pausedCount": "Paused ({{count}})",
+    "emptyTitle": "No breakpoints",
+    "emptyHint": "Click \"Add\" to create breakpoints"
+  },
+  "console": {
+    "help": {
+      "sections": {
+        "commands": "Commands",
+        "variables": "Variables",
+        "methods": "Methods",
+        "examples": "Examples"
+      },
+      "commands": {
+        "help": "Show help",
+        "clear": "Clear Console",
+        "vars": "Show available variables",
+        "copy": "Copy expression result to clipboard"
+      },
+      "variables": {
+        "paused": "Paused request array",
+        "indexed": "Access paused requests by index",
+        "latest": "Latest paused request",
+        "byId": "Access by ID, e.g. $p1, $p2"
+      },
+      "methods": {
+        "resume": "Resume execution (optionally with modifications)",
+        "abort": "Abort request"
+      },
+      "examples": {
+        "latest": "View latest paused request",
+        "input": "View request input",
+        "copy": "Copy input to clipboard",
+        "resume": "Resume execution"
+      }
+    },
+    "vars": {
+      "available": "Available variables",
+      "pausedCount": "Paused count"
+    },
+    "copy": {
+      "usage": "Usage: /copy <expr>, e.g. /copy $p1.$input",
+      "success": "Copied to clipboard ({{count}} chars)",
+      "failure": "Copy failed: {{message}}",
+      "expressionError": "Expression error: {{message}}"
+    },
+    "unknownCommand": "Unknown command: {{command}}. Type /help for help.",
+    "title": "Console",
+    "pausedCount": "{{count}} paused",
+    "clearTitle": "Clear Console (/clear)",
+    "empty": {
+      "titlePrefix": "Console panel - type",
+      "titleSuffix": "for help",
+      "varsLabel": "Variables:",
+      "vars": "Variables: <code>$paused</code>, <code>$0</code>, <code>$_</code>, <code>$p{id}</code>"
+    },
+    "inputPlaceholder": "Enter expression... (↑↓ history)",
+    "runTitle": "Run (Enter)"
+  }
+}

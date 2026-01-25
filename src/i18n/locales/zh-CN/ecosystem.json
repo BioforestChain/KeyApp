@@ -8,7 +8,8 @@
     "title": "可信源管理",
     "add": "添加订阅",
     "remove": "移除",
-    "empty": "暂无订阅源"
+    "empty": "暂无订阅源",
+    "defaultName": "Bio 官方生态"
   },
   "permissions": {
     "title": "权限请求",
@@ -120,6 +121,7 @@
     "unknownDeveloper": "未知开发者",
     "preview": "预览",
     "supportedChains": "支持的区块链",
+    "beta": "测试版",
     "privacy": "应用隐私",
     "privacyHint": "开发者声明此应用可能会请求以下权限",
     "tags": "标签",
@@ -141,6 +143,7 @@
       "social": "社交",
       "exchange": "交易所",
       "other": "其他"
-    }
+    },
+    "tagLabel": "#{{tag}}"
   }
 }

@@ -3,24 +3,9 @@ import { BottomSheet } from "@/components/layout/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { IconCheck } from "@tabler/icons-react";
 import { ChainIcon } from "@/components/wallet/chain-icon";
-import { useCurrentWallet, useSelectedChain, walletActions, type ChainType } from "@/stores";
+import { useChainNameMap, useCurrentWallet, useSelectedChain, walletActions, type ChainType } from "@/stores";
 import { useFlow } from "../../stackflow";
 import { useMemo } from "react";
-
-const CHAIN_NAMES: Record<ChainType, string> = {
-  ethereum: "Ethereum",
-  bitcoin: "Bitcoin",
-  tron: "Tron",
-  binance: "BSC",
-  bfmeta: "BFMeta",
-  ccchain: "CCChain",
-  pmchain: "PMChain",
-  bfchainv2: "BFChain V2",
-  btgmeta: "BTGMeta",
-  biwmeta: "BIWMeta",
-  ethmeta: "ETHMeta",
-  malibu: "Malibu",
-};
 
 function truncateAddress(address: string, startChars = 10, endChars = 8): string {
   if (address.length <= startChars + endChars + 3) return address;
@@ -32,6 +17,7 @@ export const ChainSelectorJob: ActivityComponentType = () => {
   const { pop } = useFlow();
   const currentWallet = useCurrentWallet();
   const selectedChain = useSelectedChain();
+  const chainNameMap = useChainNameMap();
 
   // 从钱包地址直接获取可用链（useAvailableChains 已移除）
   const availableChains = useMemo(() => {
@@ -73,7 +59,7 @@ export const ChainSelectorJob: ActivityComponentType = () => {
               >
                 <ChainIcon chain={chain} size="md" />
                 <div className="flex-1 text-left">
-                  <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
+                  <div className="font-medium">{chainNameMap[chain] ?? chain}</div>
                   <div className="font-mono text-xs text-muted-foreground">
                     {chainAddr?.address ? truncateAddress(chainAddr.address) : "---"}
                   </div>

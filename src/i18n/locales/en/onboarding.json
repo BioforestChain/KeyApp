@@ -188,7 +188,8 @@
     "searchPlaceholder": "Search chain name or symbol",
     "noResults": "No chains found",
     "selectAll": "Select All",
-    "deselectAll": "Deselect All"
+    "deselectAll": "Deselect All",
+    "selectionCount": "{{selected}}/{{total}}"
   },
   "theme": {
     "walletName": "Wallet Name",

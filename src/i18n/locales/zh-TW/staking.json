@@ -17,6 +17,7 @@
   "burnDescription": "將內鏈代幣轉換為外鏈代幣",
   "sourceChain": "源鏈",
   "targetChain": "目標鏈",
+  "targetChainLabel": "→ {{chain}}（{{asset}}）",
   "estimatedFee": "預估手續費",
   "transactionPending": "交易待處理",
   "transactionConfirming": "確認中",

@@ -1,6 +1,6 @@
 import { Store } from '@tanstack/react-store'
 import { type ChainType } from './wallet'
-import { detectAddressFormat } from '@/lib/address-format'
+import { isValidAddressForChain } from '@/lib/address-format'
 
 /** 联系人地址（最多 3 个） */
 export interface ContactAddress {
@@ -399,17 +399,17 @@ export const addressBookSelectors = {
       .slice(0, limit)
   },
 
-  /** 按链类型过滤联系人（使用地址格式检测） */
+  /** 按链类型过滤联系人（基于链配置的 chainKind 判断） */
   getContactsByChain: (state: AddressBookState, chain: ChainType): Contact[] => {
     return state.contacts.filter((c) =>
-      c.addresses.some((a) => detectAddressFormat(a.address).chainType === chain)
+      c.addresses.some((a) => isValidAddressForChain(a.address, chain))
     )
   },
 
   /** 获取联系人的默认地址 */
   getDefaultAddress: (contact: Contact, chainType?: ChainType): ContactAddress | undefined => {
     const relevantAddresses = chainType
-      ? contact.addresses.filter((a) => detectAddressFormat(a.address).chainType === chainType)
+      ? contact.addresses.filter((a) => isValidAddressForChain(a.address, chainType))
       : contact.addresses
 
     return relevantAddresses.find((a) => a.isDefault) ?? relevantAddresses[0]

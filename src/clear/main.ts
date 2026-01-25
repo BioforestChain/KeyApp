@@ -30,14 +30,14 @@ const steps: StepElement[] = [
       if (indexedDB.databases) {
         const databases = await indexedDB.databases();
         for (const db of databases) {
-          if (db.name) {
-            await new Promise<void>((resolve) => {
-              const request = indexedDB.deleteDatabase(db.name!);
-              request.onsuccess = () => resolve();
-              request.onerror = () => resolve();
-              request.onblocked = () => resolve();
-            });
-          }
+          if (!db.name) continue;
+          await new Promise<void>((resolve) => {
+            const request = indexedDB.deleteDatabase(db.name);
+            const handleFinish = () => resolve();
+            request.addEventListener('success', handleFinish);
+            request.addEventListener('error', handleFinish);
+            request.addEventListener('blocked', handleFinish);
+          });
         }
       }
     },
@@ -55,7 +55,8 @@ const steps: StepElement[] = [
 ];
 
 function createUI() {
-  const root = document.getElementById('root')!;
+  const root = document.getElementById('root');
+  if (!root) return false;
   root.innerHTML = `
     <div class="container fade-in">
       <div class="progress-ring" id="progressRing">
@@ -93,6 +94,7 @@ function createUI() {
       <p class="error-message" id="error"></p>
     </div>
   `;
+  return true;
 }
 
 function delay(ms: number) {
@@ -120,29 +122,31 @@ function setStepDone(stepId: string) {
 
 async function clearAllData() {
   let completed = 0;
-
-  for (const step of steps) {
-    setStepActive(step.id);
-    await delay(300);
-
-    try {
-      await step.action();
-    } catch (e) {}
-
-    setStepDone(step.id);
-    completed++;
-    updateProgress(completed, steps.length);
-  }
+  await steps.reduce(
+    async (prev, step) => {
+      await prev;
+      setStepActive(step.id);
+      await delay(300);
+      try {
+        await step.action();
+      } catch {}
+      setStepDone(step.id);
+      completed++;
+      updateProgress(completed, steps.length);
+    },
+    Promise.resolve(),
+  );
 }
 
 async function main() {
-  createUI();
+  if (!createUI()) return;
 
-  const title = document.getElementById('title')!;
-  const status = document.getElementById('status')!;
-  const error = document.getElementById('error')!;
-  const checkIcon = document.getElementById('checkIcon')!;
-  const container = document.querySelector('.container')!;
+  const title = document.getElementById('title');
+  const status = document.getElementById('status');
+  const error = document.getElementById('error');
+  const checkIcon = document.getElementById('checkIcon');
+  const container = document.querySelector('.container');
+  if (!title || !status || !error || !checkIcon || !container) return;
 
   try {
     await clearAllData();

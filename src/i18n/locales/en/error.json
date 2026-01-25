@@ -115,5 +115,14 @@
     "mustBeArray": "signaturedata must be a JSON array",
     "emptyArray": "signaturedata cannot be an empty array",
     "firstMustBeObject": "signaturedata[0] must be an object"
+  },
+  "providerFallback": {
+    "title": "{{feature}} query failed",
+    "description": "All configured providers failed. Showing default value.",
+    "details": "Technical details"
+  },
+  "boundary": {
+    "title": "Something went wrong",
+    "retry": "Retry"
   }
 }

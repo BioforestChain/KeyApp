@@ -13,7 +13,7 @@ import { Effect, Stream, Schedule, SubscriptionRef, PubSub, Fiber } from "effect
 import type { Duration } from "effect"
 import type { FetchError } from "./http"
 import type { EventBusService, WalletEventType } from "./event-bus"
-import { isChainEffectDebugEnabled } from "./debug"
+import { formatChainEffectError, logChainEffectDebug } from "./debug"
 
 type UnknownRecord = Record<string, unknown>
 
@@ -33,10 +33,8 @@ function summarizeValue(value: unknown): string {
   return String(value)
 }
 
-function debugLog(...args: Array<string | number | boolean>): void {
-  const message = `[chain-effect] ${args.join(" ")}`
-  if (!isChainEffectDebugEnabled(message)) return
-  console.log("[chain-effect]", ...args)
+function debugLog(message: string, ...args: Array<string | number | boolean>): void {
+  logChainEffectDebug(message, ...args)
 }
 
 // ==================== Event Bus ====================
@@ -282,7 +280,10 @@ export const createDependentSource = <TDep, T>(
               const forceRefresh = acc.prev !== null
               debugLog(`${name} fetch`, forceRefresh ? "force" : "cache")
               const result = yield* Effect.catchAll(fetch(next, forceRefresh), (error) => {
-                console.error(`[DependentSource] ${name} fetch error:`, error)
+                debugLog(
+                  `${name} fetch error`,
+                  formatChainEffectError(error)
+                )
                 return Effect.succeed(null as T | null)
               })
               if (result !== null) {
@@ -307,7 +308,10 @@ export const createDependentSource = <TDep, T>(
     // Stream 的 scanEffect 会从当前依赖值开始追踪，避免首个 changes 触发重复拉取
     if (currentDep !== null) {
       const initialValue = yield* Effect.catchAll(fetch(currentDep, false), (error) => {
-        console.error(`[DependentSource] Initial fetch error for ${name}:`, error)
+        debugLog(
+          `${name} initial fetch error`,
+          formatChainEffectError(error)
+        )
         return Effect.succeed(null as T | null)
       })
       if (initialValue !== null) {

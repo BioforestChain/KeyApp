@@ -146,11 +146,11 @@ function ContactPickerJobContent() {
                                 {label}
                               </span>
                             )}
-                            {address.isDefault && (
-                              <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs">
-                                Default
-                              </span>
-                            )}
+                                {address.isDefault && (
+                                  <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs">
+                                    {t("contact.defaultLabel")}
+                                  </span>
+                                )}
                           </div>
                         </button>
                       );

@@ -72,6 +72,7 @@
     "addressPlaceholder": "輸入錢包地址",
     "balanceTitle": "地址余额查询",
     "chain": "鏈",
+    "fromLabel": "來自：",
     "error": "查詢失敗",
     "explorerHint": "交易記錄需要透過區塊瀏覽器查詢",
     "noTransactions": "暫無交易記錄",
@@ -79,9 +80,14 @@
     "openExplorer": "開啟 {{name}} 瀏覽器",
     "otherChains": "其他鏈",
     "queryError": "查詢交易失敗，請稍後重試",
+    "toLabel": "發送至：",
     "transactionsTitle": "地址交易查询",
     "useExplorerHint": "此鏈不支援直接查詢交易歷史，請使用瀏覽器查看",
     "viewOnExplorer": "在 {{name}} 瀏覽器中查看"
+  },
+  "sign": {
+    "plus": "+",
+    "minus": "-"
   },
   "addressPlaceholder": "輸入或貼上地址",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "先進的加密技術 &lt;br /&gt; 數字財富更安全",
@@ -152,7 +158,9 @@
     "save": "儲存",
     "selectAddress": "選擇地址",
     "selectContact": "選擇聯絡人",
-    "viewAll": "查看全部聯絡人"
+    "viewAll": "查看全部聯絡人",
+    "addressCount": "{{count}}/{{max}}",
+    "defaultLabel": "預設"
   },
   "contactCard": {
     "scanToAdd": "掃碼添加聯絡人",
@@ -265,7 +273,9 @@
     "selectWallets": "選擇錢包",
     "title": "我的名片",
     "usernamePlaceholder": "輸入使用者名稱",
-    "walletAddress": "{{wallet}} ({{chain}})"
+    "walletAddress": "{{wallet}} ({{chain}})",
+    "chainLabel": "（{{chain}}）",
+    "removeWallet": "移除 {{name}}"
   },
   "name": "名稱",
   "navOverview": "概覽",

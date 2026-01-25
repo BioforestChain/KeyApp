@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useMonochromeMask } from '@/hooks/useMonochromeMask'
 import { createRainbowHook } from '@/lib/canvas'
@@ -58,6 +59,7 @@ export function WalletMiniCard({
   watermarkIconUrl,
   className,
 }: WalletMiniCardProps) {
+  const { t } = useTranslation('wallet')
   const { c0, c1, c2 } = useMemo(() => resolveBackgroundStops(themeHue), [themeHue])
   const { width, height, radius, iconSize } = sizeStyles[size]
 
@@ -93,7 +95,7 @@ export function WalletMiniCard({
         border: '0.5px solid rgba(255,255,255,0.2)',
       }}
       role="img"
-      aria-label="wallet card"
+      aria-label={t('miniCard.label')}
     >
       {/* 三角形纹理层 - 固定 5x3 网格 */}
       {patternUrl && (

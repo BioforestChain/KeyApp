@@ -8,7 +8,8 @@
     "title": "可信源管理",
     "add": "添加訂閱",
     "remove": "移除",
-    "empty": "暫無訂閱源"
+    "empty": "暫無訂閱源",
+    "defaultName": "Bio 官方生態"
   },
   "permissions": {
     "title": "權限請求",
@@ -120,6 +121,7 @@
     "unknownDeveloper": "未知開發者",
     "preview": "預覽",
     "supportedChains": "支援的區塊鏈",
+    "beta": "測試版",
     "privacy": "應用隱私",
     "privacyHint": "開發者聲明此應用可能會請求以下權限",
     "tags": "標籤",
@@ -141,6 +143,7 @@
       "social": "社交",
       "exchange": "交易所",
       "other": "其他"
-    }
+    },
+    "tagLabel": "#{{tag}}"
   }
 }

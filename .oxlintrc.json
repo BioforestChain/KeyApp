@@ -71,7 +71,8 @@
           "exclude": [
             "Trans",
             "Icon",
-            "TablerIcon"
+            "TablerIcon",
+            "code"
           ]
         },
         "jsx-attributes": {
@@ -92,6 +93,7 @@
             "data-state",
             "data-side",
             "data-align",
+            "testId",
             "to",
             "href",
             "src",
@@ -297,7 +299,13 @@
             "^loading$",
             "loading...",
             "^--$",
-            "^≈ --$"
+            "^≈ --$",
+            "^/help$",
+            "^/clear$",
+            "^/vars$",
+            "^/copy$",
+            "^\\$[\\w{}]+$",
+            "^✕$"
           ]
         }
       }
@@ -329,8 +337,7 @@
     "**/*.stories.ts",
     "src/test/**",
     "scripts/**",
-    "e2e/**",
-    "src/services/bioforest-sdk/bioforest-chain-bundle.*"
+    "e2e/**"
   ],
   "settings": {
     "react": {

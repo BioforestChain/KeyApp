@@ -26,7 +26,7 @@ async function main() {
   const updateSnapshots = args.has('--update-snapshots') || args.has('-u')
   
   const port = await findAvailablePort(5184)
-  console.log(`[e2e] Using port ${port}`)
+  process.stdout.write(`[e2e] Using port ${port}\n`)
   
   // Start vite dev server
   const vite = spawn('pnpm', ['vite', '--port', String(port)], {
@@ -48,23 +48,30 @@ async function main() {
   })
   
   vite.stderr?.on('data', (data) => {
-    console.error(data.toString())
+    process.stderr.write(data.toString())
   })
   
   // Wait for server to be ready
   const maxWait = 30000
   const startTime = Date.now()
-  while (!serverReady && Date.now() - startTime < maxWait) {
-    await new Promise(r => setTimeout(r, 200))
-  }
+  await new Promise<void>((resolve) => {
+    const checkReady = () => {
+      if (serverReady || Date.now() - startTime >= maxWait) {
+        resolve()
+        return
+      }
+      setTimeout(checkReady, 200)
+    }
+    checkReady()
+  })
   
   if (!serverReady) {
-    console.error('[e2e] Server failed to start')
+    process.stderr.write('[e2e] Server failed to start\n')
     vite.kill()
     process.exit(1)
   }
   
-  console.log('[e2e] Server ready, running tests...')
+  process.stdout.write('[e2e] Server ready, running tests...\n')
   
   // Run playwright
   const playwrightArgs = ['playwright', 'test']

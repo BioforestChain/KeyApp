@@ -19,6 +19,7 @@ import { stakingService } from '@/services/staking';
 import type { Amount } from '@/types/amount';
 import type { StakingTransaction, StakingTxType, StakingTxStatus } from '@/types/staking';
 import { cn } from '@/lib/utils';
+import { useChainNameMap } from '@/stores';
 
 interface StakingRecordListProps {
   /** Filter by transaction type */
@@ -27,15 +28,11 @@ interface StakingRecordListProps {
   className?: string;
 }
 
-/** Chain display names */
-const CHAIN_NAMES: Record<string, string> = {
+/** External chain display names */
+const EXTERNAL_CHAIN_NAMES: Record<string, string> = {
   ETH: 'Ethereum',
   BSC: 'BNB Chain',
   TRON: 'Tron',
-  BFMeta: 'BFMeta',
-  BFChain: 'BFChain',
-  CCChain: 'CCChain',
-  PMChain: 'PMChain',
 };
 
 /** Status icon component */
@@ -76,9 +73,19 @@ function formatAmount(amount: Amount): string {
   return num.toFixed(4);
 }
 
+function resolveChainName(chain: string, chainNameMap: Record<string, string>): string {
+  const externalName = EXTERNAL_CHAIN_NAMES[chain];
+  if (externalName) return externalName;
+  const lowerKey = chain.toLowerCase();
+  return chainNameMap[lowerKey] ?? chainNameMap[chain] ?? chain;
+}
+
 /** Single record item */
 function RecordItem({ record, onClick }: { record: StakingTransaction; onClick?: () => void }) {
   const { t } = useTranslation('staking');
+  const chainNameMap = useChainNameMap();
+  const sourceChainName = resolveChainName(record.sourceChain, chainNameMap);
+  const targetChainName = resolveChainName(record.targetChain, chainNameMap);
 
   const isMint = record.type === 'mint';
   const TypeIcon = isMint ? ArrowDownRight : ArrowUpRight;
@@ -106,9 +113,9 @@ function RecordItem({ record, onClick }: { record: StakingTransaction; onClick?:
           <StatusIcon status={record.status} />
         </div>
         <div className="text-muted-foreground flex items-center gap-1 text-xs">
-          <span>{CHAIN_NAMES[record.sourceChain]}</span>
+          <span>{sourceChainName}</span>
           <span>→</span>
-          <span>{CHAIN_NAMES[record.targetChain]}</span>
+          <span>{targetChainName}</span>
         </div>
       </div>
 

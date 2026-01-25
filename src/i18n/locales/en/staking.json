@@ -17,6 +17,7 @@
   "burnDescription": "Convert internal chain tokens to external chain",
   "sourceChain": "Source Chain",
   "targetChain": "Target Chain",
+  "targetChainLabel": "→ {{chain}} ({{asset}})",
   "estimatedFee": "Estimated Fee",
   "transactionPending": "Transaction Pending",
   "transactionConfirming": "Confirming",

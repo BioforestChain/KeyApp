@@ -5,7 +5,8 @@
   "defaultName": "我的錢包",
   "randomName": "隨機名稱",
   "carousel": {
-    "walletCount": "{{count}} 個錢包"
+    "walletCount": "{{count}} 個錢包",
+    "walletCount_one": "{{count}} 個錢包"
   },
   "menu": {
     "addressBalanceQuery": "地址餘額查詢",
@@ -199,5 +200,8 @@
   "walletsUnderIdentity": "身份錢包",
   "willSynchronizeImportIntoThe_{chainname}ChainWithTheSamePrivateKey": "將同步導入 鏈",
   "{assetType}Details": "詳情",
-  "{asset}TotalCirculation": "當前流通量"
+  "{asset}TotalCirculation": "當前流通量",
+  "miniCard": {
+    "label": "錢包卡片"
+  }
 }

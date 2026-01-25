@@ -35,7 +35,7 @@ function encodeBase58(buffer: Uint8Array): string {
     }
   }
 
-  return leadingZeros + [...digits].reverse().map((d: number) => BASE58_ALPHABET[d]).join('')
+  return leadingZeros + digits.slice().reverse().map((d: number) => BASE58_ALPHABET[d]).join('')
 }
 
 /**
@@ -86,7 +86,11 @@ export async function tronHexToBase58(hexAddress: string): Promise<string> {
   }
 
   // Convert hex to bytes
-  const addressBytes = new Uint8Array(hex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)))
+  const hexPairs = hex.match(/.{2}/g)
+  if (!hexPairs) {
+    throw new Error(`Invalid TRON hex address: ${hexAddress}`)
+  }
+  const addressBytes = new Uint8Array(hexPairs.map(byte => parseInt(byte, 16)))
 
   // Calculate checksum: SHA256(SHA256(address)) first 4 bytes
   const hash1 = await sha256(addressBytes)

@@ -229,6 +229,8 @@
     "continue": "Continue",
     "explorerNotImplemented": "Block explorer feature coming soon",
     "fee": "Fee",
+    "feeEstimating": "Estimating...",
+    "feeUnavailable": "Fee unavailable",
     "from": "From",
     "networkWarning": "Please ensure the recipient address is a {{chain}} network address. Sending to the wrong network cannot be recovered",
     "resultTitle": "Send Result",

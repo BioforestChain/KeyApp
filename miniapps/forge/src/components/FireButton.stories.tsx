@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { FireButton } from './FireButton'
 import { Zap } from 'lucide-react'
+import { t } from 'i18next'
+import '../i18n'
 
 const meta = {
   title: 'Components/FireButton',
@@ -16,7 +18,7 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    children: '连接钱包',
+    children: t('connect.button'),
   },
 }
 
@@ -25,7 +27,7 @@ export const WithIcon: Story = {
     children: (
       <>
         <Zap className="size-4" />
-        <span>开始锻造</span>
+        <span>{t('forge.start')}</span>
       </>
     ),
   },
@@ -33,14 +35,14 @@ export const WithIcon: Story = {
 
 export const Disabled: Story = {
   args: {
-    children: '处理中...',
+    children: t('processing.default'),
     disabled: true,
   },
 }
 
 export const Wide: Story = {
   args: {
-    children: '确认交易',
+    children: t('forge.confirm'),
     className: 'max-w-xs',
   },
   decorators: [

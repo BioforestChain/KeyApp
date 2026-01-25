@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { AssetInfo } from '@/types/asset';
 import { Amount } from '@/types/amount';
 import { initialState, MOCK_FEES } from './use-send.constants';
@@ -21,6 +21,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     ...initialState,
     asset: initialAsset ?? null,
   });
+
+  const feeInitKeyRef = useRef<string | null>(null);
 
   const isBioforestChain = chainConfig?.chainKind === 'bioforest';
   const isWeb3Chain =
@@ -125,6 +127,22 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     },
     [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock],
   );
+
+  useEffect(() => {
+    if (!state.asset) return;
+    if (state.feeLoading) return;
+
+    const feeKey = `${chainConfig?.id ?? 'unknown'}:${fromAddress ?? ''}:${state.asset.assetType}`;
+    const feeKeyChanged = feeInitKeyRef.current !== feeKey;
+    if (feeKeyChanged) {
+      feeInitKeyRef.current = feeKey;
+    }
+
+    if (!feeKeyChanged && state.feeAmount) return;
+    if (!feeKeyChanged && !state.feeAmount) return;
+
+    setAsset(state.asset);
+  }, [chainConfig?.id, fromAddress, setAsset, state.asset, state.feeAmount, state.feeLoading]);
 
   // Get current balance from external source (single source of truth)
   const currentBalance = useMemo(() => {

@@ -10,12 +10,11 @@ import { Effect, Stream, Fiber } from 'effect'
 import { pendingTxService, pendingTxManager, getPendingTxSource, getPendingTxWalletKey, type PendingTx } from '@/services/transaction'
 import { useChainConfigState } from '@/stores'
 import type { Transaction } from '@/services/chain-adapter/providers'
-import { isChainDebugEnabled } from '@/services/chain-adapter/debug'
+import { logChainDebug } from '@/services/chain-adapter/debug'
 
 function pendingTxDebugLog(...args: Array<string | number | boolean>): void {
   const message = `[chain-effect] pending-tx ${args.join(' ')}`
-  if (!isChainDebugEnabled(message)) return
-  console.log('[chain-effect]', 'pending-tx', ...args)
+  logChainDebug(message, { args })
 }
 
 export function usePendingTransactions(
@@ -35,7 +34,7 @@ export function usePendingTransactions(
         set.add(tx.hash.toLowerCase())
       }
     }
-    return Array.from(set).sort()
+    return Array.from(set).toSorted()
   }, [txHistory])
   const confirmedTxHashKey = useMemo(() => confirmedTxHashes.join('|'), [confirmedTxHashes])
 
@@ -58,7 +57,7 @@ export function usePendingTransactions(
         map.set(item.id, item)
       }
     }
-    const merged = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt)
+    const merged = Array.from(map.values()).toSorted((a, b) => b.createdAt - a.createdAt)
     pendingTxDebugLog('snapshot', walletKey ?? 'none', `len=${merged.length}`)
     return merged
   }, [walletKey, legacyWalletId])
@@ -80,8 +79,9 @@ export function usePendingTransactions(
         if (!mounted) return
         setTransactions(list)
       } finally {
-        if (!mounted) return
-        setIsLoading(false)
+        if (mounted) {
+          setIsLoading(false)
+        }
       }
     })()
 
@@ -156,8 +156,9 @@ export function usePendingTransactions(
           setTransactions(list)
         })
         .finally(() => {
-          if (!mounted) return
-          startStream()
+          if (mounted) {
+            startStream()
+          }
         })
     }).catch(() => {
       if (!mounted) return
@@ -185,7 +186,7 @@ export function usePendingTransactions(
         await pendingTxService.deleteByTxHash({ walletId: legacyWalletId, txHashes: confirmedTxHashes })
       }
     })()
-  }, [walletKey, legacyWalletId, confirmedTxHashKey])
+  }, [walletKey, legacyWalletId, confirmedTxHashKey, confirmedTxHashes])
 
   // 订阅 pendingTxService 的变化（用于即时更新）
   useEffect(() => {
@@ -200,7 +201,7 @@ export function usePendingTransactions(
           const map = new Map<string, PendingTx>()
           for (const item of prev) map.set(item.id, item)
           map.set(tx.id, tx)
-          return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt)
+          return Array.from(map.values()).toSorted((a, b) => b.createdAt - a.createdAt)
         })
       } else if (event === 'updated') {
         setTransactions((prev) => {
@@ -210,7 +211,7 @@ export function usePendingTransactions(
           const map = new Map<string, PendingTx>()
           for (const item of prev) map.set(item.id, item)
           map.set(tx.id, tx)
-          return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt)
+          return Array.from(map.values()).toSorted((a, b) => b.createdAt - a.createdAt)
         })
       } else if (event === 'deleted') {
         setTransactions((prev) => prev.filter((t) => t.id !== tx.id))
@@ -230,9 +231,7 @@ export function usePendingTransactions(
 
   const clearAllFailed = useCallback(async () => {
     const failedTxs = transactions.filter((tx: PendingTx) => tx.status === 'failed')
-    for (const tx of failedTxs) {
-      await pendingTxService.delete({ id: tx.id })
-    }
+    await Promise.all(failedTxs.map((tx) => pendingTxService.delete({ id: tx.id })))
   }, [transactions])
 
   return {
