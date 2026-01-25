@@ -35,7 +35,10 @@ describe('Teleport API Client', () => {
               targetChain: 'BFMCHAIN',
               targetAsset: 'BFM',
               ratio: { numerator: 1, denominator: 1 },
-              transmitDate: { startDate: '2024-01-01', endDate: '2025-01-01' },
+              transmitDate: {
+                startDate: '2020-01-01',
+                endDate: '2030-12-31',
+              },
             },
           },
         },
@@ -48,7 +51,8 @@ describe('Teleport API Client', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
       })
 
       const result = await getTransmitAssetTypeList()
@@ -65,7 +69,7 @@ describe('Teleport API Client', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
-        json: () => Promise.resolve({ message: 'Internal Server Error' }),
+        text: () => Promise.resolve(JSON.stringify({ message: 'Internal Server Error' })),
       })
 
       await expect(getTransmitAssetTypeList()).rejects.toThrow(ApiError)
@@ -74,7 +78,11 @@ describe('Teleport API Client', () => {
     it('should throw ApiError when success is false without result', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ success: false, message: 'Not allowed', error: { code: 403 } }),
+        status: 200,
+        text: () =>
+          Promise.resolve(
+            JSON.stringify({ success: false, message: 'Not allowed', error: { code: 403 } }),
+          ),
       })
 
       const promise = getTransmitAssetTypeList()
@@ -90,7 +98,7 @@ describe('Teleport API Client', () => {
         toTrInfo: {
           chainName: 'BFMCHAIN' as const,
           address: '0xabc',
-          assetType: 'BFM',
+          assetType: 'BFM' as const,
         },
       }
 
@@ -98,7 +106,8 @@ describe('Teleport API Client', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
       })
 
       const result = await transmit(mockRequest)
@@ -118,12 +127,32 @@ describe('Teleport API Client', () => {
       const mockResponse = {
         page: 1,
         pageSize: 10,
-        dataList: [{ orderId: '1', state: 1, orderState: 4, createdTime: '2024-01-01T00:00:00Z' }],
+        dataList: [
+          {
+            orderId: '1',
+            state: 1,
+            orderState: 4,
+            createdTime: '2024-01-01T00:00:00.000Z',
+            fromTxInfo: {
+              chainName: 'ETH',
+              amount: '0.1',
+              asset: 'ETH',
+              decimals: 18,
+            },
+            toTxInfo: {
+              chainName: 'BFMCHAIN',
+              amount: '0.1',
+              asset: 'BFM',
+              decimals: 8,
+            },
+          },
+        ],
       }
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
       })
 
       const result = await getTransmitRecords({ page: 1, pageSize: 10 })
@@ -137,7 +166,8 @@ describe('Teleport API Client', () => {
     it('should include filter params', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ page: 1, pageSize: 10, dataList: [] }),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ page: 1, pageSize: 10, dataList: [] })),
       })
 
       await getTransmitRecords({
@@ -159,14 +189,21 @@ describe('Teleport API Client', () => {
         state: 3,
         orderState: 4,
         swapRatio: 1,
-        updatedTime: '2024-01-01T00:00:00Z',
-        fromTxInfo: { chainName: 'ETH', address: '0x123' },
-        toTxInfo: { chainName: 'BFMCHAIN', address: 'bfmeta123' },
+        updatedTime: '2024-01-01T00:00:00.000Z',
+        fromTxInfo: {
+          chainName: 'ETH',
+          address: '0x123',
+        },
+        toTxInfo: {
+          chainName: 'BFMCHAIN',
+          address: 'bfm123',
+        },
       }
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
       })
 
       const result = await getTransmitRecordDetail('order-123')
@@ -182,7 +219,8 @@ describe('Teleport API Client', () => {
     it('should retry from tx', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(true),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(true)),
       })
 
       const result = await retryFromTxOnChain('order-123')
@@ -194,7 +232,8 @@ describe('Teleport API Client', () => {
     it('should retry to tx', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(true),
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(true)),
       })
 
       const result = await retryToTxOnChain('order-123')

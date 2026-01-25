@@ -85,6 +85,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                     amount: intent.amount.toRawString(),
                     assetType: intent.bioAssetType ?? config.symbol,
                     memo: intent.memo,
+                    remark: intent.remark,
                 },
                 estimatedFee: intent.fee,
             }
@@ -229,12 +230,15 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                             amount: string
                             assetType: string
                             memo?: string
+                            remark?: Record<string, string>
                         }
 
                         // 获取手续费
                         const feeEstimate = unsignedTx.estimatedFee
                             ? unsignedTx.estimatedFee.toRawString()
                             : (await this.estimateFee(unsignedTx)).standard.amount.toRawString()
+
+                        const remark = data.remark ?? (data.memo ? { memo: data.memo } : undefined)
 
                         const tx = await createTransferTransaction({
                             baseUrl: this.#apiUrl,
@@ -246,7 +250,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                             amount: data.amount,
                             assetType: data.assetType,
                             fee: feeEstimate,
-                            remark: data.memo ? { memo: data.memo } : undefined,
+                            remark,
                         })
 
                         return {

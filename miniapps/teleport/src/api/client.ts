@@ -12,6 +12,7 @@ import type {
   TransmitRecordDetail,
   RetryResponse,
 } from './types'
+import { buildPaymentUrl } from './config'
 import {
   transmitAssetTypeListSchema,
   transmitSubmitSchema,
@@ -20,12 +21,19 @@ import {
   retrySchema,
 } from './schemas'
 
-const API_BASE_URL = 'https://api.eth-metaverse.com/payment'
+const TRANSMIT_API_REQUEST = {
+  TRANSMIT: '/transmit',
+  RETRY_FROM_TX_ONCHAIN: '/transmit/retryFromTxOnChain',
+  RETRY_TO_TX_ONCHAIN: '/transmit/retryToTxOnChain',
+  RECORDS: '/transmit/records',
+  RECORD_DETAIL: '/transmit/recordDetail',
+  ASSET_TYPE_LIST: '/transmit/assetTypeList',
+} as const
 
-type WrappedResponse = {
+type ApiEnvelope = {
   success: boolean
   result?: unknown
-  error?: unknown
+  error?: { message?: string }
   message?: string
 }
 
@@ -33,22 +41,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function isWrappedResponse(value: unknown): value is WrappedResponse {
+function isApiEnvelope(value: unknown): value is ApiEnvelope {
   return (
     isRecord(value) &&
     'success' in value &&
     typeof (value as { success: unknown }).success === 'boolean'
   )
-}
-
-function extractWrappedErrorMessage(data: WrappedResponse): string {
-  if (data.message) return data.message
-  if (isRecord(data.error) && 'message' in data.error) {
-    const message = (data.error as { message?: unknown }).message
-    if (Array.isArray(message)) return message.join('; ')
-    if (typeof message === 'string') return message
-  }
-  return 'Request failed'
 }
 
 class ApiError extends Error {
@@ -62,12 +60,37 @@ class ApiError extends Error {
   }
 }
 
-async function request(
+async function readResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text().catch(() => '')
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+function unwrapResponse(data: unknown, status: number): unknown {
+  if (isApiEnvelope(data)) {
+    if (data.success) {
+      if ('result' in data) return data.result
+      return data
+    }
+    const message =
+      (data.error && typeof data.error.message === 'string' && data.error.message) ||
+      (typeof data.message === 'string' && data.message) ||
+      'Request failed'
+    throw new ApiError(message, status, data)
+  }
+  return data
+}
+
+async function request<T>(
   endpoint: string,
   options: RequestInit = {},
-): Promise<unknown> {
-  const url = `${API_BASE_URL}${endpoint}`
-  
+): Promise<T> {
+  const url = buildPaymentUrl(endpoint)
+
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -76,22 +99,17 @@ async function request(
     },
   })
 
+  const data = await readResponseBody(response)
+
   if (!response.ok) {
-    const data = await response.json().catch(() => null)
-    throw new ApiError(
-      data?.message || `HTTP ${response.status}`,
-      response.status,
-      data,
-    )
+    const message =
+      typeof data === 'object' && data !== null && 'message' in data
+        ? String((data as { message: unknown }).message)
+        : `HTTP ${response.status}`
+    throw new ApiError(message, response.status, data)
   }
 
-  const data: unknown = await response.json()
-  if (isWrappedResponse(data)) {
-    if (data.success) return data.result
-    throw new ApiError(extractWrappedErrorMessage(data), response.status, data.error ?? data)
-  }
-
-  return data
+  return unwrapResponse(data, response.status) as T
 }
 
 /**
@@ -99,7 +117,7 @@ async function request(
  * GET /payment/transmit/assetTypeList
  */
 export async function getTransmitAssetTypeList(): Promise<TransmitAssetTypeListResponse> {
-  const data = await request('/transmit/assetTypeList')
+  const data = await request(TRANSMIT_API_REQUEST.ASSET_TYPE_LIST)
   const parsed = transmitAssetTypeListSchema.safeParse(data)
   if (!parsed.success) {
     throw new ApiError('Invalid transmit asset list response', 0, parsed.error.flatten())
@@ -112,7 +130,7 @@ export async function getTransmitAssetTypeList(): Promise<TransmitAssetTypeListR
  * POST /payment/transmit
  */
 export async function transmit(data: TransmitRequest): Promise<TransmitResponse> {
-  const res = await request('/transmit', {
+  const res = await request(TRANSMIT_API_REQUEST.TRANSMIT, {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -137,7 +155,7 @@ export async function getTransmitRecords(
   if (params.fromAddress) searchParams.set('fromAddress', params.fromAddress)
   if (params.fromAsset) searchParams.set('fromAsset', params.fromAsset)
 
-  const data = await request(`/transmit/records?${searchParams}`)
+  const data = await request(`${TRANSMIT_API_REQUEST.RECORDS}?${searchParams}`)
   const parsed = transmitRecordsSchema.safeParse(data)
   if (!parsed.success) {
     throw new ApiError('Invalid transmit records response', 0, parsed.error.flatten())
@@ -152,7 +170,9 @@ export async function getTransmitRecords(
 export async function getTransmitRecordDetail(
   orderId: string,
 ): Promise<TransmitRecordDetail> {
-  const data = await request(`/transmit/recordDetail?orderId=${encodeURIComponent(orderId)}`)
+  const data = await request(
+    `${TRANSMIT_API_REQUEST.RECORD_DETAIL}?orderId=${encodeURIComponent(orderId)}`,
+  )
   const parsed = transmitRecordDetailSchema.safeParse(data)
   if (!parsed.success) {
     throw new ApiError('Invalid transmit record detail response', 0, parsed.error.flatten())
@@ -165,7 +185,7 @@ export async function getTransmitRecordDetail(
  * POST /payment/transmit/retryFromTxOnChain
  */
 export async function retryFromTxOnChain(orderId: string): Promise<RetryResponse> {
-  const data = await request('/transmit/retryFromTxOnChain', {
+  const data = await request(TRANSMIT_API_REQUEST.RETRY_FROM_TX_ONCHAIN, {
     method: 'POST',
     body: JSON.stringify({ orderId }),
   })
@@ -181,7 +201,7 @@ export async function retryFromTxOnChain(orderId: string): Promise<RetryResponse
  * POST /payment/transmit/retryToTxOnChain
  */
 export async function retryToTxOnChain(orderId: string): Promise<RetryResponse> {
-  const data = await request('/transmit/retryToTxOnChain', {
+  const data = await request(TRANSMIT_API_REQUEST.RETRY_TO_TX_ONCHAIN, {
     method: 'POST',
     body: JSON.stringify({ orderId }),
   })

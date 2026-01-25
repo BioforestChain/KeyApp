@@ -35,7 +35,10 @@
     "placeholder": "0.00",
     "max": "MAX",
     "next": "下一步",
-    "expected": "预计获得"
+    "expected": "预计获得",
+    "precision": "精度",
+    "precisionValue": "{{decimals}} 位（最小 {{min}}）",
+    "precisionHint": "精度 {{decimals}} 位，最小 {{min}}"
   },
   "target": {
     "title": "选择目标钱包",
