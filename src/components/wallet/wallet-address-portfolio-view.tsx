@@ -5,6 +5,7 @@ import { TransactionList } from '@/components/transaction/transaction-list'
 import { SwipeableTabs } from '@/components/layout/swipeable-tabs'
 import { ServiceStatusAlert } from '@/components/common/service-status-alert'
 import { ErrorBoundary } from '@/components/common/error-boundary'
+import { LoadingSpinner } from '@biochain/key-ui'
 import type { TokenInfo, TokenItemContext, TokenMenuItem } from '@/components/token/token-item'
 import type { TransactionInfo } from '@/components/transaction/transaction-item'
 import type { ChainType } from '@/stores'
@@ -17,6 +18,7 @@ export interface WalletAddressPortfolioViewProps {
   tokensLoading?: boolean
   transactionsLoading?: boolean
   tokensRefreshing?: boolean
+  transactionsRefreshing?: boolean
   /** 是否成功查询到 token 数据（false 表示 fallback） */
   tokensSupported?: boolean
   tokensFallbackReason?: string
@@ -47,6 +49,7 @@ export function WalletAddressPortfolioView({
   tokensLoading = false,
   transactionsLoading = false,
   tokensRefreshing = false,
+  transactionsRefreshing = false,
   tokensSupported = true,
   tokensFallbackReason,
   transactionsSupported = true,
@@ -61,7 +64,7 @@ export function WalletAddressPortfolioView({
   className,
   testId = 'wallet-address-portfolio',
 }: WalletAddressPortfolioViewProps) {
-  const { t } = useTranslation(['home', 'transaction'])
+  const { t } = useTranslation(['home', 'transaction', 'common'])
   const [activeTab, setActiveTab] = useState('assets')
   const displayChainName = chainName ?? chainId
 
@@ -107,6 +110,12 @@ export function WalletAddressPortfolioView({
                   reason={transactionsFallbackReason}
                   className="mb-4"
                 />
+              )}
+              {transactionsRefreshing && transactions.length > 0 && (
+                <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                  <LoadingSpinner className="size-3" />
+                  {t('common:loading')}
+                </div>
               )}
               <ErrorBoundary
                 fallback={(error, reset) => (

@@ -15,9 +15,7 @@ export { Schema } from "effect"
 export { isChainEffectDebugEnabled } from "./debug"
 
 // SuperJSON for serialization (handles BigInt, Amount, etc.)
-import { SuperJSON } from "superjson"
-export const superjson = new SuperJSON({ dedupe: true })
-export { SuperJSON } from "superjson"
+export { superjson, SuperJSON } from "./superjson"
 
 // Schema definitions
 export * from "./schema"
@@ -104,6 +102,17 @@ export {
   makePollKey,
   type PollMeta,
 } from "./poll-meta"
+
+// Snapshot Store (IndexedDB + memory fallback)
+export {
+  readSnapshot,
+  writeSnapshot,
+  deleteSnapshot,
+  readMemorySnapshot,
+  writeMemorySnapshot,
+  deleteMemorySnapshot,
+  type SnapshotEntry,
+} from "./snapshot-store"
 
 // Source Registry (global singleton + ref counting)
 export {
