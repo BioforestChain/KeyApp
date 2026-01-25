@@ -51,8 +51,7 @@ export async function getWalleterAddresss(
             magic: '',
             signMessage: '',
         }))
-    } catch (error) {
-        console.error('[dweb-compat] getWalleterAddresss error:', error)
+    } catch {
         return null
     }
 }

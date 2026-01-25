@@ -295,7 +295,7 @@ function formatPrStatus(info: PrInfo): string {
 export function createWorktree(options: { name?: string; branch?: string; base?: string }): void {
   const name = options.name?.trim()
   const branch = options.branch?.trim()
-  const base = options.base?.trim() || 'main'
+  const base = options.base?.trim() || 'origin/main'
 
   if (!name) {
     log.error('请提供 worktree 名称')

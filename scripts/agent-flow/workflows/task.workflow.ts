@@ -254,7 +254,7 @@ const startWorkflow = defineWorkflow({
     try {
       const { path, branch } = await createWorktree({
         name: worktreeName,
-        baseBranch: "main",
+        baseBranch: "origin/main",
       });
       console.log(`   ✅ Worktree Created: ${path}`);
       console.log(`   ✅ Branch Created: ${branch}`);
