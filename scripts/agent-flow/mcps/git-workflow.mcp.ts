@@ -214,7 +214,7 @@ export async function markPrReady(args: { prNumber: string }) {
 }
 
 export async function createWorktree(args: { name: string; baseBranch?: string }) {
-  const { name, baseBranch = "main" } = args;
+  const { name, baseBranch = "origin/main" } = args;
   const branchName = `feat/${name}`;
   const worktreePath = `${WORKTREE_BASE}/${name}`;
   

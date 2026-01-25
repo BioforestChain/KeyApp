@@ -329,7 +329,8 @@
     "**/*.stories.ts",
     "src/test/**",
     "scripts/**",
-    "e2e/**"
+    "e2e/**",
+    "src/services/bioforest-sdk/bioforest-chain-bundle.*"
   ],
   "settings": {
     "react": {

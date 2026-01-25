@@ -14,7 +14,7 @@
     "build:all": "bun scripts/build.ts all",
     "build:release": "bun scripts/build.ts all --skip-test",
     "clean": "bun scripts/clean.ts",
-    "lint": "oxlint .",
+    "lint": "turbo run lint:run --",
     "lint:fix": "oxlint --fix .",
     "preview": "vite preview",
     "test": "turbo run test:run --",

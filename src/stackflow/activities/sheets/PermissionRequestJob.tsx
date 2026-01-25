@@ -67,12 +67,12 @@ function PermissionRequestJobContent() {
 
   const getPermissionLabel = (permKey: string): string => {
     const labelKey = `${permKey}.label` as const;
-    return t(labelKey as any) as string;
+    return String(t(labelKey));
   };
 
   const getPermissionDescription = (permKey: string): string => {
     const descKey = `${permKey}.description` as const;
-    return t(descKey as any) as string;
+    return String(t(descKey));
   };
 
   return (
@@ -93,7 +93,9 @@ function PermissionRequestJobContent() {
             )}
           </div>
           <h2 className="text-center text-lg font-semibold">{appName}</h2>
-          <p className="text-muted-foreground mt-1 text-center text-sm">{t('requestsPermissions' as any)}</p>
+          <p className="text-muted-foreground mt-1 text-center text-sm">
+            {String(t('requestsPermissions'))}
+          </p>
         </div>
 
         {/* Permissions List */}
@@ -120,7 +122,7 @@ function PermissionRequestJobContent() {
           {/* Trust indicator */}
           <div className="text-muted-foreground mt-4 flex items-center gap-2 text-sm">
             <IconShieldCheck className="size-4" />
-            <span>{t('permissionNote' as any)}</span>
+            <span>{String(t('permissionNote'))}</span>
           </div>
         </div>
 

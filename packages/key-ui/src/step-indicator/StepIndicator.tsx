@@ -17,7 +17,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
         const isLast = index === steps.length - 1
 
         return (
-          <React.Fragment key={index}>
+          <React.Fragment key={step}>
             <div className="flex flex-col items-center gap-2">
               <div
                 className={cn(
@@ -69,9 +69,9 @@ export interface ProgressStepsProps {
 export function ProgressSteps({ total, current, className }: ProgressStepsProps) {
   return (
     <div className={cn('flex gap-1.5', className)}>
-      {Array.from({ length: total }).map((_, i) => (
+      {Array.from({ length: total }, (_, i) => `step-${i + 1}`).map((stepKey, i) => (
         <div
-          key={i}
+          key={stepKey}
           className={cn(
             'h-1 flex-1 rounded-full transition-colors',
             i < current ? 'bg-primary' : 'bg-muted',

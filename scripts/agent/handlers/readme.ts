@@ -86,7 +86,7 @@ pnpm agent epic create "x"    创建 Epic (--roadmap v1)
 pnpm agent epic list          查看所有 Epic
 pnpm agent chapter <x>        查阅白皮书
 pnpm agent stats              进度统计
-pnpm agent worktree create <name> --branch <branch> [--base main]
+pnpm agent worktree create <name> --branch <branch> [--base origin/main]
 pnpm agent worktree list      worktree 概览
 pnpm agent worktree delete <name> [--force]
 
