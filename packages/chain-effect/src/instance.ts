@@ -34,7 +34,7 @@ function toStableJson(value: unknown): unknown {
     return value.map(toStableJson)
   }
   const sorted: UnknownRecord = {}
-  for (const key of Object.keys(value).toSorted()) {
+  for (const key of Object.keys(value).slice().sort()) {
     sorted[key] = toStableJson(value[key])
   }
   return sorted
