@@ -78,7 +78,11 @@ describe('Teleport API Client', () => {
     it('should throw ApiError when success is false without result', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ success: false, message: 'Not allowed', error: { code: 403 } }),
+        status: 200,
+        text: () =>
+          Promise.resolve(
+            JSON.stringify({ success: false, message: 'Not allowed', error: { code: 403 } }),
+          ),
       })
 
       const promise = getTransmitAssetTypeList()
