@@ -11,6 +11,7 @@ import { Effect, Fiber, FiberStatus, Duration, SubscriptionRef, Stream, Schedule
 import type { FetchError } from "./http"
 import type { DataSource } from "./source"
 import { updateNextPollTime, getDelayUntilNextPoll } from "./poll-meta"
+import { formatChainEffectError, logChainEffectDebug } from "./debug"
 
 // ==================== 类型定义 ====================
 
@@ -116,7 +117,11 @@ async function createSourceInternal<T>(
     const pollEffect = Effect.gen(function* () {
       // 计算初始延迟（基于持久化的 nextPollTime）
       const delay = yield* getDelayUntilNextPoll(pollKey, intervalMs)
-      console.log(`[SourceRegistry] Poll fiber started for ${pollKey}, delay: ${delay}ms, interval: ${intervalMs}ms`)
+      logChainEffectDebug(
+        `${pollKey} poll fiber started`,
+        `delay=${delay}ms`,
+        `interval=${intervalMs}ms`
+      )
       if (delay > 0) {
         yield* Effect.sleep(Duration.millis(delay))
       }
@@ -124,14 +129,17 @@ async function createSourceInternal<T>(
       // 开始轮询循环
       yield* Stream.repeatEffect(
         Effect.gen(function* () {
-          console.log(`[SourceRegistry] Polling ${pollKey}...`)
+          logChainEffectDebug(`${pollKey} polling`)
           const result = yield* Effect.catchAll(options.fetch, (error) => {
-            console.error(`[SourceRegistry] Poll error for ${pollKey}:`, error)
+            logChainEffectDebug(
+              `${pollKey} poll error`,
+              formatChainEffectError(error)
+            )
             return Effect.succeed(null as T | null)
           })
           
           if (result !== null) {
-            console.log(`[SourceRegistry] Poll success for ${pollKey}, updating ref`)
+            logChainEffectDebug(`${pollKey} poll success`, "update ref")
             yield* SubscriptionRef.set(ref, result)
             yield* updateNextPollTime(pollKey, intervalMs)
           }
@@ -148,7 +156,10 @@ async function createSourceInternal<T>(
     
     // 执行立即获取
     const immediateResult = yield* Effect.catchAll(options.fetch, (error) => {
-      console.error(`[SourceRegistry] Immediate fetch error for ${key}:`, error)
+      logChainEffectDebug(
+        `${key} immediate fetch error`,
+        formatChainEffectError(error)
+      )
       return Effect.succeed(null as T | null)
     })
     if (immediateResult !== null) {

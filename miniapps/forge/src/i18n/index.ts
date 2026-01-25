@@ -26,7 +26,7 @@ try {
       savedLanguage = parsed.language as LanguageCode
     }
   }
-} catch (e) {
+} catch {
   // Ignore error
 }
 

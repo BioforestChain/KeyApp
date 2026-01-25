@@ -23,6 +23,7 @@ import enNotification from './locales/en/notification.json';
 import enHome from './locales/en/home.json';
 import enEcosystem from './locales/en/ecosystem.json';
 import enPermission from './locales/en/permission.json';
+import enDevtools from './locales/en/devtools.json';
 
 // Namespace imports - zh-CN
 import zhCNCommon from './locales/zh-CN/common.json';
@@ -46,6 +47,7 @@ import zhCNNotification from './locales/zh-CN/notification.json';
 import zhCNHome from './locales/zh-CN/home.json';
 import zhCNEcosystem from './locales/zh-CN/ecosystem.json';
 import zhCNPermission from './locales/zh-CN/permission.json';
+import zhCNDevtools from './locales/zh-CN/devtools.json';
 
 // Namespace imports - zh-TW
 import zhTWCommon from './locales/zh-TW/common.json';
@@ -69,6 +71,7 @@ import zhTWNotification from './locales/zh-TW/notification.json';
 import zhTWHome from './locales/zh-TW/home.json';
 import zhTWEcosystem from './locales/zh-TW/ecosystem.json';
 import zhTWPermission from './locales/zh-TW/permission.json';
+import zhTWDevtools from './locales/zh-TW/devtools.json';
 
 // Namespace imports - ar
 import arCommon from './locales/ar/common.json';
@@ -92,6 +95,7 @@ import arNotification from './locales/ar/notification.json';
 import arHome from './locales/ar/home.json';
 import arEcosystem from './locales/ar/ecosystem.json';
 import arPermission from './locales/ar/permission.json';
+import arDevtools from './locales/ar/devtools.json';
 
 // 语言配置
 export const languages = {
@@ -128,6 +132,7 @@ export const namespaces = [
   'home',
   'ecosystem',
   'permission',
+  'devtools',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -168,6 +173,7 @@ i18n.use(initReactI18next).init({
       home: enHome,
       ecosystem: enEcosystem,
       permission: enPermission,
+      devtools: enDevtools,
     },
     'zh-CN': {
       common: zhCNCommon,
@@ -191,6 +197,7 @@ i18n.use(initReactI18next).init({
       home: zhCNHome,
       ecosystem: zhCNEcosystem,
       permission: zhCNPermission,
+      devtools: zhCNDevtools,
     },
     'zh-TW': {
       common: zhTWCommon,
@@ -214,6 +221,7 @@ i18n.use(initReactI18next).init({
       home: zhTWHome,
       ecosystem: zhTWEcosystem,
       permission: zhTWPermission,
+      devtools: zhTWDevtools,
     },
     ar: {
       common: arCommon,
@@ -237,6 +245,7 @@ i18n.use(initReactI18next).init({
       home: arHome,
       ecosystem: arEcosystem,
       permission: arPermission,
+      devtools: arDevtools,
     },
   },
   lng: defaultLanguage,

@@ -23,11 +23,14 @@ function formatDate(timestamp: number): string {
 }
 
 function TransactionItem({ tx, address }: { tx: Transaction; address: string }) {
+  const { t } = useTranslation('common')
   const isOutgoing = tx.direction === 'out' || tx.from.toLowerCase() === address.toLowerCase()
   const primaryAsset = tx.assets.find((a) => a.assetType === 'native' || a.assetType === 'token')
   const value = primaryAsset ? primaryAsset.value : '0'
   const symbol = primaryAsset ? primaryAsset.symbol : ''
   const decimals = primaryAsset ? primaryAsset.decimals : 0
+  const sign = isOutgoing ? t('sign.minus') : t('sign.plus')
+  const directionLabel = isOutgoing ? t('addressLookup.toLabel') : t('addressLookup.fromLabel')
 
   return (
     <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
@@ -36,14 +39,15 @@ function TransactionItem({ tx, address }: { tx: Transaction; address: string }) 
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">
-          {isOutgoing ? `To: ${tx.to}` : `From: ${tx.from}`}
+          {directionLabel} {isOutgoing ? tx.to : tx.from}
         </div>
         <div className="text-xs text-muted-foreground">
           {formatDate(tx.timestamp)}
         </div>
       </div>
       <div className={`text-sm font-medium ${isOutgoing ? 'text-red-600' : 'text-green-600'}`}>
-        {isOutgoing ? '-' : '+'}{formatAmount(value, decimals)} {symbol}
+        {sign}
+        {formatAmount(value, decimals)} {symbol}
       </div>
     </div>
   )

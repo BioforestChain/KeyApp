@@ -16,9 +16,11 @@
     "pay": "支付",
     "receive": "获得",
     "ratio": "兑换比例",
+    "ratioValue": "1:1",
     "depositAddress": "充值地址",
     "network": "网络",
     "preview": "预览交易",
+    "start": "开始锻造",
     "confirm": "确认充值",
     "continue": "继续",
     "amountHint": "数量单位：{{symbol}}",
@@ -31,7 +33,9 @@
     "connect": "连接钱包",
     "from": "从",
     "to": "到",
+    "optionLabel": "{{asset}} → {{chain}}",
     "limits": "限额",
+    "limitsRange": "限额：{{min}} - {{max}}",
     "fee": "手续费",
     "receivable": "预计到账",
     "addressPlaceholder": "输入外链地址",
@@ -64,7 +68,8 @@
   },
   "success": {
     "title": "完成",
-    "orderId": "订单"
+    "orderId": "订单",
+    "orderIdLabel": "订单：{{id}}"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
@@ -74,10 +79,15 @@
   },
   "picker": {
     "title": "选择币种",
-    "selected": "已选"
+    "selected": "已选",
+    "close": "关闭",
+    "optionAssets": "{{from}} → {{to}}",
+    "optionChains": "{{from}} → {{to}}"
   },
   "common": {
-    "back": "返回"
+    "back": "返回",
+    "arrow": "→",
+    "chainLabel": "{{label}}（{{chain}}）"
   },
   "chain": {
     "ETH": "Ethereum",

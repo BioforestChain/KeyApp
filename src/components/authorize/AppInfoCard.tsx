@@ -22,7 +22,7 @@ function isUnknownOrigin(origin: string): boolean {
 }
 
 export function AppInfoCard({ appInfo, className }: AppInfoCardProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'authorize']);
   const [imageFailed, setImageFailed] = useState(false);
 
   const isUnknown = useMemo(() => isUnknownOrigin(appInfo.origin), [appInfo.origin]);
@@ -55,7 +55,7 @@ export function AppInfoCard({ appInfo, className }: AppInfoCardProps) {
                 aria-label={t('a11y.unknownApp')}
               >
                 <AlertTriangle className="size-3" />
-                Unknown
+                {t('authorize:unknownApp')}
               </span>
             )}
           </div>

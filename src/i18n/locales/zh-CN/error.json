@@ -115,5 +115,14 @@
     "mustBeArray": "signaturedata 必须是 JSON 数组",
     "emptyArray": "signaturedata 不能为空数组",
     "firstMustBeObject": "signaturedata[0] 必须是对象"
+  },
+  "providerFallback": {
+    "title": "{{feature}} 查询失败",
+    "description": "所有已配置的提供方均失败，已显示默认值。",
+    "details": "技术详情"
+  },
+  "boundary": {
+    "title": "出现了一些问题",
+    "retry": "重试"
   }
 }

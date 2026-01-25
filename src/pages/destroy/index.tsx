@@ -24,26 +24,12 @@ import { ChainProviderGate, useChainProvider } from '@/contexts';
 import {
   useChainConfigState,
   chainConfigSelectors,
+  useChainDisplayName,
   useCurrentChainAddress,
   useCurrentWallet,
   useSelectedChain,
   type ChainType,
 } from '@/stores';
-
-const CHAIN_NAMES: Record<ChainType, string> = {
-  ethereum: 'Ethereum',
-  bitcoin: 'Bitcoin',
-  tron: 'Tron',
-  binance: 'BSC',
-  bfmeta: 'BFMeta',
-  ccchain: 'CCChain',
-  pmchain: 'PMChain',
-  bfchainv2: 'BFChain V2',
-  btgmeta: 'BTGMeta',
-  biwmeta: 'BIWMeta',
-  ethmeta: 'ETHMeta',
-  malibu: 'Malibu',
-};
 
 /** Convert TokenInfo to AssetInfo */
 function tokenToAsset(token: TokenInfo): AssetInfo {
@@ -89,7 +75,7 @@ function DestroyPageContent() {
   const chainConfig = chainConfigState.snapshot
     ? chainConfigSelectors.getChainById(chainConfigState, selectedChain)
     : null;
-  const selectedChainName = chainConfig?.name ?? CHAIN_NAMES[selectedChain] ?? selectedChain;
+  const selectedChainName = useChainDisplayName(selectedChain);
 
   // 使用 useChainProvider() 获取确保非空的 provider
   const chainProvider = useChainProvider();

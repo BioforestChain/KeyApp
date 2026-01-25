@@ -353,7 +353,7 @@ export default function App() {
 
           {/* Redemption Mode */}
           {mode === 'redemption' && config && !configLoading && (
-            <RedemptionForm config={config} onSuccess={(orderId) => {}} />
+            <RedemptionForm config={config} onSuccess={(_orderId) => {}} />
           )}
 
           {/* Recharge Mode */}
@@ -429,7 +429,10 @@ export default function App() {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardDescription>
-                        {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
+                        {t('common.chainLabel', {
+                          label: t('forge.pay'),
+                          chain: getChainName(selectedOption.externalChain),
+                        })}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -477,7 +480,10 @@ export default function App() {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardDescription>
-                        {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
+                        {t('common.chainLabel', {
+                          label: t('forge.receive'),
+                          chain: getChainName(selectedOption.internalChain),
+                        })}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -502,7 +508,7 @@ export default function App() {
                       <CardContent className="space-y-2 py-3 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('forge.ratio')}</span>
-                          <span>1:1</span>
+                          <span>{t('forge.ratioValue')}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('forge.depositAddress')}</span>
@@ -540,7 +546,10 @@ export default function App() {
                     <CardContent className="space-y-4 py-6 text-center">
                       <div>
                         <CardDescription className="mb-1">
-                          {t('forge.pay')} ({getChainName(selectedOption.externalChain)})
+                          {t('common.chainLabel', {
+                            label: t('forge.pay'),
+                            chain: getChainName(selectedOption.externalChain),
+                          })}
                         </CardDescription>
                         <div className="flex items-center justify-center gap-2 text-3xl font-bold">
                           <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
@@ -556,7 +565,10 @@ export default function App() {
                       </div>
                       <div>
                         <CardDescription className="mb-1">
-                          {t('forge.receive')} ({getChainName(selectedOption.internalChain)})
+                          {t('common.chainLabel', {
+                            label: t('forge.receive'),
+                            chain: getChainName(selectedOption.internalChain),
+                          })}
                         </CardDescription>
                         <div className="flex items-center justify-center gap-2 text-3xl font-bold text-blue-500">
                           <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
@@ -570,14 +582,14 @@ export default function App() {
                     <CardContent className="space-y-3 py-4 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t('forge.ratio')}</span>
-                        <span>1:1</span>
+                        <span>{t('forge.ratioValue')}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t('forge.network')}</span>
                         <div className="flex gap-2">
                           <Badge variant="outline">{getChainName(selectedOption.externalChain)}</Badge>
-                          <span>→</span>
+                          <span>{t('common.arrow')}</span>
                           <Badge variant="outline">{getChainName(selectedOption.internalChain)}</Badge>
                         </div>
                       </div>
@@ -659,7 +671,9 @@ export default function App() {
                     </p>
                     {forgeHook.orderId && (
                       <p className="text-muted-foreground font-mono text-xs">
-                        {t('success.orderId')}: {forgeHook.orderId.slice(0, 16)}...
+                        {t('success.orderIdLabel', {
+                          id: `${forgeHook.orderId.slice(0, 16)}...`,
+                        })}
                       </p>
                     )}
                   </div>
@@ -674,7 +688,12 @@ export default function App() {
           {/* Token Picker Modal */}
           {pickerOpen && (
             <div className="fixed inset-0 z-50">
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPickerOpen(false)} />
+              <button
+                type="button"
+                aria-label={t('picker.close')}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={() => setPickerOpen(false)}
+              />
               <div className="bg-card border-border animate-in slide-in-from-bottom absolute right-0 bottom-0 left-0 rounded-t-2xl border-t">
                 <div className="border-border flex items-center justify-between border-b p-4">
                   <CardTitle>{t('picker.title')}</CardTitle>
@@ -702,10 +721,16 @@ export default function App() {
                               <TokenAvatar symbol={option.externalAsset} size="md" />
                               <div className="flex-1">
                                 <CardTitle className="text-base">
-                                  {option.externalAsset} → {option.internalAsset}
+                                  {t('picker.optionAssets', {
+                                    from: option.externalAsset,
+                                    to: option.internalAsset,
+                                  })}
                                 </CardTitle>
                                 <CardDescription>
-                                  {getChainName(option.externalChain)} → {getChainName(option.internalChain)}
+                                  {t('picker.optionChains', {
+                                    from: getChainName(option.externalChain),
+                                    to: getChainName(option.internalChain),
+                                  })}
                                 </CardDescription>
                               </div>
                               {selectedOption?.externalAsset === option.externalAsset &&

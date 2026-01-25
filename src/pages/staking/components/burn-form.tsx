@@ -14,6 +14,7 @@ import { stakingService } from '@/services/staking';
 import { Amount } from '@/types/amount';
 import type { ExternalChain, InternalChain, RechargeConfig, BurnRequest } from '@/types/staking';
 import { cn } from '@/lib/utils';
+import { useChainNameMap } from '@/stores';
 
 interface BurnFormProps {
   onSuccess?: (txId: string) => void;
@@ -23,15 +24,11 @@ interface BurnFormProps {
 /** Available source (internal) chain options */
 const SOURCE_CHAINS: InternalChain[] = ['BFMeta', 'BFChain', 'CCChain', 'PMChain'];
 
-/** Chain display names */
-const CHAIN_NAMES: Record<string, string> = {
+/** External chain display names */
+const EXTERNAL_CHAIN_NAMES: Record<ExternalChain, string> = {
   ETH: 'Ethereum',
   BSC: 'BNB Chain',
   TRON: 'Tron',
-  BFMeta: 'BFMeta',
-  BFChain: 'BFChain',
-  CCChain: 'CCChain',
-  PMChain: 'PMChain',
 };
 
 /** Mock internal chain balances for validation */
@@ -80,6 +77,7 @@ function getAvailableTokens(config: RechargeConfig | null, sourceChain: Internal
 /** Burn form component */
 export function BurnForm({ onSuccess, className }: BurnFormProps) {
   const { t } = useTranslation('staking');
+  const chainNameMap = useChainNameMap();
 
   // Form state
   const [sourceChain, setSourceChain] = useState<InternalChain>('BFMeta');
@@ -113,6 +111,16 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
 
   // Available tokens for selected source chain
   const availableTokens = useMemo(() => getAvailableTokens(config, sourceChain), [config, sourceChain]);
+
+  const getChainName = useCallback(
+    (chain: string): string => {
+      const externalName = EXTERNAL_CHAIN_NAMES[chain as ExternalChain];
+      if (externalName) return externalName;
+      const lowerKey = chain.toLowerCase();
+      return chainNameMap[lowerKey] ?? chainNameMap[chain] ?? chain;
+    },
+    [chainNameMap],
+  );
 
   // Currently selected token's target chains
   const selectedTokenTargets = useMemo(() => {
@@ -233,7 +241,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
             <div className="bg-primary/20 text-primary flex size-6 items-center justify-center rounded-full text-xs font-bold">
               {sourceChain.charAt(0)}
             </div>
-            <span className="font-medium">{CHAIN_NAMES[sourceChain]}</span>
+            <span className="font-medium">{getChainName(sourceChain)}</span>
           </div>
           <ChevronRight className="text-muted-foreground size-4" />
         </button>
@@ -303,7 +311,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
             <div className="bg-muted flex size-6 items-center justify-center rounded-full text-xs font-bold">
               {targetChain ? targetChain.charAt(0) : '?'}
             </div>
-            <span className="font-medium">{targetChain ? CHAIN_NAMES[targetChain] : t('selectChain')}</span>
+            <span className="font-medium">{targetChain ? getChainName(targetChain) : t('selectChain')}</span>
           </div>
           <div className="flex items-center gap-2">
             <TokenIcon symbol={sourceAsset || '?'} size="sm" />
@@ -352,7 +360,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
                 <div className="bg-primary/20 text-primary flex size-8 items-center justify-center rounded-full text-sm font-bold">
                   {chain.charAt(0)}
                 </div>
-                <span className="font-medium">{CHAIN_NAMES[chain]}</span>
+                <span className="font-medium">{getChainName(chain)}</span>
                 {sourceChain === chain && <span className="text-primary ml-auto">✓</span>}
               </button>
             ))}
@@ -414,7 +422,7 @@ export function BurnForm({ onSuccess, className }: BurnFormProps) {
                 <div className="bg-muted flex size-8 items-center justify-center rounded-full text-sm font-bold">
                   {chain.charAt(0)}
                 </div>
-                <span className="font-medium">{CHAIN_NAMES[chain]}</span>
+                <span className="font-medium">{getChainName(chain)}</span>
                 {targetChain === chain && <span className="text-primary ml-auto">✓</span>}
               </button>
             ))}

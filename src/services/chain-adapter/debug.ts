@@ -1,4 +1,5 @@
 type DebugSetting = boolean | string | undefined
+type DebugLogger = (message: string, detail?: unknown) => void
 
 function readLocalStorageSetting(): DebugSetting {
   if (typeof globalThis === "undefined") return undefined
@@ -26,6 +27,14 @@ function readGlobalSetting(): DebugSetting {
   return undefined
 }
 
+function readGlobalLogger(): DebugLogger | undefined {
+  if (typeof globalThis === "undefined") return undefined
+  const store = globalThis as typeof globalThis & { __CHAIN_EFFECT_LOG__?: unknown }
+  const value = store.__CHAIN_EFFECT_LOG__
+  if (typeof value === "function") return value as DebugLogger
+  return undefined
+}
+
 function parseRegex(pattern: string): RegExp | null {
   if (!pattern.startsWith("/")) return null
   const lastSlash = pattern.lastIndexOf("/")
@@ -46,4 +55,11 @@ export function isChainDebugEnabled(message: string): boolean {
   const regex = parseRegex(setting)
   if (regex) return regex.test(message)
   return message.includes(setting)
+}
+
+export function logChainDebug(message: string, detail?: unknown): void {
+  if (!isChainDebugEnabled(message)) return
+  const logger = readGlobalLogger()
+  if (!logger) return
+  logger(message, detail)
 }

@@ -84,13 +84,16 @@ export function ChainSelector({
       .filter((kind) => grouped.has(kind))
       .map((kind) => {
         const config = getChainKindConfig(kind, t);
+        const groupChains = grouped.get(kind);
+        if (!groupChains) return null;
         return {
           id: kind,
           name: config.name || kind,
           description: config.description,
-          chains: grouped.get(kind)!,
+          chains: groupChains,
         };
-      });
+      })
+      .filter((group): group is ChainGroup => group !== null);
   }, [chains, t]);
 
   // 过滤搜索结果
@@ -262,7 +265,10 @@ export function ChainSelector({
 
                 {/* 选择计数 */}
                 <span className="text-muted-foreground text-sm">
-                  {group.chains.filter((c) => selectedChains.includes(c.id)).length}/{group.chains.length}
+                  {t('chainSelector.selectionCount', {
+                    selected: group.chains.filter((c) => selectedChains.includes(c.id)).length,
+                    total: group.chains.length,
+                  })}
                 </span>
               </button>
 
@@ -284,7 +290,6 @@ export function ChainSelector({
                           'hover:bg-muted/30 transition-colors',
                           isSelected && 'bg-primary/5',
                         )}
-                        role="button"
                         tabIndex={0}
                         onClick={() => toggleChain(chain.id)}
                         onKeyDown={(e) => {

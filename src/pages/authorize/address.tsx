@@ -19,26 +19,9 @@ import {
   type CallerAppInfo,
 } from '@/services/authorize'
 import { useToast } from '@/services'
-import { walletStore, walletSelectors, type Wallet } from '@/stores'
+import { useChainNameMap, walletStore, walletSelectors, type Wallet } from '@/stores'
 
 const REQUEST_TIMEOUT_MS = 5 * 60 * 1000
-
-const CHAIN_NAMES: Record<string, string> = {
-  ethereum: 'Ethereum',
-  bitcoin: 'Bitcoin',
-  tron: 'Tron',
-  binance: 'BSC',
-  bsc: 'BSC',
-  bfmeta: 'BFMeta',
-  ccchain: 'CCChain',
-  pmchain: 'PMChain',
-  bfchainv2: 'BFChain V2',
-  btgmeta: 'BTGMeta',
-  biwmeta: 'BIWMeta',
-  ethmeta: 'ETHMeta',
-  malibu: 'Malibu',
-  ccc: 'CCChain',
-}
 
 function toChainIconType(chainName: string | undefined): ChainIconType | undefined {
   if (!chainName) return undefined
@@ -60,7 +43,11 @@ function toWalletSelectorItems(wallets: Wallet[]): WalletInfo[] {
   }))
 }
 
-function buildChainData(wallets: Wallet[], currentWalletId: string | null): ChainData[] {
+function buildChainData(
+  wallets: Wallet[],
+  currentWalletId: string | null,
+  chainNameMap: Record<string, string>
+): ChainData[] {
   const grouped = new Map<ChainIconType, Array<{ address: string; isDefault: boolean }>>()
 
   for (const wallet of wallets) {
@@ -76,7 +63,7 @@ function buildChainData(wallets: Wallet[], currentWalletId: string | null): Chai
 
   return Array.from(grouped.entries()).map(([chain, addresses]) => ({
     chain,
-    name: CHAIN_NAMES[chain] ?? chain,
+    name: chainNameMap[chain] ?? chain,
     addresses: addresses.map((a) => ({ address: a.address, isDefault: a.isDefault })),
   }))
 }
@@ -104,6 +91,7 @@ export function AddressAuthPage() {
   const currentWalletId = useStore(walletStore, (s) => s.currentWalletId)
   const wallets = useStore(walletStore, (s) => s.wallets)
   const currentWallet = useStore(walletStore, walletSelectors.getCurrentWallet)
+  const chainNameMap = useChainNameMap()
 
   const [appInfo, setAppInfo] = useState<CallerAppInfo | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -189,7 +177,10 @@ export function AddressAuthPage() {
     return wallets.find((w) => w.id === selectedWalletId) ?? null
   }, [selectedWalletId, wallets])
 
-  const chains = useMemo(() => buildChainData(wallets, currentWalletId), [wallets, currentWalletId])
+  const chains = useMemo(
+    () => buildChainData(wallets, currentWalletId, chainNameMap),
+    [chainNameMap, currentWalletId, wallets]
+  )
 
   // 当前钱包可用的链列表
   const availableChains = useMemo(() => {
@@ -371,7 +362,7 @@ export function AddressAuthPage() {
             {type === 'main' && tAuthorize('address.scope.main')}
             {type === 'network' &&
               tAuthorize('address.scope.network', {
-                chainName: CHAIN_NAMES[selectedChain ?? ''] ?? (selectedChain ?? ''),
+                chainName: (selectedChain ? chainNameMap[selectedChain] : undefined) ?? (selectedChain ?? ''),
               })}
             {type === 'all' && tAuthorize('address.scope.all')}
           </div>
@@ -392,7 +383,7 @@ export function AddressAuthPage() {
               <WalletCard
                 wallet={currentWallet}
                 chain={selectedChain}
-                chainName={CHAIN_NAMES[selectedChain] ?? selectedChain}
+                chainName={chainNameMap[selectedChain] ?? selectedChain}
                 address={selectedChainAddress}
                 priority="low"
                 onOpenChainSelector={chainIconType ? undefined : () => setChainSelectorOpen(true)}
@@ -502,7 +493,7 @@ export function AddressAuthPage() {
                   >
                     <ChainIcon chain={chain} size="md" />
                     <div className="flex-1 text-left">
-                      <div className="font-medium">{CHAIN_NAMES[chain] ?? chain}</div>
+                      <div className="font-medium">{chainNameMap[chain] ?? chain}</div>
                       <div className="font-mono text-xs text-muted-foreground">
                         {chainAddr?.address ? truncateAddress(chainAddr.address) : '---'}
                       </div>

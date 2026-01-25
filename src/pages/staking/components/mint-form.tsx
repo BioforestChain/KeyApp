@@ -14,6 +14,7 @@ import { stakingService } from '@/services/staking';
 import { Amount } from '@/types/amount';
 import type { ExternalChain, InternalChain, RechargeConfig, MintRequest } from '@/types/staking';
 import { cn } from '@/lib/utils';
+import { useChainNameMap } from '@/stores';
 
 interface MintFormProps {
   onSuccess?: (txId: string) => void;
@@ -23,15 +24,11 @@ interface MintFormProps {
 /** Available source chain options */
 const SOURCE_CHAINS: ExternalChain[] = ['ETH', 'BSC', 'TRON'];
 
-/** Chain display names */
-const CHAIN_NAMES: Record<string, string> = {
+/** External chain display names */
+const EXTERNAL_CHAIN_NAMES: Record<ExternalChain, string> = {
   ETH: 'Ethereum',
   BSC: 'BNB Chain',
   TRON: 'Tron',
-  BFMeta: 'BFMeta',
-  BFChain: 'BFChain',
-  CCChain: 'CCChain',
-  PMChain: 'PMChain',
 };
 
 /** Mock balances for validation */
@@ -71,6 +68,7 @@ function getAvailableTokens(
 /** Mint form component */
 export function MintForm({ onSuccess, className }: MintFormProps) {
   const { t } = useTranslation('staking');
+  const chainNameMap = useChainNameMap();
 
   // Form state
   const [sourceChain, setSourceChain] = useState<ExternalChain>('BSC');
@@ -104,6 +102,16 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
 
   // Available tokens for selected source chain
   const availableTokens = useMemo(() => getAvailableTokens(config, sourceChain), [config, sourceChain]);
+
+  const getChainName = useCallback(
+    (chain: string): string => {
+      const externalName = EXTERNAL_CHAIN_NAMES[chain as ExternalChain];
+      if (externalName) return externalName;
+      const lowerKey = chain.toLowerCase();
+      return chainNameMap[lowerKey] ?? chainNameMap[chain] ?? chain;
+    },
+    [chainNameMap],
+  );
 
   // Set default token when chain changes
   useEffect(() => {
@@ -208,7 +216,7 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
             <div className="bg-muted flex size-6 items-center justify-center rounded-full text-xs font-bold">
               {sourceChain.charAt(0)}
             </div>
-            <span className="font-medium">{CHAIN_NAMES[sourceChain]}</span>
+            <span className="font-medium">{getChainName(sourceChain)}</span>
           </div>
           <ChevronRight className="text-muted-foreground size-4" />
         </button>
@@ -273,7 +281,7 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
             <div className="bg-primary/20 text-primary flex size-6 items-center justify-center rounded-full text-xs font-bold">
               {targetChain.charAt(0) || '?'}
             </div>
-            <span className="font-medium">{CHAIN_NAMES[targetChain] || t('selectToken')}</span>
+            <span className="font-medium">{targetChain ? getChainName(targetChain) : t('selectToken')}</span>
           </div>
           <div className="flex items-center gap-2">
             <TokenIcon symbol={targetAsset || '?'} size="sm" />
@@ -321,7 +329,7 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
                 <div className="bg-muted flex size-8 items-center justify-center rounded-full text-sm font-bold">
                   {chain.charAt(0)}
                 </div>
-                <span className="font-medium">{CHAIN_NAMES[chain]}</span>
+                <span className="font-medium">{getChainName(chain)}</span>
                 {sourceChain === chain && <span className="text-primary ml-auto">✓</span>}
               </button>
             ))}
@@ -352,7 +360,10 @@ export function MintForm({ onSuccess, className }: MintFormProps) {
                   <div className="flex-1 text-left">
                     <div className="font-medium">{token.asset}</div>
                     <div className="text-muted-foreground text-xs">
-                      → {CHAIN_NAMES[token.targetChain]} ({token.targetAsset})
+                      {t('targetChainLabel', {
+                        chain: getChainName(token.targetChain),
+                        asset: token.targetAsset,
+                      })}
                     </div>
                   </div>
                   <div className="text-muted-foreground text-right text-sm">

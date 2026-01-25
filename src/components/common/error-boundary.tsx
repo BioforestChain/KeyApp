@@ -5,6 +5,8 @@
  */
 
 import { Component, type ReactNode, type ErrorInfo } from 'react'
+import i18n from '@/i18n'
+import { captureError } from '@/lib/error-capture'
 
 export interface ErrorBoundaryProps {
   /** 子组件 */
@@ -31,7 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    captureError(error, errorInfo)
     this.props.onError?.(error, errorInfo)
   }
 
@@ -60,13 +62,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </svg>
           </div>
           <p className="text-sm text-muted-foreground mb-3">
-            出现了一些问题
+            {i18n.t('error:boundary.title')}
           </p>
           <button
             onClick={this.handleReset}
             className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            重试
+            {i18n.t('error:boundary.retry')}
           </button>
         </div>
       )

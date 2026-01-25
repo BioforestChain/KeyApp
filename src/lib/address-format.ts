@@ -5,6 +5,7 @@
  */
 
 import type { ChainType } from '@/stores'
+import { chainConfigService } from '@/services/chain-config/service'
 import { isValidBioforestAddress, isBioforestChain, type BioforestChainType } from './crypto'
 
 /** Address format detection result */
@@ -104,6 +105,27 @@ export function detectAddressFormat(address: string): AddressFormatInfo {
  * Check if address is valid for a specific chain
  */
 export function isValidAddressForChain(address: string, chainType: ChainType): boolean {
+  const config = chainConfigService.getConfig(chainType)
+  if (config) {
+    if (config.chainKind === 'bioforest') {
+      return isValidBioforestAddress(address)
+    }
+
+    const info = detectAddressFormat(address)
+    if (!info.isValid || info.chainType === null) return false
+
+    switch (config.chainKind) {
+      case 'evm':
+        return info.chainType === 'ethereum'
+      case 'tron':
+        return info.chainType === 'tron'
+      case 'bitcoin':
+        return info.chainType === 'bitcoin'
+      default:
+        return false
+    }
+  }
+
   const info = detectAddressFormat(address)
   if (!info.isValid) return false
   if (info.chainType === null) return false

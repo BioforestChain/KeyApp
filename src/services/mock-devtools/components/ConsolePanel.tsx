@@ -3,7 +3,8 @@
  * 支持执行表达式，自动注入暂停请求变量
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useTranslation, Trans } from 'react-i18next'
 import { ObjectInspector } from 'react-inspector'
 import {
   IconTerminal2 as Terminal,
@@ -51,6 +52,7 @@ export function ConsolePanel({
 }: { 
   initialCommand?: string | undefined
 } = {}) {
+  const { t } = useTranslation('devtools')
   const [entries, setEntries] = useState<ConsoleEntry[]>([])
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
@@ -106,30 +108,30 @@ export function ConsolePanel({
   }, [pausedRequests])
 
   // 帮助信息
-  const helpInfo = {
-    '命令': {
-      '/help': '显示帮助信息',
-      '/clear': '清空 Console',
-      '/vars': '显示可用变量',
-      '/copy <expr>': '复制表达式结果到剪贴板',
+  const helpInfo = useMemo(() => ({
+    [t('console.help.sections.commands')]: {
+      '/help': t('console.help.commands.help'),
+      '/clear': t('console.help.commands.clear'),
+      '/vars': t('console.help.commands.vars'),
+      '/copy <expr>': t('console.help.commands.copy'),
     },
-    '变量': {
-      '$paused': '暂停请求数组',
-      '$0, $1...': '按索引访问暂停请求',
-      '$_': '最新的暂停请求',
-      '$p{id}': '按 ID 访问，如 $p1, $p2',
+    [t('console.help.sections.variables')]: {
+      '$paused': t('console.help.variables.paused'),
+      '$0, $1...': t('console.help.variables.indexed'),
+      '$_': t('console.help.variables.latest'),
+      '$p{id}': t('console.help.variables.byId'),
     },
-    '方法': {
-      '.resume(modified?)': '继续执行，可传入修改后的值',
-      '.abort(error?)': '中止请求',
+    [t('console.help.sections.methods')]: {
+      '.resume(modified?)': t('console.help.methods.resume'),
+      '.abort(error?)': t('console.help.methods.abort'),
     },
-    '示例': {
-      '$_': '查看最新暂停请求',
-      '$p1.$input': '查看请求的输入',
-      '/copy $p1.$input': '复制输入到剪贴板',
-      '$p1.resume()': '继续执行',
+    [t('console.help.sections.examples')]: {
+      '$_': t('console.help.examples.latest'),
+      '$p1.$input': t('console.help.examples.input'),
+      '/copy $p1.$input': t('console.help.examples.copy'),
+      '$p1.resume()': t('console.help.examples.resume'),
     },
-  }
+  }), [t])
 
   // 执行代码
   const executeCode = useCallback((code: string, addToHistory = true) => {
@@ -162,7 +164,10 @@ export function ConsolePanel({
         setEntries(prev => [...prev, {
           id: ++entryIdRef.current,
           type: 'info',
-          content: { '可用变量': Object.keys(context), '暂停数量': pausedRequests.length },
+          content: {
+            [t('console.vars.available')]: Object.keys(context),
+            [t('console.vars.pausedCount')]: pausedRequests.length,
+          },
           timestamp: new Date(),
         }])
         setInput('')
@@ -176,7 +181,7 @@ export function ConsolePanel({
           setEntries(prev => [...prev, {
             id: ++entryIdRef.current,
             type: 'error',
-            content: '用法: /copy <expr>，例如: /copy $p1.$input',
+            content: t('console.copy.usage'),
             timestamp: new Date(),
           }])
           setInput('')
@@ -201,14 +206,14 @@ export function ConsolePanel({
             setEntries(prev => [...prev, {
               id: ++entryIdRef.current,
               type: 'info',
-              content: `已复制到剪贴板 (${text.length} 字符)`,
+              content: t('console.copy.success', { count: text.length }),
               timestamp: new Date(),
             }])
           }).catch((err) => {
             setEntries(prev => [...prev, {
               id: ++entryIdRef.current,
               type: 'error',
-              content: `复制失败: ${err.message}`,
+              content: t('console.copy.failure', { message: err.message }),
               timestamp: new Date(),
             }])
           })
@@ -216,7 +221,9 @@ export function ConsolePanel({
           setEntries(prev => [...prev, {
             id: ++entryIdRef.current,
             type: 'error',
-            content: `表达式错误: ${error instanceof Error ? error.message : String(error)}`,
+            content: t('console.copy.expressionError', {
+              message: error instanceof Error ? error.message : String(error),
+            }),
             timestamp: new Date(),
           }])
         }
@@ -228,7 +235,7 @@ export function ConsolePanel({
       setEntries(prev => [...prev, {
         id: ++entryIdRef.current,
         type: 'error',
-        content: `未知命令: ${trimmedCode}。输入 /help 查看帮助。`,
+        content: t('console.unknownCommand', { command: trimmedCode }),
         timestamp: new Date(),
       }])
       setInput('')
@@ -277,7 +284,7 @@ export function ConsolePanel({
     }
 
     setInput('')
-  }, [buildContext, pausedRequests.length])
+  }, [buildContext, pausedRequests.length, helpInfo, t])
 
   // 处理外部传入的命令
   useEffect(() => {
@@ -326,16 +333,16 @@ export function ConsolePanel({
       {/* 工具栏 */}
       <div className="flex items-center gap-2 border-b p-2 dark:border-gray-700">
         <Terminal className="size-4 text-gray-400" />
-        <span className="flex-1 text-xs font-medium text-gray-500">Console</span>
+        <span className="flex-1 text-xs font-medium text-gray-500">{t('console.title')}</span>
         {pausedRequests.length > 0 && (
           <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] text-orange-600 dark:bg-orange-900/30">
-            {pausedRequests.length} paused
+            {t('console.pausedCount', { count: pausedRequests.length })}
           </span>
         )}
         <button
           onClick={clearConsole}
           className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
-          title="清空 Console (/clear)"
+          title={t('console.clearTitle')}
         >
           <Trash className="size-3.5" />
         </button>
@@ -345,9 +352,19 @@ export function ConsolePanel({
       <div ref={outputRef} className="flex-1 overflow-auto p-2 font-mono text-xs">
         {entries.length === 0 ? (
           <div className="text-gray-400">
-            <p>Console 面板 - 输入 <code className="text-blue-500">/help</code> 查看帮助</p>
+            <p>
+              {t('console.empty.titlePrefix')}{' '}
+              <code className="text-blue-500">/help</code>{' '}
+              {t('console.empty.titleSuffix')}
+            </p>
             <p className="mt-1 text-[10px]">
-              变量: <code className="text-blue-500">$paused</code>, <code className="text-blue-500">$0</code>, <code className="text-blue-500">$_</code>, <code className="text-blue-500">$p{'{id}'}</code>
+              <Trans
+                i18nKey="console.empty.vars"
+                ns="devtools"
+                components={{
+                  code: <code className="text-blue-500" />
+                }}
+              />
             </p>
           </div>
         ) : (
@@ -388,7 +405,7 @@ export function ConsolePanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="输入表达式... (↑↓ 历史)"
+          placeholder={t('console.inputPlaceholder')}
           className="flex-1 bg-transparent font-mono text-sm outline-none placeholder:text-gray-400"
           list="console-history"
           autoComplete="on"
@@ -405,15 +422,15 @@ export function ConsolePanel({
           <option value="$_" />
           <option value="$paused" />
           {/* 历史记录（倒序，最新的在前） */}
-          {[...history].toReversed().map((cmd, i) => (
-            <option key={i} value={cmd} />
+          {[...history].toReversed().map((cmd) => (
+            <option key={cmd} value={cmd} />
           ))}
         </datalist>
         <button
           onClick={() => executeCode(input)}
           disabled={!input.trim()}
           className="rounded bg-blue-500 p-1 text-white disabled:opacity-50 hover:bg-blue-600"
-          title="执行 (Enter)"
+          title={t('console.runTitle')}
         >
           <Play className="size-3.5" />
         </button>

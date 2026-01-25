@@ -124,24 +124,10 @@ export async function submitWeb3Transfer({
 
     // Handle specific error cases
     if (errorMessage.includes('insufficient') || errorMessage.includes('balance')) {
-      return { status: 'error', message: t('error:transaction.insufficientBalance') };
+      return { status: 'error', message: t('error:insufficientFunds') };
     }
 
     if (errorMessage.includes('fee') || errorMessage.includes('gas')) {
-      return { status: 'error', message: t('error:transaction.insufficientFee') };
-    }
-
-    if (errorMessage.includes('not yet implemented') || errorMessage.includes('not supported')) {
-      return { status: 'error', message: t('error:transaction.featureNotImplemented') };
-    }
-
-    return {
-      status: 'error',
-      message: errorMessage || t('error:transaction.transactionFailed'),
-    };
-
-    if (errorMessage.includes('fee') || errorMessage.includes('手续费') || errorMessage.includes('gas')) {
-      // i18n-ignore
       return { status: 'error', message: t('error:transaction.insufficientGas') };
     }
 
@@ -151,7 +137,7 @@ export async function submitWeb3Transfer({
 
     return {
       status: 'error',
-      message: errorMessage || t('error:transaction.retryLater'),
+      message: errorMessage || t('error:transaction.failed'),
     };
   }
 }

@@ -49,20 +49,28 @@ async function convertTronAddresses(item: ExternalAssetInfoItem): Promise<Extern
  */
 async function transformSupportResponse(response: RechargeSupportResDto): Promise<RechargeSupportResDto> {
   const recharge = { ...response.recharge }
+  const pending: Array<Promise<void>> = []
   
   for (const chainName of Object.keys(recharge)) {
     const assets = recharge[chainName]
     for (const assetType of Object.keys(assets)) {
       const item = assets[assetType]
       if (item.supportChain?.TRON) {
-        item.supportChain = {
-          ...item.supportChain,
-          TRON: await convertTronAddresses(item.supportChain.TRON),
-        }
+        const task = convertTronAddresses(item.supportChain.TRON).then((tronAddresses) => {
+          item.supportChain = {
+            ...item.supportChain,
+            TRON: tronAddresses,
+          }
+        })
+        pending.push(task)
       }
     }
   }
-  
+
+  if (pending.length > 0) {
+    await Promise.all(pending)
+  }
+
   return { recharge }
 }
 

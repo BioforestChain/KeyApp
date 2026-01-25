@@ -2,7 +2,8 @@
  * 断点面板 - Chrome DevTools 风格的断点调试界面
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   IconPlayerPause as Pause,
   IconPlayerPlay as Play,
@@ -50,6 +51,7 @@ function PausedRequestCard({
   request: PausedRequest
   onOpenConsole?: ((command: string) => void) | undefined
 }) {
+  const { t } = useTranslation('devtools')
   // 从 id 中提取数字，如 "req-5" -> "5"
   const idNum = request.id.match(/\d+/)?.[0] || request.id
   const varName = `$p${idNum}`
@@ -67,12 +69,12 @@ function PausedRequestCard({
       </div>
 
       <div className="mt-1.5 flex items-center gap-1 text-[10px] text-gray-500">
-        <span>Console:</span>
+        <span>{t('breakpoints.consoleLabel')}</span>
         <code className="text-blue-500">{varName}</code>
         <button
           onClick={() => onOpenConsole?.(varName)}
           className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/50 dark:hover:bg-blue-900"
-          title="在 Console 中查看"
+          title={t('breakpoints.consoleView')}
         >
           →
         </button>
@@ -84,14 +86,14 @@ function PausedRequestCard({
           className="flex flex-1 items-center justify-center gap-1 rounded bg-green-500 py-1 text-xs text-white hover:bg-green-600"
         >
           <Play className="size-3" />
-          继续
+          {t('breakpoints.resume')}
         </button>
         <button
           onClick={() => abortPausedRequest(request.id, new Error('Aborted by user'))}
           className="flex flex-1 items-center justify-center gap-1 rounded bg-red-500 py-1 text-xs text-white hover:bg-red-600"
         >
           <X className="size-3" />
-          中止
+          {t('breakpoints.abort')}
         </button>
       </div>
     </div>
@@ -108,6 +110,7 @@ function BreakpointCard({
   onUpdate: (bp: BreakpointConfig) => void
   onRemove: () => void
 }) {
+  const { t } = useTranslation('devtools')
   const [expanded, setExpanded] = useState(false)
 
   const updateInput = (updates: Partial<NonNullable<BreakpointConfig['input']>>) => {
@@ -156,11 +159,11 @@ function BreakpointCard({
             type="number"
             value={bp.delayMs || ''}
             onChange={(e) => onUpdate({ ...bp, delayMs: Number(e.target.value) || undefined })}
-            placeholder="ms"
+            placeholder={t('breakpoints.ms')}
             className="w-12 rounded border bg-transparent px-1 py-0.5 text-[10px] dark:border-gray-600"
             disabled={!bp.delayMs}
           />
-          ms
+          {t('breakpoints.ms')}
         </label>
         <button
           onClick={onRemove}
@@ -177,8 +180,8 @@ function BreakpointCard({
           <div className="rounded bg-blue-50 p-2 dark:bg-blue-900/20">
             <div className="mb-1.5 flex items-center gap-2 text-[10px] font-medium text-blue-600 dark:text-blue-400">
               <span className="size-2 rounded-full bg-blue-500" />
-              input
-              <span className="text-gray-400">($input 可用)</span>
+              {t('breakpoints.input')}
+              <span className="text-gray-400">{t('breakpoints.inputHint')}</span>
             </div>
             <div className="space-y-1.5">
               {/* 暂停 */}
@@ -189,12 +192,12 @@ function BreakpointCard({
                   onChange={(e) => updateInput({ pause: e.target.checked })}
                   className="size-3"
                 />
-                <span>暂停</span>
+                <span>{t('breakpoints.pause')}</span>
                 <input
                   type="text"
                   value={bp.input?.pauseCondition || ''}
                   onChange={(e) => updateInput({ pauseCondition: e.target.value || undefined })}
-                  placeholder="条件表达式 (可选)"
+                  placeholder={t('breakpoints.pauseConditionPlaceholder')}
                   className="flex-1 rounded border bg-transparent px-1.5 py-0.5 text-[10px] font-mono dark:border-gray-600"
                   disabled={!bp.input?.pause}
                 />
@@ -207,11 +210,11 @@ function BreakpointCard({
                   onChange={(e) => updateInput({ inject: e.target.checked ? '' : undefined })}
                   className="mt-1 size-3"
                 />
-                <span className="mt-0.5">注入</span>
+                <span className="mt-0.5">{t('breakpoints.inject')}</span>
                 <textarea
                   value={bp.input?.inject || ''}
                   onChange={(e) => updateInput({ inject: e.target.value || undefined })}
-                  placeholder="$input.text = 'modified'"
+                  placeholder={t('breakpoints.injectInputPlaceholder')}
                   className="flex-1 resize-none rounded border bg-transparent px-1.5 py-1 font-mono text-[10px] dark:border-gray-600"
                   rows={2}
                   disabled={bp.input?.inject === undefined}
@@ -224,8 +227,8 @@ function BreakpointCard({
           <div className="rounded bg-green-50 p-2 dark:bg-green-900/20">
             <div className="mb-1.5 flex items-center gap-2 text-[10px] font-medium text-green-600 dark:text-green-400">
               <span className="size-2 rounded-full bg-green-500" />
-              output
-              <span className="text-gray-400">($input, $output 可用)</span>
+              {t('breakpoints.output')}
+              <span className="text-gray-400">{t('breakpoints.outputHint')}</span>
             </div>
             <div className="space-y-1.5">
               {/* 暂停 */}
@@ -236,12 +239,12 @@ function BreakpointCard({
                   onChange={(e) => updateOutput({ pause: e.target.checked })}
                   className="size-3"
                 />
-                <span>暂停</span>
+                <span>{t('breakpoints.pause')}</span>
                 <input
                   type="text"
                   value={bp.output?.pauseCondition || ''}
                   onChange={(e) => updateOutput({ pauseCondition: e.target.value || undefined })}
-                  placeholder="条件表达式 (可选)"
+                  placeholder={t('breakpoints.pauseConditionPlaceholder')}
                   className="flex-1 rounded border bg-transparent px-1.5 py-0.5 text-[10px] font-mono dark:border-gray-600"
                   disabled={!bp.output?.pause}
                 />
@@ -254,11 +257,11 @@ function BreakpointCard({
                   onChange={(e) => updateOutput({ inject: e.target.checked ? '' : undefined })}
                   className="mt-1 size-3"
                 />
-                <span className="mt-0.5">注入</span>
+                <span className="mt-0.5">{t('breakpoints.inject')}</span>
                 <textarea
                   value={bp.output?.inject || ''}
                   onChange={(e) => updateOutput({ inject: e.target.value || undefined })}
-                  placeholder="return { success: true }&#10;// 或 throw new Error('test')"
+                  placeholder={t('breakpoints.injectOutputPlaceholder')}
                   className="flex-1 resize-none rounded border bg-transparent px-1.5 py-1 font-mono text-[10px] dark:border-gray-600"
                   rows={2}
                   disabled={bp.output?.inject === undefined}
@@ -274,27 +277,27 @@ function BreakpointCard({
         <div className="flex flex-wrap gap-1 border-t px-2 py-1 dark:border-gray-700">
           {bp.delayMs && (
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] dark:bg-gray-800">
-              delay: {bp.delayMs}ms
+              {t('breakpoints.summary.delay', { ms: bp.delayMs })}
             </span>
           )}
           {bp.input?.pause && (
             <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] dark:bg-blue-900">
-              input:pause
+              {t('breakpoints.summary.inputPause')}
             </span>
           )}
           {bp.input?.inject && (
             <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] dark:bg-blue-900">
-              input:inject
+              {t('breakpoints.summary.inputInject')}
             </span>
           )}
           {bp.output?.pause && (
             <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] dark:bg-green-900">
-              output:pause
+              {t('breakpoints.summary.outputPause')}
             </span>
           )}
           {bp.output?.inject && (
             <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] dark:bg-green-900">
-              output:inject
+              {t('breakpoints.summary.outputInject')}
             </span>
           )}
         </div>
@@ -311,22 +314,26 @@ function AddBreakpointDialog({
   onAdd: (service: string, method: string) => void
   onClose: () => void
 }) {
-  const services = getAvailableServices()
+  const { t } = useTranslation('devtools')
+  const services = useMemo(() => getAvailableServices(), [])
   const [selectedService, setSelectedService] = useState(services[0]?.service || '')
   const [selectedMethod, setSelectedMethod] = useState(services[0]?.methods[0] || '')
 
-  const currentMethods = services.find((s) => s.service === selectedService)?.methods || []
+  const currentMethods = useMemo(
+    () => services.find((s) => s.service === selectedService)?.methods || [],
+    [services, selectedService],
+  )
 
   useEffect(() => {
     if (currentMethods.length > 0 && !currentMethods.includes(selectedMethod)) {
-      setSelectedMethod(currentMethods[0]!)
+      setSelectedMethod(currentMethods[0] ?? '')
     }
-  }, [selectedService, currentMethods, selectedMethod])
+  }, [currentMethods, selectedMethod])
 
   return (
     <div className="rounded-lg border bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium">添加断点</span>
+        <span className="text-sm font-medium">{t('breakpoints.addDialogTitle')}</span>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <X className="size-4" />
         </button>
@@ -361,7 +368,7 @@ function AddBreakpointDialog({
           }}
           className="w-full rounded bg-orange-500 py-1.5 text-sm text-white hover:bg-orange-600"
         >
-          添加
+          {t('breakpoints.add')}
         </button>
       </div>
     </div>
@@ -374,6 +381,7 @@ export function BreakpointPanel({
 }: { 
   onOpenConsole?: ((command: string) => void) | undefined
 } = {}) {
+  const { t } = useTranslation('devtools')
   const [breakpoints, setBreakpoints] = useState<BreakpointConfig[]>(() => getBreakpoints())
   const [pausedReqs, setPausedReqs] = useState<PausedRequest[]>(() => getPausedRequests())
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -401,13 +409,13 @@ export function BreakpointPanel({
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b p-2 dark:border-gray-700">
-        <span className="text-xs font-medium text-gray-500">断点</span>
+        <span className="text-xs font-medium text-gray-500">{t('breakpoints.title')}</span>
         <button
           onClick={() => setShowAddDialog(true)}
           className="flex items-center gap-1 rounded bg-orange-500 px-2 py-0.5 text-xs text-white hover:bg-orange-600"
         >
           <Plus className="size-3" />
-          添加
+          {t('breakpoints.add')}
         </button>
       </div>
 
@@ -424,7 +432,7 @@ export function BreakpointPanel({
           <div className="mb-3">
             <div className="mb-1.5 flex items-center gap-1 text-xs font-medium text-orange-500">
               <Pause className="size-3" />
-              暂停中 ({pausedReqs.length})
+              {t('breakpoints.pausedCount', { count: pausedReqs.length })}
             </div>
             <div className="space-y-2">
               {pausedReqs.map((req) => (
@@ -438,8 +446,8 @@ export function BreakpointPanel({
         {breakpoints.length === 0 && !showAddDialog ? (
           <div className="flex flex-col items-center justify-center py-8 text-gray-400">
             <Pause className="size-8" />
-            <p className="mt-2 text-xs">暂无断点</p>
-            <p className="mt-1 text-[10px]">点击"添加"创建断点</p>
+            <p className="mt-2 text-xs">{t('breakpoints.emptyTitle')}</p>
+            <p className="mt-1 text-[10px]">{t('breakpoints.emptyHint')}</p>
           </div>
         ) : (
           <div className="space-y-2">

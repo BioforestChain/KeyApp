@@ -339,7 +339,7 @@ export async function submitSetTwoStepSecret({
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    if (errorMessage.includes('fee') || errorMessage.includes('手续费')) {
+    if (errorMessage.includes('fee') || errorMessage.includes('\u624b\u7eed\u8d39')) {
       // i18n-ignore
       return { status: 'error', message: t('error:insufficientFunds') };
     }

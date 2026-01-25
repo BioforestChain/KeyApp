@@ -11,7 +11,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from "react"
 import { Effect, Stream, Fiber } from "effect"
 import type { FetchError } from "./http"
-import { isChainEffectDebugEnabled } from "./debug"
+import { formatChainEffectError, logChainEffectDebug } from "./debug"
 import type { DataSource } from "./source"
 
 type UnknownRecord = Record<string, unknown>
@@ -34,7 +34,7 @@ function toStableJson(value: unknown): unknown {
     return value.map(toStableJson)
   }
   const sorted: UnknownRecord = {}
-  for (const key of Object.keys(value).sort()) {
+  for (const key of Object.keys(value).toSorted()) {
     sorted[key] = toStableJson(value[key])
   }
   return sorted
@@ -67,10 +67,8 @@ function summarizeValue(value: unknown): string {
   return String(value)
 }
 
-function debugLog(...args: Array<string | number | boolean>): void {
-  const message = `[chain-effect] ${args.join(" ")}`
-  if (!isChainEffectDebugEnabled(message)) return
-  console.log("[chain-effect]", ...args)
+function debugLog(message: string, ...args: Array<string | number | boolean>): void {
+  logChainEffectDebug(message, ...args)
 }
 
 /** 兼容旧 API 的 StreamInstance 接口 */
@@ -190,7 +188,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
           Effect.catchAllCause((cause) =>
             Effect.sync(() => {
               if (cancelled) return
-              console.error(`[${name}] changes stream failed:`, cause)
+              debugLog(`${name} changes stream failed`, formatChainEffectError(cause))
               onError?.(cause)
             })
           )
@@ -203,7 +201,7 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
           releaseSource(input)
         }
       }).catch((err) => {
-        console.error(`[${name}] getOrCreateSource failed:`, err)
+        debugLog(`${name} getOrCreateSource failed`, formatChainEffectError(err))
         onError?.(err)
       })
 
@@ -239,6 +237,8 @@ export function createStreamInstanceFromSource<TInput, TOutput>(
         setIsFetching(true)
         setError(undefined)
 
+        debugLog(`${name} subscribe`, inputKey)
+        debugLog(`${name} subscribe`, inputKey)
         const unsubscribe = instanceRef.current.subscribe(
           inputRef.current,
           (newData: TOutput) => {
@@ -399,7 +399,7 @@ export function createStreamInstance<TInput, TOutput>(
         }
 
         // 检查缓存
-        const key = getInputKey(inputRef.current)
+        const key = inputKey
         const cached = cache.get(key)
         if (cached && Date.now() - cached.timestamp < ttl) {
           snapshotRef.current = cached.value

@@ -33,8 +33,8 @@ function getDB(): Promise<IDBDatabase> {
   dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
     
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result)
+    request.addEventListener("error", () => reject(request.error))
+    request.addEventListener("success", () => resolve(request.result))
     
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result
@@ -61,8 +61,8 @@ export const getPollMeta = (key: string): Effect.Effect<PollMeta | null> =>
         const store = tx.objectStore(STORE_NAME)
         const request = store.get(key)
         
-        request.onerror = () => reject(request.error)
-        request.onsuccess = () => resolve(request.result ?? null)
+        request.addEventListener("error", () => reject(request.error))
+        request.addEventListener("success", () => resolve(request.result ?? null))
       })
     },
     catch: (error) => new Error(`Failed to get poll meta: ${error}`),
@@ -82,8 +82,8 @@ export const setPollMeta = (meta: PollMeta): Effect.Effect<void> =>
         const store = tx.objectStore(STORE_NAME)
         const request = store.put(meta)
         
-        request.onerror = () => reject(request.error)
-        request.onsuccess = () => resolve()
+        request.addEventListener("error", () => reject(request.error))
+        request.addEventListener("success", () => resolve())
       })
     },
     catch: (error) => new Error(`Failed to set poll meta: ${error}`),
@@ -103,8 +103,8 @@ export const deletePollMeta = (key: string): Effect.Effect<void> =>
         const store = tx.objectStore(STORE_NAME)
         const request = store.delete(key)
         
-        request.onerror = () => reject(request.error)
-        request.onsuccess = () => resolve()
+        request.addEventListener("error", () => reject(request.error))
+        request.addEventListener("success", () => resolve())
       })
     },
     catch: (error) => new Error(`Failed to delete poll meta: ${error}`),

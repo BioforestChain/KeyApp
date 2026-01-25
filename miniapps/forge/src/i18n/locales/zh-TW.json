@@ -16,9 +16,11 @@
     "pay": "支付",
     "receive": "獲得",
     "ratio": "兌換比例",
+    "ratioValue": "1:1",
     "depositAddress": "充值地址",
     "network": "網絡",
     "preview": "預覽交易",
+    "start": "開始鍛造",
     "confirm": "確認充值",
     "continue": "繼續",
     "amountHint": "數量單位：{{symbol}}",
@@ -31,7 +33,9 @@
     "connect": "連接錢包",
     "from": "從",
     "to": "到",
+    "optionLabel": "{{asset}} → {{chain}}",
     "limits": "限額",
+    "limitsRange": "限額：{{min}} - {{max}}",
     "fee": "手續費",
     "receivable": "預計到賬",
     "addressPlaceholder": "輸入外鏈地址",
@@ -64,7 +68,8 @@
   },
   "success": {
     "title": "完成",
-    "orderId": "訂單"
+    "orderId": "訂單",
+    "orderIdLabel": "訂單：{{id}}"
   },
   "error": {
     "sdkNotInit": "Bio SDK 未初始化",
@@ -74,10 +79,15 @@
   },
   "picker": {
     "title": "選擇幣種",
-    "selected": "已選"
+    "selected": "已選",
+    "close": "關閉",
+    "optionAssets": "{{from}} → {{to}}",
+    "optionChains": "{{from}} → {{to}}"
   },
   "common": {
-    "back": "返回"
+    "back": "返回",
+    "arrow": "→",
+    "chainLabel": "{{label}}（{{chain}}）"
   },
   "chain": {
     "ETH": "Ethereum",

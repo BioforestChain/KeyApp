@@ -6,6 +6,7 @@
 import { Store } from '@tanstack/react-store';
 import { type MyAppRecord } from '@/services/ecosystem/types';
 import { loadMyApps, normalizeAppId, saveMyApps } from '@/services/ecosystem/my-apps';
+import i18n from '@/i18n';
 
 /** 权限记录 */
 export interface PermissionRecord {
@@ -63,16 +64,18 @@ export interface EcosystemState {
 }
 
 const STORAGE_KEY = 'ecosystem_store';
+const getDefaultSourceName = () => i18n.t('ecosystem:sources.defaultName');
 
 function arraysEqual<T>(a: T[], b: T[]): boolean {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
 function getDefaultSources(): SourceRecord[] {
+  const defaultName = getDefaultSourceName();
   return [
     {
       url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
-      name: 'Bio 官方生态', // i18n-ignore: config data
+      name: defaultName,
       lastUpdated: new Date().toISOString(),
       enabled: true,
       status: 'idle' as const,
@@ -115,7 +118,7 @@ function normalizeSources(input: unknown): SourceRecord[] {
 
       return {
         url: record.url,
-        name: typeof record.name === 'string' && record.name.length > 0 ? record.name : 'Bio 官方生态',
+        name: typeof record.name === 'string' && record.name.length > 0 ? record.name : getDefaultSourceName(),
         lastUpdated: typeof record.lastUpdated === 'string' && record.lastUpdated.length > 0 ? record.lastUpdated : now,
         enabled: typeof record.enabled === 'boolean' ? record.enabled : true,
         status: record.status ?? 'idle',

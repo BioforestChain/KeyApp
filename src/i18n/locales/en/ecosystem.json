@@ -8,7 +8,8 @@
     "title": "Trusted Sources",
     "add": "Add Subscription",
     "remove": "Remove",
-    "empty": "No subscription sources"
+    "empty": "No subscription sources",
+    "defaultName": "Bio Official Ecosystem"
   },
   "permissions": {
     "title": "Permission Request",
@@ -120,6 +121,7 @@
     "unknownDeveloper": "Unknown Developer",
     "preview": "Preview",
     "supportedChains": "Supported Blockchains",
+    "beta": "Beta",
     "privacy": "App Privacy",
     "privacyHint": "The developer indicates this app may request the following permissions",
     "tags": "Tags",
@@ -141,6 +143,7 @@
       "social": "Social",
       "exchange": "Exchange",
       "other": "Other"
-    }
+    },
+    "tagLabel": "#{{tag}}"
   }
 }

@@ -7,6 +7,7 @@
 import { Effect, Schedule, Duration, Option } from 'effect';
 import { Schema } from 'effect';
 import { getFromCache, putToCache, deleteFromCache } from './http-cache';
+import { formatChainEffectError, logChainEffectDebug } from './debug';
 
 // ==================== Error Types ====================
 
@@ -261,7 +262,7 @@ function toStableJson(value: unknown): unknown {
     return value.map(toStableJson);
   }
   const sorted: UnknownRecord = {};
-  for (const key of Object.keys(value).sort()) {
+  for (const key of Object.keys(value).toSorted()) {
     sorted[key] = toStableJson(value[key]);
   }
   return sorted;
@@ -296,7 +297,7 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
   return Effect.promise(async () => {
     const pending = pendingRequests.get(cacheKey);
     if (pending) {
-      console.log(`[httpFetchCached] PENDING: ${options.url}`);
+      logChainEffectDebug('httpFetchCached pending', options.url);
       return pending as Promise<T>;
     }
 
@@ -305,7 +306,11 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
       try {
         return await canCache(result);
       } catch (error) {
-        console.error(`[httpFetchCached] CAN-CACHE ERROR: ${options.url}`, error);
+        logChainEffectDebug(
+          'httpFetchCached can-cache error',
+          options.url,
+          formatChainEffectError(error),
+        );
         return false;
       }
     };
@@ -321,10 +326,10 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
       if (cacheStrategy === 'cache-first') {
         // Cache-First: 有缓存就返回
         if (Option.isSome(cached) && cachedUsable && cachedValue !== null) {
-          console.log(`[httpFetchCached] CACHE-FIRST HIT: ${options.url}`);
+          logChainEffectDebug('httpFetchCached cache-first hit', options.url);
           return cachedValue;
         }
-        console.log(`[httpFetchCached] CACHE-FIRST MISS: ${options.url}`);
+        logChainEffectDebug('httpFetchCached cache-first miss', options.url);
         try {
           const result = await Effect.runPromise(httpFetch(fetchOptions));
           if (await shouldCache(result)) {
@@ -332,7 +337,11 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
           }
           return result;
         } catch (error) {
-          console.error(`[httpFetchCached] CACHE-FIRST FETCH ERROR: ${options.url}`, error);
+          logChainEffectDebug(
+            'httpFetchCached cache-first fetch error',
+            options.url,
+            formatChainEffectError(error),
+          );
           throw error;
         }
       }
@@ -340,16 +349,20 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
       if (cacheStrategy === 'network-first') {
         // Network-First: 尝试 fetch，失败用缓存
         try {
-          console.log(`[httpFetchCached] NETWORK-FIRST FETCH: ${options.url}`);
+          logChainEffectDebug('httpFetchCached network-first fetch', options.url);
           const result = await Effect.runPromise(httpFetch(fetchOptions));
           if (await shouldCache(result)) {
             await Effect.runPromise(putToCache(options.url, options.body, result));
           }
           return result;
         } catch (error) {
-          console.error(`[httpFetchCached] NETWORK-FIRST FETCH ERROR: ${options.url}`, error);
+          logChainEffectDebug(
+            'httpFetchCached network-first fetch error',
+            options.url,
+            formatChainEffectError(error),
+          );
           if (Option.isSome(cached) && cachedUsable && cachedValue !== null) {
-            console.log(`[httpFetchCached] NETWORK-FIRST FALLBACK: ${options.url}`);
+            logChainEffectDebug('httpFetchCached network-first fallback', options.url);
             return cachedValue;
           }
           throw error;
@@ -360,12 +373,22 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
       if (Option.isSome(cached) && cachedUsable) {
         const age = Date.now() - cached.value.timestamp;
         if (age < cacheTtl) {
-          console.log(`[httpFetchCached] TTL HIT: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
+          logChainEffectDebug(
+            'httpFetchCached ttl hit',
+            options.url,
+            `age=${age}ms`,
+            `ttl=${cacheTtl}ms`,
+          );
           return cachedValue as T;
         }
-        console.log(`[httpFetchCached] TTL EXPIRED: ${options.url} (age: ${age}ms, ttl: ${cacheTtl}ms)`);
+        logChainEffectDebug(
+          'httpFetchCached ttl expired',
+          options.url,
+          `age=${age}ms`,
+          `ttl=${cacheTtl}ms`,
+        );
       } else {
-        console.log(`[httpFetchCached] TTL MISS: ${options.url}`);
+        logChainEffectDebug('httpFetchCached ttl miss', options.url);
       }
 
       try {
@@ -375,7 +398,11 @@ export function httpFetchCached<T>(options: CachedFetchOptions<T>): Effect.Effec
         }
         return result;
       } catch (error) {
-        console.error(`[httpFetchCached] TTL FETCH ERROR: ${options.url}`, error);
+        logChainEffectDebug(
+          'httpFetchCached ttl fetch error',
+          options.url,
+          formatChainEffectError(error),
+        );
         throw error;
       }
     })();

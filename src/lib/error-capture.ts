@@ -116,6 +116,15 @@ export function clearCapturedErrors(): void {
     sessionStorage.removeItem(STORAGE_KEY)
 }
 
+export function captureError(error: Error, errorInfo?: { componentStack?: string }): void {
+    saveError({
+        timestamp: formatTimestamp(),
+        type: 'error',
+        message: error.message,
+        stack: [error.stack, errorInfo?.componentStack].filter(Boolean).join('\n'),
+    })
+}
+
 export function printCapturedErrors(): void {
     const errors = getErrors()
     console.log(`[ErrorCapture] ${errors.length} captured errors:`)

@@ -47,6 +47,9 @@ export {
   useChainConfigLoading,
   useChainConfigError,
   useChainConfigMigrationRequired,
+  useChainNameMap,
+  useChainDisplayName,
+  getChainDisplayName,
 } from './chain-config'
 export type { ChainConfigState } from './chain-config'
 

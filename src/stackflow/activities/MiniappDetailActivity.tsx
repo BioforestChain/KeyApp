@@ -227,7 +227,7 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
               )}
               {app.beta && (
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                  Beta
+                  {t('detail.beta')}
                 </span>
               )}
               <span>v{app.version}</span>
@@ -245,7 +245,7 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
                 >
                   {app.screenshots.map((url, i) => (
                     <div
-                      key={i}
+                      key={url}
                       className="bg-muted aspect-[9/19.5] w-[220px] shrink-0 snap-center overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5"
                     >
                       <img
@@ -254,7 +254,10 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
                         className="h-full w-full object-cover"
                         loading="lazy"
                         onError={(e) => {
-                          e.currentTarget.parentElement!.style.display = 'none';
+                          const container = e.currentTarget.parentElement;
+                          if (container) {
+                            container.style.display = 'none';
+                          }
                         }}
                       />
                     </div>
@@ -299,7 +302,7 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
               <p className="text-muted-foreground mb-4 text-xs">{t('detail.privacyHint')}</p>
               <div className="bg-muted/50 rounded-2xl px-4">
                 {app.permissions.map((perm, i) => (
-                  <PrivacyItem key={perm} permission={perm} isLast={i === app.permissions!.length - 1} />
+                  <PrivacyItem key={perm} permission={perm} isLast={i === app.permissions.length - 1} />
                 ))}
               </div>
             </div>
@@ -312,7 +315,7 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
               <div className="flex flex-wrap gap-2">
                 {app.tags.map((tag) => (
                   <span key={tag} className="bg-primary/10 text-primary rounded-full px-3 py-1.5 text-sm font-medium">
-                    #{tag}
+                    {t('detail.tagLabel', { tag })}
                   </span>
                 ))}
               </div>

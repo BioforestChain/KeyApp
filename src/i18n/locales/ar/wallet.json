@@ -5,7 +5,8 @@
   "defaultName": "محفظتي",
   "randomName": "اسم عشوائي",
   "carousel": {
-    "walletCount": "{{count}} محافظ"
+    "walletCount": "{{count}} محافظ",
+    "walletCount_one": "محفظة واحدة"
   },
   "menu": {
     "addressBalanceQuery": "استعلام عن رصيد العنوان",
@@ -199,5 +200,8 @@
   "walletsUnderIdentity": "محافظ الهوية",
   "willSynchronizeImportIntoThe_{chainname}ChainWithTheSamePrivateKey": "Will synchronize import into the chain with the same private key",
   "{assetType}Details": "Details",
-  "{asset}TotalCirculation": "total circulation"
+  "{asset}TotalCirculation": "total circulation",
+  "miniCard": {
+    "label": "Wallet card"
+  }
 }

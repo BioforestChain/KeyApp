@@ -228,7 +228,6 @@ export function useForge() {
 
       setState({ step: 'success', orderId: res.orderId, error: null })
     } catch (err) {
-      console.error('[forge] submit failed', err)
       setState({
         step: 'error',
         orderId: null,

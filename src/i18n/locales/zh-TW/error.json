@@ -115,5 +115,14 @@
     "mustBeArray": "signaturedata 必須是 JSON 數組",
     "emptyArray": "signaturedata 不能為空數組",
     "firstMustBeObject": "signaturedata[0] 必須是對象"
+  },
+  "providerFallback": {
+    "title": "{{feature}} 查詢失敗",
+    "description": "所有已設定的提供方皆失敗，已顯示預設值。",
+    "details": "技術詳情"
+  },
+  "boundary": {
+    "title": "發生了一些問題",
+    "retry": "重試"
   }
 }
