@@ -3,7 +3,7 @@
  */
 
 import type { ChainConfig } from '@/services/chain-config'
-import { chainConfigService } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service';
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'

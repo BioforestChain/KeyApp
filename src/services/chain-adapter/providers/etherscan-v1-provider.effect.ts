@@ -21,7 +21,7 @@ import {
 import type { StreamInstance } from "@biochain/chain-effect"
 import type { ApiProvider, Direction, BalanceOutput, TransactionsOutput, AddressParams, TxHistoryParams, Transaction } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
 import { EvmIdentityMixin } from "../evm/identity-mixin"
 import { EvmTransactionMixin } from "../evm/transaction-mixin"

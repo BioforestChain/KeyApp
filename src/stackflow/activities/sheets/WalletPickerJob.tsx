@@ -15,7 +15,7 @@ import { WalletList, type WalletListItem } from '@/components/wallet/wallet-list
 import { MiniappSheetHeader } from '@/components/ecosystem';
 import { getKeyAppChainId, normalizeChainId } from '@biochain/bio-sdk';
 import { useChainConfigs } from '@/stores/chain-config';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service'
 
 type WalletPickerJobParams = {
   /** 限定链类型 (支持: KeyApp 内部 ID, EVM hex chainId, API 名称如 BSC) */

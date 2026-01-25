@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service'
 
 export type ChainType = string;
 

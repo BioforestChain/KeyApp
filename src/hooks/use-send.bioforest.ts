@@ -1,6 +1,6 @@
 import type { AssetInfo } from '@/types/asset';
 import type { ChainConfig } from '@/services/chain-config';
-import { chainConfigService } from '@/services/chain-config';
+import { chainConfigService } from '@/services/chain-config/service';
 import { Amount } from '@/types/amount';
 import { walletStorageService, WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage';
 import { getChainProvider } from '@/services/chain-adapter/providers';

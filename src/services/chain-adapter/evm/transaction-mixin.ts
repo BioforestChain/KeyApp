@@ -8,7 +8,7 @@
  * - 其他类型抛出不支持错误
  */
 
-import { chainConfigService } from '@/services/chain-config/service'
+import { chainConfigService } from '@/services/chain-config/service';
 import type {
     ITransactionService,
     TransactionIntent,

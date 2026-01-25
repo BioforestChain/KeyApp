@@ -1,4 +1,4 @@
-import { chainConfigService } from '@/services/chain-config'
+import { chainConfigService } from '@/services/chain-config/service';
 import { Amount } from '@/types/amount'
 import type {
     ITransactionService,

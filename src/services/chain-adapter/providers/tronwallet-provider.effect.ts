@@ -39,7 +39,7 @@ import type {
   TokenBalance,
 } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
-import { chainConfigService } from "@/services/chain-config"
+import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
 import { ChainServiceError, ChainErrorCodes } from "../types"
 import { TronIdentityMixin } from "../tron/identity-mixin"

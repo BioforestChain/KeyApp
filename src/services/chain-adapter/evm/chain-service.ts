@@ -4,7 +4,7 @@
  * Provides chain info and gas price queries via public JSON-RPC endpoints.
  */
 
-import { chainConfigService } from '@/services/chain-config/service'
+import { chainConfigService } from '@/services/chain-config/service';
 import type { IChainService, ChainInfo, GasPrice, HealthStatus } from '../types'
 import { Amount } from '@/types/amount'
 import { ChainServiceError, ChainErrorCodes } from '../types'
