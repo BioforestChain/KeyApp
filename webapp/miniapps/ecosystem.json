@@ -1,7 +1,7 @@
 {
   "name": "Bio 官方生态",
   "version": "1.0.0",
-  "updated": "2026-01-21",
+  "updated": "2026-01-26",
   "icon": "../logos/logo-256.webp",
   "apps": [
     {
@@ -65,10 +65,11 @@
         "资产管理"
       ],
       "permissions": [
-        "bio_requestAccounts",
         "bio_selectAccount",
         "bio_pickWallet",
-        "bio_signMessage"
+        "bio_getBalance",
+        "bio_createTransaction",
+        "bio_signTransaction"
       ],
       "chains": [
         "bfmeta",
@@ -130,7 +131,7 @@
       "themeColorFrom": "#0e7490",
       "splashScreen": true,
       "dirName": "rwa-hub",
-      "_zipEtag": "\"6970e889-4a10d7\"",
+      "_zipEtag": "\"6971476e-4a072a\"",
       "url": "./rwa-hub/",
       "runtime": "wujie",
       "wujieConfig": {

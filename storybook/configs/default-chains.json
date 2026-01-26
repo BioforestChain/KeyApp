@@ -15,7 +15,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2", "config": { "genesisBlock": "./genesis/bfmetav2.json" } }],
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2",
+          "config": {
+            "genesisBlock": "./genesis/bfmetav2.json"
+          }
+        }
+      ],
       "explorer": {
         "url": "https://tracker.bf-meta.org",
         "queryTx": "https://tracker.bf-meta.org/#/info/event-details/:signature",
@@ -37,7 +45,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfm", "config": { "genesisBlock": "./genesis/bfmeta.json" } }],
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/bfm",
+          "config": {
+            "genesisBlock": "./genesis/bfmeta.json"
+          }
+        }
+      ],
       "explorer": {
         "url": "https://tracker.bfmeta.org",
         "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
@@ -59,7 +75,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain", "config": { "genesisBlock": "./genesis/ccchain.json" } }]
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain",
+          "config": {
+            "genesisBlock": "./genesis/ccchain.json"
+          }
+        }
+      ]
     },
     {
       "id": "pmchain",
@@ -75,7 +99,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain", "config": { "genesisBlock": "./genesis/pmchain.json" } }]
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain",
+          "config": {
+            "genesisBlock": "./genesis/pmchain.json"
+          }
+        }
+      ]
     },
     {
       "id": "bfchainv2",
@@ -91,7 +123,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2", "config": { "genesisBlock": "./genesis/bfchainv2.json" } }]
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2",
+          "config": {
+            "genesisBlock": "./genesis/bfchainv2.json"
+          }
+        }
+      ]
     },
     {
       "id": "btgmeta",
@@ -107,7 +147,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta", "config": { "genesisBlock": "./genesis/btgmeta.json" } }]
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta",
+          "config": {
+            "genesisBlock": "./genesis/btgmeta.json"
+          }
+        }
+      ]
     },
     {
       "id": "biwmeta",
@@ -121,7 +169,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/biwmeta", "config": { "genesisBlock": "./genesis/biwmeta.json" } }],
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/biwmeta",
+          "config": {
+            "genesisBlock": "./genesis/biwmeta.json"
+          }
+        }
+      ],
       "explorer": {
         "url": "https://tracker.biw-meta.info",
         "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
@@ -143,7 +199,15 @@
       ],
       "prefix": "b",
       "decimals": 8,
-      "apis": [{ "type": "biowallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta", "config": { "genesisBlock": "./genesis/ethmeta.json" } }]
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta",
+          "config": {
+            "genesisBlock": "./genesis/ethmeta.json"
+          }
+        }
+      ]
     },
     {
       "id": "ethereum",
@@ -152,21 +216,48 @@
       "name": "Ethereum",
       "symbol": "ETH",
       "icon": "../icons/ethereum/chain.svg",
-      "tokenIconBase": [
-        "../icons/ethereum/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/eth/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/eth/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/$address/logo.png"
       ],
       "decimals": 18,
+      "blockTime": 12,
       "apis": [
-        { "type": "blockscout-v1", "endpoint": "https://eth.blockscout.com/api" },
-        { "type": "ethereum-rpc", "endpoint": "https://ethereum-rpc.publicnode.com" },
+        {
+          "type": "ethwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/eth"
+        },
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 12000,
+            "balanceInterval": 36000,
+            "erc20Interval": 150000
+          }
+        },
         {
           "type": "etherscan-v2",
           "endpoint": "https://api.etherscan.io/v2/api",
-          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY",
+            "evmChainId": 1
+          }
         },
-        { "type": "ethwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/eth" }
+        {
+          "type": "blockscout-v1",
+          "endpoint": "https://eth.blockscout.com/api"
+        },
+        {
+          "type": "ethereum-rpc",
+          "endpoint": "https://ethereum-rpc.publicnode.com"
+        },
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.etherscan.io/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY"
+          }
+        }
       ],
       "explorer": {
         "url": "https://eth.blockscout.com",
@@ -181,20 +272,44 @@
       "name": "BNB Smart Chain",
       "symbol": "BNB",
       "icon": "../icons/binance/chain.svg",
-      "tokenIconBase": [
-        "../icons/binance/tokens/$symbol.svg",
-        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bsc/icon-$SYMBOL.png",
-        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bsc/icon-$SYMBOL.png"
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/$address/logo.png"
       ],
       "decimals": 18,
+      "blockTime": 3,
       "apis": [
-        { "type": "bsc-rpc", "endpoint": "https://bsc-rpc.publicnode.com" },
+        {
+          "type": "bscwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/bsc"
+        },
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 15000,
+            "balanceInterval": 30000,
+            "erc20Interval": 120000
+          }
+        },
+        {
+          "type": "bsc-rpc",
+          "endpoint": "https://bsc-rpc.publicnode.com"
+        },
         {
           "type": "etherscan-v2",
           "endpoint": "https://api.etherscan.io/v2/api",
-          "config": { "apiKeyEnv": "ETHERSCAN_API_KEY" }
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY",
+            "evmChainId": 56
+          }
         },
-        { "type": "bscwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/bsc" }
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.bscscan.com/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY"
+          }
+        }
       ],
       "explorer": {
         "url": "https://bscscan.com",
@@ -215,14 +330,23 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron/icon-$SYMBOL.png"
       ],
       "decimals": 6,
+      "blockTime": 3,
       "apis": [
-        { "type": "tron-rpc", "endpoint": "https://api.trongrid.io" },
+        {
+          "type": "tronwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/tron"
+        },
         {
           "type": "tron-rpc-pro",
           "endpoint": "https://api.trongrid.io",
-          "config": { "apiKeyEnv": "TRONGRID_API_KEY" }
+          "config": {
+            "apiKeyEnv": "TRONGRID_API_KEY"
+          }
         },
-        { "type": "tronwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/tron" }
+        {
+          "type": "tron-rpc",
+          "endpoint": "https://api.trongrid.io"
+        }
       ],
       "explorer": {
         "url": "https://tronscan.org",
@@ -243,9 +367,16 @@
         "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm/icon-$SYMBOL.png"
       ],
       "decimals": 8,
+      "blockTime": 600,
       "apis": [
-        { "type": "mempool-v1", "endpoint": "https://mempool.space/api" },
-        { "type": "btcwallet-v1", "endpoint": "https://walletapi.bfmeta.info/wallet/btc/blockbook" }
+        {
+          "type": "btcwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/btc/blockbook"
+        },
+        {
+          "type": "mempool-v1",
+          "endpoint": "https://mempool.space/api"
+        }
       ],
       "explorer": {
         "url": "https://mempool.space",

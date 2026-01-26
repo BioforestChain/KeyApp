@@ -9,6 +9,7 @@
       "symbol": "SepoliaETH",
       "icon": "../icons/ethereum/chain.svg",
       "decimals": 18,
+      "blockTime": 12,
       "apis": [
         { "type": "ethereum-rpc", "endpoint": "https://rpc.sepolia.org" }
       ],
@@ -26,6 +27,7 @@
       "symbol": "tBNB",
       "icon": "../icons/binance/chain.svg",
       "decimals": 18,
+      "blockTime": 3,
       "apis": [
         { "type": "ethereum-rpc", "endpoint": "https://bsc-testnet-rpc.publicnode.com" }
       ],
@@ -43,6 +45,7 @@
       "symbol": "TRX",
       "icon": "../icons/tron/chain.svg",
       "decimals": 6,
+      "blockTime": 3,
       "apis": [
         { "type": "tron-rpc", "endpoint": "https://nile.trongrid.io" }
       ],
@@ -60,6 +63,7 @@
       "symbol": "sBTC",
       "icon": "../icons/bitcoin/chain.svg",
       "decimals": 8,
+      "blockTime": 600,
       "apis": [
         { "type": "mempool-v1", "endpoint": "https://mempool.space/signet/api" }
       ],
