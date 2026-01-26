@@ -10141,6 +10141,7 @@
         "npm:@bnqkl/wallet-sdk@~0.23.8",
         "npm:@bnqkl/wallet-typings@~0.23.8",
         "npm:@effect/platform@~0.94.2",
+        "npm:@emotion/is-prop-valid@^1.4.0",
         "npm:@fontsource-variable/dm-sans@^5.2.8",
         "npm:@fontsource-variable/figtree@^5.2.10",
         "npm:@fontsource/dm-mono@^5.2.7",

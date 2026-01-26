@@ -8,6 +8,9 @@ declare global {
   /** Dev 模式标识 - 通过 vite.config.ts define 配置 */
   const __DEV_MODE__: boolean
 
+  /** App 版本号 - 通过 vite.config.ts define 配置 */
+  const __APP_VERSION__: string
+
   /** API Keys 映射 - 通过 vite.config.ts / Storybook viteFinal define 配置 */
   const __API_KEYS__: Record<string, string>
 

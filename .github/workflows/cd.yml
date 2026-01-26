@@ -87,6 +87,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
+          VITE_DEV_MODE: ${{ steps.channel.outputs.channel == 'beta' && 'true' || 'false' }}
         run: |
           pnpm install --frozen-lockfile
           
@@ -141,12 +143,161 @@ jobs:
           cp -r docs/.vitepress/dist/* gh-pages/
           touch gh-pages/.nojekyll
 
+          CHANNEL="${{ steps.channel.outputs.channel }}"
+
+          # 准备当前渠道的 DWEB 资源
+          if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+            if [[ "$CHANNEL" == "stable" ]]; then
+              DWEB_DIR="gh-pages/dweb"
+              DWEB_ZIP="bfmpay-dweb.zip"
+              DWEB_PATH="dweb"
+            else
+              DWEB_DIR="gh-pages/dweb-dev"
+              DWEB_ZIP="bfmpay-dweb-beta.zip"
+              DWEB_PATH="dweb-dev"
+            fi
+
+            mkdir -p "$DWEB_DIR"
+            cp -r dists/* "$DWEB_DIR/"
+            if [ -d "public/logos" ]; then
+              mkdir -p "$DWEB_DIR/logos"
+              cp -r public/logos/* "$DWEB_DIR/logos/"
+              if [ -f "public/logos/logo-256.webp" ]; then
+                cp public/logos/logo-256.webp "$DWEB_DIR/logo-256.webp"
+              fi
+            fi
+
+            if [ -f "$DWEB_DIR/metadata.json" ]; then
+              DWEB_DIR="$DWEB_DIR" DWEB_ZIP="$DWEB_ZIP" DWEB_PATH="$DWEB_PATH" SITE_ORIGIN="$SITE_ORIGIN" VITEPRESS_BASE="$VITEPRESS_BASE" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const dwebDir = process.env.DWEB_DIR;
+const zipName = process.env.DWEB_ZIP;
+const dwebPath = process.env.DWEB_PATH || '';
+const siteOrigin = process.env.SITE_ORIGIN || '';
+const basePath = process.env.VITEPRESS_BASE || '/';
+const metadataPath = path.join(dwebDir, 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const normalizedPath = dwebPath.replace(/^\/+/, '').replace(/\/$/, '');
+const baseUrl = siteOrigin ? new URL(basePath, siteOrigin).toString() : '';
+const logoPath = normalizedPath ? `${normalizedPath}/${logoFileName}` : logoFileName;
+const logoUrl = baseUrl ? new URL(logoPath, baseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+const bundleUrl = typeof metadata.bundle_url === 'string' ? metadata.bundle_url : '';
+if (bundleUrl) {
+  const bundleFile = bundleUrl.replace(/^\.\//, '');
+  const bundlePath = path.join(dwebDir, bundleFile);
+  if (fs.existsSync(bundlePath)) {
+    fs.copyFileSync(bundlePath, path.join(dwebDir, zipName));
+  } else {
+    console.warn(`DWEB bundle not found: ${bundlePath}`);
+  }
+} else {
+  console.warn('metadata.json missing bundle_url');
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
+            else
+              echo "metadata.json missing in $DWEB_DIR"
+            fi
+          else
+            echo "No DWEB assets found, skipping gh-pages DWEB publish"
+          fi
+
+          # beta 渠道尝试同步 stable DWEB 资源（从 release）
+          if [[ "$CHANNEL" != "stable" ]]; then
+            STABLE_TAG=$(gh release list --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' -R ${{ github.repository }} || true)
+            if [ -n "$STABLE_TAG" ]; then
+              mkdir -p /tmp/stable-dweb
+              gh release download "$STABLE_TAG" --pattern 'metadata.json' --dir /tmp/stable-dweb -R ${{ github.repository }} || true
+              if [ -f "/tmp/stable-dweb/metadata.json" ]; then
+                BUNDLE_FILE=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('/tmp/stable-dweb/metadata.json','utf8'));console.log((m.bundle_url||'').replace(/^\\.\\//,''));")
+                if [ -n "$BUNDLE_FILE" ]; then
+                  gh release download "$STABLE_TAG" --pattern "$BUNDLE_FILE" --dir /tmp/stable-dweb -R ${{ github.repository }} || true
+                fi
+                mkdir -p gh-pages/dweb
+                cp /tmp/stable-dweb/metadata.json gh-pages/dweb/
+                if [ -n "$BUNDLE_FILE" ] && [ -f "/tmp/stable-dweb/$BUNDLE_FILE" ]; then
+                  cp "/tmp/stable-dweb/$BUNDLE_FILE" gh-pages/dweb/
+                  cp "/tmp/stable-dweb/$BUNDLE_FILE" gh-pages/dweb/bfmpay-dweb.zip
+                fi
+                if [ -d "public/logos" ]; then
+                  mkdir -p gh-pages/dweb/logos
+                  cp -r public/logos/* gh-pages/dweb/logos/
+                  if [ -f "public/logos/logo-256.webp" ]; then
+                    cp public/logos/logo-256.webp gh-pages/dweb/logo-256.webp
+                  fi
+                fi
+                if [ -f "gh-pages/dweb/metadata.json" ]; then
+                  DWEB_PATH="dweb" SITE_ORIGIN="$SITE_ORIGIN" VITEPRESS_BASE="$VITEPRESS_BASE" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const metadataPath = path.join('gh-pages', 'dweb', 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const dwebPath = process.env.DWEB_PATH || '';
+const siteOrigin = process.env.SITE_ORIGIN || '';
+const basePath = process.env.VITEPRESS_BASE || '/';
+const normalizedPath = dwebPath.replace(/^\/+/, '').replace(/\/$/, '');
+const baseUrl = siteOrigin ? new URL(basePath, siteOrigin).toString() : '';
+const logoPath = normalizedPath ? `${normalizedPath}/${logoFileName}` : logoFileName;
+const logoUrl = baseUrl ? new URL(logoPath, baseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
+                fi
+              fi
+            fi
+          fi
+
       - name: Create release artifacts
+        if: steps.channel.outputs.channel == 'stable'
         env:
           CHANNEL: ${{ steps.channel.outputs.channel }}
         run: |
           mkdir -p release
           VERSION="${{ steps.version.outputs.version }}"
+          RELEASE_TAG="v${VERSION}"
+          RELEASE_BASE_URL="https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/"
+          RELEASE_TAG="v${VERSION}"
+          RELEASE_BASE_URL="https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/"
           
           if [[ "$CHANNEL" == "stable" ]]; then
             cd dist-web && zip -r ../release/bfmpay-web.zip . && cd ..
@@ -171,6 +322,50 @@ jobs:
           # Copy metadata.json for dweb://install link
           if [ -f "dists/metadata.json" ]; then
             cp dists/metadata.json release/metadata.json
+          fi
+
+          # Copy dweb bundle + logos for release install assets
+          if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+            cp -r dists/* release/
+          fi
+          if [ -d "public/logos" ]; then
+            mkdir -p release/logos
+            cp -r public/logos/* release/logos/
+            if [ -f "public/logos/logo-256.webp" ]; then
+              cp public/logos/logo-256.webp release/logo-256.webp
+            fi
+          fi
+
+          if [ -f "release/metadata.json" ]; then
+            RELEASE_BASE_URL="$RELEASE_BASE_URL" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const metadataPath = path.join('release', 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const releaseBaseUrl = process.env.RELEASE_BASE_URL || '';
+const logoUrl = releaseBaseUrl ? new URL(logoFileName, releaseBaseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
           fi
 
       # 上传 DWEB 到 SFTP 服务器
@@ -205,6 +400,7 @@ jobs:
       # 直接在 build job 中创建 release，避免跨 job 传递 artifact（self-hosted 下载很慢）
       # 使用重试逻辑处理网络不稳定问题
       - name: Create or Update Release
+        if: steps.channel.outputs.channel == 'stable'
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
@@ -309,12 +505,16 @@ jobs:
 
       # ===== 构建当前渠道的 Web 版本 =====
       - name: Build Web version
+        env:
+          VITE_DEV_MODE: ${{ steps.channel.outputs.channel == 'beta' && 'true' || 'false' }}
         run: |
           SERVICE_IMPL=web pnpm build
           mv dist dist-web
 
       # ===== 构建 DWEB 版本 =====
       - name: Build DWEB version
+        env:
+          VITE_DEV_MODE: ${{ steps.channel.outputs.channel == 'beta' && 'true' || 'false' }}
         run: |
           SERVICE_IMPL=dweb pnpm build
           mv dist dist-dweb
@@ -398,12 +598,17 @@ jobs:
       - name: Build VitePress site
         env:
           VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
         run: |
           echo "Building with VITEPRESS_BASE=$VITEPRESS_BASE"
           pnpm docs:build
 
       # ===== 准备 GitHub Pages =====
       - name: Prepare GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
         run: |
           # VitePress 输出目录
           mkdir -p gh-pages
@@ -412,11 +617,156 @@ jobs:
           # 禁用 Jekyll
           touch gh-pages/.nojekyll
 
+          CHANNEL="${{ steps.channel.outputs.channel }}"
+
+          # 准备当前渠道的 DWEB 资源
+          if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+            if [[ "$CHANNEL" == "stable" ]]; then
+              DWEB_DIR="gh-pages/dweb"
+              DWEB_ZIP="bfmpay-dweb.zip"
+              DWEB_PATH="dweb"
+            else
+              DWEB_DIR="gh-pages/dweb-dev"
+              DWEB_ZIP="bfmpay-dweb-beta.zip"
+              DWEB_PATH="dweb-dev"
+            fi
+
+            mkdir -p "$DWEB_DIR"
+            cp -r dists/* "$DWEB_DIR/"
+            if [ -d "public/logos" ]; then
+              mkdir -p "$DWEB_DIR/logos"
+              cp -r public/logos/* "$DWEB_DIR/logos/"
+              if [ -f "public/logos/logo-256.webp" ]; then
+                cp public/logos/logo-256.webp "$DWEB_DIR/logo-256.webp"
+              fi
+            fi
+
+            if [ -f "$DWEB_DIR/metadata.json" ]; then
+              DWEB_DIR="$DWEB_DIR" DWEB_ZIP="$DWEB_ZIP" DWEB_PATH="$DWEB_PATH" SITE_ORIGIN="$SITE_ORIGIN" VITEPRESS_BASE="$VITEPRESS_BASE" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const dwebDir = process.env.DWEB_DIR;
+const zipName = process.env.DWEB_ZIP;
+const dwebPath = process.env.DWEB_PATH || '';
+const siteOrigin = process.env.SITE_ORIGIN || '';
+const basePath = process.env.VITEPRESS_BASE || '/';
+const metadataPath = path.join(dwebDir, 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const normalizedPath = dwebPath.replace(/^\/+/, '').replace(/\/$/, '');
+const baseUrl = siteOrigin ? new URL(basePath, siteOrigin).toString() : '';
+const logoPath = normalizedPath ? `${normalizedPath}/${logoFileName}` : logoFileName;
+const logoUrl = baseUrl ? new URL(logoPath, baseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+const bundleUrl = typeof metadata.bundle_url === 'string' ? metadata.bundle_url : '';
+if (bundleUrl) {
+  const bundleFile = bundleUrl.replace(/^\.\//, '');
+  const bundlePath = path.join(dwebDir, bundleFile);
+  if (fs.existsSync(bundlePath)) {
+    fs.copyFileSync(bundlePath, path.join(dwebDir, zipName));
+  } else {
+    console.warn(`DWEB bundle not found: ${bundlePath}`);
+  }
+} else {
+  console.warn('metadata.json missing bundle_url');
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
+            else
+              echo "metadata.json missing in $DWEB_DIR"
+            fi
+          else
+            echo "No DWEB assets found, skipping gh-pages DWEB publish"
+          fi
+
+          # beta 渠道尝试同步 stable DWEB 资源（从 release）
+          if [[ "$CHANNEL" != "stable" ]]; then
+            STABLE_TAG=$(gh release list --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' -R ${{ github.repository }} || true)
+            if [ -n "$STABLE_TAG" ]; then
+              mkdir -p /tmp/stable-dweb
+              gh release download "$STABLE_TAG" --pattern 'metadata.json' --dir /tmp/stable-dweb -R ${{ github.repository }} || true
+              if [ -f "/tmp/stable-dweb/metadata.json" ]; then
+                BUNDLE_FILE=$(node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('/tmp/stable-dweb/metadata.json','utf8'));console.log((m.bundle_url||'').replace(/^\\.\\//,''));")
+                if [ -n "$BUNDLE_FILE" ]; then
+                  gh release download "$STABLE_TAG" --pattern "$BUNDLE_FILE" --dir /tmp/stable-dweb -R ${{ github.repository }} || true
+                fi
+                mkdir -p gh-pages/dweb
+                cp /tmp/stable-dweb/metadata.json gh-pages/dweb/
+                if [ -n "$BUNDLE_FILE" ] && [ -f "/tmp/stable-dweb/$BUNDLE_FILE" ]; then
+                  cp "/tmp/stable-dweb/$BUNDLE_FILE" gh-pages/dweb/
+                  cp "/tmp/stable-dweb/$BUNDLE_FILE" gh-pages/dweb/bfmpay-dweb.zip
+                fi
+                if [ -d "public/logos" ]; then
+                  mkdir -p gh-pages/dweb/logos
+                  cp -r public/logos/* gh-pages/dweb/logos/
+                  if [ -f "public/logos/logo-256.webp" ]; then
+                    cp public/logos/logo-256.webp gh-pages/dweb/logo-256.webp
+                  fi
+                fi
+                if [ -f "gh-pages/dweb/metadata.json" ]; then
+                  DWEB_PATH="dweb" SITE_ORIGIN="$SITE_ORIGIN" VITEPRESS_BASE="$VITEPRESS_BASE" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const metadataPath = path.join('gh-pages', 'dweb', 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const dwebPath = process.env.DWEB_PATH || '';
+const siteOrigin = process.env.SITE_ORIGIN || '';
+const basePath = process.env.VITEPRESS_BASE || '/';
+const normalizedPath = dwebPath.replace(/^\/+/, '').replace(/\/$/, '');
+const baseUrl = siteOrigin ? new URL(basePath, siteOrigin).toString() : '';
+const logoPath = normalizedPath ? `${normalizedPath}/${logoFileName}` : logoFileName;
+const logoUrl = baseUrl ? new URL(logoPath, baseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
+                fi
+              fi
+            fi
+          fi
+
           echo "=== GitHub Pages structure ==="
           find gh-pages -maxdepth 2 -type d
 
       # ===== 创建 Release 产物 =====
       - name: Create release artifacts
+        if: steps.channel.outputs.channel == 'stable'
         env:
           CHANNEL: ${{ steps.channel.outputs.channel }}
         run: |
@@ -452,6 +802,50 @@ jobs:
             cp dists/metadata.json release/metadata.json
           fi
 
+          # Copy dweb bundle + logos for release install assets
+          if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
+            cp -r dists/* release/
+          fi
+          if [ -d "public/logos" ]; then
+            mkdir -p release/logos
+            cp -r public/logos/* release/logos/
+            if [ -f "public/logos/logo-256.webp" ]; then
+              cp public/logos/logo-256.webp release/logo-256.webp
+            fi
+          fi
+
+          if [ -f "release/metadata.json" ]; then
+            RELEASE_BASE_URL="$RELEASE_BASE_URL" node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const metadataPath = path.join('release', 'metadata.json');
+const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const logoFileName = 'logo-256.webp';
+const releaseBaseUrl = process.env.RELEASE_BASE_URL || '';
+const logoUrl = releaseBaseUrl ? new URL(logoFileName, releaseBaseUrl).toString() : logoFileName;
+if (metadata.logo) {
+  const lower = String(metadata.logo).toLowerCase();
+  if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+    metadata.logo = logoUrl;
+  }
+} else {
+  metadata.logo = logoUrl;
+}
+if (Array.isArray(metadata.icons)) {
+  metadata.icons = metadata.icons.map((icon) => {
+    if (!icon?.src) return icon;
+    const src = String(icon.src);
+    const lower = src.toLowerCase();
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      return { ...icon, src: logoUrl };
+    }
+    return icon;
+  });
+}
+fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+NODE
+          fi
+
           echo "=== Release artifacts ==="
           ls -la release/
 
@@ -485,6 +879,7 @@ jobs:
           echo "Deployed to gh-pages branch"
 
       - name: Upload release artifacts
+        if: steps.channel.outputs.channel == 'stable'
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ steps.channel.outputs.channel }}-${{ steps.version.outputs.version }}
@@ -493,7 +888,7 @@ jobs:
 
   # ==================== 创建 Release (GitHub-hosted) ====================
   create-release-standard:
-    if: vars.USE_SELF_HOSTED != 'true'
+    if: vars.USE_SELF_HOSTED != 'true' && needs.build-standard.outputs.channel == 'stable'
     needs: build-standard
     runs-on: ubuntu-latest
 
