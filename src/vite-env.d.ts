@@ -11,6 +11,9 @@ declare global {
   /** App 版本号 - 通过 vite.config.ts define 配置 */
   const __APP_VERSION__: string
 
+  /** 默认生态源列表 - 通过 vite.config.ts define 配置 */
+  const __ECOSYSTEM_SOURCES__: Array<{ name: string; url: string; icon?: string }>
+
   /** API Keys 映射 - 通过 vite.config.ts / Storybook viteFinal define 配置 */
   const __API_KEYS__: Record<string, string>
 

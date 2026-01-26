@@ -13,18 +13,46 @@ import { buildCheckPlugin } from './scripts/vite-plugin-build-check';
 
 const remoteMiniappsConfig: RemoteMiniappConfig[] = [
   {
-    metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
-    dirName: 'rwa-hub',
     server: {
+      locale: {
+        metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+        dirName: 'rwa-hub',
+      },
       runtime: 'wujie',
       wujieConfig: { rewriteAbsolutePaths: true },
     },
     build: {
+      remote: {
+        name: 'RWA',
+        sourceUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/source.json',
+      },
       runtime: 'wujie',
       wujieConfig: { rewriteAbsolutePaths: true },
     },
   },
 ];
+
+type EcosystemSourceConfig = { name: string; url: string };
+
+function collectEcosystemSources(configs: RemoteMiniappConfig[]): EcosystemSourceConfig[] {
+  const sources: EcosystemSourceConfig[] = [];
+  const seen = new Set<string>();
+
+  for (const config of configs) {
+    const candidates = [config.server?.remote, config.build?.remote].filter(
+      (item): item is NonNullable<(typeof config.server)['remote']> => Boolean(item),
+    );
+    for (const remote of candidates) {
+      if (!remote?.sourceUrl || seen.has(remote.sourceUrl)) continue;
+      seen.add(remote.sourceUrl);
+      sources.push({ name: remote.name, url: remote.sourceUrl });
+    }
+  }
+
+  return sources;
+}
+
+const ecosystemSources = collectEcosystemSources(remoteMiniappsConfig);
 
 function getPreferredLanIPv4(): string | undefined {
   const ifaces = networkInterfaces();
@@ -177,6 +205,8 @@ export default defineConfig(({ mode }) => {
       __DEV_MODE__: JSON.stringify((env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'),
       // App 版本号（stable=package.json，dev=追加 -MMDDHH，UTC）
       __APP_VERSION__: JSON.stringify(appVersion),
+      // 默认生态源列表（用于订阅源管理展示）
+      __ECOSYSTEM_SOURCES__: JSON.stringify(ecosystemSources),
       // API Keys 对象（用于动态读取环境变量）
       __API_KEYS__: JSON.stringify({
         TRONGRID_API_KEY: tronGridApiKey,

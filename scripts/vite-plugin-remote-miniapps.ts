@@ -20,12 +20,26 @@ import type { WujieRuntimeConfig } from '../src/services/ecosystem/types';
 
 type MiniappRuntime = 'iframe' | 'wujie';
 
+interface MiniappLocaleConfig {
+  metadataUrl: string;
+  dirName: string;
+}
+
+interface MiniappRemoteSourceConfig {
+  name: string;
+  sourceUrl: string;
+}
+
 interface MiniappServerConfig {
+  locale?: MiniappLocaleConfig;
+  remote?: MiniappRemoteSourceConfig;
   runtime?: MiniappRuntime;
   wujieConfig?: WujieRuntimeConfig;
 }
 
 interface MiniappBuildConfig {
+  locale?: MiniappLocaleConfig;
+  remote?: MiniappRemoteSourceConfig;
   runtime?: MiniappRuntime;
   wujieConfig?: WujieRuntimeConfig;
   /**
@@ -39,8 +53,6 @@ interface MiniappBuildConfig {
 }
 
 export interface RemoteMiniappConfig {
-  metadataUrl: string;
-  dirName: string;
   server?: MiniappServerConfig;
   build?: MiniappBuildConfig;
 }
@@ -105,26 +117,49 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
   const servers: RemoteMiniappServer[] = [];
   const downloadFailures: string[] = [];
 
+  const resolveLocale = (config: RemoteMiniappConfig, target: 'server' | 'build'): MiniappLocaleConfig | null => {
+    const section = target === 'build' ? config.build : config.server;
+    if (!section) return null;
+    if (section.locale && section.remote) {
+      throw new Error(`[remote-miniapps] ${target} config can only set one of locale or remote`);
+    }
+    return section.locale ?? null;
+  };
+
+  const getLocaleTargets = (target: 'server' | 'build') =>
+    miniapps
+      .map((config) => {
+        const locale = resolveLocale(config, target);
+        return locale ? { config, locale } : null;
+      })
+      .filter((item): item is { config: RemoteMiniappConfig; locale: MiniappLocaleConfig } => item !== null);
+
   return {
     name: 'vite-plugin-remote-miniapps',
 
     configResolved(config) {
       root = config.root;
       isBuild = config.command === 'build';
+
+      for (const cfg of miniapps) {
+        resolveLocale(cfg, 'server');
+        resolveLocale(cfg, 'build');
+      }
     },
 
     async buildStart() {
-      if (miniapps.length === 0) return;
+      const targets = getLocaleTargets(isBuild ? 'build' : 'server');
+      if (targets.length === 0) return;
 
       const miniappsPath = resolve(root, miniappsDir);
 
-      for (const config of miniapps) {
+      for (const { config, locale } of targets) {
         try {
-          await downloadAndExtract(config, miniappsPath, fetchOptions);
+          await downloadAndExtract(locale, miniappsPath, fetchOptions);
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          console.error(`[remote-miniapps] ❌ Failed to download ${config.dirName}: ${errorMsg}`);
-          downloadFailures.push(config.dirName);
+          console.error(`[remote-miniapps] ❌ Failed to download ${locale.dirName}: ${errorMsg}`);
+          downloadFailures.push(locale.dirName);
         }
       }
 
@@ -143,20 +178,21 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
       const miniappsOutputDir = resolve(outputOptions.dir, 'miniapps');
       const missing: string[] = [];
 
-      for (const config of miniapps) {
-        const srcDir = join(miniappsPath, config.dirName);
-        const destDir = join(miniappsOutputDir, config.dirName);
+      const targets = getLocaleTargets('build');
+      for (const { config, locale } of targets) {
+        const srcDir = join(miniappsPath, locale.dirName);
+        const destDir = join(miniappsOutputDir, locale.dirName);
 
         if (existsSync(srcDir)) {
           mkdirSync(destDir, { recursive: true });
           cpSync(srcDir, destDir, { recursive: true });
-          console.log(`[remote-miniapps] ✅ Copied ${config.dirName} to dist`);
+          console.log(`[remote-miniapps] ✅ Copied ${locale.dirName} to dist`);
 
           if (config.build?.injectBaseTag) {
             const basePath =
               typeof config.build.injectBaseTag === 'string'
                 ? config.build.injectBaseTag
-                : `/miniapps/${config.dirName}/`;
+                : `/miniapps/${locale.dirName}/`;
             rewriteHtmlBase(destDir, basePath);
           }
 
@@ -169,7 +205,7 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
             }
           }
         } else {
-          missing.push(config.dirName);
+          missing.push(locale.dirName);
         }
       }
 
@@ -182,27 +218,28 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
     },
 
     async configureServer(server) {
-      if (miniapps.length === 0) return;
+      const targets = getLocaleTargets('server');
+      if (targets.length === 0) return;
 
       const miniappsPath = resolve(root, miniappsDir);
 
-      for (const config of miniapps) {
+      for (const { locale } of targets) {
         try {
-          await downloadAndExtract(config, miniappsPath, fetchOptions);
+          await downloadAndExtract(locale, miniappsPath, fetchOptions);
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          console.warn(`[remote-miniapps] ⚠️ Failed to download ${config.dirName} (dev mode): ${errorMsg}`);
+          console.warn(`[remote-miniapps] ⚠️ Failed to download ${locale.dirName} (dev mode): ${errorMsg}`);
           continue;
         }
       }
 
       // 启动静态服务器为每个远程 miniapp
-      for (const config of miniapps) {
-        const miniappDir = join(miniappsPath, config.dirName);
+      for (const { config, locale } of targets) {
+        const miniappDir = join(miniappsPath, locale.dirName);
         const manifestPath = join(miniappDir, 'manifest.json');
 
         if (!existsSync(manifestPath)) {
-          console.warn(`[remote-miniapps] ${config.dirName}: manifest.json not found, skipping`);
+          console.warn(`[remote-miniapps] ${locale.dirName}: manifest.json not found, skipping`);
           continue;
         }
 
@@ -214,7 +251,7 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 
         const serverInfo: RemoteMiniappServer = {
           id: manifest.id,
-          dirName: config.dirName,
+          dirName: locale.dirName,
           port,
           server: httpServer,
           baseUrl,
@@ -250,15 +287,15 @@ export function remoteMiniappsPlugin(options: RemoteMiniappsPluginOptions): Plug
 // ==================== Helpers ====================
 
 async function downloadAndExtract(
-  config: RemoteMiniappConfig,
+  locale: MiniappLocaleConfig,
   miniappsPath: string,
   fetchOptions: FetchWithEtagOptions = {},
 ): Promise<void> {
-  const targetDir = join(miniappsPath, config.dirName);
+  const targetDir = join(miniappsPath, locale.dirName);
 
-  console.log(`[remote-miniapps] Syncing ${config.dirName}...`);
+  console.log(`[remote-miniapps] Syncing ${locale.dirName}...`);
 
-  const metadataBuffer = await fetchWithEtag(config.metadataUrl, fetchOptions);
+  const metadataBuffer = await fetchWithEtag(locale.metadataUrl, fetchOptions);
   const metadata = JSON.parse(metadataBuffer.toString('utf-8')) as RemoteMetadata;
 
   const localManifestPath = join(targetDir, 'manifest.json');
@@ -267,17 +304,17 @@ async function downloadAndExtract(
       _zipEtag?: string;
     };
     if (localManifest.version === metadata.version && localManifest._zipEtag) {
-      const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '');
+      const baseUrl = locale.metadataUrl.replace(/\/[^/]+$/, '');
       const zipUrl = metadata.zipUrl.startsWith('.') ? `${baseUrl}/${metadata.zipUrl.slice(2)}` : metadata.zipUrl;
       try {
         const headResponse = await fetch(zipUrl, { method: 'HEAD' });
         const remoteEtag = headResponse.headers.get('etag') || '';
         if (remoteEtag === localManifest._zipEtag) {
-          console.log(`[remote-miniapps] ${config.dirName} is up-to-date (v${metadata.version}, etag match)`);
+          console.log(`[remote-miniapps] ${locale.dirName} is up-to-date (v${metadata.version}, etag match)`);
           return;
         }
         console.log(
-          `[remote-miniapps] ${config.dirName} zip changed (etag: ${localManifest._zipEtag} -> ${remoteEtag})`,
+          `[remote-miniapps] ${locale.dirName} zip changed (etag: ${localManifest._zipEtag} -> ${remoteEtag})`,
         );
       } catch {
         // HEAD request failed, continue with download
@@ -285,7 +322,7 @@ async function downloadAndExtract(
     }
   }
 
-  const baseUrl = config.metadataUrl.replace(/\/[^/]+$/, '');
+  const baseUrl = locale.metadataUrl.replace(/\/[^/]+$/, '');
   const manifestUrl = metadata.manifestUrl.startsWith('.')
     ? `${baseUrl}/${metadata.manifestUrl.slice(2)}`
     : metadata.manifestUrl;
@@ -316,10 +353,10 @@ async function downloadAndExtract(
     }
   }
 
-  const manifestWithDir = { ...manifest, dirName: config.dirName, _zipEtag: zipEtag };
+  const manifestWithDir = { ...manifest, dirName: locale.dirName, _zipEtag: zipEtag };
   writeFileSync(localManifestPath, JSON.stringify(manifestWithDir, null, 2));
 
-  console.log(`[remote-miniapps] ${config.dirName} updated to v${manifest.version} (etag: ${zipEtag})`);
+  console.log(`[remote-miniapps] ${locale.dirName} updated to v${manifest.version} (etag: ${zipEtag})`);
 }
 
 function rewriteHtmlBase(targetDir: string, basePath: string): void {
