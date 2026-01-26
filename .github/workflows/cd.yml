@@ -393,9 +393,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Deploy to GitHub Pages - ${{ github.sha }}"
-          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:gh-pages
-          echo "Deployed to gh-pages branch"
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy to GitHub Pages - ${{ github.sha }}"
+            git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:gh-pages
+            echo "Deployed to gh-pages branch"
+          fi
 
       # 直接在 build job 中创建 release，避免跨 job 传递 artifact（self-hosted 下载很慢）
       # 使用重试逻辑处理网络不稳定问题
@@ -874,9 +878,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Deploy to GitHub Pages - ${{ github.sha }}"
-          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:gh-pages
-          echo "Deployed to gh-pages branch"
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy to GitHub Pages - ${{ github.sha }}"
+            git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:gh-pages
+            echo "Deployed to gh-pages branch"
+          fi
 
       - name: Upload release artifacts
         if: steps.channel.outputs.channel == 'stable'
