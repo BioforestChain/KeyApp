@@ -1,0 +1,1 @@
+import{c as e}from"./createReactComponent-CiK24Q5d.js";const o=[["path",{d:"M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3",key:"svg-0"}]],t=e("outline","shield","Shield",o);export{t as I};
