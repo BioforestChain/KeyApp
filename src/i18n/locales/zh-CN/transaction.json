@@ -10,6 +10,11 @@
     "yesterday": "昨天",
     "daysAgo": "{{days}}天前"
   },
+  "assetSelector": {
+    "selectAsset": "选择资产",
+    "balance": "余额",
+    "noAssets": "暂无资产"
+  },
   "receivePage": {
     "title": "收款",
     "scanQrCode": "扫描二维码向此地址转账",

@@ -4,6 +4,11 @@
   "amountShouldBe_{min}-{max}-{assettype}": "Amount should be -",
   "approve": "Approve",
   "balance_:": "Balance:",
+  "assetSelector": {
+    "selectAsset": "Select asset",
+    "balance": "Balance",
+    "noAssets": "No assets"
+  },
   "bioforestChainFeeToLow": "If the miner fee is too low, it will affect the transaction on-chain.",
   "bioforestChainTransactionTypeAcceptAnyAssetExchange": "Accept Any Asset Exchange",
   "bioforestChainTransactionTypeAcceptAnyAssetGift": "Accept Any Asset Gift",

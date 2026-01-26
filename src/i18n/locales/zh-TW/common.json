@@ -85,9 +85,13 @@
     "useExplorerHint": "此鏈不支援直接查詢交易歷史，請使用瀏覽器查看",
     "viewOnExplorer": "在 {{name}} 瀏覽器中查看"
   },
-  "sign": {
+  "beta": "測試版",
+  "signSymbol": {
     "plus": "+",
     "minus": "-"
+  },
+  "walletLock": {
+    "error": "錢包鎖驗證失敗"
   },
   "addressPlaceholder": "輸入或貼上地址",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "先進的加密技術 &lt;br /&gt; 數字財富更安全",
@@ -510,9 +514,11 @@
       "description": "以太坊虛擬機兼容鏈"
     },
     "bitcoin": {
+      "name": "比特幣",
       "description": "Bitcoin 網絡"
     },
     "tron": {
+      "name": "波場",
       "description": "Tron 網絡"
     },
     "custom": {

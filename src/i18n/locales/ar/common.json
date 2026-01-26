@@ -85,9 +85,13 @@
     "useExplorerHint": "This chain does not support direct history query, please use the explorer",
     "viewOnExplorer": "View on {{name}}"
   },
-  "sign": {
+  "beta": "نسخة تجريبية",
+  "signSymbol": {
     "plus": "+",
     "minus": "-"
+  },
+  "walletLock": {
+    "error": "فشل التحقق من قفل المحفظة"
   },
   "addressPlaceholder": "أدخل أو الصق العنوان",
   "advancedEncryptionTechnologyDigitalWealthIsMoreSecure": "Advanced encryption technology &lt;br /&gt; Digital wealth is more secure",
@@ -510,9 +514,11 @@
       "description": "سلاسل متوافقة مع آلة إيثريوم الافتراضية"
     },
     "bitcoin": {
+      "name": "بيتكوين",
       "description": "شبكة Bitcoin"
     },
     "tron": {
+      "name": "ترون",
       "description": "شبكة Tron"
     },
     "custom": {

@@ -425,9 +425,13 @@
     "openExplorer": "打开 {{name}} 浏览器",
     "viewOnExplorer": "在 {{name}} 浏览器中查看"
   },
-  "sign": {
+  "beta": "测试版",
+  "signSymbol": {
     "plus": "+",
     "minus": "-"
+  },
+  "walletLock": {
+    "error": "钱包锁验证失败"
   },
   "tabs": {
     "assets": "资产",
@@ -510,9 +514,11 @@
       "description": "以太坊虚拟机兼容链"
     },
     "bitcoin": {
+      "name": "比特币",
       "description": "Bitcoin 网络"
     },
     "tron": {
+      "name": "波场",
       "description": "Tron 网络"
     },
     "custom": {

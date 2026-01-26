@@ -19,11 +19,14 @@
     "enterAmount": "Please enter amount",
     "enterValidAmount": "Please enter a valid amount",
     "exceedsBalance": "Amount exceeds balance",
+    "selectAsset": "Please select an asset",
     "enterReceiverAddress": "Please enter recipient address",
-    "invalidAddress": "Invalid address format"
+    "invalidAddress": "Invalid address format",
+    "unsupportedChainType": "Unsupported chain type"
   },
   "transaction": {
     "failed": "Transaction failed, please try again later",
+    "transactionFailed": "Transaction failed, please try again later",
     "burnFailed": "Burn failed, please try again later",
     "chainNotSupported": "This chain does not support full transaction flow",
     "chainNotSupportedWithId": "This chain does not support full transaction flow: {{chainId}}",
@@ -35,10 +38,15 @@
     "issuerAddressNotFound": "Unable to get asset issuer address",
     "issuerAddressNotReady": "Asset issuer address not ready",
     "insufficientGas": "Insufficient gas fee",
+    "invalidAmount": "Invalid amount",
+    "paramsIncomplete": "Transaction parameters incomplete",
     "retryLater": "Transaction failed, please try again later",
     "transferFailed": "Transfer failed",
     "securityPasswordWrong": "Security password incorrect",
     "unknownError": "Unknown error"
+  },
+  "burn": {
+    "bioforestOnly": "Burn is only supported on BioForest"
   },
   "crypto": {
     "keyDerivationFailed": "Key derivation failed",

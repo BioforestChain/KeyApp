@@ -4,6 +4,7 @@
     "next": "التالي",
     "getStarted": "ابدأ الآن",
     "haveWallet": "لدي محفظة",
+    "migrateFromMpay": "الترحيل من MPay",
     "goToSlide": "انتقل إلى الشريحة {{number}}",
     "slides": {
       "transfer": {

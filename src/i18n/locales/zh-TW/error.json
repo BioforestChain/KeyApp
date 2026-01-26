@@ -19,11 +19,14 @@
     "enterAmount": "請輸入金額",
     "enterValidAmount": "請輸入有效金額",
     "exceedsBalance": "銷毀數量不能大於餘額",
+    "selectAsset": "請選擇資產",
     "enterReceiverAddress": "請輸入收款地址",
-    "invalidAddress": "無效的地址格式"
+    "invalidAddress": "無效的地址格式",
+    "unsupportedChainType": "不支援的鏈類型"
   },
   "transaction": {
     "failed": "交易失敗，請稍後重試",
+    "transactionFailed": "交易失敗，請稍後重試",
     "burnFailed": "銷毀失敗，請稍後重試",
     "chainNotSupported": "該鏈不支持完整交易流程",
     "chainNotSupportedWithId": "該鏈不支持完整交易流程: {{chainId}}",
@@ -35,10 +38,15 @@
     "issuerAddressNotFound": "無法獲取資產發行地址",
     "issuerAddressNotReady": "資產發行地址未獲取",
     "insufficientGas": "手續費不足",
+    "invalidAmount": "金額無效",
+    "paramsIncomplete": "交易參數不完整",
     "retryLater": "交易失敗，請稍後重試",
     "transferFailed": "轉帳失敗",
     "securityPasswordWrong": "安全密碼錯誤",
     "unknownError": "未知錯誤"
+  },
+  "burn": {
+    "bioforestOnly": "銷毀僅支援 BioForest 鏈"
   },
   "crypto": {
     "keyDerivationFailed": "密鑰派生失敗",
