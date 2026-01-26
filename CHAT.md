@@ -1625,6 +1625,13 @@ at KeyFetchInstanceImpl.doFetch (core.ts:119:13)
 - /Users/kzf/.factory/specs/2026-01-23-effect-ts-throttle-dedupe.md
 - /Users/kzf/.factory/specs/2026-01-23-effect-subscriptionref-stream-changes.md
 - /Users/kzf/.factory/specs/2026-01-23-eventbus-service.md
+- /Users/kzf/.factory/specs/2026-01-23-effect-ts-1.md
+- /Users/kzf/.factory/specs/2026-01-23-provider.md
+- /Users/kzf/.factory/specs/2026-01-23-httpfetchcached.md
+- /Users/kzf/.factory/specs/2026-01-23-provider-1.md
+- /Users/kzf/.factory/specs/2026-01-23-spec.md
+- /Users/kzf/.factory/specs/2026-01-23-fix-createdependentsource-using-stream-scaneffect.md
+- /Users/kzf/Dev/bioforestChain/KeyApp/plan/2026-01-23_20-32-34-transfer-test-issues.md
 
 review 的具体方向：
 
@@ -1639,3 +1646,147 @@ review 的具体方向：
    3. 审查截图是否符合预期
    4. 测试代码是否过于冗余？
 5. 白皮书是否更新
+
+---
+
+先不要去检查 PR，有一大堆的问题你没有处理：
+
+1. 目前主目录下的一堆变更，这些代码是提交了吗？还是在你当前的 PR？还是不在任何 PR 内？要处理一下，最终确保主目录的代码干净无变更（除了我的 CHAT.md 文件）
+2. 主目录下，我明明有配置 key在我的 env 文件里面，但是我发现 worktree 创建出来之后，我的 env 文件没有带过去，而且也没有自动执行 pnpm install，这些都说明我们主目录的工具（worktree 工具）存在问题，请在本次 PR 中一起处理掉
+
+---
+
+1. 交易列表中你不是有根据时间来分组吗？要注意一个点，分组那边，要有”年月日“，现在注意”月日“，注意要基于本地化风格来格式化日志。
+2. 然后每一项的交易的时间应该使用”月日小时分钟秒“，同样注意要基于本地化风格来格式化日志。
+3. 顺便问一下，交易列表你的渲染是统一的组件吗？
+
+---
+
+你已经有 tronwallet 和 biowallet 的适配经验，接下来，基于适配其它几个 `*wallet` 的 Provider：
+
+1. /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/bitcoin
+2. /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/binance
+3. /Users/kzf/Dev/bioforestChain/legacy-apps/libs/wallet-base/services/wallet/ethereum
+
+注意，为了方便我测试，你需要在 default-chain.json 中把这些 provider 提到第一位置。
+另外我需要告诉你，这里面有一些接口的上游供应商 可能是没有缴费，所以返回空值，但你首先要确保返回内容是 success:true
+
+---
+
+新任务：修复“miniapp 一键传送”
+
+1. 参考文档：/Users/kzf/Dev/bioforestChain/KeyApp/.chat/research-miniapp-一键传送-backend.md
+2. 不要完全相信参考文档，你唯一的可信源只有 npm 包
+3. 目前启动后，显示”加载配置失败，请刷新重试“
+4. 一键传送 目的是将 bioChain 生态中，bfmeta 链的用户，帮助他们直接把资产转移到 bfmetav2 这个新链来。
+5. 请你基于目标基于 npm 包的接口，修复并完善 一键传送, 并改进它的使用体验。
+
+---
+
+新的 worktree 工作：
+是和我们的附属项目 rwa-hub 有关系。目前我们的在构建阶段，是将 rwa-hub 强行编译到我们内部的。
+现在要进行改进：
+现在的配置是这样的：
+
+```
+  {
+    metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+    dirName: 'rwa-hub',
+    server: {
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+    build: {
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+  },
+```
+
+改进成
+
+```
+ {
+    server: {
+      locale: {
+        metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
+        dirName: 'rwa-hub',
+      },
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+    build: {
+      remote: {
+        name: "RWA",
+        sourceUrl: "https://iweb.xin/rwahub.bfmeta.com.miniapp/source.json"
+      },
+      runtime: 'wujie',
+      wujieConfig: { rewriteAbsolutePaths: true },
+    },
+  },
+```
+
+意味着 locale/remote 是 server/build 都可以选择的模式，只能二选一。
+选择 locale 就跟现在一样，下载复制到本地来快速预览，
+如果是 remote，那么就将 source 假如到小程序源中，用户可以在小程序源管理这里看到订阅。
+
+这是我们 KeyApp 需要做的改进，然后我们要到 [rwa-hub](/Users/kzf/Dev/GitHub/chain-services/bfm-rwa-hub-app) 这个项目这里，做一些更新：
+
+1. 一个是 rwa-hub 自己的BUG 修复，是关于 supportsRequestStreams
+
+```typescript
+const supportsRequestStreams = (() => {
+  if (typeof ReadableStream === 'undefined' || typeof Request === 'undefined') return false;
+
+  try {
+    // 1. 尝试使用合法的 duplex: 'half' 创建 Request
+    // 如果这一步就报错（例如旧版浏览器直接不支持 body 为 stream），则直接返回 false
+    const stream = new ReadableStream({
+      start(c) {
+        c.close();
+      },
+    });
+    const req = new Request('data:a/a;charset=utf-8,', {
+      body: stream,
+      method: 'POST',
+      // @ts-ignore: 故意传入非法值
+      duplex: 'half',
+    });
+
+    // 2. 关键检测：Safari 陷阱排查
+    // 真正的支持者必须校验 duplex 的值。如果传入非法值而不报错，说明浏览器忽略了该选项（即 Safari 的假阳性行为）。
+    let supportsDuplexValidation = false;
+    try {
+      const stream2 = new ReadableStream({
+        start(c) {
+          c.close();
+        },
+      });
+      new Request('data:a/a;charset=utf-8,', {
+        body: stream2,
+        method: 'POST',
+        // @ts-ignore: 故意传入非法值
+        duplex: 'invalid_value_for_feature_check',
+      });
+    } catch (e) {
+      // 只有抛出错误，才说明浏览器真正读取并校验了 duplex 字段
+      supportsDuplexValidation = true;
+    }
+
+    return supportsDuplexValidation;
+  } catch {
+    return false;
+  }
+})();
+```
+
+主语我们 rwa-hub 目前正在开发 v2，所以同样的代码，在 v2 中应该也有，一起修复了。
+
+2. 第二个是和我们的需求相关：/Users/kzf/Dev/GitHub/chain-services/scripts/x-build-project.mts 这里有miniappBundle的配置。我们需要在这个上传的基础上，将非压缩的版本上传到 miniapp 目录，还需要配套一个 source.json。因为我为这个目录部署了 rwa-hub.dweb.xin 的域名，可以直接通过域名来访问。
+   > 也就是说，最终向目标服务器上传会有 5 个东西
+   1. 现在有 metadata.json、manifest-$VERSION.json、XXX.zip(这个 metadata.json 是给我们的 vite 插件使用的)
+   2. 新增的 source.json 和 miniapp 文件夹（其中 source.json 是给我们的keyapp 内部的小程序源更新订阅使用的；miniapp 是我部署成rwa-hub.dweb.xin的域名，可以直接通过域名来访问）
+
+完成以上工作，然后：
+1. 到 chain-services下执行 `pnpm build web3-hub-miniapp`，完成后访问 rwa-hub.dweb.xin 看是否符合预期。
+2. 创建 PR，并创建一个 release: 0.3.0。等 CI 通过就合并到 main
