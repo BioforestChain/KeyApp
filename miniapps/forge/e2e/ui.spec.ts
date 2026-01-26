@@ -396,6 +396,9 @@ test.describe('BioBridge UI', () => {
                   BFM: {
                     enable: true,
                     logo: '',
+                    chainName: 'bfmeta',
+                    assetType: 'BFM',
+                    applyAddress: 'b0000000000000000000000000000000000000000',
                     supportChain: {
                       ETH: { enable: true, assetType: 'ETH', depositAddress: '0x1234567890', logo: '' },
                     },
