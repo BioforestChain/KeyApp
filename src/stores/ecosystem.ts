@@ -66,13 +66,35 @@ export interface EcosystemState {
 const STORAGE_KEY = 'ecosystem_store';
 const getDefaultSourceName = () => i18n.t('ecosystem:sources.defaultName');
 
+interface InjectedSource {
+  name: string;
+  url: string;
+  icon?: string;
+}
+
+function getInjectedSources(): SourceRecord[] {
+  if (!Array.isArray(__ECOSYSTEM_SOURCES__)) return [];
+  const now = new Date().toISOString();
+
+  return __ECOSYSTEM_SOURCES__
+    .filter((source): source is InjectedSource => Boolean(source?.url && source?.name))
+    .map((source) => ({
+      url: source.url,
+      name: source.name,
+      lastUpdated: now,
+      enabled: true,
+      status: 'idle' as const,
+      icon: source.icon,
+    }));
+}
+
 function arraysEqual<T>(a: T[], b: T[]): boolean {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
 function getDefaultSources(): SourceRecord[] {
   const defaultName = getDefaultSourceName();
-  return [
+  const defaults: SourceRecord[] = [
     {
       url: `${import.meta.env.BASE_URL}miniapps/ecosystem.json`,
       name: defaultName,
@@ -81,6 +103,14 @@ function getDefaultSources(): SourceRecord[] {
       status: 'idle' as const,
     },
   ];
+
+  for (const injected of getInjectedSources()) {
+    if (!defaults.some((source) => source.url === injected.url)) {
+      defaults.push(injected);
+    }
+  }
+
+  return defaults;
 }
 
 function mergeSourcesWithDefault(sources: SourceRecord[]): SourceRecord[] {

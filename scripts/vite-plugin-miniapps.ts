@@ -324,7 +324,11 @@ function scanRemoteMiniappsForBuild(
 ): Array<MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }> {
   if (!existsSync(miniappsPath)) return [];
 
-  const configByDirName = new Map(remoteConfigs.map((c) => [c.dirName, c]));
+  const configByDirName = new Map(
+    remoteConfigs
+      .map((c) => (c.build?.locale ? [c.build.locale.dirName, c] : null))
+      .filter((item): item is [string, RemoteMiniappConfig] => item !== null),
+  );
   const remoteApps: Array<
     MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }
   > = [];
