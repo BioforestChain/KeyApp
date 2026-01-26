@@ -75,6 +75,15 @@ function exec(cmd: string, options?: { cwd?: string; env?: Record<string, string
   }
 }
 
+function commandExists(command: string): boolean {
+  try {
+    execSync(`${command} --version`, { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
 function getVersion(): string {
   // 从命令行参数获取版本
   const versionIndex = process.argv.indexOf('--version')
@@ -332,8 +341,13 @@ async function buildDweb() {
     // 运行 plaoc bundle 打包
     log.step('运行 Plaoc 打包')
     try {
-      exec(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
-      log.success('Plaoc 打包完成')
+      if (commandExists('plaoc')) {
+        exec(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
+        log.success('Plaoc 打包完成')
+      } else {
+        log.warn('Plaoc CLI 未安装，使用 dist-dweb 作为 dists 兜底')
+        copyDir(DIST_DWEB_DIR, DISTS_DIR)
+      }
     } catch (error) {
       log.warn('Plaoc 打包失败，可能未安装 plaoc CLI')
       log.info('请安装: npm install -g @aspect/plaoc-cli')

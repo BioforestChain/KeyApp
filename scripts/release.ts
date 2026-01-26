@@ -73,6 +73,15 @@ function execOutput(cmd: string): string {
   return execSync(cmd, { cwd: ROOT, encoding: 'utf-8' }).trim()
 }
 
+function commandExists(command: string): boolean {
+  try {
+    execSync(`${command} --version`, { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf-8'))
 }
@@ -89,8 +98,12 @@ async function checkWorkspace(): Promise<boolean> {
   // 检查是否在 worktree 中
   const cwd = process.cwd()
   if (cwd.includes('.git-worktree')) {
-    log.error('请在主目录中运行此脚本，不要在 worktree 中运行')
-    return false
+    if (process.env.ALLOW_WORKTREE_RELEASE === 'true') {
+      log.warn('检测到 worktree 环境，继续执行（ALLOW_WORKTREE_RELEASE=true）')
+    } else {
+      log.error('请在主目录中运行此脚本，不要在 worktree 中运行')
+      return false
+    }
   }
 
   // 检查未提交的变更
@@ -254,7 +267,12 @@ async function runBuild(): Promise<void> {
   if (existsSync(distsDir)) {
     rmSync(distsDir, { recursive: true })
   }
-  exec(`plaoc bundle "${distDwebDir}" -c ./ -o "${distsDir}"`)
+  if (commandExists('plaoc')) {
+    exec(`plaoc bundle "${distDwebDir}" -c ./ -o "${distsDir}"`)
+  } else {
+    log.warn('Plaoc CLI 未安装，使用 dist-dweb 作为 dists 兜底')
+    cpSync(distDwebDir, distsDir, { recursive: true })
+  }
 
   log.success('构建完成')
 }
