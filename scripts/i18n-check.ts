@@ -104,6 +104,13 @@ interface ChineseLiteral {
   content: string;
 }
 
+interface UsedTranslationKey {
+  namespace: string;
+  key: string;
+  file: string;
+  line: number;
+}
+
 // ==================== Utilities ====================
 
 /**
@@ -219,6 +226,115 @@ function sortObjectKeys(obj: TranslationFile): TranslationFile {
   }
 
   return sorted;
+}
+
+function extractDefaultNamespaces(content: string): string[] {
+  const matches = content.match(/useTranslation\s*\(([\s\S]*?)\)/g);
+  if (!matches || matches.length === 0) return [];
+
+  const firstMatch = matches[0];
+  const argsMatch = firstMatch.match(/useTranslation\s*\(([\s\S]*?)\)/);
+  if (!argsMatch) return [];
+
+  const args = argsMatch[1].trim();
+  if (!args) return [];
+
+  const arrayMatch = args.match(/^\s*\[([\s\S]*?)\]/);
+  if (arrayMatch) {
+    const namespaces: string[] = [];
+    const regex = /'([^']+)'|"([^"]+)"/g;
+    let m;
+    while ((m = regex.exec(arrayMatch[1])) !== null) {
+      namespaces.push(m[1] || m[2]);
+    }
+    return namespaces;
+  }
+
+  const literalMatch = args.match(/^\s*['"]([^'"]+)['"]/);
+  if (literalMatch) {
+    return [literalMatch[1]];
+  }
+
+  return [];
+}
+
+function stripCommentsPreserveLines(content: string): string {
+  const withoutBlock = content.replace(/\/\*[\s\S]*?\*\//g, (match) => {
+    const lines = match.split('\n').length;
+    return '\n'.repeat(Math.max(0, lines - 1));
+  });
+  return withoutBlock.replace(/\/\/.*$/gm, '');
+}
+
+function extractUsedTranslationKeys(file: string, content: string): UsedTranslationKey[] {
+  if (!content.includes('useTranslation') && !content.includes('i18n.t') && !content.includes('t(')) {
+    return [];
+  }
+
+  const searchable = stripCommentsPreserveLines(content);
+  const defaultNamespaces = extractDefaultNamespaces(content);
+  const defaultNamespace = defaultNamespaces[0];
+  const results: UsedTranslationKey[] = [];
+  const regex = /\b(?:t|i18n\.t)\s*\(\s*(['"`])([^'"`]+)\1/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(searchable)) !== null) {
+    const rawKey = match[2].trim();
+    if (!rawKey || rawKey.includes('${')) continue;
+
+    let namespace = '';
+    let key = '';
+    if (rawKey.includes(':')) {
+      const [ns, rest] = rawKey.split(':', 2);
+      namespace = ns;
+      key = rest;
+    } else if (defaultNamespace) {
+      namespace = defaultNamespace;
+      key = rawKey;
+    } else {
+      continue;
+    }
+
+    const line = searchable.slice(0, match.index).split('\n').length;
+    results.push({ namespace, key, file, line });
+  }
+
+  return results;
+}
+
+function buildReferenceIndex(namespaces: string[]): Map<string, Set<string>> {
+  const index = new Map<string, Set<string>>();
+  for (const namespace of namespaces) {
+    const refPath = join(LOCALES_DIR, REFERENCE_LOCALE, `${namespace}.json`);
+    if (!existsSync(refPath)) continue;
+    const refData: TranslationFile = JSON.parse(readFileSync(refPath, 'utf-8'));
+    index.set(namespace, new Set(extractKeys(refData)));
+  }
+  return index;
+}
+
+function checkUsedTranslationKeys(referenceIndex: Map<string, Set<string>>, verbose: boolean): UsedTranslationKey[] {
+  const files = scanSourceFiles();
+  if (verbose) {
+    log.dim(`Scanning ${files.length} source files for translation key usage...`);
+  }
+
+  const missing: UsedTranslationKey[] = [];
+
+  for (const file of files) {
+    const filePath = join(ROOT, file);
+    const content = readFileSync(filePath, 'utf-8');
+    const usedKeys = extractUsedTranslationKeys(file, content);
+
+    for (const used of usedKeys) {
+      const keys = referenceIndex.get(used.namespace);
+      if (!keys || !keys.has(used.key)) {
+        missing.push(used);
+      }
+    }
+  }
+
+  return missing;
 }
 
 // ==================== Chinese Literal Detection ====================
@@ -501,6 +617,7 @@ ${colors.cyan}╔═════════════════════
 
   const namespaces = getNamespaces();
   log.info(`Found ${namespaces.length} namespaces`);
+  const referenceIndex = buildReferenceIndex(namespaces);
 
   // Check for unregistered namespaces
   log.step('Checking namespace registration');
@@ -624,7 +741,43 @@ ${colors.green}✓ No missing or untranslated keys${colors.reset}
 `);
   }
 
-  // Step 3: Check for Chinese literals in source code
+  // Step 3: Check for missing keys referenced in source code
+  log.step('Checking translation key usage in source code');
+  const missingUsedKeys = checkUsedTranslationKeys(referenceIndex, verbose);
+
+  if (missingUsedKeys.length > 0) {
+    log.error(`Found ${missingUsedKeys.length} missing translation key(s) referenced in source code:`);
+
+    const byNamespace = new Map<string, UsedTranslationKey[]>();
+    for (const item of missingUsedKeys) {
+      if (!byNamespace.has(item.namespace)) byNamespace.set(item.namespace, []);
+      byNamespace.get(item.namespace)!.push(item);
+    }
+
+    for (const [namespace, items] of byNamespace) {
+      console.log(`\n${colors.bold}${namespace}${colors.reset}`);
+      for (const item of items.slice(0, 5)) {
+        log.dim(`${item.file}:${item.line} - ${item.namespace}:${item.key}`);
+      }
+      if (items.length > 5) {
+        log.dim(`... and ${items.length - 5} more`);
+      }
+    }
+
+    console.log(`
+${colors.red}✗ Missing translation keys referenced in code${colors.reset}
+
+${colors.bold}To fix:${colors.reset}
+  1. Add the missing keys to ${REFERENCE_LOCALE} locale files
+  2. Run ${colors.cyan}pnpm i18n:check --fix${colors.reset} if you want placeholders added to other locales
+`);
+
+    process.exit(1);
+  } else {
+    log.success('All referenced translation keys exist');
+  }
+
+  // Step 4: Check for Chinese literals in source code
   log.step('Checking for Chinese literals in source code');
 
   const chineseLiterals = checkChineseLiterals(verbose);

@@ -29,7 +29,7 @@ function TransactionItem({ tx, address }: { tx: Transaction; address: string }) 
   const value = primaryAsset ? primaryAsset.value : '0'
   const symbol = primaryAsset ? primaryAsset.symbol : ''
   const decimals = primaryAsset ? primaryAsset.decimals : 0
-  const sign = isOutgoing ? t('sign.minus') : t('sign.plus')
+  const sign = isOutgoing ? t('signSymbol.minus') : t('signSymbol.plus')
   const directionLabel = isOutgoing ? t('addressLookup.toLabel') : t('addressLookup.fromLabel')
 
   return (

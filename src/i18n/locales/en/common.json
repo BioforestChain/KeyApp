@@ -425,9 +425,13 @@
     "openExplorer": "Open {{name}} Explorer",
     "viewOnExplorer": "View on {{name}}"
   },
-  "sign": {
+  "beta": "Beta",
+  "signSymbol": {
     "plus": "+",
     "minus": "-"
+  },
+  "walletLock": {
+    "error": "Wallet lock verification failed"
   },
   "tabs": {
     "assets": "Assets",
@@ -510,9 +514,11 @@
       "description": "Ethereum Virtual Machine compatible chains"
     },
     "bitcoin": {
+      "name": "Bitcoin",
       "description": "Bitcoin network"
     },
     "tron": {
+      "name": "TRON",
       "description": "Tron network"
     },
     "custom": {

@@ -4,6 +4,7 @@
     "next": "Next",
     "getStarted": "Get Started",
     "haveWallet": "I have a wallet",
+    "migrateFromMpay": "Migrate from MPay",
     "goToSlide": "Go to slide {{number}}",
     "slides": {
       "transfer": {

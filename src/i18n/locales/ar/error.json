@@ -19,11 +19,14 @@
     "enterAmount": "Please enter amount",
     "enterValidAmount": "Please enter a valid amount",
     "exceedsBalance": "Amount exceeds balance",
+    "selectAsset": "يرجى اختيار أصل",
     "enterReceiverAddress": "يرجى إدخال عنوان المستلم",
-    "invalidAddress": "تنسيق العنوان غير صالح"
+    "invalidAddress": "تنسيق العنوان غير صالح",
+    "unsupportedChainType": "نوع سلسلة غير مدعوم"
   },
   "transaction": {
     "failed": "Transaction failed, please try again later",
+    "transactionFailed": "فشلت المعاملة، يرجى المحاولة لاحقاً",
     "burnFailed": "Burn failed, please try again later",
     "chainNotSupported": "This chain does not support full transaction flow",
     "chainNotSupportedWithId": "This chain does not support full transaction flow: {{chainId}}",
@@ -35,10 +38,15 @@
     "issuerAddressNotFound": "Unable to get asset issuer address",
     "issuerAddressNotReady": "Asset issuer address not ready",
     "insufficientGas": "رسوم الغاز غير كافية",
+    "invalidAmount": "مبلغ غير صالح",
+    "paramsIncomplete": "معلمات المعاملة غير مكتملة",
     "retryLater": "فشلت المعاملة، يرجى المحاولة لاحقاً",
     "transferFailed": "فشل التحويل",
     "securityPasswordWrong": "كلمة مرور الأمان غير صحيحة",
     "unknownError": "خطأ غير معروف"
+  },
+  "burn": {
+    "bioforestOnly": "الحرق مدعوم فقط على BioForest"
   },
   "crypto": {
     "keyDerivationFailed": "فشل اشتقاق المفتاح",

@@ -4,6 +4,11 @@
   "amountShouldBe_{min}-{max}-{assettype}": "數量應在 - 之間",
   "approve": "授權",
   "balance_:": "餘額:",
+  "assetSelector": {
+    "selectAsset": "選擇資產",
+    "balance": "餘額",
+    "noAssets": "暫無資產"
+  },
   "bioforestChainFeeToLow": "如果礦工費過低，將影響交易上鏈。",
   "bioforestChainTransactionTypeAcceptAnyAssetExchange": "接受任意資產交換",
   "bioforestChainTransactionTypeAcceptAnyAssetGift": "接受任意資產贈送",

@@ -4,6 +4,7 @@
     "next": "下一步",
     "getStarted": "開始使用",
     "haveWallet": "我有錢包",
+    "migrateFromMpay": "從 MPay 遷移",
     "goToSlide": "跳轉到第 {{number}} 頁",
     "slides": {
       "transfer": {
