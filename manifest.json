@@ -3,11 +3,11 @@
   "name": "BFM Pay",
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
-  "logo": "/logos/logo-256.webp",
+  "logo": "logos/logo-256.webp",
   "change_log": "初始版本",
   "icons": [
     {
-      "src": "/logos/logo-256.webp",
+      "src": "logos/logo-256.webp",
       "purpose": "maskable"
     }
   ],

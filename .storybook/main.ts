@@ -1,5 +1,6 @@
 import type { StorybookConfig } from '@storybook/react-vite'
 import { loadEnv } from 'vite'
+import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -12,6 +13,12 @@ const config: StorybookConfig = {
   },
   viteFinal: async (config) => {
     const env = loadEnv(config.mode ?? 'development', process.cwd(), '')
+    const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8')) as { version?: string }
+    const buildTime = new Date()
+    const pad = (value: number) => value.toString().padStart(2, '0')
+    const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`
+    const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'
+    const appVersion = `${pkg.version ?? '0.0.0'}${isDevBuild ? buildSuffix : ''}`
 
     // Keep Storybook deterministic: use mock exchange rates instead of network calls.
     config.resolve ??= {}
@@ -32,6 +39,7 @@ const config: StorybookConfig = {
     const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? ''
     config.define = {
       ...config.define,
+      '__APP_VERSION__': JSON.stringify(appVersion),
       '__API_KEYS__': JSON.stringify({
         TRONGRID_API_KEY: tronGridApiKey,
         ETHERSCAN_API_KEY: etherscanApiKey,

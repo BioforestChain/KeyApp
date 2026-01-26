@@ -47,6 +47,9 @@ importers:
       '@effect/platform':
         specifier: ^0.94.2
         version: 0.94.2(effect@3.19.15)
+      '@emotion/is-prop-valid':
+        specifier: ^1.4.0
+        version: 1.4.0
       '@fontsource-variable/dm-sans':
         specifier: ^5.2.8
         version: 5.2.8
@@ -163,7 +166,7 @@ importers:
         version: 4.17.21
       motion:
         specifier: ^12.23.26
-        version: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       qrcode.react:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.3)
@@ -434,7 +437,7 @@ importers:
         version: 2.1.1
       framer-motion:
         specifier: ^12.23.26
-        version: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       i18next:
         specifier: ^25.2.1
         version: 25.7.3(typescript@5.9.3)
@@ -591,7 +594,7 @@ importers:
         version: 2.1.1
       framer-motion:
         specifier: ^12.23.26
-        version: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       i18next:
         specifier: ^25.2.1
         version: 25.7.3(typescript@5.9.3)
@@ -1633,6 +1636,12 @@ packages:
 
   '@emotion/hash@0.9.2':
     resolution: {integrity: sha512-MyqliTZGuOm3+5ZRSaaBGP3USLw6+EGykkwZns2EPC5g8jJ4z9OrdZY9apkl3+UP9+sdz76YYkwCKP5gh8iY3g==}
+
+  '@emotion/is-prop-valid@1.4.0':
+    resolution: {integrity: sha512-QgD4fyscGcbbKwJmqNvUMSE02OsHUa+lAWKdEUIJKgqe5IwRSKd7+KhibEWdaKwgjLj0DRSHA9biAIqGBk05lw==}
+
+  '@emotion/memoize@0.9.0':
+    resolution: {integrity: sha512-30FAj7/EoJ5mwVPOWhAyCX+FPfMDrVecJAM+Iw9NRoSl4BBAQeqj4cApHHUXOVvIPgLVDsCFoz/hGD+5QQD1GQ==}
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -9495,6 +9504,12 @@ snapshots:
 
   '@emotion/hash@0.9.2': {}
 
+  '@emotion/is-prop-valid@1.4.0':
+    dependencies:
+      '@emotion/memoize': 0.9.0
+
+  '@emotion/memoize@0.9.0': {}
+
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
@@ -13572,12 +13587,13 @@ snapshots:
 
   forwarded@0.2.0: {}
 
-  framer-motion@12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  framer-motion@12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       motion-dom: 12.23.23
       motion-utils: 12.23.6
       tslib: 2.8.1
     optionalDependencies:
+      '@emotion/is-prop-valid': 1.4.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
@@ -14474,11 +14490,12 @@ snapshots:
 
   motion-utils@12.23.6: {}
 
-  motion@12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  motion@12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
-      framer-motion: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      framer-motion: 12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       tslib: 2.8.1
     optionalDependencies:
+      '@emotion/is-prop-valid': 1.4.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 

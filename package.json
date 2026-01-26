@@ -81,6 +81,7 @@
     "@bnqkl/wallet-sdk": "^0.23.8",
     "@bnqkl/wallet-typings": "^0.23.8",
     "@effect/platform": "^0.94.2",
+    "@emotion/is-prop-valid": "^1.4.0",
     "@fontsource-variable/dm-sans": "^5.2.8",
     "@fontsource-variable/figtree": "^5.2.10",
     "@fontsource/dm-mono": "^5.2.7",

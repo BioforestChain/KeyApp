@@ -282,11 +282,14 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* 关于 */}
-        <SettingsSection title={t('settings:sections.about')}>
+        <SettingsSection
+          title={t('settings:sections.about')}
+          allowContextMenu
+        >
           <SettingsItem
             icon={<Info size={20} />}
             label={t('settings:items.aboutApp')}
-            value="v1.0.0"
+            value={`v${__APP_VERSION__}`}
             onClick={() => {
               // TODO: 关于页面
             }}

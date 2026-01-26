@@ -114,6 +114,112 @@ function copyDir(src: string, dest: string) {
   cpSync(src, dest, { recursive: true })
 }
 
+function copyDirContents(src: string, dest: string) {
+  if (!existsSync(src)) return
+  mkdirSync(dest, { recursive: true })
+  for (const entry of readdirSync(src)) {
+    cpSync(join(src, entry), join(dest, entry), { recursive: true })
+  }
+}
+
+function resolveSiteOrigin(): string | null {
+  return process.env.DWEB_SITE_ORIGIN ?? process.env.VITEPRESS_SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? null
+}
+
+function resolveSiteBaseUrl(): string | null {
+  const origin = resolveSiteOrigin()
+  if (!origin) return null
+  const basePath = process.env.VITEPRESS_BASE ?? '/'
+  return new URL(basePath, origin).toString()
+}
+
+function resolveReleaseBaseUrl(): string | null {
+  const explicit = process.env.DWEB_RELEASE_BASE_URL ?? process.env.DWEB_ASSET_BASE_URL
+  if (explicit) {
+    return explicit.endsWith('/') ? explicit : `${explicit}/`
+  }
+  const repo = process.env.GITHUB_REPOSITORY
+  const tag = process.env.RELEASE_TAG
+  if (repo && tag) {
+    return `https://github.com/${repo}/releases/download/${tag}/`
+  }
+  return null
+}
+
+function rewriteMetadataLogo(metadataPath: string, logoFileName: string, absoluteBaseUrl?: string, dwebPath?: string) {
+  if (!existsSync(metadataPath)) return
+  const metadata = JSON.parse(readFileSync(metadataPath, 'utf-8')) as {
+    logo?: string
+    icons?: Array<{ src: string; [key: string]: unknown }>
+  }
+
+  const normalizedPath = dwebPath ? dwebPath.replace(/^\/+/, '') : ''
+  const absoluteLogoUrl = absoluteBaseUrl
+    ? new URL(normalizedPath ? `${normalizedPath}/${logoFileName}` : logoFileName, absoluteBaseUrl).toString()
+    : null
+
+  if (metadata.logo) {
+    const lower = metadata.logo.toLowerCase()
+    if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+      metadata.logo = absoluteLogoUrl ?? logoFileName
+    }
+  } else {
+    metadata.logo = absoluteLogoUrl ?? logoFileName
+  }
+
+  if (Array.isArray(metadata.icons)) {
+    metadata.icons = metadata.icons.map((icon) => {
+      if (!icon?.src) return icon
+      const src = String(icon.src)
+      const lower = src.toLowerCase()
+      if (lower.endsWith(`/${logoFileName}`) || lower.endsWith(logoFileName)) {
+        return { ...icon, src: absoluteLogoUrl ?? logoFileName }
+      }
+      return icon
+    })
+  }
+
+  writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+}
+
+function publishDwebAssets(targetDir: string, zipAlias: string, dwebPath: string) {
+  const logosDir = join(ROOT, 'public', 'logos')
+  const hasDwebAssets = existsSync(DISTS_DIR) && readdirSync(DISTS_DIR).length > 0
+  if (!hasDwebAssets) {
+    log.warn('DWEB 产物不存在，跳过 DWEB 资源发布')
+    return
+  }
+
+  cleanDir(targetDir)
+  copyDirContents(DISTS_DIR, targetDir)
+  copyDir(logosDir, join(targetDir, 'logos'))
+  const logoFileName = 'logo-256.webp'
+  const rootLogoPath = join(targetDir, logoFileName)
+  if (existsSync(join(logosDir, logoFileName))) {
+    cpSync(join(logosDir, logoFileName), rootLogoPath)
+  }
+
+  const metadataPath = join(targetDir, 'metadata.json')
+  if (existsSync(metadataPath)) {
+    const siteBaseUrl = resolveSiteBaseUrl()
+    rewriteMetadataLogo(metadataPath, logoFileName, siteBaseUrl ?? undefined, dwebPath)
+    const metadata = JSON.parse(readFileSync(metadataPath, 'utf-8')) as { bundle_url?: string }
+    if (metadata.bundle_url) {
+      const bundleFile = metadata.bundle_url.replace(/^\.\//, '')
+      const bundlePath = join(targetDir, bundleFile)
+      if (existsSync(bundlePath)) {
+        cpSync(bundlePath, join(targetDir, zipAlias))
+      } else {
+        log.warn(`DWEB bundle 未找到: ${bundlePath}`)
+      }
+    } else {
+      log.warn('metadata.json 缺少 bundle_url')
+    }
+  } else {
+    log.warn('metadata.json 未找到，DWEB install 可能无法使用')
+  }
+}
+
 // ==================== 构建函数 ====================
 
 async function runTypecheck() {
@@ -143,6 +249,7 @@ async function buildWeb() {
   exec('pnpm build:web', {
     env: {
       SERVICE_IMPL: 'web',
+      VITE_DEV_MODE: getChannel() === 'beta' ? 'true' : 'false',
     },
   })
 
@@ -282,6 +389,11 @@ async function prepareGhPages(webDir: string) {
   // 创建 .nojekyll 文件（禁用 Jekyll 处理）
   writeFileSync(join(ghPagesDir, '.nojekyll'), '')
 
+  const dwebTargetDir = join(ghPagesDir, channel === 'stable' ? 'dweb' : 'dweb-dev')
+  const dwebZipAlias = channel === 'stable' ? 'bfmpay-dweb.zip' : 'bfmpay-dweb-beta.zip'
+  const dwebPath = channel === 'stable' ? 'dweb' : 'dweb-dev'
+  publishDwebAssets(dwebTargetDir, dwebZipAlias, dwebPath)
+
   log.success('GitHub Pages 目录准备完成')
   return ghPagesDir
 }
@@ -322,13 +434,25 @@ async function createReleaseArtifacts(webDir: string, dwebDir: string) {
   const dwebVersionZipPath = join(releaseDir, `bfmpay-dweb-${version}${suffix}.zip`)
   cpSync(dwebZipPath, dwebVersionZipPath)
 
-  // 复制 metadata.json 到 release 目录（plaoc bundle 自动生成）
-  const metadataSrc = join(DISTS_DIR, 'metadata.json')
-  if (existsSync(metadataSrc)) {
-    cpSync(metadataSrc, join(releaseDir, 'metadata.json'))
+  // 复制 dweb metadata/bundle 到 release 目录（plaoc bundle 自动生成）
+  if (existsSync(DISTS_DIR) && readdirSync(DISTS_DIR).length > 0) {
+    copyDirContents(DISTS_DIR, releaseDir)
     log.info(`  - metadata.json`)
   } else {
-    log.warn('metadata.json 未找到，dweb://install 链接可能无法正常工作')
+    log.warn('DWEB 产物不存在，dweb://install 链接可能无法正常工作')
+  }
+
+  // 复制 DWEB logo 资源（供 metadata.json 相对路径使用）
+  const logosDir = join(ROOT, 'public', 'logos')
+  copyDir(logosDir, join(releaseDir, 'logos'))
+  if (existsSync(join(logosDir, 'logo-256.webp'))) {
+    cpSync(join(logosDir, 'logo-256.webp'), join(releaseDir, 'logo-256.webp'))
+  }
+
+  const releaseMetadataPath = join(releaseDir, 'metadata.json')
+  if (existsSync(releaseMetadataPath)) {
+    const releaseBaseUrl = resolveReleaseBaseUrl()
+    rewriteMetadataLogo(releaseMetadataPath, 'logo-256.webp', releaseBaseUrl ?? undefined)
   }
 
   log.success(`Release 产物创建完成: ${releaseDir}`)

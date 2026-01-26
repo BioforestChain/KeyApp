@@ -10,8 +10,8 @@
  * 5. 上传 DWEB 到正式服务器
  * 6. 更新 package.json 和 manifest.json
  * 7. 更新 CHANGELOG.md
- * 8. 提交变更并打 tag
- * 9. 推送触发 GitHub Pages 更新
+ * 8. 提交变更
+ * 9. 推送并手动触发 CI 发布（CI 创建 tag/release）
  *
  * Usage:
  *   pnpm release
@@ -220,7 +220,7 @@ async function runBuild(): Promise<void> {
 
   log.step('构建 Web 版本')
   exec('pnpm build:web', {
-    env: { SERVICE_IMPL: 'web' },
+    env: { SERVICE_IMPL: 'web', VITE_DEV_MODE: 'false' },
   })
 
   // 移动到 dist-web
@@ -345,8 +345,8 @@ async function updateChangelog(version: string): Promise<string> {
 
 // ==================== Git 操作 ====================
 
-async function commitAndTag(version: string): Promise<void> {
-  log.step('提交变更并创建 Tag')
+async function commitRelease(version: string): Promise<void> {
+  log.step('提交变更')
 
   // 添加所有变更
   exec('git add -A')
@@ -354,20 +354,14 @@ async function commitAndTag(version: string): Promise<void> {
   // 提交
   exec(`git commit -m "release: v${version}"`)
   log.success(`提交: release: v${version}`)
-
-  // 创建 tag
-  exec(`git tag -a v${version} -m "Release v${version}"`)
-  log.success(`创建 Tag: v${version}`)
 }
 
 async function pushAndTriggerCD(version: string): Promise<void> {
   log.step('推送到 GitHub')
 
   console.log(`
-${colors.yellow}推送后将触发:${colors.reset}
-  - GitHub Actions CD 流程
-  - GitHub Pages 更新
-  - GitHub Release 创建
+${colors.yellow}推送后请在 GitHub Actions 手动触发 stable 发布:${colors.reset}
+  - CD 会在完成后创建 Tag 并生成 Release
 `)
 
   const shouldPush = await confirm({
@@ -382,21 +376,18 @@ ${colors.yellow}推送后将触发:${colors.reset}
     return
   }
 
-  // 推送代码
-  exec('git push origin main')
+  // 推送代码（受保护分支可能需要走 PR）
+  exec('git push origin HEAD')
   log.success('推送代码')
-
-  // 推送 tag（这会触发 CD）
-  exec(`git push origin v${version}`)
-  log.success(`推送 Tag v${version}`)
 
   console.log(`
 ${colors.green}GitHub Actions 将自动:${colors.reset}
   - 构建 Web 和 DWEB 版本
   - 部署到 GitHub Pages
-  - 创建 GitHub Release
+  - 创建 Tag & GitHub Release
   - 上传 DWEB 到正式服务器
 
+请在 Actions 中手动选择 stable 触发发布。
 查看进度: https://github.com/BioforestChain/KeyApp/actions
 `)
 }
@@ -433,8 +424,8 @@ ${colors.cyan}发布流程:${colors.reset}
   2. 构建 Web 和 DWEB 版本
   3. 上传 DWEB 到正式服务器
   4. 更新版本号和 CHANGELOG
-  5. 提交变更并创建 Tag
-  6. 推送触发 GitHub Pages 更新
+  5. 提交变更
+  6. 推送并手动触发 CI 发布（CI 创建 tag/release）
 `)
 
   const confirmRelease = await confirm({
@@ -459,8 +450,8 @@ ${colors.cyan}发布流程:${colors.reset}
   // 7. 更新版本文件
   updateVersionFiles(newVersion, changelog)
 
-  // 8. 提交并打 tag
-  await commitAndTag(newVersion)
+  // 8. 提交变更
+  await commitRelease(newVersion)
 
   // 9. 推送
   await pushAndTriggerCD(newVersion)
@@ -471,8 +462,9 @@ ${colors.green}╔════════════════════�
 ╚════════════════════════════════════════╝${colors.reset}
 
 ${colors.blue}下一步:${colors.reset}
-  - 检查 GitHub Actions: https://github.com/BioforestChain/KeyApp/actions
-  - 查看 Release: https://github.com/BioforestChain/KeyApp/releases
+  - 在 GitHub Actions 手动触发 stable 发布
+  - 查看进度: https://github.com/BioforestChain/KeyApp/actions
+  - 发布完成后查看 Release: https://github.com/BioforestChain/KeyApp/releases
   - 访问 GitHub Pages: https://bioforestchain.github.io/KeyApp/
 `)
 }

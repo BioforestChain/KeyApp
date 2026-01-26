@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import commonjs from 'vite-plugin-commonjs';
 import mkcert from 'vite-plugin-mkcert';
 import { networkInterfaces } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools';
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps';
@@ -51,6 +52,15 @@ function getPreferredLanIPv4(): string | undefined {
   return ips[0];
 }
 
+function getPackageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as { version?: string }
+    return pkg.version ?? '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
@@ -74,6 +84,12 @@ export default defineConfig(({ mode }) => {
   const tronGridApiKey = env.TRONGRID_API_KEY ?? process.env.TRONGRID_API_KEY ?? '';
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
   const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
+  const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'
+
+  const buildTime = new Date()
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`
+  const appVersion = `${getPackageVersion()}${isDevBuild ? buildSuffix : ''}`
 
   return {
     base: BASE_URL,
@@ -159,6 +175,8 @@ export default defineConfig(({ mode }) => {
       __MOCK_MODE__: JSON.stringify(SERVICE_IMPL === 'mock'),
       // Dev 模式标识（用于显示开发版水印）
       __DEV_MODE__: JSON.stringify((env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'),
+      // App 版本号（stable=package.json，dev=追加 -MMDDHH，UTC）
+      __APP_VERSION__: JSON.stringify(appVersion),
       // API Keys 对象（用于动态读取环境变量）
       __API_KEYS__: JSON.stringify({
         TRONGRID_API_KEY: tronGridApiKey,
