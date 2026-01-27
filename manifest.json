@@ -4,7 +4,7 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "logos/logo-256.webp",
-  "change_log": "DWEB 安装资源与发布流程优化",
+  "change_log": "DWEB 路由与打包优化",
   "icons": [
     {
       "src": "logos/logo-256.webp",
@@ -19,7 +19,7 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.2.0",
+  "version": "0.3.0",
   "categories": [
     "application",
     "wallet"

@@ -18,7 +18,73 @@
     {
       "matchMethod": ["*"],
       "matchUrl": {
+        "pathname": "/plaoc.json"
+      },
+      "to": {
+        "url": "/plaoc.json",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
         "pathname": "{/}assets/*"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}configs/*"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}icons/*"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}logos/*"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}miniapps/*/"
+      },
+      "to": {
+        "url": "/{{pattern.pathname.input}}index.html",
+        "appendHeaders": {},
+        "removeHeaders": []
+      }
+    },
+    {
+      "matchMethod": ["*"],
+      "matchUrl": {
+        "pathname": "{/}miniapps/*"
       },
       "to": {
         "url": "/{{pattern.pathname.input}}",

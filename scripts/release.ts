@@ -73,12 +73,21 @@ function execOutput(cmd: string): string {
   return execSync(cmd, { cwd: ROOT, encoding: 'utf-8' }).trim()
 }
 
-function commandExists(command: string): boolean {
+function resolvePlaocBin(): string | null {
   try {
-    execSync(`${command} --version`, { stdio: 'ignore' })
-    return true
+    execSync('plaoc --version', { stdio: 'ignore' })
+    return 'plaoc'
   } catch {
-    return false
+    const voltaHome = process.env.VOLTA_HOME ?? (process.env.HOME ? join(process.env.HOME, '.volta') : null)
+    if (!voltaHome) return null
+    const plaocPath = join(voltaHome, 'bin', 'plaoc')
+    if (!existsSync(plaocPath)) return null
+    try {
+      execSync(`${plaocPath} --version`, { stdio: 'ignore' })
+      return plaocPath
+    } catch {
+      return null
+    }
   }
 }
 
@@ -267,8 +276,9 @@ async function runBuild(): Promise<void> {
   if (existsSync(distsDir)) {
     rmSync(distsDir, { recursive: true })
   }
-  if (commandExists('plaoc')) {
-    exec(`plaoc bundle "${distDwebDir}" -c ./ -o "${distsDir}"`)
+  const plaocBin = resolvePlaocBin()
+  if (plaocBin) {
+    exec(`${plaocBin} bundle "${distDwebDir}" -c ./ -o "${distsDir}"`)
   } else {
     log.warn('Plaoc CLI 未安装，使用 dist-dweb 作为 dists 兜底')
     cpSync(distDwebDir, distsDir, { recursive: true })

@@ -75,12 +75,21 @@ function exec(cmd: string, options?: { cwd?: string; env?: Record<string, string
   }
 }
 
-function commandExists(command: string): boolean {
+function resolvePlaocBin(): string | null {
   try {
-    execSync(`${command} --version`, { stdio: 'ignore' })
-    return true
+    execSync('plaoc --version', { stdio: 'ignore' })
+    return 'plaoc'
   } catch {
-    return false
+    const voltaHome = process.env.VOLTA_HOME ?? (process.env.HOME ? join(process.env.HOME, '.volta') : null)
+    if (!voltaHome) return null
+    const plaocPath = join(voltaHome, 'bin', 'plaoc')
+    if (!existsSync(plaocPath)) return null
+    try {
+      execSync(`${plaocPath} --version`, { stdio: 'ignore' })
+      return plaocPath
+    } catch {
+      return null
+    }
   }
 }
 
@@ -341,8 +350,9 @@ async function buildDweb() {
     // 运行 plaoc bundle 打包
     log.step('运行 Plaoc 打包')
     try {
-      if (commandExists('plaoc')) {
-        exec(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
+      const plaocBin = resolvePlaocBin()
+      if (plaocBin) {
+        exec(`${plaocBin} bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`)
         log.success('Plaoc 打包完成')
       } else {
         log.warn('Plaoc CLI 未安装，使用 dist-dweb 作为 dists 兜底')

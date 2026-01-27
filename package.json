@@ -1,7 +1,7 @@
 {
   "name": "@biochain/keyapp",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
@@ -143,6 +143,7 @@
     "@biochain/e2e-tools": "workspace:*",
     "@inquirer/prompts": "^8.0.2",
     "@playwright/test": "^1.57.0",
+    "@plaoc/cli": "^1.2.2",
     "@storybook/addon-docs": "^10.1.4",
     "@storybook/addon-vitest": "^10.1.4",
     "@storybook/react": "^10.1.4",
@@ -208,5 +209,5 @@
     "packages/*",
     "miniapps/*"
   ],
-  "lastChangelogCommit": "7cddd6e285c9bf0c16d7061521d7dc429bb808d7"
+  "lastChangelogCommit": "4ce13102056c2879f39fd47740c660628e193446"
 }
