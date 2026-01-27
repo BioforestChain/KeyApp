@@ -421,7 +421,15 @@ jobs:
               exit 1
             fi
             if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-              gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+              release_json=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG_NAME")
+              for file in "${release_files[@]}"; do
+                name=$(basename "$file")
+                asset_id=$(echo "$release_json" | jq -r --arg name "$name" '.assets[] | select(.name==$name) | .id')
+                if [ -n "$asset_id" ] && [ "$asset_id" != "null" ]; then
+                  gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$asset_id" || true
+                fi
+              done
+              gh release upload "$TAG_NAME" "${release_files[@]}"
             else
               gh release create "$TAG_NAME" \
                 --title "$RELEASE_TITLE" \
@@ -935,7 +943,15 @@ jobs:
               exit 1
             fi
             if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-              gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+              release_json=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG_NAME")
+              for file in "${release_files[@]}"; do
+                name=$(basename "$file")
+                asset_id=$(echo "$release_json" | jq -r --arg name "$name" '.assets[] | select(.name==$name) | .id')
+                if [ -n "$asset_id" ] && [ "$asset_id" != "null" ]; then
+                  gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$asset_id" || true
+                fi
+              done
+              gh release upload "$TAG_NAME" "${release_files[@]}"
             else
               gh release create "$TAG_NAME" \
                 --title "$RELEASE_TITLE" \
