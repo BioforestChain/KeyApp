@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "fields": [
+    {
+      "key": "SITE_ORIGIN",
+      "label": "KeyApp 站点 Origin",
+      "type": "url",
+      "required": true,
+      "targets": { "local": true, "github": "variable" },
+      "mask": "tail",
+      "description": "DWEB 自动更新使用的官网域名"
+    },
+    {
+      "key": "DWEB_SFTP_URL",
+      "label": "DWEB SFTP 地址",
+      "type": "url",
+      "required": false,
+      "targets": { "local": true, "github": "variable" },
+      "mask": "tail"
+    },
+    {
+      "key": "DWEB_SFTP_USER",
+      "label": "DWEB SFTP 用户名 (正式)",
+      "type": "string",
+      "required": true,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "tail"
+    },
+    {
+      "key": "DWEB_SFTP_PASS",
+      "label": "DWEB SFTP 密码 (正式)",
+      "type": "password",
+      "required": true,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "DWEB_SFTP_USER_DEV",
+      "label": "DWEB SFTP 用户名 (开发)",
+      "type": "string",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "tail"
+    },
+    {
+      "key": "DWEB_SFTP_PASS_DEV",
+      "label": "DWEB SFTP 密码 (开发)",
+      "type": "password",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "E2E_TEST_MNEMONIC",
+      "label": "E2E 测试助记词",
+      "type": "string",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "E2E_TEST_SECOND_SECRET",
+      "label": "E2E 安全密码",
+      "type": "password",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "TRONGRID_API_KEY",
+      "label": "TronGrid API Key",
+      "type": "password",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "ETHERSCAN_API_KEY",
+      "label": "Etherscan API Key",
+      "type": "password",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    },
+    {
+      "key": "MORALIS_API_KEY",
+      "label": "Moralis API Key",
+      "type": "password",
+      "required": false,
+      "targets": { "local": true, "github": "secret" },
+      "mask": "hidden"
+    }
+  ]
+}

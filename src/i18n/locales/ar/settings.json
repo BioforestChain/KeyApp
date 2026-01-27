@@ -101,6 +101,20 @@
     "walletManagement": "إدارة المحفظة",
     "miniappSources": "مصادر التطبيقات المصغرة الموثوقة"
   },
+  "update": {
+    "check": "التحقق من التحديثات",
+    "checking": "جارٍ التحقق...",
+    "available": "تحديث متاح",
+    "upToDate": "أحدث إصدار",
+    "failed": "فشل التحقق من التحديث",
+    "notChecked": "لم يتم التحقق",
+    "dwebRequired": "يتطلب بيئة DWEB",
+    "dialogTitle": "تحديث متاح",
+    "dialogDesc": "الإصدار الحالي {{current}}، الأحدث {{latest}}",
+    "changelogTitle": "سجل التغييرات",
+    "install": "تثبيت التحديث",
+    "later": "لاحقًا"
+  },
   "language": "اللغة",
   "languagePage": {
     "hint": "بعد اختيار لغة الواجهة، سيتحول التطبيق فوراً إلى اللغة المحددة.",

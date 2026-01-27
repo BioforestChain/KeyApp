@@ -2,23 +2,28 @@
 /**
  * BFM Pay 正式版发布脚本
  *
- * 交互式脚本，完整发布流程：
- * 1. 检查工作区状态
- * 2. 选择版本号（小版本/中版本/大版本/当前/自定义）
- * 3. 运行类型检查和测试
- * 4. 构建 Web 和 DWEB 版本
- * 5. 上传 DWEB 到正式服务器
- * 6. 更新 package.json 和 manifest.json
- * 7. 更新 CHANGELOG.md
- * 8. 提交变更
- * 9. 推送并手动触发 CI 发布（CI 创建 tag/release）
+ * 交互式脚本，完整发布流程（仅基于 origin/main）：
+ * 1. 创建 origin/main 的临时工作树
+ * 2. 检查工作区状态（必须干净且与 origin/main 一致）
+ * 3. 选择版本号（小版本/中版本/大版本/当前/自定义）
+ * 4. 运行类型检查和测试
+ * 5. 构建 Web 和 DWEB 版本
+ * 6. 上传 DWEB 到正式服务器
+ * 7. 更新 package.json 和 manifest.json
+ * 8. 更新 CHANGELOG.md
+ * 9. 提交变更
+ * 10. 推送并手动触发 CI 发布（CI 创建 tag/release）
+ *
+ * 可选参数:
+ *   --admin  当 main 受保护且无法直推时，用 PR + admin 合并兜底
  *
  * Usage:
  *   pnpm release
  */
 
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync, cpSync, rmSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, cpSync, rmSync, mkdtempSync, mkdirSync, symlinkSync, lstatSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { confirm, select, input } from '@inquirer/prompts'
 import semver from 'semver'
@@ -26,9 +31,8 @@ import semver from 'semver'
 // ==================== 配置 ====================
 
 const ROOT = resolve(import.meta.dirname, '..')
-const PACKAGE_JSON_PATH = join(ROOT, 'package.json')
-const MANIFEST_JSON_PATH = join(ROOT, 'manifest.json')
-const CHANGELOG_PATH = join(ROOT, 'CHANGELOG.md')
+let WORKDIR = ROOT
+const workPath = (...parts: string[]) => join(WORKDIR, ...parts)
 
 // 颜色输出
 const colors = {
@@ -50,12 +54,17 @@ const log = {
   step: (msg: string) => console.log(`\n${colors.cyan}▸${colors.reset} ${colors.cyan}${msg}${colors.reset}`),
 }
 
+const ADMIN_MODE = process.argv.includes('--admin')
+
 // ==================== 工具函数 ====================
 
-function exec(cmd: string, options?: { silent?: boolean; env?: Record<string, string> }): string {
+function exec(
+  cmd: string,
+  options?: { silent?: boolean; env?: Record<string, string>; cwd?: string },
+): string {
   try {
     const result = execSync(cmd, {
-      cwd: ROOT,
+      cwd: options?.cwd ?? WORKDIR,
       encoding: 'utf-8',
       stdio: options?.silent ? 'pipe' : 'inherit',
       env: { ...process.env, ...options?.env },
@@ -70,7 +79,7 @@ function exec(cmd: string, options?: { silent?: boolean; env?: Record<string, st
 }
 
 function execOutput(cmd: string): string {
-  return execSync(cmd, { cwd: ROOT, encoding: 'utf-8' }).trim()
+  return execSync(cmd, { cwd: WORKDIR, encoding: 'utf-8' }).trim()
 }
 
 function resolvePlaocBin(): string | null {
@@ -99,20 +108,45 @@ function writeJson(path: string, data: unknown) {
   writeFileSync(path, JSON.stringify(data, null, 2) + '\n')
 }
 
+function ensureNodeModules(workdir: string): void {
+  const localNodeModules = join(ROOT, 'node_modules')
+  const workdirNodeModules = join(workdir, 'node_modules')
+  if (existsSync(workdirNodeModules)) return
+  if (!existsSync(localNodeModules)) return
+  try {
+    symlinkSync(localNodeModules, workdirNodeModules, 'dir')
+  } catch {}
+}
+
+function prepareReleaseWorktree(): { path: string; cleanup: () => void } {
+  const parent = join(ROOT, '.git-worktree')
+  if (!existsSync(parent)) {
+    mkdirSync(parent, { recursive: true })
+  }
+  execSync('git fetch origin main --tags', { cwd: ROOT, stdio: 'inherit' })
+  const workdir = mkdtempSync(join(parent, 'release-'))
+  execSync(`git worktree add --detach "${workdir}" origin/main`, { cwd: ROOT, stdio: 'inherit' })
+  ensureNodeModules(workdir)
+  const cleanup = () => {
+    try {
+      execSync(`git worktree remove --force "${workdir}"`, { cwd: ROOT, stdio: 'inherit' })
+    } catch {
+      rmSync(workdir, { recursive: true, force: true })
+    }
+  }
+  return { path: workdir, cleanup }
+}
+
 // ==================== 检查函数 ====================
 
 async function checkWorkspace(): Promise<boolean> {
   log.step('检查工作区状态')
 
-  // 检查是否在 worktree 中
-  const cwd = process.cwd()
-  if (cwd.includes('.git-worktree')) {
-    if (process.env.ALLOW_WORKTREE_RELEASE === 'true') {
-      log.warn('检测到 worktree 环境，继续执行（ALLOW_WORKTREE_RELEASE=true）')
-    } else {
-      log.error('请在主目录中运行此脚本，不要在 worktree 中运行')
-      return false
-    }
+  const head = execOutput('git rev-parse HEAD')
+  const originMain = execOutput('git rev-parse origin/main')
+  if (head !== originMain) {
+    log.error('当前工作树不是 origin/main 最新提交，已终止')
+    return false
   }
 
   // 检查未提交的变更
@@ -120,33 +154,13 @@ async function checkWorkspace(): Promise<boolean> {
   if (status) {
     log.warn('检测到未提交的变更:')
     console.log(status)
-
-    const shouldContinue = await confirm({
-      message: '是否继续？（未提交的变更将被包含在发布中）',
-      default: false,
-    })
-
-    if (!shouldContinue) {
-      return false
-    }
+    log.error('发布必须基于干净的 origin/main')
+    return false
   } else {
     log.success('工作区干净')
   }
 
-  // 检查当前分支
-  const branch = execOutput('git branch --show-current')
-  if (branch !== 'main') {
-    log.warn(`当前分支: ${branch}（建议在 main 分支发布）`)
-    const shouldContinue = await confirm({
-      message: '是否继续？',
-      default: false,
-    })
-    if (!shouldContinue) {
-      return false
-    }
-  } else {
-    log.success(`当前分支: ${branch}`)
-  }
+  log.success('确认 origin/main 一致性')
 
   return true
 }
@@ -168,7 +182,7 @@ interface ManifestJson {
 async function selectVersion(): Promise<string> {
   log.step('选择版本号')
 
-  const pkg = readJson<PackageJson>(PACKAGE_JSON_PATH)
+  const pkg = readJson<PackageJson>(workPath('package.json'))
   const currentVersion = pkg.version
 
   console.log(`\n当前版本: ${colors.bold}${currentVersion}${colors.reset}\n`)
@@ -246,8 +260,8 @@ async function runBuild(): Promise<void> {
   })
 
   // 移动到 dist-web
-  const distDir = join(ROOT, 'dist')
-  const distWebDir = join(ROOT, 'dist-web')
+  const distDir = workPath('dist')
+  const distWebDir = workPath('dist-web')
   if (existsSync(distWebDir)) {
     rmSync(distWebDir, { recursive: true })
   }
@@ -262,7 +276,7 @@ async function runBuild(): Promise<void> {
   })
 
   // 移动到 dist-dweb
-  const distDwebDir = join(ROOT, 'dist-dweb')
+  const distDwebDir = workPath('dist-dweb')
   if (existsSync(distDwebDir)) {
     rmSync(distDwebDir, { recursive: true })
   }
@@ -272,7 +286,7 @@ async function runBuild(): Promise<void> {
   }
 
   log.step('运行 Plaoc 打包')
-  const distsDir = join(ROOT, 'dists')
+  const distsDir = workPath('dists')
   if (existsSync(distsDir)) {
     rmSync(distsDir, { recursive: true })
   }
@@ -325,18 +339,18 @@ function updateVersionFiles(version: string, changelog: string): void {
   log.step('更新版本文件')
 
   // 更新 package.json
-  const pkg = readJson<PackageJson>(PACKAGE_JSON_PATH)
+  const pkg = readJson<PackageJson>(workPath('package.json'))
   pkg.version = version
   pkg.lastChangelogCommit = execOutput('git rev-parse HEAD')
-  writeJson(PACKAGE_JSON_PATH, pkg)
+  writeJson(workPath('package.json'), pkg)
   log.success('更新 package.json')
 
   // 更新 manifest.json
-  if (existsSync(MANIFEST_JSON_PATH)) {
-    const manifest = readJson<ManifestJson>(MANIFEST_JSON_PATH)
+  if (existsSync(workPath('manifest.json'))) {
+    const manifest = readJson<ManifestJson>(workPath('manifest.json'))
     manifest.version = version
     manifest.change_log = changelog
-    writeJson(MANIFEST_JSON_PATH, manifest)
+    writeJson(workPath('manifest.json'), manifest)
     log.success('更新 manifest.json')
   }
 }
@@ -358,14 +372,14 @@ async function updateChangelog(version: string): Promise<string> {
 
   // 读取现有 CHANGELOG 或创建新的
   let existingContent = ''
-  if (existsSync(CHANGELOG_PATH)) {
-    existingContent = readFileSync(CHANGELOG_PATH, 'utf-8')
+  if (existsSync(workPath('CHANGELOG.md'))) {
+    existingContent = readFileSync(workPath('CHANGELOG.md'), 'utf-8')
     existingContent = existingContent.replace(/^# 更新日志\n+/, '')
     existingContent = existingContent.replace(/^# Changelog\n+/, '')
   }
 
   const newContent = `# 更新日志\n\n${content}${existingContent}`
-  writeFileSync(CHANGELOG_PATH, newContent)
+  writeFileSync(workPath('CHANGELOG.md'), newContent)
 
   log.success('更新 CHANGELOG.md')
   return summary
@@ -404,9 +418,33 @@ ${colors.yellow}推送后请在 GitHub Actions 手动触发 stable 发布:${colo
     return
   }
 
-  // 推送代码（受保护分支可能需要走 PR）
-  exec('git push origin HEAD')
-  log.success('推送代码')
+  try {
+    exec('git push origin HEAD:refs/heads/main')
+    log.success('推送到 origin/main')
+  } catch (error) {
+    if (!ADMIN_MODE) {
+      throw error
+    }
+    log.warn('直接推送 main 失败，尝试使用 --admin 走 PR 合并')
+    try {
+      execSync('gh --version', { stdio: 'ignore' })
+    } catch {
+      throw new Error('未检测到 gh CLI，无法使用 --admin')
+    }
+    const branch = `release/v${version}`
+    exec(`git checkout -b ${branch}`)
+    exec(`git push origin ${branch}`)
+    exec(
+      `gh pr create --base main --head ${branch} --title \"release: v${version}\" --body \"auto release\"`,
+      { cwd: WORKDIR },
+    )
+    const prNumber = exec(`gh pr view --head ${branch} --json number --jq .number`, {
+      cwd: WORKDIR,
+      silent: true,
+    })
+    exec(`gh pr merge ${prNumber} --admin --squash --delete-branch`, { cwd: WORKDIR })
+    log.success('已使用 --admin 合并到 main')
+  }
 
   console.log(`
 ${colors.green}GitHub Actions 将自动:${colors.reset}
@@ -429,24 +467,27 @@ ${colors.magenta}╔════════════════════
 ╚════════════════════════════════════════╝${colors.reset}
 `)
 
-  // 1. 检查工作区
-  const canContinue = await checkWorkspace()
-  if (!canContinue) {
-    log.info('发布已取消')
-    process.exit(0)
-  }
-
-  // 2. 选择版本号
-  let newVersion: string
+  const { path, cleanup } = prepareReleaseWorktree()
+  WORKDIR = path
   try {
-    newVersion = await selectVersion()
-  } catch (error) {
-    log.info('发布已取消')
-    process.exit(0)
-  }
+    // 1. 检查工作区
+    const canContinue = await checkWorkspace()
+    if (!canContinue) {
+      log.info('发布已取消')
+      return
+    }
 
-  // 3. 确认发布流程
-  console.log(`
+    // 2. 选择版本号
+    let newVersion: string
+    try {
+      newVersion = await selectVersion()
+    } catch (error) {
+      log.info('发布已取消')
+      return
+    }
+
+    // 3. 确认发布流程
+    console.log(`
 ${colors.cyan}发布流程:${colors.reset}
   1. 运行类型检查和测试
   2. 构建 Web 和 DWEB 版本
@@ -456,35 +497,35 @@ ${colors.cyan}发布流程:${colors.reset}
   6. 推送并手动触发 CI 发布（CI 创建 tag/release）
 `)
 
-  const confirmRelease = await confirm({
-    message: '确认开始发布流程？',
-    default: true,
-  })
+    const confirmRelease = await confirm({
+      message: '确认开始发布流程？',
+      default: true,
+    })
 
-  if (!confirmRelease) {
-    log.info('发布已取消')
-    process.exit(0)
-  }
+    if (!confirmRelease) {
+      log.info('发布已取消')
+      return
+    }
 
-  // 4. 运行构建
-  await runBuild()
+    // 4. 运行构建
+    await runBuild()
 
-  // 5. 上传 DWEB
-  await uploadDweb()
+    // 5. 上传 DWEB
+    await uploadDweb()
 
-  // 6. 更新 CHANGELOG
-  const changelog = await updateChangelog(newVersion)
+    // 6. 更新 CHANGELOG
+    const changelog = await updateChangelog(newVersion)
 
-  // 7. 更新版本文件
-  updateVersionFiles(newVersion, changelog)
+    // 7. 更新版本文件
+    updateVersionFiles(newVersion, changelog)
 
-  // 8. 提交变更
-  await commitRelease(newVersion)
+    // 8. 提交变更
+    await commitRelease(newVersion)
 
-  // 9. 推送
-  await pushAndTriggerCD(newVersion)
+    // 9. 推送
+    await pushAndTriggerCD(newVersion)
 
-  console.log(`
+    console.log(`
 ${colors.green}╔════════════════════════════════════════╗
 ║        发布完成！ v${newVersion.padEnd(20)}║
 ╚════════════════════════════════════════╝${colors.reset}
@@ -495,6 +536,9 @@ ${colors.blue}下一步:${colors.reset}
   - 发布完成后查看 Release: https://github.com/BioforestChain/KeyApp/releases
   - 访问 GitHub Pages: https://bioforestchain.github.io/KeyApp/
 `)
+  } finally {
+    cleanup()
+  }
 }
 
 main().catch((error) => {
