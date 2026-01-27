@@ -131,7 +131,7 @@ export function SettingsPage() {
   const handleCheckUpdate = async () => {
     const result = await dwebUpdateActions.check('manual');
     if (result.status === 'not-dweb') {
-      void toast.show(t('error:dwebEnvironmentRequired'));
+      void toast.show(t('error:crypto.dwebEnvironmentRequired'));
       return;
     }
     if (result.status === 'error') {
