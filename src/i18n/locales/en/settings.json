@@ -25,6 +25,20 @@
     "storage": "Storage",
     "miniappSources": "Miniapp Trusted Sources"
   },
+  "update": {
+    "check": "Check for updates",
+    "checking": "Checking...",
+    "available": "Update available",
+    "upToDate": "Up to date",
+    "failed": "Update check failed",
+    "notChecked": "Not checked",
+    "dwebRequired": "DWEB environment required",
+    "dialogTitle": "Update available",
+    "dialogDesc": "Current {{current}}, latest {{latest}}",
+    "changelogTitle": "Changelog",
+    "install": "Install update",
+    "later": "Later"
+  },
   "appearance": {
     "title": "Appearance",
     "system": "Follow System",

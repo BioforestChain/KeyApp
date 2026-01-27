@@ -101,6 +101,20 @@
     "walletManagement": "錢包管理",
     "miniappSources": "小程序可信源"
   },
+  "update": {
+    "check": "檢查更新",
+    "checking": "檢查中...",
+    "available": "發現新版本",
+    "upToDate": "已是最新版本",
+    "failed": "檢查更新失敗",
+    "notChecked": "未檢查",
+    "dwebRequired": "需要在 DWEB 環境中檢查",
+    "dialogTitle": "發現新版本",
+    "dialogDesc": "目前版本 {{current}}，最新版本 {{latest}}",
+    "changelogTitle": "更新說明",
+    "install": "立即升級",
+    "later": "稍後"
+  },
   "language": "語言",
   "languagePage": {
     "hint": "選擇介面語言後，應用程式將立即切換到所選語言。",

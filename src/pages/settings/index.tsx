@@ -16,6 +16,7 @@ import {
   IconLink as Link,
   IconInfoCircle as Info,
   IconDatabase as Database,
+  IconRefresh,
   IconWorld,
   IconIdBadge2,
 } from '@tabler/icons-react';
@@ -29,6 +30,8 @@ import {
   chainConfigSelectors,
   useUserProfile,
 } from '@/stores';
+import { useToast } from '@/services';
+import { dwebUpdateActions, useDwebUpdateState } from '@/stores/dweb-update';
 import { ContactAvatar } from '@/components/common/contact-avatar';
 import { SettingsItem } from './settings-item';
 import { SettingsSection } from './settings-section';
@@ -58,12 +61,14 @@ const CURRENCY_NAMES: Record<string, string> = {
 export function SettingsPage() {
   const { navigate } = useNavigation();
   const { push } = useFlow();
-  const { t } = useTranslation(['settings', 'common', 'security']);
+  const { t } = useTranslation(['settings', 'common', 'security', 'error']);
   const currentWallet = useCurrentWallet();
   const profile = useUserProfile();
   const currentLanguage = useLanguage();
   const currentCurrency = useCurrency();
   const currentTheme = useTheme();
+  const toast = useToast();
+  const dwebUpdateState = useDwebUpdateState();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
   const [twoStepSecretStatus, setTwoStepSecretStatus] = useState<'loading' | 'set' | 'not_set' | 'unavailable'>(
     'loading',
@@ -104,6 +109,38 @@ export function SettingsPage() {
 
   const getThemeDisplayName = () => {
     return t(`settings:appearance.${currentTheme}`);
+  };
+
+  const getUpdateStatusText = () => {
+    switch (dwebUpdateState.status) {
+      case 'checking':
+        return t('settings:update.checking');
+      case 'update-available':
+        return t('settings:update.available');
+      case 'up-to-date':
+        return t('settings:update.upToDate');
+      case 'error':
+        return t('settings:update.failed');
+      case 'not-dweb':
+        return t('settings:update.dwebRequired');
+      default:
+        return t('settings:update.notChecked');
+    }
+  };
+
+  const handleCheckUpdate = async () => {
+    const result = await dwebUpdateActions.check('manual');
+    if (result.status === 'not-dweb') {
+      void toast.show(t('error:crypto.dwebEnvironmentRequired'));
+      return;
+    }
+    if (result.status === 'error') {
+      void toast.show(t('settings:update.failed'));
+      return;
+    }
+    if (result.status === 'up-to-date') {
+      void toast.show(t('settings:update.upToDate'));
+    }
   };
 
   const getTwoStepSecretStatusText = () => {
@@ -293,6 +330,13 @@ export function SettingsPage() {
             onClick={() => {
               // TODO: 关于页面
             }}
+          />
+          <div className="bg-border mx-4 h-px" />
+          <SettingsItem
+            icon={<IconRefresh size={20} />}
+            label={t('settings:update.check')}
+            value={getUpdateStatusText()}
+            onClick={handleCheckUpdate}
           />
           <div className="bg-border mx-4 h-px" />
           <SettingsItem

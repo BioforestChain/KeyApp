@@ -113,6 +113,10 @@ export default defineConfig(({ mode }) => {
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
   const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
   const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'
+  const siteOrigin =
+    env.SITE_ORIGIN ??
+    process.env.SITE_ORIGIN ??
+    'https://bioforestchain.github.io/KeyApp/'
 
   const buildTime = new Date()
   const pad = (value: number) => value.toString().padStart(2, '0')
@@ -205,6 +209,8 @@ export default defineConfig(({ mode }) => {
       __DEV_MODE__: JSON.stringify((env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'),
       // App 版本号（stable=package.json，dev=追加 -MMDDHH，UTC）
       __APP_VERSION__: JSON.stringify(appVersion),
+      // KeyApp 官网 Origin（DWEB 升级检查使用）
+      __KEYAPP_SITE_ORIGIN__: JSON.stringify(siteOrigin),
       // 默认生态源列表（用于订阅源管理展示）
       __ECOSYSTEM_SOURCES__: JSON.stringify(ecosystemSources),
       // API Keys 对象（用于动态读取环境变量）
