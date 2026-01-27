@@ -422,14 +422,21 @@ jobs:
             fi
             if gh release view "$TAG_NAME" >/dev/null 2>&1; then
               release_json=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG_NAME")
+              upload_files=()
               for file in "${release_files[@]}"; do
                 name=$(basename "$file")
                 asset_id=$(echo "$release_json" | jq -r --arg name "$name" '.assets[] | select(.name==$name) | .id')
                 if [ -n "$asset_id" ] && [ "$asset_id" != "null" ]; then
-                  gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$asset_id" || true
+                  echo "Release asset exists, skip upload: $name"
+                  continue
                 fi
+                upload_files+=("$file")
               done
-              gh release upload "$TAG_NAME" "${release_files[@]}"
+              if [ "${#upload_files[@]}" -eq 0 ]; then
+                echo "All release assets already exist, skip upload"
+              else
+                gh release upload "$TAG_NAME" "${upload_files[@]}"
+              fi
             else
               gh release create "$TAG_NAME" \
                 --title "$RELEASE_TITLE" \
@@ -944,14 +951,21 @@ jobs:
             fi
             if gh release view "$TAG_NAME" >/dev/null 2>&1; then
               release_json=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG_NAME")
+              upload_files=()
               for file in "${release_files[@]}"; do
                 name=$(basename "$file")
                 asset_id=$(echo "$release_json" | jq -r --arg name "$name" '.assets[] | select(.name==$name) | .id')
                 if [ -n "$asset_id" ] && [ "$asset_id" != "null" ]; then
-                  gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$asset_id" || true
+                  echo "Release asset exists, skip upload: $name"
+                  continue
                 fi
+                upload_files+=("$file")
               done
-              gh release upload "$TAG_NAME" "${release_files[@]}"
+              if [ "${#upload_files[@]}" -eq 0 ]; then
+                echo "All release assets already exist, skip upload"
+              else
+                gh release upload "$TAG_NAME" "${upload_files[@]}"
+              fi
             else
               gh release create "$TAG_NAME" \
                 --title "$RELEASE_TITLE" \
