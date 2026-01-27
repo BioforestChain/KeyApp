@@ -420,14 +420,16 @@ jobs:
               echo "No release assets found"
               exit 1
             fi
-            gh release create "$TAG_NAME" \
-              --title "$RELEASE_TITLE" \
-              --notes "$RELEASE_NOTES" \
-              ${{ steps.channel.outputs.channel == 'beta' && '--prerelease' || '' }} \
-              --target ${{ github.sha }} \
-              "${release_files[@]}" \
-              2>/dev/null || \
-            gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+            if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+              gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+            else
+              gh release create "$TAG_NAME" \
+                --title "$RELEASE_TITLE" \
+                --notes "$RELEASE_NOTES" \
+                ${{ steps.channel.outputs.channel == 'beta' && '--prerelease' || '' }} \
+                --target ${{ github.sha }} \
+                "${release_files[@]}"
+            fi
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ steps.channel.outputs.channel == 'stable' && format('v{0}', steps.version.outputs.version) || 'beta' }}
@@ -932,14 +934,16 @@ jobs:
               echo "No release assets found"
               exit 1
             fi
-            gh release create "$TAG_NAME" \
-              --title "$RELEASE_TITLE" \
-              --notes "$RELEASE_NOTES" \
-              ${{ needs.build-standard.outputs.channel == 'beta' && '--prerelease' || '' }} \
-              --target ${{ github.sha }} \
-              "${release_files[@]}" \
-              2>/dev/null || \
-            gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+            if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+              gh release upload "$TAG_NAME" "${release_files[@]}" --clobber
+            else
+              gh release create "$TAG_NAME" \
+                --title "$RELEASE_TITLE" \
+                --notes "$RELEASE_NOTES" \
+                ${{ needs.build-standard.outputs.channel == 'beta' && '--prerelease' || '' }} \
+                --target ${{ github.sha }} \
+                "${release_files[@]}"
+            fi
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ needs.build-standard.outputs.channel == 'stable' && format('v{0}', needs.build-standard.outputs.version) || 'beta' }}
