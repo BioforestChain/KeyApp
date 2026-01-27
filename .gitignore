@@ -21,6 +21,10 @@ docs/public/webapp
 docs/public/webapp-dev
 docs/public/webapp-beta
 docs/public/webapp-alpha
+docs/public/dweb
+docs/public/dweb-dev
+docs/public/dweb-beta
+docs/public/dweb-alpha
 
 # dependencies
 node_modules

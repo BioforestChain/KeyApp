@@ -58,12 +58,21 @@ function copyDirContents(src: string, dest: string) {
   }
 }
 
-function commandExists(command: string): boolean {
+function resolvePlaocBin(): string | null {
   try {
-    execSync(`${command} --version`, { stdio: 'ignore' })
-    return true
+    execSync('plaoc --version', { stdio: 'ignore' })
+    return 'plaoc'
   } catch {
-    return false
+    const voltaHome = process.env.VOLTA_HOME ?? (process.env.HOME ? join(process.env.HOME, '.volta') : null)
+    if (!voltaHome) return null
+    const plaocPath = join(voltaHome, 'bin', 'plaoc')
+    if (!existsSync(plaocPath)) return null
+    try {
+      execSync(`${plaocPath} --version`, { stdio: 'ignore' })
+      return plaocPath
+    } catch {
+      return null
+    }
   }
 }
 
@@ -287,7 +296,8 @@ function ensureDwebBundle(): boolean {
     return false
   }
 
-  if (!commandExists('plaoc')) {
+  const plaocBin = resolvePlaocBin()
+  if (!plaocBin) {
     log.warn('plaoc CLI 未安装，无法生成 DWEB metadata.json')
     return false
   }
@@ -296,11 +306,21 @@ function ensureDwebBundle(): boolean {
     if (existsSync(DISTS_DIR)) {
       rmSync(DISTS_DIR, { recursive: true, force: true })
     }
-    execSync(`plaoc bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`, { cwd: ROOT, stdio: 'inherit' })
+    execSync(`${plaocBin} bundle "${DIST_DWEB_DIR}" -c ./ -o "${DISTS_DIR}"`, { cwd: ROOT, stdio: 'inherit' })
     return existsSync(metadataPath)
   } catch {
     return false
   }
+}
+
+function isPlaocMetadata(
+  metadata: { id?: string; server?: { root?: string }; bundle_url?: string },
+  channel: 'stable' | 'beta',
+): boolean {
+  if (!metadata?.server?.root) return false
+  if (!metadata?.bundle_url || !metadata.bundle_url.includes('.dweb-')) return false
+  if (channel === 'beta' && !String(metadata.id ?? '').startsWith('dev.')) return false
+  return true
 }
 
 async function prepareDwebAssets(channel: 'stable' | 'beta', outputDir: string, dwebPath: string): Promise<void> {
@@ -308,9 +328,28 @@ async function prepareDwebAssets(channel: 'stable' | 'beta', outputDir: string, 
   const logoFileName = 'logo-256.webp'
   const absoluteBaseUrl = resolveAbsoluteBaseUrl()
 
-  if (existsSync(outputDir) && existsSync(join(outputDir, 'metadata.json'))) {
-    log.info(`${channel} dweb 已存在，跳过`)
-    return
+  if (channel === 'beta') {
+    if (existsSync(outputDir)) {
+      rmSync(outputDir, { recursive: true, force: true })
+      log.info('beta dweb 强制刷新')
+    }
+  } else if (existsSync(outputDir)) {
+    const metadataPath = join(outputDir, 'metadata.json')
+    if (existsSync(metadataPath)) {
+      try {
+        const metadata = JSON.parse(readFileSync(metadataPath, 'utf-8')) as {
+          id?: string
+          server?: { root?: string }
+          bundle_url?: string
+        }
+        if (isPlaocMetadata(metadata, channel)) {
+          log.info(`${channel} dweb 已存在，跳过`)
+          return
+        }
+      } catch {
+        // fall through to regenerate
+      }
+    }
   }
 
   if (!existsSync(DIST_DWEB_DIR)) {
