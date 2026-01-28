@@ -189,7 +189,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
                 ...manifest,
                 dirName: s.dirName,
                 icon: resolveMiniappDevAsset(manifest.icon, s.dirName),
-                url: `./${s.dirName}/`,
+                url: `/miniapps/${s.dirName}/`,
                 screenshots: manifest.screenshots.map((sc) => resolveMiniappDevAsset(sc, s.dirName)),
                 runtime,
                 wujieConfig,
@@ -325,7 +325,7 @@ function resolveMiniappDevAsset(path: string, dirName: string): string {
     return path;
   }
   const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
-  return `./${dirName}/${normalized}`;
+  return `/miniapps/${dirName}/${normalized}`;
 }
 
 function prependMiddleware(
