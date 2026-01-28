@@ -156,9 +156,13 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           }
 
           const originalUrl = req.url;
-          req.url = url.slice(route.prefix.length);
+          const originalOriginalUrl = (req as IncomingMessage & { originalUrl?: string }).originalUrl;
+          const nextUrl = url.slice(route.prefix.length);
+          req.url = nextUrl;
+          (req as IncomingMessage & { originalUrl?: string }).originalUrl = nextUrl;
           route.miniapp.server.middlewares(req, res, (err) => {
             req.url = originalUrl;
+            (req as IncomingMessage & { originalUrl?: string }).originalUrl = originalOriginalUrl;
             if (err) {
               next(err);
               return;
