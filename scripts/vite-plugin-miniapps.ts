@@ -136,11 +136,11 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
         }),
       );
 
-      // 同源代理：/miniapps/{dirName}/ -> miniapp dev server
+      // 同源代理：/miniapp(s)/{dirName}/ -> miniapp dev server
       const proxyRoutes: Array<{ prefix: string; miniapp: MiniappServer }> = [];
       for (const miniapp of miniappServers) {
+        proxyRoutes.push({ prefix: `/miniapp/${miniapp.dirName}`, miniapp });
         proxyRoutes.push({ prefix: `/miniapps/${miniapp.dirName}`, miniapp });
-        proxyRoutes.push({ prefix: `/${miniapp.dirName}`, miniapp });
       }
       const proxyMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
         const url = req.url ?? '';
@@ -185,7 +185,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
                 ...manifest,
                 dirName: s.dirName,
                 icon: resolveMiniappDevAsset(manifest.icon, s.dirName),
-                url: `./${s.dirName}/`,
+                url: `./miniapp/${s.dirName}/`,
                 screenshots: manifest.screenshots.map((sc) => resolveMiniappDevAsset(sc, s.dirName)),
                 runtime,
                 wujieConfig,
@@ -212,9 +212,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       const ecosystemData = await generateEcosystem();
       let ecosystemCache = JSON.stringify(ecosystemData, null, 2);
 
-      // 拦截 /miniapps/ecosystem.json 请求
+      // 拦截 /miniapp(s)/ecosystem.json 请求
       server.middlewares.use((req, res, next) => {
-        if (req.url === '/miniapps/ecosystem.json') {
+        if (req.url === '/miniapps/ecosystem.json' || req.url === '/miniapp/ecosystem.json') {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.end(ecosystemCache);
@@ -321,7 +321,7 @@ function resolveMiniappDevAsset(path: string, dirName: string): string {
     return path;
   }
   const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
-  return `./${dirName}/${normalized}`;
+  return `./miniapp/${dirName}/${normalized}`;
 }
 
 function prependMiddleware(
