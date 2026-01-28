@@ -69,7 +69,6 @@ interface MiniappServer {
   dirName: string;
   port: number;
   server: ViteDevServer;
-  baseUrl: string;
 }
 
 interface MiniappsPluginOptions {
@@ -130,12 +129,41 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             dirName: manifest.dirName,
             port,
             server: miniappServer,
-            baseUrl: `https://localhost:${port}`,
           });
 
           console.log(`[miniapps] ${manifest.name} (${manifest.id}) started at https://localhost:${port}`);
         }),
       );
+
+      // 同源代理：/miniapps/{dirName}/ -> miniapp dev server
+      for (const miniapp of miniappServers) {
+        const prefix = `/miniapps/${miniapp.dirName}`;
+        server.middlewares.use((req, res, next) => {
+          const url = req.url ?? '';
+          if (url === prefix) {
+            res.statusCode = 302;
+            res.setHeader('Location', `${prefix}/`);
+            res.end();
+            return;
+          }
+          if (!url.startsWith(`${prefix}/`)) {
+            next();
+            return;
+          }
+
+          const originalUrl = req.url;
+          req.url = url.slice(prefix.length);
+          miniapp.server.middlewares(req, res, (err) => {
+            req.url = originalUrl;
+            if (err) {
+              next(err);
+              return;
+            }
+            if (res.writableEnded || res.headersSent) return;
+            next();
+          });
+        });
+      }
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
@@ -148,9 +176,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
               return {
                 ...manifest,
                 dirName: s.dirName,
-                icon: new URL(manifest.icon, s.baseUrl).href,
-                url: new URL('/', s.baseUrl).href,
-                screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
+                icon: resolveMiniappDevAsset(manifest.icon, s.dirName),
+                url: `./${s.dirName}/`,
+                screenshots: manifest.screenshots.map((sc) => resolveMiniappDevAsset(sc, s.dirName)),
                 runtime,
                 wujieConfig,
               };
@@ -278,6 +306,14 @@ function scanScreenshots(root: string, shortId: string): string[] {
     .filter((f) => f.startsWith(`${shortId}-`) && f.endsWith('.png'))
     .slice(0, 2)
     .map((f) => `screenshots/${f}`);
+}
+
+function resolveMiniappDevAsset(path: string, dirName: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
+  return `./${dirName}/${normalized}`;
 }
 
 function generateEcosystemDataForBuild(
