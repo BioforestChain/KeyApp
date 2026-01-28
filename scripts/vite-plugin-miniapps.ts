@@ -136,8 +136,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       );
 
       // 同源代理：/miniapps/{dirName}/ -> miniapp dev server
-      for (const miniapp of miniappServers) {
-        const prefix = `/miniapps/${miniapp.dirName}`;
+      const registerMiniappProxy = (miniapp: MiniappServer, prefix: string) => {
         server.middlewares.use((req, res, next) => {
           const url = req.url ?? '';
           if (url === prefix) {
@@ -163,6 +162,11 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             next();
           });
         });
+      };
+
+      for (const miniapp of miniappServers) {
+        registerMiniappProxy(miniapp, `/miniapps/${miniapp.dirName}`);
+        registerMiniappProxy(miniapp, `/${miniapp.dirName}`);
       }
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
