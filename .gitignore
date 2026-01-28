@@ -5,6 +5,7 @@ dist/
 dists/
 dist-web/
 dist-dweb/
+public/miniapps/
 tmp/
 .tmp/
 .chat/

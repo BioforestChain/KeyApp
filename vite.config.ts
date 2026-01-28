@@ -159,6 +159,7 @@ export default defineConfig(({ mode }) => {
         retries: 3,
       }),
       miniappsPlugin({
+        devMode: 'build',
         apps: {
           'xin.dweb.teleport': {
             server: 'iframe',
