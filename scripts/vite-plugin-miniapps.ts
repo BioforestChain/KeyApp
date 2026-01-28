@@ -171,7 +171,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
               }
               const body = Buffer.concat(chunks).toString('utf-8');
               const rewritten = rewriteMiniappBody(body, route.prefix);
-              res.setHeader('Content-Length', Buffer.byteLength(rewritten));
+              if (!res.headersSent) {
+                res.setHeader('Content-Length', Buffer.byteLength(rewritten));
+              }
               return originalEnd(rewritten);
             }) as typeof res.end;
           }
