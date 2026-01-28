@@ -8,7 +8,7 @@
 
 import { createServer, build as viteBuild, type Plugin, type ViteDevServer } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { resolve, join } from 'node:path';
+import { resolve, join, basename } from 'node:path';
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import detectPort from 'detect-port';
 import https from 'node:https';
@@ -153,6 +153,27 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           }
           if (!url.startsWith(`${route.prefix}/`)) {
             continue;
+          }
+
+          const shouldRewrite = shouldRewriteHtml(url, req);
+          if (shouldRewrite) {
+            const originalEnd = res.end.bind(res);
+            const chunks: Buffer[] = [];
+
+            res.write = ((chunk: Buffer | string) => {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+              return true;
+            }) as typeof res.write;
+
+            res.end = ((chunk?: Buffer | string) => {
+              if (chunk) {
+                chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+              }
+              const body = Buffer.concat(chunks).toString('utf-8');
+              const rewritten = rewriteMiniappHtml(body, route.prefix);
+              res.setHeader('Content-Length', Buffer.byteLength(rewritten));
+              return originalEnd(rewritten);
+            }) as typeof res.end;
           }
 
           const originalUrl = req.url;
@@ -326,6 +347,27 @@ function resolveMiniappDevAsset(path: string, dirName: string): string {
   }
   const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
   return `/miniapps/${dirName}/${normalized}`;
+}
+
+function shouldRewriteHtml(url: string, req: IncomingMessage): boolean {
+  if (url.endsWith('/') || url.endsWith('.html')) return true;
+  const accept = req.headers.accept ?? '';
+  return accept.includes('text/html');
+}
+
+function rewriteMiniappHtml(html: string, prefix: string): string {
+  const replacements: Array<[RegExp, string]> = [
+    [/(['"])\/@/g, `$1${prefix}/@`],
+    [/(['"])\/src\//g, `$1${prefix}/src/`],
+    [/(['"])\/node_modules\//g, `$1${prefix}/node_modules/`],
+    [/(['"])\/@fs\//g, `$1${prefix}/@fs/`],
+  ];
+
+  let output = html;
+  for (const [pattern, replacement] of replacements) {
+    output = output.replace(pattern, replacement);
+  }
+  return output;
 }
 
 function prependMiddleware(
