@@ -155,8 +155,8 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             continue;
           }
 
-          const shouldRewrite = shouldRewriteHtml(url, req);
-          if (shouldRewrite) {
+          const rewriteMode = getRewriteMode(url, req);
+          if (rewriteMode) {
             const originalEnd = res.end.bind(res);
             const chunks: Buffer[] = [];
 
@@ -170,7 +170,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
                 chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
               }
               const body = Buffer.concat(chunks).toString('utf-8');
-              const rewritten = rewriteMiniappHtml(body, route.prefix);
+              const rewritten = rewriteMiniappBody(body, route.prefix);
               res.setHeader('Content-Length', Buffer.byteLength(rewritten));
               return originalEnd(rewritten);
             }) as typeof res.end;
@@ -349,21 +349,38 @@ function resolveMiniappDevAsset(path: string, dirName: string): string {
   return `/miniapps/${dirName}/${normalized}`;
 }
 
-function shouldRewriteHtml(url: string, req: IncomingMessage): boolean {
-  if (url.endsWith('/') || url.endsWith('.html')) return true;
+function getRewriteMode(url: string, req: IncomingMessage): 'html' | 'js' | null {
   const accept = req.headers.accept ?? '';
-  return accept.includes('text/html');
+  const path = url.split('?', 1)[0] ?? '';
+
+  if (path.endsWith('/') || path.endsWith('.html') || accept.includes('text/html')) {
+    return 'html';
+  }
+
+  if (
+    path.includes('/@') ||
+    path.includes('/@id/') ||
+    path.endsWith('.js') ||
+    path.endsWith('.ts') ||
+    path.endsWith('.tsx') ||
+    path.endsWith('.jsx')
+  ) {
+    return 'js';
+  }
+
+  return null;
 }
 
-function rewriteMiniappHtml(html: string, prefix: string): string {
+function rewriteMiniappBody(body: string, prefix: string): string {
   const replacements: Array<[RegExp, string]> = [
     [/(['"])\/@/g, `$1${prefix}/@`],
+    [/(['"])\/@id\//g, `$1${prefix}/@id/`],
     [/(['"])\/src\//g, `$1${prefix}/src/`],
     [/(['"])\/node_modules\//g, `$1${prefix}/node_modules/`],
     [/(['"])\/@fs\//g, `$1${prefix}/@fs/`],
   ];
 
-  let output = html;
+  let output = body;
   for (const [pattern, replacement] of replacements) {
     output = output.replace(pattern, replacement);
   }
