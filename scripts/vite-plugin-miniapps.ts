@@ -172,6 +172,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
               const body = Buffer.concat(chunks).toString('utf-8');
               const rewritten = rewriteMiniappBody(body, route.prefix);
               if (!res.headersSent) {
+                res.removeHeader('Content-Encoding');
+              }
+              if (!res.headersSent) {
                 res.setHeader('Content-Length', Buffer.byteLength(rewritten));
               }
               return originalEnd(rewritten);
@@ -180,12 +183,19 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
           const originalUrl = req.url;
           const originalOriginalUrl = (req as IncomingMessage & { originalUrl?: string }).originalUrl;
+          const originalAcceptEncoding = req.headers['accept-encoding'];
+          req.headers['accept-encoding'] = 'identity';
           const nextUrl = url.slice(route.prefix.length);
           req.url = nextUrl;
           (req as IncomingMessage & { originalUrl?: string }).originalUrl = nextUrl;
           route.miniapp.server.middlewares(req, res, (err) => {
             req.url = originalUrl;
             (req as IncomingMessage & { originalUrl?: string }).originalUrl = originalOriginalUrl;
+            if (originalAcceptEncoding) {
+              req.headers['accept-encoding'] = originalAcceptEncoding;
+            } else {
+              delete req.headers['accept-encoding'];
+            }
             if (err) {
               next(err);
               return;
