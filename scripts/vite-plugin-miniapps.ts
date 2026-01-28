@@ -140,7 +140,6 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       const proxyRoutes: Array<{ prefix: string; miniapp: MiniappServer }> = [];
       for (const miniapp of miniappServers) {
         proxyRoutes.push({ prefix: `/miniapps/${miniapp.dirName}`, miniapp });
-        proxyRoutes.push({ prefix: `/${miniapp.dirName}`, miniapp });
       }
       const proxyMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
         const url = req.url ?? '';
@@ -185,7 +184,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
           const originalOriginalUrl = (req as IncomingMessage & { originalUrl?: string }).originalUrl;
           const originalAcceptEncoding = req.headers['accept-encoding'];
           req.headers['accept-encoding'] = 'identity';
-          const nextUrl = url.slice(route.prefix.length);
+          const nextUrl = url.slice(route.prefix.length) || '/';
           req.url = nextUrl;
           (req as IncomingMessage & { originalUrl?: string }).originalUrl = nextUrl;
           route.miniapp.server.middlewares(req, res, (err) => {
