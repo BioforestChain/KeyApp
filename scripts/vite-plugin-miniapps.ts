@@ -7,6 +7,7 @@
  */
 
 import { createServer, build as viteBuild, type Plugin, type ViteDevServer } from 'vite';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve, join } from 'node:path';
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import detectPort from 'detect-port';
@@ -136,23 +137,27 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       );
 
       // 同源代理：/miniapps/{dirName}/ -> miniapp dev server
-      const registerMiniappProxy = (miniapp: MiniappServer, prefix: string) => {
-        server.middlewares.use((req, res, next) => {
-          const url = req.url ?? '';
-          if (url === prefix) {
+      const proxyRoutes: Array<{ prefix: string; miniapp: MiniappServer }> = [];
+      for (const miniapp of miniappServers) {
+        proxyRoutes.push({ prefix: `/miniapps/${miniapp.dirName}`, miniapp });
+        proxyRoutes.push({ prefix: `/${miniapp.dirName}`, miniapp });
+      }
+      const proxyMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
+        const url = req.url ?? '';
+        for (const route of proxyRoutes) {
+          if (url === route.prefix) {
             res.statusCode = 302;
-            res.setHeader('Location', `${prefix}/`);
+            res.setHeader('Location', `${route.prefix}/`);
             res.end();
             return;
           }
-          if (!url.startsWith(`${prefix}/`)) {
-            next();
-            return;
+          if (!url.startsWith(`${route.prefix}/`)) {
+            continue;
           }
 
           const originalUrl = req.url;
-          req.url = url.slice(prefix.length);
-          miniapp.server.middlewares(req, res, (err) => {
+          req.url = url.slice(route.prefix.length);
+          route.miniapp.server.middlewares(req, res, (err) => {
             req.url = originalUrl;
             if (err) {
               next(err);
@@ -161,13 +166,12 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             if (res.writableEnded || res.headersSent) return;
             next();
           });
-        });
+          return;
+        }
+        next();
       };
 
-      for (const miniapp of miniappServers) {
-        registerMiniappProxy(miniapp, `/miniapps/${miniapp.dirName}`);
-        registerMiniappProxy(miniapp, `/${miniapp.dirName}`);
-      }
+      prependMiddleware(server, proxyMiddleware);
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
@@ -318,6 +322,22 @@ function resolveMiniappDevAsset(path: string, dirName: string): string {
   }
   const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
   return `./${dirName}/${normalized}`;
+}
+
+function prependMiddleware(
+  server: ViteDevServer,
+  middleware: (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void,
+): void {
+  const stack = (
+    server.middlewares as {
+      stack?: Array<{ route: string; handle: typeof middleware }>;
+    }
+  ).stack;
+  if (stack) {
+    stack.unshift({ route: '', handle: middleware });
+    return;
+  }
+  server.middlewares.use(middleware);
 }
 
 function generateEcosystemDataForBuild(
