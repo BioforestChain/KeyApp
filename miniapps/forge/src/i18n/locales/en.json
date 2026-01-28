@@ -25,6 +25,7 @@
     "continue": "Continue",
     "amountHint": "Amount is in {{symbol}}",
     "decimalsHint": "Token decimals: {{decimals}}",
+    "decimalsFallback": "default",
     "contractHint": "Contract: {{address}}"
   },
   "redemption": {
@@ -75,6 +76,7 @@
     "sdkNotInit": "Bio SDK not initialized",
     "connectionFailed": "Connection failed",
     "invalidAmount": "Please enter a valid amount",
+    "missingDecimals": "Missing token decimals configuration",
     "forgeFailed": "Operation failed"
   },
   "picker": {

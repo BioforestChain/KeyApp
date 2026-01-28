@@ -82,10 +82,10 @@ function getPreferredLanIPv4(): string | undefined {
 
 function getPackageVersion(): string {
   try {
-    const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as { version?: string }
-    return pkg.version ?? '0.0.0'
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as { version?: string };
+    return pkg.version ?? '0.0.0';
   } catch {
-    return '0.0.0'
+    return '0.0.0';
   }
 }
 
@@ -112,16 +112,13 @@ export default defineConfig(({ mode }) => {
   const tronGridApiKey = env.TRONGRID_API_KEY ?? process.env.TRONGRID_API_KEY ?? '';
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
   const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
-  const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true'
-  const siteOrigin =
-    env.SITE_ORIGIN ??
-    process.env.SITE_ORIGIN ??
-    'https://bioforestchain.github.io/KeyApp/'
+  const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true';
+  const siteOrigin = env.SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? 'https://bioforestchain.github.io/KeyApp/';
 
-  const buildTime = new Date()
-  const pad = (value: number) => value.toString().padStart(2, '0')
-  const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`
-  const appVersion = `${getPackageVersion()}${isDevBuild ? buildSuffix : ''}`
+  const buildTime = new Date();
+  const pad = (value: number) => value.toString().padStart(2, '0');
+  const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`;
+  const appVersion = `${getPackageVersion()}${isDevBuild ? buildSuffix : ''}`;
 
   return {
     base: BASE_URL,
@@ -162,14 +159,15 @@ export default defineConfig(({ mode }) => {
         retries: 3,
       }),
       miniappsPlugin({
+        devMode: 'build',
         apps: {
           'xin.dweb.teleport': {
-            server: 'wujie',
-            build: 'wujie',
+            server: 'iframe',
+            build: 'iframe',
           },
           'xin.dweb.biobridge': {
-            server: 'wujie',
-            build: 'wujie',
+            server: 'iframe',
+            build: 'iframe',
           },
         },
         remoteMiniapps: remoteMiniappsConfig,

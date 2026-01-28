@@ -12,7 +12,7 @@ const externalAssetInfoItemSchema = z.object({
   depositAddress: z.string(),
   assetType: z.string(),
   logo: z.string().optional(),
-  decimals: z.number().optional(),
+  decimals: z.coerce.number().optional(),
 }).passthrough()
 
 const redemptionConfigSchema = z.object({

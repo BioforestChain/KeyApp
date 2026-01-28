@@ -10153,6 +10153,7 @@
         "npm:@noble/secp256k1@3",
         "npm:@number-flow/react@~0.5.10",
         "npm:@plaoc/cli@^1.2.2",
+        "npm:@plaoc/is-dweb@~0.1.2",
         "npm:@plaoc/plugins@^1.1.9",
         "npm:@playwright/test@^1.57.0",
         "npm:@radix-ui/react-avatar@^1.1.11",

@@ -25,6 +25,7 @@
     "continue": "继续",
     "amountHint": "数量单位：{{symbol}}",
     "decimalsHint": "精度：{{decimals}} 位",
+    "decimalsFallback": "默认",
     "contractHint": "合约：{{address}}"
   },
   "redemption": {
@@ -75,6 +76,7 @@
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "连接失败",
     "invalidAmount": "请输入有效金额",
+    "missingDecimals": "缺少资产精度配置",
     "forgeFailed": "操作失败"
   },
   "picker": {

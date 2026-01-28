@@ -5,6 +5,7 @@
  * - Web 环境：使用 AES-GCM 密码加密 + localStorage
  */
 
+import { isDweb } from '@plaoc/is-dweb';
 import { encrypt, decrypt, type EncryptedData } from './encryption';
 import i18n from '@/i18n';
 
@@ -47,7 +48,11 @@ export interface StoredData {
 
 /** 检测是否在 DWEB 环境 */
 export function isDwebEnvironment(): boolean {
-  return typeof window !== 'undefined' && 'dwebTarget' in window;
+  try {
+    return isDweb();
+  } catch {
+    return false;
+  }
 }
 
 /** DWEB biometric 插件类型 */

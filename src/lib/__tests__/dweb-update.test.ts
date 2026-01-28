@@ -11,7 +11,10 @@ function stubGlobals() {
   vi.stubGlobal('__KEYAPP_SITE_ORIGIN__', 'https://example.com/KeyApp/')
   vi.stubGlobal('__DEV_MODE__', false)
   vi.stubGlobal('__APP_VERSION__', '1.2.3')
-  Object.defineProperty(window, 'dwebTarget', { value: true, configurable: true })
+  Object.defineProperty(window, '__native_close_watcher_kit__', {
+    value: {},
+    configurable: true,
+  })
 }
 
 describe('dweb update', () => {

@@ -77,6 +77,9 @@ importers:
       '@number-flow/react':
         specifier: ^0.5.10
         version: 0.5.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@plaoc/is-dweb':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@plaoc/plugins':
         specifier: ^1.1.9
         version: 1.1.9(typescript@5.9.3)
@@ -1626,6 +1629,9 @@ packages:
   '@dweb-browser/js-process@0.4.7':
     resolution: {integrity: sha512-XUBSPxcgpKjjEibIo1f7f5RWH4VqYW9M4RunUSVIsI64ENk4FjG7AjeD27FBikwbuku+rmTWzgH3wQyNDDnEyg==}
 
+  '@dweb-browser/polyfill@0.0.8':
+    resolution: {integrity: sha512-OhjyCJiaOKFTmUoRBugn+bcmjZqKSek6WesB/2vASnPMTODpyqKLQ6uUguGuYb9mAC64lwi0P7eoCJmRyzQ6Jw==}
+
   '@dweb-browser/polyfill@0.0.9':
     resolution: {integrity: sha512-1siZWAvzXMVZ5z6TmFPCSYXHTNTu5qmZv5UR0QSlujXuQr93I+BX6bhyu2FG4pCqqkoE3OAVlQ15D9Nj+beS4g==}
 
@@ -2876,6 +2882,9 @@ packages:
   '@plaoc/cli@1.2.2':
     resolution: {integrity: sha512-4txWq8sytf6HCNt+ryWJzjhXVtNMrckdO/sBb2Xd3MbHPBMo1rvRIvVy0FCkPHe8cODF60SF9W/tovAFyYSuVw==}
     hasBin: true
+
+  '@plaoc/is-dweb@0.1.2':
+    resolution: {integrity: sha512-H2QdJVjOVhnE75mTq5vQQYVLZzqDFHoPUVtMnJRGpFCgjkTA36mswo3St9kxnAZlAMJziDckMbu6+/1daXn87Q==}
 
   '@plaoc/plugins@1.1.9':
     resolution: {integrity: sha512-TnFNddIYsX0myjhhNVRR+HZS415CPnw0Xe4ipyP0ICUm94dleGZodJTDAPkgsKZi085gI7dlSXp8hYsNI3TIhw==}
@@ -9537,6 +9546,8 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
+  '@dweb-browser/polyfill@0.0.8': {}
+
   '@dweb-browser/polyfill@0.0.9': {}
 
   '@dweb-browser/svg-wasm@0.9.0': {}
@@ -10787,6 +10798,10 @@ snapshots:
       - tslib
       - typescript
       - utf-8-validate
+
+  '@plaoc/is-dweb@0.1.2':
+    dependencies:
+      '@dweb-browser/polyfill': 0.0.8
 
   '@plaoc/plugins@1.1.9(typescript@5.9.3)':
     dependencies:
