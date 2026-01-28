@@ -7,10 +7,13 @@
  */
 
 import { createServer, build as viteBuild, type Plugin, type ViteDevServer } from 'vite';
-import { resolve, join } from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { resolve, join, basename } from 'node:path';
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import detectPort from 'detect-port';
 import https from 'node:https';
+import type { RollupWatcher } from 'rollup';
+import sirv from 'sirv';
 import { getRemoteMiniappsForEcosystem, type RemoteMiniappConfig } from './vite-plugin-remote-miniapps';
 import type { WujieRuntimeConfig } from '../src/services/ecosystem/types';
 
@@ -22,6 +25,8 @@ interface MiniappRuntimeConfig {
   server?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig };
   build?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig };
 }
+
+type MiniappDevMode = 'proxy' | 'build';
 
 function parseRuntimeConfig(config?: MiniappRuntime | { runtime: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }): {
   runtime: MiniappRuntime;
@@ -69,23 +74,27 @@ interface MiniappServer {
   dirName: string;
   port: number;
   server: ViteDevServer;
-  baseUrl: string;
 }
 
 interface MiniappsPluginOptions {
   miniappsDir?: string;
   apps?: Record<string, MiniappRuntimeConfig>;
   remoteMiniapps?: RemoteMiniappConfig[];
+  devMode?: MiniappDevMode;
 }
 
 // ==================== Plugin ====================
 
 export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
-  const { miniappsDir = 'miniapps', apps = {}, remoteMiniapps = [] } = options;
+  const { miniappsDir = 'miniapps', apps = {}, remoteMiniapps = [], devMode } = options;
+  const resolvedDevMode: MiniappDevMode =
+    devMode ?? (process.env.MINIAPPS_DEV_MODE === 'build' ? 'build' : 'proxy');
 
   let root: string;
   let isBuild = false;
   const miniappServers: MiniappServer[] = [];
+  const miniappBuildWatchers: RollupWatcher[] = [];
+  let miniappsDevDistDir: string | null = null;
 
   return {
     name: 'vite-plugin-miniapps',
@@ -112,6 +121,85 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
       const miniappsPath = resolve(root, miniappsDir);
       const manifests = scanMiniapps(miniappsPath);
 
+      if (resolvedDevMode === 'build') {
+        miniappsDevDistDir = resolve(root, 'public', 'miniapps');
+        mkdirSync(miniappsDevDistDir, { recursive: true });
+
+        await Promise.all(
+          manifests.map(async (manifest) => {
+            const miniappPath = join(miniappsPath, manifest.dirName);
+            const outputDir = resolve(miniappsDevDistDir!, manifest.dirName);
+            const result = await viteBuild({
+              root: miniappPath,
+              configFile: join(miniappPath, 'vite.config.ts'),
+              base: './',
+              build: {
+                outDir: outputDir,
+                emptyOutDir: true,
+                watch: {},
+                minify: false,
+                sourcemap: true,
+              },
+              logLevel: 'warn',
+            });
+
+            if (result && typeof (result as RollupWatcher).on === 'function') {
+              miniappBuildWatchers.push(result as RollupWatcher);
+            }
+
+            console.log(`[miniapps] ${manifest.name} built (watch mode)`);
+          }),
+        );
+
+        server.middlewares.use(
+          '/miniapps',
+          sirv(miniappsDevDistDir, {
+            dev: true,
+            single: false,
+          }),
+        );
+
+        const localApps = manifests.map((manifest) => {
+          const appConfig = apps[manifest.id];
+          const { runtime, wujieConfig } = parseRuntimeConfig(appConfig?.server);
+          return {
+            ...manifest,
+            dirName: manifest.dirName,
+            icon: resolveMiniappDevAsset(manifest.icon, manifest.dirName),
+            url: `/miniapps/${manifest.dirName}/`,
+            screenshots: manifest.screenshots.map((sc) => resolveMiniappDevAsset(sc, manifest.dirName)),
+            runtime,
+            wujieConfig,
+          };
+        });
+
+        const remoteApps = getRemoteMiniappsForEcosystem();
+        const ecosystemData: EcosystemJson = {
+          name: 'Bio 官方生态',
+          version: '1.0.0',
+          updated: new Date().toISOString().split('T')[0],
+          icon: '/logos/logo-256.webp',
+          apps: [...localApps, ...remoteApps],
+        };
+        const ecosystemCache = JSON.stringify(ecosystemData, null, 2);
+
+        server.middlewares.use((req, res, next) => {
+          if (req.url === '/miniapps/ecosystem.json') {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.end(ecosystemCache);
+            return;
+          }
+          next();
+        });
+
+        const cleanup = async () => {
+          await Promise.all(miniappBuildWatchers.map((watcher) => watcher.close()));
+        };
+        server.httpServer?.on('close', cleanup);
+        return;
+      }
+
       // 预分配端口
       const portAssignments: Array<{ manifest: MiniappManifest; port: number }> = [];
       for (const manifest of manifests) {
@@ -130,12 +218,37 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
             dirName: manifest.dirName,
             port,
             server: miniappServer,
-            baseUrl: `https://localhost:${port}`,
           });
 
           console.log(`[miniapps] ${manifest.name} (${manifest.id}) started at https://localhost:${port}`);
         }),
       );
+
+      // 同源代理：/miniapps/{dirName}/ -> miniapp dev server
+      const proxyRoutes: Array<{ prefix: string; miniapp: MiniappServer }> = [];
+      for (const miniapp of miniappServers) {
+        proxyRoutes.push({ prefix: `/miniapps/${miniapp.dirName}`, miniapp });
+      }
+      const proxyMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
+        const url = req.url ?? '';
+        for (const route of proxyRoutes) {
+          if (url === route.prefix) {
+            res.statusCode = 302;
+            res.setHeader('Location', `${route.prefix}/`);
+            res.end();
+            return;
+          }
+          if (!url.startsWith(`${route.prefix}/`)) {
+            continue;
+          }
+          const nextUrl = url.slice(route.prefix.length) || '/';
+          void proxyMiniappRequest(req, res, route, nextUrl).catch(next);
+          return;
+        }
+        next();
+      };
+
+      prependMiddleware(server, proxyMiddleware);
 
       // 等待所有 miniapp 启动后，fetch 各自的 /manifest.json 生成 ecosystem
       const generateEcosystem = async (): Promise<EcosystemJson> => {
@@ -148,9 +261,9 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
               return {
                 ...manifest,
                 dirName: s.dirName,
-                icon: new URL(manifest.icon, s.baseUrl).href,
-                url: new URL('/', s.baseUrl).href,
-                screenshots: manifest.screenshots.map((sc) => new URL(sc, s.baseUrl).href),
+                icon: resolveMiniappDevAsset(manifest.icon, s.dirName),
+                url: `/miniapps/${s.dirName}/`,
+                screenshots: manifest.screenshots.map((sc) => resolveMiniappDevAsset(sc, s.dirName)),
                 runtime,
                 wujieConfig,
               };
@@ -197,6 +310,7 @@ export function miniappsPlugin(options: MiniappsPluginOptions = {}): Plugin {
 
     async closeBundle() {
       await Promise.all(miniappServers.map((s) => s.server.close()));
+      await Promise.all(miniappBuildWatchers.map((watcher) => watcher.close()));
     },
   };
 }
@@ -278,6 +392,184 @@ function scanScreenshots(root: string, shortId: string): string[] {
     .filter((f) => f.startsWith(`${shortId}-`) && f.endsWith('.png'))
     .slice(0, 2)
     .map((f) => `screenshots/${f}`);
+}
+
+function resolveMiniappDevAsset(path: string, dirName: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const normalized = path.replace(/^\.\//, '').replace(/^\//, '');
+  return `/miniapps/${dirName}/${normalized}`;
+}
+
+function getRewriteMode(url: string, req: IncomingMessage): 'html' | 'js' | null {
+  const accept = req.headers.accept ?? '';
+  const path = url.split('?', 1)[0] ?? '';
+
+  if (path.endsWith('/') || path.endsWith('.html') || accept.includes('text/html')) {
+    return 'html';
+  }
+
+  if (
+    path.includes('/@') ||
+    path.includes('/@id/') ||
+    path.endsWith('.js') ||
+    path.endsWith('.ts') ||
+    path.endsWith('.tsx') ||
+    path.endsWith('.jsx')
+  ) {
+    return 'js';
+  }
+
+  return null;
+}
+
+function rewriteMiniappBody(body: string, prefix: string): string {
+  const replacements: Array<[RegExp, string]> = [
+    [/(['"])\/@/g, `$1${prefix}/@`],
+    [/(['"])\/@id\//g, `$1${prefix}/@id/`],
+    [/(['"])\/src\//g, `$1${prefix}/src/`],
+    [/(['"])\/node_modules\//g, `$1${prefix}/node_modules/`],
+    [/(['"])\/@fs\//g, `$1${prefix}/@fs/`],
+  ];
+
+  let output = body;
+  for (const [pattern, replacement] of replacements) {
+    output = output.replace(pattern, replacement);
+  }
+  return output;
+}
+
+async function proxyMiniappRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  route: { prefix: string; miniapp: MiniappServer },
+  nextUrl: string,
+): Promise<void> {
+  const rewriteMode = getRewriteMode(`${route.prefix}${nextUrl}`, req);
+  const body = await readRequestBody(req);
+  const headers = buildProxyHeaders(req, body, rewriteMode !== null);
+
+  await new Promise<void>((resolve, reject) => {
+    const proxyReq = https.request(
+      {
+        hostname: 'localhost',
+        port: route.miniapp.port,
+        path: nextUrl,
+        method: req.method,
+        headers,
+        rejectUnauthorized: false,
+      },
+      (proxyRes) => {
+        res.statusCode = proxyRes.statusCode ?? 502;
+
+        const outgoingHeaders = normalizeProxyHeaders(proxyRes.headers, rewriteMode !== null);
+        for (const [key, value] of Object.entries(outgoingHeaders)) {
+          if (typeof value !== 'undefined') {
+            res.setHeader(key, value);
+          }
+        }
+
+        if (!rewriteMode) {
+          proxyRes.pipe(res);
+          proxyRes.on('end', resolve);
+          proxyRes.on('error', reject);
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        proxyRes.on('data', (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+        proxyRes.on('end', () => {
+          const rawBody = Buffer.concat(chunks).toString('utf-8');
+          const rewritten = rewriteMiniappBody(rawBody, route.prefix);
+          res.setHeader('Content-Length', Buffer.byteLength(rewritten));
+          res.end(rewritten);
+          resolve();
+        });
+        proxyRes.on('error', reject);
+      },
+    );
+
+    proxyReq.on('error', reject);
+
+    if (body) {
+      proxyReq.write(body);
+    }
+    proxyReq.end();
+  });
+}
+
+async function readRequestBody(req: IncomingMessage): Promise<Buffer | null> {
+  const method = req.method?.toUpperCase();
+  if (!method || method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    return null;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  if (chunks.length === 0) return null;
+  return Buffer.concat(chunks);
+}
+
+function buildProxyHeaders(
+  req: IncomingMessage,
+  body: Buffer | null,
+  disableCompression: boolean,
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (key.startsWith(':')) continue;
+    if (key === 'host') continue;
+    if (key === 'connection') continue;
+    if (key === 'content-length') continue;
+    if (key === 'transfer-encoding') continue;
+    if (key === 'accept-encoding' && disableCompression) continue;
+    if (typeof value === 'undefined') continue;
+    headers[key] = Array.isArray(value) ? value.join(', ') : value;
+  }
+
+  if (disableCompression) {
+    headers['accept-encoding'] = 'identity';
+  }
+  if (body) {
+    headers['content-length'] = String(body.length);
+  }
+  return headers;
+}
+
+function normalizeProxyHeaders(
+  headers: IncomingMessage['headers'],
+  stripEncoding: boolean,
+): Record<string, string | string[] | undefined> {
+  const output: Record<string, string | string[] | undefined> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (typeof value === 'undefined') continue;
+    if (stripEncoding && (key === 'content-encoding' || key === 'content-length' || key === 'transfer-encoding')) {
+      continue;
+    }
+    output[key] = value;
+  }
+  return output;
+}
+
+function prependMiddleware(
+  server: ViteDevServer,
+  middleware: (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void,
+): void {
+  const stack = (
+    server.middlewares as {
+      stack?: Array<{ route: string; handle: typeof middleware }>;
+    }
+  ).stack;
+  if (stack) {
+    stack.unshift({ route: '', handle: middleware });
+    return;
+  }
+  server.middlewares.use(middleware);
 }
 
 function generateEcosystemDataForBuild(

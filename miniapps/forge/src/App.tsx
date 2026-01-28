@@ -219,8 +219,35 @@ export default function App() {
     setRechargeStep('confirm');
   };
 
+  const externalDecimals =
+    typeof selectedOption?.externalInfo.decimals === 'number' && Number.isFinite(selectedOption.externalInfo.decimals)
+      ? selectedOption.externalInfo.decimals
+      : undefined;
+  const externalTokenAddress = selectedOption?.externalInfo.contract?.trim();
+  const externalDecimalsFallback = externalTokenAddress
+    ? (() => {
+        switch (selectedOption?.externalChain) {
+          case 'ETH':
+          case 'BSC':
+            return 18;
+          case 'TRON':
+            return 6;
+          default:
+            return undefined;
+        }
+      })()
+    : undefined;
+  const resolvedExternalDecimals = externalDecimals ?? externalDecimalsFallback;
+  const usingFallbackDecimals =
+    Boolean(externalTokenAddress) && externalDecimals === undefined && resolvedExternalDecimals !== undefined;
+
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return;
+    const tokenAddress = selectedOption.externalInfo.contract?.trim();
+    if (tokenAddress && resolvedExternalDecimals === undefined) {
+      setError(t('error.missingDecimals'));
+      return;
+    }
 
     setError(null);
     setRechargeStep('processing');
@@ -228,16 +255,16 @@ export default function App() {
     await forgeHook.forge({
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
-      externalDecimals: selectedOption.externalInfo.decimals,
+      externalDecimals: resolvedExternalDecimals,
       depositAddress: selectedOption.externalInfo.depositAddress,
-      externalContract: selectedOption.externalInfo.contract,
+      externalContract: tokenAddress,
       amount,
       externalAccount,
       internalChain: selectedOption.internalChain,
       internalAsset: selectedOption.internalAsset,
       internalAccount,
     });
-  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook]);
+  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook, resolvedExternalDecimals, t]);
 
   const handleReset = useCallback(() => {
     setRechargeStep('swap');
@@ -257,7 +284,6 @@ export default function App() {
     return groups;
   }, [forgeOptions]);
 
-  const externalDecimals = selectedOption?.externalInfo.decimals;
   const contractAddress = selectedOption?.externalInfo.contract?.trim();
   const contractDisplay = contractAddress
     ? `${contractAddress.slice(0, 6)}...${contractAddress.slice(-4)}`
@@ -455,8 +481,11 @@ export default function App() {
                       </div>
                       <div className="text-muted-foreground space-y-1 text-xs">
                         <div>{t('forge.amountHint', { symbol: selectedOption.externalAsset })}</div>
-                        {typeof externalDecimals === 'number' && (
-                          <div>{t('forge.decimalsHint', { decimals: externalDecimals })}</div>
+                        {typeof resolvedExternalDecimals === 'number' && (
+                          <div>
+                            {t('forge.decimalsHint', { decimals: resolvedExternalDecimals })}
+                            {usingFallbackDecimals ? ` (${t('forge.decimalsFallback')})` : null}
+                          </div>
                         )}
                         {contractDisplay && (
                           <div title={contractAddress ?? undefined}>
