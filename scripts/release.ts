@@ -12,7 +12,7 @@
  * 7. 更新 package.json 和 manifest.json
  * 8. 更新 CHANGELOG.md
  * 9. 提交变更
- * 10. 推送并手动触发 CI 发布（CI 创建 tag/release）
+ * 10. 推送并触发 CI 发布（CI 创建 tag/release）
  *
  * 可选参数:
  *   --admin  当 main 受保护且无法直推时，用 PR + admin 合并兜底
@@ -402,7 +402,7 @@ async function pushAndTriggerCD(version: string): Promise<void> {
   log.step('推送到 GitHub')
 
   console.log(`
-${colors.yellow}推送后请在 GitHub Actions 手动触发 stable 发布:${colors.reset}
+${colors.yellow}推送后可自动触发 stable 发布（workflow_dispatch）:${colors.reset}
   - CD 会在完成后创建 Tag 并生成 Release
 `)
 
@@ -418,9 +418,11 @@ ${colors.yellow}推送后请在 GitHub Actions 手动触发 stable 发布:${colo
     return
   }
 
+  let merged = false
   try {
     exec('git push origin HEAD:refs/heads/main')
     log.success('推送到 origin/main')
+    merged = true
   } catch (error) {
     if (!ADMIN_MODE) {
       throw error
@@ -444,6 +446,11 @@ ${colors.yellow}推送后请在 GitHub Actions 手动触发 stable 发布:${colo
     })
     exec(`gh pr merge ${prNumber} --admin --squash --delete-branch`, { cwd: WORKDIR })
     log.success('已使用 --admin 合并到 main')
+    merged = true
+  }
+
+  if (merged) {
+    await triggerStableRelease()
   }
 
   console.log(`
@@ -453,9 +460,57 @@ ${colors.green}GitHub Actions 将自动:${colors.reset}
   - 创建 Tag & GitHub Release
   - 上传 DWEB 到正式服务器
 
-请在 Actions 中手动选择 stable 触发发布。
+如需 stable 发布，请确保 workflow 已触发。
 查看进度: https://github.com/BioforestChain/KeyApp/actions
 `)
+}
+
+async function triggerStableRelease(): Promise<void> {
+  let hasGh = true
+  try {
+    execSync('gh --version', { stdio: 'ignore' })
+  } catch {
+    hasGh = false
+  }
+
+  if (!hasGh) {
+    log.warn('未检测到 gh CLI，跳过自动触发 stable 发布')
+    return
+  }
+
+  const shouldTrigger = await confirm({
+    message: '是否自动触发 stable 发布？',
+    default: true,
+  })
+
+  if (!shouldTrigger) {
+    log.info('已跳过自动触发 stable 发布')
+    return
+  }
+
+  const workflow = resolveCdWorkflow()
+  if (!workflow) {
+    log.warn('未找到 CD workflow，跳过自动触发 stable 发布')
+    return
+  }
+
+  exec(`gh workflow run "${workflow}" --ref main -f channel=stable`, { cwd: WORKDIR })
+  log.success('已触发 stable 发布')
+}
+
+function resolveCdWorkflow(): string | null {
+  const raw = exec('gh workflow list --json name,path', { silent: true })
+  if (!raw) return null
+  try {
+    const workflows = JSON.parse(raw) as Array<{ name?: string; path?: string }>
+    const byPath = workflows.find((wf) => wf.path?.endsWith('/cd.yml') || wf.path?.endsWith('cd.yml'))
+    if (byPath?.name) return byPath.name
+    const byName = workflows.find((wf) => wf.name?.toLowerCase().includes('build and deploy'))
+    if (byName?.name) return byName.name
+    return workflows[0]?.name ?? null
+  } catch {
+    return null
+  }
 }
 
 // ==================== 主程序 ====================
@@ -494,7 +549,7 @@ ${colors.cyan}发布流程:${colors.reset}
   3. 上传 DWEB 到正式服务器
   4. 更新版本号和 CHANGELOG
   5. 提交变更
-  6. 推送并手动触发 CI 发布（CI 创建 tag/release）
+  6. 推送并触发 CI 发布（CI 创建 tag/release）
 `)
 
     const confirmRelease = await confirm({
@@ -531,7 +586,7 @@ ${colors.green}╔════════════════════�
 ╚════════════════════════════════════════╝${colors.reset}
 
 ${colors.blue}下一步:${colors.reset}
-  - 在 GitHub Actions 手动触发 stable 发布
+  - 自动触发 stable 发布（可选择跳过）
   - 查看进度: https://github.com/BioforestChain/KeyApp/actions
   - 发布完成后查看 Release: https://github.com/BioforestChain/KeyApp/releases
   - 访问 GitHub Pages: https://bioforestchain.github.io/KeyApp/
