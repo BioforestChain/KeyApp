@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.6.5] - 2026-01-29
+
+biobridge decimals loading fix
+
+<!-- last-commit: 484f339540e608978e7483f4e27e6f4159f1ba81 -->
+
 ## [0.6.4] - 2026-01-29
 
 biobridge decimals loading fix
