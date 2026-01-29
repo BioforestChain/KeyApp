@@ -249,10 +249,12 @@ export default function App() {
       : undefined;
   const tokenInfoTargets = useMemo(
     () =>
-      forgeOptions.map((option) => ({
-        chain: option.externalChain,
-        address: option.externalInfo.contract,
-      })),
+      forgeOptions
+        .filter((option) => option.externalInfo.decimals === undefined)
+        .map((option) => ({
+          chain: option.externalChain,
+          address: option.externalInfo.contract,
+        })),
     [forgeOptions],
   );
   const { tokenInfoMap, loadingMap } = useTokenInfoMap(tokenInfoTargets);
@@ -262,7 +264,8 @@ export default function App() {
       ? getTokenInfoKey(selectedOption.externalChain, externalTokenAddress)
       : undefined;
   const tokenInfo = tokenInfoKey ? tokenInfoMap[tokenInfoKey] : undefined;
-  const tokenInfoLoading = tokenInfoKey ? Boolean(loadingMap[tokenInfoKey]) : false;
+  const needsTokenInfo = Boolean(externalTokenAddress && externalDecimals === undefined);
+  const tokenInfoLoading = needsTokenInfo && tokenInfoKey ? Boolean(loadingMap[tokenInfoKey]) : false;
   const resolvedExternalDecimals = tokenInfo?.decimals ?? externalDecimals;
   const usingRemoteDecimals = Boolean(externalTokenAddress) && tokenInfo?.decimals !== undefined;
   const resolvedExternalSymbol = tokenInfo?.symbol ?? selectedOption?.externalAsset ?? '';
@@ -271,7 +274,7 @@ export default function App() {
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return;
     const tokenAddress = selectedOption.externalInfo.contract?.trim();
-    if (tokenAddress && tokenInfoLoading) {
+    if (needsTokenInfo && tokenInfoLoading) {
       setError(t('error.decimalsLoading'));
       return;
     }
@@ -310,7 +313,7 @@ export default function App() {
       internalAsset: selectedOption.internalAsset,
       internalAccount,
     });
-  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook, resolvedExternalDecimals, t]);
+  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook, resolvedExternalDecimals, needsTokenInfo, t]);
 
   const handleReset = useCallback(() => {
     setRechargeStep('swap');
