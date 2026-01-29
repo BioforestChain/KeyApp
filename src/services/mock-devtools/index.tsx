@@ -4,6 +4,12 @@
  */
 
 export { MockDevTools, type MockDevToolsProps } from './components/MockDevTools'
+export {
+  DevPanelShell,
+  type DevPanelTab,
+  type DevPanelPosition,
+  type DevPanelShellProps,
+} from './components/DevPanelShell'
 
 // 状态管理 (供 MockDevTools UI 使用)
 export {

@@ -9,6 +9,9 @@
   "button": {
     "open": "Open Mock DevTools (draggable)"
   },
+  "help": {
+    "shortcuts": "Option+←/→ Switch tabs"
+  },
   "footer": {
     "mode": "Mock Mode",
     "logs": "{{count}} logs",

@@ -40,9 +40,11 @@ export function TransactionItem({
   const Icon = typeMeta.Icon;
 
   // Get the amount value for display
-  const amountValue = transaction.type === 'send'
-    ? -Math.abs(transaction.amount.toNumber())
-    : transaction.amount.toNumber();
+  const negativeTypes = new Set(['send', 'destroy', 'destroyEntity', 'emigrate']);
+  const rawAmount = transaction.amount.toNumber();
+  const amountValue = negativeTypes.has(transaction.type)
+    ? -Math.abs(rawAmount)
+    : rawAmount;
 
   return (
     <div

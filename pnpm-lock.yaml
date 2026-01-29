@@ -400,7 +400,7 @@ importers:
         specifier: ^4.0.15
         version: 4.0.16(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.30.2)(msw@2.12.4(@types/node@24.10.4)(typescript@5.9.3))(yaml@2.8.2)
 
-  miniapps/forge:
+  miniapps/biobridge:
     dependencies:
       '@base-ui/react':
         specifier: ^1.0.0

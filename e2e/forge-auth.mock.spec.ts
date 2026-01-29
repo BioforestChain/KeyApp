@@ -62,7 +62,7 @@ async function injectTestData(page: import('@playwright/test').Page) {
     localStorage.setItem('bfm_wallets', JSON.stringify(data.wallet))
     localStorage.setItem('bfm_ecosystem', JSON.stringify(data.ecosystem))
     localStorage.setItem('ecosystem_my_apps', JSON.stringify([
-      { appId: 'xin.dweb.forge', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
+      { appId: 'xin.dweb.biobridge', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
     ]))
   }, { wallet: TEST_WALLET_DATA, ecosystem: TEST_ECOSYSTEM_DATA })
 }
@@ -95,12 +95,12 @@ test.describe('Forge 小程序授权流程', () => {
     await page.waitForTimeout(300)
 
     // 右键菜单 -> 打开
-    await page.locator('[data-testid="ios-app-icon-xin.dweb.forge"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.biobridge"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("打开")').click()
 
     // 等待 Forge iframe 加载
-    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.forge"]')
+    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.biobridge"]')
     
     // 验证连接按钮可见 (Forge 显示"开始兑换"或连接按钮)
     await expect(forgeFrame.getByTestId('connect-button')).toBeVisible({ timeout: 15000 })
@@ -120,12 +120,12 @@ test.describe('Forge 小程序授权流程', () => {
     await page.waitForTimeout(300)
 
     // 打开 Forge
-    await page.locator('[data-testid="ios-app-icon-xin.dweb.forge"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.biobridge"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("打开")').click()
 
     // 等待 Forge iframe 加载
-    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.forge"]')
+    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.biobridge"]')
     const connectButton = forgeFrame.getByTestId('connect-button')
     
     // 等待按钮可见
@@ -175,12 +175,12 @@ test.describe('Forge 小程序授权流程', () => {
     await page.waitForTimeout(300)
 
     // 打开 Forge
-    await page.locator('[data-testid="ios-app-icon-xin.dweb.forge"]').click({ button: 'right' })
+    await page.locator('[data-testid="ios-app-icon-xin.dweb.biobridge"]').click({ button: 'right' })
     await page.waitForTimeout(200)
     await page.locator('button:has-text("打开")').click()
 
     // 等待 Forge iframe 加载
-    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.forge"]')
+    const forgeFrame = page.frameLocator('iframe[data-app-id="xin.dweb.biobridge"]')
     await forgeFrame.getByTestId('connect-button').waitFor({ state: 'visible', timeout: 15000 })
 
     // 验证没有 "Method not found: bio_closeSplashScreen" 错误

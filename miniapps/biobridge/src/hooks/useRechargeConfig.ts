@@ -23,12 +23,19 @@ export interface ForgeOption {
   internalChain: string
   /** 内链资产类型 */
   internalAsset: string
-  /** Logo */
-  logo?: string
+  /** 外链 Logo */
+  externalLogo?: string
+  /** 内链 Logo */
+  internalLogo?: string
 }
 
 /** Chain display order: BSC -> TRON -> ETH */
 const CHAIN_ORDER: Record<string, number> = { BSC: 1, TRON: 2, ETH: 3 }
+
+function normalizeDecimals(value: number | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return undefined
+  return value
+}
 
 /**
  * Parse recharge config to forge options
@@ -42,14 +49,16 @@ function parseForgeOptions(config: RechargeConfig): ForgeOption[] {
 
       for (const [externalChain, externalInfo] of Object.entries(item.supportChain)) {
         if (!externalInfo?.enable) continue
+        const normalizedDecimals = normalizeDecimals(externalInfo.decimals)
 
         options.push({
           externalChain: externalChain as ExternalChainName,
           externalAsset: externalInfo.assetType,
-          externalInfo,
+          externalInfo: { ...externalInfo, decimals: normalizedDecimals },
           internalChain,
           internalAsset,
-          logo: item.logo || externalInfo.logo,
+          externalLogo: externalInfo.logo,
+          internalLogo: item.logo,
         })
       }
     }

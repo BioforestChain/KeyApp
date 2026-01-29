@@ -113,7 +113,7 @@ test.describe('生态 Tab 截图测试', () => {
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
         { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.biobridge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
@@ -138,7 +138,7 @@ test.describe('生态 Tab 截图测试', () => {
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
         { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.biobridge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
@@ -222,7 +222,7 @@ test.describe('生态 Tab 截图测试', () => {
     await page.addInitScript(() => {
       localStorage.setItem('ecosystem_my_apps', JSON.stringify([
         { appId: 'xin.dweb.teleport', installedAt: Date.now() - 3600000, lastUsedAt: Date.now() - 1800000 },
-        { appId: 'xin.dweb.forge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
+        { appId: 'xin.dweb.biobridge', installedAt: Date.now() - 7200000, lastUsedAt: Date.now() - 3600000 },
       ]))
     })
     
@@ -457,7 +457,7 @@ test.describe('签名消息变体截图测试', () => {
       message: longMessage,
       address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       appName: 'DeFi Protocol',
-      appIcon: '/miniapps/forge/icon.svg',
+      appIcon: '/miniapps/biobridge/icon.svg',
     })
     await page.goto(`/#/job/signing-confirm?${params}`)
     await page.waitForLoadState('networkidle')
@@ -475,7 +475,7 @@ test.describe('转账金额变体截图测试', () => {
   test('大额转账', async ({ page }) => {
     const params = new URLSearchParams({
       appName: '交易所提现',
-      appIcon: '/miniapps/forge/icon.svg',
+      appIcon: '/miniapps/biobridge/icon.svg',
       from: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       to: 'c8X7yWePwIqsQxf6R0AwXs8DqQo6Nl6Yz4',
       amount: '999999.12345678',
@@ -665,7 +665,7 @@ test.describe('安全警告截图测试', () => {
       message: hexMessage,
       address: 'c7R6wVdPvHqvRxe5Q9ZvWr7CpPn5Mk5Xz3',
       appName: '未知 DApp',
-      appIcon: '/miniapps/forge/icon.svg',
+      appIcon: '/miniapps/biobridge/icon.svg',
     })
     await page.goto(`/#/job/signing-confirm?${params}`)
     await page.waitForLoadState('networkidle')

@@ -76,7 +76,7 @@ function PermissionRequestJobContent() {
   };
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleReject}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">

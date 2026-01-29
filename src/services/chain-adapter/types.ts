@@ -69,6 +69,7 @@ export interface DestroyIntent extends TransactionIntentBase {
   recipientId: Address  // 资产发行者地址
   amount: Amount
   bioAssetType: string
+  remark?: Record<string, string>
 }
 
 /** 设置支付密码意图（BioChain） */

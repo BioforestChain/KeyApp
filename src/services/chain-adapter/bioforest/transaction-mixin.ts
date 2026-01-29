@@ -105,6 +105,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                     recipientId: intent.recipientId,
                     amount: intent.amount.toRawString(),
                     assetType: intent.bioAssetType,
+                    ...(intent.remark ? { remark: intent.remark } : {}),
                 },
                 estimatedFee: intent.fee,
             }
@@ -266,6 +267,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                             recipientId: string
                             amount: string
                             assetType: string
+                            remark?: Record<string, string>
                         }
 
                         const feeEstimate = unsignedTx.estimatedFee
@@ -282,6 +284,7 @@ export function BioforestTransactionMixin<TBase extends Constructor<{ chainId: s
                             assetType: data.assetType,
                             amount: data.amount,
                             fee: feeEstimate,
+                            remark: data.remark,
                         })
 
                         return {

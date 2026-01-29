@@ -4,7 +4,7 @@
  * @example
  * ```typescript
  * const resolve = createResolver('/miniapps/ecosystem.json')
- * resolve('./forge/icon.svg')  // => '/miniapps/forge/icon.svg'
+ * resolve('./biobridge/icon.svg')  // => '/miniapps/biobridge/icon.svg'
  * resolve('https://example.com/icon.svg')  // => 'https://example.com/icon.svg' (保持不变)
  * ```
  */

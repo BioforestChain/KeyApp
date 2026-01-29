@@ -128,7 +128,7 @@ function MiniappSignTransactionJobContent() {
   }, [unsignedTx]);
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         <div className="flex justify-center py-3">
           <div className="bg-muted h-1 w-10 rounded-full" />

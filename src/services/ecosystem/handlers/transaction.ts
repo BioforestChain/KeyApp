@@ -56,9 +56,22 @@ async function getChainConfigOrThrow(chainId: string) {
 /** bio_createTransaction - build unsigned tx */
 export const handleCreateTransaction: MethodHandler = async (params, _context) => {
   const opts = params as Partial<EcosystemTransferParams> | undefined
-  if (!opts?.from || !opts?.to || !opts?.amount || !opts?.chain) {
+  const intentType = opts?.type ?? 'transfer'
+  if (!opts?.from || !opts?.amount || !opts?.chain) {
     throw Object.assign(
-      new Error('Missing required parameters: from, to, amount, chain'),
+      new Error('Missing required parameters: from, amount, chain'),
+      { code: BioErrorCodes.INVALID_PARAMS },
+    )
+  }
+  if (intentType === 'transfer' && !opts?.to) {
+    throw Object.assign(
+      new Error('Missing required parameters: to'),
+      { code: BioErrorCodes.INVALID_PARAMS },
+    )
+  }
+  if (intentType === 'destroy' && !opts?.recipientId && !opts?.to) {
+    throw Object.assign(
+      new Error('Missing required parameters: recipientId'),
       { code: BioErrorCodes.INVALID_PARAMS },
     )
   }
@@ -87,15 +100,26 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
     throw Object.assign(new Error(`Chain ${chainConfig.id} does not support transaction building`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
-  const unsignedTx = await buildTransaction({
-    type: 'transfer',
-    from: opts.from,
-    to: opts.to,
-    amount,
-    tokenAddress,
-    ...(opts.asset ? { bioAssetType: opts.asset } : {}),
-    ...(opts.remark ? { remark: opts.remark } : {}),
-  })
+  const unsignedTx = await buildTransaction(
+    intentType === 'destroy'
+      ? {
+          type: 'destroy',
+          from: opts.from,
+          recipientId: opts.recipientId ?? opts.to!,
+          amount,
+          bioAssetType: opts.asset ?? chainConfig.symbol,
+          ...(opts.remark ? { remark: opts.remark } : {}),
+        }
+      : {
+          type: 'transfer',
+          from: opts.from,
+          to: opts.to!,
+          amount,
+          tokenAddress,
+          ...(opts.asset ? { bioAssetType: opts.asset } : {}),
+          ...(opts.remark ? { remark: opts.remark } : {}),
+        },
+  )
 
   if (tokenAddress && chainConfig.chainKind === 'tron') {
     const data = unsignedTx.data as Record<string, unknown> | null

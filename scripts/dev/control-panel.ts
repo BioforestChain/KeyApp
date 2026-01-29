@@ -11,14 +11,17 @@ export class ControlPanel {
     this.getState = getState;
   }
 
+  renderHeader(tabState: TabState): string {
+    const width = process.stdout.columns || 80;
+    return this.getHeaderLines(tabState, width).join('\n');
+  }
+
   render(tabState: TabState): string {
     const lines: string[] = [];
     const width = process.stdout.columns || 80;
 
-    lines.push('\x1b[90m' + '─'.repeat(width) + '\x1b[0m');
+    lines.push(...this.getHeaderLines(tabState, width));
     lines.push('\x1b[1m Dev Runner \x1b[0m');
-    lines.push('\x1b[90m Option+← / Option+→ 切换Tab │ ↑↓ 选择 │ Enter 启动 │ S 停止 │ R 重启 │ Q 退出\x1b[0m');
-    lines.push('\x1b[90m' + '─'.repeat(width) + '\x1b[0m');
     lines.push('');
 
     this.commands.forEach((cmd, index) => {
@@ -36,6 +39,11 @@ export class ControlPanel {
     lines.push('');
     lines.push('\x1b[90m' + '─'.repeat(width) + '\x1b[0m');
 
+    return lines.join('\n');
+  }
+
+  private getHeaderLines(tabState: TabState, width: number): string[] {
+    const lines: string[] = [];
     const tabs = [tabState.activeTab === 0 ? '\x1b[47m\x1b[30m[0] Control\x1b[0m' : '[0] Control'];
     let tabIndex = 1;
     this.commands.forEach((cmd) => {
@@ -46,9 +54,16 @@ export class ControlPanel {
         tabIndex++;
       }
     });
-    lines.push(tabs.join('  '));
 
-    return lines.join('\n');
+    lines.push('\x1b[90m' + '─'.repeat(width) + '\x1b[0m');
+    lines.push(tabs.join('  '));
+    const helpText =
+      tabState.activeTab === 0
+        ? 'Option+← / Option+→ 切换Tab │ ↑↓ 选择 │ Enter 启动 │ S 停止 │ R 重启 │ Q 退出'
+        : 'Option+← / Option+→ 切换Tab │ ↑↓ 滚动 │ ←→ 翻页 │ Q 返回';
+    lines.push(`\x1b[90m ${helpText}\x1b[0m`);
+    lines.push('\x1b[90m' + '─'.repeat(width) + '\x1b[0m');
+    return lines;
   }
 
   private getStatusIcon(status?: string): string {

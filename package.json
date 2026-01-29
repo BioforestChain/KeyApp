@@ -67,7 +67,7 @@
     "sdk:dev": "pnpm --filter @biochain/bio-sdk dev",
     "miniapps:build": "pnpm --filter \"./miniapps/*\" build",
     "miniapps:dev:teleport": "pnpm --filter @biochain/miniapp-teleport dev",
-    "miniapps:dev:forge": "pnpm --filter @biochain/miniapp-forge dev"
+    "miniapps:dev:biobridge": "pnpm --filter @biochain/miniapp-biobridge dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

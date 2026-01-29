@@ -25,6 +25,8 @@
     "continue": "Continue",
     "amountHint": "Amount is in {{symbol}}",
     "decimalsHint": "Token decimals: {{decimals}}",
+    "decimalsLoading": "Loading decimals...",
+    "decimalsFromTokenInfo": "token info",
     "decimalsFallback": "default",
     "contractHint": "Contract: {{address}}"
   },
@@ -76,6 +78,7 @@
     "sdkNotInit": "Bio SDK not initialized",
     "connectionFailed": "Connection failed",
     "invalidAmount": "Please enter a valid amount",
+    "decimalsLoading": "Token decimals are loading",
     "missingDecimals": "Missing token decimals configuration",
     "forgeFailed": "Operation failed"
   },

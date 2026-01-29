@@ -129,6 +129,20 @@ function SetTwoStepSecretJobContent() {
     }
   }, [step, newTwoStepSecret, confirmTwoStepSecret, t]);
 
+  const handleCancel = useCallback(() => {
+    if (step === "input") {
+      pop();
+    } else if (step === "confirm") {
+      setStep("input");
+      setError(undefined);
+    } else {
+      setStep("confirm");
+      setError(undefined);
+      setPatternError(false);
+      setWalletLockPattern([]);
+    }
+  }, [step, pop]);
+
   const handlePatternComplete = useCallback(
     async (nodes: number[]) => {
       const callback = callbackRef.current;
@@ -167,7 +181,7 @@ function SetTwoStepSecretJobContent() {
   // 广播成功后的状态显示
   if (txStatus !== "idle") {
     return (
-      <BottomSheet>
+      <BottomSheet onCancel={handleCancel}>
         <div className="bg-background rounded-t-2xl">
           <div className="flex justify-center py-3">
             <div className="h-1 w-10 rounded-full bg-muted" />
@@ -192,7 +206,7 @@ function SetTwoStepSecretJobContent() {
   }
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl" data-testid="set-two-step-secret-dialog">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -329,19 +343,7 @@ function SetTwoStepSecretJobContent() {
 
             <button
               type="button"
-              onClick={() => {
-                if (step === "input") {
-                  pop();
-                } else if (step === "confirm") {
-                  setStep("input");
-                  setError(undefined);
-                } else {
-                  setStep("confirm");
-                  setError(undefined);
-                  setPatternError(false);
-                  setWalletLockPattern([]);
-                }
-              }}
+              onClick={handleCancel}
               disabled={isSubmitting}
               data-testid="set-two-step-secret-cancel-button"
               className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"

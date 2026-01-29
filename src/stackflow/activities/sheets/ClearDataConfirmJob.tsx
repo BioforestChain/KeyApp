@@ -17,9 +17,12 @@ function ClearDataConfirmJobContent() {
     const baseUri = import.meta.env.BASE_URL || '/';
     window.location.href = `${baseUri}clear.html`;
   }, []);
+  const handleCancel = () => {
+    pop();
+  };
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -57,7 +60,7 @@ function ClearDataConfirmJobContent() {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => pop()}
+              onClick={handleCancel}
               disabled={isClearing}
             >
               {t("common:cancel")}

@@ -8,13 +8,45 @@ import { BottomSheet as StackflowBottomSheet, Modal as StackflowModal } from '@s
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export type BottomSheetProps = ComponentProps<typeof StackflowBottomSheet>;
+export type BottomSheetProps = ComponentProps<typeof StackflowBottomSheet> & {
+  /**
+   * Whether the sheet supports cancel (outside click).
+   * Defaults to true to preserve existing behavior.
+   */
+  cancelable?: boolean;
+  /**
+   * Cancel handler invoked when outside click happens.
+   * If provided, it is responsible for closing the sheet (call pop).
+   */
+  onCancel?: () => void;
+};
 export type ModalProps = ComponentProps<typeof StackflowModal>;
 
 /**
  * Re-export Stackflow BottomSheet
  */
-export const BottomSheet = StackflowBottomSheet;
+export function BottomSheet({
+  cancelable,
+  onCancel,
+  onOutsideClick,
+  ...props
+}: BottomSheetProps) {
+  const resolvedCancelable = cancelable ?? Boolean(onCancel);
+  const handleOutsideClick: BottomSheetProps['onOutsideClick'] = (event) => {
+    if (!resolvedCancelable) {
+      event.preventDefault();
+      return;
+    }
+    if (onCancel) {
+      onCancel();
+      event.preventDefault();
+      return;
+    }
+    onOutsideClick?.(event);
+  };
+
+  return <StackflowBottomSheet onOutsideClick={handleOutsideClick} {...props} />;
+}
 
 /**
  * Re-export Stackflow Modal

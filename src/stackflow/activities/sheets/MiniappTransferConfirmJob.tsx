@@ -124,7 +124,7 @@ function MiniappTransferConfirmJobContent() {
   const displayAsset = asset || chain.toUpperCase();
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">

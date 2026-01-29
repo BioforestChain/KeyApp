@@ -8,6 +8,7 @@ import { normalizeChainId } from '@biochain/bio-sdk'
 import { rechargeApi } from '@/api'
 import { encodeRechargeV2ToTrInfoData, createRechargeMessage } from '@/api/helpers'
 import { validateDepositAddress } from '@/lib/chain'
+import { parseAmount } from '@/lib/fee'
 import { superjson } from '@biochain/chain-effect'
 import type {
   ExternalChainName,
@@ -38,6 +39,8 @@ export interface ForgeParams {
   externalContract?: string
   /** 转账金额 */
   amount: string
+  /** 转账金额（外链最小单位） */
+  amountInUnits?: string
   /** 外链账户（已连接） */
   externalAccount: BioAccount
   /** 内链名称 */
@@ -123,6 +126,7 @@ export function useForge() {
       externalChain,
       externalAsset,
       externalDecimals,
+      amountInUnits,
       depositAddress,
       externalContract,
       amount,
@@ -152,12 +156,22 @@ export function useForge() {
 
       const externalKeyAppChainId = normalizeChainId(externalChain)
 
+      let normalizedAmount = amountInUnits ?? amount
+      if (amountInUnits === undefined && typeof externalDecimals === 'number') {
+        try {
+          normalizedAmount = parseAmount(amount, externalDecimals).toString()
+        } catch {
+          setState({ step: 'error', orderId: null, error: 'Invalid amount' })
+          return
+        }
+      }
+
       const unsignedTx = await window.bio.request({
         method: 'bio_createTransaction',
         params: [{
           from: externalAccount.address,
           to: depositAddress,
-          amount,
+          amount: normalizedAmount,
           chain: externalKeyAppChainId,
           asset: externalAsset,
           tokenAddress,
