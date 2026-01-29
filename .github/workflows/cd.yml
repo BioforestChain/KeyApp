@@ -328,12 +328,8 @@ jobs:
           if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
             cp -r dists/* release/
           fi
-          if [ -d "public/logos" ]; then
-            mkdir -p release/logos
-            cp -r public/logos/* release/logos/
-            if [ -f "public/logos/logo-256.webp" ]; then
-              cp public/logos/logo-256.webp release/logo-256.webp
-            fi
+          if [ -f "public/logos/logo-256.webp" ]; then
+            cp public/logos/logo-256.webp release/logo-256.webp
           fi
 
           if [ -f "release/metadata.json" ]; then
@@ -835,13 +831,9 @@ jobs:
           if [ -d "dists" ] && [ "$(ls -A dists)" ]; then
             cp -r dists/* release/
           fi
-          if [ -d "public/logos" ]; then
-            mkdir -p release/logos
-            cp -r public/logos/* release/logos/
             if [ -f "public/logos/logo-256.webp" ]; then
               cp public/logos/logo-256.webp release/logo-256.webp
             fi
-          fi
 
           if [ -f "release/metadata.json" ]; then
             RELEASE_BASE_URL="$RELEASE_BASE_URL" node - <<'NODE'
