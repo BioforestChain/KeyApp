@@ -9,6 +9,7 @@ type FetchResponse = {
 
 function stubGlobals() {
   vi.stubGlobal('__KEYAPP_SITE_ORIGIN__', 'https://example.com/KeyApp/')
+  vi.stubGlobal('__KEYAPP_BASE_URL__', './')
   vi.stubGlobal('__DEV_MODE__', false)
   vi.stubGlobal('__APP_VERSION__', '1.2.3')
   Object.defineProperty(window, '__native_close_watcher_kit__', {
@@ -31,6 +32,13 @@ describe('dweb update', () => {
     vi.stubGlobal('__DEV_MODE__', true)
     const url = resolveDwebMetadataUrl()
     expect(url).toBe('https://example.com/KeyApp/dweb-dev/metadata.json')
+  })
+
+  it('resolves metadata url with base url when origin has no path', () => {
+    vi.stubGlobal('__KEYAPP_SITE_ORIGIN__', 'https://example.com')
+    vi.stubGlobal('__KEYAPP_BASE_URL__', '/KeyApp/')
+    const url = resolveDwebMetadataUrl()
+    expect(url).toBe('https://example.com/KeyApp/dweb/metadata.json')
   })
 
   it('builds install url', () => {

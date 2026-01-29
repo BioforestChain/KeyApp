@@ -14,6 +14,9 @@ declare global {
   /** KeyApp 官网 Origin - 通过 vite.config.ts define 配置 */
   const __KEYAPP_SITE_ORIGIN__: string
 
+  /** KeyApp Base URL - 通过 vite.config.ts define 配置 */
+  const __KEYAPP_BASE_URL__: string
+
   /** 默认生态源列表 - 通过 vite.config.ts define 配置 */
   const __ECOSYSTEM_SOURCES__: Array<{ name: string; url: string; icon?: string }>
 
