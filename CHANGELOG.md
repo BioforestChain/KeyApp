@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.6.2] - 2026-01-29
+
+跨链通锻造文案修正
+
+<!-- last-commit: ff625ddf9a80c2b16ac7c788cda635b6eb643ddf -->
+
 ## [0.6.1] - 2026-01-29
 
 fix dweb update url
