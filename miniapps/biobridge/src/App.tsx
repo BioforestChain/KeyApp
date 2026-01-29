@@ -378,7 +378,7 @@ export default function App() {
               <ModeTabs
                 mode={mode}
                 onChange={handleModeChange}
-                rechargeLabel={t('mode.recharge')}
+                forgeLabel={t('mode.forge')}
                 redemptionLabel={t('mode.redemption')}
               />
             </div>

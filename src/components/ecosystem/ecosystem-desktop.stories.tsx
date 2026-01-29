@@ -11,7 +11,7 @@ const mockApps: MiniappManifest[] = [
   {
     id: 'biobridge',
     name: '跨链通',
-    description: '跨链资产桥接与充值/赎回',
+    description: '跨链资产桥接与锻造/赎回',
     icon: '/miniapps/biobridge/icon.svg',
     url: 'https://localhost:5182/',
     version: '1.0.0',

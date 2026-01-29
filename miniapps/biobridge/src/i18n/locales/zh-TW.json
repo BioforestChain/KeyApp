@@ -5,7 +5,7 @@
     "description": "在外鏈與 Bio 生態之間橋接資產"
   },
   "mode": {
-    "recharge": "鍛造",
+    "forge": "鍛造",
     "redemption": "贖回"
   },
   "connect": {
@@ -17,11 +17,11 @@
     "receive": "獲得",
     "ratio": "兌換比例",
     "ratioValue": "1:1",
-    "depositAddress": "充值地址",
+    "depositAddress": "鍛造地址",
     "network": "網絡",
     "preview": "預覽交易",
     "start": "開始鍛造",
-    "confirm": "確認充值",
+    "confirm": "確認鍛造",
     "continue": "繼續",
     "amountHint": "數量單位：{{symbol}}",
     "decimalsHint": "精度：{{decimals}} 位",
