@@ -27,8 +27,12 @@ import type {
   ContractTokenInfo,
 } from './types'
 
+const tokenInfoCache = new Map<string, ContractTokenInfo>()
+const tokenInfoInflight = new Map<string, Promise<ContractTokenInfo>>()
+
 /**
- * Convert TRON hex addresses in ExternalAssetInfoItem to Base58 format
+ * Convert TRON hex deposit addresses in ExternalAssetInfoItem to Base58 format.
+ * Contract addresses must keep their original hex format for token info API.
  */
 async function convertTronAddresses(item: ExternalAssetInfoItem): Promise<ExternalAssetInfoItem> {
   const result = { ...item }
@@ -38,16 +42,11 @@ async function convertTronAddresses(item: ExternalAssetInfoItem): Promise<Extern
     result.depositAddress = await tronHexToBase58(result.depositAddress)
   }
   
-  // Convert contract address if it's TRON hex format
-  if (result.contract && isTronHexAddress(result.contract)) {
-    result.contract = await tronHexToBase58(result.contract)
-  }
-  
   return result
 }
 
 /**
- * Transform API response to convert all TRON hex addresses to Base58
+ * Transform API response to convert TRON deposit addresses to Base58
  */
 async function transformSupportResponse(response: RechargeSupportResDto): Promise<RechargeSupportResDto> {
   const recharge = { ...response.recharge }
@@ -77,7 +76,7 @@ async function transformSupportResponse(response: RechargeSupportResDto): Promis
 }
 
 export const rechargeApi = {
-  /** 获取支持的充值配置 (TRON addresses converted to Base58) */
+  /** 获取支持的充值配置 (TRON depositAddress converted to Base58) */
   async getSupport(): Promise<RechargeSupportResDto> {
     const raw = await apiClient.get<unknown>(API_ENDPOINTS.RECHARGE_SUPPORT)
     const parsed = rechargeSupportSchema.safeParse(raw)
@@ -97,17 +96,37 @@ export const rechargeApi = {
     return parsed.data
   },
 
-  /** 获取合约代币信息（精度/图标等） */
+  /** 获取合约代币信息（精度/图标等），按 chainName+contractAddress 缓存 */
   async getTokenInfo(params: { contractAddress: string; chainName: string }): Promise<ContractTokenInfo> {
-    const raw = await apiClient.get<unknown>(API_ENDPOINTS.CONTRACT_TOKEN_INFO, {
-      contractAddress: params.contractAddress,
-      chainName: params.chainName,
-    })
-    const parsed = contractTokenInfoSchema.safeParse(raw)
-    if (!parsed.success) {
-      throw new ApiError('Invalid contract token info response', 0, parsed.error.flatten())
+    const contractAddress = params.contractAddress.trim()
+    const chainName = params.chainName.trim()
+    const key = `${chainName}:${contractAddress}`.toLowerCase()
+    if (tokenInfoCache.has(key)) {
+      return tokenInfoCache.get(key) as ContractTokenInfo
     }
-    return parsed.data
+    if (tokenInfoInflight.has(key)) {
+      return tokenInfoInflight.get(key) as Promise<ContractTokenInfo>
+    }
+
+    const task = (async () => {
+      const raw = await apiClient.get<unknown>(API_ENDPOINTS.CONTRACT_TOKEN_INFO, {
+        contractAddress,
+        chainName,
+      })
+      const parsed = contractTokenInfoSchema.safeParse(raw)
+      if (!parsed.success) {
+        throw new ApiError('Invalid contract token info response', 0, parsed.error.flatten())
+      }
+      tokenInfoCache.set(key, parsed.data)
+      return parsed.data
+    })()
+
+    tokenInfoInflight.set(key, task)
+    try {
+      return await task
+    } finally {
+      tokenInfoInflight.delete(key)
+    }
   },
 
   /** 获取合约池信息 */
