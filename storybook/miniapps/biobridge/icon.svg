@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="forge-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
+    </linearGradient>
+    <linearGradient id="flame-outer" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="50%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#dc2626"/>
+    </linearGradient>
+    <linearGradient id="flame-inner" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fbbf24"/>
+    </linearGradient>
+    <filter id="flame-glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background - 填满整个 viewBox -->
+  <rect width="120" height="120" fill="url(#forge-bg)"/>
+  <!-- Anvil base -->
+  <path d="M30 88 L90 88 L85 78 L35 78 Z" fill="#374151"/>
+  <path d="M35 78 L85 78 L80 71 L40 71 Z" fill="#4b5563"/>
+  <!-- Flame outer -->
+  <path d="M60 25 C45 42 35 52 40 67 C42 72 50 75 60 75 C70 75 78 72 80 67 C85 52 75 42 60 25 Z" fill="url(#flame-outer)" filter="url(#flame-glow)"/>
+  <!-- Flame inner -->
+  <path d="M60 37 C52 47 48 55 50 65 C51 69 55 71 60 71 C65 71 69 69 70 65 C72 55 68 47 60 37 Z" fill="url(#flame-inner)"/>
+  <!-- Hammer -->
+  <rect x="54" y="47" width="12" height="25" rx="2" fill="#1f2937"/>
+  <rect x="50" y="45" width="20" height="8" rx="2" fill="#374151"/>
+  <!-- Sparkles -->
+  <circle cx="42" cy="52" r="2" fill="#fef3c7" opacity="0.9"/>
+  <circle cx="78" cy="47" r="1.5" fill="#fef3c7" opacity="0.7"/>
+  <circle cx="47" cy="39" r="1" fill="white" opacity="0.8"/>
+</svg>

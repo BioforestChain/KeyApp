@@ -1,7 +1,7 @@
 {
   "name": "Bio 官方生态",
   "version": "1.0.0",
-  "updated": "2026-01-27",
+  "updated": "2026-01-29",
   "icon": "../logos/logo-256.webp",
   "apps": [
     {
@@ -9,7 +9,7 @@
       "name": "跨链通",
       "description": "BioBridge - 跨链资产桥接，支持充值和赎回",
       "longDescription": "跨链通 (BioBridge) 是 Bio 生态的跨链桥接工具，支持外链资产与内链资产的双向兑换。\n\n## 功能\n- **充值**: 将 ETH/BSC/TRON 等外链资产转换为 Bio 生态内的 Token\n- **赎回**: 将 Bio 生态内的 Token 转换回外链资产\n\n## 支持的链\n- Ethereum (ETH)\n- BNB Chain (BSC)\n- Tron (TRON)\n- BFMeta / BFChain / PMC",
-      "icon": "./forge/icon.svg",
+      "icon": "./biobridge/icon.svg",
       "version": "1.0.0",
       "author": "Bio Team",
       "website": "https://bridge.dweb.xin",
@@ -45,9 +45,9 @@
       "themeColor": "from-blue-800 via-purple-900 to-indigo-950",
       "themeColorFrom": "#1e40af",
       "splashScreen": true,
-      "dirName": "forge",
-      "url": "./forge/",
-      "runtime": "wujie"
+      "dirName": "biobridge",
+      "url": "./biobridge/",
+      "runtime": "iframe"
     },
     {
       "id": "xin.dweb.teleport",
@@ -92,7 +92,7 @@
       "splashScreen": true,
       "dirName": "teleport",
       "url": "./teleport/",
-      "runtime": "wujie"
+      "runtime": "iframe"
     }
   ]
 }
