@@ -4,7 +4,7 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "logos/logo-256.webp",
-  "change_log": "跨链通锻造文案修正",
+  "change_log": "biobridge tron token info address",
   "icons": [
     {
       "src": "logos/logo-256.webp",
@@ -19,7 +19,7 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.6.2",
+  "version": "0.6.3",
   "categories": [
     "application",
     "wallet"

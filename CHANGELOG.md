@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.6.3] - 2026-01-29
+
+biobridge tron token info address
+
+<!-- last-commit: 1993d5e724794aaefa36bfac2df495d56e450e51 -->
+
 ## [0.6.2] - 2026-01-29
 
 跨链通锻造文案修正
