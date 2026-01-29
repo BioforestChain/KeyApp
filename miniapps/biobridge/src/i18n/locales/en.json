@@ -5,7 +5,7 @@
     "description": "Bridge assets between external chains and Bio ecosystem"
   },
   "mode": {
-    "recharge": "Forge",
+    "forge": "Forge",
     "redemption": "Redemption"
   },
   "connect": {
@@ -17,11 +17,11 @@
     "receive": "Receive",
     "ratio": "Exchange Ratio",
     "ratioValue": "1:1",
-    "depositAddress": "Deposit Address",
+    "depositAddress": "Forge Address",
     "network": "Network",
     "preview": "Preview Transaction",
     "start": "Start Forge",
-    "confirm": "Confirm Recharge",
+    "confirm": "Confirm Forge",
     "continue": "Continue",
     "amountHint": "Amount is in {{symbol}}",
     "decimalsHint": "Token decimals: {{decimals}}",

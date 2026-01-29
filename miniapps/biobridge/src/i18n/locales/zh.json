@@ -5,7 +5,7 @@
     "description": "在外链与 Bio 生态之间桥接资产"
   },
   "mode": {
-    "recharge": "锻造",
+    "forge": "锻造",
     "redemption": "赎回"
   },
   "connect": {
@@ -17,11 +17,11 @@
     "receive": "获得",
     "ratio": "兑换比例",
     "ratioValue": "1:1",
-    "depositAddress": "充值地址",
+    "depositAddress": "锻造地址",
     "network": "网络",
     "preview": "预览交易",
     "start": "开始锻造",
-    "confirm": "确认充值",
+    "confirm": "确认锻造",
     "continue": "继续",
     "amountHint": "数量单位：{{symbol}}",
     "decimalsHint": "精度：{{decimals}} 位",

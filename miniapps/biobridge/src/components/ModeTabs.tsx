@@ -1,6 +1,6 @@
 /**
  * ModeTabs Component
- * 充值/赎回模式切换
+ * 锻造/赎回模式切换
  */
 
 import { cn } from '@/lib/utils'
@@ -9,14 +9,14 @@ import type { BridgeMode } from '@/api/types'
 interface ModeTabsProps {
   mode: BridgeMode
   onChange: (mode: BridgeMode) => void
-  rechargeLabel?: string
+  forgeLabel?: string
   redemptionLabel?: string
 }
 
 export function ModeTabs({
   mode,
   onChange,
-  rechargeLabel = 'Recharge',
+  forgeLabel = 'Forge',
   redemptionLabel = 'Redemption',
 }: ModeTabsProps) {
   return (
@@ -31,7 +31,7 @@ export function ModeTabs({
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
-        {rechargeLabel}
+        {forgeLabel}
       </button>
       <button
         type="button"
