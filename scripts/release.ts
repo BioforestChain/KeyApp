@@ -15,10 +15,19 @@
  * 10. 推送并触发 CI 发布（CI 创建 tag/release）
  *
  * 可选参数:
- *   --admin  当 main 受保护且无法直推时，用 PR + admin 合并兜底
+ *   --admin              当 main 受保护且无法直推时，用 PR + admin 合并兜底
+ *   --non-interactive    非交互模式（不会弹出确认与输入）
+ *   --yes                非交互模式的别名
+ *   --version <x.y.z>    指定版本号
+ *   --bump <patch|minor|major|current>  指定版本升级类型
+ *   --changelog <text>   指定本次更新的简要描述
+ *   --skip-upload        跳过 DWEB 上传
+ *   --no-push            不推送到 GitHub
+ *   --no-trigger         不触发 stable 发布
  *
  * Usage:
  *   pnpm release
+ *   pnpm release --non-interactive --bump minor --changelog "功能更新和优化" --admin
  */
 
 import { execSync } from 'node:child_process'
@@ -54,7 +63,43 @@ const log = {
   step: (msg: string) => console.log(`\n${colors.cyan}▸${colors.reset} ${colors.cyan}${msg}${colors.reset}`),
 }
 
-const ADMIN_MODE = process.argv.includes('--admin')
+const ARGS = process.argv.slice(2)
+const ADMIN_MODE = ARGS.includes('--admin')
+const NON_INTERACTIVE =
+  ARGS.includes('--non-interactive') ||
+  ARGS.includes('--yes') ||
+  process.env.RELEASE_NON_INTERACTIVE === '1' ||
+  process.env.RELEASE_NON_INTERACTIVE === 'true'
+
+function getArgValue(name: string): string | null {
+  const withEquals = ARGS.find((arg) => arg.startsWith(`${name}=`))
+  if (withEquals) {
+    return withEquals.slice(name.length + 1)
+  }
+  const index = ARGS.indexOf(name)
+  if (index === -1) return null
+  const next = ARGS[index + 1]
+  if (!next || next.startsWith('-')) return null
+  return next
+}
+
+function resolveBooleanFlag(name: string): boolean | undefined {
+  if (ARGS.includes(`--${name}`)) return true
+  if (ARGS.includes(`--no-${name}`)) return false
+  const envKey = `RELEASE_${name.toUpperCase().replace(/-/g, '_')}`
+  const envValue = process.env[envKey]
+  if (!envValue) return undefined
+  if (envValue === '1' || envValue === 'true') return true
+  if (envValue === '0' || envValue === 'false') return false
+  return undefined
+}
+
+const VERSION_ARG = getArgValue('--version') ?? process.env.RELEASE_VERSION ?? null
+const BUMP_ARG = getArgValue('--bump') ?? process.env.RELEASE_BUMP ?? null
+const CHANGELOG_ARG = getArgValue('--changelog') ?? process.env.RELEASE_CHANGELOG ?? null
+const SKIP_UPLOAD_FLAG = resolveBooleanFlag('skip-upload')
+const PUSH_FLAG = resolveBooleanFlag('push')
+const TRIGGER_FLAG = resolveBooleanFlag('trigger')
 
 // ==================== 工具函数 ====================
 
@@ -187,6 +232,32 @@ async function selectVersion(): Promise<string> {
 
   console.log(`\n当前版本: ${colors.bold}${currentVersion}${colors.reset}\n`)
 
+  if (NON_INTERACTIVE) {
+    let newVersion: string | null = null
+
+    if (VERSION_ARG) {
+      if (!semver.valid(VERSION_ARG)) {
+        throw new Error(`非交互模式版本号无效: ${VERSION_ARG}`)
+      }
+      newVersion = VERSION_ARG
+    } else if (BUMP_ARG) {
+      if (BUMP_ARG === 'current') {
+        newVersion = currentVersion
+      } else if (BUMP_ARG === 'patch' || BUMP_ARG === 'minor' || BUMP_ARG === 'major') {
+        newVersion = semver.inc(currentVersion, BUMP_ARG)
+      } else {
+        throw new Error(`非交互模式 bump 参数无效: ${BUMP_ARG}`)
+      }
+    }
+
+    if (!newVersion) {
+      throw new Error('非交互模式需要提供 --version 或 --bump')
+    }
+
+    log.success(`非交互模式使用版本号: v${newVersion}`)
+    return newVersion
+  }
+
   const choice = await select({
     message: '请选择版本升级类型:',
     choices: [
@@ -310,6 +381,14 @@ async function uploadDweb(): Promise<void> {
 
   if (!sftpUser || !sftpPass) {
     log.warn('未配置 SFTP 环境变量 (DWEB_SFTP_USER, DWEB_SFTP_PASS)')
+    if (NON_INTERACTIVE) {
+      if (SKIP_UPLOAD_FLAG === true) {
+        log.info('跳过上传')
+        return
+      }
+      throw new Error('非交互模式未配置 SFTP 环境变量且未指定 --skip-upload')
+    }
+
     const shouldSkip = await confirm({
       message: '是否跳过上传？',
       default: true,
@@ -319,6 +398,11 @@ async function uploadDweb(): Promise<void> {
       return
     }
     throw new Error('请配置 SFTP 环境变量')
+  }
+
+  if (SKIP_UPLOAD_FLAG === true) {
+    log.info('跳过上传')
+    return
   }
 
   // 使用 build.ts 的上传功能
@@ -358,10 +442,12 @@ function updateVersionFiles(version: string, changelog: string): void {
 async function updateChangelog(version: string): Promise<string> {
   log.step('更新 CHANGELOG.md')
 
-  const summary = await input({
-    message: '请输入本次更新的简要描述:',
-    default: '功能更新和优化',
-  })
+  const summary = NON_INTERACTIVE
+    ? CHANGELOG_ARG ?? '功能更新和优化'
+    : await input({
+        message: '请输入本次更新的简要描述:',
+        default: '功能更新和优化',
+      })
 
   const date = new Date().toISOString().split('T')[0]
   const commitHash = execOutput('git rev-parse HEAD')
@@ -406,10 +492,12 @@ ${colors.yellow}推送后可自动触发 stable 发布（workflow_dispatch）:${
   - CD 会在完成后创建 Tag 并生成 Release
 `)
 
-  const shouldPush = await confirm({
-    message: '是否推送到 GitHub？',
-    default: true,
-  })
+  const shouldPush = NON_INTERACTIVE
+    ? (PUSH_FLAG ?? true)
+    : await confirm({
+        message: '是否推送到 GitHub？',
+        default: true,
+      })
 
   if (!shouldPush) {
     log.info('跳过推送。你可以稍后手动执行:')
@@ -478,10 +566,12 @@ async function triggerStableRelease(): Promise<void> {
     return
   }
 
-  const shouldTrigger = await confirm({
-    message: '是否自动触发 stable 发布？',
-    default: true,
-  })
+  const shouldTrigger = NON_INTERACTIVE
+    ? (TRIGGER_FLAG ?? true)
+    : await confirm({
+        message: '是否自动触发 stable 发布？',
+        default: true,
+      })
 
   if (!shouldTrigger) {
     log.info('已跳过自动触发 stable 发布')
@@ -558,10 +648,12 @@ ${colors.cyan}发布流程:${colors.reset}
   6. 推送并触发 CI 发布（CI 创建 tag/release）
 `)
 
-    const confirmRelease = await confirm({
-      message: '确认开始发布流程？',
-      default: true,
-    })
+    const confirmRelease = NON_INTERACTIVE
+      ? true
+      : await confirm({
+          message: '确认开始发布流程？',
+          default: true,
+        })
 
     if (!confirmRelease) {
       log.info('发布已取消')
