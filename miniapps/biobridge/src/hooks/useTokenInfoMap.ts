@@ -16,10 +16,17 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
   const [loadingMap, setLoadingMap] = useState<Record<string, true>>({})
   const tokenInfoRef = useRef(tokenInfoMap)
   const loadingRef = useRef(new Set<string>())
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     tokenInfoRef.current = tokenInfoMap
   }, [tokenInfoMap])
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const targetKeys = useMemo(() => {
     return targets
@@ -47,6 +54,20 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
       .filter((entry) => !tokenInfoRef.current[entry.key] && !loadingRef.current.has(entry.key))
 
     if (toFetch.length === 0) return
+
+    const toFetchKeys = new Set(toFetch.map((entry) => entry.key))
+
+    const clearLoading = () => {
+      loadingRef.current = new Set([...loadingRef.current].filter((key) => !toFetchKeys.has(key)))
+      if (!mountedRef.current) return
+      setLoadingMap((prev) => {
+        const next = { ...prev }
+        toFetch.forEach((entry) => {
+          delete next[entry.key]
+        })
+        return next
+      })
+    }
 
     toFetch.forEach((entry) => loadingRef.current.add(entry.key))
     setLoadingMap((prev) => {
@@ -83,21 +104,12 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
         })
       })
       .finally(() => {
-        if (cancelled) return
-        loadingRef.current = new Set(
-          [...loadingRef.current].filter((key) => !toFetch.some((entry) => entry.key === key)),
-        )
-        setLoadingMap((prev) => {
-          const next = { ...prev }
-          toFetch.forEach((entry) => {
-            delete next[entry.key]
-          })
-          return next
-        })
+        clearLoading()
       })
 
     return () => {
       cancelled = true
+      clearLoading()
     }
   }, [targets, targetKeys])
 
