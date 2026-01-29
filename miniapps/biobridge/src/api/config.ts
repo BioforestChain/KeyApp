@@ -36,6 +36,8 @@ export const API_ENDPOINTS = {
   RECHARGE_RETRY_EXTERNAL: '/cot/recharge/retryExternalOnChain',
   /** 充值内链上链重试 */
   RECHARGE_RETRY_INTERNAL: '/cot/recharge/retryInternalOnChain',
+  /** 获取合约代币信息 */
+  CONTRACT_TOKEN_INFO: '/wallet/contractTokenInfo/getTokenInfo',
 
   // ============================================================================
   // Redemption Endpoints (赎回)

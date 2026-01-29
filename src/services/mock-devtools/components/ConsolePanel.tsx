@@ -304,6 +304,7 @@ export function ConsolePanel({
       e.preventDefault()
       executeCode(input)
     } else if (e.key === 'ArrowUp') {
+      if (e.altKey || e.metaKey || e.ctrlKey) return
       e.preventDefault()
       if (history.length > 0) {
         const newIndex = historyIndex < history.length - 1 ? historyIndex + 1 : historyIndex
@@ -311,6 +312,7 @@ export function ConsolePanel({
         setInput(history[history.length - 1 - newIndex] || '')
       }
     } else if (e.key === 'ArrowDown') {
+      if (e.altKey || e.metaKey || e.ctrlKey) return
       e.preventDefault()
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1

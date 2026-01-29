@@ -95,16 +95,19 @@ function ContactShareJobContent() {
       setIsDownloading(false);
     }
   }, [params.name, addresses, t, isDownloading]);
+  const handleCancel = () => {
+    pop();
+  };
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-center py-3">
           <div className="bg-muted h-1 w-10 rounded-full" />
         </div>
 
         <div className="flex items-center justify-between border-b px-4 pb-4">
-          <Button variant="ghost" size="icon" onClick={() => pop()}>
+          <Button variant="ghost" size="icon" onClick={handleCancel}>
             <X className="size-5" />
           </Button>
           <h2 className="text-lg font-semibold">{t('addressBook.shareContact')}</h2>

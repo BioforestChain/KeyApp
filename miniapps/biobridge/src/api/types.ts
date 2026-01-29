@@ -68,6 +68,18 @@ export interface RechargeSupportResDto {
   recharge: RechargeConfig
 }
 
+/** 合约代币信息 */
+export interface ContractTokenInfo {
+  chain: string
+  address: string
+  name?: string
+  symbol?: string
+  decimals: number
+  icon?: string
+  totalSupply?: string
+  website?: string
+}
+
 /** TRON 交易体 */
 export interface TronTransaction {
   txID: string

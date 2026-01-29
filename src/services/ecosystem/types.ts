@@ -46,6 +46,10 @@ export interface EcosystemTransferParams {
   amount: string; // RPC 参数是字符串
   chain: string;
   asset?: string;
+  /** 交易类型（默认 transfer） */
+  type?: 'transfer' | 'destroy' | 'setPayPassword';
+  /** 销毁资产接收方（资产发行者） */
+  recipientId?: string;
   /** 代币合约地址（用于 EVM/TRON Token 转账） */
   tokenAddress?: string;
   /** 资产精度（用于 EVM/TRON Token 转账） */

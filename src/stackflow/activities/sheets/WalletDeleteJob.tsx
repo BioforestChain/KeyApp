@@ -26,6 +26,10 @@ function WalletDeleteJobContent() {
   const [patternError, setPatternError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  const handleCancel = () => {
+    pop();
+  };
+
   const handlePatternComplete = useCallback(async (nodes: number[]) => {
     if (!wallet || nodes.length < 4) return;
 
@@ -61,7 +65,7 @@ function WalletDeleteJobContent() {
   }
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -90,7 +94,7 @@ function WalletDeleteJobContent() {
 
           <div className="space-y-3">
             <button
-              onClick={() => pop()}
+              onClick={handleCancel}
               disabled={isVerifying}
               className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
             >

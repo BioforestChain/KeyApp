@@ -19,6 +19,7 @@ const mockForgeParams: ForgeParams = {
   externalAsset: 'ETH',
   depositAddress: '0x1234567890abcdef1234567890abcdef12345678',
   externalContract: undefined,
+  externalDecimals: 18,
   amount: '1.5',
   externalAccount: { address: '0xabcdef1234567890abcdef1234567890abcdef12', chain: 'eth', publicKey: '0x' },
   internalChain: 'bfmeta',
@@ -187,6 +188,36 @@ describe('useForge', () => {
     const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
     expect(submitCall.fromTrJson).toHaveProperty('eth')
     expect(submitCall.fromTrJson.eth?.signTransData).toBe('0xsignedEthTx')
+  })
+
+  it('should scale external amount by decimals when provided', async () => {
+    mockBio.request
+      .mockResolvedValueOnce({ txHash: 'unsigned123' })
+      .mockResolvedValueOnce({ data: '0xsigned123' })
+      .mockResolvedValueOnce({ signature: 'signature123', publicKey: 'pubkey123' })
+
+    vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order123' })
+
+    const { result } = renderHook(() => useForge())
+
+    act(() => {
+      result.current.forge({
+        ...mockForgeParams,
+        amount: '10',
+        externalDecimals: 18,
+      })
+    })
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('success')
+    })
+
+    const createTxCall = mockBio.request.mock.calls[0][0] as {
+      method: string
+      params: Array<{ amount: string }>
+    }
+    expect(createTxCall.method).toBe('bio_createTransaction')
+    expect(createTxCall.params[0]?.amount).toBe('10000000000000000000')
   })
 
   it('should build correct fromTrJson for BSC', async () => {

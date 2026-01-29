@@ -273,13 +273,17 @@ function TransferWalletLockJobContent() {
     }
   }, [pendingTxId, chainConfigState, t]);
 
+  const handleCancel = useCallback(() => {
+    pop();
+  }, [pop]);
+
   // 交易状态显示（广播后）
   if (txStatus !== "idle") {
     const isFailed = txStatus === "failed";
     const isConfirmed = txStatus === "confirmed";
 
     return (
-      <BottomSheet>
+      <BottomSheet onCancel={handleCancel}>
         <div data-testid="transfer-wallet-lock-dialog">
           <div className="bg-background rounded-t-2xl">
             <div className="flex justify-center py-3">
@@ -339,7 +343,7 @@ function TransferWalletLockJobContent() {
               {/* 广播后（成功或失败）显示关闭按钮，confirmed 状态显示倒计时 */}
               <button
                 type="button"
-                onClick={() => pop()}
+                onClick={handleCancel}
                 className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
               >
                 {isConfirmed && countdown !== null
@@ -358,7 +362,7 @@ function TransferWalletLockJobContent() {
   // 钱包锁验证步骤
   if (step === 'wallet_lock') {
     return (
-      <BottomSheet>
+      <BottomSheet onCancel={handleCancel}>
         <div data-testid="transfer-wallet-lock-dialog">
           <SheetContent title={displayTitle}>
             <div className="p-4">
@@ -381,7 +385,7 @@ function TransferWalletLockJobContent() {
 
               <button
                 type="button"
-                onClick={() => pop()}
+                onClick={handleCancel}
                 disabled={isVerifying}
                 className="mt-4 w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
               >
@@ -396,7 +400,7 @@ function TransferWalletLockJobContent() {
 
   // 二次签名验证步骤
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div data-testid="transfer-wallet-lock-dialog">
         <SheetContent title={displayTitle}>
           <form onSubmit={handleSubmit} className="space-y-6 p-4">

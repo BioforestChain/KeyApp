@@ -25,6 +25,8 @@
     "continue": "繼續",
     "amountHint": "數量單位：{{symbol}}",
     "decimalsHint": "精度：{{decimals}} 位",
+    "decimalsLoading": "精度讀取中...",
+    "decimalsFromTokenInfo": "TokenInfo",
     "decimalsFallback": "預設",
     "contractHint": "合約：{{address}}"
   },
@@ -76,6 +78,7 @@
     "sdkNotInit": "Bio SDK 未初始化",
     "connectionFailed": "連接失敗",
     "invalidAmount": "請輸入有效金額",
+    "decimalsLoading": "精度資訊載入中，請稍候",
     "missingDecimals": "缺少資產精度配置",
     "forgeFailed": "操作失敗"
   },

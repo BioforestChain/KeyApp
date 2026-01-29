@@ -117,7 +117,7 @@ function CryptoAuthorizeJobContent() {
   }, [pop]);
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background flex max-h-[85vh] flex-col rounded-t-2xl">
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center py-2">

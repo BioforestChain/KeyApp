@@ -147,9 +147,12 @@ function WalletLockConfirmJobContent() {
       setIsVerifying(false);
     }
   }, [pop, clearError]);
+  const handleCancel = () => {
+    pop();
+  };
 
   return (
-    <BottomSheet data-testid="wallet-lock-dialog">
+    <BottomSheet data-testid="wallet-lock-dialog" onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -202,7 +205,7 @@ function WalletLockConfirmJobContent() {
 
           <button
             type="button"
-            onClick={() => pop()}
+            onClick={handleCancel}
             disabled={isVerifying}
             className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
           >

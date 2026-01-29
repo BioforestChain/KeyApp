@@ -9,6 +9,9 @@
   "button": {
     "open": "開啟 Mock DevTools（可拖動）"
   },
+  "help": {
+    "shortcuts": "Option+←/→ 切換分頁"
+  },
   "footer": {
     "mode": "Mock 模式",
     "logs": "{{count}} 條日誌",

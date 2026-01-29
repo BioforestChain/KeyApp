@@ -176,4 +176,32 @@ describe('useRechargeConfig', () => {
     expect(result.current.forgeOptions).toHaveLength(1)
     expect(result.current.forgeOptions[0].externalChain).toBe('ETH')
   })
+
+  it('should normalize invalid decimals to undefined', async () => {
+    const configWithInvalidDecimals: RechargeSupportResDto = {
+      recharge: {
+        bfmeta: {
+          BFM: {
+            enable: true,
+            chainName: 'bfmeta',
+            assetType: 'BFM',
+            applyAddress: 'bfm-apply',
+            supportChain: {
+              ETH: { enable: true, assetType: 'ETH', depositAddress: '0x1', decimals: 0 },
+            },
+          },
+        },
+      },
+    }
+
+    vi.mocked(rechargeApi.getSupport).mockResolvedValue(configWithInvalidDecimals)
+
+    const { result } = renderHook(() => useRechargeConfig())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.forgeOptions[0]?.externalInfo.decimals).toBeUndefined()
+  })
 })

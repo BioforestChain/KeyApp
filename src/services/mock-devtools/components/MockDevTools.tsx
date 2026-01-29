@@ -3,11 +3,10 @@
  * 提供统一的 Mock 服务调试界面
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   IconBug as Bug,
-  IconX as X,
   IconRefresh as RefreshCw,
   IconAlertTriangle as AlertTriangle,
   IconClock as Clock,
@@ -48,6 +47,7 @@ import {
 } from '@/lib/service-meta'
 import { BreakpointPanel } from './BreakpointPanel'
 import { ConsolePanel } from './ConsolePanel'
+import { DevPanelShell } from './DevPanelShell'
 
 /** 合并两个日志系统的日志 */
 function getLogs(): RequestLogEntry[] {
@@ -427,77 +427,9 @@ function SettingsPanel() {
   )
 }
 
-/** 元素尺寸常量 */
-const BUTTON_SIZE = { width: 48, height: 48 }
-const PANEL_SIZE = { width: 380, height: 480 }
-const PADDING = 16
-
-/**
- * 统一的弹簧位置算法
- * 根据相对位置(0-1)、元素尺寸、屏幕尺寸计算实际像素位置
- * 自动处理边缘碰撞检测
- */
-function calculatePosition(
-  relativePos: { x: number; y: number },
-  elementSize: { width: number; height: number },
-  screenSize: { width: number; height: number },
-): { x: number; y: number } {
-  // 可用空间 = 屏幕尺寸 - 元素尺寸 - 两边padding
-  const availableWidth = screenSize.width - elementSize.width - PADDING * 2
-  const availableHeight = screenSize.height - elementSize.height - PADDING * 2
-
-  // 根据相对位置计算目标位置
-  const targetX = PADDING + relativePos.x * Math.max(0, availableWidth)
-  const targetY = PADDING + relativePos.y * Math.max(0, availableHeight)
-
-  // 边缘碰撞检测：确保元素完全在屏幕内
-  const x = Math.max(PADDING, Math.min(screenSize.width - elementSize.width - PADDING, targetX))
-  const y = Math.max(PADDING, Math.min(screenSize.height - elementSize.height - PADDING, targetY))
-
-  return { x, y }
-}
-
-/**
- * 从像素位置反推相对位置(0-1)
- */
-function pixelToRelative(
-  pixelPos: { x: number; y: number },
-  elementSize: { width: number; height: number },
-  screenSize: { width: number; height: number },
-): { x: number; y: number } {
-  const availableWidth = screenSize.width - elementSize.width - PADDING * 2
-  const availableHeight = screenSize.height - elementSize.height - PADDING * 2
-
-  // 相对位置 = (像素位置 - padding) / 可用空间
-  const x = availableWidth > 0 ? (pixelPos.x - PADDING) / availableWidth : 0
-  const y = availableHeight > 0 ? (pixelPos.y - PADDING) / availableHeight : 0
-
-  // 限制在 0-1 范围内
-  return {
-    x: Math.max(0, Math.min(1, x)),
-    y: Math.max(0, Math.min(1, y)),
-  }
-}
-
-/** 获取初始相对位置 */
-function getInitialRelativePos(position: MockDevToolsProps['position']): { x: number; y: number } {
-  switch (position) {
-    case 'bottom-left':
-      return { x: 0, y: 1 }
-    case 'top-right':
-      return { x: 1, y: 0 }
-    case 'top-left':
-      return { x: 0, y: 0 }
-    case 'bottom-right':
-    default:
-      return { x: 1, y: 1 }
-  }
-}
-
 /** MockDevTools 主组件 */
 export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }: MockDevToolsProps) {
   const { t } = useTranslation('devtools')
-  const [isOpen, setIsOpen] = useState(defaultOpen)
   const [activeTab, setActiveTab] = useState<TabId>('logs')
   const [logFilter, setLogFilter] = useState('')
   const [logCount, setLogCount] = useState(() => getLogs().length)
@@ -511,28 +443,6 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
     setConsoleInitialCommand(command)
     setActiveTab('console')
   }, [])
-
-  // 统一的相对位置 (0-1)，按钮和面板共享
-  const [relativePos, setRelativePos] = useState(() => getInitialRelativePos(position))
-  const [screenSize, setScreenSize] = useState(() => ({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }))
-  const [isDragging, setIsDragging] = useState(false)
-  const dragStartRef = useRef<{ x: number; y: number; relX: number; relY: number } | null>(null)
-  // 跟踪是否发生了实际拖动（移动超过阈值）
-  const hasDraggedRef = useRef(false)
-  const DRAG_THRESHOLD = 5
-
-  // 根据相对位置计算实际像素位置
-  const buttonPos = useMemo(
-    () => calculatePosition(relativePos, BUTTON_SIZE, screenSize),
-    [relativePos, screenSize]
-  )
-  const panelPos = useMemo(
-    () => calculatePosition(relativePos, PANEL_SIZE, screenSize),
-    [relativePos, screenSize]
-  )
 
   useEffect(() => {
     const updateLogCount = () => setLogCount(getLogs().length)
@@ -554,118 +464,6 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
     }
   }, [])
 
-  // 窗口 resize 时更新屏幕尺寸（相对位置不变，像素位置自动重算）
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  // 拖动处理 - 统一更新相对位置
-  const handleDragStart = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      // 阻止事件冒泡到 Stackflow
-      e.stopPropagation()
-      
-      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? 0 : e.clientX
-      const clientY = 'touches' in e ? e.touches[0]?.clientY ?? 0 : e.clientY
-
-      dragStartRef.current = {
-        x: clientX,
-        y: clientY,
-        relX: relativePos.x,
-        relY: relativePos.y,
-      }
-      hasDraggedRef.current = false
-      setIsDragging(true)
-    },
-    [relativePos],
-  )
-
-  // 处理点击 - 只在没有发生拖动时触发
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      // 如果发生了拖动，忽略点击
-      if (hasDraggedRef.current) {
-        e.preventDefault()
-        return
-      }
-      setIsOpen(true)
-    },
-    [],
-  )
-
-  useEffect(() => {
-    if (!isDragging) return
-
-    // 当前拖动的元素尺寸
-    const elementSize = isOpen ? PANEL_SIZE : BUTTON_SIZE
-
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      if (!dragStartRef.current) return
-
-      e.preventDefault()
-      e.stopPropagation()
-
-      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? 0 : e.clientX
-      const clientY = 'touches' in e ? e.touches[0]?.clientY ?? 0 : e.clientY
-
-      const deltaX = clientX - dragStartRef.current.x
-      const deltaY = clientY - dragStartRef.current.y
-
-      // 检测是否超过拖动阈值
-      if (!hasDraggedRef.current && (Math.abs(deltaX) > DRAG_THRESHOLD || Math.abs(deltaY) > DRAG_THRESHOLD)) {
-        hasDraggedRef.current = true
-      }
-
-      // 只有实际拖动时才更新位置
-      if (hasDraggedRef.current) {
-        // 计算起始相对位置对应的像素位置
-        const startPixelPos = calculatePosition(
-          { x: dragStartRef.current.relX, y: dragStartRef.current.relY },
-          elementSize,
-          screenSize
-        )
-
-        // 新的像素位置
-        const newPixelPos = {
-          x: startPixelPos.x + deltaX,
-          y: startPixelPos.y + deltaY,
-        }
-
-        // 转换回相对位置（自动处理边界）
-        const newRelativePos = pixelToRelative(newPixelPos, elementSize, screenSize)
-        setRelativePos(newRelativePos)
-      }
-    }
-
-    const handleEnd = (e: MouseEvent | TouchEvent) => {
-      e.stopPropagation()
-      setIsDragging(false)
-      dragStartRef.current = null
-    }
-
-    document.addEventListener('mousemove', handleMove, { capture: true })
-    document.addEventListener('mouseup', handleEnd, { capture: true })
-    document.addEventListener('touchmove', handleMove, { passive: false, capture: true })
-    document.addEventListener('touchend', handleEnd, { capture: true })
-
-    return () => {
-      document.removeEventListener('mousemove', handleMove, { capture: true })
-      document.removeEventListener('mouseup', handleEnd, { capture: true })
-      document.removeEventListener('touchmove', handleMove, { capture: true } as EventListenerOptions)
-      document.removeEventListener('touchend', handleEnd, { capture: true })
-    }
-  }, [isDragging, isOpen, screenSize])
-
-  // 阻止面板内部事件冒泡到 Stackflow（必须在条件返回前定义）
-  const stopPropagation = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation()
-  }, [])
-
   const tabs: { id: TabId; icon: typeof List; label: string; badge: number | undefined }[] = [
     { id: 'logs', icon: List, label: t('tabs.logs'), badge: logCount > 0 ? logCount : undefined },
     { id: 'intercept', icon: Terminal, label: t('tabs.breakpoints'), badge: pausedCount > 0 ? pausedCount : undefined },
@@ -673,99 +471,31 @@ export function MockDevTools({ defaultOpen = false, position = 'bottom-right' }:
     { id: 'settings', icon: Settings, label: t('tabs.settings'), badge: undefined },
   ]
 
-  if (!isOpen) {
-    return (
-      <button
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-        onClick={handleClick}
-        className={cn(
-          'fixed z-[9999] flex size-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg',
-          isDragging ? 'cursor-grabbing' : 'cursor-pointer hover:scale-110 transition-transform',
-          pausedCount > 0 && 'animate-pulse',
-        )}
-        style={{ left: buttonPos.x, top: buttonPos.y, touchAction: 'none' }}
-        title={t('button.open')}
-      >
-        <Bug className="size-6" />
-        {pausedCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs">
-            {pausedCount}
-          </span>
-        )}
-      </button>
-    )
-  }
-
   return (
-    <div
-      className="fixed z-[9999] flex h-[480px] w-[380px] flex-col overflow-hidden rounded-lg border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900"
-      style={{ left: panelPos.x, top: panelPos.y }}
-      onMouseDown={stopPropagation}
-      onTouchStart={stopPropagation}
+    <DevPanelShell
+      title={t('title')}
+      icon={Bug}
+      buttonTitle={t('button.open')}
+      helpText={t('help.shortcuts')}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      defaultOpen={defaultOpen}
+      position={position}
+      buttonBadge={pausedCount > 0 ? pausedCount : undefined}
+      buttonPulse={pausedCount > 0}
+      footer={
+        <>
+          {t('footer.mode')} • {t('footer.logs', { count: logCount })}
+          {pausedCount > 0 && <span className="text-orange-500"> • {t('footer.paused', { count: pausedCount })}</span>}
+        </>
+      }
     >
-      {/* Header - 可拖动区域 */}
-      <div
-        className={cn(
-          'flex items-center justify-between bg-orange-500 px-3 py-2 text-white select-none',
-          isDragging ? 'cursor-grabbing' : 'cursor-grab',
-        )}
-        style={{ touchAction: 'none' }}
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-      >
-        <div className="flex items-center gap-2 pointer-events-none">
-          <Bug className="size-5" />
-          <span className="font-semibold">{t('title')}</span>
-        </div>
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsOpen(false) }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          className="rounded p-1 hover:bg-white/20 pointer-events-auto"
-        >
-          <X className="size-4" />
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b dark:border-gray-700">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              'relative flex flex-1 items-center justify-center gap-1 py-2 text-xs font-medium transition-colors',
-              activeTab === tab.id
-                ? 'border-b-2 border-orange-500 text-orange-500'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400',
-            )}
-          >
-            <tab.icon className="size-4" />
-            {tab.label}
-            {tab.badge !== undefined && (
-              <span className="absolute -top-0.5 right-1 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] text-white">
-                {tab.badge > 99 ? '99+' : tab.badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'logs' && <LogsPanel filter={logFilter} onFilterChange={setLogFilter} />}
-        {activeTab === 'intercept' && <BreakpointPanel onOpenConsole={handleOpenConsole} />}
-        {activeTab === 'console' && <ConsolePanel initialCommand={consoleInitialCommand} />}
-        {activeTab === 'settings' && <SettingsPanel />}
-      </div>
-
-      {/* Footer */}
-      <div className="border-t px-3 py-1.5 text-center text-[10px] text-gray-400 dark:border-gray-700">
-        {t('footer.mode')} • {t('footer.logs', { count: logCount })}
-        {pausedCount > 0 && <span className="text-orange-500"> • {t('footer.paused', { count: pausedCount })}</span>}
-      </div>
-    </div>
+      {activeTab === 'logs' && <LogsPanel filter={logFilter} onFilterChange={setLogFilter} />}
+      {activeTab === 'intercept' && <BreakpointPanel onOpenConsole={handleOpenConsole} />}
+      {activeTab === 'console' && <ConsolePanel initialCommand={consoleInitialCommand} />}
+      {activeTab === 'settings' && <SettingsPanel />}
+    </DevPanelShell>
   )
 }
 

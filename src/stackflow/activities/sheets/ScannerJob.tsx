@@ -319,7 +319,7 @@ function ScannerJobContent() {
   }, [stopCamera, pop])
   
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleClose}>
       <div className="flex h-[80vh] flex-col overflow-hidden rounded-t-2xl bg-black">
         {/* Handle */}
         <div className="flex justify-center py-2">

@@ -10,7 +10,8 @@ const MY_APPS_KEY = 'ecosystem_my_apps'
 
 const LEGACY_APP_ID_MAP: Record<string, string> = {
   teleport: 'xin.dweb.teleport',
-  forge: 'xin.dweb.forge',
+  forge: 'xin.dweb.biobridge',
+  biobridge: 'xin.dweb.biobridge',
 }
 
 export function normalizeAppId(appId: string): string {
@@ -41,5 +42,4 @@ export function loadMyApps(): MyAppRecord[] {
 export function saveMyApps(apps: MyAppRecord[]): void {
   localStorage.setItem(MY_APPS_KEY, JSON.stringify(apps))
 }
-
 

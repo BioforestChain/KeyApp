@@ -35,6 +35,9 @@ function WalletRenameJobContent() {
     walletActions.updateWalletName(wallet.id, trimmedName);
     pop();
   }, [wallet, newName, pop]);
+  const handleCancel = () => {
+    pop();
+  };
 
   if (!wallet) {
     return null;
@@ -43,7 +46,7 @@ function WalletRenameJobContent() {
   const canSave = newName.trim().length > 0 && newName.trim() !== wallet.name;
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -89,7 +92,7 @@ function WalletRenameJobContent() {
               {t("editSheet.save")}
             </button>
             <button
-              onClick={() => pop()}
+              onClick={handleCancel}
               className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
             >
               {t("editSheet.cancel")}

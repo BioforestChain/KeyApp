@@ -120,10 +120,10 @@ describe('ecosystemStore - myApps management', () => {
     })
 
     it('normalizes legacy app IDs', () => {
-      ecosystemActions.installApp('forge')
-      ecosystemActions.uninstallApp('forge')
+      ecosystemActions.installApp('biobridge')
+      ecosystemActions.uninstallApp('biobridge')
       
-      expect(ecosystemStore.state.myApps.find((a) => a.appId === 'xin.dweb.forge')).toBeUndefined()
+      expect(ecosystemStore.state.myApps.find((a) => a.appId === 'xin.dweb.biobridge')).toBeUndefined()
     })
 
     it('persists to localStorage', () => {

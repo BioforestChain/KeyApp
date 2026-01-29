@@ -130,14 +130,15 @@ function WalletPickerJobContent() {
     pop();
   };
 
-  const handleCancel = () => {
-    const event = new CustomEvent('wallet-picker-cancel');
-    window.dispatchEvent(event);
+  const handleCancel = (e?: { preventDefault?: () => void }) => {
+    e?.preventDefault?.();
+    const cancelEvent = new CustomEvent('wallet-picker-cancel');
+    window.dispatchEvent(cancelEvent);
     pop();
   };
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">

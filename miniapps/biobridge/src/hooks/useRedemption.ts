@@ -5,6 +5,7 @@
 
 import { useState, useCallback } from 'react'
 import type { BioAccount } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { redemptionApi } from '@/api'
 import type {
   ExternalChainName,
@@ -90,16 +91,19 @@ export function useRedemption() {
       }
 
       // Create DestroyAsset transaction via Bio SDK
+      const internalChainId = normalizeChainId(internalChain)
+
       const unsignedTx = await window.bio.request({
         method: 'bio_createTransaction',
         params: [{
-          type: 'destroyAsset',
+          type: 'destroy',
           from: internalAccount.address,
-          to: applyAddress, // recipientId = 内链币发行地址
+          to: applyAddress,
+          recipientId: applyAddress, // asset issuer
           amount,
-          chain: internalChain,
+          chain: internalChainId,
           asset: internalAsset,
-          remark: JSON.stringify(remark),
+          remark,
         }],
       })
 
@@ -108,11 +112,11 @@ export function useRedemption() {
 
       const unsignedTxSafe = toJsonSafe(unsignedTx)
 
-      const signedTx = await window.bio.request<{ trJson: unknown }>({
+      const signedTx = await window.bio.request<{ trJson?: unknown; data?: unknown }>({
         method: 'bio_signTransaction',
         params: [{
           from: internalAccount.address,
-          chain: internalChain,
+          chain: internalChainId,
           unsignedTx: unsignedTxSafe,
         }],
       })
@@ -124,7 +128,7 @@ export function useRedemption() {
         fromTrJson: {
           bcf: {
             chainName: internalChain,
-            trJson: signedTx.trJson || signedTx,
+            trJson: signedTx.trJson ?? signedTx.data ?? signedTx,
           },
         },
       }

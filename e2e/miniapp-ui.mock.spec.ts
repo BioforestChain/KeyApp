@@ -68,12 +68,12 @@ test.describe('Forge 小程序 UI', () => {
   })
 
   test('连接页面 - 初始状态', async ({ page }) => {
-    await gotoMiniapp(page, 'xin.dweb.forge')
+    await gotoMiniapp(page, 'xin.dweb.biobridge')
     await expect(page).toHaveScreenshot('forge-01-connect.png')
   })
 
   test('连接页面 - 暗色主题', async ({ page }) => {
-    await gotoMiniapp(page, 'xin.dweb.forge', '?colorMode=dark')
+    await gotoMiniapp(page, 'xin.dweb.biobridge', '?colorMode=dark')
 
     await page.evaluate(() => {
       document.documentElement.classList.add('dark')
@@ -84,7 +84,7 @@ test.describe('Forge 小程序 UI', () => {
   })
 
   test('连接页面 - 自定义主题色', async ({ page }) => {
-    await gotoMiniapp(page, 'xin.dweb.forge', '?primaryHue=145')
+    await gotoMiniapp(page, 'xin.dweb.biobridge', '?primaryHue=145')
     
     await page.evaluate(() => {
       document.documentElement.style.setProperty('--primary-hue', '145')
@@ -114,7 +114,7 @@ test.describe('小程序主题同步', () => {
   test('Forge - 暗色 + 自定义主题色', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     
-    await gotoMiniapp(page, 'xin.dweb.forge', '?colorMode=dark&primaryHue=280')
+    await gotoMiniapp(page, 'xin.dweb.biobridge', '?colorMode=dark&primaryHue=280')
     
     await page.evaluate(() => {
       document.documentElement.classList.add('dark')

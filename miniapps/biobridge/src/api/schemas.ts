@@ -45,6 +45,17 @@ export const rechargeSubmitSchema = z.object({
   orderId: z.string(),
 }).passthrough()
 
+export const contractTokenInfoSchema = z.object({
+  chain: z.string(),
+  address: z.string(),
+  name: z.string().optional(),
+  symbol: z.string().optional(),
+  decimals: z.coerce.number(),
+  icon: z.string().optional(),
+  totalSupply: z.string().optional(),
+  website: z.string().optional(),
+}).passthrough()
+
 const recordTxInfoSchema = z.object({
   chainName: z.string(),
   assetType: z.string(),

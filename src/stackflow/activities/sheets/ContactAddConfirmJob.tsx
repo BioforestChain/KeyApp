@@ -101,7 +101,7 @@ function ContactAddConfirmJobContent() {
   }, [pop])
   
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl pb-[env(safe-area-inset-bottom)]">
         {/* Handle */}
         <div className="flex justify-center py-3">

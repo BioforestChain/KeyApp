@@ -132,9 +132,12 @@ function ContactEditJobContent() {
   const hasValidAddress = addresses.some((a) => a.address.trim());
   const canSave = name.trim().length > 0 && hasValidAddress;
   const canAddMore = addresses.length < MAX_ADDRESSES;
+  const handleCancel = () => {
+    pop();
+  };
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">
@@ -282,7 +285,7 @@ function ContactEditJobContent() {
                 {isEditing ? t("contact.save") : t("contact.add")}
               </button>
               <button
-                onClick={() => pop()}
+                onClick={handleCancel}
                 className="w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
               >
                 {t("contact.cancel")}

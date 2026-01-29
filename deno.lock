@@ -10258,7 +10258,7 @@
       ]
     },
     "members": {
-      "miniapps/forge": {
+      "miniapps/biobridge": {
         "packageJson": {
           "dependencies": [
             "npm:@base-ui/react@1",

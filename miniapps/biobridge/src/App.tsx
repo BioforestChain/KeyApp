@@ -8,12 +8,13 @@ import { useTranslation } from 'react-i18next';
 import type { BioAccount } from '@biochain/bio-sdk';
 import { normalizeChainId } from '@biochain/bio-sdk';
 import { getChainType, getEvmChainIdFromApi } from '@/lib/chain';
+import { parseAmount } from '@/lib/fee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import { BackgroundBeams } from './components/BackgroundBeams';
 import { ModeTabs } from './components/ModeTabs';
@@ -33,7 +34,7 @@ import {
   ArrowLeftRight,
 } from 'lucide-react';
 
-import { useRechargeConfig, useForge, type ForgeOption } from '@/hooks';
+import { useRechargeConfig, useForge, useTokenInfoMap, getTokenInfoKey, type ForgeOption } from '@/hooks';
 import type { BridgeMode } from '@/api/types';
 
 type RechargeStep = 'connect' | 'swap' | 'confirm' | 'processing' | 'success';
@@ -47,7 +48,15 @@ const TOKEN_COLORS: Record<string, string> = {
   BFC: 'bg-blue-600',
 };
 
-function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
+function TokenAvatar({
+  symbol,
+  logo,
+  size = 'sm',
+}: {
+  symbol: string;
+  logo?: string;
+  size?: 'sm' | 'md';
+}) {
   const iconSize = size === 'md' ? 'size-5' : 'size-4';
   const icons: Record<string, React.ReactNode> = {
     ETH: <Coins className={iconSize} />,
@@ -58,10 +67,19 @@ function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'm
     USDT: <DollarSign className={iconSize} />,
   };
   return (
-    <Avatar className={cn(size === 'md' ? 'size-10' : 'size-6', TOKEN_COLORS[symbol] || 'bg-muted')}>
-      <AvatarFallback className="bg-transparent text-white">
-        {icons[symbol] || <Coins className={iconSize} />}
-      </AvatarFallback>
+    <Avatar
+      className={cn(
+        size === 'md' ? 'size-10' : 'size-6',
+        logo ? 'bg-background border' : TOKEN_COLORS[symbol] || 'bg-muted',
+      )}
+    >
+      {logo ? (
+        <AvatarImage src={logo} alt={`${symbol} logo`} />
+      ) : (
+        <AvatarFallback className="bg-transparent text-white">
+          {icons[symbol] || <Coins className={iconSize} />}
+        </AvatarFallback>
+      )}
     </Avatar>
   );
 }
@@ -134,19 +152,23 @@ export default function App() {
     [forgeHook],
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = useCallback(async (option?: ForgeOption) => {
+    const activeOption = option ?? selectedOption;
+    if (option) {
+      setSelectedOption(option);
+    }
     if (!window.bio) {
       setError('Bio SDK not initialized');
       return;
     }
-    if (!selectedOption) {
+    if (!activeOption) {
       setError('Please select an option');
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const externalChain = selectedOption.externalChain;
+      const externalChain = activeOption.externalChain;
       const chainType = getChainType(externalChain);
 
       let extAcc: BioAccount;
@@ -198,7 +220,7 @@ export default function App() {
 
       const intAcc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{ chain: selectedOption.internalChain }],
+        params: [{ chain: activeOption.internalChain }],
       });
       setInternalAccount(intAcc);
 
@@ -220,33 +242,56 @@ export default function App() {
   };
 
   const externalDecimals =
-    typeof selectedOption?.externalInfo.decimals === 'number' && Number.isFinite(selectedOption.externalInfo.decimals)
+    typeof selectedOption?.externalInfo.decimals === 'number' &&
+    Number.isFinite(selectedOption.externalInfo.decimals) &&
+    selectedOption.externalInfo.decimals > 0
       ? selectedOption.externalInfo.decimals
       : undefined;
+  const tokenInfoTargets = useMemo(
+    () =>
+      forgeOptions.map((option) => ({
+        chain: option.externalChain,
+        address: option.externalInfo.contract,
+      })),
+    [forgeOptions],
+  );
+  const { tokenInfoMap, loadingMap } = useTokenInfoMap(tokenInfoTargets);
   const externalTokenAddress = selectedOption?.externalInfo.contract?.trim();
-  const externalDecimalsFallback = externalTokenAddress
-    ? (() => {
-        switch (selectedOption?.externalChain) {
-          case 'ETH':
-          case 'BSC':
-            return 18;
-          case 'TRON':
-            return 6;
-          default:
-            return undefined;
-        }
-      })()
-    : undefined;
-  const resolvedExternalDecimals = externalDecimals ?? externalDecimalsFallback;
-  const usingFallbackDecimals =
-    Boolean(externalTokenAddress) && externalDecimals === undefined && resolvedExternalDecimals !== undefined;
+  const tokenInfoKey =
+    selectedOption?.externalChain && externalTokenAddress
+      ? getTokenInfoKey(selectedOption.externalChain, externalTokenAddress)
+      : undefined;
+  const tokenInfo = tokenInfoKey ? tokenInfoMap[tokenInfoKey] : undefined;
+  const tokenInfoLoading = tokenInfoKey ? Boolean(loadingMap[tokenInfoKey]) : false;
+  const resolvedExternalDecimals = tokenInfo?.decimals ?? externalDecimals;
+  const usingRemoteDecimals = Boolean(externalTokenAddress) && tokenInfo?.decimals !== undefined;
+  const resolvedExternalSymbol = tokenInfo?.symbol ?? selectedOption?.externalAsset ?? '';
+  const resolvedExternalLogo = selectedOption?.externalLogo ?? tokenInfo?.icon;
 
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return;
     const tokenAddress = selectedOption.externalInfo.contract?.trim();
+    if (tokenAddress && tokenInfoLoading) {
+      setError(t('error.decimalsLoading'));
+      return;
+    }
     if (tokenAddress && resolvedExternalDecimals === undefined) {
       setError(t('error.missingDecimals'));
       return;
+    }
+
+    let amountInUnits: string | undefined;
+    if (typeof resolvedExternalDecimals === 'number') {
+      try {
+        amountInUnits = parseAmount(amount, resolvedExternalDecimals).toString();
+      } catch {
+        setError(t('error.invalidAmount'));
+        return;
+      }
+      if (amountInUnits === '0') {
+        setError(t('error.invalidAmount'));
+        return;
+      }
     }
 
     setError(null);
@@ -256,6 +301,7 @@ export default function App() {
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
       externalDecimals: resolvedExternalDecimals,
+      amountInUnits,
       depositAddress: selectedOption.externalInfo.depositAddress,
       externalContract: tokenAddress,
       amount,
@@ -293,17 +339,6 @@ export default function App() {
     setSelectedOption(option);
     setPickerOpen(false);
   };
-
-  const handleSelectExternalChain = useCallback(
-    (externalChain: string) => {
-      const options = groupedOptions[externalChain];
-      const first = options?.[0];
-      if (first) {
-        setSelectedOption(first);
-      }
-    },
-    [groupedOptions],
-  );
 
   // Check if redemption is available
   const hasRedemptionOptions = useMemo(() => {
@@ -408,37 +443,67 @@ export default function App() {
                     <p className="text-muted-foreground text-sm">{t('app.description')}</p>
                   </div>
 
-                  {/* Available chains preview */}
                   {forgeOptions.length > 0 && (
-                    <div className="flex gap-2">
-                      {Object.keys(groupedOptions).map((chain) => (
-                        <Badge
-                          key={chain}
-                          asChild
-                          variant={selectedOption?.externalChain === chain ? 'secondary' : 'outline'}
-                          className={cn(
-                            'cursor-pointer select-none',
-                            selectedOption?.externalChain === chain && 'ring-primary/40 ring-2',
-                          )}
-                        >
-                          <button type="button" onClick={() => handleSelectExternalChain(chain)}>
+                    <div className="w-full space-y-4">
+                      {Object.entries(groupedOptions).map(([chain, options]) => (
+                        <div key={chain} className="space-y-2">
+                          <div className="text-muted-foreground text-xs font-medium">
                             {getChainName(chain)}
-                          </button>
-                        </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            {options.map((option, index) => {
+                              const isSelected =
+                                selectedOption?.externalAsset === option.externalAsset &&
+                                selectedOption?.externalChain === option.externalChain;
+                              const isPrimary = isSelected || (!selectedOption && index === 0);
+                              const optionTokenInfoKey = option.externalInfo.contract?.trim()
+                                ? getTokenInfoKey(option.externalChain, option.externalInfo.contract.trim())
+                                : undefined;
+                              const optionTokenInfo = optionTokenInfoKey ? tokenInfoMap[optionTokenInfoKey] : undefined;
+                              const externalSymbol = optionTokenInfo?.symbol ?? option.externalAsset;
+                              const externalName = optionTokenInfo?.name;
+                              const externalLogo = option.externalLogo ?? optionTokenInfo?.icon;
+                              const externalLabel = `${externalSymbol} (${getChainName(option.externalChain)})`;
+                              const internalLabel = `${option.internalAsset} (${getChainName(option.internalChain)})`;
+                              const secondaryLine = `${externalName ? `${externalName} · ` : ''}${externalLabel} ${t('common.arrow')} ${internalLabel}`;
+                              return (
+                                <button
+                                  key={`${option.externalChain}-${option.externalAsset}-${option.internalAsset}`}
+                                  type="button"
+                                  data-testid={isPrimary ? 'connect-button' : undefined}
+                                  aria-label={isPrimary ? t('connect.button') : undefined}
+                                  className={cn(
+                                    'bg-card border-border hover:bg-accent flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors',
+                                    isSelected && 'ring-primary/40 ring-2',
+                                    loading && 'pointer-events-none opacity-70',
+                                  )}
+                                  onClick={() => handleConnect(option)}
+                                  disabled={loading}
+                                >
+                                  <TokenAvatar symbol={externalSymbol} logo={externalLogo} size="md" />
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-semibold">{externalSymbol}</span>
+                                      <Badge variant="outline">{getChainName(option.internalChain)}</Badge>
+                                    </div>
+                                    <div className="text-muted-foreground flex items-center justify-between text-xs">
+                                      <span>{secondaryLine}</span>
+                                      {isPrimary && (
+                                        <span>{loading && isSelected ? t('connect.loading') : t('connect.button')}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {loading && isSelected && (
+                                    <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}
-
-                  <Button
-                    data-testid="connect-button"
-                    size="lg"
-                    className="h-12 w-full max-w-xs"
-                    onClick={handleConnect}
-                    disabled={loading || forgeOptions.length === 0 || !selectedOption}
-                  >
-                    {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                    {loading ? t('connect.loading') : t('connect.button')}
-                  </Button>
                 </motion.div>
               )}
 
@@ -446,9 +511,9 @@ export default function App() {
               {rechargeStep === 'swap' && selectedOption && (
                 <motion.div
                   key="swap"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="flex flex-1 flex-col gap-3"
                 >
                   {/* From Card (External Chain) */}
@@ -464,8 +529,8 @@ export default function App() {
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="bg-muted/50 flex h-10 shrink-0 items-center gap-2 rounded-md border px-3">
-                          <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                          <span className="font-semibold">{selectedOption.externalAsset}</span>
+                          <TokenAvatar symbol={resolvedExternalSymbol} logo={resolvedExternalLogo} size="sm" />
+                          <span className="font-semibold">{resolvedExternalSymbol}</span>
                         </div>
                         <Input
                           data-testid="amount-input"
@@ -480,11 +545,14 @@ export default function App() {
                         {externalAccount?.address}
                       </div>
                       <div className="text-muted-foreground space-y-1 text-xs">
-                        <div>{t('forge.amountHint', { symbol: selectedOption.externalAsset })}</div>
+                        <div>{t('forge.amountHint', { symbol: resolvedExternalSymbol })}</div>
+                        {tokenInfoLoading && (
+                          <div>{t('forge.decimalsLoading')}</div>
+                        )}
                         {typeof resolvedExternalDecimals === 'number' && (
                           <div>
                             {t('forge.decimalsHint', { decimals: resolvedExternalDecimals })}
-                            {usingFallbackDecimals ? ` (${t('forge.decimalsFallback')})` : null}
+                            {usingRemoteDecimals ? ` (${t('forge.decimalsFromTokenInfo')})` : null}
                           </div>
                         )}
                         {contractDisplay && (
@@ -518,7 +586,7 @@ export default function App() {
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="bg-muted/50 flex h-10 shrink-0 items-center gap-2 rounded-md border px-3">
-                          <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                          <TokenAvatar symbol={selectedOption.internalAsset} logo={selectedOption.internalLogo} size="sm" />
                           <span className="font-semibold">{selectedOption.internalAsset}</span>
                         </div>
                         <div className="text-muted-foreground flex-1 text-right text-2xl font-bold">
@@ -566,9 +634,9 @@ export default function App() {
               {rechargeStep === 'confirm' && selectedOption && (
                 <motion.div
                   key="confirm"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="flex flex-1 flex-col gap-4"
                 >
                   <Card>
@@ -581,8 +649,8 @@ export default function App() {
                           })}
                         </CardDescription>
                         <div className="flex items-center justify-center gap-2 text-3xl font-bold">
-                          <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                          {amount} <span className="text-muted-foreground text-lg">{selectedOption.externalAsset}</span>
+                          <TokenAvatar symbol={resolvedExternalSymbol} logo={resolvedExternalLogo} size="sm" />
+                          {amount} <span className="text-muted-foreground text-lg">{resolvedExternalSymbol}</span>
                         </div>
                       </div>
                       <div className="flex justify-center">
@@ -600,7 +668,7 @@ export default function App() {
                           })}
                         </CardDescription>
                         <div className="flex items-center justify-center gap-2 text-3xl font-bold text-blue-500">
-                          <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                          <TokenAvatar symbol={selectedOption.internalAsset} logo={selectedOption.internalLogo} size="sm" />
                           {amount} <span className="text-lg text-blue-500/60">{selectedOption.internalAsset}</span>
                         </div>
                       </div>
@@ -630,9 +698,15 @@ export default function App() {
                         </span>
                       </div>
                       <div className="text-muted-foreground space-y-1 text-xs">
-                        <div>{t('forge.amountHint', { symbol: selectedOption.externalAsset })}</div>
-                        {typeof externalDecimals === 'number' && (
-                          <div>{t('forge.decimalsHint', { decimals: externalDecimals })}</div>
+                        <div>{t('forge.amountHint', { symbol: resolvedExternalSymbol })}</div>
+                        {tokenInfoLoading && (
+                          <div>{t('forge.decimalsLoading')}</div>
+                        )}
+                        {typeof resolvedExternalDecimals === 'number' && (
+                          <div>
+                            {t('forge.decimalsHint', { decimals: resolvedExternalDecimals })}
+                            {usingRemoteDecimals ? ` (${t('forge.decimalsFromTokenInfo')})` : null}
+                          </div>
                         )}
                         {contractDisplay && (
                           <div title={contractAddress ?? undefined}>
@@ -747,7 +821,7 @@ export default function App() {
                             onClick={() => handleSelectOption(option)}
                           >
                             <CardContent className="flex items-center gap-3 py-3">
-                              <TokenAvatar symbol={option.externalAsset} size="md" />
+                              <TokenAvatar symbol={option.externalAsset} logo={option.externalLogo} size="md" />
                               <div className="flex-1">
                                 <CardTitle className="text-base">
                                   {t('picker.optionAssets', {

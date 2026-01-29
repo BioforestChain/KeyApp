@@ -105,7 +105,7 @@ function SigningConfirmJobContent() {
   const isHexData = message.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(message);
 
   return (
-    <BottomSheet>
+    <BottomSheet onCancel={handleCancel}>
       <div className="bg-background rounded-t-2xl">
         {/* Handle */}
         <div className="flex justify-center py-3">

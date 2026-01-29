@@ -10,6 +10,7 @@ import {
   rechargeSubmitSchema,
   rechargeRecordsSchema,
   rechargeRecordDetailSchema,
+  contractTokenInfoSchema,
 } from './schemas'
 import type {
   RechargeSupportResDto,
@@ -23,6 +24,7 @@ import type {
   RechargeRecordDetailResDto,
   RetryOnChainReqDto,
   ExternalAssetInfoItem,
+  ContractTokenInfo,
 } from './types'
 
 /**
@@ -91,6 +93,19 @@ export const rechargeApi = {
     const parsed = rechargeSubmitSchema.safeParse(raw)
     if (!parsed.success) {
       throw new ApiError('Invalid recharge response', 0, parsed.error.flatten())
+    }
+    return parsed.data
+  },
+
+  /** 获取合约代币信息（精度/图标等） */
+  async getTokenInfo(params: { contractAddress: string; chainName: string }): Promise<ContractTokenInfo> {
+    const raw = await apiClient.get<unknown>(API_ENDPOINTS.CONTRACT_TOKEN_INFO, {
+      contractAddress: params.contractAddress,
+      chainName: params.chainName,
+    })
+    const parsed = contractTokenInfoSchema.safeParse(raw)
+    if (!parsed.success) {
+      throw new ApiError('Invalid contract token info response', 0, parsed.error.flatten())
     }
     return parsed.data
   },

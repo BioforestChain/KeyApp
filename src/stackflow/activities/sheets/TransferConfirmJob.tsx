@@ -133,7 +133,7 @@ function TransferConfirmJobContent() {
   }, [pop]);
 
   return (
-    <BottomSheet data-testid="transfer-confirm-sheet">
+    <BottomSheet data-testid="transfer-confirm-sheet" onCancel={handleClose}>
       <SheetContent title={t('confirmSheet.title')}>
         <div className="space-y-6 p-4">
           {/* Amount */}

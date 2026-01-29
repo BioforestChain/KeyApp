@@ -6,18 +6,20 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BioAccount } from '@biochain/bio-sdk'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { ArrowDown, AlertCircle, Check, Coins, DollarSign, Leaf } from 'lucide-react'
+import { ArrowDown, AlertCircle, Check, Coins, DollarSign, Leaf, Loader2 } from 'lucide-react'
 
 import type { RechargeConfig, ExternalChainName, RechargeItem } from '@/api/types'
 import { useRedemption } from '@/hooks/useRedemption'
+import { useTokenInfoMap, getTokenInfoKey } from '@/hooks'
 import { calculateRedemptionFee, formatAmount, parseAmount, isAmountWithinLimits } from '@/lib/fee'
 
 interface RedemptionFormProps {
@@ -32,6 +34,9 @@ interface RedemptionOption {
   externalChain: ExternalChainName
   externalAsset: string
   rechargeItem: RechargeItem
+  internalLogo?: string
+  externalLogo?: string
+  externalContract?: string
 }
 
 const TOKEN_COLORS: Record<string, string> = {
@@ -43,7 +48,18 @@ const TOKEN_COLORS: Record<string, string> = {
   BFC: 'bg-blue-600',
 }
 
-function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
+/** Chain display order: BSC -> TRON -> ETH */
+const CHAIN_ORDER: Record<string, number> = { BSC: 1, TRON: 2, ETH: 3 }
+
+function TokenAvatar({
+  symbol,
+  logo,
+  size = 'sm',
+}: {
+  symbol: string
+  logo?: string
+  size?: 'sm' | 'md'
+}) {
   const iconSize = size === 'md' ? 'size-5' : 'size-4'
   const icons: Record<string, React.ReactNode> = {
     ETH: <Coins className={iconSize} />,
@@ -54,10 +70,19 @@ function TokenAvatar({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'm
     USDT: <DollarSign className={iconSize} />,
   }
   return (
-    <Avatar className={cn(size === 'md' ? 'size-10' : 'size-6', TOKEN_COLORS[symbol] || 'bg-muted')}>
-      <AvatarFallback className="bg-transparent text-white">
-        {icons[symbol] || <Coins className={iconSize} />}
-      </AvatarFallback>
+    <Avatar
+      className={cn(
+        size === 'md' ? 'size-10' : 'size-6',
+        logo ? 'bg-background border' : TOKEN_COLORS[symbol] || 'bg-muted',
+      )}
+    >
+      {logo ? (
+        <AvatarImage src={logo} alt={`${symbol} logo`} />
+      ) : (
+        <AvatarFallback className="bg-transparent text-white">
+          {icons[symbol] || <Coins className={iconSize} />}
+        </AvatarFallback>
+      )}
     </Avatar>
   )
 }
@@ -73,6 +98,7 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
   const [externalAddress, setExternalAddress] = useState('')
   const [step, setStep] = useState<'select' | 'form' | 'confirm' | 'processing' | 'success'>('select')
   const [error, setError] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState(false)
 
   // Parse available redemption options from config
   const redemptionOptions = useMemo(() => {
@@ -91,6 +117,9 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             externalChain: externalChain as ExternalChainName,
             externalAsset: externalInfo.assetType,
             rechargeItem: item,
+            internalLogo: item.logo,
+            externalLogo: externalInfo.logo,
+            externalContract: externalInfo.contract?.trim(),
           })
         }
       }
@@ -98,6 +127,36 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
     
     return options
   }, [config])
+
+  const groupedOptions = useMemo(() => {
+    const groups: Record<string, RedemptionOption[]> = {}
+    for (const option of redemptionOptions) {
+      if (!groups[option.externalChain]) {
+        groups[option.externalChain] = []
+      }
+      groups[option.externalChain].push(option)
+    }
+    return Object.entries(groups)
+      .sort(
+        ([a], [b]) => (CHAIN_ORDER[a] ?? 99) - (CHAIN_ORDER[b] ?? 99),
+      )
+  }, [redemptionOptions])
+
+  const tokenInfoTargets = useMemo(
+    () =>
+      redemptionOptions.map((option) => ({
+        chain: option.externalChain,
+        address: option.externalContract,
+      })),
+    [redemptionOptions],
+  )
+  const { tokenInfoMap } = useTokenInfoMap(tokenInfoTargets)
+  const selectedTokenInfo = useMemo(() => {
+    if (!selectedOption?.externalContract) return undefined
+    return tokenInfoMap[getTokenInfoKey(selectedOption.externalChain, selectedOption.externalContract)]
+  }, [selectedOption, tokenInfoMap])
+  const selectedExternalSymbol = selectedTokenInfo?.symbol ?? selectedOption?.externalAsset ?? ''
+  const selectedExternalLogo = selectedOption?.externalLogo ?? selectedTokenInfo?.icon
 
   // Auto-select first option
   useEffect(() => {
@@ -141,21 +200,28 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
     return isAmountWithinLimits(amountInUnits, selectedOption.rechargeItem.redemption)
   }, [selectedOption, amount])
 
-  const handleConnect = useCallback(async () => {
-    if (!window.bio || !selectedOption) return
-    
+  const handleConnect = useCallback(async (option?: RedemptionOption) => {
+    const activeOption = option ?? selectedOption
+    if (!window.bio || !activeOption || connecting) return
+
+    if (option) {
+      setSelectedOption(option)
+    }
+    setConnecting(true)
     setError(null)
     try {
       const acc = await window.bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{ chain: selectedOption.internalChain }],
+        params: [{ chain: normalizeChainId(activeOption.internalChain) }],
       })
       setInternalAccount(acc)
       setStep('form')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connection failed')
+    } finally {
+      setConnecting(false)
     }
-  }, [selectedOption])
+  }, [selectedOption, connecting])
 
   const handlePreview = () => {
     if (!amount || !externalAddress) {
@@ -244,39 +310,68 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             <p className="text-muted-foreground text-sm">{t('redemption.description')}</p>
           </div>
 
-          {/* Chain selection */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {redemptionOptions.map((opt) => (
-              <Badge
-                key={`${opt.internalChain}-${opt.internalAsset}-${opt.externalChain}`}
-                asChild
-                variant={selectedOption === opt ? 'secondary' : 'outline'}
-                className={cn(
-                  'cursor-pointer select-none',
-                  selectedOption === opt && 'ring-2 ring-primary/40'
-                )}
-              >
-                <button type="button" onClick={() => setSelectedOption(opt)}>
-                  {t('redemption.optionLabel', {
-                    asset: opt.internalAsset,
-                    chain: getChainName(opt.externalChain),
+          <div className="w-full space-y-4">
+            {groupedOptions.map(([chain, options]) => (
+              <div key={chain} className="space-y-2">
+                <div className="text-muted-foreground text-xs font-medium">
+                  {getChainName(chain)}
+                </div>
+                <div className="space-y-2">
+                  {options.map((opt, index) => {
+                    const isSelected =
+                      selectedOption?.internalChain === opt.internalChain &&
+                      selectedOption?.internalAsset === opt.internalAsset &&
+                      selectedOption?.externalChain === opt.externalChain
+                    const isPrimary = isSelected || (!selectedOption && index === 0)
+                    const tokenInfoKey =
+                      opt.externalContract ? getTokenInfoKey(opt.externalChain, opt.externalContract) : undefined
+                    const tokenInfo = tokenInfoKey ? tokenInfoMap[tokenInfoKey] : undefined
+                    const externalSymbol = tokenInfo?.symbol ?? opt.externalAsset
+                    const externalName = tokenInfo?.name
+                    const externalLogo = opt.externalLogo ?? tokenInfo?.icon
+                    const externalLabel = `${externalSymbol} (${getChainName(opt.externalChain)})`
+                    const internalLabel = `${opt.internalAsset} (${getChainName(opt.internalChain)})`
+                    const secondaryLine = `${externalName ? `${externalName} · ` : ''}${internalLabel} ${t('common.arrow')} ${externalLabel}`
+
+                    return (
+                      <button
+                        key={`${opt.internalChain}-${opt.internalAsset}-${opt.externalChain}`}
+                        type="button"
+                        data-testid={isPrimary ? 'connect-button' : undefined}
+                        className={cn(
+                          'bg-card border-border hover:bg-accent flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors',
+                          isSelected && 'ring-2 ring-primary/40',
+                          connecting && 'pointer-events-none opacity-70',
+                        )}
+                        onClick={() => handleConnect(opt)}
+                        disabled={connecting}
+                      >
+                        <TokenAvatar symbol={externalSymbol} logo={externalLogo} size="md" />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold">{externalSymbol}</span>
+                            <Badge variant="outline">{getChainName(opt.internalChain)}</Badge>
+                          </div>
+                          <div className="text-muted-foreground text-xs">{secondaryLine}</div>
+                        </div>
+                        {connecting && isSelected && (
+                          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                        )}
+                      </button>
+                    )
                   })}
-                </button>
-              </Badge>
+                </div>
+              </div>
             ))}
           </div>
-
-          <Button size="lg" className="w-full max-w-xs" onClick={handleConnect}>
-            {t('redemption.connect')}
-          </Button>
         </motion.div>
       )}
 
       {/* Form */}
       {step === 'form' && selectedOption && internalAccount && (
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="flex flex-col gap-3"
         >
           {/* From (Internal) */}
@@ -292,7 +387,7 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                  <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                  <TokenAvatar symbol={selectedOption.internalAsset} logo={selectedOption.internalLogo} size="sm" />
                   <span className="font-semibold">{selectedOption.internalAsset}</span>
                 </div>
                 <Input
@@ -339,8 +434,8 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="shrink-0 flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                  <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                  <span className="font-semibold">{selectedOption.externalAsset}</span>
+                  <TokenAvatar symbol={selectedExternalSymbol} logo={selectedExternalLogo} size="sm" />
+                  <span className="font-semibold">{selectedExternalSymbol}</span>
                 </div>
                 <div className="flex-1 text-right text-2xl font-bold text-muted-foreground">
                   {feeResult?.isValid ? formatAmount(feeResult.receivable) : '0.00'}
@@ -367,7 +462,7 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('redemption.receivable')}</span>
                   <span className="font-semibold text-blue-500">
-                    {formatAmount(feeResult.receivable)} {selectedOption.externalAsset}
+                    {formatAmount(feeResult.receivable)} {selectedExternalSymbol}
                   </span>
                 </div>
               </CardContent>
@@ -385,8 +480,8 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
       {/* Confirm */}
       {step === 'confirm' && selectedOption && feeResult && (
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="flex flex-col gap-4"
         >
           <Card>
@@ -399,7 +494,7 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
                   })}
                 </CardDescription>
                 <div className="text-3xl font-bold flex items-center justify-center gap-2">
-                  <TokenAvatar symbol={selectedOption.internalAsset} size="sm" />
+                  <TokenAvatar symbol={selectedOption.internalAsset} logo={selectedOption.internalLogo} size="sm" />
                   {amount} <span className="text-lg text-muted-foreground">{selectedOption.internalAsset}</span>
                 </div>
               </div>
@@ -418,8 +513,8 @@ export function RedemptionForm({ config, onSuccess }: RedemptionFormProps) {
                   })}
                 </CardDescription>
                 <div className="text-3xl font-bold text-blue-500 flex items-center justify-center gap-2">
-                  <TokenAvatar symbol={selectedOption.externalAsset} size="sm" />
-                  {formatAmount(feeResult.receivable)} <span className="text-lg text-blue-500/60">{selectedOption.externalAsset}</span>
+                  <TokenAvatar symbol={selectedExternalSymbol} logo={selectedExternalLogo} size="sm" />
+                  {formatAmount(feeResult.receivable)} <span className="text-lg text-blue-500/60">{selectedExternalSymbol}</span>
                 </div>
               </div>
             </CardContent>
