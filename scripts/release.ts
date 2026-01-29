@@ -605,7 +605,7 @@ function resolveCdWorkflow(): string | null {
 
 async function installDependencies() {
   log.step('安装依赖')
-  exec('pnpm install --frozen-lockfile')
+  exec('pnpm install --frozen-lockfile', { env: { CI: 'true' } })
   log.success('依赖安装完成')
 }
 
