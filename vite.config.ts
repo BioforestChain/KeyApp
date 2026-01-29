@@ -209,6 +209,8 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(appVersion),
       // KeyApp 官网 Origin（DWEB 升级检查使用）
       __KEYAPP_SITE_ORIGIN__: JSON.stringify(siteOrigin),
+      // KeyApp Base URL（DWEB 升级链接拼接使用）
+      __KEYAPP_BASE_URL__: JSON.stringify(BASE_URL),
       // 默认生态源列表（用于订阅源管理展示）
       __ECOSYSTEM_SOURCES__: JSON.stringify(ecosystemSources),
       // API Keys 对象（用于动态读取环境变量）

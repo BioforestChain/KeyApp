@@ -68,8 +68,29 @@ function normalizeOrigin(origin: string): string {
   return origin.endsWith('/') ? origin : `${origin}/`
 }
 
+function normalizeBasePath(basePath: string): string {
+  if (!basePath) return './'
+  return basePath.endsWith('/') ? basePath : `${basePath}/`
+}
+
+function resolveSiteBase(): string {
+  const origin = normalizeOrigin(__KEYAPP_SITE_ORIGIN__)
+  try {
+    const originUrl = new URL(origin)
+    const originPath = originUrl.pathname
+    if (originPath && originPath !== '/') {
+      return normalizeOrigin(origin)
+    }
+  } catch {
+    return origin
+  }
+
+  const basePath = normalizeBasePath(__KEYAPP_BASE_URL__)
+  return normalizeOrigin(new URL(basePath, origin).toString())
+}
+
 export function resolveDwebMetadataUrl(): string {
-  const base = normalizeOrigin(__KEYAPP_SITE_ORIGIN__)
+  const base = resolveSiteBase()
   const path = __DEV_MODE__ ? 'dweb-dev/metadata.json' : 'dweb/metadata.json'
   return new URL(path, base).toString()
 }
