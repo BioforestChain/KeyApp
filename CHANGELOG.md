@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.6.4] - 2026-01-29
+
+biobridge decimals loading fix
+
+<!-- last-commit: 5b967d85ecb32f577ff00747c7811b50c0f04aa0 -->
+
 ## [0.6.3] - 2026-01-29
 
 biobridge tron token info address
