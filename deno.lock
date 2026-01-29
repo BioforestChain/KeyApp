@@ -10162,6 +10162,7 @@
         "npm:@scure/base@2",
         "npm:@scure/bip32@^2.0.1",
         "npm:@scure/bip39@^2.0.1",
+        "npm:@stackflow/config@^1.0.1-canary.0",
         "npm:@stackflow/core@^1.3.0",
         "npm:@stackflow/plugin-basic-ui@^1.18.1",
         "npm:@stackflow/plugin-history-sync@^1.8.1",

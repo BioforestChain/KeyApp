@@ -151,6 +151,7 @@
     "@storybook/react": "^10.1.4",
     "@storybook/react-vite": "^10.1.4",
     "@storybook/test": "^8.6.14",
+    "@stackflow/config": "^1.0.1-canary.0",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/ai": "^0.0.3",
     "@testing-library/jest-dom": "^6.9.1",
