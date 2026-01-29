@@ -513,6 +513,12 @@ function resolveCdWorkflow(): string | null {
   }
 }
 
+async function installDependencies() {
+  log.step('安装依赖')
+  exec('pnpm install --frozen-lockfile')
+  log.success('依赖安装完成')
+}
+
 // ==================== 主程序 ====================
 
 async function main() {
@@ -562,22 +568,25 @@ ${colors.cyan}发布流程:${colors.reset}
       return
     }
 
-    // 4. 运行构建
+    // 4. 安装依赖
+    await installDependencies()
+
+    // 5. 运行构建
     await runBuild()
 
-    // 5. 上传 DWEB
+    // 6. 上传 DWEB
     await uploadDweb()
 
-    // 6. 更新 CHANGELOG
+    // 7. 更新 CHANGELOG
     const changelog = await updateChangelog(newVersion)
 
-    // 7. 更新版本文件
+    // 8. 更新版本文件
     updateVersionFiles(newVersion, changelog)
 
-    // 8. 提交变更
+    // 9. 提交变更
     await commitRelease(newVersion)
 
-    // 9. 推送
+    // 10. 推送
     await pushAndTriggerCD(newVersion)
 
     console.log(`
