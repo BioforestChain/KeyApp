@@ -7,8 +7,8 @@
     {
       "id": "xin.dweb.biobridge",
       "name": "跨链通",
-      "description": "BioBridge - 跨链资产桥接，支持充值和赎回",
-      "longDescription": "跨链通 (BioBridge) 是 Bio 生态的跨链桥接工具，支持外链资产与内链资产的双向兑换。\n\n## 功能\n- **充值**: 将 ETH/BSC/TRON 等外链资产转换为 Bio 生态内的 Token\n- **赎回**: 将 Bio 生态内的 Token 转换回外链资产\n\n## 支持的链\n- Ethereum (ETH)\n- BNB Chain (BSC)\n- Tron (TRON)\n- BFMeta / BFChain / PMC",
+      "description": "BioBridge - 跨链资产桥接，支持锻造和赎回",
+      "longDescription": "跨链通 (BioBridge) 是 Bio 生态的跨链桥接工具，支持外链资产与内链资产的双向兑换。\n\n## 功能\n- **锻造**: 将 ETH/BSC/TRON 等外链资产转换为 Bio 生态内的 Token\n- **赎回**: 将 Bio 生态内的 Token 转换回外链资产\n\n## 支持的链\n- Ethereum (ETH)\n- BNB Chain (BSC)\n- Tron (TRON)\n- BFMeta / BFChain / PMC",
       "icon": "./biobridge/icon.svg",
       "version": "1.0.0",
       "author": "Bio Team",
@@ -16,7 +16,7 @@
       "category": "exchange",
       "tags": [
         "跨链桥",
-        "充值",
+        "锻造",
         "赎回",
         "DeFi",
         "兑换"
