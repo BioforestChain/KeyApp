@@ -8,7 +8,16 @@
       "required": true,
       "targets": { "local": true, "github": "variable" },
       "mask": "tail",
-      "description": "DWEB 自动更新使用的官网域名"
+      "description": "DWEB 自动更新使用的官网域名（需与 SITE_BASE_URL 成对配置）"
+    },
+    {
+      "key": "SITE_BASE_URL",
+      "label": "KeyApp 站点 Base Path",
+      "type": "string",
+      "required": true,
+      "targets": { "local": true, "github": "variable" },
+      "mask": "tail",
+      "description": "DWEB 自动更新使用的站点路径（需与 SITE_ORIGIN 成对配置，例如 /KeyApp/）"
     },
     {
       "key": "DWEB_SFTP_URL",

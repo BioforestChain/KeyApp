@@ -113,7 +113,10 @@ export default defineConfig(({ mode }) => {
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
   const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
   const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true';
+  // DWEB 更新地址由 SITE_ORIGIN + SITE_BASE_URL 拼接，二者必须成对配置。
+  // 注意：这里不要误用 VITE_BASE_URL（它是构建资源的 base），否则会导致更新 URL 丢失站点路径。
   const siteOrigin = env.SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? 'https://bioforestchain.github.io/KeyApp/';
+  const siteBaseUrl = env.SITE_BASE_URL ?? process.env.SITE_BASE_URL ?? BASE_URL;
 
   const buildTime = new Date();
   const pad = (value: number) => value.toString().padStart(2, '0');
@@ -209,8 +212,8 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(appVersion),
       // KeyApp 官网 Origin（DWEB 升级检查使用）
       __KEYAPP_SITE_ORIGIN__: JSON.stringify(siteOrigin),
-      // KeyApp Base URL（DWEB 升级链接拼接使用）
-      __KEYAPP_BASE_URL__: JSON.stringify(BASE_URL),
+      // KeyApp Base URL（DWEB 升级链接拼接使用；需配合 SITE_ORIGIN 使用）
+      __KEYAPP_BASE_URL__: JSON.stringify(siteBaseUrl),
       // 默认生态源列表（用于订阅源管理展示）
       __ECOSYSTEM_SOURCES__: JSON.stringify(ecosystemSources),
       // API Keys 对象（用于动态读取环境变量）
