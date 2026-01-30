@@ -75,7 +75,7 @@ export class SignatureAuthService {
       }
 
       const keypair = createBioforestKeypair(secret)
-      const prefix = chainConfig?.prefix ?? payload.senderAddress.slice(0, 1) || 'b'
+      const prefix = chainConfig?.prefix ?? (payload.senderAddress.slice(0, 1) || 'b')
       const derivedAddress = publicKeyToBioforestAddress(keypair.publicKey, prefix)
       if (derivedAddress !== payload.senderAddress) {
         throw new Error('Signing address mismatch')
