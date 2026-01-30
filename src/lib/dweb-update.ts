@@ -74,6 +74,7 @@ function normalizeBasePath(basePath: string): string {
 }
 
 function resolveSiteBase(): string {
+  // __KEYAPP_SITE_ORIGIN__ + __KEYAPP_BASE_URL__ 必须成对配置，避免丢失站点路径。
   const origin = normalizeOrigin(__KEYAPP_SITE_ORIGIN__)
   try {
     const originUrl = new URL(origin)

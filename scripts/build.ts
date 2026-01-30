@@ -147,7 +147,7 @@ function resolveSiteOrigin(): string | null {
 function resolveSiteBaseUrl(): string | null {
   const origin = resolveSiteOrigin()
   if (!origin) return null
-  const basePath = process.env.VITEPRESS_BASE ?? '/'
+  const basePath = process.env.SITE_BASE_URL ?? process.env.VITEPRESS_BASE ?? '/'
   return new URL(basePath, origin).toString()
 }
 
