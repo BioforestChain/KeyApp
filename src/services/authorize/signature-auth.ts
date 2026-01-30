@@ -3,7 +3,16 @@ import type { DestroyPayload, MessagePayload, TransferPayload } from './types'
 import { WALLET_PLAOC_PATH } from './paths'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToHex } from '@noble/hashes/utils.js'
-import { createBioforestKeypair, decrypt, isBioforestChain, signMessage, verifyPassword, type EncryptedData } from '@/lib/crypto'
+import {
+  createBioforestKeypair,
+  decrypt,
+  isBioforestChain,
+  publicKeyToBioforestAddress,
+  signMessage,
+  verifyPassword,
+  type EncryptedData,
+} from '@/lib/crypto'
+import { chainConfigService } from '@/services/chain-config/service'
 
 export type SignatureAuthError = 'rejected' | 'timeout' | 'insufficient_balance'
 
@@ -51,9 +60,13 @@ export class SignatureAuthService {
    * NOTE: This method does not call `approve()` automatically to keep UI control explicit.
    */
   async handleMessageSign(payload: MessagePayload, encryptedSecret: EncryptedData, password: string): Promise<SignatureResult> {
-    const chainName = payload.chainName.trim().toLowerCase()
+    const rawChainName = payload.chainName.trim()
+    const normalizedChainName = rawChainName.toLowerCase()
+    const chainConfig =
+      chainConfigService.getConfig(rawChainName) ?? chainConfigService.getConfig(normalizedChainName)
+    const isBioforest = isBioforestChain(normalizedChainName) || chainConfig?.chainKind === 'bioforest'
 
-    if (isBioforestChain(chainName)) {
+    if (isBioforest) {
       let secret: string
       try {
         secret = await decrypt(encryptedSecret, password)
@@ -62,6 +75,11 @@ export class SignatureAuthService {
       }
 
       const keypair = createBioforestKeypair(secret)
+      const prefix = chainConfig?.prefix ?? payload.senderAddress.slice(0, 1) || 'b'
+      const derivedAddress = publicKeyToBioforestAddress(keypair.publicKey, prefix)
+      if (derivedAddress !== payload.senderAddress) {
+        throw new Error('Signing address mismatch')
+      }
       const signature = signMessage(payload.message, keypair.secretKey)
       return {
         signature: `0x${bytesToHex(signature)}`,

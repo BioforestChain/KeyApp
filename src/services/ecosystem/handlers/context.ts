@@ -37,6 +37,7 @@ export interface MiniappInfo {
 export interface SigningParams {
   message: string
   address: string
+  chainName: string
   app: MiniappInfo
 }
 

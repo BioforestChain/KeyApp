@@ -21,12 +21,12 @@ type SigningConfirmJobParams = {
   message: string;
   /** 签名地址 */
   address: string;
+  /** 签名链 */
+  chainName: string;
   /** 请求来源小程序名称 */
   appName?: string;
   /** 请求来源小程序图标 */
   appIcon?: string;
-  /** 链名称（用于签名） */
-  chainName?: string;
 };
 
 function SigningConfirmJobContent() {
@@ -37,7 +37,15 @@ function SigningConfirmJobContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 查找使用该地址的钱包
-  const targetWallet = walletStore.state.wallets.find((w) => w.chainAddresses.some((ca) => ca.address === address));
+  const normalizedChainName = chainName.trim().toLowerCase();
+  const targetWallet = walletStore.state.wallets.find((w) =>
+    w.chainAddresses.some(
+      (ca) => ca.address === address && ca.chain.toLowerCase() === normalizedChainName,
+    ),
+  );
+  const resolvedChainId = targetWallet?.chainAddresses.find(
+    (ca) => ca.address === address && ca.chain.toLowerCase() === normalizedChainName,
+  )?.chain;
   const walletName = targetWallet?.name || t('unknownWallet');
 
   const handleConfirm = useCallback(() => {
@@ -49,7 +57,7 @@ function SigningConfirmJobContent() {
 
       try {
         const encryptedSecret = targetWallet?.encryptedMnemonic ?? currentWallet?.encryptedMnemonic;
-        if (!encryptedSecret || !targetWallet) {
+        if (!encryptedSecret || !targetWallet || !resolvedChainId) {
           throw new Error(t('signingAddressNotFound'));
         }
 
@@ -60,7 +68,7 @@ function SigningConfirmJobContent() {
         // 执行真实签名（返回 { signature, publicKey }）
         const signResult = await authService.handleMessageSign(
           {
-            chainName: chainName || 'bioforest',
+            chainName: resolvedChainId,
             senderAddress: address,
             message,
           },
@@ -121,7 +129,7 @@ function SigningConfirmJobContent() {
           walletInfo={{
             name: walletName,
             address,
-            chainId: chainName || 'bfmeta',
+            chainId: resolvedChainId ?? 'bfmeta',
           }}
         />
 

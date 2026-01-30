@@ -120,7 +120,7 @@ async function handleMessage(param: {
     const signature = await bioRequest<string>('bio_signMessage', {
         address: param.senderAddress,
         message: param.message,
-        chain: param.chainName,
+        chainName: param.chainName,
     })
     return signature
 }
@@ -134,7 +134,7 @@ async function handleJsonSign(param: {
     const result = await bioRequest<{ txId: string; transaction: object }>('bio_signTypedData', {
         address: param.senderAddress,
         data: param.json,
-        chain: param.chainName,
+        chainName: param.chainName,
         interpolation: param.jsonInterpolation,
     })
     return result
