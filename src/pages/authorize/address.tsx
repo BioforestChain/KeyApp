@@ -379,7 +379,7 @@ export function AddressAuthPage() {
           )}
 
           {type === 'network' && currentWallet && selectedChain && (
-            <div className="aspect-[1.6/1] w-full">
+            <div className="flex w-full aspect-[1.6/1] items-stretch">
               <WalletCard
                 wallet={currentWallet}
                 chain={selectedChain}

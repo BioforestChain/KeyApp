@@ -229,7 +229,7 @@ export function WalletConfig({ mode, walletId, onEditOnlyComplete, className }: 
     <div className={cn('space-y-6', className)}>
       {/* 卡片预览 */}
       <div className="flex justify-center px-4">
-        <div className="aspect-[1.6/1] w-full max-w-[360px]">
+        <div className="flex w-full max-w-[360px] aspect-[1.6/1] items-stretch">
           <WalletCard
             wallet={{ ...wallet, name: isEditMode ? editName : wallet.name, themeHue: displayThemeHue }}
             themeHue={displayThemeHue}
