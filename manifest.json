@@ -4,7 +4,7 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "logos/logo-256.webp",
-  "change_log": "biobridge decimals loading fix",
+  "change_log": "Enforce chain parameter for signing",
   "icons": [
     {
       "src": "logos/logo-256.webp",
@@ -19,7 +19,7 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.6.5",
+  "version": "0.7.0",
   "categories": [
     "application",
     "wallet"
