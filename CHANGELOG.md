@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.0] - 2026-01-30
+
+Enforce chain parameter for signing
+
+<!-- last-commit: 10547e6d40ebbaf98b6bf4adb0117cba531933bc -->
+
 ## [0.6.5] - 2026-01-29
 
 biobridge decimals loading fix
