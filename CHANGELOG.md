@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.1] - 2026-01-30
+
+Fix dweb update site base url
+
+<!-- last-commit: c2a66398817912e6c04e1ec95379bfee0010cebe -->
+
 ## [0.7.0] - 2026-01-30
 
 Enforce chain parameter for signing
