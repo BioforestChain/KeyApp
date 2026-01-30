@@ -211,6 +211,7 @@ export function useForge() {
         params: [{
           message: messageToSign,
           address: internalAccount.address,
+          chainName: internalChain,
         }],
       })
 

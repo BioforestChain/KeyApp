@@ -111,10 +111,6 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
     });
 
     setSigningDialog(async (params) => {
-      const resolvedChain = walletStore.state.wallets
-        .flatMap((wallet) => wallet.chainAddresses)
-        .find((ca) => ca.address === params.address)?.chain
-
       return new Promise<{ signature: string; publicKey: string } | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 
@@ -136,7 +132,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
           address: params.address,
           appName: params.app.name,
           appIcon: params.app.icon ?? "",
-          chainName: resolvedChain ?? "bioforest",
+          chainName: params.chainName,
         });
       });
     });

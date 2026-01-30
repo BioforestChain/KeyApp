@@ -69,7 +69,7 @@ export async function verifyAddressImport(
         const signature = await bioRequest<string>('bio_signMessage', {
             address: opts.address,
             message: opts.message,
-            chain: opts.chainName,
+            chainName: opts.chainName,
         })
         return typeof signature === 'string' && signature.length > 0
     } catch {

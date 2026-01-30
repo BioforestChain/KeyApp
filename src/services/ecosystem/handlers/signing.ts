@@ -22,9 +22,9 @@ function getSigningDialog(appId: string) {
 
 /** bio_signMessage - Sign a message, returns { signature, publicKey } */
 export const handleSignMessage: MethodHandler = async (params, context) => {
-  const opts = params as { message?: string; address?: string } | undefined
-  if (!opts?.message || !opts?.address) {
-    throw Object.assign(new Error('Missing message or address'), { code: BioErrorCodes.INVALID_PARAMS })
+  const opts = params as { message?: string; address?: string; chainName?: string } | undefined
+  if (!opts?.message || !opts?.address || !opts?.chainName) {
+    throw Object.assign(new Error('Missing message, address, or chainName'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
   const showSigningDialog = getSigningDialog(context.appId)
@@ -35,6 +35,7 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
   const result = await showSigningDialog({
     message: opts.message,
     address: opts.address,
+    chainName: opts.chainName,
     app: { name: context.appName },
   })
 
@@ -48,9 +49,9 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
 
 /** bio_signTypedData - Sign typed data, returns { signature, publicKey } */
 export const handleSignTypedData: MethodHandler = async (params, context) => {
-  const opts = params as { data?: object; address?: string } | undefined
-  if (!opts?.data || !opts?.address) {
-    throw Object.assign(new Error('Missing data or address'), { code: BioErrorCodes.INVALID_PARAMS })
+  const opts = params as { data?: object; address?: string; chainName?: string } | undefined
+  if (!opts?.data || !opts?.address || !opts?.chainName) {
+    throw Object.assign(new Error('Missing data, address, or chainName'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
   const showSigningDialog = getSigningDialog(context.appId)
@@ -64,6 +65,7 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
   const result = await showSigningDialog({
     message,
     address: opts.address,
+    chainName: opts.chainName,
     app: { name: context.appName },
   })
 
