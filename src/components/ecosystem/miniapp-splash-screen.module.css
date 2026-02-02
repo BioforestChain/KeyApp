@@ -174,3 +174,17 @@
     transform: translate(-5%, -3%) scale(1.02);
   }
 }
+
+/* Safari/iOS 降级模式 - 禁用 glow 动画和 blur */
+.splashScreen[data-glow-enabled="false"] .glowLayer {
+  /* 移除 blur 滤镜，使用更简单的渐变 */
+  filter: none;
+  opacity: 0.6;
+}
+
+.splashScreen[data-glow-enabled="false"] .glowPrimary,
+.splashScreen[data-glow-enabled="false"] .glowSecondary,
+.splashScreen[data-glow-enabled="false"] .glowTertiary {
+  /* 禁用动画 */
+  animation: none !important;
+}

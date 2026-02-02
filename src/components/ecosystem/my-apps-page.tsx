@@ -4,6 +4,7 @@ import { IconDownload, IconPlayerPlay, IconInfoCircle, IconTrash } from '@tabler
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, LayoutGroup } from 'motion/react';
+import { isAnimationEnabled } from '@biochain/ecosystem-native';
 import { MiniappIcon } from './miniapp-icon';
 import { SourceIcon } from './source-icon';
 import { IOSSearchCapsule } from './ios-search-capsule';
@@ -57,8 +58,10 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
     isFocusedApp && (iconFlow === 'opening' || iconFlow === 'splash') ? 'elevated' : 'normal';
   const cornerBadgeVariant = flowToCornerBadge[iconFlow];
   // icon 只在窗口 transitioning 阶段持有 shared layout（present/dismiss）
+  // Safari 优化：当 sharedLayout 被禁用时也禁用 layoutId
   const enableSharedLayout =
-    presentationState === null || presentationState === 'presenting' || presentationState === 'dismissing';
+    (presentationState === null || presentationState === 'presenting' || presentationState === 'dismissing') &&
+    isAnimationEnabled('sharedLayout');
   const sharedLayoutIds = enableSharedLayout
     ? {
       container: `miniapp:${app.id}:container`,

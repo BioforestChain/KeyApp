@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import {
   IconWallet,
   IconSettings,
@@ -18,6 +18,7 @@ import { ecosystemStore, type EcosystemSubPage } from '@/stores/ecosystem';
 import { miniappRuntimeStore, miniappRuntimeSelectors, openStackView } from '@/services/miniapp-runtime';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { useCurrentWallet, useCurrentChainAddress, useSelectedChain } from '@/stores';
+import { HomeButtonWrapper } from '@biochain/ecosystem-native/react';
 
 /** 生态页面顺序 */
 const ECOSYSTEM_PAGE_ORDER: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
@@ -182,35 +183,10 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
     [t, ecosystemIcon],
   );
 
-  // 生态按钮上滑手势检测
-  const touchState = useRef({ startY: 0, startTime: 0 });
-  const SWIPE_THRESHOLD = 30;
-  const SWIPE_VELOCITY = 0.3;
-
-  const handleEcosystemTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch) {
-      touchState.current = { startY: touch.clientY, startTime: Date.now() };
-    }
+  // Handle swipe up on ecosystem tab to open stack view
+  const handleEcosystemSwipeUp = useCallback(() => {
+    openStackView();
   }, []);
-
-  const handleEcosystemTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      const touch = e.changedTouches[0];
-      if (!touch) return;
-
-      const deltaY = touchState.current.startY - touch.clientY;
-      const deltaTime = Date.now() - touchState.current.startTime;
-      const velocity = deltaY / deltaTime;
-
-      // 检测上滑手势：需要有运行中的应用才能打开层叠视图
-      if (hasRunningApps && (deltaY > SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY)) {
-        e.preventDefault();
-        openStackView();
-      }
-    },
-    [hasRunningApps],
-  );
 
   return (
     <div
@@ -230,20 +206,8 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
           const label = tab.label;
           const isEcosystem = tab.id === 'ecosystem';
 
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              onTouchStart={isEcosystem ? handleEcosystemTouchStart : undefined}
-              onTouchEnd={isEcosystem ? handleEcosystemTouchEnd : undefined}
-              data-testid={`tab-${tab.id}`}
-              className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-1 transition-colors',
-                isActive ? 'text-primary' : 'text-muted-foreground',
-              )}
-              aria-label={label}
-              aria-current={isActive ? 'page' : undefined}
-            >
+          const buttonContent = (
+            <>
               {/* 图标区域 */}
               <div className="relative">
                 {isEcosystem ? (
@@ -269,6 +233,46 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
               ) : (
                 <span className="text-xs font-medium">{label}</span>
               )}
+            </>
+          );
+
+          const buttonClassName = cn(
+            'flex flex-1 flex-col items-center justify-center gap-1 transition-colors',
+            isActive ? 'text-primary' : 'text-muted-foreground',
+          );
+
+          // Ecosystem tab uses HomeButtonWrapper for native swipe detection
+          if (isEcosystem) {
+            return (
+              <HomeButtonWrapper
+                key={tab.id}
+                hasRunningApps={hasRunningApps}
+                onSwipeUp={handleEcosystemSwipeUp}
+                className={buttonClassName}
+              >
+                <button
+                  onClick={() => onTabChange(tab.id)}
+                  data-testid={`tab-${tab.id}`}
+                  className="flex flex-1 flex-col items-center justify-center gap-1"
+                  aria-label={label}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {buttonContent}
+                </button>
+              </HomeButtonWrapper>
+            );
+          }
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              data-testid={`tab-${tab.id}`}
+              className={buttonClassName}
+              aria-label={label}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {buttonContent}
             </button>
           );
         })}
