@@ -171,7 +171,7 @@ export function getAnimationLevel(): AnimationLevel {
   if (!currentLevel) {
     initConfig();
   }
-  return currentLevel!;
+  return currentLevel ?? 'full';
 }
 
 /**

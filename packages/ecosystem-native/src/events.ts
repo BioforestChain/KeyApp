@@ -62,14 +62,19 @@ class EcosystemEventBus {
       this.listeners.set(event, new Set());
     }
 
-    const handlers = this.listeners.get(event)!;
-    handlers.add(handler as EventHandler<unknown>);
+    const handlers = this.listeners.get(event);
+    if (handlers) {
+      handlers.add(handler as EventHandler<unknown>);
+    }
 
     // Return unsubscribe function
     return () => {
-      handlers.delete(handler as EventHandler<unknown>);
-      if (handlers.size === 0) {
-        this.listeners.delete(event);
+      const currentHandlers = this.listeners.get(event);
+      if (currentHandlers) {
+        currentHandlers.delete(handler as EventHandler<unknown>);
+        if (currentHandlers.size === 0) {
+          this.listeners.delete(event);
+        }
       }
     };
   }
@@ -95,8 +100,9 @@ class EcosystemEventBus {
     event: K,
     data: EcosystemEventMap[K]
   ): void {
-    if (this.debugMode) {
-      console.log(`[EcosystemEvents] ${event}`, data);
+    if (this.debugMode && typeof globalThis !== 'undefined' && 'console' in globalThis) {
+      // Debug logging - only in development
+      globalThis.console.log(`[EcosystemEvents] ${event}`, data);
     }
 
     const handlers = this.listeners.get(event);
@@ -105,7 +111,10 @@ class EcosystemEventBus {
         try {
           handler(data);
         } catch (error) {
-          console.error(`[EcosystemEvents] Error in handler for ${event}:`, error);
+          // Error handling - log to console in development
+          if (typeof globalThis !== 'undefined' && 'console' in globalThis) {
+            globalThis.console.error(`[EcosystemEvents] Error in handler for ${event}:`, error);
+          }
         }
       });
     }

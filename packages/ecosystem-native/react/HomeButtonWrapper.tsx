@@ -57,9 +57,15 @@ export function HomeButtonWrapper({
     if (!element) return;
 
     // Set properties directly on the custom element
-    (element as any).hasRunningApps = hasRunningApps;
-    (element as any).swipeThreshold = swipeThreshold;
-    (element as any).velocityThreshold = velocityThreshold;
+    // Using type assertion for Web Component properties
+    const homeButton = element as HTMLElement & {
+      hasRunningApps: boolean;
+      swipeThreshold: number;
+      velocityThreshold: number;
+    };
+    homeButton.hasRunningApps = hasRunningApps;
+    homeButton.swipeThreshold = swipeThreshold;
+    homeButton.velocityThreshold = velocityThreshold;
   }, [hasRunningApps, swipeThreshold, velocityThreshold]);
 
   // Handle swipe-up event from Web Component
