@@ -3,11 +3,14 @@
  *
  * 使用基于应用 themeColor 的光晕渲染方案
  * 参考 IOSWallpaper 的实现，提供更柔和的启动体验
+ *
+ * Safari 优化：支持配置化降级，禁用 layoutId 和 glow 动画
  */
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
+import { isAnimationEnabled } from '@biochain/ecosystem-native';
 import styles from './miniapp-splash-screen.module.css';
 
 export interface MiniappSplashScreenProps {
@@ -150,6 +153,10 @@ export function MiniappSplashScreen({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  // Check animation config for Safari optimization
+  const enableSharedLayout = isAnimationEnabled('sharedLayout');
+  const enableGlow = isAnimationEnabled('glow');
+
   // 计算光晕颜色
   const [huePrimary, hueSecondary, hueTertiary] = useMemo(() => {
     const baseHue = extractHue(app.themeColor);
@@ -169,13 +176,20 @@ export function MiniappSplashScreen({
     '--splash-hue-tertiary': hueTertiary,
   } as React.CSSProperties;
 
+  // Determine if we should use layoutId (disabled on Safari for stability)
+  const effectiveLayoutId = enableSharedLayout ? iconLayoutId : undefined;
+
+  // Determine if glow animation should play
+  const effectiveAnimating = enableGlow && animating;
+
   return (
     <div
       className={cn(styles.splashScreen, className)}
       style={cssVars}
       data-app-id={appId}
       data-visible={visible}
-      data-animating={animating}
+      data-animating={effectiveAnimating}
+      data-glow-enabled={enableGlow}
       data-testid="miniapp-splash-screen"
       role="status"
       aria-label={`${app.name} 正在加载`} // i18n-ignore: a11y
@@ -192,7 +206,7 @@ export function MiniappSplashScreen({
           {/* 应用图标 */}
           {showIcon && (
             <motion.div
-              {...(iconLayoutId ? { layoutId: iconLayoutId, 'data-layoutid': iconLayoutId } : {})}
+              {...(effectiveLayoutId ? { layoutId: effectiveLayoutId, 'data-layoutid': effectiveLayoutId } : {})}
               className={styles.appIcon}
             >
               {!imageError && (

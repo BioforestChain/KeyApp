@@ -75,6 +75,7 @@
     "@bfmeta/sign-util": "^1.3.10",
     "@biochain/bio-sdk": "workspace:*",
     "@biochain/chain-effect": "workspace:*",
+    "@biochain/ecosystem-native": "workspace:*",
     "@biochain/key-ui": "workspace:*",
     "@biochain/key-utils": "workspace:*",
     "@biochain/plugin-navigation-sync": "workspace:*",

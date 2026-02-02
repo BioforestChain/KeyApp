@@ -1,0 +1,58 @@
+{
+  "name": "@biochain/ecosystem-native",
+  "version": "0.1.0",
+  "description": "Native DOM components for Ecosystem desktop with Safari optimization",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./react": {
+      "import": "./react/index.ts",
+      "types": "./react/index.ts"
+    },
+    "./config": {
+      "import": "./src/config.ts",
+      "types": "./src/config.ts"
+    }
+  },
+  "files": [
+    "src",
+    "react"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests",
+    "lint:run": "oxlint .",
+    "i18n:run": "echo 'No i18n'",
+    "theme:run": "echo 'No theme'"
+  },
+  "dependencies": {
+    "lit": "^3.2.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "oxlint": "^1.32.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "keywords": [
+    "biochain",
+    "ecosystem",
+    "web-components",
+    "lit",
+    "safari-optimization"
+  ],
+  "license": "MIT"
+}

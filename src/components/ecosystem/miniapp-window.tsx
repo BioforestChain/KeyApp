@@ -4,6 +4,8 @@
  * 作为 stack-slide 的子元素，用于显示小程序内容
  * 使用 portal 渲染到 slide 提供的 slot 容器中（尺寸由 desktop/slide 决定）
  * 无 Popover API 依赖
+ *
+ * Safari 优化：支持配置化降级，禁用 sharedLayout 动画
  */
 
 import { useEffect, useLayoutEffect, useRef, useCallback, useState, useMemo } from 'react';
@@ -11,6 +13,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '@tanstack/react-store';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
+import { isAnimationEnabled } from '@biochain/ecosystem-native';
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
@@ -222,7 +225,8 @@ function MiniappWindowPortal({
   }, [appId]);
 
   // 当 slot lost 时禁用 layoutId，防止动画到错误位置
-  const enableLayoutId = !isSlotLost;
+  // Safari 优化：当 sharedLayout 被禁用时也禁用 layoutId
+  const enableLayoutId = !isSlotLost && isAnimationEnabled('sharedLayout');
 
   const node = (
     <AnimatePresence
