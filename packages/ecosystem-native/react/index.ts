@@ -4,6 +4,7 @@
 
 // Wrappers
 export { HomeButtonWrapper, type HomeButtonWrapperProps } from './HomeButtonWrapper';
+export { WindowStackWrapper, type WindowStackWrapperProps } from './WindowStackWrapper';
 // export { EcosystemDesktopWrapper } from './EcosystemDesktopWrapper';
 // export { SplashScreenWrapper } from './SplashScreenWrapper';
 
@@ -14,4 +15,7 @@ export {
   getAnimationLevel,
   isAnimationEnabled,
   initConfig,
+  windowStackManager,
+  type MiniappTargetDesktop,
+  type SlotInfo,
 } from '../src/index';

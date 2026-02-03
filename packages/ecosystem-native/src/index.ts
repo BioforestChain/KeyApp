@@ -46,3 +46,8 @@ export {
 
 // Components
 export { HomeButton } from './components/home-button';
+export { WindowStack, type SlotInfo } from './components/window-stack';
+export { windowStackManager } from './components/window-stack-manager';
+
+// Component types
+export { type MiniappTargetDesktop } from './components/types';

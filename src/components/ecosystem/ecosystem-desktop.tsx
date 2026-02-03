@@ -278,7 +278,7 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
                 onAppDetail={onAppDetail}
                 onAppRemove={onAppRemove}
               />
-              <MiniappWindowStack />
+              <MiniappWindowStack desktop="mine" />
             </div>
           </SwiperSlide>
 
@@ -287,7 +287,7 @@ export const EcosystemDesktop = forwardRef<EcosystemDesktopHandle, EcosystemDesk
             <SwiperSlide className="!h-full !overflow-hidden">
               <div className="relative z-10 h-full" data-ecosystem-subpage="stack">
                 <AppStackPage />
-                <MiniappWindowStack />
+                <MiniappWindowStack desktop="stack" />
               </div>
             </SwiperSlide>
           )}

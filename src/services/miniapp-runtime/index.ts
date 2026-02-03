@@ -50,12 +50,19 @@ import {
   mergeMiniappVisualConfig,
   type MiniappVisualConfigUpdate,
 } from './visual-config';
-import { createContainer, cleanupAllIframeContainers, type ContainerType, type ContainerHandle } from './container';
+import {
+  createContainer,
+  createContainerSync,
+  cleanupAllIframeContainers,
+  type ContainerType,
+  type ContainerHandle,
+} from './container';
 import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types';
 import { getBridge } from '../ecosystem/provider';
 import { toastService } from '../toast';
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs';
 import i18n from '@/i18n';
+import { windowStackManager } from '@biochain/ecosystem-native';
 
 const t = i18n.t.bind(i18n);
 export {
@@ -583,12 +590,17 @@ export function finalizeCloseApp(appId: string): void {
   clearSplashTimeout(appId);
   cancelPreparing(appId);
 
-  miniappRuntimeStore.setState((s) => {
-    const app = s.apps.get(appId);
-    if (!app) return s;
+  // Get the app's desktop before removing from store
+  const app = miniappRuntimeStore.state.apps.get(appId);
+  const presentation = miniappRuntimeStore.state.presentations.get(appId);
+  const targetDesktop = presentation?.desktop ?? app?.manifest.targetDesktop ?? 'stack';
 
-    if (app.containerHandle) {
-      app.containerHandle.destroy();
+  miniappRuntimeStore.setState((s) => {
+    const currentApp = s.apps.get(appId);
+    if (!currentApp) return s;
+
+    if (currentApp.containerHandle) {
+      currentApp.containerHandle.destroy();
     }
 
     const newApps = new Map(s.apps);
@@ -605,6 +617,11 @@ export function finalizeCloseApp(appId: string): void {
       focusedAppId: s.focusedAppId === appId ? null : s.focusedAppId,
     };
   });
+
+  // Clean up the slot from WindowStack
+  if (windowStackManager.isStackRegistered(targetDesktop)) {
+    windowStackManager.removeSlot(targetDesktop, appId);
+  }
 
   if (miniappRuntimeStore.state.apps.size === 0) {
     getBridge().detach();
@@ -644,6 +661,7 @@ export function launchApp(
 
   const hasSplash = !!manifest.splashScreen;
   const containerType: ContainerType = manifest.runtime ?? 'iframe';
+  const targetDesktop = manifest.targetDesktop ?? 'stack';
 
   const instance: MiniappInstance = {
     appId,
@@ -663,27 +681,56 @@ export function launchApp(
     iconRef: getIconRef(appId),
   };
 
-  createContainer(containerType, {
-    appId,
-    url: manifest.url,
-    mountTarget: document.body,
-    contextParams,
-    wujieConfig: manifest.wujieConfig,
-    onLoad: () => {
-      updateAppProcessStatus(appId, 'loaded');
-      if (!manifest.splashScreen) {
-        readyGateOpened(appId);
-      }
-    },
-  }).then((handle) => {
-    instance.containerHandle = handle;
-    if (handle.type === 'iframe') {
-      instance.iframeRef = handle.element as HTMLIFrameElement;
+  const onLoad = () => {
+    updateAppProcessStatus(appId, 'loaded');
+    if (!manifest.splashScreen) {
+      readyGateOpened(appId);
     }
-    attachBioProviderToContainer(appId, handle, manifest);
-  });
+  };
 
-  const targetDesktop = manifest.targetDesktop ?? 'stack';
+  // Determine mount target: prefer slot if WindowStack is registered, fallback to document.body
+  const isStackReady = windowStackManager.isStackRegistered(targetDesktop);
+  let mountTarget: HTMLElement;
+
+  if (isStackReady) {
+    // WindowStack is ready - create slot synchronously and mount directly to it
+    mountTarget = windowStackManager.getOrCreateSlot(targetDesktop, appId);
+  } else {
+    // WindowStack not ready - fallback to document.body (legacy flow)
+    mountTarget = document.body;
+  }
+
+  // For iframe, we can use sync creation; for wujie, we must use async
+  const canUseSyncCreation = containerType === 'iframe';
+
+  if (canUseSyncCreation) {
+    // Synchronous container creation (iframe only)
+    try {
+      const handle = createContainerSync(containerType, {
+        appId,
+        url: manifest.url,
+        mountTarget,
+        contextParams,
+        wujieConfig: manifest.wujieConfig,
+        onLoad,
+      });
+
+      // Set handle synchronously - no Promise delay
+      instance.containerHandle = handle;
+      if (handle.type === 'iframe') {
+        instance.iframeRef = handle.element as HTMLIFrameElement;
+      }
+      attachBioProviderToContainer(appId, handle, manifest);
+    } catch (error) {
+      // If sync creation fails, fall back to async
+      globalThis.console.warn('[miniapp-runtime] Sync container creation failed, falling back to async:', error);
+      createContainerAsync(instance, manifest, contextParams, onLoad, mountTarget);
+    }
+  } else {
+    // Asynchronous container creation (wujie)
+    createContainerAsync(instance, manifest, contextParams, onLoad, mountTarget);
+  }
+
   const presentTransition = createTransition('present', appId);
 
   miniappRuntimeStore.setState((s) => {
@@ -714,9 +761,46 @@ export function launchApp(
 
   emit({ type: 'app:launch', appId, manifest });
 
-  startPreparing(appId, targetDesktop, hasSplash);
+  // Determine if we can skip RAF polling
+  // - If stack is ready AND container is already created (sync flow), skip polling
+  // - Otherwise, use RAF polling to wait for container
+  const canSkipPolling = isStackReady && instance.containerHandle !== null;
+
+  if (canSkipPolling) {
+    // Everything is ready, directly begin launch sequence
+    beginLaunchSequence(appId, hasSplash);
+  } else {
+    // Use RAF polling to wait for container (wujie async or fallback flow)
+    startPreparing(appId, targetDesktop, hasSplash);
+  }
 
   return instance;
+}
+
+/**
+ * Helper: create container asynchronously (for wujie or fallback)
+ */
+function createContainerAsync(
+  instance: MiniappInstance,
+  manifest: MiniappManifest,
+  contextParams: Record<string, string> | undefined,
+  onLoad: () => void,
+  mountTarget: HTMLElement,
+): void {
+  createContainer(instance.containerType, {
+    appId: instance.appId,
+    url: manifest.url,
+    mountTarget,
+    contextParams,
+    wujieConfig: manifest.wujieConfig,
+    onLoad,
+  }).then((handle) => {
+    instance.containerHandle = handle;
+    if (handle.type === 'iframe') {
+      instance.iframeRef = handle.element as HTMLIFrameElement;
+    }
+    attachBioProviderToContainer(instance.appId, handle, manifest);
+  });
 }
 
 export function requestPresent(

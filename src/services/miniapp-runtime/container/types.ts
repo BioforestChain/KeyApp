@@ -24,4 +24,9 @@ export interface ContainerCreateOptions {
 export interface ContainerManager {
   readonly type: ContainerType;
   create(options: ContainerCreateOptions): Promise<ContainerHandle>;
+  /**
+   * Synchronous container creation (for iframe type only).
+   * Returns the handle immediately without Promise wrapping.
+   */
+  createSync?(options: ContainerCreateOptions): ContainerHandle;
 }

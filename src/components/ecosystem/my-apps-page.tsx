@@ -123,6 +123,10 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
 
     setMenuPosition({ top: menuTop, left: menuLeft });
 
+    // 设置 CSS 变量供 :popover-open 状态使用
+    popover.style.setProperty('--popover-top', `${rect.top}px`);
+    popover.style.setProperty('--popover-left', `${rect.left}px`);
+
     // 用 Web Animation API 设置 popover 位置（fill: forwards 保持最终状态）
     popoverAnimationRef.current = popover.animate(
       [
@@ -264,6 +268,8 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
+    // 如果已经通过 touch long-press 打开了菜单，跳过
+    if (isOpen || didLongPress.current) return;
     showMenu();
   };
 
