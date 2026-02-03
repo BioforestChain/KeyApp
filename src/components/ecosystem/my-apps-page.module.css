@@ -22,11 +22,11 @@
 
 /* 菜单模式：popover 打开时固定定位 */
 .iconPopover:popover-open:not([data-launching]) {
-  position: fixed;
-  inset: auto;
-  top: var(--popover-top);
-  left: var(--popover-left);
-  margin: 0;
+  position: fixed !important;
+  inset: auto !important;
+  top: var(--popover-top) !important;
+  left: var(--popover-left) !important;
+  margin: 0 !important;
   z-index: 50;
 }
 

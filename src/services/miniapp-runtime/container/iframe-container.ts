@@ -64,7 +64,11 @@ class IframeContainerHandle implements ContainerHandle {
 export class IframeContainerManager implements ContainerManager {
   readonly type = 'iframe' as const;
 
-  async create(options: ContainerCreateOptions): Promise<IframeContainerHandle> {
+  /**
+   * Synchronous container creation.
+   * Creates the iframe and appends it to the mount target immediately.
+   */
+  createSync(options: ContainerCreateOptions): IframeContainerHandle {
     const { appId, url, mountTarget, contextParams, onLoad } = options;
 
     const iframe = document.createElement('iframe');
@@ -98,6 +102,11 @@ export class IframeContainerManager implements ContainerManager {
     mountTarget.appendChild(iframe);
 
     return new IframeContainerHandle(iframe, mountTarget);
+  }
+
+  async create(options: ContainerCreateOptions): Promise<IframeContainerHandle> {
+    // Delegate to sync version
+    return this.createSync(options);
   }
 }
 

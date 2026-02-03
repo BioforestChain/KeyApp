@@ -138,6 +138,9 @@ export class WujieContainerManager implements ContainerManager {
     const container = document.createElement('div');
     container.id = `miniapp-wujie-${appId}`;
     container.className = 'size-full *:size-full *:block *:overflow-auto';
+    // Hide container initially to prevent flash before animation starts
+    // The animation layer will control visibility via opacity
+    container.style.display = 'none';
 
     mountTarget.appendChild(container);
 
