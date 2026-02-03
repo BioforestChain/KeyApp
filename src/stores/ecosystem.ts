@@ -370,6 +370,14 @@ export const ecosystemActions = {
     }));
   },
 
+  /** 更新订阅源名称 */
+  updateSourceName: (url: string, name: string): void => {
+    ecosystemStore.setState((state) => ({
+      ...state,
+      sources: state.sources.map((s) => (s.url === url ? { ...s, name } : s)),
+    }));
+  },
+
   /** 更新订阅源时间 */
   updateSourceTimestamp: (url: string): void => {
     ecosystemStore.setState((state) => ({

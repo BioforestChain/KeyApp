@@ -489,6 +489,7 @@
     "noSources": "暂无订阅源",
     "urlPlaceholder": "订阅 URL (https://...)",
     "namePlaceholder": "名称 (可选)",
+    "nameWithDefault": "名称 ({{name}})",
     "addSource": "添加订阅源",
     "official": "官方",
     "updatedAt": "更新于 {{date}}",

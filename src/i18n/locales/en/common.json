@@ -489,6 +489,7 @@
     "noSources": "No sources",
     "urlPlaceholder": "Subscription URL (https://...)",
     "namePlaceholder": "Name (optional)",
+    "nameWithDefault": "Name ({{name}})",
     "addSource": "Add source",
     "official": "Official",
     "updatedAt": "Updated {{date}}",

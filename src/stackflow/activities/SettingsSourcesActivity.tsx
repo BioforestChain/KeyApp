@@ -3,7 +3,7 @@
  * 管理小程序订阅源
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ActivityComponentType } from '@stackflow/react';
 import { AppScreen } from '@stackflow/plugin-basic-ui';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,7 @@ import {
   IconArrowLeft,
   IconLoader2,
   IconAlertCircle,
+  IconEdit,
 } from '@tabler/icons-react';
 import { ecosystemStore, ecosystemActions, type SourceRecord } from '@/stores/ecosystem';
 import { refreshSources, refreshSource } from '@/services/ecosystem/registry';
@@ -29,13 +30,83 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
   const { pop } = useFlow();
   const state = useStore(ecosystemStore);
 
-  const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingUrl, setEditingUrl] = useState<string | null>(null); // null = adding new, string = editing existing
   const [newUrl, setNewUrl] = useState('');
   const [newName, setNewName] = useState('');
+  const [fetchedName, setFetchedName] = useState<string | null>(null);
+  const [isFetchingName, setIsFetchingName] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAdd = async () => {
+  // 当 URL 变化时，尝试获取源的名称
+  const fetchSourceName = useCallback(async (url: string) => {
+    setIsFetchingName(true);
+    setFetchedName(null);
+    try {
+      const normalizedUrl = new URL(url).toString();
+      const response = await fetch(normalizedUrl);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.name && typeof data.name === 'string') {
+          setFetchedName(data.name);
+        }
+      }
+    } catch {
+      // 忽略错误，用户可以手动输入名称
+    } finally {
+      setIsFetchingName(false);
+    }
+  }, []);
+
+  // URL 输入防抖获取名称
+  useEffect(() => {
+    if (!newUrl.trim()) {
+      setFetchedName(null);
+      return;
+    }
+
+    try {
+      new URL(newUrl);
+    } catch {
+      return; // URL 无效，不获取
+    }
+
+    const timer = setTimeout(() => {
+      fetchSourceName(newUrl);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [newUrl, fetchSourceName]);
+
+  const handleStartAdd = () => {
+    setIsEditing(true);
+    setEditingUrl(null);
+    setNewUrl('');
+    setNewName('');
+    setFetchedName(null);
+    setError(null);
+  };
+
+  const handleStartEdit = (source: SourceRecord) => {
+    setIsEditing(true);
+    setEditingUrl(source.url);
+    setNewUrl(source.url);
+    setNewName(source.name);
+    setFetchedName(null);
+    setError(null);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditingUrl(null);
+    setNewUrl('');
+    setNewName('');
+    setFetchedName(null);
+    setError(null);
+  };
+
+  const handleSave = async () => {
     if (!newUrl.trim()) {
       setError(t('sources.enterUrl'));
       return;
@@ -50,17 +121,34 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
       return;
     }
 
-    // 检查是否已存在
-    if (state.sources.some((s) => s.url === normalizedUrl)) {
-      setError(t('sources.alreadyExists'));
-      return;
+    const finalName = newName.trim() || fetchedName || t('sources.customSource');
+
+    if (editingUrl) {
+      // 编辑模式
+      if (editingUrl !== normalizedUrl) {
+        // URL 变了，检查是否已存在
+        if (state.sources.some((s) => s.url === normalizedUrl)) {
+          setError(t('sources.alreadyExists'));
+          return;
+        }
+        // 删除旧的，添加新的
+        ecosystemActions.removeSource(editingUrl);
+        ecosystemActions.addSource(normalizedUrl, finalName);
+      } else {
+        // URL 没变，只更新名称
+        ecosystemActions.updateSourceName(editingUrl, finalName);
+      }
+    } else {
+      // 添加模式
+      if (state.sources.some((s) => s.url === normalizedUrl)) {
+        setError(t('sources.alreadyExists'));
+        return;
+      }
+      ecosystemActions.addSource(normalizedUrl, finalName);
     }
 
-    ecosystemActions.addSource(normalizedUrl, newName || t('sources.customSource'));
-    setNewUrl('');
-    setNewName('');
-    setIsAdding(false);
-    setError(null);
+    handleCancel();
+    // 立即触发刷新
     void refreshSource(normalizedUrl);
   };
 
@@ -79,6 +167,11 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
     } catch (e) {}
     setIsRefreshing(false);
   };
+
+  const isAddMode = editingUrl === null;
+  const namePlaceholder = fetchedName
+    ? t('sources.nameWithDefault', { name: fetchedName })
+    : t('sources.namePlaceholder');
 
   return (
     <AppScreen>
@@ -113,6 +206,8 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
               source={source}
               onToggle={() => handleToggle(source.url)}
               onRemove={() => handleRemove(source.url)}
+              onEdit={() => handleStartEdit(source)}
+              isSelected={editingUrl === source.url}
             />
           ))}
 
@@ -121,8 +216,8 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
           )}
         </div>
 
-        {/* Add Source */}
-        {isAdding ? (
+        {/* Add/Edit Source */}
+        {isEditing ? (
           <div className="bg-background space-y-3 border-t p-4">
             <input
               type="url"
@@ -133,39 +228,40 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
               }}
               placeholder={t('sources.urlPlaceholder')}
               className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
+              disabled={editingUrl !== null && editingUrl === newUrl}
             />
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder={t('sources.namePlaceholder')}
-              className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder={namePlaceholder}
+                className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 pr-8 focus:ring-2 focus:outline-none"
+              />
+              {isFetchingName && (
+                <IconLoader2 className="text-muted-foreground absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin" />
+              )}
+            </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="flex gap-2">
               <button
-                onClick={() => {
-                  setIsAdding(false);
-                  setNewUrl('');
-                  setNewName('');
-                  setError(null);
-                }}
+                onClick={handleCancel}
                 className="bg-muted hover:bg-muted/80 flex-1 rounded-lg py-2 font-medium"
               >
                 {t('cancel')}
               </button>
               <button
-                onClick={handleAdd}
+                onClick={handleSave}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-lg py-2 font-medium"
               >
-                {t('add')}
+                {isAddMode ? t('add') : t('save')}
               </button>
             </div>
           </div>
         ) : (
           <div className="border-t p-4">
             <button
-              onClick={() => setIsAdding(true)}
+              onClick={handleStartAdd}
               className="border-muted-foreground/30 hover:border-primary hover:bg-primary/5 text-muted-foreground hover:text-primary flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 transition-colors"
             >
               <IconPlus className="size-5" stroke={1.5} />
@@ -185,9 +281,11 @@ interface SourceItemProps {
   source: SourceRecord;
   onToggle: () => void;
   onRemove: () => void;
+  onEdit: () => void;
+  isSelected?: boolean;
 }
 
-function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
+function SourceItem({ source, onToggle, onRemove, onEdit, isSelected }: SourceItemProps) {
   const { t } = useTranslation('common');
   const isDefault = source.url.includes('ecosystem.json');
 
@@ -200,7 +298,12 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
 
   return (
     <div
-      className={cn('rounded-xl border p-4 transition-colors', source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60')}
+      className={cn(
+        'rounded-xl border p-4 transition-colors cursor-pointer',
+        source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60',
+        isSelected && 'ring-2 ring-primary',
+      )}
+      onClick={onEdit}
     >
       <div className="flex items-start gap-3">
         <div className="bg-primary/10 shrink-0 rounded-full p-2">
@@ -226,7 +329,7 @@ function SourceItem({ source, onToggle, onRemove }: SourceItemProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={onToggle}
             className={cn(
