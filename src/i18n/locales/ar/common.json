@@ -489,6 +489,7 @@
     "noSources": "لا توجد مصادر",
     "urlPlaceholder": "عنوان URL للاشتراك (https://...)",
     "namePlaceholder": "الاسم (اختياري)",
+    "nameWithDefault": "الاسم ({{name}})",
     "addSource": "إضافة مصدر",
     "official": "رسمي",
     "updatedAt": "تم التحديث {{date}}",
