@@ -169,8 +169,55 @@ function sendKeyAppContext(iframe: HTMLIFrameElement): void {
   iframe.contentWindow?.postMessage(context, '*');
 }
 
+type KeyAppContextRequestMessage = {
+  type: 'keyapp:context-request';
+  payload?: {
+    appId?: string;
+  };
+};
+
+function getIframeByMessageSource(source: MessageEvent['source']): HTMLIFrameElement | null {
+  if (!source) return null;
+  for (const app of miniappRuntimeStore.state.apps.values()) {
+    const iframe = app.containerHandle?.getIframe() ?? app.iframeRef;
+    if (iframe?.contentWindow === source) {
+      return iframe;
+    }
+  }
+  return null;
+}
+
+function handleKeyAppContextRequest(event: MessageEvent): void {
+  const data = event.data as KeyAppContextRequestMessage | undefined;
+  if (!data || data.type !== 'keyapp:context-request') return;
+
+  const targetIframe = getIframeByMessageSource(event.source);
+  if (targetIframe) {
+    sendKeyAppContext(targetIframe);
+    return;
+  }
+
+  const appId = data.payload?.appId;
+  if (!appId) return;
+  const app = miniappRuntimeStore.state.apps.get(appId);
+  const iframe = app?.containerHandle?.getIframe() ?? app?.iframeRef;
+  if (iframe) {
+    sendKeyAppContext(iframe);
+  }
+}
+
+let keyAppContextRequestListenerReady = false;
+function ensureKeyAppContextRequestListener(): void {
+  if (keyAppContextRequestListenerReady) return;
+  keyAppContextRequestListenerReady = true;
+  window.addEventListener('message', handleKeyAppContextRequest);
+}
+
 /** Store 实例 */
 export const miniappRuntimeStore = new Store<MiniappRuntimeState>(initialState);
+
+// 注册 context-request 监听器（必须在 store 定义之后）
+ensureKeyAppContextRequestListener();
 
 export function setMiniappVisualConfig(update: MiniappVisualConfigUpdate): void {
   miniappRuntimeStore.setState((s) => ({
