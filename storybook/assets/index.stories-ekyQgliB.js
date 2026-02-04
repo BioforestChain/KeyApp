@@ -1,0 +1,56 @@
+import{j as p}from"./iframe-CzIoh2oq.js";import{N as d}from"./wallet-config-D3VI_Vmm.js";import{n as u,a}from"./notification-Cc_BJP2u.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme-D1kT2108.js";import"./user-profile-BDAi1qka.js";import"./index-D0E7N0oa.js";import"./derivation-4DF7Sj97.js";import"./schemas-CO8_C8zP.js";import"./avatar-codec-cGkzPN8Q.js";import"./service-BRdBN9PZ.js";import"./bioforest-BKObbNFn.js";import"./wallet-card-carousel-m6ys1CI1.js";import"./swiper-D9MsVlyC.js";import"./wallet-card-BPkW3Akv.js";import"./hologram-canvas-CArWqrwk.js";import"./chain-icon-BmjbEMt4.js";import"./address-display-DiqMqWog.js";import"./web-BeGEqsbm.js";import"./createReactComponent-CXeMcnvW.js";import"./breakpoint-DQ_qwb34.js";import"./useTranslation-DuWlJSAe.js";import"./index-DlDIxsxW.js";import"./IconCheck-BDs0o1A3.js";import"./IconChevronDown-BD51DC1w.js";import"./IconSettings-cwoORvFH.js";import"./dropdown-menu-DStKiRk5.js";import"./index-BCRY6PLH.js";import"./index-B7c5tLOz.js";import"./composite-gCjSiYQL.js";import"./useRenderElement-CeNVTP9O.js";import"./useBaseUiId-CpKXT3wN.js";import"./useCompositeListItem-BMcGoEMy.js";import"./useRole-BndPRyNS.js";import"./useButton-BdmPyv8M.js";/* empty css                     */import"./IconWallet-DfMsmgyT.js";import"./IconPlus-Dp-Nt5sj.js";import"./IconSearch-CbTdTHMU.js";import"./button-DCLwnUQS.js";import"./TabBar-CskcfPIj.js";import"./swiper-sync-context-kK0nVt4Y.js";import"./index-cS4GM6VE.js";import"./wujie-container-BjKhJ-X5.js";import"./web-CqX31nrX.js";import"./window-stack-BGEP7tFI.js";import"./index-Cuj_uScy.js";import"./amount-BQsqQYGO.js";import"./index-DRQXAVdd.js";import"./ecosystem-desktop-A6M3XgSf.js";import"./my-apps-page-wdORVfpy.js";import"./config-HmZ3kn8E.js";import"./IconApps-CrqV8tR8.js";import"./IconSparkles-Bk5vMJLP.js";import"./IconLock-Dp0Ur4gR.js";import"./IconDownload-DAhIBLTB.js";import"./IconTrash-BC17yusu.js";import"./proxy-CvdmCR_i.js";import"./IconChevronRight-CB4OSCTS.js";import"./miniapp-splash-screen-fh01JeSg.js";import"./IconDots-BDJS87uo.js";import"./index-Cjujc-YY.js";import"./recover-wallet-form-mX0aAIhp.js";import"./input-u3j_wCPU.js";import"./useField-B8W1vRnM.js";import"./IconX-C9QEV0Hm.js";import"./IconAlertCircle-BxApG8y5.js";import"./IconLoader2-B5urDy3N.js";import"./token-item-DUY_goBn.js";import"./wallet-selector-CNo-0XWs.js";import"./wallet-mini-card-fwkgGYfI.js";import"./token-icon-CXRn0XEs.js";import"./LoadingSpinner-CiUslrw7.js";import"./NumberFlow-client-48rw3j0J-CUT3WRZS.js";import"./amount-display-jTTLveam.js";import"./animated-number-gRK6TNC2.js";import"./time-display-cHmo67K-.js";import"./service-status-alert-Cqvyj5hh.js";import"./IconAlertTriangle-BoGWq9dA.js";import"./transaction-list-DzVxdP2u.js";import"./transaction-item-hryPwHNT.js";import"./transaction-meta-DL41Tddy.js";import"./IconShieldCheck-udMbmg7W.js";import"./IconCoins-CaZA8s7z.js";import"./IconRefresh-BGTujIxO.js";import"./swipeable-tabs-DIgCF6ub.js";import"./address-input-BmgRnAhO.js";import"./contact-avatar-CQDz8Kx_.js";import"./IconPencil-PZe07ck2.js";import"./page-header-2BFWV24l.js";import"./sheet-5AzYbaBz.js";import"./pattern-lock-umfGOrUQ.js";import"./password-input-bvCOFpxV.js";import"./IconEyeOff-BJzwlrF-.js";import"./IconEye-rfBlQurv.js";import"./fee-display-Dj815xU5.js";import"./tx-status-display-C_BSjHkd.js";import"./wallet-list-D8FNqMJI.js";import"./checkbox-BBG8usla.js";import"./asset-selector-C7oMS6k7.js";import"./qr-parser-C-RS9QQ_.js";import"./jsQR-CMSolnbU.js";import"./index-D4t_pJGC.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-3rSYvAti.js";import"./mnemonic-display-CvU2XEcM.js";import"./pattern-lock-setup-Bw7asfFZ.js";import"./chain-selector-CMozKrTT.js";import"./index-CoiIpgKa.js";import"./IconCircleCheck-BpPAJLp-.js";import"./asset-item-C163MHHv.js";import"./asset-list-C0YuPqF9.js";import"./amount-input-DaP4hXqi.js";import"./balance-display-CeTbqLPe.js";import"./send-result-DubO7OWU.js";import"./transaction-status-BdMYvbkN.js";import"./IconBan-BIvKBQBW.js";import"./IconClock-KiSA-1IE.js";import"./IconExternalLink-DQPLw-BT.js";import"./Trans-CpPkZYoE.js";import"./mnemonic-input-BvzBU4Dc.js";import"./AppInfoCard-CoBeCRjQ.js";import"./PermissionList-DEiL-Ug3.js";import"./TransactionDetails-CZsri96i.js";import"./BalanceWarning-CHcdJFo5.js";import"./key-type-selector-D1Ev2eiX.js";import"./arbitrary-key-input-BdtNaDi0.js";import"./IconRotateClockwise-CNMaY5Vy.js";import"./chain-address-preview-D58-r_Bk.js";import"./collision-confirm-dialog-Ce-msQe7.js";import"./IconBell-rmVxQchV.js";import"./IconCircleX-GYLAhEkc.js";import"./IconShield-BEoi4LTo.js";const Or={title:"Pages/NotificationCenter",component:d,parameters:{layout:"fullscreen"},decorators:[t=>(u.clearAll(),p.jsx(t,{}))]},i={},y=()=>{const t=[{id:"n1",type:"transaction",title:"交易成功",message:"您向 0x1234...5678 的转账已确认",timestamp:Date.now()-3e5,read:!1,data:{txHash:"0xabc123",status:"success"}},{id:"n2",type:"transaction",title:"收款到账",message:"您收到来自 0xabcd...ef12 的 100 USDT",timestamp:Date.now()-36e5,read:!1},{id:"n3",type:"security",title:"安全提醒",message:"检测到新设备登录，如非本人操作请立即修改密码",timestamp:Date.now()-864e5,read:!0},{id:"n4",type:"system",title:"系统更新",message:"BFM Pay 已更新至最新版本",timestamp:Date.now()-1728e5,read:!0}];a.setState(()=>({notifications:t,unreadCount:t.filter(o=>!o.read).length,isInitialized:!0}))},e={decorators:[t=>(y(),p.jsx(t,{}))]},m={decorators:[t=>{const o=[{id:"n1",type:"transaction",title:"交易成功",message:"您向 0x1234...5678 的转账已确认",timestamp:Date.now()-3e5,read:!0},{id:"n2",type:"system",title:"系统通知",message:"欢迎使用 BFM Pay",timestamp:Date.now()-864e5,read:!0}];return a.setState(()=>({notifications:o,unreadCount:0,isInitialized:!0})),p.jsx(t,{})}]},n={decorators:[t=>{const o=s=>{const r=s%3;return r===0?"transaction":r===1?"security":"system"},c=Array.from({length:20},(s,r)=>({id:`n${r}`,type:o(r),title:`通知 ${r+1}`,message:`这是第 ${r+1} 条通知的详细内容`,timestamp:Date.now()-r*36e5,read:r>=5}));return a.setState(()=>({notifications:c,unreadCount:5,isInitialized:!0})),p.jsx(t,{})}]};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:"{}",...i.parameters?.docs?.source}}};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    setupNotifications();
+    return <Story />;
+  }]
+}`,...e.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const notifications: Notification[] = [{
+      id: 'n1',
+      type: 'transaction',
+      title: '交易成功',
+      message: '您向 0x1234...5678 的转账已确认',
+      timestamp: Date.now() - 300000,
+      read: true
+    }, {
+      id: 'n2',
+      type: 'system',
+      title: '系统通知',
+      message: '欢迎使用 BFM Pay',
+      timestamp: Date.now() - 86400000,
+      read: true
+    }];
+    notificationStore.setState(() => ({
+      notifications,
+      unreadCount: 0,
+      isInitialized: true
+    }));
+    return <Story />;
+  }]
+}`,...m.parameters?.docs?.source}}};n.parameters={...n.parameters,docs:{...n.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const getType = (i: number): 'transaction' | 'security' | 'system' => {
+      const mod = i % 3;
+      if (mod === 0) return 'transaction';
+      if (mod === 1) return 'security';
+      return 'system';
+    };
+    const notifications: Notification[] = Array.from({
+      length: 20
+    }, (_, i) => ({
+      id: \`n\${i}\`,
+      type: getType(i),
+      title: \`通知 \${i + 1}\`,
+      message: \`这是第 \${i + 1} 条通知的详细内容\`,
+      timestamp: Date.now() - i * 3600000,
+      // Each 1 hour apart
+      read: i >= 5 // First 5 unread
+    }));
+    notificationStore.setState(() => ({
+      notifications,
+      unreadCount: 5,
+      isInitialized: true
+    }));
+    return <Story />;
+  }]
+}`,...n.parameters?.docs?.source}}};const Ur=["Empty","WithNotifications","AllRead","ManyNotifications"];export{m as AllRead,i as Empty,n as ManyNotifications,e as WithNotifications,Ur as __namedExportsOrder,Or as default};

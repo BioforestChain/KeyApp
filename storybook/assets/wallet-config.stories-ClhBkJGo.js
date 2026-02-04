@@ -1,0 +1,74 @@
+import{j as o,r as d}from"./iframe-CzIoh2oq.js";import{f as n}from"./index-BjIXEP53.js";import{W as c}from"./wallet-config-D3VI_Vmm.js";import{w as u}from"./user-profile-BDAi1qka.js";import"./service-BRdBN9PZ.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme-D1kT2108.js";import"./wallet-card-carousel-m6ys1CI1.js";import"./swiper-D9MsVlyC.js";import"./wallet-card-BPkW3Akv.js";import"./hologram-canvas-CArWqrwk.js";import"./chain-icon-BmjbEMt4.js";import"./address-display-DiqMqWog.js";import"./web-BeGEqsbm.js";import"./createReactComponent-CXeMcnvW.js";import"./breakpoint-DQ_qwb34.js";import"./schemas-CO8_C8zP.js";import"./useTranslation-DuWlJSAe.js";import"./index-DlDIxsxW.js";import"./IconCheck-BDs0o1A3.js";import"./IconChevronDown-BD51DC1w.js";import"./IconSettings-cwoORvFH.js";import"./dropdown-menu-DStKiRk5.js";import"./index-BCRY6PLH.js";import"./index-B7c5tLOz.js";import"./composite-gCjSiYQL.js";import"./useRenderElement-CeNVTP9O.js";import"./useBaseUiId-CpKXT3wN.js";import"./useCompositeListItem-BMcGoEMy.js";import"./useRole-BndPRyNS.js";import"./useButton-BdmPyv8M.js";/* empty css                     */import"./IconWallet-DfMsmgyT.js";import"./IconPlus-Dp-Nt5sj.js";import"./IconSearch-CbTdTHMU.js";import"./button-DCLwnUQS.js";import"./TabBar-CskcfPIj.js";import"./swiper-sync-context-kK0nVt4Y.js";import"./index-cS4GM6VE.js";import"./wujie-container-BjKhJ-X5.js";import"./web-CqX31nrX.js";import"./window-stack-BGEP7tFI.js";import"./index-Cuj_uScy.js";import"./amount-BQsqQYGO.js";import"./index-D0E7N0oa.js";import"./derivation-4DF7Sj97.js";import"./bioforest-BKObbNFn.js";import"./index-DRQXAVdd.js";import"./notification-Cc_BJP2u.js";import"./transaction-meta-DL41Tddy.js";import"./IconDots-BDJS87uo.js";import"./IconShieldCheck-udMbmg7W.js";import"./IconApps-CrqV8tR8.js";import"./IconCoins-CaZA8s7z.js";import"./IconSparkles-Bk5vMJLP.js";import"./IconLock-Dp0Ur4gR.js";import"./IconTrash-BC17yusu.js";import"./ecosystem-desktop-A6M3XgSf.js";import"./my-apps-page-wdORVfpy.js";import"./config-HmZ3kn8E.js";import"./IconDownload-DAhIBLTB.js";import"./proxy-CvdmCR_i.js";import"./IconChevronRight-CB4OSCTS.js";import"./miniapp-splash-screen-fh01JeSg.js";import"./index-Cjujc-YY.js";import"./recover-wallet-form-mX0aAIhp.js";import"./input-u3j_wCPU.js";import"./useField-B8W1vRnM.js";import"./IconX-C9QEV0Hm.js";import"./IconAlertCircle-BxApG8y5.js";import"./IconLoader2-B5urDy3N.js";import"./token-item-DUY_goBn.js";import"./wallet-selector-CNo-0XWs.js";import"./wallet-mini-card-fwkgGYfI.js";import"./token-icon-CXRn0XEs.js";import"./LoadingSpinner-CiUslrw7.js";import"./NumberFlow-client-48rw3j0J-CUT3WRZS.js";import"./amount-display-jTTLveam.js";import"./animated-number-gRK6TNC2.js";import"./time-display-cHmo67K-.js";import"./service-status-alert-Cqvyj5hh.js";import"./IconAlertTriangle-BoGWq9dA.js";import"./transaction-list-DzVxdP2u.js";import"./transaction-item-hryPwHNT.js";import"./IconRefresh-BGTujIxO.js";import"./swipeable-tabs-DIgCF6ub.js";import"./address-input-BmgRnAhO.js";import"./contact-avatar-CQDz8Kx_.js";import"./avatar-codec-cGkzPN8Q.js";import"./IconPencil-PZe07ck2.js";import"./page-header-2BFWV24l.js";import"./sheet-5AzYbaBz.js";import"./pattern-lock-umfGOrUQ.js";import"./password-input-bvCOFpxV.js";import"./IconEyeOff-BJzwlrF-.js";import"./IconEye-rfBlQurv.js";import"./fee-display-Dj815xU5.js";import"./tx-status-display-C_BSjHkd.js";import"./wallet-list-D8FNqMJI.js";import"./checkbox-BBG8usla.js";import"./asset-selector-C7oMS6k7.js";import"./qr-parser-C-RS9QQ_.js";import"./jsQR-CMSolnbU.js";import"./index-D4t_pJGC.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-3rSYvAti.js";import"./mnemonic-display-CvU2XEcM.js";import"./pattern-lock-setup-Bw7asfFZ.js";import"./chain-selector-CMozKrTT.js";import"./index-CoiIpgKa.js";import"./IconCircleCheck-BpPAJLp-.js";import"./asset-item-C163MHHv.js";import"./asset-list-C0YuPqF9.js";import"./amount-input-DaP4hXqi.js";import"./balance-display-CeTbqLPe.js";import"./send-result-DubO7OWU.js";import"./transaction-status-BdMYvbkN.js";import"./IconBan-BIvKBQBW.js";import"./IconClock-KiSA-1IE.js";import"./IconExternalLink-DQPLw-BT.js";import"./Trans-CpPkZYoE.js";import"./mnemonic-input-BvzBU4Dc.js";import"./AppInfoCard-CoBeCRjQ.js";import"./PermissionList-DEiL-Ug3.js";import"./TransactionDetails-CZsri96i.js";import"./BalanceWarning-CHcdJFo5.js";import"./key-type-selector-D1Ev2eiX.js";import"./arbitrary-key-input-BdtNaDi0.js";import"./IconRotateClockwise-CNMaY5Vy.js";import"./chain-address-preview-D58-r_Bk.js";import"./collision-confirm-dialog-Ce-msQe7.js";import"./IconBell-rmVxQchV.js";import"./IconCircleX-GYLAhEkc.js";import"./IconShield-BEoi4LTo.js";const s=(t,a,l)=>({id:t,name:a,address:`0x${t.padEnd(40,"0")}`,chain:"ethereum",chainAddresses:[{chain:"ethereum",address:`0x${t.padEnd(40,"0")}`,tokens:[]},{chain:"tron",address:`T${t.padEnd(33,"A")}`,tokens:[]}],createdAt:Date.now(),themeHue:l,tokens:[]}),w=[s("mock-wallet-1","我的钱包",323),s("mock-wallet-2","工作钱包",200),s("mock-wallet-3","储蓄钱包",120)];function f({children:t}){return d.useEffect(()=>{u.setState(a=>({...a,wallets:w,currentWalletId:"mock-wallet-1",chainPreferences:{}}))},[]),o.jsx(o.Fragment,{children:t})}const Go={title:"Wallet/WalletConfig",component:c,tags:["autodocs"],parameters:{layout:"centered",backgrounds:{default:"light"}},argTypes:{mode:{control:"select",options:["edit-only","default","edit"],description:"组件模式"},walletId:{control:"text",description:"钱包 ID"}},decorators:[t=>o.jsx(f,{children:o.jsx("div",{className:"w-[400px] max-w-full p-4",children:o.jsx(t,{})})})]},r={name:"edit-only 模式（创建流程）",args:{mode:"edit-only",walletId:"mock-wallet-1",onEditOnlyComplete:n()},parameters:{docs:{description:{story:"用于创建/恢复钱包的最后一步，只有确认按钮"}}}},e={name:"default 模式（钱包详情）",args:{mode:"default",walletId:"mock-wallet-1"},parameters:{docs:{description:{story:"钱包详情页，显示功能按钮列表"}}}},m={name:"edit 模式（编辑中）",args:{mode:"edit",walletId:"mock-wallet-1"},parameters:{docs:{description:{story:"从 default 切换到编辑模式，有保存/取消按钮"}}}},i={name:"钱包未找到",args:{mode:"default",walletId:"non-existent-wallet"},parameters:{docs:{description:{story:"当钱包 ID 无效时显示未找到提示"}}}},p={name:"移动端视图",args:{mode:"edit-only",walletId:"mock-wallet-1",onEditOnlyComplete:n()},decorators:[t=>o.jsx("div",{className:"w-[320px] p-4",children:o.jsx(t,{})})],parameters:{viewport:{defaultViewport:"mobile1"},docs:{description:{story:"移动端宽度下的显示效果"}}}};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+  name: 'edit-only 模式（创建流程）',
+  args: {
+    mode: 'edit-only',
+    walletId: 'mock-wallet-1',
+    onEditOnlyComplete: fn()
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '用于创建/恢复钱包的最后一步，只有确认按钮'
+      }
+    }
+  }
+}`,...r.parameters?.docs?.source}}};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:`{
+  name: 'default 模式（钱包详情）',
+  args: {
+    mode: 'default',
+    walletId: 'mock-wallet-1'
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '钱包详情页，显示功能按钮列表'
+      }
+    }
+  }
+}`,...e.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  name: 'edit 模式（编辑中）',
+  args: {
+    mode: 'edit',
+    walletId: 'mock-wallet-1'
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '从 default 切换到编辑模式，有保存/取消按钮'
+      }
+    }
+  }
+}`,...m.parameters?.docs?.source}}};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  name: '钱包未找到',
+  args: {
+    mode: 'default',
+    walletId: 'non-existent-wallet'
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '当钱包 ID 无效时显示未找到提示'
+      }
+    }
+  }
+}`,...i.parameters?.docs?.source}}};p.parameters={...p.parameters,docs:{...p.parameters?.docs,source:{originalSource:`{
+  name: '移动端视图',
+  args: {
+    mode: 'edit-only',
+    walletId: 'mock-wallet-1',
+    onEditOnlyComplete: fn()
+  },
+  decorators: [Story => <div className="w-[320px] p-4">
+        <Story />
+      </div>],
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: '移动端宽度下的显示效果'
+      }
+    }
+  }
+}`,...p.parameters?.docs?.source}}};const Ho=["EditOnly","Default","Edit","WalletNotFound","MobileView"];export{e as Default,m as Edit,r as EditOnly,p as MobileView,i as WalletNotFound,Ho as __namedExportsOrder,Go as default};
