@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.7.5",
-  "change_log": "Fix DWEB update check - allow Web version to debug update requests",
+  "version": "0.7.6",
+  "change_log": "feat(agent): add release workflow command (#384)",
   "categories": [
     "application",
     "wallet"
