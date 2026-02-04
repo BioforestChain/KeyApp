@@ -10410,6 +10410,18 @@
           ]
         }
       },
+      "packages/ecosystem-native": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@types/react-dom@19",
+            "npm:@types/react@19",
+            "npm:lit@^3.2.0",
+            "npm:oxlint@^1.32.0",
+            "npm:typescript@^5.9.3",
+            "npm:vitest@4"
+          ]
+        }
+      },
       "packages/eslint-plugin-file-component-constraints": {
         "packageJson": {
           "dependencies": [
