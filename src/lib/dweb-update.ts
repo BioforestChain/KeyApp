@@ -114,6 +114,7 @@ async function fetchMetadata(url: string): Promise<DwebUpdateMetadata> {
 
 export async function checkDwebUpdate(): Promise<DwebUpdateCheckResult> {
   const currentVersion = __APP_VERSION__
+  const isDweb = isDwebEnvironment()
   let metadataUrl = ''
   let installUrl = ''
   try {
@@ -124,10 +125,7 @@ export async function checkDwebUpdate(): Promise<DwebUpdateCheckResult> {
     return { status: 'error', currentVersion, metadataUrl, installUrl, error: message }
   }
 
-  if (!isDwebEnvironment()) {
-    return { status: 'not-dweb', currentVersion, metadataUrl, installUrl }
-  }
-
+  // 即使不是 DWEB 环境也发起请求，方便在 Web 版本中调试
   try {
     const metadata = await fetchMetadata(metadataUrl)
     if (!metadata.version) {
@@ -148,6 +146,18 @@ export async function checkDwebUpdate(): Promise<DwebUpdateCheckResult> {
         metadataUrl,
         installUrl,
         error: 'version parse failed',
+      }
+    }
+
+    // 非 DWEB 环境：请求成功但返回 not-dweb 状态（不支持安装）
+    if (!isDweb) {
+      return {
+        status: 'not-dweb',
+        currentVersion,
+        latestVersion: metadata.version,
+        metadataUrl,
+        installUrl,
+        changeLog: metadata.changeLog,
       }
     }
 
