@@ -69,7 +69,7 @@ export class IframeContainerManager implements ContainerManager {
    * Creates the iframe and appends it to the mount target immediately.
    */
   createSync(options: ContainerCreateOptions): IframeContainerHandle {
-    const { appId, url, mountTarget, contextParams, onLoad } = options;
+    const { appId, url, mountTarget, contextParams, onLoad, permissionsPolicyAllow } = options;
 
     const iframe = document.createElement('iframe');
     iframe.id = `miniapp-iframe-${appId}`;
@@ -87,6 +87,9 @@ export class IframeContainerManager implements ContainerManager {
       iframe.sandbox.add('allow-scripts', 'allow-forms', 'allow-same-origin');
     } else {
       iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin');
+    }
+    if (permissionsPolicyAllow) {
+      iframe.setAttribute('allow', permissionsPolicyAllow);
     }
     iframe.style.cssText = `
       width: 100%;

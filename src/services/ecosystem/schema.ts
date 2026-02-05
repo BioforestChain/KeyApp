@@ -35,6 +35,7 @@ export const MiniappManifestSchema = z
     category: MiniappCategorySchema.optional(),
     tags: z.array(z.string()).optional(),
     permissions: z.array(z.string()).optional(),
+    permissionsPolicy: z.array(z.string()).optional(),
     chains: z.array(z.string()).optional(),
     screenshots: z.array(z.string()).optional(),
     minWalletVersion: z.string().optional(),
@@ -74,4 +75,3 @@ export const EcosystemSearchResponseSchema = z
     data: z.array(MiniappManifestSchema),
   })
   .passthrough()
-

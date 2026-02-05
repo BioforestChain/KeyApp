@@ -59,6 +59,8 @@ import {
 } from './container';
 import type { MiniappManifest, MiniappTargetDesktop } from '../ecosystem/types';
 import { getBridge } from '../ecosystem/provider';
+import { buildPermissionsPolicyAllow, normalizePermissionsPolicy } from '../ecosystem/permissions-policy';
+import { subscribeApps } from '../ecosystem/registry';
 import { toastService } from '../toast';
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs';
 import i18n from '@/i18n';
@@ -122,6 +124,7 @@ function attachBioProvider(appId: string): void {
   const iframe = app.containerHandle?.getIframe() ?? app.iframeRef;
   if (!iframe) return;
 
+  applyPermissionsPolicyAllow(iframe, getPermissionsPolicyAllow(app.manifest));
   getBridge().attach(iframe, appId, app.manifest.name, app.manifest.permissions ?? []);
 }
 
@@ -129,8 +132,81 @@ function attachBioProviderToContainer(appId: string, handle: ContainerHandle, ma
   const iframe = handle.getIframe();
   if (!iframe) return;
 
+  applyPermissionsPolicyAllow(iframe, getPermissionsPolicyAllow(manifest));
   getBridge().attach(iframe, appId, manifest.name, manifest.permissions ?? []);
   sendKeyAppContext(iframe);
+}
+
+function getPermissionsPolicyAllow(manifest: MiniappManifest): string | undefined {
+  const directives = normalizePermissionsPolicy(manifest.permissionsPolicy ?? []);
+  return buildPermissionsPolicyAllow(directives);
+}
+
+function applyPermissionsPolicyAllow(iframe: HTMLIFrameElement, allow?: string): void {
+  if (allow) {
+    iframe.setAttribute('allow', allow);
+  } else {
+    iframe.removeAttribute('allow');
+  }
+}
+
+function areStringArraysEqual(left: readonly string[], right: readonly string[]): boolean {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+function shouldRefreshManifest(prev: MiniappManifest, next: MiniappManifest): boolean {
+  if (prev.version !== next.version) return true;
+  if (prev.updatedAt !== next.updatedAt) return true;
+  if (prev.url !== next.url) return true;
+  if ((prev.runtime ?? 'iframe') !== (next.runtime ?? 'iframe')) return true;
+  if (JSON.stringify(prev.wujieConfig ?? {}) !== JSON.stringify(next.wujieConfig ?? {})) return true;
+
+  const prevPermissions = prev.permissions ?? [];
+  const nextPermissions = next.permissions ?? [];
+  if (!areStringArraysEqual(prevPermissions, nextPermissions)) return true;
+
+  const prevPolicy = normalizePermissionsPolicy(prev.permissionsPolicy ?? []);
+  const nextPolicy = normalizePermissionsPolicy(next.permissionsPolicy ?? []);
+  if (!areStringArraysEqual(prevPolicy, nextPolicy)) return true;
+
+  return false;
+}
+
+function syncRunningMiniapps(nextApps: MiniappManifest[]): void {
+  if (nextApps.length === 0) return;
+  const nextById = new Map(nextApps.map((app) => [app.id, app]));
+  const updates: Array<{ appId: string; allow?: string }> = [];
+
+  miniappRuntimeStore.setState((state) => {
+    let changed = false;
+    const newApps = new Map(state.apps);
+
+    for (const [appId, instance] of newApps.entries()) {
+      const nextManifest = nextById.get(appId);
+      if (!nextManifest) continue;
+      if (!shouldRefreshManifest(instance.manifest, nextManifest)) continue;
+
+      changed = true;
+      newApps.set(appId, { ...instance, manifest: nextManifest });
+      updates.push({ appId, allow: getPermissionsPolicyAllow(nextManifest) });
+    }
+
+    return changed ? { ...state, apps: newApps } : state;
+  });
+
+  updates.forEach((update) => {
+    const app = miniappRuntimeStore.state.apps.get(update.appId);
+    if (!app) return;
+    const iframe = app.containerHandle?.getIframe() ?? app.iframeRef;
+    if (iframe) {
+      applyPermissionsPolicyAllow(iframe, update.allow);
+    }
+    attachBioProvider(update.appId);
+  });
 }
 
 function getCapsuleSafeAreaTop(): number {
@@ -213,11 +289,19 @@ function ensureKeyAppContextRequestListener(): void {
   window.addEventListener('message', handleKeyAppContextRequest);
 }
 
+let miniappManifestSyncListenerReady = false;
+function ensureMiniappManifestSyncListener(): void {
+  if (miniappManifestSyncListenerReady) return;
+  miniappManifestSyncListenerReady = true;
+  subscribeApps(syncRunningMiniapps);
+}
+
 /** Store 实例 */
 export const miniappRuntimeStore = new Store<MiniappRuntimeState>(initialState);
 
 // 注册 context-request 监听器（必须在 store 定义之后）
 ensureKeyAppContextRequestListener();
+ensureMiniappManifestSyncListener();
 
 export function setMiniappVisualConfig(update: MiniappVisualConfigUpdate): void {
   miniappRuntimeStore.setState((s) => ({
@@ -709,6 +793,7 @@ export function launchApp(
   const hasSplash = !!manifest.splashScreen;
   const containerType: ContainerType = manifest.runtime ?? 'iframe';
   const targetDesktop = manifest.targetDesktop ?? 'stack';
+  const permissionsPolicyAllow = getPermissionsPolicyAllow(manifest);
 
   const instance: MiniappInstance = {
     appId,
@@ -759,6 +844,7 @@ export function launchApp(
         mountTarget,
         contextParams,
         wujieConfig: manifest.wujieConfig,
+        permissionsPolicyAllow,
         onLoad,
       });
 
@@ -834,12 +920,14 @@ function createContainerAsync(
   onLoad: () => void,
   mountTarget: HTMLElement,
 ): void {
+  const permissionsPolicyAllow = getPermissionsPolicyAllow(manifest);
   createContainer(instance.containerType, {
     appId: instance.appId,
     url: manifest.url,
     mountTarget,
     contextParams,
     wujieConfig: manifest.wujieConfig,
+    permissionsPolicyAllow,
     onLoad,
   }).then((handle) => {
     instance.containerHandle = handle;

@@ -19,6 +19,7 @@ export interface ContainerCreateOptions {
   contextParams?: Record<string, string>;
   onLoad?: () => void;
   wujieConfig?: WujieRuntimeConfig;
+  permissionsPolicyAllow?: string;
 }
 
 export interface ContainerManager {

@@ -10,6 +10,7 @@ import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools';
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps';
 import { remoteMiniappsPlugin, type RemoteMiniappConfig } from './scripts/vite-plugin-remote-miniapps';
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check';
+import { buildPermissionsPolicyHeaderValue } from './src/services/ecosystem/permissions-policy';
 
 const remoteMiniappsConfig: RemoteMiniappConfig[] = [
   {
@@ -122,11 +123,15 @@ export default defineConfig(({ mode }) => {
   const pad = (value: number) => value.toString().padStart(2, '0');
   const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`;
   const appVersion = `${getPackageVersion()}${isDevBuild ? buildSuffix : ''}`;
+  const permissionsPolicyHeader = buildPermissionsPolicyHeaderValue();
 
   return {
     base: BASE_URL,
     server: {
       host: true,
+      headers: {
+        'Permissions-Policy': permissionsPolicyHeader,
+      },
       // 手机上的“每隔几秒自动刷新”通常是 HMR WebSocket 连不上导致的。
       // 明确指定 wss + 局域网 IP，避免客户端默认连到 localhost（在手机上等于连自己）。
       hmr: DEV_HOST

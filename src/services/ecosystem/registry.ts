@@ -14,6 +14,7 @@ import type { EcosystemSource, MiniappManifest, SourceRecord } from './types';
 import { EcosystemSearchResponseSchema, EcosystemSourceSchema } from './schema';
 import { computeFeaturedScore } from './scoring';
 import { createResolver } from '@/lib/url-resolver';
+import { isPermissionsPolicyDirective, normalizePermissionsPolicy } from './permissions-policy';
 
 const SUPPORTED_SEARCH_RESPONSE_VERSIONS = new Set(['1', '1.0.0']);
 
@@ -367,8 +368,17 @@ function normalizeAppFromSource(
 
   const resolve = createResolver(source.url);
 
+  const permissionsPolicy = normalizePermissionsPolicy(app.permissionsPolicy ?? []);
+  if ((app.permissionsPolicy?.length ?? 0) > 0) {
+    const unknown = (app.permissionsPolicy ?? []).filter((entry) => !isPermissionsPolicyDirective(entry));
+    if (unknown.length > 0) {
+      debugLog('unknown permissions policy directives', { appId: app.id, directives: unknown });
+    }
+  }
+
   return {
     ...app,
+    permissionsPolicy,
     icon: resolve(app.icon),
     url: resolve(app.url),
     screenshots: app.screenshots?.map(resolve),

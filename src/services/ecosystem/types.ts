@@ -4,6 +4,8 @@
  * 统一从 chain-adapter 导入交易相关类型
  */
 
+import type { PermissionsPolicyDirective } from './permissions-policy';
+
 // ===== 从 chain-adapter 导入核心类型 =====
 export type {
   // 交易意图
@@ -158,6 +160,8 @@ export interface MiniappManifest {
   tags?: string[];
   /** 请求的权限列表 */
   permissions?: string[];
+  /** Permissions Policy directives */
+  permissionsPolicy?: PermissionsPolicyDirective[];
   /** 支持的链 */
   chains?: string[];
   /** 截图 URL 列表 */

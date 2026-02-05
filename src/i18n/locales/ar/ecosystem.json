@@ -144,6 +144,20 @@
       "exchange": "تبادل",
       "other": "أخرى"
     },
-    "tagLabel": "#{{tag}}"
+    "tagLabel": "#{{tag}}",
+    "permissions": "أذونات التطبيق"
+  },
+  "permissionsPolicy": {
+    "title": "قدرات المتصفح",
+    "hint": "قد يطلب هذا التطبيق الوصول إلى الميزات التالية في المتصفح",
+    "defaultDescription": "قد يصل هذا التطبيق إلى هذه الميزة في المتصفح",
+    "clipboard-read": {
+      "name": "قراءة الحافظة",
+      "description": "قراءة نص من الحافظة"
+    },
+    "clipboard-write": {
+      "name": "الكتابة إلى الحافظة",
+      "description": "كتابة نص إلى الحافظة"
+    }
   }
 }

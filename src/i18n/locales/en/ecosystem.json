@@ -144,6 +144,20 @@
       "exchange": "Exchange",
       "other": "Other"
     },
-    "tagLabel": "#{{tag}}"
+    "tagLabel": "#{{tag}}",
+    "permissions": "App Permissions"
+  },
+  "permissionsPolicy": {
+    "title": "Browser Capabilities",
+    "hint": "This app also requests access to the following browser features",
+    "defaultDescription": "This app may access this browser capability",
+    "clipboard-read": {
+      "name": "Read Clipboard",
+      "description": "Read text from your clipboard"
+    },
+    "clipboard-write": {
+      "name": "Write Clipboard",
+      "description": "Write text to your clipboard"
+    }
   }
 }
