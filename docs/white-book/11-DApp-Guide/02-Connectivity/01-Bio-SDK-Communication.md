@@ -199,7 +199,7 @@ import {
   applyMiniappSafeAreaCssVars,
 } from '@bioforest/bio-sdk';
 
-const context = await getMiniappContext();
+const context = await getMiniappContext({ appId: window.name || undefined });
 applyMiniappSafeAreaCssVars(context);
 
 const unsubscribe = onMiniappContextUpdate((next) => {
@@ -212,6 +212,7 @@ SDK 行为要点：
 - `getMiniappContext()` 无缓存时自动发起一次请求，超时会回退默认值并告警。
 - `onMiniappContextUpdate()` 会回放最近一次 context，并在需要时触发刷新。
 - `applyMiniappSafeAreaCssVars()` 会写入 `--keyapp-safe-area-*` 四个变量。
+- 当宿主不支持时，SDK 会回退到浏览器的 `env(safe-area-inset-*)`、`prefers-color-scheme`、`document.documentElement.lang` 等标准 Web API。
 
 ### 内部实现
 

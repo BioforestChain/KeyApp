@@ -43,11 +43,17 @@ describe('miniapp context sdk', () => {
   })
 
   it('requests context and resolves on update', async () => {
-    const promise = getMiniappContext({ timeoutMs: 100, retries: 0, forceRefresh: true })
+    const promise = getMiniappContext({
+      timeoutMs: 100,
+      retries: 0,
+      forceRefresh: true,
+      appId: 'miniapp-test',
+    })
 
     const posted = mockParent.postMessage.mock.calls[0][0]
     expect(posted.type).toBe('miniapp:context-request')
     expect(typeof posted.requestId).toBe('string')
+    expect(posted.payload).toEqual({ appId: 'miniapp-test' })
 
     window.dispatchEvent(
       new MessageEvent('message', {

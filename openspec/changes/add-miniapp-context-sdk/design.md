@@ -24,7 +24,7 @@ export type MiniappContext = {
 ```
 
 ## Message Contract
-- Request: `{ type: "miniapp:context-request", requestId, sdkVersion }`
+- Request: `{ type: "miniapp:context-request", requestId, sdkVersion, payload?: { appId } }`
 - Response: `{ type: "keyapp:context-update", requestId, payload }`
 - Errors use `{ type: "keyapp:context-error", requestId, code, message }`
 
@@ -34,11 +34,12 @@ export async function getMiniappContext(options?: {
   forceRefresh?: boolean;
   timeoutMs?: number;
   retries?: number;
+  appId?: string;
 }): Promise<MiniappContext>;
 
 export function onMiniappContextUpdate(
   handler: (context: MiniappContext) => void,
-  options?: { emitCached?: boolean },
+  options?: { emitCached?: boolean; appId?: string },
 ): () => void;
 ```
 
@@ -50,7 +51,7 @@ export function onMiniappContextUpdate(
 - `getMiniappContext()` returns cached context when available; if missing (or `forceRefresh`), it sends `miniapp:context-request` and waits for `keyapp:context-update`.
 - `onMiniappContextUpdate()` registers a handler, replays cached context once (default), and ensures a refresh if nothing is cached.
 - SDK uses a singleton message bridge to avoid duplicate event bindings.
-- If host does not support the channel (timeout), SDK resolves with default context values and logs a warning.
+- If host does not support the channel (timeout), SDK resolves with fallback context derived from standard Web APIs (safe-area env vars, prefers-color-scheme, document language) and logs a warning.
 
 ## Host Behavior
 - Host maintains a context snapshot (safeAreaInsets, env info, version) and updates it on layout changes.

@@ -270,7 +270,10 @@ function getMiniappSafeAreaInsets(): SafeAreaInsets {
 
 function buildMiniappContextPayload(): MiniappContextPayload {
   const colorMode = document?.documentElement?.classList.contains('dark') ? 'dark' : 'light';
-  const locale = i18n.language || (typeof navigator !== 'undefined' ? navigator.language : 'en');
+  const locale =
+    i18n.language ||
+    document?.documentElement?.lang ||
+    (typeof navigator !== 'undefined' ? navigator.language : 'en');
   const platform = isDwebEnvironment() ? 'dweb' : 'web';
 
   return {
@@ -368,6 +371,15 @@ function ensureMiniappContextAutoRefresh(): void {
   window.addEventListener('resize', handleRefresh);
   window.addEventListener('orientationchange', handleRefresh);
   window.visualViewport?.addEventListener('resize', handleRefresh);
+  i18n.on('languageChanged', handleRefresh);
+
+  if (typeof document !== 'undefined') {
+    const observer = new MutationObserver(handleRefresh);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+    });
+  }
 }
 
 let keyAppContextRequestListenerReady = false;
