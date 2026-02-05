@@ -1,5 +1,9 @@
 import './index.css'
-import '@biochain/bio-sdk'
+import {
+  applyMiniappSafeAreaCssVars,
+  getMiniappContext,
+  onMiniappContextUpdate,
+} from '@biochain/bio-sdk'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -13,6 +17,12 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+const appId = window.name || undefined
+void getMiniappContext({ appId }).then(applyMiniappSafeAreaCssVars)
+onMiniappContextUpdate((context) => {
+  applyMiniappSafeAreaCssVars(context)
+}, { appId })
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

@@ -188,6 +188,32 @@ await bio.kv.set('user-preference', { theme: 'dark' });
 const pref = await bio.kv.get('user-preference');
 ```
 
+## Miniapp Context SDK
+
+用于获取 KeyApp 上下文（safe area、宿主版本等），并订阅更新，避免业务侧直接使用 postMessage。
+
+```typescript
+import {
+  getMiniappContext,
+  onMiniappContextUpdate,
+  applyMiniappSafeAreaCssVars,
+} from '@bioforest/bio-sdk';
+
+const context = await getMiniappContext({ appId: window.name || undefined });
+applyMiniappSafeAreaCssVars(context);
+
+const unsubscribe = onMiniappContextUpdate((next) => {
+  applyMiniappSafeAreaCssVars(next);
+});
+```
+
+SDK 行为要点：
+
+- `getMiniappContext()` 无缓存时自动发起一次请求，超时会回退默认值并告警。
+- `onMiniappContextUpdate()` 会回放最近一次 context，并在需要时触发刷新。
+- `applyMiniappSafeAreaCssVars()` 会写入 `--keyapp-safe-area-*`、`--keyapp-lang`、`--keyapp-direction`、`--keyapp-color-mode`。
+- 当宿主不支持时，SDK 会回退到浏览器的 `env(safe-area-inset-*)`、`prefers-color-scheme`、`document.documentElement.lang/dir` 等标准 Web API。
+
 ### 内部实现
 
 ```typescript

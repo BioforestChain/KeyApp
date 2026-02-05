@@ -29,6 +29,7 @@ import type { BioProvider } from './types'
 // Re-export types
 export * from './types'
 export * from './chain-id'
+export * from './miniapp-context'
 export { EventEmitter } from './events'
 export { BioProviderImpl } from './provider'
 export { EthereumProvider, initEthereumProvider } from './ethereum-provider'

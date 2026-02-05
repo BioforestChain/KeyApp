@@ -10360,7 +10360,8 @@
             "npm:typescript@^5.9.3",
             "npm:vite-plugin-dts@^4.5.4",
             "npm:vite@^7.3.0",
-            "npm:vitest@4"
+            "npm:vitest@4",
+            "npm:zod@^4.1.13"
           ]
         }
       },
