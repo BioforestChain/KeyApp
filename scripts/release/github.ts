@@ -1,5 +1,11 @@
 import type { ReleaseContext } from './context'
 
+type RepoInfo = {
+  owner: string
+  name: string
+  slug: string
+}
+
 export type ReleasePr = {
   number: number
   title: string
@@ -14,6 +20,30 @@ function parseJson<T>(raw: string): T {
   return JSON.parse(raw) as T
 }
 
+function parseRepoFromRemote(remote: string): RepoInfo | null {
+  if (!remote) return null
+  if (remote.startsWith('git@')) {
+    const match = remote.match(/git@[^:]+:([^/]+)\/(.+?)(\.git)?$/)
+    if (!match) return null
+    const [, owner, name] = match
+    return { owner, name, slug: `${owner}/${name}` }
+  }
+  try {
+    const url = new URL(remote)
+    const parts = url.pathname.replace(/^\/+/, '').replace(/\.git$/, '').split('/')
+    if (parts.length >= 2) {
+      const [owner, name] = parts
+      return { owner, name, slug: `${owner}/${name}` }
+    }
+  } catch {}
+  return null
+}
+
+function resolveRepo(ctx: ReleaseContext): RepoInfo | null {
+  const remote = ctx.exec('git config --get remote.origin.url', { silent: true })
+  return parseRepoFromRemote(remote)
+}
+
 export function ensureGhCli(ctx: ReleaseContext): boolean {
   try {
     ctx.exec('gh --version', { silent: true })
@@ -26,8 +56,10 @@ export function ensureGhCli(ctx: ReleaseContext): boolean {
 
 export function listReleasePrs(ctx: ReleaseContext, state: 'open' | 'merged' | 'closed' = 'open'): ReleasePr[] {
   if (!ensureGhCli(ctx)) return []
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
   const raw = ctx.exec(
-    `gh pr list --state ${state} --search "release: v" --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup`,
+    `gh pr list --state ${state} --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
     { silent: true },
   )
   if (!raw) return []
@@ -38,28 +70,53 @@ export function listReleasePrs(ctx: ReleaseContext, state: 'open' | 'merged' | '
   }
 }
 
-export function findReleasePr(ctx: ReleaseContext, version: string, state: 'open' | 'merged' | 'closed' = 'open'): ReleasePr | null {
-  const prs = listReleasePrs(ctx, state)
-  const target = `release: v${version}`
-  return prs.find((pr) => pr.title.toLowerCase().includes(target.toLowerCase())) ?? null
-}
-
-export function createReleasePr(ctx: ReleaseContext, branch: string, version: string): ReleasePr | null {
-  if (!ensureGhCli(ctx)) return null
-  ctx.exec(
-    `gh pr create --base main --head ${branch} --title "release: v${version}" --body "auto release"`,
+function getPrByBranch(ctx: ReleaseContext, branch: string): ReleasePr | null {
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
+  const raw = ctx.exec(
+    `gh pr view --head ${branch} --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
+    { silent: true },
   )
-  const pr = findReleasePr(ctx, version, 'open')
-  if (pr) return pr
-  const raw = ctx.exec(`gh pr view --head ${branch} --json number,title,headRefName,url,mergeable,reviewDecision`, {
-    silent: true,
-  })
   if (!raw) return null
   try {
     return parseJson<ReleasePr>(raw)
   } catch {
     return null
   }
+}
+
+export function findReleasePr(ctx: ReleaseContext, version: string, state: 'open' | 'merged' | 'closed' = 'open'): ReleasePr | null {
+  const byBranch = getPrByBranch(ctx, `release/v${version}`)
+  if (byBranch) return byBranch
+  const prs = listReleasePrs(ctx, state)
+  const target = `release: v${version}`
+  return (
+    prs.find((pr) => pr.title.toLowerCase().includes(target.toLowerCase())) ??
+    prs.find((pr) => pr.headRefName === `release/v${version}`) ??
+    null
+  )
+}
+
+async function loadReleasePr(ctx: ReleaseContext, branch: string, version: string): Promise<ReleasePr | null> {
+  const direct = getPrByBranch(ctx, branch)
+  if (direct) return direct
+  return findReleasePr(ctx, version, 'open')
+}
+
+export async function createReleasePr(ctx: ReleaseContext, branch: string, version: string): Promise<ReleasePr | null> {
+  if (!ensureGhCli(ctx)) return null
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
+  ctx.exec(
+    `gh pr create --base main --head ${branch} --title "release: v${version}" --body "auto release"${repoArg}`,
+  )
+  const retries = 5
+  for (let i = 0; i < retries; i += 1) {
+    const pr = await loadReleasePr(ctx, branch, version)
+    if (pr) return pr
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
+  return null
 }
 
 export function waitForChecks(ctx: ReleaseContext, prNumber: number): void {
@@ -69,11 +126,48 @@ export function waitForChecks(ctx: ReleaseContext, prNumber: number): void {
   ctx.exec(`gh pr checks ${prNumber} --watch`)
 }
 
+function syncPrBranch(ctx: ReleaseContext, prNumber: number): string | null {
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
+  const raw = ctx.exec(`gh pr view ${prNumber} --json headRefName${repoArg}`, { silent: true })
+  if (!raw) return null
+  try {
+    const info = parseJson<{ headRefName?: string }>(raw)
+    const branch = info.headRefName
+    if (!branch) return null
+    ctx.log.warn(`正在同步 PR 分支 ${branch} 与 main`)
+    ctx.exec(`git fetch origin ${branch} main`)
+    ctx.exec(`git checkout -B ${branch} origin/${branch}`)
+    ctx.exec('git merge origin/main')
+    ctx.exec(`git push origin HEAD:${branch}`)
+    return branch
+  } catch {
+    return null
+  }
+}
+
 export function mergePr(ctx: ReleaseContext, prNumber: number, adminMode: boolean): void {
   if (!ensureGhCli(ctx)) {
     throw new Error('缺少 gh CLI，无法合并 PR')
   }
   const adminFlag = adminMode ? ' --admin' : ''
+  try {
+    ctx.exec(`gh pr merge ${prNumber} --merge --delete-branch${adminFlag}`)
+    return
+  } catch {
+    ctx.log.warn('PR 合并失败，尝试启用 auto-merge')
+  }
+  try {
+    ctx.exec(`gh pr merge ${prNumber} --merge --auto${adminFlag}`)
+    return
+  } catch {
+    ctx.log.warn('auto-merge 失败，尝试同步分支并重新合并')
+  }
+  const branch = syncPrBranch(ctx, prNumber)
+  if (!branch) {
+    throw new Error('无法同步 PR 分支，请手动更新后重试')
+  }
+  ctx.exec(`gh pr checks ${prNumber} --watch`)
   ctx.exec(`gh pr merge ${prNumber} --merge --delete-branch${adminFlag}`)
 }
 
