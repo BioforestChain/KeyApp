@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.8] - 2026-02-05
+
+release flow resume + gh-pages metadata sync
+
+<!-- last-commit: d01c88d27cd9d1f120f7c50e9c90a70224c9bac2 -->
+
 ## [0.7.7] - 2026-02-05
 
 miniapp context sdk + permissions policy updates
