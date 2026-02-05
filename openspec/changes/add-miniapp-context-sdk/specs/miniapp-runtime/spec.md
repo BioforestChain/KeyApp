@@ -32,7 +32,7 @@ The SDK SHALL request context once when accessed if no cached context is availab
 - **AND** resolves `getMiniappContext()` with the next `keyapp:context-update`
 
 ### Requirement: Compatibility fallback
-When the host does not support the context channel, the SDK SHALL resolve with fallback values derived from standard Web APIs (safe-area env vars, prefers-color-scheme, document language) and emit a warning.
+When the host does not support the context channel, the SDK SHALL resolve with fallback values derived from standard Web APIs (safe-area env vars, prefers-color-scheme, document language/dir) and emit a warning.
 
 #### Scenario: Unsupported host
 - **WHEN** the SDK times out waiting for a `keyapp:context-update`

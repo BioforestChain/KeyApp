@@ -12,12 +12,16 @@ const sampleContext: MiniappContext = {
     safeAreaInsets: { top: 12, right: 0, bottom: 8, left: 0 },
     platform: 'web',
     locale: 'en-US',
+    direction: 'ltr',
   },
   host: {
     name: 'KeyApp',
     version: '0.1.0',
   },
   updatedAt: new Date().toISOString(),
+  theme: {
+    colorMode: 'light',
+  },
 }
 
 describe('miniapp context sdk', () => {
@@ -111,5 +115,8 @@ describe('miniapp context sdk', () => {
     const styles = getComputedStyle(document.documentElement)
     expect(styles.getPropertyValue('--keyapp-safe-area-top').trim()).toBe('12px')
     expect(styles.getPropertyValue('--keyapp-safe-area-bottom').trim()).toBe('8px')
+    expect(styles.getPropertyValue('--keyapp-lang').trim()).toBe('en-US')
+    expect(styles.getPropertyValue('--keyapp-direction').trim()).toBe('ltr')
+    expect(styles.getPropertyValue('--keyapp-color-mode').trim()).toBe('light')
   })
 })

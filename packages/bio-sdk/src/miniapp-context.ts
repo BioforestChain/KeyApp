@@ -13,6 +13,7 @@ export const MiniappContextEnvSchema = z.object({
   safeAreaInsets: MiniappSafeAreaInsetsSchema,
   platform: z.enum(['web', 'dweb', 'ios', 'android']).optional(),
   locale: z.string().optional(),
+  direction: z.enum(['ltr', 'rtl']).optional(),
 })
 
 export const MiniappContextHostSchema = z.object({
@@ -187,6 +188,14 @@ function readLocale(): string | undefined {
   return undefined
 }
 
+function readDirection(): 'ltr' | 'rtl' | undefined {
+  if (typeof document !== 'undefined') {
+    const dir = document.documentElement.dir
+    if (dir === 'ltr' || dir === 'rtl') return dir
+  }
+  return undefined
+}
+
 function buildDefaultContext(): MiniappContext {
   return {
     version: 1,
@@ -194,6 +203,7 @@ function buildDefaultContext(): MiniappContext {
       safeAreaInsets: readSafeAreaInsets(),
       platform: 'web',
       locale: readLocale(),
+      direction: readDirection(),
     },
     host: {
       name: 'KeyApp',
@@ -333,4 +343,14 @@ export function applyMiniappSafeAreaCssVars(
   element.style.setProperty('--keyapp-safe-area-right', `${right}px`)
   element.style.setProperty('--keyapp-safe-area-bottom', `${bottom}px`)
   element.style.setProperty('--keyapp-safe-area-left', `${left}px`)
+
+  if (context.env.locale) {
+    element.style.setProperty('--keyapp-lang', context.env.locale)
+  }
+  if (context.env.direction) {
+    element.style.setProperty('--keyapp-direction', context.env.direction)
+  }
+  if (context.theme?.colorMode) {
+    element.style.setProperty('--keyapp-color-mode', context.theme.colorMode)
+  }
 }

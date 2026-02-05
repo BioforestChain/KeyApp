@@ -13,6 +13,7 @@ export type MiniappContext = {
     };
     platform?: "ios" | "android" | "web" | "dweb";
     locale?: string;
+    direction?: "ltr" | "rtl";
   };
   host: {
     name: "KeyApp";
@@ -77,4 +78,8 @@ Behavior:
   - `--keyapp-safe-area-right`
   - `--keyapp-safe-area-bottom`
   - `--keyapp-safe-area-left`
+- Also sets when available:
+  - `--keyapp-lang`
+  - `--keyapp-direction`
+  - `--keyapp-color-mode`
 - Values are `${number}px`, derived from `context.env.safeAreaInsets`.

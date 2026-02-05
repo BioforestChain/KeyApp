@@ -274,6 +274,9 @@ function buildMiniappContextPayload(): MiniappContextPayload {
     i18n.language ||
     document?.documentElement?.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : 'en');
+  const direction = typeof i18n.dir === 'function'
+    ? i18n.dir(locale)
+    : (document?.documentElement?.dir || 'ltr');
   const platform = isDwebEnvironment() ? 'dweb' : 'web';
 
   return {
@@ -282,6 +285,7 @@ function buildMiniappContextPayload(): MiniappContextPayload {
       safeAreaInsets: getMiniappSafeAreaInsets(),
       platform,
       locale,
+      direction,
     },
     host: {
       name: 'KeyApp',
