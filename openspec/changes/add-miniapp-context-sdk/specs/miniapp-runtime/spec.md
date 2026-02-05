@@ -15,21 +15,21 @@ The host SHALL broadcast `keyapp:context-update` whenever the context changes (s
 - **WHEN** the host safe area insets change
 - **THEN** all active miniapps receive a `keyapp:context-update` event
 
-### Requirement: SDK initialization and caching
-The SDK SHALL provide `initMiniapp`, `getContext`, `onContextUpdate`, and `requestContextRefresh` APIs, cache the latest context, and avoid duplicate event bindings.
+### Requirement: SDK access and caching
+The SDK SHALL provide `getMiniappContext` and `onMiniappContextUpdate` APIs, cache the latest context, and avoid duplicate event bindings.
 
 #### Scenario: Cached context replay
-- **WHEN** a consumer calls `onContextUpdate`
+- **WHEN** a consumer calls `onMiniappContextUpdate`
 - **THEN** the SDK replays the latest cached context once
 - **AND** returns an unsubscribe function
 
 ### Requirement: Automatic refresh on enter
-The SDK SHALL request context once when initialized if no cached context is available.
+The SDK SHALL request context once when accessed if no cached context is available.
 
 #### Scenario: First load without cached context
 - **WHEN** the miniapp loads with no cached context
 - **THEN** the SDK sends a `miniapp:context-request`
-- **AND** resolves `initMiniapp()` with the next `keyapp:context-update`
+- **AND** resolves `getMiniappContext()` with the next `keyapp:context-update`
 
 ### Requirement: Compatibility fallback
 When the host does not support the context channel, the SDK SHALL resolve with default values (safeAreaInsets = 0) and emit a warning.

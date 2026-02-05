@@ -28,11 +28,24 @@ export type MiniappContext = {
 - Response: `{ type: "keyapp:context-update", requestId, payload }`
 - Errors use `{ type: "keyapp:context-error", requestId, code, message }`
 
+## SDK API (Atomic)
+```ts
+export async function getMiniappContext(options?: {
+  forceRefresh?: boolean;
+  timeoutMs?: number;
+  retries?: number;
+}): Promise<MiniappContext>;
+
+export function onMiniappContextUpdate(
+  handler: (context: MiniappContext) => void,
+  options?: { emitCached?: boolean },
+): () => void;
+```
+
 ## SDK Behavior
-- `initMiniapp()` creates a single message bridge, subscribes to updates, and triggers refresh if no cached context is available.
-- `getContext()` resolves cached context; if missing, it waits for refresh with timeout + retry (configurable defaults).
-- `onContextUpdate()` registers handler, replays latest cached context once per subscriber, returns unsubscribe.
-- `requestContextRefresh()` sends a request and resolves with the next context update.
+- `getMiniappContext()` returns cached context when available; if missing (or `forceRefresh`), it sends `miniapp:context-request` and waits for `keyapp:context-update`.
+- `onMiniappContextUpdate()` registers a handler, replays cached context once (default), and ensures a refresh if nothing is cached.
+- SDK uses a singleton message bridge to avoid duplicate event bindings.
 - If host does not support the channel (timeout), SDK resolves with default context values and logs a warning.
 
 ## Host Behavior

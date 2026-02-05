@@ -8,7 +8,7 @@
 - [ ] Broadcast updates on safe area/layout changes.
 
 ## 3. SDK Implementation
-- [ ] Add `initMiniapp`, `getContext`, `onContextUpdate`, `requestContextRefresh` APIs.
+- [ ] Add `getMiniappContext` + `onMiniappContextUpdate` APIs with optional `forceRefresh`.
 - [ ] Implement retry/timeout + default fallback when unsupported.
 - [ ] Cache context and avoid duplicate event bindings.
 
