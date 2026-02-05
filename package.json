@@ -49,6 +49,7 @@
     "docs:preview": "vitepress preview docs",
     "gen:stable": "bun scripts/gen-stable.ts",
     "release": "bun scripts/release.ts",
+    "release:resume": "bun scripts/release.ts --resume",
     "set-env": "bun scripts/set-env.ts",
     "set-secret": "bun scripts/set-secret.ts",
     "gen:logo": "bun scripts/gen-logo.ts",
