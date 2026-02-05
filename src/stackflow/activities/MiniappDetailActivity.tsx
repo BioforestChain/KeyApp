@@ -29,13 +29,15 @@ import {
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { launchApp } from '@/services/miniapp-runtime';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ecosystemActions, ecosystemStore, ecosystemSelectors } from '@/stores/ecosystem';
 
 type MiniappDetailActivityParams = {
   appId: string;
 };
 
-function PrivacyItem({ permission, isLast }: { permission: string; isLast: boolean }) {
+function PrivacyItem({ permission }: { permission: string }) {
   const def = KNOWN_PERMISSIONS[permission];
   const risk = def?.risk ?? 'medium';
   const info = getPermissionInfo(permission);
@@ -44,11 +46,29 @@ function PrivacyItem({ permission, isLast }: { permission: string; isLast: boole
   const iconColor = risk === 'high' ? 'text-red-500' : risk === 'medium' ? 'text-amber-500' : 'text-green-500';
 
   return (
-    <div className={cn('flex items-start gap-3 py-3', !isLast && 'border-border/50 border-b')}>
+    <div className="flex items-start gap-3 py-3">
       <Icon className={cn('mt-0.5 size-5 shrink-0', iconColor)} stroke={1.5} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{info.label}</p>
         <p className="text-muted-foreground mt-0.5 text-xs">{info.description}</p>
+      </div>
+    </div>
+  );
+}
+
+function PolicyItem({ directive }: { directive: string }) {
+  const { t } = useTranslation('ecosystem');
+  const name = t(`permissionsPolicy.${directive}.name`, { defaultValue: directive });
+  const description = t(`permissionsPolicy.${directive}.description`, {
+    defaultValue: t('permissionsPolicy.defaultDescription'),
+  });
+
+  return (
+    <div className="flex items-start gap-3 py-3">
+      <IconShieldCheck className="text-sky-500 mt-0.5 size-5 shrink-0" stroke={1.5} />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium">{name}</p>
+        <p className="text-muted-foreground mt-0.5 text-xs">{description}</p>
       </div>
     </div>
   );
@@ -165,6 +185,8 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
   const description = app.longDescription ?? app.description;
   const isDescLong = description.length > 150;
   const displayDesc = descExpanded || !isDescLong ? description : description.slice(0, 150) + '...';
+  const declaredPermissions = app.permissions ?? [];
+  const declaredPolicies = app.permissionsPolicy ?? [];
 
   return (
     <AppScreen>
@@ -296,14 +318,47 @@ export const MiniappDetailActivity: ActivityComponentType<MiniappDetailActivityP
           )}
 
           {/* 隐私 / 权限 - App Store 风格 */}
-          {app.permissions && app.permissions.length > 0 && (
+          {(declaredPermissions.length > 0 || declaredPolicies.length > 0) && (
             <div className="border-border/50 border-t px-5 py-4">
-              <h2 className="mb-1 text-lg font-bold">{t('detail.privacy')}</h2>
-              <p className="text-muted-foreground mb-4 text-xs">{t('detail.privacyHint')}</p>
-              <div className="bg-muted/50 rounded-2xl px-4">
-                {app.permissions.map((perm, i) => (
-                  <PrivacyItem key={perm} permission={perm} isLast={i === app.permissions.length - 1} />
-                ))}
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-bold">{t('detail.privacy')}</h2>
+                <Badge variant="outline">
+                  {declaredPermissions.length + declaredPolicies.length}
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                {declaredPermissions.length > 0 && (
+                  <Card size="sm">
+                    <CardHeader className="border-b">
+                      <div className="flex items-center justify-between gap-3">
+                        <CardTitle>{t('detail.permissions')}</CardTitle>
+                        <Badge variant="secondary">{declaredPermissions.length}</Badge>
+                      </div>
+                      <CardDescription>{t('detail.privacyHint')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="divide-y divide-border/50">
+                      {declaredPermissions.map((perm) => (
+                        <PrivacyItem key={perm} permission={perm} />
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+                {declaredPolicies.length > 0 && (
+                  <Card size="sm">
+                    <CardHeader className="border-b">
+                      <div className="flex items-center justify-between gap-3">
+                        <CardTitle>{t('permissionsPolicy.title')}</CardTitle>
+                        <Badge variant="secondary">{declaredPolicies.length}</Badge>
+                      </div>
+                      <CardDescription>{t('permissionsPolicy.hint')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="divide-y divide-border/50">
+                      {declaredPolicies.map((directive) => (
+                        <PolicyItem key={directive} directive={directive} />
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}

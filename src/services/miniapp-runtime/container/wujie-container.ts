@@ -133,7 +133,7 @@ export class WujieContainerManager implements ContainerManager {
   readonly type = 'wujie' as const;
 
   async create(options: ContainerCreateOptions): Promise<WujieContainerHandle> {
-    const { appId, url, mountTarget, contextParams, onLoad, wujieConfig } = options;
+    const { appId, url, mountTarget, contextParams, onLoad, wujieConfig, permissionsPolicyAllow } = options;
 
     const container = document.createElement('div');
     container.id = `miniapp-wujie-${appId}`;
@@ -162,6 +162,11 @@ export class WujieContainerManager implements ContainerManager {
         onLoad?.();
       },
     };
+
+    if (permissionsPolicyAllow) {
+      startAppOptions.attrs = { allow: permissionsPolicyAllow };
+      startAppOptions.degradeAttrs = { allow: permissionsPolicyAllow };
+    }
 
     if (wujieConfig?.rewriteAbsolutePaths) {
       const rewriter = createAbsolutePathRewriter(urlWithParams.toString());

@@ -50,6 +50,20 @@ describe('IframeContainerManager', () => {
       expect(iframe.src).toContain('baz=qux');
     });
 
+    it('should set permissions policy allow attribute when provided', async () => {
+      const options: ContainerCreateOptions = {
+        appId: 'test-app',
+        url: 'https://example.com',
+        mountTarget,
+        permissionsPolicyAllow: 'clipboard-write; camera',
+      };
+
+      const handle = await manager.create(options);
+      const iframe = handle.element as HTMLIFrameElement;
+
+      expect(iframe.getAttribute('allow')).toBe('clipboard-write; camera');
+    });
+
     it('should call onLoad callback when iframe loads', async () => {
       const onLoad = vi.fn();
       const options: ContainerCreateOptions = {

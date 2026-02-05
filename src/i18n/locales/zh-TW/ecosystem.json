@@ -144,6 +144,20 @@
       "exchange": "交易所",
       "other": "其他"
     },
-    "tagLabel": "#{{tag}}"
+    "tagLabel": "#{{tag}}",
+    "permissions": "應用權限"
+  },
+  "permissionsPolicy": {
+    "title": "瀏覽器能力",
+    "hint": "此應用還會請求以下瀏覽器能力",
+    "defaultDescription": "此應用可能存取此瀏覽器能力",
+    "clipboard-read": {
+      "name": "讀取剪貼簿",
+      "description": "讀取剪貼簿中的文字內容"
+    },
+    "clipboard-write": {
+      "name": "寫入剪貼簿",
+      "description": "將文字寫入剪貼簿"
+    }
   }
 }

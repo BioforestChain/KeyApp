@@ -22,6 +22,7 @@ Code: `src/ecosystem/types.ts`
     }
   ],
   "permissions": ["wallet:read", "wallet:write"],
+  "permissionsPolicy": ["clipboard-write", "camera"],
   "splash_screen": {
     "timeout": 3000
   }
@@ -32,7 +33,10 @@ Code: `src/ecosystem/types.ts`
 
 - `display`: 控制窗口模式。`standalone` (隐藏浏览器UI), `minimal-ui`, `browser`。
 - `permissions`: 申请的 BioBridge 权限。
+- `permissionsPolicy`: 申请的 Web Permissions Policy 指令列表（如 `clipboard-write`, `camera`）。KeyApp 会根据该字段为 miniapp iframe 注入 `allow`，用于跨域权限委派。
 - `splash_screen`: 自定义启动闪屏的行为。
+
+> 注意：跨域 miniapp 需要宿主页面的 `Permissions-Policy` 响应头允许委派，否则 `allow` 不生效。
 
 ## 样式规范 (CSS Guidelines)
 

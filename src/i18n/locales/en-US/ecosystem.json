@@ -20,5 +20,21 @@
     "bio_signMessage": "Sign message",
     "bio_signTypedData": "Sign typed data",
     "bio_sendTransaction": "Send transaction"
+  },
+  "permissionsPolicy": {
+    "title": "Browser Capabilities",
+    "hint": "This app also requests access to the following browser features",
+    "defaultDescription": "This app may access this browser capability",
+    "clipboard-read": {
+      "name": "Read Clipboard",
+      "description": "Read text from your clipboard"
+    },
+    "clipboard-write": {
+      "name": "Write Clipboard",
+      "description": "Write text to your clipboard"
+    }
+  },
+  "detail": {
+    "permissions": "App Permissions"
   }
 }
