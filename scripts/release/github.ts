@@ -126,6 +126,26 @@ export function waitForChecks(ctx: ReleaseContext, prNumber: number): void {
   ctx.exec(`gh pr checks ${prNumber} --watch`)
 }
 
+function syncPrBranch(ctx: ReleaseContext, prNumber: number): string | null {
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
+  const raw = ctx.exec(`gh pr view ${prNumber} --json headRefName${repoArg}`, { silent: true })
+  if (!raw) return null
+  try {
+    const info = parseJson<{ headRefName?: string }>(raw)
+    const branch = info.headRefName
+    if (!branch) return null
+    ctx.log.warn(`正在同步 PR 分支 ${branch} 与 main`)
+    ctx.exec(`git fetch origin ${branch} main`)
+    ctx.exec(`git checkout -B ${branch} origin/${branch}`)
+    ctx.exec('git merge origin/main')
+    ctx.exec(`git push origin HEAD:${branch}`)
+    return branch
+  } catch {
+    return null
+  }
+}
+
 export function mergePr(ctx: ReleaseContext, prNumber: number, adminMode: boolean): void {
   if (!ensureGhCli(ctx)) {
     throw new Error('缺少 gh CLI，无法合并 PR')
@@ -137,7 +157,18 @@ export function mergePr(ctx: ReleaseContext, prNumber: number, adminMode: boolea
   } catch {
     ctx.log.warn('PR 合并失败，尝试启用 auto-merge')
   }
-  ctx.exec(`gh pr merge ${prNumber} --merge --auto${adminFlag}`)
+  try {
+    ctx.exec(`gh pr merge ${prNumber} --merge --auto${adminFlag}`)
+    return
+  } catch {
+    ctx.log.warn('auto-merge 失败，尝试同步分支并重新合并')
+  }
+  const branch = syncPrBranch(ctx, prNumber)
+  if (!branch) {
+    throw new Error('无法同步 PR 分支，请手动更新后重试')
+  }
+  ctx.exec(`gh pr checks ${prNumber} --watch`)
+  ctx.exec(`gh pr merge ${prNumber} --merge --delete-branch${adminFlag}`)
 }
 
 export function triggerStableWorkflow(ctx: ReleaseContext): boolean {
