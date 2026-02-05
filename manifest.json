@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.7.6",
-  "change_log": "feat(agent): add release workflow command (#384)",
+  "version": "0.7.7",
+  "change_log": "miniapp context sdk + permissions policy updates",
   "categories": [
     "application",
     "wallet"
