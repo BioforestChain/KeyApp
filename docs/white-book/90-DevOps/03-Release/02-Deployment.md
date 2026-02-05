@@ -4,6 +4,13 @@ Code: `.github/workflows/cd.yml`
 
 KeyApp 采用基于 `gh-pages` 分支的自动化部署方案。
 
+## 发布命令
+
+- `pnpm release`: 完整发布流程（构建、上传、版本更新、推送、触发 stable workflow）。
+- `pnpm release:resume`: 恢复流程（自动检测发布进度，衔接 PR/触发 stable workflow）。
+
+发布流程会在主分支保护时自动走 PR 模式，并通过状态检测确保 `gh-pages/dweb/metadata.json` 与目标版本一致。
+
 ## 部署流程
 
 1.  **触发**: 代码合并到 `main` 分支。

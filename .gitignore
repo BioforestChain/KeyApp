@@ -11,6 +11,8 @@ tmp/
 .chat/
 out-tsc/
 release/
+!/scripts/release/
+!/scripts/release/**
 /gh-pages
 storybook-static/
 /docs/por

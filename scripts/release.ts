@@ -24,622 +24,59 @@
  *   --skip-upload        跳过 DWEB 上传
  *   --no-push            不推送到 GitHub
  *   --no-trigger         不触发 stable 发布
- *
- * Usage:
- *   pnpm release
- *   pnpm release --non-interactive --bump minor --changelog "功能更新和优化" --admin
+ *   --resume             仅执行恢复流程（自动衔接 PR/触发 stable）
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync, cpSync, rmSync, mkdtempSync, mkdirSync, symlinkSync, lstatSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
-import { confirm, select, input } from '@inquirer/prompts'
-import semver from 'semver'
+import { confirm } from '@inquirer/prompts'
+import { createReleaseContext } from './release/context'
+import { prepareReleaseWorktree } from './release/worktree'
+import { checkWorkspace } from './release/checks'
+import { runBuild, uploadDweb } from './release/build'
+import { updateChangelog, updateVersionFiles, selectVersion } from './release/version'
+import { commitRelease } from './release/git'
+import { pushAndFinalize, resumeRelease } from './release/flow'
 
-// ==================== 配置 ====================
-
-const ROOT = resolve(import.meta.dirname, '..')
-let WORKDIR = ROOT
-const workPath = (...parts: string[]) => join(WORKDIR, ...parts)
-
-// 颜色输出
-const colors = {
-  reset: '\x1b[0m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
-  bold: '\x1b[1m',
+async function installDependencies(ctx: ReturnType<typeof createReleaseContext>) {
+  ctx.log.step('安装依赖')
+  ctx.exec('pnpm install --frozen-lockfile', { env: { CI: 'true' } })
+  ctx.log.success('依赖安装完成')
 }
-
-const log = {
-  info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-  step: (msg: string) => console.log(`\n${colors.cyan}▸${colors.reset} ${colors.cyan}${msg}${colors.reset}`),
-}
-
-const ARGS = process.argv.slice(2)
-const ADMIN_MODE = ARGS.includes('--admin')
-const NON_INTERACTIVE =
-  ARGS.includes('--non-interactive') ||
-  ARGS.includes('--yes') ||
-  process.env.RELEASE_NON_INTERACTIVE === '1' ||
-  process.env.RELEASE_NON_INTERACTIVE === 'true'
-
-function getArgValue(name: string): string | null {
-  const withEquals = ARGS.find((arg) => arg.startsWith(`${name}=`))
-  if (withEquals) {
-    return withEquals.slice(name.length + 1)
-  }
-  const index = ARGS.indexOf(name)
-  if (index === -1) return null
-  const next = ARGS[index + 1]
-  if (!next || next.startsWith('-')) return null
-  return next
-}
-
-function resolveBooleanFlag(name: string): boolean | undefined {
-  if (ARGS.includes(`--${name}`)) return true
-  if (ARGS.includes(`--no-${name}`)) return false
-  const envKey = `RELEASE_${name.toUpperCase().replace(/-/g, '_')}`
-  const envValue = process.env[envKey]
-  if (!envValue) return undefined
-  if (envValue === '1' || envValue === 'true') return true
-  if (envValue === '0' || envValue === 'false') return false
-  return undefined
-}
-
-const VERSION_ARG = getArgValue('--version') ?? process.env.RELEASE_VERSION ?? null
-const BUMP_ARG = getArgValue('--bump') ?? process.env.RELEASE_BUMP ?? null
-const CHANGELOG_ARG = getArgValue('--changelog') ?? process.env.RELEASE_CHANGELOG ?? null
-const SKIP_UPLOAD_FLAG = resolveBooleanFlag('skip-upload')
-const PUSH_FLAG = resolveBooleanFlag('push')
-const TRIGGER_FLAG = resolveBooleanFlag('trigger')
-
-// ==================== 工具函数 ====================
-
-function exec(
-  cmd: string,
-  options?: { silent?: boolean; env?: Record<string, string>; cwd?: string },
-): string {
-  try {
-    const result = execSync(cmd, {
-      cwd: options?.cwd ?? WORKDIR,
-      encoding: 'utf-8',
-      stdio: options?.silent ? 'pipe' : 'inherit',
-      env: { ...process.env, ...options?.env },
-    })
-    return typeof result === 'string' ? result.trim() : ''
-  } catch (error) {
-    if (options?.silent) {
-      return ''
-    }
-    throw error
-  }
-}
-
-function execOutput(cmd: string): string {
-  return execSync(cmd, { cwd: WORKDIR, encoding: 'utf-8' }).trim()
-}
-
-function resolvePlaocBin(): string | null {
-  try {
-    execSync('plaoc --version', { stdio: 'ignore' })
-    return 'plaoc'
-  } catch {
-    const voltaHome = process.env.VOLTA_HOME ?? (process.env.HOME ? join(process.env.HOME, '.volta') : null)
-    if (!voltaHome) return null
-    const plaocPath = join(voltaHome, 'bin', 'plaoc')
-    if (!existsSync(plaocPath)) return null
-    try {
-      execSync(`${plaocPath} --version`, { stdio: 'ignore' })
-      return plaocPath
-    } catch {
-      return null
-    }
-  }
-}
-
-function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, 'utf-8'))
-}
-
-function writeJson(path: string, data: unknown) {
-  writeFileSync(path, JSON.stringify(data, null, 2) + '\n')
-}
-
-function ensureNodeModules(workdir: string): void {
-  const localNodeModules = join(ROOT, 'node_modules')
-  const workdirNodeModules = join(workdir, 'node_modules')
-  if (existsSync(workdirNodeModules)) return
-  if (!existsSync(localNodeModules)) return
-  try {
-    symlinkSync(localNodeModules, workdirNodeModules, 'dir')
-  } catch {}
-}
-
-function prepareReleaseWorktree(): { path: string; cleanup: () => void } {
-  const parent = join(ROOT, '.git-worktree')
-  if (!existsSync(parent)) {
-    mkdirSync(parent, { recursive: true })
-  }
-  execSync('git fetch origin main --tags', { cwd: ROOT, stdio: 'inherit' })
-  const workdir = mkdtempSync(join(parent, 'release-'))
-  execSync(`git worktree add --detach "${workdir}" origin/main`, { cwd: ROOT, stdio: 'inherit' })
-  ensureNodeModules(workdir)
-  const cleanup = () => {
-    try {
-      execSync(`git worktree remove --force "${workdir}"`, { cwd: ROOT, stdio: 'inherit' })
-    } catch {
-      rmSync(workdir, { recursive: true, force: true })
-    }
-  }
-  return { path: workdir, cleanup }
-}
-
-// ==================== 检查函数 ====================
-
-async function checkWorkspace(): Promise<boolean> {
-  log.step('检查工作区状态')
-
-  const head = execOutput('git rev-parse HEAD')
-  const originMain = execOutput('git rev-parse origin/main')
-  if (head !== originMain) {
-    log.error('当前工作树不是 origin/main 最新提交，已终止')
-    return false
-  }
-
-  // 检查未提交的变更
-  const status = execOutput('git status --porcelain')
-  if (status) {
-    log.warn('检测到未提交的变更:')
-    console.log(status)
-    log.error('发布必须基于干净的 origin/main')
-    return false
-  } else {
-    log.success('工作区干净')
-  }
-
-  log.success('确认 origin/main 一致性')
-
-  return true
-}
-
-// ==================== 版本选择 ====================
-
-interface PackageJson {
-  version: string
-  lastChangelogCommit?: string
-  [key: string]: unknown
-}
-
-interface ManifestJson {
-  version: string
-  change_log: string
-  [key: string]: unknown
-}
-
-async function selectVersion(): Promise<string> {
-  log.step('选择版本号')
-
-  const pkg = readJson<PackageJson>(workPath('package.json'))
-  const currentVersion = pkg.version
-
-  console.log(`\n当前版本: ${colors.bold}${currentVersion}${colors.reset}\n`)
-
-  if (NON_INTERACTIVE) {
-    let newVersion: string | null = null
-
-    if (VERSION_ARG) {
-      if (!semver.valid(VERSION_ARG)) {
-        throw new Error(`非交互模式版本号无效: ${VERSION_ARG}`)
-      }
-      newVersion = VERSION_ARG
-    } else if (BUMP_ARG) {
-      if (BUMP_ARG === 'current') {
-        newVersion = currentVersion
-      } else if (BUMP_ARG === 'patch' || BUMP_ARG === 'minor' || BUMP_ARG === 'major') {
-        newVersion = semver.inc(currentVersion, BUMP_ARG)
-      } else {
-        throw new Error(`非交互模式 bump 参数无效: ${BUMP_ARG}`)
-      }
-    }
-
-    if (!newVersion) {
-      throw new Error('非交互模式需要提供 --version 或 --bump')
-    }
-
-    log.success(`非交互模式使用版本号: v${newVersion}`)
-    return newVersion
-  }
-
-  const choice = await select({
-    message: '请选择版本升级类型:',
-    choices: [
-      {
-        value: 'patch',
-        name: `🔧 Patch (${currentVersion} → ${semver.inc(currentVersion, 'patch')}) - Bug 修复`,
-      },
-      {
-        value: 'minor',
-        name: `✨ Minor (${currentVersion} → ${semver.inc(currentVersion, 'minor')}) - 新功能`,
-      },
-      {
-        value: 'major',
-        name: `🚀 Major (${currentVersion} → ${semver.inc(currentVersion, 'major')}) - 重大变更`,
-      },
-      {
-        value: 'current',
-        name: `📌 当前版本 (${currentVersion}) - 强制使用当前版本号`,
-      },
-      {
-        value: 'custom',
-        name: '✏️  自定义版本号',
-      },
-    ],
-  })
-
-  let newVersion: string
-
-  if (choice === 'current') {
-    newVersion = currentVersion
-  } else if (choice === 'custom') {
-    const customVersion = await input({
-      message: '请输入版本号 (例如: 1.2.3):',
-      validate: (value) => {
-        if (!semver.valid(value)) {
-          return '请输入有效的语义化版本号 (例如: 1.2.3)'
-        }
-        return true
-      },
-    })
-    newVersion = customVersion
-  } else {
-    newVersion = semver.inc(currentVersion, choice as 'patch' | 'minor' | 'major')!
-  }
-
-  // 确认版本
-  const confirmed = await confirm({
-    message: `确认发布版本 ${colors.bold}v${newVersion}${colors.reset}？`,
-    default: true,
-  })
-
-  if (!confirmed) {
-    throw new Error('用户取消')
-  }
-
-  return newVersion
-}
-
-// ==================== 构建和上传 ====================
-
-async function runBuild(): Promise<void> {
-  log.step('运行类型检查')
-  exec('pnpm typecheck')
-
-  log.step('运行单元测试')
-  exec('pnpm test')
-
-  log.step('构建 Web 版本')
-  exec('pnpm build:web', {
-    env: { SERVICE_IMPL: 'web', VITE_DEV_MODE: 'false' },
-  })
-
-  // 移动到 dist-web
-  const distDir = workPath('dist')
-  const distWebDir = workPath('dist-web')
-  if (existsSync(distWebDir)) {
-    rmSync(distWebDir, { recursive: true })
-  }
-  if (existsSync(distDir)) {
-    cpSync(distDir, distWebDir, { recursive: true })
-    rmSync(distDir, { recursive: true })
-  }
-
-  log.step('构建 DWEB 版本')
-  exec('pnpm build:dweb', {
-    env: { SERVICE_IMPL: 'dweb', VITE_DEV_MODE: 'false' },
-  })
-
-  // 移动到 dist-dweb
-  const distDwebDir = workPath('dist-dweb')
-  if (existsSync(distDwebDir)) {
-    rmSync(distDwebDir, { recursive: true })
-  }
-  if (existsSync(distDir)) {
-    cpSync(distDir, distDwebDir, { recursive: true })
-    rmSync(distDir, { recursive: true })
-  }
-
-  log.step('运行 Plaoc 打包')
-  const distsDir = workPath('dists')
-  if (existsSync(distsDir)) {
-    rmSync(distsDir, { recursive: true })
-  }
-  const plaocBin = resolvePlaocBin()
-  if (plaocBin) {
-    exec(`${plaocBin} bundle "${distDwebDir}" -c ./ -o "${distsDir}"`)
-  } else {
-    log.warn('Plaoc CLI 未安装，使用 dist-dweb 作为 dists 兜底')
-    cpSync(distDwebDir, distsDir, { recursive: true })
-  }
-
-  log.success('构建完成')
-}
-
-async function uploadDweb(): Promise<void> {
-  log.step('上传 DWEB 到正式服务器')
-
-  const sftpUrl = process.env.DWEB_SFTP_URL || 'sftp://iweb.xin:22022'
-  const sftpUser = process.env.DWEB_SFTP_USER
-  const sftpPass = process.env.DWEB_SFTP_PASS
-
-  if (!sftpUser || !sftpPass) {
-    log.warn('未配置 SFTP 环境变量 (DWEB_SFTP_USER, DWEB_SFTP_PASS)')
-    if (NON_INTERACTIVE) {
-      if (SKIP_UPLOAD_FLAG === true) {
-        log.info('跳过上传')
-        return
-      }
-      throw new Error('非交互模式未配置 SFTP 环境变量且未指定 --skip-upload')
-    }
-
-    const shouldSkip = await confirm({
-      message: '是否跳过上传？',
-      default: true,
-    })
-    if (shouldSkip) {
-      log.info('跳过上传')
-      return
-    }
-    throw new Error('请配置 SFTP 环境变量')
-  }
-
-  if (SKIP_UPLOAD_FLAG === true) {
-    log.info('跳过上传')
-    return
-  }
-
-  // 使用 build.ts 的上传功能
-  exec('bun scripts/build.ts dweb --upload --stable --skip-typecheck --skip-test', {
-    env: {
-      DWEB_SFTP_URL: sftpUrl,
-      DWEB_SFTP_USER: sftpUser,
-      DWEB_SFTP_PASS: sftpPass,
-    },
-  })
-
-  log.success('上传完成')
-}
-
-// ==================== 更新文件 ====================
-
-function updateVersionFiles(version: string, changelog: string): void {
-  log.step('更新版本文件')
-
-  // 更新 package.json
-  const pkg = readJson<PackageJson>(workPath('package.json'))
-  pkg.version = version
-  pkg.lastChangelogCommit = execOutput('git rev-parse HEAD')
-  writeJson(workPath('package.json'), pkg)
-  log.success('更新 package.json')
-
-  // 更新 manifest.json
-  if (existsSync(workPath('manifest.json'))) {
-    const manifest = readJson<ManifestJson>(workPath('manifest.json'))
-    manifest.version = version
-    manifest.change_log = changelog
-    writeJson(workPath('manifest.json'), manifest)
-    log.success('更新 manifest.json')
-  }
-}
-
-async function updateChangelog(version: string): Promise<string> {
-  log.step('更新 CHANGELOG.md')
-
-  const summary = NON_INTERACTIVE
-    ? CHANGELOG_ARG ?? '功能更新和优化'
-    : await input({
-        message: '请输入本次更新的简要描述:',
-        default: '功能更新和优化',
-      })
-
-  const date = new Date().toISOString().split('T')[0]
-  const commitHash = execOutput('git rev-parse HEAD')
-
-  let content = `## [${version}] - ${date}\n\n`
-  content += `${summary}\n\n`
-  content += `<!-- last-commit: ${commitHash} -->\n\n`
-
-  // 读取现有 CHANGELOG 或创建新的
-  let existingContent = ''
-  if (existsSync(workPath('CHANGELOG.md'))) {
-    existingContent = readFileSync(workPath('CHANGELOG.md'), 'utf-8')
-    existingContent = existingContent.replace(/^# 更新日志\n+/, '')
-    existingContent = existingContent.replace(/^# Changelog\n+/, '')
-  }
-
-  const newContent = `# 更新日志\n\n${content}${existingContent}`
-  writeFileSync(workPath('CHANGELOG.md'), newContent)
-
-  log.success('更新 CHANGELOG.md')
-  return summary
-}
-
-// ==================== Git 操作 ====================
-
-async function commitRelease(version: string): Promise<void> {
-  log.step('提交变更')
-
-  // 添加所有变更
-  exec('git add -A')
-
-  // 提交
-  exec(`git commit -m "release: v${version}"`)
-  log.success(`提交: release: v${version}`)
-}
-
-async function pushAndTriggerCD(version: string): Promise<void> {
-  log.step('推送到 GitHub')
-
-  console.log(`
-${colors.yellow}推送后可自动触发 stable 发布（workflow_dispatch）:${colors.reset}
-  - CD 会在完成后创建 Tag 并生成 Release
-`)
-
-  const shouldPush = NON_INTERACTIVE
-    ? (PUSH_FLAG ?? true)
-    : await confirm({
-        message: '是否推送到 GitHub？',
-        default: true,
-      })
-
-  if (!shouldPush) {
-    log.info('跳过推送。你可以稍后手动执行:')
-    console.log(`  git push origin main`)
-    console.log(`  git push origin v${version}`)
-    return
-  }
-
-  let merged = false
-  try {
-    exec('git push origin HEAD:refs/heads/main')
-    log.success('推送到 origin/main')
-    merged = true
-  } catch (error) {
-    if (!ADMIN_MODE) {
-      throw error
-    }
-    log.warn('直接推送 main 失败，尝试使用 --admin 走 PR 合并')
-    try {
-      execSync('gh --version', { stdio: 'ignore' })
-    } catch {
-      throw new Error('未检测到 gh CLI，无法使用 --admin')
-    }
-    const branch = `release/v${version}`
-    exec(`git checkout -b ${branch}`)
-    exec(`git push origin ${branch}`)
-    exec(
-      `gh pr create --base main --head ${branch} --title \"release: v${version}\" --body \"auto release\"`,
-      { cwd: WORKDIR },
-    )
-    const prNumber = exec(`gh pr view --head ${branch} --json number --jq .number`, {
-      cwd: WORKDIR,
-      silent: true,
-    })
-    exec(`gh pr merge ${prNumber} --admin --squash --delete-branch`, { cwd: WORKDIR })
-    log.success('已使用 --admin 合并到 main')
-    merged = true
-  }
-
-  if (merged) {
-    await triggerStableRelease()
-  }
-
-  console.log(`
-${colors.green}GitHub Actions 将自动:${colors.reset}
-  - 构建 Web 和 DWEB 版本
-  - 部署到 GitHub Pages
-  - 创建 Tag & GitHub Release
-  - 上传 DWEB 到正式服务器
-
-如需 stable 发布，请确保 workflow 已触发。
-查看进度: https://github.com/BioforestChain/KeyApp/actions
-`)
-}
-
-async function triggerStableRelease(): Promise<void> {
-  let hasGh = true
-  try {
-    execSync('gh --version', { stdio: 'ignore' })
-  } catch {
-    hasGh = false
-  }
-
-  if (!hasGh) {
-    log.warn('未检测到 gh CLI，跳过自动触发 stable 发布')
-    return
-  }
-
-  const shouldTrigger = NON_INTERACTIVE
-    ? (TRIGGER_FLAG ?? true)
-    : await confirm({
-        message: '是否自动触发 stable 发布？',
-        default: true,
-      })
-
-  if (!shouldTrigger) {
-    log.info('已跳过自动触发 stable 发布')
-    return
-  }
-
-  const workflow = resolveCdWorkflow()
-  if (!workflow) {
-    log.warn('未找到 CD workflow，跳过自动触发 stable 发布')
-    return
-  }
-
-  exec(`gh workflow run "${workflow}" --ref main -f channel=stable`, { cwd: WORKDIR })
-  log.success('已触发 stable 发布')
-}
-
-function resolveCdWorkflow(): string | null {
-  const raw = exec('gh workflow list --json name,path', { silent: true })
-  if (!raw) return null
-  try {
-    const workflows = JSON.parse(raw) as Array<{ name?: string; path?: string }>
-    const byPath = workflows.find((wf) => wf.path?.endsWith('/cd.yml') || wf.path?.endsWith('cd.yml'))
-    if (byPath?.name) return byPath.name
-    const byName = workflows.find((wf) => wf.name?.toLowerCase().includes('build and deploy'))
-    if (byName?.name) return byName.name
-    return workflows[0]?.name ?? null
-  } catch {
-    return null
-  }
-}
-
-async function installDependencies() {
-  log.step('安装依赖')
-  exec('pnpm install --frozen-lockfile', { env: { CI: 'true' } })
-  log.success('依赖安装完成')
-}
-
-// ==================== 主程序 ====================
 
 async function main() {
+  const ctx = createReleaseContext(process.argv.slice(2))
+  const isResume = ctx.args.includes('--resume')
+
   console.log(`
-${colors.magenta}╔════════════════════════════════════════╗
+${ctx.colors.magenta}╔════════════════════════════════════════╗
 ║      BFM Pay Release Script           ║
-╚════════════════════════════════════════╝${colors.reset}
+╚════════════════════════════════════════╝${ctx.colors.reset}
 `)
 
-  const { path, cleanup } = prepareReleaseWorktree()
-  WORKDIR = path
+  const { path, cleanup } = prepareReleaseWorktree(ctx)
+  ctx.setWorkdir(path)
+
   try {
-    // 1. 检查工作区
-    const canContinue = await checkWorkspace()
+    const canContinue = await checkWorkspace(ctx)
     if (!canContinue) {
-      log.info('发布已取消')
+      ctx.log.info('发布已取消')
       return
     }
 
-    // 2. 选择版本号
+    if (isResume) {
+      await resumeRelease(ctx, ctx.versionArg ?? undefined)
+      return
+    }
+
     let newVersion: string
     try {
-      newVersion = await selectVersion()
-    } catch (error) {
-      log.info('发布已取消')
+      newVersion = await selectVersion(ctx)
+    } catch {
+      ctx.log.info('发布已取消')
       return
     }
 
-    // 3. 确认发布流程
     console.log(`
-${colors.cyan}发布流程:${colors.reset}
+${ctx.colors.cyan}发布流程:${ctx.colors.reset}
   1. 运行类型检查和测试
   2. 构建 Web 和 DWEB 版本
   3. 上传 DWEB 到正式服务器
@@ -648,7 +85,7 @@ ${colors.cyan}发布流程:${colors.reset}
   6. 推送并触发 CI 发布（CI 创建 tag/release）
 `)
 
-    const confirmRelease = NON_INTERACTIVE
+    const confirmRelease = ctx.nonInteractive
       ? true
       : await confirm({
           message: '确认开始发布流程？',
@@ -656,37 +93,25 @@ ${colors.cyan}发布流程:${colors.reset}
         })
 
     if (!confirmRelease) {
-      log.info('发布已取消')
+      ctx.log.info('发布已取消')
       return
     }
 
-    // 4. 安装依赖
-    await installDependencies()
+    await installDependencies(ctx)
+    await runBuild(ctx)
+    await uploadDweb(ctx)
 
-    // 5. 运行构建
-    await runBuild()
-
-    // 6. 上传 DWEB
-    await uploadDweb()
-
-    // 7. 更新 CHANGELOG
-    const changelog = await updateChangelog(newVersion)
-
-    // 8. 更新版本文件
-    updateVersionFiles(newVersion, changelog)
-
-    // 9. 提交变更
-    await commitRelease(newVersion)
-
-    // 10. 推送
-    await pushAndTriggerCD(newVersion)
+    const changelog = await updateChangelog(ctx, newVersion)
+    updateVersionFiles(ctx, newVersion, changelog)
+    await commitRelease(ctx, newVersion)
+    await pushAndFinalize(ctx, newVersion)
 
     console.log(`
-${colors.green}╔════════════════════════════════════════╗
+${ctx.colors.green}╔════════════════════════════════════════╗
 ║        发布完成！ v${newVersion.padEnd(20)}║
-╚════════════════════════════════════════╝${colors.reset}
+╚════════════════════════════════════════╝${ctx.colors.reset}
 
-${colors.blue}下一步:${colors.reset}
+${ctx.colors.blue}下一步:${ctx.colors.reset}
   - 自动触发 stable 发布（可选择跳过）
   - 查看进度: https://github.com/BioforestChain/KeyApp/actions
   - 发布完成后查看 Release: https://github.com/BioforestChain/KeyApp/releases
@@ -698,6 +123,7 @@ ${colors.blue}下一步:${colors.reset}
 }
 
 main().catch((error) => {
-  log.error(`发布失败: ${error.message}`)
+  const ctx = createReleaseContext(process.argv.slice(2))
+  ctx.log.error(`发布失败: ${error.message}`)
   process.exit(1)
 })
