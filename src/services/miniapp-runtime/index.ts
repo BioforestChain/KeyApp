@@ -65,6 +65,8 @@ import { toastService } from '../toast';
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs';
 import i18n from '@/i18n';
 import { windowStackManager } from '@biochain/ecosystem-native';
+import { isDwebEnvironment } from '@/lib/crypto/secure-storage';
+import type { MiniappContext as MiniappContextPayload } from '@biochain/bio-sdk';
 
 const t = i18n.t.bind(i18n);
 export {
@@ -209,48 +211,93 @@ function syncRunningMiniapps(nextApps: MiniappManifest[]): void {
   });
 }
 
-function getCapsuleSafeAreaTop(): number {
-  const testEl = document.createElement('div');
-  testEl.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);visibility:hidden;';
-  document.body.appendChild(testEl);
-  const safeAreaTop = testEl.offsetTop;
-  document.body.removeChild(testEl);
-
-  const capsuleTop = Math.max(safeAreaTop, 8);
-  const capsuleHeight = 32;
-  const padding = 8;
-  return capsuleTop + capsuleHeight + padding;
-}
-
-function sendKeyAppContext(iframe: HTMLIFrameElement): void {
-  const safeAreaTop = getCapsuleSafeAreaTop();
-  const colorMode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-
-  const context = {
-    type: 'keyapp:context-update',
-    payload: {
-      theme: { colorMode },
-      env: {
-        platform: 'web',
-        safeAreaInsets: {
-          top: safeAreaTop,
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-      },
-    },
+type MiniappContextRequestMessage = {
+  type: 'miniapp:context-request';
+  requestId: string;
+  sdkVersion: string;
+  payload?: {
+    appId?: string;
   };
+};
 
-  iframe.contentWindow?.postMessage(context, '*');
-}
-
-type KeyAppContextRequestMessage = {
+type LegacyContextRequestMessage = {
   type: 'keyapp:context-request';
   payload?: {
     appId?: string;
   };
 };
+
+type KeyAppContextRequestMessage = MiniappContextRequestMessage | LegacyContextRequestMessage;
+
+type SafeAreaInsets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+const MINIAPP_CONTEXT_VERSION = 1;
+
+const DEFAULT_SAFE_AREA: SafeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+function readSafeAreaInsets(): SafeAreaInsets {
+  if (typeof document === 'undefined' || !document.body) return { ...DEFAULT_SAFE_AREA };
+  const probe = document.createElement('div');
+  probe.style.cssText =
+    'position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);visibility:hidden;pointer-events:none;';
+  document.body.appendChild(probe);
+  const styles = getComputedStyle(probe);
+  const insets = {
+    top: Number.parseFloat(styles.paddingTop) || 0,
+    right: Number.parseFloat(styles.paddingRight) || 0,
+    bottom: Number.parseFloat(styles.paddingBottom) || 0,
+    left: Number.parseFloat(styles.paddingLeft) || 0,
+  };
+  document.body.removeChild(probe);
+  return insets;
+}
+
+function getMiniappSafeAreaInsets(): SafeAreaInsets {
+  const insets = readSafeAreaInsets();
+  const capsuleTop = Math.max(insets.top, 8);
+  const capsuleHeight = 32;
+  const padding = 8;
+  return {
+    ...insets,
+    top: capsuleTop + capsuleHeight + padding,
+  };
+}
+
+function buildMiniappContextPayload(): MiniappContextPayload {
+  const colorMode = document?.documentElement?.classList.contains('dark') ? 'dark' : 'light';
+  const locale = i18n.language || (typeof navigator !== 'undefined' ? navigator.language : 'en');
+  const platform = isDwebEnvironment() ? 'dweb' : 'web';
+
+  return {
+    version: MINIAPP_CONTEXT_VERSION,
+    env: {
+      safeAreaInsets: getMiniappSafeAreaInsets(),
+      platform,
+      locale,
+    },
+    host: {
+      name: 'KeyApp',
+      version: __APP_VERSION__,
+    },
+    updatedAt: new Date().toISOString(),
+    theme: { colorMode },
+  };
+}
+
+function sendKeyAppContext(iframe: HTMLIFrameElement, requestId?: string): void {
+  const context: { type: 'keyapp:context-update'; requestId?: string; payload: MiniappContextPayload } = {
+    type: 'keyapp:context-update',
+    requestId,
+    payload: buildMiniappContextPayload(),
+  };
+
+  iframe.contentWindow?.postMessage(context, '*');
+}
 
 function getIframeByMessageSource(source: MessageEvent['source']): HTMLIFrameElement | null {
   if (!source) return null;
@@ -265,11 +312,14 @@ function getIframeByMessageSource(source: MessageEvent['source']): HTMLIFrameEle
 
 function handleKeyAppContextRequest(event: MessageEvent): void {
   const data = event.data as KeyAppContextRequestMessage | undefined;
-  if (!data || data.type !== 'keyapp:context-request') return;
+  if (!data) return;
+  if (data.type !== 'keyapp:context-request' && data.type !== 'miniapp:context-request') return;
+
+  const requestId = data.type === 'miniapp:context-request' ? data.requestId : undefined;
 
   const targetIframe = getIframeByMessageSource(event.source);
   if (targetIframe) {
-    sendKeyAppContext(targetIframe);
+    sendKeyAppContext(targetIframe, requestId);
     return;
   }
 
@@ -278,8 +328,46 @@ function handleKeyAppContextRequest(event: MessageEvent): void {
   const app = miniappRuntimeStore.state.apps.get(appId);
   const iframe = app?.containerHandle?.getIframe() ?? app?.iframeRef;
   if (iframe) {
-    sendKeyAppContext(iframe);
+    sendKeyAppContext(iframe, requestId);
   }
+}
+
+let lastContextFingerprint: string | null = null;
+
+function getContextFingerprint(context: MiniappContextPayload): string {
+  return JSON.stringify({
+    env: context.env,
+    host: context.host,
+    theme: context.theme,
+  });
+}
+
+function broadcastMiniappContextUpdate(): void {
+  const context = buildMiniappContextPayload();
+  const fingerprint = getContextFingerprint(context);
+  if (fingerprint === lastContextFingerprint) return;
+  lastContextFingerprint = fingerprint;
+
+  miniappRuntimeStore.state.apps.forEach((app) => {
+    const iframe = app.containerHandle?.getIframe() ?? app.iframeRef;
+    if (iframe) {
+      iframe.contentWindow?.postMessage({ type: 'keyapp:context-update', payload: context }, '*');
+    }
+  });
+}
+
+let miniappContextAutoRefreshReady = false;
+function ensureMiniappContextAutoRefresh(): void {
+  if (miniappContextAutoRefreshReady || typeof window === 'undefined') return;
+  miniappContextAutoRefreshReady = true;
+
+  const handleRefresh = () => {
+    broadcastMiniappContextUpdate();
+  };
+
+  window.addEventListener('resize', handleRefresh);
+  window.addEventListener('orientationchange', handleRefresh);
+  window.visualViewport?.addEventListener('resize', handleRefresh);
 }
 
 let keyAppContextRequestListenerReady = false;
@@ -301,6 +389,7 @@ export const miniappRuntimeStore = new Store<MiniappRuntimeState>(initialState);
 
 // 注册 context-request 监听器（必须在 store 定义之后）
 ensureKeyAppContextRequestListener();
+ensureMiniappContextAutoRefresh();
 ensureMiniappManifestSyncListener();
 
 export function setMiniappVisualConfig(update: MiniappVisualConfigUpdate): void {
