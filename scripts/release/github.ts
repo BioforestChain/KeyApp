@@ -59,7 +59,7 @@ export function listReleasePrs(ctx: ReleaseContext, state: 'open' | 'merged' | '
   const repo = resolveRepo(ctx)
   const repoArg = repo ? ` --repo ${repo.slug}` : ''
   const raw = ctx.exec(
-    `gh pr list --state ${state} --search "release: v" --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
+    `gh pr list --state ${state} --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
     { silent: true },
   )
   if (!raw) return []
@@ -70,7 +70,24 @@ export function listReleasePrs(ctx: ReleaseContext, state: 'open' | 'merged' | '
   }
 }
 
+function getPrByBranch(ctx: ReleaseContext, branch: string): ReleasePr | null {
+  const repo = resolveRepo(ctx)
+  const repoArg = repo ? ` --repo ${repo.slug}` : ''
+  const raw = ctx.exec(
+    `gh pr view --head ${branch} --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
+    { silent: true },
+  )
+  if (!raw) return null
+  try {
+    return parseJson<ReleasePr>(raw)
+  } catch {
+    return null
+  }
+}
+
 export function findReleasePr(ctx: ReleaseContext, version: string, state: 'open' | 'merged' | 'closed' = 'open'): ReleasePr | null {
+  const byBranch = getPrByBranch(ctx, `release/v${version}`)
+  if (byBranch) return byBranch
   const prs = listReleasePrs(ctx, state)
   const target = `release: v${version}`
   return (
@@ -81,20 +98,9 @@ export function findReleasePr(ctx: ReleaseContext, version: string, state: 'open
 }
 
 async function loadReleasePr(ctx: ReleaseContext, branch: string, version: string): Promise<ReleasePr | null> {
-  const repo = resolveRepo(ctx)
-  const repoArg = repo ? ` --repo ${repo.slug}` : ''
-  const raw = ctx.exec(
-    `gh pr view --head ${branch} --json number,title,headRefName,url,mergeable,reviewDecision,statusCheckRollup${repoArg}`,
-    { silent: true },
-  )
-  if (!raw) {
-    return findReleasePr(ctx, version, 'open')
-  }
-  try {
-    return parseJson<ReleasePr>(raw)
-  } catch {
-    return findReleasePr(ctx, version, 'open')
-  }
+  const direct = getPrByBranch(ctx, branch)
+  if (direct) return direct
+  return findReleasePr(ctx, version, 'open')
 }
 
 export async function createReleasePr(ctx: ReleaseContext, branch: string, version: string): Promise<ReleasePr | null> {
