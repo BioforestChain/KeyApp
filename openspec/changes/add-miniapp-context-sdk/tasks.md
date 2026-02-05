@@ -13,7 +13,7 @@
 - [ ] Cache context and avoid duplicate event bindings.
 
 ## 4. UI/CSS Bridge
-- [ ] Provide helper or event guidance for applying safe area CSS variables.
+- [ ] Provide `applyMiniappSafeAreaCssVars` helper and usage guidance for safe area CSS variables.
 
 ## 5. Documentation & Tests
 - [ ] Update white-book/SDK docs with usage examples.

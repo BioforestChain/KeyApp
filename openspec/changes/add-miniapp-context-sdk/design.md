@@ -54,4 +54,28 @@ export function onMiniappContextUpdate(
 - When context changes, broadcast `keyapp:context-update` to active miniapp frames.
 
 ## CSS Variable Hook
-- Provide helper `applySafeAreaCssVars(context)` or emit event `contextupdate` for UI to set variables like `--f7-safe-area-top`.
+Provide a small helper in the SDK so UI can apply safe-area CSS variables without manual mapping.
+
+```ts
+export function applyMiniappSafeAreaCssVars(
+  context: MiniappContext,
+  options?: {
+    target?: HTMLElement | Document;
+    includeFramework7Vars?: boolean;
+  },
+): void;
+```
+
+Behavior:
+- Default target: `document.documentElement`.
+- Always sets:
+  - `--keyapp-safe-area-top`
+  - `--keyapp-safe-area-right`
+  - `--keyapp-safe-area-bottom`
+  - `--keyapp-safe-area-left`
+- When `includeFramework7Vars !== false`, also set:
+  - `--f7-safe-area-top`
+  - `--f7-safe-area-right`
+  - `--f7-safe-area-bottom`
+  - `--f7-safe-area-left`
+- Values are `${number}px`, derived from `context.env.safeAreaInsets`.
