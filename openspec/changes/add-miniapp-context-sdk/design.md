@@ -42,6 +42,10 @@ export function onMiniappContextUpdate(
 ): () => void;
 ```
 
+## Distribution
+- Exposed from `@biochain/bio-sdk` as named exports to keep a single public package.
+- APIs are side-effect-free; existing provider auto-init behavior remains unchanged.
+
 ## SDK Behavior
 - `getMiniappContext()` returns cached context when available; if missing (or `forceRefresh`), it sends `miniapp:context-request` and waits for `keyapp:context-update`.
 - `onMiniappContextUpdate()` registers a handler, replays cached context once (default), and ensures a refresh if nothing is cached.
