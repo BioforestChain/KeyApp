@@ -64,7 +64,7 @@ export async function pushAndFinalize(ctx: ReleaseContext, version: string): Pro
 
   let pr = findReleasePr(ctx, version, 'open')
   if (!pr) {
-    pr = createReleasePr(ctx, branch, version)
+    pr = await createReleasePr(ctx, branch, version)
   }
 
   if (!pr) {
