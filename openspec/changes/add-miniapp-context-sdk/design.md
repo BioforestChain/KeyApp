@@ -61,7 +61,6 @@ export function applyMiniappSafeAreaCssVars(
   context: MiniappContext,
   options?: {
     target?: HTMLElement | Document;
-    includeFramework7Vars?: boolean;
   },
 ): void;
 ```
@@ -73,9 +72,4 @@ Behavior:
   - `--keyapp-safe-area-right`
   - `--keyapp-safe-area-bottom`
   - `--keyapp-safe-area-left`
-- When `includeFramework7Vars !== false`, also set:
-  - `--f7-safe-area-top`
-  - `--f7-safe-area-right`
-  - `--f7-safe-area-bottom`
-  - `--f7-safe-area-left`
 - Values are `${number}px`, derived from `context.env.safeAreaInsets`.
