@@ -131,7 +131,13 @@ export function mergePr(ctx: ReleaseContext, prNumber: number, adminMode: boolea
     throw new Error('缺少 gh CLI，无法合并 PR')
   }
   const adminFlag = adminMode ? ' --admin' : ''
-  ctx.exec(`gh pr merge ${prNumber} --merge --delete-branch${adminFlag}`)
+  try {
+    ctx.exec(`gh pr merge ${prNumber} --merge --delete-branch${adminFlag}`)
+    return
+  } catch {
+    ctx.log.warn('PR 合并失败，尝试启用 auto-merge')
+  }
+  ctx.exec(`gh pr merge ${prNumber} --merge --auto${adminFlag}`)
 }
 
 export function triggerStableWorkflow(ctx: ReleaseContext): boolean {
