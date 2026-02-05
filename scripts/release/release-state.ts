@@ -1,6 +1,6 @@
 import semver from 'semver'
 import type { ReleaseContext } from './context'
-import { listReleasePrs, type ReleasePr, hasRelease } from './github'
+import { findReleasePr, listReleasePrs, type ReleasePr, hasRelease } from './github'
 
 export type ReleaseState = {
   version: string
@@ -66,9 +66,7 @@ export function hasTag(ctx: ReleaseContext, version: string): boolean {
 }
 
 export function getOpenReleasePr(ctx: ReleaseContext, version: string): ReleasePr | null {
-  const openPrs = listReleasePrs(ctx, 'open')
-  const target = `release: v${version}`
-  return openPrs.find((pr) => pr.title.toLowerCase().includes(target.toLowerCase())) ?? null
+  return findReleasePr(ctx, version, 'open')
 }
 
 export function getReleaseState(ctx: ReleaseContext, version: string): ReleaseState {
