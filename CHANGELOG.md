@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.7] - 2026-02-05
+
+miniapp context sdk + permissions policy updates
+
+<!-- last-commit: a5e9edb272a6b04bb0a302a3160ed5690bd67187 -->
+
 ## [0.7.1] - 2026-01-30
 
 Fix dweb update site base url
