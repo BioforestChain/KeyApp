@@ -392,8 +392,6 @@ export const TabSwitchVisibility: Story = {
 
             {/* MiniappWindow 在全局层，不随 Tab 切换卸载（与 StackflowApp 一致） */}
             <MiniappWindow />
-            {/* Fallback 容器 - 当 slot lost 时保持 MiniappWindow 挂载 */}
-            <div id="miniapp-fallback-portal" style={{ display: 'contents' }} />
           </div>
 
           {/* 真实 TabBar */}

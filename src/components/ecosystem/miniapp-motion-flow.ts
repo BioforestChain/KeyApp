@@ -15,8 +15,8 @@ export type MiniappFlow = (typeof MINIAPP_FLOW)[number]
 
 export type WindowContainerVariant = 'open' | 'closed'
 export type VisibilityVariant = 'show' | 'hide'
-/** 层级变体：top=上层可见，bottom=下层隐藏，gone=display:none */
-export type LayerVariant = 'top' | 'bottom' | 'gone'
+/** 层级变体：top=上层可见，bottom=下层隐藏 */
+export type LayerVariant = 'top' | 'bottom'
 
 export const flowToWindowContainer: Record<MiniappFlow, WindowContainerVariant> = {
   closed: 'closed',
@@ -33,15 +33,14 @@ export const flowToWindowContainer: Record<MiniappFlow, WindowContainerVariant> 
  * splash-bg 层级（和 iframe 互斥，作为内容层）
  * - top: 在 iframe 上方，可见（启动中）
  * - bottom: 在 iframe 下方，隐藏（已打开）
- * - gone: display:none（后台、已关闭）
  */
 export const flowToSplashBgLayer: Record<MiniappFlow, LayerVariant> = {
-  closed: 'gone',
+  closed: 'bottom',
   opening: 'top',
   splash: 'top',
   opened: 'bottom',
   backgrounding: 'bottom',
-  backgrounded: 'gone',
+  backgrounded: 'bottom',
   foregrounding: 'bottom',
   closing: 'bottom', // 关闭时 splash-bg 不显示，只有 splash-icon 做动画
 }
@@ -50,15 +49,14 @@ export const flowToSplashBgLayer: Record<MiniappFlow, LayerVariant> = {
  * iframe 层级（和 splash-bg 互斥，作为内容层）
  * - top: 在 splash-bg 上方，可见（已打开）
  * - bottom: 在 splash-bg 下方，隐藏（启动中）
- * - gone: display:none（后台、已关闭）
  */
 export const flowToIframeLayer: Record<MiniappFlow, LayerVariant> = {
-  closed: 'gone',
+  closed: 'bottom',
   opening: 'bottom',
   splash: 'bottom',
   opened: 'top',
   backgrounding: 'top',
-  backgrounded: 'gone',
+  backgrounded: 'bottom',
   foregrounding: 'top',
   closing: 'top', // 关闭时 iframe 保持在上层，通过 opacity 淡出
 }
@@ -67,13 +65,13 @@ export const flowToIframeLayer: Record<MiniappFlow, LayerVariant> = {
  * splash-icon 层级（独立于内容层，只在 opening/closing 时出现做动画）
  */
 export const flowToSplashIconLayer: Record<MiniappFlow, LayerVariant> = {
-  closed: 'gone',
+  closed: 'bottom',
   opening: 'top',
   splash: 'top',
-  opened: 'gone',
-  backgrounding: 'gone',
-  backgrounded: 'gone',
-  foregrounding: 'gone',
+  opened: 'bottom',
+  backgrounding: 'bottom',
+  backgrounded: 'bottom',
+  foregrounding: 'bottom',
   closing: 'top',
 }
 

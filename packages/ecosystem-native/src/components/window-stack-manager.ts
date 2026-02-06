@@ -99,6 +99,14 @@ class WindowStackManager {
   }
 
   /**
+   * Set slot interactivity.
+   */
+  setSlotInteractive(desktop: MiniappTargetDesktop, appId: string, interactive: boolean): void {
+    const stack = this.stacks.get(desktop);
+    stack?.setSlotInteractive(appId, interactive);
+  }
+
+  /**
    * Check if a desktop's WindowStack is registered.
    */
   isStackRegistered(desktop: MiniappTargetDesktop): boolean {

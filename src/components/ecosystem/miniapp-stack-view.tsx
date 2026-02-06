@@ -1,20 +1,24 @@
 /**
  * MiniappStackView - 层叠视图容器
  *
- * 显示所有运行中的应用卡片
- * 使用 Swiper 实现左右滑动切换
- * 支持上滑关闭应用
+ * 显示所有运行中的应用列表
+ * 采用类似 iOS 通知中心的一条条 item
  */
 
-import { useCallback, useRef, useEffect } from 'react'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCards } from 'swiper/modules'
-import type { Swiper as SwiperType } from 'swiper'
-import 'swiper/css'
-import 'swiper/css/effect-cards'
+import { useCallback, useEffect, useMemo } from 'react'
+import { IconX } from '@tabler/icons-react'
 import { useStore } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from '@/components/ui/item'
 import {
   miniappRuntimeStore,
   miniappRuntimeSelectors,
@@ -23,7 +27,7 @@ import {
   closeStackView,
 } from '@/services/miniapp-runtime'
 import type { MiniappInstance } from '@/services/miniapp-runtime'
-import { MiniappStackCard } from './miniapp-stack-card'
+import { MiniappIcon } from './miniapp-icon'
 import styles from './miniapp-stack-view.module.css'
 
 export interface MiniappStackViewProps {
@@ -40,12 +44,15 @@ export function MiniappStackView({
   onClose,
   className,
 }: MiniappStackViewProps) {
-  const { t } = useTranslation('ecosystem')
-  const swiperRef = useRef<SwiperType | null>(null)
+  const { t } = useTranslation(['ecosystem', 'common'])
 
   // 获取所有运行中的应用
   const apps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getApps) as MiniappInstance[]
-  const activeAppId = useStore(miniappRuntimeStore, (s) => s.activeAppId)
+  const focusedAppId = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getFocusedAppId)
+
+  const sortedApps = useMemo(() => {
+    return [...apps].sort((left, right) => right.lastActiveAt - left.lastActiveAt)
+  }, [apps])
 
   // 当应用列表变化时，如果没有应用了就关闭视图
   useEffect(() => {
@@ -62,29 +69,14 @@ export function MiniappStackView({
     onClose?.()
   }, [onClose])
 
-  // 处理上滑关闭
-  const handleSwipeUp = useCallback((appId: string) => {
+  // 处理关闭应用
+  const handleCloseApp = useCallback((appId: string) => {
     closeApp(appId)
-
-    // 如果关闭后还有其他应用，停留在层叠视图
-    // 如果没有应用了，useEffect 会自动关闭视图
   }, [])
-
-  // 处理滑动切换
-  const handleSlideChange = useCallback((swiper: SwiperType) => {
-    const currentApp = apps[swiper.activeIndex]
-    if (currentApp) {
-      // 只更新选中状态，不激活应用
-      // activateApp 会在点击卡片时调用
-    }
-  }, [apps])
 
   if (!visible || apps.length === 0) {
     return null
   }
-
-  // 找到当前激活应用的索引
-  const initialIndex = apps.findIndex((app) => app.appId === activeAppId)
 
   return (
     <div
@@ -106,33 +98,65 @@ export function MiniappStackView({
         <span className={styles.count}>{apps.length}</span>
       </div>
 
-      {/* 卡片滑动区域 */}
-      <div className={styles.swiperWrapper}>
-        <Swiper
-          modules={[EffectCards]}
-          effect="cards"
-          grabCursor={true}
-          initialSlide={initialIndex >= 0 ? initialIndex : 0}
-          onSwiper={(swiper) => { swiperRef.current = swiper }}
-          onSlideChange={handleSlideChange}
-          cardsEffect={{
-            slideShadows: false,
-            perSlideOffset: 8,
-            perSlideRotate: 2,
-          }}
-          className={styles.swiper}
-        >
-          {apps.map((app, index) => (
-            <SwiperSlide key={app.appId} className={styles.slide}>
-              <MiniappStackCard
-                app={app}
-                isActive={index === (swiperRef.current?.activeIndex ?? initialIndex)}
-                onTap={() => handleCardTap(app.appId)}
-                onSwipeUp={() => handleSwipeUp(app.appId)}
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+      {/* Item 列表区域 */}
+      <div className={styles.listWrapper}>
+        <ItemGroup className="h-full overflow-y-auto px-4 pb-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)]">
+          {sortedApps.map((app) => {
+            const isFocused = app.appId === focusedAppId
+
+            return (
+              <Item
+                key={app.appId}
+                variant="muted"
+                role="button"
+                tabIndex={0}
+                aria-label={app.manifest.name}
+                data-testid={`stack-item-${app.appId}`}
+                data-app-id={app.appId}
+                onClick={() => handleCardTap(app.appId)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) {
+                    return
+                  }
+
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleCardTap(app.appId)
+                  }
+                }}
+                className={cn(
+                  'w-full items-center gap-3 border border-white/10 bg-black/35 text-white backdrop-blur-md',
+                  isFocused && 'border-primary/60 ring-primary/35 ring-1'
+                )}
+              >
+                <ItemMedia>
+                  <MiniappIcon src={app.manifest.icon} name={app.manifest.name} size="sm" shadow="sm" />
+                </ItemMedia>
+
+                <ItemContent>
+                  <ItemTitle className="w-full text-white">{app.manifest.name}</ItemTitle>
+                  <ItemDescription className="w-full text-white/70">{app.manifest.description}</ItemDescription>
+                </ItemContent>
+
+                <ItemActions>
+                  {isFocused && <span className="bg-primary size-2 rounded-full" aria-hidden={true} />}
+                  <button
+                    type="button"
+                    className="text-white/70 hover:text-white inline-flex size-8 items-center justify-center rounded-md"
+                    data-testid={`stack-close-${app.appId}`}
+                    aria-label={`${t('common:close')} ${app.manifest.name}`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      handleCloseApp(app.appId)
+                    }}
+                  >
+                    <IconX className="size-4" stroke={1.8} />
+                  </button>
+                </ItemActions>
+              </Item>
+            )
+          })}
+        </ItemGroup>
       </div>
 
       {/* 操作提示 */}

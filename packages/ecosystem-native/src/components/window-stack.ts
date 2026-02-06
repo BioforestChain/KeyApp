@@ -67,6 +67,30 @@ export class WindowStack extends LitElement {
   private containerEl: HTMLDivElement | null = null;
 
   /**
+   * Resolve the latest stack container element.
+   */
+  private resolveContainer(): HTMLDivElement | null {
+    if (this.containerEl && this.contains(this.containerEl)) {
+      return this.containerEl;
+    }
+
+    this.containerEl = this.querySelector('.stack-container');
+    return this.containerEl;
+  }
+
+  /**
+   * Ensure a slot element is attached to the current container.
+   */
+  private ensureSlotAttached(slotInfo: SlotInfo): void {
+    const container = this.resolveContainer();
+    if (!container) return;
+
+    if (slotInfo.element.parentElement !== container) {
+      container.appendChild(slotInfo.element);
+    }
+  }
+
+  /**
    * Callback when a slot is created
    */
   private onSlotCreated?: (slot: SlotInfo) => void;
@@ -121,15 +145,17 @@ export class WindowStack extends LitElement {
   getOrCreateSlot(appId: string): HTMLDivElement {
     const existing = this.slots.get(appId);
     if (existing) {
+      this.ensureSlotAttached(existing);
       return existing.element;
     }
 
     // Create slot element synchronously
     const slot = document.createElement('div');
-    slot.style.cssText = 'grid-area: 1 / 1; pointer-events: auto;';
+    slot.style.cssText = 'grid-area: 1 / 1; pointer-events: none;';
     slot.dataset.miniappSlot = '';
     slot.dataset.appId = appId;
     slot.dataset.desktop = this.desktop;
+    slot.dataset.interactive = 'false';
 
     const slotInfo: SlotInfo = {
       appId,
@@ -138,12 +164,7 @@ export class WindowStack extends LitElement {
     };
 
     this.slots.set(appId, slotInfo);
-
-    // Append to container
-    const container = this.containerEl ?? this.querySelector('.stack-container');
-    if (container) {
-      container.appendChild(slot);
-    }
+    this.ensureSlotAttached(slotInfo);
 
     // Notify listeners
     this.onSlotCreated?.(slotInfo);
@@ -168,7 +189,11 @@ export class WindowStack extends LitElement {
    * Get an existing slot (returns null if not found).
    */
   getSlot(appId: string): HTMLDivElement | null {
-    return this.slots.get(appId)?.element ?? null;
+    const slotInfo = this.slots.get(appId);
+    if (!slotInfo) return null;
+
+    this.ensureSlotAttached(slotInfo);
+    return slotInfo.element;
   }
 
   /**
@@ -186,6 +211,19 @@ export class WindowStack extends LitElement {
     if (slot) {
       slot.dataset.hidden = String(hidden);
       slot.style.display = hidden ? 'none' : '';
+    }
+  }
+
+  /**
+   * Set slot interactivity.
+   * interactive=true => pointer-events:auto (foreground)
+   * interactive=false => pointer-events:none (background)
+   */
+  setSlotInteractive(appId: string, interactive: boolean): void {
+    const slot = this.slots.get(appId)?.element;
+    if (slot) {
+      slot.dataset.interactive = String(interactive);
+      slot.style.pointerEvents = interactive ? 'auto' : 'none';
     }
   }
 
@@ -218,7 +256,12 @@ export class WindowStack extends LitElement {
 
   override firstUpdated() {
     // Cache the container reference
-    this.containerEl = this.querySelector('.stack-container');
+    this.containerEl = this.resolveContainer();
+
+    // Recover any slot created before first render completed
+    for (const slotInfo of this.slots.values()) {
+      this.ensureSlotAttached(slotInfo);
+    }
   }
 
   override render() {

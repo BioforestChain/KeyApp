@@ -123,9 +123,9 @@ describe('IframeContainerManager', () => {
 
       handle.moveToBackground();
 
-      const hiddenContainer = document.getElementById('miniapp-hidden-container');
-      expect(hiddenContainer).not.toBeNull();
-      expect(hiddenContainer?.contains(handle.element)).toBe(true);
+      expect(mountTarget.contains(handle.element)).toBe(true);
+      expect((handle.element as HTMLIFrameElement).style.opacity).toBe('0');
+      expect((handle.element as HTMLIFrameElement).style.pointerEvents).toBe('none');
     });
 
     it('should move to foreground', async () => {
@@ -135,6 +135,50 @@ describe('IframeContainerManager', () => {
       handle.moveToForeground();
 
       expect(mountTarget.contains(handle.element)).toBe(true);
+      expect((handle.element as HTMLIFrameElement).style.opacity).toBe('1');
+      expect((handle.element as HTMLIFrameElement).style.pointerEvents).toBe('auto');
+    });
+
+    it('should not re-parent connected iframe after target changed', async () => {
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
+      const latestTarget = document.createElement('div');
+      latestTarget.id = 'latest-target';
+      document.body.appendChild(latestTarget);
+
+      handle.moveToBackground();
+      ;(
+        handle as typeof handle & {
+          setMountTarget: (target: HTMLElement) => void;
+        }
+      ).setMountTarget(latestTarget);
+      handle.moveToForeground();
+
+      expect(mountTarget.contains(handle.element)).toBe(true);
+      expect(latestTarget.contains(handle.element)).toBe(false);
+      expect((handle.element as HTMLIFrameElement).style.opacity).toBe('1');
+      expect((handle.element as HTMLIFrameElement).style.pointerEvents).toBe('auto');
+    });
+
+    it('should recover disconnected iframe to latest mount target', async () => {
+      const handle = await manager.create({ appId: 'test-app', url: 'about:blank', mountTarget });
+      const latestTarget = document.createElement('div');
+      latestTarget.id = 'latest-target';
+      document.body.appendChild(latestTarget);
+
+      ;(
+        handle as typeof handle & {
+          setMountTarget: (target: HTMLElement) => void;
+        }
+      ).setMountTarget(latestTarget);
+
+      handle.element.remove();
+      expect(handle.element.isConnected).toBe(false);
+
+      handle.moveToForeground();
+
+      expect(latestTarget.contains(handle.element)).toBe(true);
+      expect((handle.element as HTMLIFrameElement).style.opacity).toBe('1');
+      expect((handle.element as HTMLIFrameElement).style.pointerEvents).toBe('auto');
     });
 
     it('should not move after destroyed', async () => {
@@ -149,7 +193,7 @@ describe('IframeContainerManager', () => {
 });
 
 describe('cleanupAllIframeContainers', () => {
-  it('should remove hidden container from DOM', async () => {
+  it('should be safe when hidden container does not exist', async () => {
     const manager = new IframeContainerManager();
     const mountTarget = document.createElement('div');
     document.body.appendChild(mountTarget);
@@ -162,5 +206,7 @@ describe('cleanupAllIframeContainers', () => {
     cleanupAllIframeContainers();
 
     expect(document.getElementById('miniapp-hidden-container')).toBeNull();
+    expect(mountTarget.contains(handle1.element)).toBe(true);
+    expect(mountTarget.contains(handle2.element)).toBe(true);
   });
 });

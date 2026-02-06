@@ -2,26 +2,6 @@ import type { ContainerManager, ContainerHandle, ContainerCreateOptions } from '
 
 const HIDDEN_CONTAINER_ID = 'miniapp-hidden-container';
 
-function getOrCreateHiddenContainer(): HTMLElement {
-  let container = document.getElementById(HIDDEN_CONTAINER_ID);
-  if (!container) {
-    container = document.createElement('div');
-    container.id = HIDDEN_CONTAINER_ID;
-    container.style.cssText = `
-      position: fixed;
-      top: -9999px;
-      left: -9999px;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      visibility: hidden;
-      pointer-events: none;
-    `;
-    document.body.appendChild(container);
-  }
-  return container;
-}
-
 class IframeContainerHandle implements ContainerHandle {
   readonly type = 'iframe' as const;
   readonly element: HTMLIFrameElement;
@@ -34,6 +14,10 @@ class IframeContainerHandle implements ContainerHandle {
     this.element = iframe;
   }
 
+  setMountTarget(nextMountTarget: HTMLElement): void {
+    this.mountTarget = nextMountTarget;
+  }
+
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
@@ -43,13 +27,19 @@ class IframeContainerHandle implements ContainerHandle {
 
   moveToBackground(): void {
     if (this.destroyed) return;
-    const container = getOrCreateHiddenContainer();
-    container.appendChild(this.iframe);
+    // 关键约束：后台运行时不能移出 DOM（避免 iframe 被浏览器释放）
+    this.iframe.style.opacity = '0';
+    this.iframe.style.pointerEvents = 'none';
   }
 
   moveToForeground(): void {
     if (this.destroyed) return;
-    this.mountTarget.appendChild(this.iframe);
+    // 前台恢复只在「已脱离文档」时补挂，避免反复 re-parent 导致 iframe 重载
+    if (!this.iframe.isConnected) {
+      this.mountTarget.appendChild(this.iframe);
+    }
+    this.iframe.style.opacity = '1';
+    this.iframe.style.pointerEvents = 'auto';
   }
 
   isConnected(): boolean {
@@ -96,6 +86,8 @@ export class IframeContainerManager implements ContainerManager {
       height: 100%;
       border: none;
       background: transparent;
+      opacity: 1;
+      pointer-events: auto;
     `;
 
     if (onLoad) {

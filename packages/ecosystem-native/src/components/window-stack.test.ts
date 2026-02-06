@@ -50,6 +50,8 @@ describe('WindowStack', () => {
     expect(slot).toBeInstanceOf(HTMLDivElement);
     expect(slot.dataset.appId).toBe('test-app-1');
     expect(slot.dataset.desktop).toBe('mine');
+    expect(slot.dataset.interactive).toBe('false');
+    expect(slot.style.pointerEvents).toBe('none');
     expect(stack.hasSlot('test-app-1')).toBe(true);
   });
 
@@ -80,6 +82,66 @@ describe('WindowStack', () => {
     expect(slot.dataset.hidden).toBe('false');
     expect(slot.style.display).toBe('');
   });
+
+  it('should set slot interactive state', () => {
+    const slot = stack.getOrCreateSlot('test-app-1');
+
+    stack.setSlotInteractive('test-app-1', true);
+    expect(slot.dataset.interactive).toBe('true');
+    expect(slot.style.pointerEvents).toBe('auto');
+
+    stack.setSlotInteractive('test-app-1', false);
+    expect(slot.dataset.interactive).toBe('false');
+    expect(slot.style.pointerEvents).toBe('none');
+  });
+
+  it('should keep existing slots after component update', async () => {
+    const slot = stack.getOrCreateSlot('test-app-1');
+    expect(stack.hasSlot('test-app-1')).toBe(true);
+
+    // Trigger a Lit update cycle
+    stack.requestUpdate();
+    await stack.updateComplete;
+
+    // Slot should still exist in manager and DOM
+    expect(stack.hasSlot('test-app-1')).toBe(true);
+    expect(stack.getSlot('test-app-1')).toBe(slot);
+    expect(slot.isConnected).toBe(true);
+  });
+
+  it('should attach slots created before first render', async () => {
+    const localContainer = document.createElement('div');
+    document.body.appendChild(localContainer);
+
+    const earlyStack = document.createElement('ecosystem-window-stack') as WindowStack;
+    earlyStack.desktop = 'stack';
+    localContainer.appendChild(earlyStack);
+
+    const earlySlot = earlyStack.getOrCreateSlot('early-app');
+    expect(earlySlot.isConnected).toBe(false);
+
+    await earlyStack.updateComplete;
+
+    expect(earlySlot.isConnected).toBe(true);
+    expect(earlyStack.getSlot('early-app')).toBe(earlySlot);
+
+    localContainer.remove();
+  });
+
+  it('should reattach detached slot when requesting existing slot', () => {
+    const slot = stack.getOrCreateSlot('test-app-1');
+    expect(slot.isConnected).toBe(true);
+
+    slot.remove();
+    expect(slot.isConnected).toBe(false);
+
+    const recovered = stack.getOrCreateSlot('test-app-1');
+
+    expect(recovered).toBe(slot);
+    expect(slot.isConnected).toBe(true);
+    expect(slot.parentElement?.classList.contains('stack-container')).toBe(true);
+  });
+
 
   it('should get all slot ids', () => {
     stack.getOrCreateSlot('app-1');
@@ -185,5 +247,17 @@ describe('windowStackManager', () => {
     windowStackManager.setSlotHidden('mine', 'test-app-1', false);
     expect(slot.dataset.hidden).toBe('false');
     expect(slot.style.display).toBe('');
+  });
+
+  it('should set slot interactive via manager', () => {
+    const slot = windowStackManager.getOrCreateSlot('mine', 'test-app-1');
+
+    windowStackManager.setSlotInteractive('mine', 'test-app-1', true);
+    expect(slot.dataset.interactive).toBe('true');
+    expect(slot.style.pointerEvents).toBe('auto');
+
+    windowStackManager.setSlotInteractive('mine', 'test-app-1', false);
+    expect(slot.dataset.interactive).toBe('false');
+    expect(slot.style.pointerEvents).toBe('none');
   });
 });

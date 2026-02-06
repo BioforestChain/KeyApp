@@ -14,7 +14,7 @@
   justify-content: center;
   overflow: hidden;
   z-index: 10;
-  pointer-events: auto;
+  pointer-events: none;
 
   /* 动画状态 */
   opacity: 1;
@@ -23,7 +23,6 @@
 
 .splashScreen[data-visible="false"] {
   opacity: 0;
-  pointer-events: none;
 }
 
 /* 光晕背景层 - 使用 CSS 变量动态设置颜色 */
