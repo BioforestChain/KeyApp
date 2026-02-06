@@ -219,16 +219,16 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
         {/* Add/Edit Source */}
         {isEditing ? (
           <div className="bg-background space-y-3 border-t p-4">
-            <input
-              type="url"
+            <textarea
               value={newUrl}
               onChange={(e) => {
                 setNewUrl(e.target.value);
                 setError(null);
               }}
               placeholder={t('sources.urlPlaceholder')}
-              className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
-              disabled={editingUrl !== null && editingUrl === newUrl}
+              rows={1}
+              spellCheck={false}
+              className="bg-background focus:ring-primary w-full resize-none rounded-lg border px-3 py-2 [field-sizing:content] focus:ring-2 focus:outline-none"
             />
             <div className="relative">
               <input
