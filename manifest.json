@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.7.10",
-  "change_log": "fix context-menu exemption for input textarea and contenteditable",
+  "version": "0.7.11",
+  "change_log": "fix: source URL textarea editing and DWEB metadata URL assembly",
   "categories": [
     "application",
     "wallet"

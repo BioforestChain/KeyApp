@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.11] - 2026-02-06
+
+fix: source URL textarea editing and DWEB metadata URL assembly
+
+<!-- last-commit: 7c73d22067950e6a506481770fdeed6d570b9a89 -->
+
 ## [0.7.10] - 2026-02-06
 
 fix context-menu exemption for input textarea and contenteditable
