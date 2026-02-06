@@ -10,6 +10,7 @@ import { mockDevToolsPlugin } from './scripts/vite-plugin-mock-devtools';
 import { miniappsPlugin } from './scripts/vite-plugin-miniapps';
 import { remoteMiniappsPlugin, type RemoteMiniappConfig } from './scripts/vite-plugin-remote-miniapps';
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check';
+import { pruneGenesisTransactionsPlugin } from './scripts/vite-plugin-prune-genesis-transactions';
 import { buildPermissionsPolicyHeaderValue } from './src/services/ecosystem/permissions-policy';
 
 const remoteMiniappsConfig: RemoteMiniappConfig[] = [
@@ -185,6 +186,7 @@ export default defineConfig(({ mode }) => {
         },
         remoteMiniapps: remoteMiniappsConfig,
       }),
+      pruneGenesisTransactionsPlugin(),
       buildCheckPlugin(),
     ],
     resolve: {
