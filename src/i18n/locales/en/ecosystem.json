@@ -107,7 +107,7 @@
   "stack": {
     "title": "App Stack",
     "runningApps": "Running Apps",
-    "hints": "Swipe up to close"
+    "hints": "Tap to open, tap the right button to close"
   },
   "capsule": {
     "more": "More Options",

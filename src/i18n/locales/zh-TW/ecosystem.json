@@ -107,7 +107,7 @@
   "stack": {
     "title": "應用堆棧",
     "runningApps": "運行中的應用",
-    "hints": "向上滑動關閉"
+    "hints": "點擊進入，點擊右側關閉"
   },
   "capsule": {
     "more": "更多操作",

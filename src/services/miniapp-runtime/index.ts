@@ -65,6 +65,14 @@ import { toastService } from '../toast';
 import { getDesktopAppSlotRect, getIconRef } from './runtime-refs';
 import i18n from '@/i18n';
 import { windowStackManager } from '@biochain/ecosystem-native';
+import {
+  fsmPartitionForegroundAppIds,
+  fsmTransitionAppState,
+  fsmTransitionProcessStatus,
+  fsmTransitionReadiness,
+  type RuntimeStateDomCommand,
+} from './runtime-state-machine';
+import { domBindApplyCommand, domBindSyncIframeMountTarget } from './runtime-dom-binding';
 import { isDwebEnvironment } from '@/lib/crypto/secure-storage';
 import type { MiniappContext as MiniappContextPayload } from '@biochain/bio-sdk';
 
@@ -453,81 +461,30 @@ function getSplashTimeout(manifest: MiniappManifest): number | null {
 }
 
 /**
- * 根据状态变化推导 flow（包含方向性）
- */
-function deriveFlow(prevState: MiniappState | null, nextState: MiniappState): MiniappFlow {
-  // 从无到有：opening
-  if (!prevState || prevState === 'preparing') {
-    if (nextState === 'launching') return 'opening';
-    if (nextState === 'splash') return 'splash';
-    if (nextState === 'active') return 'opened';
-  }
-
-  // launching -> splash
-  if (prevState === 'launching' && nextState === 'splash') return 'splash';
-
-  // launching/splash -> active
-  if ((prevState === 'launching' || prevState === 'splash') && nextState === 'active') return 'opened';
-
-  // active -> background
-  if (prevState === 'active' && nextState === 'background') return 'backgrounding';
-
-  // background -> active
-  if (prevState === 'background' && nextState === 'active') return 'foregrounding';
-
-  // any -> closing
-  if (nextState === 'closing') return 'closing';
-
-  // 兜底：根据 nextState 推导稳定态
-  if (nextState === 'preparing') return 'closed';
-  if (nextState === 'launching') return 'opening';
-  if (nextState === 'splash') return 'splash';
-  if (nextState === 'active') return 'opened';
-  if (nextState === 'background') return 'backgrounded';
-
-  return 'closed';
-}
-
-/**
- * 更新应用状态
+ * 更新应用状态（状态机层 + DOM 绑定层）
  */
 function updateAppState(appId: string, state: MiniappState): void {
-  miniappRuntimeStore.setState((s) => {
-    const app = s.apps.get(appId);
-    if (!app) return s;
+  let domCommand: RuntimeStateDomCommand | null = null;
 
-    const flow = deriveFlow(app.state, state);
-    const newApps = new Map(s.apps);
-    newApps.set(appId, { ...app, state, flow });
-
-    return { ...s, apps: newApps };
+  miniappRuntimeStore.setState((currentState) => {
+    const transition = fsmTransitionAppState(currentState, appId, state);
+    domCommand = transition.domCommand;
+    return transition.nextState;
   });
+
+  if (domCommand) {
+    domBindApplyCommand(domCommand);
+  }
 
   emit({ type: 'app:state-change', appId, state });
 }
 
 function updateAppProcessStatus(appId: string, processStatus: MiniappProcessStatus): void {
-  miniappRuntimeStore.setState((s) => {
-    const app = s.apps.get(appId);
-    if (!app) return s;
-    if (app.processStatus === processStatus) return s;
-
-    const newApps = new Map(s.apps);
-    newApps.set(appId, { ...app, processStatus });
-    return { ...s, apps: newApps };
-  });
+  miniappRuntimeStore.setState((currentState) => fsmTransitionProcessStatus(currentState, appId, processStatus));
 }
 
 function updateAppReadiness(appId: string, readiness: MiniappReadinessState): void {
-  miniappRuntimeStore.setState((s) => {
-    const app = s.apps.get(appId);
-    if (!app) return s;
-    if (app.readiness === readiness) return s;
-
-    const newApps = new Map(s.apps);
-    newApps.set(appId, { ...app, readiness });
-    return { ...s, apps: newApps };
-  });
+  miniappRuntimeStore.setState((currentState) => fsmTransitionReadiness(currentState, appId, readiness));
 }
 
 function readyGateOpened(appId: string): void {
@@ -692,6 +649,9 @@ export function didDismiss(appId: string, transitionId: string): void {
   if (!presentation) return;
   if (presentation.transitionKind !== 'dismiss' || presentation.transitionId !== transitionId) return;
 
+  const app = miniappRuntimeStore.state.apps.get(appId);
+  if (!app || app.state !== 'closing') return;
+
   finalizeCloseApp(appId);
 }
 
@@ -820,16 +780,28 @@ function clearCloseTimeout(appId: string): void {
   closeTimeouts.delete(appId);
 }
 
+function syncIframeMountTarget(appId: string): void {
+  const state = miniappRuntimeStore.state;
+  const app = state.apps.get(appId);
+  if (!app) return;
+
+  domBindSyncIframeMountTarget(app, state.presentations.get(appId));
+}
+
 export function finalizeCloseApp(appId: string): void {
   clearLaunchTimeouts(appId);
   clearCloseTimeout(appId);
   clearSplashTimeout(appId);
   cancelPreparing(appId);
 
-  // Get the app's desktop before removing from store
+  // 根因防护：仅允许 closing 状态进入真正的 finalize
+  // 避免误触导致 slot/iframe 被移除（例如后台切换场景）
   const app = miniappRuntimeStore.state.apps.get(appId);
+  if (!app || app.state !== 'closing') return;
+
+  // Get the app's desktop before removing from store
   const presentation = miniappRuntimeStore.state.presentations.get(appId);
-  const targetDesktop = presentation?.desktop ?? app?.manifest.targetDesktop ?? 'stack';
+  const targetDesktop = presentation?.desktop ?? app.manifest.targetDesktop ?? 'stack';
 
   miniappRuntimeStore.setState((s) => {
     const currentApp = s.apps.get(appId);
@@ -1061,12 +1033,29 @@ export function activateApp(appId: string): void {
 
   if (app.state === 'preparing') return;
 
-  if (state.activeAppId && state.activeAppId !== appId) {
-    deactivateApp(state.activeAppId);
-  }
+  const runningAppIds = Array.from(state.apps.values())
+    .filter((instance) => instance.state !== 'preparing' && instance.state !== 'closing')
+    .map((instance) => instance.appId);
 
-  if (app.containerHandle && app.state === 'background') {
-    app.containerHandle.moveToForeground();
+  const { foregroundAppIds, backgroundAppIds } = fsmPartitionForegroundAppIds(runningAppIds, [appId]);
+  if (!foregroundAppIds.includes(appId)) return;
+
+  backgroundAppIds.forEach((backgroundAppId) => {
+    const backgroundApp = miniappRuntimeStore.state.apps.get(backgroundAppId);
+    if (!backgroundApp) return;
+    if (backgroundApp.state !== 'active') return;
+
+    backgroundApp.containerHandle?.moveToBackground();
+    updateAppState(backgroundAppId, 'background');
+    emit({ type: 'app:deactivate', appId: backgroundAppId });
+  });
+
+  const nextApp = miniappRuntimeStore.state.apps.get(appId);
+  if (!nextApp) return;
+
+  if (nextApp.containerHandle && nextApp.state === 'background') {
+    syncIframeMountTarget(appId);
+    nextApp.containerHandle.moveToForeground();
   }
 
   updateAppState(appId, 'active');
@@ -1074,12 +1063,28 @@ export function activateApp(appId: string): void {
   attachBioProvider(appId);
 
   miniappRuntimeStore.setState((s) => {
+    const nextZ = s.zOrderSeed + 1;
+
     const newApps = new Map(s.apps);
     const existingApp = newApps.get(appId);
     if (existingApp) {
       newApps.set(appId, { ...existingApp, lastActiveAt: Date.now() });
     }
-    return { ...s, apps: newApps, activeAppId: appId, focusedAppId: appId };
+
+    const newPresentations = new Map(s.presentations);
+    const presentation = newPresentations.get(appId);
+    if (presentation) {
+      newPresentations.set(appId, { ...presentation, zOrder: nextZ });
+    }
+
+    return {
+      ...s,
+      apps: newApps,
+      presentations: newPresentations,
+      activeAppId: appId,
+      focusedAppId: appId,
+      zOrderSeed: presentation ? nextZ : s.zOrderSeed,
+    };
   });
 
   emit({ type: 'app:activate', appId });
@@ -1089,36 +1094,16 @@ export function activateApp(appId: string): void {
  * 将应用切换到后台
  */
 export function deactivateApp(appId: string): void {
-  const state = miniappRuntimeStore.state;
-  const app = state.apps.get(appId);
+  const app = miniappRuntimeStore.state.apps.get(appId);
   if (!app) return;
 
   if (app.state === 'preparing') return;
 
-  if (app.containerHandle) {
-    app.containerHandle.moveToBackground();
-  }
+  app.containerHandle?.moveToBackground();
 
   updateAppState(appId, 'background');
 
-  enforceBackgroundLimitInternal(state.maxBackgroundApps);
-
   emit({ type: 'app:deactivate', appId });
-}
-
-function enforceBackgroundLimitInternal(maxBackground: number): void {
-  const state = miniappRuntimeStore.state;
-  const backgroundApps = Array.from(state.apps.values())
-    .filter((app) => app.appId !== state.activeAppId && app.state === 'background')
-    .toSorted((a, b) => a.lastActiveAt - b.lastActiveAt);
-
-  while (backgroundApps.length > maxBackground) {
-    const oldest = backgroundApps.shift();
-    if (oldest?.containerHandle) {
-      oldest.containerHandle.destroy();
-      oldest.containerHandle = null;
-    }
-  }
 }
 
 /**
@@ -1199,6 +1184,35 @@ export function closeAllApps(): void {
     finalizeCloseApp(appId);
   });
   cleanupAllIframeContainers();
+}
+
+/**
+ * 最小化所有应用（保留后台运行，不执行关闭）
+ */
+export function minimizeAllApps(): void {
+  const state = miniappRuntimeStore.state;
+
+  const foregroundAppIds = new Set<string>();
+  if (state.activeAppId) {
+    foregroundAppIds.add(state.activeAppId);
+  }
+  if (state.focusedAppId) {
+    foregroundAppIds.add(state.focusedAppId);
+  }
+
+  foregroundAppIds.forEach((appId) => {
+    deactivateApp(appId);
+    // 最小化是直接回桌面，不需要停留在 backgrounding 过渡态
+    // 否则可能出现 iframe/胶囊短暂残留
+    settleFlow(appId);
+  });
+
+  miniappRuntimeStore.setState((s) => {
+    if (!s.activeAppId && !s.focusedAppId) {
+      return s;
+    }
+    return { ...s, activeAppId: null, focusedAppId: null };
+  });
 }
 
 /**

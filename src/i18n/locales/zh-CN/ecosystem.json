@@ -107,7 +107,7 @@
   "stack": {
     "title": "应用堆栈",
     "runningApps": "运行中的应用",
-    "hints": "向上滑动关闭"
+    "hints": "点击进入，点击右侧关闭"
   },
   "capsule": {
     "more": "更多操作",

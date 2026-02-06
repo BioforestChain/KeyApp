@@ -8,6 +8,10 @@ export interface ContainerHandle {
   destroy(): void;
   moveToBackground(): void;
   moveToForeground(): void;
+  /**
+   * 更新挂载目标（可选，仅在支持重新挂载的容器中实现）
+   */
+  setMountTarget?(mountTarget: HTMLElement): void;
   isConnected(): boolean;
   getIframe(): HTMLIFrameElement | null;
 }

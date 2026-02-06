@@ -4,6 +4,7 @@ import {
   IconWallet,
   IconSettings,
   IconApps,
+  IconCircleDot,
   IconBrandMiniprogram,
   IconAppWindowFilled,
   type Icon,
@@ -15,7 +16,13 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@tanstack/react-store';
 import { useSwiperMember } from '@/components/common/swiper-sync-context';
 import { ecosystemStore, type EcosystemSubPage } from '@/stores/ecosystem';
-import { miniappRuntimeStore, miniappRuntimeSelectors, openStackView } from '@/services/miniapp-runtime';
+import {
+  miniappRuntimeStore,
+  miniappRuntimeSelectors,
+  openStackView,
+  closeStackView,
+  minimizeAllApps,
+} from '@/services/miniapp-runtime';
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { useCurrentWallet, useCurrentChainAddress, useSelectedChain } from '@/stores';
 import { HomeButtonWrapper } from '@biochain/ecosystem-native/react';
@@ -31,7 +38,11 @@ const PAGE_ICONS: Record<EcosystemSubPage, Icon> = {
 };
 
 /** 生态页面指示器（真实项目使用） - 使用 Controller 模块实现双向绑定 */
-function useEcosystemIndicator(availablePages: EcosystemSubPage[], isActive: boolean) {
+function useEcosystemIndicator(
+  availablePages: EcosystemSubPage[],
+  isActive: boolean,
+  hasForegroundRunningApp: boolean,
+) {
   const pageCount = availablePages.length;
   const maxIndex = pageCount - 1;
 
@@ -80,7 +91,7 @@ function useEcosystemIndicator(availablePages: EcosystemSubPage[], isActive: boo
         resistanceRatio={0.5}
       >
         {availablePages.map((page, index) => {
-          const PageIcon = PAGE_ICONS[page];
+          const PageIcon = page === 'mine' && hasForegroundRunningApp ? IconCircleDot : PAGE_ICONS[page];
           const opacity = getIconOpacity(index);
           return (
             <SwiperSlide key={page} className="!flex !w-5 cursor-pointer !items-center !justify-center">
@@ -137,6 +148,13 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const storeAvailablePages = useStore(ecosystemStore, (s) => s.availableSubPages);
   const hasRunningApps = useStore(miniappRuntimeStore, (s) => miniappRuntimeSelectors.getApps(s).length > 0);
   const hasRunningStackApps = useStore(miniappRuntimeStore, miniappRuntimeSelectors.hasRunningStackApps);
+  const hasForegroundRunningApp = useStore(miniappRuntimeStore, (s) => {
+    const focusedId = s.focusedAppId ?? s.activeAppId;
+    if (!focusedId) return false;
+
+    const focusedApp = s.apps.get(focusedId);
+    return focusedApp?.state === 'active';
+  });
 
   // Pending transactions count for wallet tab badge
   const currentWallet = useCurrentWallet();
@@ -158,7 +176,7 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
     return hasRunningStackApps ? ECOSYSTEM_PAGE_ORDER : ECOSYSTEM_PAGE_ORDER.filter((p) => p !== 'stack');
   }, [storeAvailablePages, hasRunningStackApps]);
 
-  const ecosystemIndicator = useEcosystemIndicator(availablePages, isEcosystemActive);
+  const ecosystemIndicator = useEcosystemIndicator(availablePages, isEcosystemActive, hasForegroundRunningApp);
 
   // 生态 tab 图标：
   // - 在"应用堆栈"页或有运行中应用时：IconAppWindowFilled
@@ -168,11 +186,14 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
     if (ecosystemSubPage === 'stack' || hasRunningApps) {
       return IconAppWindowFilled;
     }
+    if (ecosystemSubPage === 'mine' && hasForegroundRunningApp) {
+      return IconCircleDot;
+    }
     if (ecosystemSubPage === 'mine') {
       return IconBrandMiniprogram;
     }
     return IconApps;
-  }, [ecosystemSubPage, hasRunningApps]);
+  }, [ecosystemSubPage, hasRunningApps, hasForegroundRunningApp]);
 
   const tabConfigs: Tab[] = useMemo(
     () => [
@@ -187,6 +208,23 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
   const handleEcosystemSwipeUp = useCallback(() => {
     openStackView();
   }, []);
+
+  // Handle click on ecosystem tab:
+  // - inactive -> switch to ecosystem
+  // - active + has running apps -> minimize all (show desktop)
+  const handleEcosystemClick = useCallback(() => {
+    if (!isEcosystemActive) {
+      onTabChange('ecosystem');
+      return;
+    }
+
+    if (!hasRunningApps) {
+      return;
+    }
+
+    minimizeAllApps();
+    closeStackView();
+  }, [isEcosystemActive, onTabChange, hasRunningApps]);
 
   return (
     <div
@@ -251,7 +289,7 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
                 className={buttonClassName}
               >
                 <button
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={handleEcosystemClick}
                   data-testid={`tab-${tab.id}`}
                   className="flex flex-1 flex-col items-center justify-center gap-1"
                   aria-label={label}

@@ -49,24 +49,38 @@ export interface MiniappWindowProps {
 }
 
 const WINDOW_CONTAINER_VARIANTS = {
-  open: { opacity: 1, pointerEvents: 'auto' },
-  closed: { opacity: 0, pointerEvents: 'none' },
+  open: { opacity: 1 },
+  closed: { opacity: 0 },
 } as const;
 
 const VISIBILITY_VARIANTS = {
-  show: { opacity: 1, pointerEvents: 'auto' },
-  hide: { opacity: 0, pointerEvents: 'none' },
+  show: { opacity: 1 },
+  hide: { opacity: 0 },
 } as const;
 
 /**
  * 层级变体：z-index 和 opacity 联动
- * top: 上层可见，bottom: 下层隐藏，gone: display:none
+ * top: 上层可见，bottom: 下层隐藏
  */
 const LAYER_VARIANTS = {
   top: { zIndex: 10, opacity: 1, pointerEvents: 'auto' },
   bottom: { zIndex: 0, opacity: 0, pointerEvents: 'none' },
-  gone: { zIndex: 0, opacity: 0, display: 'none', pointerEvents: 'none' },
 };
+
+type WindowDomBindingState = {
+  visible: boolean;
+  interactive: boolean;
+};
+
+function domBindDeriveWindowState(
+  appState: MiniappInstance['state'] | undefined,
+  isFocused: boolean,
+  isSlotLost: boolean,
+): WindowDomBindingState {
+  const visible = !isSlotLost && appState !== 'background' && appState !== 'preparing';
+  const interactive = appState === 'active' && isFocused && !isSlotLost;
+  return { visible, interactive };
+}
 
 export function MiniappWindow({ className }: MiniappWindowProps) {
   const presentations = useStore(miniappRuntimeStore, miniappRuntimeSelectors.getPresentations);
@@ -122,12 +136,7 @@ function MiniappWindowPortal({
   // 订阅 slot 状态，响应式感知 slot 注册/注销
   const slotStatus = useSlotStatus(presentation.desktop, appId);
   const portalHost = getDesktopAppSlotRef(presentation.desktop, appId);
-
-  // 当 slot lost 时使用 fallback 容器，保持组件挂载避免 motion 动画问题
-  const fallbackHost = useMemo(() => {
-    return document.getElementById('miniapp-fallback-portal') ?? document.body;
-  }, []);
-  const actualHost = portalHost ?? fallbackHost;
+  const actualHost = portalHost;
   const isSlotLost = slotStatus === 'lost' || !portalHost;
 
   useLayoutEffect(() => {
@@ -185,6 +194,7 @@ function MiniappWindowPortal({
   const splashIconHasLayoutId = flowToSplashIconLayoutId[flow as MiniappFlow];
   const capsuleVariant = flowToCapsule[flow as MiniappFlow];
   const isTransitioning = flow === 'opening' || flow === 'closing';
+  const windowDomState = domBindDeriveWindowState(presentApp?.state, isFocused, isSlotLost);
 
   const appDisplay = useMemo(() => {
     return {
@@ -211,10 +221,12 @@ function MiniappWindowPortal({
       container.appendChild(element);
     }
 
+    containerHandle.setMountTarget?.(container);
+
     if (element.style.display === 'none') {
       element.style.display = '';
     }
-  }, [presentApp?.containerHandle, presentApp?.appId, portalHost]);
+  }, [presentApp?.containerHandle, presentApp?.appId, presentApp?.state, portalHost]);
 
   const handleClose = useCallback(() => {
     requestDismiss(appId);
@@ -227,6 +239,10 @@ function MiniappWindowPortal({
   // 当 slot lost 时禁用 layoutId，防止动画到错误位置
   // Safari 优化：当 sharedLayout 被禁用时也禁用 layoutId
   const enableLayoutId = !isSlotLost && isAnimationEnabled('sharedLayout');
+
+  if (!actualHost) {
+    return null;
+  }
 
   const node = (
     <AnimatePresence
@@ -246,10 +262,10 @@ function MiniappWindowPortal({
           className={cn(styles.window, isAnimating && styles.animating, className)}
           style={{
             zIndex: presentation.zOrder,
-            pointerEvents: isFocused ? undefined : 'none',
-            // slot lost 时隐藏窗口
-            visibility: isSlotLost ? 'hidden' : 'visible',
+            display: windowDomState.visible ? undefined : 'none',
+            pointerEvents: windowDomState.interactive ? 'auto' : 'none',
           }}
+          inert={!windowDomState.interactive || undefined}
           data-testid="miniapp-window"
           data-app-id={presentApp.appId}
           data-slot-lost={isSlotLost ? 'true' : undefined}
