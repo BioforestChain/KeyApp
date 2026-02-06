@@ -4,13 +4,14 @@ import './lib/superjson'
 import './polyfills'
 import { startServiceMain } from './service-main'
 import { startFrontendMain } from './frontend-main'
+import { shouldBlockContextMenu } from './lib/context-menu-guard'
 
 // 禁用右键菜单（移动端 App 体验）
 document.addEventListener('contextmenu', (event) => {
-  const target = event.target as HTMLElement | null
-  if (target?.closest?.('[data-allow-context-menu="true"]')) {
+  if (!shouldBlockContextMenu(event.target)) {
     return
   }
+
   event.preventDefault()
 })
 
