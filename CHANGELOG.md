@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.12] - 2026-02-06
+
+feat(build): prune genesis transactions in dist output
+
+<!-- last-commit: 2269cf26ad8128f93dc3a80fc410d9e14ae40dff -->
+
 ## [0.7.11] - 2026-02-06
 
 fix: source URL textarea editing and DWEB metadata URL assembly
