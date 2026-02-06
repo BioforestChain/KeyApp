@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.9] - 2026-02-06
+
+fix miniapp runtime foreground/background activation and stack switching
+
+<!-- last-commit: 84157abd302b156dc8fb27cf73059ed2f95bd5c7 -->
+
 ## [0.7.8] - 2026-02-05
 
 release flow resume + gh-pages metadata sync

@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.7.8",
-  "change_log": "release flow resume + gh-pages metadata sync",
+  "version": "0.7.9",
+  "change_log": "fix miniapp runtime foreground/background activation and stack switching",
   "categories": [
     "application",
     "wallet"
