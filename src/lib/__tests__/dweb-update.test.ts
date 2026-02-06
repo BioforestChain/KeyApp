@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { checkDwebUpdate, resolveDwebMetadataUrl, resolveInstallUrl } from '../dweb-update'
 
 type FetchResponse = {
@@ -23,6 +23,11 @@ describe('dweb update', () => {
     stubGlobals()
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
   it('resolves stable metadata url', () => {
     const url = resolveDwebMetadataUrl()
     expect(url).toBe('https://example.com/KeyApp/dweb/metadata.json')
@@ -39,6 +44,13 @@ describe('dweb update', () => {
     vi.stubGlobal('__KEYAPP_BASE_URL__', '/KeyApp/')
     const url = resolveDwebMetadataUrl()
     expect(url).toBe('https://example.com/KeyApp/dweb/metadata.json')
+  })
+
+  it('resolves metadata url with CD environment variables', () => {
+    vi.stubGlobal('__KEYAPP_SITE_ORIGIN__', 'https://bioforestchain.github.io')
+    vi.stubGlobal('__KEYAPP_BASE_URL__', '/KeyApp/')
+    const url = resolveDwebMetadataUrl()
+    expect(url).toBe('https://bioforestchain.github.io/KeyApp/dweb/metadata.json')
   })
 
   it('builds install url', () => {
@@ -58,5 +70,26 @@ describe('dweb update', () => {
     const result = await checkDwebUpdate()
     expect(result.status).toBe('update-available')
     expect(result.latestVersion).toBe('1.2.4')
+  })
+
+  it('checks update with correct metadata url under CD env', async () => {
+    vi.stubGlobal('__KEYAPP_SITE_ORIGIN__', 'https://bioforestchain.github.io')
+    vi.stubGlobal('__KEYAPP_BASE_URL__', '/KeyApp/')
+
+    const response: FetchResponse = {
+      ok: true,
+      status: 200,
+      json: async () => ({ version: '1.2.4' }),
+    }
+    const fetchSpy = vi.fn(async () => response)
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const result = await checkDwebUpdate()
+
+    expect(fetchSpy).toHaveBeenCalledWith('https://bioforestchain.github.io/KeyApp/dweb/metadata.json', {
+      cache: 'no-store',
+    })
+    expect(result.status).toBe('update-available')
+    expect(result.metadataUrl).toBe('https://bioforestchain.github.io/KeyApp/dweb/metadata.json')
   })
 })
