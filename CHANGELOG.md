@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.7.10] - 2026-02-06
+
+fix context-menu exemption for input textarea and contenteditable
+
+<!-- last-commit: cbda7d3f8d25ccdf9c0517e56373cc6300006d22 -->
+
 ## [0.7.9] - 2026-02-06
 
 fix miniapp runtime foreground/background activation and stack switching
