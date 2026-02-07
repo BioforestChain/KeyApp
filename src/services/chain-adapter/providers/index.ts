@@ -59,6 +59,14 @@ const PROVIDER_FACTORIES: ApiProviderFactory[] = [
   createBtcwalletProviderEffect,
 ];
 
+function resolveChainId(chainId: string): string {
+  const normalized = chainId.trim();
+  if (normalized.length === 0) return normalized;
+  const config = chainConfigService.getConfig(normalized);
+  if (config) return config.id;
+  return normalized.toLowerCase();
+}
+
 /**
  * 从配置创建 ApiProvider
  */
@@ -74,17 +82,18 @@ function createApiProvider(entry: ParsedApiEntry, chainId: string): ApiProvider 
  * 为指定链创建 ChainProvider
  */
 export function createChainProvider(chainId: string): ChainProvider {
-  const entries = chainConfigService.getApi(chainId);
+  const resolvedChainId = resolveChainId(chainId);
+  const entries = chainConfigService.getApi(resolvedChainId);
   const providers: ApiProvider[] = [];
 
   for (const entry of entries) {
-    const provider = createApiProvider(entry, chainId);
+    const provider = createApiProvider(entry, resolvedChainId);
     if (provider) {
       providers.push(provider);
     }
   }
 
-  return new ChainProvider(chainId, providers);
+  return new ChainProvider(resolvedChainId, providers);
 }
 
 /** ChainProvider 缓存 */
@@ -94,10 +103,12 @@ const providerCache = new Map<string, ChainProvider>();
  * 获取或创建 ChainProvider（带缓存）
  */
 export function getChainProvider(chainId: string): ChainProvider {
-  let provider = providerCache.get(chainId);
+  const resolvedChainId = resolveChainId(chainId);
+
+  let provider = providerCache.get(resolvedChainId);
   if (!provider) {
-    provider = createChainProvider(chainId);
-    providerCache.set(chainId, provider);
+    provider = createChainProvider(resolvedChainId);
+    providerCache.set(resolvedChainId, provider);
   }
   return provider;
 }

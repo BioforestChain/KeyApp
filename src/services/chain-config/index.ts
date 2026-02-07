@@ -397,5 +397,8 @@ export function getEnabledChains(snapshot: ChainConfigSnapshot): ChainConfig[] {
 }
 
 export function getChainById(snapshot: ChainConfigSnapshot, id: string): ChainConfig | null {
-  return snapshot.configs.find((c) => c.id === id) ?? null
+  const normalizedId = id.trim().toLowerCase()
+  return snapshot.configs.find((c) => c.id === id)
+    ?? snapshot.configs.find((c) => c.id.toLowerCase() === normalizedId)
+    ?? null
 }

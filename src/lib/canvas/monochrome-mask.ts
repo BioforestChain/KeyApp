@@ -107,30 +107,148 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+type HookExecutor = (ctx: Ctx2D, imageData: ImageData, size: number, args: unknown) => void
+
+const normalizeHookCode = (code: string): string => code.replace(/\s+/g, ' ').trim()
+
+function getNumberArg(args: unknown, key: string, fallback: number): number {
+  if (typeof args !== 'object' || args === null) {
+    return fallback
+  }
+  const value = Reflect.get(args, key)
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function runRainbowGradientHook(
+  ctx: Ctx2D,
+  imageData: ImageData,
+  size: number,
+  args: unknown
+): void {
+  const data = imageData.data
+  const centerX = size / 2
+  const centerY = size / 2
+  const opacity = getNumberArg(args, 'opacity', 1)
+
+  for (let index = 0; index < data.length; index += 4) {
+    const alpha = data[index + 3]!
+    if (alpha < 10) continue
+
+    const pixelX = (index / 4) % size
+    const pixelY = Math.floor(index / 4 / size)
+
+    const angle = (Math.atan2(pixelX - centerX, centerY - pixelY) * 180) / Math.PI + 180
+    const hue = (angle % 360) / 60
+    const hueBand = Math.floor(hue) % 6
+    const fraction = hue - Math.floor(hue)
+
+    let red = 255
+    let green = 0
+    let blue = 0
+
+    switch (hueBand) {
+      case 0:
+        red = 255
+        green = Math.round(fraction * 255)
+        blue = 0
+        break
+      case 1:
+        red = Math.round((1 - fraction) * 255)
+        green = 255
+        blue = 0
+        break
+      case 2:
+        red = 0
+        green = 255
+        blue = Math.round(fraction * 255)
+        break
+      case 3:
+        red = 0
+        green = Math.round((1 - fraction) * 255)
+        blue = 255
+        break
+      case 4:
+        red = Math.round(fraction * 255)
+        green = 0
+        blue = 255
+        break
+      default:
+        red = 255
+        green = 0
+        blue = Math.round((1 - fraction) * 255)
+        break
+    }
+
+    data[index] = red
+    data[index + 1] = green
+    data[index + 2] = blue
+    data[index + 3] = Math.round(alpha * opacity)
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+}
+
+function runSolidColorHook(
+  ctx: Ctx2D,
+  imageData: ImageData,
+  _size: number,
+  args: unknown
+): void {
+  const data = imageData.data
+  const red = getNumberArg(args, 'r', 255)
+  const green = getNumberArg(args, 'g', 255)
+  const blue = getNumberArg(args, 'b', 255)
+  const opacity = getNumberArg(args, 'opacity', 1)
+
+  for (let index = 0; index < data.length; index += 4) {
+    const alpha = data[index + 3]!
+    if (alpha < 10) continue
+
+    data[index] = red
+    data[index + 1] = green
+    data[index + 2] = blue
+    data[index + 3] = Math.round(alpha * opacity)
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+}
+
+const builtinHookExecutors = new Map<string, HookExecutor>()
+let builtinHookExecutorsReady = false
+
+function ensureBuiltinHookExecutors(): void {
+  if (builtinHookExecutorsReady) {
+    return
+  }
+
+  builtinHookExecutors.set(normalizeHookCode(RAINBOW_GRADIENT_HOOK.code), runRainbowGradientHook)
+  builtinHookExecutors.set(normalizeHookCode(SOLID_COLOR_HOOK_CODE), runSolidColorHook)
+  builtinHookExecutorsReady = true
+}
+
+function resolveBuiltinHookExecutor(code: string): HookExecutor | undefined {
+  ensureBuiltinHookExecutors()
+  return builtinHookExecutors.get(normalizeHookCode(code))
+}
 
 /**
  * 编译 hook 函数字符串为可执行函数
  * 函数签名: (ctx, imageData, size, args) => void
  */
-function compileHook(code: string): (
-  ctx: Ctx2D,
-  imageData: ImageData,
-  size: number,
-  args: unknown
-) => void {
+function compileHook(code: string): HookExecutor {
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  return new Function('ctx', 'imageData', 'size', 'args', code) as (
-    ctx: Ctx2D,
-    imageData: ImageData,
-    size: number,
-    args: unknown
-  ) => void
+  return new Function('ctx', 'imageData', 'size', 'args', code) as HookExecutor
 }
 
 // Hook 函数缓存（避免重复编译）
 const hookCache = new Map<string, ReturnType<typeof compileHook>>()
 
 function getCompiledHook(code: string): ReturnType<typeof compileHook> {
+  const builtinHook = resolveBuiltinHookExecutor(code)
+  if (builtinHook) {
+    return builtinHook
+  }
+
   let fn = hookCache.get(code)
   if (!fn) {
     fn = compileHook(code)

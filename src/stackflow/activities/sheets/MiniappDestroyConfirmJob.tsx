@@ -3,7 +3,7 @@
  * 用于小程序请求销毁资产时显示
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { ActivityComponentType } from '@stackflow/react';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -12,13 +12,14 @@ import { IconFlame, IconAlertTriangle, IconLoader2 } from '@tabler/icons-react';
 import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
-import { useCurrentWallet, useChainConfigState, chainConfigSelectors, walletStore } from '@/stores';
+import { useChainConfigState, chainConfigSelectors } from '@/stores';
 import { submitBioforestBurn } from '@/hooks/use-burn.bioforest';
 import { Amount } from '@/types/amount';
 import { AmountDisplay } from '@/components/common/amount-display';
 import { MiniappSheetHeader } from '@/components/ecosystem';
 import { ChainBadge } from '@/components/wallet/chain-icon';
 import { ChainAddressDisplay } from '@/components/wallet/chain-address-display';
+import { findMiniappWalletByAddress, resolveMiniappChainId } from './miniapp-wallet';
 
 type MiniappDestroyConfirmJobParams = {
   /** 来源小程序名称 */
@@ -40,18 +41,20 @@ function MiniappDestroyConfirmJobContent() {
   const { pop, push } = useFlow();
   const params = useActivityParams<MiniappDestroyConfirmJobParams>();
   const { appName, appIcon, from, amount, chain, asset } = params;
-  const currentWallet = useCurrentWallet();
   const chainConfigState = useChainConfigState();
 
+  const resolvedChainId = useMemo(() => resolveMiniappChainId(chain), [chain]);
+  const walletMatch = useMemo(() => findMiniappWalletByAddress(resolvedChainId, from), [resolvedChainId, from]);
+  const targetWallet = walletMatch?.wallet;
+
   const chainConfig = chainConfigState.snapshot
-    ? chainConfigSelectors.getChainById(chainConfigState, chain as 'bfmeta')
+    ? chainConfigSelectors.getChainById(chainConfigState, resolvedChainId)
     : null;
 
   const [isConfirming, setIsConfirming] = useState(false);
 
-  // 查找使用该地址的钱包
-  const targetWallet = walletStore.state.wallets.find((w) => w.chainAddresses.some((ca) => ca.address === from));
   const walletName = targetWallet?.name || t('common:unknownWallet');
+  const lockDescription = `${appName || t('common:unknownDApp')} ${t('common:requestsDestroy')}`;
 
   const handleConfirm = useCallback(() => {
     if (isConfirming) return;
@@ -61,8 +64,8 @@ function MiniappDestroyConfirmJobContent() {
       setIsConfirming(true);
 
       try {
-        if (!currentWallet?.id || !chainConfig) {
-          return false;
+        if (!targetWallet?.id || !chainConfig) {
+          throw new Error(t('common:signingAddressNotFound'));
         }
 
         // 获取 applyAddress
@@ -78,7 +81,7 @@ function MiniappDestroyConfirmJobContent() {
 
         const result = await submitBioforestBurn({
           chainConfig,
-          walletId: currentWallet.id,
+          walletId: targetWallet.id,
           password,
           fromAddress: from,
           recipientAddress: applyAddress,
@@ -105,7 +108,7 @@ function MiniappDestroyConfirmJobContent() {
 
         pop();
         return true;
-      } catch (error) {
+      } catch {
         return false;
       } finally {
         setIsConfirming(false);
@@ -115,8 +118,14 @@ function MiniappDestroyConfirmJobContent() {
     // 打开钱包锁验证
     push('WalletLockConfirmJob', {
       title: t('transaction:destroyPage.title'),
+      description: lockDescription,
+      miniappName: appName,
+      miniappIcon: appIcon,
+      walletName,
+      walletAddress: from,
+      walletChainId: resolvedChainId,
     });
-  }, [isConfirming, currentWallet, chainConfig, asset, from, amount, pop, push, t]);
+  }, [isConfirming, targetWallet, chainConfig, asset, from, amount, pop, push, t, lockDescription, appName, appIcon, walletName, resolvedChainId]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-destroy-confirm', {
@@ -137,13 +146,13 @@ function MiniappDestroyConfirmJobContent() {
         {/* Header */}
         <MiniappSheetHeader
           title={t('transaction:destroyPage.title')}
-          description={`${appName || t('common:unknownDApp')} ${t('common:requestsDestroy')}`}
+          description={lockDescription}
           appName={appName}
           appIcon={appIcon}
           walletInfo={{
             name: walletName,
             address: from,
-            chainId: chain,
+            chainId: resolvedChainId,
           }}
         />
 
@@ -158,14 +167,14 @@ function MiniappDestroyConfirmJobContent() {
           <div className="bg-muted/50 space-y-3 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground w-10 shrink-0 text-xs"> {t('common:from')}</span>
-              <ChainAddressDisplay chainId={chain} address={from} copyable size="sm" />
+              <ChainAddressDisplay chainId={resolvedChainId} address={from} copyable size="sm" />
             </div>
           </div>
 
           {/* Chain & Asset */}
           <div className="bg-muted/50 flex items-center justify-between rounded-xl p-3">
             <span className="text-muted-foreground text-sm"> {t('common:network')}</span>
-            <ChainBadge chainId={chain} />
+            <ChainBadge chainId={resolvedChainId} />
           </div>
 
           {/* Warning */}
@@ -186,7 +195,7 @@ function MiniappDestroyConfirmJobContent() {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isConfirming}
+            disabled={isConfirming || !targetWallet?.id || !chainConfig}
             className={cn(
               'flex-1 rounded-xl py-3 font-medium transition-colors',
               'bg-destructive text-destructive-foreground hover:bg-destructive/90',

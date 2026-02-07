@@ -3,7 +3,7 @@
  * 用于小程序请求用户签名消息
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ActivityComponentType } from '@stackflow/react';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +12,9 @@ import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react';
 import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
-import { useCurrentWallet, walletStore } from '@/stores';
 import { SignatureAuthService, plaocAdapter } from '@/services/authorize';
 import { MiniappSheetHeader } from '@/components/ecosystem';
+import { findMiniappWalletByAddress, resolveMiniappChainId } from './miniapp-wallet';
 
 type SigningConfirmJobParams = {
   /** 要签名的消息 */
@@ -33,31 +33,30 @@ function SigningConfirmJobContent() {
   const { t } = useTranslation('common');
   const { pop, push } = useFlow();
   const { message, address, appName, appIcon, chainName } = useActivityParams<SigningConfirmJobParams>();
-  const currentWallet = useCurrentWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 查找使用该地址的钱包
-  const normalizedChainName = chainName.trim().toLowerCase();
-  const targetWallet = walletStore.state.wallets.find((w) =>
-    w.chainAddresses.some(
-      (ca) => ca.address === address && ca.chain.toLowerCase() === normalizedChainName,
-    ),
+  const requestedChainId = useMemo(() => resolveMiniappChainId(chainName), [chainName]);
+
+  const walletMatch = useMemo(
+    () => findMiniappWalletByAddress(requestedChainId, address),
+    [requestedChainId, address],
   );
-  const resolvedChainId = targetWallet?.chainAddresses.find(
-    (ca) => ca.address === address && ca.chain.toLowerCase() === normalizedChainName,
-  )?.chain;
+
+  const targetWallet = walletMatch?.wallet;
+  const resolvedChainId = walletMatch?.chainAddress.chain;
+  const hasSigningWallet = Boolean(targetWallet?.encryptedMnemonic && resolvedChainId);
   const walletName = targetWallet?.name || t('unknownWallet');
+  const displayChainId = resolvedChainId ?? requestedChainId;
 
   const handleConfirm = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || !hasSigningWallet) return;
 
     // 设置钱包锁验证回调
     setWalletLockConfirmCallback(async (password: string) => {
       setIsSubmitting(true);
 
       try {
-        const encryptedSecret = targetWallet?.encryptedMnemonic ?? currentWallet?.encryptedMnemonic;
-        if (!encryptedSecret || !targetWallet || !resolvedChainId) {
+        if (!targetWallet || !targetWallet.encryptedMnemonic || !resolvedChainId) {
           throw new Error(t('signingAddressNotFound'));
         }
 
@@ -72,7 +71,7 @@ function SigningConfirmJobContent() {
             senderAddress: address,
             message,
           },
-          encryptedSecret,
+          targetWallet.encryptedMnemonic,
           password,
         );
 
@@ -97,9 +96,15 @@ function SigningConfirmJobContent() {
 
     // 打开钱包锁验证
     push('WalletLockConfirmJob', {
-      title: t('sign'),
+      title: t('signMessage'),
+      description: appName || t('unknownDApp'),
+      miniappName: appName,
+      miniappIcon: appIcon,
+      walletName,
+      walletAddress: address,
+      walletChainId: displayChainId,
     });
-  }, [isSubmitting, currentWallet, chainName, address, message, pop, push, t, targetWallet]);
+  }, [isSubmitting, hasSigningWallet, address, message, pop, push, resolvedChainId, t, targetWallet, appName, appIcon, walletName, displayChainId]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('signing-confirm', {
@@ -129,12 +134,18 @@ function SigningConfirmJobContent() {
           walletInfo={{
             name: walletName,
             address,
-            chainId: resolvedChainId ?? 'bfmeta',
+            chainId: displayChainId,
           }}
         />
 
         {/* Content */}
         <div className="space-y-4 p-4">
+          {!hasSigningWallet && (
+            <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+              {t('signingAddressNotFound')}
+            </div>
+          )}
+
           {/* Message */}
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs"> {t('message')}</p>
@@ -163,7 +174,7 @@ function SigningConfirmJobContent() {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !hasSigningWallet}
             className={cn(
               'flex-1 rounded-xl py-3 font-medium transition-colors',
               'bg-primary text-primary-foreground hover:bg-primary/90',

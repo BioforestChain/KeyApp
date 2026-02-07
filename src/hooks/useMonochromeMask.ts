@@ -3,6 +3,43 @@ import { createMonochromeMask, type MonochromeMaskOptions, type PipelineHook } f
 
 export type { MonochromeMaskOptions, PipelineHook };
 
+interface IdleDeadlineLike {
+  didTimeout: boolean;
+  timeRemaining: () => number;
+}
+
+type IdleCallbackLike = (deadline: IdleDeadlineLike) => void;
+
+type IdleRequestFn = (callback: IdleCallbackLike, options?: { timeout: number }) => number;
+type IdleCancelFn = (handle: number) => void;
+
+type IdleGlobal = typeof globalThis & {
+  requestIdleCallback?: IdleRequestFn;
+  cancelIdleCallback?: IdleCancelFn;
+};
+
+const idleGlobal: IdleGlobal = globalThis;
+
+const requestIdleWork: IdleRequestFn =
+  typeof idleGlobal.requestIdleCallback === 'function'
+    ? idleGlobal.requestIdleCallback.bind(idleGlobal)
+    : ((callback: IdleCallbackLike) => {
+        const timeoutHandle = idleGlobal.setTimeout(() => {
+          callback({
+            didTimeout: false,
+            timeRemaining: () => 0,
+          });
+        }, 16);
+        return timeoutHandle as unknown as number;
+      });
+
+const cancelIdleWork: IdleCancelFn =
+  typeof idleGlobal.cancelIdleCallback === 'function'
+    ? idleGlobal.cancelIdleCallback.bind(idleGlobal)
+    : ((handle: number) => {
+        idleGlobal.clearTimeout(handle);
+      });
+
 /**
  * 将图标转换为单色遮罩（用于防伪水印）
  *
@@ -33,6 +70,7 @@ export function useMonochromeMask(iconUrl: string | undefined, options: Monochro
     }
 
     let cancelled = false;
+    let idleHandle = 0;
 
     // 解析 pipeline（从稳定化的 key 还原）
     const pipelineData: PipelineHook[] | undefined = pipelineKey ? JSON.parse(pipelineKey) : undefined;
@@ -41,21 +79,26 @@ export function useMonochromeMask(iconUrl: string | undefined, options: Monochro
     if (pipelineData) {
       opts.pipeline = pipelineData;
     }
-    if (clip) {
+    if (clip !== undefined) {
       opts.clip = clip;
     }
     if (targetBrightness !== undefined) {
       opts.targetBrightness = targetBrightness;
     }
 
-    createMonochromeMask(iconUrl, opts).then((url) => {
-      if (!cancelled) {
-        setMaskUrl(url);
-      }
-    });
+    idleHandle = requestIdleWork(() => {
+      createMonochromeMask(iconUrl, opts).then((url) => {
+        if (!cancelled) {
+          setMaskUrl(url);
+        }
+      });
+    }, { timeout: 300 });
 
     return () => {
       cancelled = true;
+      if (idleHandle !== 0) {
+        cancelIdleWork(idleHandle);
+      }
     };
   }, [iconUrl, size, invert, contrast, pipelineKey, clip, targetBrightness]);
 

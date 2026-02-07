@@ -4,7 +4,7 @@
 
 import type { MethodHandler, EcosystemDestroyParams } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type MiniappInfo } from './context'
+import { HandlerContext, type MiniappInfo, toMiniappInfo } from './context'
 
 // 兼容旧 API
 let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
@@ -40,7 +40,7 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
     amount: opts.amount,
     chain: opts.chain,
     asset: opts.asset,
-    app: { name: context.appName },
+    app: toMiniappInfo(context),
   }
 
   const result = await showDestroyDialog(destroyParams)

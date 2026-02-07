@@ -3,7 +3,14 @@
  * 管理小程序回调的注册中心，支持多实例
  */
 
-import type { BioAccount, EcosystemTransferParams, EcosystemDestroyParams, UnsignedTransaction, SignedTransaction } from '../types'
+import type {
+  BioAccount,
+  EcosystemTransferParams,
+  EcosystemDestroyParams,
+  UnsignedTransaction,
+  SignedTransaction,
+  HandlerContext as EcosystemHandlerContext,
+} from '../types'
 
 /** EVM 交易请求类型 */
 export interface EvmTransactionRequest {
@@ -31,6 +38,16 @@ export interface TronTransaction {
 export interface MiniappInfo {
   name: string
   icon?: string
+}
+
+/**
+ * 从 handler context 构造统一的 miniapp 信息。
+ */
+export function toMiniappInfo(context: Pick<EcosystemHandlerContext, 'appName' | 'appIcon'>): MiniappInfo {
+  const icon = context.appIcon?.trim()
+  return icon
+    ? { name: context.appName, icon }
+    : { name: context.appName }
 }
 
 /** 签名参数 */
@@ -74,13 +91,23 @@ export interface TronSigningParams {
   appName: string
 }
 
+/** 转账对话框返回值 */
+export interface TransferDialogResult {
+  /** 链上交易 ID（兼容旧字段） */
+  txHash: string
+  /** 语义化别名：交易 ID */
+  txId?: string
+  /** 可序列化交易对象（供调用方直接提交后端） */
+  transaction?: Record<string, unknown>
+}
+
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
   // Bio (BioChain) callbacks
   showWalletPicker: (opts?: { chain?: string; exclude?: string; app?: MiniappInfo }) => Promise<BioAccount | null>
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
-  showTransferDialog: (params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showTransferDialog: (params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<TransferDialogResult | null>
   showDestroyDialog?: (params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<SignedTransaction | null>
 
