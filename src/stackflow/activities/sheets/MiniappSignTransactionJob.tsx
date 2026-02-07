@@ -13,6 +13,7 @@ import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
 import { walletStore } from '@/stores';
+import { findMiniappWalletIdByAddress, resolveMiniappChainId } from './miniapp-wallet';
 import type { UnsignedTransaction } from '@/services/ecosystem';
 import { superjson } from '@biochain/chain-effect';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
@@ -33,21 +34,6 @@ type MiniappSignTransactionJobParams = {
   unsignedTx: string;
 };
 
-function findWalletIdByAddress(chainId: string, address: string): string | null {
-  const isHexLike = address.startsWith('0x');
-  const normalized = isHexLike ? address.toLowerCase() : address;
-
-  for (const wallet of walletStore.state.wallets) {
-    const match = wallet.chainAddresses.find((ca) => {
-      if (ca.chain !== chainId) return false;
-      if (isHexLike || ca.address.startsWith('0x')) return ca.address.toLowerCase() === normalized;
-      return ca.address === normalized;
-    });
-    if (match) return wallet.id;
-  }
-  return null;
-}
-
 function MiniappSignTransactionJobContent() {
   const { t } = useTranslation('common');
   const { pop, push } = useFlow();
@@ -64,9 +50,11 @@ function MiniappSignTransactionJobContent() {
     }
   }, [unsignedTxJson]);
 
+  const resolvedChainId = useMemo(() => resolveMiniappChainId(chain), [chain]);
+
   const walletId = useMemo(() => {
-    return findWalletIdByAddress(chain, from);
-  }, [chain, from]);
+    return findMiniappWalletIdByAddress(resolvedChainId, from);
+  }, [resolvedChainId, from]);
 
   const targetWallet = walletStore.state.wallets.find((w) => w.id === walletId);
   const walletName = targetWallet?.name || t('unknownWallet');
@@ -83,7 +71,7 @@ function MiniappSignTransactionJobContent() {
           walletId,
           password,
           from,
-          chainId: chain,
+          chainId: resolvedChainId,
           unsignedTx,
         });
 
@@ -107,8 +95,14 @@ function MiniappSignTransactionJobContent() {
 
     push('WalletLockConfirmJob', {
       title: t('signTransaction'),
+      description: appName || t('unknownDApp'),
+      miniappName: appName,
+      miniappIcon: appIcon,
+      walletName,
+      walletAddress: from,
+      walletChainId: resolvedChainId,
     });
-  }, [chain, from, isSubmitting, pop, push, t, unsignedTx, walletId]);
+  }, [appIcon, appName, from, isSubmitting, pop, push, resolvedChainId, t, unsignedTx, walletId, walletName]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-sign-transaction-confirm', {
@@ -142,7 +136,7 @@ function MiniappSignTransactionJobContent() {
           walletInfo={{
             name: walletName,
             address: from,
-            chainId: chain,
+            chainId: resolvedChainId,
           }}
         />
 
@@ -159,12 +153,12 @@ function MiniappSignTransactionJobContent() {
 
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">{t('network')}</p>
-            <ChainBadge chainId={chain} />
+            <ChainBadge chainId={resolvedChainId} />
           </div>
 
           <div className="bg-muted/50 rounded-xl p-3">
             <p className="text-muted-foreground mb-1 text-xs">{t('signingAddress')}</p>
-            <ChainAddressDisplay chainId={chain} address={from} copyable={false} size="sm" />
+            <ChainAddressDisplay chainId={resolvedChainId} address={from} copyable={false} size="sm" />
           </div>
 
           <div className="bg-muted/50 rounded-xl p-3">

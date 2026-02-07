@@ -7,7 +7,7 @@
 
 import type { MethodHandler, EcosystemTransferParams, UnsignedTransaction, SignedTransaction } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type MiniappInfo, type SignTransactionParams } from './context'
+import { HandlerContext, type SignTransactionParams, toMiniappInfo } from './context'
 
 import { Amount } from '@/types/amount'
 import { chainConfigActions, chainConfigSelectors, chainConfigStore, walletStore } from '@/stores'
@@ -19,12 +19,13 @@ import { normalizeTronAddress } from '@/services/chain-adapter/tron/address'
 
 function findWalletIdByAddress(chainId: string, address: string): string | null {
   const wallets = walletStore.state.wallets
+  const normalizedChainId = chainId.trim().toLowerCase()
   const isHexLike = address.startsWith('0x')
   const normalized = isHexLike ? address.toLowerCase() : address
 
   for (const wallet of wallets) {
     const match = wallet.chainAddresses.find((ca) => {
-      if (ca.chain !== chainId) return false
+      if (ca.chain.toLowerCase() !== normalizedChainId) return false
       if (isHexLike || ca.address.startsWith('0x')) {
         return ca.address.toLowerCase() === normalized
       }
@@ -169,7 +170,7 @@ export const handleSignTransaction: MethodHandler = async (params, context) => {
     from: opts.from,
     chain: opts.chain,
     unsignedTx: opts.unsignedTx,
-    app: { name: context.appName } satisfies MiniappInfo,
+    app: toMiniappInfo(context),
   })
 
   if (!result) {

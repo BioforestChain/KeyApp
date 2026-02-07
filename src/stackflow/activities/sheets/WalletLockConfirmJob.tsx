@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PatternLock, patternToString } from "@/components/security/pattern-lock";
 import { IconFingerprint as Fingerprint } from "@tabler/icons-react";
+import { MiniappSheetHeader } from "@/components/ecosystem";
 import { useFlow } from "../../stackflow";
 import { ActivityParamsProvider, useActivityParams } from "../../hooks";
 
@@ -35,24 +36,38 @@ type WalletLockConfirmJobParams = {
   title?: string;
   description?: string;
   biometricAvailable?: string; // "true" or "false" as URL params are strings
+  miniappName?: string;
+  miniappIcon?: string;
+  walletName?: string;
+  walletAddress?: string;
+  walletChainId?: string;
 };
 
 function WalletLockConfirmJobContent() {
   const { t } = useTranslation("security");
   const { pop } = useFlow();
-  const { title, description, biometricAvailable } = useActivityParams<WalletLockConfirmJobParams>();
+  const {
+    title,
+    description,
+    biometricAvailable,
+    miniappName,
+    miniappIcon,
+    walletName,
+    walletAddress,
+    walletChainId,
+  } = useActivityParams<WalletLockConfirmJobParams>();
 
   const [pattern, setPattern] = useState<number[]>([]);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const errorResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   // Capture callback on mount and keep it throughout component lifecycle
   const callbackRef = useRef<((pattern: string) => Promise<boolean>) | null>(null);
   const biometricCallbackRef = useRef<(() => Promise<boolean>) | null>(null);
   const initialized = useRef(false);
-  
+
   // Only capture on first mount (survives React Strict Mode double-mount)
   if (!initialized.current && pendingCallback) {
     callbackRef.current = pendingCallback;
@@ -63,6 +78,8 @@ function WalletLockConfirmJobContent() {
 
   const displayTitle = title ?? t("patternLock.unlockTitle");
   const hasBiometric = biometricAvailable === "true" && biometricCallbackRef.current;
+  const hasWalletInfo = Boolean(walletName && walletAddress && walletChainId);
+  const hasMiniappContext = Boolean(miniappName || miniappIcon || hasWalletInfo || walletChainId);
 
   // 清除错误状态和定时器
   const clearError = useCallback(() => {
@@ -118,7 +135,7 @@ function WalletLockConfirmJobContent() {
         setIsVerifying(false);
       }
     },
-    [pop, clearError]
+    [pop, clearError, t]
   );
 
   const handleBiometric = useCallback(async () => {
@@ -147,6 +164,7 @@ function WalletLockConfirmJobContent() {
       setIsVerifying(false);
     }
   }, [pop, clearError]);
+
   const handleCancel = () => {
     pop();
   };
@@ -159,13 +177,29 @@ function WalletLockConfirmJobContent() {
           <div className="h-1 w-10 rounded-full bg-muted" />
         </div>
 
-        {/* Title */}
-        <div className="px-4 pb-4 text-center">
-          <h2 className="text-lg font-semibold">{displayTitle}</h2>
-          {description && (
-            <p className="text-muted-foreground mt-1 text-sm">{description}</p>
-          )}
-        </div>
+        {hasMiniappContext ? (
+          <MiniappSheetHeader
+            title={displayTitle}
+            description={description}
+            appName={miniappName}
+            appIcon={miniappIcon}
+            chainId={!hasWalletInfo ? walletChainId : undefined}
+            walletInfo={hasWalletInfo
+              ? {
+                name: walletName!,
+                address: walletAddress!,
+                chainId: walletChainId!,
+              }
+              : undefined}
+          />
+        ) : (
+          <div className="px-4 pb-4 text-center">
+            <h2 className="text-lg font-semibold">{displayTitle}</h2>
+            {description && (
+              <p className="text-muted-foreground mt-1 text-sm">{description}</p>
+            )}
+          </div>
+        )}
 
         {/* Pattern Lock */}
         <div className="px-4 pb-4">
@@ -175,14 +209,10 @@ function WalletLockConfirmJobContent() {
             onComplete={handlePatternComplete}
             minPoints={4}
             error={error}
+            errorText={errorMessage ?? undefined}
             disabled={isVerifying}
             data-testid="wallet-lock-pattern"
           />
-          {error && errorMessage && (
-            <p className="mt-2 text-center text-sm text-destructive">
-              {errorMessage}
-            </p>
-          )}
         </div>
 
         {/* Biometric & Cancel */}

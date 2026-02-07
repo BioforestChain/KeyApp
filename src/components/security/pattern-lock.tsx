@@ -17,6 +17,8 @@ export interface PatternLockProps {
   error?: boolean;
   /** 成功状态 */
   success?: boolean;
+  /** 错误提示文案（可选，覆盖默认错误文案） */
+  errorText?: string;
   /** 额外的 className */
   className?: string;
   /** 网格大小 (默认 3x3) */
@@ -48,6 +50,7 @@ export function PatternLock({
   disabled = false,
   error = false,
   success = false,
+  errorText,
   className,
   size = 3,
   'data-testid': testId,
@@ -496,7 +499,7 @@ export function PatternLock({
       <div className="text-center h-5">
         {error || isErrorAnimating ? (
           <p className="text-destructive text-sm">
-            {t('patternLock.error')}
+            {errorText ?? t('patternLock.error')}
           </p>
         ) : selectedNodes.length === 0 ? (
           <p className="text-muted-foreground text-sm">

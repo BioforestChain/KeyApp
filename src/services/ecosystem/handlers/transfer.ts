@@ -4,10 +4,10 @@
 
 import type { MethodHandler, EcosystemTransferParams } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type MiniappInfo } from './context'
+import { HandlerContext, type MiniappInfo, type TransferDialogResult, toMiniappInfo } from './context'
 
 // 兼容旧 API
-let _showTransferDialog: ((params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
+let _showTransferDialog: ((params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<TransferDialogResult | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setTransferDialog(dialog: typeof _showTransferDialog): void {
@@ -18,6 +18,31 @@ export function setTransferDialog(dialog: typeof _showTransferDialog): void {
 function getTransferDialog(appId: string) {
   const callbacks = HandlerContext.get(appId)
   return callbacks?.showTransferDialog ?? _showTransferDialog
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function normalizeTransferResult(result: TransferDialogResult) {
+  const txHash = result.txHash || result.txId
+  const txId = result.txId || result.txHash
+  if (!txHash || !txId) {
+    throw Object.assign(new Error('Invalid transfer result: missing tx id'), { code: BioErrorCodes.INTERNAL_ERROR })
+  }
+
+  const transaction = isRecord(result.transaction)
+    ? result.transaction
+    : {
+      txId,
+      txHash,
+    }
+
+  return {
+    txHash,
+    txId,
+    transaction,
+  }
 }
 
 /** bio_sendTransaction - Send a transaction */
@@ -40,7 +65,7 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     to: opts.to,
     amount: opts.amount,
     chain: opts.chain,
-    app: { name: context.appName },
+    app: toMiniappInfo(context),
   }
   if (opts.asset) {
     transferParams.asset = opts.asset
@@ -55,5 +80,5 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return result
+  return normalizeTransferResult(result)
 }

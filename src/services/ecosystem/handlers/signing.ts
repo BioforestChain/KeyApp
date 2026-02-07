@@ -4,7 +4,7 @@
 
 import type { MethodHandler } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type SigningParams, type SigningResult } from './context'
+import { HandlerContext, type SigningParams, type SigningResult, toMiniappInfo } from './context'
 
 // 兼容旧 API（现在返回 SigningResult）
 let _showSigningDialog: ((params: SigningParams) => Promise<SigningResult | null>) | null = null
@@ -36,7 +36,7 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
     message: opts.message,
     address: opts.address,
     chainName: opts.chainName,
-    app: { name: context.appName },
+    app: toMiniappInfo(context),
   })
 
   if (!result) {
@@ -66,7 +66,7 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
     message,
     address: opts.address,
     chainName: opts.chainName,
-    app: { name: context.appName },
+    app: toMiniappInfo(context),
   })
 
   if (!result) {

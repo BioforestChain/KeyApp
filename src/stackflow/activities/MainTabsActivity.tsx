@@ -138,14 +138,20 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
     });
 
     setTransferDialog(async (params: EcosystemTransferParams & { app: { name: string; icon?: string } }) => {
-      return new Promise<{ txHash: string } | null>((resolve) => {
+      return new Promise<{ txHash: string; txId?: string; transaction?: Record<string, unknown> } | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 
         const handleResult = (e: Event) => {
           window.clearTimeout(timeout);
-          const detail = (e as CustomEvent).detail as { confirmed?: boolean; txHash?: string } | undefined;
+          const detail = (e as CustomEvent).detail as
+            | { confirmed?: boolean; txHash?: string; txId?: string; transaction?: Record<string, unknown> }
+            | undefined;
           if (detail?.confirmed && detail.txHash) {
-            resolve({ txHash: detail.txHash });
+            resolve({
+              txHash: detail.txHash,
+              txId: detail.txId,
+              transaction: detail.transaction,
+            });
             return;
           }
           resolve(null);
