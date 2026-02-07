@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.7.12",
-  "change_log": "feat(build): prune genesis transactions in dist output",
+  "version": "0.8.0",
+  "change_log": "miniapp 授权弹层一致性修复、转账兼容性修复与主线程性能优化",
   "categories": [
     "application",
     "wallet"
