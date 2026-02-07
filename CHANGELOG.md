@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.8.0] - 2026-02-07
+
+miniapp 授权弹层一致性修复、转账兼容性修复与主线程性能优化
+
+<!-- last-commit: 1f74748ea6ecd4c9ddcf92341077217b2e6252e2 -->
+
 ## [0.7.12] - 2026-02-06
 
 feat(build): prune genesis transactions in dist output
