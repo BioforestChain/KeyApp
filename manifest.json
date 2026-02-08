@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.8.0",
-  "change_log": "miniapp 授权弹层一致性修复、转账兼容性修复与主线程性能优化",
+  "version": "0.8.1",
+  "change_log": "生态桌面 beta 小程序标记样式",
   "categories": [
     "application",
     "wallet"
