@@ -5,6 +5,7 @@
 import type { MethodHandler, EcosystemTransferParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo, type TransferDialogResult, toMiniappInfo } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 
 // 兼容旧 API
 let _showTransferDialog: ((params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<TransferDialogResult | null>) | null = null
@@ -74,7 +75,7 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
     transferParams.tokenAddress = opts.tokenAddress
   }
 
-  const result = await showTransferDialog(transferParams)
+  const result = await enqueueMiniappSheet(context.appId, () => showTransferDialog(transferParams))
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })

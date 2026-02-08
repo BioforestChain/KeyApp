@@ -109,6 +109,43 @@ gh pr merge <pr#> --squash --delete-branch
 - **严禁主目录开发**: 必须使用 `task start` 创建的 Worktree。
 - **Schema-first**: 服务开发必须先定义 `types.ts`。
 
+---
+
+## Agent 工作方式（约定）
+
+> 目标：避免“围绕 DOM 修修补补”导致的路径爆炸；用可验证的状态机 + 纯函数绑定 DOM。
+
+### 1) 状态机优先（State-first）
+
+- 先把“控制层状态”定义清楚（例如：miniapp 是 `active/backgrounded`，sheet 是否 `pending/visible/resolved`）。
+- 先完成状态迁移/队列/FIFO 等控制逻辑，再把状态映射到 DOM（DOM 只是最后一步渲染）。
+- 使用函数式工具函数做绑定：
+  - `derive*`：从状态派生视图状态（纯函数）
+  - `apply*ToDom`：把派生后的视图状态写入 DOM（集中处理，避免到处散落 `style/classList`）
+
+### 2) KISS：样式控制收敛到单一入口
+
+- 不在多个层级叠加 `opacity/visibility/display/pointer-events` 进行互相对冲。
+- 约定由“单一视图状态”驱动：
+  - `interactive`（是否可交互）→ `pointer-events`
+  - `visible`（是否可见）→ `opacity` 或 `visibility`
+  - **禁止**通过移除 DOM 节点/父节点来实现后台化（iframe 被移除会被释放）。
+
+### 3) Miniapp Sheet 统一 FIFO（按 appId）
+
+- 所有需要 UI Sheet 的 handler 必须通过 `enqueueMiniappSheet(appId, task)` 串行化。
+- 目标：同一 app 的敏感动作“先入先出”，且不会被新弹窗打断。
+
+### 4) Worktree 与 PR 管理
+
+- 一律从 repo 根目录执行 `pnpm agent task start`，避免在 worktree 内再次创建 worktree（会出现嵌套 worktree）。
+- PR 合并后清理无用 worktree/分支，保持本地环境干净可控。
+
+### 5) 验证要求
+
+- 修改完成后至少跑一次：`pnpm agent review verify`。
+- 对“协议/URL 拼接/缓存”这类易回归问题优先补单测，确保在 CI 中可复现。
+
 <!-- OPENSPEC:START -->
 # OpenSpec Instructions
 

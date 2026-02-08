@@ -8,6 +8,7 @@
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 import {
   toHexChainId,
   parseHexChainId,
@@ -132,7 +133,10 @@ export const handleEthRequestAccounts: MethodHandler = async (_params, context) 
   }
 
   const chainId = getCurrentChainId(context.appId)
-  const wallet = await showWalletPicker({ chainId, app: { name: context.appName, icon: context.appIcon } })
+
+  const wallet = await enqueueMiniappSheet(context.appId, () =>
+    showWalletPicker({ chainId, app: { name: context.appName, icon: context.appIcon } }),
+  )
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -173,12 +177,14 @@ export const handleSwitchChain: MethodHandler = async (params, context) => {
 
   // Show confirmation dialog
   if (_showChainSwitchConfirm) {
-    const approved = await _showChainSwitchConfirm({
-      fromChainId: currentChainId,
-      toChainId: targetChainId,
-      appName: context.appName,
-      appIcon: context.appIcon,
-    })
+    const approved = await enqueueMiniappSheet(context.appId, () =>
+      _showChainSwitchConfirm({
+        fromChainId: currentChainId,
+        toChainId: targetChainId,
+        appName: context.appName,
+        appIcon: context.appIcon,
+      }),
+    )
     if (!approved) {
       throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
     }
@@ -211,7 +217,9 @@ export const handlePersonalSign: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const result = await showSigningDialog({ message, address, appName: context.appName })
+  const result = await enqueueMiniappSheet(context.appId, () =>
+    showSigningDialog({ message, address, appName: context.appName }),
+  )
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -243,11 +251,13 @@ export const handleSignTypedDataV4: MethodHandler = async (params, context) => {
   // Format typed data for display
   const displayMessage = JSON.stringify(data, null, 2)
 
-  const result = await showSigningDialog({
-    message: displayMessage,
-    address,
-    appName: context.appName,
-  })
+  const result = await enqueueMiniappSheet(context.appId, () =>
+    showSigningDialog({
+      message: displayMessage,
+      address,
+      appName: context.appName,
+    }),
+  )
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -272,7 +282,7 @@ export const handleEthSendTransaction: MethodHandler = async (params, context) =
     tx.chainId = getCurrentChainId(context.appId)
   }
 
-  const result = await showTransactionDialog({ tx, appName: context.appName })
+  const result = await enqueueMiniappSheet(context.appId, () => showTransactionDialog({ tx, appName: context.appName }))
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }

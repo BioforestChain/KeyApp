@@ -53,6 +53,8 @@ export class HomeButton extends LitElement {
   velocityThreshold = 0.3;
 
   private swipeDetector = createUpSwipeDetector();
+  private ignoreNextClick = false;
+  private ignoreClickTimeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
 
   override connectedCallback(): void {
     super.connectedCallback();
@@ -74,6 +76,11 @@ export class HomeButton extends LitElement {
   }
 
   override disconnectedCallback(): void {
+    if (this.ignoreClickTimeoutId !== null) {
+      globalThis.clearTimeout(this.ignoreClickTimeoutId);
+      this.ignoreClickTimeoutId = null;
+    }
+
     this.removeEventListener('touchstart', this.handleTouchStart, { capture: true });
     this.removeEventListener('touchend', this.handleTouchEnd, { capture: true });
     this.removeEventListener('touchcancel', this.handleTouchCancel, { capture: true });
@@ -114,6 +121,18 @@ export class HomeButton extends LitElement {
 
     if (result.detected && result.direction === 'up') {
       e.preventDefault();
+
+      // Some browsers still fire a click after touchend.
+      // Suppress that tap so swipe-up doesn't immediately trigger the tap path.
+      this.ignoreNextClick = true;
+      if (this.ignoreClickTimeoutId !== null) {
+        globalThis.clearTimeout(this.ignoreClickTimeoutId);
+      }
+      this.ignoreClickTimeoutId = globalThis.setTimeout(() => {
+        this.ignoreNextClick = false;
+        this.ignoreClickTimeoutId = null;
+      }, 400);
+
       ecosystemEvents.emit('home:swipe-up', undefined);
 
       // Dispatch custom event for React integration
@@ -128,6 +147,11 @@ export class HomeButton extends LitElement {
   };
 
   private handleClick = (): void => {
+    if (this.ignoreNextClick) {
+      this.ignoreNextClick = false;
+      return;
+    }
+
     ecosystemEvents.emit('home:tap', undefined);
 
     this.dispatchEvent(
