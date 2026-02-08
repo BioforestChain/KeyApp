@@ -103,3 +103,9 @@
   opacity: 0;
   transform: scale(0.9) translateY(4px);
 }
+
+/* beta miniapp：桌面图标名称带轻微“危险色”提示 */
+.betaAppName {
+  color: color-mix(in oklab, var(--foreground) 88%, var(--destructive) 12%);
+  opacity: 0.9;
+}
