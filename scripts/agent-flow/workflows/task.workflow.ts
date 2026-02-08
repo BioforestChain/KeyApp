@@ -49,6 +49,9 @@ import {
   createWorktree,
   pushWorktree,
   updateIssue,
+  getIssueInfo,
+  getPrInfo,
+  updatePr,
   getLabels,
 } from "../mcps/git-workflow.mcp.ts";
 import { getRelatedChapters } from "../mcps/whitebook.mcp.ts";
@@ -61,6 +64,9 @@ import { exists } from "jsr:@std/fs";
 
 const WORKTREE_BASE = ".git-worktree";
 const ENV_EXCLUDES = new Set([".env.example"]);
+const CONVENTIONAL_TITLE =
+  /^(feat|fix|refactor|chore|docs|test|perf|style|build|ci)(\([^)]+\))?: .+/;
+const LOOSE_MARKER = "<!-- pr-title:loose -->";
 
 async function syncEnvFiles(root: string, worktreePath: string): Promise<string[]> {
   const copied: string[] = [];
@@ -279,9 +285,11 @@ const startWorkflow = defineWorkflow({
 
       // 8. 创建 Draft PR
       console.log("\n5️⃣  创建 Draft PR...");
+      const prTitle = normalizeTitle(title, type);
+      const prBody = ensureClosesBody(description, issueId);
       const { url: prUrl } = await createPr({
-        title,
-        body: `Closes #${issueId}\n\n${description}`,
+        title: prTitle,
+        body: prBody,
         head: branch,
         base: "main",
         draft: true,
@@ -341,29 +349,88 @@ const syncWorkflow = defineWorkflow({
 const submitWorkflow = defineWorkflow({
   name: "submit",
   description: "提交任务并触发 CI (Push + Ready PR)",
-  handler: async () => {
-    const wt = getCurrentWorktreeInfo();
-    if (!wt || !wt.path) {
-      console.error("❌ 错误: 必须在 worktree 中运行");
-      Deno.exit(1);
-    }
+  args: {
+    loose: {
+      type: "boolean",
+      description: "宽松模式，跳过 PR 标题严格校验",
+      required: false,
+    },
+  },
+  handler: async (args) => {
+    try {
+      const wt = getCurrentWorktreeInfo();
+      if (!wt || !wt.path) {
+        console.error("❌ 错误: 必须在 worktree 中运行");
+        Deno.exit(1);
+      }
 
-    console.log("🚀 提交任务...\n");
+      const loose = Boolean(args.loose);
 
-    // 1. 推送代码
-    console.log("1️⃣  推送代码...");
-    await pushWorktree({
-      path: wt.path,
-      message: "feat: complete implementation", // 默认消息，实际应由开发者 commit
-    });
+      console.log("🚀 提交任务...\n");
 
-    // 2. 标记 PR 为 Ready
-    if (wt.issueId) {
+      const issueId = wt.issueId;
+      if (!issueId) {
+        console.error("❌ 错误: 无法定位 Issue，请确保在 issue worktree 中运行");
+        Deno.exit(1);
+      }
+
+      const issue = await getIssueInfo({ issueId });
+      const typeLabel = resolveTypeLabel(issue.labels);
+      const normalizedTitle = normalizeTitle(issue.title, typeLabel);
+      const branch = getGitBranchName();
+      let pr = branch ? await getPrInfo({ head: branch }) : null;
+
+      const currentTitle = pr?.title || issue.title;
+      const desiredTitle = loose ? currentTitle : normalizedTitle;
+      let desiredBody = ensureClosesBody(pr?.body || "", issueId);
+      if (loose) {
+        desiredBody = ensureLooseMarker(desiredBody);
+      }
+
+      // 1. 推送代码
+      console.log("1️⃣  推送代码...");
+      await pushWorktree({
+        path: wt.path,
+        message: desiredTitle,
+      });
+
+      pr = branch ? await getPrInfo({ head: branch }) : null;
+      if (!pr && branch) {
+        const created = await createPr({
+          title: desiredTitle,
+          body: desiredBody,
+          head: branch,
+          base: "main",
+          draft: false,
+          labels: issue.labels,
+        });
+        console.log(`   ✅ PR Created: ${created.url}`);
+        pr = { number: Number(created.prNumber), title: desiredTitle, body: desiredBody };
+      }
+
+      if (pr) {
+        const updateTitle = !loose && desiredTitle !== pr.title;
+        const updateBody = desiredBody !== (pr.body || "");
+        if (updateTitle || updateBody) {
+          await updatePr({
+            prNumber: pr.number,
+            title: updateTitle ? desiredTitle : undefined,
+            body: updateBody ? desiredBody : undefined,
+          });
+        }
+      } else {
+        console.warn("⚠️  未找到 PR，已跳过 PR 标题/描述修正");
+      }
+
+      // 2. 标记 PR 为 Ready
       console.log("\n2️⃣  更新 PR 状态...");
       console.log("⚠️  提示: 请手动确认 PR 状态或使用 `gh pr ready`");
-    }
 
-    console.log("\n✨ 提交完成，等待 Review！");
+      console.log("\n✨ 提交完成，等待 Review！");
+    } catch (error) {
+      console.error(`❌ 提交失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   },
 });
 
@@ -421,6 +488,35 @@ function getGitBranchName(): string | null {
   }
 }
 
+function isConventionalTitle(title: string): boolean {
+  return CONVENTIONAL_TITLE.test(title.trim());
+}
+
+function normalizeTitle(title: string, type: string): string {
+  const trimmed = title.trim();
+  if (isConventionalTitle(trimmed)) return trimmed;
+  return `feat(${type}): ${trimmed}`;
+}
+
+function ensureClosesBody(body: string, issueId: string): string {
+  const normalized = body.trim();
+  const closesLine = `Closes #${issueId}`;
+  if (normalized.includes(closesLine)) return normalized;
+  if (!normalized) return closesLine;
+  return `${closesLine}\n\n${normalized}`;
+}
+
+function ensureLooseMarker(body: string): string {
+  if (body.includes(LOOSE_MARKER)) return body;
+  return `${body}\n\n${LOOSE_MARKER}`.trim();
+}
+
+function resolveTypeLabel(labels: string[]): string {
+  const match = labels.find((label) => label.startsWith("type/"));
+  if (!match) return "hybrid";
+  return match.slice("type/".length) || "hybrid";
+}
+
 // =============================================================================
 // Main Router
 // =============================================================================
@@ -437,6 +533,7 @@ export const workflow = createRouter({
     ['task start --list-labels', "列出所有可用标签"],
     ['task sync "- [x] Step 1"', "同步进度"],
     ["task submit", "提交任务"],
+    ["task submit --loose", "宽松模式提交任务"],
   ],
 });
 
