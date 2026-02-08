@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.0] - 2026-02-08
+
+Fix ecosystem tab swipe-up stack view; tweak beta app name tint
+
+<!-- last-commit: ba013dc2c1708d9fe64dd3fbe29382e995c0713a -->
+
 ## [0.9.0] - 2026-02-08
 
 perf: move monochrome mask generation to web worker
