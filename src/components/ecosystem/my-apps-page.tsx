@@ -328,26 +328,6 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                 borderRadius: 16,
               }}
             >
-              {app.beta && (
-                <div className="pointer-events-none absolute -top-1 -left-1" aria-hidden="true">
-                  <div
-                    className={cn(
-                      'ring-background ring-2',
-                      'flex items-center justify-center rounded-full',
-                      'bg-amber-500 text-white',
-                    )}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    β
-                  </div>
-                </div>
-              )}
-
               <motion.div
                 {...(sharedLayoutIds
                   ? {
@@ -425,7 +405,12 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
       </div>
 
       {/* label：永远处于静态布局（不进入 popover top-layer），避免启动动画把文字一起“拎走” */}
-      <span className="text-foreground/90 line-clamp-2 max-w-[72px] text-center text-[11px] leading-tight font-medium">
+      <span
+        className={cn(
+          app.beta ? styles.betaAppName : 'text-foreground/90',
+          'line-clamp-2 max-w-[72px] text-center text-[11px] leading-tight font-medium',
+        )}
+      >
         {app.name}
       </span>
     </div>
