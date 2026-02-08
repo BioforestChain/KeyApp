@@ -13,10 +13,17 @@ export class HomeButton extends LitElement {
   static override styles = css`
     :host {
       display: contents;
+      touch-action: pan-x;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    .home-button-wrapper {
+    slot {
       display: contents;
+    }
+
+    ::slotted(*) {
       touch-action: pan-x;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -49,11 +56,30 @@ export class HomeButton extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
+
     // Update detector with current thresholds
     this.swipeDetector = createUpSwipeDetector({
       threshold: this.swipeThreshold,
       velocityThreshold: this.velocityThreshold,
     });
+
+    // NOTE: Listen on host element instead of shadow DOM.
+    // Touch events are not reliably delivered through shadow boundaries in Safari,
+    // which may cause swipe-up to silently fail.
+    // Capture phase: avoid child components (e.g. Swiper) stopping propagation.
+    this.addEventListener('touchstart', this.handleTouchStart, { capture: true });
+    this.addEventListener('touchend', this.handleTouchEnd, { capture: true });
+    this.addEventListener('touchcancel', this.handleTouchCancel, { capture: true });
+    this.addEventListener('click', this.handleClick);
+  }
+
+  override disconnectedCallback(): void {
+    this.removeEventListener('touchstart', this.handleTouchStart, { capture: true });
+    this.removeEventListener('touchend', this.handleTouchEnd, { capture: true });
+    this.removeEventListener('touchcancel', this.handleTouchCancel, { capture: true });
+    this.removeEventListener('click', this.handleClick);
+
+    super.disconnectedCallback();
   }
 
   override updated(changedProperties: Map<string, unknown>): void {
@@ -66,11 +92,23 @@ export class HomeButton extends LitElement {
   }
 
   private handleTouchStart = (e: TouchEvent): void => {
+    if (!this.hasRunningApps) {
+      this.swipeDetector.reset();
+      return;
+    }
+
     this.swipeDetector.handleTouchStart(e);
   };
 
+  private handleTouchCancel = (): void => {
+    this.swipeDetector.reset();
+  };
+
   private handleTouchEnd = (e: TouchEvent): void => {
-    if (!this.hasRunningApps) return;
+    if (!this.hasRunningApps) {
+      this.swipeDetector.reset();
+      return;
+    }
 
     const result = this.swipeDetector.handleTouchEnd(e);
 
@@ -101,16 +139,7 @@ export class HomeButton extends LitElement {
   };
 
   override render() {
-    return html`
-      <div
-        class="home-button-wrapper"
-        @touchstart=${this.handleTouchStart}
-        @touchend=${this.handleTouchEnd}
-        @click=${this.handleClick}
-      >
-        <slot></slot>
-      </div>
-    `;
+    return html`<slot></slot>`;
   }
 }
 
