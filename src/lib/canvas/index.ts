@@ -12,3 +12,5 @@ export {
   type MonochromeMaskOptions,
   type PipelineHook,
 } from './monochrome-mask'
+
+export { createMonochromeMaskViaWorker } from './monochrome-mask-worker-client'

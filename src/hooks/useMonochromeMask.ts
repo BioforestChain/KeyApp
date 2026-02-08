@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { createMonochromeMask, type MonochromeMaskOptions, type PipelineHook } from '@/lib/canvas';
+import {
+  createMonochromeMask,
+  createMonochromeMaskViaWorker,
+  type MonochromeMaskOptions,
+  type PipelineHook,
+} from '@/lib/canvas';
 
 export type { MonochromeMaskOptions, PipelineHook };
 
@@ -87,11 +92,13 @@ export function useMonochromeMask(iconUrl: string | undefined, options: Monochro
     }
 
     idleHandle = requestIdleWork(() => {
-      createMonochromeMask(iconUrl, opts).then((url) => {
-        if (!cancelled) {
-          setMaskUrl(url);
-        }
-      });
+      createMonochromeMaskViaWorker(iconUrl, opts)
+        .catch(() => createMonochromeMask(iconUrl, opts))
+        .then((url) => {
+          if (!cancelled) {
+            setMaskUrl(url);
+          }
+        });
     }, { timeout: 300 });
 
     return () => {
