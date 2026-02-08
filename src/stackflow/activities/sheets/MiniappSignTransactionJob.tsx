@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react';
 import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
-import { setWalletLockConfirmCallback } from './WalletLockConfirmJob';
 import { walletStore } from '@/stores';
 import { findMiniappWalletIdByAddress, resolveMiniappChainId } from './miniapp-wallet';
 import type { UnsignedTransaction } from '@/services/ecosystem';
@@ -20,6 +19,8 @@ import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { MiniappSheetHeader } from '@/components/ecosystem';
 import { ChainBadge } from '@/components/wallet/chain-icon';
 import { ChainAddressDisplay } from '@/components/wallet/chain-address-display';
+import { PatternLock, patternToString } from '@/components/security/pattern-lock';
+import { WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage/types';
 
 type MiniappSignTransactionJobParams = {
   /** 来源小程序名称 */
@@ -34,12 +35,32 @@ type MiniappSignTransactionJobParams = {
   unsignedTx: string;
 };
 
+type SignStep = 'review' | 'wallet_lock';
+
+function isWalletLockError(error: unknown): boolean {
+  if (error instanceof WalletStorageError) {
+    return (
+      error.code === WalletStorageErrorCode.DECRYPTION_FAILED || error.code === WalletStorageErrorCode.INVALID_PASSWORD
+    );
+  }
+
+  if (error instanceof Error) {
+    return /wrong password|decrypt mnemonic|invalid walletlock|wallet lock/i.test(error.message);
+  }
+
+  return false;
+}
+
 function MiniappSignTransactionJobContent() {
   const { t } = useTranslation('common');
-  const { pop, push } = useFlow();
+  const { pop } = useFlow();
   const params = useActivityParams<MiniappSignTransactionJobParams>();
   const { appName, appIcon, from, chain, unsignedTx: unsignedTxJson } = params;
 
+  const [step, setStep] = useState<SignStep>('review');
+  const [pattern, setPattern] = useState<number[]>([]);
+  const [patternError, setPatternError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const unsignedTx = useMemo((): UnsignedTransaction | null => {
@@ -56,16 +77,49 @@ function MiniappSignTransactionJobContent() {
     return findMiniappWalletIdByAddress(resolvedChainId, from);
   }, [resolvedChainId, from]);
 
-  const targetWallet = walletStore.state.wallets.find((w) => w.id === walletId);
+  const targetWallet = walletStore.state.wallets.find((wallet) => wallet.id === walletId);
   const walletName = targetWallet?.name || t('unknownWallet');
 
-  const handleConfirm = useCallback(() => {
-    if (isSubmitting) return;
-    if (!unsignedTx) return;
-    if (!walletId) return;
+  const resetWalletLockStepState = useCallback(() => {
+    setPattern([]);
+    setPatternError(false);
+    setErrorMessage(null);
+  }, []);
 
-    setWalletLockConfirmCallback(async (password: string) => {
+  const handleEnterWalletLockStep = useCallback(() => {
+    if (isSubmitting || !unsignedTx || !walletId) return;
+    resetWalletLockStepState();
+    setStep('wallet_lock');
+  }, [isSubmitting, unsignedTx, walletId, resetWalletLockStepState]);
+
+  const handleBackToReview = useCallback(() => {
+    if (isSubmitting) return;
+    resetWalletLockStepState();
+    setStep('review');
+  }, [isSubmitting, resetWalletLockStepState]);
+
+  const handlePatternChange = useCallback(
+    (nextPattern: number[]) => {
+      if (patternError || errorMessage) {
+        setPatternError(false);
+        setErrorMessage(null);
+      }
+      setPattern(nextPattern);
+    },
+    [patternError, errorMessage],
+  );
+
+  const handlePatternComplete = useCallback(
+    async (nodes: number[]) => {
+      if (nodes.length < 4 || isSubmitting || !unsignedTx || !walletId) {
+        return;
+      }
+
+      const password = patternToString(nodes);
       setIsSubmitting(true);
+      setPatternError(false);
+      setErrorMessage(null);
+
       try {
         const signedTx = await signUnsignedTransaction({
           walletId,
@@ -84,25 +138,22 @@ function MiniappSignTransactionJobContent() {
         window.dispatchEvent(event);
 
         pop();
-        return true;
       } catch (error) {
-        console.error("[miniapp-sign-transaction]", error);
-        throw error instanceof Error ? error : new Error("Sign transaction failed");
+        console.error('[miniapp-sign-transaction]', error);
+        if (isWalletLockError(error)) {
+          setPatternError(true);
+          setErrorMessage(t('walletLock.error'));
+        } else {
+          setPatternError(false);
+          setErrorMessage(error instanceof Error ? error.message : t('walletLock.error'));
+        }
+        setPattern([]);
       } finally {
         setIsSubmitting(false);
       }
-    });
-
-    push('WalletLockConfirmJob', {
-      title: t('signTransaction'),
-      description: appName || t('unknownDApp'),
-      miniappName: appName,
-      miniappIcon: appIcon,
-      walletName,
-      walletAddress: from,
-      walletChainId: resolvedChainId,
-    });
-  }, [appIcon, appName, from, isSubmitting, pop, push, resolvedChainId, t, unsignedTx, walletId, walletName]);
+    },
+    [isSubmitting, unsignedTx, walletId, from, resolvedChainId, pop, t, tSecurity],
+  );
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-sign-transaction-confirm', {
@@ -130,7 +181,7 @@ function MiniappSignTransactionJobContent() {
 
         <MiniappSheetHeader
           title={t('signTransaction')}
-          description={appName || t('unknownDApp')}
+          description={step === 'review' ? appName || t('unknownDApp') : t('drawPatternToConfirm')}
           appName={appName}
           appIcon={appIcon}
           walletInfo={{
@@ -140,67 +191,114 @@ function MiniappSignTransactionJobContent() {
           }}
         />
 
-        <div className="space-y-4 p-4">
-          {!unsignedTx && (
-            <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">{t('invalidTransaction')}</div>
-          )}
+        {step === 'review' ? (
+          <>
+            <div className="space-y-4 p-4">
+              {!unsignedTx && (
+                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">
+                  {t('invalidTransaction')}
+                </div>
+              )}
 
-          {unsignedTx && !walletId && (
-            <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-              {t('signingAddressNotFound')}
+              {unsignedTx && !walletId && (
+                <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                  {t('signingAddressNotFound')}
+                </div>
+              )}
+
+              <div className="bg-muted/50 rounded-xl p-3">
+                <p className="text-muted-foreground mb-1 text-xs">{t('network')}</p>
+                <ChainBadge chainId={resolvedChainId} />
+              </div>
+
+              <div className="bg-muted/50 rounded-xl p-3">
+                <p className="text-muted-foreground mb-1 text-xs">{t('signingAddress')}</p>
+                <ChainAddressDisplay chainId={resolvedChainId} address={from} copyable={false} size="sm" />
+              </div>
+
+              <div className="bg-muted/50 rounded-xl p-3">
+                <p className="text-muted-foreground mb-1 text-xs">{t('transaction')}</p>
+                <div className="max-h-44 overflow-y-auto">
+                  <pre className="font-mono text-xs break-all whitespace-pre-wrap">{rawPreview}</pre>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
+                <IconAlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
+                <p className="text-sm text-amber-800 dark:text-amber-200">{t('signTxWarning')}</p>
+              </div>
             </div>
-          )}
 
-          <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">{t('network')}</p>
-            <ChainBadge chainId={resolvedChainId} />
-          </div>
-
-          <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">{t('signingAddress')}</p>
-            <ChainAddressDisplay chainId={resolvedChainId} address={from} copyable={false} size="sm" />
-          </div>
-
-          <div className="bg-muted/50 rounded-xl p-3">
-            <p className="text-muted-foreground mb-1 text-xs">{t('transaction')}</p>
-            <div className="max-h-44 overflow-y-auto">
-              <pre className="font-mono text-xs break-all whitespace-pre-wrap">{rawPreview}</pre>
+            <div className="flex gap-3 p-4">
+              <button
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                onClick={handleEnterWalletLockStep}
+                disabled={isSubmitting || !unsignedTx || !walletId}
+                className={cn(
+                  'flex-1 rounded-xl py-3 font-medium transition-colors',
+                  'bg-primary text-primary-foreground hover:bg-primary/90',
+                  'flex items-center justify-center gap-2 disabled:opacity-50',
+                )}
+              >
+                {t('sign')}
+              </button>
             </div>
-          </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-4 p-4">
+              {!walletId && (
+                <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                  {t('signingAddressNotFound')}
+                </div>
+              )}
 
-          <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
-            <IconAlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
-            <p className="text-sm text-amber-800 dark:text-amber-200">{t('signTxWarning')}</p>
-          </div>
-        </div>
+              <PatternLock
+                value={pattern}
+                onChange={handlePatternChange}
+                onComplete={handlePatternComplete}
+                minPoints={4}
+                disabled={isSubmitting || !walletId}
+                error={patternError}
+                errorText={patternError ? t('walletLock.error') : undefined}
+              />
 
-        <div className="flex gap-3 p-4">
-          <button
-            onClick={handleCancel}
-            disabled={isSubmitting}
-            className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={isSubmitting || !unsignedTx || !walletId}
-            className={cn(
-              'flex-1 rounded-xl py-3 font-medium transition-colors',
-              'bg-primary text-primary-foreground hover:bg-primary/90',
-              'flex items-center justify-center gap-2 disabled:opacity-50',
-            )}
-          >
-            {isSubmitting ? (
-              <>
-                <IconLoader2 className="size-4 animate-spin" />
-                {t('signing')}
-              </>
-            ) : (
-              t('sign')
-            )}
-          </button>
-        </div>
+              {errorMessage && !patternError && (
+                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">{errorMessage}</div>
+              )}
+
+              {isSubmitting && (
+                <div className="bg-muted text-muted-foreground flex items-center justify-center gap-2 rounded-xl p-3 text-sm">
+                  <IconLoader2 className="size-4 animate-spin" />
+                  {t('signing')}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 p-4">
+              <button
+                onClick={handleBackToReview}
+                disabled={isSubmitting}
+                className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+              >
+                {t('back')}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+              >
+                {t('cancel')}
+              </button>
+            </div>
+          </>
+        )}
 
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
