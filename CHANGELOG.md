@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.9.0] - 2026-02-08
+
+perf: move monochrome mask generation to web worker
+
+<!-- last-commit: baf177a90409f41b9c2288fc5747c708505bdb7c -->
+
 ## [0.8.1] - 2026-02-08
 
 生态桌面 beta 小程序标记样式

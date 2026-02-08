@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.8.1",
-  "change_log": "生态桌面 beta 小程序标记样式",
+  "version": "0.9.0",
+  "change_log": "perf: move monochrome mask generation to web worker",
   "categories": [
     "application",
     "wallet"
