@@ -63,7 +63,6 @@ function isWalletLockError(error: unknown): boolean {
 
 function MiniappTransferConfirmJobContent() {
   const { t } = useTranslation('common');
-  const { t: tSecurity } = useTranslation('security');
   const { pop } = useFlow();
   const params = useActivityParams<MiniappTransferConfirmJobParams>();
   const { appName, appIcon, from, to, amount, chain, asset } = params;
@@ -176,10 +175,10 @@ function MiniappTransferConfirmJobContent() {
         console.error('[miniapp-transfer]', error);
         if (isWalletLockError(error)) {
           setPatternError(true);
-          setErrorMessage(tSecurity('walletLock.error'));
+          setErrorMessage(t('walletLock.error'));
         } else {
           setPatternError(false);
-          setErrorMessage(error instanceof Error ? error.message : t('unknownError'));
+          setErrorMessage(error instanceof Error ? error.message : t('walletLock.error'));
         }
         setPattern([]);
       } finally {
@@ -300,7 +299,7 @@ function MiniappTransferConfirmJobContent() {
                 minPoints={4}
                 disabled={isConfirming || !walletId}
                 error={patternError}
-                errorText={patternError ? tSecurity('walletLock.error') : undefined}
+                errorText={patternError ? t('walletLock.error') : undefined}
               />
 
               {errorMessage && !patternError && (

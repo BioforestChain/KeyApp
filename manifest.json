@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.1",
-  "change_log": "Fix miniapp transfer tx object + FIFO sheets",
+  "version": "0.10.2",
+  "change_log": "miniapp 转账/签名交易改为单弹窗多步骤流程",
   "categories": [
     "application",
     "wallet"
