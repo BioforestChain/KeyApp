@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.2] - 2026-02-08
+
+miniapp 转账/签名交易改为单弹窗多步骤流程
+
+<!-- last-commit: b835a08357f30a053e6aa2943c0391aa9dc299c5 -->
+
 ## [0.10.1] - 2026-02-08
 
 Fix miniapp transfer tx object + FIFO sheets
