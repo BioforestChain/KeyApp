@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.0",
-  "change_log": "Fix ecosystem tab swipe-up stack view; tweak beta app name tint",
+  "version": "0.10.1",
+  "change_log": "Fix miniapp transfer tx object + FIFO sheets",
   "categories": [
     "application",
     "wallet"
