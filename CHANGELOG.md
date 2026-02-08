@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.1] - 2026-02-08
+
+Fix miniapp transfer tx object + FIFO sheets
+
+<!-- last-commit: 666f7eb19a259e8677c0b04945d4d6843ca7290b -->
+
 ## [0.10.0] - 2026-02-08
 
 Fix ecosystem tab swipe-up stack view; tweak beta app name tint
