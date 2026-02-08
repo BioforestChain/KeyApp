@@ -328,6 +328,26 @@ function IOSDesktopIcon({ app, onTap, onOpen, onDetail, onRemove }: IOSDesktopIc
                 borderRadius: 16,
               }}
             >
+              {app.beta && (
+                <div className="pointer-events-none absolute -top-1 -left-1" aria-hidden="true">
+                  <div
+                    className={cn(
+                      'ring-background ring-2',
+                      'flex items-center justify-center rounded-full',
+                      'bg-amber-500 text-white',
+                    )}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    β
+                  </div>
+                </div>
+              )}
+
               <motion.div
                 {...(sharedLayoutIds
                   ? {
