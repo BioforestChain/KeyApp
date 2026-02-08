@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.9.0",
-  "change_log": "perf: move monochrome mask generation to web worker",
+  "version": "0.10.0",
+  "change_log": "Fix ecosystem tab swipe-up stack view; tweak beta app name tint",
   "categories": [
     "application",
     "wallet"
