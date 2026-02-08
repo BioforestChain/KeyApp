@@ -1,9 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+import 'fake-indexeddb/auto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+// Ensure the default i18n instance is initialized for hooks like useTranslation.
+import '@/i18n'
 
 // Mock @number-flow/react for tests (doesn't work in JSDOM)
 vi.mock('@number-flow/react', () => ({

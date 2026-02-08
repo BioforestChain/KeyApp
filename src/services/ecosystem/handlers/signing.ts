@@ -5,6 +5,7 @@
 import type { MethodHandler } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type SigningParams, type SigningResult, toMiniappInfo } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 
 // 兼容旧 API（现在返回 SigningResult）
 let _showSigningDialog: ((params: SigningParams) => Promise<SigningResult | null>) | null = null
@@ -32,12 +33,14 @@ export const handleSignMessage: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const result = await showSigningDialog({
+  const dialogParams = {
     message: opts.message,
     address: opts.address,
     chainName: opts.chainName,
     app: toMiniappInfo(context),
-  })
+  }
+
+  const result = await enqueueMiniappSheet(context.appId, () => showSigningDialog(dialogParams))
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
@@ -62,12 +65,14 @@ export const handleSignTypedData: MethodHandler = async (params, context) => {
   // Convert typed data to readable message
   const message = JSON.stringify(opts.data, null, 2)
 
-  const result = await showSigningDialog({
+  const dialogParams = {
     message,
     address: opts.address,
     chainName: opts.chainName,
     app: toMiniappInfo(context),
-  })
+  }
+
+  const result = await enqueueMiniappSheet(context.appId, () => showSigningDialog(dialogParams))
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })

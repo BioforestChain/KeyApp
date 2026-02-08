@@ -30,6 +30,7 @@ export { MoralisProviderEffect, createMoralisProviderEffect } from './moralis-pr
 import type { ApiProvider, ApiProviderFactory } from './types';
 import type { ParsedApiEntry } from '@/services/chain-config';
 import { chainConfigService } from '@/services/chain-config/service';
+import { chainConfigStore } from '@/stores/chain-config';
 import { ChainProvider } from './chain-provider';
 
 import { createEtherscanV1ProviderEffect } from './etherscan-v1-provider.effect';
@@ -97,7 +98,21 @@ export function createChainProvider(chainId: string): ChainProvider {
 }
 
 /** ChainProvider 缓存 */
-const providerCache = new Map<string, ChainProvider>();
+type ProviderCacheEntry = {
+  provider: ChainProvider;
+  apiKey: string;
+};
+
+const providerCache = new Map<string, ProviderCacheEntry>();
+
+function createApiKey(entries: ParsedApiEntry[]): string {
+  return entries
+    .map((entry) => {
+      const configKey = entry.config ? JSON.stringify(entry.config) : "";
+      return `${entry.type}|${entry.endpoint}|${configKey}`;
+    })
+    .join(",");
+}
 
 /**
  * 获取或创建 ChainProvider（带缓存）
@@ -105,11 +120,22 @@ const providerCache = new Map<string, ChainProvider>();
 export function getChainProvider(chainId: string): ChainProvider {
   const resolvedChainId = resolveChainId(chainId);
 
-  let provider = providerCache.get(resolvedChainId);
-  if (!provider) {
-    provider = createChainProvider(resolvedChainId);
-    providerCache.set(resolvedChainId, provider);
+  // Avoid caching providers before chain configs are initialized.
+  // Otherwise `entries=[]` would create an empty provider and poison the cache.
+  if (!chainConfigStore.state.snapshot) {
+    return createChainProvider(resolvedChainId);
   }
+
+  const entries = chainConfigService.getApi(resolvedChainId);
+  const apiKey = createApiKey(entries);
+
+  const cached = providerCache.get(resolvedChainId);
+  if (cached && cached.apiKey === apiKey) {
+    return cached.provider;
+  }
+
+  const provider = createChainProvider(resolvedChainId);
+  providerCache.set(resolvedChainId, { provider, apiKey });
   return provider;
 }
 

@@ -286,10 +286,10 @@ export function TabBar({ activeTab, onTabChange, className }: TabBarProps) {
                 key={tab.id}
                 hasRunningApps={hasRunningApps}
                 onSwipeUp={handleEcosystemSwipeUp}
+                onTap={handleEcosystemClick}
                 className={buttonClassName}
               >
                 <button
-                  onClick={handleEcosystemClick}
                   data-testid={`tab-${tab.id}`}
                   className="flex flex-1 flex-col items-center justify-center gap-1"
                   aria-label={label}

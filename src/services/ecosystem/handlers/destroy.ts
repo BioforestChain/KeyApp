@@ -5,6 +5,7 @@
 import type { MethodHandler, EcosystemDestroyParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo, toMiniappInfo } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 
 // 兼容旧 API
 let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
@@ -43,7 +44,7 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
     app: toMiniappInfo(context),
   }
 
-  const result = await showDestroyDialog(destroyParams)
+  const result = await enqueueMiniappSheet(context.appId, () => showDestroyDialog(destroyParams))
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })

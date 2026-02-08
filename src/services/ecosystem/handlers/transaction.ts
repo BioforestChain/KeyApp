@@ -8,6 +8,7 @@
 import type { MethodHandler, EcosystemTransferParams, UnsignedTransaction, SignedTransaction } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type SignTransactionParams, toMiniappInfo } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 
 import { Amount } from '@/types/amount'
 import { chainConfigActions, chainConfigSelectors, chainConfigStore, walletStore } from '@/stores'
@@ -166,12 +167,14 @@ export const handleSignTransaction: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('SignTransaction dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const result = await showDialog({
-    from: opts.from,
-    chain: opts.chain,
-    unsignedTx: opts.unsignedTx,
-    app: toMiniappInfo(context),
-  })
+  const result = await enqueueMiniappSheet(context.appId, () =>
+    showDialog({
+      from: opts.from,
+      chain: opts.chain,
+      unsignedTx: opts.unsignedTx,
+      app: toMiniappInfo(context),
+    }),
+  )
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })

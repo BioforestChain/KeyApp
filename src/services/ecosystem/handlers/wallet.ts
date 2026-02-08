@@ -5,6 +5,7 @@
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 import { getChainProvider } from '@/services/chain-adapter/providers'
 import { walletStore } from '@/stores/wallet'
 
@@ -49,10 +50,12 @@ export const handleRequestAccounts: MethodHandler = async (params, context) => {
   // 支持 chain 参数过滤钱包
   const opts = params as { chain?: string } | undefined
 
-  const wallet = await showWalletPicker({
-    chain: opts?.chain,
-    app: { name: context.appName, icon: context.appIcon },
-  })
+  const wallet = await enqueueMiniappSheet(context.appId, () =>
+    showWalletPicker({
+      chain: opts?.chain,
+      app: { name: context.appName, icon: context.appIcon },
+    }),
+  )
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -77,10 +80,12 @@ export const handleSelectAccount: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string } | undefined
-  const wallet = await showWalletPicker({
-    ...opts,
-    app: { name: context.appName, icon: context.appIcon },
-  })
+  const wallet = await enqueueMiniappSheet(context.appId, () =>
+    showWalletPicker({
+      ...opts,
+      app: { name: context.appName, icon: context.appIcon },
+    }),
+  )
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -96,10 +101,12 @@ export const handlePickWallet: MethodHandler = async (params, context) => {
   }
 
   const opts = params as { chain?: string; exclude?: string } | undefined
-  const account = await showWalletPicker({
-    ...opts,
-    app: { name: context.appName, icon: context.appIcon },
-  })
+  const account = await enqueueMiniappSheet(context.appId, () =>
+    showWalletPicker({
+      ...opts,
+      app: { name: context.appName, icon: context.appIcon },
+    }),
+  )
   if (!account) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -129,4 +136,3 @@ export const handleGetBalance: MethodHandler = async (params, _context) => {
     return '0'
   }
 }
-

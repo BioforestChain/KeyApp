@@ -8,6 +8,7 @@
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type TronTransaction, type MiniappInfo } from './context'
+import { enqueueMiniappSheet } from '../sheet-queue'
 
 // Re-export for convenience
 export type { TronTransaction } from './context'
@@ -90,7 +91,9 @@ export const handleTronRequestAccounts: MethodHandler = async (_params, context)
     throw Object.assign(new Error('Wallet picker not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const wallet = await showWalletPicker({ app: { name: context.appName, icon: context.appIcon } })
+  const wallet = await enqueueMiniappSheet(context.appId, () =>
+    showWalletPicker({ app: { name: context.appName, icon: context.appIcon } }),
+  )
   if (!wallet) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
@@ -140,10 +143,12 @@ export const handleTronSignTransaction: MethodHandler = async (params, context) 
     throw Object.assign(new Error('Signing dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
-  const result = await showSigningDialog({
-    transaction,
-    appName: context.appName,
-  })
+  const result = await enqueueMiniappSheet(context.appId, () =>
+    showSigningDialog({
+      transaction,
+      appName: context.appName,
+    }),
+  )
 
   if (!result) {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
