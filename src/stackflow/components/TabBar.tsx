@@ -26,6 +26,7 @@ import {
 import { usePendingTransactions } from '@/hooks/use-pending-transactions';
 import { useCurrentWallet, useCurrentChainAddress, useSelectedChain } from '@/stores';
 import { HomeButtonWrapper } from '@biochain/ecosystem-native/react';
+import { deriveTabbarIconOpacity, normalizeTabbarProgress } from './tabbar-indicator';
 
 /** 生态页面顺序 */
 const ECOSYSTEM_PAGE_ORDER: EcosystemSubPage[] = ['discover', 'mine', 'stack'];
@@ -44,8 +45,6 @@ function useEcosystemIndicator(
   hasForegroundRunningApp: boolean,
 ) {
   const pageCount = availablePages.length;
-  const maxIndex = pageCount - 1;
-
   const swiperRef = useRef<import('swiper').Swiper | null>(null);
 
   const initialSlideIndex = useMemo(() => {
@@ -65,11 +64,12 @@ function useEcosystemIndicator(
   }, [isActive]);
 
   const [progress, setProgress] = useState(0);
-  const indexProgress = maxIndex > 0 ? progress * maxIndex : 0;
+  const normalizedProgress = normalizeTabbarProgress(progress);
+  const maxIndex = pageCount > 0 ? pageCount - 1 : 0;
+  const indexProgress = maxIndex > 0 ? normalizedProgress * maxIndex : 0;
 
   const getIconOpacity = (index: number) => {
-    const distance = Math.abs(indexProgress - index);
-    return Math.max(0, 1 - distance);
+    return deriveTabbarIconOpacity({ progress: normalizedProgress, pageCount, index });
   };
 
   return {
@@ -82,7 +82,7 @@ function useEcosystemIndicator(
           onSwiper(swiper);
         }}
         onSlideChange={onSlideChange}
-        onProgress={(_, p) => setProgress(p)}
+        onProgress={(_, p) => setProgress(normalizeTabbarProgress(p))}
         slidesPerView="auto"
         centeredSlides={true}
         spaceBetween={8}

@@ -2,6 +2,10 @@ type SheetTask<T> = () => Promise<T>
 
 const tails = new Map<string, Promise<void>>()
 
+function normalizeQueueKey(appId: string): string {
+  return appId.trim().toLowerCase()
+}
+
 /**
  * Enqueue a UI sheet task for a miniapp.
  *
@@ -10,7 +14,8 @@ const tails = new Map<string, Promise<void>>()
  * - Rejections do not break the queue
  */
 export function enqueueMiniappSheet<T>(appId: string, task: SheetTask<T>): Promise<T> {
-  const previous = tails.get(appId) ?? Promise.resolve()
+  const queueKey = normalizeQueueKey(appId)
+  const previous = tails.get(queueKey) ?? Promise.resolve()
 
   const run = previous
     .catch(() => undefined)
@@ -21,11 +26,11 @@ export function enqueueMiniappSheet<T>(appId: string, task: SheetTask<T>): Promi
     () => undefined,
   )
 
-  tails.set(appId, nextTail)
+  tails.set(queueKey, nextTail)
 
   void nextTail.finally(() => {
-    if (tails.get(appId) === nextTail) {
-      tails.delete(appId)
+    if (tails.get(queueKey) === nextTail) {
+      tails.delete(queueKey)
     }
   })
 
@@ -36,4 +41,3 @@ export function enqueueMiniappSheet<T>(appId: string, task: SheetTask<T>): Promi
 export function __clearMiniappSheetQueueForTests(): void {
   tails.clear()
 }
-

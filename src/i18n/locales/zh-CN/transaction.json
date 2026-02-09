@@ -337,6 +337,15 @@
     "timeout": "广播超时，请重试",
     "failed": "广播失败"
   },
+  "miniappTransfer": {
+    "backgroundBroadcast": "后台广播",
+    "shortTitle": "转账{{amount}}{{asset}}",
+    "toast": {
+      "background": "“{{title}}”已转为后台广播",
+      "success": "“{{title}}”交易广播成功",
+      "failed": "“{{title}}”交易广播失败：{{reason}}"
+    }
+  },
   "pendingTx": {
     "title": "待处理交易",
     "broadcasting": "广播中",

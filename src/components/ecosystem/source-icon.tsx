@@ -22,9 +22,9 @@ export interface SourceIconProps {
 }
 
 const SIZES = {
-  sm: { icon: 24, lock: 14 },
-  md: { icon: 32, lock: 18 },
-  lg: { icon: 40, lock: 22 },
+  sm: { icon: 16, lock: 14 },
+  md: { icon: 24, lock: 18 },
+  lg: { icon: 32, lock: 22 },
 };
 
 export const SourceIcon = forwardRef<HTMLDivElement, SourceIconProps>(function SourceIcon(

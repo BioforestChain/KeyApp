@@ -191,6 +191,15 @@
   "paymentDetails": "支付詳情",
   "paymentInfo": "支付信息",
   "pending": "處理中",
+  "miniappTransfer": {
+    "backgroundBroadcast": "背景廣播",
+    "shortTitle": "轉帳{{amount}}{{asset}}",
+    "toast": {
+      "background": "“{{title}}”已轉為背景廣播",
+      "success": "“{{title}}”交易廣播成功",
+      "failed": "“{{title}}”交易廣播失敗：{{reason}}"
+    }
+  },
   "pendingTx": {
     "broadcasted": "等待上鏈",
     "broadcasting": "廣播中",

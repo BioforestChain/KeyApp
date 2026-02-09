@@ -191,6 +191,15 @@
   "paymentDetails": "Payment Details",
   "paymentInfo": "Payment Info",
   "pending": "Pending",
+  "miniappTransfer": {
+    "backgroundBroadcast": "Background Broadcast",
+    "shortTitle": "Transfer {{amount}}{{asset}}",
+    "toast": {
+      "background": "“{{title}}” moved to background broadcasting",
+      "success": "“{{title}}” broadcast succeeded",
+      "failed": "“{{title}}” broadcast failed: {{reason}}"
+    }
+  },
   "pendingTx": {
     "broadcasted": "Awaiting confirmation",
     "broadcasting": "Broadcasting",
