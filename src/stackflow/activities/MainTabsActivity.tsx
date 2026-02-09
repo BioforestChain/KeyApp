@@ -1,4 +1,4 @@
-import { useEffect, useState, Activity } from "react";
+import { useEffect, useRef, useState, Activity } from "react";
 import type { ActivityComponentType } from "@stackflow/react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { SwiperSyncProvider } from "@/components/common/swiper-sync-context";
@@ -36,6 +36,9 @@ type MainTabsParams = {
 export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params }) => {
   const { push } = useFlow();
   const [activeTab, setActiveTab] = useState<TabId>(params.tab || "wallet");
+
+  const transferSheetTailRef = useRef<Promise<void>>(Promise.resolve());
+  const transferSheetSeqRef = useRef(0);
 
   useEffect(() => {
     initBioProvider();
@@ -137,36 +140,134 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       });
     });
 
-    setTransferDialog(async (params: EcosystemTransferParams & { app: { name: string; icon?: string } }) => {
-      return new Promise<{ txHash: string; txId?: string; transaction?: Record<string, unknown> } | null>((resolve) => {
-        const timeout = window.setTimeout(() => resolve(null), 60_000);
+    const logTransferSheet = (stage: string, payload: Record<string, unknown>) => {
+      console.log('[miniapp-transfer-sheet]', stage, payload);
+    };
 
-        const handleResult = (e: Event) => {
-          window.clearTimeout(timeout);
-          const detail = (e as CustomEvent).detail as
-            | { confirmed?: boolean; txHash?: string; txId?: string; transaction?: Record<string, unknown> }
-            | undefined;
-          if (detail?.confirmed && detail.txHash) {
-            resolve({
-              txHash: detail.txHash,
-              txId: detail.txId,
-              transaction: detail.transaction,
-            });
-            return;
-          }
-          resolve(null);
-        };
+    const enqueueTransferSheetTask = <T,>(task: () => Promise<T>, meta: { requestId: string; source: 'bio' | 'evm' }): Promise<T> => {
+      logTransferSheet('queue.enqueue', meta);
 
-        window.addEventListener("miniapp-transfer-confirm", handleResult, { once: true });
-        push("MiniappTransferConfirmJob", {
-          appName: params.app.name,
-          appIcon: params.app.icon ?? "",
-          from: params.from,
-          to: params.to,
-          amount: params.amount,
-          chain: params.chain,
-          ...(params.asset ? { asset: params.asset } : {}),
+      const run = transferSheetTailRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          logTransferSheet('queue.start', meta);
+          return task();
         });
+
+      transferSheetTailRef.current = run.then(
+        () => {
+          logTransferSheet('queue.done', meta);
+          return undefined;
+        },
+        (error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          logTransferSheet('queue.error', { ...meta, message });
+          return undefined;
+        },
+      );
+
+      return run;
+    };
+
+    setTransferDialog(async (params: EcosystemTransferParams & { app: { name: string; icon?: string } }) => {
+      const requestId = `transfer-${Date.now()}-${++transferSheetSeqRef.current}`;
+
+      return new Promise<{ txHash: string; txId?: string; transaction?: Record<string, unknown> } | null>((resolveResult) => {
+        void enqueueTransferSheetTask(
+          () =>
+            new Promise<void>((releaseQueue) => {
+              let resultSettled = false;
+              let queueReleased = false;
+
+              const cleanup = () => {
+                window.removeEventListener("miniapp-transfer-confirm", handleResult);
+                window.removeEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+              };
+
+              const resolveResultOnce = (value: { txHash: string; txId?: string; transaction?: Record<string, unknown> } | null) => {
+                if (resultSettled) return;
+                resultSettled = true;
+                resolveResult(value);
+                if (queueReleased) {
+                  cleanup();
+                }
+              };
+
+              const releaseQueueOnce = (reason: string) => {
+                if (queueReleased) return;
+                queueReleased = true;
+                logTransferSheet('queue.release', {
+                  requestId,
+                  source: 'bio',
+                  reason,
+                  resultSettled,
+                });
+                releaseQueue();
+                if (resultSettled) {
+                  cleanup();
+                }
+              };
+
+              const handleResult = (e: Event) => {
+                const detail = (e as CustomEvent).detail as
+                  | { requestId?: string; confirmed?: boolean; txHash?: string; txId?: string; transaction?: Record<string, unknown> }
+                  | undefined;
+
+                if (detail?.requestId !== requestId) {
+                  logTransferSheet('dialog.ignore', { requestId, source: 'bio', incomingRequestId: detail?.requestId ?? 'unknown' });
+                  return;
+                }
+
+                logTransferSheet('dialog.receive', {
+                  requestId,
+                  source: 'bio',
+                  confirmed: detail?.confirmed === true,
+                });
+
+                if (detail?.confirmed && detail.txHash) {
+                  resolveResultOnce({
+                    txHash: detail.txHash,
+                    txId: detail.txId,
+                    transaction: detail.transaction,
+                  });
+                  return;
+                }
+                resolveResultOnce(null);
+              };
+
+              const handleSheetClosed = (e: Event) => {
+                const detail = (e as CustomEvent).detail as { requestId?: string; reason?: string } | undefined;
+                if (detail?.requestId !== requestId) {
+                  return;
+                }
+
+                logTransferSheet('dialog.sheet-closed', {
+                  requestId,
+                  source: 'bio',
+                  reason: detail?.reason ?? 'unknown',
+                });
+                if (!resultSettled) {
+                  resolveResultOnce(null);
+                }
+                releaseQueueOnce(detail?.reason ?? 'sheet-closed');
+              };
+
+              window.addEventListener("miniapp-transfer-confirm", handleResult);
+              window.addEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+              logTransferSheet('dialog.push', { requestId, source: 'bio', from: params.from, to: params.to, chain: params.chain });
+              push("MiniappTransferConfirmJob", {
+                requestId,
+                appName: params.app.name,
+                appIcon: params.app.icon ?? "",
+                from: params.from,
+                to: params.to,
+                amount: params.amount,
+                chain: params.chain,
+                ...(params.asset ? { asset: params.asset } : {}),
+              });
+            }),
+          { requestId, source: 'bio' },
+        );
       });
     });
 
@@ -288,28 +389,96 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       const valueBigInt = BigInt(value ?? "0x0");
       const amount = formatUnits(valueBigInt, 18);
       const keyAppChainId = chainId ? getKeyAppChainId(chainId) : null;
+      const requestId = `transfer-${Date.now()}-${++transferSheetSeqRef.current}`;
 
-      return new Promise<{ txHash: string } | null>((resolve) => {
-        const timeout = window.setTimeout(() => resolve(null), 60_000);
+      return new Promise<{ txHash: string } | null>((resolveResult) => {
+        void enqueueTransferSheetTask(
+          () =>
+            new Promise<void>((releaseQueue) => {
+              let resultSettled = false;
+              let queueReleased = false;
 
-        const handleResult = (e: Event) => {
-          window.clearTimeout(timeout);
-          const detail = (e as CustomEvent).detail as { confirmed?: boolean; txHash?: string } | undefined;
-          if (detail?.confirmed && detail.txHash) {
-            resolve({ txHash: detail.txHash });
-            return;
-          }
-          resolve(null);
-        };
+              const cleanup = () => {
+                window.removeEventListener("miniapp-transfer-confirm", handleResult);
+                window.removeEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+              };
 
-        window.addEventListener("miniapp-transfer-confirm", handleResult, { once: true });
-        push("MiniappTransferConfirmJob", {
-          appName: params.appName,
-          from,
-          to,
-          amount,
-          chain: keyAppChainId ?? "ethereum",
-        });
+              const resolveResultOnce = (value: { txHash: string } | null) => {
+                if (resultSettled) return;
+                resultSettled = true;
+                resolveResult(value);
+                if (queueReleased) {
+                  cleanup();
+                }
+              };
+
+              const releaseQueueOnce = (reason: string) => {
+                if (queueReleased) return;
+                queueReleased = true;
+                logTransferSheet('queue.release', {
+                  requestId,
+                  source: 'evm',
+                  reason,
+                  resultSettled,
+                });
+                releaseQueue();
+                if (resultSettled) {
+                  cleanup();
+                }
+              };
+
+              const handleResult = (e: Event) => {
+                const detail = (e as CustomEvent).detail as { requestId?: string; confirmed?: boolean; txHash?: string } | undefined;
+
+                if (detail?.requestId !== requestId) {
+                  logTransferSheet('dialog.ignore', { requestId, source: 'evm', incomingRequestId: detail?.requestId ?? 'unknown' });
+                  return;
+                }
+
+                logTransferSheet('dialog.receive', {
+                  requestId,
+                  source: 'evm',
+                  confirmed: detail?.confirmed === true,
+                });
+
+                if (detail?.confirmed && detail.txHash) {
+                  resolveResultOnce({ txHash: detail.txHash });
+                  return;
+                }
+                resolveResultOnce(null);
+              };
+
+              const handleSheetClosed = (e: Event) => {
+                const detail = (e as CustomEvent).detail as { requestId?: string; reason?: string } | undefined;
+                if (detail?.requestId !== requestId) {
+                  return;
+                }
+
+                logTransferSheet('dialog.sheet-closed', {
+                  requestId,
+                  source: 'evm',
+                  reason: detail?.reason ?? 'unknown',
+                });
+                if (!resultSettled) {
+                  resolveResultOnce(null);
+                }
+                releaseQueueOnce(detail?.reason ?? 'sheet-closed');
+              };
+
+              window.addEventListener("miniapp-transfer-confirm", handleResult);
+              window.addEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+              logTransferSheet('dialog.push', { requestId, source: 'evm', from, to, chain: keyAppChainId ?? 'ethereum' });
+              push("MiniappTransferConfirmJob", {
+                requestId,
+                appName: params.appName,
+                from,
+                to,
+                amount,
+                chain: keyAppChainId ?? "ethereum",
+              });
+            }),
+          { requestId, source: 'evm' },
+        );
       });
     });
 

@@ -3,7 +3,7 @@
  * 用于小程序请求 `bio_signTransaction` 时显示
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { ActivityComponentType } from '@stackflow/react';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,14 @@ import { MiniappSheetHeader } from '@/components/ecosystem';
 import { ChainBadge } from '@/components/wallet/chain-icon';
 import { ChainAddressDisplay } from '@/components/wallet/chain-address-display';
 import { PatternLock, patternToString } from '@/components/security/pattern-lock';
-import { WalletStorageError, WalletStorageErrorCode } from '@/services/wallet-storage/types';
+import { PasswordInput } from '@/components/security/password-input';
+import {
+  isMiniappWalletLockError,
+  isMiniappTwoStepSecretError,
+  resolveMiniappTwoStepSecretRequired,
+} from './miniapp-auth';
+import { MiniappStepProgress } from './MiniappStepProgress';
+import { deriveMiniappFlowProgress, deriveMiniappSignFlowSteps, type MiniappSignFlowStep } from './miniapp-step-flow';
 
 type MiniappSignTransactionJobParams = {
   /** 来源小程序名称 */
@@ -35,21 +42,7 @@ type MiniappSignTransactionJobParams = {
   unsignedTx: string;
 };
 
-type SignStep = 'review' | 'wallet_lock';
-
-function isWalletLockError(error: unknown): boolean {
-  if (error instanceof WalletStorageError) {
-    return (
-      error.code === WalletStorageErrorCode.DECRYPTION_FAILED || error.code === WalletStorageErrorCode.INVALID_PASSWORD
-    );
-  }
-
-  if (error instanceof Error) {
-    return /wrong password|decrypt mnemonic|invalid walletlock|wallet lock/i.test(error.message);
-  }
-
-  return false;
-}
+type SignStep = MiniappSignFlowStep;
 
 function MiniappSignTransactionJobContent() {
   const { t } = useTranslation('common');
@@ -59,9 +52,13 @@ function MiniappSignTransactionJobContent() {
 
   const [step, setStep] = useState<SignStep>('review');
   const [pattern, setPattern] = useState<number[]>([]);
+  const [twoStepSecret, setTwoStepSecret] = useState('');
   const [patternError, setPatternError] = useState(false);
+  const [twoStepSecretError, setTwoStepSecretError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requiresTwoStepSecret, setRequiresTwoStepSecret] = useState(false);
+  const [isResolvingTwoStepSecret, setIsResolvingTwoStepSecret] = useState(true);
 
   const unsignedTx = useMemo((): UnsignedTransaction | null => {
     try {
@@ -79,12 +76,35 @@ function MiniappSignTransactionJobContent() {
 
   const targetWallet = walletStore.state.wallets.find((wallet) => wallet.id === walletId);
   const walletName = targetWallet?.name || t('unknownWallet');
+  const flowSteps = useMemo(() => deriveMiniappSignFlowSteps(requiresTwoStepSecret), [requiresTwoStepSecret]);
+  const flowProgress = useMemo(() => deriveMiniappFlowProgress(flowSteps, step), [flowSteps, step]);
 
   const resetWalletLockStepState = useCallback(() => {
     setPattern([]);
     setPatternError(false);
+    setTwoStepSecret('');
+    setTwoStepSecretError(false);
     setErrorMessage(null);
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    setIsResolvingTwoStepSecret(true);
+    resolveMiniappTwoStepSecretRequired(resolvedChainId, from)
+      .then((required) => {
+        if (!mounted) return;
+        setRequiresTwoStepSecret(required);
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setIsResolvingTwoStepSecret(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [resolvedChainId, from]);
 
   const handleEnterWalletLockStep = useCallback(() => {
     if (isSubmitting || !unsignedTx || !walletId) return;
@@ -100,13 +120,53 @@ function MiniappSignTransactionJobContent() {
 
   const handlePatternChange = useCallback(
     (nextPattern: number[]) => {
-      if (patternError || errorMessage) {
+      if (patternError || errorMessage || twoStepSecretError) {
         setPatternError(false);
+        setTwoStepSecretError(false);
         setErrorMessage(null);
       }
       setPattern(nextPattern);
     },
-    [patternError, errorMessage],
+    [patternError, errorMessage, twoStepSecretError],
+  );
+
+  const handleTwoStepSecretChange = useCallback(
+    (value: string) => {
+      if (twoStepSecretError || errorMessage) {
+        setTwoStepSecretError(false);
+        setErrorMessage(null);
+      }
+      setTwoStepSecret(value);
+    },
+    [twoStepSecretError, errorMessage],
+  );
+
+  const performSign = useCallback(
+    async (password: string, paySecret?: string) => {
+      if (!walletId || !unsignedTx) {
+        return;
+      }
+
+      const signedTx = await signUnsignedTransaction({
+        walletId,
+        password,
+        from,
+        chainId: resolvedChainId,
+        unsignedTx,
+        ...(paySecret ? { paySecret } : {}),
+      });
+
+      const event = new CustomEvent('miniapp-sign-transaction-confirm', {
+        detail: {
+          confirmed: true,
+          signedTx,
+        },
+      });
+      window.dispatchEvent(event);
+
+      pop();
+    },
+    [walletId, unsignedTx, from, resolvedChainId, pop],
   );
 
   const handlePatternComplete = useCallback(
@@ -118,42 +178,71 @@ function MiniappSignTransactionJobContent() {
       const password = patternToString(nodes);
       setIsSubmitting(true);
       setPatternError(false);
+      setTwoStepSecretError(false);
       setErrorMessage(null);
 
       try {
-        const signedTx = await signUnsignedTransaction({
-          walletId,
-          password,
-          from,
-          chainId: resolvedChainId,
-          unsignedTx,
-        });
-
-        const event = new CustomEvent('miniapp-sign-transaction-confirm', {
-          detail: {
-            confirmed: true,
-            signedTx,
-          },
-        });
-        window.dispatchEvent(event);
-
-        pop();
+        setStep('signing');
+        await performSign(password);
       } catch (error) {
         console.error('[miniapp-sign-transaction]', error);
-        if (isWalletLockError(error)) {
+        if (isMiniappWalletLockError(error)) {
           setPatternError(true);
           setErrorMessage(t('walletLock.error'));
+        } else if (isMiniappTwoStepSecretError(error)) {
+          setPatternError(false);
+          setTwoStepSecretError(true);
+          setErrorMessage(t('transaction:sendPage.twoStepSecretError'));
+          setStep('two_step_secret');
         } else {
           setPatternError(false);
-          setErrorMessage(error instanceof Error ? error.message : t('walletLock.error'));
+          setTwoStepSecretError(false);
+          setErrorMessage(t('signingFailed'));
         }
         setPattern([]);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [isSubmitting, unsignedTx, walletId, from, resolvedChainId, pop, t, tSecurity],
+    [isSubmitting, unsignedTx, walletId, performSign, t],
   );
+
+  const handleTwoStepSecretSubmit = useCallback(async () => {
+    if (!walletId || !unsignedTx || !pattern.length || !twoStepSecret.trim() || isSubmitting) {
+      return;
+    }
+
+    const password = patternToString(pattern);
+    setIsSubmitting(true);
+    setTwoStepSecretError(false);
+    setErrorMessage(null);
+
+    try {
+      setStep('signing');
+      await performSign(password, twoStepSecret.trim());
+    } catch (error) {
+      console.error('[miniapp-sign-transaction][two-step-secret]', error);
+      if (isMiniappTwoStepSecretError(error)) {
+        setTwoStepSecretError(true);
+        setErrorMessage(t('transaction:sendPage.twoStepSecretError'));
+        setStep('two_step_secret');
+      } else if (isMiniappWalletLockError(error)) {
+        setPatternError(true);
+        setErrorMessage(t('walletLock.error'));
+        setStep('wallet_lock');
+      } else {
+        setTwoStepSecretError(false);
+        setErrorMessage(t('signingFailed'));
+        setStep('two_step_secret');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [walletId, unsignedTx, pattern, twoStepSecret, isSubmitting, performSign, t]);
+
+  const handleTwoStepSecretConfirm = useCallback(() => {
+    void handleTwoStepSecretSubmit();
+  }, [handleTwoStepSecretSubmit]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-sign-transaction-confirm', {
@@ -181,7 +270,15 @@ function MiniappSignTransactionJobContent() {
 
         <MiniappSheetHeader
           title={t('signTransaction')}
-          description={step === 'review' ? appName || t('unknownDApp') : t('drawPatternToConfirm')}
+          description={
+            step === 'review'
+              ? appName || t('unknownDApp')
+              : step === 'wallet_lock'
+                ? t('drawPatternToConfirm')
+                : step === 'two_step_secret'
+                  ? t('transaction:sendPage.twoStepSecretDescription')
+                  : t('signing')
+          }
           appName={appName}
           appIcon={appIcon}
           walletInfo={{
@@ -190,6 +287,14 @@ function MiniappSignTransactionJobContent() {
             chainId: resolvedChainId,
           }}
         />
+
+        <div className="px-4 pt-4">
+          <MiniappStepProgress
+            currentStep={flowProgress.currentStep}
+            totalSteps={flowProgress.totalSteps}
+            percent={flowProgress.percent}
+          />
+        </div>
 
         {step === 'review' ? (
           <>
@@ -239,7 +344,7 @@ function MiniappSignTransactionJobContent() {
               </button>
               <button
                 onClick={handleEnterWalletLockStep}
-                disabled={isSubmitting || !unsignedTx || !walletId}
+                disabled={isSubmitting || !unsignedTx || !walletId || isResolvingTwoStepSecret}
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',
                   'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -250,7 +355,7 @@ function MiniappSignTransactionJobContent() {
               </button>
             </div>
           </>
-        ) : (
+        ) : step === 'wallet_lock' ? (
           <>
             <div className="space-y-4 p-4">
               {!walletId && (
@@ -298,6 +403,63 @@ function MiniappSignTransactionJobContent() {
               </button>
             </div>
           </>
+        ) : step === 'two_step_secret' ? (
+          <>
+            <div className="space-y-4 p-4">
+              <PasswordInput
+                value={twoStepSecret}
+                onChange={(event) => handleTwoStepSecretChange(event.target.value)}
+                placeholder={t('transaction:sendPage.twoStepSecretPlaceholder')}
+                disabled={isSubmitting}
+                aria-describedby={errorMessage ? 'miniapp-sign-two-step-secret-error' : undefined}
+                data-testid="miniapp-sign-two-step-secret-input"
+              />
+
+              {errorMessage && (
+                <div
+                  id="miniapp-sign-two-step-secret-error"
+                  className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm"
+                >
+                  {errorMessage}
+                </div>
+              )}
+
+              {isSubmitting && (
+                <div className="bg-muted text-muted-foreground flex items-center justify-center gap-2 rounded-xl p-3 text-sm">
+                  <IconLoader2 className="size-4 animate-spin" />
+                  {t('signing')}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 p-4">
+              <button
+                onClick={handleBackToReview}
+                disabled={isSubmitting}
+                className="bg-muted hover:bg-muted/80 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+              >
+                {t('back')}
+              </button>
+              <button
+                onClick={handleTwoStepSecretConfirm}
+                disabled={isSubmitting || twoStepSecret.trim().length === 0}
+                className={cn(
+                  'flex-1 rounded-xl py-3 font-medium transition-colors',
+                  'bg-primary text-primary-foreground hover:bg-primary/90',
+                  'disabled:opacity-50',
+                )}
+              >
+                {t('confirm')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4 p-4">
+            <div className="bg-muted text-muted-foreground flex items-center justify-center gap-2 rounded-xl p-3 text-sm">
+              <IconLoader2 className="size-4 animate-spin" />
+              {t('signing')}
+            </div>
+          </div>
         )}
 
         <div className="h-[env(safe-area-inset-bottom)]" />

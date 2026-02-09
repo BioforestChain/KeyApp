@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S deno run -A --unstable-sloppy-imports
 /**
  * Onboarding Workflow - 新上下文入口
  *
@@ -8,10 +8,12 @@
 import {
   createRouter,
   defineWorkflow,
-} from "../../../packages/flow/src/common/workflow/base-workflow.js";
-import { formatPractices, listPractices } from "../mcps/practice.mcp.js";
-import { getCurrentSummary } from "../mcps/roadmap.mcp.js";
-import { formatToc, getChapter, getKnowledgeMap, getToc } from "../mcps/whitebook.mcp.js";
+} from "../../../packages/flow/src/common/workflow/base-workflow.ts";
+import { formatPractices, listPractices } from "../mcps/practice.mcp.ts";
+import { getCurrentSummary } from "../mcps/roadmap.mcp.ts";
+import { formatToc, getChapter, getKnowledgeMap, getToc } from "../mcps/whitebook.mcp.ts";
+
+const ACTION_STATUS_GUIDE_PATH = "09-i18n-Ref/03-Action-Status-Copy.md";
 
 // =============================================================================
 // Subflows
@@ -25,6 +27,13 @@ const defaultWorkflow = defineWorkflow({
 
 ## 最佳实践
 ${formatPractices(listPractices())}
+
+## 开工前必读（状态/错误文案）
+- ${ACTION_STATUS_GUIDE_PATH}
+- 核心要求：
+  - 文案必须区分阶段（签名 / 广播 / 上链确认）
+  - UI 不得直接透出 error.message
+  - 变更需配套最小回归测试
 
 ## 知识地图
 ${getKnowledgeMap()}
@@ -50,6 +59,9 @@ const quickWorkflow = defineWorkflow({
 
 ${formatPractices(listPractices())}
 
+## 开工前必读（状态/错误文案）
+- ${ACTION_STATUS_GUIDE_PATH}
+
 ${getCurrentSummary() || "## 当前无进行中任务"}
 `);
   },
@@ -73,7 +85,7 @@ const chapterWorkflow = defineWorkflow({
     const chapterPath = args.path || args._[0];
     if (!chapterPath) {
       console.error("错误: 请指定章节路径");
-      process.exit(1);
+      Deno.exit(1);
     }
 
     try {
@@ -89,7 +101,7 @@ const chapterWorkflow = defineWorkflow({
       }
     } catch (error) {
       console.error(`错误: ${error instanceof Error ? error.message : error}`);
-      process.exit(1);
+      Deno.exit(1);
     }
   },
 });
@@ -101,7 +113,7 @@ const chapterWorkflow = defineWorkflow({
 export const workflow = createRouter({
   name: "onboarding",
   description: "新上下文入门 - 了解项目结构、最佳实践和当前任务",
-  version: "1.0.0",
+  version: "1.1.0",
   subflows: [defaultWorkflow, quickWorkflow, tocWorkflow, chapterWorkflow],
   examples: [
     ["onboarding", "显示完整入门信息"],
@@ -115,10 +127,6 @@ export const workflow = createRouter({
 // Auto-start
 // =============================================================================
 
-const isMain =
-  process.argv[1]?.endsWith("onboarding.workflow.ts") ||
-  process.argv[1]?.endsWith("onboarding.workflow.js");
-
-if (isMain) {
+if (import.meta.main) {
   workflow.run();
 }

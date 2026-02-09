@@ -30,4 +30,5 @@
 - CSS Modules 与 Tailwind 混用：`className={cn(styles.header, 'sticky top-0 z-10 px-5')}`
 - 优先级：CSS Modules > globals.css，组件样式应内聚到组件目录
 - ❌ as TypeAssertion → ✅ z.looseObject().safeParse() 验证外部 API 响应
+- ❌ `确认中`（模糊状态） → ✅ 使用阶段化文案（`签名中/广播中/等待上链`），详见 `09-i18n-Ref/03-Action-Status-Copy.md`
 - ❌ z.record(z.record(...)) → ✅ z.record(z.string(), z.record(z.string(), schema))（Zod 4 嵌套 record 需显式 key 类型）

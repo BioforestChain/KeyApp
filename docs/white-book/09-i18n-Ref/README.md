@@ -8,6 +8,7 @@
 |------|------|
 | [01-Language-Support](./01-Language-Support.md) | 支持语言、检测规范、翻译资源 |
 | [02-Localization](./02-Localization.md) | 数字/日期格式化、术语表 |
+| [03-Action-Status-Copy](./03-Action-Status-Copy.md) | 高风险动作文案与错误映射规范 |
 
 ---
 

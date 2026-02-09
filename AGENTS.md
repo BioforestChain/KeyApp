@@ -115,6 +115,15 @@ gh pr merge <pr#> --squash --delete-branch
 
 > 目标：避免“围绕 DOM 修修补补”导致的路径爆炸；用可验证的状态机 + 纯函数绑定 DOM。
 
+### 0) 开工前必读（强制）
+
+- 涉及 **状态文案 / 错误文案 / i18n** 的任务，开始编码前必须先阅读：
+  - `docs/white-book/09-i18n-Ref/03-Action-Status-Copy.md`
+- 不得依赖 CI 才发现“语义模糊”问题；开发阶段必须先做文案语义自检：
+  - 当前文案是否准确反映真实阶段（签名 / 广播 / 上链确认）
+  - UI 是否直接透出底层 `error.message`
+  - 是否已有统一错误映射与最小回归测试
+
 ### 1) 状态机优先（State-first）
 
 - 先把“控制层状态”定义清楚（例如：miniapp 是 `active/backgrounded`，sheet 是否 `pending/visible/resolved`）。
@@ -162,5 +171,3 @@ Use `@/openspec/AGENTS.md` to learn:
 - Project structure and guidelines
 
 Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->

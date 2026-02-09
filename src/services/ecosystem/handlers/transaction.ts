@@ -167,11 +167,13 @@ export const handleSignTransaction: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('SignTransaction dialog not available'), { code: BioErrorCodes.INTERNAL_ERROR })
   }
 
+  const { from, chain, unsignedTx } = opts
+
   const result = await enqueueMiniappSheet(context.appId, () =>
     showDialog({
-      from: opts.from,
-      chain: opts.chain,
-      unsignedTx: opts.unsignedTx,
+      from,
+      chain,
+      unsignedTx,
       app: toMiniappInfo(context),
     }),
   )
@@ -190,6 +192,7 @@ export const handleSignTransaction: MethodHandler = async (params, context) => {
 export async function signUnsignedTransaction(params: {
   walletId: string
   password: string
+  paySecret?: string
   from: string
   chainId: string
   unsignedTx: UnsignedTransaction
@@ -234,7 +237,7 @@ export async function signUnsignedTransaction(params: {
   const signed = await signTransaction(
     { chainId: params.unsignedTx.chainId, intentType: params.unsignedTx.intentType ?? 'transfer', data: params.unsignedTx.data },
     chainConfig.chainKind === 'bioforest'
-      ? { bioSecret: mnemonic, privateKey: privateKeyBytes }
+      ? { bioSecret: mnemonic, bioPaySecret: params.paySecret, privateKey: privateKeyBytes }
       : { privateKey: privateKeyBytes },
   )
 
