@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.2",
-  "change_log": "miniapp 转账/签名交易改为单弹窗多步骤流程",
+  "version": "0.10.3",
+  "change_log": "fix miniapp transfer fifo timeout fallback and payload compatibility",
   "categories": [
     "application",
     "wallet"

@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.3] - 2026-02-09
+
+fix miniapp transfer fifo timeout fallback and payload compatibility
+
+<!-- last-commit: 26b1803deff1d62b45c679f8ffb423695ee9e23f -->
+
 ## [0.10.2] - 2026-02-08
 
 miniapp 转账/签名交易改为单弹窗多步骤流程
