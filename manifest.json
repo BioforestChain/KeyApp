@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.3",
-  "change_log": "fix miniapp transfer fifo timeout fallback and payload compatibility",
+  "version": "0.10.4",
+  "change_log": "功能更新和优化",
   "categories": [
     "application",
     "wallet"
