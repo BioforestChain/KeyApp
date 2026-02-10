@@ -616,11 +616,18 @@ function scanRemoteMiniappsForBuild(
 ): Array<MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }> {
   if (!existsSync(miniappsPath)) return [];
 
-  const configByDirName = new Map(
-    remoteConfigs
-      .map((c) => (c.build?.locale ? [c.build.locale.dirName, c] : null))
-      .filter((item): item is [string, RemoteMiniappConfig] => item !== null),
-  );
+  const configByDirName = new Map<string, RemoteMiniappConfig>();
+  for (const remoteConfig of remoteConfigs) {
+    const buildDirName = remoteConfig.build?.locale?.dirName;
+    if (buildDirName && !configByDirName.has(buildDirName)) {
+      configByDirName.set(buildDirName, remoteConfig);
+    }
+
+    const serverDirName = remoteConfig.server?.locale?.dirName;
+    if (serverDirName && !configByDirName.has(serverDirName)) {
+      configByDirName.set(serverDirName, remoteConfig);
+    }
+  }
   const remoteApps: Array<
     MiniappManifest & { url: string; runtime?: MiniappRuntime; wujieConfig?: WujieRuntimeConfig }
   > = [];
@@ -645,8 +652,8 @@ function scanRemoteMiniappsForBuild(
         url: baseUrl,
         icon: manifest.icon.startsWith('http') ? manifest.icon : new URL(manifest.icon, baseUrl).href,
         screenshots: manifest.screenshots?.map((s) => (s.startsWith('http') ? s : new URL(s, baseUrl).href)) ?? [],
-        runtime: config?.build?.runtime ?? 'wujie',
-        wujieConfig: config?.build?.wujieConfig,
+        runtime: config?.build?.runtime ?? config?.server?.runtime ?? 'wujie',
+        wujieConfig: config?.build?.wujieConfig ?? config?.server?.wujieConfig,
       });
     } catch {
       console.warn(`[miniapps] ${entry.name}: invalid remote manifest.json, skipping`);

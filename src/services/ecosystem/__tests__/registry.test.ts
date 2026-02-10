@@ -67,6 +67,94 @@ describe('Miniapp Registry (Subscription v2)', () => {
     expect(getAppById('xin.dweb.teleport')?.name).toBe('Teleport')
   })
 
+  it('prefers the later source when duplicate app id exists', async () => {
+    ecosystemStore.setState(() => ({
+      permissions: [],
+      sources: [
+        {
+          url: '/ecosystem-primary.json',
+          name: 'Primary',
+          enabled: true,
+          lastUpdated: new Date().toISOString(),
+        },
+        {
+          url: '/ecosystem-override.json',
+          name: 'Override',
+          enabled: true,
+          lastUpdated: new Date().toISOString(),
+        },
+      ],
+    }))
+
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+
+      if (requestUrl.includes('/ecosystem-primary.json')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Map(),
+          json: () =>
+            Promise.resolve({
+              name: 'primary',
+              version: '1',
+              updated: '2025-01-01',
+              apps: [
+                {
+                  id: 'xin.dweb.rwahub',
+                  name: 'RWA Hub',
+                  url: 'https://legacy.example/',
+                  icon: '/legacy-icon.svg',
+                  description: 'legacy runtime',
+                  version: '1.0.0',
+                  runtime: 'wujie',
+                },
+              ],
+            }),
+        })
+      }
+
+      if (requestUrl.includes('/ecosystem-override.json')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Map(),
+          json: () =>
+            Promise.resolve({
+              name: 'override',
+              version: '1',
+              updated: '2025-01-01',
+              apps: [
+                {
+                  id: 'xin.dweb.rwahub',
+                  name: 'RWA Hub',
+                  url: 'https://latest.example/',
+                  icon: '/latest-icon.svg',
+                  description: 'iframe runtime',
+                  version: '1.0.0',
+                  runtime: 'iframe',
+                },
+              ],
+            }),
+        })
+      }
+
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        headers: new Map(),
+        json: () => Promise.resolve({}),
+      })
+    }) as unknown as typeof fetch
+
+    await refreshSources()
+
+    const app = getAppById('xin.dweb.rwahub')
+    expect(app?.runtime).toBe('iframe')
+    expect(app?.url).toBe('https://latest.example/')
+    expect(app?.sourceUrl).toBe('/ecosystem-override.json')
+  })
+
   it('searches cached apps by keyword', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -89,39 +177,63 @@ describe('Miniapp Registry (Subscription v2)', () => {
   })
 
   it('ranks featured apps by featuredScore', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      headers: new Map(),
-      json: () =>
-        Promise.resolve({
-          name: 'x',
-          version: '1',
-          updated: '2025-01-01',
-          apps: [
-            {
-              id: 'xin.dweb.a',
-              name: 'A',
-              url: '/',
-              icon: '',
-              description: '',
-              version: '1.0.0',
-              officialScore: 100,
-              communityScore: 0,
-            },
-            {
-              id: 'xin.dweb.b',
-              name: 'B',
-              url: '/',
-              icon: '',
-              description: '',
-              version: '1.0.0',
-              officialScore: 0,
-              communityScore: 100,
-            },
-          ],
-        }),
-    })
+    ecosystemStore.setState(() => ({
+      permissions: [],
+      sources: [
+        {
+          url: '/ecosystem-featured.json',
+          name: 'Featured',
+          enabled: true,
+          lastUpdated: new Date().toISOString(),
+        },
+      ],
+    }))
+
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      if (!requestUrl.includes('/ecosystem-featured.json')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          headers: new Map(),
+          json: () => Promise.resolve({}),
+        })
+      }
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Map(),
+        json: () =>
+          Promise.resolve({
+            name: 'x',
+            version: '1',
+            updated: '2025-01-01',
+            apps: [
+              {
+                id: 'xin.dweb.a',
+                name: 'A',
+                url: '/',
+                icon: '',
+                description: '',
+                version: '1.0.0',
+                officialScore: 100,
+                communityScore: 0,
+              },
+              {
+                id: 'xin.dweb.b',
+                name: 'B',
+                url: '/',
+                icon: '',
+                description: '',
+                version: '1.0.0',
+                officialScore: 0,
+                communityScore: 100,
+              },
+            ],
+          }),
+      })
+    }) as unknown as typeof fetch
 
     await refreshSources()
     const featured = await getFeaturedApps(1, new Date('2025-01-05T00:00:00.000Z'))

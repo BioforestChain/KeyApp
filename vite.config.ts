@@ -20,16 +20,14 @@ const remoteMiniappsConfig: RemoteMiniappConfig[] = [
         metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
         dirName: 'rwa-hub',
       },
-      runtime: 'wujie',
-      wujieConfig: { rewriteAbsolutePaths: true },
+      runtime: 'iframe',
     },
     build: {
       remote: {
         name: 'RWA',
         sourceUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/source.json',
       },
-      runtime: 'wujie',
-      wujieConfig: { rewriteAbsolutePaths: true },
+      runtime: 'iframe',
     },
   },
 ];

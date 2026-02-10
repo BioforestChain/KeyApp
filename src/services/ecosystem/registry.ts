@@ -306,22 +306,26 @@ function mergeAppsFromSources(
       const normalized = normalizeAppFromSource(app, source, payload);
       if (!normalized) continue;
 
-      const id = normalized.id;
-      if (!indexById.has(id)) {
-        indexById.set(id, merged.length);
+      const appId = normalized.id;
+      const existingIndex = indexById.get(appId);
+
+      if (existingIndex === undefined) {
+        indexById.set(appId, merged.length);
         merged.push(normalized);
+      } else {
+        merged[existingIndex] = normalized;
       }
 
       if (typeof normalized.officialScore === 'number') {
-        const list = officialScoresById.get(id) ?? [];
+        const list = officialScoresById.get(appId) ?? [];
         list.push(normalized.officialScore);
-        officialScoresById.set(id, list);
+        officialScoresById.set(appId, list);
       }
 
       if (typeof normalized.communityScore === 'number') {
-        const list = communityScoresById.get(id) ?? [];
+        const list = communityScoresById.get(appId) ?? [];
         list.push(normalized.communityScore);
-        communityScoresById.set(id, list);
+        communityScoresById.set(appId, list);
       }
     }
   }
