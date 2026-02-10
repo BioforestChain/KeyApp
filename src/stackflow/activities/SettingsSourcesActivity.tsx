@@ -175,7 +175,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
 
   return (
     <AppScreen>
-      <div className="bg-background flex min-h-full flex-col">
+      <div className="bg-background flex h-full flex-col">
         {/* Header */}
         <div className="bg-background sticky top-0 z-10 border-b">
           <div className="flex items-center gap-3 px-4 py-3">
@@ -199,7 +199,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
         </div>
 
         {/* Sources List */}
-        <div className="flex-1 space-y-3 p-4">
+        <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {state.sources.map((source) => (
             <SourceItem
               key={source.url}
@@ -228,7 +228,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
               placeholder={t('sources.urlPlaceholder')}
               rows={1}
               spellCheck={false}
-              className="bg-background focus:ring-primary w-full resize-none rounded-lg border px-3 py-2 [field-sizing:content] focus:ring-2 focus:outline-none"
+              className="bg-background focus:ring-primary [field-sizing:content] w-full resize-none rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
             />
             <div className="relative">
               <input
@@ -239,15 +239,12 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
                 className="bg-background focus:ring-primary w-full rounded-lg border px-3 py-2 pr-8 focus:ring-2 focus:outline-none"
               />
               {isFetchingName && (
-                <IconLoader2 className="text-muted-foreground absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin" />
+                <IconLoader2 className="text-muted-foreground absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin" />
               )}
             </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="flex gap-2">
-              <button
-                onClick={handleCancel}
-                className="bg-muted hover:bg-muted/80 flex-1 rounded-lg py-2 font-medium"
-              >
+              <button onClick={handleCancel} className="bg-muted hover:bg-muted/80 flex-1 rounded-lg py-2 font-medium">
                 {t('cancel')}
               </button>
               <button
@@ -299,9 +296,9 @@ function SourceItem({ source, onToggle, onRemove, onEdit, isSelected }: SourceIt
   return (
     <div
       className={cn(
-        'rounded-xl border p-4 transition-colors cursor-pointer',
+        'cursor-pointer rounded-xl border p-4 transition-colors',
         source.enabled ? 'bg-card' : 'bg-muted/30 opacity-60',
-        isSelected && 'ring-2 ring-primary',
+        isSelected && 'ring-primary ring-2',
       )}
       onClick={onEdit}
     >
