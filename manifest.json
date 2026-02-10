@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.5",
-  "change_log": "修复 RwaHub 运行时解析与源覆盖逻辑",
+  "version": "0.10.6",
+  "change_log": "优化生态应用启动与弹窗流程，修复设置页滚动布局",
   "categories": [
     "application",
     "wallet"
