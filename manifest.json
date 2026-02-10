@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.4",
-  "change_log": "功能更新和优化",
+  "version": "0.10.5",
+  "change_log": "修复 RwaHub 运行时解析与源覆盖逻辑",
   "categories": [
     "application",
     "wallet"

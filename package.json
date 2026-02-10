@@ -1,7 +1,7 @@
 {
   "name": "@biochain/keyapp",
   "private": true,
-  "version": "0.10.4",
+  "version": "0.10.5",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
@@ -214,5 +214,5 @@
     "packages/*",
     "miniapps/*"
   ],
-  "lastChangelogCommit": "5b45b9968abb6ec26ba6349f81bdc53ce5d329f8"
+  "lastChangelogCommit": "12c5a616baf7256f689aa29c3eb3e8ba56f112d5"
 }
