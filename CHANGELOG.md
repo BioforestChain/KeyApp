@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.4] - 2026-02-10
+
+功能更新和优化
+
+<!-- last-commit: 5b45b9968abb6ec26ba6349f81bdc53ce5d329f8 -->
+
 ## [0.10.3] - 2026-02-09
 
 fix miniapp transfer fifo timeout fallback and payload compatibility
