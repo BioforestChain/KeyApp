@@ -25,7 +25,6 @@ import {
   setWalletPicker,
 } from "@/services/ecosystem";
 import { getKeyAppChainId } from "@biochain/bio-sdk";
-import { formatUnits } from "viem";
 import { walletSelectors, walletStore, type ChainAddress } from "@/stores";
 import { miniappRuntimeStore } from "@/services/miniapp-runtime";
 
@@ -387,7 +386,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       }
 
       const valueBigInt = BigInt(value ?? "0x0");
-      const amount = formatUnits(valueBigInt, 18);
+      const amount = valueBigInt.toString();
       const keyAppChainId = chainId ? getKeyAppChainId(chainId) : null;
       const requestId = `transfer-${Date.now()}-${++transferSheetSeqRef.current}`;
 

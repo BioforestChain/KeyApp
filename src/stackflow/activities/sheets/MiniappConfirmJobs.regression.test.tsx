@@ -226,6 +226,47 @@ describe('miniapp confirm jobs regressions', () => {
     expect(screen.getByTestId('miniapp-sheet-header')).toBeInTheDocument();
   });
 
+  it('does not pass raw amount directly to display layer', () => {
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '1000000000',
+          chain: 'BFMetaV2',
+          asset: 'USDT',
+        }}
+      />,
+    );
+
+    const amountDisplayNode = screen.getByText((content) => content.endsWith('-USDT'));
+    expect(amountDisplayNode).toBeInTheDocument();
+    expect(amountDisplayNode.textContent).not.toBe('1000000000-USDT');
+  });
+
+  it('keeps confirm button disabled for non-raw amount input', async () => {
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '10.00000000',
+          chain: 'BFMetaV2',
+          asset: 'USDT',
+        }}
+      />,
+    );
+
+    const confirmButton = screen.getByTestId('miniapp-transfer-review-confirm');
+    await waitFor(() => {
+      expect(confirmButton).toBeDisabled();
+    });
+  });
+
   it('shows building transaction copy in wallet-lock step while generating tx', async () => {
     vi.mocked(signUnsignedTransaction).mockImplementation(
       async () =>
@@ -259,6 +300,50 @@ describe('miniapp confirm jobs regressions', () => {
     fireEvent.click(screen.getByTestId('pattern-lock'));
 
     expect(await screen.findByTestId('miniapp-transfer-building-status')).toBeInTheDocument();
+  });
+
+  it('builds transfer transaction with raw-equivalent amount', async () => {
+    const buildTransaction = vi.fn(async (intent: unknown) => ({
+      chainId: 'bfmetav2',
+      intentType: 'transfer',
+      data: intent,
+    }));
+
+    vi.mocked(getChainProvider).mockReturnValueOnce({
+      supportsFullTransaction: true,
+      buildTransaction,
+      signTransaction: vi.fn(),
+      broadcastTransaction: vi.fn(async () => 'tx-hash'),
+    } as unknown as ReturnType<typeof getChainProvider>);
+
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '1000000000',
+          chain: 'BFMetaV2',
+          asset: 'USDT',
+        }}
+      />,
+    );
+
+    const confirmButton = screen.getByTestId('miniapp-transfer-review-confirm');
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(confirmButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    await waitFor(() => {
+      expect(buildTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    const intent = buildTransaction.mock.calls[0]?.[0] as { amount: { toRawString: () => string } };
+    expect(intent.amount.toRawString()).toBe('1000000000');
   });
 
 

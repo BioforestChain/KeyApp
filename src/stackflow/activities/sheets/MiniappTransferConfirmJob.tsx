@@ -19,12 +19,12 @@ import { ChainBadge } from '@/components/wallet/chain-icon';
 import { PatternLock, patternToString } from '@/components/security/pattern-lock';
 import { PasswordInput } from '@/components/security/password-input';
 import { getChainProvider } from '@/services/chain-adapter/providers';
-import { Amount } from '@/types/amount';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { chainConfigService } from '@/services/chain-config/service';
 import { useToast } from '@/services';
 import { findMiniappWalletIdByAddress, resolveMiniappChainId } from './miniapp-wallet';
 import { createMiniappUnsupportedPipelineError, mapMiniappTransferErrorToMessage } from './miniapp-transfer-error';
+import { parseMiniappTransferAmountRaw } from './miniapp-transfer-amount';
 import {
   isMiniappWalletLockError,
   isMiniappTwoStepSecretError,
@@ -143,10 +143,25 @@ function MiniappTransferConfirmJobContent() {
     const chainSymbol = chainConfigService.getSymbol(resolvedChainId);
     return chainSymbol || resolvedChainId.toUpperCase();
   }, [asset, resolvedChainId]);
+  const displayDecimals = useMemo(() => chainConfigService.getDecimals(resolvedChainId), [resolvedChainId]);
+
+  const parsedAmount = useMemo(() => {
+    try {
+      return parseMiniappTransferAmountRaw(amount, displayDecimals, displayAsset);
+    } catch {
+      return null;
+    }
+  }, [amount, displayDecimals, displayAsset]);
+
+  const displayAmount = useMemo(() => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount, [parsedAmount, amount]);
+  const amountInvalidMessage = useMemo(
+    () => (parsedAmount ? null : t('transaction:broadcast.invalidParams')),
+    [parsedAmount, t],
+  );
 
   const transferShortTitle = useMemo(
-    () => t('transaction:miniappTransfer.shortTitle', { amount, asset: displayAsset }),
-    [t, amount, displayAsset],
+    () => t('transaction:miniappTransfer.shortTitle', { amount: displayAmount, asset: displayAsset }),
+    [t, displayAmount, displayAsset],
   );
   const isBuilding = phase === 'building';
   const isBroadcasting = phase === 'broadcasting';
@@ -405,16 +420,15 @@ function MiniappTransferConfirmJobContent() {
         throw createMiniappUnsupportedPipelineError(resolvedChainId);
       }
 
-      const decimals = chainConfigService.getDecimals(resolvedChainId);
-      const chainSymbol = chainConfigService.getSymbol(resolvedChainId);
-      const symbol = (asset ?? chainSymbol) || resolvedChainId.toUpperCase();
-      const valueAmount = Amount.parse(amount, decimals, symbol);
+      if (!parsedAmount) {
+        throw new Error('Invalid miniapp transfer amount');
+      }
 
       const unsignedTx = await provider.buildTransaction({
         type: 'transfer',
         from,
         to,
-        amount: valueAmount,
+        amount: parsedAmount,
         ...(asset ? { bioAssetType: asset } : {}),
       });
 
@@ -446,7 +460,7 @@ function MiniappTransferConfirmJobContent() {
 
       return { txHash, transaction };
     },
-    [resolvedChainId, asset, amount, from, to, walletId],
+    [resolvedChainId, parsedAmount, asset, from, to, walletId],
   );
 
   const handleTransferFailure = useCallback(
@@ -674,11 +688,11 @@ function MiniappTransferConfirmJobContent() {
             <div className="space-y-4 p-4">
               <div className="bg-muted/50 rounded-xl p-4 text-center">
                 <AmountDisplay
-                  value={amount}
+                  value={displayAmount}
                   symbol={displayAsset}
                   size="xl"
                   weight="bold"
-                  decimals={8}
+                  decimals={displayDecimals}
                   fixedDecimals={true}
                 />
               </div>
@@ -705,6 +719,12 @@ function MiniappTransferConfirmJobContent() {
                 </div>
               )}
 
+              {amountInvalidMessage && (
+                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">
+                  {amountInvalidMessage}
+                </div>
+              )}
+
               <div className="bg-muted/50 flex items-center justify-between rounded-xl p-3">
                 <span className="text-muted-foreground text-sm"> {t('network')}</span>
                 <ChainBadge chainId={resolvedChainId} />
@@ -727,7 +747,7 @@ function MiniappTransferConfirmJobContent() {
               <button
                 data-testid="miniapp-transfer-review-confirm"
                 onClick={handleEnterWalletLockStep}
-                disabled={isBusy || !walletId || isResolvingTwoStepSecret}
+                disabled={isBusy || !walletId || isResolvingTwoStepSecret || !parsedAmount}
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',
                   'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -847,11 +867,11 @@ function MiniappTransferConfirmJobContent() {
           <div className="space-y-4 p-4">
             <div className="bg-muted/50 rounded-xl p-4 text-center">
               <AmountDisplay
-                value={amount}
+                value={displayAmount}
                 symbol={displayAsset}
                 size="xl"
                 weight="bold"
-                decimals={8}
+                decimals={displayDecimals}
                 fixedDecimals={true}
               />
             </div>
