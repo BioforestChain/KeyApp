@@ -1,0 +1,42 @@
+import{j as r}from"./iframe-D_wumixU.js";import{S as s,I as l,e as d,f as u}from"./wallet-config-CJ9s6sh3.js";import{I as a}from"./IconEye-C0njIer0.js";import{I as n}from"./IconLock-Ba3v9Gai.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme-IUyG-SbU.js";import"./user-profile-CwnGhH7J.js";import"./index-D0E7N0oa.js";import"./derivation-ZlXlbSXA.js";import"./schemas-CO8_C8zP.js";import"./avatar-codec-CK1eTEDe.js";import"./service-DJC3MZ37.js";import"./bioforest-bWrsnjtH.js";import"./wallet-card-carousel-NSjJspum.js";import"./swiper-lfGq_F6Y.js";import"./wallet-card-DFVtPPt5.js";import"./hologram-canvas-Brsi-NY4.js";import"./chain-icon-CMc0nT-_.js";import"./address-display-qWDX3fR_.js";import"./web-DjtR0MQH.js";import"./createReactComponent-DTmO_ECI.js";import"./breakpoint-DQ_qwb34.js";import"./useTranslation-BUN0bWmz.js";import"./index-DJ7mgCHa.js";import"./IconCheck-D_havJbe.js";import"./IconChevronDown-La6X4-Uq.js";import"./IconSettings-JsZaJU9x.js";import"./dropdown-menu-u7dJS_rg.js";import"./index-YE3hJ12-.js";import"./index-Doilf_uA.js";import"./composite-DwInnjN0.js";import"./useRenderElement-BJltmq7R.js";import"./useBaseUiId-LRyRTKBR.js";import"./useCompositeListItem-COjcsRtF.js";import"./useRole-Bz7UEW6p.js";import"./useButton-B7fJWq_D.js";import"./IconWallet-BVcCQhRL.js";import"./IconPlus-CYIfq5Bq.js";import"./IconSearch-BAAEVeB0.js";import"./button-8VCYF9q8.js";import"./TabBar-CUqGvqjz.js";import"./swiper-sync-context-COisGL2a.js";import"./index-BCKKuiA9.js";import"./wujie-container-DCjZz7Yc.js";import"./index-CULjlCoN.js";import"./amount-BQsqQYGO.js";import"./web-Delo70pr.js";import"./window-stack-BPi_p-h9.js";import"./index-BwiwV7zE.js";import"./notification-BlvBEjKO.js";import"./transaction-meta-DQ1SozSY.js";import"./IconDots-BBax1IIZ.js";import"./IconShieldCheck-COF95d4f.js";import"./IconApps-KjXpaT_U.js";import"./IconCoins-GBvD9mEX.js";import"./IconSparkles-Nm4IDPq3.js";import"./IconTrash-CFZxxA6M.js";import"./ecosystem-desktop-CRvgCqVB.js";import"./my-apps-page-D9BuNSgT.js";import"./config-HmZ3kn8E.js";import"./IconDownload-pH2pNjxC.js";import"./proxy-DGEvKwxg.js";import"./IconChevronRight-Co0fkv5j.js";import"./miniapp-splash-screen-CTHK16Ua.js";import"./index-BiBF0VUp.js";import"./item-BdaRjUSz.js";import"./recover-wallet-form-BCc82u57.js";import"./input-CumWnqIE.js";import"./useField-DQWZJjgm.js";import"./IconX-zx6_11bs.js";import"./IconAlertCircle-CgrmZ3YY.js";import"./IconLoader2-CZF_M5-_.js";import"./token-item-DMjAuIJh.js";import"./wallet-selector-CHyyTD0N.js";import"./wallet-mini-card-Bgd4VsPg.js";import"./token-icon-DohYnksY.js";import"./LoadingSpinner-DOo5Lv34.js";import"./NumberFlow-client-48rw3j0J-C4JYfZGI.js";import"./amount-display-C0oJy3zC.js";import"./animated-number-DmfCnYog.js";import"./time-display-_-82LLLN.js";import"./service-status-alert-DYDMaSOj.js";import"./IconAlertTriangle-CFNPiDiG.js";import"./transaction-list-sW0jpnEh.js";import"./transaction-item-C7yR-2gy.js";import"./IconRefresh-C4_CpCCj.js";import"./swipeable-tabs-BRtLnFLw.js";import"./address-input-CqSIcRTV.js";import"./contact-avatar-RzTSHlFr.js";import"./IconPencil-CFk04XwM.js";import"./page-header-B2dW0-Ql.js";import"./sheet-CQxzs2CK.js";import"./pattern-lock-CznuJFmL.js";import"./password-input-B7f2BtG_.js";import"./IconEyeOff-DUP9JsTv.js";import"./fee-display-BkaL0PPB.js";import"./tx-status-display--mokbPxu.js";import"./wallet-list-CHO4Pfuy.js";import"./checkbox-BwL2qDQD.js";import"./asset-selector-aiO1jXY8.js";import"./qr-parser-B0DuAiMI.js";import"./jsQR-C0C9EFQQ.js";import"./index-BMW7iT4S.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-D7PG664W.js";import"./mnemonic-display-DldCOBII.js";import"./pattern-lock-setup-C4MtWGcp.js";import"./chain-selector-CGDgVs42.js";import"./index-BMvvGzNE.js";import"./IconCircleCheck-B0TkanRc.js";import"./asset-item-C3PHsuQK.js";import"./asset-list-dp96jtM2.js";import"./amount-input-B-0-PQmd.js";import"./balance-display-COzHMLRL.js";import"./send-result-B9TPPjG8.js";import"./transaction-status-CwQFR1wJ.js";import"./IconBan-CKunuQXP.js";import"./IconClock-C3r7wdQW.js";import"./IconExternalLink-DILSSAbu.js";import"./Trans-CYsiKMQ2.js";import"./mnemonic-input-Ddp8-NRL.js";import"./AppInfoCard-CZlA5dqK.js";import"./PermissionList-DT6Hjt6V.js";import"./TransactionDetails-CbwwIufi.js";import"./BalanceWarning-Dyj6IUA8.js";import"./key-type-selector-DKNV8akd.js";import"./arbitrary-key-input-DfAD_WQb.js";import"./IconRotateClockwise-DTdbkADf.js";import"./chain-address-preview-DptauWJ8.js";import"./collision-confirm-dialog-CVzHRBC0.js";import"./IconBell-CM1Ut1n2.js";import"./IconCircleX-BlcAq7az.js";import"./IconShield-Bz33vHyH.js";const Bo={title:"Pages/Settings/SettingsItem",component:s,parameters:{layout:"padded"},decorators:[c=>r.jsx("div",{className:"bg-card max-w-md rounded-xl",children:r.jsx(c,{})})]},o={args:{label:"语言",value:"简体中文",icon:r.jsx(l,{size:20}),onClick:()=>console.log("clicked")}},t={args:{label:"查看助记词",icon:r.jsx(a,{size:20}),onClick:()=>console.log("clicked")}},i={args:{label:"应用锁",value:"未设置",icon:r.jsx(n,{size:20}),disabled:!0}},e={args:{label:"版本",value:"v1.0.0",showChevron:!1}},m={render:()=>r.jsx("div",{className:"bg-muted/30 max-w-md p-4",children:r.jsxs(d,{title:"安全",children:[r.jsx(s,{icon:r.jsx(n,{size:20}),label:"应用锁",value:"已开启",onClick:()=>{}}),r.jsx("div",{className:"bg-border mx-4 h-px"}),r.jsx(s,{icon:r.jsx(a,{size:20}),label:"查看助记词",onClick:()=>{}})]})})},p={render:()=>r.jsx("div",{className:"bg-background mx-auto min-h-screen max-w-md",children:r.jsx(u,{})}),parameters:{layout:"fullscreen"}};o.parameters={...o.parameters,docs:{...o.parameters?.docs,source:{originalSource:`{
+  args: {
+    label: '语言',
+    value: '简体中文',
+    icon: <Languages size={20} />,
+    onClick: () => console.log('clicked')
+  }
+}`,...o.parameters?.docs?.source}}};t.parameters={...t.parameters,docs:{...t.parameters?.docs,source:{originalSource:`{
+  args: {
+    label: '查看助记词',
+    icon: <Eye size={20} />,
+    onClick: () => console.log('clicked')
+  }
+}`,...t.parameters?.docs?.source}}};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  args: {
+    label: '应用锁',
+    value: '未设置',
+    icon: <Lock size={20} />,
+    disabled: true
+  }
+}`,...i.parameters?.docs?.source}}};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:`{
+  args: {
+    label: '版本',
+    value: 'v1.0.0',
+    showChevron: false
+  }
+}`,...e.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  render: () => <div className="bg-muted/30 max-w-md p-4">
+      <SettingsSection title="安全">
+        <SettingsItem icon={<Lock size={20} />} label="应用锁" value="已开启" onClick={() => {}} />
+        <div className="bg-border mx-4 h-px" />
+        <SettingsItem icon={<Eye size={20} />} label="查看助记词" onClick={() => {}} />
+      </SettingsSection>
+    </div>
+}`,...m.parameters?.docs?.source}}};p.parameters={...p.parameters,docs:{...p.parameters?.docs,source:{originalSource:`{
+  render: () => <div className="bg-background mx-auto min-h-screen max-w-md">
+      <SettingsPage />
+    </div>,
+  parameters: {
+    layout: 'fullscreen'
+  }
+}`,...p.parameters?.docs?.source}}};const Fo=["Default","WithoutValue","Disabled","NoChevron","Section","Page"];export{o as Default,i as Disabled,e as NoChevron,p as Page,m as Section,t as WithoutValue,Fo as __namedExportsOrder,Bo as default};
