@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.8] - 2026-02-11
+
+fix docs webapp links and download zip artifacts
+
+<!-- last-commit: 359fdac1585ad0b4b16ed2181665d783c48d977a -->
+
 ## [0.10.7] - 2026-02-11
 
 fix github-pages base path for download assets
