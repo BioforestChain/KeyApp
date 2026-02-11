@@ -140,14 +140,29 @@ function copyDirContents(src: string, dest: string) {
   }
 }
 
-function resolveSiteOrigin(): string | null {
-  return process.env.DWEB_SITE_ORIGIN ?? process.env.VITEPRESS_SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? null
+function resolveGitHubPagesDefaults() {
+  const repository = process.env.GITHUB_REPOSITORY ?? 'BioforestChain/KeyApp'
+  const [owner = 'BioforestChain', repo = 'KeyApp'] = repository.split('/')
+  return {
+    owner,
+    repo,
+    siteOrigin: `https://${owner}.github.io`,
+    siteBasePath: `/${repo}/`,
+  }
 }
 
-function resolveSiteBaseUrl(): string | null {
+function resolveSiteOrigin(): string {
+  return (
+    process.env.DWEB_SITE_ORIGIN ??
+    process.env.VITEPRESS_SITE_ORIGIN ??
+    process.env.SITE_ORIGIN ??
+    resolveGitHubPagesDefaults().siteOrigin
+  )
+}
+
+function resolveSiteBaseUrl(): string {
   const origin = resolveSiteOrigin()
-  if (!origin) return null
-  const basePath = process.env.SITE_BASE_URL ?? process.env.VITEPRESS_BASE ?? '/'
+  const basePath = process.env.SITE_BASE_URL ?? process.env.VITEPRESS_BASE ?? resolveGitHubPagesDefaults().siteBasePath
   return new URL(basePath, origin).toString()
 }
 

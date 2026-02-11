@@ -113,15 +113,19 @@ export default defineConfig(({ mode }) => {
   const etherscanApiKey = env.ETHERSCAN_API_KEY ?? process.env.ETHERSCAN_API_KEY ?? '';
   const moralisApiKey = env.MORALIS_API_KEY ?? process.env.MORALIS_API_KEY ?? '';
   const isDevBuild = (env.VITE_DEV_MODE ?? process.env.VITE_DEV_MODE) === 'true';
-  // DWEB 更新地址由 SITE_ORIGIN + SITE_BASE_URL 拼接，二者必须成对配置。
-  // 注意：这里不要误用 VITE_BASE_URL（它是构建资源的 base），否则会导致更新 URL 丢失站点路径。
-  const siteOrigin = env.SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? 'https://bioforestchain.github.io/KeyApp/';
+  // DWEB 更新地址默认使用 GitHub Pages（https://{owner}.github.io/{repo}/）。
+  // 可通过 SITE_ORIGIN/SITE_BASE_URL 显式覆盖；注意不要误用 VITE_BASE_URL。
+  const githubRepository = env.GITHUB_REPOSITORY ?? process.env.GITHUB_REPOSITORY ?? 'BioforestChain/KeyApp';
+  const [githubOwner = 'BioforestChain', githubRepo = 'KeyApp'] = githubRepository.split('/');
+  const defaultSiteOrigin = `https://${githubOwner}.github.io`;
+  const defaultSiteBaseUrl = `/${githubRepo}/`;
+  const siteOrigin = env.SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? defaultSiteOrigin;
   const siteBaseUrl =
     env.SITE_BASE_URL ??
     process.env.SITE_BASE_URL ??
     env.VITEPRESS_BASE ??
     process.env.VITEPRESS_BASE ??
-    BASE_URL;
+    defaultSiteBaseUrl;
 
   const buildTime = new Date();
   const pad = (value: number) => value.toString().padStart(2, '0');

@@ -5,26 +5,35 @@
       "key": "SITE_ORIGIN",
       "label": "KeyApp 站点 Origin",
       "type": "url",
-      "required": true,
-      "targets": { "local": true, "github": "variable" },
+      "required": false,
+      "targets": {
+        "local": true,
+        "github": "variable"
+      },
       "mask": "tail",
-      "description": "DWEB 自动更新使用的官网域名（需与 SITE_BASE_URL 成对配置）"
+      "description": "可选：DWEB 更新官网域名。默认自动使用 https://{owner}.github.io"
     },
     {
       "key": "SITE_BASE_URL",
       "label": "KeyApp 站点 Base Path",
       "type": "string",
-      "required": true,
-      "targets": { "local": true, "github": "variable" },
+      "required": false,
+      "targets": {
+        "local": true,
+        "github": "variable"
+      },
       "mask": "tail",
-      "description": "DWEB 自动更新使用的站点路径（需与 SITE_ORIGIN 成对配置，例如 /KeyApp/）"
+      "description": "可选：DWEB 更新站点路径。默认自动使用 /{repo}/"
     },
     {
       "key": "DWEB_SFTP_URL",
       "label": "DWEB SFTP 地址",
       "type": "url",
       "required": false,
-      "targets": { "local": true, "github": "variable" },
+      "targets": {
+        "local": true,
+        "github": "variable"
+      },
       "mask": "tail"
     },
     {
@@ -32,7 +41,10 @@
       "label": "DWEB SFTP 用户名 (正式)",
       "type": "string",
       "required": true,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "tail"
     },
     {
@@ -40,7 +52,10 @@
       "label": "DWEB SFTP 密码 (正式)",
       "type": "password",
       "required": true,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -48,7 +63,10 @@
       "label": "DWEB SFTP 用户名 (开发)",
       "type": "string",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "tail"
     },
     {
@@ -56,7 +74,10 @@
       "label": "DWEB SFTP 密码 (开发)",
       "type": "password",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -64,7 +85,10 @@
       "label": "E2E 测试助记词",
       "type": "string",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -72,7 +96,10 @@
       "label": "E2E 安全密码",
       "type": "password",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -80,7 +107,10 @@
       "label": "TronGrid API Key",
       "type": "password",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -88,7 +118,10 @@
       "label": "Etherscan API Key",
       "type": "password",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     },
     {
@@ -96,7 +129,10 @@
       "label": "Moralis API Key",
       "type": "password",
       "required": false,
-      "targets": { "local": true, "github": "secret" },
+      "targets": {
+        "local": true,
+        "github": "secret"
+      },
       "mask": "hidden"
     }
   ]

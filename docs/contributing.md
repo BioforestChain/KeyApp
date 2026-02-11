@@ -70,29 +70,21 @@ KeyApp/
 
 ### GitHub Pages 部署
 
-Fork 本项目后，可以通过 **仓库变量** 自定义部署配置，无需修改任何代码。
+Fork 本项目后，默认部署到 `https://{owner}.github.io/{repo}/`，通常无需额外改动。
 
-#### 配置步骤
+#### 默认行为
 
-1. Fork 本仓库
-2. 进入仓库 Settings → Secrets and variables → Actions → Variables
-3. 添加以下变量（按需）：
+- 默认站点：`https://{owner}.github.io/{repo}/`
+- 默认 Base Path：`/{repo_name}/`（如 `/KeyApp/`）
+- `SITE_ORIGIN` / `SITE_BASE_URL` 为可选覆盖项，未设置时自动按仓库推导
+
+#### 可选配置
+
+如果确实需要覆盖路径，可在仓库 Variables 设置：
 
 | 变量名 | 说明 | 示例值 |
 |--------|------|--------|
 | `VITEPRESS_BASE` | 站点 base path | `/` 或 `/my-app/` |
-
-#### 默认行为
-
-如果不设置 `VITEPRESS_BASE` 变量，默认使用 `/{repo_name}/`（如 `/KeyApp/`）。
-
-#### 自定义域名
-
-使用自定义域名时，设置 `VITEPRESS_BASE=/`：
-
-1. 添加仓库变量 `VITEPRESS_BASE` 值为 `/`
-2. 在 DNS 提供商配置 CNAME 记录指向 `{username}.github.io`
-3. 在仓库 Settings → Pages 中配置自定义域名
 
 ### 构建产物
 

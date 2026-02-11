@@ -87,7 +87,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
-          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
+          SITE_ORIGIN: ${{ format('https://{0}.github.io', github.repository_owner) }}
           VITE_DEV_MODE: ${{ steps.channel.outputs.channel == 'beta' && 'true' || 'false' }}
         run: |
           pnpm install --frozen-lockfile
@@ -129,6 +129,11 @@ jobs:
               cp -r dist-web/* docs/public/webapp/
             fi
           fi
+
+          # 生成 Web ZIP 下载文件（供 download 页面直接下载）
+          rm -f docs/public/webapp/bfmpay-web.zip docs/public/webapp-dev/bfmpay-web-beta.zip
+          (cd docs/public/webapp && zip -qr bfmpay-web.zip . -x "*.zip")
+          (cd docs/public/webapp-dev && zip -qr bfmpay-web-beta.zip . -x "*.zip")
           
           # 构建 Storybook
           pnpm build-storybook
@@ -602,6 +607,11 @@ jobs:
             fi
           fi
 
+          # 生成 Web ZIP 下载文件（供 download 页面直接下载）
+          rm -f docs/public/webapp/bfmpay-web.zip docs/public/webapp-dev/bfmpay-web-beta.zip
+          (cd docs/public/webapp && zip -qr bfmpay-web.zip . -x "*.zip")
+          (cd docs/public/webapp-dev && zip -qr bfmpay-web-beta.zip . -x "*.zip")
+
           # 显示准备好的目录
           echo "=== webapp directory ==="
           ls -la docs/public/webapp/ | head -5
@@ -623,7 +633,7 @@ jobs:
       - name: Build VitePress site
         env:
           VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
-          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
+          SITE_ORIGIN: ${{ format('https://{0}.github.io', github.repository_owner) }}
         run: |
           echo "Building with VITEPRESS_BASE=$VITEPRESS_BASE"
           pnpm docs:build
@@ -633,7 +643,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
-          SITE_ORIGIN: ${{ vars.SITE_ORIGIN || format('https://{0}.github.io', github.repository_owner) }}
+          SITE_ORIGIN: ${{ format('https://{0}.github.io', github.repository_owner) }}
         run: |
           # VitePress 输出目录
           mkdir -p gh-pages
