@@ -155,7 +155,7 @@ function MiniappTransferConfirmJobContent() {
 
   const displayAmount = useMemo(() => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount, [parsedAmount, amount]);
   const amountInvalidMessage = useMemo(
-    () => (parsedAmount ? null : t('transaction:txError.invalidParams')),
+    () => (parsedAmount ? null : t('transaction:broadcast.invalidParams')),
     [parsedAmount, t],
   );
 
