@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.6",
-  "change_log": "优化生态应用启动与弹窗流程，修复设置页滚动布局",
+  "version": "0.10.7",
+  "change_log": "fix github-pages base path for download assets",
   "categories": [
     "application",
     "wallet"

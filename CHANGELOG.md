@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.7] - 2026-02-11
+
+fix github-pages base path for download assets
+
+<!-- last-commit: 4c63371aad706011c1180856f11f23ab791ab32a -->
+
 ## [0.10.6] - 2026-02-10
 
 优化生态应用启动与弹窗流程，修复设置页滚动布局
