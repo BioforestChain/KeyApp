@@ -12,7 +12,7 @@ hero:
     - theme: brand
       text: 立即使用
       link: ./webapp/
-      target: _self
+      target: _blank
     - theme: alt
       text: 下载安装
       link: ./download
@@ -41,7 +41,7 @@ features:
 
 ## 快速开始
 
-1. 访问 <a href="./webapp/" target="_self">Web 应用</a> 或 [下载 DWEB 版本](./download)
+1. 访问 <a href="./webapp/" target="_blank" rel="noreferrer">Web 应用</a> 或 [下载 DWEB 版本](./download)
 2. 创建新钱包或导入已有钱包
 3. 开始管理您的数字资产
 
@@ -49,7 +49,7 @@ features:
 
 | 平台 | 稳定版 | 测试版 |
 |------|--------|--------|
-| **Web** | <a href="./webapp/" target="_self">webapp/</a> | <a href="./webapp-dev/" target="_self">webapp-dev/</a> |
+| **Web** | <a href="./webapp/" target="_blank" rel="noreferrer">webapp/</a> | <a href="./webapp-dev/" target="_blank" rel="noreferrer">webapp-dev/</a> |
 | **DWEB** | [下载页面](./download) | [下载页面](./download) |
 
 查看 [下载页面](./download) 了解更多版本信息。

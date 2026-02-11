@@ -13,7 +13,8 @@
       <h3>Web 稳定版</h3>
     </div>
     <p>经过充分测试的稳定版本，推荐日常使用。</p>
-    <a href="./webapp/" class="download-btn">打开 Web 应用</a>
+    <a href="./webapp/" class="download-btn" target="_blank" rel="noreferrer">打开 Web 应用</a>
+    <a href="./webapp/bfmpay-web.zip" class="download-link">下载 ZIP 文件</a>
   </div>
   
   <div class="download-card">
@@ -22,7 +23,8 @@
       <h3>Web 测试版</h3>
     </div>
     <p>包含最新功能，每次代码更新自动发布。</p>
-    <a href="./webapp-dev/" class="download-btn secondary">打开 Beta 版</a>
+    <a href="./webapp-dev/" class="download-btn secondary" target="_blank" rel="noreferrer">打开 Beta 版</a>
+    <a href="./webapp-dev/bfmpay-web-beta.zip" class="download-link">下载 ZIP 文件</a>
   </div>
 </div>
 
