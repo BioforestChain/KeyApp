@@ -11,12 +11,14 @@ const whiteBookSidebar = generateWhiteBookSidebar()
 /**
  * Base URL 配置
  * - 开发环境：使用 '/'
- * - GitHub Pages：使用 '/KeyApp/'（通过 CI 环境变量设置）
- * - 自定义部署：通过 VITEPRESS_BASE 环境变量设置
+ * - 生产构建：默认使用 '/KeyApp/'（避免 GitHub Pages 资源路径丢失仓库前缀）
+ * - 自定义部署：通过 VITEPRESS_BASE 环境变量覆盖
  *
  * 注意：VitePress 的 Vue Router 需要绝对路径 base，不能用 './'
  */
-const base = process.env.VITEPRESS_BASE ?? '/'
+const githubRepoFromEnv = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? GITHUB_REPO
+const defaultBase = process.env.NODE_ENV === 'production' ? `/${githubRepoFromEnv}/` : '/'
+const base = process.env.VITEPRESS_BASE ?? defaultBase
 
 export default defineConfig({
   title: 'BFM Pay',
