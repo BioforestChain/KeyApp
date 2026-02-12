@@ -15,7 +15,7 @@ const baseContext = {
 const baseParams: EcosystemTransferParams = {
   from: 'b_sender',
   to: 'b_receiver',
-  amount: '1.25',
+  amount: '125000000',
   chain: 'bfmeta',
 }
 
@@ -23,6 +23,37 @@ describe('handleSendTransaction', () => {
   beforeEach(() => {
     HandlerContext.clear()
     setTransferDialog(null)
+  })
+
+  it('rejects formatted amount before opening dialog', async () => {
+    const showTransferDialog = vi.fn(async () => ({
+      txHash: 'tx-hash-ctx-icon',
+      txId: 'tx-hash-ctx-icon',
+      transaction: { hash: 'tx-hash-ctx-icon' },
+    }))
+
+    HandlerContext.register(baseContext.appId, {
+      showWalletPicker: async () => null,
+      getConnectedAccounts: () => [],
+      showSigningDialog: async () => null,
+      showTransferDialog,
+      showSignTransactionDialog: async () => null,
+    })
+
+    await expect(
+      handleSendTransaction(
+        {
+          ...baseParams,
+          amount: '1.25',
+        },
+        baseContext,
+      ),
+    ).rejects.toMatchObject({
+      code: BioErrorCodes.INVALID_PARAMS,
+      message: 'Invalid amount: expected raw integer string',
+    })
+
+    expect(showTransferDialog).not.toHaveBeenCalled()
   })
 
   it('passes miniapp icon from handler context', async () => {

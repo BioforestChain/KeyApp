@@ -12,11 +12,21 @@ export interface BioAccount {
   publicKey: string
 }
 
+/**
+ * Raw amount string (minimum unit, integer only)
+ *
+ * Example:
+ * - decimals = 8
+ * - human amount 10.00000000 => raw amount "1000000000"
+ */
+export type RawAmountString = string
+
 /** Transfer parameters */
 export interface TransferParams {
   from: string
   to: string
-  amount: string
+  /** amount uses raw minimum-unit integer string */
+  amount: RawAmountString
   chain: string
   asset?: string
 }
@@ -94,7 +104,12 @@ export interface BioMethods {
   /** Sign an unsigned transaction (requires user confirmation) */
   bio_signTransaction: (params: { from: string; chain: string; unsignedTx: BioUnsignedTransaction }) => Promise<BioSignedTransaction>
 
-  /** Send a transaction */
+  /**
+   * Send a transaction
+   *
+   * Note:
+   * - params.amount must be raw integer string (minimum unit)
+   */
   bio_sendTransaction: (params: TransferParams) => Promise<{ txHash: string }>
 
   /** Get current chain ID */

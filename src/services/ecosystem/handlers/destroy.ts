@@ -6,6 +6,7 @@ import type { MethodHandler, EcosystemDestroyParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo, toMiniappInfo } from './context'
 import { enqueueMiniappSheet } from '../sheet-queue'
+import { isRawAmountString } from '../raw-amount'
 
 // 兼容旧 API
 let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
@@ -27,6 +28,13 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
   if (!opts?.from || !opts?.amount || !opts?.chain || !opts?.asset) {
     throw Object.assign(
       new Error('Missing required parameters: from, amount, chain, asset'),
+      { code: BioErrorCodes.INVALID_PARAMS }
+    )
+  }
+
+  if (!isRawAmountString(opts.amount)) {
+    throw Object.assign(
+      new Error('Invalid amount: expected raw integer string'),
       { code: BioErrorCodes.INVALID_PARAMS }
     )
   }

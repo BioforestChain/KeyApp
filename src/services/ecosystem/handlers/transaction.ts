@@ -10,13 +10,13 @@ import { BioErrorCodes } from '../types'
 import { HandlerContext, type SignTransactionParams, toMiniappInfo } from './context'
 import { enqueueMiniappSheet } from '../sheet-queue'
 
-import { Amount } from '@/types/amount'
 import { chainConfigActions, chainConfigSelectors, chainConfigStore, walletStore } from '@/stores'
 import { createChainProvider, getChainProvider } from '@/services/chain-adapter/providers'
 import { hexToBytes } from '@noble/hashes/utils.js'
 import { deriveKey } from '@/lib/crypto/derivation'
 import { createBioforestKeypair, publicKeyToBioforestAddress } from '@/lib/crypto'
 import { normalizeTronAddress } from '@/services/chain-adapter/tron/address'
+import { parseRawAmount } from '../raw-amount'
 
 function findWalletIdByAddress(chainId: string, address: string): string | null {
   const wallets = walletStore.state.wallets
@@ -92,7 +92,12 @@ export const handleCreateTransaction: MethodHandler = async (params, _context) =
   const assetDecimals = tokenAddress && typeof opts.assetDecimals === 'number'
     ? opts.assetDecimals
     : chainConfig.decimals
-  const amount = Amount.parse(opts.amount, assetDecimals, assetSymbol)
+  let amount
+  try {
+    amount = parseRawAmount(opts.amount, assetDecimals, assetSymbol)
+  } catch {
+    throw Object.assign(new Error('Invalid amount: expected raw integer string'), { code: BioErrorCodes.INVALID_PARAMS })
+  }
 
   const chainProvider = tokenAddress && chainConfig.chainKind === 'tron'
     ? createChainProvider(chainConfig.id)

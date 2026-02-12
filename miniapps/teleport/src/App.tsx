@@ -159,8 +159,20 @@ const CHAIN_COLORS: Record<string, string> = {
 const normalizeInternalChainName = (value: string): InternalChainName =>
   value.toUpperCase() as InternalChainName;
 
-const normalizeInputAmount = (value: string) =>
-  value.includes('.') ? value : `${value}.0`;
+const normalizeInputAmount = (value: string, decimals: number): string => {
+  const normalized = value.trim();
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    throw new Error('Invalid amount format');
+  }
+
+  const [intPart, fractionalPart = ''] = normalized.split('.');
+  if (fractionalPart.length > decimals) {
+    throw new Error('Amount precision exceeds decimals');
+  }
+
+  const raw = `${intPart}${fractionalPart.padEnd(decimals, '0')}`.replace(/^0+(?=\d)/, '');
+  return raw.length > 0 ? raw : '0';
+};
 
 const formatMinAmount = (decimals: number) => {
   if (decimals <= 0) return '1';
@@ -334,7 +346,7 @@ export default function App() {
           {
             from: sourceAccount.address,
             to: selectedAsset.recipientAddress,
-            amount: normalizeInputAmount(amount),
+            amount: normalizeInputAmount(amount, selectedAsset.decimals),
             chain: sourceAccount.chain,
             asset: selectedAsset.assetType,
             ...(remark ? { remark } : {}),

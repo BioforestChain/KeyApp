@@ -13,3 +13,4 @@
 - **02-Connectivity (连接性)**
   - [README.md](./02-Connectivity/README.md) - 连接性概述
   - [01-Bio-SDK-Communication.md](./02-Connectivity/01-Bio-SDK-Communication.md) - Bio-SDK 通讯机制
+  - [02-Amount-Semantics-Standard.md](./02-Connectivity/02-Amount-Semantics-Standard.md) - 交易金额语义标准（Raw Amount）
