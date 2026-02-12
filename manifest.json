@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.8",
-  "change_log": "fix docs webapp links and download zip artifacts",
+  "version": "0.10.9",
+  "change_log": "enforce raw amount standard across miniapp transaction APIs",
   "categories": [
     "application",
     "wallet"

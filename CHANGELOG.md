@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.9] - 2026-02-12
+
+enforce raw amount standard across miniapp transaction APIs
+
+<!-- last-commit: c0211ee86397a7d8ccd075417aba27b297b14d59 -->
+
 ## [0.10.8] - 2026-02-11
 
 fix docs webapp links and download zip artifacts
