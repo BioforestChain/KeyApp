@@ -177,10 +177,16 @@ import { bio } from '@bioforest/bio-sdk';
 // 请求钱包地址
 const accounts = await bio.wallet.requestAccounts();
 
-// 签名交易
-const txHash = await bio.wallet.sendTransaction({
-  to: '0x...',
-  value: '1000000000000000000',
+// 发送交易（amount 使用 raw 最小单位整数字符串）
+const txResult = await bio.request({
+  method: 'bio_sendTransaction',
+  params: [{
+    from: 'bFxxxxxxxxxxxxxxxxxxxx',
+    to: 'bNxxxxxxxxxxxxxxxxxxxx',
+    amount: '1000000000', // raw（例如 decimals=8 => 10.00000000）
+    chain: 'BFMetaV2',
+    asset: 'USDT',
+  }],
 });
 
 // 键值存储
@@ -258,6 +264,12 @@ class BioSDK {
   };
 }
 ```
+
+## 金额语义（重要）
+
+- 所有交易相关接口（`bio_sendTransaction` / `bio_createTransaction` / `bio_destroyAsset`）的 `amount` 均使用 **raw 最小单位整数字符串**。
+- 禁止传入格式化小数字符串（例如 `10.00000000`）。
+- 详见：[`02-Amount-Semantics-Standard.md`](./02-Amount-Semantics-Standard.md)
 
 ## 安全考虑
 

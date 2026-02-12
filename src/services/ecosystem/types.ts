@@ -45,7 +45,7 @@ export interface BioAccount {
 export interface EcosystemTransferParams {
   from: string;
   to: string;
-  amount: string; // RPC 参数是字符串
+  amount: string; // RPC 参数：raw 最小单位整数字符串
   chain: string;
   asset?: string;
   /** 交易类型（默认 transfer） */
@@ -64,7 +64,7 @@ export interface EcosystemTransferParams {
  */
 export interface EcosystemDestroyParams {
   from: string;
-  amount: string;
+  amount: string; // raw 最小单位整数字符串
   chain: string;
   asset: string;
 }

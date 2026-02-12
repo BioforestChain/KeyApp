@@ -13,19 +13,24 @@ The BioBridge Protocol is the communication layer between the Miniapp (running i
 ```json
 {
   "id": "uuid-v4",
-  "method": "wallet_requestAccounts",
+  "method": "bio_requestAccounts",
   "params": [],
   "jsonrpc": "2.0"
 }
 ```
 
-### Supported Methods
+### Supported Methods (Core)
 
-- `wallet_requestAccounts`: Request user address.
-- `wallet_sendTransaction`: Request transaction signing.
-- `wallet_signMessage`: Request message signing.
-- `kv_get`: Read from isolated storage.
-- `kv_set`: Write to isolated storage.
+- `bio_requestAccounts`: Request user address list.
+- `bio_createTransaction`: Build unsigned transaction.
+- `bio_signTransaction`: Sign unsigned transaction.
+- `bio_sendTransaction`: Request transfer authorization and broadcast.
+- `bio_destroyAsset`: Request destroy authorization.
+
+### Amount Semantics Standard
+
+- See: [`02-Amount-Semantics-Standard.md`](./02-Amount-Semantics-Standard.md)
+- Key rule: all transaction `amount` fields use raw integer string (minimum unit).
 
 ## Network Access
 

@@ -6,6 +6,7 @@ import type { MethodHandler, EcosystemTransferParams } from '../types'
 import { BioErrorCodes } from '../types'
 import { HandlerContext, type MiniappInfo, type TransferDialogResult, toMiniappInfo } from './context'
 import { enqueueMiniappSheet } from '../sheet-queue'
+import { isRawAmountString } from '../raw-amount'
 
 // 兼容旧 API
 let _showTransferDialog: ((params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<TransferDialogResult | null>) | null = null
@@ -52,6 +53,13 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
   if (!opts?.from || !opts?.to || !opts?.amount || !opts?.chain) {
     throw Object.assign(
       new Error('Missing required parameters: from, to, amount, chain'),
+      { code: BioErrorCodes.INVALID_PARAMS }
+    )
+  }
+
+  if (!isRawAmountString(opts.amount)) {
+    throw Object.assign(
+      new Error('Invalid amount: expected raw integer string'),
       { code: BioErrorCodes.INVALID_PARAMS }
     )
   }

@@ -55,6 +55,21 @@ function MiniappDestroyConfirmJobContent() {
 
   const walletName = targetWallet?.name || t('common:unknownWallet');
   const lockDescription = `${appName || t('common:unknownDApp')} ${t('common:requestsDestroy')}`;
+  const parsedAmount = useMemo(() => {
+    if (!chainConfig) return null;
+    try {
+      return Amount.fromRaw(amount, chainConfig.decimals, asset);
+    } catch {
+      return null;
+    }
+  }, [amount, asset, chainConfig]);
+
+  const displayAmount = useMemo(() => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount, [amount, parsedAmount]);
+  const displayDecimals = chainConfig?.decimals ?? 8;
+  const amountInvalidMessage = useMemo(() => {
+    if (!chainConfig) return null;
+    return parsedAmount ? null : t('transaction:broadcast.invalidParams');
+  }, [chainConfig, parsedAmount, t]);
 
   const handleConfirm = useCallback(() => {
     if (isConfirming) return;
@@ -77,7 +92,11 @@ function MiniappDestroyConfirmJobContent() {
         }
 
         // 执行销毁
-        const amountObj = Amount.fromFormatted(amount, chainConfig.decimals, asset);
+        if (!parsedAmount) {
+          throw new Error('Invalid miniapp destroy amount');
+        }
+
+        const amountObj = parsedAmount;
 
         const result = await submitBioforestBurn({
           chainConfig,
@@ -125,7 +144,7 @@ function MiniappDestroyConfirmJobContent() {
       walletAddress: from,
       walletChainId: resolvedChainId,
     });
-  }, [isConfirming, targetWallet, chainConfig, asset, from, amount, pop, push, t, lockDescription, appName, appIcon, walletName, resolvedChainId]);
+  }, [isConfirming, targetWallet, chainConfig, asset, from, amount, parsedAmount, pop, push, t, lockDescription, appName, appIcon, walletName, resolvedChainId]);
 
   const handleCancel = useCallback(() => {
     const event = new CustomEvent('miniapp-destroy-confirm', {
@@ -160,7 +179,7 @@ function MiniappDestroyConfirmJobContent() {
         <div className="space-y-4 p-4">
           {/* Amount */}
           <div className="bg-destructive/5 rounded-xl p-4 text-center">
-            <AmountDisplay value={amount} symbol={asset} size="xl" weight="bold" decimals={8} fixedDecimals={true} />
+            <AmountDisplay value={displayAmount} symbol={asset} size="xl" weight="bold" decimals={displayDecimals} fixedDecimals={true} />
           </div>
 
           {/* From address */}
@@ -170,6 +189,12 @@ function MiniappDestroyConfirmJobContent() {
               <ChainAddressDisplay chainId={resolvedChainId} address={from} copyable size="sm" />
             </div>
           </div>
+
+          {amountInvalidMessage && (
+            <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">
+              {amountInvalidMessage}
+            </div>
+          )}
 
           {/* Chain & Asset */}
           <div className="bg-muted/50 flex items-center justify-between rounded-xl p-3">
@@ -195,7 +220,7 @@ function MiniappDestroyConfirmJobContent() {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isConfirming || !targetWallet?.id || !chainConfig}
+            disabled={isConfirming || !targetWallet?.id || !chainConfig || !parsedAmount}
             className={cn(
               'flex-1 rounded-xl py-3 font-medium transition-colors',
               'bg-destructive text-destructive-foreground hover:bg-destructive/90',
