@@ -18,14 +18,14 @@ const remoteMiniappsConfig: RemoteMiniappConfig[] = [
     server: {
       locale: {
         metadataUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/metadata.json',
-        dirName: 'rwa-hub',
+        dirName: 'om-hub',
       },
       runtime: 'iframe',
     },
     build: {
       remote: {
-        name: 'RWA',
-        sourceUrl: 'https://iweb.xin/rwahub.bfmeta.com.miniapp/source.json',
+        name: 'Open Market',
+        sourceUrl: 'https://om-open.bf-meta.org/hub/source.json',
       },
       runtime: 'iframe',
     },

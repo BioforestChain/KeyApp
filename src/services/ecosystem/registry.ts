@@ -136,12 +136,17 @@ function invalidateTTLCache(prefix: string): void {
 
 // ==================== Fetch with ETag/Cache ====================
 
-async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null> {
+type FetchSourceResult = {
+  payload: EcosystemSource | null;
+  errorMessage?: string;
+};
+
+async function fetchSourceWithEtag(url: string): Promise<FetchSourceResult> {
   const fetchUrl = normalizeFetchUrl(url);
   const cacheKey = fetchUrl;
   // Check TTL cache first
   const ttlCached = getTTLCached<EcosystemSource>(`source:${cacheKey}`);
-  if (ttlCached) return ttlCached;
+  if (ttlCached) return { payload: ttlCached };
 
   // Get cached entry for ETag
   const cached = await getCachedSource(cacheKey);
@@ -158,17 +163,18 @@ async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null>
     if (response.status === 304 && cached) {
       debugLog('fetch source not modified', { url, fetchUrl });
       setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
-      return cached.data;
+      return { payload: cached.data };
     }
 
     if (!response.ok) {
+      const message = `HTTP ${response.status}`;
       debugLog('fetch source failed', { url, fetchUrl, status: response.status });
       // Fall back to cache on error
       if (cached) {
         setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
-        return cached.data;
+        return { payload: cached.data, errorMessage: message };
       }
-      return null;
+      return { payload: null, errorMessage: message };
     }
 
     const contentType = response.headers.get('content-type') ?? '';
@@ -176,24 +182,26 @@ async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null>
     try {
       json = await response.json();
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       debugLog('fetch source parse error', {
         url,
         fetchUrl,
         contentType,
-        message: error instanceof Error ? error.message : String(error),
+        message,
       });
-      if (cached) return cached.data;
-      return null;
+      if (cached) return { payload: cached.data, errorMessage: message };
+      return { payload: null, errorMessage: message };
     }
     const parsed = EcosystemSourceSchema.safeParse(json);
     if (!parsed.success) {
+      const message = 'Invalid source payload';
       debugLog('fetch source invalid payload', {
         url,
         fetchUrl,
         issues: parsed.error.issues.map((issue) => issue.path.join('.')),
       });
-      if (cached) return cached.data;
-      return null;
+      if (cached) return { payload: cached.data, errorMessage: message };
+      return { payload: null, errorMessage: message };
     }
 
     const data = parsed.data;
@@ -204,19 +212,20 @@ async function fetchSourceWithEtag(url: string): Promise<EcosystemSource | null>
     setTTLCached(`source:${cacheKey}`, data, TTL_MS);
     debugLog('fetch source success', { url, fetchUrl, apps: data.apps?.length ?? 0 });
 
-    return data;
+    return { payload: data };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     debugLog('fetch source error', {
       url,
       fetchUrl,
-      message: error instanceof Error ? error.message : String(error),
+      message,
     });
     // Fall back to cache on error
     if (cached) {
       setTTLCached(`source:${cacheKey}`, cached.data, TTL_MS);
-      return cached.data;
+      return { payload: cached.data, errorMessage: message };
     }
-    return null;
+    return { payload: null, errorMessage: message };
   }
 }
 
@@ -394,7 +403,8 @@ function normalizeAppFromSource(
 }
 
 async function fetchSourceWithCache(url: string): Promise<EcosystemSource | null> {
-  return fetchSourceWithEtag(url);
+  const result = await fetchSourceWithEtag(url);
+  return result.payload;
 }
 
 async function rebuildCachedAppsFromCache(): Promise<void> {
@@ -454,18 +464,19 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
   await Promise.all(
     enabledSources.map(async (source) => {
       ecosystemActions.updateSourceStatus(source.url, 'loading');
-      try {
-        const payload = await fetchSourceWithEtag(source.url);
+      const result = await fetchSourceWithEtag(source.url);
+      sourcePayloads.set(source.url, result.payload);
+
+      if (result.errorMessage) {
+        ecosystemActions.updateSourceStatus(source.url, 'error', result.errorMessage);
+      } else if (result.payload) {
         ecosystemActions.updateSourceStatus(source.url, 'success');
-        sourcePayloads.set(source.url, payload);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        ecosystemActions.updateSourceStatus(source.url, 'error', message);
-        sourcePayloads.set(source.url, null);
-      } finally {
-        cachedApps = mergeAppsFromSources(enabledSources, sourcePayloads);
-        notifyApps();
+      } else {
+        ecosystemActions.updateSourceStatus(source.url, 'error', 'Failed to fetch source');
       }
+
+      cachedApps = mergeAppsFromSources(enabledSources, sourcePayloads);
+      notifyApps();
     }),
   );
   return [...cachedApps];
@@ -473,19 +484,22 @@ export async function refreshSources(options?: { force?: boolean }): Promise<Min
 
 export async function refreshSource(url: string): Promise<void> {
   ecosystemActions.updateSourceStatus(url, 'loading');
-  try {
-    invalidateTTLCache(`source:${url}`);
-    const payload = await fetchSourceWithEtag(url);
-    if (payload) {
-      ecosystemActions.updateSourceStatus(url, 'success');
-      await rebuildCachedAppsFromCache();
-    } else {
-      ecosystemActions.updateSourceStatus(url, 'error', 'Failed to fetch source');
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    ecosystemActions.updateSourceStatus(url, 'error', message);
+  invalidateTTLCache(`source:${url}`);
+  const result = await fetchSourceWithEtag(url);
+
+  if (result.errorMessage) {
+    ecosystemActions.updateSourceStatus(url, 'error', result.errorMessage);
+    await rebuildCachedAppsFromCache();
+    return;
   }
+
+  if (result.payload) {
+    ecosystemActions.updateSourceStatus(url, 'success');
+    await rebuildCachedAppsFromCache();
+    return;
+  }
+
+  ecosystemActions.updateSourceStatus(url, 'error', 'Failed to fetch source');
 }
 
 export async function loadSource(url: string): Promise<EcosystemSource | null> {
