@@ -1,0 +1,33 @@
+import{r as c,j as e}from"./iframe-BItTx6xa.js";import{f as T}from"./index-BjIXEP53.js";import{r as I}from"./index-DdEiF4so.js";import{c as b}from"./utils-4perknFd.js";import{u as N}from"./useTranslation-C5zymG6a.js";import{I as q}from"./IconCircleX-EnsyzM61.js";import{I as H}from"./IconCircleCheck-DAIBDiWG.js";import{I as D}from"./IconLoader2-D-CrBJsW.js";import{I as E}from"./IconX-BMREaQd_.js";import"./preload-helper-PPVm8Dsz.js";import"./index-D1tVsUJt.js";import"./index-CNpMLyeW.js";import"./createReactComponent-Dbk6urU_.js";const P={pending:{icon:D,className:"bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800",iconClassName:"text-yellow-600 dark:text-yellow-400 animate-spin"},success:{icon:H,className:"bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800",iconClassName:"text-green-600 dark:text-green-400"},failed:{icon:q,className:"bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800",iconClassName:"text-red-600 dark:text-red-400"}};function A(s){return s.length<=16?s:`${s.slice(0,8)}...${s.slice(-6)}`}function h({id:s,status:n,title:i,message:r,txHash:t,duration:a=5e3,onClose:o,onClick:y}){const{t:k}=N("common"),[w,C]=c.useState(!0),[j,v]=c.useState(!1),g=P[n],S=g.icon,f=c.useCallback(()=>{v(!0),setTimeout(()=>{C(!1),o?.(s)},200)},[s,o]);return c.useEffect(()=>{if(a>0&&n!=="pending"){const x=setTimeout(f,a);return()=>clearTimeout(x)}},[a,n,f]),w?e.jsxs("div",{role:"alert","aria-live":"polite",onClick:()=>y?.(s),className:b("pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg transition-all duration-200",g.className,j?"translate-x-full opacity-0":"translate-x-0 opacity-100",y&&"cursor-pointer"),children:[e.jsx(S,{className:b("mt-0.5 size-5 shrink-0",g.iconClassName)}),e.jsxs("div",{className:"min-w-0 flex-1",children:[e.jsx("p",{className:"font-medium",children:i}),r&&e.jsx("p",{className:"text-muted-foreground mt-0.5 text-sm",children:r}),t&&e.jsx("p",{className:"text-muted-foreground mt-1 font-mono text-xs",children:A(t)})]}),e.jsx("button",{onClick:x=>{x.stopPropagation(),f()},className:"shrink-0 rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/5","aria-label":k("a11y.close"),children:e.jsx(E,{className:"size-4"})})]}):null}const L={"top-right":"top-4 right-4","top-center":"top-4 left-1/2 -translate-x-1/2","bottom-right":"bottom-4 right-4","bottom-center":"bottom-4 left-1/2 -translate-x-1/2"};function M({toasts:s,onClose:n,onClick:i,position:r="top-right"}){const{t}=N("common");return typeof document>"u"?null:I.createPortal(e.jsx("div",{className:b("pointer-events-none fixed z-50 flex flex-col gap-2",L[r]),"aria-label":t("a11y.notification"),children:s.map(a=>e.jsx(h,{...a,onClose:n,onClick:i??void 0},a.id))}),document.body)}h.__docgenInfo={description:`交易状态 Toast 组件
+用于显示交易状态更新（pending/success/failed）`,methods:[],displayName:"TransactionToast",props:{id:{required:!0,tsType:{name:"string"},description:"唯一标识"},status:{required:!0,tsType:{name:"NotificationStatus"},description:"交易状态"},title:{required:!0,tsType:{name:"string"},description:"标题"},message:{required:!1,tsType:{name:"string"},description:"消息内容"},txHash:{required:!1,tsType:{name:"string"},description:"交易哈希（可选）"},duration:{required:!1,tsType:{name:"number"},description:"自动关闭延迟（毫秒），0 表示不自动关闭",defaultValue:{value:"5000",computed:!1}},onClose:{required:!1,tsType:{name:"union",raw:"((id: string) => void) | undefined",elements:[{name:"unknown"},{name:"undefined"}]},description:"关闭回调"},onClick:{required:!1,tsType:{name:"union",raw:"((id: string) => void) | undefined",elements:[{name:"unknown"},{name:"undefined"}]},description:"点击回调"}}};const W={title:"Notification/TransactionToast",component:h,parameters:{layout:"centered"},args:{id:"toast-1",status:"success",title:"交易成功",message:"您的转账已确认",duration:0,onClose:T(),onClick:T()}},l={args:{status:"success",title:"交易成功",message:"您向 0x1234...5678 的转账已确认",txHash:"0x1234567890abcdef1234567890abcdef12345678"}},d={args:{status:"pending",title:"交易处理中",message:"请稍候，正在确认您的交易",txHash:"0xabcdef1234567890abcdef1234567890abcdef12"}},m={args:{status:"failed",title:"交易失败",message:"交易被网络拒绝，请检查余额或重试",txHash:"0xfailhash123456789012345678901234567890ab"}},u={args:{status:"success",title:"收款成功"}};function _(){const[s,n]=c.useState([{id:"1",status:"success",title:"交易成功",message:"100 USDT 已发送",txHash:"0x123...abc"},{id:"2",status:"pending",title:"交易处理中",message:"等待网络确认"},{id:"3",status:"failed",title:"交易失败",message:"Gas 不足"}]),i=t=>{n(a=>a.filter(o=>o.id!==t))},r=t=>{const a={id:`toast-${Date.now()}`,status:t,title:t==="success"?"新交易成功":t==="pending"?"新交易处理中":"新交易失败",message:`创建于 ${new Date().toLocaleTimeString()}`,duration:t==="pending"?0:5e3};n(o=>[...o,a])};return e.jsxs("div",{className:"min-h-[400px] w-full p-4",children:[e.jsxs("div",{className:"mb-4 flex gap-2",children:[e.jsx("button",{onClick:()=>r("success"),className:"rounded bg-green-500 px-3 py-1 text-white",children:"Add Success"}),e.jsx("button",{onClick:()=>r("pending"),className:"rounded bg-yellow-500 px-3 py-1 text-white",children:"Add Pending"}),e.jsx("button",{onClick:()=>r("failed"),className:"rounded bg-red-500 px-3 py-1 text-white",children:"Add Failed"})]}),e.jsx(M,{toasts:s,onClose:i,position:"top-right"})]})}const p={render:()=>e.jsx(_,{}),parameters:{layout:"fullscreen"}};l.parameters={...l.parameters,docs:{...l.parameters?.docs,source:{originalSource:`{
+  args: {
+    status: 'success',
+    title: '交易成功',
+    message: '您向 0x1234...5678 的转账已确认',
+    txHash: '0x1234567890abcdef1234567890abcdef12345678'
+  }
+}`,...l.parameters?.docs?.source}}};d.parameters={...d.parameters,docs:{...d.parameters?.docs,source:{originalSource:`{
+  args: {
+    status: 'pending',
+    title: '交易处理中',
+    message: '请稍候，正在确认您的交易',
+    txHash: '0xabcdef1234567890abcdef1234567890abcdef12'
+  }
+}`,...d.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  args: {
+    status: 'failed',
+    title: '交易失败',
+    message: '交易被网络拒绝，请检查余额或重试',
+    txHash: '0xfailhash123456789012345678901234567890ab'
+  }
+}`,...m.parameters?.docs?.source}}};u.parameters={...u.parameters,docs:{...u.parameters?.docs,source:{originalSource:`{
+  args: {
+    status: 'success',
+    title: '收款成功'
+  }
+}`,...u.parameters?.docs?.source}}};p.parameters={...p.parameters,docs:{...p.parameters?.docs,source:{originalSource:`{
+  render: () => <MultipleToastsDemo />,
+  parameters: {
+    layout: 'fullscreen'
+  }
+}`,...p.parameters?.docs?.source}}};const Y=["Success","Pending","Failed","TitleOnly","MultipleToasts"];export{m as Failed,p as MultipleToasts,d as Pending,l as Success,u as TitleOnly,Y as __namedExportsOrder,W as default};
