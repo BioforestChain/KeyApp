@@ -73,6 +73,7 @@ import {
   type RuntimeStateDomCommand,
 } from './runtime-state-machine';
 import { domBindApplyCommand, domBindSyncIframeMountTarget } from './runtime-dom-binding';
+import { buildMiniappLaunchContextParams } from './launch-context';
 import { isDwebEnvironment } from '@/lib/crypto/secure-storage';
 import type { MiniappContext as MiniappContextPayload } from '@biochain/bio-sdk';
 
@@ -871,6 +872,7 @@ export function launchApp(
   const containerType: ContainerType = manifest.runtime ?? 'iframe';
   const targetDesktop = manifest.targetDesktop ?? 'stack';
   const permissionsPolicyAllow = getPermissionsPolicyAllow(manifest);
+  const launchContextParams = buildMiniappLaunchContextParams(manifest, contextParams);
 
   const instance: MiniappInstance = {
     appId,
@@ -919,7 +921,7 @@ export function launchApp(
         appId,
         url: manifest.url,
         mountTarget,
-        contextParams,
+        contextParams: launchContextParams,
         wujieConfig: manifest.wujieConfig,
         permissionsPolicyAllow,
         onLoad,
@@ -934,11 +936,11 @@ export function launchApp(
     } catch (error) {
       // If sync creation fails, fall back to async
       globalThis.console.warn('[miniapp-runtime] Sync container creation failed, falling back to async:', error);
-      createContainerAsync(instance, manifest, contextParams, onLoad, mountTarget);
+      createContainerAsync(instance, manifest, launchContextParams, onLoad, mountTarget);
     }
   } else {
     // Asynchronous container creation (wujie)
-    createContainerAsync(instance, manifest, contextParams, onLoad, mountTarget);
+    createContainerAsync(instance, manifest, launchContextParams, onLoad, mountTarget);
   }
 
   const presentTransition = createTransition('present', appId);
