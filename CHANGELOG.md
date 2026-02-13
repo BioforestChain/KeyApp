@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.12] - 2026-02-13
+
+miniapp strictUrl 支持严格入口 URL
+
+<!-- last-commit: 14bd6f8d00c4d8a9606c3783e96f30e691ea15e0 -->
+
 ## [0.10.11] - 2026-02-13
 
 miniapp 启动 URL 增加稳定版本修订参数

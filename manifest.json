@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.11",
-  "change_log": "miniapp 启动 URL 增加稳定版本修订参数",
+  "version": "0.10.12",
+  "change_log": "miniapp strictUrl 支持严格入口 URL",
   "categories": [
     "application",
     "wallet"
