@@ -10,18 +10,18 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "https://bioforestchain.github.io/KeyApp/dweb/logo-256.webp",
-  "bundle_url": "./bfmpay.bfmeta.com.dweb-0.10.10.zip",
-  "bundle_hash": "sha256:e0e2534d9fc95ce29942f43c97790cb7b606e7f713d42bd1c66eb8bd8b71ffbd",
-  "bundle_size": 9270674,
+  "bundle_url": "./bfmpay.bfmeta.com.dweb-0.10.6.zip",
+  "bundle_hash": "sha256:9c89521755408096b240d07ab396562723abb1067d53bc679200668caf3e98ab",
+  "bundle_size": 9270551,
   "bundle_signature": "",
   "public_key_url": "",
-  "release_date": "Fri Feb 13 2026 11:39:55 GMT+0800 (中国标准时间)",
-  "change_log": "修复小程序订阅源错误态展示并同步 om-hub 配置",
+  "release_date": "Tue Feb 10 2026 17:46:56 GMT+0800 (China Standard Time)",
+  "change_log": "优化生态应用启动与弹窗流程，修复设置页滚动布局",
   "images": [],
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.10",
+  "version": "0.10.6",
   "categories": [
     "application",
     "wallet"

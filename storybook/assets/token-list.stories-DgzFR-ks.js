@@ -1,0 +1,56 @@
+import{j as c}from"./iframe-DAf0Rw6h.js";import{a as p}from"./token-item-CXWqonXP.js";import{G as l}from"./LoadingSpinner-BlBFZ_HX.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./wallet-card-oHiw73Pq.js";import"./hologram-canvas-CJ1u0yrl.js";import"./chain-icon-DjJEUbre.js";import"./service-BWXDLSov.js";import"./schemas-CO8_C8zP.js";import"./index-D0E7N0oa.js";import"./derivation-cNkBwRV-.js";import"./address-display-BvSQI1KQ.js";import"./web-BGou904B.js";import"./createReactComponent-DfMnD9Gx.js";import"./breakpoint-DQ_qwb34.js";import"./useTranslation-DcuaidzW.js";import"./index-D-lhXUsD.js";import"./IconCheck-CDq4Jde6.js";import"./IconChevronDown-HJIlMXZ7.js";import"./IconSettings-DWmln7ab.js";import"./wallet-selector-Dj_2ZLUi.js";import"./wallet-mini-card-DukzY5Uv.js";import"./token-icon-DTxoo1Ks.js";import"./amount-display-HIkOl8Pj.js";import"./NumberFlow-client-48rw3j0J-CO_xDFww.js";import"./animated-number-DXTjEMlD.js";import"./time-display-C5xgBEE6.js";import"./service-status-alert-DbYCX38s.js";import"./IconX-DMGXeuG5.js";import"./IconAlertTriangle-B4a1jius.js";import"./IconLock-DFyHLU2l.js";import"./item-DkNY8kcZ.js";import"./button-BADhSYs7.js";import"./useButton-D32w7uk2.js";import"./useRenderElement-TTPX5Cln.js";import"./dropdown-menu-CUXyfcT4.js";import"./index-BVmsHffJ.js";import"./index-WNnuWCa1.js";import"./composite-CZ8gweUp.js";import"./useBaseUiId-BfdeLb0f.js";import"./useCompositeListItem-C4SCWKPX.js";import"./useRole-Nd_TOQjQ.js";import"./user-profile-B_Ho0wG7.js";import"./avatar-codec-KCABu4DY.js";import"./bioforest-BXwckqu6.js";import"./web-uRgD7_iB.js";import"./amount-BQsqQYGO.js";import"./notification-BcL0dhJ1.js";import"./index-DdArusCF.js";import"./transaction-meta-f0DnSHtx.js";import"./IconDots-IQ3ohBHR.js";import"./IconShieldCheck-DBuCdmLq.js";import"./IconApps-BToufB5U.js";import"./IconCoins-DHZNxtdq.js";import"./IconSparkles-CWsWw-tT.js";import"./IconTrash-B04QTRRB.js";import"./transaction-list-Dt2lIDDD.js";import"./transaction-item-BaU3WjLH.js";import"./IconRefresh-sLngvuG_.js";import"./swipeable-tabs-BUYtmnEl.js";import"./swiper-kxFANI9c.js";const Te={title:"Token/TokenList",component:p,tags:["autodocs"]},i=[{symbol:"USDT",name:"Tether USD",balance:"1,234.56",fiatValue:"1,234.56",chain:"ethereum",change24h:.05},{symbol:"ETH",name:"Ethereum",balance:"2.5",fiatValue:"4,500.00",chain:"ethereum",change24h:-2.3},{symbol:"TRX",name:"Tron",balance:"10,000",fiatValue:"800.00",chain:"tron",change24h:5.2},{symbol:"BTC",name:"Bitcoin",balance:"0.05",fiatValue:"2,500.00",chain:"bitcoin",change24h:1.8},{symbol:"BFM",name:"BFMeta",balance:"5,000",fiatValue:"250.00",chain:"bfmeta",change24h:0}],o={args:{tokens:i,onTokenClick:e=>alert(`Clicked ${e.symbol}`)}},t={args:{tokens:i,showChange:!0,onTokenClick:e=>alert(`Clicked ${e.symbol}`)}},r={args:{tokens:[],loading:!0}},n={args:{tokens:[],emptyAction:c.jsx(l,{size:"sm",children:"转入资产"})}},a={args:{tokens:[],emptyTitle:"没有找到代币",emptyDescription:"尝试添加新的代币到您的钱包",emptyAction:c.jsx("button",{className:"text-primary text-sm font-medium",children:"添加代币"})}},s={args:{tokens:[i[0]],onTokenClick:e=>alert(`Clicked ${e.symbol}`)}},m={args:{tokens:[...i,{symbol:"BNB",name:"Binance Coin",balance:"10",fiatValue:"3,000",chain:"bsc",change24h:3.1},{symbol:"USDC",name:"USD Coin",balance:"500",fiatValue:"500",chain:"ethereum",change24h:0}],showChange:!0,onTokenClick:e=>alert(`Clicked ${e.symbol}`)}};o.parameters={...o.parameters,docs:{...o.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: mockTokens,
+    onTokenClick: token => alert(\`Clicked \${token.symbol}\`)
+  }
+}`,...o.parameters?.docs?.source}}};t.parameters={...t.parameters,docs:{...t.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: mockTokens,
+    showChange: true,
+    onTokenClick: token => alert(\`Clicked \${token.symbol}\`)
+  }
+}`,...t.parameters?.docs?.source}}};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: [],
+    loading: true
+  }
+}`,...r.parameters?.docs?.source}}};n.parameters={...n.parameters,docs:{...n.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: [],
+    emptyAction: <GradientButton size="sm">转入资产</GradientButton>
+  }
+}`,...n.parameters?.docs?.source}}};a.parameters={...a.parameters,docs:{...a.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: [],
+    emptyTitle: '没有找到代币',
+    emptyDescription: '尝试添加新的代币到您的钱包',
+    emptyAction: <button className="text-primary text-sm font-medium">
+        添加代币
+      </button>
+  }
+}`,...a.parameters?.docs?.source}}};s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: [mockTokens[0]!],
+    onTokenClick: token => alert(\`Clicked \${token.symbol}\`)
+  }
+}`,...s.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  args: {
+    tokens: [...mockTokens, {
+      symbol: 'BNB',
+      name: 'Binance Coin',
+      balance: '10',
+      fiatValue: '3,000',
+      chain: 'bsc' as const,
+      change24h: 3.1
+    }, {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      balance: '500',
+      fiatValue: '500',
+      chain: 'ethereum' as const,
+      change24h: 0
+    }],
+    showChange: true,
+    onTokenClick: token => alert(\`Clicked \${token.symbol}\`)
+  }
+}`,...m.parameters?.docs?.source}}};const fe=["Default","WithChange","Loading","Empty","CustomEmpty","SingleToken","ManyTokens"];export{a as CustomEmpty,o as Default,n as Empty,r as Loading,m as ManyTokens,s as SingleToken,t as WithChange,fe as __namedExportsOrder,Te as default};
