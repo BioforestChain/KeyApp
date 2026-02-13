@@ -35,6 +35,7 @@ Code: `src/ecosystem/types.ts`
 - `permissions`: 申请的 BioBridge 权限。
 - `permissionsPolicy`: 申请的 Web Permissions Policy 指令列表（如 `clipboard-write`, `camera`）。KeyApp 会根据该字段为 miniapp iframe 注入 `allow`，用于跨域权限委派。
 - `splash_screen`: 自定义启动闪屏的行为。
+- `strictUrl`: 严格入口 URL 模式（默认 `false`）。当设置为 `true` 时，KeyApp 会保持 `url` 原样启动，不再自动追加运行时修订参数（如 `__rv`）。
 
 > 注意：跨域 miniapp 需要宿主页面的 `Permissions-Policy` 响应头允许委派，否则 `allow` 不生效。
 

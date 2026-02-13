@@ -53,12 +53,37 @@ describe('buildMiniappLaunchContextParams', () => {
   it('falls back to updated timestamp when version is empty', () => {
     const manifest = createManifest({
       version: '',
-      updated: '2026-02-13T03:00:00Z',
+      updatedAt: '2026-02-13T03:00:00Z',
     });
 
     const result = buildMiniappLaunchContextParams(manifest);
 
     expect(result).toEqual({ __rv: 'u:2026-02-13T03:00:00Z' });
   });
-});
 
+  it('does not inject revision params when strictUrl is enabled', () => {
+    const manifest = createManifest({
+      version: '4.0.0',
+      strictUrl: true,
+    });
+
+    const result = buildMiniappLaunchContextParams(manifest);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('keeps explicit context params when strictUrl is enabled', () => {
+    const manifest = createManifest({
+      version: '4.1.0',
+      strictUrl: true,
+    });
+
+    const result = buildMiniappLaunchContextParams(manifest, {
+      from: 'bio-bridge',
+    });
+
+    expect(result).toEqual({
+      from: 'bio-bridge',
+    });
+  });
+});
