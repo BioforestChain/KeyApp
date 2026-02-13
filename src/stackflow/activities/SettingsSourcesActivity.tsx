@@ -19,7 +19,6 @@ import {
   IconArrowLeft,
   IconLoader2,
   IconAlertCircle,
-  IconEdit,
 } from '@tabler/icons-react';
 import { ecosystemStore, ecosystemActions, type SourceRecord } from '@/stores/ecosystem';
 import { refreshSources, refreshSource } from '@/services/ecosystem/registry';
@@ -164,7 +163,7 @@ export const SettingsSourcesActivity: ActivityComponentType = () => {
     setIsRefreshing(true);
     try {
       await refreshSources();
-    } catch (e) {}
+    } catch {}
     setIsRefreshing(false);
   };
 
@@ -286,12 +285,15 @@ function SourceItem({ source, onToggle, onRemove, onEdit, isSelected }: SourceIt
   const { t } = useTranslation('common');
   const isDefault = source.url.includes('ecosystem.json');
 
-  const statusIcon = {
-    idle: null,
-    loading: <IconLoader2 className="text-muted-foreground size-3 animate-spin" />,
-    success: <IconCheck className="size-3 text-green-500" />,
-    error: <IconAlertCircle className="size-3 text-red-500" />,
-  }[source.status];
+  const hasError = source.status === 'error' || (source.status !== 'loading' && Boolean(source.errorMessage));
+  let statusIcon: React.ReactNode = null;
+  if (hasError) {
+    statusIcon = <IconAlertCircle className="size-3 text-red-500" />;
+  } else if (source.status === 'loading') {
+    statusIcon = <IconLoader2 className="text-muted-foreground size-3 animate-spin" />;
+  } else if (source.status === 'success') {
+    statusIcon = <IconCheck className="size-3 text-green-500" />;
+  }
 
   return (
     <div
@@ -320,8 +322,8 @@ function SourceItem({ source, onToggle, onRemove, onEdit, isSelected }: SourceIt
             <p className="text-muted-foreground text-xs">
               {t('sources.updatedAt', { date: new Date(source.lastUpdated).toLocaleString() })}
             </p>
-            {source.status === 'error' && source.errorMessage && (
-              <p className="truncate text-xs text-red-500">{source.errorMessage}</p>
+            {hasError && (
+              <p className="truncate text-xs text-red-500">{source.errorMessage ?? t('service.queryFailed')}</p>
             )}
           </div>
         </div>

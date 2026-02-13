@@ -67,6 +67,51 @@ describe('Miniapp Registry (Subscription v2)', () => {
     expect(getAppById('xin.dweb.teleport')?.name).toBe('Teleport')
   })
 
+
+  it('marks source as error when refresh falls back to cache after fetch failure', async () => {
+    const mockApps = [
+      {
+        id: 'xin.dweb.teleport',
+        name: 'Teleport',
+        url: '/miniapps/teleport/',
+        icon: '/miniapps/teleport/icon.svg',
+        description: 'Test',
+        version: '1.0.0',
+      },
+    ]
+
+    const fetchMock = vi
+      .fn<
+        [RequestInfo | URL],
+        Promise<{
+          ok: boolean;
+          status: number;
+          headers: Map<string, string>;
+          json: () => Promise<unknown>;
+        }>
+      >()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Map([['ETag', '"v1"']]),
+        json: () => Promise.resolve({ name: 'x', version: '1', updated: '2025-01-01', apps: mockApps }),
+      })
+      .mockRejectedValueOnce(new Error('network down'))
+
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    await refreshSources({ force: true })
+
+    expect(ecosystemStore.state.sources[0]?.status).toBe('success')
+
+    const apps = await refreshSources({ force: true })
+
+    expect(apps).toHaveLength(1)
+    expect(getApps()).toHaveLength(1)
+    expect(ecosystemStore.state.sources[0]?.status).toBe('error')
+    expect(ecosystemStore.state.sources[0]?.errorMessage).toBe('network down')
+  })
+
   it('prefers the later source when duplicate app id exists', async () => {
     ecosystemStore.setState(() => ({
       permissions: [],
