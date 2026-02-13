@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.10.10] - 2026-02-13
+
+修复小程序订阅源错误态展示并同步 om-hub 配置
+
+<!-- last-commit: 64f9920160469c74b6faef5f81a552384947697f -->
+
 ## [0.10.9] - 2026-02-12
 
 enforce raw amount standard across miniapp transaction APIs

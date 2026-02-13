@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.9",
-  "change_log": "enforce raw amount standard across miniapp transaction APIs",
+  "version": "0.10.10",
+  "change_log": "修复小程序订阅源错误态展示并同步 om-hub 配置",
   "categories": [
     "application",
     "wallet"
