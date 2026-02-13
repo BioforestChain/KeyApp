@@ -148,6 +148,12 @@ export interface MiniappManifest {
   icon: string;
   /** 应用入口 URL */
   url: string;
+  /**
+   * 严格入口 URL 模式（默认 false）
+   * - true: 保持 url 原样，不注入运行时修订参数
+   * - false: 允许宿主注入运行时参数（例如 __rv）
+   */
+  strictUrl?: boolean;
   /** 版本号 (semver) */
   version: string;
   /** 作者/开发者 */

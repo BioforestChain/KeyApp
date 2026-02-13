@@ -8,7 +8,7 @@ function deriveMiniappRuntimeRevision(manifest: MiniappManifest): string | null 
     return `v:${version}`;
   }
 
-  const updated = manifest.updated?.trim();
+  const updated = manifest.updatedAt?.trim();
   if (updated && updated.length > 0) {
     return `u:${updated}`;
   }
@@ -21,6 +21,13 @@ export function buildMiniappLaunchContextParams(
   contextParams?: Record<string, string>,
 ): Record<string, string> | undefined {
   const nextContextParams = contextParams ? { ...contextParams } : {};
+  if (manifest.strictUrl === true) {
+    if (Object.keys(nextContextParams).length === 0) {
+      return undefined;
+    }
+    return nextContextParams;
+  }
+
   if (!(MINIAPP_RUNTIME_REVISION_PARAM in nextContextParams)) {
     const revision = deriveMiniappRuntimeRevision(manifest);
     if (revision) {
@@ -33,4 +40,3 @@ export function buildMiniappLaunchContextParams(
   }
   return nextContextParams;
 }
-

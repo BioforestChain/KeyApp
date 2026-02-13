@@ -29,6 +29,7 @@ export const MiniappManifestSchema = z
     longDescription: z.string().optional(),
     icon: z.string(),
     url: z.string(),
+    strictUrl: z.boolean().optional(),
     version: z.string(),
     author: z.string().optional(),
     website: z.string().optional(),

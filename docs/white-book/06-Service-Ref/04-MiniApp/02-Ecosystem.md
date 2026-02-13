@@ -43,6 +43,7 @@ interface MiniappManifest {
   description?: string;
   icon: string;                  // 图标 URL
   url: string;                   // 入口 URL
+  strictUrl?: boolean;           // 严格 URL 模式（true 时不注入运行时 query）
   author?: {
     name: string;
     email?: string;
