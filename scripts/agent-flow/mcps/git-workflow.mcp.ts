@@ -189,6 +189,34 @@ export async function updateIssue(args: { issueId: string; body?: string; state?
   return { success: true };
 }
 
+export async function getIssueInfo(args: { issueId: string }): Promise<{ title: string; labels: string[] }> {
+  const { issueId } = args;
+  const raw = exec(`gh issue view ${issueId} --repo ${REPO} --json title,labels`);
+  const data = JSON.parse(raw) as { title: string; labels: Array<{ name: string }> };
+  return {
+    title: data.title,
+    labels: (data.labels || []).map((label) => label.name),
+  };
+}
+
+export async function getPrInfo(args: { head?: string }): Promise<{ number: number; title: string; body: string } | null> {
+  const head = args.head ? `--head "${args.head}"` : "";
+  const raw = safeExec(`gh pr list --repo ${REPO} --state open ${head} --json number,title,body --limit 1`);
+  if (!raw) return null;
+  const data = JSON.parse(raw) as Array<{ number: number; title: string; body: string }>;
+  return data.length > 0 ? data[0] : null;
+}
+
+export async function updatePr(args: { prNumber: number; title?: string; body?: string }) {
+  const { prNumber, title, body } = args;
+  const flags: string[] = [];
+  if (title) flags.push(`--title "${title.replace(/"/g, '\\"')}"`);
+  if (body) flags.push(`--body "${body.replace(/"/g, '\\"')}"`);
+  if (flags.length === 0) return { success: true };
+  exec(`gh pr edit ${prNumber} --repo ${REPO} ${flags.join(" ")}`);
+  return { success: true };
+}
+
 export async function createPr(args: { title: string; body: string; head: string; base?: string; draft?: boolean; labels?: string[]; createLabels?: boolean }) {
   const { title, body, head, base = "main", draft = true, labels, createLabels = false } = args;
   

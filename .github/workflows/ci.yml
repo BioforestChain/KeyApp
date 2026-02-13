@@ -8,6 +8,34 @@ env:
   NODE_VERSION: '24'
 
 jobs:
+  pr-title-lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          node - <<'NODE'
+          const title = process.env.PR_TITLE || '';
+          const body = process.env.PR_BODY || '';
+          const labels = JSON.parse(process.env.PR_LABELS || '[]').map((l) => l.name);
+          const loose = body.includes('<!-- pr-title:loose -->') || labels.includes('pr/loose');
+          const regex = /^(feat|fix|refactor|chore|docs|test|perf|style|build|ci)(\([^)]+\))?: .+/;
+          if (!regex.test(title)) {
+            if (loose) {
+              console.log('PR title is non-standard, but loose mode detected.');
+              process.exit(0);
+            }
+            console.error(`PR title is invalid: "${title}"`);
+            console.error('Expected conventional commit style, e.g. "feat(ui): add button"');
+            process.exit(1);
+          }
+          console.log('PR title OK');
+          NODE
+
   # ==================== Self-hosted 快速链路 ====================
   ci-fast:
     if: vars.USE_SELF_HOSTED == 'true'
@@ -140,11 +168,15 @@ jobs:
   # ==================== 聚合 Job（满足分支保护） ====================
   checks:
     if: always()
-    needs: [checks-fast, checks-standard]
+    needs: [checks-fast, checks-standard, pr-title-lint]
     runs-on: ubuntu-latest
     steps:
       - name: Check results
         run: |
+          if [ "${{ needs.pr-title-lint.result }}" == "failure" ]; then
+            echo "PR title lint failed"
+            exit 1
+          fi
           if [ "${{ needs.checks-fast.result }}" == "success" ] || [ "${{ needs.checks-standard.result }}" == "success" ]; then
             echo "CI passed via $( [ '${{ needs.checks-fast.result }}' == 'success' ] && echo 'fast path' || echo 'standard path' )"
             exit 0
