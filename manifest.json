@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.10",
-  "change_log": "修复小程序订阅源错误态展示并同步 om-hub 配置",
+  "version": "0.10.11",
+  "change_log": "miniapp 启动 URL 增加稳定版本修订参数",
   "categories": [
     "application",
     "wallet"
