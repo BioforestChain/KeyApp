@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.12",
-  "change_log": "miniapp strictUrl 支持严格入口 URL",
+  "version": "0.10.13",
+  "change_log": "fix(ecosystem): miniapp capsule info UX + pattern error clarity (#450)",
   "categories": [
     "application",
     "wallet"
