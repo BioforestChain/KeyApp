@@ -206,7 +206,7 @@ function UrlLine({ url }: { url: string }) {
         target="_blank"
         rel="noreferrer noopener"
         className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
-        aria-label={t('common:open')}
+        aria-label={t('common:ecosystem.menu.open')}
       >
         <IconExternalLink className="size-4" />
       </a>
