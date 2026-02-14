@@ -32,6 +32,7 @@ import {
 import { getMiniappMotionPresets, type MiniappMotionPresets } from '@/services/miniapp-runtime/visual-config';
 import { MiniappSplashScreen } from './miniapp-splash-screen';
 import { MiniappCapsule } from './miniapp-capsule';
+import { MiniappCapsuleInfoSheet } from './miniapp-capsule-info-sheet';
 import { MiniappIcon } from './miniapp-icon';
 import {
   flowToCapsule,
@@ -124,6 +125,7 @@ function MiniappWindowPortal({
   const windowRef = useRef<HTMLDivElement>(null);
   const iframeContainerRef = useRef<HTMLDivElement>(null);
   const [presentApp, setPresentApp] = useState<MiniappInstance | null>(null);
+  const [isCapsuleInfoOpen, setIsCapsuleInfoOpen] = useState(false);
   const exitScheduledRef = useRef(false);
   const exitingTransitionIdRef = useRef<string | null>(null);
 
@@ -175,6 +177,10 @@ function MiniappWindowPortal({
     didPresent(appId, presentation.transitionId);
   }, [appId, presentApp, presentation.state, presentation.transitionKind, presentation.transitionId]);
 
+  useEffect(() => {
+    setIsCapsuleInfoOpen(false);
+  }, [appId]);
+
   const lastFlowRef = useRef<string>('closed');
   if (presentApp?.flow) {
     lastFlowRef.current = presentApp.flow;
@@ -204,6 +210,7 @@ function MiniappWindowPortal({
       themeColor: presentApp?.manifest.themeColorFrom ?? 280,
     };
   }, [presentApp?.appId, presentApp?.manifest.name, presentApp?.manifest.icon, presentApp?.manifest.themeColorFrom]);
+  const currentUrl = presentApp?.containerHandle?.getIframe()?.src ?? presentApp?.manifest.url ?? '';
 
   useEffect(() => {
     if (!portalHost) return;
@@ -353,12 +360,27 @@ function MiniappWindowPortal({
                   visible={true}
                   theme={presentApp?.ctx.capsuleTheme ?? 'auto'}
                   onAction={() => {
-                    // TODO: 显示更多操作菜单
+                    setIsCapsuleInfoOpen(true);
                   }}
                   onClose={handleClose}
                 />
               </motion.div>
             </div>
+
+            <MiniappCapsuleInfoSheet
+              open={isCapsuleInfoOpen}
+              onOpenChange={setIsCapsuleInfoOpen}
+              appName={appDisplay.name || appId}
+              appId={appId}
+              version={presentApp?.manifest.version ?? '0.0.0'}
+              author={presentApp?.manifest.author}
+              sourceName={presentApp?.manifest.sourceName}
+              runtime={presentApp?.containerType ?? presentApp?.manifest.runtime ?? 'iframe'}
+              entryUrl={presentApp?.manifest.url ?? ''}
+              currentUrl={currentUrl}
+              sourceUrl={presentApp?.manifest.sourceUrl}
+              strictUrl={presentApp?.manifest.strictUrl ?? false}
+            />
           </motion.div>
         </div>
       )}

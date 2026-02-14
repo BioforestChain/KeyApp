@@ -111,7 +111,26 @@
   },
   "capsule": {
     "more": "المزيد من الخيارات",
-    "close": "إغلاق التطبيق"
+    "close": "إغلاق التطبيق",
+    "infoTitle": "تفاصيل التطبيق",
+    "infoApp": "التطبيق",
+    "infoAppId": "معرّف التطبيق",
+    "infoVersion": "الإصدار",
+    "infoAuthor": "المطور",
+    "infoSourceName": "المصدر",
+    "infoSourceUnknown": "مصدر غير معروف",
+    "infoRuntime": "بيئة التشغيل",
+    "infoStrictUrl": "رابط URL صارم",
+    "infoStrictEnabled": "مفعّل",
+    "infoStrictDisabled": "غير مفعّل",
+    "infoEntryUrl": "رابط الدخول المُعدّ",
+    "infoCurrentUrl": "الرابط الحالي",
+    "infoUrlQueryAdjustedTitle": "تمت إضافة معاملات إلى رابط التشغيل",
+    "infoUrlQueryAdjustedHint": "تم تغيير معاملات الاستعلام فقط (للإصدار/التخزين المؤقت)، وهذا غالبًا سلوك متوقع.",
+    "infoUrlMismatchTitle": "رابط الدخول يختلف عن رابط التشغيل",
+    "infoUrlMismatchHint": "قد يكون السبب حقن معاملات أو إعادة توجيه أو اختلاف في التخزين المؤقت. يرجى التحقق من توافق التطبيق.",
+    "infoSourceUrl": "رابط المصدر",
+    "infoUrlUnavailable": "الرابط غير متاح"
   },
   "detail": {
     "notFound": "التطبيق غير موجود",
