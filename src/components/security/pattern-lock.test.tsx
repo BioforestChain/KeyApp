@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ReactElement } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PatternLock, patternToString, stringToPattern, isValidPattern } from './pattern-lock';
 import { TestI18nProvider, testI18n } from '@/test/i18n-mock';
 
@@ -52,6 +52,33 @@ describe('PatternLock', () => {
   it('shows error state', () => {
     renderWithI18n(<PatternLock value={[0, 1, 2, 5]} error />);
     expect(screen.getByText(testI18n.t('security:patternLock.error'))).toBeInTheDocument();
+  });
+
+  it('hides pattern error text immediately after leaving error state', async () => {
+    const errorText = testI18n.t('security:patternLock.error');
+    const clearText = testI18n.t('security:patternLock.clear');
+
+    const view = renderWithI18n(<PatternLock value={[0, 1, 2, 5]} error={false} />);
+    expect(screen.queryByText(errorText)).not.toBeInTheDocument();
+
+    view.rerender(
+      <TestI18nProvider>
+        <PatternLock value={[0, 1, 2, 5]} error />
+      </TestI18nProvider>,
+    );
+    expect(screen.getByText(errorText)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText(clearText)).not.toBeInTheDocument();
+    });
+
+    view.rerender(
+      <TestI18nProvider>
+        <PatternLock value={[0, 1, 2, 5]} error={false} />
+      </TestI18nProvider>,
+    );
+
+    expect(screen.queryByText(errorText)).not.toBeInTheDocument();
   });
 
   it('shows success state', () => {

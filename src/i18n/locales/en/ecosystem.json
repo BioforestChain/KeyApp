@@ -111,7 +111,26 @@
   },
   "capsule": {
     "more": "More Options",
-    "close": "Close App"
+    "close": "Close App",
+    "infoTitle": "App Details",
+    "infoApp": "App",
+    "infoAppId": "App ID",
+    "infoVersion": "Version",
+    "infoAuthor": "Developer",
+    "infoSourceName": "Source",
+    "infoSourceUnknown": "Unknown source",
+    "infoRuntime": "Runtime",
+    "infoStrictUrl": "Strict URL",
+    "infoStrictEnabled": "Enabled",
+    "infoStrictDisabled": "Disabled",
+    "infoEntryUrl": "Configured Entry URL",
+    "infoCurrentUrl": "Current URL",
+    "infoUrlQueryAdjustedTitle": "Runtime URL has extra query parameters",
+    "infoUrlQueryAdjustedHint": "Only query parameters changed (for version/cache control); this is usually expected.",
+    "infoUrlMismatchTitle": "Entry URL differs from runtime URL",
+    "infoUrlMismatchHint": "This may come from query injection, redirects, or cache differences. Please verify app compatibility.",
+    "infoSourceUrl": "Source URL",
+    "infoUrlUnavailable": "URL unavailable"
   },
   "detail": {
     "notFound": "App not found",

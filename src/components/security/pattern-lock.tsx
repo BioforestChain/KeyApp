@@ -130,18 +130,21 @@ export function PatternLock({
 
   // 处理外部 error 状态变化：开始淡出动画
   useEffect(() => {
-    // 检测 error 从 false 变为 true
+    // 进入错误：启动动画
     if (error && !prevErrorRef.current) {
-      // 保存当前节点状态用于动画显示（外部可能同时清空 value）
-      const nodesToAnimate = selectedNodesRef.current.length > 0 
-        ? [...selectedNodesRef.current] 
+      const nodesToAnimate = selectedNodesRef.current.length > 0
+        ? [...selectedNodesRef.current]
         : [...selectedNodes];
-      
       startErrorAnimation(nodesToAnimate);
     }
-    
+
+    // 退出错误：立即取消动画，避免与流程错误文案并存
+    if (!error && prevErrorRef.current) {
+      cancelErrorAnimation();
+    }
+
     prevErrorRef.current = error;
-  }, [error, selectedNodes, startErrorAnimation]);
+  }, [cancelErrorAnimation, error, selectedNodes, startErrorAnimation]);
 
   // 计算节点位置
   const nodePositions = useMemo(() => {
@@ -497,7 +500,7 @@ export function PatternLock({
 
       {/* 状态提示 - 固定高度避免布局抖动 */}
       <div className="text-center h-5">
-        {error || isErrorAnimating ? (
+        {error ? (
           <p className="text-destructive text-sm">
             {errorText ?? t('patternLock.error')}
           </p>

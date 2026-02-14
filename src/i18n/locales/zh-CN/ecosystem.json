@@ -111,7 +111,26 @@
   },
   "capsule": {
     "more": "更多操作",
-    "close": "关闭应用"
+    "close": "关闭应用",
+    "infoTitle": "应用详情",
+    "infoApp": "应用",
+    "infoAppId": "应用 ID",
+    "infoVersion": "版本",
+    "infoAuthor": "开发者",
+    "infoSourceName": "来源",
+    "infoSourceUnknown": "未知来源",
+    "infoRuntime": "运行时",
+    "infoStrictUrl": "严格 URL",
+    "infoStrictEnabled": "已启用",
+    "infoStrictDisabled": "未启用",
+    "infoEntryUrl": "配置入口 URL",
+    "infoCurrentUrl": "当前 URL",
+    "infoUrlQueryAdjustedTitle": "运行 URL 已附加参数",
+    "infoUrlQueryAdjustedHint": "仅附加查询参数（如版本/缓存参数），通常属于正常行为。",
+    "infoUrlMismatchTitle": "入口 URL 与运行 URL 不一致",
+    "infoUrlMismatchHint": "可能存在参数注入、重定向或缓存差异，请确认该应用可兼容该运行 URL。",
+    "infoSourceUrl": "订阅源 URL",
+    "infoUrlUnavailable": "暂无可用 URL"
   },
   "detail": {
     "notFound": "应用不存在",

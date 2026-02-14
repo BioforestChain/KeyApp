@@ -111,7 +111,26 @@
   },
   "capsule": {
     "more": "更多操作",
-    "close": "關閉應用"
+    "close": "關閉應用",
+    "infoTitle": "應用詳情",
+    "infoApp": "應用",
+    "infoAppId": "應用 ID",
+    "infoVersion": "版本",
+    "infoAuthor": "開發者",
+    "infoSourceName": "來源",
+    "infoSourceUnknown": "未知來源",
+    "infoRuntime": "運行時",
+    "infoStrictUrl": "嚴格 URL",
+    "infoStrictEnabled": "已啟用",
+    "infoStrictDisabled": "未啟用",
+    "infoEntryUrl": "配置入口 URL",
+    "infoCurrentUrl": "當前 URL",
+    "infoUrlQueryAdjustedTitle": "運行 URL 已附加參數",
+    "infoUrlQueryAdjustedHint": "僅附加查詢參數（如版本/快取參數），通常屬於正常行為。",
+    "infoUrlMismatchTitle": "入口 URL 與運行 URL 不一致",
+    "infoUrlMismatchHint": "可能存在參數注入、重導向或快取差異，請確認該應用可相容該運行 URL。",
+    "infoSourceUrl": "訂閱源 URL",
+    "infoUrlUnavailable": "暫無可用 URL"
   },
   "detail": {
     "notFound": "應用不存在",
