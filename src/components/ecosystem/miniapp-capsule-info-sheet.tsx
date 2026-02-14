@@ -170,7 +170,7 @@ function UrlCard({
 }
 
 function UrlLine({ url }: { url: string }) {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -197,7 +197,7 @@ function UrlLine({ url }: { url: string }) {
         type="button"
         onClick={handleCopy}
         className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
-        aria-label={copied ? t('copiedToClipboard') : t('copy')}
+        aria-label={copied ? t('common:copiedToClipboard') : t('common:copy')}
       >
         {copied ? <IconCheck className="size-4 text-emerald-500" /> : <IconCopy className="size-4" />}
       </button>
@@ -206,7 +206,7 @@ function UrlLine({ url }: { url: string }) {
         target="_blank"
         rel="noreferrer noopener"
         className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
-        aria-label={t('open')}
+        aria-label={t('common:open')}
       >
         <IconExternalLink className="size-4" />
       </a>
