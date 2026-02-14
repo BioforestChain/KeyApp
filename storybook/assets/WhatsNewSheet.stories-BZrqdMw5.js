@@ -1,0 +1,14 @@
+import{j as e,r as m}from"./iframe-BTpb5FuF.js";import{B as p}from"./button-BOvm2CMd.js";import{S as d,a as u,b as h,c as x}from"./sheet-DWADzVzm.js";import{u as c}from"./useTranslation-B4edLqB0.js";import{I as f}from"./IconSparkles-DwAdKjsI.js";import{I as g}from"./IconShieldCheck-CwPcyAe5.js";import{c as j}from"./createReactComponent-BdieSkAI.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useButton-By7RoCFb.js";import"./useRenderElement-BN7LlmvW.js";import"./IconX-DuDek79G.js";import"./composite-DTBc_FlF.js";import"./useBaseUiId-DXLRwZBq.js";import"./index-DNgmIf6_.js";import"./index-COAZ4abe.js";import"./index-CWWgpFGc.js";import"./useRole-B1uEXi_v.js";const N=[["path",{d:"M16 10l4 -2l-8 -4l-8 4l4 2",key:"svg-0"}],["path",{d:"M12 12l-4 -2l-4 2l8 4l8 -4l-4 -2l-4 2z",fill:"currentColor",key:"svg-1"}],["path",{d:"M8 14l-4 2l8 4l8 -4l-4 -2",key:"svg-2"}]],S=j("outline","stack-middle","StackMiddle",N);function o({open:s,onOpenChange:a}){const{t}=c("migration"),r=[{key:"feature_modern_ui",Icon:f},{key:"feature_security",Icon:g},{key:"feature_multichain",Icon:S}];return e.jsx(d,{open:s,onOpenChange:a,children:e.jsxs(u,{side:"bottom",className:"gap-0 p-0",children:[e.jsx(h,{className:"pb-2",children:e.jsx(x,{className:"text-base",children:t("whats_new_title")})}),e.jsx("div",{className:"px-4 pb-6",children:e.jsx("ul",{className:"space-y-3",children:r.map(({key:i,Icon:l})=>e.jsxs("li",{className:"flex items-start gap-3",children:[e.jsx("div",{className:"bg-muted mt-0.5 flex size-8 items-center justify-center rounded-md",children:e.jsx(l,{className:"size-4"})}),e.jsx("p",{className:"text-sm leading-6",children:t(i)})]},i))})})]})})}o.__docgenInfo={description:"",methods:[],displayName:"WhatsNewSheet",props:{open:{required:!0,tsType:{name:"boolean"},description:""},onOpenChange:{required:!0,tsType:{name:"signature",type:"function",raw:"(open: boolean) => void",signature:{arguments:[{type:{name:"boolean"},name:"open"}],return:{name:"void"}}},description:""}}};const H={title:"Migration/WhatsNewSheet",component:o,tags:["autodocs"],decorators:[s=>e.jsx("div",{className:"p-4",children:e.jsx(s,{})})]},n={render:function(){const[a,t]=m.useState(!0),{t:r}=c("migration");return e.jsxs("div",{className:"space-y-4",children:[e.jsx(p,{variant:"outline",onClick:()=>t(!0),children:r("whats_new")}),e.jsx(o,{open:a,onOpenChange:t})]})}};n.parameters={...n.parameters,docs:{...n.parameters?.docs,source:{originalSource:`{
+  render: function Render() {
+    const [open, setOpen] = useState(true);
+    const {
+      t
+    } = useTranslation('migration');
+    return <div className="space-y-4">
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          {t('whats_new')}
+        </Button>
+        <WhatsNewSheet open={open} onOpenChange={setOpen} />
+      </div>;
+  }
+}`,...n.parameters?.docs?.source}}};const A=["Default"];export{n as Default,A as __namedExportsOrder,H as default};
