@@ -13,6 +13,34 @@ import i18n from '@/i18n';
 
 const t = i18n.t.bind(i18n);
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function cloneTransactionRecord(record: Record<string, unknown>): Record<string, unknown> {
+  if (typeof structuredClone === 'function') {
+    try {
+      const cloned = structuredClone(record);
+      if (isRecord(cloned)) {
+        return cloned;
+      }
+    } catch {
+      // fallback to JSON clone
+    }
+  }
+
+  try {
+    const cloned = JSON.parse(JSON.stringify(record)) as unknown;
+    if (isRecord(cloned)) {
+      return cloned;
+    }
+  } catch {
+    // fallback to shallow clone
+  }
+
+  return { ...record };
+}
+
 export interface BioforestBurnFeeResult {
   amount: Amount;
   symbol: string;
@@ -78,7 +106,7 @@ export async function fetchBioforestBurnFee(
 }
 
 export type SubmitBioforestBurnResult =
-  | { status: 'ok'; txHash: string; pendingTxId: string }
+  | { status: 'ok'; txHash: string; txId: string; transaction: Record<string, unknown>; pendingTxId: string }
   | { status: 'password' }
   | { status: 'password_required'; secondPublicKey: string }
   | { status: 'error'; message: string; pendingTxId?: string };
@@ -93,6 +121,7 @@ export interface SubmitBioforestBurnParams {
   amount: Amount;
   fee?: Amount;
   twoStepSecret?: string;
+  remark?: Record<string, string>;
 }
 
 /**
@@ -108,6 +137,7 @@ export async function submitBioforestBurn({
   amount,
   fee: _fee,
   twoStepSecret,
+  remark,
 }: SubmitBioforestBurnParams): Promise<SubmitBioforestBurnResult> {
   // Get mnemonic from wallet storage
   let secret: string;
@@ -169,6 +199,7 @@ export async function submitBioforestBurn({
       recipientId: recipientAddress,
       amount,
       bioAssetType: assetType,
+      ...(remark ? { remark } : {}),
     });
 
     // Sign transaction
@@ -203,7 +234,17 @@ export async function submitBioforestBurn({
         status: 'broadcasted',
         txHash: broadcastTxHash,
       });
-      return { status: 'ok', txHash: broadcastTxHash, pendingTxId: pendingTx.id };
+      const transaction = isRecord(signedTx.data)
+        ? cloneTransactionRecord(signedTx.data)
+        : { data: signedTx.data };
+
+      return {
+        status: 'ok',
+        txHash: broadcastTxHash,
+        txId: broadcastTxHash,
+        transaction,
+        pendingTxId: pendingTx.id,
+      };
     } catch (err) {
       const error = err as Error;
       await pendingTxService.updateStatus({

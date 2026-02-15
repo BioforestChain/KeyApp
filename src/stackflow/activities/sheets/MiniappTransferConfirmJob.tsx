@@ -54,6 +54,8 @@ type MiniappTransferConfirmJobParams = {
   chain: string;
   /** 代币 (可选) */
   asset?: string;
+  /** 业务备注（透传到交易体） */
+  remark?: Record<string, string>;
 };
 
 type TransferStep = MiniappTransferFlowStep;
@@ -109,7 +111,7 @@ function MiniappTransferConfirmJobContent() {
   const { pop } = useFlow();
   const toast = useToast();
   const params = useActivityParams<MiniappTransferConfirmJobParams>();
-  const { requestId, appName, appIcon, from, to, amount, chain, asset } = params;
+  const { requestId, appName, appIcon, from, to, amount, chain, asset, remark } = params;
   const fallbackRequestIdRef = useRef(requestId ?? `legacy-transfer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const effectiveRequestId = fallbackRequestIdRef.current;
 
@@ -430,6 +432,7 @@ function MiniappTransferConfirmJobContent() {
         to,
         amount: parsedAmount,
         ...(asset ? { bioAssetType: asset } : {}),
+        ...(remark ? { remark } : {}),
       });
 
       const signedTx = await signUnsignedTransaction({
@@ -460,7 +463,7 @@ function MiniappTransferConfirmJobContent() {
 
       return { txHash, transaction };
     },
-    [resolvedChainId, parsedAmount, asset, from, to, walletId],
+    [resolvedChainId, parsedAmount, asset, from, to, walletId, remark],
   );
 
   const handleTransferFailure = useCallback(

@@ -19,6 +19,11 @@ const baseParams: EcosystemTransferParams = {
   chain: 'bfmeta',
 }
 
+const baseRemark = {
+  ex_type: 'exchange.purchase',
+  ex_id: 'ex-1',
+}
+
 describe('handleSendTransaction', () => {
   beforeEach(() => {
     HandlerContext.clear()
@@ -104,6 +109,36 @@ describe('handleSendTransaction', () => {
       transaction: { hash: 'tx-hash-1', type: 'AST-01', senderId: 'b_sender' },
     })
     expect(typeof (result as { transaction: unknown }).transaction).toBe('object')
+  })
+
+  it('passes remark to transfer dialog', async () => {
+    const showTransferDialog = vi.fn(async () => ({
+      txHash: 'tx-hash-ctx-icon',
+      txId: 'tx-hash-ctx-icon',
+      transaction: { hash: 'tx-hash-ctx-icon' },
+    }))
+
+    HandlerContext.register(baseContext.appId, {
+      showWalletPicker: async () => null,
+      getConnectedAccounts: () => [],
+      showSigningDialog: async () => null,
+      showTransferDialog,
+      showSignTransactionDialog: async () => null,
+    })
+
+    await handleSendTransaction(
+      {
+        ...baseParams,
+        remark: baseRemark,
+      },
+      baseContext,
+    )
+
+    expect(showTransferDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remark: baseRemark,
+      }),
+    )
   })
 
   it('keeps backward compatibility for legacy txHash-only callback', async () => {

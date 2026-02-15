@@ -346,6 +346,85 @@ describe('miniapp confirm jobs regressions', () => {
     expect(intent.amount.toRawString()).toBe('1000000000');
   });
 
+  it('passes remark into transaction intent and keeps it in emitted transaction', async () => {
+    const buildTransaction = vi.fn(async (intent: unknown) => ({
+      chainId: 'bfmetav2',
+      intentType: 'transfer',
+      data: intent,
+    }));
+
+    vi.mocked(getChainProvider).mockReturnValueOnce({
+      supportsFullTransaction: true,
+      buildTransaction,
+      signTransaction: vi.fn(),
+      broadcastTransaction: vi.fn(async () => 'tx-hash'),
+    } as unknown as ReturnType<typeof getChainProvider>);
+
+    vi.mocked(signUnsignedTransaction).mockImplementation(async (params) => ({
+      chainId: 'bfmetav2',
+      data: params.unsignedTx.data,
+      signature: 'sig',
+    }));
+
+    const eventPromise = new Promise<CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>>((resolve) => {
+      const handleEvent = (event: Event) => {
+        const customEvent = event as CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>;
+        if (customEvent.detail?.confirmed !== true) {
+          return;
+        }
+        window.removeEventListener('miniapp-transfer-confirm', handleEvent);
+        resolve(customEvent);
+      };
+
+      window.addEventListener('miniapp-transfer-confirm', handleEvent);
+    });
+
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '1000',
+          chain: 'BFMetaV2',
+          asset: 'BFM',
+          remark: {
+            ex_type: 'exchange.purchase',
+            ex_id: 'exchange-001',
+          },
+        }}
+      />,
+    );
+
+    const confirmButton = screen.getByTestId('miniapp-transfer-review-confirm');
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(confirmButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    await waitFor(() => {
+      expect(buildTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    expect(buildTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remark: {
+          ex_type: 'exchange.purchase',
+          ex_id: 'exchange-001',
+        },
+      }),
+    );
+
+    const event = await eventPromise;
+    expect(event.detail.transaction?.remark).toEqual({
+      ex_type: 'exchange.purchase',
+      ex_id: 'exchange-001',
+    });
+  });
+
 
   it('ignores duplicated unlock submission while transfer is in-flight', async () => {
     vi.mocked(signUnsignedTransaction).mockImplementation(async () => {

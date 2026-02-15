@@ -39,7 +39,7 @@ describe('handleDestroyAsset amount semantics', () => {
   });
 
   it('accepts raw amount and opens dialog', async () => {
-    const dialog = vi.fn(async () => ({ txHash: 'tx-hash' }));
+    const dialog = vi.fn(async () => ({ txHash: 'tx-hash', txId: 'tx-hash', transaction: { hash: 'tx-hash' } }));
     setDestroyDialog(dialog);
 
     const result = await handleDestroyAsset(
@@ -52,11 +52,49 @@ describe('handleDestroyAsset amount semantics', () => {
       context,
     );
 
-    expect(result).toEqual({ txHash: 'tx-hash' });
+    expect(result).toEqual({
+      txHash: 'tx-hash',
+      txId: 'tx-hash',
+      transaction: { hash: 'tx-hash' },
+    });
     expect(dialog).toHaveBeenCalledWith(
       expect.objectContaining({
         amount: '1000000000',
       }),
     );
+  });
+
+  it('passes remark to destroy dialog and normalizes transaction object', async () => {
+    const dialog = vi.fn(async () => ({ txHash: 'tx-hash' }));
+    setDestroyDialog(dialog);
+
+    const result = await handleDestroyAsset(
+      {
+        from: 'b_sender',
+        amount: '1000000000',
+        chain: 'bfmeta',
+        asset: 'BFM',
+        remark: {
+          ex_type: 'exchange.purchase',
+        },
+      },
+      context,
+    );
+
+    expect(dialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remark: {
+          ex_type: 'exchange.purchase',
+        },
+      }),
+    );
+    expect(result).toEqual({
+      txHash: 'tx-hash',
+      txId: 'tx-hash',
+      transaction: {
+        txHash: 'tx-hash',
+        txId: 'tx-hash',
+      },
+    });
   });
 });

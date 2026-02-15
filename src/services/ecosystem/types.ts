@@ -67,6 +67,7 @@ export interface EcosystemDestroyParams {
   amount: string; // raw 最小单位整数字符串
   chain: string;
   asset: string;
+  remark?: Record<string, string>;
 }
 
 /** Request message from miniapp */

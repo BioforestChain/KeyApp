@@ -1,5 +1,5 @@
 {
-  "id": "bfmpay.bfmeta.com.dweb",
+  "id": "keyapp.bf-meta.org.dweb",
   "name": "BFM Pay",
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
@@ -24,6 +24,6 @@
     "application",
     "wallet"
   ],
-  "home": "bfmpay.bfmeta.info",
-  "homepage_url": "bfmpay.bfmeta.info"
+  "home": "keyapp.bf-meta.org",
+  "homepage_url": "keyapp.bf-meta.org"
 }

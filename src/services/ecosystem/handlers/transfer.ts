@@ -82,6 +82,9 @@ export const handleSendTransaction: MethodHandler = async (params, context) => {
   if (opts.tokenAddress) {
     transferParams.tokenAddress = opts.tokenAddress
   }
+  if (opts.remark) {
+    transferParams.remark = opts.remark
+  }
 
   const result = await enqueueMiniappSheet(context.appId, () => showTransferDialog(transferParams))
 

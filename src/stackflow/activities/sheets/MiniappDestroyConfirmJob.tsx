@@ -22,6 +22,8 @@ import { ChainAddressDisplay } from '@/components/wallet/chain-address-display';
 import { findMiniappWalletByAddress, resolveMiniappChainId } from './miniapp-wallet';
 
 type MiniappDestroyConfirmJobParams = {
+  /** 请求标识（用于 FIFO 事件隔离） */
+  requestId?: string;
   /** 来源小程序名称 */
   appName: string;
   /** 来源小程序图标 */
@@ -34,13 +36,28 @@ type MiniappDestroyConfirmJobParams = {
   chain: string;
   /** 资产类型 */
   asset: string;
+  /** 业务备注（透传到交易体） */
+  remark?: Record<string, string>;
+};
+
+type MiniappDestroyResultDetail = {
+  requestId?: string;
+  confirmed: boolean;
+  txHash?: string;
+  txId?: string;
+  transaction?: Record<string, unknown>;
+};
+
+type MiniappDestroySheetClosedDetail = {
+  requestId?: string;
+  reason: 'cancel' | 'confirmed';
 };
 
 function MiniappDestroyConfirmJobContent() {
   const { t } = useTranslation(['common', 'transaction']);
   const { pop, push } = useFlow();
   const params = useActivityParams<MiniappDestroyConfirmJobParams>();
-  const { appName, appIcon, from, amount, chain, asset } = params;
+  const { requestId, appName, appIcon, from, amount, chain, asset, remark } = params;
   const chainConfigState = useChainConfigState();
 
   const resolvedChainId = useMemo(() => resolveMiniappChainId(chain), [chain]);
@@ -52,6 +69,24 @@ function MiniappDestroyConfirmJobContent() {
     : null;
 
   const [isConfirming, setIsConfirming] = useState(false);
+
+  const emitDestroyResult = useCallback((detail: MiniappDestroyResultDetail) => {
+    if (typeof window === 'undefined') return;
+    const payload: MiniappDestroyResultDetail = {
+      requestId,
+      ...detail,
+    };
+    window.dispatchEvent(new CustomEvent('miniapp-destroy-confirm', { detail: payload }));
+  }, [requestId]);
+
+  const emitSheetClosed = useCallback((reason: MiniappDestroySheetClosedDetail['reason']) => {
+    if (typeof window === 'undefined') return;
+    const payload: MiniappDestroySheetClosedDetail = {
+      requestId,
+      reason,
+    };
+    window.dispatchEvent(new CustomEvent('miniapp-destroy-sheet-closed', { detail: payload }));
+  }, [requestId]);
 
   const walletName = targetWallet?.name || t('common:unknownWallet');
   const lockDescription = `${appName || t('common:unknownDApp')} ${t('common:requestsDestroy')}`;
@@ -106,6 +141,7 @@ function MiniappDestroyConfirmJobContent() {
           recipientAddress: applyAddress,
           assetType: asset,
           amount: amountObj,
+          ...(remark ? { remark } : {}),
         });
 
         if (result.status === 'password') {
@@ -119,11 +155,15 @@ function MiniappDestroyConfirmJobContent() {
         // 发送成功事件
         const event = new CustomEvent('miniapp-destroy-confirm', {
           detail: {
+            requestId,
             confirmed: true,
             txHash: result.status === 'ok' ? result.txHash : undefined,
-          },
+            txId: result.status === 'ok' ? result.txId : undefined,
+            transaction: result.status === 'ok' ? result.transaction : undefined,
+          } satisfies MiniappDestroyResultDetail,
         });
         window.dispatchEvent(event);
+        emitSheetClosed('confirmed');
 
         pop();
         return true;
@@ -144,15 +184,13 @@ function MiniappDestroyConfirmJobContent() {
       walletAddress: from,
       walletChainId: resolvedChainId,
     });
-  }, [isConfirming, targetWallet, chainConfig, asset, from, amount, parsedAmount, pop, push, t, lockDescription, appName, appIcon, walletName, resolvedChainId]);
+  }, [isConfirming, targetWallet, chainConfig, asset, from, amount, parsedAmount, pop, push, t, lockDescription, appName, appIcon, walletName, resolvedChainId, remark, requestId, emitSheetClosed]);
 
   const handleCancel = useCallback(() => {
-    const event = new CustomEvent('miniapp-destroy-confirm', {
-      detail: { confirmed: false },
-    });
-    window.dispatchEvent(event);
+    emitDestroyResult({ confirmed: false });
+    emitSheetClosed('cancel');
     pop();
-  }, [pop]);
+  }, [emitDestroyResult, emitSheetClosed, pop]);
 
   return (
     <BottomSheet onCancel={handleCancel}>
