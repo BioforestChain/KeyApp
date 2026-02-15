@@ -10,18 +10,18 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "https://bioforestchain.github.io/KeyApp/dweb-dev/logo-256.webp",
-  "bundle_url": "./keyapp.bf-meta.org.dweb-0.10.16.zip",
-  "bundle_hash": "sha256:d1e7657329152d9c632ba1fc06264dd0871e45ca01857b5795dd3f3d766d7ba9",
-  "bundle_size": 9274884,
+  "bundle_url": "./keyapp.bf-meta.org.dweb-0.10.17.zip",
+  "bundle_hash": "sha256:9e1e4e0304613702b55d077b1962a0f97322131cea0444c3f446e5a098dd07c9",
+  "bundle_size": 9274885,
   "bundle_signature": "",
   "public_key_url": "",
-  "release_date": "Mon Feb 16 2026 01:17:42 GMT+0800 (中国标准时间)",
-  "change_log": "fix(dweb): resolve plugin module and remove keyboard overlay polling (#456)",
+  "release_date": "Mon Feb 16 2026 01:22:21 GMT+0800 (中国标准时间)",
+  "change_log": "fix(ecosystem): propagate miniapp remark and update keyapp dweb id (#458)",
   "images": [],
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.16",
+  "version": "0.10.17",
   "categories": [
     "application",
     "wallet"
