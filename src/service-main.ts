@@ -3,7 +3,6 @@ import {
   installLegacyAuthorizeHashRewriter,
   rewriteLegacyAuthorizeHashInPlace,
 } from '@/services/authorize/deep-link'
-import { startDwebKeyboardOverlay } from '@/lib/dweb-keyboard-overlay'
 
 export type ServiceMainCleanup = () => void
 
@@ -17,9 +16,6 @@ export type ServiceMainCleanup = () => void
 export function startServiceMain(): ServiceMainCleanup {
   // Normalize legacy mpay-style authorize deep links before Stackflow reads URL.
   rewriteLegacyAuthorizeHashInPlace()
-
-  // DWEB: keep viewport stable when soft keyboard appears.
-  const cleanupKeyboardOverlay = startDwebKeyboardOverlay()
 
   // Initialize preference side effects (i18n + RTL) as early as possible.
   preferencesActions.initialize()
@@ -37,6 +33,5 @@ export function startServiceMain(): ServiceMainCleanup {
 
   return () => {
     cleanupDeepLink()
-    cleanupKeyboardOverlay()
   }
 }

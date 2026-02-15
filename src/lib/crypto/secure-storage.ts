@@ -68,9 +68,7 @@ const BIOMETRIC_SUCCESS = 0;
 async function getDwebBiometric(): Promise<DwebBiometricPlugin | null> {
   if (!isDwebEnvironment()) return null;
   try {
-    // 使用变量规避 Vite 静态分析
-    const moduleName = '@plaoc/plugins';
-    const module = await import(/* @vite-ignore */ moduleName);
+    const module = await import('@plaoc/plugins');
     return module.biometricsPlugin as DwebBiometricPlugin;
   } catch {
     return null;

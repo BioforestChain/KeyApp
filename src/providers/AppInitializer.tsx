@@ -15,6 +15,7 @@ import { MigrationRequiredView } from '@/components/common/migration-required-vi
 import { LoadingSpinner } from '@/components/common'
 import { DwebUpdateDialog } from '@/components/common/dweb-update-dialog'
 import { dwebUpdateActions } from '@/stores/dweb-update'
+import { applyDwebKeyboardOverlay } from '@/lib/dweb-keyboard-overlay'
 
 // 立即执行：在 React 渲染之前应用缓存的主题色，避免闪烁
 initializeThemeHue()
@@ -34,6 +35,10 @@ export function AppInitializer({ children }: { children: ReactNode }) {
   const walletMigrationRequired = useWalletMigrationRequired()
   const chainConfigLoading = useChainConfigLoading()
   const walletLoading = useWalletLoading()
+
+  useEffect(() => {
+    void applyDwebKeyboardOverlay()
+  }, [])
 
   useEffect(() => {
     // 统一初始化所有需要持久化的 store
