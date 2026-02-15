@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.14",
-  "change_log": "fix(dweb): enable keyboard overlay to prevent viewport resize (#452)",
+  "version": "0.10.15",
+  "change_log": "fix(dweb): retry virtual keyboard overlay initialization (#454)",
   "categories": [
     "application",
     "wallet"
