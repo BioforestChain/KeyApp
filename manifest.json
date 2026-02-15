@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.15",
-  "change_log": "fix(dweb): retry virtual keyboard overlay initialization (#454)",
+  "version": "0.10.16",
+  "change_log": "fix(dweb): resolve plugin module and remove keyboard overlay polling (#456)",
   "categories": [
     "application",
     "wallet"
