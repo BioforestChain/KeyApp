@@ -8,12 +8,13 @@ import { EcosystemTab } from "./tabs/EcosystemTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { useFlow } from "../stackflow";
 import { superjson } from "@biochain/chain-effect";
-import type { BioAccount, EcosystemTransferParams, SignedTransaction } from "@/services/ecosystem";
+import type { BioAccount, EcosystemDestroyParams, EcosystemTransferParams, SignedTransaction } from "@/services/ecosystem";
 import {
   getBridge,
   initBioProvider,
   setChainSwitchConfirm,
   setCryptoAuthorizeDialog,
+  setDestroyDialog,
   setEvmSigningDialog,
   setEvmTransactionDialog,
   setEvmWalletPicker,
@@ -143,7 +144,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       console.log('[miniapp-transfer-sheet]', stage, payload);
     };
 
-    const enqueueTransferSheetTask = <T,>(task: () => Promise<T>, meta: { requestId: string; source: 'bio' | 'evm' }): Promise<T> => {
+    const enqueueTransferSheetTask = <T,>(task: () => Promise<T>, meta: { requestId: string; source: 'bio' | 'evm' | 'destroy' }): Promise<T> => {
       logTransferSheet('queue.enqueue', meta);
 
       const run = transferSheetTailRef.current
@@ -263,9 +264,112 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
                 amount: params.amount,
                 chain: params.chain,
                 ...(params.asset ? { asset: params.asset } : {}),
+                ...(params.remark ? { remark: params.remark } : {}),
               });
             }),
           { requestId, source: 'bio' },
+        );
+      });
+    });
+
+    setDestroyDialog(async (params: EcosystemDestroyParams & { app: { name: string; icon?: string } }) => {
+      const requestId = `destroy-${Date.now()}-${++transferSheetSeqRef.current}`;
+
+      return new Promise<{ txHash: string; txId?: string; transaction?: Record<string, unknown> } | null>((resolveResult) => {
+        void enqueueTransferSheetTask(
+          () =>
+            new Promise<void>((releaseQueue) => {
+              let resultSettled = false;
+              let queueReleased = false;
+
+              const cleanup = () => {
+                window.removeEventListener("miniapp-destroy-confirm", handleResult);
+                window.removeEventListener("miniapp-destroy-sheet-closed", handleSheetClosed);
+              };
+
+              const resolveResultOnce = (value: { txHash: string; txId?: string; transaction?: Record<string, unknown> } | null) => {
+                if (resultSettled) return;
+                resultSettled = true;
+                resolveResult(value);
+                if (queueReleased) {
+                  cleanup();
+                }
+              };
+
+              const releaseQueueOnce = (reason: string) => {
+                if (queueReleased) return;
+                queueReleased = true;
+                logTransferSheet('queue.release', {
+                  requestId,
+                  source: 'destroy',
+                  reason,
+                  resultSettled,
+                });
+                releaseQueue();
+                if (resultSettled) {
+                  cleanup();
+                }
+              };
+
+              const handleResult = (e: Event) => {
+                const detail = (e as CustomEvent).detail as
+                  | { requestId?: string; confirmed?: boolean; txHash?: string; txId?: string; transaction?: Record<string, unknown> }
+                  | undefined;
+
+                if (detail?.requestId !== requestId) {
+                  logTransferSheet('dialog.ignore', { requestId, source: 'destroy', incomingRequestId: detail?.requestId ?? 'unknown' });
+                  return;
+                }
+
+                logTransferSheet('dialog.receive', {
+                  requestId,
+                  source: 'destroy',
+                  confirmed: detail?.confirmed === true,
+                });
+
+                if (detail?.confirmed && detail.txHash) {
+                  resolveResultOnce({
+                    txHash: detail.txHash,
+                    txId: detail.txId,
+                    transaction: detail.transaction,
+                  });
+                  return;
+                }
+                resolveResultOnce(null);
+              };
+
+              const handleSheetClosed = (e: Event) => {
+                const detail = (e as CustomEvent).detail as { requestId?: string; reason?: string } | undefined;
+                if (detail?.requestId !== requestId) {
+                  return;
+                }
+
+                logTransferSheet('dialog.sheet-closed', {
+                  requestId,
+                  source: 'destroy',
+                  reason: detail?.reason ?? 'unknown',
+                });
+                if (!resultSettled) {
+                  resolveResultOnce(null);
+                }
+                releaseQueueOnce(detail?.reason ?? 'sheet-closed');
+              };
+
+              window.addEventListener("miniapp-destroy-confirm", handleResult);
+              window.addEventListener("miniapp-destroy-sheet-closed", handleSheetClosed);
+              logTransferSheet('dialog.push', { requestId, source: 'destroy', from: params.from, chain: params.chain, asset: params.asset });
+              push("MiniappDestroyConfirmJob", {
+                requestId,
+                appName: params.app.name,
+                appIcon: params.app.icon ?? "",
+                from: params.from,
+                amount: params.amount,
+                chain: params.chain,
+                asset: params.asset,
+                ...(params.remark ? { remark: params.remark } : {}),
+              });
+            }),
+          { requestId, source: 'destroy' },
         );
       });
     });
@@ -557,6 +661,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       setGetAccounts(null);
       setSigningDialog(null);
       setTransferDialog(null);
+      setDestroyDialog(null);
       setSignTransactionDialog(null);
     };
   }, [push]);

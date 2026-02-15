@@ -96,6 +96,7 @@ async function handleTransfer(param: {
     balance: string
     assetType?: string
     contractInfo?: { contractAddress: string; assetType: string; decimals: number | string }
+    remark?: Record<string, string>
 }): Promise<TransferResponse> {
     const result = await bioRequest<{ txHash: string; transaction?: object }>('bio_sendTransaction', {
         from: param.senderAddress,
@@ -104,6 +105,7 @@ async function handleTransfer(param: {
         chain: param.chainName,
         asset: param.assetType,
         contractInfo: param.contractInfo,
+        remark: param.remark,
     })
 
     return {
@@ -145,12 +147,14 @@ async function handleDestroy(param: {
     senderAddress: string
     assetType: string
     destoryAmount: string
+    remark?: Record<string, string>
 }): Promise<TransferResponse> {
     const result = await bioRequest<{ txId: string; transaction: object }>('bio_destroyAsset', {
-        address: param.senderAddress,
+        from: param.senderAddress,
         chain: param.chainName,
-        assetType: param.assetType,
+        asset: param.assetType,
         amount: param.destoryAmount,
+        remark: param.remark,
     })
     return result
 }

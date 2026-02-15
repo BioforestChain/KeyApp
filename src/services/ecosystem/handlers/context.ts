@@ -101,6 +101,16 @@ export interface TransferDialogResult {
   transaction?: Record<string, unknown>
 }
 
+/** 销毁对话框返回值 */
+export interface DestroyDialogResult {
+  /** 链上交易 ID（兼容旧字段） */
+  txHash: string
+  /** 语义化别名：交易 ID */
+  txId?: string
+  /** 可序列化交易对象（供调用方直接提交后端） */
+  transaction?: Record<string, unknown>
+}
+
 /** Handler 回调接口 */
 export interface HandlerCallbacks {
   // Bio (BioChain) callbacks
@@ -108,7 +118,7 @@ export interface HandlerCallbacks {
   getConnectedAccounts: () => BioAccount[]
   showSigningDialog: (params: SigningParams) => Promise<SigningResult | null>
   showTransferDialog: (params: EcosystemTransferParams & { app: MiniappInfo }) => Promise<TransferDialogResult | null>
-  showDestroyDialog?: (params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>
+  showDestroyDialog?: (params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<DestroyDialogResult | null>
   showSignTransactionDialog: (params: SignTransactionParams) => Promise<SignedTransaction | null>
 
   // EVM (Ethereum/BSC) callbacks

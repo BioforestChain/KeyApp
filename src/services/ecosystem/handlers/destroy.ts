@@ -4,12 +4,12 @@
 
 import type { MethodHandler, EcosystemDestroyParams } from '../types'
 import { BioErrorCodes } from '../types'
-import { HandlerContext, type MiniappInfo, toMiniappInfo } from './context'
+import { HandlerContext, type DestroyDialogResult, type MiniappInfo, toMiniappInfo } from './context'
 import { enqueueMiniappSheet } from '../sheet-queue'
 import { isRawAmountString } from '../raw-amount'
 
 // 兼容旧 API
-let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<{ txHash: string } | null>) | null = null
+let _showDestroyDialog: ((params: EcosystemDestroyParams & { app: MiniappInfo }) => Promise<DestroyDialogResult | null>) | null = null
 
 /** @deprecated 使用 HandlerContext.register 替代 */
 export function setDestroyDialog(dialog: typeof _showDestroyDialog): void {
@@ -20,6 +20,31 @@ export function setDestroyDialog(dialog: typeof _showDestroyDialog): void {
 function getDestroyDialog(appId: string) {
   const callbacks = HandlerContext.get(appId)
   return callbacks?.showDestroyDialog ?? _showDestroyDialog
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function normalizeDestroyResult(result: DestroyDialogResult) {
+  const txHash = result.txHash || result.txId
+  const txId = result.txId || result.txHash
+  if (!txHash || !txId) {
+    throw Object.assign(new Error('Invalid destroy result: missing tx id'), { code: BioErrorCodes.INTERNAL_ERROR })
+  }
+
+  const transaction = isRecord(result.transaction)
+    ? result.transaction
+    : {
+      txId,
+      txHash,
+    }
+
+  return {
+    txHash,
+    txId,
+    transaction,
+  }
 }
 
 /** bio_destroyAsset - Destroy an asset (BioForest chains only) */
@@ -49,6 +74,7 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
     amount: opts.amount,
     chain: opts.chain,
     asset: opts.asset,
+    ...(opts.remark ? { remark: opts.remark } : {}),
     app: toMiniappInfo(context),
   }
 
@@ -58,5 +84,5 @@ export const handleDestroyAsset: MethodHandler = async (params, context) => {
     throw Object.assign(new Error('User rejected'), { code: BioErrorCodes.USER_REJECTED })
   }
 
-  return result
+  return normalizeDestroyResult(result)
 }
