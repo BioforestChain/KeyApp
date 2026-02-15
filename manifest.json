@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.13",
-  "change_log": "fix(ecosystem): miniapp capsule info UX + pattern error clarity (#450)",
+  "version": "0.10.14",
+  "change_log": "fix(dweb): enable keyboard overlay to prevent viewport resize (#452)",
   "categories": [
     "application",
     "wallet"
