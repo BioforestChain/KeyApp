@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyDwebKeyboardOverlay, type DwebPluginsModule } from './dweb-keyboard-overlay'
+import {
+  applyDwebKeyboardOverlay,
+  startDwebKeyboardOverlay,
+  type DwebPluginsModule,
+} from './dweb-keyboard-overlay'
 
 describe('dweb keyboard overlay', () => {
   it('skips when current environment is not dweb', async () => {
@@ -55,5 +59,54 @@ describe('dweb keyboard overlay', () => {
     expect(warnSpy).toHaveBeenCalledTimes(1)
 
     warnSpy.mockRestore()
+  })
+
+  it('retries until dweb environment is ready', async () => {
+    vi.useFakeTimers()
+
+    const setOverlay = vi.fn<(overlay: boolean) => Promise<void>>().mockResolvedValue()
+    const loadPlugins = vi.fn<() => Promise<DwebPluginsModule>>().mockResolvedValue({
+      virtualKeyboardPlugin: { setOverlay },
+    })
+
+    let ready = false
+    const stop = startDwebKeyboardOverlay({
+      isDweb: () => ready,
+      loadPlugins,
+      maxAttempts: 4,
+      retryDelayMs: 100,
+    })
+
+    expect(loadPlugins).not.toHaveBeenCalled()
+
+    ready = true
+    await vi.advanceTimersByTimeAsync(120)
+
+    expect(loadPlugins).toHaveBeenCalledTimes(1)
+    expect(setOverlay).toHaveBeenCalledWith(true)
+
+    stop()
+    vi.useRealTimers()
+  })
+
+  it('stops retrying after cleanup', async () => {
+    vi.useFakeTimers()
+
+    const loadPlugins = vi.fn<() => Promise<DwebPluginsModule>>().mockResolvedValue({})
+    const stop = startDwebKeyboardOverlay({
+      isDweb: () => true,
+      loadPlugins,
+      maxAttempts: 10,
+      retryDelayMs: 100,
+    })
+
+    await vi.advanceTimersByTimeAsync(120)
+    expect(loadPlugins).toHaveBeenCalledTimes(2)
+
+    stop()
+    await vi.advanceTimersByTimeAsync(500)
+    expect(loadPlugins).toHaveBeenCalledTimes(2)
+
+    vi.useRealTimers()
   })
 })
