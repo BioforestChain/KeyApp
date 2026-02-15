@@ -3,7 +3,7 @@ import {
   installLegacyAuthorizeHashRewriter,
   rewriteLegacyAuthorizeHashInPlace,
 } from '@/services/authorize/deep-link'
-import { applyDwebKeyboardOverlay } from '@/lib/dweb-keyboard-overlay'
+import { startDwebKeyboardOverlay } from '@/lib/dweb-keyboard-overlay'
 
 export type ServiceMainCleanup = () => void
 
@@ -19,7 +19,7 @@ export function startServiceMain(): ServiceMainCleanup {
   rewriteLegacyAuthorizeHashInPlace()
 
   // DWEB: keep viewport stable when soft keyboard appears.
-  void applyDwebKeyboardOverlay()
+  const cleanupKeyboardOverlay = startDwebKeyboardOverlay()
 
   // Initialize preference side effects (i18n + RTL) as early as possible.
   preferencesActions.initialize()
@@ -37,5 +37,6 @@ export function startServiceMain(): ServiceMainCleanup {
 
   return () => {
     cleanupDeepLink()
+    cleanupKeyboardOverlay()
   }
 }
