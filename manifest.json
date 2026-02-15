@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.16",
-  "change_log": "fix(dweb): resolve plugin module and remove keyboard overlay polling (#456)",
+  "version": "0.10.17",
+  "change_log": "fix(ecosystem): propagate miniapp remark and update keyapp dweb id (#458)",
   "categories": [
     "application",
     "wallet"
