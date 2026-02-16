@@ -1,5 +1,6 @@
 {
   "name": "@biochain/flow",
+  "private": true,
   "version": "0.1.0",
   "description": "MCP Server & Workflow Framework for KeyApp",
   "type": "module",

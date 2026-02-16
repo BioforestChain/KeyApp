@@ -1,5 +1,6 @@
 {
   "name": "@biochain/theme-tools",
+  "private": true,
   "version": "0.1.0",
   "description": "主题检查工具 - 验证暗色模式最佳实践",
   "type": "module",

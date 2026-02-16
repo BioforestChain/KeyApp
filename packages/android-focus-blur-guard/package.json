@@ -1,5 +1,6 @@
 {
   "name": "@biochain/android-focus-blur-guard",
+  "private": false,
   "version": "0.1.0",
   "description": "Android focus/blur loop guard for WebView and iframe contexts",
   "type": "module",
@@ -9,7 +10,8 @@
   "exports": {
     ".": {
       "import": "./src/index.ts",
-      "types": "./src/index.ts"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "files": [

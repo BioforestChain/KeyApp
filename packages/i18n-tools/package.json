@@ -1,5 +1,6 @@
 {
   "name": "@biochain/i18n-tools",
+  "private": true,
   "version": "0.1.0",
   "description": "i18n 工具集 - 检查、验证、同步翻译",
   "type": "module",

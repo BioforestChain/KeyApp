@@ -1,11 +1,16 @@
 {
   "name": "@biochain/bio-sdk",
+  "private": false,
   "version": "0.2.0",
   "description": "Bio Ecosystem SDK for MiniApps - window.bio provider",
   "type": "module",
+  "main": "./src/index.ts",
   "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
   },

@@ -1,5 +1,6 @@
 {
   "name": "eslint-plugin-file-component-constraints",
+  "private": true,
   "version": "0.1.0",
   "description": "ESLint plugin to enforce component usage constraints based on file patterns",
   "main": "dist/index.js",
