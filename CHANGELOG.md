@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.0] - 2026-02-16
+
+Android 焦点循环修复与 miniapp remark 面板优化
+
+<!-- last-commit: fb24da5fd61a9c77ac28c26e9fc609619decda83 -->
+
 ## [0.10.12] - 2026-02-13
 
 miniapp strictUrl 支持严格入口 URL

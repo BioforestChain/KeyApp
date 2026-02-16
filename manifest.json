@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "0.10.17",
-  "change_log": "fix(ecosystem): propagate miniapp remark and update keyapp dweb id (#458)",
+  "version": "1.0.0",
+  "change_log": "Android 焦点循环修复与 miniapp remark 面板优化",
   "categories": [
     "application",
     "wallet"
