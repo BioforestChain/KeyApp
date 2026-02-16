@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.1] - 2026-02-16
+
+fix(dweb): disable virtual keyboard overlay by default
+
+<!-- last-commit: 3a33ef3a4f3cdfcdd0759b0374b6630230768f59 -->
+
 ## [1.0.0] - 2026-02-16
 
 Android 焦点循环修复与 miniapp remark 面板优化

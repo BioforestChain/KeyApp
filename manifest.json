@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.0",
-  "change_log": "Android 焦点循环修复与 miniapp remark 面板优化",
+  "version": "1.0.1",
+  "change_log": "fix(dweb): disable virtual keyboard overlay by default",
   "categories": [
     "application",
     "wallet"
