@@ -160,6 +160,18 @@ function MiniappTransferConfirmJobContent() {
     () => (parsedAmount ? null : t('transaction:broadcast.invalidParams')),
     [parsedAmount, t],
   );
+  const remarkEntries = useMemo(() => {
+    if (!remark) {
+      return [] as Array<{ key: string; value: string }>;
+    }
+
+    return Object.entries(remark)
+      .map(([key, value]) => ({
+        key: key.trim(),
+        value: value.trim(),
+      }))
+      .filter((entry) => entry.key.length > 0 && entry.value.length > 0);
+  }, [remark]);
 
   const transferShortTitle = useMemo(
     () => t('transaction:miniappTransfer.shortTitle', { amount: displayAmount, asset: displayAsset }),
@@ -567,8 +579,8 @@ function MiniappTransferConfirmJobContent() {
           setSuccessCountdown(SUCCESS_CLOSE_SECONDS);
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logTransferSheet('transfer.failed', { inputStep, message });
+        const errorType = error instanceof Error ? error.name : typeof error;
+        logTransferSheet('transfer.failed', { inputStep, errorType });
 
         if (inputStep === 'two_step_secret') {
           console.error('[miniapp-transfer][two-step-secret]', error);
@@ -732,6 +744,26 @@ function MiniappTransferConfirmJobContent() {
                 <span className="text-muted-foreground text-sm"> {t('network')}</span>
                 <ChainBadge chainId={resolvedChainId} />
               </div>
+
+              {remarkEntries.length > 0 && (
+                <div data-testid="miniapp-transfer-remark" className="bg-muted/50 space-y-2 rounded-xl p-3">
+                  <span className="text-muted-foreground text-xs">{t('memo')}</span>
+                  <div className="max-h-36 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)]">
+                    {remarkEntries.map((entry, index) => (
+                      <div
+                        key={entry.key}
+                        className={cn(
+                          'flex flex-row items-start justify-between gap-2 rounded-md px-2 py-1 text-xs leading-5',
+                          index % 2 === 0 ? 'bg-white' : 'bg-muted/40',
+                        )}
+                      >
+                        <span className="text-muted-foreground min-w-0 break-all">{entry.key}</span>
+                        <span className="min-w-0 break-all text-right">{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
                 <IconAlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
@@ -899,6 +931,26 @@ function MiniappTransferConfirmJobContent() {
               <span className="text-muted-foreground text-sm"> {t('network')}</span>
               <ChainBadge chainId={resolvedChainId} />
             </div>
+
+            {remarkEntries.length > 0 && (
+              <div data-testid="miniapp-transfer-remark" className="bg-muted/50 space-y-2 rounded-xl p-3">
+                <span className="text-muted-foreground text-xs">{t('memo')}</span>
+                <div className="max-h-36 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)]">
+                  {remarkEntries.map((entry, index) => (
+                    <div
+                      key={entry.key}
+                      className={cn(
+                        'flex flex-row items-start justify-between gap-2 rounded-md px-2 py-1 text-xs leading-5',
+                        index % 2 === 0 ? 'bg-white' : 'bg-muted/40',
+                      )}
+                    >
+                      <span className="text-muted-foreground min-w-0 break-all">{entry.key}</span>
+                      <span className="min-w-0 break-all text-right">{entry.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isSuccess ? (
               <>

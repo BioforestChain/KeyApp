@@ -402,6 +402,12 @@ describe('miniapp confirm jobs regressions', () => {
       expect(confirmButton).not.toBeDisabled();
     });
 
+    expect(screen.getByTestId('miniapp-transfer-remark')).toBeInTheDocument();
+    expect(screen.getByText('ex_type')).toBeInTheDocument();
+    expect(screen.getByText('exchange.purchase')).toBeInTheDocument();
+    expect(screen.getByText('ex_id')).toBeInTheDocument();
+    expect(screen.getByText('exchange-001')).toBeInTheDocument();
+
     fireEvent.click(confirmButton);
     fireEvent.click(screen.getByTestId('pattern-lock'));
 

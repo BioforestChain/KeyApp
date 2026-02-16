@@ -2,9 +2,12 @@
 import './lib/error-capture'
 import './lib/superjson'
 import './polyfills'
+import { installAndroidFocusBlurLoopGuard } from '@biochain/android-focus-blur-guard'
 import { startServiceMain } from './service-main'
 import { startFrontendMain } from './frontend-main'
 import { shouldBlockContextMenu } from './lib/context-menu-guard'
+
+installAndroidFocusBlurLoopGuard()
 
 // 禁用右键菜单（移动端 App 体验）
 document.addEventListener('contextmenu', (event) => {
