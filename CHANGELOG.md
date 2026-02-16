@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.2] - 2026-02-16
+
+fix(dweb): disable virtual keyboard overlay by default
+
+<!-- last-commit: 94ea5cd0b4198a6064d0edcfb7a4cd131eeb3d16 -->
+
 ## [1.0.1] - 2026-02-16
 
 fix(dweb): disable virtual keyboard overlay by default
