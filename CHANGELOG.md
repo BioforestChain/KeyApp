@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.3] - 2026-02-16
+
+build: add JS/CSS Chrome114 compatibility reports
+
+<!-- last-commit: f46c990b4fa65123d68444315d241c092167ff6f -->
+
 ## [1.0.2] - 2026-02-16
 
 fix(dweb): disable virtual keyboard overlay by default
