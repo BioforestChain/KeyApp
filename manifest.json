@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.2",
-  "change_log": "fix(dweb): disable virtual keyboard overlay by default",
+  "version": "1.0.3",
+  "change_log": "build: add JS/CSS Chrome114 compatibility reports",
   "categories": [
     "application",
     "wallet"
