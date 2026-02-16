@@ -19,7 +19,8 @@ async function defaultLoadPlugins(): Promise<DwebPluginsModule> {
 }
 
 /**
- * 在 DWEB 环境启用键盘 overlay，避免输入法弹出导致 document 发生 resize。
+ * 在 DWEB 环境配置键盘 overlay 行为。
+ * 当前策略：显式关闭 overlay，避免部分环境下的输入异常。
  */
 export async function applyDwebKeyboardOverlay(
   options: ApplyDwebKeyboardOverlayOptions = {},
@@ -38,7 +39,7 @@ export async function applyDwebKeyboardOverlay(
       return false
     }
 
-    await virtualKeyboardPlugin.setOverlay(true)
+    await virtualKeyboardPlugin.setOverlay(false)
     return true
   } catch (error) {
     console.warn('[dweb-keyboard-overlay] apply failed', error)
