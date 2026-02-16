@@ -1,0 +1,41 @@
+{
+  "name": "@biochain/android-focus-blur-guard",
+  "version": "0.1.0",
+  "description": "Android focus/blur loop guard for WebView and iframe contexts",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "typecheck": "tsc --noEmit",
+    "typecheck:run": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests",
+    "test:storybook": "echo 'No storybook'",
+    "i18n:run": "echo 'No i18n'",
+    "theme:run": "echo 'No theme'"
+  },
+  "devDependencies": {
+    "jsdom": "^27.2.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "keywords": [
+    "android",
+    "focus",
+    "blur",
+    "guard",
+    "webview"
+  ],
+  "license": "MIT"
+}

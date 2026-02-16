@@ -25,6 +25,7 @@ import { BioProviderImpl } from './provider'
 import { EthereumProvider, initEthereumProvider } from './ethereum-provider'
 import { TronLinkProvider, TronWebProvider, initTronProvider } from './tron-provider'
 import type { BioProvider } from './types'
+import { installAndroidFocusBlurLoopGuard } from '@biochain/android-focus-blur-guard'
 
 // Re-export types
 export * from './types'
@@ -80,6 +81,8 @@ export function initAllProviders(targetOrigin = '*'): {
 
 // Auto-initialize if running in browser
 if (typeof window !== 'undefined') {
+  installAndroidFocusBlurLoopGuard()
+
   const init = () => {
     initBioProvider()
     initEthereumProvider()
