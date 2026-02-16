@@ -1,5 +1,6 @@
 {
     "name": "@biochain/dweb-compat",
+    "private": true,
     "version": "0.1.0",
     "description": "dweb-plaoc 到 KeyApp bio provider 的兼容适配器",
     "type": "module",

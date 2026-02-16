@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import commonjs from 'vite-plugin-commonjs';
@@ -11,6 +12,9 @@ import { miniappsPlugin } from './scripts/vite-plugin-miniapps';
 import { remoteMiniappsPlugin, type RemoteMiniappConfig } from './scripts/vite-plugin-remote-miniapps';
 import { buildCheckPlugin } from './scripts/vite-plugin-build-check';
 import { pruneGenesisTransactionsPlugin } from './scripts/vite-plugin-prune-genesis-transactions';
+import { collectModernPolyfills, MOBILE_COMPAT_FEATURES, scanMobileCompatFeaturesInFiles } from './scripts/mobile-compat-features';
+import { cssCompatReportPlugin } from './scripts/vite-plugin-css-compat-report';
+import { mobileCompatReportPlugin } from './scripts/vite-plugin-mobile-compat-report';
 import { buildPermissionsPolicyHeaderValue } from './src/services/ecosystem/permissions-policy';
 
 const remoteMiniappsConfig: RemoteMiniappConfig[] = [
@@ -53,6 +57,18 @@ function collectEcosystemSources(configs: RemoteMiniappConfig[]): EcosystemSourc
 }
 
 const ecosystemSources = collectEcosystemSources(remoteMiniappsConfig);
+const MOBILE_COMPAT_BASELINE = 'chrome>=114';
+const CSS_COMPAT_BASELINE = 'chrome>=114';
+
+function resolveModernPolyfills(rootDir: string): string[] {
+  const sourceDir = resolve(rootDir, 'src');
+  const featureHits = scanMobileCompatFeaturesInFiles(sourceDir);
+  const features = MOBILE_COMPAT_FEATURES.filter((feature) => featureHits.has(feature.id));
+  if (featureHits.has('atomics.waitAsync')) {
+    console.warn('[mobile-compat] Atomics.waitAsync detected in src. Please keep runtime fallback to avoid unsupported runtime crashes.');
+  }
+  return collectModernPolyfills(features);
+}
 
 function getPreferredLanIPv4(): string | undefined {
   const ifaces = networkInterfaces();
@@ -131,6 +147,7 @@ export default defineConfig(({ mode }) => {
   const pad = (value: number) => value.toString().padStart(2, '0');
   const buildSuffix = `-${pad(buildTime.getUTCMonth() + 1)}${pad(buildTime.getUTCDate())}${pad(buildTime.getUTCHours())}`;
   const appVersion = `${getPackageVersion()}${isDevBuild ? buildSuffix : ''}`;
+  const mobileCompatPolyfills = resolveModernPolyfills(__dirname);
   const permissionsPolicyHeader = buildPermissionsPolicyHeaderValue();
 
   return {
@@ -167,6 +184,12 @@ export default defineConfig(({ mode }) => {
       }),
       react(),
       tailwindcss(),
+      legacy({
+        targets: [MOBILE_COMPAT_BASELINE],
+        modernTargets: [MOBILE_COMPAT_BASELINE],
+        renderLegacyChunks: false,
+        modernPolyfills: mobileCompatPolyfills.length > 0 ? mobileCompatPolyfills : false,
+      }),
       mockDevToolsPlugin(),
       // 远程 miniapps (必须在 miniappsPlugin 之前，以便注册到全局状态)
       remoteMiniappsPlugin({
@@ -189,6 +212,14 @@ export default defineConfig(({ mode }) => {
         remoteMiniapps: remoteMiniappsConfig,
       }),
       pruneGenesisTransactionsPlugin(),
+      mobileCompatReportPlugin({
+        baseline: MOBILE_COMPAT_BASELINE,
+        configuredPolyfillsMode: 'manual',
+        configuredPolyfills: mobileCompatPolyfills,
+      }),
+      cssCompatReportPlugin({
+        baseline: CSS_COMPAT_BASELINE,
+      }),
       buildCheckPlugin(),
     ],
     resolve: {

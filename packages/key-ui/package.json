@@ -1,5 +1,6 @@
 {
   "name": "@biochain/key-ui",
+  "private": true,
   "version": "0.1.0",
   "description": "Shared UI components for KeyApp and MiniApps",
   "type": "module",

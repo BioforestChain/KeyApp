@@ -1,5 +1,6 @@
 {
   "name": "@biochain/create-miniapp",
+  "private": true,
   "version": "0.1.0",
   "description": "CLI 工具用于快速创建 Bio 生态 miniapp 项目",
   "type": "module",
@@ -37,8 +38,5 @@
     "oxlint": "^1.32.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
