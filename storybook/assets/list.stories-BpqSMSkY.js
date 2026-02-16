@@ -1,0 +1,65 @@
+import{j as m}from"./iframe-CPG22Gvg.js";import{g as l}from"./wallet-config-w7GIbKTt.js";import{w as p}from"./user-profile-DTMlfwoF.js";import"./service-BVbeyLdv.js";import{w as c,a as d}from"./storybook-decorators-9s2J5MMK.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme-B8sQWFZQ.js";import"./wallet-card-carousel-DKIQ8nIW.js";import"./swiper-BiAKNBcT.js";import"./wallet-card-Dsh5xUBo.js";import"./hologram-canvas-Cgb_VMZJ.js";import"./chain-icon-DmCtfEDP.js";import"./address-display-BYSsmXA6.js";import"./web-CDAmkwGm.js";import"./createReactComponent-CbQTe-Tv.js";import"./breakpoint-DQ_qwb34.js";import"./schemas-CO8_C8zP.js";import"./useTranslation-DCL0_HUc.js";import"./index-DpSMJCqy.js";import"./IconCheck-C0Uv5X9v.js";import"./IconChevronDown-B7ysrIQT.js";import"./IconSettings-XP1YOmHd.js";import"./dropdown-menu-Cyb6mH8K.js";import"./index-BRN0vHlh.js";import"./index-BRd4svWS.js";import"./composite-BKUMHrSh.js";import"./useRenderElement-BYd6SeVi.js";import"./useBaseUiId-C5zq5W4S.js";import"./useCompositeListItem-U0GFb7Qq.js";import"./useRole-Bb4w76O-.js";import"./useButton-D7g1prjV.js";import"./IconWallet-C0FSbpM8.js";import"./IconPlus-C5_YUL7L.js";import"./IconSearch-DA0rX1NC.js";import"./button-CUoLTxz1.js";import"./TabBar-CX3VGnbp.js";import"./swiper-sync-context-UNZLHNXF.js";import"./index-BCgvqNEV.js";import"./wujie-container-DYNkfADk.js";import"./index-Ba5weNmE.js";import"./amount-BQsqQYGO.js";import"./index-D0E7N0oa.js";import"./derivation-BLchsz9S.js";import"./bioforest-DSIIUw3s.js";import"./web-CJW70xaB.js";import"./window-stack-BtL-ozcQ.js";import"./index-BkWKD4y7.js";import"./notification-DJ4owEfb.js";import"./transaction-meta-By86k_mU.js";import"./IconDots-D5oTf8pK.js";import"./IconShieldCheck-ByKMdGNv.js";import"./IconApps-DhtsYTSG.js";import"./IconCoins-BRgCEQOW.js";import"./IconSparkles-BexNqTVi.js";import"./IconLock-DN-H8lLL.js";import"./IconTrash-gtEfNMdX.js";import"./ecosystem-desktop-C8zIryLV.js";import"./my-apps-page-BWJCm0Rq.js";import"./config-HmZ3kn8E.js";import"./IconDownload-Bl0J3rQL.js";import"./proxy-W9NZ7VSW.js";import"./IconChevronRight-M9DfMXcK.js";import"./miniapp-splash-screen-BOBVf-Z3.js";import"./sheet-1LN6W9R0.js";import"./IconX-D9XHFEJR.js";import"./IconAlertTriangle-C6j35NI0.js";import"./IconExternalLink-CShUpxco.js";import"./index-BheinqYA.js";import"./item-D6F2LhNi.js";import"./recover-wallet-form-DwD0ibV-.js";import"./input-B5_eh_nL.js";import"./useField--zfi16Jy.js";import"./IconAlertCircle-CyxZHQ8X.js";import"./IconLoader2-BkWYhEP2.js";import"./token-item-BnT9i141.js";import"./wallet-selector-B4cCbmoK.js";import"./wallet-mini-card-CtzGYjr9.js";import"./token-icon-mE28uhLj.js";import"./LoadingSpinner-97gXTgHp.js";import"./NumberFlow-client-48rw3j0J-CIhj6HUH.js";import"./amount-display-ChhPoAuy.js";import"./animated-number-BzyXpLL3.js";import"./time-display-BQ05-2VA.js";import"./service-status-alert-Bx-gebca.js";import"./transaction-list-CKx1CE9J.js";import"./transaction-item-Ckttbyvv.js";import"./IconRefresh-970GWWLw.js";import"./swipeable-tabs-CYfyoL8A.js";import"./address-input-ClVQ5Ng2.js";import"./contact-avatar-BX-VfFRT.js";import"./avatar-codec-CBVKDlUj.js";import"./IconPencil-8Kvg7f28.js";import"./page-header-B9r7-Gxa.js";import"./pattern-lock-zbKfXuGF.js";import"./password-input-D8CIXDLQ.js";import"./IconEyeOff-D_lZ2ery.js";import"./IconEye-ChV8oEvA.js";import"./fee-display-DVjeEGvC.js";import"./tx-status-display-CgoUsnrD.js";import"./wallet-list-C02GEVdg.js";import"./checkbox-DTiu_yY7.js";import"./asset-selector-BvNcKUKg.js";import"./qr-parser-C4HVwjRd.js";import"./jsQR-DT4BPpM7.js";import"./index-TqcoEqsR.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-Ci0NUydN.js";import"./mnemonic-display-Bwre8mwZ.js";import"./pattern-lock-setup-CnqywSdS.js";import"./chain-selector-ITTHbgvN.js";import"./index-_cE2eN1b.js";import"./IconCircleCheck-S0ymruQY.js";import"./asset-item-CglyP2NY.js";import"./asset-list-BPOExyR3.js";import"./amount-input-VrcaBJKf.js";import"./balance-display-Q1LtRhlz.js";import"./send-result-DwN5vZuA.js";import"./transaction-status-l5n2D8yl.js";import"./IconBan-BACrQPRo.js";import"./IconClock-BE9h0lLz.js";import"./Trans-CFWXVcnm.js";import"./mnemonic-input-CEG7cphb.js";import"./AppInfoCard-DNQmsNHd.js";import"./PermissionList-C66N5OSc.js";import"./TransactionDetails-BbomjnPx.js";import"./BalanceWarning-tQPy19Se.js";import"./key-type-selector-DRjVh0ox.js";import"./arbitrary-key-input-CO4LLHOY.js";import"./IconRotateClockwise-BtX_o6_U.js";import"./chain-address-preview-DEgfT5at.js";import"./collision-confirm-dialog-BmK_x0X5.js";import"./IconBell-DZGWyKr9.js";import"./IconCircleX-CkFgMo9O.js";import"./IconShield-Jq4byhBd.js";const Ft={title:"Pages/Wallet/WalletListPage",component:l,decorators:[c(),d()],parameters:{layout:"fullscreen"}},r=(e,t)=>({id:e,name:t,address:`0x${e.padStart(40,"0")}`,chain:"ethereum",tokens:[],encryptedMnemonic:{ciphertext:"test",iv:"test",salt:"test",iterations:1e5},chainAddresses:[{chain:"ethereum",address:`0x${e.padStart(40,"0")}`,publicKey:`0x04${e}ethpubkey`,tokens:[{id:"eth",symbol:"ETH",name:"Ethereum",balance:"1.5",fiatValue:3e3,change24h:2.5,decimals:18,contractAddress:"",chain:"ethereum"},{id:"usdt",symbol:"USDT",name:"Tether",balance:"500",fiatValue:500,change24h:.1,decimals:6,contractAddress:"0xdac17f958d2ee523a2206206994597c13d831ec7",chain:"ethereum"}]},{chain:"binance",address:`0x${e.padStart(40,"0")}`,publicKey:`0x04${e}bnbpubkey`,tokens:[{id:"bnb",symbol:"BNB",name:"Binance Coin",balance:"2.0",fiatValue:600,change24h:1.8,decimals:18,contractAddress:"",chain:"binance"}]}],createdAt:Date.now()-864e5*Number(e),themeHue:323}),o={decorators:[e=>(p.setState({wallets:[],currentWalletId:null,chainPreferences:{},selectedChain:"ethereum",isLoading:!1,isInitialized:!0}),m.jsx(e,{}))]},i={decorators:[e=>{const t=r("1","Main Wallet");return p.setState({wallets:[t],currentWalletId:"1",chainPreferences:{},selectedChain:"ethereum",isLoading:!1,isInitialized:!0}),m.jsx(e,{})}]},a={decorators:[e=>{const t=[r("1","Main Wallet"),r("2","Trading"),r("3","Savings")];return p.setState({wallets:t,currentWalletId:"1",chainPreferences:{},selectedChain:"ethereum",isLoading:!1,isInitialized:!0}),m.jsx(e,{})}]},n={decorators:[e=>{const t=[r("1","Main Wallet"),r("2","Trading"),r("3","Savings")];return p.setState({wallets:t,currentWalletId:"2",chainPreferences:{},selectedChain:"ethereum",isLoading:!1,isInitialized:!0}),m.jsx(e,{})}]},s={decorators:[e=>{const t=[r("1","My Very Long Wallet Name That Should Be Truncated"),r("2","Another Long Name For Testing Purposes")];return p.setState({wallets:t,currentWalletId:"1",chainPreferences:{},selectedChain:"ethereum",isLoading:!1,isInitialized:!0}),m.jsx(e,{})}]};o.parameters={...o.parameters,docs:{...o.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    walletStore.setState({
+      wallets: [],
+      currentWalletId: null,
+      chainPreferences: {},
+      selectedChain: 'ethereum',
+      isLoading: false,
+      isInitialized: true
+    });
+    return <Story />;
+  }]
+}`,...o.parameters?.docs?.source},description:{story:"空状态：没有钱包",...o.parameters?.docs?.description}}};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const wallet = createMockWallet('1', 'Main Wallet');
+    walletStore.setState({
+      wallets: [wallet],
+      currentWalletId: '1',
+      chainPreferences: {},
+      selectedChain: 'ethereum',
+      isLoading: false,
+      isInitialized: true
+    });
+    return <Story />;
+  }]
+}`,...i.parameters?.docs?.source},description:{story:"单个钱包",...i.parameters?.docs?.description}}};a.parameters={...a.parameters,docs:{...a.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const wallets = [createMockWallet('1', 'Main Wallet'), createMockWallet('2', 'Trading'), createMockWallet('3', 'Savings')];
+    walletStore.setState({
+      wallets,
+      currentWalletId: '1',
+      chainPreferences: {},
+      selectedChain: 'ethereum',
+      isLoading: false,
+      isInitialized: true
+    });
+    return <Story />;
+  }]
+}`,...a.parameters?.docs?.source},description:{story:"多个钱包",...a.parameters?.docs?.description}}};n.parameters={...n.parameters,docs:{...n.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const wallets = [createMockWallet('1', 'Main Wallet'), createMockWallet('2', 'Trading'), createMockWallet('3', 'Savings')];
+    walletStore.setState({
+      wallets,
+      currentWalletId: '2',
+      chainPreferences: {},
+      selectedChain: 'ethereum',
+      isLoading: false,
+      isInitialized: true
+    });
+    return <Story />;
+  }]
+}`,...n.parameters?.docs?.source},description:{story:"非第一个钱包为当前钱包",...n.parameters?.docs?.description}}};s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    const wallets = [createMockWallet('1', 'My Very Long Wallet Name That Should Be Truncated'), createMockWallet('2', 'Another Long Name For Testing Purposes')];
+    walletStore.setState({
+      wallets,
+      currentWalletId: '1',
+      chainPreferences: {},
+      selectedChain: 'ethereum',
+      isLoading: false,
+      isInitialized: true
+    });
+    return <Story />;
+  }]
+}`,...s.parameters?.docs?.source},description:{story:"钱包带有长名称",...s.parameters?.docs?.description}}};const Ht=["Empty","SingleWallet","MultipleWallets","SecondWalletActive","LongWalletNames"];export{o as Empty,s as LongWalletNames,a as MultipleWallets,n as SecondWalletActive,i as SingleWallet,Ht as __namedExportsOrder,Ft as default};

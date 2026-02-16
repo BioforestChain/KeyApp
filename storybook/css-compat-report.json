@@ -1,0 +1,117 @@
+{
+  "baseline": "chrome>=114",
+  "detectedFeatures": [
+    {
+      "feature": "field-sizing",
+      "api": "field-sizing",
+      "support": "unsupported",
+      "risk": "high",
+      "assets": [
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 1,
+      "fallback": "为输入组件提供 rows/min-height 或 JS autosize，避免依赖 field-sizing。"
+    },
+    {
+      "feature": "scroll-driven-animations",
+      "api": "animation-timeline / scroll-timeline / view()",
+      "support": "unsupported",
+      "risk": "high",
+      "assets": [
+        "assets/ecosystem-desktop-CgFN8fis.css",
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 8,
+      "fallback": "必须保留无滚动驱动动画时的静态样式，并用 @supports 做增强。"
+    },
+    {
+      "feature": "css-scrollbar-standard",
+      "api": "scrollbar-width",
+      "support": "partial",
+      "risk": "medium",
+      "assets": [
+        "assets/iframe-dKmOljRT.css",
+        "assets/swiper-C8ec8cn4.css"
+      ],
+      "matchCount": 5,
+      "fallback": "保留 ::-webkit-scrollbar 回退样式，不依赖单一标准滚动条属性。"
+    },
+    {
+      "feature": "color-mix",
+      "api": "color-mix()",
+      "support": "supported",
+      "risk": "low",
+      "assets": [
+        "assets/ecosystem-desktop-CgFN8fis.css",
+        "assets/iframe-dKmOljRT.css",
+        "assets/my-apps-page-BfB_JRSz.css"
+      ],
+      "matchCount": 453,
+      "fallback": "关键颜色需保留普通色值兜底，避免表达式解析失败导致不可读。"
+    },
+    {
+      "feature": "container-queries",
+      "api": "@container / container-type / container-name",
+      "support": "supported",
+      "risk": "low",
+      "assets": [
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 12,
+      "fallback": "关键布局在不支持容器查询时需有基础块级布局兜底。"
+    },
+    {
+      "feature": "property-at-rule",
+      "api": "@property",
+      "support": "supported",
+      "risk": "low",
+      "assets": [
+        "assets/ecosystem-desktop-CgFN8fis.css",
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 96,
+      "fallback": "保持未注册 CSS 变量也可用的默认值路径。"
+    },
+    {
+      "feature": "backdrop-filter",
+      "api": "backdrop-filter",
+      "support": "supported",
+      "risk": "medium",
+      "assets": [
+        "assets/ecosystem-desktop-CgFN8fis.css",
+        "assets/iframe-dKmOljRT.css",
+        "assets/my-apps-page-BfB_JRSz.css"
+      ],
+      "matchCount": 32,
+      "fallback": "关键可读性不能依赖模糊效果，需有纯色/透明度兜底。"
+    },
+    {
+      "feature": "dynamic-viewport-units",
+      "api": "dvh / svh / lvh",
+      "support": "supported",
+      "risk": "low",
+      "assets": [
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 2,
+      "fallback": "保留 vh/min-height 兜底以降低宿主 WebView 差异影响。"
+    },
+    {
+      "feature": "has-selector",
+      "api": ":has()",
+      "support": "supported",
+      "risk": "low",
+      "assets": [
+        "assets/iframe-dKmOljRT.css"
+      ],
+      "matchCount": 94,
+      "fallback": "不要让核心交互仅依赖 :has 选择器触发。"
+    }
+  ],
+  "suggestions": [
+    "[fallback-required] field-sizing: 为输入组件提供 rows/min-height 或 JS autosize，避免依赖 field-sizing。",
+    "[fallback-required] animation-timeline / scroll-timeline / view(): 必须保留无滚动驱动动画时的静态样式，并用 @supports 做增强。",
+    "[fallback-recommended] scrollbar-width: 保留 ::-webkit-scrollbar 回退样式，不依赖单一标准滚动条属性。"
+  ],
+  "generatedAt": "2026-02-16T15:55:13.067Z"
+}

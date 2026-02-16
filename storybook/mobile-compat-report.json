@@ -1,0 +1,21 @@
+{
+  "baseline": "chrome>=114",
+  "detectedFeatures": [
+    {
+      "feature": "promise.withResolvers",
+      "api": "Promise.withResolvers",
+      "chunks": [
+        "assets/react-18-DY0sl-Kw.js"
+      ],
+      "polyfillable": true,
+      "modernPolyfills": [
+        "es.promise.with-resolvers"
+      ]
+    }
+  ],
+  "configuredPolyfills": [],
+  "suggestions": [
+    "[missing-config] Promise.withResolvers detected but matching modern polyfill is not configured in plugin-legacy"
+  ],
+  "generatedAt": "2026-02-16T15:55:13.066Z"
+}
