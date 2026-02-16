@@ -17,7 +17,7 @@ describe('dweb keyboard overlay', () => {
     expect(loadPlugins).not.toHaveBeenCalled()
   })
 
-  it('applies overlay in dweb environment', async () => {
+  it('disables overlay in dweb environment', async () => {
     const setOverlay = vi.fn<(overlay: boolean) => Promise<void>>().mockResolvedValue()
     const loadPlugins = vi.fn<() => Promise<DwebPluginsModule>>().mockResolvedValue({
       virtualKeyboardPlugin: { setOverlay },
@@ -30,7 +30,7 @@ describe('dweb keyboard overlay', () => {
 
     expect(result).toBe(true)
     expect(loadPlugins).toHaveBeenCalledTimes(1)
-    expect(setOverlay).toHaveBeenCalledWith(true)
+    expect(setOverlay).toHaveBeenCalledWith(false)
   })
 
   it('returns false when virtual keyboard plugin is unavailable', async () => {
