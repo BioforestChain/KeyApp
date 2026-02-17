@@ -1,5 +1,5 @@
 {
-  "id": "keyapp.bf-meta.org.dweb",
+  "id": "bfmpay.bfmeta.com.dweb",
   "server": {
     "root": "/usr",
     "entry": "/server/plaoc.server.js"
@@ -10,18 +10,18 @@
   "short_name": "BFM Pay",
   "description": "BFM Pay - 多链钱包应用",
   "logo": "https://bioforestchain.github.io/KeyApp/dweb/logo-256.webp",
-  "bundle_url": "./keyapp.bf-meta.org.dweb-1.0.3.zip",
-  "bundle_hash": "sha256:e6ef7a8a9699c714615dc1fa967289bbfdf8b2e7d60a5366d2fe4328a21192ad",
-  "bundle_size": 9277201,
+  "bundle_url": "./bfmpay.bfmeta.com.dweb-0.10.16.zip",
+  "bundle_hash": "sha256:2f83652438b8fd596cb0ddc8c869289af6021830e21633dbc5eae25b6c3b6c9d",
+  "bundle_size": 9274123,
   "bundle_signature": "",
   "public_key_url": "",
-  "release_date": "Tue Feb 17 2026 00:07:42 GMT+0800 (中国标准时间)",
-  "change_log": "build: add JS/CSS Chrome114 compatibility reports",
+  "release_date": "Sun Feb 15 2026 23:47:36 GMT+0800 (中国标准时间)",
+  "change_log": "fix(dweb): resolve plugin module and remove keyboard overlay polling (#456)",
   "images": [],
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.3",
+  "version": "0.10.16",
   "categories": [
     "application",
     "wallet"
@@ -30,7 +30,7 @@
     "中文",
     "English"
   ],
-  "homepage_url": "keyapp.bf-meta.org",
+  "homepage_url": "bfmpay.bfmeta.info",
   "plugins": [],
   "permissions": [],
   "dir": "ltr",
@@ -47,5 +47,5 @@
   "theme_color": "",
   "background_color": "",
   "shortcuts": [],
-  "home": "keyapp.bf-meta.org"
+  "home": "bfmpay.bfmeta.info"
 }
