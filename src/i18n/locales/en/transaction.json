@@ -244,6 +244,7 @@
     "explorerNotImplemented": "Block explorer feature coming soon",
     "fee": "Fee",
     "feeEstimating": "Estimating...",
+    "feePending": "Pending estimate",
     "feeUnavailable": "Fee unavailable",
     "from": "From",
     "networkWarning": "Please ensure the recipient address is a {{chain}} network address. Sending to the wrong network cannot be recovered",

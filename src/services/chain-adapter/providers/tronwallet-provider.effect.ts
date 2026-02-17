@@ -172,6 +172,15 @@ function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === "object" && value !== null
 }
 
+function formatTronSignature(txId: string, privateKey: Uint8Array): string {
+  const txIdBytes = hexToBytes(txId)
+  const recovered = secp256k1.sign(txIdBytes, privateKey, { prehash: false, format: "recovered" })
+  const recovery = recovered[0]
+  const compact = recovered.subarray(1)
+  const v = (recovery + 27).toString(16).padStart(2, "0")
+  return `${bytesToHex(compact)}${v}`
+}
+
 function toRawString(value: string | number | undefined | null): string {
   if (value === undefined || value === null) return "0"
   return String(value)
@@ -223,6 +232,137 @@ function mergeTransactions(nativeTxs: Transaction[], tokenTxs: Transaction[]): T
     map.set(tx.hash, tx)
   }
   return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp)
+}
+
+function decodeTronErrorMessage(value: unknown): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const normalized = trimmed.startsWith("0x") ? trimmed.slice(2) : trimmed
+  if (!/^[0-9a-fA-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+    return trimmed
+  }
+
+  try {
+    const decoded = new TextDecoder().decode(hexToBytes(normalized)).trim()
+    return decoded || trimmed
+  } catch {
+    return trimmed
+  }
+}
+
+function resolveBroadcastFailureReason(raw: unknown): string {
+  if (!isRecord(raw)) {
+    return "Unknown error"
+  }
+
+  const candidates: unknown[] = [raw.message, raw.code, raw.error]
+  if (isRecord(raw.result)) {
+    candidates.push(raw.result.message, raw.result.code, raw.result.error)
+  }
+
+  for (const candidate of candidates) {
+    const reason = decodeTronErrorMessage(candidate)
+    if (reason) return reason
+  }
+
+  return "Unknown error"
+}
+
+function resolveBuildFailureReason(raw: unknown): string {
+  if (!isRecord(raw)) {
+    return "Unknown error"
+  }
+
+  const errorRecord = isRecord(raw.error) ? raw.error : null
+  const resultRecord = isRecord(raw.result) ? raw.result : null
+  const resultErrorRecord = resultRecord && isRecord(resultRecord.error) ? resultRecord.error : null
+  const dataRecord = isRecord(raw.data) ? raw.data : null
+  const dataErrorRecord = dataRecord && isRecord(dataRecord.error) ? dataRecord.error : null
+
+  const candidates: unknown[] = [
+    errorRecord?.message,
+    errorRecord?.info,
+    errorRecord?.code,
+    raw.message,
+    raw.code,
+    resultRecord?.message,
+    resultRecord?.code,
+    resultErrorRecord?.message,
+    resultErrorRecord?.info,
+    resultErrorRecord?.code,
+    dataRecord?.message,
+    dataRecord?.code,
+    dataErrorRecord?.message,
+    dataErrorRecord?.info,
+    dataErrorRecord?.code,
+  ]
+
+  for (const candidate of candidates) {
+    const reason = decodeTronErrorMessage(candidate)
+    if (reason) return reason
+  }
+
+  return "Unknown error"
+}
+
+function isBroadcastSuccess(raw: unknown): boolean {
+  if (!isRecord(raw)) return false
+  if (typeof raw.result === "boolean") return raw.result
+  if (typeof raw.success === "boolean") return raw.success
+  return false
+}
+
+function toSignedPayload(data: unknown): TronWalletSignedPayload {
+  if (isRecord(data) && isRecord(data.signedTx)) {
+    return data as TronWalletSignedPayload
+  }
+
+  const signedTx = data as TronSignedTransaction
+  return {
+    signedTx,
+    detail: {
+      from: "",
+      to: "",
+      amount: "0",
+      fee: "0",
+      assetSymbol: "",
+    },
+    isToken: false,
+  }
+}
+
+function pickTronRawTransaction(raw: unknown): TronRawTransaction | null {
+  if (!isRecord(raw)) return null
+
+  if (typeof raw.txID === "string") {
+    return raw as TronRawTransaction
+  }
+
+  if (isRecord(raw.transaction) && typeof raw.transaction.txID === "string") {
+    return raw.transaction as TronRawTransaction
+  }
+
+  if (isRecord(raw.result)) {
+    if (typeof raw.result.txID === "string") {
+      return raw.result as TronRawTransaction
+    }
+    if (isRecord(raw.result.transaction) && typeof raw.result.transaction.txID === "string") {
+      return raw.result.transaction as TronRawTransaction
+    }
+  }
+
+  if (isRecord(raw.data)) {
+    if (typeof raw.data.txID === "string") {
+      return raw.data as TronRawTransaction
+    }
+    if (isRecord(raw.data.transaction) && typeof raw.data.transaction.txID === "string") {
+      return raw.data.transaction as TronRawTransaction
+    }
+  }
+
+  return null
 }
 
 function isConfirmedReceipt(raw: ReceiptResponse): boolean {
@@ -526,7 +666,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
     const fromHex = tronAddressToHex(transferIntent.from)
     const toHex = tronAddressToHex(transferIntent.to)
     const hasCustomFee = Boolean(transferIntent.fee)
-    const feeRaw = transferIntent.fee?.raw ?? "0"
+    const feeRaw = transferIntent.fee?.toRawString() ?? "0"
     const tokenAddress = transferIntent.tokenAddress?.trim()
     const isToken = Boolean(tokenAddress)
     let assetSymbol = this.symbol
@@ -569,7 +709,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
       const detail: TronWalletBroadcastDetail = {
         from: fromHex,
         to: toHex,
-        amount: transferIntent.amount.raw,
+        amount: transferIntent.amount.toRawString(),
         fee: estimatedFeeRaw,
         assetSymbol,
       }
@@ -585,7 +725,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
       }
     }
 
-    const rawTx = await Effect.runPromise(
+    const rawTxResponse = await Effect.runPromise(
       httpFetch({
         url: `${this.baseUrl}/trans/create`,
         method: "POST",
@@ -597,6 +737,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
         },
       })
     )
+    const rawTx = this.extractNativeTransaction(rawTxResponse)
 
     const estimatedFeeRaw = hasCustomFee
       ? feeRaw
@@ -604,7 +745,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
     const detail: TronWalletBroadcastDetail = {
       from: fromHex,
       to: toHex,
-      amount: transferIntent.amount.raw,
+      amount: transferIntent.amount.toRawString(),
       fee: estimatedFeeRaw,
       assetSymbol,
     }
@@ -613,7 +754,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
       chainId: this.chainId,
       intentType: "transfer",
       data: {
-        rawTx: rawTx as TronRawTransaction,
+        rawTx,
         detail,
         isToken: false,
       } satisfies TronWalletUnsignedPayload,
@@ -629,9 +770,7 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
     }
 
     const payload = unsignedTx.data as TronWalletUnsignedPayload
-    const txIdBytes = hexToBytes(payload.rawTx.txID)
-    const sigBytes = secp256k1.sign(txIdBytes, options.privateKey, { prehash: false, format: "recovered" })
-    const signature = bytesToHex(sigBytes)
+    const signature = formatTronSignature(payload.rawTx.txID, options.privateKey)
     const signedTx: TronSignedTransaction = {
       ...payload.rawTx,
       signature: [signature],
@@ -649,24 +788,36 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
   }
 
   async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
-    const payload = signedTx.data as TronWalletSignedPayload
+    const payload = toSignedPayload(signedTx.data)
     const url = payload.isToken ? `${this.baseUrl}/trans/trc20/broadcast` : `${this.baseUrl}/trans/broadcast`
+    const requestBody = payload.detail.assetSymbol
+      ? {
+        ...payload.signedTx,
+        detail: payload.detail,
+      }
+      : payload.signedTx
 
     const result = await Effect.runPromise(
       httpFetch({
         url,
         method: "POST",
-        body: {
-          ...payload.signedTx,
-          detail: payload.detail,
-        },
+        body: requestBody,
       })
     )
 
-    const response = result as { result?: boolean; txid?: string }
-    if (!response.result) {
-      throw new ChainServiceError(ChainErrorCodes.TX_BROADCAST_FAILED, "Broadcast failed")
+    if (!isBroadcastSuccess(result)) {
+      const reason = resolveBroadcastFailureReason(result)
+      throw new ChainServiceError(
+        ChainErrorCodes.TX_BROADCAST_FAILED,
+        `Broadcast failed: ${reason}`,
+        isRecord(result) ? { provider: this.type, response: result, reason } : { provider: this.type, reason },
+      )
     }
+
+    if (isRecord(result) && typeof result.txid === "string" && result.txid.length > 0) {
+      return result.txid
+    }
+
     return payload.signedTx.txID
   }
 
@@ -1365,27 +1516,27 @@ export class TronWalletProviderEffect extends TronIdentityMixin(TronTransactionM
   }
 
   private extractTrc20Transaction(raw: unknown): TronRawTransaction {
-    if (raw && typeof raw === "object") {
-      const record = raw as Record<string, unknown>
-      if ("success" in record && record.success === false) {
-        throw new ChainServiceError(ChainErrorCodes.TX_BUILD_FAILED, "TRC20 transaction build failed")
-      }
-      const transaction = record["transaction"]
-      if (transaction && typeof transaction === "object" && "txID" in transaction) {
-        return transaction as TronRawTransaction
-      }
-      const result = record["result"]
-      if (result && typeof result === "object") {
-        const nested = (result as Record<string, unknown>)["transaction"]
-        if (nested && typeof nested === "object" && "txID" in nested) {
-          return nested as TronRawTransaction
-        }
-      }
-      if ("txID" in record) {
-        return record as TronRawTransaction
-      }
-    }
-    throw new ChainServiceError(ChainErrorCodes.TX_BUILD_FAILED, "Invalid TRC20 transaction response")
+    const tx = pickTronRawTransaction(raw)
+    if (tx) return tx
+
+    const reason = resolveBuildFailureReason(raw)
+    throw new ChainServiceError(
+      ChainErrorCodes.TX_BUILD_FAILED,
+      `TRC20 transaction build failed: ${reason}`,
+      isRecord(raw) ? { provider: this.type, response: raw, reason } : { provider: this.type, reason },
+    )
+  }
+
+  private extractNativeTransaction(raw: unknown): TronRawTransaction {
+    const tx = pickTronRawTransaction(raw)
+    if (tx) return tx
+
+    const reason = resolveBuildFailureReason(raw)
+    throw new ChainServiceError(
+      ChainErrorCodes.TX_BUILD_FAILED,
+      `Failed to create Tron transaction: ${reason}`,
+      isRecord(raw) ? { provider: this.type, response: raw, reason } : { provider: this.type, reason },
+    )
   }
 
   private fetchPendingTransactions(address: string): Effect.Effect<PendingTxResponse, FetchError> {
