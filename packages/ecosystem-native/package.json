@@ -1,5 +1,6 @@
 {
   "name": "@biochain/ecosystem-native",
+  "private": true,
   "version": "0.1.0",
   "description": "Native DOM components for Ecosystem desktop with Safari optimization",
   "type": "module",

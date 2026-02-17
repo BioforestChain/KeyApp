@@ -35,6 +35,89 @@ type Constructor<T = object> = new (...args: any[]) => T
 /** Default Tron RPC 端点 (fallback) */
 const DEFAULT_RPC_URL = 'https://api.trongrid.io'
 
+type UnknownRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is UnknownRecord {
+    return typeof value === 'object' && value !== null
+}
+
+function formatTronSignature(txId: string, privateKey: Uint8Array): string {
+    const txIdBytes = hexToBytes(txId)
+    const recovered = secp256k1.sign(txIdBytes, privateKey, { prehash: false, format: 'recovered' })
+    const recovery = recovered[0]
+    const compact = recovered.subarray(1)
+    const v = (recovery + 27).toString(16).padStart(2, '0')
+    return `${bytesToHex(compact)}${v}`
+}
+
+function decodeTronErrorMessage(value: unknown): string | null {
+    if (typeof value !== 'string') {
+        return null
+    }
+
+    const trimmed = value.trim()
+    if (!trimmed) {
+        return null
+    }
+
+    const normalized = trimmed.startsWith('0x') ? trimmed.slice(2) : trimmed
+    if (!/^[0-9a-fA-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        return trimmed
+    }
+
+    try {
+        const decoded = new TextDecoder().decode(hexToBytes(normalized)).trim()
+        return decoded || trimmed
+    } catch {
+        return trimmed
+    }
+}
+
+function resolveBroadcastFailureReason(raw: unknown): string {
+    if (!isRecord(raw)) {
+        return 'Unknown error'
+    }
+
+    const candidates: unknown[] = [raw.message, raw.code, raw.error]
+
+    if (isRecord(raw.result)) {
+        candidates.push(raw.result.message, raw.result.code, raw.result.error)
+    }
+
+    for (const candidate of candidates) {
+        const reason = decodeTronErrorMessage(candidate)
+        if (reason) {
+            return reason
+        }
+    }
+
+    return 'Unknown error'
+}
+
+function isBroadcastSuccess(raw: unknown): boolean {
+    if (!isRecord(raw)) {
+        return false
+    }
+
+    if (typeof raw.result === 'boolean') {
+        return raw.result
+    }
+
+    if (typeof raw.success === 'boolean') {
+        return raw.success
+    }
+
+    return false
+}
+
+function unwrapSignedTransactionPayload(signedTx: SignedTransaction): TronSignedTransaction {
+    const payload = signedTx.data
+    if (isRecord(payload) && isRecord(payload.signedTx)) {
+        return payload.signedTx as TronSignedTransaction
+    }
+    return payload as TronSignedTransaction
+}
+
 /**
  * Tron Transaction Mixin - 为任意类添加 Tron 交易能力
  * 
@@ -164,9 +247,7 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
             }
 
             const rawTx = unsignedTx.data as TronRawTransaction
-            const txIdBytes = hexToBytes(rawTx.txID)
-            const sigBytes = secp256k1.sign(txIdBytes, options.privateKey, { prehash: false, format: 'recovered' })
-            const signature = bytesToHex(sigBytes)
+            const signature = formatTronSignature(rawTx.txID, options.privateKey)
 
             const signedTx: TronSignedTransaction = {
                 ...rawTx,
@@ -184,17 +265,23 @@ export function TronTransactionMixin<TBase extends Constructor<{ chainId: string
          * 广播交易
          */
         async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
-            const tx = signedTx.data as TronSignedTransaction
+            const tx = unwrapSignedTransactionPayload(signedTx)
             const result = await this.#api<{ result?: boolean; txid?: string; code?: string; message?: string }>(
                 '/wallet/broadcasttransaction',
                 tx,
             )
 
-            if (!result.result) {
-                const errorMsg = result.message
-                    ? Buffer.from(result.message, 'hex').toString('utf8')
-                    : result.code ?? 'Unknown error'
-                throw new ChainServiceError(ChainErrorCodes.TX_BROADCAST_FAILED, `Broadcast failed: ${errorMsg}`)
+            if (!isBroadcastSuccess(result)) {
+                const errorMsg = resolveBroadcastFailureReason(result)
+                throw new ChainServiceError(
+                    ChainErrorCodes.TX_BROADCAST_FAILED,
+                    `Broadcast failed: ${errorMsg}`,
+                    { reason: errorMsg, response: isRecord(result) ? result : undefined },
+                )
+            }
+
+            if (typeof result.txid === 'string' && result.txid.length > 0) {
+                return result.txid
             }
 
             return tx.txID

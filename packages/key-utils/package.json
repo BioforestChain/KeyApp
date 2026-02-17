@@ -1,5 +1,6 @@
 {
   "name": "@biochain/key-utils",
+  "private": true,
   "version": "0.1.0",
   "description": "Utility functions for KeyApp UI components",
   "type": "module",

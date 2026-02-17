@@ -1,5 +1,6 @@
 {
   "name": "@biochain/chain-effect",
+  "private": true,
   "version": "0.1.0",
   "description": "Effect TS based reactive chain data fetching",
   "type": "module",

@@ -1,5 +1,6 @@
 {
   "name": "@biochain/e2e-tools",
+  "private": true,
   "version": "0.1.0",
   "description": "E2E 测试工具 - 截图审计、残留检测",
   "type": "module",

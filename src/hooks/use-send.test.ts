@@ -93,24 +93,68 @@ describe('useSend', () => {
   })
 
   describe('setAsset', () => {
-    it('updates asset and estimates fee', async () => {
+    it('updates asset without estimating fee before form completion', async () => {
       const { result } = renderHook(() => useSend())
 
       act(() => {
         result.current.setAsset(mockAsset)
       })
       expect(result.current.state.asset).toEqual(mockAsset)
+      expect(result.current.state.feeLoading).toBe(false)
+      expect(result.current.state.feeAmount).toBeNull()
+      expect(result.current.state.feeSymbol).toBe('')
+    })
+
+    it('estimates fee after form becomes complete with debounce', async () => {
+      const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+
+      act(() => {
+        result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
+        result.current.setAmount(Amount.fromFormatted('0.5', 18, 'ETH'))
+      })
+
+      act(() => {
+        vi.advanceTimersByTime(299)
+      })
+      expect(result.current.state.feeAmount).toBeNull()
       expect(result.current.state.feeLoading).toBe(true)
 
-      // Wait for fee estimation
       act(() => {
-        vi.advanceTimersByTime(300)
+        vi.advanceTimersByTime(1)
       })
 
       expect(result.current.state.feeLoading).toBe(false)
-      expect(result.current.state.feeAmount).not.toBeNull()
       expect(result.current.state.feeAmount?.toFormatted()).toBe('0.002')
       expect(result.current.state.feeSymbol).toBe('ETH')
+    })
+
+    it('re-estimates fee after amount change with debounce', async () => {
+      const { result } = renderHook(() => useSend({ initialAsset: mockAsset }))
+
+      act(() => {
+        result.current.setToAddress('0x1234567890abcdef1234567890abcdef12345678')
+        result.current.setAmount(Amount.fromFormatted('0.5', 18, 'ETH'))
+      })
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
+      expect(result.current.state.feeAmount?.toFormatted()).toBe('0.002')
+
+      act(() => {
+        result.current.setAmount(Amount.fromFormatted('0.6', 18, 'ETH'))
+      })
+      expect(result.current.state.feeLoading).toBe(true)
+
+      act(() => {
+        vi.advanceTimersByTime(299)
+      })
+      expect(result.current.state.feeAmount).toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(1)
+      })
+      expect(result.current.state.feeLoading).toBe(false)
+      expect(result.current.state.feeAmount?.toFormatted()).toBe('0.002')
     })
   })
 
