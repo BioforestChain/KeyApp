@@ -213,6 +213,21 @@ function SendPageContent() {
   const symbol = state.asset?.assetType ?? 'TOKEN';
   const feeSymbol = state.feeSymbol || chainConfig?.symbol;
   const isFeeSameAsset = !!feeSymbol && feeSymbol === symbol;
+  const hasFeeEstimatePrerequisites = useMemo(() => {
+    if (!state.asset) return false;
+    const toAddress = state.toAddress.trim();
+    if (toAddress.length === 0) return false;
+    if (!state.amount?.isPositive()) return false;
+    return true;
+  }, [state.amount, state.asset, state.toAddress]);
+
+  const feeDisplayText = useMemo(() => {
+    if (state.feeLoading) return t('sendPage.feeEstimating');
+    if (state.feeAmount) return `${state.feeAmount.toFormatted()} ${state.feeSymbol || symbol}`;
+    if (!hasFeeEstimatePrerequisites) return t('sendPage.feePending');
+    return t('sendPage.feeUnavailable');
+  }, [hasFeeEstimatePrerequisites, state.feeAmount, state.feeLoading, state.feeSymbol, symbol, t]);
+
   const maxAmount = useMemo(() => {
     if (!state.asset || !balance) return undefined;
     if (!state.feeAmount) return balance;
@@ -412,13 +427,7 @@ function SendPageContent() {
         {/* Fee estimate */}
         <div className="text-muted-foreground flex items-center justify-between text-xs">
           <span>{t('sendPage.fee')}</span>
-          <span>
-            {state.feeLoading
-              ? t('sendPage.feeEstimating')
-              : state.feeAmount
-                ? `${state.feeAmount.toFormatted()} ${state.feeSymbol || symbol}`
-                : t('sendPage.feeUnavailable')}
-          </span>
+          <span>{feeDisplayText}</span>
         </div>
 
         {/* Network warning */}

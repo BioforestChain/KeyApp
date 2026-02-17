@@ -203,8 +203,8 @@ function TransferWalletLockJobContent() {
         }
         return;
       }
-    } catch {
-      setError(t("transaction:broadcast.unknown"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("transaction:broadcast.unknown"));
       setTxStatus("failed");
     } finally {
       setIsVerifying(false);
@@ -295,7 +295,7 @@ function TransferWalletLockJobContent() {
               title={{
                 broadcasted: t("transaction:txStatus.broadcasted"),
                 confirmed: t("transaction:sendResult.success"),
-                failed: t("transaction:broadcast.failed"),
+                failed: t("transaction:txStatus.failed"),
               }}
               description={{
                 broadcasted: t("transaction:txStatus.broadcastedDesc"),

@@ -147,7 +147,7 @@ export function httpFetch<T>(options: FetchOptions<T>): Effect.Effect<T, FetchEr
         };
 
         if (method === 'POST' && body !== undefined) {
-          requestInit.body = JSON.stringify(body);
+          requestInit.body = stableStringify(body);
         }
 
         const response = await fetch(finalUrl, requestInit);

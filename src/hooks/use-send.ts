@@ -22,7 +22,8 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
     asset: initialAsset ?? null,
   });
 
-  const feeInitKeyRef = useRef<string | null>(null);
+  const feeEstimateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const feeEstimateSeqRef = useRef(0);
 
   const isBioforestChain = chainConfig?.chainKind === 'bioforest';
   const isWeb3Chain =
@@ -81,33 +82,83 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
       setState((prev) => ({
         ...prev,
         asset,
-        feeLoading: true,
+        feeAmount: null,
+        feeMinAmount: null,
+        feeSymbol: '',
+        feeLoading: false,
       }));
+    },
+    [],
+  );
 
-      const shouldUseMock = useMock || (!isBioforestChain && !isWeb3Chain) || !chainConfig || !fromAddress;
+  useEffect(() => {
+    if (feeEstimateDebounceRef.current) {
+      clearTimeout(feeEstimateDebounceRef.current);
+      feeEstimateDebounceRef.current = null;
+    }
 
-      if (shouldUseMock) {
-        // Mock fee estimation delay
-        setTimeout(() => {
-          const fee = MOCK_FEES[asset.assetType] ?? { amount: '0.001', symbol: asset.assetType };
-          const feeAmount = Amount.fromFormatted(fee.amount, asset.decimals, fee.symbol);
-          setState((prev) => ({
-            ...prev,
-            feeAmount: feeAmount,
-            feeMinAmount: feeAmount,
-            feeSymbol: fee.symbol,
-            feeLoading: false,
-          }));
-        }, 300);
-        return;
-      }
+    if (!state.asset) {
+      return;
+    }
 
+    const shouldUseMock = useMock || (!isBioforestChain && !isWeb3Chain) || !chainConfig || !fromAddress;
+    const toAddress = state.toAddress.trim();
+    const hasValidAmount = state.amount?.isPositive() === true;
+    const isTronSelfTransfer =
+      chainConfig?.chainKind === 'tron' &&
+      fromAddress !== undefined &&
+      fromAddress.trim().length > 0 &&
+      fromAddress.trim() === toAddress;
+    const canEstimateFee = toAddress.length > 0 && hasValidAmount && !isTronSelfTransfer;
+
+    if (!canEstimateFee) {
+      setState((prev) => {
+        if (!prev.feeLoading && prev.feeAmount === null && prev.feeMinAmount === null && prev.feeSymbol === '') {
+          return prev;
+        }
+        return {
+          ...prev,
+          feeLoading: false,
+          feeAmount: null,
+          feeMinAmount: null,
+          feeSymbol: '',
+        };
+      });
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      feeLoading: true,
+      feeAmount: null,
+      feeMinAmount: null,
+      feeSymbol: '',
+    }));
+
+    const requestSeq = ++feeEstimateSeqRef.current;
+    feeEstimateDebounceRef.current = setTimeout(() => {
       void (async () => {
         try {
-          // Use appropriate fee fetcher based on chain type
-          const feeEstimate = isWeb3Chain
-            ? await fetchWeb3Fee(chainConfig, fromAddress)
-            : await fetchBioforestFee(chainConfig, fromAddress);
+          const feeEstimate = shouldUseMock
+            ? (() => {
+                const fee = MOCK_FEES[state.asset!.assetType] ?? { amount: '0.001', symbol: state.asset!.assetType };
+                return {
+                  amount: Amount.fromFormatted(fee.amount, state.asset!.decimals, fee.symbol),
+                  symbol: fee.symbol,
+                };
+              })()
+            : isWeb3Chain && chainConfig && fromAddress
+              ? await fetchWeb3Fee({
+                  chainConfig,
+                  fromAddress,
+                  toAddress,
+                  amount: state.amount ?? undefined,
+                })
+              : await fetchBioforestFee(chainConfig!, fromAddress!);
+
+          if (requestSeq !== feeEstimateSeqRef.current) {
+            return;
+          }
 
           setState((prev) => ({
             ...prev,
@@ -117,32 +168,37 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
             feeLoading: false,
           }));
         } catch (error) {
+          if (requestSeq !== feeEstimateSeqRef.current) {
+            return;
+          }
           setState((prev) => ({
             ...prev,
+            feeAmount: null,
+            feeMinAmount: null,
+            feeSymbol: '',
             feeLoading: false,
             errorMessage: error instanceof Error ? error.message : t('error:transaction.feeEstimateFailed'),
           }));
         }
       })();
-    },
-    [chainConfig, fromAddress, isBioforestChain, isWeb3Chain, useMock],
-  );
+    }, 300);
 
-  useEffect(() => {
-    if (!state.asset) return;
-    if (state.feeLoading) return;
-
-    const feeKey = `${chainConfig?.id ?? 'unknown'}:${fromAddress ?? ''}:${state.asset.assetType}`;
-    const feeKeyChanged = feeInitKeyRef.current !== feeKey;
-    if (feeKeyChanged) {
-      feeInitKeyRef.current = feeKey;
-    }
-
-    if (!feeKeyChanged && state.feeAmount) return;
-    if (!feeKeyChanged && !state.feeAmount) return;
-
-    setAsset(state.asset);
-  }, [chainConfig?.id, fromAddress, setAsset, state.asset, state.feeAmount, state.feeLoading]);
+    return () => {
+      if (feeEstimateDebounceRef.current) {
+        clearTimeout(feeEstimateDebounceRef.current);
+        feeEstimateDebounceRef.current = null;
+      }
+    };
+  }, [
+    chainConfig,
+    fromAddress,
+    isBioforestChain,
+    isWeb3Chain,
+    state.amount,
+    state.asset,
+    state.toAddress,
+    useMock,
+  ]);
 
   // Get current balance from external source (single source of truth)
   const currentBalance = useMemo(() => {
@@ -291,7 +347,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
             txHash: null,
             errorMessage: result.message,
           }));
-          return { status: 'error' as const };
+          return { status: 'error' as const, message: result.message };
         }
 
         setState((prev) => ({

@@ -51,8 +51,35 @@ describe('miniapp-transfer-error mapper', () => {
     expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('transaction:broadcast.timeout');
   });
 
-  it('falls back to unknown broadcast error', () => {
+  it('maps broadcast failure with detailed reason', () => {
+    const error = new ChainServiceError(
+      ChainErrorCodes.TX_BROADCAST_FAILED,
+      'Broadcast failed: SIGERROR',
+      { reason: 'SIGERROR' },
+    );
+    expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('transaction:broadcast.failed: SIGERROR');
+  });
+
+  it('maps tx build self-transfer failure', () => {
+    const error = new ChainServiceError(
+      ChainErrorCodes.TX_BUILD_FAILED,
+      'Failed to create Tron transaction: Cannot transfer TRX to yourself.',
+      { reason: 'Cannot transfer TRX to yourself.' },
+    );
+    expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('error:validation.cannotTransferToSelf');
+  });
+
+  it('maps tx build failure reason directly', () => {
+    const error = new ChainServiceError(
+      ChainErrorCodes.TX_BUILD_FAILED,
+      'Failed to create Tron transaction: account does not exist',
+      { reason: 'account does not exist' },
+    );
+    expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('account does not exist');
+  });
+
+  it('falls back to original error message for unknown error', () => {
     const error = new Error('some-random-error');
-    expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('transaction:broadcast.unknown');
+    expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('some-random-error');
   });
 });
