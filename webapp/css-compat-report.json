@@ -107,5 +107,5 @@
     "[fallback-required] animation-timeline / scroll-timeline / view(): 必须保留无滚动驱动动画时的静态样式，并用 @supports 做增强。",
     "[fallback-recommended] scrollbar-width: 保留 ::-webkit-scrollbar 回退样式，不依赖单一标准滚动条属性。"
   ],
-  "generatedAt": "2026-02-17T13:44:38.991Z"
+  "generatedAt": "2026-02-17T13:48:18.246Z"
 }
