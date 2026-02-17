@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.4] - 2026-02-17
+
+修复 Tron 广播链路、BigInt 序列化与转账错误提示
+
+<!-- last-commit: cc1c2de8c902e8962e7676296029248bac223670 -->
+
 ## [1.0.3] - 2026-02-16
 
 build: add JS/CSS Chrome114 compatibility reports

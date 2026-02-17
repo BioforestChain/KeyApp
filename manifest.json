@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.3",
-  "change_log": "build: add JS/CSS Chrome114 compatibility reports",
+  "version": "1.0.4",
+  "change_log": "修复 Tron 广播链路、BigInt 序列化与转账错误提示",
   "categories": [
     "application",
     "wallet"
