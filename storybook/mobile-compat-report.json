@@ -5,7 +5,7 @@
       "feature": "promise.withResolvers",
       "api": "Promise.withResolvers",
       "chunks": [
-        "assets/react-18-CqjD-eJH.js"
+        "assets/react-18-C1XYAxgY.js"
       ],
       "polyfillable": true,
       "modernPolyfills": [
@@ -17,5 +17,5 @@
   "suggestions": [
     "[missing-config] Promise.withResolvers detected but matching modern polyfill is not configured in plugin-legacy"
   ],
-  "generatedAt": "2026-02-18T12:54:41.651Z"
+  "generatedAt": "2026-02-18T12:56:53.689Z"
 }
