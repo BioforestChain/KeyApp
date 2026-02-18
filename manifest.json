@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.6",
-  "change_log": "修复 BSC 转账广播链路并透传 tokenAddress",
+  "version": "1.0.7",
+  "change_log": "修复钱包列表链水印映射并在地址前显示链名称",
   "categories": [
     "application",
     "wallet"
