@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.4",
-  "change_log": "修复 Tron 广播链路、BigInt 序列化与转账错误提示",
+  "version": "1.0.5",
+  "change_log": "修复 miniapp Crypto 授权手势校验与错误提示",
   "categories": [
     "application",
     "wallet"
